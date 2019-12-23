@@ -1,0 +1,45 @@
+<assembly>
+    <id>dist</id>
+    <!-- Specifies that our binary distribution is a zip package -->
+    <formats>
+        <format>zip</format>
+    </formats>
+ 
+    <!-- Adds the dependencies of our application to the lib directory -->
+    <dependencySets>
+        <dependencySet>
+            <!--
+                Project artifact is not copied under library directory since
+                it is added to the root directory of the zip package.
+            -->
+            <useProjectArtifact>false</useProjectArtifact>
+            <outputDirectory>lib</outputDirectory>
+            <unpack>false</unpack>
+        </dependencySet>
+    </dependencySets>
+ 
+    <fileSets>
+        <!--
+            Adds startup scripts to the root directory of zip package. The startup
+            scripts are copied from the src/main/scripts directory.
+        -->
+        <fileSet>
+            <directory>${project.build.scriptSourceDirectory}</directory>
+            <outputDirectory></outputDirectory>
+            <includes>
+                <include>jbang</include>
+            </includes>
+        </fileSet>
+        <!--
+            Adds the jar file of our example application to the root directory
+            of the created zip package.
+        -->
+        <fileSet>
+            <directory>${project.build.directory}</directory>
+            <outputDirectory></outputDirectory>
+            <includes>
+                <include>*.jar</include>
+            </includes>
+        </fileSet>
+    </fileSets>
+</assembly>
