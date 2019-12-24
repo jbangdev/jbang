@@ -1,0 +1,57 @@
+plugins {
+  id "distribution"
+  id "com.github.johnrengelman.shadow" version "5.2.0"
+  id "java"
+}
+
+repositories {
+	jcenter()
+}
+
+dependencies {
+  	implementation 'com.offbytwo:docopt:0.6.0.20150202'
+
+  	implementation ("com.jcabi:jcabi-aether:0.10.1") {
+        exclude group: "org.hibernate", module: "hibernate-validator"
+        exclude group: "org.slf4j", module: "slf4j-api"
+        exclude group: "org.slf4j", module: "jcl-over-slf4j"
+        exclude group: "org.apache.commons", module: "commons-lang3"
+        exclude group: "cglib", module: "cglib"
+        exclude group: "org.kuali.maven.wagons", module: "maven-s3-wagon"
+    }
+    // compile("com.jcabi:jcabi-aether:0.10.1:sources") //can be used for debugging, but somehow adds logging to dependency resolvement?
+    implementation "org.apache.maven:maven-core:3.0.5"
+    implementation "org.slf4j:slf4j-nop:1.7.25"
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.5.2"
+    testRuntime('org.junit.jupiter:junit-jupiter-engine:5.5.2')
+    testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
+}
+
+distributions {
+  main {
+    contents {
+      from ('examples') {
+        include '**/*.java'
+        into 'examples'
+      }
+      from shadowJar
+      from 'src/main/scripts'
+    }
+  }
+}
+
+shadowJar {
+	minimize()
+  archiveName = "${baseName}.${extension}"
+}
+
+test {
+  useJUnitPlatform()
+}
+
+group = "dk.xam.jbang"
+version = "0.0.1"
+sourceCompatibility = '11'
+
+

@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-
-
 absolute_path() {
     # if the given path to the jbang launcher is absolute (i.e. it is either starting with / or a
     # 'letter:/' when using gitbash on windows) it is returned unchanged, otherwise we construct an absolute path
