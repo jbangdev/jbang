@@ -1,5 +1,6 @@
 package dk.xam.jbang;
 
+
 import static java.lang.System.*;
 
 import java.io.File;
@@ -12,6 +13,9 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Main {
+
+
+
 
 	static void info(String msg) {
 		System.err.println(msg);
