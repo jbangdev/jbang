@@ -17,4 +17,5 @@ jobs:
         with:
           java-version: 11
       - name: Build JDK 11 projects
-        run: gradle build
+        run: gradle build --scan -s
+        

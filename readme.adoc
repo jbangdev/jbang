@@ -1,0 +1,50 @@
+# j'bang - Having fun with Java scripting
+
+image:https://img.shields.io/github/release/maxandersen/jbang.svg[Release,link=https://github.com/maxandersen/jbang/releases]
+image:https://github.com/maxandersen/jbang/workflows/ci-build/badge.svg[Build Status,link=https://github.com/maxandersen/jbang/actions]
+
+Ever tried out Java 10+ support for running .java files directly in your shell but felt it was a bit too cumbersome ?
+
+Well, try `jbang` which gives you:
+
+* Dependency declarations using `//DEPS <gav>` for automatic dependency resolution
+* Dependency resolution caching
+* (PLANNED) Launch with debug enabled for instant debugging from your favorite IDE
+* (PLANNED) Generate gradle/maven file with dependencies for easy editing in your favorite IDE
+* (PLANNED) Lookup dependencies with a short-hand name, i.e. `// DEPS log4j:1.2+,picocli` for quick getting started.
+
+To use it simply install `jbang` and run `jbang yourscript.java`
+
+## Declare dependencies with `//DEPS`
+
+To specify dependencies you use gradle-style locators. Here is an example using `log4j`
+
+
+[source, java]
+```
+include::examples/classpath_example.java[]
+```
+
+## FAQ
+
+[qanda]
+Why the name j'bang?::
+  I was reading up on how to use the new shebang (#!) feature support in Java 10 and came up with the idea of port `kscript` to Java and needed a name.
+From there came j'bang which is a "bad" spelling of how shebang is pronounced in french.
+
+[qanda]
+Why use of gradle resource locators rather than ?::
+  kscript used it and its nice as it is a one-liner and easily parsable.
+
+[qanda]
+Why would I use Java to write scripts ? Java sucks for that...::
+  Well, does it really ? With Java 8 streams, static imports and greatly improved standard java libraries it is very close to how kscript and grape looks like.
+With the following advantages:
++
+* works with plain Java without installing additional compiler/build tools
+* all ide's support editing .java files very well, content assist etc.
+* great debugging
+
+And to be honest I built `jbang` just to see if I could and get my Java skills refreshed for the newer features in the language.
+Use it at your own risk :)
+
