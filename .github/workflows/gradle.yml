@@ -1,4 +1,4 @@
-name: Build jbang
+name: ci-build
 on: [push, pull_request]
 jobs:
   build-jdk11:
