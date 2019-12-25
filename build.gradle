@@ -63,7 +63,7 @@ githubRelease {
     // FilenameFilter filter = { dir, filename -> filename.contains(project.version) } // ensure nothing extra gets included.
     //releaseAssets = distZip.destinationDir.listFiles filter
     releaseAssets = distZip.destinationDir.listFiles()
-    println(getReleaseAssets().getFiles())
+    //println(getReleaseAssets().getFiles())
     // set ORG_GRADLE_PROJECT_github_token
     token = project.hasProperty('github_token') ? getProperty('github_token') : "unknown_github_token"
     owner = "maxandersen"

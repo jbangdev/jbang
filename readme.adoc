@@ -50,5 +50,5 @@ Use it at your own risk :)
 
 ## Thanks
 
-`jbang` was heavily inspired by how `https://github.com/holgerbrandl/kscript[kscript]` by Holger Brand works.  
+`jbang` was heavily inspired by how `https://github.com/holgerbrandl/kscript[kscript]` by Holger Brand works.
 
