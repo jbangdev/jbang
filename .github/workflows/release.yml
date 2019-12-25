@@ -24,4 +24,6 @@ jobs:
       - name: build-gradle
         run: ./gradlew build --build-cache --scan -s
       - name: tag
+        env:
+          ORG_GRADLE_PROJECT_github_token: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew githubRelease
