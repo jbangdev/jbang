@@ -17,5 +17,5 @@ jobs:
         with:
           java-version: 11
       - name: Build JDK 11 projects
-        run: ./gradlew build --scan -s
+        run: ./gradlew build --build-cache --scan -s
 
