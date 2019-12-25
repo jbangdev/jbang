@@ -2,9 +2,7 @@ on:
   push:
     tags:
       - 'v*'
-
 name: release
-
 jobs:
   build:
     runs-on: ubuntu-latest

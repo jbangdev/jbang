@@ -5,7 +5,7 @@ image:https://github.com/maxandersen/jbang/workflows/ci-build/badge.svg[Build St
 
 Ever tried out Java 10+ support for running .java files directly in your shell but felt it was a bit too cumbersome ?
 
-Well, try `jbang` which gives you:
+Then try `jbang` which gives you:
 
 * Dependency declarations using `//DEPS <gav>` for automatic dependency resolution
 * Dependency resolution caching
