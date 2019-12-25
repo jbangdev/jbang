@@ -3,6 +3,7 @@ plugins {
     id "com.github.johnrengelman.shadow" version "5.2.0"
     id "java"
     id "com.github.breadmoirai.github-release" version "2.2.9"
+    id "io.toolebox.git-versioner" version "1.3.0"
 }
 
 repositories {
@@ -58,7 +59,14 @@ githubRelease {
     owner = "maxandersen"
 }
 
+versioner {
+    startFrom {
+        major = 0
+        minor = 0
+        patch = 1
+    }
+}
+
 group = "dk.xam.jbang"
-version = "0.0.1"
 sourceCompatibility = '11'
 
