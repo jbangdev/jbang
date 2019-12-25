@@ -1,17 +1,18 @@
 plugins {
-  id "distribution"
-  id "com.github.johnrengelman.shadow" version "5.2.0"
-  id "java"
+    id "distribution"
+    id "com.github.johnrengelman.shadow" version "5.2.0"
+    id "java"
 }
 
 repositories {
-	jcenter()
+    jcenter()
 }
 
-dependencies {
-  	implementation 'com.offbytwo:docopt:0.6.0.20150202'
 
-  	implementation ("com.jcabi:jcabi-aether:0.10.1") {
+dependencies {
+    implementation 'com.offbytwo:docopt:0.6.0.20150202'
+
+    implementation("com.jcabi:jcabi-aether:0.10.1") {
         exclude group: "org.hibernate", module: "hibernate-validator"
         exclude group: "org.slf4j", module: "slf4j-api"
         exclude group: "org.slf4j", module: "jcl-over-slf4j"
@@ -24,30 +25,30 @@ dependencies {
     implementation "org.slf4j:slf4j-nop:1.7.25"
 
     testImplementation "org.junit.jupiter:junit-jupiter:5.5.2"
-    testRuntime('org.junit.jupiter:junit-jupiter-engine:5.5.2')
+    testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.5.2')
     testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
 }
 
 distributions {
-  main {
-    contents {
-      from ('examples') {
-        include '**/*.java'
-        into 'examples'
-      }
-      from shadowJar
-      from 'src/main/scripts'
+    main {
+        contents {
+            from('examples') {
+                include '**/*.java'
+                into 'examples'
+            }
+            from shadowJar
+            from 'src/main/scripts'
+        }
     }
-  }
 }
 
 shadowJar {
-	minimize()
-  archiveName = "${baseName}.${extension}"
+    minimize()
+    archiveFileName = "${archiveBaseName}.${archiveExtension}"
 }
 
 test {
-  useJUnitPlatform()
+    useJUnitPlatform()
 }
 
 group = "dk.xam.jbang"

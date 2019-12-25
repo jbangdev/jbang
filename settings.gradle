@@ -1,0 +1,21 @@
+pluginManagement {
+    plugins {
+        id "com.gradle.enterprise" version "3.1.1"
+    }
+}
+
+plugins {
+    id "com.gradle.enterprise"
+}
+
+// Configuration of com.gradle.enterprise (build scan) plugin
+gradleEnterprise {
+    buildScan {
+        // Accept the license agreement for com.gradle.build-scan plugin
+        termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+        termsOfServiceAgree = 'yes'
+
+        // Always publish scan (no more need for --scan option)
+        //publishAlways()
+    }
+}
