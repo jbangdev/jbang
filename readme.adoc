@@ -48,3 +48,7 @@ With the following advantages:
 And to be honest I built `jbang` just to see if I could and get my Java skills refreshed for the newer features in the language.
 Use it at your own risk :)
 
+## Thanks
+
+`jbang` was heavily inspired by how `https://github.com/holgerbrandl/kscript[kscript]` by Holger Brand works.  
+
