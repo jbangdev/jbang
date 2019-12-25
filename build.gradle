@@ -66,6 +66,13 @@ versioner {
         minor = 0
         patch = 1
     }
+    git {
+        authentication {
+            https {
+                token = project.hasProperty('github_token') ? getProperty('github_token') : "unknown_github_token"
+            }
+        }
+    }
 }
 
 group = "dk.xam.jbang"

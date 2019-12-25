@@ -1,5 +1,10 @@
-name: ci-build
-on: [push, pull_request]
+on:
+  push:
+    tags:
+      - 'v*'
+
+name: release
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,4 +23,5 @@ jobs:
           java-version: 11
       - name: build-gradle
         run: ./gradlew build --build-cache --scan -s
-
+      - name: tag
+        run: ./gradlew githubRelease
