@@ -55,6 +55,11 @@ test {
 }
 
 githubRelease {
+    // currently does not work as project.version not set.
+    // FilenameFilter filter = { dir, filename -> filename.contains(project.version) } // ensure nothing extra gets included.
+    //releaseAssets = distZip.destinationDir.listFiles filter
+    releaseAssets = distZip.destinationDir.listFiles()
+    println(getReleaseAssets().getFiles())
     // set ORG_GRADLE_PROJECT_github_token
     token = project.hasProperty('github_token') ? getProperty('github_token') : "unknown_github_token"
     owner = "maxandersen"
@@ -77,4 +82,3 @@ versioner {
 
 group = "dk.xam.jbang"
 sourceCompatibility = '11'
-
