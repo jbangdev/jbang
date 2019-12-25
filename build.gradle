@@ -38,8 +38,12 @@ distributions {
                 include '**/*.java'
                 into 'examples'
             }
-            from shadowJar
-            from 'src/main/scripts'
+            from(shadowJar) {
+                into 'bin'
+            }
+            from('src/main/scripts') {
+                into 'bin'
+            }
         }
     }
 }
