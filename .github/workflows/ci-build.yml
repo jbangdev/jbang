@@ -3,7 +3,7 @@ on: [push, pull_request]
 jobs:
   build-jdk11:
     runs-on: ubuntu-latest
-    name: Build Java 11
+    name: build-and-testing
     steps:
       - uses: actions/checkout@v1
       - uses: actions/cache@v1

@@ -2,6 +2,7 @@ plugins {
     id "distribution"
     id "com.github.johnrengelman.shadow" version "5.2.0"
     id "java"
+    id "com.github.breadmoirai.github-release" version "2.2.9"
 }
 
 repositories {
@@ -51,8 +52,13 @@ test {
     useJUnitPlatform()
 }
 
+githubRelease {
+    // set ORG_GRADLE_PROJECT_github_token
+    token = project.hasProperty('github_token') ? getProperty('github_token') : "unknown_github_token"
+    owner = "maxandersen"
+}
+
 group = "dk.xam.jbang"
 version = "0.0.1"
 sourceCompatibility = '11'
-
 
