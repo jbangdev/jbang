@@ -41,13 +41,26 @@ distributions {
             from(shadowJar) {
                 into 'bin'
             }
-            from('src/main/scripts') {
+            from('src/main/scripts/jbang') {
                 into 'bin'
             }
         }
     }
 }
 
+task homebrew() {
+    doLast {
+        filesMatching('**/jbang.rb') {
+            filter {
+                expand(
+                        'project.version': project.version,
+                        'sha256' : 'randomstuff'
+                )
+            }
+        }
+    }
+
+}
 shadowJar {
     minimize()
     // warning is printed about deprecation in 7.0 but if I fix this shadowjar turns into a bogus file
