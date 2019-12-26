@@ -27,6 +27,7 @@ jobs:
         run: ./gradlew githubRelease
       - name: homebrew
         env:
-          brew_github_token: ${{ secrets.BREW_GITHUB_TOKEN }}
-          brew_user: ${{ secrets.BREW_USER }}
+          BREW_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}
+          BREW_USER: ${{ secrets.BREW_USER }}
+          dont: ${{ secrets.WONKA }}
         run: ./misc/updatebrew.sh
