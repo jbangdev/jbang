@@ -26,6 +26,6 @@ jobs:
           ORG_GRADLE_PROJECT_github_token: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew githubRelease
       - name: homebrew
-        with:
+        env:
           github_token: ${{ secrets.GITHUB_TOKEN }}
         run: ./misc/updatebrew.sh
