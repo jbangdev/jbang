@@ -27,4 +27,7 @@ jobs:
         run: ./gradlew githubRelease
       - name: homebrew
         run: ./misc/updatebrew.sh
-        
+      - name: homebrew-push
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}

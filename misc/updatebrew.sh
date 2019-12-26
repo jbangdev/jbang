@@ -10,7 +10,8 @@ rm -rf homebrew-tap
 git clone https://github.com/maxandersen/homebrew-tap.git
 cd homebrew-tap
 
-git config  user.email "max@xam.dk"
+git config user.name "Max Rydahl Andersen"
+git config user.email "max@xam.dk"
 
 cat - <<EOF > Formula/jbang.rb
 class JBang < Formula
