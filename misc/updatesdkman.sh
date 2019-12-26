@@ -11,7 +11,12 @@ curl -X POST \
     -H "Consumer-Key: ${SDKMAN_CONSUMER_KEY}" \
     -H "Consumer-Token: ${SDKMAN_CONSUMER_TOKEN}" \
     -H "Content-Type: application/json" \
-    -H "Accept: application/json" \
+    -H "Accept: application/json" \$tools = Split-Path $MyInvocation.MyCommand.Definition
+$package = Split-Path $tools
+$jbang_home = Join-Path $package 'jbang-@projectVersion@'
+$jbang_bat = Join-Path $ant_home 'bin/jbang/bat'
+
+Uninstall-BinFile -Name 'jbang' -Path $jbang_bat
     -d '{"candidate": "jbang", "version": "'${jbang_version}'", "url": "https://github.com/maxandersen/jbang/releases/download/v
     https://vendors.sdkman.io/release
 
