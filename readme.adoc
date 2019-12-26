@@ -1,4 +1,6 @@
 # j'bang - Having fun with Java scripting
+:toc:
+:toc-placement:
 
 image:https://img.shields.io/github/release/maxandersen/jbang.svg[Release,link=https://github.com/maxandersen/jbang/releases]
 image:https://github.com/maxandersen/jbang/workflows/ci-build/badge.svg[Build Status,link=https://github.com/maxandersen/jbang/actions]
@@ -15,14 +17,56 @@ Then try `jbang` which gives you:
 
 To use it simply install `jbang` and run `jbang yourscript.java`
 
+toc::[]
+
+## Installation
+
+To use `jbang` just have Java 11+ available.
+
+### Manual
+
+Unzip the https://github.com/maxandersen/jbang/releases/latest[latest binary release], put the `jbang-<version>/bin` folder in to your `$PATH` and you are set.
+
+### Homebrew
+
+On OSX you can install `jbang` with https://brew.sh[Homebrew] using https://github.com/maxandersen/homebrew-tap/[maxandersen/tap].
+
+  brew install maxandersen/tab/jbang
+
+To upgrade to latest version:
+
+  brew upgrade maxandersen/tab/jbang
+
+
 ## Declare dependencies with `//DEPS`
 
 To specify dependencies you use gradle-style locators. Here is an example using `log4j`
 
-
 [source, java]
 ```
-include::examples/classpath_example.java[]
+//#!/usr/bin/env jbang
+
+//DEPS log4j:log4j:1.2.17
+
+import static java.lang.System.out;
+
+import org.apache.log4j.Logger;
+import org.apache.log4j.BasicConfigurator;
+
+import java.util.Arrays;
+
+class classpath_example {
+
+	static final Logger logger = Logger.getLogger(classpath_example.class);
+
+	public static void main(String[] args) {
+		BasicConfigurator.configure();
+		logger.info("Welcome to jbang");
+
+		Arrays.asList(args).forEach(arg -> logger.warn("arg: " + arg));
+		logger.info("\nHello from Java!");
+	}
+}
 ```
 
 ## FAQ

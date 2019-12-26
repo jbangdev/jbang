@@ -14,7 +14,7 @@ git config user.name "Max Rydahl Andersen"
 git config user.email "max@xam.dk"
 
 cat - <<EOF > Formula/jbang.rb
-class JBang < Formula
+class Jbang < Formula
   desc "jbang"
   homepage "https://github.com/maxandersen/jbang"
   url "https://github.com/maxandersen/jbang/releases/download/v${jbang_version}/jbang-${jbang_version}.zip"
