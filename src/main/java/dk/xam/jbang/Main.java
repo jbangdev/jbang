@@ -116,7 +116,7 @@ public class Main {
 		 * if(scriptFile==null&&!scriptResource.endsWith(".kts")&&!scriptResource.
 		 * endsWith(".kt")) { val scriptText = if (File(scriptResource).canRead()) {
 		 * File(scriptResource).readText().trim() } else { // the last resort is to
-		 * assume the input to be a kotlin program scriptResource.trim() }
+		 * assume the input to be a java program scriptResource.trim() }
 		 * 
 		 * scriptFile = createTmpScript(scriptText) }
 		 */

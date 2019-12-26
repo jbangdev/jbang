@@ -23,7 +23,7 @@ abs_jbang_path=$(resolve_symlink $(absolute_path $0))
 jarPath=$(dirname $abs_jbang_path)/jbang.jar
 if [[ $(uname) == CYGWIN* ]]; then jarPath=$(cygpath -w ${jarPath}); fi
 
-## prefer KOTLIN_HOME instead of PATH to resolve `kotlin` location (see #145)
+## prefer JAVA instead of PATH to resolve `java` location
 if [[ -z "$JAVA_HOME" ]]; then JAVA_EXEC="java"; else JAVA_EXEC="$JAVA_HOME/bin/java"; fi
 
 ## expose the name of the script being run to the script itself
