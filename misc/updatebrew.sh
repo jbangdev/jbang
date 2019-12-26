@@ -30,7 +30,7 @@ EOF
 
 git add Formula/jbang.rb
 git commit -m "jbang v${jbang_version}"
-git push #origin releases
+#git push #origin releases
 
 
 ## to test use `brew install holgerbrandl/tap/kscript`
