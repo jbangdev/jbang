@@ -31,7 +31,7 @@ EOF
 git add Formula/jbang.rb
 git commit -m "jbang v${jbang_version}"
 
-remote_repo="https://${GITHUB_ACTOR}:${INPUT_GITHUB_TOKEN}@github.com/maxandersen/homebrew-tap.git"
+remote_repo="https://${BREW_USER}:${BREW_GITHUB_TOKEN}@github.com/maxandersen/homebrew-tap.git"
 
 git push "${remote_repo}" --follow-tags
 
