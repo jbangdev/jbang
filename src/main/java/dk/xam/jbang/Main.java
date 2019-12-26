@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class Main {
 
@@ -42,6 +43,7 @@ public class Main {
 
 		prepareScript = prepareScript(args[0]);
 
+
 		Scanner sc = new Scanner(prepareScript);
 		sc.useDelimiter("\\Z");
 		
@@ -51,13 +53,21 @@ public class Main {
 		
 		var classpath = new DependencyUtil().resolveDependencies(dependencies, Collections.emptyList(), true);
 		StringBuffer optionalArgs = new StringBuffer(" ");
-				
+
 		if(!classpath.isBlank()) {
 			optionalArgs.append("-classpath " + classpath);
 		}
-		
-		var cmdline = new StringBuffer("java").append(optionalArgs).append(" --source 11").append(" " + getenv("JBANG_FILE"))
-				.append(" " + String.join(" ", args));
+
+
+		var javacmd = "java";
+		var sourceargs = " --source 11";
+		if(prepareScript.getName().endsWith(".jsh")) {
+			javacmd = "jshell";
+			sourceargs = "";
+		}
+
+		var cmdline = new StringBuffer("java").append(optionalArgs).append(sourceargs).append(" " + getenv("JBANG_FILE"))
+				.append(" " + Arrays.stream(args).skip(1).collect(Collectors.joining(" ")));
 
 		out.println(cmdline);
 
@@ -76,7 +86,7 @@ public class Main {
 		if (!probe.canRead()) {
 			// not a file so let's keep the script-file undefined here
 			scriptFile = null;
-		} else if (probe.getName().endsWith(".java")) {
+		} else if (probe.getName().endsWith(".java") || probe.getName().endsWith(".jsh")) {
 			scriptFile = probe;
 		} else {
 			// if we can "just" read from script resource create tmp file

@@ -53,7 +53,8 @@ class DependencyUtil {
 		if (DEP_LOOKUP_CACHE_FILE.isFile()) {
 			try {
 				cache = Files.readAllLines(DEP_LOOKUP_CACHE_FILE.toPath()).stream().filter(it -> !it.isBlank())
-						.collect(Collectors.toMap(it -> it.split(" ")[0], it -> it.split(" ")[1]));
+						.collect(Collectors.toMap(it -> it.split(" ")[0], it -> it.split(" ")[1],
+								(k1,k2) -> { return k1; }));
 			} catch (IOException e) {
 				warnMsg("Could not access cache " + e.getMessage());
 			}

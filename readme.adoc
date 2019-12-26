@@ -21,9 +21,9 @@ toc::[]
 
 ## Installation
 
-To use `jbang` just have Java 11+ available.
+To use `jbang` you need to have Java 11+ available.
 
-### Manual
+### Manual Install
 
 Unzip the https://github.com/maxandersen/jbang/releases/latest[latest binary release], put the `jbang-<version>/bin` folder in to your `$PATH` and you are set.
 
@@ -31,22 +31,59 @@ Unzip the https://github.com/maxandersen/jbang/releases/latest[latest binary rel
 
 On OSX you can install `jbang` with https://brew.sh[Homebrew] using https://github.com/maxandersen/homebrew-tap/[maxandersen/tap].
 
-  brew install maxandersen/tab/jbang
+  brew install maxandersen/tap/jbang
 
 To upgrade to latest version:
 
-  brew upgrade maxandersen/tab/jbang
+  brew upgrade maxandersen/tap/jbang
 
+## Script input
+
+A script is just a single `.java` file with a classic static main method.
+
+Below is an (almost) minimal example you can save in `helloworld.java`:
+
+[source, java]
+```
+//usr/bin/env jbang "$0" "$@" ; exit $? <.>
+
+class helloworld { <.>
+
+    public static void main(String[] args) {
+        if(args.length==0) {
+            System.out.println("Hello World!");
+        } else {
+            System.out.println("Hello " + args[0]);
+        }
+    }
+}
+```
+<.> By using this `//` style instead of shebang `!#` you trick `bash`, `zsh` etc. to run this as a script while still being valid java code.
+<.> A classname, can be anything when using `jbang` but to be valid java for most IDE's you'll want to name it the same as the source file.
+
+Now to run this you can call it via `jbang`:
+
+```
+jbang helloworld.java
+```
+
+or mark it executable and just run it directly:
+
+```
+chmod +x helloworld.java
+./helloworld jbang!
+```
 
 ## Declare dependencies with `//DEPS`
 
+If you want to write real scripts you will want to use some java libraries.
 To specify dependencies you use gradle-style locators. Here is an example using `log4j`
 
 [source, java]
 ```
-//#!/usr/bin/env jbang
+//usr/bin/env jbang "$0" "$@" ; exit $?
 
-//DEPS log4j:log4j:1.2.17
+//DEPS log4j:log4j:1.2.17 <.>
 
 import static java.lang.System.out;
 
@@ -60,13 +97,26 @@ class classpath_example {
 	static final Logger logger = Logger.getLogger(classpath_example.class);
 
 	public static void main(String[] args) {
-		BasicConfigurator.configure();
+		BasicConfigurator.configure(); <.>
 		logger.info("Welcome to jbang");
 
 		Arrays.asList(args).forEach(arg -> logger.warn("arg: " + arg));
-		logger.info("\nHello from Java!");
+		logger.info("Hello from Java!");
 	}
 }
+```
+<.> //DEPS has to be start of line and can be one or more space separated dependencies.
+<.> Minimal logging setup - required by log4j.
+
+Now when you run this the first time with no existing dependencies installed you should get an output like this:
+
+```
+$ ./classpath_example.java
+[jbang] Resolving dependencies...
+[jbang]     Resolving log4j:log4j:1.2.17...Done
+[jbang] Dependencies resolved
+0 [main] INFO classpath_example  - Welcome to jbang
+1 [main] INFO classpath_example  - Hello from Java!
 ```
 
 ## FAQ

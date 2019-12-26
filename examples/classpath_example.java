@@ -1,4 +1,4 @@
-//#!/usr/bin/env jbang
+//usr/bin/env jbang "$0" "$@" ; exit $?
 
 //DEPS log4j:log4j:1.2.17
 
@@ -18,6 +18,6 @@ class classpath_example {
 		logger.info("Welcome to jbang");
 
 		Arrays.asList(args).forEach(arg -> logger.warn("arg: " + arg));
-		logger.info("\nHello from Java!");
+		logger.info("Hello from Java!");
 	}
 }
