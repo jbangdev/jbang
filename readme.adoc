@@ -39,7 +39,7 @@ To upgrade to latest version:
 
 ## Script input
 
-A script is just a single `.java` file with a classic static main method.
+A script is just a single `.java` file with a classic static main method or a `.jsh` file which will be passed to `jshell`.
 
 Below is an (almost) minimal example you can save in `helloworld.java`:
 
@@ -73,6 +73,11 @@ or mark it executable and just run it directly:
 chmod +x helloworld.java
 ./helloworld jbang!
 ```
+
+### Using `.jsh` for `jshell`
+
+There are experimental support to run `.jsh` via `jshell`. The advantage of `jshell` is that you do not need to have a class or static main method, downside is that
+at least for now you have no way to read the command line arguments.
 
 ## Declare dependencies with `//DEPS`
 
