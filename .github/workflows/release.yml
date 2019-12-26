@@ -21,7 +21,10 @@ jobs:
           java-version: 11
       - name: build-gradle
         run: ./gradlew build --build-cache --scan -s
-      - name: tag
+      - name: tag-and-release
         env:
           ORG_GRADLE_PROJECT_github_token: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew githubRelease
+      - name: homebrew
+        run: ./misc/updatebrew.sh
+        

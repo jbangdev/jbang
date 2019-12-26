@@ -9,3 +9,4 @@ build
 .gradle
 .factorypath
 bin
+homebrew-tap
