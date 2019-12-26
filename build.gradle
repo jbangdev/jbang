@@ -53,6 +53,14 @@ distributions {
     }
 }
 
+jar {
+    manifest {
+        attributes (
+                'Main-Class': 'dk.xam.jbang.Main'
+        )
+    }
+}
+
 shadowJar {
     minimize()
     // warning is printed about deprecation in 7.0 but if I fix this shadowjar turns into a bogus file

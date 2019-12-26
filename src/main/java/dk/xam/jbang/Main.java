@@ -15,9 +15,6 @@ import java.util.stream.Collectors;
 
 public class Main {
 
-
-
-
 	static void info(String msg) {
 		System.err.println(msg);
 	}
@@ -54,19 +51,23 @@ public class Main {
 		var classpath = new DependencyUtil().resolveDependencies(dependencies, Collections.emptyList(), true);
 		StringBuffer optionalArgs = new StringBuffer(" ");
 
-		if(!classpath.isBlank()) {
-			optionalArgs.append("-classpath " + classpath);
-		}
-
-
 		var javacmd = "java";
 		var sourceargs = " --source 11";
 		if(prepareScript.getName().endsWith(".jsh")) {
 			javacmd = "jshell";
 			sourceargs = "";
+			if(!classpath.isBlank()) {
+				optionalArgs.append("--class-path " + classpath);
+			}
+
+		} else {
+			//optionalArgs.append(" -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005");
+			if(!classpath.isBlank()) {
+				optionalArgs.append("-classpath " + classpath);
+			}
 		}
 
-		var cmdline = new StringBuffer("java").append(optionalArgs).append(sourceargs).append(" " + getenv("JBANG_FILE"))
+		var cmdline = new StringBuffer(javacmd).append(optionalArgs).append(sourceargs).append(" " + getenv("JBANG_FILE"))
 				.append(" " + Arrays.stream(args).skip(1).collect(Collectors.joining(" ")));
 
 		out.println(cmdline);
