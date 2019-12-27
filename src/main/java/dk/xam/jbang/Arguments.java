@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@Command(versionProvider = VersionProvider.class)
 class Arguments {
 
 	@Option(names = {"-d", "--debug"}, arity = "0", description = "Launch with java debug enabled.")
