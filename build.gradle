@@ -49,6 +49,9 @@ spotless {
 		removeUnusedImports()
 		eclipse()
 	}
+	format 'xml', {
+		target '**/*.xml'
+	}
 }
 
 distributions {
@@ -74,7 +77,7 @@ jar {
 				'Main-Class': 'dk.xam.jbang.Main',
 		)
 	}
-}
+	}
 
 shadowJar {
 	minimize()
