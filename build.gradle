@@ -1,3 +1,5 @@
+import org.gradle.crypto.checksum.Checksum
+
 plugins {
     id "distribution"
     id "com.github.johnrengelman.shadow" version "5.2.0"
@@ -66,7 +68,7 @@ test {
     useJUnitPlatform()
 }
 
-task createChecksum(type: org.gradle.crypto.checksum.Checksum) {
+task createChecksum(type: Checksum) {
     dependsOn(assembleDist)
     files = distZip.outputs.files
     outputDir = distZip.destinationDir
