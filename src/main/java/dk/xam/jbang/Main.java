@@ -1,15 +1,38 @@
 package dk.xam.jbang;
 
 import static java.lang.System.*;
+import static picocli.CommandLine.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import picocli.CommandLine;
+import picocli.CommandLine.Model.CommandSpec;
 
-public class Main {
+@Command(name="jbang", versionProvider = VersionProvider.class, description = "Compiles and runs .java/.jsh scripts.")
+public class Main implements Callable<Integer> {
+
+	@Spec
+	CommandSpec commandSpec;
+
+	@Option(names = {"-d", "--debug"}, arity = "0", description = "Launch with java debug enabled.")
+	boolean debug;
+
+	@Option(names = {"-h", "--help"}, usageHelp = true, description = "Display help/info")
+	boolean helpRequested;
+
+	@Option(names = {"--version"}, versionHelp = true, arity = "0", description = "Display version info")
+	boolean versionRequested;
+
+	@Parameters
+	String script;
+
+	@Parameters(arity = "1..*")
+	List<String> params;
+
 
 	static void info(String msg) {
 		System.err.println(msg);
@@ -17,6 +40,7 @@ public class Main {
 
 	static void quit(int status) {
 		out.print(status == 0 ? "true" : "false");
+		out.flush();
 		exit(status);
 	}
 
@@ -27,22 +51,24 @@ public class Main {
 			+ "			Website   : https://github.com/maxandersen/jbang\n" + "".trim();
 	private static File prepareScript;
 
-	public static void main(String... args) throws FileNotFoundException {
+	public static void main(String... args) {
+		int exitCode = new CommandLine(new Main()).execute(argsForJbang(args));
+		System.exit(exitCode);
+	}
 
-		var arg = new Arguments();
-		var commandLine = new CommandLine(arg);
-		commandLine.parseArgs(args);
+	@Override
+	public Integer call() throws FileNotFoundException {
 
-		if (arg.helpRequested) {
-			commandLine.usage(err);
-
+		if (helpRequested) {
+			commandSpec.commandLine().usage(err);
 			quit(0);
-		} else if (arg.versionRequested) {
-			commandLine.printVersionHelp(err);
+		} else if (versionRequested) {
+			commandSpec.commandLine().printVersionHelp(err);
 			quit(0);
 		}
 
-		prepareScript = prepareScript(args[0]);
+
+		prepareScript = prepareScript(script);
 
 		Scanner sc = new Scanner(prepareScript);
 		sc.useDelimiter("\\Z");
@@ -73,9 +99,47 @@ public class Main {
 
 		var cmdline = new StringBuffer(javacmd).append(optionalArgs).append(sourceargs)
 				.append(" " + getenv("JBANG_FILE"))
-				.append(" " + Arrays.stream(args).skip(1).collect(Collectors.joining(" ")));
+				.append(" " + params.stream().skip(1).collect(Collectors.joining(" ")));
 
 		out.println(cmdline);
+
+		return 0;
+	}
+
+	/**
+	 * return the list arguments that relate to jbang. First arguments that starts
+	 * with '-' and is not just '-' for stdin goes to jbang, rest goes to the
+	 * script.
+	 *
+	 * @param args
+	 * @return the list arguments that relate to jbang
+	 */
+	static String[] argsForJbang(String... args) {
+		final List<String> argsForScript = new ArrayList<>();
+		final List<String> argsForJbang = new ArrayList<>();
+
+		/*
+		 * if (args.length > 0 && "--init".equals(args[0])) {
+		 * argsForJbang.addAll(Arrays.asList(args)); return; }
+		 */
+
+		boolean found = false;
+		for (var a : args) {
+			if (!found && a.startsWith("-") && a.length() > 1) {
+				argsForJbang.add(a);
+			} else {
+				found = true;
+				argsForScript.add(a);
+			}
+		}
+
+		if (!argsForScript.isEmpty() && !argsForJbang.isEmpty()) {
+
+			argsForJbang.add("--");
+		}
+
+		argsForJbang.addAll(argsForScript);
+		return argsForJbang.toArray(new String[argsForJbang.size()]);
 
 	}
 
@@ -135,4 +199,6 @@ public class Main {
 
 		return scriptFile;
 	}
+
+
 }

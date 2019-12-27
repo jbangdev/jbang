@@ -1,41 +1,46 @@
 package dk.xam.jbang;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import org.junit.jupiter.api.Test;
 
 import picocli.CommandLine;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 class TestArguments {
 
 	@Test
 	public void testBasicArguments() {
-		var arg = new Arguments();
+		var arg = new Main();
 		new CommandLine(arg).parseArgs("-h", "--debug", "myfile.java");
 
 		assert arg.helpRequested;
 		assert arg.debug;
-		assertEquals(1, arg.scripts.size());
+		assertEquals(1, arg.params.size());
 
 	}
 
 	@Test
 	public void testArgumentsForJbang() {
 
-		var a = new Arguments("test.java");
-		assertEquals(0, a.argsForJbang.size());
+		var a = Main.argsForJbang("test.java");
+		assertThat(a, is(new String[] {"test.java"}));
 
-		a = new Arguments("--debug", "test.java");
-		assertEquals(1, a.argsForJbang.size());
+		a = Main.argsForJbang("--debug", "test.java");
+		assertThat(a, is(new String[]{"--debug", "--", "test.java"}));
 
-		a = new Arguments("test.java", "-h");
-		assertEquals(0, a.argsForJbang.size());
+		a = Main.argsForJbang("test.java", "-h");
+		assertThat(a, is(new String[]{"test.java", "-h"}));
 
-		a = new Arguments("-", "--help");
-		assertEquals(0, a.argsForJbang.size());
+		a = Main.argsForJbang("-", "--help");
+		assertThat(a, is(new String[]{"-", "--help"}));
 
-		a = new Arguments("--init", "x.java", "y.java");
-		assertEquals(3, a.argsForJbang.size());
+		a = Main.argsForJbang("--init", "x.java", "y.java");
+		assertThat(a, is(new String[]{"--init", "--", "x.java", "y.java"}));
+
+		a = Main.argsForJbang("--debug", "test.java", "--debug", "wonka");
+		assertThat(a, is(new String[]{"--debug", "--", "test.java", "--debug", "wonka"}));
 
 	}
 

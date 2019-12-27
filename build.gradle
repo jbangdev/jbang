@@ -35,6 +35,9 @@ dependencies {
 	testImplementation "org.junit.jupiter:junit-jupiter:5.5.2"
 	testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.5.2')
 	testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
+	testImplementation(
+			'org.hamcrest:hamcrest-library:2.1'
+	)
 }
 
 spotless {
