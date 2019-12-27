@@ -1,21 +1,13 @@
 package dk.xam.jbang;
 
-
-import org.codehaus.plexus.util.cli.Commandline;
-import picocli.CommandLine;
-import picocli.CommandLine.Option;
-
 import static java.lang.System.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import picocli.CommandLine;
 
 public class Main {
 
@@ -36,50 +28,51 @@ public class Main {
 	private static File prepareScript;
 
 	public static void main(String... args) throws FileNotFoundException {
-		err.println(String.join(", ", args));
+
 		var arg = new Arguments();
 		var commandLine = new CommandLine(arg);
 		commandLine.parseArgs(args);
 
-		if(arg.helpRequested) {
+		if (arg.helpRequested) {
 			commandLine.usage(err);
 
 			quit(0);
-		} else if(arg.versionRequested) {
+		} else if (arg.versionRequested) {
 			commandLine.printVersionHelp(err);
 			quit(0);
 		}
 
 		prepareScript = prepareScript(args[0]);
 
-
 		Scanner sc = new Scanner(prepareScript);
 		sc.useDelimiter("\\Z");
-		
+
 		Script script = new Script(sc.next());
-		
+
 		List<String> dependencies = script.collectDependencies();
-		
+
 		var classpath = new DependencyUtil().resolveDependencies(dependencies, Collections.emptyList(), true);
 		StringBuffer optionalArgs = new StringBuffer(" ");
 
 		var javacmd = "java";
 		var sourceargs = " --source 11";
-		if(prepareScript.getName().endsWith(".jsh")) {
+		if (prepareScript.getName().endsWith(".jsh")) {
 			javacmd = "jshell";
 			sourceargs = "";
-			if(!classpath.isBlank()) {
+			if (!classpath.isBlank()) {
 				optionalArgs.append("--class-path " + classpath);
 			}
 
 		} else {
-			//optionalArgs.append(" -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005");
-			if(!classpath.isBlank()) {
+			// optionalArgs.append("
+			// -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005");
+			if (!classpath.isBlank()) {
 				optionalArgs.append("-classpath " + classpath);
 			}
 		}
 
-		var cmdline = new StringBuffer(javacmd).append(optionalArgs).append(sourceargs).append(" " + getenv("JBANG_FILE"))
+		var cmdline = new StringBuffer(javacmd).append(optionalArgs).append(sourceargs)
+				.append(" " + getenv("JBANG_FILE"))
 				.append(" " + Arrays.stream(args).skip(1).collect(Collectors.joining(" ")));
 
 		out.println(cmdline);

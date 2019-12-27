@@ -2,6 +2,7 @@ package dk.xam.jbang;
 
 import static dk.xam.jbang.Settings.CP_SEPARATOR;
 import static dk.xam.jbang.Settings.DEP_LOOKUP_CACHE_FILE;
+import static dk.xam.jbang.Util.*;
 import static dk.xam.jbang.Util.errorMsg;
 import static dk.xam.jbang.Util.infoMsg;
 import static dk.xam.jbang.Util.quit;
@@ -28,7 +29,6 @@ import org.sonatype.aether.resolution.DependencyResolutionException;
 import org.sonatype.aether.util.artifact.DefaultArtifact;
 
 import com.jcabi.aether.Aether;
-import static dk.xam.jbang.Util.*;
 
 class DependencyUtil {
 
@@ -53,8 +53,9 @@ class DependencyUtil {
 		if (DEP_LOOKUP_CACHE_FILE.isFile()) {
 			try {
 				cache = Files.readAllLines(DEP_LOOKUP_CACHE_FILE.toPath()).stream().filter(it -> !it.isBlank())
-						.collect(Collectors.toMap(it -> it.split(" ")[0], it -> it.split(" ")[1],
-								(k1,k2) -> { return k1; }));
+						.collect(Collectors.toMap(it -> it.split(" ")[0], it -> it.split(" ")[1], (k1, k2) -> {
+							return k1;
+						}));
 			} catch (IOException e) {
 				warnMsg("Could not access cache " + e.getMessage());
 			}
@@ -108,7 +109,7 @@ class DependencyUtil {
 			errorMsg("Exception: " + e.getMessage());
 			quit(1);
 		}
-		
+
 		return null;
 	}
 

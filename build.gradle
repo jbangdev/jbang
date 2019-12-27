@@ -1,123 +1,141 @@
 import org.gradle.crypto.checksum.Checksum
 
 plugins {
-    id "distribution"
-    id "com.github.johnrengelman.shadow" version "5.2.0"
-    id "java"
-    id "com.github.breadmoirai.github-release" version "2.2.9"
-    id "io.toolebox.git-versioner" version "1.3.0"
-    id 'org.gradle.crypto.checksum' version '1.1.0'
+	id "distribution"
+	id "com.github.johnrengelman.shadow" version "5.2.0"
+	id "java"
+	id "com.github.breadmoirai.github-release" version "2.2.9"
+	id "io.toolebox.git-versioner" version "1.3.0"
+	id 'org.gradle.crypto.checksum' version '1.1.0'
+	id "com.diffplug.gradle.spotless" version "3.26.1"
 }
 
 repositories {
-    jcenter()
+	jcenter()
 }
 
 dependencies {
-    implementation 'com.offbytwo:docopt:0.6.0.20150202'
+	implementation 'com.offbytwo:docopt:0.6.0.20150202'
 
-    implementation 'info.picocli:picocli:4.1.4'
+	implementation 'info.picocli:picocli:4.1.4'
 
-    implementation("com.jcabi:jcabi-aether:0.10.1") {
-        exclude group: "org.hibernate", module: "hibernate-validator"
-        exclude group: "org.slf4j", module: "slf4j-api"
-        exclude group: "org.slf4j", module: "jcl-over-slf4j"
-        exclude group: "org.apache.commons", module: "commons-lang3"
-        exclude group: "cglib", module: "cglib"
-        exclude group: "org.kuali.maven.wagons", module: "maven-s3-wagon"
-    }
-    // compile("com.jcabi:jcabi-aether:0.10.1:sources") //can be used for debugging, but somehow adds logging to dependency resolvement?
-    implementation "org.apache.maven:maven-core:3.0.5"
-    implementation "org.slf4j:slf4j-nop:1.7.25"
+	implementation("com.jcabi:jcabi-aether:0.10.1") {
+		exclude group: "org.hibernate", module: "hibernate-validator"
+		exclude group: "org.slf4j", module: "slf4j-api"
+		exclude group: "org.slf4j", module: "jcl-over-slf4j"
+		exclude group: "org.apache.commons", module: "commons-lang3"
+		exclude group: "cglib", module: "cglib"
+		exclude group: "org.kuali.maven.wagons", module: "maven-s3-wagon"
+	}
+	// compile("com.jcabi:jcabi-aether:0.10.1:sources") //can be used for debugging, but somehow adds logging to dependency resolvement?
+	implementation "org.apache.maven:maven-core:3.0.5"
+	implementation "org.slf4j:slf4j-nop:1.7.25"
 
-    testImplementation "org.junit.jupiter:junit-jupiter:5.5.2"
-    testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.5.2')
-    testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
+	testImplementation "org.junit.jupiter:junit-jupiter:5.5.2"
+	testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.5.2')
+	testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
+}
+
+spotless {
+	format 'misc', {
+		target '**/*.gradle', '**/*.md', '**/.gitignore'
+
+		trimTrailingWhitespace()
+		indentWithTabs() // or spaces. Takes an integer argument if you don't like 4
+		endWithNewline()
+	}
+	java {
+		importOrder 'java', 'javax', 'org', 'com', 'dk.xam', ''
+		removeUnusedImports()
+		eclipse()
+	}
 }
 
 distributions {
-    main {
-        contents {
-            from('examples') {
-                include '**/*.java'
-                into 'examples'
-            }
-            from(shadowJar) {
-                into 'bin'
-            }
-            from('src/main/scripts/jbang') {
-                into 'bin'
-            }
-        }
-    }
+	main {
+		contents {
+			from('examples') {
+				include '**/*.java'
+				into 'examples'
+			}
+			from(shadowJar) {
+				into 'bin'
+			}
+			from('src/main/scripts/jbang') {
+				into 'bin'
+			}
+		}
+	}
 }
 
 jar {
-    manifest {
-        attributes (
-                'Main-Class': 'dk.xam.jbang.Main'
-        )
-    }
+	manifest {
+		attributes (
+				'Main-Class': 'dk.xam.jbang.Main'
+		)
+	}
 }
 
 shadowJar {
-    minimize()
-    // warning is printed about deprecation in 7.0 but if I fix this shadowjar turns into a bogus file
-    archiveName = "${baseName}.${extension}"
+	minimize()
+	// warning is printed about deprecation in 7.0 but if I fix this shadowjar turns into a bogus file
+	archiveName = "${baseName}.${extension}"
 }
 
 test {
-    useJUnitPlatform()
+	useJUnitPlatform()
 }
 
 task createChecksum(type: Checksum) {
-    dependsOn(assembleDist)
-    files = distZip.outputs.files
-    outputDir = distZip.destinationDir
-    algorithm = Checksum.Algorithm.SHA256
+	dependsOn(assembleDist)
+	files = distZip.outputs.files
+	outputDir = distZip.destinationDir
+	algorithm = Checksum.Algorithm.SHA256
 }
 
 task homebrew(type: Copy) {
-    dependsOn(createChecksum)
-    inputs.property('version', project.version)
-    from('src/main/scripts/jbang.rb')
-    into(buildDir.toString() + '/brew/formula')
+	dependsOn(createChecksum)
+	inputs.property('version', project.version)
+	from('src/main/scripts/jbang.rb')
+	into(buildDir.toString() + '/brew/formula')
 	doFirst { t ->
-	    t.filter(org.apache.tools.ant.filters.ReplaceTokens,
-            tokens: [
-                projectVersion: project.version,
-                sha256        : new File(distZip.archiveFile.asFile.get().absolutePath + '.sha256').text
-            ]
-	    )
+		t.filter(org.apache.tools.ant.filters.ReplaceTokens,
+			tokens: [
+				projectVersion: project.version,
+				sha256        : new File(distZip.archiveFile.asFile.get().absolutePath + '.sha256').text
+			]
+		)
 	}
 }
 
 githubRelease {
-    // currently does not work as project.version not set.
-    // FilenameFilter filter = { dir, filename -> filename.contains(project.version) } // ensure nothing extra gets included.
-    //releaseAssets = distZip.destinationDir.listFiles filter
-    releaseAssets = distZip.destinationDir.listFiles()
-    //println(getReleaseAssets().getFiles())
-    // set ORG_GRADLE_PROJECT_github_token
-    token = project.hasProperty('github_token') ? getProperty('github_token') : "unknown_github_token"
-    owner = "maxandersen"
+	// currently does not work as project.version not set.
+	// FilenameFilter filter = { dir, filename -> filename.contains(project.version) } // ensure nothing extra gets included.
+	//releaseAssets = distZip.destinationDir.listFiles filter
+	releaseAssets = distZip.destinationDir.listFiles()
+	//println(getReleaseAssets().getFiles())
+	// set ORG_GRADLE_PROJECT_github_token
+	token = project.hasProperty('github_token') ? getProperty('github_token') : "unknown_github_token"
+	owner = "maxandersen"
 }
 
 versioner {
-    startFrom {
-        major = 0
-        minor = 0
-        patch = 1
-    }
-    git {
-        authentication {
-            https {
-                token = project.hasProperty('github_token') ? getProperty('github_token') : "unknown_github_token"
-            }
-        }
-    }
+	startFrom {
+		major = 0
+		minor = 0
+		patch = 1
+	}
+	git {
+		authentication {
+			https {
+				token = project.hasProperty('github_token') ? getProperty('github_token') : "unknown_github_token"
+			}
+		}
+	}
 }
 
+build.dependsOn(spotlessApply)
 build.dependsOn(homebrew)
+
 group = "dk.xam.jbang"
 sourceCompatibility = '11'

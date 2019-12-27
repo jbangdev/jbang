@@ -9,5 +9,4 @@ public class DependencyException extends RuntimeException {
 		super(e);
 	}
 
-	
 }
