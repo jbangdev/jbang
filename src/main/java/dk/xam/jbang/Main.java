@@ -1,6 +1,10 @@
 package dk.xam.jbang;
 
 
+import org.codehaus.plexus.util.cli.Commandline;
+import picocli.CommandLine;
+import picocli.CommandLine.Option;
+
 import static java.lang.System.*;
 
 import java.io.File;
@@ -32,9 +36,17 @@ public class Main {
 	private static File prepareScript;
 
 	public static void main(String... args) throws FileNotFoundException {
+		err.println(String.join(", ", args));
+		var arg = new Arguments();
+		var commandLine = new CommandLine(arg);
+		commandLine.parseArgs(args);
 
-		if (args.length == 1 && Arrays.asList("--help", "-h", "--version", "-v").contains(args[0])) {
-			info(USAGE);
+		if(arg.helpRequested) {
+			commandLine.usage(err);
+
+			quit(0);
+		} else if(arg.versionRequested) {
+			commandLine.printVersionHelp(err);
 			quit(0);
 		}
 

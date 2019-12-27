@@ -16,6 +16,8 @@ repositories {
 dependencies {
     implementation 'com.offbytwo:docopt:0.6.0.20150202'
 
+    implementation 'info.picocli:picocli:4.1.4'
+
     implementation("com.jcabi:jcabi-aether:0.10.1") {
         exclude group: "org.hibernate", module: "hibernate-validator"
         exclude group: "org.slf4j", module: "slf4j-api"
