@@ -13,20 +13,7 @@ cd homebrew-tap
 git config user.name "Max Rydahl Andersen"
 git config user.email "max@xam.dk"
 
-cat - <<EOF > Formula/jbang.rb
-class Jbang < Formula
-  desc "jbang"
-  homepage "https://github.com/maxandersen/jbang"
-  url "https://github.com/maxandersen/jbang/releases/download/v${jbang_version}/jbang-${jbang_version}.zip"
-  sha256 "${sha256}"
-
-  def install
-    libexec.install Dir["*"]
-    inreplace "#{libexec}/bin/kscript", /^jarPath=.*/, "jarPath=#{libexec}/bin/jbang.jar"
-    bin.install_symlink "#{libexec}/bin/jbang"
-  end
-end
-EOF
+cp ../build/brew/Formula/jbang.rb Formula/jbang.rb
 
 git add Formula/jbang.rb
 git commit -m "jbang v${jbang_version}"

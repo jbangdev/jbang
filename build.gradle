@@ -71,7 +71,7 @@ distributions {
 jar {
 	manifest {
 		attributes (
-				'Main-Class': 'dk.xam.jbang.Main'
+				'Main-Class': 'dk.xam.jbang.Main',
 		)
 	}
 }
