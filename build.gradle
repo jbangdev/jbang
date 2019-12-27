@@ -1,4 +1,3 @@
-import org.apache.tools.ant.filters.*
 import org.gradle.crypto.checksum.Checksum
 
 plugins {
@@ -13,7 +12,6 @@ plugins {
 repositories {
     jcenter()
 }
-
 
 dependencies {
     implementation 'com.offbytwo:docopt:0.6.0.20150202'
@@ -34,7 +32,6 @@ dependencies {
     testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.5.2')
     testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
 }
-
 
 distributions {
     main {
@@ -72,26 +69,26 @@ test {
 }
 
 task createChecksum(type: Checksum) {
+    dependsOn(assembleDist)
     files = distZip.outputs.files
-    outputDir = distZip.outputs.files[0].getParentFile()
+    outputDir = distZip.destinationDir
     algorithm = Checksum.Algorithm.SHA256
 }
 
-/**
 task homebrew(type: Copy) {
-    project.afterEvaluate {
-            println(createChecksum.outputs.files[0])
-            from('src/main/scripts/jbang.rb')
-            into(buildDir.toString() + '/brew/formula')
-            filter(ReplaceTokens,
-                    tokens: [
-                            'projectVersion': project.version,
-                            'sha256'        : new File(distZip.outputs.files[0].path + ".sha256").text
-                    ]
-            )
-        }
+    dependsOn(createChecksum)
+    inputs.property('version', project.version)
+    from('src/main/scripts/jbang.rb')
+    into(buildDir.toString() + '/brew/formula')
+	doFirst { t ->
+	    t.filter(org.apache.tools.ant.filters.ReplaceTokens,
+            tokens: [
+                projectVersion: project.version,
+                sha256        : new File(distZip.archiveFile.asFile.get().absolutePath + '.sha256').text
+            ]
+	    )
+	}
 }
-**/
 
 githubRelease {
     // currently does not work as project.version not set.
@@ -119,10 +116,6 @@ versioner {
     }
 }
 
-
-createChecksum.dependsOn(assembleDist)
-//homebrew.dependsOn(createChecksum,distZip)
-//build.dependsOn(homebrew)
-build.dependsOn(createChecksum)
+build.dependsOn(homebrew)
 group = "dk.xam.jbang"
 sourceCompatibility = '11'
