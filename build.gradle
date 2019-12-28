@@ -149,7 +149,6 @@ versioner {
 	}
 }
 
-build.dependsOn(spotlessApply)
 build.dependsOn(homebrew)
 
 group = "dk.xam.jbang"
