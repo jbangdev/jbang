@@ -5,6 +5,7 @@ import static picocli.CommandLine.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
@@ -16,7 +17,7 @@ import picocli.CommandLine.Model.CommandSpec;
 public class Main implements Callable<Integer> {
 
 	@Spec
-	CommandSpec commandSpec;
+	CommandSpec spec;
 
 	@Option(names = {"-d", "--debug"}, arity = "0", description = "Launch with java debug enabled.")
 	boolean debug;
@@ -34,13 +35,12 @@ public class Main implements Callable<Integer> {
 	List<String> params;
 
 
-	static void info(String msg) {
-		System.err.println(msg);
+	void info(String msg) {
+		spec.commandLine().getErr().println(msg);
 	}
 
-	static void quit(int status) {
-		out.print(status == 0 ? "true" : "false");
-		out.flush();
+	void quit(int status) {
+		out.println(status == 0 ? "true" : "false");
 		exit(status);
 	}
 
@@ -51,19 +51,21 @@ public class Main implements Callable<Integer> {
 			+ "			Website   : https://github.com/maxandersen/jbang\n" + "".trim();
 	private static File prepareScript;
 
-	public static void main(String... args) {
-		int exitCode = new CommandLine(new Main()).execute(argsForJbang(args));
-		System.exit(exitCode);
+	public static void main(String... args) throws FileNotFoundException {
+		var main = new Main();
+
+		new CommandLine(main).setOut(new PrintWriter(err, true)).setErr(new PrintWriter(err, true)).parseArgs(argsForJbang(args));
+		System.exit(main.call());
 	}
 
 	@Override
 	public Integer call() throws FileNotFoundException {
 
 		if (helpRequested) {
-			commandSpec.commandLine().usage(err);
+			spec.commandLine().usage(err);
 			quit(0);
 		} else if (versionRequested) {
-			commandSpec.commandLine().printVersionHelp(err);
+			spec.commandLine().printVersionHelp(err);
 			quit(0);
 		}
 
