@@ -1,47 +1,78 @@
 package dk.xam.jbang;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+
+import java.util.Arrays;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import picocli.CommandLine;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.hamcrest.Matchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-
 class TestArguments {
+
+	private CommandLine cli;
+	private Main main;
+
+	@BeforeEach
+	void setup() {
+		cli = Main.getCommandLine();
+		main = cli.getCommand();
+	}
 
 	@Test
 	public void testBasicArguments() {
-		var arg = new Main();
-		new CommandLine(arg).parseArgs("-h", "--debug", "myfile.java");
+		cli.parseArgs("-h", "--debug", "myfile.java");
 
-		assert arg.helpRequested;
-		assert arg.debug;
-		assertEquals(1, arg.params.size());
+		assert main.helpRequested;
+		assertThat(main.debug, is(true));
+		assertThat(main.scriptOrFile, is("myfile.java"));
+		assertThat(main.params.size(), is(0));
 
 	}
 
 	@Test
-	public void testArgumentsForJbang() {
+	public void testDoubleDebug() {
+		cli.parseArgs("--debug", "test.java", "--debug", "wonka");
+		assertThat(main.debug, is(true));
+		assertThat(main.scriptOrFile, is("test.java"));
+		assertThat(main.params, is(Arrays.asList("--debug", "wonka")));
+	}
 
-		var a = Main.argsForJbang("test.java");
-		assertThat(a, is(new String[] {"test.java"}));
+	/**
+	 * @Test public void testInit() { cli.parseArgs("--init", "x.java", "y.java");
+	 *       assertThat(main.script, is("x.java")); assertThat(main.params,
+	 *       is(Arrays.asList("x.java", "y.java"))); }
+	 **/
 
-		a = Main.argsForJbang("--debug", "test.java");
-		assertThat(a, is(new String[]{"--debug", "--", "test.java"}));
+	@Test
+	public void testStdInWithHelpParam() {
+		cli.parseArgs("-", "--help");
+		assertThat(main.scriptOrFile, is("-"));
+		assertThat(main.helpRequested, is(false));
+		assertThat(main.params, is(Arrays.asList("--help")));
+	}
 
-		a = Main.argsForJbang("test.java", "-h");
-		assertThat(a, is(new String[]{"test.java", "-h"}));
+	@Test
+	public void testScriptWithHelpParam() {
+		cli.parseArgs("test.java", "-h");
+		assertThat(main.scriptOrFile, is("test.java"));
+		assertThat(main.helpRequested, is(false));
+		assertThat(main.params, is(Arrays.asList("-h")));
+	}
 
-		a = Main.argsForJbang("-", "--help");
-		assertThat(a, is(new String[]{"-", "--help"}));
+	@Test
+	public void testDebugWithScript() {
+		cli.parseArgs("--debug", "test.java");
+		assertThat(main.scriptOrFile, is("test.java"));
+		assertThat(main.debug, is(true));
+	}
 
-		a = Main.argsForJbang("--init", "x.java", "y.java");
-		assertThat(a, is(new String[]{"--init", "--", "x.java", "y.java"}));
-
-		a = Main.argsForJbang("--debug", "test.java", "--debug", "wonka");
-		assertThat(a, is(new String[]{"--debug", "--", "test.java", "--debug", "wonka"}));
-
+	@Test
+	public void testSimpleScript() {
+		cli.parseArgs("test.java");
+		assertThat(main.scriptOrFile, is("test.java"));
 	}
 
 }

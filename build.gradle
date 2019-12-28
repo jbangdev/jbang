@@ -83,6 +83,8 @@ jar {
 	}
 	}
 
+
+
 shadowJar {
 	minimize()
 	// warning is printed about deprecation in 7.0 but if I fix this shadowjar turns into a bogus file
@@ -92,6 +94,12 @@ shadowJar {
 test {
 	useJUnitPlatform()
 }
+
+task copyTestResources(type: Copy) {
+	from "${projectDir}/examples"
+	into "${buildDir}/classes/java/test/examples"
+}
+processTestResources.dependsOn copyTestResources
 
 task createChecksum(type: Checksum) {
 	dependsOn(assembleDist)

@@ -20,7 +20,7 @@ public class Util {
 
 	static public void quit(int status) {
 		System.out.print(status > 0 ? "true" : "false");
-		System.exit(status);
+		throw new ExitException(status);
 	}
 
 }

@@ -11,7 +11,7 @@ Then try `jbang` which gives you:
 
 * Dependency declarations using `//DEPS <gav>` for automatic dependency resolution
 * Dependency resolution caching
-* (PLANNED) Launch with debug enabled for instant debugging from your favorite IDE
+* Launch with debug enabled for instant debugging from your favorite IDE
 * (PLANNED) Generate gradle/maven file with dependencies for easy editing in your favorite IDE
 * (PLANNED) Lookup dependencies with a short-hand name, i.e. `// DEPS log4j:1.2+,picocli` for quick getting started.
 
@@ -123,6 +123,18 @@ $ ./classpath_example.java
 0 [main] INFO classpath_example  - Welcome to jbang
 1 [main] INFO classpath_example  - Hello from Java!
 ```
+
+## Debugging
+
+When running `.java` scripts with `jbang` you can pass the `--debug`-flag and the script will enable debug,
+suspend the execution and wait until you connect a debugger to port 5005.
+
+```
+jbang --debug helloworld.java
+Listening for transport dt_socket at address: 5005
+```
+
+NOTE: Be sure to put a breakpoint in your IDE/debugger before you connect to make the debugger actually stop when you need it.
 
 ## FAQ
 

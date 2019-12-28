@@ -13,13 +13,13 @@ import java.util.stream.Collectors;
 import picocli.CommandLine;
 import picocli.CommandLine.Model.CommandSpec;
 
-@Command(name="jbang", mixinStandardHelpOptions = false, versionProvider = VersionProvider.class, description = "Compiles and runs .java/.jsh scripts.")
+@Command(name = "jbang", footer = "\nCopyright: 2020 Max Rydahl Andersen, License: MIT\nWebsite: https://github.com/maxandersen/jbang", mixinStandardHelpOptions = false, versionProvider = VersionProvider.class, description = "Compiles and runs .java/.jsh scripts.")
 public class Main implements Callable<Integer> {
 
 	@Spec
 	CommandSpec spec;
 
-	@Option(names = {"-d", "--debug"}, arity = "0", description = "Launch with java debug enabled.")
+	@Option(names = {"-d", "--debug"}, description = "Launch with java debug enabled.")
 	boolean debug;
 
 	@Option(names = {"-h", "--help"}, usageHelp = true, description = "Display help/info")
@@ -28,20 +28,23 @@ public class Main implements Callable<Integer> {
 	@Option(names = {"--version"}, versionHelp = true, arity = "0", description = "Display version info")
 	boolean versionRequested;
 
-	@Parameters
-	String script;
+	@Parameters(index = "0", description = "A file with java code or if named .jsh will be run with jshell")
+	String scriptOrFile;
 
-	@Parameters(arity = "1..*")
-	List<String> params;
-
+	@Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
+	List<String> params = new ArrayList<String>();
 
 	void info(String msg) {
 		spec.commandLine().getErr().println(msg);
 	}
 
+	void warn(String msg) {
+		info("[jbang] [WARNING] " + msg);
+	}
+
 	void quit(int status) {
 		out.println(status == 0 ? "true" : "false");
-		exit(status);
+		throw new ExitException(status);
 	}
 
 	static String USAGE = "j'bang - Enhanced scripting support for Java on *nix-based systems.\n" + "\n"
@@ -52,10 +55,13 @@ public class Main implements Callable<Integer> {
 	private static File prepareScript;
 
 	public static void main(String... args) throws FileNotFoundException {
-		var main = new Main();
-
-		int exitcode = new CommandLine(main).setStopAtPositional(true).setOut(new PrintWriter(err, true)).setErr(new PrintWriter(err, true)).execute(args);
+		int exitcode = getCommandLine().execute(args);
 		System.exit(exitcode);
+	}
+
+	static CommandLine getCommandLine() {
+		return new CommandLine(new Main()).setExitCodeExceptionMapper(new VersionProvider()).setStopAtPositional(true)
+				.setOut(new PrintWriter(err, true)).setErr(new PrintWriter(err, true));
 	}
 
 	@Override
@@ -69,7 +75,15 @@ public class Main implements Callable<Integer> {
 			quit(0);
 		}
 
-		prepareScript = prepareScript(script);
+		String cmdline = generateCommandLine();
+
+		out.println(cmdline);
+
+		return 0;
+	}
+
+	String generateCommandLine() throws FileNotFoundException {
+		prepareScript = prepareScript(scriptOrFile);
 
 		Scanner sc = new Scanner(prepareScript);
 		sc.useDelimiter("\\Z");
@@ -79,32 +93,35 @@ public class Main implements Callable<Integer> {
 		List<String> dependencies = script.collectDependencies();
 
 		var classpath = new DependencyUtil().resolveDependencies(dependencies, Collections.emptyList(), true);
-		StringBuffer optionalArgs = new StringBuffer(" ");
+		List<String> optionalArgs = new ArrayList<String>();
 
 		var javacmd = "java";
-		var sourceargs = " --source 11";
 		if (prepareScript.getName().endsWith(".jsh")) {
 			javacmd = "jshell";
-			sourceargs = "";
 			if (!classpath.isBlank()) {
-				optionalArgs.append("--class-path " + classpath);
+				optionalArgs.add("--class-path " + classpath);
+			}
+			if (debug) {
+				info("debug not possible when running via jshell.");
 			}
 
 		} else {
-			// optionalArgs.append("
-			// -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005");
+			optionalArgs.add("--source 11");
+			if (debug) {
+				optionalArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005");
+			}
 			if (!classpath.isBlank()) {
-				optionalArgs.append("-classpath " + classpath);
+				optionalArgs.add("-classpath " + classpath);
 			}
 		}
 
-		var cmdline = new StringBuffer(javacmd).append(optionalArgs).append(sourceargs)
-				.append(" " + getenv("JBANG_FILE"))
-				.append(" " + params.stream().skip(1).collect(Collectors.joining(" ")));
+		List<String> fullArgs = new ArrayList<>();
+		fullArgs.add(javacmd);
+		fullArgs.addAll(optionalArgs);
+		fullArgs.add(scriptOrFile);
+		fullArgs.addAll(params);
 
-		out.println(cmdline);
-
-		return 0;
+		return fullArgs.stream().collect(Collectors.joining(" "));
 	}
 
 	/**
@@ -200,6 +217,5 @@ public class Main implements Callable<Integer> {
 
 		return scriptFile;
 	}
-
 
 }

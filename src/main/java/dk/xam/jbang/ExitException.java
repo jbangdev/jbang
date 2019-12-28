@@ -1,6 +1,17 @@
 package dk.xam.jbang;
 
-public class ExitException extends Throwable {
-    public ExitException(int status) {
-    }
+/**
+ * Used when wanting to exit app from a command.
+ */
+public class ExitException extends RuntimeException {
+
+	private final int status;
+
+	public ExitException(int status) {
+		this.status = status;
+	}
+
+	public int getStatus() {
+		return status;
+	}
 }
