@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 import picocli.CommandLine;
 import picocli.CommandLine.Model.CommandSpec;
 
-@Command(name="jbang", versionProvider = VersionProvider.class, description = "Compiles and runs .java/.jsh scripts.")
+@Command(name="jbang", mixinStandardHelpOptions = false, versionProvider = VersionProvider.class, description = "Compiles and runs .java/.jsh scripts.")
 public class Main implements Callable<Integer> {
 
 	@Spec
@@ -54,8 +54,8 @@ public class Main implements Callable<Integer> {
 	public static void main(String... args) throws FileNotFoundException {
 		var main = new Main();
 
-		new CommandLine(main).setOut(new PrintWriter(err, true)).setErr(new PrintWriter(err, true)).parseArgs(argsForJbang(args));
-		System.exit(main.call());
+		int exitcode = new CommandLine(main).setStopAtPositional(true).setOut(new PrintWriter(err, true)).setErr(new PrintWriter(err, true)).execute(args);
+		System.exit(exitcode);
 	}
 
 	@Override
@@ -68,7 +68,6 @@ public class Main implements Callable<Integer> {
 			spec.commandLine().printVersionHelp(err);
 			quit(0);
 		}
-
 
 		prepareScript = prepareScript(script);
 
