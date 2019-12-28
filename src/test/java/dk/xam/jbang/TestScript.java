@@ -19,7 +19,7 @@ class TestScript {
 			+ "\t\t\t+ \"    jbang (-h | --help)\\n\" + \"\\n\" + \"Options:\\n\"\n"
 			+ "\t\t\t+ \"    -t, --text         Enable stdin support API for more streamlined text processing  [default: latest]\\n\"\n"
 			+ "\t\t\t+ \"    --package          Package script and dependencies into self-dependent binary\\n\"\n"
-			+ "\t\t\t+ \"    --idea             boostrap IDEA from a kscript\\n\"\n"
+			+ "\t\t\t+ \"    --idea             boostrap IDEA from a jbang\\n\"\n"
 			+ "\t\t\t+ \"    -i, --interactive  Create interactive shell with dependencies as declared in script\\n\"\n"
 			+ "\t\t\t+ \"    -                  Read script from the STDIN\\n\" + \"    -h, --help         Print this text\\n\"\n"
 			+ "\t\t\t+ \"    --clear-cache      Wipe cached script jars and urls\\n\" + \"\";\n" + "\n"

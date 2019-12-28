@@ -1,9 +1,11 @@
 
+set -e
+
 jbang_version=`ls build/distributions/jbang-*.*.zip | sed -e 's/.*jbang-\(.*\).zip/\1/g'`
 echo "Updating jbang sdkman with version $jbang_version"
 
 
-echo ${SDKMAN_CONSUMER_KEY} ${SDKMAN_CONSUMER_TOKEN} ${kscript_version}
+echo ${SDKMAN_CONSUMER_KEY} ${SDKMAN_CONSUMER_TOKEN} ${jbang_version}
 #echo ${SDKMAN_CONSUMER_KEY} | cut -c-5
 #echo ${SDKMAN_CONSUMER_TOKEN} | cut -c-5
 

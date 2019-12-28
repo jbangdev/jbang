@@ -88,5 +88,4 @@ public class TestMain {
 		assertThat(result, containsString("log4j"));
 	}
 
-
 }
