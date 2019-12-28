@@ -11,7 +11,7 @@ sha256=`cat $DIST.sha256`
 rm -rf homebrew-tap
 git clone https://github.com/maxandersen/homebrew-tap.git
 
-cp build/brew/formula/jbang.rb Formula/jbang.rb
+cp build/brew/formula/jbang.rb homebrew-tap/Formula/jbang.rb
 
 cd homebrew-tap
 
