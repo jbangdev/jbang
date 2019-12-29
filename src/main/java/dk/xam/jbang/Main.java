@@ -3,9 +3,8 @@ package dk.xam.jbang;
 import static java.lang.System.*;
 import static picocli.CommandLine.*;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
+import java.io.*;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
@@ -33,6 +32,9 @@ public class Main implements Callable<Integer> {
 
 	@Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
 	List<String> params = new ArrayList<String>();
+
+	@Option(names = {"--init"}, description = "Init script with a java class useful for scripting.")
+	boolean initScript;
 
 	void info(String msg) {
 		spec.commandLine().getErr().println(msg);
@@ -65,7 +67,7 @@ public class Main implements Callable<Integer> {
 	}
 
 	@Override
-	public Integer call() throws FileNotFoundException {
+	public Integer call() throws IOException {
 
 		if (helpRequested) {
 			spec.commandLine().usage(err);
@@ -75,11 +77,44 @@ public class Main implements Callable<Integer> {
 			quit(0);
 		}
 
-		String cmdline = generateCommandLine();
+		if (initScript) {
+			var f = new File(scriptOrFile);
+			if (f.exists()) {
+				warn("File " + f + " already exists. Will not initialize.");
+			} else {
+				// Use try-with-resource to get auto-closeable writer instance
+				try (BufferedWriter writer = Files.newBufferedWriter(f.toPath())) {
+					String result = renderInitClass(f);
+					writer.write(result);
+				}
+			}
 
-		out.println(cmdline);
+		} else {
+			String cmdline = generateCommandLine();
 
+			out.println(cmdline);
+		}
 		return 0;
+	}
+
+	static String initTemplate = "//usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n"
+			+ "// //DEPS <dependency1> <dependency2>\n" + "\n" + "import static java.lang.System.*;\n" + "\n"
+			+ "public class {className} {\n" + "\n" + "    public static void main(String... args) {\n"
+			+ "        out.println(\"Hello World\");\n" + "    }\n" + "}";
+
+	String renderInitClass(File f) {
+
+		return initTemplate.replace("{className}", getBaseName(f.getName()));
+
+	}
+
+	public static String getBaseName(String fileName) {
+		int index = fileName.lastIndexOf('.');
+		if (index == -1) {
+			return fileName;
+		} else {
+			return fileName.substring(0, index);
+		}
 	}
 
 	String generateCommandLine() throws FileNotFoundException {

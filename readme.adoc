@@ -79,6 +79,10 @@ chmod +x helloworld.java
 There are experimental support to run `.jsh` via `jshell`. The advantage of `jshell` is that you do not need to have a class or static main method, downside is that
 at least for now you have no way to read the command line arguments.
 
+## Getting started
+
+To get started you can run `jbang --init helloworld.java` and a simple java class with a static main is generated.
+
 ## Declare dependencies with `//DEPS`
 
 If you want to write real scripts you will want to use some java libraries.
