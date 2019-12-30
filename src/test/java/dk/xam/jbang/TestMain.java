@@ -86,6 +86,6 @@ public class TestMain {
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, containsString("log4j"));
-	} 
+	}
 
 }
