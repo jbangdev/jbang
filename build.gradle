@@ -19,7 +19,7 @@ dependencies {
 	implementation 'com.offbytwo:docopt:0.6.0.20150202'
 
 	implementation 'info.picocli:picocli:4.1.4'
-	//implementation 'io.quarkus.qute:qute-core:1.1.0.Final'
+	implementation 'io.quarkus.qute:qute-core:1.1.0.Final'
 
 	implementation("com.jcabi:jcabi-aether:0.10.1") {
 		exclude group: "org.hibernate", module: "hibernate-validator"
@@ -96,9 +96,18 @@ test {
 	useJUnitPlatform()
 }
 
+task copyResources(type: Copy) {
+	from "${projectDir}/src/main/resources"
+	into "${buildDir}/classes/java/main"
+}
+processResources.dependsOn copyResources
+
+
 task copyTestResources(type: Copy) {
 	from "${projectDir}/examples"
 	into "${buildDir}/classes/java/test/examples"
+
+
 }
 processTestResources.dependsOn copyTestResources
 

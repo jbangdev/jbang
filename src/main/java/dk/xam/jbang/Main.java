@@ -1,14 +1,21 @@
 package dk.xam.jbang;
 
-import static java.lang.System.*;
+import static java.lang.System.err;
+import static java.lang.System.out;
 import static picocli.CommandLine.*;
 
 import java.io.*;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
+import io.quarkus.qute.Engine;
+import io.quarkus.qute.Template;
+import io.quarkus.qute.TemplateLocator;
+import io.quarkus.qute.Variant;
 import picocli.CommandLine;
 import picocli.CommandLine.Model.CommandSpec;
 
@@ -103,8 +110,61 @@ public class Main implements Callable<Integer> {
 			+ "        out.println(\"Hello World\");\n" + "    }\n" + "}";
 
 	String renderInitClass(File f) {
+		Engine engine = Engine.builder().addDefaults().addLocator(this::locate).build();
+		String template = "class {className} public static void main(String... args) {\n}\n }";
+		Template helloTemplate = engine.getTemplate("initClass.qt");
+		String result = helloTemplate.data("className", getBaseName(f.getName())).render();
+		return result;
+	}
 
-		return initTemplate.replace("{className}", getBaseName(f.getName()));
+	/**
+	 * @param path
+	 * @return the optional reader
+	 */
+	private Optional<TemplateLocator.TemplateLocation> locate(String path) {
+		URL resource = null;
+		String basePath = "";
+		String templatePath = basePath + path;
+		// LOGGER.debugf("Locate template for %s", templatePath);
+		resource = locatePath(templatePath);
+
+		if (resource != null) {
+			return Optional.of(new ResourceTemplateLocation(resource));
+		}
+		return Optional.empty();
+	}
+
+	private URL locatePath(String path) {
+		ClassLoader cl = Thread.currentThread().getContextClassLoader();
+		if (cl == null) {
+			cl = Main.class.getClassLoader();
+		}
+		return cl.getResource(path);
+	}
+
+	static class ResourceTemplateLocation implements TemplateLocator.TemplateLocation {
+
+		private final URL resource;
+		private Optional<Variant> variant = null;
+
+		public ResourceTemplateLocation(URL resource) {
+			this.resource = resource;
+			this.variant = null;
+		}
+
+		@Override
+		public Reader read() {
+			try {
+				return new InputStreamReader(resource.openStream(), Charset.forName("utf-8"));
+			} catch (IOException e) {
+				return null;
+			}
+		}
+
+		@Override
+		public Optional<Variant> getVariant() {
+			return variant;
+		}
 
 	}
 
