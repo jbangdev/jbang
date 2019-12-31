@@ -1,7 +1,10 @@
 package dk.xam.jbang;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -9,10 +12,25 @@ public class Script {
 
 	private String DEPS_COMMENT_PREFIX = "//DEPS ";
 
+	File backingFile;
+
 	private String script;
 
-	Script(String content) {
+	Script(File backingFile, String content) throws FileNotFoundException {
+		this.backingFile = backingFile;
 		this.script = content;
+	}
+
+	Script(File backingFile) throws FileNotFoundException {
+		this.backingFile = backingFile;
+		Scanner sc = new Scanner(this.backingFile);
+		sc.useDelimiter("\\Z");
+		this.script = sc.next();
+	}
+
+	Script(String script) {
+		this.backingFile = null;
+		this.script = script;
 	}
 
 	public List<String> collectDependencies() {

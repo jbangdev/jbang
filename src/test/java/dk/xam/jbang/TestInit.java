@@ -1,12 +1,11 @@
 package dk.xam.jbang;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
-import org.junit.jupiter.api.Test;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 
 public class TestInit {
 
@@ -18,7 +17,6 @@ public class TestInit {
 		String s = m.renderInitClass(new File("test.java"));
 
 		assertThat(s, containsString("class test"));
-		assertThat(s, not(containsString("NOT_FOUND")));
 
 	}
 }

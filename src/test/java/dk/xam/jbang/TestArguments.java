@@ -1,14 +1,13 @@
 package dk.xam.jbang;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import picocli.CommandLine;
 
 import java.util.Arrays;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import picocli.CommandLine;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 class TestArguments {
 
@@ -28,7 +27,7 @@ class TestArguments {
 		assert main.helpRequested;
 		assertThat(main.debug(), is(true));
 		assertThat(main.scriptOrFile, is("myfile.java"));
-		assertThat(main.params.size(), is(0));
+		assertThat(main.userParams.size(), is(0));
 
 	}
 
@@ -39,7 +38,7 @@ class TestArguments {
 		assertThat(main.debugPort, is(4004));
 
 		assertThat(main.scriptOrFile, is("test.java"));
-		assertThat(main.params, is(Arrays.asList("--debug", "wonka")));
+		assertThat(main.userParams, is(Arrays.asList("--debug", "wonka")));
 	}
 
 	/**
@@ -53,7 +52,7 @@ class TestArguments {
 		cli.parseArgs("-", "--help");
 		assertThat(main.scriptOrFile, is("-"));
 		assertThat(main.helpRequested, is(false));
-		assertThat(main.params, is(Arrays.asList("--help")));
+		assertThat(main.userParams, is(Arrays.asList("--help")));
 	}
 
 	@Test
@@ -61,7 +60,7 @@ class TestArguments {
 		cli.parseArgs("test.java", "-h");
 		assertThat(main.scriptOrFile, is("test.java"));
 		assertThat(main.helpRequested, is(false));
-		assertThat(main.params, is(Arrays.asList("-h")));
+		assertThat(main.userParams, is(Arrays.asList("-h")));
 	}
 
 	@Test

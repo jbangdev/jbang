@@ -1,18 +1,16 @@
 package dk.xam.jbang;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import picocli.CommandLine;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import picocli.CommandLine;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 public class TestMain {
 
@@ -32,7 +30,7 @@ public class TestMain {
 		var arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
 		new CommandLine(main).parseArgs(arg);
 
-		String result = main.generateCommandLine().toString();
+		String result = main.generateCommandLine(new Script(new File("helloworld.java"), "")).toString();
 
 		assertThat(result, startsWith("java"));
 		assertThat(result, containsString("helloworld.java"));
@@ -46,7 +44,7 @@ public class TestMain {
 		var arg = new File(examplesTestFolder, "helloworld.jsh").getAbsolutePath();
 		new CommandLine(main).parseArgs(arg);
 
-		String result = main.generateCommandLine().toString();
+		String result = main.generateCommandLine(new Script(new File("helloworld.jsh"), "")).toString();
 
 		assertThat(result, startsWith("jshell"));
 		assertThat(result, not(containsString("  ")));
@@ -61,7 +59,7 @@ public class TestMain {
 		var arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
 		new CommandLine(main).parseArgs("--debug", arg);
 
-		String result = main.generateCommandLine().toString();
+		String result = main.generateCommandLine(new Script(new File("helloworld.java"), "")).toString();
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("helloworld.java"));
@@ -78,7 +76,7 @@ public class TestMain {
 		var arg = new File(examplesTestFolder, "classpath_example.java").getAbsolutePath();
 		new CommandLine(main).parseArgs(arg);
 
-		String result = main.generateCommandLine().toString();
+		String result = main.generateCommandLine(new Script(new File(arg))).toString();
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("classpath_example.java"));

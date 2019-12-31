@@ -30,10 +30,14 @@ public class Main implements Callable<Integer> {
 	@Option(names = {"-d",
 			"--debug"}, fallbackValue = "4004", parameterConsumer = IntFallbackConsumer.class, description = "Launch with java debug enabled on specified port(default: ${FALLBACK-VALUE}) ")
 	int debugPort = -1;
+	private Script script;
 
 	boolean debug() {
 		return debugPort >= 0;
 	}
+
+	@Option(names = {"-e", "--edit"}, description = "Edit script by setting up temporary project.")
+	boolean edit;
 
 	@Option(names = {"-h", "--help"}, usageHelp = true, description = "Display help/info")
 	boolean helpRequested;
@@ -45,7 +49,7 @@ public class Main implements Callable<Integer> {
 	String scriptOrFile;
 
 	@Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
-	List<String> params = new ArrayList<String>();
+	List<String> userParams = new ArrayList<String>();
 
 	@Option(names = {"--init"}, description = "Init script with a java class useful for scripting.")
 	boolean initScript;
@@ -63,12 +67,10 @@ public class Main implements Callable<Integer> {
 		throw new ExitException(status);
 	}
 
-	static String USAGE = "j'bang - Enhanced scripting support for Java on *nix-based systems.\n" + "\n"
-			+ "			Usage:\n" + "			 jbang <script> [<script_args>]...\n" + "\n"
-			+ "			The <script> is a java file (.java) with a main method. \n" + "\n"
-			+ "			Copyright : 2019 Max Rydahl Andersen\n" + "			License   : MIT\n"
-			+ "			Website   : https://github.com/maxandersen/jbang\n" + "".trim();
-	private static File prepareScript;
+	void quit(String output) {
+		out.println("echo " + output);
+		throw new ExitException(0);
+	}
 
 	public static void main(String... args) throws FileNotFoundException {
 		int exitcode = getCommandLine().execute(args);
@@ -76,8 +78,12 @@ public class Main implements Callable<Integer> {
 	}
 
 	static CommandLine getCommandLine() {
+		return getCommandLine(new PrintWriter(err), new PrintWriter(out));
+	}
+
+	static CommandLine getCommandLine(PrintWriter localout, PrintWriter localerr) {
 		return new CommandLine(new Main()).setExitCodeExceptionMapper(new VersionProvider()).setStopAtPositional(true)
-				.setOut(new PrintWriter(err, true)).setErr(new PrintWriter(err, true));
+				.setOut(new PrintWriter(localout, true)).setErr(new PrintWriter(localerr, true));
 	}
 
 	@Override
@@ -102,13 +108,46 @@ public class Main implements Callable<Integer> {
 					writer.write(result);
 				}
 			}
+		}
 
+		File prepareScript = prepareScript(scriptOrFile);
+		script = new Script(prepareScript);
+
+		if (edit) {
+			File project = createProject(script, userParams, script.collectDependencies());
+			// err.println(project.getAbsolutePath());
+			quit(project.getAbsolutePath());
 		} else {
-			String cmdline = generateCommandLine();
+			String cmdline = generateCommandLine(script);
 
 			out.println(cmdline);
 		}
 		return 0;
+	}
+
+	File createProject(Script script, List<String> userParams, List<String> collectDependencies) throws IOException {
+
+		Engine engine = Engine.builder().addDefaults().addLocator(this::locate).build();
+
+		var baseDir = new File(Settings.JBANG_CACHE_DIR, "temp_projects");
+
+		var tmpProjectDir = new File(baseDir,
+				"jbang_tmp_project__" + script.backingFile.getName() + "_" + System.currentTimeMillis());
+		tmpProjectDir.mkdirs();
+
+		File srcDir = new File(tmpProjectDir, "src");
+		srcDir.mkdir();
+
+		Files.createSymbolicLink(new File(srcDir, script.backingFile.getName()).toPath(),
+				script.backingFile.getAbsoluteFile().toPath());
+
+		// create build gradle
+		Template buildGradleTemplate = engine.getTemplate("build.gradle.qt");
+		String result = buildGradleTemplate.data("dependencies", collectDependencies).render();
+
+		Files.writeString(new File(tmpProjectDir, "build.gradle").toPath(), result);
+
+		return tmpProjectDir;
 	}
 
 	static String initTemplate = "//usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n"
@@ -118,7 +157,6 @@ public class Main implements Callable<Integer> {
 
 	String renderInitClass(File f) {
 		Engine engine = Engine.builder().addDefaults().addLocator(this::locate).build();
-		String template = "class {className} public static void main(String... args) {\n}\n }";
 		Template helloTemplate = engine.getTemplate("initClass.qt");
 		String result = helloTemplate.data("className", getBaseName(f.getName())).render();
 		return result;
@@ -184,13 +222,7 @@ public class Main implements Callable<Integer> {
 		}
 	}
 
-	String generateCommandLine() throws FileNotFoundException {
-		prepareScript = prepareScript(scriptOrFile);
-
-		Scanner sc = new Scanner(prepareScript);
-		sc.useDelimiter("\\Z");
-
-		Script script = new Script(sc.next());
+	String generateCommandLine(Script script) throws FileNotFoundException {
 
 		List<String> dependencies = script.collectDependencies();
 
@@ -198,7 +230,7 @@ public class Main implements Callable<Integer> {
 		List<String> optionalArgs = new ArrayList<String>();
 
 		var javacmd = "java";
-		if (prepareScript.getName().endsWith(".jsh")) {
+		if (script.backingFile.getName().endsWith(".jsh")) {
 			javacmd = "jshell";
 			if (!classpath.isBlank()) {
 				optionalArgs.add("--class-path " + classpath);
@@ -221,7 +253,7 @@ public class Main implements Callable<Integer> {
 		fullArgs.add(javacmd);
 		fullArgs.addAll(optionalArgs);
 		fullArgs.add(scriptOrFile);
-		fullArgs.addAll(params);
+		fullArgs.addAll(userParams);
 
 		return fullArgs.stream().collect(Collectors.joining(" "));
 	}
