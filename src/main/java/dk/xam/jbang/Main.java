@@ -1,8 +1,13 @@
 package dk.xam.jbang;
 
-import static java.lang.System.err;
-import static java.lang.System.out;
-import static picocli.CommandLine.*;
+import io.quarkus.qute.Engine;
+import io.quarkus.qute.Template;
+import io.quarkus.qute.TemplateLocator;
+import io.quarkus.qute.Variant;
+import picocli.CommandLine;
+import picocli.CommandLine.Model.ArgSpec;
+import picocli.CommandLine.Model.CommandSpec;
+import picocli.CommandLine.Model.OptionSpec;
 
 import java.io.*;
 import java.net.URL;
@@ -12,14 +17,9 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
-import io.quarkus.qute.Engine;
-import io.quarkus.qute.Template;
-import io.quarkus.qute.TemplateLocator;
-import io.quarkus.qute.Variant;
-import picocli.CommandLine;
-import picocli.CommandLine.Model.ArgSpec;
-import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.Model.OptionSpec;
+import static java.lang.System.err;
+import static java.lang.System.out;
+import static picocli.CommandLine.*;
 
 @Command(name = "jbang", footer = "\nCopyright: 2020 Max Rydahl Andersen, License: MIT\nWebsite: https://github.com/maxandersen/jbang", mixinStandardHelpOptions = false, versionProvider = VersionProvider.class, description = "Compiles and runs .java/.jsh scripts.")
 public class Main implements Callable<Integer> {
@@ -108,19 +108,19 @@ public class Main implements Callable<Integer> {
 					writer.write(result);
 				}
 			}
-		}
+		} else { // no point in editing nor running something we just inited.
+			File prepareScript = prepareScript(scriptOrFile);
+			script = new Script(prepareScript);
 
-		File prepareScript = prepareScript(scriptOrFile);
-		script = new Script(prepareScript);
-
-		if (edit) {
-			File project = createProject(script, userParams, script.collectDependencies());
-			// err.println(project.getAbsolutePath());
-			quit(project.getAbsolutePath());
-		} else {
-			String cmdline = generateCommandLine(script);
-
-			out.println(cmdline);
+			if (edit) {
+				File project = createProject(script, userParams, script.collectDependencies());
+				// err.println(project.getAbsolutePath());
+				quit(project.getAbsolutePath());
+			}
+			if (!initScript) {
+				String cmdline = generateCommandLine(script);
+				out.println(cmdline);
+			}
 		}
 		return 0;
 	}
@@ -149,11 +149,6 @@ public class Main implements Callable<Integer> {
 
 		return tmpProjectDir;
 	}
-
-	static String initTemplate = "//usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n"
-			+ "// //DEPS <dependency1> <dependency2>\n" + "\n" + "import static java.lang.System.*;\n" + "\n"
-			+ "public class {className} {\n" + "\n" + "    public static void main(String... args) {\n"
-			+ "        out.println(\"Hello World\");\n" + "    }\n" + "}";
 
 	String renderInitClass(File f) {
 		Engine engine = Engine.builder().addDefaults().addLocator(this::locate).build();
