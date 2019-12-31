@@ -131,12 +131,14 @@ $ ./classpath_example.java
 ## Debugging
 
 When running `.java` scripts with `jbang` you can pass the `--debug`-flag and the script will enable debug,
-suspend the execution and wait until you connect a debugger to port 5005.
+suspend the execution and wait until you connect a debugger to port 4004.
 
 ```
 jbang --debug helloworld.java
-Listening for transport dt_socket at address: 5005
+Listening for transport dt_socket at address: 4004
 ```
+
+You can change the debug port by passing in a number to the debug argument, i.e. `--debug=4321`.
 
 NOTE: Be sure to put a breakpoint in your IDE/debugger before you connect to make the debugger actually stop when you need it.
 

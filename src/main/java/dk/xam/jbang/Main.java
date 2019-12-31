@@ -1,8 +1,13 @@
 package dk.xam.jbang;
 
-import static java.lang.System.err;
-import static java.lang.System.out;
-import static picocli.CommandLine.*;
+import io.quarkus.qute.Engine;
+import io.quarkus.qute.Template;
+import io.quarkus.qute.TemplateLocator;
+import io.quarkus.qute.Variant;
+import picocli.CommandLine;
+import picocli.CommandLine.Model.ArgSpec;
+import picocli.CommandLine.Model.CommandSpec;
+import picocli.CommandLine.Model.OptionSpec;
 
 import java.io.*;
 import java.net.URL;
@@ -12,12 +17,9 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
-import io.quarkus.qute.Engine;
-import io.quarkus.qute.Template;
-import io.quarkus.qute.TemplateLocator;
-import io.quarkus.qute.Variant;
-import picocli.CommandLine;
-import picocli.CommandLine.Model.CommandSpec;
+import static java.lang.System.err;
+import static java.lang.System.out;
+import static picocli.CommandLine.*;
 
 @Command(name = "jbang", footer = "\nCopyright: 2020 Max Rydahl Andersen, License: MIT\nWebsite: https://github.com/maxandersen/jbang", mixinStandardHelpOptions = false, versionProvider = VersionProvider.class, description = "Compiles and runs .java/.jsh scripts.")
 public class Main implements Callable<Integer> {
@@ -25,8 +27,13 @@ public class Main implements Callable<Integer> {
 	@Spec
 	CommandSpec spec;
 
-	@Option(names = {"-d", "--debug"}, description = "Launch with java debug enabled.")
-	boolean debug;
+	@Option(names = {"-d",
+			"--debug"}, fallbackValue = "4004", parameterConsumer = IntFallbackConsumer.class, description = "Launch with java debug enabled on specified port(default: ${FALLBACK-VALUE}) ")
+	int debugPort = -1;
+
+	boolean debug() {
+		return debugPort >= 0;
+	}
 
 	@Option(names = {"-h", "--help"}, usageHelp = true, description = "Display help/info")
 	boolean helpRequested;
@@ -196,14 +203,14 @@ public class Main implements Callable<Integer> {
 			if (!classpath.isBlank()) {
 				optionalArgs.add("--class-path " + classpath);
 			}
-			if (debug) {
+			if (debug()) {
 				info("debug not possible when running via jshell.");
 			}
 
 		} else {
 			optionalArgs.add("--source 11");
-			if (debug) {
-				optionalArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005");
+			if (debug()) {
+				optionalArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + debugPort);
 			}
 			if (!classpath.isBlank()) {
 				optionalArgs.add("-classpath " + classpath);
@@ -313,4 +320,23 @@ public class Main implements Callable<Integer> {
 		return scriptFile;
 	}
 
+	static class IntFallbackConsumer implements IParameterConsumer {
+		@Override
+		public void consumeParameters(Stack<String> args, ArgSpec argSpec, CommandSpec commandSpec) {
+			String arg = args.pop();
+			try {
+				int port = Integer.parseInt(arg);
+				argSpec.setValue(port);
+			} catch (Exception ex) {
+				String fallbackValue = (argSpec.isOption()) ? ((OptionSpec) argSpec).fallbackValue() : null;
+				try {
+					int fallbackPort = Integer.parseInt(fallbackValue);
+					argSpec.setValue(fallbackPort);
+				} catch (Exception badFallbackValue) {
+					throw new InitializationException("FallbackValue for --debug must be an int", badFallbackValue);
+				}
+				args.push(arg); // put it back
+			}
+		}
+	}
 }

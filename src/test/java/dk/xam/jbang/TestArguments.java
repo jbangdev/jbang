@@ -1,7 +1,7 @@
 package dk.xam.jbang;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
 
 import java.util.Arrays;
 
@@ -26,7 +26,7 @@ class TestArguments {
 		cli.parseArgs("-h", "--debug", "myfile.java");
 
 		assert main.helpRequested;
-		assertThat(main.debug, is(true));
+		assertThat(main.debug(), is(true));
 		assertThat(main.scriptOrFile, is("myfile.java"));
 		assertThat(main.params.size(), is(0));
 
@@ -35,7 +35,9 @@ class TestArguments {
 	@Test
 	public void testDoubleDebug() {
 		cli.parseArgs("--debug", "test.java", "--debug", "wonka");
-		assertThat(main.debug, is(true));
+		assertThat(main.debug(), is(true));
+		assertThat(main.debugPort, is(4004));
+
 		assertThat(main.scriptOrFile, is("test.java"));
 		assertThat(main.params, is(Arrays.asList("--debug", "wonka")));
 	}
@@ -66,7 +68,23 @@ class TestArguments {
 	public void testDebugWithScript() {
 		cli.parseArgs("--debug", "test.java");
 		assertThat(main.scriptOrFile, is("test.java"));
-		assertThat(main.debug, is(true));
+		assertThat(main.debug(), is(true));
+	}
+
+	@Test
+	public void testDebugPort() {
+		cli.parseArgs("--debug=5000", "test.java");
+		assertThat(main.scriptOrFile, is("test.java"));
+		assertThat(main.debug(), is(true));
+		assertThat(main.debugPort, is(5000));
+	}
+
+	@Test
+	public void testDebugPortSeperateValue() {
+		cli.parseArgs("--debug", "5005", "test.java");
+		assertThat(main.scriptOrFile, is("test.java"));
+		assertThat(main.debug(), is(true));
+		assertThat(main.debugPort, is(5005));
 	}
 
 	@Test
