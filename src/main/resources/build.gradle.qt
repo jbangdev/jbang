@@ -1,11 +1,15 @@
-//usr/bin/env jbang "$0" "$@" ; exit $?
-// //DEPS <dependency1> <dependency2>
+apply plugin: 'java'
 
-import static java.lang.System.*;
-
-public class {className} {
-
-    public static void main(String... args) {
-        out.println("Hello World");
-    }
+repositories {
+    mavenLocal()
+        jcenter()
 }
+
+dependencies {
+        {#for item in dependencies}
+             compile "{item}"
+        {/for}
+}
+
+sourceSets.main.java.srcDirs 'src'
+sourceSets.test.java.srcDirs 'src'

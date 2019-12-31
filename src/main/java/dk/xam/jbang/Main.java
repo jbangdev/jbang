@@ -1,5 +1,20 @@
 package dk.xam.jbang;
 
+import static java.lang.System.err;
+import static java.lang.System.out;
+import static picocli.CommandLine.*;
+
+import java.io.*;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
+
 import io.quarkus.qute.Engine;
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateLocator;
@@ -8,18 +23,6 @@ import picocli.CommandLine;
 import picocli.CommandLine.Model.ArgSpec;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Model.OptionSpec;
-
-import java.io.*;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
-
-import static java.lang.System.err;
-import static java.lang.System.out;
-import static picocli.CommandLine.*;
 
 @Command(name = "jbang", footer = "\nCopyright: 2020 Max Rydahl Andersen, License: MIT\nWebsite: https://github.com/maxandersen/jbang", mixinStandardHelpOptions = false, versionProvider = VersionProvider.class, description = "Compiles and runs .java/.jsh scripts.")
 public class Main implements Callable<Integer> {
@@ -131,15 +134,17 @@ public class Main implements Callable<Integer> {
 
 		var baseDir = new File(Settings.JBANG_CACHE_DIR, "temp_projects");
 
-		var tmpProjectDir = new File(baseDir,
-				"jbang_tmp_project__" + script.backingFile.getName() + "_" + System.currentTimeMillis());
+		var tmpProjectDir = new File(baseDir, "jbang_tmp_project__" + script.backingFile.getName() + "_"
+				+ getStableID(script.backingFile.getAbsolutePath()));
 		tmpProjectDir.mkdirs();
 
 		File srcDir = new File(tmpProjectDir, "src");
 		srcDir.mkdir();
 
-		Files.createSymbolicLink(new File(srcDir, script.backingFile.getName()).toPath(),
-				script.backingFile.getAbsoluteFile().toPath());
+		var srcFile = new File(srcDir, script.backingFile.getName());
+		if (!srcFile.exists()) {
+			Files.createSymbolicLink(srcFile.toPath(), script.backingFile.getAbsoluteFile().toPath());
+		}
 
 		// create build gradle
 		Template buildGradleTemplate = engine.getTemplate("build.gradle.qt");
@@ -148,6 +153,21 @@ public class Main implements Callable<Integer> {
 		Files.writeString(new File(tmpProjectDir, "build.gradle").toPath(), result);
 
 		return tmpProjectDir;
+	}
+
+	String getStableID(String input) {
+		final MessageDigest digest;
+		try {
+			digest = MessageDigest.getInstance("SHA-256");
+		} catch (NoSuchAlgorithmException e) {
+			throw new ExitException(-1, e);
+		}
+		final byte[] hashbytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+		StringBuilder sb = new StringBuilder();
+		for (byte b : hashbytes) {
+			sb.append(String.format("%02x", b));
+		}
+		return sb.toString();
 	}
 
 	String renderInitClass(File f) {

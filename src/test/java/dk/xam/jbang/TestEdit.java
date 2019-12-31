@@ -1,6 +1,7 @@
 package dk.xam.jbang;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 
 import java.io.File;
@@ -43,7 +44,9 @@ public class TestEdit {
 		File project = main.createProject(script, Collections.emptyList(), script.collectDependencies());
 
 		assertThat(new File(project, "src"), FileMatchers.anExistingDirectory());
-		assert (new File(project, "build.gradle").exists());
+		var build = new File(project, "build.gradle");
+		assert (build.exists());
+		assertThat(Files.readString(build.toPath()), containsString("dependencies"));
 		var src = new File(project, "src/edit.java");
 		assert (src.exists());
 		assert (Files.isSymbolicLink(src.toPath()));
