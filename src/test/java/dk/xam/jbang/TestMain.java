@@ -1,16 +1,17 @@
 package dk.xam.jbang;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import picocli.CommandLine;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import picocli.CommandLine;
 
 public class TestMain {
 
