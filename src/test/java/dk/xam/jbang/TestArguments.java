@@ -1,13 +1,14 @@
 package dk.xam.jbang;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import picocli.CommandLine;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 
 import java.util.Arrays;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import picocli.CommandLine;
 
 class TestArguments {
 
@@ -92,9 +93,8 @@ class TestArguments {
 		assertThat(main.scriptOrFile, is("test.java"));
 	}
 
-	@Test
-	public void testClearCache() {
-		cli.parseArgs("--clear-cache");
-		assertThat(main.clearCache, is(true));
-	}
+	/*
+	 * @Test public void testClearCache() { cli.parseArgs("--clear-cache");
+	 * assertThat(main.clearCache, is(true)); }
+	 */
 }

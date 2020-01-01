@@ -26,8 +26,7 @@ jobs:
       - name: build-gradle
         run: ./gradlew install --build-cache --scan -s
       - name: integration-test
-          env:
-          - PATH: `cwd`/build/install/jbang/bin:$PATH
         run: |
+          export PATH=`pwd`/build/install/jbang/bin:$PATH
           cd src/test/resources
           ./test_suite.sh
