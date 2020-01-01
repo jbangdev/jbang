@@ -24,5 +24,10 @@ jobs:
         with:
           java-version: 11
       - name: build-gradle
-        run: ./gradlew build --build-cache --scan -s
-
+        run: ./gradlew install --build-cache --scan -s
+      - name: integration-test
+          env:
+          - PATH: `cwd`/build/install/jbang/bin:$PATH
+        run: |
+          cd src/test/resources
+          ./test_suite.sh
