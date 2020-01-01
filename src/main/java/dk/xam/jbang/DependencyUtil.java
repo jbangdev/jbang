@@ -1,34 +1,26 @@
 package dk.xam.jbang;
 
-import static dk.xam.jbang.Settings.CP_SEPARATOR;
-import static dk.xam.jbang.Settings.DEP_LOOKUP_CACHE_FILE;
-import static dk.xam.jbang.Util.*;
-import static dk.xam.jbang.Util.errorMsg;
-import static dk.xam.jbang.Util.infoMsg;
-import static dk.xam.jbang.Util.quit;
-import static org.sonatype.aether.util.artifact.JavaScopes.RUNTIME;
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
+import com.jcabi.aether.Aether;
 import org.sonatype.aether.artifact.Artifact;
 import org.sonatype.aether.repository.Authentication;
 import org.sonatype.aether.repository.RemoteRepository;
 import org.sonatype.aether.resolution.DependencyResolutionException;
 import org.sonatype.aether.util.artifact.DefaultArtifact;
 
-import com.jcabi.aether.Aether;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static dk.xam.jbang.Settings.CP_SEPARATOR;
+import static dk.xam.jbang.Settings.DEP_LOOKUP_CACHE_FILE;
+import static dk.xam.jbang.Util.*;
+import static org.sonatype.aether.util.artifact.JavaScopes.RUNTIME;
 
 class DependencyUtil {
 
@@ -127,7 +119,7 @@ class DependencyUtil {
 
 		remoteRepos.add(jcenter);
 
-		var aether = new Aether(remoteRepos, new File(System.getProperty("user.home") + "/.m2/repository"));
+		var aether = new Aether(remoteRepos, Settings.getLocalMavenRepo());
 		return depIds.stream().flatMap(it -> {
 			if (loggingEnabled)
 				System.err.print(String.format("[jbang]     Resolving %s...", it));

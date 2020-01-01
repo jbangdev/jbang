@@ -1,8 +1,13 @@
 package dk.xam.jbang;
 
-import static java.lang.System.err;
-import static java.lang.System.out;
-import static picocli.CommandLine.*;
+import io.quarkus.qute.Engine;
+import io.quarkus.qute.Template;
+import io.quarkus.qute.TemplateLocator;
+import io.quarkus.qute.Variant;
+import picocli.CommandLine;
+import picocli.CommandLine.Model.ArgSpec;
+import picocli.CommandLine.Model.CommandSpec;
+import picocli.CommandLine.Model.OptionSpec;
 
 import java.io.*;
 import java.net.URL;
@@ -15,14 +20,9 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
-import io.quarkus.qute.Engine;
-import io.quarkus.qute.Template;
-import io.quarkus.qute.TemplateLocator;
-import io.quarkus.qute.Variant;
-import picocli.CommandLine;
-import picocli.CommandLine.Model.ArgSpec;
-import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.Model.OptionSpec;
+import static java.lang.System.err;
+import static java.lang.System.out;
+import static picocli.CommandLine.*;
 
 @Command(name = "jbang", footer = "\nCopyright: 2020 Max Rydahl Andersen, License: MIT\nWebsite: https://github.com/maxandersen/jbang", mixinStandardHelpOptions = false, versionProvider = VersionProvider.class, description = "Compiles and runs .java/.jsh scripts.")
 public class Main implements Callable<Integer> {
@@ -81,7 +81,7 @@ public class Main implements Callable<Integer> {
 	}
 
 	static CommandLine getCommandLine() {
-		return getCommandLine(new PrintWriter(err), new PrintWriter(out));
+		return getCommandLine(new PrintWriter(err), new PrintWriter(err));
 	}
 
 	static CommandLine getCommandLine(PrintWriter localout, PrintWriter localerr) {
