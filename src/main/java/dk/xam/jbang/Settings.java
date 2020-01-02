@@ -21,15 +21,19 @@ public class Settings {
 
 		DEP_LOOKUP_CACHE_FILE = new java.io.File(JBANG_CACHE_DIR, "dependency_cache.txt");
 
-		// create cache dir if it does not yet exist
-		if (!JBANG_CACHE_DIR.isDirectory()) {
-			JBANG_CACHE_DIR.mkdir();
-		}
+		setupCache();
 
 	}
 
 	public static File getLocalMavenRepo() {
 		return new File(System.getenv().getOrDefault("JBANG_REPO", System.getProperty("user.home") + "/.m2/repository"))
 				.getAbsoluteFile();
+	}
+
+	public static void setupCache() {
+		// create cache dir if it does not yet exist
+		if (!JBANG_CACHE_DIR.exists()) {
+			JBANG_CACHE_DIR.mkdir();
+		}
 	}
 }

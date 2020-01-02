@@ -1,15 +1,16 @@
 package dk.xam.jbang;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import picocli.CommandLine;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.io.FileMatchers.anExistingFileOrDirectory;
 
 import java.io.IOException;
 import java.util.Arrays;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.hamcrest.io.FileMatchers.anExistingFileOrDirectory;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import picocli.CommandLine;
 
 class TestArguments {
 
@@ -45,8 +46,8 @@ class TestArguments {
 
 	/**
 	 * @Test public void testInit() { cli.parseArgs("--init", "x.java", "y.java");
-	 * assertThat(main.script, is("x.java")); assertThat(main.params,
-	 * is(Arrays.asList("x.java", "y.java"))); }
+	 *       assertThat(main.script, is("x.java")); assertThat(main.params,
+	 *       is(Arrays.asList("x.java", "y.java"))); }
 	 **/
 
 	@Test
@@ -93,7 +94,6 @@ class TestArguments {
 		cli.parseArgs("test.java");
 		assertThat(main.scriptOrFile, is("test.java"));
 	}
-
 
 	@Test
 	public void testClearCache() throws IOException {
