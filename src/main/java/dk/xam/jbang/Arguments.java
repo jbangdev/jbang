@@ -9,13 +9,13 @@ import java.util.List;
 @Command(versionProvider = VersionProvider.class)
 class Arguments {
 
-	@Option(names = {"-d", "--debug"}, arity = "0", description = "Launch with java debug enabled.")
+	@Option(names = { "-d", "--debug" }, arity = "0", description = "Launch with java debug enabled.")
 	boolean debug;
 
-	@Option(names = {"-h", "--help"}, usageHelp = true, description = "Display help/info")
+	@Option(names = { "-h", "--help" }, usageHelp = true, description = "Display help/info")
 	boolean helpRequested;
 
-	@Option(names = {"--version"}, versionHelp = true, arity = "0", description = "Display version info")
+	@Option(names = { "--version" }, versionHelp = true, arity = "0", description = "Display version info")
 	boolean versionRequested;
 
 	@Parameters
@@ -27,6 +27,7 @@ class Arguments {
 	Arguments(String... args) {
 		argsForJbang(args);
 	}
+
 	/**
 	 * return the list arguments that relate to jbang. First arguments that starts
 	 * with '-' and is not just '-' for stdin goes to jbang, rest goes to the

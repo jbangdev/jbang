@@ -52,7 +52,7 @@ spotless {
 	java {
 		importOrder 'java', 'javax', 'org', 'com', 'dk.xam', ''
 		removeUnusedImports()
-		eclipse()
+		eclipse().configFile "misc/eclipse_formatting_nowrap.xml"
 	}
 	format 'xml', {
 		target '**/*.xml'

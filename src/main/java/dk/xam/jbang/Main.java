@@ -30,8 +30,8 @@ public class Main implements Callable<Integer> {
 	@Spec
 	CommandSpec spec;
 
-	@Option(names = {"-d",
-			"--debug"}, fallbackValue = "4004", parameterConsumer = IntFallbackConsumer.class, description = "Launch with java debug enabled on specified port(default: ${FALLBACK-VALUE}) ")
+	@Option(names = { "-d",
+			"--debug" }, fallbackValue = "4004", parameterConsumer = IntFallbackConsumer.class, description = "Launch with java debug enabled on specified port(default: ${FALLBACK-VALUE}) ")
 	int debugPort = -1;
 	private Script script;
 
@@ -39,13 +39,13 @@ public class Main implements Callable<Integer> {
 		return debugPort >= 0;
 	}
 
-	@Option(names = {"-e", "--edit"}, description = "Edit script by setting up temporary project.")
+	@Option(names = { "-e", "--edit" }, description = "Edit script by setting up temporary project.")
 	boolean edit;
 
-	@Option(names = {"-h", "--help"}, usageHelp = true, description = "Display help/info")
+	@Option(names = { "-h", "--help" }, usageHelp = true, description = "Display help/info")
 	boolean helpRequested;
 
-	@Option(names = {"--version"}, versionHelp = true, arity = "0", description = "Display version info")
+	@Option(names = { "--version" }, versionHelp = true, arity = "0", description = "Display version info")
 	boolean versionRequested;
 
 	@Parameters(index = "0", description = "A file with java code or if named .jsh will be run with jshell")
@@ -54,7 +54,7 @@ public class Main implements Callable<Integer> {
 	@Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
 	List<String> userParams = new ArrayList<String>();
 
-	@Option(names = {"--init"}, description = "Init script with a java class useful for scripting.")
+	@Option(names = { "--init" }, description = "Init script with a java class useful for scripting.")
 	boolean initScript;
 
 	void info(String msg) {
