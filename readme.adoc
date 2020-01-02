@@ -12,7 +12,7 @@ Then try `jbang` which gives you:
 * Dependency declarations using `//DEPS <gav>` for automatic dependency resolution
 * Dependency resolution caching
 * Launch with debug enabled for instant debugging from your favorite IDE
-* (PLANNED) Generate gradle/maven file with dependencies for easy editing in your favorite IDE
+* Generate gradle file with dependencies for easy editing in your favorite IDE (`jbang --edit myfile.java`)
 * (PLANNED) Lookup dependencies with a short-hand name, i.e. `// DEPS log4j:1.2+,picocli` for quick getting started.
 
 To use it simply install `jbang` and run `jbang yourscript.java`
