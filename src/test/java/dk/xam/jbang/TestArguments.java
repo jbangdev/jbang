@@ -1,14 +1,15 @@
 package dk.xam.jbang;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-
-import java.util.Arrays;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import picocli.CommandLine;
+
+import java.io.IOException;
+import java.util.Arrays;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.io.FileMatchers.anExistingFileOrDirectory;
 
 class TestArguments {
 
@@ -44,8 +45,8 @@ class TestArguments {
 
 	/**
 	 * @Test public void testInit() { cli.parseArgs("--init", "x.java", "y.java");
-	 *       assertThat(main.script, is("x.java")); assertThat(main.params,
-	 *       is(Arrays.asList("x.java", "y.java"))); }
+	 * assertThat(main.script, is("x.java")); assertThat(main.params,
+	 * is(Arrays.asList("x.java", "y.java"))); }
 	 **/
 
 	@Test
@@ -93,8 +94,19 @@ class TestArguments {
 		assertThat(main.scriptOrFile, is("test.java"));
 	}
 
-	/*
-	 * @Test public void testClearCache() { cli.parseArgs("--clear-cache");
-	 * assertThat(main.clearCache, is(true)); }
-	 */
+
+	@Test
+	public void testClearCache() throws IOException {
+		cli.parseArgs("--clear-cache");
+		assertThat(main.clearCache, is(true));
+		main.call();
+		assertThat(Settings.JBANG_CACHE_DIR, not(anExistingFileOrDirectory()));
+		assertThat(Settings.JBANG_CACHE_DIR.listFiles(), nullValue());
+
+		cli.parseArgs("--clear-cache", "test.java");
+		assertThat(main.clearCache, is(true));
+		assertThat(main.scriptOrFile, containsString("test.java"));
+
+	}
+
 }
