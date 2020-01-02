@@ -65,15 +65,15 @@ public class Main implements Callable<Integer> {
 		info("[jbang] [WARNING] " + msg);
 	}
 
-	void quit(int status) {
-		out.println(status == 0 ? "true" : "false");
-		throw new ExitException(status);
-	}
+	/*
+	 * void quit(int status) { out.println(status == 0 ? "true" : "false"); throw
+	 * new ExitException(status); }
+	 */
 
-	void quit(String output) {
-		out.println("echo " + output);
-		throw new ExitException(0);
-	}
+	/*
+	 * void quit(String output) { out.println("echo " + output); throw new
+	 * ExitException(0); }
+	 */
 
 	public static void main(String... args) throws FileNotFoundException {
 		int exitcode = getCommandLine().execute(args);
@@ -94,10 +94,10 @@ public class Main implements Callable<Integer> {
 
 		if (helpRequested) {
 			spec.commandLine().usage(err);
-			quit(0);
+			return 0; // quit(0);
 		} else if (versionRequested) {
 			spec.commandLine().printVersionHelp(err);
-			quit(0);
+			return 0; // quit(0);
 		}
 
 		if (initScript) {
@@ -116,7 +116,8 @@ public class Main implements Callable<Integer> {
 				script = prepareScript(scriptOrFile);
 				File project = createProject(script, userParams, script.collectDependencies());
 				// err.println(project.getAbsolutePath());
-				quit(project.getAbsolutePath());
+				out.println("echo " + project.getAbsolutePath()); // quit(project.getAbsolutePath());
+				return 0;
 			}
 			if (!initScript) {
 				script = prepareScript(scriptOrFile);
