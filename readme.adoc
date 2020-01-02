@@ -88,7 +88,7 @@ class helloworld { <.>
     }
 }
 ```
-<.> By using this `//` style instead of shebang `!#` you trick `bash`, `zsh` etc. to run this as a script while still being valid java code.
+<.> By using this `//` style instead of shebang `#!` you trick `bash`, `zsh` etc. to run this as a script while still being valid java code.
 <.> A classname, can be anything when using `jbang` but to be valid java for most IDE's you'll want to name it the same as the source file.
 
 Now to run this you can call it via `jbang`:
