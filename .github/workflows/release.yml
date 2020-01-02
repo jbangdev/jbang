@@ -24,8 +24,10 @@ jobs:
       - name: integration-test
         run: |
           export PATH=`pwd`/build/install/jbang/bin:$PATH
+          pastdir=`pwd`
           cd src/test/resources
           ./test_suite.sh
+          cd $pastdir
 
       - name: tag-and-release
         env:
