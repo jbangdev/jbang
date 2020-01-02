@@ -74,6 +74,13 @@ chmod +x helloworld.java
 ./helloworld jbang!
 ```
 
+You can use `http(s):/` and `file:/` url's for input too:
+
+```
+jbang https://raw.githubusercontent.com/maxandersen/jbang/master/examples/helloworld.java
+```
+
+
 ### Using `.jsh` for `jshell`
 
 There are experimental support to run `.jsh` via `jshell`. The advantage of `jshell` is that you do not need to have a class or static main method, downside is that

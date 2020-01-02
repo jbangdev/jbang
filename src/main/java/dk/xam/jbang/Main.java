@@ -112,15 +112,14 @@ public class Main implements Callable<Integer> {
 				}
 			}
 		} else { // no point in editing nor running something we just inited.
-			File prepareScript = prepareScript(scriptOrFile);
-			script = new Script(prepareScript);
-
 			if (edit) {
+				script = prepareScript(scriptOrFile);
 				File project = createProject(script, userParams, script.collectDependencies());
 				// err.println(project.getAbsolutePath());
 				quit(project.getAbsolutePath());
 			}
 			if (!initScript) {
+				script = prepareScript(scriptOrFile);
 				String cmdline = generateCommandLine(script);
 				out.println(cmdline);
 			}
@@ -155,7 +154,7 @@ public class Main implements Callable<Integer> {
 		return tmpProjectDir;
 	}
 
-	String getStableID(String input) {
+	static String getStableID(String input) {
 		final MessageDigest digest;
 		try {
 			digest = MessageDigest.getInstance("SHA-256");
@@ -267,7 +266,7 @@ public class Main implements Callable<Integer> {
 		List<String> fullArgs = new ArrayList<>();
 		fullArgs.add(javacmd);
 		fullArgs.addAll(optionalArgs);
-		fullArgs.add(scriptOrFile);
+		fullArgs.add(script.backingFile.toString());
 		fullArgs.addAll(userParams);
 
 		return fullArgs.stream().collect(Collectors.joining(" "));
@@ -310,7 +309,7 @@ public class Main implements Callable<Integer> {
 
 	}
 
-	private static File prepareScript(String scriptresouce) {
+	static Script prepareScript(String scriptResource) {
 		File scriptFile = null;
 
 		// we need to keep track of the scripts dir or the working dir in case of stdin
@@ -318,7 +317,7 @@ public class Main implements Callable<Integer> {
 		// var includeContext = new File(".").toURI();
 
 		// map script argument to script file
-		var probe = new File(scriptresouce);
+		var probe = new File(scriptResource);
 
 		if (!probe.canRead()) {
 			// not a file so let's keep the script-file undefined here
@@ -341,30 +340,67 @@ public class Main implements Callable<Integer> {
 		 * createTmpScript(scriptText) }
 		 */
 
+		// support url's as script files
+		if (scriptResource.startsWith("http://") || scriptResource.startsWith("https://")
+				|| scriptResource.startsWith("file:/")) {
+			scriptFile = fetchFromURL(scriptResource);
+		}
+
 		// Support URLs as script files
 		/*
 		 * if(scriptResource.startsWith("http://")||scriptResource.startsWith("https://"
 		 * )) { scriptFile = fetchFromURL(scriptResource)
-		 * 
+		 *
 		 * includeContext = URI(scriptResource.run { substring(lastIndexOf('/') + 1) })
 		 * }
-		 * 
+		 *
 		 * // Support for support process substitution and direct script arguments
 		 * if(scriptFile==null&&!scriptResource.endsWith(".kts")&&!scriptResource.
 		 * endsWith(".kt")) { val scriptText = if (File(scriptResource).canRead()) {
 		 * File(scriptResource).readText().trim() } else { // the last resort is to
 		 * assume the input to be a java program scriptResource.trim() }
-		 * 
+		 *
 		 * scriptFile = createTmpScript(scriptText) }
 		 */
 		// just proceed if the script file is a regular file at this point
 		if (scriptFile == null || !scriptFile.canRead()) {
-			throw new IllegalArgumentException("Could not read script argument " + scriptresouce);
+			throw new IllegalArgumentException("Could not read script argument " + scriptResource);
 		}
 
 		// note script file must be not null at this point
 
-		return scriptFile;
+		Script s = null;
+		try {
+			s = new Script(scriptFile);
+		} catch (FileNotFoundException e) {
+			throw new ExitException(1, e);
+		}
+		return s;
+	}
+
+	static String readStringFromURL(String requestURL) throws IOException {
+		try (Scanner scanner = new Scanner(new URL(requestURL).openStream(),
+				StandardCharsets.UTF_8.toString())) {
+			scanner.useDelimiter("\\A");
+			return scanner.hasNext() ? scanner.next() : "";
+		}
+	}
+
+	private static File fetchFromURL(String scriptURL) {
+		try {
+			var urlHash = getStableID(scriptURL);
+			var scriptText = readStringFromURL(scriptURL);
+			var urlExtension = "java"; // TODO: currently assuming all is .java
+			var urlCache = new File(Settings.JBANG_CACHE_DIR, "/url_cache_" + urlHash + "." + urlExtension);
+
+			if (!urlCache.isFile()) {
+				Files.writeString(urlCache.toPath(), scriptText);
+			}
+
+			return urlCache;
+		} catch (IOException e) {
+			throw new ExitException(2, e);
+		}
 	}
 
 	static class IntFallbackConsumer implements IParameterConsumer {

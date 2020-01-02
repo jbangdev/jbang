@@ -1,11 +1,9 @@
 package dk.xam.jbang;
 
-import com.jcabi.aether.Aether;
-import org.sonatype.aether.artifact.Artifact;
-import org.sonatype.aether.repository.Authentication;
-import org.sonatype.aether.repository.RemoteRepository;
-import org.sonatype.aether.resolution.DependencyResolutionException;
-import org.sonatype.aether.util.artifact.DefaultArtifact;
+import static dk.xam.jbang.Settings.CP_SEPARATOR;
+import static dk.xam.jbang.Settings.DEP_LOOKUP_CACHE_FILE;
+import static dk.xam.jbang.Util.*;
+import static org.sonatype.aether.util.artifact.JavaScopes.RUNTIME;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -17,10 +15,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static dk.xam.jbang.Settings.CP_SEPARATOR;
-import static dk.xam.jbang.Settings.DEP_LOOKUP_CACHE_FILE;
-import static dk.xam.jbang.Util.*;
-import static org.sonatype.aether.util.artifact.JavaScopes.RUNTIME;
+import org.sonatype.aether.artifact.Artifact;
+import org.sonatype.aether.repository.Authentication;
+import org.sonatype.aether.repository.RemoteRepository;
+import org.sonatype.aether.resolution.DependencyResolutionException;
+import org.sonatype.aether.util.artifact.DefaultArtifact;
+
+import com.jcabi.aether.Aether;
 
 class DependencyUtil {
 

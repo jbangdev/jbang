@@ -63,6 +63,12 @@ assert "grep -c $SCRATCH/testrepo ~/.jbang/dependency_cache.txt" 1
 # run it 2nd time and no resolution should happen
 assert_stderr "jbang classpath_log.java" ""
 
+## test urls
+
+assert "jbang https://raw.githubusercontent.com/maxandersen/jbang/master/examples/helloworld.java viaurl" "Hello viaurl"
+
+
+### Cleanup
 rm RESULTS
 assert_end jbang > RESULTS
 

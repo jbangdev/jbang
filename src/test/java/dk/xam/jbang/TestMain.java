@@ -1,17 +1,19 @@
 package dk.xam.jbang;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import picocli.CommandLine;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import picocli.CommandLine;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TestMain {
 
@@ -85,6 +87,35 @@ public class TestMain {
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, containsString("log4j"));
+	}
+
+	@Test
+	void testURLPrepare() throws IOException {
+
+		var url = new File(examplesTestFolder, "classpath_example.java").toURI().toString();
+
+		var result = Main.prepareScript(url);
+
+		assertThat(result.toString(), not(containsString(url)));
+
+		assertThat(Files.readString(result.backingFile.toPath()),
+				containsString("Logger.getLogger(classpath_example.class);"));
+
+		Main main = new Main();
+		new CommandLine(main).parseArgs(url.toString());
+
+		String s = main.generateCommandLine(Main.prepareScript(url.toString()));
+
+		assertThat(s, not(containsString("file:")));
+	}
+
+	@Test
+	void testURLPrepareDoesNotExist() throws IOException {
+
+		var url = new File(examplesTestFolder, "classpath_example.java.dontexist").toURI().toString();
+
+		assertThrows(ExitException.class, () -> Main.prepareScript(url));
+
 	}
 
 }

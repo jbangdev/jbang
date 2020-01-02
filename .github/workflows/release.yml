@@ -20,7 +20,13 @@ jobs:
         with:
           java-version: 11
       - name: build-gradle
-        run: ./gradlew build --build-cache --scan -s
+        run: ./gradlew install --build-cache --scan -s
+      - name: integration-test
+        run: |
+          export PATH=`pwd`/build/install/jbang/bin:$PATH
+          cd src/test/resources
+          ./test_suite.sh
+
       - name: tag-and-release
         env:
           ORG_GRADLE_PROJECT_github_token: ${{ secrets.GITHUB_TOKEN }}
