@@ -1,8 +1,10 @@
 package dk.xam.jbang;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.io.FileMatchers.anExistingFileOrDirectory;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -93,8 +95,18 @@ class TestArguments {
 		assertThat(main.scriptOrFile, is("test.java"));
 	}
 
-	/*
-	 * @Test public void testClearCache() { cli.parseArgs("--clear-cache");
-	 * assertThat(main.clearCache, is(true)); }
-	 */
+	@Test
+	public void testClearCache() throws IOException {
+		cli.parseArgs("--clear-cache");
+		assertThat(main.clearCache, is(true));
+		main.call();
+		assertThat(Settings.JBANG_CACHE_DIR, not(anExistingFileOrDirectory()));
+		assertThat(Settings.JBANG_CACHE_DIR.listFiles(), nullValue());
+
+		cli.parseArgs("--clear-cache", "test.java");
+		assertThat(main.clearCache, is(true));
+		assertThat(main.scriptOrFile, containsString("test.java"));
+
+	}
+
 }

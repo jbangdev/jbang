@@ -9,6 +9,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -47,6 +48,10 @@ public class Main implements Callable<Integer> {
 
 	@Option(names = { "--version" }, versionHelp = true, arity = "0", description = "Display version info")
 	boolean versionRequested;
+
+	@Option(names = {
+			"--clear-cache" }, help = true, description = "Clear cache of dependency list and temporary projects.")
+	boolean clearCache;
 
 	@Parameters(index = "0", description = "A file with java code or if named .jsh will be run with jshell")
 	String scriptOrFile;
@@ -100,6 +105,14 @@ public class Main implements Callable<Integer> {
 			return 0; // quit(0);
 		}
 
+		if (clearCache) {
+			info("Clearing cache at " + Settings.JBANG_CACHE_DIR.toPath());
+			Files.walk(Settings.JBANG_CACHE_DIR.toPath())
+					.sorted(Comparator.reverseOrder())
+					.map(Path::toFile)
+					.forEach(File::delete);
+		}
+
 		if (initScript) {
 			var f = new File(scriptOrFile);
 			if (f.exists()) {
@@ -119,7 +132,7 @@ public class Main implements Callable<Integer> {
 				out.println("echo " + project.getAbsolutePath()); // quit(project.getAbsolutePath());
 				return 0;
 			}
-			if (!initScript) {
+			if (!initScript && scriptOrFile != null) {
 				script = prepareScript(scriptOrFile);
 				String cmdline = generateCommandLine(script);
 				out.println(cmdline);
