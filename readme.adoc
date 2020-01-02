@@ -186,11 +186,9 @@ Why the name j'bang?::
   I was reading up on how to use the new shebang (#!) feature support in Java 10 and came up with the idea of port `kscript` to Java and needed a name.
 From there came j'bang which is a "bad" spelling of how shebang is pronounced in french.
 
-[qanda]
 Why use of gradle resource locators rather than ?::
   kscript used it and its nice as it is a one-liner and easily parsable.
 
-[qanda]
 Why would I use Java to write scripts ? Java sucks for that... Use gradle, kotlin, scala, etc. instead!::
   Well, does it really suck ? With Java 8 streams, static imports and greatly improved standard java libraries it is very close to how kscript and grape looks like.
 With the following advantages:
@@ -202,7 +200,6 @@ With the following advantages:
 And to be honest I built `jbang` just to see if I could and get my Java skills refreshed for the newer features in the language.
 Use it at your own risk :)
 
-[qanda]
 Why not use normal shebang(`\#!`) in the header ?::
   You can use normal shebang (`\#!/usr/bin/env jbang`) and Java 10+ will actually work with it from the command line. Not recommended though as
 many tools and especially IDE's will start complaining about syntax errors as they don't ignore the first line in this case.
