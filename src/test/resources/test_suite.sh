@@ -61,11 +61,12 @@ assert_stderr "jbang classpath_log.java" "[jbang] Resolving dependencies...\n[jb
 assert_raises "test -d $SCRATCH/testrepo" 0
 assert "grep -c $SCRATCH/testrepo ~/.jbang/dependency_cache.txt" 1
 # run it 2nd time and no resolution should happen
-assert_stderr "jbang classpath_log.java" ""
+assert_stderr "jbang classpath_log.java" "x"
 
 rm RESULTS
 assert_end jbang > RESULTS
 
 ## work around to get error code happening
-echo RESULTS
+echo "\n"
+cat RESULTS
 exit `grep -c "failed" RESULTS`
