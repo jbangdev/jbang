@@ -205,6 +205,8 @@ Why not use normal shebang(`\#!`) in the header ?::
 many tools and especially IDE's will start complaining about syntax errors as they don't ignore the first line in this case.
 +
 By using the `//` form it is treated as both a bash/shell file AND a valid java file and thus works everywhere a java file will work.
++
+Its worth noting that Go https://golangcookbook.com/chapters/running/shebang/[uses a similar approach] which is also where I learned it from.
 
 ## Thanks
 
