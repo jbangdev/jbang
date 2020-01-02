@@ -1,10 +1,24 @@
 #!/usr/bin/env bash
 #/bin/bash -x
 
-export DEBUG="--verbose"
+export DEBUG=1
 
 . aserta
 
+export SCRATCH=`mktemp -d -t jbangscratch`
+echo "Using $SCRATCH as scratch dir"
+# deletes the temp directory
+function cleanup {
+  if [ -z ${KEEP_SCRATCH+x} ]; then
+    rm -rf "$SCRATCH"
+    echo "Deleted scratch dir $SCRATCH"
+   else
+    echo "Kept scratch dir: $SCRATCH"
+   fi
+}
+
+# register the cleanup function to be called on the EXIT signal
+trap cleanup EXIT
 
 ## define test helper, see https://github.com/lehmannro/assert.sh/issues/24
 assert_statement(){
@@ -13,32 +27,38 @@ assert_statement(){
     assert "( $1 ) 2>&1 >/dev/null" "$3"
     assert_raises "$1" "$4"
 }
-#assert_statment "echo foo; echo bar  >&2; exit 1" "foo" "bar" 1
+#assert_statement "echo foo; echo bar  >&2; exit 1" "foo" "bar" 1
 
 
 assert_stderr(){
     assert "( $1 ) 2>&1 >/dev/null" "$2"
 }
+
 #assert_stderr "echo foo" "bar"
 
 #http://stackoverflow.com/questions/3005963/how-can-i-have-a-newline-in-a-string-in-sh
 #http://stackoverflow.com/questions/3005963/how-can-i-have-a-newline-in-a-string-in-sh
 export NL=$'\n'
 
+echo "Cleaning JBANG_CACHE"
+rm -rf ~/.jbang
+
 ## init ##
-assert "jbang --init test.java"
-assert_raises "test -f test.java" 0
+assert "jbang --init $SCRATCH/test.java"
+assert_raises "test -f $SCRATCH/test.java" 0
 
-assert "jbang test.java" "Hello World"
+assert "jbang $SCRATCH/test.java" "Hello World"
 
-sed -ie "s/World..;/\" + (args.length > 0 ? args[0] : \"World\"));/g" test.java
-assert "jbang test.java jbangtest" "Hello jbangtest"
+assert_raises "rm $SCRATCH/test.java" 0
 
-JBANG_HOME=testrepo
-assert_contains "jbang classpath_log.java" "Welcome to jbang"
-assert_raises "test -f testrepo" 0
+assert "jbang helloworld.java jbangtest" "Hello jbangtest"
 
-
-rm test.java
+## test dependency resolution on custom local repo (to avoid conflicts with existing ~/.m2)
+JBANG_REPO=$SCRATCH/testrepo
+assert_stderr "jbang classpath_log.java" "[jbang] Resolving dependencies...\n[jbang]     Resolving log4j:log4j:1.2.17...Done\n[jbang] Dependencies resolved"
+assert_raises "test -d $SCRATCH/testrepo" 0
+assert "grep -c $SCRATCH/testrepo ~/.jbang/dependency_cache.txt" 1
+# run it 2nd time and no resolution should happen
+assert_stderr "jbang classpath_log.java" ""
 
 assert_end jbang

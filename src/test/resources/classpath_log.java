@@ -15,9 +15,6 @@ class classpath_example {
 
 	public static void main(String[] args) {
 		BasicConfigurator.configure();
-		logger.info("Welcome to jbang");
-
-		Arrays.asList(args).forEach(arg -> logger.warn("arg: " + arg));
-		logger.info("Hello from Java!");
+		Arrays.asList(args).forEach(arg -> out.println(arg));
 	}
 }

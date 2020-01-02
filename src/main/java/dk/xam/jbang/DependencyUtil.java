@@ -45,10 +45,12 @@ class DependencyUtil {
 		// TODO: does not handle spaces in ~/.m2 folder.
 		if (DEP_LOOKUP_CACHE_FILE.isFile()) {
 			try {
+
 				cache = Files.readAllLines(DEP_LOOKUP_CACHE_FILE.toPath()).stream().filter(it -> !it.isBlank())
 						.collect(Collectors.toMap(it -> it.split(" ")[0], it -> it.split(" ")[1], (k1, k2) -> {
-							return k1;
-						}));
+							return k2;
+						} // in case of duplicates, last one wins
+						));
 			} catch (IOException e) {
 				warnMsg("Could not access cache " + e.getMessage());
 			}
@@ -72,7 +74,6 @@ class DependencyUtil {
 		}
 
 		try {
-
 			var artifacts = resolveDependenciesViaAether(depIds, customRepos, loggingEnabled);
 			var classPath = artifacts.stream().map(it -> it.getFile().getAbsolutePath())
 					.collect(Collectors.joining(CP_SEPARATOR));
@@ -83,7 +84,6 @@ class DependencyUtil {
 
 			// Add classpath to cache
 			try {
-
 				// Open given file in append mode.
 				BufferedWriter out = new BufferedWriter(new FileWriter(DEP_LOOKUP_CACHE_FILE, true));
 				out.write(depsHash + " " + classPath + "\n");
