@@ -21,11 +21,37 @@ toc::[]
 
 ## Installation
 
-To use `jbang` you need to have Java 11+ available.
+To use `jbang` you as a minimum need to have Java 11+ available.
 
-### Manual Install
+To install both java and `jbang` we recommend https://sdkman.io[sdkman]
 
-Unzip the https://github.com/maxandersen/jbang/releases/latest[latest binary release], put the `jbang-<version>/bin` folder in to your `$PATH` and you are set.
+[source, bash]
+```
+curl -s "https://get.sdkman.io" | bash <.>
+source ~/.bash_profile <.>
+
+sdk install java <.>
+```
+
+Once Java is installed and ready, you install `jbang` with
+
+```
+sdk install jbang
+```
+
+To test your installation run:
+
+```
+jbang --help
+```
+
+This should print out usage information.
+
+To update run:
+
+```
+sdk update jbang
+```
 
 ### Homebrew
 
@@ -36,6 +62,10 @@ On OSX you can install `jbang` with https://brew.sh[Homebrew] using https://gith
 To upgrade to latest version:
 
   brew upgrade maxandersen/tap/jbang
+
+### Manual install
+
+Unzip the https://github.com/maxandersen/jbang/releases/latest[latest binary release], put the `jbang-<version>/bin` folder in to your `$PATH` and you are set.
 
 ## Script input
 
