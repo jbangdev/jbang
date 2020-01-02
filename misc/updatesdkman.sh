@@ -8,7 +8,7 @@ echo "Updating jbang sdkman with version $jbang_version"
 echo ${SDKMAN_CONSUMER_KEY} | cut -c-5
 echo ${SDKMAN_CONSUMER_TOKEN} | cut -c-5
 
-echo "Release on sdkman"
+echo "Release on sdkman ${jbang_version} from `pwd`"
 curl -X POST \
     -H "Consumer-Key: ${SDKMAN_CONSUMER_KEY}" \
     -H "Consumer-Token: ${SDKMAN_CONSUMER_TOKEN}" \

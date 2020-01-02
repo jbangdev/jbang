@@ -4,7 +4,7 @@
 set -e
 
 jbang_version=`ls build/distributions/jbang-*.*.zip | sed -e 's/.*jbang-\(.*\).zip/\1/g'`
-echo "Updating jbang brew with version $jbang_version"
+echo "Updating jbang brew with version $jbang_version from `pwd`"
 DIST=`ls build/distributions/jbang-${jbang_version}.zip | cut -f1 -d ' '`
 sha256=`cat $DIST.sha256`
 
