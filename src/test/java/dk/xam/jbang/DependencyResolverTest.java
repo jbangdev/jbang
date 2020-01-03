@@ -1,6 +1,7 @@
 package dk.xam.jbang;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -90,4 +91,5 @@ class DependencyResolverTest {
 		assertEquals(5, classpath.split(Settings.CP_SEPARATOR).length);
 
 	}
+
 }

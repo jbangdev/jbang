@@ -120,7 +120,7 @@ at least for now you have no way to read the command line arguments.
 
 To get started you can run `jbang --init helloworld.java` and a simple java class with a static main is generated.
 
-## Declare dependencies with `//DEPS`
+## Declare dependencies with `//DEPS` and `@Grab`
 
 If you want to write real scripts you will want to use some java libraries.
 To specify dependencies you use gradle-style locators. Here is an example using `log4j`
@@ -164,6 +164,41 @@ $ ./classpath_example.java
 0 [main] INFO classpath_example  - Welcome to jbang
 1 [main] INFO classpath_example  - Hello from Java!
 ```
+
+There is also support for using Groovy lang style `@Grab` syntax.
+
+[source, java]
+```
+//usr/bin/env jbang "$0" "$@" ; exit $?
+
+import static java.lang.System.out;
+
+import org.apache.log4j.Logger;
+import org.apache.log4j.BasicConfigurator;
+
+import java.util.Arrays;
+
+import groovy.lang.Grab; // <.>
+import groovy.lang.Grapes;
+
+@Grapes({ // <.>
+		@Grab(group="org.codehaus.groovy", module="groovy", version="2.5.8"), // <.>
+		@Grab(module = "log4j", group = "log4j", version = "1.2.17")
+})
+class classpath_example {
+
+	static final Logger logger = Logger.getLogger(classpath_example.class);
+
+	public static void main(String[] args) {
+		BasicConfigurator.configure();
+		Arrays.asList(args).forEach(arg -> out.println(arg));
+	}
+}
+```
+<.> Import needed to make the compiler be okey with `@Grab` annotation.
+<.> In Groovy you normally put `@Grab` on import statements. That is not allowed in Java thus when having multiple imports you need to put them in a `@Grapes` annotation first.
+<.> `jbang` will grab any `@Grab` annotation and assume it is declaring dependencies.
+
 
 ## Debugging
 

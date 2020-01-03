@@ -85,6 +85,16 @@ jar {
 	}
 
 
+compileJava {
+	options.encoding = 'UTF-8'
+	options.compilerArgs << "-Xlint:unchecked"
+}
+
+compileTestJava {
+	options.encoding = 'UTF-8'
+	options.compilerArgs << "-Xlint:unchecked"
+}
+
 
 shadowJar {
 	minimize()
