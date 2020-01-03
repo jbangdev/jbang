@@ -406,8 +406,9 @@ public class Main implements Callable<Integer> {
 			var scriptText = readStringFromURL(scriptURL);
 			var urlExtension = "java"; // TODO: currently assuming all is .java
 			var urlCache = new File(Settings.JBANG_CACHE_DIR, "/url_cache_" + urlHash + "." + urlExtension);
+			Settings.setupCache();
 
-			if (!urlCache.isFile()) {
+			if (!urlCache.exists()) {
 				Files.writeString(urlCache.toPath(), scriptText);
 			}
 

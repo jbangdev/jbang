@@ -1,7 +1,5 @@
 //usr/bin/env jbang "$0" "$@" ; exit $?
 
-//DEPS log4j:log4j:1.2.17
-
 import static java.lang.System.out;
 
 import org.apache.log4j.Logger;
@@ -9,6 +7,13 @@ import org.apache.log4j.BasicConfigurator;
 
 import java.util.Arrays;
 
+import groovy.lang.Grab;
+import groovy.lang.Grapes;
+
+@Grapes({
+		@Grab(group="org.codehaus.groovy", module="groovy", version="2.5.8"),
+		@Grab(module = "log4j", group = "log4j", version = "1.2.17")
+})
 class classpath_example {
 
 	static final Logger logger = Logger.getLogger(classpath_example.class);
