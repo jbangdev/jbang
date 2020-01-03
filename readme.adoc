@@ -218,6 +218,14 @@ You can change the debug port by passing in a number to the debug argument, i.e.
 
 NOTE: Be sure to put a breakpoint in your IDE/debugger before you connect to make the debugger actually stop when you need it.
 
+## Bash/Zsh auto-completion
+
+If you are using bash or zsh in your terminal you can get auto-completion by running the following:
+
+```
+source <(jbang --completion)
+```
+
 ## FAQ
 
 [qanda]

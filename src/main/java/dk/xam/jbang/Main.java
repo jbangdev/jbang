@@ -1,8 +1,14 @@
 package dk.xam.jbang;
 
-import static java.lang.System.err;
-import static java.lang.System.out;
-import static picocli.CommandLine.*;
+import io.quarkus.qute.Engine;
+import io.quarkus.qute.Template;
+import io.quarkus.qute.TemplateLocator;
+import io.quarkus.qute.Variant;
+import picocli.AutoComplete;
+import picocli.CommandLine;
+import picocli.CommandLine.Model.ArgSpec;
+import picocli.CommandLine.Model.CommandSpec;
+import picocli.CommandLine.Model.OptionSpec;
 
 import java.io.*;
 import java.net.URL;
@@ -16,14 +22,9 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
-import io.quarkus.qute.Engine;
-import io.quarkus.qute.Template;
-import io.quarkus.qute.TemplateLocator;
-import io.quarkus.qute.Variant;
-import picocli.CommandLine;
-import picocli.CommandLine.Model.ArgSpec;
-import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.Model.OptionSpec;
+import static java.lang.System.err;
+import static java.lang.System.out;
+import static picocli.CommandLine.*;
 
 @Command(name = "jbang", footer = "\nCopyright: 2020 Max Rydahl Andersen, License: MIT\nWebsite: https://github.com/maxandersen/jbang", mixinStandardHelpOptions = false, versionProvider = VersionProvider.class, description = "Compiles and runs .java/.jsh scripts.")
 public class Main implements Callable<Integer> {
@@ -50,7 +51,7 @@ public class Main implements Callable<Integer> {
 	boolean versionRequested;
 
 	@Option(names = {
-			"--clear-cache" }, help = true, description = "Clear cache of dependency list and temporary projects.")
+			"--clear-cache" }, help = true, description = "Clear cache of dependency list and temporary projects")
 	boolean clearCache;
 
 	@Parameters(index = "0", description = "A file with java code or if named .jsh will be run with jshell")
@@ -59,8 +60,27 @@ public class Main implements Callable<Integer> {
 	@Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
 	List<String> userParams = new ArrayList<String>();
 
-	@Option(names = { "--init" }, description = "Init script with a java class useful for scripting.")
+	@Option(names = { "--init" }, description = "Init script with a java class useful for scripting")
 	boolean initScript;
+
+	@Option(names = "--completion", help = true, description = "Output auto-completion script for bash/zsh.\nUsage: source <(jbang --completion)")
+	boolean completionRequested;
+
+	public int completion() throws IOException {
+		String script = AutoComplete.bash(
+				spec.name(),
+				spec.commandLine());
+		// not PrintWriter.println: scripts with Windows line separators fail in strange
+		// ways!
+
+		File file = File.createTempFile("jbang-completion", "temp");
+		Files.writeString(file.toPath(), script);
+
+		out.print("cat " + file.getAbsolutePath());
+		out.print('\n');
+		out.flush();
+		return 0;
+	}
 
 	void info(String msg) {
 		spec.commandLine().getErr().println(msg);
@@ -103,6 +123,8 @@ public class Main implements Callable<Integer> {
 		} else if (versionRequested) {
 			spec.commandLine().printVersionHelp(err);
 			return 0; // quit(0);
+		} else if (completionRequested) {
+			return completion();
 		}
 
 		if (clearCache) {
