@@ -120,10 +120,12 @@ at least for now you have no way to read the command line arguments.
 
 To get started you can run `jbang --init helloworld.java` and a simple java class with a static main is generated.
 
-## Declare dependencies with `//DEPS` and `@Grab`
+## Declare dependencies
 
 If you want to write real scripts you will want to use some java libraries.
-To specify dependencies you use gradle-style locators. Here is an example using `log4j`
+To specify dependencies you use gradle-style locators. Below are examples for `log4j`.
+
+### Using `//DEPS`
 
 [source, java]
 ```
@@ -164,6 +166,8 @@ $ ./classpath_example.java
 0 [main] INFO classpath_example  - Welcome to jbang
 1 [main] INFO classpath_example  - Hello from Java!
 ```
+
+### Using `@Grab`
 
 There is also support for using Groovy lang style `@Grab` syntax.
 
