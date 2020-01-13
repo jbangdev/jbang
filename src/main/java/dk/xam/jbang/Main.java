@@ -169,8 +169,10 @@ public class Main implements Callable<Integer> {
 
 		var baseDir = new File(Settings.JBANG_CACHE_DIR, "temp_projects");
 
-		var tmpProjectDir = new File(baseDir, "jbang_tmp_project__" + script.backingFile.getName() + "_"
-				+ getStableID(script.backingFile.getAbsolutePath()));
+		var tmpProjectDir = new File(baseDir, script.backingFile.getName() + "_jbang_" +
+				getStableID(script.backingFile.getAbsolutePath()));
+		tmpProjectDir.mkdirs();
+		tmpProjectDir = new File(tmpProjectDir, stripPrefix(script.backingFile.getName()));
 		tmpProjectDir.mkdirs();
 
 		File srcDir = new File(tmpProjectDir, "src");
@@ -188,6 +190,14 @@ public class Main implements Callable<Integer> {
 		Files.writeString(new File(tmpProjectDir, "build.gradle").toPath(), result);
 
 		return tmpProjectDir;
+	}
+
+	static String stripPrefix(String fileName) {
+		if (fileName.indexOf(".") > 0) {
+			return fileName.substring(0, fileName.lastIndexOf("."));
+		} else {
+			return fileName;
+		}
 	}
 
 	static String getStableID(String input) {

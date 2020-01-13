@@ -112,7 +112,7 @@ class DependencyUtil {
 
 	public List<Artifact> resolveDependenciesViaAether(List<String> depIds, List<MavenRepo> customRepos,
 			boolean loggingEnabled) {
-		var jcenter = new RemoteRepository("jcenter", "default", "http://jcenter.bintray.com/");
+		var jcenter = new RemoteRepository("jcenter", "default", "https://jcenter.bintray.com/");
 		List<RemoteRepository> remoteRepos = customRepos.stream().map(mavenRepo -> {
 			var rr = new RemoteRepository(mavenRepo.getId(), "default", mavenRepo.getUrl());
 			if (mavenRepo.getUser() != null && mavenRepo.getPassword() != null) {
