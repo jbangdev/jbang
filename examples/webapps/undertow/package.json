@@ -1,0 +1,11 @@
+{
+    "name": "spark",
+    "version": "1.0.0",
+    "keywords": ["spark", "nashorn"],
+    "author": "@brunoborges",
+    "contributors": [],
+    "dependencies": {
+        "maven": ["io.undertow:undertow-core:1.2.8.Final"]
+    },
+    "engine": "nashorn 1.8.0_45"
+}
