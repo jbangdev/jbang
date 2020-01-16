@@ -15,11 +15,19 @@ Then try `jbang` which gives you:
 * Compiled jar and Dependency resolution caching
 * Launch with debug enabled for instant debugging from your favorite IDE
 * Generate gradle file with dependencies for easy editing in your favorite IDE (`jbang --edit myfile.java`)
+* Installable with HomeBrew or SDKman on OSX and Linux.
+* (PLANNED) Installable with Chocolatey on Windows
 * (PLANNED) Lookup dependencies with a short-hand name, i.e. `// DEPS log4j:1.2+,picocli` for quick getting started.
 
 To use it simply install `jbang` and run `jbang yourscript.java`
 
 toc::[]
+
+## Requirements
+
+Java 8+
+
+Tested and verified to use on OSX, Linux and Windows.
 
 ## Installation
 
@@ -65,7 +73,7 @@ To upgrade to latest version:
 
   brew upgrade maxandersen/tap/jbang
 
-### Manual install
+### Manual and Windows (for now) install
 
 Unzip the https://github.com/maxandersen/jbang/releases/latest[latest binary release], put the `jbang-<version>/bin` folder in to your `$PATH` and you are set.
 
