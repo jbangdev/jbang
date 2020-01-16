@@ -1,6 +1,7 @@
 on:
   release:
-    - published
+    types:
+      - published
 
 name: release-3rdparty
 jobs:
