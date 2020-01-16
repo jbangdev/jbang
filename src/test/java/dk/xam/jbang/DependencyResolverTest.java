@@ -19,14 +19,14 @@ class DependencyResolverTest {
 
 	@Test
 	void testFormatVersion() {
-		var dr = new DependencyUtil();
+		DependencyUtil dr = new DependencyUtil();
 
 		assertEquals("[1.0,)", dr.formatVersion("1.0+"));
 	}
 
 	@Test
 	void testdepIdToArtifact() {
-		var dr = new DependencyUtil();
+		DependencyUtil dr = new DependencyUtil();
 
 		Artifact artifact = dr.depIdToArtifact("com.offbytwo:docopt:0.6.0.20150202:redhat@doc");
 		assertEquals("com.offbytwo", artifact.getGroupId());
@@ -55,7 +55,7 @@ class DependencyResolverTest {
 	@Test
 	void testdecodeEnv() {
 
-		var dr = new DependencyUtil();
+		DependencyUtil dr = new DependencyUtil();
 
 		assertThrows(IllegalStateException.class, () -> dr.decodeEnv("{{wonka}}"));
 		assertEquals("wonka", dr.decodeEnv("wonka"));
@@ -69,9 +69,9 @@ class DependencyResolverTest {
 	@Test
 	void testResolveDependenciesWithAether() {
 
-		var dr = new DependencyUtil();
+		DependencyUtil dr = new DependencyUtil();
 
-		var deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
+		List<String> deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
 
 		List<Artifact> artifacts = dr.resolveDependenciesViaAether(deps, Collections.emptyList(), true);
 
@@ -82,9 +82,9 @@ class DependencyResolverTest {
 	@Test
 	void testResolveDependencies() {
 
-		var dr = new DependencyUtil();
+		DependencyUtil dr = new DependencyUtil();
 
-		var deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
+		List<String> deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
 
 		String classpath = dr.resolveDependencies(deps, Collections.emptyList(), true);
 

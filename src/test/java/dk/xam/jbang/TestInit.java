@@ -12,7 +12,7 @@ public class TestInit {
 	@Test
 	void testInit() {
 
-		var m = new Main();
+		Main m = new Main();
 
 		String s = m.renderInitClass(new File("test.java"));
 

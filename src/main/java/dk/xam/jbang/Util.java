@@ -1,5 +1,9 @@
 package dk.xam.jbang;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 public class Util {
 
 	static public void info(String msg) {
@@ -23,4 +27,13 @@ public class Util {
 		throw new ExitException(status);
 	}
 
+	/** Java 8 approximate version of Java 11 Files.readString() **/
+	static public String readString(Path toPath) throws IOException {
+		return new String(Files.readAllBytes(toPath));
+	}
+
+	/** Java 8 approximate version of Java 11 Files.writeString() **/
+	static public void writeString(Path toPath, String scriptText) throws IOException {
+		Files.write(toPath, scriptText.getBytes());
+	}
 }

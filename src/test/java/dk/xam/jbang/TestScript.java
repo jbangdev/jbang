@@ -48,7 +48,7 @@ class TestScript {
 
 		Script s = new Script(example);
 
-		var deps = s.extractDependencies("//DEPS blah, blue").collect(Collectors.toList());
+		List<String> deps = s.extractDependencies("//DEPS blah, blue").collect(Collectors.toList());
 
 		assertTrue(deps.contains("blah"));
 

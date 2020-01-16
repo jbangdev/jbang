@@ -172,4 +172,5 @@ versioner {
 build.dependsOn(homebrew)
 
 group = "dk.xam.jbang"
-sourceCompatibility = '11'
+sourceCompatibility = '8'
+targetCompatibility = '8'

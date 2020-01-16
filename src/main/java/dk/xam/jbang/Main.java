@@ -14,7 +14,11 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import io.quarkus.qute.Engine;
 import io.quarkus.qute.Template;
@@ -74,7 +78,7 @@ public class Main implements Callable<Integer> {
 		// ways!
 
 		File file = File.createTempFile("jbang-completion", "temp");
-		Files.writeString(file.toPath(), script);
+		Util.writeString(file.toPath(), script);
 
 		out.print("cat " + file.getAbsolutePath());
 		out.print('\n');
@@ -103,6 +107,18 @@ public class Main implements Callable<Integer> {
 	public static void main(String... args) throws FileNotFoundException {
 		int exitcode = getCommandLine().execute(args);
 		System.exit(exitcode);
+	}
+
+	static void createJarFile(File path, File output, String mainclass) throws IOException {
+		Manifest manifest = new Manifest();
+		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
+		if (mainclass != null) {
+			manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, mainclass);
+		}
+
+		FileOutputStream target = new FileOutputStream(output);
+		JarUtil.jar(target, path.listFiles(), null, null, manifest);
+		target.close();
 	}
 
 	static CommandLine getCommandLine() {
@@ -136,7 +152,7 @@ public class Main implements Callable<Integer> {
 		}
 
 		if (initScript) {
-			var f = new File(scriptOrFile);
+			File f = new File(scriptOrFile);
 			if (f.exists()) {
 				warn("File " + f + " already exists. Will not initialize.");
 			} else {
@@ -156,6 +172,61 @@ public class Main implements Callable<Integer> {
 			}
 			if (!initScript && scriptOrFile != null) {
 				script = prepareScript(scriptOrFile);
+
+				File baseDir = new File(Settings.JBANG_CACHE_DIR, "jars");
+				File tmpJarDir = new File(baseDir, script.backingFile.getName() +
+						"." + getStableID(script.backingFile));
+				tmpJarDir.mkdirs();
+
+				File outjar = new File(tmpJarDir.getParentFile(), tmpJarDir.getName() + ".jar");
+
+				if (!outjar.exists()) {
+					List<String> optionList = new ArrayList<String>();
+					optionList.add("javac");
+					optionList.addAll(Arrays.asList("-classpath", script.resolveClassPath()));
+					optionList.addAll(Arrays.asList("-d", tmpJarDir.getAbsolutePath()));
+					optionList.addAll(Arrays.asList(script.backingFile.getPath()));
+
+					Process process = new ProcessBuilder(optionList).inheritIO().start();
+					try {
+						process.waitFor();
+					} catch (InterruptedException e) {
+						throw new ExitException(1, e);
+					}
+
+					if (process.exitValue() != 0) {
+						err.println("Error during compile. Exiting...");
+						return 1;
+					}
+
+					try {
+						// using Files.walk method with try-with-resources
+						try (Stream<Path> paths = Files.walk(tmpJarDir.toPath())) {
+							List<Path> items = paths.filter(Files::isRegularFile)
+									.filter(f -> !f.toFile().getName().contains("$"))
+									.filter(f -> f.toFile().getName().endsWith(".class"))
+									.collect(Collectors.toList());
+
+							if (items.size() != 1) {
+								err.println("Could not locate unique class. Found " + items.size() + " candidates.");
+								throw new ExitException(1);
+							} else {
+								Path classfile = items.get(0);
+								String mainClass = findMainClass(tmpJarDir.toPath(), classfile);
+								script.setMainClass(mainClass);
+							}
+						}
+					} catch (IOException e) {
+						throw new ExitException(1, e);
+					}
+					createJarFile(tmpJarDir, outjar, script.getMainClass());
+				} else {
+					JarFile jf = new JarFile(outjar);
+					script.setMainClass(jf.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS));
+				}
+
+				script.setJar(outjar);
+
 				String cmdline = generateCommandLine(script);
 				out.println(cmdline);
 			}
@@ -163,13 +234,22 @@ public class Main implements Callable<Integer> {
 		return 0;
 	}
 
+	static public String findMainClass(Path base, Path classfile) {
+		String mainClass = classfile.getFileName().toString().replace(".class", "");
+		while (!classfile.getParent().equals(base)) {
+			classfile = classfile.getParent();
+			mainClass = classfile.getFileName().toString() + "." + mainClass;
+		}
+		return mainClass;
+	}
+
 	File createProject(Script script, List<String> userParams, List<String> collectDependencies) throws IOException {
 
 		Engine engine = Engine.builder().addDefaults().addLocator(this::locate).build();
 
-		var baseDir = new File(Settings.JBANG_CACHE_DIR, "temp_projects");
+		File baseDir = new File(Settings.JBANG_CACHE_DIR, "temp_projects");
 
-		var tmpProjectDir = new File(baseDir, script.backingFile.getName() + "_jbang_" +
+		File tmpProjectDir = new File(baseDir, script.backingFile.getName() + "_jbang_" +
 				getStableID(script.backingFile.getAbsolutePath()));
 		tmpProjectDir.mkdirs();
 		tmpProjectDir = new File(tmpProjectDir, stripPrefix(script.backingFile.getName()));
@@ -178,7 +258,7 @@ public class Main implements Callable<Integer> {
 		File srcDir = new File(tmpProjectDir, "src");
 		srcDir.mkdir();
 
-		var srcFile = new File(srcDir, script.backingFile.getName());
+		File srcFile = new File(srcDir, script.backingFile.getName());
 		if (!srcFile.exists()) {
 			Files.createSymbolicLink(srcFile.toPath(), script.backingFile.getAbsoluteFile().toPath());
 		}
@@ -187,7 +267,7 @@ public class Main implements Callable<Integer> {
 		Template buildGradleTemplate = engine.getTemplate("build.gradle.qt");
 		String result = buildGradleTemplate.data("dependencies", collectDependencies).render();
 
-		Files.writeString(new File(tmpProjectDir, "build.gradle").toPath(), result);
+		Util.writeString(new File(tmpProjectDir, "build.gradle").toPath(), result);
 
 		return tmpProjectDir;
 	}
@@ -198,6 +278,10 @@ public class Main implements Callable<Integer> {
 		} else {
 			return fileName;
 		}
+	}
+
+	private String getStableID(File backingFile) throws IOException {
+		return getStableID(Util.readString(backingFile.toPath()));
 	}
 
 	static String getStableID(String input) {
@@ -284,27 +368,27 @@ public class Main implements Callable<Integer> {
 
 	String generateCommandLine(Script script) throws FileNotFoundException {
 
-		List<String> dependencies = script.collectDependencies();
+		String classpath = script.resolveClassPath();
 
-		var classpath = new DependencyUtil().resolveDependencies(dependencies, Collections.emptyList(), true);
 		List<String> optionalArgs = new ArrayList<String>();
 
-		var javacmd = "java";
+		String javacmd = "java";
 		if (script.backingFile.getName().endsWith(".jsh")) {
 			javacmd = "jshell";
-			if (!classpath.isBlank()) {
+			if (!classpath.trim().isEmpty()) {
 				optionalArgs.add("--class-path " + classpath);
 			}
+
 			if (debug()) {
 				info("debug not possible when running via jshell.");
 			}
 
 		} else {
-			optionalArgs.add("--source 11");
+			// optionalArgs.add("--source 11");
 			if (debug()) {
 				optionalArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + debugPort);
 			}
-			if (!classpath.isBlank()) {
+			if (!classpath.trim().isEmpty()) {
 				optionalArgs.add("-classpath " + classpath);
 			}
 		}
@@ -312,7 +396,11 @@ public class Main implements Callable<Integer> {
 		List<String> fullArgs = new ArrayList<>();
 		fullArgs.add(javacmd);
 		fullArgs.addAll(optionalArgs);
-		fullArgs.add(script.backingFile.toString());
+		if (script.getMainClass() != null) {
+			fullArgs.add(script.getMainClass());
+		} else {
+			fullArgs.add(script.backingFile.toString());
+		}
 		fullArgs.addAll(userParams);
 
 		return fullArgs.stream().collect(Collectors.joining(" "));
@@ -336,7 +424,7 @@ public class Main implements Callable<Integer> {
 		 */
 
 		boolean found = false;
-		for (var a : args) {
+		for (String a : args) {
 			if (!found && a.startsWith("-") && a.length() > 1) {
 				argsForJbang.add(a);
 			} else {
@@ -363,7 +451,7 @@ public class Main implements Callable<Integer> {
 		// var includeContext = new File(".").toURI();
 
 		// map script argument to script file
-		var probe = new File(scriptResource);
+		File probe = new File(scriptResource);
 
 		if (!probe.canRead()) {
 			// not a file so let's keep the script-file undefined here
@@ -434,14 +522,14 @@ public class Main implements Callable<Integer> {
 
 	private static File fetchFromURL(String scriptURL) {
 		try {
-			var urlHash = getStableID(scriptURL);
-			var scriptText = readStringFromURL(scriptURL);
-			var urlExtension = "java"; // TODO: currently assuming all is .java
-			var urlCache = new File(Settings.JBANG_CACHE_DIR, "/url_cache_" + urlHash + "." + urlExtension);
+			String urlHash = getStableID(scriptURL);
+			String scriptText = readStringFromURL(scriptURL);
+			String urlExtension = "java"; // TODO: currently assuming all is .java
+			File urlCache = new File(Settings.JBANG_CACHE_DIR, "/url_cache_" + urlHash + "." + urlExtension);
 			Settings.setupCache();
 
 			if (!urlCache.exists()) {
-				Files.writeString(urlCache.toPath(), scriptText);
+				Util.writeString(urlCache.toPath(), scriptText);
 			}
 
 			return urlCache;

@@ -3,6 +3,7 @@ package dk.xam.jbang;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -16,8 +17,10 @@ public class Script {
 	private Pattern DEPS_ANNOT_SINGLE = Pattern.compile("@Grab\\(\\s*\"(?<value>.*)\"\\s*\\)");
 
 	File backingFile;
-
+	private String classpath;
 	private String script;
+	private String mainClass;
+	private File jar;
 
 	Script(File backingFile, String content) throws FileNotFoundException {
 		this.backingFile = backingFile;
@@ -51,6 +54,22 @@ public class Script {
 		return dependencies;
 	}
 
+	/**
+	 * Return resolved classpath lazily. resolution will only happen once, any
+	 * consecutive calls return the same classpath.
+	 **/
+	public String resolveClassPath() {
+		if (classpath == null) {
+			List<String> dependencies = collectDependencies();
+
+			classpath = new DependencyUtil().resolveDependencies(dependencies, Collections.emptyList(), true);
+		}
+		if (jar != null) {
+			return classpath + Settings.CP_SEPARATOR + jar.getAbsolutePath();
+		}
+		return classpath;
+	}
+
 	Stream<String> extractDependencies(String line) {
 		if (line.startsWith(DEPS_COMMENT_PREFIX)) {
 			return Arrays.stream(line.split("[ ;,]+")).skip(1).map(String::trim);
@@ -59,12 +78,12 @@ public class Script {
 		if (line.contains(DEPS_ANNOT_PREFIX)) {
 			Map<String, String> args = new HashMap<>();
 
-			var matcher = DEPS_ANNOT_PAIRS.matcher(line);
+			Matcher matcher = DEPS_ANNOT_PAIRS.matcher(line);
 			while (matcher.find()) {
 				args.put(matcher.group("key"), matcher.group("value"));
 			}
 			if (!args.isEmpty()) {
-				var sb = new StringBuffer();
+				StringBuffer sb = new StringBuffer();
 				// groupId:artifactId:version[:classifier][@type]
 				String gav = Arrays.asList(
 						args.get("group"),
@@ -90,4 +109,21 @@ public class Script {
 		return line.startsWith(DEPS_COMMENT_PREFIX) || line.contains(DEPS_ANNOT_PREFIX);
 	}
 
+	public Script setMainClass(String mainClass) {
+		this.mainClass = mainClass;
+		return this;
+	}
+
+	public Script setJar(File outjar) {
+		this.jar = outjar;
+		return this;
+	}
+
+	public File getJar() {
+		return jar;
+	}
+
+	public String getMainClass() {
+		return mainClass;
+	}
 }

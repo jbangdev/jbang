@@ -44,7 +44,7 @@ class Arguments {
 		}
 
 		boolean found = false;
-		for (var a : args) {
+		for (String a : args) {
 			if (!found && a.startsWith("-") && a.length() > 1) {
 				this.argsForJbang.add(a);
 			} else {
