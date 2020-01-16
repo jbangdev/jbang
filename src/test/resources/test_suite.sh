@@ -56,10 +56,10 @@ assert_raises "rm $SCRATCH/test.java" 0
 assert "jbang helloworld.java jbangtest" "Hello jbangtest"
 
 # jsh should also work
-assert "jbang helloworld.jsh" "Hello World!"
+assert "jbang helloworld.jsh" "Hello World"
 
 # jsh should also get parameters
-#assert "jbang helloworld.jsh JSH!" "Hello JSH!"
+assert "jbang helloworld.jsh JSH!" "Hello JSH!"
 
 ## test dependency resolution on custom local repo (to avoid conflicts with existing ~/.m2)
 export JBANG_REPO=$SCRATCH/testrepo
