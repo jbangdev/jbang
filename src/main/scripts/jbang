@@ -30,4 +30,4 @@ if [[ -z "$JAVA_HOME" ]]; then JAVA_EXEC="java"; else JAVA_EXEC="$JAVA_HOME/bin/
 export JBANG_FILE="$1"
 
 ## run it using command substitution to have just the user process once jbang is done
-eval "exec $(${JAVA_EXEC} -classpath ${jarPath} dk.xam.jbang.Main "$@")"
+eval "exec $(${JAVA_EXEC} ${JBANG_JVM_OPTS} -classpath ${jarPath} dk.xam.jbang.Main "$@")"
