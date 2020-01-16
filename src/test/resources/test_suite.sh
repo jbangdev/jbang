@@ -55,9 +55,15 @@ assert_raises "rm $SCRATCH/test.java" 0
 
 assert "jbang helloworld.java jbangtest" "Hello jbangtest"
 
+# jsh should also work
+assert "jbang helloworld.jsh" "Hello World!"
+
+# jsh should also get parameters
+#assert "jbang helloworld.jsh JSH!" "Hello JSH!"
+
 ## test dependency resolution on custom local repo (to avoid conflicts with existing ~/.m2)
 export JBANG_REPO=$SCRATCH/testrepo
-assert_stderr "jbang classpath_log.java" "[jbang] Resolving dependencies...\n[jbang]     Resolving log4j:log4j:1.2.17...Done\n[jbang] Dependencies resolved"
+assert_stderr "jbang classpath_log.java" "[jbang] Resolving dependencies...\n[jbang]     Resolving log4j:log4j:1.2.17...Done\n[jbang] Dependencies resolved\n[jbang] Building jar..."
 assert_raises "test -d $SCRATCH/testrepo" 0
 assert "grep -c $SCRATCH/testrepo ~/.jbang/dependency_cache.txt" 1
 # run it 2nd time and no resolution should happen

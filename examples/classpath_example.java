@@ -18,6 +18,5 @@ class classpath_example {
 		logger.info("Welcome to jbang");
 
 		Arrays.asList(args).forEach(arg -> logger.warn("arg: " + arg));
-		logger.info("Hello from Java!");
 	}
 }

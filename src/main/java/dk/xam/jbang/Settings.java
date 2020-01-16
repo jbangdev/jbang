@@ -11,7 +11,7 @@ public class Settings {
 			: ":";
 
 	static {
-		var v = System.getenv("JBANG_CACHE_DIR");
+		String v = System.getenv("JBANG_CACHE_DIR");
 
 		if (v != null) {
 			JBANG_CACHE_DIR = new File(v);

@@ -44,10 +44,10 @@ public class TestEdit {
 		File project = main.createProject(script, Collections.emptyList(), script.collectDependencies());
 
 		assertThat(new File(project, "src"), FileMatchers.anExistingDirectory());
-		var build = new File(project, "build.gradle");
+		File build = new File(project, "build.gradle");
 		assert (build.exists());
-		assertThat(Files.readString(build.toPath()), containsString("dependencies"));
-		var src = new File(project, "src/edit.java");
+		assertThat(Util.readString(build.toPath()), containsString("dependencies"));
+		File src = new File(project, "src/edit.java");
 		assert (src.exists());
 		assert (Files.isSymbolicLink(src.toPath()));
 

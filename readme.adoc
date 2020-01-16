@@ -9,8 +9,10 @@ Ever tried out Java 10+ support for running .java files directly in your shell b
 
 Then try `jbang` which gives you:
 
+* `.java` Scripting for Java 8 and upwards
+* `.jsh` via JShell from Java 9 and upwards
 * Dependency declarations using `//DEPS <gav>` for automatic dependency resolution
-* Dependency resolution caching
+* Compiled jar and Dependency resolution caching
 * Launch with debug enabled for instant debugging from your favorite IDE
 * Generate gradle file with dependencies for easy editing in your favorite IDE (`jbang --edit myfile.java`)
 * (PLANNED) Lookup dependencies with a short-hand name, i.e. `// DEPS log4j:1.2+,picocli` for quick getting started.
@@ -113,8 +115,21 @@ jbang https://raw.githubusercontent.com/maxandersen/jbang/master/examples/hellow
 
 ### Using `.jsh` for `jshell`
 
-There are experimental support to run `.jsh` via `jshell`. The advantage of `jshell` is that you do not need to have a class or static main method, downside is that
-at least for now you have no way to read the command line arguments.
+There are experimental support to run `.jsh` via `jshell`. The advantage of `jshell` is that you do not need to have a class or static main method.
+
+Classic `jshell` does not support passing in arguments, `jbang` does.
+
+In the case of `.jsh` files `jbang` injects a startup script that declares a `String[] args` which will contain any passed in arguments.
+
+Example:
+
+[source, java]
+----
+System.out.println("Hello " + (args.length>0?args[0]:"World")); // <.>
+/exit // <.>
+----
+<1> Line where `args` are accessible without previous declaration.
+<2> `/exit` is so the jshell app will exit. If you remove it `jbang` will launch into inter-active mode.
 
 ## Getting started
 

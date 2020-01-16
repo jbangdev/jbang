@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ public class TestGrape {
 
 		Script s = new Script(grabBlock);
 
-		var deps = s.collectDependencies();
+		List<String> deps = s.collectDependencies();
 
 		assertThat(deps, hasItem("org.hibernate:hibernate-core:5.4.10.Final"));
 		assertThat(deps, hasItem("net.sf.json-lib:json-lib:2.2.3:jdk15"));

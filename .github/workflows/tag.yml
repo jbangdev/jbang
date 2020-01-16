@@ -1,8 +1,9 @@
 on:
-  release:
-    - published
-
-name: release-3rdparty
+  push:
+    tags:
+      - 'v*'
+      -
+name: tag-and-release
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -20,7 +21,7 @@ jobs:
         with:
           java-version: 11
       - name: build-gradle
-        run: ./gradlew clean build install -x test --build-cache --scan -s
+        run: ./gradlew clean build install --build-cache --scan -s
       - name: integration-test
         run: |
           export PATH=`pwd`/build/install/jbang/bin:$PATH
@@ -28,6 +29,10 @@ jobs:
           cd src/test/resources
           ./test_suite.sh
           cd $pastdir
+      - name: tag-and-release
+        env:
+          ORG_GRADLE_PROJECT_github_token: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew githubRelease
       - name: homebrew
         env:
           BREW_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}
