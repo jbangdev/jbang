@@ -218,7 +218,6 @@ class classpath_example {
 <.> In Groovy you normally put `@Grab` on import statements. That is not allowed in Java thus when having multiple imports you need to put them in a `@Grapes` annotation first.
 <.> `jbang` will grab any `@Grab` annotation and assume it is declaring dependencies.
 
-
 ## Debugging
 
 When running `.java` scripts with `jbang` you can pass the `--debug`-flag and the script will enable debug,
@@ -240,6 +239,14 @@ If you are using bash or zsh in your terminal you can get auto-completion by run
 ```
 source <(jbang --completion)
 ```
+
+## Caching
+
+In previous versions of `jbang` Java 10+ direct launch of `.java` was used, but since v0.6 `jbang` works with Java 8 and thus it
+needs to do a separate compile step. Besides now working with Java 8 it also allow us to cache the compile step and thus
+launch faster on consecutive runs.
+
+The caching goes to `~/.jbang` by default, you can run `jbang --clear-cache` to remove all cache data from this folder.
 
 ## FAQ
 
