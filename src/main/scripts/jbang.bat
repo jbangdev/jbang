@@ -10,6 +10,6 @@ rem expose the name of the script being run to the script itself
 set JBANG_FILE="$1"
 
 rem run it using command substitution to have just the user process once jbang is done
-rem eval "exec $(${JAVA_EXEC} -classpath ${jarPath} dk.xam.jbang.Main "$@")"
-FOR /F "tokens=*" %%a in ('java -classpath %jarPath% dk.xam.jbang.Main %*') do SET OUTPUT=%%a
+rem eval "exec $(${JAVA_EXEC} ${JBANG_JVM_OPTS} -classpath ${jarPath} dk.xam.jbang.Main "$@")"
+FOR /F "tokens=*" %%a in ('java %JBANG_JVM_OPTS% -classpath %jarPath% dk.xam.jbang.Main %*') do SET OUTPUT=%%a
 %OUTPUT%
