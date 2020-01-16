@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Do not remove this test for UTF-8: if “Ω” doesn’t appear as greek uppercase omega letter enclosed in quotation marks, you should use an editor that supports UTF-8, not this one. -->
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>jbang</id>
+    <version>0.6.0.5</version>
+    <title>jbang</title>
+    <authors>Max Rydahl Andersen</authors>
+    <projectUrl>https://github.com/maxandersen/jbang</projectUrl>
+    <copyright>2020 Max Rydahl Andersen</copyright>
+    <licenseUrl>https://github.com/maxandersen/jbang/blob/master/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectSourceUrl>https://github.com/maxandersen/jbang</projectSourceUrl>
+    <docsUrl>https://github.com/maxandersen/jbang/blob/master/readme.adoc</docsUrl>
+    <bugTrackerUrl>https://github.com/maxandersen/jbang/issues</bugTrackerUrl>
+    <tags>jbang bash java shell</tags>
+    <summary>Use Java for shell scripting</summary>
+    <description>Use `jbang` for easily run single .java file with automatic dependency fetching and just get going.</description>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>
