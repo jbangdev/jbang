@@ -154,7 +154,7 @@ githubRelease {
 	// set ORG_GRADLE_PROJECT_github_token
 	token = project.hasProperty('github_token') ? getProperty('github_token') : "unknown_github_token"
 	owner = "maxandersen"
-	draft = "true"
+	draft = true
 	body = "## News"
 }
 
