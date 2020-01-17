@@ -11,7 +11,10 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     name: build-and-testing
     steps:
       - uses: actions/checkout@v1
@@ -32,9 +35,3 @@ jobs:
           export PATH=`pwd`/build/install/jbang/bin:$PATH
           cd src/test/resources
           ./test_suite.sh
-  windows:
-    runs-on: windows-latest
-    name: windows-testing
-    steps:
-      - name: test-gradle
-        run: .\gradlew test --build-cache --scan -s
