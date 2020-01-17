@@ -32,3 +32,8 @@ jobs:
           export PATH=`pwd`/build/install/jbang/bin:$PATH
           cd src/test/resources
           ./test_suite.sh
+  windows:
+    runs-on: windows-latest
+    steps:
+      - name: test-gradle
+          run: ./gradlew test --build-cache --scan -s

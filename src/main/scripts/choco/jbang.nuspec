@@ -3,7 +3,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>jbang</id>
-    <version>0.6.0.5</version>
+    <version>@projectVersion@</version>
     <title>jbang</title>
     <authors>Max Rydahl Andersen</authors>
     <projectUrl>https://github.com/maxandersen/jbang</projectUrl>
