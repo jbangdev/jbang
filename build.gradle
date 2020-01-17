@@ -146,6 +146,21 @@ task homebrew(type: Copy) {
 	}
 }
 
+task chocolatey(type: Copy) {
+	dependsOn(createChecksum)
+	inputs.property('version', project.version)
+	from('src/main/scripts/choco')
+	into(buildDir.toString() + '/choco')
+	doFirst { t ->
+		t.filter(org.apache.tools.ant.filters.ReplaceTokens,
+				tokens: [
+						projectVersion: project.version,
+						sha256        : new File(distZip.archiveFile.asFile.get().absolutePath + '.sha256').text
+				]
+		)
+	}
+}
+
 githubRelease {
 	// currently does not work as project.version not set.
 	// FilenameFilter filter = { dir, filename -> filename.contains(project.version) } // ensure nothing extra gets included.
@@ -175,6 +190,7 @@ versioner {
 }
 
 build.dependsOn(homebrew)
+build.dependsOn(chocolatey)
 
 group = "dk.xam.jbang"
 sourceCompatibility = '8'
