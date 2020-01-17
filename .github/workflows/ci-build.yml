@@ -30,6 +30,11 @@ jobs:
           java-version: 11
       - name: build-gradle
         run: ./gradlew build test install --build-cache --scan -s
+      - name: Archive test results
+          uses: actions/upload-artifact@v1
+          with:
+            name: build
+            path: build
       - name: integration-test
         if: runner.os != 'Windows'
         run: |
