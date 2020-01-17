@@ -1,15 +1,8 @@
 package dk.xam.jbang;
 
-import io.quarkus.qute.Engine;
-import io.quarkus.qute.Template;
-import io.quarkus.qute.TemplateLocator;
-import io.quarkus.qute.Variant;
-import org.apache.commons.text.StringEscapeUtils;
-import picocli.AutoComplete;
-import picocli.CommandLine;
-import picocli.CommandLine.Model.ArgSpec;
-import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.Model.OptionSpec;
+import static java.lang.System.err;
+import static java.lang.System.out;
+import static picocli.CommandLine.*;
 
 import java.io.*;
 import java.net.URL;
@@ -27,9 +20,17 @@ import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.lang.System.err;
-import static java.lang.System.out;
-import static picocli.CommandLine.*;
+import org.apache.commons.text.StringEscapeUtils;
+
+import io.quarkus.qute.Engine;
+import io.quarkus.qute.Template;
+import io.quarkus.qute.TemplateLocator;
+import io.quarkus.qute.Variant;
+import picocli.AutoComplete;
+import picocli.CommandLine;
+import picocli.CommandLine.Model.ArgSpec;
+import picocli.CommandLine.Model.CommandSpec;
+import picocli.CommandLine.Model.OptionSpec;
 
 @Command(name = "jbang", footer = "\nCopyright: 2020 Max Rydahl Andersen, License: MIT\nWebsite: https://github.com/maxandersen/jbang", versionProvider = VersionProvider.class, description = "Compiles and runs .java/.jsh scripts.")
 public class Main implements Callable<Integer> {
@@ -146,7 +147,7 @@ public class Main implements Callable<Integer> {
 
 		if (clearCache) {
 			info("Clearing cache at " + Settings.JBANG_CACHE_DIR.toPath());
-			//noinspection resource
+			// noinspection resource
 			Files.walk(Settings.JBANG_CACHE_DIR.toPath())
 					.sorted(Comparator.reverseOrder())
 					.map(Path::toFile)
@@ -226,8 +227,9 @@ public class Main implements Callable<Integer> {
 						}
 						createJarFile(tmpJarDir, outjar, script.getMainClass());
 					} else {
-						try(JarFile jf = new JarFile(outjar)) {
-							script.setMainClass(jf.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS));
+						try (JarFile jf = new JarFile(outjar)) {
+							script.setMainClass(
+									jf.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS));
 						}
 					}
 
@@ -378,7 +380,8 @@ public class Main implements Callable<Integer> {
 		String buf = "String[] args = { " +
 				args.stream()
 						.map(s -> '"' + StringEscapeUtils.escapeJava(s) + '"')
-						.collect(Collectors.joining(", ")) +
+						.collect(Collectors.joining(", "))
+				+
 				" }";
 		return buf;
 	}

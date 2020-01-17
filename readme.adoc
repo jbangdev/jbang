@@ -235,6 +235,22 @@ class classpath_example {
 <.> In Groovy you normally put `@Grab` on import statements. That is not allowed in Java thus when having multiple imports you need to put them in a `@Grapes` annotation first.
 <.> `jbang` will grab any `@Grab` annotation and assume it is declaring dependencies.
 
+== Editing
+
+You can edit your script in your IDE by using `jbang --edit helloworld.java`. This will generate a Gradle based project in a temporary location with symbolic links to your script
+and output the generated folder name. The easiest way to use that is to use it in a call to your IDE:
+
+[source, bash]
+----
+code `jbang --edit helloworld.java`
+----
+
+If you add additional dependencies to your file just re-run the edit command and the `build.gradle` will be regenerated with the updated dependencies.
+
+NOTE: On Windows you might need elevated priviliges to create symbolic links. If you don't have permissions then
+the `--edit` option will result in an error. To use it enable symbolic links for your user or run your shell/terminal as administrator
+to have this feature working.
+
 == Debugging
 
 When running `.java` scripts with `jbang` you can pass the `--debug`-flag and the script will enable debug,

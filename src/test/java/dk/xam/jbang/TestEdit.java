@@ -1,10 +1,8 @@
 package dk.xam.jbang;
 
-import org.hamcrest.io.FileMatchers;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import picocli.CommandLine;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,9 +12,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
+import org.hamcrest.io.FileMatchers;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import picocli.CommandLine;
 
 public class TestEdit {
 
@@ -31,7 +32,7 @@ public class TestEdit {
 		main = cli.getCommand();
 	}
 
-	@Test
+	@Test // @DisabledOnOs(WINDOWS)
 	void testEdit(@TempDir Path outputDir) throws IOException {
 
 		String s = outputDir.resolve("edit.java").toString();

@@ -105,10 +105,10 @@ public final class JarUtil {
 
 		JarOutputStream jout;
 		if (man == null) {
-			//noinspection resource
+			// noinspection resource
 			jout = new JarOutputStream(out);
 		} else {
-			//noinspection resource
+			// noinspection resource
 			jout = new JarOutputStream(out, man);
 		}
 		if (prefix != null && prefix.length() > 0 && !prefix.equals("/")) {
@@ -181,7 +181,7 @@ public final class JarUtil {
 			jout.putNextEntry(entry);
 
 			// dump the file
-			try(FileInputStream in = new FileInputStream(src)) {
+			try (FileInputStream in = new FileInputStream(src)) {
 				int len;
 				while ((len = in.read(buffer, 0, buffer.length)) != -1) {
 					jout.write(buffer, 0, len);
