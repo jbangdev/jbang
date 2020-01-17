@@ -34,7 +34,7 @@ jobs:
         uses: actions/upload-artifact@v1
         if: always()
         with:
-          name: build
+          name: ${{ runner.os }}-build
           path: build
       - name: integration-test
         if: runner.os != 'Windows'
