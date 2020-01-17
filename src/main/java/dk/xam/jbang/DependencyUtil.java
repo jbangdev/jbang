@@ -92,7 +92,6 @@ class DependencyUtil {
 				try (BufferedWriter out = new BufferedWriter(new FileWriter(DEP_LOOKUP_CACHE_FILE, true))) {
 					out.write(depsHash + " " + classPath + "\n");
 				}
-				;
 			} catch (IOException e) {
 				errorMsg("Could not write to cache:" + e.getMessage());
 			}

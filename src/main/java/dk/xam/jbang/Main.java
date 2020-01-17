@@ -6,7 +6,6 @@ import static picocli.CommandLine.*;
 
 import java.io.*;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -353,7 +352,7 @@ public class Main implements Callable<Integer> {
 		@Override
 		public Reader read() {
 			try {
-				return new InputStreamReader(resource.openStream(), Charset.forName("utf-8"));
+				return new InputStreamReader(resource.openStream(), StandardCharsets.UTF_8);
 			} catch (IOException e) {
 				return null;
 			}
