@@ -29,8 +29,9 @@ jobs:
         with:
           java-version: 11
       - name: build-gradle
-        run: ./gradlew install --build-cache --scan -s
+        run: ./gradlew build test install --build-cache --scan -s
       - name: integration-test
+        if: {{ runner.os != 'Windows' }}
         run: |
           export PATH=`pwd`/build/install/jbang/bin:$PATH
           cd src/test/resources
