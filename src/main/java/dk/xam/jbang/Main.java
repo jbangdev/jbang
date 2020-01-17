@@ -1,8 +1,15 @@
 package dk.xam.jbang;
 
-import static java.lang.System.err;
-import static java.lang.System.out;
-import static picocli.CommandLine.*;
+import io.quarkus.qute.Engine;
+import io.quarkus.qute.Template;
+import io.quarkus.qute.TemplateLocator;
+import io.quarkus.qute.Variant;
+import org.apache.commons.text.StringEscapeUtils;
+import picocli.AutoComplete;
+import picocli.CommandLine;
+import picocli.CommandLine.Model.ArgSpec;
+import picocli.CommandLine.Model.CommandSpec;
+import picocli.CommandLine.Model.OptionSpec;
 
 import java.io.*;
 import java.net.URL;
@@ -20,19 +27,11 @@ import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.text.StringEscapeUtils;
+import static java.lang.System.err;
+import static java.lang.System.out;
+import static picocli.CommandLine.*;
 
-import io.quarkus.qute.Engine;
-import io.quarkus.qute.Template;
-import io.quarkus.qute.TemplateLocator;
-import io.quarkus.qute.Variant;
-import picocli.AutoComplete;
-import picocli.CommandLine;
-import picocli.CommandLine.Model.ArgSpec;
-import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.Model.OptionSpec;
-
-@Command(name = "jbang", footer = "\nCopyright: 2020 Max Rydahl Andersen, License: MIT\nWebsite: https://github.com/maxandersen/jbang", mixinStandardHelpOptions = false, versionProvider = VersionProvider.class, description = "Compiles and runs .java/.jsh scripts.")
+@Command(name = "jbang", footer = "\nCopyright: 2020 Max Rydahl Andersen, License: MIT\nWebsite: https://github.com/maxandersen/jbang", versionProvider = VersionProvider.class, description = "Compiles and runs .java/.jsh scripts.")
 public class Main implements Callable<Integer> {
 
 	@Spec
@@ -147,6 +146,7 @@ public class Main implements Callable<Integer> {
 
 		if (clearCache) {
 			info("Clearing cache at " + Settings.JBANG_CACHE_DIR.toPath());
+			//noinspection resource
 			Files.walk(Settings.JBANG_CACHE_DIR.toPath())
 					.sorted(Comparator.reverseOrder())
 					.map(Path::toFile)
@@ -226,8 +226,9 @@ public class Main implements Callable<Integer> {
 						}
 						createJarFile(tmpJarDir, outjar, script.getMainClass());
 					} else {
-						JarFile jf = new JarFile(outjar);
-						script.setMainClass(jf.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS));
+						try(JarFile jf = new JarFile(outjar)) {
+							script.setMainClass(jf.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS));
+						}
 					}
 
 					script.setJar(outjar);
@@ -240,12 +241,12 @@ public class Main implements Callable<Integer> {
 	}
 
 	static public String findMainClass(Path base, Path classfile) {
-		String mainClass = classfile.getFileName().toString().replace(".class", "");
+		StringBuilder mainClass = new StringBuilder(classfile.getFileName().toString().replace(".class", ""));
 		while (!classfile.getParent().equals(base)) {
 			classfile = classfile.getParent();
-			mainClass = classfile.getFileName().toString() + "." + mainClass;
+			mainClass.insert(0, classfile.getFileName().toString() + ".");
 		}
-		return mainClass;
+		return mainClass.toString();
 	}
 
 	File createProject(Script script, List<String> userParams, List<String> collectDependencies) throws IOException {
@@ -339,6 +340,7 @@ public class Main implements Callable<Integer> {
 	static class ResourceTemplateLocation implements TemplateLocator.TemplateLocation {
 
 		private final URL resource;
+		@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 		private Optional<Variant> variant = null;
 
 		public ResourceTemplateLocation(URL resource) {
@@ -372,16 +374,14 @@ public class Main implements Callable<Integer> {
 	}
 
 	String generateArgs(List<String> args) {
-		StringBuffer buf = new StringBuffer();
 
-		buf.append("String[] args = { ");
-		buf.append(args.stream()
-				.map(s -> '"' + StringEscapeUtils.escapeJava(s) + '"')
-				.collect(Collectors.joining(", ")));
-		buf.append(" }");
-
-		return buf.toString();
-	};
+		String buf = "String[] args = { " +
+				args.stream()
+						.map(s -> '"' + StringEscapeUtils.escapeJava(s) + '"')
+						.collect(Collectors.joining(", ")) +
+				" }";
+		return buf;
+	}
 
 	String generateCommandLine(Script script) throws IOException {
 
@@ -465,7 +465,7 @@ public class Main implements Callable<Integer> {
 		}
 
 		argsForJbang.addAll(argsForScript);
-		return argsForJbang.toArray(new String[argsForJbang.size()]);
+		return argsForJbang.toArray(new String[0]);
 
 	}
 

@@ -1,9 +1,11 @@
 package dk.xam.jbang;
 
-import static dk.xam.jbang.Settings.CP_SEPARATOR;
-import static dk.xam.jbang.Settings.DEP_LOOKUP_CACHE_FILE;
-import static dk.xam.jbang.Util.*;
-import static org.sonatype.aether.util.artifact.JavaScopes.RUNTIME;
+import com.jcabi.aether.Aether;
+import org.sonatype.aether.artifact.Artifact;
+import org.sonatype.aether.repository.Authentication;
+import org.sonatype.aether.repository.RemoteRepository;
+import org.sonatype.aether.resolution.DependencyResolutionException;
+import org.sonatype.aether.util.artifact.DefaultArtifact;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -15,13 +17,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.sonatype.aether.artifact.Artifact;
-import org.sonatype.aether.repository.Authentication;
-import org.sonatype.aether.repository.RemoteRepository;
-import org.sonatype.aether.resolution.DependencyResolutionException;
-import org.sonatype.aether.util.artifact.DefaultArtifact;
-
-import com.jcabi.aether.Aether;
+import static dk.xam.jbang.Settings.CP_SEPARATOR;
+import static dk.xam.jbang.Settings.DEP_LOOKUP_CACHE_FILE;
+import static dk.xam.jbang.Util.*;
+import static org.sonatype.aether.util.artifact.JavaScopes.RUNTIME;
 
 class DependencyUtil {
 
@@ -89,9 +88,9 @@ class DependencyUtil {
 			// Add classpath to cache
 			try {
 				// Open given file in append mode.
-				BufferedWriter out = new BufferedWriter(new FileWriter(DEP_LOOKUP_CACHE_FILE, true));
-				out.write(depsHash + " " + classPath + "\n");
-				out.close();
+				try(BufferedWriter out = new BufferedWriter(new FileWriter(DEP_LOOKUP_CACHE_FILE, true))) {
+					out.write(depsHash + " " + classPath + "\n");
+				};
 			} catch (IOException e) {
 				errorMsg("Could not write to cache:" + e.getMessage());
 			}

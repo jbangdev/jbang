@@ -1,3 +1,4 @@
+<!--suppress CheckTagEmptyBody -->
 <assembly>
     <id>dist</id>
     <!-- Specifies that our binary distribution is a zip package -->

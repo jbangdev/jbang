@@ -99,14 +99,16 @@ public final class JarUtil {
 
 		for (int i = 0; i < src.length; i++) {
 			if (!src[i].exists()) {
-				throw new FileNotFoundException(src.toString());
+				throw new FileNotFoundException(src[i].toString());
 			}
 		}
 
 		JarOutputStream jout;
 		if (man == null) {
+			//noinspection resource
 			jout = new JarOutputStream(out);
 		} else {
+			//noinspection resource
 			jout = new JarOutputStream(out, man);
 		}
 		if (prefix != null && prefix.length() > 0 && !prefix.equals("/")) {
@@ -179,13 +181,14 @@ public final class JarUtil {
 			jout.putNextEntry(entry);
 
 			// dump the file
-			FileInputStream in = new FileInputStream(src);
-			int len;
-			while ((len = in.read(buffer, 0, buffer.length)) != -1) {
-				jout.write(buffer, 0, len);
+			try(FileInputStream in = new FileInputStream(src)) {
+				int len;
+				while ((len = in.read(buffer, 0, buffer.length)) != -1) {
+					jout.write(buffer, 0, len);
+				}
 			}
-			in.close();
 			jout.closeEntry();
+
 		}
 	}
 }

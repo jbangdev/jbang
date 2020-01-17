@@ -1,9 +1,10 @@
 package dk.xam.jbang;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.hamcrest.collection.IsCollectionWithSize;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import picocli.CommandLine;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,12 +16,10 @@ import java.util.Collections;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 
-import org.hamcrest.collection.IsCollectionWithSize;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
-import picocli.CommandLine;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TestMain {
 
@@ -40,7 +39,7 @@ public class TestMain {
 		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
 		new CommandLine(main).parseArgs(arg);
 
-		String result = main.generateCommandLine(new Script(new File("helloworld.java"), "")).toString();
+		String result = main.generateCommandLine(new Script(new File("helloworld.java"), ""));
 
 		assertThat(result, startsWith("java"));
 		assertThat(result, containsString("helloworld.java"));
@@ -54,7 +53,7 @@ public class TestMain {
 		String arg = new File(examplesTestFolder, "helloworld.jsh").getAbsolutePath();
 		new CommandLine(main).parseArgs(arg, "blah");
 
-		String result = main.generateCommandLine(new Script(new File("helloworld.jsh"), "")).toString();
+		String result = main.generateCommandLine(new Script(new File("helloworld.jsh"), ""));
 
 		assertThat(result, startsWith("jshell"));
 		assertThat(result, not(containsString("  ")));
@@ -73,7 +72,7 @@ public class TestMain {
 		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
 		new CommandLine(main).parseArgs("--debug", arg);
 
-		String result = main.generateCommandLine(new Script(new File("helloworld.java"), "")).toString();
+		String result = main.generateCommandLine(new Script(new File("helloworld.java"), ""));
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("helloworld.java"));
@@ -90,7 +89,7 @@ public class TestMain {
 		String arg = new File(examplesTestFolder, "classpath_example.java").getAbsolutePath();
 		new CommandLine(main).parseArgs(arg);
 
-		String result = main.generateCommandLine(new Script(new File(arg))).toString();
+		String result = main.generateCommandLine(new Script(new File(arg)));
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("classpath_example.java"));
@@ -113,9 +112,9 @@ public class TestMain {
 				containsString("Logger.getLogger(classpath_example.class);"));
 
 		Main main = new Main();
-		new CommandLine(main).parseArgs(url.toString());
+		new CommandLine(main).parseArgs(url);
 
-		String s = main.generateCommandLine(Main.prepareScript(url.toString()));
+		String s = main.generateCommandLine(Main.prepareScript(url));
 
 		assertThat(s, not(containsString("file:")));
 	}
@@ -160,13 +159,14 @@ public class TestMain {
 
 		Main.createJarFile(dir, out, "wonkabear");
 
-		JarFile jf = new JarFile(out);
+		try(JarFile jf = new JarFile(out)) {
 
-		assertThat(Collections.list(jf.entries()), IsCollectionWithSize.hasSize(5));
+			assertThat(Collections.list(jf.entries()), IsCollectionWithSize.hasSize(5));
 
-		assertThat(jf.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS), equalTo("wonkabear"));
+			assertThat(jf.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS), equalTo("wonkabear"));
 
-		assert (out.exists());
+			assert (out.exists());
+		}
 
 	}
 

@@ -29,9 +29,10 @@ public class Script {
 
 	Script(File backingFile) throws FileNotFoundException {
 		this.backingFile = backingFile;
-		Scanner sc = new Scanner(this.backingFile);
-		sc.useDelimiter("\\Z");
-		this.script = sc.next();
+		try(Scanner sc = new Scanner(this.backingFile)) {
+			sc.useDelimiter("\\Z");
+			this.script = sc.next();
+		}
 	}
 
 	Script(String script) {

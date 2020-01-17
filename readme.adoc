@@ -1,6 +1,7 @@
-# j'bang - Having fun with Java scripting
+= j'bang - Having fun with Java scripting
 :toc:
 :toc-placement:
+:icons: font
 
 image:https://img.shields.io/github/release/maxandersen/jbang.svg[Release,link=https://github.com/maxandersen/jbang/releases]
 image:https://github.com/maxandersen/jbang/workflows/ci-build/badge.svg[Build Status,link=https://github.com/maxandersen/jbang/actions]
@@ -23,13 +24,13 @@ To use it simply install `jbang` and run `jbang yourscript.java`
 
 toc::[]
 
-## Requirements
+== Requirements
 
 Java 8+
 
 Tested and verified to use on OSX, Linux and Windows.
 
-## Installation
+== Installation
 
 To use `jbang` you as a minimum need to have Java 11+ available.
 
@@ -37,33 +38,37 @@ To install both java and `jbang` we recommend https://sdkman.io[sdkman]
 
 [source, bash]
 ```
-curl -s "https://get.sdkman.io" | bash <.>
-source ~/.bash_profile <.>
+curl -s "https://get.sdkman.io" | bash # <.>
+source ~/.bash_profile # <.>
 
-sdk install java <.>
+sdk install java # <.>
 ```
 
 Once Java is installed and ready, you install `jbang` with
 
-```
+[source]
+----
 sdk install jbang
-```
+----
 
 To test your installation run:
 
-```
+[source]
+----urce]
+----
 jbang --help
-```
+-----
 
 This should print out usage information.
 
 To update run:
 
-```
+[source]
+----
 sdk update jbang
-```
+----
 
-### Homebrew
+=== Homebrew
 
 On OSX you can install `jbang` with https://brew.sh[Homebrew] using https://github.com/maxandersen/homebrew-tap/[maxandersen/tap].
 
@@ -73,11 +78,11 @@ To upgrade to latest version:
 
   brew upgrade maxandersen/tap/jbang
 
-### Manual and Windows (for now) install
+=== Manual and Windows (for now) install
 
 Unzip the https://github.com/maxandersen/jbang/releases/latest[latest binary release], put the `jbang-<version>/bin` folder in to your `$PATH` and you are set.
 
-## Script input
+== Script input
 
 A script is just a single `.java` file with a classic static main method or a `.jsh` file which will be passed to `jshell`.
 
@@ -87,7 +92,7 @@ Below is an (almost) minimal example you can save in `helloworld.java`:
 ```
 //usr/bin/env jbang "$0" "$@" ; exit $? <.>
 
-class helloworld { <.>
+class helloworld { // <.>
 
     public static void main(String[] args) {
         if(args.length==0) {
@@ -103,25 +108,28 @@ class helloworld { <.>
 
 Now to run this you can call it via `jbang`:
 
-```
+[source]
+----
 jbang helloworld.java
-```
+----
 
 or mark it executable and just run it directly:
 
-```
+[source]
+----
 chmod +x helloworld.java
 ./helloworld jbang!
-```
+----
 
 You can use `http(s):/` and `file:/` url's for input too:
 
-```
+[source]
+----
 jbang https://raw.githubusercontent.com/maxandersen/jbang/master/examples/helloworld.java
-```
+----
 
 
-### Using `.jsh` for `jshell`
+=== Using `.jsh` for `jshell`
 
 There are experimental support to run `.jsh` via `jshell`. The advantage of `jshell` is that you do not need to have a class or static main method.
 
@@ -139,16 +147,16 @@ System.out.println("Hello " + (args.length>0?args[0]:"World")); // <.>
 <1> Line where `args` are accessible without previous declaration.
 <2> `/exit` is so the jshell app will exit. If you remove it `jbang` will launch into inter-active mode.
 
-## Getting started
+== Getting started
 
 To get started you can run `jbang --init helloworld.java` and a simple java class with a static main is generated.
 
-## Declare dependencies
+== Declare dependencies
 
 If you want to write real scripts you will want to use some java libraries.
 To specify dependencies you use gradle-style locators. Below are examples for `log4j`.
 
-### Using `//DEPS`
+=== Using `//DEPS`
 
 [source, java]
 ```
@@ -168,7 +176,7 @@ class classpath_example {
 	static final Logger logger = Logger.getLogger(classpath_example.class);
 
 	public static void main(String[] args) {
-		BasicConfigurator.configure(); <.>
+		BasicConfigurator.configure(); // <.>
 		logger.info("Welcome to jbang");
 
 		Arrays.asList(args).forEach(arg -> logger.warn("arg: " + arg));
@@ -181,16 +189,17 @@ class classpath_example {
 
 Now when you run this the first time with no existing dependencies installed you should get an output like this:
 
-```
+[source]
+----
 $ ./classpath_example.java
 [jbang] Resolving dependencies...
 [jbang]     Resolving log4j:log4j:1.2.17...Done
 [jbang] Dependencies resolved
 0 [main] INFO classpath_example  - Welcome to jbang
 1 [main] INFO classpath_example  - Hello from Java!
-```
+----
 
-### Using `@Grab`
+=== Using `@Grab`
 
 There is also support for using Groovy lang style `@Grab` syntax.
 
@@ -226,29 +235,31 @@ class classpath_example {
 <.> In Groovy you normally put `@Grab` on import statements. That is not allowed in Java thus when having multiple imports you need to put them in a `@Grapes` annotation first.
 <.> `jbang` will grab any `@Grab` annotation and assume it is declaring dependencies.
 
-## Debugging
+== Debugging
 
 When running `.java` scripts with `jbang` you can pass the `--debug`-flag and the script will enable debug,
 suspend the execution and wait until you connect a debugger to port 4004.
 
-```
+[source]
+----
 jbang --debug helloworld.java
 Listening for transport dt_socket at address: 4004
-```
+----
 
 You can change the debug port by passing in a number to the debug argument, i.e. `--debug=4321`.
 
 NOTE: Be sure to put a breakpoint in your IDE/debugger before you connect to make the debugger actually stop when you need it.
 
-## Bash/Zsh auto-completion
+== Bash/Zsh auto-completion
 
 If you are using bash or zsh in your terminal you can get auto-completion by running the following:
 
-```
+[source]
+----
 source <(jbang --completion)
-```
+----
 
-## Caching
+== Caching
 
 In previous versions of `jbang` Java 10+ direct launch of `.java` was used, but since v0.6 `jbang` works with Java 8 and thus it
 needs to do a separate compile step. Besides now working with Java 8 it also allow us to cache the compile step and thus
@@ -256,7 +267,7 @@ launch faster on consecutive runs.
 
 The caching goes to `~/.jbang` by default, you can run `jbang --clear-cache` to remove all cache data from this folder.
 
-## FAQ
+== FAQ
 
 [qanda]
 Why the name j'bang?::
@@ -285,7 +296,7 @@ By using the `//` form it is treated as both a bash/shell file AND a valid java 
 +
 Its worth noting that Go https://golangcookbook.com/chapters/running/shebang/[uses a similar approach] which is also where I learned it from.
 
-## Thanks
+== Thanks
 
 `jbang` was heavily inspired by how `https://github.com/holgerbrandl/kscript[kscript]` by Holger Brand works.
 
