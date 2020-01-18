@@ -13,11 +13,12 @@ Then try `jbang` which gives you:
 * `.java` Scripting for Java 8 and upwards
 * `.jsh` via JShell from Java 9 and upwards
 * Dependency declarations using `//DEPS <gav>` for automatic dependency resolution
+* Control compile and runtime options with `//JAVAC_OPTIONS <flags>` and `//JAVA_OPTIONS <flags>`
 * Compiled jar and Dependency resolution caching
 * Launch with debug enabled for instant debugging from your favorite IDE
 * Generate gradle file with dependencies for easy editing in your favorite IDE (`jbang --edit myfile.java`)
 * Installable with HomeBrew or SDKman on OSX and Linux.
-* (PLANNED) Installable with Chocolatey on Windows
+* (https://chocolatey.org/packages/jbang/0.6.0.5[WAITING FOR APPROVAL]) Installable with Chocolatey on Windows
 * (PLANNED) Lookup dependencies with a short-hand name, i.e. `// DEPS log4j:1.2+,picocli` for quick getting started.
 
 To use it simply install `jbang` and run `jbang yourscript.java`
@@ -256,7 +257,7 @@ to have this feature working.
 When running `.java` scripts with `jbang` you can pass the `--debug`-flag and the script will enable debug,
 suspend the execution and wait until you connect a debugger to port 4004.
 
-[source]
+[source, bash]
 ----
 jbang --debug helloworld.java
 Listening for transport dt_socket at address: 4004
@@ -266,11 +267,39 @@ You can change the debug port by passing in a number to the debug argument, i.e.
 
 NOTE: Be sure to put a breakpoint in your IDE/debugger before you connect to make the debugger actually stop when you need it.
 
+== `java` and `javac` Options
+
+If you want to tweak memory settings or enable preview features you can setup the necessary options using
+`//JAVA_OPTS` and `//COMPILER_OPTS` as in the following example using Java 14 experimental `record` feature:
+
+[source, java]
+----
+//usr/bin/env jbang "$0" "$@" ; exit $?
+//JAVAC_OPTIONS --enable-preview -source 14 <.>
+//JAVA_OPTIONS --enable-preview // <.>
+
+import static java.lang.System.*;
+
+public class records {
+
+    record Point(int x, int y) {}
+
+    public static void main(String[] args) {
+        var p = new Point(2,4);
+        out.println(p);
+    }
+}
+----
+
+Since Java 9 https://docs.oracle.com/javase/9/tools/java.htm#GUID-3B1CE181-CD30-4178-9602-230B800D4FAE__USINGTHEJDK_JAVA_OPTIONSLAUNCHERENV-F3C0E3BA[JDK_JAVA_OPTIONS] and https://docs.oracle.com/javase/9/tools/javac.htm#GUID-AEEC9F07-CB49-4E96-8BC7-BCC2C7F725C9\_\_USINGJDK_JAVAC_OPTIONSENVIRONMENTVA-F3C76845[JDK_JAVAC_OPTIONS] are also picked up by the Java runtime and compiler automatically.
+
+For Java 8 and if you want to set explicilty only for `jbang` you can also add flags by setting `JBANG_JAVA_OPTIONS` and `JBANG_JAVAC_OPTIONS` respectively.
+
 == Bash/Zsh auto-completion
 
 If you are using bash or zsh in your terminal you can get auto-completion by running the following:
 
-[source]
+[source, bash]
 ----
 source <(jbang --completion)
 ----

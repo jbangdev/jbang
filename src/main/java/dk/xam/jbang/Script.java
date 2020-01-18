@@ -21,6 +21,7 @@ public class Script {
 	private String script;
 	private String mainClass;
 	private File jar;
+	List<String> lines;
 
 	Script(File backingFile, String content) throws FileNotFoundException {
 		this.backingFile = backingFile;
@@ -40,19 +41,72 @@ public class Script {
 		this.script = script;
 	}
 
+	private List<String> getLines() {
+		if (lines == null) {
+			lines = Arrays.asList(script.split("\\r?\\n"));
+		}
+		return lines;
+	}
+
 	public List<String> collectDependencies() {
 
-		List<String> lines = Arrays.asList(script.split("\\r?\\n"));
-
 		// Make sure that dependencies declarations are well formatted
-		if (lines.stream().anyMatch(it -> it.startsWith("// DEPS"))) {
+		if (getLines().stream().anyMatch(it -> it.startsWith("// DEPS"))) {
 			throw new IllegalArgumentException("Dependencies must be declared by using the line prefix //DEPS");
 		}
 
-		List<String> dependencies = lines.stream().filter(it -> isDependDeclare(it))
+		List<String> dependencies = getLines().stream().filter(it -> isDependDeclare(it))
 				.flatMap(it -> extractDependencies(it)).collect(Collectors.toList());
 
 		return dependencies;
+	}
+
+	// https://stackoverflow.com/questions/366202/regex-for-splitting-a-string-using-space-when-not-surrounded-by-single-or-double
+	List<String> quotedStringToList(String subjectString) {
+		List<String> matchList = new ArrayList<String>();
+		Pattern regex = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
+		Matcher regexMatcher = regex.matcher(subjectString);
+		while (regexMatcher.find()) {
+			if (regexMatcher.group(1) != null) {
+				// Add double-quoted string without the quotes
+				matchList.add(regexMatcher.group(1));
+			} else if (regexMatcher.group(2) != null) {
+				// Add single-quoted string without the quotes
+				matchList.add(regexMatcher.group(2));
+			} else {
+				// Add unquoted word
+				matchList.add(regexMatcher.group());
+			}
+		}
+		return matchList;
+	}
+
+	private List<String> collectOptions(String prefix) {
+		String joptsPrefix = "//" + prefix;
+
+		List<String> lines = getLines();
+
+		List<String> javaOptions = lines.stream()
+				.filter(it -> it.startsWith(joptsPrefix))
+				.map(it -> it.replaceFirst(joptsPrefix, "").trim())
+				.collect(Collectors.toList());
+
+		String envOptions = System.getenv("JBANG_" + prefix);
+		if (envOptions != null) {
+			javaOptions.add(envOptions);
+		}
+
+		// convert quoted content to list of strings as
+		// just passing "--enable-preview --source 14" fails
+		return quotedStringToList(javaOptions.stream().collect(Collectors.joining(" ")));
+	}
+
+	public List<String> collectRuntimeOptions() {
+		return collectOptions("JAVA_OPTIONS");
+	}
+
+	public List<String> collectCompileOptions() {
+		return collectOptions("JAVAC_OPTIONS");
 	}
 
 	/**

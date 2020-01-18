@@ -34,6 +34,7 @@ jobs:
   choco:
     runs-on: windows-latest
     name: publish-choco
+    continue-on-error: true
     steps:
       - uses: actions/download-artifact@v1
         with:
@@ -43,7 +44,6 @@ jobs:
         with:
           dotnet-version: '2.2.204' # SDK Version to use.
       - name: choco-publish
-        continue-on-error: true
         run: |
           choco pack build/choco/jbang.nuspec
           choco apikey -k ${{ secrets.CHOCO_API_KEY }} -source https://push.chocolatey.org/

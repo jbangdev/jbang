@@ -59,6 +59,9 @@ public class Main implements Callable<Integer> {
 			"--clear-cache" }, help = true, description = "Clear cache of dependency list and temporary projects")
 	boolean clearCache;
 
+	@Option(names = { "--verbose" }, description = "jbang will be verbose on what it does.")
+	boolean verbose;
+
 	@Parameters(index = "0", description = "A file with java code or if named .jsh will be run with jshell")
 	String scriptOrFile;
 
@@ -105,7 +108,7 @@ public class Main implements Callable<Integer> {
 	 * ExitException(0); }
 	 */
 
-	public static void main(String... args) throws FileNotFoundException {
+	public static void main(String... args) {
 		int exitcode = getCommandLine().execute(args);
 		System.exit(exitcode);
 	}
@@ -186,11 +189,14 @@ public class Main implements Callable<Integer> {
 					if (!outjar.exists()) {
 						List<String> optionList = new ArrayList<String>();
 						optionList.add("javac");
+						optionList.addAll(script.collectCompileOptions());
 						optionList.addAll(Arrays.asList("-classpath", script.resolveClassPath()));
 						optionList.addAll(Arrays.asList("-d", tmpJarDir.getAbsolutePath()));
 						optionList.addAll(Arrays.asList(script.backingFile.getPath()));
 
 						info("Building jar...");
+						if (verbose)
+							info("compile: " + String.join(" ", optionList));
 						Process process = new ProcessBuilder(optionList).inheritIO().start();
 						try {
 							process.waitFor();
@@ -235,6 +241,9 @@ public class Main implements Callable<Integer> {
 					script.setJar(outjar);
 				}
 				String cmdline = generateCommandLine(script);
+				if (verbose) {
+					info("run: " + cmdline);
+				}
 				out.println(cmdline);
 			}
 		}
@@ -421,6 +430,7 @@ public class Main implements Callable<Integer> {
 
 		List<String> fullArgs = new ArrayList<>();
 		fullArgs.add(javacmd);
+		fullArgs.addAll(script.collectRuntimeOptions());
 		fullArgs.addAll(optionalArgs);
 		if (script.getMainClass() != null) {
 			fullArgs.add(script.getMainClass());
