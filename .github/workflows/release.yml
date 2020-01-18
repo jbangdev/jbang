@@ -32,6 +32,7 @@ jobs:
           name: build-choco
           path: build/choco
   choco:
+    needs: build
     runs-on: windows-latest
     name: publish-choco
     continue-on-error: true
