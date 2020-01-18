@@ -33,13 +33,4 @@ jobs:
         env:
           ORG_GRADLE_PROJECT_github_token: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew githubRelease
-      - name: homebrew
-        env:
-          BREW_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}
-          BREW_USER: ${{ secrets.BREW_USER }}
-        run: ./misc/updatebrew.sh
-      - name: sdkman
-        env:
-          SDKMAN_CONSUMER_KEY: ${{ secrets.SDKMAN_CONSUMER_KEY }}
-          SDKMAN_CONSUMER_TOKEN: ${{ secrets.SDKMAN_CONSUMER_TOKEN }}
-        run: ./misc/updatesdkman.sh
+
