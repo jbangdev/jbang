@@ -22,13 +22,6 @@ jobs:
           java-version: 11
       - name: build-gradle
         run: ./gradlew clean build install -x test --build-cache --scan -s
-      - name: Download released sha256
-        uses: Legion2/download-release-action@v2.1.0
-        with:
-          repository: maxandersen/jbang
-          tag:  ${{ env.GITHUB_REF }}
-          path: build/distributions
-          file: jbang-${{ env.GITHUB_REF }}.zip.sha256
       - name: homebrew
         env:
           BREW_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}

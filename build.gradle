@@ -42,6 +42,12 @@ dependencies {
 	)
 }
 
+// to enable reproducible builds
+tasks.withType(AbstractArchiveTask) {
+	preserveFileTimestamps = false
+	reproducibleFileOrder = true
+}
+
 spotless {
 	format 'misc', {
 		target '**/*.gradle', '**/*.md', '**/.gitignore'
