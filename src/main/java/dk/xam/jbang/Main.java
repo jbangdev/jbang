@@ -561,16 +561,13 @@ public class Main implements Callable<Integer> {
 	private static File fetchFromURL(String scriptURL) {
 		try {
 			String urlHash = getStableID(scriptURL);
-			String scriptText = readStringFromURL(scriptURL);
-			String urlExtension = "java"; // TODO: currently assuming all is .java
-			File urlCache = new File(Settings.JBANG_CACHE_DIR, "/url_cache_" + urlHash + "." + urlExtension);
+			File urlCache = new File(Settings.JBANG_CACHE_DIR, "/url_cache_" + urlHash);
+			urlCache.mkdirs();
+			Path path = Util.downloadFile(scriptURL, urlCache);
+
 			Settings.setupCache();
 
-			if (!urlCache.exists()) {
-				Util.writeString(urlCache.toPath(), scriptText);
-			}
-
-			return urlCache;
+			return path.toFile();
 		} catch (IOException e) {
 			throw new ExitException(2, e);
 		}
