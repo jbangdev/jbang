@@ -10,12 +10,6 @@ jobs:
     name: build-and-testing
     steps:
       - uses: actions/checkout@v1
-      - uses: actions/cache@v1
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
       - name: install-java11
         uses: actions/setup-java@v1
         with:
@@ -32,3 +26,17 @@ jobs:
           SDKMAN_CONSUMER_KEY: ${{ secrets.SDKMAN_CONSUMER_KEY }}
           SDKMAN_CONSUMER_TOKEN: ${{ secrets.SDKMAN_CONSUMER_TOKEN }}
         run: ./misc/updatesdkman.sh
+      - name: choco-pack
+        uses: crazy-max/ghaction-chocolatey@v1
+        with:
+          args: pack build/choco/jbang.nuspec
+      - name: choco-login
+        uses: crazy-max/ghaction-chocolatey@v1
+        with:
+          args: apikey -k ${{ secrets.CHOCO_API_KEY }} -source https://push.chocolatey.org/
+      - name: choco-push
+        uses: crazy-max/ghaction-chocolatey@v1
+        continue-on-error: true
+        with:
+          args: push jbang.*.nupkg -s https://push.chocolatey.org/
+
