@@ -204,7 +204,10 @@ public class Main implements Callable<Integer> {
 			List<String> optionList = new ArrayList<String>();
 			optionList.add("javac");
 			optionList.addAll(script.collectCompileOptions());
-			optionList.addAll(Arrays.asList("-classpath", script.resolveClassPath()));
+			String path = script.resolveClassPath();
+			if (!path.trim().isEmpty()) {
+				optionList.addAll(Arrays.asList("-classpath", path));
+			}
 			optionList.addAll(Arrays.asList("-d", tmpJarDir.getAbsolutePath()));
 			optionList.addAll(Arrays.asList(script.backingFile.getPath()));
 

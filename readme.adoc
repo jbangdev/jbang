@@ -55,7 +55,6 @@ sdk install jbang
 To test your installation run:
 
 [source]
-----urce]
 ----
 jbang --help
 -----
@@ -91,7 +90,7 @@ Below is an (almost) minimal example you can save in `helloworld.java`:
 
 [source, java]
 ```
-//usr/bin/env jbang "$0" "$@" ; exit $? <.>
+//usr/bin/env jbang "$0" "$@" ; exit $? // <.>
 
 class helloworld { // <.>
 
