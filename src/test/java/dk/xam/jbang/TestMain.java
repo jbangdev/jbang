@@ -184,4 +184,35 @@ public class TestMain {
 				equalTo("String[] args = { \"one\", \"two\", \"three \\\"quotes\\\"\" }"));
 
 	}
+
+	@Test
+	void testDualClasses(@TempDir File output) throws IOException {
+
+		String base = "//usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n" +
+				"// //DEPS <dependency1> <dependency2>\n" +
+				"\n" +
+				"import static java.lang.System.*;\n" +
+				"\n" +
+				"class firstclass {\n" +
+				"\n" +
+				"}\n" +
+				"\n" +
+				"public class dualclass {\n" +
+				"\n" +
+				"    public static void main(String... args) {\n" +
+				"        out.println(\"Hello \" + (args.length>0?args[0]:\"World\"));\n" +
+				"    }\n" +
+				"}\n";
+
+		File f = new File(output, "dualclass.java");
+
+		Util.writeString(f.toPath(), base);
+
+		Main m = new Main();
+
+		Script script = new Script(f);
+		m.build(script, m);
+
+		assertThat(script.getMainClass(), equalTo("dualclass"));
+	}
 }

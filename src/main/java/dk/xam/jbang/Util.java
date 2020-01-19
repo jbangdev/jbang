@@ -11,7 +11,7 @@ import java.nio.file.Paths;
 public class Util {
 
 	static public void info(String msg) {
-		System.err.println(msg);
+		infoMsg(msg);
 	}
 
 	static public void infoMsg(String msg) {

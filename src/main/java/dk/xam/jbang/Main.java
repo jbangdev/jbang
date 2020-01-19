@@ -179,66 +179,7 @@ public class Main implements Callable<Integer> {
 				script = prepareScript(scriptOrFile);
 
 				if (script.needsJar()) {
-					File baseDir = new File(Settings.JBANG_CACHE_DIR, "jars");
-					File tmpJarDir = new File(baseDir, script.backingFile.getName() +
-							"." + getStableID(script.backingFile));
-					tmpJarDir.mkdirs();
-
-					File outjar = new File(tmpJarDir.getParentFile(), tmpJarDir.getName() + ".jar");
-
-					if (!outjar.exists()) {
-						List<String> optionList = new ArrayList<String>();
-						optionList.add("javac");
-						optionList.addAll(script.collectCompileOptions());
-						optionList.addAll(Arrays.asList("-classpath", script.resolveClassPath()));
-						optionList.addAll(Arrays.asList("-d", tmpJarDir.getAbsolutePath()));
-						optionList.addAll(Arrays.asList(script.backingFile.getPath()));
-
-						info("Building jar...");
-						if (verbose)
-							info("compile: " + String.join(" ", optionList));
-						Process process = new ProcessBuilder(optionList).inheritIO().start();
-						try {
-							process.waitFor();
-						} catch (InterruptedException e) {
-							throw new ExitException(1, e);
-						}
-
-						if (process.exitValue() != 0) {
-							err.println("Error during compile. Exiting...");
-							return 1;
-						}
-
-						try {
-							// using Files.walk method with try-with-resources
-							try (Stream<Path> paths = Files.walk(tmpJarDir.toPath())) {
-								List<Path> items = paths.filter(Files::isRegularFile)
-										.filter(f -> !f.toFile().getName().contains("$"))
-										.filter(f -> f.toFile().getName().endsWith(".class"))
-										.collect(Collectors.toList());
-
-								if (items.size() != 1) {
-									err.println(
-											"Could not locate unique class. Found " + items.size() + " candidates.");
-									throw new ExitException(1);
-								} else {
-									Path classfile = items.get(0);
-									String mainClass = findMainClass(tmpJarDir.toPath(), classfile);
-									script.setMainClass(mainClass);
-								}
-							}
-						} catch (IOException e) {
-							throw new ExitException(1, e);
-						}
-						createJarFile(tmpJarDir, outjar, script.getMainClass());
-					} else {
-						try (JarFile jf = new JarFile(outjar)) {
-							script.setMainClass(
-									jf.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS));
-						}
-					}
-
-					script.setJar(outjar);
+					build(script, this);
 				}
 				String cmdline = generateCommandLine(script);
 				if (verbose) {
@@ -248,6 +189,77 @@ public class Main implements Callable<Integer> {
 			}
 		}
 		return 0;
+	}
+
+	// build with javac and then jar... todo: split up in more testable chunks
+	static void build(Script script, Main m) throws IOException {
+		File baseDir = new File(Settings.JBANG_CACHE_DIR, "jars");
+		File tmpJarDir = new File(baseDir, script.backingFile.getName() +
+				"." + getStableID(script.backingFile));
+		tmpJarDir.mkdirs();
+
+		File outjar = new File(tmpJarDir.getParentFile(), tmpJarDir.getName() + ".jar");
+
+		if (!outjar.exists()) {
+			List<String> optionList = new ArrayList<String>();
+			optionList.add("javac");
+			optionList.addAll(script.collectCompileOptions());
+			optionList.addAll(Arrays.asList("-classpath", script.resolveClassPath()));
+			optionList.addAll(Arrays.asList("-d", tmpJarDir.getAbsolutePath()));
+			optionList.addAll(Arrays.asList(script.backingFile.getPath()));
+
+			Util.info("Building jar...");
+			if (m.verbose)
+				Util.info("compile: " + String.join(" ", optionList));
+			Process process = new ProcessBuilder(optionList).inheritIO().start();
+			try {
+				process.waitFor();
+			} catch (InterruptedException e) {
+				throw new ExitException(1, e);
+			}
+
+			if (process.exitValue() != 0) {
+				err.println("Error during compile. Exiting...");
+				throw new ExitException(1);
+			}
+
+			try {
+				// using Files.walk method with try-with-resources
+				try (Stream<Path> paths = Files.walk(tmpJarDir.toPath())) {
+					List<Path> items = paths.filter(Files::isRegularFile)
+							.filter(f -> !f.toFile().getName().contains("$"))
+							.filter(f -> f.toFile().getName().endsWith(".class"))
+							.collect(Collectors.toList());
+
+					if (items.size() > 1) { // todo: this feels like a very sketchy way to find the proper class name
+											// but it works.
+						String mainname = script.backingFile.getName().replace(".java", ".class");
+						items = items.stream().filter(f -> f.toFile().getName().equalsIgnoreCase(mainname))
+								.collect(Collectors.toList());
+					}
+
+					if (items.size() != 1) {
+						err.println(
+								"Could not locate unique class. Found " + items.size() + " candidates.");
+						throw new ExitException(1);
+					} else {
+						Path classfile = items.get(0);
+						String mainClass = findMainClass(tmpJarDir.toPath(), classfile);
+						script.setMainClass(mainClass);
+					}
+				}
+			} catch (IOException e) {
+				throw new ExitException(1, e);
+			}
+			createJarFile(tmpJarDir, outjar, script.getMainClass());
+		} else {
+			try (JarFile jf = new JarFile(outjar)) {
+				script.setMainClass(
+						jf.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS));
+			}
+		}
+
+		script.setJar(outjar);
 	}
 
 	static public String findMainClass(Path base, Path classfile) {
@@ -296,7 +308,7 @@ public class Main implements Callable<Integer> {
 		}
 	}
 
-	private String getStableID(File backingFile) throws IOException {
+	static String getStableID(File backingFile) throws IOException {
 		return getStableID(Util.readString(backingFile.toPath()));
 	}
 

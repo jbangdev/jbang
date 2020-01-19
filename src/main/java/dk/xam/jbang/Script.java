@@ -190,4 +190,5 @@ public class Script {
 	public boolean forJShell() {
 		return backingFile.getName().endsWith(".jsh");
 	}
+
 }
