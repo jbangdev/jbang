@@ -46,7 +46,8 @@ jobs:
           dotnet-version: '2.2.204' # SDK Version to use.
       - name: choco-publish
         run: |
+          powershell
           choco pack build/choco/jbang.nuspec
           choco apikey -k ${{ secrets.CHOCO_API_KEY }} -source https://push.chocolatey.org/
-          choco push jbang.*.nupkg -s https://push.chocolatey.org/
+          choco push $(ls *.nupkg | % {$_.FullName}) -s https://push.chocolatey.org/
 
