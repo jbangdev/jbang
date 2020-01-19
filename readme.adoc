@@ -12,6 +12,7 @@ Then try `jbang` which gives you:
 
 * `.java` Scripting for Java 8 and upwards
 * `.jsh` via JShell from Java 9 and upwards
+* Works on Windows, OSX and Linux
 * Dependency declarations using `//DEPS <gav>` for automatic dependency resolution
 * Control compile and runtime options with `//JAVAC_OPTIONS <flags>` and `//JAVA_OPTIONS <flags>`
 * Compiled jar and Dependency resolution caching
