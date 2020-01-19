@@ -34,7 +34,7 @@ Tested and verified to use on OSX, Linux and Windows.
 
 == Installation
 
-To use `jbang` you as a minimum need to have Java 11+ available.
+To use `jbang` you as a minimum need to have Java 8 available.
 
 To install both java and `jbang` we recommend https://sdkman.io[sdkman]
 
