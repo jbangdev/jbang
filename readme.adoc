@@ -238,7 +238,7 @@ class classpath_example {
 
 == Editing
 
-You can edit your script in your IDE by using `jbang --edit helloworld.java`. This will generate a Gradle based project in a temporary location with symbolic links to your script
+You can edit your script in your IDE by using `jbang --edit helloworld.java`. This will generate a project in a temporary location with symbolic links to your script
 and output the generated folder name. The easiest way to use that is to use it in a call to your IDE:
 
 [source, bash]
@@ -246,11 +246,19 @@ and output the generated folder name. The easiest way to use that is to use it i
 code `jbang --edit helloworld.java`
 ----
 
-If you add additional dependencies to your file just re-run the edit command and the `build.gradle` will be regenerated with the updated dependencies.
+If you add additional dependencies to your file just re-run the edit command and the relevant files will be regenerated with the updated dependencies.
 
 NOTE: On Windows you might need elevated priviliges to create symbolic links. If you don't have permissions then
 the `--edit` option will result in an error. To use it enable symbolic links for your user or run your shell/terminal as administrator
 to have this feature working.
+
+=== IDE support
+
+The `--edit` feature generates a `build.gradle` to use with IDE's that understands it directly + IDE specific config files
+to make it easy to run and debug the single file based scripts.
+
+Currently launchers and project files are generated for Eclipse and vscode. Intellij just reads `build.gradle` for now thus
+to run/debug you will need to manually set it up.
 
 == Debugging
 

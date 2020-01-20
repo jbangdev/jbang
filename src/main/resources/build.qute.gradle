@@ -1,14 +1,14 @@
 apply plugin: 'java'
 
 repositories {
-    mavenLocal()
-        jcenter()
+	mavenLocal()
+		jcenter()
 }
 
 dependencies {
-        {#for item in dependencies}
-             compile "{item}"
-        {/for}
+		{#for item in dependencies}
+			compile "{item}"
+		{/for}
 }
 
 sourceSets.main.java.srcDirs 'src'

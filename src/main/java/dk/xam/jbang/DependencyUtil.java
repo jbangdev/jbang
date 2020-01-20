@@ -1,7 +1,6 @@
 package dk.xam.jbang;
 
 import static dk.xam.jbang.Settings.CP_SEPARATOR;
-import static dk.xam.jbang.Settings.DEP_LOOKUP_CACHE_FILE;
 import static dk.xam.jbang.Util.*;
 import static org.sonatype.aether.util.artifact.JavaScopes.RUNTIME;
 
@@ -43,10 +42,10 @@ class DependencyUtil {
 		Map<String, String> cache = Collections.emptyMap();
 		// Use cached classpath from previous run if present if
 		// TODO: does not handle spaces in ~/.m2 folder.
-		if (DEP_LOOKUP_CACHE_FILE.isFile()) {
+		if (Settings.getCacheDependencyFile().isFile()) {
 			try {
 
-				cache = Files.readAllLines(DEP_LOOKUP_CACHE_FILE.toPath()).stream()
+				cache = Files.readAllLines(Settings.getCacheDependencyFile().toPath()).stream()
 						.filter(it -> !it.trim().isEmpty())
 						.collect(Collectors.toMap(
 								it -> it.split(" ")[0],
@@ -89,11 +88,11 @@ class DependencyUtil {
 			// Add classpath to cache
 			try {
 				// Open given file in append mode.
-				try (BufferedWriter out = new BufferedWriter(new FileWriter(DEP_LOOKUP_CACHE_FILE, true))) {
+				try (BufferedWriter out = new BufferedWriter(new FileWriter(Settings.getCacheDependencyFile(), true))) {
 					out.write(depsHash + " " + classPath + "\n");
 				}
 			} catch (IOException e) {
-				errorMsg("Could not write to cache:" + e.getMessage());
+				errorMsg("Could not write to cache:" + e.getMessage(), e);
 			}
 
 			// Print the classpath

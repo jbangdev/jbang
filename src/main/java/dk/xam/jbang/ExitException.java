@@ -11,9 +11,18 @@ public class ExitException extends RuntimeException {
 		this.status = status;
 	}
 
-	public ExitException(int status, Exception cause) {
+	public ExitException(int status, Throwable cause) {
 		super(cause);
 		this.status = status;
+	}
+
+	public ExitException(int status, String message, Throwable cause) {
+		super(message, cause);
+		this.status = status;
+	}
+
+	public ExitException(int status, String s) {
+		this(status, s, null);
 	}
 
 	public int getStatus() {

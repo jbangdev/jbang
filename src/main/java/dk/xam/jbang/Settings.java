@@ -4,8 +4,8 @@ import java.io.File;
 
 public class Settings {
 
-	final public static File JBANG_CACHE_DIR;
-	final public static File DEP_LOOKUP_CACHE_FILE;
+	final private static File JBANG_CACHE_DIR;
+	final private static File DEP_LOOKUP_CACHE_FILE;
 	final public static String CP_SEPARATOR = System.getProperty("os.name").toLowerCase().contains("windows")
 			? ";"
 			: ":";
@@ -28,6 +28,21 @@ public class Settings {
 	public static File getLocalMavenRepo() {
 		return new File(System.getenv().getOrDefault("JBANG_REPO", System.getProperty("user.home") + "/.m2/repository"))
 				.getAbsoluteFile();
+	}
+
+	public static File getCacheDependencyFile() {
+		setupCache();
+		return DEP_LOOKUP_CACHE_FILE;
+	}
+
+	public static File getCacheDir(boolean init) {
+		if (init)
+			setupCache();
+		return JBANG_CACHE_DIR;
+	}
+
+	public static File getCacheDir() {
+		return getCacheDir(true);
 	}
 
 	public static void setupCache() {

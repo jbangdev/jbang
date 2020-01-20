@@ -26,6 +26,11 @@ public class Util {
 		System.err.println("[jbang] [ERROR] " + msg);
 	}
 
+	static public void errorMsg(String msg, Throwable t) {
+		System.err.println("[jbang] [ERROR] " + msg);
+		t.printStackTrace();
+	}
+
 	static public void quit(int status) {
 		System.out.print(status > 0 ? "true" : "false");
 		throw new ExitException(status);

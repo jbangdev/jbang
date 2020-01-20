@@ -1,8 +1,15 @@
 package dk.xam.jbang;
 
-import static java.lang.System.err;
-import static java.lang.System.out;
-import static picocli.CommandLine.*;
+import io.quarkus.qute.Engine;
+import io.quarkus.qute.Template;
+import io.quarkus.qute.TemplateLocator;
+import io.quarkus.qute.Variant;
+import org.apache.commons.text.StringEscapeUtils;
+import picocli.AutoComplete;
+import picocli.CommandLine;
+import picocli.CommandLine.Model.ArgSpec;
+import picocli.CommandLine.Model.CommandSpec;
+import picocli.CommandLine.Model.OptionSpec;
 
 import java.io.*;
 import java.net.URL;
@@ -19,17 +26,10 @@ import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.text.StringEscapeUtils;
-
-import io.quarkus.qute.Engine;
-import io.quarkus.qute.Template;
-import io.quarkus.qute.TemplateLocator;
-import io.quarkus.qute.Variant;
-import picocli.AutoComplete;
-import picocli.CommandLine;
-import picocli.CommandLine.Model.ArgSpec;
-import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.Model.OptionSpec;
+import static dk.xam.jbang.Settings.CP_SEPARATOR;
+import static java.lang.System.err;
+import static java.lang.System.out;
+import static picocli.CommandLine.*;
 
 @Command(name = "jbang", footer = "\nCopyright: 2020 Max Rydahl Andersen, License: MIT\nWebsite: https://github.com/maxandersen/jbang", versionProvider = VersionProvider.class, description = "Compiles and runs .java/.jsh scripts.")
 public class Main implements Callable<Integer> {
@@ -148,9 +148,9 @@ public class Main implements Callable<Integer> {
 		}
 
 		if (clearCache) {
-			info("Clearing cache at " + Settings.JBANG_CACHE_DIR.toPath());
+			info("Clearing cache at " + Settings.getCacheDir().toPath());
 			// noinspection resource
-			Files.walk(Settings.JBANG_CACHE_DIR.toPath())
+			Files.walk(Settings.getCacheDir().toPath())
 					.sorted(Comparator.reverseOrder())
 					.map(Path::toFile)
 					.forEach(File::delete);
@@ -170,7 +170,7 @@ public class Main implements Callable<Integer> {
 		} else { // no point in editing nor running something we just inited.
 			if (edit) {
 				script = prepareScript(scriptOrFile);
-				File project = createProject(script, userParams, script.collectDependencies());
+				File project = createProject(script, userParams);
 				// err.println(project.getAbsolutePath());
 				out.println("echo " + project.getAbsolutePath()); // quit(project.getAbsolutePath());
 				return 0;
@@ -193,7 +193,7 @@ public class Main implements Callable<Integer> {
 
 	// build with javac and then jar... todo: split up in more testable chunks
 	static void build(Script script, Main m) throws IOException {
-		File baseDir = new File(Settings.JBANG_CACHE_DIR, "jars");
+		File baseDir = new File(Settings.getCacheDir(), "jars");
 		File tmpJarDir = new File(baseDir, script.backingFile.getName() +
 				"." + getStableID(script.backingFile));
 		tmpJarDir.mkdirs();
@@ -274,11 +274,15 @@ public class Main implements Callable<Integer> {
 		return mainClass.toString();
 	}
 
-	File createProject(Script script, List<String> userParams, List<String> collectDependencies) throws IOException {
+	File createProject(Script script, List<String> userParams) throws IOException {
+
+		List<String> collectDependencies = script.collectDependencies();
+		String cp = script.resolveClassPath();
+		List<String> resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 
 		Engine engine = Engine.builder().addDefaults().addLocator(this::locate).build();
 
-		File baseDir = new File(Settings.JBANG_CACHE_DIR, "temp_projects");
+		File baseDir = new File(Settings.getCacheDir(), "temp_projects");
 
 		File tmpProjectDir = new File(baseDir, script.backingFile.getName() + "_jbang_" +
 				getStableID(script.backingFile.getAbsolutePath()));
@@ -295,12 +299,74 @@ public class Main implements Callable<Integer> {
 		}
 
 		// create build gradle
-		Template buildGradleTemplate = engine.getTemplate("build.gradle.qt");
-		String result = buildGradleTemplate.data("dependencies", collectDependencies).render();
+		String baseName = getBaseName(script.backingFile.getName());
+		String templateName = "build.qute.gradle";
+		Path destination = new File(tmpProjectDir, "build.gradle").toPath();
+		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
+				destination);
 
-		Util.writeString(new File(tmpProjectDir, "build.gradle").toPath(), result);
+		// setup eclipse
+		templateName = ".qute.classpath";
+		destination = new File(tmpProjectDir, ".classpath").toPath();
+		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
+				destination);
+
+		templateName = ".qute.project";
+		destination = new File(tmpProjectDir, ".project").toPath();
+		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
+				destination);
+
+		templateName = "main.qute.launch";
+		destination = new File(tmpProjectDir, ".eclipse/" + baseName + ".launch").toPath();
+		destination.toFile().getParentFile().mkdirs();
+		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
+				destination);
+
+		templateName = "main-port-4004.qute.launch";
+		destination = new File(tmpProjectDir, ".eclipse/" + baseName + "-port-4004.launch").toPath();
+		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
+				destination);
+
+		// setup vscode
+		templateName = "launch.qute.json";
+		destination = new File(tmpProjectDir, ".vscode/launch.json").toPath();
+		destination.toFile().getParentFile().mkdirs();
+		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
+				destination);
+
+		// setup intellij - disabled for now as idea was not picking these up directly
+		/*
+		templateName = "idea-port-4004.qute.xml";
+		destination = new File(tmpProjectDir, ".idea/runConfigurations/" + baseName + "-port-4004.xml").toPath();
+		destination.toFile().getParentFile().mkdirs();
+		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
+				destination);
+
+		templateName = "idea.qute.xml";
+		destination = new File(tmpProjectDir, ".idea/runConfigurations/" + baseName + ".xml").toPath();
+		destination.toFile().getParentFile().mkdirs();
+		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
+				destination);
+		 */
 
 		return tmpProjectDir;
+	}
+
+	private void renderTemplate(Engine engine, List<String> collectDependencies, String baseName,
+			List<String> resolvedDependencies, String templateName,
+			List<String> userParams, Path destination)
+			throws IOException {
+		Template template = engine.getTemplate(templateName);
+		if (template == null)
+			throw new ExitException(1, "Could not locate template named: '" + templateName + "'");
+		String result = template
+				.data("dependencies", collectDependencies)
+				.data("baseName", baseName)
+				.data("classpath", resolvedDependencies.stream().filter(t -> !t.isEmpty()).collect(Collectors.toList()))
+				.data("userParams", String.join(" ", userParams))
+				.data("cwd", System.getProperty("user.dir")).render();
+
+		Util.writeString(destination, result);
 	}
 
 	static String stripPrefix(String fileName) {
@@ -332,9 +398,8 @@ public class Main implements Callable<Integer> {
 
 	String renderInitClass(File f) {
 		Engine engine = Engine.builder().addDefaults().addLocator(this::locate).build();
-		Template helloTemplate = engine.getTemplate("initClass.qt");
-		String result = helloTemplate.data("className", getBaseName(f.getName())).render();
-		return result;
+		Template helloTemplate = engine.getTemplate("initClass.qute.java");
+		return helloTemplate.data("baseName", getBaseName(f.getName())).render();
 	}
 
 	/**
@@ -576,7 +641,7 @@ public class Main implements Callable<Integer> {
 	private static File fetchFromURL(String scriptURL) {
 		try {
 			String urlHash = getStableID(scriptURL);
-			File urlCache = new File(Settings.JBANG_CACHE_DIR, "/url_cache_" + urlHash);
+			File urlCache = new File(Settings.getCacheDir(), "/url_cache_" + urlHash);
 			urlCache.mkdirs();
 			Path path = Util.downloadFile(scriptURL, urlCache);
 

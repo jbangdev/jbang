@@ -17,6 +17,5 @@ public class TestInit {
 		String s = m.renderInitClass(new File("test.java"));
 
 		assertThat(s, containsString("class test"));
-
 	}
 }

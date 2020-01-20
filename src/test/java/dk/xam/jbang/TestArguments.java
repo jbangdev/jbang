@@ -100,8 +100,8 @@ class TestArguments {
 		cli.parseArgs("--clear-cache");
 		assertThat(main.clearCache, is(true));
 		main.call();
-		assertThat(Settings.JBANG_CACHE_DIR, not(anExistingFileOrDirectory()));
-		assertThat(Settings.JBANG_CACHE_DIR.listFiles(), nullValue());
+		assertThat(Settings.getCacheDir(false), not(anExistingFileOrDirectory()));
+		assertThat(Settings.getCacheDir(false).listFiles(), nullValue());
 
 		cli.parseArgs("--clear-cache", "test.java");
 		assertThat(main.clearCache, is(true));
