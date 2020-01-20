@@ -39,26 +39,26 @@ To use `jbang` you as a minimum need to have Java 8 available.
 To install both java and `jbang` we recommend https://sdkman.io[sdkman]
 
 [source, bash]
-```
+----
 curl -s "https://get.sdkman.io" | bash # <.>
 source ~/.bash_profile # <.>
 
 sdk install java # <.>
-```
+----
 
 Once Java is installed and ready, you install `jbang` with
 
-[source]
+[source, bash]
 ----
 sdk install jbang
 ----
 
 To test your installation run:
 
-[source]
+[source, bash]
 ----
 jbang --help
------
+----
 
 This should print out usage information.
 
