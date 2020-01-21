@@ -16,6 +16,8 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 
 import org.hamcrest.collection.IsCollectionWithSize;
+import org.junit.Rule;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -47,8 +49,13 @@ public class TestMain {
 		// assertThat(result, containsString("--source 11"));
 	}
 
+	@Rule
+	public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
 	@Test
 	void testHelloWorldShell() throws IOException {
+
+		environmentVariables.clear("JAVA_HOME");
 
 		Main main = new Main();
 		String arg = new File(examplesTestFolder, "helloworld.jsh").getAbsolutePath();
@@ -67,6 +74,8 @@ public class TestMain {
 
 	@Test
 	void testDebug() throws IOException {
+
+		environmentVariables.clear("JAVA_HOME");
 
 		Main main = new Main();
 		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();

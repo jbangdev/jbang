@@ -54,7 +54,7 @@ public class TestEdit {
 
 		// check eclipse is there
 		assertThat(Arrays.stream(project.listFiles()).map(File::getName).collect(Collectors.toList()),
-				containsInAnyOrder(".project", ".classpath", ".eclipse", "src", "build.gradle", ".vscode", ".idea"));
+				containsInAnyOrder(".project", ".classpath", ".eclipse", "src", "build.gradle", ".vscode"));
 		File launchfile = new File(project, ".eclipse/edit.launch");
 		assert (launchfile.exists());
 		assertThat(Util.readString(launchfile.toPath()), containsString("launching.PROJECT_ATTR"));

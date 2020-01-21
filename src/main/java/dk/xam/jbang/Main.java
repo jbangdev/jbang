@@ -1,15 +1,8 @@
 package dk.xam.jbang;
 
-import io.quarkus.qute.Engine;
-import io.quarkus.qute.Template;
-import io.quarkus.qute.TemplateLocator;
-import io.quarkus.qute.Variant;
-import org.apache.commons.text.StringEscapeUtils;
-import picocli.AutoComplete;
-import picocli.CommandLine;
-import picocli.CommandLine.Model.ArgSpec;
-import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.Model.OptionSpec;
+import static dk.xam.jbang.Settings.CP_SEPARATOR;
+import static java.lang.System.*;
+import static picocli.CommandLine.*;
 
 import java.io.*;
 import java.net.URL;
@@ -26,10 +19,17 @@ import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static dk.xam.jbang.Settings.CP_SEPARATOR;
-import static java.lang.System.err;
-import static java.lang.System.out;
-import static picocli.CommandLine.*;
+import org.apache.commons.text.StringEscapeUtils;
+
+import io.quarkus.qute.Engine;
+import io.quarkus.qute.Template;
+import io.quarkus.qute.TemplateLocator;
+import io.quarkus.qute.Variant;
+import picocli.AutoComplete;
+import picocli.CommandLine;
+import picocli.CommandLine.Model.ArgSpec;
+import picocli.CommandLine.Model.CommandSpec;
+import picocli.CommandLine.Model.OptionSpec;
 
 @Command(name = "jbang", footer = "\nCopyright: 2020 Max Rydahl Andersen, License: MIT\nWebsite: https://github.com/maxandersen/jbang", versionProvider = VersionProvider.class, description = "Compiles and runs .java/.jsh scripts.")
 public class Main implements Callable<Integer> {
@@ -202,7 +202,7 @@ public class Main implements Callable<Integer> {
 
 		if (!outjar.exists()) {
 			List<String> optionList = new ArrayList<String>();
-			optionList.add("javac");
+			optionList.add(resolveInJavaHome("javac"));
 			optionList.addAll(script.collectCompileOptions());
 			String path = script.resolveClassPath();
 			if (!path.trim().isEmpty()) {
@@ -336,17 +336,17 @@ public class Main implements Callable<Integer> {
 
 		// setup intellij - disabled for now as idea was not picking these up directly
 		/*
-		templateName = "idea-port-4004.qute.xml";
-		destination = new File(tmpProjectDir, ".idea/runConfigurations/" + baseName + "-port-4004.xml").toPath();
-		destination.toFile().getParentFile().mkdirs();
-		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
-				destination);
-
-		templateName = "idea.qute.xml";
-		destination = new File(tmpProjectDir, ".idea/runConfigurations/" + baseName + ".xml").toPath();
-		destination.toFile().getParentFile().mkdirs();
-		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
-				destination);
+		 * templateName = "idea-port-4004.qute.xml"; destination = new
+		 * File(tmpProjectDir, ".idea/runConfigurations/" + baseName +
+		 * "-port-4004.xml").toPath(); destination.toFile().getParentFile().mkdirs();
+		 * renderTemplate(engine, collectDependencies, baseName, resolvedDependencies,
+		 * templateName, userParams, destination);
+		 * 
+		 * templateName = "idea.qute.xml"; destination = new File(tmpProjectDir,
+		 * ".idea/runConfigurations/" + baseName + ".xml").toPath();
+		 * destination.toFile().getParentFile().mkdirs(); renderTemplate(engine,
+		 * collectDependencies, baseName, resolvedDependencies, templateName,
+		 * userParams, destination);
 		 */
 
 		return tmpProjectDir;
@@ -480,9 +480,9 @@ public class Main implements Callable<Integer> {
 
 		List<String> optionalArgs = new ArrayList<String>();
 
-		String javacmd = "java";
+		String javacmd = resolveInJavaHome("java");
 		if (script.backingFile.getName().endsWith(".jsh")) {
-			javacmd = "jshell";
+			javacmd = resolveInJavaHome("jshell");
 			if (!classpath.trim().isEmpty()) {
 				optionalArgs.add("--class-path " + classpath);
 			}
@@ -522,6 +522,14 @@ public class Main implements Callable<Integer> {
 		}
 
 		return fullArgs.stream().collect(Collectors.joining(" "));
+	}
+
+	static String resolveInJavaHome(String cmd) {
+		if (getenv("JAVA_HOME") != null) {
+			return getenv("JAVA_HOME") + File.separator + "bin" + File.separator + cmd;
+		} else {
+			return cmd;
+		}
 	}
 
 	/**
