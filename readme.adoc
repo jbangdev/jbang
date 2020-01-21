@@ -303,6 +303,16 @@ Since Java 9 https://docs.oracle.com/javase/9/tools/java.htm#GUID-3B1CE181-CD30-
 
 For Java 8 and if you want to set explicilty only for `jbang` you can also add flags by setting `JBANG_JAVA_OPTIONS` and `JBANG_JAVAC_OPTIONS` respectively.
 
+=== `JAVA_HOME` vs `PATH`
+
+If `JAVA_HOME` environment variable is set that will be used over what is in the path.
+
+Allows you to expliclity control what JDK you are using for `jbang`, i.e.
+
+`JAVA_HOME=~/sdkman/candidates/java/14.ea.302-open/bin/java jbang examples/records.java`
+
+This will use Java 14 from sdkman no matter what your `PATH` or `JAVA_HOME` contains in the shell environment.
+
 == Bash/Zsh auto-completion
 
 If you are using bash or zsh in your terminal you can get auto-completion by running the following:
