@@ -49,9 +49,13 @@ jobs:
           powershell
           choco pack build/choco/jbang.nuspec
       - name: github-nuget
+        env: 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           powershell
-          dotnet nuget push $(ls *.nupkg | % {$_.FullName}) --source "github"
+          dotnet source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/maxandersen/index.json"
+          nuget setApiKey $GITHUB_TOKEN -Source "GitHub"
+          dotnet nuget push $(ls *.nupkg | % {$_.FullName}) --source "GitHub"
       - name: choco-publish
         continue-on-error: true
         run: |
