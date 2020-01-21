@@ -19,7 +19,7 @@ var servlet = new HttpServlet() {
         }
 };
 
-ServletHandler handler = new ServletHandler();
+var handler = new ServletHandler();
 handler.addServletWithMapping(new ServletHolder(servlet), "/*");
 
 var server = new Server(8080);
