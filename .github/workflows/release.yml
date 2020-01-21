@@ -49,13 +49,13 @@ jobs:
           powershell
           choco pack build/choco/jbang.nuspec
       - name: github-nuget
-          run: |
-            powershell
-            dotnet nuget push $(ls *.nupkg | % {$_.FullName}) --source "github"
+        run: |
+          powershell
+          dotnet nuget push $(ls *.nupkg | % {$_.FullName}) --source "github"
       - name: choco-publish
-          continue-on-error: true
-          run: |
-            powershell
-            choco apikey -k ${{ secrets.CHOCO_API_KEY }} -source https://push.chocolatey.org/
-            choco push $(ls *.nupkg | % {$_.FullName}) -s https://push.chocolatey.org/
+        continue-on-error: true
+        run: |
+          powershell
+          choco apikey -k ${{ secrets.CHOCO_API_KEY }} -source https://push.chocolatey.org/
+          choco push $(ls *.nupkg | % {$_.FullName}) -s https://push.chocolatey.org/
 
