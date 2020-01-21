@@ -334,6 +334,12 @@ public class Main implements Callable<Integer> {
 		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
 				destination);
 
+		templateName = "settings.qute.json";
+		destination = new File(tmpProjectDir, ".vscode/settings.json").toPath();
+		destination.toFile().getParentFile().mkdirs();
+		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
+				destination);
+
 		// setup intellij - disabled for now as idea was not picking these up directly
 		/*
 		 * templateName = "idea-port-4004.qute.xml"; destination = new
