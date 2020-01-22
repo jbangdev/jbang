@@ -68,8 +68,9 @@ public class Main implements Callable<Integer> {
 	@Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
 	List<String> userParams = new ArrayList<String>();
 
-	@Option(names = { "--init" }, description = "Init script with a java class useful for scripting")
-	boolean initScript;
+	@Option(names = {
+			"--init" }, description = "Init script with a java class useful for scripting", parameterConsumer = PlainStringFallbackConsumer.class, arity = "0..1", fallbackValue = "hello")
+	String initTemplate;
 
 	@Option(names = "--completion", help = true, description = "Output auto-completion script for bash/zsh.\nUsage: source <(jbang --completion)")
 	boolean completionRequested;
@@ -134,9 +135,7 @@ public class Main implements Callable<Integer> {
 				.setOut(new PrintWriter(localout, true)).setErr(new PrintWriter(localerr, true));
 	}
 
-	@Override
-	public Integer call() throws IOException {
-
+	private Integer doCall() throws IOException {
 		if (helpRequested) {
 			spec.commandLine().usage(err);
 			return 0; // quit(0);
@@ -156,15 +155,19 @@ public class Main implements Callable<Integer> {
 					.forEach(File::delete);
 		}
 
-		if (initScript) {
+		if (initTemplate != null) {
 			File f = new File(scriptOrFile);
 			if (f.exists()) {
 				warn("File " + f + " already exists. Will not initialize.");
 			} else {
 				// Use try-with-resource to get auto-closeable writer instance
 				try (BufferedWriter writer = Files.newBufferedWriter(f.toPath())) {
-					String result = renderInitClass(f);
+					String result = renderInitClass(f, initTemplate);
 					writer.write(result);
+				} catch (ExitException e) {
+					f.delete(); // if template lookup fails we need to delete file to not end up with a empty
+								// file.
+					throw e;
 				}
 			}
 		} else { // no point in editing nor running something we just inited.
@@ -175,7 +178,7 @@ public class Main implements Callable<Integer> {
 				out.println("echo " + project.getAbsolutePath()); // quit(project.getAbsolutePath());
 				return 0;
 			}
-			if (!initScript && scriptOrFile != null) {
+			if (initTemplate == null && scriptOrFile != null) {
 				script = prepareScript(scriptOrFile);
 
 				if (script.needsJar()) {
@@ -189,6 +192,19 @@ public class Main implements Callable<Integer> {
 			}
 		}
 		return 0;
+	}
+
+	@Override
+	public Integer call() throws IOException {
+		try {
+			return doCall();
+		} catch (ExitException e) {
+			info(e.getMessage());
+			if (verbose) {
+				e.printStackTrace();
+			}
+			return e.getStatus();
+		}
 	}
 
 	// build with javac and then jar... todo: split up in more testable chunks
@@ -222,8 +238,7 @@ public class Main implements Callable<Integer> {
 			}
 
 			if (process.exitValue() != 0) {
-				err.println("Error during compile. Exiting...");
-				throw new ExitException(1);
+				throw new ExitException(1, "Error during compile");
 			}
 
 			try {
@@ -242,9 +257,8 @@ public class Main implements Callable<Integer> {
 					}
 
 					if (items.size() != 1) {
-						err.println(
+						throw new ExitException(1,
 								"Could not locate unique class. Found " + items.size() + " candidates.");
-						throw new ExitException(1);
 					} else {
 						Path classfile = items.get(0);
 						String mainClass = findMainClass(tmpJarDir.toPath(), classfile);
@@ -402,10 +416,15 @@ public class Main implements Callable<Integer> {
 		return sb.toString();
 	}
 
-	String renderInitClass(File f) {
+	String renderInitClass(File f, String template) {
 		Engine engine = Engine.builder().addDefaults().addLocator(this::locate).build();
-		Template helloTemplate = engine.getTemplate("initClass.qute.java");
-		return helloTemplate.data("baseName", getBaseName(f.getName())).render();
+		Template helloTemplate = engine.getTemplate("init-" + template + ".qute.java");
+
+		if (helloTemplate == null) {
+			throw new ExitException(1, "Could not find init template named: " + template);
+		} else {
+			return helloTemplate.data("baseName", getBaseName(f.getName())).render();
+		}
 	}
 
 	/**
@@ -683,6 +702,22 @@ public class Main implements Callable<Integer> {
 					throw new InitializationException("FallbackValue for --debug must be an int", badFallbackValue);
 				}
 				args.push(arg); // put it back
+			}
+		}
+	}
+
+	// used to make --init xyz.java not pickup what are filenames. if you need
+	// --init xyz then do --init ./xyz.
+	static class PlainStringFallbackConsumer implements IParameterConsumer {
+		@Override
+		public void consumeParameters(Stack<String> args, ArgSpec argSpec, CommandSpec commandSpec) {
+			String arg = args.pop();
+
+			if (arg.contains(".")) {
+				args.push(arg);
+				argSpec.setValue(((OptionSpec) argSpec).fallbackValue());
+			} else {
+				argSpec.setValue(arg);
 			}
 		}
 	}
