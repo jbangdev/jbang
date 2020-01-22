@@ -11,5 +11,3 @@ Install-ChocolateyZipPackage `
     -UnzipLocation $package
 
 Install-BinFile -Name 'jbang' -Path $jbang_bat
-
-Update-SessionEnvironment
