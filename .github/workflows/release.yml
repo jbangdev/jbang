@@ -49,6 +49,7 @@ jobs:
           powershell
           choco pack build/choco/jbang.nuspec
       - name: github-nuget
+        continue-on-error: true
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
