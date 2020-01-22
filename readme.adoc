@@ -6,9 +6,12 @@
 image:https://img.shields.io/github/release/maxandersen/jbang.svg[Release,link=https://github.com/maxandersen/jbang/releases]
 image:https://github.com/maxandersen/jbang/workflows/ci-build/badge.svg[Build Status,link=https://github.com/maxandersen/jbang/actions]
 
-Ever tried out Java 10+ support for running .java files directly in your shell but felt it was a bit too cumbersome ?
+Do you like Java but uses python, groovy, kotlin or similar languages for you scripts ?
+Ever tried out Java 10+ support for running `.java` files directly in your shell but felt it was a bit too cumbersome ?
 
-Then try `jbang` which gives you:
+Then try `jbang` which lets you do this: 
+
+
 
 * `.java` Scripting for Java 8 and upwards
 * `.jsh` via JShell from Java 9 and upwards

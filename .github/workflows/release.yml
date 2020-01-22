@@ -54,7 +54,7 @@ jobs:
         run: |
           powershell
           dotnet source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/maxandersen/index.json"
-          nuget setApiKey $GITHUB_TOKEN -Source "GitHub"
+          dotnet nuget setApiKey $GITHUB_TOKEN -Source "GitHub"
           dotnet nuget push $(ls *.nupkg | % {$_.FullName}) --source "GitHub"
       - name: choco-publish
         continue-on-error: true
