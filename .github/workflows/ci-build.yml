@@ -40,5 +40,5 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           export PATH=`pwd`/build/install/jbang/bin:$PATH
-          cd src/test/resources
+          cd itests
           ./test_suite.sh

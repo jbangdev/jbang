@@ -14,7 +14,6 @@ public class MavenRepo {
 		this.setUrl(url);
 		this.setUser(Optional.ofNullable(user).orElse(""));
 		this.setPassword(Optional.ofNullable(password).orElse(""));
-		// TODO Auto-generated constructor stub
 	}
 
 	public String getId() {

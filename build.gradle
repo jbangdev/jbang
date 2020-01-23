@@ -125,8 +125,6 @@ processResources.dependsOn copyResources
 task copyTestResources(type: Copy) {
 	from "${projectDir}/examples"
 	into "${buildDir}/classes/java/test/examples"
-
-
 }
 processTestResources.dependsOn copyTestResources
 

@@ -5,6 +5,8 @@ package dk.xam.jbang;
  */
 public class ExitException extends RuntimeException {
 
+	private static final long serialVersionUID = 1L;
+
 	private final int status;
 
 	public ExitException(int status) {

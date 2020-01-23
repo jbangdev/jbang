@@ -1,0 +1,49 @@
+# Contributing
+
+Anyone welcome to open issues and/or pull-requests for bugfixes, featurerequests and/or ideas.
+
+## How to build
+
+Clone the repository, cd `jbang` and run `./gradlew build install`.
+There will be an warning in the output but don't dispair - that is just
+Java being picky.
+
+[source, bash]
+----
+$ git clone https://github.com/maxandersen/jbang
+$ cd jbang
+$ ./gradlew build install
+> Task :test
+WARNING: An illegal reflective access operation has occurred # <.>
+WARNING: Illegal reflective access by org.junit.contrib.java.lang.system.EnvironmentVariables (file:/Users/max/.gradle/caches/modules-2/files-2.1/com.github.stefanbirkner/system-rules/1.17.2/ff31c2f41e8d0eb7063c3a3c207b11acea6fdf7b/system-rules-1.17.2.jar) to field java.util.Collections$UnmodifiableMap.m
+WARNING: Please consider reporting this to the maintainers of org.junit.contrib.java.lang.system.EnvironmentVariables # <.>
+WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
+WARNING: All illegal access operations will be denied in a future release
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 7.0.
+Use '--warning-mode all' to show the individual deprecation warnings.
+See https://docs.gradle.org/6.0.1/userguide/command_line_interface.html#sec:command_line_warnings
+
+BUILD SUCCESSFUL in 5s
+19 actionable tasks: 14 executed, 5 up-to-date
+----
+<.> This error happens as in the junit tests we test behaviors under different environment variables and to do that we need to modify internal state in java's `System` handling of properties. Java 9+ does not like that.
+<.> Already https://github.com/stefanbirkner/system-rules/issues/64[reported] but it can't be fixed as the jvm does not allow this; but fine for `jbang` as this is just for the test runs.
+
+## Source formatting
+
+The build uses the https://github.com/diffplug/spotless[spotless] plugin to ensure Java and other files are formatted uniformly.
+If your build fails due to formatting errors then run `gradle spotlessApply` and it will reformat to be compatible.
+
+## Versioning
+
+`jbang` uses semi-automatic versioning via the https://github.com/toolebox-io/gradle-git-versioner[git-versioner] plugin.
+This plugin uses the git log to derive what version number are the current one by looking for `[major]`, `[minor]` and `[patch]` in commit messages.
+
+This means there are no place in code or meta-data we need to manually maintain version info.
+
+You can see the current version by running `./gradlew printVersion` - if you have 3 commits since last bump at `0.10.1` you would get a version number like `0.10.1.3`.
+
+For pull-requests don't try and trigger bump of version; we'll apply that once its time for release.
+
+Note: The `dk.xam.jbang.VersionProvider` class will show a compile error in IDE's but ignore that as the `BUILDCONFIG` class does gets generated during the Gradle build.

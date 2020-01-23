@@ -77,8 +77,8 @@ public class Util {
 			// always check HTTP response code first
 			if (responseCode == HttpURLConnection.HTTP_OK) {
 				String disposition = httpConn.getHeaderField("Content-Disposition");
-				String contentType = httpConn.getContentType();
-				int contentLength = httpConn.getContentLength();
+				// String contentType = httpConn.getContentType();
+				// int contentLength = httpConn.getContentLength();
 
 				if (disposition != null) {
 					// extracts file name from header field

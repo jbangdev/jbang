@@ -138,7 +138,6 @@ public class Script {
 				args.put(matcher.group("key"), matcher.group("value"));
 			}
 			if (!args.isEmpty()) {
-				StringBuffer sb = new StringBuffer();
 				// groupId:artifactId:version[:classifier][@type]
 				String gav = Arrays.asList(
 						args.get("group"),

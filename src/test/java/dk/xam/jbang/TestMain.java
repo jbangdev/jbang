@@ -220,7 +220,7 @@ public class TestMain {
 		Main m = new Main();
 
 		Script script = new Script(f);
-		m.build(script, m);
+		Main.build(script, m);
 
 		assertThat(script.getMainClass(), equalTo("dualclass"));
 	}

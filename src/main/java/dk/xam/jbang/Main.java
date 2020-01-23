@@ -418,7 +418,7 @@ public class Main implements Callable<Integer> {
 
 	String renderInitClass(File f, String template) {
 		Engine engine = Engine.builder().addDefaults().addLocator(this::locate).build();
-		Template helloTemplate = engine.getTemplate("init-" + template + ".qute.java");
+		Template helloTemplate = engine.getTemplate("init-" + template + ".java.qute");
 
 		if (helloTemplate == null) {
 			throw new ExitException(1, "Could not find init template named: " + template);

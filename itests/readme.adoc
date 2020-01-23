@@ -1,0 +1,18 @@
+## How to run integration tests
+
+In addition to the unit tests driven by gradle this directory
+contains tests using https://github.com/andamira/aserta[aserta].
+
+A bash driven testing suite runner which allows to do easy testing
+running in a shell.
+
+To run the tests first make sure you've built jbang first, added `jbang` to the path, cd to this directory and run the link:test_suite.sh[test_suite.sh].
+
+[source, bash]
+----
+./gradlew build install
+export PATH=`pwd`/build/install/jbang/bin:$PATH
+cd itests
+./test_suite.sh
+----
+
