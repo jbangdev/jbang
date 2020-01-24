@@ -26,7 +26,7 @@ jobs:
         run: |
           export PATH=`pwd`/build/install/jbang/bin:$PATH
           pastdir=`pwd`
-          cd src/test/resources
+          cd itests
           ./test_suite.sh
           cd $pastdir
       - name: tag-and-release
