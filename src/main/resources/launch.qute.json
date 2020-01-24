@@ -15,7 +15,7 @@
             "type": "java",
             "name": "Debug (Launch) - Current File",
             "request": "launch",
-            "mainClass": "${file}"
+            "mainClass": "$\{file\}"
         },
         {
             "type": "java",

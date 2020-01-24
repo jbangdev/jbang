@@ -11,6 +11,6 @@
         <mapEntry key="hostname" value="localhost"/>
         <mapEntry key="port" value="4004"/>
     </mapAttribute>
-    <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="${baseName}"/>
+    <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="{baseName}"/>
     <stringAttribute key="org.eclipse.jdt.launching.VM_CONNECTOR_ID" value="org.eclipse.jdt.launching.socketAttachConnector"/>
 </launchConfiguration>
