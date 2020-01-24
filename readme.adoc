@@ -14,7 +14,9 @@ Do you like Java but uses python, groovy, kotlin or similar languages for your s
 
 Ever tried out Java 10+ support for running `.java` files directly in your shell but felt it was a bit too cumbersome ?
 
-Then try `jbang` which lets you do this: 
+Then try `jbang` which lets you do this:
+
+image:https://asciinema.org/a/AVwA19yijKRNKEO0bJENN2ME3.svg[link=https://asciinema.org/a/AVwA19yijKRNKEO0bJENN2ME3?autoplay=true&speed=2&theme=solarized-dark]
 
 [source, bash]
 ----
@@ -176,8 +178,7 @@ Now to run this you can call it via `jbang`:
 jbang helloworld.java
 ----
 
-or mark it executable and just run it directly:
-
+or if on Linux/OSX run it directly. If you created it manually you need to mark it as executable before running it.
 [source]
 ----
 chmod +x helloworld.java
@@ -315,10 +316,24 @@ NOTE: On Windows you might need elevated priviliges to create symbolic links. If
 the `--edit` option will result in an error. To use it enable symbolic links for your user or run your shell/terminal as administrator
 to have this feature working.
 
-=== IDE support
+=== IDE and Editor support
 
-The `--edit` feature generates a `build.gradle` to use with IDE's that understands it directly + IDE specific config files
-to make it easy to run and debug the single file based scripts.
+The `--edit` feature been tested with the following IDE's:
+
+:sicons: https://simpleicons.org/icons
+.IDE's and Editors tested with `jbang`
+[width=75%,frame=none,grid=none]
+|===
+|image:{sicons}/visualstudiocode.svg[50,50] https://code.visualstudio.com[Visual Studio Code]
+|image:{sicons}/eclipseide.svg[50,50] https://www.eclipse.org/downloads/download.php[Eclipse]
+|image:{sicons}/intellijidea.svg[50,50] https://www.jetbrains.com/idea/download[IntelliJ Idea]
+|image:{sicons}/apachenetbeanside.svg[50,50] https://netbeans.apache.org/download/[Apache Netbeans]
+|image:{sicons}/neovim.svg[50,50] https://github.com/neovim/neovim/wiki/Installing-Neovim[Neovim] w/ https://spacevim.org/use-vim-as-a-java-ide/[spacevim Java]
+|image:{sicons}/gnuemacs.svg[50,50] https://www.gnu.org/software/emacs/[Emacs] w/ https://www.spacemacs.org[Spacemacs Java]
+|===
+
+The `--edit` feature works with various IDE's - it generates a `build.gradle` to use with IDE's that understands Gradle directly.
+For speed and consistency `jbang` also generates IDE specific settings.
 
 Currently launchers and project files are generated for Eclipse and vscode. Intellij just reads `build.gradle` for now thus
 to run/debug you will need to manually set it up.

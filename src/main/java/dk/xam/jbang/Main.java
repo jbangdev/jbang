@@ -164,6 +164,7 @@ public class Main implements Callable<Integer> {
 				try (BufferedWriter writer = Files.newBufferedWriter(f.toPath())) {
 					String result = renderInitClass(f, initTemplate);
 					writer.write(result);
+					f.setExecutable(true);
 				} catch (ExitException e) {
 					f.delete(); // if template lookup fails we need to delete file to not end up with a empty
 								// file.
