@@ -2,7 +2,7 @@
 :toc:
 :toc-placement:
 :icons: font
-
+	
 image:https://img.shields.io/github/release/maxandersen/jbang.svg[Release,link=https://github.com/maxandersen/jbang/releases]
 image:https://github.com/maxandersen/jbang/workflows/ci-build/badge.svg[Build Status,link=https://github.com/maxandersen/jbang/actions]
 
@@ -327,7 +327,7 @@ The `--edit` feature been tested with the following IDE's:
 |image:{sicons}/visualstudiocode.svg[50,50] https://code.visualstudio.com[Visual Studio Code]
 |image:{sicons}/eclipseide.svg[50,50] https://www.eclipse.org/downloads/download.php[Eclipse]
 |image:{sicons}/intellijidea.svg[50,50] https://www.jetbrains.com/idea/download[IntelliJ Idea]
-|image:{sicons}/apachenetbeanside.svg[50,50] https://netbeans.apache.org/download/[Apache Netbeans]
+|image:{sicons}/apachenetbeanside.svg[50,50] https://netbeans.apache.org/download/[Apache NetBeans]
 |image:{sicons}/neovim.svg[50,50] https://github.com/neovim/neovim/wiki/Installing-Neovim[Neovim] w/ https://spacevim.org/use-vim-as-a-java-ide/[spacevim Java]
 |image:{sicons}/gnuemacs.svg[50,50] https://www.gnu.org/software/emacs/[Emacs] w/ https://www.spacemacs.org[Spacemacs Java]
 |===
