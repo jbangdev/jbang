@@ -39,15 +39,14 @@ Instant cli app generated built using java and picocli as a dependency that was 
 
 * `.java` Scripting for Java 8 and upwards
 * `.jsh` via JShell from Java 9 and upwards
-* Works on Windows, OSX and Linux
+* Works on icon:windows[] Windows, icon:apple[] OSX and icon:linux[] Linux
+* Install using SDKMan (icon:apple[]/icon:linux[]), Homebrew (icon:apple[]) or Chocolatey (icon:windows[])
 * Dependency declarations using `//DEPS <gav>` for automatic dependency resolution
 * Control compile and runtime options with `//JAVAC_OPTIONS <flags>` and `//JAVA_OPTIONS <flags>`
 * Compiled jar and Dependency resolution caching
 * Launch with debug enabled for instant debugging from your favorite IDE
 * Init templates to get started easily (`jbang --init=cli hello.java`)
 * Generate gradle and IDE config with dependencies for easy editing in your favorite IDE (`jbang --edit myfile.java`)
-* Installable with HomeBrew or SDKman on OSX and Linux.
-* (https://chocolatey.org/packages/jbang/0.6.0.5[WAITING FOR APPROVAL]) Installable with Chocolatey on Windows
 * (PLANNED) Lookup dependencies with a short-hand name, i.e. `// DEPS log4j:1.2+,picocli` for quick getting started.
 
 To use it simply install `jbang` and run `jbang yourscript.java`
@@ -56,15 +55,17 @@ toc::[]
 
 == Requirements
 
-Java 8+
+Minimum Java 8, Recommended: Java 11+
 
 Tested and verified to use on OSX, Linux and Windows.
 
 == Installation
 
-To use `jbang` you as a minimum need to have Java 8 available.
+To use `jbang` you as a minimum need to have Java 8 available, we though recommend Java 11 or higher.
 
-To install both java and `jbang` we recommend https://sdkman.io[sdkman]
+=== SDKMan icon:linux[] / icon:apple[]
+
+To install both java and `jbang` we recommend https://sdkman.io[sdkman] on Linux and OSX.
 
 [source, bash]
 ----
@@ -97,9 +98,42 @@ To update run:
 sdk update jbang
 ----
 
-=== Homebrew
+=== Chocolatey icon:windows[]
+[[chocolatey, Chocolatey]]
 
-On OSX you can install `jbang` with https://brew.sh[Homebrew] using https://github.com/maxandersen/homebrew-tap/[maxandersen/tap].
+On Windows you can install both `java` and jbang` with https://chocolatey.org[Chocolatey].
+
+From a command prompt with enough rights to install with choco:
+
+`choco install jdk11`
+
+Once Java in installed run:
+
+`choco install jbang`
+
+To upgrade to latest version:
+
+`choco upgrade jbang`
+
+The latest package will be published to https://chocolatey.org/packages/jbang[jbang choco package page],
+it might be a bit delayed as the review is still manual. In case the default version is not
+the latest you can see the https://chocolatey.org/packages/jbang/#versionhistory[version list] and install specific version using:
+
+`choco install jbang --version=<version number>`
+
+=== Homebrew icon:apple[]
+
+On OSX you can install 'java' and `jbang` with https://brew.sh[Homebrew] using custom taps.
+
+To install Java 11:
+
+[source, bash]
+----
+brew tap AdoptOpenJDK/openjdk
+brew cask install adoptopenjdk11
+----
+
+Once Java is installed you can use brew with https://github.com/maxandersen/homebrew-tap/[maxandersen/tap] to get `jbang`:
 
   brew install maxandersen/tap/jbang
 
@@ -107,15 +141,15 @@ To upgrade to latest version:
 
   brew upgrade maxandersen/tap/jbang
 
-=== Manual and Windows (for now) install
+=== Manual install
 
 Unzip the https://github.com/maxandersen/jbang/releases/latest[latest binary release], put the `jbang-<version>/bin` folder in to your `$PATH` and you are set.
 
-== Script input
+== Usage
 
 A script is just a single `.java` file with a classic static main method or a `.jsh` file which will be passed to `jshell`.
 
-Below is an (almost) minimal example you can save in `helloworld.java`:
+Below is an (almost) minimal example you can save in `helloworld.java` or simply run `jbang --init hellworld.java`:
 
 [source, java]
 ```
@@ -157,10 +191,9 @@ You can use `http(s):/` and `file:/` url's for input too:
 jbang https://raw.githubusercontent.com/maxandersen/jbang/master/examples/helloworld.java
 ----
 
-
 === Using `.jsh` for `jshell`
 
-There are experimental support to run `.jsh` via `jshell`. The advantage of `jshell` is that you do not need to have a class or static main method.
+There are support to run `.jsh` via `jshell`. The advantage of `jshell` is that you do not need to have a class or static main method.
 
 Classic `jshell` does not support passing in arguments, `jbang` does.
 
@@ -176,9 +209,11 @@ System.out.println("Hello " + (args.length>0?args[0]:"World")); // <.>
 <1> Line where `args` are accessible without previous declaration.
 <2> `/exit` is so the jshell app will exit. If you remove it `jbang` will launch into inter-active mode.
 
-== Getting started
+== Init templates
 
 To get started you can run `jbang --init helloworld.java` and a simple java class with a static main is generated.
+
+Using `jbang --init=cli helloworld.java` you get a more complete Hello World CLI using picocli as dependencies.
 
 == Declare dependencies
 
@@ -233,7 +268,7 @@ $ ./classpath_example.java
 There is also support for using Groovy lang style `@Grab` syntax.
 
 [source, java]
-```
+----
 //usr/bin/env jbang "$0" "$@" ; exit $?
 
 import static java.lang.System.out;
@@ -259,7 +294,7 @@ class classpath_example {
 		Arrays.asList(args).forEach(arg -> out.println(arg));
 	}
 }
-```
+----
 <.> Import needed to make the compiler be okey with `@Grab` annotation.
 <.> In Groovy you normally put `@Grab` on import statements. That is not allowed in Java thus when having multiple imports you need to put them in a `@Grapes` annotation first.
 <.> `jbang` will grab any `@Grab` annotation and assume it is declaring dependencies.
@@ -379,8 +414,8 @@ With the following advantages:
 And to be honest I built `jbang` just to see if I could and get my Java skills refreshed for the newer features in the language.
 Use it at your own risk :)
 
-Why not use normal shebang(`\#!`) in the header ?::
-  You can use normal shebang (`\#!/usr/bin/env jbang`) and Java 10+ will actually work with it from the command line. Not recommended though as
+Why not use normal shebang(`#!`) in the header ?::
+  You can use normal shebang (`#!/usr/bin/env jbang`) and Java 10+ will actually work with it from the command line. Not recommended though as
 many tools and especially IDE's will start complaining about syntax errors as they don't ignore the first line in this case.
 +
 By using the `//` form it is treated as both a bash/shell file AND a valid java file and thus works everywhere a java file will work.
