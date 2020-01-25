@@ -123,6 +123,20 @@ the latest you can see the https://chocolatey.org/packages/jbang/#versionhistory
 
 `choco install jbang --version=<version number>`
 
+=== Scoop icon:windows[]
+
+On Windows you can also install jbang` with https://scoop.sh[Scoop].
+
+[source, bash]
+----
+scoop bucket add maxandersen https://github.com/scoop-bucket
+scoop install jbang
+----
+
+To upgrade to latest version:
+
+`scoop update jbang`
+
 === Homebrew icon:apple[]
 
 On OSX you can install 'java' and `jbang` with https://brew.sh[Homebrew] using custom taps.

@@ -150,6 +150,21 @@ task homebrew(type: Copy) {
 	}
 }
 
+task scoop(type: Copy) {
+	dependsOn(createChecksum)
+	inputs.property('version', project.version)
+	from('src/main/scripts/jbang.json')
+	into(buildDir.toString() + '/scoop')
+	doFirst { t ->
+		t.filter(org.apache.tools.ant.filters.ReplaceTokens,
+				tokens: [
+						projectVersion: project.version,
+						sha256        : new File(distZip.archiveFile.asFile.get().absolutePath + '.sha256').text
+				]
+		)
+	}
+}
+
 task chocolatey(type: Copy) {
 	dependsOn(createChecksum)
 	inputs.property('version', project.version)
@@ -195,6 +210,7 @@ versioner {
 
 build.dependsOn(homebrew)
 build.dependsOn(chocolatey)
+build.dependsOn(scoop)
 
 group = "dk.xam.jbang"
 sourceCompatibility = '8'

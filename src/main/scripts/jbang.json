@@ -1,0 +1,27 @@
+{
+  "homepage": "https://github.com/maxandersen/jbang",
+  "description": "Use `jbang` for easily run single .java file with automatic dependency fetching and just get going.",
+  "version": "@projectVersion@",
+  "license": "MIT",
+  "url": "https://github.com/maxandersen/jbang/releases/download/v@projectVersion@/jbang-@projectVersion@.zip",
+  "hash": "sha256:@sha256@",
+  "extract_dir": "jbang-@projectVersion@",
+  "env_add_path": "bin",
+  "suggest": {
+    "JDK": [
+      "java/oraclejdk",
+      "java/openjdk"
+    ]
+  },
+  "checkver": {
+    "url": "https://github.com/maxandersen/jbang/releases/latest",
+    "re": "v([\\d.]+).zip"
+  },
+  "autoupdate": {
+    "url": "https://github.com/maxandersen/jbang/releases/download/v$version/jbang-$version.zip",
+    "extract_dir": "jbang-$version",
+    "hash": {
+      "url": "$url.sha256"
+    }
+  }
+}
