@@ -138,7 +138,7 @@ task createChecksum(type: Checksum) {
 task homebrew(type: Copy) {
 	dependsOn(createChecksum)
 	inputs.property('version', project.version)
-	from('src/main/scripts/jbang.rb')
+	from('src/main/scripts/brew/jbang.rb')
 	into(buildDir.toString() + '/brew/formula')
 	doFirst { t ->
 		t.filter(org.apache.tools.ant.filters.ReplaceTokens,
@@ -153,7 +153,7 @@ task homebrew(type: Copy) {
 task scoop(type: Copy) {
 	dependsOn(createChecksum)
 	inputs.property('version', project.version)
-	from('src/main/scripts/jbang.json')
+	from('src/main/scripts/scoop/jbang.json')
 	into(buildDir.toString() + '/scoop')
 	doFirst { t ->
 		t.filter(org.apache.tools.ant.filters.ReplaceTokens,

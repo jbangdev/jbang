@@ -17,16 +17,19 @@ jobs:
       - name: build-gradle
         run: ./gradlew clean build install -x test --build-cache --scan -s
       - name: homebrew
+        continue-on-error: true
         env:
           BREW_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}
           BREW_USER: ${{ secrets.BREW_USER }}
         run: ./misc/updatebrew.sh
       - name: scoop
+        continue-on-error: true
         env:
           BREW_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}
           BREW_USER: ${{ secrets.BREW_USER }}
         run: ./misc/updatescoop.sh
       - name: sdkman
+        continue-on-error: true
         env:
           SDKMAN_CONSUMER_KEY: ${{ secrets.SDKMAN_CONSUMER_KEY }}
           SDKMAN_CONSUMER_TOKEN: ${{ secrets.SDKMAN_CONSUMER_TOKEN }}
