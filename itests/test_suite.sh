@@ -55,11 +55,16 @@ assert_raises "rm $SCRATCH/test.java" 0
 
 assert "jbang helloworld.java jbangtest" "Hello jbangtest"
 
-# jsh should also work
-assert "jbang helloworld.jsh" "Hello World"
+java -version 2>&1 >/dev/null| grep version | grep "1.8" >/dev/null
+JAVA8=$?
 
-# jsh should also get parameters
-assert "jbang helloworld.jsh JSH!" "Hello JSH!"
+case "$JAVA8" in
+  1) # jsh should also work
+     assert "jbang helloworld.jsh" "Hello World"
+     # jsh should also get parameters
+     assert "jbang helloworld.jsh JSH!" "Hello JSH!" ;;
+  *) echo "Java 8 installed - skipping jsh"
+esac
 
 ## test dependency resolution on custom local repo (to avoid conflicts with existing ~/.m2)
 export JBANG_REPO=$SCRATCH/testrepo

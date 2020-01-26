@@ -52,3 +52,21 @@ jobs:
           export PATH=`pwd`/build/install/jbang/bin:$PATH
           cd itests
           ./test_suite.sh
+  testing:
+    needs: build
+    strategy:
+      matrix:
+        os: [unbuntu-latest]
+        java: [8,11,13]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+      - uses: actions/download-artifact@v1
+        with:
+          name: ${{ runner.os }}-build-${{ github.sha }}
+          path: build
+      - run: |
+          ./build/install/bin/jbang --init=cli helloworld.java
+          ./build/install/bin/jbang helloworld.java
