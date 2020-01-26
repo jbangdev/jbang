@@ -24,13 +24,22 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-      - name: install-java11
+      - name: install-java8
         uses: actions/setup-java@v1
         with:
-          java-version: 11
+          java-version: 8
       - name: build-gradle
         run: ./gradlew build test install --build-cache --scan -s
-      - name: Archive test results
+      - name: build-choco-package
+        if: runner.os == 'Windows'
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '2.2.204' # SDK Version to use.
+          - name: choco-build
+            run: |
+              powershell
+              choco pack build/choco/jbang.nuspec
+      - name: Archive build results
         uses: actions/upload-artifact@v1
         if: always()
         with:

@@ -11,3 +11,4 @@ build
 bin
 homebrew-tap
 RESULTS
+*.db
