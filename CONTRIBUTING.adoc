@@ -1,8 +1,8 @@
-# Contributing
+= Contributing
 
 Anyone welcome to open issues and/or pull-requests for bugfixes, featurerequests and/or ideas.
 
-## How to build
+== How to build
 
 Clone the repository, cd `jbang` and run `./gradlew build install`.
 There will be an warning in the output but don't dispair - that is just
@@ -30,12 +30,12 @@ BUILD SUCCESSFUL in 5s
 <.> This error happens as in the junit tests we test behaviors under different environment variables and to do that we need to modify internal state in java's `System` handling of properties. Java 9+ does not like that.
 <.> Already https://github.com/stefanbirkner/system-rules/issues/64[reported] but it can't be fixed as the jvm does not allow this; but fine for `jbang` as this is just for the test runs.
 
-## Source formatting
+== Source formatting
 
 The build uses the https://github.com/diffplug/spotless[spotless] plugin to ensure Java and other files are formatted uniformly.
 If your build fails due to formatting errors then run `gradle spotlessApply` and it will reformat to be compatible.
 
-## Versioning
+== Versioning
 
 `jbang` uses semi-automatic versioning via the https://github.com/toolebox-io/gradle-git-versioner[git-versioner] plugin.
 This plugin uses the git log to derive what version number are the current one by looking for `[major]`, `[minor]` and `[patch]` in commit messages.

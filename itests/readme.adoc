@@ -1,4 +1,4 @@
-## How to run integration tests
+== How to run integration tests
 
 In addition to the unit tests driven by gradle this directory
 contains tests using https://github.com/andamira/aserta[aserta].
