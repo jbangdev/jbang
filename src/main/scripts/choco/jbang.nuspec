@@ -25,7 +25,7 @@ Ever tried out Java 10+ support for running `.java` files directly in your shell
 
 Then try `jbang` which lets you do this:
 
-[![asciicast](https://asciinema.org/a/AVwA19yijKRNKEO0bJENN2ME3.svg)](https://asciinema.org/a/AVwA19yijKRNKEO0bJENN2ME3?autoplay=true&speed=2&theme=solarized-dark)
+[![asciicast](https://asciinema.org/a/AVwA19yijKRNKEO0bJENN2ME3.svg)](https://asciinema.org/a/AVwA19yijKRNKEO0bJENN2ME3?autoplay=true&amp;speed=2&amp;theme=solarized-dark)
 
     $ jbang --init=cli hello.java
     $ jbang hello.java Max!
@@ -35,9 +35,9 @@ Then try `jbang` which lets you do this:
     [jbang] Building jar...
     Hello Max!
     $ jbang hello.java -h
-    Usage: hello [-hV] <greeting>
+    Usage: hello [-hV] &lt;greeting&gt;
     hello made with jbang
-          <greeting>   The greeting to print
+          &lt;greeting&gt;   The greeting to print
       -h, --help       Show this help message and exit.
       -V, --version    Print version information and exit.
 
@@ -49,8 +49,8 @@ Instant cli app generated built using java and picocli as a dependency that was 
 * `.jsh` via JShell from Java 9 and upwards
 * Works on icon:windows[] Windows, icon:apple[] OSX and icon:linux[] Linux
 * Install using SDKMan (icon:apple[]/icon:linux[]), Homebrew (icon:apple[]), Chocolatey (icon:windows[]) or Scoop (icon:windows[])
-* Dependency declarations using `//DEPS <gav>` for automatic dependency resolution
-* Control compile and runtime options with `//JAVAC_OPTIONS <flags>` and `//JAVA_OPTIONS <flags>`
+* Dependency declarations using `//DEPS &lt;gav&gt;` for automatic dependency resolution
+* Control compile and runtime options with `//JAVAC_OPTIONS &lt;flags&gt;` and `//JAVA_OPTIONS &lt;flags&gt;`
 * Compiled jar and Dependency resolution caching
 * Launch with debug enabled for instant debugging from your favorite IDE
 * Init templates to get started easily (`jbang --init=cli hello.java`)

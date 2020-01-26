@@ -62,7 +62,7 @@ spotless {
 		eclipse().configFile "misc/eclipse_formatting_nowrap.xml"
 	}
 	format 'xml', {
-		target '**/*.xml'
+		target '**/*.xml', '**/*.nuspec'
 	}
 }
 
