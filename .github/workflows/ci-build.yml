@@ -35,6 +35,8 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '2.2.204' # SDK Version to use.
+      - name: build-choco
+        if: runner.os == 'Windows'
         run: |
             powershell
             choco pack build/choco/jbang.nuspec
