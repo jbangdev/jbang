@@ -56,7 +56,7 @@ jobs:
     needs: build
     strategy:
       matrix:
-        os: [unbuntu-latest]
+        os: [ubuntu-latest]
         java: [8,11,13]
     runs-on: ${{ matrix.os }}
     steps:
