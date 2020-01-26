@@ -68,5 +68,5 @@ jobs:
           name: ${{ runner.os }}-build-${{ github.sha }}
           path: build
       - run: |
-          ./build/install/bin/jbang --init=cli helloworld.java
-          ./build/install/bin/jbang helloworld.java
+          ./build/install/jbang/bin/jbang --init=cli helloworld.java
+          ./build/install/jbang/bin/jbang helloworld.java
