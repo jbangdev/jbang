@@ -16,8 +16,12 @@ import java.util.stream.Collectors;
 import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.PackagingType;
+import org.jboss.shrinkwrap.resolver.api.maven.ScopeType;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinates;
+import org.jboss.shrinkwrap.resolver.api.maven.filter.MavenResolutionFilter;
+import org.jboss.shrinkwrap.resolver.api.maven.strategy.MavenResolutionStrategy;
+import org.jboss.shrinkwrap.resolver.api.maven.strategy.TransitiveExclusionPolicy;
 
 class DependencyUtil {
 
@@ -125,7 +129,29 @@ class DependencyUtil {
 
 			List<File> artifacts;
 			try {
-				artifacts = resolver.resolve(depIdToArtifact(it).toCanonicalForm()).withTransitivity()
+				artifacts = resolver.resolve(depIdToArtifact(it).toCanonicalForm())
+						.using(new MavenResolutionStrategy() {
+
+							@Override
+							public TransitiveExclusionPolicy getTransitiveExclusionPolicy() {
+								return new TransitiveExclusionPolicy() {
+									@Override
+									public boolean allowOptional() {
+										return true; // TODO: should this be controllable as could be very broad
+									}
+
+									@Override
+									public ScopeType[] getFilteredScopes() {
+										return new ScopeType[] { ScopeType.PROVIDED, ScopeType.TEST };
+									}
+								};
+							}
+
+							@Override
+							public MavenResolutionFilter[] getResolutionFilters() {
+								return new MavenResolutionFilter[0];
+							}
+						})
 						.asList(File.class); // , RUNTIME);
 			} catch (RuntimeException e) {
 				throw new ExitException(1, "Could not resolve dependency", e);

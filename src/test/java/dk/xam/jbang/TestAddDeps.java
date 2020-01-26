@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import org.junit.jupiter.api.Test;
@@ -40,7 +41,6 @@ class TestAddDeps {
 			"      <groupId>org.projectlombok</groupId>\n" +
 			"      <artifactId>lombok</artifactId>\n" +
 			"      <version>1.18.10</version>\n" +
-			"      <scope>provided</scope>\n" +
 			"    </dependency>\n" +
 			"\n" +
 			"    <dependency>\n" +
@@ -100,7 +100,8 @@ class TestAddDeps {
 
 		List<MavenCoordinate> result = Main.findDeps(pom);
 
-		assertThat(result, containsInAnyOrder("org.projectlombok:lombok:1.18.10", "info.picocli:picocli:4.1.4"));
+		assertThat(result.stream().map(MavenCoordinate::toCanonicalForm).collect(Collectors.toList()),
+				containsInAnyOrder("org.projectlombok:lombok:jar:1.18.10", "info.picocli:picocli:jar:4.1.4"));
 
 	}
 

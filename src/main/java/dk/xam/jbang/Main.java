@@ -730,8 +730,8 @@ public class Main implements Callable<Integer> {
 	}
 
 	public static List<MavenCoordinate> findDeps(File pom) {
-
-		return Maven.resolver().loadPomFromFile(pom).importRuntimeDependencies()
+		// todo use to dump out pom dependencies
+		return Maven.resolver().loadPomFromFile(pom).importCompileAndRuntimeDependencies()
 				.resolve().withoutTransitivity().asList(MavenCoordinate.class);
 	}
 
