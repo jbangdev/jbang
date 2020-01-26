@@ -35,10 +35,9 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '2.2.204' # SDK Version to use.
-          - name: choco-build
-            run: |
-              powershell
-              choco pack build/choco/jbang.nuspec
+        run: |
+            powershell
+            choco pack build/choco/jbang.nuspec
       - name: Archive build results
         uses: actions/upload-artifact@v1
         if: always()
