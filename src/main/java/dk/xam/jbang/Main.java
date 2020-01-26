@@ -20,6 +20,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.text.StringEscapeUtils;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
+import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 
 import io.quarkus.qute.Engine;
 import io.quarkus.qute.Template;
@@ -71,6 +73,10 @@ public class Main implements Callable<Integer> {
 	@Option(names = {
 			"--init" }, description = "Init script with a java class useful for scripting", parameterConsumer = PlainStringFallbackConsumer.class, arity = "0..1", fallbackValue = "hello")
 	String initTemplate;
+
+	@Option(names = {
+			"--adddeps" }, description = "Add dependencies from the build file specified and inject into the .java files.", arity = "1")
+	String fetchDeps;
 
 	@Option(names = "--completion", help = true, description = "Output auto-completion script for bash/zsh.\nUsage: source <(jbang --completion)")
 	boolean completionRequested;
@@ -722,4 +728,11 @@ public class Main implements Callable<Integer> {
 			}
 		}
 	}
+
+	public static List<MavenCoordinate> findDeps(File pom) {
+
+		return Maven.resolver().loadPomFromFile(pom).importRuntimeDependencies()
+				.resolve().withoutTransitivity().asList(MavenCoordinate.class);
+	}
+
 }
