@@ -2,7 +2,6 @@ package dk.xam.jbang;
 
 import static dk.xam.jbang.Settings.CP_SEPARATOR;
 import static dk.xam.jbang.Util.*;
-import static org.sonatype.aether.util.artifact.JavaScopes.RUNTIME;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -14,13 +13,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.sonatype.aether.artifact.Artifact;
-import org.sonatype.aether.repository.Authentication;
-import org.sonatype.aether.repository.RemoteRepository;
-import org.sonatype.aether.resolution.DependencyResolutionException;
-import org.sonatype.aether.util.artifact.DefaultArtifact;
-
-import com.jcabi.aether.Aether;
+import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
+import org.jboss.shrinkwrap.resolver.api.maven.PackagingType;
+import org.jboss.shrinkwrap.resolver.api.maven.ScopeType;
+import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
+import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinates;
+import org.jboss.shrinkwrap.resolver.api.maven.filter.MavenResolutionFilter;
+import org.jboss.shrinkwrap.resolver.api.maven.strategy.MavenResolutionStrategy;
+import org.jboss.shrinkwrap.resolver.api.maven.strategy.TransitiveExclusionPolicy;
 
 class DependencyUtil {
 
@@ -77,8 +78,8 @@ class DependencyUtil {
 		}
 
 		try {
-			List<Artifact> artifacts = resolveDependenciesViaAether(depIds, customRepos, loggingEnabled);
-			String classPath = artifacts.stream().map(it -> it.getFile().getAbsolutePath())
+			List<File> artifacts = resolveDependenciesViaAether(depIds, customRepos, loggingEnabled);
+			String classPath = artifacts.stream().map(it -> it.getAbsolutePath())
 					.collect(Collectors.joining(CP_SEPARATOR));
 
 			if (loggingEnabled) {
@@ -109,30 +110,51 @@ class DependencyUtil {
 		return null;
 	}
 
-	public List<Artifact> resolveDependenciesViaAether(List<String> depIds, List<MavenRepo> customRepos,
+	public List<File> resolveDependenciesViaAether(List<String> depIds, List<MavenRepo> customRepos,
 			boolean loggingEnabled) {
-		RemoteRepository jcenter = new RemoteRepository("jcenter", "default", "https://jcenter.bintray.com/");
-		List<RemoteRepository> remoteRepos = customRepos.stream().map(mavenRepo -> {
-			RemoteRepository rr = new RemoteRepository(mavenRepo.getId(), "default", mavenRepo.getUrl());
-			if (mavenRepo.getUser() != null && mavenRepo.getPassword() != null) {
-				rr.setAuthentication(
-						new Authentication(decodeEnv(mavenRepo.getUser()), decodeEnv(mavenRepo.getPassword())));
-			}
-			return rr;
-		}).collect(Collectors.toList());
 
-		remoteRepos.add(jcenter);
+		ConfigurableMavenResolverSystem resolver = Maven.configureResolver()
+				.withRemoteRepo("jcenter", "https://jcenter.bintray.com/", "default")
+				.withMavenCentralRepo(false);
 
-		Aether aether = new Aether(remoteRepos, Settings.getLocalMavenRepo());
+		customRepos.stream().forEach(mavenRepo -> {
+			resolver.withRemoteRepo(mavenRepo.getId(), "default", mavenRepo.getUrl());
+		});
+
+		System.setProperty("maven.repo.local", Settings.getLocalMavenRepo().toPath().toAbsolutePath().toString());
+
 		return depIds.stream().flatMap(it -> {
 			if (loggingEnabled)
 				System.err.print(String.format("[jbang]     Resolving %s...", it));
 
-			List<Artifact> artifacts;
+			List<File> artifacts;
 			try {
-				artifacts = aether.resolve(depIdToArtifact(it), RUNTIME);
-			} catch (DependencyResolutionException e) {
-				throw new DependencyException(e);
+				artifacts = resolver.resolve(depIdToArtifact(it).toCanonicalForm())
+						.using(new MavenResolutionStrategy() {
+
+							@Override
+							public TransitiveExclusionPolicy getTransitiveExclusionPolicy() {
+								return new TransitiveExclusionPolicy() {
+									@Override
+									public boolean allowOptional() {
+										return true; // TODO: should this be controllable as could be very broad
+									}
+
+									@Override
+									public ScopeType[] getFilteredScopes() {
+										return new ScopeType[] { ScopeType.PROVIDED, ScopeType.TEST };
+									}
+								};
+							}
+
+							@Override
+							public MavenResolutionFilter[] getResolutionFilters() {
+								return new MavenResolutionFilter[0];
+							}
+						})
+						.asList(File.class); // , RUNTIME);
+			} catch (RuntimeException e) {
+				throw new ExitException(1, "Could not resolve dependency", e);
 			}
 
 			if (loggingEnabled)
@@ -156,7 +178,7 @@ class DependencyUtil {
 		}
 	}
 
-	public Artifact depIdToArtifact(String depId) {
+	public MavenCoordinate depIdToArtifact(String depId) {
 
 		Pattern gavPattern = Pattern.compile(
 				"^(?<groupid>[^:]*):(?<artifactid>[^:]*):(?<version>[^:@]*)(:(?<classifier>[^@]*))?(@(?<type>.*))?$");
@@ -175,7 +197,14 @@ class DependencyUtil {
 		String classifier = gav.group("classifier");
 		String type = Optional.ofNullable(gav.group("type")).orElse("jar");
 
-		return new DefaultArtifact(groupId, artifactId, classifier, type, version);
+		// String groupId, String artifactId, String classifier, String extension,
+		// String version
+		// String groupId, String artifactId, String version, String scope, String type,
+		// String classifier, ArtifactHandler artifactHandler
+
+		// shrinkwrap format: groupId:artifactId:[packagingType:[classifier]]:version
+
+		return MavenCoordinates.createCoordinate(groupId, artifactId, version, PackagingType.of(type), classifier);
 	}
 
 	public String formatVersion(String version) {
