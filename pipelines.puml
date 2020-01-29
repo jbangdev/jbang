@@ -1,0 +1,14 @@
+@startuml
+(*) --> "Code Pushed"
+
+if "master" then
+  -->[true] "Build with Gradle"
+  --> "Run tests"
+  -right-> (*)
+else
+  ->[false] "Build with Gradle"
+  --> "Run tests"
+  --> "Do github *Draft* release"
+  -->[Ending process] (*)
+endif
+@enduml
