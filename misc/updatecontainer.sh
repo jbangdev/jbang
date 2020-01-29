@@ -13,7 +13,7 @@ rm -rf jbang-action
 git clone https://github.com/maxandersen/jbang-action.git
 
 cp build/container/Dockerfile jbang-action/Dockerfile
-cp build/container/README.adoc jbang-action/README.md
+cp build/container/README.md jbang-action/README.md
 
 cd jbang-action
 
