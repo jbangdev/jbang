@@ -157,6 +157,10 @@ To upgrade to latest version:
 
   brew upgrade maxandersen/tap/jbang
 
+=== Docker icon:docker[]
+
+You can run
+
 === Manual install
 
 Unzip the https://github.com/maxandersen/jbang/releases/latest[latest binary release], put the `jbang-<version>/bin` folder in to your `$PATH` and you are set.

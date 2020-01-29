@@ -2,7 +2,7 @@ on:
   push:
     tags:
       - 'v*'
-      -
+
 name: tag-and-release
 jobs:
   build:
