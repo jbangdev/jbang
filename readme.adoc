@@ -129,7 +129,7 @@ On Windows you can also install jbang` with https://scoop.sh[Scoop].
 
 [source, bash]
 ----
-scoop bucket add maxandersen https://github.com/scoop-bucket
+scoop bucket add maxandersen https://github.com/maxandersen/scoop-bucket
 scoop install jbang
 ----
 
