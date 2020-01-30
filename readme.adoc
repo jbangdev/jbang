@@ -157,9 +157,23 @@ To upgrade to latest version:
 
   brew upgrade maxandersen/tap/jbang
 
-=== Docker icon:docker[]
+=== Docker / GitHub Action icon:docker[]
 
-You can run
+You can run `jbang` via Docker:
+
+[source, bash]
+----
+docker run -v `pwd`:/ws --workdir=/ws maxandersen/jbang-action helloworld.java
+----
+
+or if you prefer usign Quay.io:
+
+[source, bash]
+----
+docker run -v `pwd`:/ws --workdir=/ws quay.io/maxandersen/jbang-action helloworld.java
+----
+
+The same container images can be used with GitHub Actions, see https://github.com/maxandersen/jbang-action[jbang-action] for details.
 
 === Manual install
 
