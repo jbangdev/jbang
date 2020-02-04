@@ -3,15 +3,14 @@ package dk.xam.jbang;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.jupiter.api.Test;
+import org.sonatype.aether.artifact.Artifact;
 
 class DependencyResolverTest {
 
@@ -29,26 +28,26 @@ class DependencyResolverTest {
 	void testdepIdToArtifact() {
 		DependencyUtil dr = new DependencyUtil();
 
-		MavenCoordinate artifact = dr.depIdToArtifact("com.offbytwo:docopt:0.6.0.20150202:redhat@doc");
+		Artifact artifact = dr.depIdToArtifact("com.offbytwo:docopt:0.6.0.20150202:redhat@doc");
 		assertEquals("com.offbytwo", artifact.getGroupId());
 		assertEquals("docopt", artifact.getArtifactId());
 		assertEquals("0.6.0.20150202", artifact.getVersion());
 		assertEquals("redhat", artifact.getClassifier());
-		assertEquals("doc", artifact.getType().getId());
+		assertEquals("doc", artifact.getExtension());
 
 		artifact = dr.depIdToArtifact("com.offbytwo:docopt:0.6.0.20150202");
 		assertEquals("com.offbytwo", artifact.getGroupId());
 		assertEquals("docopt", artifact.getArtifactId());
 		assertEquals("0.6.0.20150202", artifact.getVersion());
 		assertEquals("", artifact.getClassifier());
-		assertEquals("jar", artifact.getType().getId());
+		assertEquals("jar", artifact.getExtension());
 
 		artifact = dr.depIdToArtifact("com.offbytwo:docopt:0.6+");
 		assertEquals("com.offbytwo", artifact.getGroupId());
 		assertEquals("docopt", artifact.getArtifactId());
 		assertEquals("[0.6,)", artifact.getVersion());
 		assertEquals("", artifact.getClassifier());
-		assertEquals("jar", artifact.getType().getId());
+		assertEquals("jar", artifact.getExtension());
 
 		assertThrows(IllegalStateException.class, () -> dr.depIdToArtifact("bla?f"));
 	}
@@ -74,7 +73,7 @@ class DependencyResolverTest {
 
 		List<String> deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
 
-		List<File> artifacts = dr.resolveDependenciesViaAether(deps, Collections.emptyList(), true);
+		List<Artifact> artifacts = dr.resolveDependenciesViaAether(deps, Collections.emptyList(), true);
 
 		assertEquals(5, artifacts.size());
 
@@ -93,4 +92,15 @@ class DependencyResolverTest {
 
 	}
 
+	@Test
+	void testResolveNativeDependencies() {
+		DependencyUtil dr = new DependencyUtil();
+
+		// using shrinkwrap resolves in ${os.detected.version} not being resolved
+		List<String> deps = Arrays.asList("com.github.docker-java:docker-java:3.1.5");
+
+		String classpath = dr.resolveDependencies(deps, Collections.emptyList(), true);
+
+		assertEquals(46, classpath.split(Settings.CP_SEPARATOR).length);
+	}
 }

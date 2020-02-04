@@ -22,11 +22,17 @@ dependencies {
 	implementation 'info.picocli:picocli:4.1.4'
 	implementation 'io.quarkus.qute:qute-core:1.1.0.Final'
 
-	implementation 'org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-api:3.1.4'
-	implementation 'org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-impl-maven:3.1.4'
+	implementation("com.jcabi:jcabi-aether:0.10.1") {
+		exclude group: "org.hibernate", module: "hibernate-validator"
+		exclude group: "org.slf4j", module: "slf4j-api"
+		exclude group: "org.slf4j", module: "jcl-over-slf4j"
+		exclude group: "org.apache.commons", module: "commons-lang3"
+		exclude group: "cglib", module: "cglib"
+		exclude group: "org.kuali.maven.wagons", module: "maven-s3-wagon"
+	}
+	// compile("com.jcabi:jcabi-aether:0.10.1:sources") //can be used for debugging, but somehow adds logging to dependency resolvement?
+	implementation "org.apache.maven:maven-core:3.0.5"
 	implementation "org.slf4j:slf4j-nop:1.7.25"
-	//implementation 'org.apache.maven:maven-aether-provider:3.0.5'
-	//implementation 'com.google.guava:guava:28.2-jre'
 
 	testImplementation "org.junit.jupiter:junit-jupiter:5.5.2"
 	testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.5.2')
@@ -100,18 +106,7 @@ compileTestJava {
 
 
 shadowJar {
-	minimize()  {
-		exclude(dependency('org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-spi:.*'))
-		exclude(dependency('org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-impl-maven:.*'))
-		//exclude(dependency('org.slf4j:slf4j-api:.*'))
-		exclude(dependency('org.slf4j:slf4j-nop:.*'))
-
-
-	}
-	mergeServiceFiles()
-	manifest {
-		attributes 'Main-Class': 'dk.xam.jbang.Main'
-	}
+	minimize()
 	// warning is printed about deprecation in 7.0 but if I fix this shadowjar turns into a bogus file
 	archiveName = "${baseName}.${extension}"
 }
