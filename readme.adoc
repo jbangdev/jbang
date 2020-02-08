@@ -203,6 +203,20 @@ $ jbang --version
 0.8.1
 ```
 
+== (Experimental) Linux packages icon:linux[]
+
+INFO: These builds are not fully automated yet thus might be slightly behind.
+
+You can install rpm packages from https://copr.fedorainfracloud.org/coprs/maxandersen/jbang/[Fedora Copr]
+by doing the following:
+
+```
+dnf copr enable maxandersen/jbang
+dnf install jbang
+```
+
+The COPR currently includes builds from various versions of CentOS, Fedora, Mageia and OpenSuse.
+
 === Docker / GitHub Action icon:docker[]
 
 You can run `jbang` via Docker:
