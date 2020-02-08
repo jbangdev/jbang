@@ -203,7 +203,7 @@ $ jbang --version
 0.8.1
 ```
 
-== (Experimental) Linux packages icon:linux[]
+=== (Experimental) Linux packages icon:linux[]
 
 INFO: These builds are not fully automated yet thus might be slightly behind.
 

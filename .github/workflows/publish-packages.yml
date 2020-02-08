@@ -34,6 +34,12 @@ jobs:
           BREW_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}
           BREW_USER: ${{ secrets.BREW_USER }}
         run: ./misc/updatescoop.sh
+      - name: spec
+        continue-on-error: true
+        env:
+          BREW_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}
+          BREW_USER: ${{ secrets.BREW_USER }}
+        run: ./misc/updatespec.sh
       - name: sdkman
         continue-on-error: true
         env:
