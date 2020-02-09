@@ -22,7 +22,7 @@ git config user.email "max@xam.dk"
 
 git add Formula/jbang.rb
 git commit -m "jbang v${jbang_version}"
-git tag "v${jbang_version}"
+git tag -a "v${jbang_version}" -m "jbang v${jbang_version}"
 
 remote_repo="https://${BREW_USER}:${BREW_GITHUB_TOKEN}@github.com/maxandersen/homebrew-tap.git"
 echo $remote_repo
