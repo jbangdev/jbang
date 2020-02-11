@@ -392,6 +392,33 @@ class classpath_example {
 <.> In Groovy you normally put `@Grab` on import statements. That is not allowed in Java thus when having multiple imports you need to put them in a `@Grapes` annotation first.
 <.> `jbang` will grab any `@Grab` annotation and assume it is declaring dependencies.
 
+=== Magic Properties
+
+In dependencies you can refer to environment and system properties to parameterize the dependencies.
+It uses the format `${[env.]propertyname:<defaultvalue>}`.
+
+Furthermore to align with properties commonly used to make dependency resolution portable
+`jbang` exposes properties similar to what the `https://github.com/trustin/os-maven-plugin[os-maven-plugin]` does.
+Plus for ease of use for javafx dependencies it also setup a property named `${os.detected.jfxname}`.
+
+Examples:
+
+[source,bash]
+----
+${env.USER} = 'max'
+${os.name} = 'Mac OS X'
+${non.existing.key:empty} = 'empty'
+${os.detected.jfxname} = 'mac'
+----
+
+This can be put to use in `//DEPS` like so:
+
+```
+//DEPS org.openjfx:javafx-graphics:11.0.2:${os.detected.jfxname}
+```
+
+Here we use the properties to avoid hardcoding your script to a specific operating system.
+
 == Editing
 
 You can edit your script in your IDE by using `jbang --edit helloworld.java`. This will generate a project in a temporary location with symbolic links to your script

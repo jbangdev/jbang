@@ -67,6 +67,18 @@ class DependencyResolverTest {
 	}
 
 	@Test
+	void testdepIdWithPlaceHoldersToArtifact() {
+		DependencyUtil dr = new DependencyUtil();
+
+		Artifact artifact = dr.depIdToArtifact("com.example:my-native-library:1.0.0:${os.detected.jfxname}");
+		assertEquals("com.example", artifact.getGroupId());
+		assertEquals("my-native-library", artifact.getArtifactId());
+		assertEquals("1.0.0", artifact.getVersion());
+		assertEquals("mac", artifact.getClassifier());
+		assertEquals("jar", artifact.getExtension());
+	}
+
+	@Test
 	void testResolveDependenciesWithAether() {
 
 		DependencyUtil dr = new DependencyUtil();
@@ -102,5 +114,18 @@ class DependencyResolverTest {
 		String classpath = dr.resolveDependencies(deps, Collections.emptyList(), true);
 
 		assertEquals(46, classpath.split(Settings.CP_SEPARATOR).length);
+
 	}
+
+	@Test
+	void testResolveWithPropertyPlaceholders() {
+		DependencyUtil dr = new DependencyUtil();
+
+		// using shrinkwrap resolves in ${os.detected.version} not being resolved
+		List<String> deps = Arrays.asList("org.openjfx:javafx-graphics:11.0.2:mac");
+
+		List<Artifact> artifacts = dr.resolveDependenciesViaAether(deps, Collections.emptyList(), true);
+
+	}
+
 }

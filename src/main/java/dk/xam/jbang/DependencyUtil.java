@@ -24,6 +24,11 @@ import com.jcabi.aether.Aether;
 
 class DependencyUtil {
 
+	static {
+		dk.xam.jbang.Detector detector = new dk.xam.jbang.Detector();
+		detector.detect(new Properties(), null);
+	}
+
 	/**
 	 * 
 	 * @param depIds
@@ -125,6 +130,7 @@ class DependencyUtil {
 
 		Aether aether = new Aether(remoteRepos, Settings.getLocalMavenRepo());
 		return depIds.stream().flatMap(it -> {
+
 			if (loggingEnabled)
 				System.err.print(String.format("[jbang]     Resolving %s...", it));
 
@@ -157,6 +163,8 @@ class DependencyUtil {
 	}
 
 	public Artifact depIdToArtifact(String depId) {
+
+		depId = PropertiesValueResolver.replaceProperties(depId);
 
 		Pattern gavPattern = Pattern.compile(
 				"^(?<groupid>[^:]*):(?<artifactid>[^:]*):(?<version>[^:@]*)(:(?<classifier>[^@]*))?(@(?<type>.*))?$");
