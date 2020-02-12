@@ -36,7 +36,8 @@ class DependencyUtil {
 	 * @param loggingEnabled
 	 * @return string with resolved classpath
 	 */
-	public String resolveDependencies(List<String> depIds, List<MavenRepo> customRepos, boolean loggingEnabled) {
+	public String resolveDependencies(List<String> depIds, List<MavenRepo> customRepos,
+			boolean loggingEnabled) {
 
 		// if no dependencies were provided we stop here
 		if (depIds.isEmpty()) {

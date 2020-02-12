@@ -537,6 +537,7 @@ public class Main implements Callable<Integer> {
 		List<String> fullArgs = new ArrayList<>();
 		fullArgs.add(javacmd);
 		fullArgs.addAll(script.collectRuntimeOptions());
+		fullArgs.addAll(script.getAutoDetectedModuleArguments(javacmd));
 		fullArgs.addAll(optionalArgs);
 		if (script.getMainClass() != null) {
 			fullArgs.add(script.getMainClass());

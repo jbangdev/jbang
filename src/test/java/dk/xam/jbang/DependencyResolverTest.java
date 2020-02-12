@@ -1,8 +1,11 @@
 package dk.xam.jbang;
 
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -118,14 +121,21 @@ class DependencyResolverTest {
 	}
 
 	@Test
-	void testResolveWithPropertyPlaceholders() {
+	void testResolveJavaModules() throws IOException {
 		DependencyUtil dr = new DependencyUtil();
 
 		// using shrinkwrap resolves in ${os.detected.version} not being resolved
-		List<String> deps = Arrays.asList("org.openjfx:javafx-graphics:11.0.2:mac");
+		List<String> deps = Arrays.asList("org.openjfx:javafx-graphics:11.0.2:mac", "com.offbytwo:docopt:0.6+");
 
-		List<Artifact> artifacts = dr.resolveDependenciesViaAether(deps, Collections.emptyList(), true);
+		ModularClassPath cp = new ModularClassPath(dr.resolveDependencies(deps, Collections.emptyList(), true));
 
+		List<String> ma = cp.getAutoDectectedModuleArguments("java");
+
+		assertThat(ma, hasItem("--module-path"));
+
+		assertThat(ma, not(hasItem("docopt")));
+
+		assertThat(cp.getClassPath(), containsString("docopt"));
 	}
 
 }

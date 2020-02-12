@@ -17,7 +17,7 @@ public class Script {
 	private Pattern DEPS_ANNOT_SINGLE = Pattern.compile("@Grab\\(\\s*\"(?<value>.*)\"\\s*\\)");
 
 	File backingFile;
-	private String classpath;
+	private ModularClassPath classpath;
 	private String script;
 	private String mainClass;
 	private File jar;
@@ -117,12 +117,20 @@ public class Script {
 		if (classpath == null) {
 			List<String> dependencies = collectDependencies();
 
-			classpath = new DependencyUtil().resolveDependencies(dependencies, Collections.emptyList(), true);
+			classpath = new ModularClassPath(
+					new DependencyUtil().resolveDependencies(dependencies, Collections.emptyList(), true));
 		}
 		if (jar != null) {
-			return classpath + Settings.CP_SEPARATOR + jar.getAbsolutePath();
+			return classpath.getClassPath() + Settings.CP_SEPARATOR + jar.getAbsolutePath();
 		}
-		return classpath;
+		return classpath.getClassPath();
+	}
+
+	List<String> getAutoDetectedModuleArguments(String javacmd) {
+		if (classpath == null) {
+			resolveClassPath();
+		}
+		return classpath.getAutoDectectedModuleArguments(javacmd);
 	}
 
 	Stream<String> extractDependencies(String line) {

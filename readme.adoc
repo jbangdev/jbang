@@ -392,7 +392,7 @@ class classpath_example {
 <.> In Groovy you normally put `@Grab` on import statements. That is not allowed in Java thus when having multiple imports you need to put them in a `@Grapes` annotation first.
 <.> `jbang` will grab any `@Grab` annotation and assume it is declaring dependencies.
 
-=== Magic Properties
+=== System properties and Environment variables
 
 In dependencies you can refer to environment and system properties to parameterize the dependencies.
 It uses the format `${[env.]propertyname:<defaultvalue>}`.
@@ -418,6 +418,14 @@ This can be put to use in `//DEPS` like so:
 ```
 
 Here we use the properties to avoid hardcoding your script to a specific operating system.
+
+=== JavaFX
+
+If `jbang` detects you have a `javafx-` dependency in your list of dependencies
+it will if you `java` command supports Java modules automatically set the necessary
+`--module-path` and `--add-modules`.
+
+See `link:examples/jfx.java[]` and `link:examples/jfxtiles.java[]` for examples of this.
 
 == Editing
 
