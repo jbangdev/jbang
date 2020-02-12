@@ -47,6 +47,7 @@ Instant cli app generated built using java and picocli as a dependency that was 
 * Control compile and runtime options with `//JAVAC_OPTIONS <flags>` and `//JAVA_OPTIONS <flags>`
 * Compiled jar and Dependency resolution caching
 * Launch with debug enabled for instant debugging from your favorite IDE
+* Transparent launch of JavaFX Applications on Java 8 and higher.
 * Init templates to get started easily (`jbang --init=cli hello.java`)
 * Generate gradle and IDE config with dependencies for easy editing in your favorite IDE (`jbang --edit myfile.java`)
 * (PLANNED) Lookup dependencies with a short-hand name, i.e. `// DEPS log4j:1.2+,picocli` for quick getting started.
