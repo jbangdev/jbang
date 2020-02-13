@@ -1,6 +1,6 @@
 //usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS com.brsanthu:google-analytics-java:2.0.0
-//DEPS info.picocli:picocli:4.1.4
+//DEPS info.picocli:picocli:4.2.0
 
 import com.brsanthu.googleanalytics.GoogleAnalytics;
 import com.brsanthu.googleanalytics.GoogleAnalyticsConfig;

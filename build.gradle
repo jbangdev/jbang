@@ -19,7 +19,7 @@ dependencies {
 	implementation 'com.offbytwo:docopt:0.6.0.20150202'
 
 	implementation 'org.apache.commons:commons-text:1.8'
-	implementation 'info.picocli:picocli:4.1.4'
+	implementation 'info.picocli:picocli:4.2.0'
 	implementation 'io.quarkus.qute:qute-core:1.1.0.Final'
 	implementation 'kr.motd.maven:os-maven-plugin:1.6.1'
 	implementation 'org.codehaus.plexus:plexus-java:1.0.4'
