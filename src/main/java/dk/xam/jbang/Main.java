@@ -630,6 +630,15 @@ public class Main implements Callable<Integer> {
 		// support url's as script files
 		if (scriptResource.startsWith("http://") || scriptResource.startsWith("https://")
 				|| scriptResource.startsWith("file:/")) {
+
+			scriptResource = scriptResource.replaceFirst("^https://github.com/(.*)/blob/(.*)$",
+					"https://raw.githubusercontent.com/$1/$2");
+			// TODO: for gist we need to be smarter when it comes to downloading as it gives
+			// an invalid flag when jbang compiles
+			// scriptResource =
+			// scriptResource.replaceFirst("^https://gist.github.com/([a-zA-Z0-9]*)/([a-zA-Z0-9]*)$",
+			// "https://gist.githubusercontent.com/$1/$2/raw");
+
 			scriptFile = fetchFromURL(scriptResource);
 		}
 
@@ -684,7 +693,7 @@ public class Main implements Callable<Integer> {
 
 			return path.toFile();
 		} catch (IOException e) {
-			throw new ExitException(2, e);
+			throw new ExitException(2, "Could not download " + scriptURL, e);
 		}
 	}
 

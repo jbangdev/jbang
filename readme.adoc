@@ -278,11 +278,11 @@ chmod +x helloworld.java
 ./helloworld jbang!
 ----
 
-You can use `http(s):/` and `file:/` url's for input too:
+You can use `http(s):/` and `file:/` url's for input and github.com based urls will automatically download the raw version (since v0.15).
 
 [source]
 ----
-jbang https://raw.githubusercontent.com/maxandersen/jbang/master/examples/helloworld.java
+jbang https://github.com/maxandersen/jbang/blob/master/examples/helloworld.java
 ----
 
 === Using `.jsh` for `jshell`
