@@ -26,7 +26,7 @@ class DependencyUtil {
 
 	static {
 		dk.xam.jbang.Detector detector = new dk.xam.jbang.Detector();
-		detector.detect(new Properties(), null);
+		detector.detect(new Properties(), Collections.emptyList());
 	}
 
 	/**

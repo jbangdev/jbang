@@ -77,7 +77,7 @@ class DependencyResolverTest {
 		assertEquals("com.example", artifact.getGroupId());
 		assertEquals("my-native-library", artifact.getArtifactId());
 		assertEquals("1.0.0", artifact.getVersion());
-		assertEquals("mac", artifact.getClassifier());
+		assertEquals(System.getProperty("os.detected.jfxname"), artifact.getClassifier());
 		assertEquals("jar", artifact.getExtension());
 	}
 
@@ -127,7 +127,12 @@ class DependencyResolverTest {
 		// using shrinkwrap resolves in ${os.detected.version} not being resolved
 		List<String> deps = Arrays.asList("org.openjfx:javafx-graphics:11.0.2:mac", "com.offbytwo:docopt:0.6+");
 
-		ModularClassPath cp = new ModularClassPath(dr.resolveDependencies(deps, Collections.emptyList(), true));
+		ModularClassPath cp = new ModularClassPath(dr.resolveDependencies(deps, Collections.emptyList(), true)) {
+			@Override
+			protected boolean supportsModules(String javacmd) {
+				return true;
+			}
+		};
 
 		List<String> ma = cp.getAutoDectectedModuleArguments("java");
 

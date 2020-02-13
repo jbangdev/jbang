@@ -87,7 +87,7 @@ public class ModularClassPath {
 		}
 	}
 
-	private boolean supportsModules(String javacmd) {
+	protected boolean supportsModules(String javacmd) {
 		ProcessBuilder pb = new ProcessBuilder();
 		boolean result;
 		try {
