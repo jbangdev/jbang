@@ -27,8 +27,11 @@ class tz implements Callable<Integer> {
     @Parameters(index = "0", description = "time as hh:mm") 
     private LocalTime time; // <.>
 
-    @Parameters(converter = ZoneIdConverter.class, // <.>
-                description = "List of timezone ids to convert time stamp to")
+    @Parameters(split = ",",
+            converter = ZoneIdConverter.class, // <.>
+            defaultValue = "America/Los_Angeles,America/Detroit,Europe/London,Europe/Zurich,Asia/Kolkata,Australia/Brisbane",
+            description = "Time zones. Defaults: ${DEFAULT-VALUE}.",
+            hideParamSyntax = true, paramLabel = "[<zones>[,<zones>...]...]")
     List<ZoneId> zones;
     // end::parameters[]
 
@@ -41,19 +44,6 @@ class tz implements Callable<Integer> {
     public Integer call() throws Exception { // your business logic goes here...
 
         var t = LocalDateTime.now().with(time);
-
-        // tag::defaultzones[]
-        if(zones.isEmpty()) {
-            zones = Arrays.asList("America/Los_Angeles",
-                    "America/Detroit",
-                    "Europe/London",
-                    "Europe/Zurich",
-                    "Asia/Kolkata",
-                    "Australia/Brisbane").stream()
-                    .map(tz -> ZoneId.of(tz, ZoneId.SHORT_IDS))
-                    .collect(Collectors.toList()); // <.>
-        }
-        // end::defaultzones[]
 
         // tag::conversion[]
         String result = zones.stream().map(zone -> {
