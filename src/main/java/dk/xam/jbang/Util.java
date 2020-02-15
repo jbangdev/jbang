@@ -87,8 +87,9 @@ public class Util {
 						fileName = disposition.substring(index + 10,
 								disposition.length() - 1);
 					}
-				} else {
-					// extracts file name from URL
+				}
+				if (fileName == null || fileName.trim().isEmpty()) {
+					// extracts file name from URL if nothing found
 					fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1,
 							fileURL.length());
 				}

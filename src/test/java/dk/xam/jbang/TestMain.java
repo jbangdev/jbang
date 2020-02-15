@@ -224,4 +224,33 @@ public class TestMain {
 
 		assertThat(script.getMainClass(), equalTo("dualclass"));
 	}
+
+	@Test
+	void testFetchFromGitLab(@TempDir Path dir) throws IOException {
+
+		Path x = Util.downloadFile("https://gitlab.com/maxandersen/jbang-gitlab/-/raw/master/helloworld.java",
+				dir.toFile());
+		assertEquals(x.getFileName().toString(), "helloworld.java");
+	}
+
+	@Test
+	void testFetchFromGist(@TempDir Path dir) throws IOException {
+
+		Path x = Util.downloadFile("https://gist.github.com/maxandersen/590b8a0e824faeb3ee7ddfad741ce842/raw",
+				dir.toFile());
+		assertEquals(x.getFileName().toString(), "raw");
+	}
+
+	@Test
+	void testSwizzle(@TempDir Path dir) throws IOException {
+
+		assertThat(
+				Main.swizzleURL("https://github.com/maxandersen/jbang/blob/master/examples/helloworld.java"),
+				equalTo("https://raw.githubusercontent.com/maxandersen/jbang/master/examples/helloworld.java"));
+
+		assertThat(
+				Main.swizzleURL("https://gitlab.com/maxandersen/jbang-gitlab/-/blob/master/helloworld.java"),
+				equalTo("https://gitlab.com/maxandersen/jbang-gitlab/-/raw/master/helloworld.java"));
+
+	}
 }

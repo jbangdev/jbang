@@ -74,7 +74,7 @@ public class TestEdit {
 		Main.getCommandLine().execute("--init", s);
 		assertThat(new File(s).exists(), is(true));
 
-		Util.writeString(p, "//DEPS org.openjfx:javafx-graphics:11.0.2:${os.detected.jfxname}\n" + Util.readString(p));
+		Util.writeString(p, "//DEPS org.openjfx:javafx-graphics:11.0.2${bougus:}\n" + Util.readString(p));
 
 		Script script = new Script(new File(s));
 
@@ -82,7 +82,7 @@ public class TestEdit {
 
 		File gradle = new File(project, "build.gradle");
 		assert (gradle.exists());
-		assertThat(Util.readString(gradle.toPath()), not(containsString("os.detected.jfxname")));
+		assertThat(Util.readString(gradle.toPath()), not(containsString("bogus")));
 
 	}
 

@@ -102,13 +102,11 @@ class DependencyUtil {
 		} catch (DependencyException e) { // Probably a wrapped Nullpointer from
 											// 'DefaultRepositorySystem.resolveDependencies()', this however is probably
 											// a connection problem.
-			errorMsg(
-					"Failed while connecting to the server. Check the connection (http/https, port, proxy, credentials, etc.) of your maven dependency locators. If you suspect this is a bug, you can create an issue on https://github.com/maxandersen/jbang");
 			errorMsg("Exception: " + e.getMessage());
-			quit(1);
+			throw new ExitException(0,
+					"Failed while connecting to the server. Check the connection (http/https, port, proxy, credentials, etc.) of your maven dependency locators.",
+					e);
 		}
-
-		return null;
 	}
 
 	public List<Artifact> resolveDependenciesViaAether(List<String> depIds, List<MavenRepo> customRepos,

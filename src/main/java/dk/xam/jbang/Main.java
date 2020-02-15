@@ -205,6 +205,8 @@ public class Main implements Callable<Integer> {
 			info(e.getMessage());
 			if (verbose) {
 				e.printStackTrace();
+			} else if (e.getCause() != null) {
+				info("Run with --verbose for more details");
 			}
 			return e.getStatus();
 		}
@@ -638,14 +640,6 @@ public class Main implements Callable<Integer> {
 		if (scriptResource.startsWith("http://") || scriptResource.startsWith("https://")
 				|| scriptResource.startsWith("file:/")) {
 
-			scriptResource = scriptResource.replaceFirst("^https://github.com/(.*)/blob/(.*)$",
-					"https://raw.githubusercontent.com/$1/$2");
-			// TODO: for gist we need to be smarter when it comes to downloading as it gives
-			// an invalid flag when jbang compiles
-			// scriptResource =
-			// scriptResource.replaceFirst("^https://gist.github.com/([a-zA-Z0-9]*)/([a-zA-Z0-9]*)$",
-			// "https://gist.githubusercontent.com/$1/$2/raw");
-
 			scriptFile = fetchFromURL(scriptResource);
 		}
 
@@ -689,14 +683,29 @@ public class Main implements Callable<Integer> {
 		}
 	}
 
+	public static String swizzleURL(String url) {
+		url = url.replaceFirst("^https://github.com/(.*)/blob/(.*)$",
+				"https://raw.githubusercontent.com/$1/$2");
+		// TODO: for gist we need to be smarter when it comes to downloading as it gives
+		// an invalid flag when jbang compiles
+		// scriptResource =
+		// scriptResource.replaceFirst("^https://gist.github.com/([a-zA-Z0-9]*)/([a-zA-Z0-9]*)$",
+		// "https://gist.githubusercontent.com/$1/$2/raw");
+
+		url = url.replaceFirst("^https://gitlab.com/(.*)/-/blob/(.*)$",
+				"https://gitlab.com/$1/-/raw/$2");
+
+		return url;
+	}
+
 	private static File fetchFromURL(String scriptURL) {
 		try {
+			scriptURL = swizzleURL(scriptURL);
+
 			String urlHash = getStableID(scriptURL);
 			File urlCache = new File(Settings.getCacheDir(), "/url_cache_" + urlHash);
 			urlCache.mkdirs();
 			Path path = Util.downloadFile(scriptURL, urlCache);
-
-			Settings.setupCache();
 
 			return path.toFile();
 		} catch (IOException e) {
