@@ -48,6 +48,7 @@ Instant cli app generated built using java and picocli as a dependency that was 
 * Compiled jar and Dependency resolution caching
 * Launch with debug enabled for instant debugging from your favorite IDE
 * Transparent launch of JavaFX Applications on Java 8 and higher.
+* Can be used for writing plugins to other cli's like `kubectl`
 * Init templates to get started easily (`jbang --init=cli hello.java`)
 * Generate gradle and IDE config with dependencies for easy editing in your favorite IDE (`jbang --edit myfile.java`)
 * (PLANNED) Lookup dependencies with a short-hand name, i.e. `// DEPS log4j:1.2+,picocli` for quick getting started.
@@ -427,6 +428,34 @@ it will if you `java` command supports Java modules automatically set the necess
 `--module-path` and `--add-modules`.
 
 See `link:examples/jfx.java[]` and `link:examples/jfxtiles.java[]` for examples of this.
+
+== Extension-less/non-java files for cli-plugins
+
+You can use `jbang` to write plugins for cli's like `kubectl`, `git`, etc.
+They expect their plugins to be named like `<cmd>-<plugin>`, i.e. `kubectl-myplugin`.
+
+Furthermore some of them, particularly `kubectl` currently require the file to start with `#!` otherwise you get a `excc format error`.
+
+`jbang` has a bit of auto-magic to help in both cases.
+
+=== kebab casing of filename
+
+`jbang` lets you name your file without a `.java` or `.jsh` extension, such
+as `kubectl-myplugin`. `jbang` will in this case copy the file to a temporary
+directory using kebab-case to map the name to a proper java class name.
+
+i.e. If you make a file called `kubectl-myplugin` then `jbang` will assume the actual class name to launch
+will be `KubectlMyPlugin`.
+
+If you do not follow this naming pattern you will get a compile error as `javac` expect the public class name are equal to the filename.
+
+=== she-bang auto-stripped
+
+For extension less scripts, you can put `#!' header in beginning to let apps recognize
+it is to be treated as a script. To avoid issues when compiling `jbang` will remove
+that line before compiling.
+
+For now this is required for `kubectl` plugin but not `git`. https://github.com/kubernetes/kubectl/issues/822[Issue opened] on this limitation.
 
 == Editing
 
