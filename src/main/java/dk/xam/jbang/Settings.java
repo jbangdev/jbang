@@ -27,7 +27,7 @@ public class Settings {
 
 	public static File getLocalMavenRepo() {
 		return new File(System.getenv().getOrDefault("JBANG_REPO", System.getProperty("user.home") + "/.m2/repository"))
-				.getAbsoluteFile();
+																														.getAbsoluteFile();
 	}
 
 	public static File getCacheDependencyFile() {

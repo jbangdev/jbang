@@ -31,11 +31,14 @@ public class ModularClassPath {
 		if (javafx && supportsModules(javacmd)) {
 			List<String> commandArguments = new ArrayList<>();
 
-			List<File> artifacts = Arrays.stream(getClassPath().split(CP_SEPARATOR)).map(it -> new File(it))
-					.collect(Collectors.toList());
+			List<File> artifacts = Arrays	.stream(getClassPath().split(CP_SEPARATOR))
+											.map(it -> new File(it))
+											.collect(Collectors.toList());
 
-			ResolvePathsRequest<File> result = ResolvePathsRequest.ofFiles(artifacts)
-					.setModuleDescriptor(JavaModuleDescriptor.newModule("bogus").build());
+			ResolvePathsRequest<File> result = ResolvePathsRequest	.ofFiles(artifacts)
+																	.setModuleDescriptor(
+																			JavaModuleDescriptor.newModule("bogus")
+																								.build());
 
 			LocationManager lm = new LocationManager();
 
@@ -46,8 +49,9 @@ public class ModularClassPath {
 				List<String> modulePaths = new ArrayList<>();
 				Map<String, JavaModuleDescriptor> pathElements = new HashMap<>();
 
-				resolvePathsResult.getModulepathElements().keySet()
-						.forEach(file -> modulePaths.add(file.getPath()));
+				resolvePathsResult	.getModulepathElements()
+									.keySet()
+									.forEach(file -> modulePaths.add(file.getPath()));
 
 				resolvePathsResult.getPathElements().forEach((key, value) -> pathElements.put(key.getPath(), value));
 
@@ -66,12 +70,14 @@ public class ModularClassPath {
 					commandArguments.add(modulePath);
 				}
 
-				String modules = pathElements.values().stream()
-						.filter(Objects::nonNull)
-						.map(JavaModuleDescriptor::name)
-						.filter(Objects::nonNull)
-						.filter(module -> module.startsWith(JAVAFX_PREFIX) && !module.endsWith("Empty"))
-						.collect(Collectors.joining(","));
+				String modules = pathElements	.values()
+												.stream()
+												.filter(Objects::nonNull)
+												.map(JavaModuleDescriptor::name)
+												.filter(Objects::nonNull)
+												.filter(module -> module.startsWith(JAVAFX_PREFIX)
+														&& !module.endsWith("Empty"))
+												.collect(Collectors.joining(","));
 				if (!modules.trim().isEmpty()) {
 					commandArguments.add("--add-modules");
 					commandArguments.add(modules);

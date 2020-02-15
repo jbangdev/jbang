@@ -131,8 +131,10 @@ public class Main implements Callable<Integer> {
 	}
 
 	static CommandLine getCommandLine(PrintWriter localout, PrintWriter localerr) {
-		return new CommandLine(new Main()).setExitCodeExceptionMapper(new VersionProvider()).setStopAtPositional(true)
-				.setOut(new PrintWriter(localout, true)).setErr(new PrintWriter(localerr, true));
+		return new CommandLine(new Main())	.setExitCodeExceptionMapper(new VersionProvider())
+											.setStopAtPositional(true)
+											.setOut(new PrintWriter(localout, true))
+											.setErr(new PrintWriter(localerr, true));
 	}
 
 	private Integer doCall() throws IOException {
@@ -149,7 +151,7 @@ public class Main implements Callable<Integer> {
 		if (clearCache) {
 			info("Clearing cache at " + Settings.getCacheDir().toPath());
 			// noinspection resource
-			Files.walk(Settings.getCacheDir().toPath())
+			Files	.walk(Settings.getCacheDir().toPath())
 					.sorted(Comparator.reverseOrder())
 					.map(Path::toFile)
 					.forEach(File::delete);
@@ -246,15 +248,16 @@ public class Main implements Callable<Integer> {
 				// using Files.walk method with try-with-resources
 				try (Stream<Path> paths = Files.walk(tmpJarDir.toPath())) {
 					List<Path> items = paths.filter(Files::isRegularFile)
-							.filter(f -> !f.toFile().getName().contains("$"))
-							.filter(f -> f.toFile().getName().endsWith(".class"))
-							.collect(Collectors.toList());
+											.filter(f -> !f.toFile().getName().contains("$"))
+											.filter(f -> f.toFile().getName().endsWith(".class"))
+											.collect(Collectors.toList());
 
 					if (items.size() > 1) { // todo: this feels like a very sketchy way to find the proper class name
 											// but it works.
 						String mainname = script.backingFile.getName().replace(".java", ".class");
-						items = items.stream().filter(f -> f.toFile().getName().equalsIgnoreCase(mainname))
-								.collect(Collectors.toList());
+						items = items	.stream()
+										.filter(f -> f.toFile().getName().equalsIgnoreCase(mainname))
+										.collect(Collectors.toList());
 					}
 
 					if (items.size() != 1) {
@@ -381,11 +384,15 @@ public class Main implements Callable<Integer> {
 		if (template == null)
 			throw new ExitException(1, "Could not locate template named: '" + templateName + "'");
 		String result = template
-				.data("dependencies", collectDependencies)
-				.data("baseName", baseName)
-				.data("classpath", resolvedDependencies.stream().filter(t -> !t.isEmpty()).collect(Collectors.toList()))
-				.data("userParams", String.join(" ", userParams))
-				.data("cwd", System.getProperty("user.dir")).render();
+								.data("dependencies", collectDependencies)
+								.data("baseName", baseName)
+								.data("classpath",
+										resolvedDependencies.stream()
+															.filter(t -> !t.isEmpty())
+															.collect(Collectors.toList()))
+								.data("userParams", String.join(" ", userParams))
+								.data("cwd", System.getProperty("user.dir"))
+								.render();
 
 		Util.writeString(destination, result);
 	}
@@ -493,8 +500,8 @@ public class Main implements Callable<Integer> {
 
 		String buf = "String[] args = { " +
 				args.stream()
-						.map(s -> '"' + StringEscapeUtils.escapeJava(s) + '"')
-						.collect(Collectors.joining(", "))
+					.map(s -> '"' + StringEscapeUtils.escapeJava(s) + '"')
+					.collect(Collectors.joining(", "))
 				+
 				" }";
 		return buf;

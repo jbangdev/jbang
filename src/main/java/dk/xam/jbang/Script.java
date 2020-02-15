@@ -49,14 +49,19 @@ public class Script {
 	}
 
 	public List<String> collectDependencies() {
+		// early/eager init to property resolution will work.
+		new Detector().detect(new Properties(), Collections.emptyList());
 
 		// Make sure that dependencies declarations are well formatted
 		if (getLines().stream().anyMatch(it -> it.startsWith("// DEPS"))) {
 			throw new IllegalArgumentException("Dependencies must be declared by using the line prefix //DEPS");
 		}
 
-		List<String> dependencies = getLines().stream().filter(it -> isDependDeclare(it))
-				.flatMap(it -> extractDependencies(it)).collect(Collectors.toList());
+		List<String> dependencies = getLines()	.stream()
+												.filter(it -> isDependDeclare(it))
+												.flatMap(it -> extractDependencies(it))
+												.map(it -> PropertiesValueResolver.replaceProperties(it))
+												.collect(Collectors.toList());
 
 		return dependencies;
 	}
@@ -87,9 +92,9 @@ public class Script {
 		List<String> lines = getLines();
 
 		List<String> javaOptions = lines.stream()
-				.filter(it -> it.startsWith(joptsPrefix))
-				.map(it -> it.replaceFirst(joptsPrefix, "").trim())
-				.collect(Collectors.toList());
+										.filter(it -> it.startsWith(joptsPrefix))
+										.map(it -> it.replaceFirst(joptsPrefix, "").trim())
+										.collect(Collectors.toList());
 
 		String envOptions = System.getenv("JBANG_" + prefix);
 		if (envOptions != null) {

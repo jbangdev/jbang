@@ -33,7 +33,7 @@ public class TestEdit {
 		main = cli.getCommand();
 	}
 
-	@Test // @DisabledOnOs(WINDOWS)
+	@Test
 	void testEdit(@TempDir Path outputDir) throws IOException {
 
 		String s = outputDir.resolve("edit.java").toString();
@@ -64,6 +64,26 @@ public class TestEdit {
 		assert (launchfile.exists());
 		assertThat(Util.readString(launchfile.toPath()), containsString("launching.PROJECT_ATTR"));
 		assertThat(Util.readString(launchfile.toPath()), containsString("4004"));
+	}
+
+	@Test
+	void testEditDeps(@TempDir Path outputDir) throws IOException {
+
+		Path p = outputDir.resolve("edit.java");
+		String s = p.toString();
+		Main.getCommandLine().execute("--init", s);
+		assertThat(new File(s).exists(), is(true));
+
+		Util.writeString(p, "//DEPS org.openjfx:javafx-graphics:11.0.2:${os.detected.jfxname}\n" + Util.readString(p));
+
+		Script script = new Script(new File(s));
+
+		File project = main.createProject(script, Collections.emptyList());
+
+		File gradle = new File(project, "build.gradle");
+		assert (gradle.exists());
+		assertThat(Util.readString(gradle.toPath()), not(containsString("os.detected.jfxname")));
 
 	}
+
 }

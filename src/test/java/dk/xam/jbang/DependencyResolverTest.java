@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
@@ -71,9 +72,13 @@ class DependencyResolverTest {
 
 	@Test
 	void testdepIdWithPlaceHoldersToArtifact() {
-		DependencyUtil dr = new DependencyUtil();
+		dk.xam.jbang.Detector detector = new dk.xam.jbang.Detector();
+		detector.detect(new Properties(), Collections.emptyList());
 
-		Artifact artifact = dr.depIdToArtifact("com.example:my-native-library:1.0.0:${os.detected.jfxname}");
+		String gav = PropertiesValueResolver.replaceProperties(
+				"com.example:my-native-library:1.0.0:${os.detected.jfxname}");
+
+		Artifact artifact = new DependencyUtil().depIdToArtifact(gav);
 		assertEquals("com.example", artifact.getGroupId());
 		assertEquals("my-native-library", artifact.getArtifactId());
 		assertEquals("1.0.0", artifact.getVersion());

@@ -23,12 +23,6 @@ import org.sonatype.aether.util.artifact.DefaultArtifact;
 import com.jcabi.aether.Aether;
 
 class DependencyUtil {
-
-	static {
-		dk.xam.jbang.Detector detector = new dk.xam.jbang.Detector();
-		detector.detect(new Properties(), Collections.emptyList());
-	}
-
 	/**
 	 * 
 	 * @param depIds
@@ -51,15 +45,16 @@ class DependencyUtil {
 		if (Settings.getCacheDependencyFile().isFile()) {
 			try {
 
-				cache = Files.readAllLines(Settings.getCacheDependencyFile().toPath()).stream()
-						.filter(it -> !it.trim().isEmpty())
-						.collect(Collectors.toMap(
-								it -> it.split(" ")[0],
-								it -> it.split(" ")[1],
-								(k1, k2) -> {
-									return k2;
-								} // in case of duplicates, last one wins
-						));
+				cache = Files	.readAllLines(Settings.getCacheDependencyFile().toPath())
+								.stream()
+								.filter(it -> !it.trim().isEmpty())
+								.collect(Collectors.toMap(
+										it -> it.split(" ")[0],
+										it -> it.split(" ")[1],
+										(k1, k2) -> {
+											return k2;
+										} // in case of duplicates, last one wins
+								));
 			} catch (IOException e) {
 				warnMsg("Could not access cache " + e.getMessage());
 			}
@@ -84,8 +79,9 @@ class DependencyUtil {
 
 		try {
 			List<Artifact> artifacts = resolveDependenciesViaAether(depIds, customRepos, loggingEnabled);
-			String classPath = artifacts.stream().map(it -> it.getFile().getAbsolutePath())
-					.collect(Collectors.joining(CP_SEPARATOR));
+			String classPath = artifacts.stream()
+										.map(it -> it.getFile().getAbsolutePath())
+										.collect(Collectors.joining(CP_SEPARATOR));
 
 			if (loggingEnabled) {
 				infoMsg("Dependencies resolved");
@@ -165,8 +161,6 @@ class DependencyUtil {
 
 	public Artifact depIdToArtifact(String depId) {
 
-		depId = PropertiesValueResolver.replaceProperties(depId);
-
 		Pattern gavPattern = Pattern.compile(
 				"^(?<groupid>[^:]*):(?<artifactid>[^:]*):(?<version>[^:@]*)(:(?<classifier>[^@]*))?(@(?<type>.*))?$");
 		Matcher gav = gavPattern.matcher(depId);
@@ -197,8 +191,10 @@ class DependencyUtil {
 	}
 
 	public static String removeLastCharOptional(String s) {
-		return Optional.ofNullable(s).filter(str -> str.length() != 0).map(str -> str.substring(0, str.length() - 1))
-				.orElse(s);
+		return Optional	.ofNullable(s)
+						.filter(str -> str.length() != 0)
+						.map(str -> str.substring(0, str.length() - 1))
+						.orElse(s);
 	}
 
 }
