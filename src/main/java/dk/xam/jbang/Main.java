@@ -560,6 +560,12 @@ public class Main implements Callable<Integer> {
 		return fullArgs.stream().collect(Collectors.joining(" "));
 	}
 
+	static String fromKebab(String name) {
+		return Arrays	.stream(name.split("\\-"))
+						.map(s -> Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase())
+						.collect(Collectors.joining());
+	}
+
 	static String resolveInJavaHome(String cmd) {
 		if (getenv("JAVA_HOME") != null) {
 			return getenv("JAVA_HOME") + File.separator + "bin" + File.separator + cmd;
@@ -605,7 +611,7 @@ public class Main implements Callable<Integer> {
 
 	}
 
-	static Script prepareScript(String scriptResource) {
+	static Script prepareScript(String scriptResource) throws IOException {
 		File scriptFile = null;
 
 		// we need to keep track of the scripts dir or the working dir in case of stdin
@@ -621,6 +627,20 @@ public class Main implements Callable<Integer> {
 		} else if (probe.getName().endsWith(".java") || probe.getName().endsWith(".jsh")) {
 			scriptFile = probe;
 		} else {
+			String original = Util.readString(probe.toPath());
+			// TODO: move temp handling somewhere central
+			String urlHash = getStableID(original);
+
+			if (original.startsWith("#!")) { // strip bash !# if exists
+				original = original.substring(original.indexOf("\n"));
+			}
+
+			File tempFile = new File(Settings.getCacheDir(),
+					"/script_cache_" + urlHash + "/" + fromKebab(probe.getName()) + ".java");
+			tempFile.getParentFile().mkdirs();
+			Util.writeString(tempFile.toPath().toAbsolutePath(), original);
+			scriptFile = tempFile;
+
 			// if we can "just" read from script resource create tmp file
 			// i.e. script input is process substitution file handle
 			// not FileInputStream(this).bufferedReader().use{ readText()} does not work nor

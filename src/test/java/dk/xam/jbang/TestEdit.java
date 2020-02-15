@@ -86,4 +86,22 @@ public class TestEdit {
 
 	}
 
+	// @Test
+	void testEditNonJava(@TempDir Path outputDir) throws IOException {
+
+		Path p = outputDir.resolve("kube-example");
+		String s = p.toString();
+		Main.getCommandLine().execute("--init", s);
+		assertThat(new File(s).exists(), is(true));
+
+		Script script = new Script(new File(s));
+
+		File project = main.createProject(script, Collections.emptyList());
+
+		File gradle = new File(project, "KubeExample.java");
+		assert (gradle.exists());
+		assertThat(Util.readString(gradle.toPath()), not(containsString("bogus")));
+
+	}
+
 }

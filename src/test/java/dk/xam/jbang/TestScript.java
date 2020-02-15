@@ -1,13 +1,17 @@
 package dk.xam.jbang;
 
+import static dk.xam.jbang.Util.writeString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class TestScript {
 
@@ -68,6 +72,15 @@ class TestScript {
 		assertEquals(s.collectCompileOptions(), Arrays.asList("--enable-preview", "--verbose"));
 
 		assertEquals(s.collectRuntimeOptions(), Arrays.asList("--enable-preview", "-Dvalue='this is space'"));
+
+	}
+
+	@Test
+	void testNonJavaExtension(@TempDir Path output) throws IOException {
+		Path p = output.resolve("kube-example");
+		writeString(p, example);
+
+		Script s = Main.prepareScript(p.toAbsolutePath().toString());
 
 	}
 

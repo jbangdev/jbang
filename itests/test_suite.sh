@@ -80,6 +80,10 @@ assert "jbang https://raw.githubusercontent.com/maxandersen/jbang/master/example
 ## test that can figure out main class with dual classes
 assert "jbang dualclass.java" "Hello World"
 
+## test that can run without .java extension
+assert "jbang --init=cli $SCRATCH/xyzplugin"
+assert "jbang $SCRATCH/xyzplugin" "Hello World!"
+
 ### Cleanup
 rm RESULTS
 assert_end jbang > RESULTS
