@@ -29,11 +29,11 @@ curl -X PUT \
     -d '{"candidate": "jbang", "version": "'${jbang_version}'"}' \
     https://vendors.sdkman.io/default
 
-## Broadcast a Structured Message
+## Broadcast message with pointer to change log
 curl -X POST \
     -H "Consumer-Key: ${SDKMAN_CONSUMER_KEY}" \
     -H "Consumer-Token: ${SDKMAN_CONSUMER_TOKEN}" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
-    -d '{"candidate": "jbang", "version": "'${jbang_version}'", "hashtag": "jbang"}' \
-    https://vendors.sdkman.io/announce/struct
+    -d '{"text": "j'bang '${jbang_version}' released on SDKMAN! See https://github.com/maxandersen/jbang/releases/tag/v'${jbang_version}' #jbang"}' \
+    https://vendors.sdkman.io/announce/freeform

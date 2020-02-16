@@ -1,15 +1,8 @@
 package dk.xam.jbang;
 
-import io.quarkus.qute.Engine;
-import io.quarkus.qute.Template;
-import io.quarkus.qute.TemplateLocator;
-import io.quarkus.qute.Variant;
-import org.apache.commons.text.StringEscapeUtils;
-import picocli.AutoComplete;
-import picocli.CommandLine;
-import picocli.CommandLine.Model.ArgSpec;
-import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.Model.OptionSpec;
+import static dk.xam.jbang.Settings.CP_SEPARATOR;
+import static java.lang.System.*;
+import static picocli.CommandLine.*;
 
 import java.io.*;
 import java.net.URL;
@@ -26,9 +19,17 @@ import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static dk.xam.jbang.Settings.CP_SEPARATOR;
-import static java.lang.System.*;
-import static picocli.CommandLine.*;
+import org.apache.commons.text.StringEscapeUtils;
+
+import io.quarkus.qute.Engine;
+import io.quarkus.qute.Template;
+import io.quarkus.qute.TemplateLocator;
+import io.quarkus.qute.Variant;
+import picocli.AutoComplete;
+import picocli.CommandLine;
+import picocli.CommandLine.Model.ArgSpec;
+import picocli.CommandLine.Model.CommandSpec;
+import picocli.CommandLine.Model.OptionSpec;
 
 @Command(name = "jbang", footer = "\nCopyright: 2020 Max Rydahl Andersen, License: MIT\nWebsite: https://github.com/maxandersen/jbang", versionProvider = VersionProvider.class, description = "Compiles and runs .java/.jsh scripts.")
 public class Main implements Callable<Integer> {
@@ -577,10 +578,10 @@ public class Main implements Callable<Integer> {
 
 	static String kebab2camel(String name) {
 
-		if(name.contains("-")) { // xyz-plug becomes XyzPlug
-			return Arrays.stream(name.split("\\-"))
-					.map(s -> Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase())
-					.collect(Collectors.joining());
+		if (name.contains("-")) { // xyz-plug becomes XyzPlug
+			return Arrays	.stream(name.split("\\-"))
+							.map(s -> Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase())
+							.collect(Collectors.joining());
 		} else {
 			return name; // xyz stays xyz
 		}
