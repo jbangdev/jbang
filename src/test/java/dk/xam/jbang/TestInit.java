@@ -1,14 +1,14 @@
 package dk.xam.jbang;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 public class TestInit {
 
@@ -54,6 +54,30 @@ public class TestInit {
 		assertThat(result, is(0));
 
 		assertThat(Util.readString(x), containsString("class edit"));
+	}
+
+	@Test
+	void testInitExtensionlessKebab(@TempDir Path outputDir) throws IOException {
+
+		Path x = outputDir.resolve("xyz-plug");
+		String s = x.toString();
+		int result = Main.getCommandLine().execute("--init=", s);
+		assertThat(new File(s).exists(), is(true));
+		assertThat(result, is(0));
+
+		assertThat(Util.readString(x), containsString("class XyzPlug"));
+	}
+
+	@Test
+	void testInitExtensionless(@TempDir Path outputDir) throws IOException {
+
+		Path x = outputDir.resolve("xyzplug");
+		String s = x.toString();
+		int result = Main.getCommandLine().execute("--init=", s);
+		assertThat(new File(s).exists(), is(true));
+		assertThat(result, is(0));
+
+		assertThat(Util.readString(x), containsString("class xyzplug"));
 	}
 
 }

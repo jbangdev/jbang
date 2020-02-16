@@ -1,8 +1,15 @@
 package dk.xam.jbang;
 
-import static dk.xam.jbang.Settings.CP_SEPARATOR;
-import static java.lang.System.*;
-import static picocli.CommandLine.*;
+import io.quarkus.qute.Engine;
+import io.quarkus.qute.Template;
+import io.quarkus.qute.TemplateLocator;
+import io.quarkus.qute.Variant;
+import org.apache.commons.text.StringEscapeUtils;
+import picocli.AutoComplete;
+import picocli.CommandLine;
+import picocli.CommandLine.Model.ArgSpec;
+import picocli.CommandLine.Model.CommandSpec;
+import picocli.CommandLine.Model.OptionSpec;
 
 import java.io.*;
 import java.net.URL;
@@ -19,17 +26,9 @@ import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.text.StringEscapeUtils;
-
-import io.quarkus.qute.Engine;
-import io.quarkus.qute.Template;
-import io.quarkus.qute.TemplateLocator;
-import io.quarkus.qute.Variant;
-import picocli.AutoComplete;
-import picocli.CommandLine;
-import picocli.CommandLine.Model.ArgSpec;
-import picocli.CommandLine.Model.CommandSpec;
-import picocli.CommandLine.Model.OptionSpec;
+import static dk.xam.jbang.Settings.CP_SEPARATOR;
+import static java.lang.System.*;
+import static picocli.CommandLine.*;
 
 @Command(name = "jbang", footer = "\nCopyright: 2020 Max Rydahl Andersen, License: MIT\nWebsite: https://github.com/maxandersen/jbang", versionProvider = VersionProvider.class, description = "Compiles and runs .java/.jsh scripts.")
 public class Main implements Callable<Integer> {
@@ -176,7 +175,7 @@ public class Main implements Callable<Integer> {
 		} else { // no point in editing nor running something we just inited.
 			if (edit) {
 				script = prepareScript(scriptOrFile);
-				File project = createProject(script, userParams);
+				File project = createProjectForEdit(script, userParams);
 				// err.println(project.getAbsolutePath());
 				out.println("echo " + project.getAbsolutePath()); // quit(project.getAbsolutePath());
 				return 0;
@@ -294,7 +293,8 @@ public class Main implements Callable<Integer> {
 		return mainClass.toString();
 	}
 
-	File createProject(Script script, List<String> userParams) throws IOException {
+	/** Create Project to use for editing **/
+	File createProjectForEdit(Script script, List<String> userParams) throws IOException {
 
 		List<String> collectDependencies = script.collectDependencies();
 		String cp = script.resolveClassPath();
@@ -304,22 +304,25 @@ public class Main implements Callable<Integer> {
 
 		File baseDir = new File(Settings.getCacheDir(), "temp_projects");
 
-		File tmpProjectDir = new File(baseDir, script.backingFile.getName() + "_jbang_" +
-				getStableID(script.backingFile.getAbsolutePath()));
+		String name = script.getOriginalFile().getName();
+		name = unkebabify(name);
+
+		File tmpProjectDir = new File(baseDir, name + "_jbang_" +
+				getStableID(script.getOriginalFile().getAbsolutePath()));
 		tmpProjectDir.mkdirs();
-		tmpProjectDir = new File(tmpProjectDir, stripPrefix(script.backingFile.getName()));
+		tmpProjectDir = new File(tmpProjectDir, stripPrefix(name));
 		tmpProjectDir.mkdirs();
 
 		File srcDir = new File(tmpProjectDir, "src");
 		srcDir.mkdir();
 
-		File srcFile = new File(srcDir, script.backingFile.getName());
+		File srcFile = new File(srcDir, name);
 		if (!srcFile.exists()) {
-			Files.createSymbolicLink(srcFile.toPath(), script.backingFile.getAbsoluteFile().toPath());
+			Files.createSymbolicLink(srcFile.toPath(), script.getOriginalFile().getAbsoluteFile().toPath());
 		}
 
 		// create build gradle
-		String baseName = getBaseName(script.backingFile.getName());
+		String baseName = getBaseName(name);
 		String templateName = "build.qute.gradle";
 		Path destination = new File(tmpProjectDir, "build.gradle").toPath();
 		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
@@ -492,7 +495,7 @@ public class Main implements Callable<Integer> {
 	public static String getBaseName(String fileName) {
 		int index = fileName.lastIndexOf('.');
 		if (index == -1) {
-			return fileName;
+			return kebab2camel(fileName);
 		} else {
 			return fileName.substring(0, index);
 		}
@@ -560,10 +563,27 @@ public class Main implements Callable<Integer> {
 		return fullArgs.stream().collect(Collectors.joining(" "));
 	}
 
-	static String fromKebab(String name) {
-		return Arrays	.stream(name.split("\\-"))
-						.map(s -> Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase())
-						.collect(Collectors.joining());
+	/**
+	 *
+	 * @param name script name
+	 * @return camel case of kebab string if name does not end with .java or .jsh
+	 */
+	static String unkebabify(String name) {
+		if (!(name.endsWith(".java") || name.endsWith(".jsh"))) {
+			name = kebab2camel(name) + ".java";
+		}
+		return name;
+	}
+
+	static String kebab2camel(String name) {
+
+		if(name.contains("-")) { // xyz-plug becomes XyzPlug
+			return Arrays.stream(name.split("\\-"))
+					.map(s -> Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase())
+					.collect(Collectors.joining());
+		} else {
+			return name; // xyz stays xyz
+		}
 	}
 
 	static String resolveInJavaHome(String cmd) {
@@ -636,7 +656,7 @@ public class Main implements Callable<Integer> {
 			}
 
 			File tempFile = new File(Settings.getCacheDir(),
-					"/script_cache_" + urlHash + "/" + fromKebab(probe.getName()) + ".java");
+					"/script_cache_" + urlHash + "/" + unkebabify(probe.getName()));
 			tempFile.getParentFile().mkdirs();
 			Util.writeString(tempFile.toPath().toAbsolutePath(), original);
 			scriptFile = tempFile;
@@ -689,6 +709,7 @@ public class Main implements Callable<Integer> {
 		Script s = null;
 		try {
 			s = new Script(scriptFile);
+			s.setOriginal(probe);
 		} catch (FileNotFoundException e) {
 			throw new ExitException(1, e);
 		}
@@ -760,10 +781,12 @@ public class Main implements Callable<Integer> {
 		public void consumeParameters(Stack<String> args, ArgSpec argSpec, CommandSpec commandSpec) {
 			String arg = args.pop();
 
-			if (arg.contains(".")) {
+			if (arg.contains(".")) { // if a dot is in the argument assume it is a file name
 				args.push(arg);
 				argSpec.setValue(((OptionSpec) argSpec).fallbackValue());
-			} else {
+			} else if (arg.trim().isEmpty()) { // if empty, means param= so use fallback value
+				argSpec.setValue(((OptionSpec) argSpec).fallbackValue());
+			} else { // great, looks like a single value we can use!
 				argSpec.setValue(arg);
 			}
 		}

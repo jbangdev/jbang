@@ -447,7 +447,11 @@ directory using kebab-case to map the name to a proper java class name.
 i.e. If you make a file called `kubectl-myplugin` then `jbang` will assume the actual class name to launch
 will be `KubectlMyPlugin`.
 
-If you do not follow this naming pattern you will get a compile error as `javac` expect the public class name are equal to the filename.
+Note, similar is done when using `--edit`, here the symbolic link will be made so the IDE will treat it as
+regular camel cased java class.
+
+Note: If you do not follow this naming pattern you will get a compile error as `javac` expect the public class name are equal to the filename.
+
 
 === she-bang auto-stripped
 

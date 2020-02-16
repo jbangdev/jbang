@@ -16,7 +16,16 @@ public class Script {
 	private Pattern DEPS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
 	private Pattern DEPS_ANNOT_SINGLE = Pattern.compile("@Grab\\(\\s*\"(?<value>.*)\"\\s*\\)");
 
+	/**
+	 * the file that contains the code that will back the actual compile/execution.
+	 * Might have been altered to be runnable; i.e. stripped out !# before launch.
+	 */
 	File backingFile;
+	/**
+	 * The original file, it might or might not be same as used as backingFile.
+	 */
+	private File originalFile;
+
 	private ModularClassPath classpath;
 	private String script;
 	private String mainClass;
@@ -203,4 +212,11 @@ public class Script {
 		return backingFile.getName().endsWith(".jsh");
 	}
 
+	public void setOriginal(File probe) {
+		this.originalFile = probe;
+	}
+
+	public File getOriginalFile() {
+		return originalFile;
+	}
 }
