@@ -39,12 +39,12 @@ public class webdriver {
 
   public static void googleIt(WebDriver driver, String search) throws Exception {
     driver.get("http://www.google.com/");
-    Thread.sleep(3000);  // Let the user actually see something!
+    //Thread.sleep(3000);  // Let the user actually see something!
     WebElement searchBox = driver.findElement(By.name("q"));
     searchBox.sendKeys(search);
-    Thread.sleep(1000);
+    //Thread.sleep(1000);
     searchBox.submit();
-    Thread.sleep(3000);  // Let the user actually see something!
+    //Thread.sleep(3000);  // Let the user actually see something!
   }
 
   public static void main(String[] args) throws Exception {
