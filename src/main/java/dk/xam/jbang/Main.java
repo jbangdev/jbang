@@ -525,15 +525,15 @@ public class Main implements Callable<Integer> {
 		if (script.backingFile.getName().endsWith(".jsh")) {
 			javacmd = resolveInJavaHome("jshell");
 			if (!classpath.trim().isEmpty()) {
-				optionalArgs.add("--class-path " + classpath);
+				optionalArgs.add("--class-path=" + classpath);
 			}
 
-			optionalArgs.add("--startup DEFAULT");
+			optionalArgs.add("--startup=DEFAULT");
 
 			File tempFile = File.createTempFile("jbang_arguments_", script.backingFile.getName());
 			Util.writeString(tempFile.toPath(), generateArgs(userParams));
 
-			optionalArgs.add("--startup " + tempFile.getAbsolutePath());
+			optionalArgs.add("--startup=" + tempFile.getAbsolutePath());
 
 			if (debug()) {
 				info("debug not possible when running via jshell.");
@@ -549,6 +549,10 @@ public class Main implements Callable<Integer> {
 			}
 		}
 
+		// protect against spaces in dirs in paths, especially on windows.
+		if (javacmd.contains(" ")) {
+			javacmd = '"' + javacmd + '"';
+		}
 		List<String> fullArgs = new ArrayList<>();
 		fullArgs.add(javacmd);
 		fullArgs.addAll(script.collectRuntimeOptions());
@@ -590,8 +594,12 @@ public class Main implements Callable<Integer> {
 	}
 
 	static String resolveInJavaHome(String cmd) {
+
 		if (getenv("JAVA_HOME") != null) {
-			return getenv("JAVA_HOME") + File.separator + "bin" + File.separator + cmd;
+			if (getProperty("os.name").toLowerCase().startsWith("windows")) {
+				cmd = cmd + ".exe";
+			}
+			return new File(getenv("JAVA_HOME")).toPath().resolve("bin").resolve(cmd).toAbsolutePath().toString();
 		} else {
 			return cmd;
 		}

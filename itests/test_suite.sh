@@ -45,6 +45,8 @@ export NL=$'\n'
 echo "Cleaning JBANG_CACHE"
 rm -rf ~/.jbang
 
+echo Testing with `which jbang`
+
 ## init ##
 assert "jbang --init $SCRATCH/test.java"
 assert_raises "test -f $SCRATCH/test.java" 0

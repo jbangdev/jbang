@@ -81,6 +81,7 @@ class DependencyUtil {
 			List<Artifact> artifacts = resolveDependenciesViaAether(depIds, customRepos, loggingEnabled);
 			String classPath = artifacts.stream()
 										.map(it -> it.getFile().getAbsolutePath())
+										.map(it -> it.contains(" ") ? '"' + it + '"' : it)
 										.collect(Collectors.joining(CP_SEPARATOR));
 
 			if (loggingEnabled) {

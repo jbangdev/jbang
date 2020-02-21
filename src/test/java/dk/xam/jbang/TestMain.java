@@ -67,7 +67,7 @@ public class TestMain {
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString("helloworld.jsh"));
 		assertThat(result, not(containsString("--source 11")));
-		assertThat(result, containsString("--startup DEFAULT --startup "));
+		assertThat(result, containsString("--startup=DEFAULT --startup="));
 		assertThat(result, not(containsString("blah")));
 
 	}
