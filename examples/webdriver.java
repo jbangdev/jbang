@@ -26,7 +26,8 @@ public class webdriver {
     options.addArguments("--disable-infobars");
     options.addArguments("--disable-dev-shm-usage");
     options.addArguments("--disable-browser-side-navigation"); 
-    options.addArguments("--disable-gpu"); 
+    options.addArguments("--disable-gpu");
+    options.setPageLoadStrategy(PageLoadStrategy.NONE); 
     return new ChromeDriver(options); 
   }
 
