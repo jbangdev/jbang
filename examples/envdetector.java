@@ -22,14 +22,14 @@ import static java.lang.Math.random;
 import static java.lang.System.*;
 
 @Command(name = "envdetector", mixinStandardHelpOptions = true, version = "envdetector 0.1",
-        description = "envdetector made with jbang")
+        description = "envdetector made with jbang. It detects OS, Java and possible CI/Container environment and send it  as telemetry data to a Google Analytics account.")
 class envdetector implements Callable<Integer> {
 
-    @CommandLine.Option(names = {"--id"}, description = "Google Tracking ID", defaultValue = "UA-156530423-1")
+    @CommandLine.Option(names = {"--id"}, description = "Google Tracking ID, default is jbang author testing account. No data are traceable back to any individual. All anonymous.", defaultValue = "UA-156530423-1")
     String gid;
 
-    @CommandLine.Option(names = {"--telemetry"}, defaultValue = "true")
-    boolean telemetry;
+    @CommandLine.Option(names = {"--telemetry"}, description="Turn on/off telemetry sending (default:on)", defaultValue = "${JBANG_NO_TELEMETRY:-false}", negatable = true)
+    boolean no_telemetry = false;
 
     public static void main(String... args) {
         int exitCode = new CommandLine(new envdetector()).execute(args);
@@ -53,7 +53,7 @@ class envdetector implements Callable<Integer> {
                 .withTrackingId(gid)
                 .withConfig(new GoogleAnalyticsConfig()
                             .setUserAgent(agent)
-                            .setEnabled(telemetry)
+                            .setEnabled(!no_telemetry)
                            .setThreadTimeoutSecs(2).setDiscoverRequestParameters(true))
                 .withAppName("jbang-envdetect-app")
                 .withAppVersion("jbang-envdetect-1.0")
@@ -76,10 +76,16 @@ class envdetector implements Callable<Integer> {
                 .customDimension(9, env.get("os.name"))
                 .customDimension(10, env.get("os.version"));
 
-        out.println(x.toString());
-        out.println(agent);
+        if(no_telemetry) {
+            System.out.println("\n\nTelemetry turned off. Sending nothing.");
+        } else {
+            System.out.println("\n\nSending the following to Google Analytics id: " + gid);
+            out.println(x.toString());
+            out.println(agent);
 
-        x.send();
+            x.send();
+
+        }
 
         return 0;
     }
