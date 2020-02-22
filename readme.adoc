@@ -10,7 +10,7 @@ image:https://github.com/maxandersen/jbang/workflows/ci-build/badge.svg[Build St
 
 Want to learn or explore Java instantly without setup ?
 
-Do you like Java but uses python, groovy, kotlin or similar languages for your scripts ?
+Do you like Java but use python, groovy, kotlin or similar languages for your scripts ?
 
 Ever tried out Java 10+ support for running `.java` files directly in your shell but felt it was a bit too cumbersome ?
 
@@ -65,7 +65,7 @@ Tested and verified to use on OSX, Linux and Windows.
 
 == Installation
 
-To use `jbang` you as a minimum need to have Java 8 available, we though recommend Java 11 or higher.
+To use `jbang` Java 8 is the minimum required version, however Java 11 or higher is recommended.
 
 === SDKMan icon:linux[] / icon:apple[]
 
@@ -228,7 +228,7 @@ You can run `jbang` via Docker:
 docker run -v `pwd`:/ws --workdir=/ws maxandersen/jbang-action helloworld.java
 ----
 
-or if you prefer usign Quay.io:
+or if you prefer using Quay.io:
 
 [source, bash]
 ----
@@ -263,7 +263,7 @@ class helloworld { // <.>
 }
 ```
 <.> By using this `//` style instead of shebang `#!` you trick `bash`, `zsh` etc. to run this as a script while still being valid java code.
-<.> A classname, can be anything when using `jbang` but to be valid java for most IDE's you'll want to name it the same as the source file.
+<.> A classname, can be anything when using `jbang` but to be valid java for most IDEs you'll want to name it the same as the source file.
 
 Now to run this you can call it via `jbang`:
 
@@ -576,11 +576,11 @@ Why the name j'bang?::
   I was reading up on how to use the new shebang (#!) feature support in Java 10 and came up with the idea of port `kscript` to Java and needed a name.
 From there came j'bang which is a "bad" spelling of how shebang is pronounced in french.
 
-Why use of gradle resource locators rather than ?::
-  kscript used it and its nice as it is a one-liner and easily parsable.
+Why use gradle resource locators rather than ?::
+  kscript used it and it's nice as it is a one-liner and easily parsable.
 
 Why would I use Java to write scripts ? Java sucks for that... Use gradle, kotlin, scala, etc. instead!::
-  Well, does it really suck ? With Java 8 streams, static imports and greatly improved standard java libraries it is very close to how kscript and grape looks like.
+  Well, does it really suck ? With Java 8 streams, static imports and greatly improved standard java libraries it is very close to what kscript and grape look like.
 With the following advantages:
 +
 * works with plain Java without installing additional compiler/build tools
