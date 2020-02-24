@@ -7,8 +7,7 @@ import static picocli.CommandLine.*;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -20,6 +19,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.text.StringEscapeUtils;
+
+import com.sun.nio.file.SensitivityWatchEventModifier;
 
 import io.quarkus.qute.Engine;
 import io.quarkus.qute.Template;
@@ -48,6 +49,10 @@ public class Main implements Callable<Integer> {
 
 	@Option(names = { "-e", "--edit" }, description = "Edit script by setting up temporary project.")
 	boolean edit;
+
+	@Option(names = {
+			"--edit-live" }, description = "Setup temporary project, launch editor and regenerate project on dependency changes.", parameterConsumer = PlainStringFallbackConsumer.class, arity = "0..1", fallbackValue = "${JBANG_EDITOR:-${VISUAL:-${EDITOR}}}")
+	String liveeditor;
 
 	@Option(names = { "-h", "--help" }, usageHelp = true, description = "Display help/info")
 	boolean helpRequested;
@@ -175,14 +180,55 @@ public class Main implements Callable<Integer> {
 				info("File initialized. You can now run it with 'jbang " + scriptOrFile
 						+ "' or edit it using 'code `jbang --edit " + scriptOrFile + "`'");
 			}
-		} else { // no point in editing nor running something we just inited.
+		}
+		if (edit || liveeditor != null) {
+			script = prepareScript(scriptOrFile);
+			File project = createProjectForEdit(script, userParams);
+			// err.println(project.getAbsolutePath());
 			if (edit) {
-				script = prepareScript(scriptOrFile);
-				File project = createProjectForEdit(script, userParams);
-				// err.println(project.getAbsolutePath());
 				out.println("echo " + project.getAbsolutePath()); // quit(project.getAbsolutePath());
-				return 0;
+			} else {
+				List<String> optionList = new ArrayList<>();
+				optionList.add(liveeditor);
+				optionList.add(project.getAbsolutePath());
+				info("Running `" + String.join(" ", optionList) + "`");
+				Process process = new ProcessBuilder(optionList).start();
+				try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
+					Path watched = script.getOriginalFile().getAbsoluteFile().getParentFile().toPath();
+					final WatchKey watchKey = watched.register(watchService,
+							new WatchEvent.Kind[] { StandardWatchEventKinds.ENTRY_MODIFY },
+							SensitivityWatchEventModifier.HIGH);
+					info("Watching for changes in " + watched);
+					while (true) {
+						final WatchKey wk = watchService.take();
+						for (WatchEvent<?> event : wk.pollEvents()) {
+							// we only register "ENTRY_MODIFY" so the context is always a Path.
+							final Path changed = (Path) event.context();
+							// info(changed.toString());
+							if (Files.isSameFile(script.getOriginalFile().toPath(), changed)) {
+								try {
+									// TODO only regenerate when dependencies changes.
+									info("Regenerating project.");
+									script = prepareScript(scriptOrFile);
+									createProjectForEdit(script, userParams);
+								} catch (RuntimeException ee) {
+									warn("Error when re-generating project. Ignoring it, but state might be undefined: "
+											+ ee.getMessage());
+								}
+							}
+						}
+						// reset the key
+						boolean valid = wk.reset();
+						if (!valid) {
+							warn("edit-live file watch key no longer valid!");
+						}
+					}
+				} catch (InterruptedException e) {
+					warn("edit-live interrupted");
+				}
 			}
+			return 0;
+		} else {
 			if (initTemplate == null && scriptOrFile != null) {
 				script = prepareScript(scriptOrFile);
 
@@ -792,7 +838,7 @@ public class Main implements Callable<Integer> {
 		public void consumeParameters(Stack<String> args, ArgSpec argSpec, CommandSpec commandSpec) {
 			String arg = args.pop();
 
-			if (arg.contains(".")) { // if a dot is in the argument assume it is a file name
+			if (arg.contains(".") || arg.startsWith("--")) { // if a dot is in the argument assume it is a file name
 				args.push(arg);
 				argSpec.setValue(((OptionSpec) argSpec).fallbackValue());
 			} else if (arg.trim().isEmpty()) { // if empty, means param= so use fallback value

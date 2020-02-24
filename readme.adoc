@@ -477,6 +477,13 @@ NOTE: On Windows you might need elevated priviliges to create symbolic links. If
 the `--edit` option will result in an error. To use it enable symbolic links for your user or run your shell/terminal as administrator
 to have this feature working.
 
+=== Live Editing
+
+You can also use `--edit-live[=editor]` and `jbang` will launch your editor while watching
+for file changes and regenerate the temporary project to pick up changes in dependencies.
+
+The editor used will be what is specified as argument to `--edit-live` or default to `$JBANG_EDITOR`, `$VISUAL` or `$EDITOR` in that order.
+
 === IDE and Editor support
 
 The `--edit` feature been tested with the following IDE's:
@@ -513,6 +520,13 @@ Listening for transport dt_socket at address: 4004
 You can change the debug port by passing in a number to the debug argument, i.e. `--debug=4321`.
 
 NOTE: Be sure to put a breakpoint in your IDE/debugger before you connect to make the debugger actually stop when you need it.
+
+=== Debug jbang it self
+
+java itself will add `JAVA_TOOL_OPTIONS` which will apply to `jbang` too.
+
+For finer and more explicit control the scripts for `jbang` will add `JBANG_JAVA_OPTIONS` to the call to `jbang` itself.
+Thus if you want to enable debug or other details for `jbang` set that environment variable.
 
 == `java` and `javac` Options
 
