@@ -37,20 +37,12 @@ include::tz.java[tags=parameters,indent=0]
 ----
 <.> Time is a timestamp and picocli will automatically convert it to a `LocalTime`.
 <.> For the timezones we need a Custom converter to ensure more short hand ids will work.
-
+<.> Default values for a list of strings are possible using `split=","`
 [source,java]
 ----
 include::tz.java[tags=zoneconverter,indent=0]
 ----
 <.> `SHORT_IDS` here adds more mapping for common timezone shorthand ids. 
-
-Picocli don't have a good way of defining default values for a list thus we 'cheat' by settig values if the list is empty indicating nothing was passed in by the user.
-
-[source,java]
-----
-include::tz.java[tags=defaultzones,indent=0]
-----
-<.> Mapping of a array of strings to ZoneId list using collection stream API.
 
 At the end the final conversion is done and printed out.
 
