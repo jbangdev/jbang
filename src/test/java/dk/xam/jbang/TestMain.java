@@ -252,5 +252,9 @@ public class TestMain {
 				Main.swizzleURL("https://gitlab.com/maxandersen/jbang-gitlab/-/blob/master/helloworld.java"),
 				equalTo("https://gitlab.com/maxandersen/jbang-gitlab/-/raw/master/helloworld.java"));
 
+		assertThat(
+				Main.swizzleURL("https://bitbucket.org/Shoeboom/test/src/master/helloworld.java"),
+				equalTo("https://bitbucket.org/Shoeboom/test/raw/master/helloworld.java"));
+
 	}
 }

@@ -793,6 +793,9 @@ public class Main implements Callable<Integer> {
 		url = url.replaceFirst("^https://gitlab.com/(.*)/-/blob/(.*)$",
 				"https://gitlab.com/$1/-/raw/$2");
 
+		url = url.replaceFirst("^https://bitbucket.org/(.*)/src/(.*)$",
+				"https://bitbucket.org/$1/raw/$2");
+
 		return url;
 	}
 
