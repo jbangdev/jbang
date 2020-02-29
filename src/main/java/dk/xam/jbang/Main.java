@@ -263,6 +263,42 @@ public class Main implements Callable<Integer> {
 		}
 	}
 
+	static boolean checkVersions() {
+		String version = System.getProperty("java.version");
+		if (version.startsWith("1.")) {
+			version = version.substring(2, 3);
+		} else {
+			int dot = version.indexOf(".");
+			if (dot != -1) {
+				version = version.substring(0, dot);
+			}
+		}
+		int javaVersion = Integer.parseInt(version);
+		int javacVersion = 0;
+		try {
+			Process p = Runtime.getRuntime().exec("javac -version");
+			StringBuilder output = new StringBuilder();
+			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			String line;
+			while ((line = reader.readLine()) != null) {
+				output.append(line + "\n");
+			}
+			String[] s = output.toString().split(" ");
+			if (s[1].startsWith("1.")) {
+				s[1] = s[1].substring(2, 3);
+			} else {
+				int dot = s[1].indexOf(".");
+				if (dot != -1) {
+					s[1] = s[1].substring(0, dot);
+				}
+			}
+			javacVersion = Integer.parseInt(s[1]);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return (javaVersion == javacVersion);
+	}
+
 	// build with javac and then jar... todo: split up in more testable chunks
 	static void build(Script script, Main m) throws IOException {
 		File baseDir = new File(Settings.getCacheDir(), "jars");
@@ -284,6 +320,9 @@ public class Main implements Callable<Integer> {
 			optionList.addAll(Arrays.asList(script.backingFile.getPath()));
 
 			Util.info("Building jar...");
+			if (!checkVersions()) {
+				Util.warnMsg("Java and Javac versions are different!!");
+			}
 			if (m.verbose)
 				Util.info("compile: " + String.join(" ", optionList));
 			Process process = new ProcessBuilder(optionList).inheritIO().start();
