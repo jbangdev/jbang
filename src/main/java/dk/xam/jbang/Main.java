@@ -318,7 +318,7 @@ public class Main implements Callable<Integer> {
 
 			Util.info("Building jar...");
 			if (!checkVersions()) {
-				Util.warnMsg("Java and Javac versions are different!!");
+				Util.warnMsg("java and javac versions are different!!");
 			}
 			if (m.verbose)
 				Util.info("compile: " + String.join(" ", optionList));
