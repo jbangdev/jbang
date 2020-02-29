@@ -113,15 +113,26 @@ public class TestMain {
 	@Test
 	void testProperties() throws IOException {
 
+		environmentVariables.clear("JAVA_HOME");
 		Main main = new Main();
 		String arg = new File(examplesTestFolder, "classpath_example.java").getAbsolutePath();
-		new CommandLine(main).parseArgs("-Dwonka=panda", "-Dquoted=\"see this\"", arg);
+		new CommandLine(main)	.setStopAtPositional(true)
+								.parseArgs("-Dwonka=panda", "-Dquoted=\"see this\"", arg, "-Dafter=wonka");
+
+		assertThat(main.userParams.size(), is(1));
+
+		assertThat(main.properties.size(), is(2));
 
 		String result = main.generateCommandLine(new Script(new File(arg)));
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("-Dwonka=panda"));
 		assertThat(result, containsString("-Dquoted=\"see this\""));
+		String[] split = result.split("example.java");
+		assertEquals(split.length, 2);
+		assertThat(split[0], not(containsString("after=wonka")));
+		assertThat(split[1], containsString("after=wonka"));
+
 	}
 
 	@Test
