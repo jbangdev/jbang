@@ -290,19 +290,22 @@ jbang https://github.com/maxandersen/jbang/blob/master/examples/helloworld.java
 
 There are support to run `.jsh` via `jshell`. The advantage of `jshell` is that you do not need to have a class or static main method.
 
-Classic `jshell` does not support passing in arguments, `jbang` does.
+Classic `jshell` does not support passing in arguments nor system properties, `jbang` does.
 
-In the case of `.jsh` files `jbang` injects a startup script that declares a `String[] args` which will contain any passed in arguments.
+In the case of `.jsh` files `jbang` injects a startup script that declares a `String[] args` which will contain any passed in arguments,
+and it sets any properties passed in with `-Dkey=value` as parameter to `jbang`.
 
 Example:
 
 [source, java]
 ----
 System.out.println("Hello " + (args.length>0?args[0]:"World")); // <.>
+System.setProperty("key", "value"); // <.>
 /exit // <.>
 ----
-<1> Line where `args` are accessible without previous declaration.
-<2> `/exit` is so the jshell app will exit. If you remove it `jbang` will launch into inter-active mode.
+<.> Line where `args` are accessible without previous declaration.
+<.> System properties set when passed as `-D` arguments to `jbang`
+<.> `/exit` is so the jshell app will exit. If you remove it `jbang` will launch into inter-active mode.
 
 == Init templates
 

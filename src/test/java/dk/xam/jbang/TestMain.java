@@ -12,6 +12,8 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 
@@ -109,6 +111,20 @@ public class TestMain {
 	}
 
 	@Test
+	void testProperties() throws IOException {
+
+		Main main = new Main();
+		String arg = new File(examplesTestFolder, "classpath_example.java").getAbsolutePath();
+		new CommandLine(main).parseArgs("-Dwonka=panda", "-Dquoted=\"see this\"", arg);
+
+		String result = main.generateCommandLine(new Script(new File(arg)));
+
+		assertThat(result, startsWith("java "));
+		assertThat(result, containsString("-Dwonka=panda"));
+		assertThat(result, containsString("-Dquoted=\"see this\""));
+	}
+
+	@Test
 	void testURLPrepare() throws IOException {
 
 		String url = new File(examplesTestFolder, "classpath_example.java").toURI().toString();
@@ -182,15 +198,21 @@ public class TestMain {
 	@Test
 	void testGenArgs() {
 
-		assertThat(new Main().generateArgs(Collections.emptyList()), equalTo("String[] args = {  }"));
+		Map<String, String> properties = new HashMap<>();
 
-		assertThat(new Main().generateArgs(Arrays.asList("one")), equalTo("String[] args = { \"one\" }"));
+		assertThat(new Main().generateArgs(Collections.emptyList(), properties), equalTo("String[] args = {  }"));
 
-		assertThat(new Main().generateArgs(Arrays.asList("one", "two")),
+		assertThat(new Main().generateArgs(Arrays.asList("one"), properties), equalTo("String[] args = { \"one\" }"));
+
+		assertThat(new Main().generateArgs(Arrays.asList("one", "two"), properties),
 				equalTo("String[] args = { \"one\", \"two\" }"));
 
-		assertThat(new Main().generateArgs(Arrays.asList("one", "two", "three \"quotes\"")),
+		assertThat(new Main().generateArgs(Arrays.asList("one", "two", "three \"quotes\""), properties),
 				equalTo("String[] args = { \"one\", \"two\", \"three \\\"quotes\\\"\" }"));
+
+		properties.put("value", "this value");
+		assertThat(new Main().generateArgs(Collections.emptyList(), properties),
+				equalTo("String[] args = {  }\nSystem.setProperty(\"value\",\"this value\");"));
 
 	}
 

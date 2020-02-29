@@ -64,7 +64,12 @@ case "$JAVA8" in
   1) # jsh should also work
      assert "jbang helloworld.jsh" "Hello World"
      # jsh should also get parameters
-     assert "jbang helloworld.jsh JSH!" "Hello JSH!" ;;
+     assert "jbang helloworld.jsh JSH!" "Hello JSH!"
+     ## test that -D are passed correctly
+    echo -e "System.out.println(System.getProperty(\"value\"));\n/exit" > $SCRATCH/hello.jsh
+    assert "jbang $SCRATCH/hello.jsh" "null"
+    assert "jbang -Dvalue=hello $SCRATCH/hello.jsh" "hello"
+    assert "jbang -Dvalue=\"a quoted\" $SCRATCH/hello.jsh" "a quoted" ;;
   *) echo "Java 8 installed - skipping jsh"
 esac
 
@@ -85,6 +90,7 @@ assert "jbang dualclass.java" "Hello World"
 ## test that can run without .java extension
 assert "jbang --init=cli $SCRATCH/xyzplugin"
 assert "jbang $SCRATCH/xyzplugin" "Hello World!"
+
 
 ### Cleanup
 rm RESULTS

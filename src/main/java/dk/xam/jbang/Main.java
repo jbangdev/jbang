@@ -80,6 +80,9 @@ public class Main implements Callable<Integer> {
 	@Option(names = "--completion", help = true, description = "Output auto-completion script for bash/zsh.\nUsage: source <(jbang --completion)")
 	boolean completionRequested;
 
+	@Option(names = { "-D" }, description = "set a system property")
+	Map<String, String> properties = new HashMap<>();
+
 	public int completion() throws IOException {
 		String script = AutoComplete.bash(
 				spec.name(),
@@ -550,14 +553,19 @@ public class Main implements Callable<Integer> {
 		}
 	}
 
-	String generateArgs(List<String> args) {
+	String generateArgs(List<String> args, Map<String, String> properties) {
 
 		String buf = "String[] args = { " +
 				args.stream()
 					.map(s -> '"' + StringEscapeUtils.escapeJava(s) + '"')
 					.collect(Collectors.joining(", "))
 				+
-				" }";
+				" }" +
+				(properties.isEmpty() ? "" : "\n") +
+				properties	.entrySet()
+							.stream()
+							.map(x -> "System.setProperty(\"" + x.getKey() + "\",\"" + x.getValue() + "\");")
+							.collect(Collectors.joining("\n"));
 		return buf;
 	}
 
@@ -569,6 +577,7 @@ public class Main implements Callable<Integer> {
 
 		String javacmd = resolveInJavaHome("java");
 		if (script.backingFile.getName().endsWith(".jsh")) {
+
 			javacmd = resolveInJavaHome("jshell");
 			if (!classpath.trim().isEmpty()) {
 				optionalArgs.add("--class-path=" + classpath);
@@ -577,7 +586,7 @@ public class Main implements Callable<Integer> {
 			optionalArgs.add("--startup=DEFAULT");
 
 			File tempFile = File.createTempFile("jbang_arguments_", script.backingFile.getName());
-			Util.writeString(tempFile.toPath(), generateArgs(userParams));
+			Util.writeString(tempFile.toPath(), generateArgs(userParams, properties));
 
 			optionalArgs.add("--startup=" + tempFile.getAbsolutePath());
 
@@ -586,6 +595,8 @@ public class Main implements Callable<Integer> {
 			}
 
 		} else {
+			addPropertyFlags("-D", optionalArgs);
+
 			// optionalArgs.add("--source 11");
 			if (debug()) {
 				optionalArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + debugPort);
@@ -614,6 +625,12 @@ public class Main implements Callable<Integer> {
 		}
 
 		return fullArgs.stream().collect(Collectors.joining(" "));
+	}
+
+	private void addPropertyFlags(String def, List<String> optionalArgs) {
+		properties.forEach((k, e) -> {
+			optionalArgs.add(def + k + "=" + e);
+		});
 	}
 
 	/**
