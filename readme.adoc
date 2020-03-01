@@ -5,6 +5,8 @@
 	
 image:https://img.shields.io/github/release/maxandersen/jbang.svg[Release,link=https://github.com/maxandersen/jbang/releases]
 image:https://github.com/maxandersen/jbang/workflows/ci-build/badge.svg[Build Status,link=https://github.com/maxandersen/jbang/actions]
+image:https://che.openshift.io/factory/resources/factory-contribute.svg[Contribute, link=https://che.openshift.io/f?url=https://github.com/maxandersen/jbang]
+
 
 == Intro
 
@@ -36,10 +38,6 @@ hello made with jbang
 ----
 
 Instant cli app generated built using java and picocli as a dependency that was fetched as needed for the compilation and execution.
-
-== Try it online on Hosted Che at https://che.openshift.io[che.openshift.io]
-
-image:https://che.openshift.io/factory/resources/factory-contribute.svg[Contribute, link=https://che.openshift.io/f?url=https://github.com/maxandersen/jbang]
 
 == Features
 
