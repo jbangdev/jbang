@@ -1,3 +1,4 @@
+
 = j'bang - Having fun with Java scripting
 :toc:
 :toc-placement:
@@ -5,7 +6,8 @@
 	
 image:https://img.shields.io/github/release/maxandersen/jbang.svg[Release,link=https://github.com/maxandersen/jbang/releases]
 image:https://github.com/maxandersen/jbang/workflows/ci-build/badge.svg[Build Status,link=https://github.com/maxandersen/jbang/actions]
-image:https://che.openshift.io/factory/resources/factory-contribute.svg[Contribute, link=https://che.openshift.io/f?url=https://github.com/maxandersen/jbang]
+image:https://che.openshift.io/factory/resources/factory-contribute.svg[Che, link=https://che.openshift.io/f?url=https://github.com/maxandersen/jbang]
+image:https://img.shields.io/badge/Gitpod-Workspace-blue?logo=gitpodp[Gitpod, link=https://gitpod.io/#https://github.com/maxandersen/jbang] 
 
 
 == Intro
