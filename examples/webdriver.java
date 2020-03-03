@@ -1,6 +1,7 @@
 //usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS io.github.bonigarcia:webdrivermanager:3.8.1
 //DEPS org.seleniumhq.selenium:selenium-java:3.141.59
+//DEPS org.slf4j:slf4j-simple:1.7.30
 
 import static java.awt.Toolkit.getDefaultToolkit;
 import static javax.imageio.ImageIO.write;
@@ -9,6 +10,7 @@ import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.*;
@@ -27,8 +29,10 @@ public class webdriver {
     options.addArguments("--disable-dev-shm-usage");
     options.addArguments("--disable-browser-side-navigation"); 
     options.addArguments("--disable-gpu");
-    options.setPageLoadStrategy(PageLoadStrategy.NONE); 
-    return new ChromeDriver(options); 
+    options.setPageLoadStrategy(PageLoadStrategy.NONE);
+    WebDriver driver = new ChromeDriver(options);
+    driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+    return driver;
   }
 
   public static void takeScreenShot() throws Exception {
