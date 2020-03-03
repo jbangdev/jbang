@@ -263,40 +263,50 @@ public class Main implements Callable<Integer> {
 		}
 	}
 
-	static boolean checkVersions() {
-		String version = System.getProperty("java.version");
-		if (version.startsWith("1.")) {
-			version = version.substring(2, 3);
-		} else {
-			int dot = version.indexOf(".");
-			if (dot != -1) {
-				version = version.substring(0, dot);
-			}
-		}
-		int javaVersion = Integer.parseInt(version);
-		int javacVersion = 0;
+	// Similar code in ModularClassPath.java in the method supportsModules file
+	static String getJavaVersion(String command) {
+		ProcessBuilder pb = new ProcessBuilder();
+		String value = "";
 		try {
-			Process p = Runtime.getRuntime().exec("javac -version");
-			StringBuilder output = new StringBuilder();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			String line;
-			while ((line = reader.readLine()) != null) {
-				output.append(line + "\n");
+			Process p = pb.command(command + "-version").start();
+			p.waitFor();
+			try (BufferedReader bri = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
+				value = bri.readLine();
 			}
-			String[] s = output.toString().split(" ");
-			if (s[1].startsWith("1.")) {
-				s[1] = s[1].substring(2, 3);
-			} else {
-				int dot = s[1].indexOf(".");
-				if (dot != -1) {
-					s[1] = s[1].substring(0, dot);
+		} catch (IOException | InterruptedException e) {
+			value = System.getProperty("java.version");
+		}
+		return value;
+	}
+
+	static boolean checkVersions() {
+		String javaVersion = "";
+		String javacVersion = "";
+		try {
+			String x = resolveInJavaHome("java");
+			if (x.contains(" ")) {
+				x = '"' + x + '"';
+			}
+			javaVersion = getJavaVersion(x);
+			Process p = Runtime.getRuntime().exec(resolveInJavaHome("javac -version"));
+			StringBuilder output = new StringBuilder();
+			try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+				String line;
+				while ((line = br.readLine()) != null) {
+					output.append(line);
 				}
 			}
-			javacVersion = Integer.parseInt(s[1]);
+
+			String[] jcVersion = output.toString().split(" ");
+			for (String string : jcVersion) {
+				if (string.contains("1")) {
+					javacVersion = string;
+				}
+			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			Util.warnMsg(e.toString());
 		}
-		return (javaVersion == javacVersion);
+		return (javaVersion.equals(javacVersion));
 	}
 
 	// build with javac and then jar... todo: split up in more testable chunks
@@ -318,7 +328,6 @@ public class Main implements Callable<Integer> {
 			}
 			optionList.addAll(Arrays.asList("-d", tmpJarDir.getAbsolutePath()));
 			optionList.addAll(Arrays.asList(script.backingFile.getPath()));
-
 			Util.info("Building jar...");
 			if (!checkVersions()) {
 				Util.warnMsg("java and javac versions are different!!");
@@ -533,7 +542,7 @@ public class Main implements Callable<Integer> {
 
 	/**
 	 * @param path
-	 * @return the optional reader
+	 * @return the optional br
 	 */
 	private Optional<TemplateLocator.TemplateLocation> locate(String path) {
 		URL resource = null;
