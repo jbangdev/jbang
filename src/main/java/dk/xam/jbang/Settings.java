@@ -2,11 +2,12 @@ package dk.xam.jbang;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
-import java.io.Reader;
 import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.Properties;
 
 import io.quarkus.qute.Template;
@@ -24,7 +25,8 @@ public class Settings {
 	private static TrustedSources trustedSources;
 
 	final private static Properties aliases = new Properties();
-
+	final private static String ALIASES_FILE_HEADER = "Aliases file, created by JBang";
+	
 	static {
 		String v = System.getenv("JBANG_CACHE_DIR");
 
@@ -116,7 +118,7 @@ public class Settings {
 
 	public static void clearCache() {
 		try {
-			Files.walk(Settings.getCacheDir().toPath())
+			Files	.walk(Settings.getCacheDir().toPath())
 					.sorted(Comparator.reverseOrder())
 					.map(Path::toFile)
 					.forEach(File::delete);
@@ -143,5 +145,15 @@ public class Settings {
 			}
 		}
 		return aliases;
+	}
+
+	public static void addAlias(String name, String resource) {
+		Properties as = getAliases();
+		try (Writer out = Files.newBufferedWriter(JBANG_ALIASES_FILE)) {
+			as.setProperty(name, resource);
+			as.store(out, ALIASES_FILE_HEADER);
+		} catch (IOException ex) {
+			Util.warnMsg("Unable to add alias: " + ex.getMessage());
+		}
 	}
 }
