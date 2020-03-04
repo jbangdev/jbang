@@ -26,7 +26,7 @@ public class Settings {
 
 	final private static Properties aliases = new Properties();
 	final private static String ALIASES_FILE_HEADER = "Aliases file, created by JBang";
-	
+
 	static {
 		String v = System.getenv("JBANG_CACHE_DIR");
 
@@ -154,6 +154,18 @@ public class Settings {
 			as.store(out, ALIASES_FILE_HEADER);
 		} catch (IOException ex) {
 			Util.warnMsg("Unable to add alias: " + ex.getMessage());
+		}
+	}
+
+	public static void removeAlias(String name) {
+		Properties as = getAliases();
+		if (as.containsKey(name)) {
+			try (Writer out = Files.newBufferedWriter(JBANG_ALIASES_FILE)) {
+				as.remove(name);
+				as.store(out, ALIASES_FILE_HEADER);
+			} catch (IOException ex) {
+				Util.warnMsg("Unable to remove alias: " + ex.getMessage());
+			}
 		}
 	}
 }

@@ -163,6 +163,9 @@ public class Main implements Callable<Integer> {
 			"--alias" }, description = "Stores the current script URL/path as an alias with the given name.")
 	String alias;
 
+	@Option(names = { "--remove-alias" }, description = "Removes the alias with the given name.")
+	boolean removeAlias;
+
 	public int completion() throws IOException {
 		String script = AutoComplete.bash(
 				spec.name(),
@@ -224,6 +227,8 @@ public class Main implements Callable<Integer> {
 			return 0; // quit(0);
 		} else if (completionRequested) {
 			return completion();
+		} else if (removeAlias) {
+			Settings.removeAlias(scriptOrFile);
 		}
 
 		if (insecure) {
