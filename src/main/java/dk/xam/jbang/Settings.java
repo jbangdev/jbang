@@ -5,12 +5,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.io.Reader;
+import java.nio.file.Paths;
+import java.util.Properties;
 
 import io.quarkus.qute.Template;
 
 public class Settings {
 
 	final private static File JBANG_CACHE_DIR;
+	final private static Path JBANG_ALIASES_FILE;
 	final private static File DEP_LOOKUP_CACHE_FILE;
 	final private static File JBANG_TRUSTED_SOURCES_FILE;
 	final public static String CP_SEPARATOR = System.getProperty("os.name").toLowerCase().contains("windows")
@@ -18,6 +22,8 @@ public class Settings {
 			: ":";
 
 	private static TrustedSources trustedSources;
+
+	final private static Properties aliases = new Properties();
 
 	static {
 		String v = System.getenv("JBANG_CACHE_DIR");
@@ -33,6 +39,13 @@ public class Settings {
 		JBANG_TRUSTED_SOURCES_FILE = new File(JBANG_CACHE_DIR, "trusted-sources.json");
 
 		setupCache();
+
+		String af = System.getenv("JBANG_ALIASES_FILE");
+		if (af != null) {
+			JBANG_ALIASES_FILE = Paths.get(af);
+		} else {
+			JBANG_ALIASES_FILE = JBANG_CACHE_DIR.toPath().resolve("aliases");
+		}
 	}
 
 	public static File getLocalMavenRepo() {
@@ -103,7 +116,7 @@ public class Settings {
 
 	public static void clearCache() {
 		try {
-			Files	.walk(Settings.getCacheDir().toPath())
+			Files.walk(Settings.getCacheDir().toPath())
 					.sorted(Comparator.reverseOrder())
 					.map(Path::toFile)
 					.forEach(File::delete);
@@ -119,5 +132,16 @@ public class Settings {
 			te = new TemplateEngine();
 		}
 		return te;
+	}
+
+	public static Properties getAliases() {
+		if (aliases.isEmpty() && Files.isRegularFile(JBANG_ALIASES_FILE)) {
+			try (Reader in = Files.newBufferedReader(JBANG_ALIASES_FILE)) {
+				aliases.load(in);
+			} catch (IOException e) {
+				// Ignore errors
+			}
+		}
+		return aliases;
 	}
 }

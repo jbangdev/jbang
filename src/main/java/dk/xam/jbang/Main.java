@@ -890,7 +890,49 @@ public class Main implements Callable<Integer> {
 	}
 
 	static Script prepareScript(String scriptResource) throws IOException {
-		File scriptFile = null;
+		File scriptFile = getScriptFile(scriptResource);
+		if (scriptFile == null) {
+			// Not found as such, so let's check the aliases
+			if (Settings.getAliases().containsKey(scriptResource)) {
+				scriptFile = getScriptFile(Settings.getAliases().getProperty(scriptResource));
+			}
+		}
+
+		// Support URLs as script files
+		/*
+		 * if(scriptResource.startsWith("http://")||scriptResource.startsWith("https://"
+		 * )) { scriptFile = fetchFromURL(scriptResource)
+		 *
+		 * includeContext = URI(scriptResource.run { substring(lastIndexOf('/') + 1) })
+		 * }
+		 *
+		 * // Support for support process substitution and direct script arguments
+		 * if(scriptFile==null&&!scriptResource.endsWith(".kts")&&!scriptResource.
+		 * endsWith(".kt")) { val scriptText = if (File(scriptResource).canRead()) {
+		 * File(scriptResource).readText().trim() } else { // the last resort is to
+		 * assume the input to be a java program scriptResource.trim() }
+		 *
+		 * scriptFile = createTmpScript(scriptText) }
+		 */
+		// just proceed if the script file is a regular file at this point
+		if (scriptFile == null || !scriptFile.canRead()) {
+			throw new IllegalArgumentException("Could not read script argument " + scriptResource);
+		}
+
+		// note script file must be not null at this point
+
+		Script s = null;
+		try {
+			s = new Script(scriptFile);
+			s.setOriginal(new File(scriptResource));
+		} catch (FileNotFoundException e) {
+			throw new ExitException(1, e);
+		}
+		return s;
+	}
+
+	private static File getScriptFile(String scriptResource) throws IOException {
+		File scriptFile;
 
 		// we need to keep track of the scripts dir or the working dir in case of stdin
 		// script to correctly resolve includes
@@ -945,37 +987,7 @@ public class Main implements Callable<Integer> {
 			scriptFile = fetchFromURL(scriptResource);
 		}
 
-		// Support URLs as script files
-		/*
-		 * if(scriptResource.startsWith("http://")||scriptResource.startsWith("https://"
-		 * )) { scriptFile = fetchFromURL(scriptResource)
-		 *
-		 * includeContext = URI(scriptResource.run { substring(lastIndexOf('/') + 1) })
-		 * }
-		 *
-		 * // Support for support process substitution and direct script arguments
-		 * if(scriptFile==null&&!scriptResource.endsWith(".kts")&&!scriptResource.
-		 * endsWith(".kt")) { val scriptText = if (File(scriptResource).canRead()) {
-		 * File(scriptResource).readText().trim() } else { // the last resort is to
-		 * assume the input to be a java program scriptResource.trim() }
-		 *
-		 * scriptFile = createTmpScript(scriptText) }
-		 */
-		// just proceed if the script file is a regular file at this point
-		if (scriptFile == null || !scriptFile.canRead()) {
-			throw new IllegalArgumentException("Could not read script argument " + scriptResource);
-		}
-
-		// note script file must be not null at this point
-
-		Script s = null;
-		try {
-			s = new Script(scriptFile);
-			s.setOriginal(probe);
-		} catch (FileNotFoundException e) {
-			throw new ExitException(1, e);
-		}
-		return s;
+		return scriptFile;
 	}
 
 	static String readStringFromURL(String requestURL) throws IOException {
