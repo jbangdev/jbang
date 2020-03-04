@@ -159,6 +159,10 @@ public class Main implements Callable<Integer> {
 			"-n", "--native" }, description = "Build via native-image and run", defaultValue = "false")
 	boolean nativeImage;
 
+	@Option(names = { "-a",
+			"--alias" }, description = "Stores the current script URL/path as an alias with the given name.")
+	String alias;
+
 	public int completion() throws IOException {
 		String script = AutoComplete.bash(
 				spec.name(),
@@ -314,6 +318,10 @@ public class Main implements Callable<Integer> {
 					info("run: " + cmdline);
 				}
 				out.println(cmdline);
+
+				if (alias != null) {
+					Settings.addAlias(alias, scriptOrFile);
+				}
 			}
 		}
 		return 0;
