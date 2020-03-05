@@ -8,8 +8,10 @@ import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.security.KeyManagementException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.jar.Attributes;
@@ -17,6 +19,13 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import org.apache.commons.text.StringEscapeUtils;
 
@@ -82,6 +91,9 @@ public class Main implements Callable<Integer> {
 
 	@Option(names = { "-D" }, description = "set a system property")
 	Map<String, String> properties = new HashMap<>();
+
+	@Option(names = { "--naive" }, description = "Trust all SSL certificates.")
+	boolean naive;
 
 	public int completion() throws IOException {
 		String script = AutoComplete.bash(
@@ -154,6 +166,41 @@ public class Main implements Callable<Integer> {
 			return 0; // quit(0);
 		} else if (completionRequested) {
 			return completion();
+		}
+
+		if (naive) {
+			try {
+				// Create a trust manager that does not validate certificate chains
+				TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+					public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+						return null;
+					}
+
+					public void checkClientTrusted(X509Certificate[] certs, String authType) {
+					}
+
+					public void checkServerTrusted(X509Certificate[] certs, String authType) {
+					}
+				}
+				};
+
+				// Install the all-trusting trust manager
+				SSLContext sc = SSLContext.getInstance("SSL");
+				sc.init(null, trustAllCerts, new java.security.SecureRandom());
+				HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+				// Create all-trusting host name verifier
+				HostnameVerifier allHostsValid = new HostnameVerifier() {
+					public boolean verify(String hostname, SSLSession session) {
+						return true;
+					}
+				};
+
+				// Install the all-trusting host verifier
+				HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+			} catch (NoSuchAlgorithmException | KeyManagementException ex) {
+				throw new RuntimeException(ex);
+			}
 		}
 
 		if (clearCache) {
