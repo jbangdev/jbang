@@ -291,6 +291,12 @@ You can use `http(s):/` and `file:/` url's for input and github.com based urls w
 jbang https://github.com/maxandersen/jbang/blob/master/examples/helloworld.java
 ----
 
+[TIP]
+====
+URL's will follow redirects. In case you need to use it with sites with self-signed/non-trusted certificates you can
+if you trust the site use `--insecure`
+====
+
 === Using `.jsh` for `jshell`
 
 There are support to run `.jsh` via `jshell`. The advantage of `jshell` is that you do not need to have a class or static main method.
@@ -598,8 +604,24 @@ Why the name j'bang?::
   I was reading up on how to use the new shebang (#!) feature support in Java 10 and came up with the idea of port `kscript` to Java and needed a name.
 From there came j'bang which is a "bad" spelling of how shebang is pronounced in french.
 
+<<<<<<< Updated upstream
 Why use gradle resource locators rather than ?::
   kscript used it and it's nice as it is a one-liner and easily parsable.
+||||||| merged common ancestors
+Why use of gradle resource locators rather than ?::
+  kscript used it and its nice as it is a one-liner and easily parsable.
+=======
+How does this compare to ?::
+After doing `jbang` I've learned about similar projects and thought it would be nice with some comparison;
++
+https://github.com/scijava/jgo[jgo]: an alternative way to launch jars using maven coordinates. Implemented in python, depends on Java and Maven to be available. Not really for scripting but a novel way to launch java apps already packaged as a maven dependency.
++
+
+
+
+Why use of gradle resource locators rather than ?::
+  kscript used it and its nice as it is a one-liner and easily parsable.
+>>>>>>> Stashed changes
 
 Why would I use Java to write scripts ? Java sucks for that... Use gradle, kotlin, scala, etc. instead!::
   Well, does it really suck ? With Java 8 streams, static imports and greatly improved standard java libraries it is very close to what kscript and grape look like.
