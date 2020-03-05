@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -71,8 +72,26 @@ public class Util {
 		String fileName = "";
 
 		if (urlConnection instanceof HttpURLConnection) {
-			httpConn = (HttpURLConnection) url.openConnection();
-			int responseCode = httpConn.getResponseCode();
+			int responseCode;
+			int redirects = 0;
+			while (true) {
+				httpConn = (HttpURLConnection) urlConnection;
+				httpConn.setInstanceFollowRedirects(false);
+				responseCode = httpConn.getResponseCode();
+				if (responseCode == HttpURLConnection.HTTP_MOVED_PERM ||
+						responseCode == HttpURLConnection.HTTP_MOVED_TEMP) {
+					if (redirects++ > 8) {
+						throw new IOException("Too many redirects");
+					}
+					String location = URLDecoder.decode(httpConn.getHeaderField("Location"), "UTF-8");
+					url = new URL(url, location);
+					fileURL = url.toExternalForm();
+					info("Redirecting to: " + url);
+					urlConnection = url.openConnection();
+					continue;
+				}
+				break;
+			}
 
 			// always check HTTP response code first
 			if (responseCode == HttpURLConnection.HTTP_OK) {
