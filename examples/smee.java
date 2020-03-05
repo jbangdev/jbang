@@ -96,11 +96,9 @@ class smee implements Callable<Integer> {
             log.info("Connected " + url);
         }
 
-        while(true) {
-            Thread.sleep(50000);
-        }
+        Thread.currentThread().join();
 
-        //return 0;
+        return 0;
     }
 
     private void onError(Throwable error) {
