@@ -296,7 +296,15 @@ public class Main implements Callable<Integer> {
 					output.append(line);
 				}
 			}
-			System.out.println(output);
+			if (output.toString().trim().isEmpty()) {
+				try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
+					String line;
+					while ((line = br.readLine()) != null) {
+						output.append(line);
+					}
+				}
+			}
+			// System.out.println(output);
 			String[] jcVersion = output.toString().split(" ");
 			for (String string : jcVersion) {
 				if (string.contains("1")) {
@@ -306,7 +314,7 @@ public class Main implements Callable<Integer> {
 		} catch (IOException e) {
 			Util.warnMsg(e.toString());
 		}
-		System.out.println(javaVersion + " " + javacVersion);
+		// Util.info(javaVersion + " " + javacVersion);
 		return (javaVersion.equals(javacVersion));
 	}
 
