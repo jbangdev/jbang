@@ -279,7 +279,7 @@ public class Main implements Callable<Integer> {
 		return value;
 	}
 
-	static boolean checkVersions() {
+	static void checkVersions() {
 		String javaVersion = "";
 		String javacVersion = "";
 		try {
@@ -288,7 +288,10 @@ public class Main implements Callable<Integer> {
 				x = '"' + x + '"';
 			}
 			javaVersion = getJavaVersion(x);
-			Process p = Runtime.getRuntime().exec(resolveInJavaHome("javac -version"));
+			List<String> javacVersionCommandList = new ArrayList<>();
+			javacVersionCommandList.add(resolveInJavaHome("javac"));
+			javacVersionCommandList.add("-version");
+			Process p = new ProcessBuilder(javacVersionCommandList).start();
 			StringBuilder output = new StringBuilder();
 			try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
 				String line;
@@ -314,8 +317,11 @@ public class Main implements Callable<Integer> {
 		} catch (IOException e) {
 			Util.warnMsg(e.toString());
 		}
-		// Util.info(javaVersion + " " + javacVersion);
-		return (javaVersion.equals(javacVersion));
+		if (!(javaVersion.equals(javacVersion))) {
+			Util.warnMsg("java and javac versions are different!!");
+			Util.info("java version: " + javaVersion);
+			Util.info("javac version: " + javacVersion);
+		}
 	}
 
 	// build with javac and then jar... todo: split up in more testable chunks
@@ -338,9 +344,7 @@ public class Main implements Callable<Integer> {
 			optionList.addAll(Arrays.asList("-d", tmpJarDir.getAbsolutePath()));
 			optionList.addAll(Arrays.asList(script.backingFile.getPath()));
 			Util.info("Building jar...");
-			if (!checkVersions()) {
-				Util.warnMsg("java and javac versions are different!!");
-			}
+			checkVersions();
 			if (m.verbose)
 				Util.info("compile: " + String.join(" ", optionList));
 			Process process = new ProcessBuilder(optionList).inheritIO().start();
