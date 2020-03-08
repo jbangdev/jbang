@@ -307,7 +307,6 @@ public class Main implements Callable<Integer> {
 					}
 				}
 			}
-			// System.out.println(output);
 			String[] jcVersion = output.toString().split(" ");
 			for (String string : jcVersion) {
 				if (string.contains("1")) {
