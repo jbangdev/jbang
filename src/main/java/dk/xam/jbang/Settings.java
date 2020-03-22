@@ -1,6 +1,10 @@
 package dk.xam.jbang;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
 
 public class Settings {
 
@@ -49,6 +53,17 @@ public class Settings {
 		// create cache dir if it does not yet exist
 		if (!JBANG_CACHE_DIR.exists()) {
 			JBANG_CACHE_DIR.mkdir();
+		}
+	}
+
+	public static void clearCache() {
+		try {
+			Files	.walk(Settings.getCacheDir().toPath())
+					.sorted(Comparator.reverseOrder())
+					.map(Path::toFile)
+					.forEach(File::delete);
+		} catch (IOException e) {
+			throw new ExitException(-1, "Could not delete cache.", e);
 		}
 	}
 }

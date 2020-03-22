@@ -23,6 +23,8 @@ import java.util.stream.Stream;
 import javax.net.ssl.*;
 
 import org.apache.commons.text.StringEscapeUtils;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
+import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 
 import com.sun.nio.file.SensitivityWatchEventModifier;
 
@@ -80,6 +82,10 @@ public class Main implements Callable<Integer> {
 	@Option(names = {
 			"--init" }, description = "Init script with a java class useful for scripting", parameterConsumer = PlainStringFallbackConsumer.class, arity = "0..1", fallbackValue = "hello")
 	String initTemplate;
+
+	@Option(names = {
+			"--adddeps" }, description = "Add dependencies from the build file specified and inject into the .java files.", arity = "1")
+	String fetchDeps;
 
 	@Option(names = "--completion", help = true, description = "Output auto-completion script for bash/zsh.\nUsage: source <(jbang --completion)")
 	boolean completionRequested;
@@ -171,10 +177,7 @@ public class Main implements Callable<Integer> {
 		if (clearCache) {
 			info("Clearing cache at " + Settings.getCacheDir().toPath());
 			// noinspection resource
-			Files	.walk(Settings.getCacheDir().toPath())
-					.sorted(Comparator.reverseOrder())
-					.map(Path::toFile)
-					.forEach(File::delete);
+			Settings.clearCache();
 		}
 
 		if (initTemplate != null) {
@@ -915,4 +918,15 @@ public class Main implements Callable<Integer> {
 			}
 		}
 	}
+
+	public static List<MavenCoordinate> findDeps(File pom) {
+		// todo use to dump out pom dependencies
+		return Maven.resolver()
+					.loadPomFromFile(pom)
+					.importCompileAndRuntimeDependencies()
+					.resolve()
+					.withoutTransitivity()
+					.asList(MavenCoordinate.class);
+	}
+
 }
