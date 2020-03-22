@@ -16,6 +16,11 @@ public class Script {
 	private Pattern DEPS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
 	private Pattern DEPS_ANNOT_SINGLE = Pattern.compile("@Grab\\(\\s*\"(?<value>.*)\"\\s*\\)");
 
+	private String REPOS_COMMENT_PREFIX = "//REPOS ";
+	private String REPOS_ANNOT_PREFIX = "@GrabResolver(";
+	private Pattern REPOS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
+	private Pattern REPOS_ANNOT_SINGLE = Pattern.compile("@GrabResolver\\(\\s*\"(?<value>.*)\"\\s*\\)");
+
 	/**
 	 * the file that contains the code that will back the actual compile/execution.
 	 * Might have been altered to be runnable; i.e. stripped out !# before launch.
@@ -75,6 +80,15 @@ public class Script {
 		return dependencies;
 	}
 
+	public List<MavenRepo> collectRepositories() {
+		return getLines()	.stream()
+							.filter(this::isRepoDeclare)
+							.flatMap(this::extractRepositories)
+							.map(PropertiesValueResolver::replaceProperties)
+							.map(DependencyUtil::toMavenRepo)
+							.collect(Collectors.toList());
+	}
+
 	// https://stackoverflow.com/questions/366202/regex-for-splitting-a-string-using-space-when-not-surrounded-by-single-or-double
 	List<String> quotedStringToList(String subjectString) {
 		List<String> matchList = new ArrayList<String>();
@@ -130,9 +144,9 @@ public class Script {
 	public String resolveClassPath() {
 		if (classpath == null) {
 			List<String> dependencies = collectDependencies();
-
+			List<MavenRepo> repositories = collectRepositories();
 			classpath = new ModularClassPath(
-					new DependencyUtil().resolveDependencies(dependencies, Collections.emptyList(), true));
+					new DependencyUtil().resolveDependencies(dependencies, repositories, true));
 		}
 		if (jar != null) {
 			return classpath.getClassPath() + Settings.CP_SEPARATOR + jar.getAbsolutePath();
@@ -145,6 +159,32 @@ public class Script {
 			resolveClassPath();
 		}
 		return classpath.getAutoDectectedModuleArguments(javacmd);
+	}
+
+	public Stream<String> extractRepositories(String line) {
+		if (line.startsWith(REPOS_COMMENT_PREFIX)) {
+			return Arrays.stream(line.split("[ ;,]+")).skip(1).map(String::trim);
+		}
+
+		if (line.contains(REPOS_ANNOT_PREFIX)) {
+			Map<String, String> args = new HashMap<>();
+
+			Matcher matcher = REPOS_ANNOT_PAIRS.matcher(line);
+			while (matcher.find()) {
+				args.put(matcher.group("key"), matcher.group("value"));
+			}
+			if (!args.isEmpty()) {
+				String repo = args.getOrDefault("name", args.get("root")) + "=" + args.get("root");
+				return Stream.of(repo);
+			} else {
+				matcher = REPOS_ANNOT_SINGLE.matcher(line);
+				if (matcher.find()) {
+					return Stream.of(matcher.group("value"));
+				}
+			}
+		}
+
+		return Stream.of();
 	}
 
 	Stream<String> extractDependencies(String line) {
@@ -179,6 +219,10 @@ public class Script {
 		}
 
 		return Stream.of();
+	}
+
+	boolean isRepoDeclare(String line) {
+		return line.startsWith(REPOS_COMMENT_PREFIX) || line.contains(REPOS_ANNOT_PREFIX);
 	}
 
 	boolean isDependDeclare(String line) {
@@ -219,4 +263,5 @@ public class Script {
 	public File getOriginalFile() {
 		return originalFile;
 	}
+
 }

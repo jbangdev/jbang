@@ -1,6 +1,8 @@
 package dk.xam.jbang;
 
 import static dk.xam.jbang.Util.writeString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasItem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -61,6 +63,37 @@ class TestScript {
 		assertTrue(deps.contains("blah"));
 
 		assertTrue(deps.contains("blue"));
+
+	}
+
+	@Test
+	void textExtractRepositories() {
+		Script s = new Script(example);
+
+		List<String> repos = s.extractRepositories("//REPOS jcenter=https://xyz.org").collect(Collectors.toList());
+
+		assertThat(repos, hasItem("jcenter=https://xyz.org"));
+
+		repos = s	.extractRepositories("//REPOS jcenter=https://xyz.org localMaven xyz=file://~test")
+					.collect(Collectors.toList());
+
+		assertThat(repos, hasItem("jcenter=https://xyz.org"));
+		assertThat(repos, hasItem("localMaven"));
+		assertThat(repos, hasItem("xyz=file://~test"));
+	}
+
+	@Test
+	void textExtractRepositoriesGrape() {
+		Script s = new Script(example);
+
+		List<String> deps = s.extractRepositories(
+				"@GrabResolver(name=\"restlet.org\", root=\"http://maven.restlet.org\")").collect(Collectors.toList());
+
+		assertThat(deps, hasItem("restlet.org=http://maven.restlet.org"));
+
+		deps = s.extractRepositories("@GrabResolver(\"http://maven.restlet.org\")").collect(Collectors.toList());
+
+		assertThat(deps, hasItem("http://maven.restlet.org"));
 
 	}
 

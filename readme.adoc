@@ -7,7 +7,9 @@
 image:https://img.shields.io/github/release/maxandersen/jbang.svg[Release,link=https://github.com/maxandersen/jbang/releases]
 image:https://github.com/maxandersen/jbang/workflows/ci-build/badge.svg[Build Status,link=https://github.com/maxandersen/jbang/actions]
 image:https://che.openshift.io/factory/resources/factory-contribute.svg[Che, link=https://che.openshift.io/f?url=https://github.com/maxandersen/jbang]
-image:https://img.shields.io/badge/Gitpod-Workspace-blue?logo=gitpodp[Gitpod, link=https://gitpod.io/#https://github.com/maxandersen/jbang] 
+image:https://img.shields.io/badge/Gitpod-Workspace-blue?logo=gitpodp[Gitpod, link=https://gitpod.io/#https://github.com/maxandersen/jbang]
+
+image:images/jbang_logo.svg[JBang Logo, title="JBang Logo"]
 
 == Intro
 
@@ -372,6 +374,47 @@ $ ./classpath_example.java
 1 [main] INFO classpath_example  - Hello from Java!
 ----
 
+=== Repositories
+
+By default `jbang` uses jcenter[https://jcenter.bintray.com/] as its repository as it is a superset of Maven Central
+and supposedly should be faster.
+
+If that is not sufficient for you or need some custom repo you can use `//REPOS id=repourl` to
+state which repository URL to use.
+
+For ease of use there are also a few shorthands to use popular commonly available repositories.
+
+|===
+|Short name | Description
+|`mavencentral`
+|Maven Central
+
+|`jcenter`
+|`https://jcenter.bintray.com/`
+
+|`google`
+|`https://maven.google.com/`
+|===
+
+Following example enables use of Maven Central and add a custom `acme` repository.
+
+[source, java]
+```
+//REPOS mavenCentral,acme=https://maven.acme.local/maven
+```
+
+[WARNING]
+====
+If you add any `//REPOS` lines `jbang` will no longer consult `jcenter` thus you need to explicitly add it if needed.
+====
+
+[TIP]
+====
+For secure authentication `jbang` will honor `~/.m2/settings-security.xml` for configuring
+username/passwords.
+====
+
+
 === Using `@Grab`
 
 There is also support for using Groovy lang style `@Grab` syntax.
@@ -389,7 +432,10 @@ import java.util.Arrays;
 
 import groovy.lang.Grab; // <.>
 import groovy.lang.Grapes;
+import groovy.lang.GrabResolver;
 
+@GrabResolver("mavenCentral") // <.>
+@GrabResolver(name='acme', root='https://maven.acme.local/maven')
 @Grapes({ // <.>
 		@Grab(group="org.codehaus.groovy", module="groovy", version="2.5.8"), // <.>
 		@Grab(module = "log4j", group = "log4j", version = "1.2.17")
@@ -405,6 +451,7 @@ class classpath_example {
 }
 ----
 <.> Import needed to make the compiler be okey with `@Grab` annotation.
+<.> Using `GrabResolver` to enable `mavenCentral` and custom `acme` repository
 <.> In Groovy you normally put `@Grab` on import statements. That is not allowed in Java thus when having multiple imports you need to put them in a `@Grapes` annotation first.
 <.> `jbang` will grab any `@Grab` annotation and assume it is declaring dependencies.
 

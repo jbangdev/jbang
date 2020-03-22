@@ -110,13 +110,15 @@ class DependencyUtil {
 	public List<File> resolveDependenciesViaAether(List<String> depIds, List<MavenRepo> customRepos,
 			boolean loggingEnabled) {
 
+		if (customRepos.isEmpty()) {
+			customRepos = Arrays.asList(toMavenRepo("jcenter"));
+		}
+
 		ConfigurableMavenResolverSystem resolver = Maven.configureResolver()
-														.withRemoteRepo("jcenter", "https://jcenter.bintray.com/",
-																"default")
 														.withMavenCentralRepo(false);
 
 		customRepos.stream().forEach(mavenRepo -> {
-			resolver.withRemoteRepo(mavenRepo.getId(), "default", mavenRepo.getUrl());
+			mavenRepo.apply(resolver);
 		});
 
 		System.setProperty("maven.repo.local", Settings.getLocalMavenRepo().toPath().toAbsolutePath().toString());
@@ -201,4 +203,33 @@ class DependencyUtil {
 						.orElse(s);
 	}
 
+	static public MavenRepo toMavenRepo(String repoReference) {
+		String[] split = repoReference.split("=");
+		String reporef = null;
+		String repoid = null;
+
+		if (split.length == 1) {
+			reporef = split[0];
+		} else if (split.length == 2) {
+			repoid = split[0];
+			reporef = split[1];
+		} else {
+			throw new IllegalStateException("Invalid Maven repository reference: " + repoReference);
+		}
+
+		if ("jcenter".equalsIgnoreCase(reporef)) {
+			return new MavenRepo(Optional.ofNullable(repoid).orElse("jcenter"), "https://jcenter.bintray.com/");
+		} else if ("google".equalsIgnoreCase(reporef)) {
+			return new MavenRepo(Optional.ofNullable(repoid).orElse("google"), "https://maven.google.com/");
+		} else if ("mavenCentral".equalsIgnoreCase(reporef)) {
+			return new MavenRepo("", "") {
+				@Override
+				public void apply(ConfigurableMavenResolverSystem resolver) {
+					resolver.withMavenCentralRepo(true);
+				}
+			};
+		} else {
+			return new MavenRepo(repoid, reporef);
+		}
+	}
 }
