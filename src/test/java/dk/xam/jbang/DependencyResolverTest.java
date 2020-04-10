@@ -1,6 +1,8 @@
 package dk.xam.jbang;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -100,7 +102,7 @@ class DependencyResolverTest {
 
 		List<String> deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
 
-		List<File> artifacts = dr.resolveDependenciesViaAether(deps, Collections.emptyList(), true);
+		List<File> artifacts = dr.resolveDependenciesViaAether(deps, Collections.emptyList(), false, true);
 
 		assertEquals(2, artifacts.size());
 
@@ -113,7 +115,7 @@ class DependencyResolverTest {
 
 		List<String> deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
 
-		String classpath = dr.resolveDependencies(deps, Collections.emptyList(), true);
+		String classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, true);
 
 		// if returns 5 its because optional deps are included which they shouldn't
 		assertEquals(2, classpath.split(Settings.CP_SEPARATOR).length);
@@ -131,7 +133,7 @@ class DependencyResolverTest {
 		// using shrinkwrap resolves in ${os.detected.version} not being resolved
 		List<String> deps = Arrays.asList("com.github.docker-java:docker-java:3.1.5");
 
-		String classpath = dr.resolveDependencies(deps, Collections.emptyList(), true);
+		String classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, true);
 
 		assertEquals(46, classpath.split(Settings.CP_SEPARATOR).length);
 
@@ -144,7 +146,7 @@ class DependencyResolverTest {
 		// using shrinkwrap resolves in ${os.detected.version} not being resolved
 		List<String> deps = Arrays.asList("org.openjfx:javafx-graphics:11.0.2:mac", "com.offbytwo:docopt:0.6+");
 
-		ModularClassPath cp = new ModularClassPath(dr.resolveDependencies(deps, Collections.emptyList(), true)) {
+		ModularClassPath cp = new ModularClassPath(dr.resolveDependencies(deps, Collections.emptyList(), false, true)) {
 			@Override
 			protected boolean supportsModules(String javacmd) {
 				return true;

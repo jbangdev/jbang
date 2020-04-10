@@ -141,12 +141,12 @@ public class Script {
 	 * Return resolved classpath lazily. resolution will only happen once, any
 	 * consecutive calls return the same classpath.
 	 **/
-	public String resolveClassPath() {
+	public String resolveClassPath(boolean offline) {
 		if (classpath == null) {
 			List<String> dependencies = collectDependencies();
 			List<MavenRepo> repositories = collectRepositories();
 			classpath = new ModularClassPath(
-					new DependencyUtil().resolveDependencies(dependencies, repositories, true));
+					new DependencyUtil().resolveDependencies(dependencies, repositories, offline, true));
 		}
 		if (jar != null) {
 			return classpath.getClassPath() + Settings.CP_SEPARATOR + jar.getAbsolutePath();
@@ -154,9 +154,9 @@ public class Script {
 		return classpath.getClassPath();
 	}
 
-	List<String> getAutoDetectedModuleArguments(String javacmd) {
+	List<String> getAutoDetectedModuleArguments(String javacmd, boolean offline) {
 		if (classpath == null) {
-			resolveClassPath();
+			resolveClassPath(offline);
 		}
 		return classpath.getAutoDectectedModuleArguments(javacmd);
 	}

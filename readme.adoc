@@ -374,6 +374,11 @@ $ ./classpath_example.java
 1 [main] INFO classpath_example  - Hello from Java!
 ----
 
+==== Offline mode
+
+In case you prefer `jbang` to just fail-fast when dependencies cannot be found locally you can run `jbang` in offline mode using
+`jbang -o` or `jbang --offline`. In this mode `jbang` will simply fail if dependencies have not already been cached already.
+
 === Repositories
 
 By default `jbang` uses jcenter[https://jcenter.bintray.com/] as its repository as it is a superset of Maven Central

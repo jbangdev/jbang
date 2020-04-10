@@ -1,7 +1,11 @@
 package dk.xam.jbang;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -22,6 +26,7 @@ import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junit.jupiter.api.io.TempDir;
 
 import picocli.CommandLine;
@@ -253,12 +258,14 @@ public class TestMain {
 		Main m = new Main();
 
 		Script script = new Script(f);
-		Main.build(script, m);
+		m.build(script);
 
 		assertThat(script.getMainClass(), equalTo("dualclass"));
 	}
 
+	// started failing 403 when run in github...
 	@Test
+	@DisabledIfEnvironmentVariable(named = "GITHUB_WORKFLOW", matches = ".*")
 	void testFetchFromGitLab(@TempDir Path dir) throws IOException {
 
 		Path x = Util.downloadFile("https://gitlab.com/maxandersen/jbang-gitlab/-/raw/master/helloworld.java",

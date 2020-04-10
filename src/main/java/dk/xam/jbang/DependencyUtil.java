@@ -1,14 +1,20 @@
 package dk.xam.jbang;
 
 import static dk.xam.jbang.Settings.CP_SEPARATOR;
-import static dk.xam.jbang.Util.*;
+import static dk.xam.jbang.Util.errorMsg;
+import static dk.xam.jbang.Util.infoMsg;
+import static dk.xam.jbang.Util.warnMsg;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -28,7 +34,7 @@ class DependencyUtil {
 	 * @return string with resolved classpath
 	 */
 	public String resolveDependencies(List<String> depIds, List<MavenRepo> customRepos,
-			boolean loggingEnabled) {
+			boolean offline, boolean loggingEnabled) {
 
 		// if no dependencies were provided we stop here
 		if (depIds.isEmpty()) {
@@ -75,7 +81,7 @@ class DependencyUtil {
 		}
 
 		try {
-			List<File> artifacts = resolveDependenciesViaAether(depIds, customRepos, loggingEnabled);
+			List<File> artifacts = resolveDependenciesViaAether(depIds, customRepos, offline, loggingEnabled);
 			String classPath = artifacts.stream()
 										.map(it -> it.getAbsolutePath())
 										.map(it -> it.contains(" ") ? '"' + it + '"' : it)
@@ -108,14 +114,15 @@ class DependencyUtil {
 	}
 
 	public List<File> resolveDependenciesViaAether(List<String> depIds, List<MavenRepo> customRepos,
-			boolean loggingEnabled) {
+			boolean offline, boolean loggingEnabled) {
 
 		if (customRepos.isEmpty()) {
 			customRepos = Arrays.asList(toMavenRepo("jcenter"));
 		}
 
 		ConfigurableMavenResolverSystem resolver = Maven.configureResolver()
-														.withMavenCentralRepo(false);
+														.withMavenCentralRepo(false)
+														.workOffline(offline);
 
 		customRepos.stream().forEach(mavenRepo -> {
 			mavenRepo.apply(resolver);

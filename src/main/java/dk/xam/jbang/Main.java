@@ -1,18 +1,46 @@
 package dk.xam.jbang;
 
 import static dk.xam.jbang.Settings.CP_SEPARATOR;
-import static java.lang.System.*;
-import static picocli.CommandLine.*;
+import static java.lang.System.err;
+import static java.lang.System.getProperty;
+import static java.lang.System.getenv;
+import static java.lang.System.out;
+import static picocli.CommandLine.Command;
+import static picocli.CommandLine.IParameterConsumer;
+import static picocli.CommandLine.InitializationException;
+import static picocli.CommandLine.Option;
+import static picocli.CommandLine.Parameters;
+import static picocli.CommandLine.Spec;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.security.KeyManagementException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Scanner;
+import java.util.Stack;
 import java.util.concurrent.Callable;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
@@ -20,7 +48,12 @@ import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.net.ssl.*;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import org.apache.commons.text.StringEscapeUtils;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
@@ -59,6 +92,9 @@ public class Main implements Callable<Integer> {
 	@Option(names = {
 			"--edit-live" }, description = "Setup temporary project, launch editor and regenerate project on dependency changes.", parameterConsumer = PlainStringFallbackConsumer.class, arity = "0..1", fallbackValue = "${JBANG_EDITOR:-${VISUAL:-${EDITOR}}}")
 	String liveeditor;
+
+	@Option(names = { "-o", "--offline" }, description = "Work offline. Fail-fast if dependencies are missing.")
+	boolean offline;
 
 	@Option(names = { "-h", "--help" }, usageHelp = true, description = "Display help/info")
 	boolean helpRequested;
@@ -251,7 +287,7 @@ public class Main implements Callable<Integer> {
 				script = prepareScript(scriptOrFile);
 
 				if (script.needsJar()) {
-					build(script, this);
+					build(script);
 				}
 				String cmdline = generateCommandLine(script);
 				if (verbose) {
@@ -314,7 +350,7 @@ public class Main implements Callable<Integer> {
 	}
 
 	// build with javac and then jar... todo: split up in more testable chunks
-	static void build(Script script, Main m) throws IOException {
+	void build(Script script) throws IOException {
 		File baseDir = new File(Settings.getCacheDir(), "jars");
 		File tmpJarDir = new File(baseDir, script.backingFile.getName() +
 				"." + getStableID(script.backingFile));
@@ -326,7 +362,7 @@ public class Main implements Callable<Integer> {
 			List<String> optionList = new ArrayList<String>();
 			optionList.add(resolveInJavaHome("javac"));
 			optionList.addAll(script.collectCompileOptions());
-			String path = script.resolveClassPath();
+			String path = script.resolveClassPath(offline);
 			if (!path.trim().isEmpty()) {
 				optionList.addAll(Arrays.asList("-classpath", path));
 			}
@@ -334,7 +370,7 @@ public class Main implements Callable<Integer> {
 			optionList.addAll(Arrays.asList(script.backingFile.getPath()));
 
 			Util.info("Building jar...");
-			if (m.verbose)
+			if (this.verbose)
 				Util.info("compile: " + String.join(" ", optionList));
 			Process process = new ProcessBuilder(optionList).inheritIO().start();
 			try {
@@ -399,7 +435,7 @@ public class Main implements Callable<Integer> {
 	File createProjectForEdit(Script script, List<String> userParams) throws IOException {
 
 		List<String> collectDependencies = script.collectDependencies();
-		String cp = script.resolveClassPath();
+		String cp = script.resolveClassPath(offline);
 		List<String> resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 
 		Engine engine = Engine.builder().addDefaults().addLocator(this::locate).build();
@@ -621,7 +657,7 @@ public class Main implements Callable<Integer> {
 
 	String generateCommandLine(Script script) throws IOException {
 
-		String classpath = script.resolveClassPath();
+		String classpath = script.resolveClassPath(offline);
 
 		List<String> optionalArgs = new ArrayList<String>();
 
@@ -663,7 +699,7 @@ public class Main implements Callable<Integer> {
 		List<String> fullArgs = new ArrayList<>();
 		fullArgs.add(javacmd);
 		fullArgs.addAll(script.collectRuntimeOptions());
-		fullArgs.addAll(script.getAutoDetectedModuleArguments(javacmd));
+		fullArgs.addAll(script.getAutoDetectedModuleArguments(javacmd, offline));
 		fullArgs.addAll(optionalArgs);
 		if (script.getMainClass() != null) {
 			fullArgs.add(script.getMainClass());
