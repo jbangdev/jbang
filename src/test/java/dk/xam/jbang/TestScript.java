@@ -55,10 +55,7 @@ class TestScript {
 
 	@Test
 	void testExtractDependencies() {
-
-		Script s = new Script(example);
-
-		List<String> deps = s.extractDependencies("//DEPS blah, blue").collect(Collectors.toList());
+		List<String> deps = Script.extractDependencies("//DEPS blah, blue").collect(Collectors.toList());
 
 		assertTrue(deps.contains("blah"));
 
@@ -68,14 +65,12 @@ class TestScript {
 
 	@Test
 	void textExtractRepositories() {
-		Script s = new Script(example);
-
-		List<String> repos = s.extractRepositories("//REPOS jcenter=https://xyz.org").collect(Collectors.toList());
+		List<String> repos = Script.extractRepositories("//REPOS jcenter=https://xyz.org").collect(Collectors.toList());
 
 		assertThat(repos, hasItem("jcenter=https://xyz.org"));
 
-		repos = s	.extractRepositories("//REPOS jcenter=https://xyz.org localMaven xyz=file://~test")
-					.collect(Collectors.toList());
+		repos = Script	.extractRepositories("//REPOS jcenter=https://xyz.org localMaven xyz=file://~test")
+						.collect(Collectors.toList());
 
 		assertThat(repos, hasItem("jcenter=https://xyz.org"));
 		assertThat(repos, hasItem("localMaven"));
@@ -84,14 +79,12 @@ class TestScript {
 
 	@Test
 	void textExtractRepositoriesGrape() {
-		Script s = new Script(example);
-
-		List<String> deps = s.extractRepositories(
+		List<String> deps = Script.extractRepositories(
 				"@GrabResolver(name=\"restlet.org\", root=\"http://maven.restlet.org\")").collect(Collectors.toList());
 
 		assertThat(deps, hasItem("restlet.org=http://maven.restlet.org"));
 
-		deps = s.extractRepositories("@GrabResolver(\"http://maven.restlet.org\")").collect(Collectors.toList());
+		deps = Script.extractRepositories("@GrabResolver(\"http://maven.restlet.org\")").collect(Collectors.toList());
 
 		assertThat(deps, hasItem("http://maven.restlet.org"));
 
@@ -99,7 +92,6 @@ class TestScript {
 
 	@Test
 	void testExtractOptions() {
-
 		Script s = new Script(example);
 
 		assertEquals(s.collectCompileOptions(), Arrays.asList("--enable-preview", "--verbose"));

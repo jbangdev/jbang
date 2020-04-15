@@ -82,8 +82,8 @@ public class Script {
 
 	public List<MavenRepo> collectRepositories() {
 		return getLines()	.stream()
-							.filter(this::isRepoDeclare)
-							.flatMap(this::extractRepositories)
+							.filter(Script::isRepoDeclare)
+							.flatMap(Script::extractRepositories)
 							.map(PropertiesValueResolver::replaceProperties)
 							.map(DependencyUtil::toMavenRepo)
 							.collect(Collectors.toCollection(ArrayList::new));
@@ -161,7 +161,7 @@ public class Script {
 		return classpath.getAutoDectectedModuleArguments(javacmd);
 	}
 
-	public Stream<String> extractRepositories(String line) {
+	public static Stream<String> extractRepositories(String line) {
 		if (line.startsWith(REPOS_COMMENT_PREFIX)) {
 			return Arrays.stream(line.split("[ ;,]+")).skip(1).map(String::trim);
 		}
@@ -187,7 +187,7 @@ public class Script {
 		return Stream.of();
 	}
 
-	Stream<String> extractDependencies(String line) {
+	static Stream<String> extractDependencies(String line) {
 		if (line.startsWith(DEPS_COMMENT_PREFIX)) {
 			return Arrays.stream(line.split("[ ;,]+")).skip(1).map(String::trim);
 		}
@@ -221,11 +221,11 @@ public class Script {
 		return Stream.of();
 	}
 
-	boolean isRepoDeclare(String line) {
+	static boolean isRepoDeclare(String line) {
 		return line.startsWith(REPOS_COMMENT_PREFIX) || line.contains(REPOS_ANNOT_PREFIX);
 	}
 
-	boolean isDependDeclare(String line) {
+	static boolean isDependDeclare(String line) {
 		return line.startsWith(DEPS_COMMENT_PREFIX) || line.contains(DEPS_ANNOT_PREFIX);
 	}
 
