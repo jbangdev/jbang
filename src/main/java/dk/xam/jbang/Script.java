@@ -10,16 +10,16 @@ import java.util.stream.Stream;
 
 public class Script {
 
-	private String DEPS_COMMENT_PREFIX = "//DEPS ";
+	private static final String DEPS_COMMENT_PREFIX = "//DEPS ";
 
-	private String DEPS_ANNOT_PREFIX = "@Grab(";
-	private Pattern DEPS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
-	private Pattern DEPS_ANNOT_SINGLE = Pattern.compile("@Grab\\(\\s*\"(?<value>.*)\"\\s*\\)");
+	private static final String DEPS_ANNOT_PREFIX = "@Grab(";
+	private static final Pattern DEPS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
+	private static final Pattern DEPS_ANNOT_SINGLE = Pattern.compile("@Grab\\(\\s*\"(?<value>.*)\"\\s*\\)");
 
-	private String REPOS_COMMENT_PREFIX = "//REPOS ";
-	private String REPOS_ANNOT_PREFIX = "@GrabResolver(";
-	private Pattern REPOS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
-	private Pattern REPOS_ANNOT_SINGLE = Pattern.compile("@GrabResolver\\(\\s*\"(?<value>.*)\"\\s*\\)");
+	private static final String REPOS_COMMENT_PREFIX = "//REPOS ";
+	private static final String REPOS_ANNOT_PREFIX = "@GrabResolver(";
+	private static final Pattern REPOS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
+	private static final Pattern REPOS_ANNOT_SINGLE = Pattern.compile("@GrabResolver\\(\\s*\"(?<value>.*)\"\\s*\\)");
 
 	/**
 	 * the file that contains the code that will back the actual compile/execution.
