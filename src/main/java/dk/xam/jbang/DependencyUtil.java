@@ -235,6 +235,8 @@ class DependencyUtil {
 					resolver.withMavenCentralRepo(true);
 				}
 			};
+		} else if ("jitpack".equalsIgnoreCase(reporef)) {
+			return new MavenRepo(Optional.ofNullable(repoid).orElse("jitpack"), "https://jitpack.io/");
 		} else {
 			return new MavenRepo(repoid, reporef);
 		}

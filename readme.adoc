@@ -399,6 +399,9 @@ For ease of use there are also a few shorthands to use popular commonly availabl
 
 |`google`
 |`https://maven.google.com/`
+
+|`jitpack`
+|`https://jitpack.io/`
 |===
 
 Following example enables use of Maven Central and add a custom `acme` repository.
