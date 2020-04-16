@@ -10,9 +10,8 @@ public class Settings {
 
 	final private static File JBANG_CACHE_DIR;
 	final private static File DEP_LOOKUP_CACHE_FILE;
-	final public static String CP_SEPARATOR = System.getProperty("os.name").toLowerCase().contains("windows")
-			? ";"
-			: ":";
+	public static final boolean IS_OS_NAME_WINDOWS = System.getProperty("os.name").toLowerCase().contains("windows");
+	public static final String CP_SEPARATOR = IS_OS_NAME_WINDOWS ? ";" : ":";
 
 	static {
 		String v = System.getenv("JBANG_CACHE_DIR");

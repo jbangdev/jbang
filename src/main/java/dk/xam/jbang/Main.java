@@ -115,7 +115,7 @@ public class Main implements Callable<Integer> {
 	@Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
 	List<String> userParams = new ArrayList<String>();
 
-	@Option(names = {
+	@Option(names = { "-i",
 			"--init" }, description = "Init script with a java class useful for scripting", parameterConsumer = PlainStringFallbackConsumer.class, arity = "0..1", fallbackValue = "hello")
 	String initTemplate;
 
@@ -456,7 +456,7 @@ public class Main implements Callable<Integer> {
 
 		File srcFile = new File(srcDir, name);
 		if (!srcFile.exists()) {
-			Files.createSymbolicLink(srcFile.toPath(), script.getOriginalFile().getAbsoluteFile().toPath());
+			createLink(srcFile.toPath(), script.getOriginalFile().getAbsoluteFile().toPath());
 		}
 
 		// create build gradle
@@ -517,6 +517,14 @@ public class Main implements Callable<Integer> {
 		 */
 
 		return tmpProjectDir;
+	}
+
+	private void createLink(Path src, Path target) throws IOException {
+		if (Settings.IS_OS_NAME_WINDOWS) {
+			Files.createLink(src, target);
+		} else {
+			Files.createSymbolicLink(src, target);
+		}
 	}
 
 	private void renderTemplate(Engine engine, List<String> collectDependencies, String baseName,

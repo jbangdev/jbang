@@ -51,7 +51,9 @@ public class TestEdit {
 		assertThat(Util.readString(build.toPath()), containsString("dependencies"));
 		File src = new File(project, "src/edit.java");
 		assert (src.exists());
-		assert (Files.isSymbolicLink(src.toPath()));
+
+		if (!Settings.IS_OS_NAME_WINDOWS)
+			assert (Files.isSymbolicLink(src.toPath()));
 
 		// check eclipse is there
 		assertThat(Arrays.stream(project.listFiles()).map(File::getName).collect(Collectors.toList()),
@@ -87,7 +89,9 @@ public class TestEdit {
 
 		File java = new File(project, "src/edit.java");
 		assertThat(java, anExistingFile());
-		assertThat(Files.isSymbolicLink(java.toPath()), equalTo(true));
+
+		if (!Settings.IS_OS_NAME_WINDOWS)
+			assertThat(Files.isSymbolicLink(java.toPath()), equalTo(true));
 
 		assertThat(Files.isSameFile(java.toPath(), p), equalTo(true));
 	}
@@ -107,7 +111,7 @@ public class TestEdit {
 		File java = new File(project, "src/KubeExample.java");
 		assertThat(java, anExistingFile());
 
-		assert (Files.isSymbolicLink(java.toPath()));
+		assert Settings.IS_OS_NAME_WINDOWS || (Files.isSymbolicLink(java.toPath()));
 
 	}
 
