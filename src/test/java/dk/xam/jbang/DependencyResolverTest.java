@@ -1,5 +1,6 @@
 package dk.xam.jbang;
 
+import static dk.xam.jbang.DependencyUtil.toMavenRepo;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
@@ -102,7 +103,8 @@ class DependencyResolverTest {
 
 		List<String> deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
 
-		List<File> artifacts = dr.resolveDependenciesViaAether(deps, Collections.emptyList(), false, true);
+		List<File> artifacts = dr.resolveDependenciesViaAether(deps, Arrays.asList(toMavenRepo("jcenter")), false,
+				true);
 
 		assertEquals(2, artifacts.size());
 

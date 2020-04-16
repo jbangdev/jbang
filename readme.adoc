@@ -329,7 +329,7 @@ Using `jbang --init=cli helloworld.java` you get a more complete Hello World CLI
 == Declare dependencies
 
 If you want to write real scripts you will want to use some java libraries.
-To specify dependencies you use gradle-style locators. Below are examples for `log4j`.
+To specify dependencies you use gradle-style locators or links to Git sources. Below are examples for `log4j`.
 
 === Using `//DEPS`
 
@@ -374,15 +374,52 @@ $ ./classpath_example.java
 1 [main] INFO classpath_example  - Hello from Java!
 ----
 
-==== Offline mode
+=== Using links to Git sources
+
+Instead of gradle-style locators you can also use URLs to projects on GitHub, GitLab or BitBucket.
+Links to those projects will then be converted to references to artifacts on https://jitpack.io/[jitpack].
+You can use links to the root of the project, to the root of a tag/release and to specific commits.
+
+If the project you link to has multiple modules and you want only a specific module you can specify the
+name of the module by appending `#name-of-module` to the URL.
+
+And finally if the link you provide is to a specific branch of the project then you need to append
+`#:SNAPSHOT` to the URL. (If you have both a branch and a module name then use `#name-of-module:SNAPSHOT`)
+
+Examples of links and their resulting locator:
+
+|===
+|Link | Locator
+|https://github.com/maxandersen/jbang
+|com.github.maxandersen:jbang:master-SNAPSHOT
+
+|https://github.com/maxandersen/jbang/tree/v1.2.3
+|com.github.maxandersen:jbang:v1.2.3
+
+|https://github.com/maxandersen/jbang/tree/f1f34b031d2163e0cdc6f9a3725b59f47129c923[https://github.com/maxandersen/jbang/tree/f1f34b031...]
+|com.github.maxandersen:jbang:f1f34b031d
+
+|https://github.com/maxandersen/jbang#mymodule
+|com.github.maxandersen.jbang:mymodule:master-SNAPSHOT
+
+|https://github.com/maxandersen/jbang/tree/mybranch#:SNAPSHOT
+|com.github.maxandersen:jbang:mybranch-SNAPSHOT
+
+|https://github.com/maxandersen/jbang/tree/mybranch#mymodule:SNAPSHOT
+|com.github.maxandersen.jbang.mymodule:mybranch-SNAPSHOT
+|===
+
+=== Offline mode
 
 In case you prefer `jbang` to just fail-fast when dependencies cannot be found locally you can run `jbang` in offline mode using
 `jbang -o` or `jbang --offline`. In this mode `jbang` will simply fail if dependencies have not already been cached already.
 
 === Repositories
 
-By default `jbang` uses jcenter[https://jcenter.bintray.com/] as its repository as it is a superset of Maven Central
+By default `jbang` uses https://jcenter.bintray.com/[jcenter] as its repository as it is a superset of Maven Central
 and supposedly should be faster.
+
+And if you are using the above mentioned URL dependencies https://jitpack.io[jitpack] will be added automatically as well.
 
 If that is not sufficient for you or need some custom repo you can use `//REPOS id=repourl` to
 state which repository URL to use.

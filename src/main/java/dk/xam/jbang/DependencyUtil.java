@@ -26,19 +26,43 @@ import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinates;
 
 class DependencyUtil {
+
+	public static final String ALIAS_JCENTER = "jcenter";
+	public static final String ALIAS_GOOGLE = "google";
+	public static final String ALIAS_MAVEN_CENTRAL = "mavenCentral";
+	public static final String ALIAS_JITPACK = "jitpack";
+
+	public static final String REPO_JCENTER = "https://jcenter.bintray.com/";
+	public static final String REPO_GOOGLE = "https://maven.google.com/";
+	public static final String REPO_JITPACK = "https://jitpack.io/";
+
 	/**
 	 * 
-	 * @param depIds
-	 * @param customRepos
+	 * @param deps
+	 * @param repos
 	 * @param loggingEnabled
 	 * @return string with resolved classpath
 	 */
-	public String resolveDependencies(List<String> depIds, List<MavenRepo> customRepos,
+	public String resolveDependencies(List<String> deps, List<MavenRepo> repos,
 			boolean offline, boolean loggingEnabled) {
 
 		// if no dependencies were provided we stop here
-		if (depIds.isEmpty()) {
+		if (deps.isEmpty()) {
 			return "";
+		}
+
+		if (repos.isEmpty()) {
+			repos = Arrays.asList(toMavenRepo("jcenter"));
+		}
+
+		// Turn any URL dependencies into regular GAV coordinates
+		List<String> depIds = deps
+									.stream()
+									.map(JitPackUtil::ensureGAV)
+									.collect(Collectors.toList());
+		// And if we encountered URLs let's make sure the JitPack repo is available
+		if (!depIds.equals(deps) && !repos.contains(REPO_JITPACK)) {
+			repos.add(toMavenRepo(ALIAS_JITPACK));
 		}
 
 		String depsHash = String.join(CP_SEPARATOR, depIds);
@@ -81,7 +105,7 @@ class DependencyUtil {
 		}
 
 		try {
-			List<File> artifacts = resolveDependenciesViaAether(depIds, customRepos, offline, loggingEnabled);
+			List<File> artifacts = resolveDependenciesViaAether(depIds, repos, offline, loggingEnabled);
 			String classPath = artifacts.stream()
 										.map(it -> it.getAbsolutePath())
 										.map(it -> it.contains(" ") ? '"' + it + '"' : it)
@@ -115,10 +139,6 @@ class DependencyUtil {
 
 	public List<File> resolveDependenciesViaAether(List<String> depIds, List<MavenRepo> customRepos,
 			boolean offline, boolean loggingEnabled) {
-
-		if (customRepos.isEmpty()) {
-			customRepos = Arrays.asList(toMavenRepo("jcenter"));
-		}
 
 		ConfigurableMavenResolverSystem resolver = Maven.configureResolver()
 														.withMavenCentralRepo(false)
@@ -224,19 +244,19 @@ class DependencyUtil {
 			throw new IllegalStateException("Invalid Maven repository reference: " + repoReference);
 		}
 
-		if ("jcenter".equalsIgnoreCase(reporef)) {
-			return new MavenRepo(Optional.ofNullable(repoid).orElse("jcenter"), "https://jcenter.bintray.com/");
-		} else if ("google".equalsIgnoreCase(reporef)) {
-			return new MavenRepo(Optional.ofNullable(repoid).orElse("google"), "https://maven.google.com/");
-		} else if ("mavenCentral".equalsIgnoreCase(reporef)) {
+		if (ALIAS_JCENTER.equalsIgnoreCase(reporef)) {
+			return new MavenRepo(Optional.ofNullable(repoid).orElse(ALIAS_JCENTER), REPO_JCENTER);
+		} else if (ALIAS_GOOGLE.equalsIgnoreCase(reporef)) {
+			return new MavenRepo(Optional.ofNullable(repoid).orElse(ALIAS_GOOGLE), REPO_GOOGLE);
+		} else if (ALIAS_MAVEN_CENTRAL.equalsIgnoreCase(reporef)) {
 			return new MavenRepo("", "") {
 				@Override
 				public void apply(ConfigurableMavenResolverSystem resolver) {
 					resolver.withMavenCentralRepo(true);
 				}
 			};
-		} else if ("jitpack".equalsIgnoreCase(reporef)) {
-			return new MavenRepo(Optional.ofNullable(repoid).orElse("jitpack"), "https://jitpack.io/");
+		} else if (ALIAS_JITPACK.equalsIgnoreCase(reporef)) {
+			return new MavenRepo(Optional.ofNullable(repoid).orElse(ALIAS_JITPACK), REPO_JITPACK);
 		} else {
 			return new MavenRepo(repoid, reporef);
 		}
