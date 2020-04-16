@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -52,7 +53,8 @@ class DependencyUtil {
 		}
 
 		if (repos.isEmpty()) {
-			repos = Arrays.asList(toMavenRepo("jcenter"));
+			repos = new ArrayList<MavenRepo>();
+			repos.add(toMavenRepo("jcenter"));
 		}
 
 		// Turn any URL dependencies into regular GAV coordinates

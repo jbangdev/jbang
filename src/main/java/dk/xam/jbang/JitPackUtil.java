@@ -55,17 +55,22 @@ public class JitPackUtil {
 				if (coords.isPresent()) {
 					if (hash != null) {
 						String[] parts = hash.split(":");
-						String module = parts[0];
+						String module = (parts.length > 0) ? parts[0] : null;
 						String snapshot = (parts.length == 2) ? parts[1] : null;
 
 						// Override GAV coords with values from the #part of the URL
 						Pgamv pgamv = coords.get().module(module);
-						if (snapshot != null && pgamv.version != null) {
+						if ((snapshot != null && pgamv.version != null) ||
+								(!hash.endsWith(":") && "master".equals(pgamv.version))) {
 							pgamv = pgamv.version(pgamv.version + "-SNAPSHOT");
 						}
 						ref = pgamv.toGav();
 					} else {
-						ref = coords.get().toGav();
+						if ("master".equals(coords.get().version)) {
+							ref = coords.get().version("master" + "-SNAPSHOT").toGav();
+						} else {
+							ref = coords.get().toGav();
+						}
 					}
 				}
 			}
@@ -91,7 +96,11 @@ public class JitPackUtil {
 		}
 
 		Pgamv module(String module) {
-			return new Pgamv(provider, groupId, artifactId, module, version);
+			if (module == null || module.isEmpty()) {
+				return this;
+			} else {
+				return new Pgamv(provider, groupId, artifactId, module, version);
+			}
 		}
 
 		Pgamv version(String version) {
@@ -100,7 +109,7 @@ public class JitPackUtil {
 
 		String toGav() {
 			String v;
-			if (version == null || version.equals("master")) {
+			if (version == null) {
 				v = "master-SNAPSHOT";
 			} else if (POSSIBLE_SHA1_PATTERN.matcher(version).matches()) {
 				v = version.substring(0, 10);

@@ -45,6 +45,8 @@ import java.util.concurrent.Callable;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -73,6 +75,11 @@ import picocli.CommandLine.Model.OptionSpec;
 
 @Command(name = "jbang", footer = "\nCopyright: 2020 Max Rydahl Andersen, License: MIT\nWebsite: https://github.com/maxandersen/jbang", versionProvider = VersionProvider.class, description = "Compiles and runs .java/.jsh scripts.")
 public class Main implements Callable<Integer> {
+
+	static {
+		Logger logger = Logger.getLogger("org.jboss.shrinkwrap.resolver");
+		logger.setLevel(Level.SEVERE);
+	}
 
 	@Spec
 	CommandSpec spec;

@@ -86,7 +86,7 @@ public class Script {
 							.flatMap(this::extractRepositories)
 							.map(PropertiesValueResolver::replaceProperties)
 							.map(DependencyUtil::toMavenRepo)
-							.collect(Collectors.toList());
+							.collect(Collectors.toCollection(ArrayList::new));
 	}
 
 	// https://stackoverflow.com/questions/366202/regex-for-splitting-a-string-using-space-when-not-surrounded-by-single-or-double
