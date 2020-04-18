@@ -1,8 +1,11 @@
 package dk.xam.jbang;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.hamcrest.io.FileMatchers.*;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,8 +53,10 @@ public class TestEdit {
 		assert (build.exists());
 		assertThat(Util.readString(build.toPath()), containsString("dependencies"));
 		File src = new File(project, "src/edit.java");
-		assert (src.exists());
-		assert (Files.isSymbolicLink(src.toPath()));
+
+		// first check for symlink. in some cases on windows (non admin privileg)
+		// symlink cannot be created, as fallback a hardlink will be created.
+		assert (Files.isSymbolicLink(src.toPath()) || src.exists());
 
 		// check eclipse is there
 		assertThat(Arrays.stream(project.listFiles()).map(File::getName).collect(Collectors.toList()),
@@ -86,8 +91,10 @@ public class TestEdit {
 		assertThat(Util.readString(gradle.toPath()), not(containsString("bogus")));
 
 		File java = new File(project, "src/edit.java");
-		assertThat(java, anExistingFile());
-		assertThat(Files.isSymbolicLink(java.toPath()), equalTo(true));
+
+		// first check for symlink. in some cases on windows (non admin privileg)
+		// symlink cannot be created, as fallback a hardlink will be created.
+		assert (Files.isSymbolicLink(java.toPath()) || java.exists());
 
 		assertThat(Files.isSameFile(java.toPath(), p), equalTo(true));
 	}
@@ -105,10 +112,10 @@ public class TestEdit {
 		File project = main.createProjectForEdit(script, Collections.emptyList());
 
 		File java = new File(project, "src/KubeExample.java");
-		assertThat(java, anExistingFile());
 
-		assert (Files.isSymbolicLink(java.toPath()));
-
+		// first check for symlink. in some cases on windows (non admin privileg)
+		// symlink cannot be created, as fallback a hardlink will be created.
+		assert (Files.isSymbolicLink(java.toPath()) || java.exists());
 	}
 
 }
