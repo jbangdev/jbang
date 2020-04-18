@@ -346,10 +346,10 @@ public class Main implements Callable<Integer> {
 		try {
 			return doCall();
 		} catch (ExitException e) {
-			info(e.getMessage());
 			if (verbose) {
 				e.printStackTrace();
 			} else if (e.getCause() != null) {
+				info(e.getMessage());
 				info("Run with --verbose for more details");
 			}
 			return e.getStatus();
