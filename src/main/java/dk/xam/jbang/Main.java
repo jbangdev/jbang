@@ -346,10 +346,10 @@ public class Main implements Callable<Integer> {
 		try {
 			return doCall();
 		} catch (ExitException e) {
-			info(e.getMessage());
 			if (verbose) {
 				e.printStackTrace();
 			} else if (e.getCause() != null) {
+				info(e.getMessage());
 				info("Run with --verbose for more details");
 			}
 			return e.getStatus();
@@ -462,8 +462,9 @@ public class Main implements Callable<Integer> {
 		srcDir.mkdir();
 
 		File srcFile = new File(srcDir, name);
-		if (!srcFile.exists()) {
-			Files.createSymbolicLink(srcFile.toPath(), script.getOriginalFile().getAbsoluteFile().toPath());
+		if (!srcFile.exists()
+				&& !createSymbolicLink(srcFile.toPath(), script.getOriginalFile().getAbsoluteFile().toPath())) {
+			createHardLink(srcFile.toPath(), script.getOriginalFile().getAbsoluteFile().toPath());
 		}
 
 		// create build gradle
@@ -515,7 +516,7 @@ public class Main implements Callable<Integer> {
 		 * "-port-4004.xml").toPath(); destination.toFile().getParentFile().mkdirs();
 		 * renderTemplate(engine, collectDependencies, baseName, resolvedDependencies,
 		 * templateName, userParams, destination);
-		 * 
+		 *
 		 * templateName = "idea.qute.xml"; destination = new File(tmpProjectDir,
 		 * ".idea/runConfigurations/" + baseName + ".xml").toPath();
 		 * destination.toFile().getParentFile().mkdirs(); renderTemplate(engine,
@@ -524,6 +525,28 @@ public class Main implements Callable<Integer> {
 		 */
 
 		return tmpProjectDir;
+	}
+
+	private boolean createSymbolicLink(Path src, Path target) {
+		try {
+			Files.createSymbolicLink(src, target);
+			return true;
+		} catch (IOException e) {
+			info(e.toString());
+		}
+		info("Creation of symbolic link failed.");
+		return false;
+	}
+
+	private boolean createHardLink(Path src, Path target) {
+		try {
+			info("Now try creating a hard link instead of symbolic.");
+			Files.createLink(src, target);
+		} catch (IOException e) {
+			info("Creation of hard link failed. Script must be on the same drive as $JBANG_CACHE_DIR (typically under $HOME) for hardlink creation to work. Or call the command with admin rights.");
+			throw new ExitException(1, e);
+		}
+		return true;
 	}
 
 	private void renderTemplate(Engine engine, List<String> collectDependencies, String baseName,
