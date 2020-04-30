@@ -67,8 +67,16 @@ jobs:
         with:
           name: ${{ runner.os }}-build-${{ github.sha }}
           path: build
-      - run: |
+      - name: smoke-test
+        run: |
           java -version
           chmod +x ./build/install/jbang/bin/jbang
           ./build/install/jbang/bin/jbang --init=cli helloworld.java
           ./build/install/jbang/bin/jbang helloworld.java
+      - name: integration-test
+        if: runner.os != 'Windows'
+        run: |
+          export PATH=`pwd`/build/install/jbang/bin:$PATH
+          cd build/itests
+          chmod +x ./test_suite.sh
+          ./test_suite.sh
