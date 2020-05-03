@@ -218,6 +218,11 @@ task chocolatey(type: Copy) {
 	}
 }
 
+task copyITests(type: Copy) {
+	from "${projectDir}/itests"
+	into "${buildDir}/itests"
+}
+
 githubRelease {
 	// currently does not work as project.version not set.
 	// FilenameFilter filter = { dir, filename -> filename.contains(project.version) } // ensure nothing extra gets included.
@@ -245,6 +250,8 @@ versioner {
 		}
 	}
 }
+
+build.dependsOn(copyITests)
 
 build.dependsOn(homebrew)
 build.dependsOn(chocolatey)

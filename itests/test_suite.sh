@@ -91,6 +91,9 @@ assert "jbang dualclass.java" "Hello World"
 assert "jbang --init=cli $SCRATCH/xyzplugin"
 assert "jbang $SCRATCH/xyzplugin" "Hello World!"
 
+## test quoting
+assert "jbang quote.java -fix 42=universe -other one" "other: [one] fix: {42=universe}"
+
 
 ### Cleanup
 rm RESULTS
