@@ -140,6 +140,10 @@ public class Main implements Callable<Integer> {
 			"--insecure" }, description = "Enable insecure trust of all SSL certificates.", defaultValue = "false")
 	boolean insecure;
 
+	@Option(names = {
+			"-n", "--native" }, description = "Build via native-image and run", defaultValue = "false")
+	boolean nativeImage;
+
 	public int completion() throws IOException {
 		String script = AutoComplete.bash(
 				spec.name(),
@@ -379,6 +383,7 @@ public class Main implements Callable<Integer> {
 			Util.info("Building jar...");
 			if (this.verbose)
 				Util.info("compile: " + String.join(" ", optionList));
+
 			Process process = new ProcessBuilder(optionList).inheritIO().start();
 			try {
 				process.waitFor();
@@ -426,7 +431,49 @@ public class Main implements Callable<Integer> {
 			}
 		}
 
+		if (nativeImage && !getImageName(outjar).exists()) {
+			List<String> optionList = new ArrayList<String>();
+			optionList.add(resolveInGraalVMHome("native-image"));
+
+			optionList.add("-H:+ReportExceptionStackTraces");
+
+			optionList.add("--enable-https");
+
+			String classpath = script.resolveClassPath(offline);
+			optionList.add("--class-path=" + classpath);
+
+			optionList.add("-jar");
+			optionList.add(outjar.toString());
+
+			optionList.add(getImageName(outjar).toString());
+
+			File nilog = File.createTempFile("jbang", "native-image");
+			if (this.verbose)
+				Util.info("native-image: " + String.join(" ", optionList));
+			Util.info("log: " + nilog.toString());
+
+			Process process = new ProcessBuilder(optionList).inheritIO().redirectOutput(nilog).start();
+			try {
+				process.waitFor();
+			} catch (InterruptedException e) {
+				throw new ExitException(1, e);
+			}
+
+			if (process.exitValue() != 0) {
+				throw new ExitException(1, "Error during native-image");
+			}
+		}
 		script.setJar(outjar);
+	}
+
+	/** based on jar what will the binary image name be. **/
+	private File getImageName(File outjar) {
+
+		if (getProperty("os.name").toLowerCase().startsWith("windows")) {
+			return new File(outjar.toString() + ".exe");
+		} else {
+			return new File(outjar.toString() + ".bin");
+		}
 	}
 
 	static public String findMainClass(Path base, Path classfile) {
@@ -687,60 +734,74 @@ public class Main implements Callable<Integer> {
 
 	String generateCommandLine(Script script) throws IOException {
 
-		String classpath = script.resolveClassPath(offline);
-
-		List<String> optionalArgs = new ArrayList<String>();
-
-		String javacmd = resolveInJavaHome("java");
-		if (script.backingFile.getName().endsWith(".jsh")) {
-
-			javacmd = resolveInJavaHome("jshell");
-			if (!classpath.trim().isEmpty()) {
-				optionalArgs.add("--class-path=" + classpath);
-			}
-
-			optionalArgs.add("--startup=DEFAULT");
-
-			File tempFile = File.createTempFile("jbang_arguments_", script.backingFile.getName());
-			Util.writeString(tempFile.toPath(), generateArgs(userParams, properties));
-
-			optionalArgs.add("--startup=" + tempFile.getAbsolutePath());
-
-			if (debug()) {
-				info("debug not possible when running via jshell.");
-			}
-
-		} else {
-			addPropertyFlags("-D", optionalArgs);
-
-			// optionalArgs.add("--source 11");
-			if (debug()) {
-				optionalArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + debugPort);
-			}
-			if (!classpath.trim().isEmpty()) {
-				optionalArgs.add("-classpath " + classpath);
-			}
-		}
-
-		// protect against spaces in dirs in paths, especially on windows.
-		if (javacmd.contains(" ")) {
-			javacmd = '"' + javacmd + '"';
-		}
 		List<String> fullArgs = new ArrayList<>();
-		fullArgs.add(javacmd);
-		fullArgs.addAll(script.collectRuntimeOptions());
-		fullArgs.addAll(script.getAutoDetectedModuleArguments(javacmd, offline));
-		fullArgs.addAll(optionalArgs);
-		if (script.getMainClass() != null) {
-			fullArgs.add(script.getMainClass());
-		} else {
-			fullArgs.add(script.backingFile.toString());
+
+		if (nativeImage) {
+			String imagename = getImageName(script.getJar()).toString();
+			if (new File(imagename).exists()) {
+				fullArgs.add(imagename);
+			} else {
+				warn("native built image not found - running in java mode.");
+			}
 		}
+
+		if (fullArgs.isEmpty()) {
+			String classpath = script.resolveClassPath(offline);
+
+			List<String> optionalArgs = new ArrayList<String>();
+
+			String javacmd = resolveInJavaHome("java");
+			if (script.backingFile.getName().endsWith(".jsh")) {
+
+				javacmd = resolveInJavaHome("jshell");
+				if (!classpath.trim().isEmpty()) {
+					optionalArgs.add("--class-path=" + classpath);
+				}
+
+				optionalArgs.add("--startup=DEFAULT");
+
+				File tempFile = File.createTempFile("jbang_arguments_", script.backingFile.getName());
+				Util.writeString(tempFile.toPath(), generateArgs(userParams, properties));
+
+				optionalArgs.add("--startup=" + tempFile.getAbsolutePath());
+
+				if (debug()) {
+					info("debug not possible when running via jshell.");
+				}
+
+			} else {
+				addPropertyFlags("-D", optionalArgs);
+
+				// optionalArgs.add("--source 11");
+				if (debug()) {
+					optionalArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + debugPort);
+				}
+				if (!classpath.trim().isEmpty()) {
+					optionalArgs.add("-classpath " + classpath);
+				}
+			}
+
+			// protect against spaces in dirs in paths, especially on windows.
+			if (javacmd.contains(" ")) {
+				javacmd = '"' + javacmd + '"';
+			}
+			fullArgs.add(javacmd);
+			fullArgs.addAll(script.collectRuntimeOptions());
+			fullArgs.addAll(script.getAutoDetectedModuleArguments(javacmd, offline));
+			fullArgs.addAll(optionalArgs);
+			if (script.getMainClass() != null) {
+				fullArgs.add(script.getMainClass());
+			} else {
+				fullArgs.add(script.backingFile.toString());
+			}
+		}
+
 		if (!script.forJShell()) {
 			fullArgs.addAll(userParams);
 		}
 
 		return fullArgs.stream().collect(Collectors.joining(" "));
+
 	}
 
 	private void addPropertyFlags(String def, List<String> optionalArgs) {
@@ -773,14 +834,28 @@ public class Main implements Callable<Integer> {
 	}
 
 	static String resolveInJavaHome(String cmd) {
+		return resolveInEnv("JAVA_HOME", cmd);
+	}
 
-		if (getenv("JAVA_HOME") != null) {
+	private static String resolveInEnv(String env, String cmd) {
+		if (getenv(env) != null) {
 			if (getProperty("os.name").toLowerCase().startsWith("windows")) {
 				cmd = cmd + ".exe";
 			}
-			return new File(getenv("JAVA_HOME")).toPath().resolve("bin").resolve(cmd).toAbsolutePath().toString();
+			return new File(getenv(env)).toPath().resolve("bin").resolve(cmd).toAbsolutePath().toString();
 		} else {
 			return cmd;
+		}
+	}
+
+	static String resolveInGraalVMHome(String cmd) {
+		String newcmd = resolveInEnv("GRAALVM_HOME", cmd);
+
+		if (newcmd.equals(cmd) &&
+				!new File(newcmd).exists()) {
+			return resolveInJavaHome(cmd);
+		} else {
+			return newcmd;
 		}
 	}
 

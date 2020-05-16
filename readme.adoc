@@ -53,6 +53,7 @@ toc::[]
 * Dependency declarations using `//DEPS <gav>` for automatic dependency resolution
 * Control compile and runtime options with `//JAVAC_OPTIONS <flags>` and `//JAVA_OPTIONS <flags>`
 * Compiled jar and Dependency resolution caching
+* (EXPERIMENTAL) native-image generation (`--native`)
 * Launch with debug enabled for instant debugging from your favorite IDE
 * Transparent launch of JavaFX Applications on Java 8 and higher.
 * Can be used for writing plugins to other cli's like `kubectl`
@@ -298,6 +299,21 @@ jbang https://github.com/maxandersen/jbang/blob/master/examples/helloworld.java
 URL's will follow redirects. In case you need to use it with sites with self-signed/non-trusted certificates you can
 if you trust the site use `--insecure`
 ====
+
+=== Build and run native image (Experimental)
+
+There are support for using `native-image` from GraalVM project to produce a binary executable.
+
+Since not all java libraries can automatically be built with `native-image` - especially if using reflection feature are considered highly experimental.
+
+Just run `jbang --native helloworld.java` and `jbang` will use `native-image` from either `JAVA_HOME/bin` or `GRAALVM_HPME/bin` to
+produce a native image binary.
+
+[TIP]
+====
+If you use `--native` with picocli remember to add `info.picocli:picocli-codegen` as that will ensure it will actually work on `native-image`.
+====
+
 
 === Using `.jsh` for `jshell`
 
