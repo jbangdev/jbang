@@ -125,6 +125,23 @@ class DependencyResolverTest {
 	}
 
 	@Test
+	void testResolveDependenciesNoDuplicates() {
+
+		DependencyUtil dr = new DependencyUtil();
+
+		List<String> deps = Arrays.asList(
+				"org.apache.commons:commons-configuration2:2.7",
+				"org.apache.commons:commons-text:1.8");
+
+		String classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, true);
+
+		// if returns 6 its because some dependencies are multiple times in the
+		// classpath (commons-text-1.8, commons-lang3-3.9)
+		assertEquals(4, classpath.split(Settings.CP_SEPARATOR).length);
+
+	}
+
+	@Test
 	void testResolveNativeDependencies() {
 
 		dk.xam.jbang.Detector detector = new dk.xam.jbang.Detector();

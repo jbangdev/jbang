@@ -111,6 +111,7 @@ class DependencyUtil {
 			String classPath = artifacts.stream()
 										.map(it -> it.getAbsolutePath())
 										.map(it -> it.contains(" ") ? '"' + it + '"' : it)
+										.distinct()
 										.collect(Collectors.joining(CP_SEPARATOR));
 
 			if (loggingEnabled) {
