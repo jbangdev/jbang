@@ -63,7 +63,7 @@ class DependencyUtil {
 									.map(JitPackUtil::ensureGAV)
 									.collect(Collectors.toList());
 		// And if we encountered URLs let's make sure the JitPack repo is available
-		if (!depIds.equals(deps) && !repos.contains(REPO_JITPACK)) {
+		if (!depIds.equals(deps) && !repos.stream().anyMatch(r -> REPO_JITPACK.equals(r.getUrl()))) {
 			repos.add(toMavenRepo(ALIAS_JITPACK));
 		}
 
