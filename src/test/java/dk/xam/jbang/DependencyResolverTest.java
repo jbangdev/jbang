@@ -1,25 +1,27 @@
 package dk.xam.jbang;
 
+import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
+import org.junit.Rule;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Properties;
+
 import static dk.xam.jbang.DependencyUtil.toMavenRepo;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
-
-import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
-import org.junit.Rule;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 class DependencyResolverTest {
 
@@ -135,9 +137,15 @@ class DependencyResolverTest {
 
 		String classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, true);
 
-		// if returns 6 its because some dependencies are multiple times in the
+		// if returns with duplicates its because some dependencies are multiple times
+		// in the
 		// classpath (commons-text-1.8, commons-lang3-3.9)
-		assertEquals(4, classpath.split(Settings.CP_SEPARATOR).length);
+		List<String> cps = Arrays.asList(classpath.split(Settings.CP_SEPARATOR));
+
+		HashSet<String> othercps = new HashSet<>();
+		othercps.addAll(cps);
+
+		assertThat(cps, containsInAnyOrder(othercps.toArray()));
 
 	}
 
