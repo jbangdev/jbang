@@ -28,6 +28,9 @@ import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinates;
 
 class DependencyUtil {
 
+	public static final String ALIAS_JBOSS = "jbossorg";
+	public static final String ALIAS_REDHAT = "redhat";
+
 	public static final String ALIAS_JCENTER = "jcenter";
 	public static final String ALIAS_GOOGLE = "google";
 	public static final String ALIAS_MAVEN_CENTRAL = "mavenCentral";
@@ -36,6 +39,8 @@ class DependencyUtil {
 	public static final String REPO_JCENTER = "https://jcenter.bintray.com/";
 	public static final String REPO_GOOGLE = "https://maven.google.com/";
 	public static final String REPO_JITPACK = "https://jitpack.io/";
+	public static final String REPO_REDHAT = "https://maven.repository.redhat.com/ga/";
+	public static final String REPO_JBOSS = "https://repository.jboss.org/nexus/content/groups/public/";
 
 	/**
 	 * 
@@ -250,6 +255,10 @@ class DependencyUtil {
 			return new MavenRepo(Optional.ofNullable(repoid).orElse(ALIAS_JCENTER), REPO_JCENTER);
 		} else if (ALIAS_GOOGLE.equalsIgnoreCase(reporef)) {
 			return new MavenRepo(Optional.ofNullable(repoid).orElse(ALIAS_GOOGLE), REPO_GOOGLE);
+		} else if (ALIAS_REDHAT.equalsIgnoreCase(reporef)) {
+			return new MavenRepo(Optional.ofNullable(repoid).orElse(ALIAS_REDHAT), REPO_REDHAT);
+		} else if (ALIAS_JBOSS.equalsIgnoreCase(reporef)) {
+			return new MavenRepo(Optional.ofNullable(repoid).orElse(ALIAS_JBOSS), REPO_JBOSS);
 		} else if (ALIAS_MAVEN_CENTRAL.equalsIgnoreCase(reporef)) {
 			return new MavenRepo("", "") {
 				@Override

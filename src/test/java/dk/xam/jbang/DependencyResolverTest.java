@@ -111,6 +111,13 @@ class DependencyResolverTest {
 	}
 
 	@Test
+	void testRedHatJBossRepos() {
+		assertEquals(toMavenRepo("jbossorg").getUrl(), "https://repository.jboss.org/nexus/content/groups/public/");
+		assertEquals(toMavenRepo("redhat").getUrl(), "https://maven.repository.redhat.com/ga/");
+
+	}
+
+	@Test
 	void testResolveDependencies() {
 
 		DependencyUtil dr = new DependencyUtil();
