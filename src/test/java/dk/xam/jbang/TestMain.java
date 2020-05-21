@@ -276,9 +276,11 @@ public class TestMain {
 	@Test
 	void testFetchFromGist(@TempDir Path dir) throws IOException {
 
-		Path x = Util.downloadFile("https://gist.github.com/maxandersen/590b8a0e824faeb3ee7ddfad741ce842/raw",
+		String u = Main.swizzleURL("https://gist.github.com/maxandersen/590b8a0e824faeb3ee7ddfad741ce842");
+
+		Path x = Util.downloadFile(u,
 				dir.toFile());
-		assertEquals(x.getFileName().toString(), "raw");
+		assertEquals(x.getFileName().toString(), "checklabeler.java");
 	}
 
 	@Test

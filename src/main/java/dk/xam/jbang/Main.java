@@ -61,6 +61,7 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 
+import com.google.gson.Gson;
 import com.sun.nio.file.SensitivityWatchEventModifier;
 
 import io.quarkus.qute.Engine;
@@ -992,11 +993,6 @@ public class Main implements Callable<Integer> {
 	public static String swizzleURL(String url) {
 		url = url.replaceFirst("^https://github.com/(.*)/blob/(.*)$",
 				"https://raw.githubusercontent.com/$1/$2");
-		// TODO: for gist we need to be smarter when it comes to downloading as it gives
-		// an invalid flag when jbang compiles
-		// scriptResource =
-		// scriptResource.replaceFirst("^https://gist.github.com/([a-zA-Z0-9]*)/([a-zA-Z0-9]*)$",
-		// "https://gist.githubusercontent.com/$1/$2/raw");
 
 		url = url.replaceFirst("^https://gitlab.com/(.*)/-/blob/(.*)$",
 				"https://gitlab.com/$1/-/raw/$2");
@@ -1004,7 +1000,55 @@ public class Main implements Callable<Integer> {
 		url = url.replaceFirst("^https://bitbucket.org/(.*)/src/(.*)$",
 				"https://bitbucket.org/$1/raw/$2");
 
+		if (url.startsWith("https://gist.github.com/")) {
+			url = extractFileFromGist(url);
+		}
+
 		return url;
+	}
+
+	private static String extractFileFromGist(String url) {
+		// TODO: for gist we need to be smarter when it comes to downloading as it gives
+		// an invalid flag when jbang compiles
+
+		try {
+			String gistapi = url.replaceFirst("^https://gist.github.com/([a-zA-Z0-9]*)/([a-zA-Z0-9]*)$",
+					"https://api.github.com/gists/$2");
+			// Util.info("looking at " + gistapi);
+			String strdata = null;
+			try {
+				strdata = readStringFromURL(gistapi);
+			} catch (IOException e) {
+				// Util.info("error " + e);
+				return url;
+			}
+
+			Gson parser = new Gson();
+
+			Gist gist = parser.fromJson(strdata, Gist.class);
+
+			// Util.info("found " + gist.files);
+			final Optional<Map.Entry<String, Map<String, String>>> first = gist.files	.entrySet()
+																						.stream()
+																						.filter(e -> e	.getKey()
+																										.endsWith(
+																												".java"))
+																						.findFirst();
+
+			if (first.isPresent()) {
+				// Util.info("looking at " + first);
+				return (String) first.get().getValue().getOrDefault("raw_url", url);
+			} else {
+				// Util.info("nothing worked!");
+				return url;
+			}
+		} catch (RuntimeException re) {
+			return url;
+		}
+	}
+
+	static class Gist {
+		Map<String, Map<String, String>> files;
 	}
 
 	private static File fetchFromURL(String scriptURL) {
