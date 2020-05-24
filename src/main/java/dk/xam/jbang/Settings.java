@@ -14,10 +14,11 @@ import io.quarkus.qute.Template;
 
 public class Settings {
 
-	final private static File JBANG_CACHE_DIR;
+	final private static Path JBANG_DIR;
+	final private static Path JBANG_CACHE_DIR;
 	final private static Path JBANG_ALIASES_FILE;
-	final private static File DEP_LOOKUP_CACHE_FILE;
-	final private static File JBANG_TRUSTED_SOURCES_FILE;
+	final private static Path DEP_LOOKUP_CACHE_FILE;
+	final private static Path JBANG_TRUSTED_SOURCES_FILE;
 	final public static String CP_SEPARATOR = System.getProperty("os.name").toLowerCase().contains("windows")
 			? ";"
 			: ":";
@@ -28,17 +29,23 @@ public class Settings {
 	final private static String ALIASES_FILE_HEADER = "Aliases file, created by JBang";
 
 	static {
-		String v = System.getenv("JBANG_CACHE_DIR");
-
-		if (v != null) {
-			JBANG_CACHE_DIR = new File(v);
+		String jd = System.getenv("JBANG_DIR");
+		if (jd != null) {
+			JBANG_DIR = Paths.get(jd);
 		} else {
-			JBANG_CACHE_DIR = new File(System.getProperty("user.home"), ".jbang");
+			JBANG_DIR = Paths.get(System.getProperty("user.home")).resolve(".jbang");
 		}
 
-		DEP_LOOKUP_CACHE_FILE = new java.io.File(JBANG_CACHE_DIR, "dependency_cache.txt");
+		String v = System.getenv("JBANG_CACHE_DIR");
+		if (v != null) {
+			JBANG_CACHE_DIR = Paths.get(v);
+		} else {
+			JBANG_CACHE_DIR = JBANG_DIR.resolve("cache");
+		}
 
-		JBANG_TRUSTED_SOURCES_FILE = new File(JBANG_CACHE_DIR, "trusted-sources.json");
+		DEP_LOOKUP_CACHE_FILE = JBANG_CACHE_DIR.resolve("dependency_cache.txt");
+
+		JBANG_TRUSTED_SOURCES_FILE = JBANG_CACHE_DIR.resolve("trusted-sources.json");
 
 		setupCache();
 
@@ -46,7 +53,7 @@ public class Settings {
 		if (af != null) {
 			JBANG_ALIASES_FILE = Paths.get(af);
 		} else {
-			JBANG_ALIASES_FILE = JBANG_CACHE_DIR.toPath().resolve("aliases");
+			JBANG_ALIASES_FILE = JBANG_DIR.resolve("aliases");
 		}
 	}
 
@@ -57,13 +64,13 @@ public class Settings {
 
 	public static File getCacheDependencyFile() {
 		setupCache();
-		return DEP_LOOKUP_CACHE_FILE;
+		return DEP_LOOKUP_CACHE_FILE.toFile();
 	}
 
 	public static File getCacheDir(boolean init) {
 		if (init)
 			setupCache();
-		return JBANG_CACHE_DIR;
+		return JBANG_CACHE_DIR.toFile();
 	}
 
 	public static File getCacheDir() {
@@ -72,26 +79,23 @@ public class Settings {
 
 	public static void setupCache() {
 		// create cache dir if it does not yet exist
-		if (!JBANG_CACHE_DIR.exists()) {
-			JBANG_CACHE_DIR.mkdir();
-		}
+		JBANG_CACHE_DIR.toFile().mkdirs();
 	}
 
 	public static File getTrustedSourcesFile() {
-		return JBANG_TRUSTED_SOURCES_FILE;
+		return JBANG_TRUSTED_SOURCES_FILE.toFile();
 	}
 
 	void createTrustedSources() {
-		if (Files.notExists(JBANG_TRUSTED_SOURCES_FILE.toPath())) {
+		if (Files.notExists(JBANG_TRUSTED_SOURCES_FILE)) {
 			String templateName = "trusted-sources.qute";
 			Template template = Settings.getTemplateEngine().getTemplate(templateName);
 			if (template == null)
 				throw new ExitException(1, "Could not locate template named: '" + templateName + "'");
-			String result = template
-									.render();
+			String result = template.render();
 
 			try {
-				Util.writeString(JBANG_TRUSTED_SOURCES_FILE.toPath(), result);
+				Util.writeString(JBANG_TRUSTED_SOURCES_FILE, result);
 			} catch (IOException e) {
 				Util.errorMsg("Could not create initial trusted-sources file at " + JBANG_TRUSTED_SOURCES_FILE, e);
 			}
@@ -102,9 +106,9 @@ public class Settings {
 	public static TrustedSources getTrustedSources() {
 		if (trustedSources == null) {
 
-			if (Files.isRegularFile(JBANG_TRUSTED_SOURCES_FILE.toPath())) {
+			if (Files.isRegularFile(JBANG_TRUSTED_SOURCES_FILE)) {
 				try {
-					trustedSources = TrustedSources.load(JBANG_TRUSTED_SOURCES_FILE.toPath());
+					trustedSources = TrustedSources.load(JBANG_TRUSTED_SOURCES_FILE);
 				} catch (IOException e) {
 					Util.warnMsg("Could not read " + JBANG_TRUSTED_SOURCES_FILE);
 					trustedSources = new TrustedSources(new String[0]);
@@ -136,6 +140,11 @@ public class Settings {
 		return te;
 	}
 
+	public static void setupJBangDir() {
+		// create JBang configuration dir if it does not yet exist
+		JBANG_DIR.toFile().mkdirs();
+	}
+
 	public static Properties getAliases() {
 		if (aliases.isEmpty() && Files.isRegularFile(JBANG_ALIASES_FILE)) {
 			try (Reader in = Files.newBufferedReader(JBANG_ALIASES_FILE)) {
@@ -149,6 +158,7 @@ public class Settings {
 
 	public static void addAlias(String name, String resource) {
 		Properties as = getAliases();
+		setupJBangDir();
 		try (Writer out = Files.newBufferedWriter(JBANG_ALIASES_FILE)) {
 			as.setProperty(name, resource);
 			as.store(out, ALIASES_FILE_HEADER);
@@ -160,6 +170,7 @@ public class Settings {
 	public static void removeAlias(String name) {
 		Properties as = getAliases();
 		if (as.containsKey(name)) {
+			setupJBangDir();
 			try (Writer out = Files.newBufferedWriter(JBANG_ALIASES_FILE)) {
 				as.remove(name);
 				as.store(out, ALIASES_FILE_HEADER);
