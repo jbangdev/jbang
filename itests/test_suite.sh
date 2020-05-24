@@ -43,7 +43,7 @@ assert_stderr(){
 export NL=$'\n'
 
 echo "Cleaning JBANG_CACHE"
-rm -rf ~/.jbang
+rm -rf ~/.jbang/cache
 
 echo Testing with `which jbang`
 
@@ -79,7 +79,7 @@ esac
 export JBANG_REPO=$SCRATCH/testrepo
 assert_stderr "jbang classpath_log.java" "[jbang] Resolving dependencies...\n[jbang]     Resolving log4j:log4j:1.2.17...Done\n[jbang] Dependencies resolved\n[jbang] Building jar..."
 assert_raises "test -d $SCRATCH/testrepo" 0
-assert "grep -c $SCRATCH/testrepo ~/.jbang/dependency_cache.txt" 1
+assert "grep -c $SCRATCH/testrepo ~/.jbang/cache/dependency_cache.txt" 1
 # run it 2nd time and no resolution should happen
 assert_stderr "jbang classpath_log.java" ""
 
