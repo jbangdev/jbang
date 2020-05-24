@@ -907,7 +907,7 @@ public class Main implements Callable<Integer> {
 		if (scriptFile == null) {
 			// Not found as such, so let's check the aliases
 			if (Settings.getAliases().containsKey(scriptResource)) {
-				scriptFile = getScriptFile(Settings.getAliases().getProperty(scriptResource));
+				scriptFile = getScriptFile(Settings.getAliases().get(scriptResource).resource);
 			}
 		}
 

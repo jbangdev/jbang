@@ -8,11 +8,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
-import java.util.Properties;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import io.quarkus.qute.Template;
 
 public class Settings {
+	private static AliasInfo aliasInfo = null;
 
 	final private static Path JBANG_DIR;
 	final private static Path JBANG_CACHE_DIR;
@@ -24,9 +29,6 @@ public class Settings {
 			: ":";
 
 	private static TrustedSources trustedSources;
-
-	final private static Properties aliases = new Properties();
-	final private static String ALIASES_FILE_HEADER = "Aliases file, created by JBang";
 
 	static {
 		String jd = System.getenv("JBANG_DIR");
@@ -53,7 +55,7 @@ public class Settings {
 		if (af != null) {
 			JBANG_ALIASES_FILE = Paths.get(af);
 		} else {
-			JBANG_ALIASES_FILE = JBANG_DIR.resolve("aliases");
+			JBANG_ALIASES_FILE = JBANG_DIR.resolve("aliases.json");
 		}
 	}
 
@@ -145,35 +147,52 @@ public class Settings {
 		JBANG_DIR.toFile().mkdirs();
 	}
 
-	public static Properties getAliases() {
-		if (aliases.isEmpty() && Files.isRegularFile(JBANG_ALIASES_FILE)) {
-			try (Reader in = Files.newBufferedReader(JBANG_ALIASES_FILE)) {
-				aliases.load(in);
-			} catch (IOException e) {
-				// Ignore errors
+	static class Alias {
+		final String resource;
+
+		Alias(String resource) {
+			this.resource = resource;
+		}
+	}
+
+	static class AliasInfo {
+		Map<String, Alias> aliases = new HashMap<>();
+	}
+
+	public static Map<String, Alias> getAliases() {
+		if (aliasInfo == null) {
+			if (Files.isRegularFile(JBANG_ALIASES_FILE)) {
+				try (Reader in = Files.newBufferedReader(JBANG_ALIASES_FILE)) {
+					Gson parser = new Gson();
+					aliasInfo = parser.fromJson(in, AliasInfo.class);
+				} catch (IOException e) {
+					// Ignore errors
+				}
+			} else {
+				aliasInfo = new AliasInfo();
 			}
 		}
-		return aliases;
+		return aliasInfo.aliases;
 	}
 
 	public static void addAlias(String name, String resource) {
-		Properties as = getAliases();
 		setupJBangDir();
 		try (Writer out = Files.newBufferedWriter(JBANG_ALIASES_FILE)) {
-			as.setProperty(name, resource);
-			as.store(out, ALIASES_FILE_HEADER);
+			getAliases().put(name, new Alias(resource));
+			Gson parser = new GsonBuilder().setPrettyPrinting().create();
+			parser.toJson(aliasInfo, out);
 		} catch (IOException ex) {
 			Util.warnMsg("Unable to add alias: " + ex.getMessage());
 		}
 	}
 
 	public static void removeAlias(String name) {
-		Properties as = getAliases();
-		if (as.containsKey(name)) {
+		if (aliasInfo.aliases.containsKey(name)) {
 			setupJBangDir();
 			try (Writer out = Files.newBufferedWriter(JBANG_ALIASES_FILE)) {
-				as.remove(name);
-				as.store(out, ALIASES_FILE_HEADER);
+				getAliases().remove(name);
+				Gson parser = new GsonBuilder().setPrettyPrinting().create();
+				parser.toJson(aliasInfo, out);
 			} catch (IOException ex) {
 				Util.warnMsg("Unable to remove alias: " + ex.getMessage());
 			}
