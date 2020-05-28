@@ -11,6 +11,14 @@ image:https://img.shields.io/badge/Gitpod-Workspace-blue?logo=gitpodp[Gitpod, li
 
 image:images/jbang_logo.svg[JBang Logo, title="JBang Logo"]
 
+
+[WARNING]
+====
+jbang is in the process of mvoing from https://github.com/maxandersen/jbang to https://github.com/jbangdev
+
+Thus some install options might not be fully published yet!
+====
+
 == Intro
 
 Want to learn, explore or use Java instantly without setup ?
@@ -74,6 +82,7 @@ Tested and verified to use on OSX, Linux and Windows.
 == Installation
 
 To use `jbang` Java 8 is the minimum required version, however Java 11 or higher is recommended.
+
 
 === SDKMan icon:linux[] / icon:apple[]
 
