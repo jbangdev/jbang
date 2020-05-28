@@ -8,61 +8,61 @@ public class TestJitPack {
 
 	@Test
 	void testExtractGithubUrlDependencies() {
-		assertEquals(JitPackUtil.ensureGAV("https://github.com/maxandersen/jbang"),
-				"com.github.maxandersen:jbang:master-SNAPSHOT");
+		assertEquals(JitPackUtil.ensureGAV("https://github.com/jbangdev/jbang"),
+				"com.github.jbangdev:jbang:master-SNAPSHOT");
 
-		assertEquals(JitPackUtil.ensureGAV("https://github.com/maxandersen/jbang/tree/master"),
-				"com.github.maxandersen:jbang:master-SNAPSHOT");
+		assertEquals(JitPackUtil.ensureGAV("https://github.com/jbangdev/jbang/tree/master"),
+				"com.github.jbangdev:jbang:master-SNAPSHOT");
 
-		assertEquals(JitPackUtil.ensureGAV("https://github.com/maxandersen/jbang/tree/master/foo"),
-				"com.github.maxandersen.jbang:foo:master-SNAPSHOT");
+		assertEquals(JitPackUtil.ensureGAV("https://github.com/jbangdev/jbang/tree/master/foo"),
+				"com.github.jbangdev.jbang:foo:master-SNAPSHOT");
 
-		assertEquals(JitPackUtil.ensureGAV("https://github.com/maxandersen/jbang/tree/v0.20.0"),
-				"com.github.maxandersen:jbang:v0.20.0");
+		assertEquals(JitPackUtil.ensureGAV("https://github.com/jbangdev/jbang/tree/v0.20.0"),
+				"com.github.jbangdev:jbang:v0.20.0");
 
 		assertEquals(
 				JitPackUtil.ensureGAV(
-						"https://github.com/maxandersen/jbang/commit/90dfcbf354fc0838f08eea0680bf736b7c069b4e"),
-				"com.github.maxandersen:jbang:90dfcbf354");
+						"https://github.com/jbangdev/jbang/commit/90dfcbf354fc0838f08eea0680bf736b7c069b4e"),
+				"com.github.jbangdev:jbang:90dfcbf354");
 
 	}
 
 	@Test
 	void testExtractGithubUrlWithHashDependencies() {
-		assertEquals(JitPackUtil.ensureGAV("https://github.com/maxandersen/jbang#foo"),
-				"com.github.maxandersen.jbang:foo:master-SNAPSHOT");
+		assertEquals(JitPackUtil.ensureGAV("https://github.com/jbangdev/jbang#foo"),
+				"com.github.jbangdev.jbang:foo:master-SNAPSHOT");
 
-		assertEquals(JitPackUtil.ensureGAV("https://github.com/maxandersen/jbang/tree/master#foo"),
-				"com.github.maxandersen.jbang:foo:master-SNAPSHOT");
+		assertEquals(JitPackUtil.ensureGAV("https://github.com/jbangdev/jbang/tree/master#foo"),
+				"com.github.jbangdev.jbang:foo:master-SNAPSHOT");
 
-		assertEquals(JitPackUtil.ensureGAV("https://github.com/maxandersen/jbang/tree/master#:"),
-				"com.github.maxandersen:jbang:master");
+		assertEquals(JitPackUtil.ensureGAV("https://github.com/jbangdev/jbang/tree/master#:"),
+				"com.github.jbangdev:jbang:master");
 
-		assertEquals(JitPackUtil.ensureGAV("https://github.com/maxandersen/jbang/tree/master#foo:"),
-				"com.github.maxandersen.jbang:foo:master");
+		assertEquals(JitPackUtil.ensureGAV("https://github.com/jbangdev/jbang/tree/master#foo:"),
+				"com.github.jbangdev.jbang:foo:master");
 
-		assertEquals(JitPackUtil.ensureGAV("https://github.com/maxandersen/jbang/tree/master/foo#bar"),
-				"com.github.maxandersen.jbang:bar:master-SNAPSHOT");
+		assertEquals(JitPackUtil.ensureGAV("https://github.com/jbangdev/jbang/tree/master/foo#bar"),
+				"com.github.jbangdev.jbang:bar:master-SNAPSHOT");
 
-		assertEquals(JitPackUtil.ensureGAV("https://github.com/maxandersen/jbang/tree/somebranch#foo:SNAPSHOT"),
-				"com.github.maxandersen.jbang:foo:somebranch-SNAPSHOT");
+		assertEquals(JitPackUtil.ensureGAV("https://github.com/jbangdev/jbang/tree/somebranch#foo:SNAPSHOT"),
+				"com.github.jbangdev.jbang:foo:somebranch-SNAPSHOT");
 
-		assertEquals("com.github.maxandersen:jbang:somebranch",
-				JitPackUtil.ensureGAV("https://github.com/maxandersen/jbang/tree/somebranch"));
+		assertEquals("com.github.jbangdev:jbang:somebranch",
+				JitPackUtil.ensureGAV("https://github.com/jbangdev/jbang/tree/somebranch"));
 
-		assertEquals("com.github.maxandersen.jbang:artid:somebranch",
-				JitPackUtil.ensureGAV("https://github.com/maxandersen/jbang/tree/somebranch#artid"));
+		assertEquals("com.github.jbangdev.jbang:artid:somebranch",
+				JitPackUtil.ensureGAV("https://github.com/jbangdev/jbang/tree/somebranch#artid"));
 
-		assertEquals("com.github.maxandersen:jbang:somebranch-SNAPSHOT",
-				JitPackUtil.ensureGAV("https://github.com/maxandersen/jbang/tree/somebranch#:SNAPSHOT"));
+		assertEquals("com.github.jbangdev:jbang:somebranch-SNAPSHOT",
+				JitPackUtil.ensureGAV("https://github.com/jbangdev/jbang/tree/somebranch#:SNAPSHOT"));
 
-		assertEquals("com.github.maxandersen.jbang:artid:somebranch-SNAPSHOT",
-				JitPackUtil.ensureGAV("https://github.com/maxandersen/jbang/tree/somebranch#artid:SNAPSHOT"));
+		assertEquals("com.github.jbangdev.jbang:artid:somebranch-SNAPSHOT",
+				JitPackUtil.ensureGAV("https://github.com/jbangdev/jbang/tree/somebranch#artid:SNAPSHOT"));
 
 		assertEquals(
 				JitPackUtil.ensureGAV(
-						"https://github.com/maxandersen/jbang/commit/90dfcbf354fc0838f08eea0680bf736b7c069b4e#foo"),
-				"com.github.maxandersen.jbang:foo:90dfcbf354");
+						"https://github.com/jbangdev/jbang/commit/90dfcbf354fc0838f08eea0680bf736b7c069b4e#foo"),
+				"com.github.jbangdev.jbang:foo:90dfcbf354");
 
 	}
 

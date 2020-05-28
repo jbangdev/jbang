@@ -1,9 +1,9 @@
 {
-  "homepage": "https://github.com/maxandersen/jbang",
+  "homepage": "https://jbang.dev",
   "description": "Unleash the power of Java for shell scripting. Use `jbang` to run single .java file with automatic dependency fetching and immediate compilation and execution",
   "version": "@projectVersion@",
   "license": "MIT",
-  "url": "https://github.com/maxandersen/jbang/releases/download/v@projectVersion@/jbang-@projectVersion@.zip",
+  "url": "https://github.com/jbangdev/jbang/releases/download/v@projectVersion@/jbang-@projectVersion@.zip",
   "hash": "sha256:@sha256@",
   "extract_dir": "jbang-@projectVersion@",
   "env_add_path": "bin",
@@ -14,11 +14,11 @@
     ]
   },
   "checkver": {
-    "url": "https://github.com/maxandersen/jbang/releases/latest",
+    "url": "https://github.com/jbangdev/jbang/releases/latest",
     "re": "v([\\d.]+).zip"
   },
   "autoupdate": {
-    "url": "https://github.com/maxandersen/jbang/releases/download/v$version/jbang-$version.zip",
+    "url": "https://github.com/jbangdev/jbang/releases/download/v$version/jbang-$version.zip",
     "extract_dir": "jbang-$version",
     "hash": {
       "url": "$url.sha256"

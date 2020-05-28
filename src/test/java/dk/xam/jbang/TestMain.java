@@ -287,12 +287,12 @@ public class TestMain {
 	void testSwizzle(@TempDir Path dir) throws IOException {
 
 		assertThat(
-				Main.swizzleURL("https://github.com/maxandersen/jbang/blob/master/examples/helloworld.java"),
-				equalTo("https://raw.githubusercontent.com/maxandersen/jbang/master/examples/helloworld.java"));
+				Main.swizzleURL("https://github.com/jbangdev/jbang/blob/master/examples/helloworld.java"),
+				equalTo("https://raw.githubusercontent.com/jbangdev/jbang/master/examples/helloworld.java"));
 
 		assertThat(
-				Main.swizzleURL("https://gitlab.com/maxandersen/jbang-gitlab/-/blob/master/helloworld.java"),
-				equalTo("https://gitlab.com/maxandersen/jbang-gitlab/-/raw/master/helloworld.java"));
+				Main.swizzleURL("https://gitlab.com/jbangdev/jbang-gitlab/-/blob/master/helloworld.java"),
+				equalTo("https://gitlab.com/jbangdev/jbang-gitlab/-/raw/master/helloworld.java"));
 
 		assertThat(
 				Main.swizzleURL("https://bitbucket.org/Shoeboom/test/src/master/helloworld.java"),

@@ -11,7 +11,7 @@ class urldep {
 
         GitHub github = GitHub.connectAnonymously();
 
-        GHRepository ghRepo = github.getRepository("maxandersen/jbang");
+        GHRepository ghRepo = github.getRepository("jbangdev/jbang");
 
         out.println(ghRepo);
     }

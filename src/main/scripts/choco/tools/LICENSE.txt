@@ -1,4 +1,4 @@
-﻿From: https://raw.githubusercontent.com/maxandersen/jbang/master/LICENSE
+﻿From: https://raw.githubusercontent.com/jbangdev/jbang/master/LICENSE
 
 MIT License
 

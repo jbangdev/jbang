@@ -74,7 +74,7 @@ import picocli.CommandLine.Model.ArgSpec;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Model.OptionSpec;
 
-@Command(name = "jbang", footer = "\nCopyright: 2020 Max Rydahl Andersen, License: MIT\nWebsite: https://github.com/maxandersen/jbang", versionProvider = VersionProvider.class, description = "Compiles and runs .java/.jsh scripts.")
+@Command(name = "jbang", footer = "\nCopyright: 2020 Max Rydahl Andersen, License: MIT\nWebsite: https://github.com/jbangdev/jbang", versionProvider = VersionProvider.class, description = "Compiles and runs .java/.jsh scripts.")
 public class Main implements Callable<Integer> {
 
 	static {

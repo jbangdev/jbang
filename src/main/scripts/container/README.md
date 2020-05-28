@@ -1,25 +1,25 @@
 # J'Bang Container for Docker and Github Action
 
-This container intended for quick and easily run java based scripts with [jbang](https://github.com/maxandersen/jbang).
+This container intended for quick and easily run java based scripts with [jbang](https://jbang.dev).
 
 Can be used directly with docker or as a GitHub Action
 
-[Source](https://github.com/maxandersen/jbang-action)
+[Source](https://github.com/jbangdev/jbang-action)
 
 ## Container/Docker usage
 
-[![Docker Repository on Quay.io](https://quay.io/repository/maxandersen/jbang-action/status "Docker Repository on Quay.io")](https://quay.io/repository/maxandersen/jbang-action) [![](https://images.microbadger.com/badges/image/maxandersen/jbang-action.svg)](https://microbadger.com/images/maxandersen/jbang-action "Get your own image badge on microbadger.com") [![nodesource/node](http://dockeri.co/image/maxandersen/jbang-action)](https://registry.hub.docker.com/r/maxandersen/jbang-action)
+[![Docker Repository on Quay.io](https://quay.io/repository/jbangdev/jbang-action/status "Docker Repository on Quay.io")](https://quay.io/repository/jbangdev/jbang-action) [![](https://images.microbadger.com/badges/image/jbangdev/jbang-action.svg)](https://microbadger.com/images/jbangdev/jbang-action "Get your own image badge on microbadger.com") [![nodesource/node](http://dockeri.co/image/jbangdev/jbang-action)](https://registry.hub.docker.com/r/jbangdev/jbang-action)
 
 Using dockerhub images:
 
 ```
-docker run -v `pwd`:/ws --workdir=/ws maxandersen/jbang-action helloworld.java
+docker run -v `pwd`:/ws --workdir=/ws jbangdev/jbang-action helloworld.java
 ```
 
 Using quay.io images:
 
 ```
-docker run -v `pwd`:/ws --workdir=/ws quay.io/maxandersen/jbang-action helloworld.java
+docker run -v `pwd`:/ws --workdir=/ws quay.io/jbangdev/jbang-action helloworld.java
 ```
 
 
@@ -50,7 +50,7 @@ jobs:
 		restore-keys: |
 			${{ runner.os }}-jbang-
 	- name: jbang
-		uses: maxandersen/jbang-action@v@projectVersion@
+		uses: jbangdev/jbang-action@v@projectVersion@
 		with:
 		script: createissue.java
 		args: "my world"

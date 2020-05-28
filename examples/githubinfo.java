@@ -12,7 +12,7 @@ class githubinfo {
 
         GitHub github = GitHub.connectAnonymously();
 
-        var ghRepo = github.getRepository("maxandersen/jbang");
+        var ghRepo = github.getRepository("jbangdev/jbang");
 
         out.println(ghRepo);
     }

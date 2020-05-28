@@ -15,7 +15,7 @@ curl -X POST \
     -H "Consumer-Token: ${SDKMAN_CONSUMER_TOKEN}" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
-    -d '{"candidate": "jbang", "version": "'${jbang_version}'", "url": "https://github.com/maxandersen/jbang/releases/download/v'${jbang_version}'/jbang-'${jbang_version}'.zip"}' \
+    -d '{"candidate": "jbang", "version": "'${jbang_version}'", "url": "https://github.com/jbangdev/jbang/releases/download/v'${jbang_version}'/jbang-'${jbang_version}'.zip"}' \
     https://vendors.sdkman.io/release
 
 ## Set existing Version as Default for Candidate
@@ -35,5 +35,5 @@ curl -X POST \
     -H "Consumer-Token: ${SDKMAN_CONSUMER_TOKEN}" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
-    -d '{"text": "Jbang '${jbang_version}' released on SDKMAN! See https://github.com/maxandersen/jbang/releases/tag/v'${jbang_version}' #jbang"}' \
+    -d '{"text": "Jbang '${jbang_version}' released on SDKMAN! See https://github.com/jbangdev/jbang/releases/tag/v'${jbang_version}' #jbang"}' \
     https://vendors.sdkman.io/announce/freeform

@@ -10,7 +10,7 @@ Java being picky.
 
 [source, bash]
 ----
-$ git clone https://github.com/maxandersen/jbang
+$ git clone https://github.com/jbangdev/jbang
 $ cd jbang
 $ ./gradlew build install
 > Task :test

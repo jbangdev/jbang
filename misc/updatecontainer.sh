@@ -10,7 +10,7 @@ DIST=`ls build/distributions/jbang-${jbang_version}.zip | cut -f1 -d ' '`
 sha256=`cat $DIST.sha256`
 
 rm -rf jbang-action
-git clone https://github.com/maxandersen/jbang-action.git
+git clone https://github.com/jbangdev/jbang-action.git
 
 cp build/container/Dockerfile jbang-action/Dockerfile
 cp build/container/README.md jbang-action/README.md
@@ -25,7 +25,7 @@ git add Dockerfile README.md
 git commit -m "jbang v${jbang_version}"
 git tag -a "v${jbang_version}" -m "jbang v${jbang_version}"
 
-remote_repo="https://${BREW_USER}:${BREW_GITHUB_TOKEN}@github.com/maxandersen/jbang-action.git"
+remote_repo="https://${BREW_USER}:${BREW_GITHUB_TOKEN}@github.com/jbangdev/jbang-action.git"
 echo $remote_repo
 
 git push "${remote_repo}" --follow-tags

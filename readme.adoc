@@ -4,10 +4,10 @@
 :toc-placement!:
 :icons: font
 	
-image:https://img.shields.io/github/release/maxandersen/jbang.svg[Release,link=https://github.com/maxandersen/jbang/releases]
-image:https://github.com/maxandersen/jbang/workflows/ci-build/badge.svg[Build Status,link=https://github.com/maxandersen/jbang/actions]
-image:https://che.openshift.io/factory/resources/factory-contribute.svg[Che, link=https://che.openshift.io/f?url=https://github.com/maxandersen/jbang]
-image:https://img.shields.io/badge/Gitpod-Workspace-blue?logo=gitpodp[Gitpod, link=https://gitpod.io/#https://github.com/maxandersen/jbang]
+image:https://img.shields.io/github/release/jbangdev/jbang.svg[Release,link=https://github.com/jbangdev/jbang/releases]
+image:https://github.com/jbangdev/jbang/workflows/ci-build/badge.svg[Build Status,link=https://github.com/jbangdev/jbang/actions]
+image:https://che.openshift.io/factory/resources/factory-contribute.svg[Che, link=https://che.openshift.io/f?url=https://github.com/jbangdev/jbang]
+image:https://img.shields.io/badge/Gitpod-Workspace-blue?logo=gitpodp[Gitpod, link=https://gitpod.io/#https://github.com/jbangdev/jbang]
 
 image:images/jbang_logo.svg[JBang Logo, title="JBang Logo"]
 
@@ -139,7 +139,7 @@ On Windows you can also install jbang` with https://scoop.sh[Scoop].
 
 [source, bash]
 ----
-scoop bucket add maxandersen https://github.com/maxandersen/scoop-bucket
+scoop bucket add jbangdev https://github.com/jbangdev/scoop-bucket
 scoop install jbang
 ----
 
@@ -159,13 +159,13 @@ brew tap AdoptOpenJDK/openjdk
 brew cask install adoptopenjdk11
 ----
 
-Once Java is installed you can use brew with https://github.com/maxandersen/homebrew-tap/[maxandersen/tap] to get `jbang`:
+Once Java is installed you can use brew with https://github.com/jbangdev/homebrew-tap/[jbangdev/tap] to get `jbang`:
 
-  brew install maxandersen/tap/jbang
+  brew install jbangdev/tap/jbang
 
 To upgrade to latest version:
 
-  brew upgrade maxandersen/tap/jbang
+  brew upgrade jbangdev/tap/jbang
 
 ==== Installing older versions via Homebrew
 
@@ -175,7 +175,7 @@ you can revert back to that older version following these steps:
 . Find the commit id for the version to revert to (e.g. `0.8.1`).
 +
 ```
-$ cd "$(brew --repo maxandersen/tap)"
+$ cd "$(brew --repo jbangdev/tap)"
 $ git log master -- Formula/jbang.rb
 ...
 commit fd70f1bc0a7f69d81cfb5b08a0d2bb698fbd01b2
@@ -233,21 +233,21 @@ You can run `jbang` via Docker:
 
 [source, bash]
 ----
-docker run -v `pwd`:/ws --workdir=/ws maxandersen/jbang-action helloworld.java
+docker run -v `pwd`:/ws --workdir=/ws jbangdev/jbang-action helloworld.java
 ----
 
 or if you prefer using Quay.io:
 
 [source, bash]
 ----
-docker run -v `pwd`:/ws --workdir=/ws quay.io/maxandersen/jbang-action helloworld.java
+docker run -v `pwd`:/ws --workdir=/ws quay.io/jbangdev/jbang-action helloworld.java
 ----
 
-The same container images can be used with GitHub Actions, see https://github.com/maxandersen/jbang-action[jbang-action] for details.
+The same container images can be used with GitHub Actions, see https://github.com/jbangdev/jbang-action[jbang-action] for details.
 
 === Manual install
 
-Unzip the https://github.com/maxandersen/jbang/releases/latest[latest binary release], put the `jbang-<version>/bin` folder in to your `$PATH` and you are set.
+Unzip the https://github.com/jbangdev/jbang/releases/latest[latest binary release], put the `jbang-<version>/bin` folder in to your `$PATH` and you are set.
 
 == Usage
 
@@ -291,7 +291,7 @@ You can use `http(s):/` and `file:/` url's for input and github.com based urls w
 
 [source]
 ----
-jbang https://github.com/maxandersen/jbang/blob/master/examples/helloworld.java
+jbang https://github.com/jbangdev/jbang/blob/master/examples/helloworld.java
 ----
 
 [TIP]
@@ -406,23 +406,23 @@ Examples of links and their resulting locator:
 
 |===
 |Link | Locator
-|https://github.com/maxandersen/jbang
-|com.github.maxandersen:jbang:master-SNAPSHOT
+|https://github.com/jbangdev/jbang
+|com.github.jbangdev:jbang:master-SNAPSHOT
 
-|https://github.com/maxandersen/jbang/tree/v1.2.3
-|com.github.maxandersen:jbang:v1.2.3
+|https://github.com/jbangdev/jbang/tree/v1.2.3
+|com.github.jbangdev:jbang:v1.2.3
 
-|https://github.com/maxandersen/jbang/tree/f1f34b031d2163e0cdc6f9a3725b59f47129c923[https://github.com/maxandersen/jbang/tree/f1f34b031...]
-|com.github.maxandersen:jbang:f1f34b031d
+|https://github.com/jbangdev/jbang/tree/f1f34b031d2163e0cdc6f9a3725b59f47129c923[https://github.com/jbangdev/jbang/tree/f1f34b031...]
+|com.github.jbangdev:jbang:f1f34b031d
 
-|https://github.com/maxandersen/jbang#mymodule
-|com.github.maxandersen.jbang:mymodule:master-SNAPSHOT
+|https://github.com/jbangdev/jbang#mymodule
+|com.github.jbangdev.jbang:mymodule:master-SNAPSHOT
 
-|https://github.com/maxandersen/jbang/tree/mybranch#:SNAPSHOT
-|com.github.maxandersen:jbang:mybranch-SNAPSHOT
+|https://github.com/jbangdev/jbang/tree/mybranch#:SNAPSHOT
+|com.github.jbangdev:jbang:mybranch-SNAPSHOT
 
-|https://github.com/maxandersen/jbang/tree/mybranch#mymodule:SNAPSHOT
-|com.github.maxandersen.jbang.mymodule:mybranch-SNAPSHOT
+|https://github.com/jbangdev/jbang/tree/mybranch#mymodule:SNAPSHOT
+|com.github.jbangdev.jbang.mymodule:mybranch-SNAPSHOT
 |===
 
 === Offline mode

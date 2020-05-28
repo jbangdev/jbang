@@ -4,8 +4,8 @@ Release:    1%{?dist}
 Summary:    Unleash the power of Java for shell scripting
 
 License:    MIT
-URL:        https://github.com/maxandersen/%{name}
-Source0:    https://github.com/maxandersen/%{name}/releases/download/v%{version}/%{name}-%{version}.tar
+URL:        https://github.com/jbangdev/%{name}
+Source0:    https://github.com/jbangdev/%{name}/releases/download/v%{version}/%{name}-%{version}.tar
 
 BuildArch:      noarch
 BuildRequires:  git

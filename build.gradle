@@ -233,7 +233,7 @@ githubRelease {
 	//println(getReleaseAssets().getFiles())
 	// set ORG_GRADLE_PROJECT_github_token
 	token = project.hasProperty('github_token') ? getProperty('github_token') : "unknown_github_token"
-	owner = "maxandersen"
+	owner = "jbangdev"
 	draft = true
 	body = "## News"
 }

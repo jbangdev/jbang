@@ -5,7 +5,7 @@ $jbang_bat = Join-Path $jbang_home 'bin/jbang.bat'
 
 Install-ChocolateyZipPackage `
     -PackageName 'jbang' `
-    -Url 'https://github.com/maxandersen/jbang/releases/download/v@projectVersion@/jbang-@projectVersion@.zip' `
+    -Url 'https://github.com/jbangdev/jbang/releases/download/v@projectVersion@/jbang-@projectVersion@.zip' `
     -Checksum '@sha256@' `
     -ChecksumType 'sha256' `
     -UnzipLocation $package
