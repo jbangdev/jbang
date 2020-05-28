@@ -12,6 +12,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <table>
   <tr>
     <td align="center"><a href="https://github.com/quintesse"><img src="https://avatars0.githubusercontent.com/u/778793?v=4" width="100px;" alt=""/><br /><sub><b>Tako Schotanus</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=quintesse" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/dem2k"><img src="https://avatars1.githubusercontent.com/u/14839058?v=4" width="100px;" alt=""/><br /><sub><b>dem2k</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=dem2k" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/jmini"><img src="https://avatars0.githubusercontent.com/u/1222165?v=4" width="100px;" alt=""/><br /><sub><b>Jérémie Bresson</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=jmini" title="Code">💻</a></td>
   </tr>
 </table>
