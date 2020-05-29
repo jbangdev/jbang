@@ -4,7 +4,7 @@
   "repoType": "github",
   "repoHost": "https://github.com",
   "files": [
-    "CONTRIBUTING.md"
+    "CONTRIBUTORS.md"
   ],
   "imageSize": 100,
   "commit": true,
@@ -20,20 +20,98 @@
       ]
     },
     {
-      "login": "dem2k",
-      "name": "dem2k",
-      "avatar_url": "https://avatars1.githubusercontent.com/u/14839058?v=4",
-      "profile": "https://github.com/dem2k",
-     },
-     { "login": "jmini",
+      "login": "jmini",
       "name": "Jérémie Bresson",
       "avatar_url": "https://avatars0.githubusercontent.com/u/1222165?v=4",
       "profile": "https://github.com/jmini",
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "brunoborges",
+      "name": "Bruno Borges",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/129743?v=4",
+      "profile": "http://brunoborges.io",
+      "contributions": [
+        "example",
+        "infra"
+      ]
+    },
+    {
+      "login": "aaronwalker",
+      "name": "Aaron Walker",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/153766?v=4",
+      "profile": "http://aaronwalker.cloud/",
+      "contributions": [
+        "example"
+      ]
+    },
+    {
+      "login": "skabashnyuk",
+      "name": "Sergii Kabashniuk",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/1614429?v=4",
+      "profile": "https://www.redhat.com/",
+      "contributions": [
+        "example"
+      ]
+    },
+    {
+      "login": "ibuziuk",
+      "name": "Ilya Buziuk",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/1461122?v=4",
+      "profile": "https://github.com/ibuziuk",
+      "contributions": [
+        "infra"
+      ]
+    },
+    {
+      "login": "geoand",
+      "name": "Georgios Andrianakis",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/4374975?v=4",
+      "profile": "https://github.com/geoand",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "geertjanw",
+      "name": "Geertjan Wielenga",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/5309985?v=4",
+      "profile": "https://github.com/geertjanw",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "galderz",
+      "name": "Galder Zamarreño",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/50187?v=4",
+      "profile": "http://zamarreno.com",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "ShoeBoom",
+      "name": "Shubham Bhardwaj",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/15147944?v=4",
+      "profile": "https://github.com/ShoeBoom",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "dem2k",
+      "name": "dem2k",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/14839058?v=4",
+      "profile": "https://github.com/dem2k",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
+  "contributorsSortAlphabetically": true,
   "skipCi": true
 }
