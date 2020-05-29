@@ -1,6 +1,6 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-11-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-12-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 ## Contributors ✨
 
@@ -20,6 +20,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 	<td align="center"><a href="https://github.com/jmini"><img src="https://avatars0.githubusercontent.com/u/1222165?v=4" width="100px;" alt=""/><br /><sub><b>Jérémie Bresson</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=jmini" title="Code">💻</a></td>
 </tr>
 <tr>
+	<td align="center"><a href="http://stackoverflow.com/users/3128926/levent-divilioglu?tab=profile"><img src="https://avatars3.githubusercontent.com/u/1220904?v=4" width="100px;" alt=""/><br /><sub><b>Levent Divilioglu</b></sub></a><br /><a href="#example-bzdgn" title="Examples">💡</a></td>
 	<td align="center"><a href="https://www.redhat.com/"><img src="https://avatars0.githubusercontent.com/u/1614429?v=4" width="100px;" alt=""/><br /><sub><b>Sergii Kabashniuk</b></sub></a><br /><a href="#example-skabashnyuk" title="Examples">💡</a></td>
 	<td align="center"><a href="https://github.com/ShoeBoom"><img src="https://avatars3.githubusercontent.com/u/15147944?v=4" width="100px;" alt=""/><br /><sub><b>Shubham Bhardwaj</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=ShoeBoom" title="Code">💻</a></td>
 	<td align="center"><a href="https://github.com/quintesse"><img src="https://avatars0.githubusercontent.com/u/778793?v=4" width="100px;" alt=""/><br /><sub><b>Tako Schotanus</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=quintesse" title="Code">💻</a></td>

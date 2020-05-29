@@ -109,6 +109,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "bzdgn",
+      "name": "Levent Divilioglu",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/1220904?v=4",
+      "profile": "http://stackoverflow.com/users/3128926/levent-divilioglu?tab=profile",
+      "contributions": [
+        "example"
+      ]
     }
   ],
   "contributorsPerLine": 7,
