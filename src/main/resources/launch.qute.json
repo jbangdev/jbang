@@ -9,17 +9,11 @@
             "name": "{baseName}-port-4004",
             "request": "attach",
             "hostName": "localhost",
-            "port": "4004"
+            "port": 4004
         },
         {
             "type": "java",
-            "name": "Debug (Launch) - Current File",
-            "request": "launch",
-            "mainClass": "$\{file\}"
-        },
-        {
-            "type": "java",
-            "name": "{baseName}",
+            "name": "Debug (Launch) - {baseName}",
             "request": "launch",
             "mainClass": "{baseName}",
             "projectName": "{baseName}"
