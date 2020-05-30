@@ -2,7 +2,14 @@
 = j'bang - Having fun with Java scripting
 :toc:
 :toc-placement!:
-:icons: font
+ifndef::env-github[:icons: font]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
 	
 image:https://img.shields.io/github/release/jbangdev/jbang.svg[Release,link=https://github.com/jbangdev/jbang/releases]
 image:https://github.com/jbangdev/jbang/workflows/ci-build/badge.svg[Build Status,link=https://github.com/jbangdev/jbang/actions]
