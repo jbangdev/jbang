@@ -284,6 +284,16 @@ public class TestMain {
 	}
 
 	@Test
+	void testFetchFromGistWithoutUsername(@TempDir Path dir) throws IOException {
+
+		String u = Main.swizzleURL("https://gist.github.com/590b8a0e824faeb3ee7ddfad741ce842");
+
+		Path x = Util.downloadFile(u,
+				dir.toFile());
+		assertEquals("checklabeler.java", x.getFileName().toString());
+	}
+
+	@Test
 	void testSwizzle(@TempDir Path dir) throws IOException {
 
 		assertThat(

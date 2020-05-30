@@ -1012,8 +1012,8 @@ public class Main implements Callable<Integer> {
 		// an invalid flag when jbang compiles
 
 		try {
-			String gistapi = url.replaceFirst("^https://gist.github.com/([a-zA-Z0-9]*)/([a-zA-Z0-9]*)$",
-					"https://api.github.com/gists/$2");
+			String gistapi = url.replaceFirst("^https://gist.github.com/(([a-zA-Z0-9]*)/)?(?<gistid>[a-zA-Z0-9]*)$",
+					"https://api.github.com/gists/${gistid}");
 			// Util.info("looking at " + gistapi);
 			String strdata = null;
 			try {
