@@ -118,6 +118,15 @@
       "contributions": [
         "example"
       ]
+    },
+    {
+      "login": "manikmagar",
+      "name": "Manik Magar",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/877286?v=4",
+      "profile": "https://manik.magar.me",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
