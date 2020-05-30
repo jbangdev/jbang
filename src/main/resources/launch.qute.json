@@ -9,7 +9,7 @@
             "name": "{baseName}-port-4004",
             "request": "attach",
             "hostName": "localhost",
-            "port": "4004"
+            "port": 4004
         },
         {
             "type": "java",
