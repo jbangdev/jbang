@@ -18,11 +18,6 @@ image:https://img.shields.io/badge/Gitpod-Workspace-blue?logo=gitpodp[Gitpod, li
 
 image:images/jbang_logo.svg[JBang Logo, title="JBang Logo"]
 
-
-[WARNING]
-====
-jbang is in the process of mvoing from https://github.com/maxandersen/jbang to https://github.com/jbangdev
-
 Thus some install options might not be fully published yet!
 ====
 
@@ -77,8 +72,6 @@ toc::[]
 * (PLANNED) Lookup dependencies with a short-hand name, i.e. `// DEPS log4j:1.2+,picocli` for quick getting started.
 
 To use it simply install `jbang` and run `jbang yourscript.java`
-
-toc::[]
 
 == Requirements
 
