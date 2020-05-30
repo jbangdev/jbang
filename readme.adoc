@@ -19,7 +19,6 @@ image:https://img.shields.io/badge/Gitpod-Workspace-blue?logo=gitpodp[Gitpod, li
 image:images/jbang_logo.svg[JBang Logo, title="JBang Logo"]
 
 Thus some install options might not be fully published yet!
-====
 
 == Intro
 
