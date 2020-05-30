@@ -1,4 +1,9 @@
 {
     "java.import.gradle.enabled": false,
-    "java.import.maven.enabled": false
+    "java.import.maven.enabled": false,
+    "files.exclude": {
+        "bin/":true,
+        ".eclipse/":true,
+        "build.gradle":true
+    }
 }
