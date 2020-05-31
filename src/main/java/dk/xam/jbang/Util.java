@@ -1,6 +1,10 @@
 package dk.xam.jbang;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -8,6 +12,12 @@ import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 
 public class Util {
 
@@ -52,6 +62,66 @@ public class Util {
 	}
 
 	private static final int BUFFER_SIZE = 4096;
+
+	private static final Pattern mainClassPattern = Pattern.compile(
+			"(?sm)class *(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*) .*static void main");
+
+	/**
+	 * Download file from url but will swizzle output for sites that are known to
+	 * possibly embed code (i.e. twitter and carbon)
+	 * 
+	 * @param fileURL
+	 * @param saveDir
+	 * @return
+	 * @throws IOException
+	 */
+	public static Path downloadFileSwizzled(String fileURL, File saveDir) throws IOException {
+		Path path = downloadFile(fileURL, saveDir);
+
+		boolean twitter = fileURL.startsWith("https://twitter.com");
+		if (twitter || fileURL.startsWith("https://carbon.now.sh")) { // sites known
+																		// to have
+																		// og:description
+																		// meta name or
+																		// property
+			try {
+				Document doc = Jsoup.parse(path.toFile(), "UTF-8", fileURL);
+				Elements ogDesc = doc.select("meta[property=og:description],meta[name=og:description]");
+				if (!ogDesc.isEmpty()) {
+					String proposedString = ogDesc.first().attr("content");
+					if (twitter) {
+						// remove fake quotes
+						proposedString = proposedString.replace("\u201c", "");
+						proposedString = proposedString.replace("\u201d", "");
+						// unescape properly
+						proposedString = org.jsoup.parser.Parser.unescapeEntities(proposedString, true);
+
+					}
+
+					if (proposedString != null) {
+						Matcher m = mainClassPattern.matcher(proposedString);
+						String wantedfilename;
+						if (m.find()) {
+							String guessedClass = m.group(1);
+							wantedfilename = guessedClass + ".java";
+						} else {
+							wantedfilename = path.getFileName() + ".jsh";
+						}
+
+						File f = path.toFile();
+						File newFile = new File(f.getParent(), wantedfilename);
+						f.renameTo(newFile);
+						path = newFile.toPath();
+						writeString(path, proposedString);
+					}
+				}
+			} catch (RuntimeException re) {
+				// ignore any errors that can be caused by parsing
+			}
+		}
+
+		return path;
+	}
 
 	/**
 	 * Downloads a file from a URL
@@ -107,6 +177,7 @@ public class Util {
 								disposition.length() - 1);
 					}
 				}
+
 				if (fileName == null || fileName.trim().isEmpty()) {
 					// extracts file name from URL if nothing found
 					fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1,

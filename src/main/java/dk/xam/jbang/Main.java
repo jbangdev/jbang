@@ -1058,7 +1058,7 @@ public class Main implements Callable<Integer> {
 			String urlHash = getStableID(scriptURL);
 			File urlCache = new File(Settings.getCacheDir(), "/url_cache_" + urlHash);
 			urlCache.mkdirs();
-			Path path = Util.downloadFile(scriptURL, urlCache);
+			Path path = Util.downloadFileSwizzled(scriptURL, urlCache);
 
 			return path.toFile();
 		} catch (IOException e) {
