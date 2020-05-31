@@ -341,11 +341,14 @@ Example:
 ----
 System.out.println("Hello " + (args.length>0?args[0]:"World")); // <.>
 System.setProperty("key", "value"); // <.>
-/exit // <.>
 ----
 <.> Line where `args` are accessible without previous declaration.
 <.> System properties set when passed as `-D` arguments to `jbang`
-<.> `/exit` is so the jshell app will exit. If you remove it `jbang` will launch into inter-active mode.
+
+[TIP]
+----
+If you use `--interactive` `jbang` will let `jshell` enter into interactive/REPL mode. You write `/exit` to leave this mode.
+----
 
 == Init templates
 
