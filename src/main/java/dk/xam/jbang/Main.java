@@ -127,9 +127,11 @@ public class Main implements Callable<Integer> {
 			"--init" }, description = "Init script with a java class useful for scripting", parameterConsumer = PlainStringFallbackConsumer.class, arity = "0..1", fallbackValue = "hello")
 	String initTemplate;
 
-	@Option(names = {
-			"--adddeps" }, description = "Add dependencies from the build file specified and inject into the .java files.", arity = "1")
-	String fetchDeps;
+	/**
+	 * @Option(names = { "--adddeps" }, description = "Add dependencies from the
+	 *               build file specified and inject into the .java files.", arity =
+	 *               "1") String fetchDeps;
+	 **/
 
 	@Option(names = "--completion", help = true, description = "Output auto-completion script for bash/zsh.\nUsage: source <(jbang --completion)")
 	boolean completionRequested;
