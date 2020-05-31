@@ -294,6 +294,45 @@ public class TestMain {
 	}
 
 	@Test
+	void testFetchFromTwitter(@TempDir Path dir) throws IOException {
+
+		verifyHello("https://twitter.com/maxandersen/status/1266329490927616001", dir);
+	}
+
+	@Test
+	void testFetchFromCarbon(@TempDir Path dir) throws IOException {
+
+		verifyHello("https://carbon.now.sh/ae51bf967c98f31a13cba976903030d5", dir);
+	}
+
+	private void verifyHello(String url, Path dir) throws IOException {
+		String u = Main.swizzleURL(url);
+
+		Path x = Util.downloadFileSwizzled(u,
+				dir.toFile());
+		assertEquals("hello.java", x.getFileName().toString());
+		String java = Util.readString(x);
+		assertThat(java, startsWith("//DEPS"));
+		assertThat(java, not(containsString("&gt;")));
+		assertThat(java, containsString("\n"));
+	}
+
+	@Test
+	void testTwitterjsh(@TempDir Path dir) throws IOException {
+		String u = Main.swizzleURL("https://twitter.com/maxandersen/status/1266904846239752192");
+
+		Path x = Util.downloadFileSwizzled(u,
+				dir.toFile());
+		assertEquals("1266904846239752192.jsh", x.getFileName().toString());
+		String java = Util.readString(x);
+		assertThat(java, startsWith("//DEPS"));
+		assertThat(java, not(containsString("&gt;")));
+		assertThat(java, containsString("\n"));
+		assertThat(java, containsString("/exit"));
+
+	}
+
+	@Test
 	void testSwizzle(@TempDir Path dir) throws IOException {
 
 		assertThat(
@@ -309,4 +348,5 @@ public class TestMain {
 				equalTo("https://bitbucket.org/Shoeboom/test/raw/master/helloworld.java"));
 
 	}
+
 }
