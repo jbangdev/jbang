@@ -5,7 +5,7 @@ Anyone welcome to open issues and/or pull-requests for bugfixes, featurerequests
 == How to build
 
 Clone the repository, cd `jbang` and run `./gradlew build install`.
-There will be an warning in the output but don't dispair - that is just
+There will be an warning in the output but don't despair - that is just
 Java being picky.
 
 [source, bash]
