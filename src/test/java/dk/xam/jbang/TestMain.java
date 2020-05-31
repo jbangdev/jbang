@@ -76,7 +76,27 @@ public class TestMain {
 		assertThat(result, not(containsString("--source 11")));
 		assertThat(result, containsString("--startup=DEFAULT --startup="));
 		assertThat(result, not(containsString("blah")));
+		assertThat(result, containsString("jbang_exit_"));
+	}
 
+	@Test
+	void testHelloWorldShellNoExit() throws IOException {
+
+		environmentVariables.clear("JAVA_HOME");
+
+		Main main = new Main();
+		String arg = new File(examplesTestFolder, "helloworld.jsh").getAbsolutePath();
+		new CommandLine(main).parseArgs("--interactive", arg, "blah");
+
+		String result = main.generateCommandLine(new Script(new File("helloworld.jsh"), ""));
+
+		assertThat(result, startsWith("jshell"));
+		assertThat(result, not(containsString("  ")));
+		assertThat(result, containsString("helloworld.jsh"));
+		assertThat(result, not(containsString("--source 11")));
+		assertThat(result, containsString("--startup=DEFAULT --startup="));
+		assertThat(result, not(containsString("blah")));
+		assertThat(result, not(containsString("jbang_exit_")));
 	}
 
 	@Test

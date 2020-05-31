@@ -117,6 +117,9 @@ public class Main implements Callable<Integer> {
 	@Option(names = { "--verbose" }, description = "jbang will be verbose on what it does.")
 	boolean verbose;
 
+	@Option(names = { "--interactive" }, description = "activate interactive mode")
+	boolean interactive;
+
 	@Parameters(index = "0", description = "A file with java code or if named .jsh will be run with jshell")
 	String scriptOrFile;
 
@@ -801,6 +804,10 @@ public class Main implements Callable<Integer> {
 
 		if (!script.forJShell()) {
 			fullArgs.addAll(userParams);
+		} else if (!interactive) {
+			File tempFile = File.createTempFile("jbang_exit_", script.backingFile.getName());
+			Util.writeString(tempFile.toPath(), "/exit");
+			fullArgs.add(tempFile.toString());
 		}
 
 		return fullArgs.stream().collect(Collectors.joining(" "));
