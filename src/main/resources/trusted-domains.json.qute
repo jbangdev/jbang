@@ -1,0 +1,17 @@
+// URL's matching one or more entries in the list below will be trusted to be runnable by jbang.
+// The following examples show what entries can look like:
+// - "https://jbang.dev": Matches this specific domain using https
+// - "https://jbang.dev/foo": Matches https://jbang.dev/foo and https://jbang.dev/foo/bar,
+//   but not https://jbang.dev/foobar or https://jbang.dev/bar
+// - "https://*.jbang.dev": Match all domains ending in "jbang.dev" using https
+// - "jbang.dev": Match this specific domain using either http or https
+// - "*.jbang.dev": Match all domains ending in "jbang.dev" using either http or https
+// - "*": Match all domains using either http or https (This effectively disables any checks. Be careful!)
+//
+// By default, jbang trusts "localhost" and file://.
+// You can use the "jbang --trust=rule1,rule2,.." command to add to this file.
+// Note: --trust will rewrite this file. Preserving just the elements. Additional data and comments will not be kept.
+[
+    {#for item in trusteddomains}"{item}"{#if hasNext},{/if}
+    {/for}
+]
