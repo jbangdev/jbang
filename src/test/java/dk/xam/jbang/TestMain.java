@@ -4,6 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -62,15 +63,12 @@ public class TestMain {
 	@Test
 	void testHelloWorldShell() throws IOException {
 
-		environmentVariables.clear("JAVA_HOME");
-
 		Main main = new Main();
-		String arg = new File(examplesTestFolder, "helloworld.jsh").getAbsolutePath();
-		new CommandLine(main).parseArgs(arg, "blah");
+		new CommandLine(main).parseArgs("--trust", "a");
 
 		String result = main.generateCommandLine(new Script(new File("helloworld.jsh"), ""));
 
-		assertThat(result, startsWith("jshell"));
+		assertThat(result, matchesPattern("^.*jshell(.exe)? --startup.*$"));
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString("helloworld.jsh"));
 		assertThat(result, not(containsString("--source 11")));

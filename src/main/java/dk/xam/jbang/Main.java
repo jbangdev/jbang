@@ -17,9 +17,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.io.Reader;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
@@ -64,10 +63,7 @@ import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import com.google.gson.Gson;
 import com.sun.nio.file.SensitivityWatchEventModifier;
 
-import io.quarkus.qute.Engine;
 import io.quarkus.qute.Template;
-import io.quarkus.qute.TemplateLocator;
-import io.quarkus.qute.Variant;
 import picocli.AutoComplete;
 import picocli.CommandLine;
 import picocli.CommandLine.Model.ArgSpec;
@@ -119,6 +115,10 @@ public class Main implements Callable<Integer> {
 
 	@Option(names = { "--interactive" }, description = "activate interactive mode")
 	boolean interactive;
+
+	@Option(names = {
+			"--trust" }, help = true, description = "Add rule to trusted sources.", split = ",")
+	List<String> trust = new ArrayList<>();
 
 	@Parameters(index = "0", description = "A file with java code or if named .jsh will be run with jshell")
 	String scriptOrFile;
@@ -202,14 +202,16 @@ public class Main implements Callable<Integer> {
 	}
 
 	static CommandLine getCommandLine() {
-		return getCommandLine(new PrintWriter(err), new PrintWriter(err));
+		PrintWriter errW = new PrintWriter(err, true);
+
+		return getCommandLine(errW, errW);
 	}
 
 	static CommandLine getCommandLine(PrintWriter localout, PrintWriter localerr) {
 		return new CommandLine(new Main())	.setExitCodeExceptionMapper(new VersionProvider())
 											.setStopAtPositional(true)
-											.setOut(new PrintWriter(localout, true))
-											.setErr(new PrintWriter(localerr, true));
+											.setOut(localout)
+											.setErr(localerr);
 	}
 
 	private Integer doCall() throws IOException {
@@ -231,6 +233,10 @@ public class Main implements Callable<Integer> {
 			info("Clearing cache at " + Settings.getCacheDir().toPath());
 			// noinspection resource
 			Settings.clearCache();
+		}
+
+		if (!trust.isEmpty()) {
+			Settings.getTrustedSources().add(trust, Settings.getTrustedSourcesFile());
 		}
 
 		if (initTemplate != null) {
@@ -358,10 +364,11 @@ public class Main implements Callable<Integer> {
 		} catch (ExitException e) {
 			if (verbose) {
 				e.printStackTrace();
-			} else if (e.getCause() != null) {
+			} else {
 				info(e.getMessage());
 				info("Run with --verbose for more details");
 			}
+
 			return e.getStatus();
 		}
 	}
@@ -498,8 +505,6 @@ public class Main implements Callable<Integer> {
 		String cp = script.resolveClassPath(offline);
 		List<String> resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 
-		Engine engine = Engine.builder().addDefaults().addLocator(this::locate).build();
-
 		File baseDir = new File(Settings.getCacheDir(), "temp_projects");
 
 		String name = script.getOriginalFile().getName();
@@ -524,6 +529,8 @@ public class Main implements Callable<Integer> {
 		String baseName = getBaseName(name);
 		String templateName = "build.qute.gradle";
 		Path destination = new File(tmpProjectDir, "build.gradle").toPath();
+		TemplateEngine engine = Settings.getTemplateEngine();
+
 		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
 				destination);
 
@@ -602,7 +609,7 @@ public class Main implements Callable<Integer> {
 		return true;
 	}
 
-	private void renderTemplate(Engine engine, List<String> collectDependencies, String baseName,
+	private void renderTemplate(TemplateEngine engine, List<String> collectDependencies, String baseName,
 			List<String> resolvedDependencies, String templateName,
 			List<String> userParams, Path destination)
 			throws IOException {
@@ -651,66 +658,13 @@ public class Main implements Callable<Integer> {
 	}
 
 	String renderInitClass(File f, String template) {
-		Engine engine = Engine.builder().addDefaults().addLocator(this::locate).build();
-		Template helloTemplate = engine.getTemplate("init-" + template + ".java.qute");
+		Template helloTemplate = Settings.getTemplateEngine().getTemplate("init-" + template + ".java.qute");
 
 		if (helloTemplate == null) {
 			throw new ExitException(1, "Could not find init template named: " + template);
 		} else {
 			return helloTemplate.data("baseName", getBaseName(f.getName())).render();
 		}
-	}
-
-	/**
-	 * @param path
-	 * @return the optional reader
-	 */
-	private Optional<TemplateLocator.TemplateLocation> locate(String path) {
-		URL resource = null;
-		String basePath = "";
-		String templatePath = basePath + path;
-		// LOGGER.debugf("Locate template for %s", templatePath);
-		resource = locatePath(templatePath);
-
-		if (resource != null) {
-			return Optional.of(new ResourceTemplateLocation(resource));
-		}
-		return Optional.empty();
-	}
-
-	private URL locatePath(String path) {
-		ClassLoader cl = Thread.currentThread().getContextClassLoader();
-		if (cl == null) {
-			cl = Main.class.getClassLoader();
-		}
-		return cl.getResource(path);
-	}
-
-	static class ResourceTemplateLocation implements TemplateLocator.TemplateLocation {
-
-		private final URL resource;
-		@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-		private Optional<Variant> variant = null;
-
-		public ResourceTemplateLocation(URL resource) {
-			this.resource = resource;
-			this.variant = null;
-		}
-
-		@Override
-		public Reader read() {
-			try {
-				return new InputStreamReader(resource.openStream(), StandardCharsets.UTF_8);
-			} catch (IOException e) {
-				return null;
-			}
-		}
-
-		@Override
-		public Optional<Variant> getVariant() {
-			return variant;
-		}
-
 	}
 
 	public static String getBaseName(String fileName) {
@@ -1060,8 +1014,47 @@ public class Main implements Callable<Integer> {
 		Map<String, Map<String, String>> files;
 	}
 
+	private static String goodTrustURL(String url) {
+		String originalUrl = url;
+
+		url = url.replaceFirst("^https://github.com/(.*)/blob/(.*)$",
+				"https://github.com/$1/");
+
+		url = url.replaceFirst("^https://gitlab.com/(.*)/-/blob/(.*)$",
+				"https://gitlab.com/$1/");
+
+		url = url.replaceFirst("^https://bitbucket.org/(.*)/src/(.*)$",
+				"https://bitbucket.org/$1/");
+
+		url = url.replaceFirst("^https://twitter.com/(.*)/status/(.*)$",
+				"https://twitter.com/$1/");
+
+		if (url == originalUrl) {
+			java.net.URI u = null;
+			try {
+				u = new java.net.URI(url);
+			} catch (URISyntaxException e) {
+				return url;
+			}
+			url = u.getScheme() + "://" + u.getAuthority();
+		}
+
+		return url;
+	}
+
 	private static File fetchFromURL(String scriptURL) {
 		try {
+			java.net.URI uri = new java.net.URI(scriptURL);
+
+			if (!Settings.getTrustedSources().isURLTrusted(uri)) {
+				throw new ExitException(10, scriptURL + " is not from a trusted source thus aborting.\n" +
+						"If you trust the url to be safe to run are here a few suggestions:\n" +
+						"Limited trust:\n    jbang --trust=" + goodTrustURL(scriptURL) + "\n" +
+						"Trust all subdomains:\n    jbang --trust=" + "*." + uri.getAuthority() + "\n" +
+						"Trust all sources (WARNING! disables url protection):\n    jbang --trust=\"*\"" + "\n" +
+						"\nFor more control edit ~/.jbang/trusted-sources.json" + "\n");
+			}
+
 			scriptURL = swizzleURL(scriptURL);
 
 			String urlHash = getStableID(scriptURL);
@@ -1070,7 +1063,7 @@ public class Main implements Callable<Integer> {
 			Path path = Util.downloadFileSwizzled(scriptURL, urlCache);
 
 			return path.toFile();
-		} catch (IOException e) {
+		} catch (IOException | URISyntaxException e) {
 			throw new ExitException(2, "Could not download " + scriptURL, e);
 		}
 	}
