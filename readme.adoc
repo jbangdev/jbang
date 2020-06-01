@@ -293,6 +293,8 @@ chmod +x helloworld.java
 ./helloworld jbang!
 ----
 
+=== URLs from Trusted Sources
+
 You can use `http(s):/` and `file:/` url's for input:.
 
 [source]
@@ -300,9 +302,34 @@ You can use `http(s):/` and `file:/` url's for input:.
 jbang https://github.com/jbangdev/jbang/blob/master/examples/helloworld.java
 ----
 
+For safety reasons jbang will not run arbitrary urls before you indicated you trust their source.
+Thus when running the above for the first time you will see the following warning about the url not being a trusted source:
+
+[source,bash]
+----
+[jbang] https://github.com/jbangdev/jbang/blob/master/examples/helloworld.java is not from a trusted source thus aborting.
+If you trust the url to be safe to run are here a few suggestions:
+Limited trust:
+    jbang --trust=https://github.com/jbangdev/jbang/
+Trust all subdomains:
+    jbang --trust=*.github.com
+Trust all sources (WARNING! disables url protection):
+    jbang --trust="*"
+
+For more control edit ~/.jbang/trusted-sources.json
+
+[jbang] Run with --verbose for more details
+----
+
+To enable running it you need to mark that url or a sub part of it as a trusted source.
+i.e. `jbang --trust=https://github.com/jbangdev/jbang/` will tell `jbang` to trust anything with that base url.
+
+You can see more in the comments of the `~/.jbang/trusted-sources.json`.
+
 [TIP]
 ====
 Sites such as github, gitlab, bitbucket, gist, twitter and carbon.now.sh jbang will try and extract the proper source rather than the raw html.
+i.e. doing `jbang https://twitter.com/maxandersen/status/1266904846239752192 twitter!` is possible.
 ====
 
 [TIP]
