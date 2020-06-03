@@ -12,11 +12,13 @@ import static picocli.CommandLine.Option;
 import static picocli.CommandLine.Parameters;
 import static picocli.CommandLine.Spec;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -899,16 +901,20 @@ public class Main implements Callable<Integer> {
 		}
 
 		// support stdin
-		/*
-		 * if(scriptResource=="-"||scriptResource=="/dev/stdin") { val scriptText =
-		 * generateSequence() { readLine() }.joinToString("\n").trim() scriptFile =
-		 * createTmpScript(scriptText) }
-		 */
+		if (scriptResource.equals("-") || scriptResource.equals("/dev/stdin")) {
+			String scriptText = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8)).lines()
+																											.collect(
+																													Collectors.joining(
+																															System.lineSeparator()));
 
-		// support url's as script files
-		if (scriptResource.startsWith("http://") || scriptResource.startsWith("https://")
+			String urlHash = getStableID(scriptText);
+			File cache = new File(Settings.getCacheDir(), "/stdin_cache_" + urlHash);
+			cache.mkdirs();
+			scriptFile = new File(cache, urlHash + ".jsh");
+			Util.writeString(scriptFile.toPath(), scriptText);
+		} else if (scriptResource.startsWith("http://") || scriptResource.startsWith("https://")
 				|| scriptResource.startsWith("file:/")) {
-
+			// support url's as script files
 			scriptFile = fetchFromURL(scriptResource);
 		}
 

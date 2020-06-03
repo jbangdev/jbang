@@ -94,6 +94,8 @@ assert "jbang $SCRATCH/xyzplugin" "Hello World!"
 ## test quoting
 assert "jbang quote.java -fix 42=universe -other one" "other: [one] fix: {42=universe}"
 
+## test stdin piping
+assert "echo 'System.out.println(\"Hello World\")' | jbang -" "Hello World"
 
 ### Cleanup
 rm RESULTS
