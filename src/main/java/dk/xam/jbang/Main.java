@@ -969,6 +969,9 @@ public class Main implements Callable<Integer> {
 		url = url.replaceFirst("^https://bitbucket.org/(.*)/src/(.*)$",
 				"https://bitbucket.org/$1/raw/$2");
 
+		url = url.replaceFirst("^https://twitter.com/(.*)/status/(.*)$",
+				"https://mobile.twitter.com/$1/status/$2");
+
 		if (url.startsWith("https://gist.github.com/")) {
 			url = extractFileFromGist(url);
 		}

@@ -17,7 +17,6 @@ import java.util.regex.Pattern;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 
 public class Util {
 
@@ -78,7 +77,7 @@ public class Util {
 	public static Path downloadFileSwizzled(String fileURL, File saveDir) throws IOException {
 		Path path = downloadFile(fileURL, saveDir);
 
-		boolean twitter = fileURL.startsWith("https://twitter.com");
+		boolean twitter = fileURL.startsWith("https://mobile.twitter.com");
 		if (twitter || fileURL.startsWith("https://carbon.now.sh")) { // sites known
 																		// to have
 																		// og:description
@@ -86,35 +85,42 @@ public class Util {
 																		// property
 			try {
 				Document doc = Jsoup.parse(path.toFile(), "UTF-8", fileURL);
-				Elements ogDesc = doc.select("meta[property=og:description],meta[name=og:description]");
-				if (!ogDesc.isEmpty()) {
-					String proposedString = ogDesc.first().attr("content");
-					if (twitter) {
-						// remove fake quotes
-						proposedString = proposedString.replace("\u201c", "");
-						proposedString = proposedString.replace("\u201d", "");
-						// unescape properly
-						proposedString = org.jsoup.parser.Parser.unescapeEntities(proposedString, true);
 
-					}
-
-					if (proposedString != null) {
-						Matcher m = mainClassPattern.matcher(proposedString);
-						String wantedfilename;
-						if (m.find()) {
-							String guessedClass = m.group(1);
-							wantedfilename = guessedClass + ".java";
-						} else {
-							wantedfilename = path.getFileName() + ".jsh";
-						}
-
-						File f = path.toFile();
-						File newFile = new File(f.getParent(), wantedfilename);
-						f.renameTo(newFile);
-						path = newFile.toPath();
-						writeString(path, proposedString);
-					}
+				String proposedString = null;
+				if (twitter) {
+					proposedString = doc.select("div[class=dir-ltr]").first().wholeText().trim();
+				} else {
+					proposedString = doc.select("meta[property=og:description],meta[name=og:description]")
+										.first()
+										.attr("content");
 				}
+
+				if (twitter) {
+					// remove fake quotes
+					// proposedString = proposedString.replace("\u201c", "");
+					// proposedString = proposedString.replace("\u201d", "");
+					// unescape properly
+					proposedString = org.jsoup.parser.Parser.unescapeEntities(proposedString, true);
+
+				}
+
+				if (proposedString != null) {
+					Matcher m = mainClassPattern.matcher(proposedString);
+					String wantedfilename;
+					if (m.find()) {
+						String guessedClass = m.group(1);
+						wantedfilename = guessedClass + ".java";
+					} else {
+						wantedfilename = path.getFileName() + ".jsh";
+					}
+
+					File f = path.toFile();
+					File newFile = new File(f.getParent(), wantedfilename);
+					f.renameTo(newFile);
+					path = newFile.toPath();
+					writeString(path, proposedString);
+				}
+
 			} catch (RuntimeException re) {
 				// ignore any errors that can be caused by parsing
 			}

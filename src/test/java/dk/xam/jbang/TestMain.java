@@ -337,10 +337,9 @@ public class TestMain {
 
 	@Test
 	void testTwitterjsh(@TempDir Path dir) throws IOException {
-		// String u =
-		// Main.swizzleURL("https://twitter.com/maxandersen/status/1266904846239752192");
+		String u = Main.swizzleURL("https://twitter.com/maxandersen/status/1266904846239752192");
 
-		Path x = Util.downloadFileSwizzled("https://twitter.com/maxandersen/status/1266904846239752192",
+		Path x = Util.downloadFileSwizzled(u,
 				dir.toFile());
 		assertEquals("1266904846239752192.jsh", x.getFileName().toString());
 		String java = Util.readString(x);
