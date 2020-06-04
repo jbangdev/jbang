@@ -69,7 +69,9 @@ case "$JAVA8" in
     echo -e "System.out.println(System.getProperty(\"value\"));\n/exit" > $SCRATCH/hello.jsh
     assert "jbang $SCRATCH/hello.jsh" "null"
     assert "jbang -Dvalue=hello $SCRATCH/hello.jsh" "hello"
-    assert "jbang -Dvalue=\"a quoted\" $SCRATCH/hello.jsh" "a quoted" ;;
+    assert "jbang -Dvalue=\"a quoted\" $SCRATCH/hello.jsh" "a quoted"
+    ## test stdin piping
+    assert "echo 'System.out.println(\"Hello World\")' | jbang -" "Hello World";;
   *) echo "Java 8 installed - skipping jsh"
 esac
 
@@ -94,8 +96,6 @@ assert "jbang $SCRATCH/xyzplugin" "Hello World!"
 ## test quoting
 assert "jbang quote.java -fix 42=universe -other one" "other: [one] fix: {42=universe}"
 
-## test stdin piping
-assert "echo 'System.out.println(\"Hello World\")' | jbang -" "Hello World"
 
 ### Cleanup
 rm RESULTS
