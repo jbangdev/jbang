@@ -46,6 +46,12 @@ jobs:
         with:
           name: ${{ runner.os }}-build-${{ github.sha }}
           path: build
+      - name: Upload jbang.zip
+        uses: actions/upload-artifact@v1
+        if: always() && runner.os != 'Windows'
+        with:
+          name: jbang-${{ github.sha }}
+          path: build/install/jbang
       - name: integration-test
         if: runner.os != 'Windows'
         run: |
