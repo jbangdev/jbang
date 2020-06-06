@@ -3,7 +3,7 @@ FROM adoptopenjdk:11-jdk-hotspot
 RUN curl -Ls "https://github.com/jbangdev/jbang/releases/download/v@projectVersion@/jbang-@projectVersion@.zip" --output jbang.zip \
               && jar xf jbang.zip && rm jbang.zip && mv jbang-* jbang && chmod +x jbang/bin/jbang
 
-ADD ./entrypoint.sh /bin/entrypoint
+ADD ./entrypoint /bin/entrypoint
 
 ENV SCRIPTS_HOME /scripts
 ENV JBANG_VERSION @projectVersion@
