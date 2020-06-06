@@ -145,6 +145,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "kameshsampath",
+      "name": "Kamesh Sampath",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/947745?v=4",
+      "profile": "https://developers.redhat.com",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
