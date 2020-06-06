@@ -44,19 +44,19 @@ jobs:
 	name: A job to run jbang
 	steps:
 	- name: checkout
-		uses: actions/checkout@v1
+	  uses: actions/checkout@v1
 	- uses: actions/cache@v1
-		with:
+	  with:
 		path: /root/.jbang
 		key: ${{ runner.os }}-jbang-${{ hashFiles('*.java') }}
 		restore-keys: |
 			${{ runner.os }}-jbang-
 	- name: jbang
-		uses: jbangdev/jbang-action@v@projectVersion@
-		with:
+      uses: jbangdev/jbang-action@v@projectVersion@
+	  with:
 		script: createissue.java
 		args: "my world"
-		env:
+	  env:
 		JBANG_REPO: /root/.jbang/repository
 		GITHUB_TOKEN: ${{ secrets.ISSUE_GITHUB_TOKEN }}
 ```
