@@ -164,8 +164,8 @@ task homebrew(type: Copy) {
 task container(type: Copy) {
 	dependsOn(createChecksum)
 	inputs.property('version', project.version)
-	from('src/main/scripts/container/Dockerfile')
-	from('src/main/scripts/container/README.md')
+	from('src/main/scripts/container/')
+	include('*')
 	into(buildDir.toString() + '/container')
 	doFirst { t ->
 		t.filter(org.apache.tools.ant.filters.ReplaceTokens,

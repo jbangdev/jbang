@@ -2,7 +2,9 @@
 
 This container intended for quick and easily run java based scripts with [jbang](https://jbang.dev).
 
-Can be used directly with docker or as a GitHub Action
+Can be used directly with docker or as a GitHub Action.
+
+The source is located in [jbangdev/jbang](https://github.com/jbangdev/jbang/blob/master/src/main/scripts/container/) and are update in this repo on every tag/release of jbangdev/jbang.
 
 [Source](https://github.com/jbangdev/jbang-action)
 
