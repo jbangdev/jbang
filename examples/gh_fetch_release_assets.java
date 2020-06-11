@@ -1,4 +1,6 @@
 //usr/bin/env jbang "$0" "$@" ; exit $?
+//JAVA_OPTIONS --add-opens java.base/java.net=ALL-UNNAMED
+//JAVA_OPTIONS --add-opens java.base/sun.net.www.protocol.https=ALL-UNNAMED
 //DEPS info.picocli:picocli:4.1.4
 //DEPS org.kohsuke:github-api:1.101
 
@@ -34,6 +36,7 @@ class fetchlatestgraalvm implements Callable<Integer> {
         GitHub github = GitHub.connectAnonymously();
 
         var ghRepo = github.getRepository(repo);
+        ghRepo.archive();
 
         PagedIterator<GHRelease> releases = ghRepo.listReleases().iterator();
         if(releases.hasNext()) {
