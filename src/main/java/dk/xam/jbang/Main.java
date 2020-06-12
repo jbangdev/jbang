@@ -16,7 +16,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -45,7 +44,6 @@ import java.util.Stack;
 import java.util.concurrent.Callable;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
-import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -86,6 +84,15 @@ public class Main implements Callable<Integer> {
 	@Option(names = { "-d",
 			"--debug" }, fallbackValue = "4004", parameterConsumer = IntFallbackConsumer.class, description = "Launch with java debug enabled on specified port(default: ${FALLBACK-VALUE}) ")
 	int debugPort = -1;
+
+	@Option(names = {
+			"--cds" }, description = "If specified Class Data Sharing (CDS) will be used for building and running (requires Java 13+)", negatable = true)
+	Boolean cds;
+
+	Optional<Boolean> cds() {
+		return Optional.ofNullable(cds);
+	}
+
 	private Script script;
 
 	boolean debug() {
@@ -189,18 +196,6 @@ public class Main implements Callable<Integer> {
 	public static void main(String... args) {
 		int exitcode = getCommandLine().execute(args);
 		System.exit(exitcode);
-	}
-
-	static void createJarFile(File path, File output, String mainclass) throws IOException {
-		Manifest manifest = new Manifest();
-		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
-		if (mainclass != null) {
-			manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, mainclass);
-		}
-
-		FileOutputStream target = new FileOutputStream(output);
-		JarUtil.jar(target, path.listFiles(), null, null, manifest);
-		target.close();
 	}
 
 	static CommandLine getCommandLine() {
@@ -438,7 +433,8 @@ public class Main implements Callable<Integer> {
 			} catch (IOException e) {
 				throw new ExitException(1, e);
 			}
-			createJarFile(tmpJarDir, outjar, script.getMainClass());
+			script.createJarFile(tmpJarDir, outjar);
+
 		} else {
 			try (JarFile jf = new JarFile(outjar)) {
 				script.setMainClass(
@@ -749,6 +745,21 @@ public class Main implements Callable<Integer> {
 				if (!classpath.trim().isEmpty()) {
 					optionalArgs.add("-classpath " + classpath);
 				}
+
+				if (optionActive(cds(), script.enableCDS())) {
+					String cdsJsa = script.getJar().getAbsolutePath() + ".jsa";
+					if (script.wasJarCreated()) {
+						if (verbose) {
+							info("CDS: Archiving Classes At Exit at " + cdsJsa);
+						}
+						optionalArgs.add("-XX:ArchiveClassesAtExit=" + cdsJsa);
+					} else {
+						if (verbose) {
+							info("CDS: Using shared archive classes from " + cdsJsa);
+						}
+						optionalArgs.add("-XX:SharedArchiveFile=" + cdsJsa);
+					}
+				}
 			}
 
 			// protect against spaces in dirs in paths, especially on windows.
@@ -776,6 +787,14 @@ public class Main implements Callable<Integer> {
 
 		return fullArgs.stream().collect(Collectors.joining(" "));
 
+	}
+
+	static boolean optionActive(Optional<Boolean> master, boolean local) {
+		if (master.isPresent()) {
+			return master.get().booleanValue();
+		} else {
+			return local;
+		}
 	}
 
 	private void addPropertyFlags(String def, List<String> optionalArgs) {

@@ -74,7 +74,7 @@ To use it simply install `jbang` and run `jbang yourscript.java`
 
 Minimum Java 8, Recommended: Java 11+
 
-Tested and verified to use on OSX, Linux and Windows.
+Tested and verified to use on OSX, Linux and Windows (incl. command, cygwin and mingw shells).
 
 == Installation
 
@@ -718,6 +718,14 @@ public class records {
 Since Java 9 https://docs.oracle.com/javase/9/tools/java.htm#GUID-3B1CE181-CD30-4178-9602-230B800D4FAE__USINGTHEJDK_JAVA_OPTIONSLAUNCHERENV-F3C0E3BA[JDK_JAVA_OPTIONS] and https://docs.oracle.com/javase/9/tools/javac.htm#GUID-AEEC9F07-CB49-4E96-8BC7-BCC2C7F725C9\_\_USINGJDK_JAVAC_OPTIONSENVIRONMENTVA-F3C76845[JDK_JAVAC_OPTIONS] are also picked up by the Java runtime and compiler automatically.
 
 For Java 8 and if you want to set explicitly only for `jbang` you can also add flags by setting `JBANG_JAVA_OPTIONS` and `JBANG_JAVAC_OPTIONS` respectively.
+
+=== (Experimental) Application Class Data Sharing
+
+If your scripts uses a lot of classes Class Data Sharing might help on your startup. The following requires Java 13+.
+
+Using `--cds` jbang will build the jar with Application Class Data Sharing enabled and when run have it load shared class data.
+
+You can put `//CDS` in the java file to enable it by default, or simply use `--cds` to force it on or `--no-cds` to turn it off no matter what the jbang script file contains.
 
 === `JAVA_HOME` vs `PATH`
 

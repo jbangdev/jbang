@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 
@@ -216,7 +217,9 @@ public class TestMain {
 
 		File out = new File(rootdir.toFile(), "content.jar");
 
-		Main.createJarFile(dir, out, "wonkabear");
+		Script s = new Script("");
+		s.setMainClass("wonkabear");
+		s.createJarFile(dir, out);
 
 		try (JarFile jf = new JarFile(out)) {
 
@@ -367,4 +370,45 @@ public class TestMain {
 
 	}
 
+	@Test
+	void testCDSNotPresent() {
+		Main main = new Main();
+		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
+		new CommandLine(main).parseArgs(arg);
+
+		assert (!main.cds().isPresent());
+	}
+
+	@Test
+	void testCDSPresent() {
+		Main main = new Main();
+		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
+		new CommandLine(main).parseArgs(arg, "--cds");
+
+		assert (main.cds().isPresent());
+		assert (main.cds().get().booleanValue());
+	}
+
+	@Test
+	void testCDSPresentButNo() {
+		Main main = new Main();
+		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
+		new CommandLine(main).parseArgs(arg, "--no-cds");
+
+		assert (main.cds().isPresent());
+		assert (!main.cds().get().booleanValue());
+	}
+
+	@Test
+	void testOptionActive() {
+		assert (Main.optionActive(Optional.empty(), true));
+		assert (!Main.optionActive(Optional.empty(), false));
+
+		assert (Main.optionActive(Optional.of(Boolean.TRUE), true));
+		assert (Main.optionActive(Optional.of(Boolean.TRUE), false));
+
+		assert (!Main.optionActive(Optional.of(Boolean.FALSE), true));
+		assert (!Main.optionActive(Optional.of(Boolean.FALSE), false));
+
+	}
 }

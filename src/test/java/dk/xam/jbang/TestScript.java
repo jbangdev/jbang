@@ -4,6 +4,7 @@ import static dk.xam.jbang.Util.writeString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -50,6 +51,16 @@ class TestScript {
 		assertEquals(2, dependencies.size());
 
 		assertTrue(dependencies.contains("com.offbytwo:docopt:0.6.0.20150202"));
+
+	}
+
+	@Test
+	void testCDS() {
+		Script script = new Script("//CDS\nclass m { }");
+		Script script2 = new Script("class m { }");
+
+		assertTrue(script.enableCDS());
+		assertFalse(script2.enableCDS());
 
 	}
 

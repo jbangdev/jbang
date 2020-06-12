@@ -2,7 +2,19 @@ package dk.xam.jbang;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.*;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.Scanner;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -36,6 +48,8 @@ public class Script {
 	private String mainClass;
 	private File jar;
 	List<String> lines;
+	// true if in this run a jar was build/created
+	private boolean createdJar;
 
 	Script(File backingFile, String content) throws FileNotFoundException {
 		this.backingFile = backingFile;
@@ -110,6 +124,14 @@ public class Script {
 	}
 
 	private List<String> collectOptions(String prefix) {
+		List<String> javaOptions = collectRawOptions(prefix);
+
+		// convert quoted content to list of strings as
+		// just passing "--enable-preview --source 14" fails
+		return quotedStringToList(javaOptions.stream().collect(Collectors.joining(" ")));
+	}
+
+	private List<String> collectRawOptions(String prefix) {
 		String joptsPrefix = "//" + prefix;
 
 		List<String> lines = getLines();
@@ -123,10 +145,7 @@ public class Script {
 		if (envOptions != null) {
 			javaOptions.add(envOptions);
 		}
-
-		// convert quoted content to list of strings as
-		// just passing "--enable-preview --source 14" fails
-		return quotedStringToList(javaOptions.stream().collect(Collectors.joining(" ")));
+		return javaOptions;
 	}
 
 	public List<String> collectRuntimeOptions() {
@@ -135,6 +154,10 @@ public class Script {
 
 	public List<String> collectCompileOptions() {
 		return collectOptions("JAVAC_OPTIONS");
+	}
+
+	public boolean enableCDS() {
+		return !collectRawOptions("CDS").isEmpty();
 	}
 
 	/**
@@ -264,4 +287,22 @@ public class Script {
 		return originalFile;
 	}
 
+	public void createJarFile(File path, File output) throws IOException {
+		this.createdJar = true;
+
+		String mainclass = getMainClass();
+		Manifest manifest = new Manifest();
+		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
+		if (mainclass != null) {
+			manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, mainclass);
+		}
+
+		FileOutputStream target = new FileOutputStream(output);
+		JarUtil.jar(target, path.listFiles(), null, null, manifest);
+		target.close();
+	}
+
+	public boolean wasJarCreated() {
+		return createdJar;
+	}
 }
