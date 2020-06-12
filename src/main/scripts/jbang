@@ -19,9 +19,14 @@ resolve_symlink() {
 
 abs_jbang_path=$(resolve_symlink $(absolute_path $0))
 
-## resolve application jar path from script location and convert to windows path when using cygwin
+## when mingw/git bash or cygwin fall out to just running the bat file.
+if [[ $(uname) == CYGWIN* ]] || [[ $(uname) == MINGW* ]]; then
+$(dirname $abs_jbang_path)/jbang.bat $*
+exit $?
+fi
+
+## resolve application jar path from script location
 jarPath=$(dirname $abs_jbang_path)/jbang.jar
-if [[ $(uname) == CYGWIN* ]]; then jarPath=$(cygpath -w ${jarPath}); fi
 
 ## prefer JAVA instead of PATH to resolve `java` location
 if [[ -z "$JAVA_HOME" ]]; then JAVA_EXEC="java"; else JAVA_EXEC="$JAVA_HOME/bin/java"; fi
