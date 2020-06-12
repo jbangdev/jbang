@@ -262,7 +262,7 @@ public class Main implements Callable<Integer> {
 		}
 		if (edit || liveeditor != null) {
 			script = prepareScript(scriptOrFile);
-			File project = createProjectForEdit(script, userParams);
+			File project = createProjectForEdit(script, userParams, false);
 			// err.println(project.getAbsolutePath());
 			if (edit) {
 				out.println("echo " + project.getAbsolutePath()); // quit(project.getAbsolutePath());
@@ -289,7 +289,7 @@ public class Main implements Callable<Integer> {
 									// TODO only regenerate when dependencies changes.
 									info("Regenerating project.");
 									script = prepareScript(scriptOrFile);
-									createProjectForEdit(script, userParams);
+									createProjectForEdit(script, userParams, true);
 								} catch (RuntimeException ee) {
 									warn("Error when re-generating project. Ignoring it, but state might be undefined: "
 											+ ee.getMessage());
@@ -501,7 +501,7 @@ public class Main implements Callable<Integer> {
 	}
 
 	/** Create Project to use for editing **/
-	File createProjectForEdit(Script script, List<String> userParams) throws IOException {
+	File createProjectForEdit(Script script, List<String> userParams, boolean reload) throws IOException {
 
 		List<String> collectDependencies = script.collectDependencies();
 		String cp = script.resolveClassPath(offline);
@@ -561,15 +561,19 @@ public class Main implements Callable<Integer> {
 		// setup vscode
 		templateName = "launch.qute.json";
 		destination = new File(tmpProjectDir, ".vscode/launch.json").toPath();
-		destination.toFile().getParentFile().mkdirs();
-		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
-				destination);
+		if (isNeeded(reload, destination)) {
+			destination.toFile().getParentFile().mkdirs();
+			renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
+					destination);
+		}
 
 		templateName = "settings.qute.json";
 		destination = new File(tmpProjectDir, ".vscode/settings.json").toPath();
-		destination.toFile().getParentFile().mkdirs();
-		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
-				destination);
+		if (isNeeded(reload, destination)) {
+			destination.toFile().getParentFile().mkdirs();
+			renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
+					destination);
+		}
 
 		// setup intellij - disabled for now as idea was not picking these up directly
 		/*
@@ -587,6 +591,10 @@ public class Main implements Callable<Integer> {
 		 */
 
 		return tmpProjectDir;
+	}
+
+	private boolean isNeeded(boolean reload, Path file) {
+		return !file.toFile().exists() && !reload;
 	}
 
 	private boolean createSymbolicLink(Path src, Path target) {

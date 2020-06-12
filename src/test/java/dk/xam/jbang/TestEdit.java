@@ -46,7 +46,7 @@ public class TestEdit {
 
 		Script script = Main.prepareScript(s);
 
-		File project = main.createProjectForEdit(script, Collections.emptyList());
+		File project = main.createProjectForEdit(script, Collections.emptyList(), false);
 
 		assertThat(new File(project, "src"), FileMatchers.anExistingDirectory());
 		File build = new File(project, "build.gradle");
@@ -84,7 +84,7 @@ public class TestEdit {
 
 		Script script = Main.prepareScript(s);
 
-		File project = main.createProjectForEdit(script, Collections.emptyList());
+		File project = main.createProjectForEdit(script, Collections.emptyList(), false);
 
 		File gradle = new File(project, "build.gradle");
 		assert (gradle.exists());
@@ -109,7 +109,7 @@ public class TestEdit {
 
 		Script script = Main.prepareScript(s);
 
-		File project = main.createProjectForEdit(script, Collections.emptyList());
+		File project = main.createProjectForEdit(script, Collections.emptyList(), false);
 
 		File java = new File(project, "src/KubeExample.java");
 
