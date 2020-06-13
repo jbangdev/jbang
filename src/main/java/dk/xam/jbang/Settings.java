@@ -179,10 +179,14 @@ public class Settings {
 		return getAliasInfo().aliases;
 	}
 
-	public static void addAlias(String name, String resource) {
+	public static void addAlias(String name, String scriptRef) {
+		if (getAliases().containsKey(scriptRef)) {
+			throw new ExitException(1, "Can't create alias to another alias.");
+		}
+		getAliases().put(name, new Alias(scriptRef));
+
 		setupJBangDir();
 		try (Writer out = Files.newBufferedWriter(JBANG_ALIASES_FILE)) {
-			getAliases().put(name, new Alias(resource));
 			Gson parser = new GsonBuilder().setPrettyPrinting().create();
 			parser.toJson(getAliasInfo(), out);
 		} catch (IOException ex) {
