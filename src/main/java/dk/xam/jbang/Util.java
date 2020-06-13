@@ -1,5 +1,7 @@
 package dk.xam.jbang;
 
+import static dk.xam.jbang.Main.swizzleURL;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -161,6 +163,7 @@ public class Util {
 					}
 					String location = URLDecoder.decode(httpConn.getHeaderField("Location"), "UTF-8");
 					url = new URL(url, location);
+					url = new URL(swizzleURL(url.toString()));
 					fileURL = url.toExternalForm();
 					info("Redirecting to: " + url);
 					urlConnection = url.openConnection();

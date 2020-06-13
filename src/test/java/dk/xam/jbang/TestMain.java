@@ -305,6 +305,18 @@ public class TestMain {
 	}
 
 	@Test
+	void testFetchFromRedirected(@TempDir Path dir) throws IOException {
+		Path x = Util.downloadFileSwizzled("https://git.io/JfQYC",
+				dir.toFile());
+		assertEquals(x.getFileName().toString(), "helloworld.java");
+
+		String s = Util.readString(x);
+
+		assertThat("should be redirect thus no html tag", s, not(containsString("html>")));
+
+	}
+
+	@Test
 	void testFetchFromGistWithoutUsername(@TempDir Path dir) throws IOException {
 
 		String u = Main.swizzleURL("https://gist.github.com/590b8a0e824faeb3ee7ddfad741ce842");
