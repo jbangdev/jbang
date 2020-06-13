@@ -47,7 +47,7 @@ public class Settings {
 
 		DEP_LOOKUP_CACHE_FILE = JBANG_CACHE_DIR.resolve("dependency_cache.txt");
 
-		JBANG_TRUSTED_SOURCES_FILE = JBANG_CACHE_DIR.resolve("trusted-sources.json");
+		JBANG_TRUSTED_SOURCES_FILE = JBANG_DIR.resolve("trusted-sources.json");
 
 		setupCache();
 
@@ -148,10 +148,10 @@ public class Settings {
 	}
 
 	static class Alias {
-		final String resource;
+		final String scriptRef;
 
-		Alias(String resource) {
-			this.resource = resource;
+		Alias(String scriptRef) {
+			this.scriptRef = scriptRef;
 		}
 	}
 
@@ -159,7 +159,7 @@ public class Settings {
 		Map<String, Alias> aliases = new HashMap<>();
 	}
 
-	public static Map<String, Alias> getAliases() {
+	private static AliasInfo getAliasInfo() {
 		if (aliasInfo == null) {
 			if (Files.isRegularFile(JBANG_ALIASES_FILE)) {
 				try (Reader in = Files.newBufferedReader(JBANG_ALIASES_FILE)) {
@@ -172,7 +172,11 @@ public class Settings {
 				aliasInfo = new AliasInfo();
 			}
 		}
-		return aliasInfo.aliases;
+		return aliasInfo;
+	}
+
+	public static Map<String, Alias> getAliases() {
+		return getAliasInfo().aliases;
 	}
 
 	public static void addAlias(String name, String resource) {
@@ -180,19 +184,19 @@ public class Settings {
 		try (Writer out = Files.newBufferedWriter(JBANG_ALIASES_FILE)) {
 			getAliases().put(name, new Alias(resource));
 			Gson parser = new GsonBuilder().setPrettyPrinting().create();
-			parser.toJson(aliasInfo, out);
+			parser.toJson(getAliasInfo(), out);
 		} catch (IOException ex) {
 			Util.warnMsg("Unable to add alias: " + ex.getMessage());
 		}
 	}
 
 	public static void removeAlias(String name) {
-		if (aliasInfo.aliases.containsKey(name)) {
+		if (getAliasInfo().aliases.containsKey(name)) {
 			setupJBangDir();
 			try (Writer out = Files.newBufferedWriter(JBANG_ALIASES_FILE)) {
 				getAliases().remove(name);
 				Gson parser = new GsonBuilder().setPrettyPrinting().create();
-				parser.toJson(aliasInfo, out);
+				parser.toJson(getAliasInfo(), out);
 			} catch (IOException ex) {
 				Util.warnMsg("Unable to remove alias: " + ex.getMessage());
 			}
