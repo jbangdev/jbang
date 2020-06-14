@@ -393,8 +393,8 @@ To specify dependencies you use gradle-style locators or links to Git sources. B
 [source, java]
 ```
 //usr/bin/env jbang "$0" "$@" ; exit $?
-
-//DEPS log4j:log4j:1.2.17 <.>
+// <.>
+//DEPS log4j:log4j:1.2.17
 
 import static java.lang.System.out;
 
