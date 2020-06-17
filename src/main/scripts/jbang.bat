@@ -16,6 +16,6 @@ set JBANG_FILE="$1"
 
 rem run it using command substitution to have just the user process once jbang is done
 rem eval "exec $(${JAVA_EXEC} -classpath ${jarPath} dk.xam.jbang.Main "$@")"
-FOR /F "tokens=*" %%a in ('%JAVA_EXEC% %JBANG_JAVA_OPTIONS% -classpath %jarPath% dk.xam.jbang.Main %*') do SET OUTPUT=%%a
+FOR /F "tokens=*" %%a in ('"%JAVA_EXEC% %JBANG_JAVA_OPTIONS% -classpath %jarPath% dk.xam.jbang.Main %*"') do SET OUTPUT=%%a
 %OUTPUT%
 
