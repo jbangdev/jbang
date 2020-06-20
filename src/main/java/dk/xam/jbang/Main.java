@@ -271,11 +271,16 @@ public class Main implements Callable<Integer> {
 			if (edit) {
 				out.println("echo " + project.getAbsolutePath()); // quit(project.getAbsolutePath());
 			} else {
-				List<String> optionList = new ArrayList<>();
-				optionList.add(liveeditor);
-				optionList.add(project.getAbsolutePath());
-				info("Running `" + String.join(" ", optionList) + "`");
-				Process process = new ProcessBuilder(optionList).start();
+				if ("gitpod".equals(liveeditor) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
+					info("Open this url to edit the project in your gitpod session:\n\n"
+							+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + project.getAbsolutePath() + "\n\n");
+				} else {
+					List<String> optionList = new ArrayList<>();
+					optionList.add(liveeditor);
+					optionList.add(project.getAbsolutePath());
+					info("Running `" + String.join(" ", optionList) + "`");
+					Process process = new ProcessBuilder(optionList).start();
+				}
 				try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
 					Path watched = script.getOriginalFile().getAbsoluteFile().getParentFile().toPath();
 					final WatchKey watchKey = watched.register(watchService,
