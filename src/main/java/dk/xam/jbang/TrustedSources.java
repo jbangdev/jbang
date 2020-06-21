@@ -11,8 +11,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonPrimitive;
 
 public class TrustedSources {
 
@@ -164,6 +166,11 @@ public class TrustedSources {
 	}
 
 	String getJSon(Collection<String> rules) {
+
+		rules = rules	.stream()
+						.map(s -> new JsonPrimitive(s).toString())
+						.collect(Collectors.toCollection(LinkedHashSet::new));
+
 		String trustedsources = Settings.getTemplateEngine()
 										.getTemplate("trusted-sources.json.qute")
 										.data("trustedsources", rules)

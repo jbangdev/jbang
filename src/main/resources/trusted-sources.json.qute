@@ -12,6 +12,6 @@
 // You can use the "jbang --trust=rule1,rule2,.." command to add to this file.
 // Note: --trust will rewrite this file. Preserving just the elements. Additional data and comments will not be kept.
 [
-    {#for item in trustedsources}"{item}"{#if hasNext},{/if}
+    {#for item in trustedsources}{item}{#if hasNext},{/if}
     {/for}
 ]

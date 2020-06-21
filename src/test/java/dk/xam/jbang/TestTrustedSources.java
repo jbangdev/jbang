@@ -5,9 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+
+import com.google.gson.Gson;
 
 public class TestTrustedSources {
 
@@ -80,6 +85,21 @@ public class TestTrustedSources {
 	public void testTrustedSources(String type, String url, String[] rules, boolean expected)
 			throws URISyntaxException {
 		assertEquals(expected, new TrustedSources(rules).isURLTrusted(new URI(url)));
+	}
+
+	@Test
+	public void testQuotedSources() {
+
+		Set<String> s = new HashSet<>();
+		s.add("\\*");
+		s.add("Hey \\There");
+		String jSon = new TrustedSources(null).getJSon(s);
+
+		Gson parser = new Gson();
+		String[] strings = parser.fromJson(jSon, String[].class);
+
+		assertEquals(strings.length, 2);
+
 	}
 
 }

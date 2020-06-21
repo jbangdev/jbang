@@ -78,7 +78,7 @@ public class TestTrustedDomain {
 	@ParameterizedTest(name = "{0}: {1} with rules {2} = {3}")
 	@MethodSource("simple")
 	public void testTrustedDomain(String type, String url, String[] rules, boolean expected) throws URISyntaxException {
-		assertEquals(expected, new TrustedDomains(rules).isURLDomainTrusted(new URI(url)));
+		assertEquals(expected, new TrustedSources(rules).isURLTrusted(new URI(url)));
 	}
 
 }
