@@ -76,10 +76,10 @@ class DependencyUtil {
 		Map<String, String> cache = Collections.emptyMap();
 		// Use cached classpath from previous run if present if
 		// TODO: does not handle spaces in ~/.m2 folder.
-		if (Settings.getCacheDependencyFile().isFile()) {
+		if (Files.isRegularFile(Settings.getCacheDependencyFile())) {
 			try {
 
-				cache = Files	.readAllLines(Settings.getCacheDependencyFile().toPath())
+				cache = Files	.readAllLines(Settings.getCacheDependencyFile())
 								.stream()
 								.filter(it -> !it.trim().isEmpty())
 								.collect(Collectors.toMap(
@@ -126,7 +126,7 @@ class DependencyUtil {
 			// Add classpath to cache
 			try {
 				// Open given file in append mode.
-				try (BufferedWriter out = new BufferedWriter(new FileWriter(Settings.getCacheDependencyFile(), true))) {
+				try (BufferedWriter out = new BufferedWriter(new FileWriter(Settings.getCacheDependencyFile().toFile(), true))) {
 					out.write(depsHash + " " + classPath + "\n");
 				}
 			} catch (IOException e) {
