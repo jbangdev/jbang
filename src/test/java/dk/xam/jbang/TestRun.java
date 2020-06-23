@@ -33,27 +33,29 @@ import org.junit.jupiter.api.io.TempDir;
 
 import picocli.CommandLine;
 
-public class TestMain {
+public class TestRun {
 
 	public static final String EXAMPLES_FOLDER = "examples";
 	static File examplesTestFolder;
 
 	@BeforeAll
 	static void init() throws URISyntaxException {
-		URL examplesUrl = TestMain.class.getClassLoader().getResource(EXAMPLES_FOLDER);
+		URL examplesUrl = TestRun.class.getClassLoader().getResource(EXAMPLES_FOLDER);
 		examplesTestFolder = new File(new File(examplesUrl.toURI()).getAbsolutePath());
 	}
 
 	@Test
 	void testHelloWorld() throws IOException {
 
+		environmentVariables.clear("JAVA_HOME");
 		Main main = new Main();
 		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
-		new CommandLine(main).parseArgs(arg);
+		CommandLine.ParseResult pr = new CommandLine(main).parseArgs("run", arg);
+		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
 
-		String result = main.generateCommandLine(new Script(new File("helloworld.java"), ""));
+		String result = run.generateCommandLine(new Script(new File("helloworld.java"), ""));
 
-		assertThat(result, startsWith("java"));
+		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("helloworld.java"));
 		// assertThat(result, containsString("--source 11"));
 	}
@@ -64,10 +66,12 @@ public class TestMain {
 	@Test
 	void testHelloWorldShell() throws IOException {
 
+		environmentVariables.clear("JAVA_HOME");
 		Main main = new Main();
-		new CommandLine(main).parseArgs("--trust", "a");
+		CommandLine.ParseResult pr = new CommandLine(main).parseArgs("run", "a");
+		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
 
-		String result = main.generateCommandLine(new Script(new File("helloworld.jsh"), ""));
+		String result = run.generateCommandLine(new Script(new File("helloworld.jsh"), ""));
 
 		assertThat(result, matchesPattern("^.*jshell(.exe)? --startup.*$"));
 		assertThat(result, not(containsString("  ")));
@@ -82,12 +86,12 @@ public class TestMain {
 	void testHelloWorldShellNoExit() throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");
-
 		Main main = new Main();
 		String arg = new File(examplesTestFolder, "helloworld.jsh").getAbsolutePath();
-		new CommandLine(main).parseArgs("--interactive", arg, "blah");
+		CommandLine.ParseResult pr = new CommandLine(main).parseArgs("run", "--interactive", arg, "blah");
+		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
 
-		String result = main.generateCommandLine(new Script(new File("helloworld.jsh"), ""));
+		String result = run.generateCommandLine(new Script(new File("helloworld.jsh"), ""));
 
 		assertThat(result, startsWith("jshell"));
 		assertThat(result, not(containsString("  ")));
@@ -102,12 +106,12 @@ public class TestMain {
 	void testDebug() throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");
-
 		Main main = new Main();
 		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
-		new CommandLine(main).parseArgs("--debug", arg);
+		CommandLine.ParseResult pr = new CommandLine(main).parseArgs("run", "--debug", arg);
+		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
 
-		String result = main.generateCommandLine(new Script(new File("helloworld.java"), ""));
+		String result = run.generateCommandLine(new Script(new File("helloworld.java"), ""));
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("helloworld.java"));
@@ -120,11 +124,13 @@ public class TestMain {
 	@Test
 	void testDependencies() throws IOException {
 
+		environmentVariables.clear("JAVA_HOME");
 		Main main = new Main();
 		String arg = new File(examplesTestFolder, "classpath_example.java").getAbsolutePath();
-		new CommandLine(main).parseArgs(arg);
+		CommandLine.ParseResult pr = new CommandLine(main).parseArgs("run", arg);
+		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
 
-		String result = main.generateCommandLine(new Script(new File(arg)));
+		String result = run.generateCommandLine(new Script(new File(arg)));
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("classpath_example.java"));
@@ -140,14 +146,16 @@ public class TestMain {
 		environmentVariables.clear("JAVA_HOME");
 		Main main = new Main();
 		String arg = new File(examplesTestFolder, "classpath_example.java").getAbsolutePath();
-		new CommandLine(main)	.setStopAtPositional(true)
-								.parseArgs("-Dwonka=panda", "-Dquoted=\"see this\"", arg, "-Dafter=wonka");
+		CommandLine.ParseResult pr = new CommandLine(main)	.setStopAtPositional(true)
+															.parseArgs("run", "-Dwonka=panda", "-Dquoted=\"see this\"",
+																	arg, "-Dafter=wonka");
+		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
 
-		assertThat(main.userParams.size(), is(1));
+		assertThat(run.userParams.size(), is(1));
 
-		assertThat(main.properties.size(), is(2));
+		assertThat(run.properties.size(), is(2));
 
-		String result = main.generateCommandLine(new Script(new File(arg)));
+		String result = run.generateCommandLine(new Script(new File(arg)));
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("-Dwonka=panda"));
@@ -164,7 +172,7 @@ public class TestMain {
 
 		String url = new File(examplesTestFolder, "classpath_example.java").toURI().toString();
 
-		Script result = Main.prepareScript(url);
+		Script result = JbangBaseScriptCommand.prepareScript(url);
 
 		assertThat(result.toString(), not(containsString(url)));
 
@@ -172,9 +180,10 @@ public class TestMain {
 				containsString("Logger.getLogger(classpath_example.class);"));
 
 		Main main = new Main();
-		new CommandLine(main).parseArgs(url);
+		CommandLine.ParseResult pr = new CommandLine(main).parseArgs("run", url);
+		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
 
-		String s = main.generateCommandLine(Main.prepareScript(url));
+		String s = run.generateCommandLine(JbangBaseScriptCommand.prepareScript(url));
 
 		assertThat(s, not(containsString("file:")));
 	}
@@ -184,7 +193,7 @@ public class TestMain {
 
 		String url = new File(examplesTestFolder, "classpath_example.java.dontexist").toURI().toString();
 
-		assertThrows(ExitException.class, () -> Main.prepareScript(url));
+		assertThrows(ExitException.class, () -> JbangBaseScriptCommand.prepareScript(url));
 	}
 
 	@Test
@@ -198,7 +207,7 @@ public class TestMain {
 		classfile.createNewFile();
 		assert (classfile.exists());
 
-		assertEquals(Main.findMainClass(dir, classfile.toPath()), "a.b.c.mymain");
+		assertEquals(JbangRun.findMainClass(dir, classfile.toPath()), "a.b.c.mymain");
 
 	}
 
@@ -237,18 +246,19 @@ public class TestMain {
 
 		Map<String, String> properties = new HashMap<>();
 
-		assertThat(new Main().generateArgs(Collections.emptyList(), properties), equalTo("String[] args = {  }"));
+		assertThat(new JbangRun().generateArgs(Collections.emptyList(), properties), equalTo("String[] args = {  }"));
 
-		assertThat(new Main().generateArgs(Arrays.asList("one"), properties), equalTo("String[] args = { \"one\" }"));
+		assertThat(new JbangRun().generateArgs(Arrays.asList("one"), properties),
+				equalTo("String[] args = { \"one\" }"));
 
-		assertThat(new Main().generateArgs(Arrays.asList("one", "two"), properties),
+		assertThat(new JbangRun().generateArgs(Arrays.asList("one", "two"), properties),
 				equalTo("String[] args = { \"one\", \"two\" }"));
 
-		assertThat(new Main().generateArgs(Arrays.asList("one", "two", "three \"quotes\""), properties),
+		assertThat(new JbangRun().generateArgs(Arrays.asList("one", "two", "three \"quotes\""), properties),
 				equalTo("String[] args = { \"one\", \"two\", \"three \\\"quotes\\\"\" }"));
 
 		properties.put("value", "this value");
-		assertThat(new Main().generateArgs(Collections.emptyList(), properties),
+		assertThat(new JbangRun().generateArgs(Collections.emptyList(), properties),
 				equalTo("String[] args = {  }\nSystem.setProperty(\"value\",\"this value\");"));
 
 	}
@@ -276,7 +286,7 @@ public class TestMain {
 
 		Util.writeString(f.toPath(), base);
 
-		Main m = new Main();
+		JbangRun m = new JbangRun();
 
 		Script script = new Script(f);
 		m.build(script);
@@ -297,7 +307,7 @@ public class TestMain {
 	@Test
 	void testFetchFromGist(@TempDir Path dir) throws IOException {
 
-		String u = Main.swizzleURL("https://gist.github.com/maxandersen/590b8a0e824faeb3ee7ddfad741ce842");
+		String u = Util.swizzleURL("https://gist.github.com/maxandersen/590b8a0e824faeb3ee7ddfad741ce842");
 
 		Path x = Util.downloadFile(u,
 				dir.toFile());
@@ -319,7 +329,7 @@ public class TestMain {
 	@Test
 	void testFetchFromGistWithoutUsername(@TempDir Path dir) throws IOException {
 
-		String u = Main.swizzleURL("https://gist.github.com/590b8a0e824faeb3ee7ddfad741ce842");
+		String u = Util.swizzleURL("https://gist.github.com/590b8a0e824faeb3ee7ddfad741ce842");
 
 		Path x = Util.downloadFile(u,
 				dir.toFile());
@@ -339,7 +349,7 @@ public class TestMain {
 	}
 
 	private void verifyHello(String url, Path dir) throws IOException {
-		String u = Main.swizzleURL(url);
+		String u = Util.swizzleURL(url);
 
 		Path x = Util.downloadFileSwizzled(u,
 				dir.toFile());
@@ -352,7 +362,7 @@ public class TestMain {
 
 	@Test
 	void testTwitterjsh(@TempDir Path dir) throws IOException {
-		String u = Main.swizzleURL("https://twitter.com/maxandersen/status/1266904846239752192");
+		String u = Util.swizzleURL("https://twitter.com/maxandersen/status/1266904846239752192");
 
 		Path x = Util.downloadFileSwizzled(u,
 				dir.toFile());
@@ -369,15 +379,15 @@ public class TestMain {
 	void testSwizzle(@TempDir Path dir) throws IOException {
 
 		assertThat(
-				Main.swizzleURL("https://github.com/jbangdev/jbang/blob/master/examples/helloworld.java"),
+				Util.swizzleURL("https://github.com/jbangdev/jbang/blob/master/examples/helloworld.java"),
 				equalTo("https://raw.githubusercontent.com/jbangdev/jbang/master/examples/helloworld.java"));
 
 		assertThat(
-				Main.swizzleURL("https://gitlab.com/jbangdev/jbang-gitlab/-/blob/master/helloworld.java"),
+				Util.swizzleURL("https://gitlab.com/jbangdev/jbang-gitlab/-/blob/master/helloworld.java"),
 				equalTo("https://gitlab.com/jbangdev/jbang-gitlab/-/raw/master/helloworld.java"));
 
 		assertThat(
-				Main.swizzleURL("https://bitbucket.org/Shoeboom/test/src/master/helloworld.java"),
+				Util.swizzleURL("https://bitbucket.org/Shoeboom/test/src/master/helloworld.java"),
 				equalTo("https://bitbucket.org/Shoeboom/test/raw/master/helloworld.java"));
 
 	}
@@ -386,41 +396,45 @@ public class TestMain {
 	void testCDSNotPresent() {
 		Main main = new Main();
 		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
-		new CommandLine(main).parseArgs(arg);
+		CommandLine.ParseResult pr = new CommandLine(main).parseArgs("run", arg);
+		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
 
-		assert (!main.cds().isPresent());
+		assert (!run.cds().isPresent());
 	}
 
 	@Test
 	void testCDSPresent() {
 		Main main = new Main();
 		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
-		new CommandLine(main).parseArgs(arg, "--cds");
+		CommandLine.ParseResult pr = new CommandLine(main).parseArgs("run", arg, "--cds");
+		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
 
-		assert (main.cds().isPresent());
-		assert (main.cds().get().booleanValue());
+		assert (run.cds().isPresent());
+		assert (run.cds().get().booleanValue());
 	}
 
 	@Test
 	void testCDSPresentButNo() {
 		Main main = new Main();
 		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
-		new CommandLine(main).parseArgs(arg, "--no-cds");
+		CommandLine.ParseResult pr = new CommandLine(main).parseArgs("run", arg, "--no-cds");
+		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
 
-		assert (main.cds().isPresent());
-		assert (!main.cds().get().booleanValue());
+		assert (run.cds().isPresent());
+		assert (!run.cds().get().booleanValue());
 	}
 
 	@Test
 	void testOptionActive() {
-		assert (Main.optionActive(Optional.empty(), true));
-		assert (!Main.optionActive(Optional.empty(), false));
+		assert (JbangRun.optionActive(Optional.empty(), true));
+		assert (!JbangRun.optionActive(Optional.empty(), false));
 
-		assert (Main.optionActive(Optional.of(Boolean.TRUE), true));
-		assert (Main.optionActive(Optional.of(Boolean.TRUE), false));
+		assert (JbangRun.optionActive(Optional.of(Boolean.TRUE), true));
+		assert (JbangRun.optionActive(Optional.of(Boolean.TRUE), false));
 
-		assert (!Main.optionActive(Optional.of(Boolean.FALSE), true));
-		assert (!Main.optionActive(Optional.of(Boolean.FALSE), false));
+		assert (!JbangRun.optionActive(Optional.of(Boolean.FALSE), true));
+		assert (!JbangRun.optionActive(Optional.of(Boolean.FALSE), false));
 
 	}
+
 }

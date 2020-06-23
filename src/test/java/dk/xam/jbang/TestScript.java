@@ -116,7 +116,7 @@ class TestScript {
 		Path p = output.resolve("kube-example");
 		writeString(p, example);
 
-		Script s = Main.prepareScript(p.toAbsolutePath().toString());
+		Script s = JbangBaseScriptCommand.prepareScript(p.toAbsolutePath().toString());
 
 	}
 
