@@ -151,7 +151,8 @@ public class Main extends JbangBaseCommand {
 				leadingOpts.add(arg);
 			}
 		}
-		// Check if we have a parameter and it's not the same as any of the subcommand names
+		// Check if we have a parameter and it's not the same as any of the subcommand
+		// names
 		if (!remainingArgs.isEmpty() && !spec.subcommands().keySet().contains(remainingArgs.get(0))) {
 			List<String> result = new ArrayList<>();
 			result.add("run");
@@ -1053,7 +1054,8 @@ class JbangScript extends JbangBaseScriptCommand {
 	}
 }
 
-@Command(name = "alias", description = "Manage aliases.", subcommands = { JbangAliasAdd.class, JbangAliasList.class, JbangAliasRemove.class })
+@Command(name = "alias", description = "Manage aliases.", subcommands = { JbangAliasAdd.class, JbangAliasList.class,
+		JbangAliasRemove.class })
 class JbangAlias {
 }
 

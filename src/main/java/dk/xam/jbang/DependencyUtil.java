@@ -126,7 +126,8 @@ class DependencyUtil {
 			// Add classpath to cache
 			try {
 				// Open given file in append mode.
-				try (BufferedWriter out = new BufferedWriter(new FileWriter(Settings.getCacheDependencyFile().toFile(), true))) {
+				try (BufferedWriter out = new BufferedWriter(
+						new FileWriter(Settings.getCacheDependencyFile().toFile(), true))) {
 					out.write(depsHash + " " + classPath + "\n");
 				}
 			} catch (IOException e) {
