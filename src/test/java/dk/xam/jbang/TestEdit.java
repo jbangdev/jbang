@@ -26,39 +26,25 @@ import picocli.CommandLine;
 
 public class TestEdit {
 
-	private CommandLine cli;
-	private Main main;
 	StringWriter output;
 
 	@BeforeEach
 	void setup() {
 		output = new StringWriter();
-		cli = Main.getCommandLine(new PrintWriter(output), new PrintWriter(output));
-		main = cli.getCommand();
-	}
-
-	class TestExecutionStrategy implements CommandLine.IExecutionStrategy {
-		JbangScript command;
-
-		@Override
-		public int execute(CommandLine.ParseResult parseResult)
-				throws CommandLine.ExecutionException, CommandLine.ParameterException {
-			command = (JbangScript) parseResult.subcommand().commandSpec().userObject();
-			return new CommandLine.RunLast().execute(parseResult);
-		}
+		CommandLine cli = Main.getCommandLine(new PrintWriter(output), new PrintWriter(output));
+		Main main = cli.getCommand();
 	}
 
 	@Test
 	void testEdit(@TempDir Path outputDir) throws IOException {
 
 		String s = outputDir.resolve("edit.java").toString();
-		TestExecutionStrategy tes = new TestExecutionStrategy();
-		Main.getCommandLine().setExecutionStrategy(tes).execute("script", "--init", s);
+		Main.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
 		Script script = JbangBaseScriptCommand.prepareScript(s);
 
-		File project = tes.command.createProjectForEdit(script, Collections.emptyList(), false);
+		File project = new JbangEdit().createProjectForEdit(script, Collections.emptyList(), false);
 
 		assertThat(new File(project, "src"), FileMatchers.anExistingDirectory());
 		File build = new File(project, "build.gradle");
@@ -89,15 +75,14 @@ public class TestEdit {
 
 		Path p = outputDir.resolve("edit.java");
 		String s = p.toString();
-		TestExecutionStrategy tes = new TestExecutionStrategy();
-		Main.getCommandLine().setExecutionStrategy(tes).execute("script", "--init", s);
+		Main.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
 		Util.writeString(p, "//DEPS org.openjfx:javafx-graphics:11.0.2${bougus:}\n" + Util.readString(p));
 
 		Script script = JbangBaseScriptCommand.prepareScript(s);
 
-		File project = tes.command.createProjectForEdit(script, Collections.emptyList(), false);
+		File project = new JbangEdit().createProjectForEdit(script, Collections.emptyList(), false);
 
 		File gradle = new File(project, "build.gradle");
 		assert (gradle.exists());
@@ -117,13 +102,12 @@ public class TestEdit {
 
 		Path p = outputDir.resolve("kube-example");
 		String s = p.toString();
-		TestExecutionStrategy tes = new TestExecutionStrategy();
-		Main.getCommandLine().setExecutionStrategy(tes).execute("script", "--init=", s);
+		Main.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
 		Script script = JbangBaseScriptCommand.prepareScript(s);
 
-		File project = tes.command.createProjectForEdit(script, Collections.emptyList(), false);
+		File project = new JbangEdit().createProjectForEdit(script, Collections.emptyList(), false);
 
 		File java = new File(project, "src/KubeExample.java");
 

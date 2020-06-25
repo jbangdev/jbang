@@ -116,7 +116,7 @@ abstract class JbangBaseCommand implements Callable<Integer> {
 }
 
 @Command(name = "jbang", footer = "\nCopyright: 2020 Max Rydahl Andersen, License: MIT\nWebsite: https://github.com/jbangdev/jbang", description = "Compiles and runs .java/.jsh scripts.", subcommands = {
-		JbangRun.class, JbangScript.class, JbangAlias.class, JbangTrust.class, JbangClearCache.class,
+		JbangRun.class, JbangEdit.class, JbangInit.class, JbangAlias.class, JbangTrust.class, JbangClearCache.class,
 		JbangCompletion.class, JbangVersion.class })
 public class Main extends JbangBaseCommand {
 
@@ -192,7 +192,7 @@ abstract class JbangBaseScriptCommand extends JbangBaseCommand {
 	@Option(names = { "-o", "--offline" }, description = "Work offline. Fail-fast if dependencies are missing.")
 	boolean offline;
 
-	@Parameters(index = "0", description = "A file with java code or if named .jsh will be run with jshell")
+	@Parameters(index = "0", arity = "1", description = "A file with java code or if named .jsh will be run with jshell")
 	String scriptOrFile;
 
 	@Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
@@ -398,13 +398,22 @@ abstract class JbangBaseScriptCommand extends JbangBaseCommand {
 		return url;
 	}
 
+	public static String getBaseName(String fileName) {
+		int index = fileName.lastIndexOf('.');
+		if (index == -1) {
+			return kebab2camel(fileName);
+		} else {
+			return fileName.substring(0, index);
+		}
+	}
+
 }
 
 @Command(name = "run", description = "Compile and run provided .java/.jsh script.")
 class JbangRun extends JbangBaseScriptCommand {
 
 	@Option(names = { "-d",
-			"--debug" }, fallbackValue = "4004", parameterConsumer = IntFallbackConsumer.class, description = "Launch with java debug enabled on specified port(default: ${FALLBACK-VALUE}) ")
+			"--debug" }, fallbackValue = "4004", parameterConsumer = IntFallbackConsumer.class, description = "Launch with java debug enabled on specified port (default: ${FALLBACK-VALUE}) ")
 	int debugPort = -1;
 
 	@Option(names = {
@@ -778,113 +787,73 @@ class JbangRun extends JbangBaseScriptCommand {
 	}
 }
 
-@Command(name = "script", description = "Initialize and/or edit a .java/.jsh script.")
-class JbangScript extends JbangBaseScriptCommand {
+@Command(name = "edit", description = "Edit a .java/.jsh script.")
+class JbangEdit extends JbangBaseScriptCommand {
 
 	@Option(names = {
-			"--init" }, description = "Init script with a java class useful for scripting", parameterConsumer = PlainStringFallbackConsumer.class, arity = "0..1", fallbackValue = "hello")
-	String initTemplate;
-
-	@Option(names = { "-e", "--edit" }, description = "Edit script by setting up temporary project.")
-	boolean edit;
-
-	@Option(names = {
-			"--edit-live" }, description = "Setup temporary project, launch editor and regenerate project on dependency changes.", parameterConsumer = PlainStringFallbackConsumer.class, arity = "0..1", fallbackValue = "${JBANG_EDITOR:-${VISUAL:-${EDITOR}}}")
+			"--live" }, description = "Setup temporary project, launch editor and regenerate project on dependency changes.")
 	String liveeditor;
 
 	@Override
 	public Integer doCall() throws IOException {
-		if (initTemplate != null) {
-			File f = new File(scriptOrFile);
-			if (f.exists()) {
-				warn("File " + f + " already exists. Will not initialize.");
-			} else {
-				// Use try-with-resource to get auto-closeable writer instance
-				try (BufferedWriter writer = Files.newBufferedWriter(f.toPath())) {
-					String result = renderInitClass(f, initTemplate);
-					writer.write(result);
-					f.setExecutable(true);
-				} catch (ExitException e) {
-					f.delete(); // if template lookup fails we need to delete file to not end up with a empty
-					// file.
-					throw e;
-				}
-				info("File initialized. You can now run it with 'jbang " + scriptOrFile
-						+ "' or edit it using 'code `jbang --edit " + scriptOrFile + "`'");
+		script = prepareScript(scriptOrFile);
+		File project = createProjectForEdit(script, userParams, false);
+		// err.println(project.getAbsolutePath());
+		if (liveeditor == null) {
+			out.println("echo " + project.getAbsolutePath()); // quit(project.getAbsolutePath());
+		} else {
+			if (liveeditor.isEmpty()) {
+				liveeditor = System	.getenv()
+									.getOrDefault("JBANG_EDITOR",
+											System	.getenv()
+													.getOrDefault("VISUAL",
+															System.getenv().getOrDefault("EDITOR", "")));
 			}
-		}
-		if (edit || liveeditor != null) {
-			script = prepareScript(scriptOrFile);
-			File project = createProjectForEdit(script, userParams, false);
-			// err.println(project.getAbsolutePath());
-			if (edit) {
-				out.println("echo " + project.getAbsolutePath()); // quit(project.getAbsolutePath());
+			if ("gitpod".equals(liveeditor) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
+				info("Open this url to edit the project in your gitpod session:\n\n"
+						+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + project.getAbsolutePath() + "\n\n");
 			} else {
-				if ("gitpod".equals(liveeditor) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
-					info("Open this url to edit the project in your gitpod session:\n\n"
-							+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + project.getAbsolutePath() + "\n\n");
-				} else {
-					List<String> optionList = new ArrayList<>();
-					optionList.add(liveeditor);
-					optionList.add(project.getAbsolutePath());
-					info("Running `" + String.join(" ", optionList) + "`");
-					Process process = new ProcessBuilder(optionList).start();
-				}
-				try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
-					Path watched = script.getOriginalFile().getAbsoluteFile().getParentFile().toPath();
-					final WatchKey watchKey = watched.register(watchService,
-							new WatchEvent.Kind[] { StandardWatchEventKinds.ENTRY_MODIFY },
-							SensitivityWatchEventModifier.HIGH);
-					info("Watching for changes in " + watched);
-					while (true) {
-						final WatchKey wk = watchService.take();
-						for (WatchEvent<?> event : wk.pollEvents()) {
-							// we only register "ENTRY_MODIFY" so the context is always a Path.
-							final Path changed = (Path) event.context();
-							// info(changed.toString());
-							if (Files.isSameFile(script.getOriginalFile().toPath(), changed)) {
-								try {
-									// TODO only regenerate when dependencies changes.
-									info("Regenerating project.");
-									script = prepareScript(scriptOrFile);
-									createProjectForEdit(script, userParams, true);
-								} catch (RuntimeException ee) {
-									warn("Error when re-generating project. Ignoring it, but state might be undefined: "
-											+ ee.getMessage());
-								}
+				List<String> optionList = new ArrayList<>();
+				optionList.add(liveeditor);
+				optionList.add(project.getAbsolutePath());
+				info("Running `" + String.join(" ", optionList) + "`");
+				Process process = new ProcessBuilder(optionList).start();
+			}
+			try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
+				Path watched = script.getOriginalFile().getAbsoluteFile().getParentFile().toPath();
+				final WatchKey watchKey = watched.register(watchService,
+						new WatchEvent.Kind[] { StandardWatchEventKinds.ENTRY_MODIFY },
+						SensitivityWatchEventModifier.HIGH);
+				info("Watching for changes in " + watched);
+				while (true) {
+					final WatchKey wk = watchService.take();
+					for (WatchEvent<?> event : wk.pollEvents()) {
+						// we only register "ENTRY_MODIFY" so the context is always a Path.
+						final Path changed = (Path) event.context();
+						// info(changed.toString());
+						if (Files.isSameFile(script.getOriginalFile().toPath(), changed)) {
+							try {
+								// TODO only regenerate when dependencies changes.
+								info("Regenerating project.");
+								script = prepareScript(scriptOrFile);
+								createProjectForEdit(script, userParams, true);
+							} catch (RuntimeException ee) {
+								warn("Error when re-generating project. Ignoring it, but state might be undefined: "
+										+ ee.getMessage());
 							}
 						}
-						// reset the key
-						boolean valid = wk.reset();
-						if (!valid) {
-							warn("edit-live file watch key no longer valid!");
-						}
 					}
-				} catch (InterruptedException e) {
-					warn("edit-live interrupted");
+					// reset the key
+					boolean valid = wk.reset();
+					if (!valid) {
+						warn("edit-live file watch key no longer valid!");
+					}
 				}
+			} catch (InterruptedException e) {
+				warn("edit-live interrupted");
 			}
 		}
 		return 0;
-	}
-
-	String renderInitClass(File f, String template) {
-		Template helloTemplate = Settings.getTemplateEngine().getTemplate("init-" + template + ".java.qute");
-
-		if (helloTemplate == null) {
-			throw new ExitException(1, "Could not find init template named: " + template);
-		} else {
-			return helloTemplate.data("baseName", getBaseName(f.getName())).render();
-		}
-	}
-
-	public static String getBaseName(String fileName) {
-		int index = fileName.lastIndexOf('.');
-		if (index == -1) {
-			return kebab2camel(fileName);
-		} else {
-			return fileName.substring(0, index);
-		}
 	}
 
 	/** Create Project to use for editing **/
@@ -1034,22 +1003,44 @@ class JbangScript extends JbangBaseScriptCommand {
 			return fileName;
 		}
 	}
+}
 
-	// used to make --init xyz.java not pickup what are filenames. if you need
-	// --init xyz then do --init ./xyz.
-	static class PlainStringFallbackConsumer implements IParameterConsumer {
-		@Override
-		public void consumeParameters(Stack<String> args, ArgSpec argSpec, CommandSpec commandSpec) {
-			String arg = args.pop();
+@Command(name = "init", description = "Initialize a .java/.jsh script.")
+class JbangInit extends JbangBaseScriptCommand {
 
-			if (arg.contains(".") || arg.startsWith("--")) { // if a dot is in the argument assume it is a file name
-				args.push(arg);
-				argSpec.setValue(((OptionSpec) argSpec).fallbackValue());
-			} else if (arg.trim().isEmpty()) { // if empty, means param= so use fallback value
-				argSpec.setValue(((OptionSpec) argSpec).fallbackValue());
-			} else { // great, looks like a single value we can use!
-				argSpec.setValue(arg);
+	@Option(names = {
+			"--template" }, description = "Init script with a java class useful for scripting", defaultValue = "hello")
+	String initTemplate;
+
+	@Override
+	public Integer doCall() throws IOException {
+		File f = new File(scriptOrFile);
+		if (f.exists()) {
+			warn("File " + f + " already exists. Will not initialize.");
+		} else {
+			// Use try-with-resource to get auto-closeable writer instance
+			try (BufferedWriter writer = Files.newBufferedWriter(f.toPath())) {
+				String result = renderInitClass(f, initTemplate);
+				writer.write(result);
+				f.setExecutable(true);
+			} catch (ExitException e) {
+				f.delete(); // if template lookup fails we need to delete file to not end up with a empty
+				// file.
+				throw e;
 			}
+			info("File initialized. You can now run it with 'jbang " + scriptOrFile
+					+ "' or edit it using 'code `jbang --edit " + scriptOrFile + "`'");
+		}
+		return 0;
+	}
+
+	String renderInitClass(File f, String template) {
+		Template helloTemplate = Settings.getTemplateEngine().getTemplate("init-" + template + ".java.qute");
+
+		if (helloTemplate == null) {
+			throw new ExitException(1, "Could not find init template named: " + template);
+		} else {
+			return helloTemplate.data("baseName", getBaseName(f.getName())).render();
 		}
 	}
 }

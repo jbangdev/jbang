@@ -15,9 +15,7 @@ public class TestInit {
 	@Test
 	void testInit() {
 
-		JbangScript m = new JbangScript();
-
-		String s = m.renderInitClass(new File("test.java"), "hello");
+		String s = new JbangInit().renderInitClass(new File("test.java"), "hello");
 
 		assertThat(s, containsString("class test"));
 	}
@@ -27,7 +25,7 @@ public class TestInit {
 
 		Path x = outputDir.resolve("edit.java");
 		String s = x.toString();
-		Main.getCommandLine().execute("script", "--init=cli", s);
+		Main.getCommandLine().execute("init", "--template=cli", s);
 		assertThat(new File(s).exists(), is(true));
 
 		assertThat(Util.readString(x), containsString("picocli"));
@@ -39,7 +37,7 @@ public class TestInit {
 
 		Path x = outputDir.resolve("edit.java");
 		String s = x.toString();
-		int result = Main.getCommandLine().execute("script", "--init=bogus", s);
+		int result = Main.getCommandLine().execute("init", "--template=bogus", s);
 		assertThat(new File(s).exists(), is(false));
 		assertThat(result, not(0));
 	}
@@ -49,7 +47,7 @@ public class TestInit {
 
 		Path x = outputDir.resolve("edit.java");
 		String s = x.toString();
-		int result = Main.getCommandLine().execute("script", "--init", s);
+		int result = Main.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 		assertThat(result, is(0));
 
@@ -61,7 +59,7 @@ public class TestInit {
 
 		Path x = outputDir.resolve("xyz-plug");
 		String s = x.toString();
-		int result = Main.getCommandLine().execute("script", "--init=", s);
+		int result = Main.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 		assertThat(result, is(0));
 
@@ -73,7 +71,7 @@ public class TestInit {
 
 		Path x = outputDir.resolve("xyzplug");
 		String s = x.toString();
-		int result = Main.getCommandLine().execute("script", "--init=", s);
+		int result = Main.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 		assertThat(result, is(0));
 
