@@ -1071,7 +1071,11 @@ class JbangAliasList extends JbangBaseCommand {
 
 	@Override
 	public Integer doCall() {
-		Settings.getAliases().keySet().stream().sorted().forEach(a -> spec.commandLine().getOut().println(a));
+		Settings.getAliases()
+				.keySet()
+				.stream()
+				.sorted()
+				.forEach(a -> spec.commandLine().getOut().println(a + " = " + Settings.getAliases().get(a).scriptRef));
 		return CommandLine.ExitCode.SOFTWARE;
 	}
 }
