@@ -1128,8 +1128,8 @@ class JbangCompletion extends JbangBaseCommand {
 
 	public int completion() throws IOException {
 		String script = AutoComplete.bash(
-				spec.name(),
-				spec.commandLine());
+				spec.parent().name(),
+				spec.parent().commandLine());
 		// not PrintWriter.println: scripts with Windows line separators fail in strange
 		// ways!
 
