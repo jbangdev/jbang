@@ -1,4 +1,4 @@
-package dk.xam.jbang;
+package dk.xam.jbang.cli;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -7,8 +7,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+
+import dk.xam.jbang.Util;
 
 public class TestInit {
 
@@ -25,10 +28,10 @@ public class TestInit {
 
 		Path x = outputDir.resolve("edit.java");
 		String s = x.toString();
-		Main.getCommandLine().execute("init", "--template=cli", s);
+		Jbang.getCommandLine().execute("init", "--template=cli", s);
 		assertThat(new File(s).exists(), is(true));
 
-		assertThat(Util.readString(x), containsString("picocli"));
+		MatcherAssert.assertThat(Util.readString(x), containsString("picocli"));
 
 	}
 
@@ -37,7 +40,7 @@ public class TestInit {
 
 		Path x = outputDir.resolve("edit.java");
 		String s = x.toString();
-		int result = Main.getCommandLine().execute("init", "--template=bogus", s);
+		int result = Jbang.getCommandLine().execute("init", "--template=bogus", s);
 		assertThat(new File(s).exists(), is(false));
 		assertThat(result, not(0));
 	}
@@ -47,7 +50,7 @@ public class TestInit {
 
 		Path x = outputDir.resolve("edit.java");
 		String s = x.toString();
-		int result = Main.getCommandLine().execute("init", s);
+		int result = Jbang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 		assertThat(result, is(0));
 
@@ -59,7 +62,7 @@ public class TestInit {
 
 		Path x = outputDir.resolve("xyz-plug");
 		String s = x.toString();
-		int result = Main.getCommandLine().execute("init", s);
+		int result = Jbang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 		assertThat(result, is(0));
 
@@ -71,7 +74,7 @@ public class TestInit {
 
 		Path x = outputDir.resolve("xyzplug");
 		String s = x.toString();
-		int result = Main.getCommandLine().execute("init", s);
+		int result = Jbang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 		assertThat(result, is(0));
 

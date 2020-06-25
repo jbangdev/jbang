@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import dk.xam.jbang.cli.JbangBaseScriptCommand;
+
 class TestScript {
 
 	String example = "//#!/usr/bin/env jbang\n" + "\n"

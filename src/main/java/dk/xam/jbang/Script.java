@@ -37,7 +37,8 @@ public class Script {
 	 * the file that contains the code that will back the actual compile/execution.
 	 * Might have been altered to be runnable; i.e. stripped out !# before launch.
 	 */
-	File backingFile;
+	public File backingFile;
+
 	/**
 	 * The original file, it might or might not be same as used as backingFile.
 	 */
@@ -51,12 +52,12 @@ public class Script {
 	// true if in this run a jar was build/created
 	private boolean createdJar;
 
-	Script(File backingFile, String content) throws FileNotFoundException {
+	public Script(File backingFile, String content) throws FileNotFoundException {
 		this.backingFile = backingFile;
 		this.script = content;
 	}
 
-	Script(File backingFile) throws FileNotFoundException {
+	public Script(File backingFile) throws FileNotFoundException {
 		this.backingFile = backingFile;
 		try (Scanner sc = new Scanner(this.backingFile)) {
 			sc.useDelimiter("\\Z");
@@ -64,7 +65,7 @@ public class Script {
 		}
 	}
 
-	Script(String script) {
+	public Script(String script) {
 		this.backingFile = null;
 		this.script = script;
 	}
@@ -177,7 +178,7 @@ public class Script {
 		return classpath.getClassPath();
 	}
 
-	List<String> getAutoDetectedModuleArguments(String javacmd, boolean offline) {
+	public List<String> getAutoDetectedModuleArguments(String javacmd, boolean offline) {
 		if (classpath == null) {
 			resolveClassPath(offline);
 		}

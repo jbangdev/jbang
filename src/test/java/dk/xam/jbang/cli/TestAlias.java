@@ -1,5 +1,6 @@
-package dk.xam.jbang;
+package dk.xam.jbang.cli;
 
+import static dk.xam.jbang.TestUtil.clearSettingsAliasInfo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
@@ -14,6 +15,8 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import dk.xam.jbang.Settings;
 
 import picocli.CommandLine;
 
@@ -54,26 +57,26 @@ public class TestAlias {
 
 	@Test
 	void testReadFromFile() throws IOException {
-		Settings.aliasInfo = null;
+		clearSettingsAliasInfo();
 		assertThat(Settings.getAliases().get("one"), notNullValue());
 	}
 
 	@Test
 	void testAdd() throws IOException {
-		Main main = new Main();
-		new CommandLine(main).execute("alias", "add", "new", "http://dummy");
-		Settings.aliasInfo = null;
+		Jbang jbang = new Jbang();
+		new CommandLine(jbang).execute("alias", "add", "new", "http://dummy");
+		clearSettingsAliasInfo();
 		assertThat(Settings.getAliases().get("new").scriptRef, equalTo("http://dummy"));
 	}
 
 	@Test
 	void testRemove() throws IOException {
-		Settings.aliasInfo = null;
+		clearSettingsAliasInfo();
 		System.err.println(Settings.getAliases().toString());
 		assertThat(Settings.getAliases().get("two"), notNullValue());
-		Main main = new Main();
-		new CommandLine(main).execute("alias", "remove", "two");
-		Settings.aliasInfo = null;
+		Jbang jbang = new Jbang();
+		new CommandLine(jbang).execute("alias", "remove", "two");
+		clearSettingsAliasInfo();
 		assertThat(Settings.getAliases().get("two"), nullValue());
 	}
 

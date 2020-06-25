@@ -1,4 +1,4 @@
-package dk.xam.jbang;
+package dk.xam.jbang.cli;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+
+import dk.xam.jbang.Util;
 
 class TestAddDeps {
 
@@ -98,7 +100,7 @@ class TestAddDeps {
 
 		Util.writeString(pom.toPath(), example);
 
-		List<MavenCoordinate> result = Main.findDeps(pom);
+		List<MavenCoordinate> result = Jbang.findDeps(pom);
 
 		assertThat(result.stream().map(MavenCoordinate::toCanonicalForm).collect(Collectors.toList()),
 				containsInAnyOrder("org.projectlombok:lombok:jar:1.18.10", "info.picocli:picocli:jar:4.1.4"));

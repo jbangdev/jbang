@@ -1,4 +1,4 @@
-package dk.xam.jbang;
+package dk.xam.jbang.cli;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -7,20 +7,23 @@ import static org.hamcrest.io.FileMatchers.anExistingFileOrDirectory;
 import java.io.IOException;
 import java.util.Arrays;
 
+import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import dk.xam.jbang.Settings;
 
 import picocli.CommandLine;
 
 class TestArguments {
 
 	private CommandLine cli;
-	private Main main;
+	private Jbang jbang;
 
 	@BeforeEach
 	void setup() {
-		cli = Main.getCommandLine();
-		main = cli.getCommand();
+		cli = Jbang.getCommandLine();
+		jbang = cli.getCommand();
 	}
 
 	@Test
@@ -116,7 +119,7 @@ class TestArguments {
 		JbangCacheClear cc = (JbangCacheClear) pr.subcommand().subcommand().commandSpec().userObject();
 
 		cc.call();
-		assertThat(Settings.getCacheDir(false).toFile(), not(anExistingFileOrDirectory()));
+		MatcherAssert.assertThat(Settings.getCacheDir(false).toFile(), not(anExistingFileOrDirectory()));
 		assertThat(Settings.getCacheDir(false).toFile().listFiles(), nullValue());
 	}
 

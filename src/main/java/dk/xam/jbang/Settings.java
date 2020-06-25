@@ -141,8 +141,8 @@ public class Settings {
 		return te;
 	}
 
-	static class Alias {
-		final String scriptRef;
+	public static class Alias {
+		public final String scriptRef;
 
 		Alias(String scriptRef) {
 			this.scriptRef = scriptRef;

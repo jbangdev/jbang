@@ -1,4 +1,4 @@
-package dk.xam.jbang;
+package dk.xam.jbang.cli;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -23,6 +23,7 @@ import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 
+import org.hamcrest.MatcherAssert;
 import org.hamcrest.collection.IsCollectionWithSize;
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
@@ -30,6 +31,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junit.jupiter.api.io.TempDir;
+
+import dk.xam.jbang.ExitException;
+import dk.xam.jbang.Script;
+import dk.xam.jbang.Util;
 
 import picocli.CommandLine;
 
@@ -48,9 +53,9 @@ public class TestRun {
 	void testHelloWorld() throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");
-		Main main = new Main();
+		Jbang jbang = new Jbang();
 		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
-		CommandLine.ParseResult pr = new CommandLine(main).parseArgs("run", arg);
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
 		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(new Script(new File("helloworld.java"), ""));
@@ -67,8 +72,8 @@ public class TestRun {
 	void testHelloWorldShell() throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");
-		Main main = new Main();
-		CommandLine.ParseResult pr = new CommandLine(main).parseArgs("run", "a");
+		Jbang jbang = new Jbang();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "a");
 		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(new Script(new File("helloworld.jsh"), ""));
@@ -86,9 +91,9 @@ public class TestRun {
 	void testHelloWorldShellNoExit() throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");
-		Main main = new Main();
+		Jbang jbang = new Jbang();
 		String arg = new File(examplesTestFolder, "helloworld.jsh").getAbsolutePath();
-		CommandLine.ParseResult pr = new CommandLine(main).parseArgs("run", "--interactive", arg, "blah");
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--interactive", arg, "blah");
 		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(new Script(new File("helloworld.jsh"), ""));
@@ -106,9 +111,9 @@ public class TestRun {
 	void testDebug() throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");
-		Main main = new Main();
+		Jbang jbang = new Jbang();
 		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
-		CommandLine.ParseResult pr = new CommandLine(main).parseArgs("run", "--debug", arg);
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--debug", arg);
 		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(new Script(new File("helloworld.java"), ""));
@@ -125,9 +130,9 @@ public class TestRun {
 	void testDependencies() throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");
-		Main main = new Main();
+		Jbang jbang = new Jbang();
 		String arg = new File(examplesTestFolder, "classpath_example.java").getAbsolutePath();
-		CommandLine.ParseResult pr = new CommandLine(main).parseArgs("run", arg);
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
 		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(new Script(new File(arg)));
@@ -144,9 +149,9 @@ public class TestRun {
 	void testProperties() throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");
-		Main main = new Main();
+		Jbang jbang = new Jbang();
 		String arg = new File(examplesTestFolder, "classpath_example.java").getAbsolutePath();
-		CommandLine.ParseResult pr = new CommandLine(main)	.setStopAtPositional(true)
+		CommandLine.ParseResult pr = new CommandLine(jbang)	.setStopAtPositional(true)
 															.parseArgs("run", "-Dwonka=panda", "-Dquoted=\"see this\"",
 																	arg, "-Dafter=wonka");
 		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
@@ -176,11 +181,11 @@ public class TestRun {
 
 		assertThat(result.toString(), not(containsString(url)));
 
-		assertThat(Util.readString(result.backingFile.toPath()),
+		MatcherAssert.assertThat(Util.readString(result.backingFile.toPath()),
 				containsString("Logger.getLogger(classpath_example.class);"));
 
-		Main main = new Main();
-		CommandLine.ParseResult pr = new CommandLine(main).parseArgs("run", url);
+		Jbang jbang = new Jbang();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", url);
 		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
 
 		String s = run.generateCommandLine(JbangBaseScriptCommand.prepareScript(url));
@@ -394,9 +399,9 @@ public class TestRun {
 
 	@Test
 	void testCDSNotPresent() {
-		Main main = new Main();
+		Jbang jbang = new Jbang();
 		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
-		CommandLine.ParseResult pr = new CommandLine(main).parseArgs("run", arg);
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
 		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
 
 		assert (!run.cds().isPresent());
@@ -404,9 +409,9 @@ public class TestRun {
 
 	@Test
 	void testCDSPresent() {
-		Main main = new Main();
+		Jbang jbang = new Jbang();
 		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
-		CommandLine.ParseResult pr = new CommandLine(main).parseArgs("run", arg, "--cds");
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg, "--cds");
 		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
 
 		assert (run.cds().isPresent());
@@ -415,9 +420,9 @@ public class TestRun {
 
 	@Test
 	void testCDSPresentButNo() {
-		Main main = new Main();
+		Jbang jbang = new Jbang();
 		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
-		CommandLine.ParseResult pr = new CommandLine(main).parseArgs("run", arg, "--no-cds");
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg, "--no-cds");
 		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
 
 		assert (run.cds().isPresent());

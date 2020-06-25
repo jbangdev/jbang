@@ -1,4 +1,4 @@
-package dk.xam.jbang;
+package dk.xam.jbang.cli;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -17,10 +17,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
+import org.hamcrest.MatcherAssert;
 import org.hamcrest.io.FileMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+
+import dk.xam.jbang.Script;
+import dk.xam.jbang.Util;
 
 import picocli.CommandLine;
 
@@ -31,15 +35,15 @@ public class TestEdit {
 	@BeforeEach
 	void setup() {
 		output = new StringWriter();
-		CommandLine cli = Main.getCommandLine(new PrintWriter(output), new PrintWriter(output));
-		Main main = cli.getCommand();
+		CommandLine cli = Jbang.getCommandLine(new PrintWriter(output), new PrintWriter(output));
+		Jbang jbang = cli.getCommand();
 	}
 
 	@Test
 	void testEdit(@TempDir Path outputDir) throws IOException {
 
 		String s = outputDir.resolve("edit.java").toString();
-		Main.getCommandLine().execute("init", s);
+		Jbang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
 		Script script = JbangBaseScriptCommand.prepareScript(s);
@@ -49,7 +53,7 @@ public class TestEdit {
 		assertThat(new File(project, "src"), FileMatchers.anExistingDirectory());
 		File build = new File(project, "build.gradle");
 		assert (build.exists());
-		assertThat(Util.readString(build.toPath()), containsString("dependencies"));
+		MatcherAssert.assertThat(Util.readString(build.toPath()), containsString("dependencies"));
 		File src = new File(project, "src/edit.java");
 
 		// first check for symlink. in some cases on windows (non admin privileg)
@@ -75,7 +79,7 @@ public class TestEdit {
 
 		Path p = outputDir.resolve("edit.java");
 		String s = p.toString();
-		Main.getCommandLine().execute("init", s);
+		Jbang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
 		Util.writeString(p, "//DEPS org.openjfx:javafx-graphics:11.0.2${bougus:}\n" + Util.readString(p));
@@ -102,7 +106,7 @@ public class TestEdit {
 
 		Path p = outputDir.resolve("kube-example");
 		String s = p.toString();
-		Main.getCommandLine().execute("init", s);
+		Jbang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
 		Script script = JbangBaseScriptCommand.prepareScript(s);
