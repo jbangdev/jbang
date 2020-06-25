@@ -1066,7 +1066,7 @@ class JbangAliasAdd extends JbangBaseCommand {
 	}
 }
 
-@Command(name = "list", description = "Add alias for script reference.")
+@Command(name = "list", description = "Show currently defined aliases.")
 class JbangAliasList extends JbangBaseCommand {
 
 	@Override
@@ -1093,11 +1093,12 @@ class JbangAliasRemove extends JbangBaseCommand {
 	}
 }
 
-@Command(name = "trust", description = "Manage trusted domains.", subcommands = { JbangTrustAdd.class })
+@Command(name = "trust", description = "Manage trust domains.", subcommands = { JbangTrustAdd.class,
+		JbangTrustList.class, JbangTrustRemove.class })
 class JbangTrust {
 }
 
-@Command(name = "add", description = "Add trusted domains.")
+@Command(name = "add", description = "Add trust domains.")
 class JbangTrustAdd extends JbangBaseCommand {
 
 	@Parameters(index = "0", description = "Rules for trusted sources", arity = "1..*")
@@ -1107,6 +1108,48 @@ class JbangTrustAdd extends JbangBaseCommand {
 	public Integer doCall() {
 		Settings.getTrustedSources().add(rules, Settings.getTrustedSourcesFile().toFile());
 		return CommandLine.ExitCode.SOFTWARE;
+	}
+}
+
+@Command(name = "list", description = "Show defined trust domains.")
+class JbangTrustList extends JbangBaseCommand {
+
+	@Override
+	public Integer doCall() {
+		int idx = 0;
+		for (String src : Settings.getTrustedSources().trustedSources) {
+			spec.commandLine().getOut().println(++idx + " = " + src);
+		}
+		return CommandLine.ExitCode.SOFTWARE;
+	}
+}
+
+@Command(name = "remove", description = "Remove trust domains.")
+class JbangTrustRemove extends JbangBaseCommand {
+
+	@Parameters(index = "0", description = "Rules for trusted sources", arity = "1..*")
+	List<String> rules = new ArrayList<>();
+
+	@Override
+	public Integer doCall() {
+		List<String> newrules = rules	.stream()
+										.map(src -> toDomain(src))
+										.collect(Collectors.toList());
+		Settings.getTrustedSources().remove(newrules, Settings.getTrustedSourcesFile().toFile());
+		return CommandLine.ExitCode.SOFTWARE;
+	}
+
+	private String toDomain(String src) {
+		String[] sources = Settings.getTrustedSources().trustedSources;
+		try {
+			int idx = Integer.parseInt(src) - 1;
+			if (idx >= 0 && idx < sources.length) {
+				return sources[idx];
+			}
+		} catch (NumberFormatException e) {
+			// Ignore
+		}
+		return src;
 	}
 }
 

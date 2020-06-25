@@ -187,16 +187,36 @@ public class TrustedSources {
 		newrules.addAll(Arrays.asList(trustedSources));
 
 		if (newrules.addAll(trust)) {
-			String newsources = getJSon(newrules);
-			try {
-				Util.writeString(storage.toPath(), newsources);
-			} catch (IOException e) {
-				throw new ExitException(2, "Error when writing to " + storage, e);
-			}
-			trustedSources = newrules.toArray(new String[0]);
+			save(newrules, storage);
 		} else {
 			Util.warnMsg("Already trusted source(s). No changes made.");
 		}
 
+	}
+
+	public void remove(List<String> trust, File storage) {
+
+		Util.info("Removing " + trust + " from " + storage);
+
+		Set<String> newrules = new LinkedHashSet<String>();
+
+		newrules.addAll(Arrays.asList(trustedSources));
+
+		if (newrules.removeAll(trust)) {
+			save(newrules, storage);
+		} else {
+			Util.warnMsg("Not found in trusted source(s). No changes made.");
+		}
+
+	}
+
+	private void save(Set<String> rules, File storage) {
+		String newsources = getJSon(rules);
+		try {
+			Util.writeString(storage.toPath(), newsources);
+		} catch (IOException e) {
+			throw new ExitException(2, "Error when writing to " + storage, e);
+		}
+		trustedSources = rules.toArray(new String[0]);
 	}
 }
