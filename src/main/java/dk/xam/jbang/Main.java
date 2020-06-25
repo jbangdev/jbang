@@ -116,7 +116,7 @@ abstract class JbangBaseCommand implements Callable<Integer> {
 }
 
 @Command(name = "jbang", footer = "\nCopyright: 2020 Max Rydahl Andersen, License: MIT\nWebsite: https://github.com/jbangdev/jbang", description = "Compiles and runs .java/.jsh scripts.", subcommands = {
-		JbangRun.class, JbangEdit.class, JbangInit.class, JbangAlias.class, JbangTrust.class, JbangClearCache.class,
+		JbangRun.class, JbangEdit.class, JbangInit.class, JbangAlias.class, JbangTrust.class, JbangCache.class,
 		JbangCompletion.class, JbangVersion.class })
 public class Main extends JbangBaseCommand {
 
@@ -1106,8 +1106,12 @@ class JbangTrustAdd extends JbangBaseCommand {
 	}
 }
 
-@Command(name = "clear-cache", description = "Clear cache of dependency list and temporary projects.")
-class JbangClearCache extends JbangBaseCommand {
+@Command(name = "cache", description = "Cache management.", subcommands = { JbangCacheClear.class })
+class JbangCache {
+}
+
+@Command(name = "clear", description = "Clear cache of dependency list and temporary projects.")
+class JbangCacheClear extends JbangBaseCommand {
 
 	@Override
 	public Integer doCall() {

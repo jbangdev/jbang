@@ -112,8 +112,8 @@ class TestArguments {
 
 	@Test
 	public void testClearCache() throws IOException {
-		CommandLine.ParseResult pr = cli.parseArgs("clear-cache");
-		JbangClearCache cc = (JbangClearCache) pr.subcommand().commandSpec().userObject();
+		CommandLine.ParseResult pr = cli.parseArgs("cache", "clear");
+		JbangCacheClear cc = (JbangCacheClear) pr.subcommand().subcommand().commandSpec().userObject();
 
 		cc.call();
 		assertThat(Settings.getCacheDir(false).toFile(), not(anExistingFileOrDirectory()));
