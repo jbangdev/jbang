@@ -19,6 +19,14 @@ import io.quarkus.qute.Template;
 public class Settings {
 	static AliasInfo aliasInfo = null;
 
+	public static final String JBANG_REPO = "JBANG_REPO";
+	public static final String JBANG_DIR = "JBANG_DIR";
+	public static final String JBANG_CACHE_DIR = "JBANG_CACHE_DIR";
+
+	public static final String ALIASES_JSON = "aliases.json";
+	public static final String TRUSTED_SOURCES_JSON = "trusted-sources.json";
+	public static final String DEPENDENCY_CACHE_TXT = "dependency_cache.txt";
+
 	final public static String CP_SEPARATOR = System.getProperty("os.name").toLowerCase().contains("windows")
 			? ";"
 			: ":";
@@ -26,17 +34,17 @@ public class Settings {
 	private static TrustedSources trustedSources;
 
 	public static File getLocalMavenRepo() {
-		return new File(System.getenv().getOrDefault("JBANG_REPO", System.getProperty("user.home") + "/.m2/repository"))
+		return new File(System.getenv().getOrDefault(JBANG_REPO, System.getProperty("user.home") + "/.m2/repository"))
 																														.getAbsoluteFile();
 	}
 
 	public static Path getCacheDependencyFile() {
-		return getCacheDir(true).resolve("dependency_cache.txt");
+		return getCacheDir(true).resolve(DEPENDENCY_CACHE_TXT);
 	}
 
 	public static Path getConfigDir(boolean init) {
 		Path dir;
-		String jd = System.getenv("JBANG_DIR");
+		String jd = System.getenv(JBANG_DIR);
 		if (jd != null) {
 			dir = Paths.get(jd);
 		} else {
@@ -60,7 +68,7 @@ public class Settings {
 
 	public static Path getCacheDir(boolean init) {
 		Path dir;
-		String v = System.getenv("JBANG_CACHE_DIR");
+		String v = System.getenv(JBANG_CACHE_DIR);
 		if (v != null) {
 			dir = Paths.get(v);
 		} else {
@@ -83,7 +91,7 @@ public class Settings {
 	}
 
 	public static Path getTrustedSourcesFile() {
-		return getConfigDir().resolve("trusted-sources.json");
+		return getConfigDir().resolve(TRUSTED_SOURCES_JSON);
 	}
 
 	void createTrustedSources() {
@@ -154,7 +162,7 @@ public class Settings {
 	}
 
 	public static Path getAliasesFile() {
-		return getConfigDir().resolve("aliases.json");
+		return getConfigDir().resolve(ALIASES_JSON);
 	}
 
 	private static AliasInfo getAliasInfo() {

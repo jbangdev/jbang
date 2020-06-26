@@ -49,6 +49,9 @@ public class TestRun {
 		examplesTestFolder = new File(new File(examplesUrl.toURI()).getAbsolutePath());
 	}
 
+	@Rule
+	public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
 	@Test
 	void testHelloWorld() throws IOException {
 
@@ -64,9 +67,6 @@ public class TestRun {
 		assertThat(result, containsString("helloworld.java"));
 		// assertThat(result, containsString("--source 11"));
 	}
-
-	@Rule
-	public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
 	@Test
 	void testHelloWorldShell() throws IOException {

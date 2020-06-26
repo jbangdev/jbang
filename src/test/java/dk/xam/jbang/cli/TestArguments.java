@@ -2,12 +2,14 @@ package dk.xam.jbang.cli;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.hamcrest.io.FileMatchers.anExistingFileOrDirectory;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 
-import org.hamcrest.MatcherAssert;
+import org.junit.Rule;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -25,6 +27,9 @@ class TestArguments {
 		cli = Jbang.getCommandLine();
 		jbang = cli.getCommand();
 	}
+
+	@Rule
+	public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
 	@Test
 	public void testBasicArguments() {
@@ -115,12 +120,13 @@ class TestArguments {
 
 	@Test
 	public void testClearCache() throws IOException {
-		CommandLine.ParseResult pr = cli.parseArgs("cache", "clear");
-		CacheClear cc = (CacheClear) pr.subcommand().subcommand().commandSpec().userObject();
+		Path dir = Files.createTempDirectory("jbang-test-cahce");
+		environmentVariables.set(Settings.JBANG_CACHE_DIR, dir.toString());
+		assertThat(Files.isDirectory(dir), is(true));
 
-		cc.call();
-		MatcherAssert.assertThat(Settings.getCacheDir(false).toFile(), not(anExistingFileOrDirectory()));
-		assertThat(Settings.getCacheDir(false).toFile().listFiles(), nullValue());
+		cli.execute("cache", "clear");
+
+		assertThat(Files.isDirectory(dir), is(false));
 	}
 
 }
