@@ -44,13 +44,13 @@ public class TestRun {
 	static File examplesTestFolder;
 
 	@BeforeAll
-	static void init() throws URISyntaxException {
+	static void init() throws URISyntaxException, IOException {
 		URL examplesUrl = TestRun.class.getClassLoader().getResource(EXAMPLES_FOLDER);
 		examplesTestFolder = new File(new File(examplesUrl.toURI()).getAbsolutePath());
 	}
 
 	@Rule
-	public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+	public static final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
 	@Test
 	void testHelloWorld() throws IOException {
@@ -61,7 +61,8 @@ public class TestRun {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		String result = run.generateCommandLine(new Script(new File("helloworld.java"), ""));
+		String result = run.generateCommandLine(
+				new Script(new File("helloworld.java"), "", run.userParams, run.properties));
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("helloworld.java"));
@@ -76,7 +77,8 @@ public class TestRun {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "a");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		String result = run.generateCommandLine(new Script(new File("helloworld.jsh"), ""));
+		String result = run.generateCommandLine(
+				new Script(new File("helloworld.jsh"), "", run.userParams, run.properties));
 
 		assertThat(result, matchesPattern("^.*jshell(.exe)? --startup.*$"));
 		assertThat(result, not(containsString("  ")));
@@ -96,7 +98,8 @@ public class TestRun {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--interactive", arg, "blah");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		String result = run.generateCommandLine(new Script(new File("helloworld.jsh"), ""));
+		String result = run.generateCommandLine(
+				new Script(new File("helloworld.jsh"), "", run.userParams, run.properties));
 
 		assertThat(result, startsWith("jshell"));
 		assertThat(result, not(containsString("  ")));
@@ -116,7 +119,8 @@ public class TestRun {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--debug", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		String result = run.generateCommandLine(new Script(new File("helloworld.java"), ""));
+		String result = run.generateCommandLine(
+				new Script(new File("helloworld.java"), "", run.userParams, run.properties));
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("helloworld.java"));
@@ -135,7 +139,7 @@ public class TestRun {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		String result = run.generateCommandLine(new Script(new File(arg)));
+		String result = run.generateCommandLine(new Script(new File(arg), run.userParams, run.properties));
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("classpath_example.java"));
@@ -160,7 +164,7 @@ public class TestRun {
 
 		assertThat(run.properties.size(), is(2));
 
-		String result = run.generateCommandLine(new Script(new File(arg)));
+		String result = run.generateCommandLine(new Script(new File(arg), run.userParams, run.properties));
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("-Dwonka=panda"));
@@ -177,7 +181,7 @@ public class TestRun {
 
 		String url = new File(examplesTestFolder, "classpath_example.java").toURI().toString();
 
-		Script result = BaseScriptCommand.prepareScript(url);
+		Script result = BaseScriptCommand.prepareScript(url, null, null);
 
 		assertThat(result.toString(), not(containsString(url)));
 
@@ -188,7 +192,7 @@ public class TestRun {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", url);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		String s = run.generateCommandLine(BaseScriptCommand.prepareScript(url));
+		String s = run.generateCommandLine(BaseScriptCommand.prepareScript(url, run.userParams, run.properties));
 
 		assertThat(s, not(containsString("file:")));
 	}
@@ -198,7 +202,7 @@ public class TestRun {
 
 		String url = new File(examplesTestFolder, "classpath_example.java.dontexist").toURI().toString();
 
-		assertThrows(ExitException.class, () -> BaseScriptCommand.prepareScript(url));
+		assertThrows(ExitException.class, () -> BaseScriptCommand.prepareScript(url, null, null));
 	}
 
 	@Test
@@ -231,7 +235,7 @@ public class TestRun {
 
 		File out = new File(rootdir.toFile(), "content.jar");
 
-		Script s = new Script("");
+		Script s = new Script("", null, null);
 		s.setMainClass("wonkabear");
 		s.createJarFile(dir, out);
 
@@ -293,7 +297,7 @@ public class TestRun {
 
 		Run m = new Run();
 
-		Script script = new Script(f);
+		Script script = new Script(f, null, null);
 		m.build(script);
 
 		assertThat(script.getMainClass(), equalTo("dualclass"));

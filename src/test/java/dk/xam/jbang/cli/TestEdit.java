@@ -14,7 +14,6 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.stream.Collectors;
 
 import org.hamcrest.MatcherAssert;
@@ -46,9 +45,9 @@ public class TestEdit {
 		Jbang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
-		Script script = BaseScriptCommand.prepareScript(s);
+		Script script = BaseScriptCommand.prepareScript(s, null, null);
 
-		File project = new Edit().createProjectForEdit(script, Collections.emptyList(), false);
+		File project = new Edit().createProjectForEdit(script, false);
 
 		assertThat(new File(project, "src"), FileMatchers.anExistingDirectory());
 		File build = new File(project, "build.gradle");
@@ -84,9 +83,9 @@ public class TestEdit {
 
 		Util.writeString(p, "//DEPS org.openjfx:javafx-graphics:11.0.2${bougus:}\n" + Util.readString(p));
 
-		Script script = BaseScriptCommand.prepareScript(s);
+		Script script = BaseScriptCommand.prepareScript(s, null, null);
 
-		File project = new Edit().createProjectForEdit(script, Collections.emptyList(), false);
+		File project = new Edit().createProjectForEdit(script, false);
 
 		File gradle = new File(project, "build.gradle");
 		assert (gradle.exists());
@@ -109,9 +108,9 @@ public class TestEdit {
 		Jbang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
-		Script script = BaseScriptCommand.prepareScript(s);
+		Script script = BaseScriptCommand.prepareScript(s, null, null);
 
-		File project = new Edit().createProjectForEdit(script, Collections.emptyList(), false);
+		File project = new Edit().createProjectForEdit(script, false);
 
 		File java = new File(project, "src/KubeExample.java");
 

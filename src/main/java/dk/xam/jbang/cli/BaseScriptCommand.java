@@ -11,6 +11,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import dk.xam.jbang.ExitException;
@@ -34,12 +35,16 @@ public abstract class BaseScriptCommand extends BaseCommand {
 
 	protected Script script;
 
-	public static Script prepareScript(String scriptResource) throws IOException {
+	public static Script prepareScript(String scriptResource, List<String> arguments, Map<String, String> properties)
+			throws IOException {
 		File scriptFile = getScriptFile(scriptResource);
 		if (scriptFile == null) {
 			// Not found as such, so let's check the aliases
-			if (Settings.getAliases().containsKey(scriptResource)) {
-				scriptFile = getScriptFile(Settings.getAliases().get(scriptResource).scriptRef);
+			Settings.Alias alias = Settings.getAlias(scriptResource, arguments, properties);
+			if (alias != null) {
+				scriptFile = getScriptFile(alias.scriptRef);
+				arguments = alias.arguments;
+				properties = alias.properties;
 			}
 		}
 
@@ -68,7 +73,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 
 		Script s = null;
 		try {
-			s = new Script(scriptFile);
+			s = new Script(scriptFile, arguments, properties);
 			s.setOriginal(new File(scriptResource));
 		} catch (FileNotFoundException e) {
 			throw new ExitException(1, e);

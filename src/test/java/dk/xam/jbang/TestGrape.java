@@ -36,7 +36,7 @@ public class TestGrape {
 				+
 				"})\n";
 
-		Script s = new Script(grabBlock);
+		Script s = new Script(grabBlock, null, null);
 
 		List<String> deps = s.collectDependencies();
 
