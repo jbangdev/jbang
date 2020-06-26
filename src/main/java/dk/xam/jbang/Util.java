@@ -2,7 +2,6 @@ package dk.xam.jbang;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -12,7 +11,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -151,7 +150,6 @@ public class Util {
 		URLConnection urlConnection = url.openConnection();
 		HttpURLConnection httpConn = null;
 
-		String saveFilePath = null;
 		String fileName = "";
 
 		if (urlConnection instanceof HttpURLConnection) {
@@ -213,26 +211,16 @@ public class Util {
 					fileURL.length());
 		}
 
-		// opens input stream from the HTTP connection
-		InputStream inputStream = urlConnection.getInputStream();
-		saveFilePath = saveDir + File.separator + fileName;
-
-		// opens an output stream to save into file
-		FileOutputStream outputStream = new FileOutputStream(saveFilePath);
-
-		int bytesRead = -1;
-		byte[] buffer = new byte[BUFFER_SIZE];
-		while ((bytesRead = inputStream.read(buffer)) != -1) {
-			outputStream.write(buffer, 0, bytesRead);
+		// copy content from connection to file
+		Path saveFilePath = saveDir.toPath().resolve(fileName);
+		try (InputStream inputStream = urlConnection.getInputStream()) {
+			Files.copy(inputStream, saveFilePath, StandardCopyOption.REPLACE_EXISTING);
 		}
-
-		outputStream.close();
-		inputStream.close();
 
 		if (httpConn != null)
 			httpConn.disconnect();
 
-		return Paths.get(saveFilePath);
+		return saveFilePath;
 
 	}
 
