@@ -27,7 +27,7 @@ import dk.xam.jbang.Util;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "run", description = "Compile and run provided .java/.jsh script.")
-public class JbangRun extends JbangBaseScriptCommand {
+public class Run extends BaseScriptCommand {
 
 	@CommandLine.Option(names = { "-d",
 			"--debug" }, fallbackValue = "4004", parameterConsumer = IntFallbackConsumer.class, description = "Launch with java debug enabled on specified port (default: ${FALLBACK-VALUE}) ")

@@ -19,7 +19,7 @@ import io.quarkus.qute.Template;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "edit", description = "Edit a .java/.jsh script.")
-public class JbangEdit extends JbangBaseScriptCommand {
+public class Edit extends BaseScriptCommand {
 
 	@CommandLine.Option(names = {
 			"--live" }, description = "Setup temporary project, launch editor and regenerate project on dependency changes.")

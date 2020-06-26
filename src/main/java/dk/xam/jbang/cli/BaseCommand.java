@@ -9,7 +9,7 @@ import dk.xam.jbang.ExitException;
 
 import picocli.CommandLine;
 
-public abstract class JbangBaseCommand implements Callable<Integer> {
+public abstract class BaseCommand implements Callable<Integer> {
 
 	static {
 		Logger logger = Logger.getLogger("org.jboss.shrinkwrap.resolver");

@@ -11,7 +11,7 @@ import picocli.AutoComplete;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "completion", description = "Output auto-completion script for bash/zsh.\nUsage: source <(jbang --completion)")
-public class JbangCompletion extends JbangBaseCommand {
+public class Completion extends BaseCommand {
 
 	@Override
 	public Integer doCall() throws IOException {

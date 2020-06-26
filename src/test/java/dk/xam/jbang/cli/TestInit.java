@@ -18,7 +18,7 @@ public class TestInit {
 	@Test
 	void testInit() {
 
-		String s = new JbangInit().renderInitClass(new File("test.java"), "hello");
+		String s = new Init().renderInitClass(new File("test.java"), "hello");
 
 		assertThat(s, containsString("class test"));
 	}

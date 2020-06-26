@@ -12,7 +12,7 @@ import io.quarkus.qute.Template;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "init", description = "Initialize a .java/.jsh script.")
-public class JbangInit extends JbangBaseScriptCommand {
+public class Init extends BaseScriptCommand {
 
 	@CommandLine.Option(names = {
 			"--template" }, description = "Init script with a java class useful for scripting", defaultValue = "hello")

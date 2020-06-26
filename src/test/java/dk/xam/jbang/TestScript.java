@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import dk.xam.jbang.cli.JbangBaseScriptCommand;
+import dk.xam.jbang.cli.BaseScriptCommand;
 
 class TestScript {
 
@@ -118,7 +118,7 @@ class TestScript {
 		Path p = output.resolve("kube-example");
 		writeString(p, example);
 
-		Script s = JbangBaseScriptCommand.prepareScript(p.toAbsolutePath().toString());
+		Script s = BaseScriptCommand.prepareScript(p.toAbsolutePath().toString());
 
 	}
 

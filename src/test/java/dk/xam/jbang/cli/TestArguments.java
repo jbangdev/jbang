@@ -29,7 +29,7 @@ class TestArguments {
 	@Test
 	public void testBasicArguments() {
 		CommandLine.ParseResult pr = cli.parseArgs("run", "-h", "--debug", "myfile.java");
-		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assert run.helpRequested;
 		assertThat(run.debug(), is(true));
@@ -41,7 +41,7 @@ class TestArguments {
 	@Test
 	public void testDoubleDebug() {
 		CommandLine.ParseResult pr = cli.parseArgs("run", "--debug", "test.java", "--debug", "wonka");
-		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.debug(), is(true));
 		assertThat(run.debugPort, is(4004));
@@ -59,7 +59,7 @@ class TestArguments {
 	@Test
 	public void testStdInWithHelpParam() {
 		CommandLine.ParseResult pr = cli.parseArgs("run", "-", "--help");
-		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.scriptOrFile, is("-"));
 		assertThat(run.helpRequested, is(false));
@@ -69,7 +69,7 @@ class TestArguments {
 	@Test
 	public void testScriptWithHelpParam() {
 		CommandLine.ParseResult pr = cli.parseArgs("run", "test.java", "-h");
-		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.scriptOrFile, is("test.java"));
 		assertThat(run.helpRequested, is(false));
@@ -79,7 +79,7 @@ class TestArguments {
 	@Test
 	public void testDebugWithScript() {
 		CommandLine.ParseResult pr = cli.parseArgs("run", "--debug", "test.java");
-		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.scriptOrFile, is("test.java"));
 		assertThat(run.debug(), is(true));
@@ -88,7 +88,7 @@ class TestArguments {
 	@Test
 	public void testDebugPort() {
 		CommandLine.ParseResult pr = cli.parseArgs("run", "--debug=5000", "test.java");
-		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.scriptOrFile, is("test.java"));
 		assertThat(run.debug(), is(true));
@@ -98,7 +98,7 @@ class TestArguments {
 	@Test
 	public void testDebugPortSeperateValue() {
 		CommandLine.ParseResult pr = cli.parseArgs("run", "--debug", "5005", "test.java");
-		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.scriptOrFile, is("test.java"));
 		assertThat(run.debug(), is(true));
@@ -108,7 +108,7 @@ class TestArguments {
 	@Test
 	public void testSimpleScript() {
 		CommandLine.ParseResult pr = cli.parseArgs("run", "test.java");
-		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.scriptOrFile, is("test.java"));
 	}
@@ -116,7 +116,7 @@ class TestArguments {
 	@Test
 	public void testClearCache() throws IOException {
 		CommandLine.ParseResult pr = cli.parseArgs("cache", "clear");
-		JbangCacheClear cc = (JbangCacheClear) pr.subcommand().subcommand().commandSpec().userObject();
+		CacheClear cc = (CacheClear) pr.subcommand().subcommand().commandSpec().userObject();
 
 		cc.call();
 		MatcherAssert.assertThat(Settings.getCacheDir(false).toFile(), not(anExistingFileOrDirectory()));

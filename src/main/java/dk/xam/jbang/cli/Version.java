@@ -3,7 +3,7 @@ package dk.xam.jbang.cli;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "version", description = "Display version info.")
-public class JbangVersion extends JbangBaseCommand {
+public class Version extends BaseCommand {
 
 	@Override
 	public Integer doCall() {

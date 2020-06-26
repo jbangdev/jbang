@@ -56,7 +56,7 @@ public class TestRun {
 		Jbang jbang = new Jbang();
 		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
-		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(new Script(new File("helloworld.java"), ""));
 
@@ -74,7 +74,7 @@ public class TestRun {
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "a");
-		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(new Script(new File("helloworld.jsh"), ""));
 
@@ -94,7 +94,7 @@ public class TestRun {
 		Jbang jbang = new Jbang();
 		String arg = new File(examplesTestFolder, "helloworld.jsh").getAbsolutePath();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--interactive", arg, "blah");
-		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(new Script(new File("helloworld.jsh"), ""));
 
@@ -114,7 +114,7 @@ public class TestRun {
 		Jbang jbang = new Jbang();
 		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--debug", arg);
-		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(new Script(new File("helloworld.java"), ""));
 
@@ -133,7 +133,7 @@ public class TestRun {
 		Jbang jbang = new Jbang();
 		String arg = new File(examplesTestFolder, "classpath_example.java").getAbsolutePath();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
-		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(new Script(new File(arg)));
 
@@ -154,7 +154,7 @@ public class TestRun {
 		CommandLine.ParseResult pr = new CommandLine(jbang)	.setStopAtPositional(true)
 															.parseArgs("run", "-Dwonka=panda", "-Dquoted=\"see this\"",
 																	arg, "-Dafter=wonka");
-		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.userParams.size(), is(1));
 
@@ -177,7 +177,7 @@ public class TestRun {
 
 		String url = new File(examplesTestFolder, "classpath_example.java").toURI().toString();
 
-		Script result = JbangBaseScriptCommand.prepareScript(url);
+		Script result = BaseScriptCommand.prepareScript(url);
 
 		assertThat(result.toString(), not(containsString(url)));
 
@@ -186,9 +186,9 @@ public class TestRun {
 
 		Jbang jbang = new Jbang();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", url);
-		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		String s = run.generateCommandLine(JbangBaseScriptCommand.prepareScript(url));
+		String s = run.generateCommandLine(BaseScriptCommand.prepareScript(url));
 
 		assertThat(s, not(containsString("file:")));
 	}
@@ -198,7 +198,7 @@ public class TestRun {
 
 		String url = new File(examplesTestFolder, "classpath_example.java.dontexist").toURI().toString();
 
-		assertThrows(ExitException.class, () -> JbangBaseScriptCommand.prepareScript(url));
+		assertThrows(ExitException.class, () -> BaseScriptCommand.prepareScript(url));
 	}
 
 	@Test
@@ -212,7 +212,7 @@ public class TestRun {
 		classfile.createNewFile();
 		assert (classfile.exists());
 
-		assertEquals(JbangRun.findMainClass(dir, classfile.toPath()), "a.b.c.mymain");
+		assertEquals(Run.findMainClass(dir, classfile.toPath()), "a.b.c.mymain");
 
 	}
 
@@ -251,19 +251,19 @@ public class TestRun {
 
 		Map<String, String> properties = new HashMap<>();
 
-		assertThat(new JbangRun().generateArgs(Collections.emptyList(), properties), equalTo("String[] args = {  }"));
+		assertThat(new Run().generateArgs(Collections.emptyList(), properties), equalTo("String[] args = {  }"));
 
-		assertThat(new JbangRun().generateArgs(Arrays.asList("one"), properties),
+		assertThat(new Run().generateArgs(Arrays.asList("one"), properties),
 				equalTo("String[] args = { \"one\" }"));
 
-		assertThat(new JbangRun().generateArgs(Arrays.asList("one", "two"), properties),
+		assertThat(new Run().generateArgs(Arrays.asList("one", "two"), properties),
 				equalTo("String[] args = { \"one\", \"two\" }"));
 
-		assertThat(new JbangRun().generateArgs(Arrays.asList("one", "two", "three \"quotes\""), properties),
+		assertThat(new Run().generateArgs(Arrays.asList("one", "two", "three \"quotes\""), properties),
 				equalTo("String[] args = { \"one\", \"two\", \"three \\\"quotes\\\"\" }"));
 
 		properties.put("value", "this value");
-		assertThat(new JbangRun().generateArgs(Collections.emptyList(), properties),
+		assertThat(new Run().generateArgs(Collections.emptyList(), properties),
 				equalTo("String[] args = {  }\nSystem.setProperty(\"value\",\"this value\");"));
 
 	}
@@ -291,7 +291,7 @@ public class TestRun {
 
 		Util.writeString(f.toPath(), base);
 
-		JbangRun m = new JbangRun();
+		Run m = new Run();
 
 		Script script = new Script(f);
 		m.build(script);
@@ -402,7 +402,7 @@ public class TestRun {
 		Jbang jbang = new Jbang();
 		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
-		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assert (!run.cds().isPresent());
 	}
@@ -412,7 +412,7 @@ public class TestRun {
 		Jbang jbang = new Jbang();
 		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg, "--cds");
-		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assert (run.cds().isPresent());
 		assert (run.cds().get().booleanValue());
@@ -423,7 +423,7 @@ public class TestRun {
 		Jbang jbang = new Jbang();
 		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg, "--no-cds");
-		JbangRun run = (JbangRun) pr.subcommand().commandSpec().userObject();
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assert (run.cds().isPresent());
 		assert (!run.cds().get().booleanValue());
@@ -431,14 +431,14 @@ public class TestRun {
 
 	@Test
 	void testOptionActive() {
-		assert (JbangRun.optionActive(Optional.empty(), true));
-		assert (!JbangRun.optionActive(Optional.empty(), false));
+		assert (Run.optionActive(Optional.empty(), true));
+		assert (!Run.optionActive(Optional.empty(), false));
 
-		assert (JbangRun.optionActive(Optional.of(Boolean.TRUE), true));
-		assert (JbangRun.optionActive(Optional.of(Boolean.TRUE), false));
+		assert (Run.optionActive(Optional.of(Boolean.TRUE), true));
+		assert (Run.optionActive(Optional.of(Boolean.TRUE), false));
 
-		assert (!JbangRun.optionActive(Optional.of(Boolean.FALSE), true));
-		assert (!JbangRun.optionActive(Optional.of(Boolean.FALSE), false));
+		assert (!Run.optionActive(Optional.of(Boolean.FALSE), true));
+		assert (!Run.optionActive(Optional.of(Boolean.FALSE), false));
 
 	}
 

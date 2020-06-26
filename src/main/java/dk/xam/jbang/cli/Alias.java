@@ -4,14 +4,14 @@ import dk.xam.jbang.Settings;
 
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "alias", description = "Manage aliases.", subcommands = { JbangAliasAdd.class,
-		JbangAliasList.class,
-		JbangAliasRemove.class })
-public class JbangAlias {
+@CommandLine.Command(name = "alias", description = "Manage aliases.", subcommands = { AliasAdd.class,
+		AliasList.class,
+		AliasRemove.class })
+public class Alias {
 }
 
 @CommandLine.Command(name = "add", description = "Add alias for script reference.")
-class JbangAliasAdd extends JbangBaseCommand {
+class AliasAdd extends BaseCommand {
 
 	@CommandLine.Parameters(index = "0", description = "A name for the alias", arity = "1")
 	String name;
@@ -27,7 +27,7 @@ class JbangAliasAdd extends JbangBaseCommand {
 }
 
 @CommandLine.Command(name = "list", description = "Show currently defined aliases.")
-class JbangAliasList extends JbangBaseCommand {
+class AliasList extends BaseCommand {
 
 	@Override
 	public Integer doCall() {
@@ -41,7 +41,7 @@ class JbangAliasList extends JbangBaseCommand {
 }
 
 @CommandLine.Command(name = "remove", description = "Remove existing alias.")
-class JbangAliasRemove extends JbangBaseCommand {
+class AliasRemove extends BaseCommand {
 
 	@CommandLine.Parameters(index = "0", description = "A name for the alias", arity = "1")
 	String name;

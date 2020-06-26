@@ -46,9 +46,9 @@ public class TestEdit {
 		Jbang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
-		Script script = JbangBaseScriptCommand.prepareScript(s);
+		Script script = BaseScriptCommand.prepareScript(s);
 
-		File project = new JbangEdit().createProjectForEdit(script, Collections.emptyList(), false);
+		File project = new Edit().createProjectForEdit(script, Collections.emptyList(), false);
 
 		assertThat(new File(project, "src"), FileMatchers.anExistingDirectory());
 		File build = new File(project, "build.gradle");
@@ -84,9 +84,9 @@ public class TestEdit {
 
 		Util.writeString(p, "//DEPS org.openjfx:javafx-graphics:11.0.2${bougus:}\n" + Util.readString(p));
 
-		Script script = JbangBaseScriptCommand.prepareScript(s);
+		Script script = BaseScriptCommand.prepareScript(s);
 
-		File project = new JbangEdit().createProjectForEdit(script, Collections.emptyList(), false);
+		File project = new Edit().createProjectForEdit(script, Collections.emptyList(), false);
 
 		File gradle = new File(project, "build.gradle");
 		assert (gradle.exists());
@@ -109,9 +109,9 @@ public class TestEdit {
 		Jbang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
-		Script script = JbangBaseScriptCommand.prepareScript(s);
+		Script script = BaseScriptCommand.prepareScript(s);
 
-		File project = new JbangEdit().createProjectForEdit(script, Collections.emptyList(), false);
+		File project = new Edit().createProjectForEdit(script, Collections.emptyList(), false);
 
 		File java = new File(project, "src/KubeExample.java");
 

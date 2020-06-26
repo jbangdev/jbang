@@ -4,12 +4,12 @@ import dk.xam.jbang.Settings;
 
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "cache", description = "Cache management.", subcommands = { JbangCacheClear.class })
-public class JbangCache {
+@CommandLine.Command(name = "cache", description = "Cache management.", subcommands = { CacheClear.class })
+public class Cache {
 }
 
 @CommandLine.Command(name = "clear", description = "Clear cache of dependency list and temporary projects.")
-class JbangCacheClear extends JbangBaseCommand {
+class CacheClear extends BaseCommand {
 
 	@Override
 	public Integer doCall() {

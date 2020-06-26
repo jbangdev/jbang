@@ -17,13 +17,13 @@ import dk.xam.jbang.*;
 import picocli.CommandLine;
 
 @Command(name = "jbang", footer = "\nCopyright: 2020 Max Rydahl Andersen, License: MIT\nWebsite: https://github.com/jbangdev/jbang", description = "Compiles and runs .java/.jsh scripts.", subcommands = {
-		JbangRun.class, JbangEdit.class, JbangInit.class, JbangAlias.class, JbangTrust.class, JbangCache.class,
-		JbangCompletion.class, JbangVersion.class })
-public class Jbang extends JbangBaseCommand {
+		Run.class, Edit.class, Init.class, Alias.class, Trust.class, Cache.class,
+		Completion.class, Version.class })
+public class Jbang extends BaseCommand {
 
 	@Option(names = { "--verbose" }, description = "jbang will be verbose on what it does.", scope = ScopeType.INHERIT)
 	void setVerbose(boolean verbose) {
-		JbangBaseCommand.verbose = verbose;
+		BaseCommand.verbose = verbose;
 	}
 
 	public Integer doCall() {

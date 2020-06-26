@@ -8,13 +8,13 @@ import dk.xam.jbang.Settings;
 
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "trust", description = "Manage trust domains.", subcommands = { JbangTrustAdd.class,
-		JbangTrustList.class, JbangTrustRemove.class })
-public class JbangTrust {
+@CommandLine.Command(name = "trust", description = "Manage trust domains.", subcommands = { TrustAdd.class,
+		TrustList.class, TrustRemove.class })
+public class Trust {
 }
 
 @CommandLine.Command(name = "add", description = "Add trust domains.")
-class JbangTrustAdd extends JbangBaseCommand {
+class TrustAdd extends BaseCommand {
 
 	@CommandLine.Parameters(index = "0", description = "Rules for trusted sources", arity = "1..*")
 	List<String> rules = new ArrayList<>();
@@ -27,7 +27,7 @@ class JbangTrustAdd extends JbangBaseCommand {
 }
 
 @CommandLine.Command(name = "list", description = "Show defined trust domains.")
-class JbangTrustList extends JbangBaseCommand {
+class TrustList extends BaseCommand {
 
 	@Override
 	public Integer doCall() {
@@ -40,7 +40,7 @@ class JbangTrustList extends JbangBaseCommand {
 }
 
 @CommandLine.Command(name = "remove", description = "Remove trust domains.")
-class JbangTrustRemove extends JbangBaseCommand {
+class TrustRemove extends BaseCommand {
 
 	@CommandLine.Parameters(index = "0", description = "Rules for trusted sources", arity = "1..*")
 	List<String> rules = new ArrayList<>();

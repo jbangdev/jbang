@@ -20,7 +20,7 @@ import dk.xam.jbang.Util;
 
 import picocli.CommandLine;
 
-public abstract class JbangBaseScriptCommand extends JbangBaseCommand {
+public abstract class BaseScriptCommand extends BaseCommand {
 
 	@CommandLine.Option(names = { "-o",
 			"--offline" }, description = "Work offline. Fail-fast if dependencies are missing.")
