@@ -1,6 +1,9 @@
 package dk.xam.jbang.cli;
 
+import java.io.PrintWriter;
+
 import dk.xam.jbang.Settings;
+import dk.xam.jbang.Util;
 
 import picocli.CommandLine;
 
@@ -12,9 +15,11 @@ public class Alias {
 
 	@CommandLine.Command(name = "add", description = "Add alias for script reference.")
 	public Integer add(
+			@CommandLine.Option(names = { "--description",
+					"-d" }, description = "A description for the alias") String description,
 			@CommandLine.Parameters(index = "0", description = "A name for the alias", arity = "1") String name,
 			@CommandLine.Parameters(index = "1", description = "A file or URL to a Java code file", arity = "1") String scriptOrFile) {
-		Settings.addAlias(name, scriptOrFile);
+		Settings.addAlias(name, scriptOrFile, description);
 		return CommandLine.ExitCode.SOFTWARE;
 	}
 
@@ -24,7 +29,16 @@ public class Alias {
 				.keySet()
 				.stream()
 				.sorted()
-				.forEach(a -> spec.commandLine().getOut().println(a + " = " + Settings.getAliases().get(a).scriptRef));
+				.forEach(a -> {
+					PrintWriter out = spec.commandLine().getOut();
+					Settings.Alias ai = Settings.getAliases().get(a);
+					if (ai.description != null) {
+						out.println(a + " = " + ai.description);
+						out.println(Util.repeat(" ", a.length()) + "   (" + ai.scriptRef + ")");
+					} else {
+						out.println(a + " = " + ai.scriptRef);
+					}
+				});
 		return CommandLine.ExitCode.SOFTWARE;
 	}
 
