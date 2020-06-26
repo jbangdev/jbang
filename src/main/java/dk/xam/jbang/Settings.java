@@ -7,9 +7,7 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -152,10 +150,14 @@ public class Settings {
 	public static class Alias {
 		public final String scriptRef;
 		public final String description;
+		public final List<String> arguments;
+		public final Map<String, String> properties;
 
-		Alias(String scriptRef, String description) {
+		Alias(String scriptRef, String description, List<String> arguments, Map<String, String> properties) {
 			this.scriptRef = scriptRef;
 			this.description = description;
+			this.arguments = arguments;
+			this.properties = properties;
 		}
 	}
 
@@ -188,11 +190,31 @@ public class Settings {
 		return getAliasInfo().aliases;
 	}
 
-	public static void addAlias(String name, String scriptRef, String description) {
-		if (getAliases().containsKey(scriptRef)) {
-			throw new ExitException(1, "Can't create alias to another alias.");
+	public static Alias getAlias(String ref, List<String> arguments, Map<String, String> properties) {
+		HashSet<String> names = new HashSet<>();
+		Alias alias = new Alias(null, null, arguments, properties);
+		return mergeAliases(alias, ref, names);
+	}
+
+	private static Alias mergeAliases(Alias a1, String ref2, HashSet<String> names) {
+		if (names.contains(ref2)) {
+			throw new RuntimeException("Encountered alias loop on '" + ref2 + "'");
 		}
-		getAliases().put(name, new Alias(scriptRef, description));
+		Alias a2 = getAliases().get(ref2);
+		if (a2 != null) {
+			names.add(ref2);
+			a2 = mergeAliases(a2, a2.scriptRef, names);
+			List<String> args = a1.arguments != null ? a1.arguments : a2.arguments;
+			Map<String, String> props = a1.properties != null ? a1.properties : a2.properties;
+			return new Alias(a2.scriptRef, null, args, props);
+		} else {
+			return a1;
+		}
+	}
+
+	public static void addAlias(String name, String scriptRef, String description, List<String> arguments,
+			Map<String, String> properties) {
+		getAliases().put(name, new Alias(scriptRef, description, arguments, properties));
 
 		try (Writer out = Files.newBufferedWriter(getAliasesFile())) {
 			Gson parser = new GsonBuilder().setPrettyPrinting().create();

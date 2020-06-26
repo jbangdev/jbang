@@ -65,7 +65,7 @@ public class Run extends BaseScriptCommand {
 			enableInsecure();
 		}
 
-		script = prepareScript(scriptOrFile);
+		script = prepareScript(scriptOrFile, userParams, properties);
 
 		if (script.needsJar()) {
 			build(script);
@@ -250,7 +250,7 @@ public class Run extends BaseScriptCommand {
 				optionalArgs.add("--startup=DEFAULT");
 
 				File tempFile = File.createTempFile("jbang_arguments_", script.backingFile.getName());
-				Util.writeString(tempFile.toPath(), generateArgs(userParams, properties));
+				Util.writeString(tempFile.toPath(), generateArgs(script.getArguments(), script.getProperties()));
 
 				optionalArgs.add("--startup=" + tempFile.getAbsolutePath());
 
@@ -301,7 +301,7 @@ public class Run extends BaseScriptCommand {
 		}
 
 		if (!script.forJShell()) {
-			fullArgs.addAll(userParams);
+			fullArgs.addAll(script.getArguments());
 		} else if (!interactive) {
 			File tempFile = File.createTempFile("jbang_exit_", script.backingFile.getName());
 			Util.writeString(tempFile.toPath(), "/exit");

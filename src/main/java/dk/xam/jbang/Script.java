@@ -52,22 +52,34 @@ public class Script {
 	// true if in this run a jar was build/created
 	private boolean createdJar;
 
-	public Script(File backingFile, String content) throws FileNotFoundException {
+	private List<String> arguments;
+
+	private Map<String, String> properties;
+
+	public Script(File backingFile, String content, List<String> arguments, Map<String, String> properties)
+			throws FileNotFoundException {
 		this.backingFile = backingFile;
 		this.script = content;
+		this.arguments = arguments;
+		this.properties = properties;
 	}
 
-	public Script(File backingFile) throws FileNotFoundException {
+	public Script(File backingFile, List<String> arguments, Map<String, String> properties)
+			throws FileNotFoundException {
 		this.backingFile = backingFile;
+		this.arguments = arguments;
+		this.properties = properties;
 		try (Scanner sc = new Scanner(this.backingFile)) {
 			sc.useDelimiter("\\Z");
 			this.script = sc.next();
 		}
 	}
 
-	public Script(String script) {
+	public Script(String script, List<String> arguments, Map<String, String> properties) {
 		this.backingFile = null;
 		this.script = script;
+		this.arguments = arguments;
+		this.properties = properties;
 	}
 
 	private List<String> getLines() {
@@ -305,5 +317,13 @@ public class Script {
 
 	public boolean wasJarCreated() {
 		return createdJar;
+	}
+
+	public List<String> getArguments() {
+		return (arguments != null) ? arguments : Collections.emptyList();
+	}
+
+	public Map<String, String> getProperties() {
+		return (properties != null) ? properties : Collections.emptyMap();
 	}
 }

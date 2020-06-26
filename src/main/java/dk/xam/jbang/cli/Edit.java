@@ -27,8 +27,8 @@ public class Edit extends BaseScriptCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
-		script = prepareScript(scriptOrFile);
-		File project = createProjectForEdit(script, userParams, false);
+		script = prepareScript(scriptOrFile, userParams, null);
+		File project = createProjectForEdit(script, false);
 		// err.println(project.getAbsolutePath());
 		if (liveeditor == null) {
 			out.println("echo " + project.getAbsolutePath()); // quit(project.getAbsolutePath());
@@ -66,8 +66,8 @@ public class Edit extends BaseScriptCommand {
 							try {
 								// TODO only regenerate when dependencies changes.
 								info("Regenerating project.");
-								script = prepareScript(scriptOrFile);
-								createProjectForEdit(script, userParams, true);
+								script = prepareScript(scriptOrFile, userParams, null);
+								createProjectForEdit(script, true);
 							} catch (RuntimeException ee) {
 								warn("Error when re-generating project. Ignoring it, but state might be undefined: "
 										+ ee.getMessage());
@@ -88,7 +88,7 @@ public class Edit extends BaseScriptCommand {
 	}
 
 	/** Create Project to use for editing **/
-	File createProjectForEdit(Script script, List<String> userParams, boolean reload) throws IOException {
+	File createProjectForEdit(Script script, boolean reload) throws IOException {
 
 		List<String> collectDependencies = script.collectDependencies();
 		String cp = script.resolveClassPath(offline);
@@ -120,29 +120,29 @@ public class Edit extends BaseScriptCommand {
 		Path destination = new File(tmpProjectDir, "build.gradle").toPath();
 		TemplateEngine engine = Settings.getTemplateEngine();
 
-		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
+		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, script.getArguments(),
 				destination);
 
 		// setup eclipse
 		templateName = ".qute.classpath";
 		destination = new File(tmpProjectDir, ".classpath").toPath();
-		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
+		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, script.getArguments(),
 				destination);
 
 		templateName = ".qute.project";
 		destination = new File(tmpProjectDir, ".project").toPath();
-		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
+		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, script.getArguments(),
 				destination);
 
 		templateName = "main.qute.launch";
 		destination = new File(tmpProjectDir, ".eclipse/" + baseName + ".launch").toPath();
 		destination.toFile().getParentFile().mkdirs();
-		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
+		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, script.getArguments(),
 				destination);
 
 		templateName = "main-port-4004.qute.launch";
 		destination = new File(tmpProjectDir, ".eclipse/" + baseName + "-port-4004.launch").toPath();
-		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
+		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, script.getArguments(),
 				destination);
 
 		// setup vscode
@@ -150,7 +150,8 @@ public class Edit extends BaseScriptCommand {
 		destination = new File(tmpProjectDir, ".vscode/launch.json").toPath();
 		if (isNeeded(reload, destination)) {
 			destination.toFile().getParentFile().mkdirs();
-			renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
+			renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName,
+					script.getArguments(),
 					destination);
 		}
 
@@ -158,7 +159,8 @@ public class Edit extends BaseScriptCommand {
 		destination = new File(tmpProjectDir, ".vscode/settings.json").toPath();
 		if (isNeeded(reload, destination)) {
 			destination.toFile().getParentFile().mkdirs();
-			renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, userParams,
+			renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName,
+					script.getArguments(),
 					destination);
 		}
 
@@ -168,13 +170,13 @@ public class Edit extends BaseScriptCommand {
 		 * File(tmpProjectDir, ".idea/runConfigurations/" + baseName +
 		 * "-port-4004.xml").toPath(); destination.toFile().getParentFile().mkdirs();
 		 * renderTemplate(engine, collectDependencies, baseName, resolvedDependencies,
-		 * templateName, userParams, destination);
+		 * templateName, script.getArguments(), destination);
 		 *
 		 * templateName = "idea.qute.xml"; destination = new File(tmpProjectDir,
 		 * ".idea/runConfigurations/" + baseName + ".xml").toPath();
 		 * destination.toFile().getParentFile().mkdirs(); renderTemplate(engine,
 		 * collectDependencies, baseName, resolvedDependencies, templateName,
-		 * userParams, destination);
+		 * script.getArguments(), destination);
 		 */
 
 		return tmpProjectDir;

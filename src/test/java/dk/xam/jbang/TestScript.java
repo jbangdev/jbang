@@ -47,7 +47,7 @@ class TestScript {
 
 	@Test
 	void testFindDependencies() {
-		Script script = new Script(example);
+		Script script = new Script(example, null, null);
 
 		List<String> dependencies = script.collectDependencies();
 		assertEquals(2, dependencies.size());
@@ -58,8 +58,8 @@ class TestScript {
 
 	@Test
 	void testCDS() {
-		Script script = new Script("//CDS\nclass m { }");
-		Script script2 = new Script("class m { }");
+		Script script = new Script("//CDS\nclass m { }", null, null);
+		Script script2 = new Script("class m { }", null, null);
 
 		assertTrue(script.enableCDS());
 		assertFalse(script2.enableCDS());
@@ -105,7 +105,7 @@ class TestScript {
 
 	@Test
 	void testExtractOptions() {
-		Script s = new Script(example);
+		Script s = new Script(example, null, null);
 
 		assertEquals(s.collectCompileOptions(), Arrays.asList("--enable-preview", "--verbose"));
 
@@ -118,7 +118,7 @@ class TestScript {
 		Path p = output.resolve("kube-example");
 		writeString(p, example);
 
-		Script s = BaseScriptCommand.prepareScript(p.toAbsolutePath().toString());
+		Script s = BaseScriptCommand.prepareScript(p.toAbsolutePath().toString(), null, null);
 
 	}
 
