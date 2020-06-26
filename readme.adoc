@@ -32,7 +32,7 @@ image:https://asciinema.org/a/AVwA19yijKRNKEO0bJENN2ME3.svg[link=https://asciine
 
 [source, bash]
 ----
-$ jbang --init=cli hello.java
+$ jbang init --template=cli hello.java
 $ jbang hello.java Max!
 [jbang] Resolving dependencies...
 [jbang]     Resolving info.picocli:picocli:4.2.0...Done
@@ -64,8 +64,8 @@ toc::[]
 * Launch with debug enabled for instant debugging from your favorite IDE
 * Transparent launch of JavaFX Applications on Java 8 and higher.
 * Can be used for writing plugins to other cli's like `kubectl`
-* Init templates to get started easily (`jbang --init=cli hello.java`)
-* Generate gradle and IDE config with dependencies for easy editing in your favorite IDE (`jbang --edit myfile.java`)
+* Init templates to get started easily (`jbang init -t cli hello.java`)
+* Generate gradle and IDE config with dependencies for easy editing in your favorite IDE (`jbang edit myfile.java`)
 * (PLANNED) Lookup dependencies with a short-hand name, i.e. `// DEPS log4j:1.2+,picocli` for quick getting started.
 
 To use it simply install `jbang` and run `jbang yourscript.java`
@@ -215,8 +215,8 @@ $ HOMEBREW_NO_AUTO_UPDATE=1 brew install jbang
 . Verify the version.
 +
 ```bash
-$ jbang --version
-0.8.1
+$ jbang version
+0.33.0
 ```
 
 === (Experimental) Linux packages icon:linux[]
@@ -259,7 +259,7 @@ Unzip the https://github.com/jbangdev/jbang/releases/latest[latest binary releas
 
 A script is just a single `.java` file with a classic static main method or a `.jsh` file which will be passed to `jshell`.
 
-Below is an (almost) minimal example you can save in `helloworld.java` or simply run `jbang --init hellworld.java`:
+Below is an (almost) minimal example you can save in `helloworld.java` or simply run `jbang init hellworld.java`:
 
 [source, java]
 ```
@@ -310,11 +310,11 @@ Thus when running the above for the first time you will see the following warnin
 [jbang] https://github.com/jbangdev/jbang/blob/master/examples/helloworld.java is not from a trusted source thus aborting.
 If you trust the url to be safe to run are here a few suggestions:
 Limited trust:
-    jbang --trust=https://github.com/jbangdev/jbang/
+    jbang trust add https://github.com/jbangdev/jbang/
 Trust all subdomains:
-    jbang --trust=*.github.com
+    jbang trust add *.github.com
 Trust all sources (WARNING! disables url protection):
-    jbang --trust="*"
+    jbang trust add "*"
 
 For more control edit ~/.jbang/trusted-sources.json
 
@@ -322,7 +322,7 @@ For more control edit ~/.jbang/trusted-sources.json
 ----
 
 To enable running it you need to mark that url or a sub part of it as a trusted source.
-i.e. `jbang --trust=https://github.com/jbangdev/jbang/` will tell `jbang` to trust anything with that base url.
+i.e. `jbang trust add https://github.com/jbangdev/jbang/` will tell `jbang` to trust anything with that base url.
 
 You can see more in the comments of the `~/.jbang/trusted-sources.json`.
 
@@ -379,9 +379,9 @@ If you use `--interactive` `jbang` will let `jshell` enter into interactive/REPL
 
 == Init templates
 
-To get started you can run `jbang --init helloworld.java` and a simple java class with a static main is generated.
+To get started you can run `jbang init helloworld.java` and a simple java class with a static main is generated.
 
-Using `jbang --init=cli helloworld.java` you get a more complete Hello World CLI using picocli as dependencies.
+Using `jbang init --template=cli helloworld.java` you get a more complete Hello World CLI using picocli as dependencies.
 
 == Declare dependencies
 
@@ -610,7 +610,7 @@ directory using kebab-case to map the name to a proper java class name.
 i.e. If you make a file called `kubectl-myplugin` then `jbang` will assume the actual class name to launch
 will be `KubectlMyPlugin`.
 
-Note, similar is done when using `--edit`, here the symbolic link will be made so the IDE will treat it as
+Note, similar is done when using `jbang edit`, here the symbolic link will be made so the IDE will treat it as
 regular camel cased java class.
 
 Note: If you do not follow this naming pattern you will get a compile error as `javac` expect the public class name are equal to the filename.
@@ -626,30 +626,30 @@ For now this is required for `kubectl` plugin but not `git`. https://github.com/
 
 == Editing
 
-You can edit your script in your IDE by using `jbang --edit helloworld.java`. This will generate a project in a temporary location with symbolic links to your script
+You can edit your script in your IDE by using `jbang edit helloworld.java`. This will generate a project in a temporary location with symbolic links to your script
 and output the generated folder name. The easiest way to use that is to use it in a call to your IDE:
 
 [source, bash]
 ----
-code `jbang --edit helloworld.java`
+code `jbang edit helloworld.java`
 ----
 
 If you add additional dependencies to your file just re-run the edit command and the relevant files will be regenerated with the updated dependencies.
 
 NOTE: On Windows you might need elevated privileges to create symbolic links. If you don't have permissions then
-the `--edit` option will result in an error. To use it enable symbolic links for your user or run your shell/terminal as administrator
+the `edit` option will result in an error. To use it enable symbolic links for your user or run your shell/terminal as administrator
 to have this feature working.
 
 === Live Editing
 
-You can also use `--edit-live[=editor]` and `jbang` will launch your editor while watching
+You can also use `jbang edit --live[=editor]` and `jbang` will launch your editor while watching
 for file changes and regenerate the temporary project to pick up changes in dependencies.
 
-The editor used will be what is specified as argument to `--edit-live` or default to `$JBANG_EDITOR`, `$VISUAL` or `$EDITOR` in that order.
+The editor used will be what is specified as argument to `--live` or default to `$JBANG_EDITOR`, `$VISUAL` or `$EDITOR` in that order.
 
 === IDE and Editor support
 
-The `--edit` feature been tested with the following IDE's:
+The `edit` feature been tested with the following IDE's:
 
 :sicons: https://simpleicons.org/icons
 .IDE's and Editors tested with `jbang`
@@ -663,7 +663,7 @@ The `--edit` feature been tested with the following IDE's:
 |image:{sicons}/gnuemacs.svg[50,50] https://www.gnu.org/software/emacs/[Emacs] w/ https://www.spacemacs.org[Spacemacs Java]
 |===
 
-The `--edit` feature works with various IDE's - it generates a `build.gradle` to use with IDE's that understands Gradle directly.
+The `edit` feature works with various IDE's - it generates a `build.gradle` to use with IDE's that understands Gradle directly.
 For speed and consistency `jbang` also generates IDE specific settings.
 
 Currently launchers and project files are generated for Eclipse and vscode. Intellij just reads `build.gradle` for now thus
@@ -743,7 +743,7 @@ If you are using bash or zsh in your terminal you can get auto-completion by run
 
 [source, bash]
 ----
-source <(jbang --completion)
+source <(jbang completion)
 ----
 
 == Caching
@@ -752,7 +752,7 @@ In previous versions of `jbang` Java 10+ direct launch of `.java` was used, but 
 needs to do a separate compile step. Besides now working with Java 8 it also allow us to cache the compile step and thus
 launch faster on consecutive runs.
 
-The caching goes to `~/.jbang` by default, you can run `jbang --clear-cache` to remove all cache data from this folder.
+The caching goes to `~/.jbang/cache` by default, you can run `jbang cache clear` to remove all cache data from this folder.
 
 == FAQ
 
