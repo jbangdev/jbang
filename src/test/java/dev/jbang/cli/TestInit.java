@@ -90,4 +90,11 @@ public class TestInit {
 		assertThat(Util.readString(x), containsString("class xyzplug"));
 	}
 
+	@Test
+	void testCatalog() throws IOException {
+//		int result = Jbang.getCommandLine().execute("run", "jget@quintesse");
+//		int result = Jbang.getCommandLine().execute("catalog", "update");
+		int result = Jbang.getCommandLine().execute("catalog", "list", "quintesse");
+	}
+
 }

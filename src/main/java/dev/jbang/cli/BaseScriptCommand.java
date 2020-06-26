@@ -6,8 +6,6 @@ import java.io.*;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -42,7 +40,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		File scriptFile = getScriptFile(scriptResource);
 		if (scriptFile == null) {
 			// Not found as such, so let's check the aliases
-			Settings.Alias alias = Settings.getAlias(scriptResource, arguments, properties);
+			Settings.Alias alias = Util.getAlias(scriptResource, arguments, properties);
 			if (alias != null) {
 				scriptFile = getScriptFile(alias.scriptRef);
 				arguments = alias.arguments;
@@ -102,14 +100,16 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		} else {
 			String original = Util.readString(probe.toPath());
 			// TODO: move temp handling somewhere central
-			String urlHash = getStableID(original);
+			String urlHash = Util.getStableID(original);
 
 			if (original.startsWith("#!")) { // strip bash !# if exists
 				original = original.substring(original.indexOf("\n"));
 			}
 
-			File tempFile = new File(Settings.getCacheDir().toFile(),
-					"/script_cache_" + urlHash + "/" + unkebabify(probe.getName()));
+			File tempFile = Settings.getCacheDir()
+									.resolve(
+											"script_cache_" + urlHash + "/" + unkebabify(probe.getName()))
+									.toFile();
 			tempFile.getParentFile().mkdirs();
 			Util.writeString(tempFile.toPath().toAbsolutePath(), original);
 			scriptFile = tempFile;
@@ -130,8 +130,8 @@ public abstract class BaseScriptCommand extends BaseCommand {
 																				.collect(Collectors.joining(
 																						System.lineSeparator()));
 
-			String urlHash = getStableID(scriptText);
-			File cache = new File(Settings.getCacheDir().toFile(), "/stdin_cache_" + urlHash);
+			String urlHash = Util.getStableID(scriptText);
+			File cache = Settings.getCacheDir().resolve("stdin_cache_" + urlHash).toFile();
 			cache.mkdirs();
 			scriptFile = new File(cache, urlHash + ".jsh");
 			Util.writeString(scriptFile.toPath(), scriptText);
@@ -148,25 +148,6 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		}
 
 		return scriptFile;
-	}
-
-	static String getStableID(File backingFile) throws IOException {
-		return getStableID(Util.readString(backingFile.toPath()));
-	}
-
-	static String getStableID(String input) {
-		final MessageDigest digest;
-		try {
-			digest = MessageDigest.getInstance("SHA-256");
-		} catch (NoSuchAlgorithmException e) {
-			throw new ExitException(-1, e);
-		}
-		final byte[] hashbytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-		StringBuilder sb = new StringBuilder();
-		for (byte b : hashbytes) {
-			sb.append(String.format("%02x", b));
-		}
-		return sb.toString();
 	}
 
 	/**
@@ -207,8 +188,8 @@ public abstract class BaseScriptCommand extends BaseCommand {
 
 			scriptURL = swizzleURL(scriptURL);
 
-			String urlHash = getStableID(scriptURL);
-			File urlCache = new File(Settings.getCacheDir().toFile(), "/url_cache_" + urlHash);
+			String urlHash = Util.getStableID(scriptURL);
+			File urlCache = Settings.getCacheDir().resolve("url_cache_" + urlHash).toFile();
 			urlCache.mkdirs();
 			Path path = Util.downloadFileSwizzled(scriptURL, urlCache);
 

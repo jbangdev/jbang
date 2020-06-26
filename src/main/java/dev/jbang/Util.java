@@ -11,11 +11,11 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Scanner;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,6 +25,8 @@ import org.jsoup.nodes.Document;
 import com.google.gson.Gson;
 
 public class Util {
+
+	public static final String JBANG_CATALOG_JSON = "jbang-catalog.json";
 
 	static public void info(String msg) {
 		infoMsg(msg);
@@ -144,7 +146,7 @@ public class Util {
 	 *
 	 * @param fileURL HTTP URL of the file to be downloaded
 	 * @param saveDir path of the directory to save the file
-	 * @return
+	 * @return Path to the downloaded file
 	 * @throws IOException
 	 */
 	public static Path downloadFile(String fileURL, File saveDir)
@@ -228,6 +230,53 @@ public class Util {
 
 	}
 
+	/**
+	 * Downloads a file from a URL and stores it in the cache. NB: The last part of
+	 * the URL must contain the name of the file to be downloaded!
+	 *
+	 * @param fileURL     HTTP URL of the file to be downloaded
+	 * @param updateCache Retrieve the file form the URL even if it already exists
+	 *                    in the cache
+	 * @return Path to the downloaded file
+	 * @throws IOException
+	 */
+	public static Path downloadAndCacheFile(String fileURL, boolean updateCache) throws IOException {
+		fileURL = swizzleURL(fileURL);
+		String urlHash = getStableID(fileURL);
+		Path urlCache = Settings.getCacheDir().resolve("url_cache_" + urlHash);
+		String fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1,
+				fileURL.length());
+		Path file = urlCache.resolve(fileName);
+		if (updateCache || !Files.isRegularFile(file)) {
+			urlCache.toFile().mkdirs();
+			return downloadFile(fileURL, urlCache.toFile());
+		} else {
+			return urlCache.resolve(fileName);
+		}
+	}
+
+	/**
+	 * Returns a path to the file indicated by a path or URL. In case the file is
+	 * referenced by a path no action is performed and the value of updateCache is
+	 * ignored. In case the file is referenced by a URL the file will be downloaded
+	 * from that URL and stored in the cache. NB: In the case of URLs this only work
+	 * when the last part of the URL contains the name of the file to be downloaded!
+	 *
+	 * @param filePathOrURL Path or URL to the file to be retrieved
+	 * @param updateCache   Retrieve the file form the URL even if it already exists
+	 *                      in the cache
+	 * @return Path to the downloaded file
+	 * @throws IOException
+	 */
+	public static Path obtainFile(String filePathOrURL, boolean updateCache) throws IOException {
+		Path file = Paths.get(filePathOrURL);
+		if (Files.isRegularFile(file)) {
+			return file;
+		} else {
+			return downloadAndCacheFile(filePathOrURL, updateCache);
+		}
+	}
+
 	public static String swizzleURL(String url) {
 		url = url.replaceFirst("^https://github.com/(.*)/blob/(.*)$",
 				"https://raw.githubusercontent.com/$1/$2");
@@ -246,6 +295,25 @@ public class Util {
 		}
 
 		return url;
+	}
+
+	public static String getStableID(File backingFile) throws IOException {
+		return getStableID(readString(backingFile.toPath()));
+	}
+
+	public static String getStableID(String input) {
+		final MessageDigest digest;
+		try {
+			digest = MessageDigest.getInstance("SHA-256");
+		} catch (NoSuchAlgorithmException e) {
+			throw new ExitException(-1, e);
+		}
+		final byte[] hashbytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+		StringBuilder sb = new StringBuilder();
+		for (byte b : hashbytes) {
+			sb.append(String.format("%02x", b));
+		}
+		return sb.toString();
 	}
 
 	private static String extractFileFromGist(String url) {
@@ -307,4 +375,101 @@ public class Util {
 		Map<String, Map<String, String>> files;
 	}
 
+	public static Settings.Alias getAlias(String ref, List<String> arguments, Map<String, String> properties)
+			throws IOException {
+		HashSet<String> names = new HashSet<>();
+		Settings.Alias alias = new Settings.Alias(null, null, arguments, properties);
+		Settings.Alias result = mergeAliases(alias, ref, names);
+		return result.scriptRef != null ? result : null;
+	}
+
+	private static Settings.Alias mergeAliases(Settings.Alias a1, String ref2, HashSet<String> names)
+			throws IOException {
+		if (names.contains(ref2)) {
+			throw new RuntimeException("Encountered alias loop on '" + ref2 + "'");
+		}
+		String[] parts = ref2.split("@");
+		if (parts.length > 2 || parts[0].isEmpty()) {
+			throw new RuntimeException("Invalid alias name '" + ref2 + "'");
+		}
+		Settings.Alias a2;
+		if (parts.length == 1) {
+			a2 = Settings.getAliases().get(ref2);
+		} else {
+			if (parts[1].isEmpty()) {
+				throw new RuntimeException("Invalid alias name '" + ref2 + "'");
+			}
+			a2 = getCatalogAlias(parts[1], parts[0]);
+		}
+		if (a2 != null) {
+			names.add(ref2);
+			a2 = mergeAliases(a2, a2.scriptRef, names);
+			List<String> args = a1.arguments != null ? a1.arguments : a2.arguments;
+			Map<String, String> props = a1.properties != null ? a1.properties : a2.properties;
+			return new Settings.Alias(a2.scriptRef, null, args, props);
+		} else {
+			return a1;
+		}
+	}
+
+	public static Settings.Aliases getCatalogAliasesByRef(String catalogRef, boolean updateCache) throws IOException {
+		if (!catalogRef.endsWith(".json")) {
+			if (!catalogRef.endsWith("/")) {
+				catalogRef += "/";
+			}
+			catalogRef += JBANG_CATALOG_JSON;
+		}
+		Path catalogPath = obtainFile(catalogRef, updateCache);
+		Settings.Aliases aliases = Settings.getAliasesFromCatalog(catalogPath, updateCache);
+		String catalogBaseRef = catalogRef.substring(0, catalogRef.lastIndexOf('/'));
+		if (aliases.baseRef != null) {
+			if (!aliases.baseRef.startsWith("/") && !aliases.baseRef.contains(":")) {
+				aliases.baseRef = catalogBaseRef + "/" + aliases.baseRef;
+			}
+		} else {
+			aliases.baseRef = catalogBaseRef;
+		}
+		return aliases;
+	}
+
+	public static Settings.Aliases getCatalogAliasesByName(String catalogName, boolean updateCache) throws IOException {
+		Settings.Catalog catalog = Settings.getCatalogs().get(catalogName);
+		if (catalog != null) {
+			Settings.Aliases aliases = getCatalogAliasesByRef(catalog.catalogRef, false);
+			return aliases;
+		} else {
+			throw new RuntimeException("Unknown catalog '" + catalogName + "'");
+		}
+	}
+
+	public static Settings.Alias getCatalogAlias(String catalogName, String aliasName) throws IOException {
+		Settings.Aliases aliases = getCatalogAliasesByName(catalogName, false);
+		return getCatalogAlias(aliases, aliasName);
+	}
+
+	public static Settings.Alias getCatalogAlias(Settings.Aliases aliases, String aliasName) throws IOException {
+		Settings.Alias alias = aliases.aliases.get(aliasName);
+		if (alias == null) {
+			throw new RuntimeException("No alias found with name '" + aliasName + "'");
+		}
+		if (aliases.baseRef != null && !isAbsoluteRef(alias.scriptRef)) {
+			String ref = aliases.baseRef;
+			if (!ref.endsWith("/")) {
+				ref += "/";
+			}
+			if (alias.scriptRef.startsWith("./")) {
+				ref += alias.scriptRef.substring(2);
+			} else {
+				ref += alias.scriptRef;
+			}
+			alias = new Settings.Alias(ref, alias.description, alias.arguments, alias.properties);
+		}
+		// TODO if we have to combine the baseUrl with the scriptRef
+		// we need to make a copy of the Alias with the full URL
+		return alias;
+	}
+
+	private static boolean isAbsoluteRef(String ref) {
+		return ref.startsWith("/") || ref.contains(":");
+	}
 }

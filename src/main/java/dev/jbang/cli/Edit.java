@@ -106,7 +106,7 @@ public class Edit extends BaseScriptCommand {
 		name = unkebabify(name);
 
 		File tmpProjectDir = new File(baseDir, name + "_jbang_" +
-				getStableID(originalFile.getAbsolutePath()));
+				Util.getStableID(originalFile.getAbsolutePath()));
 		tmpProjectDir.mkdirs();
 		tmpProjectDir = new File(tmpProjectDir, stripPrefix(name));
 		tmpProjectDir.mkdirs();

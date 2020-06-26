@@ -123,7 +123,7 @@ public class Run extends BaseScriptCommand {
 	void build(Script script) throws IOException {
 		File baseDir = new File(Settings.getCacheDir().toFile(), "jars");
 		File tmpJarDir = new File(baseDir, script.getBackingFile().getName() +
-				"." + getStableID(script.getBackingFile()));
+				"." + Util.getStableID(script.getBackingFile()));
 		tmpJarDir.mkdirs();
 
 		File outjar = new File(tmpJarDir.getParentFile(), tmpJarDir.getName() + ".jar");
