@@ -14,8 +14,8 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "init", description = "Initialize a .java/.jsh script.")
 public class Init extends BaseScriptCommand {
 
-	@CommandLine.Option(names = {
-			"--template" }, description = "Init script with a java class useful for scripting", defaultValue = "hello")
+	@CommandLine.Option(names = { "--template",
+			"-t" }, description = "Init script with a java class useful for scripting", defaultValue = "hello")
 	String initTemplate;
 
 	@Override
