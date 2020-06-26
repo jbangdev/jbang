@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Scanner;
@@ -301,6 +302,11 @@ public class Util {
 			scanner.useDelimiter("\\A");
 			return scanner.hasNext() ? scanner.next() : "";
 		}
+	}
+
+	public static String repeat(String s, int times) {
+		// If Java 11 becomes the default we can change this to String::repeat
+		return String.join("", Collections.nCopies(times, s));
 	}
 
 	static class Gist {

@@ -151,9 +151,11 @@ public class Settings {
 
 	public static class Alias {
 		public final String scriptRef;
+		public final String description;
 
-		Alias(String scriptRef) {
+		Alias(String scriptRef, String description) {
 			this.scriptRef = scriptRef;
+			this.description = description;
 		}
 	}
 
@@ -186,11 +188,11 @@ public class Settings {
 		return getAliasInfo().aliases;
 	}
 
-	public static void addAlias(String name, String scriptRef) {
+	public static void addAlias(String name, String scriptRef, String description) {
 		if (getAliases().containsKey(scriptRef)) {
 			throw new ExitException(1, "Can't create alias to another alias.");
 		}
-		getAliases().put(name, new Alias(scriptRef));
+		getAliases().put(name, new Alias(scriptRef, description));
 
 		try (Writer out = Files.newBufferedWriter(getAliasesFile())) {
 			Gson parser = new GsonBuilder().setPrettyPrinting().create();
