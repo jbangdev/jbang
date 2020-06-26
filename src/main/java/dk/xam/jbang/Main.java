@@ -20,7 +20,7 @@ public class Main {
 		List<String> remainingArgs = new ArrayList<>();
 		boolean foundParam = false;
 		for (String arg : args) {
-			if (!arg.startsWith("-")) {
+			if (!arg.startsWith("-") || arg.equals("-") || arg.equals("--")) {
 				foundParam = true;
 			}
 			if (foundParam) {
