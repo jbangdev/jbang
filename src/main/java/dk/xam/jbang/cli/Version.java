@@ -1,5 +1,9 @@
 package dk.xam.jbang.cli;
 
+import java.io.PrintWriter;
+
+import dk.xam.jbang.Settings;
+
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "version", description = "Display version info.")
@@ -7,7 +11,15 @@ public class Version extends BaseCommand {
 
 	@Override
 	public Integer doCall() {
-		spec.commandLine().getOut().println(dk.xam.jbang.BuildConfig.VERSION);
+		PrintWriter out = spec.commandLine().getOut();
+
+		out.println(dk.xam.jbang.BuildConfig.VERSION);
+
+		if (isVerbose()) {
+			out.println("Cache: " + Settings.getCacheDir());
+			out.println("Config: " + Settings.getConfigDir());
+			out.println("Repository:" + Settings.getLocalMavenRepo());
+		}
 		return CommandLine.ExitCode.SOFTWARE;
 	}
 }

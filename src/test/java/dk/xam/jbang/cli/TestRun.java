@@ -324,6 +324,11 @@ public class TestRun {
 	}
 
 	@Test
+	void testNotThere() throws IOException {
+
+	}
+
+	@Test
 	void testFetchFromRedirected(@TempDir Path dir) throws IOException {
 		Path x = Util.downloadFileSwizzled("https://git.io/JfQYC",
 				dir.toFile());
