@@ -46,4 +46,4 @@ You can see the current version by running `./gradlew printVersion` - if you hav
 
 For pull-requests don't try and trigger bump of version; we'll apply that once its time for release.
 
-Note: The `dk.xam.jbang.VersionProvider` class will show a compile error in IDE's but ignore that as the `BUILDCONFIG` class does gets generated during the Gradle build.
+Note: The `dev.jbang.VersionProvider` class will show a compile error in IDE's but ignore that as the `BUILDCONFIG` class does gets generated during the Gradle build.

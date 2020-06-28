@@ -39,4 +39,4 @@ export JBANG_FILE="$1"
 
 
 ## run it using command substitution to have just the user process once jbang is done
-eval "exec $(${JAVA_EXEC} ${JBANG_JAVA_OPTIONS} -classpath ${jarPath} dk.xam.jbang.Main "$@")"
+eval "exec $(${JAVA_EXEC} ${JBANG_JAVA_OPTIONS} -classpath ${jarPath} dev.jbang.Main "$@")"
