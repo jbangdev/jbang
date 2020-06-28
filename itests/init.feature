@@ -6,9 +6,9 @@ When command('jbang init $SCRATCH/test.java')
 * def contents = read(scratch + '/test.java')
 * match contents contains "class test"
 * command('jbang $SCRATCH/test.java')
-* match out contains "[jbang] Building jar"
+* match err == "[jbang] Building jar...\n"
 * command('jbang $SCRATCH/test.java')
-* match out !contains "[jbang] Building jar"
+* match err !contains "[jbang] Building jar"
 
 
 
