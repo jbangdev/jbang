@@ -14,6 +14,7 @@ plugins {
 
 repositories {
 	jcenter()
+	maven { url 'https://jitpack.io' }
 }
 
 dependencies {
@@ -41,6 +42,10 @@ dependencies {
 	testImplementation(
 			'org.hamcrest:hamcrest-library:2.1'
 	)
+
+	//testCompile 'com.github.maxandersen.karate:karate-junit:19e06766'
+	//testCompile 'com.github.maxandersen.karate:karate-apache:19e06766'
+	testCompile 'com.github.maxandersen.karate:karate-netty:19e06766'
 }
 
 // to enable reproducible builds
@@ -125,6 +130,11 @@ shadowJar {
 
 test {
 	useJUnitPlatform()
+}
+
+task karateExecute(type: JavaExec) {
+	classpath = sourceSets.test.runtimeClasspath
+	main = System.properties.getProperty('mainClass')
 }
 
 task copyResources(type: Copy) {
