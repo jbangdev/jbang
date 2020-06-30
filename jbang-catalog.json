@@ -1,0 +1,123 @@
+{
+  "aliases": {
+    "undertow": {
+      "scriptRef": "undertow.java"
+    },
+    "records": {
+      "scriptRef": "records.java"
+    },
+    "tz": {
+      "scriptRef": "tz.java"
+    },
+    "vertx": {
+      "scriptRef": "vertx.java"
+    },
+    "classpath_example": {
+      "scriptRef": "classpath_example.jsh"
+    },
+    "hibernate": {
+      "scriptRef": "hibernate.java"
+    },
+    "example": {
+      "scriptRef": "example"
+    },
+    "docker": {
+      "scriptRef": "docker.java"
+    },
+    "smee": {
+      "scriptRef": "smee.java"
+    },
+    "analytics": {
+      "scriptRef": "analytics.java"
+    },
+    "update_catalog": {
+      "scriptRef": "update_catalog.java"
+    },
+    "camel": {
+      "scriptRef": "camel.java"
+    },
+    "checksum": {
+      "scriptRef": "checksum.java"
+    },
+    "jfxtiles": {
+      "scriptRef": "jfxtiles.java"
+    },
+    "webdriver": {
+      "scriptRef": "webdriver.java"
+    },
+    "jetty": {
+      "scriptRef": "jetty.jsh"
+    },
+    "scripts": {
+      "scriptRef": "scripts"
+    },
+    "lang": {
+      "scriptRef": "lang.java"
+    },
+    "shrinkwrap": {
+      "scriptRef": "shrinkwrap.java"
+    },
+    "ratpack": {
+      "scriptRef": "ratpack.java"
+    },
+    "asciidoc": {
+      "scriptRef": "asciidoc.java"
+    },
+    "helloworld": {
+      "scriptRef": "helloworld.jsh"
+    },
+    "urldep": {
+      "scriptRef": "urldep.java"
+    },
+    "imap": {
+      "scriptRef": "imap.java"
+    },
+    "sparkjava": {
+      "scriptRef": "sparkjava.java"
+    },
+    "asciidoctor": {
+      "scriptRef": "asciidoctor.java"
+    },
+    "plantuml": {
+      "scriptRef": "plantuml.java"
+    },
+    "inetTest": {
+      "scriptRef": "inetTest.java"
+    },
+    "script": {
+      "scriptRef": "script.java"
+    },
+    "piping": {
+      "scriptRef": "piping.java"
+    },
+    "findmodule": {
+      "scriptRef": "findmodule.java"
+    },
+    "junitrun": {
+      "scriptRef": "junitrun.java"
+    },
+    "resteasyclient": {
+      "scriptRef": "resteasyclient.java"
+    },
+    "progress": {
+      "scriptRef": "progress.java"
+    },
+    "githubinfo": {
+      "scriptRef": "githubinfo.java"
+    },
+    "envdetector": {
+      "scriptRef": "envdetector.java"
+    },
+    "gh_fetch_release_assets": {
+      "scriptRef": "gh_fetch_release_assets.java"
+    },
+    "jfx": {
+      "scriptRef": "jfx.java"
+    },
+    "junit-run": {
+      "scriptRef": "junit-run.java"
+    }
+  },
+  "baseRef": "examples",
+  "description": "JBang example scripts"
+}
