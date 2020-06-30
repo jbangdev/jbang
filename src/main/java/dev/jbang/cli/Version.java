@@ -12,7 +12,7 @@ public class Version extends BaseCommand {
 	public Integer doCall() {
 		PrintWriter out = spec.commandLine().getOut();
 
-		out.println(dk.xam.jbang.BuildConfig.VERSION);
+		out.println(dev.jbang.BuildConfig.VERSION);
 
 		if (isVerbose()) {
 			out.println("Cache: " + Settings.getCacheDir());
