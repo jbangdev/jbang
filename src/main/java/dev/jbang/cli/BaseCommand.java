@@ -6,6 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import dev.jbang.ExitException;
+
 import picocli.CommandLine;
 
 public abstract class BaseCommand implements Callable<Integer> {

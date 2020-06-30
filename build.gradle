@@ -63,7 +63,7 @@ spotless {
 		endWithNewline()
 	}
 	java {
-		importOrder 'java', 'javax', 'org', 'com', 'dk.xam', ''
+		importOrder 'java', 'javax', 'org', 'com', 'dev.jbang', ''
 		removeUnusedImports()
 		eclipse().configFile "misc/eclipse_formatting_nowrap.xml"
 	}
@@ -94,7 +94,7 @@ distributions {
 jar {
 	manifest {
 		attributes (
-				'Main-Class': 'dk.xam.jbang.Main',
+				'Main-Class': 'dev.jbang.Main',
 		)
 	}
 	}
@@ -122,7 +122,7 @@ shadowJar {
 	}
 	mergeServiceFiles()
 	manifest {
-		attributes 'Main-Class': 'dk.xam.jbang.Main'
+		attributes 'Main-Class': 'dev.jbang.Main'
 	}
 	// warning is printed about deprecation in 7.0 but if I fix this shadowjar turns into a bogus file
 	archiveName = "${baseName}.${extension}"
@@ -274,6 +274,6 @@ build.dependsOn(scoop)
 build.dependsOn(container)
 build.dependsOn(spec)
 
-group = "dk.xam.jbang"
+group = "dev.jbang"
 sourceCompatibility = '8'
 targetCompatibility = '8'
