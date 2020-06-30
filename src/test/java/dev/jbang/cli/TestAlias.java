@@ -19,6 +19,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.Settings;
+
 import picocli.CommandLine;
 
 public class TestAlias {

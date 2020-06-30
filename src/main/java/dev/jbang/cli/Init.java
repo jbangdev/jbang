@@ -7,6 +7,7 @@ import java.nio.file.Files;
 
 import dev.jbang.ExitException;
 import dev.jbang.Settings;
+
 import io.quarkus.qute.Template;
 import picocli.CommandLine;
 

@@ -6,6 +6,7 @@ import java.util.Map;
 
 import dev.jbang.Settings;
 import dev.jbang.Util;
+
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "alias", description = "Manage aliases.")

@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.Settings;
+
 import picocli.CommandLine;
 
 class TestArguments {

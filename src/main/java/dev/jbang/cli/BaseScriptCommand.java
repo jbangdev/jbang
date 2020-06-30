@@ -18,6 +18,7 @@ import dev.jbang.ExitException;
 import dev.jbang.Script;
 import dev.jbang.Settings;
 import dev.jbang.Util;
+
 import picocli.CommandLine;
 
 public abstract class BaseScriptCommand extends BaseCommand {

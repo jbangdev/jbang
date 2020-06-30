@@ -3,6 +3,7 @@ package dev.jbang.cli;
 import java.io.PrintWriter;
 
 import dev.jbang.Settings;
+
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "version", description = "Display version info.")

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import dev.jbang.Settings;
+
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "trust", description = "Manage trust domains.")
