@@ -71,6 +71,10 @@ public class Util {
 	private static final Pattern mainClassPattern = Pattern.compile(
 			"(?sm)class *(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*) .*static void main");
 
+	public static boolean isWindows() {
+		return System.getProperty("os.name").toLowerCase().contains("windows");
+	}
+
 	/**
 	 * Download file from url but will swizzle output for sites that are known to
 	 * possibly embed code (i.e. twitter and carbon)
