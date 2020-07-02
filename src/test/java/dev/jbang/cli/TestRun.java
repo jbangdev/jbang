@@ -155,7 +155,7 @@ public class TestRun {
 		Jbang jbang = new Jbang();
 		String arg = new File(examplesTestFolder, "classpath_example.java").getAbsolutePath();
 		CommandLine.ParseResult pr = new CommandLine(jbang)	.setStopAtPositional(true)
-															.parseArgs("run", "-Dwonka=panda", "-Dquoted=\"see this\"",
+															.parseArgs("run", "-Dwonka=panda", "-Dquoted=see this",
 																	arg, "-Dafter=wonka");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
@@ -167,7 +167,11 @@ public class TestRun {
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("-Dwonka=panda"));
-		assertThat(result, containsString("-Dquoted=\"see this\""));
+		if (Util.isWindows()) {
+			assertThat(result, containsString("^\"-Dquoted=see this^\""));
+		} else {
+			assertThat(result, containsString("\"-Dquoted=see this\""));
+		}
 		String[] split = result.split("example.java");
 		assertEquals(split.length, 2);
 		assertThat(split[0], not(containsString("after=wonka")));
@@ -194,6 +198,21 @@ public class TestRun {
 		String s = run.generateCommandLine(BaseScriptCommand.prepareScript(url, run.userParams, run.properties));
 
 		assertThat(s, not(containsString("file:")));
+	}
+
+	@Test
+	public void testMetaCharacters() throws IOException {
+		String url = new File(examplesTestFolder, "classpath_example.java").toURI().toString();
+		Jbang jbang = new Jbang();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", url, " ~!@#$%^&*()-+\\:;'`<>?/,.{}[]\"");
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		String s = run.generateCommandLine(BaseScriptCommand.prepareScript(url, run.userParams, run.properties));
+		if (Util.isWindows()) {
+			assertThat(s, containsString("^\" ~^!@#$^%^^^&*^(^)-+\\:;'`^<^>?/,.{}[]\\^\"^\""));
+		} else {
+			assertThat(s, containsString(" ~\\!@#\\$%^&*()-+\\\\:;'\\`<>?/,.{}[]\\\""));
+		}
 	}
 
 	@Test

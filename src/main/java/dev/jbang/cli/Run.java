@@ -259,7 +259,7 @@ public class Run extends BaseScriptCommand {
 				}
 
 			} else {
-				addPropertyFlags("-D", optionalArgs);
+				addPropertyFlags(script.getProperties(), "-D", optionalArgs);
 
 				// optionalArgs.add("--source 11");
 				if (debug()) {
@@ -301,7 +301,7 @@ public class Run extends BaseScriptCommand {
 		}
 
 		if (!script.forJShell()) {
-			fullArgs.addAll(script.getArguments());
+			addJavaArgs(script.getArguments(), fullArgs);
 		} else if (!interactive) {
 			File tempFile = File.createTempFile("jbang_exit_", script.backingFile.getName());
 			Util.writeString(tempFile.toPath(), "/exit");
@@ -316,16 +316,9 @@ public class Run extends BaseScriptCommand {
 		return master.map(Boolean::booleanValue).orElse(local);
 	}
 
-	private void addPropertyFlags(String def, List<String> optionalArgs) {
-		properties.forEach((k, e) -> {
-			optionalArgs.add(def + k + "=" + e);
-		});
-	}
-
 	/** based on jar what will the binary image name be. **/
 	private File getImageName(File outjar) {
-
-		if (getProperty("os.name").toLowerCase().startsWith("windows")) {
+		if (Util.isWindows()) {
 			return new File(outjar.toString() + ".exe");
 		} else {
 			return new File(outjar.toString() + ".bin");
@@ -339,6 +332,32 @@ public class Run extends BaseScriptCommand {
 			mainClass.insert(0, classfile.getFileName().toString() + ".");
 		}
 		return mainClass.toString();
+	}
+
+	private void addPropertyFlags(Map<String, String> properties, String def, List<String> result) {
+		properties.forEach((k, e) -> {
+			result.add(escapeArgument(def + k + "=" + e));
+		});
+	}
+
+	private void addJavaArgs(List<String> args, List<String> result) {
+		args.forEach(arg -> {
+			result.add(escapeArgument(arg));
+		});
+	}
+
+	private String escapeArgument(String arg) {
+		if (Util.isWindows()) {
+			// Windows quoting is just weird
+			arg = arg.replaceAll("([()%!^<>&|])", "^$1");
+			arg = arg.replaceAll("([\"])", "\\\\^$1");
+			return "^\"" + arg + "^\"";
+		} else {
+			// Can't use single quotes because there's no way to escape single quotes in a
+			// single-quoted string
+			arg = arg.replaceAll("([$`\\\\\"!])", "\\\\$1");
+			return "\"" + arg + "\"";
+		}
 	}
 
 	String generateArgs(List<String> args, Map<String, String> properties) {
@@ -374,7 +393,7 @@ public class Run extends BaseScriptCommand {
 
 	private static String resolveInEnv(String env, String cmd) {
 		if (getenv(env) != null) {
-			if (getProperty("os.name").toLowerCase().startsWith("windows")) {
+			if (Util.isWindows()) {
 				cmd = cmd + ".exe";
 			}
 			return new File(getenv(env)).toPath().resolve("bin").resolve(cmd).toAbsolutePath().toString();
