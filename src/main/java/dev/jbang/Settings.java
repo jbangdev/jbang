@@ -25,7 +25,7 @@ public class Settings {
 	public static final String TRUSTED_SOURCES_JSON = "trusted-sources.json";
 	public static final String DEPENDENCY_CACHE_TXT = "dependency_cache.txt";
 
-	final public static String CP_SEPARATOR = Util.isWindows() ? ";" : ":";
+	final public static String CP_SEPARATOR = File.pathSeparator;
 
 	private static TrustedSources trustedSources;
 
