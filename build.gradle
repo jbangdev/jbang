@@ -84,7 +84,7 @@ distributions {
 			}
 			from('src/main/scripts') {
 				include 'jbang'
-				include 'jbang.bat'
+				include 'jbang.cmd'
 				into 'bin'
 			}
 		}

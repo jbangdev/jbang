@@ -1,13 +1,15 @@
 Feature: init
 
 Scenario: init of file and run
-When command('jbang init $SCRATCH/test.java') 
+# have to manually use 'scratch' as can't use $SCRATCH nor %SCRATCH% 
+# to be cross platform.
+When command('jbang init ' + scratch + '/test.java') 
 * match exit == 0
 * def contents = read(scratch + '/test.java')
 * match contents contains "class test"
-* command('jbang $SCRATCH/test.java')
+* command('jbang ' + scratch + '/test.java')
 * match err == "[jbang] Building jar...\n"
-* command('jbang $SCRATCH/test.java')
+* command('jbang ' + scratch + '/test.java')
 * match err !contains "[jbang] Building jar"
 
 

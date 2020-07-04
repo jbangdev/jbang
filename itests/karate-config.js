@@ -37,7 +37,7 @@ function fn() {
         }
     
     config.javaversion = version;
-
+    config.windows = java.lang.System.getProperty("os.name").toLowerCase().contains("win");
     
     return config;
   }

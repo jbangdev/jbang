@@ -21,7 +21,7 @@ abs_jbang_path=$(resolve_symlink $(absolute_path $0))
 
 ## when mingw/git bash or cygwin fall out to just running the bat file.
 if [[ $(uname) == CYGWIN* ]] || [[ $(uname) == MINGW* ]]; then
-$(dirname $abs_jbang_path)/jbang.bat $*
+$(dirname $abs_jbang_path)/jbang.cmd $*
 exit $?
 fi
 
