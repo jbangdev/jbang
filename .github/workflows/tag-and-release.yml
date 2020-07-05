@@ -28,6 +28,7 @@ jobs:
           pastdir=`pwd`
           cd itests
           ./test_suite.sh
+          ./itests.sh
           cd $pastdir
       - name: tag-and-release
         env:

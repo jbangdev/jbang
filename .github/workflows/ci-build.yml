@@ -30,6 +30,20 @@ jobs:
           java-version: 8
       - name: build-gradle
         run: ./gradlew build test install --build-cache --scan -s
+      - name: integration-test
+        if: runner.os != 'Windows'
+        run: |
+          export PATH=`pwd`/build/install/jbang/bin:$PATH
+          cd itests
+          ./test_suite.sh
+          ./itests.sh
+      - name: add-to-path
+        run: echo "::add-path::../build/install/jbang/bin"
+      - name: integration-test-windows
+        if: runner.os == 'Windows'
+        working-directory: itests
+        run: |
+          .\itests.cmd
       - name: build-choco-package
         if: runner.os == 'Windows'
         uses: actions/setup-dotnet@v1
@@ -38,8 +52,8 @@ jobs:
       - name: build-choco
         if: runner.os == 'Windows'
         run: |
-            powershell
-            choco pack build/choco/jbang.nuspec
+          powershell
+          choco pack build/choco/jbang.nuspec
       - name: Archive build results
         uses: actions/upload-artifact@v1
         if: always()
@@ -52,12 +66,7 @@ jobs:
         with:
           name: jbang-${{ github.sha }}
           path: build/install/jbang
-      - name: integration-test
-        if: runner.os != 'Windows'
-        run: |
-          export PATH=`pwd`/build/install/jbang/bin:$PATH
-          cd itests
-          ./test_suite.sh
+
   testing:
     needs: build
     strategy:
