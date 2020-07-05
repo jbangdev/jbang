@@ -3,7 +3,7 @@ Feature: run
 Scenario: should fail on missing file
 * command('jbang notthere.java')
 * match err contains 'Could not read script argument notthere.java'
-* match exit == 0 // TODO: actually should not be 0
+* match exit == 1
 
 Scenario: parameter passing
 * command('jbang helloworld.java jbangtest')

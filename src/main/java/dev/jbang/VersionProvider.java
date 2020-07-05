@@ -12,6 +12,8 @@ public class VersionProvider implements CommandLine.IVersionProvider, CommandLin
 	public int getExitCode(Throwable t) {
 		if (t instanceof ExitException) {
 			return ((ExitException) t).getStatus();
+		} else if (t instanceof CommandLine.ParameterException) {
+			return CommandLine.ExitCode.USAGE;
 		}
 		return CommandLine.ExitCode.SOFTWARE;
 	}
