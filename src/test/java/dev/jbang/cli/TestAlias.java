@@ -107,6 +107,12 @@ public class TestAlias {
 	}
 
 	@Test
+	void testGetAliasNone() throws IOException {
+		Settings.Alias alias = Settings.getAlias("dummy-alias!", null, null);
+		assertThat(alias, nullValue());
+	}
+
+	@Test
 	void testGetAliasOne() throws IOException {
 		Settings.Alias alias = Settings.getAlias("one", null, null);
 		assertThat(alias, notNullValue());
