@@ -193,7 +193,8 @@ public class Settings {
 	public static Alias getAlias(String ref, List<String> arguments, Map<String, String> properties) {
 		HashSet<String> names = new HashSet<>();
 		Alias alias = new Alias(null, null, arguments, properties);
-		return mergeAliases(alias, ref, names);
+		Alias result = mergeAliases(alias, ref, names);
+		return result.scriptRef != null ? result : null;
 	}
 
 	private static Alias mergeAliases(Alias a1, String ref2, HashSet<String> names) {
