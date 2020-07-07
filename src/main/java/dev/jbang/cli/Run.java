@@ -195,7 +195,9 @@ public class Run extends BaseScriptCommand {
 			optionList.add("--enable-https");
 
 			String classpath = script.resolveClassPath(offline);
-			optionList.add("--class-path=" + classpath);
+			if (!classpath.trim().isEmpty()) {
+				optionList.add("--class-path=" + classpath);
+			}
 
 			optionList.add("-jar");
 			optionList.add(outjar.toString());
