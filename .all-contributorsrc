@@ -154,6 +154,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "ssaarinen",
+      "name": "Samuli Saarinen",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/384839?v=4",
+      "profile": "https://github.com/ssaarinen",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,
