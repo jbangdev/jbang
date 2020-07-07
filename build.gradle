@@ -55,6 +55,7 @@ tasks.withType(AbstractArchiveTask) {
 }
 
 spotless {
+	lineEndings 'UNIX'
 	format 'misc', {
 		target '**/*.gradle', '**/*.md', '**/.gitignore'
 		targetExclude 'CONTRIBUTORS.md', 'src/main/scripts/container/README.md', 'build/container/README.md' // all-contributor bot adds non-indented code
