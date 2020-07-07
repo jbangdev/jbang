@@ -38,10 +38,13 @@ public class Jbang extends BaseCommand {
 	}
 
 	public static CommandLine getCommandLine(PrintWriter localout, PrintWriter localerr) {
-		return new CommandLine(new Jbang())	.setExitCodeExceptionMapper(new VersionProvider())
-											.setStopAtPositional(true)
-											.setOut(localout)
-											.setErr(localerr);
+		CommandLine cl = new CommandLine(new Jbang());
+
+		return cl	.setExitCodeExceptionMapper(new VersionProvider())
+					.setParameterExceptionHandler(new DeprecatedMessageHandler(cl.getParameterExceptionHandler()))
+					.setStopAtPositional(true)
+					.setOut(localout)
+					.setErr(localerr);
 	}
 
 	static List<MavenCoordinate> findDeps(File pom) {

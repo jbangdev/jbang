@@ -86,7 +86,7 @@ jobs:
         run: |
           java -version
           chmod +x ./build/install/jbang/bin/jbang
-          ./build/install/jbang/bin/jbang --init=cli helloworld.java
+          ./build/install/jbang/bin/jbang init --template=cli helloworld.java
           ./build/install/jbang/bin/jbang helloworld.java
       - name: integration-test
         if: runner.os != 'Windows'

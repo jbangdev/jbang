@@ -2,6 +2,7 @@ package dev.jbang.cli;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,6 +34,14 @@ public class TestInit {
 
 		MatcherAssert.assertThat(Util.readString(x), containsString("picocli"));
 
+	}
+
+	@Test
+	void testOldInit(@TempDir Path outputDir) throws IOException {
+
+		Path x = outputDir.resolve("nonexist.java");
+		String s = x.toString();
+		assertEquals(Jbang.getCommandLine().execute("--init", s), 2);
 	}
 
 	@Test

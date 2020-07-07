@@ -18,8 +18,10 @@ function fn() {
         // provide default scratch directory for temporary content
         !('SCRATCH' in env) && (env.SCRATCH = sc)
         // set JBANG_REPO to not mess with users own ~/.m2
-        !('JBANG_REPO' in env) && (env.JBANG_REPO = sc + "/m2")
-        !('JBANG_DIR' in env) && (env.JBANG_DIR = sc + "/jbang")
+        sep = java.io.File.separator;
+
+        !('JBANG_REPO' in env) && (env.JBANG_REPO = sc + sep + "m2")
+        !('JBANG_DIR' in env) && (env.JBANG_DIR = sc + sep + "jbang")
         
         var proc = karate.fork({ redirectErrorStream: false, useShell: true, line: line, env: env});
         proc.waitSync();
