@@ -54,7 +54,7 @@ Instant cli app generated built using java and picocli as a dependency that was 
 * Compiled jar and Dependency resolution caching
 * Launch with debug enabled for instant debugging from your favorite IDE
 * Init templates to get started easily (`jbang --init=cli hello.java`)
-* Generate gradle and IDE config with dependencies for easy editing in your favorite IDE (`jbang --edit myfile.java`)
+* Generate gradle and IDE config with dependencies for easy editing in your favorite IDE (`jbang edit myfile.java`)
 * (PLANNED) Lookup dependencies with a short-hand name, i.e. `// DEPS log4j:1.2+,picocli` for quick getting started.
 
 To use it simply install `jbang` and run `jbang yourscript.java`
