@@ -198,9 +198,9 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			if (!Settings.getTrustedSources().isURLTrusted(uri)) {
 				throw new ExitException(10, scriptURL + " is not from a trusted source thus aborting.\n" +
 						"If you trust the url to be safe to run are here a few suggestions:\n" +
-						"Limited trust:\n    jbang --trust=" + goodTrustURL(scriptURL) + "\n" +
-						"Trust all subdomains:\n    jbang --trust=" + "*." + uri.getAuthority() + "\n" +
-						"Trust all sources (WARNING! disables url protection):\n    jbang --trust=\"*\"" + "\n" +
+						"Limited trust:\n    jbang trust add " + goodTrustURL(scriptURL) + "\n" +
+						"Trust all subdomains:\n    jbang trust add " + "*." + uri.getAuthority() + "\n" +
+						"Trust all sources (WARNING! disables url protection):\n    jbang trust add \"*\"" + "\n" +
 						"\nFor more control edit ~/.jbang/trusted-sources.json" + "\n");
 			}
 
