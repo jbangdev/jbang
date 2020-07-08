@@ -89,6 +89,43 @@ public class TestRun {
 	}
 
 	@Test
+	void testHelloWorldJar() throws IOException {
+
+		environmentVariables.clear("JAVA_HOME");
+		Jbang jbang = new Jbang();
+
+		String jar = new File(examplesTestFolder, "helloworld.jar").getAbsolutePath();
+
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		Script s = new Script(new File(jar), "", run.userParams, run.properties);
+
+		String result = run.generateCommandLine(s);
+		assertThat(result, matchesPattern("^.*java(.exe)?.*"));
+		assertThat(result, matchesPattern("^.*java -jar .*helloworld.jar"));
+
+		assertThat(s.backingFile.toString(), equalTo(jar));
+		assertThat(s.forJar(), equalTo(true));
+
+		run.doCall();
+	}
+
+	@Test
+	void testHelloWorldGAV() throws IOException {
+
+		environmentVariables.clear("JAVA_HOME");
+		Jbang jbang = new Jbang();
+
+		String jar = "com.intuit.karate:karate-apache:0.9.5";
+
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		run.doCall();
+	}
+
+	@Test
 	void testHelloWorldShellNoExit() throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");

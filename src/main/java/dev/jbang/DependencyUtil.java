@@ -22,11 +22,13 @@ import java.util.stream.Collectors;
 
 import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
+import org.jboss.shrinkwrap.resolver.api.maven.MavenFormatStage;
+import org.jboss.shrinkwrap.resolver.api.maven.MavenStrategyStage;
 import org.jboss.shrinkwrap.resolver.api.maven.PackagingType;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinates;
 
-class DependencyUtil {
+public class DependencyUtil {
 
 	public static final String ALIAS_JBOSS = "jbossorg";
 	public static final String ALIAS_REDHAT = "redhat";
@@ -42,15 +44,23 @@ class DependencyUtil {
 	public static final String REPO_REDHAT = "https://maven.repository.redhat.com/ga/";
 	public static final String REPO_JBOSS = "https://repository.jboss.org/nexus/content/groups/public/";
 
+	public static final Pattern gavPattern = Pattern.compile(
+			"^(?<groupid>[^:]*):(?<artifactid>[^:]*):(?<version>[^:@]*)(:(?<classifier>[^@]*))?(@(?<type>.*))?$");
+
+	public String resolveDependencies(List<String> deps, List<MavenRepo> repos,
+			boolean offline, boolean loggingEnabled) {
+		return resolveDependencies(deps, repos, offline, loggingEnabled, true);
+	}
+
 	/**
-	 * 
+	 *
 	 * @param deps
 	 * @param repos
 	 * @param loggingEnabled
 	 * @return string with resolved classpath
 	 */
 	public String resolveDependencies(List<String> deps, List<MavenRepo> repos,
-			boolean offline, boolean loggingEnabled) {
+			boolean offline, boolean loggingEnabled, boolean transitivity) {
 
 		// if no dependencies were provided we stop here
 		if (deps.isEmpty()) {
@@ -112,7 +122,7 @@ class DependencyUtil {
 		}
 
 		try {
-			List<File> artifacts = resolveDependenciesViaAether(depIds, repos, offline, loggingEnabled);
+			List<File> artifacts = resolveDependenciesViaAether(depIds, repos, offline, loggingEnabled, transitivity);
 			String classPath = artifacts.stream()
 										.map(it -> it.getAbsolutePath())
 										.map(it -> it.contains(" ") ? '"' + it + '"' : it)
@@ -147,7 +157,7 @@ class DependencyUtil {
 	}
 
 	public List<File> resolveDependenciesViaAether(List<String> depIds, List<MavenRepo> customRepos,
-			boolean offline, boolean loggingEnabled) {
+			boolean offline, boolean loggingEnabled, boolean transitively) {
 
 		ConfigurableMavenResolverSystem resolver = Maven.configureResolver()
 														.withMavenCentralRepo(false)
@@ -166,9 +176,15 @@ class DependencyUtil {
 
 			List<File> artifacts;
 			try {
-				artifacts = resolver.resolve(depIdToArtifact(it).toCanonicalForm())
-									.withTransitivity()
-									.asList(File.class); // , RUNTIME);
+				MavenStrategyStage resolve = resolver.resolve(depIdToArtifact(it).toCanonicalForm());
+				MavenFormatStage stage = null;
+
+				if (transitively) {
+					stage = resolve.withTransitivity();
+				} else {
+					stage = resolve.withoutTransitivity();
+				}
+				artifacts = stage.asList(File.class); // , RUNTIME);
 			} catch (RuntimeException e) {
 				throw new ExitException(1, "Could not resolve dependency", e);
 			}
@@ -194,10 +210,14 @@ class DependencyUtil {
 		}
 	}
 
+	public static boolean looksLikeAGav(String candidate) {
+		Matcher gav = gavPattern.matcher(candidate);
+		gav.find();
+		return (gav.matches());
+	}
+
 	public MavenCoordinate depIdToArtifact(String depId) {
 
-		Pattern gavPattern = Pattern.compile(
-				"^(?<groupid>[^:]*):(?<artifactid>[^:]*):(?<version>[^:@]*)(:(?<classifier>[^@]*))?(@(?<type>.*))?$");
 		Matcher gav = gavPattern.matcher(depId);
 		gav.find();
 

@@ -69,9 +69,11 @@ public class Script {
 		this.backingFile = backingFile;
 		this.arguments = arguments;
 		this.properties = properties;
-		try (Scanner sc = new Scanner(this.backingFile)) {
-			sc.useDelimiter("\\Z");
-			this.script = sc.next();
+		if (!forJar()) {
+			try (Scanner sc = new Scanner(this.backingFile)) {
+				sc.useDelimiter("\\Z");
+				this.script = sc.next();
+			}
 		}
 	}
 
@@ -90,6 +92,9 @@ public class Script {
 	}
 
 	public List<String> collectDependencies() {
+		if (forJar()) { // if a .jar then we don't try parse it for dependencies.
+			return Collections.emptyList();
+		}
 		// early/eager init to property resolution will work.
 		new Detector().detect(new Properties(), Collections.emptyList());
 
@@ -145,6 +150,9 @@ public class Script {
 	}
 
 	private List<String> collectRawOptions(String prefix) {
+		if (forJar())
+			return Collections.emptyList();
+
 		String joptsPrefix = "//" + prefix;
 
 		List<String> lines = getLines();
@@ -179,10 +187,20 @@ public class Script {
 	 **/
 	public String resolveClassPath(boolean offline) {
 		if (classpath == null) {
-			List<String> dependencies = collectDependencies();
-			List<MavenRepo> repositories = collectRepositories();
-			classpath = new ModularClassPath(
-					new DependencyUtil().resolveDependencies(dependencies, repositories, offline, true));
+			if (forJar()) {
+				if (DependencyUtil.looksLikeAGav(backingFile.toString())) {
+					classpath = new ModularClassPath(
+							new DependencyUtil().resolveDependencies(Arrays.asList(backingFile.toString()),
+									Collections.emptyList(), offline, true));
+				} else {
+					classpath = new ModularClassPath("");
+				}
+			} else {
+				List<String> dependencies = collectDependencies();
+				List<MavenRepo> repositories = collectRepositories();
+				classpath = new ModularClassPath(
+						new DependencyUtil().resolveDependencies(dependencies, repositories, offline, true));
+			}
 		}
 		if (jar != null) {
 			return classpath.getClassPath() + Settings.CP_SEPARATOR + jar.getAbsolutePath();
@@ -284,8 +302,8 @@ public class Script {
 	}
 
 	public boolean needsJar() {
-		// anything but .jsh files needs jar
-		return !forJShell();
+		// anything but .jar and .jsh files needs jar
+		return !(forJar() || forJShell());
 	}
 
 	public boolean forJShell() {
@@ -325,5 +343,9 @@ public class Script {
 
 	public Map<String, String> getProperties() {
 		return (properties != null) ? properties : Collections.emptyMap();
+	}
+
+	public boolean forJar() {
+		return backingFile != null && backingFile.toString().endsWith(".jar");
 	}
 }

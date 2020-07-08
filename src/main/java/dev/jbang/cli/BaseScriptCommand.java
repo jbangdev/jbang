@@ -10,10 +10,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import dev.jbang.DependencyUtil;
 import dev.jbang.ExitException;
 import dev.jbang.Script;
 import dev.jbang.Settings;
@@ -94,7 +96,8 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		if (!probe.canRead()) {
 			// not a file so let's keep the script-file undefined here
 			scriptFile = null;
-		} else if (probe.getName().endsWith(".java") || probe.getName().endsWith(".jsh")) {
+		} else if (probe.getName().endsWith(".jar") || probe.getName().endsWith(".java")
+				|| probe.getName().endsWith(".jsh")) {
 			scriptFile = probe;
 		} else {
 			String original = Util.readString(probe.toPath());
@@ -136,6 +139,11 @@ public abstract class BaseScriptCommand extends BaseCommand {
 				|| scriptResource.startsWith("file:/")) {
 			// support url's as script files
 			scriptFile = fetchFromURL(scriptResource);
+		} else if (DependencyUtil.looksLikeAGav(scriptResource.toString())) {
+			// todo honor offline
+			String s = new DependencyUtil().resolveDependencies(Arrays.asList(scriptResource.toString()),
+					Collections.emptyList(), false, true, false);
+			scriptFile = new File(s);
 		}
 
 		return scriptFile;

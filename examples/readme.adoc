@@ -1,0 +1,5 @@
+== DEPRECATED examples
+
+All examples moved to https://github.com/jbangdev/jbang-examples.
+
+This folder is only here to avoid breaking anyone referring to 
