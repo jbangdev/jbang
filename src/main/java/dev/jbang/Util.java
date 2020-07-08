@@ -273,7 +273,9 @@ public class Util {
 																						.stream()
 																						.filter(e -> e	.getKey()
 																										.endsWith(
-																												".java"))
+																												".java")
+																								|| e.getKey()
+																									.endsWith(".jsh"))
 																						.findFirst();
 
 			if (first.isPresent()) {
