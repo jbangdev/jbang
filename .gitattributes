@@ -1,0 +1,8 @@
+# Windows understands lf thus lets just force it
+* text eol=lf
+
+# Denote all files that are truly binary and should not be modified.
+*.png binary
+*.jpg binary
+*.jar binary
+*.db  binary
