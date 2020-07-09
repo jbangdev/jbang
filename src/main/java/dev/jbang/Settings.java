@@ -11,6 +11,7 @@ import java.util.*;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.SerializedName;
 
 import io.quarkus.qute.Template;
 
@@ -146,6 +147,7 @@ public class Settings {
 	}
 
 	public static class Alias {
+		@SerializedName(value = "script-ref", alternate = { "scriptRef" })
 		public final String scriptRef;
 		public final String description;
 		public final List<String> arguments;
