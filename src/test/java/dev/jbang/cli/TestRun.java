@@ -100,7 +100,7 @@ public class TestRun {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		Script s = new Script(new File(jar), "", run.userParams, run.properties);
+		Script s = prepareScript(jar, run.userParams, run.properties);
 
 		String result = run.generateCommandLine(s);
 		assertThat(result, matchesPattern("^.*java(.exe)?.*"));

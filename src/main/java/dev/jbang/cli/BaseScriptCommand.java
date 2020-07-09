@@ -77,7 +77,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		try {
 			s = new Script(scriptFile, arguments, properties);
 			s.setOriginal(scriptResource);
-			if (s.forJar() && scriptResource.contains("/")) {
+			if (s.forJar() && DependencyUtil.looksLikeAGav(scriptResource) && scriptResource.contains("/")) {
 				s.setMainClass(scriptResource.substring(scriptResource.indexOf("/") + 1));
 			}
 		} catch (FileNotFoundException e) {
