@@ -77,9 +77,6 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		try {
 			s = new Script(scriptFile, arguments, properties);
 			s.setOriginal(scriptResource);
-			if (s.forJar() && DependencyUtil.looksLikeAGav(scriptResource) && scriptResource.contains("/")) {
-				s.setMainClass(scriptResource.substring(scriptResource.indexOf("/") + 1));
-			}
 		} catch (FileNotFoundException e) {
 			throw new ExitException(1, e);
 		}
@@ -145,9 +142,6 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		} else if (DependencyUtil.looksLikeAGav(scriptResource.toString())) {
 			// todo honor offline
 			String gav = scriptResource.toString();
-			if (gav.contains("/")) {
-				gav = gav.substring(0, gav.lastIndexOf("/"));
-			}
 			String s = new DependencyUtil().resolveDependencies(Arrays.asList(gav),
 					Collections.emptyList(), false, true, false);
 			scriptFile = new File(s);

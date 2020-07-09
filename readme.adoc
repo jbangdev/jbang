@@ -389,9 +389,9 @@ You can also run `.jar` file referenced by a Maven coordinate, i.e.:
 
 This will fetch the dependency stated and put the transitive dependencies on the classpath.
 
-If you need to specify a main class you can do so by appending `/<main-class>` to the reference, i.e.
+If you need to specify a main class you can do so by using `--main` i.e.
 
-`jbang info.picocli:picocli-codegen:4.2.0/picocli.codegen.aot.graalvm.ReflectionConfigGenerator`
+`jbang --main picocli.codegen.aot.graalvm.ReflectionConfigGenerator info.picocli:picocli-codegen:4.2.0`
 
 [TIP]
 ----

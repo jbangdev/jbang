@@ -139,18 +139,19 @@ public class TestRun {
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
 
-		String jar = "info.picocli:picocli-codegen:4.2.0/picocli.codegen.aot.graalvm.ReflectionConfigGenerator";
+		String jar = "info.picocli:picocli-codegen:4.2.0";
 
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--main",
+				"picocli.codegen.aot.graalvm.ReflectionConfigGenerator", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		Script result = prepareScript(jar, run.userParams, run.properties);
 
+		String cmd = run.generateCommandLine(result);
+
 		assertThat(result.getMainClass(), equalTo("picocli.codegen.aot.graalvm.ReflectionConfigGenerator"));
 
 		assertThat(result.getBackingFile().toString(), matchesPattern(".*\\.m2.*codegen-4.2.0.jar"));
-
-		String cmd = run.generateCommandLine(result);
 
 		assertThat(cmd, matchesPattern(".* -classpath .*picocli-4.2.0.jar.*"));
 		assertThat(cmd, not(containsString(" -jar ")));

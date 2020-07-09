@@ -29,6 +29,10 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "run", description = "Compile and run provided .java/.jsh script.")
 public class Run extends BaseScriptCommand {
 
+	@CommandLine.Option(names = { "-m",
+			"--main" }, description = "Main class to use when running. Used primarily for running jar's.")
+	String main;
+
 	@CommandLine.Option(names = { "-d",
 			"--debug" }, fallbackValue = "4004", parameterConsumer = IntFallbackConsumer.class, description = "Launch with java debug enabled on specified port (default: ${FALLBACK-VALUE}) ")
 	int debugPort = -1;
@@ -70,6 +74,7 @@ public class Run extends BaseScriptCommand {
 		if (script.needsJar()) {
 			build(script);
 		}
+
 		String cmdline = generateCommandLine(script);
 		if (isVerbose()) {
 			info("run: " + cmdline);
@@ -295,6 +300,11 @@ public class Run extends BaseScriptCommand {
 			fullArgs.addAll(script.collectRuntimeOptions());
 			fullArgs.addAll(script.getAutoDetectedModuleArguments(javacmd, offline));
 			fullArgs.addAll(optionalArgs);
+
+			if (main != null) { // if user specified main class it overrides any other main class calculation
+				script.setMainClass(main);
+			}
+
 			if (script.getMainClass() != null) {
 				fullArgs.add(script.getMainClass());
 			} else {

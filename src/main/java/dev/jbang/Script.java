@@ -192,9 +192,6 @@ public class Script {
 			if (forJar()) {
 				if (DependencyUtil.looksLikeAGav(originalFile.toString())) {
 					String gav = originalFile.toString();
-					if (originalFile.contains("/")) {
-						gav = originalFile.substring(0, originalFile.indexOf("/"));
-					}
 					classpath = new ModularClassPath(
 							new DependencyUtil().resolveDependencies(Arrays.asList(gav.toString()),
 									Collections.emptyList(), offline, true));
