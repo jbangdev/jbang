@@ -166,6 +166,7 @@ public class Settings {
 
 	public static class Aliases {
 		public Map<String, Alias> aliases = new HashMap<>();
+		@SerializedName(value = "base-ref", alternate = { "baseRef" })
 		public String baseRef;
 		public String description;
 	}
@@ -232,6 +233,7 @@ public class Settings {
 	}
 
 	public static class Catalog {
+		@SerializedName(value = "catalog-ref", alternate = { "catalogRef" })
 		public final String catalogRef;
 		public final String description;
 

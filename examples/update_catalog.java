@@ -100,6 +100,7 @@ public class update_catalog implements Callable<Integer> {
     }
 
 	public static class Alias {
+        @SerializedName(value = "script-ref", alternate = { "scriptRef" })
 		public final String scriptRef;
 		public final String description;
 		public final List<String> arguments;
@@ -115,6 +116,7 @@ public class update_catalog implements Callable<Integer> {
 
 	public static class Aliases {
 		public Map<String, Alias> aliases = new HashMap<>();
+        @SerializedName(value = "base-ref", alternate = { "baseRef" })
 		public String baseRef;
 		public String description;
 	}
