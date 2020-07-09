@@ -15,6 +15,7 @@ import java.util.concurrent.Callable;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.SerializedName;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;

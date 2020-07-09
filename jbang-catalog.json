@@ -1,123 +1,123 @@
 {
   "aliases": {
     "undertow": {
-      "scriptRef": "undertow.java"
+      "script-ref": "undertow.java"
     },
     "records": {
-      "scriptRef": "records.java"
+      "script-ref": "records.java"
     },
     "tz": {
-      "scriptRef": "tz.java"
+      "script-ref": "tz.java"
     },
     "vertx": {
-      "scriptRef": "vertx.java"
+      "script-ref": "vertx.java"
     },
     "classpath_example": {
-      "scriptRef": "classpath_example.jsh"
+      "script-ref": "classpath_example.jsh"
     },
     "hibernate": {
-      "scriptRef": "hibernate.java"
+      "script-ref": "hibernate.java"
     },
     "example": {
-      "scriptRef": "example"
+      "script-ref": "example"
     },
     "docker": {
-      "scriptRef": "docker.java"
+      "script-ref": "docker.java"
     },
     "smee": {
-      "scriptRef": "smee.java"
+      "script-ref": "smee.java"
     },
     "analytics": {
-      "scriptRef": "analytics.java"
+      "script-ref": "analytics.java"
     },
     "update_catalog": {
-      "scriptRef": "update_catalog.java"
+      "script-ref": "update_catalog.java"
     },
     "camel": {
-      "scriptRef": "camel.java"
+      "script-ref": "camel.java"
     },
     "checksum": {
-      "scriptRef": "checksum.java"
+      "script-ref": "checksum.java"
     },
     "jfxtiles": {
-      "scriptRef": "jfxtiles.java"
+      "script-ref": "jfxtiles.java"
     },
     "webdriver": {
-      "scriptRef": "webdriver.java"
+      "script-ref": "webdriver.java"
     },
     "jetty": {
-      "scriptRef": "jetty.jsh"
+      "script-ref": "jetty.jsh"
     },
     "scripts": {
-      "scriptRef": "scripts"
+      "script-ref": "scripts"
     },
     "lang": {
-      "scriptRef": "lang.java"
+      "script-ref": "lang.java"
     },
     "shrinkwrap": {
-      "scriptRef": "shrinkwrap.java"
+      "script-ref": "shrinkwrap.java"
     },
     "ratpack": {
-      "scriptRef": "ratpack.java"
+      "script-ref": "ratpack.java"
     },
     "asciidoc": {
-      "scriptRef": "asciidoc.java"
+      "script-ref": "asciidoc.java"
     },
     "helloworld": {
-      "scriptRef": "helloworld.jsh"
+      "script-ref": "helloworld.jsh"
     },
     "urldep": {
-      "scriptRef": "urldep.java"
+      "script-ref": "urldep.java"
     },
     "imap": {
-      "scriptRef": "imap.java"
+      "script-ref": "imap.java"
     },
     "sparkjava": {
-      "scriptRef": "sparkjava.java"
+      "script-ref": "sparkjava.java"
     },
     "asciidoctor": {
-      "scriptRef": "asciidoctor.java"
+      "script-ref": "asciidoctor.java"
     },
     "plantuml": {
-      "scriptRef": "plantuml.java"
+      "script-ref": "plantuml.java"
     },
     "inetTest": {
-      "scriptRef": "inetTest.java"
+      "script-ref": "inetTest.java"
     },
     "script": {
-      "scriptRef": "script.java"
+      "script-ref": "script.java"
     },
     "piping": {
-      "scriptRef": "piping.java"
+      "script-ref": "piping.java"
     },
     "findmodule": {
-      "scriptRef": "findmodule.java"
+      "script-ref": "findmodule.java"
     },
     "junitrun": {
-      "scriptRef": "junitrun.java"
+      "script-ref": "junitrun.java"
     },
     "resteasyclient": {
-      "scriptRef": "resteasyclient.java"
+      "script-ref": "resteasyclient.java"
     },
     "progress": {
-      "scriptRef": "progress.java"
+      "script-ref": "progress.java"
     },
     "githubinfo": {
-      "scriptRef": "githubinfo.java"
+      "script-ref": "githubinfo.java"
     },
     "envdetector": {
-      "scriptRef": "envdetector.java"
+      "script-ref": "envdetector.java"
     },
     "gh_fetch_release_assets": {
-      "scriptRef": "gh_fetch_release_assets.java"
+      "script-ref": "gh_fetch_release_assets.java"
     },
     "jfx": {
-      "scriptRef": "jfx.java"
+      "script-ref": "jfx.java"
     },
     "junit-run": {
-      "scriptRef": "junit-run.java"
+      "script-ref": "junit-run.java"
     }
   },
-  "baseRef": "examples",
-  "description": "JBang example scripts"
+  "base-ref": "examples",
+  "description": "\u0027JBang example scripts\u0027"
 }
