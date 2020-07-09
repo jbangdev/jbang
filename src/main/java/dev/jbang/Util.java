@@ -421,13 +421,16 @@ public class Util {
 		}
 		Path catalogPath = obtainFile(catalogRef, updateCache);
 		Settings.Aliases aliases = Settings.getAliasesFromCatalog(catalogPath, updateCache);
-		String catalogBaseRef = catalogRef.substring(0, catalogRef.lastIndexOf('/'));
-		if (aliases.baseRef != null) {
-			if (!aliases.baseRef.startsWith("/") && !aliases.baseRef.contains(":")) {
-				aliases.baseRef = catalogBaseRef + "/" + aliases.baseRef;
+		int p = catalogRef.lastIndexOf('/');
+		if (p > 0) {
+			String catalogBaseRef = catalogRef.substring(0, p);
+			if (aliases.baseRef != null) {
+				if (!aliases.baseRef.startsWith("/") && !aliases.baseRef.contains(":")) {
+					aliases.baseRef = catalogBaseRef + "/" + aliases.baseRef;
+				}
+			} else {
+				aliases.baseRef = catalogBaseRef;
 			}
-		} else {
-			aliases.baseRef = catalogBaseRef;
 		}
 		return aliases;
 	}

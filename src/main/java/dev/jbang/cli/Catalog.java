@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 
 import com.google.gson.JsonParseException;
 
+import dev.jbang.ExitException;
 import dev.jbang.Settings;
 import dev.jbang.Util;
 
@@ -37,9 +38,9 @@ public class Catalog {
 			}
 			Settings.addCatalog(name, urlOrFile, description);
 		} catch (IOException ex) {
-			err.println("Unable to download catalog: " + ex.getMessage());
+			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Unable to download catalog", ex);
 		} catch (JsonParseException ex) {
-			err.println("Error parsing catalog: " + ex.getMessage());
+			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Error parsing catalog", ex);
 		}
 		return CommandLine.ExitCode.SOFTWARE;
 	}
@@ -55,9 +56,9 @@ public class Catalog {
 					try {
 						Util.getCatalogAliasesByRef(e.getValue().catalogRef, true);
 					} catch (IOException ex) {
-						err.println("Unable to download catalog: " + ex.getMessage());
+						throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Unable to download catalog", ex);
 					} catch (JsonParseException ex) {
-						err.println("Error parsing catalog: " + ex.getMessage());
+						throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Error parsing catalog", ex);
 					}
 				});
 		return CommandLine.ExitCode.SOFTWARE;
@@ -87,9 +88,9 @@ public class Catalog {
 				Settings.Aliases aliases = Util.getCatalogAliasesByName(name, false);
 				Alias.printAliases(out, aliases);
 			} catch (IOException ex) {
-				err.println("Unable to download catalog: " + ex.getMessage());
+				throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Unable to download catalog", ex);
 			} catch (JsonParseException ex) {
-				err.println("Error parsing catalog: " + ex.getMessage());
+				throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Error parsing catalog", ex);
 			}
 		}
 		return CommandLine.ExitCode.SOFTWARE;
