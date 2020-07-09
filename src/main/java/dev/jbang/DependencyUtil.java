@@ -86,7 +86,7 @@ public class DependencyUtil {
 		Map<String, String> cache = Collections.emptyMap();
 		// Use cached classpath from previous run if present if
 		// TODO: does not handle spaces in ~/.m2 folder.
-		if (Files.isRegularFile(Settings.getCacheDependencyFile())) {
+		if (transitivity && Files.isRegularFile(Settings.getCacheDependencyFile())) {
 			try {
 
 				cache = Files	.readAllLines(Settings.getCacheDependencyFile())
@@ -133,15 +133,17 @@ public class DependencyUtil {
 				infoMsg("Dependencies resolved");
 			}
 
-			// Add classpath to cache
-			try {
-				// Open given file in append mode.
-				try (BufferedWriter out = new BufferedWriter(
-						new FileWriter(Settings.getCacheDependencyFile().toFile(), true))) {
-					out.write(depsHash + " " + classPath + "\n");
+			if (transitivity) { // only cache when doing transitive lookups
+				// Add classpath to cache
+				try {
+					// Open given file in append mode.
+					try (BufferedWriter out = new BufferedWriter(
+							new FileWriter(Settings.getCacheDependencyFile().toFile(), true))) {
+						out.write(depsHash + " " + classPath + "\n");
+					}
+				} catch (IOException e) {
+					errorMsg("Could not write to cache:" + e.getMessage(), e);
 				}
-			} catch (IOException e) {
-				errorMsg("Could not write to cache:" + e.getMessage(), e);
 			}
 
 			// Print the classpath

@@ -1,5 +1,6 @@
 package dev.jbang.cli;
 
+import static dev.jbang.cli.BaseScriptCommand.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -105,7 +106,7 @@ public class TestRun {
 		assertThat(result, matchesPattern("^.*java(.exe)?.*"));
 		assertThat(result, matchesPattern("^.*java -jar .*helloworld.jar"));
 
-		assertThat(s.backingFile.toString(), equalTo(jar));
+		assertThat(s.getBackingFile().toString(), equalTo(jar));
 		assertThat(s.forJar(), equalTo(true));
 
 		run.doCall();
@@ -117,12 +118,43 @@ public class TestRun {
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
 
-		String jar = "com.intuit.karate:karate-apache:0.9.5";
+		String jar = "info.picocli:picocli-codegen:4.2.0";
 
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		run.doCall();
+		Script result = prepareScript(jar, run.userParams, run.properties);
+
+		assertThat(result.getBackingFile().toString(), matchesPattern(".*\\.m2.*codegen-4.2.0.jar"));
+
+		String cmd = run.generateCommandLine(result);
+
+		assertThat(cmd, containsString(" -jar "));
+
+	}
+
+	@Test
+	void testHelloWorldGAVWithMainClass() throws IOException {
+
+		environmentVariables.clear("JAVA_HOME");
+		Jbang jbang = new Jbang();
+
+		String jar = "info.picocli:picocli-codegen:4.2.0/picocli.codegen.aot.graalvm.ReflectionConfigGenerator";
+
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		Script result = prepareScript(jar, run.userParams, run.properties);
+
+		assertThat(result.getMainClass(), equalTo("picocli.codegen.aot.graalvm.ReflectionConfigGenerator"));
+
+		assertThat(result.getBackingFile().toString(), matchesPattern(".*\\.m2.*codegen-4.2.0.jar"));
+
+		String cmd = run.generateCommandLine(result);
+
+		assertThat(cmd, matchesPattern(".* -classpath .*picocli-4.2.0.jar.*"));
+		assertThat(cmd, not(containsString(" -jar ")));
+
 	}
 
 	@Test
@@ -221,18 +253,18 @@ public class TestRun {
 
 		String url = new File(examplesTestFolder, "classpath_example.java").toURI().toString();
 
-		Script result = BaseScriptCommand.prepareScript(url, null, null);
+		Script result = prepareScript(url, null, null);
 
 		assertThat(result.toString(), not(containsString(url)));
 
-		MatcherAssert.assertThat(Util.readString(result.backingFile.toPath()),
+		MatcherAssert.assertThat(Util.readString(result.getBackingFile().toPath()),
 				containsString("Logger.getLogger(classpath_example.class);"));
 
 		Jbang jbang = new Jbang();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", url);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		String s = run.generateCommandLine(BaseScriptCommand.prepareScript(url, run.userParams, run.properties));
+		String s = run.generateCommandLine(prepareScript(url, run.userParams, run.properties));
 
 		assertThat(s, not(containsString("file:")));
 	}
@@ -244,7 +276,7 @@ public class TestRun {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", url, " ~!@#$%^&*()-+\\:;'`<>?/,.{}[]\"");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		String s = run.generateCommandLine(BaseScriptCommand.prepareScript(url, run.userParams, run.properties));
+		String s = run.generateCommandLine(prepareScript(url, run.userParams, run.properties));
 		if (Util.isWindows()) {
 			assertThat(s, containsString("^\" ~^!@#$^%^^^&*^(^)-+\\:;'`^<^>?/,.{}[]\\^\"^\""));
 		} else {
@@ -257,7 +289,7 @@ public class TestRun {
 
 		String url = new File(examplesTestFolder, "classpath_example.java.dontexist").toURI().toString();
 
-		assertThrows(ExitException.class, () -> BaseScriptCommand.prepareScript(url, null, null));
+		assertThrows(ExitException.class, () -> prepareScript(url, null, null));
 	}
 
 	@Test

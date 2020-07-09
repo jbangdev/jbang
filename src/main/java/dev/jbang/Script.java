@@ -37,12 +37,14 @@ public class Script {
 	 * the file that contains the code that will back the actual compile/execution.
 	 * Might have been altered to be runnable; i.e. stripped out !# before launch.
 	 */
-	public File backingFile;
+	private File backingFile;
 
 	/**
-	 * The original file, it might or might not be same as used as backingFile.
+	 * The original reference, it might or might not be same as used as backingFile.
+	 * TODO: should probably have a "originalRef" to capture GAV+main ref and a
+	 * "originalFile" which could be null.
 	 */
-	private File originalFile;
+	private String originalFile;
 
 	private ModularClassPath classpath;
 	private String script;
@@ -188,9 +190,13 @@ public class Script {
 	public String resolveClassPath(boolean offline) {
 		if (classpath == null) {
 			if (forJar()) {
-				if (DependencyUtil.looksLikeAGav(backingFile.toString())) {
+				if (DependencyUtil.looksLikeAGav(originalFile.toString())) {
+					String gav = originalFile.toString();
+					if (originalFile.contains("/")) {
+						gav = originalFile.substring(0, originalFile.indexOf("/"));
+					}
 					classpath = new ModularClassPath(
-							new DependencyUtil().resolveDependencies(Arrays.asList(backingFile.toString()),
+							new DependencyUtil().resolveDependencies(Arrays.asList(gav.toString()),
 									Collections.emptyList(), offline, true));
 				} else {
 					classpath = new ModularClassPath("");
@@ -310,11 +316,11 @@ public class Script {
 		return backingFile.getName().endsWith(".jsh");
 	}
 
-	public void setOriginal(File probe) {
+	public void setOriginal(String probe) {
 		this.originalFile = probe;
 	}
 
-	public File getOriginalFile() {
+	public String getOriginalFile() {
 		return originalFile;
 	}
 
@@ -348,4 +354,9 @@ public class Script {
 	public boolean forJar() {
 		return backingFile != null && backingFile.toString().endsWith(".jar");
 	}
+
+	public File getBackingFile() {
+		return backingFile;
+	}
+
 }

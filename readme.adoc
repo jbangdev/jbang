@@ -377,6 +377,28 @@ System.setProperty("key", "value"); // <.>
 If you use `--interactive` `jbang` will let `jshell` enter into interactive/REPL mode. You write `/exit` to leave this mode.
 ----
 
+=== Running `.jar`'s (EXPERIMENTAL)
+
+`jbang` will also run `.jar` files directly.
+
+i.e. `jbang helloworld.jar` will run `helloworld.jar` if found on your local file system.
+
+You can also run `.jar` file referenced by a Maven coordinate, i.e.:
+
+`jbang info.picocli:picocli-codegen:4.2.0`
+
+This will fetch the dependency stated and put the transitive dependencies on the classpath.
+
+If you need to specify a main class you can do so by appending `/<main-class>` to the reference, i.e.
+
+`jbang info.picocli:picocli-codegen:4.2.0/picocli.codegen.aot.graalvm.ReflectionConfigGenerator`
+
+[TIP]
+----
+A sideeffect of running GAV as a jar, the GAV could also be a `.java` or `.jsh` file and it would be launched as a script instead of a jar.
+Noone would want to do that (right?) but now you know.
+----
+
 == Init templates
 
 To get started you can run `jbang init helloworld.java` and a simple java class with a static main is generated.

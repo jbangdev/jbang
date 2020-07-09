@@ -117,8 +117,8 @@ public class Run extends BaseScriptCommand {
 	// build with javac and then jar... todo: split up in more testable chunks
 	void build(Script script) throws IOException {
 		File baseDir = new File(Settings.getCacheDir().toFile(), "jars");
-		File tmpJarDir = new File(baseDir, script.backingFile.getName() +
-				"." + getStableID(script.backingFile));
+		File tmpJarDir = new File(baseDir, script.getBackingFile().getName() +
+				"." + getStableID(script.getBackingFile()));
 		tmpJarDir.mkdirs();
 
 		File outjar = new File(tmpJarDir.getParentFile(), tmpJarDir.getName() + ".jar");
@@ -132,7 +132,7 @@ public class Run extends BaseScriptCommand {
 				optionList.addAll(Arrays.asList("-classpath", path));
 			}
 			optionList.addAll(Arrays.asList("-d", tmpJarDir.getAbsolutePath()));
-			optionList.addAll(Arrays.asList(script.backingFile.getPath()));
+			optionList.addAll(Arrays.asList(script.getBackingFile().getPath()));
 
 			Util.info("Building jar...");
 			if (isVerbose())
@@ -159,7 +159,7 @@ public class Run extends BaseScriptCommand {
 
 					if (items.size() > 1) { // todo: this feels like a very sketchy way to find the proper class name
 						// but it works.
-						String mainname = script.backingFile.getName().replace(".java", ".class");
+						String mainname = script.getBackingFile().getName().replace(".java", ".class");
 						items = items	.stream()
 										.filter(f -> f.toFile().getName().equalsIgnoreCase(mainname))
 										.collect(Collectors.toList());
@@ -242,7 +242,7 @@ public class Run extends BaseScriptCommand {
 			List<String> optionalArgs = new ArrayList<String>();
 
 			String javacmd = resolveInJavaHome("java");
-			if (script.backingFile.getName().endsWith(".jsh")) {
+			if (script.getBackingFile().getName().endsWith(".jsh")) {
 
 				javacmd = resolveInJavaHome("jshell");
 				if (!classpath.trim().isEmpty()) {
@@ -251,7 +251,7 @@ public class Run extends BaseScriptCommand {
 
 				optionalArgs.add("--startup=DEFAULT");
 
-				File tempFile = File.createTempFile("jbang_arguments_", script.backingFile.getName());
+				File tempFile = File.createTempFile("jbang_arguments_", script.getBackingFile().getName());
 				Util.writeString(tempFile.toPath(), generateArgs(script.getArguments(), script.getProperties()));
 
 				optionalArgs.add("--startup=" + tempFile.getAbsolutePath());
@@ -301,14 +301,14 @@ public class Run extends BaseScriptCommand {
 				if (script.forJar()) {
 					fullArgs.add("-jar");
 				}
-				fullArgs.add(script.backingFile.toString());
+				fullArgs.add(script.getBackingFile().toString());
 			}
 		}
 
 		if (!script.forJShell()) {
 			addJavaArgs(script.getArguments(), fullArgs);
 		} else if (!interactive) {
-			File tempFile = File.createTempFile("jbang_exit_", script.backingFile.getName());
+			File tempFile = File.createTempFile("jbang_exit_", script.getBackingFile().getName());
 			Util.writeString(tempFile.toPath(), "/exit");
 			fullArgs.add(tempFile.toString());
 		}

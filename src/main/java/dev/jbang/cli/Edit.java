@@ -51,7 +51,11 @@ public class Edit extends BaseScriptCommand {
 				Process process = new ProcessBuilder(optionList).start();
 			}
 			try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
-				Path watched = script.getOriginalFile().getAbsoluteFile().getParentFile().toPath();
+				File orginalFile = new File(script.getOriginalFile());
+				if (!orginalFile.exists()) {
+					throw new ExitException(2, "Cannot live edit " + script.getOriginalFile());
+				}
+				Path watched = orginalFile.getAbsoluteFile().getParentFile().toPath();
 				final WatchKey watchKey = watched.register(watchService,
 						new WatchEvent.Kind[] { StandardWatchEventKinds.ENTRY_MODIFY },
 						SensitivityWatchEventModifier.HIGH);
@@ -62,7 +66,7 @@ public class Edit extends BaseScriptCommand {
 						// we only register "ENTRY_MODIFY" so the context is always a Path.
 						final Path changed = (Path) event.context();
 						// info(changed.toString());
-						if (Files.isSameFile(script.getOriginalFile().toPath(), changed)) {
+						if (Files.isSameFile(orginalFile.toPath(), changed)) {
 							try {
 								// TODO only regenerate when dependencies changes.
 								info("Regenerating project.");
@@ -90,17 +94,19 @@ public class Edit extends BaseScriptCommand {
 	/** Create Project to use for editing **/
 	File createProjectForEdit(Script script, boolean reload) throws IOException {
 
+		File originalFile = new File(script.getOriginalFile());
+
 		List<String> collectDependencies = script.collectDependencies();
 		String cp = script.resolveClassPath(offline);
 		List<String> resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 
 		File baseDir = new File(Settings.getCacheDir().toFile(), "temp_projects");
 
-		String name = script.getOriginalFile().getName();
+		String name = originalFile.getName();
 		name = unkebabify(name);
 
 		File tmpProjectDir = new File(baseDir, name + "_jbang_" +
-				getStableID(script.getOriginalFile().getAbsolutePath()));
+				getStableID(originalFile.getAbsolutePath()));
 		tmpProjectDir.mkdirs();
 		tmpProjectDir = new File(tmpProjectDir, stripPrefix(name));
 		tmpProjectDir.mkdirs();
@@ -110,8 +116,8 @@ public class Edit extends BaseScriptCommand {
 
 		File srcFile = new File(srcDir, name);
 		if (!srcFile.exists()
-				&& !createSymbolicLink(srcFile.toPath(), script.getOriginalFile().getAbsoluteFile().toPath())) {
-			createHardLink(srcFile.toPath(), script.getOriginalFile().getAbsoluteFile().toPath());
+				&& !createSymbolicLink(srcFile.toPath(), originalFile.getAbsoluteFile().toPath())) {
+			createHardLink(srcFile.toPath(), originalFile.getAbsoluteFile().toPath());
 		}
 
 		// create build gradle

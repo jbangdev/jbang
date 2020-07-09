@@ -76,7 +76,10 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		Script s = null;
 		try {
 			s = new Script(scriptFile, arguments, properties);
-			s.setOriginal(new File(scriptResource));
+			s.setOriginal(scriptResource);
+			if (s.forJar() && scriptResource.contains("/")) {
+				s.setMainClass(scriptResource.substring(scriptResource.indexOf("/") + 1));
+			}
 		} catch (FileNotFoundException e) {
 			throw new ExitException(1, e);
 		}
@@ -141,7 +144,11 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			scriptFile = fetchFromURL(scriptResource);
 		} else if (DependencyUtil.looksLikeAGav(scriptResource.toString())) {
 			// todo honor offline
-			String s = new DependencyUtil().resolveDependencies(Arrays.asList(scriptResource.toString()),
+			String gav = scriptResource.toString();
+			if (gav.contains("/")) {
+				gav = gav.substring(0, gav.lastIndexOf("/"));
+			}
+			String s = new DependencyUtil().resolveDependencies(Arrays.asList(gav),
 					Collections.emptyList(), false, true, false);
 			scriptFile = new File(s);
 		}
