@@ -1,22 +1,19 @@
 package dev.jbang.cli;
 
-import static dev.jbang.TestUtil.clearSettingsAliasInfo;
+import static dev.jbang.TestUtil.clearSettingsCaches;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collections;
-import java.util.Comparator;
 
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.rules.TemporaryFolder;
 
 import dev.jbang.Settings;
 import dev.jbang.Util;
@@ -60,31 +57,22 @@ public class TestAlias {
 			"  }\n" +
 			"}";
 
-	static Path jbangTempDir = null;
-
-	@BeforeAll
-	static void init() throws IOException {
-		jbangTempDir = Files.createTempDirectory("jbang");
-		environmentVariables.set("JBANG_DIR", jbangTempDir.toString());
-		Files.write(jbangTempDir.resolve("aliases.json"), aliases.getBytes());
-	}
-
-	@AfterAll
-	static void cleanup() throws IOException {
-		if (jbangTempDir != null) {
-			Files	.walk(jbangTempDir)
-					.sorted(Comparator.reverseOrder())
-					.map(Path::toFile)
-					.forEach(File::delete);
-		}
+	@BeforeEach
+	void init() throws IOException {
+		jbangTempDir.create();
+		environmentVariables.set("JBANG_DIR", jbangTempDir.getRoot().getPath());
+		Files.write(jbangTempDir.getRoot().toPath().resolve("aliases.json"), aliases.getBytes());
 	}
 
 	@Rule
-	public static final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+	public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
+	@Rule
+	public final TemporaryFolder jbangTempDir = new TemporaryFolder();
 
 	@Test
 	void testReadFromFile() throws IOException {
-		clearSettingsAliasInfo();
+		clearSettingsCaches();
 		assertThat(Settings.getAliases().get("one"), notNullValue());
 	}
 
@@ -92,18 +80,18 @@ public class TestAlias {
 	void testAdd() throws IOException {
 		Jbang jbang = new Jbang();
 		new CommandLine(jbang).execute("alias", "add", "new", "http://dummy");
-		clearSettingsAliasInfo();
+		clearSettingsCaches();
 		assertThat(Settings.getAliases().get("new").scriptRef, equalTo("http://dummy"));
 	}
 
 	@Test
 	void testRemove() throws IOException {
-		clearSettingsAliasInfo();
+		clearSettingsCaches();
 		System.err.println(Settings.getAliases().toString());
 		assertThat(Settings.getAliases().get("two"), notNullValue());
 		Jbang jbang = new Jbang();
 		new CommandLine(jbang).execute("alias", "remove", "two");
-		clearSettingsAliasInfo();
+		clearSettingsCaches();
 		assertThat(Settings.getAliases().get("two"), nullValue());
 	}
 
