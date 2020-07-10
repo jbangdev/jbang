@@ -28,34 +28,34 @@ public class TestAlias {
 	static final String aliases = "{\n" +
 			"  \"aliases\": {\n" +
 			"    \"one\": {\n" +
-			"      \"scriptRef\": \"http://dummy\"\n" +
+			"      \"script-ref\": \"http://dummy\"\n" +
 			"    },\n" +
 			"    \"two\": {\n" +
-			"      \"scriptRef\": \"one\",\n" +
+			"      \"script-ref\": \"one\",\n" +
 			"      \"arguments\": [\"2\"],\n" +
 			"      \"properties\": {\"two\":\"2\"}\n" +
 			"    },\n" +
 			"    \"three\": {\n" +
-			"      \"scriptRef\": \"http://dummy\",\n" +
+			"      \"script-ref\": \"http://dummy\",\n" +
 			"      \"arguments\": [\"3\"],\n" +
 			"      \"properties\": {\"three\":\"3\"}\n" +
 			"    },\n" +
 			"    \"four\": {\n" +
-			"      \"scriptRef\": \"three\",\n" +
+			"      \"script-ref\": \"three\",\n" +
 			"      \"arguments\": [\"4\"],\n" +
 			"      \"properties\": {\"four\":\"4\"}\n" +
 			"    },\n" +
 			"    \"five\": {\n" +
-			"      \"scriptRef\": \"three\"\n" +
+			"      \"script-ref\": \"three\"\n" +
 			"    },\n" +
 			"    \"six\": {\n" +
-			"      \"scriptRef\": \"seven\"\n" +
+			"      \"script-ref\": \"seven\"\n" +
 			"    },\n" +
 			"    \"seven\": {\n" +
-			"      \"scriptRef\": \"six\"\n" +
+			"      \"script-ref\": \"six\"\n" +
 			"    },\n" +
 			"    \"eight\": {\n" +
-			"      \"scriptRef\": \"seven\"\n" +
+			"      \"script-ref\": \"seven\"\n" +
 			"    }\n" +
 			"  }\n" +
 			"}";

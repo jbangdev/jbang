@@ -187,7 +187,7 @@ public class Settings {
 					check(aliases.aliases != null, "Missing required attribute 'aliases'");
 					for (String aliasName : aliases.aliases.keySet()) {
 						Alias alias = aliases.aliases.get(aliasName);
-						check(alias.scriptRef != null, "Missing required attribute 'aliases.scriptRef'");
+						check(alias.scriptRef != null, "Missing required attribute 'aliases.script-ref'");
 					}
 				} catch (IOException e) {
 					// Ignore errors
