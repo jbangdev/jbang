@@ -32,14 +32,16 @@ public class Alias {
 		return CommandLine.ExitCode.SOFTWARE;
 	}
 
-	@CommandLine.Command(name = "list", description = "Show currently defined aliases.")
-	public Integer list() {
+	@CommandLine.Command(name = "list", description = "Lists locally defined aliases or from the given catalog.")
+	public Integer list(
+			@CommandLine.Parameters(paramLabel = "catalogName", index = "0", description = "The name of a catalog", arity = "0..1") String catalogName) {
 		PrintWriter out = spec.commandLine().getOut();
-		printAliases(out, Settings.getAliasesFromLocalCatalog());
+		Settings.Aliases aliases = Util.getCatalogAliasesByName(catalogName, false);
+		printAliases(out, catalogName, aliases);
 		return CommandLine.ExitCode.SOFTWARE;
 	}
 
-	static void printAliases(PrintWriter out, Settings.Aliases aliases) {
+	static void printAliases(PrintWriter out, String catalogName, Settings.Aliases aliases) {
 		aliases.aliases
 						.keySet()
 						.stream()
@@ -47,19 +49,21 @@ public class Alias {
 						.forEach(name -> {
 							try {
 								Settings.Alias ai = Util.getCatalogAlias(aliases, name);
+								String fullName = catalogName != null ? catalogName + "@" + name : name;
 								if (ai.description != null) {
-									out.println(name + " = " + ai.description);
-									out.println(Util.repeat(" ", name.length()) + "   (" + ai.scriptRef + ")");
+									out.println(fullName + " = " + ai.description);
+									out.println(Util.repeat(" ", fullName.length()) + "   (" + ai.scriptRef + ")");
 								} else {
-									out.println(name + " = " + ai.scriptRef);
+									out.println(fullName + " = " + ai.scriptRef);
 								}
 								if (ai.arguments != null) {
 									out.println(
-											Util.repeat(" ", name.length()) + "   Arguments: "
+											Util.repeat(" ", fullName.length()) + "   Arguments: "
 													+ String.join(" ", ai.arguments));
 								}
 								if (ai.properties != null) {
-									out.println(Util.repeat(" ", name.length()) + "   Properties: " + ai.properties);
+									out.println(
+											Util.repeat(" ", fullName.length()) + "   Properties: " + ai.properties);
 								}
 							} catch (IOException e) {
 								throw new RuntimeException(e);

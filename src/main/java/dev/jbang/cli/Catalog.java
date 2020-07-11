@@ -1,11 +1,7 @@
 package dev.jbang.cli;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 
-import com.google.gson.JsonParseException;
-
-import dev.jbang.ExitException;
 import dev.jbang.Settings;
 import dev.jbang.Util;
 
@@ -31,17 +27,11 @@ public class Catalog {
 			throw new IllegalArgumentException("A catalog with that name already exists");
 		}
 		PrintWriter err = spec.commandLine().getErr();
-		try {
-			Settings.Aliases aliases = Util.getCatalogAliasesByRef(urlOrFile, true);
-			if (description == null) {
-				description = aliases.description;
-			}
-			Settings.addCatalog(name, urlOrFile, description);
-		} catch (IOException ex) {
-			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Unable to download catalog", ex);
-		} catch (JsonParseException ex) {
-			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Error parsing catalog", ex);
+		Settings.Aliases aliases = Util.getCatalogAliasesByRef(urlOrFile, true);
+		if (description == null) {
+			description = aliases.description;
 		}
+		Settings.addCatalog(name, urlOrFile, description);
 		return CommandLine.ExitCode.SOFTWARE;
 	}
 
@@ -53,13 +43,7 @@ public class Catalog {
 				.stream()
 				.forEach(e -> {
 					err.println("Updating catalog '" + e.getKey() + "' from " + e.getValue().catalogRef + "...");
-					try {
-						Util.getCatalogAliasesByRef(e.getValue().catalogRef, true);
-					} catch (IOException ex) {
-						throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Unable to download catalog", ex);
-					} catch (JsonParseException ex) {
-						throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Error parsing catalog", ex);
-					}
+					Util.getCatalogAliasesByRef(e.getValue().catalogRef, true);
 				});
 		return CommandLine.ExitCode.SOFTWARE;
 	}
@@ -84,14 +68,8 @@ public class Catalog {
 						}
 					});
 		} else {
-			try {
-				Settings.Aliases aliases = Util.getCatalogAliasesByName(name, false);
-				Alias.printAliases(out, aliases);
-			} catch (IOException ex) {
-				throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Unable to download catalog", ex);
-			} catch (JsonParseException ex) {
-				throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Error parsing catalog", ex);
-			}
+			Settings.Aliases aliases = Util.getCatalogAliasesByName(name, false);
+			Alias.printAliases(out, name, aliases);
 		}
 		return CommandLine.ExitCode.SOFTWARE;
 	}

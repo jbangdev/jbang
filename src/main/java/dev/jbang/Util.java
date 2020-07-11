@@ -23,6 +23,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
+
+import picocli.CommandLine;
 
 public class Util {
 
@@ -412,36 +415,45 @@ public class Util {
 		}
 	}
 
-	public static Settings.Aliases getCatalogAliasesByRef(String catalogRef, boolean updateCache) throws IOException {
+	public static Settings.Aliases getCatalogAliasesByRef(String catalogRef, boolean updateCache) {
 		if (!catalogRef.endsWith(".json")) {
 			if (!catalogRef.endsWith("/")) {
 				catalogRef += "/";
 			}
 			catalogRef += JBANG_CATALOG_JSON;
 		}
-		Path catalogPath = obtainFile(catalogRef, updateCache);
-		Settings.Aliases aliases = Settings.getAliasesFromCatalog(catalogPath, updateCache);
-		int p = catalogRef.lastIndexOf('/');
-		if (p > 0) {
-			String catalogBaseRef = catalogRef.substring(0, p);
-			if (aliases.baseRef != null) {
-				if (!aliases.baseRef.startsWith("/") && !aliases.baseRef.contains(":")) {
-					aliases.baseRef = catalogBaseRef + "/" + aliases.baseRef;
+		try {
+			Path catalogPath = obtainFile(catalogRef, updateCache);
+			Settings.Aliases aliases = Settings.getAliasesFromCatalog(catalogPath, updateCache);
+			int p = catalogRef.lastIndexOf('/');
+			if (p > 0) {
+				String catalogBaseRef = catalogRef.substring(0, p);
+				if (aliases.baseRef != null) {
+					if (!aliases.baseRef.startsWith("/") && !aliases.baseRef.contains(":")) {
+						aliases.baseRef = catalogBaseRef + "/" + aliases.baseRef;
+					}
+				} else {
+					aliases.baseRef = catalogBaseRef;
 				}
-			} else {
-				aliases.baseRef = catalogBaseRef;
 			}
+			return aliases;
+		} catch (IOException ex) {
+			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Unable to download catalog", ex);
+		} catch (JsonParseException ex) {
+			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Error parsing catalog", ex);
 		}
-		return aliases;
 	}
 
-	public static Settings.Aliases getCatalogAliasesByName(String catalogName, boolean updateCache) throws IOException {
+	public static Settings.Aliases getCatalogAliasesByName(String catalogName, boolean updateCache) {
+		if (catalogName == null) {
+			return Settings.getAliasesFromLocalCatalog();
+		}
 		Settings.Catalog catalog = Settings.getCatalogs().get(catalogName);
 		if (catalog != null) {
 			Settings.Aliases aliases = getCatalogAliasesByRef(catalog.catalogRef, false);
 			return aliases;
 		} else {
-			throw new RuntimeException("Unknown catalog '" + catalogName + "'");
+			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Unknown catalog '" + catalogName + "'");
 		}
 	}
 
