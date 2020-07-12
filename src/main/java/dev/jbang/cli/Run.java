@@ -6,9 +6,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
@@ -61,10 +58,6 @@ public class Run extends BaseScriptCommand {
 	@CommandLine.Option(names = { "-D" }, description = "set a system property")
 	Map<String, String> properties = new HashMap<>();
 
-	@CommandLine.Option(names = {
-			"--insecure" }, description = "Enable insecure trust of all SSL certificates.", defaultValue = "false")
-	boolean insecure;
-
 	@CommandLine.Option(names = { "--interactive" }, description = "activate interactive mode")
 	boolean interactive;
 
@@ -91,41 +84,6 @@ public class Run extends BaseScriptCommand {
 		out.println(cmdline);
 
 		return 0;
-	}
-
-	private void enableInsecure() {
-		try {
-			// Create a trust manager that does not validate certificate chains
-			TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
-				public X509Certificate[] getAcceptedIssuers() {
-					return null;
-				}
-
-				public void checkClientTrusted(X509Certificate[] certs, String authType) {
-				}
-
-				public void checkServerTrusted(X509Certificate[] certs, String authType) {
-				}
-			}
-			};
-
-			// Install the all-trusting trust manager
-			SSLContext sc = SSLContext.getInstance("SSL");
-			sc.init(null, trustAllCerts, new java.security.SecureRandom());
-			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-
-			// Create all-trusting host name verifier
-			HostnameVerifier allHostsValid = new HostnameVerifier() {
-				public boolean verify(String hostname, SSLSession session) {
-					return true;
-				}
-			};
-
-			// Install the all-trusting host verifier
-			HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-		} catch (NoSuchAlgorithmException | KeyManagementException ex) {
-			throw new RuntimeException(ex);
-		}
 	}
 
 	// build with javac and then jar... todo: split up in more testable chunks

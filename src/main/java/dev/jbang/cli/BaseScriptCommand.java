@@ -2,10 +2,17 @@ package dev.jbang.cli;
 
 import static dev.jbang.Util.swizzleURL;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -13,7 +20,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import dev.jbang.*;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import dev.jbang.AliasUtil;
+import dev.jbang.DependencyUtil;
+import dev.jbang.ExitException;
+import dev.jbang.Script;
+import dev.jbang.Settings;
+import dev.jbang.Util;
 
 import picocli.CommandLine;
 
@@ -23,6 +42,10 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			"--offline" }, description = "Work offline. Fail-fast if dependencies are missing.")
 	boolean offline;
 
+	@CommandLine.Option(names = {
+			"--insecure" }, description = "Enable insecure trust of all SSL certificates.", defaultValue = "false")
+	boolean insecure;
+
 	@CommandLine.Parameters(index = "0", arity = "1", description = "A file with java code or if named .jsh will be run with jshell")
 	String scriptOrFile;
 
@@ -30,6 +53,41 @@ public abstract class BaseScriptCommand extends BaseCommand {
 	List<String> userParams = new ArrayList<>();
 
 	protected Script script;
+
+	protected void enableInsecure() {
+		try {
+			// Create a trust manager that does not validate certificate chains
+			TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+				public X509Certificate[] getAcceptedIssuers() {
+					return null;
+				}
+
+				public void checkClientTrusted(X509Certificate[] certs, String authType) {
+				}
+
+				public void checkServerTrusted(X509Certificate[] certs, String authType) {
+				}
+			}
+			};
+
+			// Install the all-trusting trust manager
+			SSLContext sc = SSLContext.getInstance("SSL");
+			sc.init(null, trustAllCerts, new java.security.SecureRandom());
+			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+			// Create all-trusting host name verifier
+			HostnameVerifier allHostsValid = new HostnameVerifier() {
+				public boolean verify(String hostname, SSLSession session) {
+					return true;
+				}
+			};
+
+			// Install the all-trusting host verifier
+			HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+		} catch (NoSuchAlgorithmException | KeyManagementException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
 
 	public static Script prepareScript(String scriptResource, List<String> arguments, Map<String, String> properties)
 			throws IOException {

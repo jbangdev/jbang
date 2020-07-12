@@ -17,7 +17,7 @@ import dev.jbang.*;
 import picocli.CommandLine;
 
 @Command(name = "jbang", footer = "\nCopyright: 2020 Max Rydahl Andersen, License: MIT\nWebsite: https://github.com/jbangdev/jbang", description = "Compiles and runs .java/.jsh scripts.", versionProvider = VersionProvider.class, subcommands = {
-		Run.class, Edit.class, Init.class, Alias.class, Catalog.class, Trust.class, Cache.class,
+		Run.class, Build.class, Edit.class, Init.class, Alias.class, Catalog.class, Trust.class, Cache.class,
 		Completion.class, Jdk.class, Version.class })
 public class Jbang extends BaseCommand {
 
