@@ -9,6 +9,7 @@ import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.sun.nio.file.SensitivityWatchEventModifier;
@@ -40,6 +41,8 @@ public class Edit extends BaseScriptCommand {
 													.getOrDefault("VISUAL",
 															System.getenv().getOrDefault("EDITOR", "")));
 			}
+
+			Process process = null;
 			if ("gitpod".equals(liveeditor) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
 				info("Open this url to edit the project in your gitpod session:\n\n"
 						+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + project.getAbsolutePath() + "\n\n");
@@ -48,8 +51,9 @@ public class Edit extends BaseScriptCommand {
 				optionList.add(liveeditor);
 				optionList.add(project.getAbsolutePath());
 				info("Running `" + String.join(" ", optionList) + "`");
-				Process process = new ProcessBuilder(optionList).start();
+				process = new ProcessBuilder(optionList).start();
 			}
+
 			try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
 				File orginalFile = new File(script.getOriginalFile());
 				if (!orginalFile.exists()) {
@@ -60,8 +64,11 @@ public class Edit extends BaseScriptCommand {
 						new WatchEvent.Kind[] { StandardWatchEventKinds.ENTRY_MODIFY },
 						SensitivityWatchEventModifier.HIGH);
 				info("Watching for changes in " + watched);
-				while (true) {
-					final WatchKey wk = watchService.take();
+				while (process != null && process.isAlive()) {
+					final WatchKey wk = watchService.poll(3, TimeUnit.SECONDS);
+					if (wk == null) {
+						continue;
+					}
 					for (WatchEvent<?> event : wk.pollEvents()) {
 						// we only register "ENTRY_MODIFY" so the context is always a Path.
 						final Path changed = (Path) event.context();
