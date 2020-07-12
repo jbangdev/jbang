@@ -48,7 +48,7 @@ rm -rf ~/.jbang/cache
 echo Testing with `which jbang`
 
 ## init ##
-assert "jbang --init $SCRATCH/test.java"
+assert "jbang init $SCRATCH/test.java"
 assert_raises "test -f $SCRATCH/test.java" 0
 
 assert "jbang $SCRATCH/test.java" "Hello World"
@@ -84,13 +84,14 @@ assert "grep -c $SCRATCH/testrepo ~/.jbang/cache/dependency_cache.txt" 1
 assert_stderr "jbang classpath_log.java" ""
 
 ## test urls
-assert "jbang --trust=raw.githubusercontent.com/jbangdev https://raw.githubusercontent.com/jbangdev/jbang/master/examples/helloworld.java viaurl" "Hello viaurl"
+assert "jbang trust add raw.githubusercontent.com/jbangdev https://raw.githubusercontent.com/jbangdev/jbang/master/examples/helloworld.java" ""
+assert "jbang https://raw.githubusercontent.com/jbangdev/jbang/master/examples/helloworld.java viaurl" "Hello viaurl"
 
 ## test that can figure out main class with dual classes
 assert "jbang dualclass.java" "Hello World"
 
 ## test that can run without .java extension
-assert "jbang --init=cli $SCRATCH/xyzplugin"
+assert "jbang init --template=cli $SCRATCH/xyzplugin"
 assert "jbang $SCRATCH/xyzplugin" "Hello World!"
 
 ## test quoting

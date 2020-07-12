@@ -1,7 +1,7 @@
 ﻿$tools = Split-Path $MyInvocation.MyCommand.Definition
 $package = Split-Path $tools
 $jbang_home = Join-Path $package 'jbang-@projectVersion@'
-$jbang_bat = Join-Path $jbang_home 'bin/jbang.bat'
+$jbang_bat = Join-Path $jbang_home 'bin/jbang.cmd'
 
 Install-ChocolateyZipPackage `
     -PackageName 'jbang' `

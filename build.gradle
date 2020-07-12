@@ -9,17 +9,19 @@ plugins {
 	id 'org.gradle.crypto.checksum' version '1.1.0'
 	id "com.diffplug.gradle.spotless" version "3.26.1"
 	id 'de.fuerstenau.buildconfig' version '1.1.8'
+	id "com.dorongold.task-tree" version "1.5"
 }
 
 repositories {
 	jcenter()
+	maven { url 'https://jitpack.io' }
 }
 
 dependencies {
 	implementation 'com.offbytwo:docopt:0.6.0.20150202'
 
 	implementation 'org.apache.commons:commons-text:1.8'
-	implementation 'info.picocli:picocli:4.2.0'
+	implementation 'info.picocli:picocli:4.3.2'
 	implementation 'io.quarkus.qute:qute-core:1.1.0.Final'
 	implementation 'kr.motd.maven:os-maven-plugin:1.6.1'
 	implementation 'org.codehaus.plexus:plexus-java:1.0.4'
@@ -40,6 +42,10 @@ dependencies {
 	testImplementation(
 			'org.hamcrest:hamcrest-library:2.1'
 	)
+
+	//testCompile 'com.github.maxandersen.karate:karate-junit:19e06766'
+	//testCompile 'com.github.maxandersen.karate:karate-apache:19e06766'
+	testCompile 'com.github.maxandersen.karate:karate-netty:19e06766'
 }
 
 // to enable reproducible builds
@@ -49,6 +55,7 @@ tasks.withType(AbstractArchiveTask) {
 }
 
 spotless {
+	lineEndings 'UNIX'
 	format 'misc', {
 		target '**/*.gradle', '**/*.md', '**/.gitignore'
 		targetExclude 'CONTRIBUTORS.md', 'src/main/scripts/container/README.md', 'build/container/README.md' // all-contributor bot adds non-indented code
@@ -57,7 +64,7 @@ spotless {
 		endWithNewline()
 	}
 	java {
-		importOrder 'java', 'javax', 'org', 'com', 'dk.xam', ''
+		importOrder 'java', 'javax', 'org', 'com', 'dev.jbang', ''
 		removeUnusedImports()
 		eclipse().configFile "misc/eclipse_formatting_nowrap.xml"
 	}
@@ -78,7 +85,7 @@ distributions {
 			}
 			from('src/main/scripts') {
 				include 'jbang'
-				include 'jbang.bat'
+				include 'jbang.cmd'
 				into 'bin'
 			}
 		}
@@ -88,7 +95,7 @@ distributions {
 jar {
 	manifest {
 		attributes (
-				'Main-Class': 'dk.xam.jbang.Main',
+				'Main-Class': 'dev.jbang.Main',
 		)
 	}
 	}
@@ -116,7 +123,7 @@ shadowJar {
 	}
 	mergeServiceFiles()
 	manifest {
-		attributes 'Main-Class': 'dk.xam.jbang.Main'
+		attributes 'Main-Class': 'dev.jbang.Main'
 	}
 	// warning is printed about deprecation in 7.0 but if I fix this shadowjar turns into a bogus file
 	archiveName = "${baseName}.${extension}"
@@ -124,6 +131,11 @@ shadowJar {
 
 test {
 	useJUnitPlatform()
+}
+
+task karateExecute(type: JavaExec) {
+	classpath = sourceSets.test.runtimeClasspath
+	main = System.properties.getProperty('mainClass')
 }
 
 task copyResources(type: Copy) {
@@ -263,6 +275,6 @@ build.dependsOn(scoop)
 build.dependsOn(container)
 build.dependsOn(spec)
 
-group = "dk.xam.jbang"
+group = "dev.jbang"
 sourceCompatibility = '8'
 targetCompatibility = '8'

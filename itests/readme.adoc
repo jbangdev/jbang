@@ -16,3 +16,17 @@ cd itests
 ./test_suite.sh
 ----
 
+== Experimental Karate
+
+All the `*.feature` are written and run using https://github.com/intuit/karate[Karate].
+
+The only prerequisite is to make sure the `jbang` you want to test is on your path.
+
+You can run them by calling `./itests.sh` which will use Gradle to do a build and install to 
+have latest version on `PATH`; or if you want to experiment
+run `jbang karate.java *.feature` directly.
+
+It is intended that eventually these Karate tests will replace the shell based tests as 
+Karate can (in theory) run these on both *nix and Windows systems.
+
+
