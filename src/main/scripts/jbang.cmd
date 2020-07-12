@@ -26,17 +26,18 @@ IF NOT EXIST "%TDIR%" ( mkdir "%TDIR%")
 
 set tmpfile=%TDIR%\%RANDOM%.tmp
 rem execute jbang and pipe to temporary random file
-%JAVA_EXEC% %JBANG_JAVA_OPTIONS% -classpath %jarPath% dev.jbang.Main %* > %tmpfile%
+%JAVA_EXEC% > "%tmpfile%" %JBANG_JAVA_OPTIONS% -classpath "%jarPath%" dev.jbang.Main %*
 set ERROR=%ERRORLEVEL%
 rem catch errorlevel straight after; rem or FOR /F swallow would have swallowed the errorlevel
 
 IF %ERROR% NEQ 0 (
+
     del ""%tmpfile%""
     exit /b %ERROR%
 )
 
 rem read generated java command by jang, delete temporary file and execute.
-for %%A in (%tmpfile%) do for /f "usebackq delims=" %%B in ("%%A") do (
+for %%A in ("%tmpfile%") do for /f "usebackq delims=" %%B in (%%A) do (
   set "OUTPUT=%%B"
   goto :break
 )

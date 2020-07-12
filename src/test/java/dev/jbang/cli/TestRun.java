@@ -84,7 +84,8 @@ public class TestRun {
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString("helloworld.jsh"));
 		assertThat(result, not(containsString("--source 11")));
-		assertThat(result, containsString("--startup=DEFAULT --startup="));
+		assertThat(result, containsString("--startup=DEFAULT"));
+		assertThat(result, matchesPattern(".*--startup=[^ ]*helloworld.jsh.*"));
 		assertThat(result, not(containsString("blah")));
 		assertThat(result, containsString("jbang_exit_"));
 	}
@@ -104,7 +105,8 @@ public class TestRun {
 
 		String result = run.generateCommandLine(s);
 		assertThat(result, matchesPattern("^.*java(.exe)?.*"));
-		assertThat(result, matchesPattern("^.*java -jar .*helloworld.jar"));
+		assertThat(result, containsString("-jar"));
+		assertThat(result, containsString("helloworld.jar"));
 
 		assertThat(s.getBackingFile().toString(), equalTo(jar));
 		assertThat(s.forJar(), equalTo(true));
@@ -129,7 +131,7 @@ public class TestRun {
 
 		String cmd = run.generateCommandLine(result);
 
-		assertThat(cmd, containsString(" -jar "));
+		assertThat(cmd, containsString(Run.escapeArgument("-jar")));
 
 	}
 
@@ -174,7 +176,8 @@ public class TestRun {
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString("helloworld.jsh"));
 		assertThat(result, not(containsString("--source 11")));
-		assertThat(result, containsString("--startup=DEFAULT --startup="));
+		assertThat(result, containsString("--startup=DEFAULT"));
+		assertThat(result, matchesPattern(".*--startup=[^ ]*helloworld.jsh.*"));
 		assertThat(result, not(containsString("blah")));
 		assertThat(result, not(containsString("jbang_exit_")));
 	}
@@ -240,7 +243,7 @@ public class TestRun {
 		if (Util.isWindows()) {
 			assertThat(result, containsString("^\"-Dquoted=see this^\""));
 		} else {
-			assertThat(result, containsString("\"-Dquoted=see this\""));
+			assertThat(result, containsString("'-Dquoted=see this'"));
 		}
 		String[] split = result.split("example.java");
 		assertEquals(split.length, 2);
@@ -281,7 +284,7 @@ public class TestRun {
 		if (Util.isWindows()) {
 			assertThat(s, containsString("^\" ~^!@#$^%^^^&*^(^)-+\\:;'`^<^>?/,.{}[]\\^\"^\""));
 		} else {
-			assertThat(s, containsString(" ~\\!@#\\$%^&*()-+\\\\:;'\\`<>?/,.{}[]\\\""));
+			assertThat(s, containsString("' ~!@#$%^&*()-+\\:;'\\''`<>?/,.{}[]\"'"));
 		}
 	}
 
