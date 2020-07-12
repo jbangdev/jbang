@@ -1,0 +1,12 @@
+{
+  "aliases": {
+    "hello": {
+      "script-ref": "hello.jsh"
+    },
+    "echo": {
+      "script-ref": "echo.java",
+      "description": "echo echo echo description"
+    }
+  },
+  "description": "JBang test scripts"
+}
