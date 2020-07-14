@@ -130,14 +130,7 @@ public class Settings {
 	}
 
 	public static void clearCache() {
-		try {
-			Files	.walk(Settings.getCacheDir())
-					.sorted(Comparator.reverseOrder())
-					.map(Path::toFile)
-					.forEach(File::delete);
-		} catch (IOException e) {
-			throw new ExitException(-1, "Could not delete cache.", e);
-		}
+		Util.deleteFolder(Settings.getCacheDir(), false);
 	}
 
 	static TemplateEngine te;
