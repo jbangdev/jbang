@@ -1,18 +1,15 @@
 package dev.jbang;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLDecoder;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -30,6 +27,14 @@ import picocli.CommandLine;
 public class Util {
 
 	public static final String JBANG_CATALOG_JSON = "jbang-catalog.json";
+
+	public enum OS {
+		linux, mac, windows
+	}
+
+	public enum Arch {
+		x32, x64
+	}
 
 	static public void info(String msg) {
 		infoMsg(msg);
@@ -76,8 +81,32 @@ public class Util {
 	private static final Pattern mainClassPattern = Pattern.compile(
 			"(?sm)class *(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*) .*static void main");
 
+	public static OS getOS() {
+		String os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH).replaceAll("[^a-z0-9]+", "");
+		if (os.startsWith("mac") || os.startsWith("osx")) {
+			return OS.mac;
+		} else if (os.startsWith("linux")) {
+			return OS.linux;
+		} else if (os.startsWith("win")) {
+			return OS.windows;
+		} else {
+			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Unsupported OS: " + os);
+		}
+	}
+
+	public static Arch getArch() {
+		String arch = System.getProperty("os.arch").toLowerCase(Locale.ENGLISH).replaceAll("[^a-z0-9]+", "");
+		if (arch.matches("^(x8664|amd64|ia32e|em64t|x64)$")) {
+			return Arch.x64;
+		} else if (arch.matches("^(x8632|x86|i[3-6]86|ia32|x32)$")) {
+			return Arch.x32;
+		} else {
+			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Unsupported architecture: " + arch);
+		}
+	}
+
 	public static boolean isWindows() {
-		return System.getProperty("os.name").toLowerCase().contains("windows");
+		return getOS() == OS.windows;
 	}
 
 	/**
@@ -169,11 +198,13 @@ public class Util {
 				httpConn.setInstanceFollowRedirects(false);
 				responseCode = httpConn.getResponseCode();
 				if (responseCode == HttpURLConnection.HTTP_MOVED_PERM ||
-						responseCode == HttpURLConnection.HTTP_MOVED_TEMP) {
+						responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
+						responseCode == 307 /* TEMP REDIRECT */) {
 					if (redirects++ > 8) {
 						throw new IOException("Too many redirects");
 					}
-					String location = URLDecoder.decode(httpConn.getHeaderField("Location"), "UTF-8");
+					String location = httpConn.getHeaderField("Location");
+					// location = URLDecoder.decode(location, "UTF-8");
 					url = new URL(url, location);
 					url = new URL(swizzleURL(url.toString()));
 					fileURL = url.toExternalForm();
@@ -194,8 +225,11 @@ public class Util {
 					// extracts file name from header field
 					int index = disposition.indexOf("filename=");
 					if (index > 0) {
-						fileName = disposition.substring(index + 10,
-								disposition.length() - 1);
+						fileName = disposition.substring(index + 9);
+						// Seems not everybody properly quotes the filename
+						if (fileName.startsWith("\"") && fileName.endsWith("\"")) {
+							fileName = fileName.substring(1, fileName.length() - 1);
+						}
 					}
 				}
 
@@ -222,8 +256,9 @@ public class Util {
 
 		// copy content from connection to file
 		Path saveFilePath = saveDir.toPath().resolve(fileName);
-		try (InputStream inputStream = urlConnection.getInputStream()) {
-			Files.copy(inputStream, saveFilePath, StandardCopyOption.REPLACE_EXISTING);
+		try (ReadableByteChannel readableByteChannel = Channels.newChannel(url.openStream());
+				FileOutputStream fileOutputStream = new FileOutputStream(saveFilePath.toFile())) {
+			fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
 		}
 
 		if (httpConn != null)
@@ -247,14 +282,12 @@ public class Util {
 		fileURL = swizzleURL(fileURL);
 		String urlHash = getStableID(fileURL);
 		Path urlCache = Settings.getCacheDir().resolve("url_cache_" + urlHash);
-		String fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1,
-				fileURL.length());
-		Path file = urlCache.resolve(fileName);
-		if (updateCache || !Files.isRegularFile(file)) {
+		Path file = Files.isDirectory(urlCache) ? Files.list(urlCache).findFirst().orElse(null) : null;
+		if (updateCache || file == null) {
 			urlCache.toFile().mkdirs();
 			return downloadFile(fileURL, urlCache.toFile());
 		} else {
-			return urlCache.resolve(fileName);
+			return urlCache.resolve(file);
 		}
 	}
 
@@ -487,4 +520,45 @@ public class Util {
 	private static boolean isAbsoluteRef(String ref) {
 		return ref.startsWith("/") || ref.contains(":");
 	}
+
+	/**
+	 * Runs the given command + arguments and returns its output (both stdout and
+	 * stderr) as a string
+	 * 
+	 * @param cmd The command to execute
+	 * @return The output of the command or null if anything went wrong
+	 */
+	public static String runCommand(String... cmd) {
+		try {
+			ProcessBuilder pb = new ProcessBuilder(cmd);
+			pb.redirectErrorStream(true);
+			Process p = pb.start();
+			BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			String cmdOutput = br.lines().collect(Collectors.joining());
+			int exitCode = p.waitFor();
+			if (exitCode == 0) {
+				return cmdOutput;
+			}
+		} catch (IOException | InterruptedException ex) {
+			// Ignore
+		}
+		return null;
+	}
+
+	public static boolean deleteFolder(Path folder, boolean quiet) {
+		try {
+			Files	.walk(folder)
+					.sorted(Comparator.reverseOrder())
+					.map(Path::toFile)
+					.forEach(File::delete);
+			return true;
+		} catch (IOException e) {
+			if (quiet) {
+				return false;
+			} else {
+				throw new ExitException(-1, "Could not delete folder " + folder.toString());
+			}
+		}
+	}
+
 }

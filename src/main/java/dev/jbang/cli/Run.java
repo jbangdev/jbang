@@ -20,10 +20,7 @@ import javax.net.ssl.*;
 
 import org.apache.commons.text.StringEscapeUtils;
 
-import dev.jbang.ExitException;
-import dev.jbang.Script;
-import dev.jbang.Settings;
-import dev.jbang.Util;
+import dev.jbang.*;
 
 import picocli.CommandLine;
 
@@ -33,6 +30,10 @@ public class Run extends BaseScriptCommand {
 	@CommandLine.Option(names = { "-m",
 			"--main" }, description = "Main class to use when running. Used primarily for running jar's.")
 	String main;
+
+	@CommandLine.Option(names = { "-v",
+			"--version" }, description = "JDK version to use for running the script.")
+	Integer version;
 
 	@CommandLine.Option(names = { "-d",
 			"--debug" }, fallbackValue = "4004", parameterConsumer = IntFallbackConsumer.class, description = "Launch with java debug enabled on specified port (default: ${FALLBACK-VALUE}) ")
@@ -131,7 +132,7 @@ public class Run extends BaseScriptCommand {
 
 		if (!outjar.exists()) {
 			List<String> optionList = new ArrayList<String>();
-			optionList.add(resolveInJavaHome("javac"));
+			optionList.add(resolveInJavaHome("javac", version));
 			optionList.addAll(script.collectCompileOptions());
 			String path = script.resolveClassPath(offline);
 			if (!path.trim().isEmpty()) {
@@ -194,7 +195,7 @@ public class Run extends BaseScriptCommand {
 
 		if (nativeImage && !getImageName(outjar).exists()) {
 			List<String> optionList = new ArrayList<String>();
-			optionList.add(resolveInGraalVMHome("native-image"));
+			optionList.add(resolveInGraalVMHome("native-image", version));
 
 			optionList.add("-H:+ReportExceptionStackTraces");
 
@@ -247,10 +248,10 @@ public class Run extends BaseScriptCommand {
 
 			List<String> optionalArgs = new ArrayList<String>();
 
-			String javacmd = resolveInJavaHome("java");
+			String javacmd = resolveInJavaHome("java", version);
 			if (script.getBackingFile().getName().endsWith(".jsh")) {
 
-				javacmd = resolveInJavaHome("jshell");
+				javacmd = resolveInJavaHome("jshell", version);
 				if (!classpath.trim().isEmpty()) {
 					optionalArgs.add("--class-path=" + classpath);
 				}
@@ -402,16 +403,29 @@ public class Run extends BaseScriptCommand {
 		return buf;
 	}
 
-	static String resolveInJavaHome(String cmd) {
-		return resolveInEnv("JAVA_HOME", cmd);
+	static String resolveInJavaHome(String cmd, Integer version) {
+		Path jdkHome = null;
+		try {
+			jdkHome = JdkManager.getCurrentJdk(version);
+			if (jdkHome != null) {
+				if (Util.isWindows()) {
+					cmd = cmd + ".exe";
+				}
+				return jdkHome.resolve("bin").resolve(cmd).toAbsolutePath().toString();
+			}
+		} catch (IOException e) {
+			// Unable to find/install Java. Should we tell the user or just hope for the
+			// best?
+		}
+		return cmd;
 	}
 
-	static String resolveInGraalVMHome(String cmd) {
+	static String resolveInGraalVMHome(String cmd, Integer version) {
 		String newcmd = resolveInEnv("GRAALVM_HOME", cmd);
 
 		if (newcmd.equals(cmd) &&
 				!new File(newcmd).exists()) {
-			return resolveInJavaHome(cmd);
+			return resolveInJavaHome(cmd, version);
 		} else {
 			return newcmd;
 		}
