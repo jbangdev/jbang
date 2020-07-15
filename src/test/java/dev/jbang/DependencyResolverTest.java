@@ -182,12 +182,12 @@ class DependencyResolverTest {
 
 		ModularClassPath cp = new ModularClassPath(dr.resolveDependencies(deps, Collections.emptyList(), false, true)) {
 			@Override
-			protected boolean supportsModules(String javacmd) {
+			protected boolean supportsModules(Integer requestedVersion) {
 				return true;
 			}
 		};
 
-		List<String> ma = cp.getAutoDectectedModuleArguments("java");
+		List<String> ma = cp.getAutoDectectedModuleArguments(null);
 
 		assertThat(ma, hasItem("--module-path"));
 
