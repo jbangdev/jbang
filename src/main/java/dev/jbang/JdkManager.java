@@ -3,6 +3,9 @@ package dev.jbang;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class JdkManager {
 	private static final String JDK_DOWNLOAD_URL = "https://api.adoptopenjdk.net/v3/binary/latest/%d/ga/%s/%s/jdk/hotspot/normal/adoptopenjdk";
@@ -38,7 +41,29 @@ public class JdkManager {
 		return jdkDir;
 	}
 
+	public static Set<Integer> listInstalledJdks() throws IOException {
+		if (Files.isDirectory(getJdksPath())) {
+			return Files.list(getJdksPath()).map(p -> {
+				try {
+					return Integer.parseInt(p.getFileName().toString());
+				} catch (NumberFormatException ex) {
+					return -1;
+				}
+			}).filter(v -> v > 0).collect(Collectors.toSet());
+		} else {
+			return Collections.emptySet();
+		}
+	}
+
+	public static boolean isInstalledJdk(int version) {
+		return Files.isDirectory(getJdkPath(version));
+	}
+
 	private static Path getJdkPath(int version) {
-		return Settings.getCacheDir().resolve("jdks").resolve(Integer.toString(version));
+		return getJdksPath().resolve(Integer.toString(version));
+	}
+
+	private static Path getJdksPath() {
+		return Settings.getCacheDir().resolve("jdks");
 	}
 }
