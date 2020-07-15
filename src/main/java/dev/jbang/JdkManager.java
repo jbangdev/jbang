@@ -7,26 +7,17 @@ import java.nio.file.Path;
 public class JdkManager {
 	private static final String JDK_DOWNLOAD_URL = "https://api.adoptopenjdk.net/v3/binary/latest/%d/ga/%s/%s/jdk/hotspot/normal/adoptopenjdk";
 
-	private static final int DEFAULT_JAVA_VERSION = 11;
-
-	public static Path getCurrentJdk(Integer expectedVersion) throws IOException {
+	public static Path getCurrentJdk(String requestedVersion) throws IOException {
 		int currentVersion = JavaUtil.determineJavaVersion();
-		if (expectedVersion != null) {
-			if (currentVersion < expectedVersion) {
-				return getJdk(expectedVersion);
-			} else {
-				return JavaUtil.getJdkHome();
-			}
+		int actualVersion = JavaUtil.javaVersion(requestedVersion);
+		if (currentVersion == actualVersion) {
+			return JavaUtil.getJdkHome();
 		} else {
-			if (currentVersion < 8) {
-				return getJdk(DEFAULT_JAVA_VERSION);
-			} else {
-				return JavaUtil.getJdkHome();
-			}
+			return getInstalledJdk(actualVersion);
 		}
 	}
 
-	public static Path getJdk(int version) throws IOException {
+	public static Path getInstalledJdk(int version) throws IOException {
 		Path jdkDir = getJdkPath(version);
 		if (!Files.isDirectory(jdkDir)) {
 			jdkDir = downloadAndInstallJdk(version);

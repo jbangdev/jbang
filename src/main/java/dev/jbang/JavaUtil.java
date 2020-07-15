@@ -6,6 +6,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class JavaUtil {
+
+	public static final int DEFAULT_JAVA_VERSION = 11;
+
 	private static Integer javaVersion;
 
 	/**
@@ -17,8 +20,21 @@ public class JavaUtil {
 	 * @param requestedVersion The Java version requested by the user
 	 * @return The Java version that will be used
 	 */
-	public static int javaVersion(Integer requestedVersion) {
-		return requestedVersion != null ? requestedVersion : determineJavaVersion();
+	public static int javaVersion(String requestedVersion) {
+		int currentVersion = determineJavaVersion();
+		if (requestedVersion != null) {
+			if (JavaUtil.satisfiesRequestedVersion(requestedVersion, currentVersion)) {
+				return currentVersion;
+			} else {
+				return JavaUtil.minRequestedVersion(requestedVersion);
+			}
+		} else {
+			if (currentVersion < 8) {
+				return DEFAULT_JAVA_VERSION;
+			} else {
+				return currentVersion;
+			}
+		}
 	}
 
 	/**
@@ -86,6 +102,19 @@ public class JavaUtil {
 			return Integer.parseInt(num);
 		}
 		return null;
+	}
+
+	private static boolean satisfiesRequestedVersion(String rv, int v) {
+		int reqVer = minRequestedVersion(rv);
+		if (rv.endsWith("+")) {
+			return v >= reqVer;
+		} else {
+			return v == reqVer;
+		}
+	}
+
+	private static int minRequestedVersion(String rv) {
+		return Integer.parseInt(rv.endsWith("+") ? rv.substring(0, rv.length() - 1) : rv);
 	}
 
 }
