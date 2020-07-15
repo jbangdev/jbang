@@ -25,7 +25,11 @@ public abstract class BaseCommand implements Callable<Integer> {
 	static boolean verbose = false;
 
 	void info(String msg) {
-		spec.commandLine().getErr().println("[jbang] " + msg);
+		if (spec != null) {
+			spec.commandLine().getErr().println("[jbang] " + msg);
+		} else {
+			System.err.println("[jbang] " + msg);
+		}
 	}
 
 	void warn(String msg) {
