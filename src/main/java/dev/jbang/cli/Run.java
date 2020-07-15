@@ -31,9 +31,9 @@ public class Run extends BaseScriptCommand {
 			"--main" }, description = "Main class to use when running. Used primarily for running jar's.")
 	String main;
 
-	@CommandLine.Option(names = { "-v",
-			"--version" }, description = "JDK version to use for running the script.")
-	Integer version;
+	@CommandLine.Option(names = { "-j",
+			"--java" }, description = "JDK version to use for running the script.")
+	Integer javaVersion;
 
 	@CommandLine.Option(names = { "-d",
 			"--debug" }, fallbackValue = "4004", parameterConsumer = IntFallbackConsumer.class, description = "Launch with java debug enabled on specified port (default: ${FALLBACK-VALUE}) ")
@@ -132,7 +132,7 @@ public class Run extends BaseScriptCommand {
 
 		if (!outjar.exists()) {
 			List<String> optionList = new ArrayList<String>();
-			optionList.add(resolveInJavaHome("javac", version));
+			optionList.add(resolveInJavaHome("javac", javaVersion));
 			optionList.addAll(script.collectCompileOptions());
 			String path = script.resolveClassPath(offline);
 			if (!path.trim().isEmpty()) {
@@ -195,7 +195,7 @@ public class Run extends BaseScriptCommand {
 
 		if (nativeImage && !getImageName(outjar).exists()) {
 			List<String> optionList = new ArrayList<String>();
-			optionList.add(resolveInGraalVMHome("native-image", version));
+			optionList.add(resolveInGraalVMHome("native-image", javaVersion));
 
 			optionList.add("-H:+ReportExceptionStackTraces");
 
@@ -248,10 +248,10 @@ public class Run extends BaseScriptCommand {
 
 			List<String> optionalArgs = new ArrayList<String>();
 
-			String javacmd = resolveInJavaHome("java", version);
+			String javacmd = resolveInJavaHome("java", javaVersion);
 			if (script.getBackingFile().getName().endsWith(".jsh")) {
 
-				javacmd = resolveInJavaHome("jshell", version);
+				javacmd = resolveInJavaHome("jshell", javaVersion);
 				if (!classpath.trim().isEmpty()) {
 					optionalArgs.add("--class-path=" + classpath);
 				}
@@ -297,7 +297,7 @@ public class Run extends BaseScriptCommand {
 
 			fullArgs.add(javacmd);
 			fullArgs.addAll(script.collectRuntimeOptions());
-			fullArgs.addAll(script.getAutoDetectedModuleArguments(version, offline));
+			fullArgs.addAll(script.getAutoDetectedModuleArguments(javaVersion, offline));
 			fullArgs.addAll(optionalArgs);
 
 			if (main != null) { // if user specified main class it overrides any other main class calculation
