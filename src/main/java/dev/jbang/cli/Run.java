@@ -26,6 +26,7 @@ import picocli.CommandLine;
 
 @CommandLine.Command(name = "run", description = "Compile and run provided .java/.jsh script.")
 public class Run extends BaseScriptCommand {
+	private String javaVersion;
 
 	@CommandLine.Option(names = { "-m",
 			"--main" }, description = "Main class to use when running. Used primarily for running jar's.")
@@ -33,7 +34,13 @@ public class Run extends BaseScriptCommand {
 
 	@CommandLine.Option(names = { "-j",
 			"--java" }, description = "JDK version to use for running the script.")
-	Integer javaVersion;
+	void setJavaVersion(String javaVersion) {
+		if (!javaVersion.matches("\\d+[+]?")) {
+			throw new IllegalArgumentException(
+					"Invalid version, should be a number optionally followed by a plus sign");
+		}
+		this.javaVersion = javaVersion;
+	}
 
 	@CommandLine.Option(names = { "-d",
 			"--debug" }, fallbackValue = "4004", parameterConsumer = IntFallbackConsumer.class, description = "Launch with java debug enabled on specified port (default: ${FALLBACK-VALUE}) ")
@@ -403,10 +410,10 @@ public class Run extends BaseScriptCommand {
 		return buf;
 	}
 
-	static String resolveInJavaHome(String cmd, Integer version) {
+	static String resolveInJavaHome(String cmd, String requestedVersion) {
 		Path jdkHome = null;
 		try {
-			jdkHome = JdkManager.getCurrentJdk(version);
+			jdkHome = JdkManager.getCurrentJdk(requestedVersion);
 			if (jdkHome != null) {
 				if (Util.isWindows()) {
 					cmd = cmd + ".exe";
@@ -420,12 +427,12 @@ public class Run extends BaseScriptCommand {
 		return cmd;
 	}
 
-	static String resolveInGraalVMHome(String cmd, Integer version) {
+	static String resolveInGraalVMHome(String cmd, String requestedVersion) {
 		String newcmd = resolveInEnv("GRAALVM_HOME", cmd);
 
 		if (newcmd.equals(cmd) &&
 				!new File(newcmd).exists()) {
-			return resolveInJavaHome(cmd, version);
+			return resolveInJavaHome(cmd, requestedVersion);
 		} else {
 			return newcmd;
 		}

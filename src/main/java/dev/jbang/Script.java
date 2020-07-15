@@ -211,7 +211,7 @@ public class Script {
 		return classpath.getClassPath();
 	}
 
-	public List<String> getAutoDetectedModuleArguments(Integer requestedVersion, boolean offline) {
+	public List<String> getAutoDetectedModuleArguments(String requestedVersion, boolean offline) {
 		if (classpath == null) {
 			resolveClassPath(offline);
 		}

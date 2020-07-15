@@ -182,7 +182,7 @@ class DependencyResolverTest {
 
 		ModularClassPath cp = new ModularClassPath(dr.resolveDependencies(deps, Collections.emptyList(), false, true)) {
 			@Override
-			protected boolean supportsModules(Integer requestedVersion) {
+			protected boolean supportsModules(String requestedVersion) {
 				return true;
 			}
 		};

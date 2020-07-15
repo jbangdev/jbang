@@ -25,7 +25,7 @@ public class ModularClassPath {
 		return classPath;
 	}
 
-	List<String> getAutoDectectedModuleArguments(Integer requestedVersion) {
+	List<String> getAutoDectectedModuleArguments(String requestedVersion) {
 		if (javafx && supportsModules(requestedVersion)) {
 			List<String> commandArguments = new ArrayList<>();
 
@@ -91,7 +91,7 @@ public class ModularClassPath {
 		}
 	}
 
-	protected boolean supportsModules(Integer requestedVersion) {
+	protected boolean supportsModules(String requestedVersion) {
 		return JavaUtil.javaVersion(requestedVersion) >= 9;
 	}
 }
