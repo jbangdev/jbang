@@ -297,7 +297,7 @@ public class Run extends BaseScriptCommand {
 
 			fullArgs.add(javacmd);
 			fullArgs.addAll(script.collectRuntimeOptions());
-			fullArgs.addAll(script.getAutoDetectedModuleArguments(javacmd, offline));
+			fullArgs.addAll(script.getAutoDetectedModuleArguments(version, offline));
 			fullArgs.addAll(optionalArgs);
 
 			if (main != null) { // if user specified main class it overrides any other main class calculation

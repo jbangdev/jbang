@@ -211,11 +211,11 @@ public class Script {
 		return classpath.getClassPath();
 	}
 
-	public List<String> getAutoDetectedModuleArguments(String javacmd, boolean offline) {
+	public List<String> getAutoDetectedModuleArguments(Integer requestedVersion, boolean offline) {
 		if (classpath == null) {
 			resolveClassPath(offline);
 		}
-		return classpath.getAutoDectectedModuleArguments(javacmd);
+		return classpath.getAutoDectectedModuleArguments(requestedVersion);
 	}
 
 	public static Stream<String> extractRepositories(String line) {

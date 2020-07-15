@@ -2,10 +2,8 @@ package dev.jbang;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,8 +25,8 @@ public class ModularClassPath {
 		return classPath;
 	}
 
-	List<String> getAutoDectectedModuleArguments(String javacmd) {
-		if (javafx && supportsModules(javacmd)) {
+	List<String> getAutoDectectedModuleArguments(Integer requestedVersion) {
+		if (javafx && supportsModules(requestedVersion)) {
 			List<String> commandArguments = new ArrayList<>();
 
 			List<File> artifacts = Arrays	.stream(getClassPath().split(CP_SEPARATOR))
@@ -93,22 +91,7 @@ public class ModularClassPath {
 		}
 	}
 
-	protected boolean supportsModules(String javacmd) {
-		ProcessBuilder pb = new ProcessBuilder();
-		boolean result;
-		try {
-			Process p = pb.command(javacmd, "-version").start();
-			p.waitFor(); // wait for process to finish then continue.
-
-			try (BufferedReader bri = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
-				result = !bri.readLine().contains("\"1."); // anything starting with 1. would be 1.8 and older
-			}
-
-		} catch (IOException | InterruptedException e) {
-			result = !System.getProperty("java.version").startsWith("1."); // couldn't decide fall back to running vm to
-																			// decide
-		}
-		// Util.info("java modules: " + result);
-		return result;
+	protected boolean supportsModules(Integer requestedVersion) {
+		return JavaUtil.javaVersion(requestedVersion) >= 9;
 	}
 }
