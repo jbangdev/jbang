@@ -21,11 +21,10 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import com.google.gson.Gson;
+
 import picocli.CommandLine;
 
 public class Util {
-
-	public static final String JBANG_CATALOG_JSON = "jbang-catalog.json";
 
 	public enum OS {
 		linux, mac, windows

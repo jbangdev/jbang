@@ -99,28 +99,38 @@ public class AliasUtil {
 		Settings.Catalog catalog = Settings.getCatalogs().get(catalogName);
 		if (catalog == null) {
 			Optional<String> url;
-			if (catalogName.contains("/")) {
-				url = chain(
-						() -> tryDownload(GITHUB_URL + catalogName + "/blob/master/" + JBANG_CATALOG_JSON),
-						() -> tryDownload(GITLAB_URL + catalogName + "/-/blob/master/" + JBANG_CATALOG_JSON),
-						() -> tryDownload(BITBUCKET_URL + catalogName + "/src/master/" + JBANG_CATALOG_JSON))
-																												.findFirst();
-			} else {
-				url = chain(
-						() -> tryDownload(
-								GITHUB_URL + catalogName + JBANG_CATALOG_REPO + "/blob/master/" + JBANG_CATALOG_JSON),
-						() -> tryDownload(
-								GITLAB_URL + catalogName + JBANG_CATALOG_REPO + "/-/blob/master" + JBANG_CATALOG_JSON),
-						() -> tryDownload(BITBUCKET_URL + catalogName + JBANG_CATALOG_REPO + "/src/master"
-								+ JBANG_CATALOG_JSON))
-														.findFirst();
+			String[] names = catalogName.split("/");
+			if (names.length > 3) {
+				throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Invalid catalog name '" + catalogName + "'");
 			}
+			boolean possibleCommit = names.length == 3 && names[2].matches("[0-9a-f]{5,40}");
+			url = chain(
+					() -> tryDownload(repoUrl(GITHUB_URL, "/blob/", names)),
+					() -> possibleCommit ? tryDownload(repoUrl(GITHUB_URL, "/blob/", names)) : Optional.empty(),
+					() -> tryDownload(repoUrl(GITLAB_URL, "/-/blob/", names)),
+					() -> possibleCommit ? tryDownload(repoUrl(GITLAB_URL, "/-/blob/", names)) : Optional.empty(),
+					() -> tryDownload(repoUrl(BITBUCKET_URL, "/src/", names)),
+					() -> possibleCommit ? tryDownload(repoUrl(BITBUCKET_URL, "/src/", names)) : Optional.empty())
+																													.findFirst();
 			if (url.isPresent()) {
 				Settings.Aliases aliases = AliasUtil.getCatalogAliasesByRef(url.get(), false);
 				catalog = Settings.addCatalog(catalogName, url.get(), aliases.description);
 			}
 		}
 		return catalog;
+	}
+
+	private static String repoUrl(String host, String infix, String[] names) {
+		String org = names[0];
+		String repo = null, branch = null;
+		if (names.length >= 2 && !names[1].isEmpty()) {
+			repo = names[1];
+		}
+		if (names.length == 3 && !names[2].isEmpty()) {
+			branch = names[2];
+		}
+		return GITHUB_URL + org + "/" + (repo != null ? repo : JBANG_CATALOG_REPO) + infix
+				+ (branch != null ? branch : "master") + "/" + JBANG_CATALOG_JSON;
 	}
 
 	private static Optional<String> tryDownload(String url) {
