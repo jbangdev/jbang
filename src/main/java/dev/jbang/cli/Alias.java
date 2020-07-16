@@ -47,26 +47,22 @@ public class Alias {
 						.stream()
 						.sorted()
 						.forEach(name -> {
-							try {
-								Settings.Alias ai = Util.getCatalogAlias(aliases, name);
-								String fullName = catalogName != null ? catalogName + "@" + name : name;
-								if (ai.description != null) {
-									out.println(fullName + " = " + ai.description);
-									out.println(Util.repeat(" ", fullName.length()) + "   (" + ai.scriptRef + ")");
-								} else {
-									out.println(fullName + " = " + ai.scriptRef);
-								}
-								if (ai.arguments != null) {
-									out.println(
-											Util.repeat(" ", fullName.length()) + "   Arguments: "
-													+ String.join(" ", ai.arguments));
-								}
-								if (ai.properties != null) {
-									out.println(
-											Util.repeat(" ", fullName.length()) + "   Properties: " + ai.properties);
-								}
-							} catch (IOException e) {
-								throw new RuntimeException(e);
+							Settings.Alias ai = Util.getCatalogAlias(aliases, name);
+							String fullName = catalogName != null ? catalogName + "@" + name : name;
+							if (ai.description != null) {
+								out.println(fullName + " = " + ai.description);
+								out.println(Util.repeat(" ", fullName.length()) + "   (" + ai.scriptRef + ")");
+							} else {
+								out.println(fullName + " = " + ai.scriptRef);
+							}
+							if (ai.arguments != null) {
+								out.println(
+										Util.repeat(" ", fullName.length()) + "   Arguments: "
+												+ String.join(" ", ai.arguments));
+							}
+							if (ai.properties != null) {
+								out.println(
+										Util.repeat(" ", fullName.length()) + "   Properties: " + ai.properties);
 							}
 						});
 	}
