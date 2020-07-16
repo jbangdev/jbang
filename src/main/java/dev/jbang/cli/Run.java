@@ -137,7 +137,16 @@ public class Run extends BaseScriptCommand {
 
 		File outjar = new File(tmpJarDir.getParentFile(), tmpJarDir.getName() + ".jar");
 
-		if (!outjar.exists()) {
+		if (outjar.exists()) {
+			try (JarFile jf = new JarFile(outjar)) {
+				script.setMainClass(
+						jf.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS));
+				script.setBuildJdk(
+						JavaUtil.parseJavaVersion(jf.getManifest().getMainAttributes().getValue("Build-Jdk")));
+			}
+		}
+
+		if (!outjar.exists() || JavaUtil.javaVersion(javaVersion) < script.getBuildJdk()) {
 			List<String> optionList = new ArrayList<String>();
 			optionList.add(resolveInJavaHome("javac", javaVersion));
 			optionList.addAll(script.collectCompileOptions());
@@ -191,13 +200,8 @@ public class Run extends BaseScriptCommand {
 			} catch (IOException e) {
 				throw new ExitException(1, e);
 			}
+			script.setBuildJdk(JavaUtil.javaVersion(javaVersion));
 			script.createJarFile(tmpJarDir, outjar);
-
-		} else {
-			try (JarFile jf = new JarFile(outjar)) {
-				script.setMainClass(
-						jf.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS));
-			}
 		}
 
 		if (nativeImage && !getImageName(outjar).exists()) {

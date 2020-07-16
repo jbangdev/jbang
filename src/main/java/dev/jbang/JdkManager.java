@@ -5,6 +5,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class JdkManager {
@@ -23,16 +25,18 @@ public class JdkManager {
 	public static Path getInstalledJdk(int version) throws IOException {
 		Path jdkDir = getJdkPath(version);
 		if (!Files.isDirectory(jdkDir)) {
-			jdkDir = downloadAndInstallJdk(version);
+			jdkDir = downloadAndInstallJdk(version, false);
 		}
 		return jdkDir;
 	}
 
-	public static Path downloadAndInstallJdk(int version) throws IOException {
+	public static Path downloadAndInstallJdk(int version, boolean updateCache) throws IOException {
+		System.err.println("Downloading JDK " + version + "...");
 		String url = String.format(JDK_DOWNLOAD_URL, version, Util.getOS().name(), Util.getArch().name());
-		Path jdkPkg = Util.downloadAndCacheFile(url, false);
+		Path jdkPkg = Util.downloadAndCacheFile(url, updateCache);
 		Path jdkDir = getJdkPath(version);
 		try {
+			System.err.println("Installing JDK " + version + "...");
 			UnpackUtil.unpack(jdkPkg, jdkDir);
 		} catch (Throwable th) {
 			// Make sure we don't leave halfway unpacked files around
@@ -43,13 +47,14 @@ public class JdkManager {
 
 	public static Set<Integer> listInstalledJdks() throws IOException {
 		if (Files.isDirectory(getJdksPath())) {
+			Supplier<TreeSet<Integer>> sset = () -> new TreeSet<>();
 			return Files.list(getJdksPath()).map(p -> {
 				try {
 					return Integer.parseInt(p.getFileName().toString());
 				} catch (NumberFormatException ex) {
 					return -1;
 				}
-			}).filter(v -> v > 0).collect(Collectors.toSet());
+			}).filter(v -> v > 0).collect(Collectors.toCollection(sset));
 		} else {
 			return Collections.emptySet();
 		}

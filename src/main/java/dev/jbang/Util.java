@@ -205,11 +205,10 @@ public class Util {
 						throw new IOException("Too many redirects");
 					}
 					String location = httpConn.getHeaderField("Location");
-					// location = URLDecoder.decode(location, "UTF-8");
 					url = new URL(url, location);
 					url = new URL(swizzleURL(url.toString()));
 					fileURL = url.toExternalForm();
-					info("Redirecting to: " + url);
+					// info("Redirecting to: " + url); // Should be debug info
 					urlConnection = url.openConnection();
 					continue;
 				}

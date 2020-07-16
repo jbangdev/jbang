@@ -49,6 +49,7 @@ public class Script {
 	private ModularClassPath classpath;
 	private String script;
 	private String mainClass;
+	private int buildJdk;
 	private File jar;
 	List<String> lines;
 	// true if in this run a jar was build/created
@@ -291,6 +292,11 @@ public class Script {
 		return this;
 	}
 
+	public Script setBuildJdk(int javaVersion) {
+		this.buildJdk = javaVersion;
+		return this;
+	}
+
 	public Script setJar(File outjar) {
 		this.jar = outjar;
 		return this;
@@ -302,6 +308,10 @@ public class Script {
 
 	public String getMainClass() {
 		return mainClass;
+	}
+
+	public int getBuildJdk() {
+		return buildJdk;
 	}
 
 	public boolean needsJar() {
@@ -329,6 +339,10 @@ public class Script {
 		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
 		if (mainclass != null) {
 			manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, mainclass);
+		}
+		if (buildJdk > 0) {
+			String val = buildJdk >= 9 ? Integer.toString(buildJdk) : "1." + buildJdk;
+			manifest.getMainAttributes().putValue("Build-Jdk", val);
 		}
 
 		FileOutputStream target = new FileOutputStream(output);

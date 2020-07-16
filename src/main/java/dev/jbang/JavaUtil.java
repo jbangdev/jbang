@@ -44,7 +44,7 @@ public class JavaUtil {
 	 * call is cached so it can be called multiple times without having to worry
 	 * about efficiency.
 	 * 
-	 * @return The detected Java version or -1 if it couldn't be determined
+	 * @return The detected Java version or 0 if it couldn't be determined
 	 */
 	public static int determineJavaVersion() {
 		if (javaVersion == null) {
@@ -62,12 +62,9 @@ public class JavaUtil {
 
 	private static int determineJavaVersion(Path javaCmd) {
 		String output = Util.runCommand(javaCmd.toString(), "-version");
-		Integer version = parseJavacOutput(output);
-		if (version == null) {
+		int version = parseJavacOutput(output);
+		if (version == 0) {
 			version = parseJavaVersion(System.getProperty("java.version"));
-			if (version == null) {
-				version = -1;
-			}
 		}
 		return version;
 	}
@@ -85,26 +82,29 @@ public class JavaUtil {
 		}
 	}
 
-	private static Integer parseJavacOutput(String version) {
+	private static int parseJavacOutput(String version) {
 		if (version != null) {
 			String[] parts = version.split(" ");
 			if (parts.length == 2) {
 				return parseJavaVersion(parts[1]);
 			}
 		}
-		return null;
+		return 0;
 	}
 
-	private static Integer parseJavaVersion(String version) {
+	public static int parseJavaVersion(String version) {
 		if (version != null) {
 			String[] nums = version.split("\\.");
 			String num = nums.length > 1 && nums[0].equals("1") ? nums[1] : nums[0];
 			return Integer.parseInt(num);
 		}
-		return null;
+		return 0;
 	}
 
-	private static boolean satisfiesRequestedVersion(String rv, int v) {
+	public static boolean satisfiesRequestedVersion(String rv, int v) {
+		if (rv == null) {
+			return true;
+		}
 		int reqVer = minRequestedVersion(rv);
 		if (rv.endsWith("+")) {
 			return v >= reqVer;
