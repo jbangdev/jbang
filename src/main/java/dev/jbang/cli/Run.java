@@ -12,6 +12,7 @@ import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -273,7 +274,8 @@ public class Run extends BaseScriptCommand {
 					optionalArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + debugPort);
 				}
 				if (!classpath.trim().isEmpty()) {
-					optionalArgs.add("-classpath " + classpath);
+					optionalArgs.add("-classpath");
+					optionalArgs.add(classpath);
 				}
 
 				if (optionActive(cds(), script.enableCDS())) {
@@ -292,10 +294,6 @@ public class Run extends BaseScriptCommand {
 				}
 			}
 
-			// protect against spaces in dirs in paths, especially on windows.
-			if (javacmd.contains(" ")) {
-				javacmd = '"' + javacmd + '"';
-			}
 			fullArgs.add(javacmd);
 			fullArgs.addAll(script.collectRuntimeOptions());
 			fullArgs.addAll(script.getAutoDetectedModuleArguments(javacmd, offline));
@@ -323,7 +321,7 @@ public class Run extends BaseScriptCommand {
 			fullArgs.add(tempFile.toString());
 		}
 
-		return String.join(" ", fullArgs);
+		return String.join(" ", escapeArguments(fullArgs));
 
 	}
 
@@ -351,28 +349,41 @@ public class Run extends BaseScriptCommand {
 
 	private void addPropertyFlags(Map<String, String> properties, String def, List<String> result) {
 		properties.forEach((k, e) -> {
-			result.add(escapeArgument(def + k + "=" + e));
+			result.add(def + k + "=" + e);
 		});
 	}
 
 	private void addJavaArgs(List<String> args, List<String> result) {
 		args.forEach(arg -> {
-			result.add(escapeArgument(arg));
+			result.add(arg);
 		});
 	}
 
-	private String escapeArgument(String arg) {
+	static List<String> escapeArguments(List<String> args) {
+		return args.stream().map(Run::escapeArgument).collect(Collectors.toList());
+	}
+
+	// There are probably more safe characters, but I couldn't find a definitive
+	// list
+	static Pattern cmdSafeChars = Pattern.compile("[a-zA-Z0-9.,_+=:;@()-]*");
+
+	static Pattern shellSafeChars = Pattern.compile("[a-zA-Z0-9._+=:@%/-]*");
+
+	static String escapeArgument(String arg) {
 		if (Util.isWindows()) {
-			// Windows quoting is just weird
-			arg = arg.replaceAll("([()%!^<>&|])", "^$1");
-			arg = arg.replaceAll("([\"])", "\\\\^$1");
-			return "^\"" + arg + "^\"";
+			if (!cmdSafeChars.matcher(arg).matches()) {
+				// Windows quoting is just weird
+				arg = arg.replaceAll("([()!^<>&|%])", "^$1");
+				arg = arg.replaceAll("([\"])", "\\\\^$1");
+				return "^\"" + arg + "^\"";
+			}
 		} else {
-			// Can't use single quotes because there's no way to escape single quotes in a
-			// single-quoted string
-			arg = arg.replaceAll("([$`\\\\\"!])", "\\\\$1");
-			return "\"" + arg + "\"";
+			if (!shellSafeChars.matcher(arg).matches()) {
+				arg = arg.replaceAll("(['])", "'\\\\''");
+				return "'" + arg + "'";
+			}
 		}
+		return arg;
 	}
 
 	String generateArgs(List<String> args, Map<String, String> properties) {
