@@ -1,10 +1,10 @@
 package dev.jbang.cli;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 
+import dev.jbang.AliasUtil;
 import dev.jbang.Settings;
 import dev.jbang.Util;
 
@@ -36,7 +36,7 @@ public class Alias {
 	public Integer list(
 			@CommandLine.Parameters(paramLabel = "catalogName", index = "0", description = "The name of a catalog", arity = "0..1") String catalogName) {
 		PrintWriter out = spec.commandLine().getOut();
-		Settings.Aliases aliases = Util.getCatalogAliasesByName(catalogName, false);
+		Settings.Aliases aliases = AliasUtil.getCatalogAliasesByName(catalogName, false);
 		printAliases(out, catalogName, aliases);
 		return CommandLine.ExitCode.SOFTWARE;
 	}
@@ -47,7 +47,7 @@ public class Alias {
 						.stream()
 						.sorted()
 						.forEach(name -> {
-							Settings.Alias ai = Util.getCatalogAlias(aliases, name);
+							Settings.Alias ai = AliasUtil.getCatalogAlias(aliases, name);
 							String fullName = catalogName != null ? catalogName + "@" + name : name;
 							if (ai.description != null) {
 								out.println(fullName + " = " + ai.description);

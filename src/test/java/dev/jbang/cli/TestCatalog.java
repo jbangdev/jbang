@@ -15,8 +15,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
+import dev.jbang.AliasUtil;
 import dev.jbang.Settings;
-import dev.jbang.Util;
 
 import picocli.CommandLine;
 
@@ -85,7 +85,7 @@ public class TestCatalog {
 
 	@Test
 	void testGetAlias() throws IOException {
-		Settings.Alias alias = Util.getAlias("one@test", null, null);
+		Settings.Alias alias = AliasUtil.getAlias("one@test", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 	}

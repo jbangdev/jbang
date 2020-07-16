@@ -13,11 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import dev.jbang.DependencyUtil;
-import dev.jbang.ExitException;
-import dev.jbang.Script;
-import dev.jbang.Settings;
-import dev.jbang.Util;
+import dev.jbang.*;
 
 import picocli.CommandLine;
 
@@ -40,7 +36,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		File scriptFile = getScriptFile(scriptResource);
 		if (scriptFile == null) {
 			// Not found as such, so let's check the aliases
-			Settings.Alias alias = Util.getAlias(scriptResource, arguments, properties);
+			Settings.Alias alias = AliasUtil.getAlias(scriptResource, arguments, properties);
 			if (alias != null) {
 				scriptFile = getScriptFile(alias.scriptRef);
 				arguments = alias.arguments;

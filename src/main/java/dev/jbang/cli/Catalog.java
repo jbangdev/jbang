@@ -2,6 +2,7 @@ package dev.jbang.cli;
 
 import java.io.PrintWriter;
 
+import dev.jbang.AliasUtil;
 import dev.jbang.Settings;
 import dev.jbang.Util;
 
@@ -27,7 +28,7 @@ public class Catalog {
 			throw new IllegalArgumentException("A catalog with that name already exists");
 		}
 		PrintWriter err = spec.commandLine().getErr();
-		Settings.Aliases aliases = Util.getCatalogAliasesByRef(urlOrFile, true);
+		Settings.Aliases aliases = AliasUtil.getCatalogAliasesByRef(urlOrFile, true);
 		if (description == null) {
 			description = aliases.description;
 		}
@@ -43,7 +44,7 @@ public class Catalog {
 				.stream()
 				.forEach(e -> {
 					err.println("Updating catalog '" + e.getKey() + "' from " + e.getValue().catalogRef + "...");
-					Util.getCatalogAliasesByRef(e.getValue().catalogRef, true);
+					AliasUtil.getCatalogAliasesByRef(e.getValue().catalogRef, true);
 				});
 		return CommandLine.ExitCode.SOFTWARE;
 	}
@@ -68,7 +69,7 @@ public class Catalog {
 						}
 					});
 		} else {
-			Settings.Aliases aliases = Util.getCatalogAliasesByName(name, false);
+			Settings.Aliases aliases = AliasUtil.getCatalogAliasesByName(name, false);
 			Alias.printAliases(out, name, aliases);
 		}
 		return CommandLine.ExitCode.SOFTWARE;

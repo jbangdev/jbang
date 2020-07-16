@@ -15,8 +15,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 
+import dev.jbang.AliasUtil;
 import dev.jbang.Settings;
-import dev.jbang.Util;
 
 import picocli.CommandLine;
 
@@ -97,13 +97,13 @@ public class TestAlias {
 
 	@Test
 	void testGetAliasNone() throws IOException {
-		Settings.Alias alias = Util.getAlias("dummy-alias!", null, null);
+		Settings.Alias alias = AliasUtil.getAlias("dummy-alias!", null, null);
 		assertThat(alias, nullValue());
 	}
 
 	@Test
 	void testGetAliasOne() throws IOException {
-		Settings.Alias alias = Util.getAlias("one", null, null);
+		Settings.Alias alias = AliasUtil.getAlias("one", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.arguments, nullValue());
@@ -112,7 +112,7 @@ public class TestAlias {
 
 	@Test
 	void testGetAliasOneWithArgs() throws IOException {
-		Settings.Alias alias = Util.getAlias("one", Collections.singletonList("X"),
+		Settings.Alias alias = AliasUtil.getAlias("one", Collections.singletonList("X"),
 				Collections.singletonMap("foo", "bar"));
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
@@ -124,7 +124,7 @@ public class TestAlias {
 
 	@Test
 	void testGetAliasTwo() throws IOException {
-		Settings.Alias alias = Util.getAlias("two", null, null);
+		Settings.Alias alias = AliasUtil.getAlias("two", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.arguments, iterableWithSize(1));
@@ -135,7 +135,7 @@ public class TestAlias {
 
 	@Test
 	void testGetAliasTwoWithArgs() throws IOException {
-		Settings.Alias alias = Util.getAlias("two", Collections.singletonList("X"),
+		Settings.Alias alias = AliasUtil.getAlias("two", Collections.singletonList("X"),
 				Collections.singletonMap("foo", "bar"));
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
@@ -147,7 +147,7 @@ public class TestAlias {
 
 	@Test
 	void testGetAliasFour() throws IOException {
-		Settings.Alias alias = Util.getAlias("four", null, null);
+		Settings.Alias alias = AliasUtil.getAlias("four", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.arguments, iterableWithSize(1));
@@ -158,7 +158,7 @@ public class TestAlias {
 
 	@Test
 	void testGetAliasFourWithArgs() throws IOException {
-		Settings.Alias alias = Util.getAlias("four", Collections.singletonList("X"),
+		Settings.Alias alias = AliasUtil.getAlias("four", Collections.singletonList("X"),
 				Collections.singletonMap("foo", "bar"));
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
@@ -170,7 +170,7 @@ public class TestAlias {
 
 	@Test
 	void testGetAliasFive() throws IOException {
-		Settings.Alias alias = Util.getAlias("five", null, null);
+		Settings.Alias alias = AliasUtil.getAlias("five", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.arguments, iterableWithSize(1));
@@ -181,7 +181,7 @@ public class TestAlias {
 
 	@Test
 	void testGetAliasFiveWithArgs() throws IOException {
-		Settings.Alias alias = Util.getAlias("five", Collections.singletonList("X"),
+		Settings.Alias alias = AliasUtil.getAlias("five", Collections.singletonList("X"),
 				Collections.singletonMap("foo", "bar"));
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
@@ -194,7 +194,7 @@ public class TestAlias {
 	@Test
 	void testGetAliasLoop() throws IOException {
 		try {
-			Settings.Alias alias = Util.getAlias("eight", null, null);
+			Settings.Alias alias = AliasUtil.getAlias("eight", null, null);
 			Assert.fail();
 		} catch (RuntimeException ex) {
 			assertThat(ex.getMessage(), containsString("seven"));
