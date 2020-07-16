@@ -161,7 +161,8 @@ public class Script {
 		List<String> lines = getLines();
 
 		List<String> javaOptions = lines.stream()
-										.filter(it -> it.startsWith(joptsPrefix))
+										.filter(it -> it.startsWith(joptsPrefix + " ")
+												|| it.startsWith(joptsPrefix + "\t") || it.equals(joptsPrefix))
 										.map(it -> it.replaceFirst(joptsPrefix, "").trim())
 										.collect(Collectors.toList());
 
@@ -182,6 +183,21 @@ public class Script {
 
 	public boolean enableCDS() {
 		return !collectRawOptions("CDS").isEmpty();
+	}
+
+	public String javaVersion() {
+		List<String> opts = collectRawOptions("JAVA");
+		if (!opts.isEmpty()) {
+			// If there are multiple //JAVA_VERSIONs we'll use the last one
+			String version = opts.get(opts.size() - 1);
+			if (!version.matches("\\d+[+]?")) {
+				throw new IllegalArgumentException(
+						"Invalid JAVA version, should be a number optionally followed by a plus sign");
+			}
+			return version;
+		} else {
+			return null;
+		}
 	}
 
 	/**

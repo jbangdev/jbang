@@ -146,9 +146,10 @@ public class Run extends BaseScriptCommand {
 			}
 		}
 
-		if (!outjar.exists() || JavaUtil.javaVersion(javaVersion) < script.getBuildJdk()) {
+		String requestedJavaVersion = javaVersion != null ? javaVersion : script.javaVersion();
+		if (!outjar.exists() || JavaUtil.javaVersion(requestedJavaVersion) < script.getBuildJdk()) {
 			List<String> optionList = new ArrayList<String>();
-			optionList.add(resolveInJavaHome("javac", javaVersion));
+			optionList.add(resolveInJavaHome("javac", requestedJavaVersion));
 			optionList.addAll(script.collectCompileOptions());
 			String path = script.resolveClassPath(offline);
 			if (!path.trim().isEmpty()) {
@@ -200,13 +201,13 @@ public class Run extends BaseScriptCommand {
 			} catch (IOException e) {
 				throw new ExitException(1, e);
 			}
-			script.setBuildJdk(JavaUtil.javaVersion(javaVersion));
+			script.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
 			script.createJarFile(tmpJarDir, outjar);
 		}
 
 		if (nativeImage && !getImageName(outjar).exists()) {
 			List<String> optionList = new ArrayList<String>();
-			optionList.add(resolveInGraalVMHome("native-image", javaVersion));
+			optionList.add(resolveInGraalVMHome("native-image", requestedJavaVersion));
 
 			optionList.add("-H:+ReportExceptionStackTraces");
 
@@ -259,10 +260,11 @@ public class Run extends BaseScriptCommand {
 
 			List<String> optionalArgs = new ArrayList<String>();
 
-			String javacmd = resolveInJavaHome("java", javaVersion);
+			String requestedJavaVersion = javaVersion != null ? javaVersion : script.javaVersion();
+			String javacmd = resolveInJavaHome("java", requestedJavaVersion);
 			if (script.getBackingFile().getName().endsWith(".jsh")) {
 
-				javacmd = resolveInJavaHome("jshell", javaVersion);
+				javacmd = resolveInJavaHome("jshell", requestedJavaVersion);
 				if (!classpath.trim().isEmpty()) {
 					optionalArgs.add("--class-path=" + classpath);
 				}
@@ -308,7 +310,7 @@ public class Run extends BaseScriptCommand {
 
 			fullArgs.add(javacmd);
 			fullArgs.addAll(script.collectRuntimeOptions());
-			fullArgs.addAll(script.getAutoDetectedModuleArguments(javaVersion, offline));
+			fullArgs.addAll(script.getAutoDetectedModuleArguments(requestedJavaVersion, offline));
 			fullArgs.addAll(optionalArgs);
 
 			if (main != null) { // if user specified main class it overrides any other main class calculation
