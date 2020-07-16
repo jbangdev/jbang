@@ -41,6 +41,7 @@ public class JdkManager {
 		} catch (Throwable th) {
 			// Make sure we don't leave halfway unpacked files around
 			Util.deleteFolder(jdkDir, true);
+			throw th;
 		}
 		return jdkDir;
 	}

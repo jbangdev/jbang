@@ -284,8 +284,13 @@ public class Util {
 		Path urlCache = Settings.getCacheDir().resolve("url_cache_" + urlHash);
 		Path file = Files.isDirectory(urlCache) ? Files.list(urlCache).findFirst().orElse(null) : null;
 		if (updateCache || file == null) {
-			urlCache.toFile().mkdirs();
-			return downloadFile(fileURL, urlCache.toFile());
+			try {
+				urlCache.toFile().mkdirs();
+				return downloadFile(fileURL, urlCache.toFile());
+			} catch (Throwable th) {
+				deleteFolder(urlCache, true);
+				throw th;
+			}
 		} else {
 			return urlCache.resolve(file);
 		}
