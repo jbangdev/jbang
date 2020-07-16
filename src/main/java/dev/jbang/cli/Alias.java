@@ -48,7 +48,7 @@ public class Alias {
 						.sorted()
 						.forEach(name -> {
 							Settings.Alias ai = AliasUtil.getCatalogAlias(aliases, name);
-							String fullName = catalogName != null ? catalogName + "@" + name : name;
+							String fullName = catalogName != null ? name + "@" + catalogName : name;
 							if (ai.description != null) {
 								out.println(fullName + " = " + ai.description);
 								out.println(Util.repeat(" ", fullName.length()) + "   (" + ai.scriptRef + ")");
