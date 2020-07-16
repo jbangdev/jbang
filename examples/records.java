@@ -1,5 +1,6 @@
 //usr/bin/env jbang "$0" "$@" ; exit $?
-//JAVAC_OPTIONS --enable-preview -source 14
+//JAVA 14
+//JAVAC_OPTIONS --enable-preview --release 14
 //JAVA_OPTIONS --enable-preview
 
 import static java.lang.System.*;
