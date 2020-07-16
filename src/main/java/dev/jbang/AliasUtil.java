@@ -2,9 +2,9 @@ package dev.jbang;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import com.google.gson.JsonParseException;
 
@@ -12,6 +12,12 @@ import picocli.CommandLine;
 
 public class AliasUtil {
 	public static final String JBANG_CATALOG_JSON = "jbang-catalog.json";
+
+	private static final String GITHUB_URL = "https://github.com/";
+	private static final String GITLAB_URL = "https://gitlab.com/";
+	private static final String BITBUCKET_URL = "https://bitbucket.org/";
+
+	private static final String JBANG_CATALOG_REPO = "/jbang-catalog";
 
 	/**
 	 * Returns an Alias object for the given name with the given arguments and
@@ -81,12 +87,48 @@ public class AliasUtil {
 		if (catalogName == null) {
 			return Settings.getAliasesFromLocalCatalog();
 		}
-		Settings.Catalog catalog = Settings.getCatalogs().get(catalogName);
+		Settings.Catalog catalog = getCatalog(catalogName);
 		if (catalog != null) {
-			Settings.Aliases aliases = getCatalogAliasesByRef(catalog.catalogRef, updateCache);
-			return aliases;
+			return getCatalogAliasesByRef(catalog.catalogRef, updateCache);
 		} else {
 			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Unknown catalog '" + catalogName + "'");
+		}
+	}
+
+	private static Settings.Catalog getCatalog(String catalogName) {
+		Settings.Catalog catalog = Settings.getCatalogs().get(catalogName);
+		if (catalog == null) {
+			Optional<String> url;
+			if (catalogName.contains("/")) {
+				url = chain(
+						() -> tryDownload(GITHUB_URL + catalogName + "/blob/master/" + JBANG_CATALOG_JSON),
+						() -> tryDownload(GITLAB_URL + catalogName + "/-/blob/master/" + JBANG_CATALOG_JSON),
+						() -> tryDownload(BITBUCKET_URL + catalogName + "/src/master/" + JBANG_CATALOG_JSON))
+																												.findFirst();
+			} else {
+				url = chain(
+						() -> tryDownload(
+								GITHUB_URL + catalogName + JBANG_CATALOG_REPO + "/blob/master/" + JBANG_CATALOG_JSON),
+						() -> tryDownload(
+								GITLAB_URL + catalogName + JBANG_CATALOG_REPO + "/-/blob/master" + JBANG_CATALOG_JSON),
+						() -> tryDownload(BITBUCKET_URL + catalogName + JBANG_CATALOG_REPO + "/src/master"
+								+ JBANG_CATALOG_JSON))
+														.findFirst();
+			}
+			if (url.isPresent()) {
+				Settings.Aliases aliases = AliasUtil.getCatalogAliasesByRef(url.get(), false);
+				catalog = Settings.addCatalog(catalogName, url.get(), aliases.description);
+			}
+		}
+		return catalog;
+	}
+
+	private static Optional<String> tryDownload(String url) {
+		try {
+			getCatalogAliasesByRef(url, false);
+			return Optional.of(url);
+		} catch (Exception ex) {
+			return Optional.empty();
 		}
 	}
 
@@ -161,5 +203,13 @@ public class AliasUtil {
 
 	private static boolean isAbsoluteRef(String ref) {
 		return ref.startsWith("/") || ref.contains(":");
+	}
+
+	@SafeVarargs
+	public static <T> Stream<T> chain(Supplier<Optional<T>>... suppliers) {
+		return Arrays	.asList(suppliers)
+						.stream()
+						.map(Supplier::get)
+						.flatMap(o -> o.map(Stream::of).orElseGet(Stream::empty));
 	}
 }

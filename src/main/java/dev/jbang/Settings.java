@@ -271,14 +271,17 @@ public class Settings {
 		return getCatalogInfo().catalogs;
 	}
 
-	public static void addCatalog(String name, String catalogRef, String description) {
-		getCatalogs().put(name, new Catalog(catalogRef, description));
+	public static Catalog addCatalog(String name, String catalogRef, String description) {
+		Catalog catalog = new Catalog(catalogRef, description);
+		getCatalogs().put(name, catalog);
 
 		try (Writer out = Files.newBufferedWriter(getCatalogsFile())) {
 			Gson parser = new GsonBuilder().setPrettyPrinting().create();
 			parser.toJson(getCatalogInfo(), out);
+			return catalog;
 		} catch (IOException ex) {
 			Util.warnMsg("Unable to add catalog: " + ex.getMessage());
+			return null;
 		}
 	}
 
