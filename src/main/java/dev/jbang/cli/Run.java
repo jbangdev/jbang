@@ -416,24 +416,18 @@ public class Run extends BaseScriptCommand {
 		return buf;
 	}
 
-	static String resolveInJavaHome(String cmd, String requestedVersion) {
-		Path jdkHome = null;
-		try {
-			jdkHome = JdkManager.getCurrentJdk(requestedVersion);
-			if (jdkHome != null) {
-				if (Util.isWindows()) {
-					cmd = cmd + ".exe";
-				}
-				return jdkHome.resolve("bin").resolve(cmd).toAbsolutePath().toString();
+	String resolveInJavaHome(String cmd, String requestedVersion) {
+		Path jdkHome = JdkManager.getCurrentJdk(requestedVersion);
+		if (jdkHome != null) {
+			if (Util.isWindows()) {
+				cmd = cmd + ".exe";
 			}
-		} catch (IOException e) {
-			// Unable to find/install Java. Should we tell the user or just hope for the
-			// best?
+			return jdkHome.resolve("bin").resolve(cmd).toAbsolutePath().toString();
 		}
 		return cmd;
 	}
 
-	static String resolveInGraalVMHome(String cmd, String requestedVersion) {
+	String resolveInGraalVMHome(String cmd, String requestedVersion) {
 		String newcmd = resolveInEnv("GRAALVM_HOME", cmd);
 
 		if (newcmd.equals(cmd) &&
