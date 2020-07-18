@@ -22,14 +22,15 @@ public class UnpackUtil {
 
 	public static void unpack(Path archive, Path outputDir) throws IOException {
 		String name = archive.toString().toLowerCase(Locale.ENGLISH);
+		Path selectFolder = Util.isMac() ? Paths.get("Contents/Home") : null;
 		if (name.endsWith(".zip")) {
-			unzip(archive, outputDir, true);
+			unzip(archive, outputDir, true, selectFolder);
 		} else if (name.endsWith(".tar.gz") || name.endsWith(".tgz")) {
-			untargz(archive, outputDir, true);
+			untargz(archive, outputDir, true, selectFolder);
 		}
 	}
 
-	public static void unzip(Path zip, Path outputDir, boolean stripRootFolder) throws IOException {
+	public static void unzip(Path zip, Path outputDir, boolean stripRootFolder, Path selectFolder) throws IOException {
 		try (ZipFile zipFile = new ZipFile(zip.toFile())) {
 			Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
 			while (entries.hasMoreElements()) {
@@ -40,6 +41,12 @@ public class UnpackUtil {
 						continue;
 					}
 					entry = entry.subpath(1, entry.getNameCount() - 1);
+				}
+				if (selectFolder != null) {
+					if (!entry.startsWith(selectFolder) || entry.equals(selectFolder)) {
+						continue;
+					}
+					entry = entry.subpath(selectFolder.getNameCount(), entry.getNameCount());
 				}
 				entry = outputDir.resolve(entry).normalize();
 				if (!entry.startsWith(outputDir)) {
@@ -64,7 +71,8 @@ public class UnpackUtil {
 		}
 	}
 
-	public static void untargz(Path targz, Path outputDir, boolean stripRootFolder) throws IOException {
+	public static void untargz(Path targz, Path outputDir, boolean stripRootFolder, Path selectFolder)
+			throws IOException {
 		try (TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(
 				new GzipCompressorInputStream(
 						new FileInputStream(targz.toFile())))) {
@@ -76,6 +84,12 @@ public class UnpackUtil {
 						continue;
 					}
 					entry = entry.subpath(1, entry.getNameCount());
+				}
+				if (selectFolder != null) {
+					if (!entry.startsWith(selectFolder) || entry.equals(selectFolder)) {
+						continue;
+					}
+					entry = entry.subpath(selectFolder.getNameCount(), entry.getNameCount());
 				}
 				entry = outputDir.resolve(entry).normalize();
 				if (!entry.startsWith(outputDir)) {
