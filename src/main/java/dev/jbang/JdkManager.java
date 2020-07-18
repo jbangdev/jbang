@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 public class JdkManager {
 	private static final String JDK_DOWNLOAD_URL = "https://api.adoptopenjdk.net/v3/binary/latest/%d/ga/%s/%s/jdk/hotspot/normal/adoptopenjdk";
 
-	public static Path getCurrentJdk(String requestedVersion) throws IOException {
+	public static Path getCurrentJdk(String requestedVersion) {
 		int currentVersion = JavaUtil.determineJavaVersion();
 		int actualVersion = JavaUtil.javaVersion(requestedVersion);
 		if (currentVersion == actualVersion) {
@@ -22,7 +22,7 @@ public class JdkManager {
 		}
 	}
 
-	public static Path getInstalledJdk(int version) throws IOException {
+	public static Path getInstalledJdk(int version) {
 		Path jdkDir = getJdkPath(version);
 		if (!Files.isDirectory(jdkDir)) {
 			jdkDir = downloadAndInstallJdk(version, false);
@@ -30,20 +30,20 @@ public class JdkManager {
 		return jdkDir;
 	}
 
-	public static Path downloadAndInstallJdk(int version, boolean updateCache) throws IOException {
+	public static Path downloadAndInstallJdk(int version, boolean updateCache) {
 		System.err.println("Downloading JDK " + version + "...");
 		String url = String.format(JDK_DOWNLOAD_URL, version, Util.getOS().name(), Util.getArch().name());
-		Path jdkPkg = Util.downloadAndCacheFile(url, updateCache);
 		Path jdkDir = getJdkPath(version);
 		try {
+			Path jdkPkg = Util.downloadAndCacheFile(url, updateCache);
 			System.err.println("Installing JDK " + version + "...");
 			UnpackUtil.unpack(jdkPkg, jdkDir);
-		} catch (Throwable th) {
-			// Make sure we don't leave halfway unpacked files around
+			return jdkDir;
+		} catch (IOException e) {
 			Util.deleteFolder(jdkDir, true);
-			throw th;
+			System.err.println("Unable to download or install JDK: " + e.getMessage());
+			return null;
 		}
-		return jdkDir;
 	}
 
 	public static Set<Integer> listInstalledJdks() throws IOException {
