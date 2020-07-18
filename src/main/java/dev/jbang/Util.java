@@ -110,6 +110,10 @@ public class Util {
 		return getOS() == OS.windows;
 	}
 
+	public static boolean isMac() {
+		return getOS() == OS.windows;
+	}
+
 	/**
 	 * Download file from url but will swizzle output for sites that are known to
 	 * possibly embed code (i.e. twitter and carbon)
