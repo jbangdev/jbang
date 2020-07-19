@@ -111,7 +111,7 @@ public class Util {
 	}
 
 	public static boolean isMac() {
-		return getOS() == OS.windows;
+		return getOS() == OS.mac;
 	}
 
 	/**
