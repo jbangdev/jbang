@@ -24,15 +24,15 @@ public class Jdk {
 		if (force || !JdkManager.isInstalledJdk(version)) {
 			JdkManager.downloadAndInstallJdk(version, force);
 		} else {
-			System.err.println("JDK " + version + " is already installed");
+			Util.infoMsg("JDK " + version + " is already installed");
 		}
 		return CommandLine.ExitCode.SOFTWARE;
 	}
 
 	@CommandLine.Command(name = "list", description = "Lists installed JDKs.")
 	public Integer list() throws IOException {
-		PrintWriter out = spec.commandLine().getOut();
-		JdkManager.listInstalledJdks().forEach(jdk -> out.println(jdk));
+		PrintWriter err = spec.commandLine().getErr();
+		JdkManager.listInstalledJdks().forEach(jdk -> err.println(jdk));
 		return CommandLine.ExitCode.SOFTWARE;
 	}
 

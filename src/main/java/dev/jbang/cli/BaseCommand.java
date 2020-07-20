@@ -6,6 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import dev.jbang.ExitException;
+import dev.jbang.Util;
 
 import picocli.CommandLine;
 
@@ -28,12 +29,16 @@ public abstract class BaseCommand implements Callable<Integer> {
 		if (spec != null) {
 			spec.commandLine().getErr().println("[jbang] " + msg);
 		} else {
-			System.err.println("[jbang] " + msg);
+			Util.infoMsg(msg);
 		}
 	}
 
 	void warn(String msg) {
-		info("[WARNING] " + msg);
+		if (spec != null) {
+			spec.commandLine().getErr().println("[jbang] " + msg);
+		} else {
+			Util.warnMsg(msg);
+		}
 	}
 
 	boolean isVerbose() {
