@@ -39,7 +39,7 @@ public class JdkManager {
 			System.err.println("Installing JDK " + version + "...");
 			UnpackUtil.unpack(jdkPkg, jdkDir);
 			return jdkDir;
-		} catch (IOException e) {
+		} catch (Throwable e) {
 			Util.deleteFolder(jdkDir, true);
 			System.err.println("Unable to download or install JDK: " + e.getMessage());
 			return null;
