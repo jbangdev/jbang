@@ -31,17 +31,17 @@ public class JdkManager {
 	}
 
 	public static Path downloadAndInstallJdk(int version, boolean updateCache) {
-		System.err.println("Downloading JDK " + version + "...");
+		Util.infoMsg("Downloading JDK " + version + "...");
 		String url = String.format(JDK_DOWNLOAD_URL, version, Util.getOS().name(), Util.getArch().name());
 		Path jdkDir = getJdkPath(version);
 		try {
 			Path jdkPkg = Util.downloadAndCacheFile(url, updateCache);
-			System.err.println("Installing JDK " + version + "...");
+			Util.infoMsg("Installing JDK " + version + "...");
 			UnpackUtil.unpack(jdkPkg, jdkDir);
 			return jdkDir;
 		} catch (IOException e) {
 			Util.deleteFolder(jdkDir, true);
-			System.err.println("Unable to download or install JDK: " + e.getMessage());
+			Util.errorMsg("Unable to download or install JDK", e);
 			return null;
 		}
 	}
