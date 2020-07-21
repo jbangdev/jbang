@@ -40,7 +40,7 @@ public class UnpackUtil {
 					if (entry.getNameCount() == 1) {
 						continue;
 					}
-					entry = entry.subpath(1, entry.getNameCount() - 1);
+					entry = entry.subpath(1, entry.getNameCount());
 				}
 				if (selectFolder != null) {
 					if (!entry.startsWith(selectFolder) || entry.equals(selectFolder)) {
@@ -62,7 +62,7 @@ public class UnpackUtil {
 						Files.copy(zis, entry);
 					}
 					int mode = zipEntry.getUnixMode();
-					if (mode != 0) {
+					if (mode != 0 && !Util.isWindows()) {
 						Set<PosixFilePermission> permissions = PosixFilePermissionSupport.toPosixFilePermissions(mode);
 						Files.setPosixFilePermissions(entry, permissions);
 					}
@@ -103,7 +103,7 @@ public class UnpackUtil {
 					}
 					Files.copy(tarArchiveInputStream, entry);
 					int mode = targzEntry.getMode();
-					if (mode != 0) {
+					if (mode != 0 && !Util.isWindows()) {
 						Set<PosixFilePermission> permissions = PosixFilePermissionSupport.toPosixFilePermissions(mode);
 						Files.setPosixFilePermissions(entry, permissions);
 					}
