@@ -19,7 +19,7 @@ Scenario: add catalog and remove
 Scenario: add catalog twice with same name
   When command('jbang catalog add tc jbang-catalog.json')
   Then command('jbang catalog add tc jbang-catalog.json')
-  Then match exit == 1
+  Then match exit == 2
   Then match err contains "A catalog with that name already exists"
 
 Scenario: add catalog twice with different name
