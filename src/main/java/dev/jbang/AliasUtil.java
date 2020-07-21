@@ -98,19 +98,15 @@ public class AliasUtil {
 	private static Settings.Catalog getCatalog(String catalogName) {
 		Settings.Catalog catalog = Settings.getCatalogs().get(catalogName);
 		if (catalog == null) {
+			ImplicitCatalogRef icr = ImplicitCatalogRef.parse(catalogName);
 			Optional<String> url;
-			String[] names = catalogName.split("/");
-			if (names.length > 3) {
-				throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Invalid catalog name '" + catalogName + "'");
-			}
-			boolean possibleCommit = names.length == 3 && names[2].matches("[0-9a-f]{5,40}");
 			url = chain(
-					() -> tryDownload(repoUrl(GITHUB_URL, "/blob/", names)),
-					() -> possibleCommit ? tryDownload(repoUrl(GITHUB_URL, "/blob/", names)) : Optional.empty(),
-					() -> tryDownload(repoUrl(GITLAB_URL, "/-/blob/", names)),
-					() -> possibleCommit ? tryDownload(repoUrl(GITLAB_URL, "/-/blob/", names)) : Optional.empty(),
-					() -> tryDownload(repoUrl(BITBUCKET_URL, "/src/", names)),
-					() -> possibleCommit ? tryDownload(repoUrl(BITBUCKET_URL, "/src/", names)) : Optional.empty())
+					() -> tryDownload(icr.url(GITHUB_URL, "/blob/")),
+					() -> icr.isPossibleCommit() ? tryDownload(icr.url(GITHUB_URL, "/blob/")) : Optional.empty(),
+					() -> tryDownload(icr.url(GITLAB_URL, "/-/blob/")),
+					() -> icr.isPossibleCommit() ? tryDownload(icr.url(GITLAB_URL, "/-/blob/")) : Optional.empty(),
+					() -> tryDownload(icr.url(BITBUCKET_URL, "/src/")),
+					() -> icr.isPossibleCommit() ? tryDownload(icr.url(BITBUCKET_URL, "/src/")) : Optional.empty())
 																													.findFirst();
 			if (url.isPresent()) {
 				Settings.Aliases aliases = AliasUtil.getCatalogAliasesByRef(url.get(), false);
@@ -120,17 +116,54 @@ public class AliasUtil {
 		return catalog;
 	}
 
-	private static String repoUrl(String host, String infix, String[] names) {
-		String org = names[0];
-		String repo = null, branch = null;
-		if (names.length >= 2 && !names[1].isEmpty()) {
-			repo = names[1];
+	private static class ImplicitCatalogRef {
+		final String org;
+		final String repo;
+		final String ref; // Branch or Commit
+		final String path;
+
+		private ImplicitCatalogRef(String org, String repo, String ref, String path) {
+			this.org = org;
+			this.repo = repo;
+			this.ref = ref;
+			this.path = path;
 		}
-		if (names.length == 3 && !names[2].isEmpty()) {
-			branch = names[2];
+
+		public boolean isPossibleCommit() {
+			return ref.matches("[0-9a-f]{5,40}");
 		}
-		return GITHUB_URL + org + "/" + (repo != null ? repo : JBANG_CATALOG_REPO) + infix
-				+ (branch != null ? branch : "master") + "/" + JBANG_CATALOG_JSON;
+
+		public String url(String host, String infix) {
+			return GITHUB_URL + org + "/" + repo + infix + ref + "/" + path + JBANG_CATALOG_JSON;
+		}
+
+		public static ImplicitCatalogRef parse(String name) {
+			String[] parts = name.split("~", 2);
+			String path;
+			if (parts.length == 2) {
+				path = parts[1] + "/";
+			} else {
+				path = "";
+			}
+			String[] names = parts[0].split("/");
+			if (names.length > 3) {
+				throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Invalid catalog name '" + name + "'");
+			}
+			String org = names[0];
+			String repo;
+			if (names.length >= 2 && !names[1].isEmpty()) {
+				repo = names[1];
+			} else {
+				repo = JBANG_CATALOG_REPO;
+			}
+			String ref;
+			if (names.length == 3 && !names[2].isEmpty()) {
+				ref = names[2];
+			} else {
+				ref = "master";
+			}
+			return new ImplicitCatalogRef(org, repo, ref, path);
+		}
 	}
 
 	private static Optional<String> tryDownload(String url) {
@@ -192,7 +225,7 @@ public class AliasUtil {
 	public static Settings.Alias getCatalogAlias(Settings.Aliases aliases, String aliasName) {
 		Settings.Alias alias = aliases.aliases.get(aliasName);
 		if (alias == null) {
-			throw new RuntimeException("No alias found with name '" + aliasName + "'");
+			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "No alias found with name '" + aliasName + "'");
 		}
 		if (aliases.baseRef != null && !isAbsoluteRef(alias.scriptRef)) {
 			String ref = aliases.baseRef;
