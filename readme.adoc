@@ -646,6 +646,25 @@ that line before compiling.
 
 For now this is required for `kubectl` plugin but not `git`. https://github.com/kubernetes/kubectl/issues/822[Issue opened] on this limitation.
 
+== Java version
+
+jbang will by default use `JAVA_HOME` or then `PATH` to locate the `java` executable to run the script with.
+
+If your script requires a specific or minimal version of Java you can use `//JAVA <version>(+)`.
+
+If jbang finds a java executable using `JAVA_HOME` or `'PATH` which satisfies the stated java version jbang will use it.
+If no such version is found it will automatically download and install it into jbang's cache (`~/.jbang/cache/jdks` by default).
+
+Examples:
+
+`//JAVA 11` will force use of Java 11.
+`//JAVA 13+` will require at least java 13. If Java 13 or higher will be used.
+
+In case no matching `java` is found jbang will fail.
+
+You can always force running with specific version of `java` using `--java` command line option, i.e.
+`jbang --java 8 hello.java`
+
 == Editing
 
 You can edit your script in your IDE by using `jbang edit helloworld.java`. This will generate a project in a temporary location with symbolic links to your script
@@ -749,15 +768,43 @@ Using `--cds` jbang will build the jar with Application Class Data Sharing enabl
 
 You can put `//CDS` in the java file to enable it by default, or simply use `--cds` to force it on or `--no-cds` to turn it off no matter what the jbang script file contains.
 
-=== `JAVA_HOME` vs `PATH`
+== Aliases
 
-If `JAVA_HOME` environment variable is set that will be used over what is in the path.
+To avoid remembering long paths and to enable easy launch of jbang scripts there is a `alias` command
+to setup and manage aliases to actual scripts.
 
-Allows you to expliclity control what JDK you are using for `jbang`, i.e.
+i.e. `jbang alias add hello https://github.com/jbangdev/jbang-examples/blob/master/examples/helloworld.java`
 
-`JAVA_HOME=~/sdkman/candidates/java/14.ea.302-open/bin/java jbang examples/records.java`
+will add an alias named `hello` pointing to that github url which then can be run using `jbang hello`.
 
-This will use Java 14 from sdkman no matter what your `PATH` or `JAVA_HOME` contains in the shell environment.
+=== Implicit Alias Catalogs
+
+The aliases managed locally are stored in `~/.jbang/jbang-catalog.json`, but jbang can also use remotely catalogs.
+
+Examples:
+
+`jbang hello@jbangdev` will run the alias `hello` as defined in `jbang-catalog.json` found in https://github.com/jbangdev/jbang-catalog`.
+
+This allows anyone to provde a set of jbang scripts defined out of their github, gitlab or bitbucket repository.
+
+The full format is `<alias>@<user/org>(/repository)(/branch)(@path)` allowing you to do things like:
+
+
+.Implicit Catalog Examples:
+|====
+|Command | Description
+
+|`jbang hello@acme`
+|`hello` alias found in `acme/jbang-catalog/jbang-catalog.json` searched on github, gitlab and bitbucket in that order.
+
+|jbang hello@acme/mycatalog`
+|`hello` found in `acme/mycatalog/jbang-catalog.json` searched on github, gitlab and bitbucket in that order.
+
+|`jbang hello@acme/mycatalog/dev`
+|`hello` found in `acme/mycatalog/jbang-catalog.json` in the `dev` branch searched on github, gitlab and bitbucket in tha t order.
+
+|`jbang hello@acme~experimental`
+|`hello` found in `acme/jbang-catalog/experimental/jbang-catalog.json`
 
 == Bash/Zsh auto-completion
 
