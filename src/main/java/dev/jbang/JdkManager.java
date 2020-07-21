@@ -9,6 +9,8 @@ import java.util.TreeSet;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import picocli.CommandLine;
+
 public class JdkManager {
 	private static final String JDK_DOWNLOAD_URL = "https://api.adoptopenjdk.net/v3/binary/latest/%d/ga/%s/%s/jdk/hotspot/normal/adoptopenjdk";
 
@@ -41,8 +43,10 @@ public class JdkManager {
 			return jdkDir;
 		} catch (Exception e) {
 			Util.deleteFolder(jdkDir, true);
-			Util.errorMsg("Unable to download or install JDK", e);
-			return null;
+			Util.errorMsg("Required Java version not possible to download. You can run with '--java "
+					+ JavaUtil.determineJavaVersion() + "' to force using the default installed Java.");
+			throw new ExitException(CommandLine.ExitCode.SOFTWARE,
+					"Unable to download or install JDK version " + version, e);
 		}
 	}
 
