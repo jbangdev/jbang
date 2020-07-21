@@ -36,18 +36,18 @@ public class Alias {
 	public Integer list(
 			@CommandLine.Parameters(paramLabel = "catalogName", index = "0", description = "The name of a catalog", arity = "0..1") String catalogName) {
 		PrintWriter out = spec.commandLine().getOut();
-		Settings.Aliases aliases = AliasUtil.getCatalogAliasesByName(catalogName, false);
+		AliasUtil.Aliases aliases = AliasUtil.getCatalogAliasesByName(catalogName, false);
 		printAliases(out, catalogName, aliases);
 		return CommandLine.ExitCode.SOFTWARE;
 	}
 
-	static void printAliases(PrintWriter out, String catalogName, Settings.Aliases aliases) {
+	static void printAliases(PrintWriter out, String catalogName, AliasUtil.Aliases aliases) {
 		aliases.aliases
 						.keySet()
 						.stream()
 						.sorted()
 						.forEach(name -> {
-							Settings.Alias ai = AliasUtil.getCatalogAlias(aliases, name);
+							AliasUtil.Alias ai = AliasUtil.getCatalogAlias(aliases, name);
 							String fullName = catalogName != null ? name + "@" + catalogName : name;
 							if (ai.description != null) {
 								out.println(fullName + " = " + ai.description);

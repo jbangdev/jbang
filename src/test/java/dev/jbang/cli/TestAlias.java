@@ -61,7 +61,7 @@ public class TestAlias {
 	void init() throws IOException {
 		jbangTempDir.create();
 		environmentVariables.set("JBANG_DIR", jbangTempDir.getRoot().getPath());
-		Files.write(jbangTempDir.getRoot().toPath().resolve("aliases.json"), aliases.getBytes());
+		Files.write(jbangTempDir.getRoot().toPath().resolve(AliasUtil.JBANG_CATALOG_JSON), aliases.getBytes());
 	}
 
 	@Rule
@@ -97,13 +97,13 @@ public class TestAlias {
 
 	@Test
 	void testGetAliasNone() throws IOException {
-		Settings.Alias alias = AliasUtil.getAlias("dummy-alias!", null, null);
+		AliasUtil.Alias alias = AliasUtil.getAlias("dummy-alias!", null, null);
 		assertThat(alias, nullValue());
 	}
 
 	@Test
 	void testGetAliasOne() throws IOException {
-		Settings.Alias alias = AliasUtil.getAlias("one", null, null);
+		AliasUtil.Alias alias = AliasUtil.getAlias("one", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.arguments, nullValue());
@@ -112,7 +112,7 @@ public class TestAlias {
 
 	@Test
 	void testGetAliasOneWithArgs() throws IOException {
-		Settings.Alias alias = AliasUtil.getAlias("one", Collections.singletonList("X"),
+		AliasUtil.Alias alias = AliasUtil.getAlias("one", Collections.singletonList("X"),
 				Collections.singletonMap("foo", "bar"));
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
@@ -124,7 +124,7 @@ public class TestAlias {
 
 	@Test
 	void testGetAliasTwo() throws IOException {
-		Settings.Alias alias = AliasUtil.getAlias("two", null, null);
+		AliasUtil.Alias alias = AliasUtil.getAlias("two", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.arguments, iterableWithSize(1));
@@ -135,7 +135,7 @@ public class TestAlias {
 
 	@Test
 	void testGetAliasTwoWithArgs() throws IOException {
-		Settings.Alias alias = AliasUtil.getAlias("two", Collections.singletonList("X"),
+		AliasUtil.Alias alias = AliasUtil.getAlias("two", Collections.singletonList("X"),
 				Collections.singletonMap("foo", "bar"));
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
@@ -147,7 +147,7 @@ public class TestAlias {
 
 	@Test
 	void testGetAliasFour() throws IOException {
-		Settings.Alias alias = AliasUtil.getAlias("four", null, null);
+		AliasUtil.Alias alias = AliasUtil.getAlias("four", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.arguments, iterableWithSize(1));
@@ -158,7 +158,7 @@ public class TestAlias {
 
 	@Test
 	void testGetAliasFourWithArgs() throws IOException {
-		Settings.Alias alias = AliasUtil.getAlias("four", Collections.singletonList("X"),
+		AliasUtil.Alias alias = AliasUtil.getAlias("four", Collections.singletonList("X"),
 				Collections.singletonMap("foo", "bar"));
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
@@ -170,7 +170,7 @@ public class TestAlias {
 
 	@Test
 	void testGetAliasFive() throws IOException {
-		Settings.Alias alias = AliasUtil.getAlias("five", null, null);
+		AliasUtil.Alias alias = AliasUtil.getAlias("five", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.arguments, iterableWithSize(1));
@@ -181,7 +181,7 @@ public class TestAlias {
 
 	@Test
 	void testGetAliasFiveWithArgs() throws IOException {
-		Settings.Alias alias = AliasUtil.getAlias("five", Collections.singletonList("X"),
+		AliasUtil.Alias alias = AliasUtil.getAlias("five", Collections.singletonList("X"),
 				Collections.singletonMap("foo", "bar"));
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
@@ -194,7 +194,7 @@ public class TestAlias {
 	@Test
 	void testGetAliasLoop() throws IOException {
 		try {
-			Settings.Alias alias = AliasUtil.getAlias("eight", null, null);
+			AliasUtil.Alias alias = AliasUtil.getAlias("eight", null, null);
 			Assert.fail();
 		} catch (RuntimeException ex) {
 			assertThat(ex.getMessage(), containsString("seven"));
