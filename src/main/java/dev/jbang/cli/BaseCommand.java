@@ -23,8 +23,6 @@ public abstract class BaseCommand implements Callable<Integer> {
 	@CommandLine.Option(names = { "-h", "--help" }, usageHelp = true, description = "Display help/info")
 	boolean helpRequested;
 
-	static boolean verbose = false;
-
 	void info(String msg) {
 		if (spec != null) {
 			spec.commandLine().getErr().println("[jbang] " + msg);
@@ -42,7 +40,7 @@ public abstract class BaseCommand implements Callable<Integer> {
 	}
 
 	boolean isVerbose() {
-		return verbose;
+		return Util.isVerbose();
 	}
 
 	@Override
@@ -56,7 +54,6 @@ public abstract class BaseCommand implements Callable<Integer> {
 				info(e.getMessage());
 				info("Run with --verbose for more details");
 			}
-
 			return e.getStatus();
 		}
 	}

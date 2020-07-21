@@ -19,12 +19,23 @@ import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.parser.Parser;
 
 import com.google.gson.Gson;
 
 import picocli.CommandLine;
 
 public class Util {
+
+	static boolean verbose;
+
+	public static void setVerbose(boolean verbose) {
+		Util.verbose = verbose;
+	}
+
+	public static boolean isVerbose() {
+		return verbose;
+	}
 
 	public enum OS {
 		linux, mac, windows
@@ -50,9 +61,14 @@ public class Util {
 		System.err.println("[jbang] [ERROR] " + msg);
 	}
 
-	static public void errorMsg(String msg, Throwable t) {
+	static public void errorMsg(String msg, Throwable e) {
 		System.err.println("[jbang] [ERROR] " + msg);
-		t.printStackTrace();
+		if (isVerbose()) {
+			e.printStackTrace();
+		} else {
+			info(e.getMessage());
+			info("Run with --verbose for more details");
+		}
 	}
 
 	static public void quit(int status) {
@@ -146,7 +162,7 @@ public class Util {
 					// proposedString = proposedString.replace("\u201c", "");
 					// proposedString = proposedString.replace("\u201d", "");
 					// unescape properly
-					proposedString = org.jsoup.parser.Parser.unescapeEntities(proposedString, true);
+					proposedString = Parser.unescapeEntities(proposedString, true);
 
 				}
 
