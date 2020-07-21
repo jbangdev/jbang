@@ -61,10 +61,12 @@ public class update_catalog implements Callable<Integer> {
             if (aliases.baseRef != null && !aliases.baseRef.equals(base.toString())) {
                 throw new RuntimeException("Base path specified on the command line does not match the one in the existing catalog file. There can only be one base path!");
             }
+            aliases.baseRef = base.toString();
         } else {
-            base = Paths.get(aliases.baseRef);
+            if (aliases.baseRef != null) {
+                base = Paths.get(aliases.baseRef);
+            }
         }
-        aliases.baseRef = base.toString();
         System.out.println("BASE: " + (base != null ? base : "."));
 
         if (description != null) {
