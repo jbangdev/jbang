@@ -28,7 +28,7 @@ public class Catalog {
 			throw new IllegalArgumentException("A catalog with that name already exists");
 		}
 		PrintWriter err = spec.commandLine().getErr();
-		Settings.Aliases aliases = AliasUtil.getCatalogAliasesByRef(urlOrFile, true);
+		AliasUtil.Aliases aliases = AliasUtil.getCatalogAliasesByRef(urlOrFile, true);
 		if (description == null) {
 			description = aliases.description;
 		}
@@ -60,7 +60,7 @@ public class Catalog {
 					.stream()
 					.sorted()
 					.forEach(nm -> {
-						Settings.Catalog cat = Settings.getCatalogs().get(nm);
+						AliasUtil.Catalog cat = Settings.getCatalogs().get(nm);
 						if (cat.description != null) {
 							out.println(nm + " = " + cat.description);
 							out.println(Util.repeat(" ", nm.length()) + "   (" + cat.catalogRef + ")");
@@ -69,7 +69,7 @@ public class Catalog {
 						}
 					});
 		} else {
-			Settings.Aliases aliases = AliasUtil.getCatalogAliasesByName(name, false);
+			AliasUtil.Aliases aliases = AliasUtil.getCatalogAliasesByName(name, false);
 			Alias.printAliases(out, name, aliases);
 		}
 		return CommandLine.ExitCode.SOFTWARE;

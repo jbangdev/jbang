@@ -1,12 +1,18 @@
 package dev.jbang;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
+import com.google.gson.annotations.SerializedName;
 
 import picocli.CommandLine;
 
@@ -19,6 +25,43 @@ public class AliasUtil {
 
 	private static final String JBANG_CATALOG_REPO = "/jbang-catalog";
 
+	public static class Alias {
+		@SerializedName(value = "script-ref", alternate = { "scriptRef" })
+		public final String scriptRef;
+		public final String description;
+		public final List<String> arguments;
+		public final Map<String, String> properties;
+
+		public Alias(String scriptRef, String description, List<String> arguments, Map<String, String> properties) {
+			this.scriptRef = scriptRef;
+			this.description = description;
+			this.arguments = arguments;
+			this.properties = properties;
+		}
+	}
+
+	public static class Aliases {
+		public Map<String, Alias> aliases = new HashMap<>();
+		@SerializedName(value = "base-ref", alternate = { "baseRef" })
+		public String baseRef;
+		public String description;
+	}
+
+	public static class Catalog {
+		@SerializedName(value = "catalog-ref", alternate = { "catalogRef" })
+		public final String catalogRef;
+		public final String description;
+
+		Catalog(String catalogRef, String description) {
+			this.catalogRef = catalogRef;
+			this.description = description;
+		}
+	}
+
+	public static class CatalogInfo {
+		Map<String, Catalog> catalogs = new HashMap<>();
+	}
+
 	/**
 	 * Returns an Alias object for the given name with the given arguments and
 	 * properties applied to it. Or null if no alias with that name could be found.
@@ -28,14 +71,14 @@ public class AliasUtil {
 	 * @param properties Optional properties to apply to the Alias
 	 * @return An Alias object or null if no alias was found
 	 */
-	public static Settings.Alias getAlias(String aliasName, List<String> arguments, Map<String, String> properties) {
+	public static Alias getAlias(String aliasName, List<String> arguments, Map<String, String> properties) {
 		HashSet<String> names = new HashSet<>();
-		Settings.Alias alias = new Settings.Alias(null, null, arguments, properties);
-		Settings.Alias result = mergeAliases(alias, aliasName, names);
+		Alias alias = new Alias(null, null, arguments, properties);
+		Alias result = mergeAliases(alias, aliasName, names);
 		return result.scriptRef != null ? result : null;
 	}
 
-	private static Settings.Alias mergeAliases(Settings.Alias a1, String name, HashSet<String> names) {
+	private static Alias mergeAliases(Alias a1, String name, HashSet<String> names) {
 		if (names.contains(name)) {
 			throw new RuntimeException("Encountered alias loop on '" + name + "'");
 		}
@@ -43,7 +86,7 @@ public class AliasUtil {
 		if (parts.length > 2 || parts[0].isEmpty()) {
 			throw new RuntimeException("Invalid alias name '" + name + "'");
 		}
-		Settings.Alias a2;
+		Alias a2;
 		if (parts.length == 1) {
 			a2 = Settings.getAliases().get(name);
 		} else {
@@ -57,7 +100,7 @@ public class AliasUtil {
 			a2 = mergeAliases(a2, a2.scriptRef, names);
 			List<String> args = a1.arguments != null ? a1.arguments : a2.arguments;
 			Map<String, String> props = a1.properties != null ? a1.properties : a2.properties;
-			return new Settings.Alias(a2.scriptRef, null, args, props);
+			return new Alias(a2.scriptRef, null, args, props);
 		} else {
 			return a1;
 		}
@@ -70,8 +113,8 @@ public class AliasUtil {
 	 * @param aliasName   The name of an Alias
 	 * @return An Alias object
 	 */
-	public static Settings.Alias getCatalogAlias(String catalogName, String aliasName) {
-		Settings.Aliases aliases = getCatalogAliasesByName(catalogName, false);
+	public static Alias getCatalogAlias(String catalogName, String aliasName) {
+		Aliases aliases = getCatalogAliasesByName(catalogName, false);
 		return getCatalogAlias(aliases, aliasName);
 	}
 
@@ -83,11 +126,11 @@ public class AliasUtil {
 	 * @param updateCache Set to true to ignore cached values
 	 * @return An Aliases object
 	 */
-	public static Settings.Aliases getCatalogAliasesByName(String catalogName, boolean updateCache) {
+	public static Aliases getCatalogAliasesByName(String catalogName, boolean updateCache) {
 		if (catalogName == null) {
 			return Settings.getAliasesFromLocalCatalog();
 		}
-		Settings.Catalog catalog = getCatalog(catalogName);
+		Catalog catalog = getCatalog(catalogName);
 		if (catalog != null) {
 			return getCatalogAliasesByRef(catalog.catalogRef, updateCache);
 		} else {
@@ -95,8 +138,8 @@ public class AliasUtil {
 		}
 	}
 
-	private static Settings.Catalog getCatalog(String catalogName) {
-		Settings.Catalog catalog = Settings.getCatalogs().get(catalogName);
+	private static Catalog getCatalog(String catalogName) {
+		Catalog catalog = Settings.getCatalogs().get(catalogName);
 		if (catalog == null) {
 			ImplicitCatalogRef icr = ImplicitCatalogRef.parse(catalogName);
 			Optional<String> url;
@@ -109,7 +152,7 @@ public class AliasUtil {
 					() -> icr.isPossibleCommit() ? tryDownload(icr.url(BITBUCKET_URL, "/src/")) : Optional.empty())
 																													.findFirst();
 			if (url.isPresent()) {
-				Settings.Aliases aliases = AliasUtil.getCatalogAliasesByRef(url.get(), false);
+				Aliases aliases = AliasUtil.getCatalogAliasesByRef(url.get(), false);
 				catalog = Settings.addCatalog(catalogName, url.get(), aliases.description);
 			}
 		}
@@ -184,7 +227,7 @@ public class AliasUtil {
 	 * @param updateCache Set to true to ignore cached values
 	 * @return An Aliases object
 	 */
-	public static Settings.Aliases getCatalogAliasesByRef(String catalogRef, boolean updateCache) {
+	public static Aliases getCatalogAliasesByRef(String catalogRef, boolean updateCache) {
 		if (!catalogRef.endsWith(".json")) {
 			if (!catalogRef.endsWith("/")) {
 				catalogRef += "/";
@@ -193,7 +236,7 @@ public class AliasUtil {
 		}
 		try {
 			Path catalogPath = Util.obtainFile(catalogRef, updateCache);
-			Settings.Aliases aliases = Settings.getAliasesFromCatalog(catalogPath, updateCache);
+			Aliases aliases = Settings.getAliasesFromCatalog(catalogPath, updateCache);
 			int p = catalogRef.lastIndexOf('/');
 			if (p > 0) {
 				String catalogBaseRef = catalogRef.substring(0, p);
@@ -222,8 +265,8 @@ public class AliasUtil {
 	 * @param aliasName The name of an Alias
 	 * @return An Alias object
 	 */
-	public static Settings.Alias getCatalogAlias(Settings.Aliases aliases, String aliasName) {
-		Settings.Alias alias = aliases.aliases.get(aliasName);
+	public static Alias getCatalogAlias(Aliases aliases, String aliasName) {
+		Alias alias = aliases.aliases.get(aliasName);
 		if (alias == null) {
 			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "No alias found with name '" + aliasName + "'");
 		}
@@ -237,11 +280,72 @@ public class AliasUtil {
 			} else {
 				ref += alias.scriptRef;
 			}
-			alias = new Settings.Alias(ref, alias.description, alias.arguments, alias.properties);
+			alias = new Alias(ref, alias.description, alias.arguments, alias.properties);
 		}
 		// TODO if we have to combine the baseUrl with the scriptRef
 		// we need to make a copy of the Alias with the full URL
 		return alias;
+	}
+
+	static Aliases readAliasesFromCatalog(Path catalogPath) {
+		Aliases aliases;
+		aliases = new Aliases();
+		if (Files.isRegularFile(catalogPath)) {
+			try (Reader in = Files.newBufferedReader(catalogPath)) {
+				Gson parser = new Gson();
+				aliases = parser.fromJson(in, Aliases.class);
+				// Validate the result (Gson can't do this)
+				check(aliases.aliases != null, "Missing required attribute 'aliases'");
+				for (String aliasName : aliases.aliases.keySet()) {
+					Alias alias = aliases.aliases.get(aliasName);
+					check(alias.scriptRef != null, "Missing required attribute 'aliases.script-ref'");
+				}
+			} catch (IOException e) {
+				// Ignore errors
+			}
+		}
+		return aliases;
+	}
+
+	static void writeAliasesToCatalog(Path catalogPath) throws IOException {
+		try (Writer out = Files.newBufferedWriter(catalogPath)) {
+			Gson parser = new GsonBuilder().setPrettyPrinting().create();
+			parser.toJson(Settings.getAliasesFromLocalCatalog(), out);
+		}
+	}
+
+	static void check(boolean ok, String message) {
+		if (!ok) {
+			throw new JsonParseException(message);
+		}
+	}
+
+	static CatalogInfo readCatalogInfo(Path catalogsPath) {
+		CatalogInfo info;
+		if (Files.isRegularFile(catalogsPath)) {
+			try (Reader in = Files.newBufferedReader(catalogsPath)) {
+				Gson parser = new Gson();
+				info = parser.fromJson(in, CatalogInfo.class);
+				// Validate the result (Gson can't do this)
+				check(info.catalogs != null, "Missing required attribute 'catalogs'");
+				for (String catName : info.catalogs.keySet()) {
+					Catalog cat = info.catalogs.get(catName);
+					check(cat.catalogRef != null, "Missing required attribute 'catalogs.catalogRef'");
+				}
+			} catch (IOException e) {
+				info = new CatalogInfo();
+			}
+		} else {
+			info = new CatalogInfo();
+		}
+		return info;
+	}
+
+	static void writeCatalogInfo(Path catalogPath) throws IOException {
+		try (Writer out = Files.newBufferedWriter(catalogPath)) {
+			Gson parser = new GsonBuilder().setPrettyPrinting().create();
+			parser.toJson(Settings.getCatalogInfo(), out);
+		}
 	}
 
 	private static boolean isAbsoluteRef(String ref) {

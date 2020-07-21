@@ -2,23 +2,16 @@ package dev.jbang;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonParseException;
-import com.google.gson.annotations.SerializedName;
-
 import io.quarkus.qute.Template;
 
 public class Settings {
-	static Map<Path, Aliases> catalogCache = new HashMap<>();
-	static CatalogInfo catalogInfo = null;
+	static Map<Path, AliasUtil.Aliases> catalogCache = new HashMap<>();
+	static AliasUtil.CatalogInfo catalogInfo = null;
 
 	public static final String JBANG_REPO = "JBANG_REPO";
 	public static final String JBANG_DIR = "JBANG_DIR";
@@ -141,50 +134,14 @@ public class Settings {
 		return te;
 	}
 
-	public static class Alias {
-		@SerializedName(value = "script-ref", alternate = { "scriptRef" })
-		public final String scriptRef;
-		public final String description;
-		public final List<String> arguments;
-		public final Map<String, String> properties;
-
-		public Alias(String scriptRef, String description, List<String> arguments, Map<String, String> properties) {
-			this.scriptRef = scriptRef;
-			this.description = description;
-			this.arguments = arguments;
-			this.properties = properties;
-		}
-	}
-
-	public static class Aliases {
-		public Map<String, Alias> aliases = new HashMap<>();
-		@SerializedName(value = "base-ref", alternate = { "baseRef" })
-		public String baseRef;
-		public String description;
-	}
-
 	public static Path getAliasesFile() {
 		return getConfigDir().resolve(AliasUtil.JBANG_CATALOG_JSON);
 	}
 
-	public static Aliases getAliasesFromCatalog(Path catalogPath, boolean updateCache) {
-		Aliases aliases;
+	public static AliasUtil.Aliases getAliasesFromCatalog(Path catalogPath, boolean updateCache) {
+		AliasUtil.Aliases aliases;
 		if (updateCache || !catalogCache.containsKey(catalogPath)) {
-			aliases = new Aliases();
-			if (Files.isRegularFile(catalogPath)) {
-				try (Reader in = Files.newBufferedReader(catalogPath)) {
-					Gson parser = new Gson();
-					aliases = parser.fromJson(in, Aliases.class);
-					// Validate the result (Gson can't do this)
-					check(aliases.aliases != null, "Missing required attribute 'aliases'");
-					for (String aliasName : aliases.aliases.keySet()) {
-						Alias alias = aliases.aliases.get(aliasName);
-						check(alias.scriptRef != null, "Missing required attribute 'aliases.script-ref'");
-					}
-				} catch (IOException e) {
-					// Ignore errors
-				}
-			}
+			aliases = AliasUtil.readAliasesFromCatalog(catalogPath);
 			catalogCache.put(catalogPath, aliases);
 		} else {
 			aliases = catalogCache.get(catalogPath);
@@ -192,21 +149,19 @@ public class Settings {
 		return aliases;
 	}
 
-	public static Aliases getAliasesFromLocalCatalog() {
+	public static AliasUtil.Aliases getAliasesFromLocalCatalog() {
 		return getAliasesFromCatalog(getAliasesFile(), false);
 	}
 
-	public static Map<String, Alias> getAliases() {
+	public static Map<String, AliasUtil.Alias> getAliases() {
 		return getAliasesFromLocalCatalog().aliases;
 	}
 
 	public static void addAlias(String name, String scriptRef, String description, List<String> arguments,
 			Map<String, String> properties) {
-		getAliases().put(name, new Alias(scriptRef, description, arguments, properties));
-
-		try (Writer out = Files.newBufferedWriter(getAliasesFile())) {
-			Gson parser = new GsonBuilder().setPrettyPrinting().create();
-			parser.toJson(getAliasesFromLocalCatalog(), out);
+		getAliases().put(name, new AliasUtil.Alias(scriptRef, description, arguments, properties));
+		try {
+			AliasUtil.writeAliasesToCatalog(getAliasesFile());
 		} catch (IOException ex) {
 			Util.warnMsg("Unable to add alias: " + ex.getMessage());
 		}
@@ -214,69 +169,35 @@ public class Settings {
 
 	public static void removeAlias(String name) {
 		if (getAliases().containsKey(name)) {
-			try (Writer out = Files.newBufferedWriter(getAliasesFile())) {
-				getAliases().remove(name);
-				Gson parser = new GsonBuilder().setPrettyPrinting().create();
-				parser.toJson(getAliasesFromLocalCatalog(), out);
+			getAliases().remove(name);
+			try {
+				AliasUtil.writeAliasesToCatalog(getAliasesFile());
 			} catch (IOException ex) {
 				Util.warnMsg("Unable to remove alias: " + ex.getMessage());
 			}
 		}
 	}
 
-	public static class Catalog {
-		@SerializedName(value = "catalog-ref", alternate = { "catalogRef" })
-		public final String catalogRef;
-		public final String description;
-
-		Catalog(String catalogRef, String description) {
-			this.catalogRef = catalogRef;
-			this.description = description;
-		}
-	}
-
-	static class CatalogInfo {
-		Map<String, Catalog> catalogs = new HashMap<>();
-	}
-
 	public static Path getCatalogsFile() {
 		return getConfigDir().resolve(CATALOGS_JSON);
 	}
 
-	public static CatalogInfo getCatalogInfo() {
+	public static AliasUtil.CatalogInfo getCatalogInfo() {
 		if (catalogInfo == null) {
-			Path catalogsPath = getCatalogsFile();
-			if (Files.isRegularFile(catalogsPath)) {
-				try (Reader in = Files.newBufferedReader(catalogsPath)) {
-					Gson parser = new Gson();
-					catalogInfo = parser.fromJson(in, CatalogInfo.class);
-					// Validate the result (Gson can't do this)
-					check(catalogInfo.catalogs != null, "Missing required attribute 'catalogs'");
-					for (String catName : catalogInfo.catalogs.keySet()) {
-						Catalog cat = catalogInfo.catalogs.get(catName);
-						check(cat.catalogRef != null, "Missing required attribute 'catalogs.catalogRef'");
-					}
-				} catch (IOException e) {
-					catalogInfo = new CatalogInfo();
-				}
-			} else {
-				catalogInfo = new CatalogInfo();
-			}
+			catalogInfo = AliasUtil.readCatalogInfo(getCatalogsFile());
 		}
 		return catalogInfo;
 	}
 
-	public static Map<String, Catalog> getCatalogs() {
+	public static Map<String, AliasUtil.Catalog> getCatalogs() {
 		return getCatalogInfo().catalogs;
 	}
 
-	public static Catalog addCatalog(String name, String catalogRef, String description) {
-		Catalog catalog = new Catalog(catalogRef, description);
+	public static AliasUtil.Catalog addCatalog(String name, String catalogRef, String description) {
+		AliasUtil.Catalog catalog = new AliasUtil.Catalog(catalogRef, description);
 		getCatalogs().put(name, catalog);
-
-		try (Writer out = Files.newBufferedWriter(getCatalogsFile())) {
-			Gson parser = new GsonBuilder().setPrettyPrinting().create();
-			parser.toJson(getCatalogInfo(), out);
+		try {
+			AliasUtil.writeCatalogInfo(getCatalogsFile());
 			return catalog;
 		} catch (IOException ex) {
 			Util.warnMsg("Unable to add catalog: " + ex.getMessage());
@@ -286,19 +207,13 @@ public class Settings {
 
 	public static void removeCatalog(String name) {
 		if (getCatalogs().containsKey(name)) {
-			try (Writer out = Files.newBufferedWriter(getCatalogsFile())) {
-				getCatalogs().remove(name);
-				Gson parser = new GsonBuilder().setPrettyPrinting().create();
-				parser.toJson(getCatalogInfo(), out);
+			getCatalogs().remove(name);
+			try {
+				AliasUtil.writeCatalogInfo(getCatalogsFile());
 			} catch (IOException ex) {
 				Util.warnMsg("Unable to remove catalog: " + ex.getMessage());
 			}
 		}
 	}
 
-	private static void check(boolean ok, String message) {
-		if (!ok) {
-			throw new JsonParseException(message);
-		}
-	}
 }
