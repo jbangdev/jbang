@@ -17,7 +17,7 @@ public class AliasUtil {
 	private static final String GITLAB_URL = "https://gitlab.com/";
 	private static final String BITBUCKET_URL = "https://bitbucket.org/";
 
-	private static final String JBANG_CATALOG_REPO = "/jbang-catalog";
+	private static final String JBANG_CATALOG_REPO = "jbang-catalog";
 
 	/**
 	 * Returns an Alias object for the given name with the given arguments and
