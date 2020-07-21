@@ -61,7 +61,7 @@ public class TestAlias {
 	void init() throws IOException {
 		jbangTempDir.create();
 		environmentVariables.set("JBANG_DIR", jbangTempDir.getRoot().getPath());
-		Files.write(jbangTempDir.getRoot().toPath().resolve("aliases.json"), aliases.getBytes());
+		Files.write(jbangTempDir.getRoot().toPath().resolve(AliasUtil.JBANG_CATALOG_JSON), aliases.getBytes());
 	}
 
 	@Rule

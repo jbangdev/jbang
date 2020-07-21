@@ -24,7 +24,6 @@ public class Settings {
 	public static final String JBANG_DIR = "JBANG_DIR";
 	public static final String JBANG_CACHE_DIR = "JBANG_CACHE_DIR";
 
-	public static final String ALIASES_JSON = "aliases.json";
 	public static final String CATALOGS_JSON = "catalogs.json";
 	public static final String TRUSTED_SOURCES_JSON = "trusted-sources.json";
 	public static final String DEPENDENCY_CACHE_TXT = "dependency_cache.txt";
@@ -165,7 +164,7 @@ public class Settings {
 	}
 
 	public static Path getAliasesFile() {
-		return getConfigDir().resolve(ALIASES_JSON);
+		return getConfigDir().resolve(AliasUtil.JBANG_CATALOG_JSON);
 	}
 
 	public static Aliases getAliasesFromCatalog(Path catalogPath, boolean updateCache) {
