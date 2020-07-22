@@ -648,7 +648,7 @@ For now this is required for `kubectl` plugin but not `git`. https://github.com/
 
 == Java version
 
-jbang will by default use `JAVA_HOME` or then `PATH` to locate the `java` executable to run the script with.
+jbang will by default first use `JAVA_HOME` and if not avialble the `PATH` to locate the `java` executable to run the script with.
 
 If your script requires a specific or minimal version of Java you can use `//JAVA <version>(+)`.
 
@@ -658,7 +658,7 @@ If no such version is found it will automatically download and install it into j
 Examples:
 
 `//JAVA 11` will force use of Java 11.
-`//JAVA 13+` will require at least java 13. If Java 13 or higher will be used.
+`//JAVA 13+` will require at least java 13. Java 13 or higher will be sued.
 
 In case no matching `java` is found jbang will fail.
 
@@ -770,7 +770,7 @@ You can put `//CDS` in the java file to enable it by default, or simply use `--c
 
 == Aliases
 
-To avoid remembering long paths and to enable easy launch of jbang scripts there is a `alias` command
+To avoid remembering long paths and to enable easy launch of jbang scripts there is an `alias` command
 to setup and manage aliases to actual scripts.
 
 i.e. `jbang alias add hello https://github.com/jbangdev/jbang-examples/blob/master/examples/helloworld.java`
@@ -787,7 +787,7 @@ Examples:
 
 This allows anyone to provde a set of jbang scripts defined out of their github, gitlab or bitbucket repository.
 
-The full format is `<alias>@<user/org>(/repository)(/branch)(@path)` allowing you to do things like:
+The full format is `<alias>@<user/org>(/repository)(/branch)(~path)` allowing you to do things like:
 
 
 .Implicit Catalog Examples:
