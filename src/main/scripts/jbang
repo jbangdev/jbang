@@ -1,35 +1,91 @@
 #!/usr/bin/env bash
 
+# The Java version to install when it's not installed on the system yet
+javaVersion=11
+
 absolute_path() {
-    # if the given path to the jbang launcher is absolute (i.e. it is either starting with / or a
-    # 'letter:/' when using gitbash on windows) it is returned unchanged, otherwise we construct an absolute path
-    [[ $1 = /* ]] || [[ $1 =~ ^[A-z]:/ ]] && echo "$1" || echo "$PWD/${1#./}"
+  # if the given path to the jbang launcher is absolute (i.e. it is either starting with / or a
+  # 'letter:/' when using gitbash on windows) it is returned unchanged, otherwise we construct an absolute path
+  [[ $1 = /* ]] || [[ $1 =~ ^[A-z]:/ ]] && echo "$1" || echo "$PWD/${1#./}"
 }
 
 resolve_symlink() {
-    if [[ $OSTYPE != darwin* ]]; then minusFarg="-f"; fi
-    sym_resolved=$(readlink ${minusFarg} $1)
+  if [[ $OSTYPE != darwin* ]]; then minusFarg="-f"; fi
+  sym_resolved=$(readlink ${minusFarg} $1)
 
-    if [[ -n $sym_resolved ]]; then
-        echo $sym_resolved
-    else
-        echo $1
-    fi
+  if [[ -n $sym_resolved ]]; then
+    echo $sym_resolved
+  else
+    echo $1
+  fi
 }
+
+case "$(uname -s)" in
+  Linux*)   os=linux;;
+  Darwin*)  os=mac;;
+  CYGWIN*)  os=windows;;
+  MINGW*)   os=windows;;
+  *)        echo "Unsupported Operating System"; exit 1;;
+esac
+
+case "$(uname -p)" in
+  *64*)     arch=x64;;
+  unknown)
+    case "$(uname -s)" in
+      *64*)   arch=x64;;
+      *)      arch=x32;;
+    esac
+    ;;
+  *)        arch=x32;;
+esac
 
 abs_jbang_path=$(resolve_symlink $(absolute_path $0))
 
 ## when mingw/git bash or cygwin fall out to just running the bat file.
-if [[ $(uname) == CYGWIN* ]] || [[ $(uname) == MINGW* ]]; then
-$(dirname $abs_jbang_path)/jbang.cmd $*
-exit $?
+if [[ $os == windows ]]; then
+  $(dirname $abs_jbang_path)/jbang.cmd $*
+  exit $?
 fi
 
 ## resolve application jar path from script location
 jarPath=$(dirname $abs_jbang_path)/jbang.jar
 
+if [[ -z "$JBANG_DIR" ]]; then JBDIR="$HOME/.jbang"; else JBDIR="$JBANG_DIR"; fi
+if [[ -z "$JBANG_CACHE_DIR" ]]; then TDIR="$JBDIR/cache"; else TDIR="$JBANG_CACHE_DIR"; fi
+
+mkdir -p "$TDIR/jdks"
+
 ## prefer JAVA instead of PATH to resolve `java` location
-if [[ -z "$JAVA_HOME" ]]; then JAVA_EXEC="java"; else JAVA_EXEC="$JAVA_HOME/bin/java"; fi
+if [[ -z "$JAVA_HOME" ]]; then
+  if [ -x "$(command -v javac)" ]; then
+    JAVA_EXEC="java";
+  else
+    if [ ! -d "$TDIR/jdks/$javaVersion" ]; then
+      echo "Downloading JDK $javaVersion..."
+      url="https://api.adoptopenjdk.net/v3/binary/latest/$javaVersion/ga/$os/$arch/jdk/hotspot/normal/adoptopenjdk"
+      if [ -x "$(command -v curl)" ]; then
+        curl -sL -o "$TDIR/bootstrap-jdk.tgz" $url
+      elif [ -x "$(command -v wget)" ]; then
+        wget -q -O "$TDIR/bootstrap-jdk.tgz" $url
+      else
+        echo "Error: curl or wget not found, cannot download JDK"
+        exit 1
+      fi
+      echo "Installing JDK $javaVersion..."
+      rm -rf "$TDIR/jdks/$javaVersion.tmp/"
+      mkdir -p "$TDIR/jdks/$javaVersion.tmp"
+      tar xf "$TDIR/bootstrap-jdk.tgz" -C "$TDIR/jdks/$javaVersion.tmp" --strip-components=1
+      if [[ $os == mac ]]; then
+        mv "$TDIR/jdks/$javaVersion.tmp/Contents/Home/*" "$TDIR/jdks/$javaVersion.tmp/"
+      fi
+      mv "$TDIR/jdks/$javaVersion.tmp" "$TDIR/jdks/$javaVersion"
+    fi
+    JAVA_HOME="$TDIR/jdks/$javaVersion"
+    JAVA_EXEC="$JAVA_HOME/bin/java"
+  fi
+else
+  JAVA_EXEC="$JAVA_HOME/bin/java";
+fi
 
 ## expose the name of the script being run to the script itself
 export JBANG_FILE="$1"
@@ -41,8 +97,7 @@ export JBANG_FILE="$1"
 ## run it using command substitution to have just the user process once jbang is done
 output=$(CLICOLOR_FORCE=1 ${JAVA_EXEC} ${JBANG_JAVA_OPTIONS} -classpath ${jarPath} dev.jbang.Main "$@")
 err=$?
-if [ $err -eq 0 ]
-then
+if [ $err -eq 0 ]; then
   eval "exec $output"
 else
   exit $err
