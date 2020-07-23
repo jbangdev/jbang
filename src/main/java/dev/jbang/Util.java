@@ -45,8 +45,10 @@ public class Util {
 		x32, x64
 	}
 
-	static public void info(String msg) {
-		infoMsg(msg);
+	static public void debugMsg(String msg) {
+		if (isVerbose()) {
+			System.err.println("[jbang] " + msg);
+		}
 	}
 
 	static public void infoMsg(String msg) {
@@ -66,8 +68,8 @@ public class Util {
 		if (isVerbose()) {
 			e.printStackTrace();
 		} else {
-			info(e.getMessage());
-			info("Run with --verbose for more details");
+			infoMsg(e.getMessage());
+			infoMsg("Run with --verbose for more details");
 		}
 	}
 

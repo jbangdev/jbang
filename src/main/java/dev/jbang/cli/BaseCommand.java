@@ -23,6 +23,16 @@ public abstract class BaseCommand implements Callable<Integer> {
 	@CommandLine.Option(names = { "-h", "--help" }, usageHelp = true, description = "Display help/info")
 	boolean helpRequested;
 
+	void debug(String msg) {
+		if (isVerbose()) {
+			if (spec != null) {
+				spec.commandLine().getErr().println("[jbang] " + msg);
+			} else {
+				Util.debugMsg(msg);
+			}
+		}
+	}
+
 	void info(String msg) {
 		if (spec != null) {
 			spec.commandLine().getErr().println("[jbang] " + msg);

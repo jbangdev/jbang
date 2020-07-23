@@ -180,7 +180,7 @@ public class TrustedSources {
 
 	public void add(List<String> trust, File storage) {
 
-		Util.info("Adding " + trust + " to " + storage);
+		Util.infoMsg("Adding " + trust + " to " + storage);
 
 		Set<String> newrules = new LinkedHashSet<String>();
 
@@ -196,7 +196,7 @@ public class TrustedSources {
 
 	public void remove(List<String> trust, File storage) {
 
-		Util.info("Removing " + trust + " from " + storage);
+		Util.infoMsg("Removing " + trust + " from " + storage);
 
 		Set<String> newrules = new LinkedHashSet<String>();
 
