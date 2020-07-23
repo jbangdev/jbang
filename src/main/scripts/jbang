@@ -69,10 +69,10 @@ if [[ -z "$JAVA_HOME" ]]; then
       # If not, download and install it
       echo "Downloading JDK $javaVersion..."
       if [ -x "$(command -v curl)" ]; then
-        curl -sL -o "$TDIR/bootstrap-jdk.tgz" $url
+        curl -sLf -H "Accept: application/gzip, application/octet-stream" -o "$TDIR/bootstrap-jdk.tgz" $url
         retval=$?
       elif [ -x "$(command -v wget)" ]; then
-        wget -q -O "$TDIR/bootstrap-jdk.tgz" $url
+        wget -q --header="Accept: application/gzip, application/octet-stream" -O "$TDIR/bootstrap-jdk.tgz" $url
         retval=$?
       else
         echo "Error: curl or wget not found, cannot download JDK"
