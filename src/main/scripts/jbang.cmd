@@ -25,22 +25,31 @@ if "%JBANG_CACHE_DIR%"=="" (set TDIR=%JBDIR%\cache) else (set TDIR=%JBANG_CACHE_
 
 if not exist "%TDIR%\jdks" ( mkdir "%TDIR%\jdks" )
 
-rem prefer JAVA instead of PATH to resolve `java` location
-rem if [[ -z "$JAVA_HOME" ]]; then JAVA_EXEC="java"; else JAVA_EXEC="$JAVA_HOME/bin/java"; fi
+rem Find/get a JDK
 if "%JAVA_HOME%"=="" (
-  where /q javac 2>&1 > nul
+  rem Determine if a (working) JDK is available on the PATH
+  javac -version > nul 2>&1
   if !errorlevel! equ 0 (
     set JAVA_EXEC=java.exe
   ) else (
+    rem Check if we installed a JDK before
     if not exist "%TDIR%\jdks\%javaVersion%" (
+      rem If not, download and install it
       echo Downloading JDK %javaVersion%...
       powershell -NonInteractive -Command "$ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest %url% -OutFile %TDIR%\bootstrap-jdk.zip"
+      if !ERRORLEVEL! NEQ 0 ( echo "Error downloading JDK"; exit /b %ERRORLEVEL% )
       echo Installing JDK %javaVersion%...
-      if exist "%TDIR%\jdks\%javaVersion%.tmp" ( rd /s /q "%TDIR%\jdks\%javaVersion%.tmp" 2>&1 > nul )
+      if exist "%TDIR%\jdks\%javaVersion%.tmp" ( rd /s /q "%TDIR%\jdks\%javaVersion%.tmp" > nul 2>&1 )
       powershell -NonInteractive -Command "$ProgressPreference = 'SilentlyContinue'; Expand-Archive -Path %TDIR%\bootstrap-jdk.zip -DestinationPath %TDIR%\jdks\%javaVersion%.tmp"
+      if !ERRORLEVEL! NEQ 0 ( echo "Error installing JDK"; exit /b %ERRORLEVEL% )
 	  for /d %%d in (%TDIR%\jdks\%javaVersion%.tmp\*) do (
         powershell -NonInteractive -Command "Move-Item %%d\* !TDIR!\jdks\%javaVersion%.tmp"
+        if !ERRORLEVEL! NEQ 0 ( echo "Error installing JDK"; exit /b %ERRORLEVEL% )
 	  )
+	  rem Check if the JDK was installed properly
+	  %TDIR%\jdks\%javaVersion%.tmp\bin\javac -version > nul 2>&1
+      if !ERRORLEVEL! NEQ 0 ( echo "Error installing JDK"; exit /b %ERRORLEVEL% )
+      rem Activate the downloaded JDK giving it its proper name
       ren "%TDIR%\jdks\%javaVersion%.tmp" "%javaVersion%"
     )
     set JAVA_HOME=%TDIR%\jdks\%javaVersion%
