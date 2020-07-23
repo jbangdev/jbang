@@ -30,13 +30,16 @@ esac
 
 case "$(uname -p)" in
   *64*)     arch=x64;;
-  unknown)
+  *)
     case "$(uname -s)" in
       *64*)   arch=x64;;
-      *)      arch=x32;;
+      *)
+        case "$(uname -m)" in
+          *64*) arch=x64;;
+          *)    arch=x32;;
+        esac
     esac
     ;;
-  *)        arch=x32;;
 esac
 
 url="https://api.adoptopenjdk.net/v3/binary/latest/$javaVersion/ga/$os/$arch/jdk/hotspot/normal/adoptopenjdk"
