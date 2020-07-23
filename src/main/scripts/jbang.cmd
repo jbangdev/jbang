@@ -26,7 +26,17 @@ if "%JBANG_CACHE_DIR%"=="" (set TDIR=%JBDIR%\cache) else (set TDIR=%JBANG_CACHE_
 if not exist "%TDIR%\jdks" ( mkdir "%TDIR%\jdks" )
 
 rem Find/get a JDK
-if "%JAVA_HOME%"=="" (
+set JAVA_EXEC=
+if "%JAVA_HOME%"!="" (
+  rem Determine if a (working) JDK is available in JAVA_HOME
+  %JAVA_HOME%\bin\javac -version > nul 2>&1
+  if !errorlevel! equ 0 (
+    set JAVA_EXEC="%JAVA_HOME%\bin\java.exe"
+  ) else (
+    echo JAVA_HOME is set but does not seem to point to a valid Java JDK 1>&2
+  )
+)
+if "!JAVA_EXEC!"=="" (
   rem Determine if a (working) JDK is available on the PATH
   javac -version > nul 2>&1
   if !errorlevel! equ 0 (
@@ -35,28 +45,26 @@ if "%JAVA_HOME%"=="" (
     rem Check if we installed a JDK before
     if not exist "%TDIR%\jdks\%javaVersion%" (
       rem If not, download and install it
-      echo Downloading JDK %javaVersion%...
+      echo Downloading JDK %javaVersion%. Be patient, this can take several minutes... 1>&2
       powershell -NonInteractive -Command "$ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest %url% -OutFile %TDIR%\bootstrap-jdk.zip"
-      if !ERRORLEVEL! NEQ 0 ( echo "Error downloading JDK"; exit /b %ERRORLEVEL% )
-      echo Installing JDK %javaVersion%...
+      if !ERRORLEVEL! NEQ 0 ( echo "Error downloading JDK" 1>&2; exit /b %ERRORLEVEL% )
+      echo Installing JDK %javaVersion%... 1>&2
       if exist "%TDIR%\jdks\%javaVersion%.tmp" ( rd /s /q "%TDIR%\jdks\%javaVersion%.tmp" > nul 2>&1 )
       powershell -NonInteractive -Command "$ProgressPreference = 'SilentlyContinue'; Expand-Archive -Path %TDIR%\bootstrap-jdk.zip -DestinationPath %TDIR%\jdks\%javaVersion%.tmp"
-      if !ERRORLEVEL! NEQ 0 ( echo "Error installing JDK"; exit /b %ERRORLEVEL% )
+      if !ERRORLEVEL! NEQ 0 ( echo "Error installing JDK" 1>&2; exit /b %ERRORLEVEL% )
 	  for /d %%d in (%TDIR%\jdks\%javaVersion%.tmp\*) do (
         powershell -NonInteractive -Command "Move-Item %%d\* !TDIR!\jdks\%javaVersion%.tmp"
-        if !ERRORLEVEL! NEQ 0 ( echo "Error installing JDK"; exit /b %ERRORLEVEL% )
+        if !ERRORLEVEL! NEQ 0 ( echo "Error installing JDK" 1>&2; exit /b %ERRORLEVEL% )
 	  )
 	  rem Check if the JDK was installed properly
 	  %TDIR%\jdks\%javaVersion%.tmp\bin\javac -version > nul 2>&1
-      if !ERRORLEVEL! NEQ 0 ( echo "Error installing JDK"; exit /b %ERRORLEVEL% )
+      if !ERRORLEVEL! NEQ 0 ( echo "Error installing JDK" 1>&2; exit /b %ERRORLEVEL% )
       rem Activate the downloaded JDK giving it its proper name
       ren "%TDIR%\jdks\%javaVersion%.tmp" "%javaVersion%"
     )
     set JAVA_HOME=%TDIR%\jdks\%javaVersion%
     set JAVA_EXEC=!JAVA_HOME!\bin\java.exe
   )
-) else (
-  set JAVA_EXEC="%JAVA_HOME%\bin\java.exe"
 )
 
 set tmpfile=%TDIR%\%RANDOM%.tmp

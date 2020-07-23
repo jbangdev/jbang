@@ -25,7 +25,7 @@ case "$(uname -s)" in
   Darwin*)  os=mac;;
   CYGWIN*)  os=windows;;
   MINGW*)   os=windows;;
-  *)        echo "Unsupported Operating System"; exit 1;;
+  *)        echo "Unsupported Operating System" 1>&2; exit 1;;
 esac
 
 case "$(uname -p)" in
@@ -61,7 +61,17 @@ if [[ -z "$JBANG_CACHE_DIR" ]]; then TDIR="$JBDIR/cache"; else TDIR="$JBANG_CACH
 mkdir -p "$TDIR/jdks"
 
 # Find/get a JDK
-if [[ -z "$JAVA_HOME" ]]; then
+unset JAVA_EXEC
+if [[ -n "$JAVA_HOME" ]]; then
+  # Determine if a (working) JDK is available in JAVA_HOME
+  $JAVA_HOME/bin/javac -version > /dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    JAVA_EXEC="$JAVA_HOME/bin/java";
+  else
+    echo "JAVA_HOME is set but does not seem to point to a valid Java JDK" 1>&2
+  fi
+fi
+if [[ -z "$JAVA_EXEC" ]]; then
   # Determine if a (working) JDK is available on the PATH
   javac -version > /dev/null 2>&1
   if [ $? -eq 0 ]; then
@@ -70,7 +80,7 @@ if [[ -z "$JAVA_HOME" ]]; then
     # Check if we installed a JDK before
     if [ ! -d "$TDIR/jdks/$javaVersion" ]; then
       # If not, download and install it
-      echo "Downloading JDK $javaVersion..."
+      echo "Downloading JDK $javaVersion. Be patient, this can take several minutes..." 1>&2
       if [ -x "$(command -v curl)" ]; then
         curl -sLf -H "Accept: application/gzip, application/octet-stream" -o "$TDIR/bootstrap-jdk.tgz" $url
         retval=$?
@@ -78,11 +88,11 @@ if [[ -z "$JAVA_HOME" ]]; then
         wget -q --header="Accept: application/gzip, application/octet-stream" -O "$TDIR/bootstrap-jdk.tgz" $url
         retval=$?
       else
-        echo "Error: curl or wget not found, cannot download JDK"
+        echo "Error: curl or wget not found, cannot download JDK" 1>&2
         exit 1
       fi
-      if [ $retval -ne 0 ]; then echo "Error downloading JDK"; exit $retval; fi
-      echo "Installing JDK $javaVersion..."
+      if [ $retval -ne 0 ]; then echo "Error downloading JDK" 1>&2; exit $retval; fi
+      echo "Installing JDK $javaVersion..." 1>&2
       rm -rf "$TDIR/jdks/$javaVersion.tmp/"
       mkdir -p "$TDIR/jdks/$javaVersion.tmp"
       tar xf "$TDIR/bootstrap-jdk.tgz" -C "$TDIR/jdks/$javaVersion.tmp" --strip-components=1
@@ -96,15 +106,13 @@ if [[ -z "$JAVA_HOME" ]]; then
         javac -version > /dev/null 2>&1
         retval=$?
       fi
-      if [ $retval -ne 0 ]; then echo "Error installing JDK"; exit $retval; fi
+      if [ $retval -ne 0 ]; then echo "Error installing JDK" 1>&2; exit $retval; fi
       # Activate the downloaded JDK giving it its proper name
       mv "$TDIR/jdks/$javaVersion.tmp" "$TDIR/jdks/$javaVersion"
     fi
     JAVA_HOME="$TDIR/jdks/$javaVersion"
     JAVA_EXEC="$JAVA_HOME/bin/java"
   fi
-else
-  JAVA_EXEC="$JAVA_HOME/bin/java";
 fi
 
 ## expose the name of the script being run to the script itself
