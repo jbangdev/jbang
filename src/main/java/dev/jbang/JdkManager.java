@@ -18,8 +18,15 @@ public class JdkManager {
 		int currentVersion = JavaUtil.determineJavaVersion();
 		int actualVersion = JavaUtil.javaVersion(requestedVersion);
 		if (currentVersion == actualVersion) {
+			Util.debugMsg("System Java version matches requested version " + actualVersion);
 			return JavaUtil.getJdkHome();
 		} else {
+			if (currentVersion == 0) {
+				Util.debugMsg("No system Java found, using Jbang managed version " + actualVersion);
+			} else {
+				Util.debugMsg("System Java version " + currentVersion + " incompatible, using Jbang managed version "
+						+ actualVersion);
+			}
 			return getInstalledJdk(actualVersion);
 		}
 	}
@@ -35,6 +42,7 @@ public class JdkManager {
 	public static Path downloadAndInstallJdk(int version, boolean updateCache) {
 		Util.infoMsg("Downloading JDK " + version + "...");
 		String url = String.format(JDK_DOWNLOAD_URL, version, Util.getOS().name(), Util.getArch().name());
+		Util.debugMsg("Downloading " + url);
 		Path jdkDir = getJdkPath(version);
 		Path jdkTmpDir = jdkDir.getParent().resolve(jdkDir.getFileName().toString() + ".tmp");
 		Path jdkOldDir = jdkDir.getParent().resolve(jdkDir.getFileName().toString() + ".old");
@@ -43,6 +51,7 @@ public class JdkManager {
 		try {
 			Path jdkPkg = Util.downloadAndCacheFile(url, updateCache);
 			Util.infoMsg("Installing JDK " + version + "...");
+			Util.debugMsg("Unpacking to " + jdkDir.toString());
 			UnpackUtil.unpack(jdkPkg, jdkTmpDir);
 			if (Files.isDirectory(jdkDir)) {
 				Files.move(jdkDir, jdkOldDir);

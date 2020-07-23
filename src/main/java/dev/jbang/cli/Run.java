@@ -78,9 +78,7 @@ public class Run extends BaseScriptCommand {
 		}
 
 		String cmdline = generateCommandLine(script);
-		if (isVerbose()) {
-			info("run: " + cmdline);
-		}
+		debug("run: " + cmdline);
 		out.println(cmdline);
 
 		return 0;
@@ -116,9 +114,8 @@ public class Run extends BaseScriptCommand {
 			optionList.addAll(Arrays.asList("-d", tmpJarDir.getAbsolutePath()));
 			optionList.addAll(Arrays.asList(script.getBackingFile().getPath()));
 
-			Util.info("Building jar...");
-			if (isVerbose())
-				Util.info("compile: " + String.join(" ", optionList));
+			info("Building jar...");
+			debug("compile: " + String.join(" ", optionList));
 
 			Process process = new ProcessBuilder(optionList).inheritIO().start();
 			try {
@@ -182,9 +179,8 @@ public class Run extends BaseScriptCommand {
 			optionList.add(getImageName(outjar).toString());
 
 			File nilog = File.createTempFile("jbang", "native-image");
-			if (isVerbose())
-				Util.info("native-image: " + String.join(" ", optionList));
-			Util.info("log: " + nilog.toString());
+			debug("native-image: " + String.join(" ", optionList));
+			info("log: " + nilog.toString());
 
 			Process process = new ProcessBuilder(optionList).inheritIO().redirectOutput(nilog).start();
 			try {
@@ -253,14 +249,10 @@ public class Run extends BaseScriptCommand {
 				if (optionActive(cds(), script.enableCDS())) {
 					String cdsJsa = script.getJar().getAbsolutePath() + ".jsa";
 					if (script.wasJarCreated()) {
-						if (isVerbose()) {
-							info("CDS: Archiving Classes At Exit at " + cdsJsa);
-						}
+						debug("CDS: Archiving Classes At Exit at " + cdsJsa);
 						optionalArgs.add("-XX:ArchiveClassesAtExit=" + cdsJsa);
 					} else {
-						if (isVerbose()) {
-							info("CDS: Using shared archive classes from " + cdsJsa);
-						}
+						debug("CDS: Using shared archive classes from " + cdsJsa);
 						optionalArgs.add("-XX:SharedArchiveFile=" + cdsJsa);
 					}
 				}

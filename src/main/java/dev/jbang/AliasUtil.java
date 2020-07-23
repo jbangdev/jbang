@@ -141,6 +141,7 @@ public class AliasUtil {
 	private static Catalog getCatalog(String catalogName) {
 		Catalog catalog = Settings.getCatalogs().get(catalogName);
 		if (catalog == null) {
+			Util.debugMsg("Local catalog '" + catalogName + "' not found, trying implicit catalogs...");
 			ImplicitCatalogRef icr = ImplicitCatalogRef.parse(catalogName);
 			Optional<String> url;
 			url = chain(
@@ -212,8 +213,10 @@ public class AliasUtil {
 	private static Optional<String> tryDownload(String url) {
 		try {
 			getCatalogAliasesByRef(url, false);
+			Util.debugMsg("Catalog found at " + url);
 			return Optional.of(url);
 		} catch (Exception ex) {
+			Util.debugMsg("No catalog found at " + url);
 			return Optional.empty();
 		}
 	}

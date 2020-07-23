@@ -44,8 +44,8 @@ public class Jbang extends BaseCommand {
 			if (Util.isVerbose()) {
 				ex.printStackTrace();
 			} else {
-				Util.info(ex.getMessage());
-				Util.info("Run with --verbose for more details");
+				Util.infoMsg(ex.toString());
+				Util.infoMsg("Run with --verbose for more details");
 			}
 
 			if (ex instanceof ExitException) {
