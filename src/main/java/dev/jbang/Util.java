@@ -458,19 +458,21 @@ public class Util {
 	}
 
 	public static boolean deleteFolder(Path folder, boolean quiet) {
-		try {
-			Files	.walk(folder)
-					.sorted(Comparator.reverseOrder())
-					.map(Path::toFile)
-					.forEach(File::delete);
-			return true;
-		} catch (IOException e) {
-			if (quiet) {
-				return false;
-			} else {
-				throw new ExitException(-1, "Could not delete folder " + folder.toString());
+		if (Files.isDirectory(folder)) {
+			try {
+				Files	.walk(folder)
+						.sorted(Comparator.reverseOrder())
+						.map(Path::toFile)
+						.forEach(File::delete);
+			} catch (IOException e) {
+				if (quiet) {
+					return false;
+				} else {
+					throw new ExitException(-1, "Could not delete folder " + folder.toString());
+				}
 			}
 		}
+		return true;
 	}
 
 }

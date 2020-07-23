@@ -36,14 +36,23 @@ public class JdkManager {
 		Util.infoMsg("Downloading JDK " + version + "...");
 		String url = String.format(JDK_DOWNLOAD_URL, version, Util.getOS().name(), Util.getArch().name());
 		Path jdkDir = getJdkPath(version);
+		Path jdkTmpDir = jdkDir.getParent().resolve(jdkDir.getFileName().toString() + ".tmp");
+		Path jdkOldDir = jdkDir.getParent().resolve(jdkDir.getFileName().toString() + ".old");
+		Util.deleteFolder(jdkTmpDir, false);
+		Util.deleteFolder(jdkOldDir, false);
 		try {
 			Path jdkPkg = Util.downloadAndCacheFile(url, updateCache);
 			Util.infoMsg("Installing JDK " + version + "...");
-			UnpackUtil.unpack(jdkPkg, jdkDir);
+			UnpackUtil.unpack(jdkPkg, jdkTmpDir);
+			if (Files.isDirectory(jdkDir)) {
+				Files.move(jdkDir, jdkOldDir);
+			}
+			Files.move(jdkTmpDir, jdkDir);
+			Util.deleteFolder(jdkOldDir, false);
 			return jdkDir;
 		} catch (Exception e) {
-			Util.deleteFolder(jdkDir, true);
-			Util.errorMsg("Required Java version not possible to download. You can run with '--java "
+			Util.deleteFolder(jdkTmpDir, true);
+			Util.errorMsg("Required Java version not possible to download or install. You can run with '--java "
 					+ JavaUtil.determineJavaVersion() + "' to force using the default installed Java.");
 			throw new ExitException(CommandLine.ExitCode.SOFTWARE,
 					"Unable to download or install JDK version " + version, e);
