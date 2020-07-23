@@ -28,8 +28,8 @@ if not exist "%TDIR%\jdks" ( mkdir "%TDIR%\jdks" )
 rem prefer JAVA instead of PATH to resolve `java` location
 rem if [[ -z "$JAVA_HOME" ]]; then JAVA_EXEC="java"; else JAVA_EXEC="$JAVA_HOME/bin/java"; fi
 if "%JAVA_HOME%"=="" (
-  where javac 2>&1 > nul
-  if %errorlevel% equ 0 (
+  where /q javac 2>&1 > nul
+  if !errorlevel! equ 0 (
     set JAVA_EXEC=java.exe
   ) else (
     if not exist "%TDIR%\jdks\%javaVersion%" (
