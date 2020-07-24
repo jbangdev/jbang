@@ -216,7 +216,7 @@ public class AliasUtil {
 			Util.debugMsg("Catalog found at " + url);
 			return Optional.of(url);
 		} catch (Exception ex) {
-			Util.debugMsg("No catalog found at " + url);
+			Util.debugMsg("No catalog found at " + url, ex);
 			return Optional.empty();
 		}
 	}
