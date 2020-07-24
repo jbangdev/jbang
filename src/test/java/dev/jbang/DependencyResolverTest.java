@@ -37,7 +37,7 @@ class DependencyResolverTest {
 
 	@BeforeEach
 	void clearCache() {
-		Settings.clearCache();
+		Util.deleteFolder(Settings.getCacheDir(), true);
 	}
 
 	@Test
