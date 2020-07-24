@@ -17,6 +17,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -302,7 +303,7 @@ public class Util {
 		fileURL = swizzleURL(fileURL);
 		String urlHash = getStableID(fileURL);
 		Path urlCache = Settings.getCacheDir().resolve("url_cache_" + urlHash);
-		Path file = Files.isDirectory(urlCache) ? Files.list(urlCache).findFirst().orElse(null) : null;
+		Path file = getFirstFile(urlCache);
 		if (updateCache || file == null) {
 			try {
 				urlCache.toFile().mkdirs();
@@ -313,6 +314,16 @@ public class Util {
 			}
 		} else {
 			return urlCache.resolve(file);
+		}
+	}
+
+	private static Path getFirstFile(Path dir) throws IOException {
+		if (Files.isDirectory(dir)) {
+			try (Stream<Path> files = Files.list(dir)) {
+				return files.findFirst().orElse(null);
+			}
+		} else {
+			return null;
 		}
 	}
 
