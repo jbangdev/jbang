@@ -40,7 +40,7 @@ public class JdkManager {
 	}
 
 	public static Path downloadAndInstallJdk(int version, boolean updateCache) {
-		Util.infoMsg("Downloading JDK " + version + "...");
+		Util.infoMsg("Downloading JDK " + version + ". Be patient, this can take several minutes...");
 		String url = String.format(JDK_DOWNLOAD_URL, version, Util.getOS().name(), Util.getArch().name());
 		Util.debugMsg("Downloading " + url);
 		Path jdkDir = getJdkPath(version);
