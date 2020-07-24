@@ -121,8 +121,30 @@ public class Settings {
 		return trustedSources;
 	}
 
-	public static void clearCache() {
-		Util.deleteFolder(Settings.getCacheDir(), false);
+	public enum CacheClass {
+		urls, jars, jdks
+	}
+
+	public static void clearCache(CacheClass... classes) {
+		if (classes.length == 0) {
+			classes = CacheClass.values();
+		}
+		List<CacheClass> ccs = Arrays.asList(classes);
+		for (CacheClass cc : ccs) {
+			if (cc == CacheClass.jdks && Util.isWindows() && JdkManager.isCurrentJdkManaged()) {
+				// We're running using a managed JDK on Windows so we can't just delete the
+				// entire folder!
+				try {
+					for (Integer v : JdkManager.listInstalledJdks()) {
+						JdkManager.uninstallJdk(v);
+					}
+				} catch (IOException ex) {
+					Util.errorMsg("Error clearing JDK cache", ex);
+				}
+			} else {
+				Util.deleteFolder(Settings.getCacheDir().resolve(cc.name()), true);
+			}
+		}
 	}
 
 	static TemplateEngine te;

@@ -12,6 +12,7 @@ import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.rules.TemporaryFolder;
 
 import dev.jbang.Settings;
 
@@ -23,13 +24,17 @@ class TestArguments {
 	private Jbang jbang;
 
 	@BeforeEach
-	void setup() {
+	void setup() throws IOException {
 		cli = Jbang.getCommandLine();
 		jbang = cli.getCommand();
+		jbangTempDir.create();
 	}
 
 	@Rule
 	public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
+	@Rule
+	public final TemporaryFolder jbangTempDir = new TemporaryFolder();
 
 	@Test
 	public void testBasicArguments() {
@@ -119,14 +124,16 @@ class TestArguments {
 	}
 
 	@Test
-	public void testClearCache() throws IOException {
-		Path dir = Files.createTempDirectory("jbang-test-cahce");
+	public void testClearCache() {
+		Path dir = jbangTempDir.getRoot().toPath();
 		environmentVariables.set(Settings.JBANG_CACHE_DIR, dir.toString());
 		assertThat(Files.isDirectory(dir), is(true));
 
-		cli.execute("cache", "clear");
+		cli.execute("cache", "clear", "--all");
 
-		assertThat(Files.isDirectory(dir), is(false));
+		assertThat(Files.isDirectory(dir.resolve("urls")), is(false));
+		assertThat(Files.isDirectory(dir.resolve("jars")), is(false));
+		assertThat(Files.isDirectory(dir.resolve("jdks")), is(false));
 	}
 
 }
