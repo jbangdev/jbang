@@ -27,7 +27,7 @@ if not exist "%TDIR%\jdks" ( mkdir "%TDIR%\jdks" )
 
 rem Find/get a JDK
 set JAVA_EXEC=
-if "%JAVA_HOME%"!="" (
+if not "%JAVA_HOME%"=="" (
   rem Determine if a (working) JDK is available in JAVA_HOME
   %JAVA_HOME%\bin\javac -version > nul 2>&1
   if !errorlevel! equ 0 (
