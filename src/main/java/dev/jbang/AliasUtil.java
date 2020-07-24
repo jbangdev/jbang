@@ -178,7 +178,7 @@ public class AliasUtil {
 		}
 
 		public String url(String host, String infix) {
-			return GITHUB_URL + org + "/" + repo + infix + ref + "/" + path + JBANG_CATALOG_JSON;
+			return host + org + "/" + repo + infix + ref + "/" + path + JBANG_CATALOG_JSON;
 		}
 
 		public static ImplicitCatalogRef parse(String name) {
