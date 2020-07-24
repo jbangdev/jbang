@@ -27,6 +27,8 @@ import picocli.CommandLine;
 
 public class Util {
 
+	public static final String JBANG_JDK_VENDOR = "JBANG_JDK_VENDOR";
+
 	static boolean verbose;
 
 	public static void setVerbose(boolean verbose) {
@@ -43,6 +45,10 @@ public class Util {
 
 	public enum Arch {
 		x32, x64
+	}
+
+	public enum Vendor {
+		adoptopenjdk, openjdk
 	}
 
 	static public void debugMsg(String msg) {
@@ -127,6 +133,18 @@ public class Util {
 
 	public static boolean isMac() {
 		return getOS() == OS.mac;
+	}
+
+	public static Vendor getVendor() {
+		String vendorName = System.getenv(JBANG_JDK_VENDOR);
+		if (vendorName != null) {
+			try {
+				return Vendor.valueOf(vendorName);
+			} catch (IllegalArgumentException ex) {
+				warnMsg("JDK vendor '" + vendorName + "' does not exist, should be one of: " + Vendor.values());
+			}
+		}
+		return Vendor.adoptopenjdk;
 	}
 
 	/**

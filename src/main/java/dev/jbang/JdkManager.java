@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import picocli.CommandLine;
 
 public class JdkManager {
-	private static final String JDK_DOWNLOAD_URL = "https://api.adoptopenjdk.net/v3/binary/latest/%d/ga/%s/%s/jdk/hotspot/normal/adoptopenjdk";
+	private static final String JDK_DOWNLOAD_URL = "https://api.adoptopenjdk.net/v3/binary/latest/%d/ga/%s/%s/jdk/hotspot/normal/%s";
 
 	public static Path getCurrentJdk(String requestedVersion) {
 		int currentVersion = JavaUtil.determineJavaVersion();
@@ -41,7 +41,8 @@ public class JdkManager {
 
 	public static Path downloadAndInstallJdk(int version, boolean updateCache) {
 		Util.infoMsg("Downloading JDK " + version + ". Be patient, this can take several minutes...");
-		String url = String.format(JDK_DOWNLOAD_URL, version, Util.getOS().name(), Util.getArch().name());
+		String url = String.format(JDK_DOWNLOAD_URL, version, Util.getOS().name(), Util.getArch().name(),
+				Util.getVendor().name());
 		Util.debugMsg("Downloading " + url);
 		Path jdkDir = getJdkPath(version);
 		Path jdkTmpDir = jdkDir.getParent().resolve(jdkDir.getFileName().toString() + ".tmp");
