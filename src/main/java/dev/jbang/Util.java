@@ -59,6 +59,13 @@ public class Util {
 		}
 	}
 
+	static public void debugMsg(String msg, Throwable e) {
+		if (isVerbose()) {
+			System.err.println("[jbang] " + msg);
+			e.printStackTrace();
+		}
+	}
+
 	static public void infoMsg(String msg) {
 		System.err.println("[jbang] " + msg);
 	}
