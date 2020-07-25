@@ -495,6 +495,7 @@ public class Util {
 	public static boolean deleteFolder(Path folder, boolean quiet) {
 		boolean result[] = new boolean[] { true };
 		if (Files.isDirectory(folder)) {
+			Util.debugMsg("Deleting " + folder);
 			try {
 				Files	.walk(folder)
 						.sorted(Comparator.reverseOrder())

@@ -126,11 +126,9 @@ public class Settings {
 	}
 
 	public static void clearCache(CacheClass... classes) {
-		if (classes.length == 0) {
-			classes = CacheClass.values();
-		}
 		List<CacheClass> ccs = Arrays.asList(classes);
 		for (CacheClass cc : ccs) {
+			Util.infoMsg("Clearing cache for " + cc.name());
 			if (cc == CacheClass.jdks && Util.isWindows() && JdkManager.isCurrentJdkManaged()) {
 				// We're running using a managed JDK on Windows so we can't just delete the
 				// entire folder!
