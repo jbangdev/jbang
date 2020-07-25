@@ -8,6 +8,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
@@ -16,6 +17,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -319,7 +321,7 @@ public class Util {
 		fileURL = swizzleURL(fileURL);
 		String urlHash = getStableID(fileURL);
 		Path urlCache = Settings.getCacheDir().resolve("url_cache_" + urlHash);
-		Path file = Files.isDirectory(urlCache) ? Files.list(urlCache).findFirst().orElse(null) : null;
+		Path file = getFirstFile(urlCache);
 		if (updateCache || file == null) {
 			try {
 				urlCache.toFile().mkdirs();
@@ -330,6 +332,16 @@ public class Util {
 			}
 		} else {
 			return urlCache.resolve(file);
+		}
+	}
+
+	private static Path getFirstFile(Path dir) throws IOException {
+		if (Files.isDirectory(dir)) {
+			try (Stream<Path> files = Files.list(dir)) {
+				return files.findFirst().orElse(null);
+			}
+		} else {
+			return null;
 		}
 	}
 
@@ -347,12 +359,15 @@ public class Util {
 	 * @throws IOException
 	 */
 	public static Path obtainFile(String filePathOrURL, boolean updateCache) throws IOException {
-		Path file = Paths.get(filePathOrURL);
-		if (Files.isRegularFile(file)) {
-			return file;
-		} else {
-			return downloadAndCacheFile(filePathOrURL, updateCache);
+		try {
+			Path file = Paths.get(filePathOrURL);
+			if (Files.isRegularFile(file)) {
+				return file;
+			}
+		} catch (InvalidPathException ex) {
+			// Ignore
 		}
+		return downloadAndCacheFile(filePathOrURL, updateCache);
 	}
 
 	public static String swizzleURL(String url) {
@@ -478,21 +493,31 @@ public class Util {
 	}
 
 	public static boolean deleteFolder(Path folder, boolean quiet) {
+		boolean result[] = new boolean[] { true };
 		if (Files.isDirectory(folder)) {
 			try {
 				Files	.walk(folder)
 						.sorted(Comparator.reverseOrder())
-						.map(Path::toFile)
-						.forEach(File::delete);
+						.forEach(f -> {
+							try {
+								Files.delete(f);
+							} catch (IOException e) {
+								if (quiet) {
+									result[0] = false;
+								} else {
+									throw new ExitException(-1, "Could not delete folder " + folder.toString(), e);
+								}
+							}
+						});
 			} catch (IOException e) {
 				if (quiet) {
-					return false;
+					result[0] = false;
 				} else {
-					throw new ExitException(-1, "Could not delete folder " + folder.toString());
+					throw new ExitException(-1, "Could not delete folder " + folder.toString(), e);
 				}
 			}
 		}
-		return true;
+		return result[0];
 	}
 
 }

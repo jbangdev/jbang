@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import picocli.CommandLine;
 
@@ -72,13 +73,15 @@ public class JdkManager {
 	public static Set<Integer> listInstalledJdks() throws IOException {
 		if (Files.isDirectory(getJdksPath())) {
 			Supplier<TreeSet<Integer>> sset = () -> new TreeSet<>();
-			return Files.list(getJdksPath()).map(p -> {
-				try {
-					return Integer.parseInt(p.getFileName().toString());
-				} catch (NumberFormatException ex) {
-					return -1;
-				}
-			}).filter(v -> v > 0).collect(Collectors.toCollection(sset));
+			try (Stream<Path> files = Files.list(getJdksPath())) {
+				return files.map(p -> {
+					try {
+						return Integer.parseInt(p.getFileName().toString());
+					} catch (NumberFormatException ex) {
+						return -1;
+					}
+				}).filter(v -> v > 0).collect(Collectors.toCollection(sset));
+			}
 		} else {
 			return Collections.emptySet();
 		}
