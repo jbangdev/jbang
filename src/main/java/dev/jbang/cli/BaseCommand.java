@@ -28,7 +28,7 @@ public abstract class BaseCommand implements Callable<Integer> {
 			if (spec != null) {
 				spec.commandLine().getErr().println("[jbang] " + msg);
 			} else {
-				Util.debugMsg(msg);
+				Util.verboseMsg(msg);
 			}
 		}
 	}

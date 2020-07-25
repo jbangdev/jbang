@@ -53,13 +53,13 @@ public class Util {
 		adoptopenjdk, openjdk
 	}
 
-	static public void debugMsg(String msg) {
+	static public void verboseMsg(String msg) {
 		if (isVerbose()) {
 			System.err.println("[jbang] " + msg);
 		}
 	}
 
-	static public void debugMsg(String msg, Throwable e) {
+	static public void verboseMsg(String msg, Throwable e) {
 		if (isVerbose()) {
 			System.err.println("[jbang] " + msg);
 			e.printStackTrace();
