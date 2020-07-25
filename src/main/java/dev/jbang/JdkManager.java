@@ -70,6 +70,26 @@ public class JdkManager {
 		}
 	}
 
+	public static void uninstallJdk(int version) {
+		Path jdkDir = JdkManager.getInstalledJdk(version);
+		if (jdkDir != null) {
+			if (Util.isWindows()) {
+				// On Windows we have to check nobody is currently using the JDK or we could
+				// be causing all kinds of trouble
+				try {
+					Path jdkTmpDir = jdkDir.getParent().resolve(jdkDir.getFileName().toString() + ".tmp");
+					Util.deleteFolder(jdkDir, true);
+					Files.move(jdkDir, jdkTmpDir);
+					jdkDir = jdkTmpDir;
+				} catch (IOException ex) {
+					Util.warnMsg("Cannot uninstall JDK " + version + ", it's being used");
+					return;
+				}
+			}
+			Util.deleteFolder(jdkDir, false);
+		}
+	}
+
 	public static Set<Integer> listInstalledJdks() throws IOException {
 		if (Files.isDirectory(getJdksPath())) {
 			Supplier<TreeSet<Integer>> sset = () -> new TreeSet<>();
@@ -89,6 +109,11 @@ public class JdkManager {
 
 	public static boolean isInstalledJdk(int version) {
 		return Files.isDirectory(getJdkPath(version));
+	}
+
+	public static boolean isCurrentJdkManaged() {
+		Path home = JavaUtil.getJdkHome();
+		return (home != null && home.startsWith(Settings.getCacheDir().resolve("jdks")));
 	}
 
 	private static Path getJdkPath(int version) {

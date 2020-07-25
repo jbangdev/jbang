@@ -2,7 +2,6 @@ package dev.jbang.cli;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.Path;
 
 import dev.jbang.JdkManager;
 import dev.jbang.Util;
@@ -40,10 +39,7 @@ public class Jdk {
 	public Integer remove(
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version to install", arity = "1") int version)
 			throws IOException {
-		Path jdkDir = JdkManager.getInstalledJdk(version);
-		if (jdkDir != null) {
-			Util.deleteFolder(jdkDir, false);
-		}
+		JdkManager.uninstallJdk(version);
 		return CommandLine.ExitCode.SOFTWARE;
 	}
 }

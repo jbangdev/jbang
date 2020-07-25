@@ -327,7 +327,7 @@ public class Util {
 	public static Path downloadAndCacheFile(String fileURL, boolean updateCache) throws IOException {
 		fileURL = swizzleURL(fileURL);
 		String urlHash = getStableID(fileURL);
-		Path urlCache = Settings.getCacheDir().resolve("url_cache_" + urlHash);
+		Path urlCache = Settings.getCacheDir().resolve("urls").resolve(urlHash);
 		Path file = getFirstFile(urlCache);
 		if (updateCache || file == null) {
 			try {
@@ -502,6 +502,7 @@ public class Util {
 	public static boolean deleteFolder(Path folder, boolean quiet) {
 		boolean result[] = new boolean[] { true };
 		if (Files.isDirectory(folder)) {
+			Util.debugMsg("Deleting " + folder);
 			try {
 				Files	.walk(folder)
 						.sorted(Comparator.reverseOrder())
