@@ -237,8 +237,9 @@ public class AliasUtil {
 			}
 			catalogRef += JBANG_CATALOG_JSON;
 		}
+		Path catalogPath = null;
 		try {
-			Path catalogPath = Util.obtainFile(catalogRef, updateCache);
+			catalogPath = Util.obtainFile(catalogRef, updateCache);
 			Aliases aliases = Settings.getAliasesFromCatalog(catalogPath, updateCache);
 			int p = catalogRef.lastIndexOf('/');
 			if (p > 0) {
@@ -252,10 +253,9 @@ public class AliasUtil {
 				}
 			}
 			return aliases;
-		} catch (IOException ex) {
-			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Unable to download catalog", ex);
-		} catch (JsonParseException ex) {
-			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Error parsing catalog", ex);
+		} catch (IOException | JsonParseException ex) {
+			throw new ExitException(CommandLine.ExitCode.SOFTWARE,
+					"Unable to download catalog: " + catalogRef + " via " + catalogPath, ex);
 		}
 	}
 

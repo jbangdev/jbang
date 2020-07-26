@@ -51,7 +51,8 @@ public class Alias {
 							String fullName = catalogName != null ? name + "@" + catalogName : name;
 							if (ai.description != null) {
 								out.println(fullName + " = " + ai.description);
-								out.println(Util.repeat(" ", fullName.length()) + "   (" + ai.scriptRef + ")");
+								if (Util.isVerbose())
+									out.println(Util.repeat(" ", fullName.length()) + "   (" + ai.scriptRef + ")");
 							} else {
 								out.println(fullName + " = " + ai.scriptRef);
 							}
