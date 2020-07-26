@@ -124,6 +124,11 @@ public class TrustedSources {
 			}
 
 		}
+
+		// default trusted for usability and trust
+		if (url.toString().startsWith("https://github.com/jbangdev/")) {
+			return true;
+		}
 		return false;
 	}
 

@@ -26,6 +26,9 @@ public class TestTrustedSources {
 				{ "simple", "https://www.x.org", new String[] { "https://x.org" }, false },
 				{ "simple", "https://www.x.org", new String[] { "https://www.x.org", "https://y.org" }, true },
 
+				{ "defaultblessed", "https://github.com/jbangdev/jbang-catalog/", new String[] {}, true },
+				{ "defaultblessed", "https://github.com/jbangdev-fake/jbang-catalog/", new String[] {}, false },
+
 				{ "localhost", "https://127.0.0.1", new String[0], true },
 				{ "localhost", "https://127.0.0.1:3000", new String[0], true },
 				{ "localhost", "https://localhost", new String[0], true },
