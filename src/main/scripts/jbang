@@ -20,6 +20,53 @@ resolve_symlink() {
   fi
 }
 
+download() {
+  if [ -x "$(command -v curl)" ]; then
+    curl -sLf -H "Accept: application/gzip, application/octet-stream" -o "$2" $1
+    retval=$?
+  elif [ -x "$(command -v wget)" ]; then
+    wget -q --header="Accept: application/gzip, application/octet-stream" -O "$2" $1
+    retval=$?
+  else
+    echo "Error: curl or wget not found, please make sure one of them is installed" 1>&2
+    exit 1
+  fi
+}
+
+abs_jbang_path=$(resolve_symlink $(absolute_path $0))
+
+## when mingw/git bash or cygwin fall out to just running the bat file.
+if [[ $os == windows ]]; then
+  $(dirname $abs_jbang_path)/jbang.cmd $*
+  exit $?
+fi
+
+if [[ -z "$JBANG_DIR" ]]; then JBDIR="$HOME/.jbang"; else JBDIR="$JBANG_DIR"; fi
+if [[ -z "$JBANG_CACHE_DIR" ]]; then TDIR="$JBDIR/cache"; else TDIR="$JBANG_CACHE_DIR"; fi
+
+## resolve application jar path from script location
+if [ -f "$(dirname $abs_jbang_path)/jbang.jar" ]; then
+  jarPath=$(dirname $abs_jbang_path)/jbang.jar
+elif [ -f "$(dirname $abs_jbang_path)/.jbang/jbang.jar" ]; then
+  jarPath=$(dirname $abs_jbang_path)/.jbang/jbang.jar
+else
+  jarPath="$TDIR/jars/jbang/jbang/bin/jbang.jar"
+  if [ ! -f "$jarPath" ]; then
+    echo "Downloading JBang..." 1>&2
+    mkdir -p "$TDIR/jars"
+    jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.tar"
+    download $jburl "$TDIR/jbang.tar"
+    if [ $retval -ne 0 ]; then echo "Error downloading JBang" 1>&2; exit $retval; fi
+    echo "Installing JBang..." 1>&2
+    rm -rf "$TDIR/jars/jbang(|.tmp)"
+    mkdir -p "$TDIR/jars/jbang.tmp"
+    tar xf "$TDIR/jbang.tar" -C "$TDIR/jars/jbang.tmp"
+    if [ $retval -ne 0 ]; then echo "Error installing JBang" 1>&2; exit $retval; fi
+    mv "$TDIR/jars/jbang.tmp" "$TDIR/jars/jbang"
+  fi
+  eval "exec $TDIR/jars/jbang/jbang/bin/jbang $*"
+fi
+
 case "$(uname -s)" in
   Linux*)
     os=linux;;
@@ -40,31 +87,6 @@ case "$(uname -m)" in
   *)
     echo "Unsupported Architecture: $(uname -m)" 1>&2; exit 1;;
 esac
-
-url="https://api.adoptopenjdk.net/v3/binary/latest/$javaVersion/ga/$os/$arch/jdk/hotspot/normal/adoptopenjdk"
-
-abs_jbang_path=$(resolve_symlink $(absolute_path $0))
-
-## when mingw/git bash or cygwin fall out to just running the bat file.
-if [[ $os == windows ]]; then
-  $(dirname $abs_jbang_path)/jbang.cmd $*
-  exit $?
-fi
-
-## resolve application jar path from script location
-if [ -f "$(dirname $abs_jbang_path)/jbang.jar" ]; then
-  jarPath=$(dirname $abs_jbang_path)/jbang.jar
-elif [ -f "$(dirname $abs_jbang_path)/.jbang/jbang.jar" ]; then
-  jarPath=$(dirname $abs_jbang_path)/.jbang/jbang.jar
-else
-  echo "Error: could not find jbang.jar file" 1>&2
-  exit 1
-fi
-
-if [[ -z "$JBANG_DIR" ]]; then JBDIR="$HOME/.jbang"; else JBDIR="$JBANG_DIR"; fi
-if [[ -z "$JBANG_CACHE_DIR" ]]; then TDIR="$JBDIR/cache"; else TDIR="$JBANG_CACHE_DIR"; fi
-
-mkdir -p "$TDIR/jdks"
 
 # Find/get a JDK
 unset JAVA_EXEC
@@ -89,17 +111,10 @@ if [[ -z "$JAVA_EXEC" ]]; then
     # Check if we installed a JDK before
     if [ ! -d "$TDIR/jdks/$javaVersion" ]; then
       # If not, download and install it
+      mkdir -p "$TDIR/jdks"
       echo "Downloading JDK $javaVersion. Be patient, this can take several minutes..." 1>&2
-      if [ -x "$(command -v curl)" ]; then
-        curl -sLf -H "Accept: application/gzip, application/octet-stream" -o "$TDIR/bootstrap-jdk.tgz" $url
-        retval=$?
-      elif [ -x "$(command -v wget)" ]; then
-        wget -q --header="Accept: application/gzip, application/octet-stream" -O "$TDIR/bootstrap-jdk.tgz" $url
-        retval=$?
-      else
-        echo "Error: curl or wget not found, cannot download JDK" 1>&2
-        exit 1
-      fi
+      jdkurl="https://api.adoptopenjdk.net/v3/binary/latest/$javaVersion/ga/$os/$arch/jdk/hotspot/normal/adoptopenjdk"
+      download $jdkurl "$TDIR/bootstrap-jdk.tgz"
       if [ $retval -ne 0 ]; then echo "Error downloading JDK" 1>&2; exit $retval; fi
       echo "Installing JDK $javaVersion..." 1>&2
       rm -rf "$TDIR/jdks/$javaVersion.tmp/"
@@ -124,12 +139,8 @@ if [[ -z "$JAVA_EXEC" ]]; then
   fi
 fi
 
-## expose the name of the script being run to the script itself
-export JBANG_FILE="$1"
-
 ## https://stackoverflow.com/questions/1668649/how-to-keep-quotes-in-bash-arguments
 ## attempt to ensure each argument keeps its original quoting
-
 
 ## run it using command substitution to have just the user process once jbang is done
 output=$(CLICOLOR_FORCE=1 ${JAVA_EXEC} ${JBANG_JAVA_OPTIONS} -classpath ${jarPath} dev.jbang.Main "$@")
