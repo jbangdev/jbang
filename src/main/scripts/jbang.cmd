@@ -8,7 +8,11 @@ if "%JBANG_DEFAULT_JAVA_VERSION%"=="" (set javaVersion=11) else (set javaVersion
 set os=windows
 set arch=x64
 
-set url="https://api.adoptopenjdk.net/v3/binary/latest/%javaVersion%/ga/%os%/%arch%/jdk/hotspot/normal/adoptopenjdk"
+set jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.zip"
+set jdkurl="https://api.adoptopenjdk.net/v3/binary/latest/%javaVersion%/ga/%os%/%arch%/jdk/hotspot/normal/adoptopenjdk"
+
+if "%JBANG_DIR%"=="" (set JBDIR=%userprofile%\.jbang) else (set JBDIR=%JBANG_DIR%)
+if "%JBANG_CACHE_DIR%"=="" (set TDIR=%JBDIR%\cache) else (set TDIR=%JBANG_CACHE_DIR%)
 
 rem resolve application jar path from script location and convert to windows path when using cygwin
 if exist "%~dp0jbang.jar" (
@@ -16,22 +20,20 @@ if exist "%~dp0jbang.jar" (
 ) else if exist "%~dp0.jbang\jbang.jar" (
   set jarPath=%~dp0.jbang\jbang.jar
 ) else (
-  echo Error: could not find jbang.jar file 1>&2
-  exit /b 1
+  set jarPath=%TDIR%\jars\jbang\jbang\bin\jbang.jar
+  if not exist "!jarPath!" (
+    echo Downloading JBang... 1>&2
+    if not exist "%TDIR%\jars" ( mkdir "%TDIR%\jars" )
+    powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "$ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest %jburl% -OutFile %TDIR%\jbang.zip"
+    if !ERRORLEVEL! NEQ 0 ( echo Error downloading JBang 1>&2 & exit /b %ERRORLEVEL% )
+    echo Installing JBang... 1>&2
+    if exist "%TDIR%\jars\jbang" ( rd /s /q "%TDIR%\jars\jbang" > nul 2>&1 )
+    if exist "%TDIR%\jars\jbang.tmp" ( rd /s /q "%TDIR%\jars\jbang.tmp" > nul 2>&1 )
+    powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "$ProgressPreference = 'SilentlyContinue'; Expand-Archive -Path %TDIR%\jbang.zip -DestinationPath %TDIR%\jars\jbang.tmp"
+    if !ERRORLEVEL! NEQ 0 ( echo Error installing JBang 1>&2 & exit /b %ERRORLEVEL% )
+    ren "%TDIR%\jars\jbang.tmp" "jbang"
+  )
 )
-
-rem expose the name of the script being run to the script itself
-set JBANG_FILE="$1"
-
-rem clear OUTPUT to be sure not getting affected by other setting OUTPUT
-set OUTPUT=
-
-rem create TDIR based on jbang_dir in case it is missing to have a folder
-rem we need to be able to write to anyway
-if "%JBANG_DIR%"=="" (set JBDIR=%userprofile%\.jbang) else (set JBDIR=%JBANG_DIR%)
-if "%JBANG_CACHE_DIR%"=="" (set TDIR=%JBDIR%\cache) else (set TDIR=%JBANG_CACHE_DIR%)
-
-if not exist "%TDIR%\jdks" ( mkdir "%TDIR%\jdks" )
 
 rem Find/get a JDK
 set JAVA_EXEC=
@@ -57,16 +59,17 @@ if "!JAVA_EXEC!"=="" (
     rem Check if we installed a JDK before
     if not exist "%TDIR%\jdks\%javaVersion%" (
       rem If not, download and install it
+      if not exist "%TDIR%\jdks" ( mkdir "%TDIR%\jdks" )
       echo Downloading JDK %javaVersion%. Be patient, this can take several minutes... 1>&2
-      powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "$ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest %url% -OutFile %TDIR%\bootstrap-jdk.zip"
-      if !ERRORLEVEL! NEQ 0 ( echo "Error downloading JDK" 1>&2; exit /b %ERRORLEVEL% )
+      powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "$ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest %jdkurl% -OutFile %TDIR%\bootstrap-jdk.zip"
+      if !ERRORLEVEL! NEQ 0 ( echo Error downloading JDK 1>&2 & exit /b %ERRORLEVEL% )
       echo Installing JDK %javaVersion%... 1>&2
       if exist "%TDIR%\jdks\%javaVersion%.tmp" ( rd /s /q "%TDIR%\jdks\%javaVersion%.tmp" > nul 2>&1 )
       powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "$ProgressPreference = 'SilentlyContinue'; Expand-Archive -Path %TDIR%\bootstrap-jdk.zip -DestinationPath %TDIR%\jdks\%javaVersion%.tmp"
-      if !ERRORLEVEL! NEQ 0 ( echo "Error installing JDK" 1>&2; exit /b %ERRORLEVEL% )
+      if !ERRORLEVEL! NEQ 0 ( echo Error installing JDK 1>&2 & exit /b %ERRORLEVEL% )
       for /d %%d in (%TDIR%\jdks\%javaVersion%.tmp\*) do (
         powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "Move-Item %%d\* !TDIR!\jdks\%javaVersion%.tmp"
-        if !ERRORLEVEL! NEQ 0 ( echo "Error installing JDK" 1>&2; exit /b %ERRORLEVEL% )
+        if !ERRORLEVEL! NEQ 0 ( echo Error installing JDK 1>&2 & exit /b %ERRORLEVEL% )
       )
       rem Check if the JDK was installed properly
       %TDIR%\jdks\%javaVersion%.tmp\bin\javac -version > nul 2>&1
