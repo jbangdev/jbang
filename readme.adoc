@@ -801,10 +801,12 @@ The full format is `<alias>@<user/org>(/repository)(/branch)(~path)` allowing yo
 |`hello` found in `acme/mycatalog/jbang-catalog.json` searched on github, gitlab and bitbucket in that order.
 
 |`jbang hello@acme/mycatalog/dev`
-|`hello` found in `acme/mycatalog/jbang-catalog.json` in the `dev` branch searched on github, gitlab and bitbucket in tha t order.
+|`hello` found in `acme/mycatalog/jbang-catalog.json` in the `dev` branch searched on github, gitlab and bitbucket in that order.
 
 |`jbang hello@acme~experimental`
 |`hello` found in `acme/jbang-catalog/experimental/jbang-catalog.json`
+
+|====
 
 == Bash/Zsh auto-completion
 
