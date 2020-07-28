@@ -163,6 +163,15 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "abstratt",
+      "name": "Rafael Chaves",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/2187522?v=4",
+      "profile": "http://blog.abstratt.com/rafael-chaves",
+      "contributions": [
+        "content"
+      ]
     }
   ],
   "contributorsPerLine": 7,
