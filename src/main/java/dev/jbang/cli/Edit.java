@@ -104,7 +104,7 @@ public class Edit extends BaseScriptCommand {
 		String cp = script.resolveClassPath(offline);
 		List<String> resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 
-		File baseDir = new File(Settings.getCacheDir().toFile(), "temp_projects");
+		File baseDir = Settings.getCacheDir(Settings.CacheClass.projects).toFile();
 
 		String name = originalFile.getName();
 		name = unkebabify(name);

@@ -113,7 +113,7 @@ public class JdkManager {
 
 	public static boolean isCurrentJdkManaged() {
 		Path home = JavaUtil.getJdkHome();
-		return (home != null && home.startsWith(Settings.getCacheDir().resolve("jdks")));
+		return (home != null && home.startsWith(getJdksPath()));
 	}
 
 	private static Path getJdkPath(int version) {
@@ -121,6 +121,6 @@ public class JdkManager {
 	}
 
 	private static Path getJdksPath() {
-		return Settings.getCacheDir().resolve("jdks");
+		return Settings.getCacheDir(Settings.CacheClass.jdks);
 	}
 }
