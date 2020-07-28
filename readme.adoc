@@ -791,7 +791,7 @@ The aliases managed locally are stored in `~/.jbang/jbang-catalog.json`, but jba
 
 Examples:
 
-`jbang hello@jbangdev` will run the alias `hello` as defined in `jbang-catalog.json` found in https://github.com/jbangdev/jbang-catalog`.
+`jbang hello@jbangdev` will run the alias `hello` as defined in `jbang-catalog.json` found in https://github.com/jbangdev/jbang-catalog.
 
 This allows anyone to provde a set of jbang scripts defined out of their github, gitlab or bitbucket repository.
 
