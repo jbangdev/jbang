@@ -372,6 +372,14 @@ System.setProperty("key", "value"); // <.>
 <.> Line where `args` are accessible without previous declaration.
 <.> System properties set when passed as `-D` arguments to `jbang`
 
+==== Running script from standard input
+
+jbang can run scripts directly from standard input using `-` or `/dev/stdin` as input.
+
+i.e.
+
+`echo 'System.out.println("Hello World!");' | jbang -`
+
 [TIP]
 ----
 If you use `--interactive` `jbang` will let `jshell` enter into interactive/REPL mode. You write `/exit` to leave this mode.
