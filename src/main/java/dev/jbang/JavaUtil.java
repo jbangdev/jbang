@@ -4,6 +4,8 @@ import static java.lang.System.getenv;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class JavaUtil {
 
@@ -51,18 +53,23 @@ public class JavaUtil {
 			Path jdkHome = getJdkHome();
 			Path javaCmd;
 			if (jdkHome != null) {
-				javaCmd = jdkHome.resolve("bin").resolve("javac").toAbsolutePath();
+				javaCmd = jdkHome.resolve("bin").resolve("java").toAbsolutePath();
 			} else {
-				javaCmd = Paths.get("javac");
+				javaCmd = Paths.get("java");
 			}
 			javaVersion = determineJavaVersion(javaCmd);
+			if (javaVersion != 0) {
+				Util.verboseMsg("System Java version detected as " + javaVersion);
+			} else {
+				Util.verboseMsg("No Java found on the system");
+			}
 		}
 		return javaVersion;
 	}
 
 	private static int determineJavaVersion(Path javaCmd) {
 		String output = Util.runCommand(javaCmd.toString(), "-version");
-		int version = parseJavacOutput(output);
+		int version = parseJavaOutput(output);
 		if (version == 0) {
 			version = parseJavaVersion(System.getProperty("java.version"));
 		}
@@ -82,11 +89,13 @@ public class JavaUtil {
 		}
 	}
 
-	private static int parseJavacOutput(String version) {
-		if (version != null) {
-			String[] parts = version.split(" ");
-			if (parts.length == 2) {
-				return parseJavaVersion(parts[1]);
+	private static final Pattern javaVersionPattern = Pattern.compile("\"([^\"]+)\"");
+
+	private static int parseJavaOutput(String output) {
+		if (output != null) {
+			Matcher m = javaVersionPattern.matcher(output);
+			if (m.find() && m.groupCount() == 2) {
+				return parseJavaVersion(m.group(1));
 			}
 		}
 		return 0;
