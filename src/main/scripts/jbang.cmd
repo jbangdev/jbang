@@ -29,8 +29,7 @@ rem Find/get a JDK
 set JAVA_EXEC=
 if not "%JAVA_HOME%"=="" (
   rem Determine if a (working) JDK is available in JAVA_HOME
-  %JAVA_HOME%\bin\javac -version > nul 2>&1
-  if !errorlevel! equ 0 (
+  if exist "%JAVA_HOME%\bin\javac.exe" (
     set JAVA_EXEC="%JAVA_HOME%\bin\java.exe"
   ) else (
     echo JAVA_HOME is set but does not seem to point to a valid Java JDK 1>&2
@@ -38,7 +37,7 @@ if not "%JAVA_HOME%"=="" (
 )
 if "!JAVA_EXEC!"=="" (
   rem Determine if a (working) JDK is available on the PATH
-  javac -version > nul 2>&1
+  where javac > nul 2>&1
   if !errorlevel! equ 0 (
     set JAVA_EXEC=java.exe
   ) else (

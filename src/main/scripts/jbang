@@ -64,8 +64,7 @@ mkdir -p "$TDIR/jdks"
 unset JAVA_EXEC
 if [[ -n "$JAVA_HOME" ]]; then
   # Determine if a (working) JDK is available in JAVA_HOME
-  $JAVA_HOME/bin/javac -version > /dev/null 2>&1
-  if [ $? -eq 0 ]; then
+  if [ -x "$(command -v $JAVA_HOME/bin/javac)" ]; then
     JAVA_EXEC="$JAVA_HOME/bin/java";
   else
     echo "JAVA_HOME is set but does not seem to point to a valid Java JDK" 1>&2
@@ -73,8 +72,7 @@ if [[ -n "$JAVA_HOME" ]]; then
 fi
 if [[ -z "$JAVA_EXEC" ]]; then
   # Determine if a (working) JDK is available on the PATH
-  javac -version > /dev/null 2>&1
-  if [ $? -eq 0 ]; then
+  if [ -x "$(command -v javac)" ]; then
     JAVA_EXEC="java";
   else
     # Check if we installed a JDK before
