@@ -9,8 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -21,7 +20,7 @@ import dev.jbang.cli.BaseScriptCommand;
 class TestScript {
 
 	String example = "//#!/usr/bin/env jbang\n" + "\n"
-			+ "//DEPS com.offbytwo:docopt:0.6.0.20150202,log4j:log4j:1.2.14\n" + "\n" + "import org.docopt.Docopt;\n"
+			+ "//DEPS com.offbytwo:docopt:0.6.0.20150202,log4j:log4j:${log4j.version:1.2.14}\n" + "\n" + "import org.docopt.Docopt;\n"
 			+ "import java.io.File;\n" + "import java.util.*;\n" + "import static java.lang.System.*;\n" + "\n"
 			+ "//JAVA_OPTIONS --enable-preview \"-Dvalue='this is space'\"\n"
 			+ "//JAVAC_OPTIONS --enable-preview\n"
@@ -53,6 +52,23 @@ class TestScript {
 		assertEquals(2, dependencies.size());
 
 		assertTrue(dependencies.contains("com.offbytwo:docopt:0.6.0.20150202"));
+		assertTrue(dependencies.contains("log4j:log4j:1.2.14"));
+
+	}
+
+	@Test
+	void testFindDependenciesWithProperty() {
+
+		Map<String,String> p = new HashMap<>();
+		p.put("log4j.version","1.2.9");
+
+		Script script = new Script(example, (List<String>)null, (Map<String, String>)p);
+
+		List<String> dependencies = script.collectDependencies();
+		assertEquals(2, dependencies.size());
+
+		assertTrue(dependencies.contains("com.offbytwo:docopt:0.6.0.20150202"));
+		assertTrue(dependencies.contains("log4j:log4j:1.2.9"));
 
 	}
 

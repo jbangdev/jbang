@@ -106,10 +106,13 @@ public class Script {
 			throw new IllegalArgumentException("Dependencies must be declared by using the line prefix //DEPS");
 		}
 
+		Properties p = new Properties(System.getProperties());
+		p.putAll(properties);
+
 		List<String> dependencies = getLines()	.stream()
 												.filter(it -> isDependDeclare(it))
 												.flatMap(it -> extractDependencies(it))
-												.map(it -> PropertiesValueResolver.replaceProperties(it))
+												.map(it -> PropertiesValueResolver.replaceProperties(it,p))
 												.collect(Collectors.toList());
 
 		return dependencies;
