@@ -98,8 +98,9 @@ public class AliasUtil {
 		if (a2 != null) {
 			names.add(name);
 			a2 = mergeAliases(a2, a2.scriptRef, names);
-			List<String> args = a1.arguments != null ? a1.arguments : a2.arguments;
-			Map<String, String> props = a1.properties != null ? a1.properties : a2.properties;
+			List<String> args = a1.arguments != null && !a1.arguments.isEmpty() ? a1.arguments : a2.arguments;
+			Map<String, String> props = a1.properties != null && !a1.properties.isEmpty() ? a1.properties
+					: a2.properties;
 			return new Alias(a2.scriptRef, null, args, props);
 		} else {
 			return a1;
