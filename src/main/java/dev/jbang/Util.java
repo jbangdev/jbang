@@ -46,7 +46,7 @@ public class Util {
 	}
 
 	public enum Arch {
-		x32, x64
+		x32, x64, aarch64
 	}
 
 	public enum Vendor {
@@ -131,6 +131,8 @@ public class Util {
 			return Arch.x64;
 		} else if (arch.matches("^(x8632|x86|i[3-6]86|ia32|x32)$")) {
 			return Arch.x32;
+		} else if (arch.matches("^(aarch64)$")) {
+			return Arch.aarch64;
 		} else {
 			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Unsupported Architecture: " + arch);
 		}
