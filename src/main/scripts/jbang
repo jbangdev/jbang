@@ -21,25 +21,22 @@ resolve_symlink() {
 }
 
 case "$(uname -s)" in
-  Linux*)   os=linux;;
-  Darwin*)  os=mac;;
-  CYGWIN*)  os=windows;;
-  MINGW*)   os=windows;;
-  *)        echo "Unsupported Operating System" 1>&2; exit 1;;
+  Linux*)
+    os=linux;;
+  Darwin*)
+    os=mac;;
+  CYGWIN*|MINGW*)
+    os=windows;;
+  *)        echo "Unsupported Operating System: $(uname -s)" 1>&2; exit 1;;
 esac
 
-case "$(uname -p)" in
-  *64*)     arch=x64;;
+case "$(uname -m)" in
+  i?86)
+    arch=x32;;
+  x86_64|amd64)
+    arch=x64;;
   *)
-    case "$(uname -s)" in
-      *64*)   arch=x64;;
-      *)
-        case "$(uname -m)" in
-          *64*) arch=x64;;
-          *)    arch=x32;;
-        esac
-    esac
-    ;;
+    echo "Unsupported Architecture: $(uname -m)" 1>&2; exit 1;;
 esac
 
 url="https://api.adoptopenjdk.net/v3/binary/latest/$javaVersion/ga/$os/$arch/jdk/hotspot/normal/adoptopenjdk"

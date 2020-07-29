@@ -121,7 +121,7 @@ public class Util {
 		} else if (os.startsWith("win")) {
 			return OS.windows;
 		} else {
-			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Unsupported OS: " + os);
+			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Unsupported Operating System: " + os);
 		}
 	}
 
@@ -132,7 +132,7 @@ public class Util {
 		} else if (arch.matches("^(x8632|x86|i[3-6]86|ia32|x32)$")) {
 			return Arch.x32;
 		} else {
-			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Unsupported architecture: " + arch);
+			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Unsupported Architecture: " + arch);
 		}
 	}
 
