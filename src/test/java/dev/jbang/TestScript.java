@@ -20,7 +20,8 @@ import dev.jbang.cli.BaseScriptCommand;
 class TestScript {
 
 	String example = "//#!/usr/bin/env jbang\n" + "\n"
-			+ "//DEPS com.offbytwo:docopt:0.6.0.20150202,log4j:log4j:${log4j.version:1.2.14}\n" + "\n" + "import org.docopt.Docopt;\n"
+			+ "//DEPS com.offbytwo:docopt:0.6.0.20150202,log4j:log4j:${log4j.version:1.2.14}\n" + "\n"
+			+ "import org.docopt.Docopt;\n"
 			+ "import java.io.File;\n" + "import java.util.*;\n" + "import static java.lang.System.*;\n" + "\n"
 			+ "//JAVA_OPTIONS --enable-preview \"-Dvalue='this is space'\"\n"
 			+ "//JAVAC_OPTIONS --enable-preview\n"
@@ -59,10 +60,10 @@ class TestScript {
 	@Test
 	void testFindDependenciesWithProperty() {
 
-		Map<String,String> p = new HashMap<>();
-		p.put("log4j.version","1.2.9");
+		Map<String, String> p = new HashMap<>();
+		p.put("log4j.version", "1.2.9");
 
-		Script script = new Script(example, (List<String>)null, (Map<String, String>)p);
+		Script script = new Script(example, (List<String>) null, (Map<String, String>) p);
 
 		List<String> dependencies = script.collectDependencies();
 		assertEquals(2, dependencies.size());

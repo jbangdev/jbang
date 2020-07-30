@@ -107,12 +107,14 @@ public class Script {
 		}
 
 		Properties p = new Properties(System.getProperties());
-		p.putAll(properties);
+		if (properties != null) {
+			p.putAll(properties);
+		}
 
 		List<String> dependencies = getLines()	.stream()
 												.filter(it -> isDependDeclare(it))
 												.flatMap(it -> extractDependencies(it))
-												.map(it -> PropertiesValueResolver.replaceProperties(it,p))
+												.map(it -> PropertiesValueResolver.replaceProperties(it, p))
 												.collect(Collectors.toList());
 
 		return dependencies;
