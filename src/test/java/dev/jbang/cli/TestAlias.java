@@ -134,6 +134,17 @@ public class TestAlias {
 	}
 
 	@Test
+	void testGetAliasTwoAlt() throws IOException {
+		AliasUtil.Alias alias = AliasUtil.getAlias("two", Collections.emptyList(), Collections.emptyMap());
+		assertThat(alias, notNullValue());
+		assertThat(alias.scriptRef, equalTo("http://dummy"));
+		assertThat(alias.arguments, iterableWithSize(1));
+		assertThat(alias.arguments, contains("2"));
+		assertThat(alias.properties, aMapWithSize(1));
+		assertThat(alias.properties, hasEntry("two", "2"));
+	}
+
+	@Test
 	void testGetAliasTwoWithArgs() throws IOException {
 		AliasUtil.Alias alias = AliasUtil.getAlias("two", Collections.singletonList("X"),
 				Collections.singletonMap("foo", "bar"));
