@@ -160,9 +160,9 @@ public abstract class BaseScriptCommand extends BaseCommand {
 				original = original.substring(original.indexOf("\n"));
 			}
 
-			File tempFile = Settings.getCacheDir()
-									.resolve(
-											"script_cache_" + urlHash + "/" + unkebabify(probe.getName()))
+			File tempFile = Settings.getCacheDir(Settings.CacheClass.scripts)
+									.resolve(urlHash)
+									.resolve(unkebabify(probe.getName()))
 									.toFile();
 			tempFile.getParentFile().mkdirs();
 			Util.writeString(tempFile.toPath().toAbsolutePath(), original);
@@ -185,7 +185,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 																						System.lineSeparator()));
 
 			String urlHash = Util.getStableID(scriptText);
-			File cache = Settings.getCacheDir().resolve("stdin_cache_" + urlHash).toFile();
+			File cache = Settings.getCacheDir(Settings.CacheClass.stdins).resolve(urlHash).toFile();
 			cache.mkdirs();
 			scriptFile = new File(cache, urlHash + ".jsh");
 			Util.writeString(scriptFile.toPath(), scriptText);
@@ -243,7 +243,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			scriptURL = swizzleURL(scriptURL);
 
 			String urlHash = Util.getStableID(scriptURL);
-			File urlCache = Settings.getCacheDir().resolve("urls").resolve(urlHash).toFile();
+			File urlCache = Settings.getCacheDir(Settings.CacheClass.urls).resolve(urlHash).toFile();
 			urlCache.mkdirs();
 			Path path = Util.downloadFileSwizzled(scriptURL, urlCache);
 

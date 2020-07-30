@@ -77,6 +77,10 @@ public class Settings {
 		return getCacheDir(true);
 	}
 
+	public static Path getCacheDir(CacheClass cclass) {
+		return getCacheDir().resolve(cclass.name());
+	}
+
 	private static void setupCache(Path dir) {
 		// create cache dir if it does not yet exist
 		dir.toFile().mkdirs();
@@ -122,7 +126,7 @@ public class Settings {
 	}
 
 	public enum CacheClass {
-		urls, jars, jdks
+		urls, jars, jdks, projects, scripts, stdins
 	}
 
 	public static void clearCache(CacheClass... classes) {
@@ -140,7 +144,7 @@ public class Settings {
 					Util.errorMsg("Error clearing JDK cache", ex);
 				}
 			} else {
-				Util.deleteFolder(Settings.getCacheDir().resolve(cc.name()), true);
+				Util.deleteFolder(getCacheDir(cc), true);
 			}
 		}
 	}

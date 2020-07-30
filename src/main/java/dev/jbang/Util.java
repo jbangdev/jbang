@@ -327,7 +327,7 @@ public class Util {
 	public static Path downloadAndCacheFile(String fileURL, boolean updateCache) throws IOException {
 		fileURL = swizzleURL(fileURL);
 		String urlHash = getStableID(fileURL);
-		Path urlCache = Settings.getCacheDir().resolve("urls").resolve(urlHash);
+		Path urlCache = Settings.getCacheDir(Settings.CacheClass.urls).resolve(urlHash);
 		Path file = getFirstFile(urlCache);
 		if (updateCache || file == null) {
 			try {

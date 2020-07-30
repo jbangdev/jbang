@@ -86,7 +86,7 @@ public class Run extends BaseScriptCommand {
 
 	// build with javac and then jar... todo: split up in more testable chunks
 	void build(Script script) throws IOException {
-		File baseDir = new File(Settings.getCacheDir().toFile(), "jars");
+		File baseDir = Settings.getCacheDir(Settings.CacheClass.jars).toFile();
 		File tmpJarDir = new File(baseDir, script.getBackingFile().getName() +
 				"." + Util.getStableID(script.getBackingFile()));
 		tmpJarDir.mkdirs();
