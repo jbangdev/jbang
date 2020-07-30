@@ -103,9 +103,14 @@ public class JavaUtil {
 
 	public static int parseJavaVersion(String version) {
 		if (version != null) {
-			String[] nums = version.split("\\.");
-			String num = nums.length > 1 && nums[0].equals("1") ? nums[1] : nums[0];
-			return Integer.parseInt(num);
+			try {
+				String[] nums = version.split("[.-]");
+				String num = nums.length > 1 && nums[0].equals("1") ? nums[1] : nums[0];
+				return Integer.parseInt(num);
+			} catch (NumberFormatException ex) {
+				Util.verboseMsg("Couldn't parse Java version", ex);
+				// Ignore
+			}
 		}
 		return 0;
 	}
