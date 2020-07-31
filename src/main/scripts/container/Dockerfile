@@ -23,5 +23,8 @@ USER 10001
 
 ENV PATH="${PATH}:/jbang/bin"
 
+## github action does not allow writing to $HOME thus routing this elsewhere
+ENV JBANG_DIR="/jbang/.jbang"
+
 ENTRYPOINT ["entrypoint"]
 CMD ["--help"]
