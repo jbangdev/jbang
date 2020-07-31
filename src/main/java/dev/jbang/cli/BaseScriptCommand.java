@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.net.ssl.HostnameVerifier;
@@ -27,12 +28,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import dev.jbang.AliasUtil;
-import dev.jbang.DependencyUtil;
-import dev.jbang.ExitException;
-import dev.jbang.Script;
-import dev.jbang.Settings;
-import dev.jbang.Util;
+import dev.jbang.*;
 
 import picocli.CommandLine;
 
@@ -232,12 +228,53 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			java.net.URI uri = new java.net.URI(scriptURL);
 
 			if (!Settings.getTrustedSources().isURLTrusted(uri)) {
-				throw new ExitException(10, scriptURL + " is not from a trusted source thus aborting.\n" +
+				String[] options = new String[] {
+						null,
+						goodTrustURL(scriptURL),
+						"*." + uri.getAuthority(),
+						"*"
+				};
+				String exmsg = scriptURL
+						+ " is not from a trusted source and user did not confirm trust thus aborting.\n" +
 						"If you trust the url to be safe to run are here a few suggestions:\n" +
-						"Limited trust:\n    jbang trust add " + goodTrustURL(scriptURL) + "\n" +
-						"Trust all subdomains:\n    jbang trust add " + "*." + uri.getAuthority() + "\n" +
-						"Trust all sources (WARNING! disables url protection):\n    jbang trust add \"*\"" + "\n" +
-						"\nFor more control edit ~/.jbang/trusted-sources.json" + "\n");
+						"Limited trust:\n    jbang trust add " + options[1] + "\n" +
+						"Trust all subdomains:\n    jbang trust add " + options[2] + "\n" +
+						"Trust all sources (WARNING! disables url protection):\n    jbang trust add " + options[3]
+						+ "\n" +
+						"\nFor more control edit ~/.jbang/trusted-sources.json" + "\n";
+
+				String question = scriptURL + " is not from a trusted source thus not running it automatically.\n\n" +
+						"If you trust the url to be safe to run you can add one of the following:\n" +
+						"0) Trust once: Add no trust, just run this time\n" +
+						"1) Limited trust:\n    jbang trust add " + options[1] + "\n" +
+						"2) Trust all subdomains:\n    jbang trust add " + options[2] + "\n" +
+						"3) Trust all sources (WARNING! disables url protection):\n    jbang trust add " + options[3]
+						+ "\n\nAny other response will result in exit.\n";
+
+				ConsoleInput con = new ConsoleInput(
+						1,
+						10,
+						TimeUnit.SECONDS);
+				Util.infoMsg(question);
+				Util.infoMsg("Type in your choice (0,1,2 or 3) and hit enter. Times out after 10 seconds.");
+				String input = con.readLine();
+
+				boolean abort = true;
+				try {
+					int result = Integer.parseInt(input);
+					TrustedSources ts = Settings.getTrustedSources();
+					if (result == 0) {
+						abort = false;
+					} else if (result >= 1 && result <= 3) {
+						ts.add(options[result], Settings.getTrustedSourcesFile().toFile());
+						abort = false;
+					}
+				} catch (NumberFormatException ef) {
+					Util.errorMsg("Could not parse answer as a number. Aborting");
+				}
+
+				if (abort)
+					throw new ExitException(10, exmsg);
 			}
 
 			scriptURL = swizzleURL(scriptURL);
