@@ -183,6 +183,10 @@ public class TrustedSources {
 		return trustedsources;
 	}
 
+	public void add(String trust, File storage) {
+		add(Arrays.asList(trust), storage);
+	}
+
 	public void add(List<String> trust, File storage) {
 
 		Util.infoMsg("Adding " + trust + " to " + storage);
