@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -40,8 +41,8 @@ public class Run extends BaseScriptCommand {
 	}
 
 	@CommandLine.Option(names = { "-d",
-			"--debug" }, fallbackValue = "4004", parameterConsumer = IntFallbackConsumer.class, description = "Launch with java debug enabled on specified port (default: ${FALLBACK-VALUE}) ")
-	int debugPort = -1;
+			"--debug" }, fallbackValue = "4004", parameterConsumer = DebugFallbackConsumer.class, description = "Launch with java debug enabled on specified port (default: ${FALLBACK-VALUE}) ")
+	String debugString;
 
 	@CommandLine.Option(names = {
 			"--cds" }, description = "If specified Class Data Sharing (CDS) will be used for building and running (requires Java 13+)", negatable = true)
@@ -52,7 +53,7 @@ public class Run extends BaseScriptCommand {
 	}
 
 	boolean debug() {
-		return debugPort >= 0;
+		return debugString != null;
 	}
 
 	@CommandLine.Option(names = { "-D" }, description = "set a system property")
@@ -239,7 +240,7 @@ public class Run extends BaseScriptCommand {
 
 				// optionalArgs.add("--source 11");
 				if (debug()) {
-					optionalArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + debugPort);
+					optionalArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + debugString);
 				}
 				if (!classpath.trim().isEmpty()) {
 					optionalArgs.add("-classpath");
@@ -399,25 +400,31 @@ public class Run extends BaseScriptCommand {
 		}
 	}
 
-	static class IntFallbackConsumer implements CommandLine.IParameterConsumer {
+	/**
+	 * Helper class to peek ahead at `--debug` to pickup --debug=5000, --debug 5000,
+	 * --debug *:5000 as debug parameters but not --debug somefile.java
+	 */
+	static class DebugFallbackConsumer implements CommandLine.IParameterConsumer {
+
+		Pattern p = Pattern.compile("(.*?:)?(\\d+)");
+
 		@Override
 		public void consumeParameters(Stack<String> args, CommandLine.Model.ArgSpec argSpec,
 				CommandLine.Model.CommandSpec commandSpec) {
 			String arg = args.pop();
-			try {
-				int port = Integer.parseInt(arg);
-				argSpec.setValue(port);
-			} catch (Exception ex) {
+			Matcher m = p.matcher(arg);
+			if (m.matches()) {
+				argSpec.setValue(arg);
+			} else {
 				String fallbackValue = (argSpec.isOption()) ? ((CommandLine.Model.OptionSpec) argSpec).fallbackValue()
 						: null;
 				try {
-					int fallbackPort = Integer.parseInt(fallbackValue);
-					argSpec.setValue(fallbackPort);
+					argSpec.setValue(fallbackValue);
 				} catch (Exception badFallbackValue) {
 					throw new CommandLine.InitializationException("FallbackValue for --debug must be an int",
 							badFallbackValue);
 				}
-				args.push(arg); // put it back
+				args.push(arg);
 			}
 		}
 	}

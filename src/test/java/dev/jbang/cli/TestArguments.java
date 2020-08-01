@@ -54,7 +54,7 @@ class TestArguments {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.debug(), is(true));
-		assertThat(run.debugPort, is(4004));
+		assertThat(run.debugString, is("4004"));
 
 		assertThat(run.scriptOrFile, is("test.java"));
 		assertThat(run.userParams, is(Arrays.asList("--debug", "wonka")));
@@ -97,22 +97,22 @@ class TestArguments {
 
 	@Test
 	public void testDebugPort() {
-		CommandLine.ParseResult pr = cli.parseArgs("run", "--debug=5000", "test.java");
+		CommandLine.ParseResult pr = cli.parseArgs("run", "--debug=*:5000", "test.java");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.scriptOrFile, is("test.java"));
 		assertThat(run.debug(), is(true));
-		assertThat(run.debugPort, is(5000));
+		assertThat(run.debugString, is("*:5000"));
 	}
 
 	@Test
 	public void testDebugPortSeperateValue() {
-		CommandLine.ParseResult pr = cli.parseArgs("run", "--debug", "5005", "test.java");
+		CommandLine.ParseResult pr = cli.parseArgs("run", "--debug", "xyz.dk:5005", "test.java");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.scriptOrFile, is("test.java"));
 		assertThat(run.debug(), is(true));
-		assertThat(run.debugPort, is(5005));
+		assertThat(run.debugString, is("xyz.dk:5005"));
 	}
 
 	@Test
