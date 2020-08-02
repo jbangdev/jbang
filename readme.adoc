@@ -35,7 +35,7 @@ image:https://asciinema.org/a/AVwA19yijKRNKEO0bJENN2ME3.svg[link=https://asciine
 $ jbang init --template=cli hello.java
 $ jbang hello.java Max!
 [jbang] Resolving dependencies...
-[jbang]     Resolving info.picocli:picocli:4.2.0...Done
+[jbang]     Resolving info.picocli:picocli:4.5.0...Done
 [jbang] Dependencies resolved
 [jbang] Building jar...
 Hello Max!
@@ -393,13 +393,13 @@ i.e. `jbang helloworld.jar` will run `helloworld.jar` if found on your local fil
 
 You can also run `.jar` file referenced by a Maven coordinate, i.e.:
 
-`jbang info.picocli:picocli-codegen:4.2.0`
+`jbang info.picocli:picocli-codegen:4.5.0`
 
 This will fetch the dependency stated and put the transitive dependencies on the classpath.
 
 If you need to specify a main class you can do so by using `--main` i.e.
 
-`jbang --main picocli.codegen.aot.graalvm.ReflectionConfigGenerator info.picocli:picocli-codegen:4.2.0`
+`jbang --main picocli.codegen.aot.graalvm.ReflectionConfigGenerator info.picocli:picocli-codegen:4.5.0`
 
 [TIP]
 ----

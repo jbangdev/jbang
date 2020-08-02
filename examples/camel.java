@@ -1,5 +1,5 @@
 //usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS info.picocli:picocli:4.2.0
+//DEPS info.picocli:picocli:4.5.0
 //DEPS org.apache.camel:camel-core:3.0.1
 //DEPS org.apache.camel:camel-main:3.0.1
 //DEPS org.slf4j:slf4j-nop:1.7.25

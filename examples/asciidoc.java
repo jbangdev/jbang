@@ -1,5 +1,5 @@
 //usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS info.picocli:picocli:4.2.0
+//DEPS info.picocli:picocli:4.5.0
 //DEPS org.asciidoctor:asciidoctorj:2.2.0
 
 import org.asciidoctor.Asciidoctor;

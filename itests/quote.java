@@ -4,7 +4,7 @@ import java.util.Map;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
-//DEPS info.picocli:picocli:4.2.0
+//DEPS info.picocli:picocli:4.5.0
 
 public class quote implements Runnable {
     @Option(names = "-fix", split = "\\|")
