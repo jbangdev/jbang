@@ -48,7 +48,7 @@ class TestAddDeps {
 			"    <dependency>\n" +
 			"      <groupId>info.picocli</groupId>\n" +
 			"      <artifactId>picocli</artifactId>\n" +
-			"      <version>4.1.4</version>\n" +
+			"      <version>4.5.0</version>\n" +
 			"    </dependency>\n" +
 			"\n" +
 			"  </dependencies>\n" +
@@ -103,7 +103,7 @@ class TestAddDeps {
 		List<MavenCoordinate> result = Jbang.findDeps(pom);
 
 		assertThat(result.stream().map(MavenCoordinate::toCanonicalForm).collect(Collectors.toList()),
-				containsInAnyOrder("org.projectlombok:lombok:jar:1.18.10", "info.picocli:picocli:jar:4.1.4"));
+				containsInAnyOrder("org.projectlombok:lombok:jar:1.18.10", "info.picocli:picocli:jar:4.5.0"));
 
 	}
 

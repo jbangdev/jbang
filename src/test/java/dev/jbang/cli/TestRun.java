@@ -120,14 +120,14 @@ public class TestRun {
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
 
-		String jar = "info.picocli:picocli-codegen:4.2.0";
+		String jar = "info.picocli:picocli-codegen:4.5.0";
 
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		Script result = prepareScript(jar, run.userParams, run.properties);
 
-		assertThat(result.getBackingFile().toString(), matchesPattern(".*\\.m2.*codegen-4.2.0.jar"));
+		assertThat(result.getBackingFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
 
 		String cmd = run.generateCommandLine(result);
 
@@ -141,7 +141,7 @@ public class TestRun {
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
 
-		String jar = "info.picocli:picocli-codegen:4.2.0";
+		String jar = "info.picocli:picocli-codegen:4.5.0";
 
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--main",
 				"picocli.codegen.aot.graalvm.ReflectionConfigGenerator", jar);
@@ -153,9 +153,9 @@ public class TestRun {
 
 		assertThat(result.getMainClass(), equalTo("picocli.codegen.aot.graalvm.ReflectionConfigGenerator"));
 
-		assertThat(result.getBackingFile().toString(), matchesPattern(".*\\.m2.*codegen-4.2.0.jar"));
+		assertThat(result.getBackingFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
 
-		assertThat(cmd, matchesPattern(".* -classpath .*picocli-4.2.0.jar.*"));
+		assertThat(cmd, matchesPattern(".* -classpath .*picocli-4.5.0.jar.*"));
 		assertThat(cmd, not(containsString(" -jar ")));
 
 	}

@@ -1,5 +1,5 @@
 //usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS info.picocli:picocli:4.2.0
+//DEPS info.picocli:picocli:4.5.0
 //DEPS com.brsanthu:google-analytics-java:2.0.0
 //DEPS kr.motd.maven:os-maven-plugin:1.6.1
 //DEPS org.slf4j:slf4j-nop:1.7.30

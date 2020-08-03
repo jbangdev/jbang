@@ -1,7 +1,7 @@
 //usr/bin/env jbang "$0" "$@" ; exit $?
 //JAVA_OPTIONS --add-opens java.base/java.net=ALL-UNNAMED
 //JAVA_OPTIONS --add-opens java.base/sun.net.www.protocol.https=ALL-UNNAMED
-//DEPS info.picocli:picocli:4.1.4
+//DEPS info.picocli:picocli:4.5.0
 //DEPS org.kohsuke:github-api:1.101
 
 import org.kohsuke.github.GHAsset;
