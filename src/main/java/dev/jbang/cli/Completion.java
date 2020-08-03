@@ -10,7 +10,7 @@ import dev.jbang.Util;
 import picocli.AutoComplete;
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "completion", description = "Output auto-completion script for bash/zsh.\nUsage: source <(jbang --completion)")
+@CommandLine.Command(name = "completion", description = "Output auto-completion script for bash/zsh.\nUsage: source <(jbang completion)")
 public class Completion extends BaseCommand {
 
 	@Override
