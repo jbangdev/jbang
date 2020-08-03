@@ -181,6 +181,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "headius",
+      "name": "Charles Oliver Nutter",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/10135?v=4",
+      "profile": "http://blog.headius.com",
+      "contributions": [
+        "content"
+      ]
     }
   ],
   "contributorsPerLine": 7,
