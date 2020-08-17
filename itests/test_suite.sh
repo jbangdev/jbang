@@ -3,6 +3,9 @@
 
 #set -e
 
+## github seem to be setting this thus trying to ensure it does not affect it here.
+unset JAVA_TOOL_OPTIONS
+
 export DEBUG=1
 
 . aserta

@@ -40,6 +40,14 @@ public class Run extends BaseScriptCommand {
 		this.javaVersion = javaVersion;
 	}
 
+	@CommandLine.Option(names = { "-r",
+			"--jfr" }, fallbackValue = "filename={baseName}.jfc", parameterConsumer = KeyValueFallbackConsumer.class, arity = "0..1", description = "Launch with Java Flight Recorder enabled.")
+	String flightRecorderString;
+
+	boolean enableFlightRecording() {
+		return flightRecorderString != null;
+	}
+
 	@CommandLine.Option(names = { "-d",
 			"--debug" }, fallbackValue = "4004", parameterConsumer = DebugFallbackConsumer.class, description = "Launch with java debug enabled on specified port (default: ${FALLBACK-VALUE}) ")
 	String debugString;
@@ -232,7 +240,10 @@ public class Run extends BaseScriptCommand {
 				optionalArgs.add("--startup=" + tempFile.getAbsolutePath());
 
 				if (debug()) {
-					info("debug not possible when running via jshell.");
+					warn("debug not possible when running via jshell.");
+				}
+				if (enableFlightRecording()) {
+					warn("Java Flight Recording not possible when running via jshell.");
 				}
 
 			} else {
@@ -242,6 +253,16 @@ public class Run extends BaseScriptCommand {
 				if (debug()) {
 					optionalArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + debugString);
 				}
+
+				if (enableFlightRecording()) {
+					// TODO: ensure ~/.jbang/script.jfc is created to configure flightrecorder to
+					// have 0 ms thresholds
+					String jfropt = "-XX:StartFlightRecording=" + flightRecorderString.replace("{baseName}",
+							Util.getBaseName(script.getBackingFile().toString()));
+					optionalArgs.add(jfropt);
+					Util.verboseMsg("Flight recording enabled with:" + jfropt);
+				}
+
 				if (!classpath.trim().isEmpty()) {
 					optionalArgs.add("-classpath");
 					optionalArgs.add(classpath);
@@ -422,6 +443,35 @@ public class Run extends BaseScriptCommand {
 					argSpec.setValue(fallbackValue);
 				} catch (Exception badFallbackValue) {
 					throw new CommandLine.InitializationException("FallbackValue for --debug must be an int",
+							badFallbackValue);
+				}
+				args.push(arg);
+			}
+		}
+	}
+
+	/**
+	 * Helper class to peek ahead at `--jfr` to pickup x=y,t=y but not --jfr
+	 * somefile.java
+	 */
+	static class KeyValueFallbackConsumer implements CommandLine.IParameterConsumer {
+
+		Pattern p = Pattern.compile("(\\S*?)=(\\S+)");
+
+		@Override
+		public void consumeParameters(Stack<String> args, CommandLine.Model.ArgSpec argSpec,
+				CommandLine.Model.CommandSpec commandSpec) {
+			String arg = args.pop();
+			Matcher m = p.matcher(arg);
+			if (m.matches()) {
+				argSpec.setValue(arg);
+			} else {
+				String fallbackValue = (argSpec.isOption()) ? ((CommandLine.Model.OptionSpec) argSpec).fallbackValue()
+						: null;
+				try {
+					argSpec.setValue(fallbackValue);
+				} catch (Exception badFallbackValue) {
+					throw new CommandLine.InitializationException("FallbackValue for --jfr must be an string",
 							badFallbackValue);
 				}
 				args.push(arg);

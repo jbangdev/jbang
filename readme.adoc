@@ -740,6 +740,25 @@ java itself will add `JAVA_TOOL_OPTIONS` which will apply to `jbang` too.
 For finer and more explicit control the scripts for `jbang` will add `JBANG_JAVA_OPTIONS` to the call to `jbang` itself.
 Thus if you want to enable debug or other details for `jbang` set that environment variable.
 
+== Flight Recorder
+
+Flight recorder is a feature of the Java VM that lets you gather diagnostic and profiling data about your script.
+
+You can use `//JAVA_OPTIONS` to have full control over it; but for the easiest setup `jbang` lets you just run with `--jfr`, i.e.
+
+```java
+jbang --jfr myapp.java
+```
+
+By default `--jfr` will start flight recorder and tell it to dump event recordings to `myapp.jfr` (i.e. using base name of the script as its filename).
+
+Then you can use tools like `jvisualvm` or `jmc` to explore the data.
+
+If you want to tweak the configuration you can pass flightrecorder options, like `jbang --jfr=filename={baseName}.jfr,maxage=24h` where `{baseName}` will be replaced
+by the filename and then added `maxage=24h` to flight recording options.
+
+If you want further control use `//JAVAC_OPTS -XX:StartFlightRecording=<your options>` instead.
+
 == `java` and `javac` Options
 
 If you want to tweak memory settings or enable preview features you can setup the necessary options using
