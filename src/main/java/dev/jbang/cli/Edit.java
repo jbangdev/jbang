@@ -125,7 +125,7 @@ public class Edit extends BaseScriptCommand {
 		}
 
 		// create build gradle
-		String baseName = getBaseName(name);
+		String baseName = Util.getBaseName(name);
 		String templateName = "build.qute.gradle";
 		Path destination = new File(tmpProjectDir, "build.gradle").toPath();
 		TemplateEngine engine = Settings.getTemplateEngine();

@@ -7,6 +7,7 @@ import java.nio.file.Files;
 
 import dev.jbang.ExitException;
 import dev.jbang.Settings;
+import dev.jbang.Util;
 
 import io.quarkus.qute.Template;
 import picocli.CommandLine;
@@ -46,7 +47,7 @@ public class Init extends BaseScriptCommand {
 		if (helloTemplate == null) {
 			throw new ExitException(1, "Could not find init template named: " + template);
 		} else {
-			return helloTemplate.data("baseName", getBaseName(f.getName())).render();
+			return helloTemplate.data("baseName", Util.getBaseName(f.getName())).render();
 		}
 	}
 }

@@ -41,6 +41,26 @@ public class Util {
 		return verbose;
 	}
 
+	public static String kebab2camel(String name) {
+
+		if (name.contains("-")) { // xyz-plug becomes XyzPlug
+			return Arrays	.stream(name.split("\\-"))
+							.map(s -> Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase())
+							.collect(Collectors.joining());
+		} else {
+			return name; // xyz stays xyz
+		}
+	}
+
+	public static String getBaseName(String fileName) {
+		int index = fileName.lastIndexOf('.');
+		if (index == -1) {
+			return kebab2camel(fileName);
+		} else {
+			return fileName.substring(0, index);
+		}
+	}
+
 	public enum OS {
 		linux, mac, windows
 	}

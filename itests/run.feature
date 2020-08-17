@@ -10,4 +10,8 @@ Scenario: parameter passing
 * match err == "[jbang] Building jar...\n"
 * match out == "Hello jbangtest\n"
 
+Scenario: java launch helloworld with jfr
+  When command('jbang --jfr helloworld.java')
+  Then match out contains "Started recording 1. No limit specified, using maxsize=250MB as default."
+
 

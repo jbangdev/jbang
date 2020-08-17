@@ -207,20 +207,9 @@ public abstract class BaseScriptCommand extends BaseCommand {
 	 */
 	static String unkebabify(String name) {
 		if (!(name.endsWith(".java") || name.endsWith(".jsh"))) {
-			name = kebab2camel(name) + ".java";
+			name = Util.kebab2camel(name) + ".java";
 		}
 		return name;
-	}
-
-	static String kebab2camel(String name) {
-
-		if (name.contains("-")) { // xyz-plug becomes XyzPlug
-			return Arrays	.stream(name.split("\\-"))
-							.map(s -> Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase())
-							.collect(Collectors.joining());
-		} else {
-			return name; // xyz stays xyz
-		}
 	}
 
 	private static File fetchFromURL(String scriptURL) {
@@ -314,15 +303,6 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		}
 
 		return url;
-	}
-
-	public static String getBaseName(String fileName) {
-		int index = fileName.lastIndexOf('.');
-		if (index == -1) {
-			return kebab2camel(fileName);
-		} else {
-			return fileName.substring(0, index);
-		}
 	}
 
 }
