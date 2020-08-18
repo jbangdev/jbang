@@ -27,4 +27,3 @@ ENV PATH="${PATH}:/jbang/bin"
 ENV JBANG_DIR="/jbang/.jbang"
 
 ENTRYPOINT ["entrypoint"]
-CMD ["--help"]
