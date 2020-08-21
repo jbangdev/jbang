@@ -361,7 +361,7 @@ public class Run extends BaseScriptCommand {
 				// Windows quoting is just weird
 				arg = arg.replaceAll("([()!^<>&|%])", "^$1");
 				arg = arg.replaceAll("([\"])", "\\\\^$1");
-				return "^\"" + arg + "^\"";
+				return "\"" + arg + "\"";
 			}
 		} else {
 			if (!shellSafeChars.matcher(arg).matches()) {
