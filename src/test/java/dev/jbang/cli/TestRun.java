@@ -241,7 +241,7 @@ public class TestRun {
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("-Dwonka=panda"));
 		if (Util.isWindows()) {
-			assertThat(result, containsString("^\"-Dquoted=see this^\""));
+			assertThat(result, containsString("\"-Dquoted=see this\""));
 		} else {
 			assertThat(result, containsString("'-Dquoted=see this'"));
 		}
@@ -282,7 +282,7 @@ public class TestRun {
 
 		String s = run.generateCommandLine(prepareScript(url, run.userParams, run.properties));
 		if (Util.isWindows()) {
-			assertThat(s, containsString("^\" ~^!@#$^%^^^&*^(^)-+\\:;'`^<^>?/,.{}[]\\^\"^\""));
+			assertThat(s, containsString("\" ~^!@#$^%^^^&*^(^)-+\\:;'`^<^>?/,.{}[]\\^\"\""));
 		} else {
 			assertThat(s, containsString("' ~!@#$%^&*()-+\\:;'\\''`<>?/,.{}[]\"'"));
 		}
