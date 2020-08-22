@@ -39,7 +39,12 @@ function fn() {
         }
     
     config.javaversion = version;
-    config.windows = java.lang.System.getProperty("os.name").toLowerCase().contains("win");
-    
+    config.windows = karate.os.type == "windows";
+    karate.log('operating system', karate.os);
+    karate.log('isWindows', config.windows)
+    karate.log('javaversion', config.javaversion)
+    karate.log('os.name', karate.properties['os.name']);
+
+    karate.log('')
     return config;
   }
