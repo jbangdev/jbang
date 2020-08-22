@@ -1,8 +1,6 @@
-@java9orhigher
-Feature: jshell
+Feature: quoting
 
 Background:
-* if (javaversion == 8) karate.abort()
 * if (windows) karate.abort()
 
 Scenario: piping code via stdin
