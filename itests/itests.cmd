@@ -4,4 +4,7 @@ setx PATH "..\build\install\jbang\bin;%PATH%"
 set JAVA_TOOL_OPTIONS=
 
 where jbang
+where java
+echo JAVA_HOME=%JAVA_HOME%
+
 jbang karate.java -o ..\build\karate *.feature

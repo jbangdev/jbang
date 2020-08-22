@@ -30,7 +30,7 @@ jobs:
           java-version: 8
       - name: build-gradle
         run: ./gradlew build test install --build-cache --scan -s
-      - name: integration-test
+      - name: integration-test-non-windows
         if: runner.os != 'Windows'
         run: |
           export PATH=`pwd`/build/install/jbang/bin:$PATH
