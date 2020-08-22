@@ -280,6 +280,9 @@ public abstract class BaseScriptCommand extends BaseCommand {
 	private static String goodTrustURL(String url) {
 		String originalUrl = url;
 
+		url = url.replaceFirst("^https://gist.github.com/(.*)?/(.*)$",
+				"https://gist.github.com/$1/");
+
 		url = url.replaceFirst("^https://github.com/(.*)/blob/(.*)$",
 				"https://github.com/$1/");
 
