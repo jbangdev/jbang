@@ -1,8 +1,6 @@
-@java9orhigher
-Feature: jshell
+Feature: quoting for windows
 
 Background:
-* if (javaversion == 8) karate.abort()
 * if (!windows) karate.abort()
 
 Scenario: check quotes are kept when wrapped with quotes

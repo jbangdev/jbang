@@ -68,7 +68,9 @@ if "!JAVA_EXEC!"=="" (
 
 set tmpfile=%TDIR%\%RANDOM%.tmp
 rem execute jbang and pipe to temporary random file
-!JAVA_EXEC! > "%tmpfile%" %JBANG_JAVA_OPTIONS% -classpath "%jarPath%" dev.jbang.Main %*
+set "CMD=!JAVA_EXEC!"
+SETLOCAL DISABLEDELAYEDEXPANSION
+%CMD% > "%tmpfile%" %JBANG_JAVA_OPTIONS% -classpath "%jarPath%" dev.jbang.Main %*
 set ERROR=%ERRORLEVEL%
 rem catch errorlevel straight after; rem or FOR /F swallow would have swallowed the errorlevel
 

@@ -1,11 +1,10 @@
-@java9orhigher
-Feature: jshell
+Feature: quoting
 
 Background:
-* if (javaversion == 8) karate.abort()
 * if (windows) karate.abort()
 
 Scenario: piping code via stdin
+* if (javaversion == 8) karate.abort()
 When command('echo \'System.out.println(\"Hello World\")\' | jbang -')
 Then match out == "Hello World\n"
 
