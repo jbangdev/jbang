@@ -190,6 +190,15 @@
       "contributions": [
         "content"
       ]
+    },
+    {
+      "login": "klaeufer",
+      "name": "Konstantin Läufer",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/625947?v=4",
+      "profile": "http://klaeufer.github.io",
+      "contributions": [
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,
