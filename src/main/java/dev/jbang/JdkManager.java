@@ -78,7 +78,7 @@ public class JdkManager {
 				// be causing all kinds of trouble
 				try {
 					Path jdkTmpDir = jdkDir.getParent().resolve(jdkDir.getFileName().toString() + ".tmp");
-					Util.deleteFolder(jdkDir, true);
+					Util.deleteFolder(jdkTmpDir, true);
 					Files.move(jdkDir, jdkTmpDir);
 					jdkDir = jdkTmpDir;
 				} catch (IOException ex) {
