@@ -45,18 +45,18 @@ if "!JAVA_EXEC!"=="" (
     if not exist "%TDIR%\jdks\%javaVersion%" (
       rem If not, download and install it
       echo Downloading JDK %javaVersion%. Be patient, this can take several minutes... 1>&2
-      powershell -NonInteractive -Command "$ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest %url% -OutFile %TDIR%\bootstrap-jdk.zip"
+      powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "$ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest %url% -OutFile %TDIR%\bootstrap-jdk.zip"
       if !ERRORLEVEL! NEQ 0 ( echo "Error downloading JDK" 1>&2; exit /b %ERRORLEVEL% )
       echo Installing JDK %javaVersion%... 1>&2
       if exist "%TDIR%\jdks\%javaVersion%.tmp" ( rd /s /q "%TDIR%\jdks\%javaVersion%.tmp" > nul 2>&1 )
-      powershell -NonInteractive -Command "$ProgressPreference = 'SilentlyContinue'; Expand-Archive -Path %TDIR%\bootstrap-jdk.zip -DestinationPath %TDIR%\jdks\%javaVersion%.tmp"
+      powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "$ProgressPreference = 'SilentlyContinue'; Expand-Archive -Path %TDIR%\bootstrap-jdk.zip -DestinationPath %TDIR%\jdks\%javaVersion%.tmp"
       if !ERRORLEVEL! NEQ 0 ( echo "Error installing JDK" 1>&2; exit /b %ERRORLEVEL% )
-	  for /d %%d in (%TDIR%\jdks\%javaVersion%.tmp\*) do (
-        powershell -NonInteractive -Command "Move-Item %%d\* !TDIR!\jdks\%javaVersion%.tmp"
+      for /d %%d in (%TDIR%\jdks\%javaVersion%.tmp\*) do (
+        powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "Move-Item %%d\* !TDIR!\jdks\%javaVersion%.tmp"
         if !ERRORLEVEL! NEQ 0 ( echo "Error installing JDK" 1>&2; exit /b %ERRORLEVEL% )
-	  )
-	  rem Check if the JDK was installed properly
-	  %TDIR%\jdks\%javaVersion%.tmp\bin\javac -version > nul 2>&1
+      )
+      rem Check if the JDK was installed properly
+      %TDIR%\jdks\%javaVersion%.tmp\bin\javac -version > nul 2>&1
       if !ERRORLEVEL! NEQ 0 ( echo "Error installing JDK" 1>&2; exit /b %ERRORLEVEL% )
       rem Activate the downloaded JDK giving it its proper name
       ren "%TDIR%\jdks\%javaVersion%.tmp" "%javaVersion%"
