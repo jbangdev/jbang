@@ -385,6 +385,20 @@ i.e.
 If you use `--interactive` `jbang` will let `jshell` enter into interactive/REPL mode. You write `/exit` to leave this mode.
 ----
 
+[TIP]
+----
+If your own code needs to handle chained pipes well it is recommended to add the following code:
+
+```java
+import sun.misc.Signal;
+
+if (!"Windows".equals(System.getProperty("os.name"))) {
+	    Signal.handle(new Signal("PIPE"), (final Signal sig) -> System.exit(1));
+}
+```
+
+It will give a compiler warning as it is internal API; but for now it works.
+----
 === Running `.jar`'s (EXPERIMENTAL)
 
 `jbang` will also run `.jar` files directly.
