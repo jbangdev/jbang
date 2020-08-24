@@ -878,9 +878,6 @@ From there came j'bang which is a "bad" spelling of how shebang is pronounced in
 Why use gradle resource locators rather than ?::
   kscript used it and it's nice as it is a one-liner and easily parsable.
 
-Why use of gradle resource locators rather than ?::
-  kscript used it and its nice as it is a one-liner and easily parsable.
-
 How does this compare to ?::
 After doing `jbang` I've learned about similar projects and thought it would be nice with some comparison;
 +
