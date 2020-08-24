@@ -199,6 +199,15 @@
       "contributions": [
         "ideas"
       ]
+    },
+    {
+      "login": "OLibutzki",
+      "name": "Oliver Libutzki",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/977893?v=4",
+      "profile": "https://twitter.com/OliverLibutzki",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
