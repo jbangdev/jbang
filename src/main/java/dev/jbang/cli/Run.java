@@ -20,7 +20,6 @@ import org.apache.commons.text.StringEscapeUtils;
 
 import dev.jbang.*;
 
-import io.quarkus.qute.Template;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "run", description = "Compile and run provided .java/.jsh script.")
@@ -125,17 +124,14 @@ public class Run extends BaseScriptCommand {
 			optionList.addAll(Arrays.asList(script.getBackingFile().getPath()));
 
 			// add additional files
-			Template pomTemplate = Settings.getTemplateEngine().getTemplate("pom.qute.xml");
-
-			if (pomTemplate == null) {
-				// ignore
-				Util.warnMsg("Could not locate pom.xml template");
-			} else {
-				String pomfile = pomTemplate
-											.data("baseName", Util.getBaseName(script.getBackingFile().getName()))
-											.render();
-			}
-
+			/**
+			 * Template pomTemplate =
+			 * Settings.getTemplateEngine().getTemplate("pom.qute.xml");
+			 * 
+			 * if (pomTemplate == null) { // ignore Util.warnMsg("Could not locate pom.xml
+			 * template"); } else { String pomfile = pomTemplate .data("baseName",
+			 * Util.getBaseName(script.getBackingFile().getName())) .render(); }
+			 */
 			info("Building jar...");
 			debug("compile: " + String.join(" ", optionList));
 
