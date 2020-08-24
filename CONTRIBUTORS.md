@@ -1,6 +1,6 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-21-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-22-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 ## Contributors ✨
 
@@ -36,6 +36,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="http://gastaldi.wordpress.com"><img src="https://avatars1.githubusercontent.com/u/54133?v=4" width="100px;" alt=""/><br /><sub><b>George Gastaldi</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=gastaldi" title="Code">💻</a></td>
     <td align="center"><a href="http://blog.headius.com"><img src="https://avatars3.githubusercontent.com/u/10135?v=4" width="100px;" alt=""/><br /><sub><b>Charles Oliver Nutter</b></sub></a><br /><a href="#content-headius" title="Content">🖋</a></td>
     <td align="center"><a href="http://klaeufer.github.io"><img src="https://avatars3.githubusercontent.com/u/625947?v=4" width="100px;" alt=""/><br /><sub><b>Konstantin Läufer</b></sub></a><br /><a href="#ideas-klaeufer" title="Ideas, Planning, & Feedback">🤔</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://twitter.com/OliverLibutzki"><img src="https://avatars2.githubusercontent.com/u/977893?v=4" width="100px;" alt=""/><br /><sub><b>Oliver Libutzki</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=OLibutzki" title="Code">💻</a></td>
   </tr>
 </table>
 
