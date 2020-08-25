@@ -214,17 +214,15 @@ public class Script {
 			if (forJar()) {
 				if (DependencyUtil.looksLikeAGav(originalFile.toString())) {
 					String gav = originalFile.toString();
-					classpath = new ModularClassPath(
-							new DependencyUtil().resolveDependencies(Arrays.asList(gav.toString()),
-									Collections.emptyList(), offline, true));
+					classpath = new DependencyUtil().resolveDependencies(Arrays.asList(gav.toString()),
+							Collections.emptyList(), offline, true);
 				} else {
-					classpath = new ModularClassPath("");
+					classpath = new ModularClassPath(Collections.emptyList());
 				}
 			} else {
 				List<String> dependencies = collectDependencies();
 				List<MavenRepo> repositories = collectRepositories();
-				classpath = new ModularClassPath(
-						new DependencyUtil().resolveDependencies(dependencies, repositories, offline, true));
+				classpath = new DependencyUtil().resolveDependencies(dependencies, repositories, offline, true);
 			}
 		}
 		if (jar != null) {
@@ -391,4 +389,7 @@ public class Script {
 		return backingFile;
 	}
 
+	public ModularClassPath getClassPath() {
+		return classpath;
+	}
 }

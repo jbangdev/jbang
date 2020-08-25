@@ -9,7 +9,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -105,7 +104,8 @@ class DependencyResolverTest {
 
 		List<String> deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
 
-		List<File> artifacts = dr.resolveDependenciesViaAether(deps, Arrays.asList(toMavenRepo("jcenter")), false,
+		List<ArtifactInfo> artifacts = dr.resolveDependenciesViaAether(deps,
+				Arrays.asList(toMavenRepo("jcenter")), false,
 				true, true);
 
 		assertEquals(2, artifacts.size());
@@ -126,10 +126,10 @@ class DependencyResolverTest {
 
 		List<String> deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
 
-		String classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, true);
+		ModularClassPath classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, true);
 
 		// if returns 5 its because optional deps are included which they shouldn't
-		assertEquals(2, classpath.split(Settings.CP_SEPARATOR).length);
+		assertEquals(2, classpath.getClassPath().split(Settings.CP_SEPARATOR).length);
 
 	}
 
@@ -142,12 +142,12 @@ class DependencyResolverTest {
 				"org.apache.commons:commons-configuration2:2.7",
 				"org.apache.commons:commons-text:1.8");
 
-		String classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, true);
+		ModularClassPath classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, true);
 
 		// if returns with duplicates its because some dependencies are multiple times
 		// in the
 		// classpath (commons-text-1.8, commons-lang3-3.9)
-		List<String> cps = Arrays.asList(classpath.split(Settings.CP_SEPARATOR));
+		List<String> cps = Arrays.asList(classpath.getClassPath().split(Settings.CP_SEPARATOR));
 
 		HashSet<String> othercps = new HashSet<>();
 		othercps.addAll(cps);
@@ -167,9 +167,9 @@ class DependencyResolverTest {
 		// using shrinkwrap resolves in ${os.detected.version} not being resolved
 		List<String> deps = Arrays.asList("com.github.docker-java:docker-java:3.1.5");
 
-		String classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, true);
+		ModularClassPath classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, true);
 
-		assertEquals(46, classpath.split(Settings.CP_SEPARATOR).length);
+		assertEquals(46, classpath.getClassPath().split(Settings.CP_SEPARATOR).length);
 
 	}
 
@@ -180,7 +180,8 @@ class DependencyResolverTest {
 		// using shrinkwrap resolves in ${os.detected.version} not being resolved
 		List<String> deps = Arrays.asList("org.openjfx:javafx-graphics:11.0.2:mac", "com.offbytwo:docopt:0.6+");
 
-		ModularClassPath cp = new ModularClassPath(dr.resolveDependencies(deps, Collections.emptyList(), false, true)) {
+		ModularClassPath cp = new ModularClassPath(
+				dr.resolveDependencies(deps, Collections.emptyList(), false, true).getArtifacts()) {
 			@Override
 			protected boolean supportsModules(String requestedVersion) {
 				return true;

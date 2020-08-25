@@ -13,27 +13,43 @@ public class ModularClassPath {
 
 	static final String JAVAFX_PREFIX = "javafx";
 
-	final String classPath;
-	boolean javafx = false;
+	private String classPath;
+	private final List<ArtifactInfo> artifacts;
+	private Optional<Boolean> javafx = Optional.empty();
 
-	public ModularClassPath(String classPath) {
-		this.classPath = classPath;
-		javafx = classPath.contains("org/openjfx/javafx-") || classPath.contains("org\\openjfx\\javafx-");
+	public ModularClassPath(List<ArtifactInfo> artifacts) {
+		this.artifacts = artifacts;
 	}
 
-	String getClassPath() {
+	public String getClassPath() {
+		if (classPath == null) {
+			classPath = artifacts	.stream()
+									.map(it -> it.asFile().getAbsolutePath())
+									.map(it -> it.contains(" ") ? '"' + it + '"' : it)
+									.distinct()
+									.collect(Collectors.joining(CP_SEPARATOR));
+		}
+
 		return classPath;
 	}
 
+	boolean hasJavaFX() {
+		if (!javafx.isPresent()) {
+			javafx = Optional.of(
+					getClassPath().contains("org/openjfx/javafx-") || getClassPath().contains("org\\openjfx\\javafx-"));
+		}
+		return javafx.get().booleanValue();
+	}
+
 	List<String> getAutoDectectedModuleArguments(String requestedVersion) {
-		if (javafx && supportsModules(requestedVersion)) {
+		if (hasJavaFX() && supportsModules(requestedVersion)) {
 			List<String> commandArguments = new ArrayList<>();
 
-			List<File> artifacts = Arrays	.stream(getClassPath().split(CP_SEPARATOR))
-											.map(it -> new File(it))
+			List<File> fileList = artifacts	.stream()
+											.map(it -> it.asFile())
 											.collect(Collectors.toList());
 
-			ResolvePathsRequest<File> result = ResolvePathsRequest	.ofFiles(artifacts)
+			ResolvePathsRequest<File> result = ResolvePathsRequest	.ofFiles(fileList)
 																	.setModuleDescriptor(
 																			JavaModuleDescriptor.newModule("bogus")
 																								.build());
@@ -82,7 +98,7 @@ public class ModularClassPath {
 				}
 
 			} catch (IOException io) {
-				// TODO: warn/log
+				Util.errorMsg("Error processing javafx modules", io);
 				return Collections.emptyList();
 			}
 			return commandArguments;
@@ -93,5 +109,9 @@ public class ModularClassPath {
 
 	protected boolean supportsModules(String requestedVersion) {
 		return JavaUtil.javaVersion(requestedVersion) >= 9;
+	}
+
+	public List<ArtifactInfo> getArtifacts() {
+		return artifacts;
 	}
 }

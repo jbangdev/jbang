@@ -438,9 +438,8 @@ public class Util {
 		return sb.toString();
 	}
 
+	// for gist we need to be smarter when it comes to downloading
 	private static String extractFileFromGist(String url) {
-		// TODO: for gist we need to be smarter when it comes to downloading as it gives
-		// an invalid flag when jbang compiles
 
 		try {
 			String gistapi = url.replaceFirst("^https://gist.github.com/(([a-zA-Z0-9]*)/)?(?<gistid>[a-zA-Z0-9]*)$",

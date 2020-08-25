@@ -20,11 +20,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem;
-import org.jboss.shrinkwrap.resolver.api.maven.Maven;
-import org.jboss.shrinkwrap.resolver.api.maven.MavenFormatStage;
-import org.jboss.shrinkwrap.resolver.api.maven.MavenStrategyStage;
-import org.jboss.shrinkwrap.resolver.api.maven.PackagingType;
+import org.jboss.shrinkwrap.resolver.api.maven.*;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinates;
 
@@ -47,7 +43,7 @@ public class DependencyUtil {
 	public static final Pattern gavPattern = Pattern.compile(
 			"^(?<groupid>[^:]*):(?<artifactid>[^:]*):(?<version>[^:@]*)(:(?<classifier>[^@]*))?(@(?<type>.*))?$");
 
-	public String resolveDependencies(List<String> deps, List<MavenRepo> repos,
+	public ModularClassPath resolveDependencies(List<String> deps, List<MavenRepo> repos,
 			boolean offline, boolean loggingEnabled) {
 		return resolveDependencies(deps, repos, offline, loggingEnabled, true);
 	}
@@ -59,12 +55,12 @@ public class DependencyUtil {
 	 * @param loggingEnabled
 	 * @return string with resolved classpath
 	 */
-	public String resolveDependencies(List<String> deps, List<MavenRepo> repos,
+	public ModularClassPath resolveDependencies(List<String> deps, List<MavenRepo> repos,
 			boolean offline, boolean loggingEnabled, boolean transitivity) {
 
 		// if no dependencies were provided we stop here
 		if (deps.isEmpty()) {
-			return "";
+			return new ModularClassPath(Collections.emptyList());
 		}
 
 		if (repos.isEmpty()) {
@@ -109,11 +105,12 @@ public class DependencyUtil {
 				// Make sure that local dependencies have not been wiped since resolving them
 				// (like by deleting .m2)
 				boolean allExists = Arrays.stream(cachedCP.split(CP_SEPARATOR)).allMatch(it -> new File(it).exists());
-				if (allExists) {
-					return cachedCP;
-				} else {
-					warnMsg("Detected missing dependencies in cache.");
-				}
+				// TODO: fix store/load of modularclasspath cache
+				// if (allExists) {
+				// return cachedCP;
+				// } else {
+				warnMsg("Detected missing dependencies in cache.");
+				// }
 			}
 		}
 
@@ -122,12 +119,10 @@ public class DependencyUtil {
 		}
 
 		try {
-			List<File> artifacts = resolveDependenciesViaAether(depIds, repos, offline, loggingEnabled, transitivity);
-			String classPath = artifacts.stream()
-										.map(it -> it.getAbsolutePath())
-										.map(it -> it.contains(" ") ? '"' + it + '"' : it)
-										.distinct()
-										.collect(Collectors.joining(CP_SEPARATOR));
+			List<ArtifactInfo> artifacts = resolveDependenciesViaAether(depIds, repos, offline, loggingEnabled,
+					transitivity);
+
+			ModularClassPath classPath = new ModularClassPath(artifacts);
 
 			if (loggingEnabled) {
 				infoMsg("Dependencies resolved");
@@ -139,7 +134,7 @@ public class DependencyUtil {
 					// Open given file in append mode.
 					try (BufferedWriter out = new BufferedWriter(
 							new FileWriter(Settings.getCacheDependencyFile().toFile(), true))) {
-						out.write(depsHash + " " + classPath + "\n");
+						out.write(depsHash + " " + classPath.getClassPath() + "\n");
 					}
 				} catch (IOException e) {
 					errorMsg("Could not write to cache:" + e.getMessage(), e);
@@ -158,7 +153,7 @@ public class DependencyUtil {
 		}
 	}
 
-	public List<File> resolveDependenciesViaAether(List<String> depIds, List<MavenRepo> customRepos,
+	public List<ArtifactInfo> resolveDependenciesViaAether(List<String> depIds, List<MavenRepo> customRepos,
 			boolean offline, boolean loggingEnabled, boolean transitively) {
 
 		ConfigurableMavenResolverSystem resolver = Maven.configureResolver()
@@ -176,7 +171,7 @@ public class DependencyUtil {
 			if (loggingEnabled)
 				System.err.print(String.format("[jbang]     Resolving %s...", it));
 
-			List<File> artifacts;
+			List<MavenResolvedArtifact> artifacts;
 			try {
 				MavenStrategyStage resolve = resolver.resolve(depIdToArtifact(it).toCanonicalForm());
 				MavenFormatStage stage = null;
@@ -186,7 +181,7 @@ public class DependencyUtil {
 				} else {
 					stage = resolve.withoutTransitivity();
 				}
-				artifacts = stage.asList(File.class); // , RUNTIME);
+				artifacts = stage.asList(MavenResolvedArtifact.class); // , RUNTIME);
 			} catch (RuntimeException e) {
 				throw new ExitException(1, "Could not resolve dependency", e);
 			}
@@ -194,7 +189,7 @@ public class DependencyUtil {
 			if (loggingEnabled)
 				System.err.println("Done");
 
-			return artifacts.stream();
+			return artifacts.stream().map(xx -> new ArtifactInfoShrinkWrap(xx));
 		}).collect(Collectors.toList());
 	}
 

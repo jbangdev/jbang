@@ -2,19 +2,19 @@ package dev.jbang.cli;
 
 import static dev.jbang.cli.BaseScriptCommand.*;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.matchesPattern;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,6 +24,10 @@ import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.collection.IsCollectionWithSize;
 import org.junit.Rule;
@@ -31,6 +35,9 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import dev.jbang.ExitException;
 import dev.jbang.Script;
@@ -364,7 +371,54 @@ public class TestRun {
 	}
 
 	@Test
-	void testDualClasses(@TempDir File output) throws IOException {
+	void testBuildPom(@TempDir File output) throws IOException, ParserConfigurationException, SAXException {
+
+		String base = "//usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n" +
+				"//DEPS info.picocli:picocli:4.5.0\n" +
+				"\n" +
+				"import static java.lang.System.*;\n" +
+				"\n" +
+				"public class aclass {\n" +
+				"\n" +
+				"    public static void main(String... args) {\n" +
+				"        out.println(\"Hello \" + (args.length>0?args[0]:\"World\"));\n" +
+				"    }\n" +
+				"}\n";
+
+		File f = new File(output, "aclass.java");
+
+		Util.writeString(f.toPath(), base);
+
+		Run m = new Run();
+
+		Script script = new Script(f, null, null);
+		m.build(script);
+
+		assertThat(script.getMainClass(), equalTo("aclass"));
+
+		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), null)) {
+			Path fileToExtract = fileSystem.getPath("META-INF/maven/g/a/v/pom.xml");
+
+			ByteArrayOutputStream s = new ByteArrayOutputStream();
+
+			Files.copy(fileToExtract, s);
+
+			String xml = s.toString("UTF-8");
+
+			assertThat(xml, not(containsString("NOT")));
+
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			Document doc = dBuilder.parse(new InputSource(new StringReader(xml)));
+
+			assertThat(doc, hasXPath("/project/dependencies/dependency"));
+		}
+		;
+
+	}
+
+	@Test
+	void testDualClasses(@TempDir File output) throws IOException, ParserConfigurationException, SAXException {
 
 		String base = "//usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n" +
 				"// //DEPS <dependency1> <dependency2>\n" +
@@ -392,6 +446,7 @@ public class TestRun {
 		m.build(script);
 
 		assertThat(script.getMainClass(), equalTo("dualclass"));
+
 	}
 
 	// started failing 403 when run in github...

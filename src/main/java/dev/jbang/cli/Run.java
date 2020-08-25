@@ -20,6 +20,7 @@ import org.apache.commons.text.StringEscapeUtils;
 
 import dev.jbang.*;
 
+import io.quarkus.qute.Template;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "run", description = "Compile and run provided .java/.jsh script.")
@@ -124,14 +125,21 @@ public class Run extends BaseScriptCommand {
 			optionList.addAll(Arrays.asList(script.getBackingFile().getPath()));
 
 			// add additional files
-			/**
-			 * Template pomTemplate =
-			 * Settings.getTemplateEngine().getTemplate("pom.qute.xml");
-			 * 
-			 * if (pomTemplate == null) { // ignore Util.warnMsg("Could not locate pom.xml
-			 * template"); } else { String pomfile = pomTemplate .data("baseName",
-			 * Util.getBaseName(script.getBackingFile().getName())) .render(); }
-			 */
+			Template pomTemplate = Settings.getTemplateEngine().getTemplate("pom.qute.xml");
+
+			if (pomTemplate == null) {
+				// ignore
+				Util.warnMsg("Could not locate pom.xml template");
+			} else {
+				String pomfile = pomTemplate
+											.data("baseName", Util.getBaseName(script.getBackingFile().getName()))
+											.data("dependencies", script.getClassPath().getArtifacts().stream())
+											.render();
+				File p = new File(tmpJarDir, "META-INF/maven/g/a/v/pom.xml");
+				p.getParentFile().mkdirs();
+				Util.writeString(p.toPath(), pomfile);
+			}
+
 			info("Building jar...");
 			debug("compile: " + String.join(" ", optionList));
 
@@ -264,7 +272,7 @@ public class Run extends BaseScriptCommand {
 				}
 
 				if (enableFlightRecording()) {
-					// TODO: ensure ~/.jbang/script.jfc is created to configure flightrecorder to
+					// TODO: find way to generate ~/.jbang/script.jfc to configure flightrecorder to
 					// have 0 ms thresholds
 					String jfropt = "-XX:StartFlightRecording=" + flightRecorderString.replace("{baseName}",
 							Util.getBaseName(script.getBackingFile().toString()));

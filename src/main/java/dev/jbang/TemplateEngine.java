@@ -7,17 +7,19 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
-import io.quarkus.qute.Engine;
-import io.quarkus.qute.Template;
-import io.quarkus.qute.TemplateLocator;
-import io.quarkus.qute.Variant;
+import io.quarkus.qute.*;
 
 public class TemplateEngine {
 
 	final Engine engine;
 
 	TemplateEngine() {
-		engine = Engine.builder().addDefaults().addLocator(this::locate).build();
+		engine = Engine	.builder()
+						.addDefaults()
+						.removeStandaloneLines(true)
+						.addValueResolver(new ReflectionValueResolver())
+						.addLocator(this::locate)
+						.build();
 	}
 
 	private URL locatePath(String path) {

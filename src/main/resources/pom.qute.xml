@@ -7,12 +7,13 @@
 	<artifactId>{baseName}</artifactId>
 	<version>999-SNAPSHOT</version>
 	<dependencies>
-			{#for item in dependencies}
-			<dependency>
-			<groupId>{item.group}</groupId>
-			<artifactId>{item.artifact}</artifactId>
-			<versionId>{item.version}</versionId>
+		{#for item in dependencies}
+		<dependency>
+			<groupId>{item.coordinate.groupId}</groupId>
+			<artifactId>{item.coordinate.artifactId}</artifactId>
+			<version>{item.coordinate.version}</version>
 			<scope>compile</scope>
-		    {/for}
+		</dependency>
+		{/for}
 	</dependencies>
 </project>
