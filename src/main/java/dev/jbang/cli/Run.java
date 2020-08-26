@@ -118,8 +118,8 @@ public class Run extends BaseScriptCommand {
 		boolean nativeBuildRequired = nativeImage && !getImageName(outjar).exists();
 		Path externalNativeImage = null;
 		String requestedJavaVersion = javaVersion != null ? javaVersion : script.javaVersion();
-		//always build the jar for native mode
-		//it allows integrations the options to produce the native image
+		// always build the jar for native mode
+		// it allows integrations the options to produce the native image
 		if (!outjar.exists() || JavaUtil.javaVersion(requestedJavaVersion) < script.getBuildJdk()
 				|| nativeBuildRequired) {
 			List<String> optionList = new ArrayList<String>();

@@ -868,6 +868,35 @@ launch faster on consecutive runs.
 
 The caching goes to `~/.jbang/cache` by default, you can run `jbang cache clear` to remove all cache data from this folder.
 
+== Build Integration [EXPERIMENTAL]
+
+While jbang prepares and build the underlying jar used for launch there is since v0.40 (for now) experimental API allowing
+user included dependencies to influence the generated jar and possible native image. An example could be to have Quarkus participate
+to perform its buildtime optimizations rather than doing it at runtime every time.
+
+It works as following:
+
+jbang will before the jar is created scan the classpath for `META-INF/jbang-integration.list`.
+Any classese listed in this file will be loaded and jbang will expect and call the following method on these classes:
+
+[source,java]
+----
+/**
+*
+* @param param builddir directory which will be made into a jar when build is done
+* @param pomFile location of pom.xml representing the projects dependencies
+* @param dependencies list of GAV to Path of artifact/classpath dependencies
+* @param nativeImage true if --native been requested
+* @return Mao<String, Object> map of returns; special keys are "native-image" which is a and "files" to
+*          return native-image to be run and list of files to get written to the output directory.
+*
+*/
+Map<String, Object> postBuild(Path builddir, Path pomFile, List<Map.Entry<String, Path>> dependencies,
+            boolean nativeImage)
+----
+
+Still very experimental and bound to change.
+
 == FAQ
 
 [qanda]
