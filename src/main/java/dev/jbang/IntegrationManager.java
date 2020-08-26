@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  */
 public class IntegrationManager {
 
-	public static void runIntegration(List<ArtifactInfo> artifacts, Path tmpJarDir, Path pomPath) {
+	public static void runIntegration(List<ArtifactInfo> artifacts, Path tmpJarDir, Path pomPath, Script script) {
 		System.out.println("Test");
 		URL[] urls = artifacts.stream().map(s -> {
 			try {
@@ -36,6 +36,7 @@ public class IntegrationManager {
 				throw new RuntimeException(e);
 			}
 		}).toArray(URL[]::new);
+		List<String> comments = script.getLines().stream().filter(s -> s.startsWith("//")).collect(Collectors.toList());
 		URLClassLoader integrationCl = new URLClassLoader(urls);
 		ClassLoader old = Thread.currentThread().getContextClassLoader();
 		Map<String, byte[]> data = new HashMap<>();
@@ -48,8 +49,8 @@ public class IntegrationManager {
 			Set<String> classNames = loadIntegrationClassNames(integrationCl);
 			for (String className : classNames) {
 				Class<?> clazz = Class.forName(className, true, integrationCl);
-				Method method = clazz.getDeclaredMethod("postBuild", Path.class, Path.class, List.class);
-				Map<String, byte[]> ret = (Map<String, byte[]>) method.invoke(null, tmpJarDir, pomPath, deps);
+				Method method = clazz.getDeclaredMethod("postBuild", Path.class, Path.class, List.class, List.class);
+				Map<String, byte[]> ret = (Map<String, byte[]>) method.invoke(null, tmpJarDir, pomPath, deps, comments);
 				data.putAll(ret);
 			}
 			for (Map.Entry<String, byte[]> entry : data.entrySet()) {

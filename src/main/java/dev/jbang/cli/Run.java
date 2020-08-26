@@ -187,7 +187,8 @@ public class Run extends BaseScriptCommand {
 				throw new ExitException(1, e);
 			}
 			script.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
-			IntegrationManager.runIntegration(script.getClassPath().getArtifacts(), tmpJarDir.toPath(), pomPath);
+			IntegrationManager.runIntegration(script.getClassPath().getArtifacts(), tmpJarDir.toPath(), pomPath,
+					script);
 			script.createJarFile(tmpJarDir, outjar);
 		}
 

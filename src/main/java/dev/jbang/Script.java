@@ -87,7 +87,7 @@ public class Script {
 		this.properties = properties;
 	}
 
-	private List<String> getLines() {
+	List<String> getLines() {
 		if (lines == null) {
 			lines = Arrays.asList(script.split("\\r?\\n"));
 		}
