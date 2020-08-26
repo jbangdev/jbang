@@ -127,6 +127,7 @@ public class Run extends BaseScriptCommand {
 			// add additional files
 			Template pomTemplate = Settings.getTemplateEngine().getTemplate("pom.qute.xml");
 
+			Path pomPath = null;
 			if (pomTemplate == null) {
 				// ignore
 				Util.warnMsg("Could not locate pom.xml template");
@@ -135,9 +136,9 @@ public class Run extends BaseScriptCommand {
 											.data("baseName", Util.getBaseName(script.getBackingFile().getName()))
 											.data("dependencies", script.getClassPath().getArtifacts().stream())
 											.render();
-				File p = new File(tmpJarDir, "META-INF/maven/g/a/v/pom.xml");
-				p.getParentFile().mkdirs();
-				Util.writeString(p.toPath(), pomfile);
+				pomPath = new File(tmpJarDir, "META-INF/maven/g/a/v/pom.xml").toPath();
+				Files.createDirectories(pomPath.getParent());
+				Util.writeString(pomPath, pomfile);
 			}
 
 			info("Building jar...");
@@ -183,6 +184,7 @@ public class Run extends BaseScriptCommand {
 				throw new ExitException(1, e);
 			}
 			script.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
+			IntegrationManager.runIntegration(script.getClassPath().getArtifacts(), tmpJarDir.toPath(), pomPath);
 			script.createJarFile(tmpJarDir, outjar);
 		}
 
