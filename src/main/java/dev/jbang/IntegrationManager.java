@@ -22,13 +22,27 @@ import java.util.stream.Collectors;
 
 /**
  * JBang uses a 'convention based interface' for build time integration.
- *
- *
  */
 public class IntegrationManager {
 
-	public static void runIntegration(List<ArtifactInfo> artifacts, Path tmpJarDir, Path pomPath, Script script) {
-		System.out.println("Test");
+	public static final String FILES = "files";
+	public static final String NATIVE_IMAGE = "native-image";
+
+	/**
+	 * Discovers all integration points and runs them.
+	 * <p>
+	 * If an integration point created a native image it returns the resulting
+	 * image.
+	 *
+	 * @param artifacts
+	 * @param tmpJarDir
+	 * @param pomPath
+	 * @param script
+	 * @param nativeRequested
+	 * @return
+	 */
+	public static Path runIntegration(List<ArtifactInfo> artifacts, Path tmpJarDir, Path pomPath, Script script,
+			boolean nativeRequested) {
 		URL[] urls = artifacts.stream().map(s -> {
 			try {
 				return s.asFile().toURI().toURL();
@@ -44,17 +58,26 @@ public class IntegrationManager {
 														.map(s -> new MapEntry(s.getCoordinate().toCanonicalForm(),
 																s.asFile().toPath()))
 														.collect(Collectors.toList());
+		Path nativeImage = null;
 		try {
 			Thread.currentThread().setContextClassLoader(integrationCl);
 			Set<String> classNames = loadIntegrationClassNames(integrationCl);
 			for (String className : classNames) {
 				Class<?> clazz = Class.forName(className, true, integrationCl);
-				Method method = clazz.getDeclaredMethod("postBuild", Path.class, Path.class, List.class, List.class);
-				Map<String, byte[]> ret = (Map<String, byte[]>) method.invoke(null, tmpJarDir, pomPath, deps, comments);
-				data.putAll(ret);
+				Method method = clazz.getDeclaredMethod("postBuild", Path.class, Path.class, List.class, List.class,
+						boolean.class);
+				Map<String, Object> integrationResult = (Map<String, Object>) method.invoke(null, tmpJarDir, pomPath,
+						deps, comments, nativeRequested);
+				Map<String, byte[]> ret = (Map<String, byte[]>) integrationResult.get(FILES);
+				if (ret != null) {
+					data.putAll(ret);
+				}
+				Path image = (Path) integrationResult.get(NATIVE_IMAGE);
+				if (image != null) {
+					nativeImage = image;
+				}
 			}
 			for (Map.Entry<String, byte[]> entry : data.entrySet()) {
-				Util.verboseMsg("writing " + entry.getKey());
 				Path target = tmpJarDir.resolve(entry.getKey());
 				Files.createDirectories(target.getParent());
 				try (OutputStream out = Files.newOutputStream(target)) {
@@ -72,6 +95,7 @@ public class IntegrationManager {
 		} finally {
 			Thread.currentThread().setContextClassLoader(old);
 		}
+		return nativeImage;
 
 	}
 

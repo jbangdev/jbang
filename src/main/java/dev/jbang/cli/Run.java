@@ -115,6 +115,7 @@ public class Run extends BaseScriptCommand {
 			}
 		}
 
+		Path externalNativeImage = null;
 		String requestedJavaVersion = javaVersion != null ? javaVersion : script.javaVersion();
 		if (!outjar.exists() || JavaUtil.javaVersion(requestedJavaVersion) < script.getBuildJdk()) {
 			List<String> optionList = new ArrayList<String>();
@@ -187,42 +188,47 @@ public class Run extends BaseScriptCommand {
 				throw new ExitException(1, e);
 			}
 			script.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
-			IntegrationManager.runIntegration(script.getClassPath().getArtifacts(), tmpJarDir.toPath(), pomPath,
-					script);
+			externalNativeImage = IntegrationManager.runIntegration(script.getClassPath().getArtifacts(),
+					tmpJarDir.toPath(), pomPath,
+					script, nativeImage);
 			script.createJarFile(tmpJarDir, outjar);
 		}
 
 		if (nativeImage && !getImageName(outjar).exists()) {
-			List<String> optionList = new ArrayList<String>();
-			optionList.add(resolveInGraalVMHome("native-image", requestedJavaVersion));
+			if (externalNativeImage != null) {
+				Files.move(externalNativeImage, getImageName(outjar).toPath());
+			} else {
+				List<String> optionList = new ArrayList<String>();
+				optionList.add(resolveInGraalVMHome("native-image", requestedJavaVersion));
 
-			optionList.add("-H:+ReportExceptionStackTraces");
+				optionList.add("-H:+ReportExceptionStackTraces");
 
-			optionList.add("--enable-https");
+				optionList.add("--enable-https");
 
-			String classpath = script.resolveClassPath(offline);
-			if (!classpath.trim().isEmpty()) {
-				optionList.add("--class-path=" + classpath);
-			}
+				String classpath = script.resolveClassPath(offline);
+				if (!classpath.trim().isEmpty()) {
+					optionList.add("--class-path=" + classpath);
+				}
 
-			optionList.add("-jar");
-			optionList.add(outjar.toString());
+				optionList.add("-jar");
+				optionList.add(outjar.toString());
 
-			optionList.add(getImageName(outjar).toString());
+				optionList.add(getImageName(outjar).toString());
 
-			File nilog = File.createTempFile("jbang", "native-image");
-			debug("native-image: " + String.join(" ", optionList));
-			info("log: " + nilog.toString());
+				File nilog = File.createTempFile("jbang", "native-image");
+				debug("native-image: " + String.join(" ", optionList));
+				info("log: " + nilog.toString());
 
-			Process process = new ProcessBuilder(optionList).inheritIO().redirectOutput(nilog).start();
-			try {
-				process.waitFor();
-			} catch (InterruptedException e) {
-				throw new ExitException(1, e);
-			}
+				Process process = new ProcessBuilder(optionList).inheritIO().redirectOutput(nilog).start();
+				try {
+					process.waitFor();
+				} catch (InterruptedException e) {
+					throw new ExitException(1, e);
+				}
 
-			if (process.exitValue() != 0) {
-				throw new ExitException(1, "Error during native-image");
+				if (process.exitValue() != 0) {
+					throw new ExitException(1, "Error during native-image");
+				}
 			}
 		}
 		script.setJar(outjar);
