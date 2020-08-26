@@ -1,5 +1,8 @@
 package dev.jbang;
 
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +12,7 @@ import picocli.CommandLine;
 
 public class Main {
 	public static void main(String... args) {
+		System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.err)));
 		CommandLine cli = Jbang.getCommandLine();
 		args = handleDefaultRun(cli.getCommandSpec(), args);
 		int exitcode = cli.execute(args);

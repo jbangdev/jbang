@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 public class IntegrationManager {
 
 	public static void runIntegration(List<ArtifactInfo> artifacts, Path tmpJarDir, Path pomPath) {
+		System.out.println("Test");
 		URL[] urls = artifacts.stream().map(s -> {
 			try {
 				return s.asFile().toURI().toURL();

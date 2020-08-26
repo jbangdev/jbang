@@ -1,9 +1,10 @@
 package dev.jbang.cli;
 
-import static java.lang.System.*;
-
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -74,6 +75,8 @@ public class Run extends BaseScriptCommand {
 	@CommandLine.Option(names = {
 			"-n", "--native" }, description = "Build via native-image and run", defaultValue = "false")
 	boolean nativeImage;
+
+	PrintStream out = new PrintStream(new FileOutputStream(FileDescriptor.out));
 
 	@Override
 	public Integer doCall() throws IOException {
@@ -430,11 +433,11 @@ public class Run extends BaseScriptCommand {
 	}
 
 	private static String resolveInEnv(String env, String cmd) {
-		if (getenv(env) != null) {
+		if (System.getenv(env) != null) {
 			if (Util.isWindows()) {
 				cmd = cmd + ".exe";
 			}
-			return new File(getenv(env)).toPath().resolve("bin").resolve(cmd).toAbsolutePath().toString();
+			return new File(System.getenv(env)).toPath().resolve("bin").resolve(cmd).toAbsolutePath().toString();
 		} else {
 			return cmd;
 		}
