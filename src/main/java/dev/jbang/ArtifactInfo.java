@@ -1,30 +1,34 @@
 package dev.jbang;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinates;
 
 /**
- * Interface describing artifact coordinates and its resolved physical location.
+ * class describing artifact coordinates and its resolved physical location.
  */
-public interface ArtifactInfo {
-	MavenCoordinate getCoordinate();
+public class ArtifactInfo {
 
-	File asFile();
+	private final MavenCoordinate coordinate;
+	private final File file;
 
-	default public String toExternalString() {
+	ArtifactInfo(MavenCoordinate coordinate, File file) {
+		this.coordinate = coordinate;
+		this.file = file;
+	}
+
+	public MavenCoordinate getCoordinate() {
+		return coordinate;
+	}
+
+	public File asFile() {
+		return file;
+	}
+
+	public String toString() {
 		String path = asFile().getAbsolutePath();
-
-		try {
-			path = URLEncoder.encode(path, StandardCharsets.UTF_8.toString());
-		} catch (UnsupportedEncodingException e) {
-			Util.errorMsg("Could not encode " + path, e);
-		}
-
 		return getCoordinate().toCanonicalForm() + "=" + path;
 	}
 
@@ -34,18 +38,22 @@ public interface ArtifactInfo {
 				externalString.substring(0, externalString.indexOf("=")));
 		File file = new File(externalString.substring(externalString.indexOf("=") + 1, externalString.length()));
 
-		return new ArtifactInfo() {
-
-			@Override
-			public MavenCoordinate getCoordinate() {
-				return coordinate;
-			}
-
-			@Override
-			public File asFile() {
-				return file;
-			}
-		};
+		return new ArtifactInfo(coordinate, file);
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		ArtifactInfo that = (ArtifactInfo) o;
+		return Objects.equals(coordinate, that.coordinate) &&
+				Objects.equals(file, that.file);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(coordinate, file);
+	}
 }

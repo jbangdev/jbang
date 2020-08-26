@@ -3,18 +3,10 @@ package dev.jbang;
 import static dev.jbang.Settings.CP_SEPARATOR;
 import static dev.jbang.Util.errorMsg;
 import static dev.jbang.Util.infoMsg;
-import static dev.jbang.Util.warnMsg;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -79,40 +71,15 @@ public class DependencyUtil {
 		}
 
 		String depsHash = String.join(CP_SEPARATOR, depIds);
-		Map<String, String> cache = Collections.emptyMap();
-		// Use cached classpath from previous run if present if
-		// TODO: does not handle spaces in ~/.m2 folder.
-		if (transitivity && Files.isRegularFile(Settings.getCacheDependencyFile())) {
-			try {
 
-				cache = Files	.readAllLines(Settings.getCacheDependencyFile())
-								.stream()
-								.filter(it -> !it.trim().isEmpty())
-								.collect(Collectors.toMap(
-										it -> it.split(" ")[0],
-										it -> it.split(" ")[1],
-										(k1, k2) -> {
-											return k2;
-										} // in case of duplicates, last one wins
-								));
-			} catch (IOException e) {
-				warnMsg("Could not access cache " + e.getMessage());
-			}
+		List<ArtifactInfo> cachedDeps = null;
 
-			if (cache.containsKey(depsHash)) {
-				String cachedCP = cache.get(depsHash);
-
-				// Make sure that local dependencies have not been wiped since resolving them
-				// (like by deleting .m2)
-				boolean allExists = Arrays.stream(cachedCP.split(CP_SEPARATOR)).allMatch(it -> new File(it).exists());
-				// TODO: fix store/load of modularclasspath cache
-				// if (allExists) {
-				// return cachedCP;
-				// } else {
-				warnMsg("Detected missing dependencies in cache.");
-				// }
-			}
+		if (transitivity) {
+			cachedDeps = Settings.findDependenciesInCache(depsHash);
 		}
+
+		if (cachedDeps != null)
+			return new ModularClassPath(cachedDeps);
 
 		if (loggingEnabled) {
 			infoMsg("Resolving dependencies...");
@@ -129,16 +96,7 @@ public class DependencyUtil {
 			}
 
 			if (transitivity) { // only cache when doing transitive lookups
-				// Add classpath to cache
-				try {
-					// Open given file in append mode.
-					try (BufferedWriter out = new BufferedWriter(
-							new FileWriter(Settings.getCacheDependencyFile().toFile(), true))) {
-						out.write(depsHash + " " + classPath.getClassPath() + "\n");
-					}
-				} catch (IOException e) {
-					errorMsg("Could not write to cache:" + e.getMessage(), e);
-				}
+				Settings.cacheDependencies(depsHash, classPath.getArtifacts());
 			}
 
 			// Print the classpath
@@ -189,7 +147,7 @@ public class DependencyUtil {
 			if (loggingEnabled)
 				System.err.println("Done");
 
-			return artifacts.stream().map(xx -> new ArtifactInfoShrinkWrap(xx));
+			return artifacts.stream().map(xx -> new ArtifactInfo(xx.getCoordinate(), xx.asFile()));
 		}).collect(Collectors.toList());
 	}
 

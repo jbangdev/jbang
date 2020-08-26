@@ -871,8 +871,9 @@ The caching goes to `~/.jbang/cache` by default, you can run `jbang cache clear`
 == Build Integration [EXPERIMENTAL]
 
 While jbang prepares and build the underlying jar used for launch there is since v0.40 (for now) experimental API allowing
-user included dependencies to influence the generated jar and possible native image. An example could be to have Quarkus participate
-to perform its buildtime optimizations rather than doing it at runtime every time.
+user included dependencies to influence the generated jar and possible native image.
+
+An example usecase this enables is to have full Quarkus integration, `jbang quarkuscode.java` will have Quarkus participate to perform its buildtime optimizations rather than doing it at runtime every time.
 
 It works as following:
 
@@ -895,7 +896,7 @@ Map<String, Object> postBuild(Path builddir, Path pomFile, List<Map.Entry<String
             boolean nativeImage)
 ----
 
-Still very experimental and bound to change.
+Still very experimental and bound to change. Example of its use can be found in https://github.com/quarkusio/quarkus/pull/11542[Quarkus].
 
 == FAQ
 

@@ -66,8 +66,10 @@ public class IntegrationManager {
 				Class<?> clazz = Class.forName(className, true, integrationCl);
 				Method method = clazz.getDeclaredMethod("postBuild", Path.class, Path.class, List.class, List.class,
 						boolean.class);
+				@SuppressWarnings("unchecked")
 				Map<String, Object> integrationResult = (Map<String, Object>) method.invoke(null, tmpJarDir, pomPath,
 						deps, comments, nativeRequested);
+				@SuppressWarnings("unchecked")
 				Map<String, byte[]> ret = (Map<String, byte[]>) integrationResult.get(FILES);
 				if (ret != null) {
 					data.putAll(ret);

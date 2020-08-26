@@ -142,7 +142,7 @@ public class Run extends BaseScriptCommand {
 			} else {
 				String pomfile = pomTemplate
 											.data("baseName", Util.getBaseName(script.getBackingFile().getName()))
-											.data("dependencies", script.getClassPath().getArtifacts().stream())
+											.data("dependencies", script.getClassPath().getArtifacts())
 											.render();
 				pomPath = new File(tmpJarDir, "META-INF/maven/g/a/v/pom.xml").toPath();
 				Files.createDirectories(pomPath.getParent());

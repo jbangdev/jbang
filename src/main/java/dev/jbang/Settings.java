@@ -1,11 +1,18 @@
 package dev.jbang;
 
-import java.io.File;
-import java.io.IOException;
+import static dev.jbang.Util.warnMsg;
+
+import java.io.*;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+
+import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinates;
+
+import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 
 import io.quarkus.qute.Template;
 
@@ -20,10 +27,13 @@ public class Settings {
 	public static final String CATALOGS_JSON = "catalogs.json";
 	public static final String TRUSTED_SOURCES_JSON = "trusted-sources.json";
 	public static final String DEPENDENCY_CACHE_TXT = "dependency_cache.txt";
+	public static final String DEPENDENCY_CACHE_JSON = "dependency_cache.json";
 
 	final public static String CP_SEPARATOR = File.pathSeparator;
 
 	private static TrustedSources trustedSources;
+
+	static Map<String, List<ArtifactInfo>> cache = null;
 
 	public static File getLocalMavenRepo() {
 		return new File(System.getenv().getOrDefault(JBANG_REPO, System.getProperty("user.home") + "/.m2/repository"))
@@ -31,7 +41,7 @@ public class Settings {
 	}
 
 	public static Path getCacheDependencyFile() {
-		return getCacheDir(true).resolve(DEPENDENCY_CACHE_TXT);
+		return getCacheDir(true).resolve(DEPENDENCY_CACHE_JSON);
 	}
 
 	public static Path getConfigDir(boolean init) {
@@ -238,6 +248,82 @@ public class Settings {
 				Util.warnMsg("Unable to remove catalog: " + ex.getMessage());
 			}
 		}
+	}
+
+	static protected void clearDependencyCache() {
+		cache = null;
+	}
+
+	protected static void cacheDependencies(String depsHash, List<ArtifactInfo> artifacts) {
+		// Add classpath to cache
+
+		if (cache == null) {
+			cache = new HashMap<>(1);
+		}
+		cache.put(depsHash, artifacts);
+
+		try (Writer out = Files.newBufferedWriter(getCacheDependencyFile())) {
+			JsonSerializer<ArtifactInfo> serializer = new JsonSerializer<ArtifactInfo>() {
+				@Override
+				public JsonElement serialize(ArtifactInfo src, Type typeOfSrc, JsonSerializationContext context) {
+					JsonObject json = new JsonObject();
+					json.addProperty("gav", src.getCoordinate().toCanonicalForm());
+					json.addProperty("file", src.asFile().getPath());
+					return json;
+				}
+			};
+			Gson parser = new GsonBuilder()
+											.setPrettyPrinting()
+											.registerTypeAdapter(ArtifactInfo.class, serializer)
+											.create();
+
+			parser.toJson(cache, out);
+		} catch (IOException e) {
+			Util.errorMsg("Issue writing to dependency cache", e);
+		}
+	}
+
+	protected static List<ArtifactInfo> findDependenciesInCache(String depsHash) {
+		// Use cached classpath from previous run if present if
+		if (cache == null && Files.isRegularFile(Settings.getCacheDependencyFile())) {
+
+			try (Reader out = Files.newBufferedReader(getCacheDependencyFile())) {
+				JsonDeserializer<ArtifactInfo> serializer = new JsonDeserializer<ArtifactInfo>() {
+					@Override
+					public ArtifactInfo deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+							throws JsonParseException {
+						JsonObject jsonObject = json.getAsJsonObject();
+
+						return new ArtifactInfo(MavenCoordinates.createCoordinate(jsonObject.get("gav").getAsString()),
+								new File(jsonObject.get("file").getAsString()));
+					}
+				};
+				Gson parser = new GsonBuilder()
+												.setPrettyPrinting()
+												.registerTypeAdapter(ArtifactInfo.class, serializer)
+												.create();
+
+				Type empMapType = new TypeToken<Map<String, List<ArtifactInfo>>>() {
+				}.getType();
+				cache = parser.fromJson(out, empMapType);
+			} catch (IOException e) {
+				Util.errorMsg("Issue writing to dependency cache", e);
+			}
+		}
+
+		if (cache != null && cache.containsKey(depsHash)) {
+			List<ArtifactInfo> cachedCP = cache.get(depsHash);
+
+			// Make sure that local dependencies have not been wiped since resolving them
+			// (like by deleting .m2)
+			boolean allExists = cachedCP.stream().allMatch(it -> it.asFile().exists());
+			if (allExists) {
+				return cachedCP;
+			} else {
+				warnMsg("Detected missing dependencies in cache.");
+			}
+		}
+		return null;
 	}
 
 }
