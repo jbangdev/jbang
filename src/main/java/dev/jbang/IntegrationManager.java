@@ -1,10 +1,6 @@
 package dev.jbang;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -19,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import picocli.CommandLine;
 
 /**
  * JBang uses a 'convention based interface' for build time integration.
@@ -59,6 +57,7 @@ public class IntegrationManager {
 																s.asFile().toPath()))
 														.collect(Collectors.toList());
 		Path nativeImage = null;
+		PrintStream oldout = System.out;
 		try {
 			Thread.currentThread().setContextClassLoader(integrationCl);
 			Set<String> classNames = loadIntegrationClassNames(integrationCl);
@@ -66,6 +65,19 @@ public class IntegrationManager {
 				Class<?> clazz = Class.forName(className, true, integrationCl);
 				Method method = clazz.getDeclaredMethod("postBuild", Path.class, Path.class, List.class, List.class,
 						boolean.class);
+				Util.infoMsg("Post build with " + className);
+
+				if (Util.isVerbose()) {
+					System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.err)));
+				} else {
+					System.setOut(new PrintStream(new OutputStream() {
+						public void write(int b) {
+							// DO NOTHING
+							// TODO: capture it for later print if error
+						}
+					}));
+				}
+
 				@SuppressWarnings("unchecked")
 				Map<String, Object> integrationResult = (Map<String, Object>) method.invoke(null, tmpJarDir, pomPath,
 						deps, comments, nativeRequested);
@@ -87,15 +99,17 @@ public class IntegrationManager {
 				}
 			}
 		} catch (ClassNotFoundException e) {
-			throw new RuntimeException("Unable to load integration class", e);
+			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Unable to load integration class", e);
 		} catch (NoSuchMethodException e) {
-			throw new RuntimeException(
+			throw new ExitException(
+					CommandLine.ExitCode.SOFTWARE,
 					"Integration class missing method with signature public static Map<String, byte[]> postBuild(Path classesDir, Path pomFile, List<Map.Entry<String, Path>> dependencies)",
 					e);
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Issue running postBuild()", e);
 		} finally {
 			Thread.currentThread().setContextClassLoader(old);
+			System.setOut(oldout);
 		}
 		return nativeImage;
 
