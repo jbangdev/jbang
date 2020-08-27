@@ -1,0 +1,18 @@
+//usr/bin/env jbang "$0" "$@" ; exit $?
+
+//DEPS io.quarkus:quarkus-resteasy:999-SNAPSHOT
+//DEPS io.quarkus:quarkus-smallrye-openapi:999-SNAPSHOT
+// Comment out below to have swagger-ui available at /swagger-ui
+// //DEPS io.quarkus:quarkus-swagger-ui:999-SNAPSHOT
+// //CONFIG quarkus.swagger-ui.always-include=true
+import io.quarkus.runtime.QuarkusApplication;
+import io.quarkus.runtime.annotations.QuarkusMain;
+
+@QuarkusMain
+public class HelloWorldMain implements QuarkusApplication {
+  @Override
+  public int run(String... args) throws Exception {
+    System.out.println("Hello World");
+    return 10;
+ }
+}

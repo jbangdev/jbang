@@ -35,5 +35,5 @@ curl -X POST \
     -H "Consumer-Token: ${SDKMAN_CONSUMER_TOKEN}" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
-    -d '{"text": "Jbang '${jbang_version}' released on SDKMAN! Checkout https://github.com/jbangdev/jbang/releases/tag/v'${jbang_version}'. Follow @jbangdev #jbang"}' \
+    -d '{"text": "Jbang '${jbang_version}' Checkout https://github.com/jbangdev/jbang/releases/tag/v'${jbang_version}'. Follow @jbangdev."}' \
     https://vendors.sdkman.io/announce/freeform
