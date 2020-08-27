@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.Objects;
 
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
-import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinates;
 
 /**
  * class describing artifact coordinates and its resolved physical location.
@@ -30,15 +29,6 @@ public class ArtifactInfo {
 	public String toString() {
 		String path = asFile().getAbsolutePath();
 		return getCoordinate().toCanonicalForm() + "=" + path;
-	}
-
-	static public ArtifactInfo fromExternalString(String externalString) {
-
-		MavenCoordinate coordinate = MavenCoordinates.createCoordinate(
-				externalString.substring(0, externalString.indexOf("=")));
-		File file = new File(externalString.substring(externalString.indexOf("=") + 1, externalString.length()));
-
-		return new ArtifactInfo(coordinate, file);
 	}
 
 	@Override
