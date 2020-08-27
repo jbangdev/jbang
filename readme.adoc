@@ -857,7 +857,7 @@ If you are using bash or zsh in your terminal you can get auto-completion by run
 
 [source, bash]
 ----
-source <(jbang completion)
+source <(jbang --completion)
 ----
 
 == Caching
