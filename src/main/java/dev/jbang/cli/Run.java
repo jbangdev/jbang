@@ -192,7 +192,8 @@ public class Run extends BaseScriptCommand {
 				throw new ExitException(1, e);
 			}
 			script.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
-			externalNativeImage = IntegrationManager.runIntegration(script.getClassPath().getArtifacts(),
+			externalNativeImage = IntegrationManager.runIntegration(script.getRepositories(),
+					script.getClassPath().getArtifacts(),
 					tmpJarDir.toPath(), pomPath,
 					script, nativeImage);
 			script.createJarFile(tmpJarDir, outjar);

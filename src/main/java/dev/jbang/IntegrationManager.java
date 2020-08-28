@@ -32,6 +32,8 @@ public class IntegrationManager {
 	 * If an integration point created a native image it returns the resulting
 	 * image.
 	 *
+	 *
+	 * @param repositories
 	 * @param artifacts
 	 * @param tmpJarDir
 	 * @param pomPath
@@ -39,7 +41,8 @@ public class IntegrationManager {
 	 * @param nativeRequested
 	 * @return
 	 */
-	public static Path runIntegration(List<ArtifactInfo> artifacts, Path tmpJarDir, Path pomPath, Script script,
+	public static Path runIntegration(List<MavenRepo> repositories, List<ArtifactInfo> artifacts, Path tmpJarDir,
+			Path pomPath, Script script,
 			boolean nativeRequested) {
 		URL[] urls = artifacts.stream().map(s -> {
 			try {
@@ -52,6 +55,9 @@ public class IntegrationManager {
 		URLClassLoader integrationCl = new URLClassLoader(urls);
 		ClassLoader old = Thread.currentThread().getContextClassLoader();
 		Map<String, byte[]> data = new HashMap<>();
+		List<Map.Entry<String, String>> repos = repositories.stream()
+															.map(s -> new MapRepoEntry(s.getId(), s.getUrl()))
+															.collect(Collectors.toList());
 		List<Map.Entry<String, Path>> deps = artifacts	.stream()
 														.map(s -> new MapEntry(s.getCoordinate().toCanonicalForm(),
 																s.asFile().toPath()))
@@ -64,6 +70,7 @@ public class IntegrationManager {
 			for (String className : classNames) {
 				Class<?> clazz = Class.forName(className, true, integrationCl);
 				Method method = clazz.getDeclaredMethod("postBuild", Path.class, Path.class, List.class, List.class,
+						List.class,
 						boolean.class);
 				Util.infoMsg("Post build with " + className);
 
@@ -80,7 +87,7 @@ public class IntegrationManager {
 
 				@SuppressWarnings("unchecked")
 				Map<String, Object> integrationResult = (Map<String, Object>) method.invoke(null, tmpJarDir, pomPath,
-						deps, comments, nativeRequested);
+						repos, deps, comments, nativeRequested);
 				@SuppressWarnings("unchecked")
 				Map<String, byte[]> ret = (Map<String, byte[]>) integrationResult.get(FILES);
 				if (ret != null) {
@@ -163,6 +170,33 @@ public class IntegrationManager {
 		@Override
 		public Path setValue(Path value) {
 			Path old = this.value;
+			this.value = value;
+			return old;
+		}
+	}
+
+	private static class MapRepoEntry implements Map.Entry<String, String> {
+		private final String key;
+		private String value;
+
+		private MapRepoEntry(String key, String value) {
+			this.key = key;
+			this.value = value;
+		}
+
+		@Override
+		public String getKey() {
+			return key;
+		}
+
+		@Override
+		public String getValue() {
+			return value;
+		}
+
+		@Override
+		public String setValue(String value) {
+			String old = this.value;
 			this.value = value;
 			return old;
 		}

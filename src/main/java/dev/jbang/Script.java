@@ -58,6 +58,7 @@ public class Script {
 	private List<String> arguments;
 
 	private Map<String, String> properties;
+	private List<MavenRepo> repositories;
 
 	public Script(File backingFile, String content, List<String> arguments, Map<String, String> properties)
 			throws FileNotFoundException {
@@ -120,13 +121,16 @@ public class Script {
 		return dependencies;
 	}
 
-	public List<MavenRepo> collectRepositories() {
-		return getLines()	.stream()
-							.filter(Script::isRepoDeclare)
-							.flatMap(Script::extractRepositories)
-							.map(PropertiesValueResolver::replaceProperties)
-							.map(DependencyUtil::toMavenRepo)
-							.collect(Collectors.toCollection(ArrayList::new));
+	public List<MavenRepo> getRepositories() {
+		if (repositories == null) {
+			repositories = getLines()	.stream()
+										.filter(Script::isRepoDeclare)
+										.flatMap(Script::extractRepositories)
+										.map(PropertiesValueResolver::replaceProperties)
+										.map(DependencyUtil::toMavenRepo)
+										.collect(Collectors.toCollection(ArrayList::new));
+		}
+		return repositories;
 	}
 
 	// https://stackoverflow.com/questions/366202/regex-for-splitting-a-string-using-space-when-not-surrounded-by-single-or-double
@@ -221,7 +225,7 @@ public class Script {
 				}
 			} else {
 				List<String> dependencies = collectDependencies();
-				List<MavenRepo> repositories = collectRepositories();
+				List<MavenRepo> repositories = getRepositories();
 				classpath = new DependencyUtil().resolveDependencies(dependencies, repositories, offline, true);
 			}
 		}
