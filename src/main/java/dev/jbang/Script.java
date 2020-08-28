@@ -57,6 +57,9 @@ public class Script {
 
 	private List<String> arguments;
 
+	private List<String> additionalDeps = Collections.emptyList();
+	private List<String> additionalClasspaths = Collections.emptyList();
+
 	private Map<String, String> properties;
 	private List<MavenRepo> repositories;
 
@@ -97,7 +100,7 @@ public class Script {
 
 	public List<String> collectDependencies() {
 		if (forJar()) { // if a .jar then we don't try parse it for dependencies.
-			return Collections.emptyList();
+			return additionalDeps;
 		}
 		// early/eager init to property resolution will work.
 		new Detector().detect(new Properties(), Collections.emptyList());
@@ -112,11 +115,13 @@ public class Script {
 			p.putAll(properties);
 		}
 
-		List<String> dependencies = getLines()	.stream()
+		Stream<String> depStream = getLines()	.stream()
 												.filter(it -> isDependDeclare(it))
 												.flatMap(it -> extractDependencies(it))
-												.map(it -> PropertiesValueResolver.replaceProperties(it, p))
-												.collect(Collectors.toList());
+												.map(it -> PropertiesValueResolver.replaceProperties(it, p));
+
+		List<String> dependencies = Stream	.concat(depStream, additionalDeps.stream())
+											.collect(Collectors.toList());
 
 		return dependencies;
 	}
@@ -216,9 +221,13 @@ public class Script {
 	public String resolveClassPath(boolean offline) {
 		if (classpath == null) {
 			if (forJar()) {
-				if (DependencyUtil.looksLikeAGav(originalFile.toString())) {
-					String gav = originalFile.toString();
-					classpath = new DependencyUtil().resolveDependencies(Arrays.asList(gav.toString()),
+				if (DependencyUtil.looksLikeAGav(originalFile)) {
+					List<String> dependencies = new ArrayList<>(additionalDeps);
+					dependencies.add(originalFile);
+					classpath = new DependencyUtil().resolveDependencies(dependencies,
+							Collections.emptyList(), offline, true);
+				} else if (!additionalDeps.isEmpty()) {
+					classpath = new DependencyUtil().resolveDependencies(additionalDeps,
 							Collections.emptyList(), offline, true);
 				} else {
 					classpath = new ModularClassPath(Collections.emptyList());
@@ -229,10 +238,14 @@ public class Script {
 				classpath = new DependencyUtil().resolveDependencies(dependencies, repositories, offline, true);
 			}
 		}
-		if (jar != null) {
-			return classpath.getClassPath() + Settings.CP_SEPARATOR + jar.getAbsolutePath();
+		StringBuilder cp = new StringBuilder(classpath.getClassPath());
+		for (String addcp : additionalClasspaths) {
+			cp.append(Settings.CP_SEPARATOR + addcp);
 		}
-		return classpath.getClassPath();
+		if (jar != null) {
+			return cp.toString() + Settings.CP_SEPARATOR + jar.getAbsolutePath();
+		}
+		return cp.toString();
 	}
 
 	public List<String> getAutoDetectedModuleArguments(String requestedVersion, boolean offline) {
@@ -317,6 +330,24 @@ public class Script {
 
 	public Script setBuildJdk(int javaVersion) {
 		this.buildJdk = javaVersion;
+		return this;
+	}
+
+	public Script setAdditionalDependencies(List<String> deps) {
+		if (deps != null) {
+			this.additionalDeps = new ArrayList<>(deps);
+		} else {
+			this.additionalDeps = Collections.emptyList();
+		}
+		return this;
+	}
+
+	public Script setAdditionalClasspaths(List<String> cps) {
+		if (cps != null) {
+			this.additionalClasspaths = new ArrayList<>(cps);
+		} else {
+			this.additionalClasspaths = Collections.emptyList();
+		}
 		return this;
 	}
 

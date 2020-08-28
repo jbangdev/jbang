@@ -85,7 +85,16 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		}
 	}
 
-	public static Script prepareScript(String scriptResource, List<String> arguments, Map<String, String> properties)
+	public static Script prepareScript(String scriptResource) throws IOException {
+		return prepareScript(scriptResource, null, null, null, null);
+	}
+
+	public static Script prepareScript(String scriptResource, List<String> arguments) throws IOException {
+		return prepareScript(scriptResource, arguments, null, null, null);
+	}
+
+	public static Script prepareScript(String scriptResource, List<String> arguments, Map<String, String> properties,
+			List<String> dependencies, List<String> classpaths)
 			throws IOException {
 		File scriptFile = getScriptFile(scriptResource);
 		if (scriptFile == null) {
@@ -125,6 +134,8 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		try {
 			s = new Script(scriptFile, arguments, properties);
 			s.setOriginal(scriptResource);
+			s.setAdditionalDependencies(dependencies);
+			s.setAdditionalClasspaths(classpaths);
 		} catch (FileNotFoundException e) {
 			throw new ExitException(1, e);
 		}

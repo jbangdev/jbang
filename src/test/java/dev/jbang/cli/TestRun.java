@@ -108,7 +108,7 @@ public class TestRun {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		Script s = prepareScript(jar, run.userParams, run.properties);
+		Script s = prepareScript(jar, run.userParams, run.properties, run.dependencies, run.classpaths);
 
 		String result = run.generateCommandLine(s);
 		assertThat(result, matchesPattern("^.*java(.exe)?.*"));
@@ -132,7 +132,7 @@ public class TestRun {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		Script result = prepareScript(jar, run.userParams, run.properties);
+		Script result = prepareScript(jar, run.userParams, run.properties, run.dependencies, run.classpaths);
 
 		assertThat(result.getBackingFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
 
@@ -154,7 +154,7 @@ public class TestRun {
 				"picocli.codegen.aot.graalvm.ReflectionConfigGenerator", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		Script result = prepareScript(jar, run.userParams, run.properties);
+		Script result = prepareScript(jar, run.userParams, run.properties, run.dependencies, run.classpaths);
 
 		String cmd = run.generateCommandLine(result);
 
@@ -264,7 +264,7 @@ public class TestRun {
 
 		String url = new File(examplesTestFolder, "classpath_example.java").toURI().toString();
 
-		Script result = prepareScript(url, null, null);
+		Script result = prepareScript(url);
 
 		assertThat(result.toString(), not(containsString(url)));
 
@@ -275,7 +275,8 @@ public class TestRun {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", url);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		String s = run.generateCommandLine(prepareScript(url, run.userParams, run.properties));
+		String s = run.generateCommandLine(
+				prepareScript(url, run.userParams, run.properties, run.dependencies, run.classpaths));
 
 		assertThat(s, not(containsString("file:")));
 	}
@@ -287,7 +288,8 @@ public class TestRun {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", url, " ~!@#$%^&*()-+\\:;'`<>?/,.{}[]\"");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		String s = run.generateCommandLine(prepareScript(url, run.userParams, run.properties));
+		String s = run.generateCommandLine(
+				prepareScript(url, run.userParams, run.properties, run.dependencies, run.classpaths));
 		if (Util.isWindows()) {
 			assertThat(s, containsString("^\"^ ~^!@#$^%^^^&*^(^)-+\\:;'`^<^>?/,.{}[]\\^\"^\""));
 		} else {
@@ -300,7 +302,7 @@ public class TestRun {
 
 		String url = new File(examplesTestFolder, "classpath_example.java.dontexist").toURI().toString();
 
-		assertThrows(ExitException.class, () -> prepareScript(url, null, null));
+		assertThrows(ExitException.class, () -> prepareScript(url));
 	}
 
 	@Test

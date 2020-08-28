@@ -45,7 +45,7 @@ public class TestEdit {
 		Jbang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
-		Script script = BaseScriptCommand.prepareScript(s, null, null);
+		Script script = BaseScriptCommand.prepareScript(s);
 
 		File project = new Edit().createProjectForEdit(script, false);
 
@@ -83,7 +83,7 @@ public class TestEdit {
 
 		Util.writeString(p, "//DEPS org.openjfx:javafx-graphics:11.0.2${bougus:}\n" + Util.readString(p));
 
-		Script script = BaseScriptCommand.prepareScript(s, null, null);
+		Script script = BaseScriptCommand.prepareScript(s);
 
 		File project = new Edit().createProjectForEdit(script, false);
 
@@ -108,7 +108,7 @@ public class TestEdit {
 		Jbang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
-		Script script = BaseScriptCommand.prepareScript(s, null, null);
+		Script script = BaseScriptCommand.prepareScript(s);
 
 		File project = new Edit().createProjectForEdit(script, false);
 

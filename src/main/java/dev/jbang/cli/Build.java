@@ -13,7 +13,7 @@ public class Build extends Run {
 			enableInsecure();
 		}
 
-		script = prepareScript(scriptOrFile, userParams, properties);
+		script = prepareScript(scriptOrFile, userParams, properties, dependencies, classpaths);
 
 		if (script.needsJar()) {
 			build(script);
