@@ -77,6 +77,12 @@ public class Run extends BaseScriptCommand {
 			"-n", "--native" }, description = "Build via native-image and run", defaultValue = "false")
 	boolean nativeImage;
 
+	@CommandLine.Option(names = { "--deps" }, description = "Add additional dependencies.")
+	List<String> dependencies;
+
+	@CommandLine.Option(names = { "--cp" }, description = "Add class path entries.")
+	List<String> classpaths;
+
 	PrintStream out = new PrintStream(new FileOutputStream(FileDescriptor.out));
 
 	@Override
@@ -85,7 +91,7 @@ public class Run extends BaseScriptCommand {
 			enableInsecure();
 		}
 
-		script = prepareScript(scriptOrFile, userParams, properties);
+		script = prepareScript(scriptOrFile, userParams, properties, dependencies, classpaths);
 
 		if (script.needsJar()) {
 			build(script);
