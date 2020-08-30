@@ -10,7 +10,8 @@ public class FileRef {
 
 	String destination;
 
-	public FileRef(Script source, String ref, String destination) {
+	public FileRef(Script source, String destination, String ref) {
+		assert (destination != null);
 		this.source = source;
 		this.ref = ref;
 		this.destination = destination;
@@ -20,19 +21,21 @@ public class FileRef {
 	 *
 	 */
 	public Path from() {
-		if (Paths.get(ref).isAbsolute()) {
-			throw new IllegalStateException("Only relative paths allowed in //FILES. Found absolute path: " + ref);
-		}
+		String p = ref != null ? ref : destination;
 
-		return Paths.get(source.getOriginalFile()).resolveSibling(ref);
-	}
-
-	public Path to(Path parent) {
-		String p = destination != null ? destination : ref;
 		if (Paths.get(p).isAbsolute()) {
 			throw new IllegalStateException("Only relative paths allowed in //FILES. Found absolute path: " + p);
 		}
 
-		return destination != null ? parent.resolve(destination) : parent.resolve(ref);
+		return Paths.get(source.getOriginalFile()).resolveSibling(p);
+	}
+
+	public Path to(Path parent) {
+		if (Paths.get(destination).isAbsolute()) {
+			throw new IllegalStateException(
+					"Only relative paths allowed in //FILES. Found absolute path: " + destination);
+		}
+
+		return parent.resolve(destination);
 	}
 }
