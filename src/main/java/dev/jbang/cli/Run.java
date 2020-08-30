@@ -80,7 +80,7 @@ public class Run extends BaseScriptCommand {
 	@CommandLine.Option(names = { "--deps" }, description = "Add additional dependencies.")
 	List<String> dependencies;
 
-	@CommandLine.Option(names = { "--cp" }, description = "Add class path entries.")
+	@CommandLine.Option(names = { "--cp", "--class-path" }, description = "Add class path entries.")
 	List<String> classpaths;
 
 	PrintStream out = new PrintStream(new FileOutputStream(FileDescriptor.out));

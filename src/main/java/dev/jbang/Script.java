@@ -122,7 +122,7 @@ public class Script {
 												.flatMap(it -> extractDependencies(it))
 												.map(it -> PropertiesValueResolver.replaceProperties(it, p));
 
-		List<String> dependencies = Stream	.concat(depStream, additionalDeps.stream())
+		List<String> dependencies = Stream	.concat(additionalDeps.stream(), depStream)
 											.collect(Collectors.toList());
 
 		return dependencies;

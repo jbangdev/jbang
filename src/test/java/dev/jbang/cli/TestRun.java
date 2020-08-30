@@ -623,7 +623,7 @@ public class TestRun {
 
 		Run m = new Run();
 
-		Script script = prepareScript(f.getAbsolutePath(), null, null);
+		Script script = prepareScript(f.getAbsolutePath(), null, null, null, null);
 
 		m.build(script);
 
