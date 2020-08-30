@@ -18,7 +18,7 @@ import dev.jbang.*;
 import io.quarkus.qute.Template;
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "edit", description = "Edit a .java/.jsh script.")
+@CommandLine.Command(name = "edit", description = "Setup a temporary project to edit script in an IDE.")
 public class Edit extends BaseScriptCommand {
 
 	@CommandLine.Option(names = {

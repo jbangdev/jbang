@@ -25,7 +25,7 @@ import dev.jbang.*;
 import io.quarkus.qute.Template;
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "run", description = "Compile and run provided .java/.jsh script.")
+@CommandLine.Command(name = "run", description = "Builds and runs provided script.")
 public class Run extends BaseScriptCommand {
 	private String javaVersion;
 

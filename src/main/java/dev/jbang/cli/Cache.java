@@ -8,7 +8,7 @@ import dev.jbang.Settings;
 
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "cache", description = "Cache management.")
+@CommandLine.Command(name = "cache", description = "Manage compiled scripts in the local cache.")
 public class Cache {
 	@CommandLine.Command(name = "clear", description = "Clear cache of dependency list and temporary projects. By default this will clear the JAR, script, stdin and URL caches")
 	public Integer clear(

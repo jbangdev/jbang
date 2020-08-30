@@ -8,7 +8,7 @@ import dev.jbang.Util;
 
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "catalog", description = "Manage catalogs.")
+@CommandLine.Command(name = "catalog", description = "Manage Catalogs of aliases.")
 public class Catalog {
 
 	@CommandLine.Spec

@@ -1,4 +1,4 @@
-package dev.jbang.cli;
+package dev.jbang;
 
 import java.io.PrintWriter;
 import java.util.HashMap;
