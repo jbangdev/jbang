@@ -1,6 +1,6 @@
 //usr/bin/env jbang "$0" "$@" ; exit $?
-//FILES resource.properties resource.properties=renamed.properties
-//FILES resource.properties=META-INF/application.properties
+//FILES resource.properties renamed.properties=resource.properties
+//FILES META-INF/application.properties=resource.properties
 
 import java.io.InputStream;
 import java.util.Properties;

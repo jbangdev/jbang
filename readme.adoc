@@ -636,6 +636,25 @@ it will if you `java` command supports Java modules automatically set the necess
 
 See `link:examples/jfx.java[]` and `link:examples/jfxtiles.java[]` for examples of this.
 
+== Adding additional resources (Experimental)
+
+If you want to add a `META-INF/application.properties` or `META-INF/resource.index.html` or other files to the generated jar
+you can use `//FILES` to add these.
+
+The format is `//FILES <mountpoint>[=<sourcefile>]`.
+
+Example:
+
+//FILES resource.properties
+//FILES META-INF/resources/index.html=index.html
+
+Here `resource.properties` will be copied as is and `META-INF/resources/index.html` gets its contet from `index.html`.
+
+All locations are releative to the file used for running the script.
+
+[WARNING]
+Currently `jbang edit` and http(s) based script does not work with `//FILES`. Will be added later.
+
 == Extension-less/non-java files for cli-plugins
 
 You can use `jbang` to write plugins for cli's like `kubectl`, `git`, etc.
