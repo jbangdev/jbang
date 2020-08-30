@@ -3,8 +3,7 @@ package dev.jbang.cli;
 import static dev.jbang.cli.BaseScriptCommand.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -41,6 +40,7 @@ import org.xml.sax.SAXException;
 
 import dev.jbang.ExitException;
 import dev.jbang.Script;
+import dev.jbang.Settings;
 import dev.jbang.Util;
 
 import picocli.CommandLine;
@@ -610,6 +610,40 @@ public class TestRun {
 
 		assert (!Run.optionActive(Optional.of(Boolean.FALSE), true));
 		assert (!Run.optionActive(Optional.of(Boolean.FALSE), false));
+
+	}
+
+	@Test
+	void testFilePresentB() throws IOException {
+		Settings.clearCache(Settings.CacheClass.jars);
+		Jbang jbang = new Jbang();
+		File f = new File(examplesTestFolder, "resource.java");
+
+		Run m = new Run();
+
+		Script script = prepareScript(f.getAbsolutePath(), null, null);
+
+		m.build(script);
+
+		assertThat(script.getMainClass(), equalTo("resource"));
+
+		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), null)) {
+
+			Arrays	.asList("resource.properties", "renamed.properties", "META-INF/application.properties")
+					.forEach(path -> {
+						try {
+							Path fileToExtract = fileSystem.getPath(path);
+
+							ByteArrayOutputStream s = new ByteArrayOutputStream();
+							Files.copy(fileToExtract, s);
+							String xml = s.toString("UTF-8");
+							assertThat(xml, not(containsString("message=hello")));
+						} catch (Exception e) {
+							fail(e);
+						}
+					});
+
+		}
 
 	}
 
