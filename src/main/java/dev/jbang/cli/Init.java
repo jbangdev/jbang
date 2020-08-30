@@ -25,6 +25,9 @@ public class Init extends BaseScriptCommand {
 		if (f.exists()) {
 			warn("File " + f + " already exists. Will not initialize.");
 		} else {
+			if (!f.getParentFile().exists()) {
+				f.getParentFile().mkdirs();
+			}
 			// Use try-with-resource to get auto-closeable writer instance
 			try (BufferedWriter writer = Files.newBufferedWriter(f.toPath())) {
 				String result = renderInitClass(f, initTemplate);
