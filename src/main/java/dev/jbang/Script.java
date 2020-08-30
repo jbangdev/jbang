@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 public class Script {
 
 	private static final String DEPS_COMMENT_PREFIX = "//DEPS ";
+	private static final String FILES_COMMENT_PREFIX = "//FILES ";
 
 	private static final String DEPS_ANNOT_PREFIX = "@Grab(";
 	private static final Pattern DEPS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
@@ -59,6 +60,7 @@ public class Script {
 
 	private Map<String, String> properties;
 	private List<MavenRepo> repositories;
+	private List<FileRef> filerefs;
 
 	public Script(File backingFile, String content, List<String> arguments, Map<String, String> properties)
 			throws FileNotFoundException {
@@ -396,4 +398,34 @@ public class Script {
 	public ModularClassPath getClassPath() {
 		return classpath;
 	}
+
+	static public FileRef toFileRef(Script source, String fileReference) {
+		String[] split = fileReference.split("=");
+		String ref = null;
+		String dest = null;
+
+		if (split.length == 1) {
+			ref = split[0];
+		} else if (split.length == 2) {
+			ref = split[0];
+			dest = split[1];
+		} else {
+			throw new IllegalStateException("Invalid file reference: " + fileReference);
+		}
+		return new FileRef(source, ref, dest);
+	}
+
+	public List<FileRef> collectFiles() {
+
+		if (filerefs == null) {
+			filerefs = getLines()	.stream()
+									.filter(f -> f.startsWith(FILES_COMMENT_PREFIX))
+									.flatMap(line -> Arrays.stream(line.split("[ ;,]+")).skip(1).map(String::trim))
+									.map(PropertiesValueResolver::replaceProperties)
+									.map(line -> toFileRef(this, line))
+									.collect(Collectors.toCollection(ArrayList::new));
+		}
+		return filerefs;
+	}
+
 }

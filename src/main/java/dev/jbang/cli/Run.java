@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
@@ -133,6 +134,21 @@ public class Run extends BaseScriptCommand {
 			optionList.addAll(Arrays.asList(script.getBackingFile().getPath()));
 
 			// add additional files
+			List<FileRef> files = script.collectFiles();
+			for (FileRef file : files) {
+				Path from = file.from();
+				Path to = file.to(tmpJarDir.toPath());
+				Util.verboseMsg("Copying " + from + " to " + to);
+				try {
+					if (!to.toFile().getParentFile().exists()) {
+						to.toFile().getParentFile().mkdirs();
+					}
+					Files.copy(from, to, StandardCopyOption.REPLACE_EXISTING);
+				} catch (IOException ioe) {
+					throw new ExitException(CommandLine.ExitCode.USAGE, "Could not copy " + from + " to " + to, ioe);
+				}
+			}
+
 			Template pomTemplate = Settings.getTemplateEngine().getTemplate("pom.qute.xml");
 
 			Path pomPath = null;
