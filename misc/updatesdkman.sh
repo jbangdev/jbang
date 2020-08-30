@@ -29,11 +29,14 @@ curl -X PUT \
     -d '{"candidate": "jbang", "version": "'${jbang_version}'"}' \
     https://vendors.sdkman.io/default
 
+RELURL=`curl -i https://git.io -F url=https://github.com/jbangdev/jbang/releases/tag/'${jbang_version}' | grep Location | sed -e 's/Location: //g' | tr -d '\n' | tr -d '\r'`
+echo git.io = [$RELURL]
+
 ## Broadcast message with pointer to change log
-curl -X POST \
+curl --trace-ascii curl.trace -X POST \
     -H "Consumer-Key: ${SDKMAN_CONSUMER_KEY}" \
     -H "Consumer-Token: ${SDKMAN_CONSUMER_TOKEN}" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
-    -d '{"text": "Jbang '${jbang_version}' Checkout https://github.com/jbangdev/jbang/releases/tag/v'${jbang_version}'. Follow @jbangdev."}' \
+    -d '{"text": "jbang '${jbang_version}' @jbangdev '${RELURL}'"}' \
     https://vendors.sdkman.io/announce/freeform
