@@ -44,7 +44,7 @@ public class Run extends BaseScriptCommand {
 	}
 
 	@CommandLine.Option(names = { "-r",
-			"--jfr" }, fallbackValue = "filename={baseName}.jfc", parameterConsumer = KeyValueFallbackConsumer.class, arity = "0..1", description = "Launch with Java Flight Recorder enabled.")
+			"--jfr" }, fallbackValue = "filename={baseName}.jfr", parameterConsumer = KeyValueFallbackConsumer.class, arity = "0..1", description = "Launch with Java Flight Recorder enabled.")
 	String flightRecorderString;
 
 	boolean enableFlightRecording() {
