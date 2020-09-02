@@ -1,5 +1,7 @@
 package dev.jbang;
 
+import static dev.jbang.FileRef.isURL;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -443,7 +445,11 @@ public class Script {
 		} else {
 			throw new IllegalStateException("Invalid file reference: " + fileReference);
 		}
-		return new FileRef(source, ref, dest);
+		if (isURL(source.originalFile)) {
+			return new URLRef(source, ref, dest);
+		} else {
+			return new FileRef(source, ref, dest);
+		}
 	}
 
 	public List<FileRef> collectFiles() {
