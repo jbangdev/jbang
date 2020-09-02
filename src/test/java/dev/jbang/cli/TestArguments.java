@@ -37,6 +37,11 @@ class TestArguments {
 	public final TemporaryFolder jbangTempDir = new TemporaryFolder();
 
 	@Test
+	public void testHelpSections() {
+		Jbang.getCommandRenderer().validate(Jbang.getCommandLine().getHelp());
+	}
+
+	@Test
 	public void testBasicArguments() {
 		CommandLine.ParseResult pr = cli.parseArgs("run", "-h", "--debug", "myfile.java");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();

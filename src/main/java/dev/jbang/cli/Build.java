@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import picocli.CommandLine.Command;
 
-@Command(name = "build", description = "Build .java/.jsh script without running. Use for caching dependencies.")
+@Command(name = "build", description = "Compiles and stores script in the cache.")
 public class Build extends Run {
 
 	@Override

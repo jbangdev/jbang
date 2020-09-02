@@ -8,7 +8,7 @@ import dev.jbang.Util;
 
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "jdk", description = "Manage JDKs.", hidden = true)
+@CommandLine.Command(name = "jdk", description = "Manage Java Development Kits installed by jbang.")
 public class Jdk {
 
 	@CommandLine.Spec

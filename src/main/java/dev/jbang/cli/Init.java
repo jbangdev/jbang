@@ -12,7 +12,7 @@ import dev.jbang.Util;
 import io.quarkus.qute.Template;
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "init", description = "Initialize a .java/.jsh script.")
+@CommandLine.Command(name = "init", description = "Initialize a script.")
 public class Init extends BaseScriptCommand {
 
 	@CommandLine.Option(names = { "--template",

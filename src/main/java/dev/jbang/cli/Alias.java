@@ -10,7 +10,7 @@ import dev.jbang.Util;
 
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "alias", description = "Manage aliases.")
+@CommandLine.Command(name = "alias", description = "Manage aliases for scripts.")
 public class Alias {
 
 	@CommandLine.Spec

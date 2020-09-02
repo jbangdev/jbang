@@ -7,7 +7,7 @@ import dev.jbang.Settings;
 
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "trust", description = "Manage trust domains.")
+@CommandLine.Command(name = "trust", description = "Manage which domains you trust to run scripts from.")
 public class Trust {
 
 	@CommandLine.Spec
