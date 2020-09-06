@@ -208,6 +208,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "bmuskalla",
+      "name": "Benjamin Muskalla",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/316929?v=4",
+      "profile": "https://bmuskalla.github.io",
+      "contributions": [
+        "infra"
+      ]
     }
   ],
   "contributorsPerLine": 7,
