@@ -247,7 +247,7 @@ public class Script {
 			cp.append(Settings.CP_SEPARATOR + addcp);
 		}
 		if (jar != null) {
-			return cp.toString() + Settings.CP_SEPARATOR + jar.getAbsolutePath();
+			return jar.getAbsolutePath() + Settings.CP_SEPARATOR + cp.toString();
 		}
 		return cp.toString();
 	}
