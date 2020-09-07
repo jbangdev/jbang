@@ -360,15 +360,21 @@ Classic `jshell` does not support passing in arguments nor system properties, `j
 In the case of `.jsh` files `jbang` injects a startup script that declares a `String[] args` which will contain any passed in arguments,
 and it sets any properties passed in as `-Dkey=value` as parameters to `jbang`.
 
-Example:
+That means you can run a script as `jbang -Dkey=value World helloworld.jsh` and retrieve arguments and properties as:
 
 [source, java]
 ----
 System.out.println("Hello " + (args.length>0?args[0]:"World")); // <.>
-System.setProperty("key", "value"); // <.>
+System.getProperty("key"); // <.>
 ----
 <.> Line where `args` are accessible without previous declaration.
 <.> System properties set when passed as `-D` arguments to `jbang`
+
+The script will have the output:
+
+ Hello World
+ value
+
 
 ==== Running script from standard input
 
@@ -662,11 +668,11 @@ Furthermore some of them, particularly `kubectl` currently require the file to s
 === Kebab casing of filename
 
 `jbang` lets you name your file without a `.java` or `.jsh` extension, such
-as `kubectl-myplugin`. `jbang` will in this case copy the file to a temporary
+as `kubectl-my-plugin`. `jbang` will in this case copy the file to a temporary
 directory using kebab-case to map the name to a proper java class name.
 
-For example, if you make a file called `kubectl-myplugin` then `jbang` will assume the actual class name to launch
-to be `KubectlMyplugin`.
+For example, if you make a file called `kubectl-my-plugin` then `jbang` will assume the actual class name to launch
+to be `KubectlMyPlugin`.
 
 Note, similar is done when using `jbang edit`, here the symbolic link will be made so the IDE will treat it as
 regular camel cased java class.
@@ -693,8 +699,8 @@ If no such version is found it will automatically download and install it into j
 
 Examples:
 
-  //JAVA 11  will force use of Java 11.
-  //JAVA 13+ will require at least java 13. Java 13 or higher will be used.
+`//JAVA 11` will force use of Java 11. +
+`//JAVA 13+` will require at least java 13. Java 13 or higher will be sued.
 
 In case no matching `java` is found `jbang` will fail.
 
