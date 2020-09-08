@@ -29,7 +29,7 @@ curl -X PUT \
     -d '{"candidate": "jbang", "version": "'${jbang_version}'"}' \
     https://vendors.sdkman.io/default
 
-RELURL=`curl -i https://git.io -F url=https://github.com/jbangdev/jbang/releases/tag/${jbang_version} | grep Location | sed -e 's/Location: //g' | tr -d '\n' | tr -d '\r'`
+RELURL=`curl -i https://git.io -F url=https://github.com/jbangdev/jbang/releases/tag/v${jbang_version} | grep Location | sed -e 's/Location: //g' | tr -d '\n' | tr -d '\r'`
 echo git.io = [$RELURL]
 
 ## Broadcast message with pointer to change log
