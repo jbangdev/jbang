@@ -217,6 +217,15 @@
       "contributions": [
         "infra"
       ]
+    },
+    {
+      "login": "abelsromero",
+      "name": "Abel Salgado Romero",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/5781153?v=4",
+      "profile": "https://twitter.com/abelsromero",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
