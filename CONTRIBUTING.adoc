@@ -1,11 +1,11 @@
 = Contributing
 
-Anyone welcome to open issues and/or pull-requests for bugfixes, featurerequests and/or ideas.
+Anyone welcome to open issues and/or pull-requests for bugfixes, feature-requests and/or ideas.
 
 == How to build
 
 Clone the repository, cd `jbang` and run `./gradlew build install`.
-There will be an warning in the output but don't despair - that is just
+There will be a warning in the output but don't despair - that is just
 Java being picky.
 
 [source, bash]
@@ -46,4 +46,4 @@ You can see the current version by running `./gradlew printVersion` - if you hav
 
 For pull-requests don't try and trigger bump of version; we'll apply that once its time for release.
 
-Note: The `dev.jbang.VersionProvider` class will show a compile error in IDE's but ignore that as the `BUILDCONFIG` class does gets generated during the Gradle build.
+NOTE: The `dev.jbang.VersionProvider` class will show a compile error in IDE's but ignore that, the `BUILDCONFIG` class gets generated during the Gradle build.
