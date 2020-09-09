@@ -39,7 +39,7 @@ import picocli.CommandLine.Model.UsageMessageSpec;
 
 		"" }, versionProvider = VersionProvider.class, subcommands = {
 				Run.class, Build.class, Edit.class, Init.class, Alias.class, Catalog.class, Trust.class, Cache.class,
-				Completion.class, Jdk.class, Version.class })
+				Completion.class, Jdk.class, Version.class, Wrapper.class })
 public class Jbang extends BaseCommand {
 
 	@Option(names = { "--verbose" }, description = "jbang will be verbose on what it does.", scope = ScopeType.INHERIT)
@@ -111,7 +111,7 @@ public class Jbang extends BaseCommand {
 		sections.put("Editing", asList("init", "edit"));
 		sections.put("Caching", asList("cache", "jdk"));
 		sections.put("Configuration", asList("trust", "alias", "catalog"));
-		sections.put("Other", asList("completion", "version"));
+		sections.put("Other", asList("completion", "version", "wrapper"));
 		CommandGroupRenderer renderer = new CommandGroupRenderer(sections);
 		return renderer;
 	}
