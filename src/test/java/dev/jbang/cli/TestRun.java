@@ -355,19 +355,19 @@ public class TestRun {
 
 		Map<String, String> properties = new HashMap<>();
 
-		assertThat(new Run().generateArgs(Collections.emptyList(), properties), equalTo("String[] args = {  }"));
+		assertThat(Run.generateArgs(Collections.emptyList(), properties), equalTo("String[] args = {  }"));
 
-		assertThat(new Run().generateArgs(Arrays.asList("one"), properties),
+		assertThat(Run.generateArgs(Arrays.asList("one"), properties),
 				equalTo("String[] args = { \"one\" }"));
 
-		assertThat(new Run().generateArgs(Arrays.asList("one", "two"), properties),
+		assertThat(Run.generateArgs(Arrays.asList("one", "two"), properties),
 				equalTo("String[] args = { \"one\", \"two\" }"));
 
-		assertThat(new Run().generateArgs(Arrays.asList("one", "two", "three \"quotes\""), properties),
+		assertThat(Run.generateArgs(Arrays.asList("one", "two", "three \"quotes\""), properties),
 				equalTo("String[] args = { \"one\", \"two\", \"three \\\"quotes\\\"\" }"));
 
 		properties.put("value", "this value");
-		assertThat(new Run().generateArgs(Collections.emptyList(), properties),
+		assertThat(Run.generateArgs(Collections.emptyList(), properties),
 				equalTo("String[] args = {  }\nSystem.setProperty(\"value\",\"this value\");"));
 
 	}

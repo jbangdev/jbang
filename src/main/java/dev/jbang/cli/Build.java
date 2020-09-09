@@ -5,7 +5,7 @@ import java.io.IOException;
 import picocli.CommandLine.Command;
 
 @Command(name = "build", description = "Compiles and stores script in the cache.")
-public class Build extends Run {
+public class Build extends BaseBuildCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
