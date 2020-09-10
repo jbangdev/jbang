@@ -29,4 +29,7 @@ Scenario: add catalog twice with different name
   And  match exit == 0
   Then command('jbang echo@ct tako')
   And match exit == 0
- 
+
+Scenario: access remote catalog
+  When command('jbang build hello@jbangdev')
+  Then  match exit == 0
