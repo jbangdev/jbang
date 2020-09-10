@@ -85,7 +85,7 @@ public class TestCatalog {
 
 	@Test
 	void testGetAlias() throws IOException {
-		AliasUtil.Alias alias = AliasUtil.getAlias("one@test", null, null);
+		AliasUtil.Alias alias = AliasUtil.getAlias(null, "one@test", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 	}
