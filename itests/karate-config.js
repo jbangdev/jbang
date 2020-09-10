@@ -20,8 +20,8 @@ function fn() {
         // set JBANG_REPO to not mess with users own ~/.m2
         sep = java.io.File.separator;
 
-        !('JBANG_REPO' in env) && (env.JBANG_REPO = sc + sep + "m2")
-        !('JBANG_DIR' in env) && (env.JBANG_DIR = sc + sep + "jbang")
+        !('JBANG_REPO' in env) && (env.JBANG_REPO = sc + sep + "karate-m2")
+        !('JBANG_DIR' in env) && (env.JBANG_DIR = sc + sep + "karate-jbang")
         
         var proc = karate.fork({ redirectErrorStream: false, useShell: true, line: line, env: env});
         proc.waitSync();

@@ -10,7 +10,14 @@ set arch=x64
 set url="https://api.adoptopenjdk.net/v3/binary/latest/%javaVersion%/ga/%os%/%arch%/jdk/hotspot/normal/adoptopenjdk"
 
 rem resolve application jar path from script location and convert to windows path when using cygwin
-set jarPath=%~dp0jbang.jar
+if exist "%~dp0jbang.jar" (
+  set jarPath=%~dp0jbang.jar
+) else if exist "%~dp0.jbang\jbang.jar" (
+  set jarPath=%~dp0.jbang\jbang.jar
+) else (
+  echo Error: could not find jbang.jar file 1>&2
+  exit /b 1
+)
 
 rem expose the name of the script being run to the script itself
 set JBANG_FILE="$1"

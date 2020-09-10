@@ -49,6 +49,14 @@ public abstract class BaseCommand implements Callable<Integer> {
 		}
 	}
 
+	void error(String msg, Throwable th) {
+		if (spec != null) {
+			spec.commandLine().getErr().println("[jbang] " + msg);
+		} else {
+			Util.errorMsg(msg, th);
+		}
+	}
+
 	boolean isVerbose() {
 		return Util.isVerbose();
 	}
