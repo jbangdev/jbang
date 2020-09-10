@@ -70,7 +70,7 @@ public class Catalog {
 					});
 		} else {
 			AliasUtil.Aliases aliases = AliasUtil.getCatalogAliasesByName(name, false);
-			Alias.printAliases(out, name, aliases);
+			AliasList.printAliases(out, name, aliases);
 		}
 		return CommandLine.ExitCode.SOFTWARE;
 	}

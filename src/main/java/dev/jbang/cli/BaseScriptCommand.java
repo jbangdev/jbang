@@ -99,9 +99,9 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		File scriptFile = getScriptFile(scriptResource);
 		if (scriptFile == null) {
 			// Not found as such, so let's check the aliases
-			AliasUtil.Alias alias = AliasUtil.getAlias(scriptResource, arguments, properties);
+			AliasUtil.Alias alias = AliasUtil.getAlias(null, scriptResource, arguments, properties);
 			if (alias != null) {
-				scriptFile = getScriptFile(alias.scriptRef);
+				scriptFile = getScriptFile(alias.resolve(null));
 				arguments = alias.arguments;
 				properties = alias.properties;
 			}

@@ -5,6 +5,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -18,6 +19,7 @@ import picocli.CommandLine;
 
 public class AliasUtil {
 	public static final String JBANG_CATALOG_JSON = "jbang-catalog.json";
+	public static final String JBANG_DOT_DIR = ".jbang";
 
 	private static final String GITHUB_URL = "https://github.com/";
 	private static final String GITLAB_URL = "https://gitlab.com/";
@@ -25,26 +27,77 @@ public class AliasUtil {
 
 	private static final String JBANG_CATALOG_REPO = "jbang-catalog";
 
+	static Map<Path, Aliases> catalogCache = new HashMap<>();
+
 	public static class Alias {
 		@SerializedName(value = "script-ref", alternate = { "scriptRef" })
 		public final String scriptRef;
 		public final String description;
 		public final List<String> arguments;
 		public final Map<String, String> properties;
+		public transient Aliases aliases;
 
-		public Alias(String scriptRef, String description, List<String> arguments, Map<String, String> properties) {
+		public Alias(String scriptRef, String description, List<String> arguments, Map<String, String> properties,
+				Aliases aliases) {
 			this.scriptRef = scriptRef;
 			this.description = description;
 			this.arguments = arguments;
 			this.properties = properties;
+			this.aliases = aliases;
+		}
+
+		/**
+		 * This method returns the scriptRef of the Alias with all contextual modifiers
+		 * like baseRefs and current working directories applied.
+		 */
+		public String resolve(Path cwd) {
+			if (cwd == null) {
+				cwd = getCwd();
+			}
+			String baseRef = aliases.baseRef;
+			String ref = scriptRef;
+			if (baseRef != null && !isAbsoluteRef(ref)) {
+				if (!baseRef.endsWith("/")) {
+					baseRef += "/";
+				}
+				if (ref.startsWith("./")) {
+					baseRef += ref.substring(2);
+				} else {
+					baseRef += ref;
+				}
+				ref = baseRef;
+			}
+			if (!isAbsoluteRef(ref)) {
+				Path script = scriptParent(aliases.catalogFile).resolve(ref);
+				if (script.startsWith(cwd) || cwd.startsWith(script)
+						|| !cwd.relativize(script).startsWith("../../..")) {
+					script = cwd.relativize(script);
+				}
+				ref = script.toString();
+			}
+			return ref;
 		}
 	}
 
 	public static class Aliases {
-		public Map<String, Alias> aliases = new HashMap<>();
+		public final Map<String, Alias> aliases = new HashMap<>();
 		@SerializedName(value = "base-ref", alternate = { "baseRef" })
-		public String baseRef;
-		public String description;
+		public final String baseRef;
+		public final String description;
+		public transient Path catalogFile;
+
+		public Aliases(String baseRef, String description, Path catalogFile) {
+			this.baseRef = baseRef;
+			this.description = description;
+			this.catalogFile = catalogFile;
+		}
+
+		public Aliases(String baseRef, String description, Path catalogFile, Map<String, Alias> aliases) {
+			this.baseRef = baseRef;
+			this.description = description;
+			this.catalogFile = catalogFile;
+			this.aliases.putAll(aliases);
+		}
 	}
 
 	public static class Catalog {
@@ -63,22 +116,33 @@ public class AliasUtil {
 	}
 
 	/**
+	 * Returns an Alias object for the given name
+	 *
+	 * @param cwd       The current working directory (leave null to auto detect)
+	 * @param aliasName The name of an Alias
+	 * @return An Alias object or null if no alias was found
+	 */
+	public static Alias getAlias(Path cwd, String aliasName) {
+		return getAlias(cwd, aliasName, null, null);
+	}
+
+	/**
 	 * Returns an Alias object for the given name with the given arguments and
 	 * properties applied to it. Or null if no alias with that name could be found.
-	 * 
+	 *
 	 * @param aliasName  The name of an Alias
 	 * @param arguments  Optional arguments to apply to the Alias
 	 * @param properties Optional properties to apply to the Alias
 	 * @return An Alias object or null if no alias was found
 	 */
-	public static Alias getAlias(String aliasName, List<String> arguments, Map<String, String> properties) {
+	public static Alias getAlias(Path cwd, String aliasName, List<String> arguments, Map<String, String> properties) {
 		HashSet<String> names = new HashSet<>();
-		Alias alias = new Alias(null, null, arguments, properties);
-		Alias result = mergeAliases(alias, aliasName, names);
+		Alias alias = new Alias(null, null, arguments, properties, null);
+		Alias result = mergeAliases(cwd, alias, aliasName, names);
 		return result.scriptRef != null ? result : null;
 	}
 
-	private static Alias mergeAliases(Alias a1, String name, HashSet<String> names) {
+	private static Alias mergeAliases(Path cwd, Alias a1, String name, HashSet<String> names) {
 		if (names.contains(name)) {
 			throw new RuntimeException("Encountered alias loop on '" + name + "'");
 		}
@@ -88,7 +152,7 @@ public class AliasUtil {
 		}
 		Alias a2;
 		if (parts.length == 1) {
-			a2 = Settings.getAliases().get(name);
+			a2 = getLocalAlias(cwd, name);
 		} else {
 			if (parts[1].isEmpty()) {
 				throw new RuntimeException("Invalid alias name '" + name + "'");
@@ -97,14 +161,27 @@ public class AliasUtil {
 		}
 		if (a2 != null) {
 			names.add(name);
-			a2 = mergeAliases(a2, a2.scriptRef, names);
+			a2 = mergeAliases(cwd, a2, a2.scriptRef, names);
 			List<String> args = a1.arguments != null && !a1.arguments.isEmpty() ? a1.arguments : a2.arguments;
 			Map<String, String> props = a1.properties != null && !a1.properties.isEmpty() ? a1.properties
 					: a2.properties;
-			return new Alias(a2.scriptRef, null, args, props);
+			Aliases aliases = a2.aliases != null ? a2.aliases : a1.aliases;
+			return new Alias(a2.scriptRef, null, args, props, aliases);
 		} else {
 			return a1;
 		}
+	}
+
+	/**
+	 * Returns the given Alias from the local file system
+	 *
+	 * @param cwd       The current working directory (leave null to auto detect)
+	 * @param aliasName The name of an Alias
+	 * @return An Alias object
+	 */
+	private static Alias getLocalAlias(Path cwd, String aliasName) {
+		Aliases aliases = getAllAliasesFromLocalCatalogs(cwd);
+		return aliases.aliases.getOrDefault(aliasName, null);
 	}
 
 	/**
@@ -114,23 +191,23 @@ public class AliasUtil {
 	 * @param aliasName   The name of an Alias
 	 * @return An Alias object
 	 */
-	public static Alias getCatalogAlias(String catalogName, String aliasName) {
+	private static Alias getCatalogAlias(String catalogName, String aliasName) {
 		Aliases aliases = getCatalogAliasesByName(catalogName, false);
-		return getCatalogAlias(aliases, aliasName);
+		Alias alias = aliases.aliases.get(aliasName);
+		if (alias == null) {
+			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "No alias found with name '" + aliasName + "'");
+		}
+		return alias;
 	}
 
 	/**
 	 * Load a Catalog's aliases given the name of a previously registered Catalog
 	 * 
-	 * @param catalogName The name of a registered Catalog. Set to null to retrieve
-	 *                    the Alias from the local aliases
+	 * @param catalogName The name of a registered
 	 * @param updateCache Set to true to ignore cached values
 	 * @return An Aliases object
 	 */
 	public static Aliases getCatalogAliasesByName(String catalogName, boolean updateCache) {
-		if (catalogName == null) {
-			return Settings.getAliasesFromLocalCatalog();
-		}
 		Catalog catalog = getCatalog(catalogName);
 		if (catalog != null) {
 			return getCatalogAliasesByRef(catalog.catalogRef, updateCache);
@@ -223,6 +300,90 @@ public class AliasUtil {
 	}
 
 	/**
+	 * Will either return the given catalog or search for the nearest catalog
+	 * starting from cwd.
+	 * 
+	 * @param cwd     The folder to use as a starting point for getting the nearest
+	 *                catalog
+	 * @param catalog The catalog to return or null to return the nearest catalog
+	 * @return Path to a catalog
+	 */
+	public static Path getCatalog(Path cwd, Path catalog) {
+		if (catalog == null) {
+			catalog = findNearestLocalCatalog(cwd);
+			if (catalog == null) {
+				catalog = Settings.getAliasesFile();
+			}
+		}
+		return catalog;
+	}
+
+	/**
+	 * Adds a new alias to the nearest catalog
+	 * 
+	 * @param cwd  The folder to use as a starting point for getting the nearest
+	 *             catalog
+	 * @param name The name of the new alias
+	 */
+	public static void addNearestAlias(Path cwd, String name, String scriptRef, String description,
+			List<String> arguments,
+			Map<String, String> properties) {
+		Path catalog = getCatalog(cwd, null);
+		addAlias(catalog, name, scriptRef, description, arguments, properties);
+	}
+
+	/**
+	 * Adds a new alias to the given catalog
+	 * 
+	 * @param catalog Path to catalog file
+	 * @param name    The name of the new alias
+	 */
+	public static void addAlias(Path catalog, String name, String scriptRef, String description, List<String> arguments,
+			Map<String, String> properties) {
+		Aliases aliases = getAliasesFromCatalogFile(catalog, true);
+		aliases.aliases.put(name, new Alias(scriptRef, description, arguments, properties, aliases));
+		try {
+			writeAliasesToCatalogFile(catalog, aliases);
+		} catch (IOException ex) {
+			Util.warnMsg("Unable to add alias: " + ex.getMessage());
+		}
+	}
+
+	/**
+	 * Finds the nearest catalog file that contains an alias with the given name and
+	 * removes it
+	 * 
+	 * @param cwd  The folder to use as a starting point for getting the nearest
+	 *             catalog
+	 * @param name Name of alias to remove
+	 */
+	public static void removeNearestAlias(Path cwd, String name) {
+		Path catalog = findNearestLocalCatalogWithAlias(cwd, name);
+		if (catalog == null) {
+			catalog = Settings.getAliasesFile();
+		}
+		removeAlias(catalog, name);
+	}
+
+	/**
+	 * Remove alias from specified catalog file
+	 * 
+	 * @param catalog Path to catalog file
+	 * @param name    Name of alias to remove
+	 */
+	public static void removeAlias(Path catalog, String name) {
+		Aliases aliases = getAliasesFromCatalogFile(catalog, true);
+		if (aliases.aliases.containsKey(name)) {
+			aliases.aliases.remove(name);
+			try {
+				writeAliasesToCatalogFile(catalog, aliases);
+			} catch (IOException ex) {
+				Util.warnMsg("Unable to remove alias: " + ex.getMessage());
+			}
+		}
+	}
+
+	/**
 	 * Load a Catalog's aliases given a file path or URL
 	 * 
 	 * @param catalogRef  File path or URL to a Catalog JSON file. If this does not
@@ -241,17 +402,19 @@ public class AliasUtil {
 		Path catalogPath = null;
 		try {
 			catalogPath = Util.obtainFile(catalogRef, updateCache);
-			Aliases aliases = Settings.getAliasesFromCatalog(catalogPath, updateCache);
+			Aliases aliases = getAliasesFromCatalogFile(catalogPath, updateCache);
 			int p = catalogRef.lastIndexOf('/');
 			if (p > 0) {
+				String baseRef = aliases.baseRef;
 				String catalogBaseRef = catalogRef.substring(0, p);
-				if (aliases.baseRef != null) {
-					if (!aliases.baseRef.startsWith("/") && !aliases.baseRef.contains(":")) {
-						aliases.baseRef = catalogBaseRef + "/" + aliases.baseRef;
+				if (baseRef != null) {
+					if (!baseRef.startsWith("/") && !baseRef.contains(":")) {
+						baseRef = catalogBaseRef + "/" + baseRef;
 					}
 				} else {
-					aliases.baseRef = catalogBaseRef;
+					baseRef = catalogBaseRef;
 				}
+				aliases = new Aliases(baseRef, aliases.description, aliases.catalogFile, aliases.aliases);
 			}
 			return aliases;
 		} catch (IOException | JsonParseException ex) {
@@ -260,49 +423,107 @@ public class AliasUtil {
 		}
 	}
 
-	/**
-	 * Returns the given Alias from the given Aliases object. The Alias returned
-	 * from this function is not simply the Alias stored in the Aliases object but
-	 * one that has the Aliases' baseRef (if defined) applied to it.
-	 * 
-	 * @param aliases   An Aliases object
-	 * @param aliasName The name of an Alias
-	 * @return An Alias object
-	 */
-	public static Alias getCatalogAlias(Aliases aliases, String aliasName) {
-		Alias alias = aliases.aliases.get(aliasName);
-		if (alias == null) {
-			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "No alias found with name '" + aliasName + "'");
+	public static Aliases getAllAliasesFromLocalCatalogs(Path cwd) {
+		if (cwd == null) {
+			cwd = getCwd();
 		}
-		if (aliases.baseRef != null && !isAbsoluteRef(alias.scriptRef)) {
-			String ref = aliases.baseRef;
-			if (!ref.endsWith("/")) {
-				ref += "/";
-			}
-			if (alias.scriptRef.startsWith("./")) {
-				ref += alias.scriptRef.substring(2);
-			} else {
-				ref += alias.scriptRef;
-			}
-			alias = new Alias(ref, alias.description, alias.arguments, alias.properties);
-		}
-		// TODO if we have to combine the baseUrl with the scriptRef
-		// we need to make a copy of the Alias with the full URL
-		return alias;
+		Aliases result = new Aliases(null, null, null);
+		result.aliases.putAll(getAliasesFromCatalogFile(Settings.getAliasesFile(), false).aliases);
+		allAliasesFromLocalCatalogs(cwd, result);
+		return result;
 	}
 
-	static Aliases readAliasesFromCatalog(Path catalogPath) {
+	private static void allAliasesFromLocalCatalogs(Path dir, Aliases result) {
+		if (dir.getParent() != null) {
+			allAliasesFromLocalCatalogs(dir.getParent(), result);
+		}
+		Path catalog = dir.resolve(JBANG_DOT_DIR).resolve(JBANG_CATALOG_JSON);
+		if (Files.isRegularFile(catalog) && Files.isReadable(catalog)) {
+			result.aliases.putAll(getAliasesFromCatalogFile(catalog, false).aliases);
+		}
+		catalog = dir.resolve(JBANG_CATALOG_JSON);
+		if (Files.isRegularFile(catalog) && Files.isReadable(catalog)) {
+			result.aliases.putAll(getAliasesFromCatalogFile(catalog, false).aliases);
+		}
+	}
+
+	private static Path findNearestLocalCatalog(Path dir) {
+		if (dir == null) {
+			dir = getCwd();
+		}
+		while (dir != null) {
+			Path catalog = dir.resolve(JBANG_CATALOG_JSON);
+			if (Files.isRegularFile(catalog) && Files.isReadable(catalog)) {
+				return catalog;
+			}
+			catalog = dir.resolve(JBANG_DOT_DIR).resolve(JBANG_CATALOG_JSON);
+			if (Files.isRegularFile(catalog) && Files.isReadable(catalog)) {
+				return catalog;
+			}
+			dir = dir.getParent();
+		}
+		return null;
+	}
+
+	public static Path findNearestLocalCatalogWithAlias(Path dir, String aliasName) {
+		if (dir == null) {
+			dir = getCwd();
+		}
+		while (dir != null) {
+			Path catalog = dir.resolve(JBANG_CATALOG_JSON);
+			if (Files.isRegularFile(catalog) && Files.isReadable(catalog)) {
+				Aliases aliases = getAliasesFromCatalogFile(catalog, false);
+				if (aliases.aliases.containsKey(aliasName)) {
+					return catalog;
+				}
+			}
+			catalog = dir.resolve(JBANG_DOT_DIR).resolve(JBANG_CATALOG_JSON);
+			if (Files.isRegularFile(catalog) && Files.isReadable(catalog)) {
+				Aliases aliases = getAliasesFromCatalogFile(catalog, false);
+				if (aliases.aliases.containsKey(aliasName)) {
+					return catalog;
+				}
+			}
+			dir = dir.getParent();
+		}
+		return null;
+	}
+
+	public static Aliases getAliasesFromCatalogFile(Path catalogPath, boolean updateCache) {
 		Aliases aliases;
-		aliases = new Aliases();
+		if (updateCache || !catalogCache.containsKey(catalogPath)) {
+			aliases = readAliasesFromCatalogFile(catalogPath);
+			aliases.catalogFile = catalogPath;
+			catalogCache.put(catalogPath, aliases);
+		} else {
+			aliases = catalogCache.get(catalogPath);
+		}
+		return aliases;
+	}
+
+	static private Path scriptParent(Path script) {
+		Path parent = script.getParent();
+		if (parent.getFileName().toString().equals(JBANG_DOT_DIR)) {
+			parent = parent.getParent();
+		}
+		return parent;
+	}
+
+	static Aliases readAliasesFromCatalogFile(Path catalogPath) {
+		Aliases aliases = new Aliases(null, null, null);
 		if (Files.isRegularFile(catalogPath)) {
 			try (Reader in = Files.newBufferedReader(catalogPath)) {
 				Gson parser = new Gson();
-				aliases = parser.fromJson(in, Aliases.class);
-				// Validate the result (Gson can't do this)
-				check(aliases.aliases != null, "Missing required attribute 'aliases'");
-				for (String aliasName : aliases.aliases.keySet()) {
-					Alias alias = aliases.aliases.get(aliasName);
-					check(alias.scriptRef != null, "Missing required attribute 'aliases.script-ref'");
+				Aliases as = parser.fromJson(in, Aliases.class);
+				if (as != null) {
+					aliases = as;
+					// Validate the result (Gson can't do this)
+					check(aliases.aliases != null, "Missing required attribute 'aliases'");
+					for (String aliasName : aliases.aliases.keySet()) {
+						Alias alias = aliases.aliases.get(aliasName);
+						alias.aliases = aliases;
+						check(alias.scriptRef != null, "Missing required attribute 'aliases.script-ref'");
+					}
 				}
 			} catch (IOException e) {
 				// Ignore errors
@@ -311,10 +532,10 @@ public class AliasUtil {
 		return aliases;
 	}
 
-	static void writeAliasesToCatalog(Path catalogPath) throws IOException {
+	static void writeAliasesToCatalogFile(Path catalogPath, Aliases aliases) throws IOException {
 		try (Writer out = Files.newBufferedWriter(catalogPath)) {
 			Gson parser = new GsonBuilder().setPrettyPrinting().create();
-			parser.toJson(Settings.getAliasesFromLocalCatalog(), out);
+			parser.toJson(aliases, out);
 		}
 	}
 
@@ -330,11 +551,15 @@ public class AliasUtil {
 			try (Reader in = Files.newBufferedReader(catalogsPath)) {
 				Gson parser = new Gson();
 				info = parser.fromJson(in, CatalogInfo.class);
-				// Validate the result (Gson can't do this)
-				check(info.catalogs != null, "Missing required attribute 'catalogs'");
-				for (String catName : info.catalogs.keySet()) {
-					Catalog cat = info.catalogs.get(catName);
-					check(cat.catalogRef != null, "Missing required attribute 'catalogs.catalogRef'");
+				if (info != null) {
+					// Validate the result (Gson can't do this)
+					check(info.catalogs != null, "Missing required attribute 'catalogs'");
+					for (String catName : info.catalogs.keySet()) {
+						Catalog cat = info.catalogs.get(catName);
+						check(cat.catalogRef != null, "Missing required attribute 'catalogs.catalogRef'");
+					}
+				} else {
+					info = new CatalogInfo();
 				}
 			} catch (IOException e) {
 				info = new CatalogInfo();
@@ -358,9 +583,12 @@ public class AliasUtil {
 
 	@SafeVarargs
 	public static <T> Stream<T> chain(Supplier<Optional<T>>... suppliers) {
-		return Arrays	.asList(suppliers)
-						.stream()
+		return Arrays	.stream(suppliers)
 						.map(Supplier::get)
 						.flatMap(o -> o.map(Stream::of).orElseGet(Stream::empty));
+	}
+
+	private static Path getCwd() {
+		return Paths.get("").toAbsolutePath();
 	}
 }

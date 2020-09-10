@@ -17,7 +17,6 @@ import com.google.gson.reflect.TypeToken;
 import io.quarkus.qute.Template;
 
 public class Settings {
-	static Map<Path, AliasUtil.Aliases> catalogCache = new HashMap<>();
 	static AliasUtil.CatalogInfo catalogInfo = null;
 
 	public static final String JBANG_REPO = "JBANG_REPO";
@@ -170,46 +169,6 @@ public class Settings {
 
 	public static Path getAliasesFile() {
 		return getConfigDir().resolve(AliasUtil.JBANG_CATALOG_JSON);
-	}
-
-	public static AliasUtil.Aliases getAliasesFromCatalog(Path catalogPath, boolean updateCache) {
-		AliasUtil.Aliases aliases;
-		if (updateCache || !catalogCache.containsKey(catalogPath)) {
-			aliases = AliasUtil.readAliasesFromCatalog(catalogPath);
-			catalogCache.put(catalogPath, aliases);
-		} else {
-			aliases = catalogCache.get(catalogPath);
-		}
-		return aliases;
-	}
-
-	public static AliasUtil.Aliases getAliasesFromLocalCatalog() {
-		return getAliasesFromCatalog(getAliasesFile(), false);
-	}
-
-	public static Map<String, AliasUtil.Alias> getAliases() {
-		return getAliasesFromLocalCatalog().aliases;
-	}
-
-	public static void addAlias(String name, String scriptRef, String description, List<String> arguments,
-			Map<String, String> properties) {
-		getAliases().put(name, new AliasUtil.Alias(scriptRef, description, arguments, properties));
-		try {
-			AliasUtil.writeAliasesToCatalog(getAliasesFile());
-		} catch (IOException ex) {
-			Util.warnMsg("Unable to add alias: " + ex.getMessage());
-		}
-	}
-
-	public static void removeAlias(String name) {
-		if (getAliases().containsKey(name)) {
-			getAliases().remove(name);
-			try {
-				AliasUtil.writeAliasesToCatalog(getAliasesFile());
-			} catch (IOException ex) {
-				Util.warnMsg("Unable to remove alias: " + ex.getMessage());
-			}
-		}
 	}
 
 	public static Path getCatalogsFile() {
