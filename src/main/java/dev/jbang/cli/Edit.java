@@ -49,7 +49,7 @@ public class Edit extends BaseScriptCommand {
 						+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + project.getAbsolutePath() + "\n\n");
 			} else {
 				List<String> optionList = new ArrayList<>();
-				optionList.add(liveeditor);
+				optionList.addAll(Arrays.asList(liveeditor.split(" ")));
 				optionList.add(project.getAbsolutePath());
 				info("Running `" + String.join(" ", optionList) + "`");
 				Process process = new ProcessBuilder(optionList).start();
