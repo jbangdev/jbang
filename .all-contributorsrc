@@ -226,6 +226,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "zakkak",
+      "name": "Foivos",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/1435395?v=4",
+      "profile": "https://foivos.zakkak.net",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
