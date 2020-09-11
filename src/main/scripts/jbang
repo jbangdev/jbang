@@ -114,7 +114,7 @@ if [[ -z "$JAVA_EXEC" ]]; then
       # Activate the downloaded JDK giving it its proper name
       mv "$TDIR/jdks/$javaVersion.tmp" "$TDIR/jdks/$javaVersion"
     fi
-    JAVA_HOME="$TDIR/jdks/$javaVersion"
+    export JAVA_HOME="$TDIR/jdks/$javaVersion"
     JAVA_EXEC="$JAVA_HOME/bin/java"
   fi
 fi
