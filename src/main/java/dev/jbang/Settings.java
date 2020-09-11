@@ -5,6 +5,7 @@ import static dev.jbang.Util.warnMsg;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -187,6 +188,14 @@ public class Settings {
 	}
 
 	public static AliasUtil.Catalog addCatalog(String name, String catalogRef, String description) {
+		try {
+			Path cat = Paths.get(catalogRef);
+			if (!cat.isAbsolute() && Files.isRegularFile(cat)) {
+				catalogRef = cat.toAbsolutePath().toString();
+			}
+		} catch (InvalidPathException ex) {
+			// Ignore
+		}
 		AliasUtil.Catalog catalog = new AliasUtil.Catalog(catalogRef, description);
 		getCatalogs().put(name, catalog);
 		try {
