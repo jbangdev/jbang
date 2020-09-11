@@ -264,7 +264,7 @@ that will run out of that directory using `./jbang`.
 
 A script is just a single `.java` file with a classic static main method or a `.jsh` file which will be passed to `jshell`.
 
-Below is an (almost) minimal example you can save in `helloworld.java` or simply run `jbang init hellworld.java`:
+Below is an (almost) minimal example you can save in `helloworld.java` or simply run `jbang init helloworld.java`:
 
 [source, java]
 ```
@@ -350,7 +350,7 @@ There is support for using `native-image` from GraalVM project to produce a bina
 
 Since not all java libraries can automatically be built with `native-image` - especially if using reflection feature are considered highly experimental.
 
-Just run `jbang --native helloworld.java` and `jbang` will use `native-image` from either `JAVA_HOME/bin` or `GRAALVM_HPME/bin` to
+Just run `jbang --native helloworld.java` and `jbang` will use `native-image` from either `JAVA_HOME/bin` or `GRAALVM_HOME/bin` to
 produce a native image binary.
 
 [TIP]
@@ -698,7 +698,7 @@ For now this is required for `kubectl` plugin but not `git`. https://github.com/
 
 == Java version
 
-`jbang` will by default use `JAVA_HOME` and if not available, check the the `PATH` to locate the `java` executable to run the script with.
+`jbang` will by default use `JAVA_HOME` and if not available, check the `PATH` to locate the `java` executable to run the script with.
 
 If your script requires a specific or minimal version of Java you can use `//JAVA <version>(+)`.
 
@@ -708,7 +708,7 @@ If no such version is found it will automatically download and install it into j
 Examples:
 
 `//JAVA 11` will force use of Java 11. +
-`//JAVA 13+` will require at least java 13. Java 13 or higher will be sued.
+`//JAVA 13+` will require at least java 13. Java 13 or higher will be used.
 
 In case no matching `java` is found `jbang` will fail.
 
@@ -928,7 +928,7 @@ Still very experimental and bound to change. Example of its use can be found in 
 [qanda]
 Why the name j'bang?::
   I was reading up on how to use the new shebang (#!) feature support in Java 10 and came up with the idea of port `kscript` to Java and needed a name.
-From there came j'bang which is a "bad" spelling of how shebang is pronounced in french.
+From there came j'bang which is a "bad" spelling of how shebang is pronounced in French.
 
 Why use gradle resource locators rather than ?::
   kscript used it and it's nice as it is a one-liner and easily parsable.
