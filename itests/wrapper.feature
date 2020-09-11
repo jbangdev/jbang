@@ -4,7 +4,7 @@ Feature: wrapper
 # to be cross platform.
 
 Scenario: test wrapper creation
-When command('jbang wrapper --verbose -d ' + scratch)
+When command('jbang wrapper install --verbose -d ' + scratch)
   * match exit == 0
   * fileexist(scratch + "/jbang")
   * fileexist(scratch + "/jbang.cmd")
@@ -13,19 +13,19 @@ When command('jbang wrapper --verbose -d ' + scratch)
   * match out == "0:foo\n"
 
 Scenario: test wrapper missing folder
-When command('jbang wrapper -d foo')
+When command('jbang wrapper install -d foo')
   * match exit == 2
   * match err contains 'Destination folder does not exist'
 
 Scenario: test wrapper exists
-When command('jbang wrapper -d ' + scratch)
+When command('jbang wrapper install -d ' + scratch)
   * match exit == 0
-  * command('jbang wrapper -d ' + scratch)
+  * command('jbang wrapper install -d ' + scratch)
   * match exit == 0
   * match err contains 'Wrapper already exists'
 
 Scenario: test wrapper force
-When command('jbang wrapper -d ' + scratch)
+When command('jbang wrapper install -d ' + scratch)
   * match exit == 0
-  * command('jbang wrapper -f -d ' + scratch)
+  * command('jbang wrapper install -f -d ' + scratch)
   * match exit == 0

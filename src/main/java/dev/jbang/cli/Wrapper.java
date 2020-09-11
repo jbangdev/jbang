@@ -11,32 +11,28 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import dev.jbang.ExitException;
+import dev.jbang.Util;
 
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "wrapper", description = "Install Jbang wrapper into folder.")
-public class Wrapper extends BaseCommand {
+@CommandLine.Command(name = "wrapper", description = "Manage jbang wrapper for a folder.")
+public class Wrapper {
 	public static final String DIR_NAME = ".jbang";
 	public static final String SHELL_NAME = "jbang";
 	public static final String CMD_NAME = "jbang.cmd";
 	public static final String JAR_NAME = "jbang.jar";
 
-	@CommandLine.Option(names = { "-d",
-			"--dir" }, description = "The folder to install the wrapper into.", defaultValue = ".")
-	Path dest;
-
-	@CommandLine.Option(names = {
-			"-f",
-			"--force" }, description = "Force installation of wrapper even if files already exist", defaultValue = "false")
-	boolean force;
-
-	@Override
-	public Integer doCall() {
+	@CommandLine.Command(name = "install", description = "Install/Setup jbang as a `wrapper` script in a folder")
+	public Integer install(
+			@CommandLine.Option(names = { "-d",
+					"--dir" }, description = "The folder to install the wrapper into.", defaultValue = ".") Path dest,
+			@CommandLine.Option(names = { "-f",
+					"--force" }, description = "Force installation of wrapper even if files already exist", defaultValue = "false") boolean force) {
 		if (!Files.isDirectory(dest)) {
 			throw new IllegalArgumentException("Destination folder does not exist");
 		}
 		if ((checkScripts(dest) || checkJar(dest.resolve(DIR_NAME))) && !force) {
-			warn("Wrapper already exists. Use --force to install anyway");
+			Util.warnMsg("Wrapper already exists. Use --force to install anyway");
 			return CommandLine.ExitCode.OK;
 		}
 		try {
