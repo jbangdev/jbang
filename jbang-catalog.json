@@ -12,14 +12,14 @@
     "vertx": {
       "script-ref": "vertx.java"
     },
-    "classpath_example": {
+    "classpath_example_java": {
+      "script-ref": "classpath_example.java"
+    },
+    "classpath_example_jsh": {
       "script-ref": "classpath_example.jsh"
     },
     "hibernate": {
       "script-ref": "hibernate.java"
-    },
-    "example": {
-      "script-ref": "example"
     },
     "docker": {
       "script-ref": "docker.java"
@@ -45,12 +45,6 @@
     "webdriver": {
       "script-ref": "webdriver.java"
     },
-    "jetty": {
-      "script-ref": "jetty.jsh"
-    },
-    "scripts": {
-      "script-ref": "scripts"
-    },
     "lang": {
       "script-ref": "lang.java"
     },
@@ -64,10 +58,13 @@
       "script-ref": "asciidoc.java"
     },
     "helloworld": {
-      "script-ref": "helloworld.jsh"
+      "script-ref": "helloworld.java"
     },
     "urldep": {
       "script-ref": "urldep.java"
+    },
+    "ilc": {
+      "script-ref": "ilc.java"
     },
     "imap": {
       "script-ref": "imap.java"
@@ -77,6 +74,9 @@
     },
     "asciidoctor": {
       "script-ref": "asciidoctor.java"
+    },
+    "resource": {
+      "script-ref": "resource.java"
     },
     "plantuml": {
       "script-ref": "plantuml.java"
@@ -116,8 +116,11 @@
     },
     "junit-run": {
       "script-ref": "junit-run.java"
+    },
+    "jetty": {
+      "script-ref": "jetty.jsh"
     }
   },
   "base-ref": "examples",
-  "description": "\u0027JBang example scripts\u0027"
+  "description": "Jbang example scripts"
 }
