@@ -252,6 +252,14 @@ The same container images can be used with GitHub Actions, see https://github.co
 
 Unzip the https://github.com/jbangdev/jbang/releases/latest[latest binary release], add the `jbang-<version>/bin` folder to your `$PATH` and you are set.
 
+=== Wrapper install
+
+If you would like to have jbang available in a local directory and committed into a source code repository you akin to maven and gradle wrappers you can use the `wrapper` command.
+
+If you have `jbang` alredy installed you call `jbang wrapper install` in a folder to install a local `jbang`
+that will run out of that directory using `./jbang`. 
+
+
 == Usage
 
 A script is just a single `.java` file with a classic static main method or a `.jsh` file which will be passed to `jshell`.
