@@ -1,6 +1,6 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-24-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-25-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 ## Contributors ✨
 
@@ -41,6 +41,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://twitter.com/OliverLibutzki"><img src="https://avatars2.githubusercontent.com/u/977893?v=4" width="100px;" alt=""/><br /><sub><b>Oliver Libutzki</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=OLibutzki" title="Code">💻</a></td>
     <td align="center"><a href="https://bmuskalla.github.io"><img src="https://avatars1.githubusercontent.com/u/316929?v=4" width="100px;" alt=""/><br /><sub><b>Benjamin Muskalla</b></sub></a><br /><a href="#infra-bmuskalla" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
     <td align="center"><a href="https://twitter.com/abelsromero"><img src="https://avatars1.githubusercontent.com/u/5781153?v=4" width="100px;" alt=""/><br /><sub><b>Abel Salgado Romero</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=abelsromero" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://foivos.zakkak.net"><img src="https://avatars1.githubusercontent.com/u/1435395?v=4" width="100px;" alt=""/><br /><sub><b>Foivos</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=zakkak" title="Code">💻</a></td>
   </tr>
 </table>
 
