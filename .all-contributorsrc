@@ -235,6 +235,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "marceloverdijk",
+      "name": "Marcel Overdijk",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/197004?v=4",
+      "profile": "https://www.qgon.nl",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
