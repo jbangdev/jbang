@@ -1,18 +1,55 @@
 //usr/bin/env jbang "$0" "$@" ; exit $?
+//DEPS io.quarkus:quarkus-picocli:1.8.0.Final
+//JAVA_OPTIONS -Djava.util.logging.manager=org.jboss.logmanager.LogManager
+//Q:CONFIG quarkus.banner.enabled=false
+//Q:CONFIG quarkus.log.level=WARN
 
-//DEPS io.quarkus:quarkus-resteasy:999-SNAPSHOT
-//DEPS io.quarkus:quarkus-smallrye-openapi:999-SNAPSHOT
-// Comment out below to have swagger-ui available at /swagger-ui
-// //DEPS io.quarkus:quarkus-swagger-ui:999-SNAPSHOT
-// //CONFIG quarkus.swagger-ui.always-include=true
-import io.quarkus.runtime.QuarkusApplication;
+import picocli.CommandLine;
+
+import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
 import io.quarkus.runtime.annotations.QuarkusMain;
+import io.quarkus.runtime.QuarkusApplication;
+import io.quarkus.runtime.Quarkus;
+
+// In Quarkus 1.8 there is no auto generation of main class from
+// quarkus to jbang; until that is fixed this double run()'s are needed.
+// Will be removed in future versions.
 
 @QuarkusMain
-public class HelloWorldMain implements QuarkusApplication {
-  @Override
-  public int run(String... args) throws Exception {
-    System.out.println("Hello World");
-    return 10;
- }
+@CommandLine.Command
+public class {baseName} implements Runnable, QuarkusApplication {
+
+    @CommandLine.Parameters(index = "0", description = "The greeting to print", defaultValue = "World!")
+    String name;
+
+    @Inject
+    CommandLine.IFactory factory;
+
+    private final GreetingService greetingService;
+
+    public {baseName}(GreetingService greetingService) {
+        this.greetingService = greetingService;
+    }
+
+    @Override
+    public void run() {
+        greetingService.sayHello(name);
+    }
+
+    @Override
+    public int run(String... args) throws Exception {
+        return new CommandLine(this, factory).execute(args);
+    }
+
+    public static void main(String... args) {
+        Quarkus.run({baseName}.class, args);
+    }
+}
+
+@Dependent
+class GreetingService {
+    void sayHello(String name) {
+        System.out.println("Hello " + name + "!");
+    }
 }
