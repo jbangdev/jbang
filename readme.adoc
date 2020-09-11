@@ -658,7 +658,7 @@ Example:
   //FILES resource.properties
   //FILES META-INF/resources/index.html=index.html
 
-Here `resource.properties` will be copied as is and `META-INF/resources/index.html` gets its contet from `index.html`.
+Here `resource.properties` will be copied as is and `META-INF/resources/index.html` gets its content from `index.html`.
 
 All locations are relative to the script location.
 
