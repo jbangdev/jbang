@@ -30,6 +30,12 @@ BUILD SUCCESSFUL in 5s
 <.> This error happens as in the junit tests we test behaviors under different environment variables and to do that we need to modify internal state in java's `System` handling of properties. Java 9+ does not like that.
 <.> Already https://github.com/stefanbirkner/system-rules/issues/64[reported] but it can't be fixed as the jvm does not allow this; but fine for `jbang` as this is just for the test runs.
 
+== Conventional Commmits + squash and merge
+
+To make releasing as automated and fast as possible we (since 2020-09-13) uses https://www.conventionalcommits.org. On Pull-request we have https://github.com/zeke/semantic-pull-requests running to sanitize that at least PR title or one commit uses the conventional commit format.
+
+Intent is that on merge we squash to get as clean as changelog as possible.
+
 == Source formatting
 
 The build uses the https://github.com/diffplug/spotless[spotless] plugin to ensure Java and other files are formatted uniformly.
