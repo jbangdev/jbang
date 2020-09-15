@@ -68,7 +68,7 @@ public class AliasUtil {
 				ref = baseRef;
 			}
 			if (!isAbsoluteRef(ref)) {
-				Path script = scriptParent(aliases.catalogFile).resolve(ref);
+				Path script = aliases.catalogFile.getParent().resolve(ref);
 				if (script.startsWith(cwd) || cwd.startsWith(script)
 						|| !cwd.relativize(script).startsWith("../../..")) {
 					script = cwd.relativize(script);
