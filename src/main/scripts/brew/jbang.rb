@@ -13,7 +13,7 @@ class Jbang < Formula
 
     def install
       libexec.install Dir["*"]
-      inreplace "#{libexec}/bin/jbang", /^jarPath=.*/, "jarPath=#{libexec}/bin/jbang.jar"
+      inreplace "#{libexec}/bin/jbang", /^abs_jbang_path=.*/, "abs_jbang_path=#{libexec}/bin/jbang.jar"
       bin.install_symlink "#{libexec}/bin/jbang"
     end
 
