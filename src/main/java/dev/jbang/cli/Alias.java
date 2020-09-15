@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import dev.jbang.AliasUtil;
 import dev.jbang.Settings;
@@ -70,6 +71,9 @@ class AliasAdd extends BaseAliasCommand {
 @CommandLine.Command(name = "list", description = "Lists locally defined aliases or from the given catalog.")
 class AliasList extends BaseAliasCommand {
 
+	@CommandLine.Option(names = { "--show-origin" }, description = "Show the origin of the alias")
+	boolean showOrigin;
+
 	@CommandLine.Parameters(paramLabel = "catalogName", index = "0", description = "The name of a catalog", arity = "0..1")
 	String catalogName;
 
@@ -84,7 +88,11 @@ class AliasList extends BaseAliasCommand {
 		} else {
 			aliases = AliasUtil.getAllAliasesFromLocalCatalogs(null);
 		}
-		printAliases(out, catalogName, aliases);
+		if (showOrigin) {
+			printAliasesWithOrigin(out, catalogName, aliases);
+		} else {
+			printAliases(out, catalogName, aliases);
+		}
 		return CommandLine.ExitCode.OK;
 	}
 
@@ -94,30 +102,50 @@ class AliasList extends BaseAliasCommand {
 						.stream()
 						.sorted()
 						.forEach(name -> {
-							AliasUtil.Alias alias = aliases.aliases.get(name);
-							String fullName = catalogName != null ? name + "@" + catalogName : name;
-							String scriptRef = alias.scriptRef;
-							if (!aliases.aliases.containsKey(scriptRef)
-									&& !AliasUtil.isValidCatalogReference(scriptRef)) {
-								scriptRef = alias.resolve(null);
-							}
-							if (alias.description != null) {
-								out.println(fullName + " = " + alias.description);
-								if (Util.isVerbose())
-									out.println(Util.repeat(" ", fullName.length()) + "   (" + scriptRef + ")");
-							} else {
-								out.println(fullName + " = " + scriptRef);
-							}
-							if (alias.arguments != null) {
-								out.println(
-										Util.repeat(" ", fullName.length()) + "   Arguments: "
-												+ String.join(" ", alias.arguments));
-							}
-							if (alias.properties != null) {
-								out.println(
-										Util.repeat(" ", fullName.length()) + "   Properties: " + alias.properties);
-							}
+							printAlias(out, catalogName, aliases, name, 0);
 						});
+	}
+
+	static void printAliasesWithOrigin(PrintWriter out, String catalogName, AliasUtil.Aliases aliases) {
+		Map<Path, List<Map.Entry<String, AliasUtil.Alias>>> groups = aliases.aliases
+																					.entrySet()
+																					.stream()
+																					.collect(Collectors.groupingBy(
+																							e -> e.getValue().aliases.catalogFile));
+		groups.forEach((p, entries) -> {
+			out.println(p);
+			entries.stream().map(Map.Entry::getKey).sorted().forEach(k -> {
+				printAlias(out, catalogName, aliases, k, 3);
+			});
+		});
+	}
+
+	private static void printAlias(PrintWriter out, String catalogName, AliasUtil.Aliases aliases, String name,
+			int indent) {
+		AliasUtil.Alias alias = aliases.aliases.get(name);
+		String fullName = catalogName != null ? name + "@" + catalogName : name;
+		String scriptRef = alias.scriptRef;
+		if (!aliases.aliases.containsKey(scriptRef)
+				&& !AliasUtil.isValidCatalogReference(scriptRef)) {
+			scriptRef = alias.resolve(null);
+		}
+		out.print(Util.repeat(" ", indent));
+		if (alias.description != null) {
+			out.println(fullName + " = " + alias.description);
+			if (Util.isVerbose())
+				out.println(Util.repeat(" ", fullName.length() + indent) + "   (" + scriptRef + ")");
+		} else {
+			out.println(fullName + " = " + scriptRef);
+		}
+		if (alias.arguments != null) {
+			out.println(
+					Util.repeat(" ", fullName.length() + indent) + "   Arguments: "
+							+ String.join(" ", alias.arguments));
+		}
+		if (alias.properties != null) {
+			out.println(
+					Util.repeat(" ", fullName.length() + indent) + "   Properties: " + alias.properties);
+		}
 	}
 }
 
