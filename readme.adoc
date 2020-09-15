@@ -22,7 +22,7 @@ Want to learn, explore or use Java instantly without setup ?
 
 Do you like Java but use python, groovy, kotlin or similar languages for your scripts ?
 
-Ever tried out Java 10+ support for running `.java` files directly in your shell but felt it was a bit too cumbersome ?
+Ever tried out Java 11+ support for running `.java` files directly in your shell but felt it was a bit too cumbersome ?
 
 Then try `jbang` which lets you do this:
 
