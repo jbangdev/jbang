@@ -402,6 +402,7 @@ public class AliasUtil {
 		Path catalogPath = null;
 		try {
 			catalogPath = Util.obtainFile(catalogRef, updateCache);
+			Util.verboseMsg(String.format("Downloaded catalog from %s", catalogRef));
 			Aliases aliases = getAliasesFromCatalogFile(catalogPath, updateCache);
 			int p = catalogRef.lastIndexOf('/');
 			if (p > 0) {
@@ -501,15 +502,8 @@ public class AliasUtil {
 		return aliases;
 	}
 
-	static private Path scriptParent(Path script) {
-		Path parent = script.getParent();
-		if (parent.getFileName().toString().equals(JBANG_DOT_DIR)) {
-			parent = parent.getParent();
-		}
-		return parent;
-	}
-
 	static Aliases readAliasesFromCatalogFile(Path catalogPath) {
+		Util.verboseMsg(String.format("Reading aliases from %s", catalogPath));
 		Aliases aliases = new Aliases(null, null, null);
 		if (Files.isRegularFile(catalogPath)) {
 			try (Reader in = Files.newBufferedReader(catalogPath)) {
