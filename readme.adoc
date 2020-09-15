@@ -727,16 +727,24 @@ code `jbang edit helloworld.java`
 
 If you add additional dependencies to your file just re-run the edit command and the relevant files will be regenerated with the updated dependencies.
 
+Above does require using a shell that allows for variable evaluation, if you are on i.e. Windows then you might prefer using:
+
+[source, bash]
+----
+jbang --open=[editor] helloworld.java
+----
+
+The editor used will be what is specified as argument to `--open` or default to `$JBANG_EDITOR`, `$VISUAL` or `$EDITOR` in that order.
+
 NOTE: On Windows you might need elevated privileges to create symbolic links. If you don't have permissions then
 the `edit` option will result in an error. To use it enable symbolic links for your user or run your shell/terminal as administrator
 to have this feature working.
 
 === Live Editing
 
-You can also use `jbang edit --live[=editor]` and `jbang` will launch your editor while watching
+You can also use `jbang edit --live` and `jbang` will launch your editor while watching
 for file changes and regenerate the temporary project to pick up changes in dependencies.
 
-The editor used will be what is specified as argument to `--live` or default to `$JBANG_EDITOR`, `$VISUAL` or `$EDITOR` in that order.
 
 === IDE and Editor support
 
