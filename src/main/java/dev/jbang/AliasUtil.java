@@ -512,7 +512,7 @@ public class AliasUtil {
 				if (as != null) {
 					aliases = as;
 					// Validate the result (Gson can't do this)
-					check(aliases.aliases != null, "Missing required attribute 'aliases'");
+					check(aliases.aliases != null, "Missing required attribute 'aliases' in " + catalogPath);
 					for (String aliasName : aliases.aliases.keySet()) {
 						Alias alias = aliases.aliases.get(aliasName);
 						alias.aliases = aliases;
