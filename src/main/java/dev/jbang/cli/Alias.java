@@ -54,7 +54,7 @@ class AliasAdd extends BaseAliasCommand {
 
 	@Override
 	public Integer doCall() {
-		if (!name.matches("^[a-zA-Z][-\\w]*$")) {
+		if (!AliasUtil.isValidName(name)) {
 			throw new IllegalArgumentException(
 					"Invalid alias name, it should start with a letter followed by 0 or more letters, digits, underscores or hyphens");
 		}
@@ -97,13 +97,9 @@ class AliasList extends BaseAliasCommand {
 							AliasUtil.Alias alias = aliases.aliases.get(name);
 							String fullName = catalogName != null ? name + "@" + catalogName : name;
 							String scriptRef = alias.scriptRef;
-							try {
-								AliasUtil.Alias merged = AliasUtil.getAlias(null, name);
-								if (alias.scriptRef.equals(merged.scriptRef)) {
-									scriptRef = alias.resolve(null);
-								}
-							} catch (Exception ex) {
-								// Ignore
+							if (!aliases.aliases.containsKey(scriptRef)
+									&& !AliasUtil.isValidCatalogReference(scriptRef)) {
+								scriptRef = alias.resolve(null);
 							}
 							if (alias.description != null) {
 								out.println(fullName + " = " + alias.description);

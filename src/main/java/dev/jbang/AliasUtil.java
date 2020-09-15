@@ -571,6 +571,18 @@ public class AliasUtil {
 		}
 	}
 
+	public static boolean isValidName(String name) {
+		return name.matches("^[a-zA-Z][-\\w]*$");
+	}
+
+	public static boolean isValidCatalogReference(String name) {
+		String[] parts = name.split("@");
+		if (parts.length != 2 || parts[0].isEmpty() || parts[1].isEmpty()) {
+			return false;
+		}
+		return isValidName(parts[0]);
+	}
+
 	private static boolean isAbsoluteRef(String ref) {
 		return ref.startsWith("/") || ref.contains(":");
 	}
