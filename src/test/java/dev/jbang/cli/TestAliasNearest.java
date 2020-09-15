@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -103,6 +104,7 @@ public class TestAliasNearest {
 		File testDotDir = testTempDir.newFolder("test", ".jbang");
 		Files.write(testDotDir.toPath().resolve(AliasUtil.JBANG_CATALOG_JSON), dotlocal.getBytes());
 		Files.write(cwd.resolve(AliasUtil.JBANG_CATALOG_JSON), local.getBytes());
+		Files.write(cwd.resolve("dummy.java"), "// Dummy Java File".getBytes());
 	}
 
 	@Rule
@@ -150,56 +152,96 @@ public class TestAliasNearest {
 	}
 
 	@Test
-	void testAddLocal() throws IOException {
-		Path localCatalog = cwd.resolve(AliasUtil.JBANG_CATALOG_JSON);
-		AliasUtil.addNearestAlias(cwd, "new", "http://dummy", null, null, null);
-		clearSettingsCaches();
-		AliasUtil.Aliases aliases = AliasUtil.getAliasesFromCatalogFile(localCatalog, true);
-		assertThat(aliases.aliases.keySet(), hasItem("new"));
+	void testAddLocalUrl() throws IOException {
+		testAddLocal("http://dummy", "http://dummy");
 	}
 
 	@Test
-	void testAddDotLocal() throws IOException {
+	void testAddLocalFile() throws IOException {
+		testAddLocal("dummy.java", "dummy.java");
+	}
+
+	void testAddLocal(String ref, String result) throws IOException {
+		Path localCatalog = cwd.resolve(AliasUtil.JBANG_CATALOG_JSON);
+		AliasUtil.addNearestAlias(cwd, "new", ref, null, null, null);
+		clearSettingsCaches();
+		AliasUtil.Aliases aliases = AliasUtil.getAliasesFromCatalogFile(localCatalog, true);
+		assertThat(aliases.aliases.keySet(), hasItem("new"));
+		assertThat(aliases.aliases.get("new").scriptRef, equalTo(result));
+	}
+
+	@Test
+	void testAddDotLocalUrl() throws IOException {
+		testAddDotLocal("http://dummy", "http://dummy");
+	}
+
+	@Test
+	void testAddDotLocalFile() throws IOException {
+		testAddDotLocal("dummy.java", Paths.get("../dummy.java").toString());
+	}
+
+	void testAddDotLocal(String ref, String result) throws IOException {
 		Path localCatalog = cwd.resolve(AliasUtil.JBANG_CATALOG_JSON);
 		Path dotLocalCatalog = cwd.resolve(AliasUtil.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
 		Files.delete(localCatalog);
-		AliasUtil.addNearestAlias(cwd, "new", "http://dummy", null, null, null);
+		AliasUtil.addNearestAlias(cwd, "new", ref, null, null, null);
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
 		AliasUtil.Aliases aliases = AliasUtil.getAliasesFromCatalogFile(dotLocalCatalog, true);
 		assertThat(aliases.aliases.keySet(), hasItem("new"));
+		assertThat(aliases.aliases.get("new").scriptRef, equalTo(result));
 	}
 
 	@Test
-	void testAddParent() throws IOException {
+	void testAddParentUrl() throws IOException {
+		testAddParent("http://dummy", "http://dummy");
+	}
+
+	@Test
+	void testAddParentFile() throws IOException {
+		testAddParent("dummy.java", Paths.get("../test/dummy.java").toString());
+	}
+
+	void testAddParent(String ref, String result) throws IOException {
 		Path localCatalog = cwd.resolve(AliasUtil.JBANG_CATALOG_JSON);
 		Path dotLocalCatalog = cwd.resolve(AliasUtil.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
 		Path parentCatalog = cwd.getParent().resolve(AliasUtil.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
 		Files.delete(localCatalog);
 		Files.delete(dotLocalCatalog);
-		AliasUtil.addNearestAlias(cwd, "new", "http://dummy", null, null, null);
+		AliasUtil.addNearestAlias(cwd, "new", ref, null, null, null);
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		assertThat(dotLocalCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
 		AliasUtil.Aliases aliases = AliasUtil.getAliasesFromCatalogFile(parentCatalog, true);
 		assertThat(aliases.aliases.keySet(), hasItem("new"));
+		assertThat(aliases.aliases.get("new").scriptRef, equalTo(result));
 	}
 
 	@Test
-	void testAddGlobal() throws IOException {
+	void testAddGlobalUrl() throws IOException {
+		testAddGlobal("http://dummy", "http://dummy");
+	}
+
+	@Test
+	void testAddGlobalFile() throws IOException {
+		testAddGlobal("dummy.java", Paths.get("..", testTempDir.getRoot().getName(), "test/dummy.java").toString());
+	}
+
+	void testAddGlobal(String ref, String result) throws IOException {
 		Path localCatalog = cwd.resolve(AliasUtil.JBANG_CATALOG_JSON);
 		Path dotLocalCatalog = cwd.resolve(AliasUtil.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
 		Path parentCatalog = cwd.getParent().resolve(AliasUtil.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
 		Files.delete(localCatalog);
 		Files.delete(dotLocalCatalog);
 		Files.delete(parentCatalog);
-		AliasUtil.addNearestAlias(cwd, "new", "http://dummy", null, null, null);
+		AliasUtil.addNearestAlias(cwd, "new", ref, null, null, null);
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		assertThat(dotLocalCatalog.toFile(), not(anExistingFile()));
 		assertThat(parentCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
 		AliasUtil.Aliases aliases = AliasUtil.getAliasesFromCatalogFile(Settings.getAliasesFile(), true);
 		assertThat(aliases.aliases.keySet(), hasItem("new"));
+		assertThat(aliases.aliases.get("new").scriptRef, equalTo(result));
 	}
 
 	@Test
