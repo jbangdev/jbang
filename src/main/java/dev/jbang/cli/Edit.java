@@ -22,8 +22,12 @@ import picocli.CommandLine;
 public class Edit extends BaseScriptCommand {
 
 	@CommandLine.Option(names = {
-			"--live" }, description = "Setup temporary project, launch editor and regenerate project on dependency changes.")
-	String liveeditor;
+			"--live" }, description = "Setup temporary project, regenerate project on dependency changes.")
+	boolean live;
+
+	@CommandLine.Option(names = {
+			"--open" }, description = "Opens editor/IDE on the temporary project.")
+	String editor;
 
 	@Override
 	public Integer doCall() throws IOException {
@@ -34,26 +38,30 @@ public class Edit extends BaseScriptCommand {
 		script = prepareScript(scriptOrFile, userParams);
 		File project = createProjectForEdit(script, false);
 		// err.println(project.getAbsolutePath());
-		if (liveeditor == null) {
-			out.println("echo " + project.getAbsolutePath()); // quit(project.getAbsolutePath());
-		} else {
-			if (liveeditor.isEmpty()) {
-				liveeditor = System	.getenv()
-									.getOrDefault("JBANG_EDITOR",
-											System	.getenv()
-													.getOrDefault("VISUAL",
-															System.getenv().getOrDefault("EDITOR", "")));
+
+		if (editor != null) {
+			if (editor.isEmpty()) {
+				editor = System	.getenv()
+								.getOrDefault("JBANG_EDITOR",
+										System	.getenv()
+												.getOrDefault("VISUAL",
+														System.getenv().getOrDefault("EDITOR", "")));
 			}
-			if ("gitpod".equals(liveeditor) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
+			if ("gitpod".equals(editor) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
 				info("Open this url to edit the project in your gitpod session:\n\n"
 						+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + project.getAbsolutePath() + "\n\n");
 			} else {
 				List<String> optionList = new ArrayList<>();
-				optionList.addAll(Arrays.asList(liveeditor.split(" ")));
+				optionList.addAll(Arrays.asList(editor.split(" ")));
 				optionList.add(project.getAbsolutePath());
 				info("Running `" + String.join(" ", optionList) + "`");
 				Process process = new ProcessBuilder(optionList).start();
 			}
+		}
+
+		if (!live) {
+			out.println("echo " + project.getAbsolutePath()); // quit(project.getAbsolutePath());
+		} else {
 			try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
 				File orginalFile = new File(script.getOriginalFile());
 				if (!orginalFile.exists()) {
