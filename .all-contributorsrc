@@ -244,6 +244,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "kalaspuffar",
+      "name": "Daniel Persson",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/1424084?v=4",
+      "profile": "https://danielpersson.dev",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,
