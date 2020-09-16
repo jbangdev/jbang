@@ -1,6 +1,6 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-26-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-27-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 ## Contributors ✨
 
@@ -43,6 +43,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://twitter.com/abelsromero"><img src="https://avatars1.githubusercontent.com/u/5781153?v=4" width="100px;" alt=""/><br /><sub><b>Abel Salgado Romero</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=abelsromero" title="Documentation">📖</a></td>
     <td align="center"><a href="https://foivos.zakkak.net"><img src="https://avatars1.githubusercontent.com/u/1435395?v=4" width="100px;" alt=""/><br /><sub><b>Foivos</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=zakkak" title="Code">💻</a></td>
     <td align="center"><a href="https://www.qgon.nl"><img src="https://avatars3.githubusercontent.com/u/197004?v=4" width="100px;" alt=""/><br /><sub><b>Marcel Overdijk</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=marceloverdijk" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/xyz"><img src="https://avatars1.githubusercontent.com/u/14513?v=4" width="100px;" alt=""/><br /><sub><b>xyz</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/issues?q=author%3Axyz" title="Bug reports">🐛</a></td>
   </tr>
 </table>
 
