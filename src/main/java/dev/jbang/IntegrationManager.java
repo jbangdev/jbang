@@ -25,6 +25,8 @@ public class IntegrationManager {
 
 	public static final String FILES = "files";
 	public static final String NATIVE_IMAGE = "native-image";
+	public static final String MAIN_CLASS = "main-class";
+	public static final String JAVA_ARGS = "java-args";
 
 	/**
 	 * Discovers all integration points and runs them.
@@ -41,7 +43,8 @@ public class IntegrationManager {
 	 * @param nativeRequested
 	 * @return
 	 */
-	public static Path runIntegration(List<MavenRepo> repositories, List<ArtifactInfo> artifacts, Path tmpJarDir,
+	public static IntegrationResult runIntegration(List<MavenRepo> repositories, List<ArtifactInfo> artifacts,
+			Path tmpJarDir,
 			Path pomPath, Script script,
 			boolean nativeRequested) {
 		URL[] urls = artifacts.stream().map(s -> {
@@ -63,6 +66,8 @@ public class IntegrationManager {
 																s.asFile().toPath()))
 														.collect(Collectors.toList());
 		Path nativeImage = null;
+		String mainClass = null;
+		List<String> javaArgs = null;
 		PrintStream oldout = System.out;
 		try {
 			Thread.currentThread().setContextClassLoader(integrationCl);
@@ -97,6 +102,15 @@ public class IntegrationManager {
 				if (image != null) {
 					nativeImage = image;
 				}
+				String mc = (String) integrationResult.get(MAIN_CLASS);
+				if (mc != null) {
+					mainClass = mc;
+				}
+				@SuppressWarnings("unchecked")
+				List<String> ja = (List<String>) integrationResult.get(JAVA_ARGS);
+				if (ja != null) {
+					javaArgs = ja;
+				}
 			}
 			for (Map.Entry<String, byte[]> entry : data.entrySet()) {
 				Path target = tmpJarDir.resolve(entry.getKey());
@@ -118,7 +132,7 @@ public class IntegrationManager {
 			Thread.currentThread().setContextClassLoader(old);
 			System.setOut(oldout);
 		}
-		return nativeImage;
+		return new IntegrationResult(nativeImage, mainClass, javaArgs);
 
 	}
 

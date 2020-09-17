@@ -66,6 +66,7 @@ public class Script {
 	private Map<String, String> properties;
 	private List<MavenRepo> repositories;
 	private List<FileRef> filerefs;
+	private List<String> jvmArgs;
 
 	public Script(File backingFile, String content, List<String> arguments, Map<String, String> properties)
 			throws FileNotFoundException {
@@ -257,6 +258,15 @@ public class Script {
 			resolveClassPath(offline);
 		}
 		return classpath.getAutoDectectedModuleArguments(requestedVersion);
+	}
+
+	public List<String> getJvmArgs() {
+		return jvmArgs;
+	}
+
+	public Script setJvmArgs(List<String> jvmArgs) {
+		this.jvmArgs = jvmArgs;
+		return this;
 	}
 
 	public static Stream<String> extractRepositories(String line) {
