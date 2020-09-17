@@ -73,7 +73,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		}
 
 		boolean nativeBuildRequired = nativeImage && !getImageName(outjar).exists();
-		Path externalNativeImage = null;
+		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
 		String requestedJavaVersion = javaVersion != null ? javaVersion : script.javaVersion();
 		// always build the jar for native mode
 		// it allows integrations the options to produce the native image
@@ -154,16 +154,20 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 				throw new ExitException(1, e);
 			}
 			script.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
-			externalNativeImage = IntegrationManager.runIntegration(script.getRepositories(),
+			integrationResult = IntegrationManager.runIntegration(script.getRepositories(),
 					script.getClassPath().getArtifacts(),
 					tmpJarDir.toPath(), pomPath,
 					script, nativeImage);
+			if (integrationResult.mainClass != null) {
+				script.setMainClass(integrationResult.mainClass);
+			}
+			script.setJvmArgs(integrationResult.javaArgs);
 			script.createJarFile(tmpJarDir, outjar);
 		}
 
 		if (nativeBuildRequired) {
-			if (externalNativeImage != null) {
-				Files.move(externalNativeImage, getImageName(outjar).toPath());
+			if (integrationResult.nativeImagePath != null) {
+				Files.move(integrationResult.nativeImagePath, getImageName(outjar).toPath());
 			} else {
 				List<String> optionList = new ArrayList<String>();
 				optionList.add(resolveInGraalVMHome("native-image", requestedJavaVersion));
