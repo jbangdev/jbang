@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -329,7 +330,7 @@ public class AliasUtil {
 			List<String> arguments,
 			Map<String, String> properties) {
 		Path catalog = getCatalog(cwd, null);
-		addAlias(catalog, name, scriptRef, description, arguments, properties);
+		addAlias(cwd, catalog, name, scriptRef, description, arguments, properties);
 	}
 
 	/**
@@ -338,8 +339,31 @@ public class AliasUtil {
 	 * @param catalog Path to catalog file
 	 * @param name    The name of the new alias
 	 */
-	public static void addAlias(Path catalog, String name, String scriptRef, String description, List<String> arguments,
+	public static void addAlias(Path cwd, Path catalog, String name, String scriptRef, String description,
+			List<String> arguments,
 			Map<String, String> properties) {
+		if (cwd == null) {
+			cwd = getCwd();
+		}
+		try {
+			// If the scriptRef points to an existing file on the local filesystem
+			// or it's obviously a path (but not an absolute path) we'll make it
+			// relative to the location of the catalog we're adding the alias to.
+			Path script = cwd.resolve(scriptRef);
+			if (!isAbsoluteRef(scriptRef)
+					&& !isValidCatalogReference(scriptRef)
+					&& (!isValidName(scriptRef) || Files.isRegularFile(script))) {
+				scriptRef = catalog.getParent().relativize(script.toAbsolutePath()).toString();
+			}
+			if (!isRemoteRef(scriptRef)
+					&& !isValidCatalogReference(scriptRef)
+					&& !isValidName(scriptRef)
+					&& !Files.isRegularFile(script)) {
+				throw new IllegalArgumentException("Source file not found: " + scriptRef);
+			}
+		} catch (InvalidPathException ex) {
+			// Ignore
+		}
 		Aliases aliases = getAliasesFromCatalogFile(catalog, true);
 		aliases.aliases.put(name, new Alias(scriptRef, description, arguments, properties, aliases));
 		try {
@@ -584,7 +608,11 @@ public class AliasUtil {
 	}
 
 	private static boolean isAbsoluteRef(String ref) {
-		return ref.startsWith("/") || ref.contains(":");
+		return isRemoteRef(ref) || Paths.get(ref).isAbsolute();
+	}
+
+	private static boolean isRemoteRef(String ref) {
+		return ref.startsWith("http:") || ref.startsWith("https:");
 	}
 
 	@SafeVarargs

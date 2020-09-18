@@ -60,7 +60,7 @@ class AliasAdd extends BaseAliasCommand {
 					"Invalid alias name, it should start with a letter followed by 0 or more letters, digits, underscores or hyphens");
 		}
 		if (getCatalog() != null) {
-			AliasUtil.addAlias(getCatalog(), name, scriptOrFile, description, userParams, properties);
+			AliasUtil.addAlias(null, getCatalog(), name, scriptOrFile, description, userParams, properties);
 		} else {
 			AliasUtil.addNearestAlias(null, name, scriptOrFile, description, userParams, properties);
 		}
