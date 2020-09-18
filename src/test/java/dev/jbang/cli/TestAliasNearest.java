@@ -171,6 +171,16 @@ public class TestAliasNearest {
 	}
 
 	@Test
+	void testAddLocalExplicit() throws IOException {
+		Path localCatalog = cwd.resolve(AliasUtil.JBANG_CATALOG_JSON);
+		AliasUtil.addAlias(cwd, Paths.get(AliasUtil.JBANG_CATALOG_JSON), "new", "dummy.java", null, null, null);
+		clearSettingsCaches();
+		AliasUtil.Aliases aliases = AliasUtil.getAliasesFromCatalogFile(localCatalog, true);
+		assertThat(aliases.aliases.keySet(), hasItem("new"));
+		assertThat(aliases.aliases.get("new").scriptRef, equalTo("dummy.java"));
+	}
+
+	@Test
 	void testAddDotLocalUrl() throws IOException {
 		testAddDotLocal("http://dummy", "http://dummy");
 	}

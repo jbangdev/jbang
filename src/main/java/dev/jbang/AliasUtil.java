@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -55,25 +54,14 @@ public class AliasUtil {
 			if (cwd == null) {
 				cwd = getCwd();
 			}
-			String baseRef = aliases.baseRef;
+			String baseRef = aliases.getScriptBase();
 			String ref = scriptRef;
-			if (baseRef != null && !isAbsoluteRef(ref)) {
-				if (!baseRef.endsWith("/")) {
-					baseRef += "/";
-				}
-				if (ref.startsWith("./")) {
-					baseRef += ref.substring(2);
-				} else {
-					baseRef += ref;
-				}
-				ref = baseRef;
-			}
 			if (!isAbsoluteRef(ref)) {
-				Path script = aliases.catalogFile.getParent().resolve(ref);
-				if (script.startsWith(cwd) || cwd.startsWith(script)
-						|| !cwd.relativize(script).startsWith("../../..")) {
-					script = cwd.relativize(script);
-				}
+				ref = baseRef + "/" + ref;
+			}
+			if (!isRemoteRef(ref)) {
+				Path script = Paths.get(ref).normalize();
+				script = cwd.relativize(script);
 				ref = script.toString();
 			}
 			return ref;
@@ -97,7 +85,40 @@ public class AliasUtil {
 			this.baseRef = baseRef;
 			this.description = description;
 			this.catalogFile = catalogFile;
-			this.aliases.putAll(aliases);
+			aliases.entrySet().forEach(e -> {
+				Alias a = e.getValue();
+				this.aliases.put(e.getKey(), new Alias(a.scriptRef, a.description, a.arguments, a.properties, this));
+			});
+		}
+
+		/**
+		 * Returns in all cases the absolute base reference that can be used to resolve
+		 * an Alias' script location. The result will either be a URL or an absolute
+		 * path.
+		 * 
+		 * @return A string to be used as the base for Alias script locations
+		 */
+		public String getScriptBase() {
+			Path result;
+			if (baseRef != null) {
+				if (!isRemoteRef(baseRef)) {
+					Path base = Paths.get(baseRef);
+					if (!base.isAbsolute()) {
+						result = catalogFile.getParent().resolve(base);
+					} else {
+						result = Paths.get(baseRef);
+					}
+				} else {
+					if (baseRef.endsWith("/")) {
+						return baseRef.substring(0, baseRef.length() - 1);
+					} else {
+						return baseRef;
+					}
+				}
+			} else {
+				result = catalogFile.getParent();
+			}
+			return result.normalize().toString();
 		}
 	}
 
@@ -345,26 +366,26 @@ public class AliasUtil {
 		if (cwd == null) {
 			cwd = getCwd();
 		}
-		try {
+		catalog = cwd.resolve(catalog);
+		Aliases aliases = getAliasesFromCatalogFile(catalog, true);
+		if (!isRemoteRef(scriptRef) && !isValidCatalogReference(scriptRef)) {
 			// If the scriptRef points to an existing file on the local filesystem
 			// or it's obviously a path (but not an absolute path) we'll make it
 			// relative to the location of the catalog we're adding the alias to.
-			Path script = cwd.resolve(scriptRef);
+			Path script = cwd.resolve(scriptRef).normalize();
+			String baseRef = aliases.getScriptBase();
 			if (!isAbsoluteRef(scriptRef)
-					&& !isValidCatalogReference(scriptRef)
+					&& !isRemoteRef(baseRef)
 					&& (!isValidName(scriptRef) || Files.isRegularFile(script))) {
-				scriptRef = catalog.getParent().relativize(script.toAbsolutePath()).toString();
+				Path base = Paths.get(baseRef);
+				scriptRef = base.relativize(script.toAbsolutePath()).normalize().toString();
 			}
-			if (!isRemoteRef(scriptRef)
-					&& !isValidCatalogReference(scriptRef)
+			if (!isRemoteRef(baseRef)
 					&& !isValidName(scriptRef)
 					&& !Files.isRegularFile(script)) {
 				throw new IllegalArgumentException("Source file not found: " + scriptRef);
 			}
-		} catch (InvalidPathException ex) {
-			// Ignore
 		}
-		Aliases aliases = getAliasesFromCatalogFile(catalog, true);
 		aliases.aliases.put(name, new Alias(scriptRef, description, arguments, properties, aliases));
 		try {
 			writeAliasesToCatalogFile(catalog, aliases);
@@ -518,7 +539,7 @@ public class AliasUtil {
 		Aliases aliases;
 		if (updateCache || !catalogCache.containsKey(catalogPath)) {
 			aliases = readAliasesFromCatalogFile(catalogPath);
-			aliases.catalogFile = catalogPath;
+			aliases.catalogFile = catalogPath.toAbsolutePath();
 			catalogCache.put(catalogPath, aliases);
 		} else {
 			aliases = catalogCache.get(catalogPath);
