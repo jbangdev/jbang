@@ -1,8 +1,7 @@
 //usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS io.quarkus:quarkus-resteasy:1.8.0.Final
-// //DEPS io.quarkus:quarkus-smallrye-openapi:1.8.0.Final
-// //DEPS io.quarkus:quarkus-swagger-ui:1.8.0.Final
-//JAVA_OPTIONS -Djava.util.logging.manager=org.jboss.logmanager.LogManager
+//DEPS io.quarkus:quarkus-resteasy:1.8.1.Final
+// //DEPS io.quarkus:quarkus-smallrye-openapi:1.8.1.Final
+// //DEPS io.quarkus:quarkus-swagger-ui:1.8.1.Final
 //JAVAC_OPTIONS -parameters
 
 import io.quarkus.runtime.Quarkus;
@@ -19,8 +18,5 @@ public class {baseName} {
         return "Hello from Quarkus with jbang.dev";
     }
 
-    public static void main(String[] args) {
-        Quarkus.run(args);
-    }
 }
 

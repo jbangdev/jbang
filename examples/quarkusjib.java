@@ -3,10 +3,9 @@
  * Run this with `jbang -Dquarkus.container-image.build=true build quarkus.java`
  * and it builds a docker image.
  */
-//DEPS io.quarkus:quarkus-resteasy:${q.v:1.8.0.CR1}
-//DEPS io.quarkus:quarkus-container-image-jib:${q.v:1.8.0.CR1}
-// //DEPS io.quarkus:quarkus-kubernetes:${q.v:1.8.0.CR1}
-//JAVA_OPTIONS -Djava.util.logging.manager=org.jboss.logmanager.LogManager
+//DEPS io.quarkus:quarkus-resteasy:${q.v:1.8.1.Final}
+//DEPS io.quarkus:quarkus-container-image-jib:${q.v:1.8.1.Final}
+// //DEPS io.quarkus:quarkus-kubernetes:${q.v:1.8.1.Final}
 //Q:CONFIG quarkus.container-image.name=quarkusjbangdemo
 
 import io.quarkus.runtime.Quarkus;
@@ -23,7 +22,4 @@ public class quarkusjib {
         return "hello from Quarkus with jbang.dev";
     }
 
-    public static void main(String[] args) {
-        Quarkus.run(args);
-    }
 }

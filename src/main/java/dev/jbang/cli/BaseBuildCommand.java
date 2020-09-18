@@ -67,8 +67,16 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 			try (JarFile jf = new JarFile(outjar)) {
 				script.setMainClass(
 						jf.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS));
+
+				String val = jf.getManifest().getMainAttributes().getValue(Script.JBANG_JAVA_OPTIONS);
+				if (val != null) {
+					script.setPersistentJvmArgs(Arrays.asList( // should parse it but we are assuming it just gets
+																// appendeed
+							val // on command line anwyay
+					));
+				}
 				script.setBuildJdk(
-						JavaUtil.parseJavaVersion(jf.getManifest().getMainAttributes().getValue("Build-Jdk")));
+						JavaUtil.parseJavaVersion(jf.getManifest().getMainAttributes().getValue(Script.BUILD_JDK)));
 			}
 		}
 
@@ -125,34 +133,6 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 				throw new ExitException(1, "Error during compile");
 			}
 
-			try {
-				// using Files.walk method with try-with-resources
-				try (Stream<Path> paths = Files.walk(tmpJarDir.toPath())) {
-					List<Path> items = paths.filter(Files::isRegularFile)
-											.filter(f -> !f.toFile().getName().contains("$"))
-											.filter(f -> f.toFile().getName().endsWith(".class"))
-											.collect(Collectors.toList());
-
-					if (items.size() > 1) { // todo: this feels like a very sketchy way to find the proper class name
-						// but it works.
-						String mainname = script.getBackingFile().getName().replace(".java", ".class");
-						items = items	.stream()
-										.filter(f -> f.toFile().getName().equalsIgnoreCase(mainname))
-										.collect(Collectors.toList());
-					}
-
-					if (items.size() != 1) {
-						throw new ExitException(1,
-								"Could not locate unique class. Found " + items.size() + " candidates.");
-					} else {
-						Path classfile = items.get(0);
-						String mainClass = findMainClass(tmpJarDir.toPath(), classfile);
-						script.setMainClass(mainClass);
-					}
-				}
-			} catch (IOException e) {
-				throw new ExitException(1, e);
-			}
 			script.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
 			integrationResult = IntegrationManager.runIntegration(script.getRepositories(),
 					script.getClassPath().getArtifacts(),
@@ -160,8 +140,38 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 					script, nativeImage);
 			if (integrationResult.mainClass != null) {
 				script.setMainClass(integrationResult.mainClass);
+			} else {
+				try {
+					// using Files.walk method with try-with-resources
+					try (Stream<Path> paths = Files.walk(tmpJarDir.toPath())) {
+						List<Path> items = paths.filter(Files::isRegularFile)
+												.filter(f -> !f.toFile().getName().contains("$"))
+												.filter(f -> f.toFile().getName().endsWith(".class"))
+												.collect(Collectors.toList());
+
+						if (items.size() > 1) { // todo: this feels like a very sketchy way to find the proper class
+												// name
+							// but it works.
+							String mainname = script.getBackingFile().getName().replace(".java", ".class");
+							items = items	.stream()
+											.filter(f -> f.toFile().getName().equalsIgnoreCase(mainname))
+											.collect(Collectors.toList());
+						}
+
+						if (items.size() != 1) {
+							throw new ExitException(1,
+									"Could not locate unique class. Found " + items.size() + " candidates.");
+						} else {
+							Path classfile = items.get(0);
+							String mainClass = findMainClass(tmpJarDir.toPath(), classfile);
+							script.setMainClass(mainClass);
+						}
+					}
+				} catch (IOException e) {
+					throw new ExitException(1, e);
+				}
 			}
-			script.setJvmArgs(integrationResult.javaArgs);
+			script.setPersistentJvmArgs(integrationResult.javaArgs);
 			script.createJarFile(tmpJarDir, outjar);
 		}
 

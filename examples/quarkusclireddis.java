@@ -3,12 +3,10 @@
  * Run this with `jbang -Dquarkus.container-image.build=true build quarkus.java`
  * and it builds a docker image.
  */
-//DEPS io.quarkus:quarkus-redis-client:${quarkus.version:1.8.0.CR1}
-//DEPS io.quarkus:quarkus-resteasy-mutiny:${quarkus.version:1.8.0.CR1}
-//DEPS io.quarkus:quarkus-resteasy-jsonb:${quarkus.version:1.8.0.CR1}
+//DEPS io.quarkus:quarkus-redis-client:${quarkus.version:1.8.1.Final}
+//DEPS io.quarkus:quarkus-resteasy-mutiny:${quarkus.version:1.8.1.Final}
+//DEPS io.quarkus:quarkus-resteasy-jsonb:${quarkus.version:1.8.1.Final}
 //DEPS org.testcontainers:testcontainers:1.14.3
-
-//JAVA_OPTIONS -Djava.util.logging.manager=org.jboss.logmanager.LogManager
 //Q:CONFIG quarkus.redis.hosts=localhost:6379
 
 import io.quarkus.redis.client.RedisClient;

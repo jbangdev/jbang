@@ -1,6 +1,5 @@
 //usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS io.quarkus:quarkus-picocli:1.8.0.Final
-//JAVA_OPTIONS -Djava.util.logging.manager=org.jboss.logmanager.LogManager
+//DEPS io.quarkus:quarkus-picocli:1.8.1.Final
 //Q:CONFIG quarkus.banner.enabled=false
 //Q:CONFIG quarkus.log.level=WARN
 
@@ -12,13 +11,8 @@ import io.quarkus.runtime.annotations.QuarkusMain;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.Quarkus;
 
-// In Quarkus 1.8 there is no auto generation of main class from
-// quarkus to jbang; until that is fixed this double run()'s are needed.
-// Will be removed in future versions.
-
-@QuarkusMain
 @CommandLine.Command
-public class {baseName} implements Runnable, QuarkusApplication {
+public class {baseName} implements Runnable {
 
     @CommandLine.Parameters(index = "0", description = "The greeting to print", defaultValue = "World!")
     String name;
@@ -37,14 +31,6 @@ public class {baseName} implements Runnable, QuarkusApplication {
         greetingService.sayHello(name);
     }
 
-    @Override
-    public int run(String... args) throws Exception {
-        return new CommandLine(this, factory).execute(args);
-    }
-
-    public static void main(String... args) {
-        Quarkus.run({baseName}.class, args);
-    }
 }
 
 @Dependent

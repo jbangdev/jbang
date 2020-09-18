@@ -1,7 +1,6 @@
 //usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS io.quarkus:quarkus-resteasy:1.8.0.Final
-//DEPS io.quarkus:quarkus-smallrye-metrics:1.8.0.Final
-//JAVA_OPTIONS -Djava.util.logging.manager=org.jboss.logmanager.LogManager
+//DEPS io.quarkus:quarkus-resteasy:1.8.1.Final
+//DEPS io.quarkus:quarkus-smallrye-metrics:1.8.1.Final
 //JAVAC_OPTIONS -parameters
 
 import org.eclipse.microprofile.metrics.MetricUnits;
@@ -54,7 +53,4 @@ public class {baseName} {
         return highestPrimeNumberSoFar;
     }
 
-    public static void main(String... args) {
-        Quarkus.run(args);
-    }
 }

@@ -1,10 +1,10 @@
 //usr/bin/env jbang "$0" "$@" ; exit $?
 
 //REPOS xamdk=https://xam.dk/maven
-//DEPS io.quarkus:quarkus-resteasy:999-SNAPSHOT
-//DEPS io.quarkus:quarkus-smallrye-openapi:999-SNAPSHOT
-//DEPS io.quarkus:quarkus-swagger-ui:999-SNAPSHOT
-//DEPS io.quarkus:quarkus-openshift:999-SNAPSHOT
+//DEPS io.quarkus:quarkus-resteasy:1.8.1.Final
+//DEPS io.quarkus:quarkus-smallrye-openapi:1.8.1.Final
+//DEPS io.quarkus:quarkus-swagger-ui:1.8.1.Final
+//DEPS io.quarkus:quarkus-openshift:1.8.1.Final
 //JAVA_OPTIONS -Djava.util.logging.manager=org.jboss.logmanager.LogManager
 
 //Q:CONFIG quarkus.swagger-ui.always-include=true
@@ -25,7 +25,4 @@ public class quarkus {
         return "hello from Quarkus with jbang.dev";
     }
 
-    public static void main(String[] args) {
-        Quarkus.run(args);
-    }
 }

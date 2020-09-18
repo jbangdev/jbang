@@ -1,6 +1,6 @@
 //usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS io.quarkus:quarkus-resteasy:999-SNAPSHOT
-//DEPS io.quarkus:quarkus-smallrye-metrics:999-SNAPSHOT
+//DEPS io.quarkus:quarkus-resteasy:1.8.1.Final
+//DEPS io.quarkus:quarkus-smallrye-metrics:1.8.1.Final
 //JAVAC_OPTIONS -parameters
 import org.eclipse.microprofile.metrics.MetricUnits;
 import org.eclipse.microprofile.metrics.annotation.Counted;

@@ -3,12 +3,11 @@
  * Run this with `jbang -Dquarkus.container-image.build=true build quarkus.java`
  * and it builds a docker image.
  */
-//DEPS io.quarkus:quarkus-picocli:${q.v:1.8.0.CR1}
-//DEPS io.quarkus:quarkus-hibernate-orm-panache:${q.v:1.8.0.CR1}
-//DEPS io.quarkus:quarkus-jdbc-postgresql:${q.v:1.8.0.CR1}
+//DEPS io.quarkus:quarkus-picocli:${q.v:1.8.1.Final}
+//DEPS io.quarkus:quarkus-hibernate-orm-panache:${q.v:1.8.1.Final}
+//DEPS io.quarkus:quarkus-jdbc-postgresql:${q.v:1.8.1.Final}
 //DEPS org.testcontainers:postgresql:1.14.3
 //DEPS org.postgresql:postgresql:42.1.4
-//JAVA_OPTIONS -Djava.util.logging.manager=org.jboss.logmanager.LogManager
 //Q:CONFIG quarkus.banner.enabled=false
 //Q:CONFIG quarkus.log.level=WARN
 //Q:CONFIG quarkus.datasource.db-kind=postgresql

@@ -24,6 +24,8 @@ import java.util.stream.Stream;
 
 public class Script {
 
+	public static final String BUILD_JDK = "Build-Jdk";
+	public static final String JBANG_JAVA_OPTIONS = "JBang-Java-Options";
 	private static final String DEPS_COMMENT_PREFIX = "//DEPS ";
 	private static final String FILES_COMMENT_PREFIX = "//FILES ";
 
@@ -66,7 +68,7 @@ public class Script {
 	private Map<String, String> properties;
 	private List<MavenRepo> repositories;
 	private List<FileRef> filerefs;
-	private List<String> jvmArgs;
+	private List<String> persistentJvmArgs;
 
 	public Script(File backingFile, String content, List<String> arguments, Map<String, String> properties)
 			throws FileNotFoundException {
@@ -260,12 +262,12 @@ public class Script {
 		return classpath.getAutoDectectedModuleArguments(requestedVersion);
 	}
 
-	public List<String> getJvmArgs() {
-		return jvmArgs;
+	public List<String> getPersistentJvmArgs() {
+		return persistentJvmArgs;
 	}
 
-	public Script setJvmArgs(List<String> jvmArgs) {
-		this.jvmArgs = jvmArgs;
+	public Script setPersistentJvmArgs(List<String> persistentJvmArgs) {
+		this.persistentJvmArgs = persistentJvmArgs;
 		return this;
 	}
 
@@ -407,6 +409,9 @@ public class Script {
 		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
 		if (mainclass != null) {
 			manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, mainclass);
+		}
+		if (persistentJvmArgs != null) {
+			manifest.getMainAttributes().putValue("JBang-Java-Options", String.join(" ", persistentJvmArgs));
 		}
 		if (buildJdk > 0) {
 			String val = buildJdk >= 9 ? Integer.toString(buildJdk) : "1." + buildJdk;
