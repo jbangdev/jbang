@@ -68,4 +68,12 @@ public class FileRef {
 			throw new ExitException(CommandLine.ExitCode.USAGE, "Could not copy " + from + " to " + to, ioe);
 		}
 	}
+
+	public String getRef() {
+		return ref;
+	}
+
+	public String getDestination() {
+		return destination;
+	}
 }

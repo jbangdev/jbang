@@ -15,3 +15,7 @@ Scenario: java launch helloworld with jfr
   Then match out contains "Started recording 1. No limit specified, using maxsize=250MB as default."
 
 
+Scenario: java run multiple sources
+  When command('jbang --verbose one.java')
+  Then match out contains "Two"
+
