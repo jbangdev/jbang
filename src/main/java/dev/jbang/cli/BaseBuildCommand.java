@@ -95,7 +95,14 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 				optionList.addAll(Arrays.asList("-classpath", path));
 			}
 			optionList.addAll(Arrays.asList("-d", tmpJarDir.getAbsolutePath()));
+
+			// add source files to compile
 			optionList.addAll(Arrays.asList(script.getBackingFile().getPath()));
+			optionList.addAll(
+					script	.collectSources()
+							.stream()
+							.map(x -> x.getDestination())
+							.collect(Collectors.toList()));
 
 			// add additional files
 			List<FileRef> files = script.collectFiles();

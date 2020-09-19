@@ -132,6 +132,17 @@ public class Edit extends BaseScriptCommand {
 			createHardLink(srcFile.toPath(), originalFile.getAbsoluteFile().toPath());
 		}
 
+		for (FileRef source : script.collectSources()) {
+			File sfile = new File(srcDir, source.getDestination());
+			Path destFile = new File(originalFile.getAbsoluteFile().getParent(),
+					source.getDestination()).getAbsoluteFile()
+											.toPath();
+
+			if (!sfile.exists() && !createSymbolicLink(sfile.toPath(), destFile)) {
+				createHardLink(sfile.toPath(), destFile);
+			}
+		}
+
 		// create build gradle
 		String baseName = Util.getBaseName(name);
 		String templateName = "build.qute.gradle";

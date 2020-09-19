@@ -28,6 +28,7 @@ public class Script {
 	public static final String JBANG_JAVA_OPTIONS = "JBang-Java-Options";
 	private static final String DEPS_COMMENT_PREFIX = "//DEPS ";
 	private static final String FILES_COMMENT_PREFIX = "//FILES ";
+	private static final String SOURCES_COMMENT_PREFIX = "//SOURCES ";
 
 	private static final String DEPS_ANNOT_PREFIX = "@Grab(";
 	private static final Pattern DEPS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
@@ -69,6 +70,8 @@ public class Script {
 	private List<MavenRepo> repositories;
 	private List<FileRef> filerefs;
 	private List<String> persistentJvmArgs;
+	private List<String> jvmArgs;
+	private List<FileRef> sources;
 
 	public Script(File backingFile, String content, List<String> arguments, Map<String, String> properties)
 			throws FileNotFoundException {
@@ -478,6 +481,19 @@ public class Script {
 									.collect(Collectors.toCollection(ArrayList::new));
 		}
 		return filerefs;
+	}
+
+	public List<FileRef> collectSources() {
+
+		if (sources == null) {
+			sources = getLines().stream()
+								.filter(f -> f.startsWith(SOURCES_COMMENT_PREFIX))
+								.flatMap(line -> Arrays.stream(line.split("[ ;,]+")).skip(1).map(String::trim))
+								.map(PropertiesValueResolver::replaceProperties)
+								.map(line -> toFileRef(this, line))
+								.collect(Collectors.toCollection(ArrayList::new));
+		}
+		return sources;
 	}
 
 }
