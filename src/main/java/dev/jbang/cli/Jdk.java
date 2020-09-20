@@ -39,7 +39,11 @@ public class Jdk {
 	public Integer remove(
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version to install", arity = "1") int version)
 			throws IOException {
-		JdkManager.uninstallJdk(version);
+		if (JdkManager.isInstalledJdk(version)) {
+			JdkManager.uninstallJdk(version);
+		} else {
+			Util.infoMsg("JDK " + version + " is not installed");
+		}
 		return CommandLine.ExitCode.SOFTWARE;
 	}
 }
