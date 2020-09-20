@@ -1,9 +1,20 @@
 package dev.jbang.cli;
 
-import static dev.jbang.cli.BaseScriptCommand.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static dev.jbang.cli.BaseScriptCommand.prepareScript;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasXPath;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.matchesPattern;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.startsWith;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -31,15 +42,21 @@ import org.hamcrest.MatcherAssert;
 import org.hamcrest.collection.IsCollectionWithSize;
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
+
 import dev.jbang.ExitException;
 import dev.jbang.Script;
+import dev.jbang.ScriptResource;
 import dev.jbang.Settings;
 import dev.jbang.Util;
 
@@ -69,7 +86,7 @@ public class TestRun {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(
-				new Script(new File("helloworld.java"), "", run.userParams, run.properties));
+				new Script(ScriptResource.forFile(new File("helloworld.java")), "", run.userParams, run.properties));
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("helloworld.java"));
@@ -85,7 +102,7 @@ public class TestRun {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(
-				new Script(new File("helloworld.jsh"), "", run.userParams, run.properties));
+				new Script(ScriptResource.forFile(new File("helloworld.jsh")), "", run.userParams, run.properties));
 
 		assertThat(result, matchesPattern("^.*jshell(.exe)? --startup.*$"));
 		assertThat(result, not(containsString("  ")));
@@ -177,7 +194,7 @@ public class TestRun {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(
-				new Script(new File("helloworld.jsh"), "", run.userParams, run.properties));
+				new Script(ScriptResource.forFile(new File("helloworld.jsh")), "", run.userParams, run.properties));
 
 		assertThat(result, startsWith("jshell"));
 		assertThat(result, not(containsString("  ")));
@@ -199,7 +216,7 @@ public class TestRun {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(
-				new Script(new File("helloworld.java"), "", run.userParams, run.properties));
+				new Script(ScriptResource.forFile(new File("helloworld.java")), "", run.userParams, run.properties));
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("helloworld.java"));
@@ -218,7 +235,8 @@ public class TestRun {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		String result = run.generateCommandLine(new Script(new File(arg), run.userParams, run.properties));
+		String result = run.generateCommandLine(
+				new Script(ScriptResource.forFile(new File(arg)), run.userParams, run.properties));
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("classpath_example.java"));
@@ -243,7 +261,8 @@ public class TestRun {
 
 		assertThat(run.properties.size(), is(2));
 
-		String result = run.generateCommandLine(new Script(new File(arg), run.userParams, run.properties));
+		String result = run.generateCommandLine(
+				new Script(ScriptResource.forFile(new File(arg)), run.userParams, run.properties));
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("-Dwonka=panda"));
@@ -393,7 +412,7 @@ public class TestRun {
 
 		Run m = new Run();
 
-		Script script = new Script(f, null, null);
+		Script script = new Script(ScriptResource.forFile(f), null, null);
 		m.build(script);
 
 		assertThat(script.getMainClass(), equalTo("aclass"));
@@ -444,7 +463,7 @@ public class TestRun {
 
 		Run m = new Run();
 
-		Script script = new Script(f, null, null);
+		Script script = new Script(ScriptResource.forFile(f), null, null);
 		m.build(script);
 
 		assertThat(script.getMainClass(), equalTo("dualclass"));
@@ -679,6 +698,89 @@ public class TestRun {
 
 		}
 
+	}
+
+	@Test
+	void multiSourcesHttp() throws IOException {
+
+		wms.stubFor(WireMock.get(urlEqualTo("/sub/one.java"))
+							.willReturn(aResponse()
+													.withHeader("Content-Type", "text/plain")
+													.withBody("//SOURCES two.java\n" +
+															"public class one {" +
+															"public static void main(String... args) {" +
+															"System.out.println(new two());" +
+															"}" +
+															"}")));
+
+		wms.stubFor(WireMock.get(urlEqualTo("/sub/two.java"))
+							.willReturn(aResponse()
+													.withHeader("Content-Type", "text/plain")
+													.withBody("public class two {" +
+															" public String toString() { return \"two for two\"; }" +
+															"}")));
+
+		wms.start();
+		Run m = new Run();
+
+		Script script = prepareScript("http://localhost:" + wms.port() + "/sub/one.java", null, null, null, null);
+
+		m.build(script);
+
+	}
+
+	WireMockServer wms;
+
+	@BeforeEach
+	void setupMock() {
+		wms = new WireMockServer(options().port(8080));
+	}
+
+	@AfterEach
+	void tearDown() {
+		wms.stop();
+	}
+
+	@Test
+	void filesHttp() throws IOException {
+
+		wms.stubFor(WireMock.get(urlEqualTo("/sub/one.java"))
+							.willReturn(aResponse()
+													.withHeader("Content-Type", "text/plain")
+													.withBody("//FILES index.html\n" +
+															"public class one {" +
+															"public static void main(String... args) {" +
+															"System.out.println(\"Hello\");" +
+															"}" +
+															"}")));
+
+		wms.stubFor(WireMock.get(urlEqualTo("/sub/index.html"))
+							.willReturn(aResponse()
+													.withHeader("Content-Type", "text/plain")
+													.withBody("<h1>Yay!</hi>")));
+
+		wms.start();
+		Run m = new Run();
+
+		Script script = prepareScript("http://localhost:" + wms.port() + "/sub/one.java", null, null, null, null);
+
+		m.build(script);
+
+		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), null)) {
+			Arrays	.asList("one.class", "index.html")
+					.forEach(path -> {
+						try {
+							Path fileToExtract = fileSystem.getPath(path);
+							ByteArrayOutputStream s = new ByteArrayOutputStream();
+							Files.copy(fileToExtract, s);
+							// String xml = s.toString("UTF-8");
+							// assertThat(xml, );
+						} catch (Exception e) {
+							fail(e);
+						}
+					});
+
+		}
 	}
 
 }

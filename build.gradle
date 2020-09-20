@@ -35,6 +35,9 @@ dependencies {
 	//implementation 'org.apache.maven:maven-aether-provider:3.0.5'
 	//implementation 'com.google.guava:guava:28.2-jre'
 
+
+	testCompile "com.github.tomakehurst:wiremock-jre8:2.27.2"
+
 	testImplementation "org.junit.jupiter:junit-jupiter:5.5.2"
 	testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.5.2')
 	testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
@@ -44,7 +47,7 @@ dependencies {
 
 	//testCompile 'com.github.maxandersen.karate:karate-junit:19e06766'
 	//testCompile 'com.github.maxandersen.karate:karate-apache:19e06766'
-	testCompile 'com.github.maxandersen.karate:karate-netty:19e06766'
+	//testCompile 'com.github.maxandersen.karate:karate-netty:19e06766'
 }
 
 // to enable reproducible builds
