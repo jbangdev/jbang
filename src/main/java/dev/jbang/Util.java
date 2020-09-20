@@ -101,38 +101,56 @@ public class Util {
 
 	static public void verboseMsg(String msg) {
 		if (isVerbose()) {
-			System.err.println("[jbang] " + msg);
+			System.err.print("[jbang] ");
+			System.err.println(msg);
 		}
 	}
 
 	static public void verboseMsg(String msg, Throwable e) {
 		if (isVerbose()) {
-			System.err.println("[jbang] " + msg);
+			System.err.print("[jbang] ");
+			System.err.println(msg);
 			e.printStackTrace();
 		}
 	}
 
 	static public void infoMsg(String msg) {
 		if (!isQuiet()) {
-			System.err.println("[jbang] " + msg);
+			System.err.print("[jbang] ");
+			System.err.println(msg);
+		}
+	}
+
+	static public void infoHeader() {
+		if (!isQuiet()) {
+			System.err.print("[jbang] ");
+		}
+	}
+
+	static public void infoMsgFmt(String fmt, Object... args) {
+		if (!isQuiet()) {
+			System.err.print(String.format(fmt, args));
 		}
 	}
 
 	static public void warnMsg(String msg) {
 		if (!isQuiet()) {
-			System.err.println("[jbang] [WARN] " + msg);
+			System.err.print("[jbang] [WARN] ");
+			System.err.println(msg);
 		}
 	}
 
 	static public void errorMsg(String msg) {
-		System.err.println("[jbang] [ERROR] " + msg);
+		System.err.print("[jbang] [ERROR] ");
+		System.err.println(msg);
 	}
 
 	static public void errorMsg(String msg, Throwable e) {
+		System.err.print("[jbang] [ERROR] ");
 		if (msg != null) {
-			System.err.println("[jbang] [ERROR] " + msg);
+			System.err.println(msg);
 		} else {
-			System.err.println("[jbang] [ERROR] " + e.getMessage());
+			System.err.println(e.getMessage());
 		}
 		if (isVerbose()) {
 			e.printStackTrace();
