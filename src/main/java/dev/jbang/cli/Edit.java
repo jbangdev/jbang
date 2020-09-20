@@ -126,21 +126,15 @@ public class Edit extends BaseScriptCommand {
 		File srcDir = new File(tmpProjectDir, "src");
 		srcDir.mkdir();
 
-		File srcFile = new File(srcDir, name);
-		if (!srcFile.exists()
-				&& !createSymbolicLink(srcFile.toPath(), originalFile.getAbsoluteFile().toPath())) {
-			createHardLink(srcFile.toPath(), originalFile.getAbsoluteFile().toPath());
-		}
+		Path srcFile = srcDir.toPath().resolve(name);
+		Util.createLink(srcFile, originalFile.toPath());
 
 		for (FileRef source : script.collectSources()) {
 			File sfile = new File(srcDir, source.getDestination());
 			Path destFile = new File(originalFile.getAbsoluteFile().getParent(),
 					source.getDestination()).getAbsoluteFile()
 											.toPath();
-
-			if (!sfile.exists() && !createSymbolicLink(sfile.toPath(), destFile)) {
-				createHardLink(sfile.toPath(), destFile);
-			}
+			Util.createLink(sfile.toPath(), destFile);
 		}
 
 		// create build gradle
@@ -213,28 +207,6 @@ public class Edit extends BaseScriptCommand {
 
 	private boolean isNeeded(boolean reload, Path file) {
 		return !file.toFile().exists() && !reload;
-	}
-
-	private boolean createSymbolicLink(Path src, Path target) {
-		try {
-			Files.createSymbolicLink(src, target);
-			return true;
-		} catch (IOException e) {
-			info(e.toString());
-		}
-		info("Creation of symbolic link failed.");
-		return false;
-	}
-
-	private boolean createHardLink(Path src, Path target) {
-		try {
-			info("Now try creating a hard link instead of symbolic.");
-			Files.createLink(src, target);
-		} catch (IOException e) {
-			info("Creation of hard link failed. Script must be on the same drive as $JBANG_CACHE_DIR (typically under $HOME) for hardlink creation to work. Or call the command with admin rights.");
-			throw new ExitException(1, e);
-		}
-		return true;
 	}
 
 	private void renderTemplate(TemplateEngine engine, List<String> collectDependencies, String baseName,
