@@ -301,7 +301,7 @@ public class Util {
 					}
 				}
 
-				if (fileName == null || fileName.trim().isEmpty()) {
+				if (fileName.trim().isEmpty()) {
 					// extracts file name from URL if nothing found
 					fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1,
 							fileURL.length());
@@ -322,11 +322,41 @@ public class Util {
 					fileURL.length());
 		}
 
-		// copy content from connection to file
+		// create a temp directory for the downloaded content
+		Path saveTmpDir = saveDir.toPath().getParent().resolve(saveDir.getName() + ".tmp");
+		Path saveOldDir = saveDir.toPath().getParent().resolve(saveDir.getName() + ".old");
 		Path saveFilePath = saveDir.toPath().resolve(fileName);
-		try (ReadableByteChannel readableByteChannel = Channels.newChannel(url.openStream());
-				FileOutputStream fileOutputStream = new FileOutputStream(saveFilePath.toFile())) {
-			fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+		try {
+			Util.deleteFolder(saveTmpDir, true);
+			Util.deleteFolder(saveOldDir, true);
+			Files.createDirectories(saveTmpDir);
+
+			// copy content from connection to file
+			try (ReadableByteChannel readableByteChannel = Channels.newChannel(url.openStream());
+					FileOutputStream fileOutputStream = new FileOutputStream(saveTmpDir.resolve(fileName).toFile())) {
+				fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+			}
+
+			// temporarily save the old content
+			if (Files.isDirectory(saveDir.toPath())) {
+				Files.move(saveDir.toPath(), saveOldDir);
+			}
+			// rename the folder to its final name
+			Files.move(saveTmpDir, saveDir.toPath());
+			// remove any old content
+			Util.deleteFolder(saveOldDir, true);
+		} catch (Throwable th) {
+			// remove the temp folder if anything went wrong
+			Util.deleteFolder(saveTmpDir, true);
+			// and move the old content back if it exists
+			if (!Files.isDirectory(saveDir.toPath()) && Files.isDirectory(saveOldDir)) {
+				try {
+					Files.move(saveOldDir, saveDir.toPath());
+				} catch (IOException ex) {
+					// Ignore
+				}
+			}
+			throw th;
 		}
 
 		if (httpConn != null)
@@ -352,13 +382,7 @@ public class Util {
 		Path urlCache = Settings.getCacheDir(Settings.CacheClass.urls).resolve(urlHash);
 		Path file = getFirstFile(urlCache);
 		if (updateCache || file == null) {
-			try {
-				urlCache.toFile().mkdirs();
-				return downloadFile(fileURL, urlCache.toFile());
-			} catch (Throwable th) {
-				deleteFolder(urlCache, true);
-				throw th;
-			}
+			return downloadFile(fileURL, urlCache.toFile());
 		} else {
 			return urlCache.resolve(file);
 		}
