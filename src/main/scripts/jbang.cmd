@@ -1,8 +1,9 @@
 @echo off
 SETLOCAL ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
 
+
 rem The Java version to install when it's not installed on the system yet
-set javaVersion=11
+if "%JBANG_DEFAULT_JAVA_VERSION%"=="" (set javaVersion=11) else (set javaVersion=%JBANG_DEFAULT_JAVA_VERSION%)
 
 set os=windows
 set arch=x64
