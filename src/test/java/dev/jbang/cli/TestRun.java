@@ -649,4 +649,36 @@ public class TestRun {
 
 	}
 
+	@Test
+	void testMultiSources() throws IOException {
+		Settings.clearCache(Settings.CacheClass.jars);
+		Jbang jbang = new Jbang();
+		File f = new File(examplesTestFolder, "one.java");
+
+		Run m = new Run();
+
+		Script script = prepareScript(f.getAbsolutePath(), null, null, null, null);
+
+		m.build(script);
+
+		assertThat(script.getMainClass(), equalTo("one"));
+
+		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), null)) {
+			Arrays	.asList("one.class", "Two.class")
+					.forEach(path -> {
+						try {
+							Path fileToExtract = fileSystem.getPath(path);
+							ByteArrayOutputStream s = new ByteArrayOutputStream();
+							Files.copy(fileToExtract, s);
+							// String xml = s.toString("UTF-8");
+							// assertThat(xml, );
+						} catch (Exception e) {
+							fail(e);
+						}
+					});
+
+		}
+
+	}
+
 }

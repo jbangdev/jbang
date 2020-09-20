@@ -129,6 +129,8 @@ shadowJar {
 
 test {
 	useJUnitPlatform()
+	//testLogging.showStandardStreams = true
+
 }
 
 task karateExecute(type: JavaExec) {
