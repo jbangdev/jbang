@@ -284,6 +284,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 
 			String urlHash = Util.getStableID(scriptURL);
 			File urlCache = Settings.getCacheDir(Settings.CacheClass.urls).resolve(urlHash).toFile();
+			urlCache.mkdirs();
 			Path path = Util.downloadFileSwizzled(scriptURL, urlCache);
 
 			return path.toFile();

@@ -63,13 +63,6 @@ public class JdkManager {
 			return jdkDir;
 		} catch (Exception e) {
 			Util.deleteFolder(jdkTmpDir, true);
-			if (!Files.isDirectory(jdkDir) && Files.isDirectory(jdkOldDir)) {
-				try {
-					Files.move(jdkOldDir, jdkDir);
-				} catch (IOException ex) {
-					// Ignore
-				}
-			}
 			Util.errorMsg("Required Java version not possible to download or install. You can run with '--java "
 					+ JavaUtil.determineJavaVersion() + "' to force using the default installed Java.");
 			throw new ExitException(CommandLine.ExitCode.SOFTWARE,
