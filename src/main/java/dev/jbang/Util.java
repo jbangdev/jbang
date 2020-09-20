@@ -301,7 +301,7 @@ public class Util {
 					}
 				}
 
-				if (fileName == null || fileName.trim().isEmpty()) {
+				if (fileName.trim().isEmpty()) {
 					// extracts file name from URL if nothing found
 					fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1,
 							fileURL.length());
@@ -323,6 +323,7 @@ public class Util {
 		}
 
 		// copy content from connection to file
+		saveDir.mkdirs();
 		Path saveFilePath = saveDir.toPath().resolve(fileName);
 		try (ReadableByteChannel readableByteChannel = Channels.newChannel(url.openStream());
 				FileOutputStream fileOutputStream = new FileOutputStream(saveFilePath.toFile())) {
@@ -352,11 +353,36 @@ public class Util {
 		Path urlCache = Settings.getCacheDir(Settings.CacheClass.urls).resolve(urlHash);
 		Path file = getFirstFile(urlCache);
 		if (updateCache || file == null) {
+			// create a temp directory for the downloaded content
+			Path saveTmpDir = urlCache.getParent().resolve(urlCache.getFileName() + ".tmp");
+			Path saveOldDir = urlCache.getParent().resolve(urlCache.getFileName() + ".old");
 			try {
-				urlCache.toFile().mkdirs();
-				return downloadFile(fileURL, urlCache.toFile());
+				Util.deleteFolder(saveTmpDir, true);
+				Util.deleteFolder(saveOldDir, true);
+
+				Path saveFilePath = downloadFile(fileURL, saveTmpDir.toFile());
+
+				// temporarily save the old content
+				if (Files.isDirectory(urlCache)) {
+					Files.move(urlCache, saveOldDir);
+				}
+				// rename the folder to its final name
+				Files.move(saveTmpDir, urlCache);
+				// remove any old content
+				Util.deleteFolder(saveOldDir, true);
+
+				return urlCache.resolve(saveFilePath.getFileName());
 			} catch (Throwable th) {
-				deleteFolder(urlCache, true);
+				// remove the temp folder if anything went wrong
+				Util.deleteFolder(saveTmpDir, true);
+				// and move the old content back if it exists
+				if (!Files.isDirectory(urlCache) && Files.isDirectory(saveOldDir)) {
+					try {
+						Files.move(saveOldDir, urlCache);
+					} catch (IOException ex) {
+						// Ignore
+					}
+				}
 				throw th;
 			}
 		} else {
