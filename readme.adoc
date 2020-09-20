@@ -712,8 +712,8 @@ For now this is required for `kubectl` plugin but not `git`. https://github.com/
 
 If your script requires a specific or minimal version of Java you can use `//JAVA <version>(+)`.
 
-If jbang finds a java executable using `JAVA_HOME` or `PATH` which satisfies the stated java version jbang will use it.
-If no such version is found it will automatically download and install it into jbang's cache (`~/.jbang/cache/jdks` by default).
+If Jbang finds a java executable using `JAVA_HOME` or `PATH` which satisfies the stated java version jbang will use it.
+If no such version is found it will automatically download and install it.
 
 Examples:
 
@@ -724,6 +724,89 @@ In case no matching `java` is found `jbang` will fail.
 
 You can always force running with specific version of `java` using `--java` command line option, i.e.
 `jbang --java 8 hello.java`
+
+== Managing JDKs
+
+In the previous section it was mentioned that Jbang will automatically download and install JDKs when necessary.
+You can use the `jdk` command to manage JDKs, for example you can run the following:
+
+  jbang jdk list
+
+which will list all the JDKs that are currently installed by Jbang.
+
+It's easy to `install` additional JDKs by running:
+
+  jbang jdk install 14
+
+which will download and install JDK version 14 into Jbang's cache (`~/.jbang/cache/jdks` by default).
+The list of versions that are available for installation can be found here: https://adoptopenjdk.net/releases.html
+
+The first JDK that gets installed by Jbang will be set as the "default" JDK. This is from then on the JDK that will be
+used by Jbang if no Java could be found on the system (meaning `javac` wasn't found on the `PATH` and no `JAVA_HOME` is set).
+You can change the default JDK by running:
+
+  jbang jdk default 12
+
+Running it without an argument will return the version of the JDK that is currently set as the default.
+
+NOTE: On Windows you might need elevated privileges to create symbolic links. If you don't have permissions then
+running the above command  will result in an error. To use it https://stackoverflow.com/a/24353758[enable symbolic links]
+for your user or run your shell/terminal as administrator to have this feature working.
+
+When you `uninstall` a JDK by running:
+
+  jbang jdk uninstall 12
+
+and that JDK was set as the default, Jbang will set the next higher version JDK as the default. If no higher version is
+available it will select the next lower version.
+
++== Using managed JDKs yourself
+
+Given the fact that Jbang is able to easily download and install JDKs we thought that it might be a good option for
+our users to be able to access those JDKs for their own use instead of having to install yet another version themselves.
+
+To make that easy we added a couple of useful commands. The first can be used to set retrieve to location where the JDK
+is installed:
+
+  jbang jdk home
+
+This will return the path to the "default" JDK (by default `~/.jbang/currentjdk)`, if you want to know the location of a
+specific JDK you can pass the version as an argument: `jbang jdk home 14`. This command could be used by scripts to find
+a JDK to use to run a Java program for example (eg: `JAVA_HOME=$(jbang jdk home)`.
+
+For setting up your current command line environment there's something simpler. You can run:
+
+  jbang jdk java-env
+
+On Linux and Mac this will output something like:
+
+```
+export PATH="/home/user/.jbang/currentjdk/bin:$PATH"
+export JAVA_HOME="/home/user/.jbang/currentjdk"
+# Run this command to configure your shell:
+# eval $(jbang jdk java-env)
+```
+
+And the output itself shows how to properly use it to configure your command line to use the JDK. In this case it's by
+running:
+
+  eval $(jbang jdk java-env)
+
+To do this by default for all shells you start simply add the above line to your `~/.bashrc` file.
+
+Unfortunately on Windows using CMD things are not as easy as is show by the output of `jbang jdk java-env` on that  platform:
+
+```
+set PATH=C:\Users\user\.jbang\currentjdk\bin;%PATH%
+set JAVA_HOME=C:\Users\user\.jbang\currentjdk
+rem Copy & paste the above commands in your CMD window or add
+rem them to your Environment Variables in the System Settings.
+```
+
+Instead of copying and pasting lines you could also redirect the output to a .bat file and execute that instead:
+
+  > jbang jdk java-env > setenv.bat
+  > setenv
 
 == Editing
 
@@ -747,8 +830,8 @@ jbang --open=[editor] helloworld.java
 The editor used will be what is specified as argument to `--open` or default to `$JBANG_EDITOR`, `$VISUAL` or `$EDITOR` in that order.
 
 NOTE: On Windows you might need elevated privileges to create symbolic links. If you don't have permissions then
-the `edit` option will result in an error. To use it enable symbolic links for your user or run your shell/terminal as administrator
-to have this feature working.
+the `edit` option will result in an error. To use it https://stackoverflow.com/a/24353758[enable symbolic links]
+for your user or run your shell/terminal as administrator to have this feature working.
 
 === Live Editing
 
