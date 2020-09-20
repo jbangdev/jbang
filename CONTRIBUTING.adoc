@@ -53,3 +53,47 @@ You can see the current version by running `./gradlew printVersion` - if you hav
 For pull-requests don't try and trigger bump of version; we'll apply that once its time for release.
 
 NOTE: The `dev.jbang.VersionProvider` class will show a compile error in IDE's but ignore that, the `BUILDCONFIG` class gets generated during the Gradle build.
+
+== How releases are made
+
+Run a build check to see if things are clean:
+
+```shell
+$ gradle spotlessApply build clean
+```
+
+if nothing changed (use `git status`) then run:
+
+```shell
+$ gradle printVersion
+```
+
+to see if the right version are printed.
+If should have only 3 digits, i.e. `v0.45.1`, not `v0.45.1.23`.
+
+If 4 digits then make sure last commit as a `[minor]` or `[patch]` as part of its text.
+
+Once ready run:
+
+`$ gradle changelog`
+
+This will generate `CHANGELOG.md` using commitizen conventions.
+
+Edit the channgelog with some header on what changed in an overview form.
+
+Then run:
+
+`$ gradle tag`
+
+This will create an annotated tag using the `CHANGELOG.md` message.
+
+If all is good, run `$ gradle push --tags`.
+
+This will trigger github action flow which will prepare a github release.
+
+When all is good - go to https://github.com/jbangdev/jbang/releases and check all is good;
+do final (cosmetic) edits on the release message and save.
+
+When save that will trigger github action flow that pushes the various release mechanisms for chocolatey, brew, containers etc.
+
+

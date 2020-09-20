@@ -237,6 +237,10 @@ task copyITests(type: Copy) {
 	into "${buildDir}/itests"
 }
 
+task tag(type: Exec) {
+	commandLine 'git', 'tag', '-a', project.version, '-F', 'CHANGELOG.md'
+}
+
 githubRelease {
 	// currently does not work as project.version not set.
 	// FilenameFilter filter = { dir, filename -> filename.contains(project.version) } // ensure nothing extra gets included.
