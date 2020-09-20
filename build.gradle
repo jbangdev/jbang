@@ -5,7 +5,7 @@ plugins {
 	id "com.github.johnrengelman.shadow" version "5.2.0"
 	id "java"
 	id "com.github.breadmoirai.github-release" version "2.2.9"
-	id "io.toolebox.git-versioner" version "1.3.0"
+	id "io.toolebox.git-versioner" version "1.5.0"
 	id 'org.gradle.crypto.checksum' version '1.1.0'
 	id "com.diffplug.gradle.spotless" version "3.26.1"
 	id 'de.fuerstenau.buildconfig' version '1.1.8'
@@ -238,7 +238,10 @@ task copyITests(type: Copy) {
 }
 
 task tag(type: Exec) {
-	commandLine 'git', 'tag', '-a', project.version, '-F', 'CHANGELOG.md'
+	doFirst {
+		println 'Tagging with v' + project.version
+		commandLine 'git', 'tag', '-a', 'v' + project.version, '-F', 'CHANGELOG.md'
+	}
 }
 
 githubRelease {
