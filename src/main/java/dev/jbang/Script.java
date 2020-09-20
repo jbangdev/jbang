@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,12 +39,7 @@ public class Script {
 	private static final String REPOS_ANNOT_PREFIX = "@GrabResolver(";
 	private static final Pattern REPOS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
 	private static final Pattern REPOS_ANNOT_SINGLE = Pattern.compile("@GrabResolver\\(\\s*\"(?<value>.*)\"\\s*\\)");
-
-	/**
-	 * the file that contains the code that will back the actual compile/execution.
-	 * Might have been altered to be runnable; i.e. stripped out !# before launch.
-	 */
-	private File backingFile;
+	private final ScriptResource scriptResource;
 
 	/**
 	 * The original reference, it might or might not be same as used as backingFile.
@@ -72,22 +68,23 @@ public class Script {
 	private List<String> persistentJvmArgs;
 	private List<String> jvmArgs;
 	private List<FileRef> sources;
+	private List<Path> resolvedSources;
 
-	public Script(File backingFile, String content, List<String> arguments, Map<String, String> properties)
+	public Script(ScriptResource resource, String content, List<String> arguments, Map<String, String> properties)
 			throws FileNotFoundException {
-		this.backingFile = backingFile;
+		this.scriptResource = resource;
 		this.script = content;
 		this.arguments = arguments;
 		this.properties = properties;
 	}
 
-	public Script(File backingFile, List<String> arguments, Map<String, String> properties)
+	public Script(ScriptResource resource, List<String> arguments, Map<String, String> properties)
 			throws FileNotFoundException {
-		this.backingFile = backingFile;
+		this.scriptResource = resource;
 		this.arguments = arguments;
 		this.properties = properties;
 		if (!forJar()) {
-			try (Scanner sc = new Scanner(this.backingFile)) {
+			try (Scanner sc = new Scanner(this.getBackingFile())) {
 				sc.useDelimiter("\\Z");
 				this.script = sc.next();
 			}
@@ -95,14 +92,18 @@ public class Script {
 	}
 
 	public Script(String script, List<String> arguments, Map<String, String> properties) {
-		this.backingFile = null;
+		this.scriptResource = new ScriptResource(null, null, null);
 		this.script = script;
 		this.arguments = arguments;
 		this.properties = properties;
 	}
 
+	public ScriptResource getScriptResource() {
+		return scriptResource;
+	}
+
 	List<String> getLines() {
-		if (lines == null) {
+		if (lines == null && script != null) {
 			lines = Arrays.asList(script.split("\\r?\\n"));
 		}
 		return lines;
@@ -393,7 +394,7 @@ public class Script {
 	}
 
 	public boolean forJShell() {
-		return backingFile.getName().endsWith(".jsh");
+		return getBackingFile().getName().endsWith(".jsh");
 	}
 
 	public void setOriginal(String probe) {
@@ -439,11 +440,11 @@ public class Script {
 	}
 
 	public boolean forJar() {
-		return backingFile != null && backingFile.toString().endsWith(".jar");
+		return getBackingFile() != null && getBackingFile().toString().endsWith(".jar");
 	}
 
 	public File getBackingFile() {
-		return backingFile;
+		return scriptResource.getFile();
 	}
 
 	public ModularClassPath getClassPath() {
@@ -486,14 +487,25 @@ public class Script {
 	public List<FileRef> collectSources() {
 
 		if (sources == null) {
-			sources = getLines().stream()
-								.filter(f -> f.startsWith(SOURCES_COMMENT_PREFIX))
-								.flatMap(line -> Arrays.stream(line.split("[ ;,]+")).skip(1).map(String::trim))
-								.map(PropertiesValueResolver::replaceProperties)
-								.map(line -> toFileRef(this, line))
-								.collect(Collectors.toCollection(ArrayList::new));
+			if (getLines() == null) {
+				sources = Collections.emptyList();
+			} else {
+				sources = getLines().stream()
+									.filter(f -> f.startsWith(SOURCES_COMMENT_PREFIX))
+									.flatMap(line -> Arrays.stream(line.split("[ ;,]+")).skip(1).map(String::trim))
+									.map(PropertiesValueResolver::replaceProperties)
+									.map(line -> toFileRef(this, line))
+									.collect(Collectors.toCollection(ArrayList::new));
+			}
 		}
 		return sources;
 	}
 
+	public void setResolvedSources(List<Path> resolvedSourcePaths) {
+		this.resolvedSources = resolvedSourcePaths;
+	}
+
+	public List<Path> getResolvedSourcePaths() {
+		return resolvedSources;
+	}
 }

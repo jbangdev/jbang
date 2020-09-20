@@ -28,7 +28,16 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import dev.jbang.*;
+import dev.jbang.AliasUtil;
+import dev.jbang.ConsoleInput;
+import dev.jbang.DependencyUtil;
+import dev.jbang.ExitException;
+import dev.jbang.FileRef;
+import dev.jbang.Script;
+import dev.jbang.ScriptResource;
+import dev.jbang.Settings;
+import dev.jbang.TrustedSources;
+import dev.jbang.Util;
 
 import picocli.CommandLine;
 
@@ -96,7 +105,8 @@ public abstract class BaseScriptCommand extends BaseCommand {
 	public static Script prepareScript(String scriptResource, List<String> arguments, Map<String, String> properties,
 			List<String> dependencies, List<String> classpaths)
 			throws IOException {
-		File scriptFile = getScriptFile(scriptResource);
+		ScriptResource scriptFile = getScriptFile(scriptResource);
+
 		if (scriptFile == null) {
 			// Not found as such, so let's check the aliases
 			AliasUtil.Alias alias = AliasUtil.getAlias(null, scriptResource, arguments, properties);
@@ -129,7 +139,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		 * scriptFile = createTmpScript(scriptText) }
 		 */
 		// just proceed if the script file is a regular file at this point
-		if (scriptFile == null || !scriptFile.canRead()) {
+		if (scriptFile == null || !scriptFile.getFile().canRead()) {
 			throw new IllegalArgumentException("Could not read script argument " + scriptResource);
 		}
 
@@ -141,15 +151,23 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			s.setOriginal(scriptResource);
 			s.setAdditionalDependencies(dependencies);
 			s.setAdditionalClasspaths(classpaths);
+
+			List<Path> resolvedSourcePaths = new ArrayList<>();
+			for (FileRef collectSource : s.collectSources()) {
+				// TODO should optimally be recursive
+				resolvedSourcePaths.add(s.getScriptResource().fetchIfNeeded(collectSource.getDestination()));
+			}
+			s.setResolvedSources(resolvedSourcePaths);
 		} catch (FileNotFoundException e) {
 			throw new ExitException(1, e);
 		}
 		return s;
 	}
 
-	private static File getScriptFile(String scriptResource) throws IOException {
-		File scriptFile;
+	private static ScriptResource getScriptFile(String scriptResource) throws IOException {
+		ScriptResource result = null;
 
+		File scriptFile;
 		// we need to keep track of the scripts dir or the working dir in case of stdin
 		// script to correctly resolve includes
 		// var includeContext = new File(".").toURI();
@@ -163,6 +181,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		} else if (probe.getName().endsWith(".jar") || probe.getName().endsWith(".java")
 				|| probe.getName().endsWith(".jsh")) {
 			scriptFile = probe;
+			result = new ScriptResource(scriptResource, null, probe);
 		} else {
 			String original = Util.readString(probe.toPath());
 			// TODO: move temp handling somewhere central
@@ -179,7 +198,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			tempFile.getParentFile().mkdirs();
 			Util.writeString(tempFile.toPath().toAbsolutePath(), original);
 			scriptFile = tempFile;
-
+			result = new ScriptResource(scriptResource, tempFile.getParentFile(), tempFile);
 			// if we can "just" read from script resource create tmp file
 			// i.e. script input is process substitution file handle
 			// not FileInputStream(this).bufferedReader().use{ readText()} does not work nor
@@ -201,19 +220,21 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			cache.mkdirs();
 			scriptFile = new File(cache, urlHash + ".jsh");
 			Util.writeString(scriptFile.toPath(), scriptText);
+			result = new ScriptResource(scriptResource, cache, scriptFile);
+
 		} else if (scriptResource.startsWith("http://") || scriptResource.startsWith("https://")
 				|| scriptResource.startsWith("file:/")) {
 			// support url's as script files
-			scriptFile = fetchFromURL(scriptResource);
+			result = fetchFromURL(scriptResource);
 		} else if (DependencyUtil.looksLikeAGav(scriptResource.toString())) {
 			// todo honor offline
 			String gav = scriptResource.toString();
 			String s = new DependencyUtil().resolveDependencies(Arrays.asList(gav),
 					Collections.emptyList(), false, true, false).getClassPath();
-			scriptFile = new File(s);
+			result = new ScriptResource(scriptResource, null, new File(s));
 		}
 
-		return scriptFile;
+		return result;
 	}
 
 	/**
@@ -228,7 +249,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		return name;
 	}
 
-	private static File fetchFromURL(String scriptURL) {
+	private static ScriptResource fetchFromURL(String scriptURL) {
 		try {
 			java.net.URI uri = new java.net.URI(scriptURL);
 
@@ -286,7 +307,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			File urlCache = Settings.getCacheDir(Settings.CacheClass.urls).resolve(urlHash).toFile();
 			Path path = Util.downloadFileSwizzled(scriptURL, urlCache);
 
-			return path.toFile();
+			return new ScriptResource(scriptURL, urlCache, path.toFile());
 		} catch (IOException | URISyntaxException e) {
 			throw new ExitException(2, "Could not download " + scriptURL, e);
 		}

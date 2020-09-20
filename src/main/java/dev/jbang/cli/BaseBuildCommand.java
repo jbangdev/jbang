@@ -1,15 +1,32 @@
 package dev.jbang.cli;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import dev.jbang.*;
+import dev.jbang.ExitException;
+import dev.jbang.FileRef;
+import dev.jbang.IntegrationManager;
+import dev.jbang.IntegrationResult;
+import dev.jbang.JavaUtil;
+import dev.jbang.JdkManager;
+import dev.jbang.Script;
+import dev.jbang.Settings;
+import dev.jbang.Util;
 
 import io.quarkus.qute.Template;
 import picocli.CommandLine;
@@ -98,16 +115,13 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 
 			// add source files to compile
 			optionList.addAll(Arrays.asList(script.getBackingFile().getPath()));
-			optionList.addAll(
-					script	.collectSources()
-							.stream()
-							.map(x -> script.getBackingFile()
-											.getAbsoluteFile()
-											.toPath()
-											.getParent()
-											.resolve(x.getDestination())
-											.toString())
-							.collect(Collectors.toList()));
+			if (script.getResolvedSourcePaths() != null) {
+				optionList.addAll(
+						script	.getResolvedSourcePaths()
+								.stream()
+								.map(x -> x.toFile().getAbsolutePath())
+								.collect(Collectors.toList()));
+			}
 
 			// add additional files
 			List<FileRef> files = script.collectFiles();
