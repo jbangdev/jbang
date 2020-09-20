@@ -31,14 +31,29 @@ public class Util {
 
 	public static final String JBANG_JDK_VENDOR = "JBANG_JDK_VENDOR";
 
-	static boolean verbose;
+	private static boolean verbose;
+	private static boolean quiet;
 
 	public static void setVerbose(boolean verbose) {
 		Util.verbose = verbose;
+		if (verbose) {
+			setQuiet(false);
+		}
 	}
 
 	public static boolean isVerbose() {
 		return verbose;
+	}
+
+	public static void setQuiet(boolean quiet) {
+		Util.quiet = quiet;
+		if (quiet) {
+			setVerbose(false);
+		}
+	}
+
+	public static boolean isQuiet() {
+		return quiet;
 	}
 
 	public static String kebab2camel(String name) {
@@ -87,11 +102,15 @@ public class Util {
 	}
 
 	static public void infoMsg(String msg) {
-		System.err.println("[jbang] " + msg);
+		if (!isQuiet()) {
+			System.err.println("[jbang] " + msg);
+		}
 	}
 
 	static public void warnMsg(String msg) {
-		System.err.println("[jbang] [WARN] " + msg);
+		if (!isQuiet()) {
+			System.err.println("[jbang] [WARN] " + msg);
+		}
 	}
 
 	static public void errorMsg(String msg) {
@@ -99,11 +118,17 @@ public class Util {
 	}
 
 	static public void errorMsg(String msg, Throwable e) {
-		System.err.println("[jbang] [ERROR] " + msg);
+		if (msg != null) {
+			System.err.println("[jbang] [ERROR] " + msg);
+		} else {
+			System.err.println("[jbang] [ERROR] " + e.getMessage());
+		}
 		if (isVerbose()) {
 			e.printStackTrace();
 		} else {
-			infoMsg(e.getMessage());
+			if (msg != null) {
+				infoMsg(e.getMessage());
+			}
 			infoMsg("Run with --verbose for more details");
 		}
 	}
