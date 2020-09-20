@@ -2,8 +2,10 @@ package dev.jbang;
 
 import static java.lang.System.getenv;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,7 +30,21 @@ public class JavaUtil {
 			if (JavaUtil.satisfiesRequestedVersion(requestedVersion, currentVersion)) {
 				return currentVersion;
 			} else {
-				return JavaUtil.minRequestedVersion(requestedVersion);
+				int minVersion = JavaUtil.minRequestedVersion(requestedVersion);
+				if (isOpenVersion(requestedVersion)) {
+					try {
+						Optional<Integer> minInstalledVersion = JdkManager	.listInstalledJdks()
+																			.stream()
+																			.filter(v -> v >= minVersion)
+																			.min(Integer::compareTo);
+						if (minInstalledVersion.isPresent()) {
+							return minInstalledVersion.get();
+						}
+					} catch (IOException ex) {
+						Util.verboseMsg("Couldn't list installed JDKs", ex);
+					}
+				}
+				return minVersion;
 			}
 		} else {
 			if (currentVersion < 8) {
@@ -115,12 +131,16 @@ public class JavaUtil {
 		return 0;
 	}
 
+	private static boolean isOpenVersion(String version) {
+		return version.endsWith("+");
+	}
+
 	public static boolean satisfiesRequestedVersion(String rv, int v) {
 		if (rv == null) {
 			return true;
 		}
 		int reqVer = minRequestedVersion(rv);
-		if (rv.endsWith("+")) {
+		if (isOpenVersion(rv)) {
 			return v >= reqVer;
 		} else {
 			return v == reqVer;
@@ -128,7 +148,7 @@ public class JavaUtil {
 	}
 
 	private static int minRequestedVersion(String rv) {
-		return Integer.parseInt(rv.endsWith("+") ? rv.substring(0, rv.length() - 1) : rv);
+		return Integer.parseInt(isOpenVersion(rv) ? rv.substring(0, rv.length() - 1) : rv);
 	}
 
 }
