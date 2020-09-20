@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # The Java version to install when it's not installed on the system yet
-javaVersion=11
+javaVersion=${JBANG_DEFAULT_JAVA_VERSION:-11}
 
 absolute_path() {
   # if the given path to the jbang launcher is absolute (i.e. it is either starting with / or a
