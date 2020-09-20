@@ -230,7 +230,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			// todo honor offline
 			String gav = scriptResource.toString();
 			String s = new DependencyUtil().resolveDependencies(Arrays.asList(gav),
-					Collections.emptyList(), false, true, false).getClassPath();
+					Collections.emptyList(), false, !Util.isQuiet(), false).getClassPath();
 			result = new ScriptResource(scriptResource, null, new File(s));
 		}
 

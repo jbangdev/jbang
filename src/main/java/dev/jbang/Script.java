@@ -236,17 +236,18 @@ public class Script {
 					List<String> dependencies = new ArrayList<>(additionalDeps);
 					dependencies.add(originalFile);
 					classpath = new DependencyUtil().resolveDependencies(dependencies,
-							Collections.emptyList(), offline, true);
+							Collections.emptyList(), offline, !Util.isQuiet());
 				} else if (!additionalDeps.isEmpty()) {
 					classpath = new DependencyUtil().resolveDependencies(additionalDeps,
-							Collections.emptyList(), offline, true);
+							Collections.emptyList(), offline, !Util.isQuiet());
 				} else {
 					classpath = new ModularClassPath(Collections.emptyList());
 				}
 			} else {
 				List<String> dependencies = collectDependencies();
 				List<MavenRepo> repositories = getRepositories();
-				classpath = new DependencyUtil().resolveDependencies(dependencies, repositories, offline, true);
+				classpath = new DependencyUtil().resolveDependencies(dependencies, repositories, offline,
+						!Util.isQuiet());
 			}
 		}
 		StringBuilder cp = new StringBuilder(classpath.getClassPath());

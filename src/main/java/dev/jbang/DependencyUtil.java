@@ -1,8 +1,7 @@
 package dev.jbang;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
-import static dev.jbang.Util.errorMsg;
-import static dev.jbang.Util.infoMsg;
+import static dev.jbang.Util.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -126,8 +125,10 @@ public class DependencyUtil {
 
 		return depIds.stream().flatMap(it -> {
 
-			if (loggingEnabled)
-				System.err.print(String.format("[jbang]     Resolving %s...", it));
+			if (loggingEnabled) {
+				infoHeader();
+				infoMsgFmt("    Resolving %s...", it);
+			}
 
 			List<MavenResolvedArtifact> artifacts;
 			try {
@@ -145,7 +146,7 @@ public class DependencyUtil {
 			}
 
 			if (loggingEnabled)
-				System.err.println("Done");
+				infoMsgFmt("Done\n");
 
 			return artifacts.stream().map(xx -> new ArtifactInfo(xx.getCoordinate(), xx.asFile()));
 		}).collect(Collectors.toList());
