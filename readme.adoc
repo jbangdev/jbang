@@ -1,4 +1,6 @@
 = j'bang - Having fun with Java scripting
+:idprefix:
+:idseparator: -
 :toc: macro
 ifndef::env-github[:icons: font]
 ifdef::env-github[]
@@ -8,7 +10,7 @@ ifdef::env-github[]
 :tip-caption: :bulb:
 :warning-caption: :warning:
 endif::[]
-	
+
 image:https://img.shields.io/github/release/jbangdev/jbang.svg[Release,link=https://github.com/jbangdev/jbang/releases]
 image:https://github.com/jbangdev/jbang/workflows/ci-build/badge.svg[Build Status,link=https://github.com/jbangdev/jbang/actions]
 image:https://www.eclipse.org/che/contribute.svg[Che, link=https://che.openshift.io/f?url=https://github.com/jbangdev/jbang]
@@ -298,6 +300,16 @@ or if on Linux/OSX run it directly. If you created it manually you need to mark 
 chmod +x helloworld.java
 ./helloworld jbang!
 ----
+
+[WARNING]
+====
+When no <<java-version,JDK version>> is available in the PATH, Jdk 11 will be downloaded by default to bootstrap jbang.
+If your script requires a higher version and you don' want to download two jdk's, you can define an alternative default with `JBANG_DEFAULT_JAVA_VERSION` env variable.
+
+ $ JBANG_DEFAULT_JAVA_VERSION=14 jbang my-script.java
+
+Note that if JDK is found in the PATH, `JBANG_DEFAULT_JAVA_VERSION` will be ignored.
+====
 
 === URLs from Trusted Sources
 
