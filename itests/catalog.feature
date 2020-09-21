@@ -3,7 +3,7 @@ Feature: catalog testing
 Scenario: java catalog list
   When command('jbang catalog add tc jbang-catalog.json')
   And command('jbang catalog list')
-  Then match err contains "tc = JBang test scripts"
+  Then match out contains "tc = JBang test scripts"
 
 Scenario: add catalog and run catalog named reference
   When command('jbang catalog add tc jbang-catalog.json')

@@ -11,15 +11,14 @@ public class Version extends BaseCommand {
 
 	@Override
 	public Integer doCall() {
-		PrintWriter out = spec.commandLine().getOut();
-
-		out.println(dev.jbang.BuildConfig.VERSION);
+		System.out.println(dev.jbang.BuildConfig.VERSION);
 
 		if (isVerbose()) {
+			PrintWriter out = spec.commandLine().getOut();
 			out.println("Cache: " + Settings.getCacheDir());
 			out.println("Config: " + Settings.getConfigDir());
 			out.println("Repository:" + Settings.getLocalMavenRepo());
 		}
-		return CommandLine.ExitCode.OK;
+		return EXIT_PRINT_OUTPUT;
 	}
 }

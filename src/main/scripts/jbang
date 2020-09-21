@@ -136,6 +136,8 @@ output=$(CLICOLOR_FORCE=1 ${JAVA_EXEC} ${JBANG_JAVA_OPTIONS} -classpath ${jarPat
 err=$?
 if [ $err -eq 0 ]; then
   eval "exec $output"
+elif [ $err -eq 3 ]; then
+  echo "$output"
 else
   exit $err
 fi
