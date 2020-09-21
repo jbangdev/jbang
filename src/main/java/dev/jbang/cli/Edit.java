@@ -1,11 +1,18 @@
 package dev.jbang.cli;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
+import static dev.jbang.Util.isWindows;
 import static java.lang.System.out;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -13,7 +20,12 @@ import java.util.stream.Collectors;
 
 import com.sun.nio.file.SensitivityWatchEventModifier;
 
-import dev.jbang.*;
+import dev.jbang.ExitException;
+import dev.jbang.FileRef;
+import dev.jbang.Script;
+import dev.jbang.Settings;
+import dev.jbang.TemplateEngine;
+import dev.jbang.Util;
 
 import io.quarkus.qute.Template;
 import picocli.CommandLine;
@@ -54,8 +66,15 @@ public class Edit extends BaseScriptCommand {
 				List<String> optionList = new ArrayList<>();
 				optionList.addAll(Arrays.asList(editor.split(" ")));
 				optionList.add(project.getAbsolutePath());
-				info("Running `" + String.join(" ", optionList) + "`");
-				Process process = new ProcessBuilder(optionList).start();
+
+				String[] cmd;
+				if (isWindows()) {
+					cmd = new String[] { "cmd", "/c", optionList.stream().collect(Collectors.joining(" ")) };
+				} else {
+					cmd = new String[] { "sh", "-i", "-c", optionList.stream().collect(Collectors.joining(" ")) };
+				}
+				info("Running `" + String.join(" ", cmd) + "`");
+				Process process = new ProcessBuilder(cmd).start();
 			}
 		}
 
