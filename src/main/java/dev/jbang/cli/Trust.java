@@ -1,5 +1,6 @@
 package dev.jbang.cli;
 
+import java.io.PrintStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,10 +24,11 @@ public class Trust {
 	@CommandLine.Command(name = "list", description = "Show defined trust domains.")
 	public Integer list() {
 		int idx = 0;
+		PrintStream out = System.out;
 		for (String src : Settings.getTrustedSources().trustedSources) {
-			spec.commandLine().getOut().println(++idx + " = " + src);
+			out.println(++idx + " = " + src);
 		}
-		return CommandLine.ExitCode.SOFTWARE;
+		return BaseCommand.EXIT_PRINT_OUTPUT;
 	}
 
 	@CommandLine.Command(name = "remove", description = "Remove trust domains.")

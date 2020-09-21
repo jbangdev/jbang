@@ -1,5 +1,6 @@
 package dev.jbang.cli;
 
+import java.io.PrintStream;
 import java.io.PrintWriter;
 
 import dev.jbang.AliasUtil;
@@ -52,8 +53,7 @@ public class Catalog {
 	@CommandLine.Command(name = "list", description = "Show currently defined catalogs.")
 	public Integer list(
 			@CommandLine.Parameters(paramLabel = "name", index = "0", description = "The name of a catalog", arity = "0..1") String name) {
-		PrintWriter out = spec.commandLine().getOut();
-		PrintWriter err = spec.commandLine().getErr();
+		PrintStream out = System.out;
 		if (name == null) {
 			Settings.getCatalogs()
 					.keySet()
@@ -72,7 +72,7 @@ public class Catalog {
 			AliasUtil.Aliases aliases = AliasUtil.getCatalogAliasesByName(name, false);
 			AliasList.printAliases(out, name, aliases);
 		}
-		return CommandLine.ExitCode.SOFTWARE;
+		return BaseCommand.EXIT_PRINT_OUTPUT;
 	}
 
 	@CommandLine.Command(name = "remove", description = "Remove existing catalog.")

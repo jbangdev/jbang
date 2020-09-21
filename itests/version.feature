@@ -2,13 +2,13 @@ Feature: version command
 
 Scenario: version
 * command('jbang version')
-* match out == ''
-* match err == '#regex (?s)\\d+\\.\\d+\\.\\d+(\\.\\d+)?.*'
+* match out == '#regex (?s)\\d+\\.\\d+\\.\\d+(\\.\\d+)?.*'
+* match err == ''
 * match exit == 0
 
 Scenario: verbose version
 * command('jbang --verbose version')
-* match out == ''
+* match out == '#regex (?s)\\d+\\.\\d+\\.\\d+(\\.\\d+)?.*'
 * match err contains 'Repository'
 * match exit == 0
 

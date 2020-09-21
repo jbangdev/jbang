@@ -2,10 +2,8 @@ package dev.jbang.cli;
 
 import static java.lang.System.out;
 
-import java.io.File;
 import java.io.IOException;
-
-import dev.jbang.Util;
+import java.io.PrintStream;
 
 import picocli.AutoComplete;
 import picocli.CommandLine;
@@ -25,12 +23,10 @@ public class Completion extends BaseCommand {
 		// not PrintWriter.println: scripts with Windows line separators fail in strange
 		// ways!
 
-		File file = File.createTempFile("jbang-completion", "temp");
-		Util.writeString(file.toPath(), script);
-
-		out.print("cat " + file.getAbsolutePath());
+		PrintStream out = System.out;
+		out.print(script);
 		out.print('\n');
 		out.flush();
-		return 0;
+		return EXIT_PRINT_OUTPUT;
 	}
 }

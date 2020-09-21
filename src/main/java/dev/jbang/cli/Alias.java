@@ -1,6 +1,6 @@
 package dev.jbang.cli;
 
-import java.io.PrintWriter;
+import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -79,7 +79,7 @@ class AliasList extends BaseAliasCommand {
 
 	@Override
 	public Integer doCall() {
-		PrintWriter out = spec.commandLine().getOut();
+		PrintStream out = System.out;
 		AliasUtil.Aliases aliases;
 		if (catalogName != null) {
 			aliases = AliasUtil.getCatalogAliasesByName(catalogName, false);
@@ -93,10 +93,10 @@ class AliasList extends BaseAliasCommand {
 		} else {
 			printAliases(out, catalogName, aliases);
 		}
-		return CommandLine.ExitCode.OK;
+		return EXIT_PRINT_OUTPUT;
 	}
 
-	static void printAliases(PrintWriter out, String catalogName, AliasUtil.Aliases aliases) {
+	static void printAliases(PrintStream out, String catalogName, AliasUtil.Aliases aliases) {
 		aliases.aliases
 						.keySet()
 						.stream()
@@ -106,7 +106,7 @@ class AliasList extends BaseAliasCommand {
 						});
 	}
 
-	static void printAliasesWithOrigin(PrintWriter out, String catalogName, AliasUtil.Aliases aliases) {
+	static void printAliasesWithOrigin(PrintStream out, String catalogName, AliasUtil.Aliases aliases) {
 		Map<Path, List<Map.Entry<String, AliasUtil.Alias>>> groups = aliases.aliases
 																					.entrySet()
 																					.stream()
@@ -120,7 +120,7 @@ class AliasList extends BaseAliasCommand {
 		});
 	}
 
-	private static void printAlias(PrintWriter out, String catalogName, AliasUtil.Aliases aliases, String name,
+	private static void printAlias(PrintStream out, String catalogName, AliasUtil.Aliases aliases, String name,
 			int indent) {
 		AliasUtil.Alias alias = aliases.aliases.get(name);
 		String fullName = catalogName != null ? name + "@" + catalogName : name;

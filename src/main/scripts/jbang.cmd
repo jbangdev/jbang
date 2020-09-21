@@ -87,18 +87,21 @@ SETLOCAL DISABLEDELAYEDEXPANSION
 set ERROR=%ERRORLEVEL%
 rem catch errorlevel straight after; rem or FOR /F swallow would have swallowed the errorlevel
 
-if %ERROR% NEQ 0 (
-  del ""%tmpfile%""
+if %ERROR% EQU 0 (
+  rem read generated java command by jang, delete temporary file and execute.
+  for %%A in ("%tmpfile%") do for /f "usebackq delims=" %%B in (%%A) do (
+    set "OUTPUT=%%B"
+    goto :break
+  )
+:break
+  del "%tmpfile%"
+  %OUTPUT%
+  exit /b %ERRORLEVEL%
+) else if %ERROR% EQU 3 (
+  type "%tmpfile%"
+  del "%tmpfile%"
+  exit /b 0
+) else (
+  del "%tmpfile%"
   exit /b %ERROR%
 )
-
-rem read generated java command by jang, delete temporary file and execute.
-for %%A in ("%tmpfile%") do for /f "usebackq delims=" %%B in (%%A) do (
-  set "OUTPUT=%%B"
-  goto :break
-)
-
-:break
-del "%tmpfile%"
-%OUTPUT%
-exit /b %ERRORLEVEL%

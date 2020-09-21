@@ -11,6 +11,8 @@ import picocli.CommandLine;
 
 public abstract class BaseCommand implements Callable<Integer> {
 
+	public static int EXIT_PRINT_OUTPUT = 3;
+
 	static {
 		Logger logger = Logger.getLogger("org.jboss.shrinkwrap.resolver");
 		logger.setLevel(Level.SEVERE);
