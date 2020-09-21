@@ -648,11 +648,13 @@ See `link:examples/jfx.java[]` and `link:examples/jfxtiles.java[]` for examples 
 
 == Multiple source files (Experimental)
 
-Since version 0.46 there is now initial support for having multiple source files. The main script file defines all the dependencies and you add more source files into the application using `//SOURCES <filename>`.
+Since version 0.46 there is now initial support for having multiple source files. The main script file defines all the
+dependencies and you add more source files into the application using `//SOURCES <filename>`.
 
 The listed file name(s) gets added to source list when compiling.
 
-Currently there are not `*.java` style matching or support for these `.java` files to declare `//DEPS` or other jbang configuration. That will currently only be honored by the main script/app. These will be loosen up in future based on feedaback.
+Currently there are not `*.java` style matching or support for these `.java` files to declare `//DEPS` or other jbang configuration.
+That will currently only be honored by the main script/app. These will be loosen up in future based on feedback.
 
 == Adding additional resources (Experimental)
 

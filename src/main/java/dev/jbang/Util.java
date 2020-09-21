@@ -1,6 +1,11 @@
 package dev.jbang;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -13,7 +18,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -132,6 +143,9 @@ public class Util {
 	private static final Pattern mainClassPattern = Pattern.compile(
 			"(?sm)class *(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*) .*static void main");
 
+	private static final Pattern publicClassPattern = Pattern.compile(
+			"(?sm)public class *(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*)");
+
 	public static OS getOS() {
 		String os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH).replaceAll("[^a-z0-9]+", "");
 		if (os.startsWith("mac") || os.startsWith("osx")) {
@@ -219,9 +233,14 @@ public class Util {
 
 				if (proposedString != null) {
 					Matcher m = mainClassPattern.matcher(proposedString);
+					Matcher pc = publicClassPattern.matcher(proposedString);
+
 					String wantedfilename;
 					if (m.find()) {
 						String guessedClass = m.group(1);
+						wantedfilename = guessedClass + ".java";
+					} else if (pc.find()) {
+						String guessedClass = pc.group(1);
 						wantedfilename = guessedClass + ".java";
 					} else {
 						wantedfilename = path.getFileName() + ".jsh";
