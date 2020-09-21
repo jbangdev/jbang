@@ -38,5 +38,6 @@ curl --trace-ascii curl.trace -X POST \
     -H "Consumer-Token: ${SDKMAN_CONSUMER_TOKEN}" \
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
-    -d '{"text": "jbang '${jbang_version}' @jbangdev '${RELURL}'"}' \
-    https://vendors.sdkman.io/announce/freeform
+    -d '{"candidate": "jbang", "version": "'${jbang_version}'", "url": "'${RELURL}'"}' \
+    https://vendors.sdkman.io/announce/struct
+
