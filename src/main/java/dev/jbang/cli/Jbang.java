@@ -42,9 +42,21 @@ import picocli.CommandLine.Model.UsageMessageSpec;
 				Completion.class, Jdk.class, Version.class, Wrapper.class })
 public class Jbang extends BaseCommand {
 
-	@Option(names = { "--verbose" }, description = "jbang will be verbose on what it does.", scope = ScopeType.INHERIT)
-	void setVerbose(boolean verbose) {
-		Util.setVerbose(verbose);
+	@CommandLine.ArgGroup(exclusive = true)
+	Exclusive exclusive = new Exclusive();
+
+	static class Exclusive {
+		@Option(names = {
+				"--verbose" }, description = "jbang will be verbose on what it does.", scope = ScopeType.INHERIT)
+		void setVerbose(boolean verbose) {
+			Util.setVerbose(verbose);
+		}
+
+		@Option(names = {
+				"--quiet" }, description = "jbang will be quiet, only print when error occurs.", scope = ScopeType.INHERIT)
+		void setQuiet(boolean quiet) {
+			Util.setQuiet(quiet);
+		}
 	}
 
 	public Integer doCall() {
@@ -62,13 +74,10 @@ public class Jbang extends BaseCommand {
 		@Override
 		public int handleExecutionException(Exception ex, CommandLine commandLine, CommandLine.ParseResult parseResult)
 				throws Exception {
+			Util.errorMsg(null, ex);
 			if (Util.isVerbose()) {
-				ex.printStackTrace();
 				Util.infoMsg(
 						"If you believe this a bug in jbang open issue at https://github.com/jbangdev/jbang/issues");
-			} else {
-				Util.infoMsg(ex.toString());
-				Util.infoMsg("Run with --verbose for more details");
 			}
 
 			if (ex instanceof ExitException) {
