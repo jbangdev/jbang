@@ -1,4 +1,4 @@
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS com.brsanthu:google-analytics-java:2.0.0
 //DEPS info.picocli:picocli:4.5.0
 

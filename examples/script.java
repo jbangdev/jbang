@@ -1,4 +1,4 @@
-///usr/bin/env jbang "$0" "$@" ; exit $?
+////usr/bin/env jbang "$0" "$@" ; exit $?
 
 //DEPS com.offbytwo:docopt:0.6.0.20150202,log4j:log4j:1.2.14
 

@@ -1,4 +1,4 @@
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
 //JAVA 14
 //JAVAC_OPTIONS --enable-preview --release 14
 //JAVA_OPTIONS --enable-preview

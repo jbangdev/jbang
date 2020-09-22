@@ -1,4 +1,4 @@
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS org.openjdk.jmh:jmh-core:1.19 org.openjdk.jmh:jmh-generator-annprocess:1.19
 //DEPS com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.9
 //DEPS com.fasterxml.jackson.core:jackson-databind:2.2.3

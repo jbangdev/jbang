@@ -1,4 +1,4 @@
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS info.picocli:picocli:4.5.0
 //DEPS org.apache.camel:camel-core:3.0.1
 //DEPS org.apache.camel:camel-main:3.0.1

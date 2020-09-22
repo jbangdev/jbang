@@ -1,4 +1,4 @@
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
 //REPOS jitpack
 // Using jitpack to get latest dev version of karate to be able
 // to use the just added fork() methods to test clis.

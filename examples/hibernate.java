@@ -1,4 +1,4 @@
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS com.h2database:h2:1.4+
 //DEPS org.hibernate:hibernate-core:5.4.10.Final
 //

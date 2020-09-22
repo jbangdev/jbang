@@ -1,4 +1,4 @@
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
 
 //DEPS https://github.com/kohsuke/github-api/tree/github-api-1.103
 import static java.lang.System.out;

@@ -1,4 +1,4 @@
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
 //SOURCES NanoClock.java
 
 // This example tests the time taken in ms to resolve localhostname.
