@@ -268,7 +268,7 @@ Below is an (almost) minimal example you can save in `helloworld.java` or simply
 
 [source, java]
 ```
-//usr/bin/env jbang "$0" "$@" ; exit $? // <.>
+///usr/bin/env jbang "$0" "$@" ; exit $? // <.>
 
 class helloworld { // <.>
 
@@ -449,7 +449,7 @@ To specify dependencies you use gradle-style locators or links to Git sources. B
 
 [source, java]
 ```
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
 // <.>
 //DEPS log4j:log4j:1.2.17
 
@@ -579,7 +579,7 @@ There is also support for using Groovy lang style `@Grab` syntax.
 
 [source, java]
 ----
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
 
 import static java.lang.System.out;
 
@@ -826,7 +826,7 @@ If you want to tweak memory settings or enable preview features you can setup th
 
 [source, java]
 ----
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
 //JAVAC_OPTIONS --enable-preview -source 14 <.>
 //JAVA_OPTIONS --enable-preview // <.>
 

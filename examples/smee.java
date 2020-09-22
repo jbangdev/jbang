@@ -1,4 +1,4 @@
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS info.picocli:picocli:4.5.0
 //DEPS org.jboss.resteasy:resteasy-client:4.4.1.Final
 //DEPS com.fasterxml.jackson.core:jackson-databind:2.2.3

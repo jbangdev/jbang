@@ -394,7 +394,7 @@ public class TestRun {
 	@Test
 	void testBuildPom(@TempDir File output) throws IOException, ParserConfigurationException, SAXException {
 
-		String base = "//usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n" +
+		String base = "///usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n" +
 				"//DEPS info.picocli:picocli:4.5.0\n" +
 				"\n" +
 				"import static java.lang.System.*;\n" +
@@ -441,7 +441,7 @@ public class TestRun {
 	@Test
 	void testDualClasses(@TempDir File output) throws IOException, ParserConfigurationException, SAXException {
 
-		String base = "//usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n" +
+		String base = "///usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n" +
 				"// //DEPS <dependency1> <dependency2>\n" +
 				"\n" +
 				"import static java.lang.System.*;\n" +

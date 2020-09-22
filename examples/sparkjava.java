@@ -1,4 +1,4 @@
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
 
 //DEPS com.sparkjava:spark-core:2.9.1,com.fasterxml.jackson.core:jackson-databind:2.10.2
 

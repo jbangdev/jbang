@@ -1,4 +1,4 @@
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
 
 //REPOS xamdk=https://xam.dk/maven
 //DEPS io.quarkus:quarkus-resteasy:1.8.1.Final

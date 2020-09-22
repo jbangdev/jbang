@@ -1,4 +1,4 @@
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
 /**
  * Run this with `jbang -Dquarkus.container-image.build=true build quarkus.java`
  * and it builds a docker image.

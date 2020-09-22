@@ -1,4 +1,4 @@
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS info.picocli:picocli:4.5.0
 //DEPS org.asciidoctor:asciidoctorj:2.3.1
 //DEPS org.asciidoctor:asciidoctorj-diagram:2.0.2

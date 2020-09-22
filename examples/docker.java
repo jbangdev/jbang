@@ -1,4 +1,4 @@
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS com.github.docker-java:docker-java:3.2.1
 //DEPS javax.activation:activation:1.1.1
 //DEPS org.slf4j:slf4j-simple:1.7.25

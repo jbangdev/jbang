@@ -1,4 +1,4 @@
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
 //FILES resource.properties renamed.properties=resource.properties
 //FILES META-INF/application.properties=resource.properties
 

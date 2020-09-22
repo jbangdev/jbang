@@ -1,4 +1,4 @@
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS net.sourceforge.plantuml:plantuml:1.2020.11
 import net.sourceforge.plantuml.Run;
 

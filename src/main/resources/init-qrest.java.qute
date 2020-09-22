@@ -1,4 +1,4 @@
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS io.quarkus:quarkus-resteasy:1.8.1.Final
 // //DEPS io.quarkus:quarkus-smallrye-openapi:1.8.1.Final
 // //DEPS io.quarkus:quarkus-swagger-ui:1.8.1.Final

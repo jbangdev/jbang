@@ -1,4 +1,4 @@
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
 
 //DEPS org.eclipse.jetty:jetty-server:9.4.25.v20191220,org.eclipse.jetty:jetty-servlet:9.4.25.v20191220
 

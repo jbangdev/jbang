@@ -1,4 +1,4 @@
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
 
 //DEPS org.slf4j:slf4j-simple:1.7.30,io.ratpack:ratpack-core:1.7.5
 

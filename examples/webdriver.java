@@ -1,4 +1,4 @@
-//usr/bin/env jbang "$0" "$@" ; exit $?
+///usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS io.github.bonigarcia:webdrivermanager:3.8.1
 //DEPS org.seleniumhq.selenium:selenium-java:3.141.59
 //DEPS org.slf4j:slf4j-simple:1.7.30
