@@ -48,7 +48,12 @@ if "!JAVA_EXEC!"=="" (
   where javac > nul 2>&1
   if !errorlevel! equ 0 (
     set JAVA_EXEC=java.exe
+  ) else if exist "%JBDIR%\currentjdk\bin\javac" (
+    set JAVA_HOME=%JBDIR%\currentjdk
+    set JAVA_EXEC=%JBDIR%\currentjdk\bin\java
   ) else (
+    set JAVA_HOME=%TDIR%\jdks\%javaVersion%
+    set JAVA_EXEC=!JAVA_HOME!\bin\java.exe
     rem Check if we installed a JDK before
     if not exist "%TDIR%\jdks\%javaVersion%" (
       rem If not, download and install it
@@ -69,8 +74,8 @@ if "!JAVA_EXEC!"=="" (
       rem Activate the downloaded JDK giving it its proper name
       ren "%TDIR%\jdks\%javaVersion%.tmp" "%javaVersion%"
     )
-    set JAVA_HOME=%TDIR%\jdks\%javaVersion%
-    set JAVA_EXEC=!JAVA_HOME!\bin\java.exe
+    # Set the current JDK
+    !JAVA_EXEC! -classpath ${jarPath} dev.jbang.Main jdk default "%javaVersion%"
   )
 )
 

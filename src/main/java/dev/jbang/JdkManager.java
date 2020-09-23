@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Supplier;
@@ -60,6 +61,9 @@ public class JdkManager {
 			}
 			Files.move(jdkTmpDir, jdkDir);
 			Util.deleteFolder(jdkOldDir, false);
+			if (getDefaultJdk() < 0) {
+				setDefaultJdk(version);
+			}
 			return jdkDir;
 		} catch (Exception e) {
 			Util.deleteFolder(jdkTmpDir, true);
@@ -80,6 +84,7 @@ public class JdkManager {
 	public static void uninstallJdk(int version) {
 		Path jdkDir = JdkManager.getInstalledJdk(version);
 		if (jdkDir != null) {
+			int defaultJdk = getDefaultJdk();
 			if (Util.isWindows()) {
 				// On Windows we have to check nobody is currently using the JDK or we could
 				// be causing all kinds of trouble
@@ -94,10 +99,36 @@ public class JdkManager {
 				}
 			}
 			Util.deleteFolder(jdkDir, false);
+			if (defaultJdk == version) {
+				Optional<Integer> newver = nextInstalledJdk(version);
+				if (!newver.isPresent()) {
+					newver = prevInstalledJdk(version);
+				}
+				if (newver.isPresent()) {
+					setDefaultJdk(newver.get());
+				} else {
+					removeDefaultJdk();
+					Util.infoMsg("Default JDK unset");
+				}
+			}
 		}
 	}
 
-	public static Set<Integer> listInstalledJdks() throws IOException {
+	public static Optional<Integer> nextInstalledJdk(int minVersion) {
+		return listInstalledJdks()
+									.stream()
+									.filter(v -> v >= minVersion)
+									.min(Integer::compareTo);
+	}
+
+	public static Optional<Integer> prevInstalledJdk(int maxVersion) {
+		return listInstalledJdks()
+									.stream()
+									.filter(v -> v <= maxVersion)
+									.max(Integer::compareTo);
+	}
+
+	public static Set<Integer> listInstalledJdks() {
 		if (Files.isDirectory(getJdksPath())) {
 			Supplier<TreeSet<Integer>> sset = () -> new TreeSet<>();
 			try (Stream<Path> files = Files.list(getJdksPath())) {
@@ -108,14 +139,66 @@ public class JdkManager {
 						return -1;
 					}
 				}).filter(v -> v > 0).collect(Collectors.toCollection(sset));
+			} catch (IOException e) {
+				Util.verboseMsg("Couldn't list installed JDKs", e);
 			}
-		} else {
-			return Collections.emptySet();
 		}
+		return Collections.emptySet();
 	}
 
 	public static boolean isInstalledJdk(int version) {
 		return Files.isDirectory(getJdkPath(version));
+	}
+
+	public static void setDefaultJdk(int version) {
+		if (!isInstalledJdk(version) || getDefaultJdk() != version) {
+			Path jdk = getInstalledJdk(version);
+			// Check again if we really need to create a link because the
+			// previous line might already have caused it to be created
+			if (getDefaultJdk() != version) {
+				removeDefaultJdk();
+				Util.createLink(Settings.getCurrentJdkDir(), jdk);
+				Util.infoMsg("Default JDK set to " + version);
+			}
+		}
+	}
+
+	public static int getDefaultJdk() {
+		try {
+			Path link = Settings.getCurrentJdkDir();
+			if (Files.isDirectory(link)) {
+				if (Files.isSymbolicLink(link)) {
+					Path dest = Files.readSymbolicLink(link);
+					return Integer.parseInt(dest.getFileName().toString());
+				} else {
+					// Should be a hard link, so we can't parse the version number
+					// from the directory name, so we read the "release" file instead.
+					Optional<Integer> ver = Files	.lines(link.resolve("release"))
+													.filter(l -> l.startsWith("JAVA_VERSION"))
+													.map(l -> JavaUtil.parseJavaOutput(l))
+													.findAny();
+					if (ver.isPresent()) {
+						return ver.get();
+					}
+				}
+			}
+		} catch (IOException ex) {
+			// Ignore
+		}
+		return -1;
+	}
+
+	public static void removeDefaultJdk() {
+		Path link = Settings.getCurrentJdkDir();
+		if (Files.isSymbolicLink(link)) {
+			try {
+				Files.deleteIfExists(link);
+			} catch (IOException e) {
+				// Ignore
+			}
+		} else {
+			Util.deleteFolder(link, true);
+		}
 	}
 
 	public static boolean isCurrentJdkManaged() {
@@ -123,7 +206,7 @@ public class JdkManager {
 		return (home != null && home.startsWith(getJdksPath()));
 	}
 
-	private static Path getJdkPath(int version) {
+	public static Path getJdkPath(int version) {
 		return getJdksPath().resolve(Integer.toString(version));
 	}
 

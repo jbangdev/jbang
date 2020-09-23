@@ -365,8 +365,7 @@ public class Util {
 
 				if (fileName.trim().isEmpty()) {
 					// extracts file name from URL if nothing found
-					fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1,
-							fileURL.length());
+					fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1);
 				}
 
 				/*
@@ -635,6 +634,37 @@ public class Util {
 			}
 		}
 		return result[0];
+	}
+
+	public static boolean createLink(Path src, Path target) {
+		if (!Files.exists(src)
+				&& !createSymbolicLink(src, target.toAbsolutePath())) {
+			return createHardLink(src, target.toAbsolutePath());
+		} else {
+			return false;
+		}
+	}
+
+	private static boolean createSymbolicLink(Path src, Path target) {
+		try {
+			Files.createSymbolicLink(src, target);
+			return true;
+		} catch (IOException e) {
+			infoMsg(e.toString());
+		}
+		infoMsg("Creation of symbolic link failed.");
+		return false;
+	}
+
+	private static boolean createHardLink(Path src, Path target) {
+		try {
+			infoMsg("Now try creating a hard link instead of symbolic.");
+			Files.createLink(src, target);
+		} catch (IOException e) {
+			infoMsg("Creation of hard link failed. Script must be on the same drive as $JBANG_CACHE_DIR (typically under $HOME) for hardlink creation to work. Or call the command with admin rights.");
+			throw new ExitException(1, e);
+		}
+		return true;
 	}
 
 }

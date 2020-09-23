@@ -2,7 +2,6 @@ package dev.jbang;
 
 import static java.lang.System.getenv;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -10,8 +9,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JavaUtil {
-
-	public static final int DEFAULT_JAVA_VERSION = 11;
 
 	private static Integer javaVersion;
 
@@ -32,23 +29,16 @@ public class JavaUtil {
 			} else {
 				int minVersion = JavaUtil.minRequestedVersion(requestedVersion);
 				if (isOpenVersion(requestedVersion)) {
-					try {
-						Optional<Integer> minInstalledVersion = JdkManager	.listInstalledJdks()
-																			.stream()
-																			.filter(v -> v >= minVersion)
-																			.min(Integer::compareTo);
-						if (minInstalledVersion.isPresent()) {
-							return minInstalledVersion.get();
-						}
-					} catch (IOException ex) {
-						Util.verboseMsg("Couldn't list installed JDKs", ex);
+					Optional<Integer> minInstalledVersion = JdkManager.nextInstalledJdk(minVersion);
+					if (minInstalledVersion.isPresent()) {
+						return minInstalledVersion.get();
 					}
 				}
 				return minVersion;
 			}
 		} else {
 			if (currentVersion < 8) {
-				return DEFAULT_JAVA_VERSION;
+				return Settings.getDefaultJavaVersion();
 			} else {
 				return currentVersion;
 			}
@@ -107,7 +97,7 @@ public class JavaUtil {
 
 	private static final Pattern javaVersionPattern = Pattern.compile("\"([^\"]+)\"");
 
-	private static int parseJavaOutput(String output) {
+	public static int parseJavaOutput(String output) {
 		if (output != null) {
 			Matcher m = javaVersionPattern.matcher(output);
 			if (m.find() && m.groupCount() == 2) {
@@ -147,7 +137,7 @@ public class JavaUtil {
 		}
 	}
 
-	private static int minRequestedVersion(String rv) {
+	public static int minRequestedVersion(String rv) {
 		return Integer.parseInt(isOpenVersion(rv) ? rv.substring(0, rv.length() - 1) : rv);
 	}
 

@@ -28,6 +28,11 @@ public class Settings {
 	public static final String TRUSTED_SOURCES_JSON = "trusted-sources.json";
 	public static final String DEPENDENCY_CACHE_TXT = "dependency_cache.txt";
 	public static final String DEPENDENCY_CACHE_JSON = "dependency_cache.json";
+	public static final String CURRENT_JDK = "currentjdk";
+
+	public static final String ENV_DEFAULT_JAVA_VERSION = "JBANG_DEFAULT_JAVA_VERSION";
+
+	public static final int DEFAULT_JAVA_VERSION = 11;
 
 	final public static String CP_SEPARATOR = File.pathSeparator;
 
@@ -63,6 +68,10 @@ public class Settings {
 		return getConfigDir(true);
 	}
 
+	public static Path getCurrentJdkDir() {
+		return getConfigDir(true).resolve(CURRENT_JDK);
+	}
+
 	public static void setupJbangDir(Path dir) {
 		// create JBang configuration dir if it does not yet exist
 		dir.toFile().mkdirs();
@@ -94,6 +103,14 @@ public class Settings {
 	private static void setupCache(Path dir) {
 		// create cache dir if it does not yet exist
 		dir.toFile().mkdirs();
+	}
+
+	public static int getDefaultJavaVersion() {
+		String v = System.getenv(ENV_DEFAULT_JAVA_VERSION);
+		if (v != null) {
+			return Integer.parseInt(v);
+		}
+		return DEFAULT_JAVA_VERSION;
 	}
 
 	public static Path getTrustedSourcesFile() {
@@ -146,12 +163,8 @@ public class Settings {
 			if (cc == CacheClass.jdks && Util.isWindows() && JdkManager.isCurrentJdkManaged()) {
 				// We're running using a managed JDK on Windows so we can't just delete the
 				// entire folder!
-				try {
-					for (Integer v : JdkManager.listInstalledJdks()) {
-						JdkManager.uninstallJdk(v);
-					}
-				} catch (IOException ex) {
-					Util.errorMsg("Error clearing JDK cache", ex);
+				for (Integer v : JdkManager.listInstalledJdks()) {
+					JdkManager.uninstallJdk(v);
 				}
 			} else {
 				Util.deleteFolder(getCacheDir(cc), true);

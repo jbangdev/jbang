@@ -80,7 +80,12 @@ if [[ -z "$JAVA_EXEC" ]]; then
   # Determine if a (working) JDK is available on the PATH
   if [ -x "$(command -v javac)" ]; then
     JAVA_EXEC="java";
+  elif [ -x "$JBDIR/currentjdk/bin/javac" ]; then
+    export JAVA_HOME="$JBDIR/currentjdk"
+    JAVA_EXEC="$JBDIR/currentjdk/bin/java";
   else
+    export JAVA_HOME="$TDIR/jdks/$javaVersion"
+    JAVA_EXEC="$JAVA_HOME/bin/java"
     # Check if we installed a JDK before
     if [ ! -d "$TDIR/jdks/$javaVersion" ]; then
       # If not, download and install it
@@ -113,9 +118,9 @@ if [[ -z "$JAVA_EXEC" ]]; then
       if [ $retval -ne 0 ]; then echo "Error installing JDK" 1>&2; exit $retval; fi
       # Activate the downloaded JDK giving it its proper name
       mv "$TDIR/jdks/$javaVersion.tmp" "$TDIR/jdks/$javaVersion"
+      # Set the current JDK
+      ${JAVA_EXEC} -classpath ${jarPath} dev.jbang.Main jdk default $javaVersion
     fi
-    export JAVA_HOME="$TDIR/jdks/$javaVersion"
-    JAVA_EXEC="$JAVA_HOME/bin/java"
   fi
 fi
 
