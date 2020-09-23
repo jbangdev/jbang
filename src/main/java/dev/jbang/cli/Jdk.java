@@ -2,6 +2,7 @@ package dev.jbang.cli;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Set;
 
 import dev.jbang.JdkManager;
 import dev.jbang.Util;
@@ -31,16 +32,23 @@ public class Jdk {
 	@CommandLine.Command(name = "list", description = "Lists installed JDKs.")
 	public Integer list() throws IOException {
 		PrintWriter err = spec.commandLine().getErr();
-		JdkManager.listInstalledJdks().forEach(jdk -> err.println(jdk));
+		final Set<Integer> installedJdks = JdkManager.listInstalledJdks();
+		if (!installedJdks.isEmpty()) {
+			Util.infoMsg("Available installed JDKs:");
+			installedJdks.forEach(jdk -> err.println("  " + jdk));
+		} else {
+			Util.infoMsg("No JDKs installed");
+		}
 		return CommandLine.ExitCode.SOFTWARE;
 	}
 
 	@CommandLine.Command(name = "uninstall", description = "Uninstalls an existing JDK.")
-	public Integer remove(
+	public Integer uninstall(
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version to install", arity = "1") int version)
 			throws IOException {
 		if (JdkManager.isInstalledJdk(version)) {
 			JdkManager.uninstallJdk(version);
+			Util.infoMsg("Uninstalled JDK:\n  " + version);
 		} else {
 			Util.infoMsg("JDK " + version + " is not installed");
 		}
