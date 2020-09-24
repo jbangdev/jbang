@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.nio.file.Path;
+import java.util.Set;
 
 import dev.jbang.JdkManager;
 import dev.jbang.Settings;
@@ -37,22 +38,29 @@ public class Jdk {
 	public Integer list() {
 		int v = JdkManager.getDefaultJdk();
 		PrintWriter err = spec.commandLine().getErr();
-		JdkManager.listInstalledJdks().forEach(jdk -> {
-			err.print(jdk);
-			if (jdk == v) {
-				err.print(" *");
-			}
-			err.println();
-		});
+		final Set<Integer> installedJdks = JdkManager.listInstalledJdks();
+		if (!installedJdks.isEmpty()) {
+			Util.infoMsg("Available installed JDKs:");
+			installedJdks.forEach(jdk -> {
+				if (jdk == v) {
+					err.print(" *");
+				} else {
+					err.print("  " + jdk);
+				}
+				err.println();
+			});
+		} else {
+			Util.infoMsg("No JDKs installed");
+		}
 		return EXIT_OK;
 	}
 
 	@CommandLine.Command(name = "uninstall", description = "Uninstalls an existing JDK.")
-	public Integer remove(
-			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version to install", arity = "1") int version)
-			throws IOException {
+	public Integer uninstall(
+			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version to install", arity = "1") int version) {
 		if (JdkManager.isInstalledJdk(version)) {
 			JdkManager.uninstallJdk(version);
+			Util.infoMsg("Uninstalled JDK:\n  " + version);
 		} else {
 			Util.infoMsg("JDK " + version + " is not installed");
 		}
@@ -127,4 +135,5 @@ public class Jdk {
 		}
 		return EXIT_OK;
 	}
+
 }
