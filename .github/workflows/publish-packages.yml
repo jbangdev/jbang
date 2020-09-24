@@ -23,7 +23,7 @@ jobs:
           BREW_USER: ${{ secrets.BREW_USER }}
         run: ./misc/updatecontainer.sh
       - name: homebrew
-      continue-on-error: true
+        continue-on-error: true
         env:
           BREW_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}
           BREW_USER: ${{ secrets.BREW_USER }}
