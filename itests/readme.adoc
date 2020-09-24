@@ -10,7 +10,7 @@ To run the tests first make sure you've built jbang first, added `jbang` to the 
 
 [source, bash]
 ----
-./gradlew build install
+./gradlew build
 export PATH=`pwd`/build/install/jbang/bin:$PATH
 cd itests
 ./test_suite.sh
@@ -22,7 +22,7 @@ All the `*.feature` are written and run using https://github.com/intuit/karate[K
 
 The only prerequisite is to make sure the `jbang` you want to test is on your path.
 
-You can run them by calling `./itests.sh` which will use Gradle to do a build and install to 
+You can run them by calling `./itests.sh` which will use Gradle to do a build to 
 have latest version on `PATH`; or if you want to experiment
 run `jbang karate.java *.feature` directly.
 

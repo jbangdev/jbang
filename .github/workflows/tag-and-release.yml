@@ -21,7 +21,7 @@ jobs:
         with:
           java-version: 11
       - name: build-gradle
-        run: ./gradlew clean build install --build-cache --scan -s
+        run: ./gradlew clean build --build-cache --scan -s
       - name: integration-test
         run: |
           export PATH=`pwd`/build/install/jbang/bin:$PATH

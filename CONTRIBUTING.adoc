@@ -4,7 +4,7 @@ Anyone welcome to open issues and/or pull-requests for bugfixes, feature-request
 
 == How to build
 
-Clone the repository, cd `jbang` and run `./gradlew build install`.
+Clone the repository, cd `jbang` and run `./gradlew build`.
 There will be a warning in the output but don't despair - that is just
 Java being picky.
 
@@ -12,7 +12,7 @@ Java being picky.
 ----
 $ git clone https://github.com/jbangdev/jbang
 $ cd jbang
-$ ./gradlew build install
+$ ./gradlew build
 > Task :test
 WARNING: An illegal reflective access operation has occurred # <.>
 WARNING: Illegal reflective access by org.junit.contrib.java.lang.system.EnvironmentVariables (file:/Users/max/.gradle/caches/modules-2/files-2.1/com.github.stefanbirkner/system-rules/1.17.2/ff31c2f41e8d0eb7063c3a3c207b11acea6fdf7b/system-rules-1.17.2.jar) to field java.util.Collections$UnmodifiableMap.m

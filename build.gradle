@@ -75,23 +75,40 @@ spotless {
 	}
 }
 
+def commonSpec = project.copySpec {
+	from('examples') {
+		include '**/*.java'
+		into 'examples'
+	}
+	from(shadowJar) {
+		into 'bin'
+	}
+	from('src/main/scripts') {
+		include 'jbang'
+		include 'jbang.cmd'
+		into 'bin'
+	}
+}
 distributions {
 	main {
 		contents {
-			from('examples') {
-				include '**/*.java'
-				into 'examples'
-			}
-			from(shadowJar) {
-				into 'bin'
-			}
-			from('src/main/scripts') {
-				include 'jbang'
-				include 'jbang.cmd'
-				into 'bin'
-			}
+			with commonSpec
 		}
 	}
+	latest {
+		contents {
+			with commonSpec
+		}
+	}
+}
+
+latestDistZip {
+	archiveName = "${project.name}.zip"
+}
+
+
+latestDistTar {
+	archiveName = "${project.name}.tar"
 }
 
 jar {
@@ -156,7 +173,7 @@ processTestResources.dependsOn copyTestResources
 
 task createChecksum(type: Checksum) {
 	dependsOn(assembleDist)
-	files = distZip.outputs.files
+	files = distZip.outputs.files + latestDistZip.outputs.files + distTar.outputs.files + latestDistTar.outputs.files
 	outputDir = distZip.destinationDir
 	algorithm = Checksum.Algorithm.SHA256
 }
@@ -277,8 +294,9 @@ versioner {
 	}
 }
 
+build.dependsOn(latestDistZip)
+build.dependsOn(latestDistTar)
 build.dependsOn(copyITests)
-
 build.dependsOn(homebrew)
 build.dependsOn(chocolatey)
 build.dependsOn(scoop)

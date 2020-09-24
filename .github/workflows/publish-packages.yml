@@ -15,7 +15,7 @@ jobs:
         with:
           java-version: 11
       - name: build-gradle
-        run: ./gradlew clean build install -x test --build-cache --scan -s
+        run: ./gradlew clean build -x test --build-cache --scan -s
       - name: docker
         continue-on-error: true
         env:
@@ -23,7 +23,7 @@ jobs:
           BREW_USER: ${{ secrets.BREW_USER }}
         run: ./misc/updatecontainer.sh
       - name: homebrew
-        continue-on-error: true
+      continue-on-error: true
         env:
           BREW_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}
           BREW_USER: ${{ secrets.BREW_USER }}

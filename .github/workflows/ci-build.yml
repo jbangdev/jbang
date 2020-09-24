@@ -29,7 +29,7 @@ jobs:
         with:
           java-version: 8
       - name: build-gradle
-        run: ./gradlew build test install --build-cache --scan -s
+        run: ./gradlew build test assemble --build-cache --scan -s
       - name: integration-test-non-windows
         if: runner.os != 'Windows'
         run: |
