@@ -173,7 +173,7 @@ processTestResources.dependsOn copyTestResources
 
 task createChecksum(type: Checksum) {
 	dependsOn(assembleDist)
-	files = distZip.outputs.files + latestDistZip.outputs.files + distTar.outputs.files + latestDistTar.outputs.files
+	files = files([distZip, latestDistZip, distTar, latestDistTar].outputs.files.flatten())
 	outputDir = distZip.destinationDir
 	algorithm = Checksum.Algorithm.SHA256
 }
