@@ -10,7 +10,7 @@ To run the tests first make sure you've built jbang first, added `jbang` to the 
 
 [source, bash]
 ----
-./gradlew build
+./gradlew build installDist
 export PATH=`pwd`/build/install/jbang/bin:$PATH
 cd itests
 ./test_suite.sh
