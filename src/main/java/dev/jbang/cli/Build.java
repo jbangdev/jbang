@@ -18,6 +18,7 @@ public class Build extends BaseBuildCommand {
 		if (script.needsJar()) {
 			build(script);
 		}
-		return 0;
+
+		return EXIT_EXECUTE;
 	}
 }

@@ -1,5 +1,7 @@
 package dev.jbang;
 
+import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
+
 import java.io.*;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -15,8 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import picocli.CommandLine;
 
 /**
  * JBang uses a 'convention based interface' for build time integration.
@@ -120,14 +120,14 @@ public class IntegrationManager {
 				}
 			}
 		} catch (ClassNotFoundException e) {
-			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Unable to load integration class", e);
+			throw new ExitException(EXIT_UNEXPECTED_STATE, "Unable to load integration class", e);
 		} catch (NoSuchMethodException e) {
 			throw new ExitException(
-					CommandLine.ExitCode.SOFTWARE,
+					EXIT_UNEXPECTED_STATE,
 					"Integration class missing method with signature public static Map<String, byte[]> postBuild(Path classesDir, Path pomFile, List<Map.Entry<String, Path>> dependencies)",
 					e);
 		} catch (Exception e) {
-			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Issue running postBuild()", e);
+			throw new ExitException(EXIT_UNEXPECTED_STATE, "Issue running postBuild()", e);
 		} finally {
 			Thread.currentThread().setContextClassLoader(old);
 			System.setOut(oldout);

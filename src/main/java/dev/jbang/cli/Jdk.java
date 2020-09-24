@@ -1,5 +1,7 @@
 package dev.jbang.cli;
 
+import static dev.jbang.cli.BaseCommand.EXIT_OK;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -28,7 +30,7 @@ public class Jdk {
 		} else {
 			Util.infoMsg("JDK " + version + " is already installed");
 		}
-		return CommandLine.ExitCode.OK;
+		return EXIT_OK;
 	}
 
 	@CommandLine.Command(name = "list", description = "Lists installed JDKs.")
@@ -42,7 +44,7 @@ public class Jdk {
 			}
 			err.println();
 		});
-		return CommandLine.ExitCode.OK;
+		return EXIT_OK;
 	}
 
 	@CommandLine.Command(name = "uninstall", description = "Uninstalls an existing JDK.")
@@ -54,7 +56,7 @@ public class Jdk {
 		} else {
 			Util.infoMsg("JDK " + version + " is not installed");
 		}
-		return CommandLine.ExitCode.OK;
+		return EXIT_OK;
 	}
 
 	@CommandLine.Command(name = "home", description = "Returns the folder where the given JDK is installed.")
@@ -62,7 +64,7 @@ public class Jdk {
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version of the JDK to select", arity = "0..1") Integer version) {
 		Path home = getJdkPath(version);
 		System.out.println("echo " + home);
-		return CommandLine.ExitCode.OK;
+		return EXIT_OK;
 	}
 
 	@CommandLine.Command(name = "java-env", description = "Returns the folder where the given JDK is installed.")
@@ -70,7 +72,7 @@ public class Jdk {
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version of the JDK to select", arity = "0..1") Integer version) {
 		Path home = getJdkPath(version);
 		if (home != null) {
-			PrintStream out = System.err; // TODO set this to System.out when #336 gets merged
+			PrintStream out = System.out;
 			if (Util.isWindows()) {
 				out.println("set PATH=" + home + "\\bin;%PATH%");
 				out.println("set JAVA_HOME=" + home);
@@ -87,7 +89,7 @@ public class Jdk {
 				out.println(")");
 			}
 		}
-		return CommandLine.ExitCode.OK; // TODO set this to EXIT_PRINT when #336 gets merged
+		return EXIT_OK;
 	}
 
 	private Path getJdkPath(Integer version) {
@@ -123,6 +125,6 @@ public class Jdk {
 				Util.infoMsg("Default JDK is currently set to " + v);
 			}
 		}
-		return CommandLine.ExitCode.OK;
+		return EXIT_OK;
 	}
 }

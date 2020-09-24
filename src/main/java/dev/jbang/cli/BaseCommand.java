@@ -11,7 +11,12 @@ import picocli.CommandLine;
 
 public abstract class BaseCommand implements Callable<Integer> {
 
-	public static int EXIT_PRINT_OUTPUT = 3;
+	public static int EXIT_OK = 0;
+	public static int EXIT_GENERIC_ERROR = 1;
+	public static int EXIT_INVALID_INPUT = 2;
+	public static int EXIT_UNEXPECTED_STATE = 3;
+	public static int EXIT_INTERNAL_ERROR = 4;
+	public static int EXIT_EXECUTE = 255;
 
 	static {
 		Logger logger = Logger.getLogger("org.jboss.shrinkwrap.resolver");

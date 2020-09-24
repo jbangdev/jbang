@@ -1,5 +1,7 @@
 package dev.jbang;
 
+import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -35,8 +37,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.parser.Parser;
 
 import com.google.gson.Gson;
-
-import picocli.CommandLine;
 
 public class Util {
 
@@ -198,7 +198,7 @@ public class Util {
 		} else if (os.startsWith("win")) {
 			return OS.windows;
 		} else {
-			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Unsupported Operating System: " + os);
+			throw new ExitException(EXIT_UNEXPECTED_STATE, "Unsupported Operating System: " + os);
 		}
 	}
 
@@ -211,7 +211,7 @@ public class Util {
 		} else if (arch.matches("^(aarch64)$")) {
 			return Arch.aarch64;
 		} else {
-			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Unsupported Architecture: " + arch);
+			throw new ExitException(EXIT_UNEXPECTED_STATE, "Unsupported Architecture: " + arch);
 		}
 	}
 

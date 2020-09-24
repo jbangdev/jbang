@@ -27,6 +27,6 @@ public class Completion extends BaseCommand {
 		out.print(script);
 		out.print('\n');
 		out.flush();
-		return EXIT_PRINT_OUTPUT;
+		return EXIT_OK;
 	}
 }

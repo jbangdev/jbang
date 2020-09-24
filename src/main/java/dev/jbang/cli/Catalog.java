@@ -1,9 +1,13 @@
 package dev.jbang.cli;
 
+import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
+import static dev.jbang.cli.BaseCommand.EXIT_OK;
+
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
 import dev.jbang.AliasUtil;
+import dev.jbang.ExitException;
 import dev.jbang.Settings;
 import dev.jbang.Util;
 
@@ -26,7 +30,7 @@ public class Catalog {
 					"Invalid catalog name, it should start with a letter followed by 0 or more letters, digits, underscores, hyphens or dots");
 		}
 		if (Settings.getCatalogs().containsKey(name)) {
-			throw new IllegalArgumentException("A catalog with that name already exists");
+			throw new ExitException(EXIT_INVALID_INPUT, "A catalog with that name already exists");
 		}
 		PrintWriter err = spec.commandLine().getErr();
 		AliasUtil.Aliases aliases = AliasUtil.getCatalogAliasesByRef(urlOrFile, true);
@@ -34,7 +38,7 @@ public class Catalog {
 			description = aliases.description;
 		}
 		Settings.addCatalog(name, urlOrFile, description);
-		return CommandLine.ExitCode.SOFTWARE;
+		return EXIT_OK;
 	}
 
 	@CommandLine.Command(name = "update", description = "Retrieve the latest contents of the catalogs.")
@@ -47,7 +51,7 @@ public class Catalog {
 					err.println("Updating catalog '" + e.getKey() + "' from " + e.getValue().catalogRef + "...");
 					AliasUtil.getCatalogAliasesByRef(e.getValue().catalogRef, true);
 				});
-		return CommandLine.ExitCode.SOFTWARE;
+		return EXIT_OK;
 	}
 
 	@CommandLine.Command(name = "list", description = "Show currently defined catalogs.")
@@ -72,16 +76,16 @@ public class Catalog {
 			AliasUtil.Aliases aliases = AliasUtil.getCatalogAliasesByName(name, false);
 			AliasList.printAliases(out, name, aliases);
 		}
-		return BaseCommand.EXIT_PRINT_OUTPUT;
+		return EXIT_OK;
 	}
 
 	@CommandLine.Command(name = "remove", description = "Remove existing catalog.")
 	public Integer remove(
 			@CommandLine.Parameters(paramLabel = "name", index = "0", description = "The name of the catalog", arity = "1") String name) {
 		if (!Settings.getCatalogs().containsKey(name)) {
-			throw new IllegalArgumentException("A catalog with that name does not exist");
+			throw new ExitException(EXIT_INVALID_INPUT, "A catalog with that name does not exist");
 		}
 		Settings.removeCatalog(name);
-		return CommandLine.ExitCode.SOFTWARE;
+		return EXIT_OK;
 	}
 }

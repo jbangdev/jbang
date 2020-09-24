@@ -1,13 +1,13 @@
 package dev.jbang;
 
+import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
+
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-
-import picocli.CommandLine;
 
 public class FileRef {
 
@@ -65,7 +65,7 @@ public class FileRef {
 			}
 			Files.copy(from, to, StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException ioe) {
-			throw new ExitException(CommandLine.ExitCode.USAGE, "Could not copy " + from + " to " + to, ioe);
+			throw new ExitException(EXIT_UNEXPECTED_STATE, "Could not copy " + from + " to " + to, ioe);
 		}
 	}
 

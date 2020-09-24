@@ -1,5 +1,7 @@
 package dev.jbang.cli;
 
+import static dev.jbang.cli.BaseCommand.EXIT_OK;
+
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Optional;
@@ -53,7 +55,7 @@ public class Cache {
 
 		Settings.CacheClass[] ccs = classes.toArray(new Settings.CacheClass[0]);
 		Settings.clearCache(ccs);
-		return CommandLine.ExitCode.OK;
+		return EXIT_OK;
 	}
 
 	private void toggleCache(Boolean b, Settings.CacheClass cache, EnumSet<Settings.CacheClass> classes) {

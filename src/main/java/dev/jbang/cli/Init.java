@@ -41,7 +41,7 @@ public class Init extends BaseScriptCommand {
 			info("File initialized. You can now run it with 'jbang " + scriptOrFile
 					+ "' or edit it using 'code `jbang edit " + scriptOrFile + "`'");
 		}
-		return 0;
+		return EXIT_OK;
 	}
 
 	String renderInitClass(File f, String template) {
