@@ -1,5 +1,7 @@
 package dev.jbang.cli;
 
+import static dev.jbang.cli.BaseCommand.EXIT_OK;
+
 import java.io.PrintStream;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,7 +20,7 @@ public class Trust {
 	public Integer add(
 			@CommandLine.Parameters(index = "0", description = "Rules for trusted sources", arity = "1..*") List<String> rules) {
 		Settings.getTrustedSources().add(rules, Settings.getTrustedSourcesFile().toFile());
-		return CommandLine.ExitCode.SOFTWARE;
+		return EXIT_OK;
 	}
 
 	@CommandLine.Command(name = "list", description = "Show defined trust domains.")
@@ -28,7 +30,7 @@ public class Trust {
 		for (String src : Settings.getTrustedSources().trustedSources) {
 			out.println(++idx + " = " + src);
 		}
-		return BaseCommand.EXIT_PRINT_OUTPUT;
+		return EXIT_OK;
 	}
 
 	@CommandLine.Command(name = "remove", description = "Remove trust domains.")
@@ -38,7 +40,7 @@ public class Trust {
 										.map(src -> toDomain(src))
 										.collect(Collectors.toList());
 		Settings.getTrustedSources().remove(newrules, Settings.getTrustedSourcesFile().toFile());
-		return CommandLine.ExitCode.SOFTWARE;
+		return EXIT_OK;
 	}
 
 	private String toDomain(String src) {

@@ -51,7 +51,7 @@ public class Run extends BaseBuildCommand {
 		debug("run: " + cmdline);
 		out.println(cmdline);
 
-		return 0;
+		return EXIT_EXECUTE;
 	}
 
 	String generateCommandLine(Script script) throws IOException {

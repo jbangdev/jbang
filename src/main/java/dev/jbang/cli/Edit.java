@@ -119,7 +119,7 @@ public class Edit extends BaseScriptCommand {
 				warn("edit-live interrupted");
 			}
 		}
-		return 0;
+		return EXIT_EXECUTE;
 	}
 
 	/** Create Project to use for editing **/

@@ -61,7 +61,7 @@ public class Jbang extends BaseCommand {
 
 	public Integer doCall() {
 		spec.commandLine().usage(err);
-		return 0;
+		return EXIT_OK;
 	}
 
 	public static CommandLine getCommandLine() {
@@ -83,7 +83,7 @@ public class Jbang extends BaseCommand {
 			if (ex instanceof ExitException) {
 				return ((ExitException) ex).getStatus();
 			} else {
-				return CommandLine.ExitCode.USAGE;
+				return EXIT_INTERNAL_ERROR;
 			}
 		}
 	};
@@ -94,9 +94,9 @@ public class Jbang extends BaseCommand {
 			if (t instanceof ExitException) {
 				return ((ExitException) t).getStatus();
 			} else if (t instanceof CommandLine.ParameterException) {
-				return CommandLine.ExitCode.USAGE;
+				return EXIT_INVALID_INPUT;
 			}
-			return CommandLine.ExitCode.SOFTWARE;
+			return EXIT_GENERIC_ERROR;
 		}
 	};
 

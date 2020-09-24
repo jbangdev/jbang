@@ -64,7 +64,7 @@ class AliasAdd extends BaseAliasCommand {
 		} else {
 			AliasUtil.addNearestAlias(null, name, scriptOrFile, description, userParams, properties);
 		}
-		return CommandLine.ExitCode.OK;
+		return EXIT_OK;
 	}
 }
 
@@ -93,7 +93,7 @@ class AliasList extends BaseAliasCommand {
 		} else {
 			printAliases(out, catalogName, aliases);
 		}
-		return EXIT_PRINT_OUTPUT;
+		return EXIT_OK;
 	}
 
 	static void printAliases(PrintStream out, String catalogName, AliasUtil.Aliases aliases) {
@@ -162,6 +162,6 @@ class AliasRemove extends BaseAliasCommand {
 		} else {
 			AliasUtil.removeNearestAlias(null, name);
 		}
-		return CommandLine.ExitCode.OK;
+		return EXIT_OK;
 	}
 }

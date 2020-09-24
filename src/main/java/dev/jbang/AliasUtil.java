@@ -1,5 +1,8 @@
 package dev.jbang;
 
+import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
+import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -14,8 +17,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.annotations.SerializedName;
-
-import picocli.CommandLine;
 
 public class AliasUtil {
 	public static final String JBANG_CATALOG_JSON = "jbang-catalog.json";
@@ -217,7 +218,7 @@ public class AliasUtil {
 		Aliases aliases = getCatalogAliasesByName(catalogName, false);
 		Alias alias = aliases.aliases.get(aliasName);
 		if (alias == null) {
-			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "No alias found with name '" + aliasName + "'");
+			throw new ExitException(EXIT_INVALID_INPUT, "No alias found with name '" + aliasName + "'");
 		}
 		return alias;
 	}
@@ -234,7 +235,7 @@ public class AliasUtil {
 		if (catalog != null) {
 			return getCatalogAliasesByRef(catalog.catalogRef, updateCache);
 		} else {
-			throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Unknown catalog '" + catalogName + "'");
+			throw new ExitException(EXIT_INVALID_INPUT, "Unknown catalog '" + catalogName + "'");
 		}
 	}
 
@@ -291,7 +292,7 @@ public class AliasUtil {
 			}
 			String[] names = parts[0].split("/");
 			if (names.length > 3) {
-				throw new ExitException(CommandLine.ExitCode.SOFTWARE, "Invalid catalog name '" + name + "'");
+				throw new ExitException(EXIT_INVALID_INPUT, "Invalid catalog name '" + name + "'");
 			}
 			String org = names[0];
 			String repo;
@@ -464,7 +465,7 @@ public class AliasUtil {
 			}
 			return aliases;
 		} catch (IOException | JsonParseException ex) {
-			throw new ExitException(CommandLine.ExitCode.SOFTWARE,
+			throw new ExitException(EXIT_UNEXPECTED_STATE,
 					"Unable to download catalog: " + catalogRef + " via " + catalogPath, ex);
 		}
 	}

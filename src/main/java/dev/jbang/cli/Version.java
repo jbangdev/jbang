@@ -19,6 +19,6 @@ public class Version extends BaseCommand {
 			out.println("Config: " + Settings.getConfigDir());
 			out.println("Repository:" + Settings.getLocalMavenRepo());
 		}
-		return EXIT_PRINT_OUTPUT;
+		return EXIT_OK;
 	}
 }

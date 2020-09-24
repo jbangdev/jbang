@@ -1,5 +1,7 @@
 package dev.jbang.cli;
 
+import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
+import static dev.jbang.cli.BaseCommand.EXIT_OK;
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
@@ -29,11 +31,11 @@ public class Wrapper {
 			@CommandLine.Option(names = { "-f",
 					"--force" }, description = "Force installation of wrapper even if files already exist", defaultValue = "false") boolean force) {
 		if (!Files.isDirectory(dest)) {
-			throw new IllegalArgumentException("Destination folder does not exist");
+			throw new ExitException(EXIT_INVALID_INPUT, "Destination folder does not exist");
 		}
 		if ((checkScripts(dest) || checkJar(dest.resolve(DIR_NAME))) && !force) {
 			Util.warnMsg("Wrapper already exists. Use --force to install anyway");
-			return CommandLine.ExitCode.OK;
+			return EXIT_OK;
 		}
 		try {
 			URI uri = Wrapper.class.getProtectionDomain().getCodeSource().getLocation().toURI();
@@ -50,7 +52,7 @@ public class Wrapper {
 			} else {
 				throw new ExitException(1, "Couldn't find Jbang wrapper files");
 			}
-			return CommandLine.ExitCode.OK;
+			return EXIT_OK;
 		} catch (URISyntaxException e) {
 			throw new ExitException(1, "Couldn't find Jbang install location", e);
 		} catch (IOException e) {

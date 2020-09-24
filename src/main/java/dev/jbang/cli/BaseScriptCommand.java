@@ -140,7 +140,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		 */
 		// just proceed if the script file is a regular file at this point
 		if (scriptFile == null || !scriptFile.getFile().canRead()) {
-			throw new IllegalArgumentException("Could not read script argument " + scriptResource);
+			throw new ExitException(EXIT_INVALID_INPUT, "Could not read script argument " + scriptResource);
 		}
 
 		// note script file must be not null at this point

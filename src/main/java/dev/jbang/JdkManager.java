@@ -1,5 +1,7 @@
 package dev.jbang;
 
+import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,8 +12,6 @@ import java.util.TreeSet;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import picocli.CommandLine;
 
 public class JdkManager {
 	private static final String JDK_DOWNLOAD_URL = "https://api.adoptopenjdk.net/v3/binary/latest/%d/ga/%s/%s/jdk/hotspot/normal/%s";
@@ -76,7 +76,7 @@ public class JdkManager {
 			}
 			Util.errorMsg("Required Java version not possible to download or install. You can run with '--java "
 					+ JavaUtil.determineJavaVersion() + "' to force using the default installed Java.");
-			throw new ExitException(CommandLine.ExitCode.SOFTWARE,
+			throw new ExitException(EXIT_UNEXPECTED_STATE,
 					"Unable to download or install JDK version " + version, e);
 		}
 	}
