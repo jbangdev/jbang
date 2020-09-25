@@ -21,7 +21,7 @@ repositories {
 dependencies {
 	implementation 'com.offbytwo:docopt:0.6.0.20150202'
 
-	implementation 'org.apache.commons:commons-text:1.8'
+	implementation 'org.apache.commons:commons-text:1.9'
 	implementation 'org.apache.commons:commons-compress:1.20'
 	implementation 'info.picocli:picocli:4.5.0'
 	implementation 'io.quarkus.qute:qute-core:1.8.1.Final'
