@@ -86,6 +86,7 @@ def commonSpec = project.copySpec {
 	from('src/main/scripts') {
 		include 'jbang'
 		include 'jbang.cmd'
+		include 'jbang.ps1'
 		into 'bin'
 	}
 }
