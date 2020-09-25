@@ -41,6 +41,7 @@ import com.google.gson.Gson;
 public class Util {
 
 	public static final String JBANG_JDK_VENDOR = "JBANG_JDK_VENDOR";
+	public static final String JBANG_USES_POWERSHELL = "JBANG_USES_POWERSHELL";
 
 	private static boolean verbose;
 	private static boolean quiet;
@@ -217,6 +218,10 @@ public class Util {
 
 	public static boolean isWindows() {
 		return getOS() == OS.windows;
+	}
+
+	public static boolean isUsingPowerShell() {
+		return isWindows() && "true".equalsIgnoreCase(System.getenv(JBANG_USES_POWERSHELL));
 	}
 
 	public static boolean isMac() {

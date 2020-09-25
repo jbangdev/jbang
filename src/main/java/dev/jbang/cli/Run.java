@@ -248,15 +248,25 @@ public class Run extends BaseBuildCommand {
 	// NB: This might not be a definitive list of safe characters
 	static Pattern cmdSafeChars = Pattern.compile("[a-zA-Z0-9.,_+=:;@()-]*");
 
+	// TODO: Figure out what the real list of safe characters is for PowerShell
+	static Pattern pwrSafeChars = Pattern.compile("[a-zA-Z0-9.,_+=:;@()-]*");
+
 	static Pattern shellSafeChars = Pattern.compile("[a-zA-Z0-9._+=:@%/-]*");
 
 	static String escapeArgument(String arg) {
 		if (Util.isWindows()) {
-			if (!cmdSafeChars.matcher(arg).matches()) {
-				// Windows quoting is just weird
-				arg = arg.replaceAll("([()!^<>&|% ])", "^$1");
-				arg = arg.replaceAll("([\"])", "\\\\^$1");
-				return "^\"" + arg + "^\"";
+			if (Util.isUsingPowerShell()) {
+				if (!pwrSafeChars.matcher(arg).matches()) {
+					arg = arg.replaceAll("(['])", "''");
+					return "'" + arg + "'";
+				}
+			} else {
+				if (!cmdSafeChars.matcher(arg).matches()) {
+					// Windows quoting is just weird
+					arg = arg.replaceAll("([()!^<>&|% ])", "^$1");
+					arg = arg.replaceAll("([\"])", "\\\\^$1");
+					return "^\"" + arg + "^\"";
+				}
 			}
 		} else {
 			if (!shellSafeChars.matcher(arg).matches()) {
