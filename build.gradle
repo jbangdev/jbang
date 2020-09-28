@@ -26,7 +26,7 @@ dependencies {
 	implementation 'info.picocli:picocli:4.5.0'
 	implementation 'io.quarkus.qute:qute-core:1.8.1.Final'
 	implementation 'kr.motd.maven:os-maven-plugin:1.6.1'
-	implementation 'org.codehaus.plexus:plexus-java:1.0.4'
+	implementation 'org.codehaus.plexus:plexus-java:1.0.5'
 	implementation 'com.google.code.gson:gson:2.8.6'
 	implementation 'org.jsoup:jsoup:1.13.1'
 	implementation 'org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-api:3.1.4'
