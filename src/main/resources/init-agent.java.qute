@@ -1,0 +1,45 @@
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//// DEPS <avoid dependencies>
+//JAVAAGENT Can-Redefine-Classes Can-Retransform-Classes Can-Set-Native-Method-Prefix
+
+import java.lang.instrument.ClassFileTransformer;
+import java.lang.instrument.IllegalClassFormatException;
+import java.lang.instrument.Instrumentation;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.ProtectionDomain;
+
+
+public class {baseName} {
+
+    public static void premain(String agentArgs, Instrumentation instrumentation) {
+        System.out.println("jbang agent {baseName} loaded. Will dump all loaded classes into `classes/`");
+
+        ClassLogger transformer = new ClassLogger();
+        instrumentation.addTransformer(transformer);
+    }
+
+    public static void main(String[] args) {
+        System.out.println("This is a (jbang) javaagent.\n" +
+                           "Usage: \n" +
+                           "   jbang --javaagent={baseName}.java yourApp.java");
+    }
+
+    static public class ClassLogger implements ClassFileTransformer {
+      @Override
+      public byte[] transform(ClassLoader loader,
+                              String className,
+                              Class<?> classBeingRedefined,
+                              ProtectionDomain protectionDomain,
+                              byte[] classfileBuffer) throws IllegalClassFormatException {
+        try {
+          Path path = Paths.get("classes/" + className + ".class");
+          Files.createDirectories(path.getParent());
+          Files.write(path, classfileBuffer);
+        } catch (Throwable ignored) {
+            System.err.println(ignored);
+        } finally { return classfileBuffer; }
+      }
+    }
+}

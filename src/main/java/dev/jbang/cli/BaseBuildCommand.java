@@ -2,13 +2,16 @@ package dev.jbang.cli;
 
 import java.io.File;
 import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +20,12 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.DotName;
+import org.jboss.jandex.Index;
+import org.jboss.jandex.Indexer;
+import org.jboss.jandex.Type;
 
 import dev.jbang.ExitException;
 import dev.jbang.FileRef;
@@ -32,6 +41,11 @@ import io.quarkus.qute.Template;
 import picocli.CommandLine;
 
 public abstract class BaseBuildCommand extends BaseScriptCommand {
+	public static final Type STRINGARRAYTYPE = Type.create(DotName.createSimple("[Ljava.lang.String;"),
+			Type.Kind.ARRAY);
+	public static final Type STRINGTYPE = Type.create(DotName.createSimple("java.lang.String"), Type.Kind.CLASS);
+	public static final Type INSTRUMENTATIONTYPE = Type.create(
+			DotName.createSimple("java.lang.instrument.Instrumentation"), Type.Kind.CLASS);
 	protected String javaVersion;
 
 	@CommandLine.Option(names = { "-m",
@@ -189,8 +203,54 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 									"Could not locate unique class. Found " + items.size() + " candidates.");
 						} else {
 							Path classfile = items.get(0);
-							String mainClass = findMainClass(tmpJarDir.toPath(), classfile);
-							script.setMainClass(mainClass);
+							// TODO: could we use jandex to find the right main class more sanely ?
+							// String mainClass = findMainClass(tmpJarDir.toPath(), classfile);
+
+							Indexer indexer = new Indexer();
+							InputStream stream = new FileInputStream(classfile.toFile());
+							indexer.index(stream);
+							Index index = indexer.complete();
+
+							Collection<ClassInfo> clazz = index.getKnownClasses();
+
+							Optional<ClassInfo> main = clazz.stream()
+															.filter(pubClass -> pubClass.method("main",
+																	STRINGARRAYTYPE) != null)
+															.findFirst();
+
+							if (main.isPresent()) {
+								script.setMainClass(main.get().name().toString());
+							}
+
+							if (script.isAgent()) {
+
+								Optional<ClassInfo> agentmain = clazz	.stream()
+																		.filter(pubClass -> pubClass.method("agentmain",
+																				STRINGTYPE,
+																				INSTRUMENTATIONTYPE) != null
+																				||
+																				pubClass.method("agentmain",
+																						STRINGTYPE) != null)
+																		.findFirst();
+
+								if (agentmain.isPresent()) {
+									script.setAgentMainClass(agentmain.get().name().toString());
+								}
+
+								Optional<ClassInfo> premain = clazz	.stream()
+																	.filter(pubClass -> pubClass.method("premain",
+																			STRINGTYPE,
+																			INSTRUMENTATIONTYPE) != null
+																			||
+																			pubClass.method("premain",
+																					STRINGTYPE) != null)
+																	.findFirst();
+
+								if (premain.isPresent()) {
+									script.setPreMainClass(premain.get().name().toString());
+								}
+							}
+
 						}
 					}
 				} catch (IOException e) {
