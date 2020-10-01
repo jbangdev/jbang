@@ -1047,6 +1047,14 @@ You can list the available catalogs by running:
 NB: The output will not only show the catalogs you defined yourself but also the ones that get added implicitly when
 running aliases as described in the section <<Implicit Alias Catalogs>>.
 
+== Java Agents
+
+You can activate a javaagent using `--javaagent=<agent>[=<options>]` where agent can be a already packaged agent jar from file, http url or Maven Coordinate.
+
+It can also be a jbang script itself where you have put `//JAVAAGENT` to activate agent packaging.
+
+You can create a basic agent using `jbang init -t agent myagent.java` to get started.
+
 == Bash/Zsh auto-completion
 
 If you are using bash or zsh in your terminal you can get auto-completion by running the following:

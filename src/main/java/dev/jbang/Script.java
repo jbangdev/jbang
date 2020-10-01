@@ -69,6 +69,15 @@ public class Script {
 	private List<String> jvmArgs;
 	private List<FileRef> sources;
 	private List<Path> resolvedSources;
+	private List<Script> javaAgents;
+	private List<KeyValue> agentOptions;
+	private String preMainClass;
+	private String agentMainClass;
+	/**
+	 * if this script is used as an agent, agentOption is the option needed to pass
+	 * in
+	 **/
+	private String javaAgentOption;
 
 	public Script(ScriptResource resource, String content, List<String> arguments, Map<String, String> properties)
 			throws FileNotFoundException {
@@ -135,6 +144,17 @@ public class Script {
 											.collect(Collectors.toList());
 
 		return dependencies;
+	}
+
+	private List<KeyValue> collectAgentOptions() {
+		if (agentOptions == null) {
+			agentOptions = collectRawOptions("JAVAAGENT")	.stream()
+															.map(PropertiesValueResolver::replaceProperties)
+															.flatMap(Script::extractKeyValue)
+															.map(Script::toKeyValue)
+															.collect(Collectors.toCollection(ArrayList::new));
+		}
+		return agentOptions;
 	}
 
 	public List<MavenRepo> getRepositories() {
@@ -415,6 +435,26 @@ public class Script {
 		if (mainclass != null) {
 			manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, mainclass);
 		}
+
+		if (isAgent()) {
+			if (getPreMainClass() != null) {
+				manifest.getMainAttributes().put(new Attributes.Name("Premain-Class"), getPreMainClass());
+			}
+			if (getAgentMainClass() != null) {
+				manifest.getMainAttributes().put(new Attributes.Name("Agent-Class"), getAgentMainClass());
+			}
+
+			for (KeyValue kv : getAgentOptions()) {
+				if (kv.getKey().trim().isEmpty()) {
+					continue;
+				}
+				Attributes.Name k = new Attributes.Name(kv.getKey());
+				String v = kv.getValue() == null ? "true" : kv.getValue();
+				manifest.getMainAttributes().put(k, v);
+			}
+
+		}
+
 		if (persistentJvmArgs != null) {
 			manifest.getMainAttributes().putValue("JBang-Java-Options", String.join(" ", persistentJvmArgs));
 		}
@@ -472,6 +512,27 @@ public class Script {
 		}
 	}
 
+	static Stream<String> extractKeyValue(String line) {
+		return Arrays.stream(line.split(" +")).map(String::trim);
+	}
+
+	static public KeyValue toKeyValue(String line) {
+
+		String[] split = line.split("=");
+		String key = null;
+		String value = null;
+
+		if (split.length == 1) {
+			key = split[0];
+		} else if (split.length == 2) {
+			key = split[0];
+			value = split[1];
+		} else {
+			throw new IllegalStateException("Invalid key/value: " + line);
+		}
+		return new KeyValue(key, value);
+	}
+
 	public List<FileRef> collectFiles() {
 
 		if (filerefs == null) {
@@ -508,5 +569,51 @@ public class Script {
 
 	public List<Path> getResolvedSourcePaths() {
 		return resolvedSources;
+	}
+
+	public List<Script> getJavaAgents() {
+		if (javaAgents == null) {
+			javaAgents = new ArrayList<>();
+		}
+		return javaAgents;
+	}
+
+	public boolean isAgent() {
+		if (agentOptions == null) {
+			agentOptions = collectAgentOptions();
+		}
+		return !agentOptions.isEmpty();
+	}
+
+	public void setAgentMainClass(String b) {
+		agentMainClass = b;
+	}
+
+	public String getAgentMainClass() {
+		return agentMainClass;
+	}
+
+	public void setPreMainClass(String name) {
+		preMainClass = name;
+	}
+
+	public String getPreMainClass() {
+		return preMainClass;
+	}
+
+	public void setJavaAgentOption(String option) {
+		this.javaAgentOption = option;
+	}
+
+	public void addJavaAgent(Script agentScript) {
+		getJavaAgents().add(agentScript);
+	}
+
+	public String getJavaAgentOption() {
+		return javaAgentOption;
+	}
+
+	public List<KeyValue> getAgentOptions() {
+		return agentOptions;
 	}
 }

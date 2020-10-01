@@ -2,14 +2,20 @@ package dev.jbang.cli;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.text.StringEscapeUtils;
 
-import dev.jbang.*;
+import dev.jbang.ExitException;
+import dev.jbang.Script;
+import dev.jbang.Util;
 
 import picocli.CommandLine;
 
@@ -32,6 +38,24 @@ public class Run extends BaseBuildCommand {
 		return debugString != null;
 	}
 
+	@CommandLine.Option(names = { "--javaagent" }, parameterConsumer = KeyOptionalValueConsumer.class)
+	Map<String, Optional<String>> javaAgentSlots;
+
+	void setJavaAgent(String param) {
+		Optional<String> javaAgent = Optional.empty();
+		Optional<String> javaAgentOptions = Optional.empty();
+
+		int eqpos = param.indexOf("=");
+
+		if (eqpos >= 0) {
+			javaAgent = Optional.of(param.substring(0, eqpos));
+			javaAgentOptions = Optional.of(param.substring(eqpos + 1));
+		} else {
+			javaAgent = Optional.of(param);
+			javaAgentOptions = Optional.empty();
+		}
+	}
+
 	@CommandLine.Option(names = { "--interactive" }, description = "activate interactive mode")
 	boolean interactive;
 
@@ -41,17 +65,36 @@ public class Run extends BaseBuildCommand {
 			enableInsecure();
 		}
 
-		script = prepareScript(scriptOrFile, userParams, properties, dependencies, classpaths);
-
-		if (script.needsJar()) {
-			build(script);
-		}
+		script = prepareArtifacts(prepareScript(scriptOrFile, userParams, properties, dependencies, classpaths));
 
 		String cmdline = generateCommandLine(script);
 		debug("run: " + cmdline);
 		out.println(cmdline);
 
 		return EXIT_EXECUTE;
+	}
+
+	Script prepareArtifacts(Script script) throws IOException {
+		if (script.needsJar()) {
+			build(script);
+		}
+
+		if (javaAgentSlots != null) {
+			for (Map.Entry<String, Optional<String>> agentOption : javaAgentSlots.entrySet()) {
+				String javaAgent = agentOption.getKey();
+				Optional<String> javaAgentOptions = agentOption.getValue();
+
+				Script agentScript = prepareScript(javaAgent, userParams, properties, dependencies, classpaths);
+				agentScript.setJavaAgentOption(javaAgentOptions.orElse(null));
+				if (agentScript.needsJar()) {
+					info("Building javaagent...");
+					build(agentScript);
+				}
+
+				script.addJavaAgent(agentScript);
+			}
+		}
+		return script;
 	}
 
 	String generateCommandLine(Script script) throws IOException {
@@ -133,6 +176,27 @@ public class Run extends BaseBuildCommand {
 			}
 
 			fullArgs.add(javacmd);
+			script	.getJavaAgents()
+					.forEach(agent -> {
+						// for now we don't include any transitive dependencies. could consider putting
+						// on bootclasspath...or not.
+						String jar = null;
+
+						if (agent.getJar() != null) {
+							jar = agent.getJar().toString();
+						} else if (agent.forJar()) {
+							jar = agent.getBackingFile().toString();
+							// should we log a warning/error if agent jar not present ?
+						}
+						if (jar == null) {
+							throw new ExitException(EXIT_INTERNAL_ERROR,
+									"No jar found for agent " + agent.getOriginalFile());
+						}
+						fullArgs.add("-javaagent:" + jar
+								+ (agent.getJavaAgentOption() != null ? "=" + agent.getJavaAgentOption() : ""));
+
+					});
+
 			fullArgs.addAll(script.collectRuntimeOptions());
 			fullArgs.addAll(script.getAutoDetectedModuleArguments(requestedJavaVersion, offline));
 			fullArgs.addAll(optionalArgs);
@@ -278,4 +342,5 @@ public class Run extends BaseBuildCommand {
 			}
 		}
 	}
+
 }

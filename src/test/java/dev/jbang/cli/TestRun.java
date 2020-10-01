@@ -3,10 +3,13 @@ package dev.jbang.cli;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static dev.jbang.Util.writeString;
 import static dev.jbang.cli.BaseScriptCommand.prepareScript;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasXPath;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
@@ -71,6 +74,9 @@ public class TestRun {
 	static void init() throws URISyntaxException, IOException {
 		URL examplesUrl = TestRun.class.getClassLoader().getResource(EXAMPLES_FOLDER);
 		examplesTestFolder = new File(new File(examplesUrl.toURI()).getAbsolutePath());
+
+		Settings.clearCache(Settings.CacheClass.jars);
+
 	}
 
 	@Rule
@@ -621,6 +627,142 @@ public class TestRun {
 		assert (!run.cds().get().booleanValue());
 	}
 
+	String agent = "//JAVAAGENT Can-Redefine-Classes=false Can-Retransform-Classes\n" +
+			"public class Agent {\n" +
+			"public static void premain(String xyz) { };\n" +
+			"public static void agentmain(String xyz, java.lang.instrument.Instrumentation inst) { };" +
+			"" +
+			"}";
+
+	String preagent = "//JAVAAGENT\n" +
+			"public class Agent {\n" +
+			"public static void premain(String xyz) { };\n" +
+			"" +
+			"}";
+
+	@Test
+	void testAgent(@TempDir Path output) throws IOException {
+
+		Jbang jbang = new Jbang();
+		Path p = output.resolve("Agent.java");
+		writeString(p, agent);
+
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("build", p.toFile().getAbsolutePath());
+		Build run = (Build) pr.subcommand().commandSpec().userObject();
+
+		Script s = prepareScript(p.toFile().getAbsolutePath(), run.userParams, run.properties, run.dependencies,
+				run.classpaths);
+
+		run.build(s);
+
+		assertThat(s.isAgent(), is(true));
+
+		assertThat(s.getAgentMainClass(), is("Agent"));
+		assertThat(s.getPreMainClass(), is("Agent"));
+
+		try (JarFile jf = new JarFile(s.getJar())) {
+			Attributes attrs = jf.getManifest().getMainAttributes();
+			assertThat(attrs.getValue("Premain-class"), equalTo("Agent"));
+			assertThat(attrs.getValue("Can-Retransform-Classes"), equalTo("true"));
+			assertThat(attrs.getValue("Can-Redefine-Classes"), equalTo("false"));
+		}
+
+	}
+
+	@Test
+	void testpreAgent(@TempDir Path output) throws IOException {
+
+		Jbang jbang = new Jbang();
+		Path p = output.resolve("Agent.java");
+		writeString(p, preagent);
+
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("build", p.toFile().getAbsolutePath());
+		Build run = (Build) pr.subcommand().commandSpec().userObject();
+
+		Script s = prepareScript(p.toFile().getAbsolutePath(), run.userParams, run.properties, run.dependencies,
+				run.classpaths);
+
+		run.build(s);
+
+		assertThat(s.isAgent(), is(true));
+
+		assertThat(s.getAgentMainClass(), is(nullValue()));
+		assertThat(s.getPreMainClass(), is("Agent"));
+
+	}
+
+	@Test
+	void testJavaAgentWithOptionParsing(@TempDir File output) throws IOException {
+
+		String base = "///usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n" +
+				"// //DEPS <dependency1> <dependency2>\n" +
+				"//JAVAAGENT\n" +
+				"\n" +
+				"import static java.lang.System.*;\n" +
+				"\n" +
+				"class firstclass {\n" +
+				"\n" +
+				"}\n" +
+				"\n" +
+				"public class dualclass {\n" +
+				"\n" +
+				"    public static void main(String... args) {\n" +
+				"        out.println(\"Hello \" + (args.length>0?args[0]:\"World\"));\n" +
+				"    }\n" +
+				"}\n";
+
+		File agentfile = new File(output, "agent.java");
+		Util.writeString(agentfile.toPath(), base.replace("dualclass", "agent"));
+
+		File mainfile = new File(output, "main.java");
+		Util.writeString(mainfile.toPath(), base.replace("dualclass", "main"));
+
+		Jbang jbang = new Jbang();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run",
+				"--javaagent=" + agentfile.getAbsolutePath() + "=optionA",
+				"--javaagent=org.jboss.byteman:byteman:4.0.13", mainfile.getAbsolutePath());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		assertThat(run.javaAgentSlots.containsKey(agentfile.getAbsolutePath()), is(true));
+		assertThat(run.javaAgentSlots.get(agentfile.getAbsolutePath()).get(), equalTo("optionA"));
+
+		Script main = new Script(ScriptResource.forFile(mainfile), run.userParams, run.properties);
+		Script agent = new Script(ScriptResource.forFile(agentfile), run.userParams, run.properties);
+
+		assertThat(agent.isAgent(), is(true));
+
+		main = run.prepareArtifacts(main);
+
+		String result = run.generateCommandLine(main);
+
+		assertThat(result, containsString("-javaagent"));
+		assertThat(result, containsString("=optionA"));
+
+		assertThat(result, containsString("byteman"));
+
+		assertThat(result, not(containsString("null")));
+
+	}
+
+	@Test
+	void testJavaAgentParsing() {
+		Jbang jbang = new Jbang();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--javaagent=xyz.jar", "wonka.java");
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		assertThat(run.javaAgentSlots, hasKey("xyz.jar"));
+	}
+
+	@Test
+	void testJavaAgentViaGAV() {
+		Jbang jbang = new Jbang();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run",
+				"--javaagent=org.jboss.byteman:byteman:4.0.13", "wonka.java");
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		assertThat(run.javaAgentSlots, hasKey("org.jboss.byteman:byteman:4.0.13"));
+	}
+
 	@Test
 	void testOptionActive() {
 		assert (Run.optionActive(Optional.empty(), true));
@@ -636,7 +778,6 @@ public class TestRun {
 
 	@Test
 	void testFilePresentB() throws IOException {
-		Settings.clearCache(Settings.CacheClass.jars);
 		Jbang jbang = new Jbang();
 		File f = new File(examplesTestFolder, "resource.java");
 
