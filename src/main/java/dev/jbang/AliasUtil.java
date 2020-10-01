@@ -634,7 +634,7 @@ public class AliasUtil {
 	}
 
 	private static boolean isRemoteRef(String ref) {
-		return ref.startsWith("http:") || ref.startsWith("https:");
+		return ref.startsWith("http:") || ref.startsWith("https:") || DependencyUtil.looksLikeAGav(ref);
 	}
 
 	@SafeVarargs

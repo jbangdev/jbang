@@ -51,6 +51,9 @@ public class TestAlias {
 			"    },\n" +
 			"    \"eight\": {\n" +
 			"      \"script-ref\": \"seven\"\n" +
+			"    },\n" +
+			"    \"gav\": {\n" +
+			"      \"script-ref\": \"org.example:artifact:version\"\n" +
 			"    }\n" +
 			"  }\n" +
 			"}";
@@ -92,6 +95,7 @@ public class TestAlias {
 		AliasUtil.Alias alias = AliasUtil.getAlias(cwd, "one", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
+		assertThat(alias.resolve(cwd), equalTo("http://dummy"));
 		assertThat(alias.arguments, nullValue());
 		assertThat(alias.properties, nullValue());
 	}
@@ -102,6 +106,7 @@ public class TestAlias {
 				Collections.singletonMap("foo", "bar"));
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
+		assertThat(alias.resolve(cwd), equalTo("http://dummy"));
 		assertThat(alias.arguments, iterableWithSize(1));
 		assertThat(alias.arguments, contains("X"));
 		assertThat(alias.properties, aMapWithSize(1));
@@ -113,6 +118,7 @@ public class TestAlias {
 		AliasUtil.Alias alias = AliasUtil.getAlias(cwd, "two", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
+		assertThat(alias.resolve(cwd), equalTo("http://dummy"));
 		assertThat(alias.arguments, iterableWithSize(1));
 		assertThat(alias.arguments, contains("2"));
 		assertThat(alias.properties, aMapWithSize(1));
@@ -124,6 +130,7 @@ public class TestAlias {
 		AliasUtil.Alias alias = AliasUtil.getAlias(cwd, "two", Collections.emptyList(), Collections.emptyMap());
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
+		assertThat(alias.resolve(cwd), equalTo("http://dummy"));
 		assertThat(alias.arguments, iterableWithSize(1));
 		assertThat(alias.arguments, contains("2"));
 		assertThat(alias.properties, aMapWithSize(1));
@@ -136,6 +143,7 @@ public class TestAlias {
 				Collections.singletonMap("foo", "bar"));
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
+		assertThat(alias.resolve(cwd), equalTo("http://dummy"));
 		assertThat(alias.arguments, iterableWithSize(1));
 		assertThat(alias.arguments, contains("X"));
 		assertThat(alias.properties, aMapWithSize(1));
@@ -147,6 +155,7 @@ public class TestAlias {
 		AliasUtil.Alias alias = AliasUtil.getAlias(cwd, "four", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
+		assertThat(alias.resolve(cwd), equalTo("http://dummy"));
 		assertThat(alias.arguments, iterableWithSize(1));
 		assertThat(alias.arguments, contains("4"));
 		assertThat(alias.properties, aMapWithSize(1));
@@ -159,6 +168,7 @@ public class TestAlias {
 				Collections.singletonMap("foo", "bar"));
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
+		assertThat(alias.resolve(cwd), equalTo("http://dummy"));
 		assertThat(alias.arguments, iterableWithSize(1));
 		assertThat(alias.arguments, contains("X"));
 		assertThat(alias.properties, aMapWithSize(1));
@@ -170,6 +180,7 @@ public class TestAlias {
 		AliasUtil.Alias alias = AliasUtil.getAlias(cwd, "five", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
+		assertThat(alias.resolve(cwd), equalTo("http://dummy"));
 		assertThat(alias.arguments, iterableWithSize(1));
 		assertThat(alias.arguments, contains("3"));
 		assertThat(alias.properties, aMapWithSize(1));
@@ -182,10 +193,21 @@ public class TestAlias {
 				Collections.singletonMap("foo", "bar"));
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
+		assertThat(alias.resolve(cwd), equalTo("http://dummy"));
 		assertThat(alias.arguments, iterableWithSize(1));
 		assertThat(alias.arguments, contains("X"));
 		assertThat(alias.properties, aMapWithSize(1));
 		assertThat(alias.properties, hasEntry("foo", "bar"));
+	}
+
+	@Test
+	void testGetAliasGav() throws IOException {
+		AliasUtil.Alias alias = AliasUtil.getAlias(cwd, "gav", null, null);
+		assertThat(alias, notNullValue());
+		assertThat(alias.scriptRef, equalTo("org.example:artifact:version"));
+		assertThat(alias.resolve(cwd), equalTo("org.example:artifact:version"));
+		assertThat(alias.arguments, nullValue());
+		assertThat(alias.properties, nullValue());
 	}
 
 	@Test
