@@ -58,15 +58,17 @@ NOTE: The `dev.jbang.VersionProvider` class will show a compile error in IDE's b
 
 Run a build check to see if things are clean:
 
-```shell
+[source,shell]
+----
 $ gradle spotlessApply build clean
-```
+----
 
 if nothing changed (use `git status`) then run:
 
-```shell
+[source,shell]
+----
 $ gradle printVersion
-```
+----
 
 to see if the right version are printed.
 If should have only 3 digits, i.e. `v0.45.1`, not `v0.45.1.23`.

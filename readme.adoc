@@ -179,7 +179,8 @@ you can revert back to that older version following these steps:
 
 . Find the commit id for the version to revert to (e.g. `0.8.1`).
 +
-```
+[source]
+----
 $ cd "$(brew --repo jbangdev/tap)"
 $ git log master -- Formula/jbang.rb
 ...
@@ -188,35 +189,39 @@ Author: Max Rydahl Andersen <max@xam.dk>
 Date:   Tue Jan 21 00:33:05 2020 +0000
 
     jbang v0.8.1
-```
+----
 
 . Checkout the version.
 +
-```bash
+[source,bash]
+----
 $ git checkout fd70f1bc0a7f69d81cfb5b08a0d2bb698fbd01b
-```
+----
 
 . Unlink current `jbang` version.
 +
-```bash
+[source,bash]
+----
 $ brew unlink jbang
 Unlinking /usr/local/Cellar/jbang/0.13.2... 1 symlinks removed
-```
+----
 
 . Install the older version.
 +
-```bash
+[source,bash]
+----
 $ HOMEBREW_NO_AUTO_UPDATE=1 brew install jbang
 ...
 🍺  /usr/local/Cellar/jbang/0.8.1: 18 files, 2.9MB, built in 6 seconds
-```
+----
 
 . Verify the version.
 +
-```bash
+[source,bash]
+----
 $ jbang version
 0.33.0
-```
+----
 
 === (Experimental) Linux packages icon:linux[]
 
@@ -225,10 +230,11 @@ WARNING: These builds are not fully automated yet thus might be slightly behind.
 You can install rpm packages from https://copr.fedorainfracloud.org/coprs/maxandersen/jbang/[Fedora Copr]
 by doing the following:
 
-```
+[source]
+----
 dnf copr enable maxandersen/jbang
 dnf install jbang
-```
+----
 
 The COPR currently includes builds from various versions of CentOS, Fedora, Mageia and OpenSuse.
 
@@ -268,8 +274,8 @@ A script is just a single `.java` file with a classic static main method or a `.
 
 Below is an (almost) minimal example you can save in `helloworld.java` or simply run `jbang init helloworld.java`:
 
-[source, java]
-```
+[source,java]
+----
 ///usr/bin/env jbang "$0" "$@" ; exit $? // <.>
 
 class helloworld { // <.>
@@ -282,7 +288,7 @@ class helloworld { // <.>
         }
     }
 }
-```
+----
 <.> By using this `//` style instead of shebang `#!` you trick `bash`, `zsh` etc. to run this as a script while still being valid java code.
 <.> A classname, can be anything when using `jbang` but to be valid java for most IDEs you'll want to name it the same as the source file.
 
@@ -382,7 +388,7 @@ and it sets any properties passed in as `-Dkey=value` as parameters to `jbang`.
 
 That means you can run a script as `jbang -Dkey=value World helloworld.jsh` and retrieve arguments and properties as:
 
-[source, java]
+[source,java]
 ----
 System.out.println("Hello " + (args.length>0?args[0]:"World")); // <.>
 System.getProperty("key"); // <.>
@@ -413,13 +419,14 @@ If you use `--interactive` `jbang` will let `jshell` enter into interactive/REPL
 ====
 If your own code needs to handle chained pipes well it is recommended to add the following code:
 
-```java
+[source,java]
+----
 import sun.misc.Signal;
 
 if (!"Windows".equals(System.getProperty("os.name"))) {
     Signal.handle(new Signal("PIPE"), (final Signal sig) -> System.exit(1));
 }
-```
+----
 
 It will give a compiler warning as it is internal API; but for now it works.
 ====
@@ -459,8 +466,8 @@ To specify dependencies you use gradle-style locators or links to Git sources. B
 
 === Using `//DEPS`
 
-[source, java]
-```
+[source,java]
+----
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 // <.>
 //DEPS log4j:log4j:1.2.17
@@ -484,7 +491,7 @@ class classpath_example {
 		logger.info("Hello from Java!");
 	}
 }
-```
+----
 <.> `//DEPS` must be placed at the start of line and can be one or more space separated dependencies.
 <.> Minimal logging setup - required by log4j.
 
@@ -568,10 +575,10 @@ For ease of use there are also a few shorthands to use popular commonly availabl
 
 Following example enables use of Maven Central and add a custom `acme` repository.
 
-[source, java]
-```
+[source,java]
+----
 //REPOS mavenCentral,acme=https://maven.acme.local/maven
-```
+----
 
 [WARNING]
 ====
@@ -589,7 +596,7 @@ username/passwords.
 
 There is also support for using Groovy lang style `@Grab` syntax.
 
-[source, java]
+[source,java]
 ----
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 
@@ -792,12 +799,13 @@ For setting up your current command line environment there's something simpler. 
 
 On Linux and Mac this will output something like:
 
-```
+[source]
+----
 export PATH="/home/user/.jbang/currentjdk/bin:$PATH"
 export JAVA_HOME="/home/user/.jbang/currentjdk"
 # Run this command to configure your shell:
 # eval $(jbang jdk java-env)
-```
+----
 
 And the output itself shows how to properly use it to configure your command line to use the JDK. In this case it's by
 running:
@@ -808,12 +816,13 @@ To do this by default for all shells you start simply add the above line to your
 
 Unfortunately on Windows using CMD things are not as easy as is show by the output of `jbang jdk java-env` on that  platform:
 
-```
+[source]
+----
 set PATH=C:\Users\user\.jbang\currentjdk\bin;%PATH%
 set JAVA_HOME=C:\Users\user\.jbang\currentjdk
 rem Copy & paste the above commands in your CMD window or add
 rem them to your Environment Variables in the System Settings.
-```
+----
 
 Instead of copying and pasting lines you could also redirect the output to a .bat file and execute that instead:
 
