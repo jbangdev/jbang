@@ -47,7 +47,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/grumpyf0x48"><img src="https://avatars3.githubusercontent.com/u/33195569?v=4" width="100px;" alt=""/><br /><sub><b>grumpyf0x48</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/issues?q=author%3Agrumpyf0x48" title="Bug reports">🐛</a></td>
   </tr>
   <tr>
-    <td align="center"><a href="https://twitter.com/r_svoboda"><img src="https://avatars0.githubusercontent.com/u/925259?v=4" width="100px;" alt=""/><br /><sub><b>Rostislav Svoboda</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=rsvoboda" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://twitter.com/r_svoboda"><img src="https://avatars0.githubusercontent.com/u/925259?v=4" width="100px;" alt=""/><br /><sub><b>Rostislav Svoboda</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=rsvoboda" title="Documentation">📖</a> <a href="https://github.com/jbangdev/jbang/commits?author=rsvoboda" title="Code">💻</a></td>
   </tr>
 </table>
 
