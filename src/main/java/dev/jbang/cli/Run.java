@@ -174,9 +174,7 @@ public class Run extends BaseBuildCommand {
 	}
 
 	private void addJavaArgs(List<String> args, List<String> result) {
-		args.forEach(arg -> {
-			result.add(arg);
-		});
+		result.addAll(args);
 	}
 
 	static List<String> escapeArguments(List<String> args) {
