@@ -131,21 +131,37 @@ class AliasList extends BaseAliasCommand {
 		}
 		out.print(Util.repeat(" ", indent));
 		if (alias.description != null) {
-			out.println(fullName + " = " + alias.description);
+			out.println(yellow(fullName) + " = " + alias.description);
 			if (Util.isVerbose())
-				out.println(Util.repeat(" ", fullName.length() + indent) + "   (" + scriptRef + ")");
+				out.println(Util.repeat(" ", fullName.length() + indent) + faint("   (" + scriptRef + ")"));
 		} else {
-			out.println(fullName + " = " + scriptRef);
+			out.println(yellow(fullName) + " = " + scriptRef);
 		}
 		if (alias.arguments != null) {
 			out.println(
-					Util.repeat(" ", fullName.length() + indent) + "   Arguments: "
+					Util.repeat(" ", fullName.length() + indent) + cyan("   Arguments: ")
 							+ String.join(" ", alias.arguments));
 		}
 		if (alias.properties != null) {
 			out.println(
-					Util.repeat(" ", fullName.length() + indent) + "   Properties: " + alias.properties);
+					Util.repeat(" ", fullName.length() + indent) + magenta("   Properties: ") + alias.properties);
 		}
+	}
+
+	private static String yellow(String text) {
+		return CommandLine.Help.Ansi.AUTO.new Text("@|fg(yellow) " + text + "|@").toString();
+	}
+
+	private static String cyan(String text) {
+		return CommandLine.Help.Ansi.AUTO.new Text("@|fg(cyan) " + text + "|@").toString();
+	}
+
+	private static String magenta(String text) {
+		return CommandLine.Help.Ansi.AUTO.new Text("@|fg(magenta) " + text + "|@").toString();
+	}
+
+	private static String faint(String text) {
+		return CommandLine.Help.Ansi.AUTO.new Text("@|faint " + text + "|@").toString();
 	}
 }
 
