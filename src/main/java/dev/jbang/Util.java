@@ -379,8 +379,7 @@ public class Util {
 				throw new FileNotFoundException("No file to download. Server replied HTTP code: " + responseCode);
 			}
 		} else {
-			fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1,
-					fileURL.length());
+			fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1);
 		}
 
 		// copy content from connection to file

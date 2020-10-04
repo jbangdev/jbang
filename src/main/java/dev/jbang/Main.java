@@ -31,7 +31,7 @@ public class Main {
 		}
 		// Check if we have a parameter and it's not the same as any of the subcommand
 		// names
-		if (!remainingArgs.isEmpty() && !spec.subcommands().keySet().contains(remainingArgs.get(0))) {
+		if (!remainingArgs.isEmpty() && !spec.subcommands().containsKey(remainingArgs.get(0))) {
 			List<String> result = new ArrayList<>();
 			result.add("run");
 			result.addAll(leadingOpts);
