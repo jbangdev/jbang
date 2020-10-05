@@ -42,12 +42,12 @@ public class JitPackUtil {
 				// Extract GAV coordinates from hte URL
 				// NB: Ordering of the list below is important!
 				Optional<Pgamv> coords = Stream	.<Function<String, Pgamv>>of(
-						JitPackUtil::githubCommitUrlToGAV,
-						JitPackUtil::githubTreeUrlToGAV,
-						JitPackUtil::gitlabCommitUrlToGAV,
-						JitPackUtil::gitlabTreeUrlToGAV,
-						JitPackUtil::bitbucketCommitUrlToGAV,
-						JitPackUtil::bitbucketTreeUrlToGAV)
+														JitPackUtil::githubCommitUrlToGAV,
+														JitPackUtil::githubTreeUrlToGAV,
+														JitPackUtil::gitlabCommitUrlToGAV,
+														JitPackUtil::gitlabTreeUrlToGAV,
+														JitPackUtil::bitbucketCommitUrlToGAV,
+														JitPackUtil::bitbucketTreeUrlToGAV)
 												.map(f -> f.apply(actualRef))
 												.filter(Objects::nonNull)
 												.findFirst();
