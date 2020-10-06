@@ -1,6 +1,6 @@
 = Contributing
 
-Anyone welcome to open issues and/or pull-requests for bugfixes, feature-requests and/or ideas.
+Anyone is welcome to open issues and/or pull-requests for bugfixes, feature-requests and/or ideas.
 
 == How to build
 
@@ -32,7 +32,7 @@ BUILD SUCCESSFUL in 5s
 
 == Conventional Commmits + squash and merge
 
-To make releasing as automated and fast as possible we (since 2020-09-13) uses https://www.conventionalcommits.org. On Pull-request we have https://github.com/zeke/semantic-pull-requests running to sanitize that at least PR title or one commit uses the conventional commit format.
+To make releasing as automated and fast as possible we (since 2020-09-13) use https://www.conventionalcommits.org. On Pull-request we have https://github.com/zeke/semantic-pull-requests running to sanitize that at least PR title or one commit uses the conventional commit format.
 
 Intent is that on merge we squash to get as clean as changelog as possible.
 
@@ -46,11 +46,11 @@ If your build fails due to formatting errors then run `gradle spotlessApply` and
 `jbang` uses semi-automatic versioning via the https://github.com/toolebox-io/gradle-git-versioner[git-versioner] plugin.
 This plugin uses the git log to derive what version number are the current one by looking for `[major]`, `[minor]` and `[patch]` in commit messages.
 
-This means there are no place in code or meta-data we need to manually maintain version info.
+This means there is no place in code or meta-data we need to manually maintain version info.
 
 You can see the current version by running `./gradlew printVersion` - if you have 3 commits since last bump at `0.10.1` you would get a version number like `0.10.1.3`.
 
-For pull-requests don't try and trigger bump of version; we'll apply that once its time for release.
+For pull-requests don't try and trigger bump of a version; we'll apply that once it is time for a release.
 
 NOTE: The `dev.jbang.VersionProvider` class will show a compile error in IDE's but ignore that, the `BUILDCONFIG` class gets generated during the Gradle build.
 
@@ -96,6 +96,6 @@ This will trigger github action flow which will prepare a github release.
 When all is good - go to https://github.com/jbangdev/jbang/releases and check all is good;
 do final (cosmetic) edits on the release message and save.
 
-When save that will trigger github action flow that pushes the various release mechanisms for chocolatey, brew, containers etc.
+When saved, a github action workflow will get triggered. That workflow will push update the distribution mechanism for chocolatey, brew, container, scoop, sdkman etc.
 
 
