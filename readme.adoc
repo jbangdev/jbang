@@ -15,6 +15,8 @@ image:https://img.shields.io/github/release/jbangdev/jbang.svg[Release,link=http
 image:https://github.com/jbangdev/jbang/workflows/ci-build/badge.svg[Build Status,link=https://github.com/jbangdev/jbang/actions]
 image:https://www.eclipse.org/che/contribute.svg[Che, link=https://che.openshift.io/f?url=https://github.com/jbangdev/jbang]
 image:https://img.shields.io/badge/Gitpod-Workspace-blue?logo=gitpodp[Gitpod, link=https://gitpod.io/#https://github.com/jbangdev/jbang]
+image:https://badges.gitter.im/jbangdev/community.svg[Gitter, link=https://gitter.im/jbangdev/community]
+
 
 image:images/jbang_logo.svg[JBang Logo, title="JBang Logo"]
 
