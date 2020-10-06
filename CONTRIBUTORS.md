@@ -44,7 +44,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://foivos.zakkak.net"><img src="https://avatars1.githubusercontent.com/u/1435395?v=4" width="100px;" alt=""/><br /><sub><b>Foivos</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=zakkak" title="Code">💻</a></td>
     <td align="center"><a href="https://www.qgon.nl"><img src="https://avatars3.githubusercontent.com/u/197004?v=4" width="100px;" alt=""/><br /><sub><b>Marcel Overdijk</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=marceloverdijk" title="Documentation">📖</a></td>
     <td align="center"><a href="https://danielpersson.dev"><img src="https://avatars0.githubusercontent.com/u/1424084?v=4" width="100px;" alt=""/><br /><sub><b>Daniel Persson</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/issues?q=author%3Akalaspuffar" title="Bug reports">🐛</a></td>
-    <td align="center"><a href="https://github.com/grumpyf0x48"><img src="https://avatars3.githubusercontent.com/u/33195569?v=4" width="100px;" alt=""/><br /><sub><b>grumpyf0x48</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/issues?q=author%3Agrumpyf0x48" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://github.com/grumpyf0x48"><img src="https://avatars3.githubusercontent.com/u/33195569?v=4" width="100px;" alt=""/><br /><sub><b>grumpyf0x48</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/issues?q=author%3Agrumpyf0x48" title="Bug reports">🐛</a> <a href="https://github.com/jbangdev/jbang/commits?author=grumpyf0x48" title="Documentation">📖</a></td>
   </tr>
 </table>
 
