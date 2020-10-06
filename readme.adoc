@@ -1113,6 +1113,10 @@ Map<String, Object> postBuild(Path builddir, Path pomFile, List<Map.Entry<String
 
 Still very experimental and bound to change. Example of its use can be found in https://github.com/quarkusio/quarkus/pull/11542[Quarkus].
 
+== Cheatsheet
+
+You can get examples on running/using `jbang` using https://github.com/cheat/cheat[cheat] command with `cheat jbang`.
+
 == FAQ
 
 [qanda]
