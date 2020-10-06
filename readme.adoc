@@ -30,7 +30,7 @@ Ever tried out Java 11+ support for running `.java` files directly in your shell
 
 Then try `jbang` which lets you do this:
 
-image:https://asciinema.org/a/AVwA19yijKRNKEO0bJENN2ME3.svg[link=https://asciinema.org/a/AVwA19yijKRNKEO0bJENN2ME3?autoplay=true&speed=2&theme=solarized-dark]
+image:https://asciinema.org/a/4AiobRxUwPUPztCtrDYcmoKjs.svg[link=https://asciinema.org/a/4AiobRxUwPUPztCtrDYcmoKjs?autoplay=true&theme=solarized-dark]
 
 [source, bash]
 ----

@@ -1,0 +1,10 @@
+# Scripts for jbang demos
+
+To record run:
+
+`asciinema rec -c "./basic-jbang.sh" video`
+
+when okey, upload:
+
+`asciinema upload video`
+
