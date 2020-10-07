@@ -1,5 +1,11 @@
 #Requires -Version 5
 
+#
+# To run this script remotely type this in your PowerShell
+# (where <args>... are the arguments you want to pass to Jbang):
+#   iex "& { $(iwr https://ps.jbang.dev) } <args>..."
+#
+
 $old_erroractionpreference=$erroractionpreference
 $erroractionpreference='stop'
 $old_progresspreference=$global:progresspreference

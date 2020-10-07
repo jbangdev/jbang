@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+#
+# To run this script remotely type this in your shell
+# (where <args>... are the arguments you want to pass to Jbang):
+#   curl -Ls https://sh.jbang.dev | bash -s - <args>...
+#
+
 # The Java version to install when it's not installed on the system yet
 javaVersion=${JBANG_DEFAULT_JAVA_VERSION:-11}
 
