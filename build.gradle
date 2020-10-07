@@ -31,7 +31,7 @@ dependencies {
 	implementation 'org.jsoup:jsoup:1.13.1'
 	implementation 'org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-api:3.1.4'
 	implementation 'org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-impl-maven:3.1.4'
-	implementation "org.slf4j:slf4j-nop:1.7.25"
+	implementation "org.slf4j:slf4j-nop:1.7.30"
 	implementation "org.jboss:jandex:2.2.1.Final"
 	//implementation 'org.apache.maven:maven-aether-provider:3.0.5'
 	//implementation 'com.google.guava:guava:28.2-jre'
