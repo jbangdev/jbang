@@ -34,7 +34,7 @@ $os='windows'
 $arch='x64'
 
 if (-not (Test-Path env:JBANG_DIR)) { $JBDIR="$env:userprofile\.jbang" } else { $JBDIR=$env:JBANG_DIR }
-if (-not (Test-Path env:JBANG_CACHE_DIR)) { $TDIR="$JBDIR\cache" } else { $JBDIR=$env:JBANG_CACHE_DIR }
+if (-not (Test-Path env:JBANG_CACHE_DIR)) { $TDIR="$JBDIR\cache" } else { $TDIR=$env:JBANG_CACHE_DIR }
 
 # resolve application jar path from script location and convert to windows path when using cygwin
 if (Test-Path "$PSScriptRoot\jbang.jar") {
@@ -47,13 +47,27 @@ if (Test-Path "$PSScriptRoot\jbang.jar") {
     [Console]::Error.WriteLine("Downloading JBang...")
     New-Item -ItemType Directory -Force -Path "$TDIR\jars" >$null 2>&1
     $jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.zip"
-    try { Invoke-WebRequest "$jburl" -OutFile "$TDIR\jbang.zip"; $ok=$? } catch { $ok=$false }
-    if (-not ($ok)) { [Console]::Error.WriteLine("Error downloading JBang"); break }
+    try { Invoke-WebRequest "$jburl" -OutFile "$TDIR\jbang.zip"; $ok=$? } catch { 
+      $ok=$false
+      $error=$_
+    }
+    if (-not ($ok)) { 
+      [Console]::Error.WriteLine("Error downloading JBang from $jburl to $TDIR\jbang.zip")
+      [Console]::Error.WriteLine($error)
+      break 
+    }
     [Console]::Error.WriteLine("Installing JBang...")
     Remove-Item -LiteralPath "$TDIR\jars\jbang" -Force -Recurse -ErrorAction Ignore >$null 2>&1
     Remove-Item -LiteralPath "$TDIR\jars\jbang.tmp" -Force -Recurse -ErrorAction Ignore >$null 2>&1
-    try { Expand-Archive -Path "$TDIR\jbang.zip" -DestinationPath "$TDIR\jars\jbang.tmp"; $ok=$? } catch { $ok=$false }
-    if (-not ($ok)) { [Console]::Error.WriteLine("Error installing JBang"); break }
+    try { Expand-Archive -Path "$TDIR\jbang.zip" -DestinationPath "$TDIR\jars\jbang.tmp"; $ok=$? } catch { 
+      $ok=$false 
+      $error=$_
+    }
+    if (-not ($ok)) { 
+      [Console]::Error.WriteLine("Error unzipping JBang from $TDIR\jbang.zip to $TDIR\jars\jbang.tmp")
+      [Console]::Error.WriteLine($error)
+      break 
+    }
     Rename-Item -Path "$TDIR\jars\jbang.tmp" -NewName "jbang" >$null 2>&1
   }
 }
