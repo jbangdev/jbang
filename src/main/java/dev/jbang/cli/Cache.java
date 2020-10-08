@@ -19,6 +19,8 @@ public class Cache {
 			@CommandLine.Option(names = {
 					"--jar" }, description = "clear JAR cache only", negatable = true) Boolean jars,
 			@CommandLine.Option(names = {
+					"--jbang" }, description = "clear Jbang zero-install cache only", negatable = true) Boolean jbangs,
+			@CommandLine.Option(names = {
 					"--jdk" }, description = "clear JDK cache only", negatable = true) Boolean jdks,
 			@CommandLine.Option(names = {
 					"--project" }, description = "clear temporary projects cache only", negatable = true) Boolean projects,
@@ -34,6 +36,7 @@ public class Cache {
 			classes.addAll(Arrays.asList(Settings.CacheClass.values()));
 		} else if (urls == null
 				&& jars == null
+				&& jbangs == null
 				&& jdks == null
 				&& projects == null
 				&& scripts == null
@@ -48,6 +51,7 @@ public class Cache {
 		// we only toggle on or off those that are actually present
 		toggleCache(urls, Settings.CacheClass.urls, classes);
 		toggleCache(jars, Settings.CacheClass.jars, classes);
+		toggleCache(jars, Settings.CacheClass.jbangs, classes);
 		toggleCache(jdks, Settings.CacheClass.jdks, classes);
 		toggleCache(projects, Settings.CacheClass.projects, classes);
 		toggleCache(scripts, Settings.CacheClass.scripts, classes);
