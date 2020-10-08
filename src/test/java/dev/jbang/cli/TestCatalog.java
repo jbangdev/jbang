@@ -16,7 +16,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import dev.jbang.AliasUtil;
-import dev.jbang.Settings;
 
 import picocli.CommandLine;
 
@@ -35,14 +34,14 @@ public class TestCatalog {
 			"  }\n" +
 			"}";
 
-	static Path catInfoFile = null;
+	static Path catsFile = null;
 	static Path testCatalogFile = null;
 
 	@BeforeEach
 	void init() throws IOException {
 		jbangTempDir.create();
 		catalogTempDir.create();
-		catInfoFile = jbangTempDir.getRoot().toPath().resolve("catalogs.json");
+		catsFile = jbangTempDir.getRoot().toPath().resolve("jbang-catalogs.json");
 		environmentVariables.set("JBANG_DIR", jbangTempDir.getRoot().getPath());
 		testCatalogFile = catalogTempDir.getRoot().toPath().resolve("test-catalog.json");
 		Files.write(testCatalogFile, testCatalog.getBytes());
@@ -66,13 +65,14 @@ public class TestCatalog {
 
 	@Test
 	void testAddSucceeded() throws IOException {
-		assertThat(Files.isRegularFile(catInfoFile), is(true));
-		String cat = new String(Files.readAllBytes(catInfoFile));
+		assertThat(Files.isRegularFile(catsFile), is(true));
+		String cat = new String(Files.readAllBytes(catsFile));
 		assertThat(cat, containsString("\"test\""));
 		assertThat(cat, containsString("test-catalog.json\""));
 
-		assertThat(Settings.getCatalogs(), hasKey("test"));
-		assertThat(Settings.getCatalogs().get("test").catalogRef, is(testCatalogFile.toAbsolutePath().toString()));
+		assertThat(AliasUtil.getCatalogIndex().catalogRefs, hasKey("test"));
+		assertThat(AliasUtil.getCatalogIndex().catalogRefs.get("test").catalogRef,
+				is(testCatalogFile.toAbsolutePath().toString()));
 	}
 
 	@Test
@@ -98,9 +98,9 @@ public class TestCatalog {
 
 	@Test
 	void testRemove() throws IOException {
-		assertThat(Settings.getCatalogs(), hasKey("test"));
+		assertThat(AliasUtil.getCatalogIndex().catalogRefs, hasKey("test"));
 		Jbang jbang = new Jbang();
 		new CommandLine(jbang).execute("catalog", "remove", "test");
-		assertThat(Settings.getCatalogs(), not(hasKey("test")));
+		assertThat(AliasUtil.getCatalogIndex().catalogRefs, not(hasKey("test")));
 	}
 }

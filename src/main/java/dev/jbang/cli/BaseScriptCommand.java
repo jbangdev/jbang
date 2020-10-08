@@ -116,7 +116,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 				properties = alias.properties;
 				if (scriptFile == null) {
 					throw new IllegalArgumentException(
-							"Alias " + scriptResource + " from " + alias.aliases.catalogFile + " failed to resolve "
+							"Alias " + scriptResource + " from " + alias.catalog.catalogFile + " failed to resolve "
 									+ alias.scriptRef);
 				}
 			}

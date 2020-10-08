@@ -78,9 +78,9 @@ public class TestAliasNearestWithBaseRef {
 		Path localCatalog = cwd.resolve(AliasUtil.JBANG_CATALOG_JSON);
 		AliasUtil.addNearestAlias(cwd, "new", "scripts/local.java", null, null, null);
 		clearSettingsCaches();
-		AliasUtil.Aliases aliases = AliasUtil.getAliasesFromCatalogFile(localCatalog, true);
-		assertThat(aliases.aliases.keySet(), hasItem("new"));
-		assertThat(aliases.aliases.get("new").scriptRef, equalTo("local.java"));
+		AliasUtil.Catalog catalog = AliasUtil.getCatalog(localCatalog, true);
+		assertThat(catalog.aliases.keySet(), hasItem("new"));
+		assertThat(catalog.aliases.get("new").scriptRef, equalTo("local.java"));
 	}
 
 	@Test
@@ -91,9 +91,9 @@ public class TestAliasNearestWithBaseRef {
 		AliasUtil.addNearestAlias(cwd, "new", "scripts/local.java", null, null, null);
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
-		AliasUtil.Aliases aliases = AliasUtil.getAliasesFromCatalogFile(dotLocalCatalog, true);
-		assertThat(aliases.aliases.keySet(), hasItem("new"));
-		assertThat(aliases.aliases.get("new").scriptRef, equalTo("local.java"));
+		AliasUtil.Catalog catalog = AliasUtil.getCatalog(dotLocalCatalog, true);
+		assertThat(catalog.aliases.keySet(), hasItem("new"));
+		assertThat(catalog.aliases.get("new").scriptRef, equalTo("local.java"));
 	}
 
 	@Test
@@ -107,9 +107,9 @@ public class TestAliasNearestWithBaseRef {
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		assertThat(dotLocalCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
-		AliasUtil.Aliases aliases = AliasUtil.getAliasesFromCatalogFile(parentCatalog, true);
-		assertThat(aliases.aliases.keySet(), hasItem("new"));
-		assertThat(aliases.aliases.get("new").scriptRef.replace('\\', '/'), equalTo("../test/scripts/local.java"));
+		AliasUtil.Catalog catalog = AliasUtil.getCatalog(parentCatalog, true);
+		assertThat(catalog.aliases.keySet(), hasItem("new"));
+		assertThat(catalog.aliases.get("new").scriptRef.replace('\\', '/'), equalTo("../test/scripts/local.java"));
 	}
 
 	@Test
@@ -123,9 +123,9 @@ public class TestAliasNearestWithBaseRef {
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		assertThat(dotLocalCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
-		AliasUtil.Aliases aliases = AliasUtil.getAliasesFromCatalogFile(parentCatalog, true);
-		assertThat(aliases.aliases.keySet(), hasItem("new"));
-		assertThat(aliases.aliases.get("new").scriptRef, equalTo("parent.java"));
+		AliasUtil.Catalog catalog = AliasUtil.getCatalog(parentCatalog, true);
+		assertThat(catalog.aliases.keySet(), hasItem("new"));
+		assertThat(catalog.aliases.get("new").scriptRef, equalTo("parent.java"));
 	}
 
 }

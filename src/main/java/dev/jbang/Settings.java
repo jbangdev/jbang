@@ -5,7 +5,6 @@ import static dev.jbang.Util.warnMsg;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -18,15 +17,11 @@ import com.google.gson.reflect.TypeToken;
 import io.quarkus.qute.Template;
 
 public class Settings {
-	static AliasUtil.CatalogInfo catalogInfo = null;
-
 	public static final String JBANG_REPO = "JBANG_REPO";
 	public static final String JBANG_DIR = "JBANG_DIR";
 	public static final String JBANG_CACHE_DIR = "JBANG_CACHE_DIR";
 
-	public static final String CATALOGS_JSON = "catalogs.json";
 	public static final String TRUSTED_SOURCES_JSON = "trusted-sources.json";
-	public static final String DEPENDENCY_CACHE_TXT = "dependency_cache.txt";
 	public static final String DEPENDENCY_CACHE_JSON = "dependency_cache.json";
 	public static final String CURRENT_JDK = "currentjdk";
 
@@ -181,54 +176,12 @@ public class Settings {
 		return te;
 	}
 
-	public static Path getAliasesFile() {
+	public static Path getUserCatalogFile() {
 		return getConfigDir().resolve(AliasUtil.JBANG_CATALOG_JSON);
 	}
 
-	public static Path getCatalogsFile() {
-		return getConfigDir().resolve(CATALOGS_JSON);
-	}
-
-	public static AliasUtil.CatalogInfo getCatalogInfo() {
-		if (catalogInfo == null) {
-			catalogInfo = AliasUtil.readCatalogInfo(getCatalogsFile());
-		}
-		return catalogInfo;
-	}
-
-	public static Map<String, AliasUtil.Catalog> getCatalogs() {
-		return getCatalogInfo().catalogs;
-	}
-
-	public static AliasUtil.Catalog addCatalog(String name, String catalogRef, String description) {
-		try {
-			Path cat = Paths.get(catalogRef);
-			if (!cat.isAbsolute() && Files.isRegularFile(cat)) {
-				catalogRef = cat.toAbsolutePath().toString();
-			}
-		} catch (InvalidPathException ex) {
-			// Ignore
-		}
-		AliasUtil.Catalog catalog = new AliasUtil.Catalog(catalogRef, description);
-		getCatalogs().put(name, catalog);
-		try {
-			AliasUtil.writeCatalogInfo(getCatalogsFile());
-			return catalog;
-		} catch (IOException ex) {
-			Util.warnMsg("Unable to add catalog: " + ex.getMessage());
-			return null;
-		}
-	}
-
-	public static void removeCatalog(String name) {
-		if (getCatalogs().containsKey(name)) {
-			getCatalogs().remove(name);
-			try {
-				AliasUtil.writeCatalogInfo(getCatalogsFile());
-			} catch (IOException ex) {
-				Util.warnMsg("Unable to remove catalog: " + ex.getMessage());
-			}
-		}
+	public static Path getUserCatalogIndexFile() {
+		return getConfigDir().resolve(AliasUtil.JBANG_CATALOGS_JSON);
 	}
 
 	static protected void clearDependencyCache() {
