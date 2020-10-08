@@ -153,7 +153,7 @@ public class Settings {
 	}
 
 	public enum CacheClass {
-		urls, jars, jbangs, jdks, projects, scripts, stdins
+		urls, jars, jdks, projects, scripts, stdins
 	}
 
 	public static void clearCache(CacheClass... classes) {

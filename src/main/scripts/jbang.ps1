@@ -54,35 +54,34 @@ if (Test-Path "$PSScriptRoot\jbang.jar") {
 } elseif (Test-Path "$PSScriptRoot\.jbang\jbang.jar") {
   $jarPath="$PSScriptRoot\.jbang\jbang.jar"
 } else {
-  $jarPath="$TDIR\jbangs\jbang\jbang\bin\jbang.jar"
-  if (-not (Test-Path "$jarPath")) {
+  if (-not (Test-Path "$JBDIR\bin\jbang.jar")) {
     [Console]::Error.WriteLine("Downloading JBang...")
-    New-Item -ItemType Directory -Force -Path "$TDIR\jbangs" >$null 2>&1
+    New-Item -ItemType Directory -Force -Path "$TDIR\urls" >$null 2>&1
     $jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.zip"
-    try { Invoke-WebRequest "$jburl" -OutFile "$TDIR\jbangs\jbang.zip"; $ok=$? } catch {
+    try { Invoke-WebRequest "$jburl" -OutFile "$TDIR\urls\jbang.zip"; $ok=$? } catch {
       $ok=$false
       $error=$_
     }
     if (-not ($ok)) { 
-      [Console]::Error.WriteLine("Error downloading JBang from $jburl to $TDIR\jbangs\jbang.zip")
+      [Console]::Error.WriteLine("Error downloading JBang from $jburl to $TDIR\urls\jbang.zip")
       [Console]::Error.WriteLine($error)
       break 
     }
     [Console]::Error.WriteLine("Installing JBang...")
-    Remove-Item -LiteralPath "$TDIR\jbangs\jbang.tmp" -Force -Recurse -ErrorAction Ignore >$null 2>&1
-    try { Expand-Archive -Path "$TDIR\jbangs\jbang.zip" -DestinationPath "$TDIR\jbangs\jbang.tmp"; $ok=$? } catch {
+    Remove-Item -LiteralPath "$TDIR\urls\jbang" -Force -Recurse -ErrorAction Ignore >$null 2>&1
+    try { Expand-Archive -Path "$TDIR\urls\jbang.zip" -DestinationPath "$TDIR\urls"; $ok=$? } catch {
       $ok=$false 
       $error=$_
     }
     if (-not ($ok)) { 
-      [Console]::Error.WriteLine("Error unzipping JBang from $TDIR\jbangs\jbang.zip to $TDIR\jbangs\jbang.tmp")
+      [Console]::Error.WriteLine("Error unzipping JBang from $TDIR\urls\jbang.zip to $TDIR\urls")
       [Console]::Error.WriteLine($error)
       break 
     }
-    Remove-Item -LiteralPath "$TDIR\jbangs\jbang" -Force -Recurse -ErrorAction Ignore >$null 2>&1
-    Rename-Item -Path "$TDIR\jbangs\jbang.tmp" -NewName "jbang" >$null 2>&1
+    Remove-Item -LiteralPath "$JBDIR\bin" -Force -Recurse -ErrorAction Ignore >$null 2>&1
+    Move-Item -Path "$TDIR\urls\jbang\bin" -Destination "$JBDIR" >$null 2>&1
   }
-  . "$TDIR\jbangs\jbang\jbang\bin\jbang.ps1" $args
+  . "$JBDIR\bin\jbang.ps1" $args
   break
 }
 
