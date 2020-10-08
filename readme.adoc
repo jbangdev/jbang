@@ -82,7 +82,6 @@ Tested and verified to use on OSX, Linux and Windows (incl. command, cygwin and 
 
 To use `jbang` Java 8 is the minimum required version, however Java 11 or higher is recommended.
 
-
 === SDKMan icon:linux[] / icon:apple[]
 
 To install both java and `jbang` we recommend https://sdkman.io[sdkman] on Linux and OSX.
@@ -269,6 +268,27 @@ If you would like to have jbang available in a local directory and committed int
 If you have `jbang` alredy installed you call `jbang wrapper install` in a folder to install a local `jbang`
 that will run out of that directory using `./jbang`. 
 
+=== "Zero" Install
+
+If you want to try out jbang without a package manager or similar you can run the following to download jbang in `~/.jbang` and if necessary `java`.
+
+Linux/OSX/Windows Bash:
+
+[source, bash]
+----
+curl -Ls https://sh.jbang.dev | bash -s - <arguments>
+----
+
+For example `curl -Ls https://sh.jbang.dev | bash -s - properties@jbangdev` 
+
+Windows Powershell:
+
+[source, powershell]
+----
+iex "& { $(iwr https://ps.jbang.dev) } <arguments>"
+----
+
+For example `iex "& { $(iwr https://ps.jbang.dev) } properties@jbangdev"`
 
 == Usage
 
