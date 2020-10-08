@@ -28,7 +28,7 @@ import picocli.CommandLine.Model.UsageMessageSpec;
 		"",
 		"  ${COMMAND-NAME} init hello.java [args...]",
 		"        (to initialize a script)",
-		"  or  ${COMMAND-NAME} edit --live=code hello.java",
+		"  or  ${COMMAND-NAME} edit --open=code --live hello.java",
 		"        (to edit a script in IDE with live updates)",
 		"  or  ${COMMAND-NAME} hello.java [args...]",
 		"        (to run a .java file)",
