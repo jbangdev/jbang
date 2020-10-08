@@ -368,6 +368,9 @@ public class AliasUtil {
 			cwd = getCwd();
 		}
 		catalog = cwd.resolve(catalog);
+		if (Files.isDirectory(catalog)) {
+			catalog = Paths.get(catalog.toString(), JBANG_CATALOG_JSON);
+		}
 		Aliases aliases = getAliasesFromCatalogFile(catalog, true);
 		if (!isRemoteRef(scriptRef) && !isValidCatalogReference(scriptRef)) {
 			// If the scriptRef points to an existing file on the local filesystem

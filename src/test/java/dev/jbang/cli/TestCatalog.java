@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
@@ -73,6 +74,31 @@ public class TestCatalog {
 
 		assertThat(Settings.getCatalogs(), hasKey("test"));
 		assertThat(Settings.getCatalogs().get("test").catalogRef, is(testCatalogFile.toAbsolutePath().toString()));
+	}
+
+	@Test
+	void testAddAliasWithDefaultCatalogFile() throws IOException {
+		TemporaryFolder tmp = new TemporaryFolder();
+		tmp.create();
+		Path tmpPath = tmp.getRoot().toPath();
+		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), AliasUtil.JBANG_CATALOG_JSON)), is(false));
+		Jbang jbang = new Jbang();
+		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "name", "scriptOrFile");
+		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), AliasUtil.JBANG_CATALOG_JSON)),
+				is(true));
+	}
+
+	@Test
+	void testAddAliasPreservesExistingCatalog() throws IOException {
+		final Path jbangPath = jbangTempDir.getRoot().toPath();
+		Path existingCatalog = jbangPath.resolve(AliasUtil.JBANG_CATALOG_JSON);
+		Files.write(existingCatalog, testCatalog.getBytes());
+		Jbang jbang = new Jbang();
+		new CommandLine(jbang).execute("alias", "add", "-f", jbangPath.toString(), "name", "scriptOrFile");
+		AliasUtil.Alias one = AliasUtil.getAlias(jbangPath, "one");
+		AliasUtil.Alias name = AliasUtil.getAlias(jbangPath, "name");
+		assertThat(one.scriptRef, is("http://dummy"));
+		assertThat(name.scriptRef, is("scriptOrFile"));
 	}
 
 	@Test
