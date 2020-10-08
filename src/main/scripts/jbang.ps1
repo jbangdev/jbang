@@ -54,35 +54,35 @@ if (Test-Path "$PSScriptRoot\jbang.jar") {
 } elseif (Test-Path "$PSScriptRoot\.jbang\jbang.jar") {
   $jarPath="$PSScriptRoot\.jbang\jbang.jar"
 } else {
-  $jarPath="$TDIR\jars\jbang\jbang\bin\jbang.jar"
+  $jarPath="$TDIR\jbangs\jbang\jbang\bin\jbang.jar"
   if (-not (Test-Path "$jarPath")) {
     [Console]::Error.WriteLine("Downloading JBang...")
-    New-Item -ItemType Directory -Force -Path "$TDIR\jars" >$null 2>&1
+    New-Item -ItemType Directory -Force -Path "$TDIR\jbangs" >$null 2>&1
     $jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.zip"
-    try { Invoke-WebRequest "$jburl" -OutFile "$TDIR\jbang.zip"; $ok=$? } catch { 
+    try { Invoke-WebRequest "$jburl" -OutFile "$TDIR\jbangs\jbang.zip"; $ok=$? } catch {
       $ok=$false
       $error=$_
     }
     if (-not ($ok)) { 
-      [Console]::Error.WriteLine("Error downloading JBang from $jburl to $TDIR\jbang.zip")
+      [Console]::Error.WriteLine("Error downloading JBang from $jburl to $TDIR\jbangs\jbang.zip")
       [Console]::Error.WriteLine($error)
       break 
     }
     [Console]::Error.WriteLine("Installing JBang...")
-    Remove-Item -LiteralPath "$TDIR\jars\jbang" -Force -Recurse -ErrorAction Ignore >$null 2>&1
-    Remove-Item -LiteralPath "$TDIR\jars\jbang.tmp" -Force -Recurse -ErrorAction Ignore >$null 2>&1
-    try { Expand-Archive -Path "$TDIR\jbang.zip" -DestinationPath "$TDIR\jars\jbang.tmp"; $ok=$? } catch { 
+    Remove-Item -LiteralPath "$TDIR\jbangs\jbang.tmp" -Force -Recurse -ErrorAction Ignore >$null 2>&1
+    try { Expand-Archive -Path "$TDIR\jbangs\jbang.zip" -DestinationPath "$TDIR\jbangs\jbang.tmp"; $ok=$? } catch {
       $ok=$false 
       $error=$_
     }
     if (-not ($ok)) { 
-      [Console]::Error.WriteLine("Error unzipping JBang from $TDIR\jbang.zip to $TDIR\jars\jbang.tmp")
+      [Console]::Error.WriteLine("Error unzipping JBang from $TDIR\jbangs\jbang.zip to $TDIR\jbangs\jbang.tmp")
       [Console]::Error.WriteLine($error)
       break 
     }
-    Rename-Item -Path "$TDIR\jars\jbang.tmp" -NewName "jbang" >$null 2>&1
+    Remove-Item -LiteralPath "$TDIR\jbangs\jbang" -Force -Recurse -ErrorAction Ignore >$null 2>&1
+    Rename-Item -Path "$TDIR\jbangs\jbang.tmp" -NewName "jbang" >$null 2>&1
   }
-  . "$TDIR\jars\jbang\jbang\bin\jbang.ps1" $args
+  . "$TDIR\jbangs\jbang\jbang\bin\jbang.ps1" $args
   break
 }
 
