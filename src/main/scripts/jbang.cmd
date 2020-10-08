@@ -33,6 +33,8 @@ if exist "%~dp0jbang.jar" (
     if !ERRORLEVEL! NEQ 0 ( echo Error installing JBang 1>&2 & exit /b %ERRORLEVEL% )
     ren "%TDIR%\jars\jbang.tmp" "jbang"
   )
+  call "%TDIR%\jars\jbang\jbang\bin\jbang.cmd" %*
+  exit /b %ERRORLEVEL%
 )
 
 rem Find/get a JDK
