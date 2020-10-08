@@ -265,8 +265,8 @@ Unzip the https://github.com/jbangdev/jbang/releases/latest[latest binary releas
 
 If you would like to have jbang available in a local directory and committed into a source code repository you akin to maven and gradle wrappers you can use the `wrapper` command.
 
-If you have `jbang` alredy installed you call `jbang wrapper install` in a folder to install a local `jbang`
-that will run out of that directory using `./jbang`. 
+If you have `jbang` already installed you call `jbang wrapper install` in a folder to install a local `jbang`
+that will run out of that directory using `./jbang`.
 
 === "Zero" Install
 
@@ -279,7 +279,7 @@ Linux/OSX/Windows Bash:
 curl -Ls https://sh.jbang.dev | bash -s - <arguments>
 ----
 
-For example `curl -Ls https://sh.jbang.dev | bash -s - properties@jbangdev` 
+For example `curl -Ls https://sh.jbang.dev | bash -s - properties@jbangdev`
 
 Windows Powershell:
 
@@ -331,8 +331,8 @@ chmod +x helloworld.java
 
 [WARNING]
 ====
-When no <<java-version,JDK version>> is available in the PATH, Jdk 11 will be downloaded by default to bootstrap jbang.
-If your script requires a higher version and you don' want to download two jdk's, you can define an alternative default with `JBANG_DEFAULT_JAVA_VERSION` env variable.
+When no <<java-version,JDK version>> is available in the PATH, JDK 11 will be downloaded by default to bootstrap jbang.
+If your script requires a higher version and you don' want to download two JDK's, you can define an alternative default with `JBANG_DEFAULT_JAVA_VERSION` env variable.
 
  $ JBANG_DEFAULT_JAVA_VERSION=14 jbang my-script.java
 
@@ -374,7 +374,7 @@ You can see more in the comments of the `~/.jbang/trusted-sources.json`.
 
 [TIP]
 ====
-Sites such as github, gitlab, bitbucket, gist, twitter and carbon.now.sh jbang will try and extract the proper source rather than the raw html.
+Sites such as GitHub, gitlab, bitbucket, gist, twitter and carbon.now.sh jbang will try and extract the proper source rather than the raw html.
 i.e. doing `jbang https://twitter.com/maxandersen/status/1266904846239752192 twitter!` is possible.
 ====
 
@@ -463,7 +463,7 @@ You can also run a `.jar` file referenced by a Maven coordinate, i.e.:
 
   jbang info.picocli:picocli-codegen:4.5.0
 
-This will fetch the dependency stated and put the transitive dependencies on the classpath.
+This will fetch the dependency stated and put the transitive dependencies on the class-path.
 
 If you need to specify a main class you can do so by using `--main` i.e.
 
