@@ -453,6 +453,10 @@ public class Script {
 				manifest.getMainAttributes().put(k, v);
 			}
 
+			String bootClasspath = getClassPath().getClassPath().replace(Settings.CP_SEPARATOR, " ");
+			if (!bootClasspath.isEmpty()) {
+				manifest.getMainAttributes().put(new Attributes.Name("Boot-Class-Path"), getClassPath().getClassPath());
+			}
 		}
 
 		if (persistentJvmArgs != null) {
