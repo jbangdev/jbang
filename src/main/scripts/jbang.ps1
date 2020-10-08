@@ -5,6 +5,12 @@
 # (where <args>... are the arguments you want to pass to Jbang):
 #   iex "& { $(iwr https://ps.jbang.dev) } <args>..."
 #
+# An alternative way is to type:
+#   & ([scriptblock]::Create($(iwr https://ps.jbang.dev))) <args>...
+# Which even allows you to store the command in a variable for re-use:
+#   $jbang = ([scriptblock]::Create($(iwr https://ps.jbang.dev)))
+#   & $jbang <args>...
+#
 
 $old_erroractionpreference=$erroractionpreference
 $erroractionpreference='stop'
