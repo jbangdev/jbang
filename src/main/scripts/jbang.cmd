@@ -20,20 +20,19 @@ if exist "%~dp0jbang.jar" (
 ) else if exist "%~dp0.jbang\jbang.jar" (
   set jarPath=%~dp0.jbang\jbang.jar
 ) else (
-  set jarPath=%TDIR%\jbangs\jbang\jbang\bin\jbang.jar
-  if not exist "!jarPath!" (
+  if not exist "%JBDIR%\bin\jbang.jar" (
     echo Downloading JBang... 1>&2
-    if not exist "%TDIR%\jbangs" ( mkdir "%TDIR%\jbangs" )
-    powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "$ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest %jburl% -OutFile %TDIR%\jbangs\jbang.zip"
+    if not exist "%TDIR%\urls" ( mkdir "%TDIR%\urls" )
+    powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "$ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest %jburl% -OutFile %TDIR%\urls\jbang.zip"
     if !ERRORLEVEL! NEQ 0 ( echo Error downloading JBang 1>&2 & exit /b %ERRORLEVEL% )
     echo Installing JBang... 1>&2
-    if exist "%TDIR%\jbangs\jbang.tmp" ( rd /s /q "%TDIR%\jbangs\jbang.tmp" > nul 2>&1 )
-    powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "$ProgressPreference = 'SilentlyContinue'; Expand-Archive -Path %TDIR%\jbangs\jbang.zip -DestinationPath %TDIR%\jbangs\jbang.tmp"
+    if exist "%TDIR%\urls\jbang" ( rd /s /q "%TDIR%\urls\jbang" > nul 2>&1 )
+    powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "$ProgressPreference = 'SilentlyContinue'; Expand-Archive -Path %TDIR%\urls\jbang.zip -DestinationPath %TDIR%\urls"
     if !ERRORLEVEL! NEQ 0 ( echo Error installing JBang 1>&2 & exit /b %ERRORLEVEL% )
-    if exist "%TDIR%\jbangs\jbang" ( rd /s /q "%TDIR%\jbangs\jbang" > nul 2>&1 )
-    ren "%TDIR%\jbangs\jbang.tmp" "jbang"
+    if exist "%JBDIR%\bin" ( rd /s /q "%JBDIR%\bin" > nul 2>&1 )
+    move "%TDIR%\urls\jbang\bin" "%JBDIR%" > nul 2>&1
   )
-  call "%TDIR%\jbangs\jbang\jbang\bin\jbang.cmd" %*
+  call "%JBDIR%\bin\jbang.cmd" %*
   exit /b %ERRORLEVEL%
 )
 

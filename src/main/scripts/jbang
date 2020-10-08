@@ -56,22 +56,20 @@ if [ -f "$(dirname $abs_jbang_path)/jbang.jar" ]; then
 elif [ -f "$(dirname $abs_jbang_path)/.jbang/jbang.jar" ]; then
   jarPath=$(dirname $abs_jbang_path)/.jbang/jbang.jar
 else
-  jarPath="$TDIR/jbangs/jbang/jbang/bin/jbang.jar"
-  if [ ! -f "$jarPath" ]; then
+  if [ ! -f "$JBDIR/bin/jbang.jar" ]; then
     echo "Downloading JBang..." 1>&2
-    mkdir -p "$TDIR/jbangs"
+    mkdir -p "$TDIR/urls"
     jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.tar"
-    download $jburl "$TDIR/jbangs/jbang.tar"
+    download $jburl "$TDIR/urls/jbang.tar"
     if [ $retval -ne 0 ]; then echo "Error downloading JBang" 1>&2; exit $retval; fi
     echo "Installing JBang..." 1>&2
-    rm -rf "$TDIR/jbangs/jbang.tmp"
-    mkdir -p "$TDIR/jbangs/jbang.tmp"
-    tar xf "$TDIR/jbangs/jbang.tar" -C "$TDIR/jbangs/jbang.tmp"
+    rm -rf "$TDIR/urls/jbang"
+    tar xf "$TDIR/urls/jbang.tar" -C "$TDIR/urls"
     if [ $retval -ne 0 ]; then echo "Error installing JBang" 1>&2; exit $retval; fi
-    rm -rf "$TDIR/jbangs/jbang"
-    mv "$TDIR/jbangs/jbang.tmp" "$TDIR/jbangs/jbang"
+    rm -rf "$JBDIR/bin"
+    mv "$TDIR/urls/jbang/bin" "$JBDIR"
   fi
-  eval "exec $TDIR/jbangs/jbang/jbang/bin/jbang $*"
+  eval "exec $JBDIR/bin/jbang $*"
 fi
 
 case "$(uname -s)" in
