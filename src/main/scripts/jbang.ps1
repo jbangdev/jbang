@@ -76,6 +76,8 @@ if (Test-Path "$PSScriptRoot\jbang.jar") {
     }
     Rename-Item -Path "$TDIR\jars\jbang.tmp" -NewName "jbang" >$null 2>&1
   }
+  . "$TDIR\jars\jbang\jbang\bin\jbang.ps1" $args
+  break
 }
 
 # Find/get a JDK
@@ -129,6 +131,7 @@ if ($JAVA_EXEC -eq "") {
   }
 }
 
+$env:JBANG_USES_POWERSHELL="true"
 $output = & $JAVA_EXEC $env:JBANG_JAVA_OPTIONS -classpath "$jarPath" dev.jbang.Main $args
 $err=$LASTEXITCODE
 
@@ -136,7 +139,6 @@ $erroractionpreference=$old_erroractionpreference
 $global:progresspreference=$old_progresspreference
 
 if ($err -eq 255) {
-  $env:JBANG_USES_POWERSHELL="true"
   Invoke-Expression "& $output"
 } else {
   Write-Output $output
