@@ -86,6 +86,8 @@ public class TestCatalog {
 		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "name", "scriptOrFile");
 		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), AliasUtil.JBANG_CATALOG_JSON)),
 				is(true));
+		AliasUtil.Alias name = AliasUtil.getAlias(tmpPath, "name");
+		assertThat(name.scriptRef, is("scriptOrFile"));
 	}
 
 	@Test
