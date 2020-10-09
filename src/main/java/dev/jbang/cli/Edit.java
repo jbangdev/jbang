@@ -71,7 +71,7 @@ public class Edit extends BaseScriptCommand {
 				if (isWindows()) {
 					cmd = new String[] { "cmd", "/c", optionList.stream().collect(Collectors.joining(" ")) };
 				} else {
-					cmd = new String[] { "sh", "-i", "-c", optionList.stream().collect(Collectors.joining(" ")) };
+					cmd = new String[] { "sh", "-c", optionList.stream().collect(Collectors.joining(" ")) };
 				}
 				info("Running `" + String.join(" ", cmd) + "`");
 				Process process = new ProcessBuilder(cmd).start();
