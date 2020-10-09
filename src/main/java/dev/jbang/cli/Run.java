@@ -208,9 +208,6 @@ public class Run extends BaseBuildCommand {
 			if (script.getMainClass() != null) {
 				fullArgs.add(script.getMainClass());
 			} else {
-				if (script.forJar()) {
-					fullArgs.add("-jar");
-				}
 				fullArgs.add(script.getBackingFile().toString());
 			}
 		}
