@@ -32,7 +32,7 @@ abstract class BaseAliasCommand extends BaseCommand {
 			return Settings.getAliasesFile();
 		} else {
 			if (Files.isDirectory(catalogFile)) {
-				catalogFile = Paths.get(catalogFile.toString(), AliasUtil.JBANG_CATALOG_JSON);
+				return Paths.get(catalogFile.toString(), AliasUtil.JBANG_CATALOG_JSON);
 			}
 			return catalogFile;
 		}
