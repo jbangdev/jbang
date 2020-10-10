@@ -209,9 +209,11 @@ public class Run extends BaseBuildCommand {
 				fullArgs.add(script.getMainClass());
 			} else {
 				if (script.forJar()) {
-					fullArgs.add("-jar");
+					throw new ExitException(EXIT_INVALID_INPUT,
+							"no main class deduced, specified nor found in a manifest");
+				} else {
+					fullArgs.add(script.getBackingFile().toString());
 				}
-				fullArgs.add(script.getBackingFile().toString());
 			}
 		}
 
