@@ -499,6 +499,43 @@ public class TestRun {
 
 	}
 
+	@Test
+	void testShExtension(@TempDir File output) throws IOException {
+		String base = "///usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n" +
+				"// //DEPS <dependency1> <dependency2>\n" +
+				"\n" +
+				"import static java.lang.System.*;\n" +
+				"\n" +
+				"class firstclass {\n" +
+				"\n" +
+				"}\n" +
+				"\n" +
+				"public class dualclass {\n" +
+				"\n" +
+				"    public static void main(String... args) {\n" +
+				"        out.println(\"Hello \" + (args.length>0?args[0]:\"World\"));\n" +
+				"    }\n" +
+				"}\n";
+
+		File f = new File(output, "dualclass.sh");
+
+		Util.writeString(f.toPath(), base);
+
+		Jbang jbang = new Jbang();
+		String arg = f.getAbsolutePath();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
+
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		Script s = prepareScript(arg, run.userParams, run.properties, run.dependencies,
+				run.classpaths);
+
+		run.build(s);
+
+		assertThat(s.getMainClass(), equalTo("dualclass"));
+
+	}
+
 	// started failing 403 when run in github...
 	/*
 	 * @Test

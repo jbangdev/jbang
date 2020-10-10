@@ -238,11 +238,13 @@ public abstract class BaseScriptCommand extends BaseCommand {
 	}
 
 	/**
-	 *
 	 * @param name script name
 	 * @return camel case of kebab string if name does not end with .java or .jsh
 	 */
 	static String unkebabify(String name) {
+		if (name.endsWith(".sh")) {
+			name = name.substring(0, name.length() - 3);
+		}
 		if (!(name.endsWith(".java") || name.endsWith(".jsh"))) {
 			name = Util.kebab2camel(name) + ".java";
 		}
