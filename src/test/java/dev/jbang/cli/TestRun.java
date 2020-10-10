@@ -46,6 +46,7 @@ import org.hamcrest.collection.IsCollectionWithSize;
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -135,7 +136,8 @@ public class TestRun {
 
 		String result = run.generateCommandLine(s);
 		assertThat(result, matchesPattern("^.*java(.exe)?.*"));
-		assertThat(result, containsString("-jar"));
+		assertThat(s.getMainClass(), not(nullValue()));
+
 		assertThat(result, containsString("helloworld.jar"));
 
 		assertThat(s.getBackingFile().toString(), equalTo(jar));
@@ -145,7 +147,7 @@ public class TestRun {
 	}
 
 	@Test
-	void testHelloWorldGAV() throws IOException {
+	void testHelloWorldGAVWithNoMain() throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
@@ -159,14 +161,35 @@ public class TestRun {
 
 		assertThat(result.getBackingFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
 
-		String cmd = run.generateCommandLine(result);
+		ExitException e = Assertions.assertThrows(ExitException.class, () -> run.generateCommandLine(result));
 
-		assertThat(cmd, containsString(Run.escapeArgument("-jar")));
+		assertThat(e.getMessage(), startsWith("no main class"));
 
 	}
 
 	@Test
-	void testHelloWorldGAVWithMainClass() throws IOException {
+	void testHelloWorldGAVWithAMain() throws IOException {
+
+		environmentVariables.clear("JAVA_HOME");
+		Jbang jbang = new Jbang();
+
+		String jar = "org.eclipse.jgit:org.eclipse.jgit.pgm:5.9.0.202009080501-r";
+
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		Script result = prepareScript(jar, run.userParams, run.properties, run.dependencies, run.classpaths);
+
+		assertThat(result.getBackingFile().toString(), matchesPattern(".*\\.m2.*eclipse.jgit.pgm.*.jar"));
+
+		String line = run.generateCommandLine(result);
+
+		assertThat(result.getMainClass(), equalTo("org.eclipse.jgit.pgm.Main"));
+
+	}
+
+	@Test
+	void testHelloWorldGAVWithExplicitMainClass() throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
