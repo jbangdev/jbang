@@ -1,6 +1,6 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-29-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-30-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 ## Contributors ✨
 
@@ -48,6 +48,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   </tr>
   <tr>
     <td align="center"><a href="https://twitter.com/r_svoboda"><img src="https://avatars0.githubusercontent.com/u/925259?v=4" width="100px;" alt=""/><br /><sub><b>Rostislav Svoboda</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=rsvoboda" title="Documentation">📖</a> <a href="https://github.com/jbangdev/jbang/commits?author=rsvoboda" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/chrsblck"><img src="https://avatars3.githubusercontent.com/u/2538545?v=4" width="100px;" alt=""/><br /><sub><b>Chris Black</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=chrsblck" title="Code">💻</a></td>
   </tr>
 </table>
 
