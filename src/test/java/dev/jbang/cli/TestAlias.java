@@ -7,7 +7,6 @@ import static org.hamcrest.Matchers.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 
 import org.junit.Assert;
@@ -18,8 +17,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 
 import dev.jbang.AliasUtil;
-
-import picocli.CommandLine;
 
 public class TestAlias {
 
@@ -85,31 +82,6 @@ public class TestAlias {
 	void testReadFromFile() throws IOException {
 		clearSettingsCaches();
 		assertThat(AliasUtil.getAlias(cwd, "one"), notNullValue());
-	}
-
-	@Test
-	void testAddWithDefaultCatalogFile() throws IOException {
-		TemporaryFolder tmp = new TemporaryFolder();
-		tmp.create();
-		Path tmpPath = tmp.getRoot().toPath();
-		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), AliasUtil.JBANG_CATALOG_JSON)), is(false));
-		Jbang jbang = new Jbang();
-		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "name", "scriptOrFile");
-		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), AliasUtil.JBANG_CATALOG_JSON)),
-				is(true));
-		AliasUtil.Alias name = AliasUtil.getAlias(tmpPath, "name");
-		assertThat(name.scriptRef, is("scriptOrFile"));
-	}
-
-	@Test
-	void testAddPreservesExistingCatalog() throws IOException {
-		final Path jbangPath = jbangTempDir.getRoot().toPath();
-		Jbang jbang = new Jbang();
-		new CommandLine(jbang).execute("alias", "add", "-f", jbangPath.toString(), "name", "scriptOrFile");
-		AliasUtil.Alias one = AliasUtil.getAlias(jbangPath, "one");
-		AliasUtil.Alias name = AliasUtil.getAlias(jbangPath, "name");
-		assertThat(one.scriptRef, is("http://dummy"));
-		assertThat(name.scriptRef, is("scriptOrFile"));
 	}
 
 	@Test

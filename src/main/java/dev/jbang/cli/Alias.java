@@ -1,9 +1,7 @@
 package dev.jbang.cli;
 
 import java.io.PrintStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -31,9 +29,6 @@ abstract class BaseAliasCommand extends BaseCommand {
 		if (global) {
 			return Settings.getAliasesFile();
 		} else {
-			if (Files.isDirectory(catalogFile)) {
-				return Paths.get(catalogFile.toString(), AliasUtil.JBANG_CATALOG_JSON);
-			}
 			return catalogFile;
 		}
 	}
