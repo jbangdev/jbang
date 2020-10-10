@@ -801,7 +801,7 @@ When you `uninstall` a JDK by running:
 and that JDK was set as the default, Jbang will set the next higher version JDK as the default. If no higher version is
 available it will select the next lower version.
 
-+== Using managed JDKs yourself
+=== Using managed JDKs yourself
 
 Given the fact that Jbang is able to easily download and install JDKs we thought that it might be a good option for
 our users to be able to access those JDKs for their own use instead of having to install yet another version themselves.
