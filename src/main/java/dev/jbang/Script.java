@@ -17,6 +17,7 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.jar.Attributes;
+import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -261,7 +262,16 @@ public class Script {
 					classpath = new DependencyUtil().resolveDependencies(additionalDeps,
 							Collections.emptyList(), offline, !Util.isQuiet());
 				} else {
-					classpath = new ModularClassPath(Collections.emptyList());
+					classpath = new ModularClassPath(Arrays.asList(new ArtifactInfo(null, new File(originalFile))));
+				}
+				// fetch main class as we can't use -jar to run as it ignores classpath.
+				if (getMainClass() == null) {
+					try (JarFile jf = new JarFile(getBackingFile())) {
+						setMainClass(
+								jf.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS));
+					} catch (IOException e) {
+						Util.warnMsg("Problem reading manifest from " + getBackingFile());
+					}
 				}
 			} else {
 				List<String> dependencies = collectDependencies();
