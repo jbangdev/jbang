@@ -727,7 +727,7 @@ Furthermore some of them, particularly `kubectl` currently require the file to s
 === Kebab casing of filename
 
 `jbang` lets you name your file without a `.java` or `.jsh` extension, such
-as `kubectl-my-plugin`. `jbang` will in this case copy the file to a temporary
+as `kubectl-my-plugin` or `myjavascript.sh`. `jbang` will in this case copy the file to a temporary
 directory using kebab-case to map the name to a proper java class name.
 
 For example, if you make a file called `kubectl-my-plugin` then `jbang` will assume the actual class name to launch
@@ -737,7 +737,6 @@ Note, similar is done when using `jbang edit`, here the symbolic link will be ma
 regular camel cased java class.
 
 NOTE: If you do not follow this naming pattern you will get a compile error as `javac` expects both the public class and file names to be equal.
-
 
 === she-bang auto-stripped
 
