@@ -43,7 +43,9 @@ jobs:
         if: runner.os == 'Windows'
         working-directory: itests
         run: |
+          echo "::add-matcher::.github/karatewindows-matcher.json"   
           .\itests.cmd
+          echo "::remove-matcher owner=karate-windows::"
       - name: build-choco-package
         if: runner.os == 'Windows'
         uses: actions/setup-dotnet@v1
