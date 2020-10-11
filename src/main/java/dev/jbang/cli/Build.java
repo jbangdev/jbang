@@ -19,6 +19,6 @@ public class Build extends BaseBuildCommand {
 			build(script);
 		}
 
-		return EXIT_EXECUTE;
+		return EXIT_OK;
 	}
 }
