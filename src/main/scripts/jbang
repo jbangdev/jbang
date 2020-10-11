@@ -41,6 +41,27 @@ download() {
 
 abs_jbang_path=$(resolve_symlink $(absolute_path $0))
 
+case "$(uname -s)" in
+  Linux*)
+    os=linux;;
+  Darwin*)
+    os=mac;;
+  CYGWIN*|MINGW*)
+    os=windows;;
+  *)        echo "Unsupported Operating System: $(uname -s)" 1>&2; exit 1;;
+esac
+
+case "$(uname -m)" in
+  i?86)
+    arch=x32;;
+  x86_64|amd64)
+    arch=x64;;
+  aarch64)
+    arch=aarch64;;
+  *)
+    echo "Unsupported Architecture: $(uname -m)" 1>&2; exit 1;;
+esac
+
 ## when mingw/git bash or cygwin fall out to just running the bat file.
 if [[ $os == windows ]]; then
   $(dirname $abs_jbang_path)/jbang.cmd $*
@@ -71,27 +92,6 @@ else
   fi
   eval "exec $JBDIR/bin/jbang $*"
 fi
-
-case "$(uname -s)" in
-  Linux*)
-    os=linux;;
-  Darwin*)
-    os=mac;;
-  CYGWIN*|MINGW*)
-    os=windows;;
-  *)        echo "Unsupported Operating System: $(uname -s)" 1>&2; exit 1;;
-esac
-
-case "$(uname -m)" in
-  i?86)
-    arch=x32;;
-  x86_64|amd64)
-    arch=x64;;
-  aarch64)
-    arch=aarch64;;
-  *)
-    echo "Unsupported Architecture: $(uname -m)" 1>&2; exit 1;;
-esac
 
 # Find/get a JDK
 unset JAVA_EXEC
