@@ -17,3 +17,4 @@ out
 node_modules
 package-lock.json
 *.jfr
+itests/hello.java
