@@ -39,11 +39,11 @@ download() {
   fi
 }
 
-abs_jbang_path=$(resolve_symlink $(absolute_path $0))
+abs_jbang_path=$(resolve_symlink "$(absolute_path $0)")
 
 ## when mingw/git bash or cygwin fall out to just running the bat file.
 if [[ $os == windows ]]; then
-  $(dirname $abs_jbang_path)/jbang.cmd $*
+  "$(dirname $abs_jbang_path)"/jbang.cmd "$@"
   exit $?
 fi
 
@@ -66,7 +66,7 @@ else
     rm -rf "$TDIR/urls/jbang"
     tar xf "$TDIR/urls/jbang.tar" -C "$TDIR/urls"
     if [ $retval -ne 0 ]; then echo "Error installing JBang" 1>&2; exit $retval; fi
-    rm -rf "$JBDIR/bin"
+    rm -rf "{JBDIR:?}/bin"
     mv "$TDIR/urls/jbang/bin" "$JBDIR"
   fi
   eval "exec $JBDIR/bin/jbang $*"
