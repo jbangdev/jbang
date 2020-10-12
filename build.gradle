@@ -24,7 +24,7 @@ dependencies {
 	implementation 'org.apache.commons:commons-text:1.9'
 	implementation 'org.apache.commons:commons-compress:1.20'
 	implementation 'info.picocli:picocli:4.5.1'
-	implementation 'io.quarkus.qute:qute-core:1.8.2.Final'
+	implementation 'io.quarkus.qute:qute-core:1.8.3.Final'
 	implementation 'kr.motd.maven:os-maven-plugin:1.6.1'
 	implementation 'org.codehaus.plexus:plexus-java:1.0.5'
 	implementation 'com.google.code.gson:gson:2.8.6'
