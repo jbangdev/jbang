@@ -1,93 +1,162 @@
 package dev.jbang.cli;
 
-import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
-import static dev.jbang.cli.BaseCommand.EXIT_OK;
-
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import dev.jbang.AliasUtil;
-import dev.jbang.ExitException;
+import dev.jbang.Settings;
 import dev.jbang.Util;
 
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "catalog", description = "Manage Catalogs of aliases.")
+@CommandLine.Command(name = "catalog", description = "Manage Catalogs of aliases.", subcommands = { CatalogAdd.class,
+		CatalogUpdate.class, CatalogList.class, CatalogRemove.class })
 public class Catalog {
+}
 
-	@CommandLine.Spec
-	CommandLine.Model.CommandSpec spec;
+abstract class BaseCatalogCommand extends BaseCommand {
 
-	@CommandLine.Command(name = "add", description = "Add a catalog.")
-	public Integer add(
-			@CommandLine.Option(names = { "--description",
-					"-d" }, description = "A description for the catalog") String description,
-			@CommandLine.Parameters(paramLabel = "name", index = "0", description = "A name for the catalog", arity = "1") String name,
-			@CommandLine.Parameters(paramLabel = "urlOrFile", index = "1", description = "A file or URL to a catalog file", arity = "1") String urlOrFile) {
+	@CommandLine.Option(names = { "--global", "-g" }, description = "Use the global (user) catalog file")
+	boolean global;
+
+	@CommandLine.Option(names = { "--file", "-f" }, description = "Path to the catalog file to use")
+	Path catalogFile;
+
+	protected Path getCatalog(boolean strict) {
+		Path cat;
+		if (global) {
+			cat = Settings.getUserCatalogFile();
+		} else {
+			if (catalogFile != null && Files.isDirectory(catalogFile)) {
+				Path defaultCatalog = catalogFile.resolve(AliasUtil.JBANG_CATALOG_JSON);
+				Path hiddenCatalog = catalogFile.resolve(AliasUtil.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
+				if (!Files.exists(defaultCatalog) && Files.exists(hiddenCatalog)) {
+					cat = hiddenCatalog;
+				} else {
+					cat = defaultCatalog;
+				}
+			} else {
+				cat = catalogFile;
+			}
+			if (strict && cat != null && !Files.isRegularFile(cat)) {
+				throw new IllegalArgumentException("Catalog file not found at: " + catalogFile);
+			}
+		}
+		return cat;
+	}
+}
+
+@CommandLine.Command(name = "add", description = "Add a catalog.")
+class CatalogAdd extends BaseCatalogCommand {
+
+	@CommandLine.Option(names = { "--description",
+			"-d" }, description = "A description for the catalog")
+	String description;
+
+	@CommandLine.Parameters(paramLabel = "name", index = "0", description = "A name for the catalog", arity = "1")
+	String name;
+
+	@CommandLine.Parameters(paramLabel = "urlOrFile", index = "1", description = "A file or URL to a catalog file", arity = "1")
+	String urlOrFile;
+
+	@Override
+	public Integer doCall() {
 		if (!name.matches("^[a-zA-Z][-.\\w]*$")) {
 			throw new IllegalArgumentException(
 					"Invalid catalog name, it should start with a letter followed by 0 or more letters, digits, underscores, hyphens or dots");
-		}
-		if (AliasUtil.getCatalogIndex().catalogRefs.containsKey(name)) {
-			throw new ExitException(EXIT_INVALID_INPUT, "A catalog with that name already exists");
 		}
 		AliasUtil.Catalog catalog = AliasUtil.getCatalogByRef(urlOrFile, true);
 		if (description == null) {
 			description = catalog.description;
 		}
-		AliasUtil.addCatalog(name, urlOrFile, description);
+		Path catFile = getCatalog(false);
+		if (catFile != null) {
+			AliasUtil.addCatalog(null, catFile, name, urlOrFile, description);
+		} else {
+			catFile = AliasUtil.addNearestCatalog(null, name, urlOrFile, description);
+		}
+		info(String.format("Catalog added to %s", catFile));
 		return EXIT_OK;
 	}
+}
 
-	@CommandLine.Command(name = "update", description = "Retrieve the latest contents of the catalogs.")
-	public Integer update() {
+@CommandLine.Command(name = "update", description = "Retrieve the latest contents of the catalogs.")
+class CatalogUpdate extends BaseCatalogCommand {
+
+	@Override
+	public Integer doCall() {
 		PrintWriter err = spec.commandLine().getErr();
-		AliasUtil.getCatalogIndex().catalogRefs
-												.entrySet()
-												.stream()
-												.forEach(e -> {
-													err.println("Updating catalog '" + e.getKey() + "' from "
-															+ e.getValue().catalogRef + "...");
-													AliasUtil.getCatalogByRef(e.getValue().catalogRef, true);
-												});
+		AliasUtil.getMergedCatalog(null).catalogs
+													.entrySet()
+													.stream()
+													.forEach(e -> {
+														err.println(
+																"Updating catalog '" + e.getKey() + "' from "
+																		+ e.getValue().catalogRef + "...");
+														AliasUtil.getCatalogByRef(e.getValue().catalogRef,
+																true);
+													});
 		return EXIT_OK;
 	}
+}
 
-	@CommandLine.Command(name = "list", description = "Show currently defined catalogs.")
-	public Integer list(
-			@CommandLine.Parameters(paramLabel = "name", index = "0", description = "The name of a catalog", arity = "0..1") String name) {
+@CommandLine.Command(name = "list", description = "Show currently defined catalogs.")
+class CatalogList extends BaseCatalogCommand {
+
+	@CommandLine.Parameters(paramLabel = "name", index = "0", description = "The name of a catalog", arity = "0..1")
+	String name;
+
+	@Override
+	public Integer doCall() {
 		PrintStream out = System.out;
 		if (name == null) {
-			AliasUtil.getCatalogIndex().catalogRefs
-													.keySet()
-													.stream()
-													.sorted()
-													.forEach(nm -> {
-														AliasUtil.CatalogRef cat = AliasUtil.getCatalogIndex().catalogRefs.get(
-																nm);
-														if (cat.description != null) {
-															out.println(nm + " = " + cat.description);
-															out.println(Util.repeat(" ", nm.length()) + "   ("
-																	+ cat.catalogRef
-																	+ ")");
-														} else {
-															out.println(nm + " = " + cat.catalogRef);
-														}
-													});
+			AliasUtil.Catalog catalog;
+			Path cat = getCatalog(true);
+			if (cat != null) {
+				catalog = AliasUtil.getCatalog(cat, false);
+			} else {
+				catalog = AliasUtil.getMergedCatalog(null);
+			}
+			catalog.catalogs
+							.keySet()
+							.stream()
+							.sorted()
+							.forEach(nm -> {
+								AliasUtil.CatalogRef ref = catalog.catalogs.get(
+										nm);
+								if (ref.description != null) {
+									out.println(nm + " = " + ref.description);
+									out.println(Util.repeat(" ", nm.length()) + "   ("
+											+ ref.catalogRef
+											+ ")");
+								} else {
+									out.println(nm + " = " + ref.catalogRef);
+								}
+							});
 		} else {
-			AliasUtil.Catalog catalog = AliasUtil.getCatalogByName(name, false);
+			AliasUtil.Catalog catalog = AliasUtil.getCatalogByName(null, name, false);
 			AliasList.printAliases(out, name, catalog);
 		}
 		return EXIT_OK;
 	}
+}
 
-	@CommandLine.Command(name = "remove", description = "Remove existing catalog.")
-	public Integer remove(
-			@CommandLine.Parameters(paramLabel = "name", index = "0", description = "The name of the catalog", arity = "1") String name) {
-		if (!AliasUtil.getCatalogIndex().catalogRefs.containsKey(name)) {
-			throw new ExitException(EXIT_INVALID_INPUT, "A catalog with that name does not exist");
+@CommandLine.Command(name = "remove", description = "Remove existing catalog.")
+class CatalogRemove extends BaseCatalogCommand {
+
+	@CommandLine.Parameters(paramLabel = "name", index = "0", description = "The name of the catalog", arity = "1")
+	String name;
+
+	@Override
+	public Integer doCall() {
+		Path cat = getCatalog(true);
+		if (cat != null) {
+			AliasUtil.removeCatalog(cat, name);
+		} else {
+			AliasUtil.removeNearestCatalog(null, name);
 		}
-		AliasUtil.removeCatalog(name);
 		return EXIT_OK;
 	}
 }

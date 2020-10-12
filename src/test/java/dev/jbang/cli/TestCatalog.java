@@ -41,14 +41,13 @@ public class TestCatalog {
 	void init() throws IOException {
 		jbangTempDir.create();
 		catalogTempDir.create();
-		catsFile = jbangTempDir.getRoot().toPath().resolve("jbang-catalogs.json");
+		catsFile = jbangTempDir.getRoot().toPath().resolve("jbang-catalog.json");
 		environmentVariables.set("JBANG_DIR", jbangTempDir.getRoot().getPath());
-		testCatalogFile = catalogTempDir.getRoot().toPath().resolve("test-catalog.json");
+		cwd = catalogTempDir.getRoot().toPath();
+		testCatalogFile = cwd.resolve("test-catalog.json");
 		Files.write(testCatalogFile, testCatalog.getBytes());
-
 		clearSettingsCaches();
-		Jbang jbang = new Jbang();
-		new CommandLine(jbang).execute("catalog", "add", "test", testCatalogFile.toAbsolutePath().toString());
+		AliasUtil.addCatalog(null, catsFile, "test", testCatalogFile.toAbsolutePath().toString(), "Test catalog");
 	}
 
 	@Rule
@@ -60,6 +59,8 @@ public class TestCatalog {
 	@Rule
 	public final TemporaryFolder catalogTempDir = new TemporaryFolder();
 
+	private Path cwd;
+
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();
 
@@ -70,8 +71,8 @@ public class TestCatalog {
 		assertThat(cat, containsString("\"test\""));
 		assertThat(cat, containsString("test-catalog.json\""));
 
-		assertThat(AliasUtil.getCatalogIndex().catalogRefs, hasKey("test"));
-		assertThat(AliasUtil.getCatalogIndex().catalogRefs.get("test").catalogRef,
+		assertThat(AliasUtil.getCatalog(catsFile, true).catalogs, hasKey("test"));
+		assertThat(AliasUtil.getCatalog(catsFile, false).catalogs.get("test").catalogRef,
 				is(testCatalogFile.toAbsolutePath().toString()));
 	}
 
@@ -98,9 +99,8 @@ public class TestCatalog {
 
 	@Test
 	void testRemove() throws IOException {
-		assertThat(AliasUtil.getCatalogIndex().catalogRefs, hasKey("test"));
-		Jbang jbang = new Jbang();
-		new CommandLine(jbang).execute("catalog", "remove", "test");
-		assertThat(AliasUtil.getCatalogIndex().catalogRefs, not(hasKey("test")));
+		assertThat(AliasUtil.getCatalog(catsFile, true).catalogs, hasKey("test"));
+		AliasUtil.removeCatalog(catsFile, "test");
+		assertThat(AliasUtil.getCatalog(catsFile, true).catalogs, not(hasKey("test")));
 	}
 }
