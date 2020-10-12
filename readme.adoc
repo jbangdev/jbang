@@ -59,6 +59,7 @@ toc::[]
 * `.jsh` via JShell from Java 9 and upwards
 * Works on icon:windows[] Windows, icon:apple[] OSX and icon:linux[] Linux
 * Install using SDKMan (icon:apple[]/icon:linux[]), Homebrew (icon:apple[]), Chocolatey (icon:windows[]) or Scoop (icon:windows[])
+* Include multiple files and sources
 * Dependency declarations using `//DEPS <gav>` for automatic dependency resolution
 * Control compile and runtime options with `//JAVAC_OPTIONS <flags>` and `//JAVA_OPTIONS <flags>`
 * Compiled jar and Dependency resolution caching
