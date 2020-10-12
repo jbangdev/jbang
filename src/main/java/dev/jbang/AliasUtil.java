@@ -22,7 +22,6 @@ import com.google.gson.annotations.SerializedName;
 
 public class AliasUtil {
 	public static final String JBANG_CATALOG_JSON = "jbang-catalog.json";
-	public static final String JBANG_CATALOGS_JSON = "jbang-catalogs.json";
 	public static final String JBANG_DOT_DIR = ".jbang";
 
 	private static final String GITHUB_URL = "https://github.com/";
@@ -31,7 +30,6 @@ public class AliasUtil {
 
 	private static final String JBANG_CATALOG_REPO = "jbang-catalog";
 
-	static CatalogIndex catalogIndex = null;
 	static Map<Path, Catalog> catalogCache = new HashMap<>();
 
 	public static class Alias {
@@ -74,6 +72,7 @@ public class AliasUtil {
 	}
 
 	public static class Catalog {
+		public Map<String, CatalogRef> catalogs = new HashMap<>();
 		public final Map<String, Alias> aliases = new HashMap<>();
 		@SerializedName(value = "base-ref", alternate = { "baseRef" })
 		public final String baseRef;
@@ -136,11 +135,6 @@ public class AliasUtil {
 			this.catalogRef = catalogRef;
 			this.description = description;
 		}
-	}
-
-	public static class CatalogIndex {
-		public Map<String, CatalogRef> catalogRefs = new HashMap<>();
-		public transient Path indexFile;
 	}
 
 	/**
@@ -220,7 +214,7 @@ public class AliasUtil {
 	 * @return An Alias object
 	 */
 	private static Alias getCatalogAlias(String catalogName, String aliasName) {
-		Catalog catalog = getCatalogByName(catalogName, false);
+		Catalog catalog = getCatalogByName(null, catalogName, false);
 		Alias alias = catalog.aliases.get(aliasName);
 		if (alias == null) {
 			throw new ExitException(EXIT_INVALID_INPUT, "No alias found with name '" + aliasName + "'");
@@ -235,8 +229,8 @@ public class AliasUtil {
 	 * @param updateCache Set to true to ignore cached values
 	 * @return An Aliases object
 	 */
-	public static Catalog getCatalogByName(String catalogName, boolean updateCache) {
-		CatalogRef catalogRef = getCatalogRef(catalogName);
+	public static Catalog getCatalogByName(Path cwd, String catalogName, boolean updateCache) {
+		CatalogRef catalogRef = getCatalogRef(cwd, catalogName);
 		if (catalogRef != null) {
 			return getCatalogByRef(catalogRef.catalogRef, updateCache);
 		} else {
@@ -244,8 +238,9 @@ public class AliasUtil {
 		}
 	}
 
-	private static CatalogRef getCatalogRef(String catalogName) {
-		CatalogRef catalogRef = getCatalogIndex().catalogRefs.get(catalogName);
+	private static CatalogRef getCatalogRef(Path cwd, String catalogName) {
+		Catalog catalog = getMergedCatalog(cwd);
+		CatalogRef catalogRef = catalog.catalogs.get(catalogName);
 		if (catalogRef == null) {
 			Util.verboseMsg("Local catalog '" + catalogName + "' not found, trying implicit catalogs...");
 			ImplicitCatalogRef icr = ImplicitCatalogRef.parse(catalogName);
@@ -259,8 +254,9 @@ public class AliasUtil {
 					() -> icr.isPossibleCommit() ? tryDownload(icr.url(BITBUCKET_URL, "/src/")) : Optional.empty())
 																													.findFirst();
 			if (url.isPresent()) {
-				Catalog catalog = AliasUtil.getCatalogByRef(url.get(), false);
-				catalogRef = addCatalog(catalogName, url.get(), catalog.description);
+				Catalog implicitCatalog = AliasUtil.getCatalogByRef(url.get(), false);
+				catalogRef = addCatalog(cwd, Settings.getUserCatalogFile(), catalogName, url.get(),
+						implicitCatalog.description);
 			}
 		}
 		return catalogRef;
@@ -353,11 +349,12 @@ public class AliasUtil {
 	 *             catalog
 	 * @param name The name of the new alias
 	 */
-	public static void addNearestAlias(Path cwd, String name, String scriptRef, String description,
+	public static Path addNearestAlias(Path cwd, String name, String scriptRef, String description,
 			List<String> arguments,
 			Map<String, String> properties) {
-		Path catalog = getCatalogFile(cwd, null);
-		addAlias(cwd, catalog, name, scriptRef, description, arguments, properties);
+		Path catalogFile = getCatalogFile(cwd, null);
+		addAlias(cwd, catalogFile, name, scriptRef, description, arguments, properties);
+		return catalogFile;
 	}
 
 	/**
@@ -366,7 +363,7 @@ public class AliasUtil {
 	 * @param catalogFile Path to catalog file
 	 * @param name        The name of the new alias
 	 */
-	public static void addAlias(Path cwd, Path catalogFile, String name, String scriptRef, String description,
+	public static Alias addAlias(Path cwd, Path catalogFile, String name, String scriptRef, String description,
 			List<String> arguments,
 			Map<String, String> properties) {
 		if (cwd == null) {
@@ -392,11 +389,14 @@ public class AliasUtil {
 				throw new IllegalArgumentException("Source file not found: " + scriptRef);
 			}
 		}
-		catalog.aliases.put(name, new Alias(scriptRef, description, arguments, properties, catalog));
+		Alias alias = new Alias(scriptRef, description, arguments, properties, catalog);
+		catalog.aliases.put(name, alias);
 		try {
 			writeCatalog(catalogFile, catalog);
+			return alias;
 		} catch (IOException ex) {
 			Util.warnMsg("Unable to add alias: " + ex.getMessage());
+			return null;
 		}
 	}
 
@@ -488,7 +488,9 @@ public class AliasUtil {
 			cwd = getCwd();
 		}
 		Catalog result = new Catalog(null, null, null);
-		result.aliases.putAll(getCatalog(Settings.getUserCatalogFile(), false).aliases);
+		Catalog userCatalog = getCatalog(Settings.getUserCatalogFile(), false);
+		result.aliases.putAll(userCatalog.aliases);
+		result.catalogs.putAll(userCatalog.catalogs);
 		mergeLocalCatalogs(cwd, result);
 		return result;
 	}
@@ -499,11 +501,15 @@ public class AliasUtil {
 		}
 		Path catalogFile = dir.resolve(JBANG_DOT_DIR).resolve(JBANG_CATALOG_JSON);
 		if (Files.isRegularFile(catalogFile) && Files.isReadable(catalogFile)) {
-			result.aliases.putAll(getCatalog(catalogFile, false).aliases);
+			Catalog catalog = getCatalog(catalogFile, false);
+			result.aliases.putAll(catalog.aliases);
+			result.catalogs.putAll(catalog.catalogs);
 		}
 		catalogFile = dir.resolve(JBANG_CATALOG_JSON);
 		if (Files.isRegularFile(catalogFile) && Files.isReadable(catalogFile)) {
-			result.aliases.putAll(getCatalog(catalogFile, false).aliases);
+			Catalog catalog = getCatalog(catalogFile, false);
+			result.aliases.putAll(catalog.aliases);
+			result.catalogs.putAll(catalog.catalogs);
 		}
 	}
 
@@ -515,6 +521,13 @@ public class AliasUtil {
 		return findNearestFileWith(dir, JBANG_CATALOG_JSON, catalogFile -> {
 			Catalog catalog = getCatalog(catalogFile, false);
 			return catalog.aliases.containsKey(aliasName);
+		});
+	}
+
+	public static Path findNearestLocalCatalogWithCatalog(Path dir, String catalogName) {
+		return findNearestFileWith(dir, JBANG_CATALOG_JSON, catalogFile -> {
+			Catalog catalog = getCatalog(catalogFile, false);
+			return catalog.catalogs.containsKey(catalogName);
 		});
 	}
 
@@ -540,6 +553,13 @@ public class AliasUtil {
 				if (as != null) {
 					catalog = as;
 					// Validate the result (Gson can't do this)
+					if (catalog.catalogs == null) {
+						catalog.catalogs = new HashMap<>();
+					}
+					for (String catName : catalog.catalogs.keySet()) {
+						CatalogRef cat = catalog.catalogs.get(catName);
+						check(cat.catalogRef != null, "Missing required attribute 'catalogs.catalogRef'");
+					}
 					check(catalog.aliases != null, "Missing required attribute 'aliases' in " + catalogPath);
 					for (String aliasName : catalog.aliases.keySet()) {
 						Alias alias = catalog.aliases.get(aliasName);
@@ -567,7 +587,26 @@ public class AliasUtil {
 		}
 	}
 
-	public static CatalogRef addCatalog(String name, String catalogRef, String description) {
+	/**
+	 * Adds a new alias to the nearest catalog
+	 *
+	 * @param cwd  The folder to use as a starting point for getting the nearest
+	 *             catalog
+	 * @param name The name of the new alias
+	 */
+	public static Path addNearestCatalog(Path cwd, String name, String catalogRef, String description) {
+		Path catalogFile = getCatalogFile(cwd, null);
+		addCatalog(cwd, catalogFile, name, catalogRef, description);
+		return catalogFile;
+	}
+
+	public static CatalogRef addCatalog(Path cwd, Path catalogFile, String name, String catalogRef,
+			String description) {
+		if (cwd == null) {
+			cwd = getCwd();
+		}
+		catalogFile = cwd.resolve(catalogFile);
+		Catalog catalog = getCatalog(catalogFile, true);
 		try {
 			Path cat = Paths.get(catalogRef);
 			if (!cat.isAbsolute() && Files.isRegularFile(cat)) {
@@ -576,69 +615,42 @@ public class AliasUtil {
 		} catch (InvalidPathException ex) {
 			// Ignore
 		}
-		CatalogRef catalog = new CatalogRef(catalogRef, description);
-		getCatalogIndex().catalogRefs.put(name, catalog);
+		CatalogRef ref = new CatalogRef(catalogRef, description);
+		catalog.catalogs.put(name, ref);
 		try {
-			AliasUtil.writeCatalogIndex(Settings.getUserCatalogIndexFile());
-			return catalog;
+			AliasUtil.writeCatalog(catalogFile, catalog);
+			return ref;
 		} catch (IOException ex) {
 			Util.warnMsg("Unable to add catalog: " + ex.getMessage());
 			return null;
 		}
 	}
 
-	public static void removeCatalog(String name) {
-		if (getCatalogIndex().catalogRefs.containsKey(name)) {
-			getCatalogIndex().catalogRefs.remove(name);
+	/**
+	 * Finds the nearest catalog file that contains a catalog with the given name
+	 * and removes it
+	 *
+	 * @param cwd  The folder to use as a starting point for getting the nearest
+	 *             catalog
+	 * @param name Name of catalog to remove
+	 */
+	public static void removeNearestCatalog(Path cwd, String name) {
+		Path catalog = findNearestLocalCatalogWithCatalog(cwd, name);
+		if (catalog == null) {
+			catalog = Settings.getUserCatalogFile();
+		}
+		removeCatalog(catalog, name);
+	}
+
+	public static void removeCatalog(Path catalogFile, String name) {
+		Catalog catalog = getCatalog(catalogFile, true);
+		if (catalog.catalogs.containsKey(name)) {
+			catalog.catalogs.remove(name);
 			try {
-				AliasUtil.writeCatalogIndex(Settings.getUserCatalogIndexFile());
+				AliasUtil.writeCatalog(catalogFile, catalog);
 			} catch (IOException ex) {
 				Util.warnMsg("Unable to remove catalog: " + ex.getMessage());
 			}
-		}
-	}
-
-	public static CatalogIndex getCatalogIndex() {
-		if (catalogIndex == null) {
-			Path cf = Settings.getUserCatalogIndexFile();
-			// TODO deprecate the following if at some point in the future
-			if (!Files.exists(cf)) {
-				cf = Settings.getConfigDir().resolve("catalogs.json");
-			}
-			catalogIndex = AliasUtil.readCatalogIndex(Settings.getUserCatalogIndexFile());
-		}
-		return catalogIndex;
-	}
-
-	static CatalogIndex readCatalogIndex(Path indexPath) {
-		CatalogIndex info;
-		if (Files.isRegularFile(indexPath)) {
-			try (Reader in = Files.newBufferedReader(indexPath)) {
-				Gson parser = new Gson();
-				info = parser.fromJson(in, CatalogIndex.class);
-				if (info != null) {
-					// Validate the result (Gson can't do this)
-					check(info.catalogRefs != null, "Missing required attribute 'catalogs'");
-					for (String catName : info.catalogRefs.keySet()) {
-						CatalogRef cat = info.catalogRefs.get(catName);
-						check(cat.catalogRef != null, "Missing required attribute 'catalogs.catalogRef'");
-					}
-				} else {
-					info = new CatalogIndex();
-				}
-			} catch (IOException e) {
-				info = new CatalogIndex();
-			}
-		} else {
-			info = new CatalogIndex();
-		}
-		return info;
-	}
-
-	static void writeCatalogIndex(Path indexPath) throws IOException {
-		try (Writer out = Files.newBufferedWriter(indexPath)) {
-			Gson parser = new GsonBuilder().setPrettyPrinting().create();
-			parser.toJson(getCatalogIndex(), out);
 		}
 	}
 

@@ -180,10 +180,6 @@ public class Settings {
 		return getConfigDir().resolve(AliasUtil.JBANG_CATALOG_JSON);
 	}
 
-	public static Path getUserCatalogIndexFile() {
-		return getConfigDir().resolve(AliasUtil.JBANG_CATALOGS_JSON);
-	}
-
 	static protected void clearDependencyCache() {
 		cache = null;
 	}
