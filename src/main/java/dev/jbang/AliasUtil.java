@@ -22,6 +22,7 @@ import com.google.gson.annotations.SerializedName;
 
 public class AliasUtil {
 	public static final String JBANG_CATALOG_JSON = "jbang-catalog.json";
+	public static final String JBANG_IMPLICIT_CATALOG_JSON = "implicit-catalog.json";
 	public static final String JBANG_DOT_DIR = ".jbang";
 
 	private static final String GITHUB_URL = "https://github.com/";
@@ -255,7 +256,7 @@ public class AliasUtil {
 																													.findFirst();
 			if (url.isPresent()) {
 				Catalog implicitCatalog = AliasUtil.getCatalogByRef(url.get(), false);
-				catalogRef = addCatalog(cwd, Settings.getUserCatalogFile(), catalogName, url.get(),
+				catalogRef = addCatalog(cwd, Settings.getUserImplicitCatalogFile(), catalogName, url.get(),
 						implicitCatalog.description);
 			}
 		}
@@ -453,7 +454,7 @@ public class AliasUtil {
 		Path catalogPath = null;
 		try {
 			catalogPath = Util.obtainFile(catalogRef, updateCache);
-			Util.verboseMsg(String.format("Downloaded catalog from %s", catalogRef));
+			Util.verboseMsg(String.format("Obtained catalog from %s", catalogRef));
 			Catalog catalog = getCatalog(catalogPath, updateCache);
 			int p = catalogRef.lastIndexOf('/');
 			if (p > 0) {
@@ -488,6 +489,9 @@ public class AliasUtil {
 			cwd = getCwd();
 		}
 		Catalog result = new Catalog(null, null, null);
+		Catalog implicitCatalog = getCatalog(Settings.getUserImplicitCatalogFile(), false);
+		result.aliases.putAll(implicitCatalog.aliases);
+		result.catalogs.putAll(implicitCatalog.catalogs);
 		Catalog userCatalog = getCatalog(Settings.getUserCatalogFile(), false);
 		result.aliases.putAll(userCatalog.aliases);
 		result.catalogs.putAll(userCatalog.catalogs);
