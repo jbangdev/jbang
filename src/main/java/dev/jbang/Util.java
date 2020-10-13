@@ -532,12 +532,14 @@ public class Util {
 
 		try {
 			String[] pathPlusAnchor = url.split("#");
-			String fileName = null;
+			String fileName = "";
 			if (pathPlusAnchor.length == 2) {
 				String[] tmp = pathPlusAnchor[1].split("-");
-				if (tmp.length != 3)
+				if (tmp.length < 2)
 					throw new IllegalArgumentException("Invalid Gist url: " + url);
 				fileName = tmp[1];
+				for (int i = 2; i < tmp.length - 1; ++i)
+					fileName += "-" + tmp[i];
 			}
 			String gistapi = pathPlusAnchor[0].replaceFirst(
 					"^https://gist.github.com/(([a-zA-Z0-9]*)/)?(?<gistid>[a-zA-Z0-9]*)$",
@@ -558,7 +560,8 @@ public class Util {
 
 			Util.verboseMsg("found " + gist.files);
 			Optional<Map.Entry<String, Map<String, String>>> file = Optional.empty();
-			if (fileName != null) { // User wants to run specific Gist file
+			if (!fileName.isEmpty()) { // User wants to run specific Gist file
+				Util.verboseMsg("Searching for file: " + fileName);
 				String fileNameLowerCase = fileName.toLowerCase();
 				file = gist.files	.entrySet()
 									.stream()
