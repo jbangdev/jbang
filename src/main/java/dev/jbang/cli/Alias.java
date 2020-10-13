@@ -1,7 +1,9 @@
 package dev.jbang.cli;
 
 import java.io.PrintStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,6 +30,15 @@ abstract class BaseAliasCommand extends BaseCommand {
 	protected Path getCatalog() {
 		if (global) {
 			return Settings.getAliasesFile();
+		} else if (catalogFile != null && Files.isDirectory(catalogFile)) {
+			Path defaultJbangCatalog = Paths.get(catalogFile.toString(), AliasUtil.JBANG_CATALOG_JSON);
+			Path hiddenJbangCatalog = Paths.get(catalogFile.toString(), AliasUtil.JBANG_DOT_DIR,
+					AliasUtil.JBANG_CATALOG_JSON);
+			if (!Files.exists(defaultJbangCatalog) && Files.exists(hiddenJbangCatalog)) {
+				return hiddenJbangCatalog;
+			} else {
+				return defaultJbangCatalog;
+			}
 		} else {
 			return catalogFile;
 		}
@@ -81,10 +92,15 @@ class AliasList extends BaseAliasCommand {
 	public Integer doCall() {
 		PrintStream out = System.out;
 		AliasUtil.Aliases aliases;
+		Path catalog = getCatalog();
 		if (catalogName != null) {
 			aliases = AliasUtil.getCatalogAliasesByName(catalogName, false);
-		} else if (getCatalog() != null) {
-			aliases = AliasUtil.getAliasesFromCatalogFile(getCatalog(), false);
+		} else if (catalog != null) {
+			if (!Files.exists(catalog)) {
+				throw new IllegalArgumentException(
+						String.format("Invalid catalog file, file does not exist '%s'", catalog));
+			}
+			aliases = AliasUtil.getAliasesFromCatalogFile(catalog, false);
 		} else {
 			aliases = AliasUtil.getAllAliasesFromLocalCatalogs(null);
 		}
@@ -173,8 +189,13 @@ class AliasRemove extends BaseAliasCommand {
 
 	@Override
 	public Integer doCall() {
-		if (getCatalog() != null) {
-			AliasUtil.removeAlias(getCatalog(), name);
+		final Path catalog = getCatalog();
+		if (catalog != null) {
+			if (!Files.exists(catalog)) {
+				throw new IllegalArgumentException(
+						String.format("Invalid catalog file, file does not exist '%s'", catalog));
+			}
+			AliasUtil.removeAlias(catalog, name);
 		} else {
 			AliasUtil.removeNearestAlias(null, name);
 		}
