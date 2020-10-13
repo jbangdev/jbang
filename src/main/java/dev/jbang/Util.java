@@ -20,12 +20,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,6 +44,8 @@ public class Util {
 
 	public static final String JBANG_JDK_VENDOR = "JBANG_JDK_VENDOR";
 	public static final String JBANG_USES_POWERSHELL = "JBANG_USES_POWERSHELL";
+
+	public static final String SOURCES_COMMENT_PREFIX = "//SOURCES ";
 
 	private static boolean verbose;
 	private static boolean quiet;
@@ -456,6 +460,13 @@ public class Util {
 		}
 	}
 
+	public static List<String> getLines(List<String> lines, String script) {
+		if (lines == null && script != null) {
+			lines = Arrays.asList(script.split("\\r?\\n"));
+		}
+		return lines;
+	}
+
 	private static Path getFirstFile(Path dir) throws IOException {
 		if (Files.isDirectory(dir)) {
 			try (Stream<Path> files = Files.list(dir)) {
@@ -504,7 +515,7 @@ public class Util {
 		url = url.replaceFirst("^https://twitter.com/(.*)/status/(.*)$",
 				"https://mobile.twitter.com/$1/status/$2");
 
-		if (url.startsWith("https://gist.github.com/")) {
+		if (isGistURL(url)) {
 			url = extractFileFromGist(url);
 		}
 
@@ -530,45 +541,66 @@ public class Util {
 		return sb.toString();
 	}
 
-	// for gist we need to be smarter when it comes to downloading
 	private static String extractFileFromGist(String url) {
+		String rawURL = "";
+		String[] pathPlusAnchor = url.split("#");
+		String fileName = getFileNameFromGistURL(url);
+		String gistapi = pathPlusAnchor[0].replaceFirst(
+				"^https://gist.github.com/(([a-zA-Z0-9]*)/)?(?<gistid>[a-zA-Z0-9]*)$",
+				"https://api.github.com/gists/${gistid}");
 
+		Util.verboseMsg("Gist url api: " + gistapi);
+		String strdata = null;
 		try {
-			String gistapi = url.replaceFirst("^https://gist.github.com/(([a-zA-Z0-9]*)/)?(?<gistid>[a-zA-Z0-9]*)$",
-					"https://api.github.com/gists/${gistid}");
-			// Util.info("looking at " + gistapi);
-			String strdata = null;
-			try {
-				strdata = readStringFromURL(gistapi);
-			} catch (IOException e) {
-				// Util.info("error " + e);
-				return url;
-			}
-
-			Gson parser = new Gson();
-
-			Gist gist = parser.fromJson(strdata, Gist.class);
-
-			// Util.info("found " + gist.files);
-			final Optional<Map.Entry<String, Map<String, String>>> first = gist.files	.entrySet()
-																						.stream()
-																						.filter(e -> e	.getKey()
-																										.endsWith(
-																												".java")
-																								|| e.getKey()
-																									.endsWith(".jsh"))
-																						.findFirst();
-
-			if (first.isPresent()) {
-				// Util.info("looking at " + first);
-				return (String) first.get().getValue().getOrDefault("raw_url", url);
-			} else {
-				// Util.info("nothing worked!");
-				return url;
-			}
-		} catch (RuntimeException re) {
-			return url;
+			strdata = readStringFromURL(gistapi);
+		} catch (IOException e) {
+			Util.verboseMsg("Error when extracting file from gist url.");
+			throw new IllegalStateException(e);
 		}
+
+		Gson parser = new Gson();
+		Gist gist = parser.fromJson(strdata, Gist.class);
+
+		for (Entry<String, Map<String, String>> entry : gist.files.entrySet()) {
+			String key = entry.getKey();
+			String lowerCaseKey = key.toLowerCase();
+			if (key.endsWith(".java") || key.endsWith(".jsh")) {
+				String[] tmp = entry.getValue().get("raw_url").split("/raw/");
+				String prefix = tmp[0] + "/raw/";
+				String suffix = tmp[1].split("/")[1];
+				String mostRecentVersionRawUrl = prefix + gist.history[0].version + "/" + suffix;
+				if (!fileName.isEmpty()) { // User wants to run specific Gist file
+					if ((fileName + ".java").equals(lowerCaseKey) || (fileName + ".jsh").equals(lowerCaseKey))
+						return mostRecentVersionRawUrl;
+				} else {
+					if (key.endsWith(".jsh") || Util.hasMainMethod(entry.getValue().get("content")))
+						return mostRecentVersionRawUrl;
+					rawURL = mostRecentVersionRawUrl;
+				}
+			}
+		}
+
+		if (!fileName.isEmpty())
+			throw new IllegalArgumentException("Could not find file: " + fileName);
+
+		if (rawURL.isEmpty())
+			throw new IllegalArgumentException("Gist does not contain any .java or .jsh file.");
+
+		return rawURL;
+	}
+
+	private static String getFileNameFromGistURL(String url) {
+		String fileName = "";
+		String[] pathPlusAnchor = url.split("#");
+		if (pathPlusAnchor.length == 2) {
+			String[] anchor = pathPlusAnchor[1].split("-");
+			if (anchor.length < 2)
+				throw new IllegalArgumentException("Invalid Gist url: " + url);
+			fileName = anchor[1];
+			for (int i = 2; i < anchor.length - 1; ++i)
+				fileName += "-" + anchor[i];
+		}
+		return fileName;
 	}
 
 	static String readStringFromURL(String requestURL) throws IOException {
@@ -586,6 +618,11 @@ public class Util {
 
 	static class Gist {
 		Map<String, Map<String, String>> files;
+		History[] history;
+	}
+
+	static class History {
+		String version;
 	}
 
 	/**
@@ -672,4 +709,37 @@ public class Util {
 		return true;
 	}
 
+	public static Path getUrlCache(String fileURL) {
+		String urlHash = getStableID(fileURL);
+		return Settings.getCacheDir(Settings.CacheClass.urls).resolve(urlHash);
+	}
+
+	public static boolean hasMainMethod(String content) {
+		return content.contains("public static void main(");
+	}
+
+	public static boolean isGistURL(String scriptURL) {
+		return scriptURL.startsWith("https://gist.github.com/");
+	}
+
+	private static List<String> collectSources(List<String> lines) {
+		List<String> sources = new ArrayList<>();
+		for (String line : lines) {
+			if (!line.startsWith(Util.SOURCES_COMMENT_PREFIX))
+				continue;
+			String[] tmp1 = line.split("[ ;,]+");
+			for (int i = 1; i < tmp1.length; ++i) {
+				sources.add(tmp1[i]);
+			}
+		}
+		return sources;
+	}
+
+	public static List<String> collectSources(String content) {
+		if (content == null) {
+			return Collections.emptyList();
+		}
+		List<String> lines = getLines(null, content);
+		return collectSources(lines);
+	}
 }

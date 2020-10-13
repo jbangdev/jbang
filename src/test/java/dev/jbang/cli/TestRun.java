@@ -597,6 +597,41 @@ public class TestRun {
 	}
 
 	@Test
+	void testFetchFromGistWithFilename(@TempDir Path dir) throws IOException {
+
+		String u = Util.swizzleURL(
+				"https://gist.github.com/tivrfoa/503c88fb5123b1000c37a3f2832d4773#file-file2-java");
+
+		Path x = Util.downloadFile(u, dir.toFile());
+		assertEquals(x.getFileName().toString(), "file2.java");
+	}
+
+	@Test
+	void testFetchFromGistWithDashInFilename(@TempDir Path dir) throws IOException {
+
+		String u = Util.swizzleURL(
+				"https://gist.github.com/tivrfoa/503c88fb5123b1000c37a3f2832d4773#file-dash-test-java");
+
+		Path x = Util.downloadFile(u, dir.toFile());
+		assertEquals(x.getFileName().toString(), "dash-test.java");
+	}
+
+	// TODO It doesn't work because it's not from a trusted source.
+	// FIX: This test should be added to JBang
+	// @Test
+	// void testFetchFromGistReferencingAnotherURL(@TempDir Path dir) throws
+	// IOException {
+
+	// Script script = BaseScriptCommand.prepareScript(
+	// "https://gist.github.com/tivrfoa/39a0dee0ef32a75a064fe9c59c2bd68a",
+	// new ArrayList<>(), new HashMap<>(), new ArrayList<>(), new ArrayList<>());
+
+	// assertEquals(script.getResolvedSourcePaths().size(), 1);
+	// assertEquals(script.getResolvedSourcePaths().get(0).getFileName().toString(),
+	// "t3.java");
+	// }
+
+	@Test
 	void testFetchjshFromGist(@TempDir Path dir) throws IOException {
 
 		String u = Util.swizzleURL("https://gist.github.com/maxandersen/d4fa63eb16d8fc99448d37b10c7d8980");
@@ -604,6 +639,27 @@ public class TestRun {
 		Path x = Util.downloadFile(u,
 				dir.toFile());
 		assertEquals(x.getFileName().toString(), "hello.jsh");
+	}
+
+	@Test
+	void testFetchjshFromGistWithFilename(@TempDir Path dir) throws IOException {
+
+		String u = Util.swizzleURL(
+				"https://gist.github.com/tivrfoa/503c88fb5123b1000c37a3f2832d4773#file-file3-jsh");
+
+		Path x = Util.downloadFile(u,
+				dir.toFile());
+		assertEquals(x.getFileName().toString(), "file3.jsh");
+	}
+
+	@Test
+	void testFetchjshFromGistWithDashInFilename(@TempDir Path dir) throws IOException {
+
+		String u = Util.swizzleURL(
+				"https://gist.github.com/tivrfoa/503c88fb5123b1000c37a3f2832d4773#file-java-shell-script-jsh");
+
+		Path x = Util.downloadFile(u, dir.toFile());
+		assertEquals(x.getFileName().toString(), "java-shell-script.jsh");
 	}
 
 	@Test
@@ -951,10 +1007,18 @@ public class TestRun {
 		wms.stubFor(WireMock.get(urlEqualTo("/sub/two.java"))
 							.willReturn(aResponse()
 													.withHeader("Content-Type", "text/plain")
-													.withBody("public class two {" +
+													.withBody("//SOURCES three.java\n" +
+															"public class two {" +
+															" static { three.hi(); }" +
 															" public String toString() { return \"two for two\"; }" +
 															"}")));
 
+		wms.stubFor(WireMock.get(urlEqualTo("/sub/three.java"))
+							.willReturn(aResponse()
+													.withHeader("Content-Type", "text/plain")
+													.withBody("public class three {" +
+															" public static void hi() { System.out.println(\"hi\"); }" +
+															"}")));
 		wms.start();
 		Run m = new Run();
 

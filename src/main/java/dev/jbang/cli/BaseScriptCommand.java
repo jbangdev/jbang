@@ -8,7 +8,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -16,8 +18,11 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -153,10 +158,24 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			s.setAdditionalClasspaths(classpaths);
 
 			List<Path> resolvedSourcePaths = new ArrayList<>();
-			for (FileRef collectSource : s.collectSources()) {
-				// TODO should optimally be recursive
-				resolvedSourcePaths.add(s.getScriptResource().fetchIfNeeded(collectSource.getDestination()));
+			Set<String> visited = new HashSet<>();
+			LinkedList<String> sources = new LinkedList<>();
+			List<FileRef> fileRefs = s.collectSources();
+			for (FileRef fileRef : fileRefs) {
+				sources.add(fileRef.getDestination());
 			}
+			while (!sources.isEmpty()) {
+				String source = sources.poll();
+				if (!visited.add(source))
+					continue;
+				Path path = s.getScriptResource().fetchIfNeeded(source);
+				resolvedSourcePaths.add(path);
+				// TODO would we not be better of with Script ref here rather than a raw string
+				// ?
+				String sourceContent = new String(Files.readAllBytes(path), Charset.defaultCharset());
+				sources.addAll(Util.collectSources(sourceContent));
+			}
+
 			s.setResolvedSources(resolvedSourcePaths);
 		} catch (FileNotFoundException e) {
 			throw new ExitException(1, e);
@@ -304,9 +323,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			}
 
 			scriptURL = swizzleURL(scriptURL);
-
-			String urlHash = Util.getStableID(scriptURL);
-			File urlCache = Settings.getCacheDir(Settings.CacheClass.urls).resolve(urlHash).toFile();
+			File urlCache = Util.getUrlCache(scriptURL).toFile();
 			Path path = Util.downloadFileSwizzled(scriptURL, urlCache);
 
 			return new ScriptResource(scriptURL, urlCache, path.toFile());
