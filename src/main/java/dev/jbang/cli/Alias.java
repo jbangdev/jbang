@@ -31,7 +31,14 @@ abstract class BaseAliasCommand extends BaseCommand {
 		if (global) {
 			return Settings.getAliasesFile();
 		} else if (catalogFile != null && Files.isDirectory(catalogFile)) {
-			return Paths.get(catalogFile.toString(), AliasUtil.JBANG_CATALOG_JSON);
+			Path defaultJbangCatalog = Paths.get(catalogFile.toString(), AliasUtil.JBANG_CATALOG_JSON);
+			Path hiddenJbangCatalog = Paths.get(catalogFile.toString(), AliasUtil.JBANG_DOT_DIR,
+					AliasUtil.JBANG_CATALOG_JSON);
+			if (!Files.exists(defaultJbangCatalog) && Files.exists(hiddenJbangCatalog)) {
+				return hiddenJbangCatalog;
+			} else {
+				return defaultJbangCatalog;
+			}
 		} else {
 			return catalogFile;
 		}

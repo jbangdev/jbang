@@ -102,8 +102,23 @@ public class TestAlias {
 	}
 
 	@Test
+	void testAddWithHiddenJbangCatalog() throws IOException {
+		TemporaryFolder tmp = new TemporaryFolder();
+		tmp.create();
+		Path tmpPath = tmp.getRoot().toPath();
+		Path hiddenJbangPath = Paths.get(tmpPath.toString(), AliasUtil.JBANG_DOT_DIR);
+		Files.createDirectory(hiddenJbangPath);
+		Files.createFile(Paths.get(tmpPath.toString(), AliasUtil.JBANG_DOT_DIR, AliasUtil.JBANG_CATALOG_JSON));
+		Jbang jbang = new Jbang();
+		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "name", "scriptOrFile");
+		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), AliasUtil.JBANG_CATALOG_JSON)), is(false));
+		AliasUtil.Alias name = AliasUtil.getAlias(hiddenJbangPath, "name");
+		assertThat(name.scriptRef, is("scriptOrFile"));
+	}
+
+	@Test
 	void testAddPreservesExistingCatalog() throws IOException {
-		final Path jbangPath = jbangTempDir.getRoot().toPath();
+		Path jbangPath = jbangTempDir.getRoot().toPath();
 		Jbang jbang = new Jbang();
 		new CommandLine(jbang).execute("alias", "add", "-f", jbangPath.toString(), "name", "scriptOrFile");
 		AliasUtil.Alias one = AliasUtil.getAlias(jbangPath, "one");
