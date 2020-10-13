@@ -182,7 +182,7 @@ public class TestRun {
 
 		assertThat(result.getBackingFile().toString(), matchesPattern(".*\\.m2.*eclipse.jgit.pgm.*.jar"));
 
-		String line = run.generateCommandLine(result);
+		run.generateCommandLine(result);
 
 		assertThat(result.getMainClass(), equalTo("org.eclipse.jgit.pgm.Main"));
 
@@ -838,7 +838,6 @@ public class TestRun {
 
 	@Test
 	void testFilePresentB() throws IOException {
-		Jbang jbang = new Jbang();
 		File f = new File(examplesTestFolder, "resource.java");
 
 		Run m = new Run();
@@ -872,7 +871,6 @@ public class TestRun {
 	@Test
 	void testMultiSources() throws IOException {
 		Settings.clearCache(Settings.CacheClass.jars);
-		Jbang jbang = new Jbang();
 		File f = new File(examplesTestFolder, "one.java");
 
 		Run m = new Run();

@@ -138,7 +138,7 @@ class TestScript {
 		Path p = output.resolve("kube-example");
 		writeString(p, example);
 
-		Script s = BaseScriptCommand.prepareScript(p.toAbsolutePath().toString());
+		BaseScriptCommand.prepareScript(p.toAbsolutePath().toString());
 
 	}
 

@@ -18,8 +18,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.sun.nio.file.SensitivityWatchEventModifier;
-
 import dev.jbang.ExitException;
 import dev.jbang.FileRef;
 import dev.jbang.Script;
@@ -74,7 +72,8 @@ public class Edit extends BaseScriptCommand {
 					cmd = new String[] { "sh", "-c", optionList.stream().collect(Collectors.joining(" ")) };
 				}
 				info("Running `" + String.join(" ", cmd) + "`");
-				Process process = new ProcessBuilder(cmd).start();
+				new ProcessBuilder(cmd).start();
+
 			}
 		}
 
@@ -87,9 +86,8 @@ public class Edit extends BaseScriptCommand {
 					throw new ExitException(2, "Cannot live edit " + script.getOriginalFile());
 				}
 				Path watched = orginalFile.getAbsoluteFile().getParentFile().toPath();
-				final WatchKey watchKey = watched.register(watchService,
-						new WatchEvent.Kind[] { StandardWatchEventKinds.ENTRY_MODIFY },
-						SensitivityWatchEventModifier.HIGH);
+				watched.register(watchService,
+						new WatchEvent.Kind[] { StandardWatchEventKinds.ENTRY_MODIFY });
 				info("Watching for changes in " + watched);
 				while (true) {
 					final WatchKey wk = watchService.take();

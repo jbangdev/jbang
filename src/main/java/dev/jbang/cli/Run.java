@@ -41,21 +41,6 @@ public class Run extends BaseBuildCommand {
 	@CommandLine.Option(names = { "--javaagent" }, parameterConsumer = KeyOptionalValueConsumer.class)
 	Map<String, Optional<String>> javaAgentSlots;
 
-	void setJavaAgent(String param) {
-		Optional<String> javaAgent = Optional.empty();
-		Optional<String> javaAgentOptions = Optional.empty();
-
-		int eqpos = param.indexOf("=");
-
-		if (eqpos >= 0) {
-			javaAgent = Optional.of(param.substring(0, eqpos));
-			javaAgentOptions = Optional.of(param.substring(eqpos + 1));
-		} else {
-			javaAgent = Optional.of(param);
-			javaAgentOptions = Optional.empty();
-		}
-	}
-
 	@CommandLine.Option(names = { "--interactive" }, description = "activate interactive mode")
 	boolean interactive;
 

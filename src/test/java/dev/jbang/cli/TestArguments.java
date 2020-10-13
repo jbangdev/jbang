@@ -21,12 +21,10 @@ import picocli.CommandLine;
 class TestArguments {
 
 	private CommandLine cli;
-	private Jbang jbang;
 
 	@BeforeEach
 	void setup() throws IOException {
 		cli = Jbang.getCommandLine();
-		jbang = cli.getCommand();
 		jbangTempDir.create();
 	}
 

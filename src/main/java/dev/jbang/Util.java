@@ -182,8 +182,6 @@ public class Util {
 		Files.write(toPath, scriptText.getBytes());
 	}
 
-	private static final int BUFFER_SIZE = 4096;
-
 	private static final Pattern mainClassPattern = Pattern.compile(
 			"(?sm)class *(\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*) .*static void main");
 

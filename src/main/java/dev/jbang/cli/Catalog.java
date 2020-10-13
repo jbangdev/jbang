@@ -32,7 +32,6 @@ public class Catalog {
 		if (Settings.getCatalogs().containsKey(name)) {
 			throw new ExitException(EXIT_INVALID_INPUT, "A catalog with that name already exists");
 		}
-		PrintWriter err = spec.commandLine().getErr();
 		AliasUtil.Aliases aliases = AliasUtil.getCatalogAliasesByRef(urlOrFile, true);
 		if (description == null) {
 			description = aliases.description;

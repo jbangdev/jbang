@@ -59,7 +59,6 @@ public class ModularClassPath {
 			try {
 				ResolvePathsResult<File> resolvePathsResult = lm.resolvePaths(result);
 
-				Map<File, ModuleNameSource> modulepathElements = resolvePathsResult.getModulepathElements();
 				List<String> modulePaths = new ArrayList<>();
 				Map<String, JavaModuleDescriptor> pathElements = new HashMap<>();
 

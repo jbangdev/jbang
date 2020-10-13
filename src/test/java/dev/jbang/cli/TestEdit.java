@@ -9,7 +9,6 @@ import static org.hamcrest.Matchers.not;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,8 +24,6 @@ import org.junit.jupiter.api.io.TempDir;
 import dev.jbang.Script;
 import dev.jbang.Util;
 
-import picocli.CommandLine;
-
 public class TestEdit {
 
 	StringWriter output;
@@ -34,8 +31,6 @@ public class TestEdit {
 	@BeforeEach
 	void setup() {
 		output = new StringWriter();
-		CommandLine cli = Jbang.getCommandLine(new PrintWriter(output), new PrintWriter(output));
-		Jbang jbang = cli.getCommand();
 	}
 
 	@Test
