@@ -1075,6 +1075,9 @@ The aliases in that catalog are now available by adding `@demo` to their names. 
   [jbang] Building jar...
   Hello World!
 
+In fact it's possible to run the alias just by using `jbang run hello`, the `@demo` part is only necessary when trying to
+disambiguate between aliases with the same name from different catalogs.
+
 You can list the available catalogs by running:
 
   jbang catalog list

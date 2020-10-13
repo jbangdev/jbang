@@ -489,12 +489,8 @@ public class AliasUtil {
 			cwd = getCwd();
 		}
 		Catalog result = new Catalog(null, null, null);
-		Catalog implicitCatalog = getCatalog(Settings.getUserImplicitCatalogFile(), false);
-		result.aliases.putAll(implicitCatalog.aliases);
-		result.catalogs.putAll(implicitCatalog.catalogs);
-		Catalog userCatalog = getCatalog(Settings.getUserCatalogFile(), false);
-		result.aliases.putAll(userCatalog.aliases);
-		result.catalogs.putAll(userCatalog.catalogs);
+		mergeCatalog(Settings.getUserImplicitCatalogFile(), result);
+		mergeCatalog(Settings.getUserCatalogFile(), result);
 		mergeLocalCatalogs(cwd, result);
 		return result;
 	}
@@ -505,16 +501,22 @@ public class AliasUtil {
 		}
 		Path catalogFile = dir.resolve(JBANG_DOT_DIR).resolve(JBANG_CATALOG_JSON);
 		if (Files.isRegularFile(catalogFile) && Files.isReadable(catalogFile)) {
-			Catalog catalog = getCatalog(catalogFile, false);
-			result.aliases.putAll(catalog.aliases);
-			result.catalogs.putAll(catalog.catalogs);
+			mergeCatalog(catalogFile, result);
 		}
 		catalogFile = dir.resolve(JBANG_CATALOG_JSON);
 		if (Files.isRegularFile(catalogFile) && Files.isReadable(catalogFile)) {
-			Catalog catalog = getCatalog(catalogFile, false);
-			result.aliases.putAll(catalog.aliases);
-			result.catalogs.putAll(catalog.catalogs);
+			mergeCatalog(catalogFile, result);
 		}
+	}
+
+	private static void mergeCatalog(Path catalogFile, Catalog result) {
+		Catalog catalog = getCatalog(catalogFile, false);
+		for (CatalogRef ref : catalog.catalogs.values()) {
+			Catalog cat = getCatalogByRef(ref.catalogRef, false);
+			result.aliases.putAll(cat.aliases);
+		}
+		result.aliases.putAll(catalog.aliases);
+		result.catalogs.putAll(catalog.catalogs);
 	}
 
 	private static Path findNearestLocalCatalog(Path dir) {
