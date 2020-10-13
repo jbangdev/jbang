@@ -105,7 +105,7 @@ class AliasList extends BaseAliasCommand {
 		} else if (cat != null) {
 			catalog = AliasUtil.getCatalog(cat, false);
 		} else {
-			catalog = AliasUtil.getMergedCatalog(null);
+			catalog = AliasUtil.getMergedCatalog(null, true);
 		}
 		if (showOrigin) {
 			printAliasesWithOrigin(out, catalogName, catalog);

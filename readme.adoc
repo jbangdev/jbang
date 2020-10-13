@@ -1064,6 +1064,10 @@ remote catalogs. You can for example add a catalog like this:
 
   jbang catalog add demo https://github.com/jbangdev/jbang-catalog/blob/master/jbang-catalog.json
 
+or simply by using the same "implicit" catalog system described in <<Implicit Alias Catalogs>>:
+
+  jbang catalog add demo jbangdev
+
 The aliases in that catalog are now available by adding `@demo` to their names. For example:
 
   $ jbang alias list demo

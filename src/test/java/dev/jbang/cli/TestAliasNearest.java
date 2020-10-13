@@ -120,7 +120,7 @@ public class TestAliasNearest {
 
 	@Test
 	void testList() throws IOException {
-		AliasUtil.Catalog catalog = AliasUtil.getMergedCatalog(cwd);
+		AliasUtil.Catalog catalog = AliasUtil.getMergedCatalog(cwd, false);
 		assertThat(catalog, notNullValue());
 
 		HashSet<String> keys = new HashSet<String>(Arrays.asList(

@@ -203,7 +203,7 @@ public class AliasUtil {
 	 * @return An Alias object
 	 */
 	private static Alias getLocalAlias(Path cwd, String aliasName) {
-		Catalog catalog = getMergedCatalog(cwd);
+		Catalog catalog = getMergedCatalog(cwd, false);
 		return catalog.aliases.getOrDefault(aliasName, null);
 	}
 
@@ -240,20 +240,11 @@ public class AliasUtil {
 	}
 
 	private static CatalogRef getCatalogRef(Path cwd, String catalogName) {
-		Catalog catalog = getMergedCatalog(cwd);
+		Catalog catalog = getMergedCatalog(cwd, true);
 		CatalogRef catalogRef = catalog.catalogs.get(catalogName);
 		if (catalogRef == null) {
 			Util.verboseMsg("Local catalog '" + catalogName + "' not found, trying implicit catalogs...");
-			ImplicitCatalogRef icr = ImplicitCatalogRef.parse(catalogName);
-			Optional<String> url;
-			url = chain(
-					() -> tryDownload(icr.url(GITHUB_URL, "/blob/")),
-					() -> icr.isPossibleCommit() ? tryDownload(icr.url(GITHUB_URL, "/blob/")) : Optional.empty(),
-					() -> tryDownload(icr.url(GITLAB_URL, "/-/blob/")),
-					() -> icr.isPossibleCommit() ? tryDownload(icr.url(GITLAB_URL, "/-/blob/")) : Optional.empty(),
-					() -> tryDownload(icr.url(BITBUCKET_URL, "/src/")),
-					() -> icr.isPossibleCommit() ? tryDownload(icr.url(BITBUCKET_URL, "/src/")) : Optional.empty())
-																													.findFirst();
+			Optional<String> url = getImplicitCatalogUrl(catalogName);
 			if (url.isPresent()) {
 				Catalog implicitCatalog = AliasUtil.getCatalogByRef(url.get(), false);
 				catalogRef = addCatalog(cwd, Settings.getUserImplicitCatalogFile(), catalogName, url.get(),
@@ -261,6 +252,19 @@ public class AliasUtil {
 			}
 		}
 		return catalogRef;
+	}
+
+	private static Optional<String> getImplicitCatalogUrl(String catalogName) {
+		ImplicitCatalogRef icr = ImplicitCatalogRef.parse(catalogName);
+		Optional<String> url = chain(
+				() -> tryDownload(icr.url(GITHUB_URL, "/blob/")),
+				() -> icr.isPossibleCommit() ? tryDownload(icr.url(GITHUB_URL, "/blob/")) : Optional.empty(),
+				() -> tryDownload(icr.url(GITLAB_URL, "/-/blob/")),
+				() -> icr.isPossibleCommit() ? tryDownload(icr.url(GITLAB_URL, "/-/blob/")) : Optional.empty(),
+				() -> tryDownload(icr.url(BITBUCKET_URL, "/src/")),
+				() -> icr.isPossibleCommit() ? tryDownload(icr.url(BITBUCKET_URL, "/src/")) : Optional.empty())
+																												.findFirst();
+		return url;
 	}
 
 	private static class ImplicitCatalogRef {
@@ -437,12 +441,35 @@ public class AliasUtil {
 
 	/**
 	 * Load a Catalog's aliases given a file path or URL
+	 *
+	 * @param catalogRef  File path, full URL or implicit Catalog reference to a
+	 *                    Catalog.
+	 * @param updateCache Set to true to ignore cached values
+	 * @return A Catalog object
+	 */
+	public static CatalogRef getCatalogRefByRefOrImplicit(String catalogRef, boolean updateCache) {
+		if (isAbsoluteRef(catalogRef) || Files.isRegularFile(Paths.get(catalogRef))) {
+			Catalog cat = getCatalogByRef(catalogRef, updateCache);
+			return new CatalogRef(catalogRef, cat.description);
+		} else {
+			Optional<String> url = getImplicitCatalogUrl(catalogRef);
+			if (!url.isPresent()) {
+				throw new ExitException(EXIT_UNEXPECTED_STATE,
+						"Unable to locate catalog: " + catalogRef);
+			}
+			Catalog cat = AliasUtil.getCatalogByRef(url.get(), false);
+			return new CatalogRef(url.get(), cat.description);
+		}
+	}
+
+	/**
+	 * Load a Catalog's aliases given a file path or URL
 	 * 
 	 * @param catalogRef  File path or URL to a Catalog JSON file. If this does not
 	 *                    end in .json then jbang-catalog.json will be appended to
 	 *                    the end.
 	 * @param updateCache Set to true to ignore cached values
-	 * @return An Aliases object
+	 * @return A Catalog object
 	 */
 	public static Catalog getCatalogByRef(String catalogRef, boolean updateCache) {
 		if (!catalogRef.endsWith(".json")) {
@@ -481,15 +508,19 @@ public class AliasUtil {
 	 * into one. This follows the system where aliases that are "nearest" have
 	 * priority.
 	 * 
-	 * @param cwd The current working directory
+	 * @param cwd              The current working directory
+	 * @param includeImplicits Determines if the implicit catalogs should be merged
+	 *                         or not
 	 * @return a Catalog object
 	 */
-	public static Catalog getMergedCatalog(Path cwd) {
+	public static Catalog getMergedCatalog(Path cwd, boolean includeImplicits) {
 		if (cwd == null) {
 			cwd = getCwd();
 		}
 		Catalog result = new Catalog(null, null, null);
-		mergeCatalog(Settings.getUserImplicitCatalogFile(), result);
+		if (includeImplicits) {
+			mergeCatalog(Settings.getUserImplicitCatalogFile(), result);
+		}
 		mergeCatalog(Settings.getUserCatalogFile(), result);
 		mergeLocalCatalogs(cwd, result);
 		return result;
@@ -617,6 +648,12 @@ public class AliasUtil {
 			Path cat = Paths.get(catalogRef);
 			if (!cat.isAbsolute() && Files.isRegularFile(cat)) {
 				catalogRef = cat.toAbsolutePath().toString();
+			}
+			if (!isAbsoluteRef(catalogRef)) {
+				Optional<String> url = getImplicitCatalogUrl(catalogRef);
+				if (url.isPresent()) {
+					catalogRef = url.get();
+				}
 			}
 		} catch (InvalidPathException ex) {
 			// Ignore
