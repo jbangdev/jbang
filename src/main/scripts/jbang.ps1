@@ -145,7 +145,9 @@ $global:progresspreference=$old_progresspreference
 
 if ($err -eq 255) {
   Invoke-Expression "& $output"
-} else {
+} elseif ($output -ne "") {
   Write-Output $output
+  break
+} else {
   break
 }
