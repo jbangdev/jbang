@@ -531,14 +531,24 @@ public class Util {
 	private static String extractFileFromGist(String url) {
 
 		try {
-			String gistapi = url.replaceFirst("^https://gist.github.com/(([a-zA-Z0-9]*)/)?(?<gistid>[a-zA-Z0-9]*)$",
+			String[] pathPlusAnchor = url.split("#");
+			String fileName = null;
+			if (pathPlusAnchor.length == 2) {
+				String[] tmp = pathPlusAnchor[1].split("-");
+				if (tmp.length != 3)
+					throw new IllegalArgumentException("Invalid Gist url: " + url);
+				fileName = tmp[1];
+			}
+			String gistapi = pathPlusAnchor[0].replaceFirst(
+					"^https://gist.github.com/(([a-zA-Z0-9]*)/)?(?<gistid>[a-zA-Z0-9]*)$",
 					"https://api.github.com/gists/${gistid}");
-			// Util.info("looking at " + gistapi);
+
+			Util.verboseMsg("looking at " + gistapi);
 			String strdata = null;
 			try {
 				strdata = readStringFromURL(gistapi);
 			} catch (IOException e) {
-				// Util.info("error " + e);
+				Util.verboseMsg("error " + e);
 				return url;
 			}
 
@@ -546,21 +556,35 @@ public class Util {
 
 			Gist gist = parser.fromJson(strdata, Gist.class);
 
-			// Util.info("found " + gist.files);
-			final Optional<Map.Entry<String, Map<String, String>>> first = gist.files	.entrySet()
-																						.stream()
-																						.filter(e -> e	.getKey()
-																										.endsWith(
-																												".java")
-																								|| e.getKey()
-																									.endsWith(".jsh"))
-																						.findFirst();
-
-			if (first.isPresent()) {
-				// Util.info("looking at " + first);
-				return (String) first.get().getValue().getOrDefault("raw_url", url);
+			Util.verboseMsg("found " + gist.files);
+			Optional<Map.Entry<String, Map<String, String>>> file = Optional.empty();
+			if (fileName != null) { // User wants to run specific Gist file
+				String fileNameLowerCase = fileName.toLowerCase();
+				file = gist.files	.entrySet()
+									.stream()
+									.filter(e -> e.getKey().toLowerCase().contains(fileNameLowerCase)
+											&& (e	.getKey()
+													.endsWith(
+															".java")
+													|| e.getKey()
+														.endsWith(".jsh")))
+									.findFirst();
 			} else {
-				// Util.info("nothing worked!");
+				file = gist.files	.entrySet()
+									.stream()
+									.filter(e -> e	.getKey()
+													.endsWith(
+															".java")
+											|| e.getKey()
+												.endsWith(".jsh"))
+									.findFirst();
+			}
+
+			if (file.isPresent()) {
+				Util.verboseMsg("looking at " + file);
+				return (String) file.get().getValue().getOrDefault("raw_url", url);
+			} else {
+				Util.verboseMsg("nothing worked!");
 				return url;
 			}
 		} catch (RuntimeException re) {
