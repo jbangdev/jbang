@@ -1,7 +1,5 @@
 package dev.jbang.cli;
 
-import static java.lang.System.out;
-
 import java.io.IOException;
 import java.io.PrintStream;
 

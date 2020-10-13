@@ -160,7 +160,7 @@ public class TrustedSources {
 	 * @return reversed array
 	 */
 	static <T> T[] reverse(T[] array) {
-		int i, k;
+		int i;
 		T temp;
 		for (i = 0; i < array.length / 2; i++) {
 			temp = array[i];

@@ -67,7 +67,6 @@ public class Script {
 	private List<MavenRepo> repositories;
 	private List<FileRef> filerefs;
 	private List<String> persistentJvmArgs;
-	private List<String> jvmArgs;
 	private List<FileRef> sources;
 	private List<Path> resolvedSources;
 	private List<Script> javaAgents;

@@ -177,7 +177,6 @@ public class Jbang extends BaseCommand {
 			}
 
 			StringBuilder result = new StringBuilder();
-			Set s = new HashSet<String>();
 
 			sections.forEach((key, value) -> result.append(renderSection(key, value, help)));
 			return result.toString();

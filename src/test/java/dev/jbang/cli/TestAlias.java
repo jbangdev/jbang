@@ -213,7 +213,7 @@ public class TestAlias {
 	@Test
 	void testGetAliasLoop() throws IOException {
 		try {
-			AliasUtil.Alias alias = AliasUtil.getAlias(cwd, "eight", null, null);
+			AliasUtil.getAlias(cwd, "eight", null, null);
 			Assert.fail();
 		} catch (RuntimeException ex) {
 			assertThat(ex.getMessage(), containsString("seven"));
