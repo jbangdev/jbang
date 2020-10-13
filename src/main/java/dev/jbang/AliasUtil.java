@@ -244,16 +244,7 @@ public class AliasUtil {
 		CatalogRef catalogRef = catalog.catalogs.get(catalogName);
 		if (catalogRef == null) {
 			Util.verboseMsg("Local catalog '" + catalogName + "' not found, trying implicit catalogs...");
-			ImplicitCatalogRef icr = ImplicitCatalogRef.parse(catalogName);
-			Optional<String> url;
-			url = chain(
-					() -> tryDownload(icr.url(GITHUB_URL, "/blob/")),
-					() -> icr.isPossibleCommit() ? tryDownload(icr.url(GITHUB_URL, "/blob/")) : Optional.empty(),
-					() -> tryDownload(icr.url(GITLAB_URL, "/-/blob/")),
-					() -> icr.isPossibleCommit() ? tryDownload(icr.url(GITLAB_URL, "/-/blob/")) : Optional.empty(),
-					() -> tryDownload(icr.url(BITBUCKET_URL, "/src/")),
-					() -> icr.isPossibleCommit() ? tryDownload(icr.url(BITBUCKET_URL, "/src/")) : Optional.empty())
-																													.findFirst();
+			Optional<String> url = getImplicitCatalogUrl(catalogName);
 			if (url.isPresent()) {
 				Catalog implicitCatalog = AliasUtil.getCatalogByRef(url.get(), false);
 				catalogRef = addCatalog(cwd, Settings.getUserImplicitCatalogFile(), catalogName, url.get(),
@@ -261,6 +252,19 @@ public class AliasUtil {
 			}
 		}
 		return catalogRef;
+	}
+
+	private static Optional<String> getImplicitCatalogUrl(String catalogName) {
+		ImplicitCatalogRef icr = ImplicitCatalogRef.parse(catalogName);
+		Optional<String> url = chain(
+				() -> tryDownload(icr.url(GITHUB_URL, "/blob/")),
+				() -> icr.isPossibleCommit() ? tryDownload(icr.url(GITHUB_URL, "/blob/")) : Optional.empty(),
+				() -> tryDownload(icr.url(GITLAB_URL, "/-/blob/")),
+				() -> icr.isPossibleCommit() ? tryDownload(icr.url(GITLAB_URL, "/-/blob/")) : Optional.empty(),
+				() -> tryDownload(icr.url(BITBUCKET_URL, "/src/")),
+				() -> icr.isPossibleCommit() ? tryDownload(icr.url(BITBUCKET_URL, "/src/")) : Optional.empty())
+																												.findFirst();
+		return url;
 	}
 
 	private static class ImplicitCatalogRef {
@@ -437,12 +441,35 @@ public class AliasUtil {
 
 	/**
 	 * Load a Catalog's aliases given a file path or URL
+	 *
+	 * @param catalogRef  File path, full URL or implicit Catalog reference to a
+	 *                    Catalog.
+	 * @param updateCache Set to true to ignore cached values
+	 * @return A Catalog object
+	 */
+	public static CatalogRef getCatalogRefByRefOrImplicit(String catalogRef, boolean updateCache) {
+		if (isAbsoluteRef(catalogRef) || Files.isRegularFile(Paths.get(catalogRef))) {
+			Catalog cat = getCatalogByRef(catalogRef, updateCache);
+			return new CatalogRef(catalogRef, cat.description);
+		} else {
+			Optional<String> url = getImplicitCatalogUrl(catalogRef);
+			if (!url.isPresent()) {
+				throw new ExitException(EXIT_UNEXPECTED_STATE,
+						"Unable to locate catalog: " + catalogRef);
+			}
+			Catalog cat = AliasUtil.getCatalogByRef(url.get(), false);
+			return new CatalogRef(url.get(), cat.description);
+		}
+	}
+
+	/**
+	 * Load a Catalog's aliases given a file path or URL
 	 * 
 	 * @param catalogRef  File path or URL to a Catalog JSON file. If this does not
 	 *                    end in .json then jbang-catalog.json will be appended to
 	 *                    the end.
 	 * @param updateCache Set to true to ignore cached values
-	 * @return An Aliases object
+	 * @return A Catalog object
 	 */
 	public static Catalog getCatalogByRef(String catalogRef, boolean updateCache) {
 		if (!catalogRef.endsWith(".json")) {

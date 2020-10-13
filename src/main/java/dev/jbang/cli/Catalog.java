@@ -67,15 +67,12 @@ class CatalogAdd extends BaseCatalogCommand {
 			throw new IllegalArgumentException(
 					"Invalid catalog name, it should start with a letter followed by 0 or more letters, digits, underscores, hyphens or dots");
 		}
-		AliasUtil.Catalog catalog = AliasUtil.getCatalogByRef(urlOrFile, true);
-		if (description == null) {
-			description = catalog.description;
-		}
+		AliasUtil.CatalogRef ref = AliasUtil.getCatalogRefByRefOrImplicit(urlOrFile, true);
 		Path catFile = getCatalog(false);
 		if (catFile != null) {
-			AliasUtil.addCatalog(null, catFile, name, urlOrFile, description);
+			AliasUtil.addCatalog(null, catFile, name, ref.catalogRef, ref.description);
 		} else {
-			catFile = AliasUtil.addNearestCatalog(null, name, urlOrFile, description);
+			catFile = AliasUtil.addNearestCatalog(null, name, ref.catalogRef, ref.description);
 		}
 		info(String.format("Catalog added to %s", catFile));
 		return EXIT_OK;
