@@ -1,6 +1,7 @@
 import org.gradle.crypto.checksum.Checksum
 
 plugins {
+	id "application"
 	id "distribution"
 	id "com.github.johnrengelman.shadow" version "6.1.0"
 	id "java"
@@ -11,6 +12,7 @@ plugins {
 	id 'de.fuerstenau.buildconfig' version '1.1.8'
 	id "com.dorongold.task-tree" version "1.5"
 	id "com.geoffgranum.gradle-conventional-changelog" version "0.3.1"
+	id "org.asciidoctor.convert" version "2.4.0"
 }
 
 repositories {
@@ -19,6 +21,7 @@ repositories {
 }
 
 dependencies {
+	annotationProcessor "info.picocli:picocli-codegen:4.5.0"
 	implementation 'com.offbytwo:docopt:0.6.0.20150202'
 
 	implementation 'org.apache.commons:commons-text:1.9'
@@ -92,6 +95,9 @@ def commonSpec = project.copySpec {
 	}
 	from(project.buildDir) {
 		include 'tmp/version.txt'
+	}
+	from("${buildDir}/docs/manpage") {
+		into 'manpage'
 	}
 	from('src/main/scripts') {
 		include 'jbang'
@@ -277,6 +283,25 @@ task tag(type: Exec) {
 	}
 }
 
+mainClassName = "dev.jbang.cli.Jbang"
+
+task generateManpageAsciiDoc(type: JavaExec) {
+	dependsOn(classes)
+	group = "Documentation"
+	description = "Generate AsciiDoc manpage"
+	classpath(configurations.compile, configurations.annotationProcessor, sourceSets.main.runtimeClasspath)
+	main 'picocli.codegen.docgen.manpage.ManPageGenerator'
+	args mainClassName, "--outdir=${buildDir}/generated-picocli-docs"
+}
+
+asciidoctor {
+	dependsOn(generateManpageAsciiDoc)
+	sourceDir = file("${buildDir}/generated-picocli-docs")
+	outputDir = file("${buildDir}/docs")
+	logDocuments = true
+	backends 'manpage'
+}
+
 githubRelease {
 	// currently does not work as project.version not set.
 	// FilenameFilter filter = { dir, filename -> filename.contains(project.version) } // ensure nothing extra gets included.
@@ -305,6 +330,7 @@ versioner {
 	}
 }
 
+build.dependsOn(asciidoctor)
 build.dependsOn(latestDistZip)
 build.dependsOn(latestDistTar)
 build.dependsOn(copyITests)
