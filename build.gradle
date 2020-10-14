@@ -305,6 +305,7 @@ versioner {
 	}
 }
 
+build.dependsOn(versionTxt)
 build.dependsOn(latestDistZip)
 build.dependsOn(latestDistTar)
 build.dependsOn(copyITests)
