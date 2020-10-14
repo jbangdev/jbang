@@ -195,6 +195,16 @@ public class Edit extends BaseScriptCommand {
 					destination);
 		}
 
+		// setup vscode
+		templateName = "README.qute.md";
+		destination = new File(tmpProjectDir, "README.md").toPath();
+		if (isNeeded(reload, destination)) {
+			destination.toFile().getParentFile().mkdirs();
+			renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName,
+					script.getArguments(),
+					destination);
+		}
+
 		templateName = "settings.qute.json";
 		destination = new File(tmpProjectDir, ".vscode/settings.json").toPath();
 		if (isNeeded(reload, destination)) {
