@@ -550,7 +550,7 @@ public class Util {
 			try {
 				strdata = readStringFromURL(gistapi);
 			} catch (IOException e) {
-				Util.verboseMsg("error " + e);
+				Util.verboseMsg("Error when extracting file from gist url: " + e);
 				return url;
 			}
 
@@ -558,7 +558,6 @@ public class Util {
 
 			Gist gist = parser.fromJson(strdata, Gist.class);
 
-			Util.verboseMsg("found " + gist.files);
 			Optional<Map.Entry<String, Map<String, String>>> file = Optional.empty();
 			if (!fileName.isEmpty()) { // User wants to run specific Gist file
 				Util.verboseMsg("Searching for file: " + fileName);
@@ -584,10 +583,10 @@ public class Util {
 			}
 
 			if (file.isPresent()) {
-				Util.verboseMsg("looking at " + file);
+				Util.verboseMsg("Extracting Gist file: " + file.get().getKey());
 				return (String) file.get().getValue().getOrDefault("raw_url", url);
 			} else {
-				Util.verboseMsg("nothing worked!");
+				Util.verboseMsg("No .java or .jsh file found in Gist.");
 				return url;
 			}
 		} catch (RuntimeException re) {
