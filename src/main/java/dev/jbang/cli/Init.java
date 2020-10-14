@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Random;
 
 import dev.jbang.ExitException;
 import dev.jbang.Settings;
@@ -14,6 +15,8 @@ import picocli.CommandLine;
 
 @CommandLine.Command(name = "init", description = "Initialize a script.")
 public class Init extends BaseScriptCommand {
+
+	static String[] knowneditors = { "code", "eclipse", "idea", "vi", "emacs", "netbeans" };
 
 	@CommandLine.Option(names = { "--template",
 			"-t" }, description = "Init script with a java class useful for scripting", defaultValue = "hello")
@@ -38,8 +41,10 @@ public class Init extends BaseScriptCommand {
 				// file.
 				throw e;
 			}
+
 			info("File initialized. You can now run it with 'jbang " + scriptOrFile
-					+ "' or edit it using 'code `jbang edit " + scriptOrFile + "`'");
+					+ "' or edit it using 'jbang edit --open=" + knowneditors[new Random().nextInt(knowneditors.length)]
+					+ " " + scriptOrFile + "`'");
 		}
 		return EXIT_OK;
 	}
