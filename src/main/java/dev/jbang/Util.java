@@ -534,12 +534,12 @@ public class Util {
 			String[] pathPlusAnchor = url.split("#");
 			String fileName = "";
 			if (pathPlusAnchor.length == 2) {
-				String[] tmp = pathPlusAnchor[1].split("-");
-				if (tmp.length < 2)
+				String[] anchor = pathPlusAnchor[1].split("-");
+				if (anchor.length < 2)
 					throw new IllegalArgumentException("Invalid Gist url: " + url);
-				fileName = tmp[1];
-				for (int i = 2; i < tmp.length - 1; ++i)
-					fileName += "-" + tmp[i];
+				fileName = anchor[1];
+				for (int i = 2; i < anchor.length - 1; ++i)
+					fileName += "-" + anchor[i];
 			}
 			String gistapi = pathPlusAnchor[0].replaceFirst(
 					"^https://gist.github.com/(([a-zA-Z0-9]*)/)?(?<gistid>[a-zA-Z0-9]*)$",

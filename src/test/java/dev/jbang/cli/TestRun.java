@@ -561,6 +561,25 @@ public class TestRun {
 	}
 
 	@Test
+	void testFetchFromGistWithFilename(@TempDir Path dir) throws IOException {
+
+		String u = Util.swizzleURL("https://gist.github.com/tivrfoa/503c88fb5123b1000c37a3f2832d4773#file-file2-java");
+
+		Path x = Util.downloadFile(u, dir.toFile());
+		assertEquals(x.getFileName().toString(), "file2.java");
+	}
+
+	@Test
+	void testFetchFromGistWithDashInFilename(@TempDir Path dir) throws IOException {
+
+		String u = Util.swizzleURL(
+				"https://gist.github.com/tivrfoa/503c88fb5123b1000c37a3f2832d4773#file-dash-test-java");
+
+		Path x = Util.downloadFile(u, dir.toFile());
+		assertEquals(x.getFileName().toString(), "dash-test.java");
+	}
+
+	@Test
 	void testFetchjshFromGist(@TempDir Path dir) throws IOException {
 
 		String u = Util.swizzleURL("https://gist.github.com/maxandersen/d4fa63eb16d8fc99448d37b10c7d8980");
@@ -568,6 +587,26 @@ public class TestRun {
 		Path x = Util.downloadFile(u,
 				dir.toFile());
 		assertEquals(x.getFileName().toString(), "hello.jsh");
+	}
+
+	@Test
+	void testFetchjshFromGistWithFilename(@TempDir Path dir) throws IOException {
+
+		String u = Util.swizzleURL("https://gist.github.com/tivrfoa/503c88fb5123b1000c37a3f2832d4773#file-file3-jsh");
+
+		Path x = Util.downloadFile(u,
+				dir.toFile());
+		assertEquals(x.getFileName().toString(), "file3.jsh");
+	}
+
+	@Test
+	void testFetchjshFromGistWithDashInFilename(@TempDir Path dir) throws IOException {
+
+		String u = Util.swizzleURL(
+				"https://gist.github.com/tivrfoa/503c88fb5123b1000c37a3f2832d4773#file-java-shell-script-jsh");
+
+		Path x = Util.downloadFile(u, dir.toFile());
+		assertEquals(x.getFileName().toString(), "java-shell-script.jsh");
 	}
 
 	@Test
