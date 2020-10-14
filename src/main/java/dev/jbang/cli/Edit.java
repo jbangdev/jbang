@@ -1,8 +1,13 @@
 package dev.jbang.cli;
 
-import static dev.jbang.Settings.CP_SEPARATOR;
-import static dev.jbang.Util.isWindows;
-import static java.lang.System.out;
+import dev.jbang.ExitException;
+import dev.jbang.FileRef;
+import dev.jbang.Script;
+import dev.jbang.Settings;
+import dev.jbang.TemplateEngine;
+import dev.jbang.Util;
+import io.quarkus.qute.Template;
+import picocli.CommandLine;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,15 +23,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import dev.jbang.ExitException;
-import dev.jbang.FileRef;
-import dev.jbang.Script;
-import dev.jbang.Settings;
-import dev.jbang.TemplateEngine;
-import dev.jbang.Util;
-
-import io.quarkus.qute.Template;
-import picocli.CommandLine;
+import static dev.jbang.Settings.CP_SEPARATOR;
+import static dev.jbang.Util.isWindows;
+import static java.lang.System.out;
 
 @CommandLine.Command(name = "edit", description = "Setup a temporary project to edit script in an IDE.")
 public class Edit extends BaseScriptCommand {
@@ -188,6 +187,16 @@ public class Edit extends BaseScriptCommand {
 		// setup vscode
 		templateName = "launch.qute.json";
 		destination = new File(tmpProjectDir, ".vscode/launch.json").toPath();
+		if (isNeeded(reload, destination)) {
+			destination.toFile().getParentFile().mkdirs();
+			renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName,
+					script.getArguments(),
+					destination);
+		}
+
+		// setup vscode
+		templateName = "README.qute.md";
+		destination = new File(tmpProjectDir, "README.md").toPath();
 		if (isNeeded(reload, destination)) {
 			destination.toFile().getParentFile().mkdirs();
 			renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName,
