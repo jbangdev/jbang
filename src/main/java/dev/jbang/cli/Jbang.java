@@ -12,12 +12,19 @@ import static picocli.CommandLine.ScopeType;
 
 import java.io.File;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 
-import dev.jbang.*;
+import dev.jbang.DeprecatedMessageHandler;
+import dev.jbang.ExitException;
+import dev.jbang.Util;
+import dev.jbang.VersionProvider;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Help.TextTable;
@@ -39,7 +46,7 @@ import picocli.CommandLine.Model.UsageMessageSpec;
 
 		"" }, versionProvider = VersionProvider.class, subcommands = {
 				Run.class, Build.class, Edit.class, Init.class, Alias.class, Catalog.class, Trust.class, Cache.class,
-				Completion.class, Jdk.class, Version.class, Wrapper.class })
+				Completion.class, Jdk.class, Version.class, Wrapper.class, Info.class })
 public class Jbang extends BaseCommand {
 
 	@CommandLine.ArgGroup(exclusive = true)
@@ -120,7 +127,7 @@ public class Jbang extends BaseCommand {
 		sections.put("Editing", asList("init", "edit"));
 		sections.put("Caching", asList("cache", "jdk"));
 		sections.put("Configuration", asList("trust", "alias", "catalog"));
-		sections.put("Other", asList("completion", "version", "wrapper"));
+		sections.put("Other", asList("completion", "version", "wrapper", "info"));
 		CommandGroupRenderer renderer = new CommandGroupRenderer(sections);
 		return renderer;
 	}
@@ -163,7 +170,7 @@ public class Jbang extends BaseCommand {
 			}
 
 			if (actualcmds.size() > 0) {
-				throw new IllegalStateException(("Commands found with no section" + actualcmds));
+				throw new IllegalStateException(("Commands found with no assigned section" + actualcmds));
 			}
 
 			sections.forEach((key, value) -> cmds.addAll(value));
