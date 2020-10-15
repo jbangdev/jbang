@@ -77,6 +77,9 @@ jobs:
           echo "::add-matcher::.github/karatewindows-matcher.json"   
           .\itests.cmd
           echo "::remove-matcher owner=karate-windows::"
+      - name: codecoverage-report
+        run: |
+          ./gradlew jacocoTestReport
       - name: build-choco-package
         if: runner.os == 'Windows'
         uses: actions/setup-dotnet@v1
