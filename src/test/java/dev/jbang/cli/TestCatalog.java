@@ -16,7 +16,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import dev.jbang.AliasUtil;
-import dev.jbang.Settings;
 
 import picocli.CommandLine;
 
@@ -35,21 +34,20 @@ public class TestCatalog {
 			"  }\n" +
 			"}";
 
-	static Path catInfoFile = null;
+	static Path catsFile = null;
 	static Path testCatalogFile = null;
 
 	@BeforeEach
 	void init() throws IOException {
 		jbangTempDir.create();
 		catalogTempDir.create();
-		catInfoFile = jbangTempDir.getRoot().toPath().resolve("catalogs.json");
+		catsFile = jbangTempDir.getRoot().toPath().resolve("jbang-catalog.json");
 		environmentVariables.set("JBANG_DIR", jbangTempDir.getRoot().getPath());
-		testCatalogFile = catalogTempDir.getRoot().toPath().resolve("test-catalog.json");
+		cwd = catalogTempDir.getRoot().toPath();
+		testCatalogFile = cwd.resolve("test-catalog.json");
 		Files.write(testCatalogFile, testCatalog.getBytes());
-
 		clearSettingsCaches();
-		Jbang jbang = new Jbang();
-		new CommandLine(jbang).execute("catalog", "add", "test", testCatalogFile.toAbsolutePath().toString());
+		AliasUtil.addCatalog(null, catsFile, "test", testCatalogFile.toAbsolutePath().toString(), "Test catalog");
 	}
 
 	@Rule
@@ -61,18 +59,21 @@ public class TestCatalog {
 	@Rule
 	public final TemporaryFolder catalogTempDir = new TemporaryFolder();
 
+	private Path cwd;
+
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();
 
 	@Test
 	void testAddSucceeded() throws IOException {
-		assertThat(Files.isRegularFile(catInfoFile), is(true));
-		String cat = new String(Files.readAllBytes(catInfoFile));
+		assertThat(Files.isRegularFile(catsFile), is(true));
+		String cat = new String(Files.readAllBytes(catsFile));
 		assertThat(cat, containsString("\"test\""));
 		assertThat(cat, containsString("test-catalog.json\""));
 
-		assertThat(Settings.getCatalogs(), hasKey("test"));
-		assertThat(Settings.getCatalogs().get("test").catalogRef, is(testCatalogFile.toAbsolutePath().toString()));
+		assertThat(AliasUtil.getCatalog(catsFile, true).catalogs, hasKey("test"));
+		assertThat(AliasUtil.getCatalog(catsFile, false).catalogs.get("test").catalogRef,
+				is(testCatalogFile.toAbsolutePath().toString()));
 	}
 
 	@Test
@@ -98,9 +99,8 @@ public class TestCatalog {
 
 	@Test
 	void testRemove() throws IOException {
-		assertThat(Settings.getCatalogs(), hasKey("test"));
-		Jbang jbang = new Jbang();
-		new CommandLine(jbang).execute("catalog", "remove", "test");
-		assertThat(Settings.getCatalogs(), not(hasKey("test")));
+		assertThat(AliasUtil.getCatalog(catsFile, true).catalogs, hasKey("test"));
+		AliasUtil.removeCatalog(catsFile, "test");
+		assertThat(AliasUtil.getCatalog(catsFile, true).catalogs, not(hasKey("test")));
 	}
 }

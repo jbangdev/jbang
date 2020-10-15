@@ -3,7 +3,6 @@ package dev.jbang.cli;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -27,21 +26,27 @@ abstract class BaseAliasCommand extends BaseCommand {
 	@CommandLine.Option(names = { "--file", "-f" }, description = "Path to the catalog file to use")
 	Path catalogFile;
 
-	protected Path getCatalog() {
+	protected Path getCatalog(boolean strict) {
+		Path cat;
 		if (global) {
-			return Settings.getAliasesFile();
-		} else if (catalogFile != null && Files.isDirectory(catalogFile)) {
-			Path defaultJbangCatalog = Paths.get(catalogFile.toString(), AliasUtil.JBANG_CATALOG_JSON);
-			Path hiddenJbangCatalog = Paths.get(catalogFile.toString(), AliasUtil.JBANG_DOT_DIR,
-					AliasUtil.JBANG_CATALOG_JSON);
-			if (!Files.exists(defaultJbangCatalog) && Files.exists(hiddenJbangCatalog)) {
-				return hiddenJbangCatalog;
-			} else {
-				return defaultJbangCatalog;
-			}
+			cat = Settings.getUserCatalogFile();
 		} else {
-			return catalogFile;
+			if (catalogFile != null && Files.isDirectory(catalogFile)) {
+				Path defaultCatalog = catalogFile.resolve(AliasUtil.JBANG_CATALOG_JSON);
+				Path hiddenCatalog = catalogFile.resolve(AliasUtil.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
+				if (!Files.exists(defaultCatalog) && Files.exists(hiddenCatalog)) {
+					cat = hiddenCatalog;
+				} else {
+					cat = defaultCatalog;
+				}
+			} else {
+				cat = catalogFile;
+			}
+			if (strict && cat != null && !Files.isRegularFile(cat)) {
+				throw new IllegalArgumentException("Catalog file not found at: " + catalogFile);
+			}
 		}
+		return cat;
 	}
 }
 
@@ -70,11 +75,13 @@ class AliasAdd extends BaseAliasCommand {
 			throw new IllegalArgumentException(
 					"Invalid alias name, it should start with a letter followed by 0 or more letters, digits, underscores or hyphens");
 		}
-		if (getCatalog() != null) {
-			AliasUtil.addAlias(null, getCatalog(), name, scriptOrFile, description, userParams, properties);
+		Path catFile = getCatalog(false);
+		if (catFile != null) {
+			AliasUtil.addAlias(null, catFile, name, scriptOrFile, description, userParams, properties);
 		} else {
-			AliasUtil.addNearestAlias(null, name, scriptOrFile, description, userParams, properties);
+			catFile = AliasUtil.addNearestAlias(null, name, scriptOrFile, description, userParams, properties);
 		}
+		info(String.format("Alias added to %s", catFile));
 		return EXIT_OK;
 	}
 }
@@ -91,57 +98,53 @@ class AliasList extends BaseAliasCommand {
 	@Override
 	public Integer doCall() {
 		PrintStream out = System.out;
-		AliasUtil.Aliases aliases;
-		Path catalog = getCatalog();
+		AliasUtil.Catalog catalog;
+		Path cat = getCatalog(true);
 		if (catalogName != null) {
-			aliases = AliasUtil.getCatalogAliasesByName(catalogName, false);
-		} else if (catalog != null) {
-			if (!Files.exists(catalog)) {
-				throw new IllegalArgumentException(
-						String.format("Invalid catalog file, file does not exist '%s'", catalog));
-			}
-			aliases = AliasUtil.getAliasesFromCatalogFile(catalog, false);
+			catalog = AliasUtil.getCatalogByName(null, catalogName, false);
+		} else if (cat != null) {
+			catalog = AliasUtil.getCatalog(cat, false);
 		} else {
-			aliases = AliasUtil.getAllAliasesFromLocalCatalogs(null);
+			catalog = AliasUtil.getMergedCatalog(null, true);
 		}
 		if (showOrigin) {
-			printAliasesWithOrigin(out, catalogName, aliases);
+			printAliasesWithOrigin(out, catalogName, catalog);
 		} else {
-			printAliases(out, catalogName, aliases);
+			printAliases(out, catalogName, catalog);
 		}
 		return EXIT_OK;
 	}
 
-	static void printAliases(PrintStream out, String catalogName, AliasUtil.Aliases aliases) {
-		aliases.aliases
+	static void printAliases(PrintStream out, String catalogName, AliasUtil.Catalog catalog) {
+		catalog.aliases
 						.keySet()
 						.stream()
 						.sorted()
 						.forEach(name -> {
-							printAlias(out, catalogName, aliases, name, 0);
+							printAlias(out, catalogName, catalog, name, 0);
 						});
 	}
 
-	static void printAliasesWithOrigin(PrintStream out, String catalogName, AliasUtil.Aliases aliases) {
-		Map<Path, List<Map.Entry<String, AliasUtil.Alias>>> groups = aliases.aliases
+	static void printAliasesWithOrigin(PrintStream out, String catalogName, AliasUtil.Catalog catalog) {
+		Map<Path, List<Map.Entry<String, AliasUtil.Alias>>> groups = catalog.aliases
 																					.entrySet()
 																					.stream()
 																					.collect(Collectors.groupingBy(
-																							e -> e.getValue().aliases.catalogFile));
+																							e -> e.getValue().catalog.catalogFile));
 		groups.forEach((p, entries) -> {
 			out.println(p);
 			entries.stream().map(Map.Entry::getKey).sorted().forEach(k -> {
-				printAlias(out, catalogName, aliases, k, 3);
+				printAlias(out, catalogName, catalog, k, 3);
 			});
 		});
 	}
 
-	private static void printAlias(PrintStream out, String catalogName, AliasUtil.Aliases aliases, String name,
+	private static void printAlias(PrintStream out, String catalogName, AliasUtil.Catalog catalog, String name,
 			int indent) {
-		AliasUtil.Alias alias = aliases.aliases.get(name);
+		AliasUtil.Alias alias = catalog.aliases.get(name);
 		String fullName = catalogName != null ? name + "@" + catalogName : name;
 		String scriptRef = alias.scriptRef;
-		if (!aliases.aliases.containsKey(scriptRef)
+		if (!catalog.aliases.containsKey(scriptRef)
 				&& !AliasUtil.isValidCatalogReference(scriptRef)) {
 			scriptRef = alias.resolve(null);
 		}
@@ -189,13 +192,9 @@ class AliasRemove extends BaseAliasCommand {
 
 	@Override
 	public Integer doCall() {
-		final Path catalog = getCatalog();
-		if (catalog != null) {
-			if (!Files.exists(catalog)) {
-				throw new IllegalArgumentException(
-						String.format("Invalid catalog file, file does not exist '%s'", catalog));
-			}
-			AliasUtil.removeAlias(catalog, name);
+		final Path cat = getCatalog(true);
+		if (cat != null) {
+			AliasUtil.removeAlias(cat, name);
 		} else {
 			AliasUtil.removeNearestAlias(null, name);
 		}

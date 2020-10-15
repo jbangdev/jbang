@@ -396,6 +396,8 @@ public class Util {
 		if (httpConn != null)
 			httpConn.disconnect();
 
+		Util.verboseMsg(String.format("Downloaded file %s", fileURL));
+
 		return saveFilePath;
 
 	}
@@ -449,6 +451,7 @@ public class Util {
 				throw th;
 			}
 		} else {
+			Util.verboseMsg(String.format("Retrieved file from cache %s = %s", fileURL, file));
 			return urlCache.resolve(file);
 		}
 	}

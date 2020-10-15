@@ -120,8 +120,8 @@ public class TestAliasNearest {
 
 	@Test
 	void testList() throws IOException {
-		AliasUtil.Aliases aliases = AliasUtil.getAllAliasesFromLocalCatalogs(cwd);
-		assertThat(aliases, notNullValue());
+		AliasUtil.Catalog catalog = AliasUtil.getMergedCatalog(cwd, false);
+		assertThat(catalog, notNullValue());
 
 		HashSet<String> keys = new HashSet<String>(Arrays.asList(
 				"global1",
@@ -134,21 +134,21 @@ public class TestAliasNearest {
 				"dotlocal1",
 				"dotlocal2",
 				"local1"));
-		assertThat(aliases.aliases.keySet(), equalTo(keys));
+		assertThat(catalog.aliases.keySet(), equalTo(keys));
 
-		assertThat(aliases.aliases.get("global1").scriptRef, is("global1ref"));
-		assertThat(aliases.aliases.get("global2").scriptRef, is("global2inparent"));
-		assertThat(aliases.aliases.get("global3").scriptRef, is("global3indotlocal"));
-		assertThat(aliases.aliases.get("global4").scriptRef, is("global4inlocal"));
+		assertThat(catalog.aliases.get("global1").scriptRef, is("global1ref"));
+		assertThat(catalog.aliases.get("global2").scriptRef, is("global2inparent"));
+		assertThat(catalog.aliases.get("global3").scriptRef, is("global3indotlocal"));
+		assertThat(catalog.aliases.get("global4").scriptRef, is("global4inlocal"));
 
-		assertThat(aliases.aliases.get("parent1").scriptRef, is("parent1ref"));
-		assertThat(aliases.aliases.get("parent2").scriptRef, is("parent2indotlocal"));
-		assertThat(aliases.aliases.get("parent3").scriptRef, is("parent3inlocal"));
+		assertThat(catalog.aliases.get("parent1").scriptRef, is("parent1ref"));
+		assertThat(catalog.aliases.get("parent2").scriptRef, is("parent2indotlocal"));
+		assertThat(catalog.aliases.get("parent3").scriptRef, is("parent3inlocal"));
 
-		assertThat(aliases.aliases.get("dotlocal1").scriptRef, is("dotlocal1ref"));
-		assertThat(aliases.aliases.get("dotlocal2").scriptRef, is("dotlocal2inlocal"));
+		assertThat(catalog.aliases.get("dotlocal1").scriptRef, is("dotlocal1ref"));
+		assertThat(catalog.aliases.get("dotlocal2").scriptRef, is("dotlocal2inlocal"));
 
-		assertThat(aliases.aliases.get("local1").scriptRef, is("local1ref"));
+		assertThat(catalog.aliases.get("local1").scriptRef, is("local1ref"));
 	}
 
 	@Test
@@ -165,9 +165,9 @@ public class TestAliasNearest {
 		Path localCatalog = cwd.resolve(AliasUtil.JBANG_CATALOG_JSON);
 		AliasUtil.addNearestAlias(cwd, "new", ref, null, null, null);
 		clearSettingsCaches();
-		AliasUtil.Aliases aliases = AliasUtil.getAliasesFromCatalogFile(localCatalog, true);
-		assertThat(aliases.aliases.keySet(), hasItem("new"));
-		assertThat(aliases.aliases.get("new").scriptRef, equalTo(result));
+		AliasUtil.Catalog catalog = AliasUtil.getCatalog(localCatalog, true);
+		assertThat(catalog.aliases.keySet(), hasItem("new"));
+		assertThat(catalog.aliases.get("new").scriptRef, equalTo(result));
 	}
 
 	@Test
@@ -175,9 +175,9 @@ public class TestAliasNearest {
 		Path localCatalog = cwd.resolve(AliasUtil.JBANG_CATALOG_JSON);
 		AliasUtil.addAlias(cwd, Paths.get(AliasUtil.JBANG_CATALOG_JSON), "new", "dummy.java", null, null, null);
 		clearSettingsCaches();
-		AliasUtil.Aliases aliases = AliasUtil.getAliasesFromCatalogFile(localCatalog, true);
-		assertThat(aliases.aliases.keySet(), hasItem("new"));
-		assertThat(aliases.aliases.get("new").scriptRef, equalTo("dummy.java"));
+		AliasUtil.Catalog catalog = AliasUtil.getCatalog(localCatalog, true);
+		assertThat(catalog.aliases.keySet(), hasItem("new"));
+		assertThat(catalog.aliases.get("new").scriptRef, equalTo("dummy.java"));
 	}
 
 	@Test
@@ -197,9 +197,9 @@ public class TestAliasNearest {
 		AliasUtil.addNearestAlias(cwd, "new", ref, null, null, null);
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
-		AliasUtil.Aliases aliases = AliasUtil.getAliasesFromCatalogFile(dotLocalCatalog, true);
-		assertThat(aliases.aliases.keySet(), hasItem("new"));
-		assertThat(aliases.aliases.get("new").scriptRef, equalTo(result));
+		AliasUtil.Catalog catalog = AliasUtil.getCatalog(dotLocalCatalog, true);
+		assertThat(catalog.aliases.keySet(), hasItem("new"));
+		assertThat(catalog.aliases.get("new").scriptRef, equalTo(result));
 	}
 
 	@Test
@@ -222,9 +222,9 @@ public class TestAliasNearest {
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		assertThat(dotLocalCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
-		AliasUtil.Aliases aliases = AliasUtil.getAliasesFromCatalogFile(parentCatalog, true);
-		assertThat(aliases.aliases.keySet(), hasItem("new"));
-		assertThat(aliases.aliases.get("new").scriptRef, equalTo(result));
+		AliasUtil.Catalog catalog = AliasUtil.getCatalog(parentCatalog, true);
+		assertThat(catalog.aliases.keySet(), hasItem("new"));
+		assertThat(catalog.aliases.get("new").scriptRef, equalTo(result));
 	}
 
 	@Test
@@ -249,9 +249,9 @@ public class TestAliasNearest {
 		assertThat(dotLocalCatalog.toFile(), not(anExistingFile()));
 		assertThat(parentCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
-		AliasUtil.Aliases aliases = AliasUtil.getAliasesFromCatalogFile(Settings.getAliasesFile(), true);
-		assertThat(aliases.aliases.keySet(), hasItem("new"));
-		assertThat(aliases.aliases.get("new").scriptRef, equalTo(result));
+		AliasUtil.Catalog catalog = AliasUtil.getCatalog(Settings.getUserCatalogFile(), true);
+		assertThat(catalog.aliases.keySet(), hasItem("new"));
+		assertThat(catalog.aliases.get("new").scriptRef, equalTo(result));
 	}
 
 	@Test
@@ -259,8 +259,8 @@ public class TestAliasNearest {
 		Path localCatalog = cwd.resolve(AliasUtil.JBANG_CATALOG_JSON);
 		AliasUtil.removeNearestAlias(cwd, "local1");
 		clearSettingsCaches();
-		AliasUtil.Aliases aliases = AliasUtil.getAliasesFromCatalogFile(localCatalog, true);
-		assertThat(aliases.aliases.keySet(), not(hasItem("local1")));
+		AliasUtil.Catalog catalog = AliasUtil.getCatalog(localCatalog, true);
+		assertThat(catalog.aliases.keySet(), not(hasItem("local1")));
 	}
 
 	@Test
@@ -268,8 +268,8 @@ public class TestAliasNearest {
 		Path dotLocalCatalog = cwd.resolve(AliasUtil.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
 		AliasUtil.removeNearestAlias(cwd, "dotlocal1");
 		clearSettingsCaches();
-		AliasUtil.Aliases aliases = AliasUtil.getAliasesFromCatalogFile(dotLocalCatalog, true);
-		assertThat(aliases.aliases.keySet(), not(hasItem("dotlocal1")));
+		AliasUtil.Catalog catalog = AliasUtil.getCatalog(dotLocalCatalog, true);
+		assertThat(catalog.aliases.keySet(), not(hasItem("dotlocal1")));
 	}
 
 	@Test
@@ -277,17 +277,17 @@ public class TestAliasNearest {
 		Path parentCatalog = cwd.getParent().resolve(AliasUtil.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
 		AliasUtil.removeNearestAlias(cwd, "parent1");
 		clearSettingsCaches();
-		AliasUtil.Aliases aliases = AliasUtil.getAliasesFromCatalogFile(parentCatalog, true);
-		assertThat(aliases.aliases.keySet(), not(hasItem("parent1")));
+		AliasUtil.Catalog catalog = AliasUtil.getCatalog(parentCatalog, true);
+		assertThat(catalog.aliases.keySet(), not(hasItem("parent1")));
 	}
 
 	@Test
 	void testRemoveGlobal() throws IOException {
-		Path globalCatalog = Settings.getAliasesFile();
+		Path globalCatalog = Settings.getUserCatalogFile();
 		AliasUtil.removeNearestAlias(cwd, "global1");
 		clearSettingsCaches();
-		AliasUtil.Aliases aliases = AliasUtil.getAliasesFromCatalogFile(globalCatalog, true);
-		assertThat(aliases.aliases.keySet(), not(hasItem("global1")));
+		AliasUtil.Catalog catalog = AliasUtil.getCatalog(globalCatalog, true);
+		assertThat(catalog.aliases.keySet(), not(hasItem("global1")));
 	}
 
 }
