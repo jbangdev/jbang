@@ -7,4 +7,4 @@ where jbang
 where java
 echo JAVA_HOME=%JAVA_HOME%
 
-jbang karate.java -o ..\build\karate *.feature
+jbang --javaagent=jacocoagent.jar=destfile=..\build\jacoco\test.exec karate.java -o ..\build\karate *.feature
