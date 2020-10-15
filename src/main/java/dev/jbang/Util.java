@@ -27,6 +27,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -555,7 +556,7 @@ public class Util {
 				"https://mobile.twitter.com/$1/status/$2");
 
 		if (url.startsWith("https://gist.github.com/")) {
-			url = extractFileFromGist(url);
+			url = extractFileFromGistWithSources(url);
 		}
 
 		return url;
@@ -578,6 +579,79 @@ public class Util {
 			sb.append(String.format("%02x", b));
 		}
 		return sb.toString();
+	}
+
+	private static String extractFileFromGistWithSources(String url) {
+		Util.verboseMsg("old method: " + extractFileFromGist(url));
+		GistFile.isGist = true;
+		try {
+			String[] pathPlusAnchor = url.split("#");
+			String fileName = "";
+			if (pathPlusAnchor.length == 2) {
+				String[] anchor = pathPlusAnchor[1].split("-");
+				if (anchor.length < 2)
+					throw new IllegalArgumentException("Invalid Gist url: " + url);
+				fileName = anchor[1];
+				for (int i = 2; i < anchor.length - 1; ++i)
+					fileName += "-" + anchor[i];
+			}
+			String gistapi = pathPlusAnchor[0].replaceFirst(
+					"^https://gist.github.com/(([a-zA-Z0-9]*)/)?(?<gistid>[a-zA-Z0-9]*)$",
+					"https://api.github.com/gists/${gistid}");
+
+			Util.verboseMsg("Gist url api: " + gistapi);
+			String strdata = null;
+			try {
+				strdata = readStringFromURL(gistapi);
+			} catch (IOException e) {
+				Util.verboseMsg("Error when extracting file from gist url: " + e);
+				return url;
+			}
+
+			Gson parser = new Gson();
+			Gist gist = parser.fromJson(strdata, Gist.class);
+
+			for (Entry<String, Map<String, String>> entry : gist.files.entrySet()) {
+				String key = entry.getKey();
+				if (key.endsWith(".java") || key.endsWith(".jsh")) {
+					// gistRawURLs.put(key, downloadFileSwizzled(entry.getValue().get("raw_url")));
+					// gistRawURLs.put(key, entry.getValue().get("raw_url"));
+					GistFile.gistFiles.add(new GistFile(key, entry.getValue().get("raw_url"),
+							entry.getValue().get("content")));
+				}
+			}
+
+			if (GistFile.gistFiles.isEmpty()) {
+				throw new IllegalArgumentException("Gist does not contain any .java or .jsh file.");
+			}
+
+			if (!fileName.isEmpty()) { // User wants to run specific Gist file
+				Util.verboseMsg("Searching for file: " + fileName);
+				// for (Entry<String, Path> entry : gistRawURLs.entrySet()) {
+				for (GistFile file : GistFile.gistFiles) {
+					if (file.filename.toLowerCase().contains(fileName.toLowerCase())) {
+						Util.verboseMsg("new method: " + file.raw_url);
+						return file.raw_url;
+					}
+				}
+				throw new IllegalArgumentException("Could not find specified Gist file.");
+			} else {
+				if (GistFile.gistFiles.size() == 1) {
+					Util.verboseMsg("new method: " + GistFile.gistFiles.get(0).raw_url);
+					return GistFile.gistFiles.get(0).raw_url;
+				}
+
+				// If reaches here, then it means Gist has more than one java file
+				// and the user didn't specify the entry point. Ideally we would need to
+				// download
+				// all files and search the main
+				// TODO search main file
+			}
+
+			return url;
+		} catch (RuntimeException re) {
+			return url;
+		}
 	}
 
 	// for gist we need to be smarter when it comes to downloading
