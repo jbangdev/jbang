@@ -613,8 +613,6 @@ public class Util {
 			for (Entry<String, Map<String, String>> entry : gist.files.entrySet()) {
 				String key = entry.getKey();
 				if (key.endsWith(".java") || key.endsWith(".jsh")) {
-					// gistRawURLs.put(key, downloadFileSwizzled(entry.getValue().get("raw_url")));
-					// gistRawURLs.put(key, entry.getValue().get("raw_url"));
 					GistFile.gistFiles.add(new GistFile(key, entry.getValue().get("raw_url"),
 							entry.getValue().get("content")));
 				}
@@ -626,7 +624,6 @@ public class Util {
 
 			if (!fileName.isEmpty()) { // User wants to run specific Gist file
 				Util.verboseMsg("Searching for file: " + fileName);
-				// for (Entry<String, Path> entry : gistRawURLs.entrySet()) {
 				for (GistFile file : GistFile.gistFiles) {
 					if (file.filename.toLowerCase().contains(fileName.toLowerCase())) {
 						return file.raw_url;
@@ -638,14 +635,18 @@ public class Util {
 					return GistFile.gistFiles.get(0).raw_url;
 				}
 
-				// If reaches here, then it means Gist has more than one java file
-				// and the user didn't specify the entry point. Ideally we would need to
-				// download
-				// all files and search the main
-				// TODO search main file
-			}
+				if (GistFile.mainClasses.size() > 1) {
+					throw new IllegalArgumentException("Gist has more than one class with main method. " +
+							"You must specify which class to run, eg: " +
+							url + "/" + GistFile.mainClasses.get(0));
+				}
 
-			return url;
+				for (GistFile file : GistFile.gistFiles) {
+					if (file.filename.equals(GistFile.mainClasses.get(0)))
+						return file.raw_url;
+				}
+				throw new IllegalStateException("It should not reach here. url = " + url);
+			}
 		} catch (RuntimeException re) {
 			return url;
 		}
@@ -827,5 +828,12 @@ public class Util {
 	public static Path getPathToFile(String scriptURL, File baseDir) {
 		String fileName = scriptURL.substring(scriptURL.lastIndexOf("/") + 1);
 		return baseDir.toPath().resolve(fileName);
+	}
+
+	public static boolean hasMainMethod(String content) {
+		// (public[ ]{1,}static[ ]{1,}void[ ]{1,}main[ ]{0,}\()|(static[ ]{1,}public[
+		// ]{1,}void[ ]{1,}main[ ]{0,}\()
+		// TODO create regular expression
+		return content.contains("public static void main(");
 	}
 }

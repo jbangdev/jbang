@@ -17,6 +17,7 @@ public class GistFile {
 	public List<String> sources = new ArrayList<>(); // eg sources.get(0) = two.java
 	public static Map<String, Path> fileNameToPathMap = new HashMap<>();
 	public static List<GistFile> gistFiles = new ArrayList<>();
+	public static List<String> mainClasses = new ArrayList<>();
 
 	public GistFile(String filename, String raw_url, String content) {
 		this.filename = filename;
@@ -25,6 +26,8 @@ public class GistFile {
 		this.path = Util.cacheContent(raw_url, content);
 		fileNameToPathMap.put(this.filename, this.path);
 		findSources();
+		if (Util.hasMainMethod(content))
+			mainClasses.add(filename);
 	}
 
 	private void findSources() {
@@ -53,12 +56,5 @@ public class GistFile {
 		}
 		sourcePaths.addAll(resolvedSourcePaths);
 		return sourcePaths;
-	}
-
-	public static boolean hasMainMethod(String content) {
-		// (public[ ]{1,}static[ ]{1,}void[ ]{1,}main[ ]{0,}\()|(static[ ]{1,}public[
-		// ]{1,}void[ ]{1,}main[ ]{0,}\()
-		// TODO create regular expression
-		return content.contains("public static void main(");
 	}
 }
