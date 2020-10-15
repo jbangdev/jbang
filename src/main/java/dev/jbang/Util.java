@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -23,6 +24,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -42,6 +44,8 @@ public class Util {
 
 	public static final String JBANG_JDK_VENDOR = "JBANG_JDK_VENDOR";
 	public static final String JBANG_USES_POWERSHELL = "JBANG_USES_POWERSHELL";
+
+	public static final String SOURCES_COMMENT_PREFIX = "//SOURCES ";
 
 	private static boolean verbose;
 	private static boolean quiet;
@@ -453,6 +457,55 @@ public class Util {
 		}
 	}
 
+	public static Path cacheContent(String fileURL, String content) {
+		Path urlCache = getUrlCache(fileURL);
+		// create a temp directory for the downloaded content
+		Path saveTmpDir = urlCache.getParent().resolve(urlCache.getFileName() + ".tmp");
+		Path saveOldDir = urlCache.getParent().resolve(urlCache.getFileName() + ".old");
+		try {
+			Util.deleteFolder(saveTmpDir, true);
+			Util.deleteFolder(saveOldDir, true);
+
+			saveTmpDir.toFile().mkdirs();
+
+			Path saveFilePath = Util.getPathToFile(fileURL, saveTmpDir.toFile());
+			PrintWriter pw = new PrintWriter(saveFilePath.toFile());
+			pw.println(content);
+			pw.flush();
+			pw.close();
+
+			// temporarily save the old content
+			if (Files.isDirectory(urlCache)) {
+				Files.move(urlCache, saveOldDir);
+			}
+			// rename the folder to its final name
+			Files.move(saveTmpDir, urlCache);
+			// remove any old content
+			Util.deleteFolder(saveOldDir, true);
+
+			return urlCache.resolve(saveFilePath.getFileName());
+		} catch (IOException exception) {
+			// remove the temp folder if anything went wrong
+			Util.deleteFolder(saveTmpDir, true);
+			// and move the old content back if it exists
+			if (!Files.isDirectory(urlCache) && Files.isDirectory(saveOldDir)) {
+				try {
+					Files.move(saveOldDir, urlCache);
+				} catch (IOException ex) {
+					// Ignore
+				}
+			}
+			throw new IllegalStateException(exception.getMessage());
+		}
+	}
+
+	public static List<String> getLines(List<String> lines, String script) {
+		if (lines == null && script != null) {
+			lines = Arrays.asList(script.split("\\r?\\n"));
+		}
+		return lines;
+	}
+
 	private static Path getFirstFile(Path dir) throws IOException {
 		if (Files.isDirectory(dir)) {
 			try (Stream<Path> files = Files.list(dir)) {
@@ -695,4 +748,13 @@ public class Util {
 		return true;
 	}
 
+	public static Path getUrlCache(String fileURL) {
+		String urlHash = getStableID(fileURL);
+		return Settings.getCacheDir(Settings.CacheClass.urls).resolve(urlHash);
+	}
+
+	public static Path getPathToFile(String scriptURL, File baseDir) {
+		String fileName = scriptURL.substring(scriptURL.lastIndexOf("/") + 1);
+		return baseDir.toPath().resolve(fileName);
+	}
 }
