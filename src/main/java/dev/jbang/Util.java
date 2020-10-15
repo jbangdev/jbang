@@ -582,7 +582,6 @@ public class Util {
 	}
 
 	private static String extractFileFromGistWithSources(String url) {
-		Util.verboseMsg("old method: " + extractFileFromGist(url));
 		GistFile.isGist = true;
 		try {
 			String[] pathPlusAnchor = url.split("#");
@@ -630,14 +629,12 @@ public class Util {
 				// for (Entry<String, Path> entry : gistRawURLs.entrySet()) {
 				for (GistFile file : GistFile.gistFiles) {
 					if (file.filename.toLowerCase().contains(fileName.toLowerCase())) {
-						Util.verboseMsg("new method: " + file.raw_url);
 						return file.raw_url;
 					}
 				}
 				throw new IllegalArgumentException("Could not find specified Gist file.");
 			} else {
 				if (GistFile.gistFiles.size() == 1) {
-					Util.verboseMsg("new method: " + GistFile.gistFiles.get(0).raw_url);
 					return GistFile.gistFiles.get(0).raw_url;
 				}
 

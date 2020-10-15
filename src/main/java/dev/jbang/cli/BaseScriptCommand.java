@@ -33,6 +33,7 @@ import dev.jbang.ConsoleInput;
 import dev.jbang.DependencyUtil;
 import dev.jbang.ExitException;
 import dev.jbang.FileRef;
+import dev.jbang.GistFile;
 import dev.jbang.Script;
 import dev.jbang.ScriptResource;
 import dev.jbang.Settings;
@@ -153,9 +154,13 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			s.setAdditionalClasspaths(classpaths);
 
 			List<Path> resolvedSourcePaths = new ArrayList<>();
-			for (FileRef collectSource : s.collectSources()) {
-				// TODO should optimally be recursive
-				resolvedSourcePaths.add(s.getScriptResource().fetchIfNeeded(collectSource.getDestination()));
+			if (GistFile.isGist) {
+				resolvedSourcePaths = GistFile.getResolvedSourcePathsAsList();
+			} else {
+				for (FileRef collectSource : s.collectSources()) {
+					// TODO should optimally be recursive
+					resolvedSourcePaths.add(s.getScriptResource().fetchIfNeeded(collectSource.getDestination()));
+				}
 			}
 			s.setResolvedSources(resolvedSourcePaths);
 		} catch (FileNotFoundException e) {
@@ -305,9 +310,13 @@ public abstract class BaseScriptCommand extends BaseCommand {
 
 			scriptURL = swizzleURL(scriptURL);
 
-			String urlHash = Util.getStableID(scriptURL);
-			File urlCache = Settings.getCacheDir(Settings.CacheClass.urls).resolve(urlHash).toFile();
-			Path path = Util.downloadFileSwizzled(scriptURL, urlCache);
+			File urlCache = Util.getUrlCache(scriptURL).toFile();
+			Path path = null;
+			if (GistFile.isGist) {
+				path = Util.getPathToFile(scriptURL, urlCache);
+			} else {
+				path = Util.downloadFileSwizzled(scriptURL, urlCache);
+			}
 
 			return new ScriptResource(scriptURL, urlCache, path.toFile());
 		} catch (IOException | URISyntaxException e) {
