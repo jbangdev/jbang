@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -555,8 +554,8 @@ public class Util {
 		url = url.replaceFirst("^https://twitter.com/(.*)/status/(.*)$",
 				"https://mobile.twitter.com/$1/status/$2");
 
-		if (url.startsWith("https://gist.github.com/")) {
-			url = extractFileFromGistWithSources(url);
+		if (isGistURL(url)) {
+			throw new IllegalStateException("Gist url is not handled here.");
 		}
 
 		return url;
@@ -581,8 +580,8 @@ public class Util {
 		return sb.toString();
 	}
 
-	private static String extractFileFromGistWithSources(String url) {
-		GistFile.isGist = true;
+	public static GistCollection extractFileFromGistWithSources(String url) {
+		GistCollection gistCollection = new GistCollection();
 		String[] pathPlusAnchor = url.split("#");
 		String fileName = "";
 		if (pathPlusAnchor.length == 2) {
@@ -603,7 +602,7 @@ public class Util {
 			strdata = readStringFromURL(gistapi);
 		} catch (IOException e) {
 			Util.verboseMsg("Error when extracting file from gist url: " + e);
-			return url;
+			throw new IllegalStateException(e);
 		}
 
 		Gson parser = new Gson();
@@ -612,106 +611,43 @@ public class Util {
 		for (Entry<String, Map<String, String>> entry : gist.files.entrySet()) {
 			String key = entry.getKey();
 			if (key.endsWith(".java") || key.endsWith(".jsh")) {
-				GistFile.gistFiles.add(new GistFile(key, entry.getValue().get("raw_url"),
+				gistCollection.add(new GistFile(key, entry.getValue().get("raw_url"),
 						entry.getValue().get("content")));
 			}
 		}
 
-		if (GistFile.gistFiles.isEmpty()) {
+		if (gistCollection.gistFiles.isEmpty()) {
 			throw new IllegalArgumentException("Gist does not contain any .java or .jsh file.");
 		}
 
 		if (!fileName.isEmpty()) { // User wants to run specific Gist file
 			Util.verboseMsg("Searching for file: " + fileName);
-			for (GistFile file : GistFile.gistFiles) {
+			for (GistFile file : gistCollection.gistFiles) {
 				if (file.filename.toLowerCase().contains(fileName.toLowerCase())) {
-					return file.raw_url;
+					gistCollection.setMainURL(file.raw_url);
+					return gistCollection;
 				}
 			}
 			throw new IllegalArgumentException("Could not find specified Gist file.");
 		} else {
-			if (GistFile.gistFiles.size() == 1) {
-				return GistFile.gistFiles.get(0).raw_url;
+			if (gistCollection.gistFiles.size() == 1) {
+				gistCollection.setMainURL(gistCollection.gistFiles.get(0).raw_url);
+				return gistCollection;
 			}
 
-			if (GistFile.mainClasses.size() > 1) {
+			if (gistCollection.mainClasses.size() > 1) {
 				throw new IllegalArgumentException("Gist has more than one class with main method. " +
 						"You must specify which class to run, eg: " +
-						url + "/" + GistFile.mainClasses.get(0));
+						url + "/" + gistCollection.mainClasses.get(0));
 			}
 
-			for (GistFile file : GistFile.gistFiles) {
-				if (file.filename.equals(GistFile.mainClasses.get(0)))
-					return file.raw_url;
+			for (GistFile file : gistCollection.gistFiles) {
+				if (file.filename.equals(gistCollection.mainClasses.get(0))) {
+					gistCollection.setMainURL(file.raw_url);
+					return gistCollection;
+				}
 			}
 			throw new IllegalStateException("It should not reach here. url = " + url);
-		}
-	}
-
-	// for gist we need to be smarter when it comes to downloading
-	private static String extractFileFromGist(String url) {
-
-		try {
-			String[] pathPlusAnchor = url.split("#");
-			String fileName = "";
-			if (pathPlusAnchor.length == 2) {
-				String[] anchor = pathPlusAnchor[1].split("-");
-				if (anchor.length < 2)
-					throw new IllegalArgumentException("Invalid Gist url: " + url);
-				fileName = anchor[1];
-				for (int i = 2; i < anchor.length - 1; ++i)
-					fileName += "-" + anchor[i];
-			}
-			String gistapi = pathPlusAnchor[0].replaceFirst(
-					"^https://gist.github.com/(([a-zA-Z0-9]*)/)?(?<gistid>[a-zA-Z0-9]*)$",
-					"https://api.github.com/gists/${gistid}");
-
-			Util.verboseMsg("looking at " + gistapi);
-			String strdata = null;
-			try {
-				strdata = readStringFromURL(gistapi);
-			} catch (IOException e) {
-				Util.verboseMsg("Error when extracting file from gist url: " + e);
-				return url;
-			}
-
-			Gson parser = new Gson();
-
-			Gist gist = parser.fromJson(strdata, Gist.class);
-
-			Optional<Map.Entry<String, Map<String, String>>> file = Optional.empty();
-			if (!fileName.isEmpty()) { // User wants to run specific Gist file
-				Util.verboseMsg("Searching for file: " + fileName);
-				String fileNameLowerCase = fileName.toLowerCase();
-				file = gist.files	.entrySet()
-									.stream()
-									.filter(e -> e.getKey().toLowerCase().contains(fileNameLowerCase)
-											&& (e	.getKey()
-													.endsWith(
-															".java")
-													|| e.getKey()
-														.endsWith(".jsh")))
-									.findFirst();
-			} else {
-				file = gist.files	.entrySet()
-									.stream()
-									.filter(e -> e	.getKey()
-													.endsWith(
-															".java")
-											|| e.getKey()
-												.endsWith(".jsh"))
-									.findFirst();
-			}
-
-			if (file.isPresent()) {
-				Util.verboseMsg("Extracting Gist file: " + file.get().getKey());
-				return (String) file.get().getValue().getOrDefault("raw_url", url);
-			} else {
-				Util.verboseMsg("No .java or .jsh file found in Gist.");
-				return url;
-			}
-		} catch (RuntimeException re) {
-			return url;
 		}
 	}
 
@@ -831,5 +767,9 @@ public class Util {
 		// ]{1,}void[ ]{1,}main[ ]{0,}\()
 		// TODO create regular expression
 		return content.contains("public static void main(");
+	}
+
+	public static boolean isGistURL(String scriptURL) {
+		return scriptURL.startsWith("https://gist.github.com/");
 	}
 }
