@@ -867,7 +867,7 @@ Above does require using a shell that allows for variable evaluation, if you are
 
 [source, bash]
 ----
-jbang --open=[editor] helloworld.java
+jbang edit --open=[editor] helloworld.java
 ----
 
 The editor used will be what is specified as argument to `--open` or default to `$JBANG_EDITOR`, `$VISUAL` or `$EDITOR` in that order.
