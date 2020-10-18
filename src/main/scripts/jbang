@@ -46,7 +46,7 @@ case "$(uname -s)" in
     os=linux;;
   Darwin*)
     os=mac;;
-  CYGWIN*|MINGW*)
+  CYGWIN*|MINGW*|MSYS*)
     os=windows;;
   *)        echo "Unsupported Operating System: $(uname -s)" 1>&2; exit 1;;
 esac
