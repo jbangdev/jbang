@@ -58,6 +58,8 @@ case "$(uname -m)" in
     arch=x64;;
   aarch64)
     arch=aarch64;;
+  armv7l)
+    arch=arm;;
   *)
     echo "Unsupported Architecture: $(uname -m)" 1>&2; exit 1;;
 esac
