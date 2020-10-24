@@ -1,0 +1,5 @@
+include::../../build/generated-picocli-docs/jbang-catalog.adoc[]
+include::../../build/generated-picocli-docs/jbang-catalog-add.adoc[]
+include::../../build/generated-picocli-docs/jbang-catalog-list.adoc[]
+include::../../build/generated-picocli-docs/jbang-catalog-remove.adoc[]
+include::../../build/generated-picocli-docs/jbang-catalog-update.adoc[]

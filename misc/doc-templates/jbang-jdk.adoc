@@ -1,0 +1,7 @@
+include::../../build/generated-picocli-docs/jbang-jdk.adoc[]
+include::../../build/generated-picocli-docs/jbang-jdk-default.adoc[]
+include::../../build/generated-picocli-docs/jbang-jdk-home.adoc[]
+include::../../build/generated-picocli-docs/jbang-jdk-install.adoc[]
+include::../../build/generated-picocli-docs/jbang-jdk-java-env.adoc[]
+include::../../build/generated-picocli-docs/jbang-jdk-list.adoc[]
+include::../../build/generated-picocli-docs/jbang-jdk-uninstall.adoc[]

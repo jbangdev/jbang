@@ -1,0 +1,2 @@
+include::../../build/generated-picocli-docs/jbang-wrapper.adoc[]
+include::../../build/generated-picocli-docs/jbang-wrapper-install.adoc[]

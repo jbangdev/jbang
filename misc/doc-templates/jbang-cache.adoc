@@ -1,0 +1,2 @@
+include::../../build/generated-picocli-docs/jbang-cache.adoc[]
+include::../../build/generated-picocli-docs/jbang-cache-clear.adoc[]

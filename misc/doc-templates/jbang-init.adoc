@@ -1,0 +1,1 @@
+include::../../build/generated-picocli-docs/jbang-init.adoc[]

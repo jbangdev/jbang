@@ -1,0 +1,4 @@
+include::../../build/generated-picocli-docs/jbang-alias.adoc[]
+include::../../build/generated-picocli-docs/jbang-alias-add.adoc[]
+include::../../build/generated-picocli-docs/jbang-alias-list.adoc[]
+include::../../build/generated-picocli-docs/jbang-alias-remove.adoc[]

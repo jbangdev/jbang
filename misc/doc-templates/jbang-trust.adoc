@@ -1,0 +1,4 @@
+include::../../build/generated-picocli-docs/jbang-trust.adoc[]
+include::../../build/generated-picocli-docs/jbang-trust-add.adoc[]
+include::../../build/generated-picocli-docs/jbang-trust-list.adoc[]
+include::../../build/generated-picocli-docs/jbang-trust-remove.adoc[]

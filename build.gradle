@@ -296,7 +296,7 @@ task generateManpageAsciiDoc(type: JavaExec) {
 
 asciidoctor {
 	dependsOn(generateManpageAsciiDoc)
-	sourceDir = file("${buildDir}/generated-picocli-docs")
+	sourceDir = file("${projectDir}/misc/doc-templates")
 	outputDir = file("${buildDir}/docs")
 	logDocuments = true
 	backends 'manpage'
