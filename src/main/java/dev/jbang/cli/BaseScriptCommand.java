@@ -158,10 +158,13 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			s.setAdditionalClasspaths(classpaths);
 
 			List<Path> resolvedSourcePaths = new ArrayList<>();
+			Set<String> visited = new HashSet<>();
 			if (scriptFile.getResolvedSourcePaths() != null) {
 				resolvedSourcePaths = scriptFile.getResolvedSourcePaths();
+				for (Path path : resolvedSourcePaths) {
+					visited.add(path.getFileName().toString());
+				}
 			}
-			Set<String> visited = new HashSet<>();
 			LinkedList<String> sources = new LinkedList<>();
 			sources.addAll(Util.collectSources(s.getScript()));
 			while (!sources.isEmpty()) {
@@ -326,8 +329,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 				Path path = Util.getPathToFile(gistCollection.getMainURL(), urlCache);
 				ScriptResource scriptResource = new ScriptResource(gistCollection.getMainURL(), urlCache,
 						path.toFile());
-				// It's disabled so //SOURCES does not become inconsistent. TODO
-				// scriptResource.setResolvedSourcePaths(gistCollection.getResolvedSourcePathsAsList());
+				scriptResource.setResolvedSourcePaths(gistCollection.getResolvedSourcePathsAsList());
 				return scriptResource;
 			} else {
 				scriptURL = swizzleURL(scriptURL);
