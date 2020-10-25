@@ -29,6 +29,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -586,12 +587,12 @@ public class TestRun {
 	@Test
 	void testFetchFromGistReferencingAnotherURL(@TempDir Path dir) throws IOException {
 
-		String u = Util	.extractFileFromGistWithSources(
-								"https://gist.github.com/tivrfoa/39a0dee0ef32a75a064fe9c59c2bd68a")
-						.getMainURL();
+		Script script = BaseScriptCommand.prepareScript(
+								"https://gist.github.com/tivrfoa/39a0dee0ef32a75a064fe9c59c2bd68a",
+								new ArrayList<>(), new HashMap<>(), new ArrayList<>(), new ArrayList<>());
 
-		Path x = Util.downloadFile(u, dir.toFile());
-		assertEquals(x.getFileName().toString(), "ReferenceAnotherGistURL.java");
+		assertEquals(script.getResolvedSourcePaths().size(), 1);
+		assertEquals(script.getResolvedSourcePaths().get(0).getFileName().toString(), "t3.java");
 	}
 
 	@Test
