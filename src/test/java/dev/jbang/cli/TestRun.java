@@ -58,6 +58,7 @@ import org.xml.sax.SAXException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 
+import dev.jbang.AliasUtil;
 import dev.jbang.ExitException;
 import dev.jbang.Script;
 import dev.jbang.ScriptResource;
@@ -164,6 +165,41 @@ public class TestRun {
 		ExitException e = Assertions.assertThrows(ExitException.class, () -> run.generateCommandLine(result));
 
 		assertThat(e.getMessage(), startsWith("no main class"));
+
+	}
+
+	@Test
+	void testHelloWorldGAVWithAMainViaAlias(@TempDir File jbangTempDir, @TempDir File testTempDir) throws IOException {
+
+		final String aliases = "{\n" +
+				"  \"aliases\": {\n" +
+				"    \"qcli\": {\n" +
+				"      \"script-ref\": \"io.quarkus:quarkus-cli:1.9.0.Final:runner\"\n" +
+				"    }\n" +
+				"  }\n" +
+				"}";
+
+		environmentVariables.set("JBANG_DIR", jbangTempDir.getPath());
+		Files.write(jbangTempDir.toPath().resolve(AliasUtil.JBANG_CATALOG_JSON), aliases.getBytes());
+
+		environmentVariables.clear("JAVA_HOME");
+
+		Jbang jbang = new Jbang();
+
+		String jar = "qcli";
+
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		Script result = prepareScript(jar, run.userParams, run.properties, run.dependencies, run.classpaths);
+
+		assertThat(result.getBackingFile().toString(), matchesPattern(".*.jar"));
+
+		String cmd = run.generateCommandLine(result);
+
+		assertThat(cmd, matchesPattern(".*quarkus-cli-1.9.0.Final-runner.jar.*"));
+
+		assertThat(result.getMainClass(), equalTo("io.quarkus.runner.GeneratedMain"));
 
 	}
 

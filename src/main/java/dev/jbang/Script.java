@@ -252,9 +252,9 @@ public class Script {
 	public String resolveClassPath(boolean offline) {
 		if (classpath == null) {
 			if (forJar()) {
-				if (DependencyUtil.looksLikeAGav(originalFile)) {
+				if (DependencyUtil.looksLikeAGav(scriptResource.getOriginalResource())) {
 					List<String> dependencies = new ArrayList<>(additionalDeps);
-					dependencies.add(originalFile);
+					dependencies.add(scriptResource.getOriginalResource());
 					classpath = new DependencyUtil().resolveDependencies(dependencies,
 							Collections.emptyList(), offline, !Util.isQuiet());
 				} else if (!additionalDeps.isEmpty()) {
