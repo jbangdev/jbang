@@ -584,6 +584,17 @@ public class TestRun {
 	}
 
 	@Test
+	void testFetchFromGistReferencingAnotherURL(@TempDir Path dir) throws IOException {
+
+		String u = Util	.extractFileFromGistWithSources(
+								"https://gist.github.com/tivrfoa/39a0dee0ef32a75a064fe9c59c2bd68a")
+						.getMainURL();
+
+		Path x = Util.downloadFile(u, dir.toFile());
+		assertEquals(x.getFileName().toString(), "ReferenceAnotherGistURL.java");
+	}
+
+	@Test
 	void testFetchjshFromGist(@TempDir Path dir) throws IOException {
 
 		String u = Util.extractFileFromGistWithSources(

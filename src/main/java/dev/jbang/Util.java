@@ -637,8 +637,7 @@ public class Util {
 
 			if (gistCollection.mainClasses.size() > 1) {
 				throw new IllegalArgumentException("Gist has more than one class with main method. " +
-						"You must specify which class to run, eg: " +
-						url + "/" + gistCollection.mainClasses.get(0));
+						"You must specify which class to run.");
 			}
 
 			for (GistFile file : gistCollection.gistFiles) {
