@@ -629,4 +629,8 @@ public class Script {
 	public List<KeyValue> getAgentOptions() {
 		return agentOptions;
 	}
+
+	public String getScript() {
+		return script;
+	}
 }

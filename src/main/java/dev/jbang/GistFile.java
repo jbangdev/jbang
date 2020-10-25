@@ -20,14 +20,6 @@ public class GistFile {
 	}
 
 	private void findSources() {
-		List<String> lines = Util.getLines(null, this.content);
-		for (String line : lines) {
-			if (!line.startsWith(Util.SOURCES_COMMENT_PREFIX))
-				continue;
-			String[] tmp1 = line.split("[ ;,]+");
-			for (int i = 1; i < tmp1.length; ++i) {
-				sources.add(tmp1[i]);
-			}
-		}
+		sources = Util.collectSources(this.content);
 	}
 }

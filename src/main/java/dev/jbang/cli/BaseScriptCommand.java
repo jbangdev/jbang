@@ -8,7 +8,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -16,8 +18,11 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -32,7 +37,6 @@ import dev.jbang.AliasUtil;
 import dev.jbang.ConsoleInput;
 import dev.jbang.DependencyUtil;
 import dev.jbang.ExitException;
-import dev.jbang.FileRef;
 import dev.jbang.GistCollection;
 import dev.jbang.Script;
 import dev.jbang.ScriptResource;
@@ -156,12 +160,20 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			List<Path> resolvedSourcePaths = new ArrayList<>();
 			if (scriptFile.getResolvedSourcePaths() != null) {
 				resolvedSourcePaths = scriptFile.getResolvedSourcePaths();
-			} else {
-				for (FileRef collectSource : s.collectSources()) {
-					// TODO should optimally be recursive
-					resolvedSourcePaths.add(s.getScriptResource().fetchIfNeeded(collectSource.getDestination()));
-				}
 			}
+			Set<String> visited = new HashSet<>();
+			LinkedList<String> sources = new LinkedList<>();
+			sources.addAll(Util.collectSources(s.getScript()));
+			while (!sources.isEmpty()) {
+				String source = sources.poll();
+				if (!visited.add(source))
+					continue;
+				Path path = s.getScriptResource().fetchIfNeeded(source);
+				resolvedSourcePaths.add(path);
+				String sourceContent = new String(Files.readAllBytes(path), Charset.defaultCharset());
+				sources.addAll(Util.collectSources(sourceContent));
+			}
+
 			s.setResolvedSources(resolvedSourcePaths);
 		} catch (FileNotFoundException e) {
 			throw new ExitException(1, e);
