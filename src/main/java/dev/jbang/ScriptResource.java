@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
-import java.util.List;
 
 public class ScriptResource {
 	// original requested resource
@@ -15,20 +14,10 @@ public class ScriptResource {
 	// physical file it is mapped to
 	private File file;
 
-	private List<Path> resolvedSourcePaths;
-
 	public ScriptResource(String scriptURL, File urlCache, File file) {
 		this.originalResource = scriptURL;
 		this.sourceCacheDir = urlCache;
 		this.file = file;
-	}
-
-	public List<Path> getResolvedSourcePaths() {
-		return resolvedSourcePaths;
-	}
-
-	public void setResolvedSourcePaths(List<Path> resolvedSourcePaths) {
-		this.resolvedSourcePaths = resolvedSourcePaths;
 	}
 
 	public static ScriptResource forFile(File file) {

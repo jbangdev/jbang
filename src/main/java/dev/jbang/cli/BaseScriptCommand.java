@@ -158,12 +158,6 @@ public abstract class BaseScriptCommand extends BaseCommand {
 
 			List<Path> resolvedSourcePaths = new ArrayList<>();
 			Set<String> visited = new HashSet<>();
-			if (scriptFile.getResolvedSourcePaths() != null) {
-				resolvedSourcePaths = scriptFile.getResolvedSourcePaths();
-				for (Path path : resolvedSourcePaths) {
-					visited.add(path.getFileName().toString());
-				}
-			}
 			LinkedList<String> sources = new LinkedList<>();
 			sources.addAll(Util.collectSources(s.getScript()));
 			while (!sources.isEmpty()) {
