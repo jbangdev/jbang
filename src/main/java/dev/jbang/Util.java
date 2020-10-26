@@ -8,7 +8,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -458,48 +457,6 @@ public class Util {
 		}
 	}
 
-	public static Path cacheContent(String fileURL, String content) {
-		Path urlCache = getUrlCache(fileURL);
-		// create a temp directory for the downloaded content
-		Path saveTmpDir = urlCache.getParent().resolve(urlCache.getFileName() + ".tmp");
-		Path saveOldDir = urlCache.getParent().resolve(urlCache.getFileName() + ".old");
-		try {
-			Util.deleteFolder(saveTmpDir, true);
-			Util.deleteFolder(saveOldDir, true);
-
-			saveTmpDir.toFile().mkdirs();
-
-			Path saveFilePath = Util.getPathToFile(fileURL, saveTmpDir.toFile());
-			PrintWriter pw = new PrintWriter(saveFilePath.toFile());
-			pw.println(content);
-			pw.flush();
-			pw.close();
-
-			// temporarily save the old content
-			if (Files.isDirectory(urlCache)) {
-				Files.move(urlCache, saveOldDir);
-			}
-			// rename the folder to its final name
-			Files.move(saveTmpDir, urlCache);
-			// remove any old content
-			Util.deleteFolder(saveOldDir, true);
-
-			return urlCache.resolve(saveFilePath.getFileName());
-		} catch (IOException exception) {
-			// remove the temp folder if anything went wrong
-			Util.deleteFolder(saveTmpDir, true);
-			// and move the old content back if it exists
-			if (!Files.isDirectory(urlCache) && Files.isDirectory(saveOldDir)) {
-				try {
-					Files.move(saveOldDir, urlCache);
-				} catch (IOException ex) {
-					// Ignore
-				}
-			}
-			throw new IllegalStateException(exception.getMessage());
-		}
-	}
-
 	public static List<String> getLines(List<String> lines, String script) {
 		if (lines == null && script != null) {
 			lines = Arrays.asList(script.split("\\r?\\n"));
@@ -582,17 +539,9 @@ public class Util {
 	}
 
 	public static String extractFileFromGist(String url) {
-		GistCollection gistCollection = new GistCollection();
+		String rawURL = "";
 		String[] pathPlusAnchor = url.split("#");
-		String fileName = "";
-		if (pathPlusAnchor.length == 2) {
-			String[] anchor = pathPlusAnchor[1].split("-");
-			if (anchor.length < 2)
-				throw new IllegalArgumentException("Invalid Gist url: " + url);
-			fileName = anchor[1];
-			for (int i = 2; i < anchor.length - 1; ++i)
-				fileName += "-" + anchor[i];
-		}
+		String fileName = getFileNameFromGistURL(url);
 		String gistapi = pathPlusAnchor[0].replaceFirst(
 				"^https://gist.github.com/(([a-zA-Z0-9]*)/)?(?<gistid>[a-zA-Z0-9]*)$",
 				"https://api.github.com/gists/${gistid}");
@@ -616,40 +565,38 @@ public class Util {
 				String prefix = tmp[0] + "/raw/";
 				String suffix = tmp[1].split("/")[1];
 				String mostRecentVersionRawUrl = prefix + gist.history[0].version + "/" + suffix;
-				gistCollection.add(new GistFile(key, mostRecentVersionRawUrl,
-						entry.getValue().get("content")));
+				if (!fileName.isEmpty()) { // User wants to run specific Gist file
+					if ((fileName + ".java").equals(key) || (fileName + ".jsh").equals(key))
+						return mostRecentVersionRawUrl;
+				} else {
+					if (key.endsWith(".jsh") || Util.hasMainMethod(entry.getValue().get("content")))
+						return mostRecentVersionRawUrl;
+					rawURL = mostRecentVersionRawUrl;
+				}
 			}
 		}
 
-		if (gistCollection.gistFiles.isEmpty()) {
+		if (!fileName.isEmpty())
+			throw new IllegalArgumentException("Could not find file: " + fileName);
+
+		if (rawURL.isEmpty())
 			throw new IllegalArgumentException("Gist does not contain any .java or .jsh file.");
+
+		return rawURL;
+	}
+
+	private static String getFileNameFromGistURL(String url) {
+		String fileName = "";
+		String[] pathPlusAnchor = url.split("#");
+		if (pathPlusAnchor.length == 2) {
+			String[] anchor = pathPlusAnchor[1].split("-");
+			if (anchor.length < 2)
+				throw new IllegalArgumentException("Invalid Gist url: " + url);
+			fileName = anchor[1];
+			for (int i = 2; i < anchor.length - 1; ++i)
+				fileName += "-" + anchor[i];
 		}
-
-		if (!fileName.isEmpty()) { // User wants to run specific Gist file
-			Util.verboseMsg("Searching for file: " + fileName);
-			for (GistFile file : gistCollection.gistFiles) {
-				if (file.filename.toLowerCase().contains(fileName.toLowerCase())) {
-					return file.raw_url;
-				}
-			}
-			throw new IllegalArgumentException("Could not find specified Gist file.");
-		} else {
-			if (gistCollection.gistFiles.size() == 1) {
-				return gistCollection.gistFiles.get(0).raw_url;
-			}
-
-			if (gistCollection.mainClasses.size() > 1) {
-				throw new IllegalArgumentException("Gist has more than one class with main method. " +
-						"You must specify which class to run.");
-			}
-
-			for (GistFile file : gistCollection.gistFiles) {
-				if (file.filename.equals(gistCollection.mainClasses.get(0))) {
-					return file.raw_url;
-				}
-			}
-			throw new IllegalStateException("It should not reach here. url = " + url);
-		}
+		return fileName;
 	}
 
 	static String readStringFromURL(String requestURL) throws IOException {
