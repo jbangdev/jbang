@@ -37,7 +37,6 @@ import dev.jbang.AliasUtil;
 import dev.jbang.ConsoleInput;
 import dev.jbang.DependencyUtil;
 import dev.jbang.ExitException;
-import dev.jbang.GistCollection;
 import dev.jbang.Script;
 import dev.jbang.ScriptResource;
 import dev.jbang.Settings;
@@ -323,20 +322,11 @@ public abstract class BaseScriptCommand extends BaseCommand {
 					throw new ExitException(10, exmsg);
 			}
 
-			if (Util.isGistURL(scriptURL)) {
-				GistCollection gistCollection = Util.extractFileFromGistWithSources(scriptURL);
-				File urlCache = Util.getUrlCache(gistCollection.getMainURL()).toFile();
-				Path path = Util.getPathToFile(gistCollection.getMainURL(), urlCache);
-				ScriptResource scriptResource = new ScriptResource(gistCollection.getMainURL(), urlCache,
-						path.toFile());
-				scriptResource.setResolvedSourcePaths(gistCollection.getResolvedSourcePathsAsList());
-				return scriptResource;
-			} else {
-				scriptURL = swizzleURL(scriptURL);
-				File urlCache = Util.getUrlCache(scriptURL).toFile();
-				Path path = Util.downloadFileSwizzled(scriptURL, urlCache);
-				return new ScriptResource(scriptURL, urlCache, path.toFile());
-			}
+			scriptURL = swizzleURL(scriptURL);
+			File urlCache = Util.getUrlCache(scriptURL).toFile();
+			Path path = Util.downloadFileSwizzled(scriptURL, urlCache);
+
+			return new ScriptResource(scriptURL, urlCache, path.toFile());
 		} catch (IOException | URISyntaxException e) {
 			throw new ExitException(2, "Could not download " + scriptURL, e);
 		}

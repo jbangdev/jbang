@@ -556,7 +556,7 @@ public class Util {
 				"https://mobile.twitter.com/$1/status/$2");
 
 		if (isGistURL(url)) {
-			throw new IllegalStateException("Gist url is not handled here.");
+			url = extractFileFromGist(url);
 		}
 
 		return url;
@@ -581,7 +581,7 @@ public class Util {
 		return sb.toString();
 	}
 
-	public static GistCollection extractFileFromGistWithSources(String url) {
+	public static String extractFileFromGist(String url) {
 		GistCollection gistCollection = new GistCollection();
 		String[] pathPlusAnchor = url.split("#");
 		String fileName = "";
@@ -612,7 +612,11 @@ public class Util {
 		for (Entry<String, Map<String, String>> entry : gist.files.entrySet()) {
 			String key = entry.getKey();
 			if (key.endsWith(".java") || key.endsWith(".jsh")) {
-				gistCollection.add(new GistFile(key, entry.getValue().get("raw_url"),
+				String[] tmp = entry.getValue().get("raw_url").split("/raw/");
+				String prefix = tmp[0] + "/raw/";
+				String suffix = tmp[1].split("/")[1];
+				String mostRecentVersionRawUrl = prefix + gist.history[0].version + "/" + suffix;
+				gistCollection.add(new GistFile(key, mostRecentVersionRawUrl,
 						entry.getValue().get("content")));
 			}
 		}
@@ -625,15 +629,13 @@ public class Util {
 			Util.verboseMsg("Searching for file: " + fileName);
 			for (GistFile file : gistCollection.gistFiles) {
 				if (file.filename.toLowerCase().contains(fileName.toLowerCase())) {
-					gistCollection.setMainURL(file.raw_url);
-					return gistCollection;
+					return file.raw_url;
 				}
 			}
 			throw new IllegalArgumentException("Could not find specified Gist file.");
 		} else {
 			if (gistCollection.gistFiles.size() == 1) {
-				gistCollection.setMainURL(gistCollection.gistFiles.get(0).raw_url);
-				return gistCollection;
+				return gistCollection.gistFiles.get(0).raw_url;
 			}
 
 			if (gistCollection.mainClasses.size() > 1) {
@@ -643,8 +645,7 @@ public class Util {
 
 			for (GistFile file : gistCollection.gistFiles) {
 				if (file.filename.equals(gistCollection.mainClasses.get(0))) {
-					gistCollection.setMainURL(file.raw_url);
-					return gistCollection;
+					return file.raw_url;
 				}
 			}
 			throw new IllegalStateException("It should not reach here. url = " + url);
@@ -666,6 +667,11 @@ public class Util {
 
 	static class Gist {
 		Map<String, Map<String, String>> files;
+		History[] history;
+	}
+
+	static class History {
+		String version;
 	}
 
 	/**

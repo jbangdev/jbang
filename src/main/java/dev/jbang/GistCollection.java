@@ -1,45 +1,16 @@
 package dev.jbang;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class GistCollection {
 	private String mainURL;
 	public Map<String, Path> fileNameToPathMap = new HashMap<>();
 	public List<GistFile> gistFiles = new ArrayList<>();
 	public List<String> mainClasses = new ArrayList<>();
-
-	public List<Path> getResolvedSourcePathsAsList() {
-		Set<Path> resolvedSourcePaths = new HashSet<>();
-		List<Path> sourcePaths = new ArrayList<Path>();
-		for (GistFile gistFile : gistFiles) {
-			for (String source : gistFile.sources) {
-				Path path;
-				if (source.startsWith("https://")) {
-					try {
-						path = Util.downloadAndCacheFile(source, true);
-					} catch (IOException e) {
-						Util.verboseMsg("Could not download source: " + source);
-						throw new RuntimeException(e);
-					}
-				} else {
-					path = fileNameToPathMap.get(source);
-				}
-				if (path == null) {
-					throw new IllegalStateException("Unable to find source: " + source);
-				}
-				resolvedSourcePaths.add(path);
-			}
-		}
-		sourcePaths.addAll(resolvedSourcePaths);
-		return sourcePaths;
-	}
 
 	public String getMainURL() {
 		return mainURL;
