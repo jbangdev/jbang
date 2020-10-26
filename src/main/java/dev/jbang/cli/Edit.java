@@ -3,7 +3,6 @@ package dev.jbang.cli;
 import static dev.jbang.Settings.CP_SEPARATOR;
 import static dev.jbang.Util.isWindows;
 import static java.lang.System.out;
-import static java.util.stream.Collectors.joining;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,9 +15,7 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import dev.jbang.ExitException;
@@ -70,12 +67,13 @@ public class Edit extends BaseScriptCommand {
 
 				String[] cmd;
 				if (isWindows()) {
-					cmd = new String[] { "cmd", "/c", optionList.stream().collect(joining(" ")) };
+					cmd = new String[] { "cmd", "/c", optionList.stream().collect(Collectors.joining(" ")) };
 				} else {
-					cmd = new String[] { "sh", "-c", optionList.stream().collect(joining(" ")) };
+					cmd = new String[] { "sh", "-c", optionList.stream().collect(Collectors.joining(" ")) };
 				}
 				info("Running `" + String.join(" ", cmd) + "`");
 				new ProcessBuilder(cmd).start();
+
 			}
 		}
 
@@ -87,31 +85,17 @@ public class Edit extends BaseScriptCommand {
 				if (!orginalFile.exists()) {
 					throw new ExitException(2, "Cannot live edit " + script.getOriginalFile());
 				}
-
-				// TODO: should extract this to be testable!
-				Set<Path> rootsToWatch = new HashSet<Path>();
-
-				rootsToWatch.add(orginalFile.getAbsoluteFile().getParentFile().toPath());
-				rootsToWatch.addAll(
-						script.getResolvedSourcePaths().stream().map(x -> x.getParent()).collect(Collectors.toList()));
-
-				for (Path toWatch : rootsToWatch) {
-					toWatch.register(watchService,
-							new WatchEvent.Kind[] { StandardWatchEventKinds.ENTRY_MODIFY });
-					info("Watching for changes in " + toWatch);
-				}
-
+				Path watched = orginalFile.getAbsoluteFile().getParentFile().toPath();
+				watched.register(watchService,
+						new WatchEvent.Kind[] { StandardWatchEventKinds.ENTRY_MODIFY });
+				info("Watching for changes in " + watched);
 				while (true) {
 					final WatchKey wk = watchService.take();
 					for (WatchEvent<?> event : wk.pollEvents()) {
 						// we only register "ENTRY_MODIFY" so the context is always a Path.
 						final Path changed = (Path) event.context();
 						// info(changed.toString());
-						// instead of check all resolved paths we just optimistically assume if same
-						// file as root or known suffix we will regenerate
-						// System.out.println("Change at " + changed);
-						if (Files.isSameFile(orginalFile.toPath(), changed) || changed.endsWith(".jsh")
-								|| changed.endsWith(".java")) {
+						if (Files.isSameFile(orginalFile.toPath(), changed)) {
 							try {
 								// TODO only regenerate when dependencies changes.
 								info("Regenerating project.");
@@ -133,7 +117,7 @@ public class Edit extends BaseScriptCommand {
 				warn("edit-live interrupted");
 			}
 		}
-		return EXIT_OK;
+		return EXIT_EXECUTE;
 	}
 
 	/** Create Project to use for editing **/
