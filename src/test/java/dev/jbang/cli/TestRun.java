@@ -553,8 +553,7 @@ public class TestRun {
 	@Test
 	void testFetchFromGist(@TempDir Path dir) throws IOException {
 
-		String u = Util.swizzleURL(
-				"https://gist.github.com/maxandersen/590b8a0e824faeb3ee7ddfad741ce842");
+		String u = Util.swizzleURL("https://gist.github.com/maxandersen/590b8a0e824faeb3ee7ddfad741ce842");
 
 		Path x = Util.downloadFile(u,
 				dir.toFile());
@@ -599,8 +598,7 @@ public class TestRun {
 	@Test
 	void testFetchjshFromGist(@TempDir Path dir) throws IOException {
 
-		String u = Util.swizzleURL(
-				"https://gist.github.com/maxandersen/d4fa63eb16d8fc99448d37b10c7d8980");
+		String u = Util.swizzleURL("https://gist.github.com/maxandersen/d4fa63eb16d8fc99448d37b10c7d8980");
 
 		Path x = Util.downloadFile(u,
 				dir.toFile());

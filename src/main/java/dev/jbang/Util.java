@@ -538,7 +538,7 @@ public class Util {
 		return sb.toString();
 	}
 
-	public static String extractFileFromGist(String url) {
+	private static String extractFileFromGist(String url) {
 		String rawURL = "";
 		String[] pathPlusAnchor = url.split("#");
 		String fileName = getFileNameFromGistURL(url);
