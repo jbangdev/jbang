@@ -37,6 +37,7 @@ import dev.jbang.AliasUtil;
 import dev.jbang.ConsoleInput;
 import dev.jbang.DependencyUtil;
 import dev.jbang.ExitException;
+import dev.jbang.FileRef;
 import dev.jbang.Script;
 import dev.jbang.ScriptResource;
 import dev.jbang.Settings;
@@ -159,7 +160,9 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			List<Path> resolvedSourcePaths = new ArrayList<>();
 			Set<String> visited = new HashSet<>();
 			LinkedList<String> sources = new LinkedList<>();
-			sources.addAll(Util.collectSources(s.getScript()));
+			List<FileRef> fileRefs = s.collectSources();
+			for (FileRef fileRef : fileRefs)
+				sources.add(fileRef.getDestination());
 			while (!sources.isEmpty()) {
 				String source = sources.poll();
 				if (!visited.add(source))
@@ -167,7 +170,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 				Path path = s.getScriptResource().fetchIfNeeded(source);
 				resolvedSourcePaths.add(path);
 				String sourceContent = new String(Files.readAllBytes(path), Charset.defaultCharset());
-				sources.addAll(Util.collectSources(sourceContent));
+				sources.addAll(Script.collectSources(sourceContent));
 			}
 
 			s.setResolvedSources(resolvedSourcePaths);

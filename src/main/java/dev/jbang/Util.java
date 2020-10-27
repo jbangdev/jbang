@@ -20,7 +20,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -551,7 +550,7 @@ public class Util {
 		try {
 			strdata = readStringFromURL(gistapi);
 		} catch (IOException e) {
-			Util.verboseMsg("Error when extracting file from gist url: " + e);
+			Util.verboseMsg("Error when extracting file from gist url.");
 			throw new IllegalStateException(e);
 		}
 
@@ -560,13 +559,14 @@ public class Util {
 
 		for (Entry<String, Map<String, String>> entry : gist.files.entrySet()) {
 			String key = entry.getKey();
+			String lowerCaseKey = key.toLowerCase();
 			if (key.endsWith(".java") || key.endsWith(".jsh")) {
 				String[] tmp = entry.getValue().get("raw_url").split("/raw/");
 				String prefix = tmp[0] + "/raw/";
 				String suffix = tmp[1].split("/")[1];
 				String mostRecentVersionRawUrl = prefix + gist.history[0].version + "/" + suffix;
 				if (!fileName.isEmpty()) { // User wants to run specific Gist file
-					if ((fileName + ".java").equals(key) || (fileName + ".jsh").equals(key))
+					if ((fileName + ".java").equals(lowerCaseKey) || (fileName + ".jsh").equals(lowerCaseKey))
 						return mostRecentVersionRawUrl;
 				} else {
 					if (key.endsWith(".jsh") || Util.hasMainMethod(entry.getValue().get("content")))
@@ -710,40 +710,11 @@ public class Util {
 		return Settings.getCacheDir(Settings.CacheClass.urls).resolve(urlHash);
 	}
 
-	public static Path getPathToFile(String scriptURL, File baseDir) {
-		String fileName = scriptURL.substring(scriptURL.lastIndexOf("/") + 1);
-		return baseDir.toPath().resolve(fileName);
-	}
-
 	public static boolean hasMainMethod(String content) {
-		// (public[ ]{1,}static[ ]{1,}void[ ]{1,}main[ ]{0,}\()|(static[ ]{1,}public[
-		// ]{1,}void[ ]{1,}main[ ]{0,}\()
-		// TODO create regular expression
 		return content.contains("public static void main(");
 	}
 
 	public static boolean isGistURL(String scriptURL) {
 		return scriptURL.startsWith("https://gist.github.com/");
-	}
-
-	public static List<String> collectSources(List<String> lines) {
-		List<String> sources = new ArrayList<>();
-		for (String line : lines) {
-			if (!line.startsWith(Util.SOURCES_COMMENT_PREFIX))
-				continue;
-			String[] tmp1 = line.split("[ ;,]+");
-			for (int i = 1; i < tmp1.length; ++i) {
-				sources.add(tmp1[i]);
-			}
-		}
-		return sources;
-	}
-
-	public static List<String> collectSources(String content) {
-		if (content == null) {
-			return Collections.emptyList();
-		}
-		List<String> lines = Util.getLines(null, content);
-		return collectSources(lines);
 	}
 }
