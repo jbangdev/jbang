@@ -161,16 +161,19 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			Set<String> visited = new HashSet<>();
 			LinkedList<String> sources = new LinkedList<>();
 			List<FileRef> fileRefs = s.collectSources();
-			for (FileRef fileRef : fileRefs)
+			for (FileRef fileRef : fileRefs) {
 				sources.add(fileRef.getDestination());
+			}
 			while (!sources.isEmpty()) {
 				String source = sources.poll();
 				if (!visited.add(source))
 					continue;
 				Path path = s.getScriptResource().fetchIfNeeded(source);
 				resolvedSourcePaths.add(path);
+				// TODO would we not be better of with Script ref here rather than a raw string
+				// ?
 				String sourceContent = new String(Files.readAllBytes(path), Charset.defaultCharset());
-				sources.addAll(Script.collectSources(sourceContent));
+				sources.addAll(Util.collectSources(sourceContent));
 			}
 
 			s.setResolvedSources(resolvedSourcePaths);
