@@ -692,6 +692,7 @@ See `link:examples/jfx.java[]` and `link:examples/jfxtiles.java[]` for examples 
 
 Since version 0.46 there is now initial support for having multiple source files. The main script file defines all the
 dependencies and you add more source files into the application using `//SOURCES <filename>`.
+If included source has`//SOURCES` that will also get included recursively.
 
 The listed file name(s) gets added to source list when compiling.
 
