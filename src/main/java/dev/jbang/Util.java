@@ -47,6 +47,10 @@ public class Util {
 
 	public static final String SOURCES_COMMENT_PREFIX = "//SOURCES ";
 
+	public static final Pattern patternMainMethod = Pattern.compile(
+			"^.*(public\\s+static|static\\s+public)\\s+void\\s+main\\s*\\(.*",
+			Pattern.MULTILINE);
+
 	private static boolean verbose;
 	private static boolean quiet;
 
@@ -715,7 +719,7 @@ public class Util {
 	}
 
 	public static boolean hasMainMethod(String content) {
-		return content.contains("public static void main(");
+		return patternMainMethod.matcher(content).find();
 	}
 
 	public static boolean isGistURL(String scriptURL) {
