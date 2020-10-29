@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -157,23 +156,39 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			s.setAdditionalDependencies(dependencies);
 			s.setAdditionalClasspaths(classpaths);
 
+			// Logic to get all //SOURCES recursively
 			List<Path> resolvedSourcePaths = new ArrayList<>();
+			// It's important to know which sources we already visited,
+			// because many files can declare the same source.
 			Set<String> visited = new HashSet<>();
-			LinkedList<String> sources = new LinkedList<>();
+			// List of array: [0] original source [1] source
+			List<String[]> sources = new ArrayList<>();
+			// Collect sources from the entry point (main file)
+			String originalSource = s.getScriptResource().getOriginalResource();
 			List<FileRef> fileRefs = s.collectSources();
-			for (FileRef fileRef : fileRefs) {
-				sources.add(fileRef.getDestination());
-			}
+			for (FileRef fileRef : fileRefs)
+				sources.add(new String[] { originalSource, fileRef.getDestination() });
 			while (!sources.isEmpty()) {
-				String source = sources.poll();
+				String[] tmp = sources.remove(0);
+				originalSource = tmp[0];
+				String source = tmp[1];
 				if (!visited.add(source))
 					continue;
-				Path path = s.getScriptResource().fetchIfNeeded(source);
+				source = Util.swizzleURL(source); // base path for new sources
+				Path path = s.getScriptResource().fetchIfNeeded(source, originalSource);
 				resolvedSourcePaths.add(path);
 				// TODO would we not be better of with Script ref here rather than a raw string
 				// ?
 				String sourceContent = new String(Files.readAllBytes(path), Charset.defaultCharset());
-				sources.addAll(Util.collectSources(sourceContent));
+				List<String> newSources = Util.collectSources(sourceContent);
+				for (String newSource : newSources) {
+					// If source is a URL then it must be the new base path
+					if (Util.isURL(source)) {
+						sources.add(new String[] { source, newSource });
+					} else {
+						sources.add(new String[] { originalSource, newSource });
+					}
+				}
 			}
 
 			s.setResolvedSources(resolvedSourcePaths);
