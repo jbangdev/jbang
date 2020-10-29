@@ -418,8 +418,7 @@ public class Util {
 	 */
 	public static Path downloadAndCacheFile(String fileURL, boolean updateCache) throws IOException {
 		fileURL = swizzleURL(fileURL);
-		String urlHash = getStableID(fileURL);
-		Path urlCache = Settings.getCacheDir(Settings.CacheClass.urls).resolve(urlHash);
+		Path urlCache = Util.getUrlCache(fileURL);
 		Path file = getFirstFile(urlCache);
 		if (updateCache || file == null) {
 			// create a temp directory for the downloaded content
@@ -741,5 +740,10 @@ public class Util {
 		}
 		List<String> lines = getLines(null, content);
 		return collectSources(lines);
+	}
+
+	public static boolean isURL(String str) {
+		return str.startsWith("https://") || str.startsWith("http://")
+				|| str.startsWith("file:///");
 	}
 }

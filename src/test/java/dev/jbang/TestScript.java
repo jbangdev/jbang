@@ -7,8 +7,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -24,12 +30,10 @@ class TestScript {
 
 	String example = "//#!/usr/bin/env jbang\n" + "\n"
 			+ "//DEPS com.offbytwo:docopt:0.6.0.20150202,log4j:log4j:${log4j.version:1.2.14}\n" + "\n"
-			+ "import org.docopt.Docopt;\n"
-			+ "import java.io.File;\n" + "import java.util.*;\n" + "import static java.lang.System.*;\n" + "\n"
-			+ "//JAVA_OPTIONS --enable-preview \"-Dvalue='this is space'\"\n"
-			+ "//JAVAC_OPTIONS --enable-preview\n"
-			+ "//JAVAC_OPTIONS --verbose \n"
-			+ "class classpath_example {\n" + "\n"
+			+ "import org.docopt.Docopt;\n" + "import java.io.File;\n" + "import java.util.*;\n"
+			+ "import static java.lang.System.*;\n" + "\n"
+			+ "//JAVA_OPTIONS --enable-preview \"-Dvalue='this is space'\"\n" + "//JAVAC_OPTIONS --enable-preview\n"
+			+ "//JAVAC_OPTIONS --verbose \n" + "class classpath_example {\n" + "\n"
 			+ "\tString usage = \"jbang  - Enhanced scripting support for Java on *nix-based systems.\\n\" + \"\\n\" + \"Usage:\\n\"\n"
 			+ "\t\t\t+ \"    jbang ( -t | --text ) <version>\\n\"\n"
 			+ "\t\t\t+ \"    jbang [ --interactive | --idea | --package ] [--] ( - | <file or URL> ) [<args>]...\\n\"\n"
@@ -47,6 +51,87 @@ class TestScript {
 			+ "\t\t\t\t    println(\"$key:\\t$value\\t(${value?.javaClass?.canonicalName})\")\n" + "\t\t};*/\n" + "\n"
 			+ "\t\tout.println(\"\\nHello from Java!\");\n" + "\t\tfor (String arg : args) {\n"
 			+ "\t\t\tout.println(\"arg: $arg\");\n" + "\t\t}\n" + "\t\n" + "\t}\n" + "}";
+
+	String exampleURLInSOURCEMain = "///usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n"
+			+ "\n"
+			+ "//JAVA 15\n"
+			+ "\n"
+			+ "//SOURCES Hi.java\n"
+			+ "//SOURCES https://gist.github.com/tivrfoa/bb5deb269de39eb8fca9636dd3c9f123#file-gsonhelper-java\n"
+			+ "//SOURCES pkg1/Bye.java\n"
+			+ "\n"
+			+ "import pkg1.Bye;\n"
+			+ "\n"
+			+ "public class Main {\n"
+			+ "	\n"
+			+ "	private static final String JSON = \"\"\"\n"
+			+ "	{\n"
+			+ "	  \"title\": \"Free Music Archive - Albums\",\n"
+			+ "	  \"message\": \"\",\n"
+			+ "	  \"errors\": [],\n"
+			+ "	  \"total\": \"11259\",\n"
+			+ "	  \"total_pages\": 2252,\n"
+			+ "	  \"page\": 1,\n"
+			+ "	  \"limit\": \"5\",\n"
+			+ "	  \"dataset\": [\n"
+			+ "		{\n"
+			+ "		  \"album_id\": \"7596\",\n"
+			+ "		  \"album_title\": \"Album 1\",\n"
+			+ "		  \"album_images\": [\n"
+			+ "			{\n"
+			+ "			  \"image_id\": \"1\",\n"
+			+ "			  \"user_id\": null\n"
+			+ "			}\n"
+			+ "		  ]\n"
+			+ "		}\n"
+			+ "	  ]\n"
+			+ "	}\n"
+			+ "	\"\"\";\n"
+			+ "\n"
+			+ "    public static void main(String... args) {\n"
+			+ "    	System.out.println(\"Testing //SOURCES url, where url \" +\n"
+			+ "				\"also contains //SOURCES and //DEPS\");\n"
+			+ "\n"
+			+ "		Hi.say();\n"
+			+ "		\n"
+			+ "		Albums albums = GsonHelper.getAlbums(JSON);\n"
+			+ "		System.out.println(albums.title);\n"
+			+ "		System.out.println(albums.dataset.get(0).album_title);\n"
+			+ "		System.out.println(albums.dataset.get(0).album_images);\n"
+			+ "\n"
+			+ "		Bye.say();\n"
+			+ "    }\n"
+			+ "}\n";
+
+	String exampleURLInSOURCEHi = "//SOURCES pkg1/Hello.java\n"
+			+ "\n"
+			+ "import pkg1.Hello;\n"
+			+ "\n"
+			+ "public class Hi {\n"
+			+ "    \n"
+			+ "    public static void say() {\n"
+			+ "		System.out.println(\"Hi!!!\");\n"
+			+ "		Hello.say();\n"
+			+ "    }\n"
+			+ "}\n";
+
+	String exampleURLInSOURCEHello = "package pkg1;\n"
+			+ "\n"
+			+ "public class Hello {\n"
+			+ "    \n"
+			+ "    public static void say() {\n"
+			+ "		System.out.println(\"Hello!!!\");\n"
+			+ "    }\n"
+			+ "}\n";
+
+	String exampleURLInSOURCEBye = "package pkg1;\n"
+			+ "\n"
+			+ "public class Bye {\n"
+			+ "    \n"
+			+ "    public static void say() {\n"
+			+ "		System.out.println(\"Bye!!!\");\n"
+			+ "    }\n"
+			+ "}";
 
 	@Test
 	void testFindDependencies() {
@@ -74,6 +159,32 @@ class TestScript {
 		assertTrue(dependencies.contains("com.offbytwo:docopt:0.6.0.20150202"));
 		assertTrue(dependencies.contains("log4j:log4j:1.2.9"));
 
+	}
+
+	@Test
+	void testFindDependenciesWithURLInSOURCE() throws IOException {
+		File urlCache = null;
+		Path mainPath = createTmpFile("", "Main.java", exampleURLInSOURCEMain);
+		createTmpFile("", "Hi.java", exampleURLInSOURCEHi);
+		createTmpFile("pkg1", "Hello.java", exampleURLInSOURCEHello);
+		createTmpFile("pkg1", "Bye.java", exampleURLInSOURCEBye);
+		String scriptURL = mainPath.toString();
+		ScriptResource scriptResource = new ScriptResource(scriptURL, urlCache, mainPath.toFile());
+		Script script = new Script(scriptResource, new ArrayList<>(), new HashMap<>());
+		List<Path> resolveSOURCESRecursively = BaseScriptCommand.resolveSOURCESRecursively(script);
+		assertTrue(resolveSOURCESRecursively.size() == 7);
+	}
+
+	private static Path createTmpFile(String strPath, String fileName, String content) throws IOException {
+		String defaultBaseDir = System.getProperty("java.io.tmpdir");
+		Path dir = Paths.get(defaultBaseDir + File.separator + strPath);
+		if (!Files.exists(dir))
+			dir = Files.createDirectory(dir);
+		Path path = dir.resolve(fileName);
+		try (BufferedWriter writer = Files.newBufferedWriter(path, Charset.forName("UTF-8"))) {
+			writer.write(content);
+		}
+		return path;
 	}
 
 	@Test

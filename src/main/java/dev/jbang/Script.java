@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -119,26 +120,29 @@ public class Script {
 	}
 
 	public List<String> collectDependencies() {
+		return collectDependencies(getLines().stream());
+	}
+
+	public List<String> collectDependencies(Stream<String> lines) {
 		if (forJar()) { // if a .jar then we don't try parse it for dependencies.
 			return additionalDeps;
 		}
 		// early/eager init to property resolution will work.
 		new Detector().detect(new Properties(), Collections.emptyList());
 
-		// Make sure that dependencies declarations are well formatted
-		if (getLines().stream().anyMatch(it -> it.startsWith("// DEPS"))) {
-			throw new IllegalArgumentException("Dependencies must be declared by using the line prefix //DEPS");
-		}
-
 		Properties p = new Properties(System.getProperties());
 		if (properties != null) {
 			p.putAll(properties);
 		}
 
-		Stream<String> depStream = getLines()	.stream()
-												.filter(it -> isDependDeclare(it))
-												.flatMap(it -> extractDependencies(it))
-												.map(it -> PropertiesValueResolver.replaceProperties(it, p));
+		Stream<String> depStream = lines.filter(it -> {
+			// Make sure that dependencies declarations are well formatted
+			if (it.startsWith("// DEPS"))
+				throw new IllegalArgumentException("Dependencies must be declared by using the line prefix //DEPS");
+			return isDependDeclare(it);
+		})
+										.flatMap(it -> extractDependencies(it))
+										.map(it -> PropertiesValueResolver.replaceProperties(it, p));
 
 		List<String> dependencies = Stream	.concat(additionalDeps.stream(), depStream)
 											.collect(Collectors.toList());
@@ -274,6 +278,15 @@ public class Script {
 				}
 			} else {
 				List<String> dependencies = collectDependencies();
+				if (getResolvedSourcePaths() != null) {
+					for (Path resource : getResolvedSourcePaths()) {
+						try {
+							dependencies.addAll(collectDependencies(Files.lines(resource)));
+						} catch (IOException e) {
+							throw new RuntimeException(e);
+						}
+					}
+				}
 				List<MavenRepo> repositories = getRepositories();
 				classpath = new DependencyUtil().resolveDependencies(dependencies, repositories, offline,
 						!Util.isQuiet());

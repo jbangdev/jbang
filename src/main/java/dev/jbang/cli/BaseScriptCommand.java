@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -156,31 +155,48 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			s.setOriginal(scriptResource);
 			s.setAdditionalDependencies(dependencies);
 			s.setAdditionalClasspaths(classpaths);
-
-			List<Path> resolvedSourcePaths = new ArrayList<>();
-			Set<String> visited = new HashSet<>();
-			LinkedList<String> sources = new LinkedList<>();
-			List<FileRef> fileRefs = s.collectSources();
-			for (FileRef fileRef : fileRefs) {
-				sources.add(fileRef.getDestination());
-			}
-			while (!sources.isEmpty()) {
-				String source = sources.poll();
-				if (!visited.add(source))
-					continue;
-				Path path = s.getScriptResource().fetchIfNeeded(source);
-				resolvedSourcePaths.add(path);
-				// TODO would we not be better of with Script ref here rather than a raw string
-				// ?
-				String sourceContent = new String(Files.readAllBytes(path), Charset.defaultCharset());
-				sources.addAll(Util.collectSources(sourceContent));
-			}
-
-			s.setResolvedSources(resolvedSourcePaths);
+			s.setResolvedSources(resolveSOURCESRecursively(s));
 		} catch (FileNotFoundException e) {
 			throw new ExitException(1, e);
 		}
 		return s;
+	}
+
+	public static List<Path> resolveSOURCESRecursively(Script script) throws IOException {
+		List<Path> resolvedSourcePaths = new ArrayList<>();
+		// It's important to know which sources we already visited,
+		// because many files can declare the same source.
+		Set<String> visited = new HashSet<>();
+		// List of array: [0] original source [1] source
+		List<String[]> sources = new ArrayList<>();
+		// Collect sources from the entry point (main file)
+		String originalSource = script.getScriptResource().getOriginalResource();
+		List<FileRef> fileRefs = script.collectSources();
+		for (FileRef fileRef : fileRefs)
+			sources.add(new String[] { originalSource, fileRef.getDestination() });
+		while (!sources.isEmpty()) {
+			String[] tmp = sources.remove(0);
+			originalSource = tmp[0];
+			String source = tmp[1];
+			if (!visited.add(source))
+				continue;
+			source = Util.swizzleURL(source); // base path for new sources
+			Path path = script.getScriptResource().fetchIfNeeded(source, originalSource);
+			resolvedSourcePaths.add(path);
+			// TODO would we not be better of with Script ref here rather than a raw string
+			// ?
+			String sourceContent = new String(Files.readAllBytes(path), Charset.defaultCharset());
+			List<String> newSources = Util.collectSources(sourceContent);
+			for (String newSource : newSources) {
+				// If source is a URL then it must be the new base path
+				if (Util.isURL(source)) {
+					sources.add(new String[] { source, newSource });
+				} else {
+					sources.add(new String[] { originalSource, newSource });
+				}
+			}
+		}
+		return resolvedSourcePaths;
 	}
 
 	private static ScriptResource getScriptFile(String scriptResource) throws IOException {
