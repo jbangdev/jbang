@@ -186,14 +186,19 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			// TODO would we not be better of with Script ref here rather than a raw string
 			// ?
 			String sourceContent = new String(Files.readAllBytes(path), Charset.defaultCharset());
-			List<String> newSources = Util.collectSources(sourceContent);
+
+			String refSource;
+
+			// If source is a URL then it must be the new base path
+			if (Util.isURL(source)) {
+				refSource = source;
+			} else {
+				refSource = originalSource;
+			}
+
+			List<String> newSources = Util.collectSources(refSource, path, sourceContent);
 			for (String newSource : newSources) {
-				// If source is a URL then it must be the new base path
-				if (Util.isURL(source)) {
-					sources.add(new String[] { source, newSource });
-				} else {
-					sources.add(new String[] { originalSource, newSource });
-				}
+				sources.add(new String[] { refSource, newSource });
 			}
 		}
 		return resolvedSourcePaths;

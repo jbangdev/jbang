@@ -14,10 +14,16 @@ import java.net.URLConnection;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -39,6 +45,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.parser.Parser;
 
 import com.google.gson.Gson;
+
+import dev.jbang.cli.BaseCommand;
 
 public class Util {
 
@@ -94,6 +102,59 @@ public class Util {
 		} else {
 			return fileName.substring(0, index);
 		}
+	}
+
+	static private boolean isPattern(String pattern) {
+		return pattern.contains("?") || pattern.contains("*");
+	}
+
+	/**
+	 * Explodes filepattern found in baseDir returnin list of relative Path names.
+	 *
+	 * @param source
+	 * @param baseDir
+	 * @param filepattern
+	 * @return
+	 */
+	public static List<Path> explode(String source, Path baseDir, String filepattern) {
+
+		List<Path> results = new ArrayList<>();
+
+		if (Util.isURL(source)) {
+			// if url then just return it back for others to resolve.
+			// TODO: technically this is really where it should get resolved!
+			if (isPattern(filepattern)) {
+				Util.warnMsg("Pattern " + filepattern + " used while using URL to run; this could result in errors.");
+				return results;
+			} else {
+				results.add(Paths.get(filepattern));
+			}
+		} else if (!filepattern.contains("?") && !filepattern.contains("*")) {
+			// no a pattern thus just as well return path directly
+			results.add(Paths.get(filepattern));
+		} else {
+			// it is a non-url letls try locate it
+			PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + filepattern);
+
+			FileVisitor<Path> matcherVisitor = new SimpleFileVisitor<Path>() {
+				@Override
+				public FileVisitResult visitFile(Path file, BasicFileAttributes attribs) {
+					Path relpath = baseDir.relativize(file);
+					if (matcher.matches(relpath)) {
+						results.add(relpath);
+					}
+					return FileVisitResult.CONTINUE;
+				}
+			};
+
+			try {
+				Files.walkFileTree(baseDir, matcherVisitor);
+			} catch (IOException e) {
+				throw new ExitException(BaseCommand.EXIT_INTERNAL_ERROR,
+						"Problem looking for " + filepattern + " in " + baseDir.toString(), e);
+			}
+		}
+		return results;
 	}
 
 	public enum OS {
@@ -725,25 +786,28 @@ public class Util {
 		return scriptURL.startsWith("https://gist.github.com/");
 	}
 
-	private static List<String> collectSources(List<String> lines) {
+	private static List<String> collectSources(String source, Path backingPath, List<String> lines) {
 		List<String> sources = new ArrayList<>();
 		for (String line : lines) {
 			if (!line.startsWith(Util.SOURCES_COMMENT_PREFIX))
 				continue;
 			String[] tmp1 = line.split("[ ;,]+");
 			for (int i = 1; i < tmp1.length; ++i) {
-				sources.add(tmp1[i]);
+				sources.addAll(Util	.explode(source, backingPath.getParent(), tmp1[i])
+									.stream()
+									.map(x -> x.toString())
+									.collect(Collectors.toList()));
 			}
 		}
 		return sources;
 	}
 
-	public static List<String> collectSources(String content) {
+	public static List<String> collectSources(String source, Path backingPath, String content) {
 		if (content == null) {
 			return Collections.emptyList();
 		}
 		List<String> lines = getLines(null, content);
-		return collectSources(lines);
+		return collectSources(source, backingPath, lines);
 	}
 
 	public static boolean isURL(String str) {

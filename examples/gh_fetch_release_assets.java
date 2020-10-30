@@ -2,7 +2,7 @@
 //JAVA_OPTIONS --add-opens java.base/java.net=ALL-UNNAMED
 //JAVA_OPTIONS --add-opens java.base/sun.net.www.protocol.https=ALL-UNNAMED
 //DEPS info.picocli:picocli:4.5.0
-//DEPS org.kohsuke:github-api:1.101
+//DEPS org.kohsuke:github-api:1.116
 
 import org.kohsuke.github.GHAsset;
 import org.kohsuke.github.GHRelease;

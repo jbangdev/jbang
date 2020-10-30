@@ -6,3 +6,4 @@ Scenario: edit a file should print to std out
 * match err == ''
   * match out contains 'hello'
 
+  

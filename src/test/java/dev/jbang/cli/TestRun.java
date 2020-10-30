@@ -10,6 +10,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.hasXPath;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
@@ -974,7 +975,7 @@ public class TestRun {
 		assertThat(script.getMainClass(), equalTo("one"));
 
 		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), null)) {
-			Arrays	.asList("one.class", "Two.class")
+			Arrays	.asList("one.class", "Two.class", "gh_release_stats.class", "fetchlatestgraalvm.class")
 					.forEach(path -> {
 						try {
 							Path fileToExtract = fileSystem.getPath(path);
@@ -988,6 +989,8 @@ public class TestRun {
 					});
 
 		}
+
+		assertThat(script.getClassPath().getArtifacts(), hasSize(4));
 
 	}
 
@@ -1016,7 +1019,8 @@ public class TestRun {
 		wms.stubFor(WireMock.get(urlEqualTo("/sub/three.java"))
 							.willReturn(aResponse()
 													.withHeader("Content-Type", "text/plain")
-													.withBody("public class three {" +
+													.withBody("//SOURCES **/*.java\n" +
+															"public class three {" +
 															" public static void hi() { System.out.println(\"hi\"); }" +
 															"}")));
 		wms.start();

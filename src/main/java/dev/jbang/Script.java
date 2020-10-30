@@ -1,7 +1,5 @@
 package dev.jbang;
 
-import static dev.jbang.FileRef.isURL;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -24,6 +22,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static dev.jbang.FileRef.isURL;
 
 public class Script {
 
@@ -583,7 +583,14 @@ public class Script {
 									.filter(f -> f.startsWith(SOURCES_COMMENT_PREFIX))
 									.flatMap(line -> Arrays.stream(line.split("[ ;,]+")).skip(1).map(String::trim))
 									.map(PropertiesValueResolver::replaceProperties)
-									.map(line -> toFileRef(this, line))
+									.flatMap(line -> Util
+															.explode(getScriptResource().getOriginalResource(),
+																	getBackingFile().getAbsoluteFile()
+																					.getParentFile()
+																					.toPath(),
+																	line)
+															.stream())
+									.map(line -> toFileRef(this, line.toString()))
 									.collect(Collectors.toCollection(ArrayList::new));
 			}
 		}

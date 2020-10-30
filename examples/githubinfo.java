@@ -1,6 +1,6 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 
-//DEPS org.kohsuke:github-api:1.101
+//DEPS org.kohsuke:github-api:1.116
 
 import static java.lang.System.out;
 import static java.util.Arrays.*;
