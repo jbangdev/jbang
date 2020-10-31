@@ -330,7 +330,7 @@ versioner {
 	}
 }
 
-build.dependsOn(asciidoctor)
+//build.dependsOn(asciidoctor)
 build.dependsOn(latestDistZip)
 build.dependsOn(latestDistTar)
 build.dependsOn(copyITests)
