@@ -12,7 +12,7 @@ plugins {
 	id 'de.fuerstenau.buildconfig' version '1.1.8'
 	id "com.dorongold.task-tree" version "1.5"
 	id "com.geoffgranum.gradle-conventional-changelog" version "0.3.1"
-	id "org.asciidoctor.convert" version "2.4.0"
+	id "org.asciidoctor.jvm.convert" version "3.2.0"
 }
 
 repositories {
@@ -299,7 +299,7 @@ asciidoctor {
 	sourceDir = file("${projectDir}/misc/doc-templates")
 	outputDir = file("${buildDir}/docs")
 	logDocuments = true
-	backends 'manpage'
+	configuredOutputOptions.backends = [ 'manpage' ]
 }
 
 githubRelease {
