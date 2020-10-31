@@ -6,8 +6,6 @@ class Jbang < Formula
 
     bottle :unneeded
 
-    keg_only :versioned_formula
-
     #depends_on cask:"java"
     depends_on :java => "1.8+"
 
