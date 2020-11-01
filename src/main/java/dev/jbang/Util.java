@@ -747,7 +747,27 @@ public class Util {
 	}
 
 	public static boolean isURL(String str) {
+		if (str == null)
+			return false;
 		return str.startsWith("https://") || str.startsWith("http://")
 				|| str.startsWith("file:///");
+	}
+
+	public static String getFilePath(String filePath) {
+		return filePath.substring(0, filePath.lastIndexOf(File.separator) + 1);
+	}
+
+	public static String getFileName(String filePath) {
+		return filePath.substring(filePath.lastIndexOf(File.separator) + 1);
+	}
+
+	public static boolean isFile(String str) {
+		if (str == null || str.isEmpty())
+			return false;
+		return new File(str).isFile();
+	}
+
+	public static boolean isJavaFile(String str) {
+		return isFile(str) && str.trim().endsWith(".java");
 	}
 }

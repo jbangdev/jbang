@@ -74,6 +74,7 @@ public class Script {
 	private List<KeyValue> agentOptions;
 	private String preMainClass;
 	private String agentMainClass;
+
 	/**
 	 * if this script is used as an agent, agentOption is the option needed to pass
 	 * in
