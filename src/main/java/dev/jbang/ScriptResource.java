@@ -43,8 +43,13 @@ public class ScriptResource {
 	public Path fetchIfNeeded(String resource, String originalResource) {
 		if (Util.isURL(resource) || Util.isURL(originalResource)) {
 			try {
-				URI includeContext = new URI(originalResource);
-				URI thingToFetch = includeContext.resolve(resource);
+				URI thingToFetch = null;
+				if (Util.isURL(resource)) {
+					thingToFetch = new URI(resource);
+				} else {
+					URI includeContext = new URI(originalResource);
+					thingToFetch = includeContext.resolve(resource);
+				}
 				return Util.downloadAndCacheFile(thingToFetch.toString(), true);
 			} catch (URISyntaxException | IOException e) {
 				throw new IllegalStateException("Could not download " + resource + " relatively to " + originalResource,
