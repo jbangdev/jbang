@@ -1,12 +1,8 @@
 package dev.jbang.cli;
 
-import dev.jbang.ExitException;
-import dev.jbang.Script;
-import dev.jbang.Settings;
-import dev.jbang.TemplateEngine;
-import dev.jbang.Util;
-import io.quarkus.qute.Template;
-import picocli.CommandLine;
+import static dev.jbang.Settings.CP_SEPARATOR;
+import static dev.jbang.Util.isWindows;
+import static java.lang.System.out;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,9 +18,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static dev.jbang.Settings.CP_SEPARATOR;
-import static dev.jbang.Util.isWindows;
-import static java.lang.System.out;
+import dev.jbang.ExitException;
+import dev.jbang.Script;
+import dev.jbang.Settings;
+import dev.jbang.TemplateEngine;
+import dev.jbang.Util;
+
+import io.quarkus.qute.Template;
+import picocli.CommandLine;
 
 @CommandLine.Command(name = "edit", description = "Setup a temporary project to edit script in an IDE.")
 public class Edit extends BaseScriptCommand {
@@ -144,7 +145,7 @@ public class Edit extends BaseScriptCommand {
 		Path srcFile = srcDir.toPath().resolve(name);
 		Util.createLink(srcFile, originalFile.toPath());
 
-		//TODO: this does not restore proper package paths.
+		// TODO: this does not restore proper package paths.
 		for (Path source : script.getResolvedSourcePaths()) {
 			File sfile = new File(srcDir, source.toFile().getName());
 			Path destFile = source.toAbsolutePath();

@@ -20,6 +20,7 @@ repositories {
 
 dependencies {
 	implementation 'com.offbytwo:docopt:0.6.0.20150202'
+
 	implementation 'org.apache.commons:commons-text:1.9'
 	implementation 'org.apache.commons:commons-compress:1.20'
 	implementation 'info.picocli:picocli:4.5.2'

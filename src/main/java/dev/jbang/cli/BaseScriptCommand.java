@@ -198,7 +198,25 @@ public abstract class BaseScriptCommand extends BaseCommand {
 
 			List<String> newSources = Util.collectSources(refSource, path, sourceContent);
 			for (String newSource : newSources) {
+<<<<<<< HEAD
 				sources.add(new String[] { refSource, newSource });
+||||||| parent of 6ba70b7... fix: update base path when resolving //SOURCES
+				// If source is a URL then it must be the new base path
+				if (Util.isURL(source)) {
+					sources.add(new String[] { source, newSource });
+				} else {
+					sources.add(new String[] { originalSource, newSource });
+				}
+=======
+				// If source is a URL then it must be the new base path
+				if (Util.isURL(source)) {
+					sources.add(new String[] { source, newSource });
+				} else if (Util.isURL(originalSource)) {
+					sources.add(new String[] { originalSource, newSource });
+				} else { // it's file, so always use the Path that was resolved.
+					sources.add(new String[] { path.toString(), newSource });
+				}
+>>>>>>> 6ba70b7... fix: update base path when resolving //SOURCES
 			}
 		}
 		return resolvedSourcePaths;
