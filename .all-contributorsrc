@@ -299,6 +299,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "talios",
+      "name": "Mark Derricutt",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/19093?v=4",
+      "profile": "http://www.theoryinpractice.net/",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
