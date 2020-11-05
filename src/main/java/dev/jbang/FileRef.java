@@ -76,4 +76,8 @@ public class FileRef {
 	public String getDestination() {
 		return destination;
 	}
+
+	public Script getSource() {
+		return source;
+	}
 }

@@ -532,6 +532,10 @@ public class Script {
 		} else {
 			throw new IllegalStateException("Invalid file reference: " + fileReference);
 		}
+
+		if (isURL(fileReference)) {
+			return new URLRef(source, ref, dest);
+		}
 		if (isURL(source.originalFile)) {
 			return new URLRef(source, ref, dest);
 		} else {

@@ -116,9 +116,9 @@ public class Util {
 	 * @param filepattern
 	 * @return
 	 */
-	public static List<Path> explode(String source, Path baseDir, String filepattern) {
+	public static List<String> explode(String source, Path baseDir, String filepattern) {
 
-		List<Path> results = new ArrayList<>();
+		List<String> results = new ArrayList<>();
 
 		if (Util.isURL(source)) {
 			// if url then just return it back for others to resolve.
@@ -127,11 +127,13 @@ public class Util {
 				Util.warnMsg("Pattern " + filepattern + " used while using URL to run; this could result in errors.");
 				return results;
 			} else {
-				results.add(Paths.get(filepattern));
+				results.add(filepattern);
 			}
+		} else if (Util.isURL(filepattern)) {
+			results.add(filepattern);
 		} else if (!filepattern.contains("?") && !filepattern.contains("*")) {
 			// no a pattern thus just as well return path directly
-			results.add(Paths.get(filepattern));
+			results.add(filepattern);
 		} else {
 			// it is a non-url letls try locate it
 			PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + filepattern);
@@ -141,7 +143,7 @@ public class Util {
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attribs) {
 					Path relpath = baseDir.relativize(file);
 					if (matcher.matches(relpath)) {
-						results.add(relpath);
+						results.add(relpath.toString());
 					}
 					return FileVisitResult.CONTINUE;
 				}

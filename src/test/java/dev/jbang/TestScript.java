@@ -1,6 +1,7 @@
 package dev.jbang;
 
 import static dev.jbang.Util.writeString;
+import static dev.jbang.cli.BaseScriptCommand.prepareScript;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -13,7 +14,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -170,8 +170,8 @@ class TestScript {
 		createTmpFile("pkg1", "Hello.java", exampleURLInSOURCEHello);
 		createTmpFile("pkg1", "Bye.java", exampleURLInSOURCEBye);
 		String scriptURL = mainPath.toString();
-		ScriptResource scriptResource = new ScriptResource(scriptURL, urlCache, mainPath.toFile());
-		Script script = new Script(scriptResource, new ArrayList<>(), new HashMap<>());
+		Script script = prepareScript(scriptURL);
+
 		List<Path> resolveSOURCESRecursively = BaseScriptCommand.resolveSOURCESRecursively(script);
 		assertTrue(resolveSOURCESRecursively.size() == 7);
 	}
@@ -250,7 +250,7 @@ class TestScript {
 		Path p = output.resolve("kube-example");
 		writeString(p, example);
 
-		BaseScriptCommand.prepareScript(p.toAbsolutePath().toString());
+		prepareScript(p.toAbsolutePath().toString());
 
 	}
 
