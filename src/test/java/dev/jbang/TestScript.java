@@ -165,10 +165,10 @@ class TestScript {
 	@Test
 	void testFindDependenciesWithURLInSOURCE() throws IOException {
 		File urlCache = null;
-		Path mainPath = createTmpFile("", "Main.java", exampleURLInSOURCEMain);
-		createTmpFile("", "Hi.java", exampleURLInSOURCEHi);
-		createTmpFile("pkg1", "Hello.java", exampleURLInSOURCEHello);
-		createTmpFile("pkg1", "Bye.java", exampleURLInSOURCEBye);
+		Path mainPath = createTmpFileWithContent("", "Main.java", exampleURLInSOURCEMain);
+		createTmpFileWithContent("", "Hi.java", exampleURLInSOURCEHi);
+		createTmpFileWithContent("pkg1", "Hello.java", exampleURLInSOURCEHello);
+		createTmpFileWithContent("pkg1", "Bye.java", exampleURLInSOURCEBye);
 		String scriptURL = mainPath.toString();
 		Script script = prepareScript(scriptURL);
 
@@ -176,16 +176,38 @@ class TestScript {
 		assertTrue(resolveSOURCESRecursively.size() == 7);
 	}
 
-	private static Path createTmpFile(String strPath, String fileName, String content) throws IOException {
-		String defaultBaseDir = System.getProperty("java.io.tmpdir");
-		Path dir = Paths.get(defaultBaseDir + File.separator + strPath);
+	public static Path createTmpFileWithContent(String strPath, String fileName, String content) throws IOException {
+		return createTmpFileWithContent(null, strPath, fileName, content);
+	}
+
+	public static Path createTmpFileWithContent(Path parent, String strPath, String fileName, String content)
+			throws IOException {
+		Path path = createTmpFile(parent, strPath, fileName);
+		writeContentToFile(path, content);
+		return path;
+	}
+
+	public static Path createTmpFile(String strPath, String fileName) throws IOException {
+		return createTmpFile(null, strPath, fileName);
+	}
+
+	public static Path createTmpFile(Path parent, String strPath, String fileName) throws IOException {
+		Path dir = null;
+		if (parent == null) {
+			String defaultBaseDir = System.getProperty("java.io.tmpdir");
+			dir = Paths.get(defaultBaseDir + File.separator + strPath);
+		} else {
+			dir = parent.resolve(strPath);
+		}
 		if (!Files.exists(dir))
 			dir = Files.createDirectory(dir);
-		Path path = dir.resolve(fileName);
+		return dir.resolve(fileName);
+	}
+
+	public static void writeContentToFile(Path path, String content) throws IOException {
 		try (BufferedWriter writer = Files.newBufferedWriter(path)) {
 			writer.write(content);
 		}
-		return path;
 	}
 
 	@Test
