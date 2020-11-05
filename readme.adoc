@@ -1218,7 +1218,23 @@ By using the `//` form it is treated as both a bash/shell file AND a valid java 
 +
 It's worth noting that Go https://golangcookbook.com/chapters/running/shebang/[uses a similar approach] which is also where I learned it from.
 
+HELP! My code formatter keeps breaking my `//` directives!::
+  When using automated code formatting tools, some care and configuration must be made to prevent the tooling from rewriting and preventing `jbang` from working as expected.
++
+Use the following configuration blocks to correctly configure your tool:
++
+.Configuration Tool Settings:
+|====
+| Formatting Tool | Configuration
+
+| Clang Format
+a|
+[source]
+----
+CommentPragmas:  '^[^ ]'
+----
+|====
+
 == Thanks
 
 `jbang` was heavily inspired by how `https://github.com/holgerbrandl/kscript[kscript]` by Holger Brand works.
-
