@@ -8,6 +8,7 @@ import org.kohsuke.github.GHAsset;
 import org.kohsuke.github.GHRelease;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.github.PagedIterator;
+import org.kohsuke.github.GHRepository;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
@@ -35,12 +36,12 @@ class fetchlatestgraalvm implements Callable<Integer> {
     public Integer call() throws Exception { // your business logic goes here...
         GitHub github = GitHub.connectAnonymously();
 
-        var ghRepo = github.getRepository(repo);
+        GHRepository ghRepo = github.getRepository(repo);
         ghRepo.archive();
 
         PagedIterator<GHRelease> releases = ghRepo.listReleases().iterator();
         if(releases.hasNext()) {
-            var release = releases.next();
+            GHRelease release = releases.next();
             for(GHAsset asset: release.getAssets()) {
                 if(assetPattern.matcher(asset.getName()).matches()) {
                     System.out.println(asset.getBrowserDownloadUrl());
