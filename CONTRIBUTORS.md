@@ -1,6 +1,6 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-32-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-33-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 ## Contributors ✨
 
@@ -51,6 +51,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/chrsblck"><img src="https://avatars3.githubusercontent.com/u/2538545?v=4" width="100px;" alt=""/><br /><sub><b>Chris Black</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=chrsblck" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/kjjaeger"><img src="https://avatars3.githubusercontent.com/u/271480?v=4" width="100px;" alt=""/><br /><sub><b>Kenneth J. Jaeger</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=kjjaeger" title="Code">💻</a></td>
     <td align="center"><a href="https://tivrfoa.github.io/"><img src="https://avatars0.githubusercontent.com/u/30683?v=4" width="100px;" alt=""/><br /><sub><b>tivrfoa</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=tivrfoa" title="Code">💻</a></td>
+    <td align="center"><a href="http://www.theoryinpractice.net/"><img src="https://avatars2.githubusercontent.com/u/19093?v=4" width="100px;" alt=""/><br /><sub><b>Mark Derricutt</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=talios" title="Documentation">📖</a></td>
   </tr>
 </table>
 
