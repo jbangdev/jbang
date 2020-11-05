@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -820,4 +821,27 @@ public class Util {
 		return str.startsWith("https://") || str.startsWith("http://")
 				|| str.startsWith("file:///");
 	}
+
+	/**
+	 *
+	 * @param content
+	 * @return the package as declared in the source file, eg: a.b.c
+	 */
+	public static Optional<String> getSourcePackage(String content) {
+		try (Scanner sc = new Scanner(content)) {
+			while (sc.hasNextLine()) {
+				String line = sc.nextLine();
+				if (!line.trim().startsWith("package"))
+					continue;
+				String[] pkgLine = line.split("package");
+				if (pkgLine.length == 1)
+					continue;
+				String packageName = pkgLine[1];
+				return Optional.of(packageName.split(";")[0].trim()); // remove ';'
+			}
+		}
+
+		return Optional.empty();
+	}
+
 }

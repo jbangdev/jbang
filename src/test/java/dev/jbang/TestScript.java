@@ -25,7 +25,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.cli.BaseScriptCommand;
 
-class TestScript {
+public class TestScript {
 
 	String example = "//#!/usr/bin/env jbang\n" + "\n"
 			+ "//DEPS com.offbytwo:docopt:0.6.0.20150202,log4j:log4j:${log4j.version:1.2.14}\n" + "\n"
@@ -164,7 +164,6 @@ class TestScript {
 
 	@Test
 	void testFindDependenciesWithURLInSOURCE() throws IOException {
-		File urlCache = null;
 		Path mainPath = createTmpFileWithContent("", "Main.java", exampleURLInSOURCEMain);
 		createTmpFileWithContent("", "Hi.java", exampleURLInSOURCEHi);
 		createTmpFileWithContent("pkg1", "Hello.java", exampleURLInSOURCEHello);
@@ -172,7 +171,7 @@ class TestScript {
 		String scriptURL = mainPath.toString();
 		Script script = prepareScript(scriptURL);
 
-		List<Path> resolveSOURCESRecursively = BaseScriptCommand.resolveSOURCESRecursively(script);
+		List<Source> resolveSOURCESRecursively = BaseScriptCommand.resolveSOURCESRecursively(script);
 		assertTrue(resolveSOURCESRecursively.size() == 7);
 	}
 

@@ -7,7 +7,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -69,7 +68,7 @@ public class Script {
 	private List<FileRef> filerefs;
 	private List<String> persistentJvmArgs;
 	private List<FileRef> sources;
-	private List<Path> resolvedSources;
+	private List<Source> resolvedSources;
 	private List<Script> javaAgents;
 	private List<KeyValue> agentOptions;
 	private String preMainClass;
@@ -279,10 +278,10 @@ public class Script {
 				}
 			} else {
 				List<String> dependencies = collectDependencies();
-				if (getResolvedSourcePaths() != null) {
-					for (Path resource : getResolvedSourcePaths()) {
+				if (getResolvedSources() != null) {
+					for (Source source : getResolvedSources()) {
 						try {
-							dependencies.addAll(collectDependencies(Files.readAllLines(resource)));
+							dependencies.addAll(collectDependencies(Files.readAllLines(source.getResolvedPath())));
 						} catch (IOException e) {
 							throw new RuntimeException(e);
 						}
@@ -601,11 +600,11 @@ public class Script {
 		return sources;
 	}
 
-	public void setResolvedSources(List<Path> resolvedSourcePaths) {
+	public void setResolvedSources(List<Source> resolvedSourcePaths) {
 		this.resolvedSources = resolvedSourcePaths;
 	}
 
-	public List<Path> getResolvedSourcePaths() {
+	public List<Source> getResolvedSources() {
 		return resolvedSources;
 	}
 
