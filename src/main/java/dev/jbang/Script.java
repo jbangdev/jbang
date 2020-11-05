@@ -532,6 +532,10 @@ public class Script {
 		} else {
 			throw new IllegalStateException("Invalid file reference: " + fileReference);
 		}
+
+		if (isURL(fileReference)) {
+			return new URLRef(source, ref, dest);
+		}
 		if (isURL(source.originalFile)) {
 			return new URLRef(source, ref, dest);
 		} else {
@@ -583,7 +587,14 @@ public class Script {
 									.filter(f -> f.startsWith(SOURCES_COMMENT_PREFIX))
 									.flatMap(line -> Arrays.stream(line.split("[ ;,]+")).skip(1).map(String::trim))
 									.map(PropertiesValueResolver::replaceProperties)
-									.map(line -> toFileRef(this, line))
+									.flatMap(line -> Util
+															.explode(getScriptResource().getOriginalResource(),
+																	getBackingFile().getAbsoluteFile()
+																					.getParentFile()
+																					.toPath(),
+																	line)
+															.stream())
+									.map(line -> toFileRef(this, line.toString()))
 									.collect(Collectors.toCollection(ArrayList::new));
 			}
 		}

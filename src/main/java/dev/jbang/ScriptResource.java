@@ -56,11 +56,11 @@ public class ScriptResource {
 						e);
 			}
 		} else {
-			return file
-						.getAbsoluteFile()
-						.toPath()
-						.getParent()
-						.resolve(resource);
+			return new File(originalResource)
+												.getAbsoluteFile()
+												.toPath()
+												.getParent()
+												.resolve(resource);
 		}
 	}
 }

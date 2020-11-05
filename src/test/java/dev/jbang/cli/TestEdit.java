@@ -6,10 +6,13 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.io.FileMatchers.aReadableFile;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -17,14 +20,28 @@ import java.util.stream.Collectors;
 
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.io.FileMatchers;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.Script;
+import dev.jbang.Settings;
 import dev.jbang.Util;
 
 public class TestEdit {
+
+	public static final String EXAMPLES_FOLDER = "examples";
+	static File examplesTestFolder;
+
+	@BeforeAll
+	static void init() throws URISyntaxException, IOException {
+		URL examplesUrl = TestRun.class.getClassLoader().getResource(EXAMPLES_FOLDER);
+		examplesTestFolder = new File(new File(examplesUrl.toURI()).getAbsolutePath());
+
+		Settings.clearCache(Settings.CacheClass.jars);
+
+	}
 
 	StringWriter output;
 
@@ -94,6 +111,28 @@ public class TestEdit {
 		assert (Files.isSymbolicLink(java.toPath()) || java.exists());
 
 		assertThat(Files.isSameFile(java.toPath(), p), equalTo(true));
+	}
+
+	@Test
+	void testEditMultiSource(@TempDir Path outputDir) throws IOException {
+
+		Path p = examplesTestFolder.toPath().resolve("one.java");
+		assertThat(p.toFile().exists(), is(true));
+
+		Script script = BaseScriptCommand.prepareScript(p.toString());
+
+		File project = new Edit().createProjectForEdit(script, false);
+
+		File gradle = new File(project, "build.gradle");
+		assert (gradle.exists());
+		assertThat(Util.readString(gradle.toPath()), not(containsString("bogus")));
+
+		Arrays	.asList("one.java", "Two.java", "gh_fetch_release_assets.java", "gh_release_stats.java")
+				.forEach(f -> {
+					File java = new File(project, "src/" + f);
+
+					assertThat(f + " not found", java, aReadableFile());
+				});
 	}
 
 	@Test

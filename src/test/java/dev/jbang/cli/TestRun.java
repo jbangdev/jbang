@@ -10,6 +10,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.hasXPath;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
@@ -482,7 +483,7 @@ public class TestRun {
 
 		assertThat(script.getMainClass(), equalTo("aclass"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), (ClassLoader) null)) {
 			Path fileToExtract = fileSystem.getPath("META-INF/maven/g/a/v/pom.xml");
 
 			ByteArrayOutputStream s = new ByteArrayOutputStream();
@@ -940,7 +941,7 @@ public class TestRun {
 
 		assertThat(script.getMainClass(), equalTo("resource"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), (ClassLoader) null)) {
 
 			Arrays	.asList("resource.properties", "renamed.properties", "META-INF/application.properties")
 					.forEach(path -> {
@@ -973,8 +974,8 @@ public class TestRun {
 
 		assertThat(script.getMainClass(), equalTo("one"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), null)) {
-			Arrays	.asList("one.class", "Two.class")
+		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), (ClassLoader) null)) {
+			Arrays	.asList("one.class", "Two.class", "gh_release_stats.class", "fetchlatestgraalvm.class")
 					.forEach(path -> {
 						try {
 							Path fileToExtract = fileSystem.getPath(path);
@@ -989,6 +990,9 @@ public class TestRun {
 
 		}
 
+		assertThat("if fails then duplication of deps fixed", script.getClassPath().getArtifacts(), hasSize(14));
+		// should be assertThat("if fails then duplication of deps fixed",
+		// script.getClassPath().getArtifacts(), hasSize(7));
 	}
 
 	@Test
@@ -1016,7 +1020,8 @@ public class TestRun {
 		wms.stubFor(WireMock.get(urlEqualTo("/sub/three.java"))
 							.willReturn(aResponse()
 													.withHeader("Content-Type", "text/plain")
-													.withBody("public class three {" +
+													.withBody("//SOURCES **/*.java\n" +
+															"public class three {" +
 															" public static void hi() { System.out.println(\"hi\"); }" +
 															"}")));
 		wms.start();
@@ -1065,7 +1070,7 @@ public class TestRun {
 
 		m.build(script);
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), (ClassLoader) null)) {
 			Arrays	.asList("one.class", "index.html")
 					.forEach(path -> {
 						try {

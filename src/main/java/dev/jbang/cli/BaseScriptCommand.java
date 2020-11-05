@@ -170,13 +170,14 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		// List of array: [0] original source [1] source
 		List<String[]> sources = new ArrayList<>();
 		// Collect sources from the entry point (main file)
-		String originalSource = script.getScriptResource().getOriginalResource();
 		List<FileRef> fileRefs = script.collectSources();
-		for (FileRef fileRef : fileRefs)
-			sources.add(new String[] { originalSource, fileRef.getDestination() });
+		for (FileRef fileRef : fileRefs) {
+			sources.add(new String[] { fileRef.getSource().getOriginalFile(), fileRef.getDestination() });
+		}
+
 		while (!sources.isEmpty()) {
 			String[] tmp = sources.remove(0);
-			originalSource = tmp[0];
+			String originalSource = tmp[0];
 			String source = tmp[1];
 			if (!visited.add(source))
 				continue;
@@ -186,14 +187,22 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			// TODO would we not be better of with Script ref here rather than a raw string
 			// ?
 			String sourceContent = new String(Files.readAllBytes(path), Charset.defaultCharset());
-			List<String> newSources = Util.collectSources(sourceContent);
+
+			String refSource;
+
+			// If source is a URL then it must be the new base path
+			if (Util.isURL(source)) {
+				refSource = source;
+			} else if (Util.isURL(originalSource)) {
+				refSource = originalSource;
+			} else { // it's file, so always use the Path that was resolved.
+				refSource = path.toString();
+			}
+
+			List<String> newSources = Util.collectSources(refSource, path, sourceContent);
+
 			for (String newSource : newSources) {
-				// If source is a URL then it must be the new base path
-				if (Util.isURL(source)) {
-					sources.add(new String[] { source, newSource });
-				} else {
-					sources.add(new String[] { originalSource, newSource });
-				}
+				sources.add(new String[] { refSource, newSource });
 			}
 		}
 		return resolvedSourcePaths;
