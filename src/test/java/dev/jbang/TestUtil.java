@@ -4,7 +4,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -91,23 +90,20 @@ public class TestUtil {
 
 		final List<String> p = Util.explode(source, baseDir, "**/*.java");
 
-		assertAll(
-				() -> assertThat(p, hasItem("benchmark/perftest.java")),
-				() -> assertThat(p, not(hasItem("jetty.jsh"))));
+		assertThat(p, hasItem("benchmark/perftest.java"));
+		assertThat(p, not(hasItem("jetty.jsh")));
 
 		p.clear();
 		p.addAll(Util.explode(source, baseDir, "**/*.jsh"));
 
-		assertAll(
-				() -> assertThat(p, not(hasItem("benchmark/perftest.java"))),
-				() -> assertThat(p, not(hasItem("lang.java"))));
+		assertThat(p, not(hasItem("benchmark/perftest.java")));
+		assertThat(p, not(hasItem("lang.java")));
 
 		p.clear();
 		p.addAll(Util.explode(source, baseDir, "benchmark/perftest.java"));
 
-		assertAll(
-				() -> assertThat(p, containsInAnyOrder("benchmark/perftest.java")),
-				() -> assertThat(p, not(hasItem("lang.java"))));
+		assertThat(p, containsInAnyOrder("benchmark/perftest.java"));
+		assertThat(p, not(hasItem("lang.java")));
 
 	}
 }

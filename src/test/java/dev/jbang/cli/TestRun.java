@@ -483,7 +483,7 @@ public class TestRun {
 
 		assertThat(script.getMainClass(), equalTo("aclass"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), (ClassLoader) null)) {
 			Path fileToExtract = fileSystem.getPath("META-INF/maven/g/a/v/pom.xml");
 
 			ByteArrayOutputStream s = new ByteArrayOutputStream();
@@ -941,7 +941,7 @@ public class TestRun {
 
 		assertThat(script.getMainClass(), equalTo("resource"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), (ClassLoader) null)) {
 
 			Arrays	.asList("resource.properties", "renamed.properties", "META-INF/application.properties")
 					.forEach(path -> {
@@ -974,7 +974,7 @@ public class TestRun {
 
 		assertThat(script.getMainClass(), equalTo("one"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), (ClassLoader) null)) {
 			Arrays	.asList("one.class", "Two.class", "gh_release_stats.class", "fetchlatestgraalvm.class")
 					.forEach(path -> {
 						try {
@@ -1070,7 +1070,7 @@ public class TestRun {
 
 		m.build(script);
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), (ClassLoader) null)) {
 			Arrays	.asList("one.class", "index.html")
 					.forEach(path -> {
 						try {

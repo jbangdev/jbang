@@ -111,6 +111,9 @@ public class Util {
 	/**
 	 * Explodes filepattern found in baseDir returnin list of relative Path names.
 	 *
+	 * TODO: this really should return some kind of abstraction of paths that allow
+	 * it be portable for urls as wells as files...or have a filesystem for each...
+	 * 
 	 * @param source
 	 * @param baseDir
 	 * @param filepattern
@@ -143,7 +146,8 @@ public class Util {
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attribs) {
 					Path relpath = baseDir.relativize(file);
 					if (matcher.matches(relpath)) {
-						results.add(relpath.toString());
+						// to avoid windows fail.
+						results.add(relpath.toString().replace("\\", "/"));
 					}
 					return FileVisitResult.CONTINUE;
 				}
