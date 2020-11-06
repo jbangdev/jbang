@@ -1,7 +1,9 @@
 package dev.jbang.cli;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
@@ -22,6 +24,14 @@ public class TestInit {
 		String s = new Init().renderInitClass(new File("test.java"), "hello");
 
 		assertThat(s, containsString("class test"));
+	}
+
+	@Test
+	void testBadInit() {
+
+		String s = new Init().renderInitClass(new File("generate-clusters.java"), "hello");
+
+		assertThat(s, containsString("class GenerateClusters"));
 	}
 
 	@Test

@@ -101,7 +101,7 @@ public class Util {
 		if (index == -1) {
 			return kebab2camel(fileName);
 		} else {
-			return fileName.substring(0, index);
+			return kebab2camel(fileName.substring(0, index));
 		}
 	}
 
