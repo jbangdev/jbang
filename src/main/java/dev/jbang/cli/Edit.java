@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import dev.jbang.ExitException;
 import dev.jbang.Script;
 import dev.jbang.Settings;
+import dev.jbang.Source;
 import dev.jbang.TemplateEngine;
 import dev.jbang.Util;
 
@@ -145,10 +146,16 @@ public class Edit extends BaseScriptCommand {
 		Path srcFile = srcDir.toPath().resolve(name);
 		Util.createLink(srcFile, originalFile.toPath());
 
-		// TODO: this does not restore proper package paths.
-		for (Path source : script.getResolvedSourcePaths()) {
-			File sfile = new File(srcDir, source.toFile().getName());
-			Path destFile = source.toAbsolutePath();
+		for (Source source : script.getResolvedSources()) {
+			File sfile = null;
+			if (source.getJavaPackage().isPresent()) {
+				File packageDir = new File(srcDir, source.getJavaPackage().get().replace(".", File.separator));
+				packageDir.mkdir();
+				sfile = new File(packageDir, source.getResolvedPath().toFile().getName());
+			} else {
+				sfile = new File(srcDir, source.getResolvedPath().toFile().getName());
+			}
+			Path destFile = source.getResolvedPath().toAbsolutePath();
 			Util.createLink(sfile.toPath(), destFile);
 		}
 

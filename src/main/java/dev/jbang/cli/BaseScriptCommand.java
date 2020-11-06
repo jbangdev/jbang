@@ -40,6 +40,7 @@ import dev.jbang.FileRef;
 import dev.jbang.Script;
 import dev.jbang.ScriptResource;
 import dev.jbang.Settings;
+import dev.jbang.Source;
 import dev.jbang.TrustedSources;
 import dev.jbang.Util;
 
@@ -162,8 +163,8 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		return s;
 	}
 
-	public static List<Path> resolveSOURCESRecursively(Script script) throws IOException {
-		List<Path> resolvedSourcePaths = new ArrayList<>();
+	public static List<Source> resolveSOURCESRecursively(Script script) throws IOException {
+		List<Source> resolvedSourcePaths = new ArrayList<>();
 		// It's important to know which sources we already visited,
 		// because many files can declare the same source.
 		Set<String> visited = new HashSet<>();
@@ -178,21 +179,21 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		while (!sources.isEmpty()) {
 			String[] tmp = sources.remove(0);
 			String originalSource = tmp[0];
-			String source = tmp[1];
-			if (!visited.add(source))
+			String destinationSource = tmp[1];
+			if (!visited.add(destinationSource))
 				continue;
-			source = Util.swizzleURL(source); // base path for new sources
-			Path path = script.getScriptResource().fetchIfNeeded(source, originalSource);
-			resolvedSourcePaths.add(path);
-			// TODO would we not be better of with Script ref here rather than a raw string
-			// ?
+			destinationSource = Util.swizzleURL(destinationSource); // base path for new sources
+			Path path = script.getScriptResource().fetchIfNeeded(destinationSource, originalSource);
 			String sourceContent = new String(Files.readAllBytes(path), Charset.defaultCharset());
+			// TODO would we not be better of with Script ref here rather than Source?
+			Source source = new Source(path, Util.getSourcePackage(sourceContent));
+			resolvedSourcePaths.add(source);
 
 			String refSource;
 
 			// If source is a URL then it must be the new base path
-			if (Util.isURL(source)) {
-				refSource = source;
+			if (Util.isURL(destinationSource)) {
+				refSource = destinationSource;
 			} else if (Util.isURL(originalSource)) {
 				refSource = originalSource;
 			} else { // it's file, so always use the Path that was resolved.
