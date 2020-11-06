@@ -1,13 +1,14 @@
 package dev.jbang.cli;
 
-import dev.jbang.Settings;
-import picocli.CommandLine;
+import static dev.jbang.cli.BaseCommand.EXIT_OK;
 
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Optional;
 
-import static dev.jbang.cli.BaseCommand.EXIT_OK;
+import dev.jbang.Settings;
+
+import picocli.CommandLine;
 
 @CommandLine.Command(name = "cache", description = "Manage compiled scripts in the local cache.")
 public class Cache {

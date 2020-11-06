@@ -1,12 +1,8 @@
 package dev.jbang;
 
-import static dev.jbang.Util.writeString;
-import static dev.jbang.cli.BaseScriptCommand.prepareScript;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import dev.jbang.cli.BaseScriptCommand;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -20,10 +16,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
-import dev.jbang.cli.BaseScriptCommand;
+import static dev.jbang.Util.writeString;
+import static dev.jbang.cli.BaseScriptCommand.prepareScript;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasItem;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestScript {
 
@@ -53,7 +52,7 @@ public class TestScript {
 			+ "\t\tout.println(\"\\nHello from Java!\");\n" + "\t\tfor (String arg : args) {\n"
 			+ "\t\t\tout.println(\"arg: $arg\");\n" + "\t\t}\n" + "\t\n" + "\t}\n" + "}";
 
-	String exampleURLInSOURCEMain = "///usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n"
+	String exampleURLInsourceMain = "///usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n"
 			+ "\n"
 			+ "//JAVA 15\n"
 			+ "\n"
@@ -104,7 +103,7 @@ public class TestScript {
 			+ "    }\n"
 			+ "}\n";
 
-	String exampleURLInSOURCEHi = "//SOURCES pkg1/Hello.java\n"
+	String exampleURLInsourceHi = "//SOURCES pkg1/Hello.java\n"
 			+ "\n"
 			+ "import pkg1.Hello;\n"
 			+ "\n"
@@ -116,7 +115,7 @@ public class TestScript {
 			+ "    }\n"
 			+ "}\n";
 
-	String exampleURLInSOURCEHello = "package pkg1;\n"
+	String exampleURLInsourceHello = "package pkg1;\n"
 			+ "\n"
 			+ "public class Hello {\n"
 			+ "    \n"
@@ -125,7 +124,7 @@ public class TestScript {
 			+ "    }\n"
 			+ "}\n";
 
-	String exampleURLInSOURCEBye = "package pkg1;\n"
+	String exampleURLInsourceBye = "package pkg1;\n"
 			+ "\n"
 			+ "public class Bye {\n"
 			+ "    \n"
@@ -163,16 +162,16 @@ public class TestScript {
 	}
 
 	@Test
-	void testFindDependenciesWithURLInSOURCE() throws IOException {
-		Path mainPath = createTmpFileWithContent("", "Main.java", exampleURLInSOURCEMain);
-		createTmpFileWithContent("", "Hi.java", exampleURLInSOURCEHi);
-		createTmpFileWithContent("pkg1", "Hello.java", exampleURLInSOURCEHello);
-		createTmpFileWithContent("pkg1", "Bye.java", exampleURLInSOURCEBye);
+	void testFindDependenciesWithURLInsource() throws IOException {
+		Path mainPath = createTmpFileWithContent("", "Main.java", exampleURLInsourceMain);
+		createTmpFileWithContent("", "Hi.java", exampleURLInsourceHi);
+		createTmpFileWithContent("pkg1", "Hello.java", exampleURLInsourceHello);
+		createTmpFileWithContent("pkg1", "Bye.java", exampleURLInsourceBye);
 		String scriptURL = mainPath.toString();
 		Script script = prepareScript(scriptURL);
 
-		List<Source> resolveSOURCESRecursively = BaseScriptCommand.resolveSOURCESRecursively(script);
-		assertTrue(resolveSOURCESRecursively.size() == 7);
+		List<Source> resolvesourceRecursively = BaseScriptCommand.resolvesourceRecursively(script);
+		assertTrue(resolvesourceRecursively.size() == 7);
 	}
 
 	public static Path createTmpFileWithContent(String strPath, String fileName, String content) throws IOException {

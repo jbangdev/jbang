@@ -85,10 +85,10 @@ class TestSourcesRecursivelyMultipleFiles {
 		ScriptResource scriptResource = new ScriptResource(scriptURL, urlCache, mainPath.toFile());
 		Script script = new Script(scriptResource, new ArrayList<>(), new HashMap<>());
 		script.setOriginal(mainPath.toString());
-		List<Source> resolveSOURCESRecursively = BaseScriptCommand.resolveSOURCESRecursively(script);
-		assertTrue(resolveSOURCESRecursively.size() == 4);
+		List<Source> resolvesourceRecursively = BaseScriptCommand.resolvesourceRecursively(script);
+		assertTrue(resolvesourceRecursively.size() == 4);
 		TreeSet<String> fileNames = new TreeSet<>();
-		for (Source source : resolveSOURCESRecursively) {
+		for (Source source : resolvesourceRecursively) {
 			fileNames.add(source.getResolvedPath().getFileName().toString());
 		}
 		assertEquals(fileNames.pollFirst(), "B.java");

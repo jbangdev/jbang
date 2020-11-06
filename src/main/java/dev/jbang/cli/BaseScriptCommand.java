@@ -156,14 +156,14 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			s.setOriginal(scriptResource);
 			s.setAdditionalDependencies(dependencies);
 			s.setAdditionalClasspaths(classpaths);
-			s.setResolvedSources(resolveSOURCESRecursively(s));
+			s.setResolvedSources(resolvesourceRecursively(s));
 		} catch (FileNotFoundException e) {
 			throw new ExitException(1, e);
 		}
 		return s;
 	}
 
-	public static List<Source> resolveSOURCESRecursively(Script script) throws IOException {
+	public static List<Source> resolvesourceRecursively(Script script) throws IOException {
 		List<Source> resolvedSourcePaths = new ArrayList<>();
 		// It's important to know which sources we already visited,
 		// because many files can declare the same source.
