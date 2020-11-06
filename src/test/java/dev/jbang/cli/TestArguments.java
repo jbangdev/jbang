@@ -1,7 +1,7 @@
 package dev.jbang.cli;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -137,6 +137,7 @@ class TestArguments {
 		assertThat(Files.isDirectory(dir.resolve("urls")), is(false));
 		assertThat(Files.isDirectory(dir.resolve("jars")), is(false));
 		assertThat(Files.isDirectory(dir.resolve("jdks")), is(false));
+		assertThat(Files.notExists(Settings.getCacheDependencyFile()), is(true));
 	}
 
 }

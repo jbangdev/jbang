@@ -2,16 +2,30 @@ package dev.jbang;
 
 import static dev.jbang.Util.warnMsg;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinates;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 
 import io.quarkus.qute.Template;
@@ -148,7 +162,7 @@ public class Settings {
 	}
 
 	public enum CacheClass {
-		urls, jars, jdks, projects, scripts, stdins
+		urls, jars, jdks, projects, scripts, stdins, deps
 	}
 
 	public static void clearCache(CacheClass... classes) {
@@ -160,6 +174,17 @@ public class Settings {
 				// entire folder!
 				for (Integer v : JdkManager.listInstalledJdks()) {
 					JdkManager.uninstallJdk(v);
+				}
+			}
+			if (cc == CacheClass.deps) {
+				try {
+					if (getCacheDependencyFile().toFile().exists()) {
+						Util.verboseMsg("Deleting file " + getCacheDependencyFile());
+						Files.deleteIfExists(getCacheDependencyFile().toAbsolutePath());
+					}
+				} catch (IOException io) {
+					throw new ExitException(-1,
+							"Could not delete dependency cache " + getCacheDependencyFile().toString(), io);
 				}
 			} else {
 				Util.deleteFolder(getCacheDir(cc), true);

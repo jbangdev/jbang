@@ -1,14 +1,13 @@
 package dev.jbang.cli;
 
-import static dev.jbang.cli.BaseCommand.EXIT_OK;
+import dev.jbang.Settings;
+import picocli.CommandLine;
 
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Optional;
 
-import dev.jbang.Settings;
-
-import picocli.CommandLine;
+import static dev.jbang.cli.BaseCommand.EXIT_OK;
 
 @CommandLine.Command(name = "cache", description = "Manage compiled scripts in the local cache.")
 public class Cache {
@@ -18,6 +17,8 @@ public class Cache {
 					"--url" }, description = "clear URL cache only", negatable = true) Boolean urls,
 			@CommandLine.Option(names = {
 					"--jar" }, description = "clear JAR cache only", negatable = true) Boolean jars,
+			@CommandLine.Option(names = {
+					"--deps" }, description = "clear dependency cache only", negatable = true) Boolean deps,
 			@CommandLine.Option(names = {
 					"--jdk" }, description = "clear JDK cache only", negatable = true) Boolean jdks,
 			@CommandLine.Option(names = {
@@ -37,18 +38,21 @@ public class Cache {
 				&& jdks == null
 				&& projects == null
 				&& scripts == null
-				&& stdins == null) {
+				&& stdins == null
+				&& deps == null) {
 			// add the default (safe) set
 			classes.add(Settings.CacheClass.urls);
 			classes.add(Settings.CacheClass.jars);
 			classes.add(Settings.CacheClass.scripts);
 			classes.add(Settings.CacheClass.stdins);
+			classes.add(Settings.CacheClass.deps);
 		}
 
 		// we only toggle on or off those that are actually present
 		toggleCache(urls, Settings.CacheClass.urls, classes);
 		toggleCache(jars, Settings.CacheClass.jars, classes);
 		toggleCache(jdks, Settings.CacheClass.jdks, classes);
+		toggleCache(deps, Settings.CacheClass.deps, classes);
 		toggleCache(projects, Settings.CacheClass.projects, classes);
 		toggleCache(scripts, Settings.CacheClass.scripts, classes);
 		toggleCache(stdins, Settings.CacheClass.stdins, classes);
