@@ -14,6 +14,8 @@ import java.nio.file.Path;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import dev.jbang.ExitException;
 import dev.jbang.Util;
@@ -28,19 +30,12 @@ public class TestInit {
 		assertThat(s, containsString("class test"));
 	}
 
-	@Test
-	void testKebabInit() {
-
-		String s = new Init().renderInitClass(new File("generate-clusters.java"), "hello");
-
-		assertThat(s, containsString("class GenerateClusters"));
-	}
-
-	@Test
-	void testInvalidInit() {
+	@ParameterizedTest
+	@ValueSource(strings = { "bad.name.java", "Bad-Name.java" })
+	void testInvalidInit(String filename) {
 
 		Exception ex = assertThrows(ExitException.class, () -> {
-			new Init().renderInitClass(new File("generate.clusters.java"), "hello");
+			new Init().renderInitClass(new File(filename), "hello");
 		});
 
 		assertThat(ex.getMessage(), containsString("is not a valid class name in java."));
