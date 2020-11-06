@@ -1,10 +1,6 @@
 package dev.jbang;
 
-import com.google.gson.Gson;
-import dev.jbang.cli.BaseCommand;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.parser.Parser;
+import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -45,7 +41,13 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.parser.Parser;
+
+import com.google.gson.Gson;
+
+import dev.jbang.cli.BaseCommand;
 
 public class Util {
 

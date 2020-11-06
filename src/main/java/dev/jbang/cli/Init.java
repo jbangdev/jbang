@@ -1,17 +1,19 @@
 package dev.jbang.cli;
 
-import dev.jbang.ExitException;
-import dev.jbang.Settings;
-import dev.jbang.Util;
-import io.quarkus.qute.Template;
-import picocli.CommandLine;
-
-import javax.lang.model.SourceVersion;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Random;
+
+import javax.lang.model.SourceVersion;
+
+import dev.jbang.ExitException;
+import dev.jbang.Settings;
+import dev.jbang.Util;
+
+import io.quarkus.qute.Template;
+import picocli.CommandLine;
 
 @CommandLine.Command(name = "init", description = "Initialize a script.")
 public class Init extends BaseScriptCommand {
