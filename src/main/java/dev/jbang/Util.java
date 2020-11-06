@@ -1,6 +1,10 @@
 package dev.jbang;
 
-import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
+import com.google.gson.Gson;
+import dev.jbang.cli.BaseCommand;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.parser.Parser;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -41,13 +45,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.parser.Parser;
-
-import com.google.gson.Gson;
-
-import dev.jbang.cli.BaseCommand;
+import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 
 public class Util {
 
@@ -101,7 +99,7 @@ public class Util {
 		if (index == -1) {
 			return kebab2camel(fileName);
 		} else {
-			return kebab2camel(fileName.substring(0, index));
+			return fileName.substring(0, index);
 		}
 	}
 

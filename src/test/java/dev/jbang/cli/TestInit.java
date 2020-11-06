@@ -1,20 +1,21 @@
 package dev.jbang.cli;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
+import dev.jbang.ExitException;
+import dev.jbang.Util;
+import org.hamcrest.MatcherAssert;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
-import org.hamcrest.MatcherAssert;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
-import dev.jbang.Util;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TestInit {
 
@@ -27,11 +28,21 @@ public class TestInit {
 	}
 
 	@Test
-	void testBadInit() {
+	void testKebabInit() {
 
 		String s = new Init().renderInitClass(new File("generate-clusters.java"), "hello");
 
 		assertThat(s, containsString("class GenerateClusters"));
+	}
+
+	@Test
+	void testInvalidInit() {
+
+		Exception ex = assertThrows(ExitException.class, () -> {
+			new Init().renderInitClass(new File("generate.clusters.java"), "hello");
+		});
+
+		assertThat(ex.getMessage(), containsString("is not a valid class name in java."));
 	}
 
 	@Test

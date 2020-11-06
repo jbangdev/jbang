@@ -1,17 +1,17 @@
 package dev.jbang.cli;
 
+import dev.jbang.ExitException;
+import dev.jbang.Settings;
+import dev.jbang.Util;
+import io.quarkus.qute.Template;
+import picocli.CommandLine;
+
+import javax.lang.model.SourceVersion;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Random;
-
-import dev.jbang.ExitException;
-import dev.jbang.Settings;
-import dev.jbang.Util;
-
-import io.quarkus.qute.Template;
-import picocli.CommandLine;
 
 @CommandLine.Command(name = "init", description = "Initialize a script.")
 public class Init extends BaseScriptCommand {
@@ -55,7 +55,14 @@ public class Init extends BaseScriptCommand {
 		if (helloTemplate == null) {
 			throw new ExitException(1, "Could not find init template named: " + template);
 		} else {
-			return helloTemplate.data("baseName", Util.getBaseName(f.getName())).render();
+			String basename = Util.getBaseName(f.getName());
+
+			if (!SourceVersion.isIdentifier(basename)) {
+				throw new ExitException(EXIT_INVALID_INPUT,
+						"'" + basename + "' is not a valid class name in java. Remove the special charcters");
+			}
+
+			return helloTemplate.data("baseName", basename).render();
 		}
 	}
 }
