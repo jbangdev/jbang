@@ -1048,7 +1048,7 @@ The full format is `<alias>@<user/org>(/repository)(/branch)(~path)` allowing yo
 |Command | Description
 
 |`jbang hello@acme`
-|`hello` alias found in `acme/jbang-catalog/jbang-catalog.json` searched on github, gitlab and bitbucket in that order.
+|`hello` alias found in `acme/jbang-catalog/jbang-catalog.json` of the default branch searched on github, gitlab and bitbucket in that order.
 
 |`jbang hello@acme/mycatalog`
 |`hello` found in `acme/mycatalog/jbang-catalog.json` searched on github, gitlab and bitbucket in that order.

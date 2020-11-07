@@ -2,7 +2,11 @@ package dev.jbang.cli;
 
 import static dev.jbang.TestUtil.clearSettingsCaches;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
 
 import java.io.File;
@@ -104,7 +108,7 @@ public class TestCatalogNearest {
 
 	@Test
 	void testAddLocalImplicit() throws IOException {
-		testAddLocal("jbangdev", "https://github.com/jbangdev/jbang-catalog/blob/master/jbang-catalog.json");
+		testAddLocal("jbangdev", "https://github.com/jbangdev/jbang-catalog/blob/HEAD/jbang-catalog.json");
 	}
 
 	void testAddLocal(String ref, String result) throws IOException {

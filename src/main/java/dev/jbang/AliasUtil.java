@@ -10,7 +10,12 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -30,6 +35,9 @@ public class AliasUtil {
 	private static final String BITBUCKET_URL = "https://bitbucket.org/";
 
 	private static final String JBANG_CATALOG_REPO = "jbang-catalog";
+
+	private static final String DEFAULT_REF = "HEAD"; // HEAD at least on github gives you latest commit on default
+														// branch
 
 	static Map<Path, Catalog> catalogCache = new HashMap<>();
 
@@ -311,7 +319,7 @@ public class AliasUtil {
 			if (names.length == 3 && !names[2].isEmpty()) {
 				ref = names[2];
 			} else {
-				ref = "master";
+				ref = DEFAULT_REF;
 			}
 			return new ImplicitCatalogRef(org, repo, ref, path);
 		}
