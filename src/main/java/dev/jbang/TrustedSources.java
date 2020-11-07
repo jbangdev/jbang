@@ -21,7 +21,7 @@ public class TrustedSources {
 	final static Pattern rLocalhost = Pattern.compile("(?i)^localhost(:\\d+)?$");
 	final static Pattern r127 = Pattern.compile("(?i)^127.0.0.1(:\\d+)?$");
 
-	public String trustedSources[];
+	private String trustedSources[];
 
 	public TrustedSources(String[] trustedSources) {
 		this.trustedSources = trustedSources;

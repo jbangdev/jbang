@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -206,6 +207,31 @@ public class TestScript {
 	public static void writeContentToFile(Path path, String content) throws IOException {
 		try (BufferedWriter writer = Files.newBufferedWriter(path)) {
 			writer.write(content);
+		}
+	}
+
+	@Test
+	public void testSourceInGistURL(@TempDir Path temp) throws IOException {
+		String url = "https://gist.github.com/tivrfoa/8e6ea001f168fd4ef14763ceca3e5ab6#file-one-java";
+
+		File tempFile = temp.resolve("temptrust.json").toFile();
+
+		try {
+			Settings.getTrustedSources().add(url, tempFile);
+
+			Script script = prepareScript(url);
+			assertEquals(script.getResolvedSources().size(), 2);
+			boolean foundtwo = false;
+			boolean foundt3 = false;
+			for (Source source : script.getResolvedSources()) {
+				if (source.getResolvedPath().getFileName().toString().equals("two.java"))
+					foundtwo = true;
+				if (source.getResolvedPath().getFileName().toString().equals("t3.java"))
+					foundt3 = true;
+			}
+			assertTrue(foundtwo && foundt3);
+		} finally {
+			Settings.getTrustedSources().remove(Collections.singletonList(url), tempFile);
 		}
 	}
 

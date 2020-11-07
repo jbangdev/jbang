@@ -173,7 +173,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		// Collect sources from the entry point (main file)
 		List<FileRef> fileRefs = script.collectSources();
 		for (FileRef fileRef : fileRefs) {
-			sources.add(new String[] { fileRef.getSource().getOriginalFile(), fileRef.getDestination() });
+			sources.add(new String[] { script.getScriptResource().getOriginalResource(), fileRef.getDestination() });
 		}
 
 		while (!sources.isEmpty()) {
