@@ -180,10 +180,10 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			String[] tmp = sources.remove(0);
 			String originalSource = tmp[0];
 			String destinationSource = tmp[1];
-			if (!visited.add(destinationSource))
-				continue;
 			destinationSource = Util.swizzleURL(destinationSource); // base path for new sources
 			Path path = script.getScriptResource().fetchIfNeeded(destinationSource, originalSource);
+			if (!visited.add(path.toString()))
+				continue;
 			String sourceContent = new String(Files.readAllBytes(path), Charset.defaultCharset());
 			// TODO would we not be better of with Script ref here rather than Source?
 			Source source = new Source(path, Util.getSourcePackage(sourceContent));
