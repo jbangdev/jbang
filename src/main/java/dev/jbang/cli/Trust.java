@@ -27,7 +27,7 @@ public class Trust {
 	public Integer list() {
 		int idx = 0;
 		PrintStream out = System.out;
-		for (String src : Settings.getTrustedSources().trustedSources) {
+		for (String src : Settings.getTrustedSources().getTrustedSources()) {
 			out.println(++idx + " = " + src);
 		}
 		return EXIT_OK;
@@ -44,7 +44,7 @@ public class Trust {
 	}
 
 	private String toDomain(String src) {
-		String[] sources = Settings.getTrustedSources().trustedSources;
+		String[] sources = Settings.getTrustedSources().getTrustedSources();
 		try {
 			int idx = Integer.parseInt(src) - 1;
 			if (idx >= 0 && idx < sources.length) {
