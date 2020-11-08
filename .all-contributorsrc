@@ -362,6 +362,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "sunix",
+      "name": "Sun Seng David TAN",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/650571?v=4",
+      "profile": "http://sunix.org/",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
