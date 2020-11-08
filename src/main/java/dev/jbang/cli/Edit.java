@@ -125,7 +125,8 @@ public class Edit extends BaseScriptCommand {
 
 		File originalFile = new File(script.getOriginalFile());
 
-		List<String> collectDependencies = script.collectDependencies();
+		// dependencies are already resolved by resolveClassPath
+		List<String> collectDependencies = new ArrayList<>();
 		String cp = script.resolveClassPath(offline);
 		List<String> resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 

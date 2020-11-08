@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -73,6 +72,8 @@ public class Script {
 	private List<KeyValue> agentOptions;
 	private String preMainClass;
 	private String agentMainClass;
+	private List<String> dependencies;
+	private List<String> sourceDependencies = new ArrayList<>();
 	/**
 	 * if this script is used as an agent, agentOption is the option needed to pass
 	 * in
@@ -119,16 +120,24 @@ public class Script {
 	}
 
 	public List<String> collectDependencies() {
-		return collectDependencies(getLines());
-	}
+		if (this.dependencies != null)
+			return this.dependencies;
 
-	public List<String> collectDependencies(List<String> lines) {
 		if (forJar()) { // if a .jar then we don't try parse it for dependencies.
 			return additionalDeps;
 		}
 		// early/eager init to property resolution will work.
 		new Detector().detect(new Properties(), Collections.emptyList());
 
+		dependencies = new ArrayList<>();
+		dependencies.addAll(collectDependencies(getLines(), properties));
+		dependencies.addAll(additionalDeps);
+		dependencies.addAll(sourceDependencies);
+
+		return dependencies;
+	}
+
+	public static List<String> collectDependencies(List<String> lines, Map<String, String> properties) {
 		// Make sure that dependencies declarations are well formatted
 		if (lines.stream().anyMatch(it -> it.startsWith("// DEPS"))) {
 			throw new IllegalArgumentException("Dependencies must be declared by using the line prefix //DEPS");
@@ -139,15 +148,15 @@ public class Script {
 			p.putAll(properties);
 		}
 
-		Stream<String> depStream = lines.stream()
-										.filter(it -> isDependDeclare(it))
-										.flatMap(it -> extractDependencies(it))
-										.map(it -> PropertiesValueResolver.replaceProperties(it, p));
+		return lines.stream()
+					.filter(it -> isDependDeclare(it))
+					.flatMap(it -> extractDependencies(it))
+					.map(it -> PropertiesValueResolver.replaceProperties(it, p))
+					.collect(Collectors.toList());
+	}
 
-		List<String> dependencies = Stream	.concat(additionalDeps.stream(), depStream)
-											.collect(Collectors.toList());
-
-		return dependencies;
+	public void addSourceDependencies(String sourceContent) {
+		sourceDependencies.addAll(collectDependencies(Util.getLines(null, sourceContent), properties));
 	}
 
 	private List<KeyValue> collectAgentOptions() {
@@ -278,15 +287,6 @@ public class Script {
 				}
 			} else {
 				List<String> dependencies = collectDependencies();
-				if (getResolvedSources() != null) {
-					for (Source source : getResolvedSources()) {
-						try {
-							dependencies.addAll(collectDependencies(Files.readAllLines(source.getResolvedPath())));
-						} catch (IOException e) {
-							throw new RuntimeException(e);
-						}
-					}
-				}
 				List<MavenRepo> repositories = getRepositories();
 				classpath = new DependencyUtil().resolveDependencies(dependencies, repositories, offline,
 						!Util.isQuiet());

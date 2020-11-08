@@ -188,6 +188,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			// TODO would we not be better of with Script ref here rather than Source?
 			Source source = new Source(path, Util.getSourcePackage(sourceContent));
 			resolvedSourcePaths.add(source);
+			script.addSourceDependencies(sourceContent);
 
 			String refSource;
 
