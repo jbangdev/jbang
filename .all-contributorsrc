@@ -380,6 +380,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "maxandersen",
+      "name": "Max Rydahl Andersen",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/54129?v=4",
+      "profile": "https://xam.dk/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
