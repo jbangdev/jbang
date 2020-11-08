@@ -28,7 +28,7 @@ public class ArtifactInfo {
 
 	public String toString() {
 		String path = asFile().getAbsolutePath();
-		return getCoordinate().toCanonicalForm() + "=" + path;
+		return getCoordinate() == null ? "<null>" : getCoordinate().toCanonicalForm() + "=" + path;
 	}
 
 	@Override

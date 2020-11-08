@@ -265,7 +265,11 @@ public class Script {
 					classpath = new DependencyUtil().resolveDependencies(additionalDeps,
 							Collections.emptyList(), offline, !Util.isQuiet());
 				} else {
-					classpath = new ModularClassPath(Arrays.asList(new ArtifactInfo(null, new File(originalFile))));
+					if (getBackingFile() == null) {
+						classpath = new ModularClassPath(Arrays.asList(new ArtifactInfo(null, new File(originalFile))));
+					} else {
+						classpath = new ModularClassPath(Arrays.asList(new ArtifactInfo(null, getBackingFile())));
+					}
 				}
 				// fetch main class as we can't use -jar to run as it ignores classpath.
 				if (getMainClass() == null) {

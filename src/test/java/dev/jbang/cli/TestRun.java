@@ -149,6 +149,31 @@ public class TestRun {
 	}
 
 	@Test
+	void testJarViaHttps(@TempDir Path tdir) throws IOException {
+
+		String jar = "https://bintray.com/cardillo/maven/download_file?file_path=joinery%2Fjoinery-dataframe%2F1.9%2Fjoinery-dataframe-1.9-jar-with-dependencies.jar";
+
+		try {
+			Settings.getTrustedSources().add(jar, tdir.resolve("test.trust").toFile());
+
+			environmentVariables.clear("JAVA_HOME");
+			Jbang jbang = new Jbang();
+
+			CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
+			Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+			Script result = prepareScript(jar, run.userParams, run.properties, run.dependencies, run.classpaths);
+
+			String cmdline = run.generateCommandLine(result);
+
+			assertThat(cmdline, not(containsString("https")));
+
+		} finally {
+			Settings.getTrustedSources().remove(Arrays.asList(jar), tdir.resolve("test.trust").toFile());
+		}
+	}
+
+	@Test
 	void testHelloWorldGAVWithNoMain() throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");
