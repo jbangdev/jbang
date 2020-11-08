@@ -335,6 +335,15 @@
       "contributions": [
         "infra"
       ]
+    },
+    {
+      "login": "alblue",
+      "name": "Alex Blewitt",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/76791?v=4",
+      "profile": "https://alblue.bandlem.com/",
+      "contributions": [
+        "infra"
+      ]
     }
   ],
   "contributorsPerLine": 7,
