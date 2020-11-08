@@ -326,6 +326,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "aalmiray",
+      "name": "Andres Almiray",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/13969?v=4",
+      "profile": "http://andresalmiray.com/",
+      "contributions": [
+        "infra"
+      ]
     }
   ],
   "contributorsPerLine": 7,
