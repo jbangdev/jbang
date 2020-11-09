@@ -454,11 +454,13 @@ if (!"Windows".equals(System.getProperty("os.name"))) {
 It will give a compiler warning as it is internal API; but for now it works.
 ====
 
-=== Running ``.jar``'s (EXPERIMENTAL)
+=== Running ``.jar``'s
 
 `jbang` will also run `.jar` files directly.
 
 i.e. `jbang helloworld.jar` will run `helloworld.jar` if found on your local file system.
+
+The `.jar` can be a local file or a http/https url.
 
 You can also run a `.jar` file referenced by a Maven coordinate, i.e.:
 
