@@ -127,6 +127,8 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 			}
 			optionList.addAll(Arrays.asList("-d", tmpJarDir.getAbsolutePath()));
 
+			script.collectSourcesRecursively();
+
 			// add source files to compile
 			optionList.addAll(Arrays.asList(script.getBackingFile().getPath()));
 			if (script.getResolvedSources() != null) {

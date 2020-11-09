@@ -68,7 +68,7 @@ public class TestSameSourceInDifferentPaths {
 		TestScript.createTmpFileWithContent(mainPath.getParent(), "model", "C.java", classModelC);
 		TestScript.createTmpFileWithContent(BPath.getParent(), "model", "C.java", classPersonModelC);
 		Script script = BaseScriptCommand.prepareScript(mainPath.toString());
-		assertTrue(script.getResolvedSources().size() == 3);
+		assertTrue(script.collectSourcesRecursively().size() == 3);
 	}
 
 }

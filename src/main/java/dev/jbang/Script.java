@@ -7,15 +7,18 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -148,6 +151,54 @@ public class Script {
 											.collect(Collectors.toList());
 
 		return dependencies;
+	}
+
+	public List<Source> collectSourcesRecursively() throws IOException {
+		if (resolvedSources != null)
+			return resolvedSources;
+		resolvedSources = new ArrayList<>();
+		// It's important to know which sources we already visited,
+		// because many files can declare the same source.
+		Set<String> visited = new HashSet<>();
+		// List of array: [0] original source [1] source
+		List<String[]> sources = new ArrayList<>();
+		// Collect sources from the entry point (main file)
+		List<FileRef> fileRefs = collectSources();
+		for (FileRef fileRef : fileRefs) {
+			sources.add(new String[] { getScriptResource().getOriginalResource(), fileRef.getDestination() });
+		}
+
+		while (!sources.isEmpty()) {
+			String[] tmp = sources.remove(0);
+			String originalSource = tmp[0];
+			String destinationSource = tmp[1];
+			destinationSource = Util.swizzleURL(destinationSource); // base path for new sources
+			Path path = getScriptResource().fetchIfNeeded(destinationSource, originalSource);
+			if (!visited.add(path.toString()))
+				continue;
+			String sourceContent = new String(Files.readAllBytes(path));
+			// TODO would we not be better of with Script ref here rather than Source?
+			Source source = new Source(path, Util.getSourcePackage(sourceContent));
+			resolvedSources.add(source);
+
+			String refSource;
+
+			// If source is a URL then it must be the new base path
+			if (Util.isURL(destinationSource)) {
+				refSource = destinationSource;
+			} else if (Util.isURL(originalSource)) {
+				refSource = originalSource;
+			} else { // it's file, so always use the Path that was resolved.
+				refSource = path.toString();
+			}
+
+			List<String> newSources = Util.collectSources(refSource, path, sourceContent);
+
+			for (String newSource : newSources) {
+				sources.add(new String[] { refSource, newSource });
+			}
+		}
+		return resolvedSources;
 	}
 
 	private List<KeyValue> collectAgentOptions() {

@@ -24,8 +24,6 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import dev.jbang.cli.BaseScriptCommand;
-
 public class TestScript {
 
 	String example = "//#!/usr/bin/env jbang\n" + "\n"
@@ -172,8 +170,8 @@ public class TestScript {
 		String scriptURL = mainPath.toString();
 		Script script = prepareScript(scriptURL);
 
-		List<Source> resolvesourceRecursively = BaseScriptCommand.resolvesourceRecursively(script);
-		assertTrue(resolvesourceRecursively.size() == 7);
+		List<Source> resolvedSources = script.collectSourcesRecursively();
+		assertTrue(resolvedSources.size() == 7);
 	}
 
 	public static Path createTmpFileWithContent(String strPath, String fileName, String content) throws IOException {
@@ -220,10 +218,10 @@ public class TestScript {
 			Settings.getTrustedSources().add(url, tempFile);
 
 			Script script = prepareScript(url);
-			assertEquals(script.getResolvedSources().size(), 2);
+			assertEquals(script.collectSourcesRecursively().size(), 2);
 			boolean foundtwo = false;
 			boolean foundt3 = false;
-			for (Source source : script.getResolvedSources()) {
+			for (Source source : script.collectSourcesRecursively()) {
 				if (source.getResolvedPath().getFileName().toString().equals("two.java"))
 					foundtwo = true;
 				if (source.getResolvedPath().getFileName().toString().equals("t3.java"))

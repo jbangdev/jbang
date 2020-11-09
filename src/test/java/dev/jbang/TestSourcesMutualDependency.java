@@ -40,7 +40,7 @@ public class TestSourcesMutualDependency {
 		TestScript.createTmpFileWithContent("", "B.java", classB);
 		String scriptURL = mainPath.toString();
 		Script script = BaseScriptCommand.prepareScript(scriptURL);
-		assertTrue(script.getResolvedSources().size() == 2);
+		assertTrue(script.collectSourcesRecursively().size() == 2);
 	}
 
 }
