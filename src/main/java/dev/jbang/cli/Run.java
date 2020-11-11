@@ -50,7 +50,7 @@ public class Run extends BaseBuildCommand {
 			enableInsecure();
 		}
 
-		script = prepareArtifacts(prepareScript(scriptOrFile, userParams, properties, dependencies, classpaths));
+		script = prepareArtifacts(prepareScript(scriptOrFile, userParams, properties, dependencies, classpaths, fresh));
 
 		String cmdline = generateCommandLine(script);
 		debug("run: " + cmdline);

@@ -37,10 +37,10 @@ public class ScriptResource {
 	}
 
 	public Path fetchIfNeeded(String resource) {
-		return fetchIfNeeded(resource, originalResource);
+		return fetchIfNeeded(resource, originalResource, false);
 	}
 
-	public Path fetchIfNeeded(String resource, String originalResource) {
+	public Path fetchIfNeeded(String resource, String originalResource, boolean fresh) {
 		if (Util.isURL(resource) || Util.isURL(originalResource)) {
 			try {
 				URI thingToFetch = null;
@@ -50,7 +50,7 @@ public class ScriptResource {
 					URI includeContext = new URI(originalResource);
 					thingToFetch = includeContext.resolve(resource);
 				}
-				return Util.downloadAndCacheFile(thingToFetch.toString(), true);
+				return Util.downloadAndCacheFile(thingToFetch.toString(), fresh);
 			} catch (URISyntaxException | IOException e) {
 				throw new IllegalStateException("Could not download " + resource + " relatively to " + originalResource,
 						e);
