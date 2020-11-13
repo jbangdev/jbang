@@ -172,7 +172,7 @@ public class TestScript {
 		String scriptURL = mainPath.toString();
 		Script script = prepareScript(scriptURL);
 
-		List<Source> resolvesourceRecursively = BaseScriptCommand.resolvesourceRecursively(script);
+		List<Source> resolvesourceRecursively = BaseScriptCommand.resolvesourceRecursively(script, false);
 		assertTrue(resolvesourceRecursively.size() == 7);
 	}
 

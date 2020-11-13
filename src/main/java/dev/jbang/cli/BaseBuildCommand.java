@@ -83,6 +83,11 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 	@CommandLine.Option(names = { "--cp", "--class-path" }, description = "Add class path entries.")
 	List<String> classpaths;
 
+	@CommandLine.Option(names = {
+			"-f",
+			"--fresh" }, description = "Make it a fresh run - i.e. a new build with fresh (i.e. non-cached) resources.", defaultValue = "false")
+	boolean fresh;
+
 	PrintStream out = new PrintStream(new FileOutputStream(FileDescriptor.out));
 
 	// build with javac and then jar... todo: split up in more testable chunks
@@ -90,6 +95,8 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		File baseDir = Settings.getCacheDir(Settings.CacheClass.jars).toFile();
 		File tmpJarDir = new File(baseDir, script.getBackingFile().getName() +
 				"." + Util.getStableID(script.getBackingFile()));
+		if (tmpJarDir.exists() && fresh)
+			Util.deleteFolder(tmpJarDir.toPath(), true);
 		tmpJarDir.mkdirs();
 
 		File outjar = new File(tmpJarDir.getParentFile(), tmpJarDir.getName() + ".jar");
@@ -117,7 +124,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		// always build the jar for native mode
 		// it allows integrations the options to produce the native image
 		if (!outjar.exists() || JavaUtil.javaVersion(requestedJavaVersion) < script.getBuildJdk()
-				|| nativeBuildRequired) {
+				|| nativeBuildRequired || fresh) {
 			List<String> optionList = new ArrayList<String>();
 			optionList.add(resolveInJavaHome("javac", requestedJavaVersion));
 			optionList.addAll(script.collectCompileOptions());

@@ -108,7 +108,12 @@ public abstract class BaseScriptCommand extends BaseCommand {
 	}
 
 	public static Script prepareScript(String scriptResource, List<String> arguments, Map<String, String> properties,
-			List<String> dependencies, List<String> classpaths)
+			List<String> dependencies, List<String> classpaths) throws IOException {
+		return prepareScript(scriptResource, arguments, properties, dependencies, classpaths, false);
+	}
+
+	public static Script prepareScript(String scriptResource, List<String> arguments, Map<String, String> properties,
+			List<String> dependencies, List<String> classpaths, boolean fresh)
 			throws IOException {
 		ScriptResource scriptFile = getScriptFile(scriptResource);
 
@@ -156,14 +161,14 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			s.setOriginal(scriptResource);
 			s.setAdditionalDependencies(dependencies);
 			s.setAdditionalClasspaths(classpaths);
-			s.setResolvedSources(resolvesourceRecursively(s));
+			s.setResolvedSources(resolvesourceRecursively(s, fresh));
 		} catch (FileNotFoundException e) {
 			throw new ExitException(1, e);
 		}
 		return s;
 	}
 
-	public static List<Source> resolvesourceRecursively(Script script) throws IOException {
+	public static List<Source> resolvesourceRecursively(Script script, boolean fresh) throws IOException {
 		List<Source> resolvedSourcePaths = new ArrayList<>();
 		// It's important to know which sources we already visited,
 		// because many files can declare the same source.
@@ -181,7 +186,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			String originalSource = tmp[0];
 			String destinationSource = tmp[1];
 			destinationSource = Util.swizzleURL(destinationSource); // base path for new sources
-			Path path = script.getScriptResource().fetchIfNeeded(destinationSource, originalSource);
+			Path path = script.getScriptResource().fetchIfNeeded(destinationSource, originalSource, fresh);
 			if (!visited.add(path.toString()))
 				continue;
 			String sourceContent = new String(Files.readAllBytes(path), Charset.defaultCharset());
