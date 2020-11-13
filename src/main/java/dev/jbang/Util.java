@@ -1,6 +1,10 @@
 package dev.jbang;
 
-import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
+import com.google.gson.Gson;
+import dev.jbang.cli.BaseCommand;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.parser.Parser;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -41,13 +45,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.parser.Parser;
-
-import com.google.gson.Gson;
-
-import dev.jbang.cli.BaseCommand;
+import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 
 public class Util {
 
@@ -383,6 +381,17 @@ public class Util {
 		return path;
 	}
 
+	static private String agent;
+
+	static private String getAgentString() {
+		if(agent==null) {
+			String version = System.getProperty("java.version");
+			agent = "JBang/" + BuildConfig.VERSION + " (" + System.getProperty("os.name") + "/"
+					+ System.getProperty("os.version") + "/" + System.getProperty("os.arch") + ") " + "Java/" + version;
+		}
+		return agent;
+	}
+
 	/**
 	 * Downloads a file from a URL
 	 *
@@ -396,6 +405,8 @@ public class Util {
 		URL url = new URL(fileURL);
 
 		URLConnection urlConnection = url.openConnection();
+		urlConnection.setRequestProperty("User-Agent", getAgentString());
+
 		HttpURLConnection httpConn = null;
 
 		String fileName = "";
