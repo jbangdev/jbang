@@ -299,7 +299,7 @@ Below is an (almost) minimal example you can save in `helloworld.java` or simply
 
 [source,java]
 ----
-///usr/bin/env jbang "$0" "$@" ; exit $? // <.>
+///usr/bin/env jbang "$0" "$@" ; exit $? # <.>
 
 class helloworld { // <.>
 
