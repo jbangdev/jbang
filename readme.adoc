@@ -424,6 +424,8 @@ The script will have the output:
  Hello World
  value
 
+Please note that `.jsh` files are not cached ([#506](https://github.com/jbangdev/jbang/issues/506)) and cannot be built as native images ([#510](https://github.com/jbangdev/jbang/issues/510)).
+
 
 ==== Running script from standard input
 
