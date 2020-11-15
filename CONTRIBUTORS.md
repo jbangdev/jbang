@@ -65,6 +65,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://xam.dk/"><img src="https://avatars1.githubusercontent.com/u/54129?v=4" width="100px;" alt=""/><br /><sub><b>Max Rydahl Andersen</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=maxandersen" title="Code">💻</a></td>
   </tr>
   <tr>
+    <td align="center"><a href="http://vorburger.ch"><img src="https://avatars2.githubusercontent.com/u/298598?v=4" width="100px;" alt=""/><br /><sub><b>Michael Vorburger ⛑️</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=vorburger" title="Documentation">📖</a></td>
     <td align="center"><a href="http://markclittle.blogspot.co.uk"><img src="https://avatars0.githubusercontent.com/u/580667?v=4" width="100px;" alt=""/><br /><sub><b>Mark Little</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=nmcl" title="Documentation">📖</a></td>
   </tr>
 </table>
