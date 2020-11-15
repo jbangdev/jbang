@@ -391,8 +391,11 @@ There is support for using `native-image` from GraalVM project to produce a bina
 
 Since not all java libraries can automatically be built with `native-image` - especially if using reflection feature are considered highly experimental.
 
-Just run `jbang --native helloworld.java` and `jbang` will use `native-image` from either `JAVA_HOME/bin` or `GRAALVM_HOME/bin` to
+Just run `jbang --native helloworld.java` and `jbang` will use `native-image` from either `$JAVA_HOME/bin` or `$GRAALVM_HOME/bin` or `$PATH` to
 produce a native image binary.
+
+You can install the `native-image` utility binary e.g. by installing GraalVM from https://www.graalvm.org/downloads, and then once running `gu install native-image` as per https://www.graalvm.org/reference-manual/native-image.
+
 
 [TIP]
 ====

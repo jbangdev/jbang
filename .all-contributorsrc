@@ -398,6 +398,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    { 
+      "login": "nmcl",
+      "name": "Mark Little",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/580667?v=4",
+      "profile": "http://markclittle.blogspot.co.uk",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
