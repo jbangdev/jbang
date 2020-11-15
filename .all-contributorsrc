@@ -389,6 +389,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "vorburger",
+      "name": "Michael Vorburger ⛑️",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/298598?v=4",
+      "profile": "http://vorburger.ch",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
