@@ -735,7 +735,7 @@ The listed file name(s) gets added to source list when compiling.
 Currently there are not `*.java` style matching or support for these `.java` files to declare `//DEPS` or other jbang configuration.
 That will currently only be honored by the main script/app. These will be loosened up in future based on feedback.
 
-== Adding additional resources
+== Adding more resources
 
 If you want to add a `META-INF/application.properties` or `META-INF/resource.index.html` or other files to the generated jar
 you can use `//FILES` to add them.
@@ -898,7 +898,7 @@ and output the generated folder name. The easiest way to use that is to use it i
 code `jbang edit helloworld.java`
 ----
 
-If you add additional dependencies to your file just re-run the edit command and the relevant files will be regenerated with the updated dependencies.
+If you add further dependencies to your file just re-run the edit command and the relevant files will be regenerated with the updated dependencies.
 
 Above does require using a shell that allows for variable evaluation, if you are on i.e. Windows then you might prefer using:
 
@@ -907,7 +907,7 @@ Above does require using a shell that allows for variable evaluation, if you are
 jbang edit --open=[editor] helloworld.java
 ----
 
-The editor used will be what is specified as argument to `--open` or default to `$JBANG_EDITOR`, `$VISUAL` or `$EDITOR` in that order.
+The editor used will be what is specified as the argument to `--open` or default to `$JBANG_EDITOR`, `$VISUAL` or `$EDITOR` in that order.
 
 NOTE: On Windows you might need elevated privileges to create symbolic links. If you don't have permissions then
 the `edit` option will result in an error. To use it https://stackoverflow.com/a/24353758[enable symbolic links]
@@ -952,13 +952,13 @@ jbang --debug helloworld.java
 Listening for transport dt_socket at address: 4004
 ----
 
-You can change the debug port and host by passing in a interface pattern and number to the debug argument, i.e. `--debug=*:4321`.
+You can change the debug port and host by passing in a interface pattern and number to the debug argument, e.g., `--debug=*:4321`.
 
 This will make it use port 4321 and make it listen on all ('*') network interfaces.
 
 NOTE: Be sure to put a breakpoint in your IDE/debugger before you connect to make the debugger actually stop when you need it.
 
-=== Debug jbang it self
+=== Debug jbang itself
 
 Java itself will add `JAVA_TOOL_OPTIONS` which will apply to `jbang` too.
 
@@ -969,7 +969,7 @@ Thus if you want to enable debug or other details for `jbang` set that environme
 
 Flight recorder is a feature of the Java VM that lets you gather diagnostic and profiling data about your script.
 
-You can use `//JAVA_OPTIONS` to have full control over it; but for the easiest setup `jbang` lets you just run with `--jfr`, i.e.
+You can use `//JAVA_OPTIONS` to have full control over it; but for the easiest setup `jbang` lets you just run with `--jfr`, e.g.,
 
   jbang --jfr myapp.java
 
@@ -1034,8 +1034,8 @@ will show you all the aliases that are defined locally.
 === Implicit Alias Catalogs
 
 The aliases you create are stored locally (see <<Local Alias Catalogs>>), but Jbang can also use remote catalogs.
-You can access those catalogs explicitly (see <<Catalogs>>) but much easier to use are what we call "implicit catalogs".
-They are aliases that have a special format where Jbang is smart enough to know where to find their definition.
+You can access those catalogs explicitly (see <<Catalogs>>) but it is much easier to use what we call "implicit catalogs", which
+are aliases that have a special format and Jbang is smart enough to know where to find their definition.
 
 Examples:
 
