@@ -11,6 +11,8 @@ plugins {
 	id 'de.fuerstenau.buildconfig' version '1.1.8'
 	id "com.dorongold.task-tree" version "1.5"
 	id "com.geoffgranum.gradle-conventional-changelog" version "0.3.1"
+	id 'jacoco'
+
 }
 
 repositories {
@@ -164,6 +166,22 @@ test {
 	//testLogging.showStandardStreams = true
 
 }
+
+jacocoTestReport {
+
+	afterEvaluate {
+		executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
+	}
+
+	reports {
+		html.enabled true
+		xml.enabled  true
+		csv.enabled  false
+	}
+}
+
+
+
 
 task karateExecute(type: JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
