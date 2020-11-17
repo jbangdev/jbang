@@ -4,7 +4,6 @@ import static dev.jbang.FileRef.isURL;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -18,7 +17,6 @@ import java.util.Properties;
 import java.util.Scanner;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
-import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -52,8 +50,6 @@ public class Script {
 	private int buildJdk;
 	private File jar;
 	List<String> lines;
-	// true if in this run a jar was build/created
-	private boolean createdJar;
 
 	private List<String> arguments;
 
@@ -76,30 +72,18 @@ public class Script {
 	 **/
 	private String javaAgentOption;
 
-	public Script(ScriptResource resource, String content, List<String> arguments, Map<String, String> properties)
-			throws FileNotFoundException {
-		this.scriptResource = resource;
-		this.script = content;
-		this.arguments = arguments;
-		this.properties = properties;
-	}
-
 	public Script(ScriptResource resource, List<String> arguments, Map<String, String> properties)
 			throws FileNotFoundException {
-		this.scriptResource = resource;
-		this.arguments = arguments;
-		this.properties = properties;
-		if (!forJar()) {
-			try (Scanner sc = new Scanner(this.getBackingFile())) {
-				sc.useDelimiter("\\Z");
-				this.script = sc.hasNext() ? sc.next() : "";
-			}
-		}
+		this(resource, getBackingFileContent(resource.getFile()), arguments, properties);
 	}
 
 	public Script(String script, List<String> arguments, Map<String, String> properties) {
-		this.scriptResource = new ScriptResource(null, null, null);
-		this.script = script;
+		this(new ScriptResource(null, null, null), script, arguments, properties);
+	}
+
+	public Script(ScriptResource resource, String content, List<String> arguments, Map<String, String> properties) {
+		this.scriptResource = resource;
+		this.script = content;
 		this.arguments = arguments;
 		this.properties = properties;
 	}
@@ -504,56 +488,6 @@ public class Script {
 		return scriptResource.getFile();
 	}
 
-	public void createJarFile(File path, File output) throws IOException {
-		this.createdJar = true;
-
-		String mainclass = getMainClass();
-		Manifest manifest = new Manifest();
-		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
-		if (mainclass != null) {
-			manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, mainclass);
-		}
-
-		if (isAgent()) {
-			if (getPreMainClass() != null) {
-				manifest.getMainAttributes().put(new Attributes.Name("Premain-Class"), getPreMainClass());
-			}
-			if (getAgentMainClass() != null) {
-				manifest.getMainAttributes().put(new Attributes.Name("Agent-Class"), getAgentMainClass());
-			}
-
-			for (KeyValue kv : getAgentOptions()) {
-				if (kv.getKey().trim().isEmpty()) {
-					continue;
-				}
-				Attributes.Name k = new Attributes.Name(kv.getKey());
-				String v = kv.getValue() == null ? "true" : kv.getValue();
-				manifest.getMainAttributes().put(k, v);
-			}
-
-			String bootClasspath = getClassPath().getClassPath().replace(Settings.CP_SEPARATOR, " ");
-			if (!bootClasspath.isEmpty()) {
-				manifest.getMainAttributes().put(new Attributes.Name("Boot-Class-Path"), getClassPath().getClassPath());
-			}
-		}
-
-		if (persistentJvmArgs != null) {
-			manifest.getMainAttributes().putValue("JBang-Java-Options", String.join(" ", persistentJvmArgs));
-		}
-		if (buildJdk > 0) {
-			String val = buildJdk >= 9 ? Integer.toString(buildJdk) : "1." + buildJdk;
-			manifest.getMainAttributes().putValue("Build-Jdk", val);
-		}
-
-		FileOutputStream target = new FileOutputStream(output);
-		JarUtil.jar(target, path.listFiles(), null, null, manifest);
-		target.close();
-	}
-
-	public boolean wasJarCreated() {
-		return createdJar;
-	}
-
 	public List<String> getArguments() {
 		return (arguments != null) ? arguments : Collections.emptyList();
 	}
@@ -564,6 +498,20 @@ public class Script {
 
 	public boolean forJar() {
 		return getBackingFile() != null && getBackingFile().toString().endsWith(".jar");
+	}
+
+	static private boolean forJar(File backingFile) {
+		return backingFile != null && backingFile.toString().endsWith(".jar");
+	}
+
+	static private String getBackingFileContent(File backingFile) throws FileNotFoundException {
+		if (!forJar(backingFile)) {
+			try (Scanner sc = new Scanner(backingFile)) {
+				sc.useDelimiter("\\Z");
+				return sc.hasNext() ? sc.next() : "";
+			}
+		}
+		return "";
 	}
 
 	public ModularClassPath getClassPath() {

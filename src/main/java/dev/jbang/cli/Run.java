@@ -166,7 +166,7 @@ public class Run extends BaseBuildCommand {
 
 				if (optionActive(cds(), script.enableCDS())) {
 					String cdsJsa = script.getJar().getAbsolutePath() + ".jsa";
-					if (script.wasJarCreated()) {
+					if (createdJar) {
 						debug("CDS: Archiving Classes At Exit at " + cdsJsa);
 						optionalArgs.add("-XX:ArchiveClassesAtExit=" + cdsJsa);
 					} else {

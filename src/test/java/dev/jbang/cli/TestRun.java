@@ -465,7 +465,7 @@ public class TestRun extends BaseTest {
 
 		Script s = new Script("", null, null);
 		s.setMainClass("wonkabear");
-		s.createJarFile(dir, out);
+		BaseBuildCommand.createJarFile(s, dir, out);
 
 		try (JarFile jf = new JarFile(out)) {
 
