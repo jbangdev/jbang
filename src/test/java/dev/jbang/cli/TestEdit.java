@@ -102,7 +102,10 @@ public class TestEdit {
 
 		File gradle = new File(project, "build.gradle");
 		assert (gradle.exists());
-		assertThat(Util.readString(gradle.toPath()), not(containsString("bogus")));
+		String buildGradle = Util.readString(gradle.toPath());
+		assertThat(buildGradle, not(containsString("bogus")));
+		assertThat(buildGradle, containsString("id 'application'"));
+		assertThat(buildGradle, containsString("mainClass = 'edit'"));
 
 		File java = new File(project, "src/edit.java");
 
