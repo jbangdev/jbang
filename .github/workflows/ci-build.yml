@@ -38,7 +38,7 @@ jobs:
           ./test_suite.sh
           ./itests.sh
       - name: add-to-path
-        run: echo "::add-path::../build/install/jbang/bin"
+        run: echo "../build/install/jbang/bin" >> $env:GITHUB_PATH
       - name: integration-test-windows
         if: runner.os == 'Windows'
         working-directory: itests
