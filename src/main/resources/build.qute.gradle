@@ -15,7 +15,7 @@ dependencies {
 }
 
 application {
-	mainClass = '{baseName}'
+	mainClass = '{fullClassName}'
 }
 
 sourceSets.main.java.srcDirs 'src'
