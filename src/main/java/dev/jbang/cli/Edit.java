@@ -6,6 +6,7 @@ import static java.lang.System.out;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,6 +17,7 @@ import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import dev.jbang.ExitException;
@@ -160,34 +162,47 @@ public class Edit extends BaseScriptCommand {
 		}
 
 		// create build gradle
+		Optional<String> packageName = Util.getSourcePackage(
+				new String(Files.readAllBytes(srcFile), Charset.defaultCharset()));
 		String baseName = Util.getBaseName(name);
+		String fullClassName;
+		if (packageName.isPresent()) {
+			fullClassName = packageName.get() + "." + baseName;
+		} else {
+			fullClassName = baseName;
+		}
 		String templateName = "build.qute.gradle";
 		Path destination = new File(tmpProjectDir, "build.gradle").toPath();
 		TemplateEngine engine = Settings.getTemplateEngine();
 
-		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, script.getArguments(),
+		renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, templateName,
+				script.getArguments(),
 				destination);
 
 		// setup eclipse
 		templateName = ".qute.classpath";
 		destination = new File(tmpProjectDir, ".classpath").toPath();
-		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, script.getArguments(),
+		renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, templateName,
+				script.getArguments(),
 				destination);
 
 		templateName = ".qute.project";
 		destination = new File(tmpProjectDir, ".project").toPath();
-		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, script.getArguments(),
+		renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, templateName,
+				script.getArguments(),
 				destination);
 
 		templateName = "main.qute.launch";
 		destination = new File(tmpProjectDir, ".eclipse/" + baseName + ".launch").toPath();
 		destination.toFile().getParentFile().mkdirs();
-		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, script.getArguments(),
+		renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, templateName,
+				script.getArguments(),
 				destination);
 
 		templateName = "main-port-4004.qute.launch";
 		destination = new File(tmpProjectDir, ".eclipse/" + baseName + "-port-4004.launch").toPath();
-		renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName, script.getArguments(),
+		renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, templateName,
+				script.getArguments(),
 				destination);
 
 		// setup vscode
@@ -195,7 +210,7 @@ public class Edit extends BaseScriptCommand {
 		destination = new File(tmpProjectDir, ".vscode/launch.json").toPath();
 		if (isNeeded(reload, destination)) {
 			destination.toFile().getParentFile().mkdirs();
-			renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName,
+			renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, templateName,
 					script.getArguments(),
 					destination);
 		}
@@ -205,7 +220,7 @@ public class Edit extends BaseScriptCommand {
 		destination = new File(tmpProjectDir, "README.md").toPath();
 		if (isNeeded(reload, destination)) {
 			destination.toFile().getParentFile().mkdirs();
-			renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName,
+			renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, templateName,
 					script.getArguments(),
 					destination);
 		}
@@ -214,7 +229,7 @@ public class Edit extends BaseScriptCommand {
 		destination = new File(tmpProjectDir, ".vscode/settings.json").toPath();
 		if (isNeeded(reload, destination)) {
 			destination.toFile().getParentFile().mkdirs();
-			renderTemplate(engine, collectDependencies, baseName, resolvedDependencies, templateName,
+			renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, templateName,
 					script.getArguments(),
 					destination);
 		}
@@ -241,7 +256,8 @@ public class Edit extends BaseScriptCommand {
 		return !file.toFile().exists() && !reload;
 	}
 
-	private void renderTemplate(TemplateEngine engine, List<String> collectDependencies, String baseName,
+	private void renderTemplate(TemplateEngine engine, List<String> collectDependencies, String fullclassName,
+			String baseName,
 			List<String> resolvedDependencies, String templateName,
 			List<String> userParams, Path destination)
 			throws IOException {
@@ -251,6 +267,7 @@ public class Edit extends BaseScriptCommand {
 		String result = template
 								.data("dependencies", collectDependencies)
 								.data("baseName", baseName)
+								.data("fullClassName", fullclassName)
 								.data("classpath",
 										resolvedDependencies.stream()
 															.filter(t -> !t.isEmpty())
