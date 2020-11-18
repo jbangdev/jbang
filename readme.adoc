@@ -427,6 +427,8 @@ The script will have the output:
  Hello World
  value
 
+Please note that `.jsh` files are source only, they are not compiled thus they are https://github.com/jbangdev/jbang/issues/506[not cached] nor can they be https://github.com/jbangdev/jbang/issues/510[built as native images].
+
 
 ==== Running script from standard input
 
