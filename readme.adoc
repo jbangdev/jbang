@@ -75,13 +75,13 @@ To use it simply install `jbang` and run `jbang yourscript.java`
 
 == Requirements
 
-Minimum Java 8, Recommended: Java 11+
-
 Tested and verified to use on OSX, Linux and Windows (incl. command, cygwin and mingw shells).
 
 == Installation
 
 To use `jbang` Java 8 is the minimum required version, however Java 11 or higher is recommended.
+
+Note: `jbang` will download and install `java` from Adopt OpenJDK if no `java` is available.
 
 === SDKMan icon:linux[] / icon:apple[]
 
