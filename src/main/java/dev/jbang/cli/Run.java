@@ -2,11 +2,13 @@ package dev.jbang.cli;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Stack;
+import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -14,6 +16,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.text.StringEscapeUtils;
 
 import dev.jbang.ExitException;
+import dev.jbang.JavaUtil;
 import dev.jbang.Script;
 import dev.jbang.Util;
 
@@ -21,6 +24,9 @@ import picocli.CommandLine;
 
 @CommandLine.Command(name = "run", description = "Builds and runs provided script.")
 public class Run extends BaseBuildCommand {
+
+	// 8192 character command line length limit imposed by CMD.EXE
+	private static final int COMMAND_LINE_LENGTH_LIMIT = 8000;
 
 	@CommandLine.Option(names = { "-r",
 			"--jfr" }, fallbackValue = "filename={baseName}.jfr", parameterConsumer = KeyValueFallbackConsumer.class, arity = "0..1", description = "Launch with Java Flight Recorder enabled.")
@@ -210,8 +216,27 @@ public class Run extends BaseBuildCommand {
 			fullArgs.add(tempFile.toString());
 		}
 
-		return String.join(" ", escapeArguments(fullArgs));
+		String args = String.join(" ", escapeArguments(fullArgs));
 
+		// This avoids long classpath problem on Windows.
+		// @file is only available from java 9 onwards.
+		if (args.length() > COMMAND_LINE_LENGTH_LIMIT && Util.isWindows()
+				&& JavaUtil.determineJavaVersion() >= 9 && !Util.isUsingPowerShell()) {
+			final String javaCmd = fullArgs.get(0);
+			StringJoiner joiner = new StringJoiner(" ");
+			// we must skip the first value
+			for (int i = 1; i < fullArgs.size(); ++i)
+				joiner.add(fullArgs.get(i));
+			args = joiner.toString();
+			final File argsFile = File.createTempFile("jbang", ".args");
+			try (PrintWriter pw = new PrintWriter(argsFile)) {
+				pw.println(args);
+			}
+
+			return javaCmd + " @" + argsFile.toString();
+		} else {
+			return args;
+		}
 	}
 
 	static boolean optionActive(Optional<Boolean> master, boolean local) {
