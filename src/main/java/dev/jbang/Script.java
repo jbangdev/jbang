@@ -1,7 +1,5 @@
 package dev.jbang;
 
-import static dev.jbang.FileRef.isURL;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -23,6 +21,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static dev.jbang.FileRef.isURL;
 
 public class Script {
 
@@ -95,7 +95,7 @@ public class Script {
 		if (!forJar()) {
 			try (Scanner sc = new Scanner(this.getBackingFile())) {
 				sc.useDelimiter("\\Z");
-				this.script = sc.next();
+				this.script = sc.hasNext() ? sc.next() : "";
 			}
 		}
 	}
