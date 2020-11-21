@@ -19,3 +19,8 @@ Then match out == "hello\n"
 Scenario: jsh quoted system property
 When command('jbang -Dvalue="a quoted" hello.jsh')
 Then match out == "a quoted\n"
+
+
+Scenario: jsh fail on --native
+  When command('jbang --native hello.jsh')
+  Then match err contains ".jsh cannot be used with --native. Please remove --native and try again."

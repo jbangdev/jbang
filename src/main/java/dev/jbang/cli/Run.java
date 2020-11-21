@@ -92,6 +92,10 @@ public class Run extends BaseBuildCommand {
 
 		List<String> fullArgs = new ArrayList<>();
 
+		if (nativeImage && script.forJShell()) {
+			throw new ExitException(EXIT_INVALID_INPUT,
+					".jsh cannot be used with --native. Please remove --native and try again.");
+		}
 		if (nativeImage) {
 			String imagename = getImageName(script.getJar()).toString();
 			if (new File(imagename).exists()) {
