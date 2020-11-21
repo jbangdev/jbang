@@ -23,4 +23,4 @@ Then match out == "a quoted\n"
 
 Scenario: jsh fail on --native
   When command('jbang --native hello.jsh')
-  Then match err contains ".jsh cannot be used with --native. Please remove --native and try again."
+  Then match err contains ".jsh cannot be used with --native"

@@ -115,11 +115,6 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 			}
 		}
 
-		if (nativeImage && script.forJShell()) {
-			throw new ExitException(EXIT_INVALID_INPUT,
-					".jsh cannot be used with --native. Please remove --native and try again.");
-		}
-
 		boolean nativeBuildRequired = nativeImage && !getImageName(outjar).exists();
 		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
 		String requestedJavaVersion = javaVersion != null ? javaVersion : script.javaVersion();
