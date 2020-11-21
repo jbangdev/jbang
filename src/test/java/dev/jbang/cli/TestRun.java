@@ -915,11 +915,8 @@ public class TestRun {
 
 		assertThat(result, containsString("-javaagent"));
 		assertThat(result, containsString("=optionA"));
-
 		assertThat(result, containsString("byteman"));
-
 		assertThat(result, not(containsString("null")));
-
 	}
 
 	@Test
