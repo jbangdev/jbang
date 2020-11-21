@@ -1,9 +1,12 @@
 = j'bang - Having fun with Java scripting
 :idprefix:
 :idseparator: -
-:toc: macro
-ifndef::env-github[:icons: font]
+ifndef::env-github[]
+:toc: left
+:icons: font
+endif::[]
 ifdef::env-github[]
+:toc: macro
 :caution-caption: :fire:
 :important-caption: :exclamation:
 :note-caption: :paperclip:
