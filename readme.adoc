@@ -327,7 +327,7 @@ or if on Linux/OSX run it directly. If you created it manually you need to mark 
 [source]
 ----
 chmod +x helloworld.java
-./helloworld jbang!
+./helloworld.java jbang!
 ----
 
 [WARNING]
