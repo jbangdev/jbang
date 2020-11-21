@@ -346,7 +346,7 @@ You can use `http(s):/` and `file:/` url's for input:.
 
 [source]
 ----
-jbang https://github.com/jbangdev/jbang/blob/master/examples/helloworld.java
+jbang https://gist.github.com/maxandersen/f43b4c52dfcfc42dcd59a04e49acf6ec
 ----
 
 For safety reasons jbang will not run arbitrary urls before you indicated you trust their source.
@@ -354,22 +354,24 @@ Thus when running the above for the first time you will see the following warnin
 
 [source,bash]
 ----
-[jbang] https://github.com/jbangdev/jbang/blob/master/examples/helloworld.java is not from a trusted source thus aborting.
-If you trust the url to be safe to run are here a few suggestions:
-Limited trust:
-    jbang trust add https://github.com/jbangdev/jbang/
-Trust all subdomains:
-    jbang trust add *.github.com
-Trust all sources (WARNING! disables url protection):
-    jbang trust add "*"
+jbang https://gist.github.com/maxandersen/f43b4c52dfcfc42dcd59a04e49acf6ec
+[jbang] https://gist.github.com/maxandersen/f43b4c52dfcfc42dcd59a04e49acf6ec is not from a trusted source thus not running it automatically.
 
-For more control edit ~/.jbang/trusted-sources.json
+If you trust the url to be safe to run you can do one of the following:
+0) Trust once: Add no trust, just run this time
+1) Trust this url in future:
+    jbang trust add https://gist.github.com/maxandersen/
 
-[jbang] Run with --verbose for more details
+
+Any other response will result in exit.
+
+[jbang] Type in your choice (0 or 1) and hit enter. Times out after 10 seconds.
 ----
 
-To enable running it you need to mark that url or a sub part of it as a trusted source.
-i.e. `jbang trust add https://github.com/jbangdev/jbang/` will tell `jbang` to trust anything with that base url.
+You can then choose 0 to run once or 1 to trust the suggested url. If you don't answer within 10 seconds jbang will exit.
+
+To enable running it without such question you need to mark that url or a sub part of it as a trusted source.
+i.e. `jbang trust add https://github.com/maxandersen/` will tell `jbang` to trust anything with that base url.
 
 You can see more in the comments of the `~/.jbang/trusted-sources.json`.
 
