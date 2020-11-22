@@ -394,7 +394,7 @@ Since not all java libraries can automatically be built with `native-image` - es
 Just run `jbang --native helloworld.java` and `jbang` will use `native-image` from either `$JAVA_HOME/bin` or `$GRAALVM_HOME/bin` or `$PATH` to
 produce a native image binary.
 
-The built native image binary will be in `~/.jbang/cache/jars/YOUR.java.HASH.jar.bin` (see [#508] for an `-o/--output`).
+The built native image binary will be placed in jbang's cache and used on next run.
 
 You can install the `native-image` utility binary e.g. by installing GraalVM from https://www.graalvm.org/downloads, and then once running `gu install native-image` as per https://www.graalvm.org/reference-manual/native-image.
 
