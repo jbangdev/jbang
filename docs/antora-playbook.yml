@@ -1,6 +1,7 @@
 site:
   title: Antora Example docs
   url: http://example.com
+  start_page: jbang:ROOT:index.adoc
 content:
   sources:
   - url: ./../
