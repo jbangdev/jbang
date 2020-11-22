@@ -267,10 +267,12 @@ Unzip the https://github.com/jbangdev/jbang/releases/latest[latest binary releas
 
 === Wrapper install
 
-If you would like to have jbang available in a local directory and committed into a source code repository you akin to maven and gradle wrappers you can use the `wrapper` command.
+If you would like to have `jbang` available in a local directory and committed into a source code repository (akin to Maven and Gradle wrappers) you can use the `jbang wrapper` command.
 
 If you have `jbang` already installed you call `jbang wrapper install` in a folder to install a local `jbang`
 that will run out of that directory using `./jbang`.
+
+The `./.jbang` directory which `jbang wrapper install` creates is just a cache which you typically would not commit to a source code repository, so you can e.g. `echo .jbang/ >>.gitignore`.
 
 === "Zero" Install
 
