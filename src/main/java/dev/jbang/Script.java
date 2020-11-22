@@ -95,7 +95,7 @@ public class Script {
 		if (!forJar()) {
 			try (Scanner sc = new Scanner(this.getBackingFile())) {
 				sc.useDelimiter("\\Z");
-				this.script = sc.next();
+				this.script = sc.hasNext() ? sc.next() : "";
 			}
 		}
 	}
@@ -328,6 +328,11 @@ public class Script {
 		}
 
 		if (line.contains(REPOS_ANNOT_PREFIX)) {
+			if (line.indexOf(REPOS_ANNOT_PREFIX) > line.indexOf("//")) {
+				// ignore if on line that is a comment
+				return Stream.of();
+			}
+
 			Map<String, String> args = new HashMap<>();
 
 			Matcher matcher = REPOS_ANNOT_PAIRS.matcher(line);
@@ -354,6 +359,15 @@ public class Script {
 		}
 
 		if (line.contains(DEPS_ANNOT_PREFIX)) {
+			int commentOrEnd = line.indexOf("//");
+			if (commentOrEnd < 0) {
+				commentOrEnd = line.length();
+			}
+			if (line.indexOf(DEPS_ANNOT_PREFIX) > commentOrEnd) {
+				// ignore if on line that is a comment
+				return Stream.of();
+			}
+
 			Map<String, String> args = new HashMap<>();
 
 			Matcher matcher = DEPS_ANNOT_PAIRS.matcher(line);

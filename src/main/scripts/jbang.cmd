@@ -79,7 +79,7 @@ if "!JAVA_EXEC!"=="" (
       ren "%TDIR%\jdks\%javaVersion%.tmp" "%javaVersion%"
     )
     # Set the current JDK
-    !JAVA_EXEC! -classpath ${jarPath} dev.jbang.Main jdk default "%javaVersion%"
+    !JAVA_EXEC! -classpath "%jarPath%" dev.jbang.Main jdk default "%javaVersion%"
   )
 )
 

@@ -125,7 +125,8 @@
       "avatar_url": "https://avatars3.githubusercontent.com/u/148698?v=4",
       "profile": "https://github.com/fbricon",
       "contributions": [
-        "code"
+        "code",
+        "bug"
       ]
     },
     {
@@ -388,6 +389,61 @@
       "profile": "https://xam.dk/",
       "contributions": [
         "code"
+      ]
+    },
+    {
+      "login": "vorburger",
+      "name": "Michael Vorburger ⛑️",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/298598?v=4",
+      "profile": "http://vorburger.ch",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "nmcl",
+      "name": "Mark Little",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/580667?v=4",
+      "profile": "http://markclittle.blogspot.co.uk",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "alban-auzeill",
+      "name": "Alban Auzeill",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/1235009?v=4",
+      "profile": "https://github.com/alban-auzeill",
+      "contributions": [
+        "infra",
+        "code"
+      ]
+    },
+    {
+      "login": "jeffmaury",
+      "name": "Jeff MAURY",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/695993?v=4",
+      "profile": "http://riadiscuss.jeffmaury.com",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "mjg123",
+      "name": "Matthew Gilliard",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/666324?v=4",
+      "profile": "https://blog.gilliard.lol",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "linux-china",
+      "name": "Libing Chen",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/46711?v=4",
+      "profile": "http://rsocketbyexample.info",
+      "contributions": [
+        "ideas"
       ]
     }
   ],

@@ -98,6 +98,25 @@ class DependencyResolverTest {
 	}
 
 	@Test
+	void testResolveJavaFXWithAether() {
+
+		dev.jbang.Detector detector = new dev.jbang.Detector();
+		detector.detect(new Properties(), Collections.emptyList());
+
+		DependencyUtil dr = new DependencyUtil();
+
+		List<String> deps = Arrays.asList(
+				PropertiesValueResolver.replaceProperties("org.openjfx:javafx-base:11.0.2:${os.detected.jfxname}"));
+
+		List<ArtifactInfo> artifacts = dr.resolveDependenciesViaAether(deps,
+				Arrays.asList(toMavenRepo("jcenter")), false,
+				true, true);
+
+		assertEquals(1, artifacts.size());
+
+	}
+
+	@Test
 	void testResolveDependenciesWithAether() {
 
 		DependencyUtil dr = new DependencyUtil();

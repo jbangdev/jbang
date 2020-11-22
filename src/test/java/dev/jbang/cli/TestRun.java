@@ -124,6 +124,29 @@ public class TestRun {
 	}
 
 	@Test
+	void testEmptyInteractiveShell(@TempDir File dir) throws IOException {
+
+		environmentVariables.clear("JAVA_HOME");
+		Jbang jbang = new Jbang();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "a");
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		File empty = new File(dir, "empty.jsh");
+		empty.createNewFile();
+
+		Script s = prepareScript(empty.toString(), run.userParams, run.properties, run.dependencies, run.classpaths);
+
+		String result = run.generateCommandLine(s);
+
+		assertThat(result, matchesPattern("^.*jshell(.exe)? --startup.*$"));
+		assertThat(result, not(containsString("  ")));
+		assertThat(result, containsString("empty.jsh"));
+		assertThat(result, not(containsString("--source 11")));
+		assertThat(result, containsString("--startup=DEFAULT"));
+		assertThat(result, matchesPattern(".*--startup=[^ ]*empty.jsh.*"));
+	}
+
+	@Test
 	void testHelloWorldJar() throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");
@@ -915,11 +938,8 @@ public class TestRun {
 
 		assertThat(result, containsString("-javaagent"));
 		assertThat(result, containsString("=optionA"));
-
 		assertThat(result, containsString("byteman"));
-
 		assertThat(result, not(containsString("null")));
-
 	}
 
 	@Test

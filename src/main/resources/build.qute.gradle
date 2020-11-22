@@ -1,14 +1,21 @@
-apply plugin: 'java'
+plugins {
+	id 'java'
+	id 'application'
+}
 
 repositories {
 	mavenLocal()
-		jcenter()
+	jcenter()
 }
 
 dependencies {
-		{#for item in dependencies}
-			compile "{item}"
-		{/for}
+{#for item in dependencies}
+	compile "{item}"
+{/for}
+}
+
+application {
+	mainClass = '{fullClassName}'
 }
 
 sourceSets.main.java.srcDirs 'src'
