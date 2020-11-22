@@ -13,7 +13,12 @@
     "build": "gulp"
   },
   "devDependencies": {
-    "@djencks/antora-ui-builder": "https://experimental-repo.s3-us-west-1.amazonaws.com/djencks-antora-ui-builder-v0.0.1.tgz",
-    "@antora/antora-ui-default": "git+https://gitlab.com/antora/antora-ui-default.git"
+    "@djencks/antora-ui-builder": "file:///Users/david/projects/antora/ui-builder/builder/djencks-antora-ui-builder-0.0.2.tgz",
+    "@antora/antora-ui-default": "git+https://gitlab.com/antora/antora-ui-default.git",
+    "@fortawesome/fontawesome-free": "~5.13",
+    "@fortawesome/fontawesome-svg-core": "~1.2",
+    "@fortawesome/free-brands-svg-icons": "~5.13",
+    "@fortawesome/free-solid-svg-icons": "~5.13",
+    "@fortawesome/free-regular-svg-icons": "~5.13"
   }
 }
