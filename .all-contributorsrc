@@ -427,6 +427,15 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "mjg123",
+      "name": "Matthew Gilliard",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/666324?v=4",
+      "profile": "https://blog.gilliard.lol",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,
