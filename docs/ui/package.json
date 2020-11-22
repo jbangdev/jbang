@@ -1,0 +1,19 @@
+{
+  "name": "@jbang/jbang-ui",
+  "version": "0.0.1",
+  "description": "jbang ui contents",
+  "main": "gulpfile.js",
+  "files": [
+    "src/**/*",
+    "build/**/*"
+  ],
+  "scripts": {
+    "clean-build": "npm run clean-install;npm run build",
+    "clean-install": "rm -rf node_modules/ package-lock.json;npm i --cache=../.cache/npm",
+    "build": "gulp"
+  },
+  "devDependencies": {
+    "@djencks/antora-ui-builder": "https://experimental-repo.s3-us-west-1.amazonaws.com/djencks-antora-ui-builder-v0.0.1.tgz",
+    "@antora/antora-ui-default": "git+https://gitlab.com/antora/antora-ui-default.git"
+  }
+}

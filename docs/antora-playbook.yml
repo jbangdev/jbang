@@ -7,10 +7,13 @@ content:
     start_path:  docs
     branches: HEAD
 
+asciidoc:
+  extensions:
+  - ./lib/tabs-block.js
 
 ui:
   bundle:
-    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
+    url: ./ui/build/jbang-ui-bundle.zip
     snapshot: true
 
 output:

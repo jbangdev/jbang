@@ -1,0 +1,32 @@
+image: node:10.20.1-stretch
+stages: [setup, verify, deploy]
+install:
+  stage: setup
+  cache:
+    paths:
+      - .cache/npm
+  script:
+    - &npm_install
+        npm install --quiet --no-progress --cache=.cache/npm
+lint:
+  stage: verify
+  cache: &pull_cache
+    policy: pull
+    paths:
+      - .cache/npm
+  script:
+    - *npm_install
+    - node_modules/.bin/gulp lint
+bundle-stable:
+  stage: deploy
+  only:
+    - master@jbang/antora-jbang
+  cache: *pull_cache
+  script:
+    - *npm_install
+    - node_modules/.bin/gulp bundle
+    - yarn pack
+  artifacts:
+    paths:
+      - jbang-antora-jbang-v*.tgz
+      - build/jbang-ui-bundle.zip
