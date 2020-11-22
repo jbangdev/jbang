@@ -95,7 +95,7 @@ public class Script {
 		if (!forJar()) {
 			try (Scanner sc = new Scanner(this.getBackingFile())) {
 				sc.useDelimiter("\\Z");
-				this.script = sc.next();
+				this.script = sc.hasNext() ? sc.next() : "";
 			}
 		}
 	}
