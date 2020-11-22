@@ -123,7 +123,15 @@ public class Run extends BaseBuildCommand {
 				optionalArgs.add("--startup=DEFAULT");
 
 				File tempFile = File.createTempFile("jbang_arguments_", script.getBackingFile().getName());
-				Util.writeString(tempFile.toPath(), generateArgs(script.getArguments(), script.getProperties()));
+
+				String defaultImports = "import java.lang.*;\n" +
+						"import java.util.*;\n" +
+						"import java.io.*;" +
+						"import java.net.*;" +
+						"import java.math.BigInteger;\n" +
+						"import java.math.BigDecimal;\n";
+				Util.writeString(tempFile.toPath(),
+						defaultImports + generateArgs(script.getArguments(), script.getProperties()));
 
 				optionalArgs.add("--startup=" + tempFile.getAbsolutePath());
 
