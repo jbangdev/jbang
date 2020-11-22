@@ -3,7 +3,8 @@
   "scripts": {
     "clean-build": "npm run clean-install;npm run build",
     "clean-install": "rm -rf node_modules/ .cache/ package-lock.json;npm i --cache=.cache/npm",
-    "build": "node_modules/.bin/antora antora-playbook.yml --stacktrace --fetch --clean"
+    "build": "node_modules/.bin/antora antora-playbook.yml --stacktrace --fetch --clean",
+    "build-ui": "(cd ui;gulp)"
   },
   "devDependencies": {
     "@antora/cli": "^2.3.3",

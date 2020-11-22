@@ -1,0 +1,5 @@
+sources:
+  - path: '@antora/antora-ui-default'
+  - path: ./
+bundle-name: jbang-ui
+preview: true
