@@ -89,8 +89,9 @@ else
     rm -rf "$TDIR/urls/jbang"
     tar xf "$TDIR/urls/jbang.tar" -C "$TDIR/urls"
     if [ $retval -ne 0 ]; then echo "Error installing JBang" 1>&2; exit $retval; fi
-    rm -rf "$JBDIR/bin"
-    mv "$TDIR/urls/jbang/bin" "$JBDIR"
+    mkdir -p "$JBDIR/bin"
+    rm -f "$JBDIR/bin/jbang" "$JBDIR/bin/jbang.*"
+    mv "$TDIR/urls/jbang/bin/*" "$JBDIR/bin"
   fi
   eval "exec $JBDIR/bin/jbang $*"
 fi

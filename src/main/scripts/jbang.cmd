@@ -29,8 +29,9 @@ if exist "%~dp0jbang.jar" (
     if exist "%TDIR%\urls\jbang" ( rd /s /q "%TDIR%\urls\jbang" > nul 2>&1 )
     powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "$ProgressPreference = 'SilentlyContinue'; Expand-Archive -Path %TDIR%\urls\jbang.zip -DestinationPath %TDIR%\urls"
     if !ERRORLEVEL! NEQ 0 ( echo Error installing JBang 1>&2 & exit /b %ERRORLEVEL% )
-    if exist "%JBDIR%\bin" ( rd /s /q "%JBDIR%\bin" > nul 2>&1 )
-    move "%TDIR%\urls\jbang\bin" "%JBDIR%" > nul 2>&1
+    if not exist "%JBDIR%\bin" ( mkdir "%JBDIR%\bin" )
+    del /f /q "%JBDIR%\bin\jbang" "%JBDIR%\bin\jbang.*"
+    move "%TDIR%\urls\jbang\bin\*" "%JBDIR%\bin" > nul 2>&1
   )
   call "%JBDIR%\bin\jbang.cmd" %*
   exit /b %ERRORLEVEL%
@@ -100,11 +101,11 @@ if %ERROR% EQU 255 (
     goto :break
   )
 :break
-  del "%tmpfile%"
+  del /f /q "%tmpfile%"
   %OUTPUT%
   exit /b %ERRORLEVEL%
 ) else (
   type "%tmpfile%"
-  del "%tmpfile%"
+  del /f /q "%tmpfile%"
   exit /b %ERROR%
 )

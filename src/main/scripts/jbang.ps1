@@ -78,7 +78,9 @@ if (Test-Path "$PSScriptRoot\jbang.jar") {
       [Console]::Error.WriteLine($error)
       break 
     }
-    Remove-Item -LiteralPath "$JBDIR\bin" -Force -Recurse -ErrorAction Ignore >$null 2>&1
+    New-Item -ItemType Directory -Force -Path "$JBDIR\bin" >$null 2>&1
+    Remove-Item -LiteralPath "$JBDIR\bin\jbang" -Force -ErrorAction Ignore >$null 2>&1
+    Remove-Item -Path "$JBDIR\bin\jbang.*" -Force -ErrorAction Ignore >$null 2>&1
     Move-Item -Path "$TDIR\urls\jbang\bin" -Destination "$JBDIR" >$null 2>&1
   }
   . "$JBDIR\bin\jbang.ps1" $args
