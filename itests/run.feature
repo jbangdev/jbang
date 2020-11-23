@@ -14,17 +14,24 @@ Scenario: java launch helloworld with jfr
   When command('jbang --jfr helloworld.java')
   Then match out contains "Started recording 1. No limit specified, using maxsize=250MB as default."
 
-
 Scenario: java run multiple sources
   When command('jbang --verbose one.java')
   Then match out contains "Two"
 
-  Scenario: java run multiple matching sources
-    When command('jbang RootOne.java')
-    Then match out contains "NestedOne"
-    Then match out contains "NestedTwo"
+Scenario: java run multiple matching sources
+  When command('jbang RootOne.java')
+  Then match out contains "NestedOne"
+  Then match out contains "NestedTwo"
 
-  Scenario: java run with agent
-    When command('jbang --verbose --javaagent=JULAgent.java=options JULTest.java World')
-    Then match err contains "info World"
-    Then match err contains "options"
+Scenario: java run multiple files
+  When command('jbang res/resource.java')
+  Then match out contains "hello properties"
+
+Scenario: java run multiple files using alias
+  When command('jbang resource')
+  Then match out contains "hello properties"
+
+Scenario: java run with agent
+  When command('jbang --verbose --javaagent=JULAgent.java=options JULTest.java World')
+  Then match err contains "info World"
+  Then match err contains "options"

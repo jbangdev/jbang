@@ -6,6 +6,9 @@
     "echo": {
       "script-ref": "echo.java",
       "description": "echo echo echo description"
+    },
+    "resource": {
+      "script-ref": "res/resource.java"
     }
   },
   "description": "JBang test scripts"
