@@ -187,7 +187,7 @@ public class Settings {
 							"Could not delete dependency cache " + getCacheDependencyFile().toString(), io);
 				}
 			} else {
-				Util.deleteFolder(getCacheDir(cc), true);
+				Util.deletePath(getCacheDir(cc), true);
 			}
 		}
 	}

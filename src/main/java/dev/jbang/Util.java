@@ -510,8 +510,8 @@ public class Util {
 			Path saveTmpDir = urlCache.getParent().resolve(urlCache.getFileName() + ".tmp");
 			Path saveOldDir = urlCache.getParent().resolve(urlCache.getFileName() + ".old");
 			try {
-				Util.deleteFolder(saveTmpDir, true);
-				Util.deleteFolder(saveOldDir, true);
+				Util.deletePath(saveTmpDir, true);
+				Util.deletePath(saveOldDir, true);
 
 				Path saveFilePath = downloadFile(fileURL, saveTmpDir.toFile());
 
@@ -522,12 +522,12 @@ public class Util {
 				// rename the folder to its final name
 				Files.move(saveTmpDir, urlCache);
 				// remove any old content
-				Util.deleteFolder(saveOldDir, true);
+				Util.deletePath(saveOldDir, true);
 
 				return urlCache.resolve(saveFilePath.getFileName());
 			} catch (Throwable th) {
 				// remove the temp folder if anything went wrong
-				Util.deleteFolder(saveTmpDir, true);
+				Util.deletePath(saveTmpDir, true);
 				// and move the old content back if it exists
 				if (!Files.isDirectory(urlCache) && Files.isDirectory(saveOldDir)) {
 					try {
@@ -733,33 +733,31 @@ public class Util {
 		return null;
 	}
 
-	public static boolean deleteFolder(Path folder, boolean quiet) {
-		boolean result[] = new boolean[] { true };
-		if (Files.isDirectory(folder)) {
-			Util.verboseMsg("Deleting " + folder);
-			try {
-				Files	.walk(folder)
+	public static boolean deletePath(Path path, boolean quiet) {
+		Exception err[] = new Exception[] { null };
+		try {
+			if (Files.isDirectory(path)) {
+				Util.verboseMsg("Deleting folder " + path);
+				Files	.walk(path)
 						.sorted(Comparator.reverseOrder())
 						.forEach(f -> {
 							try {
 								Files.delete(f);
 							} catch (IOException e) {
-								if (quiet) {
-									result[0] = false;
-								} else {
-									throw new ExitException(-1, "Could not delete folder " + folder.toString(), e);
-								}
+								err[0] = e;
 							}
 						});
-			} catch (IOException e) {
-				if (quiet) {
-					result[0] = false;
-				} else {
-					throw new ExitException(-1, "Could not delete folder " + folder.toString(), e);
-				}
+			} else if (Files.exists(path)) {
+				Util.verboseMsg("Deleting file " + path);
+				Files.delete(path);
 			}
+		} catch (IOException e) {
+			err[0] = e;
 		}
-		return result[0];
+		if (!quiet && err[0] != null) {
+			throw new ExitException(-1, "Could not delete " + path.toString(), err[0]);
+		}
+		return err[0] == null;
 	}
 
 	public static boolean createLink(Path src, Path target) {

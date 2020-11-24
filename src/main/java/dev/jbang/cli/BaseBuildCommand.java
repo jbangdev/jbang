@@ -123,13 +123,13 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		if (!outjar.exists() || JavaUtil.javaVersion(requestedJavaVersion) < script.getBuildJdk()
 				|| nativeBuildRequired || fresh) {
 			// set up temporary folder for compilation
-			Util.deleteFolder(tmpJarDir.toPath(), true);
+			Util.deletePath(tmpJarDir.toPath(), true);
 			tmpJarDir.mkdirs();
 			try {
 				integrationResult = buildJar(script, tmpJarDir, outjar, requestedJavaVersion);
 			} finally {
 				// clean up temporary folder
-				Util.deleteFolder(tmpJarDir.toPath(), true);
+				Util.deletePath(tmpJarDir.toPath(), true);
 			}
 		}
 
