@@ -24,7 +24,7 @@ public class URLRef extends FileRef {
 		}
 
 		try {
-			return new URI(source.getOriginalFile()).resolve(p);
+			return new URI(source.getScriptResource().getOriginalResource()).resolve(p);
 		} catch (URISyntaxException e) {
 			throw new IllegalStateException("Could not resolve URI", e);
 		}
