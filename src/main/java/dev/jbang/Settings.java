@@ -38,6 +38,7 @@ public class Settings {
 	public static final String TRUSTED_SOURCES_JSON = "trusted-sources.json";
 	public static final String DEPENDENCY_CACHE_JSON = "dependency_cache.json";
 	public static final String CURRENT_JDK = "currentjdk";
+	public static final String BIN_DIR = "bin";
 
 	public static final String ENV_DEFAULT_JAVA_VERSION = "JBANG_DEFAULT_JAVA_VERSION";
 
@@ -79,6 +80,10 @@ public class Settings {
 
 	public static Path getCurrentJdkDir() {
 		return getConfigDir(true).resolve(CURRENT_JDK);
+	}
+
+	public static Path getConfigBinDir() {
+		return getConfigDir(true).resolve(BIN_DIR);
 	}
 
 	public static void setupJbangDir(Path dir) {

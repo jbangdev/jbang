@@ -14,6 +14,17 @@ set jdkurl="https://api.adoptopenjdk.net/v3/binary/latest/%javaVersion%/ga/%os%/
 if "%JBANG_DIR%"=="" (set JBDIR=%userprofile%\.jbang) else (set JBDIR=%JBANG_DIR%)
 if "%JBANG_CACHE_DIR%"=="" (set TDIR=%JBDIR%\cache) else (set TDIR=%JBANG_CACHE_DIR%)
 
+rem check if an update is available
+if exist "%JBDIR%\bin.new" (
+    if exist "%JBDIR%\bin.new\jbang.jar" (
+        rem run the update
+        call "%JBDIR%\bin.new\update.cmd" %*
+    ) else (
+        rem delete the update folder
+        rd /s /q "%JBDIR%\bin.new" > nul 2>&1
+    )
+)
+
 rem resolve application jar path from script location and convert to windows path when using cygwin
 if exist "%~dp0jbang.jar" (
   set jarPath=%~dp0jbang.jar
