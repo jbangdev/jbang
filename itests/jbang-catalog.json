@@ -1,4 +1,10 @@
 {
+  "catalogs": {
+    "test": {
+      "catalog-ref": "https://raw.githubusercontent.com/jbangdev/jbang/master/itests/jbang-catalog.json",
+      "description": "JBang test scripts"
+    }
+  },
   "aliases": {
     "hello": {
       "script-ref": "hello.jsh"

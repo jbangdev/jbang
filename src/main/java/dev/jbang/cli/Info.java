@@ -35,7 +35,7 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 			List<String> collectDependencies = script.collectDependencies();
 			String cp = script.resolveClassPath(offline);
 
-			originalResource = script.getOriginalFile();
+			originalResource = script.getOriginalResource();
 			backingResource = script.getBackingFile().toString();
 
 			if (cp.isEmpty()) {

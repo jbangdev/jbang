@@ -194,7 +194,7 @@ public class Run extends BaseBuildCommand {
 						}
 						if (jar == null) {
 							throw new ExitException(EXIT_INTERNAL_ERROR,
-									"No jar found for agent " + agent.getOriginalFile());
+									"No jar found for agent " + agent.getOriginalRef());
 						}
 						fullArgs.add("-javaagent:" + jar
 								+ (agent.getJavaAgentOption() != null ? "=" + agent.getJavaAgentOption() : ""));

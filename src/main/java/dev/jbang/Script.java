@@ -40,14 +40,10 @@ public class Script {
 	private static final String REPOS_ANNOT_PREFIX = "@GrabResolver(";
 	private static final Pattern REPOS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
 	private static final Pattern REPOS_ANNOT_SINGLE = Pattern.compile("@GrabResolver\\(\\s*\"(?<value>.*)\"\\s*\\)");
+
 	private final ScriptResource scriptResource;
 
-	/**
-	 * The original reference, it might or might not be same as used as backingFile.
-	 * TODO: should probably have a "originalRef" to capture GAV+main ref and a
-	 * "originalFile" which could be null.
-	 */
-	private String originalFile;
+	private String originalRef;
 
 	private ModularClassPath classpath;
 	private String script;
@@ -266,7 +262,7 @@ public class Script {
 							Collections.emptyList(), offline, !Util.isQuiet());
 				} else {
 					if (getBackingFile() == null) {
-						classpath = new ModularClassPath(Arrays.asList(new ArtifactInfo(null, new File(originalFile))));
+						classpath = new ModularClassPath(Arrays.asList(new ArtifactInfo(null, getOriginalFile())));
 					} else {
 						classpath = new ModularClassPath(Arrays.asList(new ArtifactInfo(null, getBackingFile())));
 					}
@@ -458,12 +454,38 @@ public class Script {
 		return getBackingFile().getName().endsWith(".jsh");
 	}
 
-	public void setOriginal(String probe) {
-		this.originalFile = probe;
+	public void setOriginal(String ref) {
+		this.originalRef = ref;
 	}
 
-	public String getOriginalFile() {
-		return originalFile;
+	/**
+	 * The original script reference. Might ba a URL or an alias.
+	 */
+	public String getOriginalRef() {
+		return originalRef;
+	}
+
+	/**
+	 * The resource that `originalRef` resolves to. Wil be a URL or file path.
+	 */
+	public String getOriginalResource() {
+		return scriptResource.getOriginalResource();
+	}
+
+	/**
+	 * The resource that `originalRef` resolves to. Will be a URL or file path.
+	 */
+	public File getOriginalFile() {
+		return new File(getOriginalResource());
+	}
+
+	/**
+	 * The actual local file that `originalRef` refers to. This might be the sane as
+	 * `originalRef` if that pointed to a file on the local file system, in all
+	 * other cases it will refer to a downloaded copy in Jbang's cache.
+	 */
+	public File getBackingFile() {
+		return scriptResource.getFile();
 	}
 
 	public void createJarFile(File path, File output) throws IOException {
@@ -528,10 +550,6 @@ public class Script {
 		return getBackingFile() != null && getBackingFile().toString().endsWith(".jar");
 	}
 
-	public File getBackingFile() {
-		return scriptResource.getFile();
-	}
-
 	public ModularClassPath getClassPath() {
 		return classpath;
 	}
@@ -553,7 +571,7 @@ public class Script {
 		if (isURL(fileReference)) {
 			return new URLRef(source, ref, dest);
 		}
-		if (isURL(source.originalFile)) {
+		if (isURL(source.getOriginalResource())) {
 			return new URLRef(source, ref, dest);
 		} else {
 			return new FileRef(source, ref, dest);

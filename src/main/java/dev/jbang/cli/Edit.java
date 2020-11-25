@@ -83,9 +83,9 @@ public class Edit extends BaseScriptCommand {
 			out.println("echo " + project.getAbsolutePath()); // quit(project.getAbsolutePath());
 		} else {
 			try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
-				File orginalFile = new File(script.getOriginalFile());
+				File orginalFile = script.getOriginalFile();
 				if (!orginalFile.exists()) {
-					throw new ExitException(2, "Cannot live edit " + script.getOriginalFile());
+					throw new ExitException(2, "Cannot live edit " + script.getOriginalRef());
 				}
 				Path watched = orginalFile.getAbsoluteFile().getParentFile().toPath();
 				watched.register(watchService,
@@ -125,7 +125,7 @@ public class Edit extends BaseScriptCommand {
 	/** Create Project to use for editing **/
 	File createProjectForEdit(Script script, boolean reload) throws IOException {
 
-		File originalFile = new File(script.getOriginalFile());
+		File originalFile = script.getOriginalFile();
 
 		List<String> collectDependencies = script.collectDependencies();
 		String cp = script.resolveClassPath(offline);
