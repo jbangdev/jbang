@@ -31,6 +31,12 @@ Scenario: java run multiple files using alias
   When command('jbang resource')
   Then match out contains "hello properties"
 
+Scenario: java run multiple files using remote alias
+  When command('jbang catalog add test https://raw.githubusercontent.com/jbangdev/jbang/master/itests/jbang-catalog.json')
+  Then command('jbang trust add https://raw.githubusercontent.com')
+  Then command('jbang resource@test')
+  Then match out contains "hello properties"
+
 Scenario: java run with agent
   When command('jbang --verbose --javaagent=JULAgent.java=options JULTest.java World')
   Then match err contains "info World"
