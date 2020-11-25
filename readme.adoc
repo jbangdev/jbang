@@ -296,6 +296,8 @@ iex "& { $(iwr https://ps.jbang.dev) } <arguments>"
 
 For example `iex "& { $(iwr https://ps.jbang.dev) } properties@jbangdev"`
 
+NB: If you get an error saying "the response cannot be parsed" insert the option ` -UseBasicParsing ` just after the `iwr` command.
+
 == Usage
 
 A script is just a single `.java` file with a classic static main method or a `.jsh` file which will be passed to `jshell`.
