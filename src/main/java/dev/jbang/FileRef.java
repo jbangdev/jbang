@@ -34,7 +34,7 @@ public class FileRef {
 			throw new IllegalStateException("Only relative paths allowed in //FILES. Found absolute path: " + p);
 		}
 
-		return Paths.get(source.getScriptResource().getOriginalResource()).resolveSibling(p);
+		return source.getOriginalFile().toPath().resolveSibling(p);
 	}
 
 	protected Path to(Path parent) {
