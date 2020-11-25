@@ -291,10 +291,10 @@ Windows Powershell:
 
 [source, powershell]
 ----
-iex "& { $(iwr https://ps.jbang.dev) } <arguments>"
+iex "& { $(iwr -useb https://ps.jbang.dev) } <arguments>"
 ----
 
-For example `iex "& { $(iwr https://ps.jbang.dev) } properties@jbangdev"`
+For example `iex "& { $(iwr -useb https://ps.jbang.dev) } properties@jbangdev"`
 
 == Usage
 
