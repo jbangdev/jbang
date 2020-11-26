@@ -12,7 +12,7 @@ import dev.jbang.cli.BaseScriptCommand;
 /**
  * Both class A and person.B have //SOURCES model/C.java
  */
-public class TestSameSourceInDifferentPaths {
+public class TestSameSourceInDifferentPaths extends BaseTest {
 
 	String classA = "//SOURCES person/B.java\n"
 			+ "//SOURCES model/C.java\n"

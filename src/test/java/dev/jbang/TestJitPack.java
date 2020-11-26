@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-public class TestJitPack {
+public class TestJitPack extends BaseTest {
 
 	@Test
 	void testExtractGithubUrlDependencies() {

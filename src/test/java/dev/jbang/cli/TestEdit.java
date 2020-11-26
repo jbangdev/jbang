@@ -25,11 +25,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import dev.jbang.BaseTest;
 import dev.jbang.Script;
 import dev.jbang.Settings;
 import dev.jbang.Util;
 
-public class TestEdit {
+public class TestEdit extends BaseTest {
 
 	public static final String EXAMPLES_FOLDER = "examples";
 	static File examplesTestFolder;
@@ -40,7 +41,6 @@ public class TestEdit {
 		examplesTestFolder = new File(new File(examplesUrl.toURI()).getAbsolutePath());
 
 		Settings.clearCache(Settings.CacheClass.jars);
-
 	}
 
 	StringWriter output;

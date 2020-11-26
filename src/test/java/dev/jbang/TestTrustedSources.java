@@ -14,7 +14,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import com.google.gson.Gson;
 
-public class TestTrustedSources {
+public class TestTrustedSources extends BaseTest {
 
 	public static Iterable<Object[]> simple() {
 		return Arrays.asList(new Object[][] {

@@ -12,10 +12,11 @@ import java.util.Arrays;
 
 import org.junit.jupiter.api.Test;
 
+import dev.jbang.BaseTest;
 import dev.jbang.Script;
 import dev.jbang.TestScript;
 
-public class TestEditWithPackage {
+public class TestEditWithPackage extends BaseTest {
 
 	final String classA = "//SOURCES person/B.java\n"
 			+ "\n"

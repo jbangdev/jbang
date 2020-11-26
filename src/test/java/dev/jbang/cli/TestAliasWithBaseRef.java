@@ -8,14 +8,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.Rule;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 
 import dev.jbang.AliasUtil;
+import dev.jbang.BaseTest;
 
-public class TestAliasWithBaseRef {
+public class TestAliasWithBaseRef extends BaseTest {
 
 	static final String aliases = "{\n" +
 			"  \"base-ref\": \"http://dummy\",\n" +
@@ -37,18 +37,10 @@ public class TestAliasWithBaseRef {
 
 	@BeforeEach
 	void init() throws IOException {
-		jbangTempDir.create();
 		testTempDir.create();
-		environmentVariables.set("JBANG_DIR", jbangTempDir.getRoot().getPath());
 		Files.write(jbangTempDir.getRoot().toPath().resolve(AliasUtil.JBANG_CATALOG_JSON), aliases.getBytes());
 		cwd = testTempDir.newFolder("test").toPath();
 	}
-
-	@Rule
-	public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
-
-	@Rule
-	public final TemporaryFolder jbangTempDir = new TemporaryFolder();
 
 	@Rule
 	public final TemporaryFolder testTempDir = new TemporaryFolder();

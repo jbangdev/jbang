@@ -10,7 +10,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-public class TestArtifactInfo {
+public class TestArtifactInfo extends BaseTest {
 
 	@Test
 	public void testDependencyCache() {

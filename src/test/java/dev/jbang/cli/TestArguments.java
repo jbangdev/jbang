@@ -3,36 +3,26 @@ package dev.jbang.cli;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 
-import org.junit.Rule;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.TemporaryFolder;
 
+import dev.jbang.BaseTest;
 import dev.jbang.Settings;
 
 import picocli.CommandLine;
 
-class TestArguments {
+class TestArguments extends BaseTest {
 
 	private CommandLine cli;
 
 	@BeforeEach
-	void setup() throws IOException {
+	void setup() {
 		cli = Jbang.getCommandLine();
-		jbangTempDir.create();
 	}
-
-	@Rule
-	public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
-
-	@Rule
-	public final TemporaryFolder jbangTempDir = new TemporaryFolder();
 
 	@Test
 	public void testHelpSections() {

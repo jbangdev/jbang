@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import dev.jbang.cli.BaseScriptCommand;
 
-class TestSourcesRecursivelyMultipleFiles {
+class TestSourcesRecursivelyMultipleFiles extends BaseTest {
 
 	String classA = "//SOURCES person/B.java\n"
 			+ "\n"

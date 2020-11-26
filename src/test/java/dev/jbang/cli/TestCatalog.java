@@ -9,17 +9,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.Rule;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import dev.jbang.AliasUtil;
+import dev.jbang.BaseTest;
 
 import picocli.CommandLine;
 
-public class TestCatalog {
+public class TestCatalog extends BaseTest {
 
 	static final String testCatalog = "{\n" +
 			"  \"aliases\": {\n" +
@@ -39,22 +39,14 @@ public class TestCatalog {
 
 	@BeforeEach
 	void init() throws IOException {
-		jbangTempDir.create();
 		catalogTempDir.create();
 		catsFile = jbangTempDir.getRoot().toPath().resolve("jbang-catalog.json");
-		environmentVariables.set("JBANG_DIR", jbangTempDir.getRoot().getPath());
 		cwd = catalogTempDir.getRoot().toPath();
 		testCatalogFile = cwd.resolve("test-catalog.json");
 		Files.write(testCatalogFile, testCatalog.getBytes());
 		clearSettingsCaches();
 		AliasUtil.addCatalog(null, catsFile, "test", testCatalogFile.toAbsolutePath().toString(), "Test catalog");
 	}
-
-	@Rule
-	public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
-
-	@Rule
-	public final TemporaryFolder jbangTempDir = new TemporaryFolder();
 
 	@Rule
 	public final TemporaryFolder catalogTempDir = new TemporaryFolder();

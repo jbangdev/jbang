@@ -13,7 +13,7 @@ import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-public class TestTrustEdit {
+public class TestTrustEdit extends BaseTest {
 
 	@Test
 	void testAddTrust(@TempDir File storage) throws IOException {

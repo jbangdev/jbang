@@ -14,24 +14,15 @@ import java.util.Arrays;
 import java.util.function.Function;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.junit.Rule;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+
+import dev.jbang.BaseTest;
 
 import picocli.CommandLine;
 
-public class TestJdk {
+public class TestJdk extends BaseTest {
 
 	private static final int SUCCESS_EXIT = CommandLine.ExitCode.OK;
-
-	@AfterAll
-	static void afterAll() {
-		environmentVariables.clear("JBANG_CACHE_DIR");
-	}
-
-	@Rule
-	public static final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
 	@Test
 	void testNoJdksInstalled() throws IOException {
