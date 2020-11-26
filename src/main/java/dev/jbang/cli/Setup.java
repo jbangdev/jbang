@@ -1,10 +1,7 @@
 package dev.jbang.cli;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.*;
-import java.security.CodeSource;
 
 import dev.jbang.*;
 
@@ -47,17 +44,7 @@ public class Setup extends BaseCommand {
 			UnpackUtil.unpack(zipFile, urlsDir);
 			deleteJbangFiles(binDir);
 			Path fromDir = urlsDir.resolve("jbang").resolve("bin");
-			if (Util.isWindows() && Files.exists(binDir.resolve("jbang.jar")) && isRunningFromConfigBin()) {
-				// On Windows we cannot update files that are in use, so we put
-				// the files in a new folder and add an update script which will
-				// get executed the next time the user starts Jbang
-				Path toDir = binDir.resolveSibling("bin.new");
-				Util.deletePath(toDir, true);
-				copyJbangFiles(fromDir, toDir);
-				createUpdateScript(toDir);
-			} else {
-				copyJbangFiles(fromDir, binDir);
-			}
+			copyJbangFiles(fromDir, binDir);
 		}
 		String cmd = "";
 		// Permanently add Jbang's bin folder to the user's PATH
@@ -138,19 +125,6 @@ public class Setup extends BaseCommand {
 		}
 	}
 
-	private static boolean isRunningFromConfigBin() {
-		boolean result;
-		try {
-			CodeSource codeSource = Setup.class.getProtectionDomain().getCodeSource();
-			File jarFile = new File(codeSource.getLocation().toURI().getPath());
-			result = jarFile.toPath().startsWith(Settings.getConfigBinDir());
-		} catch (URISyntaxException e) {
-			result = false;
-		}
-		Util.verboseMsg("Running from $JBANG_DIR/bin");
-		return result;
-	}
-
 	private static void deleteJbangFiles(Path dir) {
 		try {
 			Files	.list(dir)
@@ -173,17 +147,5 @@ public class Setup extends BaseCommand {
 						throw new ExitException(-1, "Could not copy " + f.toString(), e);
 					}
 				});
-	}
-
-	private static void createUpdateScript(Path dir) throws IOException {
-		String cmd = "@echo off\n" +
-				"move /y \"%~dp0jbang\" \"%~dp0..\\bin\\\" > nul 2>&1\n" +
-				"move /y \"%~dp0jbang.*\" \"%~dp0..\\bin\\\" > nul 2>&1\n" +
-				"call \"%~dp0..\\bin\\jbang.cmd\" %*";
-		Files.write(dir.resolve("update.cmd"), cmd.getBytes(), StandardOpenOption.CREATE_NEW);
-		String ps1 = "Move-Item -Path \"$PSScriptRoot\\jbang\" -Destination \"$PSScriptRoot\\bin\\\" >$null 2>&1\n" +
-				"Move-Item -Path \"$PSScriptRoot\\jbang.*\" -Destination \"$PSScriptRoot\\bin\\\" >$null 2>&1\n" +
-				". \"$PSScriptRoot\\..\\bin\\jbang.ps1\"";
-		Files.write(dir.resolve("update.ps1"), ps1.getBytes(), StandardOpenOption.CREATE_NEW);
 	}
 }
