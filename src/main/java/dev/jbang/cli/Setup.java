@@ -4,35 +4,58 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 
-import dev.jbang.ExitException;
 import dev.jbang.JdkManager;
 import dev.jbang.Settings;
-import dev.jbang.UnpackUtil;
 import dev.jbang.Util;
 
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "setup", description = "Make jbang available for the user, either in the current session or permanently")
 public class Setup extends BaseCommand {
-	private static final String jbangUrl = "https://github.com/jbangdev/jbang/releases/latest/download/jbang.zip";
 
 	@CommandLine.Option(names = {
-			"--with-java" }, description = "Add Jbang's Java to the user's environment as well")
-	boolean withJava;
+			"--java" }, description = "Add Jbang's Java to the user's environment as well", negatable = true)
+	Boolean java;
 
 	@CommandLine.Option(names = {
-			"--fresh" }, description = "Force re-download and re-install of jbang")
-	boolean fresh;
+			"--force" }, description = "Force setup to be performed even when existing configuration has been detected")
+	boolean force;
 
 	@Override
 	public Integer doCall() throws IOException {
-		return setup(withJava, fresh);
+		boolean withJava;
+		if (java == null) {
+			withJava = guessWithJava();
+		} else {
+			withJava = java;
+		}
+		return setup(withJava, force);
 	}
 
-	public static int setup(boolean withJava, boolean fresh) throws IOException {
+	public static boolean needsSetup() {
+		String envPath = System.getenv("PATH");
+		Path binDir = Settings.getConfigBinDir();
+		return !envPath.toLowerCase().contains(binDir.toString().toLowerCase());
+	}
+
+	/**
+	 * Makes a best guess if JAVA_HOME should be set by us or not. Returns true if
+	 * no JAVA_HOME is set and we have at least one managed JDK installed by us.
+	 * Otherwise it returns false.
+	 */
+	public static boolean guessWithJava() {
+		boolean withJava;
+		int v = JdkManager.getDefaultJdk();
+		String javaHome = System.getenv("JAVA_HOME");
+		withJava = (v > 0 && (javaHome == null
+				|| javaHome.isEmpty()
+				|| javaHome.toLowerCase().startsWith(Settings.getConfigDir().toString().toLowerCase())));
+		return withJava;
+	}
+
+	public static int setup(boolean withJava, boolean force) throws IOException {
 		Path jdkHome = null;
 		if (withJava) {
 			int v = JdkManager.getDefaultJdk();
@@ -42,75 +65,76 @@ public class Setup extends BaseCommand {
 			}
 			jdkHome = Settings.getCurrentJdkDir();
 		}
+
 		Path binDir = Settings.getConfigBinDir();
-		if (fresh || !Files.exists(binDir.resolve("jbang.jar"))) {
-			// Download Jbang and unzip to ~/.jbang/bin/
-			Util.infoMsg("Downloading and installing Jbang...");
-			Path zipFile = Util.downloadAndCacheFile(jbangUrl, fresh);
-			Path urlsDir = Settings.getCacheDir(Settings.CacheClass.urls);
-			Util.deletePath(urlsDir.resolve("jbang"), true);
-			UnpackUtil.unpack(zipFile, urlsDir);
-			deleteJbangFiles(binDir);
-			Path fromDir = urlsDir.resolve("jbang").resolve("bin");
-			copyJbangFiles(fromDir, binDir);
-		}
+		binDir.toFile().mkdirs();
+
+		boolean changed = false;
 		String cmd = "";
 		// Permanently add Jbang's bin folder to the user's PATH
-		Util.infoMsg("Adding jbang to PATH...");
 		if (Util.isWindows()) {
-			// Create the command to change the user's PATH
-			String newPath = binDir + ";";
+			String env = "";
 			if (withJava) {
-				newPath += jdkHome.resolve("bin") + ";";
-			}
-			String env = "[Environment]::SetEnvironmentVariable('Path', '" + newPath + "' + " +
-					"[Environment]::GetEnvironmentVariable('Path', [EnvironmentVariableTarget]::User), " +
-					"[EnvironmentVariableTarget]::User)";
-			if (withJava) {
+				String newPath = jdkHome.resolve("bin") + ";";
+				env += " ; [Environment]::SetEnvironmentVariable('Path', '" + newPath + "' + " +
+						"[Environment]::GetEnvironmentVariable('Path', [EnvironmentVariableTarget]::User), " +
+						"[EnvironmentVariableTarget]::User)";
 				env += " ; [Environment]::SetEnvironmentVariable('JAVA_HOME', '" + jdkHome + "', " +
 						"[EnvironmentVariableTarget]::User)";
 			}
-			if (Util.isUsingPowerShell()) {
-				cmd = "{ " + env + " }";
-			} else {
-				cmd = "powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command \"" + env + "\" & ";
+			if (force || needsSetup()) {
+				// Create the command to change the user's PATH
+				String newPath = binDir + ";";
+				env += " ; [Environment]::SetEnvironmentVariable('Path', '" + newPath + "' + " +
+						"[Environment]::GetEnvironmentVariable('Path', [EnvironmentVariableTarget]::User), " +
+						"[EnvironmentVariableTarget]::User)";
+			}
+			if (!env.isEmpty()) {
+				if (Util.isUsingPowerShell()) {
+					cmd = "{ " + env + " }";
+				} else {
+					cmd = "powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command \"" + env + "\" & ";
+				}
+				changed = true;
 			}
 		} else {
-			boolean updated = false;
-			// Update shell startup scripts
-			Path bashRcFile = getHome().resolve(".bashrc");
-			if (bashRcFile.toFile().exists()) {
-				changeScript(binDir, jdkHome, bashRcFile);
-				updated = true;
-			}
-			Path zshRcFile = getHome().resolve(".zshrc");
-			if (zshRcFile.toFile().exists()) {
-				changeScript(binDir, jdkHome, zshRcFile);
-				updated = true;
-			}
-			if (!updated) {
-				Util.errorMsg("Did not find .bashrc nor .zshrc. jbang not able to be setup.");
-				return EXIT_GENERIC_ERROR;
+			if (force || needsSetup() || withJava) {
+				// Update shell startup scripts
+				Path bashRcFile = getHome().resolve(".bashrc");
+				changed = changeScript(binDir, jdkHome, bashRcFile) || changed;
+				Path zshRcFile = getHome().resolve(".zshrc");
+				changed = changeScript(binDir, jdkHome, zshRcFile) || changed;
 			}
 		}
+
+		if (changed) {
+			Util.infoMsg("Setting up Jbang environment...");
+		} else {
+			Util.infoMsg("Jbang environment is already set up.");
+		}
 		if (Util.isWindows()) {
-			if (Util.isUsingPowerShell()) {
-				System.err.println("Please start a new PowerShell to begin using jbang");
-			} else {
-				System.err.println("Please open a new CMD window to begin using jbang");
+			if (changed) {
+				if (Util.isUsingPowerShell()) {
+					System.err.println("Please start a new PowerShell for changes to take effect");
+				} else {
+					System.err.println("Please open a new CMD window for changes to take effect");
+				}
 			}
 			System.out.println(cmd);
 			return EXIT_EXECUTE;
 		} else {
-			System.out.println("Please start a new Shell to begin using jbang");
+			if (changed) {
+				System.out.println("Please start a new Shell for changes to take effect");
+			}
 			return EXIT_OK;
 		}
 	}
 
-	private static void changeScript(Path binDir, Path javaHome, Path bashFile) throws IOException {
+	private static boolean changeScript(Path binDir, Path javaHome, Path bashFile) throws IOException {
 		// Detect if Jbang has already been set up before
-		boolean jbangFound = Files	.lines(bashFile)
-									.anyMatch(ln -> ln.trim().startsWith("#") && ln.toLowerCase().contains("jbang"));
+		boolean jbangFound = Files.exists(bashFile)
+				&& Files.lines(bashFile)
+						.anyMatch(ln -> ln.trim().startsWith("#") && ln.toLowerCase().contains("jbang"));
 		if (!jbangFound) {
 			// Add lines to add Jbang to PATH
 			String lines = "\n# Add Jbang to environment\n" +
@@ -124,6 +148,9 @@ public class Setup extends BaseCommand {
 			}
 			Files.write(bashFile, lines.getBytes(), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
 			Util.verboseMsg("Added Jbang setup lines " + bashFile);
+			return true;
+		} else {
+			return false;
 		}
 	}
 
@@ -142,29 +169,5 @@ public class Setup extends BaseCommand {
 		} else {
 			return path.toString();
 		}
-	}
-
-	private static void deleteJbangFiles(Path dir) {
-		try {
-			Files	.list(dir)
-					.filter(f -> f.toString().equals("jbang") || f.toString().startsWith("jbang."))
-					.forEach(f -> Util.deletePath(f, true));
-		} catch (IOException e) {
-			// Ignore
-		}
-	}
-
-	private static void copyJbangFiles(Path from, Path to) throws IOException {
-		to.toFile().mkdirs();
-		Files	.list(from)
-				.map(from::relativize)
-				.forEach(f -> {
-					try {
-						Files.copy(from.resolve(f), to.resolve(f), StandardCopyOption.REPLACE_EXISTING,
-								StandardCopyOption.COPY_ATTRIBUTES);
-					} catch (IOException e) {
-						throw new ExitException(-1, "Could not copy " + f.toString(), e);
-					}
-				});
 	}
 }
