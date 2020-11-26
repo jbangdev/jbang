@@ -48,18 +48,6 @@ $arch='x64'
 if (-not (Test-Path env:JBANG_DIR)) { $JBDIR="$env:userprofile\.jbang" } else { $JBDIR=$env:JBANG_DIR }
 if (-not (Test-Path env:JBANG_CACHE_DIR)) { $TDIR="$JBDIR\cache" } else { $TDIR=$env:JBANG_CACHE_DIR }
 
-# check if an update is available
-if (Test-Path "$JBDIR\bin.new") {
-  if (Test-Path "$JBDIR\bin.new\jbang.jar") {
-    # run the update
-    . "$JBDIR\bin.new\update.ps1" $args
-    break
-  } else {
-    # delete the update folder
-    Remove-Item -LiteralPath "$JBDIR\bin.new" -Force -Recurse -ErrorAction Ignore >$null 2>&1
-  }
-}
-
 # resolve application jar path from script location and convert to windows path when using cygwin
 if (Test-Path "$PSScriptRoot\jbang.jar") {
   $jarPath="$PSScriptRoot\jbang.jar"
@@ -93,7 +81,7 @@ if (Test-Path "$PSScriptRoot\jbang.jar") {
     New-Item -ItemType Directory -Force -Path "$JBDIR\bin" >$null 2>&1
     Remove-Item -LiteralPath "$JBDIR\bin\jbang" -Force -ErrorAction Ignore >$null 2>&1
     Remove-Item -Path "$JBDIR\bin\jbang.*" -Force -ErrorAction Ignore >$null 2>&1
-    Move-Item -Path "$TDIR\urls\jbang\bin" -Destination "$JBDIR" >$null 2>&1
+    Copy-Item -Path "$TDIR\urls\jbang\bin" -Destination "$JBDIR" -Force >$null 2>&1
   }
   . "$JBDIR\bin\jbang.ps1" $args
   break
