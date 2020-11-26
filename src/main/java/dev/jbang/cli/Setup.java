@@ -1,13 +1,11 @@
 package dev.jbang.cli;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.security.CodeSource;
 
 import dev.jbang.ExitException;
 import dev.jbang.JdkManager;
