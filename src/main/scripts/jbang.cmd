@@ -42,7 +42,7 @@ if exist "%~dp0jbang.jar" (
     if !ERRORLEVEL! NEQ 0 ( echo Error installing JBang 1>&2 & exit /b %ERRORLEVEL% )
     if not exist "%JBDIR%\bin" ( mkdir "%JBDIR%\bin" )
     del /f /q "%JBDIR%\bin\jbang" "%JBDIR%\bin\jbang.*"
-    move "%TDIR%\urls\jbang\bin\*" "%JBDIR%\bin" > nul 2>&1
+    copy /y "%TDIR%\urls\jbang\bin\*" "%JBDIR%\bin" > nul 2>&1
   )
   call "%JBDIR%\bin\jbang.cmd" %*
   exit /b %ERRORLEVEL%
