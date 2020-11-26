@@ -49,24 +49,24 @@ public class JdkManager {
 		Path jdkDir = getJdkPath(version);
 		Path jdkTmpDir = jdkDir.getParent().resolve(jdkDir.getFileName().toString() + ".tmp");
 		Path jdkOldDir = jdkDir.getParent().resolve(jdkDir.getFileName().toString() + ".old");
-		Util.deleteFolder(jdkTmpDir, false);
-		Util.deleteFolder(jdkOldDir, false);
+		Util.deletePath(jdkTmpDir, false);
+		Util.deletePath(jdkOldDir, false);
 		try {
 			Path jdkPkg = Util.downloadAndCacheFile(url, updateCache);
 			Util.infoMsg("Installing JDK " + version + "...");
 			Util.verboseMsg("Unpacking to " + jdkDir.toString());
-			UnpackUtil.unpack(jdkPkg, jdkTmpDir);
+			UnpackUtil.unpackJdk(jdkPkg, jdkTmpDir);
 			if (Files.isDirectory(jdkDir)) {
 				Files.move(jdkDir, jdkOldDir);
 			}
 			Files.move(jdkTmpDir, jdkDir);
-			Util.deleteFolder(jdkOldDir, false);
+			Util.deletePath(jdkOldDir, false);
 			if (getDefaultJdk() < 0) {
 				setDefaultJdk(version);
 			}
 			return jdkDir;
 		} catch (Exception e) {
-			Util.deleteFolder(jdkTmpDir, true);
+			Util.deletePath(jdkTmpDir, true);
 			if (!Files.isDirectory(jdkDir) && Files.isDirectory(jdkOldDir)) {
 				try {
 					Files.move(jdkOldDir, jdkDir);
@@ -90,7 +90,7 @@ public class JdkManager {
 				// be causing all kinds of trouble
 				try {
 					Path jdkTmpDir = jdkDir.getParent().resolve(jdkDir.getFileName().toString() + ".tmp");
-					Util.deleteFolder(jdkTmpDir, true);
+					Util.deletePath(jdkTmpDir, true);
 					Files.move(jdkDir, jdkTmpDir);
 					jdkDir = jdkTmpDir;
 				} catch (IOException ex) {
@@ -98,7 +98,7 @@ public class JdkManager {
 					return;
 				}
 			}
-			Util.deleteFolder(jdkDir, false);
+			Util.deletePath(jdkDir, false);
 			if (defaultJdk == version) {
 				Optional<Integer> newver = nextInstalledJdk(version);
 				if (!newver.isPresent()) {
@@ -197,7 +197,7 @@ public class JdkManager {
 				// Ignore
 			}
 		} else {
-			Util.deleteFolder(link, true);
+			Util.deletePath(link, true);
 		}
 	}
 

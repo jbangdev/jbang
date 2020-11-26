@@ -20,13 +20,31 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
 public class UnpackUtil {
 
-	public static void unpack(Path archive, Path outputDir) throws IOException {
+	public static void unpackJdk(Path archive, Path outputDir) throws IOException {
 		String name = archive.toString().toLowerCase(Locale.ENGLISH);
 		Path selectFolder = Util.isMac() ? Paths.get("Contents/Home") : null;
 		if (name.endsWith(".zip")) {
 			unzip(archive, outputDir, true, selectFolder);
 		} else if (name.endsWith(".tar.gz") || name.endsWith(".tgz")) {
 			untargz(archive, outputDir, true, selectFolder);
+		}
+	}
+
+	public static void unpack(Path archive, Path outputDir) throws IOException {
+		unpack(archive, outputDir, false);
+	}
+
+	public static void unpack(Path archive, Path outputDir, boolean stripRootFolder) throws IOException {
+		unpack(archive, outputDir, stripRootFolder, null);
+	}
+
+	public static void unpack(Path archive, Path outputDir, boolean stripRootFolder, Path selectFolder)
+			throws IOException {
+		String name = archive.toString().toLowerCase(Locale.ENGLISH);
+		if (name.endsWith(".zip")) {
+			unzip(archive, outputDir, stripRootFolder, selectFolder);
+		} else if (name.endsWith(".tar.gz") || name.endsWith(".tgz")) {
+			untargz(archive, outputDir, stripRootFolder, selectFolder);
 		}
 	}
 

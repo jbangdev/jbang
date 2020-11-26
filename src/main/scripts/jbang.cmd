@@ -14,6 +14,17 @@ set jdkurl="https://api.adoptopenjdk.net/v3/binary/latest/%javaVersion%/ga/%os%/
 if "%JBANG_DIR%"=="" (set JBDIR=%userprofile%\.jbang) else (set JBDIR=%JBANG_DIR%)
 if "%JBANG_CACHE_DIR%"=="" (set TDIR=%JBDIR%\cache) else (set TDIR=%JBANG_CACHE_DIR%)
 
+rem check if an update is available
+if exist "%JBDIR%\bin.new" (
+    if exist "%JBDIR%\bin.new\jbang.jar" (
+        rem run the update
+        call "%JBDIR%\bin.new\update.cmd" %*
+    ) else (
+        rem delete the update folder
+        rd /s /q "%JBDIR%\bin.new" > nul 2>&1
+    )
+)
+
 rem resolve application jar path from script location and convert to windows path when using cygwin
 if exist "%~dp0jbang.jar" (
   set jarPath=%~dp0jbang.jar
@@ -29,8 +40,9 @@ if exist "%~dp0jbang.jar" (
     if exist "%TDIR%\urls\jbang" ( rd /s /q "%TDIR%\urls\jbang" > nul 2>&1 )
     powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "$ProgressPreference = 'SilentlyContinue'; Expand-Archive -Path %TDIR%\urls\jbang.zip -DestinationPath %TDIR%\urls"
     if !ERRORLEVEL! NEQ 0 ( echo Error installing JBang 1>&2 & exit /b %ERRORLEVEL% )
-    if exist "%JBDIR%\bin" ( rd /s /q "%JBDIR%\bin" > nul 2>&1 )
-    move "%TDIR%\urls\jbang\bin" "%JBDIR%" > nul 2>&1
+    if not exist "%JBDIR%\bin" ( mkdir "%JBDIR%\bin" )
+    del /f /q "%JBDIR%\bin\jbang" "%JBDIR%\bin\jbang.*"
+    move "%TDIR%\urls\jbang\bin\*" "%JBDIR%\bin" > nul 2>&1
   )
   call "%JBDIR%\bin\jbang.cmd" %*
   exit /b %ERRORLEVEL%
@@ -100,11 +112,11 @@ if %ERROR% EQU 255 (
     goto :break
   )
 :break
-  del "%tmpfile%"
+  del /f /q "%tmpfile%"
   %OUTPUT%
   exit /b %ERRORLEVEL%
 ) else (
   type "%tmpfile%"
-  del "%tmpfile%"
+  del /f /q "%tmpfile%"
   exit /b %ERROR%
 )
