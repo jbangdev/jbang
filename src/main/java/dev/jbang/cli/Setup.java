@@ -3,10 +3,18 @@ package dev.jbang.cli;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.security.CodeSource;
 
-import dev.jbang.*;
+import dev.jbang.ExitException;
+import dev.jbang.JdkManager;
+import dev.jbang.Settings;
+import dev.jbang.UnpackUtil;
+import dev.jbang.Util;
 
 import picocli.CommandLine;
 
@@ -81,11 +89,22 @@ public class Setup extends BaseCommand {
 				cmd = "powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command \"" + env + "\" & ";
 			}
 		} else {
+			boolean updated = false;
 			// Update shell startup scripts
 			Path bashRcFile = getHome().resolve(".bashrc");
-			changeScript(binDir, jdkHome, bashRcFile);
+			if (bashRcFile.toFile().exists()) {
+				changeScript(binDir, jdkHome, bashRcFile);
+				updated = true;
+			}
 			Path zshRcFile = getHome().resolve(".zshrc");
-			changeScript(binDir, jdkHome, zshRcFile);
+			if (zshRcFile.toFile().exists()) {
+				changeScript(binDir, jdkHome, zshRcFile);
+				updated = true;
+			}
+			if (!updated) {
+				Util.errorMsg("Did not find .bashrc nor .zshrc. jbang not able to be setup.");
+				return EXIT_GENERIC_ERROR;
+			}
 		}
 		if (Util.isWindows()) {
 			if (Util.isUsingPowerShell()) {
