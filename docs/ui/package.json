@@ -13,7 +13,7 @@
     "build": "gulp"
   },
   "devDependencies": {
-    "@djencks/antora-ui-builder": "file:///Users/david/projects/antora/ui-builder/builder/djencks-antora-ui-builder-0.0.2.tgz",
+    "@djencks/antora-ui-builder": "git+https://gitlab.com/djencks/antora-ui-builder.git",
     "@antora/antora-ui-default": "git+https://gitlab.com/antora/antora-ui-default.git",
     "@fortawesome/fontawesome-free": "~5.13",
     "@fortawesome/fontawesome-svg-core": "~1.2",
