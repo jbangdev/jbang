@@ -12,9 +12,10 @@ import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import dev.jbang.BaseTest;
 import dev.jbang.Util;
 
-class TestAddDeps {
+class TestAddDeps extends BaseTest {
 
 	String example = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
 			"\n" +

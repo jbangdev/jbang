@@ -17,15 +17,10 @@ import java.util.List;
 import java.util.Properties;
 
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
-import org.junit.Rule;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class DependencyResolverTest {
-
-	@Rule
-	public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+class DependencyResolverTest extends BaseTest {
 
 	@Test
 	void testFormatVersion() {

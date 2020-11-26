@@ -13,7 +13,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-public class TestGrape {
+public class TestGrape extends BaseTest {
 
 	public static final String EXAMPLES_FOLDER = "examples";
 	static File examplesTestFolder;

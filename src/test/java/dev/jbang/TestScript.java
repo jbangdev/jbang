@@ -26,7 +26,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.cli.BaseScriptCommand;
 
-public class TestScript {
+public class TestScript extends BaseTest {
 
 	String example = "//#!/usr/bin/env jbang\n" + "\n"
 			+ "//DEPS com.offbytwo:docopt:0.6.0.20150202,log4j:log4j:${log4j.version:1.2.14}\n" + "\n"

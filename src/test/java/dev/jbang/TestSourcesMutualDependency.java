@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import dev.jbang.cli.BaseScriptCommand;
 
-public class TestSourcesMutualDependency {
+public class TestSourcesMutualDependency extends BaseTest {
 
 	String classMain = "//SOURCES A.java\n"
 			+ "\n"

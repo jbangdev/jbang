@@ -44,8 +44,6 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.collection.IsCollectionWithSize;
-import org.junit.Rule;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -59,16 +57,11 @@ import org.xml.sax.SAXException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 
-import dev.jbang.AliasUtil;
-import dev.jbang.ExitException;
-import dev.jbang.Script;
-import dev.jbang.ScriptResource;
-import dev.jbang.Settings;
-import dev.jbang.Util;
+import dev.jbang.*;
 
 import picocli.CommandLine;
 
-public class TestRun {
+public class TestRun extends BaseTest {
 
 	public static final String EXAMPLES_FOLDER = "examples";
 	static File examplesTestFolder;
@@ -79,11 +72,7 @@ public class TestRun {
 		examplesTestFolder = new File(new File(examplesUrl.toURI()).getAbsolutePath());
 
 		Settings.clearCache(Settings.CacheClass.jars);
-
 	}
-
-	@Rule
-	public static final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
 	@Test
 	void testHelloWorld() throws IOException {

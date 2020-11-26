@@ -14,15 +14,15 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 import org.junit.Rule;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 
 import dev.jbang.AliasUtil;
+import dev.jbang.BaseTest;
 import dev.jbang.Settings;
 
-public class TestAliasNearest {
+public class TestAliasNearest extends BaseTest {
 
 	static final String global = "{\n" +
 			"  \"aliases\": {\n" +
@@ -94,9 +94,7 @@ public class TestAliasNearest {
 
 	@BeforeEach
 	void init() throws IOException {
-		jbangTempDir.create();
 		testTempDir.create();
-		environmentVariables.set("JBANG_DIR", jbangTempDir.getRoot().getPath());
 		Files.write(jbangTempDir.getRoot().toPath().resolve(AliasUtil.JBANG_CATALOG_JSON), global.getBytes());
 		File parentDotDir = testTempDir.newFolder(".jbang");
 		Files.write(parentDotDir.toPath().resolve(AliasUtil.JBANG_CATALOG_JSON), parent.getBytes());
@@ -106,12 +104,6 @@ public class TestAliasNearest {
 		Files.write(cwd.resolve(AliasUtil.JBANG_CATALOG_JSON), local.getBytes());
 		Files.write(cwd.resolve("dummy.java"), "// Dummy Java File".getBytes());
 	}
-
-	@Rule
-	public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
-
-	@Rule
-	public final TemporaryFolder jbangTempDir = new TemporaryFolder();
 
 	@Rule
 	public final TemporaryFolder testTempDir = new TemporaryFolder();
