@@ -45,8 +45,9 @@ public class Init extends BaseScriptCommand {
 			}
 
 			info("File initialized. You can now run it with 'jbang " + scriptOrFile
-					+ "' or edit it using 'jbang edit --open=" + knowneditors[new Random().nextInt(knowneditors.length)]
-					+ " " + scriptOrFile + "`'");
+					+ "' or edit it using 'jbang edit --open=[editor] "
+					+ scriptOrFile + "' where [editor] is your editor or IDE, e.g. '"
+					+ knowneditors[new Random().nextInt(knowneditors.length)] + "'");
 		}
 		return EXIT_OK;
 	}
