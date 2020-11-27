@@ -14,8 +14,14 @@ import dev.jbang.Util;
 
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "install", description = "Makes a script available on the user's PATH.")
-public class Install extends BaseCommand {
+@CommandLine.Command(name = "app", description = "Manage scripts installed on the user's PATH as commands.", subcommands = {
+		AppInstall.class, AppList.class,
+		AppUninstall.class })
+public class App {
+}
+
+@CommandLine.Command(name = "install", description = "Install a script as a command.")
+class AppInstall extends BaseCommand {
 	private static final String jbangUrl = "https://github.com/jbangdev/jbang/releases/latest/download/jbang.zip";
 
 	@CommandLine.Option(names = {
@@ -154,8 +160,32 @@ public class Install extends BaseCommand {
 						Files.copy(from.resolve(f), to.resolve(f), StandardCopyOption.REPLACE_EXISTING,
 								StandardCopyOption.COPY_ATTRIBUTES);
 					} catch (IOException e) {
-						throw new ExitException(-1, "Could not copy " + f.toString(), e);
+						throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
 					}
 				});
+	}
+}
+
+@CommandLine.Command(name = "list", description = "Lists installed commands.")
+class AppList extends BaseCommand {
+
+	@CommandLine.Parameters(paramLabel = "name", index = "0", description = "The name of the command", arity = "1")
+	String name;
+
+	@Override
+	public Integer doCall() throws IOException {
+		throw new ExitException(EXIT_GENERIC_ERROR, "Not implemented yet");
+	}
+}
+
+@CommandLine.Command(name = "uninstall", description = "Removes a previously installed command.")
+class AppUninstall extends BaseCommand {
+
+	@CommandLine.Parameters(paramLabel = "name", index = "0", description = "The name of the command", arity = "1")
+	String name;
+
+	@Override
+	public Integer doCall() throws IOException {
+		throw new ExitException(EXIT_GENERIC_ERROR, "Not implemented yet");
 	}
 }
