@@ -855,4 +855,34 @@ public class Util {
 		return Optional.empty();
 	}
 
+	/**
+	 * Searches the locations defined by PATH for the given executable
+	 * 
+	 * @param name The name of the executable to look for
+	 * @return A Path to the executable, if found, null otherwise
+	 */
+	public static Path searchPath(String name) {
+		String envPath = System.getenv("PATH");
+		envPath = envPath != null ? envPath : "";
+		return Arrays	.stream(envPath.split(File.pathSeparator))
+						.map(p -> Paths.get(p))
+						.filter(p -> isExecutable(p.resolve(name)))
+						.findFirst()
+						.orElse(null);
+	}
+
+	private static boolean isExecutable(Path file) {
+		if (Files.isExecutable(file)) {
+			if (Util.isWindows()) {
+				String nm = file.getFileName().toString().toLowerCase();
+				if (nm.endsWith(".exe") || nm.endsWith(".bat") || nm.endsWith(".cmd") || nm.endsWith(".ps1")) {
+					return true;
+				}
+			} else {
+				return true;
+			}
+		}
+		return false;
+	}
+
 }

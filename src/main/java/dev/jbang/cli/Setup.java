@@ -31,7 +31,7 @@ public class Setup extends BaseCommand {
 		} else {
 			withJava = java;
 		}
-		return setup(withJava, force);
+		return setup(withJava, force, true);
 	}
 
 	public static boolean needsSetup() {
@@ -42,20 +42,23 @@ public class Setup extends BaseCommand {
 
 	/**
 	 * Makes a best guess if JAVA_HOME should be set by us or not. Returns true if
-	 * no JAVA_HOME is set and we have at least one managed JDK installed by us.
-	 * Otherwise it returns false.
+	 * no JAVA_HOME is set and javac wasn't found on the PATH and we have at least
+	 * one managed JDK installed by us. Otherwise it returns false.
 	 */
 	public static boolean guessWithJava() {
 		boolean withJava;
 		int v = JdkManager.getDefaultJdk();
 		String javaHome = System.getenv("JAVA_HOME");
-		withJava = (v > 0 && (javaHome == null
-				|| javaHome.isEmpty()
-				|| javaHome.toLowerCase().startsWith(Settings.getConfigDir().toString().toLowerCase())));
+		Path javacCmd = Util.searchPath("javac");
+		withJava = (v > 0
+				&& (javaHome == null
+						|| javaHome.isEmpty()
+						|| javaHome.toLowerCase().startsWith(Settings.getConfigDir().toString().toLowerCase()))
+				&& (javacCmd == null || javacCmd.startsWith(Settings.getConfigBinDir())));
 		return withJava;
 	}
 
-	public static int setup(boolean withJava, boolean force) throws IOException {
+	public static int setup(boolean withJava, boolean force, boolean chatty) throws IOException {
 		Path jdkHome = null;
 		if (withJava) {
 			int v = JdkManager.getDefaultJdk();
@@ -109,7 +112,7 @@ public class Setup extends BaseCommand {
 
 		if (changed) {
 			Util.infoMsg("Setting up Jbang environment...");
-		} else {
+		} else if (chatty) {
 			Util.infoMsg("Jbang environment is already set up.");
 		}
 		if (Util.isWindows()) {
