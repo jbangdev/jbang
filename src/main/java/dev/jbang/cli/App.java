@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import dev.jbang.*;
 
@@ -15,6 +17,17 @@ import picocli.CommandLine;
 		AppInstall.class, AppList.class,
 		AppUninstall.class, AppSetup.class })
 public class App {
+
+	public static void deleteCommandFiles(String name) {
+		try {
+			Files	.list(Settings.getConfigBinDir())
+					.filter(f -> f.getFileName().toString().equals(name)
+							|| f.getFileName().toString().startsWith(name + "."))
+					.forEach(f -> Util.deletePath(f, true));
+		} catch (IOException e) {
+			// Ignore
+		}
+	}
 }
 
 @CommandLine.Command(name = "install", description = "Install a script as a command.")
@@ -41,10 +54,6 @@ class AppInstall extends BaseCommand {
 			}
 			installed = installJbang(force);
 		} else {
-			// if (scriptRef == null || scriptRef.isEmpty()) {
-			// throw new IllegalArgumentException("Missing required parameter:
-			// 'scriptRef'");
-			// }
 			if (scriptRef == null) {
 				scriptRef = name;
 			}
@@ -67,6 +76,7 @@ class AppInstall extends BaseCommand {
 		}
 		BaseScriptCommand.prepareScript(scriptRef);
 		installScripts(name, scriptRef);
+		Util.infoMsg("Command installed: " + name);
 		return true;
 	}
 
@@ -129,23 +139,13 @@ class AppInstall extends BaseCommand {
 			Path urlsDir = Settings.getCacheDir(Settings.CacheClass.urls);
 			Util.deletePath(urlsDir.resolve("jbang"), true);
 			UnpackUtil.unpack(zipFile, urlsDir);
-			deleteJbangFiles(binDir);
+			App.deleteCommandFiles("jbang");
 			Path fromDir = urlsDir.resolve("jbang").resolve("bin");
 			copyJbangFiles(fromDir, binDir);
 		} else {
 			Util.infoMsg("jbang is already installed.");
 		}
 		return true;
-	}
-
-	private static void deleteJbangFiles(Path dir) {
-		try {
-			Files	.list(dir)
-					.filter(f -> f.toString().equals("jbang") || f.toString().startsWith("jbang."))
-					.forEach(f -> Util.deletePath(f, true));
-		} catch (IOException e) {
-			// Ignore
-		}
 	}
 
 	private static void copyJbangFiles(Path from, Path to) throws IOException {
@@ -166,12 +166,31 @@ class AppInstall extends BaseCommand {
 @CommandLine.Command(name = "list", description = "Lists installed commands.")
 class AppList extends BaseCommand {
 
-	@CommandLine.Parameters(paramLabel = "name", index = "0", description = "The name of the command", arity = "1")
-	String name;
-
 	@Override
 	public Integer doCall() throws IOException {
-		throw new ExitException(EXIT_GENERIC_ERROR, "Not implemented yet");
+		listCommandFiles().forEach(cmd -> System.out.println(cmd));
+		return EXIT_OK;
+	}
+
+	private static List<String> listCommandFiles() {
+		try {
+			return Files.list(Settings.getConfigBinDir())
+						.map(f -> baseFileName(f))
+						.distinct()
+						.sorted()
+						.collect(Collectors.toList());
+		} catch (IOException e) {
+			return Collections.emptyList();
+		}
+	}
+
+	private static String baseFileName(Path file) {
+		String nm = file.getFileName().toString();
+		int p = nm.lastIndexOf('.');
+		if (p > 0) {
+			nm = nm.substring(0, p);
+		}
+		return nm;
 	}
 }
 
@@ -183,7 +202,23 @@ class AppUninstall extends BaseCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
-		throw new ExitException(EXIT_GENERIC_ERROR, "Not implemented yet");
+		if (commandFilesExist(name)) {
+			App.deleteCommandFiles(name);
+			Util.infoMsg("Command removed: " + name);
+		} else {
+			Util.infoMsg("Command not found: " + name);
+		}
+		return EXIT_OK;
+	}
+
+	private static boolean commandFilesExist(String name) {
+		try {
+			return Files.list(Settings.getConfigBinDir())
+						.anyMatch(f -> f.getFileName().toString().equals(name)
+								|| f.getFileName().toString().startsWith(name + "."));
+		} catch (IOException e) {
+			return false;
+		}
 	}
 }
 
