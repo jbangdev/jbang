@@ -117,9 +117,10 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			throws IOException {
 		ScriptResource scriptFile = getScriptFile(scriptResource);
 
+		AliasUtil.Alias alias = null;
 		if (scriptFile == null) {
 			// Not found as such, so let's check the aliases
-			AliasUtil.Alias alias = AliasUtil.getAlias(null, scriptResource, arguments, properties);
+			alias = AliasUtil.getAlias(null, scriptResource, arguments, properties);
 			if (alias != null) {
 				scriptFile = getScriptFile(alias.resolve(null));
 				arguments = alias.arguments;
@@ -159,6 +160,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		try {
 			s = new Script(scriptFile, arguments, properties);
 			s.setOriginal(scriptResource);
+			s.setAlias(alias);
 			s.setAdditionalDependencies(dependencies);
 			s.setAdditionalClasspaths(classpaths);
 			s.setResolvedSources(resolvesourceRecursively(s, fresh));

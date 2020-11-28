@@ -1,5 +1,6 @@
 package dev.jbang.cli;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.PosixFilePermission;
@@ -54,8 +55,11 @@ class AppInstall extends BaseCommand {
 			}
 			installed = installJbang(force);
 		} else {
-			if (scriptRef == null) {
-				scriptRef = name;
+			if (!isValidName(name)) {
+				throw new IllegalArgumentException("Not a valid command name: '" + name + "'");
+			}
+			if (scriptRef == null || scriptRef.isEmpty()) {
+				throw new IllegalArgumentException("Missing required parameter: 'scriptRef'");
 			}
 			installed = install(name, scriptRef, force);
 		}
@@ -74,10 +78,23 @@ class AppInstall extends BaseCommand {
 			Util.infoMsg(name + " is already available.");
 			return false;
 		}
-		BaseScriptCommand.prepareScript(scriptRef);
+		Script script = BaseScriptCommand.prepareScript(scriptRef);
+		if (script.getAlias() == null && !script.getScriptResource().isURL()) {
+			scriptRef = script.getScriptResource().getFile().getAbsolutePath();
+		}
 		installScripts(name, scriptRef);
 		Util.infoMsg("Command installed: " + name);
 		return true;
+	}
+
+	private static boolean isValidName(String name) {
+		File f = new File(name);
+		try {
+			f.getCanonicalPath();
+			return true;
+		} catch (IOException e) {
+			return false;
+		}
 	}
 
 	private static void installScripts(String name, String scriptRef) throws IOException {

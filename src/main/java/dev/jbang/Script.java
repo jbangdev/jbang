@@ -44,6 +44,7 @@ public class Script {
 	private final ScriptResource scriptResource;
 
 	private String originalRef;
+	private AliasUtil.Alias alias;
 
 	private ModularClassPath classpath;
 	private String script;
@@ -477,6 +478,20 @@ public class Script {
 	 */
 	public File getOriginalFile() {
 		return new File(getOriginalResource());
+	}
+
+	/**
+	 * Sets the Alias object if originalRef is an alias
+	 */
+	public void setAlias(AliasUtil.Alias alias) {
+		this.alias = alias;
+	}
+
+	/**
+	 * Returns the Alias object if originalRef is an alias, otherwise null
+	 */
+	public AliasUtil.Alias getAlias() {
+		return alias;
 	}
 
 	/**
