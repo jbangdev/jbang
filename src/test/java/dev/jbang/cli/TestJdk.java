@@ -5,15 +5,11 @@ import static org.hamcrest.Matchers.equalTo;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.function.Function;
 
-import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
@@ -30,7 +26,7 @@ public class TestJdk extends BaseTest {
 		ExecutionResult result = checkedRun(jdk -> jdk.list());
 
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
-		assertThat(osIndependentOutput(result.message),
+		assertThat(result.normalizedErr(),
 				equalTo("[jbang] No JDKs installed\n"));
 	}
 
@@ -46,7 +42,7 @@ public class TestJdk extends BaseTest {
 		ExecutionResult result = checkedRun(jdk -> jdk.list());
 
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
-		assertThat(osIndependentOutput(result.message),
+		assertThat(result.normalizedErr(),
 				equalTo("[jbang] Available installed JDKs:\n  11\n  12\n  13\n"));
 	}
 
@@ -62,7 +58,7 @@ public class TestJdk extends BaseTest {
 		ExecutionResult result = checkedRun(jdk -> jdk.uninstall(jdkVersion));
 
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
-		assertThat(osIndependentOutput(result.message),
+		assertThat(result.normalizedErr(),
 				equalTo("[jbang] Uninstalled JDK:\n  " + jdkVersion + "\n"));
 	}
 
@@ -75,7 +71,7 @@ public class TestJdk extends BaseTest {
 		ExecutionResult result = checkedRun(jdk -> jdk.uninstall(jdkVersion));
 
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
-		assertThat(osIndependentOutput(result.message),
+		assertThat(result.normalizedErr(),
 				equalTo("[jbang] JDK 16 is not installed\n"));
 	}
 
@@ -85,37 +81,7 @@ public class TestJdk extends BaseTest {
 		return tempDirectory.toFile();
 	}
 
-	private ExecutionResult checkedRun(Function<Jdk, Integer> commandRunner) {
-
-		Jbang jbang = new Jbang();
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("jdk", "list");
-		Jdk jdk = (Jdk) pr.subcommand().commandSpec().userObject();
-
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		PrintWriter printWriter = new PrintWriter(baos);
-		final PrintStream originalErr = System.err;
-		PrintStream ps = new PrintStream(baos);
-		System.setErr(ps);
-
-		final Integer result = commandRunner.apply(jdk);
-
-		printWriter.flush();
-		System.setErr(originalErr);
-		return new ExecutionResult(result, baos.toString(Charset.defaultCharset()));
+	private ExecutionResult checkedRun(Function<Jdk, Integer> commandRunner) throws IOException {
+		return checkedRun(commandRunner, "jdk");
 	}
-
-	class ExecutionResult {
-		final Integer exitCode;
-		final String message;
-
-		ExecutionResult(Integer value, String console) {
-			this.exitCode = value;
-			this.message = console;
-		}
-	}
-
-	private String osIndependentOutput(String value) {
-		return value.replaceAll("\\r\\n", "\n");
-	}
-
 }

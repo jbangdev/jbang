@@ -1,6 +1,5 @@
 package dev.jbang.cli;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.PosixFilePermission;
@@ -8,6 +7,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import dev.jbang.*;
@@ -46,27 +46,31 @@ class AppInstall extends BaseCommand {
 	String scriptRef;
 
 	@Override
-	public Integer doCall() throws IOException {
+	public Integer doCall() {
 		boolean installed = false;
-		if (name.equals("jbang")) {
-			if (scriptRef != null && !scriptRef.isEmpty()) {
-				throw new IllegalArgumentException(
-						"jbang is a reserved name. If you're looking to install jbang itself remove the last argument and re-run");
+		try {
+			if (name.equals("jbang")) {
+				if (scriptRef != null && !scriptRef.isEmpty()) {
+					throw new IllegalArgumentException(
+							"jbang is a reserved name. If you're looking to install jbang itself remove the last argument and re-run");
+				}
+				installed = installJbang(force);
+			} else {
+				if (!isValidName(name)) {
+					throw new IllegalArgumentException("Not a valid command name: '" + name + "'");
+				}
+				if (scriptRef == null || scriptRef.isEmpty()) {
+					throw new IllegalArgumentException("Missing required parameter: 'scriptRef'");
+				}
+				installed = install(name, scriptRef, force);
 			}
-			installed = installJbang(force);
-		} else {
-			if (!isValidName(name)) {
-				throw new IllegalArgumentException("Not a valid command name: '" + name + "'");
+			if (installed) {
+				if (AppSetup.needsSetup()) {
+					return AppSetup.setup(AppSetup.guessWithJava(), false, false);
+				}
 			}
-			if (scriptRef == null || scriptRef.isEmpty()) {
-				throw new IllegalArgumentException("Missing required parameter: 'scriptRef'");
-			}
-			installed = install(name, scriptRef, force);
-		}
-		if (installed) {
-			if (AppSetup.needsSetup()) {
-				return AppSetup.setup(AppSetup.guessWithJava(), false, false);
-			}
+		} catch (IOException e) {
+			throw new ExitException(EXIT_INTERNAL_ERROR, "Could not install command", e);
 		}
 		return EXIT_OK;
 	}
@@ -87,18 +91,15 @@ class AppInstall extends BaseCommand {
 		return true;
 	}
 
+	private static final Pattern validCommandName = Pattern.compile("[-.\\w]+");
+
 	private static boolean isValidName(String name) {
-		File f = new File(name);
-		try {
-			f.getCanonicalPath();
-			return true;
-		} catch (IOException e) {
-			return false;
-		}
+		return validCommandName.matcher(name).matches();
 	}
 
 	private static void installScripts(String name, String scriptRef) throws IOException {
 		Path binDir = Settings.getConfigBinDir();
+		binDir.toFile().mkdirs();
 		if (Util.isWindows()) {
 			installCmdScript(binDir.resolve(name + ".cmd"), scriptRef);
 			installPSScript(binDir.resolve(name + ".ps1"), scriptRef);
@@ -184,7 +185,7 @@ class AppInstall extends BaseCommand {
 class AppList extends BaseCommand {
 
 	@Override
-	public Integer doCall() throws IOException {
+	public Integer doCall() {
 		listCommandFiles().forEach(cmd -> System.out.println(cmd));
 		return EXIT_OK;
 	}
@@ -218,14 +219,15 @@ class AppUninstall extends BaseCommand {
 	String name;
 
 	@Override
-	public Integer doCall() throws IOException {
+	public Integer doCall() {
 		if (commandFilesExist(name)) {
 			App.deleteCommandFiles(name);
 			Util.infoMsg("Command removed: " + name);
+			return EXIT_OK;
 		} else {
 			Util.infoMsg("Command not found: " + name);
+			return EXIT_INVALID_INPUT;
 		}
-		return EXIT_OK;
 	}
 
 	private static boolean commandFilesExist(String name) {
@@ -251,7 +253,7 @@ class AppSetup extends BaseCommand {
 	boolean force;
 
 	@Override
-	public Integer doCall() throws IOException {
+	public Integer doCall() {
 		boolean withJava;
 		if (java == null) {
 			withJava = guessWithJava();
@@ -285,7 +287,7 @@ class AppSetup extends BaseCommand {
 		return withJava;
 	}
 
-	public static int setup(boolean withJava, boolean force, boolean chatty) throws IOException {
+	public static int setup(boolean withJava, boolean force, boolean chatty) {
 		Path jdkHome = null;
 		if (withJava) {
 			int v = JdkManager.getDefaultJdk();
@@ -360,28 +362,31 @@ class AppSetup extends BaseCommand {
 		}
 	}
 
-	private static boolean changeScript(Path binDir, Path javaHome, Path bashFile) throws IOException {
-		// Detect if Jbang has already been set up before
-		boolean jbangFound = Files.exists(bashFile)
-				&& Files.lines(bashFile)
-						.anyMatch(ln -> ln.trim().startsWith("#") && ln.toLowerCase().contains("jbang"));
-		if (!jbangFound) {
-			// Add lines to add Jbang to PATH
-			String lines = "\n# Add Jbang to environment\n" +
-					"alias j!=jbang\n";
-			if (javaHome != null) {
-				lines += "export PATH=\"" + toHomePath(binDir) + ":" + toHomePath(javaHome.resolve("bin"))
-						+ ":$PATH\"\n" +
-						"export JAVA_HOME=" + toHomePath(javaHome) + "\n";
-			} else {
-				lines += "export PATH=\"" + toHomePath(binDir) + ":$PATH\"\n";
+	private static boolean changeScript(Path binDir, Path javaHome, Path bashFile) {
+		try {
+			// Detect if Jbang has already been set up before
+			boolean jbangFound = Files.exists(bashFile)
+					&& Files.lines(bashFile)
+							.anyMatch(ln -> ln.trim().startsWith("#") && ln.toLowerCase().contains("jbang"));
+			if (!jbangFound) {
+				// Add lines to add Jbang to PATH
+				String lines = "\n# Add Jbang to environment\n" +
+						"alias j!=jbang\n";
+				if (javaHome != null) {
+					lines += "export PATH=\"" + toHomePath(binDir) + ":" + toHomePath(javaHome.resolve("bin"))
+							+ ":$PATH\"\n" +
+							"export JAVA_HOME=" + toHomePath(javaHome) + "\n";
+				} else {
+					lines += "export PATH=\"" + toHomePath(binDir) + ":$PATH\"\n";
+				}
+				Files.write(bashFile, lines.getBytes(), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+				Util.verboseMsg("Added Jbang setup lines " + bashFile);
+				return true;
 			}
-			Files.write(bashFile, lines.getBytes(), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
-			Util.verboseMsg("Added Jbang setup lines " + bashFile);
-			return true;
-		} else {
-			return false;
+		} catch (IOException e) {
+			Util.verboseMsg("Couldn't change script: " + bashFile, e);
 		}
+		return false;
 	}
 
 	private static Path getHome() {

@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import dev.jbang.AliasUtil;
@@ -53,9 +52,6 @@ public class TestCatalog extends BaseTest {
 
 	private Path cwd;
 
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
-
 	@Test
 	void testAddSucceeded() throws IOException {
 		assertThat(Files.isRegularFile(catsFile), is(true));
@@ -70,8 +66,6 @@ public class TestCatalog extends BaseTest {
 
 	@Test
 	void testAddInvalidName() throws IOException {
-		thrown.expect(IllegalArgumentException.class);
-		thrown.expectMessage(containsString("Invalid catalog name"));
 		Jbang jbang = new Jbang();
 		new CommandLine(jbang).execute("catalog", "add", "invalid!", "dummy");
 	}
