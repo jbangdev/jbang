@@ -346,10 +346,11 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 				manifest.getMainAttributes().put(k, v);
 			}
 
-			String bootClasspath = script.getClassPath().getClassPath().replace(Settings.CP_SEPARATOR, " ");
-			if (!bootClasspath.isEmpty()) {
-				manifest.getMainAttributes()
-						.put(new Attributes.Name("Boot-Class-Path"), script.getClassPath().getClassPath());
+			if (script.getClassPath() != null) {
+				String bootClasspath = script.getClassPath().getManifestPath();
+				if (!bootClasspath.isEmpty()) {
+					manifest.getMainAttributes().put(new Attributes.Name("Boot-Class-Path"), bootClasspath);
+				}
 			}
 		}
 

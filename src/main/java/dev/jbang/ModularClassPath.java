@@ -14,6 +14,7 @@ public class ModularClassPath {
 	static final String JAVAFX_PREFIX = "javafx";
 
 	private String classPath;
+	private String manifestPath;
 	private final List<ArtifactInfo> artifacts;
 	private Optional<Boolean> javafx = Optional.empty();
 
@@ -31,6 +32,18 @@ public class ModularClassPath {
 		}
 
 		return classPath;
+	}
+
+	public String getManifestPath() {
+		if (manifestPath == null) {
+			manifestPath = artifacts.stream()
+									.map(it -> it.asFile().getAbsoluteFile().toURI())
+									.map(it -> it.getPath())
+									.distinct()
+									.collect(Collectors.joining(" "));
+		}
+
+		return manifestPath;
 	}
 
 	boolean hasJavaFX() {
