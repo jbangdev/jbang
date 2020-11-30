@@ -9,14 +9,14 @@
       viewSourceLink.className = 'view-source-button'
       viewSourceLink.target = '_blank'
       viewSourceLink.dataset.title = 'View On GitHub'
-      viewSourceLink.appendChild(document.createElement('i')).className = 'fab fa-github'
+      viewSourceLink.text = 'View on GitHub'
     }
     var sourceTypeBox = document.createElement('div')
     sourceTypeBox.className = 'source-type-box'
     var copyButton = document.createElement('a')
     copyButton.className = 'copy-code-button'
     copyButton.dataset.title = 'Copy'
-    copyButton.appendChild(document.createElement('i')).className = 'far fa-copy'
+    copyButton.text = 'Copy to Clipboard'
 
     var dataSource = document.createElement('span')
     dataSource.className = 'data-source'
@@ -27,7 +27,7 @@
 
     copyButton.addEventListener('click', function (e) {
       // NOTE: ignore event on pseudo-element
-      if (e.currentTarget === e.target) return
+      // if (e.currentTarget === e.target) return
       var bashText = codeBlock.innerText
       // remove '$' from copy to code functionality in code block console
       // var spliceData = bashText.split('$').join('')
