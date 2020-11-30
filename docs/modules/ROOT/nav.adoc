@@ -1,1 +1,2 @@
 * xref:index.adoc[Home Page]
+* xref:tabset-example.adoc[Tabset Example]

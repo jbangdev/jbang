@@ -1,0 +1,60 @@
+= {page-component-title}
+:page-src-relative: {page-relative}
+
+== Page Coordinates
+
+page-component-name: {page-component-name}
+
+page-component-version: {page-component-version}
+
+page-module: {page-module}
+
+page-src-relative: {page-src-relative}
+
+
+== The tabset-block extension
+
+Here is a tabset block:
+
+[tabset]
+====
+
+Tab A::
++
+--
+[discrete]
+== A section
+
+With an explanation!
+--
+
+Tab B::
++
+--
+[discrete]
+== A section
+
+With no explanation?
+--
+
+Tab C::
++
+--
+* A multilevel list
+** level 2
+*** level 3
+** level 2
+* level 1
+--
+
+Tab D::
++
+--
+A multilevel description list::
+It's all about descriptions!
+2nd Level:::
+With lots of details!
+3rd Level::::
+And nit-picky micro-details!
+--
+====
