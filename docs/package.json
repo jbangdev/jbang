@@ -9,7 +9,8 @@
     "build-all": "npm run build-ui;npm run build"
   },
   "devDependencies": {
-    "@antora/cli": "^2.3.3",
-    "@antora/site-generator-default": "^2.3.3"
+    "@antora/cli": "^3.0.0-alpha.1",
+    "@antora/site-generator-default": "^3.0.0-alpha.1",
+    "@djencks/asciidoctor-tabset-block": "https://experimental-repo.s3-us-west-1.amazonaws.com/djencks-asciidoctor-tabset-block-v0.0.1.tgz"
   }
 }

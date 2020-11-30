@@ -1,5 +1,6 @@
 sources:
   - path: '@antora/antora-ui-default'
+  - path: '@djencks/tabset-block-ui'
   - path: ./
 bundle-name: jbang-ui
 preview: true

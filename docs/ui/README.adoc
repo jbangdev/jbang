@@ -33,7 +33,7 @@ Set up your UI project as a ui builder project and include in the `package.json`
     "build/**/*"
   ],
   "devDependencies": {
-    "@djencks/antora-ui-builder": "https://experimental-repo.s3-us-west-1.amazonaws.com/djencks-antora-ui-builder-v0.0.1.tgz",
+    "@djencks/antora-ui-builder": "https://experimental-repo.s3-us-west-1.amazonaws.com/djencks-antora-ui-builder-v0.0.3.tgz",
     "antora-ui-default": "git+https://gitlab.com/djencks/antora-ui-default.git#issue-126-requireable",
     "@djencks/{extension}-ui": "https://experimental-repo.s3-us-west-1.amazonaws.com/djencks-{extension}-ui-v{extension-version}.tgz"
   }
