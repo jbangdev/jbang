@@ -149,6 +149,7 @@ shadowJar {
 		exclude(dependency('org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-impl-maven:.*'))
 		//exclude(dependency('org.slf4j:slf4j-api:.*'))
 		exclude(dependency('org.slf4j:slf4j-nop:.*'))
+		exclude(dependency('org.jboss.logging:jboss-logging:.*'))
 
 
 	}
