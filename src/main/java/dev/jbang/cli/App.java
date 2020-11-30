@@ -39,28 +39,28 @@ class AppInstall extends BaseCommand {
 			"--force" }, description = "Force re-installation")
 	boolean force;
 
-	@CommandLine.Parameters(paramLabel = "name", index = "0", description = "A name for the command", arity = "1")
+	@CommandLine.Option(names = { "--name" }, description = "A name for the command")
 	String name;
 
-	@CommandLine.Parameters(paramLabel = "scriptRef", index = "1", description = "A file or URL to a Java code file or an alias", arity = "0..1")
+	@CommandLine.Parameters(paramLabel = "scriptRef", description = "A file or URL to a Java code file or an alias")
 	String scriptRef;
 
 	@Override
 	public Integer doCall() {
 		boolean installed = false;
 		try {
-			if (name.equals("jbang")) {
-				if (scriptRef != null && !scriptRef.isEmpty()) {
+			if (scriptRef.equals("jbang")) {
+				if (name != null && !"jbang".equals(name)) {
 					throw new IllegalArgumentException(
-							"jbang is a reserved name. If you're looking to install jbang itself remove the last argument and re-run");
+							"It's not possible to install jbang with a different name");
 				}
 				installed = installJbang(force);
 			} else {
-				if (!isValidName(name)) {
-					throw new IllegalArgumentException("Not a valid command name: '" + name + "'");
+				if ("jbang".equals(name)) {
+					throw new IllegalArgumentException("jbang is a reserved name.");
 				}
-				if (scriptRef == null || scriptRef.isEmpty()) {
-					throw new IllegalArgumentException("Missing required parameter: 'scriptRef'");
+				if (name != null && !isValidName(name)) {
+					throw new IllegalArgumentException("Not a valid command name: '" + name + "'");
 				}
 				installed = install(name, scriptRef, force);
 			}
@@ -77,12 +77,18 @@ class AppInstall extends BaseCommand {
 
 	public static boolean install(String name, String scriptRef, boolean force) throws IOException {
 		Path binDir = Settings.getConfigBinDir();
-		if (Files.exists(binDir.resolve(name)) || Files.exists(binDir.resolve(name))
-				|| Files.exists(binDir.resolve(name))) {
-			Util.infoMsg(name + " is already available.");
+		if (name != null && existScripts(binDir, name)) {
+			Util.infoMsg("A script with name '" + name + "' already exists.");
 			return false;
 		}
 		Script script = BaseScriptCommand.prepareScript(scriptRef);
+		if (name == null) {
+			name = chooseName(script);
+			if (existScripts(binDir, name)) {
+				Util.infoMsg("A script with name '" + name + "' already exists.");
+				return false;
+			}
+		}
 		if (script.getAlias() == null && !script.getScriptResource().isURL()) {
 			scriptRef = script.getScriptResource().getFile().getAbsolutePath();
 		}
@@ -91,7 +97,44 @@ class AppInstall extends BaseCommand {
 		return true;
 	}
 
-	private static final Pattern validCommandName = Pattern.compile("[-.\\w]+");
+	private static boolean existScripts(Path binDir, String name) {
+		return Files.exists(binDir.resolve(name)) || Files.exists(binDir.resolve(name + ".cmd"))
+				|| Files.exists(binDir.resolve(name + ".ps1"));
+	}
+
+	private static String chooseName(Script script) {
+		String startName;
+		String name;
+		if (script.getAlias() != null) {
+			// If the script ref is an alias we take that name up to
+			// the @-symbol (if any) to be the command name.
+			startName = script.getOriginalRef();
+			name = startName;
+			int p = name.indexOf("@");
+			if (p > 0) {
+				name = name.substring(0, p);
+			}
+		} else {
+			// If the script is a file or a URL we take the last part of
+			// the name without extension (if any) to be the command name.
+			startName = script.getBackingFile().getName();
+			name = startName;
+			int p = name.lastIndexOf(".");
+			if (p > 0) {
+				name = name.substring(0, p);
+			}
+			name = name.replaceAll("[^" + validCommandNameChars + "]", "");
+		}
+		if (!isValidName(name)) {
+			throw new IllegalArgumentException(
+					"A valid command name could not be determined from: '" + startName + "'");
+		}
+		return name;
+	}
+
+	private static final String validCommandNameChars = "-.\\w";
+
+	private static final Pattern validCommandName = Pattern.compile("[" + validCommandNameChars + "]+");
 
 	private static boolean isValidName(String name) {
 		return validCommandName.matcher(name).matches();
