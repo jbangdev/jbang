@@ -5,7 +5,11 @@ plugins {
 
 repositories {
 	mavenLocal()
-	jcenter()
+{#for url in repositories}
+	maven {
+		url  "{url}"
+	}
+{/for}
 }
 
 dependencies {
