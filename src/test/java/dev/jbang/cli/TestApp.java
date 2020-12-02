@@ -46,7 +46,7 @@ public class TestApp extends BaseTest {
 
 	@Test
 	void testAppInstallAlias() throws IOException {
-		checkedRun(null, "alias", "add", "-g", "apptest", "examples/helloworld.java");
+		checkedRun(null, "alias", "add", "-g", "--name=apptest", "examples/helloworld.java");
 		ExecutionResult result = checkedRun(null, "app", "install", "apptest");
 		assertThat(result.err, containsString("Command installed: apptest"));
 		if (Util.isWindows()) {
@@ -61,7 +61,7 @@ public class TestApp extends BaseTest {
 
 	@Test
 	void testAppInstallAliasFromRepo() throws IOException {
-		checkedRun(null, "alias", "add", "-g", "apptest", "examples/helloworld.java");
+		checkedRun(null, "alias", "add", "-g", "--name=apptest", "examples/helloworld.java");
 		checkedRun(null, "catalog", "add", "-g", "testrepo",
 				jbangTempDir.getRoot().toPath().resolve("jbang-catalog.json").toString());
 		ExecutionResult result = checkedRun(null, "app", "install", "apptest@testrepo");

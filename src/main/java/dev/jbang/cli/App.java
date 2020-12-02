@@ -59,7 +59,7 @@ class AppInstall extends BaseCommand {
 				if ("jbang".equals(name)) {
 					throw new IllegalArgumentException("jbang is a reserved name.");
 				}
-				if (name != null && !isValidName(name)) {
+				if (name != null && !isValidCommandName(name)) {
 					throw new IllegalArgumentException("Not a valid command name: '" + name + "'");
 				}
 				installed = install(name, scriptRef, force);
@@ -83,7 +83,7 @@ class AppInstall extends BaseCommand {
 		}
 		Script script = BaseScriptCommand.prepareScript(scriptRef);
 		if (name == null) {
-			name = chooseName(script);
+			name = chooseCommandName(script);
 			if (existScripts(binDir, name)) {
 				Util.infoMsg("A script with name '" + name + "' already exists.");
 				return false;
@@ -102,7 +102,7 @@ class AppInstall extends BaseCommand {
 				|| Files.exists(binDir.resolve(name + ".ps1"));
 	}
 
-	private static String chooseName(Script script) {
+	public static String chooseCommandName(Script script) {
 		String startName;
 		String name;
 		if (script.getAlias() != null) {
@@ -125,7 +125,7 @@ class AppInstall extends BaseCommand {
 			}
 			name = name.replaceAll("[^" + validCommandNameChars + "]", "");
 		}
-		if (!isValidName(name)) {
+		if (!isValidCommandName(name)) {
 			throw new IllegalArgumentException(
 					"A valid command name could not be determined from: '" + startName + "'");
 		}
@@ -136,7 +136,7 @@ class AppInstall extends BaseCommand {
 
 	private static final Pattern validCommandName = Pattern.compile("[" + validCommandNameChars + "]+");
 
-	private static boolean isValidName(String name) {
+	public static boolean isValidCommandName(String name) {
 		return validCommandName.matcher(name).matches();
 	}
 

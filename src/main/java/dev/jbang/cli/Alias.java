@@ -1,5 +1,6 @@
 package dev.jbang.cli;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -7,9 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import dev.jbang.AliasUtil;
-import dev.jbang.Settings;
-import dev.jbang.Util;
+import dev.jbang.*;
 
 import picocli.CommandLine;
 
@@ -60,28 +59,36 @@ class AliasAdd extends BaseAliasCommand {
 	@CommandLine.Option(names = { "-D" }, description = "set a system property")
 	Map<String, String> properties;
 
-	@CommandLine.Parameters(paramLabel = "name", index = "0", description = "A name for the alias", arity = "1")
+	@CommandLine.Option(names = { "--name" }, description = "A name for the command")
 	String name;
 
-	@CommandLine.Parameters(paramLabel = "scriptOrFile", index = "1", description = "A file or URL to a Java code file", arity = "1")
+	@CommandLine.Parameters(paramLabel = "scriptOrFile", index = "0", description = "A file or URL to a Java code file", arity = "1")
 	String scriptOrFile;
 
-	@CommandLine.Parameters(paramLabel = "params", index = "2..*", arity = "0..*", description = "Parameters to pass on to the script")
+	@CommandLine.Parameters(paramLabel = "params", index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
 	List<String> userParams;
 
 	@Override
 	public Integer doCall() {
-		if (!AliasUtil.isValidName(name)) {
+		if (name != null && !AliasUtil.isValidName(name)) {
 			throw new IllegalArgumentException(
 					"Invalid alias name, it should start with a letter followed by 0 or more letters, digits, underscores or hyphens");
 		}
-		Path catFile = getCatalog(false);
-		if (catFile != null) {
-			AliasUtil.addAlias(null, catFile, name, scriptOrFile, description, userParams, properties);
-		} else {
-			catFile = AliasUtil.addNearestAlias(null, name, scriptOrFile, description, userParams, properties);
+		try {
+			Script script = BaseScriptCommand.prepareScript(scriptOrFile);
+			if (name == null) {
+				name = AppInstall.chooseCommandName(script);
+			}
+			Path catFile = getCatalog(false);
+			if (catFile != null) {
+				AliasUtil.addAlias(null, catFile, name, scriptOrFile, description, userParams, properties);
+			} else {
+				catFile = AliasUtil.addNearestAlias(null, name, scriptOrFile, description, userParams, properties);
+			}
+			info(String.format("Alias '%s' added to '%s'", name, catFile));
+		} catch (IOException e) {
+			throw new ExitException(EXIT_INTERNAL_ERROR, "Could not add alias", e);
 		}
-		info(String.format("Alias added to %s", catFile));
 		return EXIT_OK;
 	}
 }
