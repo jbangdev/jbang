@@ -187,9 +187,9 @@ public class Edit extends BaseScriptCommand {
 
 		// Turn any URL dependencies into regular GAV coordinates
 		collectDependencies = collectDependencies
-				.stream()
-				.map(JitPackUtil::ensureGAV)
-				.collect(Collectors.toList());
+													.stream()
+													.map(JitPackUtil::ensureGAV)
+													.collect(Collectors.toList());
 		// And if we encountered URLs let's make sure the JitPack repo is available
 		if (!repositories.stream().anyMatch(r -> DependencyUtil.REPO_JITPACK.equals(r.getUrl()))) {
 			repositories.add(DependencyUtil.toMavenRepo(DependencyUtil.ALIAS_JITPACK));
@@ -285,28 +285,28 @@ public class Edit extends BaseScriptCommand {
 	}
 
 	private void renderTemplate(TemplateEngine engine, List<String> collectDependencies, String fullclassName,
-								String baseName,
-								List<String> resolvedDependencies, List<MavenRepo> repositories, String templateName,
-								List<String> userParams, Path destination)
+			String baseName,
+			List<String> resolvedDependencies, List<MavenRepo> repositories, String templateName,
+			List<String> userParams, Path destination)
 			throws IOException {
 		Template template = engine.getTemplate(templateName);
 		if (template == null)
 			throw new ExitException(1, "Could not locate template named: '" + templateName + "'");
 		String result = template
-				.data("repositories",
-						repositories.stream()
-								.map(MavenRepo::getUrl)
-								.filter(s -> !"".equals(s)))
-				.data("dependencies", collectDependencies)
-				.data("baseName", baseName)
-				.data("fullClassName", fullclassName)
-				.data("classpath",
-						resolvedDependencies.stream()
-								.filter(t -> !t.isEmpty())
-								.collect(Collectors.toList()))
-				.data("userParams", String.join(" ", userParams))
-				.data("cwd", System.getProperty("user.dir"))
-				.render();
+								.data("repositories",
+										repositories.stream()
+													.map(MavenRepo::getUrl)
+													.filter(s -> !"".equals(s)))
+								.data("dependencies", collectDependencies)
+								.data("baseName", baseName)
+								.data("fullClassName", fullclassName)
+								.data("classpath",
+										resolvedDependencies.stream()
+															.filter(t -> !t.isEmpty())
+															.collect(Collectors.toList()))
+								.data("userParams", String.join(" ", userParams))
+								.data("cwd", System.getProperty("user.dir"))
+								.render();
 
 		Util.writeString(destination, result);
 	}
