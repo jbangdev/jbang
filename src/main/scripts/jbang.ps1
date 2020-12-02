@@ -121,11 +121,7 @@ if ($JAVA_EXEC -eq "") {
       $dirs=Get-ChildItem -Directory -Path "$TDIR\jdks\$javaVersion.tmp"
       foreach ($d in $dirs) {
         $p=$d.FullName
-        $items=Get-ChildItem -Path "$p"
-        foreach ($i in $items) {
-          $n=$i.FullName
-          Move-Item -Path $n -Destination "$TDIR\jdks\$javaVersion.tmp"
-        }
+        Move-Item -Path "$p\*" -Destination "$TDIR\jdks\$javaVersion.tmp" -Force
       }
       # Check if the JDK was installed properly
       $ok=$false; try { & $TDIR\jdks\$javaVersion.tmp\bin\javac -version >$null 2>&1; $ok=$true } catch {}

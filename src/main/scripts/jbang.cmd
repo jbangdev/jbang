@@ -70,7 +70,7 @@ if "!JAVA_EXEC!"=="" (
       powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "$ProgressPreference = 'SilentlyContinue'; Expand-Archive -Path %TDIR%\bootstrap-jdk.zip -DestinationPath %TDIR%\jdks\%javaVersion%.tmp"
       if !ERRORLEVEL! NEQ 0 ( echo Error installing JDK 1>&2 & exit /b %ERRORLEVEL% )
       for /d %%d in (%TDIR%\jdks\%javaVersion%.tmp\*) do (
-        powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "Move-Item %%d\* !TDIR!\jdks\%javaVersion%.tmp"
+        powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "Move-Item %%d\* !TDIR!\jdks\%javaVersion%.tmp -Force"
         if !ERRORLEVEL! NEQ 0 ( echo Error installing JDK 1>&2 & exit /b %ERRORLEVEL% )
       )
       rem Check if the JDK was installed properly
@@ -78,9 +78,9 @@ if "!JAVA_EXEC!"=="" (
       if !ERRORLEVEL! NEQ 0 ( echo "Error installing JDK" 1>&2; exit /b %ERRORLEVEL% )
       rem Activate the downloaded JDK giving it its proper name
       ren "%TDIR%\jdks\%javaVersion%.tmp" "%javaVersion%"
+      # Set the current JDK
+      !JAVA_EXEC! -classpath "%jarPath%" dev.jbang.Main jdk default "%javaVersion%"
     )
-    # Set the current JDK
-    !JAVA_EXEC! -classpath "%jarPath%" dev.jbang.Main jdk default "%javaVersion%"
   )
 )
 
