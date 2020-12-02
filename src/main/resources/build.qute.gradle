@@ -3,9 +3,14 @@ plugins {
 	id 'application'
 }
 
+
 repositories {
 	mavenLocal()
-	jcenter()
+{#for url in repositories}
+	maven {
+		url  "{url}"
+	}
+{/for}
 }
 
 dependencies {

@@ -3,7 +3,6 @@ package dev.jbang;
 import static dev.jbang.Settings.CP_SEPARATOR;
 import static dev.jbang.Util.*;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -41,9 +40,13 @@ public class DependencyUtil {
 
 	/**
 	 *
-	 * @param deps
-	 * @param repos
+	 * @param deps           dependencies; is modified with resolved deps (eg,
+	 *                       jitpack)
+	 * @param repos          repositories, is also modified with added repos (eg,
+	 *                       also jitpack)
+	 * @param offline
 	 * @param loggingEnabled
+	 * @param transitivity
 	 * @return string with resolved classpath
 	 */
 	public ModularClassPath resolveDependencies(List<String> deps, List<MavenRepo> repos,
@@ -55,7 +58,6 @@ public class DependencyUtil {
 		}
 
 		if (repos.isEmpty()) {
-			repos = new ArrayList<MavenRepo>();
 			repos.add(toMavenRepo("jcenter"));
 		}
 
@@ -68,6 +70,11 @@ public class DependencyUtil {
 		if (!depIds.equals(deps) && !repos.stream().anyMatch(r -> REPO_JITPACK.equals(r.getUrl()))) {
 			repos.add(toMavenRepo(ALIAS_JITPACK));
 		}
+
+		// Put those resolved depIds back into deps (so the caller gets them)
+		// TODO: refactor, extract class method with intermediary repos/deps
+		deps.clear();
+		deps.addAll(depIds);
 
 		String depsHash = String.join(CP_SEPARATOR, depIds);
 
