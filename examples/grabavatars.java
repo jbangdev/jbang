@@ -22,13 +22,10 @@ import java.util.concurrent.Callable;
 
 @Command(name = "GrabAvatars", mixinStandardHelpOptions = true, version = "GrabAvatars 0.1",
         description = "GrabAvatars made with jbang")
-class GrabAvatars implements Callable<Integer> {
-
-    @Parameters(index = "0", description = "The greeting to print", defaultValue = "World!")
-    private String greeting;
+class grabavatars implements Callable<Integer> {
 
     public static void main(String... args) {
-        int exitCode = new CommandLine(new GrabAvatars()).execute(args);
+        int exitCode = new CommandLine(new grabavatars()).execute(args);
         System.exit(exitCode);
     }
 
