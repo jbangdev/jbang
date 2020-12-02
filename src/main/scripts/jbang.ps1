@@ -83,7 +83,7 @@ if (Test-Path "$PSScriptRoot\jbang.jar") {
     Remove-Item -Path "$JBDIR\bin\jbang.*" -Force -ErrorAction Ignore >$null 2>&1
     Copy-Item -Path "$TDIR\urls\jbang\bin\*" -Destination "$JBDIR\bin" -Force >$null 2>&1
   }
-  . "$JBDIR\bin\jbang.ps1" $args
+  Invoke-Expression ". '$JBDIR\bin\jbang.ps1' $args"
   break
 }
 
