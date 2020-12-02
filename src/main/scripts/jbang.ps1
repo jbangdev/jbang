@@ -83,7 +83,7 @@ if (Test-Path "$PSScriptRoot\jbang.jar") {
     Remove-Item -Path "$JBDIR\bin\jbang.*" -Force -ErrorAction Ignore >$null 2>&1
     Copy-Item -Path "$TDIR\urls\jbang\bin\*" -Destination "$JBDIR\bin" -Force >$null 2>&1
   }
-  . "$JBDIR\bin\jbang.ps1" $args
+  Invoke-Expression ". '$JBDIR\bin\jbang.ps1' $args"
   break
 }
 
@@ -106,6 +106,8 @@ if ($JAVA_EXEC -eq "") {
     $env:JAVA_HOME="$JBDIR\currentjdk"
     $JAVA_EXEC="$JBDIR\currentjdk\bin\java"
   } else {
+    $env:JAVA_HOME="$TDIR\jdks\$javaVersion"
+    $JAVA_EXEC="$env:JAVA_HOME\bin\java.exe"
     # Check if we installed a JDK before
     if (-not (Test-Path "$TDIR\jdks\$javaVersion")) {
       # If not, download and install it
@@ -121,20 +123,16 @@ if ($JAVA_EXEC -eq "") {
       $dirs=Get-ChildItem -Directory -Path "$TDIR\jdks\$javaVersion.tmp"
       foreach ($d in $dirs) {
         $p=$d.FullName
-        $items=Get-ChildItem -Path "$p"
-        foreach ($i in $items) {
-          $n=$i.FullName
-          Move-Item -Path $n -Destination "$TDIR\jdks\$javaVersion.tmp"
-        }
+        Move-Item -Path "$p\*" -Destination "$TDIR\jdks\$javaVersion.tmp" -Force
       }
       # Check if the JDK was installed properly
       $ok=$false; try { & $TDIR\jdks\$javaVersion.tmp\bin\javac -version >$null 2>&1; $ok=$true } catch {}
       if (-not ($ok)) { [Console]::Error.WriteLine("Error installing JDK"); break }
       # Activate the downloaded JDK giving it its proper name
       Rename-Item -Path "$TDIR\jdks\$javaVersion.tmp" -NewName "$javaVersion" >$null 2>&1
+      # Set the current JDK
+      & $JAVA_EXEC -classpath "$jarPath" dev.jbang.Main jdk default $javaVersion
     }
-    $env:JAVA_HOME="$TDIR\jdks\$javaVersion"
-    $JAVA_EXEC="$env:JAVA_HOME\bin\java.exe"
   }
 }
 
