@@ -20,7 +20,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import dev.jbang.DependencyUtil;
 import dev.jbang.ExitException;
+import dev.jbang.JitPackUtil;
+import dev.jbang.MavenRepo;
 import dev.jbang.Script;
 import dev.jbang.Settings;
 import dev.jbang.Source;
@@ -175,33 +178,55 @@ public class Edit extends BaseScriptCommand {
 		Path destination = new File(tmpProjectDir, "build.gradle").toPath();
 		TemplateEngine engine = Settings.getTemplateEngine();
 
-		renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, templateName,
+		// both collectDependencies and repositories are manipulated by
+		// resolveDependencies
+		List<MavenRepo> repositories = script.getRepositories();
+		if (repositories.isEmpty()) {
+			repositories.add(DependencyUtil.toMavenRepo("jcenter"));
+		}
+
+		// Turn any URL dependencies into regular GAV coordinates
+		collectDependencies = collectDependencies
+				.stream()
+				.map(JitPackUtil::ensureGAV)
+				.collect(Collectors.toList());
+		// And if we encountered URLs let's make sure the JitPack repo is available
+		if (!repositories.stream().anyMatch(r -> DependencyUtil.REPO_JITPACK.equals(r.getUrl()))) {
+			repositories.add(DependencyUtil.toMavenRepo(DependencyUtil.ALIAS_JITPACK));
+		}
+
+		renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, repositories,
+				templateName,
 				script.getArguments(),
 				destination);
 
 		// setup eclipse
 		templateName = ".qute.classpath";
 		destination = new File(tmpProjectDir, ".classpath").toPath();
-		renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, templateName,
+		renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, repositories,
+				templateName,
 				script.getArguments(),
 				destination);
 
 		templateName = ".qute.project";
 		destination = new File(tmpProjectDir, ".project").toPath();
-		renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, templateName,
+		renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, repositories,
+				templateName,
 				script.getArguments(),
 				destination);
 
 		templateName = "main.qute.launch";
 		destination = new File(tmpProjectDir, ".eclipse/" + baseName + ".launch").toPath();
 		destination.toFile().getParentFile().mkdirs();
-		renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, templateName,
+		renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, repositories,
+				templateName,
 				script.getArguments(),
 				destination);
 
 		templateName = "main-port-4004.qute.launch";
 		destination = new File(tmpProjectDir, ".eclipse/" + baseName + "-port-4004.launch").toPath();
-		renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, templateName,
+		renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, repositories,
+				templateName,
 				script.getArguments(),
 				destination);
 
@@ -210,7 +235,8 @@ public class Edit extends BaseScriptCommand {
 		destination = new File(tmpProjectDir, ".vscode/launch.json").toPath();
 		if (isNeeded(reload, destination)) {
 			destination.toFile().getParentFile().mkdirs();
-			renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, templateName,
+			renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, repositories,
+					templateName,
 					script.getArguments(),
 					destination);
 		}
@@ -220,7 +246,8 @@ public class Edit extends BaseScriptCommand {
 		destination = new File(tmpProjectDir, "README.md").toPath();
 		if (isNeeded(reload, destination)) {
 			destination.toFile().getParentFile().mkdirs();
-			renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, templateName,
+			renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, repositories,
+					templateName,
 					script.getArguments(),
 					destination);
 		}
@@ -229,7 +256,8 @@ public class Edit extends BaseScriptCommand {
 		destination = new File(tmpProjectDir, ".vscode/settings.json").toPath();
 		if (isNeeded(reload, destination)) {
 			destination.toFile().getParentFile().mkdirs();
-			renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, templateName,
+			renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, repositories,
+					templateName,
 					script.getArguments(),
 					destination);
 		}
@@ -257,24 +285,28 @@ public class Edit extends BaseScriptCommand {
 	}
 
 	private void renderTemplate(TemplateEngine engine, List<String> collectDependencies, String fullclassName,
-			String baseName,
-			List<String> resolvedDependencies, String templateName,
-			List<String> userParams, Path destination)
+								String baseName,
+								List<String> resolvedDependencies, List<MavenRepo> repositories, String templateName,
+								List<String> userParams, Path destination)
 			throws IOException {
 		Template template = engine.getTemplate(templateName);
 		if (template == null)
 			throw new ExitException(1, "Could not locate template named: '" + templateName + "'");
 		String result = template
-								.data("dependencies", collectDependencies)
-								.data("baseName", baseName)
-								.data("fullClassName", fullclassName)
-								.data("classpath",
-										resolvedDependencies.stream()
-															.filter(t -> !t.isEmpty())
-															.collect(Collectors.toList()))
-								.data("userParams", String.join(" ", userParams))
-								.data("cwd", System.getProperty("user.dir"))
-								.render();
+				.data("repositories",
+						repositories.stream()
+								.map(MavenRepo::getUrl)
+								.filter(s -> !"".equals(s)))
+				.data("dependencies", collectDependencies)
+				.data("baseName", baseName)
+				.data("fullClassName", fullclassName)
+				.data("classpath",
+						resolvedDependencies.stream()
+								.filter(t -> !t.isEmpty())
+								.collect(Collectors.toList()))
+				.data("userParams", String.join(" ", userParams))
+				.data("cwd", System.getProperty("user.dir"))
+				.render();
 
 		Util.writeString(destination, result);
 	}
