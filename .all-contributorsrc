@@ -445,6 +445,15 @@
       "contributions": [
         "ideas"
       ]
+    },
+    {
+      "login": "rpardini",
+      "name": "Ricardo Pardini",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/639959?v=4",
+      "profile": "http://pardini.net",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
