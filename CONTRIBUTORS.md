@@ -1,6 +1,6 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-48-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-49-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 ## Contributors ✨
 
@@ -71,6 +71,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="http://riadiscuss.jeffmaury.com"><img src="https://avatars0.githubusercontent.com/u/695993?v=4" width="100px;" alt=""/><br /><sub><b>Jeff MAURY</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/issues?q=author%3Ajeffmaury" title="Bug reports">🐛</a></td>
     <td align="center"><a href="https://blog.gilliard.lol"><img src="https://avatars3.githubusercontent.com/u/666324?v=4" width="100px;" alt=""/><br /><sub><b>Matthew Gilliard</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/issues?q=author%3Amjg123" title="Bug reports">🐛</a></td>
     <td align="center"><a href="http://rsocketbyexample.info"><img src="https://avatars2.githubusercontent.com/u/46711?v=4" width="100px;" alt=""/><br /><sub><b>Libing Chen</b></sub></a><br /><a href="#ideas-linux-china" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="http://pardini.net"><img src="https://avatars3.githubusercontent.com/u/639959?v=4" width="100px;" alt=""/><br /><sub><b>Ricardo Pardini</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=rpardini" title="Code">💻</a></td>
   </tr>
 </table>
 
