@@ -117,6 +117,29 @@ public class TestEdit extends BaseTest {
 	}
 
 	@Test
+	void testEditJitPackDepAndRepo(@TempDir Path outputDir) throws IOException {
+
+		Path p = outputDir.resolve("edit.java");
+		String s = p.toString();
+		Jbang.getCommandLine().execute("init", s);
+		assertThat(new File(s).exists(), is(true));
+
+		Util.writeString(p, "//DEPS https://github.com/oldskoolsh/libvirt-schema/tree/0.0.2\n" + Util.readString(p));
+
+		Script script = BaseScriptCommand.prepareScript(s);
+
+		File project = new Edit().createProjectForEdit(script, false);
+
+		File gradle = new File(project, "build.gradle");
+		assert (gradle.exists());
+		String buildGradle = Util.readString(gradle.toPath());
+		assertThat(buildGradle, not(containsString("github.com"))); // should be com.github
+		assertThat(buildGradle, containsString("jcenter")); // auto-added jcenter
+		assertThat(buildGradle, containsString("jitpack.io")); // auto-added jitpack repo
+		assertThat(buildGradle, containsString("compile \"com.github.oldskoolsh:libvirt-schema:0.0.2\""));
+	}
+
+	@Test
 	void testEditMultiSource(@TempDir Path outputDir) throws IOException {
 
 		Path p = examplesTestFolder.toPath().resolve("one.java");
