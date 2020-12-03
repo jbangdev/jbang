@@ -2,6 +2,7 @@ package dev.jbang.cli;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
 import static dev.jbang.Util.isWindows;
+import static dev.jbang.Util.verboseMsg;
 import static java.lang.System.out;
 
 import java.io.File;
@@ -100,7 +101,7 @@ public class Edit extends BaseScriptCommand {
 						// we only register "ENTRY_MODIFY" so the context is always a Path.
 						// but relative to the watched directory
 						final Path changed = watched.resolve((Path) event.context());
-						info("Changed file: " + changed.toString());
+						verboseMsg("Changed file: " + changed.toString());
 						if (Files.isSameFile(orginalFile.toPath(), changed)) {
 							try {
 								// TODO only regenerate when dependencies changes.
