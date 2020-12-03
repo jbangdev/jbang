@@ -98,8 +98,9 @@ public class Edit extends BaseScriptCommand {
 					final WatchKey wk = watchService.take();
 					for (WatchEvent<?> event : wk.pollEvents()) {
 						// we only register "ENTRY_MODIFY" so the context is always a Path.
-						final Path changed = (Path) event.context();
-						// info(changed.toString());
+						// but relative to the watched directory
+						final Path changed = watched.resolve((Path) event.context());
+						info("Changed file: " + changed.toString());
 						if (Files.isSameFile(orginalFile.toPath(), changed)) {
 							try {
 								// TODO only regenerate when dependencies changes.
