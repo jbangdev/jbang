@@ -24,6 +24,10 @@ public class ScriptResource {
 		return new ScriptResource(null, null, file);
 	}
 
+	public boolean isURL() {
+		return originalResource != null && Util.isURL(originalResource);
+	}
+
 	public File getFile() {
 		return file;
 	}

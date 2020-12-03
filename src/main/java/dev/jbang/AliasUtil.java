@@ -73,7 +73,11 @@ public class AliasUtil {
 			}
 			if (!isRemoteRef(ref)) {
 				Path script = Paths.get(ref).normalize();
-				script = cwd.relativize(script);
+				if (cwd.getRoot().equals(script.getRoot())) {
+					script = cwd.relativize(script);
+				} else {
+					script = script.toAbsolutePath();
+				}
 				ref = script.toString();
 			}
 			return ref;
@@ -394,7 +398,11 @@ public class AliasUtil {
 					&& !isRemoteRef(baseRef)
 					&& (!isValidName(scriptRef) || Files.isRegularFile(script))) {
 				Path base = Paths.get(baseRef);
-				scriptRef = base.relativize(script.toAbsolutePath()).normalize().toString();
+				if (base.getRoot().equals(script.getRoot())) {
+					scriptRef = base.relativize(script.toAbsolutePath()).normalize().toString();
+				} else {
+					scriptRef = script.toAbsolutePath().normalize().toString();
+				}
 			}
 			if (!isRemoteRef(baseRef)
 					&& !isValidName(scriptRef)

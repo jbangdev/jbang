@@ -84,13 +84,15 @@ public class TestAlias extends BaseTest {
 		TemporaryFolder tmp = new TemporaryFolder();
 		tmp.create();
 		Path tmpPath = tmp.getRoot().toPath();
+		Path testFile = tmpPath.resolve("test.java");
+		Files.write(testFile, "// Test file".getBytes());
 		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), AliasUtil.JBANG_CATALOG_JSON)), is(false));
 		Jbang jbang = new Jbang();
-		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "name", "scriptOrFile");
+		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "--name=name", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), AliasUtil.JBANG_CATALOG_JSON)),
 				is(true));
 		AliasUtil.Alias name = AliasUtil.getAlias(tmpPath, "name");
-		assertThat(name.scriptRef, is("scriptOrFile"));
+		assertThat(name.scriptRef, is(testFile.toString()));
 	}
 
 	@Test
@@ -98,25 +100,29 @@ public class TestAlias extends BaseTest {
 		TemporaryFolder tmp = new TemporaryFolder();
 		tmp.create();
 		Path tmpPath = tmp.getRoot().toPath();
+		Path testFile = tmpPath.resolve("test.java");
+		Files.write(testFile, "// Test file".getBytes());
 		Path hiddenJbangPath = Paths.get(tmpPath.toString(), AliasUtil.JBANG_DOT_DIR);
 		Files.createDirectory(hiddenJbangPath);
 		Files.createFile(Paths.get(tmpPath.toString(), AliasUtil.JBANG_DOT_DIR, AliasUtil.JBANG_CATALOG_JSON));
 		Jbang jbang = new Jbang();
-		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "name", "scriptOrFile");
+		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "--name=name", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), AliasUtil.JBANG_CATALOG_JSON)), is(false));
 		AliasUtil.Alias name = AliasUtil.getAlias(hiddenJbangPath, "name");
-		assertThat(name.scriptRef, is("scriptOrFile"));
+		assertThat(name.scriptRef, is(testFile.toString()));
 	}
 
 	@Test
 	void testAddPreservesExistingCatalog() throws IOException {
 		Path jbangPath = jbangTempDir.getRoot().toPath();
+		Path testFile = jbangPath.resolve("test.java");
+		Files.write(testFile, "// Test file".getBytes());
 		Jbang jbang = new Jbang();
-		new CommandLine(jbang).execute("alias", "add", "-f", jbangPath.toString(), "name", "scriptOrFile");
+		new CommandLine(jbang).execute("alias", "add", "-f", jbangPath.toString(), "--name=name", testFile.toString());
 		AliasUtil.Alias one = AliasUtil.getAlias(jbangPath, "one");
 		AliasUtil.Alias name = AliasUtil.getAlias(jbangPath, "name");
 		assertThat(one.scriptRef, is("http://dummy"));
-		assertThat(name.scriptRef, is("scriptOrFile"));
+		assertThat(name.scriptRef, is(testFile.toString()));
 	}
 
 	@Test
