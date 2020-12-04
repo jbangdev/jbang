@@ -1178,7 +1178,7 @@ i.e. `jbang app install myscript.java` will add `myscript` as a command you can 
 You can also use aliases, like `jbang app install gavsearch@jbangdev`.
 
 If you have two script/apps with same name or just want to use a specific name you can use `--name` to
-control the generated command: `jbang app install mvnsearch gavsearch@jbangdev`
+control the generated command: `jbang app install --name mvnsearch gavsearch@jbangdev`
 
 If you want to see which are already installed use `jbang list` and you can use `jbang uinstall <name>` to uninstall
 the script/app.
