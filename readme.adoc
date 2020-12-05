@@ -61,8 +61,9 @@ toc::[]
 * `.java` Scripting for Java 8 and upwards
 * `.jsh` via JShell from Java 9 and upwards
 * Works on icon:windows[] Windows, icon:apple[] OSX and icon:linux[] Linux
-* Install using SDKMan (icon:apple[]/icon:linux[]), Homebrew (icon:apple[]), Chocolatey (icon:windows[]) or Scoop (icon:windows[])
-* Include multiple files and sources
+* Install using curl, power shell, SDKMan (icon:apple[]/icon:linux[]), Homebrew (icon:apple[]), Chocolatey (icon:windows[]) or Scoop (icon:windows[])
+* Installation of scripts to user `PATH`
+Include multiple files and sources
 * Dependency declarations using `//DEPS <gav>` for automatic dependency resolution
 * Control compile and runtime options with `//JAVAC_OPTIONS <flags>` and `//JAVA_OPTIONS <flags>`
 * Compiled jar and Dependency resolution caching
@@ -85,6 +86,10 @@ Tested and verified to use on OSX, Linux and Windows (incl. command, cygwin and 
 To use `jbang` Java 8 is the minimum required version, however Java 11 or higher is recommended.
 
 Note: `jbang` will download and install `java` from Adopt OpenJDK if no `java` is available.
+
+Once you have installed from one of the below approaches it is recommended you run `jbang app setup`
+to have it setup your `PATH` to include jbang app scripts + it will on operating systems that supports
+it setup a `j!` alias you can use instead of `jbang`.
 
 === SDKMan icon:linux[] / icon:apple[]
 
