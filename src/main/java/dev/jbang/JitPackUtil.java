@@ -110,7 +110,7 @@ public class JitPackUtil {
 		String toGav() {
 			String v;
 			if (version == null) {
-				v = "master-SNAPSHOT";
+				v = "HEAD-SNAPSHOT"; // using HEAD as no longer possible to know what default branch is called.
 			} else if (POSSIBLE_SHA1_PATTERN.matcher(version).matches()) {
 				v = version.substring(0, 10);
 			} else {

@@ -560,7 +560,7 @@ And finally if the link you provide is to a specific branch of the project then 
 |===
 |Link | Locator
 |https://github.com/jbangdev/jbang
-|com.github.jbangdev:jbang:master-SNAPSHOT
+|com.github.jbangdev:jbang:HEAD-SNAPSHOT
 
 |https://github.com/jbangdev/jbang/tree/v1.2.3
 |com.github.jbangdev:jbang:v1.2.3
@@ -569,7 +569,7 @@ And finally if the link you provide is to a specific branch of the project then 
 |com.github.jbangdev:jbang:f1f34b031d
 
 |https://github.com/jbangdev/jbang#mymodule
-|com.github.jbangdev.jbang:mymodule:master-SNAPSHOT
+|com.github.jbangdev.jbang:mymodule:HEAD-SNAPSHOT
 
 |https://github.com/jbangdev/jbang/tree/mybranch#:SNAPSHOT
 |com.github.jbangdev:jbang:mybranch-SNAPSHOT
