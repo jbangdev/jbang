@@ -9,7 +9,7 @@ public class TestJitPack extends BaseTest {
 	@Test
 	void testExtractGithubUrlDependencies() {
 		assertEquals(JitPackUtil.ensureGAV("https://github.com/jbangdev/jbang"),
-				"com.github.jbangdev:jbang:master-SNAPSHOT");
+				"com.github.jbangdev:jbang:HEAD-SNAPSHOT");
 
 		assertEquals(JitPackUtil.ensureGAV("https://github.com/jbangdev/jbang/tree/master"),
 				"com.github.jbangdev:jbang:master-SNAPSHOT");
@@ -30,7 +30,7 @@ public class TestJitPack extends BaseTest {
 	@Test
 	void testExtractGithubUrlWithHashDependencies() {
 		assertEquals(JitPackUtil.ensureGAV("https://github.com/jbangdev/jbang#foo"),
-				"com.github.jbangdev.jbang:foo:master-SNAPSHOT");
+				"com.github.jbangdev.jbang:foo:HEAD-SNAPSHOT");
 
 		assertEquals(JitPackUtil.ensureGAV("https://github.com/jbangdev/jbang/tree/master#foo"),
 				"com.github.jbangdev.jbang:foo:master-SNAPSHOT");
@@ -69,7 +69,7 @@ public class TestJitPack extends BaseTest {
 	@Test
 	void testExtractGitlabUrlDependencies() {
 		assertEquals(JitPackUtil.ensureGAV("https://gitlab.com/gitlab-org/gitlab"),
-				"com.gitlab.gitlab-org:gitlab:master-SNAPSHOT");
+				"com.gitlab.gitlab-org:gitlab:HEAD-SNAPSHOT");
 
 		assertEquals(JitPackUtil.ensureGAV("https://gitlab.com/gitlab-org/gitlab/-/tree/master"),
 				"com.gitlab.gitlab-org:gitlab:master-SNAPSHOT");
@@ -90,7 +90,7 @@ public class TestJitPack extends BaseTest {
 	@Test
 	void testExtractGitlabUrlWithHashDependencies() {
 		assertEquals(JitPackUtil.ensureGAV("https://gitlab.com/gitlab-org/gitlab#foo"),
-				"com.gitlab.gitlab-org.gitlab:foo:master-SNAPSHOT");
+				"com.gitlab.gitlab-org.gitlab:foo:HEAD-SNAPSHOT");
 
 		assertEquals(JitPackUtil.ensureGAV("https://gitlab.com/gitlab-org/gitlab/-/tree/master#foo"),
 				"com.gitlab.gitlab-org.gitlab:foo:master-SNAPSHOT");
@@ -111,7 +111,7 @@ public class TestJitPack extends BaseTest {
 	@Test
 	void testExtractBitbucketUrlDependencies() {
 		assertEquals(JitPackUtil.ensureGAV("https://bitbucket.org/ceylon/ceylon-compiler"),
-				"org.bitbucket.ceylon:ceylon-compiler:master-SNAPSHOT");
+				"org.bitbucket.ceylon:ceylon-compiler:HEAD-SNAPSHOT");
 
 		assertEquals(JitPackUtil.ensureGAV("https://bitbucket.org/ceylon/ceylon-compiler/src/master/"),
 				"org.bitbucket.ceylon:ceylon-compiler:master-SNAPSHOT");
@@ -131,7 +131,7 @@ public class TestJitPack extends BaseTest {
 	@Test
 	void testExtractBitbucketUrlWithHashDependencies() {
 		assertEquals(JitPackUtil.ensureGAV("https://bitbucket.org/ceylon/ceylon-compiler#foo"),
-				"org.bitbucket.ceylon.ceylon-compiler:foo:master-SNAPSHOT");
+				"org.bitbucket.ceylon.ceylon-compiler:foo:HEAD-SNAPSHOT");
 
 		assertEquals(JitPackUtil.ensureGAV("https://bitbucket.org/ceylon/ceylon-compiler/src/master/#foo"),
 				"org.bitbucket.ceylon.ceylon-compiler:foo:master-SNAPSHOT");
