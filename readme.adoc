@@ -177,57 +177,6 @@ To upgrade to latest version:
 
   brew upgrade jbangdev/tap/jbang
 
-==== Installing older versions via Homebrew
-
-If you encounter an issue in `jbang` that is not present in an older version,
-you can revert back to that older version following these steps:
-
-. Find the commit id for the version to revert to (e.g. `0.8.1`).
-+
-[source]
-----
-$ cd "$(brew --repo jbangdev/tap)"
-$ git log master -- Formula/jbang.rb
-...
-commit fd70f1bc0a7f69d81cfb5b08a0d2bb698fbd01b2
-Author: Max Rydahl Andersen <max@xam.dk>
-Date:   Tue Jan 21 00:33:05 2020 +0000
-
-    jbang v0.8.1
-----
-
-. Checkout the version.
-+
-[source,bash]
-----
-$ git checkout fd70f1bc0a7f69d81cfb5b08a0d2bb698fbd01b
-----
-
-. Unlink current `jbang` version.
-+
-[source,bash]
-----
-$ brew unlink jbang
-Unlinking /usr/local/Cellar/jbang/0.13.2... 1 symlinks removed
-----
-
-. Install the older version.
-+
-[source,bash]
-----
-$ HOMEBREW_NO_AUTO_UPDATE=1 brew install jbang
-...
-🍺  /usr/local/Cellar/jbang/0.8.1: 18 files, 2.9MB, built in 6 seconds
-----
-
-. Verify the version.
-+
-[source,bash]
-----
-$ jbang version
-0.33.0
-----
-
 === (Experimental) Linux packages icon:linux[]
 
 WARNING: These builds are not fully automated yet thus might be slightly behind.
