@@ -3,6 +3,7 @@ package dev.jbang;
 import static dev.jbang.Util.writeString;
 import static dev.jbang.cli.BaseScriptCommand.prepareScript;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -134,6 +135,23 @@ public class TestScript extends BaseTest {
 			+ "		System.out.println(\"Bye!!!\");\n"
 			+ "    }\n"
 			+ "}";
+
+	String exampleCommandsWithComments = "//DEPS info.picocli:picocli:4.5.0 // <.>\n" +
+			"//JAVA 14+ // <.>\n" +
+			"//JAVAC_OPTIONS commons-codec:commons-codec:1.15 // <.>\n" +
+			"public class test {" +
+			"}";
+
+	@Test
+	void testCommentsDoesNotGetPickedUp() {
+		Script script = new Script(exampleCommandsWithComments, null, null);
+
+		assertEquals(script.javaVersion(), "14+");
+
+		List<String> deps = script.collectDependencies();
+
+		assertThat(deps, containsInAnyOrder("info.picocli:picocli:4.5.0"));
+	}
 
 	@Test
 	void testFindDependencies() {

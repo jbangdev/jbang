@@ -207,6 +207,7 @@ public class Script {
 		List<String> lines = getLines();
 
 		List<String> javaOptions = lines.stream()
+										.map(it -> it.split(" // ")[0]) // strip away nested comments.
 										.filter(it -> it.startsWith(joptsPrefix + " ")
 												|| it.startsWith(joptsPrefix + "\t") || it.equals(joptsPrefix))
 										.map(it -> it.replaceFirst(joptsPrefix, "").trim())
@@ -321,7 +322,7 @@ public class Script {
 
 	public static Stream<String> extractRepositories(String line) {
 		if (line.startsWith(REPOS_COMMENT_PREFIX)) {
-			return Arrays.stream(line.split("[ ;,]+")).skip(1).map(String::trim);
+			return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
 		}
 
 		if (line.contains(REPOS_ANNOT_PREFIX)) {
@@ -352,7 +353,7 @@ public class Script {
 
 	static Stream<String> extractDependencies(String line) {
 		if (line.startsWith(DEPS_COMMENT_PREFIX)) {
-			return Arrays.stream(line.split("[ ;,]+")).skip(1).map(String::trim);
+			return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
 		}
 
 		if (line.contains(DEPS_ANNOT_PREFIX)) {
@@ -570,7 +571,7 @@ public class Script {
 	}
 
 	static public FileRef toFileRef(Script source, String fileReference) {
-		String[] split = fileReference.split("=");
+		String[] split = fileReference.split(" // ")[0].split("=");
 		String ref = null;
 		String dest = null;
 
@@ -619,7 +620,9 @@ public class Script {
 		if (filerefs == null) {
 			filerefs = getLines()	.stream()
 									.filter(f -> f.startsWith(FILES_COMMENT_PREFIX))
-									.flatMap(line -> Arrays.stream(line.split("[ ;,]+")).skip(1).map(String::trim))
+									.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
+															.skip(1)
+															.map(String::trim))
 									.map(PropertiesValueResolver::replaceProperties)
 									.map(line -> toFileRef(this, line))
 									.collect(Collectors.toCollection(ArrayList::new));
@@ -635,7 +638,9 @@ public class Script {
 			} else {
 				sources = getLines().stream()
 									.filter(f -> f.startsWith(SOURCES_COMMENT_PREFIX))
-									.flatMap(line -> Arrays.stream(line.split("[ ;,]+")).skip(1).map(String::trim))
+									.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
+															.skip(1)
+															.map(String::trim))
 									.map(PropertiesValueResolver::replaceProperties)
 									.flatMap(line -> Util
 															.explode(getScriptResource().getOriginalResource(),
