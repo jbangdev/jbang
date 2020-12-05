@@ -1,7 +1,10 @@
 package dev.jbang;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
-import static dev.jbang.Util.*;
+import static dev.jbang.Util.errorMsg;
+import static dev.jbang.Util.infoHeader;
+import static dev.jbang.Util.infoMsg;
+import static dev.jbang.Util.infoMsgFmt;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,7 +14,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.jboss.shrinkwrap.resolver.api.maven.*;
+import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
+import org.jboss.shrinkwrap.resolver.api.maven.MavenFormatStage;
+import org.jboss.shrinkwrap.resolver.api.maven.MavenResolvedArtifact;
+import org.jboss.shrinkwrap.resolver.api.maven.MavenStrategyStage;
+import org.jboss.shrinkwrap.resolver.api.maven.PackagingType;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinates;
 
@@ -70,12 +78,13 @@ public class DependencyUtil {
 		}
 
 		String depsHash = String.join(CP_SEPARATOR, depIds);
+		if (!transitivity) { // the cached key need to be different for non-transivity
+			depsHash = "notransitivity-" + depsHash;
+		}
 
 		List<ArtifactInfo> cachedDeps = null;
 
-		if (transitivity) {
-			cachedDeps = Settings.findDependenciesInCache(depsHash);
-		}
+		cachedDeps = Settings.findDependenciesInCache(depsHash);
 
 		if (cachedDeps != null)
 			return new ModularClassPath(cachedDeps);
@@ -94,9 +103,7 @@ public class DependencyUtil {
 				infoMsg("Dependencies resolved");
 			}
 
-			if (transitivity) { // only cache when doing transitive lookups
-				Settings.cacheDependencies(depsHash, classPath.getArtifacts());
-			}
+			Settings.cacheDependencies(depsHash, classPath.getArtifacts());
 
 			// Print the classpath
 			return classPath;
