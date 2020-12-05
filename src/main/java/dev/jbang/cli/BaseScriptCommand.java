@@ -245,7 +245,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 
 			File tempFile = Settings.getCacheDir(Settings.CacheClass.scripts)
 									.resolve(urlHash)
-									.resolve(unkebabify(probe.getName()))
+									.resolve(Util.unkebabify(probe.getName()))
 									.toFile();
 			tempFile.getParentFile().mkdirs();
 			Util.writeString(tempFile.toPath().toAbsolutePath(), original);
@@ -287,20 +287,6 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		}
 
 		return result;
-	}
-
-	/**
-	 * @param name script name
-	 * @return camel case of kebab string if name does not end with .java or .jsh
-	 */
-	static String unkebabify(String name) {
-		if (name.endsWith(".sh")) {
-			name = name.substring(0, name.length() - 3);
-		}
-		if (!(name.endsWith(".java") || name.endsWith(".jsh"))) {
-			name = Util.kebab2camel(name) + ".java";
-		}
-		return name;
 	}
 
 	private static ScriptResource fetchFromURL(String scriptURL) {

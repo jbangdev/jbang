@@ -57,7 +57,13 @@ import org.xml.sax.SAXException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 
-import dev.jbang.*;
+import dev.jbang.AliasUtil;
+import dev.jbang.BaseTest;
+import dev.jbang.ExitException;
+import dev.jbang.Script;
+import dev.jbang.ScriptResource;
+import dev.jbang.Settings;
+import dev.jbang.Util;
 
 import picocli.CommandLine;
 
@@ -1121,4 +1127,24 @@ public class TestRun extends BaseTest {
 		}
 	}
 
+	@Test
+	void testExtensionlessHttp() throws IOException {
+
+		wms.stubFor(WireMock.get(urlEqualTo("/sub/one"))
+							.willReturn(aResponse()
+													.withHeader("Content-Type", "text/plain")
+													.withBody("\n" +
+															"public class one {" +
+															"public static void main(String... args) {" +
+															"System.out.println(new one());" +
+															"}" +
+															"}")));
+
+		wms.start();
+		Run m = new Run();
+
+		Script script = prepareScript("http://localhost:" + wms.port() + "/sub/one", null, null, null, null);
+
+		m.build(script);
+	}
 }

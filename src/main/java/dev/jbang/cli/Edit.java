@@ -139,7 +139,7 @@ public class Edit extends BaseScriptCommand {
 		File baseDir = Settings.getCacheDir(Settings.CacheClass.projects).toFile();
 
 		String name = originalFile.getName();
-		name = unkebabify(name);
+		name = Util.unkebabify(name);
 
 		File tmpProjectDir = new File(baseDir, name + "_jbang_" +
 				Util.getStableID(originalFile.getAbsolutePath()));

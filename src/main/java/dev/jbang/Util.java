@@ -164,6 +164,20 @@ public class Util {
 		return results;
 	}
 
+	/**
+	 * @param name script name
+	 * @return camel case of kebab string if name does not end with .java or .jsh
+	 */
+	public static String unkebabify(String name) {
+		if (name.endsWith(".sh")) {
+			name = name.substring(0, name.length() - 3);
+		}
+		if (!(name.endsWith(".java") || name.endsWith(".jsh"))) {
+			name = kebab2camel(name) + ".java";
+		}
+		return name;
+	}
+
 	public enum OS {
 		linux, mac, windows
 	}
@@ -380,7 +394,19 @@ public class Util {
 			}
 		}
 
-		return path;
+		// to handle if kubectl-style name (i.e. extension less)
+		File f = path.toFile();
+		String nonkebabname = unkebabify(f.getName());
+		if (nonkebabname.equals(f.getName())) {
+			return path;
+		} else {
+			File newfile = new File(f.getParent(), nonkebabname);
+			if (f.renameTo(newfile)) {
+				return newfile.toPath();
+			} else {
+				throw new IllegalStateException("Could not rename downloaded extension-less file to proper .java file");
+			}
+		}
 	}
 
 	static private String agent;
