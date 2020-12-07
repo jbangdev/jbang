@@ -378,7 +378,7 @@ That means you can run a script as `jbang -Dkey=value World helloworld.jsh` and 
 [source,java]
 ----
 System.out.println("Hello " + (args.length>0?args[0]:"World")); // <.>
-System.getProperty("key"); // <.>
+System.out.println(System.getProperty("key")); // <.>
 ----
 <.> Line where `args` are accessible without previous declaration.
 <.> System properties set when passed as `-D` arguments to `jbang`
