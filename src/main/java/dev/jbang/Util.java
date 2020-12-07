@@ -662,7 +662,7 @@ public class Util {
 		Util.verboseMsg("Gist url api: " + gistapi);
 		String strdata = null;
 		try {
-			strdata = readStringFromURL(gistapi);
+			strdata = readStringFromURL(gistapi, getGitHubHeaders());
 		} catch (IOException e) {
 			Util.verboseMsg("Error when extracting file from gist url.");
 			throw new IllegalStateException(e);
@@ -699,6 +699,14 @@ public class Util {
 		return rawURL;
 	}
 
+	private static Map<String, String> getGitHubHeaders() {
+		if (System.getenv().containsKey("GITHUB_TOKEN")) {
+			return Collections.singletonMap("Authorization", "token " + System.getenv("GITHUB_TOKEN"));
+		} else {
+			return Collections.emptyMap();
+		}
+	}
+
 	private static String getFileNameFromGistURL(String url) {
 		String fileName = "";
 		String[] pathPlusAnchor = url.split("#");
@@ -713,8 +721,10 @@ public class Util {
 		return fileName;
 	}
 
-	static String readStringFromURL(String requestURL) throws IOException {
-		try (Scanner scanner = new Scanner(new URL(requestURL).openStream(),
+	static String readStringFromURL(String requestURL, Map<String, String> headers) throws IOException {
+		URLConnection connection = new URL(requestURL).openConnection();
+		headers.forEach(connection::setRequestProperty);
+		try (Scanner scanner = new Scanner(connection.getInputStream(),
 				StandardCharsets.UTF_8.toString())) {
 			scanner.useDelimiter("\\A");
 			return scanner.hasNext() ? scanner.next() : "";
