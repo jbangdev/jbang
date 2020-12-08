@@ -25,6 +25,7 @@ public class ModularClassPath {
 	public String getClassPath() {
 		if (classPath == null) {
 			classPath = artifacts	.stream()
+									.filter(it -> it.asFile().getPath().endsWith(".jar"))
 									.map(it -> it.asFile().getAbsolutePath())
 									.map(it -> it.contains(" ") ? '"' + it + '"' : it)
 									.distinct()
