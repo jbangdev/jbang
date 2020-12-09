@@ -64,7 +64,7 @@ public class AliasUtil {
 		 */
 		public String resolve(Path cwd) {
 			if (cwd == null) {
-				cwd = getCwd();
+				cwd = Util.getCwd();
 			}
 			String baseRef = catalog.getScriptBase();
 			String ref = scriptRef;
@@ -384,7 +384,7 @@ public class AliasUtil {
 			List<String> arguments,
 			Map<String, String> properties) {
 		if (cwd == null) {
-			cwd = getCwd();
+			cwd = Util.getCwd();
 		}
 		catalogFile = cwd.resolve(catalogFile);
 		Catalog catalog = getCatalog(catalogFile, true);
@@ -531,7 +531,7 @@ public class AliasUtil {
 	 */
 	public static Catalog getMergedCatalog(Path cwd, boolean includeImplicits) {
 		if (cwd == null) {
-			cwd = getCwd();
+			cwd = Util.getCwd();
 		}
 		Catalog result = new Catalog(null, null, null);
 		if (includeImplicits) {
@@ -656,7 +656,7 @@ public class AliasUtil {
 	public static CatalogRef addCatalog(Path cwd, Path catalogFile, String name, String catalogRef,
 			String description) {
 		if (cwd == null) {
-			cwd = getCwd();
+			cwd = Util.getCwd();
 		}
 		catalogFile = cwd.resolve(catalogFile);
 		Catalog catalog = getCatalog(catalogFile, true);
@@ -715,7 +715,7 @@ public class AliasUtil {
 
 	private static Path findNearestFileWith(Path dir, String fileName, Function<Path, Boolean> accept) {
 		if (dir == null) {
-			dir = getCwd();
+			dir = Util.getCwd();
 		}
 		while (dir != null) {
 			Path catalog = dir.resolve(fileName);
@@ -758,7 +758,4 @@ public class AliasUtil {
 						.flatMap(o -> o.map(Stream::of).orElseGet(Stream::empty));
 	}
 
-	private static Path getCwd() {
-		return Paths.get("").toAbsolutePath();
-	}
 }
