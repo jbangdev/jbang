@@ -51,7 +51,7 @@ public class Edit extends BaseScriptCommand {
 			enableInsecure();
 		}
 
-		script = prepareScript(scriptOrFile, userParams);
+		script = prepareScript(scriptOrFile);
 		File project = createProjectForEdit(script, false);
 		// err.println(project.getAbsolutePath());
 
@@ -106,7 +106,7 @@ public class Edit extends BaseScriptCommand {
 							try {
 								// TODO only regenerate when dependencies changes.
 								info("Regenerating project.");
-								script = prepareScript(scriptOrFile, userParams);
+								script = prepareScript(scriptOrFile);
 								createProjectForEdit(script, true);
 							} catch (RuntimeException ee) {
 								warn("Error when re-generating project. Ignoring it, but state might be undefined: "

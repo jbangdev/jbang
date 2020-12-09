@@ -59,9 +59,6 @@ public abstract class BaseScriptCommand extends BaseCommand {
 	@CommandLine.Parameters(index = "0", arity = "1", description = "A file with java code or if named .jsh will be run with jshell")
 	String scriptOrFile;
 
-	@CommandLine.Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
-	List<String> userParams = new ArrayList<>();
-
 	protected Script script;
 
 	protected void enableInsecure() {
