@@ -111,7 +111,7 @@ public class Edit extends BaseScriptCommand {
 			try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
 				File orginalFile = src.getResourceRef().getFile();
 				if (!orginalFile.exists()) {
-					throw new ExitException(2, "Cannot live edit " + src.getResourceRef().getOriginalResource());
+					throw new ExitException(EXIT_UNEXPECTED_STATE, "Cannot live edit " + src.getResourceRef().getOriginalResource());
 				}
 				Path watched = orginalFile.getAbsoluteFile().getParentFile().toPath();
 				watched.register(watchService,
@@ -187,7 +187,7 @@ public class Edit extends BaseScriptCommand {
 			}
 
 			if (abort)
-				throw new ExitException(10,
+				throw new ExitException(EXIT_GENERIC_ERROR,
 						"No default editor configured and automatic download not accepted.\n Please try again accepting the download or use an explicit editor, i.e. `jbang edit --open=eclipse xyz.java`");
 
 			editorPath = EditorManager.downloadAndInstallEditor();
@@ -386,7 +386,7 @@ public class Edit extends BaseScriptCommand {
 			throws IOException {
 		Template template = engine.getTemplate(templateName);
 		if (template == null)
-			throw new ExitException(1, "Could not locate template named: '" + templateName + "'");
+			throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateName + "'");
 		String result = template
 								.data("repositories",
 										repositories.stream()

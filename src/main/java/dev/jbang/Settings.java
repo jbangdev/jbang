@@ -125,4 +125,8 @@ public class Settings {
 		return getConfigDir().resolve(Catalog.JBANG_IMPLICIT_CATALOG_JSON);
 	}
 
+	public static Path getUserConfigFile() {
+		return getConfigDir().resolve(Configuration.JBANG_CONFIG_JSON);
+	}
+
 }

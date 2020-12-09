@@ -227,12 +227,11 @@ public class Catalog {
 	public static Catalog getMerged(boolean includeImplicits) {
 		List<Catalog> catalogs = new ArrayList<>();
 		findNearestCatalogWith(Util.getCwd(), cat -> {
-			catalogs.add(cat);
+			catalogs.add(0, cat);
 			return false;
 		});
 
 		Catalog result = Catalog.empty();
-		Collections.reverse(catalogs);
 		for (Catalog catalog : catalogs) {
 			if (!includeImplicits
 					&& catalog.catalogRef.getFile().toPath().equals(Settings.getUserImplicitCatalogFile())) {
