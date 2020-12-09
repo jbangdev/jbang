@@ -31,6 +31,33 @@ public class TestApp extends BaseTest {
 	}
 
 	@Test
+	void testAppInstallFileExists() throws IOException {
+		ExecutionResult result = checkedRun(null, "app", "install", "examples/helloworld.java");
+		assertThat(result.err, containsString("Command installed: helloworld"));
+		if (Util.isWindows()) {
+			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_EXECUTE));
+		} else {
+			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_OK));
+		}
+		result = checkedRun(null, "app", "install", "examples/helloworld.java");
+		assertThat(result.err,
+				containsString("A script with name 'helloworld' already exists, use '--force' to install anyway."));
+	}
+
+	@Test
+	void testAppInstallFileForce() throws IOException {
+		ExecutionResult result = checkedRun(null, "app", "install", "examples/helloworld.java");
+		assertThat(result.err, containsString("Command installed: helloworld"));
+		if (Util.isWindows()) {
+			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_EXECUTE));
+		} else {
+			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_OK));
+		}
+		result = checkedRun(null, "app", "install", "--force", "examples/helloworld.java");
+		assertThat(result.err, containsString("Command installed: helloworld"));
+	}
+
+	@Test
 	void testAppInstallFileWithName() throws IOException {
 		ExecutionResult result = checkedRun(null, "app", "install", "--name=hello", "examples/helloworld.java");
 		assertThat(result.err, containsString("Command installed: hello"));
@@ -42,6 +69,33 @@ public class TestApp extends BaseTest {
 			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_OK));
 			assertThat(Settings.getConfigBinDir().resolve("hello").toFile(), anExistingFile());
 		}
+	}
+
+	@Test
+	void testAppInstallFileWithNameExists() throws IOException {
+		ExecutionResult result = checkedRun(null, "app", "install", "--name=hello", "examples/helloworld.java");
+		assertThat(result.err, containsString("Command installed: hello"));
+		if (Util.isWindows()) {
+			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_EXECUTE));
+		} else {
+			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_OK));
+		}
+		result = checkedRun(null, "app", "install", "--name=hello", "examples/helloworld.java");
+		assertThat(result.err,
+				containsString("A script with name 'hello' already exists, use '--force' to install anyway."));
+	}
+
+	@Test
+	void testAppInstallFileWithNameForce() throws IOException {
+		ExecutionResult result = checkedRun(null, "app", "install", "--name=hello", "examples/helloworld.java");
+		assertThat(result.err, containsString("Command installed: hello"));
+		if (Util.isWindows()) {
+			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_EXECUTE));
+		} else {
+			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_OK));
+		}
+		result = checkedRun(null, "app", "install", "--force", "--name=hello", "examples/helloworld.java");
+		assertThat(result.err, containsString("Command installed: hello"));
 	}
 
 	@Test

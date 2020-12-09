@@ -77,15 +77,15 @@ class AppInstall extends BaseCommand {
 
 	public static boolean install(String name, String scriptRef, boolean force) throws IOException {
 		Path binDir = Settings.getConfigBinDir();
-		if (name != null && existScripts(binDir, name)) {
-			Util.infoMsg("A script with name '" + name + "' already exists.");
+		if (!force && name != null && existScripts(binDir, name)) {
+			Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
 			return false;
 		}
 		Script script = BaseScriptCommand.prepareScript(scriptRef);
 		if (name == null) {
 			name = chooseCommandName(script);
-			if (existScripts(binDir, name)) {
-				Util.infoMsg("A script with name '" + name + "' already exists.");
+			if (!force && existScripts(binDir, name)) {
+				Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
 				return false;
 			}
 		}
