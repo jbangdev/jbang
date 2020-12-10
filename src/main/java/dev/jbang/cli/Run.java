@@ -50,6 +50,9 @@ public class Run extends BaseBuildCommand {
 	@CommandLine.Option(names = { "--interactive" }, description = "activate interactive mode")
 	boolean interactive;
 
+	@CommandLine.Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
+	List<String> userParams = new ArrayList<>();
+
 	@Override
 	public Integer doCall() throws IOException {
 		if (insecure) {
@@ -166,7 +169,7 @@ public class Run extends BaseBuildCommand {
 
 				if (optionActive(cds(), script.enableCDS())) {
 					String cdsJsa = script.getJar().getAbsolutePath() + ".jsa";
-					if (script.wasJarCreated()) {
+					if (createdJar) {
 						debug("CDS: Archiving Classes At Exit at " + cdsJsa);
 						optionalArgs.add("-XX:ArchiveClassesAtExit=" + cdsJsa);
 					} else {

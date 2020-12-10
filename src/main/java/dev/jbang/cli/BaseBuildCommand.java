@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -27,15 +28,7 @@ import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
 import org.jboss.jandex.Type;
 
-import dev.jbang.ExitException;
-import dev.jbang.FileRef;
-import dev.jbang.IntegrationManager;
-import dev.jbang.IntegrationResult;
-import dev.jbang.JavaUtil;
-import dev.jbang.JdkManager;
-import dev.jbang.Script;
-import dev.jbang.Settings;
-import dev.jbang.Util;
+import dev.jbang.*;
 
 import io.quarkus.qute.Template;
 import picocli.CommandLine;
@@ -89,6 +82,8 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 	boolean fresh;
 
 	PrintStream out = new PrintStream(new FileOutputStream(FileDescriptor.out));
+
+	protected boolean createdJar;
 
 	// build with javac and then jar... todo: split up in more testable chunks
 	void build(Script script) throws IOException {
@@ -287,7 +282,8 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 			}
 		}
 		script.setPersistentJvmArgs(integrationResult.javaArgs);
-		script.createJarFile(tmpJarDir, outjar);
+		createJarFile(script, tmpJarDir, outjar);
+		createdJar = true;
 		return integrationResult;
 	}
 
@@ -325,8 +321,63 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		}
 	}
 
+	static void createJarFile(Script script, File path, File output) throws IOException {
+		String mainclass = script.getMainClass();
+		Manifest manifest = new Manifest();
+		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
+		if (mainclass != null) {
+			manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, mainclass);
+		}
+
+		if (script.isAgent()) {
+			if (script.getPreMainClass() != null) {
+				manifest.getMainAttributes().put(new Attributes.Name("Premain-Class"), script.getPreMainClass());
+			}
+			if (script.getAgentMainClass() != null) {
+				manifest.getMainAttributes().put(new Attributes.Name("Agent-Class"), script.getAgentMainClass());
+			}
+
+			for (KeyValue kv : script.getAgentOptions()) {
+				if (kv.getKey().trim().isEmpty()) {
+					continue;
+				}
+				Attributes.Name k = new Attributes.Name(kv.getKey());
+				String v = kv.getValue() == null ? "true" : kv.getValue();
+				manifest.getMainAttributes().put(k, v);
+			}
+
+			if (script.getClassPath() != null) {
+				String bootClasspath = script.getClassPath().getManifestPath();
+				if (!bootClasspath.isEmpty()) {
+					manifest.getMainAttributes().put(new Attributes.Name("Boot-Class-Path"), bootClasspath);
+				}
+			}
+		} else {
+			if (script.getClassPath() != null) {
+				String classpath = script.getClassPath().getManifestPath();
+				if (!classpath.isEmpty()) {
+					manifest.getMainAttributes().put(new Attributes.Name("Class-Path"), classpath);
+				}
+			}
+		}
+
+		if (script.getPersistentJvmArgs() != null) {
+			manifest.getMainAttributes()
+					.putValue("JBang-Java-Options", String.join(" ", script.getPersistentJvmArgs()));
+		}
+		int buildJdk = script.getBuildJdk();
+		if (buildJdk > 0) {
+			String val = buildJdk >= 9 ? Integer.toString(buildJdk) : "1." + buildJdk;
+			manifest.getMainAttributes().putValue("Build-Jdk", val);
+		}
+
+		FileOutputStream target = new FileOutputStream(output);
+		JarUtil.jar(target, path.listFiles(), null, null, manifest);
+		target.close();
+	}
+
 	/** based on jar what will the binary image name be. **/
-	protected File getImageName(File outjar) {
+	static protected File getImageName(File outjar) {
 		if (Util.isWindows()) {
 			return new File(outjar.toString() + ".exe");
 		} else {
@@ -343,7 +394,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		return mainClass.toString();
 	}
 
-	String resolveInJavaHome(String cmd, String requestedVersion) {
+	protected static String resolveInJavaHome(String cmd, String requestedVersion) {
 		Path jdkHome = JdkManager.getCurrentJdk(requestedVersion);
 		if (jdkHome != null) {
 			if (Util.isWindows()) {
@@ -354,7 +405,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		return cmd;
 	}
 
-	String resolveInGraalVMHome(String cmd, String requestedVersion) {
+	private static String resolveInGraalVMHome(String cmd, String requestedVersion) {
 		String newcmd = resolveInEnv("GRAALVM_HOME", cmd);
 
 		if (newcmd.equals(cmd) &&

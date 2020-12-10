@@ -465,7 +465,7 @@ public class TestRun extends BaseTest {
 
 		Script s = new Script("", null, null);
 		s.setMainClass("wonkabear");
-		s.createJarFile(dir, out);
+		BaseBuildCommand.createJarFile(s, dir, out);
 
 		try (JarFile jf = new JarFile(out)) {
 
@@ -846,7 +846,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("build", p.toFile().getAbsolutePath());
 		Build run = (Build) pr.subcommand().commandSpec().userObject();
 
-		Script s = prepareScript(p.toFile().getAbsolutePath(), run.userParams, run.properties, run.dependencies,
+		Script s = prepareScript(p.toFile().getAbsolutePath(), null, run.properties, run.dependencies,
 				run.classpaths);
 
 		run.build(s);
@@ -875,7 +875,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("build", p.toFile().getAbsolutePath());
 		Build run = (Build) pr.subcommand().commandSpec().userObject();
 
-		Script s = prepareScript(p.toFile().getAbsolutePath(), run.userParams, run.properties, run.dependencies,
+		Script s = prepareScript(p.toFile().getAbsolutePath(), null, run.properties, run.dependencies,
 				run.classpaths);
 
 		run.build(s);

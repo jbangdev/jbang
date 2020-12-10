@@ -46,7 +46,7 @@ import picocli.CommandLine.Model.UsageMessageSpec;
 
 		"" }, versionProvider = VersionProvider.class, subcommands = {
 				Run.class, Build.class, Edit.class, Init.class, Alias.class, Catalog.class, Trust.class, Cache.class,
-				Completion.class, Jdk.class, Version.class, Wrapper.class, Info.class, App.class })
+				Completion.class, Jdk.class, Version.class, Wrapper.class, Info.class, App.class, Export.class })
 public class Jbang extends BaseCommand {
 
 	@CommandLine.ArgGroup(exclusive = true)
@@ -125,7 +125,7 @@ public class Jbang extends BaseCommand {
 		Map<String, List<String>> sections = new LinkedHashMap<>();
 		sections.put("Essentials", asList("run", "build"));
 		sections.put("Editing", asList("init", "edit"));
-		sections.put("Caching", asList("cache", "jdk"));
+		sections.put("Caching", asList("cache", "export", "jdk"));
 		sections.put("Configuration", asList("trust", "alias", "catalog", "app"));
 		sections.put("Other", asList("completion", "info", "version", "wrapper"));
 		CommandGroupRenderer renderer = new CommandGroupRenderer(sections);

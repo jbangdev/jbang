@@ -921,4 +921,8 @@ public class Util {
 		return false;
 	}
 
+	public static Path getCwd() {
+		return Paths.get("").toAbsolutePath();
+	}
+
 }

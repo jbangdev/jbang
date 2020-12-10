@@ -54,7 +54,7 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 			enableInsecure();
 		}
 
-		script = prepareScript(scriptOrFile, userParams);
+		script = prepareScript(scriptOrFile);
 
 		ScriptInfo info = new ScriptInfo(script);
 
