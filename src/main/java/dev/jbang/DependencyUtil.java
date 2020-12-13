@@ -31,6 +31,8 @@ public class DependencyUtil {
 	public static final String ALIAS_JCENTER = "jcenter";
 	public static final String ALIAS_GOOGLE = "google";
 	public static final String ALIAS_MAVEN_CENTRAL = "mavenCentral";
+	public static final String ALIAS_MAVEN_LOCAL = "mavenLocal";
+
 	public static final String ALIAS_JITPACK = "jitpack";
 
 	public static final String REPO_JCENTER = "https://jcenter.bintray.com/";
@@ -127,6 +129,8 @@ public class DependencyUtil {
 		customRepos.stream().forEach(mavenRepo -> {
 			mavenRepo.apply(resolver);
 		});
+
+		Util.verboseMsg("Local maven repo: " + Settings.getLocalMavenRepo().toPath().toAbsolutePath().toString());
 
 		System.setProperty("maven.repo.local", Settings.getLocalMavenRepo().toPath().toAbsolutePath().toString());
 
@@ -245,10 +249,17 @@ public class DependencyUtil {
 		} else if (ALIAS_JBOSS.equalsIgnoreCase(reporef)) {
 			return new MavenRepo(Optional.ofNullable(repoid).orElse(ALIAS_JBOSS), REPO_JBOSS);
 		} else if (ALIAS_MAVEN_CENTRAL.equalsIgnoreCase(reporef)) {
-			return new MavenRepo("", "") {
+			return new MavenRepo("mavenCentral", "") {
 				@Override
 				public void apply(ConfigurableMavenResolverSystem resolver) {
 					resolver.withMavenCentralRepo(true);
+				}
+			};
+		} else if (ALIAS_MAVEN_CENTRAL.equalsIgnoreCase(reporef)) {
+			return new MavenRepo("mavenLocal", "") {
+				@Override
+				public void apply(ConfigurableMavenResolverSystem resolver) {
+					resolver.useLegacyLocalRepo(true);
 				}
 			};
 		} else if (ALIAS_JITPACK.equalsIgnoreCase(reporef)) {

@@ -551,8 +551,11 @@ For ease of use there are also a few shorthands to use popular commonly availabl
 
 |===
 |Short name | Description
-|`mavencentral`
+|`mavenCentral`
 |Maven Central
+
+|`mavenLocal`
+|Local maven repository (only use if you know you need it)
 
 |`jcenter`
 |`https://jcenter.bintray.com/`
