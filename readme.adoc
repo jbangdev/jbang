@@ -336,8 +336,8 @@ You can see more in the comments of the `~/.jbang/trusted-sources.json`.
 
 [TIP]
 ====
-Sites such as GitHub, gitlab, bitbucket, gist, twitter and carbon.now.sh jbang will try and extract the proper source rather than the raw html.
-i.e. doing `jbang https://twitter.com/maxandersen/status/1266904846239752192 twitter!` is possible.
+Sites such as GitHub, gitlab, bitbucket, gist, carbon.now.sh jbang will try and extract the proper source rather than the raw html.
+i.e. doing `jbang https://carbon.now.sh/ae51bf967c98f31a13cba976903030d5 carbon!` is possible.
 ====
 
 [TIP]
