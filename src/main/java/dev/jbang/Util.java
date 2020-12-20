@@ -396,7 +396,10 @@ public class Util {
 
 		// to handle if kubectl-style name (i.e. extension less)
 		File f = path.toFile();
-		String nonkebabname = unkebabify(f.getName());
+		String nonkebabname = f.getName();
+		if (!f.getName().endsWith(".jar")) { // avoid directly downloaded jar files getting renamed to .java
+			nonkebabname = unkebabify(f.getName());
+		}
 		if (nonkebabname.equals(f.getName())) {
 			return path;
 		} else {
