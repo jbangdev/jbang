@@ -8,7 +8,9 @@ import static dev.jbang.Util.infoMsgFmt;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,19 +27,20 @@ import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinates;
 
 public class DependencyUtil {
 
-	public static final String ALIAS_JBOSS = "jbossorg";
-	public static final String ALIAS_REDHAT = "redhat";
-
-	public static final String ALIAS_JCENTER = "jcenter";
-	public static final String ALIAS_GOOGLE = "google";
-	public static final String ALIAS_MAVEN_CENTRAL = "mavenCentral";
 	public static final String ALIAS_JITPACK = "jitpack";
-
-	public static final String REPO_JCENTER = "https://jcenter.bintray.com/";
-	public static final String REPO_GOOGLE = "https://maven.google.com/";
 	public static final String REPO_JITPACK = "https://jitpack.io/";
-	public static final String REPO_REDHAT = "https://maven.repository.redhat.com/ga/";
-	public static final String REPO_JBOSS = "https://repository.jboss.org/nexus/content/groups/public/";
+
+	private static final Map<String, String> aliasToRepos;
+
+	static {
+		aliasToRepos = new HashMap<>();
+		aliasToRepos.put("jbossorg", "https://repository.jboss.org/nexus/content/groups/public/");
+		aliasToRepos.put("redhat", "https://maven.repository.redhat.com/ga/");
+		aliasToRepos.put("jcenter", "https://jcenter.bintray.com/");
+		aliasToRepos.put("google", "https://maven.google.com/");
+		aliasToRepos.put(ALIAS_JITPACK, REPO_JITPACK);
+		aliasToRepos.put("sponge", "https://repo.spongepowered.org/maven");
+	}
 
 	public static final Pattern gavPattern = Pattern.compile(
 			"^(?<groupid>[^:]*):(?<artifactid>[^:]*):(?<version>[^:@]*)(:(?<classifier>[^@]*))?(@(?<type>.*))?$");
@@ -236,23 +239,16 @@ public class DependencyUtil {
 			throw new IllegalStateException("Invalid Maven repository reference: " + repoReference);
 		}
 
-		if (ALIAS_JCENTER.equalsIgnoreCase(reporef)) {
-			return new MavenRepo(Optional.ofNullable(repoid).orElse(ALIAS_JCENTER), REPO_JCENTER);
-		} else if (ALIAS_GOOGLE.equalsIgnoreCase(reporef)) {
-			return new MavenRepo(Optional.ofNullable(repoid).orElse(ALIAS_GOOGLE), REPO_GOOGLE);
-		} else if (ALIAS_REDHAT.equalsIgnoreCase(reporef)) {
-			return new MavenRepo(Optional.ofNullable(repoid).orElse(ALIAS_REDHAT), REPO_REDHAT);
-		} else if (ALIAS_JBOSS.equalsIgnoreCase(reporef)) {
-			return new MavenRepo(Optional.ofNullable(repoid).orElse(ALIAS_JBOSS), REPO_JBOSS);
-		} else if (ALIAS_MAVEN_CENTRAL.equalsIgnoreCase(reporef)) {
+		String repo = aliasToRepos.get(reporef.toLowerCase());
+		if (repo != null) {
+			return new MavenRepo(Optional.ofNullable(repoid).orElse(reporef.toLowerCase()), repo);
+		} else if ("mavenCentral".equalsIgnoreCase(reporef)) {
 			return new MavenRepo("", "") {
 				@Override
 				public void apply(ConfigurableMavenResolverSystem resolver) {
 					resolver.withMavenCentralRepo(true);
 				}
 			};
-		} else if (ALIAS_JITPACK.equalsIgnoreCase(reporef)) {
-			return new MavenRepo(Optional.ofNullable(repoid).orElse(ALIAS_JITPACK), REPO_JITPACK);
 		} else {
 			return new MavenRepo(repoid, reporef);
 		}
