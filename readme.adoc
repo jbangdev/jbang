@@ -726,7 +726,11 @@ They expect their plugins to be named like `<cmd>-<plugin>`, i.e. `kubectl-myplu
 
 Furthermore some of them, particularly `kubectl` currently require the file to start with `#!` otherwise you get a `exec format error`.
 
-`jbang` has a bit of auto-magic to help in both cases.
+There are two ways to have that work. The first recommended way is to use `jbang app install` which setups an intermediate script
+to avoid the issue, i.e. `jbang app install --name kubectl-my-plugin myplugin.java`.
+
+The second is to use a bit of auto-magic `jbang` has to help in case you only want a single file, no intermediate script. That
+is described below.
 
 === Kebab casing of filename
 
