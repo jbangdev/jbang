@@ -31,15 +31,15 @@ public class Init extends BaseScriptCommand {
 	static String[] knowneditors = { "code", "eclipse", "idea", "vi", "emacs", "netbeans" };
 
 	@CommandLine.Option(names = { "--template",
-			"-t" }, description = "Init script with a java class useful for scripting", defaultValue = "hello")
-	String initTemplate;
+			"-t" }, description = "Init script with a java class useful for scripting")
+	public String initTemplate;
 
 	@CommandLine.Option(names = {
 			"--force" }, description = "Force overwrite of existing files")
-	boolean force;
+	public boolean force;
 
 	@CommandLine.Option(names = { "-D" }, description = "set a system property", mapFallbackValue = "true")
-	Map<String, Object> properties = new HashMap<>();
+	public Map<String, Object> properties = new HashMap<>();
 
 	@CommandLine.Option(names = {
 			"--deps" }, converter = CommaSeparatedConverter.class, description = "Add additional dependencies (Use commas to separate them).")

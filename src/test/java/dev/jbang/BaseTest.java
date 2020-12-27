@@ -39,6 +39,7 @@ public abstract class BaseTest {
 		if (Util.isWindows()) {
 			environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "cmd");
 		}
+		Configuration.instance(null);
 	}
 
 	public static final String EXAMPLES_FOLDER = "itests";

@@ -29,7 +29,7 @@ public class Run extends BaseBuildCommand {
 	private static final int COMMAND_LINE_LENGTH_LIMIT = 8000;
 
 	@CommandLine.Option(names = { "--java-options" }, description = "A Java runtime option")
-	List<String> javaRuntimeOptions;
+	public List<String> javaRuntimeOptions;
 
 	@CommandLine.Option(names = { "-r",
 			"--jfr" }, fallbackValue = "${jbang.run.jfr}", parameterConsumer = KeyValueFallbackConsumer.class, arity = "0..1", description = "Launch with Java Flight Recorder enabled.")
@@ -47,23 +47,23 @@ public class Run extends BaseBuildCommand {
 	// handling bug in release 4.6.
 	// https://docs.oracle.com/cd/E19683-01/806-7930/assert-4/index.html
 	@CommandLine.Option(names = { "--enableassertions", "--ea" }, description = "Enable assertions")
-	boolean enableAssertions;
+	public boolean enableAssertions;
 
 	@CommandLine.Option(names = { "--enablesystemassertions", "--esa" }, description = "Enable system assertions")
-	boolean enableSystemAssertions;
+	public boolean enableSystemAssertions;
 
 	boolean debug() {
 		return debugString != null && !debugString.isEmpty();
 	}
 
 	@CommandLine.Option(names = { "--javaagent" }, parameterConsumer = KeyOptionalValueConsumer.class)
-	Map<String, Optional<String>> javaAgentSlots;
+	public Map<String, Optional<String>> javaAgentSlots;
 
 	@CommandLine.Option(names = { "--interactive" }, description = "activate interactive mode")
-	boolean interactive;
+	public boolean interactive;
 
 	@CommandLine.Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
-	List<String> userParams = new ArrayList<>();
+	public List<String> userParams = new ArrayList<>();
 
 	@Override
 	public Integer doCall() throws IOException {

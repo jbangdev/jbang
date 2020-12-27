@@ -48,14 +48,14 @@ public class Edit extends BaseScriptCommand {
 
 	@CommandLine.Option(names = {
 			"--live" }, description = "Setup temporary project, regenerate project on dependency changes.")
-	boolean live;
+	public boolean live;
 
 	@CommandLine.Option(names = {
 			"--open" }, arity = "0..1", defaultValue = "${JBANG_EDITOR:-${jbang.edit.open:-}}", fallbackValue = "${JBANG_EDITOR:-${jbang.edit.open:-}}", description = "Opens editor/IDE on the temporary project.", preprocessor = StrictParameterPreprocessor.class)
-	private Optional<String> editor;
+	public Optional<String> editor;
 
 	@CommandLine.Option(names = { "--no-open" })
-	boolean noOpen;
+	public boolean noOpen;
 
 	@Override
 	public Integer doCall() throws IOException {
