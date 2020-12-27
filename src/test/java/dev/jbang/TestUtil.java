@@ -69,7 +69,7 @@ public class TestUtil extends BaseTest {
 		assertTrue(Util.hasMainMethod(content));
 	}
 
-	public static final String EXAMPLES_FOLDER = "examples";
+	public static final String EXAMPLES_FOLDER = "itests";
 	static File examplesTestFolder;
 
 	@BeforeAll
@@ -90,20 +90,20 @@ public class TestUtil extends BaseTest {
 
 		final List<String> p = Util.explode(source, baseDir, "**/*.java");
 
-		assertThat(p, hasItem("benchmark/perftest.java"));
-		assertThat(p, not(hasItem("jetty.jsh")));
+		assertThat(p, hasItem("res/resource.java"));
+		assertThat(p, not(hasItem("hello.jsh")));
 
 		p.clear();
 		p.addAll(Util.explode(source, baseDir, "**/*.jsh"));
 
-		assertThat(p, not(hasItem("benchmark/perftest.java")));
-		assertThat(p, not(hasItem("lang.java")));
+		assertThat(p, not(hasItem("res/resource.java")));
+		assertThat(p, not(hasItem("test.java")));
 
 		p.clear();
-		p.addAll(Util.explode(source, baseDir, "benchmark/perftest.java"));
+		p.addAll(Util.explode(source, baseDir, "res/resource.java"));
 
-		assertThat(p, containsInAnyOrder("benchmark/perftest.java"));
-		assertThat(p, not(hasItem("lang.java")));
+		assertThat(p, containsInAnyOrder("res/resource.java"));
+		assertThat(p, not(hasItem("test.java")));
 
 	}
 }

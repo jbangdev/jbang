@@ -1,5 +1,10 @@
-== DEPRECATED examples
+## Examples
 
-All examples moved to https://github.com/jbangdev/jbang-examples.
+Examples are no longer included with jbang, instead see https://github.com/jbangdev/jbang-examples
 
-This folder is only here to avoid breaking anyone referring to 
+You can list (and then run) these examples directly with `jbang`:
+
+[source,shell]
+----
+jbang alias list jbangdev/jbang-examples
+----

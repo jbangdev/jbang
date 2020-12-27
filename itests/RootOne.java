@@ -2,6 +2,7 @@
 // //DEPS <dependency1> <dependency2>
 //SOURCES Two.java
 //SOURCES nested/*.java
+//SOURCES othernested/*.java
 
 import static java.lang.System.*;
 

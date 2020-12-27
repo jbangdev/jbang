@@ -70,7 +70,7 @@ import picocli.CommandLine;
 
 public class TestRun extends BaseTest {
 
-	public static final String EXAMPLES_FOLDER = "examples";
+	public static final String EXAMPLES_FOLDER = "itests";
 	static File examplesTestFolder;
 
 	@BeforeAll
