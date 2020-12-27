@@ -1,10 +1,16 @@
 package dev.jbang.cli;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.hamcrest.io.FileMatchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.io.FileMatchers.anExistingFile;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
@@ -55,6 +61,23 @@ public class TestApp extends BaseTest {
 		}
 		result = checkedRun(null, "app", "install", "--force", "examples/helloworld.java");
 		assertThat(result.err, containsString("Command installed: helloworld"));
+
+		if (Util.isWindows()) {
+			assertThat(Settings.getConfigBinDir().resolve("helloworld.cmd").toFile(), anExistingFile());
+			List<String> lines = Files.readAllLines(Settings.getConfigBinDir().resolve("helloworld.cmd"));
+			assertThat(lines.stream().filter(x -> x.contains("jbang run ")).count(), equalTo(1));
+			assertThat(lines, hasSize(2));
+
+			assertThat(Settings.getConfigBinDir().resolve("helloworld.ps1").toFile(), anExistingFile());
+			lines = Files.readAllLines(Settings.getConfigBinDir().resolve("helloworld.ps1"));
+			assertEquals(lines.stream().filter(x -> x.contains("jbang run ")).count(), 1);
+			assertThat(lines, hasSize(2));
+		} else {
+			assertThat(Settings.getConfigBinDir().resolve("helloworld").toFile(), anExistingFile());
+			List<String> lines = Files.readAllLines(Settings.getConfigBinDir().resolve("helloworld"));
+			assertEquals(lines.stream().filter(x -> x.contains("eval ")).count(), 1);
+			assertThat(lines, hasSize(2));
+		}
 	}
 
 	@Test

@@ -1,7 +1,11 @@
 package dev.jbang.cli;
 
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Arrays;
 import java.util.Collections;
@@ -10,7 +14,12 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import dev.jbang.*;
+import dev.jbang.ExitException;
+import dev.jbang.JdkManager;
+import dev.jbang.Script;
+import dev.jbang.Settings;
+import dev.jbang.UnpackUtil;
+import dev.jbang.Util;
 
 import picocli.CommandLine;
 
@@ -155,7 +164,7 @@ class AppInstall extends BaseCommand {
 		List<String> lines = Arrays.asList(
 				"#!/bin/sh",
 				"eval \"exec jbang run " + scriptRef + " $*\"");
-		Files.write(file, lines, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+		Files.write(file, lines, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
 		setExecutable(file);
 	}
 
@@ -175,13 +184,13 @@ class AppInstall extends BaseCommand {
 		List<String> lines = Arrays.asList(
 				"@echo off",
 				"jbang run " + scriptRef + " %*");
-		Files.write(file, lines, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+		Files.write(file, lines, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
 	}
 
 	private static void installPSScript(Path file, String scriptRef) throws IOException {
 		List<String> lines = Arrays.asList(
 				"jbang run " + scriptRef + " $args");
-		Files.write(file, lines, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+		Files.write(file, lines, StandardOpenOption.WRITE, StandardOpenOption.CREATE);
 	}
 
 	public static boolean installJbang(boolean force) throws IOException {
