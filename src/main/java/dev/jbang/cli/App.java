@@ -155,7 +155,7 @@ class AppInstall extends BaseCommand {
 		List<String> lines = Arrays.asList(
 				"#!/bin/sh",
 				"eval \"exec jbang run " + scriptRef + " $*\"");
-		Files.write(file, lines, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 		setExecutable(file);
 	}
 
@@ -175,13 +175,13 @@ class AppInstall extends BaseCommand {
 		List<String> lines = Arrays.asList(
 				"@echo off",
 				"jbang run " + scriptRef + " %*");
-		Files.write(file, lines, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 	}
 
 	private static void installPSScript(Path file, String scriptRef) throws IOException {
 		List<String> lines = Arrays.asList(
 				"jbang run " + scriptRef + " $args");
-		Files.write(file, lines, StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 	}
 
 	public static boolean installJbang(boolean force) throws IOException {
