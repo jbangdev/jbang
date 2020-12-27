@@ -1,8 +1,10 @@
 package dev.jbang.cli;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.hamcrest.io.FileMatchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.io.FileMatchers.anExistingFile;
 
 import java.io.IOException;
 
@@ -18,7 +20,7 @@ public class TestApp extends BaseTest {
 
 	@Test
 	void testAppInstallFile() throws IOException {
-		ExecutionResult result = checkedRun(null, "app", "install", "examples/helloworld.java");
+		ExecutionResult result = checkedRun(null, "app", "install", "itests/helloworld.java");
 		assertThat(result.err, containsString("Command installed: helloworld"));
 		if (Util.isWindows()) {
 			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_EXECUTE));
@@ -32,34 +34,34 @@ public class TestApp extends BaseTest {
 
 	@Test
 	void testAppInstallFileExists() throws IOException {
-		ExecutionResult result = checkedRun(null, "app", "install", "examples/helloworld.java");
+		ExecutionResult result = checkedRun(null, "app", "install", "itests/helloworld.java");
 		assertThat(result.err, containsString("Command installed: helloworld"));
 		if (Util.isWindows()) {
 			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_EXECUTE));
 		} else {
 			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_OK));
 		}
-		result = checkedRun(null, "app", "install", "examples/helloworld.java");
+		result = checkedRun(null, "app", "install", "itests/helloworld.java");
 		assertThat(result.err,
 				containsString("A script with name 'helloworld' already exists, use '--force' to install anyway."));
 	}
 
 	@Test
 	void testAppInstallFileForce() throws IOException {
-		ExecutionResult result = checkedRun(null, "app", "install", "examples/helloworld.java");
+		ExecutionResult result = checkedRun(null, "app", "install", "itests/helloworld.java");
 		assertThat(result.err, containsString("Command installed: helloworld"));
 		if (Util.isWindows()) {
 			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_EXECUTE));
 		} else {
 			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_OK));
 		}
-		result = checkedRun(null, "app", "install", "--force", "examples/helloworld.java");
+		result = checkedRun(null, "app", "install", "--force", "itests/helloworld.java");
 		assertThat(result.err, containsString("Command installed: helloworld"));
 	}
 
 	@Test
 	void testAppInstallFileWithName() throws IOException {
-		ExecutionResult result = checkedRun(null, "app", "install", "--name=hello", "examples/helloworld.java");
+		ExecutionResult result = checkedRun(null, "app", "install", "--name=hello", "itests/helloworld.java");
 		assertThat(result.err, containsString("Command installed: hello"));
 		if (Util.isWindows()) {
 			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_EXECUTE));
@@ -73,34 +75,34 @@ public class TestApp extends BaseTest {
 
 	@Test
 	void testAppInstallFileWithNameExists() throws IOException {
-		ExecutionResult result = checkedRun(null, "app", "install", "--name=hello", "examples/helloworld.java");
+		ExecutionResult result = checkedRun(null, "app", "install", "--name=hello", "itests/helloworld.java");
 		assertThat(result.err, containsString("Command installed: hello"));
 		if (Util.isWindows()) {
 			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_EXECUTE));
 		} else {
 			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_OK));
 		}
-		result = checkedRun(null, "app", "install", "--name=hello", "examples/helloworld.java");
+		result = checkedRun(null, "app", "install", "--name=hello", "itests/helloworld.java");
 		assertThat(result.err,
 				containsString("A script with name 'hello' already exists, use '--force' to install anyway."));
 	}
 
 	@Test
 	void testAppInstallFileWithNameForce() throws IOException {
-		ExecutionResult result = checkedRun(null, "app", "install", "--name=hello", "examples/helloworld.java");
+		ExecutionResult result = checkedRun(null, "app", "install", "--name=hello", "itests/helloworld.java");
 		assertThat(result.err, containsString("Command installed: hello"));
 		if (Util.isWindows()) {
 			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_EXECUTE));
 		} else {
 			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_OK));
 		}
-		result = checkedRun(null, "app", "install", "--force", "--name=hello", "examples/helloworld.java");
+		result = checkedRun(null, "app", "install", "--force", "--name=hello", "itests/helloworld.java");
 		assertThat(result.err, containsString("Command installed: hello"));
 	}
 
 	@Test
 	void testAppInstallAlias() throws IOException {
-		checkedRun(null, "alias", "add", "-g", "--name=apptest", "examples/helloworld.java");
+		checkedRun(null, "alias", "add", "-g", "--name=apptest", "itests/helloworld.java");
 		ExecutionResult result = checkedRun(null, "app", "install", "apptest");
 		assertThat(result.err, containsString("Command installed: apptest"));
 		if (Util.isWindows()) {
@@ -115,7 +117,7 @@ public class TestApp extends BaseTest {
 
 	@Test
 	void testAppInstallAliasFromRepo() throws IOException {
-		checkedRun(null, "alias", "add", "-g", "--name=apptest", "examples/helloworld.java");
+		checkedRun(null, "alias", "add", "-g", "--name=apptest", "itests/helloworld.java");
 		checkedRun(null, "catalog", "add", "-g", "testrepo",
 				jbangTempDir.getRoot().toPath().resolve("jbang-catalog.json").toString());
 		ExecutionResult result = checkedRun(null, "app", "install", "apptest@testrepo");
@@ -152,9 +154,9 @@ public class TestApp extends BaseTest {
 
 	@Test
 	void testAppList() throws IOException {
-		checkedRun(null, "app", "install", "--name=hello1", "examples/helloworld.java");
-		checkedRun(null, "app", "install", "--name=hello2", "examples/helloworld.java");
-		checkedRun(null, "app", "install", "--name=hello3", "examples/helloworld.java");
+		checkedRun(null, "app", "install", "--name=hello1", "itests/helloworld.java");
+		checkedRun(null, "app", "install", "--name=hello2", "itests/helloworld.java");
+		checkedRun(null, "app", "install", "--name=hello3", "itests/helloworld.java");
 		ExecutionResult result = checkedRun(null, "app", "list");
 		assertThat(result.exitCode, equalTo(BaseCommand.EXIT_OK));
 		assertThat(result.normalizedOut(), equalTo("hello1\nhello2\nhello3\n"));
@@ -162,7 +164,7 @@ public class TestApp extends BaseTest {
 
 	@Test
 	void testAppUninstall() throws IOException {
-		checkedRun(null, "app", "install", "examples/helloworld.java");
+		checkedRun(null, "app", "install", "itests/helloworld.java");
 		if (Util.isWindows()) {
 			assertThat(Settings.getConfigBinDir().resolve("helloworld.cmd").toFile(), anExistingFile());
 			assertThat(Settings.getConfigBinDir().resolve("helloworld.ps1").toFile(), anExistingFile());

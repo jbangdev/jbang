@@ -32,7 +32,7 @@ import dev.jbang.Util;
 
 public class TestEdit extends BaseTest {
 
-	public static final String EXAMPLES_FOLDER = "examples";
+	public static final String EXAMPLES_FOLDER = "itests";
 	static File examplesTestFolder;
 
 	@BeforeAll

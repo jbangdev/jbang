@@ -4,25 +4,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class TestGrape extends BaseTest {
-
-	public static final String EXAMPLES_FOLDER = "examples";
-	static File examplesTestFolder;
-
-	@BeforeAll
-	static void init() throws URISyntaxException {
-		URL examplesUrl = TestGrape.class.getClassLoader().getResource(EXAMPLES_FOLDER);
-		examplesTestFolder = new File(new File(examplesUrl.toURI()).getAbsolutePath());
-	}
 
 	@Test
 	void testFindGrabs() throws FileNotFoundException {
