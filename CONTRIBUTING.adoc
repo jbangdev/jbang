@@ -41,6 +41,15 @@ Intent is that on merge we squash to get as clean as changelog as possible.
 The build uses the https://github.com/diffplug/spotless[spotless] plugin to ensure Java and other files are formatted uniformly.
 If your build fails due to formatting errors then run `gradle spotlessApply` and it will reformat to be compatible.
 
+If you are running on a bash capable system the following pre-commit hook from https://github.com/diffplug/spotless/issues/178#issuecomment-735284262[spotless issues] is useful to help remember applying correct formatting
+before `git push`:
+
+[source,shell]
+----
+curl -o .git/hooks/pre-commit https://gist.githubusercontent.com/toefel18/23c8927e28b7e7cf600cb5cdd4d980e1/raw/163337f2ae596d4b3a55936c2652b1e8227db5b7/pre-commit && chmod +x ./.git/hooks/pre-commit
+----
+
+
 == Versioning
 
 `jbang` uses semi-automatic versioning via the https://github.com/toolebox-io/gradle-git-versioner[git-versioner] plugin.
