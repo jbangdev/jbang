@@ -23,7 +23,7 @@ public class Jdk {
 	@CommandLine.Command(name = "install", description = "Installs a JDK.")
 	public Integer install(
 			@CommandLine.Option(names = { "--force",
-					"-f" }, description = "set a system property", defaultValue = "false") boolean force,
+					"-f" }, description = "Force installation even when already installed", defaultValue = "false") boolean force,
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version to install", arity = "1") int version)
 			throws IOException {
 		if (force || !JdkManager.isInstalledJdk(version)) {

@@ -18,6 +18,10 @@ public class Export extends BaseBuildCommand {
 			"--output" }, description = "The name or path to use for the exported file. If not specified a name will be determined from the original source ref")
 	Path outputFile;
 
+	@CommandLine.Option(names = { "--force",
+	}, description = "Force export, i.e. overwrite exported file if already exists", defaultValue = "false")
+	boolean force;
+
 	@Override
 	public Integer doCall() throws IOException {
 		if (insecure) {
@@ -47,14 +51,21 @@ public class Export extends BaseBuildCommand {
 		outputPath = cwd.resolve(outputPath);
 
 		// Copy the JAR or native binary
-		Path jar = script.getJar().toPath();
+		Path source = script.getJar().toPath();
 		if (nativeImage) {
-			Path img = getImageName(jar.toFile()).toPath();
-			Files.copy(img, outputPath);
-		} else {
-			Files.copy(jar, outputPath);
+			source = getImageName(source.toFile()).toPath();
 		}
 
+		if (outputPath.toFile().exists()) {
+			if (force) {
+				outputPath.toFile().delete();
+			} else {
+				warn("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
+				return EXIT_INVALID_INPUT;
+			}
+		}
+
+		Files.copy(source, outputPath);
 		info("Exported to " + outputPath);
 		return EXIT_OK;
 	}

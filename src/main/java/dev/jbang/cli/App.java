@@ -1,7 +1,11 @@
 package dev.jbang.cli;
 
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Arrays;
 import java.util.Collections;
@@ -10,7 +14,12 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import dev.jbang.*;
+import dev.jbang.ExitException;
+import dev.jbang.JdkManager;
+import dev.jbang.Script;
+import dev.jbang.Settings;
+import dev.jbang.UnpackUtil;
+import dev.jbang.Util;
 
 import picocli.CommandLine;
 
