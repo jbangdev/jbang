@@ -975,7 +975,7 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
-	void testAssertations() throws IOException {
+	void testAssertions() throws IOException {
 		Jbang jbang = new Jbang();
 		File f = new File(examplesTestFolder, "resource.java");
 
@@ -987,7 +987,24 @@ public class TestRun extends BaseTest {
 
 		String line = run.generateCommandLine(s);
 
-		assertThat(line, containsString("--ea"));
+		assertThat(line, containsString("-ea"));
+	}
+
+	@Test
+	void testSystemAssertions() throws IOException {
+		Jbang jbang = new Jbang();
+		File f = new File(examplesTestFolder, "resource.java");
+
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--enablesystemassertions",
+				f.getAbsolutePath());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		Script s = prepareScript(f.getAbsolutePath(), run.userParams, run.properties, run.dependencies,
+				run.classpaths);
+
+		String line = run.generateCommandLine(s);
+
+		assertThat(line, containsString("-esa"));
 	}
 
 	@Test
