@@ -1,6 +1,9 @@
 package dev.jbang.cli;
 
-import static dev.jbang.cli.BaseCommand.EXIT_OK;
+import dev.jbang.JdkManager;
+import dev.jbang.Settings;
+import dev.jbang.Util;
+import picocli.CommandLine;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -8,11 +11,7 @@ import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.Set;
 
-import dev.jbang.JdkManager;
-import dev.jbang.Settings;
-import dev.jbang.Util;
-
-import picocli.CommandLine;
+import static dev.jbang.cli.BaseCommand.EXIT_OK;
 
 @CommandLine.Command(name = "jdk", description = "Manage Java Development Kits installed by jbang.")
 public class Jdk {
@@ -44,9 +43,9 @@ public class Jdk {
 			installedJdks.forEach(jdk -> {
 				if (jdk == v) {
 					err.print(" *");
-				} else {
-					err.print("  " + jdk);
 				}
+				err.print("  " + jdk);
+
 				err.println();
 			});
 		} else {

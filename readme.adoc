@@ -1,4 +1,4 @@
-= j'bang - Having fun with Java scripting
+= jbang - Having fun with Java
 :idprefix:
 :idseparator: -
 ifndef::env-github[]
@@ -27,8 +27,9 @@ image:images/jbang_logo.svg[JBang Logo, title="JBang Logo"]
 
 Want to learn, explore or use Java instantly without setup ?
 
-Do you like Java but use python, groovy, kotlin or similar languages for your scripts ?
+Do you like Java but use python, groovy, kotlin or similar languages for scripts, experimentation and exploration ?
 
+Ever wanted to just be able to run java from anywhere without any or very minimal setup ?
 Ever tried out Java 11+ support for running `.java` files directly in your shell but felt it was a bit too cumbersome ?
 
 Then try `jbang` which lets you do this:
@@ -54,6 +55,8 @@ hello made with jbang
 
 Instant cli app generated built using java and picocli as a dependency that was fetched as needed for the compilation and execution.
 
+JBang goes beyond more than just easy scripting; you can use `jbang` to launch any kind of java application or library packaged as a jar available locally, via http/https download or in a Maven repository.
+
 toc::[]
 
 == Features
@@ -67,19 +70,18 @@ Include multiple files and sources
 * Dependency declarations using `//DEPS <gav>` for automatic dependency resolution
 * Control compile and runtime options with `//JAVAC_OPTIONS <flags>` and `//JAVA_OPTIONS <flags>`
 * Compiled jar and Dependency resolution caching
-* (EXPERIMENTAL) native-image generation (`--native`)
+* native-image generation (`--native`)
 * Launch with debug enabled for instant debugging from your favorite IDE
 * Transparent launch of JavaFX Applications on Java 8 and higher
 * Can be used for writing plugins to other cli's like `kubectl`
 * Init templates to get started easily (`jbang init -t cli hello.java`)
 * Generate gradle and IDE config with dependencies for easy editing in your favorite IDE (`jbang edit myfile.java`)
-* (PLANNED) Lookup dependencies with a short-hand name, i.e. `// DEPS log4j:1.2+,picocli` for quick getting started.
 
-To use it simply install `jbang` and run `jbang yourscript.java`
+To use it install `jbang` and run `jbang yourscript.java`
 
 == Requirements
 
-Tested and verified to use on OSX, Linux and Windows (incl. command, cygwin and mingw shells).
+Tested and verified to use on OSX, Linux and Windows (incl. command.exe, cygwin and mingw shells).
 
 == Installation
 
