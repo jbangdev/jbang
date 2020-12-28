@@ -40,6 +40,15 @@ public class Run extends BaseBuildCommand {
 			"--debug" }, fallbackValue = "4004", parameterConsumer = DebugFallbackConsumer.class, description = "Launch with java debug enabled on specified port (default: ${FALLBACK-VALUE}) ")
 	String debugString;
 
+	// should take arguments for package/classes when picocli fixes its flag
+	// handling bug in release 4.6.
+	// https://docs.oracle.com/cd/E19683-01/806-7930/assert-4/index.html
+	@CommandLine.Option(names = { "--enableassertions", "--ea" }, description = "Enable assertions")
+	boolean enableAssertions;
+
+	@CommandLine.Option(names = { "--enablesystemassertions", "--esa" }, description = "Enable system assertions")
+	boolean enableSystemAssertions;
+
 	boolean debug() {
 		return debugString != null;
 	}
@@ -151,6 +160,14 @@ public class Run extends BaseBuildCommand {
 				// optionalArgs.add("--source 11");
 				if (debug()) {
 					optionalArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + debugString);
+				}
+
+				if (enableAssertions) {
+					optionalArgs.add("-ea");
+				}
+
+				if (enableSystemAssertions) {
+					optionalArgs.add("-esa");
 				}
 
 				if (enableFlightRecording()) {
