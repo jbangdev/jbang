@@ -15,13 +15,13 @@
     <docsUrl>https://github.com/jbangdev/jbang/blob/master/readme.adoc</docsUrl>
     <bugTrackerUrl>https://github.com/jbangdev/jbang/issues</bugTrackerUrl>
     <tags>jbang bash java shell scripting</tags>
-    <summary>Unleash the power of Java for shell scripting. Use `jbang` to run single .java file with automatic dependency fetching and immediate compilation and execution.</summary>
+    <summary>Unleash the power of Java. Use `jbang` to run single .java or .jar file with automatic dependency fetching and immediate compilation and execution.</summary>
     <description>
 Want to learn or explore Java instantly without setup ?
 
 Do you like Java but uses python, groovy, kotlin or similar languages for your scripts ?
 
-Ever tried out Java 10+ support for running `.java` files directly in your shell but felt it was a bit too cumbersome ?
+Ever tried out Java 11+ support for running `.java` files directly in your shell but felt it was a bit too cumbersome ?
 
 Then try `jbang` which lets you do this:
 

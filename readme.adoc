@@ -1,4 +1,4 @@
-= jbang - Having fun with Java
+= jbang - Unleash the power of Java
 :idprefix:
 :idseparator: -
 ifndef::env-github[]

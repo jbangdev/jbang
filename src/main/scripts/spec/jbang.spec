@@ -1,7 +1,7 @@
 Name:       jbang
 Version:    @projectVersion@
 Release:    1%{?dist}
-Summary:    Unleash the power of Java for shell scripting
+Summary:    Unleash the power of Java
 
 License:    MIT
 URL:        https://github.com/jbangdev/%{name}
@@ -12,7 +12,7 @@ BuildRequires:  git
 Requires: java
 
 %description
-Unleash the power of Java for shell scripting
+Unleash the power of Java
 
 Want to learn or explore Java instantly without setup ?
 

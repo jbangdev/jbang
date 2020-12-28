@@ -1,5 +1,5 @@
 class Jbang < Formula
-    desc "Unleash the power of Java for shell scripting"
+    desc "Unleash the power of Java"
     homepage "https://jbang.dev"
     url "https://github.com/jbangdev/jbang/releases/download/v@projectVersion@/jbang-@projectVersion@.zip"
     sha256 "@sha256@"
