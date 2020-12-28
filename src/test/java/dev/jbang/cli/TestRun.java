@@ -1199,7 +1199,7 @@ public class TestRun extends BaseTest {
 													.withBody("\n" +
 															"public class main {" +
 															"public static void main(String... args) {" +
-															"System.out.println(new app());" +
+															"System.out.println(new main());" +
 															"}" +
 															"}")));
 
@@ -1220,7 +1220,7 @@ public class TestRun extends BaseTest {
 													.withBody("\n" +
 															"public class main {" +
 															"public static void main(String... args) {" +
-															"System.out.println(new app());" +
+															"System.out.println(new main());" +
 															"}" +
 															"}")));
 
