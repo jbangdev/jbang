@@ -232,6 +232,16 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			scriptFile = probe;
 			result = new ScriptResource(scriptResource, null, probe);
 		} else {
+			if (probe.isDirectory()) {
+				File defaultApp = new File(probe, "main.java");
+				if (defaultApp.exists()) {
+					Util.verboseMsg("Directory where main.java exists. Running main.java.");
+					probe = defaultApp;
+				} else {
+					throw new ExitException(EXIT_INVALID_INPUT, "Cannot run " + probe
+							+ " as it is a directory and no default application (i.e. `main.java`) found.");
+				}
+			}
 			String original = Util.readString(probe.toPath());
 			// TODO: move temp handling somewhere central
 			String urlHash = Util.getStableID(original);
