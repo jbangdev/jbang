@@ -9,6 +9,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.channels.Channels;
@@ -630,6 +632,17 @@ public class Util {
 
 		if (isGistURL(url)) {
 			url = extractFileFromGist(url);
+		} else {
+			try {
+				URI u = new URI(url);
+				if (u.getPath().endsWith("/")) {
+					Util.verboseMsg("Directory url, assuming user want to get default application at main.java");
+					url = url + "main.java";
+				}
+			} catch (URISyntaxException e) {
+				// ignore
+			}
+
 		}
 
 		return url;

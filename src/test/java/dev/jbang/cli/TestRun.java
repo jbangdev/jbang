@@ -1185,4 +1185,84 @@ public class TestRun extends BaseTest {
 
 		m.build(script);
 	}
+
+	@Test
+	void testDefaultApp(@TempDir File dir) throws IOException {
+
+		String base = "///usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n" +
+				"import static java.lang.System.*;\n" +
+				"\n" +
+				"public class main {\n" +
+				"\n" +
+				"    public static void main(String... args) {\n" +
+				"        out.println(\"Default app\");\n" +
+				"    }\n" +
+				"}\n";
+
+		File f = new File(dir, "main.java");
+
+		Util.writeString(f.toPath(), base);
+
+		Run m = new Run();
+
+		Script script = prepareScript(dir.toPath().toString(), null, null, null, null);
+
+		m.build(script);
+
+	}
+
+	@Test
+	void testNoDefaultApp(@TempDir File dir) throws IOException {
+
+		Run m = new Run();
+
+		ExitException e = assertThrows(ExitException.class,
+				() -> prepareScript(dir.toPath().toString(), null, null, null, null));
+
+		assertThat(e.getMessage(), containsString("is a directory and no default application"));
+
+	}
+
+	@Test
+	void testDefaultHttpApp() throws IOException {
+
+		wms.stubFor(WireMock.get(urlEqualTo("/sub/one/main.java"))
+							.willReturn(aResponse()
+													.withHeader("Content-Type", "text/plain")
+													.withBody("\n" +
+															"public class main {" +
+															"public static void main(String... args) {" +
+															"System.out.println(new main());" +
+															"}" +
+															"}")));
+
+		wms.start();
+		Run m = new Run();
+
+		Script script = prepareScript("http://localhost:" + wms.port() + "/sub/one/", null, null, null, null);
+
+		m.build(script);
+	}
+
+	@Test
+	void testNoDefaultHttpApp() throws IOException {
+
+		wms.stubFor(WireMock.get(urlEqualTo("/sub/one/other.java"))
+							.willReturn(aResponse()
+													.withHeader("Content-Type", "text/plain")
+													.withBody("\n" +
+															"public class main {" +
+															"public static void main(String... args) {" +
+															"System.out.println(new main());" +
+															"}" +
+															"}")));
+
+		wms.start();
+		Run m = new Run();
+
+		assertThrows(ExitException.class,
+				() -> prepareScript("http://localhost:" + wms.port() + "/sub/one/", null, null, null, null));
+
+	}
+
 }
