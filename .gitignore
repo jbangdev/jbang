@@ -19,3 +19,4 @@ package-lock.json
 *.jfr
 itests/hello.java
 *.class
+CHANGELOG.md
