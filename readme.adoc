@@ -884,6 +884,7 @@ jbang edit --open=[editor] helloworld.java
 ----
 
 The editor used will be what is specified as the argument to `--open` or default to `$JBANG_EDITOR`, `$VISUAL` or `$EDITOR` in that order.
+The editor command must be available on the PATH to be executed from jbang. If you are executing `jbang edit --open=code helloworld.java` a `code` executable (visual studio code) must be on the PATH.
 
 NOTE: On Windows you might need elevated privileges to create symbolic links. If you don't have permissions then
 the `edit` option will result in an error. To use it https://stackoverflow.com/a/24353758[enable symbolic links]
@@ -916,6 +917,11 @@ For speed and consistency `jbang` also generates IDE specific settings.
 
 Currently launchers and project files are generated for Eclipse and vscode. Intellij just reads `build.gradle` for now thus
 to run/debug you will need to manually set it up.
+
+Some editors like Code or IDEA are not per default executable / startable from the command line. Here are some helpfull documentations for supporting command line usage of different editors:
+
+* https://www.jetbrains.com/help/idea/working-with-the-ide-features-from-command-line.html[CLI support for IDEA]
+* https://code.visualstudio.com/docs/setup/mac[Terminal support for VS Code on macOS]
 
 == Debugging
 
