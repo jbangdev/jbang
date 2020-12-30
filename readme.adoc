@@ -884,7 +884,7 @@ jbang edit --open=[editor] helloworld.java
 ----
 
 The editor used will be what is specified as the argument to `--open` or default to `$JBANG_EDITOR`, `$VISUAL` or `$EDITOR` in that order.
-The editor command must be available on the PATH to be executed from jbang. If you are executing `jbang edit --open=code helloworld.java` a `code` executable (visual studio code) must be on the PATH.
+The editor command must be available on the PATH to be executed from jbang. If you are executing `jbang edit --open=code helloworld.java` a `code` executable (visual studio code) must be on the PATH. Next to this you can pass the full path to the `open` parameter like in `--open=/usr/bin/code`.
 
 NOTE: On Windows you might need elevated privileges to create symbolic links. If you don't have permissions then
 the `edit` option will result in an error. To use it https://stackoverflow.com/a/24353758[enable symbolic links]
