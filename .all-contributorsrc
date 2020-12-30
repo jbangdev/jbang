@@ -455,6 +455,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "hendrikebbers",
+      "name": "Hendrik Ebbers",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/9443847?v=4",
+      "profile": "http://www.guigarage.com",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
