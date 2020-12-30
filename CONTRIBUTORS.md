@@ -75,6 +75,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   </tr>
   <tr>
     <td align="center"><a href="http://code.msgilligan.com"><img src="https://avatars1.githubusercontent.com/u/61612?v=4" width="100px;" alt=""/><br /><sub><b>Sean Gilligan</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=msgilligan" title="Documentation">📖</a></td>
+    <td align="center"><a href="http://www.guigarage.com"><img src="https://avatars2.githubusercontent.com/u/9443847?v=4" width="100px;" alt=""/><br /><sub><b>Hendrik Ebbers</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=hendrikebbers" title="Documentation">📖</a></td>
   </tr>
 </table>
 
