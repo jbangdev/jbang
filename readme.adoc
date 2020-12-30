@@ -379,7 +379,7 @@ Classic `jshell` does not support passing in arguments nor system properties, `j
 In the case of `.jsh` files `jbang` injects a startup script that declares a `String[] args` which will contain any passed in arguments,
 and it sets any properties passed in as `-Dkey=value` as parameters to `jbang`.
 
-That means you can run a script as `jbang -Dkey=value World helloworld.jsh` and retrieve arguments and properties as:
+That means you can run a script as `jbang -Dkey=value helloworld.jsh World` and retrieve arguments and properties as:
 
 [source,java]
 ----
