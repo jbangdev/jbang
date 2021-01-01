@@ -10,6 +10,7 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.Locale;
+import java.util.Scanner;
 import java.util.Set;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -19,6 +20,17 @@ import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
 public class UnpackUtil {
+
+	public static void unpackEditor(Path archive, Path outputDir) throws IOException {
+		String name = archive.toString().toLowerCase(Locale.ENGLISH);
+		Path selectFolder = null; // Util.isMac() ? Paths.get("Contents/Home") : null;
+		boolean stripRootFolder = Util.isMac();
+		if (name.endsWith(".zip")) {
+			unzip(archive, outputDir, stripRootFolder, selectFolder);
+		} else if (name.endsWith(".tar.gz") || name.endsWith(".tgz")) {
+			untargz(archive, outputDir, false, selectFolder);
+		}
+	}
 
 	public static void unpackJdk(Path archive, Path outputDir) throws IOException {
 		String name = archive.toString().toLowerCase(Locale.ENGLISH);
@@ -72,6 +84,10 @@ public class UnpackUtil {
 				}
 				if (zipEntry.isDirectory()) {
 					Files.createDirectories(entry);
+				} else if (zipEntry.isUnixSymlink()) {
+					Scanner s = new Scanner(zipFile.getInputStream(zipEntry)).useDelimiter("\\A");
+					String result = s.hasNext() ? s.next() : "";
+					Files.createSymbolicLink(entry, Paths.get(result));
 				} else {
 					if (!Files.isDirectory(entry.getParent())) {
 						Files.createDirectories(entry.getParent());

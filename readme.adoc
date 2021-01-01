@@ -65,8 +65,9 @@ toc::[]
 * `.jsh` via JShell from Java 9 and upwards
 * Works on icon:windows[] Windows, icon:apple[] OSX and icon:linux[] Linux
 * Install using curl, power shell, SDKMan (icon:apple[]/icon:linux[]), Homebrew (icon:apple[]), Chocolatey (icon:windows[]) or Scoop (icon:windows[])
+* If needed will automatically install Java and even a Java editor (vscodium) for editing
 * Installation of scripts to user `PATH`
-Include multiple files and sources
+* Include multiple files and sources
 * Dependency declarations using `//DEPS <gav>` for automatic dependency resolution
 * Control compile and runtime options with `//JAVAC_OPTIONS <flags>` and `//JAVA_OPTIONS <flags>`
 * Compiled jar and Dependency resolution caching
@@ -871,7 +872,7 @@ Instead of copying and pasting lines you could also redirect the output to a .ba
 
 == Editing
 
-You can edit your script in your IDE by using `jbang edit helloworld.java`. This will generate a project in a temporary location with symbolic links to your script
+You can edit your script in an IDE/editor by using `jbang edit helloworld.java`. This will generate a project in a temporary location with symbolic links to your script
 and output the generated folder name. The easiest way to use that is to use it in a call to your IDE:
 
 [source, bash]
@@ -891,9 +892,18 @@ jbang edit --open=[editor] helloworld.java
 The editor used will be what is specified as the argument to `--open` or value of `JBANG_EDITOR` environment variable.
 The editor command must be available on the PATH to be executed from jbang. If you are executing `jbang edit --open=code helloworld.java` a `code` executable (visual studio code) must be on the PATH. Next to this you can pass the full path to the `open` parameter like in `--open=/usr/bin/code`.
 
+
 NOTE: On Windows you might need elevated privileges to create symbolic links. If you don't have permissions then
 the `edit` option will result in an error. To use it https://stackoverflow.com/a/24353758[enable symbolic links]
 for your user or run your shell/terminal as administrator to have this feature working.
+
+=== Install of default vscodium editor [EXPERIMENTAL]
+
+If no editor available at all jbang will install https://vscodium.com[VSCodium] (free/libre version of Visual Studio code) with
+default java extensions enabled in so called https://code.visualstudio.com/docs/editor/portable["portable mode"].
+
+This automatic install and setup of editor is fully optional and if you have another IDE or editor already installed
+use it using `jbang edit --open=<editor>` or set JBANG_EDITOR environment variable to have jbang use it by default.
 
 === Live Editing
 

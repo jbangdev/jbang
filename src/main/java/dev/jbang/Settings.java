@@ -39,6 +39,7 @@ public class Settings {
 	public static final String DEPENDENCY_CACHE_JSON = "dependency_cache.json";
 	public static final String CURRENT_JDK = "currentjdk";
 	public static final String BIN_DIR = "bin";
+	public static final String EDITOR_DIR = "editor";
 
 	public static final String ENV_DEFAULT_JAVA_VERSION = "JBANG_DEFAULT_JAVA_VERSION";
 
@@ -84,6 +85,10 @@ public class Settings {
 
 	public static Path getConfigBinDir() {
 		return getConfigDir(true).resolve(BIN_DIR);
+	}
+
+	public static Path getConfigEditorDir() {
+		return getConfigDir(true).resolve(EDITOR_DIR);
 	}
 
 	public static void setupJbangDir(Path dir) {
