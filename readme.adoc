@@ -1169,7 +1169,16 @@ launch faster on consecutive runs.
 
 The caching goes to `~/.jbang/cache` by default, you can run `jbang cache clear` to remove all cache data from this folder.
 
-== Install apps [EXPERIMENTAL]
+== Exporting apps [EXPERIMENTAL]
+
+If you want the generated jar or native binary you can use `jbang export <script>` to get it copied (exported)
+for you to use directly.
+
+Note, the default generated jar will have classpath references that are machine dependent. If you want a portable
+jar use `jbang export --portable <script>` and the dependent jars will be put in `libs` directory and
+generated jar will have relative references to the jars in the `libs` folder.
+
+== Install apps
 
 Since version 0.56 jbang comes with ability to setup jbang to put scripts/apps into your `PATH`
 using `jbang app`. This is useful to easily make scripts available from anywhere on any Operating System;
