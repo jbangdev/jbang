@@ -28,6 +28,7 @@ import dev.jbang.MavenRepo;
 import dev.jbang.Script;
 import dev.jbang.Settings;
 import dev.jbang.Source;
+import dev.jbang.StrictParameterPreprocessor;
 import dev.jbang.TemplateEngine;
 import dev.jbang.Util;
 
@@ -42,11 +43,12 @@ public class Edit extends BaseScriptCommand {
 	boolean live;
 
 	@CommandLine.Option(names = {
-			"--open" }, description = "Opens editor/IDE on the temporary project.")
-	String editor;
+			"--open" }, description = "Opens editor/IDE on the temporary project.", fallbackValue = "${JBANG_EDITOR:-}", preprocessor = StrictParameterPreprocessor.class)
+	Optional<String> editor;
 
 	@Override
 	public Integer doCall() throws IOException {
+
 		if (insecure) {
 			enableInsecure();
 		}
@@ -55,20 +57,18 @@ public class Edit extends BaseScriptCommand {
 		File project = createProjectForEdit(script, false);
 		// err.println(project.getAbsolutePath());
 
-		if (editor != null) {
-			if (editor.isEmpty()) {
-				editor = System	.getenv()
-								.getOrDefault("JBANG_EDITOR",
-										System	.getenv()
-												.getOrDefault("VISUAL",
-														System.getenv().getOrDefault("EDITOR", "")));
+		if (editor.isPresent()) {
+			if (editor.get().isEmpty()) {
+				throw new ExitException(EXIT_INVALID_INPUT, "--open specified but no default editor available. " +
+						"You can use --open=<editor> or set JBANG_EDITOR environment variable to specify which editor to open.");
 			}
-			if ("gitpod".equals(editor) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
+
+			if ("gitpod".equals(editor.get()) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
 				info("Open this url to edit the project in your gitpod session:\n\n"
 						+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + project.getAbsolutePath() + "\n\n");
 			} else {
 				List<String> optionList = new ArrayList<>();
-				optionList.addAll(Arrays.asList(editor.split(" ")));
+				optionList.addAll(Arrays.asList(editor.get().split(" ")));
 				optionList.add(project.getAbsolutePath());
 
 				String[] cmd;
@@ -79,12 +79,11 @@ public class Edit extends BaseScriptCommand {
 				}
 				info("Running `" + String.join(" ", cmd) + "`");
 				new ProcessBuilder(cmd).start();
-
 			}
 		}
 
 		if (!live) {
-			out.println("echo " + project.getAbsolutePath()); // quit(project.getAbsolutePath());
+			out.println(project.getAbsolutePath()); // quit(project.getAbsolutePath());
 		} else {
 			try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
 				File orginalFile = script.getOriginalFile();
@@ -124,7 +123,7 @@ public class Edit extends BaseScriptCommand {
 				warn("edit-live interrupted");
 			}
 		}
-		return EXIT_EXECUTE;
+		return EXIT_OK;
 	}
 
 	/** Create Project to use for editing **/

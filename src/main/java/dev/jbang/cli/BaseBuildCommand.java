@@ -28,7 +28,17 @@ import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
 import org.jboss.jandex.Type;
 
-import dev.jbang.*;
+import dev.jbang.ExitException;
+import dev.jbang.FileRef;
+import dev.jbang.IntegrationManager;
+import dev.jbang.IntegrationResult;
+import dev.jbang.JarUtil;
+import dev.jbang.JavaUtil;
+import dev.jbang.JdkManager;
+import dev.jbang.KeyValue;
+import dev.jbang.Script;
+import dev.jbang.Settings;
+import dev.jbang.Util;
 
 import io.quarkus.qute.Template;
 import picocli.CommandLine;
@@ -63,7 +73,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		return Optional.ofNullable(cds);
 	}
 
-	@CommandLine.Option(names = { "-D" }, description = "set a system property")
+	@CommandLine.Option(names = { "-D" }, description = "set a system property", mapFallbackValue = "true")
 	Map<String, String> properties = new HashMap<>();
 
 	@CommandLine.Option(names = {
