@@ -16,7 +16,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -28,7 +27,6 @@ import com.google.gson.annotations.SerializedName;
 public class AliasUtil {
 	public static final String JBANG_CATALOG_JSON = "jbang-catalog.json";
 	public static final String JBANG_IMPLICIT_CATALOG_JSON = "implicit-catalog.json";
-	public static final String JBANG_DOT_DIR = ".jbang";
 
 	private static final String GITHUB_URL = "https://github.com/";
 	private static final String GITLAB_URL = "https://gitlab.com/";
@@ -538,22 +536,8 @@ public class AliasUtil {
 			mergeCatalog(Settings.getUserImplicitCatalogFile(), result);
 		}
 		mergeCatalog(Settings.getUserCatalogFile(), result);
-		mergeLocalCatalogs(cwd, result);
+		Util.mergeLocalFiles(cwd, Paths.get(JBANG_CATALOG_JSON), result, AliasUtil::mergeCatalog);
 		return result;
-	}
-
-	private static void mergeLocalCatalogs(Path dir, Catalog result) {
-		if (dir.getParent() != null) {
-			mergeLocalCatalogs(dir.getParent(), result);
-		}
-		Path catalogFile = dir.resolve(JBANG_DOT_DIR).resolve(JBANG_CATALOG_JSON);
-		if (Files.isRegularFile(catalogFile) && Files.isReadable(catalogFile)) {
-			mergeCatalog(catalogFile, result);
-		}
-		catalogFile = dir.resolve(JBANG_CATALOG_JSON);
-		if (Files.isRegularFile(catalogFile) && Files.isReadable(catalogFile)) {
-			mergeCatalog(catalogFile, result);
-		}
 	}
 
 	private static void mergeCatalog(Path catalogFile, Catalog result) {
@@ -567,18 +551,18 @@ public class AliasUtil {
 	}
 
 	private static Path findNearestLocalCatalog(Path dir) {
-		return findNearestFileWith(dir, JBANG_CATALOG_JSON, p -> true);
+		return Util.findNearestFileWith(dir, JBANG_CATALOG_JSON, p -> true);
 	}
 
 	public static Path findNearestLocalCatalogWithAlias(Path dir, String aliasName) {
-		return findNearestFileWith(dir, JBANG_CATALOG_JSON, catalogFile -> {
+		return Util.findNearestFileWith(dir, JBANG_CATALOG_JSON, catalogFile -> {
 			Catalog catalog = getCatalog(catalogFile, false);
 			return catalog.aliases.containsKey(aliasName);
 		});
 	}
 
 	public static Path findNearestLocalCatalogWithCatalog(Path dir, String catalogName) {
-		return findNearestFileWith(dir, JBANG_CATALOG_JSON, catalogFile -> {
+		return Util.findNearestFileWith(dir, JBANG_CATALOG_JSON, catalogFile -> {
 			Catalog catalog = getCatalog(catalogFile, false);
 			return catalog.catalogs.containsKey(catalogName);
 		});
@@ -711,24 +695,6 @@ public class AliasUtil {
 				Util.warnMsg("Unable to remove catalog: " + ex.getMessage());
 			}
 		}
-	}
-
-	private static Path findNearestFileWith(Path dir, String fileName, Function<Path, Boolean> accept) {
-		if (dir == null) {
-			dir = Util.getCwd();
-		}
-		while (dir != null) {
-			Path catalog = dir.resolve(fileName);
-			if (Files.isRegularFile(catalog) && Files.isReadable(catalog) && accept.apply(catalog)) {
-				return catalog;
-			}
-			catalog = dir.resolve(JBANG_DOT_DIR).resolve(fileName);
-			if (Files.isRegularFile(catalog) && Files.isReadable(catalog) && accept.apply(catalog)) {
-				return catalog;
-			}
-			dir = dir.getParent();
-		}
-		return null;
 	}
 
 	public static boolean isValidName(String name) {

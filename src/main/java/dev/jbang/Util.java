@@ -38,6 +38,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -937,8 +939,54 @@ public class Util {
 		return false;
 	}
 
+	public static Path findNearestFileWith(Path dir, String fileName, Function<Path, Boolean> accept) {
+		if (dir == null) {
+			dir = getCwd();
+		}
+		while (dir != null) {
+			Path catalog = dir.resolve(fileName);
+			if (Files.isRegularFile(catalog) && Files.isReadable(catalog) && accept.apply(catalog)) {
+				return catalog;
+			}
+			catalog = dir.resolve(Settings.JBANG_DOT_DIR).resolve(fileName);
+			if (Files.isRegularFile(catalog) && Files.isReadable(catalog) && accept.apply(catalog)) {
+				return catalog;
+			}
+			dir = dir.getParent();
+		}
+		return null;
+	}
+
 	public static Path getCwd() {
 		return Paths.get("").toAbsolutePath();
 	}
 
+	/**
+	 * Helper function for looking up local files according to the "nearest"
+	 * principle. This means that we start from a given folder and look for a file
+	 * there, second we look into the `.jbang` folder (if any) for the same file.
+	 * Then we go up one folder and do the same, and so on until we reach the root
+	 * of the file system. Finally we call the `mergeFile()` method in reverse order
+	 * on all the files that were found. The final result is then returned from the
+	 * method.
+	 * 
+	 * @param dir       The folder to start
+	 * @param file      The file to look for
+	 * @param result    The current value of the result (has to be mutable)
+	 * @param mergeFile The function to call for each file that was found
+	 * @param <R>       The type of the result
+	 */
+	public static <R> void mergeLocalFiles(Path dir, Path file, R result, BiConsumer<Path, R> mergeFile) {
+		if (dir.getParent() != null) {
+			mergeLocalFiles(dir.getParent(), file, result, mergeFile);
+		}
+		Path catalogFile = dir.resolve(Settings.JBANG_DOT_DIR).resolve(file);
+		if (Files.isRegularFile(catalogFile) && Files.isReadable(catalogFile)) {
+			mergeFile.accept(catalogFile, result);
+		}
+		catalogFile = dir.resolve(file);
+		if (Files.isRegularFile(catalogFile) && Files.isReadable(catalogFile)) {
+			mergeFile.accept(catalogFile, result);
+		}
+	}
 }

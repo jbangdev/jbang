@@ -89,7 +89,6 @@ public class Edit extends BaseScriptCommand {
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
-
 				}
 			}
 			if ("gitpod".equals(editor.get()) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
@@ -117,7 +116,7 @@ public class Edit extends BaseScriptCommand {
 			try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
 				File orginalFile = script.getOriginalFile();
 				if (!orginalFile.exists()) {
-					throw new ExitException(2, "Cannot live edit " + script.getOriginalRef());
+					throw new ExitException(EXIT_UNEXPECTED_STATE, "Cannot live edit " + script.getOriginalRef());
 				}
 				Path watched = orginalFile.getAbsoluteFile().getParentFile().toPath();
 				watched.register(watchService,
@@ -321,7 +320,7 @@ public class Edit extends BaseScriptCommand {
 			throws IOException {
 		Template template = engine.getTemplate(templateName);
 		if (template == null)
-			throw new ExitException(1, "Could not locate template named: '" + templateName + "'");
+			throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateName + "'");
 		String result = template
 								.data("repositories",
 										repositories.stream()

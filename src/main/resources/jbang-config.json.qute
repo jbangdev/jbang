@@ -1,0 +1,6 @@
+{
+    {#if config.editor}
+    // The name of the default editor to use
+    "editor": "{config.editor}"
+    {/}
+}

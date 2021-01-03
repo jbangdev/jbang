@@ -17,6 +17,7 @@ import org.junit.rules.TemporaryFolder;
 
 import dev.jbang.AliasUtil;
 import dev.jbang.BaseTest;
+import dev.jbang.Settings;
 
 public class TestAliasNearestWithBaseRef extends BaseTest {
 
@@ -78,7 +79,7 @@ public class TestAliasNearestWithBaseRef extends BaseTest {
 	@Test
 	void testAddDotLocal() throws IOException {
 		Path localCatalog = cwd.resolve(AliasUtil.JBANG_CATALOG_JSON);
-		Path dotLocalCatalog = cwd.resolve(AliasUtil.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
+		Path dotLocalCatalog = cwd.resolve(Settings.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
 		Files.delete(localCatalog);
 		AliasUtil.addNearestAlias(cwd, "new", "scripts/local.java", null, null, null);
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
@@ -91,8 +92,8 @@ public class TestAliasNearestWithBaseRef extends BaseTest {
 	@Test
 	void testAddParent1() throws IOException {
 		Path localCatalog = cwd.resolve(AliasUtil.JBANG_CATALOG_JSON);
-		Path dotLocalCatalog = cwd.resolve(AliasUtil.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
-		Path parentCatalog = cwd.getParent().resolve(AliasUtil.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
+		Path dotLocalCatalog = cwd.resolve(Settings.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
+		Path parentCatalog = cwd.getParent().resolve(Settings.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
 		Files.delete(localCatalog);
 		Files.delete(dotLocalCatalog);
 		AliasUtil.addNearestAlias(cwd, "new", "scripts/local.java", null, null, null);
@@ -107,8 +108,8 @@ public class TestAliasNearestWithBaseRef extends BaseTest {
 	@Test
 	void testAddParent2() throws IOException {
 		Path localCatalog = cwd.resolve(AliasUtil.JBANG_CATALOG_JSON);
-		Path dotLocalCatalog = cwd.resolve(AliasUtil.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
-		Path parentCatalog = cwd.getParent().resolve(AliasUtil.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
+		Path dotLocalCatalog = cwd.resolve(Settings.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
+		Path parentCatalog = cwd.getParent().resolve(Settings.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
 		Files.delete(localCatalog);
 		Files.delete(dotLocalCatalog);
 		AliasUtil.addNearestAlias(cwd, "new", "../scripts/parent.java", null, null, null);

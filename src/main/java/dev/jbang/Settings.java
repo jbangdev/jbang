@@ -1,6 +1,6 @@
 package dev.jbang;
 
-import static dev.jbang.Util.warnMsg;
+import static dev.jbang.Util.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,6 +35,9 @@ public class Settings {
 	public static final String JBANG_DIR = "JBANG_DIR";
 	public static final String JBANG_CACHE_DIR = "JBANG_CACHE_DIR";
 
+	public static final String JBANG_DOT_DIR = ".jbang";
+
+	public static final String CONFIG_JSON = "jbang-config.json";
 	public static final String TRUSTED_SOURCES_JSON = "trusted-sources.json";
 	public static final String DEPENDENCY_CACHE_JSON = "dependency_cache.json";
 	public static final String CURRENT_JDK = "currentjdk";
@@ -189,7 +192,7 @@ public class Settings {
 			if (cc == CacheClass.deps) {
 				try {
 					if (getCacheDependencyFile().toFile().exists()) {
-						Util.verboseMsg("Deleting file " + getCacheDependencyFile());
+						verboseMsg("Deleting file " + getCacheDependencyFile());
 						Files.deleteIfExists(getCacheDependencyFile().toAbsolutePath());
 					}
 				} catch (IOException io) {
@@ -217,6 +220,10 @@ public class Settings {
 
 	public static Path getUserImplicitCatalogFile() {
 		return getConfigDir().resolve(AliasUtil.JBANG_IMPLICIT_CATALOG_JSON);
+	}
+
+	public static Path getUserConfigFile() {
+		return getConfigDir().resolve(CONFIG_JSON);
 	}
 
 	static protected void clearDependencyCache() {
@@ -294,5 +301,4 @@ public class Settings {
 		}
 		return null;
 	}
-
 }

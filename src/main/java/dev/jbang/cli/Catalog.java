@@ -31,7 +31,7 @@ abstract class BaseCatalogCommand extends BaseCommand {
 		} else {
 			if (catalogFile != null && Files.isDirectory(catalogFile)) {
 				Path defaultCatalog = catalogFile.resolve(AliasUtil.JBANG_CATALOG_JSON);
-				Path hiddenCatalog = catalogFile.resolve(AliasUtil.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
+				Path hiddenCatalog = catalogFile.resolve(Settings.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
 				if (!Files.exists(defaultCatalog) && Files.exists(hiddenCatalog)) {
 					cat = hiddenCatalog;
 				} else {
