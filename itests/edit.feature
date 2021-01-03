@@ -5,4 +5,3 @@ Scenario: edit a file should print to std out
   * command('jbang edit hello.java')
 * match err == ''
   * match out contains 'hello'
-

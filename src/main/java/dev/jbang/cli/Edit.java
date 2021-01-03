@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import dev.jbang.DependencyUtil;
+import dev.jbang.EditorManager;
 import dev.jbang.ExitException;
 import dev.jbang.JitPackUtil;
 import dev.jbang.MavenRepo;
@@ -59,10 +60,38 @@ public class Edit extends BaseScriptCommand {
 
 		if (editor.isPresent()) {
 			if (editor.get().isEmpty()) {
-				throw new ExitException(EXIT_INVALID_INPUT, "--open specified but no default editor available. " +
-						"You can use --open=<editor> or set JBANG_EDITOR environment variable to specify which editor to open.");
-			}
+				File dataPath = EditorManager.getVSCodiumDataPath().toFile();
+				File editorBinPath = EditorManager.getVSCodiumBinPath().toFile();
+				Path editorPath = EditorManager.getVSCodiumPath();
+				editor = Optional.of(editorBinPath.getAbsolutePath());
 
+				if (!editorBinPath.exists()) {
+					editorPath = EditorManager.downloadAndInstallEditor();
+
+					if (!dataPath.exists()) {
+						verboseMsg("Making portable data path " + dataPath.toString());
+						dataPath.mkdirs();
+					}
+
+					verboseMsg("Installing Java extensions...");
+					ProcessBuilder pb = new ProcessBuilder(new String[] {
+							editor.get(),
+							"--install-extension", "redhat.java",
+							"--install-extension", "vscjava.vscode-java-debug" });
+					pb.inheritIO();
+					Process process = pb.start();
+					try {
+						int exit = process.waitFor();
+						if (exit > 0) {
+							throw new ExitException(EXIT_INTERNAL_ERROR,
+									"Could not install and setup extensions into vscodium. Aborting.");
+						}
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+
+				}
+			}
 			if ("gitpod".equals(editor.get()) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
 				info("Open this url to edit the project in your gitpod session:\n\n"
 						+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + project.getAbsolutePath() + "\n\n");
