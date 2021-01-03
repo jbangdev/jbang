@@ -12,7 +12,11 @@ Scenario: jshell arguments
 When command('jbang helloworld.jsh JSH!')
 Then match out == "Hello JSH!\n"
 
-Scenario: jsh system property
+Scenario: jsh default system property
+  When command('jbang -Dvalue hello.jsh')
+  Then match out == "true\n"
+
+  Scenario: jsh system property
 When command('jbang -Dvalue=hello hello.jsh')
 Then match out == "hello\n"
 

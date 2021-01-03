@@ -396,6 +396,11 @@ The script will have the output:
 
 Please note that `.jsh` files are source only, they are not compiled thus they are https://github.com/jbangdev/jbang/issues/506[not cached] nor can they be https://github.com/jbangdev/jbang/issues/510[built as native images].
 
+[TIP]
+====
+If you use `-Dkey` where no value is specified `jbang` will interpret this as `-Dkey=true` allowing you to easily have
+flags passed into, i.e. `jbang -DskipTests mytestrunner.java`. Now within your script `Boolean.getBoolean('skipTests') will return true.
+====
 
 ==== Running script from standard input
 
@@ -883,7 +888,7 @@ Above does require using a shell that allows for variable evaluation, if you are
 jbang edit --open=[editor] helloworld.java
 ----
 
-The editor used will be what is specified as the argument to `--open` or default to `$JBANG_EDITOR`, `$VISUAL` or `$EDITOR` in that order.
+The editor used will be what is specified as the argument to `--open` or value of `JBANG_EDITOR` environment variable.
 The editor command must be available on the PATH to be executed from jbang. If you are executing `jbang edit --open=code helloworld.java` a `code` executable (visual studio code) must be on the PATH. Next to this you can pass the full path to the `open` parameter like in `--open=/usr/bin/code`.
 
 NOTE: On Windows you might need elevated privileges to create symbolic links. If you don't have permissions then

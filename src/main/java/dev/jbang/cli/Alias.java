@@ -8,7 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import dev.jbang.*;
+import dev.jbang.AliasUtil;
+import dev.jbang.ExitException;
+import dev.jbang.Script;
+import dev.jbang.Settings;
+import dev.jbang.Util;
 
 import picocli.CommandLine;
 
@@ -56,7 +60,7 @@ class AliasAdd extends BaseAliasCommand {
 			"-d" }, description = "A description for the alias")
 	String description;
 
-	@CommandLine.Option(names = { "-D" }, description = "set a system property")
+	@CommandLine.Option(names = { "-D" }, description = "set a system property", mapFallbackValue = "true")
 	Map<String, String> properties;
 
 	@CommandLine.Option(names = { "--name" }, description = "A name for the command")
