@@ -38,8 +38,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="http://riadiscuss.jeffmaury.com"><img src="https://avatars0.githubusercontent.com/u/695993?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jeff MAURY</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/issues?q=author%3Ajeffmaury" title="Bug reports">🐛</a> <a href="https://github.com/jbangdev/jbang/commits?author=jeffmaury" title="Code">💻</a></td>
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/johnaohara"><img src="https://avatars1.githubusercontent.com/u/959822?v=4?s=100" width="100px;" alt=""/><br /><sub><b>John O'Hara</b></sub></a><br /><a href="#example-johnaohara" title="Examples">💡</a></td>
-    <td align="center"><a href="https://github.com/jmini"><img src="https://avatars0.githubusercontent.com/u/1222165?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jérémie Bresson</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=jmini" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/jmini"><img src="https://avatars0.githubusercontent.com/u/1222165?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jérémie Bresson</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=jmini" title="Code">💻</a> <a href="https://github.com/jbangdev/jbang/issues?q=author%3Ajmini" title="Bug reports">🐛</a></td>
     <td align="center"><a href="https://developers.redhat.com"><img src="https://avatars0.githubusercontent.com/u/947745?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Kamesh Sampath</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=kameshsampath" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/karstentorp"><img src="https://avatars1.githubusercontent.com/u/3295722?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Karsten Bünger Torp</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=karstentorp" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/kjjaeger"><img src="https://avatars3.githubusercontent.com/u/271480?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Kenneth J. Jaeger</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=kjjaeger" title="Code">💻</a></td>
@@ -64,6 +63,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="http://blog.abstratt.com/rafael-chaves"><img src="https://avatars1.githubusercontent.com/u/2187522?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Rafael Chaves</b></sub></a><br /><a href="#content-abstratt" title="Content">🖋</a></td>
     <td align="center"><a href="http://pardini.net"><img src="https://avatars3.githubusercontent.com/u/639959?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ricardo Pardini</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=rpardini" title="Code">💻</a></td>
     <td align="center"><a href="https://twitter.com/r_svoboda"><img src="https://avatars0.githubusercontent.com/u/925259?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Rostislav Svoboda</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=rsvoboda" title="Documentation">📖</a> <a href="https://github.com/jbangdev/jbang/commits?author=rsvoboda" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/ssaarinen"><img src="https://avatars2.githubusercontent.com/u/384839?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Samuli Saarinen</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/issues?q=author%3Assaarinen" title="Bug reports">🐛</a></td>
+  </tr>
+  <tr>
   </tr>
   <tr>
     <td align="center"><a href="https://github.com/ssaarinen"><img src="https://avatars2.githubusercontent.com/u/384839?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Samuli Saarinen</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/issues?q=author%3Assaarinen" title="Bug reports">🐛</a></td>
@@ -73,6 +75,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="http://sunix.org/"><img src="https://avatars0.githubusercontent.com/u/650571?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Sun Seng David TAN</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=sunix" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/quintesse"><img src="https://avatars0.githubusercontent.com/u/778793?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Tako Schotanus</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=quintesse" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/dem2k"><img src="https://avatars1.githubusercontent.com/u/14839058?v=4?s=100" width="100px;" alt=""/><br /><sub><b>dem2k</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=dem2k" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/grumpyf0x48"><img src="https://avatars3.githubusercontent.com/u/33195569?v=4?s=100" width="100px;" alt=""/><br /><sub><b>grumpyf0x48</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/issues?q=author%3Agrumpyf0x48" title="Bug reports">🐛</a></td>
+  </tr>
+  <tr>
   </tr>
   <tr>
     <td align="center"><a href="https://github.com/grumpyf0x48"><img src="https://avatars3.githubusercontent.com/u/33195569?v=4?s=100" width="100px;" alt=""/><br /><sub><b>grumpyf0x48</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/issues?q=author%3Agrumpyf0x48" title="Bug reports">🐛</a></td>
