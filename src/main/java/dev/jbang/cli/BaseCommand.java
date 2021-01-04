@@ -26,6 +26,10 @@ public abstract class BaseCommand implements Callable<Integer> {
 	@CommandLine.Spec
 	CommandLine.Model.CommandSpec spec;
 
+	@CommandLine.Option(names = { "-V",
+			"--version" }, versionHelp = true, description = "Display version info (use `jbang --verbose version` for more details)")
+	boolean versionRequested;
+
 	@CommandLine.Option(names = { "-h", "--help" }, usageHelp = true, description = "Display help/info")
 	boolean helpRequested;
 
