@@ -324,7 +324,8 @@ public class Util {
 			try {
 				return Vendor.valueOf(vendorName);
 			} catch (IllegalArgumentException ex) {
-				warnMsg("JDK vendor '" + vendorName + "' does not exist, should be one of: " + Vendor.values());
+				warnMsg("JDK vendor '" + vendorName + "' does not exist, should be one of: "
+						+ Arrays.toString(Vendor.values()));
 			}
 		}
 		return Vendor.adoptopenjdk;

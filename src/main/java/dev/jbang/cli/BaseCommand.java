@@ -18,8 +18,8 @@ public abstract class BaseCommand implements Callable<Integer> {
 	public static int EXIT_INTERNAL_ERROR = 4;
 	public static int EXIT_EXECUTE = 255;
 
+	private static final Logger logger = Logger.getLogger("org.jboss.shrinkwrap.resolver");
 	static {
-		Logger logger = Logger.getLogger("org.jboss.shrinkwrap.resolver");
 		logger.setLevel(Level.SEVERE);
 	}
 
