@@ -19,7 +19,7 @@ import picocli.CommandLine;
 public class Info {
 }
 
-abstract class BaseInfoCommand extends BaseScriptCommand {
+abstract class BaseInfoCommand extends BaseBuildCommand {
 
 	class ScriptInfo {
 
@@ -54,7 +54,11 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 			enableInsecure();
 		}
 
-		script = prepareScript(scriptOrFile);
+		script = prepareScript(scriptOrFile, null, properties, dependencies, classpaths);
+
+		if (script.needsJar()) {
+			build(script);
+		}
 
 		ScriptInfo info = new ScriptInfo(script);
 
