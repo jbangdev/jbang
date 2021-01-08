@@ -19,8 +19,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import dev.jbang.ConsoleInput;
 import dev.jbang.DependencyUtil;
 import dev.jbang.EditorManager;
 import dev.jbang.ExitException;
@@ -60,37 +62,7 @@ public class Edit extends BaseScriptCommand {
 
 		if (editor.isPresent()) {
 			if (editor.get().isEmpty()) {
-				File dataPath = EditorManager.getVSCodiumDataPath().toFile();
-				File editorBinPath = EditorManager.getVSCodiumBinPath().toFile();
-				Path editorPath = EditorManager.getVSCodiumPath();
-				editor = Optional.of(editorBinPath.getAbsolutePath());
-
-				if (!editorBinPath.exists()) {
-					editorPath = EditorManager.downloadAndInstallEditor();
-
-					if (!dataPath.exists()) {
-						verboseMsg("Making portable data path " + dataPath.toString());
-						dataPath.mkdirs();
-					}
-
-					verboseMsg("Installing Java extensions...");
-					ProcessBuilder pb = new ProcessBuilder(new String[] {
-							editor.get(),
-							"--install-extension", "redhat.java",
-							"--install-extension", "vscjava.vscode-java-debug" });
-					pb.inheritIO();
-					Process process = pb.start();
-					try {
-						int exit = process.waitFor();
-						if (exit > 0) {
-							throw new ExitException(EXIT_INTERNAL_ERROR,
-									"Could not install and setup extensions into vscodium. Aborting.");
-						}
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-
-				}
+				askAndInstallEditor();
 			}
 			if ("gitpod".equals(editor.get()) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
 				info("Open this url to edit the project in your gitpod session:\n\n"
@@ -153,6 +125,73 @@ public class Edit extends BaseScriptCommand {
 			}
 		}
 		return EXIT_OK;
+	}
+
+	private void askAndInstallEditor() throws IOException {
+
+		File editorBinPath = EditorManager.getVSCodiumBinPath().toFile();
+		File dataPath = EditorManager.getVSCodiumDataPath().toFile();
+		Path editorPath = EditorManager.getVSCodiumPath();
+		editor = Optional.of(editorBinPath.getAbsolutePath());
+
+		if (!editorBinPath.exists()) {
+			String question = "You requested to open default editor but no default editor configured." +
+					"\n" +
+					"jbang can download and configure a visual studio code with Java support to use\n" +
+					"See https://vscodium.com for details\n" +
+					"\n" +
+					"Do you want jbang to download VSCodium for you into " + editorPath + " ? \n\n" +
+					"0) Yes, please." +
+					"\n\n" +
+					"Any other response will result in exit.\n";
+
+			ConsoleInput con = new ConsoleInput(
+					1,
+					10,
+					TimeUnit.SECONDS);
+			Util.infoMsg(question);
+			Util.infoMsg("Type in your choice (0) and hit enter. Times out after 10 seconds.");
+			String input = con.readLine();
+
+			boolean abort = true;
+			try {
+				int result = Integer.parseInt(input);
+				if (result == 0) {
+					abort = false;
+				}
+			} catch (NumberFormatException ef) {
+				Util.errorMsg("Could not parse answer as a number. Aborting");
+			}
+
+			if (abort)
+				throw new ExitException(10,
+						"No default editor configured and automatic download not accepted.\n Please try again accepting the download or use an explicit editor, i.e. `jbang edit --open=eclipse xyz.java`");
+
+			editorPath = EditorManager.downloadAndInstallEditor();
+
+			if (!dataPath.exists()) {
+				verboseMsg("Making portable data path " + dataPath.toString());
+				dataPath.mkdirs();
+			}
+
+			verboseMsg("Installing Java extensions...");
+			ProcessBuilder pb = new ProcessBuilder(new String[] {
+					editor.get(),
+					"--install-extension", "redhat.java",
+					"--install-extension", "vscjava.vscode-java-debug" });
+			pb.inheritIO();
+			Process process = pb.start();
+			try {
+				int exit = process.waitFor();
+				if (exit > 0) {
+					throw new ExitException(EXIT_INTERNAL_ERROR,
+							"Could not install and setup extensions into vscodium. Aborting.");
+				}
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+
+		}
 	}
 
 	/** Create Project to use for editing **/
