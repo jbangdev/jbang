@@ -899,8 +899,9 @@ for your user or run your shell/terminal as administrator to have this feature w
 
 === Install of default vscodium editor [EXPERIMENTAL]
 
-If no editor available at all jbang will install https://vscodium.com[VSCodium] (free/libre version of Visual Studio code) with
-default java extensions enabled in so called https://code.visualstudio.com/docs/editor/portable["portable mode"].
+If no editor available at all jbang will offer to install https://vscodium.com[VSCodium] (free/libre version of Visual Studio code) with
+default java extensions enabled in so called https://code.visualstudio.com/docs/editor/portable["portable mode"]. Portable mode means all 
+the installed binaries and configuration does not affect rest of your system; everything is stored in `~/.jbang/editor`.
 
 This automatic install and setup of editor is fully optional and if you have another IDE or editor already installed
 use it using `jbang edit --open=<editor>` or set JBANG_EDITOR environment variable to have jbang use it by default.
