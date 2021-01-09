@@ -1,7 +1,5 @@
 package dev.jbang;
 
-import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -181,11 +179,11 @@ public class Util {
 	}
 
 	public enum OS {
-		linux, mac, windows
+		linux, mac, windows, unknown
 	}
 
 	public enum Arch {
-		x32, x64, aarch64
+		x32, x64, aarch64, unknown
 	}
 
 	public enum Vendor {
@@ -289,7 +287,8 @@ public class Util {
 		} else if (os.startsWith("win")) {
 			return OS.windows;
 		} else {
-			throw new ExitException(EXIT_UNEXPECTED_STATE, "Unsupported Operating System: " + os);
+			Util.verboseMsg("Unknown OS: " + os);
+			return OS.unknown;
 		}
 	}
 
@@ -302,7 +301,8 @@ public class Util {
 		} else if (arch.matches("^(aarch64)$")) {
 			return Arch.aarch64;
 		} else {
-			throw new ExitException(EXIT_UNEXPECTED_STATE, "Unsupported Architecture: " + arch);
+			Util.verboseMsg("Unknown Arch: " + arch);
+			return Arch.unknown;
 		}
 	}
 
