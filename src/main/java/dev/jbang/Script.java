@@ -72,6 +72,11 @@ public class Script {
 	 **/
 	private String javaAgentOption;
 
+	/**
+	 * if true, interpret any input as for jshell
+	 */
+	private boolean forcejsh = false;
+
 	public Script(ScriptResource resource, List<String> arguments, Map<String, String> properties)
 			throws FileNotFoundException {
 		this(resource, getBackingFileContent(resource.getFile()), arguments, properties);
@@ -437,7 +442,7 @@ public class Script {
 	}
 
 	public boolean forJShell() {
-		return getBackingFile().getName().endsWith(".jsh");
+		return forcejsh || getBackingFile().getName().endsWith(".jsh");
 	}
 
 	public void setOriginal(String ref) {
@@ -656,6 +661,10 @@ public class Script {
 
 	public List<KeyValue> getAgentOptions() {
 		return agentOptions;
+	}
+
+	public void setForcejsh(boolean forcejsh) {
+		this.forcejsh = forcejsh;
 	}
 
 }

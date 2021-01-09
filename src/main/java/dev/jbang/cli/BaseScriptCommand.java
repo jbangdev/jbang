@@ -56,6 +56,9 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			"--insecure" }, description = "Enable insecure trust of all SSL certificates.", defaultValue = "false")
 	boolean insecure;
 
+	@CommandLine.Option(names = { "--jsh" }, description = "Force input to be interpreted with jsh/jshell")
+	boolean forcejsh = false;
+
 	@CommandLine.Parameters(index = "0", arity = "1", description = "A file with java code or if named .jsh will be run with jshell")
 	String scriptOrFile;
 
@@ -106,11 +109,11 @@ public abstract class BaseScriptCommand extends BaseCommand {
 
 	public static Script prepareScript(String scriptResource, List<String> arguments, Map<String, String> properties,
 			List<String> dependencies, List<String> classpaths) throws IOException {
-		return prepareScript(scriptResource, arguments, properties, dependencies, classpaths, false);
+		return prepareScript(scriptResource, arguments, properties, dependencies, classpaths, false, false);
 	}
 
 	public static Script prepareScript(String scriptResource, List<String> arguments, Map<String, String> properties,
-			List<String> dependencies, List<String> classpaths, boolean fresh)
+			List<String> dependencies, List<String> classpaths, boolean fresh, boolean forcejsh)
 			throws IOException {
 		ScriptResource scriptFile = getScriptFile(scriptResource);
 
@@ -156,6 +159,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		Script s = null;
 		try {
 			s = new Script(scriptFile, arguments, properties);
+			s.setForcejsh(forcejsh);
 			s.setOriginal(scriptResource);
 			s.setAlias(alias);
 			s.setAdditionalDependencies(dependencies);
