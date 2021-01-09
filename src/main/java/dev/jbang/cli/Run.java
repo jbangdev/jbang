@@ -68,7 +68,8 @@ public class Run extends BaseBuildCommand {
 			enableInsecure();
 		}
 
-		script = prepareArtifacts(prepareScript(scriptOrFile, userParams, properties, dependencies, classpaths, fresh));
+		script = prepareArtifacts(
+				prepareScript(scriptOrFile, userParams, properties, dependencies, classpaths, fresh, forcejsh));
 
 		String cmdline = generateCommandLine(script);
 		debug("run: " + cmdline);
@@ -125,7 +126,7 @@ public class Run extends BaseBuildCommand {
 
 			String requestedJavaVersion = javaVersion != null ? javaVersion : script.javaVersion();
 			String javacmd = resolveInJavaHome("java", requestedJavaVersion);
-			if (script.getBackingFile().getName().endsWith(".jsh")) {
+			if (script.forJShell()) {
 
 				javacmd = resolveInJavaHome("jshell", requestedJavaVersion);
 				if (!classpath.trim().isEmpty()) {

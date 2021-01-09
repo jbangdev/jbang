@@ -24,7 +24,11 @@ Scenario: jsh quoted system property
 When command('jbang -Dvalue="a quoted" hello.jsh')
 Then match out == "a quoted\n"
 
-
 Scenario: jsh fail on --native
   When command('jbang --native hello.jsh')
   Then match err contains ".jsh cannot be used with --native"
+
+Scenario: force jsh
+  When command('jbang --jsh hellojsh hello')
+  Then match err == ""
+  Then match out == "hello\n"
