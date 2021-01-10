@@ -1,6 +1,6 @@
 {
   "homepage": "https://jbang.dev",
-  "description": "Unleash the power of Java for shell scripting. Use `jbang` to run single .java file with automatic dependency fetching and immediate compilation and execution",
+  "description": "Unleash the power of Java. Use `jbang` to run java, jar or jsh file(s) with automatic dependency fetching and immediate compilation and execution",
   "version": "@projectVersion@",
   "license": "MIT",
   "url": "https://github.com/jbangdev/jbang/releases/download/v@projectVersion@/jbang-@projectVersion@.zip",
