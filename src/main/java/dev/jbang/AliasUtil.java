@@ -201,7 +201,7 @@ public class AliasUtil {
 			Map<String, String> props = a1.properties != null && !a1.properties.isEmpty() ? a1.properties
 					: a2.properties;
 			Catalog catalog = a2.catalog != null ? a2.catalog : a1.catalog;
-			return new Alias(a2.scriptRef, null, args, props, catalog);
+			return new Alias(a2.scriptRef, a2.description, args, props, catalog);
 		} else {
 			return a1;
 		}

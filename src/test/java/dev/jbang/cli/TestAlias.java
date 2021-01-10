@@ -96,6 +96,65 @@ public class TestAlias extends BaseTest {
 	}
 
 	@Test
+	void testAddWithDescriptionInScript() throws IOException {
+		TemporaryFolder tmp = new TemporaryFolder();
+		tmp.create();
+		Path tmpPath = tmp.getRoot().toPath();
+		Path testFile = tmpPath.resolve("test.java");
+		Files.write(testFile, ("// Test file \n" +
+				"//DESCRIPTION Description of the script inside the script").getBytes());
+		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), AliasUtil.JBANG_CATALOG_JSON)), is(false));
+		Jbang jbang = new Jbang();
+		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "--name=name", testFile.toString());
+		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), AliasUtil.JBANG_CATALOG_JSON)),
+				is(true));
+		AliasUtil.Alias name = AliasUtil.getAlias(tmpPath, "name");
+		assertThat(name.scriptRef, is(testFile.toString()));
+		assertThat(name.description, is("Description of the script inside the script"));
+	}
+
+	@Test
+	void testAddWithDescriptionInArgs() throws IOException {
+		TemporaryFolder tmp = new TemporaryFolder();
+		tmp.create();
+		Path tmpPath = tmp.getRoot().toPath();
+		Path testFile = tmpPath.resolve("test.java");
+		Files.write(testFile, ("// Test file \n" +
+				"//DESCRIPTION Description of the script inside the script").getBytes());
+		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), AliasUtil.JBANG_CATALOG_JSON)), is(false));
+		Jbang jbang = new Jbang();
+		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "--name=name",
+				"-d", "Description of the script in arguments", testFile.toString());
+		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), AliasUtil.JBANG_CATALOG_JSON)),
+				is(true));
+		AliasUtil.Alias name = AliasUtil.getAlias(tmpPath, "name");
+		assertThat(name.scriptRef, is(testFile.toString()));
+		// The argument has more precedance than the description tag in the script
+		assertThat(name.description, is("Description of the script in arguments"));
+	}
+
+	@Test
+	void testAddWithMultipleDescriptionTags() throws IOException {
+		TemporaryFolder tmp = new TemporaryFolder();
+		tmp.create();
+		Path tmpPath = tmp.getRoot().toPath();
+		Path testFile = tmpPath.resolve("test.java");
+		Files.write(testFile, ("// Test file \n" +
+				"//DESCRIPTION Description first tag\n" +
+				"//DESCRIPTION description second tag\n" +
+				"//DESCRIPTION description third tag").getBytes());
+		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), AliasUtil.JBANG_CATALOG_JSON)), is(false));
+		Jbang jbang = new Jbang();
+		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "--name=name", testFile.toString());
+		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), AliasUtil.JBANG_CATALOG_JSON)),
+				is(true));
+		AliasUtil.Alias name = AliasUtil.getAlias(tmpPath, "name");
+		assertThat(name.scriptRef, is(testFile.toString()));
+		assertThat(name.description,
+				is("Description first tag description second tag description third tag"));
+	}
+
+	@Test
 	void testAddWithHiddenJbangCatalog() throws IOException {
 		TemporaryFolder tmp = new TemporaryFolder();
 		tmp.create();

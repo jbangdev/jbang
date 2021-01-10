@@ -83,6 +83,11 @@ class AliasAdd extends BaseAliasCommand {
 			if (name == null) {
 				name = AppInstall.chooseCommandName(script);
 			}
+
+			if (description == null) {
+				description = script.getDescription();
+			}
+
 			Path catFile = getCatalog(false);
 			if (catFile != null) {
 				AliasUtil.addAlias(null, catFile, name, scriptOrFile, description, userParams, properties);

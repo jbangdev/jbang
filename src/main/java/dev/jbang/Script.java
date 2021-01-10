@@ -29,6 +29,7 @@ public class Script {
 	private static final String DEPS_COMMENT_PREFIX = "//DEPS ";
 	private static final String FILES_COMMENT_PREFIX = "//FILES ";
 	private static final String SOURCES_COMMENT_PREFIX = "//SOURCES ";
+	private static final String DESCRIPTION_COMMENT_PREFIX = "//DESCRIPTION ";
 
 	private static final String DEPS_ANNOT_PREFIX = "@Grab(";
 	private static final Pattern DEPS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
@@ -157,6 +158,13 @@ public class Script {
 										.collect(Collectors.toCollection(ArrayList::new));
 		}
 		return repositories;
+	}
+
+	public String getDescription() {
+		return getLines()	.stream()
+							.filter(Script::isDescriptionDeclare)
+							.map(s -> s.substring(DESCRIPTION_COMMENT_PREFIX.length()))
+							.collect(Collectors.joining(" "));
 	}
 
 	// https://stackoverflow.com/questions/366202/regex-for-splitting-a-string-using-space-when-not-surrounded-by-single-or-double
@@ -389,6 +397,10 @@ public class Script {
 
 	static boolean isDependDeclare(String line) {
 		return line.startsWith(DEPS_COMMENT_PREFIX) || line.contains(DEPS_ANNOT_PREFIX);
+	}
+
+	static boolean isDescriptionDeclare(String line) {
+		return line.startsWith(DESCRIPTION_COMMENT_PREFIX);
 	}
 
 	public Script setMainClass(String mainClass) {
