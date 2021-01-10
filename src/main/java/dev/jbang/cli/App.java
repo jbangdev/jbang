@@ -1,6 +1,8 @@
 package dev.jbang.cli;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -112,7 +114,7 @@ class AppInstall extends BaseCommand {
 	}
 
 	public static String chooseCommandName(Script script) {
-		String startName;
+		String startName = null;
 		String name;
 		if (script.getAlias() != null) {
 			// If the script ref is an alias we take that name up to
@@ -126,13 +128,24 @@ class AppInstall extends BaseCommand {
 		} else {
 			// If the script is a file or a URL we take the last part of
 			// the name without extension (if any) to be the command name.
-			startName = script.getBackingFile().getName();
+			try {
+				URI u = new URI(script.getOriginalRef());
+				startName = u.getPath();
+				if (startName.endsWith("/")) { // if using default app use the last segment.
+					startName = startName.substring(0, startName.length() - 1);
+				}
+				startName = u.getPath().substring(Math.max(0, startName.lastIndexOf("/")));
+			} catch (URISyntaxException e) {
+				startName = Paths.get(script.getOriginalRef()).getFileName().toString();
+			}
+
 			name = startName;
 			int p = name.lastIndexOf(".");
 			if (p > 0) {
 				name = name.substring(0, p);
 			}
 			name = name.replaceAll("[^" + validCommandNameChars + "]", "");
+
 		}
 		if (!isValidCommandName(name)) {
 			throw new IllegalArgumentException(
