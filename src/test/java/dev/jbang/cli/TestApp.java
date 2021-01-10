@@ -43,6 +43,31 @@ public class TestApp extends BaseTest {
 	}
 
 	@Test
+	void testAppInstallExtensionLessFile() throws IOException {
+		ExecutionResult result = checkedRun(null, "app", "install", "itests/kubectl-example");
+		assertThat(result.err, containsString("Command installed: kubectl-example"));
+		if (Util.isWindows()) {
+			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_EXECUTE));
+		} else {
+			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_OK));
+		}
+
+	}
+
+	@Test
+	void testAppInstallURL() throws IOException {
+		ExecutionResult result = checkedRun(null, "app", "install",
+				"https://github.com/jbangdev/k8s-cli-java/blob/jbang/kubectl-example");
+		assertThat(result.err, containsString("Command installed: kubectl-example"));
+		if (Util.isWindows()) {
+			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_EXECUTE));
+		} else {
+			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_OK));
+		}
+
+	}
+
+	@Test
 	void testAppInstallFileExists() throws IOException {
 		ExecutionResult result = checkedRun(null, "app", "install", "itests/helloworld.java");
 		assertThat(result.err, containsString("Command installed: helloworld"));
