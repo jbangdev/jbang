@@ -96,7 +96,7 @@ it setup a `j!` alias you can use instead of `jbang`.
 
 === Using Jbang
 
-Perhaps the coolest way to install Jbang is using Jbang itself.
+The simplest way to install `jbang` is using Jbang itself.
 This method has no other requirements (besides `curl` on Linux/OSX).
 
 Linux/OSX/Windows Bash:
