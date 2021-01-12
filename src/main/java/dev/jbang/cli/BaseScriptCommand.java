@@ -234,7 +234,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		} else if (probe.getName().endsWith(".jar") || probe.getName().endsWith(".java")
 				|| probe.getName().endsWith(".jsh")) {
 			scriptFile = probe;
-			result = new ScriptResource(scriptResource, null, probe);
+			result = new ScriptResource(scriptResource, probe);
 		} else {
 			if (probe.isDirectory()) {
 				File defaultApp = new File(probe, "main.java");
@@ -261,7 +261,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			tempFile.getParentFile().mkdirs();
 			Util.writeString(tempFile.toPath().toAbsolutePath(), original);
 			scriptFile = tempFile;
-			result = new ScriptResource(scriptResource, tempFile.getParentFile(), tempFile);
+			result = new ScriptResource(scriptResource, tempFile);
 			// if we can "just" read from script resource create tmp file
 			// i.e. script input is process substitution file handle
 			// not FileInputStream(this).bufferedReader().use{ readText()} does not work nor
@@ -283,7 +283,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			cache.mkdirs();
 			scriptFile = new File(cache, urlHash + ".jsh");
 			Util.writeString(scriptFile.toPath(), scriptText);
-			result = new ScriptResource(scriptResource, cache, scriptFile);
+			result = new ScriptResource(scriptResource, scriptFile);
 
 		} else if (scriptResource.startsWith("http://") || scriptResource.startsWith("https://")
 				|| scriptResource.startsWith("file:/")) {
@@ -294,7 +294,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			String gav = scriptResource.toString();
 			String s = new DependencyUtil().resolveDependencies(Arrays.asList(gav),
 					Collections.emptyList(), false, !Util.isQuiet(), false).getClassPath();
-			result = new ScriptResource(scriptResource, null, new File(s));
+			result = new ScriptResource(scriptResource, new File(s));
 		}
 
 		return result;
@@ -356,7 +356,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			File urlCache = Util.getUrlCache(scriptURL).toFile();
 			Path path = Util.downloadFileSwizzled(scriptURL, urlCache);
 
-			return new ScriptResource(scriptURL, urlCache, path.toFile());
+			return new ScriptResource(scriptURL, path.toFile());
 		} catch (IOException | URISyntaxException e) {
 			throw new ExitException(2, "Could not download " + scriptURL, e);
 		}
