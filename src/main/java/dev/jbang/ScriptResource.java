@@ -10,18 +10,15 @@ public class ScriptResource {
 	// original requested resource
 	private final String originalResource;
 	// cache folder it is stored inside
-	private File sourceCacheDir;
-	// physical file it is mapped to
 	private File file;
 
-	public ScriptResource(String scriptURL, File urlCache, File file) {
+	public ScriptResource(String scriptURL, File file) {
 		this.originalResource = scriptURL;
-		this.sourceCacheDir = urlCache;
 		this.file = file;
 	}
 
 	public static ScriptResource forFile(File file) {
-		return new ScriptResource(null, null, file);
+		return new ScriptResource(null, file);
 	}
 
 	public boolean isURL() {
@@ -30,10 +27,6 @@ public class ScriptResource {
 
 	public File getFile() {
 		return file;
-	}
-
-	public File getSourceCacheDir() {
-		return sourceCacheDir;
 	}
 
 	public String getOriginalResource() {
