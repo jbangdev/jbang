@@ -30,7 +30,8 @@ public abstract class BaseCommand implements Callable<Integer> {
 			"--version" }, versionHelp = true, description = "Display version info (use `jbang --verbose version` for more details)")
 	boolean versionRequested;
 
-	@CommandLine.Option(names = { "-h", "--help" }, usageHelp = true, description = "Display help/info. Use 'jbang <command> -h' for detailed usage.")
+	@CommandLine.Option(names = { "-h",
+			"--help" }, usageHelp = true, description = "Display help/info. Use 'jbang <command> -h' for detailed usage.")
 	boolean helpRequested;
 
 	void debug(String msg) {
