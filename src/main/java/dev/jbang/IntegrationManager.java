@@ -70,6 +70,10 @@ public class IntegrationManager {
 		List<String> javaArgs = null;
 		PrintStream oldout = System.out;
 		try {
+			// TODO: should we add new properties to the integration method?
+			if (script.getBackingFile() != null) {
+				System.setProperty("jbang.source", script.getBackingFile().getAbsolutePath());
+			}
 			Thread.currentThread().setContextClassLoader(integrationCl);
 			Set<String> classNames = loadIntegrationClassNames(integrationCl);
 			for (String className : classNames) {
@@ -187,6 +191,14 @@ public class IntegrationManager {
 			this.value = value;
 			return old;
 		}
+
+		@Override
+		public String toString() {
+			return "MapEntry{" +
+					"key='" + key + '\'' +
+					", value=" + value +
+					'}';
+		}
 	}
 
 	private static class MapRepoEntry implements Map.Entry<String, String> {
@@ -213,6 +225,15 @@ public class IntegrationManager {
 			String old = this.value;
 			this.value = value;
 			return old;
+		}
+
+		@Override
+		public String toString() {
+			return "MapEntry{" +
+					"key='" + key + '\'' +
+					", value=" + value +
+					'}';
+
 		}
 	}
 

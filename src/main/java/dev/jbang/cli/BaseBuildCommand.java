@@ -97,6 +97,9 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 
 	// build with javac and then jar... todo: split up in more testable chunks
 	void build(Script script) throws IOException {
+		for (Map.Entry<String, String> entry : properties.entrySet()) {
+			System.setProperty(entry.getKey(), entry.getValue());
+		}
 		File baseDir = Settings.getCacheDir(Settings.CacheClass.jars).toFile();
 		File tmpJarDir = new File(baseDir, script.getBackingFile().getName() +
 				"." + Util.getStableID(script.getBackingFile()));
