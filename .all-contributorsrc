@@ -483,6 +483,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "michael-simons",
+      "name": "Michael Simons",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/526383?v=4",
+      "profile": "http://michael-simons.eu",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
