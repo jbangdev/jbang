@@ -148,7 +148,7 @@ public class TestRun extends BaseTest {
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
 
-		String jar = new File(examplesTestFolder, "helloworld.jar").getAbsolutePath();
+		String jar = new File(examplesTestFolder, "hellojar.jar").getAbsolutePath();
 
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
@@ -159,7 +159,7 @@ public class TestRun extends BaseTest {
 		assertThat(result, matchesPattern("^.*java(.exe)?.*"));
 		assertThat(s.getMainClass(), not(nullValue()));
 
-		assertThat(result, containsString("helloworld.jar"));
+		assertThat(result, containsString("hellojar.jar"));
 
 		assertThat(s.getBackingFile().toString(), equalTo(jar));
 		assertThat(s.forJar(), equalTo(true));
