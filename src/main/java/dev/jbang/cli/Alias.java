@@ -84,7 +84,7 @@ class AliasAdd extends BaseAliasCommand {
 				name = AppInstall.chooseCommandName(script);
 			}
 
-			if (description == null) {
+			if (description == null && script.getDescription() != null && script.getDescription().length() > 0) {
 				description = script.getDescription();
 			}
 

@@ -164,7 +164,7 @@ public class Script {
 		return getLines()	.stream()
 							.filter(Script::isDescriptionDeclare)
 							.map(s -> s.substring(DESCRIPTION_COMMENT_PREFIX.length()))
-							.collect(Collectors.joining(" "));
+							.collect(Collectors.joining("\n"));
 	}
 
 	// https://stackoverflow.com/questions/366202/regex-for-splitting-a-string-using-space-when-not-surrounded-by-single-or-double

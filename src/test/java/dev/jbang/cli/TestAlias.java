@@ -2,7 +2,15 @@ package dev.jbang.cli;
 
 import static dev.jbang.TestUtil.clearSettingsCaches;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.aMapWithSize;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.iterableWithSize;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -151,7 +159,25 @@ public class TestAlias extends BaseTest {
 		AliasUtil.Alias name = AliasUtil.getAlias(tmpPath, "name");
 		assertThat(name.scriptRef, is(testFile.toString()));
 		assertThat(name.description,
-				is("Description first tag description second tag description third tag"));
+				is("Description first tag\ndescription second tag\ndescription third tag"));
+	}
+
+	@Test
+	void testAddWithNoDescriptionTags() throws IOException {
+		TemporaryFolder tmp = new TemporaryFolder();
+		tmp.create();
+		Path tmpPath = tmp.getRoot().toPath();
+		Path testFile = tmpPath.resolve("test.java");
+		Files.write(testFile, ("// Test file \n").getBytes());
+		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), AliasUtil.JBANG_CATALOG_JSON)), is(false));
+		Jbang jbang = new Jbang();
+		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "--name=name", testFile.toString());
+		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), AliasUtil.JBANG_CATALOG_JSON)),
+				is(true));
+		AliasUtil.Alias name = AliasUtil.getAlias(tmpPath, "name");
+		assertThat(name.scriptRef, is(testFile.toString()));
+		assertThat(name.description,
+				nullValue());
 	}
 
 	@Test
