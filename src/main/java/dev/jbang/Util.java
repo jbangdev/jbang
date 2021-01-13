@@ -674,7 +674,7 @@ public class Util {
 		String[] pathPlusAnchor = url.split("#");
 		String fileName = getFileNameFromGistURL(url);
 		String gistapi = pathPlusAnchor[0].replaceFirst(
-				"^https://gist.github.com/(([a-zA-Z0-9]*)/)?(?<gistid>[a-zA-Z0-9]*)$",
+				"^https://gist.github.com/(([a-zA-Z0-9\-]*)/)?(?<gistid>[a-zA-Z0-9]*)$",
 				"https://api.github.com/gists/${gistid}");
 
 		Util.verboseMsg("Gist url api: " + gistapi);
