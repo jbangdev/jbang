@@ -1284,6 +1284,35 @@ CommentPragmas:  '^[^ ]'
 ----
 |====
 
+== Article & Presentations
+
+https://adambien.blog/roller/abien/entry/java_cli_apps_builds_and[Java CLI Apps, Builds and jbang--airhacks.fm podcast] - Adam Bien
+
+https://www.infoq.com/news/2020/10/scripting-java-jbang[Scripting Java with a jBang] - InfoQ - Alex Blewitt
+
+https://www.youtube.com/watch?v=-c9CIT9RfOQ&t=123s[jbang: Unleash the power of Java for shell scripting] - DevNation Tech Talk - Max Rydahl Andersen
+
+https://www.youtube.com/watch?v=A9YeRPSCdVU&t=5s[Creating java code and simplifying execution with JBang] - Daniel Persson
+
+https://www.youtube.com/watch?v=3JopX_mtFiY&t=14s[Quarkus Insights #16: Quarkus with JBang] - Quarkus Insights
+
+https://www.youtube.com/watch?v=gVL-CFEOGs8[jbang, a better Java?] - Swiss JUG - Max Rydahl Andersen
+
+https://www.youtube.com/watch?v=X4x2jM3Y0uE[JBang - Using Java to make Java better?] - Virtual JUG - Max Rydahl Andersen
+
+https://blogs.oracle.com/developers/self-contained-jdbc-scripts-with-groovy-and-jbang[Self contained JDBC scripts with Groovy and jbang] - Andres Almiray
+
+https://www.youtube.com/watch?v=FzKRqvZv-Ro[Neo4j quickie - jbang and the command line] - Gerrit Meier
+
+https://www.youtube.com/watch?v=RgHNOH2_itw&t=300s[Monday Java Lunch & Learn. This week we'll be learning what jbang is and how to use it] - Matthew Gilliard
+
+
+
+
+
+
+
+
 == Thanks
 
 `jbang` was heavily inspired by how `https://github.com/holgerbrandl/kscript[kscript]` by Holger Brand works.
