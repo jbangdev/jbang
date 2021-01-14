@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -189,7 +190,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			String originalSource = tmp[0];
 			String destinationSource = tmp[1];
 			destinationSource = Util.swizzleURL(destinationSource); // base path for new sources
-			Path path = script.getScriptResource().fetchIfNeeded(destinationSource, originalSource, fresh);
+			Path path = fetchIfNeeded(destinationSource, originalSource, fresh);
 			if (!visited.add(path.toString()))
 				continue;
 			String sourceContent = new String(Files.readAllBytes(path), Charset.defaultCharset());
@@ -215,6 +216,30 @@ public abstract class BaseScriptCommand extends BaseCommand {
 			}
 		}
 		return resolvedSourcePaths;
+	}
+
+	private static Path fetchIfNeeded(String resource, String originalResource, boolean fresh) {
+		if (Util.isURL(resource) || Util.isURL(originalResource)) {
+			try {
+				URI thingToFetch = null;
+				if (Util.isURL(resource)) {
+					thingToFetch = new URI(resource);
+				} else {
+					URI includeContext = new URI(originalResource);
+					thingToFetch = includeContext.resolve(resource);
+				}
+				return Util.downloadAndCacheFile(thingToFetch.toString(), fresh);
+			} catch (URISyntaxException | IOException e) {
+				throw new IllegalStateException("Could not download " + resource + " relatively to " + originalResource,
+						e);
+			}
+		} else {
+			return new File(originalResource)
+												.getAbsoluteFile()
+												.toPath()
+												.getParent()
+												.resolve(resource);
+		}
 	}
 
 	private static ScriptResource getScriptFile(String scriptResource) throws IOException {
