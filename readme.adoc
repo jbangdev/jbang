@@ -1306,6 +1306,10 @@ https://www.youtube.com/watch?v=FzKRqvZv-Ro[Neo4j quickie - jbang and the comman
 
 https://www.youtube.com/watch?v=RgHNOH2_itw&t=300s[Monday Java Lunch & Learn. This week we'll be learning what jbang is and how to use it] - Matthew Gilliard
 
+https://www.twilio.com/blog/cli-app-java-jbang-picocli[How to build a CLI app in Java using jbang and picocli] - Matthew Gilliard
+
+
+
 
 
 
