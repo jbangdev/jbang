@@ -492,6 +492,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "jbardel",
+      "name": "Julien Bardel",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/432134?v=4",
+      "profile": "https://github.com/jbardel",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
