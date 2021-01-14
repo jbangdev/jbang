@@ -1203,7 +1203,7 @@ the script/app.
 While `jbang` prepares and builds the underlying jar used for launch there is since v0.40 (for now) experimental API allowing
 user included dependencies to influence the generated jar and possible native image.
 
-An example use case enabled by this is to have full Quarkus integration, `jbang quarkuscode.java` will have Quarkus participate to perform its build time optimizations rather than doing it at runtime every time.
+An example use case enabled by this is to have full Quarkus integration, `jbang quarkuscode.java` will have Quarkus participate to perform its build time optimizations rather than doing it at runtime every time. You can even do `jbang -Dquarkus.dev quarkuscode.java` (since Quarkus 1.11+) run in devmode and have automatic build happen without having to restart.
 
 It works as following:
 
