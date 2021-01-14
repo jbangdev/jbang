@@ -52,7 +52,7 @@ public class FileRef {
 		}
 	}
 
-	public void copy(Path destroot, Path tempDir) {
+	public void copy(Path destroot, boolean updateCache) {
 		Path from = from();
 		Path to = to(destroot);
 		Util.verboseMsg("Copying " + from + " to " + to);
