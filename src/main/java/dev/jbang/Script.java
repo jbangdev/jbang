@@ -82,7 +82,7 @@ public class Script {
 	}
 
 	public Script(String script, List<String> arguments, Map<String, String> properties) {
-		this(new ScriptResource(null, null), script, arguments, properties);
+		this(ScriptResource.forFile(null), script, arguments, properties);
 	}
 
 	public Script(ScriptResource resource, String content, List<String> arguments, Map<String, String> properties) {
