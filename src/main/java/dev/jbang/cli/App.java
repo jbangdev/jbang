@@ -47,6 +47,10 @@ class AppInstall extends BaseCommand {
 	private static final String jbangUrl = "https://github.com/jbangdev/jbang/releases/latest/download/jbang.zip";
 
 	@CommandLine.Option(names = {
+			"--native" }, description = "Enable native build/run")
+	boolean benative;
+
+	@CommandLine.Option(names = {
 			"--force" }, description = "Force re-installation")
 	boolean force;
 
@@ -73,7 +77,7 @@ class AppInstall extends BaseCommand {
 				if (name != null && !isValidCommandName(name)) {
 					throw new IllegalArgumentException("Not a valid command name: '" + name + "'");
 				}
-				installed = install(name, scriptRef, force);
+				installed = install(name, scriptRef, force, benative);
 			}
 			if (installed) {
 				if (AppSetup.needsSetup()) {
@@ -86,7 +90,7 @@ class AppInstall extends BaseCommand {
 		return EXIT_OK;
 	}
 
-	public static boolean install(String name, String scriptRef, boolean force) throws IOException {
+	public static boolean install(String name, String scriptRef, boolean force, boolean benative) throws IOException {
 		Path binDir = Settings.getConfigBinDir();
 		if (!force && name != null && existScripts(binDir, name)) {
 			Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
@@ -103,7 +107,7 @@ class AppInstall extends BaseCommand {
 		if (script.getAlias() == null && !script.getScriptResource().isURL()) {
 			scriptRef = script.getScriptResource().getFile().getAbsolutePath();
 		}
-		installScripts(name, scriptRef);
+		installScripts(name, scriptRef, benative);
 		Util.infoMsg("Command installed: " + name);
 		return true;
 	}
@@ -162,21 +166,21 @@ class AppInstall extends BaseCommand {
 		return validCommandName.matcher(name).matches();
 	}
 
-	private static void installScripts(String name, String scriptRef) throws IOException {
+	private static void installScripts(String name, String scriptRef, boolean benative) throws IOException {
 		Path binDir = Settings.getConfigBinDir();
 		binDir.toFile().mkdirs();
 		if (Util.isWindows()) {
-			installCmdScript(binDir.resolve(name + ".cmd"), scriptRef);
-			installPSScript(binDir.resolve(name + ".ps1"), scriptRef);
+			installCmdScript(binDir.resolve(name + ".cmd"), scriptRef, benative);
+			installPSScript(binDir.resolve(name + ".ps1"), scriptRef, benative);
 		} else {
-			installShellScript(binDir.resolve(name), scriptRef);
+			installShellScript(binDir.resolve(name), scriptRef, benative);
 		}
 	}
 
-	private static void installShellScript(Path file, String scriptRef) throws IOException {
+	private static void installShellScript(Path file, String scriptRef, boolean benative) throws IOException {
 		List<String> lines = Arrays.asList(
 				"#!/bin/sh",
-				"eval \"exec jbang run " + scriptRef + " $*\"");
+				"eval \"exec jbang run" + (benative ? " --native " : " ") + scriptRef + " $*\"");
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 		setExecutable(file);
 	}
@@ -193,16 +197,16 @@ class AppInstall extends BaseCommand {
 		}
 	}
 
-	private static void installCmdScript(Path file, String scriptRef) throws IOException {
+	private static void installCmdScript(Path file, String scriptRef, boolean benative) throws IOException {
 		List<String> lines = Arrays.asList(
 				"@echo off",
-				"jbang run " + scriptRef + " %*");
+				"jbang run" + (benative ? " --native " : " ") + scriptRef + " %*");
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 	}
 
-	private static void installPSScript(Path file, String scriptRef) throws IOException {
+	private static void installPSScript(Path file, String scriptRef, boolean benative) throws IOException {
 		List<String> lines = Arrays.asList(
-				"jbang run " + scriptRef + " $args");
+				"jbang run" + (benative ? " --native " : " ") + scriptRef + " $args");
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 	}
 

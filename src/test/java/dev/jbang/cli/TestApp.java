@@ -30,6 +30,13 @@ public class TestApp extends BaseTest {
 			"jbang run $CWD/itests/helloworld.java %*");
 	private static final List<String> ps1Contents = Arrays.asList("jbang run $CWD/itests/helloworld.java $args");
 
+	private static final List<String> nativeShContents = Arrays.asList("#!/bin/sh",
+			"eval \"exec jbang run --native $CWD/itests/helloworld.java $*\"");
+	private static final List<String> nativeCmdContents = Arrays.asList("@echo off",
+			"jbang run --native $CWD/itests/helloworld.java %*");
+	private static final List<String> nativePs1Contents = Arrays.asList(
+			"jbang run --native $CWD/itests/helloworld.java $args");
+
 	@Test
 	void testAppInstallFile() throws IOException {
 		ExecutionResult result = checkedRun(null, "app", "install", "itests/helloworld.java");
@@ -40,6 +47,18 @@ public class TestApp extends BaseTest {
 			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_OK));
 		}
 		testScripts();
+	}
+
+	@Test
+	void testAppNativeInstallFile() throws IOException {
+		ExecutionResult result = checkedRun(null, "app", "install", "--native", "itests/helloworld.java");
+		assertThat(result.err, containsString("Command installed: helloworld"));
+		if (Util.isWindows()) {
+			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_EXECUTE));
+		} else {
+			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_OK));
+		}
+		testNativeScripts();
 	}
 
 	@Test
@@ -101,6 +120,15 @@ public class TestApp extends BaseTest {
 			testScript("helloworld.ps1", ps1Contents);
 		} else {
 			testScript("helloworld", shContents);
+		}
+	}
+
+	private void testNativeScripts() throws IOException {
+		if (Util.isWindows()) {
+			testScript("helloworld.cmd", nativeCmdContents);
+			testScript("helloworld.ps1", nativePs1Contents);
+		} else {
+			testScript("helloworld", nativeShContents);
 		}
 	}
 
