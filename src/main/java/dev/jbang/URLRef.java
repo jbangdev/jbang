@@ -12,19 +12,19 @@ import java.nio.file.StandardCopyOption;
 
 public class URLRef extends FileRef {
 
-	public URLRef(ScriptResource resource, String destination, String ref) {
-		super(resource, destination, ref);
+	public URLRef(String base, String destination, String ref) {
+		super(base, destination, ref);
 	}
 
 	URI from() {
-		String p = ref != null ? ref : destination;
+		String p = destination != null ? destination : ref;
 
 		if (Paths.get(p).isAbsolute()) {
 			throw new IllegalStateException("Only relative paths allowed in //FILES. Found absolute path: " + p);
 		}
 
 		try {
-			return new URI(resource.getOriginalResource()).resolve(p);
+			return new URI(base).resolve(p);
 		} catch (URISyntaxException e) {
 			throw new IllegalStateException("Could not resolve URI", e);
 		}

@@ -36,12 +36,12 @@ public class ScriptResource {
 		}
 
 		if (FileRef.isURL(fileReference)) {
-			return new URLRef(this, ref, dest);
+			return new URLRef(this.originalResource, ref, dest);
 		}
 		if (FileRef.isURL(originalResource)) {
-			return new URLRef(this, ref, dest);
+			return new URLRef(this.originalResource, ref, dest);
 		} else {
-			return new FileRef(this, ref, dest);
+			return new FileRef(this.originalResource, ref, dest);
 		}
 	}
 
