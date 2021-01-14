@@ -177,7 +177,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		// add additional files
 		List<FileRef> files = script.collectFiles();
 		for (FileRef file : files) {
-			file.copy(tmpJarDir.toPath(), Files.createTempDirectory(String.valueOf(System.currentTimeMillis())));
+			file.copy(tmpJarDir.toPath(), fresh);
 		}
 
 		Template pomTemplate = Settings.getTemplateEngine().getTemplate("pom.qute.xml");

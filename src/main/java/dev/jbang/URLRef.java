@@ -30,7 +30,7 @@ public class URLRef extends FileRef {
 		}
 	}
 
-	public void copy(Path destroot, Path tempDir) {
+	public void copy(Path destroot, boolean updateCache) {
 		URI from = from();
 		Path to = to(destroot);
 		Util.verboseMsg("Copying " + from + " to " + to);
@@ -38,7 +38,7 @@ public class URLRef extends FileRef {
 			if (!to.toFile().getParentFile().exists()) {
 				to.toFile().getParentFile().mkdirs();
 			}
-			Path dest = Util.downloadFile(from.toString(), tempDir.toFile());
+			Path dest = Util.downloadAndCacheFile(from.toString(), updateCache);
 			Files.copy(dest, to, StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException ioe) {
 			throw new ExitException(EXIT_UNEXPECTED_STATE, "Could not copy " + from + " to " + to, ioe);
