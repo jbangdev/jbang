@@ -1,7 +1,5 @@
 package dev.jbang;
 
-import static dev.jbang.FileRef.isURL;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -535,30 +533,6 @@ public class Script {
 		return classpath;
 	}
 
-	static public FileRef toFileRef(Script source, String fileReference) {
-		String[] split = fileReference.split(" // ")[0].split("=");
-		String ref = null;
-		String dest = null;
-
-		if (split.length == 1) {
-			ref = split[0];
-		} else if (split.length == 2) {
-			ref = split[0];
-			dest = split[1];
-		} else {
-			throw new IllegalStateException("Invalid file reference: " + fileReference);
-		}
-
-		if (isURL(fileReference)) {
-			return new URLRef(source, ref, dest);
-		}
-		if (isURL(source.getOriginalResource())) {
-			return new URLRef(source, ref, dest);
-		} else {
-			return new FileRef(source, ref, dest);
-		}
-	}
-
 	static Stream<String> extractKeyValue(String line) {
 		return Arrays.stream(line.split(" +")).map(String::trim);
 	}
@@ -589,7 +563,7 @@ public class Script {
 															.skip(1)
 															.map(String::trim))
 									.map(PropertiesValueResolver::replaceProperties)
-									.map(line -> toFileRef(this, line))
+									.map(line -> scriptResource.toFileRef(line))
 									.collect(Collectors.toCollection(ArrayList::new));
 		}
 		return filerefs;
@@ -614,7 +588,7 @@ public class Script {
 																					.toPath(),
 																	line)
 															.stream())
-									.map(line -> toFileRef(this, line.toString()))
+									.map(line -> scriptResource.toFileRef(line.toString()))
 									.collect(Collectors.toCollection(ArrayList::new));
 			}
 		}

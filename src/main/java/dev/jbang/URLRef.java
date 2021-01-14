@@ -12,8 +12,8 @@ import java.nio.file.StandardCopyOption;
 
 public class URLRef extends FileRef {
 
-	public URLRef(Script source, String destination, String ref) {
-		super(source, destination, ref);
+	public URLRef(ScriptResource resource, String destination, String ref) {
+		super(resource, destination, ref);
 	}
 
 	URI from() {
@@ -24,7 +24,7 @@ public class URLRef extends FileRef {
 		}
 
 		try {
-			return new URI(source.getOriginalResource()).resolve(p);
+			return new URI(resource.getOriginalResource()).resolve(p);
 		} catch (URISyntaxException e) {
 			throw new IllegalStateException("Could not resolve URI", e);
 		}
