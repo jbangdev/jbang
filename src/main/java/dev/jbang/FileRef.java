@@ -10,16 +10,13 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
 public class FileRef {
-
-	final Script source;
-
+	final ScriptResource resource;
 	String ref;
-
 	String destination;
 
-	public FileRef(Script source, String destination, String ref) {
+	public FileRef(ScriptResource resource, String destination, String ref) {
 		assert (destination != null);
-		this.source = source;
+		this.resource = resource;
 		this.ref = ref;
 		this.destination = destination;
 	}
@@ -34,7 +31,7 @@ public class FileRef {
 			throw new IllegalStateException("Only relative paths allowed in //FILES. Found absolute path: " + p);
 		}
 
-		return source.getOriginalFile().toPath().resolveSibling(p);
+		return Paths.get(resource.getOriginalResource()).resolveSibling(p);
 	}
 
 	protected Path to(Path parent) {
@@ -69,15 +66,7 @@ public class FileRef {
 		}
 	}
 
-	public String getRef() {
-		return ref;
-	}
-
 	public String getDestination() {
 		return destination;
-	}
-
-	public Script getSource() {
-		return source;
 	}
 }

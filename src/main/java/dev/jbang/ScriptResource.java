@@ -21,6 +21,30 @@ public class ScriptResource {
 		return new ScriptResource(null, file);
 	}
 
+	public FileRef toFileRef(String fileReference) {
+		String[] split = fileReference.split(" // ")[0].split("=");
+		String ref = null;
+		String dest = null;
+
+		if (split.length == 1) {
+			ref = split[0];
+		} else if (split.length == 2) {
+			ref = split[0];
+			dest = split[1];
+		} else {
+			throw new IllegalStateException("Invalid file reference: " + fileReference);
+		}
+
+		if (FileRef.isURL(fileReference)) {
+			return new URLRef(this, ref, dest);
+		}
+		if (FileRef.isURL(originalResource)) {
+			return new URLRef(this, ref, dest);
+		} else {
+			return new FileRef(this, ref, dest);
+		}
+	}
+
 	public boolean isURL() {
 		return originalResource != null && Util.isURL(originalResource);
 	}
