@@ -79,12 +79,12 @@ public class TestRun extends BaseTest {
 
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
-		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
+		File arg = new File(examplesTestFolder, "helloworld.java");
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg.getAbsolutePath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(
-				new ExtendedScript(ScriptResource.forFile(new File("helloworld.java")), "", run.userParams,
+				RunUnit.forScriptResource(ScriptResource.forFile(arg), run.userParams,
 						run.properties));
 
 		assertThat(result, startsWith("java "));
@@ -101,7 +101,8 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(
-				new ExtendedScript(ScriptResource.forFile(new File("helloworld.jsh")), "", run.userParams,
+				RunUnit.forScriptResource(ScriptResource.forFile(new File(examplesTestFolder, "helloworld.jsh")),
+						run.userParams,
 						run.properties));
 
 		assertThat(result, matchesPattern("^.*jshell(.exe)? --startup.*$"));
@@ -125,7 +126,7 @@ public class TestRun extends BaseTest {
 		File empty = new File(dir, "empty.jsh");
 		empty.createNewFile();
 
-		ExtendedScript s = ExtendedScript.prepareScript(empty.toString(), run.userParams, run.properties,
+		ExtendedRunUnit s = RunUnit.forResource(empty.toString(), run.userParams, run.properties,
 				run.dependencies, run.classpaths,
 				run.fresh, run.forcejsh);
 
@@ -150,7 +151,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ExtendedScript s = ExtendedScript.prepareScript(jar, run.userParams, run.properties, run.dependencies,
+		ExtendedRunUnit s = RunUnit.forResource(jar, run.userParams, run.properties, run.dependencies,
 				run.classpaths, run.fresh,
 				run.forcejsh);
 
@@ -180,7 +181,7 @@ public class TestRun extends BaseTest {
 			CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 			Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-			ExtendedScript result = ExtendedScript.prepareScript(jar, run.userParams, run.properties, run.dependencies,
+			ExtendedRunUnit result = RunUnit.forResource(jar, run.userParams, run.properties, run.dependencies,
 					run.classpaths,
 					run.fresh, run.forcejsh);
 
@@ -206,7 +207,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ExtendedScript result = ExtendedScript.prepareScript(jar, run.userParams, run.properties, run.dependencies,
+		ExtendedRunUnit result = RunUnit.forResource(jar, run.userParams, run.properties, run.dependencies,
 				run.classpaths, run.fresh,
 				run.forcejsh);
 
@@ -241,7 +242,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ExtendedScript result = ExtendedScript.prepareScript(jar, run.userParams, run.properties, run.dependencies,
+		ExtendedRunUnit result = RunUnit.forResource(jar, run.userParams, run.properties, run.dependencies,
 				run.classpaths, run.fresh,
 				run.forcejsh);
 
@@ -266,7 +267,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ExtendedScript result = ExtendedScript.prepareScript(jar, run.userParams, run.properties, run.dependencies,
+		ExtendedRunUnit result = RunUnit.forResource(jar, run.userParams, run.properties, run.dependencies,
 				run.classpaths, run.fresh,
 				run.forcejsh);
 
@@ -290,7 +291,7 @@ public class TestRun extends BaseTest {
 				"picocli.codegen.aot.graalvm.ReflectionConfigGenerator", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ExtendedScript result = ExtendedScript.prepareScript(jar, run.userParams, run.properties, run.dependencies,
+		ExtendedRunUnit result = RunUnit.forResource(jar, run.userParams, run.properties, run.dependencies,
 				run.classpaths, run.fresh,
 				run.forcejsh);
 
@@ -310,12 +311,13 @@ public class TestRun extends BaseTest {
 
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
-		String arg = new File(examplesTestFolder, "helloworld.jsh").getAbsolutePath();
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--interactive", arg, "blah");
+		File arg = new File(examplesTestFolder, "helloworld.jsh");
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--interactive", arg.getAbsolutePath(),
+				"blah");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(
-				new ExtendedScript(ScriptResource.forFile(new File("helloworld.jsh")), "", run.userParams,
+				RunUnit.forScriptResource(ScriptResource.forFile(arg), run.userParams,
 						run.properties));
 
 		assertThat(result, startsWith("jshell"));
@@ -333,12 +335,12 @@ public class TestRun extends BaseTest {
 
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
-		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--debug", arg);
+		File arg = new File(examplesTestFolder, "helloworld.java");
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--debug", arg.getAbsolutePath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(
-				new ExtendedScript(ScriptResource.forFile(new File("helloworld.java")), "", run.userParams,
+				RunUnit.forScriptResource(ScriptResource.forFile(arg), run.userParams,
 						run.properties));
 
 		assertThat(result, startsWith("java "));
@@ -359,7 +361,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(
-				new ExtendedScript(ScriptResource.forFile(new File(arg)), run.userParams, run.properties));
+				RunUnit.forScriptResource(ScriptResource.forFile(new File(arg)), run.userParams, run.properties));
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("classpath_example.java"));
@@ -385,7 +387,7 @@ public class TestRun extends BaseTest {
 		assertThat(run.properties.size(), is(2));
 
 		String result = run.generateCommandLine(
-				new ExtendedScript(ScriptResource.forFile(new File(arg)), run.userParams, run.properties));
+				RunUnit.forScriptResource(ScriptResource.forFile(new File(arg)), run.userParams, run.properties));
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("-Dwonka=panda"));
@@ -406,7 +408,7 @@ public class TestRun extends BaseTest {
 
 		String url = new File(examplesTestFolder, "classpath_example.java").toURI().toString();
 
-		ExtendedScript result = ExtendedScript.prepareScript(url);
+		ExtendedRunUnit result = RunUnit.forResource(url);
 
 		assertThat(result.toString(), not(containsString(url)));
 
@@ -418,7 +420,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		String s = run.generateCommandLine(
-				ExtendedScript.prepareScript(url, run.userParams, run.properties, run.dependencies, run.classpaths,
+				RunUnit.forResource(url, run.userParams, run.properties, run.dependencies, run.classpaths,
 						run.fresh,
 						run.forcejsh));
 
@@ -433,7 +435,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		String s = run.generateCommandLine(
-				ExtendedScript.prepareScript(url, run.userParams, run.properties, run.dependencies, run.classpaths,
+				RunUnit.forResource(url, run.userParams, run.properties, run.dependencies, run.classpaths,
 						run.fresh,
 						run.forcejsh));
 		if (Util.isWindows()) {
@@ -448,7 +450,7 @@ public class TestRun extends BaseTest {
 
 		String url = new File(examplesTestFolder, "classpath_example.java.dontexist").toURI().toString();
 
-		assertThrows(ExitException.class, () -> ExtendedScript.prepareScript(url));
+		assertThrows(ExitException.class, () -> RunUnit.forResource(url));
 	}
 
 	@Test
@@ -481,7 +483,7 @@ public class TestRun extends BaseTest {
 
 		File out = new File(rootdir.toFile(), "content.jar");
 
-		ExtendedScript s = new ExtendedScript("", null, null);
+		ExtendedRunUnit s = RunUnit.forScript("", null, null);
 		s.setMainClass("wonkabear");
 		BaseBuildCommand.createJarFile(s, dir, out);
 
@@ -539,7 +541,7 @@ public class TestRun extends BaseTest {
 
 		Run m = new Run();
 
-		ExtendedScript script = new ExtendedScript(ScriptResource.forFile(f), null, null);
+		ExtendedRunUnit script = RunUnit.forScriptResource(ScriptResource.forFile(f), null, null);
 		m.build(script);
 
 		assertThat(script.getMainClass(), equalTo("aclass"));
@@ -590,7 +592,7 @@ public class TestRun extends BaseTest {
 
 		Run m = new Run();
 
-		ExtendedScript script = new ExtendedScript(ScriptResource.forFile(f), null, null);
+		ExtendedRunUnit script = RunUnit.forScriptResource(ScriptResource.forFile(f), null, null);
 		m.build(script);
 
 		assertThat(script.getMainClass(), equalTo("dualclass"));
@@ -625,7 +627,7 @@ public class TestRun extends BaseTest {
 
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ExtendedScript s = ExtendedScript.prepareScript(arg, run.userParams, run.properties, run.dependencies,
+		ExtendedRunUnit s = RunUnit.forResource(arg, run.userParams, run.properties, run.dependencies,
 				run.classpaths, run.fresh,
 				run.forcejsh);
 
@@ -867,13 +869,13 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("build", p.toFile().getAbsolutePath());
 		Build run = (Build) pr.subcommand().commandSpec().userObject();
 
-		ExtendedScript s = ExtendedScript.prepareScript(p.toFile().getAbsolutePath(), null, run.properties,
+		ExtendedRunUnit s = RunUnit.forResource(p.toFile().getAbsolutePath(), null, run.properties,
 				run.dependencies,
 				run.classpaths, run.fresh, run.forcejsh);
 
 		run.build(s);
 
-		assertThat(s.isAgent(), is(true));
+		assertThat(s.script().isAgent(), is(true));
 
 		assertThat(s.getAgentMainClass(), is("Agent"));
 		assertThat(s.getPreMainClass(), is("Agent"));
@@ -897,13 +899,13 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("build", p.toFile().getAbsolutePath());
 		Build run = (Build) pr.subcommand().commandSpec().userObject();
 
-		ExtendedScript s = ExtendedScript.prepareScript(p.toFile().getAbsolutePath(), null, run.properties,
+		ExtendedRunUnit s = RunUnit.forResource(p.toFile().getAbsolutePath(), null, run.properties,
 				run.dependencies,
 				run.classpaths, run.fresh, run.forcejsh);
 
 		run.build(s);
 
-		assertThat(s.isAgent(), is(true));
+		assertThat(s.script().isAgent(), is(true));
 
 		assertThat(s.getAgentMainClass(), is(nullValue()));
 		assertThat(s.getPreMainClass(), is("Agent"));
@@ -945,10 +947,12 @@ public class TestRun extends BaseTest {
 		assertThat(run.javaAgentSlots.containsKey(agentfile.getAbsolutePath()), is(true));
 		assertThat(run.javaAgentSlots.get(agentfile.getAbsolutePath()).get(), equalTo("optionA"));
 
-		ExtendedScript main = new ExtendedScript(ScriptResource.forFile(mainfile), run.userParams, run.properties);
-		ExtendedScript agent = new ExtendedScript(ScriptResource.forFile(agentfile), run.userParams, run.properties);
+		ExtendedRunUnit main = RunUnit.forScriptResource(ScriptResource.forFile(mainfile), run.userParams,
+				run.properties);
+		ExtendedRunUnit agent = RunUnit.forScriptResource(ScriptResource.forFile(agentfile), run.userParams,
+				run.properties);
 
-		assertThat(agent.isAgent(), is(true));
+		assertThat(agent.script().isAgent(), is(true));
 
 		main = run.prepareArtifacts(main);
 
@@ -1000,7 +1004,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--ea", f.getAbsolutePath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ExtendedScript s = ExtendedScript.prepareScript(f.getAbsolutePath(), run.userParams, run.properties,
+		ExtendedRunUnit s = RunUnit.forResource(f.getAbsolutePath(), run.userParams, run.properties,
 				run.dependencies,
 				run.classpaths, run.fresh, run.forcejsh);
 
@@ -1018,7 +1022,7 @@ public class TestRun extends BaseTest {
 				f.getAbsolutePath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ExtendedScript s = ExtendedScript.prepareScript(f.getAbsolutePath(), run.userParams, run.properties,
+		ExtendedRunUnit s = RunUnit.forResource(f.getAbsolutePath(), run.userParams, run.properties,
 				run.dependencies,
 				run.classpaths, run.fresh, run.forcejsh);
 
@@ -1033,7 +1037,7 @@ public class TestRun extends BaseTest {
 
 		Run m = new Run();
 
-		ExtendedScript script = ExtendedScript.prepareScript(f.getAbsolutePath(), null, null, null, null, false, false);
+		ExtendedRunUnit script = RunUnit.forResource(f.getAbsolutePath(), null, null, null, null, false, false);
 
 		m.build(script);
 
@@ -1066,7 +1070,7 @@ public class TestRun extends BaseTest {
 
 		Run m = new Run();
 
-		ExtendedScript script = ExtendedScript.prepareScript(f.getAbsolutePath(), null, null, null, null, false, false);
+		ExtendedRunUnit script = RunUnit.forResource(f.getAbsolutePath(), null, null, null, null, false, false);
 
 		m.build(script);
 
@@ -1125,7 +1129,7 @@ public class TestRun extends BaseTest {
 		wms.start();
 		Run m = new Run();
 
-		ExtendedScript script = ExtendedScript.prepareScript("http://localhost:" + wms.port() + "/sub/one.java", null,
+		ExtendedRunUnit script = RunUnit.forResource("http://localhost:" + wms.port() + "/sub/one.java", null,
 				null, null, null, false,
 				false);
 
@@ -1166,7 +1170,7 @@ public class TestRun extends BaseTest {
 		wms.start();
 		Run m = new Run();
 
-		ExtendedScript script = ExtendedScript.prepareScript("http://localhost:" + wms.port() + "/sub/one.java", null,
+		ExtendedRunUnit script = RunUnit.forResource("http://localhost:" + wms.port() + "/sub/one.java", null,
 				null, null, null, false,
 				false);
 
@@ -1205,7 +1209,7 @@ public class TestRun extends BaseTest {
 		wms.start();
 		Run m = new Run();
 
-		ExtendedScript script = ExtendedScript.prepareScript("http://localhost:" + wms.port() + "/sub/one", null, null,
+		ExtendedRunUnit script = RunUnit.forResource("http://localhost:" + wms.port() + "/sub/one", null, null,
 				null, null, false,
 				false);
 
@@ -1231,7 +1235,7 @@ public class TestRun extends BaseTest {
 
 		Run m = new Run();
 
-		ExtendedScript script = ExtendedScript.prepareScript(dir.toPath().toString(), null, null, null, null, false,
+		ExtendedRunUnit script = RunUnit.forResource(dir.toPath().toString(), null, null, null, null, false,
 				false);
 
 		m.build(script);
@@ -1244,7 +1248,7 @@ public class TestRun extends BaseTest {
 		Run m = new Run();
 
 		ExitException e = assertThrows(ExitException.class,
-				() -> ExtendedScript.prepareScript(dir.toPath().toString(), null, null, null, null, false, false));
+				() -> RunUnit.forResource(dir.toPath().toString(), null, null, null, null, false, false));
 
 		assertThat(e.getMessage(), containsString("is a directory and no default application"));
 
@@ -1266,7 +1270,7 @@ public class TestRun extends BaseTest {
 		wms.start();
 		Run m = new Run();
 
-		ExtendedScript script = ExtendedScript.prepareScript("http://localhost:" + wms.port() + "/sub/one/", null, null,
+		ExtendedRunUnit script = RunUnit.forResource("http://localhost:" + wms.port() + "/sub/one/", null, null,
 				null, null, false,
 				false);
 
@@ -1290,7 +1294,7 @@ public class TestRun extends BaseTest {
 		Run m = new Run();
 
 		assertThrows(ExitException.class,
-				() -> ExtendedScript.prepareScript("http://localhost:" + wms.port() + "/sub/one/", null, null, null,
+				() -> RunUnit.forResource("http://localhost:" + wms.port() + "/sub/one/", null, null, null,
 						null, false,
 						false));
 

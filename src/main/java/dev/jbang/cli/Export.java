@@ -15,7 +15,8 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 import dev.jbang.ExitException;
-import dev.jbang.ExtendedScript;
+import dev.jbang.ExtendedRunUnit;
+import dev.jbang.RunUnit;
 import dev.jbang.Util;
 
 import picocli.CommandLine;
@@ -39,7 +40,7 @@ public class Export extends BaseBuildCommand {
 	enum Style {
 		local {
 
-			public int apply(Export export, ExtendedScript script, Path outputPath) throws IOException {
+			public int apply(Export export, ExtendedRunUnit script, Path outputPath) throws IOException {
 				// Copy the JAR or native binary
 				Path source = script.getJar().toPath();
 				if (export.nativeImage) {
@@ -62,7 +63,7 @@ public class Export extends BaseBuildCommand {
 		},
 		portable {
 			@Override
-			public int apply(Export export, ExtendedScript script, Path outputPath) throws IOException {
+			public int apply(Export export, ExtendedRunUnit script, Path outputPath) throws IOException {
 				// Copy the JAR or native binary
 				Path source = script.getJar().toPath();
 				if (export.nativeImage) {
@@ -133,7 +134,7 @@ public class Export extends BaseBuildCommand {
 			}
 		};
 
-		public abstract int apply(Export export, ExtendedScript script, Path outputPath) throws IOException;
+		public abstract int apply(Export export, ExtendedRunUnit script, Path outputPath) throws IOException;
 	}
 
 	@Override
@@ -142,7 +143,7 @@ public class Export extends BaseBuildCommand {
 			enableInsecure();
 		}
 
-		script = ExtendedScript.prepareScript(scriptOrFile, null, properties, dependencies, classpaths, fresh,
+		script = RunUnit.forResource(scriptOrFile, null, properties, dependencies, classpaths, fresh,
 				forcejsh);
 
 		if (script.needsJar()) {
