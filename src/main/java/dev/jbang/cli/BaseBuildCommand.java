@@ -28,17 +28,7 @@ import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
 import org.jboss.jandex.Type;
 
-import dev.jbang.ExitException;
-import dev.jbang.FileRef;
-import dev.jbang.IntegrationManager;
-import dev.jbang.IntegrationResult;
-import dev.jbang.JarUtil;
-import dev.jbang.JavaUtil;
-import dev.jbang.JdkManager;
-import dev.jbang.KeyValue;
-import dev.jbang.Script;
-import dev.jbang.Settings;
-import dev.jbang.Util;
+import dev.jbang.*;
 
 import io.quarkus.qute.Template;
 import picocli.CommandLine;
@@ -96,7 +86,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 	protected boolean createdJar;
 
 	// build with javac and then jar... todo: split up in more testable chunks
-	void build(Script script) throws IOException {
+	void build(ExtendedScript script) throws IOException {
 		for (Map.Entry<String, String> entry : properties.entrySet()) {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
@@ -152,7 +142,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		script.setJar(outjar);
 	}
 
-	private IntegrationResult buildJar(Script script, File tmpJarDir, File outjar, String requestedJavaVersion)
+	private IntegrationResult buildJar(ExtendedScript script, File tmpJarDir, File outjar, String requestedJavaVersion)
 			throws IOException {
 		IntegrationResult integrationResult;
 		List<String> optionList = new ArrayList<String>();
@@ -298,7 +288,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		return integrationResult;
 	}
 
-	private void buildNative(Script script, File outjar, String requestedJavaVersion) throws IOException {
+	private void buildNative(ExtendedScript script, File outjar, String requestedJavaVersion) throws IOException {
 		List<String> optionList = new ArrayList<String>();
 		optionList.add(resolveInGraalVMHome("native-image", requestedJavaVersion));
 
@@ -332,7 +322,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		}
 	}
 
-	static void createJarFile(Script script, File path, File output) throws IOException {
+	static void createJarFile(ExtendedScript script, File path, File output) throws IOException {
 		String mainclass = script.getMainClass();
 		Manifest manifest = new Manifest();
 		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");

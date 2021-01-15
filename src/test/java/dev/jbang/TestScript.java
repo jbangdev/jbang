@@ -1,6 +1,6 @@
 package dev.jbang;
 
-import static dev.jbang.Script.prepareScript;
+import static dev.jbang.ExtendedScript.prepareScript;
 import static dev.jbang.Util.writeString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -142,20 +142,20 @@ public class TestScript extends BaseTest {
 
 	@Test
 	void testCommentsDoesNotGetPickedUp() {
-		Script script = new Script(exampleCommandsWithComments, null, null);
+		Script script = new Script(exampleCommandsWithComments);
 
 		assertEquals(script.javaVersion(), "14+");
 
-		List<String> deps = script.collectAllDependencies();
+		List<String> deps = script.collectAllDependencies(System.getProperties());
 
 		assertThat(deps, containsInAnyOrder("info.picocli:picocli:4.5.0"));
 	}
 
 	@Test
 	void testFindDependencies() {
-		Script script = new Script(example, null, null);
+		Script script = new Script(example);
 
-		List<String> dependencies = script.collectAllDependencies();
+		List<String> dependencies = script.collectAllDependencies(System.getProperties());
 		assertEquals(2, dependencies.size());
 
 		assertTrue(dependencies.contains("com.offbytwo:docopt:0.6.0.20150202"));
@@ -169,7 +169,7 @@ public class TestScript extends BaseTest {
 		Map<String, String> p = new HashMap<>();
 		p.put("log4j.version", "1.2.9");
 
-		Script script = new Script(example, (List<String>) null, (Map<String, String>) p);
+		ExtendedScript script = new ExtendedScript(example, (List<String>) null, (Map<String, String>) p);
 
 		List<String> dependencies = script.collectAllDependencies();
 		assertEquals(2, dependencies.size());
@@ -253,8 +253,8 @@ public class TestScript extends BaseTest {
 
 	@Test
 	void testCDS() {
-		Script script = new Script("//CDS\nclass m { }", null, null);
-		Script script2 = new Script("class m { }", null, null);
+		Script script = new Script("//CDS\nclass m { }");
+		Script script2 = new Script("class m { }");
 
 		assertTrue(script.enableCDS());
 		assertFalse(script2.enableCDS());
@@ -300,7 +300,7 @@ public class TestScript extends BaseTest {
 
 	@Test
 	void testExtractOptions() {
-		Script s = new Script(example, null, null);
+		Script s = new Script(example);
 
 		assertEquals(s.collectAllCompileOptions(), Arrays.asList("--enable-preview", "--verbose"));
 

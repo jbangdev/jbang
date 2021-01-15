@@ -1,6 +1,5 @@
 package dev.jbang.cli;
 
-import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,11 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import dev.jbang.AliasUtil;
-import dev.jbang.ExitException;
-import dev.jbang.Script;
-import dev.jbang.Settings;
-import dev.jbang.Util;
+import dev.jbang.*;
 
 import picocli.CommandLine;
 
@@ -79,7 +74,7 @@ class AliasAdd extends BaseAliasCommand {
 					"Invalid alias name, it should start with a letter followed by 0 or more letters, digits, underscores or hyphens");
 		}
 		try {
-			Script script = Script.prepareScript(scriptOrFile);
+			ExtendedScript script = ExtendedScript.prepareScript(scriptOrFile);
 			if (name == null) {
 				name = AppInstall.chooseCommandName(script);
 			}
@@ -95,7 +90,7 @@ class AliasAdd extends BaseAliasCommand {
 				catFile = AliasUtil.addNearestAlias(null, name, scriptOrFile, description, userParams, properties);
 			}
 			info(String.format("Alias '%s' added to '%s'", name, catFile));
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new ExitException(EXIT_INTERNAL_ERROR, "Could not add alias", e);
 		}
 		return EXIT_OK;

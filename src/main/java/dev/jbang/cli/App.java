@@ -16,12 +16,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import dev.jbang.ExitException;
-import dev.jbang.JdkManager;
-import dev.jbang.Script;
-import dev.jbang.Settings;
-import dev.jbang.UnpackUtil;
-import dev.jbang.Util;
+import dev.jbang.*;
 
 import picocli.CommandLine;
 
@@ -96,7 +91,7 @@ class AppInstall extends BaseCommand {
 			Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
 			return false;
 		}
-		Script script = Script.prepareScript(scriptRef);
+		ExtendedScript script = ExtendedScript.prepareScript(scriptRef);
 		if (name == null) {
 			name = chooseCommandName(script);
 			if (!force && existScripts(binDir, name)) {

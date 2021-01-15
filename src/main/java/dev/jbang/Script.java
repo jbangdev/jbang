@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.function.Function;
-import java.util.jar.Attributes;
-import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -32,23 +30,16 @@ public class Script {
 	private static final Pattern REPOS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
 	private static final Pattern REPOS_ANNOT_SINGLE = Pattern.compile("@GrabResolver\\(\\s*\"(?<value>.*)\"\\s*\\)");
 
-	private final ScriptResource scriptResource;
+	protected final ScriptResource scriptResource;
 
 	private String originalRef;
 	private AliasUtil.Alias alias;
 
-	private ModularClassPath classpath;
 	private String script;
 	private String mainClass;
 	private int buildJdk;
 	private File jar;
 	List<String> lines;
-
-	private List<String> arguments;
-	private Map<String, String> properties;
-
-	private List<String> additionalDeps = Collections.emptyList();
-	private List<String> additionalClasspaths = Collections.emptyList();
 
 	private List<MavenRepo> repositories;
 	private List<FileRef> filerefs;
@@ -64,24 +55,17 @@ public class Script {
 	 **/
 	private String javaAgentOption;
 
-	/**
-	 * if true, interpret any input as for jshell
-	 */
-	private boolean forcejsh = false;
-
-	public Script(ScriptResource resource, List<String> arguments, Map<String, String> properties) {
-		this(resource, getBackingFileContent(resource.getFile()), arguments, properties);
+	protected Script(ScriptResource resource) {
+		this(resource, getBackingFileContent(resource.getFile()));
 	}
 
-	public Script(String script, List<String> arguments, Map<String, String> properties) {
-		this(ScriptResource.forFile(null), script, arguments, properties);
+	protected Script(String script) {
+		this(ScriptResource.forFile(null), script);
 	}
 
-	public Script(ScriptResource resource, String content, List<String> arguments, Map<String, String> properties) {
+	protected Script(ScriptResource resource, String content) {
 		this.scriptResource = resource;
 		this.script = content;
-		this.arguments = arguments;
-		this.properties = properties;
 	}
 
 	public ScriptResource getScriptResource() {
@@ -103,18 +87,15 @@ public class Script {
 		}
 	}
 
-	public List<String> collectAllDependencies() {
-		return collectAll(Script::collectDependencies);
+	public List<String> collectAllDependencies(Properties props) {
+		return collectAll(script -> script.collectDependencies(props));
 	}
 
-	private List<String> collectDependencies() {
-		return collectDependencies(getLines());
+	private List<String> collectDependencies(Properties props) {
+		return collectDependencies(getLines(), props);
 	}
 
-	private List<String> collectDependencies(List<String> lines) {
-		if (forJar()) { // if a .jar then we don't try parse it for dependencies.
-			return additionalDeps;
-		}
+	private List<String> collectDependencies(List<String> lines, Properties props) {
 		// early/eager init to property resolution will work.
 		new Detector().detect(new Properties(), Collections.emptyList());
 
@@ -123,20 +104,11 @@ public class Script {
 			throw new IllegalArgumentException("Dependencies must be declared by using the line prefix //DEPS");
 		}
 
-		Properties p = new Properties(System.getProperties());
-		if (properties != null) {
-			p.putAll(properties);
-		}
-
-		Stream<String> depStream = lines.stream()
-										.filter(it -> isDependDeclare(it))
-										.flatMap(it -> extractDependencies(it))
-										.map(it -> PropertiesValueResolver.replaceProperties(it, p));
-
-		List<String> dependencies = Stream	.concat(additionalDeps.stream(), depStream)
-											.collect(Collectors.toList());
-
-		return dependencies;
+		return lines.stream()
+					.filter(it -> isDependDeclare(it))
+					.flatMap(it -> extractDependencies(it))
+					.map(it -> PropertiesValueResolver.replaceProperties(it, props))
+					.collect(Collectors.toList());
 	}
 
 	public List<KeyValue> collectAllAgentOptions() {
@@ -206,8 +178,8 @@ public class Script {
 	}
 
 	private List<String> collectRawOptions(String prefix) {
-		if (forJar())
-			return Collections.emptyList();
+		// if (forJar())
+		// return Collections.emptyList();
 
 		String joptsPrefix = "//" + prefix;
 
@@ -260,61 +232,6 @@ public class Script {
 
 	private List<String> collectJavaVersions() {
 		return collectOptions("JAVA");
-	}
-
-	/**
-	 * Return resolved classpath lazily. resolution will only happen once, any
-	 * consecutive calls return the same classpath.
-	 **/
-	public String resolveClassPath(boolean offline) {
-		if (classpath == null) {
-			if (forJar()) {
-				if (DependencyUtil.looksLikeAGav(scriptResource.getOriginalResource())) {
-					List<String> dependencies = new ArrayList<>(additionalDeps);
-					dependencies.add(scriptResource.getOriginalResource());
-					classpath = new DependencyUtil().resolveDependencies(dependencies,
-							Collections.emptyList(), offline, !Util.isQuiet());
-				} else if (!additionalDeps.isEmpty()) {
-					classpath = new DependencyUtil().resolveDependencies(additionalDeps,
-							Collections.emptyList(), offline, !Util.isQuiet());
-				} else {
-					if (getBackingFile() == null) {
-						classpath = new ModularClassPath(Arrays.asList(new ArtifactInfo(null, getOriginalFile())));
-					} else {
-						classpath = new ModularClassPath(Arrays.asList(new ArtifactInfo(null, getBackingFile())));
-					}
-				}
-				// fetch main class as we can't use -jar to run as it ignores classpath.
-				if (getMainClass() == null) {
-					try (JarFile jf = new JarFile(getBackingFile())) {
-						setMainClass(
-								jf.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS));
-					} catch (IOException e) {
-						Util.warnMsg("Problem reading manifest from " + getBackingFile());
-					}
-				}
-			} else {
-				List<String> dependencies = collectAllDependencies();
-				List<MavenRepo> repositories = collectAllRepositories();
-				classpath = new DependencyUtil().resolveDependencies(dependencies, repositories, offline,
-						!Util.isQuiet());
-			}
-		}
-		StringBuilder cp = new StringBuilder(classpath.getClassPath());
-		for (String addcp : additionalClasspaths) {
-			cp.append(Settings.CP_SEPARATOR + addcp);
-		}
-		if (jar != null) {
-			return jar.getAbsolutePath() + Settings.CP_SEPARATOR + cp.toString();
-		}
-		return cp.toString();
-	}
-
-	public List<String> getAutoDetectedModuleArguments(String requestedVersion, boolean offline) {
-		if (classpath == null) {
-			resolveClassPath(offline);
-		}
-		return classpath.getAutoDectectedModuleArguments(requestedVersion);
 	}
 
 	public List<String> getPersistentJvmArgs() {
@@ -422,24 +339,6 @@ public class Script {
 		return this;
 	}
 
-	public Script setAdditionalDependencies(List<String> deps) {
-		if (deps != null) {
-			this.additionalDeps = new ArrayList<>(deps);
-		} else {
-			this.additionalDeps = Collections.emptyList();
-		}
-		return this;
-	}
-
-	public Script setAdditionalClasspaths(List<String> cps) {
-		if (cps != null) {
-			this.additionalClasspaths = new ArrayList<>(cps);
-		} else {
-			this.additionalClasspaths = Collections.emptyList();
-		}
-		return this;
-	}
-
 	public Script setJar(File outjar) {
 		this.jar = outjar;
 		return this;
@@ -457,13 +356,8 @@ public class Script {
 		return buildJdk;
 	}
 
-	public boolean needsJar() {
-		// anything but .jar and .jsh files needs jar
-		return !(forJar() || forJShell());
-	}
-
 	public boolean forJShell() {
-		return forcejsh || getBackingFile().getName().endsWith(".jsh");
+		return getBackingFile().getName().endsWith(".jsh");
 	}
 
 	public void setOriginal(String ref) {
@@ -514,19 +408,11 @@ public class Script {
 		return scriptResource.getFile();
 	}
 
-	public List<String> getArguments() {
-		return (arguments != null) ? arguments : Collections.emptyList();
-	}
-
-	public Map<String, String> getProperties() {
-		return (properties != null) ? properties : Collections.emptyMap();
-	}
-
 	public boolean forJar() {
-		return getBackingFile() != null && getBackingFile().toString().endsWith(".jar");
+		return Script.forJar(getBackingFile());
 	}
 
-	static private boolean forJar(File backingFile) {
+	protected static boolean forJar(File backingFile) {
 		return backingFile != null && backingFile.toString().endsWith(".jar");
 	}
 
@@ -541,10 +427,6 @@ public class Script {
 			}
 		}
 		return "";
-	}
-
-	public ModularClassPath getClassPath() {
-		return classpath;
 	}
 
 	static Stream<String> extractKeyValue(String line) {
@@ -641,7 +523,7 @@ public class Script {
 	private Script toScript(String resource) {
 		try {
 			ScriptResource sibling = scriptResource.asSibling(resource);
-			Script s = new Script(sibling, arguments, properties);
+			Script s = new Script(sibling);
 			s.setOriginal(resource);
 			return s;
 		} catch (URISyntaxException e) {
@@ -700,59 +582,9 @@ public class Script {
 		return agentOptions;
 	}
 
-	public void setForcejsh(boolean forcejsh) {
-		this.forcejsh = forcejsh;
-	}
-
-	public static Script prepareScript(String scriptResource) throws IOException {
-		return prepareScript(scriptResource, null, null, null, null);
-	}
-
-	public static Script prepareScript(String scriptResource, List<String> arguments) throws IOException {
-		return prepareScript(scriptResource, arguments, null, null, null);
-	}
-
-	public static Script prepareScript(String scriptResource, List<String> arguments, Map<String, String> properties,
-			List<String> dependencies, List<String> classpaths) throws IOException {
-		return prepareScript(scriptResource, arguments, properties, dependencies, classpaths, false, false);
-	}
-
-	public static Script prepareScript(String scriptResource, List<String> arguments, Map<String, String> properties,
-			List<String> dependencies, List<String> classpaths, boolean fresh, boolean forcejsh)
-			throws IOException {
-		ScriptResource scriptFile = ScriptResource.forResource(scriptResource);
-
-		AliasUtil.Alias alias = null;
-		if (scriptFile == null) {
-			// Not found as such, so let's check the aliases
-			alias = AliasUtil.getAlias(null, scriptResource, arguments, properties);
-			if (alias != null) {
-				scriptFile = ScriptResource.forResource(alias.resolve(null));
-				arguments = alias.arguments;
-				properties = alias.properties;
-				if (scriptFile == null) {
-					throw new IllegalArgumentException(
-							"Alias " + scriptResource + " from " + alias.catalog.catalogFile + " failed to resolve "
-									+ alias.scriptRef);
-				}
-			}
-		}
-
-		// Support URLs as script files
-		// just proceed if the script file is a regular file at this point
-		if (scriptFile == null || !scriptFile.getFile().canRead()) {
-			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Could not read script argument " + scriptResource);
-		}
-
-		// note script file must be not null at this point
-
-		Script s = new Script(scriptFile, arguments, properties);
-		s.setForcejsh(forcejsh);
-		s.setOriginal(scriptResource);
-		s.setAlias(alias);
-		s.setAdditionalDependencies(dependencies);
-		s.setAdditionalClasspaths(classpaths);
+	public static Script prepareScript(String resource) {
+		ScriptResource scriptFile = ScriptResource.forResource(resource);
+		Script s = new Script(scriptFile);
 		return s;
 	}
-
 }

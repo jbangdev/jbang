@@ -6,8 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.TreeSet;
 
@@ -81,7 +79,7 @@ class TestSourcesRecursivelyMultipleFiles extends BaseTest {
 				classHelloInner);
 		String scriptURL = mainPath.toString();
 		ScriptResource scriptResource = ScriptResource.forNamedFile(scriptURL, mainPath.toFile());
-		Script script = new Script(scriptResource, new ArrayList<>(), new HashMap<>());
+		Script script = new Script(scriptResource);
 		List<Script> sources = script.collectAllSources();
 		assertTrue(sources.size() == 4);
 		TreeSet<String> fileNames = new TreeSet<>();

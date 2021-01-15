@@ -26,7 +26,7 @@ public class TestGrape extends BaseTest {
 				+
 				"})\n";
 
-		Script s = new Script(grabBlock, null, null);
+		ExtendedScript s = new ExtendedScript(grabBlock, null, null);
 
 		List<String> deps = s.collectAllDependencies();
 

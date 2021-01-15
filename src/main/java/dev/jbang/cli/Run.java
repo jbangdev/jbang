@@ -15,10 +15,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.text.StringEscapeUtils;
 
-import dev.jbang.ExitException;
-import dev.jbang.JavaUtil;
-import dev.jbang.Script;
-import dev.jbang.Util;
+import dev.jbang.*;
 
 import picocli.CommandLine;
 
@@ -69,7 +66,8 @@ public class Run extends BaseBuildCommand {
 		}
 
 		script = prepareArtifacts(
-				Script.prepareScript(scriptOrFile, userParams, properties, dependencies, classpaths, fresh, forcejsh));
+				ExtendedScript.prepareScript(scriptOrFile, userParams, properties, dependencies, classpaths, fresh,
+						forcejsh));
 
 		String cmdline = generateCommandLine(script);
 		debug("run: " + cmdline);
@@ -78,7 +76,7 @@ public class Run extends BaseBuildCommand {
 		return EXIT_EXECUTE;
 	}
 
-	Script prepareArtifacts(Script script) throws IOException {
+	ExtendedScript prepareArtifacts(ExtendedScript script) throws IOException {
 		if (script.needsJar()) {
 			build(script);
 		}
@@ -88,7 +86,8 @@ public class Run extends BaseBuildCommand {
 				String javaAgent = agentOption.getKey();
 				Optional<String> javaAgentOptions = agentOption.getValue();
 
-				Script agentScript = Script.prepareScript(javaAgent, userParams, properties, dependencies, classpaths);
+				ExtendedScript agentScript = ExtendedScript.prepareScript(javaAgent, userParams, properties,
+						dependencies, classpaths, fresh, forcejsh);
 				agentScript.setJavaAgentOption(javaAgentOptions.orElse(null));
 				if (agentScript.needsJar()) {
 					info("Building javaagent...");
@@ -101,7 +100,7 @@ public class Run extends BaseBuildCommand {
 		return script;
 	}
 
-	String generateCommandLine(Script script) throws IOException {
+	String generateCommandLine(ExtendedScript script) throws IOException {
 
 		List<String> fullArgs = new ArrayList<>();
 
