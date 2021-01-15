@@ -86,16 +86,11 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 	protected boolean createdJar;
 
 	// build with javac and then jar... todo: split up in more testable chunks
-	void build(ExtendedScript script) throws IOException {
+	void build(ExtendedRunUnit script) throws IOException {
 		for (Map.Entry<String, String> entry : properties.entrySet()) {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
-		File baseDir = Settings.getCacheDir(Settings.CacheClass.jars).toFile();
-		File tmpJarDir = new File(baseDir, script.getBackingFile().getName() +
-				"." + Util.getStableID(script.getBackingFile()));
-
-		File outjar = new File(tmpJarDir.getParentFile(), tmpJarDir.getName() + ".jar");
-
+		File outjar = script.getJar();
 		if (outjar.exists()) {
 			try (JarFile jf = new JarFile(outjar)) {
 				script.setMainClass(
@@ -104,23 +99,25 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 				String val = jf.getManifest().getMainAttributes().getValue(Script.JBANG_JAVA_OPTIONS);
 				if (val != null) {
 					script.setPersistentJvmArgs(Arrays.asList( // should parse it but we are assuming it just gets
-																// appendeed
+							// appendeed
 							val // on command line anwyay
 					));
 				}
 				script.setBuildJdk(
-						JavaUtil.parseJavaVersion(jf.getManifest().getMainAttributes().getValue(Script.BUILD_JDK)));
+						JavaUtil.parseJavaVersion(
+								jf.getManifest().getMainAttributes().getValue(Script.BUILD_JDK)));
 			}
 		}
 
 		boolean nativeBuildRequired = nativeImage && !getImageName(outjar).exists();
 		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
-		String requestedJavaVersion = javaVersion != null ? javaVersion : script.javaVersion();
+		String requestedJavaVersion = javaVersion != null ? javaVersion : script.script().javaVersion();
 		// always build the jar for native mode
 		// it allows integrations the options to produce the native image
 		if (!outjar.exists() || JavaUtil.javaVersion(requestedJavaVersion) < script.getBuildJdk()
 				|| nativeBuildRequired || fresh) {
 			// set up temporary folder for compilation
+			File tmpJarDir = new File(outjar.getParentFile(), outjar.getName() + ".tmp");
 			Util.deletePath(tmpJarDir.toPath(), true);
 			tmpJarDir.mkdirs();
 			try {
@@ -138,16 +135,14 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 				buildNative(script, outjar, requestedJavaVersion);
 			}
 		}
-
-		script.setJar(outjar);
 	}
 
-	private IntegrationResult buildJar(ExtendedScript script, File tmpJarDir, File outjar, String requestedJavaVersion)
+	private IntegrationResult buildJar(ExtendedRunUnit script, File tmpJarDir, File outjar, String requestedJavaVersion)
 			throws IOException {
 		IntegrationResult integrationResult;
 		List<String> optionList = new ArrayList<String>();
 		optionList.add(resolveInJavaHome("javac", requestedJavaVersion));
-		optionList.addAll(script.collectAllCompileOptions());
+		optionList.addAll(script.script().collectAllCompileOptions());
 		String path = script.resolveClassPath(offline);
 		if (!path.trim().isEmpty()) {
 			optionList.addAll(Arrays.asList("-classpath", path));
@@ -157,13 +152,14 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		// add source files to compile
 		optionList.add(script.getBackingFile().getPath());
 		optionList.addAll(
-				script	.collectAllSources()
+				script	.script()
+						.collectAllSources()
 						.stream()
 						.map(x -> x.getBackingFile().getPath())
 						.collect(Collectors.toList()));
 
 		// add additional files
-		List<FileRef> files = script.collectAllFiles();
+		List<FileRef> files = script.script().collectAllFiles();
 		for (FileRef file : files) {
 			file.copy(tmpJarDir.toPath(), fresh);
 		}
@@ -199,10 +195,10 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		}
 
 		script.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
-		integrationResult = IntegrationManager.runIntegration(script.collectAllRepositories(),
+		integrationResult = IntegrationManager.runIntegration(script.script().collectAllRepositories(),
 				script.getClassPath().getArtifacts(),
 				tmpJarDir.toPath(), pomPath,
-				script, nativeImage);
+				script.script(), nativeImage);
 		if (integrationResult.mainClass != null) {
 			script.setMainClass(integrationResult.mainClass);
 		} else {
@@ -247,7 +243,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 							script.setMainClass(main.get().name().toString());
 						}
 
-						if (script.isAgent()) {
+						if (script.script().isAgent()) {
 
 							Optional<ClassInfo> agentmain = clazz	.stream()
 																	.filter(pubClass -> pubClass.method("agentmain",
@@ -288,7 +284,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		return integrationResult;
 	}
 
-	private void buildNative(ExtendedScript script, File outjar, String requestedJavaVersion) throws IOException {
+	private void buildNative(ExtendedRunUnit script, File outjar, String requestedJavaVersion) throws IOException {
 		List<String> optionList = new ArrayList<String>();
 		optionList.add(resolveInGraalVMHome("native-image", requestedJavaVersion));
 
@@ -322,7 +318,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		}
 	}
 
-	static void createJarFile(ExtendedScript script, File path, File output) throws IOException {
+	static void createJarFile(ExtendedRunUnit script, File path, File output) throws IOException {
 		String mainclass = script.getMainClass();
 		Manifest manifest = new Manifest();
 		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
@@ -330,7 +326,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 			manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, mainclass);
 		}
 
-		if (script.isAgent()) {
+		if (script.script().isAgent()) {
 			if (script.getPreMainClass() != null) {
 				manifest.getMainAttributes().put(new Attributes.Name("Premain-Class"), script.getPreMainClass());
 			}
@@ -338,7 +334,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 				manifest.getMainAttributes().put(new Attributes.Name("Agent-Class"), script.getAgentMainClass());
 			}
 
-			for (KeyValue kv : script.getAgentOptions()) {
+			for (KeyValue kv : script.script().getAgentOptions()) {
 				if (kv.getKey().trim().isEmpty()) {
 					continue;
 				}

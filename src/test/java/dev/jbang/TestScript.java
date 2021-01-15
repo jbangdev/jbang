@@ -1,6 +1,5 @@
 package dev.jbang;
 
-import static dev.jbang.ExtendedScript.prepareScript;
 import static dev.jbang.Util.writeString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -169,7 +168,7 @@ public class TestScript extends BaseTest {
 		Map<String, String> p = new HashMap<>();
 		p.put("log4j.version", "1.2.9");
 
-		ExtendedScript script = new ExtendedScript(example, (List<String>) null, (Map<String, String>) p);
+		ExtendedRunUnit script = RunUnit.forScript(example, (List<String>) null, (Map<String, String>) p);
 
 		List<String> dependencies = script.collectAllDependencies();
 		assertEquals(2, dependencies.size());
@@ -186,9 +185,9 @@ public class TestScript extends BaseTest {
 		createTmpFileWithContent("pkg1", "Hello.java", exampleURLInsourceHello);
 		createTmpFileWithContent("pkg1", "Bye.java", exampleURLInsourceBye);
 		String scriptURL = mainPath.toString();
-		Script script = prepareScript(scriptURL);
+		ExtendedRunUnit script = RunUnit.forResource(scriptURL);
 
-		List<Script> resolvesourceRecursively = script.collectAllSources();
+		List<Script> resolvesourceRecursively = script.script().collectAllSources();
 		assertTrue(resolvesourceRecursively.size() == 7);
 	}
 
@@ -235,11 +234,11 @@ public class TestScript extends BaseTest {
 		try {
 			Settings.getTrustedSources().add(url, tempFile);
 
-			Script script = prepareScript(url);
-			assertEquals(2, script.collectAllSources().size());
+			ExtendedRunUnit script = RunUnit.forResource(url);
+			assertEquals(2, script.script().collectAllSources().size());
 			boolean foundtwo = false;
 			boolean foundt3 = false;
-			for (Script source : script.collectAllSources()) {
+			for (Script source : script.script().collectAllSources()) {
 				if (source.getScriptResource().getFile().getName().equals("two.java"))
 					foundtwo = true;
 				if (source.getScriptResource().getFile().getName().equals("t3.java"))
@@ -313,7 +312,7 @@ public class TestScript extends BaseTest {
 		Path p = output.resolve("kube-example");
 		writeString(p, example);
 
-		prepareScript(p.toAbsolutePath().toString());
+		RunUnit.forResource(p.toAbsolutePath().toString());
 
 	}
 

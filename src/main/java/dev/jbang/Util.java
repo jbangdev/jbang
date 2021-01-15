@@ -650,8 +650,12 @@ public class Util {
 		return url;
 	}
 
-	public static String getStableID(File backingFile) throws IOException {
-		return getStableID(readString(backingFile.toPath()));
+	public static String getStableID(File backingFile) {
+		try {
+			return getStableID(readString(backingFile.toPath()));
+		} catch (IOException e) {
+			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, e);
+		}
 	}
 
 	public static String getStableID(String input) {
@@ -840,7 +844,7 @@ public class Util {
 			Files.createLink(src, target);
 		} catch (IOException e) {
 			infoMsg("Creation of hard link failed. Script must be on the same drive as $JBANG_CACHE_DIR (typically under $HOME) for hardlink creation to work. Or call the command with admin rights.");
-			throw new ExitException(1, e);
+			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, e);
 		}
 		return true;
 	}

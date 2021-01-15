@@ -91,7 +91,7 @@ class AppInstall extends BaseCommand {
 			Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
 			return false;
 		}
-		ExtendedScript script = ExtendedScript.prepareScript(scriptRef);
+		ExtendedRunUnit script = RunUnit.forResource(scriptRef);
 		if (name == null) {
 			name = chooseCommandName(script);
 			if (!force && existScripts(binDir, name)) {
@@ -112,7 +112,7 @@ class AppInstall extends BaseCommand {
 				|| Files.exists(binDir.resolve(name + ".ps1"));
 	}
 
-	public static String chooseCommandName(Script script) {
+	public static String chooseCommandName(ExtendedRunUnit script) {
 		String startName = null;
 		String name;
 		if (script.getAlias() != null) {

@@ -11,7 +11,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import dev.jbang.ExtendedScript;
+import dev.jbang.ExtendedRunUnit;
 
 import picocli.CommandLine;
 
@@ -31,7 +31,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 	@CommandLine.Parameters(index = "0", arity = "1", description = "A file with java code or if named .jsh will be run with jshell")
 	String scriptOrFile;
 
-	protected ExtendedScript script;
+	protected ExtendedRunUnit script;
 
 	protected void enableInsecure() {
 		try {

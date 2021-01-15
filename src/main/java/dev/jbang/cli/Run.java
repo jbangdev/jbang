@@ -66,7 +66,7 @@ public class Run extends BaseBuildCommand {
 		}
 
 		script = prepareArtifacts(
-				ExtendedScript.prepareScript(scriptOrFile, userParams, properties, dependencies, classpaths, fresh,
+				RunUnit.forResource(scriptOrFile, userParams, properties, dependencies, classpaths, fresh,
 						forcejsh));
 
 		String cmdline = generateCommandLine(script);
@@ -76,7 +76,7 @@ public class Run extends BaseBuildCommand {
 		return EXIT_EXECUTE;
 	}
 
-	ExtendedScript prepareArtifacts(ExtendedScript script) throws IOException {
+	ExtendedRunUnit prepareArtifacts(ExtendedRunUnit script) throws IOException {
 		if (script.needsJar()) {
 			build(script);
 		}
@@ -86,21 +86,21 @@ public class Run extends BaseBuildCommand {
 				String javaAgent = agentOption.getKey();
 				Optional<String> javaAgentOptions = agentOption.getValue();
 
-				ExtendedScript agentScript = ExtendedScript.prepareScript(javaAgent, userParams, properties,
+				ExtendedRunUnit agentScript = RunUnit.forResource(javaAgent, userParams, properties,
 						dependencies, classpaths, fresh, forcejsh);
 				agentScript.setJavaAgentOption(javaAgentOptions.orElse(null));
 				if (agentScript.needsJar()) {
 					info("Building javaagent...");
 					build(agentScript);
 				}
-
 				script.addJavaAgent(agentScript);
 			}
 		}
+
 		return script;
 	}
 
-	String generateCommandLine(ExtendedScript script) throws IOException {
+	String generateCommandLine(ExtendedRunUnit script) throws IOException {
 
 		List<String> fullArgs = new ArrayList<>();
 
@@ -184,7 +184,7 @@ public class Run extends BaseBuildCommand {
 					optionalArgs.add(classpath);
 				}
 
-				if (optionActive(cds(), script.enableCDS())) {
+				if (script.runUnit instanceof Script && optionActive(cds(), script.script().enableCDS())) {
 					String cdsJsa = script.getJar().getAbsolutePath() + ".jsa";
 					if (createdJar) {
 						debug("CDS: Archiving Classes At Exit at " + cdsJsa);
@@ -214,14 +214,16 @@ public class Run extends BaseBuildCommand {
 						}
 						if (jar == null) {
 							throw new ExitException(EXIT_INTERNAL_ERROR,
-									"No jar found for agent " + agent.getOriginalResource());
+									"No jar found for agent " + agent.getScriptResource().getOriginalResource());
 						}
 						fullArgs.add("-javaagent:" + jar
 								+ (agent.getJavaAgentOption() != null ? "=" + agent.getJavaAgentOption() : ""));
 
 					});
 
-			fullArgs.addAll(script.collectAllRuntimeOptions());
+			if (script.runUnit instanceof Script) {
+				fullArgs.addAll(script.script().collectAllRuntimeOptions());
+			}
 			fullArgs.addAll(script.getAutoDetectedModuleArguments(requestedJavaVersion, offline));
 			fullArgs.addAll(optionalArgs);
 

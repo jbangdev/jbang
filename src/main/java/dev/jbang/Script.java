@@ -12,10 +12,11 @@ import java.util.stream.Stream;
 
 import dev.jbang.cli.BaseCommand;
 
-public class Script {
+public class Script implements RunUnit {
 
 	public static final String BUILD_JDK = "Build-Jdk";
 	public static final String JBANG_JAVA_OPTIONS = "JBang-Java-Options";
+
 	private static final String DEPS_COMMENT_PREFIX = "//DEPS ";
 	private static final String FILES_COMMENT_PREFIX = "//FILES ";
 	private static final String SOURCES_COMMENT_PREFIX = "//SOURCES ";
@@ -30,44 +31,31 @@ public class Script {
 	private static final Pattern REPOS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
 	private static final Pattern REPOS_ANNOT_SINGLE = Pattern.compile("@GrabResolver\\(\\s*\"(?<value>.*)\"\\s*\\)");
 
-	protected final ScriptResource scriptResource;
+	private final ScriptResource scriptResource;
+	private final String script;
 
-	private String originalRef;
-	private AliasUtil.Alias alias;
-
-	private String script;
-	private String mainClass;
-	private int buildJdk;
-	private File jar;
-	List<String> lines;
-
+	// Cached values
+	private List<String> lines;
 	private List<MavenRepo> repositories;
 	private List<FileRef> filerefs;
-	private List<String> persistentJvmArgs;
 	private List<Script> sources;
-	private List<Script> javaAgents;
 	private List<KeyValue> agentOptions;
-	private String preMainClass;
-	private String agentMainClass;
-	/**
-	 * if this script is used as an agent, agentOption is the option needed to pass
-	 * in
-	 **/
-	private String javaAgentOption;
-
-	protected Script(ScriptResource resource) {
-		this(resource, getBackingFileContent(resource.getFile()));
-	}
+	private File jar;
 
 	protected Script(String script) {
 		this(ScriptResource.forFile(null), script);
 	}
 
-	protected Script(ScriptResource resource, String content) {
+	private Script(ScriptResource resource) {
+		this(resource, getBackingFileContent(resource.getFile()));
+	}
+
+	private Script(ScriptResource resource, String content) {
 		this.scriptResource = resource;
 		this.script = content;
 	}
 
+	@Override
 	public ScriptResource getScriptResource() {
 		return scriptResource;
 	}
@@ -87,6 +75,7 @@ public class Script {
 		}
 	}
 
+	@Override
 	public List<String> collectAllDependencies(Properties props) {
 		return collectAll(script -> script.collectDependencies(props));
 	}
@@ -105,10 +94,65 @@ public class Script {
 		}
 
 		return lines.stream()
-					.filter(it -> isDependDeclare(it))
-					.flatMap(it -> extractDependencies(it))
+					.filter(Script::isDependDeclare)
+					.flatMap(Script::extractDependencies)
 					.map(it -> PropertiesValueResolver.replaceProperties(it, props))
 					.collect(Collectors.toList());
+	}
+
+	static boolean isDependDeclare(String line) {
+		return line.startsWith(DEPS_COMMENT_PREFIX) || line.contains(DEPS_ANNOT_PREFIX);
+	}
+
+	static Stream<String> extractDependencies(String line) {
+		if (line.startsWith(DEPS_COMMENT_PREFIX)) {
+			return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
+		}
+
+		if (line.contains(DEPS_ANNOT_PREFIX)) {
+			int commentOrEnd = line.indexOf("//");
+			if (commentOrEnd < 0) {
+				commentOrEnd = line.length();
+			}
+			if (line.indexOf(DEPS_ANNOT_PREFIX) > commentOrEnd) {
+				// ignore if on line that is a comment
+				return Stream.of();
+			}
+
+			Map<String, String> args = new HashMap<>();
+
+			Matcher matcher = DEPS_ANNOT_PAIRS.matcher(line);
+			while (matcher.find()) {
+				args.put(matcher.group("key"), matcher.group("value"));
+			}
+			if (!args.isEmpty()) {
+				// groupId:artifactId:version[:classifier][@type]
+				String gav = Stream.of(
+						args.get("group"),
+						args.get("module"),
+						args.get("version"),
+						args.get("classifier")).filter(Objects::nonNull).collect(Collectors.joining(":"));
+				if (args.containsKey("ext")) {
+					gav = gav + "@" + args.get("ext");
+				}
+				return Stream.of(gav);
+			} else {
+				matcher = DEPS_ANNOT_SINGLE.matcher(line);
+				if (matcher.find()) {
+					return Stream.of(matcher.group("value"));
+				}
+			}
+		}
+
+		return Stream.of();
+	}
+
+	public ModularClassPath resolveClassPath(List<String> dependencies, boolean offline) {
+		ModularClassPath classpath;
+		List<MavenRepo> repositories = collectAllRepositories();
+		classpath = new DependencyUtil().resolveDependencies(dependencies, repositories, offline,
+				!Util.isQuiet());
+		return classpath;
 	}
 
 	public List<KeyValue> collectAllAgentOptions() {
@@ -123,6 +167,38 @@ public class Script {
 															.map(Script::toKeyValue)
 															.collect(Collectors.toCollection(ArrayList::new));
 		}
+		return agentOptions;
+	}
+
+	static Stream<String> extractKeyValue(String line) {
+		return Arrays.stream(line.split(" +")).map(String::trim);
+	}
+
+	static public KeyValue toKeyValue(String line) {
+
+		String[] split = line.split("=");
+		String key;
+		String value = null;
+
+		if (split.length == 1) {
+			key = split[0];
+		} else if (split.length == 2) {
+			key = split[0];
+			value = split[1];
+		} else {
+			throw new IllegalStateException("Invalid key/value: " + line);
+		}
+		return new KeyValue(key, value);
+	}
+
+	public boolean isAgent() {
+		if (agentOptions == null) {
+			agentOptions = collectAllAgentOptions();
+		}
+		return !agentOptions.isEmpty();
+	}
+
+	public List<KeyValue> getAgentOptions() {
 		return agentOptions;
 	}
 
@@ -142,6 +218,41 @@ public class Script {
 		return repositories;
 	}
 
+	static boolean isRepoDeclare(String line) {
+		return line.startsWith(REPOS_COMMENT_PREFIX) || line.contains(REPOS_ANNOT_PREFIX);
+	}
+
+	static Stream<String> extractRepositories(String line) {
+		if (line.startsWith(REPOS_COMMENT_PREFIX)) {
+			return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
+		}
+
+		if (line.contains(REPOS_ANNOT_PREFIX)) {
+			if (line.indexOf(REPOS_ANNOT_PREFIX) > line.indexOf("//")) {
+				// ignore if on line that is a comment
+				return Stream.of();
+			}
+
+			Map<String, String> args = new HashMap<>();
+
+			Matcher matcher = REPOS_ANNOT_PAIRS.matcher(line);
+			while (matcher.find()) {
+				args.put(matcher.group("key"), matcher.group("value"));
+			}
+			if (!args.isEmpty()) {
+				String repo = args.getOrDefault("name", args.get("root")) + "=" + args.get("root");
+				return Stream.of(repo);
+			} else {
+				matcher = REPOS_ANNOT_SINGLE.matcher(line);
+				if (matcher.find()) {
+					return Stream.of(matcher.group("value"));
+				}
+			}
+		}
+
+		return Stream.of();
+	}
+
 	public String getDescription() {
 		return getLines()	.stream()
 							.filter(Script::isDescriptionDeclare)
@@ -149,9 +260,21 @@ public class Script {
 							.collect(Collectors.joining("\n"));
 	}
 
+	static boolean isDescriptionDeclare(String line) {
+		return line.startsWith(DESCRIPTION_COMMENT_PREFIX);
+	}
+
+	private List<String> collectOptions(String prefix) {
+		List<String> javaOptions = collectRawOptions(prefix);
+
+		// convert quoted content to list of strings as
+		// just passing "--enable-preview --source 14" fails
+		return quotedStringToList(String.join(" ", javaOptions));
+	}
+
 	// https://stackoverflow.com/questions/366202/regex-for-splitting-a-string-using-space-when-not-surrounded-by-single-or-double
 	List<String> quotedStringToList(String subjectString) {
-		List<String> matchList = new ArrayList<String>();
+		List<String> matchList = new ArrayList<>();
 		Pattern regex = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
 		Matcher regexMatcher = regex.matcher(subjectString);
 		while (regexMatcher.find()) {
@@ -167,14 +290,6 @@ public class Script {
 			}
 		}
 		return matchList;
-	}
-
-	private List<String> collectOptions(String prefix) {
-		List<String> javaOptions = collectRawOptions(prefix);
-
-		// convert quoted content to list of strings as
-		// just passing "--enable-preview --source 14" fails
-		return quotedStringToList(javaOptions.stream().collect(Collectors.joining(" ")));
 	}
 
 	private List<String> collectRawOptions(String prefix) {
@@ -219,235 +334,41 @@ public class Script {
 		return !collectRawOptions("CDS").isEmpty();
 	}
 
+	@Override
 	public String javaVersion() {
 		Optional<String> version = collectAll(Script::collectJavaVersions)	.stream()
 																			.filter(JavaUtil::checkRequestedVersion)
 																			.max(new JavaUtil.RequestedVersionComparator());
-		if (version.isPresent()) {
-			return version.get();
-		} else {
-			return null;
-		}
+		return version.orElse(null);
 	}
 
 	private List<String> collectJavaVersions() {
 		return collectOptions("JAVA");
 	}
 
-	public List<String> getPersistentJvmArgs() {
-		return persistentJvmArgs;
-	}
-
-	public Script setPersistentJvmArgs(List<String> persistentJvmArgs) {
-		this.persistentJvmArgs = persistentJvmArgs;
-		return this;
-	}
-
-	public static Stream<String> extractRepositories(String line) {
-		if (line.startsWith(REPOS_COMMENT_PREFIX)) {
-			return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
-		}
-
-		if (line.contains(REPOS_ANNOT_PREFIX)) {
-			if (line.indexOf(REPOS_ANNOT_PREFIX) > line.indexOf("//")) {
-				// ignore if on line that is a comment
-				return Stream.of();
-			}
-
-			Map<String, String> args = new HashMap<>();
-
-			Matcher matcher = REPOS_ANNOT_PAIRS.matcher(line);
-			while (matcher.find()) {
-				args.put(matcher.group("key"), matcher.group("value"));
-			}
-			if (!args.isEmpty()) {
-				String repo = args.getOrDefault("name", args.get("root")) + "=" + args.get("root");
-				return Stream.of(repo);
-			} else {
-				matcher = REPOS_ANNOT_SINGLE.matcher(line);
-				if (matcher.find()) {
-					return Stream.of(matcher.group("value"));
-				}
-			}
-		}
-
-		return Stream.of();
-	}
-
-	static Stream<String> extractDependencies(String line) {
-		if (line.startsWith(DEPS_COMMENT_PREFIX)) {
-			return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
-		}
-
-		if (line.contains(DEPS_ANNOT_PREFIX)) {
-			int commentOrEnd = line.indexOf("//");
-			if (commentOrEnd < 0) {
-				commentOrEnd = line.length();
-			}
-			if (line.indexOf(DEPS_ANNOT_PREFIX) > commentOrEnd) {
-				// ignore if on line that is a comment
-				return Stream.of();
-			}
-
-			Map<String, String> args = new HashMap<>();
-
-			Matcher matcher = DEPS_ANNOT_PAIRS.matcher(line);
-			while (matcher.find()) {
-				args.put(matcher.group("key"), matcher.group("value"));
-			}
-			if (!args.isEmpty()) {
-				// groupId:artifactId:version[:classifier][@type]
-				String gav = Arrays.asList(
-						args.get("group"),
-						args.get("module"),
-						args.get("version"),
-						args.get("classifier")).stream().filter(Objects::nonNull).collect(Collectors.joining(":"));
-				if (args.containsKey("ext")) {
-					gav = gav + "@" + args.get("ext");
-				}
-				return Stream.of(gav);
-			} else {
-				matcher = DEPS_ANNOT_SINGLE.matcher(line);
-				if (matcher.find()) {
-					return Stream.of(matcher.group("value"));
-				}
-			}
-		}
-
-		return Stream.of();
-	}
-
-	static boolean isRepoDeclare(String line) {
-		return line.startsWith(REPOS_COMMENT_PREFIX) || line.contains(REPOS_ANNOT_PREFIX);
-	}
-
-	static boolean isDependDeclare(String line) {
-		return line.startsWith(DEPS_COMMENT_PREFIX) || line.contains(DEPS_ANNOT_PREFIX);
-	}
-
-	static boolean isDescriptionDeclare(String line) {
-		return line.startsWith(DESCRIPTION_COMMENT_PREFIX);
-	}
-
-	public Script setMainClass(String mainClass) {
-		this.mainClass = mainClass;
-		return this;
-	}
-
-	public Script setBuildJdk(int javaVersion) {
-		this.buildJdk = javaVersion;
-		return this;
-	}
-
-	public Script setJar(File outjar) {
-		this.jar = outjar;
-		return this;
-	}
-
 	public File getJar() {
+		if (jar == null) {
+			File baseDir = Settings.getCacheDir(Settings.CacheClass.jars).toFile();
+			File tmpJarDir = new File(baseDir, getBackingFile().getName() +
+					"." + Util.getStableID(getBackingFile()));
+			jar = new File(tmpJarDir.getParentFile(), tmpJarDir.getName() + ".jar");
+		}
 		return jar;
 	}
 
-	public String getMainClass() {
-		return mainClass;
-	}
-
-	public int getBuildJdk() {
-		return buildJdk;
-	}
-
-	public boolean forJShell() {
-		return getBackingFile().getName().endsWith(".jsh");
-	}
-
-	public void setOriginal(String ref) {
-		this.originalRef = ref;
-	}
-
-	/**
-	 * The original script reference. Might ba a URL or an alias.
-	 */
-	public String getOriginalRef() {
-		return originalRef;
-	}
-
-	/**
-	 * The resource that `originalRef` resolves to. Wil be a URL or file path.
-	 */
-	public String getOriginalResource() {
-		return scriptResource.getOriginalResource();
-	}
-
-	/**
-	 * The resource that `originalRef` resolves to. Will be a URL or file path.
-	 */
-	public File getOriginalFile() {
-		return new File(getOriginalResource());
-	}
-
-	/**
-	 * Sets the Alias object if originalRef is an alias
-	 */
-	public void setAlias(AliasUtil.Alias alias) {
-		this.alias = alias;
-	}
-
-	/**
-	 * Returns the Alias object if originalRef is an alias, otherwise null
-	 */
-	public AliasUtil.Alias getAlias() {
-		return alias;
-	}
-
-	/**
-	 * The actual local file that `originalRef` refers to. This might be the sane as
-	 * `originalRef` if that pointed to a file on the local file system, in all
-	 * other cases it will refer to a downloaded copy in Jbang's cache.
-	 */
+	@Override
 	public File getBackingFile() {
 		return scriptResource.getFile();
 	}
 
-	public boolean forJar() {
-		return Script.forJar(getBackingFile());
-	}
-
-	protected static boolean forJar(File backingFile) {
-		return backingFile != null && backingFile.toString().endsWith(".jar");
-	}
-
 	static private String getBackingFileContent(File backingFile) {
-		if (!forJar(backingFile)) {
-			try (Scanner sc = new Scanner(backingFile)) {
-				sc.useDelimiter("\\Z");
-				return sc.hasNext() ? sc.next() : "";
-			} catch (IOException e) {
-				throw new ExitException(BaseCommand.EXIT_UNEXPECTED_STATE,
-						"Could not read script content for " + backingFile);
-			}
+		try (Scanner sc = new Scanner(backingFile)) {
+			sc.useDelimiter("\\Z");
+			return sc.hasNext() ? sc.next() : "";
+		} catch (IOException e) {
+			throw new ExitException(BaseCommand.EXIT_UNEXPECTED_STATE,
+					"Could not read script content for " + backingFile);
 		}
-		return "";
-	}
-
-	static Stream<String> extractKeyValue(String line) {
-		return Arrays.stream(line.split(" +")).map(String::trim);
-	}
-
-	static public KeyValue toKeyValue(String line) {
-
-		String[] split = line.split("=");
-		String key = null;
-		String value = null;
-
-		if (split.length == 1) {
-			key = split[0];
-		} else if (split.length == 2) {
-			key = split[0];
-			value = split[1];
-		} else {
-			throw new IllegalStateException("Invalid key/value: " + line);
-		}
-		return new KeyValue(key, value);
 	}
 
 	public List<FileRef> collectAllFiles() {
@@ -462,7 +383,7 @@ public class Script {
 															.skip(1)
 															.map(String::trim))
 									.map(PropertiesValueResolver::replaceProperties)
-									.map(line -> toFileRef(line))
+									.map(this::toFileRef)
 									.collect(Collectors.toCollection(ArrayList::new));
 		}
 		return filerefs;
@@ -470,7 +391,7 @@ public class Script {
 
 	private FileRef toFileRef(String fileReference) {
 		String[] split = fileReference.split(" // ")[0].split("=");
-		String ref = null;
+		String ref;
 		String dest = null;
 
 		if (split.length == 1) {
@@ -513,7 +434,7 @@ public class Script {
 																					.toPath(),
 																	line)
 															.stream())
-									.map(resource -> toScript(resource))
+									.map(this::toScript)
 									.collect(Collectors.toCollection(ArrayList::new));
 			}
 		}
@@ -523,9 +444,7 @@ public class Script {
 	private Script toScript(String resource) {
 		try {
 			ScriptResource sibling = scriptResource.asSibling(resource);
-			Script s = new Script(sibling);
-			s.setOriginal(resource);
-			return s;
+			return new Script(sibling);
 		} catch (URISyntaxException e) {
 			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, e);
 		}
@@ -536,55 +455,12 @@ public class Script {
 		return Stream.concat(func.apply(this).stream(), subs).collect(Collectors.toList());
 	}
 
-	public List<Script> getJavaAgents() {
-		if (javaAgents == null) {
-			javaAgents = new ArrayList<>();
-		}
-		return javaAgents;
-	}
-
-	public boolean isAgent() {
-		if (agentOptions == null) {
-			agentOptions = collectAllAgentOptions();
-		}
-		return !agentOptions.isEmpty();
-	}
-
-	public void setAgentMainClass(String b) {
-		agentMainClass = b;
-	}
-
-	public String getAgentMainClass() {
-		return agentMainClass;
-	}
-
-	public void setPreMainClass(String name) {
-		preMainClass = name;
-	}
-
-	public String getPreMainClass() {
-		return preMainClass;
-	}
-
-	public void setJavaAgentOption(String option) {
-		this.javaAgentOption = option;
-	}
-
-	public void addJavaAgent(Script agentScript) {
-		getJavaAgents().add(agentScript);
-	}
-
-	public String getJavaAgentOption() {
-		return javaAgentOption;
-	}
-
-	public List<KeyValue> getAgentOptions() {
-		return agentOptions;
-	}
-
 	public static Script prepareScript(String resource) {
-		ScriptResource scriptFile = ScriptResource.forResource(resource);
-		Script s = new Script(scriptFile);
-		return s;
+		ScriptResource scriptResource = ScriptResource.forResource(resource);
+		return prepareScript(scriptResource);
+	}
+
+	public static Script prepareScript(ScriptResource scriptResource) {
+		return new Script(scriptResource);
 	}
 }

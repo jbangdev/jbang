@@ -192,7 +192,6 @@ public class ScriptResource implements Comparable<ScriptResource> {
 			scriptFile = new File(cache, urlHash + ".jsh");
 			Util.writeString(scriptFile.toPath(), scriptText);
 			result = forCachedResource(scriptResource, scriptFile);
-
 		} else if (scriptResource.startsWith("http://") || scriptResource.startsWith("https://")
 				|| scriptResource.startsWith("file:/")) {
 			// support url's as script files
