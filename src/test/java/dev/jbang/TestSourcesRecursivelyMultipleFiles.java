@@ -13,8 +13,6 @@ import java.util.TreeSet;
 
 import org.junit.jupiter.api.Test;
 
-import dev.jbang.cli.BaseScriptCommand;
-
 class TestSourcesRecursivelyMultipleFiles extends BaseTest {
 
 	String classA = "//SOURCES person/B.java\n"
@@ -84,12 +82,11 @@ class TestSourcesRecursivelyMultipleFiles extends BaseTest {
 		String scriptURL = mainPath.toString();
 		ScriptResource scriptResource = ScriptResource.forNamedFile(scriptURL, mainPath.toFile());
 		Script script = new Script(scriptResource, new ArrayList<>(), new HashMap<>());
-		script.setOriginal(mainPath.toString());
-		List<Source> resolvesourceRecursively = BaseScriptCommand.resolvesourceRecursively(script, false);
-		assertTrue(resolvesourceRecursively.size() == 4);
+		List<Script> sources = script.collectAllSources();
+		assertTrue(sources.size() == 4);
 		TreeSet<String> fileNames = new TreeSet<>();
-		for (Source source : resolvesourceRecursively) {
-			fileNames.add(source.getResolvedPath().getFileName().toString());
+		for (Script source : sources) {
+			fileNames.add(source.getScriptResource().getFile().getName());
 		}
 		assertEquals(fileNames.pollFirst(), "B.java");
 		assertEquals(fileNames.pollFirst(), "C.java");

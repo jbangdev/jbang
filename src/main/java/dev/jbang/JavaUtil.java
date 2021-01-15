@@ -4,6 +4,7 @@ import static java.lang.System.getenv;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -141,4 +142,46 @@ public class JavaUtil {
 		return Integer.parseInt(isOpenVersion(rv) ? rv.substring(0, rv.length() - 1) : rv);
 	}
 
+	public static boolean checkRequestedVersion(String rv) {
+		if (!isRequestedVersion(rv)) {
+			throw new IllegalArgumentException(
+					"Invalid JAVA version, should be a number optionally followed by a plus sign");
+		}
+		return true;
+	}
+
+	public static boolean isRequestedVersion(String rv) {
+		return rv.matches("\\d+[+]?");
+	}
+
+	public static class RequestedVersionComparator implements Comparator<String> {
+		@Override
+		public int compare(String v1, String v2) {
+			if (v1 == null && v2 == null) {
+				return 0;
+			}
+			if (v1 == null || !isRequestedVersion(v1)) {
+				return 1;
+			}
+			if (v2 == null || !isRequestedVersion(v2)) {
+				return -1;
+			}
+			int n1 = minRequestedVersion(v1);
+			int n2 = minRequestedVersion(v1);
+			if (n1 < n2) {
+				return -1;
+			} else if (n1 > n2) {
+				return 1;
+			} else {
+				boolean v1ext = v1.endsWith("+");
+				boolean v2ext = v2.endsWith("+");
+				if (!v1ext && v2ext) {
+					return -1;
+				} else if (v1ext && !v2ext) {
+					return 1;
+				}
+			}
+			return 0;
+		}
+	}
 }

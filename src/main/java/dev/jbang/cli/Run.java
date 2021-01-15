@@ -69,7 +69,7 @@ public class Run extends BaseBuildCommand {
 		}
 
 		script = prepareArtifacts(
-				prepareScript(scriptOrFile, userParams, properties, dependencies, classpaths, fresh, forcejsh));
+				Script.prepareScript(scriptOrFile, userParams, properties, dependencies, classpaths, fresh, forcejsh));
 
 		String cmdline = generateCommandLine(script);
 		debug("run: " + cmdline);
@@ -88,7 +88,7 @@ public class Run extends BaseBuildCommand {
 				String javaAgent = agentOption.getKey();
 				Optional<String> javaAgentOptions = agentOption.getValue();
 
-				Script agentScript = prepareScript(javaAgent, userParams, properties, dependencies, classpaths);
+				Script agentScript = Script.prepareScript(javaAgent, userParams, properties, dependencies, classpaths);
 				agentScript.setJavaAgentOption(javaAgentOptions.orElse(null));
 				if (agentScript.needsJar()) {
 					info("Building javaagent...");
@@ -215,14 +215,14 @@ public class Run extends BaseBuildCommand {
 						}
 						if (jar == null) {
 							throw new ExitException(EXIT_INTERNAL_ERROR,
-									"No jar found for agent " + agent.getOriginalRef());
+									"No jar found for agent " + agent.getOriginalResource());
 						}
 						fullArgs.add("-javaagent:" + jar
 								+ (agent.getJavaAgentOption() != null ? "=" + agent.getJavaAgentOption() : ""));
 
 					});
 
-			fullArgs.addAll(script.collectRuntimeOptions());
+			fullArgs.addAll(script.collectAllRuntimeOptions());
 			fullArgs.addAll(script.getAutoDetectedModuleArguments(requestedJavaVersion, offline));
 			fullArgs.addAll(optionalArgs);
 

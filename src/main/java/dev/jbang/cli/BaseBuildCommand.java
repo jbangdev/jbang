@@ -157,7 +157,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		IntegrationResult integrationResult;
 		List<String> optionList = new ArrayList<String>();
 		optionList.add(resolveInJavaHome("javac", requestedJavaVersion));
-		optionList.addAll(script.collectCompileOptions());
+		optionList.addAll(script.collectAllCompileOptions());
 		String path = script.resolveClassPath(offline);
 		if (!path.trim().isEmpty()) {
 			optionList.addAll(Arrays.asList("-classpath", path));
@@ -165,17 +165,15 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		optionList.addAll(Arrays.asList("-d", tmpJarDir.getAbsolutePath()));
 
 		// add source files to compile
-		optionList.addAll(Arrays.asList(script.getBackingFile().getPath()));
-		if (script.getResolvedSources() != null) {
-			optionList.addAll(
-					script	.getResolvedSources()
-							.stream()
-							.map(x -> x.getResolvedPath().toFile().getAbsolutePath())
-							.collect(Collectors.toList()));
-		}
+		optionList.add(script.getBackingFile().getPath());
+		optionList.addAll(
+				script	.collectAllSources()
+						.stream()
+						.map(x -> x.getBackingFile().getPath())
+						.collect(Collectors.toList()));
 
 		// add additional files
-		List<FileRef> files = script.collectFiles();
+		List<FileRef> files = script.collectAllFiles();
 		for (FileRef file : files) {
 			file.copy(tmpJarDir.toPath(), fresh);
 		}
@@ -211,7 +209,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		}
 
 		script.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
-		integrationResult = IntegrationManager.runIntegration(script.getRepositories(),
+		integrationResult = IntegrationManager.runIntegration(script.collectAllRepositories(),
 				script.getClassPath().getArtifacts(),
 				tmpJarDir.toPath(), pomPath,
 				script, nativeImage);

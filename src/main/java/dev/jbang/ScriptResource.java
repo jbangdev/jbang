@@ -6,17 +6,20 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import dev.jbang.cli.BaseCommand;
 
-public class ScriptResource {
+public class ScriptResource implements Comparable<ScriptResource> {
 	// original requested resource
 	private final String originalResource;
 	// cache folder it is stored inside
@@ -39,6 +42,60 @@ public class ScriptResource {
 		return originalResource;
 	}
 
+	public ScriptResource asSibling(String siblingResource) throws URISyntaxException {
+		String sr;
+		if (Util.isURL(siblingResource) || isURL()) {
+			sr = new URI(originalResource).resolve(siblingResource).toString();
+		} else {
+			sr = Paths.get(originalResource).resolveSibling(siblingResource).toString();
+		}
+		return forTrustedResource(sr);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		ScriptResource that = (ScriptResource) o;
+		return Objects.equals(originalResource, that.originalResource) &&
+				Objects.equals(file, that.file);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(originalResource, file);
+	}
+
+	@Override
+	public int compareTo(ScriptResource o) {
+		if (o == null) {
+			return 1;
+		}
+		return toString().compareTo(o.toString());
+	}
+
+	@Override
+	public String toString() {
+		if (originalResource != null && file != null) {
+			if (originalResource.equals(file.getPath())) {
+				return originalResource;
+			} else {
+				return originalResource + " (cached as: " + file.getPath() + ")";
+			}
+		} else {
+			String res = "";
+			if (originalResource != null) {
+				res += originalResource;
+			}
+			if (file != null) {
+				res += file.getPath();
+			}
+			return res;
+		}
+	}
+
 	public static ScriptResource forFile(File file) {
 		return new ScriptResource(null, file);
 	}
@@ -51,7 +108,24 @@ public class ScriptResource {
 		return new ScriptResource(scriptResource, cachedResource);
 	}
 
-	public static ScriptResource forResource(String scriptResource) throws IOException {
+	public static ScriptResource forResource(String scriptResource) {
+		try {
+			return forResource(scriptResource, false);
+		} catch (IOException | URISyntaxException e) {
+			throw new ExitException(2, "Could not download " + scriptResource, e);
+		}
+	}
+
+	public static ScriptResource forTrustedResource(String scriptResource) {
+		try {
+			return forResource(scriptResource, true);
+		} catch (IOException | URISyntaxException e) {
+			throw new ExitException(2, "Could not download " + scriptResource, e);
+		}
+	}
+
+	private static ScriptResource forResource(String scriptResource, boolean knownTrusted)
+			throws IOException, URISyntaxException {
 		ScriptResource result = null;
 
 		File scriptFile;
@@ -122,7 +196,7 @@ public class ScriptResource {
 		} else if (scriptResource.startsWith("http://") || scriptResource.startsWith("https://")
 				|| scriptResource.startsWith("file:/")) {
 			// support url's as script files
-			result = fetchFromURL(scriptResource);
+			result = fetchFromURL(scriptResource, knownTrusted);
 		} else if (DependencyUtil.looksLikeAGav(scriptResource.toString())) {
 			// todo honor offline
 			String gav = scriptResource.toString();
@@ -134,66 +208,63 @@ public class ScriptResource {
 		return result;
 	}
 
-	private static ScriptResource fetchFromURL(String scriptURL) {
-		try {
-			java.net.URI uri = new java.net.URI(scriptURL);
+	private static ScriptResource fetchFromURL(String scriptURL, boolean knownTrusted)
+			throws IOException, URISyntaxException {
+		java.net.URI uri = new java.net.URI(scriptURL);
 
-			if (!Settings.getTrustedSources().isURLTrusted(uri)) {
-				String[] options = new String[] {
-						null,
-						goodTrustURL(scriptURL),
-						"*." + uri.getAuthority(),
-						"*"
-				};
-				String exmsg = scriptURL
-						+ " is not from a trusted source and user did not confirm trust thus aborting.\n" +
-						"If you trust the url to be safe to run are here a few suggestions:\n" +
-						"Limited trust:\n    jbang trust add " + options[1] + "\n" +
-						"Trust all subdomains:\n    jbang trust add " + options[2] + "\n" +
-						"Trust all sources (WARNING! disables url protection):\n    jbang trust add " + options[3]
-						+ "\n" +
-						"\nFor more control edit ~/.jbang/trusted-sources.json" + "\n";
+		if (!knownTrusted && !Settings.getTrustedSources().isURLTrusted(uri)) {
+			String[] options = new String[] {
+					null,
+					goodTrustURL(scriptURL),
+					"*." + uri.getAuthority(),
+					"*"
+			};
+			String exmsg = scriptURL
+					+ " is not from a trusted source and user did not confirm trust thus aborting.\n" +
+					"If you trust the url to be safe to run are here a few suggestions:\n" +
+					"Limited trust:\n    jbang trust add " + options[1] + "\n" +
+					"Trust all subdomains:\n    jbang trust add " + options[2] + "\n" +
+					"Trust all sources (WARNING! disables url protection):\n    jbang trust add " + options[3]
+					+ "\n" +
+					"\nFor more control edit ~/.jbang/trusted-sources.json" + "\n";
 
-				String question = scriptURL + " is not from a trusted source thus not running it automatically.\n\n" +
-						"If you trust the url to be safe to run you can do one of the following:\n" +
-						"0) Trust once: Add no trust, just run this time\n" +
-						"1) Trust this url in future:\n    jbang trust add " + options[1] + "\n" +
-						"\n\nAny other response will result in exit.\n";
+			String question = scriptURL + " is not from a trusted source thus not running it automatically.\n\n" +
+					"If you trust the url to be safe to run you can do one of the following:\n" +
+					"0) Trust once: Add no trust, just run this time\n" +
+					"1) Trust this url in future:\n    jbang trust add " + options[1] + "\n" +
+					"\n\nAny other response will result in exit.\n";
 
-				ConsoleInput con = new ConsoleInput(
-						1,
-						10,
-						TimeUnit.SECONDS);
-				Util.infoMsg(question);
-				Util.infoMsg("Type in your choice (0 or 1) and hit enter. Times out after 10 seconds.");
-				String input = con.readLine();
+			ConsoleInput con = new ConsoleInput(
+					1,
+					10,
+					TimeUnit.SECONDS);
+			Util.infoMsg(question);
+			Util.infoMsg("Type in your choice (0 or 1) and hit enter. Times out after 10 seconds.");
+			String input = con.readLine();
 
-				boolean abort = true;
-				try {
-					int result = Integer.parseInt(input);
-					TrustedSources ts = Settings.getTrustedSources();
-					if (result == 0) {
-						abort = false;
-					} else if (result == 1) {
-						ts.add(options[result], Settings.getTrustedSourcesFile().toFile());
-						abort = false;
-					}
-				} catch (NumberFormatException ef) {
-					Util.errorMsg("Could not parse answer as a number. Aborting");
+			boolean abort = true;
+			try {
+				int result = Integer.parseInt(input);
+				TrustedSources ts = Settings.getTrustedSources();
+				if (result == 0) {
+					abort = false;
+				} else if (result == 1) {
+					ts.add(options[result], Settings.getTrustedSourcesFile().toFile());
+					abort = false;
 				}
-
-				if (abort)
-					throw new ExitException(10, exmsg);
+			} catch (NumberFormatException ef) {
+				Util.errorMsg("Could not parse answer as a number. Aborting");
 			}
 
-			scriptURL = swizzleURL(scriptURL);
-			File urlCache = Util.getUrlCache(scriptURL).toFile();
-			Path path = Util.downloadFileSwizzled(scriptURL, urlCache);
-
-			return forCachedResource(scriptURL, path.toFile());
-		} catch (IOException | URISyntaxException e) {
-			throw new ExitException(2, "Could not download " + scriptURL, e);
+			if (abort)
+				throw new ExitException(10, exmsg);
 		}
+
+		scriptURL = swizzleURL(scriptURL);
+		File urlCache = Util.getUrlCache(scriptURL).toFile();
+		Path path = Util.downloadFileSwizzled(scriptURL, urlCache);
+
+		return forCachedResource(scriptURL, path.toFile());
 	}
 
 	private static String goodTrustURL(String url) {

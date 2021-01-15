@@ -1,7 +1,7 @@
 package dev.jbang;
 
+import static dev.jbang.Script.prepareScript;
 import static dev.jbang.Util.writeString;
-import static dev.jbang.cli.BaseScriptCommand.prepareScript;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItem;
@@ -24,8 +24,6 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-
-import dev.jbang.cli.BaseScriptCommand;
 
 public class TestScript extends BaseTest {
 
@@ -148,7 +146,7 @@ public class TestScript extends BaseTest {
 
 		assertEquals(script.javaVersion(), "14+");
 
-		List<String> deps = script.collectDependencies();
+		List<String> deps = script.collectAllDependencies();
 
 		assertThat(deps, containsInAnyOrder("info.picocli:picocli:4.5.0"));
 	}
@@ -157,7 +155,7 @@ public class TestScript extends BaseTest {
 	void testFindDependencies() {
 		Script script = new Script(example, null, null);
 
-		List<String> dependencies = script.collectDependencies();
+		List<String> dependencies = script.collectAllDependencies();
 		assertEquals(2, dependencies.size());
 
 		assertTrue(dependencies.contains("com.offbytwo:docopt:0.6.0.20150202"));
@@ -173,7 +171,7 @@ public class TestScript extends BaseTest {
 
 		Script script = new Script(example, (List<String>) null, (Map<String, String>) p);
 
-		List<String> dependencies = script.collectDependencies();
+		List<String> dependencies = script.collectAllDependencies();
 		assertEquals(2, dependencies.size());
 
 		assertTrue(dependencies.contains("com.offbytwo:docopt:0.6.0.20150202"));
@@ -190,7 +188,7 @@ public class TestScript extends BaseTest {
 		String scriptURL = mainPath.toString();
 		Script script = prepareScript(scriptURL);
 
-		List<Source> resolvesourceRecursively = BaseScriptCommand.resolvesourceRecursively(script, false);
+		List<Script> resolvesourceRecursively = script.collectAllSources();
 		assertTrue(resolvesourceRecursively.size() == 7);
 	}
 
@@ -238,13 +236,13 @@ public class TestScript extends BaseTest {
 			Settings.getTrustedSources().add(url, tempFile);
 
 			Script script = prepareScript(url);
-			assertEquals(script.getResolvedSources().size(), 2);
+			assertEquals(2, script.collectAllSources().size());
 			boolean foundtwo = false;
 			boolean foundt3 = false;
-			for (Source source : script.getResolvedSources()) {
-				if (source.getResolvedPath().getFileName().toString().equals("two.java"))
+			for (Script source : script.collectAllSources()) {
+				if (source.getScriptResource().getFile().getName().equals("two.java"))
 					foundtwo = true;
-				if (source.getResolvedPath().getFileName().toString().equals("t3.java"))
+				if (source.getScriptResource().getFile().getName().equals("t3.java"))
 					foundt3 = true;
 			}
 			assertTrue(foundtwo && foundt3);
@@ -304,9 +302,9 @@ public class TestScript extends BaseTest {
 	void testExtractOptions() {
 		Script s = new Script(example, null, null);
 
-		assertEquals(s.collectCompileOptions(), Arrays.asList("--enable-preview", "--verbose"));
+		assertEquals(s.collectAllCompileOptions(), Arrays.asList("--enable-preview", "--verbose"));
 
-		assertEquals(s.collectRuntimeOptions(), Arrays.asList("--enable-preview", "-Dvalue='this is space'"));
+		assertEquals(s.collectAllRuntimeOptions(), Arrays.asList("--enable-preview", "-Dvalue='this is space'"));
 
 	}
 

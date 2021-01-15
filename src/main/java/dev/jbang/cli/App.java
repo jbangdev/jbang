@@ -96,7 +96,7 @@ class AppInstall extends BaseCommand {
 			Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
 			return false;
 		}
-		Script script = BaseScriptCommand.prepareScript(scriptRef);
+		Script script = Script.prepareScript(scriptRef);
 		if (name == null) {
 			name = chooseCommandName(script);
 			if (!force && existScripts(binDir, name)) {

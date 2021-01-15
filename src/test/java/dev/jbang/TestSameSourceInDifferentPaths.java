@@ -7,8 +7,6 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 
-import dev.jbang.cli.BaseScriptCommand;
-
 /**
  * Both class A and person.B have //SOURCES model/C.java
  */
@@ -67,8 +65,8 @@ public class TestSameSourceInDifferentPaths extends BaseTest {
 		Path BPath = TestScript.createTmpFileWithContent(mainPath.getParent(), "person", "B.java", classB);
 		TestScript.createTmpFileWithContent(mainPath.getParent(), "model", "C.java", classModelC);
 		TestScript.createTmpFileWithContent(BPath.getParent(), "model", "C.java", classPersonModelC);
-		Script script = BaseScriptCommand.prepareScript(mainPath.toString());
-		assertTrue(script.getResolvedSources().size() == 3);
+		Script script = Script.prepareScript(mainPath.toString());
+		assertTrue(script.collectAllSources().size() == 3);
 	}
 
 }

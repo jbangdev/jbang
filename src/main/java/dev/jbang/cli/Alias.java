@@ -79,7 +79,7 @@ class AliasAdd extends BaseAliasCommand {
 					"Invalid alias name, it should start with a letter followed by 0 or more letters, digits, underscores or hyphens");
 		}
 		try {
-			Script script = BaseScriptCommand.prepareScript(scriptOrFile);
+			Script script = Script.prepareScript(scriptOrFile);
 			if (name == null) {
 				name = AppInstall.chooseCommandName(script);
 			}
