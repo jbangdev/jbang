@@ -30,7 +30,6 @@ import dev.jbang.JitPackUtil;
 import dev.jbang.MavenRepo;
 import dev.jbang.Script;
 import dev.jbang.Settings;
-import dev.jbang.Source;
 import dev.jbang.StrictParameterPreprocessor;
 import dev.jbang.TemplateEngine;
 import dev.jbang.Util;
@@ -56,7 +55,7 @@ public class Edit extends BaseScriptCommand {
 			enableInsecure();
 		}
 
-		script = prepareScript(scriptOrFile);
+		script = Script.prepareScript(scriptOrFile);
 		File project = createProjectForEdit(script, false);
 		// err.println(project.getAbsolutePath());
 
@@ -89,7 +88,7 @@ public class Edit extends BaseScriptCommand {
 			try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
 				File orginalFile = script.getOriginalFile();
 				if (!orginalFile.exists()) {
-					throw new ExitException(2, "Cannot live edit " + script.getOriginalRef());
+					throw new ExitException(2, "Cannot live edit " + script.getOriginalResource());
 				}
 				Path watched = orginalFile.getAbsoluteFile().getParentFile().toPath();
 				watched.register(watchService,
@@ -106,7 +105,7 @@ public class Edit extends BaseScriptCommand {
 							try {
 								// TODO only regenerate when dependencies changes.
 								info("Regenerating project.");
-								script = prepareScript(scriptOrFile);
+								script = Script.prepareScript(scriptOrFile);
 								createProjectForEdit(script, true);
 							} catch (RuntimeException ee) {
 								warn("Error when re-generating project. Ignoring it, but state might be undefined: "
@@ -202,7 +201,7 @@ public class Edit extends BaseScriptCommand {
 
 		File originalFile = script.getOriginalFile();
 
-		List<String> collectDependencies = script.collectDependencies();
+		List<String> dependencies = script.collectAllDependencies();
 		String cp = script.resolveClassPath(offline);
 		List<String> resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 
@@ -223,16 +222,16 @@ public class Edit extends BaseScriptCommand {
 		Path srcFile = srcDir.toPath().resolve(name);
 		Util.createLink(srcFile, originalFile.toPath());
 
-		for (Source source : script.getResolvedSources()) {
+		for (Script source : script.collectAllSources()) {
 			File sfile = null;
 			if (source.getJavaPackage().isPresent()) {
 				File packageDir = new File(srcDir, source.getJavaPackage().get().replace(".", File.separator));
 				packageDir.mkdir();
-				sfile = new File(packageDir, source.getResolvedPath().toFile().getName());
+				sfile = new File(packageDir, source.getScriptResource().getFile().getName());
 			} else {
-				sfile = new File(srcDir, source.getResolvedPath().toFile().getName());
+				sfile = new File(srcDir, source.getScriptResource().getFile().getName());
 			}
-			Path destFile = source.getResolvedPath().toAbsolutePath();
+			Path destFile = source.getScriptResource().getFile().toPath().toAbsolutePath();
 			Util.createLink(sfile.toPath(), destFile);
 		}
 
@@ -252,22 +251,22 @@ public class Edit extends BaseScriptCommand {
 
 		// both collectDependencies and repositories are manipulated by
 		// resolveDependencies
-		List<MavenRepo> repositories = script.getRepositories();
+		List<MavenRepo> repositories = script.collectAllRepositories();
 		if (repositories.isEmpty()) {
 			repositories.add(DependencyUtil.toMavenRepo("jcenter"));
 		}
 
 		// Turn any URL dependencies into regular GAV coordinates
-		collectDependencies = collectDependencies
-													.stream()
-													.map(JitPackUtil::ensureGAV)
-													.collect(Collectors.toList());
+		dependencies = dependencies
+									.stream()
+									.map(JitPackUtil::ensureGAV)
+									.collect(Collectors.toList());
 		// And if we encountered URLs let's make sure the JitPack repo is available
 		if (!repositories.stream().anyMatch(r -> DependencyUtil.REPO_JITPACK.equals(r.getUrl()))) {
 			repositories.add(DependencyUtil.toMavenRepo(DependencyUtil.ALIAS_JITPACK));
 		}
 
-		renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, repositories,
+		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
 				script.getArguments(),
 				destination);
@@ -275,14 +274,14 @@ public class Edit extends BaseScriptCommand {
 		// setup eclipse
 		templateName = ".qute.classpath";
 		destination = new File(tmpProjectDir, ".classpath").toPath();
-		renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, repositories,
+		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
 				script.getArguments(),
 				destination);
 
 		templateName = ".qute.project";
 		destination = new File(tmpProjectDir, ".project").toPath();
-		renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, repositories,
+		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
 				script.getArguments(),
 				destination);
@@ -290,14 +289,14 @@ public class Edit extends BaseScriptCommand {
 		templateName = "main.qute.launch";
 		destination = new File(tmpProjectDir, ".eclipse/" + baseName + ".launch").toPath();
 		destination.toFile().getParentFile().mkdirs();
-		renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, repositories,
+		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
 				script.getArguments(),
 				destination);
 
 		templateName = "main-port-4004.qute.launch";
 		destination = new File(tmpProjectDir, ".eclipse/" + baseName + "-port-4004.launch").toPath();
-		renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, repositories,
+		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
 				script.getArguments(),
 				destination);
@@ -307,7 +306,7 @@ public class Edit extends BaseScriptCommand {
 		destination = new File(tmpProjectDir, ".vscode/launch.json").toPath();
 		if (isNeeded(reload, destination)) {
 			destination.toFile().getParentFile().mkdirs();
-			renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, repositories,
+			renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 					templateName,
 					script.getArguments(),
 					destination);
@@ -318,7 +317,7 @@ public class Edit extends BaseScriptCommand {
 		destination = new File(tmpProjectDir, "README.md").toPath();
 		if (isNeeded(reload, destination)) {
 			destination.toFile().getParentFile().mkdirs();
-			renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, repositories,
+			renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 					templateName,
 					script.getArguments(),
 					destination);
@@ -328,7 +327,7 @@ public class Edit extends BaseScriptCommand {
 		destination = new File(tmpProjectDir, ".vscode/settings.json").toPath();
 		if (isNeeded(reload, destination)) {
 			destination.toFile().getParentFile().mkdirs();
-			renderTemplate(engine, collectDependencies, fullClassName, baseName, resolvedDependencies, repositories,
+			renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 					templateName,
 					script.getArguments(),
 					destination);

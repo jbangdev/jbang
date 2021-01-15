@@ -28,7 +28,7 @@ public class TestGrape extends BaseTest {
 
 		Script s = new Script(grabBlock, null, null);
 
-		List<String> deps = s.collectDependencies();
+		List<String> deps = s.collectAllDependencies();
 
 		assertThat(deps, hasItem("org.hibernate:hibernate-core:5.4.10.Final"));
 		assertThat(deps, hasItem("net.sf.json-lib:json-lib:2.2.3:jdk15"));

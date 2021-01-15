@@ -21,17 +21,14 @@ public class FileRef {
 		this.destination = destination;
 	}
 
-	/**
-	 *
-	 */
-	private Path from() {
+	private String from() {
 		String p = destination != null ? destination : ref;
 
 		if (Paths.get(p).isAbsolute()) {
 			throw new IllegalStateException("Only relative paths allowed in //FILES. Found absolute path: " + p);
 		}
 
-		return Paths.get(base).resolveSibling(p);
+		return Paths.get(base).resolveSibling(p).toString();
 	}
 
 	protected Path to(Path parent) {
@@ -53,7 +50,7 @@ public class FileRef {
 	}
 
 	public void copy(Path destroot, boolean updateCache) {
-		Path from = from();
+		Path from = Paths.get(from());
 		Path to = to(destroot);
 		Util.verboseMsg("Copying " + from + " to " + to);
 		try {

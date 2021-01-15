@@ -7,8 +7,6 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 
-import dev.jbang.cli.BaseScriptCommand;
-
 public class TestSourcesMutualDependency extends BaseTest {
 
 	String classMain = "//SOURCES A.java\n"
@@ -39,8 +37,8 @@ public class TestSourcesMutualDependency extends BaseTest {
 		TestScript.createTmpFileWithContent("", "A.java", classA);
 		TestScript.createTmpFileWithContent("", "B.java", classB);
 		String scriptURL = mainPath.toString();
-		Script script = BaseScriptCommand.prepareScript(scriptURL);
-		assertTrue(script.getResolvedSources().size() == 2);
+		Script script = Script.prepareScript(scriptURL);
+		assertTrue(script.collectAllSources().size() == 2);
 	}
 
 }

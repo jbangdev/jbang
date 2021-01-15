@@ -32,7 +32,7 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 		String javaVersion;
 
 		public ScriptInfo(Script script) {
-			List<String> collectDependencies = script.collectDependencies();
+			List<String> collectDependencies = script.collectAllDependencies();
 			String cp = script.resolveClassPath(offline);
 
 			originalResource = script.getOriginalResource();
@@ -54,7 +54,7 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 			enableInsecure();
 		}
 
-		script = prepareScript(scriptOrFile);
+		script = Script.prepareScript(scriptOrFile);
 
 		ScriptInfo info = new ScriptInfo(script);
 

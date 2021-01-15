@@ -142,7 +142,7 @@ public class Export extends BaseBuildCommand {
 			enableInsecure();
 		}
 
-		script = prepareScript(scriptOrFile, null, properties, dependencies, classpaths);
+		script = Script.prepareScript(scriptOrFile, null, properties, dependencies, classpaths);
 
 		if (script.needsJar()) {
 			build(script);

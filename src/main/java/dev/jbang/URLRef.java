@@ -16,7 +16,7 @@ public class URLRef extends FileRef {
 		super(base, destination, ref);
 	}
 
-	URI from() {
+	public String from() {
 		String p = destination != null ? destination : ref;
 
 		if (Paths.get(p).isAbsolute()) {
@@ -24,21 +24,21 @@ public class URLRef extends FileRef {
 		}
 
 		try {
-			return new URI(base).resolve(p);
+			return new URI(base).resolve(p).toString();
 		} catch (URISyntaxException e) {
 			throw new IllegalStateException("Could not resolve URI", e);
 		}
 	}
 
 	public void copy(Path destroot, boolean updateCache) {
-		URI from = from();
+		String from = from();
 		Path to = to(destroot);
 		Util.verboseMsg("Copying " + from + " to " + to);
 		try {
 			if (!to.toFile().getParentFile().exists()) {
 				to.toFile().getParentFile().mkdirs();
 			}
-			Path dest = Util.downloadAndCacheFile(from.toString(), updateCache);
+			Path dest = Util.downloadAndCacheFile(from, updateCache);
 			Files.copy(dest, to, StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException ioe) {
 			throw new ExitException(EXIT_UNEXPECTED_STATE, "Could not copy " + from + " to " + to, ioe);

@@ -1,24 +1,18 @@
 package dev.jbang;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.Scanner;
+import java.net.URISyntaxException;
+import java.util.*;
+import java.util.function.Function;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import dev.jbang.cli.BaseCommand;
 
 public class Script {
 
@@ -51,16 +45,15 @@ public class Script {
 	List<String> lines;
 
 	private List<String> arguments;
+	private Map<String, String> properties;
 
 	private List<String> additionalDeps = Collections.emptyList();
 	private List<String> additionalClasspaths = Collections.emptyList();
 
-	private Map<String, String> properties;
 	private List<MavenRepo> repositories;
 	private List<FileRef> filerefs;
 	private List<String> persistentJvmArgs;
-	private List<FileRef> sources;
-	private List<Source> resolvedSources;
+	private List<Script> sources;
 	private List<Script> javaAgents;
 	private List<KeyValue> agentOptions;
 	private String preMainClass;
@@ -76,8 +69,7 @@ public class Script {
 	 */
 	private boolean forcejsh = false;
 
-	public Script(ScriptResource resource, List<String> arguments, Map<String, String> properties)
-			throws FileNotFoundException {
+	public Script(ScriptResource resource, List<String> arguments, Map<String, String> properties) {
 		this(resource, getBackingFileContent(resource.getFile()), arguments, properties);
 	}
 
@@ -103,11 +95,23 @@ public class Script {
 		return lines;
 	}
 
-	public List<String> collectDependencies() {
+	public Optional<String> getJavaPackage() {
+		if (script != null) {
+			return Util.getSourcePackage(script);
+		} else {
+			return Optional.empty();
+		}
+	}
+
+	public List<String> collectAllDependencies() {
+		return collectAll(Script::collectDependencies);
+	}
+
+	private List<String> collectDependencies() {
 		return collectDependencies(getLines());
 	}
 
-	public List<String> collectDependencies(List<String> lines) {
+	private List<String> collectDependencies(List<String> lines) {
 		if (forJar()) { // if a .jar then we don't try parse it for dependencies.
 			return additionalDeps;
 		}
@@ -135,6 +139,10 @@ public class Script {
 		return dependencies;
 	}
 
+	public List<KeyValue> collectAllAgentOptions() {
+		return collectAll(Script::collectAgentOptions);
+	}
+
 	private List<KeyValue> collectAgentOptions() {
 		if (agentOptions == null) {
 			agentOptions = collectRawOptions("JAVAAGENT")	.stream()
@@ -146,7 +154,11 @@ public class Script {
 		return agentOptions;
 	}
 
-	public List<MavenRepo> getRepositories() {
+	public List<MavenRepo> collectAllRepositories() {
+		return collectAll(Script::collectRepositories);
+	}
+
+	private List<MavenRepo> collectRepositories() {
 		if (repositories == null) {
 			repositories = getLines()	.stream()
 										.filter(Script::isRepoDeclare)
@@ -215,11 +227,19 @@ public class Script {
 		return javaOptions;
 	}
 
-	public List<String> collectRuntimeOptions() {
+	public List<String> collectAllRuntimeOptions() {
+		return collectAll(Script::collectRuntimeOptions);
+	}
+
+	private List<String> collectRuntimeOptions() {
 		return collectOptions("JAVA_OPTIONS");
 	}
 
-	public List<String> collectCompileOptions() {
+	public List<String> collectAllCompileOptions() {
+		return collectAll(Script::collectCompileOptions);
+	}
+
+	private List<String> collectCompileOptions() {
 		return collectOptions("JAVAC_OPTIONS");
 	}
 
@@ -228,18 +248,18 @@ public class Script {
 	}
 
 	public String javaVersion() {
-		List<String> opts = collectRawOptions("JAVA");
-		if (!opts.isEmpty()) {
-			// If there are multiple //JAVA_VERSIONs we'll use the last one
-			String version = opts.get(opts.size() - 1);
-			if (!version.matches("\\d+[+]?")) {
-				throw new IllegalArgumentException(
-						"Invalid JAVA version, should be a number optionally followed by a plus sign");
-			}
-			return version;
+		Optional<String> version = collectAll(Script::collectJavaVersions)	.stream()
+																			.filter(JavaUtil::checkRequestedVersion)
+																			.max(new JavaUtil.RequestedVersionComparator());
+		if (version.isPresent()) {
+			return version.get();
 		} else {
 			return null;
 		}
+	}
+
+	private List<String> collectJavaVersions() {
+		return collectOptions("JAVA");
 	}
 
 	/**
@@ -274,17 +294,8 @@ public class Script {
 					}
 				}
 			} else {
-				List<String> dependencies = collectDependencies();
-				if (getResolvedSources() != null) {
-					for (Source source : getResolvedSources()) {
-						try {
-							dependencies.addAll(collectDependencies(Files.readAllLines(source.getResolvedPath())));
-						} catch (IOException e) {
-							throw new RuntimeException(e);
-						}
-					}
-				}
-				List<MavenRepo> repositories = getRepositories();
+				List<String> dependencies = collectAllDependencies();
+				List<MavenRepo> repositories = collectAllRepositories();
 				classpath = new DependencyUtil().resolveDependencies(dependencies, repositories, offline,
 						!Util.isQuiet());
 			}
@@ -519,11 +530,14 @@ public class Script {
 		return backingFile != null && backingFile.toString().endsWith(".jar");
 	}
 
-	static private String getBackingFileContent(File backingFile) throws FileNotFoundException {
+	static private String getBackingFileContent(File backingFile) {
 		if (!forJar(backingFile)) {
 			try (Scanner sc = new Scanner(backingFile)) {
 				sc.useDelimiter("\\Z");
 				return sc.hasNext() ? sc.next() : "";
+			} catch (IOException e) {
+				throw new ExitException(BaseCommand.EXIT_UNEXPECTED_STATE,
+						"Could not read script content for " + backingFile);
 			}
 		}
 		return "";
@@ -554,8 +568,11 @@ public class Script {
 		return new KeyValue(key, value);
 	}
 
-	public List<FileRef> collectFiles() {
+	public List<FileRef> collectAllFiles() {
+		return collectAll(Script::collectFiles);
+	}
 
+	private List<FileRef> collectFiles() {
 		if (filerefs == null) {
 			filerefs = getLines()	.stream()
 									.filter(f -> f.startsWith(FILES_COMMENT_PREFIX))
@@ -567,32 +584,6 @@ public class Script {
 									.collect(Collectors.toCollection(ArrayList::new));
 		}
 		return filerefs;
-	}
-
-	public List<FileRef> collectSources() {
-
-		if (sources == null) {
-			if (getLines() == null) {
-				sources = Collections.emptyList();
-			} else {
-				sources = getLines().stream()
-									.filter(f -> f.startsWith(SOURCES_COMMENT_PREFIX))
-									.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
-															.skip(1)
-															.map(String::trim))
-									.map(PropertiesValueResolver::replaceProperties)
-									.flatMap(line -> Util
-															.explode(getScriptResource().getOriginalResource(),
-																	getBackingFile().getAbsoluteFile()
-																					.getParentFile()
-																					.toPath(),
-																	line)
-															.stream())
-									.map(line -> toFileRef(line.toString()))
-									.collect(Collectors.toCollection(ArrayList::new));
-			}
-		}
-		return sources;
 	}
 
 	private FileRef toFileRef(String fileReference) {
@@ -610,22 +601,57 @@ public class Script {
 		}
 
 		String origResource = scriptResource.getOriginalResource();
-		if (FileRef.isURL(fileReference)) {
-			return new URLRef(origResource, ref, dest);
-		}
-		if (FileRef.isURL(origResource)) {
+		if (FileRef.isURL(fileReference) || FileRef.isURL(origResource)) {
 			return new URLRef(origResource, ref, dest);
 		} else {
 			return new FileRef(origResource, ref, dest);
 		}
 	}
 
-	public void setResolvedSources(List<Source> resolvedSourcePaths) {
-		this.resolvedSources = resolvedSourcePaths;
+	public List<Script> collectAllSources() {
+		Stream<Script> ss = collectSources().stream().map(s -> s.collectAllSources().stream()).flatMap(i -> i);
+		return Stream.concat(collectSources().stream(), ss).collect(Collectors.toList());
 	}
 
-	public List<Source> getResolvedSources() {
-		return resolvedSources;
+	private List<Script> collectSources() {
+		if (sources == null) {
+			if (getLines() == null) {
+				sources = Collections.emptyList();
+			} else {
+				sources = getLines().stream()
+									.filter(f -> f.startsWith(SOURCES_COMMENT_PREFIX))
+									.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
+															.skip(1)
+															.map(String::trim))
+									.map(PropertiesValueResolver::replaceProperties)
+									.flatMap(line -> Util
+															.explode(getScriptResource().getOriginalResource(),
+																	getBackingFile().getAbsoluteFile()
+																					.getParentFile()
+																					.toPath(),
+																	line)
+															.stream())
+									.map(resource -> toScript(resource))
+									.collect(Collectors.toCollection(ArrayList::new));
+			}
+		}
+		return sources;
+	}
+
+	private Script toScript(String resource) {
+		try {
+			ScriptResource sibling = scriptResource.asSibling(resource);
+			Script s = new Script(sibling, arguments, properties);
+			s.setOriginal(resource);
+			return s;
+		} catch (URISyntaxException e) {
+			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, e);
+		}
+	}
+
+	private <R> List<R> collectAll(Function<Script, List<R>> func) {
+		Stream<R> subs = collectAllSources().stream().map(s -> func.apply(s).stream()).flatMap(i -> i);
+		return Stream.concat(func.apply(this).stream(), subs).collect(Collectors.toList());
 	}
 
 	public List<Script> getJavaAgents() {
@@ -637,7 +663,7 @@ public class Script {
 
 	public boolean isAgent() {
 		if (agentOptions == null) {
-			agentOptions = collectAgentOptions();
+			agentOptions = collectAllAgentOptions();
 		}
 		return !agentOptions.isEmpty();
 	}
@@ -676,6 +702,57 @@ public class Script {
 
 	public void setForcejsh(boolean forcejsh) {
 		this.forcejsh = forcejsh;
+	}
+
+	public static Script prepareScript(String scriptResource) throws IOException {
+		return prepareScript(scriptResource, null, null, null, null);
+	}
+
+	public static Script prepareScript(String scriptResource, List<String> arguments) throws IOException {
+		return prepareScript(scriptResource, arguments, null, null, null);
+	}
+
+	public static Script prepareScript(String scriptResource, List<String> arguments, Map<String, String> properties,
+			List<String> dependencies, List<String> classpaths) throws IOException {
+		return prepareScript(scriptResource, arguments, properties, dependencies, classpaths, false, false);
+	}
+
+	public static Script prepareScript(String scriptResource, List<String> arguments, Map<String, String> properties,
+			List<String> dependencies, List<String> classpaths, boolean fresh, boolean forcejsh)
+			throws IOException {
+		ScriptResource scriptFile = ScriptResource.forResource(scriptResource);
+
+		AliasUtil.Alias alias = null;
+		if (scriptFile == null) {
+			// Not found as such, so let's check the aliases
+			alias = AliasUtil.getAlias(null, scriptResource, arguments, properties);
+			if (alias != null) {
+				scriptFile = ScriptResource.forResource(alias.resolve(null));
+				arguments = alias.arguments;
+				properties = alias.properties;
+				if (scriptFile == null) {
+					throw new IllegalArgumentException(
+							"Alias " + scriptResource + " from " + alias.catalog.catalogFile + " failed to resolve "
+									+ alias.scriptRef);
+				}
+			}
+		}
+
+		// Support URLs as script files
+		// just proceed if the script file is a regular file at this point
+		if (scriptFile == null || !scriptFile.getFile().canRead()) {
+			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Could not read script argument " + scriptResource);
+		}
+
+		// note script file must be not null at this point
+
+		Script s = new Script(scriptFile, arguments, properties);
+		s.setForcejsh(forcejsh);
+		s.setOriginal(scriptResource);
+		s.setAlias(alias);
+		s.setAdditionalDependencies(dependencies);
+		s.setAdditionalClasspaths(classpaths);
+		return s;
 	}
 
 }
