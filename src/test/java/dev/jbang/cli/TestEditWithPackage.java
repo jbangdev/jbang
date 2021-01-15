@@ -13,7 +13,7 @@ import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
-import dev.jbang.Script;
+import dev.jbang.ExtendedScript;
 import dev.jbang.TestScript;
 
 public class TestEditWithPackage extends BaseTest {
@@ -54,7 +54,7 @@ public class TestEditWithPackage extends BaseTest {
 		Path BPath = TestScript.createTmpFileWithContent(mainPath.getParent(), "person", "B.java", classB);
 		Path CPath = TestScript.createTmpFileWithContent(BPath.getParent(), "model", "C.java", classC);
 		assertTrue(mainPath.toFile().exists());
-		Script script = Script.prepareScript(mainPath.toString());
+		ExtendedScript script = ExtendedScript.prepareScript(mainPath.toString());
 		File project = new Edit().createProjectForEdit(script, false);
 		assertTrue(new File(project, "src/A.java").exists());
 		assertTrue(new File(project, "src/person/B.java").exists());

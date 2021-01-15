@@ -25,10 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import dev.jbang.BaseTest;
-import dev.jbang.Script;
-import dev.jbang.Settings;
-import dev.jbang.Util;
+import dev.jbang.*;
 
 public class TestEdit extends BaseTest {
 
@@ -57,7 +54,7 @@ public class TestEdit extends BaseTest {
 		Jbang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
-		Script script = Script.prepareScript(s);
+		ExtendedScript script = ExtendedScript.prepareScript(s);
 
 		File project = new Edit().createProjectForEdit(script, false);
 
@@ -96,7 +93,7 @@ public class TestEdit extends BaseTest {
 
 		Util.writeString(p, "//DEPS org.openjfx:javafx-graphics:11.0.2${bougus:}\n" + Util.readString(p));
 
-		Script script = Script.prepareScript(s);
+		ExtendedScript script = ExtendedScript.prepareScript(s);
 
 		File project = new Edit().createProjectForEdit(script, false);
 
@@ -126,7 +123,7 @@ public class TestEdit extends BaseTest {
 
 		Util.writeString(p, "//DEPS https://github.com/oldskoolsh/libvirt-schema/tree/0.0.2\n" + Util.readString(p));
 
-		Script script = Script.prepareScript(s);
+		ExtendedScript script = ExtendedScript.prepareScript(s);
 
 		File project = new Edit().createProjectForEdit(script, false);
 
@@ -145,7 +142,7 @@ public class TestEdit extends BaseTest {
 		Path p = examplesTestFolder.toPath().resolve("one.java");
 		assertThat(p.toFile().exists(), is(true));
 
-		Script script = Script.prepareScript(p.toString());
+		ExtendedScript script = ExtendedScript.prepareScript(p.toString());
 
 		File project = new Edit().createProjectForEdit(script, false);
 
@@ -169,7 +166,7 @@ public class TestEdit extends BaseTest {
 		Jbang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
-		Script script = Script.prepareScript(s);
+		ExtendedScript script = ExtendedScript.prepareScript(s);
 
 		File project = new Edit().createProjectForEdit(script, false);
 

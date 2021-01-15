@@ -10,7 +10,7 @@ import java.util.List;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import dev.jbang.Script;
+import dev.jbang.ExtendedScript;
 
 import picocli.CommandLine;
 
@@ -31,7 +31,7 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 
 		String javaVersion;
 
-		public ScriptInfo(Script script) {
+		public ScriptInfo(ExtendedScript script) {
 			List<String> collectDependencies = script.collectAllDependencies();
 			String cp = script.resolveClassPath(offline);
 
@@ -54,7 +54,7 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 			enableInsecure();
 		}
 
-		script = Script.prepareScript(scriptOrFile);
+		script = ExtendedScript.prepareScript(scriptOrFile);
 
 		ScriptInfo info = new ScriptInfo(script);
 

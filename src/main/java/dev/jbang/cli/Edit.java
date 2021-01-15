@@ -22,17 +22,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import dev.jbang.ConsoleInput;
-import dev.jbang.DependencyUtil;
-import dev.jbang.EditorManager;
-import dev.jbang.ExitException;
-import dev.jbang.JitPackUtil;
-import dev.jbang.MavenRepo;
-import dev.jbang.Script;
-import dev.jbang.Settings;
-import dev.jbang.StrictParameterPreprocessor;
-import dev.jbang.TemplateEngine;
-import dev.jbang.Util;
+import dev.jbang.*;
 
 import io.quarkus.qute.Template;
 import picocli.CommandLine;
@@ -55,7 +45,7 @@ public class Edit extends BaseScriptCommand {
 			enableInsecure();
 		}
 
-		script = Script.prepareScript(scriptOrFile);
+		script = ExtendedScript.prepareScript(scriptOrFile);
 		File project = createProjectForEdit(script, false);
 		// err.println(project.getAbsolutePath());
 
@@ -105,7 +95,7 @@ public class Edit extends BaseScriptCommand {
 							try {
 								// TODO only regenerate when dependencies changes.
 								info("Regenerating project.");
-								script = Script.prepareScript(scriptOrFile);
+								script = ExtendedScript.prepareScript(scriptOrFile);
 								createProjectForEdit(script, true);
 							} catch (RuntimeException ee) {
 								warn("Error when re-generating project. Ignoring it, but state might be undefined: "
@@ -197,7 +187,7 @@ public class Edit extends BaseScriptCommand {
 	}
 
 	/** Create Project to use for editing **/
-	File createProjectForEdit(Script script, boolean reload) throws IOException {
+	File createProjectForEdit(ExtendedScript script, boolean reload) throws IOException {
 
 		File originalFile = script.getOriginalFile();
 
