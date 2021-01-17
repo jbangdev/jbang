@@ -178,7 +178,8 @@ public class Edit extends BaseScriptCommand {
 			ProcessBuilder pb = new ProcessBuilder(new String[] {
 					editor.get(),
 					"--install-extension", "redhat.java",
-					"--install-extension", "vscjava.vscode-java-debug" });
+					"--install-extension", "vscjava.vscode-java-debug",
+					"--install-extension", "vscjava.vscode-java-test" });
 			pb.inheritIO();
 			Process process = pb.start();
 			try {
