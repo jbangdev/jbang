@@ -239,9 +239,9 @@ public class TestScript extends BaseTest {
 			boolean foundtwo = false;
 			boolean foundt3 = false;
 			for (Script source : script.script().collectAllSources()) {
-				if (source.getScriptResource().getFile().getName().equals("two.java"))
+				if (source.getResourceRef().getFile().getName().equals("two.java"))
 					foundtwo = true;
-				if (source.getScriptResource().getFile().getName().equals("t3.java"))
+				if (source.getResourceRef().getFile().getName().equals("t3.java"))
 					foundt3 = true;
 			}
 			assertTrue(foundtwo && foundt3);

@@ -78,13 +78,13 @@ class TestSourcesRecursivelyMultipleFiles extends BaseTest {
 		TestScript.createTmpFileWithContent(HiJBangPath.getParent(), "inner", "HelloInner.java",
 				classHelloInner);
 		String scriptURL = mainPath.toString();
-		ScriptResource scriptResource = ScriptResource.forNamedFile(scriptURL, mainPath.toFile());
-		Script script = Script.prepareScript(scriptResource);
+		ResourceRef resourceRef = ResourceRef.forNamedFile(scriptURL, mainPath.toFile());
+		Script script = Script.prepareScript(resourceRef);
 		List<Script> sources = script.collectAllSources();
 		assertTrue(sources.size() == 4);
 		TreeSet<String> fileNames = new TreeSet<>();
 		for (Script source : sources) {
-			fileNames.add(source.getScriptResource().getFile().getName());
+			fileNames.add(source.getResourceRef().getFile().getName());
 		}
 		assertEquals(fileNames.pollFirst(), "B.java");
 		assertEquals(fileNames.pollFirst(), "C.java");

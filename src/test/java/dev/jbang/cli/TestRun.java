@@ -84,7 +84,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(
-				RunUnit.forScriptResource(ScriptResource.forFile(arg), run.userParams,
+				RunUnit.forScriptResource(ResourceRef.forFile(arg), run.userParams,
 						run.properties));
 
 		assertThat(result, startsWith("java "));
@@ -101,7 +101,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(
-				RunUnit.forScriptResource(ScriptResource.forFile(new File(examplesTestFolder, "helloworld.jsh")),
+				RunUnit.forScriptResource(ResourceRef.forFile(new File(examplesTestFolder, "helloworld.jsh")),
 						run.userParams,
 						run.properties));
 
@@ -317,7 +317,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(
-				RunUnit.forScriptResource(ScriptResource.forFile(arg), run.userParams,
+				RunUnit.forScriptResource(ResourceRef.forFile(arg), run.userParams,
 						run.properties));
 
 		assertThat(result, startsWith("jshell"));
@@ -340,7 +340,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(
-				RunUnit.forScriptResource(ScriptResource.forFile(arg), run.userParams,
+				RunUnit.forScriptResource(ResourceRef.forFile(arg), run.userParams,
 						run.properties));
 
 		assertThat(result, startsWith("java "));
@@ -361,7 +361,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		String result = run.generateCommandLine(
-				RunUnit.forScriptResource(ScriptResource.forFile(new File(arg)), run.userParams, run.properties));
+				RunUnit.forScriptResource(ResourceRef.forFile(new File(arg)), run.userParams, run.properties));
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("classpath_example.java"));
@@ -387,7 +387,7 @@ public class TestRun extends BaseTest {
 		assertThat(run.properties.size(), is(2));
 
 		String result = run.generateCommandLine(
-				RunUnit.forScriptResource(ScriptResource.forFile(new File(arg)), run.userParams, run.properties));
+				RunUnit.forScriptResource(ResourceRef.forFile(new File(arg)), run.userParams, run.properties));
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("-Dwonka=panda"));
@@ -541,7 +541,7 @@ public class TestRun extends BaseTest {
 
 		Run m = new Run();
 
-		ExtendedRunUnit script = RunUnit.forScriptResource(ScriptResource.forFile(f), null, null);
+		ExtendedRunUnit script = RunUnit.forScriptResource(ResourceRef.forFile(f), null, null);
 		m.build(script);
 
 		assertThat(script.getMainClass(), equalTo("aclass"));
@@ -592,7 +592,7 @@ public class TestRun extends BaseTest {
 
 		Run m = new Run();
 
-		ExtendedRunUnit script = RunUnit.forScriptResource(ScriptResource.forFile(f), null, null);
+		ExtendedRunUnit script = RunUnit.forScriptResource(ResourceRef.forFile(f), null, null);
 		m.build(script);
 
 		assertThat(script.getMainClass(), equalTo("dualclass"));
@@ -947,9 +947,9 @@ public class TestRun extends BaseTest {
 		assertThat(run.javaAgentSlots.containsKey(agentfile.getAbsolutePath()), is(true));
 		assertThat(run.javaAgentSlots.get(agentfile.getAbsolutePath()).get(), equalTo("optionA"));
 
-		ExtendedRunUnit main = RunUnit.forScriptResource(ScriptResource.forFile(mainfile), run.userParams,
+		ExtendedRunUnit main = RunUnit.forScriptResource(ResourceRef.forFile(mainfile), run.userParams,
 				run.properties);
-		ExtendedRunUnit agent = RunUnit.forScriptResource(ScriptResource.forFile(agentfile), run.userParams,
+		ExtendedRunUnit agent = RunUnit.forScriptResource(ResourceRef.forFile(agentfile), run.userParams,
 				run.properties);
 
 		assertThat(agent.script().isAgent(), is(true));

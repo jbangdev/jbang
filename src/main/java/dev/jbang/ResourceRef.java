@@ -19,13 +19,13 @@ import java.util.stream.Collectors;
 
 import dev.jbang.cli.BaseCommand;
 
-public class ScriptResource implements Comparable<ScriptResource> {
+public class ResourceRef implements Comparable<ResourceRef> {
 	// original requested resource
 	private final String originalResource;
 	// cache folder it is stored inside
 	private File file;
 
-	private ScriptResource(String scriptURL, File file) {
+	private ResourceRef(String scriptURL, File file) {
 		this.originalResource = scriptURL;
 		this.file = file;
 	}
@@ -42,7 +42,7 @@ public class ScriptResource implements Comparable<ScriptResource> {
 		return originalResource;
 	}
 
-	public ScriptResource asSibling(String siblingResource) throws URISyntaxException {
+	public ResourceRef asSibling(String siblingResource) throws URISyntaxException {
 		String sr;
 		if (Util.isURL(siblingResource) || isURL()) {
 			sr = new URI(originalResource).resolve(siblingResource).toString();
@@ -58,7 +58,7 @@ public class ScriptResource implements Comparable<ScriptResource> {
 			return true;
 		if (o == null || getClass() != o.getClass())
 			return false;
-		ScriptResource that = (ScriptResource) o;
+		ResourceRef that = (ResourceRef) o;
 		return Objects.equals(originalResource, that.originalResource) &&
 				Objects.equals(file, that.file);
 	}
@@ -69,7 +69,7 @@ public class ScriptResource implements Comparable<ScriptResource> {
 	}
 
 	@Override
-	public int compareTo(ScriptResource o) {
+	public int compareTo(ResourceRef o) {
 		if (o == null) {
 			return 1;
 		}
@@ -96,19 +96,19 @@ public class ScriptResource implements Comparable<ScriptResource> {
 		}
 	}
 
-	public static ScriptResource forFile(File file) {
-		return new ScriptResource(null, file);
+	public static ResourceRef forFile(File file) {
+		return new ResourceRef(null, file);
 	}
 
-	public static ScriptResource forNamedFile(String scriptResource, File file) {
-		return new ScriptResource(scriptResource, file);
+	public static ResourceRef forNamedFile(String scriptResource, File file) {
+		return new ResourceRef(scriptResource, file);
 	}
 
-	public static ScriptResource forCachedResource(String scriptResource, File cachedResource) {
-		return new ScriptResource(scriptResource, cachedResource);
+	public static ResourceRef forCachedResource(String scriptResource, File cachedResource) {
+		return new ResourceRef(scriptResource, cachedResource);
 	}
 
-	public static ScriptResource forResource(String scriptResource) {
+	public static ResourceRef forResource(String scriptResource) {
 		try {
 			return forResource(scriptResource, false);
 		} catch (IOException | URISyntaxException e) {
@@ -116,7 +116,7 @@ public class ScriptResource implements Comparable<ScriptResource> {
 		}
 	}
 
-	public static ScriptResource forTrustedResource(String scriptResource) {
+	public static ResourceRef forTrustedResource(String scriptResource) {
 		try {
 			return forResource(scriptResource, true);
 		} catch (IOException | URISyntaxException e) {
@@ -124,9 +124,9 @@ public class ScriptResource implements Comparable<ScriptResource> {
 		}
 	}
 
-	private static ScriptResource forResource(String scriptResource, boolean knownTrusted)
+	private static ResourceRef forResource(String scriptResource, boolean knownTrusted)
 			throws IOException, URISyntaxException {
-		ScriptResource result = null;
+		ResourceRef result = null;
 
 		File scriptFile;
 		// we need to keep track of the scripts dir or the working dir in case of stdin
@@ -207,7 +207,7 @@ public class ScriptResource implements Comparable<ScriptResource> {
 		return result;
 	}
 
-	private static ScriptResource fetchFromURL(String scriptURL, boolean knownTrusted)
+	private static ResourceRef fetchFromURL(String scriptURL, boolean knownTrusted)
 			throws IOException, URISyntaxException {
 		java.net.URI uri = new java.net.URI(scriptURL);
 
