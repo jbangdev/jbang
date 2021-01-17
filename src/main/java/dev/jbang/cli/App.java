@@ -99,8 +99,8 @@ class AppInstall extends BaseCommand {
 				return false;
 			}
 		}
-		if (script.getAlias() == null && !script.getScriptResource().isURL()) {
-			scriptRef = script.getScriptResource().getFile().getAbsolutePath();
+		if (script.getAlias() == null && !script.getResourceRef().isURL()) {
+			scriptRef = script.getResourceRef().getFile().getAbsolutePath();
 		}
 		installScripts(name, scriptRef, benative);
 		Util.infoMsg("Command installed: " + name);

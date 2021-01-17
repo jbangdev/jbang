@@ -111,8 +111,8 @@ public class ExtendedRunUnit implements RunUnit {
 	}
 
 	@Override
-	public ScriptResource getScriptResource() {
-		return runUnit.getScriptResource();
+	public ResourceRef getResourceRef() {
+		return runUnit.getResourceRef();
 	}
 
 	@Override

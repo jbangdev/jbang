@@ -4,20 +4,20 @@ import java.io.File;
 import java.util.*;
 
 public class Jar implements RunUnit {
-	private final ScriptResource scriptResource;
+	private final ResourceRef resourceRef;
 
-	private Jar(ScriptResource resource) {
-		this.scriptResource = resource;
+	private Jar(ResourceRef resourceRef) {
+		this.resourceRef = resourceRef;
 	}
 
 	@Override
-	public ScriptResource getScriptResource() {
-		return scriptResource;
+	public ResourceRef getResourceRef() {
+		return resourceRef;
 	}
 
 	@Override
 	public File getBackingFile() {
-		return scriptResource.getFile();
+		return resourceRef.getFile();
 	}
 
 	public File getJar() {
@@ -31,9 +31,9 @@ public class Jar implements RunUnit {
 
 	public ModularClassPath resolveClassPath(List<String> additionalDeps, boolean offline) {
 		ModularClassPath classpath;
-		if (DependencyUtil.looksLikeAGav(scriptResource.getOriginalResource())) {
+		if (DependencyUtil.looksLikeAGav(resourceRef.getOriginalResource())) {
 			List<String> dependencies = new ArrayList<>(additionalDeps);
-			dependencies.add(scriptResource.getOriginalResource());
+			dependencies.add(resourceRef.getOriginalResource());
 			classpath = new DependencyUtil().resolveDependencies(dependencies,
 					Collections.emptyList(), offline, !Util.isQuiet());
 		} else if (!additionalDeps.isEmpty()) {
@@ -41,7 +41,7 @@ public class Jar implements RunUnit {
 					Collections.emptyList(), offline, !Util.isQuiet());
 		} else {
 			if (getBackingFile() == null) {
-				classpath = new ModularClassPath(Arrays.asList(new ArtifactInfo(null, getScriptResource().getFile())));
+				classpath = new ModularClassPath(Arrays.asList(new ArtifactInfo(null, getResourceRef().getFile())));
 			} else {
 				classpath = new ModularClassPath(Arrays.asList(new ArtifactInfo(null, getBackingFile())));
 			}
@@ -54,7 +54,7 @@ public class Jar implements RunUnit {
 		return null;
 	}
 
-	public static Jar prepareJar(ScriptResource scriptResource) {
-		return new Jar(scriptResource);
+	public static Jar prepareJar(ResourceRef resourceRef) {
+		return new Jar(resourceRef);
 	}
 }

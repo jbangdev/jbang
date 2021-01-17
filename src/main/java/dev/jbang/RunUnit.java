@@ -9,7 +9,7 @@ import dev.jbang.cli.BaseCommand;
 
 public interface RunUnit {
 
-	ScriptResource getScriptResource();
+	ResourceRef getResourceRef();
 
 	/**
 	 * The actual local file that `getScriptResource()` refers to. This might be the
@@ -47,17 +47,17 @@ public interface RunUnit {
 	static ExtendedRunUnit forResource(String resource, List<String> arguments,
 			Map<String, String> properties,
 			List<String> dependencies, List<String> classpaths, boolean fresh, boolean forcejsh) {
-		ScriptResource scriptResource = ScriptResource.forResource(resource);
+		ResourceRef resourceRef = ResourceRef.forResource(resource);
 
 		AliasUtil.Alias alias = null;
-		if (scriptResource == null) {
+		if (resourceRef == null) {
 			// Not found as such, so let's check the aliases
 			alias = AliasUtil.getAlias(null, resource, arguments, properties);
 			if (alias != null) {
-				scriptResource = ScriptResource.forResource(alias.resolve(null));
+				resourceRef = ResourceRef.forResource(alias.resolve(null));
 				arguments = alias.arguments;
 				properties = alias.properties;
-				if (scriptResource == null) {
+				if (resourceRef == null) {
 					throw new IllegalArgumentException(
 							"Alias " + resource + " from " + alias.catalog.catalogFile + " failed to resolve "
 									+ alias.scriptRef);
@@ -67,17 +67,17 @@ public interface RunUnit {
 
 		// Support URLs as script files
 		// just proceed if the script file is a regular file at this point
-		if (scriptResource == null || !scriptResource.getFile().canRead()) {
+		if (resourceRef == null || !resourceRef.getFile().canRead()) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Could not read script argument " + resource);
 		}
 
 		// note script file must be not null at this point
 
 		RunUnit ru;
-		if (scriptResource.getFile().getName().endsWith(".jar")) {
-			ru = Jar.prepareJar(scriptResource);
+		if (resourceRef.getFile().getName().endsWith(".jar")) {
+			ru = Jar.prepareJar(resourceRef);
 		} else {
-			ru = Script.prepareScript(scriptResource);
+			ru = Script.prepareScript(resourceRef);
 		}
 
 		ExtendedRunUnit s = new ExtendedRunUnit(ru, arguments, properties);
@@ -89,20 +89,20 @@ public interface RunUnit {
 		return s;
 	}
 
-	static ExtendedRunUnit forScriptResource(ScriptResource scriptResource, List<String> arguments,
+	static ExtendedRunUnit forScriptResource(ResourceRef resourceRef, List<String> arguments,
 			Map<String, String> properties) {
-		return forScriptResource(scriptResource, arguments, properties, null, null, false, false);
+		return forScriptResource(resourceRef, arguments, properties, null, null, false, false);
 	}
 
-	static ExtendedRunUnit forScriptResource(ScriptResource scriptResource, List<String> arguments,
+	static ExtendedRunUnit forScriptResource(ResourceRef resourceRef, List<String> arguments,
 			Map<String, String> properties,
 			List<String> dependencies, List<String> classpaths, boolean fresh, boolean forcejsh) {
 		// note script file must be not null at this point
 		RunUnit ru;
-		if (scriptResource.getFile().getName().endsWith(".jar")) {
-			ru = Jar.prepareJar(scriptResource);
+		if (resourceRef.getFile().getName().endsWith(".jar")) {
+			ru = Jar.prepareJar(resourceRef);
 		} else {
-			ru = Script.prepareScript(scriptResource);
+			ru = Script.prepareScript(resourceRef);
 		}
 
 		ExtendedRunUnit s = new ExtendedRunUnit(ru, arguments, properties);

@@ -31,7 +31,7 @@ public class Script implements RunUnit {
 	private static final Pattern REPOS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
 	private static final Pattern REPOS_ANNOT_SINGLE = Pattern.compile("@GrabResolver\\(\\s*\"(?<value>.*)\"\\s*\\)");
 
-	private final ScriptResource scriptResource;
+	private final ResourceRef resourceRef;
 	private final String script;
 
 	// Cached values
@@ -43,21 +43,21 @@ public class Script implements RunUnit {
 	private File jar;
 
 	protected Script(String script) {
-		this(ScriptResource.forFile(null), script);
+		this(ResourceRef.forFile(null), script);
 	}
 
-	private Script(ScriptResource resource) {
-		this(resource, getBackingFileContent(resource.getFile()));
+	private Script(ResourceRef resourceRef) {
+		this(resourceRef, getBackingFileContent(resourceRef.getFile()));
 	}
 
-	private Script(ScriptResource resource, String content) {
-		this.scriptResource = resource;
+	private Script(ResourceRef resourceRef, String content) {
+		this.resourceRef = resourceRef;
 		this.script = content;
 	}
 
 	@Override
-	public ScriptResource getScriptResource() {
-		return scriptResource;
+	public ResourceRef getResourceRef() {
+		return resourceRef;
 	}
 
 	List<String> getLines() {
@@ -358,7 +358,7 @@ public class Script implements RunUnit {
 
 	@Override
 	public File getBackingFile() {
-		return scriptResource.getFile();
+		return resourceRef.getFile();
 	}
 
 	static private String getBackingFileContent(File backingFile) {
@@ -403,7 +403,7 @@ public class Script implements RunUnit {
 			throw new IllegalStateException("Invalid file reference: " + fileReference);
 		}
 
-		String origResource = scriptResource.getOriginalResource();
+		String origResource = resourceRef.getOriginalResource();
 		if (FileRef.isURL(fileReference) || FileRef.isURL(origResource)) {
 			return new URLRef(origResource, ref, dest);
 		} else {
@@ -428,7 +428,7 @@ public class Script implements RunUnit {
 															.map(String::trim))
 									.map(PropertiesValueResolver::replaceProperties)
 									.flatMap(line -> Util
-															.explode(getScriptResource().getOriginalResource(),
+															.explode(getResourceRef().getOriginalResource(),
 																	getBackingFile().getAbsoluteFile()
 																					.getParentFile()
 																					.toPath(),
@@ -443,7 +443,7 @@ public class Script implements RunUnit {
 
 	private Script toScript(String resource) {
 		try {
-			ScriptResource sibling = scriptResource.asSibling(resource);
+			ResourceRef sibling = resourceRef.asSibling(resource);
 			return new Script(sibling);
 		} catch (URISyntaxException e) {
 			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, e);
@@ -456,11 +456,11 @@ public class Script implements RunUnit {
 	}
 
 	public static Script prepareScript(String resource) {
-		ScriptResource scriptResource = ScriptResource.forResource(resource);
-		return prepareScript(scriptResource);
+		ResourceRef resourceRef = ResourceRef.forResource(resource);
+		return prepareScript(resourceRef);
 	}
 
-	public static Script prepareScript(ScriptResource scriptResource) {
-		return new Script(scriptResource);
+	public static Script prepareScript(ResourceRef resourceRef) {
+		return new Script(resourceRef);
 	}
 }

@@ -76,9 +76,9 @@ public class Edit extends BaseScriptCommand {
 			out.println(project.getAbsolutePath()); // quit(project.getAbsolutePath());
 		} else {
 			try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
-				File orginalFile = script.script().getScriptResource().getFile();
+				File orginalFile = script.script().getResourceRef().getFile();
 				if (!orginalFile.exists()) {
-					throw new ExitException(2, "Cannot live edit " + script.getScriptResource().getOriginalResource());
+					throw new ExitException(2, "Cannot live edit " + script.getResourceRef().getOriginalResource());
 				}
 				Path watched = orginalFile.getAbsoluteFile().getParentFile().toPath();
 				watched.register(watchService,
@@ -189,7 +189,7 @@ public class Edit extends BaseScriptCommand {
 	/** Create Project to use for editing **/
 	File createProjectForEdit(ExtendedRunUnit script, boolean reload) throws IOException {
 
-		File originalFile = script.getScriptResource().getFile();
+		File originalFile = script.getResourceRef().getFile();
 
 		List<String> dependencies = script.collectAllDependencies();
 		String cp = script.resolveClassPath(offline);
@@ -218,11 +218,11 @@ public class Edit extends BaseScriptCommand {
 				if (source.getJavaPackage().isPresent()) {
 					File packageDir = new File(srcDir, source.getJavaPackage().get().replace(".", File.separator));
 					packageDir.mkdir();
-					sfile = new File(packageDir, source.getScriptResource().getFile().getName());
+					sfile = new File(packageDir, source.getResourceRef().getFile().getName());
 				} else {
-					sfile = new File(srcDir, source.getScriptResource().getFile().getName());
+					sfile = new File(srcDir, source.getResourceRef().getFile().getName());
 				}
-				Path destFile = source.getScriptResource().getFile().toPath().toAbsolutePath();
+				Path destFile = source.getResourceRef().getFile().toPath().toAbsolutePath();
 				Util.createLink(sfile.toPath(), destFile);
 			}
 		}
