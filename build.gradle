@@ -30,8 +30,12 @@ dependencies {
 	implementation 'org.codehaus.plexus:plexus-java:1.0.5'
 	implementation 'com.google.code.gson:gson:2.8.6'
 	implementation 'org.jsoup:jsoup:1.13.1'
-	implementation 'org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-api:3.1.4'
-	implementation 'org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-impl-maven:3.1.4'
+
+	implementation 'com.github.jbangdev.jbang-resolver:shrinkwrap-resolver-api:3.1.5-allowpom'
+	implementation 'com.github.jbangdev.jbang-resolver:shrinkwrap-resolver-impl-maven:3.1.5-allowpom'
+
+	//implementation 'org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-api:3.1.4'
+	//implementation 'org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-impl-maven:3.1.4'
 	implementation "org.slf4j:slf4j-nop:1.7.30"
 	implementation "org.jboss:jandex:2.2.2.Final"
 	//implementation 'org.apache.maven:maven-aether-provider:3.0.5'
@@ -145,8 +149,11 @@ compileTestJava {
 
 shadowJar {
 	minimize()  {
-		exclude(dependency('org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-spi:.*'))
-		exclude(dependency('org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-impl-maven:.*'))
+		//exclude(dependency('org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-spi:.*'))
+		//exclude(dependency('org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-impl-maven:.*'))
+		exclude(dependency('com.github.jbangdev.jbang-resolver:shrinkwrap-resolver-spi:.*'))
+		exclude(dependency('com.github.jbangdev.jbang-resolver:shrinkwrap-resolver-impl-maven:.*'))
+
 		//exclude(dependency('org.slf4j:slf4j-api:.*'))
 		exclude(dependency('org.slf4j:slf4j-nop:.*'))
 		exclude(dependency('org.jboss.logging:jboss-logging:.*'))

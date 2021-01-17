@@ -213,18 +213,18 @@ class DependencyResolverTest extends BaseTest {
 
 	/*
 	 * @Ignore("BOM import not yet figured out with shrinkwrap")
-	 * 
-	 * @Test void testImportPOM() {
-	 * 
-	 * List<String> deps =
-	 * Arrays.asList("com.microsoft.azure:azure-bom:1.0.0.M1@pom",
-	 * "com.microsoft.azure:azure");
-	 * 
-	 * String classpath = new DependencyUtil().resolveDependencies(deps,
-	 * Collections.emptyList(), false, true);
-	 * 
-	 * assertEquals(46, classpath.split(Settings.CP_SEPARATOR).length);
-	 * 
-	 * }
 	 */
+	@Test
+	void testImportPOM() {
+
+		List<String> deps = Arrays.asList("com.microsoft.azure:azure-bom:1.0.0.M1@pom",
+				"com.microsoft.azure:azure");
+
+		ModularClassPath classpath = new DependencyUtil().resolveDependencies(deps,
+				Collections.emptyList(), false, true);
+
+		assertEquals(62, classpath.getArtifacts().size());
+
+	}
+
 }

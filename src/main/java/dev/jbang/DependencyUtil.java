@@ -21,9 +21,12 @@ import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.MavenFormatStage;
 import org.jboss.shrinkwrap.resolver.api.maven.MavenResolvedArtifact;
 import org.jboss.shrinkwrap.resolver.api.maven.MavenStrategyStage;
+import org.jboss.shrinkwrap.resolver.api.maven.MavenWorkingSession;
 import org.jboss.shrinkwrap.resolver.api.maven.PackagingType;
+import org.jboss.shrinkwrap.resolver.api.maven.PomEquippedResolveStage;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinates;
+import org.jboss.shrinkwrap.resolver.impl.maven.MavenWorkingSessionContainer;
 
 public class DependencyUtil {
 
@@ -42,8 +45,11 @@ public class DependencyUtil {
 		aliasToRepos.put("sponge", "https://repo.spongepowered.org/maven");
 	}
 
-	public static final Pattern gavPattern = Pattern.compile(
+	public static final Pattern fullGavPattern = Pattern.compile(
 			"^(?<groupid>[^:]*):(?<artifactid>[^:]*):(?<version>[^:@]*)(:(?<classifier>[^@]*))?(@(?<type>.*))?$");
+
+	public static final Pattern gavPattern = Pattern.compile(
+			"^(?<groupid>[^:]*):(?<artifactid>[^:]*)(:(?<version>[^:@]*))?(:(?<classifier>[^@]*))?(@(?<type>.*))?$");
 
 	public ModularClassPath resolveDependencies(List<String> deps, List<MavenRepo> repos,
 			boolean offline, boolean loggingEnabled) {
@@ -131,9 +137,39 @@ public class DependencyUtil {
 			mavenRepo.apply(resolver);
 		});
 
+		MavenWorkingSession xyz = ((MavenWorkingSessionContainer) resolver).getMavenWorkingSession();
 		System.setProperty("maven.repo.local", Settings.getLocalMavenRepo().toPath().toAbsolutePath().toString());
 
+		List<MavenCoordinate> deps = depIds.stream().map(it -> depIdToArtifact(it)).collect(Collectors.toList());
+
+		PomEquippedResolveStage pomResolve = null;
+
+		if (!depIds.isEmpty()) {
+			MavenCoordinate mc = depIdToArtifact(depIds.get(0));
+			if (PackagingType.POM.equals(mc.getType())) {
+				if (loggingEnabled) {
+					infoMsg("Loading " + mc);
+				}
+				System.setProperty("jbang-allowpom", "true"); // big hack to trick shrinkwrap in actually get pom
+																// location
+				MavenStrategyStage resolve = resolver.resolve(mc.toCanonicalForm());
+				pomResolve = resolver.loadPomFromFile(resolve.withoutTransitivity().asSingleFile());
+				System.getProperties().remove("jbang-allowpom");
+				depIds.remove(0);
+			}
+		}
+
+		final PomEquippedResolveStage ps = pomResolve;
+
 		return depIds.stream().flatMap(it -> {
+
+			MavenCoordinate artifact = depIdToArtifact(it);
+
+			if (PackagingType.POM.equals(artifact.getType())) {
+				// proactively avoiding that we break users in future
+				// when we support more than one BOM POM
+				throw new ExitException(1, "POM imports as found in " + it + " is only supported as the first import.");
+			}
 
 			if (loggingEnabled) {
 				infoHeader();
@@ -142,8 +178,13 @@ public class DependencyUtil {
 
 			List<MavenResolvedArtifact> artifacts;
 			try {
-				MavenStrategyStage resolve = resolver.resolve(depIdToArtifact(it).toCanonicalForm());
+				MavenStrategyStage resolve;
 				MavenFormatStage stage = null;
+				if (ps != null) {
+					resolve = ps.resolve(artifact.toCanonicalForm());
+				} else {
+					resolve = resolver.resolve(artifact.toCanonicalForm());
+				}
 
 				if (transitively) {
 					stage = resolve.withTransitivity();
@@ -151,6 +192,7 @@ public class DependencyUtil {
 					stage = resolve.withoutTransitivity();
 				}
 				artifacts = stage.asList(MavenResolvedArtifact.class); // , RUNTIME);
+
 			} catch (RuntimeException e) {
 				throw new ExitException(1, "Could not resolve dependency", e);
 			}
@@ -177,7 +219,7 @@ public class DependencyUtil {
 	}
 
 	public static boolean looksLikeAGav(String candidate) {
-		Matcher gav = gavPattern.matcher(candidate);
+		Matcher gav = fullGavPattern.matcher(candidate);
 		gav.find();
 		return (gav.matches());
 	}
@@ -211,7 +253,7 @@ public class DependencyUtil {
 
 	public String formatVersion(String version) {
 		// replace + with open version range for maven
-		if (version.endsWith("+")) {
+		if (version != null && version.endsWith("+")) {
 			return "[" + removeLastCharOptional(version) + ",)";
 		} else {
 			return version;
