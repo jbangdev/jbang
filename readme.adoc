@@ -530,6 +530,28 @@ $ ./classpath_example.java
 1 [main] INFO classpath_example  - Hello from Java!
 ----
 
+=== Managed dependencies ("BOM POM"'s) [Experimental]
+
+When using libraries and frameworks it can get tedious to mange and update multiple versions.
+For that jbang started since 0.62 to support so called "BOM POM"'s which are commonly used for managing versions.
+
+You use it by having as the very first dependency a `@pom` reference. This first reference will be used
+to define your managed dependences. Below is an example how that could look like when using Quarkus:
+
+```java
+//DEPS io.quarkus:quarkus-bom:1.11.0.Final@pom
+//DEPS io.quarkus:quarkus-resteasy
+//DEPS io.quarkus:quarkus-smallrye-openapi
+//DEPS io.quarkus:quarkus-swagger-ui
+```
+
+Notice the `@pom` at first line and then following dependencies are not required to use explicit versions.
+
+[NOTE]
+At the moment jbang support only one bom pom; in future it should be expanded to multiple.
+For now you can workaround this by reusing a published pom that includes all the dependency management
+sections you need.
+
 === Using links to Git sources
 
 Instead of gradle-style locators you can also use URLs to projects on GitHub, GitLab or BitBucket.
