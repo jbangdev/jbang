@@ -2,7 +2,6 @@ package dev.jbang;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -412,8 +411,24 @@ public class Script implements RunUnit {
 	}
 
 	public List<Script> collectAllSources() {
-		Stream<Script> ss = collectSources().stream().map(s -> s.collectAllSources().stream()).flatMap(i -> i);
-		return Stream.concat(collectSources().stream(), ss).collect(Collectors.toList());
+		List<Script> scripts = new ArrayList<>();
+		HashSet<ResourceRef> refs = new HashSet<>();
+		// We should only return sources but we must avoid circular references via this
+		// script, so we add this script's ref but not the script itself
+		refs.add(resourceRef);
+		collectAllSources(refs, scripts);
+		return scripts;
+	}
+
+	private void collectAllSources(Set<ResourceRef> refs, List<Script> scripts) {
+		List<Script> srcs = collectSources();
+		for (Script s : srcs) {
+			if (!refs.contains(s.resourceRef)) {
+				refs.add(s.resourceRef);
+				scripts.add(s);
+				s.collectAllSources(refs, scripts);
+			}
+		}
 	}
 
 	private List<Script> collectSources() {
@@ -434,20 +449,12 @@ public class Script implements RunUnit {
 																					.toPath(),
 																	line)
 															.stream())
-									.map(this::toScript)
+									.map(resourceRef::asSibling)
+									.map(Script::prepareScript)
 									.collect(Collectors.toCollection(ArrayList::new));
 			}
 		}
 		return sources;
-	}
-
-	private Script toScript(String resource) {
-		try {
-			ResourceRef sibling = resourceRef.asSibling(resource);
-			return new Script(sibling);
-		} catch (URISyntaxException e) {
-			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, e);
-		}
 	}
 
 	private <R> List<R> collectAll(Function<Script, List<R>> func) {

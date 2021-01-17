@@ -217,7 +217,7 @@ public class Edit extends BaseScriptCommand {
 				File sfile = null;
 				if (source.getJavaPackage().isPresent()) {
 					File packageDir = new File(srcDir, source.getJavaPackage().get().replace(".", File.separator));
-					packageDir.mkdir();
+					packageDir.mkdirs();
 					sfile = new File(packageDir, source.getResourceRef().getFile().getName());
 				} else {
 					sfile = new File(srcDir, source.getResourceRef().getFile().getName());

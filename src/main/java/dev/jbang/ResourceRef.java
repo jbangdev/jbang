@@ -42,10 +42,14 @@ public class ResourceRef implements Comparable<ResourceRef> {
 		return originalResource;
 	}
 
-	public ResourceRef asSibling(String siblingResource) throws URISyntaxException {
+	public ResourceRef asSibling(String siblingResource) {
 		String sr;
 		if (Util.isURL(siblingResource) || isURL()) {
-			sr = new URI(originalResource).resolve(siblingResource).toString();
+			try {
+				sr = new URI(originalResource).resolve(siblingResource).toString();
+			} catch (URISyntaxException e) {
+				throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, e);
+			}
 		} else {
 			sr = Paths.get(originalResource).resolveSibling(siblingResource).toString();
 		}
