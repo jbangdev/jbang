@@ -153,13 +153,13 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		optionList.add(script.getBackingFile().getPath());
 		optionList.addAll(
 				script	.script()
-						.collectAllSources()
+						.getAllSources()
 						.stream()
 						.map(x -> x.getBackingFile().getPath())
 						.collect(Collectors.toList()));
 
 		// add additional files
-		List<FileRef> files = script.script().collectAllFiles();
+		List<FileRef> files = script.script().getAllFiles();
 		for (FileRef file : files) {
 			file.copy(tmpJarDir.toPath(), fresh);
 		}
@@ -195,7 +195,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		}
 
 		script.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
-		integrationResult = IntegrationManager.runIntegration(script.script().collectAllRepositories(),
+		integrationResult = IntegrationManager.runIntegration(script.script().getAllRepositories(),
 				script.getClassPath().getArtifacts(),
 				tmpJarDir.toPath(), pomPath,
 				script.script(), nativeImage);
@@ -334,7 +334,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 				manifest.getMainAttributes().put(new Attributes.Name("Agent-Class"), script.getAgentMainClass());
 			}
 
-			for (KeyValue kv : script.script().getAgentOptions()) {
+			for (KeyValue kv : script.script().getAllAgentOptions()) {
 				if (kv.getKey().trim().isEmpty()) {
 					continue;
 				}

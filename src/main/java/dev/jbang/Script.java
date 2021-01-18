@@ -11,6 +11,16 @@ import java.util.stream.Stream;
 
 import dev.jbang.cli.BaseCommand;
 
+/**
+ * A Script represents a RunUnit (something runnable) in the form of a source
+ * file. It's code that first needs to be compiled before it can be executed.
+ * The Script extracts as much information from the source file as it can, like
+ * all `//`-directives (eg. `//SOURCES`, `//DEPS`, etc.)
+ *
+ * NB: The Script contains/returns no other information than that which can be
+ * induced from the source file. So all Scripts that refer to the same source
+ * file will contain/return the exact same information.
+ */
 public class Script implements RunUnit {
 
 	public static final String BUILD_JDK = "Build-Jdk";
@@ -36,9 +46,11 @@ public class Script implements RunUnit {
 	// Cached values
 	private List<String> lines;
 	private List<MavenRepo> repositories;
+	private List<String> dependencies;
 	private List<FileRef> filerefs;
 	private List<Script> sources;
 	private List<KeyValue> agentOptions;
+	private Optional<String> description;
 	private File jar;
 
 	protected Script(String script) {
@@ -75,8 +87,11 @@ public class Script implements RunUnit {
 	}
 
 	@Override
-	public List<String> collectAllDependencies(Properties props) {
-		return collectAll(script -> script.collectDependencies(props));
+	public List<String> getAllDependencies(Properties props) {
+		if (dependencies == null) {
+			dependencies = collectAll(script -> script.collectDependencies(props));
+		}
+		return dependencies;
 	}
 
 	private List<String> collectDependencies(Properties props) {
@@ -146,27 +161,28 @@ public class Script implements RunUnit {
 		return Stream.of();
 	}
 
+	@Override
 	public ModularClassPath resolveClassPath(List<String> dependencies, boolean offline) {
 		ModularClassPath classpath;
-		List<MavenRepo> repositories = collectAllRepositories();
+		List<MavenRepo> repositories = getAllRepositories();
 		classpath = new DependencyUtil().resolveDependencies(dependencies, repositories, offline,
 				!Util.isQuiet());
 		return classpath;
 	}
 
-	public List<KeyValue> collectAllAgentOptions() {
-		return collectAll(Script::collectAgentOptions);
+	public List<KeyValue> getAllAgentOptions() {
+		if (agentOptions == null) {
+			agentOptions = collectAll(Script::collectAgentOptions);
+		}
+		return agentOptions;
 	}
 
 	private List<KeyValue> collectAgentOptions() {
-		if (agentOptions == null) {
-			agentOptions = collectRawOptions("JAVAAGENT")	.stream()
-															.map(PropertiesValueResolver::replaceProperties)
-															.flatMap(Script::extractKeyValue)
-															.map(Script::toKeyValue)
-															.collect(Collectors.toCollection(ArrayList::new));
-		}
-		return agentOptions;
+		return collectRawOptions("JAVAAGENT")	.stream()
+												.map(PropertiesValueResolver::replaceProperties)
+												.flatMap(Script::extractKeyValue)
+												.map(Script::toKeyValue)
+												.collect(Collectors.toCollection(ArrayList::new));
 	}
 
 	static Stream<String> extractKeyValue(String line) {
@@ -191,30 +207,23 @@ public class Script implements RunUnit {
 	}
 
 	public boolean isAgent() {
-		if (agentOptions == null) {
-			agentOptions = collectAllAgentOptions();
+		return !getAllAgentOptions().isEmpty();
+	}
+
+	public List<MavenRepo> getAllRepositories() {
+		if (repositories == null) {
+			repositories = collectAll(Script::collectRepositories);
 		}
-		return !agentOptions.isEmpty();
-	}
-
-	public List<KeyValue> getAgentOptions() {
-		return agentOptions;
-	}
-
-	public List<MavenRepo> collectAllRepositories() {
-		return collectAll(Script::collectRepositories);
+		return repositories;
 	}
 
 	private List<MavenRepo> collectRepositories() {
-		if (repositories == null) {
-			repositories = getLines()	.stream()
-										.filter(Script::isRepoDeclare)
-										.flatMap(Script::extractRepositories)
-										.map(PropertiesValueResolver::replaceProperties)
-										.map(DependencyUtil::toMavenRepo)
-										.collect(Collectors.toCollection(ArrayList::new));
-		}
-		return repositories;
+		return getLines()	.stream()
+							.filter(Script::isRepoDeclare)
+							.flatMap(Script::extractRepositories)
+							.map(PropertiesValueResolver::replaceProperties)
+							.map(DependencyUtil::toMavenRepo)
+							.collect(Collectors.toCollection(ArrayList::new));
 	}
 
 	static boolean isRepoDeclare(String line) {
@@ -252,11 +261,20 @@ public class Script implements RunUnit {
 		return Stream.of();
 	}
 
-	public String getDescription() {
-		return getLines()	.stream()
-							.filter(Script::isDescriptionDeclare)
-							.map(s -> s.substring(DESCRIPTION_COMMENT_PREFIX.length()))
-							.collect(Collectors.joining("\n"));
+	@Override
+	public Optional<String> getDescription() {
+		if (description == null) {
+			String desc = getLines().stream()
+									.filter(Script::isDescriptionDeclare)
+									.map(s -> s.substring(DESCRIPTION_COMMENT_PREFIX.length()))
+									.collect(Collectors.joining("\n"));
+			if (desc.isEmpty()) {
+				description = Optional.empty();
+			} else {
+				description = Optional.of(desc);
+			}
+		}
+		return description;
 	}
 
 	static boolean isDescriptionDeclare(String line) {
@@ -345,7 +363,14 @@ public class Script implements RunUnit {
 		return collectOptions("JAVA");
 	}
 
+	public boolean forJShell() {
+		return RunUnit.forJShell(getBackingFile());
+	}
+
 	public File getJar() {
+		if (forJShell()) {
+			return null;
+		}
 		if (jar == null) {
 			File baseDir = Settings.getCacheDir(Settings.CacheClass.jars).toFile();
 			File tmpJarDir = new File(baseDir, getBackingFile().getName() +
@@ -370,22 +395,22 @@ public class Script implements RunUnit {
 		}
 	}
 
-	public List<FileRef> collectAllFiles() {
-		return collectAll(Script::collectFiles);
+	public List<FileRef> getAllFiles() {
+		if (filerefs == null) {
+			filerefs = collectAll(Script::collectFiles);
+		}
+		return filerefs;
 	}
 
 	private List<FileRef> collectFiles() {
-		if (filerefs == null) {
-			filerefs = getLines()	.stream()
-									.filter(f -> f.startsWith(FILES_COMMENT_PREFIX))
-									.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
-															.skip(1)
-															.map(String::trim))
-									.map(PropertiesValueResolver::replaceProperties)
-									.map(this::toFileRef)
-									.collect(Collectors.toCollection(ArrayList::new));
-		}
-		return filerefs;
+		return getLines()	.stream()
+							.filter(f -> f.startsWith(FILES_COMMENT_PREFIX))
+							.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
+													.skip(1)
+													.map(String::trim))
+							.map(PropertiesValueResolver::replaceProperties)
+							.map(this::toFileRef)
+							.collect(Collectors.toCollection(ArrayList::new));
 	}
 
 	private FileRef toFileRef(String fileReference) {
@@ -410,14 +435,17 @@ public class Script implements RunUnit {
 		}
 	}
 
-	public List<Script> collectAllSources() {
-		List<Script> scripts = new ArrayList<>();
-		HashSet<ResourceRef> refs = new HashSet<>();
-		// We should only return sources but we must avoid circular references via this
-		// script, so we add this script's ref but not the script itself
-		refs.add(resourceRef);
-		collectAllSources(refs, scripts);
-		return scripts;
+	public List<Script> getAllSources() {
+		if (sources == null) {
+			List<Script> scripts = new ArrayList<>();
+			HashSet<ResourceRef> refs = new HashSet<>();
+			// We should only return sources but we must avoid circular references via this
+			// script, so we add this script's ref but not the script itself
+			refs.add(resourceRef);
+			collectAllSources(refs, scripts);
+			sources = scripts;
+		}
+		return sources;
 	}
 
 	private void collectAllSources(Set<ResourceRef> refs, List<Script> scripts) {
@@ -432,33 +460,30 @@ public class Script implements RunUnit {
 	}
 
 	private List<Script> collectSources() {
-		if (sources == null) {
-			if (getLines() == null) {
-				sources = Collections.emptyList();
-			} else {
-				sources = getLines().stream()
-									.filter(f -> f.startsWith(SOURCES_COMMENT_PREFIX))
-									.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
-															.skip(1)
-															.map(String::trim))
-									.map(PropertiesValueResolver::replaceProperties)
-									.flatMap(line -> Util
-															.explode(getResourceRef().getOriginalResource(),
-																	getBackingFile().getAbsoluteFile()
-																					.getParentFile()
-																					.toPath(),
-																	line)
-															.stream())
-									.map(resourceRef::asSibling)
-									.map(Script::prepareScript)
-									.collect(Collectors.toCollection(ArrayList::new));
-			}
+		if (getLines() == null) {
+			return Collections.emptyList();
+		} else {
+			return getLines()	.stream()
+								.filter(f -> f.startsWith(SOURCES_COMMENT_PREFIX))
+								.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
+														.skip(1)
+														.map(String::trim))
+								.map(PropertiesValueResolver::replaceProperties)
+								.flatMap(line -> Util
+														.explode(getResourceRef().getOriginalResource(),
+																getBackingFile().getAbsoluteFile()
+																				.getParentFile()
+																				.toPath(),
+																line)
+														.stream())
+								.map(resourceRef::asSibling)
+								.map(Script::prepareScript)
+								.collect(Collectors.toCollection(ArrayList::new));
 		}
-		return sources;
 	}
 
 	private <R> List<R> collectAll(Function<Script, List<R>> func) {
-		Stream<R> subs = collectAllSources().stream().map(s -> func.apply(s).stream()).flatMap(i -> i);
+		Stream<R> subs = getAllSources().stream().map(s -> func.apply(s).stream()).flatMap(i -> i);
 		return Stream.concat(func.apply(this).stream(), subs).collect(Collectors.toList());
 	}
 

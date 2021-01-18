@@ -3,6 +3,17 @@ package dev.jbang;
 import java.io.File;
 import java.util.*;
 
+/**
+ * A Jar represents a RunUnit (something runnable) in the form of a JAR file.
+ * It's a reference to an already existing JAR file, either as a solitary file
+ * on the user's file system or accessible via a URL. But it can also be a Maven
+ * GAV (group:artifact:version) reference resolving to a JAR file in the Maven
+ * cache (~/.m2/repository).
+ *
+ * NB: The Jar contains/returns no other information than that which can be
+ * extracted from the JAR file itself. So all Jars that refer to the same JAR
+ * file will contain/return the exact same information.
+ */
 public class Jar implements RunUnit {
 	private final ResourceRef resourceRef;
 
@@ -25,10 +36,11 @@ public class Jar implements RunUnit {
 	}
 
 	@Override
-	public List<String> collectAllDependencies(Properties props) {
+	public List<String> getAllDependencies(Properties props) {
 		return Collections.emptyList();
 	}
 
+	@Override
 	public ModularClassPath resolveClassPath(List<String> additionalDeps, boolean offline) {
 		ModularClassPath classpath;
 		if (DependencyUtil.looksLikeAGav(resourceRef.getOriginalResource())) {

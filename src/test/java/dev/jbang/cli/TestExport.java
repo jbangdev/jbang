@@ -12,45 +12,48 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
 import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 
 import org.hamcrest.Matchers;
+import org.junit.Rule;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.rules.TemporaryFolder;
 
 import dev.jbang.BaseTest;
 
 public class TestExport extends BaseTest {
 
+	@Rule
+	public final TemporaryFolder testTempDir = new TemporaryFolder();
+
+	private Path out;
+
 	@BeforeEach
-	void clearJars() throws IOException {
-		for (File file : new File(".").listFiles()) {
-			if (file.getName().endsWith(".jar")) {
-				file.delete();
-			}
+	public void init() throws IOException {
+		testTempDir.create();
+		out = testTempDir.getRoot().toPath();
+	}
 
-			if (file.getName().equals("libs")) {
-				Files	.walk(file.toPath())
-						.sorted(Comparator.reverseOrder())
-						.map(Path::toFile)
-						.forEach(File::delete);
-
-			}
-		}
+	@AfterEach
+	public void cleanup() {
+		testTempDir.delete();
 	}
 
 	@Test
 	void testExportFile() throws IOException {
-		ExecutionResult result = checkedRun(null, "export", "itests/helloworld.java");
+		String outFile = out.resolve("helloworld.jar").toString();
+		ExecutionResult result = checkedRun(null, "export", "-O", outFile, "itests/helloworld.java");
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*helloworld.jar.*"));
 	}
 
 	@Test
 	void testExportPortableNoclasspath() throws IOException {
-		ExecutionResult result = checkedRun(null, "export", "--portable", "itests/helloworld.java");
+		String outFile = out.resolve("helloworld.jar").toString();
+		ExecutionResult result = checkedRun(null, "export", "--portable", "-O", outFile, "itests/helloworld.java");
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*helloworld.jar.*"));
 		assertThat(new File("libs"), not(anExistingFileOrDirectory()));
 
@@ -58,12 +61,13 @@ public class TestExport extends BaseTest {
 
 	@Test
 	void testExportPortableWithClasspath() throws IOException {
-		ExecutionResult result = checkedRun(null, "export", "--portable", "itests/classpath_log.java");
+		String outFile = out.resolve("classpath_log.jar").toString();
+		ExecutionResult result = checkedRun(null, "export", "--portable", "-O", outFile, "itests/classpath_log.java");
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*classpath_log.jar.*"));
-		assertThat(new File("libs"), anExistingDirectory());
-		assertThat(new File("libs").listFiles().length, Matchers.equalTo(1));
+		assertThat(new File(out.toFile(), "libs"), anExistingDirectory());
+		assertThat(new File(out.toFile(), "libs").listFiles().length, Matchers.equalTo(1));
 
-		File jar = new File("classpath_log.jar");
+		File jar = new File(outFile);
 
 		try (JarInputStream jarStream = new JarInputStream(new FileInputStream(jar))) {
 			Manifest mf = jarStream.getManifest();
@@ -77,11 +81,12 @@ public class TestExport extends BaseTest {
 
 	@Test
 	void testExportWithClasspath() throws IOException {
-		ExecutionResult result = checkedRun(null, "export", "itests/classpath_log.java");
+		String outFile = out.resolve("classpath_log.jar").toString();
+		ExecutionResult result = checkedRun(null, "export", "-O", outFile, "itests/classpath_log.java");
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*classpath_log.jar.*"));
 		assertThat(new File("libs"), not(anExistingDirectory()));
 
-		File jar = new File("classpath_log.jar");
+		File jar = new File(outFile);
 
 		try (JarInputStream jarStream = new JarInputStream(new FileInputStream(jar))) {
 			Manifest mf = jarStream.getManifest();

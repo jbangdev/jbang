@@ -213,7 +213,7 @@ public class Edit extends BaseScriptCommand {
 		Util.createLink(srcFile, originalFile.toPath());
 
 		if (script.runUnit instanceof Script) {
-			for (Script source : script.script().collectAllSources()) {
+			for (Script source : script.script().getAllSources()) {
 				File sfile = null;
 				if (source.getJavaPackage().isPresent()) {
 					File packageDir = new File(srcDir, source.getJavaPackage().get().replace(".", File.separator));
@@ -243,7 +243,7 @@ public class Edit extends BaseScriptCommand {
 
 		// both collectDependencies and repositories are manipulated by
 		// resolveDependencies
-		List<MavenRepo> repositories = script.script().collectAllRepositories();
+		List<MavenRepo> repositories = script.script().getAllRepositories();
 		if (repositories.isEmpty()) {
 			repositories.add(DependencyUtil.toMavenRepo("jcenter"));
 		}

@@ -8,6 +8,17 @@ import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * This class wraps a reference to an runnable/executable resource in the form
+ * of a RunUnit. It also holds all additional information necessary to be able
+ * to actually run/execute that resource. This is information that can not be
+ * induced or extracted from the resource itself but is information that is
+ * provided by the user or by the environment at runtime.
+ *
+ * This class also implements RunUnit, passing all calls directly to the wrapped
+ * RunUnit object. This makes it easier to use this class in places where it's
+ * not really important to know with what type or RunUnit we're dealing.
+ */
 public class ExtendedRunUnit implements RunUnit {
 	final public RunUnit runUnit;
 	final private List<String> arguments;
@@ -86,15 +97,11 @@ public class ExtendedRunUnit implements RunUnit {
 	}
 
 	public boolean forJar() {
-		return forJar(getBackingFile());
-	}
-
-	protected static boolean forJar(File backingFile) {
-		return backingFile != null && backingFile.toString().endsWith(".jar");
+		return RunUnit.forJar(getBackingFile());
 	}
 
 	public boolean forJShell() {
-		return forcejsh || getBackingFile().getName().endsWith(".jsh");
+		return forcejsh || RunUnit.forJShell(getBackingFile());
 	}
 
 	public void setForcejsh(boolean forcejsh) {
@@ -118,6 +125,11 @@ public class ExtendedRunUnit implements RunUnit {
 	@Override
 	public File getBackingFile() {
 		return runUnit.getBackingFile();
+	}
+
+	@Override
+	public Optional<String> getDescription() {
+		return runUnit.getDescription();
 	}
 
 	@Override
@@ -194,7 +206,7 @@ public class ExtendedRunUnit implements RunUnit {
 		if (properties != null) {
 			p.putAll(properties);
 		}
-		return collectAllDependencies(p);
+		return getAllDependencies(p);
 	}
 
 	public List<ExtendedRunUnit> getJavaAgents() {
@@ -209,9 +221,14 @@ public class ExtendedRunUnit implements RunUnit {
 	}
 
 	@Override
-	public List<String> collectAllDependencies(Properties props) {
-		return Stream	.concat(additionalDeps.stream(), runUnit.collectAllDependencies(props).stream())
+	public List<String> getAllDependencies(Properties props) {
+		return Stream	.concat(additionalDeps.stream(), runUnit.getAllDependencies(props).stream())
 						.collect(Collectors.toList());
+	}
+
+	@Override
+	public ModularClassPath resolveClassPath(List<String> dependencies, boolean offline) {
+		return runUnit.resolveClassPath(dependencies, offline);
 	}
 
 	/**
@@ -220,9 +237,8 @@ public class ExtendedRunUnit implements RunUnit {
 	 **/
 	public String resolveClassPath(boolean offline) {
 		if (classpath == null) {
+			classpath = resolveClassPath(collectAllDependencies(), offline);
 			if (runUnit instanceof Jar) {
-				Jar jar = (Jar) runUnit;
-				classpath = jar.resolveClassPath(collectAllDependencies(), offline);
 				// fetch main class as we can't use -jar to run as it ignores classpath.
 				if (getMainClass() == null) {
 					try (JarFile jf = new JarFile(getBackingFile())) {
@@ -232,16 +248,13 @@ public class ExtendedRunUnit implements RunUnit {
 						Util.warnMsg("Problem reading manifest from " + getBackingFile());
 					}
 				}
-			} else {
-				Script script = (Script) runUnit;
-				classpath = script.resolveClassPath(collectAllDependencies(), offline);
 			}
 		}
 		StringBuilder cp = new StringBuilder(classpath.getClassPath());
 		for (String addcp : additionalClasspaths) {
 			cp.append(Settings.CP_SEPARATOR + addcp);
 		}
-		if (runUnit instanceof Jar) {
+		if (runUnit.getJar() != null && !forcejsh) {
 			return getJar().getAbsolutePath() + Settings.CP_SEPARATOR + cp.toString();
 		}
 		return cp.toString();
