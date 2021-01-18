@@ -73,12 +73,12 @@ class AliasAdd extends BaseAliasCommand {
 			throw new IllegalArgumentException(
 					"Invalid alias name, it should start with a letter followed by 0 or more letters, digits, underscores or hyphens");
 		}
-		ExtendedRunUnit script = RunUnit.forResource(scriptOrFile);
+		ExtendedRunUnit xrunit = RunUnit.forResource(scriptOrFile);
 		if (name == null) {
-			name = AppInstall.chooseCommandName(script);
+			name = AppInstall.chooseCommandName(xrunit);
 		}
 
-		String desc = description != null ? description : script.getDescription().orElse(null);
+		String desc = description != null ? description : xrunit.getDescription().orElse(null);
 
 		Path catFile = getCatalog(false);
 		if (catFile != null) {

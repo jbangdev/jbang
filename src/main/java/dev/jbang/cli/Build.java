@@ -16,11 +16,11 @@ public class Build extends BaseBuildCommand {
 			enableInsecure();
 		}
 
-		script = RunUnit.forResource(scriptOrFile, null, properties, dependencies, classpaths, fresh,
+		xrunit = RunUnit.forResource(scriptOrFile, null, properties, dependencies, classpaths, fresh,
 				forcejsh);
 
-		if (script.needsJar()) {
-			build((ExtendedRunUnit) script);
+		if (xrunit.needsJar()) {
+			build((ExtendedRunUnit) xrunit);
 		}
 
 		return EXIT_OK;

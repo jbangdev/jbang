@@ -54,9 +54,9 @@ public class TestEdit extends BaseTest {
 		Jbang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
-		ExtendedRunUnit script = RunUnit.forResource(s);
+		ExtendedRunUnit xrunit = RunUnit.forResource(s);
 
-		File project = new Edit().createProjectForEdit(script, false);
+		File project = new Edit().createProjectForEdit(xrunit, false);
 
 		assertThat(new File(project, "src"), FileMatchers.anExistingDirectory());
 		File build = new File(project, "build.gradle");
@@ -93,9 +93,9 @@ public class TestEdit extends BaseTest {
 
 		Util.writeString(p, "//DEPS org.openjfx:javafx-graphics:11.0.2${bougus:}\n" + Util.readString(p));
 
-		ExtendedRunUnit script = RunUnit.forResource(s);
+		ExtendedRunUnit xrunit = RunUnit.forResource(s);
 
-		File project = new Edit().createProjectForEdit(script, false);
+		File project = new Edit().createProjectForEdit(xrunit, false);
 
 		File gradle = new File(project, "build.gradle");
 		assert (gradle.exists());
@@ -123,9 +123,9 @@ public class TestEdit extends BaseTest {
 
 		Util.writeString(p, "//DEPS https://github.com/oldskoolsh/libvirt-schema/tree/0.0.2\n" + Util.readString(p));
 
-		ExtendedRunUnit script = RunUnit.forResource(s);
+		ExtendedRunUnit xrunit = RunUnit.forResource(s);
 
-		File project = new Edit().createProjectForEdit(script, false);
+		File project = new Edit().createProjectForEdit(xrunit, false);
 
 		File gradle = new File(project, "build.gradle");
 		assert (gradle.exists());
@@ -142,9 +142,9 @@ public class TestEdit extends BaseTest {
 		Path p = examplesTestFolder.toPath().resolve("one.java");
 		assertThat(p.toFile().exists(), is(true));
 
-		ExtendedRunUnit script = RunUnit.forResource(p.toString());
+		ExtendedRunUnit xrunit = RunUnit.forResource(p.toString());
 
-		File project = new Edit().createProjectForEdit(script, false);
+		File project = new Edit().createProjectForEdit(xrunit, false);
 
 		File gradle = new File(project, "build.gradle");
 		assert (gradle.exists());
@@ -166,9 +166,9 @@ public class TestEdit extends BaseTest {
 		Jbang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
-		ExtendedRunUnit script = RunUnit.forResource(s);
+		ExtendedRunUnit xrunit = RunUnit.forResource(s);
 
-		File project = new Edit().createProjectForEdit(script, false);
+		File project = new Edit().createProjectForEdit(xrunit, false);
 
 		File java = new File(project, "src/KubeExample.java");
 

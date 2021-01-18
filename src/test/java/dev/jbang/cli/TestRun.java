@@ -83,11 +83,11 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ExtendedRunUnit s = RunUnit.forResource(arg, run.userParams, run.properties,
+		ExtendedRunUnit xrunit = RunUnit.forResource(arg, run.userParams, run.properties,
 				run.dependencies, run.classpaths,
 				run.fresh, run.forcejsh);
 
-		String result = run.generateCommandLine(s);
+		String result = run.generateCommandLine(xrunit);
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("helloworld"));
@@ -105,11 +105,11 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ExtendedRunUnit s = RunUnit.forResource(arg, run.userParams, run.properties,
+		ExtendedRunUnit xrunit = RunUnit.forResource(arg, run.userParams, run.properties,
 				run.dependencies, run.classpaths,
 				run.fresh, run.forcejsh);
 
-		String result = run.generateCommandLine(s);
+		String result = run.generateCommandLine(xrunit);
 
 		assertThat(result, matchesPattern("^.*jshell(.exe)? --startup.*$"));
 		assertThat(result, not(containsString("  ")));
@@ -132,11 +132,11 @@ public class TestRun extends BaseTest {
 		File empty = new File(dir, "empty.jsh");
 		empty.createNewFile();
 
-		ExtendedRunUnit s = RunUnit.forResource(empty.toString(), run.userParams, run.properties,
+		ExtendedRunUnit xrunit = RunUnit.forResource(empty.toString(), run.userParams, run.properties,
 				run.dependencies, run.classpaths,
 				run.fresh, run.forcejsh);
 
-		String result = run.generateCommandLine(s);
+		String result = run.generateCommandLine(xrunit);
 
 		assertThat(result, matchesPattern("^.*jshell(.exe)? --startup.*$"));
 		assertThat(result, not(containsString("  ")));
@@ -157,18 +157,18 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ExtendedRunUnit s = RunUnit.forResource(jar, run.userParams, run.properties, run.dependencies,
+		ExtendedRunUnit xrunit = RunUnit.forResource(jar, run.userParams, run.properties, run.dependencies,
 				run.classpaths, run.fresh,
 				run.forcejsh);
 
-		String result = run.generateCommandLine(s);
+		String result = run.generateCommandLine(xrunit);
 		assertThat(result, matchesPattern("^.*java(.exe)?.*"));
-		assertThat(s.getMainClass(), not(nullValue()));
+		assertThat(xrunit.getMainClass(), not(nullValue()));
 
 		assertThat(result, containsString("hellojar.jar"));
 
-		assertThat(s.getBackingFile().toString(), equalTo(jar));
-		assertThat(s.forJar(), equalTo(true));
+		assertThat(xrunit.getBackingFile().toString(), equalTo(jar));
+		assertThat(xrunit.forJar(), equalTo(true));
 
 		run.doCall();
 	}
@@ -187,11 +187,11 @@ public class TestRun extends BaseTest {
 			CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 			Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-			ExtendedRunUnit result = RunUnit.forResource(jar, run.userParams, run.properties, run.dependencies,
+			ExtendedRunUnit xrunit = RunUnit.forResource(jar, run.userParams, run.properties, run.dependencies,
 					run.classpaths,
 					run.fresh, run.forcejsh);
 
-			String cmdline = run.generateCommandLine(result);
+			String cmdline = run.generateCommandLine(xrunit);
 
 			assertThat(cmdline, not(containsString("https")));
 
@@ -213,13 +213,13 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ExtendedRunUnit result = RunUnit.forResource(jar, run.userParams, run.properties, run.dependencies,
+		ExtendedRunUnit xrunit = RunUnit.forResource(jar, run.userParams, run.properties, run.dependencies,
 				run.classpaths, run.fresh,
 				run.forcejsh);
 
-		assertThat(result.getBackingFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
+		assertThat(xrunit.getBackingFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
 
-		ExitException e = Assertions.assertThrows(ExitException.class, () -> run.generateCommandLine(result));
+		ExitException e = Assertions.assertThrows(ExitException.class, () -> run.generateCommandLine(xrunit));
 
 		assertThat(e.getMessage(), startsWith("no main class"));
 
@@ -248,17 +248,17 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ExtendedRunUnit result = RunUnit.forResource(jar, run.userParams, run.properties, run.dependencies,
+		ExtendedRunUnit xrunit = RunUnit.forResource(jar, run.userParams, run.properties, run.dependencies,
 				run.classpaths, run.fresh,
 				run.forcejsh);
 
-		assertThat(result.getBackingFile().toString(), matchesPattern(".*.jar"));
+		assertThat(xrunit.getBackingFile().toString(), matchesPattern(".*.jar"));
 
-		String cmd = run.generateCommandLine(result);
+		String cmd = run.generateCommandLine(xrunit);
 
 		assertThat(cmd, matchesPattern(".*quarkus-cli-1.9.0.Final-runner.jar.*"));
 
-		assertThat(result.getMainClass(), equalTo("io.quarkus.runner.GeneratedMain"));
+		assertThat(xrunit.getMainClass(), equalTo("io.quarkus.runner.GeneratedMain"));
 
 	}
 
@@ -273,15 +273,15 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ExtendedRunUnit result = RunUnit.forResource(jar, run.userParams, run.properties, run.dependencies,
+		ExtendedRunUnit xrunit = RunUnit.forResource(jar, run.userParams, run.properties, run.dependencies,
 				run.classpaths, run.fresh,
 				run.forcejsh);
 
-		assertThat(result.getBackingFile().toString(), matchesPattern(".*\\.m2.*eclipse.jgit.pgm.*.jar"));
+		assertThat(xrunit.getBackingFile().toString(), matchesPattern(".*\\.m2.*eclipse.jgit.pgm.*.jar"));
 
-		run.generateCommandLine(result);
+		run.generateCommandLine(xrunit);
 
-		assertThat(result.getMainClass(), equalTo("org.eclipse.jgit.pgm.Main"));
+		assertThat(xrunit.getMainClass(), equalTo("org.eclipse.jgit.pgm.Main"));
 
 	}
 
@@ -297,15 +297,15 @@ public class TestRun extends BaseTest {
 				"picocli.codegen.aot.graalvm.ReflectionConfigGenerator", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ExtendedRunUnit result = RunUnit.forResource(jar, run.userParams, run.properties, run.dependencies,
+		ExtendedRunUnit xrunit = RunUnit.forResource(jar, run.userParams, run.properties, run.dependencies,
 				run.classpaths, run.fresh,
 				run.forcejsh);
 
-		String cmd = run.generateCommandLine(result);
+		String cmd = run.generateCommandLine(xrunit);
 
-		assertThat(result.getMainClass(), equalTo("picocli.codegen.aot.graalvm.ReflectionConfigGenerator"));
+		assertThat(xrunit.getMainClass(), equalTo("picocli.codegen.aot.graalvm.ReflectionConfigGenerator"));
 
-		assertThat(result.getBackingFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
+		assertThat(xrunit.getBackingFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
 
 		assertThat(cmd, matchesPattern(".* -classpath .*picocli-4.5.0.jar.*"));
 		assertThat(cmd, not(containsString(" -jar ")));
@@ -322,11 +322,11 @@ public class TestRun extends BaseTest {
 				"blah");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ExtendedRunUnit s = RunUnit.forResource(arg, run.userParams, run.properties, run.dependencies,
+		ExtendedRunUnit xrunit = RunUnit.forResource(arg, run.userParams, run.properties, run.dependencies,
 				run.classpaths, run.fresh,
 				run.forcejsh);
 
-		String result = run.generateCommandLine(s);
+		String result = run.generateCommandLine(xrunit);
 
 		assertThat(result, startsWith("jshell"));
 		assertThat(result, not(containsString("  ")));
@@ -347,11 +347,11 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--debug", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ExtendedRunUnit s = RunUnit.forResource(arg, run.userParams, run.properties, run.dependencies,
+		ExtendedRunUnit xrunit = RunUnit.forResource(arg, run.userParams, run.properties, run.dependencies,
 				run.classpaths, run.fresh,
 				run.forcejsh);
 
-		String result = run.generateCommandLine(s);
+		String result = run.generateCommandLine(xrunit);
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("helloworld.java"));
@@ -370,11 +370,11 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ExtendedRunUnit s = RunUnit.forResource(arg, run.userParams, run.properties, run.dependencies,
+		ExtendedRunUnit xrunit = RunUnit.forResource(arg, run.userParams, run.properties, run.dependencies,
 				run.classpaths, run.fresh,
 				run.forcejsh);
 
-		String result = run.generateCommandLine(s);
+		String result = run.generateCommandLine(xrunit);
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("classpath_example.java"));
@@ -399,11 +399,11 @@ public class TestRun extends BaseTest {
 
 		assertThat(run.properties.size(), is(2));
 
-		ExtendedRunUnit s = RunUnit.forResource(arg, run.userParams, run.properties, run.dependencies,
+		ExtendedRunUnit xrunit = RunUnit.forResource(arg, run.userParams, run.properties, run.dependencies,
 				run.classpaths, run.fresh,
 				run.forcejsh);
 
-		String result = run.generateCommandLine(s);
+		String result = run.generateCommandLine(xrunit);
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("-Dwonka=panda"));
@@ -423,11 +423,11 @@ public class TestRun extends BaseTest {
 
 		String url = new File(examplesTestFolder, "classpath_example.java").toURI().toString();
 
-		ExtendedRunUnit result = RunUnit.forResource(url);
+		ExtendedRunUnit xrunit = RunUnit.forResource(url);
 
-		assertThat(result.toString(), not(containsString(url)));
+		assertThat(xrunit.toString(), not(containsString(url)));
 
-		MatcherAssert.assertThat(Util.readString(result.getBackingFile().toPath()),
+		MatcherAssert.assertThat(Util.readString(xrunit.getBackingFile().toPath()),
 				containsString("Logger.getLogger(classpath_example.class);"));
 
 		Jbang jbang = new Jbang();
@@ -498,9 +498,9 @@ public class TestRun extends BaseTest {
 
 		File out = new File(rootdir.toFile(), "content.jar");
 
-		ExtendedRunUnit s = RunUnit.forScript("", null, null);
-		s.setMainClass("wonkabear");
-		BaseBuildCommand.createJarFile(s, dir, out);
+		ExtendedRunUnit xrunit = RunUnit.forScript("", null, null);
+		xrunit.setMainClass("wonkabear");
+		BaseBuildCommand.createJarFile(xrunit, dir, out);
 
 		try (JarFile jf = new JarFile(out)) {
 
@@ -556,12 +556,12 @@ public class TestRun extends BaseTest {
 
 		Run m = new Run();
 
-		ExtendedRunUnit script = RunUnit.forScriptResource(ResourceRef.forFile(f), null, null);
-		m.build(script);
+		ExtendedRunUnit xrunit = RunUnit.forScriptResource(ResourceRef.forFile(f), null, null);
+		m.build(xrunit);
 
-		assertThat(script.getMainClass(), equalTo("aclass"));
+		assertThat(xrunit.getMainClass(), equalTo("aclass"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), (ClassLoader) null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(xrunit.getJar().toPath(), (ClassLoader) null)) {
 			Path fileToExtract = fileSystem.getPath("META-INF/maven/g/a/v/pom.xml");
 
 			ByteArrayOutputStream s = new ByteArrayOutputStream();
@@ -607,10 +607,10 @@ public class TestRun extends BaseTest {
 
 		Run m = new Run();
 
-		ExtendedRunUnit script = RunUnit.forScriptResource(ResourceRef.forFile(f), null, null);
-		m.build(script);
+		ExtendedRunUnit xrunit = RunUnit.forScriptResource(ResourceRef.forFile(f), null, null);
+		m.build(xrunit);
 
-		assertThat(script.getMainClass(), equalTo("dualclass"));
+		assertThat(xrunit.getMainClass(), equalTo("dualclass"));
 
 	}
 
@@ -642,13 +642,13 @@ public class TestRun extends BaseTest {
 
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ExtendedRunUnit s = RunUnit.forResource(arg, run.userParams, run.properties, run.dependencies,
+		ExtendedRunUnit xrunit = RunUnit.forResource(arg, run.userParams, run.properties, run.dependencies,
 				run.classpaths, run.fresh,
 				run.forcejsh);
 
-		run.build(s);
+		run.build(xrunit);
 
-		assertThat(s.getMainClass(), equalTo("dualclass"));
+		assertThat(xrunit.getMainClass(), equalTo("dualclass"));
 
 	}
 
@@ -884,18 +884,18 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("build", p.toFile().getAbsolutePath());
 		Build run = (Build) pr.subcommand().commandSpec().userObject();
 
-		ExtendedRunUnit s = RunUnit.forResource(p.toFile().getAbsolutePath(), null, run.properties,
+		ExtendedRunUnit xrunit = RunUnit.forResource(p.toFile().getAbsolutePath(), null, run.properties,
 				run.dependencies,
 				run.classpaths, run.fresh, run.forcejsh);
 
-		run.build(s);
+		run.build(xrunit);
 
-		assertThat(s.script().isAgent(), is(true));
+		assertThat(xrunit.script().isAgent(), is(true));
 
-		assertThat(s.getAgentMainClass(), is("Agent"));
-		assertThat(s.getPreMainClass(), is("Agent"));
+		assertThat(xrunit.getAgentMainClass(), is("Agent"));
+		assertThat(xrunit.getPreMainClass(), is("Agent"));
 
-		try (JarFile jf = new JarFile(s.getJar())) {
+		try (JarFile jf = new JarFile(xrunit.getJar())) {
 			Attributes attrs = jf.getManifest().getMainAttributes();
 			assertThat(attrs.getValue("Premain-class"), equalTo("Agent"));
 			assertThat(attrs.getValue("Can-Retransform-Classes"), equalTo("true"));
@@ -914,16 +914,16 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("build", p.toFile().getAbsolutePath());
 		Build run = (Build) pr.subcommand().commandSpec().userObject();
 
-		ExtendedRunUnit s = RunUnit.forResource(p.toFile().getAbsolutePath(), null, run.properties,
+		ExtendedRunUnit xrunit = RunUnit.forResource(p.toFile().getAbsolutePath(), null, run.properties,
 				run.dependencies,
 				run.classpaths, run.fresh, run.forcejsh);
 
-		run.build(s);
+		run.build(xrunit);
 
-		assertThat(s.script().isAgent(), is(true));
+		assertThat(xrunit.script().isAgent(), is(true));
 
-		assertThat(s.getAgentMainClass(), is(nullValue()));
-		assertThat(s.getPreMainClass(), is("Agent"));
+		assertThat(xrunit.getAgentMainClass(), is(nullValue()));
+		assertThat(xrunit.getPreMainClass(), is("Agent"));
 
 	}
 
@@ -1019,11 +1019,11 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--ea", f.getAbsolutePath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ExtendedRunUnit s = RunUnit.forResource(f.getAbsolutePath(), run.userParams, run.properties,
+		ExtendedRunUnit xrunit = RunUnit.forResource(f.getAbsolutePath(), run.userParams, run.properties,
 				run.dependencies,
 				run.classpaths, run.fresh, run.forcejsh);
 
-		String line = run.generateCommandLine(s);
+		String line = run.generateCommandLine(xrunit);
 
 		assertThat(line, containsString("-ea"));
 	}
@@ -1037,11 +1037,11 @@ public class TestRun extends BaseTest {
 				f.getAbsolutePath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ExtendedRunUnit s = RunUnit.forResource(f.getAbsolutePath(), run.userParams, run.properties,
+		ExtendedRunUnit xrunit = RunUnit.forResource(f.getAbsolutePath(), run.userParams, run.properties,
 				run.dependencies,
 				run.classpaths, run.fresh, run.forcejsh);
 
-		String line = run.generateCommandLine(s);
+		String line = run.generateCommandLine(xrunit);
 
 		assertThat(line, containsString("-esa"));
 	}
@@ -1052,13 +1052,13 @@ public class TestRun extends BaseTest {
 
 		Run m = new Run();
 
-		ExtendedRunUnit script = RunUnit.forResource(f.getAbsolutePath(), null, null, null, null, false, false);
+		ExtendedRunUnit xrunit = RunUnit.forResource(f.getAbsolutePath(), null, null, null, null, false, false);
 
-		m.build(script);
+		m.build(xrunit);
 
-		assertThat(script.getMainClass(), equalTo("resource"));
+		assertThat(xrunit.getMainClass(), equalTo("resource"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), (ClassLoader) null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(xrunit.getJar().toPath(), (ClassLoader) null)) {
 
 			Arrays	.asList("resource.properties", "renamed.properties", "META-INF/application.properties")
 					.forEach(path -> {
@@ -1085,13 +1085,13 @@ public class TestRun extends BaseTest {
 
 		Run m = new Run();
 
-		ExtendedRunUnit script = RunUnit.forResource(f.getAbsolutePath(), null, null, null, null, false, false);
+		ExtendedRunUnit xrunit = RunUnit.forResource(f.getAbsolutePath(), null, null, null, null, false, false);
 
-		m.build(script);
+		m.build(xrunit);
 
-		assertThat(script.getMainClass(), equalTo("one"));
+		assertThat(xrunit.getMainClass(), equalTo("one"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), (ClassLoader) null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(xrunit.getJar().toPath(), (ClassLoader) null)) {
 			Arrays	.asList("one.class", "Two.class", "gh_release_stats.class", "fetchlatestgraalvm.class")
 					.forEach(path -> {
 						try {
@@ -1107,7 +1107,7 @@ public class TestRun extends BaseTest {
 
 		}
 
-		assertThat("if fails then duplication of deps fixed", script.getClassPath().getArtifacts(), hasSize(14));
+		assertThat("if fails then duplication of deps fixed", xrunit.getClassPath().getArtifacts(), hasSize(14));
 		// should be assertThat("if fails then duplication of deps fixed",
 		// script.getClassPath().getArtifacts(), hasSize(7));
 	}
@@ -1144,11 +1144,11 @@ public class TestRun extends BaseTest {
 		wms.start();
 		Run m = new Run();
 
-		ExtendedRunUnit script = RunUnit.forResource("http://localhost:" + wms.port() + "/sub/one.java", null,
+		ExtendedRunUnit xrunit = RunUnit.forResource("http://localhost:" + wms.port() + "/sub/one.java", null,
 				null, null, null, false,
 				false);
 
-		m.build(script);
+		m.build(xrunit);
 
 	}
 
@@ -1185,13 +1185,13 @@ public class TestRun extends BaseTest {
 		wms.start();
 		Run m = new Run();
 
-		ExtendedRunUnit script = RunUnit.forResource("http://localhost:" + wms.port() + "/sub/one.java", null,
+		ExtendedRunUnit xrunit = RunUnit.forResource("http://localhost:" + wms.port() + "/sub/one.java", null,
 				null, null, null, false,
 				false);
 
-		m.build(script);
+		m.build(xrunit);
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(script.getJar().toPath(), (ClassLoader) null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(xrunit.getJar().toPath(), (ClassLoader) null)) {
 			Arrays	.asList("one.class", "index.html")
 					.forEach(path -> {
 						try {
@@ -1224,11 +1224,11 @@ public class TestRun extends BaseTest {
 		wms.start();
 		Run m = new Run();
 
-		ExtendedRunUnit script = RunUnit.forResource("http://localhost:" + wms.port() + "/sub/one", null, null,
+		ExtendedRunUnit xrunit = RunUnit.forResource("http://localhost:" + wms.port() + "/sub/one", null, null,
 				null, null, false,
 				false);
 
-		m.build(script);
+		m.build(xrunit);
 	}
 
 	@Test
@@ -1250,10 +1250,10 @@ public class TestRun extends BaseTest {
 
 		Run m = new Run();
 
-		ExtendedRunUnit script = RunUnit.forResource(dir.toPath().toString(), null, null, null, null, false,
+		ExtendedRunUnit xrunit = RunUnit.forResource(dir.toPath().toString(), null, null, null, null, false,
 				false);
 
-		m.build(script);
+		m.build(xrunit);
 
 	}
 
@@ -1285,11 +1285,11 @@ public class TestRun extends BaseTest {
 		wms.start();
 		Run m = new Run();
 
-		ExtendedRunUnit script = RunUnit.forResource("http://localhost:" + wms.port() + "/sub/one/", null, null,
+		ExtendedRunUnit xrunit = RunUnit.forResource("http://localhost:" + wms.port() + "/sub/one/", null, null,
 				null, null, false,
 				false);
 
-		m.build(script);
+		m.build(xrunit);
 	}
 
 	@Test

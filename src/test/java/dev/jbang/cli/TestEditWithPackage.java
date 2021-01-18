@@ -55,8 +55,8 @@ public class TestEditWithPackage extends BaseTest {
 		Path BPath = TestScript.createTmpFileWithContent(mainPath.getParent(), "person", "B.java", classB);
 		Path CPath = TestScript.createTmpFileWithContent(BPath.getParent(), "model", "C.java", classC);
 		assertTrue(mainPath.toFile().exists());
-		ExtendedRunUnit script = RunUnit.forResource(mainPath.toString());
-		File project = new Edit().createProjectForEdit(script, false);
+		ExtendedRunUnit xrunit = RunUnit.forResource(mainPath.toString());
+		File project = new Edit().createProjectForEdit(xrunit, false);
 		assertTrue(new File(project, "src/A.java").exists());
 		assertTrue(new File(project, "src/person/B.java").exists());
 		assertTrue(new File(project, "src/person/model/C.java").exists());

@@ -91,16 +91,16 @@ class AppInstall extends BaseCommand {
 			Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
 			return false;
 		}
-		ExtendedRunUnit script = RunUnit.forResource(scriptRef);
+		ExtendedRunUnit xrunit = RunUnit.forResource(scriptRef);
 		if (name == null) {
-			name = chooseCommandName(script);
+			name = chooseCommandName(xrunit);
 			if (!force && existScripts(binDir, name)) {
 				Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
 				return false;
 			}
 		}
-		if (script.getAlias() == null && !script.getResourceRef().isURL()) {
-			scriptRef = script.getResourceRef().getFile().getAbsolutePath();
+		if (xrunit.getAlias() == null && !xrunit.getResourceRef().isURL()) {
+			scriptRef = xrunit.getResourceRef().getFile().getAbsolutePath();
 		}
 		installScripts(name, scriptRef, benative);
 		Util.infoMsg("Command installed: " + name);
@@ -112,13 +112,13 @@ class AppInstall extends BaseCommand {
 				|| Files.exists(binDir.resolve(name + ".ps1"));
 	}
 
-	public static String chooseCommandName(ExtendedRunUnit script) {
+	public static String chooseCommandName(ExtendedRunUnit xrunit) {
 		String startName = null;
 		String name;
-		if (script.getAlias() != null) {
+		if (xrunit.getAlias() != null) {
 			// If the script ref is an alias we take that name up to
 			// the @-symbol (if any) to be the command name.
-			startName = script.getOriginalRef();
+			startName = xrunit.getOriginalRef();
 			name = startName;
 			int p = name.indexOf("@");
 			if (p > 0) {
@@ -128,14 +128,14 @@ class AppInstall extends BaseCommand {
 			// If the script is a file or a URL we take the last part of
 			// the name without extension (if any) to be the command name.
 			try {
-				URI u = new URI(script.getOriginalRef());
+				URI u = new URI(xrunit.getOriginalRef());
 				startName = u.getPath();
 				if (startName.endsWith("/")) { // if using default app use the last segment.
 					startName = startName.substring(0, startName.length() - 1);
 				}
 				startName = u.getPath().substring(Math.max(0, startName.lastIndexOf("/")));
 			} catch (URISyntaxException e) {
-				startName = Paths.get(script.getOriginalRef()).getFileName().toString();
+				startName = Paths.get(xrunit.getOriginalRef()).getFileName().toString();
 			}
 
 			name = startName;
