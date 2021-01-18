@@ -222,7 +222,7 @@ public class Run extends BaseBuildCommand {
 					});
 
 			if (xrunit.runUnit instanceof Script) {
-				fullArgs.addAll(xrunit.script().collectAllRuntimeOptions());
+				fullArgs.addAll(xrunit.script().collectRuntimeOptions());
 			}
 			fullArgs.addAll(xrunit.getAutoDetectedModuleArguments(requestedJavaVersion, offline));
 			fullArgs.addAll(optionalArgs);

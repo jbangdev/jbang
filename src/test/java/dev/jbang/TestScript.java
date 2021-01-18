@@ -301,9 +301,9 @@ public class TestScript extends BaseTest {
 	void testExtractOptions() {
 		Script s = new Script(example);
 
-		assertEquals(s.collectAllCompileOptions(), Arrays.asList("--enable-preview", "--verbose"));
+		assertEquals(s.collectCompileOptions(), Arrays.asList("--enable-preview", "--verbose"));
 
-		assertEquals(s.collectAllRuntimeOptions(), Arrays.asList("--enable-preview", "-Dvalue='this is space'"));
+		assertEquals(s.collectRuntimeOptions(), Arrays.asList("--enable-preview", "-Dvalue='this is space'"));
 
 	}
 
