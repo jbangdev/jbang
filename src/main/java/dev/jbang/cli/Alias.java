@@ -73,28 +73,20 @@ class AliasAdd extends BaseAliasCommand {
 			throw new IllegalArgumentException(
 					"Invalid alias name, it should start with a letter followed by 0 or more letters, digits, underscores or hyphens");
 		}
-		try {
-			ExtendedRunUnit script = RunUnit.forResource(scriptOrFile);
-			if (name == null) {
-				name = AppInstall.chooseCommandName(script);
-			}
-
-			if (description == null && script.runUnit instanceof Script) {
-				if (script.script().getDescription() != null && script.script().getDescription().length() > 0) {
-					description = script.script().getDescription();
-				}
-			}
-
-			Path catFile = getCatalog(false);
-			if (catFile != null) {
-				AliasUtil.addAlias(null, catFile, name, scriptOrFile, description, userParams, properties);
-			} else {
-				catFile = AliasUtil.addNearestAlias(null, name, scriptOrFile, description, userParams, properties);
-			}
-			info(String.format("Alias '%s' added to '%s'", name, catFile));
-		} catch (Exception e) {
-			throw new ExitException(EXIT_INTERNAL_ERROR, "Could not add alias", e);
+		ExtendedRunUnit script = RunUnit.forResource(scriptOrFile);
+		if (name == null) {
+			name = AppInstall.chooseCommandName(script);
 		}
+
+		String desc = description != null ? description : script.getDescription().orElse(null);
+
+		Path catFile = getCatalog(false);
+		if (catFile != null) {
+			AliasUtil.addAlias(null, catFile, name, scriptOrFile, desc, userParams, properties);
+		} else {
+			catFile = AliasUtil.addNearestAlias(null, name, scriptOrFile, desc, userParams, properties);
+		}
+		info(String.format("Alias '%s' added to '%s'", name, catFile));
 		return EXIT_OK;
 	}
 }
@@ -133,9 +125,7 @@ class AliasList extends BaseAliasCommand {
 						.keySet()
 						.stream()
 						.sorted()
-						.forEach(name -> {
-							printAlias(out, catalogName, catalog, name, 0);
-						});
+						.forEach(name -> printAlias(out, catalogName, catalog, name, 0));
 	}
 
 	static void printAliasesWithOrigin(PrintStream out, String catalogName, AliasUtil.Catalog catalog) {
@@ -146,9 +136,7 @@ class AliasList extends BaseAliasCommand {
 																							e -> e.getValue().catalog.catalogFile));
 		groups.forEach((p, entries) -> {
 			out.println(p);
-			entries.stream().map(Map.Entry::getKey).sorted().forEach(k -> {
-				printAlias(out, catalogName, catalog, k, 3);
-			});
+			entries.stream().map(Map.Entry::getKey).sorted().forEach(k -> printAlias(out, catalogName, catalog, k, 3));
 		});
 	}
 

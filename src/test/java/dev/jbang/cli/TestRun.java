@@ -79,16 +79,20 @@ public class TestRun extends BaseTest {
 
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
-		File arg = new File(examplesTestFolder, "helloworld.java");
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg.getAbsolutePath());
+		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		String result = run.generateCommandLine(
-				RunUnit.forScriptResource(ResourceRef.forFile(arg), run.userParams,
-						run.properties));
+		ExtendedRunUnit s = RunUnit.forResource(arg, run.userParams, run.properties,
+				run.dependencies, run.classpaths,
+				run.fresh, run.forcejsh);
+
+		String result = run.generateCommandLine(s);
 
 		assertThat(result, startsWith("java "));
-		assertThat(result, containsString("helloworld.java"));
+		assertThat(result, containsString("helloworld"));
+		assertThat(result, containsString("-classpath"));
+		assertThat(result, containsString(".jar"));
 		// assertThat(result, containsString("--source 11"));
 	}
 
@@ -97,13 +101,15 @@ public class TestRun extends BaseTest {
 
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "a");
+		String arg = new File(examplesTestFolder, "helloworld.jsh").getAbsolutePath();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		String result = run.generateCommandLine(
-				RunUnit.forScriptResource(ResourceRef.forFile(new File(examplesTestFolder, "helloworld.jsh")),
-						run.userParams,
-						run.properties));
+		ExtendedRunUnit s = RunUnit.forResource(arg, run.userParams, run.properties,
+				run.dependencies, run.classpaths,
+				run.fresh, run.forcejsh);
+
+		String result = run.generateCommandLine(s);
 
 		assertThat(result, matchesPattern("^.*jshell(.exe)? --startup.*$"));
 		assertThat(result, not(containsString("  ")));
@@ -311,14 +317,16 @@ public class TestRun extends BaseTest {
 
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
-		File arg = new File(examplesTestFolder, "helloworld.jsh");
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--interactive", arg.getAbsolutePath(),
+		String arg = new File(examplesTestFolder, "helloworld.jsh").getAbsolutePath();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--interactive", arg,
 				"blah");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		String result = run.generateCommandLine(
-				RunUnit.forScriptResource(ResourceRef.forFile(arg), run.userParams,
-						run.properties));
+		ExtendedRunUnit s = RunUnit.forResource(arg, run.userParams, run.properties, run.dependencies,
+				run.classpaths, run.fresh,
+				run.forcejsh);
+
+		String result = run.generateCommandLine(s);
 
 		assertThat(result, startsWith("jshell"));
 		assertThat(result, not(containsString("  ")));
@@ -335,20 +343,22 @@ public class TestRun extends BaseTest {
 
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
-		File arg = new File(examplesTestFolder, "helloworld.java");
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--debug", arg.getAbsolutePath());
+		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--debug", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		String result = run.generateCommandLine(
-				RunUnit.forScriptResource(ResourceRef.forFile(arg), run.userParams,
-						run.properties));
+		ExtendedRunUnit s = RunUnit.forResource(arg, run.userParams, run.properties, run.dependencies,
+				run.classpaths, run.fresh,
+				run.forcejsh);
+
+		String result = run.generateCommandLine(s);
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("helloworld.java"));
+		assertThat(result, containsString("classpath"));
 //		assertThat(result, containsString(" --source 11 "));
 		assertThat(result, containsString("jdwp"));
 		assertThat(result, not(containsString("  ")));
-		assertThat(result, not(containsString("classpath")));
 	}
 
 	@Test
@@ -360,8 +370,11 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		String result = run.generateCommandLine(
-				RunUnit.forScriptResource(ResourceRef.forFile(new File(arg)), run.userParams, run.properties));
+		ExtendedRunUnit s = RunUnit.forResource(arg, run.userParams, run.properties, run.dependencies,
+				run.classpaths, run.fresh,
+				run.forcejsh);
+
+		String result = run.generateCommandLine(s);
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("classpath_example.java"));
@@ -386,8 +399,11 @@ public class TestRun extends BaseTest {
 
 		assertThat(run.properties.size(), is(2));
 
-		String result = run.generateCommandLine(
-				RunUnit.forScriptResource(ResourceRef.forFile(new File(arg)), run.userParams, run.properties));
+		ExtendedRunUnit s = RunUnit.forResource(arg, run.userParams, run.properties, run.dependencies,
+				run.classpaths, run.fresh,
+				run.forcejsh);
+
+		String result = run.generateCommandLine(s);
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("-Dwonka=panda"));
@@ -397,10 +413,9 @@ public class TestRun extends BaseTest {
 			assertThat(result, containsString("'-Dquoted=see this'"));
 		}
 		String[] split = result.split("example.java");
-		assertEquals(split.length, 2);
+		assertEquals(split.length, 3);
 		assertThat(split[0], not(containsString("after=wonka")));
-		assertThat(split[1], containsString("after=wonka"));
-
+		assertThat(split[2], containsString("after=wonka"));
 	}
 
 	@Test

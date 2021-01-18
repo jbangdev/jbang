@@ -145,7 +145,7 @@ public class TestScript extends BaseTest {
 
 		assertEquals(script.javaVersion(), "14+");
 
-		List<String> deps = script.collectAllDependencies(System.getProperties());
+		List<String> deps = script.getAllDependencies(System.getProperties());
 
 		assertThat(deps, containsInAnyOrder("info.picocli:picocli:4.5.0"));
 	}
@@ -154,7 +154,7 @@ public class TestScript extends BaseTest {
 	void testFindDependencies() {
 		Script script = new Script(example);
 
-		List<String> dependencies = script.collectAllDependencies(System.getProperties());
+		List<String> dependencies = script.getAllDependencies(System.getProperties());
 		assertEquals(2, dependencies.size());
 
 		assertTrue(dependencies.contains("com.offbytwo:docopt:0.6.0.20150202"));
@@ -187,7 +187,7 @@ public class TestScript extends BaseTest {
 		String scriptURL = mainPath.toString();
 		ExtendedRunUnit script = RunUnit.forResource(scriptURL);
 
-		List<Script> resolvesourceRecursively = script.script().collectAllSources();
+		List<Script> resolvesourceRecursively = script.script().getAllSources();
 		assertTrue(resolvesourceRecursively.size() == 7);
 	}
 
@@ -235,10 +235,10 @@ public class TestScript extends BaseTest {
 			Settings.getTrustedSources().add(url, tempFile);
 
 			ExtendedRunUnit script = RunUnit.forResource(url);
-			assertEquals(2, script.script().collectAllSources().size());
+			assertEquals(2, script.script().getAllSources().size());
 			boolean foundtwo = false;
 			boolean foundt3 = false;
-			for (Script source : script.script().collectAllSources()) {
+			for (Script source : script.script().getAllSources()) {
 				if (source.getResourceRef().getFile().getName().equals("two.java"))
 					foundtwo = true;
 				if (source.getResourceRef().getFile().getName().equals("t3.java"))

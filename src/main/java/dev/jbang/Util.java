@@ -577,13 +577,6 @@ public class Util {
 		}
 	}
 
-	public static List<String> getLines(List<String> lines, String script) {
-		if (lines == null && script != null) {
-			lines = Arrays.asList(script.split("\\r?\\n"));
-		}
-		return lines;
-	}
-
 	private static Path getFirstFile(Path dir) throws IOException {
 		if (Files.isDirectory(dir)) {
 			try (Stream<Path> files = Files.list(dir)) {
@@ -862,33 +855,14 @@ public class Util {
 		return scriptURL.startsWith("https://gist.github.com/");
 	}
 
-	private static List<String> collectSources(String source, Path backingPath, List<String> lines) {
-		List<String> sources = new ArrayList<>();
-		for (String line : lines) {
-			if (!line.startsWith(Util.SOURCES_COMMENT_PREFIX))
-				continue;
-			String[] tmp1 = line.split("[ ;,]+");
-			for (int i = 1; i < tmp1.length; ++i) {
-				sources.addAll(Util	.explode(source, backingPath.getParent(), tmp1[i])
-									.stream()
-									.map(x -> x.toString())
-									.collect(Collectors.toList()));
-			}
-		}
-		return sources;
-	}
-
-	public static List<String> collectSources(String source, Path backingPath, String content) {
-		if (content == null) {
-			return Collections.emptyList();
-		}
-		List<String> lines = getLines(null, content);
-		return collectSources(source, backingPath, lines);
-	}
-
 	public static boolean isURL(String str) {
-		return str.startsWith("https://") || str.startsWith("http://")
-				|| str.startsWith("file:///");
+		try {
+			URI uri = new URI(str);
+			String s = uri.getScheme();
+			return s != null && (s.equals("https") || s.equals("http") || s.equals("file"));
+		} catch (URISyntaxException e) {
+			return false;
+		}
 	}
 
 	/**

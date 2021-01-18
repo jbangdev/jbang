@@ -44,16 +44,18 @@ public class ResourceRef implements Comparable<ResourceRef> {
 
 	public ResourceRef asSibling(String siblingResource) {
 		String sr;
-		if (Util.isURL(siblingResource) || isURL()) {
-			try {
+		try {
+			if (Util.isURL(siblingResource)) {
+				sr = new URI(siblingResource).toString();
+			} else if (isURL()) {
 				sr = new URI(originalResource).resolve(siblingResource).toString();
-			} catch (URISyntaxException e) {
-				throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, e);
+			} else {
+				sr = Paths.get(originalResource).resolveSibling(siblingResource).toString();
 			}
-		} else {
-			sr = Paths.get(originalResource).resolveSibling(siblingResource).toString();
+			return forTrustedResource(sr);
+		} catch (URISyntaxException e) {
+			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, e);
 		}
-		return forTrustedResource(sr);
 	}
 
 	@Override
