@@ -142,7 +142,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		IntegrationResult integrationResult;
 		List<String> optionList = new ArrayList<String>();
 		optionList.add(resolveInJavaHome("javac", requestedJavaVersion));
-		optionList.addAll(xrunit.script().collectAllCompileOptions());
+		optionList.addAll(xrunit.script().collectCompileOptions());
 		String path = xrunit.resolveClassPath(offline);
 		if (!path.trim().isEmpty()) {
 			optionList.addAll(Arrays.asList("-classpath", path));

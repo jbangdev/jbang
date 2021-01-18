@@ -335,7 +335,7 @@ public class Script implements RunUnit {
 		return collectAll(Script::collectRuntimeOptions);
 	}
 
-	private List<String> collectRuntimeOptions() {
+	public List<String> collectRuntimeOptions() {
 		return collectOptions("JAVA_OPTIONS");
 	}
 
@@ -343,7 +343,7 @@ public class Script implements RunUnit {
 		return collectAll(Script::collectCompileOptions);
 	}
 
-	private List<String> collectCompileOptions() {
+	public List<String> collectCompileOptions() {
 		return collectOptions("JAVAC_OPTIONS");
 	}
 
