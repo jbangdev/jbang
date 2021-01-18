@@ -86,24 +86,24 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 	protected boolean createdJar;
 
 	// build with javac and then jar... todo: split up in more testable chunks
-	void build(ExtendedRunUnit script) throws IOException {
+	void build(ExtendedRunUnit xrunit) throws IOException {
 		for (Map.Entry<String, String> entry : properties.entrySet()) {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
-		File outjar = script.getJar();
+		File outjar = xrunit.getJar();
 		if (outjar.exists()) {
 			try (JarFile jf = new JarFile(outjar)) {
-				script.setMainClass(
+				xrunit.setMainClass(
 						jf.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS));
 
 				String val = jf.getManifest().getMainAttributes().getValue(Script.JBANG_JAVA_OPTIONS);
 				if (val != null) {
-					script.setPersistentJvmArgs(Arrays.asList( // should parse it but we are assuming it just gets
+					xrunit.setPersistentJvmArgs(Arrays.asList( // should parse it but we are assuming it just gets
 							// appendeed
 							val // on command line anwyay
 					));
 				}
-				script.setBuildJdk(
+				xrunit.setBuildJdk(
 						JavaUtil.parseJavaVersion(
 								jf.getManifest().getMainAttributes().getValue(Script.BUILD_JDK)));
 			}
@@ -111,17 +111,17 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 
 		boolean nativeBuildRequired = nativeImage && !getImageName(outjar).exists();
 		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
-		String requestedJavaVersion = javaVersion != null ? javaVersion : script.script().javaVersion();
+		String requestedJavaVersion = javaVersion != null ? javaVersion : xrunit.script().javaVersion();
 		// always build the jar for native mode
 		// it allows integrations the options to produce the native image
-		if (!outjar.exists() || JavaUtil.javaVersion(requestedJavaVersion) < script.getBuildJdk()
+		if (!outjar.exists() || JavaUtil.javaVersion(requestedJavaVersion) < xrunit.getBuildJdk()
 				|| nativeBuildRequired || fresh) {
 			// set up temporary folder for compilation
 			File tmpJarDir = new File(outjar.getParentFile(), outjar.getName() + ".tmp");
 			Util.deletePath(tmpJarDir.toPath(), true);
 			tmpJarDir.mkdirs();
 			try {
-				integrationResult = buildJar(script, tmpJarDir, outjar, requestedJavaVersion);
+				integrationResult = buildJar(xrunit, tmpJarDir, outjar, requestedJavaVersion);
 			} finally {
 				// clean up temporary folder
 				Util.deletePath(tmpJarDir.toPath(), true);
@@ -132,34 +132,34 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 			if (integrationResult.nativeImagePath != null) {
 				Files.move(integrationResult.nativeImagePath, getImageName(outjar).toPath());
 			} else {
-				buildNative(script, outjar, requestedJavaVersion);
+				buildNative(xrunit, outjar, requestedJavaVersion);
 			}
 		}
 	}
 
-	private IntegrationResult buildJar(ExtendedRunUnit script, File tmpJarDir, File outjar, String requestedJavaVersion)
+	private IntegrationResult buildJar(ExtendedRunUnit xrunit, File tmpJarDir, File outjar, String requestedJavaVersion)
 			throws IOException {
 		IntegrationResult integrationResult;
 		List<String> optionList = new ArrayList<String>();
 		optionList.add(resolveInJavaHome("javac", requestedJavaVersion));
-		optionList.addAll(script.script().collectAllCompileOptions());
-		String path = script.resolveClassPath(offline);
+		optionList.addAll(xrunit.script().collectAllCompileOptions());
+		String path = xrunit.resolveClassPath(offline);
 		if (!path.trim().isEmpty()) {
 			optionList.addAll(Arrays.asList("-classpath", path));
 		}
 		optionList.addAll(Arrays.asList("-d", tmpJarDir.getAbsolutePath()));
 
 		// add source files to compile
-		optionList.add(script.getBackingFile().getPath());
+		optionList.add(xrunit.getBackingFile().getPath());
 		optionList.addAll(
-				script	.script()
+				xrunit	.script()
 						.getAllSources()
 						.stream()
 						.map(x -> x.getBackingFile().getPath())
 						.collect(Collectors.toList()));
 
 		// add additional files
-		List<FileRef> files = script.script().getAllFiles();
+		List<FileRef> files = xrunit.script().getAllFiles();
 		for (FileRef file : files) {
 			file.copy(tmpJarDir.toPath(), fresh);
 		}
@@ -172,8 +172,8 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 			Util.warnMsg("Could not locate pom.xml template");
 		} else {
 			String pomfile = pomTemplate
-										.data("baseName", Util.getBaseName(script.getBackingFile().getName()))
-										.data("dependencies", script.getClassPath().getArtifacts())
+										.data("baseName", Util.getBaseName(xrunit.getBackingFile().getName()))
+										.data("dependencies", xrunit.getClassPath().getArtifacts())
 										.render();
 			pomPath = new File(tmpJarDir, "META-INF/maven/g/a/v/pom.xml").toPath();
 			Files.createDirectories(pomPath.getParent());
@@ -194,13 +194,13 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 			throw new ExitException(1, "Error during compile");
 		}
 
-		script.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
-		integrationResult = IntegrationManager.runIntegration(script.script().getAllRepositories(),
-				script.getClassPath().getArtifacts(),
+		xrunit.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
+		integrationResult = IntegrationManager.runIntegration(xrunit.script().getAllRepositories(),
+				xrunit.getClassPath().getArtifacts(),
 				tmpJarDir.toPath(), pomPath,
-				script.script(), nativeImage);
+				xrunit.script(), nativeImage);
 		if (integrationResult.mainClass != null) {
-			script.setMainClass(integrationResult.mainClass);
+			xrunit.setMainClass(integrationResult.mainClass);
 		} else {
 			try {
 				// using Files.walk method with try-with-resources
@@ -213,7 +213,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 					if (items.size() > 1) { // todo: this feels like a very sketchy way to find the proper class
 											// name
 						// but it works.
-						String mainname = script.getBackingFile().getName().replace(".java", ".class");
+						String mainname = xrunit.getBackingFile().getName().replace(".java", ".class");
 						items = items	.stream()
 										.filter(f -> f.toFile().getName().equalsIgnoreCase(mainname))
 										.collect(Collectors.toList());
@@ -240,10 +240,10 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 														.findFirst();
 
 						if (main.isPresent()) {
-							script.setMainClass(main.get().name().toString());
+							xrunit.setMainClass(main.get().name().toString());
 						}
 
-						if (script.script().isAgent()) {
+						if (xrunit.script().isAgent()) {
 
 							Optional<ClassInfo> agentmain = clazz	.stream()
 																	.filter(pubClass -> pubClass.method("agentmain",
@@ -255,7 +255,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 																	.findFirst();
 
 							if (agentmain.isPresent()) {
-								script.setAgentMainClass(agentmain.get().name().toString());
+								xrunit.setAgentMainClass(agentmain.get().name().toString());
 							}
 
 							Optional<ClassInfo> premain = clazz	.stream()
@@ -268,7 +268,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 																.findFirst();
 
 							if (premain.isPresent()) {
-								script.setPreMainClass(premain.get().name().toString());
+								xrunit.setPreMainClass(premain.get().name().toString());
 							}
 						}
 
@@ -278,13 +278,13 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 				throw new ExitException(1, e);
 			}
 		}
-		script.setPersistentJvmArgs(integrationResult.javaArgs);
-		createJarFile(script, tmpJarDir, outjar);
+		xrunit.setPersistentJvmArgs(integrationResult.javaArgs);
+		createJarFile(xrunit, tmpJarDir, outjar);
 		createdJar = true;
 		return integrationResult;
 	}
 
-	private void buildNative(ExtendedRunUnit script, File outjar, String requestedJavaVersion) throws IOException {
+	private void buildNative(ExtendedRunUnit xrunit, File outjar, String requestedJavaVersion) throws IOException {
 		List<String> optionList = new ArrayList<String>();
 		optionList.add(resolveInGraalVMHome("native-image", requestedJavaVersion));
 
@@ -292,7 +292,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 
 		optionList.add("--enable-https");
 
-		String classpath = script.resolveClassPath(offline);
+		String classpath = xrunit.resolveClassPath(offline);
 		if (!classpath.trim().isEmpty()) {
 			optionList.add("--class-path=" + classpath);
 		}
@@ -318,23 +318,23 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		}
 	}
 
-	static void createJarFile(ExtendedRunUnit script, File path, File output) throws IOException {
-		String mainclass = script.getMainClass();
+	static void createJarFile(ExtendedRunUnit xrunit, File path, File output) throws IOException {
+		String mainclass = xrunit.getMainClass();
 		Manifest manifest = new Manifest();
 		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
 		if (mainclass != null) {
 			manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, mainclass);
 		}
 
-		if (script.script().isAgent()) {
-			if (script.getPreMainClass() != null) {
-				manifest.getMainAttributes().put(new Attributes.Name("Premain-Class"), script.getPreMainClass());
+		if (xrunit.script().isAgent()) {
+			if (xrunit.getPreMainClass() != null) {
+				manifest.getMainAttributes().put(new Attributes.Name("Premain-Class"), xrunit.getPreMainClass());
 			}
-			if (script.getAgentMainClass() != null) {
-				manifest.getMainAttributes().put(new Attributes.Name("Agent-Class"), script.getAgentMainClass());
+			if (xrunit.getAgentMainClass() != null) {
+				manifest.getMainAttributes().put(new Attributes.Name("Agent-Class"), xrunit.getAgentMainClass());
 			}
 
-			for (KeyValue kv : script.script().getAllAgentOptions()) {
+			for (KeyValue kv : xrunit.script().getAllAgentOptions()) {
 				if (kv.getKey().trim().isEmpty()) {
 					continue;
 				}
@@ -343,26 +343,26 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 				manifest.getMainAttributes().put(k, v);
 			}
 
-			if (script.getClassPath() != null) {
-				String bootClasspath = script.getClassPath().getManifestPath();
+			if (xrunit.getClassPath() != null) {
+				String bootClasspath = xrunit.getClassPath().getManifestPath();
 				if (!bootClasspath.isEmpty()) {
 					manifest.getMainAttributes().put(new Attributes.Name("Boot-Class-Path"), bootClasspath);
 				}
 			}
 		} else {
-			if (script.getClassPath() != null) {
-				String classpath = script.getClassPath().getManifestPath();
+			if (xrunit.getClassPath() != null) {
+				String classpath = xrunit.getClassPath().getManifestPath();
 				if (!classpath.isEmpty()) {
 					manifest.getMainAttributes().put(new Attributes.Name("Class-Path"), classpath);
 				}
 			}
 		}
 
-		if (script.getPersistentJvmArgs() != null) {
+		if (xrunit.getPersistentJvmArgs() != null) {
 			manifest.getMainAttributes()
-					.putValue("JBang-Java-Options", String.join(" ", script.getPersistentJvmArgs()));
+					.putValue("JBang-Java-Options", String.join(" ", xrunit.getPersistentJvmArgs()));
 		}
-		int buildJdk = script.getBuildJdk();
+		int buildJdk = xrunit.getBuildJdk();
 		if (buildJdk > 0) {
 			String val = buildJdk >= 9 ? Integer.toString(buildJdk) : "1." + buildJdk;
 			manifest.getMainAttributes().putValue("Build-Jdk", val);

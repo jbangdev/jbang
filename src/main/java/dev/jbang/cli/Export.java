@@ -40,9 +40,9 @@ public class Export extends BaseBuildCommand {
 	enum Style {
 		local {
 
-			public int apply(Export export, ExtendedRunUnit script, Path outputPath) throws IOException {
+			public int apply(Export export, ExtendedRunUnit xrunit, Path outputPath) throws IOException {
 				// Copy the JAR or native binary
-				Path source = script.getJar().toPath();
+				Path source = xrunit.getJar().toPath();
 				if (export.nativeImage) {
 					source = getImageName(source.toFile()).toPath();
 				}
@@ -63,9 +63,9 @@ public class Export extends BaseBuildCommand {
 		},
 		portable {
 			@Override
-			public int apply(Export export, ExtendedRunUnit script, Path outputPath) throws IOException {
+			public int apply(Export export, ExtendedRunUnit xrunit, Path outputPath) throws IOException {
 				// Copy the JAR or native binary
-				Path source = script.getJar().toPath();
+				Path source = xrunit.getJar().toPath();
 				if (export.nativeImage) {
 					source = getImageName(source.toFile()).toPath();
 				}
@@ -110,7 +110,7 @@ public class Export extends BaseBuildCommand {
 
 					List<String> optionList = new ArrayList<String>();
 					optionList.add(resolveInJavaHome("jar",
-							export.javaVersion != null ? export.javaVersion : script.javaVersion())); // TODO locate it
+							export.javaVersion != null ? export.javaVersion : xrunit.javaVersion())); // TODO locate it
 																										// on path ?
 					optionList.add("ufm");
 					optionList.add(outputPath.toString());
@@ -134,7 +134,7 @@ public class Export extends BaseBuildCommand {
 			}
 		};
 
-		public abstract int apply(Export export, ExtendedRunUnit script, Path outputPath) throws IOException;
+		public abstract int apply(Export export, ExtendedRunUnit xrunit, Path outputPath) throws IOException;
 	}
 
 	@Override
@@ -143,11 +143,11 @@ public class Export extends BaseBuildCommand {
 			enableInsecure();
 		}
 
-		script = RunUnit.forResource(scriptOrFile, null, properties, dependencies, classpaths, fresh,
+		xrunit = RunUnit.forResource(scriptOrFile, null, properties, dependencies, classpaths, fresh,
 				forcejsh);
 
-		if (script.needsJar()) {
-			build(script);
+		if (xrunit.needsJar()) {
+			build(xrunit);
 		}
 
 		// Determine the output file location and name
@@ -156,7 +156,7 @@ public class Export extends BaseBuildCommand {
 		if (outputFile != null) {
 			outputPath = outputFile;
 		} else {
-			String outName = AppInstall.chooseCommandName(script);
+			String outName = AppInstall.chooseCommandName(xrunit);
 			if (nativeImage) {
 				outName = getImageName(new File(outName)).getName();
 			} else {
@@ -168,6 +168,6 @@ public class Export extends BaseBuildCommand {
 
 		Style style = portable ? Style.portable : Style.local;
 
-		return style.apply(this, script, outputPath);
+		return style.apply(this, xrunit, outputPath);
 	}
 }

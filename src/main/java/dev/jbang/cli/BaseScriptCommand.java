@@ -31,7 +31,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 	@CommandLine.Parameters(index = "0", arity = "1", description = "A file with java code or if named .jsh will be run with jshell")
 	String scriptOrFile;
 
-	protected ExtendedRunUnit script;
+	protected ExtendedRunUnit xrunit;
 
 	protected void enableInsecure() {
 		try {

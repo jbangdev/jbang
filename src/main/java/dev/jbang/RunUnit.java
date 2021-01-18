@@ -123,13 +123,13 @@ public interface RunUnit {
 			ru = Script.prepareScript(resourceRef);
 		}
 
-		ExtendedRunUnit s = new ExtendedRunUnit(ru, arguments, properties);
-		s.setForcejsh(forcejsh);
-		s.setOriginalRef(resource);
-		s.setAlias(alias);
-		s.setAdditionalDependencies(dependencies);
-		s.setAdditionalClasspaths(classpaths);
-		return s;
+		ExtendedRunUnit xrunit = new ExtendedRunUnit(ru, arguments, properties);
+		xrunit.setForcejsh(forcejsh);
+		xrunit.setOriginalRef(resource);
+		xrunit.setAlias(alias);
+		xrunit.setAdditionalDependencies(dependencies);
+		xrunit.setAdditionalClasspaths(classpaths);
+		return xrunit;
 	}
 
 	static ExtendedRunUnit forScriptResource(ResourceRef resourceRef, List<String> arguments,
@@ -148,11 +148,11 @@ public interface RunUnit {
 			ru = Script.prepareScript(resourceRef);
 		}
 
-		ExtendedRunUnit s = new ExtendedRunUnit(ru, arguments, properties);
-		s.setForcejsh(forcejsh);
-		s.setAdditionalDependencies(dependencies);
-		s.setAdditionalClasspaths(classpaths);
-		return s;
+		ExtendedRunUnit xrunit = new ExtendedRunUnit(ru, arguments, properties);
+		xrunit.setForcejsh(forcejsh);
+		xrunit.setAdditionalDependencies(dependencies);
+		xrunit.setAdditionalClasspaths(classpaths);
+		return xrunit;
 	}
 
 	static ExtendedRunUnit forScript(String script, List<String> arguments,
@@ -165,10 +165,10 @@ public interface RunUnit {
 			List<String> dependencies, List<String> classpaths,
 			boolean fresh, boolean forcejsh) {
 		RunUnit ru = new Script(script);
-		ExtendedRunUnit s = new ExtendedRunUnit(ru, arguments, properties);
-		s.setForcejsh(forcejsh);
-		s.setAdditionalDependencies(dependencies);
-		s.setAdditionalClasspaths(classpaths);
-		return s;
+		ExtendedRunUnit xrunit = new ExtendedRunUnit(ru, arguments, properties);
+		xrunit.setForcejsh(forcejsh);
+		xrunit.setAdditionalDependencies(dependencies);
+		xrunit.setAdditionalClasspaths(classpaths);
+		return xrunit;
 	}
 }

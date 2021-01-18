@@ -168,9 +168,9 @@ public class TestScript extends BaseTest {
 		Map<String, String> p = new HashMap<>();
 		p.put("log4j.version", "1.2.9");
 
-		ExtendedRunUnit script = RunUnit.forScript(example, (List<String>) null, (Map<String, String>) p);
+		ExtendedRunUnit xrunit = RunUnit.forScript(example, (List<String>) null, (Map<String, String>) p);
 
-		List<String> dependencies = script.collectAllDependencies();
+		List<String> dependencies = xrunit.collectAllDependencies();
 		assertEquals(2, dependencies.size());
 
 		assertTrue(dependencies.contains("com.offbytwo:docopt:0.6.0.20150202"));
@@ -185,9 +185,9 @@ public class TestScript extends BaseTest {
 		createTmpFileWithContent("pkg1", "Hello.java", exampleURLInsourceHello);
 		createTmpFileWithContent("pkg1", "Bye.java", exampleURLInsourceBye);
 		String scriptURL = mainPath.toString();
-		ExtendedRunUnit script = RunUnit.forResource(scriptURL);
+		ExtendedRunUnit xrunit = RunUnit.forResource(scriptURL);
 
-		List<Script> resolvesourceRecursively = script.script().getAllSources();
+		List<Script> resolvesourceRecursively = xrunit.script().getAllSources();
 		assertTrue(resolvesourceRecursively.size() == 7);
 	}
 
@@ -234,11 +234,11 @@ public class TestScript extends BaseTest {
 		try {
 			Settings.getTrustedSources().add(url, tempFile);
 
-			ExtendedRunUnit script = RunUnit.forResource(url);
-			assertEquals(2, script.script().getAllSources().size());
+			ExtendedRunUnit xrunit = RunUnit.forResource(url);
+			assertEquals(2, xrunit.script().getAllSources().size());
 			boolean foundtwo = false;
 			boolean foundt3 = false;
-			for (Script source : script.script().getAllSources()) {
+			for (Script source : xrunit.script().getAllSources()) {
 				if (source.getResourceRef().getFile().getName().equals("two.java"))
 					foundtwo = true;
 				if (source.getResourceRef().getFile().getName().equals("t3.java"))
