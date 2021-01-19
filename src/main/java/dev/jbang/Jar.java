@@ -26,13 +26,8 @@ public class Jar implements RunUnit {
 		return resourceRef;
 	}
 
-	@Override
-	public File getBackingFile() {
-		return resourceRef.getFile();
-	}
-
 	public File getJar() {
-		return getBackingFile();
+		return getResourceRef().getFile();
 	}
 
 	@Override
@@ -52,11 +47,7 @@ public class Jar implements RunUnit {
 			classpath = new DependencyUtil().resolveDependencies(additionalDeps,
 					Collections.emptyList(), offline, !Util.isQuiet());
 		} else {
-			if (getBackingFile() == null) {
-				classpath = new ModularClassPath(Arrays.asList(new ArtifactInfo(null, getResourceRef().getFile())));
-			} else {
-				classpath = new ModularClassPath(Arrays.asList(new ArtifactInfo(null, getBackingFile())));
-			}
+			classpath = new ModularClassPath(Arrays.asList(new ArtifactInfo(null, getResourceRef().getFile())));
 		}
 		return classpath;
 	}

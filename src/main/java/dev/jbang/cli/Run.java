@@ -134,7 +134,7 @@ public class Run extends BaseBuildCommand {
 
 				optionalArgs.add("--startup=DEFAULT");
 
-				File tempFile = File.createTempFile("jbang_arguments_", xrunit.getBackingFile().getName());
+				File tempFile = File.createTempFile("jbang_arguments_", xrunit.getResourceRef().getFile().getName());
 
 				String defaultImports = "import java.lang.*;\n" +
 						"import java.util.*;\n" +
@@ -174,7 +174,7 @@ public class Run extends BaseBuildCommand {
 					// TODO: find way to generate ~/.jbang/script.jfc to configure flightrecorder to
 					// have 0 ms thresholds
 					String jfropt = "-XX:StartFlightRecording=" + flightRecorderString.replace("{baseName}",
-							Util.getBaseName(xrunit.getBackingFile().toString()));
+							Util.getBaseName(xrunit.getResourceRef().getFile().toString()));
 					optionalArgs.add(jfropt);
 					Util.verboseMsg("Flight recording enabled with:" + jfropt);
 				}
@@ -209,7 +209,7 @@ public class Run extends BaseBuildCommand {
 						if (agent.getJar() != null) {
 							jar = agent.getJar().toString();
 						} else if (agent.forJar()) {
-							jar = agent.getBackingFile().toString();
+							jar = agent.getResourceRef().getFile().toString();
 							// should we log a warning/error if agent jar not present ?
 						}
 						if (jar == null) {
@@ -238,7 +238,7 @@ public class Run extends BaseBuildCommand {
 					throw new ExitException(EXIT_INVALID_INPUT,
 							"no main class deduced, specified nor found in a manifest");
 				} else {
-					fullArgs.add(xrunit.getBackingFile().toString());
+					fullArgs.add(xrunit.getResourceRef().getFile().toString());
 				}
 			}
 		}
@@ -246,7 +246,7 @@ public class Run extends BaseBuildCommand {
 		if (!xrunit.forJShell()) {
 			addJavaArgs(xrunit.getArguments(), fullArgs);
 		} else if (!interactive) {
-			File tempFile = File.createTempFile("jbang_exit_", xrunit.getBackingFile().getName());
+			File tempFile = File.createTempFile("jbang_exit_", xrunit.getResourceRef().getFile().getName());
 			Util.writeString(tempFile.toPath(), "/exit");
 			fullArgs.add(tempFile.toString());
 		}

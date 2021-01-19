@@ -364,7 +364,7 @@ public class Script implements RunUnit {
 	}
 
 	public boolean forJShell() {
-		return RunUnit.forJShell(getBackingFile());
+		return RunUnit.forJShell(getResourceRef().getFile());
 	}
 
 	public File getJar() {
@@ -373,16 +373,11 @@ public class Script implements RunUnit {
 		}
 		if (jar == null) {
 			File baseDir = Settings.getCacheDir(Settings.CacheClass.jars).toFile();
-			File tmpJarDir = new File(baseDir, getBackingFile().getName() +
-					"." + Util.getStableID(getBackingFile()));
+			File tmpJarDir = new File(baseDir, getResourceRef().getFile().getName() +
+					"." + Util.getStableID(getResourceRef().getFile()));
 			jar = new File(tmpJarDir.getParentFile(), tmpJarDir.getName() + ".jar");
 		}
 		return jar;
-	}
-
-	@Override
-	public File getBackingFile() {
-		return resourceRef.getFile();
 	}
 
 	static private String getBackingFileContent(File backingFile) {
@@ -471,7 +466,8 @@ public class Script implements RunUnit {
 								.map(PropertiesValueResolver::replaceProperties)
 								.flatMap(line -> Util
 														.explode(getResourceRef().getOriginalResource(),
-																getBackingFile().getAbsoluteFile()
+																getResourceRef().getFile()
+																				.getAbsoluteFile()
 																				.getParentFile()
 																				.toPath(),
 																line)

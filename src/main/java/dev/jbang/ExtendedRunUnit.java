@@ -97,11 +97,11 @@ public class ExtendedRunUnit implements RunUnit {
 	}
 
 	public boolean forJar() {
-		return RunUnit.forJar(getBackingFile());
+		return RunUnit.forJar(getResourceRef().getFile());
 	}
 
 	public boolean forJShell() {
-		return forcejsh || RunUnit.forJShell(getBackingFile());
+		return forcejsh || RunUnit.forJShell(getResourceRef().getFile());
 	}
 
 	public void setForcejsh(boolean forcejsh) {
@@ -120,11 +120,6 @@ public class ExtendedRunUnit implements RunUnit {
 	@Override
 	public ResourceRef getResourceRef() {
 		return runUnit.getResourceRef();
-	}
-
-	@Override
-	public File getBackingFile() {
-		return runUnit.getBackingFile();
 	}
 
 	@Override
@@ -241,11 +236,11 @@ public class ExtendedRunUnit implements RunUnit {
 			if (runUnit instanceof Jar) {
 				// fetch main class as we can't use -jar to run as it ignores classpath.
 				if (getMainClass() == null) {
-					try (JarFile jf = new JarFile(getBackingFile())) {
+					try (JarFile jf = new JarFile(getResourceRef().getFile())) {
 						setMainClass(
 								jf.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS));
 					} catch (IOException e) {
-						Util.warnMsg("Problem reading manifest from " + getBackingFile());
+						Util.warnMsg("Problem reading manifest from " + getResourceRef().getFile());
 					}
 				}
 			}

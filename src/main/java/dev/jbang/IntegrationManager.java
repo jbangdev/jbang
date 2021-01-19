@@ -71,8 +71,8 @@ public class IntegrationManager {
 		PrintStream oldout = System.out;
 		try {
 			// TODO: should we add new properties to the integration method?
-			if (script.getBackingFile() != null) {
-				System.setProperty("jbang.source", script.getBackingFile().getAbsolutePath());
+			if (script.getResourceRef().getFile() != null) {
+				System.setProperty("jbang.source", script.getResourceRef().getFile().getAbsolutePath());
 			}
 			Thread.currentThread().setContextClassLoader(integrationCl);
 			Set<String> classNames = loadIntegrationClassNames(integrationCl);
