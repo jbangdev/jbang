@@ -150,12 +150,12 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		optionList.addAll(Arrays.asList("-d", tmpJarDir.getAbsolutePath()));
 
 		// add source files to compile
-		optionList.add(xrunit.getBackingFile().getPath());
+		optionList.add(xrunit.getResourceRef().getFile().getPath());
 		optionList.addAll(
 				xrunit	.script()
 						.getAllSources()
 						.stream()
-						.map(x -> x.getBackingFile().getPath())
+						.map(x -> x.getResourceRef().getFile().getPath())
 						.collect(Collectors.toList()));
 
 		// add additional files
@@ -172,7 +172,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 			Util.warnMsg("Could not locate pom.xml template");
 		} else {
 			String pomfile = pomTemplate
-										.data("baseName", Util.getBaseName(xrunit.getBackingFile().getName()))
+										.data("baseName", Util.getBaseName(xrunit.getResourceRef().getFile().getName()))
 										.data("dependencies", xrunit.getClassPath().getArtifacts())
 										.render();
 			pomPath = new File(tmpJarDir, "META-INF/maven/g/a/v/pom.xml").toPath();
@@ -213,7 +213,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 					if (items.size() > 1) { // todo: this feels like a very sketchy way to find the proper class
 											// name
 						// but it works.
-						String mainname = xrunit.getBackingFile().getName().replace(".java", ".class");
+						String mainname = xrunit.getResourceRef().getFile().getName().replace(".java", ".class");
 						items = items	.stream()
 										.filter(f -> f.toFile().getName().equalsIgnoreCase(mainname))
 										.collect(Collectors.toList());

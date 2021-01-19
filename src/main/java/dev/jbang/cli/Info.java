@@ -37,7 +37,7 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 			String cp = xrunit.resolveClassPath(offline);
 
 			originalResource = xrunit.getResourceRef().getOriginalResource();
-			backingResource = xrunit.getBackingFile().toString();
+			backingResource = xrunit.getResourceRef().getFile().toString();
 
 			if (cp.isEmpty()) {
 				resolvedDependencies = Collections.emptyList();

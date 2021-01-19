@@ -167,7 +167,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(result, containsString("hellojar.jar"));
 
-		assertThat(xrunit.getBackingFile().toString(), equalTo(jar));
+		assertThat(xrunit.getResourceRef().getFile().toString(), equalTo(jar));
 		assertThat(xrunit.forJar(), equalTo(true));
 
 		run.doCall();
@@ -217,7 +217,7 @@ public class TestRun extends BaseTest {
 				run.classpaths, run.fresh,
 				run.forcejsh);
 
-		assertThat(xrunit.getBackingFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
+		assertThat(xrunit.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
 
 		ExitException e = Assertions.assertThrows(ExitException.class, () -> run.generateCommandLine(xrunit));
 
@@ -252,7 +252,7 @@ public class TestRun extends BaseTest {
 				run.classpaths, run.fresh,
 				run.forcejsh);
 
-		assertThat(xrunit.getBackingFile().toString(), matchesPattern(".*.jar"));
+		assertThat(xrunit.getResourceRef().getFile().toString(), matchesPattern(".*.jar"));
 
 		String cmd = run.generateCommandLine(xrunit);
 
@@ -277,7 +277,7 @@ public class TestRun extends BaseTest {
 				run.classpaths, run.fresh,
 				run.forcejsh);
 
-		assertThat(xrunit.getBackingFile().toString(), matchesPattern(".*\\.m2.*eclipse.jgit.pgm.*.jar"));
+		assertThat(xrunit.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*eclipse.jgit.pgm.*.jar"));
 
 		run.generateCommandLine(xrunit);
 
@@ -305,7 +305,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(xrunit.getMainClass(), equalTo("picocli.codegen.aot.graalvm.ReflectionConfigGenerator"));
 
-		assertThat(xrunit.getBackingFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
+		assertThat(xrunit.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
 
 		assertThat(cmd, matchesPattern(".* -classpath .*picocli-4.5.0.jar.*"));
 		assertThat(cmd, not(containsString(" -jar ")));
@@ -427,7 +427,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(xrunit.toString(), not(containsString(url)));
 
-		MatcherAssert.assertThat(Util.readString(xrunit.getBackingFile().toPath()),
+		MatcherAssert.assertThat(Util.readString(xrunit.getResourceRef().getFile().toPath()),
 				containsString("Logger.getLogger(classpath_example.class);"));
 
 		Jbang jbang = new Jbang();
