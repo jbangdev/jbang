@@ -2,7 +2,18 @@ package dev.jbang;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.Scanner;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,7 +23,7 @@ import java.util.stream.Stream;
 import dev.jbang.cli.BaseCommand;
 
 /**
- * A Script represents a RunUnit (something runnable) in the form of a source
+ * A Script represents a Source (something runnable) in the form of a source
  * file. It's code that first needs to be compiled before it can be executed.
  * The Script extracts as much information from the source file as it can, like
  * all `//`-directives (eg. `//SOURCES`, `//DEPS`, etc.)
@@ -21,7 +32,7 @@ import dev.jbang.cli.BaseCommand;
  * induced from the source file. So all Scripts that refer to the same source
  * file will contain/return the exact same information.
  */
-public class Script implements RunUnit {
+public class ScriptSource implements Source {
 
 	public static final String BUILD_JDK = "Build-Jdk";
 	public static final String JBANG_JAVA_OPTIONS = "JBang-Java-Options";
@@ -48,20 +59,20 @@ public class Script implements RunUnit {
 	private List<MavenRepo> repositories;
 	private List<String> dependencies;
 	private List<FileRef> filerefs;
-	private List<Script> sources;
+	private List<ScriptSource> sources;
 	private List<KeyValue> agentOptions;
 	private Optional<String> description;
 	private File jar;
 
-	protected Script(String script) {
+	protected ScriptSource(String script) {
 		this(ResourceRef.forFile(null), script);
 	}
 
-	private Script(ResourceRef resourceRef) {
+	private ScriptSource(ResourceRef resourceRef) {
 		this(resourceRef, getBackingFileContent(resourceRef.getFile()));
 	}
 
-	private Script(ResourceRef resourceRef, String content) {
+	private ScriptSource(ResourceRef resourceRef, String content) {
 		this.resourceRef = resourceRef;
 		this.script = content;
 	}
@@ -108,8 +119,8 @@ public class Script implements RunUnit {
 		}
 
 		return lines.stream()
-					.filter(Script::isDependDeclare)
-					.flatMap(Script::extractDependencies)
+					.filter(ScriptSource::isDependDeclare)
+					.flatMap(ScriptSource::extractDependencies)
 					.map(it -> PropertiesValueResolver.replaceProperties(it, props))
 					.collect(Collectors.toList());
 	}
@@ -172,7 +183,7 @@ public class Script implements RunUnit {
 
 	public List<KeyValue> getAllAgentOptions() {
 		if (agentOptions == null) {
-			agentOptions = collectAll(Script::collectAgentOptions);
+			agentOptions = collectAll(ScriptSource::collectAgentOptions);
 		}
 		return agentOptions;
 	}
@@ -180,8 +191,8 @@ public class Script implements RunUnit {
 	private List<KeyValue> collectAgentOptions() {
 		return collectRawOptions("JAVAAGENT")	.stream()
 												.map(PropertiesValueResolver::replaceProperties)
-												.flatMap(Script::extractKeyValue)
-												.map(Script::toKeyValue)
+												.flatMap(ScriptSource::extractKeyValue)
+												.map(ScriptSource::toKeyValue)
 												.collect(Collectors.toCollection(ArrayList::new));
 	}
 
@@ -212,15 +223,15 @@ public class Script implements RunUnit {
 
 	public List<MavenRepo> getAllRepositories() {
 		if (repositories == null) {
-			repositories = collectAll(Script::collectRepositories);
+			repositories = collectAll(ScriptSource::collectRepositories);
 		}
 		return repositories;
 	}
 
 	private List<MavenRepo> collectRepositories() {
 		return getLines()	.stream()
-							.filter(Script::isRepoDeclare)
-							.flatMap(Script::extractRepositories)
+							.filter(ScriptSource::isRepoDeclare)
+							.flatMap(ScriptSource::extractRepositories)
 							.map(PropertiesValueResolver::replaceProperties)
 							.map(DependencyUtil::toMavenRepo)
 							.collect(Collectors.toCollection(ArrayList::new));
@@ -265,7 +276,7 @@ public class Script implements RunUnit {
 	public Optional<String> getDescription() {
 		if (description == null) {
 			String desc = getLines().stream()
-									.filter(Script::isDescriptionDeclare)
+									.filter(ScriptSource::isDescriptionDeclare)
 									.map(s -> s.substring(DESCRIPTION_COMMENT_PREFIX.length()))
 									.collect(Collectors.joining("\n"));
 			if (desc.isEmpty()) {
@@ -332,7 +343,7 @@ public class Script implements RunUnit {
 	}
 
 	public List<String> collectAllRuntimeOptions() {
-		return collectAll(Script::collectRuntimeOptions);
+		return collectAll(ScriptSource::collectRuntimeOptions);
 	}
 
 	public List<String> collectRuntimeOptions() {
@@ -340,7 +351,7 @@ public class Script implements RunUnit {
 	}
 
 	public List<String> collectAllCompileOptions() {
-		return collectAll(Script::collectCompileOptions);
+		return collectAll(ScriptSource::collectCompileOptions);
 	}
 
 	public List<String> collectCompileOptions() {
@@ -353,9 +364,9 @@ public class Script implements RunUnit {
 
 	@Override
 	public String javaVersion() {
-		Optional<String> version = collectAll(Script::collectJavaVersions)	.stream()
-																			.filter(JavaUtil::checkRequestedVersion)
-																			.max(new JavaUtil.RequestedVersionComparator());
+		Optional<String> version = collectAll(ScriptSource::collectJavaVersions).stream()
+																				.filter(JavaUtil::checkRequestedVersion)
+																				.max(new JavaUtil.RequestedVersionComparator());
 		return version.orElse(null);
 	}
 
@@ -364,7 +375,7 @@ public class Script implements RunUnit {
 	}
 
 	public boolean forJShell() {
-		return RunUnit.forJShell(getResourceRef().getFile());
+		return Source.forJShell(getResourceRef().getFile());
 	}
 
 	public File getJar() {
@@ -392,7 +403,7 @@ public class Script implements RunUnit {
 
 	public List<FileRef> getAllFiles() {
 		if (filerefs == null) {
-			filerefs = collectAll(Script::collectFiles);
+			filerefs = collectAll(ScriptSource::collectFiles);
 		}
 		return filerefs;
 	}
@@ -430,9 +441,9 @@ public class Script implements RunUnit {
 		}
 	}
 
-	public List<Script> getAllSources() {
+	public List<ScriptSource> getAllSources() {
 		if (sources == null) {
-			List<Script> scripts = new ArrayList<>();
+			List<ScriptSource> scripts = new ArrayList<>();
 			HashSet<ResourceRef> refs = new HashSet<>();
 			// We should only return sources but we must avoid circular references via this
 			// script, so we add this script's ref but not the script itself
@@ -443,9 +454,9 @@ public class Script implements RunUnit {
 		return sources;
 	}
 
-	private void collectAllSources(Set<ResourceRef> refs, List<Script> scripts) {
-		List<Script> srcs = collectSources();
-		for (Script s : srcs) {
+	private void collectAllSources(Set<ResourceRef> refs, List<ScriptSource> scripts) {
+		List<ScriptSource> srcs = collectSources();
+		for (ScriptSource s : srcs) {
 			if (!refs.contains(s.resourceRef)) {
 				refs.add(s.resourceRef);
 				scripts.add(s);
@@ -454,7 +465,7 @@ public class Script implements RunUnit {
 		}
 	}
 
-	private List<Script> collectSources() {
+	private List<ScriptSource> collectSources() {
 		if (getLines() == null) {
 			return Collections.emptyList();
 		} else {
@@ -473,22 +484,22 @@ public class Script implements RunUnit {
 																line)
 														.stream())
 								.map(resourceRef::asSibling)
-								.map(Script::prepareScript)
+								.map(ScriptSource::prepareScript)
 								.collect(Collectors.toCollection(ArrayList::new));
 		}
 	}
 
-	private <R> List<R> collectAll(Function<Script, List<R>> func) {
+	private <R> List<R> collectAll(Function<ScriptSource, List<R>> func) {
 		Stream<R> subs = getAllSources().stream().map(s -> func.apply(s).stream()).flatMap(i -> i);
 		return Stream.concat(func.apply(this).stream(), subs).collect(Collectors.toList());
 	}
 
-	public static Script prepareScript(String resource) {
+	public static ScriptSource prepareScript(String resource) {
 		ResourceRef resourceRef = ResourceRef.forResource(resource);
 		return prepareScript(resourceRef);
 	}
 
-	public static Script prepareScript(ResourceRef resourceRef) {
-		return new Script(resourceRef);
+	public static ScriptSource prepareScript(ResourceRef resourceRef) {
+		return new ScriptSource(resourceRef);
 	}
 }

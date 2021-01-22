@@ -16,7 +16,13 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import dev.jbang.*;
+import dev.jbang.DecoratedSource;
+import dev.jbang.ExitException;
+import dev.jbang.JdkManager;
+import dev.jbang.Settings;
+import dev.jbang.Source;
+import dev.jbang.UnpackUtil;
+import dev.jbang.Util;
 
 import picocli.CommandLine;
 
@@ -91,7 +97,7 @@ class AppInstall extends BaseCommand {
 			Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
 			return false;
 		}
-		ExtendedRunUnit xrunit = RunUnit.forResource(scriptRef);
+		DecoratedSource xrunit = Source.forResource(scriptRef);
 		if (name == null) {
 			name = chooseCommandName(xrunit);
 			if (!force && existScripts(binDir, name)) {
@@ -112,7 +118,7 @@ class AppInstall extends BaseCommand {
 				|| Files.exists(binDir.resolve(name + ".ps1"));
 	}
 
-	public static String chooseCommandName(ExtendedRunUnit xrunit) {
+	public static String chooseCommandName(DecoratedSource xrunit) {
 		String startName = null;
 		String name;
 		if (xrunit.getAlias() != null) {

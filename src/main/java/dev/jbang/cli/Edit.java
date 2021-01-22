@@ -22,7 +22,19 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import dev.jbang.*;
+import dev.jbang.ConsoleInput;
+import dev.jbang.DecoratedSource;
+import dev.jbang.DependencyUtil;
+import dev.jbang.EditorManager;
+import dev.jbang.ExitException;
+import dev.jbang.JitPackUtil;
+import dev.jbang.MavenRepo;
+import dev.jbang.ScriptSource;
+import dev.jbang.Settings;
+import dev.jbang.Source;
+import dev.jbang.StrictParameterPreprocessor;
+import dev.jbang.TemplateEngine;
+import dev.jbang.Util;
 
 import io.quarkus.qute.Template;
 import picocli.CommandLine;
@@ -45,7 +57,7 @@ public class Edit extends BaseScriptCommand {
 			enableInsecure();
 		}
 
-		xrunit = RunUnit.forResource(scriptOrFile);
+		xrunit = Source.forResource(scriptOrFile);
 		File project = createProjectForEdit(xrunit, false);
 		// err.println(project.getAbsolutePath());
 
@@ -95,7 +107,7 @@ public class Edit extends BaseScriptCommand {
 							try {
 								// TODO only regenerate when dependencies changes.
 								info("Regenerating project.");
-								xrunit = RunUnit.forResource(scriptOrFile);
+								xrunit = Source.forResource(scriptOrFile);
 								createProjectForEdit(xrunit, true);
 							} catch (RuntimeException ee) {
 								warn("Error when re-generating project. Ignoring it, but state might be undefined: "
@@ -187,7 +199,7 @@ public class Edit extends BaseScriptCommand {
 	}
 
 	/** Create Project to use for editing **/
-	File createProjectForEdit(ExtendedRunUnit xrunit, boolean reload) throws IOException {
+	File createProjectForEdit(DecoratedSource xrunit, boolean reload) throws IOException {
 
 		File originalFile = xrunit.getResourceRef().getFile();
 
@@ -212,8 +224,8 @@ public class Edit extends BaseScriptCommand {
 		Path srcFile = srcDir.toPath().resolve(name);
 		Util.createLink(srcFile, originalFile.toPath());
 
-		if (xrunit.runUnit instanceof Script) {
-			for (Script source : xrunit.script().getAllSources()) {
+		if (xrunit.getSource() instanceof ScriptSource) {
+			for (ScriptSource source : xrunit.script().getAllSources()) {
 				File sfile = null;
 				if (source.getJavaPackage().isPresent()) {
 					File packageDir = new File(srcDir, source.getJavaPackage().get().replace(".", File.separator));

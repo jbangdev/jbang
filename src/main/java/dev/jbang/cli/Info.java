@@ -10,8 +10,8 @@ import java.util.List;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import dev.jbang.ExtendedRunUnit;
-import dev.jbang.RunUnit;
+import dev.jbang.DecoratedSource;
+import dev.jbang.Source;
 
 import picocli.CommandLine;
 
@@ -32,7 +32,7 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 
 		String javaVersion;
 
-		public ScriptInfo(ExtendedRunUnit xrunit) {
+		public ScriptInfo(DecoratedSource xrunit) {
 			List<String> collectDependencies = xrunit.collectAllDependencies();
 			String cp = xrunit.resolveClassPath(offline);
 
@@ -55,7 +55,7 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 			enableInsecure();
 		}
 
-		xrunit = RunUnit.forResource(scriptOrFile);
+		xrunit = Source.forResource(scriptOrFile);
 
 		ScriptInfo info = new ScriptInfo(xrunit);
 
