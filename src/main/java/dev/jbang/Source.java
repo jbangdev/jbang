@@ -9,10 +9,10 @@ import java.util.Properties;
 import dev.jbang.cli.BaseCommand;
 
 /**
- * A RunUnit is an interface for classes representing forms of
- * runnable/executable code.
+ * A Source is an interface for classes representing different inputs (sources)
+ * that can be used as or turned into executable code.
  */
-public interface RunUnit {
+public interface Source {
 
 	/**
 	 * Returns the reference to resource to be executed. This contains both the
@@ -66,20 +66,20 @@ public interface RunUnit {
 		return backingFile != null && backingFile.toString().endsWith(".jsh");
 	}
 
-	static ExtendedRunUnit forResource(String resource) {
+	static DecoratedSource forResource(String resource) {
 		return forResource(resource, null, null, null, null, false, false);
 	}
 
-	static ExtendedRunUnit forResource(String resource, List<String> arguments) {
+	static DecoratedSource forResource(String resource, List<String> arguments) {
 		return forResource(resource, arguments, null, null, null, false, false);
 	}
 
-	static ExtendedRunUnit forResource(String resource, List<String> arguments,
+	static DecoratedSource forResource(String resource, List<String> arguments,
 			Map<String, String> properties) {
 		return forResource(resource, arguments, properties, null, null, false, false);
 	}
 
-	static ExtendedRunUnit forResource(String resource, List<String> arguments,
+	static DecoratedSource forResource(String resource, List<String> arguments,
 			Map<String, String> properties,
 			List<String> dependencies, List<String> classpaths, boolean fresh, boolean forcejsh) {
 		ResourceRef resourceRef = ResourceRef.forResource(resource);
@@ -108,14 +108,14 @@ public interface RunUnit {
 
 		// note script file must be not null at this point
 
-		RunUnit ru;
+		Source ru;
 		if (resourceRef.getFile().getName().endsWith(".jar")) {
-			ru = Jar.prepareJar(resourceRef);
+			ru = JarSource.prepareJar(resourceRef);
 		} else {
-			ru = Script.prepareScript(resourceRef);
+			ru = ScriptSource.prepareScript(resourceRef);
 		}
 
-		ExtendedRunUnit xrunit = new ExtendedRunUnit(ru, arguments, properties);
+		DecoratedSource xrunit = new DecoratedSource(ru, arguments, properties);
 		xrunit.setForcejsh(forcejsh);
 		xrunit.setOriginalRef(resource);
 		xrunit.setAlias(alias);
@@ -124,40 +124,40 @@ public interface RunUnit {
 		return xrunit;
 	}
 
-	static ExtendedRunUnit forScriptResource(ResourceRef resourceRef, List<String> arguments,
+	static DecoratedSource forScriptResource(ResourceRef resourceRef, List<String> arguments,
 			Map<String, String> properties) {
 		return forScriptResource(resourceRef, arguments, properties, null, null, false, false);
 	}
 
-	static ExtendedRunUnit forScriptResource(ResourceRef resourceRef, List<String> arguments,
+	static DecoratedSource forScriptResource(ResourceRef resourceRef, List<String> arguments,
 			Map<String, String> properties,
 			List<String> dependencies, List<String> classpaths, boolean fresh, boolean forcejsh) {
 		// note script file must be not null at this point
-		RunUnit ru;
+		Source ru;
 		if (resourceRef.getFile().getName().endsWith(".jar")) {
-			ru = Jar.prepareJar(resourceRef);
+			ru = JarSource.prepareJar(resourceRef);
 		} else {
-			ru = Script.prepareScript(resourceRef);
+			ru = ScriptSource.prepareScript(resourceRef);
 		}
 
-		ExtendedRunUnit xrunit = new ExtendedRunUnit(ru, arguments, properties);
+		DecoratedSource xrunit = new DecoratedSource(ru, arguments, properties);
 		xrunit.setForcejsh(forcejsh);
 		xrunit.setAdditionalDependencies(dependencies);
 		xrunit.setAdditionalClasspaths(classpaths);
 		return xrunit;
 	}
 
-	static ExtendedRunUnit forScript(String script, List<String> arguments,
+	static DecoratedSource forScript(String script, List<String> arguments,
 			Map<String, String> properties) {
 		return forScript(script, arguments, properties, null, null, false, false);
 	}
 
-	static ExtendedRunUnit forScript(String script, List<String> arguments,
+	static DecoratedSource forScript(String script, List<String> arguments,
 			Map<String, String> properties,
 			List<String> dependencies, List<String> classpaths,
 			boolean fresh, boolean forcejsh) {
-		RunUnit ru = new Script(script);
-		ExtendedRunUnit xrunit = new ExtendedRunUnit(ru, arguments, properties);
+		Source ru = new ScriptSource(script);
+		DecoratedSource xrunit = new DecoratedSource(ru, arguments, properties);
 		xrunit.setForcejsh(forcejsh);
 		xrunit.setAdditionalDependencies(dependencies);
 		xrunit.setAdditionalClasspaths(classpaths);

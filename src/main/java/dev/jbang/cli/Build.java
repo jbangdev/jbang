@@ -2,8 +2,8 @@ package dev.jbang.cli;
 
 import java.io.IOException;
 
-import dev.jbang.ExtendedRunUnit;
-import dev.jbang.RunUnit;
+import dev.jbang.DecoratedSource;
+import dev.jbang.Source;
 
 import picocli.CommandLine.Command;
 
@@ -16,11 +16,11 @@ public class Build extends BaseBuildCommand {
 			enableInsecure();
 		}
 
-		xrunit = RunUnit.forResource(scriptOrFile, null, properties, dependencies, classpaths, fresh,
+		xrunit = Source.forResource(scriptOrFile, null, properties, dependencies, classpaths, fresh,
 				forcejsh);
 
 		if (xrunit.needsJar()) {
-			build((ExtendedRunUnit) xrunit);
+			build((DecoratedSource) xrunit);
 		}
 
 		return EXIT_OK;

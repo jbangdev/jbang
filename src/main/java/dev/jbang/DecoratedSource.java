@@ -10,17 +10,17 @@ import java.util.stream.Stream;
 
 /**
  * This class wraps a reference to an runnable/executable resource in the form
- * of a RunUnit. It also holds all additional information necessary to be able
- * to actually run/execute that resource. This is information that can not be
+ * of a Source. It also holds all additional information necessary to be able to
+ * actually run/execute that resource. This is information that can not be
  * induced or extracted from the resource itself but is information that is
  * provided by the user or by the environment at runtime.
  *
- * This class also implements RunUnit, passing all calls directly to the wrapped
- * RunUnit object. This makes it easier to use this class in places where it's
- * not really important to know with what type or RunUnit we're dealing.
+ * This class also implements Source, passing all calls directly to the wrapped
+ * Source object. This makes it easier to use this class in places where it's
+ * not really important to know with what type or Source we're dealing.
  */
-public class ExtendedRunUnit implements RunUnit {
-	final public RunUnit runUnit;
+public class DecoratedSource implements Source {
+	final private Source source;
 	final private List<String> arguments;
 	final private Map<String, String> properties;
 
@@ -36,7 +36,7 @@ public class ExtendedRunUnit implements RunUnit {
 	 * in
 	 **/
 	private String javaAgentOption;
-	private List<ExtendedRunUnit> javaAgents;
+	private List<DecoratedSource> javaAgents;
 	private String preMainClass;
 	private String agentMainClass;
 
@@ -44,18 +44,18 @@ public class ExtendedRunUnit implements RunUnit {
 
 	private ModularClassPath classpath;
 
-	protected ExtendedRunUnit(RunUnit runUnit, List<String> arguments, Map<String, String> properties) {
-		this.runUnit = runUnit;
+	protected DecoratedSource(Source source, List<String> arguments, Map<String, String> properties) {
+		this.source = source;
 		this.arguments = arguments;
 		this.properties = properties;
 	}
 
-	public Script script() {
-		return (Script) runUnit;
+	public ScriptSource script() {
+		return (ScriptSource) source;
 	}
 
-	public Jar jar() {
-		return (Jar) runUnit;
+	public JarSource jar() {
+		return (JarSource) source;
 	}
 
 	public List<String> getArguments() {
@@ -97,11 +97,11 @@ public class ExtendedRunUnit implements RunUnit {
 	}
 
 	public boolean forJar() {
-		return RunUnit.forJar(getResourceRef().getFile());
+		return Source.forJar(getResourceRef().getFile());
 	}
 
 	public boolean forJShell() {
-		return forcejsh || RunUnit.forJShell(getResourceRef().getFile());
+		return forcejsh || Source.forJShell(getResourceRef().getFile());
 	}
 
 	public void setForcejsh(boolean forcejsh) {
@@ -117,24 +117,20 @@ public class ExtendedRunUnit implements RunUnit {
 		return !(forJar() || forJShell());
 	}
 
-	@Override
 	public ResourceRef getResourceRef() {
-		return runUnit.getResourceRef();
+		return source.getResourceRef();
 	}
 
-	@Override
 	public Optional<String> getDescription() {
-		return runUnit.getDescription();
+		return source.getDescription();
 	}
 
-	@Override
 	public File getJar() {
-		return runUnit.getJar();
+		return source.getJar();
 	}
 
-	@Override
 	public String javaVersion() {
-		return runUnit.javaVersion();
+		return source.javaVersion();
 	}
 
 	public void setOriginalRef(String ref) {
@@ -204,26 +200,24 @@ public class ExtendedRunUnit implements RunUnit {
 		return getAllDependencies(p);
 	}
 
-	public List<ExtendedRunUnit> getJavaAgents() {
+	public List<DecoratedSource> getJavaAgents() {
 		return javaAgents != null ? javaAgents : Collections.emptyList();
 	}
 
-	public void addJavaAgent(ExtendedRunUnit agent) {
+	public void addJavaAgent(DecoratedSource agent) {
 		if (javaAgents == null) {
 			javaAgents = new ArrayList<>();
 		}
 		javaAgents.add(agent);
 	}
 
-	@Override
 	public List<String> getAllDependencies(Properties props) {
-		return Stream	.concat(additionalDeps.stream(), runUnit.getAllDependencies(props).stream())
+		return Stream	.concat(additionalDeps.stream(), source.getAllDependencies(props).stream())
 						.collect(Collectors.toList());
 	}
 
-	@Override
 	public ModularClassPath resolveClassPath(List<String> dependencies, boolean offline) {
-		return runUnit.resolveClassPath(dependencies, offline);
+		return source.resolveClassPath(dependencies, offline);
 	}
 
 	/**
@@ -233,7 +227,7 @@ public class ExtendedRunUnit implements RunUnit {
 	public String resolveClassPath(boolean offline) {
 		if (classpath == null) {
 			classpath = resolveClassPath(collectAllDependencies(), offline);
-			if (runUnit instanceof Jar) {
+			if (source instanceof JarSource) {
 				// fetch main class as we can't use -jar to run as it ignores classpath.
 				if (getMainClass() == null) {
 					try (JarFile jf = new JarFile(getResourceRef().getFile())) {
@@ -249,7 +243,7 @@ public class ExtendedRunUnit implements RunUnit {
 		for (String addcp : additionalClasspaths) {
 			cp.append(Settings.CP_SEPARATOR + addcp);
 		}
-		if (runUnit.getJar() != null && !forcejsh) {
+		if (source.getJar() != null && !forcejsh) {
 			return getJar().getAbsolutePath() + Settings.CP_SEPARATOR + cp.toString();
 		}
 		return cp.toString();
@@ -260,5 +254,9 @@ public class ExtendedRunUnit implements RunUnit {
 			resolveClassPath(offline);
 		}
 		return classpath.getAutoDectectedModuleArguments(requestedVersion);
+	}
+
+	public Source getSource() {
+		return source;
 	}
 }

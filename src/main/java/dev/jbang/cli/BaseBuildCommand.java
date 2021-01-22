@@ -28,7 +28,18 @@ import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
 import org.jboss.jandex.Type;
 
-import dev.jbang.*;
+import dev.jbang.DecoratedSource;
+import dev.jbang.ExitException;
+import dev.jbang.FileRef;
+import dev.jbang.IntegrationManager;
+import dev.jbang.IntegrationResult;
+import dev.jbang.JarUtil;
+import dev.jbang.JavaUtil;
+import dev.jbang.JdkManager;
+import dev.jbang.KeyValue;
+import dev.jbang.ScriptSource;
+import dev.jbang.Settings;
+import dev.jbang.Util;
 
 import io.quarkus.qute.Template;
 import picocli.CommandLine;
@@ -86,7 +97,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 	protected boolean createdJar;
 
 	// build with javac and then jar... todo: split up in more testable chunks
-	void build(ExtendedRunUnit xrunit) throws IOException {
+	void build(DecoratedSource xrunit) throws IOException {
 		for (Map.Entry<String, String> entry : properties.entrySet()) {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
@@ -96,7 +107,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 				xrunit.setMainClass(
 						jf.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS));
 
-				String val = jf.getManifest().getMainAttributes().getValue(Script.JBANG_JAVA_OPTIONS);
+				String val = jf.getManifest().getMainAttributes().getValue(ScriptSource.JBANG_JAVA_OPTIONS);
 				if (val != null) {
 					xrunit.setPersistentJvmArgs(Arrays.asList( // should parse it but we are assuming it just gets
 							// appendeed
@@ -105,7 +116,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 				}
 				xrunit.setBuildJdk(
 						JavaUtil.parseJavaVersion(
-								jf.getManifest().getMainAttributes().getValue(Script.BUILD_JDK)));
+								jf.getManifest().getMainAttributes().getValue(ScriptSource.BUILD_JDK)));
 			}
 		}
 
@@ -137,7 +148,8 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		}
 	}
 
-	private IntegrationResult buildJar(ExtendedRunUnit xrunit, File tmpJarDir, File outjar, String requestedJavaVersion)
+	private IntegrationResult buildJar(DecoratedSource xrunit, File tmpJarDir, File outjar,
+			String requestedJavaVersion)
 			throws IOException {
 		IntegrationResult integrationResult;
 		List<String> optionList = new ArrayList<String>();
@@ -284,7 +296,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		return integrationResult;
 	}
 
-	private void buildNative(ExtendedRunUnit xrunit, File outjar, String requestedJavaVersion) throws IOException {
+	private void buildNative(DecoratedSource xrunit, File outjar, String requestedJavaVersion) throws IOException {
 		List<String> optionList = new ArrayList<String>();
 		optionList.add(resolveInGraalVMHome("native-image", requestedJavaVersion));
 
@@ -318,7 +330,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		}
 	}
 
-	static void createJarFile(ExtendedRunUnit xrunit, File path, File output) throws IOException {
+	static void createJarFile(DecoratedSource xrunit, File path, File output) throws IOException {
 		String mainclass = xrunit.getMainClass();
 		Manifest manifest = new Manifest();
 		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");

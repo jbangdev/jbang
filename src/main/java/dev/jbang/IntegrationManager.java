@@ -2,7 +2,14 @@ package dev.jbang;
 
 import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -45,7 +52,7 @@ public class IntegrationManager {
 	 */
 	public static IntegrationResult runIntegration(List<MavenRepo> repositories, List<ArtifactInfo> artifacts,
 			Path tmpJarDir,
-			Path pomPath, Script script,
+			Path pomPath, ScriptSource script,
 			boolean nativeRequested) {
 		URL[] urls = artifacts.stream().map(s -> {
 			try {

@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.*;
 
 /**
- * A Jar represents a RunUnit (something runnable) in the form of a JAR file.
+ * A Jar represents a Source (something runnable) in the form of a JAR file.
  * It's a reference to an already existing JAR file, either as a solitary file
  * on the user's file system or accessible via a URL. But it can also be a Maven
  * GAV (group:artifact:version) reference resolving to a JAR file in the Maven
@@ -14,10 +14,10 @@ import java.util.*;
  * extracted from the JAR file itself. So all Jars that refer to the same JAR
  * file will contain/return the exact same information.
  */
-public class Jar implements RunUnit {
+public class JarSource implements Source {
 	private final ResourceRef resourceRef;
 
-	private Jar(ResourceRef resourceRef) {
+	private JarSource(ResourceRef resourceRef) {
 		this.resourceRef = resourceRef;
 	}
 
@@ -57,7 +57,7 @@ public class Jar implements RunUnit {
 		return null;
 	}
 
-	public static Jar prepareJar(ResourceRef resourceRef) {
-		return new Jar(resourceRef);
+	public static JarSource prepareJar(ResourceRef resourceRef) {
+		return new JarSource(resourceRef);
 	}
 }

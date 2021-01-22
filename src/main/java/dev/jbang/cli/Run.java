@@ -15,7 +15,12 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.text.StringEscapeUtils;
 
-import dev.jbang.*;
+import dev.jbang.DecoratedSource;
+import dev.jbang.ExitException;
+import dev.jbang.JavaUtil;
+import dev.jbang.ScriptSource;
+import dev.jbang.Source;
+import dev.jbang.Util;
 
 import picocli.CommandLine;
 
@@ -66,7 +71,7 @@ public class Run extends BaseBuildCommand {
 		}
 
 		xrunit = prepareArtifacts(
-				RunUnit.forResource(scriptOrFile, userParams, properties, dependencies, classpaths, fresh,
+				Source.forResource(scriptOrFile, userParams, properties, dependencies, classpaths, fresh,
 						forcejsh));
 
 		String cmdline = generateCommandLine(xrunit);
@@ -76,7 +81,7 @@ public class Run extends BaseBuildCommand {
 		return EXIT_EXECUTE;
 	}
 
-	ExtendedRunUnit prepareArtifacts(ExtendedRunUnit xrunit) throws IOException {
+	DecoratedSource prepareArtifacts(DecoratedSource xrunit) throws IOException {
 		if (xrunit.needsJar()) {
 			build(xrunit);
 		}
@@ -86,7 +91,7 @@ public class Run extends BaseBuildCommand {
 				String javaAgent = agentOption.getKey();
 				Optional<String> javaAgentOptions = agentOption.getValue();
 
-				ExtendedRunUnit agentXrunit = RunUnit.forResource(javaAgent, userParams, properties,
+				DecoratedSource agentXrunit = Source.forResource(javaAgent, userParams, properties,
 						dependencies, classpaths, fresh, forcejsh);
 				agentXrunit.setJavaAgentOption(javaAgentOptions.orElse(null));
 				if (agentXrunit.needsJar()) {
@@ -100,7 +105,7 @@ public class Run extends BaseBuildCommand {
 		return xrunit;
 	}
 
-	String generateCommandLine(ExtendedRunUnit xrunit) throws IOException {
+	String generateCommandLine(DecoratedSource xrunit) throws IOException {
 
 		List<String> fullArgs = new ArrayList<>();
 
@@ -184,7 +189,7 @@ public class Run extends BaseBuildCommand {
 					optionalArgs.add(classpath);
 				}
 
-				if (xrunit.runUnit instanceof Script && optionActive(cds(), xrunit.script().enableCDS())) {
+				if (xrunit.getSource() instanceof ScriptSource && optionActive(cds(), xrunit.script().enableCDS())) {
 					String cdsJsa = xrunit.getJar().getAbsolutePath() + ".jsa";
 					if (createdJar) {
 						debug("CDS: Archiving Classes At Exit at " + cdsJsa);
@@ -221,7 +226,7 @@ public class Run extends BaseBuildCommand {
 
 					});
 
-			if (xrunit.runUnit instanceof Script) {
+			if (xrunit.getSource() instanceof ScriptSource) {
 				fullArgs.addAll(xrunit.script().collectRuntimeOptions());
 			}
 			fullArgs.addAll(xrunit.getAutoDetectedModuleArguments(requestedJavaVersion, offline));
