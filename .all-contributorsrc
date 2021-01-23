@@ -501,6 +501,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "soul2zimate",
+      "name": "Chao Wang",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1904517?v=4",
+      "profile": "https://github.com/soul2zimate",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
