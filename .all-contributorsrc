@@ -501,6 +501,7 @@
       "contributions": [
         "code"
       ]
+    },
     {
       "login": "msgilligan",
       "name": "Sean Gilligan",
@@ -510,3 +511,5 @@
         "doc"
       ]
     }
+  ]
+}
