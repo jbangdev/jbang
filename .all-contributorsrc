@@ -501,7 +501,6 @@
       "contributions": [
         "code"
       ]
-    },
     {
       "login": "msgilligan",
       "name": "Sean Gilligan",
@@ -511,8 +510,3 @@
         "doc"
       ]
     }
-  ],
-  "contributorsPerLine": 7,
-  "contributorsSortAlphabetically": true,
-  "skipCi": true
-}
