@@ -1,6 +1,6 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-54-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-55-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 ## Contributors ✨
 
@@ -69,11 +69,12 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="http://pardini.net"><img src="https://avatars3.githubusercontent.com/u/639959?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ricardo Pardini</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=rpardini" title="Code">💻</a></td>
     <td align="center"><a href="https://twitter.com/r_svoboda"><img src="https://avatars0.githubusercontent.com/u/925259?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Rostislav Svoboda</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=rsvoboda" title="Documentation">📖</a> <a href="https://github.com/jbangdev/jbang/commits?author=rsvoboda" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/ssaarinen"><img src="https://avatars2.githubusercontent.com/u/384839?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Samuli Saarinen</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/issues?q=author%3Assaarinen" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="http://code.msgilligan.com"><img src="https://avatars.githubusercontent.com/u/61612?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Sean Gilligan</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=msgilligan" title="Documentation">📖</a></td>
     <td align="center"><a href="https://www.redhat.com/"><img src="https://avatars0.githubusercontent.com/u/1614429?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Sergii Kabashniuk</b></sub></a><br /><a href="#example-skabashnyuk" title="Examples">💡</a></td>
     <td align="center"><a href="https://github.com/ShoeBoom"><img src="https://avatars3.githubusercontent.com/u/15147944?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Shubham Bhardwaj</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=ShoeBoom" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/stuartwdouglas"><img src="https://avatars0.githubusercontent.com/u/328571?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Stuart Douglas</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=stuartwdouglas" title="Code">💻</a></td>
   </tr>
   <tr>
+    <td align="center"><a href="https://github.com/stuartwdouglas"><img src="https://avatars0.githubusercontent.com/u/328571?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Stuart Douglas</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=stuartwdouglas" title="Code">💻</a></td>
     <td align="center"><a href="http://sunix.org/"><img src="https://avatars0.githubusercontent.com/u/650571?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Sun Seng David TAN</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=sunix" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/quintesse"><img src="https://avatars0.githubusercontent.com/u/778793?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Tako Schotanus</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=quintesse" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/dem2k"><img src="https://avatars1.githubusercontent.com/u/14839058?v=4?s=100" width="100px;" alt=""/><br /><sub><b>dem2k</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=dem2k" title="Code">💻</a></td>
