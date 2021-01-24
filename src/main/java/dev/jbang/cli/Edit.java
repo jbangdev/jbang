@@ -179,7 +179,9 @@ public class Edit extends BaseScriptCommand {
 					editor.get(),
 					"--install-extension", "redhat.java",
 					"--install-extension", "vscjava.vscode-java-debug",
-					"--install-extension", "vscjava.vscode-java-test" });
+					"--install-extension", "vscjava.vscode-java-test",
+					"--install-extension", "vscjava.vscode-java-dependency"
+			});
 			pb.inheritIO();
 			Process process = pb.start();
 			try {
