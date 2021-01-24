@@ -12,6 +12,8 @@ plugins {
 	id "com.dorongold.task-tree" version "1.5"
 	id "com.geoffgranum.gradle-conventional-changelog" version "0.3.1"
 	id "org.asciidoctor.jvm.convert" version "3.3.0"
+	id "org.ajoberstar.grgit" version "4.1.0"
+
 }
 
 repositories {
@@ -297,7 +299,11 @@ githubRelease {
 	token = project.hasProperty('github_token') ? getProperty('github_token') : "unknown_github_token"
 	owner = "jbangdev"
 	draft = true
-	body = "## News"
+	try {
+		body = grgit.resolve.toTag(project.version).fullMessage
+	} catch (Exception e) {
+		body = "No tag description found for " + project.version
+	}
 }
 
 versioner {
