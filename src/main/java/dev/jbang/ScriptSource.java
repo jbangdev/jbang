@@ -2,6 +2,7 @@ package dev.jbang;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -12,7 +13,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -386,12 +386,11 @@ public class ScriptSource implements Source {
 	}
 
 	static private String getBackingFileContent(File backingFile) {
-		try (Scanner sc = new Scanner(backingFile)) {
-			sc.useDelimiter("\\Z");
-			return sc.hasNext() ? sc.next() : "";
+		try {
+			return new String(Files.readAllBytes(backingFile.toPath()));
 		} catch (IOException e) {
 			throw new ExitException(BaseCommand.EXIT_UNEXPECTED_STATE,
-					"Could not read script content for " + backingFile);
+					"Could not read script content for " + backingFile, e);
 		}
 	}
 
