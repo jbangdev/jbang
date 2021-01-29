@@ -18,7 +18,6 @@ import org.apache.commons.text.StringEscapeUtils;
 import dev.jbang.DecoratedSource;
 import dev.jbang.ExitException;
 import dev.jbang.JavaUtil;
-import dev.jbang.ScriptSource;
 import dev.jbang.Settings;
 import dev.jbang.Util;
 
@@ -233,9 +232,7 @@ public class Run extends BaseBuildCommand {
 
 					});
 
-			if (xrunit.getSource() instanceof ScriptSource) {
-				fullArgs.addAll(xrunit.script().collectRuntimeOptions());
-			}
+			fullArgs.addAll(xrunit.getRuntimeOptions());
 			fullArgs.addAll(xrunit.getAutoDetectedModuleArguments(requestedJavaVersion, offline));
 			fullArgs.addAll(optionalArgs);
 
