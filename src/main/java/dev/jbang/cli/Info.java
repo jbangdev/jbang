@@ -3,6 +3,7 @@ package dev.jbang.cli;
 import static dev.jbang.Settings.CP_SEPARATOR;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -27,6 +28,10 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 
 		String backingResource;
 
+		String applicationJar;
+
+		String mainClass;
+
 		List<String> resolvedDependencies;
 
 		String javaVersion;
@@ -37,6 +42,9 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 
 			originalResource = xrunit.getResourceRef().getOriginalResource();
 			backingResource = xrunit.getResourceRef().getFile().toString();
+
+			applicationJar = xrunit.getJar().getAbsolutePath();
+			mainClass = xrunit.getMainClass();
 
 			if (cp.isEmpty()) {
 				resolvedDependencies = Collections.emptyList();
@@ -82,7 +90,13 @@ class ClassPath extends BaseInfoCommand {
 	@Override
 	public Integer doCall() throws IOException {
 
-		System.out.println(String.join(CP_SEPARATOR, getInfo().resolvedDependencies));
+		ScriptInfo info = getInfo();
+		List<String> cp = new ArrayList<>(info.resolvedDependencies.size() + 1);
+		if (info.applicationJar != null) {
+			cp.add(info.applicationJar);
+		}
+		cp.addAll(info.resolvedDependencies);
+		System.out.println(String.join(CP_SEPARATOR, cp));
 
 		return EXIT_OK;
 	}
