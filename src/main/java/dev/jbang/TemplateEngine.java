@@ -7,7 +7,11 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
-import io.quarkus.qute.*;
+import io.quarkus.qute.Engine;
+import io.quarkus.qute.ReflectionValueResolver;
+import io.quarkus.qute.Template;
+import io.quarkus.qute.TemplateLocator;
+import io.quarkus.qute.Variant;
 
 public class TemplateEngine {
 
