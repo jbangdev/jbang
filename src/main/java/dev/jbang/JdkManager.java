@@ -130,7 +130,7 @@ public class JdkManager {
 
 	public static Set<Integer> listInstalledJdks() {
 		if (Files.isDirectory(getJdksPath())) {
-			Supplier<TreeSet<Integer>> sset = () -> new TreeSet<>();
+			Supplier<TreeSet<Integer>> sset = TreeSet::new;
 			try (Stream<Path> files = Files.list(getJdksPath())) {
 				return files.map(p -> {
 					try {
@@ -175,7 +175,7 @@ public class JdkManager {
 					// from the directory name, so we read the "release" file instead.
 					Optional<Integer> ver = Files	.lines(link.resolve("release"))
 													.filter(l -> l.startsWith("JAVA_VERSION"))
-													.map(l -> JavaUtil.parseJavaOutput(l))
+													.map(JavaUtil::parseJavaOutput)
 													.findAny();
 					if (ver.isPresent()) {
 						return ver.get();

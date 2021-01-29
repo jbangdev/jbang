@@ -39,7 +39,7 @@ public class AliasUtil {
 	private static final String DEFAULT_REF = "HEAD"; // HEAD at least on github gives you latest commit on default
 														// branch
 
-	static Map<Path, Catalog> catalogCache = new HashMap<>();
+	static final Map<Path, Catalog> catalogCache = new HashMap<>();
 
 	public static class Alias {
 		@SerializedName(value = "script-ref", alternate = { "scriptRef" })

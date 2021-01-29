@@ -168,7 +168,7 @@ public class TestScript extends BaseTest {
 		Map<String, String> p = new HashMap<>();
 		p.put("log4j.version", "1.2.9");
 
-		DecoratedSource xrunit = DecoratedSource.forScript(example, (List<String>) null, (Map<String, String>) p);
+		DecoratedSource xrunit = DecoratedSource.forScript(example, null, p);
 
 		List<String> dependencies = xrunit.collectAllDependencies();
 		assertEquals(2, dependencies.size());
@@ -188,7 +188,7 @@ public class TestScript extends BaseTest {
 		DecoratedSource xrunit = DecoratedSource.forResource(scriptURL);
 
 		List<ScriptSource> resolvesourceRecursively = xrunit.script().getAllSources();
-		assertTrue(resolvesourceRecursively.size() == 7);
+		assertEquals(resolvesourceRecursively.size(), 7);
 	}
 
 	public static Path createTmpFileWithContent(String strPath, String fileName, String content) throws IOException {

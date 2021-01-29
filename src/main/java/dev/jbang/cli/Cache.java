@@ -65,7 +65,7 @@ public class Cache {
 
 	private void toggleCache(Boolean b, Settings.CacheClass cache, EnumSet<Settings.CacheClass> classes) {
 		if (Optional.ofNullable(b).isPresent()) {
-			if (b.booleanValue()) {
+			if (b) {
 				classes.add(cache);
 			} else {
 				classes.remove(cache);

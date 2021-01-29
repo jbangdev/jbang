@@ -1,4 +1,4 @@
-## Examples
+== Examples
 
 Examples are no longer included with jbang, instead see https://github.com/jbangdev/jbang-examples
 

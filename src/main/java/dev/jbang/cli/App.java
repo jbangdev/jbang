@@ -205,7 +205,7 @@ class AppInstall extends BaseCommand {
 	}
 
 	private static void installPSScript(Path file, String scriptRef, boolean benative) throws IOException {
-		List<String> lines = Arrays.asList(
+		List<String> lines = Collections.singletonList(
 				"jbang run" + (benative ? " --native " : " ") + scriptRef + " $args");
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 	}
@@ -255,14 +255,14 @@ class AppList extends BaseCommand {
 
 	@Override
 	public Integer doCall() {
-		listCommandFiles().forEach(cmd -> System.out.println(cmd));
+		listCommandFiles().forEach(System.out::println);
 		return EXIT_OK;
 	}
 
 	private static List<String> listCommandFiles() {
 		try {
 			return Files.list(Settings.getConfigBinDir())
-						.map(f -> baseFileName(f))
+						.map(AppList::baseFileName)
 						.distinct()
 						.sorted()
 						.collect(Collectors.toList());

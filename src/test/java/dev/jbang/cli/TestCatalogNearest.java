@@ -74,7 +74,7 @@ public class TestCatalogNearest extends BaseTest {
 		AliasUtil.Catalog catalog = AliasUtil.getMergedCatalog(cwd, false);
 		assertThat(catalog, notNullValue());
 
-		HashSet<String> keys = new HashSet<String>(Arrays.asList(
+		HashSet<String> keys = new HashSet<>(Arrays.asList(
 				"global",
 				"dotparent",
 				"dotlocal",

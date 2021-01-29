@@ -207,7 +207,7 @@ public class TestRun extends BaseTest {
 			assertThat(cmdline, not(containsString(".jar.java")));
 
 		} finally {
-			Settings.getTrustedSources().remove(Arrays.asList(jar), tdir.resolve("test.trust").toFile());
+			Settings.getTrustedSources().remove(Collections.singletonList(jar), tdir.resolve("test.trust").toFile());
 		}
 	}
 
@@ -488,7 +488,7 @@ public class TestRun extends BaseTest {
 		classfile.createNewFile();
 		assert (classfile.exists());
 
-		assertEquals(Run.findMainClass(dir, classfile.toPath()), "a.b.c.mymain");
+		assertEquals(BaseBuildCommand.findMainClass(dir, classfile.toPath()), "a.b.c.mymain");
 
 	}
 
@@ -529,7 +529,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(Run.generateArgs(Collections.emptyList(), properties), equalTo("String[] args = {  }"));
 
-		assertThat(Run.generateArgs(Arrays.asList("one"), properties),
+		assertThat(Run.generateArgs(Collections.singletonList("one"), properties),
 				equalTo("String[] args = { \"one\" }"));
 
 		assertThat(Run.generateArgs(Arrays.asList("one", "two"), properties),
@@ -570,7 +570,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(xrunit.getMainClass(), equalTo("aclass"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(xrunit.getJar().toPath(), (ClassLoader) null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(xrunit.getJar().toPath(), null)) {
 			Path fileToExtract = fileSystem.getPath("META-INF/maven/g/a/v/pom.xml");
 
 			ByteArrayOutputStream s = new ByteArrayOutputStream();
@@ -587,7 +587,6 @@ public class TestRun extends BaseTest {
 
 			assertThat(doc, hasXPath("/project/dependencies/dependency"));
 		}
-		;
 
 	}
 
@@ -856,7 +855,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assert (run.cds().isPresent());
-		assert (run.cds().get().booleanValue());
+		assert (run.cds().get());
 	}
 
 	@Test
@@ -867,7 +866,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assert (run.cds().isPresent());
-		assert (!run.cds().get().booleanValue());
+		assert (!run.cds().get());
 	}
 
 	String agent = "//JAVAAGENT Can-Redefine-Classes=false Can-Retransform-Classes\n" +
@@ -1067,7 +1066,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(xrunit.getMainClass(), equalTo("resource"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(xrunit.getJar().toPath(), (ClassLoader) null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(xrunit.getJar().toPath(), null)) {
 
 			Arrays	.asList("resource.properties", "renamed.properties", "META-INF/application.properties")
 					.forEach(path -> {
@@ -1100,7 +1099,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(xrunit.getMainClass(), equalTo("one"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(xrunit.getJar().toPath(), (ClassLoader) null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(xrunit.getJar().toPath(), null)) {
 			Arrays	.asList("one.class", "Two.class", "gh_release_stats.class", "fetchlatestgraalvm.class")
 					.forEach(path -> {
 						try {
@@ -1200,7 +1199,7 @@ public class TestRun extends BaseTest {
 
 		m.build(xrunit);
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(xrunit.getJar().toPath(), (ClassLoader) null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(xrunit.getJar().toPath(), null)) {
 			Arrays	.asList("one.class", "index.html")
 					.forEach(path -> {
 						try {

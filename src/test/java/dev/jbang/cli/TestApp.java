@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,13 +29,14 @@ public class TestApp extends BaseTest {
 			"eval \"exec jbang run $CWD/itests/helloworld.java $*\"");
 	private static final List<String> cmdContents = Arrays.asList("@echo off",
 			"jbang run $CWD/itests/helloworld.java %*");
-	private static final List<String> ps1Contents = Arrays.asList("jbang run $CWD/itests/helloworld.java $args");
+	private static final List<String> ps1Contents = Collections.singletonList(
+			"jbang run $CWD/itests/helloworld.java $args");
 
 	private static final List<String> nativeShContents = Arrays.asList("#!/bin/sh",
 			"eval \"exec jbang run --native $CWD/itests/helloworld.java $*\"");
 	private static final List<String> nativeCmdContents = Arrays.asList("@echo off",
 			"jbang run --native $CWD/itests/helloworld.java %*");
-	private static final List<String> nativePs1Contents = Arrays.asList(
+	private static final List<String> nativePs1Contents = Collections.singletonList(
 			"jbang run --native $CWD/itests/helloworld.java $args");
 
 	@Test

@@ -61,7 +61,7 @@ public class ScriptSource implements Source {
 	private List<FileRef> filerefs;
 	private List<ScriptSource> sources;
 	private List<KeyValue> agentOptions;
-	private Optional<String> description;
+	private Optional<String> description = Optional.empty();
 	private File jar;
 
 	protected ScriptSource(String script) {
@@ -274,7 +274,7 @@ public class ScriptSource implements Source {
 
 	@Override
 	public Optional<String> getDescription() {
-		if (description == null) {
+		if (!description.isPresent()) {
 			String desc = getLines().stream()
 									.filter(ScriptSource::isDescriptionDeclare)
 									.map(s -> s.substring(DESCRIPTION_COMMENT_PREFIX.length()))

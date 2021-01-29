@@ -19,7 +19,7 @@ public class Build extends BaseBuildCommand {
 				forcejsh);
 
 		if (xrunit.needsJar()) {
-			build((DecoratedSource) xrunit);
+			build(xrunit);
 		}
 
 		return EXIT_OK;

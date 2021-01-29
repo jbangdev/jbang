@@ -7,6 +7,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -21,7 +22,7 @@ public class TrustedSources {
 	final static Pattern rLocalhost = Pattern.compile("(?i)^localhost(:\\d+)?$");
 	final static Pattern r127 = Pattern.compile("(?i)^127.0.0.1(:\\d+)?$");
 
-	private String trustedSources[];
+	private String[] trustedSources;
 
 	public TrustedSources(String[] trustedSources) {
 		this.trustedSources = trustedSources;
@@ -126,10 +127,7 @@ public class TrustedSources {
 		}
 
 		// default trusted for usability and trust
-		if (url.toString().startsWith("https://github.com/jbangdev/")) {
-			return true;
-		}
-		return false;
+		return url.toString().startsWith("https://github.com/jbangdev/");
 	}
 
 	boolean pathMatches(String open, String rule) {
@@ -184,14 +182,14 @@ public class TrustedSources {
 	}
 
 	public void add(String trust, File storage) {
-		add(Arrays.asList(trust), storage);
+		add(Collections.singletonList(trust), storage);
 	}
 
 	public void add(List<String> trust, File storage) {
 
 		Util.infoMsg("Adding " + trust + " to " + storage);
 
-		Set<String> newrules = new LinkedHashSet<String>();
+		Set<String> newrules = new LinkedHashSet<>();
 
 		newrules.addAll(Arrays.asList(trustedSources));
 
@@ -207,7 +205,7 @@ public class TrustedSources {
 
 		Util.infoMsg("Removing " + trust + " from " + storage);
 
-		Set<String> newrules = new LinkedHashSet<String>();
+		Set<String> newrules = new LinkedHashSet<>();
 
 		newrules.addAll(Arrays.asList(trustedSources));
 

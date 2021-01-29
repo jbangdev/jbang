@@ -1,6 +1,6 @@
 package dev.jbang;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -38,7 +38,7 @@ public class TestSourcesMutualDependency extends BaseTest {
 		TestScript.createTmpFileWithContent("", "B.java", classB);
 		String scriptURL = mainPath.toString();
 		ScriptSource script = ScriptSource.prepareScript(scriptURL);
-		assertTrue(script.getAllSources().size() == 2);
+		assertEquals(script.getAllSources().size(), 2);
 	}
 
 }

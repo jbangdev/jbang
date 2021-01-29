@@ -93,7 +93,7 @@ public class Edit extends BaseScriptCommand {
 				}
 				Path watched = orginalFile.getAbsoluteFile().getParentFile().toPath();
 				watched.register(watchService,
-						new WatchEvent.Kind[] { StandardWatchEventKinds.ENTRY_MODIFY });
+						StandardWatchEventKinds.ENTRY_MODIFY);
 				info("Watching for changes in " + watched);
 				while (true) {
 					final WatchKey wk = watchService.take();
@@ -175,13 +175,11 @@ public class Edit extends BaseScriptCommand {
 			}
 
 			verboseMsg("Installing Java extensions...");
-			ProcessBuilder pb = new ProcessBuilder(new String[] {
-					editor.get(),
+			ProcessBuilder pb = new ProcessBuilder(editor.get(),
 					"--install-extension", "redhat.java",
 					"--install-extension", "vscjava.vscode-java-debug",
 					"--install-extension", "vscjava.vscode-java-test",
-					"--install-extension", "vscjava.vscode-java-dependency"
-			});
+					"--install-extension", "vscjava.vscode-java-dependency");
 			pb.inheritIO();
 			Process process = pb.start();
 			try {

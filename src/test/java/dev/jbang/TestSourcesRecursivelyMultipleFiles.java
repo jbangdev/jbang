@@ -1,7 +1,6 @@
 package dev.jbang;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -81,7 +80,7 @@ class TestSourcesRecursivelyMultipleFiles extends BaseTest {
 		ResourceRef resourceRef = ResourceRef.forNamedFile(scriptURL, mainPath.toFile());
 		ScriptSource script = ScriptSource.prepareScript(resourceRef);
 		List<ScriptSource> sources = script.getAllSources();
-		assertTrue(sources.size() == 4);
+		assertEquals(sources.size(), 4);
 		TreeSet<String> fileNames = new TreeSet<>();
 		for (ScriptSource source : sources) {
 			fileNames.add(source.getResourceRef().getFile().getName());

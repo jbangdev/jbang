@@ -1,4 +1,4 @@
-# Scripts for jbang demos
+= Scripts for jbang demos
 
 To record run:
 

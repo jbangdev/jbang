@@ -201,7 +201,7 @@ public class Jbang extends BaseCommand {
 
 				// description may contain line separators; use Text::splitLines to handle this
 				String description = description(sub.usageMessage());
-				CommandLine.Help.Ansi.Text[] lines = help.colorScheme().text(String.format(description)).splitLines();
+				CommandLine.Help.Ansi.Text[] lines = help.colorScheme().text(description).splitLines();
 
 				for (int i = 0; i < lines.length; i++) {
 					CommandLine.Help.Ansi.Text cmdNamesText = help.colorScheme().commandText(i == 0 ? names : "");
