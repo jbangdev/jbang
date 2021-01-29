@@ -139,6 +139,11 @@ public class DecoratedSource implements Source {
 	}
 
 	@Override
+	public boolean enableCDS() {
+		return source.enableCDS();
+	}
+
+	@Override
 	public String javaVersion() {
 		return source.javaVersion();
 	}
