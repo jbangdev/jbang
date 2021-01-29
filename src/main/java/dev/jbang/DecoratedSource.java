@@ -260,9 +260,6 @@ public class DecoratedSource implements Source {
 		for (String addcp : additionalClasspaths) {
 			cp.append(Settings.CP_SEPARATOR).append(addcp);
 		}
-		if (source.getJar() != null && !forcejsh) {
-			return getJar().getAbsolutePath() + Settings.CP_SEPARATOR + cp.toString();
-		}
 		return cp.toString();
 	}
 
