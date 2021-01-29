@@ -100,11 +100,11 @@ class DependencyResolverTest extends BaseTest {
 
 		DependencyUtil dr = new DependencyUtil();
 
-		List<String> deps = Arrays.asList(
+		List<String> deps = Collections.singletonList(
 				PropertiesValueResolver.replaceProperties("org.openjfx:javafx-base:11.0.2:${os.detected.jfxname}"));
 
 		List<ArtifactInfo> artifacts = dr.resolveDependenciesViaAether(deps,
-				Arrays.asList(toMavenRepo("jcenter")), false,
+				Collections.singletonList(toMavenRepo("jcenter")), false,
 				true, true);
 
 		assertEquals(1, artifacts.size());
@@ -119,7 +119,7 @@ class DependencyResolverTest extends BaseTest {
 		List<String> deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
 
 		List<ArtifactInfo> artifacts = dr.resolveDependenciesViaAether(deps,
-				Arrays.asList(toMavenRepo("jcenter")), false,
+				Collections.singletonList(toMavenRepo("jcenter")), false,
 				true, true);
 
 		assertEquals(2, artifacts.size());
@@ -179,7 +179,7 @@ class DependencyResolverTest extends BaseTest {
 		DependencyUtil dr = new DependencyUtil();
 
 		// using shrinkwrap resolves in ${os.detected.version} not being resolved
-		List<String> deps = Arrays.asList("com.github.docker-java:docker-java:3.1.5");
+		List<String> deps = Collections.singletonList("com.github.docker-java:docker-java:3.1.5");
 
 		ModularClassPath classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, true);
 

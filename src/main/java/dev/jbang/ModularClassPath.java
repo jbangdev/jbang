@@ -4,6 +4,7 @@ import static dev.jbang.Settings.CP_SEPARATOR;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,7 +48,7 @@ public class ModularClassPath {
 		if (manifestPath == null) {
 			manifestPath = artifacts.stream()
 									.map(it -> it.asFile().getAbsoluteFile().toURI())
-									.map(it -> it.getPath())
+									.map(URI::getPath)
 									.distinct()
 									.collect(Collectors.joining(" "));
 		}
@@ -60,7 +61,7 @@ public class ModularClassPath {
 			javafx = Optional.of(
 					getClassPath().contains("org/openjfx/javafx-") || getClassPath().contains("org\\openjfx\\javafx-"));
 		}
-		return javafx.get().booleanValue();
+		return javafx.get();
 	}
 
 	List<String> getAutoDectectedModuleArguments(String requestedVersion) {
@@ -68,7 +69,7 @@ public class ModularClassPath {
 			List<String> commandArguments = new ArrayList<>();
 
 			List<File> fileList = artifacts	.stream()
-											.map(it -> it.asFile())
+											.map(ArtifactInfo::asFile)
 											.collect(Collectors.toList());
 
 			ResolvePathsRequest<File> result = ResolvePathsRequest	.ofFiles(fileList)

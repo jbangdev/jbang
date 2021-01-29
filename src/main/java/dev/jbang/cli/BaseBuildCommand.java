@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -109,7 +110,8 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 
 				String val = jf.getManifest().getMainAttributes().getValue(ScriptSource.JBANG_JAVA_OPTIONS);
 				if (val != null) {
-					xrunit.setPersistentJvmArgs(Arrays.asList( // should parse it but we are assuming it just gets
+					xrunit.setPersistentJvmArgs(Collections.singletonList( // should parse it but we are assuming it
+																			// just gets
 							// appendeed
 							val // on command line anwyay
 					));
@@ -152,7 +154,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 			String requestedJavaVersion)
 			throws IOException {
 		IntegrationResult integrationResult;
-		List<String> optionList = new ArrayList<String>();
+		List<String> optionList = new ArrayList<>();
 		optionList.add(resolveInJavaHome("javac", requestedJavaVersion));
 		optionList.addAll(xrunit.script().getCompileOptions());
 		String path = xrunit.resolveClassPath(offline);
@@ -297,7 +299,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 	}
 
 	private void buildNative(DecoratedSource xrunit, File outjar, String requestedJavaVersion) throws IOException {
-		List<String> optionList = new ArrayList<String>();
+		List<String> optionList = new ArrayList<>();
 		optionList.add(resolveInGraalVMHome("native-image", requestedJavaVersion));
 
 		optionList.add("-H:+ReportExceptionStackTraces");

@@ -9,6 +9,7 @@ import static org.junit.Assert.assertThat;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -24,7 +25,7 @@ public class TestTrustEdit extends BaseTest {
 
 		assertThat(settings, not(anExistingFile()));
 
-		td.add(Arrays.asList("a"), settings);
+		td.add(Collections.singletonList("a"), settings);
 
 		assertThat(settings, anExistingFile());
 
@@ -52,7 +53,7 @@ public class TestTrustEdit extends BaseTest {
 
 		assertThat(trustedSources.getTrustedSources(), arrayContaining("a", "b"));
 
-		trustedSources.add(Arrays.asList("c"), settings);
+		trustedSources.add(Collections.singletonList("c"), settings);
 
 		assertThat(trustedSources.getTrustedSources(), arrayContaining("a", "b", "c"));
 

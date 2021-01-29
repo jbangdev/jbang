@@ -91,7 +91,7 @@ public class Export extends BaseBuildCommand {
 								libsdir.mkdirs();
 							}
 						}
-						StringBuffer newPath = new StringBuffer();
+						StringBuilder newPath = new StringBuilder();
 						for (String jar : jars) {
 							Path file = downloadFile(new File(jar).toURI().toString(), libsdir);
 							newPath.append(" libs/" + file.toFile().getName());
@@ -107,7 +107,7 @@ public class Export extends BaseBuildCommand {
 						mf.write(new FileOutputStream(tempManifest));
 					}
 
-					List<String> optionList = new ArrayList<String>();
+					List<String> optionList = new ArrayList<>();
 					optionList.add(resolveInJavaHome("jar",
 							export.javaVersion != null ? export.javaVersion : xrunit.javaVersion())); // TODO locate it
 																										// on path ?

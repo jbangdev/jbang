@@ -98,7 +98,7 @@ public class PropertiesValueResolver {
 						continue;
 					}
 					// First check for system property, then env variable
-					String val = (String) properties.getProperty(name);
+					String val = properties.getProperty(name);
 					if (val == null && name.startsWith("env."))
 						val = System.getenv(name.substring(4));
 

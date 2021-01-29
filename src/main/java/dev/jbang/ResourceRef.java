@@ -11,7 +11,6 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -23,7 +22,7 @@ public class ResourceRef implements Comparable<ResourceRef> {
 	// original requested resource
 	private final String originalResource;
 	// cache folder it is stored inside
-	private File file;
+	private final File file;
 
 	private ResourceRef(String scriptURL, File file) {
 		this.originalResource = scriptURL;
@@ -202,10 +201,10 @@ public class ResourceRef implements Comparable<ResourceRef> {
 				|| scriptResource.startsWith("file:/")) {
 			// support url's as script files
 			result = fetchFromURL(scriptResource, knownTrusted);
-		} else if (DependencyUtil.looksLikeAGav(scriptResource.toString())) {
+		} else if (DependencyUtil.looksLikeAGav(scriptResource)) {
 			// todo honor offline
-			String gav = scriptResource.toString();
-			String s = new DependencyUtil().resolveDependencies(Arrays.asList(gav),
+			String gav = scriptResource;
+			String s = new DependencyUtil().resolveDependencies(Collections.singletonList(gav),
 					Collections.emptyList(), false, !Util.isQuiet(), false).getClassPath();
 			result = forCachedResource(scriptResource, new File(s));
 		}
@@ -254,7 +253,7 @@ public class ResourceRef implements Comparable<ResourceRef> {
 				if (result == 0) {
 					abort = false;
 				} else if (result == 1) {
-					ts.add(options[result], Settings.getTrustedSourcesFile().toFile());
+					ts.add(options[1], Settings.getTrustedSourcesFile().toFile());
 					abort = false;
 				}
 			} catch (NumberFormatException ef) {

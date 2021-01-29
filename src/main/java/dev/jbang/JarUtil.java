@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public final class JarUtil {
 	private JarUtil() {
@@ -102,9 +103,9 @@ public final class JarUtil {
 	public static void jar(OutputStream out, File[] src, FileFilter filter,
 			String prefix, Manifest man) throws IOException {
 
-		for (int i = 0; i < src.length; i++) {
-			if (!src[i].exists()) {
-				throw new FileNotFoundException(src[i].toString());
+		for (File file : src) {
+			if (!file.exists()) {
+				throw new FileNotFoundException(file.toString());
 			}
 		}
 
@@ -129,8 +130,8 @@ public final class JarUtil {
 			prefix = "";
 		}
 		JarInfo info = new JarInfo(jout, filter);
-		for (int i = 0; i < src.length; i++) {
-			jar(src[i], prefix, info);
+		for (File file : src) {
+			jar(file, prefix, info);
 		}
 		jout.close();
 	}
@@ -165,7 +166,7 @@ public final class JarUtil {
 			prefix = prefix + src.getName() + "/";
 			ZipEntry entry = new ZipEntry(prefix);
 			entry.setTime(src.lastModified());
-			entry.setMethod(JarOutputStream.STORED);
+			entry.setMethod(ZipOutputStream.STORED);
 			entry.setSize(0L);
 			entry.setCrc(0L);
 			jout.putNextEntry(entry);
@@ -173,8 +174,8 @@ public final class JarUtil {
 
 			// process the sub-directories
 			File[] files = src.listFiles(info.filter);
-			for (int i = 0; i < files.length; i++) {
-				jar(files[i], prefix, info);
+			for (File file : files) {
+				jar(file, prefix, info);
 			}
 		} else if (src.isFile()) {
 			// get the required info objects

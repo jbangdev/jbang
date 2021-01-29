@@ -1,6 +1,6 @@
 package dev.jbang;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -66,7 +66,7 @@ public class TestSameSourceInDifferentPaths extends BaseTest {
 		TestScript.createTmpFileWithContent(mainPath.getParent(), "model", "C.java", classModelC);
 		TestScript.createTmpFileWithContent(BPath.getParent(), "model", "C.java", classPersonModelC);
 		ScriptSource script = ScriptSource.prepareScript(mainPath.toString());
-		assertTrue(script.getAllSources().size() == 3);
+		assertEquals(script.getAllSources().size(), 3);
 	}
 
 }

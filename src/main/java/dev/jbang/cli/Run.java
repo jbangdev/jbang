@@ -125,7 +125,7 @@ public class Run extends BaseBuildCommand {
 		if (fullArgs.isEmpty()) {
 			String classpath = xrunit.resolveClassPath(offline);
 
-			List<String> optionalArgs = new ArrayList<String>();
+			List<String> optionalArgs = new ArrayList<>();
 
 			String requestedJavaVersion = javaVersion != null ? javaVersion : xrunit.javaVersion();
 			String javacmd = resolveInJavaHome("java", requestedJavaVersion);

@@ -668,7 +668,7 @@ class classpath_example {
 
 	public static void main(String[] args) {
 		BasicConfigurator.configure();
-		Arrays.asList(args).forEach(arg -> out.println(arg));
+		Arrays.asList(args).forEach(out::println);
 	}
 }
 ----

@@ -37,7 +37,7 @@ public class Trust {
 	public Integer remove(
 			@CommandLine.Parameters(index = "0", description = "Rules for trusted sources", arity = "1..*") List<String> rules) {
 		List<String> newrules = rules	.stream()
-										.map(src -> toDomain(src))
+										.map(this::toDomain)
 										.collect(Collectors.toList());
 		Settings.getTrustedSources().remove(newrules, Settings.getTrustedSourcesFile().toFile());
 		return EXIT_OK;

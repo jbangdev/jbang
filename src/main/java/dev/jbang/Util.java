@@ -88,7 +88,7 @@ public class Util {
 	public static String kebab2camel(String name) {
 
 		if (name.contains("-")) { // xyz-plug becomes XyzPlug
-			return Arrays	.stream(name.split("\\-"))
+			return Arrays	.stream(name.split("-"))
 							.map(s -> Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase())
 							.collect(Collectors.joining());
 		} else {
@@ -723,17 +723,17 @@ public class Util {
 	}
 
 	private static String getFileNameFromGistURL(String url) {
-		String fileName = "";
+		StringBuilder fileName = new StringBuilder();
 		String[] pathPlusAnchor = url.split("#");
 		if (pathPlusAnchor.length == 2) {
 			String[] anchor = pathPlusAnchor[1].split("-");
 			if (anchor.length < 2)
 				throw new IllegalArgumentException("Invalid Gist url: " + url);
-			fileName = anchor[1];
+			fileName = new StringBuilder(anchor[1]);
 			for (int i = 2; i < anchor.length - 1; ++i)
-				fileName += "-" + anchor[i];
+				fileName.append("-").append(anchor[i]);
 		}
-		return fileName;
+		return fileName.toString();
 	}
 
 	static String readStringFromURL(String requestURL, Map<String, String> headers) throws IOException {
@@ -785,7 +785,7 @@ public class Util {
 	}
 
 	public static boolean deletePath(Path path, boolean quiet) {
-		Exception err[] = new Exception[] { null };
+		Exception[] err = new Exception[] { null };
 		try {
 			if (Files.isDirectory(path)) {
 				Util.verboseMsg("Deleting folder " + path);
@@ -897,7 +897,7 @@ public class Util {
 		String envPath = System.getenv("PATH");
 		envPath = envPath != null ? envPath : "";
 		return Arrays	.stream(envPath.split(File.pathSeparator))
-						.map(p -> Paths.get(p))
+						.map(Paths::get)
 						.filter(p -> isExecutable(p.resolve(name)))
 						.findFirst()
 						.orElse(null);
@@ -907,9 +907,7 @@ public class Util {
 		if (Files.isExecutable(file)) {
 			if (Util.isWindows()) {
 				String nm = file.getFileName().toString().toLowerCase();
-				if (nm.endsWith(".exe") || nm.endsWith(".bat") || nm.endsWith(".cmd") || nm.endsWith(".ps1")) {
-					return true;
-				}
+				return nm.endsWith(".exe") || nm.endsWith(".bat") || nm.endsWith(".cmd") || nm.endsWith(".ps1");
 			} else {
 				return true;
 			}

@@ -59,11 +59,11 @@ public class TemplateEngine {
 
 		private final URL resource;
 		@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-		private Optional<Variant> variant = null;
+		private Optional<Variant> variant = Optional.empty();
 
 		public ResourceTemplateLocation(URL resource) {
 			this.resource = resource;
-			this.variant = null;
+			this.variant = Optional.empty();
 		}
 
 		@Override

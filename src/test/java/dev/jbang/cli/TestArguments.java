@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.is;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -66,7 +67,7 @@ class TestArguments extends BaseTest {
 
 		assertThat(run.scriptOrFile, is("-"));
 		assertThat(run.helpRequested, is(false));
-		assertThat(run.userParams, is(Arrays.asList("--help")));
+		assertThat(run.userParams, is(Collections.singletonList("--help")));
 	}
 
 	@Test
@@ -76,7 +77,7 @@ class TestArguments extends BaseTest {
 
 		assertThat(run.scriptOrFile, is("test.java"));
 		assertThat(run.helpRequested, is(false));
-		assertThat(run.userParams, is(Arrays.asList("-h")));
+		assertThat(run.userParams, is(Collections.singletonList("-h")));
 	}
 
 	@Test

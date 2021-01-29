@@ -23,7 +23,7 @@ public class TestJdk extends BaseTest {
 	@Test
 	void testNoJdksInstalled() throws IOException {
 		initJBangCacheDir();
-		ExecutionResult result = checkedRun(jdk -> jdk.list());
+		ExecutionResult result = checkedRun(Jdk::list);
 
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
@@ -39,7 +39,7 @@ public class TestJdk extends BaseTest {
 		Arrays	.asList("11", "12", "13")
 				.forEach(jdkId -> new File(jdkPath, jdkId).mkdirs());
 
-		ExecutionResult result = checkedRun(jdk -> jdk.list());
+		ExecutionResult result = checkedRun(Jdk::list);
 
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),

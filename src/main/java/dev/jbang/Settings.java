@@ -10,7 +10,6 @@ import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -176,7 +175,7 @@ public class Settings {
 	}
 
 	public static void clearCache(CacheClass... classes) {
-		List<CacheClass> ccs = Arrays.asList(classes);
+		CacheClass[] ccs = classes;
 		for (CacheClass cc : ccs) {
 			Util.infoMsg("Clearing cache for " + cc.name());
 			if (cc == CacheClass.jdks && Util.isWindows() && JdkManager.isCurrentJdkManaged()) {

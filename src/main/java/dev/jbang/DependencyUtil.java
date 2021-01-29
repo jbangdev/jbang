@@ -72,7 +72,7 @@ public class DependencyUtil {
 		}
 
 		if (repos.isEmpty()) {
-			repos = new ArrayList<MavenRepo>();
+			repos = new ArrayList<>();
 			repos.add(toMavenRepo("jcenter"));
 		}
 
@@ -140,7 +140,7 @@ public class DependencyUtil {
 		MavenWorkingSession xyz = ((MavenWorkingSessionContainer) resolver).getMavenWorkingSession();
 		System.setProperty("maven.repo.local", Settings.getLocalMavenRepo().toPath().toAbsolutePath().toString());
 
-		List<MavenCoordinate> deps = depIds.stream().map(it -> depIdToArtifact(it)).collect(Collectors.toList());
+		List<MavenCoordinate> deps = depIds.stream().map(this::depIdToArtifact).collect(Collectors.toList());
 
 		PomEquippedResolveStage pomResolve = null;
 
