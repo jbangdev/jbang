@@ -7,7 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import dev.jbang.*;
+import dev.jbang.AliasUtil;
+import dev.jbang.DecoratedSource;
+import dev.jbang.Settings;
+import dev.jbang.Util;
 
 import picocli.CommandLine;
 
