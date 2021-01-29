@@ -8,6 +8,8 @@ import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import dev.jbang.cli.BaseCommand;
+
 /**
  * This class wraps a reference to an runnable/executable resource in the form
  * of a Source. It also holds all additional information necessary to be able to
@@ -48,6 +50,10 @@ public class DecoratedSource implements Source {
 		this.source = source;
 		this.arguments = arguments;
 		this.properties = properties;
+	}
+
+	public Source getSource() {
+		return source;
 	}
 
 	public ScriptSource script() {
@@ -117,18 +123,22 @@ public class DecoratedSource implements Source {
 		return !(forJar() || forJShell());
 	}
 
+	@Override
 	public ResourceRef getResourceRef() {
 		return source.getResourceRef();
 	}
 
+	@Override
 	public Optional<String> getDescription() {
 		return source.getDescription();
 	}
 
+	@Override
 	public File getJar() {
 		return source.getJar();
 	}
 
+	@Override
 	public String javaVersion() {
 		return source.javaVersion();
 	}
@@ -211,11 +221,13 @@ public class DecoratedSource implements Source {
 		javaAgents.add(agent);
 	}
 
+	@Override
 	public List<String> getAllDependencies(Properties props) {
 		return Stream	.concat(additionalDeps.stream(), source.getAllDependencies(props).stream())
 						.collect(Collectors.toList());
 	}
 
+	@Override
 	public ModularClassPath resolveClassPath(List<String> dependencies, boolean offline) {
 		return source.resolveClassPath(dependencies, offline);
 	}
@@ -241,7 +253,7 @@ public class DecoratedSource implements Source {
 		}
 		StringBuilder cp = new StringBuilder(classpath.getClassPath());
 		for (String addcp : additionalClasspaths) {
-			cp.append(Settings.CP_SEPARATOR + addcp);
+			cp.append(Settings.CP_SEPARATOR).append(addcp);
 		}
 		if (source.getJar() != null && !forcejsh) {
 			return getJar().getAbsolutePath() + Settings.CP_SEPARATOR + cp.toString();
@@ -256,7 +268,101 @@ public class DecoratedSource implements Source {
 		return classpath.getAutoDectectedModuleArguments(requestedVersion);
 	}
 
-	public Source getSource() {
-		return source;
+	public static DecoratedSource forResource(String resource) {
+		return forResource(resource, null, null, null, null, false, false);
+	}
+
+	public static DecoratedSource forResource(String resource, List<String> arguments) {
+		return forResource(resource, arguments, null, null, null, false, false);
+	}
+
+	public static DecoratedSource forResource(String resource, List<String> arguments,
+			Map<String, String> properties) {
+		return forResource(resource, arguments, properties, null, null, false, false);
+	}
+
+	public static DecoratedSource forResource(String resource, List<String> arguments,
+			Map<String, String> properties,
+			List<String> dependencies, List<String> classpaths, boolean fresh, boolean forcejsh) {
+		ResourceRef resourceRef = ResourceRef.forResource(resource);
+
+		AliasUtil.Alias alias = null;
+		if (resourceRef == null) {
+			// Not found as such, so let's check the aliases
+			alias = AliasUtil.getAlias(null, resource, arguments, properties);
+			if (alias != null) {
+				resourceRef = ResourceRef.forResource(alias.resolve(null));
+				arguments = alias.arguments;
+				properties = alias.properties;
+				if (resourceRef == null) {
+					throw new IllegalArgumentException(
+							"Alias " + resource + " from " + alias.catalog.catalogFile + " failed to resolve "
+									+ alias.scriptRef);
+				}
+			}
+		}
+
+		// Support URLs as script files
+		// just proceed if the script file is a regular file at this point
+		if (resourceRef == null || !resourceRef.getFile().canRead()) {
+			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Could not read script argument " + resource);
+		}
+
+		// note script file must be not null at this point
+
+		Source ru;
+		if (resourceRef.getFile().getName().endsWith(".jar")) {
+			ru = JarSource.prepareJar(resourceRef);
+		} else {
+			ru = ScriptSource.prepareScript(resourceRef);
+		}
+
+		DecoratedSource xrunit = new DecoratedSource(ru, arguments, properties);
+		xrunit.setForcejsh(forcejsh);
+		xrunit.setOriginalRef(resource);
+		xrunit.setAlias(alias);
+		xrunit.setAdditionalDependencies(dependencies);
+		xrunit.setAdditionalClasspaths(classpaths);
+		return xrunit;
+	}
+
+	public static DecoratedSource forScriptResource(ResourceRef resourceRef, List<String> arguments,
+			Map<String, String> properties) {
+		return forScriptResource(resourceRef, arguments, properties, null, null, false, false);
+	}
+
+	public static DecoratedSource forScriptResource(ResourceRef resourceRef, List<String> arguments,
+			Map<String, String> properties,
+			List<String> dependencies, List<String> classpaths, boolean fresh, boolean forcejsh) {
+		// note script file must be not null at this point
+		Source ru;
+		if (resourceRef.getFile().getName().endsWith(".jar")) {
+			ru = JarSource.prepareJar(resourceRef);
+		} else {
+			ru = ScriptSource.prepareScript(resourceRef);
+		}
+
+		DecoratedSource xrunit = new DecoratedSource(ru, arguments, properties);
+		xrunit.setForcejsh(forcejsh);
+		xrunit.setAdditionalDependencies(dependencies);
+		xrunit.setAdditionalClasspaths(classpaths);
+		return xrunit;
+	}
+
+	public static DecoratedSource forScript(String script, List<String> arguments,
+			Map<String, String> properties) {
+		return forScript(script, arguments, properties, null, null, false, false);
+	}
+
+	public static DecoratedSource forScript(String script, List<String> arguments,
+			Map<String, String> properties,
+			List<String> dependencies, List<String> classpaths,
+			boolean fresh, boolean forcejsh) {
+		Source ru = new ScriptSource(script);
+		DecoratedSource xrunit = new DecoratedSource(ru, arguments, properties);
+		xrunit.setForcejsh(forcejsh);
+		xrunit.setAdditionalDependencies(dependencies);
+		xrunit.setAdditionalClasspaths(classpaths);
+		return xrunit;
 	}
 }

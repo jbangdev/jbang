@@ -73,7 +73,7 @@ class AliasAdd extends BaseAliasCommand {
 			throw new IllegalArgumentException(
 					"Invalid alias name, it should start with a letter followed by 0 or more letters, digits, underscores or hyphens");
 		}
-		DecoratedSource xrunit = Source.forResource(scriptOrFile);
+		DecoratedSource xrunit = DecoratedSource.forResource(scriptOrFile);
 		if (name == null) {
 			name = AppInstall.chooseCommandName(xrunit);
 		}

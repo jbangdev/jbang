@@ -31,7 +31,6 @@ import dev.jbang.JitPackUtil;
 import dev.jbang.MavenRepo;
 import dev.jbang.ScriptSource;
 import dev.jbang.Settings;
-import dev.jbang.Source;
 import dev.jbang.StrictParameterPreprocessor;
 import dev.jbang.TemplateEngine;
 import dev.jbang.Util;
@@ -57,7 +56,7 @@ public class Edit extends BaseScriptCommand {
 			enableInsecure();
 		}
 
-		xrunit = Source.forResource(scriptOrFile);
+		xrunit = DecoratedSource.forResource(scriptOrFile);
 		File project = createProjectForEdit(xrunit, false);
 		// err.println(project.getAbsolutePath());
 
@@ -107,7 +106,7 @@ public class Edit extends BaseScriptCommand {
 							try {
 								// TODO only regenerate when dependencies changes.
 								info("Regenerating project.");
-								xrunit = Source.forResource(scriptOrFile);
+								xrunit = DecoratedSource.forResource(scriptOrFile);
 								createProjectForEdit(xrunit, true);
 							} catch (RuntimeException ee) {
 								warn("Error when re-generating project. Ignoring it, but state might be undefined: "

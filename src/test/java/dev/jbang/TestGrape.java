@@ -26,7 +26,7 @@ public class TestGrape extends BaseTest {
 				+
 				"})\n";
 
-		DecoratedSource xrunit = Source.forScript(grabBlock, null, null);
+		DecoratedSource xrunit = DecoratedSource.forScript(grabBlock, null, null);
 
 		List<String> deps = xrunit.collectAllDependencies();
 

@@ -16,7 +16,6 @@ import java.util.jar.Manifest;
 
 import dev.jbang.DecoratedSource;
 import dev.jbang.ExitException;
-import dev.jbang.Source;
 import dev.jbang.Util;
 
 import picocli.CommandLine;
@@ -143,7 +142,7 @@ public class Export extends BaseBuildCommand {
 			enableInsecure();
 		}
 
-		xrunit = Source.forResource(scriptOrFile, null, properties, dependencies, classpaths, fresh,
+		xrunit = DecoratedSource.forResource(scriptOrFile, null, properties, dependencies, classpaths, fresh,
 				forcejsh);
 
 		if (xrunit.needsJar()) {
