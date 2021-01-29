@@ -19,6 +19,7 @@ import dev.jbang.DecoratedSource;
 import dev.jbang.ExitException;
 import dev.jbang.JavaUtil;
 import dev.jbang.ScriptSource;
+import dev.jbang.Settings;
 import dev.jbang.Util;
 
 import picocli.CommandLine;
@@ -183,6 +184,13 @@ public class Run extends BaseBuildCommand {
 					Util.verboseMsg("Flight recording enabled with:" + jfropt);
 				}
 
+				if (xrunit.getJar() != null) {
+					if (classpath.trim().isEmpty()) {
+						classpath = xrunit.getJar().getAbsolutePath();
+					} else {
+						classpath = xrunit.getJar().getAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
+					}
+				}
 				if (!classpath.trim().isEmpty()) {
 					optionalArgs.add("-classpath");
 					optionalArgs.add(classpath);

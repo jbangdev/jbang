@@ -4,6 +4,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static dev.jbang.Util.writeString;
+import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -93,11 +94,13 @@ public class TestRun extends BaseTest {
 				run.dependencies, run.classpaths,
 				run.fresh, run.forcejsh);
 
+		run.prepareArtifacts(xrunit);
+
 		String result = run.generateCommandLine(xrunit);
 
 		assertThat(result, startsWith("java "));
-		assertThat(result, containsString("helloworld"));
-		assertThat(result, containsString("-classpath"));
+		assertThat(result, endsWith("helloworld"));
+		assertThat(result, containsString("classpath"));
 		assertThat(result, containsString(".jar"));
 		// assertThat(result, containsString("--source 11"));
 	}
@@ -419,7 +422,7 @@ public class TestRun extends BaseTest {
 			assertThat(result, containsString("'-Dquoted=see this'"));
 		}
 		String[] split = result.split("example.java");
-		assertEquals(split.length, 3);
+		assertEquals(3, split.length);
 		assertThat(split[0], not(containsString("after=wonka")));
 		assertThat(split[2], containsString("after=wonka"));
 	}
