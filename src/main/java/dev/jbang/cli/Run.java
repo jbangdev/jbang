@@ -19,7 +19,6 @@ import dev.jbang.DecoratedSource;
 import dev.jbang.ExitException;
 import dev.jbang.JavaUtil;
 import dev.jbang.ScriptSource;
-import dev.jbang.Source;
 import dev.jbang.Util;
 
 import picocli.CommandLine;
@@ -71,7 +70,7 @@ public class Run extends BaseBuildCommand {
 		}
 
 		xrunit = prepareArtifacts(
-				Source.forResource(scriptOrFile, userParams, properties, dependencies, classpaths, fresh,
+				DecoratedSource.forResource(scriptOrFile, userParams, properties, dependencies, classpaths, fresh,
 						forcejsh));
 
 		String cmdline = generateCommandLine(xrunit);
@@ -91,7 +90,7 @@ public class Run extends BaseBuildCommand {
 				String javaAgent = agentOption.getKey();
 				Optional<String> javaAgentOptions = agentOption.getValue();
 
-				DecoratedSource agentXrunit = Source.forResource(javaAgent, userParams, properties,
+				DecoratedSource agentXrunit = DecoratedSource.forResource(javaAgent, userParams, properties,
 						dependencies, classpaths, fresh, forcejsh);
 				agentXrunit.setJavaAgentOption(javaAgentOptions.orElse(null));
 				if (agentXrunit.needsJar()) {

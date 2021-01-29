@@ -20,7 +20,6 @@ import dev.jbang.DecoratedSource;
 import dev.jbang.ExitException;
 import dev.jbang.JdkManager;
 import dev.jbang.Settings;
-import dev.jbang.Source;
 import dev.jbang.UnpackUtil;
 import dev.jbang.Util;
 
@@ -97,7 +96,7 @@ class AppInstall extends BaseCommand {
 			Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
 			return false;
 		}
-		DecoratedSource xrunit = Source.forResource(scriptRef);
+		DecoratedSource xrunit = DecoratedSource.forResource(scriptRef);
 		if (name == null) {
 			name = chooseCommandName(xrunit);
 			if (!force && existScripts(binDir, name)) {

@@ -11,7 +11,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import dev.jbang.DecoratedSource;
-import dev.jbang.Source;
 
 import picocli.CommandLine;
 
@@ -55,7 +54,7 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 			enableInsecure();
 		}
 
-		xrunit = Source.forResource(scriptOrFile);
+		xrunit = DecoratedSource.forResource(scriptOrFile);
 
 		ScriptInfo info = new ScriptInfo(xrunit);
 
