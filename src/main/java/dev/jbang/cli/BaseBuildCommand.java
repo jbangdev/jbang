@@ -122,7 +122,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 
 		boolean nativeBuildRequired = nativeImage && !getImageName(outjar).exists();
 		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
-		String requestedJavaVersion = javaVersion != null ? javaVersion : xrunit.script().javaVersion();
+		String requestedJavaVersion = javaVersion != null ? javaVersion : xrunit.javaVersion();
 		// always build the jar for native mode
 		// it allows integrations the options to produce the native image
 		if (!outjar.exists() || JavaUtil.javaVersion(requestedJavaVersion) < xrunit.getBuildJdk()
@@ -154,7 +154,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		IntegrationResult integrationResult;
 		List<String> optionList = new ArrayList<String>();
 		optionList.add(resolveInJavaHome("javac", requestedJavaVersion));
-		optionList.addAll(xrunit.script().collectCompileOptions());
+		optionList.addAll(xrunit.script().getCompileOptions());
 		String path = xrunit.resolveClassPath(offline);
 		if (!path.trim().isEmpty()) {
 			optionList.addAll(Arrays.asList("-classpath", path));

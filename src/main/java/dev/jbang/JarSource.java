@@ -1,7 +1,10 @@
 package dev.jbang;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
 
 /**
  * A Jar represents a Source (something runnable) in the form of a JAR file.
@@ -17,8 +20,34 @@ import java.util.*;
 public class JarSource implements Source {
 	private final ResourceRef resourceRef;
 
+	private String mainClass;
+	private List<String> javaRuntimeOptions;
+	private int buildJdk;
+
 	private JarSource(ResourceRef resourceRef) {
 		this.resourceRef = resourceRef;
+		this.javaRuntimeOptions = Collections.emptyList();
+		File jar = getResourceRef().getFile();
+		if (jar.exists()) {
+			try (JarFile jf = new JarFile(jar)) {
+				Attributes attrs = jf.getManifest().getMainAttributes();
+				mainClass = attrs.getValue(Attributes.Name.MAIN_CLASS);
+
+				String val = attrs.getValue(ScriptSource.JBANG_JAVA_OPTIONS);
+				if (val != null) {
+					// should parse it but we are assuming it just gets appended on command line
+					// anyway
+					javaRuntimeOptions = Collections.singletonList(val);
+				}
+
+				String ver = attrs.getValue(ScriptSource.BUILD_JDK);
+				if (ver != null) {
+					buildJdk = JavaUtil.parseJavaVersion(ver);
+				}
+			} catch (IOException e) {
+				Util.warnMsg("Problem reading manifest from " + getResourceRef().getFile());
+			}
+		}
 	}
 
 	@Override
@@ -47,7 +76,8 @@ public class JarSource implements Source {
 			classpath = new DependencyUtil().resolveDependencies(additionalDeps,
 					Collections.emptyList(), offline, !Util.isQuiet());
 		} else {
-			classpath = new ModularClassPath(Arrays.asList(new ArtifactInfo(null, getResourceRef().getFile())));
+			classpath = new ModularClassPath(
+					Collections.singletonList(new ArtifactInfo(null, getResourceRef().getFile())));
 		}
 		return classpath;
 	}
@@ -55,6 +85,20 @@ public class JarSource implements Source {
 	@Override
 	public String javaVersion() {
 		return null;
+	}
+
+	@Override
+	public String getMainClass() {
+		return mainClass;
+	}
+
+	@Override
+	public List<String> getRuntimeOptions() {
+		return javaRuntimeOptions;
+	}
+
+	public int getBuildJdk() {
+		return buildJdk;
 	}
 
 	public static JarSource prepareJar(ResourceRef resourceRef) {

@@ -1,10 +1,7 @@
 package dev.jbang;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
-import java.util.jar.Attributes;
-import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -31,6 +28,7 @@ public class DecoratedSource implements Source {
 	private boolean forcejsh = false; // if true, interpret any input as for jshell
 	private String originalRef;
 	private String mainClass;
+	private List<String> javaRuntimeOptions;
 	private List<String> persistentJvmArgs;
 	private int buildJdk;
 	/**
@@ -159,12 +157,22 @@ public class DecoratedSource implements Source {
 		return originalRef;
 	}
 
+	@Override
 	public String getMainClass() {
-		return mainClass;
+		return (mainClass != null) ? mainClass : source.getMainClass();
 	}
 
 	public void setMainClass(String mainClass) {
 		this.mainClass = mainClass;
+	}
+
+	@Override
+	public List<String> getRuntimeOptions() {
+		return (javaRuntimeOptions != null) ? javaRuntimeOptions : source.getRuntimeOptions();
+	}
+
+	public void setRuntimeOptions(List<String> javaRuntimeOptions) {
+		this.javaRuntimeOptions = javaRuntimeOptions;
 	}
 
 	public List<String> getPersistentJvmArgs() {
@@ -244,17 +252,6 @@ public class DecoratedSource implements Source {
 	public String resolveClassPath(boolean offline) {
 		if (classpath == null) {
 			classpath = resolveClassPath(collectAllDependencies(), offline);
-			if (source instanceof JarSource) {
-				// fetch main class as we can't use -jar to run as it ignores classpath.
-				if (getMainClass() == null) {
-					try (JarFile jf = new JarFile(getResourceRef().getFile())) {
-						setMainClass(
-								jf.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS));
-					} catch (IOException e) {
-						Util.warnMsg("Problem reading manifest from " + getResourceRef().getFile());
-					}
-				}
-			}
 		}
 		StringBuilder cp = new StringBuilder(classpath.getClassPath());
 		for (String addcp : additionalClasspaths) {

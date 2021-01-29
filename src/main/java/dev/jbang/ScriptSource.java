@@ -342,19 +342,12 @@ public class ScriptSource implements Source {
 		return javaOptions;
 	}
 
-	public List<String> collectAllRuntimeOptions() {
-		return collectAll(ScriptSource::collectRuntimeOptions);
-	}
-
-	public List<String> collectRuntimeOptions() {
+	@Override
+	public List<String> getRuntimeOptions() {
 		return collectOptions("JAVA_OPTIONS");
 	}
 
-	public List<String> collectAllCompileOptions() {
-		return collectAll(ScriptSource::collectCompileOptions);
-	}
-
-	public List<String> collectCompileOptions() {
+	public List<String> getCompileOptions() {
 		return collectOptions("JAVAC_OPTIONS");
 	}
 
