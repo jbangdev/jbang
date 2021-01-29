@@ -26,6 +26,13 @@ public interface Source {
 	File getJar();
 
 	/**
+	 * Determines if CDS has been enabled for this Source
+	 */
+	default boolean enableCDS() {
+		return false;
+	}
+
+	/**
 	 * Returns the requested Java version
 	 */
 	String javaVersion();

@@ -358,6 +358,7 @@ public class ScriptSource implements Source {
 		return collectOptions("JAVAC_OPTIONS");
 	}
 
+	@Override
 	public boolean enableCDS() {
 		return !collectRawOptions("CDS").isEmpty();
 	}
