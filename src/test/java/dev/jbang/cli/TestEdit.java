@@ -11,8 +11,6 @@ import static org.hamcrest.io.FileMatchers.aReadableFile;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -20,7 +18,6 @@ import java.util.stream.Collectors;
 
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.io.FileMatchers;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -28,17 +25,6 @@ import org.junit.jupiter.api.io.TempDir;
 import dev.jbang.*;
 
 public class TestEdit extends BaseTest {
-
-	public static final String EXAMPLES_FOLDER = "itests";
-	static File examplesTestFolder;
-
-	@BeforeAll
-	static void init() throws URISyntaxException, IOException {
-		URL examplesUrl = TestRun.class.getClassLoader().getResource(EXAMPLES_FOLDER);
-		examplesTestFolder = new File(new File(examplesUrl.toURI()).getAbsolutePath());
-
-		Settings.clearCache(Settings.CacheClass.jars);
-	}
 
 	StringWriter output;
 

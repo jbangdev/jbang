@@ -7,19 +7,13 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-import dev.jbang.cli.TestRun;
 
 public class TestUtil extends BaseTest {
 	public static void clearSettingsCaches() {
@@ -67,18 +61,6 @@ public class TestUtil extends BaseTest {
 
 		content = "public static\nvoid\nmain(String\nargs[]) {";
 		assertTrue(Util.hasMainMethod(content));
-	}
-
-	public static final String EXAMPLES_FOLDER = "itests";
-	static File examplesTestFolder;
-
-	@BeforeAll
-	static void init() throws URISyntaxException, IOException {
-		URL examplesUrl = TestRun.class.getClassLoader().getResource(EXAMPLES_FOLDER);
-		examplesTestFolder = new File(new File(examplesUrl.toURI()).getAbsolutePath());
-
-		Settings.clearCache(Settings.CacheClass.jars);
-
 	}
 
 	@Test
