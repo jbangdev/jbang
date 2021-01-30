@@ -24,8 +24,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -46,7 +44,6 @@ import org.hamcrest.MatcherAssert;
 import org.hamcrest.collection.IsCollectionWithSize;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -69,17 +66,6 @@ import dev.jbang.Util;
 import picocli.CommandLine;
 
 public class TestRun extends BaseTest {
-
-	public static final String EXAMPLES_FOLDER = "itests";
-	static File examplesTestFolder;
-
-	@BeforeAll
-	static void init() throws URISyntaxException, IOException {
-		URL examplesUrl = TestRun.class.getClassLoader().getResource(EXAMPLES_FOLDER);
-		examplesTestFolder = new File(new File(examplesUrl.toURI()).getAbsolutePath());
-
-		Settings.clearCache(Settings.CacheClass.jars);
-	}
 
 	@Test
 	void testHelloWorld() throws IOException {

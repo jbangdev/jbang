@@ -1,19 +1,24 @@
 package dev.jbang;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.function.Function;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.rules.TemporaryFolder;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.Jbang;
+import dev.jbang.cli.TestRun;
 
 import picocli.CommandLine;
 
@@ -23,6 +28,21 @@ public abstract class BaseTest {
 	void initEnv() throws IOException {
 		jbangTempDir.create();
 		environmentVariables.set("JBANG_DIR", jbangTempDir.getRoot().getPath());
+	}
+
+	public static final String EXAMPLES_FOLDER = "itests";
+	public static File examplesTestFolder;
+
+	@BeforeAll
+	static void init() throws URISyntaxException, IOException {
+		URL examplesUrl = TestRun.class.getClassLoader().getResource(EXAMPLES_FOLDER);
+		if (examplesUrl == null) {
+			examplesTestFolder = new File(EXAMPLES_FOLDER);
+		} else {
+			examplesTestFolder = new File(new File(examplesUrl.toURI()).getAbsolutePath());
+		}
+
+		Settings.clearCache(Settings.CacheClass.jars);
 	}
 
 	@Rule
