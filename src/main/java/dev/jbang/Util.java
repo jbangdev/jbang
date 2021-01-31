@@ -6,11 +6,13 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLDecoder;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
@@ -478,14 +480,7 @@ public class Util {
 
 				if (disposition != null) {
 					// extracts file name from header field
-					int index = disposition.indexOf("filename=");
-					if (index > 0) {
-						fileName = disposition.substring(index + 9);
-						// Seems not everybody properly quotes the filename
-						if (fileName.startsWith("\"") && fileName.endsWith("\"")) {
-							fileName = fileName.substring(1, fileName.length() - 1);
-						}
-					}
+					fileName = getDispositionFilename(disposition);
 				}
 
 				if (fileName.trim().isEmpty()) {
@@ -522,6 +517,37 @@ public class Util {
 
 		return saveFilePath;
 
+	}
+
+	public static String getDispositionFilename(String disposition) {
+		String fileName = "";
+		int index = disposition.indexOf("filename=");
+		if (index > 0) {
+			fileName = unquote(disposition.substring(index + 9));
+			// Seems not everybody properly quotes the filename
+			fileName = unquote(fileName);
+		} else {
+			index = disposition.indexOf("filename*=");
+			if (index > 0) {
+				String encodedName = unquote(disposition.substring(index + 10));
+				String[] parts = encodedName.split("'", 3);
+				if (parts.length == 3) {
+					try {
+						fileName = URLDecoder.decode(parts[2], parts[0]);
+					} catch (UnsupportedEncodingException e) {
+						Util.infoMsg("Content-Disposition contains unsupported encoding " + parts[0]);
+					}
+				}
+			}
+		}
+		return fileName;
+	}
+
+	public static String unquote(String txt) {
+		if (txt.startsWith("\"") && txt.endsWith("\"")) {
+			txt = txt.substring(1, txt.length() - 1);
+		}
+		return txt;
 	}
 
 	/**
