@@ -142,8 +142,7 @@ public class Export extends BaseBuildCommand {
 			enableInsecure();
 		}
 
-		xrunit = DecoratedSource.forResource(scriptOrFile, null, properties, dependencies, classpaths, fresh,
-				forcejsh);
+		xrunit = DecoratedSource.forResource(scriptOrFile, null, properties, getDependencyContext(), fresh, forcejsh);
 
 		if (xrunit.needsJar()) {
 			build(xrunit);

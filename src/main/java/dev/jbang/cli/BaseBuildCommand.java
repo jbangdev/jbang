@@ -30,6 +30,7 @@ import org.jboss.jandex.Indexer;
 import org.jboss.jandex.Type;
 
 import dev.jbang.DecoratedSource;
+import dev.jbang.DependencyContext;
 import dev.jbang.ExitException;
 import dev.jbang.FileRef;
 import dev.jbang.IntegrationManager;
@@ -81,6 +82,9 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 	@CommandLine.Option(names = {
 			"-n", "--native" }, description = "Build using native-image", defaultValue = "false")
 	boolean nativeImage;
+
+	@CommandLine.Option(names = { "--repos" }, description = "Add additional repositories.")
+	List<String> repositories;
 
 	@CommandLine.Option(names = { "--deps" }, description = "Add additional dependencies.")
 	List<String> dependencies;
@@ -330,6 +334,10 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		if (process.exitValue() != 0) {
 			throw new ExitException(1, "Error during native-image");
 		}
+	}
+
+	protected DependencyContext getDependencyContext() {
+		return new DependencyContext(repositories, dependencies, classpaths);
 	}
 
 	static void createJarFile(DecoratedSource xrunit, File path, File output) throws IOException {
