@@ -70,7 +70,7 @@ public class Run extends BaseBuildCommand {
 		}
 
 		xrunit = prepareArtifacts(
-				DecoratedSource.forResource(scriptOrFile, userParams, properties, dependencies, classpaths, fresh,
+				DecoratedSource.forResource(scriptOrFile, userParams, properties, getDependencyContext(), fresh,
 						forcejsh));
 
 		String cmdline = generateCommandLine(xrunit);
@@ -91,7 +91,7 @@ public class Run extends BaseBuildCommand {
 				Optional<String> javaAgentOptions = agentOption.getValue();
 
 				DecoratedSource agentXrunit = DecoratedSource.forResource(javaAgent, userParams, properties,
-						dependencies, classpaths, fresh, forcejsh);
+						getDependencyContext(), fresh, forcejsh);
 				agentXrunit.setJavaAgentOption(javaAgentOptions.orElse(null));
 				if (agentXrunit.needsJar()) {
 					info("Building javaagent...");

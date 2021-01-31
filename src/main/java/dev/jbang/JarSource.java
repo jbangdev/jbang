@@ -68,16 +68,17 @@ public class JarSource implements Source {
 	}
 
 	@Override
-	public ModularClassPath resolveClassPath(List<String> additionalDeps, boolean offline) {
+	public ModularClassPath resolveClassPath(DependencyContext additionalDependencyContext, boolean offline) {
 		ModularClassPath classpath;
 		if (DependencyUtil.looksLikeAGav(resourceRef.getOriginalResource())) {
-			List<String> dependencies = new ArrayList<>(additionalDeps);
+			List<String> dependencies = new ArrayList<>(additionalDependencyContext.getDependencies());
 			dependencies.add(resourceRef.getOriginalResource());
 			classpath = new DependencyUtil().resolveDependencies(dependencies,
-					Collections.emptyList(), offline, !Util.isQuiet());
-		} else if (!additionalDeps.isEmpty()) {
-			classpath = new DependencyUtil().resolveDependencies(additionalDeps,
-					Collections.emptyList(), offline, !Util.isQuiet());
+					additionalDependencyContext.getRepositoriesAsMavenRepo(),
+					offline, !Util.isQuiet());
+		} else if (!additionalDependencyContext.getDependencies().isEmpty()) {
+			classpath = new DependencyUtil().resolveDependencies(additionalDependencyContext.getDependencies(),
+					additionalDependencyContext.getRepositoriesAsMavenRepo(), offline, !Util.isQuiet());
 		} else {
 			classpath = new ModularClassPath(
 					Collections.singletonList(new ArtifactInfo(null, getResourceRef().getFile())));

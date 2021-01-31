@@ -202,7 +202,7 @@ public class ResourceRef implements Comparable<ResourceRef> {
 			// support url's as script files
 			result = fetchFromURL(scriptResource, knownTrusted);
 		} else if (DependencyUtil.looksLikeAGav(scriptResource)) {
-			// todo honor offline
+			// todo honor offline and honor repos!
 			String gav = scriptResource;
 			String s = new DependencyUtil().resolveDependencies(Collections.singletonList(gav),
 					Collections.emptyList(), false, !Util.isQuiet(), false).getClassPath();

@@ -130,6 +130,7 @@ public class DependencyUtil {
 			boolean offline, boolean loggingEnabled, boolean transitively) {
 
 		ConfigurableMavenResolverSystem resolver = Maven.configureResolver()
+														.withClassPathResolution(false)
 														.withMavenCentralRepo(false)
 														.workOffline(offline);
 

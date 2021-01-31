@@ -37,7 +37,6 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 		String javaVersion;
 
 		public ScriptInfo(DecoratedSource xrunit) {
-			List<String> collectDependencies = xrunit.collectAllDependencies();
 			String cp = xrunit.resolveClassPath(offline);
 
 			originalResource = xrunit.getResourceRef().getOriginalResource();

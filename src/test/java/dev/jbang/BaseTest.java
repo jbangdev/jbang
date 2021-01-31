@@ -97,7 +97,7 @@ public abstract class BaseTest {
 		return new ExecutionResult(result, outStr, errStr);
 	}
 
-	protected static class ExecutionResult {
+	public static class ExecutionResult {
 		public final Integer exitCode;
 		public final String out;
 		public final String err;

@@ -58,6 +58,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import dev.jbang.AliasUtil;
 import dev.jbang.BaseTest;
 import dev.jbang.DecoratedSource;
+import dev.jbang.DependencyContext;
 import dev.jbang.ExitException;
 import dev.jbang.ResourceRef;
 import dev.jbang.Settings;
@@ -77,8 +78,8 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		DecoratedSource xrunit = DecoratedSource.forResource(arg, run.userParams, run.properties,
-				run.dependencies, run.classpaths,
-				run.fresh, run.forcejsh);
+				run.getDependencyContext(), run.fresh,
+				run.forcejsh);
 
 		run.prepareArtifacts(xrunit);
 
@@ -101,8 +102,8 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		DecoratedSource xrunit = DecoratedSource.forResource(arg, run.userParams, run.properties,
-				run.dependencies, run.classpaths,
-				run.fresh, run.forcejsh);
+				run.getDependencyContext(), run.fresh,
+				run.forcejsh);
 
 		String result = run.generateCommandLine(xrunit);
 
@@ -128,8 +129,8 @@ public class TestRun extends BaseTest {
 		empty.createNewFile();
 
 		DecoratedSource xrunit = DecoratedSource.forResource(empty.toString(), run.userParams, run.properties,
-				run.dependencies, run.classpaths,
-				run.fresh, run.forcejsh);
+				run.getDependencyContext(), run.fresh,
+				run.forcejsh);
 
 		String result = run.generateCommandLine(xrunit);
 
@@ -152,9 +153,9 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		DecoratedSource xrunit = DecoratedSource.forResource(jar, run.userParams, run.properties, run.dependencies,
-				run.classpaths, run.fresh,
-				run.forcejsh);
+		DecoratedSource xrunit = DecoratedSource.forResource(jar, run.userParams, run.properties,
+				run.getDependencyContext(),
+				run.fresh, run.forcejsh);
 
 		String result = run.generateCommandLine(xrunit);
 		assertThat(result, matchesPattern("^.*java(.exe)?.*"));
@@ -182,9 +183,10 @@ public class TestRun extends BaseTest {
 			CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 			Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-			DecoratedSource xrunit = DecoratedSource.forResource(jar, run.userParams, run.properties, run.dependencies,
-					run.classpaths,
-					run.fresh, run.forcejsh);
+			DecoratedSource xrunit = DecoratedSource.forResource(jar, run.userParams, run.properties,
+					run.getDependencyContext(),
+					run.fresh,
+					run.forcejsh);
 
 			String cmdline = run.generateCommandLine(xrunit);
 
@@ -208,9 +210,9 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		DecoratedSource xrunit = DecoratedSource.forResource(jar, run.userParams, run.properties, run.dependencies,
-				run.classpaths, run.fresh,
-				run.forcejsh);
+		DecoratedSource xrunit = DecoratedSource.forResource(jar, run.userParams, run.properties,
+				run.getDependencyContext(),
+				run.fresh, run.forcejsh);
 
 		assertThat(xrunit.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
 
@@ -243,9 +245,9 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		DecoratedSource xrunit = DecoratedSource.forResource(jar, run.userParams, run.properties, run.dependencies,
-				run.classpaths, run.fresh,
-				run.forcejsh);
+		DecoratedSource xrunit = DecoratedSource.forResource(jar, run.userParams, run.properties,
+				run.getDependencyContext(),
+				run.fresh, run.forcejsh);
 
 		assertThat(xrunit.getResourceRef().getFile().toString(), matchesPattern(".*.jar"));
 
@@ -268,9 +270,9 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		DecoratedSource xrunit = DecoratedSource.forResource(jar, run.userParams, run.properties, run.dependencies,
-				run.classpaths, run.fresh,
-				run.forcejsh);
+		DecoratedSource xrunit = DecoratedSource.forResource(jar, run.userParams, run.properties,
+				run.getDependencyContext(),
+				run.fresh, run.forcejsh);
 
 		assertThat(xrunit.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*eclipse.jgit.pgm.*.jar"));
 
@@ -292,9 +294,9 @@ public class TestRun extends BaseTest {
 				"picocli.codegen.aot.graalvm.ReflectionConfigGenerator", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		DecoratedSource xrunit = DecoratedSource.forResource(jar, run.userParams, run.properties, run.dependencies,
-				run.classpaths, run.fresh,
-				run.forcejsh);
+		DecoratedSource xrunit = DecoratedSource.forResource(jar, run.userParams, run.properties,
+				run.getDependencyContext(),
+				run.fresh, run.forcejsh);
 
 		String cmd = run.generateCommandLine(xrunit);
 
@@ -317,9 +319,9 @@ public class TestRun extends BaseTest {
 				"blah");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		DecoratedSource xrunit = DecoratedSource.forResource(arg, run.userParams, run.properties, run.dependencies,
-				run.classpaths, run.fresh,
-				run.forcejsh);
+		DecoratedSource xrunit = DecoratedSource.forResource(arg, run.userParams, run.properties,
+				run.getDependencyContext(),
+				run.fresh, run.forcejsh);
 
 		String result = run.generateCommandLine(xrunit);
 
@@ -342,9 +344,9 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--debug", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		DecoratedSource xrunit = DecoratedSource.forResource(arg, run.userParams, run.properties, run.dependencies,
-				run.classpaths, run.fresh,
-				run.forcejsh);
+		DecoratedSource xrunit = DecoratedSource.forResource(arg, run.userParams, run.properties,
+				run.getDependencyContext(),
+				run.fresh, run.forcejsh);
 
 		String result = run.generateCommandLine(xrunit);
 
@@ -365,9 +367,9 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		DecoratedSource xrunit = DecoratedSource.forResource(arg, run.userParams, run.properties, run.dependencies,
-				run.classpaths, run.fresh,
-				run.forcejsh);
+		DecoratedSource xrunit = DecoratedSource.forResource(arg, run.userParams, run.properties,
+				run.getDependencyContext(),
+				run.fresh, run.forcejsh);
 
 		String result = run.generateCommandLine(xrunit);
 
@@ -394,9 +396,9 @@ public class TestRun extends BaseTest {
 
 		assertThat(run.properties.size(), is(2));
 
-		DecoratedSource xrunit = DecoratedSource.forResource(arg, run.userParams, run.properties, run.dependencies,
-				run.classpaths, run.fresh,
-				run.forcejsh);
+		DecoratedSource xrunit = DecoratedSource.forResource(arg, run.userParams, run.properties,
+				run.getDependencyContext(),
+				run.fresh, run.forcejsh);
 
 		String result = run.generateCommandLine(xrunit);
 
@@ -430,8 +432,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		String s = run.generateCommandLine(
-				DecoratedSource.forResource(url, run.userParams, run.properties, run.dependencies, run.classpaths,
-						run.fresh,
+				DecoratedSource.forResource(url, run.userParams, run.properties, run.getDependencyContext(), run.fresh,
 						run.forcejsh));
 
 		assertThat(s, not(containsString("file:")));
@@ -445,8 +446,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		String s = run.generateCommandLine(
-				DecoratedSource.forResource(url, run.userParams, run.properties, run.dependencies, run.classpaths,
-						run.fresh,
+				DecoratedSource.forResource(url, run.userParams, run.properties, run.getDependencyContext(), run.fresh,
 						run.forcejsh));
 		if (Util.isWindows()) {
 			assertThat(s, containsString("^\"^ ~^!@#$^%^^^&*^(^)-+\\:;'`^<^>?/,.{}[]\\^\"^\""));
@@ -636,9 +636,9 @@ public class TestRun extends BaseTest {
 
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		DecoratedSource xrunit = DecoratedSource.forResource(arg, run.userParams, run.properties, run.dependencies,
-				run.classpaths, run.fresh,
-				run.forcejsh);
+		DecoratedSource xrunit = DecoratedSource.forResource(arg, run.userParams, run.properties,
+				run.getDependencyContext(),
+				run.fresh, run.forcejsh);
 
 		run.build(xrunit);
 
@@ -876,11 +876,11 @@ public class TestRun extends BaseTest {
 		writeString(p, agent);
 
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("build", p.toFile().getAbsolutePath());
-		Build run = (Build) pr.subcommand().commandSpec().userObject();
+		BaseBuildCommand run = (BaseBuildCommand) pr.subcommand().commandSpec().userObject();
 
 		DecoratedSource xrunit = DecoratedSource.forResource(p.toFile().getAbsolutePath(), null, run.properties,
-				run.dependencies,
-				run.classpaths, run.fresh, run.forcejsh);
+				run.getDependencyContext(),
+				run.fresh, run.forcejsh);
 
 		run.build(xrunit);
 
@@ -906,11 +906,11 @@ public class TestRun extends BaseTest {
 		writeString(p, preagent);
 
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("build", p.toFile().getAbsolutePath());
-		Build run = (Build) pr.subcommand().commandSpec().userObject();
+		BaseBuildCommand run = (BaseBuildCommand) pr.subcommand().commandSpec().userObject();
 
 		DecoratedSource xrunit = DecoratedSource.forResource(p.toFile().getAbsolutePath(), null, run.properties,
-				run.dependencies,
-				run.classpaths, run.fresh, run.forcejsh);
+				run.getDependencyContext(),
+				run.fresh, run.forcejsh);
 
 		run.build(xrunit);
 
@@ -1014,8 +1014,8 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		DecoratedSource xrunit = DecoratedSource.forResource(f.getAbsolutePath(), run.userParams, run.properties,
-				run.dependencies,
-				run.classpaths, run.fresh, run.forcejsh);
+				run.getDependencyContext(),
+				run.fresh, run.forcejsh);
 
 		String line = run.generateCommandLine(xrunit);
 
@@ -1032,8 +1032,8 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		DecoratedSource xrunit = DecoratedSource.forResource(f.getAbsolutePath(), run.userParams, run.properties,
-				run.dependencies,
-				run.classpaths, run.fresh, run.forcejsh);
+				run.getDependencyContext(),
+				run.fresh, run.forcejsh);
 
 		String line = run.generateCommandLine(xrunit);
 
@@ -1046,7 +1046,8 @@ public class TestRun extends BaseTest {
 
 		Run m = new Run();
 
-		DecoratedSource xrunit = DecoratedSource.forResource(f.getAbsolutePath(), null, null, null, null, false, false);
+		DecoratedSource xrunit = DecoratedSource.forResource(f.getAbsolutePath(), null, null, new DependencyContext(),
+				false, false);
 
 		m.build(xrunit);
 
@@ -1079,7 +1080,8 @@ public class TestRun extends BaseTest {
 
 		Run m = new Run();
 
-		DecoratedSource xrunit = DecoratedSource.forResource(f.getAbsolutePath(), null, null, null, null, false, false);
+		DecoratedSource xrunit = DecoratedSource.forResource(f.getAbsolutePath(), null, null, new DependencyContext(),
+				false, false);
 
 		m.build(xrunit);
 
@@ -1139,8 +1141,7 @@ public class TestRun extends BaseTest {
 		Run m = new Run();
 
 		DecoratedSource xrunit = DecoratedSource.forResource("http://localhost:" + wms.port() + "/sub/one.java", null,
-				null, null, null, false,
-				false);
+				null, new DependencyContext(), false, false);
 
 		m.build(xrunit);
 
@@ -1180,8 +1181,7 @@ public class TestRun extends BaseTest {
 		Run m = new Run();
 
 		DecoratedSource xrunit = DecoratedSource.forResource("http://localhost:" + wms.port() + "/sub/one.java", null,
-				null, null, null, false,
-				false);
+				null, new DependencyContext(), false, false);
 
 		m.build(xrunit);
 
@@ -1219,8 +1219,7 @@ public class TestRun extends BaseTest {
 		Run m = new Run();
 
 		DecoratedSource xrunit = DecoratedSource.forResource("http://localhost:" + wms.port() + "/sub/one", null, null,
-				null, null, false,
-				false);
+				new DependencyContext(), false, false);
 
 		m.build(xrunit);
 	}
@@ -1244,8 +1243,8 @@ public class TestRun extends BaseTest {
 
 		Run m = new Run();
 
-		DecoratedSource xrunit = DecoratedSource.forResource(dir.toPath().toString(), null, null, null, null, false,
-				false);
+		DecoratedSource xrunit = DecoratedSource.forResource(dir.toPath().toString(), null, null,
+				new DependencyContext(), false, false);
 
 		m.build(xrunit);
 
@@ -1257,7 +1256,8 @@ public class TestRun extends BaseTest {
 		Run m = new Run();
 
 		ExitException e = assertThrows(ExitException.class,
-				() -> DecoratedSource.forResource(dir.toPath().toString(), null, null, null, null, false, false));
+				() -> DecoratedSource.forResource(dir.toPath().toString(), null, null, new DependencyContext(), false,
+						false));
 
 		assertThat(e.getMessage(), containsString("is a directory and no default application"));
 
@@ -1280,8 +1280,7 @@ public class TestRun extends BaseTest {
 		Run m = new Run();
 
 		DecoratedSource xrunit = DecoratedSource.forResource("http://localhost:" + wms.port() + "/sub/one/", null, null,
-				null, null, false,
-				false);
+				new DependencyContext(), false, false);
 
 		m.build(xrunit);
 	}
@@ -1303,9 +1302,9 @@ public class TestRun extends BaseTest {
 		Run m = new Run();
 
 		assertThrows(ExitException.class,
-				() -> DecoratedSource.forResource("http://localhost:" + wms.port() + "/sub/one/", null, null, null,
-						null, false,
-						false));
+				() -> DecoratedSource.forResource("http://localhost:" + wms.port() + "/sub/one/", null, null,
+						new DependencyContext(),
+						false, false));
 
 	}
 
