@@ -28,8 +28,6 @@ public class DecoratedSource implements Source {
 	final private List<String> arguments;
 	final private Map<String, String> properties;
 
-	private List<String> additionalDeps = Collections.emptyList();
-	private List<String> additionalClasspaths = Collections.emptyList();
 	private boolean forcejsh = false; // if true, interpret any input as for jshell
 	private String originalRef;
 	private String mainClass;
@@ -48,6 +46,7 @@ public class DecoratedSource implements Source {
 	private AliasUtil.Alias alias;
 
 	private ModularClassPath classpath;
+	private DependencyContext additionalDependencyContext = new DependencyContext();
 
 	protected DecoratedSource(Source source, List<String> arguments, Map<String, String> properties) {
 		this.source = source;
@@ -73,22 +72,6 @@ public class DecoratedSource implements Source {
 
 	public Map<String, String> getProperties() {
 		return (properties != null) ? properties : Collections.emptyMap();
-	}
-
-	public void setAdditionalDependencies(List<String> deps) {
-		if (deps != null) {
-			this.additionalDeps = new ArrayList<>(deps);
-		} else {
-			this.additionalDeps = Collections.emptyList();
-		}
-	}
-
-	public void setAdditionalClasspaths(List<String> cps) {
-		if (cps != null) {
-			this.additionalClasspaths = new ArrayList<>(cps);
-		} else {
-			this.additionalClasspaths = Collections.emptyList();
-		}
 	}
 
 	/**
@@ -241,13 +224,13 @@ public class DecoratedSource implements Source {
 
 	@Override
 	public List<String> getAllDependencies(Properties props) {
-		return Stream	.concat(additionalDeps.stream(), source.getAllDependencies(props).stream())
-						.collect(Collectors.toList());
+		return Stream.concat(additionalDependencyContext.getDependencies().stream(),
+				source.getAllDependencies(props).stream()).collect(Collectors.toList());
 	}
 
 	@Override
-	public ModularClassPath resolveClassPath(List<String> dependencies, boolean offline) {
-		return source.resolveClassPath(dependencies, offline);
+	public ModularClassPath resolveClassPath(DependencyContext additinal, boolean offline) {
+		return source.resolveClassPath(additinal, offline);
 	}
 
 	/**
@@ -256,10 +239,13 @@ public class DecoratedSource implements Source {
 	 **/
 	public String resolveClassPath(boolean offline) {
 		if (classpath == null) {
-			classpath = resolveClassPath(collectAllDependencies(), offline);
+			classpath = resolveClassPath(
+					new DependencyContext()	.setRepositories(additionalDependencyContext.getRepositories())
+											.setDependencies(collectAllDependencies()),
+					offline);
 		}
 		StringBuilder cp = new StringBuilder(classpath.getClassPath());
-		for (String addcp : additionalClasspaths) {
+		for (String addcp : additionalDependencyContext.getClasspaths()) {
 			cp.append(Settings.CP_SEPARATOR).append(addcp);
 		}
 		return cp.toString();
@@ -273,21 +259,19 @@ public class DecoratedSource implements Source {
 	}
 
 	public static DecoratedSource forResource(String resource) {
-		return forResource(resource, null, null, null, null, false, false);
+		return forResource(resource, null, null, new DependencyContext(), false, false);
 	}
 
 	public static DecoratedSource forResource(String resource, List<String> arguments) {
-		return forResource(resource, arguments, null, null, null, false, false);
+		return forResource(resource, arguments, null, new DependencyContext(), false, false);
 	}
 
-	public static DecoratedSource forResource(String resource, List<String> arguments,
-			Map<String, String> properties) {
-		return forResource(resource, arguments, properties, null, null, false, false);
+	public static DecoratedSource forResource(String resource, List<String> arguments, Map<String, String> properties) {
+		return forResource(resource, arguments, properties, new DependencyContext(), false, false);
 	}
 
-	public static DecoratedSource forResource(String resource, List<String> arguments,
-			Map<String, String> properties,
-			List<String> dependencies, List<String> classpaths, boolean fresh, boolean forcejsh) {
+	public static DecoratedSource forResource(String resource, List<String> arguments, Map<String, String> properties,
+			DependencyContext dependencyContext, boolean fresh, boolean forcejsh) {
 		ResourceRef resourceRef = ResourceRef.forResource(resource);
 
 		AliasUtil.Alias alias = null;
@@ -299,9 +283,8 @@ public class DecoratedSource implements Source {
 				arguments = alias.arguments;
 				properties = alias.properties;
 				if (resourceRef == null) {
-					throw new IllegalArgumentException(
-							"Alias " + resource + " from " + alias.catalog.catalogFile + " failed to resolve "
-									+ alias.scriptRef);
+					throw new IllegalArgumentException("Alias " + resource + " from " + alias.catalog.catalogFile
+							+ " failed to resolve " + alias.scriptRef);
 				}
 			}
 		}
@@ -325,19 +308,25 @@ public class DecoratedSource implements Source {
 		xrunit.setForcejsh(forcejsh);
 		xrunit.setOriginalRef(resource);
 		xrunit.setAlias(alias);
-		xrunit.setAdditionalDependencies(dependencies);
-		xrunit.setAdditionalClasspaths(classpaths);
+		xrunit.setDependencyContext(dependencyContext);
 		return xrunit;
+	}
+
+	private void setDependencyContext(DependencyContext dependencyContext) {
+		if (dependencyContext == null) {
+			dependencyContext = new DependencyContext();
+		} else {
+			this.additionalDependencyContext = dependencyContext;
+		}
 	}
 
 	public static DecoratedSource forScriptResource(ResourceRef resourceRef, List<String> arguments,
 			Map<String, String> properties) {
-		return forScriptResource(resourceRef, arguments, properties, null, null, false, false);
+		return forScriptResource(resourceRef, arguments, properties, null, false, false);
 	}
 
 	public static DecoratedSource forScriptResource(ResourceRef resourceRef, List<String> arguments,
-			Map<String, String> properties,
-			List<String> dependencies, List<String> classpaths, boolean fresh, boolean forcejsh) {
+			Map<String, String> properties, DependencyContext dependencyContext, boolean fresh, boolean forcejsh) {
 		// note script file must be not null at this point
 		Source ru;
 		if (resourceRef.getFile().getName().endsWith(".jar")) {
@@ -348,25 +337,20 @@ public class DecoratedSource implements Source {
 
 		DecoratedSource xrunit = new DecoratedSource(ru, arguments, properties);
 		xrunit.setForcejsh(forcejsh);
-		xrunit.setAdditionalDependencies(dependencies);
-		xrunit.setAdditionalClasspaths(classpaths);
+		xrunit.setDependencyContext(dependencyContext);
 		return xrunit;
 	}
 
-	public static DecoratedSource forScript(String script, List<String> arguments,
-			Map<String, String> properties) {
-		return forScript(script, arguments, properties, null, null, false, false);
+	public static DecoratedSource forScript(String script, List<String> arguments, Map<String, String> properties) {
+		return forScript(script, arguments, properties, null, false, false);
 	}
 
-	public static DecoratedSource forScript(String script, List<String> arguments,
-			Map<String, String> properties,
-			List<String> dependencies, List<String> classpaths,
-			boolean fresh, boolean forcejsh) {
+	public static DecoratedSource forScript(String script, List<String> arguments, Map<String, String> properties,
+			DependencyContext dependencyContext, boolean fresh, boolean forcejsh) {
 		Source ru = new ScriptSource(script);
 		DecoratedSource xrunit = new DecoratedSource(ru, arguments, properties);
 		xrunit.setForcejsh(forcejsh);
-		xrunit.setAdditionalDependencies(dependencies);
-		xrunit.setAdditionalClasspaths(classpaths);
+		xrunit.setDependencyContext(dependencyContext);
 		return xrunit;
 	}
 }
