@@ -2,6 +2,7 @@ package dev.jbang;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -87,5 +88,12 @@ public class TestUtil extends BaseTest {
 		assertThat(p, containsInAnyOrder("res/resource.java"));
 		assertThat(p, not(hasItem("test.java")));
 
+	}
+
+	@Test
+	void testDispostionFilename() throws IOException {
+		assertThat(Util.getDispositionFilename("inline; filename*=iso-8859-1'en'%A3%20rates"), equalTo("£ rates"));
+		assertThat(Util.getDispositionFilename("inline; filename*=\"UTF-8''%c2%a3%20and%20%e2%82%ac%20rates\""),
+				equalTo("£ and € rates"));
 	}
 }
