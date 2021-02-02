@@ -45,7 +45,7 @@ import dev.jbang.Util;
 import io.quarkus.qute.Template;
 import picocli.CommandLine;
 
-public abstract class BaseBuildCommand extends BaseScriptCommand {
+public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 	public static final Type STRINGARRAYTYPE = Type.create(DotName.createSimple("[Ljava.lang.String;"),
 			Type.Kind.ARRAY);
 	public static final Type STRINGTYPE = Type.create(DotName.createSimple("java.lang.String"), Type.Kind.CLASS);
@@ -81,12 +81,6 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 	@CommandLine.Option(names = {
 			"-n", "--native" }, description = "Build using native-image", defaultValue = "false")
 	boolean nativeImage;
-
-	@CommandLine.Option(names = { "--deps" }, description = "Add additional dependencies.")
-	List<String> dependencies;
-
-	@CommandLine.Option(names = { "--cp", "--class-path" }, description = "Add class path entries.")
-	List<String> classpaths;
 
 	@CommandLine.Option(names = {
 			"-f",

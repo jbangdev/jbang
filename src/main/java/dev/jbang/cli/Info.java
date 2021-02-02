@@ -20,7 +20,7 @@ import picocli.CommandLine;
 public class Info {
 }
 
-abstract class BaseInfoCommand extends BaseScriptCommand {
+abstract class BaseInfoCommand extends BaseScriptDepsCommand {
 
 	class ScriptInfo {
 
@@ -62,7 +62,7 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 			enableInsecure();
 		}
 
-		xrunit = DecoratedSource.forResource(scriptOrFile);
+		xrunit = DecoratedSource.forResource(scriptOrFile, null, null, dependencies, classpaths, false, forcejsh);
 
 		ScriptInfo info = new ScriptInfo(xrunit);
 
