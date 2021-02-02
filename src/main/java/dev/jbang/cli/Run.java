@@ -69,20 +69,20 @@ public class Run extends BaseBuildCommand {
 			enableInsecure();
 		}
 
-		xrunit = prepareArtifacts(
+		dsource = prepareArtifacts(
 				DecoratedSource.forResource(scriptOrFile, userParams, properties, dependencies, classpaths, fresh,
 						forcejsh));
 
-		String cmdline = generateCommandLine(xrunit);
+		String cmdline = generateCommandLine(dsource);
 		debug("run: " + cmdline);
 		out.println(cmdline);
 
 		return EXIT_EXECUTE;
 	}
 
-	DecoratedSource prepareArtifacts(DecoratedSource xrunit) throws IOException {
-		if (xrunit.needsJar()) {
-			build(xrunit);
+	DecoratedSource prepareArtifacts(DecoratedSource dsource) throws IOException {
+		if (dsource.needsJar()) {
+			build(dsource);
 		}
 
 		if (javaAgentSlots != null) {
@@ -97,24 +97,24 @@ public class Run extends BaseBuildCommand {
 					info("Building javaagent...");
 					build(agentXrunit);
 				}
-				xrunit.addJavaAgent(agentXrunit);
+				dsource.addJavaAgent(agentXrunit);
 			}
 		}
 
-		return xrunit;
+		return dsource;
 	}
 
-	String generateCommandLine(DecoratedSource xrunit) throws IOException {
+	String generateCommandLine(DecoratedSource dsource) throws IOException {
 
 		List<String> fullArgs = new ArrayList<>();
 
-		if (nativeImage && xrunit.forJShell()) {
+		if (nativeImage && dsource.forJShell()) {
 			warn(".jsh cannot be used with --native thus ignoring --native.");
 			nativeImage = false;
 		}
 
 		if (nativeImage) {
-			String imagename = getImageName(xrunit.getJar()).toString();
+			String imagename = getImageName(dsource.getJar()).toString();
 			if (new File(imagename).exists()) {
 				fullArgs.add(imagename);
 			} else {
@@ -123,13 +123,13 @@ public class Run extends BaseBuildCommand {
 		}
 
 		if (fullArgs.isEmpty()) {
-			String classpath = xrunit.resolveClassPath(offline);
+			String classpath = dsource.resolveClassPath(offline);
 
 			List<String> optionalArgs = new ArrayList<>();
 
-			String requestedJavaVersion = javaVersion != null ? javaVersion : xrunit.javaVersion();
+			String requestedJavaVersion = javaVersion != null ? javaVersion : dsource.javaVersion();
 			String javacmd = resolveInJavaHome("java", requestedJavaVersion);
-			if (xrunit.forJShell()) {
+			if (dsource.forJShell()) {
 
 				javacmd = resolveInJavaHome("jshell", requestedJavaVersion);
 				if (!classpath.trim().isEmpty()) {
@@ -138,7 +138,7 @@ public class Run extends BaseBuildCommand {
 
 				optionalArgs.add("--startup=DEFAULT");
 
-				File tempFile = File.createTempFile("jbang_arguments_", xrunit.getResourceRef().getFile().getName());
+				File tempFile = File.createTempFile("jbang_arguments_", dsource.getResourceRef().getFile().getName());
 
 				String defaultImports = "import java.lang.*;\n" +
 						"import java.util.*;\n" +
@@ -147,7 +147,7 @@ public class Run extends BaseBuildCommand {
 						"import java.math.BigInteger;\n" +
 						"import java.math.BigDecimal;\n";
 				Util.writeString(tempFile.toPath(),
-						defaultImports + generateArgs(xrunit.getArguments(), xrunit.getProperties()));
+						defaultImports + generateArgs(dsource.getArguments(), dsource.getProperties()));
 
 				optionalArgs.add("--startup=" + tempFile.getAbsolutePath());
 
@@ -159,7 +159,7 @@ public class Run extends BaseBuildCommand {
 				}
 
 			} else {
-				addPropertyFlags(xrunit.getProperties(), "-D", optionalArgs);
+				addPropertyFlags(dsource.getProperties(), "-D", optionalArgs);
 
 				// optionalArgs.add("--source 11");
 				if (debug()) {
@@ -178,16 +178,16 @@ public class Run extends BaseBuildCommand {
 					// TODO: find way to generate ~/.jbang/script.jfc to configure flightrecorder to
 					// have 0 ms thresholds
 					String jfropt = "-XX:StartFlightRecording=" + flightRecorderString.replace("{baseName}",
-							Util.getBaseName(xrunit.getResourceRef().getFile().toString()));
+							Util.getBaseName(dsource.getResourceRef().getFile().toString()));
 					optionalArgs.add(jfropt);
 					Util.verboseMsg("Flight recording enabled with:" + jfropt);
 				}
 
-				if (xrunit.getJar() != null) {
+				if (dsource.getJar() != null) {
 					if (classpath.trim().isEmpty()) {
-						classpath = xrunit.getJar().getAbsolutePath();
+						classpath = dsource.getJar().getAbsolutePath();
 					} else {
-						classpath = xrunit.getJar().getAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
+						classpath = dsource.getJar().getAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
 					}
 				}
 				if (!classpath.trim().isEmpty()) {
@@ -195,8 +195,8 @@ public class Run extends BaseBuildCommand {
 					optionalArgs.add(classpath);
 				}
 
-				if (optionActive(cds(), xrunit.enableCDS())) {
-					String cdsJsa = xrunit.getJar().getAbsolutePath() + ".jsa";
+				if (optionActive(cds(), dsource.enableCDS())) {
+					String cdsJsa = dsource.getJar().getAbsolutePath() + ".jsa";
 					if (createdJar) {
 						debug("CDS: Archiving Classes At Exit at " + cdsJsa);
 						optionalArgs.add("-XX:ArchiveClassesAtExit=" + cdsJsa);
@@ -205,13 +205,13 @@ public class Run extends BaseBuildCommand {
 						optionalArgs.add("-XX:SharedArchiveFile=" + cdsJsa);
 					}
 				}
-				if (xrunit.getPersistentJvmArgs() != null) {
-					optionalArgs.addAll(xrunit.getPersistentJvmArgs());
+				if (dsource.getPersistentJvmArgs() != null) {
+					optionalArgs.addAll(dsource.getPersistentJvmArgs());
 				}
 			}
 
 			fullArgs.add(javacmd);
-			xrunit	.getJavaAgents()
+			dsource	.getJavaAgents()
 					.forEach(agent -> {
 						// for now we don't include any transitive dependencies. could consider putting
 						// on bootclasspath...or not.
@@ -232,30 +232,30 @@ public class Run extends BaseBuildCommand {
 
 					});
 
-			fullArgs.addAll(xrunit.getRuntimeOptions());
-			fullArgs.addAll(xrunit.getAutoDetectedModuleArguments(requestedJavaVersion, offline));
+			fullArgs.addAll(dsource.getRuntimeOptions());
+			fullArgs.addAll(dsource.getAutoDetectedModuleArguments(requestedJavaVersion, offline));
 			fullArgs.addAll(optionalArgs);
 
 			if (main != null) { // if user specified main class it overrides any other main class calculation
-				xrunit.setMainClass(main);
+				dsource.setMainClass(main);
 			}
 
-			if (xrunit.getMainClass() != null) {
-				fullArgs.add(xrunit.getMainClass());
+			if (dsource.getMainClass() != null) {
+				fullArgs.add(dsource.getMainClass());
 			} else {
-				if (xrunit.forJar()) {
+				if (dsource.forJar()) {
 					throw new ExitException(EXIT_INVALID_INPUT,
 							"no main class deduced, specified nor found in a manifest");
 				} else {
-					fullArgs.add(xrunit.getResourceRef().getFile().toString());
+					fullArgs.add(dsource.getResourceRef().getFile().toString());
 				}
 			}
 		}
 
-		if (!xrunit.forJShell()) {
-			addJavaArgs(xrunit.getArguments(), fullArgs);
+		if (!dsource.forJShell()) {
+			addJavaArgs(dsource.getArguments(), fullArgs);
 		} else if (!interactive) {
-			File tempFile = File.createTempFile("jbang_exit_", xrunit.getResourceRef().getFile().getName());
+			File tempFile = File.createTempFile("jbang_exit_", dsource.getResourceRef().getFile().getName());
 			Util.writeString(tempFile.toPath(), "/exit");
 			fullArgs.add(tempFile.toString());
 		}

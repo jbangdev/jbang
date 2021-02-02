@@ -15,11 +15,11 @@ public class Build extends BaseBuildCommand {
 			enableInsecure();
 		}
 
-		xrunit = DecoratedSource.forResource(scriptOrFile, null, properties, dependencies, classpaths, fresh,
+		dsource = DecoratedSource.forResource(scriptOrFile, null, properties, dependencies, classpaths, fresh,
 				forcejsh);
 
-		if (xrunit.needsJar()) {
-			build(xrunit);
+		if (dsource.needsJar()) {
+			build(dsource);
 		}
 
 		return EXIT_OK;

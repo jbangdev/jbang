@@ -321,13 +321,13 @@ public class DecoratedSource implements Source {
 			ru = ScriptSource.prepareScript(resourceRef);
 		}
 
-		DecoratedSource xrunit = new DecoratedSource(ru, arguments, properties);
-		xrunit.setForcejsh(forcejsh);
-		xrunit.setOriginalRef(resource);
-		xrunit.setAlias(alias);
-		xrunit.setAdditionalDependencies(dependencies);
-		xrunit.setAdditionalClasspaths(classpaths);
-		return xrunit;
+		DecoratedSource dsource = new DecoratedSource(ru, arguments, properties);
+		dsource.setForcejsh(forcejsh);
+		dsource.setOriginalRef(resource);
+		dsource.setAlias(alias);
+		dsource.setAdditionalDependencies(dependencies);
+		dsource.setAdditionalClasspaths(classpaths);
+		return dsource;
 	}
 
 	public static DecoratedSource forScriptResource(ResourceRef resourceRef, List<String> arguments,
@@ -346,11 +346,11 @@ public class DecoratedSource implements Source {
 			ru = ScriptSource.prepareScript(resourceRef);
 		}
 
-		DecoratedSource xrunit = new DecoratedSource(ru, arguments, properties);
-		xrunit.setForcejsh(forcejsh);
-		xrunit.setAdditionalDependencies(dependencies);
-		xrunit.setAdditionalClasspaths(classpaths);
-		return xrunit;
+		DecoratedSource dsource = new DecoratedSource(ru, arguments, properties);
+		dsource.setForcejsh(forcejsh);
+		dsource.setAdditionalDependencies(dependencies);
+		dsource.setAdditionalClasspaths(classpaths);
+		return dsource;
 	}
 
 	public static DecoratedSource forScript(String script, List<String> arguments,
@@ -363,10 +363,10 @@ public class DecoratedSource implements Source {
 			List<String> dependencies, List<String> classpaths,
 			boolean fresh, boolean forcejsh) {
 		Source ru = new ScriptSource(script);
-		DecoratedSource xrunit = new DecoratedSource(ru, arguments, properties);
-		xrunit.setForcejsh(forcejsh);
-		xrunit.setAdditionalDependencies(dependencies);
-		xrunit.setAdditionalClasspaths(classpaths);
-		return xrunit;
+		DecoratedSource dsource = new DecoratedSource(ru, arguments, properties);
+		dsource.setForcejsh(forcejsh);
+		dsource.setAdditionalDependencies(dependencies);
+		dsource.setAdditionalClasspaths(classpaths);
+		return dsource;
 	}
 }

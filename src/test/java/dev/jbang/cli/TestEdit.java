@@ -40,9 +40,9 @@ public class TestEdit extends BaseTest {
 		Jbang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
-		DecoratedSource xrunit = DecoratedSource.forResource(s);
+		DecoratedSource dsource = DecoratedSource.forResource(s);
 
-		File project = new Edit().createProjectForEdit(xrunit, false);
+		File project = new Edit().createProjectForEdit(dsource, false);
 
 		assertThat(new File(project, "src"), FileMatchers.anExistingDirectory());
 		File build = new File(project, "build.gradle");
@@ -79,9 +79,9 @@ public class TestEdit extends BaseTest {
 
 		Util.writeString(p, "//DEPS org.openjfx:javafx-graphics:11.0.2${bougus:}\n" + Util.readString(p));
 
-		DecoratedSource xrunit = DecoratedSource.forResource(s);
+		DecoratedSource dsource = DecoratedSource.forResource(s);
 
-		File project = new Edit().createProjectForEdit(xrunit, false);
+		File project = new Edit().createProjectForEdit(dsource, false);
 
 		File gradle = new File(project, "build.gradle");
 		assert (gradle.exists());
@@ -109,9 +109,9 @@ public class TestEdit extends BaseTest {
 
 		Util.writeString(p, "//DEPS https://github.com/oldskoolsh/libvirt-schema/tree/0.0.2\n" + Util.readString(p));
 
-		DecoratedSource xrunit = DecoratedSource.forResource(s);
+		DecoratedSource dsource = DecoratedSource.forResource(s);
 
-		File project = new Edit().createProjectForEdit(xrunit, false);
+		File project = new Edit().createProjectForEdit(dsource, false);
 
 		File gradle = new File(project, "build.gradle");
 		assert (gradle.exists());
@@ -128,9 +128,9 @@ public class TestEdit extends BaseTest {
 		Path p = examplesTestFolder.toPath().resolve("one.java");
 		assertThat(p.toFile().exists(), is(true));
 
-		DecoratedSource xrunit = DecoratedSource.forResource(p.toString());
+		DecoratedSource dsource = DecoratedSource.forResource(p.toString());
 
-		File project = new Edit().createProjectForEdit(xrunit, false);
+		File project = new Edit().createProjectForEdit(dsource, false);
 
 		File gradle = new File(project, "build.gradle");
 		assert (gradle.exists());
@@ -152,9 +152,9 @@ public class TestEdit extends BaseTest {
 		Jbang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
-		DecoratedSource xrunit = DecoratedSource.forResource(s);
+		DecoratedSource dsource = DecoratedSource.forResource(s);
 
-		File project = new Edit().createProjectForEdit(xrunit, false);
+		File project = new Edit().createProjectForEdit(dsource, false);
 
 		File java = new File(project, "src/KubeExample.java");
 

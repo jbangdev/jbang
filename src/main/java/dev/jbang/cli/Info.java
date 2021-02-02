@@ -36,15 +36,15 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 
 		String javaVersion;
 
-		public ScriptInfo(DecoratedSource xrunit) {
-			List<String> collectDependencies = xrunit.collectAllDependencies();
-			String cp = xrunit.resolveClassPath(offline);
+		public ScriptInfo(DecoratedSource dsource) {
+			List<String> collectDependencies = dsource.collectAllDependencies();
+			String cp = dsource.resolveClassPath(offline);
 
-			originalResource = xrunit.getResourceRef().getOriginalResource();
-			backingResource = xrunit.getResourceRef().getFile().toString();
+			originalResource = dsource.getResourceRef().getOriginalResource();
+			backingResource = dsource.getResourceRef().getFile().toString();
 
-			applicationJar = xrunit.getJar().getAbsolutePath();
-			mainClass = xrunit.getMainClass();
+			applicationJar = dsource.getJar().getAbsolutePath();
+			mainClass = dsource.getMainClass();
 
 			if (cp.isEmpty()) {
 				resolvedDependencies = Collections.emptyList();
@@ -52,7 +52,7 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 				resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 			}
 
-			javaVersion = xrunit.javaVersion();
+			javaVersion = dsource.javaVersion();
 
 		}
 	}
@@ -62,9 +62,9 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 			enableInsecure();
 		}
 
-		xrunit = DecoratedSource.forResource(scriptOrFile);
+		dsource = DecoratedSource.forResource(scriptOrFile);
 
-		ScriptInfo info = new ScriptInfo(xrunit);
+		ScriptInfo info = new ScriptInfo(dsource);
 
 		return info;
 	}
