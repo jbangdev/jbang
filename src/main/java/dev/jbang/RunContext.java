@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class RunContext {
 	final private List<String> arguments;
@@ -27,6 +30,8 @@ public class RunContext {
 	private String agentMainClass;
 
 	private AliasUtil.Alias alias;
+
+	private ModularClassPath classpath;
 
 	public RunContext(List<String> arguments, Map<String, String> properties) {
 		this.arguments = arguments;
@@ -102,8 +107,8 @@ public class RunContext {
 		return mainClass;
 	}
 
-	public String getMainClassOr(DecoratedSource src) {
-		return (mainClass != null) ? mainClass : src.getSource().getMainClass();
+	public String getMainClassOr(Source src) {
+		return (mainClass != null) ? mainClass : src.getMainClass();
 	}
 
 	public void setMainClass(String mainClass) {
@@ -114,8 +119,8 @@ public class RunContext {
 		return javaRuntimeOptions;
 	}
 
-	public List<String> getRuntimeOptionsOr(DecoratedSource src) {
-		return (javaRuntimeOptions != null) ? javaRuntimeOptions : src.getSource().getRuntimeOptions();
+	public List<String> getRuntimeOptionsOr(Source src) {
+		return (javaRuntimeOptions != null) ? javaRuntimeOptions : src.getRuntimeOptions();
 	}
 
 	public void setRuntimeOptions(List<String> javaRuntimeOptions) {
@@ -172,4 +177,44 @@ public class RunContext {
 		}
 		javaAgents.add(agent);
 	}
+
+	public List<String> collectAllDependenciesFor(Source src) {
+		Properties p = new Properties(System.getProperties());
+		if (getProperties() != null) {
+			p.putAll(getProperties());
+		}
+		return getAllDependencies(src, p);
+	}
+
+	private List<String> getAllDependencies(Source src, Properties props) {
+		return Stream	.concat(getAdditionalDependencies().stream(), src.getAllDependencies(props).stream())
+						.collect(Collectors.toList());
+	}
+
+	/**
+	 * Return resolved classpath lazily. resolution will only happen once, any
+	 * consecutive calls return the same classpath.
+	 **/
+	public String resolveClassPath(Source src, boolean offline) {
+		if (classpath == null) {
+			classpath = src.resolveClassPath(collectAllDependenciesFor(src), offline);
+		}
+		StringBuilder cp = new StringBuilder(classpath.getClassPath());
+		for (String addcp : getAdditionalClasspaths()) {
+			cp.append(Settings.CP_SEPARATOR).append(addcp);
+		}
+		return cp.toString();
+	}
+
+	public List<String> getAutoDetectedModuleArguments(Source src, String requestedVersion, boolean offline) {
+		if (classpath == null) {
+			resolveClassPath(src, offline);
+		}
+		return classpath.getAutoDectectedModuleArguments(requestedVersion);
+	}
+
+	public ModularClassPath getClassPath() {
+		return classpath;
+	}
+
 }

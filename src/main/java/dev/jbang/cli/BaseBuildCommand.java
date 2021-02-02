@@ -28,7 +28,6 @@ import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
 import org.jboss.jandex.Type;
 
-import dev.jbang.DecoratedSource;
 import dev.jbang.ExitException;
 import dev.jbang.FileRef;
 import dev.jbang.IntegrationManager;
@@ -92,9 +91,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 	protected boolean createdJar;
 
 	// build with javac and then jar... todo: split up in more testable chunks
-	void build(DecoratedSource xrunit) throws IOException {
-		RunContext ctx = xrunit.getContext();
-		Source src = xrunit.getSource();
+	void build(ScriptSource src, RunContext ctx) throws IOException {
 		for (Map.Entry<String, String> entry : properties.entrySet()) {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
@@ -114,7 +111,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 			Util.deletePath(tmpJarDir.toPath(), true);
 			tmpJarDir.mkdirs();
 			try {
-				integrationResult = buildJar(xrunit, tmpJarDir, outjar, requestedJavaVersion);
+				integrationResult = buildJar(src, ctx, tmpJarDir, outjar, requestedJavaVersion);
 			} finally {
 				// clean up temporary folder
 				Util.deletePath(tmpJarDir.toPath(), true);
@@ -125,21 +122,19 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 			if (integrationResult.nativeImagePath != null) {
 				Files.move(integrationResult.nativeImagePath, getImageName(outjar).toPath());
 			} else {
-				buildNative(xrunit, outjar, requestedJavaVersion);
+				buildNative(src, ctx, outjar, requestedJavaVersion);
 			}
 		}
 	}
 
-	private IntegrationResult buildJar(DecoratedSource xrunit, File tmpJarDir, File outjar,
+	private IntegrationResult buildJar(ScriptSource src, RunContext ctx, File tmpJarDir, File outjar,
 			String requestedJavaVersion)
 			throws IOException {
-		RunContext ctx = xrunit.getContext();
-		ScriptSource src = (ScriptSource) xrunit.getSource();
 		IntegrationResult integrationResult;
 		List<String> optionList = new ArrayList<>();
 		optionList.add(resolveInJavaHome("javac", requestedJavaVersion));
 		optionList.addAll(src.getCompileOptions());
-		String path = xrunit.resolveClassPath(offline);
+		String path = ctx.resolveClassPath(src, offline);
 		if (!path.trim().isEmpty()) {
 			optionList.addAll(Arrays.asList("-classpath", path));
 		}
@@ -169,7 +164,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		} else {
 			String pomfile = pomTemplate
 										.data("baseName", Util.getBaseName(src.getResourceRef().getFile().getName()))
-										.data("dependencies", xrunit.getClassPath().getArtifacts())
+										.data("dependencies", ctx.getClassPath().getArtifacts())
 										.render();
 			pomPath = new File(tmpJarDir, "META-INF/maven/g/a/v/pom.xml").toPath();
 			Files.createDirectories(pomPath.getParent());
@@ -192,7 +187,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 
 		ctx.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
 		integrationResult = IntegrationManager.runIntegration(src.getAllRepositories(),
-				xrunit.getClassPath().getArtifacts(),
+				ctx.getClassPath().getArtifacts(),
 				tmpJarDir.toPath(), pomPath,
 				src, nativeImage);
 		if (integrationResult.mainClass != null) {
@@ -275,49 +270,13 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 			}
 		}
 		ctx.setPersistentJvmArgs(integrationResult.javaArgs);
-		createJarFile(xrunit, tmpJarDir, outjar);
+		createJarFile(src, ctx, tmpJarDir, outjar);
 		createdJar = true;
 		return integrationResult;
 	}
 
-	private void buildNative(DecoratedSource xrunit, File outjar, String requestedJavaVersion) throws IOException {
-		List<String> optionList = new ArrayList<>();
-		optionList.add(resolveInGraalVMHome("native-image", requestedJavaVersion));
-
-		optionList.add("-H:+ReportExceptionStackTraces");
-
-		optionList.add("--enable-https");
-
-		String classpath = xrunit.resolveClassPath(offline);
-		if (!classpath.trim().isEmpty()) {
-			optionList.add("--class-path=" + classpath);
-		}
-
-		optionList.add("-jar");
-		optionList.add(outjar.toString());
-
-		optionList.add(getImageName(outjar).toString());
-
-		File nilog = File.createTempFile("jbang", "native-image");
-		debug("native-image: " + String.join(" ", optionList));
-		info("log: " + nilog.toString());
-
-		Process process = new ProcessBuilder(optionList).inheritIO().redirectOutput(nilog).start();
-		try {
-			process.waitFor();
-		} catch (InterruptedException e) {
-			throw new ExitException(1, e);
-		}
-
-		if (process.exitValue() != 0) {
-			throw new ExitException(1, "Error during native-image");
-		}
-	}
-
-	static void createJarFile(DecoratedSource xrunit, File path, File output) throws IOException {
-		RunContext ctx = xrunit.getContext();
-		ScriptSource src = (ScriptSource) xrunit.getSource();
-		String mainclass = ctx.getMainClassOr(xrunit);
+	static void createJarFile(ScriptSource src, RunContext ctx, File path, File output) throws IOException {
+		String mainclass = ctx.getMainClassOr(src);
 		Manifest manifest = new Manifest();
 		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
 		if (mainclass != null) {
@@ -341,15 +300,15 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 				manifest.getMainAttributes().put(k, v);
 			}
 
-			if (xrunit.getClassPath() != null) {
-				String bootClasspath = xrunit.getClassPath().getManifestPath();
+			if (ctx.getClassPath() != null) {
+				String bootClasspath = ctx.getClassPath().getManifestPath();
 				if (!bootClasspath.isEmpty()) {
 					manifest.getMainAttributes().put(new Attributes.Name(Source.ATTR_BOOT_CLASS_PATH), bootClasspath);
 				}
 			}
 		} else {
-			if (xrunit.getClassPath() != null) {
-				String classpath = xrunit.getClassPath().getManifestPath();
+			if (ctx.getClassPath() != null) {
+				String classpath = ctx.getClassPath().getManifestPath();
 				if (!classpath.isEmpty()) {
 					manifest.getMainAttributes().put(Attributes.Name.CLASS_PATH, classpath);
 				}
@@ -369,6 +328,40 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		FileOutputStream target = new FileOutputStream(output);
 		JarUtil.jar(target, path.listFiles(), null, null, manifest);
 		target.close();
+	}
+
+	private void buildNative(Source src, RunContext ctx, File outjar, String requestedJavaVersion) throws IOException {
+		List<String> optionList = new ArrayList<>();
+		optionList.add(resolveInGraalVMHome("native-image", requestedJavaVersion));
+
+		optionList.add("-H:+ReportExceptionStackTraces");
+
+		optionList.add("--enable-https");
+
+		String classpath = ctx.resolveClassPath(src, offline);
+		if (!classpath.trim().isEmpty()) {
+			optionList.add("--class-path=" + classpath);
+		}
+
+		optionList.add("-jar");
+		optionList.add(outjar.toString());
+
+		optionList.add(getImageName(outjar).toString());
+
+		File nilog = File.createTempFile("jbang", "native-image");
+		debug("native-image: " + String.join(" ", optionList));
+		info("log: " + nilog.toString());
+
+		Process process = new ProcessBuilder(optionList).inheritIO().redirectOutput(nilog).start();
+		try {
+			process.waitFor();
+		} catch (InterruptedException e) {
+			throw new ExitException(1, e);
+		}
+
+		if (process.exitValue() != 0) {
+			throw new ExitException(1, "Error during native-image");
+		}
 	}
 
 	/** based on jar what will the binary image name be. **/

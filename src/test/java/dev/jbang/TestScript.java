@@ -169,8 +169,10 @@ public class TestScript extends BaseTest {
 		p.put("log4j.version", "1.2.9");
 
 		DecoratedSource xrunit = DecoratedSource.forScript(example, null, p);
+		Source src = xrunit.getSource();
+		RunContext ctx = xrunit.getContext();
 
-		List<String> dependencies = xrunit.collectAllDependencies();
+		List<String> dependencies = ctx.collectAllDependenciesFor(src);
 		assertEquals(2, dependencies.size());
 
 		assertTrue(dependencies.contains("com.offbytwo:docopt:0.6.0.20150202"));

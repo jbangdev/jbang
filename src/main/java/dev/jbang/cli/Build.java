@@ -3,6 +3,9 @@ package dev.jbang.cli;
 import java.io.IOException;
 
 import dev.jbang.DecoratedSource;
+import dev.jbang.RunContext;
+import dev.jbang.ScriptSource;
+import dev.jbang.Source;
 
 import picocli.CommandLine.Command;
 
@@ -17,9 +20,11 @@ public class Build extends BaseBuildCommand {
 
 		xrunit = DecoratedSource.forResource(scriptOrFile, null, properties, dependencies, classpaths, fresh,
 				forcejsh);
+		Source src = xrunit.getSource();
+		RunContext ctx = xrunit.getContext();
 
-		if (xrunit.needsJar()) {
-			build(xrunit);
+		if (DecoratedSource.needsJar(src, ctx)) {
+			build((ScriptSource) xrunit.getSource(), xrunit.getContext());
 		}
 
 		return EXIT_OK;

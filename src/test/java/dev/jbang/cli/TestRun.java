@@ -82,10 +82,12 @@ public class TestRun extends BaseTest {
 		DecoratedSource xrunit = DecoratedSource.forResource(arg, run.userParams, run.properties,
 				run.dependencies, run.classpaths,
 				run.fresh, run.forcejsh);
+		Source src = xrunit.getSource();
+		RunContext ctx = xrunit.getContext();
 
-		run.prepareArtifacts(xrunit);
+		run.prepareArtifacts(src, ctx);
 
-		String result = run.generateCommandLine(xrunit);
+		String result = run.generateCommandLine(src, ctx);
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, endsWith("helloworld"));
@@ -106,8 +108,10 @@ public class TestRun extends BaseTest {
 		DecoratedSource xrunit = DecoratedSource.forResource(arg, run.userParams, run.properties,
 				run.dependencies, run.classpaths,
 				run.fresh, run.forcejsh);
+		Source src = xrunit.getSource();
+		RunContext ctx = xrunit.getContext();
 
-		String result = run.generateCommandLine(xrunit);
+		String result = run.generateCommandLine(src, ctx);
 
 		assertThat(result, matchesPattern("^.*jshell(.exe)? --startup.*$"));
 		assertThat(result, not(containsString("  ")));
@@ -133,8 +137,10 @@ public class TestRun extends BaseTest {
 		DecoratedSource xrunit = DecoratedSource.forResource(empty.toString(), run.userParams, run.properties,
 				run.dependencies, run.classpaths,
 				run.fresh, run.forcejsh);
+		Source src = xrunit.getSource();
+		RunContext ctx = xrunit.getContext();
 
-		String result = run.generateCommandLine(xrunit);
+		String result = run.generateCommandLine(src, ctx);
 
 		assertThat(result, matchesPattern("^.*jshell(.exe)? --startup.*$"));
 		assertThat(result, not(containsString("  ")));
@@ -161,9 +167,9 @@ public class TestRun extends BaseTest {
 		RunContext ctx = xrunit.getContext();
 		Source src = xrunit.getSource();
 
-		String result = run.generateCommandLine(xrunit);
+		String result = run.generateCommandLine(src, ctx);
 		assertThat(result, matchesPattern("^.*java(.exe)?.*"));
-		assertThat(ctx.getMainClassOr(xrunit), not(nullValue()));
+		assertThat(ctx.getMainClassOr(src), not(nullValue()));
 
 		assertThat(result, containsString("hellojar.jar"));
 
@@ -190,8 +196,10 @@ public class TestRun extends BaseTest {
 			DecoratedSource xrunit = DecoratedSource.forResource(jar, run.userParams, run.properties, run.dependencies,
 					run.classpaths,
 					run.fresh, run.forcejsh);
+			Source src = xrunit.getSource();
+			RunContext ctx = xrunit.getContext();
 
-			String cmdline = run.generateCommandLine(xrunit);
+			String cmdline = run.generateCommandLine(src, ctx);
 
 			assertThat(cmdline, not(containsString("https")));
 
@@ -217,10 +225,11 @@ public class TestRun extends BaseTest {
 				run.classpaths, run.fresh,
 				run.forcejsh);
 		Source src = xrunit.getSource();
+		RunContext ctx = xrunit.getContext();
 
 		assertThat(src.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
 
-		ExitException e = Assertions.assertThrows(ExitException.class, () -> run.generateCommandLine(xrunit));
+		ExitException e = Assertions.assertThrows(ExitException.class, () -> run.generateCommandLine(src, ctx));
 
 		assertThat(e.getMessage(), startsWith("no main class"));
 
@@ -257,11 +266,11 @@ public class TestRun extends BaseTest {
 
 		assertThat(src.getResourceRef().getFile().toString(), matchesPattern(".*.jar"));
 
-		String cmd = run.generateCommandLine(xrunit);
+		String cmd = run.generateCommandLine(src, ctx);
 
 		assertThat(cmd, matchesPattern(".*quarkus-cli-1.9.0.Final-runner.jar.*"));
 
-		assertThat(ctx.getMainClassOr(xrunit), equalTo("io.quarkus.runner.GeneratedMain"));
+		assertThat(ctx.getMainClassOr(src), equalTo("io.quarkus.runner.GeneratedMain"));
 
 	}
 
@@ -284,9 +293,9 @@ public class TestRun extends BaseTest {
 
 		assertThat(src.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*eclipse.jgit.pgm.*.jar"));
 
-		run.generateCommandLine(xrunit);
+		run.generateCommandLine(src, ctx);
 
-		assertThat(ctx.getMainClassOr(xrunit), equalTo("org.eclipse.jgit.pgm.Main"));
+		assertThat(ctx.getMainClassOr(src), equalTo("org.eclipse.jgit.pgm.Main"));
 
 	}
 
@@ -308,9 +317,9 @@ public class TestRun extends BaseTest {
 		RunContext ctx = xrunit.getContext();
 		Source src = xrunit.getSource();
 
-		String cmd = run.generateCommandLine(xrunit);
+		String cmd = run.generateCommandLine(src, ctx);
 
-		assertThat(ctx.getMainClassOr(xrunit), equalTo("picocli.codegen.aot.graalvm.ReflectionConfigGenerator"));
+		assertThat(ctx.getMainClassOr(src), equalTo("picocli.codegen.aot.graalvm.ReflectionConfigGenerator"));
 
 		assertThat(src.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
 
@@ -332,8 +341,10 @@ public class TestRun extends BaseTest {
 		DecoratedSource xrunit = DecoratedSource.forResource(arg, run.userParams, run.properties, run.dependencies,
 				run.classpaths, run.fresh,
 				run.forcejsh);
+		Source src = xrunit.getSource();
+		RunContext ctx = xrunit.getContext();
 
-		String result = run.generateCommandLine(xrunit);
+		String result = run.generateCommandLine(src, ctx);
 
 		assertThat(result, startsWith("jshell"));
 		assertThat(result, not(containsString("  ")));
@@ -357,8 +368,10 @@ public class TestRun extends BaseTest {
 		DecoratedSource xrunit = DecoratedSource.forResource(arg, run.userParams, run.properties, run.dependencies,
 				run.classpaths, run.fresh,
 				run.forcejsh);
+		Source src = xrunit.getSource();
+		RunContext ctx = xrunit.getContext();
 
-		String result = run.generateCommandLine(xrunit);
+		String result = run.generateCommandLine(src, ctx);
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("helloworld.java"));
@@ -380,8 +393,10 @@ public class TestRun extends BaseTest {
 		DecoratedSource xrunit = DecoratedSource.forResource(arg, run.userParams, run.properties, run.dependencies,
 				run.classpaths, run.fresh,
 				run.forcejsh);
+		Source src = xrunit.getSource();
+		RunContext ctx = xrunit.getContext();
 
-		String result = run.generateCommandLine(xrunit);
+		String result = run.generateCommandLine(src, ctx);
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("classpath_example.java"));
@@ -409,8 +424,10 @@ public class TestRun extends BaseTest {
 		DecoratedSource xrunit = DecoratedSource.forResource(arg, run.userParams, run.properties, run.dependencies,
 				run.classpaths, run.fresh,
 				run.forcejsh);
+		Source src = xrunit.getSource();
+		RunContext ctx = xrunit.getContext();
 
-		String result = run.generateCommandLine(xrunit);
+		String result = run.generateCommandLine(src, ctx);
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("-Dwonka=panda"));
@@ -430,22 +447,22 @@ public class TestRun extends BaseTest {
 
 		String url = new File(examplesTestFolder, "classpath_example.java").toURI().toString();
 
-		DecoratedSource xrunit = DecoratedSource.forResource(url);
-		Source src = xrunit.getSource();
+		DecoratedSource pre = DecoratedSource.forResource(url);
 
-		assertThat(xrunit.toString(), not(containsString(url)));
+		assertThat(pre.toString(), not(containsString(url)));
 
-		MatcherAssert.assertThat(Util.readString(src.getResourceRef().getFile().toPath()),
+		MatcherAssert.assertThat(Util.readString(pre.getSource().getResourceRef().getFile().toPath()),
 				containsString("Logger.getLogger(classpath_example.class);"));
 
 		Jbang jbang = new Jbang();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", url);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		String s = run.generateCommandLine(
-				DecoratedSource.forResource(url, run.userParams, run.properties, run.dependencies, run.classpaths,
-						run.fresh,
-						run.forcejsh));
+		DecoratedSource xrunit = DecoratedSource.forResource(url, run.userParams, run.properties, run.dependencies,
+				run.classpaths, run.fresh, run.forcejsh);
+		Source src = xrunit.getSource();
+		RunContext ctx = xrunit.getContext();
+		String s = run.generateCommandLine(src, ctx);
 
 		assertThat(s, not(containsString("file:")));
 	}
@@ -457,10 +474,11 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", url, " ~!@#$%^&*()-+\\:;'`<>?/,.{}[]\"");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		String s = run.generateCommandLine(
-				DecoratedSource.forResource(url, run.userParams, run.properties, run.dependencies, run.classpaths,
-						run.fresh,
-						run.forcejsh));
+		DecoratedSource xrunit = DecoratedSource.forResource(url, run.userParams, run.properties, run.dependencies,
+				run.classpaths, run.fresh, run.forcejsh);
+		Source src = xrunit.getSource();
+		RunContext ctx = xrunit.getContext();
+		String s = run.generateCommandLine(src, ctx);
 		if (Util.isWindows()) {
 			assertThat(s, containsString("^\"^ ~^!@#$^%^^^&*^(^)-+\\:;'`^<^>?/,.{}[]\\^\"^\""));
 		} else {
@@ -507,9 +525,11 @@ public class TestRun extends BaseTest {
 		File out = new File(rootdir.toFile(), "content.jar");
 
 		DecoratedSource xrunit = DecoratedSource.forScript("", null, null);
+		ScriptSource src = (ScriptSource) xrunit.getSource();
 		RunContext ctx = xrunit.getContext();
+
 		ctx.setMainClass("wonkabear");
-		BaseBuildCommand.createJarFile(xrunit, dir, out);
+		BaseBuildCommand.createJarFile(src, ctx, dir, out);
 
 		try (JarFile jf = new JarFile(out)) {
 
@@ -566,11 +586,11 @@ public class TestRun extends BaseTest {
 		Run m = new Run();
 
 		DecoratedSource xrunit = DecoratedSource.forScriptResource(ResourceRef.forFile(f), null, null);
+		ScriptSource src = (ScriptSource) xrunit.getSource();
 		RunContext ctx = xrunit.getContext();
-		Source src = xrunit.getSource();
-		m.build(xrunit);
+		m.build(src, ctx);
 
-		assertThat(ctx.getMainClassOr(xrunit), equalTo("aclass"));
+		assertThat(ctx.getMainClassOr(src), equalTo("aclass"));
 
 		try (FileSystem fileSystem = FileSystems.newFileSystem(src.getJar().toPath(), null)) {
 			Path fileToExtract = fileSystem.getPath("META-INF/maven/g/a/v/pom.xml");
@@ -618,10 +638,12 @@ public class TestRun extends BaseTest {
 		Run m = new Run();
 
 		DecoratedSource xrunit = DecoratedSource.forScriptResource(ResourceRef.forFile(f), null, null);
+		ScriptSource src = (ScriptSource) xrunit.getSource();
 		RunContext ctx = xrunit.getContext();
-		m.build(xrunit);
 
-		assertThat(ctx.getMainClassOr(xrunit), equalTo("dualclass"));
+		m.build(src, ctx);
+
+		assertThat(ctx.getMainClassOr(src), equalTo("dualclass"));
 
 	}
 
@@ -656,11 +678,12 @@ public class TestRun extends BaseTest {
 		DecoratedSource xrunit = DecoratedSource.forResource(arg, run.userParams, run.properties, run.dependencies,
 				run.classpaths, run.fresh,
 				run.forcejsh);
+		ScriptSource src = (ScriptSource) xrunit.getSource();
 		RunContext ctx = xrunit.getContext();
 
-		run.build(xrunit);
+		run.build(src, ctx);
 
-		assertThat(ctx.getMainClassOr(xrunit), equalTo("dualclass"));
+		assertThat(ctx.getMainClassOr(src), equalTo("dualclass"));
 
 	}
 
@@ -902,7 +925,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = xrunit.getContext();
 		ScriptSource src = (ScriptSource) xrunit.getSource();
 
-		run.build(xrunit);
+		run.build(src, ctx);
 
 		assertThat(src.isAgent(), is(true));
 
@@ -934,7 +957,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = xrunit.getContext();
 		ScriptSource src = (ScriptSource) xrunit.getSource();
 
-		run.build(xrunit);
+		run.build(src, ctx);
 
 		assertThat(src.isAgent(), is(true));
 
@@ -980,15 +1003,17 @@ public class TestRun extends BaseTest {
 
 		DecoratedSource main = DecoratedSource.forScriptResource(ResourceRef.forFile(mainfile), run.userParams,
 				run.properties);
+		ScriptSource src = (ScriptSource) main.getSource();
+		RunContext ctx = main.getContext();
 		DecoratedSource agent = DecoratedSource.forScriptResource(ResourceRef.forFile(agentfile), run.userParams,
 				run.properties);
 		ScriptSource asrc = (ScriptSource) agent.getSource();
 
 		assertThat(asrc.isAgent(), is(true));
 
-		main = run.prepareArtifacts(main);
+		main = run.prepareArtifacts(src, ctx);
 
-		String result = run.generateCommandLine(main);
+		String result = run.generateCommandLine(src, ctx);
 
 		assertThat(result, containsString("-javaagent"));
 		assertThat(result, containsString("=optionA"));
@@ -1039,8 +1064,10 @@ public class TestRun extends BaseTest {
 		DecoratedSource xrunit = DecoratedSource.forResource(f.getAbsolutePath(), run.userParams, run.properties,
 				run.dependencies,
 				run.classpaths, run.fresh, run.forcejsh);
+		Source src = xrunit.getSource();
+		RunContext ctx = xrunit.getContext();
 
-		String line = run.generateCommandLine(xrunit);
+		String line = run.generateCommandLine(src, ctx);
 
 		assertThat(line, containsString("-ea"));
 	}
@@ -1057,8 +1084,10 @@ public class TestRun extends BaseTest {
 		DecoratedSource xrunit = DecoratedSource.forResource(f.getAbsolutePath(), run.userParams, run.properties,
 				run.dependencies,
 				run.classpaths, run.fresh, run.forcejsh);
+		Source src = xrunit.getSource();
+		RunContext ctx = xrunit.getContext();
 
-		String line = run.generateCommandLine(xrunit);
+		String line = run.generateCommandLine(src, ctx);
 
 		assertThat(line, containsString("-esa"));
 	}
@@ -1070,12 +1099,12 @@ public class TestRun extends BaseTest {
 		Run m = new Run();
 
 		DecoratedSource xrunit = DecoratedSource.forResource(f.getAbsolutePath(), null, null, null, null, false, false);
-		Source src = xrunit.getSource();
+		ScriptSource src = (ScriptSource) xrunit.getSource();
 		RunContext ctx = xrunit.getContext();
 
-		m.build(xrunit);
+		m.build(src, ctx);
 
-		assertThat(ctx.getMainClassOr(xrunit), equalTo("resource"));
+		assertThat(ctx.getMainClassOr(src), equalTo("resource"));
 
 		try (FileSystem fileSystem = FileSystems.newFileSystem(src.getJar().toPath(), null)) {
 
@@ -1105,12 +1134,12 @@ public class TestRun extends BaseTest {
 		Run m = new Run();
 
 		DecoratedSource xrunit = DecoratedSource.forResource(f.getAbsolutePath(), null, null, null, null, false, false);
-		Source src = xrunit.getSource();
+		ScriptSource src = (ScriptSource) xrunit.getSource();
 		RunContext ctx = xrunit.getContext();
 
-		m.build(xrunit);
+		m.build(src, ctx);
 
-		assertThat(ctx.getMainClassOr(xrunit), equalTo("one"));
+		assertThat(ctx.getMainClassOr(src), equalTo("one"));
 
 		try (FileSystem fileSystem = FileSystems.newFileSystem(src.getJar().toPath(), null)) {
 			Arrays	.asList("one.class", "Two.class", "gh_release_stats.class", "fetchlatestgraalvm.class")
@@ -1128,7 +1157,7 @@ public class TestRun extends BaseTest {
 
 		}
 
-		assertThat("if fails then duplication of deps fixed", xrunit.getClassPath().getArtifacts(), hasSize(14));
+		assertThat("if fails then duplication of deps fixed", ctx.getClassPath().getArtifacts(), hasSize(14));
 		// should be assertThat("if fails then duplication of deps fixed",
 		// script.getClassPath().getArtifacts(), hasSize(7));
 	}
@@ -1168,8 +1197,10 @@ public class TestRun extends BaseTest {
 		DecoratedSource xrunit = DecoratedSource.forResource("http://localhost:" + wms.port() + "/sub/one.java", null,
 				null, null, null, false,
 				false);
+		ScriptSource src = (ScriptSource) xrunit.getSource();
+		RunContext ctx = xrunit.getContext();
 
-		m.build(xrunit);
+		m.build(src, ctx);
 
 	}
 
@@ -1209,9 +1240,10 @@ public class TestRun extends BaseTest {
 		DecoratedSource xrunit = DecoratedSource.forResource("http://localhost:" + wms.port() + "/sub/one.java", null,
 				null, null, null, false,
 				false);
-		Source src = xrunit.getSource();
+		ScriptSource src = (ScriptSource) xrunit.getSource();
+		RunContext ctx = xrunit.getContext();
 
-		m.build(xrunit);
+		m.build(src, ctx);
 
 		try (FileSystem fileSystem = FileSystems.newFileSystem(src.getJar().toPath(), null)) {
 			Arrays	.asList("one.class", "index.html")
@@ -1249,8 +1281,10 @@ public class TestRun extends BaseTest {
 		DecoratedSource xrunit = DecoratedSource.forResource("http://localhost:" + wms.port() + "/sub/one", null, null,
 				null, null, false,
 				false);
+		ScriptSource src = (ScriptSource) xrunit.getSource();
+		RunContext ctx = xrunit.getContext();
 
-		m.build(xrunit);
+		m.build(src, ctx);
 	}
 
 	@Test
@@ -1274,8 +1308,10 @@ public class TestRun extends BaseTest {
 
 		DecoratedSource xrunit = DecoratedSource.forResource(dir.toPath().toString(), null, null, null, null, false,
 				false);
+		ScriptSource src = (ScriptSource) xrunit.getSource();
+		RunContext ctx = xrunit.getContext();
 
-		m.build(xrunit);
+		m.build(src, ctx);
 
 	}
 
@@ -1310,8 +1346,10 @@ public class TestRun extends BaseTest {
 		DecoratedSource xrunit = DecoratedSource.forResource("http://localhost:" + wms.port() + "/sub/one/", null, null,
 				null, null, false,
 				false);
+		ScriptSource src = (ScriptSource) xrunit.getSource();
+		RunContext ctx = xrunit.getContext();
 
-		m.build(xrunit);
+		m.build(src, ctx);
 	}
 
 	@Test

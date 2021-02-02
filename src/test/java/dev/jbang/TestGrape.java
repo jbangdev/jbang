@@ -27,8 +27,10 @@ public class TestGrape extends BaseTest {
 				"})\n";
 
 		DecoratedSource xrunit = DecoratedSource.forScript(grabBlock, null, null);
+		Source src = xrunit.getSource();
+		RunContext ctx = xrunit.getContext();
 
-		List<String> deps = xrunit.collectAllDependencies();
+		List<String> deps = ctx.collectAllDependenciesFor(src);
 
 		assertThat(deps, hasItem("org.hibernate:hibernate-core:5.4.10.Final"));
 		assertThat(deps, hasItem("net.sf.json-lib:json-lib:2.2.3:jdk15"));

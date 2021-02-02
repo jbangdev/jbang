@@ -3,9 +3,6 @@ package dev.jbang;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import dev.jbang.cli.BaseCommand;
 
@@ -24,9 +21,7 @@ public class DecoratedSource {
 	final private Source source;
 	final private RunContext context;
 
-	private ModularClassPath classpath;
-
-	protected DecoratedSource(Source source, RunContext context) {
+	public DecoratedSource(Source source, RunContext context) {
 		this.source = source;
 		this.context = context;
 	}
@@ -39,55 +34,9 @@ public class DecoratedSource {
 		return context;
 	}
 
-	public ModularClassPath getClassPath() {
-		return classpath;
-	}
-
-	public boolean needsJar() {
+	public static boolean needsJar(Source source, RunContext context) {
 		// anything but .jar and .jsh files needs jar
 		return !(source.forJar() || context.isForceJsh() || source.forJShell());
-	}
-
-	public List<String> collectAllDependencies() {
-		Properties p = new Properties(System.getProperties());
-		if (context.getProperties() != null) {
-			p.putAll(context.getProperties());
-		}
-		return getAllDependencies(p);
-	}
-
-	public List<String> getAllDependencies(Properties props) {
-		return Stream	.concat(context.getAdditionalDependencies().stream(), source.getAllDependencies(props).stream())
-						.collect(Collectors.toList());
-	}
-
-	/**
-	 * Return resolved classpath lazily. resolution will only happen once, any
-	 * consecutive calls return the same classpath.
-	 **/
-	public String resolveClassPath(boolean offline) {
-		if (classpath == null) {
-			classpath = resolveClassPath(collectAllDependencies(), offline);
-		}
-		StringBuilder cp = new StringBuilder(classpath.getClassPath());
-		for (String addcp : context.getAdditionalClasspaths()) {
-			if (cp.length() > 0) {
-				cp.append(Settings.CP_SEPARATOR);
-			}
-			cp.append(addcp);
-		}
-		return cp.toString();
-	}
-
-	public ModularClassPath resolveClassPath(List<String> dependencies, boolean offline) {
-		return source.resolveClassPath(dependencies, offline);
-	}
-
-	public List<String> getAutoDetectedModuleArguments(String requestedVersion, boolean offline) {
-		if (classpath == null) {
-			resolveClassPath(offline);
-		}
-		return classpath.getAutoDectectedModuleArguments(requestedVersion);
 	}
 
 	public void importJarMetadata() {

@@ -16,6 +16,8 @@ import java.util.jar.Manifest;
 
 import dev.jbang.DecoratedSource;
 import dev.jbang.ExitException;
+import dev.jbang.RunContext;
+import dev.jbang.ScriptSource;
 import dev.jbang.Source;
 import dev.jbang.Util;
 
@@ -40,9 +42,8 @@ public class Export extends BaseBuildCommand {
 	enum Style {
 		local {
 
-			public int apply(Export export, DecoratedSource xrunit, Path outputPath) throws IOException {
+			public int apply(Export export, Source src, Path outputPath) throws IOException {
 				// Copy the JAR or native binary
-				Source src = xrunit.getSource();
 				Path source = src.getJar().toPath();
 				if (export.nativeImage) {
 					source = getImageName(source.toFile()).toPath();
@@ -64,9 +65,8 @@ public class Export extends BaseBuildCommand {
 		},
 		portable {
 			@Override
-			public int apply(Export export, DecoratedSource xrunit, Path outputPath) throws IOException {
+			public int apply(Export export, Source src, Path outputPath) throws IOException {
 				// Copy the JAR or native binary
-				Source src = xrunit.getSource();
 				Path source = src.getJar().toPath();
 				if (export.nativeImage) {
 					source = getImageName(source.toFile()).toPath();
@@ -136,7 +136,7 @@ public class Export extends BaseBuildCommand {
 			}
 		};
 
-		public abstract int apply(Export export, DecoratedSource xrunit, Path outputPath) throws IOException;
+		public abstract int apply(Export export, Source src, Path outputPath) throws IOException;
 	}
 
 	@Override
@@ -147,9 +147,11 @@ public class Export extends BaseBuildCommand {
 
 		xrunit = DecoratedSource.forResource(scriptOrFile, null, properties, dependencies, classpaths, fresh,
 				forcejsh);
+		RunContext ctx = xrunit.getContext();
+		Source src = xrunit.getSource();
 
-		if (xrunit.needsJar()) {
-			build(xrunit);
+		if (DecoratedSource.needsJar(src, ctx)) {
+			build((ScriptSource) src, ctx);
 		}
 
 		// Determine the output file location and name
@@ -170,6 +172,6 @@ public class Export extends BaseBuildCommand {
 
 		Style style = portable ? Style.portable : Style.local;
 
-		return style.apply(this, xrunit, outputPath);
+		return style.apply(this, src, outputPath);
 	}
 }

@@ -19,6 +19,7 @@ import dev.jbang.DecoratedSource;
 import dev.jbang.ExitException;
 import dev.jbang.JavaUtil;
 import dev.jbang.RunContext;
+import dev.jbang.ScriptSource;
 import dev.jbang.Settings;
 import dev.jbang.Source;
 import dev.jbang.Util;
@@ -71,20 +72,22 @@ public class Run extends BaseBuildCommand {
 			enableInsecure();
 		}
 
-		xrunit = prepareArtifacts(
-				DecoratedSource.forResource(scriptOrFile, userParams, properties, dependencies, classpaths, fresh,
-						forcejsh));
+		DecoratedSource dsrc = DecoratedSource.forResource(scriptOrFile, userParams, properties, dependencies,
+				classpaths, fresh, forcejsh);
+		xrunit = prepareArtifacts(dsrc.getSource(), dsrc.getContext());
+		RunContext ctx = xrunit.getContext();
+		Source src = xrunit.getSource();
 
-		String cmdline = generateCommandLine(xrunit);
+		String cmdline = generateCommandLine(src, ctx);
 		debug("run: " + cmdline);
 		out.println(cmdline);
 
 		return EXIT_EXECUTE;
 	}
 
-	DecoratedSource prepareArtifacts(DecoratedSource xrunit) throws IOException {
-		if (xrunit.needsJar()) {
-			build(xrunit);
+	DecoratedSource prepareArtifacts(Source src, RunContext ctx) throws IOException {
+		if (DecoratedSource.needsJar(src, ctx)) {
+			build((ScriptSource) src, ctx);
 		}
 
 		if (javaAgentSlots != null) {
@@ -94,22 +97,21 @@ public class Run extends BaseBuildCommand {
 
 				DecoratedSource agentXrunit = DecoratedSource.forResource(javaAgent, userParams, properties,
 						dependencies, classpaths, fresh, forcejsh);
-				agentXrunit.getContext().setJavaAgentOption(javaAgentOptions.orElse(null));
-				if (agentXrunit.needsJar()) {
+				Source asrc = agentXrunit.getSource();
+				RunContext actx = agentXrunit.getContext();
+				actx.setJavaAgentOption(javaAgentOptions.orElse(null));
+				if (agentXrunit.needsJar(asrc, actx)) {
 					info("Building javaagent...");
-					build(agentXrunit);
+					build((ScriptSource) asrc, actx);
 				}
-				xrunit.getContext().addJavaAgent(agentXrunit);
+				ctx.addJavaAgent(agentXrunit);
 			}
 		}
 
-		return xrunit;
+		return new DecoratedSource(src, ctx);
 	}
 
-	String generateCommandLine(DecoratedSource xrunit) throws IOException {
-		Source src = xrunit.getSource();
-		RunContext ctx = xrunit.getContext();
-
+	String generateCommandLine(Source src, RunContext ctx) throws IOException {
 		List<String> fullArgs = new ArrayList<>();
 
 		if (nativeImage && (ctx.isForceJsh() || src.forJShell())) {
@@ -127,7 +129,7 @@ public class Run extends BaseBuildCommand {
 		}
 
 		if (fullArgs.isEmpty()) {
-			String classpath = xrunit.resolveClassPath(offline);
+			String classpath = ctx.resolveClassPath(src, offline);
 
 			List<String> optionalArgs = new ArrayList<>();
 
@@ -238,15 +240,15 @@ public class Run extends BaseBuildCommand {
 
 				});
 
-			fullArgs.addAll(ctx.getRuntimeOptionsOr(xrunit));
-			fullArgs.addAll(xrunit.getAutoDetectedModuleArguments(requestedJavaVersion, offline));
+			fullArgs.addAll(ctx.getRuntimeOptionsOr(src));
+			fullArgs.addAll(ctx.getAutoDetectedModuleArguments(src, requestedJavaVersion, offline));
 			fullArgs.addAll(optionalArgs);
 
 			if (main != null) { // if user specified main class it overrides any other main class calculation
 				ctx.setMainClass(main);
 			}
 
-			String mainClass = xrunit.getContext().getMainClassOr(xrunit);
+			String mainClass = ctx.getMainClassOr(src);
 			if (mainClass != null) {
 				fullArgs.add(mainClass);
 			} else {

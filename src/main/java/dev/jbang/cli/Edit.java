@@ -32,7 +32,6 @@ import dev.jbang.MavenRepo;
 import dev.jbang.RunContext;
 import dev.jbang.ScriptSource;
 import dev.jbang.Settings;
-import dev.jbang.Source;
 import dev.jbang.StrictParameterPreprocessor;
 import dev.jbang.TemplateEngine;
 import dev.jbang.Util;
@@ -59,9 +58,10 @@ public class Edit extends BaseScriptDepsCommand {
 		}
 
 		xrunit = DecoratedSource.forResource(scriptOrFile, null, null, dependencies, classpaths, false, forcejsh);
-		Source src = xrunit.getSource();
+		ScriptSource src = (ScriptSource) xrunit.getSource();
+		RunContext ctx = xrunit.getContext();
 
-		File project = createProjectForEdit(xrunit, false);
+		File project = createProjectForEdit(src, ctx, false);
 		// err.println(project.getAbsolutePath());
 
 		if (editor.isPresent()) {
@@ -111,7 +111,9 @@ public class Edit extends BaseScriptDepsCommand {
 								// TODO only regenerate when dependencies changes.
 								info("Regenerating project.");
 								xrunit = DecoratedSource.forResource(scriptOrFile);
-								createProjectForEdit(xrunit, true);
+								src = (ScriptSource) xrunit.getSource();
+								ctx = xrunit.getContext();
+								createProjectForEdit(src, ctx, true);
 							} catch (RuntimeException ee) {
 								warn("Error when re-generating project. Ignoring it, but state might be undefined: "
 										+ ee.getMessage());
@@ -200,14 +202,11 @@ public class Edit extends BaseScriptDepsCommand {
 	}
 
 	/** Create Project to use for editing **/
-	File createProjectForEdit(DecoratedSource xrunit, boolean reload) throws IOException {
-		RunContext ctx = xrunit.getContext();
-		ScriptSource src = (ScriptSource) xrunit.getSource();
-
+	File createProjectForEdit(ScriptSource src, RunContext ctx, boolean reload) throws IOException {
 		File originalFile = src.getResourceRef().getFile();
 
-		List<String> dependencies = xrunit.collectAllDependencies();
-		String cp = xrunit.resolveClassPath(offline);
+		List<String> dependencies = ctx.collectAllDependenciesFor(src);
+		String cp = ctx.resolveClassPath(src, offline);
 		List<String> resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 
 		File baseDir = Settings.getCacheDir(Settings.CacheClass.projects).toFile();
@@ -227,19 +226,17 @@ public class Edit extends BaseScriptDepsCommand {
 		Path srcFile = srcDir.toPath().resolve(name);
 		Util.createLink(srcFile, originalFile.toPath());
 
-		if (xrunit.getSource() instanceof ScriptSource) {
-			for (ScriptSource source : src.getAllSources()) {
-				File sfile = null;
-				if (source.getJavaPackage().isPresent()) {
-					File packageDir = new File(srcDir, source.getJavaPackage().get().replace(".", File.separator));
-					packageDir.mkdirs();
-					sfile = new File(packageDir, source.getResourceRef().getFile().getName());
-				} else {
-					sfile = new File(srcDir, source.getResourceRef().getFile().getName());
-				}
-				Path destFile = source.getResourceRef().getFile().toPath().toAbsolutePath();
-				Util.createLink(sfile.toPath(), destFile);
+		for (ScriptSource source : src.getAllSources()) {
+			File sfile = null;
+			if (source.getJavaPackage().isPresent()) {
+				File packageDir = new File(srcDir, source.getJavaPackage().get().replace(".", File.separator));
+				packageDir.mkdirs();
+				sfile = new File(packageDir, source.getResourceRef().getFile().getName());
+			} else {
+				sfile = new File(srcDir, source.getResourceRef().getFile().getName());
 			}
+			Path destFile = source.getResourceRef().getFile().toPath().toAbsolutePath();
+			Util.createLink(sfile.toPath(), destFile);
 		}
 
 		// create build gradle
