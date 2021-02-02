@@ -84,8 +84,16 @@ public interface Source {
 	 */
 	ModularClassPath resolveClassPath(List<String> dependencies, boolean offline);
 
+	default boolean forJar() {
+		return Source.forJar(getResourceRef().getFile());
+	}
+
 	static boolean forJar(File backingFile) {
 		return backingFile != null && backingFile.toString().endsWith(".jar");
+	}
+
+	default boolean forJShell() {
+		return Source.forJShell(getResourceRef().getFile());
 	}
 
 	static boolean forJShell(File backingFile) {

@@ -32,6 +32,7 @@ import dev.jbang.MavenRepo;
 import dev.jbang.RunContext;
 import dev.jbang.ScriptSource;
 import dev.jbang.Settings;
+import dev.jbang.Source;
 import dev.jbang.StrictParameterPreprocessor;
 import dev.jbang.TemplateEngine;
 import dev.jbang.Util;
@@ -58,6 +59,8 @@ public class Edit extends BaseScriptDepsCommand {
 		}
 
 		xrunit = DecoratedSource.forResource(scriptOrFile, null, null, dependencies, classpaths, false, forcejsh);
+		Source src = xrunit.getSource();
+
 		File project = createProjectForEdit(xrunit, false);
 		// err.println(project.getAbsolutePath());
 
@@ -88,9 +91,9 @@ public class Edit extends BaseScriptDepsCommand {
 			out.println(project.getAbsolutePath()); // quit(project.getAbsolutePath());
 		} else {
 			try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
-				File orginalFile = xrunit.script().getResourceRef().getFile();
+				File orginalFile = src.getResourceRef().getFile();
 				if (!orginalFile.exists()) {
-					throw new ExitException(2, "Cannot live edit " + xrunit.getResourceRef().getOriginalResource());
+					throw new ExitException(2, "Cannot live edit " + src.getResourceRef().getOriginalResource());
 				}
 				Path watched = orginalFile.getAbsoluteFile().getParentFile().toPath();
 				watched.register(watchService,
@@ -199,8 +202,9 @@ public class Edit extends BaseScriptDepsCommand {
 	/** Create Project to use for editing **/
 	File createProjectForEdit(DecoratedSource xrunit, boolean reload) throws IOException {
 		RunContext ctx = xrunit.getContext();
+		ScriptSource src = (ScriptSource) xrunit.getSource();
 
-		File originalFile = xrunit.getResourceRef().getFile();
+		File originalFile = src.getResourceRef().getFile();
 
 		List<String> dependencies = xrunit.collectAllDependencies();
 		String cp = xrunit.resolveClassPath(offline);
@@ -224,7 +228,7 @@ public class Edit extends BaseScriptDepsCommand {
 		Util.createLink(srcFile, originalFile.toPath());
 
 		if (xrunit.getSource() instanceof ScriptSource) {
-			for (ScriptSource source : xrunit.script().getAllSources()) {
+			for (ScriptSource source : src.getAllSources()) {
 				File sfile = null;
 				if (source.getJavaPackage().isPresent()) {
 					File packageDir = new File(srcDir, source.getJavaPackage().get().replace(".", File.separator));
@@ -254,7 +258,7 @@ public class Edit extends BaseScriptDepsCommand {
 
 		// both collectDependencies and repositories are manipulated by
 		// resolveDependencies
-		List<MavenRepo> repositories = xrunit.script().getAllRepositories();
+		List<MavenRepo> repositories = src.getAllRepositories();
 		if (repositories.isEmpty()) {
 			repositories.add(DependencyUtil.toMavenRepo("jcenter"));
 		}

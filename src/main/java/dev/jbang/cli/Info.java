@@ -12,6 +12,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import dev.jbang.DecoratedSource;
+import dev.jbang.Source;
 
 import picocli.CommandLine;
 
@@ -37,14 +38,16 @@ abstract class BaseInfoCommand extends BaseScriptDepsCommand {
 		String javaVersion;
 
 		public ScriptInfo(DecoratedSource xrunit) {
+			Source src = xrunit.getSource();
+
 			List<String> collectDependencies = xrunit.collectAllDependencies();
 			String cp = xrunit.resolveClassPath(offline);
 
-			originalResource = xrunit.getResourceRef().getOriginalResource();
-			backingResource = xrunit.getResourceRef().getFile().toString();
+			originalResource = src.getResourceRef().getOriginalResource();
+			backingResource = src.getResourceRef().getFile().toString();
 
-			applicationJar = xrunit.getJar().getAbsolutePath();
-			mainClass = xrunit.getMainClass();
+			applicationJar = src.getJar().getAbsolutePath();
+			mainClass = xrunit.getContext().getMainClassOr(xrunit);
 
 			if (cp.isEmpty()) {
 				resolvedDependencies = Collections.emptyList();

@@ -16,6 +16,7 @@ import java.util.jar.Manifest;
 
 import dev.jbang.DecoratedSource;
 import dev.jbang.ExitException;
+import dev.jbang.Source;
 import dev.jbang.Util;
 
 import picocli.CommandLine;
@@ -41,7 +42,8 @@ public class Export extends BaseBuildCommand {
 
 			public int apply(Export export, DecoratedSource xrunit, Path outputPath) throws IOException {
 				// Copy the JAR or native binary
-				Path source = xrunit.getJar().toPath();
+				Source src = xrunit.getSource();
+				Path source = src.getJar().toPath();
 				if (export.nativeImage) {
 					source = getImageName(source.toFile()).toPath();
 				}
@@ -64,7 +66,8 @@ public class Export extends BaseBuildCommand {
 			@Override
 			public int apply(Export export, DecoratedSource xrunit, Path outputPath) throws IOException {
 				// Copy the JAR or native binary
-				Path source = xrunit.getJar().toPath();
+				Source src = xrunit.getSource();
+				Path source = src.getJar().toPath();
 				if (export.nativeImage) {
 					source = getImageName(source.toFile()).toPath();
 				}
@@ -109,8 +112,8 @@ public class Export extends BaseBuildCommand {
 
 					List<String> optionList = new ArrayList<>();
 					optionList.add(resolveInJavaHome("jar",
-							export.javaVersion != null ? export.javaVersion : xrunit.javaVersion())); // TODO locate it
-																										// on path ?
+							export.javaVersion != null ? export.javaVersion : src.javaVersion())); // TODO locate it
+																									// on path ?
 					optionList.add("ufm");
 					optionList.add(outputPath.toString());
 					optionList.add(tempManifest.toString());

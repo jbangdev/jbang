@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import dev.jbang.AliasUtil;
 import dev.jbang.DecoratedSource;
 import dev.jbang.Settings;
+import dev.jbang.Source;
 import dev.jbang.Util;
 
 import picocli.CommandLine;
@@ -77,11 +78,12 @@ class AliasAdd extends BaseAliasCommand {
 					"Invalid alias name, it should start with a letter followed by 0 or more letters, digits, underscores or hyphens");
 		}
 		DecoratedSource xrunit = DecoratedSource.forResource(scriptOrFile);
+		Source src = xrunit.getSource();
 		if (name == null) {
 			name = AppInstall.chooseCommandName(xrunit);
 		}
 
-		String desc = description != null ? description : xrunit.getDescription().orElse(null);
+		String desc = description != null ? description : src.getDescription().orElse(null);
 
 		Path catFile = getCatalog(false);
 		if (catFile != null) {

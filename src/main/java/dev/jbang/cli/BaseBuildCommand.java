@@ -21,6 +21,7 @@ import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import dev.jbang.ScriptSource;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.Index;
@@ -93,16 +94,17 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 	// build with javac and then jar... todo: split up in more testable chunks
 	void build(DecoratedSource xrunit) throws IOException {
 		RunContext ctx = xrunit.getContext();
+		Source src = xrunit.getSource();
 		for (Map.Entry<String, String> entry : properties.entrySet()) {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
 
 		xrunit.importJarMetadata();
 
-		File outjar = xrunit.getJar();
+		File outjar = src.getJar();
 		boolean nativeBuildRequired = nativeImage && !getImageName(outjar).exists();
 		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
-		String requestedJavaVersion = javaVersion != null ? javaVersion : xrunit.javaVersion();
+		String requestedJavaVersion = javaVersion != null ? javaVersion : src.javaVersion();
 		// always build the jar for native mode
 		// it allows integrations the options to produce the native image
 		if (!outjar.exists() || JavaUtil.javaVersion(requestedJavaVersion) < ctx.getBuildJdk()
@@ -132,10 +134,11 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 			String requestedJavaVersion)
 			throws IOException {
 		RunContext ctx = xrunit.getContext();
+		ScriptSource src = (ScriptSource) xrunit.getSource();
 		IntegrationResult integrationResult;
 		List<String> optionList = new ArrayList<>();
 		optionList.add(resolveInJavaHome("javac", requestedJavaVersion));
-		optionList.addAll(xrunit.script().getCompileOptions());
+		optionList.addAll(src.getCompileOptions());
 		String path = xrunit.resolveClassPath(offline);
 		if (!path.trim().isEmpty()) {
 			optionList.addAll(Arrays.asList("-classpath", path));
@@ -143,16 +146,16 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		optionList.addAll(Arrays.asList("-d", tmpJarDir.getAbsolutePath()));
 
 		// add source files to compile
-		optionList.add(xrunit.getResourceRef().getFile().getPath());
+		optionList.add(src.getResourceRef().getFile().getPath());
 		optionList.addAll(
-				xrunit	.script()
-						.getAllSources()
-						.stream()
-						.map(x -> x.getResourceRef().getFile().getPath())
-						.collect(Collectors.toList()));
+				src
+					.getAllSources()
+					.stream()
+					.map(x -> x.getResourceRef().getFile().getPath())
+					.collect(Collectors.toList()));
 
 		// add additional files
-		List<FileRef> files = xrunit.script().getAllFiles();
+		List<FileRef> files = src.getAllFiles();
 		for (FileRef file : files) {
 			file.copy(tmpJarDir.toPath(), fresh);
 		}
@@ -165,7 +168,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 			Util.warnMsg("Could not locate pom.xml template");
 		} else {
 			String pomfile = pomTemplate
-										.data("baseName", Util.getBaseName(xrunit.getResourceRef().getFile().getName()))
+										.data("baseName", Util.getBaseName(src.getResourceRef().getFile().getName()))
 										.data("dependencies", xrunit.getClassPath().getArtifacts())
 										.render();
 			pomPath = new File(tmpJarDir, "META-INF/maven/g/a/v/pom.xml").toPath();
@@ -188,12 +191,12 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		}
 
 		ctx.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
-		integrationResult = IntegrationManager.runIntegration(xrunit.script().getAllRepositories(),
+		integrationResult = IntegrationManager.runIntegration(src.getAllRepositories(),
 				xrunit.getClassPath().getArtifacts(),
 				tmpJarDir.toPath(), pomPath,
-				xrunit.script(), nativeImage);
+				src, nativeImage);
 		if (integrationResult.mainClass != null) {
-			xrunit.setMainClass(integrationResult.mainClass);
+			ctx.setMainClass(integrationResult.mainClass);
 		} else {
 			try {
 				// using Files.walk method with try-with-resources
@@ -206,7 +209,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 					if (items.size() > 1) { // todo: this feels like a very sketchy way to find the proper class
 											// name
 						// but it works.
-						String mainname = xrunit.getResourceRef().getFile().getName().replace(".java", ".class");
+						String mainname = src.getResourceRef().getFile().getName().replace(".java", ".class");
 						items = items	.stream()
 										.filter(f -> f.toFile().getName().equalsIgnoreCase(mainname))
 										.collect(Collectors.toList());
@@ -233,10 +236,10 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 														.findFirst();
 
 						if (main.isPresent()) {
-							xrunit.setMainClass(main.get().name().toString());
+							ctx.setMainClass(main.get().name().toString());
 						}
 
-						if (xrunit.script().isAgent()) {
+						if (src.isAgent()) {
 
 							Optional<ClassInfo> agentmain = clazz	.stream()
 																	.filter(pubClass -> pubClass.method("agentmain",
@@ -313,14 +316,15 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 
 	static void createJarFile(DecoratedSource xrunit, File path, File output) throws IOException {
 		RunContext ctx = xrunit.getContext();
-		String mainclass = xrunit.getMainClass();
+		ScriptSource src = (ScriptSource) xrunit.getSource();
+		String mainclass = ctx.getMainClassOr(xrunit);
 		Manifest manifest = new Manifest();
 		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
 		if (mainclass != null) {
 			manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, mainclass);
 		}
 
-		if (xrunit.script().isAgent()) {
+		if (src.isAgent()) {
 			if (ctx.getPreMainClass() != null) {
 				manifest.getMainAttributes().put(new Attributes.Name(Source.ATTR_PREMAIN_CLASS), ctx.getPreMainClass());
 			}
@@ -328,7 +332,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 				manifest.getMainAttributes().put(new Attributes.Name(Source.ATTR_AGENT_CLASS), ctx.getAgentMainClass());
 			}
 
-			for (KeyValue kv : xrunit.script().getAllAgentOptions()) {
+			for (KeyValue kv : src.getAllAgentOptions()) {
 				if (kv.getKey().trim().isEmpty()) {
 					continue;
 				}

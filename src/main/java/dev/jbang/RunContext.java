@@ -102,12 +102,20 @@ public class RunContext {
 		return mainClass;
 	}
 
+	public String getMainClassOr(DecoratedSource src) {
+		return (mainClass != null) ? mainClass : src.getSource().getMainClass();
+	}
+
 	public void setMainClass(String mainClass) {
 		this.mainClass = mainClass;
 	}
 
 	public List<String> getRuntimeOptions() {
 		return javaRuntimeOptions;
+	}
+
+	public List<String> getRuntimeOptionsOr(DecoratedSource src) {
+		return (javaRuntimeOptions != null) ? javaRuntimeOptions : src.getSource().getRuntimeOptions();
 	}
 
 	public void setRuntimeOptions(List<String> javaRuntimeOptions) {

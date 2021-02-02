@@ -3,7 +3,6 @@ package dev.jbang;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -21,7 +20,7 @@ import dev.jbang.cli.BaseCommand;
  * Source object. This makes it easier to use this class in places where it's
  * not really important to know with what type or Source we're dealing.
  */
-public class DecoratedSource implements Source {
+public class DecoratedSource {
 	final private Source source;
 	final private RunContext context;
 
@@ -40,72 +39,13 @@ public class DecoratedSource implements Source {
 		return context;
 	}
 
-	public ScriptSource script() {
-		return (ScriptSource) source;
-	}
-
-	public JarSource jar() {
-		return (JarSource) source;
-	}
-
-	public boolean forJar() {
-		return Source.forJar(getResourceRef().getFile());
-	}
-
-	public boolean forJShell() {
-		return context.isForceJsh() || Source.forJShell(getResourceRef().getFile());
-	}
-
 	public ModularClassPath getClassPath() {
 		return classpath;
 	}
 
 	public boolean needsJar() {
 		// anything but .jar and .jsh files needs jar
-		return !(forJar() || forJShell());
-	}
-
-	@Override
-	public ResourceRef getResourceRef() {
-		return source.getResourceRef();
-	}
-
-	@Override
-	public Optional<String> getDescription() {
-		return source.getDescription();
-	}
-
-	@Override
-	public File getJar() {
-		return source.getJar();
-	}
-
-	@Override
-	public boolean enableCDS() {
-		return source.enableCDS();
-	}
-
-	@Override
-	public String javaVersion() {
-		return source.javaVersion();
-	}
-
-	@Override
-	public String getMainClass() {
-		return (context.getMainClass() != null) ? context.getMainClass() : source.getMainClass();
-	}
-
-	public void setMainClass(String mainClass) {
-		context.setMainClass(mainClass);
-	}
-
-	@Override
-	public List<String> getRuntimeOptions() {
-		return (context.getRuntimeOptions() != null) ? context.getRuntimeOptions() : source.getRuntimeOptions();
-	}
-
-	public void setRuntimeOptions(List<String> javaRuntimeOptions) {
-		context.setRuntimeOptions(javaRuntimeOptions);
+		return !(source.forJar() || context.isForceJsh() || source.forJShell());
 	}
 
 	public List<String> collectAllDependencies() {
@@ -116,15 +56,9 @@ public class DecoratedSource implements Source {
 		return getAllDependencies(p);
 	}
 
-	@Override
 	public List<String> getAllDependencies(Properties props) {
 		return Stream	.concat(context.getAdditionalDependencies().stream(), source.getAllDependencies(props).stream())
 						.collect(Collectors.toList());
-	}
-
-	@Override
-	public ModularClassPath resolveClassPath(List<String> dependencies, boolean offline) {
-		return source.resolveClassPath(dependencies, offline);
 	}
 
 	/**
@@ -145,6 +79,10 @@ public class DecoratedSource implements Source {
 		return cp.toString();
 	}
 
+	public ModularClassPath resolveClassPath(List<String> dependencies, boolean offline) {
+		return source.resolveClassPath(dependencies, offline);
+	}
+
 	public List<String> getAutoDetectedModuleArguments(String requestedVersion, boolean offline) {
 		if (classpath == null) {
 			resolveClassPath(offline);
@@ -153,11 +91,11 @@ public class DecoratedSource implements Source {
 	}
 
 	public void importJarMetadata() {
-		File outjar = getJar();
+		File outjar = source.getJar();
 		if (outjar.exists()) {
 			JarSource jar = JarSource.prepareJar(
-					ResourceRef.forNamedFile(getResourceRef().getOriginalResource(), outjar));
-			setMainClass(jar.getMainClass());
+					ResourceRef.forNamedFile(source.getResourceRef().getOriginalResource(), outjar));
+			context.setMainClass(jar.getMainClass());
 			context.setPersistentJvmArgs(jar.getRuntimeOptions());
 			context.setBuildJdk(jar.getBuildJdk());
 		}

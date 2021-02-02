@@ -186,8 +186,9 @@ public class TestScript extends BaseTest {
 		createTmpFileWithContent("pkg1", "Bye.java", exampleURLInsourceBye);
 		String scriptURL = mainPath.toString();
 		DecoratedSource xrunit = DecoratedSource.forResource(scriptURL);
+		ScriptSource src = (ScriptSource) xrunit.getSource();
 
-		List<ScriptSource> resolvesourceRecursively = xrunit.script().getAllSources();
+		List<ScriptSource> resolvesourceRecursively = src.getAllSources();
 		assertEquals(resolvesourceRecursively.size(), 7);
 	}
 
@@ -235,10 +236,11 @@ public class TestScript extends BaseTest {
 			Settings.getTrustedSources().add(url, tempFile);
 
 			DecoratedSource xrunit = DecoratedSource.forResource(url);
-			assertEquals(2, xrunit.script().getAllSources().size());
+			ScriptSource src = (ScriptSource) xrunit.getSource();
+			assertEquals(2, src.getAllSources().size());
 			boolean foundtwo = false;
 			boolean foundt3 = false;
-			for (ScriptSource source : xrunit.script().getAllSources()) {
+			for (ScriptSource source : src.getAllSources()) {
 				if (source.getResourceRef().getFile().getName().equals("two.java"))
 					foundtwo = true;
 				if (source.getResourceRef().getFile().getName().equals("t3.java"))

@@ -21,6 +21,7 @@ import dev.jbang.ExitException;
 import dev.jbang.JdkManager;
 import dev.jbang.RunContext;
 import dev.jbang.Settings;
+import dev.jbang.Source;
 import dev.jbang.UnpackUtil;
 import dev.jbang.Util;
 
@@ -99,6 +100,7 @@ class AppInstall extends BaseCommand {
 		}
 		DecoratedSource xrunit = DecoratedSource.forResource(scriptRef);
 		RunContext ctx = xrunit.getContext();
+		Source src = xrunit.getSource();
 		if (name == null) {
 			name = chooseCommandName(xrunit);
 			if (!force && existScripts(binDir, name)) {
@@ -106,8 +108,8 @@ class AppInstall extends BaseCommand {
 				return false;
 			}
 		}
-		if (ctx.getAlias() == null && !xrunit.getResourceRef().isURL()) {
-			scriptRef = xrunit.getResourceRef().getFile().getAbsolutePath();
+		if (ctx.getAlias() == null && !src.getResourceRef().isURL()) {
+			scriptRef = src.getResourceRef().getFile().getAbsolutePath();
 		}
 		installScripts(name, scriptRef, benative);
 		Util.infoMsg("Command installed: " + name);
