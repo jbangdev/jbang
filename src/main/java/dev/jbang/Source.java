@@ -11,6 +11,11 @@ import java.util.Properties;
  * that can be used as or turned into executable code.
  */
 public interface Source {
+	String ATTR_BUILD_JDK = "Build-Jdk";
+	String ATTR_JBANG_JAVA_OPTIONS = "JBang-Java-Options";
+	String ATTR_BOOT_CLASS_PATH = "Boot-Class-Path";
+	String ATTR_PREMAIN_CLASS = "Premain-Class";
+	String ATTR_AGENT_CLASS = "Agent-Class";
 
 	/**
 	 * Returns the reference to resource to be executed. This contains both the
