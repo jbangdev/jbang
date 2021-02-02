@@ -886,8 +886,8 @@ public class TestRun extends BaseTest {
 
 		assertThat(xrunit.script().isAgent(), is(true));
 
-		assertThat(xrunit.getAgentMainClass(), is("Agent"));
-		assertThat(xrunit.getPreMainClass(), is("Agent"));
+		assertThat(xrunit.getContext().getAgentMainClass(), is("Agent"));
+		assertThat(xrunit.getContext().getPreMainClass(), is("Agent"));
 
 		try (JarFile jf = new JarFile(xrunit.getJar())) {
 			Attributes attrs = jf.getManifest().getMainAttributes();
@@ -916,8 +916,8 @@ public class TestRun extends BaseTest {
 
 		assertThat(xrunit.script().isAgent(), is(true));
 
-		assertThat(xrunit.getAgentMainClass(), is(nullValue()));
-		assertThat(xrunit.getPreMainClass(), is("Agent"));
+		assertThat(xrunit.getContext().getAgentMainClass(), is(nullValue()));
+		assertThat(xrunit.getContext().getPreMainClass(), is("Agent"));
 
 	}
 

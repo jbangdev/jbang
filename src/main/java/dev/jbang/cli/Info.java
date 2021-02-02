@@ -52,8 +52,8 @@ abstract class BaseInfoCommand extends BaseScriptDepsCommand {
 				resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 			}
 
-			if (xrunit.getBuildJdk() > 0) {
-				javaVersion = Integer.toString(xrunit.getBuildJdk());
+			if (xrunit.getContext().getBuildJdk() > 0) {
+				javaVersion = Integer.toString(xrunit.getContext().getBuildJdk());
 			}
 		}
 	}

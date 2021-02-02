@@ -27,13 +27,17 @@ public class DecoratedSource implements Source {
 
 	private ModularClassPath classpath;
 
-	protected DecoratedSource(Source source, List<String> arguments, Map<String, String> properties) {
+	protected DecoratedSource(Source source, RunContext context) {
 		this.source = source;
-		this.context = new RunContext(arguments, properties);
+		this.context = context;
 	}
 
 	public Source getSource() {
 		return source;
+	}
+
+	public RunContext getContext() {
+		return context;
 	}
 
 	public ScriptSource script() {
@@ -44,46 +48,12 @@ public class DecoratedSource implements Source {
 		return (JarSource) source;
 	}
 
-	public List<String> getArguments() {
-		return context.getArguments();
-	}
-
-	public Map<String, String> getProperties() {
-		return context.getProperties();
-	}
-
-	public void setAdditionalDependencies(List<String> deps) {
-		context.setAdditionalDependencies(deps);
-	}
-
-	public void setAdditionalClasspaths(List<String> cps) {
-		context.setAdditionalClasspaths(cps);
-	}
-
-	/**
-	 * Returns the Alias object if originalRef is an alias, otherwise null
-	 */
-	public AliasUtil.Alias getAlias() {
-		return context.getAlias();
-	}
-
-	/**
-	 * Sets the Alias object if originalRef is an alias
-	 */
-	public void setAlias(AliasUtil.Alias alias) {
-		context.setAlias(alias);
-	}
-
 	public boolean forJar() {
 		return Source.forJar(getResourceRef().getFile());
 	}
 
 	public boolean forJShell() {
 		return context.isForceJsh() || Source.forJShell(getResourceRef().getFile());
-	}
-
-	public void setForcejsh(boolean forceJsh) {
-		context.setForceJsh(forceJsh);
 	}
 
 	public ModularClassPath getClassPath() {
@@ -120,14 +90,6 @@ public class DecoratedSource implements Source {
 		return source.javaVersion();
 	}
 
-	public String getOriginalRef() {
-		return context.getOriginalRef();
-	}
-
-	public void setOriginalRef(String ref) {
-		context.setOriginalRef(ref);
-	}
-
 	@Override
 	public String getMainClass() {
 		return (context.getMainClass() != null) ? context.getMainClass() : source.getMainClass();
@@ -144,54 +106,6 @@ public class DecoratedSource implements Source {
 
 	public void setRuntimeOptions(List<String> javaRuntimeOptions) {
 		context.setRuntimeOptions(javaRuntimeOptions);
-	}
-
-	public List<String> getPersistentJvmArgs() {
-		return context.getPersistentJvmArgs();
-	}
-
-	public void setPersistentJvmArgs(List<String> persistentJvmArgs) {
-		context.setPersistentJvmArgs(persistentJvmArgs);
-	}
-
-	public int getBuildJdk() {
-		return context.getBuildJdk();
-	}
-
-	public void setBuildJdk(int javaVersion) {
-		context.setBuildJdk(javaVersion);
-	}
-
-	public String getJavaAgentOption() {
-		return context.getJavaAgentOption();
-	}
-
-	public void setJavaAgentOption(String option) {
-		context.setJavaAgentOption(option);
-	}
-
-	public String getAgentMainClass() {
-		return context.getAgentMainClass();
-	}
-
-	public void setAgentMainClass(String agentMainClass) {
-		context.setAgentMainClass(agentMainClass);
-	}
-
-	public String getPreMainClass() {
-		return context.getPreMainClass();
-	}
-
-	public void setPreMainClass(String name) {
-		context.setPreMainClass(name);
-	}
-
-	public List<DecoratedSource> getJavaAgents() {
-		return context.getJavaAgents();
-	}
-
-	public void addJavaAgent(DecoratedSource agent) {
-		context.addJavaAgent(agent);
 	}
 
 	public List<String> collectAllDependencies() {
@@ -244,8 +158,8 @@ public class DecoratedSource implements Source {
 			JarSource jar = JarSource.prepareJar(
 					ResourceRef.forNamedFile(getResourceRef().getOriginalResource(), outjar));
 			setMainClass(jar.getMainClass());
-			setPersistentJvmArgs(jar.getRuntimeOptions());
-			setBuildJdk(jar.getBuildJdk());
+			context.setPersistentJvmArgs(jar.getRuntimeOptions());
+			context.setBuildJdk(jar.getBuildJdk());
 		}
 	}
 
@@ -298,13 +212,13 @@ public class DecoratedSource implements Source {
 			ru = ScriptSource.prepareScript(resourceRef);
 		}
 
-		DecoratedSource xrunit = new DecoratedSource(ru, arguments, properties);
-		xrunit.setForcejsh(forcejsh);
-		xrunit.setOriginalRef(resource);
-		xrunit.setAlias(alias);
-		xrunit.setAdditionalDependencies(dependencies);
-		xrunit.setAdditionalClasspaths(classpaths);
-		return xrunit;
+		RunContext ctx = new RunContext(arguments, properties);
+		ctx.setForceJsh(forcejsh);
+		ctx.setOriginalRef(resource);
+		ctx.setAlias(alias);
+		ctx.setAdditionalDependencies(dependencies);
+		ctx.setAdditionalClasspaths(classpaths);
+		return new DecoratedSource(ru, ctx);
 	}
 
 	public static DecoratedSource forScriptResource(ResourceRef resourceRef, List<String> arguments,
@@ -323,11 +237,11 @@ public class DecoratedSource implements Source {
 			ru = ScriptSource.prepareScript(resourceRef);
 		}
 
-		DecoratedSource xrunit = new DecoratedSource(ru, arguments, properties);
-		xrunit.setForcejsh(forcejsh);
-		xrunit.setAdditionalDependencies(dependencies);
-		xrunit.setAdditionalClasspaths(classpaths);
-		return xrunit;
+		RunContext ctx = new RunContext(arguments, properties);
+		ctx.setForceJsh(forcejsh);
+		ctx.setAdditionalDependencies(dependencies);
+		ctx.setAdditionalClasspaths(classpaths);
+		return new DecoratedSource(ru, ctx);
 	}
 
 	public static DecoratedSource forScript(String script, List<String> arguments,
@@ -340,10 +254,10 @@ public class DecoratedSource implements Source {
 			List<String> dependencies, List<String> classpaths,
 			boolean fresh, boolean forcejsh) {
 		Source ru = new ScriptSource(script);
-		DecoratedSource xrunit = new DecoratedSource(ru, arguments, properties);
-		xrunit.setForcejsh(forcejsh);
-		xrunit.setAdditionalDependencies(dependencies);
-		xrunit.setAdditionalClasspaths(classpaths);
-		return xrunit;
+		RunContext ctx = new RunContext(arguments, properties);
+		ctx.setForceJsh(forcejsh);
+		ctx.setAdditionalDependencies(dependencies);
+		ctx.setAdditionalClasspaths(classpaths);
+		return new DecoratedSource(ru, ctx);
 	}
 }

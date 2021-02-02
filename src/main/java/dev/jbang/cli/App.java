@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import dev.jbang.DecoratedSource;
 import dev.jbang.ExitException;
 import dev.jbang.JdkManager;
+import dev.jbang.RunContext;
 import dev.jbang.Settings;
 import dev.jbang.UnpackUtil;
 import dev.jbang.Util;
@@ -97,6 +98,7 @@ class AppInstall extends BaseCommand {
 			return false;
 		}
 		DecoratedSource xrunit = DecoratedSource.forResource(scriptRef);
+		RunContext ctx = xrunit.getContext();
 		if (name == null) {
 			name = chooseCommandName(xrunit);
 			if (!force && existScripts(binDir, name)) {
@@ -104,7 +106,7 @@ class AppInstall extends BaseCommand {
 				return false;
 			}
 		}
-		if (xrunit.getAlias() == null && !xrunit.getResourceRef().isURL()) {
+		if (ctx.getAlias() == null && !xrunit.getResourceRef().isURL()) {
 			scriptRef = xrunit.getResourceRef().getFile().getAbsolutePath();
 		}
 		installScripts(name, scriptRef, benative);
@@ -118,12 +120,13 @@ class AppInstall extends BaseCommand {
 	}
 
 	public static String chooseCommandName(DecoratedSource xrunit) {
+		RunContext ctx = xrunit.getContext();
 		String startName = null;
 		String name;
-		if (xrunit.getAlias() != null) {
+		if (ctx.getAlias() != null) {
 			// If the script ref is an alias we take that name up to
 			// the @-symbol (if any) to be the command name.
-			startName = xrunit.getOriginalRef();
+			startName = ctx.getOriginalRef();
 			name = startName;
 			int p = name.indexOf("@");
 			if (p > 0) {
@@ -133,14 +136,14 @@ class AppInstall extends BaseCommand {
 			// If the script is a file or a URL we take the last part of
 			// the name without extension (if any) to be the command name.
 			try {
-				URI u = new URI(xrunit.getOriginalRef());
+				URI u = new URI(ctx.getOriginalRef());
 				startName = u.getPath();
 				if (startName.endsWith("/")) { // if using default app use the last segment.
 					startName = startName.substring(0, startName.length() - 1);
 				}
 				startName = u.getPath().substring(Math.max(0, startName.lastIndexOf("/")));
 			} catch (URISyntaxException e) {
-				startName = Paths.get(xrunit.getOriginalRef()).getFileName().toString();
+				startName = Paths.get(ctx.getOriginalRef()).getFileName().toString();
 			}
 
 			name = startName;

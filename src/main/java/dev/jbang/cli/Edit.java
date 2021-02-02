@@ -29,6 +29,7 @@ import dev.jbang.EditorManager;
 import dev.jbang.ExitException;
 import dev.jbang.JitPackUtil;
 import dev.jbang.MavenRepo;
+import dev.jbang.RunContext;
 import dev.jbang.ScriptSource;
 import dev.jbang.Settings;
 import dev.jbang.StrictParameterPreprocessor;
@@ -197,6 +198,7 @@ public class Edit extends BaseScriptDepsCommand {
 
 	/** Create Project to use for editing **/
 	File createProjectForEdit(DecoratedSource xrunit, boolean reload) throws IOException {
+		RunContext ctx = xrunit.getContext();
 
 		File originalFile = xrunit.getResourceRef().getFile();
 
@@ -269,7 +271,7 @@ public class Edit extends BaseScriptDepsCommand {
 
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
-				xrunit.getArguments(),
+				ctx.getArguments(),
 				destination);
 
 		// setup eclipse
@@ -277,14 +279,14 @@ public class Edit extends BaseScriptDepsCommand {
 		destination = new File(tmpProjectDir, ".classpath").toPath();
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
-				xrunit.getArguments(),
+				ctx.getArguments(),
 				destination);
 
 		templateName = ".qute.project";
 		destination = new File(tmpProjectDir, ".project").toPath();
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
-				xrunit.getArguments(),
+				ctx.getArguments(),
 				destination);
 
 		templateName = "main.qute.launch";
@@ -292,14 +294,14 @@ public class Edit extends BaseScriptDepsCommand {
 		destination.toFile().getParentFile().mkdirs();
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
-				xrunit.getArguments(),
+				ctx.getArguments(),
 				destination);
 
 		templateName = "main-port-4004.qute.launch";
 		destination = new File(tmpProjectDir, ".eclipse/" + baseName + "-port-4004.launch").toPath();
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
-				xrunit.getArguments(),
+				ctx.getArguments(),
 				destination);
 
 		// setup vscode
@@ -309,7 +311,7 @@ public class Edit extends BaseScriptDepsCommand {
 			destination.toFile().getParentFile().mkdirs();
 			renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 					templateName,
-					xrunit.getArguments(),
+					ctx.getArguments(),
 					destination);
 		}
 
@@ -320,7 +322,7 @@ public class Edit extends BaseScriptDepsCommand {
 			destination.toFile().getParentFile().mkdirs();
 			renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 					templateName,
-					xrunit.getArguments(),
+					ctx.getArguments(),
 					destination);
 		}
 
@@ -330,7 +332,7 @@ public class Edit extends BaseScriptDepsCommand {
 			destination.toFile().getParentFile().mkdirs();
 			renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 					templateName,
-					xrunit.getArguments(),
+					ctx.getArguments(),
 					destination);
 		}
 

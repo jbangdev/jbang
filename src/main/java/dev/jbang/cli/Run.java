@@ -18,6 +18,7 @@ import org.apache.commons.text.StringEscapeUtils;
 import dev.jbang.DecoratedSource;
 import dev.jbang.ExitException;
 import dev.jbang.JavaUtil;
+import dev.jbang.RunContext;
 import dev.jbang.Settings;
 import dev.jbang.Util;
 
@@ -92,12 +93,12 @@ public class Run extends BaseBuildCommand {
 
 				DecoratedSource agentXrunit = DecoratedSource.forResource(javaAgent, userParams, properties,
 						dependencies, classpaths, fresh, forcejsh);
-				agentXrunit.setJavaAgentOption(javaAgentOptions.orElse(null));
+				agentXrunit.getContext().setJavaAgentOption(javaAgentOptions.orElse(null));
 				if (agentXrunit.needsJar()) {
 					info("Building javaagent...");
 					build(agentXrunit);
 				}
-				xrunit.addJavaAgent(agentXrunit);
+				xrunit.getContext().addJavaAgent(agentXrunit);
 			}
 		}
 
@@ -105,6 +106,7 @@ public class Run extends BaseBuildCommand {
 	}
 
 	String generateCommandLine(DecoratedSource xrunit) throws IOException {
+		RunContext ctx = xrunit.getContext();
 
 		List<String> fullArgs = new ArrayList<>();
 
@@ -147,7 +149,7 @@ public class Run extends BaseBuildCommand {
 						"import java.math.BigInteger;\n" +
 						"import java.math.BigDecimal;\n";
 				Util.writeString(tempFile.toPath(),
-						defaultImports + generateArgs(xrunit.getArguments(), xrunit.getProperties()));
+						defaultImports + generateArgs(ctx.getArguments(), ctx.getProperties()));
 
 				optionalArgs.add("--startup=" + tempFile.getAbsolutePath());
 
@@ -159,7 +161,7 @@ public class Run extends BaseBuildCommand {
 				}
 
 			} else {
-				addPropertyFlags(xrunit.getProperties(), "-D", optionalArgs);
+				addPropertyFlags(ctx.getProperties(), "-D", optionalArgs);
 
 				// optionalArgs.add("--source 11");
 				if (debug()) {
@@ -205,32 +207,34 @@ public class Run extends BaseBuildCommand {
 						optionalArgs.add("-XX:SharedArchiveFile=" + cdsJsa);
 					}
 				}
-				if (xrunit.getPersistentJvmArgs() != null) {
-					optionalArgs.addAll(xrunit.getPersistentJvmArgs());
+				if (ctx.getPersistentJvmArgs() != null) {
+					optionalArgs.addAll(ctx.getPersistentJvmArgs());
 				}
 			}
 
 			fullArgs.add(javacmd);
-			xrunit	.getJavaAgents()
-					.forEach(agent -> {
-						// for now we don't include any transitive dependencies. could consider putting
-						// on bootclasspath...or not.
-						String jar = null;
+			ctx	.getJavaAgents()
+				.forEach(agent -> {
+					// for now we don't include any transitive dependencies. could consider putting
+					// on bootclasspath...or not.
+					String jar = null;
 
-						if (agent.getJar() != null) {
-							jar = agent.getJar().toString();
-						} else if (agent.forJar()) {
-							jar = agent.getResourceRef().getFile().toString();
-							// should we log a warning/error if agent jar not present ?
-						}
-						if (jar == null) {
-							throw new ExitException(EXIT_INTERNAL_ERROR,
-									"No jar found for agent " + agent.getResourceRef().getOriginalResource());
-						}
-						fullArgs.add("-javaagent:" + jar
-								+ (agent.getJavaAgentOption() != null ? "=" + agent.getJavaAgentOption() : ""));
+					if (agent.getJar() != null) {
+						jar = agent.getJar().toString();
+					} else if (agent.forJar()) {
+						jar = agent.getResourceRef().getFile().toString();
+						// should we log a warning/error if agent jar not present ?
+					}
+					if (jar == null) {
+						throw new ExitException(EXIT_INTERNAL_ERROR,
+								"No jar found for agent " + agent.getResourceRef().getOriginalResource());
+					}
+					fullArgs.add("-javaagent:" + jar
+							+ (agent.getContext().getJavaAgentOption() != null
+									? "=" + agent.getContext().getJavaAgentOption()
+									: ""));
 
-					});
+				});
 
 			fullArgs.addAll(xrunit.getRuntimeOptions());
 			fullArgs.addAll(xrunit.getAutoDetectedModuleArguments(requestedJavaVersion, offline));
@@ -253,7 +257,7 @@ public class Run extends BaseBuildCommand {
 		}
 
 		if (!xrunit.forJShell()) {
-			addJavaArgs(xrunit.getArguments(), fullArgs);
+			addJavaArgs(ctx.getArguments(), fullArgs);
 		} else if (!interactive) {
 			File tempFile = File.createTempFile("jbang_exit_", xrunit.getResourceRef().getFile().getName());
 			Util.writeString(tempFile.toPath(), "/exit");

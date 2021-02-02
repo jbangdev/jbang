@@ -36,6 +36,7 @@ import dev.jbang.JarUtil;
 import dev.jbang.JavaUtil;
 import dev.jbang.JdkManager;
 import dev.jbang.KeyValue;
+import dev.jbang.RunContext;
 import dev.jbang.Settings;
 import dev.jbang.Source;
 import dev.jbang.Util;
@@ -91,6 +92,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 
 	// build with javac and then jar... todo: split up in more testable chunks
 	void build(DecoratedSource xrunit) throws IOException {
+		RunContext ctx = xrunit.getContext();
 		for (Map.Entry<String, String> entry : properties.entrySet()) {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
@@ -103,7 +105,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		String requestedJavaVersion = javaVersion != null ? javaVersion : xrunit.javaVersion();
 		// always build the jar for native mode
 		// it allows integrations the options to produce the native image
-		if (!outjar.exists() || JavaUtil.javaVersion(requestedJavaVersion) < xrunit.getBuildJdk()
+		if (!outjar.exists() || JavaUtil.javaVersion(requestedJavaVersion) < ctx.getBuildJdk()
 				|| nativeBuildRequired || fresh) {
 			// set up temporary folder for compilation
 			File tmpJarDir = new File(outjar.getParentFile(), outjar.getName() + ".tmp");
@@ -129,6 +131,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 	private IntegrationResult buildJar(DecoratedSource xrunit, File tmpJarDir, File outjar,
 			String requestedJavaVersion)
 			throws IOException {
+		RunContext ctx = xrunit.getContext();
 		IntegrationResult integrationResult;
 		List<String> optionList = new ArrayList<>();
 		optionList.add(resolveInJavaHome("javac", requestedJavaVersion));
@@ -184,7 +187,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 			throw new ExitException(1, "Error during compile");
 		}
 
-		xrunit.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
+		ctx.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
 		integrationResult = IntegrationManager.runIntegration(xrunit.script().getAllRepositories(),
 				xrunit.getClassPath().getArtifacts(),
 				tmpJarDir.toPath(), pomPath,
@@ -245,7 +248,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 																	.findFirst();
 
 							if (agentmain.isPresent()) {
-								xrunit.setAgentMainClass(agentmain.get().name().toString());
+								ctx.setAgentMainClass(agentmain.get().name().toString());
 							}
 
 							Optional<ClassInfo> premain = clazz	.stream()
@@ -258,7 +261,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 																.findFirst();
 
 							if (premain.isPresent()) {
-								xrunit.setPreMainClass(premain.get().name().toString());
+								ctx.setPreMainClass(premain.get().name().toString());
 							}
 						}
 
@@ -268,7 +271,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 				throw new ExitException(1, e);
 			}
 		}
-		xrunit.setPersistentJvmArgs(integrationResult.javaArgs);
+		ctx.setPersistentJvmArgs(integrationResult.javaArgs);
 		createJarFile(xrunit, tmpJarDir, outjar);
 		createdJar = true;
 		return integrationResult;
@@ -309,6 +312,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 	}
 
 	static void createJarFile(DecoratedSource xrunit, File path, File output) throws IOException {
+		RunContext ctx = xrunit.getContext();
 		String mainclass = xrunit.getMainClass();
 		Manifest manifest = new Manifest();
 		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
@@ -317,13 +321,11 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		}
 
 		if (xrunit.script().isAgent()) {
-			if (xrunit.getPreMainClass() != null) {
-				manifest.getMainAttributes()
-						.put(new Attributes.Name(Source.ATTR_PREMAIN_CLASS), xrunit.getPreMainClass());
+			if (ctx.getPreMainClass() != null) {
+				manifest.getMainAttributes().put(new Attributes.Name(Source.ATTR_PREMAIN_CLASS), ctx.getPreMainClass());
 			}
-			if (xrunit.getAgentMainClass() != null) {
-				manifest.getMainAttributes()
-						.put(new Attributes.Name(Source.ATTR_AGENT_CLASS), xrunit.getAgentMainClass());
+			if (ctx.getAgentMainClass() != null) {
+				manifest.getMainAttributes().put(new Attributes.Name(Source.ATTR_AGENT_CLASS), ctx.getAgentMainClass());
 			}
 
 			for (KeyValue kv : xrunit.script().getAllAgentOptions()) {
@@ -350,11 +352,11 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 			}
 		}
 
-		if (xrunit.getPersistentJvmArgs() != null) {
+		if (ctx.getPersistentJvmArgs() != null) {
 			manifest.getMainAttributes()
-					.putValue(Source.ATTR_JBANG_JAVA_OPTIONS, String.join(" ", xrunit.getPersistentJvmArgs()));
+					.putValue(Source.ATTR_JBANG_JAVA_OPTIONS, String.join(" ", ctx.getPersistentJvmArgs()));
 		}
-		int buildJdk = xrunit.getBuildJdk();
+		int buildJdk = ctx.getBuildJdk();
 		if (buildJdk > 0) {
 			String val = buildJdk >= 9 ? Integer.toString(buildJdk) : "1." + buildJdk;
 			manifest.getMainAttributes().putValue(Source.ATTR_BUILD_JDK, val);
