@@ -1,8 +1,6 @@
 package dev.jbang;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -25,34 +23,13 @@ import dev.jbang.cli.BaseCommand;
  */
 public class DecoratedSource implements Source {
 	final private Source source;
-	final private List<String> arguments;
-	final private Map<String, String> properties;
-
-	private List<String> additionalDeps = Collections.emptyList();
-	private List<String> additionalClasspaths = Collections.emptyList();
-	private boolean forcejsh = false; // if true, interpret any input as for jshell
-	private String originalRef;
-	private String mainClass;
-	private List<String> javaRuntimeOptions;
-	private List<String> persistentJvmArgs;
-	private int buildJdk;
-	/**
-	 * if this script is used as an agent, agentOption is the option needed to pass
-	 * in
-	 **/
-	private String javaAgentOption;
-	private List<DecoratedSource> javaAgents;
-	private String preMainClass;
-	private String agentMainClass;
-
-	private AliasUtil.Alias alias;
+	final private RunContext context;
 
 	private ModularClassPath classpath;
 
 	protected DecoratedSource(Source source, List<String> arguments, Map<String, String> properties) {
 		this.source = source;
-		this.arguments = arguments;
-		this.properties = properties;
+		this.context = new RunContext(arguments, properties);
 	}
 
 	public Source getSource() {
@@ -68,41 +45,33 @@ public class DecoratedSource implements Source {
 	}
 
 	public List<String> getArguments() {
-		return (arguments != null) ? arguments : Collections.emptyList();
+		return context.getArguments();
 	}
 
 	public Map<String, String> getProperties() {
-		return (properties != null) ? properties : Collections.emptyMap();
+		return context.getProperties();
 	}
 
 	public void setAdditionalDependencies(List<String> deps) {
-		if (deps != null) {
-			this.additionalDeps = new ArrayList<>(deps);
-		} else {
-			this.additionalDeps = Collections.emptyList();
-		}
+		context.setAdditionalDependencies(deps);
 	}
 
 	public void setAdditionalClasspaths(List<String> cps) {
-		if (cps != null) {
-			this.additionalClasspaths = new ArrayList<>(cps);
-		} else {
-			this.additionalClasspaths = Collections.emptyList();
-		}
-	}
-
-	/**
-	 * Sets the Alias object if originalRef is an alias
-	 */
-	public void setAlias(AliasUtil.Alias alias) {
-		this.alias = alias;
+		context.setAdditionalClasspaths(cps);
 	}
 
 	/**
 	 * Returns the Alias object if originalRef is an alias, otherwise null
 	 */
 	public AliasUtil.Alias getAlias() {
-		return alias;
+		return context.getAlias();
+	}
+
+	/**
+	 * Sets the Alias object if originalRef is an alias
+	 */
+	public void setAlias(AliasUtil.Alias alias) {
+		context.setAlias(alias);
 	}
 
 	public boolean forJar() {
@@ -110,11 +79,11 @@ public class DecoratedSource implements Source {
 	}
 
 	public boolean forJShell() {
-		return forcejsh || Source.forJShell(getResourceRef().getFile());
+		return context.isForceJsh() || Source.forJShell(getResourceRef().getFile());
 	}
 
-	public void setForcejsh(boolean forcejsh) {
-		this.forcejsh = forcejsh;
+	public void setForcejsh(boolean forceJsh) {
+		context.setForceJsh(forceJsh);
 	}
 
 	public ModularClassPath getClassPath() {
@@ -151,97 +120,91 @@ public class DecoratedSource implements Source {
 		return source.javaVersion();
 	}
 
-	public void setOriginalRef(String ref) {
-		this.originalRef = ref;
+	public String getOriginalRef() {
+		return context.getOriginalRef();
 	}
 
-	/**
-	 * The original script reference. Might ba a URL or an alias.
-	 */
-	public String getOriginalRef() {
-		return originalRef;
+	public void setOriginalRef(String ref) {
+		context.setOriginalRef(ref);
 	}
 
 	@Override
 	public String getMainClass() {
-		return (mainClass != null) ? mainClass : source.getMainClass();
+		return (context.getMainClass() != null) ? context.getMainClass() : source.getMainClass();
 	}
 
 	public void setMainClass(String mainClass) {
-		this.mainClass = mainClass;
+		context.setMainClass(mainClass);
 	}
 
 	@Override
 	public List<String> getRuntimeOptions() {
-		return (javaRuntimeOptions != null) ? javaRuntimeOptions : source.getRuntimeOptions();
+		return (context.getRuntimeOptions() != null) ? context.getRuntimeOptions() : source.getRuntimeOptions();
 	}
 
 	public void setRuntimeOptions(List<String> javaRuntimeOptions) {
-		this.javaRuntimeOptions = javaRuntimeOptions;
+		context.setRuntimeOptions(javaRuntimeOptions);
 	}
 
 	public List<String> getPersistentJvmArgs() {
-		return persistentJvmArgs;
+		return context.getPersistentJvmArgs();
 	}
 
 	public void setPersistentJvmArgs(List<String> persistentJvmArgs) {
-		this.persistentJvmArgs = persistentJvmArgs;
+		context.setPersistentJvmArgs(persistentJvmArgs);
 	}
 
 	public int getBuildJdk() {
-		return buildJdk;
+		return context.getBuildJdk();
 	}
 
 	public void setBuildJdk(int javaVersion) {
-		this.buildJdk = javaVersion;
+		context.setBuildJdk(javaVersion);
 	}
 
 	public String getJavaAgentOption() {
-		return javaAgentOption;
+		return context.getJavaAgentOption();
 	}
 
 	public void setJavaAgentOption(String option) {
-		this.javaAgentOption = option;
+		context.setJavaAgentOption(option);
 	}
 
 	public String getAgentMainClass() {
-		return agentMainClass;
+		return context.getAgentMainClass();
 	}
 
-	public void setAgentMainClass(String b) {
-		agentMainClass = b;
+	public void setAgentMainClass(String agentMainClass) {
+		context.setAgentMainClass(agentMainClass);
 	}
 
 	public String getPreMainClass() {
-		return preMainClass;
+		return context.getPreMainClass();
 	}
 
 	public void setPreMainClass(String name) {
-		preMainClass = name;
+		context.setPreMainClass(name);
+	}
+
+	public List<DecoratedSource> getJavaAgents() {
+		return context.getJavaAgents();
+	}
+
+	public void addJavaAgent(DecoratedSource agent) {
+		context.addJavaAgent(agent);
 	}
 
 	public List<String> collectAllDependencies() {
 		Properties p = new Properties(System.getProperties());
-		if (properties != null) {
-			p.putAll(properties);
+		if (context.getProperties() != null) {
+			p.putAll(context.getProperties());
 		}
 		return getAllDependencies(p);
 	}
 
-	public List<DecoratedSource> getJavaAgents() {
-		return javaAgents != null ? javaAgents : Collections.emptyList();
-	}
-
-	public void addJavaAgent(DecoratedSource agent) {
-		if (javaAgents == null) {
-			javaAgents = new ArrayList<>();
-		}
-		javaAgents.add(agent);
-	}
-
 	@Override
 	public List<String> getAllDependencies(Properties props) {
-		return Stream	.concat(additionalDeps.stream(), source.getAllDependencies(props).stream())
+		return Stream	.concat(context.getAdditionalDependencies().stream(), source.getAllDependencies(props).stream())
 						.collect(Collectors.toList());
 	}
 
@@ -259,7 +222,7 @@ public class DecoratedSource implements Source {
 			classpath = resolveClassPath(collectAllDependencies(), offline);
 		}
 		StringBuilder cp = new StringBuilder(classpath.getClassPath());
-		for (String addcp : additionalClasspaths) {
+		for (String addcp : context.getAdditionalClasspaths()) {
 			if (cp.length() > 0) {
 				cp.append(Settings.CP_SEPARATOR);
 			}
