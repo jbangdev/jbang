@@ -12,13 +12,11 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.jar.Attributes;
-import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,12 +32,14 @@ import dev.jbang.ExitException;
 import dev.jbang.FileRef;
 import dev.jbang.IntegrationManager;
 import dev.jbang.IntegrationResult;
+import dev.jbang.JarSource;
 import dev.jbang.JarUtil;
 import dev.jbang.JavaUtil;
 import dev.jbang.JdkManager;
 import dev.jbang.KeyValue;
-import dev.jbang.ScriptSource;
+import dev.jbang.ResourceRef;
 import dev.jbang.Settings;
+import dev.jbang.Source;
 import dev.jbang.Util;
 
 import io.quarkus.qute.Template;
@@ -104,22 +104,11 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		}
 		File outjar = xrunit.getJar();
 		if (outjar.exists()) {
-			try (JarFile jf = new JarFile(outjar)) {
-				xrunit.setMainClass(
-						jf.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS));
-
-				String val = jf.getManifest().getMainAttributes().getValue(ScriptSource.JBANG_JAVA_OPTIONS);
-				if (val != null) {
-					xrunit.setPersistentJvmArgs(Collections.singletonList( // should parse it but we are assuming it
-																			// just gets
-							// appendeed
-							val // on command line anwyay
-					));
-				}
-				xrunit.setBuildJdk(
-						JavaUtil.parseJavaVersion(
-								jf.getManifest().getMainAttributes().getValue(ScriptSource.BUILD_JDK)));
-			}
+			JarSource jar = JarSource.prepareJar(
+					ResourceRef.forNamedFile(xrunit.getResourceRef().getOriginalResource(), outjar));
+			xrunit.setMainClass(jar.getMainClass());
+			xrunit.setPersistentJvmArgs(jar.getRuntimeOptions());
+			xrunit.setBuildJdk(jar.getBuildJdk());
 		}
 
 		boolean nativeBuildRequired = nativeImage && !getImageName(outjar).exists();
@@ -342,10 +331,12 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 
 		if (xrunit.script().isAgent()) {
 			if (xrunit.getPreMainClass() != null) {
-				manifest.getMainAttributes().put(new Attributes.Name("Premain-Class"), xrunit.getPreMainClass());
+				manifest.getMainAttributes()
+						.put(new Attributes.Name(Source.ATTR_PREMAIN_CLASS), xrunit.getPreMainClass());
 			}
 			if (xrunit.getAgentMainClass() != null) {
-				manifest.getMainAttributes().put(new Attributes.Name("Agent-Class"), xrunit.getAgentMainClass());
+				manifest.getMainAttributes()
+						.put(new Attributes.Name(Source.ATTR_AGENT_CLASS), xrunit.getAgentMainClass());
 			}
 
 			for (KeyValue kv : xrunit.script().getAllAgentOptions()) {
@@ -360,26 +351,26 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 			if (xrunit.getClassPath() != null) {
 				String bootClasspath = xrunit.getClassPath().getManifestPath();
 				if (!bootClasspath.isEmpty()) {
-					manifest.getMainAttributes().put(new Attributes.Name("Boot-Class-Path"), bootClasspath);
+					manifest.getMainAttributes().put(new Attributes.Name(Source.ATTR_BOOT_CLASS_PATH), bootClasspath);
 				}
 			}
 		} else {
 			if (xrunit.getClassPath() != null) {
 				String classpath = xrunit.getClassPath().getManifestPath();
 				if (!classpath.isEmpty()) {
-					manifest.getMainAttributes().put(new Attributes.Name("Class-Path"), classpath);
+					manifest.getMainAttributes().put(Attributes.Name.CLASS_PATH, classpath);
 				}
 			}
 		}
 
 		if (xrunit.getPersistentJvmArgs() != null) {
 			manifest.getMainAttributes()
-					.putValue("JBang-Java-Options", String.join(" ", xrunit.getPersistentJvmArgs()));
+					.putValue(Source.ATTR_JBANG_JAVA_OPTIONS, String.join(" ", xrunit.getPersistentJvmArgs()));
 		}
 		int buildJdk = xrunit.getBuildJdk();
 		if (buildJdk > 0) {
 			String val = buildJdk >= 9 ? Integer.toString(buildJdk) : "1." + buildJdk;
-			manifest.getMainAttributes().putValue("Build-Jdk", val);
+			manifest.getMainAttributes().putValue(Source.ATTR_BUILD_JDK, val);
 		}
 
 		FileOutputStream target = new FileOutputStream(output);

@@ -34,9 +34,6 @@ import dev.jbang.cli.BaseCommand;
  */
 public class ScriptSource implements Source {
 
-	public static final String BUILD_JDK = "Build-Jdk";
-	public static final String JBANG_JAVA_OPTIONS = "JBang-Java-Options";
-
 	private static final String DEPS_COMMENT_PREFIX = "//DEPS ";
 	private static final String FILES_COMMENT_PREFIX = "//FILES ";
 	private static final String SOURCES_COMMENT_PREFIX = "//SOURCES ";

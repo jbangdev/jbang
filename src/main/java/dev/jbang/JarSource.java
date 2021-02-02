@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A Jar represents a Source (something runnable) in the form of a JAR file.
@@ -23,6 +25,7 @@ import java.util.jar.JarFile;
 public class JarSource implements Source {
 	private final ResourceRef resourceRef;
 
+	private String classPath;
 	private String mainClass;
 	private List<String> javaRuntimeOptions;
 	private int buildJdk;
@@ -36,17 +39,19 @@ public class JarSource implements Source {
 				Attributes attrs = jf.getManifest().getMainAttributes();
 				mainClass = attrs.getValue(Attributes.Name.MAIN_CLASS);
 
-				String val = attrs.getValue(ScriptSource.JBANG_JAVA_OPTIONS);
+				String val = attrs.getValue(Source.ATTR_JBANG_JAVA_OPTIONS);
 				if (val != null) {
 					// should parse it but we are assuming it just gets appended on command line
 					// anyway
 					javaRuntimeOptions = Collections.singletonList(val);
 				}
 
-				String ver = attrs.getValue(ScriptSource.BUILD_JDK);
+				String ver = attrs.getValue(Source.ATTR_BUILD_JDK);
 				if (ver != null) {
 					buildJdk = JavaUtil.parseJavaVersion(ver);
 				}
+
+				classPath = attrs.getValue(Attributes.Name.CLASS_PATH);
 			} catch (IOException e) {
 				Util.warnMsg("Problem reading manifest from " + getResourceRef().getFile());
 			}
@@ -69,20 +74,27 @@ public class JarSource implements Source {
 
 	@Override
 	public ModularClassPath resolveClassPath(List<String> additionalDeps, boolean offline) {
-		ModularClassPath classpath;
-		if (DependencyUtil.looksLikeAGav(resourceRef.getOriginalResource())) {
+		ModularClassPath mcp;
+		if (resourceRef.getOriginalResource() != null
+				&& DependencyUtil.looksLikeAGav(resourceRef.getOriginalResource())) {
 			List<String> dependencies = new ArrayList<>(additionalDeps);
 			dependencies.add(resourceRef.getOriginalResource());
-			classpath = new DependencyUtil().resolveDependencies(dependencies,
+			mcp = new DependencyUtil().resolveDependencies(dependencies,
 					Collections.emptyList(), offline, !Util.isQuiet());
+		} else if (classPath != null) {
+			ModularClassPath mcp2 = new DependencyUtil().resolveDependencies(additionalDeps,
+					Collections.emptyList(), offline, !Util.isQuiet());
+			List<ArtifactInfo> arts = Stream.concat(mcp2.getArtifacts().stream(),
+					Stream.of(classPath.split(" ")).map(jar -> new ArtifactInfo(null, new File(jar))))
+											.collect(Collectors.toList());
+			mcp = new ModularClassPath(arts);
 		} else if (!additionalDeps.isEmpty()) {
-			classpath = new DependencyUtil().resolveDependencies(additionalDeps,
+			mcp = new DependencyUtil().resolveDependencies(additionalDeps,
 					Collections.emptyList(), offline, !Util.isQuiet());
 		} else {
-			classpath = new ModularClassPath(
-					Collections.singletonList(new ArtifactInfo(null, getResourceRef().getFile())));
+			mcp = new ModularClassPath(Collections.emptyList());
 		}
-		return classpath;
+		return mcp;
 	}
 
 	@Override
