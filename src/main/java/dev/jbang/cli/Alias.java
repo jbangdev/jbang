@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import dev.jbang.AliasUtil;
-import dev.jbang.DecoratedSource;
+import dev.jbang.RunContext;
 import dev.jbang.Settings;
 import dev.jbang.Source;
 import dev.jbang.Util;
@@ -77,10 +77,11 @@ class AliasAdd extends BaseAliasCommand {
 			throw new IllegalArgumentException(
 					"Invalid alias name, it should start with a letter followed by 0 or more letters, digits, underscores or hyphens");
 		}
-		DecoratedSource xrunit = DecoratedSource.forResource(scriptOrFile);
-		Source src = xrunit.getSource();
+
+		RunContext ctx = RunContext.empty();
+		Source src = Source.forResource(scriptOrFile, ctx);
 		if (name == null) {
-			name = AppInstall.chooseCommandName(xrunit);
+			name = AppInstall.chooseCommandName(ctx);
 		}
 
 		String desc = description != null ? description : src.getDescription().orElse(null);

@@ -23,7 +23,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import dev.jbang.ConsoleInput;
-import dev.jbang.DecoratedSource;
 import dev.jbang.DependencyUtil;
 import dev.jbang.EditorManager;
 import dev.jbang.ExitException;
@@ -32,6 +31,7 @@ import dev.jbang.MavenRepo;
 import dev.jbang.RunContext;
 import dev.jbang.ScriptSource;
 import dev.jbang.Settings;
+import dev.jbang.Source;
 import dev.jbang.StrictParameterPreprocessor;
 import dev.jbang.TemplateEngine;
 import dev.jbang.Util;
@@ -57,11 +57,15 @@ public class Edit extends BaseScriptDepsCommand {
 			enableInsecure();
 		}
 
-		xrunit = DecoratedSource.forResource(scriptOrFile, null, null, dependencies, classpaths, false, forcejsh);
-		ScriptSource src = (ScriptSource) xrunit.getSource();
-		RunContext ctx = xrunit.getContext();
+		RunContext ctx = RunContext.create(null, null, dependencies, classpaths, forcejsh);
+		Source src = Source.forResource(scriptOrFile, ctx);
 
-		File project = createProjectForEdit(src, ctx, false);
+		if (!(src instanceof ScriptSource)) {
+			throw new ExitException(EXIT_INVALID_INPUT, "You can only edit source files");
+		}
+
+		ScriptSource ssrc = (ScriptSource) src;
+		File project = createProjectForEdit(ssrc, ctx, false);
 		// err.println(project.getAbsolutePath());
 
 		if (editor.isPresent()) {
@@ -110,10 +114,9 @@ public class Edit extends BaseScriptDepsCommand {
 							try {
 								// TODO only regenerate when dependencies changes.
 								info("Regenerating project.");
-								xrunit = DecoratedSource.forResource(scriptOrFile);
-								src = (ScriptSource) xrunit.getSource();
-								ctx = xrunit.getContext();
-								createProjectForEdit(src, ctx, true);
+								ctx = RunContext.empty();
+								src = Source.forResource(scriptOrFile, ctx);
+								createProjectForEdit((ScriptSource) src, ctx, true);
 							} catch (RuntimeException ee) {
 								warn("Error when re-generating project. Ignoring it, but state might be undefined: "
 										+ ee.getMessage());

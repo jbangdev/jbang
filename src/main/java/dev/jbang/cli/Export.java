@@ -14,10 +14,8 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-import dev.jbang.DecoratedSource;
 import dev.jbang.ExitException;
 import dev.jbang.RunContext;
-import dev.jbang.ScriptSource;
 import dev.jbang.Source;
 import dev.jbang.Util;
 
@@ -145,14 +143,10 @@ public class Export extends BaseBuildCommand {
 			enableInsecure();
 		}
 
-		xrunit = DecoratedSource.forResource(scriptOrFile, null, properties, dependencies, classpaths, fresh,
-				forcejsh);
-		RunContext ctx = xrunit.getContext();
-		Source src = xrunit.getSource();
+		RunContext ctx = RunContext.create(null, properties, dependencies, classpaths, forcejsh);
+		Source src = Source.forResource(scriptOrFile, ctx);
 
-		if (DecoratedSource.needsJar(src, ctx)) {
-			build((ScriptSource) src, ctx);
-		}
+		buildIfNeeded(src, ctx);
 
 		// Determine the output file location and name
 		Path cwd = Util.getCwd();
@@ -160,7 +154,7 @@ public class Export extends BaseBuildCommand {
 		if (outputFile != null) {
 			outputPath = outputFile;
 		} else {
-			String outName = AppInstall.chooseCommandName(xrunit);
+			String outName = AppInstall.chooseCommandName(ctx);
 			if (nativeImage) {
 				outName = getImageName(new File(outName)).getName();
 			} else {

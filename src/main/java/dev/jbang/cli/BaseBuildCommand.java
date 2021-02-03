@@ -21,7 +21,6 @@ import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import dev.jbang.ScriptSource;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.Index;
@@ -37,6 +36,7 @@ import dev.jbang.JavaUtil;
 import dev.jbang.JdkManager;
 import dev.jbang.KeyValue;
 import dev.jbang.RunContext;
+import dev.jbang.ScriptSource;
 import dev.jbang.Settings;
 import dev.jbang.Source;
 import dev.jbang.Util;
@@ -90,13 +90,19 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 
 	protected boolean createdJar;
 
+	void buildIfNeeded(Source src, RunContext ctx) throws IOException {
+		if (needsJar(src, ctx)) {
+			build((ScriptSource) src, ctx);
+		}
+	}
+
 	// build with javac and then jar... todo: split up in more testable chunks
 	void build(ScriptSource src, RunContext ctx) throws IOException {
 		for (Map.Entry<String, String> entry : properties.entrySet()) {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
 
-		xrunit.importJarMetadata();
+		ctx.importJarMetadataFor(src);
 
 		File outjar = src.getJar();
 		boolean nativeBuildRequired = nativeImage && !getImageName(outjar).exists();

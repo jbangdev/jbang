@@ -15,11 +15,9 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.text.StringEscapeUtils;
 
-import dev.jbang.DecoratedSource;
 import dev.jbang.ExitException;
 import dev.jbang.JavaUtil;
 import dev.jbang.RunContext;
-import dev.jbang.ScriptSource;
 import dev.jbang.Settings;
 import dev.jbang.Source;
 import dev.jbang.Util;
@@ -72,11 +70,9 @@ public class Run extends BaseBuildCommand {
 			enableInsecure();
 		}
 
-		DecoratedSource dsrc = DecoratedSource.forResource(scriptOrFile, userParams, properties, dependencies,
-				classpaths, fresh, forcejsh);
-		xrunit = prepareArtifacts(dsrc.getSource(), dsrc.getContext());
-		RunContext ctx = xrunit.getContext();
-		Source src = xrunit.getSource();
+		RunContext ctx = RunContext.create(userParams, properties, dependencies, classpaths, forcejsh);
+		Source src = Source.forResource(scriptOrFile, ctx);
+		src = prepareArtifacts(src, ctx);
 
 		String cmdline = generateCommandLine(src, ctx);
 		debug("run: " + cmdline);
@@ -85,30 +81,26 @@ public class Run extends BaseBuildCommand {
 		return EXIT_EXECUTE;
 	}
 
-	DecoratedSource prepareArtifacts(Source src, RunContext ctx) throws IOException {
-		if (DecoratedSource.needsJar(src, ctx)) {
-			build((ScriptSource) src, ctx);
-		}
+	Source prepareArtifacts(Source src, RunContext ctx) throws IOException {
+		buildIfNeeded(src, ctx);
 
 		if (javaAgentSlots != null) {
 			for (Map.Entry<String, Optional<String>> agentOption : javaAgentSlots.entrySet()) {
 				String javaAgent = agentOption.getKey();
 				Optional<String> javaAgentOptions = agentOption.getValue();
 
-				DecoratedSource agentXrunit = DecoratedSource.forResource(javaAgent, userParams, properties,
-						dependencies, classpaths, fresh, forcejsh);
-				Source asrc = agentXrunit.getSource();
-				RunContext actx = agentXrunit.getContext();
+				RunContext actx = RunContext.create(userParams, properties, dependencies, classpaths, forcejsh);
+				Source asrc = Source.forResource(javaAgent, actx);
 				actx.setJavaAgentOption(javaAgentOptions.orElse(null));
-				if (agentXrunit.needsJar(asrc, actx)) {
+				if (needsJar(asrc, actx)) {
 					info("Building javaagent...");
-					build((ScriptSource) asrc, actx);
+					buildIfNeeded(asrc, actx);
 				}
-				ctx.addJavaAgent(agentXrunit);
+				ctx.addJavaAgent(asrc, actx);
 			}
 		}
 
-		return new DecoratedSource(src, ctx);
+		return src;
 	}
 
 	String generateCommandLine(Source src, RunContext ctx) throws IOException {
@@ -222,7 +214,7 @@ public class Run extends BaseBuildCommand {
 					// for now we don't include any transitive dependencies. could consider putting
 					// on bootclasspath...or not.
 					String jar = null;
-					Source asrc = agent.getSource();
+					Source asrc = agent.source;
 					if (asrc.getJar() != null) {
 						jar = asrc.getJar().toString();
 					} else if (asrc.forJar()) {
@@ -234,8 +226,8 @@ public class Run extends BaseBuildCommand {
 								"No jar found for agent " + asrc.getResourceRef().getOriginalResource());
 					}
 					fullArgs.add("-javaagent:" + jar
-							+ (agent.getContext().getJavaAgentOption() != null
-									? "=" + agent.getContext().getJavaAgentOption()
+							+ (agent.context.getJavaAgentOption() != null
+									? "=" + agent.context.getJavaAgentOption()
 									: ""));
 
 				});

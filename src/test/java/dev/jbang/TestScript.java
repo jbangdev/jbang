@@ -168,9 +168,8 @@ public class TestScript extends BaseTest {
 		Map<String, String> p = new HashMap<>();
 		p.put("log4j.version", "1.2.9");
 
-		DecoratedSource xrunit = DecoratedSource.forScript(example, null, p);
-		Source src = xrunit.getSource();
-		RunContext ctx = xrunit.getContext();
+		Source src = Source.forScript(example);
+		RunContext ctx = RunContext.create(null, p);
 
 		List<String> dependencies = ctx.collectAllDependenciesFor(src);
 		assertEquals(2, dependencies.size());
@@ -187,9 +186,7 @@ public class TestScript extends BaseTest {
 		createTmpFileWithContent("pkg1", "Hello.java", exampleURLInsourceHello);
 		createTmpFileWithContent("pkg1", "Bye.java", exampleURLInsourceBye);
 		String scriptURL = mainPath.toString();
-		DecoratedSource xrunit = DecoratedSource.forResource(scriptURL);
-		ScriptSource src = (ScriptSource) xrunit.getSource();
-
+		ScriptSource src = (ScriptSource) Source.forResource(scriptURL, RunContext.empty());
 		List<ScriptSource> resolvesourceRecursively = src.getAllSources();
 		assertEquals(resolvesourceRecursively.size(), 7);
 	}
@@ -237,8 +234,7 @@ public class TestScript extends BaseTest {
 		try {
 			Settings.getTrustedSources().add(url, tempFile);
 
-			DecoratedSource xrunit = DecoratedSource.forResource(url);
-			ScriptSource src = (ScriptSource) xrunit.getSource();
+			ScriptSource src = (ScriptSource) Source.forResource(url, RunContext.empty());
 			assertEquals(2, src.getAllSources().size());
 			boolean foundtwo = false;
 			boolean foundt3 = false;
@@ -317,9 +313,7 @@ public class TestScript extends BaseTest {
 	void testNonJavaExtension(@TempDir Path output) throws IOException {
 		Path p = output.resolve("kube-example");
 		writeString(p, example);
-
-		DecoratedSource.forResource(p.toAbsolutePath().toString());
-
+		Source.forResource(p.toAbsolutePath().toString(), RunContext.empty());
 	}
 
 }

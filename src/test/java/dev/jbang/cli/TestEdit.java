@@ -40,9 +40,8 @@ public class TestEdit extends BaseTest {
 		Jbang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
-		DecoratedSource xrunit = DecoratedSource.forResource(s);
-		ScriptSource ssrc = (ScriptSource) xrunit.getSource();
-		RunContext ctx = xrunit.getContext();
+		RunContext ctx = RunContext.empty();
+		ScriptSource ssrc = (ScriptSource) Source.forResource(s, ctx);
 
 		File project = new Edit().createProjectForEdit(ssrc, ctx, false);
 
@@ -81,9 +80,8 @@ public class TestEdit extends BaseTest {
 
 		Util.writeString(p, "//DEPS org.openjfx:javafx-graphics:11.0.2${bougus:}\n" + Util.readString(p));
 
-		DecoratedSource xrunit = DecoratedSource.forResource(s);
-		ScriptSource src = (ScriptSource) xrunit.getSource();
-		RunContext ctx = xrunit.getContext();
+		RunContext ctx = RunContext.empty();
+		ScriptSource src = (ScriptSource) Source.forResource(s, ctx);
 
 		File project = new Edit().createProjectForEdit(src, ctx, false);
 
@@ -113,9 +111,8 @@ public class TestEdit extends BaseTest {
 
 		Util.writeString(p, "//DEPS https://github.com/oldskoolsh/libvirt-schema/tree/0.0.2\n" + Util.readString(p));
 
-		DecoratedSource xrunit = DecoratedSource.forResource(s);
-		ScriptSource src = (ScriptSource) xrunit.getSource();
-		RunContext ctx = xrunit.getContext();
+		RunContext ctx = RunContext.empty();
+		ScriptSource src = (ScriptSource) Source.forResource(s, ctx);
 
 		File project = new Edit().createProjectForEdit(src, ctx, false);
 
@@ -134,9 +131,8 @@ public class TestEdit extends BaseTest {
 		Path p = examplesTestFolder.toPath().resolve("one.java");
 		assertThat(p.toFile().exists(), is(true));
 
-		DecoratedSource xrunit = DecoratedSource.forResource(p.toString());
-		ScriptSource src = (ScriptSource) xrunit.getSource();
-		RunContext ctx = xrunit.getContext();
+		RunContext ctx = RunContext.empty();
+		ScriptSource src = (ScriptSource) Source.forResource(p.toString(), ctx);
 
 		File project = new Edit().createProjectForEdit(src, ctx, false);
 
@@ -160,9 +156,8 @@ public class TestEdit extends BaseTest {
 		Jbang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
-		DecoratedSource xrunit = DecoratedSource.forResource(s);
-		ScriptSource src = (ScriptSource) xrunit.getSource();
-		RunContext ctx = xrunit.getContext();
+		RunContext ctx = RunContext.empty();
+		ScriptSource src = (ScriptSource) Source.forResource(s, ctx);
 
 		File project = new Edit().createProjectForEdit(src, ctx, false);
 

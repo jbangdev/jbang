@@ -11,7 +11,6 @@ import java.util.List;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import dev.jbang.DecoratedSource;
 import dev.jbang.RunContext;
 import dev.jbang.Source;
 
@@ -54,8 +53,8 @@ abstract class BaseInfoCommand extends BaseScriptDepsCommand {
 				resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 			}
 
-			if (xrunit.getContext().getBuildJdk() > 0) {
-				javaVersion = Integer.toString(xrunit.getContext().getBuildJdk());
+			if (ctx.getBuildJdk() > 0) {
+				javaVersion = Integer.toString(ctx.getBuildJdk());
 			}
 		}
 	}
@@ -65,10 +64,11 @@ abstract class BaseInfoCommand extends BaseScriptDepsCommand {
 			enableInsecure();
 		}
 
-		xrunit = DecoratedSource.forResource(scriptOrFile, null, null, dependencies, classpaths, false, forcejsh);
-		xrunit.importJarMetadata();
+		RunContext ctx = RunContext.create(null, null, dependencies, classpaths, forcejsh);
+		Source src = Source.forResource(scriptOrFile, ctx);
+		ctx.importJarMetadataFor(src);
 
-		ScriptInfo info = new ScriptInfo(xrunit.getSource(), xrunit.getContext());
+		ScriptInfo info = new ScriptInfo(src, ctx);
 
 		return info;
 	}

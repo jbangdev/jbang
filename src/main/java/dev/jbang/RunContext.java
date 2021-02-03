@@ -1,5 +1,6 @@
 package dev.jbang;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -8,9 +9,16 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * This class contains all the extra information needed to actually run a
+ * Source. These are either options given by the user on the command line or
+ * things that are part of the user's environment. It's all the dynamic parts of
+ * the execution where the Source is immutable. The RunContext and the Source
+ * together determine what finally gets executed and how.
+ */
 public class RunContext {
-	final private List<String> arguments;
-	final private Map<String, String> properties;
+	private List<String> arguments;
+	private Map<String, String> properties;
 
 	private List<String> additionalDeps = Collections.emptyList();
 	private List<String> additionalClasspaths = Collections.emptyList();
@@ -25,7 +33,7 @@ public class RunContext {
 	 * in
 	 **/
 	private String javaAgentOption;
-	private List<DecoratedSource> javaAgents;
+	private List<AgentSourceContext> javaAgents;
 	private String preMainClass;
 	private String agentMainClass;
 
@@ -33,7 +41,28 @@ public class RunContext {
 
 	private ModularClassPath classpath;
 
-	public RunContext(List<String> arguments, Map<String, String> properties) {
+	public static RunContext empty() {
+		return new RunContext();
+	}
+
+	public static RunContext create(List<String> arguments, Map<String, String> properties) {
+		return new RunContext(arguments, properties);
+	}
+
+	public static RunContext create(List<String> arguments, Map<String, String> properties, List<String> dependencies,
+			List<String> classpaths, boolean forceJsh) {
+		RunContext ctx = new RunContext(arguments, properties);
+		ctx.setAdditionalDependencies(dependencies);
+		ctx.setAdditionalClasspaths(classpaths);
+		ctx.setForceJsh(forceJsh);
+		return ctx;
+	}
+
+	private RunContext() {
+		this(null, null);
+	}
+
+	private RunContext(List<String> arguments, Map<String, String> properties) {
 		this.arguments = arguments;
 		this.properties = properties;
 	}
@@ -42,8 +71,16 @@ public class RunContext {
 		return (arguments != null) ? arguments : Collections.emptyList();
 	}
 
+	public void setArguments(List<String> arguments) {
+		this.arguments = arguments;
+	}
+
 	public Map<String, String> getProperties() {
 		return (properties != null) ? properties : Collections.emptyMap();
+	}
+
+	public void setProperties(Map<String, String> properties) {
+		this.properties = properties;
 	}
 
 	public List<String> getAdditionalDependencies() {
@@ -167,15 +204,25 @@ public class RunContext {
 		preMainClass = name;
 	}
 
-	public List<DecoratedSource> getJavaAgents() {
+	public static class AgentSourceContext {
+		final public Source source;
+		final public RunContext context;
+
+		private AgentSourceContext(Source source, RunContext context) {
+			this.source = source;
+			this.context = context;
+		}
+	}
+
+	public List<AgentSourceContext> getJavaAgents() {
 		return javaAgents != null ? javaAgents : Collections.emptyList();
 	}
 
-	public void addJavaAgent(DecoratedSource agent) {
+	public void addJavaAgent(Source src, RunContext ctx) {
 		if (javaAgents == null) {
 			javaAgents = new ArrayList<>();
 		}
-		javaAgents.add(agent);
+		javaAgents.add(new AgentSourceContext(src, ctx));
 	}
 
 	public List<String> collectAllDependenciesFor(Source src) {
@@ -201,7 +248,10 @@ public class RunContext {
 		}
 		StringBuilder cp = new StringBuilder(classpath.getClassPath());
 		for (String addcp : getAdditionalClasspaths()) {
-			cp.append(Settings.CP_SEPARATOR).append(addcp);
+			if (cp.length() > 0) {
+				cp.append(Settings.CP_SEPARATOR);
+			}
+			cp.append(addcp);
 		}
 		return cp.toString();
 	}
@@ -215,6 +265,17 @@ public class RunContext {
 
 	public ModularClassPath getClassPath() {
 		return classpath;
+	}
+
+	public void importJarMetadataFor(Source src) {
+		File outjar = src.getJar();
+		if (outjar.exists()) {
+			JarSource jar = JarSource.prepareJar(
+					ResourceRef.forNamedFile(src.getResourceRef().getOriginalResource(), outjar));
+			setMainClass(jar.getMainClass());
+			setPersistentJvmArgs(jar.getRuntimeOptions());
+			setBuildJdk(jar.getBuildJdk());
+		}
 	}
 
 }

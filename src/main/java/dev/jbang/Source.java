@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
+import dev.jbang.cli.BaseCommand;
+
 /**
  * A Source is an interface for classes representing different inputs (sources)
  * that can be used as or turned into executable code.
@@ -100,4 +102,53 @@ public interface Source {
 		return backingFile != null && backingFile.toString().endsWith(".jsh");
 	}
 
+	static Source forResource(String resource, RunContext ctx) {
+		ResourceRef resourceRef = ResourceRef.forResource(resource);
+
+		AliasUtil.Alias alias = null;
+		if (resourceRef == null) {
+			// Not found as such, so let's check the aliases
+			alias = AliasUtil.getAlias(null, resource, ctx.getArguments(), ctx.getProperties());
+			if (alias != null) {
+				resourceRef = ResourceRef.forResource(alias.resolve(null));
+				ctx.setArguments(alias.arguments);
+				ctx.setProperties(alias.properties);
+				ctx.setAlias(alias);
+				if (resourceRef == null) {
+					throw new IllegalArgumentException(
+							"Alias " + resource + " from " + alias.catalog.catalogFile + " failed to resolve "
+									+ alias.scriptRef);
+				}
+			}
+		}
+
+		// Support URLs as script files
+		// just proceed if the script file is a regular file at this point
+		if (resourceRef == null || !resourceRef.getFile().canRead()) {
+			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Could not read script argument " + resource);
+		}
+
+		// note script file must be not null at this point
+		ctx.setOriginalRef(resource);
+		return forResourceRef(resourceRef);
+	}
+
+	static Source forFile(File resourceFile) {
+		ResourceRef resourceRef = ResourceRef.forFile(resourceFile);
+		return forResourceRef(resourceRef);
+	}
+
+	static Source forResourceRef(ResourceRef resourceRef) {
+		Source src;
+		if (resourceRef.getFile().getName().endsWith(".jar")) {
+			src = JarSource.prepareJar(resourceRef);
+		} else {
+			src = ScriptSource.prepareScript(resourceRef);
+		}
+		return src;
+	}
+
+	static ScriptSource forScript(String script) {
+		return new ScriptSource(script);
+	}
 }

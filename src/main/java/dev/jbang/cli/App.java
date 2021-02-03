@@ -16,7 +16,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import dev.jbang.DecoratedSource;
 import dev.jbang.ExitException;
 import dev.jbang.JdkManager;
 import dev.jbang.RunContext;
@@ -98,11 +97,10 @@ class AppInstall extends BaseCommand {
 			Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
 			return false;
 		}
-		DecoratedSource xrunit = DecoratedSource.forResource(scriptRef);
-		RunContext ctx = xrunit.getContext();
-		Source src = xrunit.getSource();
+		RunContext ctx = RunContext.empty();
+		Source src = Source.forResource(scriptRef, ctx);
 		if (name == null) {
-			name = chooseCommandName(xrunit);
+			name = chooseCommandName(ctx);
 			if (!force && existScripts(binDir, name)) {
 				Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
 				return false;
@@ -121,8 +119,7 @@ class AppInstall extends BaseCommand {
 				|| Files.exists(binDir.resolve(name + ".ps1"));
 	}
 
-	public static String chooseCommandName(DecoratedSource xrunit) {
-		RunContext ctx = xrunit.getContext();
+	public static String chooseCommandName(RunContext ctx) {
 		String startName = null;
 		String name;
 		if (ctx.getAlias() != null) {
