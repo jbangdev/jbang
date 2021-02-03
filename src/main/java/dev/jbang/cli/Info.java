@@ -52,17 +52,19 @@ abstract class BaseInfoCommand extends BaseScriptDepsCommand {
 				resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 			}
 
-			javaVersion = xrunit.javaVersion();
-
+			if (xrunit.getBuildJdk() > 0) {
+				javaVersion = Integer.toString(xrunit.getBuildJdk());
+			}
 		}
 	}
 
-	protected ScriptInfo getInfo() throws IOException {
+	ScriptInfo getInfo() {
 		if (insecure) {
 			enableInsecure();
 		}
 
 		xrunit = DecoratedSource.forResource(scriptOrFile, null, null, dependencies, classpaths, false, forcejsh);
+		xrunit.importJarMetadata();
 
 		ScriptInfo info = new ScriptInfo(xrunit);
 
