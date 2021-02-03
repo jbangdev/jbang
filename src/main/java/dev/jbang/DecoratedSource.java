@@ -260,7 +260,10 @@ public class DecoratedSource implements Source {
 		}
 		StringBuilder cp = new StringBuilder(classpath.getClassPath());
 		for (String addcp : additionalClasspaths) {
-			cp.append(Settings.CP_SEPARATOR).append(addcp);
+			if (cp.length() > 0) {
+				cp.append(Settings.CP_SEPARATOR);
+			}
+			cp.append(addcp);
 		}
 		return cp.toString();
 	}
