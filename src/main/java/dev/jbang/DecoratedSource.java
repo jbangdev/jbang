@@ -275,6 +275,17 @@ public class DecoratedSource implements Source {
 		return classpath.getAutoDectectedModuleArguments(requestedVersion);
 	}
 
+	public void importJarMetadata() {
+		File outjar = getJar();
+		if (outjar.exists()) {
+			JarSource jar = JarSource.prepareJar(
+					ResourceRef.forNamedFile(getResourceRef().getOriginalResource(), outjar));
+			setMainClass(jar.getMainClass());
+			setPersistentJvmArgs(jar.getRuntimeOptions());
+			setBuildJdk(jar.getBuildJdk());
+		}
+	}
+
 	public static DecoratedSource forResource(String resource) {
 		return forResource(resource, null, null, null, null, false, false);
 	}

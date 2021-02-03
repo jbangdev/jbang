@@ -32,12 +32,10 @@ import dev.jbang.ExitException;
 import dev.jbang.FileRef;
 import dev.jbang.IntegrationManager;
 import dev.jbang.IntegrationResult;
-import dev.jbang.JarSource;
 import dev.jbang.JarUtil;
 import dev.jbang.JavaUtil;
 import dev.jbang.JdkManager;
 import dev.jbang.KeyValue;
-import dev.jbang.ResourceRef;
 import dev.jbang.Settings;
 import dev.jbang.Source;
 import dev.jbang.Util;
@@ -96,15 +94,10 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		for (Map.Entry<String, String> entry : properties.entrySet()) {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
-		File outjar = xrunit.getJar();
-		if (outjar.exists()) {
-			JarSource jar = JarSource.prepareJar(
-					ResourceRef.forNamedFile(xrunit.getResourceRef().getOriginalResource(), outjar));
-			xrunit.setMainClass(jar.getMainClass());
-			xrunit.setPersistentJvmArgs(jar.getRuntimeOptions());
-			xrunit.setBuildJdk(jar.getBuildJdk());
-		}
 
+		xrunit.importJarMetadata();
+
+		File outjar = xrunit.getJar();
 		boolean nativeBuildRequired = nativeImage && !getImageName(outjar).exists();
 		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
 		String requestedJavaVersion = javaVersion != null ? javaVersion : xrunit.javaVersion();
