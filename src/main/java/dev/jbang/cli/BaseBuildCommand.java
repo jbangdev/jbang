@@ -27,7 +27,6 @@ import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
 import org.jboss.jandex.Type;
 
-import dev.jbang.DecoratedSource;
 import dev.jbang.ExitException;
 import dev.jbang.FileRef;
 import dev.jbang.IntegrationManager;
@@ -36,6 +35,8 @@ import dev.jbang.JarUtil;
 import dev.jbang.JavaUtil;
 import dev.jbang.JdkManager;
 import dev.jbang.KeyValue;
+import dev.jbang.RunContext;
+import dev.jbang.ScriptSource;
 import dev.jbang.Settings;
 import dev.jbang.Source;
 import dev.jbang.Util;
@@ -89,28 +90,34 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 
 	protected boolean createdJar;
 
+	void buildIfNeeded(Source src, RunContext ctx) throws IOException {
+		if (needsJar(src, ctx)) {
+			build((ScriptSource) src, ctx);
+		}
+	}
+
 	// build with javac and then jar... todo: split up in more testable chunks
-	void build(DecoratedSource xrunit) throws IOException {
+	void build(ScriptSource src, RunContext ctx) throws IOException {
 		for (Map.Entry<String, String> entry : properties.entrySet()) {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
 
-		xrunit.importJarMetadata();
+		ctx.importJarMetadataFor(src);
 
-		File outjar = xrunit.getJar();
+		File outjar = src.getJar();
 		boolean nativeBuildRequired = nativeImage && !getImageName(outjar).exists();
 		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
-		String requestedJavaVersion = javaVersion != null ? javaVersion : xrunit.javaVersion();
+		String requestedJavaVersion = javaVersion != null ? javaVersion : src.javaVersion();
 		// always build the jar for native mode
 		// it allows integrations the options to produce the native image
-		if (!outjar.exists() || JavaUtil.javaVersion(requestedJavaVersion) < xrunit.getBuildJdk()
+		if (!outjar.exists() || JavaUtil.javaVersion(requestedJavaVersion) < ctx.getBuildJdk()
 				|| nativeBuildRequired || fresh) {
 			// set up temporary folder for compilation
 			File tmpJarDir = new File(outjar.getParentFile(), outjar.getName() + ".tmp");
 			Util.deletePath(tmpJarDir.toPath(), true);
 			tmpJarDir.mkdirs();
 			try {
-				integrationResult = buildJar(xrunit, tmpJarDir, outjar, requestedJavaVersion);
+				integrationResult = buildJar(src, ctx, tmpJarDir, outjar, requestedJavaVersion);
 			} finally {
 				// clean up temporary folder
 				Util.deletePath(tmpJarDir.toPath(), true);
@@ -121,35 +128,35 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 			if (integrationResult.nativeImagePath != null) {
 				Files.move(integrationResult.nativeImagePath, getImageName(outjar).toPath());
 			} else {
-				buildNative(xrunit, outjar, requestedJavaVersion);
+				buildNative(src, ctx, outjar, requestedJavaVersion);
 			}
 		}
 	}
 
-	private IntegrationResult buildJar(DecoratedSource xrunit, File tmpJarDir, File outjar,
+	private IntegrationResult buildJar(ScriptSource src, RunContext ctx, File tmpJarDir, File outjar,
 			String requestedJavaVersion)
 			throws IOException {
 		IntegrationResult integrationResult;
 		List<String> optionList = new ArrayList<>();
 		optionList.add(resolveInJavaHome("javac", requestedJavaVersion));
-		optionList.addAll(xrunit.script().getCompileOptions());
-		String path = xrunit.resolveClassPath(offline);
+		optionList.addAll(src.getCompileOptions());
+		String path = ctx.resolveClassPath(src, offline);
 		if (!path.trim().isEmpty()) {
 			optionList.addAll(Arrays.asList("-classpath", path));
 		}
 		optionList.addAll(Arrays.asList("-d", tmpJarDir.getAbsolutePath()));
 
 		// add source files to compile
-		optionList.add(xrunit.getResourceRef().getFile().getPath());
+		optionList.add(src.getResourceRef().getFile().getPath());
 		optionList.addAll(
-				xrunit	.script()
-						.getAllSources()
-						.stream()
-						.map(x -> x.getResourceRef().getFile().getPath())
-						.collect(Collectors.toList()));
+				src
+					.getAllSources()
+					.stream()
+					.map(x -> x.getResourceRef().getFile().getPath())
+					.collect(Collectors.toList()));
 
 		// add additional files
-		List<FileRef> files = xrunit.script().getAllFiles();
+		List<FileRef> files = src.getAllFiles();
 		for (FileRef file : files) {
 			file.copy(tmpJarDir.toPath(), fresh);
 		}
@@ -162,8 +169,8 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 			Util.warnMsg("Could not locate pom.xml template");
 		} else {
 			String pomfile = pomTemplate
-										.data("baseName", Util.getBaseName(xrunit.getResourceRef().getFile().getName()))
-										.data("dependencies", xrunit.getClassPath().getArtifacts())
+										.data("baseName", Util.getBaseName(src.getResourceRef().getFile().getName()))
+										.data("dependencies", ctx.getClassPath().getArtifacts())
 										.render();
 			pomPath = new File(tmpJarDir, "META-INF/maven/g/a/v/pom.xml").toPath();
 			Files.createDirectories(pomPath.getParent());
@@ -184,13 +191,13 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 			throw new ExitException(1, "Error during compile");
 		}
 
-		xrunit.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
-		integrationResult = IntegrationManager.runIntegration(xrunit.script().getAllRepositories(),
-				xrunit.getClassPath().getArtifacts(),
+		ctx.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
+		integrationResult = IntegrationManager.runIntegration(src.getAllRepositories(),
+				ctx.getClassPath().getArtifacts(),
 				tmpJarDir.toPath(), pomPath,
-				xrunit.script(), nativeImage);
+				src, nativeImage);
 		if (integrationResult.mainClass != null) {
-			xrunit.setMainClass(integrationResult.mainClass);
+			ctx.setMainClass(integrationResult.mainClass);
 		} else {
 			try {
 				// using Files.walk method with try-with-resources
@@ -203,7 +210,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 					if (items.size() > 1) { // todo: this feels like a very sketchy way to find the proper class
 											// name
 						// but it works.
-						String mainname = xrunit.getResourceRef().getFile().getName().replace(".java", ".class");
+						String mainname = src.getResourceRef().getFile().getName().replace(".java", ".class");
 						items = items	.stream()
 										.filter(f -> f.toFile().getName().equalsIgnoreCase(mainname))
 										.collect(Collectors.toList());
@@ -230,10 +237,10 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 														.findFirst();
 
 						if (main.isPresent()) {
-							xrunit.setMainClass(main.get().name().toString());
+							ctx.setMainClass(main.get().name().toString());
 						}
 
-						if (xrunit.script().isAgent()) {
+						if (src.isAgent()) {
 
 							Optional<ClassInfo> agentmain = clazz	.stream()
 																	.filter(pubClass -> pubClass.method("agentmain",
@@ -245,7 +252,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 																	.findFirst();
 
 							if (agentmain.isPresent()) {
-								xrunit.setAgentMainClass(agentmain.get().name().toString());
+								ctx.setAgentMainClass(agentmain.get().name().toString());
 							}
 
 							Optional<ClassInfo> premain = clazz	.stream()
@@ -258,7 +265,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 																.findFirst();
 
 							if (premain.isPresent()) {
-								xrunit.setPreMainClass(premain.get().name().toString());
+								ctx.setPreMainClass(premain.get().name().toString());
 							}
 						}
 
@@ -268,13 +275,68 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 				throw new ExitException(1, e);
 			}
 		}
-		xrunit.setPersistentJvmArgs(integrationResult.javaArgs);
-		createJarFile(xrunit, tmpJarDir, outjar);
+		ctx.setPersistentJvmArgs(integrationResult.javaArgs);
+		createJarFile(src, ctx, tmpJarDir, outjar);
 		createdJar = true;
 		return integrationResult;
 	}
 
-	private void buildNative(DecoratedSource xrunit, File outjar, String requestedJavaVersion) throws IOException {
+	static void createJarFile(ScriptSource src, RunContext ctx, File path, File output) throws IOException {
+		String mainclass = ctx.getMainClassOr(src);
+		Manifest manifest = new Manifest();
+		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
+		if (mainclass != null) {
+			manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, mainclass);
+		}
+
+		if (src.isAgent()) {
+			if (ctx.getPreMainClass() != null) {
+				manifest.getMainAttributes().put(new Attributes.Name(Source.ATTR_PREMAIN_CLASS), ctx.getPreMainClass());
+			}
+			if (ctx.getAgentMainClass() != null) {
+				manifest.getMainAttributes().put(new Attributes.Name(Source.ATTR_AGENT_CLASS), ctx.getAgentMainClass());
+			}
+
+			for (KeyValue kv : src.getAllAgentOptions()) {
+				if (kv.getKey().trim().isEmpty()) {
+					continue;
+				}
+				Attributes.Name k = new Attributes.Name(kv.getKey());
+				String v = kv.getValue() == null ? "true" : kv.getValue();
+				manifest.getMainAttributes().put(k, v);
+			}
+
+			if (ctx.getClassPath() != null) {
+				String bootClasspath = ctx.getClassPath().getManifestPath();
+				if (!bootClasspath.isEmpty()) {
+					manifest.getMainAttributes().put(new Attributes.Name(Source.ATTR_BOOT_CLASS_PATH), bootClasspath);
+				}
+			}
+		} else {
+			if (ctx.getClassPath() != null) {
+				String classpath = ctx.getClassPath().getManifestPath();
+				if (!classpath.isEmpty()) {
+					manifest.getMainAttributes().put(Attributes.Name.CLASS_PATH, classpath);
+				}
+			}
+		}
+
+		if (ctx.getPersistentJvmArgs() != null) {
+			manifest.getMainAttributes()
+					.putValue(Source.ATTR_JBANG_JAVA_OPTIONS, String.join(" ", ctx.getPersistentJvmArgs()));
+		}
+		int buildJdk = ctx.getBuildJdk();
+		if (buildJdk > 0) {
+			String val = buildJdk >= 9 ? Integer.toString(buildJdk) : "1." + buildJdk;
+			manifest.getMainAttributes().putValue(Source.ATTR_BUILD_JDK, val);
+		}
+
+		FileOutputStream target = new FileOutputStream(output);
+		JarUtil.jar(target, path.listFiles(), null, null, manifest);
+		target.close();
+	}
+
+	private void buildNative(Source src, RunContext ctx, File outjar, String requestedJavaVersion) throws IOException {
 		List<String> optionList = new ArrayList<>();
 		optionList.add(resolveInGraalVMHome("native-image", requestedJavaVersion));
 
@@ -282,7 +344,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 
 		optionList.add("--enable-https");
 
-		String classpath = xrunit.resolveClassPath(offline);
+		String classpath = ctx.resolveClassPath(src, offline);
 		if (!classpath.trim().isEmpty()) {
 			optionList.add("--class-path=" + classpath);
 		}
@@ -306,63 +368,6 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		if (process.exitValue() != 0) {
 			throw new ExitException(1, "Error during native-image");
 		}
-	}
-
-	static void createJarFile(DecoratedSource xrunit, File path, File output) throws IOException {
-		String mainclass = xrunit.getMainClass();
-		Manifest manifest = new Manifest();
-		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
-		if (mainclass != null) {
-			manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, mainclass);
-		}
-
-		if (xrunit.script().isAgent()) {
-			if (xrunit.getPreMainClass() != null) {
-				manifest.getMainAttributes()
-						.put(new Attributes.Name(Source.ATTR_PREMAIN_CLASS), xrunit.getPreMainClass());
-			}
-			if (xrunit.getAgentMainClass() != null) {
-				manifest.getMainAttributes()
-						.put(new Attributes.Name(Source.ATTR_AGENT_CLASS), xrunit.getAgentMainClass());
-			}
-
-			for (KeyValue kv : xrunit.script().getAllAgentOptions()) {
-				if (kv.getKey().trim().isEmpty()) {
-					continue;
-				}
-				Attributes.Name k = new Attributes.Name(kv.getKey());
-				String v = kv.getValue() == null ? "true" : kv.getValue();
-				manifest.getMainAttributes().put(k, v);
-			}
-
-			if (xrunit.getClassPath() != null) {
-				String bootClasspath = xrunit.getClassPath().getManifestPath();
-				if (!bootClasspath.isEmpty()) {
-					manifest.getMainAttributes().put(new Attributes.Name(Source.ATTR_BOOT_CLASS_PATH), bootClasspath);
-				}
-			}
-		} else {
-			if (xrunit.getClassPath() != null) {
-				String classpath = xrunit.getClassPath().getManifestPath();
-				if (!classpath.isEmpty()) {
-					manifest.getMainAttributes().put(Attributes.Name.CLASS_PATH, classpath);
-				}
-			}
-		}
-
-		if (xrunit.getPersistentJvmArgs() != null) {
-			manifest.getMainAttributes()
-					.putValue(Source.ATTR_JBANG_JAVA_OPTIONS, String.join(" ", xrunit.getPersistentJvmArgs()));
-		}
-		int buildJdk = xrunit.getBuildJdk();
-		if (buildJdk > 0) {
-			String val = buildJdk >= 9 ? Integer.toString(buildJdk) : "1." + buildJdk;
-			manifest.getMainAttributes().putValue(Source.ATTR_BUILD_JDK, val);
-		}
-
-		FileOutputStream target = new FileOutputStream(output);
-		JarUtil.jar(target, path.listFiles(), null, null, manifest);
-		target.close();
 	}
 
 	/** based on jar what will the binary image name be. **/

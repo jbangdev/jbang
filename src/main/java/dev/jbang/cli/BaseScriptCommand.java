@@ -10,7 +10,8 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import dev.jbang.DecoratedSource;
+import dev.jbang.RunContext;
+import dev.jbang.Source;
 
 import picocli.CommandLine;
 
@@ -30,7 +31,10 @@ public abstract class BaseScriptCommand extends BaseCommand {
 	@CommandLine.Parameters(index = "0", arity = "1", description = "A file with java code or if named .jsh will be run with jshell")
 	String scriptOrFile;
 
-	protected DecoratedSource xrunit;
+	protected boolean needsJar(Source source, RunContext context) {
+		// anything but .jar and .jsh files needs jar
+		return !(source.forJar() || context.isForceJsh() || source.forJShell());
+	}
 
 	protected void enableInsecure() {
 		try {

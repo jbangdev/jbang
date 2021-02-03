@@ -11,7 +11,8 @@ import java.util.List;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import dev.jbang.DecoratedSource;
+import dev.jbang.RunContext;
+import dev.jbang.Source;
 
 import picocli.CommandLine;
 
@@ -36,15 +37,15 @@ abstract class BaseInfoCommand extends BaseScriptDepsCommand {
 
 		String javaVersion;
 
-		public ScriptInfo(DecoratedSource xrunit) {
-			List<String> collectDependencies = xrunit.collectAllDependencies();
-			String cp = xrunit.resolveClassPath(offline);
+		public ScriptInfo(Source src, RunContext ctx) {
+			List<String> collectDependencies = ctx.collectAllDependenciesFor(src);
+			String cp = ctx.resolveClassPath(src, offline);
 
-			originalResource = xrunit.getResourceRef().getOriginalResource();
-			backingResource = xrunit.getResourceRef().getFile().toString();
+			originalResource = src.getResourceRef().getOriginalResource();
+			backingResource = src.getResourceRef().getFile().toString();
 
-			applicationJar = xrunit.getJar().getAbsolutePath();
-			mainClass = xrunit.getMainClass();
+			applicationJar = src.getJar().getAbsolutePath();
+			mainClass = ctx.getMainClassOr(src);
 
 			if (cp.isEmpty()) {
 				resolvedDependencies = Collections.emptyList();
@@ -52,8 +53,8 @@ abstract class BaseInfoCommand extends BaseScriptDepsCommand {
 				resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 			}
 
-			if (xrunit.getBuildJdk() > 0) {
-				javaVersion = Integer.toString(xrunit.getBuildJdk());
+			if (ctx.getBuildJdk() > 0) {
+				javaVersion = Integer.toString(ctx.getBuildJdk());
 			}
 		}
 	}
@@ -63,10 +64,11 @@ abstract class BaseInfoCommand extends BaseScriptDepsCommand {
 			enableInsecure();
 		}
 
-		xrunit = DecoratedSource.forResource(scriptOrFile, null, null, dependencies, classpaths, false, forcejsh);
-		xrunit.importJarMetadata();
+		RunContext ctx = RunContext.create(null, null, dependencies, classpaths, forcejsh);
+		Source src = Source.forResource(scriptOrFile, ctx);
+		ctx.importJarMetadataFor(src);
 
-		ScriptInfo info = new ScriptInfo(xrunit);
+		ScriptInfo info = new ScriptInfo(src, ctx);
 
 		return info;
 	}

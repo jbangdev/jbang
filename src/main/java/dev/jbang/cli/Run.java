@@ -15,10 +15,11 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.text.StringEscapeUtils;
 
-import dev.jbang.DecoratedSource;
 import dev.jbang.ExitException;
 import dev.jbang.JavaUtil;
+import dev.jbang.RunContext;
 import dev.jbang.Settings;
+import dev.jbang.Source;
 import dev.jbang.Util;
 
 import picocli.CommandLine;
@@ -69,52 +70,49 @@ public class Run extends BaseBuildCommand {
 			enableInsecure();
 		}
 
-		xrunit = prepareArtifacts(
-				DecoratedSource.forResource(scriptOrFile, userParams, properties, dependencies, classpaths, fresh,
-						forcejsh));
+		RunContext ctx = RunContext.create(userParams, properties, dependencies, classpaths, forcejsh);
+		Source src = Source.forResource(scriptOrFile, ctx);
+		src = prepareArtifacts(src, ctx);
 
-		String cmdline = generateCommandLine(xrunit);
+		String cmdline = generateCommandLine(src, ctx);
 		debug("run: " + cmdline);
 		out.println(cmdline);
 
 		return EXIT_EXECUTE;
 	}
 
-	DecoratedSource prepareArtifacts(DecoratedSource xrunit) throws IOException {
-		if (xrunit.needsJar()) {
-			build(xrunit);
-		}
+	Source prepareArtifacts(Source src, RunContext ctx) throws IOException {
+		buildIfNeeded(src, ctx);
 
 		if (javaAgentSlots != null) {
 			for (Map.Entry<String, Optional<String>> agentOption : javaAgentSlots.entrySet()) {
 				String javaAgent = agentOption.getKey();
 				Optional<String> javaAgentOptions = agentOption.getValue();
 
-				DecoratedSource agentXrunit = DecoratedSource.forResource(javaAgent, userParams, properties,
-						dependencies, classpaths, fresh, forcejsh);
-				agentXrunit.setJavaAgentOption(javaAgentOptions.orElse(null));
-				if (agentXrunit.needsJar()) {
+				RunContext actx = RunContext.create(userParams, properties, dependencies, classpaths, forcejsh);
+				Source asrc = Source.forResource(javaAgent, actx);
+				actx.setJavaAgentOption(javaAgentOptions.orElse(null));
+				if (needsJar(asrc, actx)) {
 					info("Building javaagent...");
-					build(agentXrunit);
+					buildIfNeeded(asrc, actx);
 				}
-				xrunit.addJavaAgent(agentXrunit);
+				ctx.addJavaAgent(asrc, actx);
 			}
 		}
 
-		return xrunit;
+		return src;
 	}
 
-	String generateCommandLine(DecoratedSource xrunit) throws IOException {
-
+	String generateCommandLine(Source src, RunContext ctx) throws IOException {
 		List<String> fullArgs = new ArrayList<>();
 
-		if (nativeImage && xrunit.forJShell()) {
+		if (nativeImage && (ctx.isForceJsh() || src.forJShell())) {
 			warn(".jsh cannot be used with --native thus ignoring --native.");
 			nativeImage = false;
 		}
 
 		if (nativeImage) {
-			String imagename = getImageName(xrunit.getJar()).toString();
+			String imagename = getImageName(src.getJar()).toString();
 			if (new File(imagename).exists()) {
 				fullArgs.add(imagename);
 			} else {
@@ -123,13 +121,13 @@ public class Run extends BaseBuildCommand {
 		}
 
 		if (fullArgs.isEmpty()) {
-			String classpath = xrunit.resolveClassPath(offline);
+			String classpath = ctx.resolveClassPath(src, offline);
 
 			List<String> optionalArgs = new ArrayList<>();
 
-			String requestedJavaVersion = javaVersion != null ? javaVersion : xrunit.javaVersion();
+			String requestedJavaVersion = javaVersion != null ? javaVersion : src.javaVersion();
 			String javacmd = resolveInJavaHome("java", requestedJavaVersion);
-			if (xrunit.forJShell()) {
+			if (ctx.isForceJsh() || src.forJShell()) {
 
 				javacmd = resolveInJavaHome("jshell", requestedJavaVersion);
 				if (!classpath.trim().isEmpty()) {
@@ -138,7 +136,7 @@ public class Run extends BaseBuildCommand {
 
 				optionalArgs.add("--startup=DEFAULT");
 
-				File tempFile = File.createTempFile("jbang_arguments_", xrunit.getResourceRef().getFile().getName());
+				File tempFile = File.createTempFile("jbang_arguments_", src.getResourceRef().getFile().getName());
 
 				String defaultImports = "import java.lang.*;\n" +
 						"import java.util.*;\n" +
@@ -147,7 +145,7 @@ public class Run extends BaseBuildCommand {
 						"import java.math.BigInteger;\n" +
 						"import java.math.BigDecimal;\n";
 				Util.writeString(tempFile.toPath(),
-						defaultImports + generateArgs(xrunit.getArguments(), xrunit.getProperties()));
+						defaultImports + generateArgs(ctx.getArguments(), ctx.getProperties()));
 
 				optionalArgs.add("--startup=" + tempFile.getAbsolutePath());
 
@@ -159,7 +157,7 @@ public class Run extends BaseBuildCommand {
 				}
 
 			} else {
-				addPropertyFlags(xrunit.getProperties(), "-D", optionalArgs);
+				addPropertyFlags(ctx.getProperties(), "-D", optionalArgs);
 
 				// optionalArgs.add("--source 11");
 				if (debug()) {
@@ -178,16 +176,16 @@ public class Run extends BaseBuildCommand {
 					// TODO: find way to generate ~/.jbang/script.jfc to configure flightrecorder to
 					// have 0 ms thresholds
 					String jfropt = "-XX:StartFlightRecording=" + flightRecorderString.replace("{baseName}",
-							Util.getBaseName(xrunit.getResourceRef().getFile().toString()));
+							Util.getBaseName(src.getResourceRef().getFile().toString()));
 					optionalArgs.add(jfropt);
 					Util.verboseMsg("Flight recording enabled with:" + jfropt);
 				}
 
-				if (xrunit.getJar() != null) {
+				if (src.getJar() != null) {
 					if (classpath.trim().isEmpty()) {
-						classpath = xrunit.getJar().getAbsolutePath();
+						classpath = src.getJar().getAbsolutePath();
 					} else {
-						classpath = xrunit.getJar().getAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
+						classpath = src.getJar().getAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
 					}
 				}
 				if (!classpath.trim().isEmpty()) {
@@ -195,8 +193,8 @@ public class Run extends BaseBuildCommand {
 					optionalArgs.add(classpath);
 				}
 
-				if (optionActive(cds(), xrunit.enableCDS())) {
-					String cdsJsa = xrunit.getJar().getAbsolutePath() + ".jsa";
+				if (optionActive(cds(), src.enableCDS())) {
+					String cdsJsa = src.getJar().getAbsolutePath() + ".jsa";
 					if (createdJar) {
 						debug("CDS: Archiving Classes At Exit at " + cdsJsa);
 						optionalArgs.add("-XX:ArchiveClassesAtExit=" + cdsJsa);
@@ -205,57 +203,60 @@ public class Run extends BaseBuildCommand {
 						optionalArgs.add("-XX:SharedArchiveFile=" + cdsJsa);
 					}
 				}
-				if (xrunit.getPersistentJvmArgs() != null) {
-					optionalArgs.addAll(xrunit.getPersistentJvmArgs());
+				if (ctx.getPersistentJvmArgs() != null) {
+					optionalArgs.addAll(ctx.getPersistentJvmArgs());
 				}
 			}
 
 			fullArgs.add(javacmd);
-			xrunit	.getJavaAgents()
-					.forEach(agent -> {
-						// for now we don't include any transitive dependencies. could consider putting
-						// on bootclasspath...or not.
-						String jar = null;
+			ctx	.getJavaAgents()
+				.forEach(agent -> {
+					// for now we don't include any transitive dependencies. could consider putting
+					// on bootclasspath...or not.
+					String jar = null;
+					Source asrc = agent.source;
+					if (asrc.getJar() != null) {
+						jar = asrc.getJar().toString();
+					} else if (asrc.forJar()) {
+						jar = asrc.getResourceRef().getFile().toString();
+						// should we log a warning/error if agent jar not present ?
+					}
+					if (jar == null) {
+						throw new ExitException(EXIT_INTERNAL_ERROR,
+								"No jar found for agent " + asrc.getResourceRef().getOriginalResource());
+					}
+					fullArgs.add("-javaagent:" + jar
+							+ (agent.context.getJavaAgentOption() != null
+									? "=" + agent.context.getJavaAgentOption()
+									: ""));
 
-						if (agent.getJar() != null) {
-							jar = agent.getJar().toString();
-						} else if (agent.forJar()) {
-							jar = agent.getResourceRef().getFile().toString();
-							// should we log a warning/error if agent jar not present ?
-						}
-						if (jar == null) {
-							throw new ExitException(EXIT_INTERNAL_ERROR,
-									"No jar found for agent " + agent.getResourceRef().getOriginalResource());
-						}
-						fullArgs.add("-javaagent:" + jar
-								+ (agent.getJavaAgentOption() != null ? "=" + agent.getJavaAgentOption() : ""));
+				});
 
-					});
-
-			fullArgs.addAll(xrunit.getRuntimeOptions());
-			fullArgs.addAll(xrunit.getAutoDetectedModuleArguments(requestedJavaVersion, offline));
+			fullArgs.addAll(ctx.getRuntimeOptionsOr(src));
+			fullArgs.addAll(ctx.getAutoDetectedModuleArguments(src, requestedJavaVersion, offline));
 			fullArgs.addAll(optionalArgs);
 
 			if (main != null) { // if user specified main class it overrides any other main class calculation
-				xrunit.setMainClass(main);
+				ctx.setMainClass(main);
 			}
 
-			if (xrunit.getMainClass() != null) {
-				fullArgs.add(xrunit.getMainClass());
+			String mainClass = ctx.getMainClassOr(src);
+			if (mainClass != null) {
+				fullArgs.add(mainClass);
 			} else {
-				if (xrunit.forJar()) {
+				if (src.forJar()) {
 					throw new ExitException(EXIT_INVALID_INPUT,
 							"no main class deduced, specified nor found in a manifest");
 				} else {
-					fullArgs.add(xrunit.getResourceRef().getFile().toString());
+					fullArgs.add(src.getResourceRef().getFile().toString());
 				}
 			}
 		}
 
-		if (!xrunit.forJShell()) {
-			addJavaArgs(xrunit.getArguments(), fullArgs);
+		if (!ctx.isForceJsh() && !src.forJShell()) {
+			addJavaArgs(ctx.getArguments(), fullArgs);
 		} else if (!interactive) {
-			File tempFile = File.createTempFile("jbang_exit_", xrunit.getResourceRef().getFile().getName());
+			File tempFile = File.createTempFile("jbang_exit_", src.getResourceRef().getFile().getName());
 			Util.writeString(tempFile.toPath(), "/exit");
 			fullArgs.add(tempFile.toString());
 		}

@@ -23,14 +23,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import dev.jbang.ConsoleInput;
-import dev.jbang.DecoratedSource;
 import dev.jbang.DependencyUtil;
 import dev.jbang.EditorManager;
 import dev.jbang.ExitException;
 import dev.jbang.JitPackUtil;
 import dev.jbang.MavenRepo;
+import dev.jbang.RunContext;
 import dev.jbang.ScriptSource;
 import dev.jbang.Settings;
+import dev.jbang.Source;
 import dev.jbang.StrictParameterPreprocessor;
 import dev.jbang.TemplateEngine;
 import dev.jbang.Util;
@@ -56,8 +57,15 @@ public class Edit extends BaseScriptDepsCommand {
 			enableInsecure();
 		}
 
-		xrunit = DecoratedSource.forResource(scriptOrFile, null, null, dependencies, classpaths, false, forcejsh);
-		File project = createProjectForEdit(xrunit, false);
+		RunContext ctx = RunContext.create(null, null, dependencies, classpaths, forcejsh);
+		Source src = Source.forResource(scriptOrFile, ctx);
+
+		if (!(src instanceof ScriptSource)) {
+			throw new ExitException(EXIT_INVALID_INPUT, "You can only edit source files");
+		}
+
+		ScriptSource ssrc = (ScriptSource) src;
+		File project = createProjectForEdit(ssrc, ctx, false);
 		// err.println(project.getAbsolutePath());
 
 		if (editor.isPresent()) {
@@ -87,9 +95,9 @@ public class Edit extends BaseScriptDepsCommand {
 			out.println(project.getAbsolutePath()); // quit(project.getAbsolutePath());
 		} else {
 			try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
-				File orginalFile = xrunit.script().getResourceRef().getFile();
+				File orginalFile = src.getResourceRef().getFile();
 				if (!orginalFile.exists()) {
-					throw new ExitException(2, "Cannot live edit " + xrunit.getResourceRef().getOriginalResource());
+					throw new ExitException(2, "Cannot live edit " + src.getResourceRef().getOriginalResource());
 				}
 				Path watched = orginalFile.getAbsoluteFile().getParentFile().toPath();
 				watched.register(watchService,
@@ -106,8 +114,9 @@ public class Edit extends BaseScriptDepsCommand {
 							try {
 								// TODO only regenerate when dependencies changes.
 								info("Regenerating project.");
-								xrunit = DecoratedSource.forResource(scriptOrFile);
-								createProjectForEdit(xrunit, true);
+								ctx = RunContext.empty();
+								src = Source.forResource(scriptOrFile, ctx);
+								createProjectForEdit((ScriptSource) src, ctx, true);
 							} catch (RuntimeException ee) {
 								warn("Error when re-generating project. Ignoring it, but state might be undefined: "
 										+ ee.getMessage());
@@ -196,12 +205,11 @@ public class Edit extends BaseScriptDepsCommand {
 	}
 
 	/** Create Project to use for editing **/
-	File createProjectForEdit(DecoratedSource xrunit, boolean reload) throws IOException {
+	File createProjectForEdit(ScriptSource src, RunContext ctx, boolean reload) throws IOException {
+		File originalFile = src.getResourceRef().getFile();
 
-		File originalFile = xrunit.getResourceRef().getFile();
-
-		List<String> dependencies = xrunit.collectAllDependencies();
-		String cp = xrunit.resolveClassPath(offline);
+		List<String> dependencies = ctx.collectAllDependenciesFor(src);
+		String cp = ctx.resolveClassPath(src, offline);
 		List<String> resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 
 		File baseDir = Settings.getCacheDir(Settings.CacheClass.projects).toFile();
@@ -221,19 +229,17 @@ public class Edit extends BaseScriptDepsCommand {
 		Path srcFile = srcDir.toPath().resolve(name);
 		Util.createLink(srcFile, originalFile.toPath());
 
-		if (xrunit.getSource() instanceof ScriptSource) {
-			for (ScriptSource source : xrunit.script().getAllSources()) {
-				File sfile = null;
-				if (source.getJavaPackage().isPresent()) {
-					File packageDir = new File(srcDir, source.getJavaPackage().get().replace(".", File.separator));
-					packageDir.mkdirs();
-					sfile = new File(packageDir, source.getResourceRef().getFile().getName());
-				} else {
-					sfile = new File(srcDir, source.getResourceRef().getFile().getName());
-				}
-				Path destFile = source.getResourceRef().getFile().toPath().toAbsolutePath();
-				Util.createLink(sfile.toPath(), destFile);
+		for (ScriptSource source : src.getAllSources()) {
+			File sfile = null;
+			if (source.getJavaPackage().isPresent()) {
+				File packageDir = new File(srcDir, source.getJavaPackage().get().replace(".", File.separator));
+				packageDir.mkdirs();
+				sfile = new File(packageDir, source.getResourceRef().getFile().getName());
+			} else {
+				sfile = new File(srcDir, source.getResourceRef().getFile().getName());
 			}
+			Path destFile = source.getResourceRef().getFile().toPath().toAbsolutePath();
+			Util.createLink(sfile.toPath(), destFile);
 		}
 
 		// create build gradle
@@ -252,7 +258,7 @@ public class Edit extends BaseScriptDepsCommand {
 
 		// both collectDependencies and repositories are manipulated by
 		// resolveDependencies
-		List<MavenRepo> repositories = xrunit.script().getAllRepositories();
+		List<MavenRepo> repositories = src.getAllRepositories();
 		if (repositories.isEmpty()) {
 			repositories.add(DependencyUtil.toMavenRepo("jcenter"));
 		}
@@ -269,7 +275,7 @@ public class Edit extends BaseScriptDepsCommand {
 
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
-				xrunit.getArguments(),
+				ctx.getArguments(),
 				destination);
 
 		// setup eclipse
@@ -277,14 +283,14 @@ public class Edit extends BaseScriptDepsCommand {
 		destination = new File(tmpProjectDir, ".classpath").toPath();
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
-				xrunit.getArguments(),
+				ctx.getArguments(),
 				destination);
 
 		templateName = ".qute.project";
 		destination = new File(tmpProjectDir, ".project").toPath();
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
-				xrunit.getArguments(),
+				ctx.getArguments(),
 				destination);
 
 		templateName = "main.qute.launch";
@@ -292,14 +298,14 @@ public class Edit extends BaseScriptDepsCommand {
 		destination.toFile().getParentFile().mkdirs();
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
-				xrunit.getArguments(),
+				ctx.getArguments(),
 				destination);
 
 		templateName = "main-port-4004.qute.launch";
 		destination = new File(tmpProjectDir, ".eclipse/" + baseName + "-port-4004.launch").toPath();
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
-				xrunit.getArguments(),
+				ctx.getArguments(),
 				destination);
 
 		// setup vscode
@@ -309,7 +315,7 @@ public class Edit extends BaseScriptDepsCommand {
 			destination.toFile().getParentFile().mkdirs();
 			renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 					templateName,
-					xrunit.getArguments(),
+					ctx.getArguments(),
 					destination);
 		}
 
@@ -320,7 +326,7 @@ public class Edit extends BaseScriptDepsCommand {
 			destination.toFile().getParentFile().mkdirs();
 			renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 					templateName,
-					xrunit.getArguments(),
+					ctx.getArguments(),
 					destination);
 		}
 
@@ -330,7 +336,7 @@ public class Edit extends BaseScriptDepsCommand {
 			destination.toFile().getParentFile().mkdirs();
 			renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 					templateName,
-					xrunit.getArguments(),
+					ctx.getArguments(),
 					destination);
 		}
 

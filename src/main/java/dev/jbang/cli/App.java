@@ -16,10 +16,11 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import dev.jbang.DecoratedSource;
 import dev.jbang.ExitException;
 import dev.jbang.JdkManager;
+import dev.jbang.RunContext;
 import dev.jbang.Settings;
+import dev.jbang.Source;
 import dev.jbang.UnpackUtil;
 import dev.jbang.Util;
 
@@ -96,16 +97,17 @@ class AppInstall extends BaseCommand {
 			Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
 			return false;
 		}
-		DecoratedSource xrunit = DecoratedSource.forResource(scriptRef);
+		RunContext ctx = RunContext.empty();
+		Source src = Source.forResource(scriptRef, ctx);
 		if (name == null) {
-			name = chooseCommandName(xrunit);
+			name = chooseCommandName(ctx);
 			if (!force && existScripts(binDir, name)) {
 				Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
 				return false;
 			}
 		}
-		if (xrunit.getAlias() == null && !xrunit.getResourceRef().isURL()) {
-			scriptRef = xrunit.getResourceRef().getFile().getAbsolutePath();
+		if (ctx.getAlias() == null && !src.getResourceRef().isURL()) {
+			scriptRef = src.getResourceRef().getFile().getAbsolutePath();
 		}
 		installScripts(name, scriptRef, benative);
 		Util.infoMsg("Command installed: " + name);
@@ -117,13 +119,13 @@ class AppInstall extends BaseCommand {
 				|| Files.exists(binDir.resolve(name + ".ps1"));
 	}
 
-	public static String chooseCommandName(DecoratedSource xrunit) {
+	public static String chooseCommandName(RunContext ctx) {
 		String startName = null;
 		String name;
-		if (xrunit.getAlias() != null) {
+		if (ctx.getAlias() != null) {
 			// If the script ref is an alias we take that name up to
 			// the @-symbol (if any) to be the command name.
-			startName = xrunit.getOriginalRef();
+			startName = ctx.getOriginalRef();
 			name = startName;
 			int p = name.indexOf("@");
 			if (p > 0) {
@@ -133,14 +135,14 @@ class AppInstall extends BaseCommand {
 			// If the script is a file or a URL we take the last part of
 			// the name without extension (if any) to be the command name.
 			try {
-				URI u = new URI(xrunit.getOriginalRef());
+				URI u = new URI(ctx.getOriginalRef());
 				startName = u.getPath();
 				if (startName.endsWith("/")) { // if using default app use the last segment.
 					startName = startName.substring(0, startName.length() - 1);
 				}
 				startName = u.getPath().substring(Math.max(0, startName.lastIndexOf("/")));
 			} catch (URISyntaxException e) {
-				startName = Paths.get(xrunit.getOriginalRef()).getFileName().toString();
+				startName = Paths.get(ctx.getOriginalRef()).getFileName().toString();
 			}
 
 			name = startName;
