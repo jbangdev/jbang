@@ -260,7 +260,10 @@ public class DecoratedSource implements Source {
 		}
 		StringBuilder cp = new StringBuilder(classpath.getClassPath());
 		for (String addcp : additionalClasspaths) {
-			cp.append(Settings.CP_SEPARATOR).append(addcp);
+			if (cp.length() > 0) {
+				cp.append(Settings.CP_SEPARATOR);
+			}
+			cp.append(addcp);
 		}
 		return cp.toString();
 	}
@@ -270,6 +273,17 @@ public class DecoratedSource implements Source {
 			resolveClassPath(offline);
 		}
 		return classpath.getAutoDectectedModuleArguments(requestedVersion);
+	}
+
+	public void importJarMetadata() {
+		File outjar = getJar();
+		if (outjar.exists()) {
+			JarSource jar = JarSource.prepareJar(
+					ResourceRef.forNamedFile(getResourceRef().getOriginalResource(), outjar));
+			setMainClass(jar.getMainClass());
+			setPersistentJvmArgs(jar.getRuntimeOptions());
+			setBuildJdk(jar.getBuildJdk());
+		}
 	}
 
 	public static DecoratedSource forResource(String resource) {

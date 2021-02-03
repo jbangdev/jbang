@@ -32,12 +32,10 @@ import dev.jbang.ExitException;
 import dev.jbang.FileRef;
 import dev.jbang.IntegrationManager;
 import dev.jbang.IntegrationResult;
-import dev.jbang.JarSource;
 import dev.jbang.JarUtil;
 import dev.jbang.JavaUtil;
 import dev.jbang.JdkManager;
 import dev.jbang.KeyValue;
-import dev.jbang.ResourceRef;
 import dev.jbang.Settings;
 import dev.jbang.Source;
 import dev.jbang.Util;
@@ -45,7 +43,7 @@ import dev.jbang.Util;
 import io.quarkus.qute.Template;
 import picocli.CommandLine;
 
-public abstract class BaseBuildCommand extends BaseScriptCommand {
+public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 	public static final Type STRINGARRAYTYPE = Type.create(DotName.createSimple("[Ljava.lang.String;"),
 			Type.Kind.ARRAY);
 	public static final Type STRINGTYPE = Type.create(DotName.createSimple("java.lang.String"), Type.Kind.CLASS);
@@ -82,12 +80,6 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 			"-n", "--native" }, description = "Build using native-image", defaultValue = "false")
 	boolean nativeImage;
 
-	@CommandLine.Option(names = { "--deps" }, description = "Add additional dependencies.")
-	List<String> dependencies;
-
-	@CommandLine.Option(names = { "--cp", "--class-path" }, description = "Add class path entries.")
-	List<String> classpaths;
-
 	@CommandLine.Option(names = {
 			"-f",
 			"--fresh" }, description = "Make it a fresh run - i.e. a new build with fresh (i.e. non-cached) resources.", defaultValue = "false")
@@ -102,15 +94,10 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		for (Map.Entry<String, String> entry : properties.entrySet()) {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
-		File outjar = xrunit.getJar();
-		if (outjar.exists()) {
-			JarSource jar = JarSource.prepareJar(
-					ResourceRef.forNamedFile(xrunit.getResourceRef().getOriginalResource(), outjar));
-			xrunit.setMainClass(jar.getMainClass());
-			xrunit.setPersistentJvmArgs(jar.getRuntimeOptions());
-			xrunit.setBuildJdk(jar.getBuildJdk());
-		}
 
+		xrunit.importJarMetadata();
+
+		File outjar = xrunit.getJar();
 		boolean nativeBuildRequired = nativeImage && !getImageName(outjar).exists();
 		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
 		String requestedJavaVersion = javaVersion != null ? javaVersion : xrunit.javaVersion();

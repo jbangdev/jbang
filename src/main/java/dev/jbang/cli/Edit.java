@@ -39,7 +39,7 @@ import io.quarkus.qute.Template;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "edit", description = "Setup a temporary project to edit script in an IDE.")
-public class Edit extends BaseScriptCommand {
+public class Edit extends BaseScriptDepsCommand {
 
 	@CommandLine.Option(names = {
 			"--live" }, description = "Setup temporary project, regenerate project on dependency changes.")
@@ -56,7 +56,7 @@ public class Edit extends BaseScriptCommand {
 			enableInsecure();
 		}
 
-		xrunit = DecoratedSource.forResource(scriptOrFile);
+		xrunit = DecoratedSource.forResource(scriptOrFile, null, null, dependencies, classpaths, false, forcejsh);
 		File project = createProjectForEdit(xrunit, false);
 		// err.println(project.getAbsolutePath());
 
