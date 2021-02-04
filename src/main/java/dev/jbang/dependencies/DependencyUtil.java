@@ -1,10 +1,10 @@
 package dev.jbang.dependencies;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
-import static dev.jbang.Util.errorMsg;
-import static dev.jbang.Util.infoHeader;
-import static dev.jbang.Util.infoMsg;
-import static dev.jbang.Util.infoMsgFmt;
+import static dev.jbang.util.Util.errorMsg;
+import static dev.jbang.util.Util.infoHeader;
+import static dev.jbang.util.Util.infoMsg;
+import static dev.jbang.util.Util.infoMsgFmt;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,8 +26,8 @@ import org.jboss.shrinkwrap.resolver.api.maven.PomEquippedResolveStage;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinates;
 
-import dev.jbang.ExitException;
 import dev.jbang.Settings;
+import dev.jbang.cli.ExitException;
 
 public class DependencyUtil {
 

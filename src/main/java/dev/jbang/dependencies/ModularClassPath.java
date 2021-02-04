@@ -20,8 +20,8 @@ import org.codehaus.plexus.languages.java.jpms.LocationManager;
 import org.codehaus.plexus.languages.java.jpms.ResolvePathsRequest;
 import org.codehaus.plexus.languages.java.jpms.ResolvePathsResult;
 
-import dev.jbang.JavaUtil;
-import dev.jbang.Util;
+import dev.jbang.util.JavaUtil;
+import dev.jbang.util.Util;
 
 public class ModularClassPath {
 

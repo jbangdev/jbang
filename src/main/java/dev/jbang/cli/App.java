@@ -17,13 +17,12 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import dev.jbang.Cache;
-import dev.jbang.ExitException;
 import dev.jbang.Settings;
-import dev.jbang.Util;
 import dev.jbang.build.RunContext;
 import dev.jbang.build.Source;
 import dev.jbang.net.JdkManager;
 import dev.jbang.util.UnpackUtil;
+import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 

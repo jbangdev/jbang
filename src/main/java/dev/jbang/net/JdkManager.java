@@ -14,11 +14,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import dev.jbang.Cache;
-import dev.jbang.ExitException;
-import dev.jbang.JavaUtil;
 import dev.jbang.Settings;
-import dev.jbang.Util;
+import dev.jbang.cli.ExitException;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.UnpackUtil;
+import dev.jbang.util.Util;
 
 public class JdkManager {
 	private static final String JDK_DOWNLOAD_URL = "https://api.adoptopenjdk.net/v3/binary/latest/%d/ga/%s/%s/jdk/hotspot/normal/%s";

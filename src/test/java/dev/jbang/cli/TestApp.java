@@ -20,9 +20,8 @@ import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
-import dev.jbang.ExitException;
 import dev.jbang.Settings;
-import dev.jbang.Util;
+import dev.jbang.util.Util;
 
 public class TestApp extends BaseTest {
 	private static final List<String> shContents = Arrays.asList("#!/bin/sh",

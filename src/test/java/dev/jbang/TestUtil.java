@@ -15,6 +15,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.catalog.AliasUtil;
+import dev.jbang.util.Util;
 
 public class TestUtil extends BaseTest {
 	public static void clearSettingsCaches() {

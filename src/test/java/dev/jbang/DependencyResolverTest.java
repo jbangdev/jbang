@@ -25,6 +25,7 @@ import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.Detector;
 import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.util.PropertiesValueResolver;
+import dev.jbang.util.Util;
 
 class DependencyResolverTest extends BaseTest {
 

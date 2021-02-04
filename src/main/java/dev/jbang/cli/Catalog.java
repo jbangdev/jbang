@@ -6,8 +6,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import dev.jbang.Settings;
-import dev.jbang.Util;
 import dev.jbang.catalog.AliasUtil;
+import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 

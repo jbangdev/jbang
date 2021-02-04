@@ -25,10 +25,10 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.annotations.SerializedName;
 
-import dev.jbang.ExitException;
 import dev.jbang.Settings;
-import dev.jbang.Util;
+import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.util.Util;
 
 public class AliasUtil {
 	public static final String JBANG_CATALOG_JSON = "jbang-catalog.json";

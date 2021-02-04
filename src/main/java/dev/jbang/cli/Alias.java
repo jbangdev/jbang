@@ -8,11 +8,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import dev.jbang.Settings;
-import dev.jbang.Util;
 import dev.jbang.build.RunContext;
 import dev.jbang.build.Source;
 import dev.jbang.catalog.AliasUtil;
 import dev.jbang.catalog.Catalog;
+import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 

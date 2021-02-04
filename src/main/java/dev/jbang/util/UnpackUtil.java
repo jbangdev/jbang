@@ -19,8 +19,6 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
-import dev.jbang.Util;
-
 public class UnpackUtil {
 
 	public static void unpackEditor(Path archive, Path outputDir) throws IOException {

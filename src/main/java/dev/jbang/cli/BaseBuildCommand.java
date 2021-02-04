@@ -27,10 +27,7 @@ import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
 import org.jboss.jandex.Type;
 
-import dev.jbang.ExitException;
-import dev.jbang.JavaUtil;
 import dev.jbang.TemplateEngine;
-import dev.jbang.Util;
 import dev.jbang.build.JarSource;
 import dev.jbang.build.RunContext;
 import dev.jbang.build.ScriptSource;
@@ -39,6 +36,8 @@ import dev.jbang.net.JdkManager;
 import dev.jbang.spi.IntegrationManager;
 import dev.jbang.spi.IntegrationResult;
 import dev.jbang.util.JarUtil;
+import dev.jbang.util.JavaUtil;
+import dev.jbang.util.Util;
 
 import io.quarkus.qute.Template;
 import picocli.CommandLine;

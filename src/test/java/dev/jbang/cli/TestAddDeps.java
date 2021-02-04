@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
-import dev.jbang.Util;
+import dev.jbang.util.Util;
 
 class TestAddDeps extends BaseTest {
 

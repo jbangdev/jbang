@@ -1,6 +1,6 @@
 package dev.jbang.cli;
 
-import static dev.jbang.Util.downloadFile;
+import static dev.jbang.util.Util.downloadFile;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -14,10 +14,9 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-import dev.jbang.ExitException;
-import dev.jbang.Util;
 import dev.jbang.build.RunContext;
 import dev.jbang.build.Source;
+import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;

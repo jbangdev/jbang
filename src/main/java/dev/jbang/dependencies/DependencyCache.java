@@ -1,6 +1,6 @@
 package dev.jbang.dependencies;
 
-import static dev.jbang.Util.warnMsg;
+import static dev.jbang.util.Util.warnMsg;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,7 +25,7 @@ import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 
 import dev.jbang.Settings;
-import dev.jbang.Util;
+import dev.jbang.util.Util;
 
 public class DependencyCache {
 	private static Map<String, List<ArtifactInfo>> depCache = null;

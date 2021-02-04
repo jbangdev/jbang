@@ -12,8 +12,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import dev.jbang.ExitException;
-import dev.jbang.Util;
+import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 

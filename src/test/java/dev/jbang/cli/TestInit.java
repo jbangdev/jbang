@@ -18,8 +18,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import dev.jbang.BaseTest;
-import dev.jbang.ExitException;
-import dev.jbang.Util;
+import dev.jbang.util.Util;
 
 public class TestInit extends BaseTest {
 

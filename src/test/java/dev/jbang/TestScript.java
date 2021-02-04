@@ -1,6 +1,6 @@
 package dev.jbang;
 
-import static dev.jbang.Util.writeString;
+import static dev.jbang.util.Util.writeString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItem;

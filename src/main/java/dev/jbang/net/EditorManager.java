@@ -11,10 +11,10 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import dev.jbang.ExitException;
 import dev.jbang.Settings;
-import dev.jbang.Util;
+import dev.jbang.cli.ExitException;
 import dev.jbang.util.UnpackUtil;
+import dev.jbang.util.Util;
 
 public class EditorManager {
 	private static final String CODIUM_DOWNLOAD_URL = "https://github.com/VSCodium/vscodium/releases/download/%s/VSCodium-%s-%s-%s.%s";

@@ -9,8 +9,8 @@ import java.nio.file.Path;
 import java.util.Set;
 
 import dev.jbang.Settings;
-import dev.jbang.Util;
 import dev.jbang.net.JdkManager;
+import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 

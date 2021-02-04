@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.util;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -49,7 +49,10 @@ import org.jsoup.parser.Parser;
 
 import com.google.gson.Gson;
 
+import dev.jbang.Cache;
+import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
+import dev.jbang.cli.ExitException;
 
 public class Util {
 

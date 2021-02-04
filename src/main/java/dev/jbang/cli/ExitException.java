@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.cli;
 
 /**
  * Used when wanting to exit app from a command.

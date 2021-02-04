@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.util;
 
 import static java.lang.System.getenv;
 
@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import dev.jbang.Settings;
 import dev.jbang.net.JdkManager;
 
 public class JavaUtil {

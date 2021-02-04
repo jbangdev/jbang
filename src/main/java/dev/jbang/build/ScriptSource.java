@@ -29,16 +29,16 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import dev.jbang.Cache;
-import dev.jbang.ExitException;
-import dev.jbang.JavaUtil;
 import dev.jbang.Settings;
-import dev.jbang.Util;
 import dev.jbang.cli.BaseCommand;
+import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.Detector;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.dependencies.ModularClassPath;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.PropertiesValueResolver;
+import dev.jbang.util.Util;
 
 /**
  * A Script represents a Source (something runnable) in the form of a source

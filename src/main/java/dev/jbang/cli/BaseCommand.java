@@ -5,7 +5,7 @@ import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import dev.jbang.Util;
+import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 

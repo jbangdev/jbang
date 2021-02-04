@@ -3,7 +3,7 @@ package dev.jbang.cli;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static dev.jbang.Util.writeString;
+import static dev.jbang.util.Util.writeString;
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -58,14 +58,13 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 
 import dev.jbang.BaseTest;
 import dev.jbang.Cache;
-import dev.jbang.ExitException;
-import dev.jbang.Util;
 import dev.jbang.build.JarSource;
 import dev.jbang.build.RunContext;
 import dev.jbang.build.ScriptSource;
 import dev.jbang.build.Source;
 import dev.jbang.catalog.AliasUtil;
 import dev.jbang.net.TrustedSources;
+import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 

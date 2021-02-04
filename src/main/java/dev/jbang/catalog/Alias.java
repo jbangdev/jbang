@@ -7,7 +7,7 @@ import java.util.Map;
 
 import com.google.gson.annotations.SerializedName;
 
-import dev.jbang.Util;
+import dev.jbang.util.Util;
 
 public class Alias {
 	@SerializedName(value = "script-ref", alternate = { "scriptRef" })
