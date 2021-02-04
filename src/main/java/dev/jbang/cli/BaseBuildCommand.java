@@ -29,10 +29,7 @@ import org.jboss.jandex.Type;
 
 import dev.jbang.ExitException;
 import dev.jbang.FileRef;
-import dev.jbang.IntegrationManager;
-import dev.jbang.IntegrationResult;
 import dev.jbang.JarSource;
-import dev.jbang.JarUtil;
 import dev.jbang.JavaUtil;
 import dev.jbang.JdkManager;
 import dev.jbang.KeyValue;
@@ -41,6 +38,9 @@ import dev.jbang.ScriptSource;
 import dev.jbang.Source;
 import dev.jbang.TemplateEngine;
 import dev.jbang.Util;
+import dev.jbang.spi.IntegrationManager;
+import dev.jbang.spi.IntegrationResult;
+import dev.jbang.util.JarUtil;
 
 import io.quarkus.qute.Template;
 import picocli.CommandLine;

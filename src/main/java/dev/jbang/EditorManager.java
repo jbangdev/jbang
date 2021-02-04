@@ -3,12 +3,15 @@ package dev.jbang;
 import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import dev.jbang.util.UnpackUtil;
 
 public class EditorManager {
 	private static final String CODIUM_DOWNLOAD_URL = "https://github.com/VSCodium/vscodium/releases/download/%s/VSCodium-%s-%s-%s.%s";
@@ -58,8 +61,8 @@ public class EditorManager {
 				}
 			}
 			Util.errorMsg("VSCode editor not possible to download or install.");
-			throw new ExitException(EXIT_UNEXPECTED_STATE,
-					"Unable to download or install VSCodium version " + version, e);
+			throw new ExitException(EXIT_UNEXPECTED_STATE, "Unable to download or install VSCodium version " + version,
+					e);
 		}
 
 	}
@@ -85,15 +88,18 @@ public class EditorManager {
 		String version = "1.52.1";
 		try {
 			Util.verboseMsg("Lookup vscodium latest version...");
-			String out = new Scanner(
-					new URL("https://api.github.com/repos/vscodium/vscodium/releases/latest").openStream(),
-					"UTF-8").useDelimiter("\\A").next();
-			Matcher matcher = Pattern.compile("\"tag_name\":.*?\"(.*?)\"").matcher(out);
-			if (matcher.find()) {
-				version = matcher.group(1);
-			} else {
-				Util.verboseMsg("Could not find latest version - falling back to " + version);
+			try (InputStream is = new URL("https://api.github.com/repos/vscodium/vscodium/releases/latest")
+																											.openStream();
+					Scanner sc = new Scanner(is, "UTF-8")) {
+				String out = sc.useDelimiter("\\A").next();
+				Matcher matcher = Pattern.compile("\"tag_name\":.*?\"(.*?)\"").matcher(out);
+				if (matcher.find()) {
+					version = matcher.group(1);
+				} else {
+					Util.verboseMsg("Could not find latest version - falling back to " + version);
+				}
 			}
+
 		} catch (IOException e) {
 			// ignore e.printStackTrace();
 		}

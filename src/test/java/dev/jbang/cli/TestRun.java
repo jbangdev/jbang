@@ -1281,8 +1281,6 @@ public class TestRun extends BaseTest {
 	@Test
 	void testNoDefaultApp(@TempDir File dir) throws IOException {
 
-		Run m = new Run();
-
 		ExitException e = assertThrows(ExitException.class,
 				() -> Source.forResource(dir.toPath().toString(), RunContext.empty()));
 
@@ -1327,8 +1325,6 @@ public class TestRun extends BaseTest {
 															"}")));
 
 		wms.start();
-		Run m = new Run();
-
 		assertThrows(ExitException.class,
 				() -> Source.forResource("http://localhost:" + wms.port() + "/sub/one/", RunContext.empty()));
 

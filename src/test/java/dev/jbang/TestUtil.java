@@ -9,8 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -66,7 +64,6 @@ public class TestUtil extends BaseTest {
 
 	@Test
 	void testExplode() throws IOException {
-		FileSystem fs = FileSystems.getDefault();
 		Path baseDir = examplesTestFolder.toPath();
 
 		String source = ".";

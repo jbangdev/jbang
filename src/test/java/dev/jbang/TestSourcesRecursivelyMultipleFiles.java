@@ -2,7 +2,6 @@ package dev.jbang;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
@@ -66,7 +65,6 @@ class TestSourcesRecursivelyMultipleFiles extends BaseTest {
 
 	@Test
 	void testFindSourcesInMultipleFilesRecursively() throws IOException {
-		File urlCache = null;
 		Path HiJBangPath = TestScript.createTmpFileWithContent("", "HiJbang.java", classHiJbang);
 		Path mainPath = TestScript.createTmpFile("somefolder", "A.java");
 		// Add absolute path in //SOURCES

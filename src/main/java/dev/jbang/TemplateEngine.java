@@ -59,7 +59,6 @@ public class TemplateEngine {
 	static class ResourceTemplateLocation implements TemplateLocator.TemplateLocation {
 
 		private final URL resource;
-		@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 		private Optional<Variant> variant = Optional.empty();
 
 		public ResourceTemplateLocation(URL resource) {

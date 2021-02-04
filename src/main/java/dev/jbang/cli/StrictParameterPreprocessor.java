@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.cli;
 
 import java.util.Map;
 import java.util.Stack;
