@@ -27,20 +27,17 @@ import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
 import org.jboss.jandex.Type;
 
-import dev.jbang.ExitException;
-import dev.jbang.FileRef;
-import dev.jbang.JarSource;
-import dev.jbang.JavaUtil;
-import dev.jbang.JdkManager;
-import dev.jbang.KeyValue;
-import dev.jbang.RunContext;
-import dev.jbang.ScriptSource;
-import dev.jbang.Source;
 import dev.jbang.TemplateEngine;
-import dev.jbang.Util;
+import dev.jbang.build.JarSource;
+import dev.jbang.build.RunContext;
+import dev.jbang.build.ScriptSource;
+import dev.jbang.build.Source;
+import dev.jbang.net.JdkManager;
 import dev.jbang.spi.IntegrationManager;
 import dev.jbang.spi.IntegrationResult;
 import dev.jbang.util.JarUtil;
+import dev.jbang.util.JavaUtil;
+import dev.jbang.util.Util;
 
 import io.quarkus.qute.Template;
 import picocli.CommandLine;
@@ -172,10 +169,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 					.collect(Collectors.toList()));
 
 		// add additional files
-		List<FileRef> files = src.getAllFiles();
-		for (FileRef file : files) {
-			file.copy(tmpJarDir.toPath(), fresh);
-		}
+		src.copyFilesTo(tmpJarDir.toPath(), fresh);
 
 		Template pomTemplate = TemplateEngine.instance().getTemplate("pom.qute.xml");
 
@@ -313,7 +307,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 				manifest.getMainAttributes().put(new Attributes.Name(Source.ATTR_AGENT_CLASS), ctx.getAgentMainClass());
 			}
 
-			for (KeyValue kv : src.getAllAgentOptions()) {
+			for (ScriptSource.KeyValue kv : src.getAllAgentOptions()) {
 				if (kv.getKey().trim().isEmpty()) {
 					continue;
 				}

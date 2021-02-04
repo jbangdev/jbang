@@ -5,9 +5,9 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import dev.jbang.AliasUtil;
 import dev.jbang.Settings;
-import dev.jbang.Util;
+import dev.jbang.catalog.AliasUtil;
+import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 
@@ -109,7 +109,7 @@ class CatalogList extends BaseCatalogCommand {
 	public Integer doCall() {
 		PrintStream out = System.out;
 		if (name == null) {
-			AliasUtil.Catalog catalog;
+			dev.jbang.catalog.Catalog catalog;
 			Path cat = getCatalog(true);
 			if (cat != null) {
 				catalog = AliasUtil.getCatalog(cat, false);
@@ -133,7 +133,7 @@ class CatalogList extends BaseCatalogCommand {
 								}
 							});
 		} else {
-			AliasUtil.Catalog catalog = AliasUtil.getCatalogByName(null, name, false);
+			dev.jbang.catalog.Catalog catalog = AliasUtil.getCatalogByName(null, name, false);
 			AliasList.printAliases(out, name, catalog);
 		}
 		return EXIT_OK;

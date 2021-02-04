@@ -10,8 +10,8 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import dev.jbang.RunContext;
-import dev.jbang.Source;
+import dev.jbang.build.RunContext;
+import dev.jbang.build.Source;
 
 import picocli.CommandLine;
 

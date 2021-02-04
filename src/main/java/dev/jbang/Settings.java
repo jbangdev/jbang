@@ -4,6 +4,8 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import dev.jbang.catalog.AliasUtil;
+
 public class Settings {
 	public static final String JBANG_REPO = "JBANG_REPO";
 	public static final String JBANG_DIR = "JBANG_DIR";

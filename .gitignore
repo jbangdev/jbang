@@ -5,7 +5,7 @@
 target
 .idea
 *.iml
-build
+/build
 .gradle
 .factorypath
 bin

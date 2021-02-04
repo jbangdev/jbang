@@ -2,8 +2,8 @@ package dev.jbang.cli;
 
 import java.io.IOException;
 
-import dev.jbang.RunContext;
-import dev.jbang.Source;
+import dev.jbang.build.RunContext;
+import dev.jbang.build.Source;
 
 import picocli.CommandLine.Command;
 

@@ -8,9 +8,8 @@ import java.util.Random;
 
 import javax.lang.model.SourceVersion;
 
-import dev.jbang.ExitException;
 import dev.jbang.TemplateEngine;
-import dev.jbang.Util;
+import dev.jbang.util.Util;
 
 import io.quarkus.qute.Template;
 import picocli.CommandLine;

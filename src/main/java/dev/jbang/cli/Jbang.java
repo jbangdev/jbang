@@ -21,8 +21,7 @@ import java.util.Set;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 
-import dev.jbang.ExitException;
-import dev.jbang.Util;
+import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Help.TextTable;

@@ -23,6 +23,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.*;
+import dev.jbang.build.RunContext;
+import dev.jbang.build.ScriptSource;
+import dev.jbang.build.Source;
+import dev.jbang.util.Util;
 
 public class TestEdit extends BaseTest {
 
