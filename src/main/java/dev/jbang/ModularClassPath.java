@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.codehaus.plexus.languages.java.jpms.JavaModuleDescriptor;
 import org.codehaus.plexus.languages.java.jpms.LocationManager;
@@ -135,5 +136,25 @@ public class ModularClassPath {
 
 	public List<ArtifactInfo> getArtifacts() {
 		return artifacts;
+	}
+
+	/**
+	 * Determines if all artifacts actually exist
+	 */
+	public boolean isValid() {
+		return artifacts.stream().allMatch(it -> it.asFile().isFile());
+	}
+
+	/**
+	 * Returns a ModularClassPath with the artifacts from the given MANIFEST class
+	 * path string
+	 * 
+	 * @param classPath A class path string as found in a Jar MANIFEST
+	 */
+	public static ModularClassPath fromManifestClasspath(String classPath) {
+		List<ArtifactInfo> arts = Stream.of(classPath.split(" "))
+										.map(jar -> new ArtifactInfo(null, new File(jar)))
+										.collect(Collectors.toList());
+		return new ModularClassPath(arts);
 	}
 }

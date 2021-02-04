@@ -33,7 +33,7 @@ public abstract class BaseScriptCommand extends BaseCommand {
 
 	protected boolean needsJar(Source source, RunContext context) {
 		// anything but .jar and .jsh files needs jar
-		return !(source.forJar() || context.isForceJsh() || source.forJShell());
+		return !(source.isJar() || context.isForceJsh() || source.isJShell());
 	}
 
 	protected void enableInsecure() {

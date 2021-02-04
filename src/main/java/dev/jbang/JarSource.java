@@ -63,8 +63,14 @@ public class JarSource implements Source {
 		return resourceRef;
 	}
 
-	public File getJar() {
+	@Override
+	public File getJarFile() {
 		return getResourceRef().getFile();
+	}
+
+	@Override
+	public JarSource asJarSource() {
+		return this;
 	}
 
 	@Override
@@ -84,8 +90,8 @@ public class JarSource implements Source {
 		} else if (classPath != null) {
 			ModularClassPath mcp2 = new DependencyUtil().resolveDependencies(additionalDeps,
 					Collections.emptyList(), offline, !Util.isQuiet());
-			List<ArtifactInfo> arts = Stream.concat(mcp2.getArtifacts().stream(),
-					Stream.of(classPath.split(" ")).map(jar -> new ArtifactInfo(null, new File(jar))))
+			ModularClassPath mcp3 = ModularClassPath.fromManifestClasspath(classPath);
+			List<ArtifactInfo> arts = Stream.concat(mcp2.getArtifacts().stream(), mcp3.getArtifacts().stream())
 											.collect(Collectors.toList());
 			mcp = new ModularClassPath(arts);
 		} else if (!additionalDeps.isEmpty()) {

@@ -82,7 +82,7 @@ public class Run extends BaseBuildCommand {
 	}
 
 	Source prepareArtifacts(Source src, RunContext ctx) throws IOException {
-		buildIfNeeded(src, ctx);
+		src = buildIfNeeded(src, ctx);
 
 		if (javaAgentSlots != null) {
 			for (Map.Entry<String, Optional<String>> agentOption : javaAgentSlots.entrySet()) {
@@ -94,7 +94,7 @@ public class Run extends BaseBuildCommand {
 				actx.setJavaAgentOption(javaAgentOptions.orElse(null));
 				if (needsJar(asrc, actx)) {
 					info("Building javaagent...");
-					buildIfNeeded(asrc, actx);
+					asrc = buildIfNeeded(asrc, actx);
 				}
 				ctx.addJavaAgent(asrc, actx);
 			}
@@ -106,13 +106,13 @@ public class Run extends BaseBuildCommand {
 	String generateCommandLine(Source src, RunContext ctx) throws IOException {
 		List<String> fullArgs = new ArrayList<>();
 
-		if (nativeImage && (ctx.isForceJsh() || src.forJShell())) {
+		if (nativeImage && (ctx.isForceJsh() || src.isJShell())) {
 			warn(".jsh cannot be used with --native thus ignoring --native.");
 			nativeImage = false;
 		}
 
 		if (nativeImage) {
-			String imagename = getImageName(src.getJar()).toString();
+			String imagename = getImageName(src.getJarFile()).toString();
 			if (new File(imagename).exists()) {
 				fullArgs.add(imagename);
 			} else {
@@ -127,7 +127,7 @@ public class Run extends BaseBuildCommand {
 
 			String requestedJavaVersion = javaVersion != null ? javaVersion : src.javaVersion();
 			String javacmd = resolveInJavaHome("java", requestedJavaVersion);
-			if (ctx.isForceJsh() || src.forJShell()) {
+			if (ctx.isForceJsh() || src.isJShell()) {
 
 				javacmd = resolveInJavaHome("jshell", requestedJavaVersion);
 				if (!classpath.trim().isEmpty()) {
@@ -181,11 +181,11 @@ public class Run extends BaseBuildCommand {
 					Util.verboseMsg("Flight recording enabled with:" + jfropt);
 				}
 
-				if (src.getJar() != null) {
+				if (src.getJarFile() != null) {
 					if (classpath.trim().isEmpty()) {
-						classpath = src.getJar().getAbsolutePath();
+						classpath = src.getJarFile().getAbsolutePath();
 					} else {
-						classpath = src.getJar().getAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
+						classpath = src.getJarFile().getAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
 					}
 				}
 				if (!classpath.trim().isEmpty()) {
@@ -194,7 +194,7 @@ public class Run extends BaseBuildCommand {
 				}
 
 				if (optionActive(cds(), src.enableCDS())) {
-					String cdsJsa = src.getJar().getAbsolutePath() + ".jsa";
+					String cdsJsa = src.getJarFile().getAbsolutePath() + ".jsa";
 					if (createdJar) {
 						debug("CDS: Archiving Classes At Exit at " + cdsJsa);
 						optionalArgs.add("-XX:ArchiveClassesAtExit=" + cdsJsa);
@@ -215,9 +215,9 @@ public class Run extends BaseBuildCommand {
 					// on bootclasspath...or not.
 					String jar = null;
 					Source asrc = agent.source;
-					if (asrc.getJar() != null) {
-						jar = asrc.getJar().toString();
-					} else if (asrc.forJar()) {
+					if (asrc.getJarFile() != null) {
+						jar = asrc.getJarFile().toString();
+					} else if (asrc.isJar()) {
 						jar = asrc.getResourceRef().getFile().toString();
 						// should we log a warning/error if agent jar not present ?
 					}
@@ -244,7 +244,7 @@ public class Run extends BaseBuildCommand {
 			if (mainClass != null) {
 				fullArgs.add(mainClass);
 			} else {
-				if (src.forJar()) {
+				if (src.isJar()) {
 					throw new ExitException(EXIT_INVALID_INPUT,
 							"no main class deduced, specified nor found in a manifest");
 				} else {
@@ -253,7 +253,7 @@ public class Run extends BaseBuildCommand {
 			}
 		}
 
-		if (!ctx.isForceJsh() && !src.forJShell()) {
+		if (!ctx.isForceJsh() && !src.isJShell()) {
 			addJavaArgs(ctx.getArguments(), fullArgs);
 		} else if (!interactive) {
 			File tempFile = File.createTempFile("jbang_exit_", src.getResourceRef().getFile().getName());

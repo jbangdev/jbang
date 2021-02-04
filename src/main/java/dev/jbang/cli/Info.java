@@ -44,7 +44,7 @@ abstract class BaseInfoCommand extends BaseScriptDepsCommand {
 			originalResource = src.getResourceRef().getOriginalResource();
 			backingResource = src.getResourceRef().getFile().toString();
 
-			applicationJar = src.getJar().getAbsolutePath();
+			applicationJar = src.getJarFile().getAbsolutePath();
 			mainClass = ctx.getMainClassOr(src);
 
 			if (cp.isEmpty()) {
@@ -65,8 +65,7 @@ abstract class BaseInfoCommand extends BaseScriptDepsCommand {
 		}
 
 		RunContext ctx = RunContext.create(null, null, dependencies, classpaths, forcejsh);
-		Source src = Source.forResource(scriptOrFile, ctx);
-		ctx.importJarMetadataFor(src);
+		Source src = ctx.importJarMetadataFor(Source.forResource(scriptOrFile, ctx));
 
 		ScriptInfo info = new ScriptInfo(src, ctx);
 
