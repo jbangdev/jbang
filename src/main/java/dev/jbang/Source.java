@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
+import dev.jbang.catalog.Alias;
+import dev.jbang.catalog.AliasUtil;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.dependencies.ModularClassPath;
 
@@ -113,7 +115,7 @@ public interface Source {
 	static Source forResource(String resource, RunContext ctx) {
 		ResourceRef resourceRef = ResourceRef.forResource(resource);
 
-		AliasUtil.Alias alias = null;
+		Alias alias = null;
 		if (resourceRef == null) {
 			// Not found as such, so let's check the aliases
 			alias = AliasUtil.getAlias(null, resource, ctx.getArguments(), ctx.getProperties());

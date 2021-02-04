@@ -15,8 +15,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 
-import dev.jbang.AliasUtil;
 import dev.jbang.BaseTest;
+import dev.jbang.catalog.AliasUtil;
+import dev.jbang.catalog.Catalog;
 
 public class TestAliasNearestWithBaseRef extends BaseTest {
 
@@ -70,7 +71,7 @@ public class TestAliasNearestWithBaseRef extends BaseTest {
 		Path localCatalog = cwd.resolve(AliasUtil.JBANG_CATALOG_JSON);
 		AliasUtil.addNearestAlias(cwd, "new", "scripts/local.java", null, null, null);
 		clearSettingsCaches();
-		AliasUtil.Catalog catalog = AliasUtil.getCatalog(localCatalog, true);
+		Catalog catalog = AliasUtil.getCatalog(localCatalog, true);
 		assertThat(catalog.aliases.keySet(), hasItem("new"));
 		assertThat(catalog.aliases.get("new").scriptRef, equalTo("local.java"));
 	}
@@ -83,7 +84,7 @@ public class TestAliasNearestWithBaseRef extends BaseTest {
 		AliasUtil.addNearestAlias(cwd, "new", "scripts/local.java", null, null, null);
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
-		AliasUtil.Catalog catalog = AliasUtil.getCatalog(dotLocalCatalog, true);
+		Catalog catalog = AliasUtil.getCatalog(dotLocalCatalog, true);
 		assertThat(catalog.aliases.keySet(), hasItem("new"));
 		assertThat(catalog.aliases.get("new").scriptRef, equalTo("local.java"));
 	}
@@ -99,7 +100,7 @@ public class TestAliasNearestWithBaseRef extends BaseTest {
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		assertThat(dotLocalCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
-		AliasUtil.Catalog catalog = AliasUtil.getCatalog(parentCatalog, true);
+		Catalog catalog = AliasUtil.getCatalog(parentCatalog, true);
 		assertThat(catalog.aliases.keySet(), hasItem("new"));
 		assertThat(catalog.aliases.get("new").scriptRef.replace('\\', '/'), equalTo("../test/scripts/local.java"));
 	}
@@ -115,7 +116,7 @@ public class TestAliasNearestWithBaseRef extends BaseTest {
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		assertThat(dotLocalCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
-		AliasUtil.Catalog catalog = AliasUtil.getCatalog(parentCatalog, true);
+		Catalog catalog = AliasUtil.getCatalog(parentCatalog, true);
 		assertThat(catalog.aliases.keySet(), hasItem("new"));
 		assertThat(catalog.aliases.get("new").scriptRef, equalTo("parent.java"));
 	}

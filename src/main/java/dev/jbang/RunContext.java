@@ -9,6 +9,7 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import dev.jbang.catalog.Alias;
 import dev.jbang.dependencies.ModularClassPath;
 
 /**
@@ -39,7 +40,7 @@ public class RunContext {
 	private String preMainClass;
 	private String agentMainClass;
 
-	private AliasUtil.Alias alias;
+	private Alias alias;
 
 	private ModularClassPath classpath;
 
@@ -112,14 +113,14 @@ public class RunContext {
 	/**
 	 * Returns the Alias object if originalRef is an alias, otherwise null
 	 */
-	public AliasUtil.Alias getAlias() {
+	public Alias getAlias() {
 		return alias;
 	}
 
 	/**
 	 * Sets the Alias object if originalRef is an alias
 	 */
-	public void setAlias(AliasUtil.Alias alias) {
+	public void setAlias(Alias alias) {
 		this.alias = alias;
 	}
 

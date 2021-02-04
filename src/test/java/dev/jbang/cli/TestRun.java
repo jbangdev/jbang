@@ -56,7 +56,6 @@ import org.xml.sax.SAXException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 
-import dev.jbang.AliasUtil;
 import dev.jbang.BaseTest;
 import dev.jbang.Cache;
 import dev.jbang.ExitException;
@@ -66,6 +65,7 @@ import dev.jbang.ScriptSource;
 import dev.jbang.Source;
 import dev.jbang.TrustedSources;
 import dev.jbang.Util;
+import dev.jbang.catalog.AliasUtil;
 
 import picocli.CommandLine;
 

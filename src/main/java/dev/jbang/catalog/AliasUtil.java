@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.catalog;
 
 import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
 import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
@@ -25,6 +25,9 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.annotations.SerializedName;
 
+import dev.jbang.ExitException;
+import dev.jbang.Settings;
+import dev.jbang.Util;
 import dev.jbang.dependencies.DependencyUtil;
 
 public class AliasUtil {
@@ -42,104 +45,6 @@ public class AliasUtil {
 														// branch
 
 	static final Map<Path, Catalog> catalogCache = new HashMap<>();
-
-	public static class Alias {
-		@SerializedName(value = "script-ref", alternate = { "scriptRef" })
-		public final String scriptRef;
-		public final String description;
-		public final List<String> arguments;
-		public final Map<String, String> properties;
-		public transient Catalog catalog;
-
-		public Alias(String scriptRef, String description, List<String> arguments, Map<String, String> properties,
-				Catalog catalog) {
-			this.scriptRef = scriptRef;
-			this.description = description;
-			this.arguments = arguments;
-			this.properties = properties;
-			this.catalog = catalog;
-		}
-
-		/**
-		 * This method returns the scriptRef of the Alias with all contextual modifiers
-		 * like baseRefs and current working directories applied.
-		 */
-		public String resolve(Path cwd) {
-			if (cwd == null) {
-				cwd = Util.getCwd();
-			}
-			String baseRef = catalog.getScriptBase();
-			String ref = scriptRef;
-			if (!isAbsoluteRef(ref)) {
-				ref = baseRef + "/" + ref;
-			}
-			if (!isRemoteRef(ref)) {
-				Path script = Paths.get(ref).normalize();
-				if (cwd.getRoot().equals(script.getRoot())) {
-					script = cwd.relativize(script);
-				} else {
-					script = script.toAbsolutePath();
-				}
-				ref = script.toString();
-			}
-			return ref;
-		}
-	}
-
-	public static class Catalog {
-		public Map<String, CatalogRef> catalogs = new HashMap<>();
-		public final Map<String, Alias> aliases = new HashMap<>();
-		@SerializedName(value = "base-ref", alternate = { "baseRef" })
-		public final String baseRef;
-		public final String description;
-		public transient Path catalogFile;
-
-		public Catalog(String baseRef, String description, Path catalogFile) {
-			this.baseRef = baseRef;
-			this.description = description;
-			this.catalogFile = catalogFile;
-		}
-
-		public Catalog(String baseRef, String description, Path catalogFile, Map<String, Alias> aliases) {
-			this.baseRef = baseRef;
-			this.description = description;
-			this.catalogFile = catalogFile;
-			aliases.entrySet().forEach(e -> {
-				Alias a = e.getValue();
-				this.aliases.put(e.getKey(), new Alias(a.scriptRef, a.description, a.arguments, a.properties, this));
-			});
-		}
-
-		/**
-		 * Returns in all cases the absolute base reference that can be used to resolve
-		 * an Alias' script location. The result will either be a URL or an absolute
-		 * path.
-		 * 
-		 * @return A string to be used as the base for Alias script locations
-		 */
-		public String getScriptBase() {
-			Path result;
-			if (baseRef != null) {
-				if (!isRemoteRef(baseRef)) {
-					Path base = Paths.get(baseRef);
-					if (!base.isAbsolute()) {
-						result = catalogFile.getParent().resolve(base);
-					} else {
-						result = Paths.get(baseRef);
-					}
-				} else {
-					if (baseRef.endsWith("/")) {
-						return baseRef.substring(0, baseRef.length() - 1);
-					} else {
-						return baseRef;
-					}
-				}
-			} else {
-				result = catalogFile.getParent();
-			}
-			return result.normalize().toString();
-		}
-	}
 
 	public static class CatalogRef {
 		@SerializedName(value = "catalog-ref", alternate = { "catalogRef" })
@@ -586,6 +491,10 @@ public class AliasUtil {
 		});
 	}
 
+	public static void clearCache() {
+		catalogCache.clear();
+	}
+
 	public static Catalog getCatalog(Path catalogPath, boolean updateCache) {
 		Catalog catalog;
 		if (updateCache || !catalogCache.containsKey(catalogPath)) {
@@ -745,11 +654,11 @@ public class AliasUtil {
 		return isValidName(parts[0]);
 	}
 
-	private static boolean isAbsoluteRef(String ref) {
+	static boolean isAbsoluteRef(String ref) {
 		return isRemoteRef(ref) || Paths.get(ref).isAbsolute();
 	}
 
-	private static boolean isRemoteRef(String ref) {
+	static boolean isRemoteRef(String ref) {
 		return ref.startsWith("http:") || ref.startsWith("https:") || DependencyUtil.looksLikeAGav(ref);
 	}
 

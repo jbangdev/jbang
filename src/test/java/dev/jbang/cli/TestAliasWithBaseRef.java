@@ -12,8 +12,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 
-import dev.jbang.AliasUtil;
 import dev.jbang.BaseTest;
+import dev.jbang.catalog.Alias;
+import dev.jbang.catalog.AliasUtil;
 
 public class TestAliasWithBaseRef extends BaseTest {
 
@@ -49,7 +50,7 @@ public class TestAliasWithBaseRef extends BaseTest {
 
 	@Test
 	void testGetAliasOne() throws IOException {
-		AliasUtil.Alias alias = AliasUtil.getAlias(cwd, "one", null, null);
+		Alias alias = AliasUtil.getAlias(cwd, "one", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("foo"));
 		assertThat(alias.resolve(cwd), equalTo("http://dummy/foo"));
@@ -57,7 +58,7 @@ public class TestAliasWithBaseRef extends BaseTest {
 
 	@Test
 	void testGetAliasTwo() throws IOException {
-		AliasUtil.Alias alias = AliasUtil.getAlias(cwd, "two", null, null);
+		Alias alias = AliasUtil.getAlias(cwd, "two", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("foo/bar.java"));
 		assertThat(alias.resolve(cwd), equalTo("http://dummy/foo/bar.java"));
@@ -65,7 +66,7 @@ public class TestAliasWithBaseRef extends BaseTest {
 
 	@Test
 	void testGetAliasThree() throws IOException {
-		AliasUtil.Alias alias = AliasUtil.getAlias(cwd, "three", null, null);
+		Alias alias = AliasUtil.getAlias(cwd, "three", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy/baz.java"));
 		assertThat(alias.resolve(cwd), equalTo("http://dummy/baz.java"));
@@ -73,7 +74,7 @@ public class TestAliasWithBaseRef extends BaseTest {
 
 	@Test
 	void testGetAliasGav() throws IOException {
-		AliasUtil.Alias alias = AliasUtil.getAlias(cwd, "gav", null, null);
+		Alias alias = AliasUtil.getAlias(cwd, "gav", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("org.example:artifact:version"));
 		assertThat(alias.resolve(cwd), equalTo("org.example:artifact:version"));

@@ -24,8 +24,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 
-import dev.jbang.AliasUtil;
 import dev.jbang.BaseTest;
+import dev.jbang.catalog.Alias;
+import dev.jbang.catalog.AliasUtil;
 
 import picocli.CommandLine;
 
@@ -99,7 +100,7 @@ public class TestAlias extends BaseTest {
 		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "--name=name", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), AliasUtil.JBANG_CATALOG_JSON)),
 				is(true));
-		AliasUtil.Alias name = AliasUtil.getAlias(tmpPath, "name");
+		Alias name = AliasUtil.getAlias(tmpPath, "name");
 		assertThat(name.scriptRef, is(testFile.toString()));
 	}
 
@@ -116,7 +117,7 @@ public class TestAlias extends BaseTest {
 		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "--name=name", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), AliasUtil.JBANG_CATALOG_JSON)),
 				is(true));
-		AliasUtil.Alias name = AliasUtil.getAlias(tmpPath, "name");
+		Alias name = AliasUtil.getAlias(tmpPath, "name");
 		assertThat(name.scriptRef, is(testFile.toString()));
 		assertThat(name.description, is("Description of the script inside the script"));
 	}
@@ -135,7 +136,7 @@ public class TestAlias extends BaseTest {
 				"-d", "Description of the script in arguments", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), AliasUtil.JBANG_CATALOG_JSON)),
 				is(true));
-		AliasUtil.Alias name = AliasUtil.getAlias(tmpPath, "name");
+		Alias name = AliasUtil.getAlias(tmpPath, "name");
 		assertThat(name.scriptRef, is(testFile.toString()));
 		// The argument has more precedance than the description tag in the script
 		assertThat(name.description, is("Description of the script in arguments"));
@@ -156,7 +157,7 @@ public class TestAlias extends BaseTest {
 		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "--name=name", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), AliasUtil.JBANG_CATALOG_JSON)),
 				is(true));
-		AliasUtil.Alias name = AliasUtil.getAlias(tmpPath, "name");
+		Alias name = AliasUtil.getAlias(tmpPath, "name");
 		assertThat(name.scriptRef, is(testFile.toString()));
 		assertThat(name.description,
 				is("Description first tag\ndescription second tag\ndescription third tag"));
@@ -174,7 +175,7 @@ public class TestAlias extends BaseTest {
 		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "--name=name", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), AliasUtil.JBANG_CATALOG_JSON)),
 				is(true));
-		AliasUtil.Alias name = AliasUtil.getAlias(tmpPath, "name");
+		Alias name = AliasUtil.getAlias(tmpPath, "name");
 		assertThat(name.scriptRef, is(testFile.toString()));
 		assertThat(name.description,
 				nullValue());
@@ -193,7 +194,7 @@ public class TestAlias extends BaseTest {
 		Jbang jbang = new Jbang();
 		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "--name=name", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), AliasUtil.JBANG_CATALOG_JSON)), is(false));
-		AliasUtil.Alias name = AliasUtil.getAlias(hiddenJbangPath, "name");
+		Alias name = AliasUtil.getAlias(hiddenJbangPath, "name");
 		assertThat(name.scriptRef, is(testFile.toString()));
 	}
 
@@ -204,21 +205,21 @@ public class TestAlias extends BaseTest {
 		Files.write(testFile, "// Test file".getBytes());
 		Jbang jbang = new Jbang();
 		new CommandLine(jbang).execute("alias", "add", "-f", jbangPath.toString(), "--name=name", testFile.toString());
-		AliasUtil.Alias one = AliasUtil.getAlias(jbangPath, "one");
-		AliasUtil.Alias name = AliasUtil.getAlias(jbangPath, "name");
+		Alias one = AliasUtil.getAlias(jbangPath, "one");
+		Alias name = AliasUtil.getAlias(jbangPath, "name");
 		assertThat(one.scriptRef, is("http://dummy"));
 		assertThat(name.scriptRef, is(testFile.toString()));
 	}
 
 	@Test
 	void testGetAliasNone() throws IOException {
-		AliasUtil.Alias alias = AliasUtil.getAlias(cwd, "dummy-alias!", null, null);
+		Alias alias = AliasUtil.getAlias(cwd, "dummy-alias!", null, null);
 		assertThat(alias, nullValue());
 	}
 
 	@Test
 	void testGetAliasOne() throws IOException {
-		AliasUtil.Alias alias = AliasUtil.getAlias(cwd, "one", null, null);
+		Alias alias = AliasUtil.getAlias(cwd, "one", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.resolve(cwd), equalTo("http://dummy"));
@@ -228,7 +229,7 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasOneWithArgs() throws IOException {
-		AliasUtil.Alias alias = AliasUtil.getAlias(cwd, "one", Collections.singletonList("X"),
+		Alias alias = AliasUtil.getAlias(cwd, "one", Collections.singletonList("X"),
 				Collections.singletonMap("foo", "bar"));
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
@@ -241,7 +242,7 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasTwo() throws IOException {
-		AliasUtil.Alias alias = AliasUtil.getAlias(cwd, "two", null, null);
+		Alias alias = AliasUtil.getAlias(cwd, "two", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.resolve(cwd), equalTo("http://dummy"));
@@ -253,7 +254,7 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasTwoAlt() throws IOException {
-		AliasUtil.Alias alias = AliasUtil.getAlias(cwd, "two", Collections.emptyList(), Collections.emptyMap());
+		Alias alias = AliasUtil.getAlias(cwd, "two", Collections.emptyList(), Collections.emptyMap());
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.resolve(cwd), equalTo("http://dummy"));
@@ -265,7 +266,7 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasTwoWithArgs() throws IOException {
-		AliasUtil.Alias alias = AliasUtil.getAlias(cwd, "two", Collections.singletonList("X"),
+		Alias alias = AliasUtil.getAlias(cwd, "two", Collections.singletonList("X"),
 				Collections.singletonMap("foo", "bar"));
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
@@ -278,7 +279,7 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasFour() throws IOException {
-		AliasUtil.Alias alias = AliasUtil.getAlias(cwd, "four", null, null);
+		Alias alias = AliasUtil.getAlias(cwd, "four", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.resolve(cwd), equalTo("http://dummy"));
@@ -290,7 +291,7 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasFourWithArgs() throws IOException {
-		AliasUtil.Alias alias = AliasUtil.getAlias(cwd, "four", Collections.singletonList("X"),
+		Alias alias = AliasUtil.getAlias(cwd, "four", Collections.singletonList("X"),
 				Collections.singletonMap("foo", "bar"));
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
@@ -303,7 +304,7 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasFive() throws IOException {
-		AliasUtil.Alias alias = AliasUtil.getAlias(cwd, "five", null, null);
+		Alias alias = AliasUtil.getAlias(cwd, "five", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.resolve(cwd), equalTo("http://dummy"));
@@ -315,7 +316,7 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasFiveWithArgs() throws IOException {
-		AliasUtil.Alias alias = AliasUtil.getAlias(cwd, "five", Collections.singletonList("X"),
+		Alias alias = AliasUtil.getAlias(cwd, "five", Collections.singletonList("X"),
 				Collections.singletonMap("foo", "bar"));
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
@@ -328,7 +329,7 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasGav() throws IOException {
-		AliasUtil.Alias alias = AliasUtil.getAlias(cwd, "gav", null, null);
+		Alias alias = AliasUtil.getAlias(cwd, "gav", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("org.example:artifact:version"));
 		assertThat(alias.resolve(cwd), equalTo("org.example:artifact:version"));

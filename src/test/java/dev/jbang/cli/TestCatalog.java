@@ -13,8 +13,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 
-import dev.jbang.AliasUtil;
 import dev.jbang.BaseTest;
+import dev.jbang.catalog.Alias;
+import dev.jbang.catalog.AliasUtil;
 
 import picocli.CommandLine;
 
@@ -72,7 +73,7 @@ public class TestCatalog extends BaseTest {
 
 	@Test
 	void testGetAlias() throws IOException {
-		AliasUtil.Alias alias = AliasUtil.getAlias(null, "one@test", null, null);
+		Alias alias = AliasUtil.getAlias(null, "one@test", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 	}

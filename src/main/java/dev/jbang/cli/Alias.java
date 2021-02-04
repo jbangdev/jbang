@@ -7,11 +7,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import dev.jbang.AliasUtil;
 import dev.jbang.RunContext;
 import dev.jbang.Settings;
 import dev.jbang.Source;
 import dev.jbang.Util;
+import dev.jbang.catalog.AliasUtil;
+import dev.jbang.catalog.Catalog;
 
 import picocli.CommandLine;
 
@@ -109,7 +110,7 @@ class AliasList extends BaseAliasCommand {
 	@Override
 	public Integer doCall() {
 		PrintStream out = System.out;
-		AliasUtil.Catalog catalog;
+		Catalog catalog;
 		Path cat = getCatalog(true);
 		if (catalogName != null) {
 			catalog = AliasUtil.getCatalogByName(null, catalogName, false);
@@ -126,7 +127,7 @@ class AliasList extends BaseAliasCommand {
 		return EXIT_OK;
 	}
 
-	static void printAliases(PrintStream out, String catalogName, AliasUtil.Catalog catalog) {
+	static void printAliases(PrintStream out, String catalogName, Catalog catalog) {
 		catalog.aliases
 						.keySet()
 						.stream()
@@ -134,21 +135,22 @@ class AliasList extends BaseAliasCommand {
 						.forEach(name -> printAlias(out, catalogName, catalog, name, 0));
 	}
 
-	static void printAliasesWithOrigin(PrintStream out, String catalogName, AliasUtil.Catalog catalog) {
-		Map<Path, List<Map.Entry<String, AliasUtil.Alias>>> groups = catalog.aliases
-																					.entrySet()
-																					.stream()
-																					.collect(Collectors.groupingBy(
-																							e -> e.getValue().catalog.catalogFile));
+	static void printAliasesWithOrigin(PrintStream out, String catalogName, Catalog catalog) {
+		Map<Path, List<Map.Entry<String, dev.jbang.catalog.Alias>>> groups = catalog.aliases
+																							.entrySet()
+																							.stream()
+																							.collect(
+																									Collectors.groupingBy(
+																											e -> e.getValue().catalog.catalogFile));
 		groups.forEach((p, entries) -> {
 			out.println(p);
 			entries.stream().map(Map.Entry::getKey).sorted().forEach(k -> printAlias(out, catalogName, catalog, k, 3));
 		});
 	}
 
-	private static void printAlias(PrintStream out, String catalogName, AliasUtil.Catalog catalog, String name,
+	private static void printAlias(PrintStream out, String catalogName, Catalog catalog, String name,
 			int indent) {
-		AliasUtil.Alias alias = catalog.aliases.get(name);
+		dev.jbang.catalog.Alias alias = catalog.aliases.get(name);
 		String fullName = catalogName != null ? name + "@" + catalogName : name;
 		String scriptRef = alias.scriptRef;
 		if (!catalog.aliases.containsKey(scriptRef)
