@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.build;
 
 import static dev.jbang.util.Util.writeString;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -24,9 +24,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import dev.jbang.build.RunContext;
-import dev.jbang.build.ScriptSource;
-import dev.jbang.build.Source;
+import dev.jbang.BaseTest;
 import dev.jbang.net.TrustedSources;
 
 public class TestScript extends BaseTest {

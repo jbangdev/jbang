@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.dependencies;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -8,12 +8,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Test;
 
-import dev.jbang.dependencies.ArtifactInfo;
-import dev.jbang.dependencies.DependencyCache;
-import dev.jbang.dependencies.DependencyUtil;
-import dev.jbang.dependencies.ModularClassPath;
+import dev.jbang.BaseTest;
+import dev.jbang.Settings;
 
 public class TestArtifactInfo extends BaseTest {
 
@@ -31,7 +30,7 @@ public class TestArtifactInfo extends BaseTest {
 
 		DependencyCache.cache("wonka", classpath.getArtifacts());
 
-		assertThat(Settings.getCacheDependencyFile().toFile(), aFileWithSize(greaterThan(10L)));
+		MatcherAssert.assertThat(Settings.getCacheDependencyFile().toFile(), aFileWithSize(greaterThan(10L)));
 
 		List<ArtifactInfo> wonka = DependencyCache.findDependenciesByHash("wonka");
 

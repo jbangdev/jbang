@@ -178,7 +178,7 @@ public class TrustedSources {
 		return array;
 	}
 
-	public String getJSon(Collection<String> rules) {
+	protected String getJSon(Collection<String> rules) {
 
 		rules = rules	.stream()
 						.map(s -> new JsonPrimitive(s).toString())

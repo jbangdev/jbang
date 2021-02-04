@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.build;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -9,8 +9,7 @@ import java.util.TreeSet;
 
 import org.junit.jupiter.api.Test;
 
-import dev.jbang.build.ResourceRef;
-import dev.jbang.build.ScriptSource;
+import dev.jbang.BaseTest;
 
 class TestSourcesRecursivelyMultipleFiles extends BaseTest {
 

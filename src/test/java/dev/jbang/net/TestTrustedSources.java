@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.net;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -14,7 +14,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import com.google.gson.Gson;
 
-import dev.jbang.net.TrustedSources;
+import dev.jbang.BaseTest;
 
 public class TestTrustedSources extends BaseTest {
 

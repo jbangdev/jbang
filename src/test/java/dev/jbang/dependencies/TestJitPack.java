@@ -1,10 +1,10 @@
-package dev.jbang;
+package dev.jbang.dependencies;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import dev.jbang.dependencies.JitPackUtil;
+import dev.jbang.BaseTest;
 
 public class TestJitPack extends BaseTest {
 

@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.net;
 
 import static org.hamcrest.Matchers.arrayContaining;
 import static org.hamcrest.Matchers.arrayWithSize;
@@ -14,7 +14,7 @@ import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import dev.jbang.net.TrustedSources;
+import dev.jbang.BaseTest;
 
 public class TestTrustEdit extends BaseTest {
 

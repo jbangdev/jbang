@@ -1,6 +1,6 @@
 package dev.jbang.cli;
 
-import static dev.jbang.TestUtil.clearSettingsCaches;
+import static dev.jbang.util.TestUtil.clearSettingsCaches;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.aMapWithSize;
 import static org.hamcrest.Matchers.contains;

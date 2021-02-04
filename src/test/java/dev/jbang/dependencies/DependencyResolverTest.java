@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.dependencies;
 
 import static dev.jbang.dependencies.DependencyUtil.toMavenRepo;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -20,10 +20,8 @@ import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import dev.jbang.dependencies.ArtifactInfo;
-import dev.jbang.dependencies.DependencyUtil;
-import dev.jbang.dependencies.Detector;
-import dev.jbang.dependencies.ModularClassPath;
+import dev.jbang.BaseTest;
+import dev.jbang.Settings;
 import dev.jbang.util.PropertiesValueResolver;
 import dev.jbang.util.Util;
 
