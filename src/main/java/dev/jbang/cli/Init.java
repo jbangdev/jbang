@@ -8,7 +8,7 @@ import java.util.Random;
 
 import javax.lang.model.SourceVersion;
 
-import dev.jbang.TemplateEngine;
+import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
 
 import io.quarkus.qute.Template;

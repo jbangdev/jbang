@@ -19,8 +19,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonPrimitive;
 
 import dev.jbang.Settings;
-import dev.jbang.TemplateEngine;
 import dev.jbang.cli.ExitException;
+import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
 
 import io.quarkus.qute.Template;

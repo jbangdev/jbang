@@ -27,7 +27,6 @@ import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
 import org.jboss.jandex.Type;
 
-import dev.jbang.TemplateEngine;
 import dev.jbang.net.JdkManager;
 import dev.jbang.source.JarSource;
 import dev.jbang.source.RunContext;
@@ -37,6 +36,7 @@ import dev.jbang.spi.IntegrationManager;
 import dev.jbang.spi.IntegrationResult;
 import dev.jbang.util.JarUtil;
 import dev.jbang.util.JavaUtil;
+import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
 
 import io.quarkus.qute.Template;
