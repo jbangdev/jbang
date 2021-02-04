@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;

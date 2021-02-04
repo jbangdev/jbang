@@ -21,12 +21,10 @@ import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.MavenFormatStage;
 import org.jboss.shrinkwrap.resolver.api.maven.MavenResolvedArtifact;
 import org.jboss.shrinkwrap.resolver.api.maven.MavenStrategyStage;
-import org.jboss.shrinkwrap.resolver.api.maven.MavenWorkingSession;
 import org.jboss.shrinkwrap.resolver.api.maven.PackagingType;
 import org.jboss.shrinkwrap.resolver.api.maven.PomEquippedResolveStage;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinates;
-import org.jboss.shrinkwrap.resolver.impl.maven.MavenWorkingSessionContainer;
 
 public class DependencyUtil {
 
@@ -137,10 +135,7 @@ public class DependencyUtil {
 			mavenRepo.apply(resolver);
 		});
 
-		MavenWorkingSession xyz = ((MavenWorkingSessionContainer) resolver).getMavenWorkingSession();
 		System.setProperty("maven.repo.local", Settings.getLocalMavenRepo().toPath().toAbsolutePath().toString());
-
-		List<MavenCoordinate> deps = depIds.stream().map(this::depIdToArtifact).collect(Collectors.toList());
 
 		PomEquippedResolveStage pomResolve = null;
 

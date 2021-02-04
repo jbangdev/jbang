@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import dev.jbang.cli.BaseCommand;
+import dev.jbang.util.PropertiesValueResolver;
 
 /**
  * A Script represents a Source (something runnable) in the form of a source
@@ -79,7 +80,7 @@ public class ScriptSource implements Source {
 		return resourceRef;
 	}
 
-	List<String> getLines() {
+	public List<String> getLines() {
 		if (lines == null && script != null) {
 			lines = Arrays.asList(script.split("\\r?\\n"));
 		}

@@ -20,6 +20,8 @@ import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import dev.jbang.util.PropertiesValueResolver;
+
 class DependencyResolverTest extends BaseTest {
 
 	@Test

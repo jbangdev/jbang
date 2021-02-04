@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.spi;
 
 import java.nio.file.Path;
 import java.util.List;

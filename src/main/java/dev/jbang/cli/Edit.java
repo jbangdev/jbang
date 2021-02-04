@@ -23,7 +23,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import dev.jbang.Cache;
-import dev.jbang.ConsoleInput;
 import dev.jbang.DependencyUtil;
 import dev.jbang.EditorManager;
 import dev.jbang.ExitException;
@@ -33,9 +32,9 @@ import dev.jbang.RunContext;
 import dev.jbang.ScriptSource;
 import dev.jbang.Settings;
 import dev.jbang.Source;
-import dev.jbang.StrictParameterPreprocessor;
 import dev.jbang.TemplateEngine;
 import dev.jbang.Util;
+import dev.jbang.util.ConsoleInput;
 
 import io.quarkus.qute.Template;
 import picocli.CommandLine;

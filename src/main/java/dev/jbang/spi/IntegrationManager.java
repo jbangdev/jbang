@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.spi;
 
 import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 
@@ -24,6 +24,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import dev.jbang.ArtifactInfo;
+import dev.jbang.ExitException;
+import dev.jbang.MavenRepo;
+import dev.jbang.ScriptSource;
+import dev.jbang.Util;
 
 /**
  * JBang uses a 'convention based interface' for build time integration.

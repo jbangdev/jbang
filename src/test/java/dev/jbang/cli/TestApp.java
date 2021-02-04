@@ -220,7 +220,7 @@ public class TestApp extends BaseTest {
 	@Test
 	void testAppInstallInvalidName() throws IOException {
 		try {
-			ExecutionResult result = checkedRun(null, "app", "install", "--name=invalid>name", "def/not/existing/file");
+			checkedRun(null, "app", "install", "--name=invalid>name", "def/not/existing/file");
 			Assert.fail();
 		} catch (IllegalArgumentException e) {
 			assertThat(e.getMessage(), containsString("Not a valid command name"));
@@ -230,7 +230,7 @@ public class TestApp extends BaseTest {
 	@Test
 	void testAppInstallInvalidRef() throws IOException {
 		try {
-			ExecutionResult result = checkedRun(null, "app", "install", "def/not/existing/file");
+			checkedRun(null, "app", "install", "def/not/existing/file");
 			Assert.fail();
 		} catch (ExitException e) {
 			assertThat(e.getMessage(), containsString("Could not read script argument"));
