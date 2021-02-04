@@ -9,6 +9,9 @@ import java.util.TreeSet;
 
 import org.junit.jupiter.api.Test;
 
+import dev.jbang.build.ResourceRef;
+import dev.jbang.build.ScriptSource;
+
 class TestSourcesRecursivelyMultipleFiles extends BaseTest {
 
 	String classA = "//SOURCES person/B.java\n"

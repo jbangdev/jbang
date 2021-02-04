@@ -17,10 +17,10 @@ import org.apache.commons.text.StringEscapeUtils;
 
 import dev.jbang.ExitException;
 import dev.jbang.JavaUtil;
-import dev.jbang.RunContext;
 import dev.jbang.Settings;
-import dev.jbang.Source;
 import dev.jbang.Util;
+import dev.jbang.build.RunContext;
+import dev.jbang.build.Source;
 
 import picocli.CommandLine;
 

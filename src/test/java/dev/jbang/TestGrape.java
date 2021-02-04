@@ -9,6 +9,9 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import dev.jbang.build.RunContext;
+import dev.jbang.build.Source;
+
 public class TestGrape extends BaseTest {
 
 	@Test

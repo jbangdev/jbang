@@ -15,9 +15,9 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 import dev.jbang.ExitException;
-import dev.jbang.RunContext;
-import dev.jbang.Source;
 import dev.jbang.Util;
+import dev.jbang.build.RunContext;
+import dev.jbang.build.Source;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;

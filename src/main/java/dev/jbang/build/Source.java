@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.build;
 
 import java.io.File;
 import java.util.Collections;
@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
+import dev.jbang.ExitException;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.AliasUtil;
 import dev.jbang.cli.BaseCommand;

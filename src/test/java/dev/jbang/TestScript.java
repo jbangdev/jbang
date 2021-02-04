@@ -24,6 +24,9 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import dev.jbang.build.RunContext;
+import dev.jbang.build.ScriptSource;
+import dev.jbang.build.Source;
 import dev.jbang.net.TrustedSources;
 
 public class TestScript extends BaseTest {

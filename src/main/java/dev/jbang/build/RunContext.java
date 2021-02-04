@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.build;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -9,6 +9,7 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import dev.jbang.Settings;
 import dev.jbang.catalog.Alias;
 import dev.jbang.dependencies.ModularClassPath;
 

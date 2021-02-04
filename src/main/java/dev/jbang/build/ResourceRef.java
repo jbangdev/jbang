@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.build;
 
 import static dev.jbang.Util.swizzleURL;
 
@@ -16,6 +16,10 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import dev.jbang.Cache;
+import dev.jbang.ExitException;
+import dev.jbang.Settings;
+import dev.jbang.Util;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.net.TrustedSources;

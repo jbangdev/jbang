@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.build;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,6 +11,8 @@ import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import dev.jbang.JavaUtil;
+import dev.jbang.Util;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.ModularClassPath;

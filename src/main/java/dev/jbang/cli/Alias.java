@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import dev.jbang.RunContext;
 import dev.jbang.Settings;
-import dev.jbang.Source;
 import dev.jbang.Util;
+import dev.jbang.build.RunContext;
+import dev.jbang.build.Source;
 import dev.jbang.catalog.AliasUtil;
 import dev.jbang.catalog.Catalog;
 

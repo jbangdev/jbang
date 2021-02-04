@@ -7,6 +7,8 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 
+import dev.jbang.build.ScriptSource;
+
 /**
  * Both class A and person.B have //SOURCES model/C.java
  */

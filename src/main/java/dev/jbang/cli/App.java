@@ -18,10 +18,10 @@ import java.util.stream.Collectors;
 
 import dev.jbang.Cache;
 import dev.jbang.ExitException;
-import dev.jbang.RunContext;
 import dev.jbang.Settings;
-import dev.jbang.Source;
 import dev.jbang.Util;
+import dev.jbang.build.RunContext;
+import dev.jbang.build.Source;
 import dev.jbang.net.JdkManager;
 import dev.jbang.util.UnpackUtil;
 

@@ -28,13 +28,13 @@ import org.jboss.jandex.Indexer;
 import org.jboss.jandex.Type;
 
 import dev.jbang.ExitException;
-import dev.jbang.JarSource;
 import dev.jbang.JavaUtil;
-import dev.jbang.RunContext;
-import dev.jbang.ScriptSource;
-import dev.jbang.Source;
 import dev.jbang.TemplateEngine;
 import dev.jbang.Util;
+import dev.jbang.build.JarSource;
+import dev.jbang.build.RunContext;
+import dev.jbang.build.ScriptSource;
+import dev.jbang.build.Source;
 import dev.jbang.net.JdkManager;
 import dev.jbang.spi.IntegrationManager;
 import dev.jbang.spi.IntegrationResult;

@@ -7,6 +7,8 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 
+import dev.jbang.build.ScriptSource;
+
 public class TestSourcesMutualDependency extends BaseTest {
 
 	String classMain = "//SOURCES A.java\n"

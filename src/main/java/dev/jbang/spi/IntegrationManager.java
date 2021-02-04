@@ -26,8 +26,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import dev.jbang.ExitException;
-import dev.jbang.ScriptSource;
 import dev.jbang.Util;
+import dev.jbang.build.ScriptSource;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenRepo;
 

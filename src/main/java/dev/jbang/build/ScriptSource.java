@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.build;
 
 import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 
@@ -28,6 +28,11 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import dev.jbang.Cache;
+import dev.jbang.ExitException;
+import dev.jbang.JavaUtil;
+import dev.jbang.Settings;
+import dev.jbang.Util;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.Detector;

@@ -59,11 +59,11 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import dev.jbang.BaseTest;
 import dev.jbang.Cache;
 import dev.jbang.ExitException;
-import dev.jbang.JarSource;
-import dev.jbang.RunContext;
-import dev.jbang.ScriptSource;
-import dev.jbang.Source;
 import dev.jbang.Util;
+import dev.jbang.build.JarSource;
+import dev.jbang.build.RunContext;
+import dev.jbang.build.ScriptSource;
+import dev.jbang.build.Source;
 import dev.jbang.catalog.AliasUtil;
 import dev.jbang.net.TrustedSources;
 
