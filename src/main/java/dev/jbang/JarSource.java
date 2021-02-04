@@ -11,6 +11,10 @@ import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import dev.jbang.dependencies.ArtifactInfo;
+import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.dependencies.ModularClassPath;
+
 /**
  * A Jar represents a Source (something runnable) in the form of a JAR file.
  * It's a reference to an already existing JAR file, either as a solitary file

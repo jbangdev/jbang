@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.dependencies;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
 import static dev.jbang.Util.errorMsg;
@@ -25,6 +25,9 @@ import org.jboss.shrinkwrap.resolver.api.maven.PackagingType;
 import org.jboss.shrinkwrap.resolver.api.maven.PomEquippedResolveStage;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinates;
+
+import dev.jbang.ExitException;
+import dev.jbang.Settings;
 
 public class DependencyUtil {
 

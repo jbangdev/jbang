@@ -10,6 +10,11 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import dev.jbang.dependencies.ArtifactInfo;
+import dev.jbang.dependencies.DependencyCache;
+import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.dependencies.ModularClassPath;
+
 public class TestArtifactInfo extends BaseTest {
 
 	@Test

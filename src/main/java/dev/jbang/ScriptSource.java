@@ -29,6 +29,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import dev.jbang.cli.BaseCommand;
+import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.dependencies.Detector;
+import dev.jbang.dependencies.MavenRepo;
+import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.util.PropertiesValueResolver;
 
 /**

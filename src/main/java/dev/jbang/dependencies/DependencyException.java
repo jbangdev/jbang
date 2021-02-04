@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.dependencies;
 
 @SuppressWarnings("serial")
 public class DependencyException extends RuntimeException {

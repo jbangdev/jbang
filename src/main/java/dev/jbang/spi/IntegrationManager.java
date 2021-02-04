@@ -25,11 +25,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import dev.jbang.ArtifactInfo;
 import dev.jbang.ExitException;
-import dev.jbang.MavenRepo;
 import dev.jbang.ScriptSource;
 import dev.jbang.Util;
+import dev.jbang.dependencies.ArtifactInfo;
+import dev.jbang.dependencies.MavenRepo;
 
 /**
  * JBang uses a 'convention based interface' for build time integration.

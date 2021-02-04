@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.dependencies;
 
 import java.io.File;
 import java.util.Objects;

@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
+import dev.jbang.dependencies.JitPackUtil;
+
 public class TestJitPack extends BaseTest {
 
 	@Test

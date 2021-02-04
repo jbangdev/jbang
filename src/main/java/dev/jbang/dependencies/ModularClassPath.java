@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.dependencies;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
 
@@ -19,6 +19,9 @@ import org.codehaus.plexus.languages.java.jpms.JavaModuleDescriptor;
 import org.codehaus.plexus.languages.java.jpms.LocationManager;
 import org.codehaus.plexus.languages.java.jpms.ResolvePathsRequest;
 import org.codehaus.plexus.languages.java.jpms.ResolvePathsResult;
+
+import dev.jbang.JavaUtil;
+import dev.jbang.Util;
 
 public class ModularClassPath {
 
@@ -65,7 +68,7 @@ public class ModularClassPath {
 		return javafx.get();
 	}
 
-	List<String> getAutoDectectedModuleArguments(String requestedVersion) {
+	public List<String> getAutoDectectedModuleArguments(String requestedVersion) {
 		if (hasJavaFX() && supportsModules(requestedVersion)) {
 			List<String> commandArguments = new ArrayList<>();
 

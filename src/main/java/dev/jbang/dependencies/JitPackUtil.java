@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.dependencies;
 
 import java.net.MalformedURLException;
 import java.net.URL;

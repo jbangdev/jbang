@@ -25,6 +25,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.annotations.SerializedName;
 
+import dev.jbang.dependencies.DependencyUtil;
+
 public class AliasUtil {
 	public static final String JBANG_CATALOG_JSON = "jbang-catalog.json";
 	public static final String JBANG_IMPLICIT_CATALOG_JSON = "implicit-catalog.json";

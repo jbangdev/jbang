@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.dependencies;
 
 import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem;
 

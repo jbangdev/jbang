@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 import dev.jbang.cli.BaseCommand;
+import dev.jbang.dependencies.ModularClassPath;
 
 /**
  * A Source is an interface for classes representing different inputs (sources)

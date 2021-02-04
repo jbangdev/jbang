@@ -9,6 +9,8 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import dev.jbang.dependencies.ModularClassPath;
+
 /**
  * This class contains all the extra information needed to actually run a
  * Source. These are either options given by the user on the command line or

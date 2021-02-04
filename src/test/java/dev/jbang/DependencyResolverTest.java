@@ -1,6 +1,6 @@
 package dev.jbang;
 
-import static dev.jbang.DependencyUtil.toMavenRepo;
+import static dev.jbang.dependencies.DependencyUtil.toMavenRepo;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
@@ -20,6 +20,10 @@ import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import dev.jbang.dependencies.ArtifactInfo;
+import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.dependencies.Detector;
+import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.util.PropertiesValueResolver;
 
 class DependencyResolverTest extends BaseTest {
@@ -80,7 +84,7 @@ class DependencyResolverTest extends BaseTest {
 
 	@Test
 	void testdepIdWithPlaceHoldersToArtifact() {
-		dev.jbang.Detector detector = new dev.jbang.Detector();
+		Detector detector = new Detector();
 		detector.detect(new Properties(), Collections.emptyList());
 
 		String gav = PropertiesValueResolver.replaceProperties(
@@ -97,7 +101,7 @@ class DependencyResolverTest extends BaseTest {
 	@Test
 	void testResolveJavaFXWithAether() {
 
-		dev.jbang.Detector detector = new dev.jbang.Detector();
+		Detector detector = new Detector();
 		detector.detect(new Properties(), Collections.emptyList());
 
 		DependencyUtil dr = new DependencyUtil();
@@ -175,7 +179,7 @@ class DependencyResolverTest extends BaseTest {
 	@Test
 	void testResolveNativeDependencies() {
 
-		dev.jbang.Detector detector = new dev.jbang.Detector();
+		Detector detector = new Detector();
 		detector.detect(new Properties(), Collections.emptyList());
 
 		DependencyUtil dr = new DependencyUtil();
