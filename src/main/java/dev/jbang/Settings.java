@@ -1,12 +1,8 @@
 package dev.jbang;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import io.quarkus.qute.Template;
 
 public class Settings {
 	public static final String JBANG_REPO = "JBANG_REPO";
@@ -24,8 +20,6 @@ public class Settings {
 	public static final int DEFAULT_JAVA_VERSION = 11;
 
 	final public static String CP_SEPARATOR = File.pathSeparator;
-
-	private static TrustedSources trustedSources;
 
 	public static File getLocalMavenRepo() {
 		return new File(System.getenv().getOrDefault(JBANG_REPO, System.getProperty("user.home") + "/.m2/repository"))
@@ -82,7 +76,7 @@ public class Settings {
 		}
 
 		if (init)
-			setupCache(dir);
+			Cache.setupCache(dir);
 
 		return dir;
 	}
@@ -91,13 +85,8 @@ public class Settings {
 		return getCacheDir(true);
 	}
 
-	public static Path getCacheDir(CacheClass cclass) {
+	public static Path getCacheDir(Cache.CacheClass cclass) {
 		return getCacheDir().resolve(cclass.name());
-	}
-
-	private static void setupCache(Path dir) {
-		// create cache dir if it does not yet exist
-		dir.toFile().mkdirs();
 	}
 
 	public static int getDefaultJavaVersion() {
@@ -110,81 +99,6 @@ public class Settings {
 
 	public static Path getTrustedSourcesFile() {
 		return getConfigDir().resolve(TRUSTED_SOURCES_JSON);
-	}
-
-	void createTrustedSources() {
-		Path trustedSourcesFile = getTrustedSourcesFile();
-		if (Files.notExists(trustedSourcesFile)) {
-			String templateName = "trusted-sources.qute";
-			Template template = Settings.getTemplateEngine().getTemplate(templateName);
-			if (template == null)
-				throw new ExitException(1, "Could not locate template named: '" + templateName + "'");
-			String result = template.render();
-
-			try {
-				Util.writeString(trustedSourcesFile, result);
-			} catch (IOException e) {
-				Util.errorMsg("Could not create initial trusted-sources file at " + trustedSourcesFile, e);
-			}
-
-		}
-	}
-
-	public static TrustedSources getTrustedSources() {
-		if (trustedSources == null) {
-			Path trustedSourcesFile = getTrustedSourcesFile();
-			if (Files.isRegularFile(trustedSourcesFile)) {
-				try {
-					trustedSources = TrustedSources.load(trustedSourcesFile);
-				} catch (IOException e) {
-					Util.warnMsg("Could not read " + trustedSourcesFile);
-					trustedSources = new TrustedSources(new String[0]);
-				}
-			} else {
-				trustedSources = new TrustedSources(new String[0]);
-			}
-		}
-		return trustedSources;
-	}
-
-	public enum CacheClass {
-		urls, jars, jdks, projects, scripts, stdins, deps
-	}
-
-	public static void clearCache(CacheClass... classes) {
-		CacheClass[] ccs = classes;
-		for (CacheClass cc : ccs) {
-			Util.infoMsg("Clearing cache for " + cc.name());
-			if (cc == CacheClass.jdks && Util.isWindows() && JdkManager.isCurrentJdkManaged()) {
-				// We're running using a managed JDK on Windows so we can't just delete the
-				// entire folder!
-				for (Integer v : JdkManager.listInstalledJdks()) {
-					JdkManager.uninstallJdk(v);
-				}
-			}
-			if (cc == CacheClass.deps) {
-				try {
-					if (getCacheDependencyFile().toFile().exists()) {
-						Util.verboseMsg("Deleting file " + getCacheDependencyFile());
-						Files.deleteIfExists(getCacheDependencyFile().toAbsolutePath());
-					}
-				} catch (IOException io) {
-					throw new ExitException(-1,
-							"Could not delete dependency cache " + getCacheDependencyFile().toString(), io);
-				}
-			} else {
-				Util.deletePath(getCacheDir(cc), true);
-			}
-		}
-	}
-
-	static TemplateEngine te;
-
-	public static TemplateEngine getTemplateEngine() {
-		if (te == null) {
-			te = new TemplateEngine();
-		}
-		return te;
 	}
 
 	public static Path getUserCatalogFile() {

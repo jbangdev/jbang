@@ -9,7 +9,7 @@ import java.util.Random;
 import javax.lang.model.SourceVersion;
 
 import dev.jbang.ExitException;
-import dev.jbang.Settings;
+import dev.jbang.TemplateEngine;
 import dev.jbang.Util;
 
 import io.quarkus.qute.Template;
@@ -53,7 +53,7 @@ public class Init extends BaseScriptCommand {
 	}
 
 	String renderInitClass(File f, String template) {
-		Template helloTemplate = Settings.getTemplateEngine().getTemplate("init-" + template + ".java.qute");
+		Template helloTemplate = TemplateEngine.instance().getTemplate("init-" + template + ".java.qute");
 
 		if (helloTemplate == null) {
 			throw new ExitException(1, "Could not find init template named: " + template);

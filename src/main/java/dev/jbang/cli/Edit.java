@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import dev.jbang.Cache;
 import dev.jbang.ConsoleInput;
 import dev.jbang.DependencyUtil;
 import dev.jbang.EditorManager;
@@ -212,7 +213,7 @@ public class Edit extends BaseScriptDepsCommand {
 		String cp = ctx.resolveClassPath(src, offline);
 		List<String> resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 
-		File baseDir = Settings.getCacheDir(Settings.CacheClass.projects).toFile();
+		File baseDir = Settings.getCacheDir(Cache.CacheClass.projects).toFile();
 
 		String name = originalFile.getName();
 		name = Util.unkebabify(name);
@@ -254,7 +255,7 @@ public class Edit extends BaseScriptDepsCommand {
 		}
 		String templateName = "build.qute.gradle";
 		Path destination = new File(tmpProjectDir, "build.gradle").toPath();
-		TemplateEngine engine = Settings.getTemplateEngine();
+		TemplateEngine engine = TemplateEngine.instance();
 
 		// both collectDependencies and repositories are manipulated by
 		// resolveDependencies

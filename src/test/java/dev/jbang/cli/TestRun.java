@@ -58,12 +58,13 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 
 import dev.jbang.AliasUtil;
 import dev.jbang.BaseTest;
+import dev.jbang.Cache;
 import dev.jbang.ExitException;
 import dev.jbang.JarSource;
 import dev.jbang.RunContext;
 import dev.jbang.ScriptSource;
-import dev.jbang.Settings;
 import dev.jbang.Source;
+import dev.jbang.TrustedSources;
 import dev.jbang.Util;
 
 import picocli.CommandLine;
@@ -191,7 +192,7 @@ public class TestRun extends BaseTest {
 		String jar = "https://bintray.com/cardillo/maven/download_file?file_path=joinery%2Fjoinery-dataframe%2F1.9%2Fjoinery-dataframe-1.9-jar-with-dependencies.jar";
 
 		try {
-			Settings.getTrustedSources().add(jar, tdir.resolve("test.trust").toFile());
+			TrustedSources.instance().add(jar, tdir.resolve("test.trust").toFile());
 
 			environmentVariables.clear("JAVA_HOME");
 			Jbang jbang = new Jbang();
@@ -210,7 +211,7 @@ public class TestRun extends BaseTest {
 			assertThat(cmdline, not(containsString(".jar.java")));
 
 		} finally {
-			Settings.getTrustedSources().remove(Collections.singletonList(jar), tdir.resolve("test.trust").toFile());
+			TrustedSources.instance().remove(Collections.singletonList(jar), tdir.resolve("test.trust").toFile());
 		}
 	}
 
@@ -1099,7 +1100,7 @@ public class TestRun extends BaseTest {
 
 	@Test
 	void testMultiSources() throws IOException {
-		Settings.clearCache(Settings.CacheClass.jars);
+		Cache.clearCache(Cache.CacheClass.jars);
 		File f = new File(examplesTestFolder, "one.java");
 
 		Run m = new Run();

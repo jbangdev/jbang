@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import dev.jbang.Settings;
+import dev.jbang.TrustedSources;
 
 import picocli.CommandLine;
 
@@ -19,7 +20,7 @@ public class Trust {
 	@CommandLine.Command(name = "add", description = "Add trust domains.")
 	public Integer add(
 			@CommandLine.Parameters(index = "0", description = "Rules for trusted sources", arity = "1..*") List<String> rules) {
-		Settings.getTrustedSources().add(rules, Settings.getTrustedSourcesFile().toFile());
+		TrustedSources.instance().add(rules, Settings.getTrustedSourcesFile().toFile());
 		return EXIT_OK;
 	}
 
@@ -27,7 +28,7 @@ public class Trust {
 	public Integer list() {
 		int idx = 0;
 		PrintStream out = System.out;
-		for (String src : Settings.getTrustedSources().getTrustedSources()) {
+		for (String src : TrustedSources.instance().getTrustedSources()) {
 			out.println(++idx + " = " + src);
 		}
 		return EXIT_OK;
@@ -39,12 +40,12 @@ public class Trust {
 		List<String> newrules = rules	.stream()
 										.map(this::toDomain)
 										.collect(Collectors.toList());
-		Settings.getTrustedSources().remove(newrules, Settings.getTrustedSourcesFile().toFile());
+		TrustedSources.instance().remove(newrules, Settings.getTrustedSourcesFile().toFile());
 		return EXIT_OK;
 	}
 
 	private String toDomain(String src) {
-		String[] sources = Settings.getTrustedSources().getTrustedSources();
+		String[] sources = TrustedSources.instance().getTrustedSources();
 		try {
 			int idx = Integer.parseInt(src) - 1;
 			if (idx >= 0 && idx < sources.length) {

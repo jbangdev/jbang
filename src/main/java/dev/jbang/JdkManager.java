@@ -211,6 +211,6 @@ public class JdkManager {
 	}
 
 	private static Path getJdksPath() {
-		return Settings.getCacheDir(Settings.CacheClass.jdks);
+		return Settings.getCacheDir(Cache.CacheClass.jdks);
 	}
 }

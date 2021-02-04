@@ -38,8 +38,8 @@ import dev.jbang.JdkManager;
 import dev.jbang.KeyValue;
 import dev.jbang.RunContext;
 import dev.jbang.ScriptSource;
-import dev.jbang.Settings;
 import dev.jbang.Source;
+import dev.jbang.TemplateEngine;
 import dev.jbang.Util;
 
 import io.quarkus.qute.Template;
@@ -177,7 +177,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 			file.copy(tmpJarDir.toPath(), fresh);
 		}
 
-		Template pomTemplate = Settings.getTemplateEngine().getTemplate("pom.qute.xml");
+		Template pomTemplate = TemplateEngine.instance().getTemplate("pom.qute.xml");
 
 		Path pomPath = null;
 		if (pomTemplate == null) {
