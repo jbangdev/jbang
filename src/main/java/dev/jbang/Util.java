@@ -870,7 +870,7 @@ public class Util {
 
 	public static Path getUrlCache(String fileURL) {
 		String urlHash = getStableID(fileURL);
-		return Settings.getCacheDir(Settings.CacheClass.urls).resolve(urlHash);
+		return Settings.getCacheDir(Cache.CacheClass.urls).resolve(urlHash);
 	}
 
 	public static boolean hasMainMethod(String content) {

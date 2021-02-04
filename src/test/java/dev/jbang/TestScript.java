@@ -232,7 +232,7 @@ public class TestScript extends BaseTest {
 		File tempFile = temp.resolve("temptrust.json").toFile();
 
 		try {
-			Settings.getTrustedSources().add(url, tempFile);
+			TrustedSources.instance().add(url, tempFile);
 
 			ScriptSource src = (ScriptSource) Source.forResource(url, RunContext.empty());
 			assertEquals(2, src.getAllSources().size());
@@ -246,7 +246,7 @@ public class TestScript extends BaseTest {
 			}
 			assertTrue(foundtwo && foundt3);
 		} finally {
-			Settings.getTrustedSources().remove(Collections.singletonList(url), tempFile);
+			TrustedSources.instance().remove(Collections.singletonList(url), tempFile);
 		}
 	}
 

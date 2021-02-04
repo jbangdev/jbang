@@ -167,7 +167,7 @@ public class ResourceRef implements Comparable<ResourceRef> {
 				original = original.substring(original.indexOf("\n"));
 			}
 
-			File tempFile = Settings.getCacheDir(Settings.CacheClass.scripts)
+			File tempFile = Settings.getCacheDir(Cache.CacheClass.scripts)
 									.resolve(urlHash)
 									.resolve(Util.unkebabify(probe.getName()))
 									.toFile();
@@ -192,7 +192,7 @@ public class ResourceRef implements Comparable<ResourceRef> {
 																						System.lineSeparator()));
 
 			String urlHash = Util.getStableID(scriptText);
-			File cache = Settings.getCacheDir(Settings.CacheClass.stdins).resolve(urlHash).toFile();
+			File cache = Settings.getCacheDir(Cache.CacheClass.stdins).resolve(urlHash).toFile();
 			cache.mkdirs();
 			scriptFile = new File(cache, urlHash + ".jsh");
 			Util.writeString(scriptFile.toPath(), scriptText);
@@ -216,7 +216,7 @@ public class ResourceRef implements Comparable<ResourceRef> {
 			throws IOException, URISyntaxException {
 		java.net.URI uri = new java.net.URI(scriptURL);
 
-		if (!knownTrusted && !Settings.getTrustedSources().isURLTrusted(uri)) {
+		if (!knownTrusted && !TrustedSources.instance().isURLTrusted(uri)) {
 			String[] options = new String[] {
 					null,
 					goodTrustURL(scriptURL),
@@ -249,7 +249,7 @@ public class ResourceRef implements Comparable<ResourceRef> {
 			boolean abort = true;
 			try {
 				int result = Integer.parseInt(input);
-				TrustedSources ts = Settings.getTrustedSources();
+				TrustedSources ts = TrustedSources.instance();
 				if (result == 0) {
 					abort = false;
 				} else if (result == 1) {

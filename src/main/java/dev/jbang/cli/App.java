@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import dev.jbang.Cache;
 import dev.jbang.ExitException;
 import dev.jbang.JdkManager;
 import dev.jbang.RunContext;
@@ -225,7 +226,7 @@ class AppInstall extends BaseCommand {
 			// Download Jbang and unzip to ~/.jbang/bin/
 			Util.infoMsg("Downloading and installing jbang...");
 			Path zipFile = Util.downloadAndCacheFile(jbangUrl, force);
-			Path urlsDir = Settings.getCacheDir(Settings.CacheClass.urls);
+			Path urlsDir = Settings.getCacheDir(Cache.CacheClass.urls);
 			Util.deletePath(urlsDir.resolve("jbang"), true);
 			UnpackUtil.unpack(zipFile, urlsDir);
 			App.deleteCommandFiles("jbang");

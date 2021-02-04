@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
@@ -17,12 +18,16 @@ import java.util.stream.Collectors;
 import com.google.gson.Gson;
 import com.google.gson.JsonPrimitive;
 
+import io.quarkus.qute.Template;
+
 public class TrustedSources {
 
 	final static Pattern rLocalhost = Pattern.compile("(?i)^localhost(:\\d+)?$");
 	final static Pattern r127 = Pattern.compile("(?i)^127.0.0.1(:\\d+)?$");
 
 	private String[] trustedSources;
+
+	private static TrustedSources instance;
 
 	public TrustedSources(String[] trustedSources) {
 		this.trustedSources = trustedSources;
@@ -174,10 +179,10 @@ public class TrustedSources {
 						.map(s -> new JsonPrimitive(s).toString())
 						.collect(Collectors.toCollection(LinkedHashSet::new));
 
-		String trustedsources = Settings.getTemplateEngine()
-										.getTemplate("trusted-sources.json.qute")
-										.data("trustedsources", rules)
-										.render();
+		String trustedsources = TemplateEngine	.instance()
+												.getTemplate("trusted-sources.json.qute")
+												.data("trustedsources", rules)
+												.render();
 		return trustedsources;
 	}
 
@@ -225,5 +230,40 @@ public class TrustedSources {
 			throw new ExitException(2, "Error when writing to " + storage, e);
 		}
 		trustedSources = rules.toArray(new String[0]);
+	}
+
+	public static void createTrustedSources() {
+		Path trustedSourcesFile = Settings.getTrustedSourcesFile();
+		if (Files.notExists(trustedSourcesFile)) {
+			String templateName = "trusted-sources.qute";
+			Template template = TemplateEngine.instance().getTemplate(templateName);
+			if (template == null)
+				throw new ExitException(1, "Could not locate template named: '" + templateName + "'");
+			String result = template.render();
+
+			try {
+				Util.writeString(trustedSourcesFile, result);
+			} catch (IOException e) {
+				Util.errorMsg("Could not create initial trusted-sources file at " + trustedSourcesFile, e);
+			}
+
+		}
+	}
+
+	public static TrustedSources instance() {
+		if (instance == null) {
+			Path trustedSourcesFile = Settings.getTrustedSourcesFile();
+			if (Files.isRegularFile(trustedSourcesFile)) {
+				try {
+					instance = TrustedSources.load(trustedSourcesFile);
+				} catch (IOException e) {
+					Util.warnMsg("Could not read " + trustedSourcesFile);
+					instance = new TrustedSources(new String[0]);
+				}
+			} else {
+				instance = new TrustedSources(new String[0]);
+			}
+		}
+		return instance;
 	}
 }

@@ -6,8 +6,6 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Optional;
 
-import dev.jbang.Settings;
-
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "cache", description = "Manage compiled scripts in the local cache.")
@@ -29,11 +27,11 @@ public class Cache {
 			@CommandLine.Option(names = {
 					"--stdin" }, description = "clear stdin cache only", negatable = true) Boolean stdins,
 			@CommandLine.Option(names = { "--all" }, description = "clear all caches") boolean all) {
-		EnumSet<Settings.CacheClass> classes = EnumSet.noneOf(Settings.CacheClass.class);
+		EnumSet<dev.jbang.Cache.CacheClass> classes = EnumSet.noneOf(dev.jbang.Cache.CacheClass.class);
 
 		// if all we add everything
 		if (all) {
-			classes.addAll(Arrays.asList(Settings.CacheClass.values()));
+			classes.addAll(Arrays.asList(dev.jbang.Cache.CacheClass.values()));
 		} else if (urls == null
 				&& jars == null
 				&& jdks == null
@@ -42,28 +40,28 @@ public class Cache {
 				&& stdins == null
 				&& deps == null) {
 			// add the default (safe) set
-			classes.add(Settings.CacheClass.urls);
-			classes.add(Settings.CacheClass.jars);
-			classes.add(Settings.CacheClass.scripts);
-			classes.add(Settings.CacheClass.stdins);
-			classes.add(Settings.CacheClass.deps);
+			classes.add(dev.jbang.Cache.CacheClass.urls);
+			classes.add(dev.jbang.Cache.CacheClass.jars);
+			classes.add(dev.jbang.Cache.CacheClass.scripts);
+			classes.add(dev.jbang.Cache.CacheClass.stdins);
+			classes.add(dev.jbang.Cache.CacheClass.deps);
 		}
 
 		// we only toggle on or off those that are actually present
-		toggleCache(urls, Settings.CacheClass.urls, classes);
-		toggleCache(jars, Settings.CacheClass.jars, classes);
-		toggleCache(jdks, Settings.CacheClass.jdks, classes);
-		toggleCache(deps, Settings.CacheClass.deps, classes);
-		toggleCache(projects, Settings.CacheClass.projects, classes);
-		toggleCache(scripts, Settings.CacheClass.scripts, classes);
-		toggleCache(stdins, Settings.CacheClass.stdins, classes);
+		toggleCache(urls, dev.jbang.Cache.CacheClass.urls, classes);
+		toggleCache(jars, dev.jbang.Cache.CacheClass.jars, classes);
+		toggleCache(jdks, dev.jbang.Cache.CacheClass.jdks, classes);
+		toggleCache(deps, dev.jbang.Cache.CacheClass.deps, classes);
+		toggleCache(projects, dev.jbang.Cache.CacheClass.projects, classes);
+		toggleCache(scripts, dev.jbang.Cache.CacheClass.scripts, classes);
+		toggleCache(stdins, dev.jbang.Cache.CacheClass.stdins, classes);
 
-		Settings.CacheClass[] ccs = classes.toArray(new Settings.CacheClass[0]);
-		Settings.clearCache(ccs);
+		dev.jbang.Cache.CacheClass[] ccs = classes.toArray(new dev.jbang.Cache.CacheClass[0]);
+		dev.jbang.Cache.clearCache(ccs);
 		return EXIT_OK;
 	}
 
-	private void toggleCache(Boolean b, Settings.CacheClass cache, EnumSet<Settings.CacheClass> classes) {
+	private void toggleCache(Boolean b, dev.jbang.Cache.CacheClass cache, EnumSet<dev.jbang.Cache.CacheClass> classes) {
 		if (Optional.ofNullable(b).isPresent()) {
 			if (b) {
 				classes.add(cache);

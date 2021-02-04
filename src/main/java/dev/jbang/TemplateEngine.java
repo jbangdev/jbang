@@ -14,8 +14,9 @@ import io.quarkus.qute.TemplateLocator;
 import io.quarkus.qute.Variant;
 
 public class TemplateEngine {
-
 	final Engine engine;
+
+	static TemplateEngine instance;
 
 	TemplateEngine() {
 		engine = Engine	.builder()
@@ -80,6 +81,13 @@ public class TemplateEngine {
 			return variant;
 		}
 
+	}
+
+	public static TemplateEngine instance() {
+		if (instance == null) {
+			instance = new TemplateEngine();
+		}
+		return instance;
 	}
 
 }

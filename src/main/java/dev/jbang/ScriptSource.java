@@ -376,7 +376,7 @@ public class ScriptSource implements Source {
 			return null;
 		}
 		if (jar == null) {
-			File baseDir = Settings.getCacheDir(Settings.CacheClass.jars).toFile();
+			File baseDir = Settings.getCacheDir(Cache.CacheClass.jars).toFile();
 			File tmpJarDir = new File(baseDir, getResourceRef().getFile().getName() +
 					"." + Util.getStableID(script));
 			jar = new File(tmpJarDir.getParentFile(), tmpJarDir.getName() + ".jar");
