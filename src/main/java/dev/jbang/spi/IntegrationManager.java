@@ -25,10 +25,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import dev.jbang.build.ScriptSource;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenRepo;
+import dev.jbang.source.ScriptSource;
 import dev.jbang.util.Util;
 
 /**

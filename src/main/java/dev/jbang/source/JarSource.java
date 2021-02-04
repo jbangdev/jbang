@@ -1,4 +1,4 @@
-package dev.jbang.build;
+package dev.jbang.source;
 
 import java.io.File;
 import java.io.IOException;

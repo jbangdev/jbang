@@ -1,4 +1,4 @@
-package dev.jbang.build;
+package dev.jbang.source;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

@@ -1,4 +1,4 @@
-package dev.jbang.build;
+package dev.jbang.source;
 
 import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 

@@ -18,9 +18,9 @@ import java.util.stream.Collectors;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
-import dev.jbang.build.RunContext;
-import dev.jbang.build.Source;
 import dev.jbang.net.JdkManager;
+import dev.jbang.source.RunContext;
+import dev.jbang.source.Source;
 import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
 
