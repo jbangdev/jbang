@@ -139,10 +139,10 @@ public class ModularClassPath {
 	}
 
 	/**
-	 * Determines if all artifacts actually exist
+	 * Determines if all artifacts actually exist and are up-to-date
 	 */
 	public boolean isValid() {
-		return artifacts.stream().allMatch(it -> it.asFile().isFile());
+		return artifacts.stream().allMatch(ArtifactInfo::isUpToDate);
 	}
 
 	/**
@@ -153,7 +153,11 @@ public class ModularClassPath {
 	 */
 	public static ModularClassPath fromManifestClasspath(String classPath) {
 		List<ArtifactInfo> arts = Stream.of(classPath.split(" "))
-										.map(jar -> new ArtifactInfo(null, new File(jar)))
+										.map(File::new)
+										.map(jar -> {
+											ArtifactInfo art = DependencyCache.findArtifactByPath(jar);
+											return art != null ? art : new ArtifactInfo(null, jar);
+										})
 										.collect(Collectors.toList());
 		return new ModularClassPath(arts);
 	}

@@ -15,7 +15,7 @@ public class TestArtifactInfo extends BaseTest {
 	@Test
 	public void testDependencyCache() {
 
-		Settings.clearDependencyCache();
+		DependencyCache.clear();
 
 		List<String> deps = Arrays.asList(
 				"org.apache.commons:commons-configuration2:2.7",
@@ -24,11 +24,11 @@ public class TestArtifactInfo extends BaseTest {
 		DependencyUtil dr = new DependencyUtil();
 		ModularClassPath classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, true);
 
-		Settings.cacheDependencies("wonka", classpath.getArtifacts());
+		DependencyCache.cache("wonka", classpath.getArtifacts());
 
 		assertThat(Settings.getCacheDependencyFile().toFile(), aFileWithSize(greaterThan(10L)));
 
-		List<ArtifactInfo> wonka = Settings.findDependenciesInCache("wonka");
+		List<ArtifactInfo> wonka = DependencyCache.findDependenciesByHash("wonka");
 
 		assertThat(wonka, notNullValue());
 		assertThat(wonka, hasSize(6));

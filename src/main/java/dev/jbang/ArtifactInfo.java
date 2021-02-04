@@ -12,10 +12,18 @@ public class ArtifactInfo {
 
 	private final MavenCoordinate coordinate;
 	private final File file;
+	private final long timestamp;
 
 	ArtifactInfo(MavenCoordinate coordinate, File file) {
 		this.coordinate = coordinate;
 		this.file = file;
+		this.timestamp = file.exists() ? file.lastModified() : 0;
+	}
+
+	ArtifactInfo(MavenCoordinate coordinate, File file, long cachedTimestamp) {
+		this.coordinate = coordinate;
+		this.file = file;
+		this.timestamp = cachedTimestamp;
 	}
 
 	public MavenCoordinate getCoordinate() {
@@ -24,6 +32,10 @@ public class ArtifactInfo {
 
 	public File asFile() {
 		return file;
+	}
+
+	public boolean isUpToDate() {
+		return file.canRead() && timestamp == file.lastModified();
 	}
 
 	public String toString() {

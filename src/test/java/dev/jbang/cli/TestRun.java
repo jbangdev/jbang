@@ -16,6 +16,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.Matchers.typeCompatibleWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -58,6 +59,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import dev.jbang.AliasUtil;
 import dev.jbang.BaseTest;
 import dev.jbang.ExitException;
+import dev.jbang.JarSource;
 import dev.jbang.RunContext;
 import dev.jbang.ScriptSource;
 import dev.jbang.Settings;
@@ -70,7 +72,16 @@ public class TestRun extends BaseTest {
 
 	@Test
 	void testHelloWorld() throws IOException {
+		testHelloWorld(true);
+	}
 
+	@Test
+	void testHelloWorldTwice() throws IOException {
+		testHelloWorld(true);
+		testHelloWorld(false);
+	}
+
+	void testHelloWorld(boolean first) throws IOException {
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
 		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
@@ -82,6 +93,11 @@ public class TestRun extends BaseTest {
 		Source src = Source.forResource(arg, ctx);
 
 		src = run.prepareArtifacts(src, ctx);
+		if (first) {
+			assertThat(src.getClass(), typeCompatibleWith(ScriptSource.class));
+		} else {
+			assertThat(src.getClass(), typeCompatibleWith(JarSource.class));
+		}
 
 		String result = run.generateCommandLine(src, ctx);
 
@@ -90,12 +106,6 @@ public class TestRun extends BaseTest {
 		assertThat(result, containsString("classpath"));
 		assertThat(result, containsString(".jar"));
 		// assertThat(result, containsString("--source 11"));
-	}
-
-	@Test
-	void testHelloWorldTwice() throws IOException {
-		testHelloWorld();
-		testHelloWorld();
 	}
 
 	@Test

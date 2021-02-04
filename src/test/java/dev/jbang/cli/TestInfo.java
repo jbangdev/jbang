@@ -8,6 +8,8 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -32,8 +34,8 @@ public class TestInfo extends BaseTest {
 				containsString("quote.java."),
 				endsWith(".jar")));
 		assertThat(info.backingResource, equalTo(Paths.get("itests/quote.java").toString()));
-//		assertThat(info.javaVersion, is(nullValue()));
-//		assertThat(info.mainClass, is(nullValue()));
+		assertThat(info.javaVersion, is(nullValue()));
+		assertThat(info.mainClass, is(nullValue()));
 		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
 				hasSize(equalTo(1)),
 				everyItem(containsString("picocli"))));
@@ -72,8 +74,8 @@ public class TestInfo extends BaseTest {
 				containsString("helloworld.java."),
 				endsWith(".jar")));
 		assertThat(info.backingResource, equalTo(Paths.get("itests/helloworld.java").toString()));
-//		assertThat(info.javaVersion, is(nullValue()));
-//		assertThat(info.mainClass, is(nullValue()));
+		assertThat(info.javaVersion, is(nullValue()));
+		assertThat(info.mainClass, is(nullValue()));
 		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
 				hasSize(equalTo(1)),
 				everyItem(containsString("picocli"))));
@@ -91,8 +93,8 @@ public class TestInfo extends BaseTest {
 				containsString("helloworld.java."),
 				endsWith(".jar")));
 		assertThat(info.backingResource, equalTo(Paths.get("itests/helloworld.java").toString()));
-//		assertThat(info.javaVersion, is(nullValue()));
-//		assertThat(info.mainClass, is(nullValue()));
+		assertThat(info.javaVersion, is(nullValue()));
+		assertThat(info.mainClass, is(nullValue()));
 		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
 				hasSize(equalTo(1)),
 				everyItem(containsString("itests/hellojar.jar"))));
