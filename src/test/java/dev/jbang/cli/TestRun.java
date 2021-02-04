@@ -58,12 +58,12 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 
 import dev.jbang.BaseTest;
 import dev.jbang.Cache;
-import dev.jbang.build.JarSource;
-import dev.jbang.build.RunContext;
-import dev.jbang.build.ScriptSource;
-import dev.jbang.build.Source;
 import dev.jbang.catalog.AliasUtil;
 import dev.jbang.net.TrustedSources;
+import dev.jbang.source.JarSource;
+import dev.jbang.source.RunContext;
+import dev.jbang.source.ScriptSource;
+import dev.jbang.source.Source;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;

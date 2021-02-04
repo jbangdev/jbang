@@ -25,13 +25,13 @@ import java.util.stream.Collectors;
 import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.TemplateEngine;
-import dev.jbang.build.RunContext;
-import dev.jbang.build.ScriptSource;
-import dev.jbang.build.Source;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.JitPackUtil;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.net.EditorManager;
+import dev.jbang.source.RunContext;
+import dev.jbang.source.ScriptSource;
+import dev.jbang.source.Source;
 import dev.jbang.util.ConsoleInput;
 import dev.jbang.util.Util;
 

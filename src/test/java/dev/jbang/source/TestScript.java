@@ -1,4 +1,4 @@
-package dev.jbang.build;
+package dev.jbang.source;
 
 import static dev.jbang.util.Util.writeString;
 import static org.hamcrest.MatcherAssert.assertThat;

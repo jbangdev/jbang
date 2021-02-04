@@ -1,4 +1,4 @@
-package dev.jbang.build;
+package dev.jbang.source;
 
 import static dev.jbang.util.Util.swizzleURL;
 

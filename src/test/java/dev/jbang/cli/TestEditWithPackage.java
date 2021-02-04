@@ -13,10 +13,10 @@ import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
-import dev.jbang.build.RunContext;
-import dev.jbang.build.ScriptSource;
-import dev.jbang.build.Source;
-import dev.jbang.build.TestScript;
+import dev.jbang.source.RunContext;
+import dev.jbang.source.ScriptSource;
+import dev.jbang.source.Source;
+import dev.jbang.source.TestScript;
 
 public class TestEditWithPackage extends BaseTest {
 

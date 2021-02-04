@@ -16,8 +16,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.text.StringEscapeUtils;
 
 import dev.jbang.Settings;
-import dev.jbang.build.RunContext;
-import dev.jbang.build.Source;
+import dev.jbang.source.RunContext;
+import dev.jbang.source.Source;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 

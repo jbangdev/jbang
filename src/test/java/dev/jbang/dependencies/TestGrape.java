@@ -10,8 +10,8 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
-import dev.jbang.build.RunContext;
-import dev.jbang.build.Source;
+import dev.jbang.source.RunContext;
+import dev.jbang.source.Source;
 
 public class TestGrape extends BaseTest {
 

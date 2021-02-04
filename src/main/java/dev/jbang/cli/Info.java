@@ -11,8 +11,8 @@ import java.util.List;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import dev.jbang.build.RunContext;
-import dev.jbang.build.Source;
+import dev.jbang.source.RunContext;
+import dev.jbang.source.Source;
 
 import picocli.CommandLine;
 

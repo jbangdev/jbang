@@ -28,11 +28,11 @@ import org.jboss.jandex.Indexer;
 import org.jboss.jandex.Type;
 
 import dev.jbang.TemplateEngine;
-import dev.jbang.build.JarSource;
-import dev.jbang.build.RunContext;
-import dev.jbang.build.ScriptSource;
-import dev.jbang.build.Source;
 import dev.jbang.net.JdkManager;
+import dev.jbang.source.JarSource;
+import dev.jbang.source.RunContext;
+import dev.jbang.source.ScriptSource;
+import dev.jbang.source.Source;
 import dev.jbang.spi.IntegrationManager;
 import dev.jbang.spi.IntegrationResult;
 import dev.jbang.util.JarUtil;
