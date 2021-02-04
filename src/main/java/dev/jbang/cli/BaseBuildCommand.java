@@ -31,6 +31,7 @@ import dev.jbang.ExitException;
 import dev.jbang.FileRef;
 import dev.jbang.IntegrationManager;
 import dev.jbang.IntegrationResult;
+import dev.jbang.JarSource;
 import dev.jbang.JarUtil;
 import dev.jbang.JavaUtil;
 import dev.jbang.JdkManager;
@@ -90,32 +91,44 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 
 	protected boolean createdJar;
 
-	void buildIfNeeded(Source src, RunContext ctx) throws IOException {
+	Source buildIfNeeded(Source src, RunContext ctx) throws IOException {
 		if (needsJar(src, ctx)) {
-			build((ScriptSource) src, ctx);
+			src = build((ScriptSource) src, ctx);
 		}
+		return src;
 	}
 
-	// build with javac and then jar... todo: split up in more testable chunks
-	void build(ScriptSource src, RunContext ctx) throws IOException {
+	Source build(ScriptSource src, RunContext ctx) throws IOException {
+		Source result = src;
+
 		for (Map.Entry<String, String> entry : properties.entrySet()) {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
 
-		ctx.importJarMetadataFor(src);
-
-		File outjar = src.getJar();
+		File outjar = src.getJarFile();
 		boolean nativeBuildRequired = nativeImage && !getImageName(outjar).exists();
 		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
 		String requestedJavaVersion = javaVersion != null ? javaVersion : src.javaVersion();
 		// always build the jar for native mode
 		// it allows integrations the options to produce the native image
-		if (!outjar.exists() || JavaUtil.javaVersion(requestedJavaVersion) < ctx.getBuildJdk()
-				|| nativeBuildRequired || fresh) {
+		boolean buildRequired = fresh || nativeBuildRequired;
+		if (!buildRequired && outjar.canRead()) {
+			// We already have a Jar, check if we can still use it
+			JarSource jarSrc = src.asJarSource();
+			if (jarSrc == null || JavaUtil.javaVersion(requestedJavaVersion) < jarSrc.getBuildJdk()) {
+				buildRequired = true;
+			} else {
+				result = jarSrc;
+			}
+		} else {
+			buildRequired = true;
+		}
+		if (buildRequired) {
 			// set up temporary folder for compilation
 			File tmpJarDir = new File(outjar.getParentFile(), outjar.getName() + ".tmp");
 			Util.deletePath(tmpJarDir.toPath(), true);
 			tmpJarDir.mkdirs();
+			// do the actual building
 			try {
 				integrationResult = buildJar(src, ctx, tmpJarDir, outjar, requestedJavaVersion);
 			} finally {
@@ -131,8 +144,11 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 				buildNative(src, ctx, outjar, requestedJavaVersion);
 			}
 		}
+
+		return result;
 	}
 
+	// build with javac and then jar... todo: split up in more testable chunks
 	private IntegrationResult buildJar(ScriptSource src, RunContext ctx, File tmpJarDir, File outjar,
 			String requestedJavaVersion)
 			throws IOException {

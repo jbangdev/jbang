@@ -16,6 +16,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.Matchers.typeCompatibleWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -58,6 +59,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import dev.jbang.AliasUtil;
 import dev.jbang.BaseTest;
 import dev.jbang.ExitException;
+import dev.jbang.JarSource;
 import dev.jbang.RunContext;
 import dev.jbang.ScriptSource;
 import dev.jbang.Settings;
@@ -70,7 +72,16 @@ public class TestRun extends BaseTest {
 
 	@Test
 	void testHelloWorld() throws IOException {
+		testHelloWorld(true);
+	}
 
+	@Test
+	void testHelloWorldTwice() throws IOException {
+		testHelloWorld(true);
+		testHelloWorld(false);
+	}
+
+	void testHelloWorld(boolean first) throws IOException {
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
 		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
@@ -79,9 +90,14 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = RunContext.create(run.userParams, run.properties,
 				run.dependencies, run.classpaths, run.forcejsh);
-		ScriptSource src = (ScriptSource) Source.forResource(arg, ctx);
+		Source src = Source.forResource(arg, ctx);
 
-		run.prepareArtifacts(src, ctx);
+		src = run.prepareArtifacts(src, ctx);
+		if (first) {
+			assertThat(src.getClass(), typeCompatibleWith(ScriptSource.class));
+		} else {
+			assertThat(src.getClass(), typeCompatibleWith(JarSource.class));
+		}
 
 		String result = run.generateCommandLine(src, ctx);
 
@@ -164,7 +180,7 @@ public class TestRun extends BaseTest {
 		assertThat(result, containsString("hellojar.jar"));
 
 		assertThat(src.getResourceRef().getFile().toString(), equalTo(jar));
-		assertThat(src.forJar(), equalTo(true));
+		assertThat(src.isJar(), equalTo(true));
 
 		run.doCall();
 	}
@@ -557,13 +573,13 @@ public class TestRun extends BaseTest {
 
 		Run m = new Run();
 
-		ScriptSource src = (ScriptSource) Source.forFile(f);
+		Source src = Source.forFile(f);
 		RunContext ctx = RunContext.empty();
-		m.build(src, ctx);
+		src = m.build((ScriptSource) src, ctx);
 
 		assertThat(ctx.getMainClassOr(src), equalTo("aclass"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(src.getJar().toPath(), null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(src.getJarFile().toPath(), null)) {
 			Path fileToExtract = fileSystem.getPath("META-INF/maven/g/a/v/pom.xml");
 
 			ByteArrayOutputStream s = new ByteArrayOutputStream();
@@ -608,10 +624,10 @@ public class TestRun extends BaseTest {
 
 		Run m = new Run();
 
-		ScriptSource src = (ScriptSource) Source.forFile(f);
+		Source src = Source.forFile(f);
 		RunContext ctx = RunContext.empty();
 
-		m.build(src, ctx);
+		src = m.build((ScriptSource) src, ctx);
 
 		assertThat(ctx.getMainClassOr(src), equalTo("dualclass"));
 
@@ -647,9 +663,9 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = RunContext.create(run.userParams, run.properties,
 				run.dependencies, run.classpaths, run.forcejsh);
-		ScriptSource src = (ScriptSource) Source.forResource(arg, ctx);
+		Source src = Source.forResource(arg, ctx);
 
-		run.build(src, ctx);
+		src = run.build((ScriptSource) src, ctx);
 
 		assertThat(ctx.getMainClassOr(src), equalTo("dualclass"));
 
@@ -898,7 +914,7 @@ public class TestRun extends BaseTest {
 		assertThat(ctx.getAgentMainClass(), is("Agent"));
 		assertThat(ctx.getPreMainClass(), is("Agent"));
 
-		try (JarFile jf = new JarFile(src.getJar())) {
+		try (JarFile jf = new JarFile(src.getJarFile())) {
 			Attributes attrs = jf.getManifest().getMainAttributes();
 			assertThat(attrs.getValue("Premain-class"), equalTo("Agent"));
 			assertThat(attrs.getValue("Can-Retransform-Classes"), equalTo("true"));
@@ -1055,13 +1071,13 @@ public class TestRun extends BaseTest {
 		Run m = new Run();
 
 		RunContext ctx = RunContext.empty();
-		ScriptSource src = (ScriptSource) Source.forResource(f.getAbsolutePath(), ctx);
+		Source src = Source.forResource(f.getAbsolutePath(), ctx);
 
-		m.build(src, ctx);
+		m.build((ScriptSource) src, ctx);
 
 		assertThat(ctx.getMainClassOr(src), equalTo("resource"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(src.getJar().toPath(), null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(src.getJarFile().toPath(), null)) {
 
 			Arrays	.asList("resource.properties", "renamed.properties", "META-INF/application.properties")
 					.forEach(path -> {
@@ -1089,13 +1105,13 @@ public class TestRun extends BaseTest {
 		Run m = new Run();
 
 		RunContext ctx = RunContext.empty();
-		ScriptSource src = (ScriptSource) Source.forResource(f.getAbsolutePath(), ctx);
+		Source src = Source.forResource(f.getAbsolutePath(), ctx);
 
-		m.build(src, ctx);
+		m.build((ScriptSource) src, ctx);
 
 		assertThat(ctx.getMainClassOr(src), equalTo("one"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(src.getJar().toPath(), null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(src.getJarFile().toPath(), null)) {
 			Arrays	.asList("one.class", "Two.class", "gh_release_stats.class", "fetchlatestgraalvm.class")
 					.forEach(path -> {
 						try {
@@ -1150,9 +1166,9 @@ public class TestRun extends BaseTest {
 
 		String url = "http://localhost:" + wms.port() + "/sub/one.java";
 		RunContext ctx = RunContext.empty();
-		ScriptSource src = (ScriptSource) Source.forResource(url, ctx);
+		Source src = Source.forResource(url, ctx);
 
-		m.build(src, ctx);
+		m.build((ScriptSource) src, ctx);
 
 	}
 
@@ -1191,11 +1207,11 @@ public class TestRun extends BaseTest {
 
 		String url = "http://localhost:" + wms.port() + "/sub/one.java";
 		RunContext ctx = RunContext.empty();
-		ScriptSource src = (ScriptSource) Source.forResource(url, ctx);
+		Source src = Source.forResource(url, ctx);
 
-		m.build(src, ctx);
+		m.build((ScriptSource) src, ctx);
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(src.getJar().toPath(), null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(src.getJarFile().toPath(), null)) {
 			Arrays	.asList("one.class", "index.html")
 					.forEach(path -> {
 						try {
@@ -1230,9 +1246,9 @@ public class TestRun extends BaseTest {
 
 		String url = "http://localhost:" + wms.port() + "/sub/one";
 		RunContext ctx = RunContext.empty();
-		ScriptSource src = (ScriptSource) Source.forResource(url, ctx);
+		Source src = Source.forResource(url, ctx);
 
-		m.build(src, ctx);
+		m.build((ScriptSource) src, ctx);
 	}
 
 	@Test
@@ -1255,9 +1271,9 @@ public class TestRun extends BaseTest {
 		Run m = new Run();
 
 		RunContext ctx = RunContext.empty();
-		ScriptSource src = (ScriptSource) Source.forResource(dir.toPath().toString(), ctx);
+		Source src = Source.forResource(dir.toPath().toString(), ctx);
 
-		m.build(src, ctx);
+		m.build((ScriptSource) src, ctx);
 
 	}
 
@@ -1291,9 +1307,9 @@ public class TestRun extends BaseTest {
 
 		String url = "http://localhost:" + wms.port() + "/sub/one/";
 		RunContext ctx = RunContext.empty();
-		ScriptSource src = (ScriptSource) Source.forResource(url, ctx);
+		Source src = Source.forResource(url, ctx);
 
-		m.build(src, ctx);
+		m.build((ScriptSource) src, ctx);
 	}
 
 	@Test

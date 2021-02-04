@@ -28,6 +28,7 @@ public abstract class BaseTest {
 	void initEnv() throws IOException {
 		jbangTempDir.create();
 		environmentVariables.set("JBANG_DIR", jbangTempDir.getRoot().getPath());
+		environmentVariables.set("JBANG_CACHE_DIR", new File(jbangTempDir.getRoot(), "cache").getPath());
 	}
 
 	public static final String EXAMPLES_FOLDER = "itests";
@@ -41,8 +42,6 @@ public abstract class BaseTest {
 		} else {
 			examplesTestFolder = new File(new File(examplesUrl.toURI()).getAbsolutePath());
 		}
-
-		Settings.clearCache(Settings.CacheClass.jars);
 	}
 
 	@Rule

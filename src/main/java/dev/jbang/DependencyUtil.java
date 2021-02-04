@@ -93,7 +93,7 @@ public class DependencyUtil {
 
 		List<ArtifactInfo> cachedDeps = null;
 
-		cachedDeps = Settings.findDependenciesInCache(depsHash);
+		cachedDeps = DependencyCache.findDependenciesByHash(depsHash);
 
 		if (cachedDeps != null)
 			return new ModularClassPath(cachedDeps);
@@ -112,7 +112,7 @@ public class DependencyUtil {
 				infoMsg("Dependencies resolved");
 			}
 
-			Settings.cacheDependencies(depsHash, classPath.getArtifacts());
+			DependencyCache.cache(depsHash, classPath.getArtifacts());
 
 			// Print the classpath
 			return classPath;

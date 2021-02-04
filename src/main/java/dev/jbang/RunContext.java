@@ -267,14 +267,24 @@ public class RunContext {
 		return classpath;
 	}
 
-	public void importJarMetadataFor(Source src) {
-		File outjar = src.getJar();
-		if (outjar.exists()) {
+	/**
+	 * If the given source is a JarSource its metadata will be copied to this
+	 * RunContext and the JarSource will be returned. In any other case the given
+	 * source will be returned;
+	 * 
+	 * @return
+	 */
+	public Source importJarMetadataFor(Source src) {
+		File jarFile = src.getJarFile();
+		if (jarFile.exists()) {
 			JarSource jar = JarSource.prepareJar(
-					ResourceRef.forNamedFile(src.getResourceRef().getOriginalResource(), outjar));
+					ResourceRef.forNamedFile(src.getResourceRef().getOriginalResource(), jarFile));
 			setMainClass(jar.getMainClass());
 			setPersistentJvmArgs(jar.getRuntimeOptions());
 			setBuildJdk(jar.getBuildJdk());
+			return jar;
+		} else {
+			return src;
 		}
 	}
 

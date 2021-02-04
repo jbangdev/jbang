@@ -42,7 +42,7 @@ public class Export extends BaseBuildCommand {
 
 			public int apply(Export export, Source src, Path outputPath) throws IOException {
 				// Copy the JAR or native binary
-				Path source = src.getJar().toPath();
+				Path source = src.getJarFile().toPath();
 				if (export.nativeImage) {
 					source = getImageName(source.toFile()).toPath();
 				}
@@ -65,7 +65,7 @@ public class Export extends BaseBuildCommand {
 			@Override
 			public int apply(Export export, Source src, Path outputPath) throws IOException {
 				// Copy the JAR or native binary
-				Path source = src.getJar().toPath();
+				Path source = src.getJarFile().toPath();
 				if (export.nativeImage) {
 					source = getImageName(source.toFile()).toPath();
 				}
@@ -146,7 +146,7 @@ public class Export extends BaseBuildCommand {
 		RunContext ctx = RunContext.create(null, properties, dependencies, classpaths, forcejsh);
 		Source src = Source.forResource(scriptOrFile, ctx);
 
-		buildIfNeeded(src, ctx);
+		src = buildIfNeeded(src, ctx);
 
 		// Determine the output file location and name
 		Path cwd = Util.getCwd();

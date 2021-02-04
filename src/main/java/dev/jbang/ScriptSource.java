@@ -365,12 +365,14 @@ public class ScriptSource implements Source {
 		return collectOptions("JAVA");
 	}
 
-	public boolean forJShell() {
-		return Source.forJShell(getResourceRef().getFile());
+	@Override
+	public boolean isJShell() {
+		return Source.isJShell(getResourceRef().getFile());
 	}
 
-	public File getJar() {
-		if (forJShell()) {
+	@Override
+	public File getJarFile() {
+		if (isJShell()) {
 			return null;
 		}
 		if (jar == null) {
@@ -380,6 +382,20 @@ public class ScriptSource implements Source {
 			jar = new File(tmpJarDir.getParentFile(), tmpJarDir.getName() + ".jar");
 		}
 		return jar;
+	}
+
+	@Override
+	public JarSource asJarSource() {
+		JarSource result = null;
+		File jarFile = getJarFile();
+		if (jarFile != null && jarFile.exists()) {
+			JarSource jarSrc = JarSource.prepareJar(
+					ResourceRef.forNamedFile(getResourceRef().getOriginalResource(), jarFile));
+			if (jarSrc.resolveClassPath(Collections.emptyList(), true).isValid()) {
+				result = jarSrc;
+			}
+		}
+		return result;
 	}
 
 	static private String getBackingFileContent(File backingFile) {
