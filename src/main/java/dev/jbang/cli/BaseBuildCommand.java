@@ -28,11 +28,9 @@ import org.jboss.jandex.Indexer;
 import org.jboss.jandex.Type;
 
 import dev.jbang.ExitException;
-import dev.jbang.FileRef;
 import dev.jbang.JarSource;
 import dev.jbang.JavaUtil;
 import dev.jbang.JdkManager;
-import dev.jbang.KeyValue;
 import dev.jbang.RunContext;
 import dev.jbang.ScriptSource;
 import dev.jbang.Source;
@@ -172,10 +170,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 					.collect(Collectors.toList()));
 
 		// add additional files
-		List<FileRef> files = src.getAllFiles();
-		for (FileRef file : files) {
-			file.copy(tmpJarDir.toPath(), fresh);
-		}
+		src.copyFilesTo(tmpJarDir.toPath(), fresh);
 
 		Template pomTemplate = TemplateEngine.instance().getTemplate("pom.qute.xml");
 
@@ -313,7 +308,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 				manifest.getMainAttributes().put(new Attributes.Name(Source.ATTR_AGENT_CLASS), ctx.getAgentMainClass());
 			}
 
-			for (KeyValue kv : src.getAllAgentOptions()) {
+			for (ScriptSource.KeyValue kv : src.getAllAgentOptions()) {
 				if (kv.getKey().trim().isEmpty()) {
 					continue;
 				}

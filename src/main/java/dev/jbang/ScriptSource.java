@@ -1,8 +1,16 @@
 package dev.jbang;
 
+import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
+
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -177,6 +185,33 @@ public class ScriptSource implements Source {
 		classpath = new DependencyUtil().resolveDependencies(dependencies, repositories, offline,
 				!Util.isQuiet());
 		return classpath;
+	}
+
+	public static class KeyValue {
+		final String key;
+		final String value;
+
+		public KeyValue(String key, String value) {
+			this.key = key;
+			this.value = value;
+		}
+
+		public String getKey() {
+			return key;
+		}
+
+		public String getValue() {
+			return value;
+		}
+
+		public String toManifestString() {
+			return getKey() + ": " + value;
+		}
+
+		@Override
+		public String toString() {
+			return getKey() + "=" + getValue() == null ? "" : getValue();
+		}
 	}
 
 	public List<KeyValue> getAllAgentOptions() {
@@ -408,7 +443,14 @@ public class ScriptSource implements Source {
 		}
 	}
 
-	public List<FileRef> getAllFiles() {
+	public void copyFilesTo(Path dest, boolean updateCache) {
+		List<FileRef> files = getAllFiles();
+		for (FileRef file : files) {
+			file.copy(dest, updateCache);
+		}
+	}
+
+	private List<FileRef> getAllFiles() {
 		if (filerefs == null) {
 			filerefs = collectAll(ScriptSource::collectFiles);
 		}
@@ -508,5 +550,100 @@ public class ScriptSource implements Source {
 
 	public static ScriptSource prepareScript(ResourceRef resourceRef) {
 		return new ScriptSource(resourceRef);
+	}
+}
+
+class FileRef {
+	final String base;
+	final String ref;
+	final String destination;
+
+	public FileRef(String base, String ref, String destination) {
+		assert (ref != null);
+		this.base = base;
+		this.ref = ref;
+		this.destination = destination;
+	}
+
+	private String from() {
+		String p = destination != null ? destination : ref;
+
+		if (Paths.get(p).isAbsolute()) {
+			throw new IllegalStateException("Only relative paths allowed in //FILES. Found absolute path: " + p);
+		}
+
+		return Paths.get(base).resolveSibling(p).toString();
+	}
+
+	protected Path to(Path parent) {
+		if (Paths.get(ref).isAbsolute()) {
+			throw new IllegalStateException(
+					"Only relative paths allowed in //FILES. Found absolute path: " + ref);
+		}
+
+		return parent.resolve(ref);
+	}
+
+	protected static boolean isURL(String url) {
+		try {
+			new URL(url);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	public void copy(Path destroot, boolean updateCache) {
+		Path from = Paths.get(from());
+		Path to = to(destroot);
+		Util.verboseMsg("Copying " + from + " to " + to);
+		try {
+			if (!to.toFile().getParentFile().exists()) {
+				to.toFile().getParentFile().mkdirs();
+			}
+			Files.copy(from, to, StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException ioe) {
+			throw new ExitException(EXIT_UNEXPECTED_STATE, "Could not copy " + from + " to " + to, ioe);
+		}
+	}
+
+	public String getRef() {
+		return ref;
+	}
+}
+
+class URLRef extends FileRef {
+
+	public URLRef(String base, String destination, String ref) {
+		super(base, destination, ref);
+	}
+
+	public String from() {
+		String p = destination != null ? destination : ref;
+
+		if (Paths.get(p).isAbsolute()) {
+			throw new IllegalStateException("Only relative paths allowed in //FILES. Found absolute path: " + p);
+		}
+
+		try {
+			return new URI(base).resolve(p).toString();
+		} catch (URISyntaxException e) {
+			throw new IllegalStateException("Could not resolve URI", e);
+		}
+	}
+
+	public void copy(Path destroot, boolean updateCache) {
+		String from = from();
+		Path to = to(destroot);
+		Util.verboseMsg("Copying " + from + " to " + to);
+		try {
+			if (!to.toFile().getParentFile().exists()) {
+				to.toFile().getParentFile().mkdirs();
+			}
+			Path dest = Util.downloadAndCacheFile(from, updateCache);
+			Files.copy(dest, to, StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException ioe) {
+			throw new ExitException(EXIT_UNEXPECTED_STATE, "Could not copy " + from + " to " + to, ioe);
+		}
 	}
 }
