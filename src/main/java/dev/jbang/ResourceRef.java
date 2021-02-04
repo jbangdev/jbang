@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.net.TrustedSources;
 import dev.jbang.util.ConsoleInput;
 
 public class ResourceRef implements Comparable<ResourceRef> {

@@ -23,7 +23,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import dev.jbang.Cache;
-import dev.jbang.EditorManager;
 import dev.jbang.ExitException;
 import dev.jbang.RunContext;
 import dev.jbang.ScriptSource;
@@ -34,6 +33,7 @@ import dev.jbang.Util;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.JitPackUtil;
 import dev.jbang.dependencies.MavenRepo;
+import dev.jbang.net.EditorManager;
 import dev.jbang.util.ConsoleInput;
 
 import io.quarkus.qute.Template;

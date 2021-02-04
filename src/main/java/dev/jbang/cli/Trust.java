@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import dev.jbang.Settings;
-import dev.jbang.TrustedSources;
+import dev.jbang.net.TrustedSources;
 
 import picocli.CommandLine;
 

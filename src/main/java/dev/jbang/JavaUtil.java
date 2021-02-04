@@ -9,6 +9,8 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import dev.jbang.net.JdkManager;
+
 public class JavaUtil {
 
 	private static Integer javaVersion;

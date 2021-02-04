@@ -8,9 +8,9 @@ import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.Set;
 
-import dev.jbang.JdkManager;
 import dev.jbang.Settings;
 import dev.jbang.Util;
+import dev.jbang.net.JdkManager;
 
 import picocli.CommandLine;
 

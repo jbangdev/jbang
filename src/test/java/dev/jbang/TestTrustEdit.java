@@ -14,6 +14,8 @@ import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import dev.jbang.net.TrustedSources;
+
 public class TestTrustEdit extends BaseTest {
 
 	@Test

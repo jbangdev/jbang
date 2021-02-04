@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.net;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,6 +17,11 @@ import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonPrimitive;
+
+import dev.jbang.ExitException;
+import dev.jbang.Settings;
+import dev.jbang.TemplateEngine;
+import dev.jbang.Util;
 
 import io.quarkus.qute.Template;
 
@@ -173,7 +178,7 @@ public class TrustedSources {
 		return array;
 	}
 
-	String getJSon(Collection<String> rules) {
+	public String getJSon(Collection<String> rules) {
 
 		rules = rules	.stream()
 						.map(s -> new JsonPrimitive(s).toString())

@@ -1,4 +1,4 @@
-package dev.jbang;
+package dev.jbang.net;
 
 import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 
@@ -11,6 +11,9 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import dev.jbang.ExitException;
+import dev.jbang.Settings;
+import dev.jbang.Util;
 import dev.jbang.util.UnpackUtil;
 
 public class EditorManager {

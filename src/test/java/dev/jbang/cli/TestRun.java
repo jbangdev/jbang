@@ -63,9 +63,9 @@ import dev.jbang.JarSource;
 import dev.jbang.RunContext;
 import dev.jbang.ScriptSource;
 import dev.jbang.Source;
-import dev.jbang.TrustedSources;
 import dev.jbang.Util;
 import dev.jbang.catalog.AliasUtil;
+import dev.jbang.net.TrustedSources;
 
 import picocli.CommandLine;
 

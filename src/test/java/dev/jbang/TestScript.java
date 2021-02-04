@@ -24,6 +24,8 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import dev.jbang.net.TrustedSources;
+
 public class TestScript extends BaseTest {
 
 	String example = "//#!/usr/bin/env jbang\n" + "\n"
