@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
@@ -292,5 +293,13 @@ public class DependencyUtil {
 		} else {
 			return new MavenRepo(repoid, reporef);
 		}
+	}
+
+	@SafeVarargs
+	public static List<String> joinClasspaths(List<String>... classpaths) {
+		return Stream	.of(classpaths)
+						.flatMap(x -> x.stream())
+						.distinct()
+						.collect(Collectors.toList());
 	}
 }

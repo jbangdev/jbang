@@ -148,7 +148,7 @@ class DependencyResolverTest extends BaseTest {
 		ModularClassPath classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, true);
 
 		// if returns 5 its because optional deps are included which they shouldn't
-		assertEquals(2, classpath.getClassPath().split(Settings.CP_SEPARATOR).length);
+		assertEquals(2, classpath.getClassPaths().size());
 
 	}
 
@@ -166,7 +166,7 @@ class DependencyResolverTest extends BaseTest {
 		// if returns with duplicates its because some dependencies are multiple times
 		// in the
 		// classpath (commons-text-1.8, commons-lang3-3.9)
-		List<String> cps = Arrays.asList(classpath.getClassPath().split(Settings.CP_SEPARATOR));
+		List<String> cps = classpath.getClassPaths();
 
 		HashSet<String> othercps = new HashSet<>();
 		othercps.addAll(cps);
@@ -188,7 +188,7 @@ class DependencyResolverTest extends BaseTest {
 
 		ModularClassPath classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, true);
 
-		assertEquals(46, classpath.getClassPath().split(Settings.CP_SEPARATOR).length);
+		assertEquals(46, classpath.getClassPaths().size());
 
 	}
 

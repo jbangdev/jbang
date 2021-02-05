@@ -24,25 +24,34 @@ import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 public class ModularClassPath {
-
 	static final String JAVAFX_PREFIX = "javafx";
 
+	private final List<ArtifactInfo> artifacts;
+
+	private List<String> classPaths;
 	private String classPath;
 	private String manifestPath;
-	private final List<ArtifactInfo> artifacts;
 	private Optional<Boolean> javafx = Optional.empty();
 
 	public ModularClassPath(List<ArtifactInfo> artifacts) {
 		this.artifacts = artifacts;
 	}
 
-	public String getClassPath() {
-		if (classPath == null) {
-			classPath = artifacts	.stream()
+	public List<String> getClassPaths() {
+		if (classPaths == null) {
+			classPaths = artifacts	.stream()
 									.map(it -> it.asFile().getAbsolutePath())
 									.map(it -> it.contains(" ") ? '"' + it + '"' : it)
 									.distinct()
-									.collect(Collectors.joining(CP_SEPARATOR));
+									.collect(Collectors.toList());
+		}
+
+		return classPaths;
+	}
+
+	public String getClassPath() {
+		if (classPath == null) {
+			classPath = String.join(CP_SEPARATOR, getClassPaths());
 		}
 
 		return classPath;
