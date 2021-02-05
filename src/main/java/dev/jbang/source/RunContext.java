@@ -1,16 +1,18 @@
 package dev.jbang.source;
 
+import static dev.jbang.dependencies.DependencyUtil.joinClasspaths;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import dev.jbang.Settings;
 import dev.jbang.catalog.Alias;
+import dev.jbang.cli.BaseCommand;
+import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.ModularClassPath;
 
 /**
@@ -43,7 +45,8 @@ public class RunContext {
 
 	private Alias alias;
 
-	private ModularClassPath classpath;
+	private ModularClassPath mcp;
+	private ModularClassPath additionalMcp;
 
 	public static RunContext empty() {
 		return new RunContext();
@@ -234,12 +237,7 @@ public class RunContext {
 		if (getProperties() != null) {
 			p.putAll(getProperties());
 		}
-		return getAllDependencies(src, p);
-	}
-
-	private List<String> getAllDependencies(Source src, Properties props) {
-		return Stream	.concat(getAdditionalDependencies().stream(), src.getAllDependencies(props).stream())
-						.collect(Collectors.toList());
+		return src.getAllDependencies(p);
 	}
 
 	/**
@@ -247,28 +245,28 @@ public class RunContext {
 	 * consecutive calls return the same classpath.
 	 **/
 	public String resolveClassPath(Source src, boolean offline) {
-		if (classpath == null) {
-			classpath = src.resolveClassPath(collectAllDependenciesFor(src), offline);
+		if (additionalMcp == null) {
+			additionalMcp = src.resolveClassPath(getAdditionalDependencies(), offline);
 		}
-		StringBuilder cp = new StringBuilder(classpath.getClassPath());
-		for (String addcp : getAdditionalClasspaths()) {
-			if (cp.length() > 0) {
-				cp.append(Settings.CP_SEPARATOR);
-			}
-			cp.append(addcp);
+		if (mcp == null) {
+			mcp = src.resolveClassPath(collectAllDependenciesFor(src), offline);
 		}
-		return cp.toString();
+		List<String> cp = joinClasspaths(additionalMcp.getClassPaths(), mcp.getClassPaths(), getAdditionalClasspaths());
+		return String.join(Settings.CP_SEPARATOR, cp);
 	}
 
 	public List<String> getAutoDetectedModuleArguments(Source src, String requestedVersion, boolean offline) {
-		if (classpath == null) {
+		if (mcp == null) {
 			resolveClassPath(src, offline);
 		}
-		return classpath.getAutoDectectedModuleArguments(requestedVersion);
+		return mcp.getAutoDectectedModuleArguments(requestedVersion);
 	}
 
 	public ModularClassPath getClassPath() {
-		return classpath;
+		if (mcp == null) {
+			throw new ExitException(BaseCommand.EXIT_INTERNAL_ERROR, "Classpath must be resolved first");
+		}
+		return mcp;
 	}
 
 	/**
