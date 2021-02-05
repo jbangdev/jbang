@@ -275,7 +275,7 @@ For example `iex "& { $(iwr -useb https://ps.jbang.dev) } properties@jbangdev"`
 
 == Usage
 
-A script is just a single `.java` file with a classic static main method or a `.jsh` file which will be passed to `jshell`.
+A minimal script is a single `.java` file with a typical `static void main` method or a `.jsh` file which will be passed to `jshell`.
 
 Below is an (almost) minimal example you can save in `helloworld.java` or simply run `jbang init helloworld.java`:
 
