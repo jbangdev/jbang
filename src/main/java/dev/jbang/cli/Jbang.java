@@ -22,6 +22,7 @@ import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 
 import dev.jbang.util.Util;
+import dev.jbang.util.VersionChecker;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Help.TextTable;
@@ -104,6 +105,15 @@ public class Jbang extends BaseCommand {
 		}
 	};
 
+	static CommandLine.IExecutionStrategy executionStrategy = new CommandLine.RunLast() {
+		@Override
+		protected List<Object> handle(CommandLine.ParseResult parseResult) throws CommandLine.ExecutionException {
+			Util.verboseMsg("jbang version " + Util.getJbangVersion());
+			VersionChecker.possiblyCheck();
+			return super.handle(parseResult);
+		}
+	};
+
 	public static CommandLine getCommandLine(PrintWriter localout, PrintWriter localerr) {
 		CommandLine cl = new CommandLine(new Jbang());
 
@@ -113,6 +123,7 @@ public class Jbang extends BaseCommand {
 		return cl	.setExitCodeExceptionMapper(exitCodeExceptionMapper)
 					.setExecutionExceptionHandler(executionExceptionHandler)
 					.setParameterExceptionHandler(new DeprecatedMessageHandler(cl.getParameterExceptionHandler()))
+					.setExecutionStrategy(executionStrategy)
 					.setStopAtPositional(true)
 					.setOut(localout)
 					.setErr(localerr);

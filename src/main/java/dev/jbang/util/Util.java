@@ -427,10 +427,14 @@ public class Util {
 	static private String getAgentString() {
 		if (agent == null) {
 			String version = System.getProperty("java.version");
-			agent = "JBang/" + BuildConfig.VERSION + " (" + System.getProperty("os.name") + "/"
+			agent = "JBang/" + getJbangVersion() + " (" + System.getProperty("os.name") + "/"
 					+ System.getProperty("os.version") + "/" + System.getProperty("os.arch") + ") " + "Java/" + version;
 		}
 		return agent;
+	}
+
+	public static String getJbangVersion() {
+		return BuildConfig.VERSION;
 	}
 
 	/**
@@ -441,7 +445,21 @@ public class Util {
 	 * @return Path to the downloaded file
 	 * @throws IOException
 	 */
-	public static Path downloadFile(String fileURL, File saveDir)
+	public static Path downloadFile(String fileURL, File saveDir) throws IOException {
+		return downloadFile(fileURL, saveDir, -1);
+	}
+
+	/**
+	 * Downloads a file from a URL
+	 *
+	 * @param fileURL HTTP URL of the file to be downloaded
+	 * @param saveDir path of the directory to save the file
+	 * @param timeOut the timeout in milliseconds to use for opening the connection.
+	 *                0 is an infinite timeout while -1 uses the defaults
+	 * @return Path to the downloaded file
+	 * @throws IOException
+	 */
+	public static Path downloadFile(String fileURL, File saveDir, int timeOut)
 			throws IOException {
 		URL url = new URL(fileURL);
 
@@ -458,6 +476,10 @@ public class Util {
 			while (true) {
 				httpConn = (HttpURLConnection) urlConnection;
 				httpConn.setInstanceFollowRedirects(false);
+				if (timeOut >= 0) {
+					httpConn.setConnectTimeout(timeOut);
+					httpConn.setReadTimeout(timeOut);
+				}
 				responseCode = httpConn.getResponseCode();
 				if (responseCode == HttpURLConnection.HTTP_MOVED_PERM ||
 						responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
