@@ -3,6 +3,7 @@ package dev.jbang.cli;
 import java.io.PrintWriter;
 
 import dev.jbang.Settings;
+import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 
@@ -11,7 +12,7 @@ public class Version extends BaseCommand {
 
 	@Override
 	public Integer doCall() {
-		System.out.println(dev.jbang.BuildConfig.VERSION);
+		System.out.println(Util.getJbangVersion());
 
 		if (isVerbose()) {
 			PrintWriter out = spec.commandLine().getOut();
