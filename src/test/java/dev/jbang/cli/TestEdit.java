@@ -124,7 +124,7 @@ public class TestEdit extends BaseTest {
 		assert (gradle.exists());
 		String buildGradle = Util.readString(gradle.toPath());
 		assertThat(buildGradle, not(containsString("github.com"))); // should be com.github
-		assertThat(buildGradle, containsString("jcenter")); // auto-added jcenter
+		assertThat(buildGradle, containsString("repo1.maven.org")); // auto-added jcenter
 		assertThat(buildGradle, containsString("jitpack.io")); // auto-added jitpack repo
 		assertThat(buildGradle, containsString("compile \"com.github.oldskoolsh:libvirt-schema:0.0.2\""));
 	}

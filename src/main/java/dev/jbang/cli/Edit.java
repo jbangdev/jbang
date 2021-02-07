@@ -259,7 +259,7 @@ public class Edit extends BaseScriptDepsCommand {
 		// resolveDependencies
 		List<MavenRepo> repositories = src.getAllRepositories();
 		if (repositories.isEmpty()) {
-			repositories.add(DependencyUtil.toMavenRepo("jcenter"));
+			repositories.add(DependencyUtil.toMavenRepo("mavencentral"));
 		}
 
 		// Turn any URL dependencies into regular GAV coordinates

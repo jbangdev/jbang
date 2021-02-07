@@ -39,6 +39,7 @@ public class DependencyUtil {
 
 	static {
 		aliasToRepos = new HashMap<>();
+		aliasToRepos.put("mavencentral", "https://repo1.maven.org/maven2/");
 		aliasToRepos.put("jbossorg", "https://repository.jboss.org/nexus/content/groups/public/");
 		aliasToRepos.put("redhat", "https://maven.repository.redhat.com/ga/");
 		aliasToRepos.put("jcenter", "https://jcenter.bintray.com/");
@@ -75,7 +76,7 @@ public class DependencyUtil {
 
 		if (repos.isEmpty()) {
 			repos = new ArrayList<>();
-			repos.add(toMavenRepo("jcenter"));
+			repos.add(toMavenRepo("mavencentral"));
 		}
 
 		// Turn any URL dependencies into regular GAV coordinates
@@ -283,13 +284,6 @@ public class DependencyUtil {
 		String repo = aliasToRepos.get(reporef.toLowerCase());
 		if (repo != null) {
 			return new MavenRepo(Optional.ofNullable(repoid).orElse(reporef.toLowerCase()), repo);
-		} else if ("mavenCentral".equalsIgnoreCase(reporef)) {
-			return new MavenRepo("", "") {
-				@Override
-				public void apply(ConfigurableMavenResolverSystem resolver) {
-					resolver.withMavenCentralRepo(true);
-				}
-			};
 		} else {
 			return new MavenRepo(repoid, reporef);
 		}
