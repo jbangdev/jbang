@@ -452,10 +452,10 @@ public class ScriptSource implements Source {
 		}
 	}
 
-	public void copyFilesTo(Path dest, boolean updateCache) {
+	public void copyFilesTo(Path dest) {
 		List<FileRef> files = getAllFiles();
 		for (FileRef file : files) {
-			file.copy(dest, updateCache);
+			file.copy(dest);
 		}
 	}
 
@@ -602,7 +602,7 @@ class FileRef {
 		}
 	}
 
-	public void copy(Path destroot, boolean updateCache) {
+	public void copy(Path destroot) {
 		Path from = Paths.get(from());
 		Path to = to(destroot);
 		Util.verboseMsg("Copying " + from + " to " + to);
@@ -641,7 +641,7 @@ class URLRef extends FileRef {
 		}
 	}
 
-	public void copy(Path destroot, boolean updateCache) {
+	public void copy(Path destroot) {
 		String from = from();
 		Path to = to(destroot);
 		Util.verboseMsg("Copying " + from + " to " + to);
@@ -649,7 +649,7 @@ class URLRef extends FileRef {
 			if (!to.toFile().getParentFile().exists()) {
 				to.toFile().getParentFile().mkdirs();
 			}
-			Path dest = Util.downloadAndCacheFile(from, updateCache);
+			Path dest = Util.downloadAndCacheFile(Util.swizzleURL(from));
 			Files.copy(dest, to, StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException ioe) {
 			throw new ExitException(EXIT_UNEXPECTED_STATE, "Could not copy " + from + " to " + to, ioe);

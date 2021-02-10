@@ -27,7 +27,7 @@ public class Jdk {
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version to install", arity = "1") int version)
 			throws IOException {
 		if (force || !JdkManager.isInstalledJdk(version)) {
-			JdkManager.downloadAndInstallJdk(version, force);
+			JdkManager.downloadAndInstallJdk(version);
 		} else {
 			Util.infoMsg("JDK " + version + " is already installed");
 		}

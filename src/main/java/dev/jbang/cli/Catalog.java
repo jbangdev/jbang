@@ -67,7 +67,7 @@ class CatalogAdd extends BaseCatalogCommand {
 			throw new IllegalArgumentException(
 					"Invalid catalog name, it should start with a letter followed by 0 or more letters, digits, underscores, hyphens or dots");
 		}
-		AliasUtil.CatalogRef ref = AliasUtil.getCatalogRefByRefOrImplicit(urlOrFile, true);
+		AliasUtil.CatalogRef ref = AliasUtil.getCatalogRefByRefOrImplicit(urlOrFile);
 		Path catFile = getCatalog(false);
 		if (catFile != null) {
 			AliasUtil.addCatalog(null, catFile, name, ref.catalogRef, ref.description);
@@ -92,8 +92,7 @@ class CatalogUpdate extends BaseCatalogCommand {
 															err.println(
 																	"Updating catalog '" + e.getKey() + "' from "
 																			+ e.getValue().catalogRef + "...");
-															AliasUtil.getCatalogByRef(e.getValue().catalogRef,
-																	true);
+															AliasUtil.getCatalogByRef(e.getValue().catalogRef);
 														});
 		return EXIT_OK;
 	}
@@ -112,7 +111,7 @@ class CatalogList extends BaseCatalogCommand {
 			dev.jbang.catalog.Catalog catalog;
 			Path cat = getCatalog(true);
 			if (cat != null) {
-				catalog = AliasUtil.getCatalog(cat, false);
+				catalog = AliasUtil.getCatalog(cat);
 			} else {
 				catalog = AliasUtil.getMergedCatalog(null, true);
 			}
@@ -133,7 +132,7 @@ class CatalogList extends BaseCatalogCommand {
 								}
 							});
 		} else {
-			dev.jbang.catalog.Catalog catalog = AliasUtil.getCatalogByName(null, name, false);
+			dev.jbang.catalog.Catalog catalog = AliasUtil.getCatalogByName(null, name);
 			AliasList.printAliases(out, name, catalog);
 		}
 		return EXIT_OK;

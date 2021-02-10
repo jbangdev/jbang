@@ -113,9 +113,9 @@ class AliasList extends BaseAliasCommand {
 		Catalog catalog;
 		Path cat = getCatalog(true);
 		if (catalogName != null) {
-			catalog = AliasUtil.getCatalogByName(null, catalogName, false);
+			catalog = AliasUtil.getCatalogByName(null, catalogName);
 		} else if (cat != null) {
-			catalog = AliasUtil.getCatalog(cat, false);
+			catalog = AliasUtil.getCatalog(cat);
 		} else {
 			catalog = AliasUtil.getMergedCatalog(null, true);
 		}

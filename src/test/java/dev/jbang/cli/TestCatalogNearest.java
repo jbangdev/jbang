@@ -108,7 +108,7 @@ public class TestCatalogNearest extends BaseTest {
 		Path localCatalog = cwd.resolve(AliasUtil.JBANG_CATALOG_JSON);
 		AliasUtil.addNearestCatalog(cwd, "new", ref, null);
 		clearSettingsCaches();
-		Catalog catalog = AliasUtil.getCatalog(localCatalog, true);
+		Catalog catalog = AliasUtil.getCatalog(localCatalog);
 		assertThat(catalog.catalogs.keySet(), hasItem("new"));
 		assertThat(catalog.catalogs.get("new").catalogRef, equalTo(result));
 	}
@@ -118,7 +118,7 @@ public class TestCatalogNearest extends BaseTest {
 		Path localCatalog = cwd.resolve(AliasUtil.JBANG_CATALOG_JSON);
 		AliasUtil.addCatalog(cwd, Paths.get(AliasUtil.JBANG_CATALOG_JSON), "new", aliasesFile.toString(), null);
 		clearSettingsCaches();
-		Catalog catalog = AliasUtil.getCatalog(localCatalog, true);
+		Catalog catalog = AliasUtil.getCatalog(localCatalog);
 		assertThat(catalog.catalogs.keySet(), hasItem("new"));
 		assertThat(catalog.catalogs.get("new").catalogRef, equalTo(aliasesFile.toString()));
 	}
@@ -135,7 +135,7 @@ public class TestCatalogNearest extends BaseTest {
 		AliasUtil.addNearestCatalog(cwd, "new", ref, null);
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
-		Catalog catalog = AliasUtil.getCatalog(dotLocalCatalog, true);
+		Catalog catalog = AliasUtil.getCatalog(dotLocalCatalog);
 		assertThat(catalog.catalogs.keySet(), hasItem("new"));
 		assertThat(catalog.catalogs.get("new").catalogRef, equalTo(result));
 	}
@@ -155,7 +155,7 @@ public class TestCatalogNearest extends BaseTest {
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		assertThat(dotLocalCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
-		Catalog catalog = AliasUtil.getCatalog(parentCatalog, true);
+		Catalog catalog = AliasUtil.getCatalog(parentCatalog);
 		assertThat(catalog.catalogs.keySet(), hasItem("new"));
 		assertThat(catalog.catalogs.get("new").catalogRef, equalTo(result));
 	}
@@ -177,7 +177,7 @@ public class TestCatalogNearest extends BaseTest {
 		assertThat(dotLocalCatalog.toFile(), not(anExistingFile()));
 		assertThat(parentCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
-		Catalog catalog = AliasUtil.getCatalog(Settings.getUserCatalogFile(), true);
+		Catalog catalog = AliasUtil.getCatalog(Settings.getUserCatalogFile());
 		assertThat(catalog.catalogs.keySet(), hasItem("new"));
 		assertThat(catalog.catalogs.get("new").catalogRef, equalTo(result));
 	}
@@ -187,7 +187,7 @@ public class TestCatalogNearest extends BaseTest {
 		Path localCatalog = cwd.resolve(AliasUtil.JBANG_CATALOG_JSON);
 		AliasUtil.removeNearestCatalog(cwd, "local");
 		clearSettingsCaches();
-		Catalog catalog = AliasUtil.getCatalog(localCatalog, true);
+		Catalog catalog = AliasUtil.getCatalog(localCatalog);
 		assertThat(catalog.catalogs.keySet(), not(hasItem("local")));
 	}
 
@@ -196,7 +196,7 @@ public class TestCatalogNearest extends BaseTest {
 		Path dotLocalCatalog = cwd.resolve(AliasUtil.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
 		AliasUtil.removeNearestCatalog(cwd, "dotlocal");
 		clearSettingsCaches();
-		Catalog catalog = AliasUtil.getCatalog(dotLocalCatalog, true);
+		Catalog catalog = AliasUtil.getCatalog(dotLocalCatalog);
 		assertThat(catalog.catalogs.keySet(), not(hasItem("dotlocal")));
 	}
 
@@ -205,7 +205,7 @@ public class TestCatalogNearest extends BaseTest {
 		Path parentCatalog = cwd.getParent().resolve(AliasUtil.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
 		AliasUtil.removeNearestCatalog(cwd, "dotparent");
 		clearSettingsCaches();
-		Catalog catalog = AliasUtil.getCatalog(parentCatalog, true);
+		Catalog catalog = AliasUtil.getCatalog(parentCatalog);
 		assertThat(catalog.catalogs.keySet(), not(hasItem("dotparent")));
 	}
 
@@ -214,7 +214,7 @@ public class TestCatalogNearest extends BaseTest {
 		Path globalCatalog = Settings.getUserCatalogFile();
 		AliasUtil.removeNearestCatalog(cwd, "global");
 		clearSettingsCaches();
-		Catalog catalog = AliasUtil.getCatalog(globalCatalog, true);
+		Catalog catalog = AliasUtil.getCatalog(globalCatalog);
 		assertThat(catalog.catalogs.keySet(), not(hasItem("global")));
 	}
 }

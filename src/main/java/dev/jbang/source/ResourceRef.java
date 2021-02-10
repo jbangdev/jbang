@@ -212,7 +212,7 @@ public class ResourceRef implements Comparable<ResourceRef> {
 			// todo honor offline
 			String gav = scriptResource;
 			String s = new DependencyUtil().resolveDependencies(Collections.singletonList(gav),
-					Collections.emptyList(), false, !Util.isQuiet(), false).getClassPath();
+					Collections.emptyList(), Util.isOffline(), !Util.isQuiet(), false).getClassPath();
 			result = forCachedResource(scriptResource, new File(s));
 		}
 
@@ -272,8 +272,7 @@ public class ResourceRef implements Comparable<ResourceRef> {
 		}
 
 		scriptURL = swizzleURL(scriptURL);
-		File urlCache = Util.getUrlCache(scriptURL).toFile();
-		Path path = Util.downloadFileSwizzled(scriptURL, urlCache);
+		Path path = Util.swizzleContent(scriptURL, Util.downloadAndCacheFile(scriptURL));
 
 		return forCachedResource(scriptURL, path.toFile());
 	}

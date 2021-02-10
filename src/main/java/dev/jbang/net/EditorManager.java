@@ -44,7 +44,7 @@ public class EditorManager {
 		Util.deletePath(editorTmpDir, false);
 		Util.deletePath(editorOldDir, false);
 		try {
-			Path jdkPkg = Util.downloadAndCacheFile(url, false);
+			Path jdkPkg = Util.downloadAndCacheFile(url);
 			Util.infoMsg("Installing VSCodium " + version + "...");
 			Util.verboseMsg("Unpacking to " + editorDir.toString());
 			UnpackUtil.unpackEditor(jdkPkg, editorTmpDir);
