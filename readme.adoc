@@ -593,8 +593,7 @@ In case you prefer `jbang` to just fail-fast when dependencies cannot be found l
 
 === Repositories
 
-By default `jbang` uses https://jcenter.bintray.com/[jcenter] as its repository as it is a superset of Maven Central
-and supposedly should be faster.
+By default `jbang` uses https://repo1.maven.org/maven2/[maven central]. In past it used `jcenter` but with its imminent shutdown deemed best to use central.
 
 And if you are using the above mentioned URL dependencies https://jitpack.io[jitpack] will be added automatically as well.
 
@@ -606,7 +605,7 @@ For ease of use there are also a few shorthands to use popular commonly availabl
 |===
 |Short name | Description
 |`mavencentral`
-|Maven Central
+|Maven Central (`https://repo1.maven.org/maven2/`)
 
 |`jcenter`
 |`https://jcenter.bintray.com/`
@@ -627,7 +626,7 @@ Following example enables use of Maven Central and add a custom `acme` repositor
 
 [WARNING]
 ====
-If you add any `//REPOS` lines `jbang` will no longer consult `jcenter` thus you need to explicitly add it if needed.
+If you add any `//REPOS` lines `jbang` will no longer consult `mavencentral` thus you need to explicitly add it if needed.
 ====
 
 [TIP]

@@ -525,22 +525,21 @@ public class Util {
 
 	public static String getDispositionFilename(String disposition) {
 		String fileName = "";
-		int index = disposition.indexOf("filename=");
-		if (index > 0) {
-			fileName = unquote(disposition.substring(index + 9));
-			// Seems not everybody properly quotes the filename
-			fileName = unquote(fileName);
-		} else {
-			index = disposition.indexOf("filename*=");
-			if (index > 0) {
-				String encodedName = unquote(disposition.substring(index + 10));
-				String[] parts = encodedName.split("'", 3);
-				if (parts.length == 3) {
-					try {
-						fileName = URLDecoder.decode(parts[2], parts[0]);
-					} catch (UnsupportedEncodingException e) {
-						Util.infoMsg("Content-Disposition contains unsupported encoding " + parts[0]);
-					}
+		int index1 = disposition.toLowerCase().lastIndexOf("filename=");
+		int index2 = disposition.toLowerCase().lastIndexOf("filename*=");
+		if (index1 > 0 && index1 > index2) {
+			fileName = unquote(disposition.substring(index1 + 9));
+		}
+		if (index2 > 0 && index2 > index1) {
+			String encodedName = disposition.substring(index2 + 10);
+			String[] parts = encodedName.split("'", 3);
+			if (parts.length == 3) {
+				String encoding = parts[0].isEmpty() ? "iso-8859-1" : parts[0];
+				String name = parts[2];
+				try {
+					fileName = URLDecoder.decode(name, encoding);
+				} catch (UnsupportedEncodingException e) {
+					Util.infoMsg("Content-Disposition contains unsupported encoding " + encoding);
 				}
 			}
 		}
