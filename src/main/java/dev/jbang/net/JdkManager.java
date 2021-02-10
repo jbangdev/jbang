@@ -43,12 +43,12 @@ public class JdkManager {
 	public static Path getInstalledJdk(int version) {
 		Path jdkDir = getJdkPath(version);
 		if (!Files.isDirectory(jdkDir)) {
-			jdkDir = downloadAndInstallJdk(version, false);
+			jdkDir = downloadAndInstallJdk(version);
 		}
 		return jdkDir;
 	}
 
-	public static Path downloadAndInstallJdk(int version, boolean updateCache) {
+	public static Path downloadAndInstallJdk(int version) {
 		Util.infoMsg("Downloading JDK " + version + ". Be patient, this can take several minutes...");
 		String url = String.format(JDK_DOWNLOAD_URL, version, Util.getOS().name(), Util.getArch().name(),
 				Util.getVendor().name());
@@ -59,7 +59,7 @@ public class JdkManager {
 		Util.deletePath(jdkTmpDir, false);
 		Util.deletePath(jdkOldDir, false);
 		try {
-			Path jdkPkg = Util.downloadAndCacheFile(url, updateCache);
+			Path jdkPkg = Util.downloadAndCacheFile(url);
 			Util.infoMsg("Installing JDK " + version + "...");
 			Util.verboseMsg("Unpacking to " + jdkDir.toString());
 			UnpackUtil.unpackJdk(jdkPkg, jdkTmpDir);

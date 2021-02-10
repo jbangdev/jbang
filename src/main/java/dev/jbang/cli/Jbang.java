@@ -48,9 +48,9 @@ import picocli.CommandLine.Model.UsageMessageSpec;
 public class Jbang extends BaseCommand {
 
 	@CommandLine.ArgGroup(exclusive = true)
-	Exclusive exclusive = new Exclusive();
+	VerboseQuietExclusive verboseQuietExclusive = new VerboseQuietExclusive();
 
-	static class Exclusive {
+	static class VerboseQuietExclusive {
 		@Option(names = {
 				"--verbose" }, description = "jbang will be verbose on what it does.", scope = ScopeType.INHERIT)
 		void setVerbose(boolean verbose) {
@@ -64,10 +64,21 @@ public class Jbang extends BaseCommand {
 		}
 	}
 
-	@CommandLine.Option(names = { "-o",
-			"--offline" }, description = "Work offline. Fail-fast if dependencies are missing. No connections will be attempted", scope = ScopeType.INHERIT)
-	void setOffline(boolean offline) {
-		Util.setOffline(offline);
+	@CommandLine.ArgGroup(exclusive = true)
+	OfflineFreshExclusive offlineFreshExclusive = new OfflineFreshExclusive();
+
+	static class OfflineFreshExclusive {
+		@CommandLine.Option(names = { "-o",
+				"--offline" }, description = "Work offline. Fail-fast if dependencies are missing. No connections will be attempted", scope = ScopeType.INHERIT)
+		void setOffline(boolean offline) {
+			Util.setOffline(offline);
+		}
+
+		@CommandLine.Option(names = {
+				"--fresh" }, description = "Make sure we use fresh (i.e. non-cached) resources.", defaultValue = "false", scope = ScopeType.INHERIT)
+		void setFresh(boolean fresh) {
+			Util.setFresh(fresh);
+		}
 	}
 
 	public Integer doCall() {

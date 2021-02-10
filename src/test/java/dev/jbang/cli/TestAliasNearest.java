@@ -158,7 +158,7 @@ public class TestAliasNearest extends BaseTest {
 		Path localCatalog = cwd.resolve(AliasUtil.JBANG_CATALOG_JSON);
 		AliasUtil.addNearestAlias(cwd, "new", ref, null, null, null);
 		clearSettingsCaches();
-		Catalog catalog = AliasUtil.getCatalog(localCatalog, true);
+		Catalog catalog = AliasUtil.getCatalog(localCatalog);
 		assertThat(catalog.aliases.keySet(), hasItem("new"));
 		assertThat(catalog.aliases.get("new").scriptRef, equalTo(result));
 	}
@@ -168,7 +168,7 @@ public class TestAliasNearest extends BaseTest {
 		Path localCatalog = cwd.resolve(AliasUtil.JBANG_CATALOG_JSON);
 		AliasUtil.addAlias(cwd, Paths.get(AliasUtil.JBANG_CATALOG_JSON), "new", "dummy.java", null, null, null);
 		clearSettingsCaches();
-		Catalog catalog = AliasUtil.getCatalog(localCatalog, true);
+		Catalog catalog = AliasUtil.getCatalog(localCatalog);
 		assertThat(catalog.aliases.keySet(), hasItem("new"));
 		assertThat(catalog.aliases.get("new").scriptRef, equalTo("dummy.java"));
 	}
@@ -190,7 +190,7 @@ public class TestAliasNearest extends BaseTest {
 		AliasUtil.addNearestAlias(cwd, "new", ref, null, null, null);
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
-		Catalog catalog = AliasUtil.getCatalog(dotLocalCatalog, true);
+		Catalog catalog = AliasUtil.getCatalog(dotLocalCatalog);
 		assertThat(catalog.aliases.keySet(), hasItem("new"));
 		assertThat(catalog.aliases.get("new").scriptRef, equalTo(result));
 	}
@@ -215,7 +215,7 @@ public class TestAliasNearest extends BaseTest {
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		assertThat(dotLocalCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
-		Catalog catalog = AliasUtil.getCatalog(parentCatalog, true);
+		Catalog catalog = AliasUtil.getCatalog(parentCatalog);
 		assertThat(catalog.aliases.keySet(), hasItem("new"));
 		assertThat(catalog.aliases.get("new").scriptRef, equalTo(result));
 	}
@@ -242,7 +242,7 @@ public class TestAliasNearest extends BaseTest {
 		assertThat(dotLocalCatalog.toFile(), not(anExistingFile()));
 		assertThat(parentCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
-		Catalog catalog = AliasUtil.getCatalog(Settings.getUserCatalogFile(), true);
+		Catalog catalog = AliasUtil.getCatalog(Settings.getUserCatalogFile());
 		assertThat(catalog.aliases.keySet(), hasItem("new"));
 		assertThat(catalog.aliases.get("new").scriptRef, equalTo(result));
 	}
@@ -252,7 +252,7 @@ public class TestAliasNearest extends BaseTest {
 		Path localCatalog = cwd.resolve(AliasUtil.JBANG_CATALOG_JSON);
 		AliasUtil.removeNearestAlias(cwd, "local1");
 		clearSettingsCaches();
-		Catalog catalog = AliasUtil.getCatalog(localCatalog, true);
+		Catalog catalog = AliasUtil.getCatalog(localCatalog);
 		assertThat(catalog.aliases.keySet(), not(hasItem("local1")));
 	}
 
@@ -261,7 +261,7 @@ public class TestAliasNearest extends BaseTest {
 		Path dotLocalCatalog = cwd.resolve(AliasUtil.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
 		AliasUtil.removeNearestAlias(cwd, "dotlocal1");
 		clearSettingsCaches();
-		Catalog catalog = AliasUtil.getCatalog(dotLocalCatalog, true);
+		Catalog catalog = AliasUtil.getCatalog(dotLocalCatalog);
 		assertThat(catalog.aliases.keySet(), not(hasItem("dotlocal1")));
 	}
 
@@ -270,7 +270,7 @@ public class TestAliasNearest extends BaseTest {
 		Path parentCatalog = cwd.getParent().resolve(AliasUtil.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
 		AliasUtil.removeNearestAlias(cwd, "parent1");
 		clearSettingsCaches();
-		Catalog catalog = AliasUtil.getCatalog(parentCatalog, true);
+		Catalog catalog = AliasUtil.getCatalog(parentCatalog);
 		assertThat(catalog.aliases.keySet(), not(hasItem("parent1")));
 	}
 
@@ -279,7 +279,7 @@ public class TestAliasNearest extends BaseTest {
 		Path globalCatalog = Settings.getUserCatalogFile();
 		AliasUtil.removeNearestAlias(cwd, "global1");
 		clearSettingsCaches();
-		Catalog catalog = AliasUtil.getCatalog(globalCatalog, true);
+		Catalog catalog = AliasUtil.getCatalog(globalCatalog);
 		assertThat(catalog.aliases.keySet(), not(hasItem("global1")));
 	}
 

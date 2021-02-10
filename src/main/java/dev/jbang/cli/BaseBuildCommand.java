@@ -79,11 +79,6 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 			"-n", "--native" }, description = "Build using native-image", defaultValue = "false")
 	boolean nativeImage;
 
-	@CommandLine.Option(names = {
-			"-f",
-			"--fresh" }, description = "Make it a fresh run - i.e. a new build with fresh (i.e. non-cached) resources.", defaultValue = "false")
-	boolean fresh;
-
 	PrintStream out = new PrintStream(new FileOutputStream(FileDescriptor.out));
 
 	protected boolean createdJar;
@@ -108,7 +103,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		String requestedJavaVersion = javaVersion != null ? javaVersion : src.javaVersion();
 		// always build the jar for native mode
 		// it allows integrations the options to produce the native image
-		boolean buildRequired = fresh || nativeBuildRequired;
+		boolean buildRequired = Util.isFresh() || nativeBuildRequired;
 		if (!buildRequired && outjar.canRead()) {
 			// We already have a Jar, check if we can still use it
 			JarSource jarSrc = src.asJarSource();
@@ -169,7 +164,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 					.collect(Collectors.toList()));
 
 		// add additional files
-		src.copyFilesTo(tmpJarDir.toPath(), fresh);
+		src.copyFilesTo(tmpJarDir.toPath());
 
 		Template pomTemplate = TemplateEngine.instance().getTemplate("pom.qute.xml");
 

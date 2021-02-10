@@ -769,8 +769,8 @@ public class TestRun extends BaseTest {
 
 	@Test
 	void testFetchFromRedirected(@TempDir Path dir) throws IOException {
-		Path x = Util.downloadFileSwizzled("https://git.io/JLyV8",
-				dir.toFile());
+		String url = "https://git.io/JLyV8";
+		Path x = Util.swizzleContent(url, Util.downloadFile(url, dir.toFile()));
 		assertEquals(x.getFileName().toString(), "helloworld.java");
 
 		String s = Util.readString(x);
@@ -806,9 +806,7 @@ public class TestRun extends BaseTest {
 
 	private void verifyHello(String url, Path dir) throws IOException {
 		String u = Util.swizzleURL(url);
-
-		Path x = Util.downloadFileSwizzled(u,
-				dir.toFile());
+		Path x = Util.swizzleContent(u, Util.downloadFile(u, dir.toFile()));
 		assertEquals("hello.java", x.getFileName().toString());
 		String java = Util.readString(x);
 		assertThat(java, startsWith("//DEPS"));
@@ -820,9 +818,7 @@ public class TestRun extends BaseTest {
 	@Disabled("twitter stopped supporting non-javascript get")
 	void testTwitterjsh(@TempDir Path dir) throws IOException {
 		String u = Util.swizzleURL("https://twitter.com/maxandersen/status/1266904846239752192");
-
-		Path x = Util.downloadFileSwizzled(u,
-				dir.toFile());
+		Path x = Util.swizzleContent(u, Util.downloadFile(u, dir.toFile()));
 		assertEquals("1266904846239752192.jsh", x.getFileName().toString());
 		String java = Util.readString(x);
 		assertThat(java, startsWith("//DEPS"));

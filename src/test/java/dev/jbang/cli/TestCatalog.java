@@ -60,8 +60,8 @@ public class TestCatalog extends BaseTest {
 		assertThat(cat, containsString("\"test\""));
 		assertThat(cat, containsString("test-catalog.json\""));
 
-		assertThat(AliasUtil.getCatalog(catsFile, true).catalogs, hasKey("test"));
-		assertThat(AliasUtil.getCatalog(catsFile, false).catalogs.get("test").catalogRef,
+		assertThat(AliasUtil.getCatalog(catsFile).catalogs, hasKey("test"));
+		assertThat(AliasUtil.getCatalog(catsFile).catalogs.get("test").catalogRef,
 				is(testCatalogFile.toAbsolutePath().toString()));
 	}
 
@@ -86,8 +86,8 @@ public class TestCatalog extends BaseTest {
 
 	@Test
 	void testRemove() throws IOException {
-		assertThat(AliasUtil.getCatalog(catsFile, true).catalogs, hasKey("test"));
+		assertThat(AliasUtil.getCatalog(catsFile).catalogs, hasKey("test"));
 		AliasUtil.removeCatalog(catsFile, "test");
-		assertThat(AliasUtil.getCatalog(catsFile, true).catalogs, not(hasKey("test")));
+		assertThat(AliasUtil.getCatalog(catsFile).catalogs, not(hasKey("test")));
 	}
 }

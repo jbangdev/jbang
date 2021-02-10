@@ -69,6 +69,7 @@ public class Util {
 	private static boolean verbose;
 	private static boolean quiet;
 	private static boolean offline;
+	private static boolean fresh;
 
 	public static void setVerbose(boolean verbose) {
 		Util.verbose = verbose;
@@ -94,10 +95,24 @@ public class Util {
 
 	public static void setOffline(boolean offline) {
 		Util.offline = offline;
+		if (offline) {
+			setFresh(false);
+		}
 	}
 
 	public static boolean isOffline() {
 		return offline;
+	}
+
+	public static void setFresh(boolean fresh) {
+		Util.fresh = fresh;
+		if (fresh) {
+			setOffline(false);
+		}
+	}
+
+	public static boolean isFresh() {
+		return fresh;
 	}
 
 	public static String kebab2camel(String name) {
@@ -347,17 +362,10 @@ public class Util {
 	}
 
 	/**
-	 * Download file from url but will swizzle output for sites that are known to
-	 * possibly embed code (i.e. twitter and carbon)
-	 * 
-	 * @param fileURL
-	 * @param saveDir
-	 * @return
-	 * @throws IOException
+	 * Swizzles the content retrieved from sites that are known to possibly embed
+	 * code (i.e. twitter and carbon)
 	 */
-	public static Path downloadFileSwizzled(String fileURL, File saveDir) throws IOException {
-		Path path = downloadFile(fileURL, saveDir);
-
+	public static Path swizzleContent(String fileURL, Path filePath) throws IOException {
 		boolean twitter = fileURL.startsWith("https://mobile.twitter.com");
 		if (twitter || fileURL.startsWith("https://carbon.now.sh")) { // sites known
 																		// to have
@@ -365,7 +373,7 @@ public class Util {
 																		// meta name or
 																		// property
 			try {
-				Document doc = Jsoup.parse(path.toFile(), "UTF-8", fileURL);
+				Document doc = Jsoup.parse(filePath.toFile(), "UTF-8", fileURL);
 
 				String proposedString = null;
 				if (twitter) {
@@ -397,14 +405,14 @@ public class Util {
 						String guessedClass = pc.group(1);
 						wantedfilename = guessedClass + ".java";
 					} else {
-						wantedfilename = path.getFileName() + ".jsh";
+						wantedfilename = filePath.getFileName() + ".jsh";
 					}
 
-					File f = path.toFile();
+					File f = filePath.toFile();
 					File newFile = new File(f.getParent(), wantedfilename);
 					f.renameTo(newFile);
-					path = newFile.toPath();
-					writeString(path, proposedString);
+					filePath = newFile.toPath();
+					writeString(filePath, proposedString);
 				}
 
 			} catch (RuntimeException re) {
@@ -413,14 +421,14 @@ public class Util {
 		}
 
 		// to handle if kubectl-style name (i.e. extension less)
-		File f = path.toFile();
+		File f = filePath.toFile();
 		String nonkebabname = f.getName();
 		if (!f.getName().endsWith(".jar") && !f.getName().endsWith(".jsh")) { // avoid directly downloaded jar files
 																				// getting renamed to .java
 			nonkebabname = unkebabify(f.getName());
 		}
 		if (nonkebabname.equals(f.getName())) {
-			return path;
+			return filePath;
 		} else {
 			File newfile = new File(f.getParent(), nonkebabname);
 			if (f.renameTo(newfile)) {
@@ -592,17 +600,14 @@ public class Util {
 	 * Downloads a file from a URL and stores it in the cache. NB: The last part of
 	 * the URL must contain the name of the file to be downloaded!
 	 *
-	 * @param fileURL     HTTP URL of the file to be downloaded
-	 * @param updateCache Retrieve the file form the URL even if it already exists
-	 *                    in the cache
+	 * @param fileURL HTTP URL of the file to be downloaded
 	 * @return Path to the downloaded file
 	 * @throws IOException
 	 */
-	public static Path downloadAndCacheFile(String fileURL, boolean updateCache) throws IOException {
-		fileURL = swizzleURL(fileURL);
+	public static Path downloadAndCacheFile(String fileURL) throws IOException {
 		Path urlCache = Util.getUrlCache(fileURL);
 		Path file = getFirstFile(urlCache);
-		if ((updateCache && !Util.isOffline()) || file == null) {
+		if ((Util.isFresh() && !Util.isOffline()) || file == null) {
 			// create a temp directory for the downloaded content
 			Path saveTmpDir = urlCache.getParent().resolve(urlCache.getFileName() + ".tmp");
 			Path saveOldDir = urlCache.getParent().resolve(urlCache.getFileName() + ".old");
@@ -659,12 +664,10 @@ public class Util {
 	 * when the last part of the URL contains the name of the file to be downloaded!
 	 *
 	 * @param filePathOrURL Path or URL to the file to be retrieved
-	 * @param updateCache   Retrieve the file form the URL even if it already exists
-	 *                      in the cache
 	 * @return Path to the downloaded file
 	 * @throws IOException
 	 */
-	public static Path obtainFile(String filePathOrURL, boolean updateCache) throws IOException {
+	public static Path obtainFile(String filePathOrURL) throws IOException {
 		try {
 			Path file = Paths.get(filePathOrURL);
 			if (Files.isRegularFile(file)) {
@@ -673,7 +676,7 @@ public class Util {
 		} catch (InvalidPathException ex) {
 			// Ignore
 		}
-		return downloadAndCacheFile(filePathOrURL, updateCache);
+		return downloadAndCacheFile(swizzleURL(filePathOrURL));
 	}
 
 	public static String swizzleURL(String url) {
