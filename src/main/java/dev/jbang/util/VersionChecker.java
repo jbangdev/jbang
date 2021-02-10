@@ -32,7 +32,7 @@ public class VersionChecker {
 	// Figure out if we should check now or wait for a couple of days
 	public static boolean shouldCheck() {
 		String noVersion = System.getenv().getOrDefault(Settings.ENV_NO_VERSION_CHECK, "false");
-		if (Util.isQuiet() || noVersion.equalsIgnoreCase("true")) {
+		if (Util.isOffline() || Util.isQuiet() || noVersion.equalsIgnoreCase("true")) {
 			return false;
 		}
 		try {

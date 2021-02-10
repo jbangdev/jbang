@@ -68,6 +68,7 @@ public class Util {
 
 	private static boolean verbose;
 	private static boolean quiet;
+	private static boolean offline;
 
 	public static void setVerbose(boolean verbose) {
 		Util.verbose = verbose;
@@ -89,6 +90,14 @@ public class Util {
 
 	public static boolean isQuiet() {
 		return quiet;
+	}
+
+	public static void setOffline(boolean offline) {
+		Util.offline = offline;
+	}
+
+	public static boolean isOffline() {
+		return offline;
 	}
 
 	public static String kebab2camel(String name) {
@@ -461,6 +470,10 @@ public class Util {
 	 */
 	public static Path downloadFile(String fileURL, File saveDir, int timeOut)
 			throws IOException {
+		if (Util.isOffline()) {
+			throw new FileNotFoundException("jbang is in offline mode, no remote access permitted");
+		}
+
 		URL url = new URL(fileURL);
 
 		URLConnection urlConnection = url.openConnection();
@@ -589,7 +602,7 @@ public class Util {
 		fileURL = swizzleURL(fileURL);
 		Path urlCache = Util.getUrlCache(fileURL);
 		Path file = getFirstFile(urlCache);
-		if (updateCache || file == null) {
+		if ((updateCache && !Util.isOffline()) || file == null) {
 			// create a temp directory for the downloaded content
 			Path saveTmpDir = urlCache.getParent().resolve(urlCache.getFileName() + ".tmp");
 			Path saveOldDir = urlCache.getParent().resolve(urlCache.getFileName() + ".old");

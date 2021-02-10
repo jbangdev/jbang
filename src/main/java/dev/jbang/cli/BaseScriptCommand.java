@@ -17,10 +17,6 @@ import picocli.CommandLine;
 
 public abstract class BaseScriptCommand extends BaseCommand {
 
-	@CommandLine.Option(names = { "-o",
-			"--offline" }, description = "Work offline. Fail-fast if dependencies are missing.")
-	boolean offline;
-
 	@CommandLine.Option(names = {
 			"--insecure" }, description = "Enable insecure trust of all SSL certificates.", defaultValue = "false")
 	boolean insecure;

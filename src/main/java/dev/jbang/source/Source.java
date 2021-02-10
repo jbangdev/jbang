@@ -86,9 +86,8 @@ public interface Source {
 	 * Resolves the given list of dependencies
 	 *
 	 * @param dependencies List of dependencies
-	 * @param offline      Determines if we can access the network or not
 	 */
-	ModularClassPath resolveClassPath(List<String> dependencies, boolean offline);
+	ModularClassPath resolveClassPath(List<String> dependencies);
 
 	default boolean isJar() {
 		return Source.isJar(getResourceRef().getFile());

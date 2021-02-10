@@ -188,10 +188,10 @@ public class ScriptSource implements Source {
 	}
 
 	@Override
-	public ModularClassPath resolveClassPath(List<String> dependencies, boolean offline) {
+	public ModularClassPath resolveClassPath(List<String> dependencies) {
 		ModularClassPath classpath;
 		List<MavenRepo> repositories = getAllRepositories();
-		classpath = new DependencyUtil().resolveDependencies(dependencies, repositories, offline,
+		classpath = new DependencyUtil().resolveDependencies(dependencies, repositories, Util.isOffline(),
 				!Util.isQuiet());
 		return classpath;
 	}
@@ -436,7 +436,7 @@ public class ScriptSource implements Source {
 		if (jarFile != null && jarFile.exists()) {
 			JarSource jarSrc = JarSource.prepareJar(
 					ResourceRef.forNamedFile(getResourceRef().getOriginalResource(), jarFile));
-			if (jarSrc.resolveClassPath(Collections.emptyList(), true).isValid()) {
+			if (jarSrc.resolveClassPath(Collections.emptyList()).isValid()) {
 				result = jarSrc;
 			}
 		}

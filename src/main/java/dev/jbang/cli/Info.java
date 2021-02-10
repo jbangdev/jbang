@@ -38,7 +38,7 @@ abstract class BaseInfoCommand extends BaseScriptDepsCommand {
 		String javaVersion;
 
 		public ScriptInfo(Source src, RunContext ctx) {
-			String cp = ctx.resolveClassPath(src, offline);
+			String cp = ctx.resolveClassPath(src);
 
 			originalResource = src.getResourceRef().getOriginalResource();
 			backingResource = src.getResourceRef().getFile().toString();

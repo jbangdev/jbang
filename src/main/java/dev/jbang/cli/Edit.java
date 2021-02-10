@@ -208,7 +208,7 @@ public class Edit extends BaseScriptDepsCommand {
 		File originalFile = src.getResourceRef().getFile();
 
 		List<String> dependencies = ctx.collectAllDependenciesFor(src);
-		String cp = ctx.resolveClassPath(src, offline);
+		String cp = ctx.resolveClassPath(src);
 		List<String> resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 
 		File baseDir = Settings.getCacheDir(Cache.CacheClass.projects).toFile();

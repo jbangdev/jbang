@@ -120,7 +120,7 @@ public class Run extends BaseBuildCommand {
 		}
 
 		if (fullArgs.isEmpty()) {
-			String classpath = ctx.resolveClassPath(src, offline);
+			String classpath = ctx.resolveClassPath(src);
 
 			List<String> optionalArgs = new ArrayList<>();
 
@@ -232,7 +232,7 @@ public class Run extends BaseBuildCommand {
 				});
 
 			fullArgs.addAll(ctx.getRuntimeOptionsOr(src));
-			fullArgs.addAll(ctx.getAutoDetectedModuleArguments(src, requestedJavaVersion, offline));
+			fullArgs.addAll(ctx.getAutoDetectedModuleArguments(src, requestedJavaVersion));
 			fullArgs.addAll(optionalArgs);
 
 			if (main != null) { // if user specified main class it overrides any other main class calculation
