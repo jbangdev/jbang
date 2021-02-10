@@ -64,6 +64,12 @@ public class Jbang extends BaseCommand {
 		}
 	}
 
+	@CommandLine.Option(names = { "-o",
+			"--offline" }, description = "Work offline. Fail-fast if dependencies are missing. No connections will be attempted", scope = ScopeType.INHERIT)
+	void setOffline(boolean offline) {
+		Util.setOffline(offline);
+	}
+
 	public Integer doCall() {
 		spec.commandLine().usage(err);
 		return EXIT_OK;

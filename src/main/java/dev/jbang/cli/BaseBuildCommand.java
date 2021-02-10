@@ -153,7 +153,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		List<String> optionList = new ArrayList<>();
 		optionList.add(resolveInJavaHome("javac", requestedJavaVersion));
 		optionList.addAll(src.getCompileOptions());
-		String path = ctx.resolveClassPath(src, offline);
+		String path = ctx.resolveClassPath(src);
 		if (!path.trim().isEmpty()) {
 			optionList.addAll(Arrays.asList("-classpath", path));
 		}
@@ -354,7 +354,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 
 		optionList.add("--enable-https");
 
-		String classpath = ctx.resolveClassPath(src, offline);
+		String classpath = ctx.resolveClassPath(src);
 		if (!classpath.trim().isEmpty()) {
 			optionList.add("--class-path=" + classpath);
 		}

@@ -244,20 +244,20 @@ public class RunContext {
 	 * Return resolved classpath lazily. resolution will only happen once, any
 	 * consecutive calls return the same classpath.
 	 **/
-	public String resolveClassPath(Source src, boolean offline) {
+	public String resolveClassPath(Source src) {
 		if (additionalMcp == null) {
-			additionalMcp = src.resolveClassPath(getAdditionalDependencies(), offline);
+			additionalMcp = src.resolveClassPath(getAdditionalDependencies());
 		}
 		if (mcp == null) {
-			mcp = src.resolveClassPath(collectAllDependenciesFor(src), offline);
+			mcp = src.resolveClassPath(collectAllDependenciesFor(src));
 		}
 		List<String> cp = joinClasspaths(additionalMcp.getClassPaths(), mcp.getClassPaths(), getAdditionalClasspaths());
 		return String.join(Settings.CP_SEPARATOR, cp);
 	}
 
-	public List<String> getAutoDetectedModuleArguments(Source src, String requestedVersion, boolean offline) {
+	public List<String> getAutoDetectedModuleArguments(Source src, String requestedVersion) {
 		if (mcp == null) {
-			resolveClassPath(src, offline);
+			resolveClassPath(src);
 		}
 		return mcp.getAutoDectectedModuleArguments(requestedVersion);
 	}
