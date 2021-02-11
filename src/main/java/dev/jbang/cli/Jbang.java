@@ -17,6 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
@@ -46,6 +47,7 @@ import picocli.CommandLine.Model.UsageMessageSpec;
 				Run.class, Build.class, Edit.class, Init.class, Alias.class, Catalog.class, Trust.class, Cache.class,
 				Completion.class, Jdk.class, Version.class, Wrapper.class, Info.class, App.class, Export.class })
 public class Jbang extends BaseCommand {
+	private static CompletableFuture<String> versionCheckResult = CompletableFuture.completedFuture(null);
 
 	@CommandLine.ArgGroup(exclusive = true)
 	VerboseQuietExclusive verboseQuietExclusive = new VerboseQuietExclusive();
@@ -126,7 +128,7 @@ public class Jbang extends BaseCommand {
 		@Override
 		protected List<Object> handle(CommandLine.ParseResult parseResult) throws CommandLine.ExecutionException {
 			Util.verboseMsg("jbang version " + Util.getJbangVersion());
-			VersionChecker.possiblyCheck();
+			versionCheckResult = VersionChecker.newerVersionAsync();
 			return super.handle(parseResult);
 		}
 	};
@@ -165,6 +167,26 @@ public class Jbang extends BaseCommand {
 					.resolve()
 					.withoutTransitivity()
 					.asList(MavenCoordinate.class);
+	}
+
+	public static void checkLatestVersion() {
+		versionCheckResult.thenAccept(latestVersion -> {
+			if (latestVersion != null) {
+				if (VersionChecker.isNewer(latestVersion)) {
+					Util.infoMsg("There is a new version of jbang available!");
+					Util.infoMsg("You have version " + Util.getJbangVersion()
+							+ " and " + latestVersion + " is the latest.");
+					if (VersionChecker.runningManagedJbang()) {
+						Util.infoMsg("Run 'jbang app install --force jbang' to update to the latest version.");
+					} else {
+						Util.infoMsg("Use your package manager to update jbang to the latest version,");
+						Util.infoMsg("or visit https://jbang.dev to download and install it yourself.");
+					}
+				} else {
+					Util.verboseMsg("jbang is up-to-date.");
+				}
+			}
+		});
 	}
 
 	public static class CommandGroupRenderer implements CommandLine.IHelpSectionRenderer {

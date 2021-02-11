@@ -12,6 +12,7 @@ public class Main {
 		CommandLine cli = Jbang.getCommandLine();
 		args = handleDefaultRun(cli.getCommandSpec(), args);
 		int exitcode = cli.execute(args);
+		((Jbang) cli.getCommandSpec().userObject()).checkLatestVersion();
 		System.exit(exitcode);
 	}
 
