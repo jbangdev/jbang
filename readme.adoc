@@ -621,7 +621,7 @@ Following example enables use of Maven Central and add a custom `acme` repositor
 
 [source,java]
 ----
-//REPOS mavenCentral,acme=https://maven.acme.local/maven
+//REPOS mavencentral,acme=https://maven.acme.local/maven
 ----
 
 [WARNING]
