@@ -7,7 +7,9 @@ import java.nio.file.attribute.FileTime;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
@@ -16,7 +18,7 @@ import dev.jbang.cli.ExitException;
 public class VersionChecker {
 	private static final String jbangVersionUrl = "https://www.jbang.dev/releases/latest/download/version.txt";
 
-	private static final long DELAY_DAYS = 3;
+	private static final long DELAY_DAYS = 1;
 	public static final int CONNECT_TIMEOUT = 3000;
 
 	/**
@@ -67,15 +69,25 @@ public class VersionChecker {
 	 * @return A future with the latest version number or `null` if not enough time
 	 *         has passed since the last check.
 	 */
-	public static CompletableFuture<String> newerVersionAsync() {
-		return CompletableFuture.supplyAsync(VersionChecker::newerVersion);
+	public static Future<String> newerVersionAsync() {
+		return Executors.newSingleThreadExecutor().submit(VersionChecker::newerVersion);
 	}
 
 	/**
 	 * Inform the user if the future returned a newer jbang version number
 	 */
-	public static void inform(CompletableFuture<String> versionCheckResult) {
-		versionCheckResult.thenAccept(latestVersion -> inform(latestVersion));
+	public static void inform(Future<String> versionCheckResult) {
+		try {
+			if (versionCheckResult.isDone()) {
+				inform(versionCheckResult.get());
+			} else {
+				versionCheckResult.cancel(true);
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private static void inform(String latestVersion) {
