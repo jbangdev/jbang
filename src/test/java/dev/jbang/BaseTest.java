@@ -27,8 +27,9 @@ public abstract class BaseTest {
 	@BeforeEach
 	void initEnv() throws IOException {
 		jbangTempDir.create();
-		environmentVariables.set("JBANG_DIR", jbangTempDir.getRoot().getPath());
-		environmentVariables.set("JBANG_CACHE_DIR", new File(jbangTempDir.getRoot(), "cache").getPath());
+		environmentVariables.set(Settings.JBANG_DIR, jbangTempDir.getRoot().getPath());
+		environmentVariables.set(Settings.JBANG_CACHE_DIR, new File(jbangTempDir.getRoot(), "cache").getPath());
+		environmentVariables.set(Settings.ENV_NO_VERSION_CHECK, "true");
 	}
 
 	public static final String EXAMPLES_FOLDER = "itests";
