@@ -7,6 +7,7 @@
 unset JAVA_TOOL_OPTIONS
 
 export DEBUG=1
+export JBANG_NO_VERSION_CHECK=true
 
 . aserta
 
