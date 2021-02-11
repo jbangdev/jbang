@@ -1,8 +1,6 @@
 package dev.jbang.util;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
@@ -12,14 +10,98 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import dev.jbang.Settings;
+import dev.jbang.cli.BaseCommand;
+import dev.jbang.cli.ExitException;
 
 public class VersionChecker {
 	private static final String jbangVersionUrl = "https://www.jbang.dev/releases/latest/download/version.txt";
 
 	private static final long DELAY_DAYS = 3;
+	public static final int CONNECT_TIMEOUT = 3000;
 
+	/**
+	 * Check if a new Jbang version is available and if so notify the user. This
+	 * code will block while doing the check.
+	 */
+	public static void checkNowAndInform() {
+		String latestVersion = retrieveLatestVersion(false);
+		if (isNewer(latestVersion)) {
+			showMessage(latestVersion);
+		} else {
+			Util.infoMsg("jbang is up-to-date.");
+		}
+	}
+
+	/**
+	 * Very specialized function used to check if jbang can be updated. It returns
+	 * `true` when we're running a managed jbang and either there is a newer version
+	 * or `checkForUpdate` was disabled. In all other cases it will return `false`
+	 * and informing the user that either jbang is already up-to-date or telling
+	 * them how to update jbang themselves (if `checkForUpdate` was disabled).
+	 * 
+	 * @param checkForUpdate do we check for a new version or not?
+	 * @return do we update jbang or not?
+	 */
+	public static boolean updateOrInform(boolean checkForUpdate) {
+		if (Util.runningManagedJbang()) {
+			if (!checkForUpdate || isNewer(retrieveLatestVersion(false))) {
+				return true;
+			} else if (checkForUpdate) {
+				Util.infoMsg("jbang is up-to-date.");
+			}
+		} else {
+			if (checkForUpdate) {
+				checkNowAndInform();
+			} else {
+				showManualInstallMessage();
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Asynchronously retrieve the latest Jbang version number but only if enough
+	 * time has passed since the last time we checked. The result of this function
+	 * can be used together with `showMessage()` to inform the user.
+	 * 
+	 * @return A future with the latest version number or `null` if not enough time
+	 *         has passed since the last check.
+	 */
 	public static CompletableFuture<String> newerVersionAsync() {
-		return CompletableFuture.supplyAsync(() -> newerVersion());
+		return CompletableFuture.supplyAsync(VersionChecker::newerVersion);
+	}
+
+	/**
+	 * Inform the user if the future returned a newer jbang version number
+	 */
+	public static void inform(CompletableFuture<String> versionCheckResult) {
+		versionCheckResult.thenAccept(latestVersion -> inform(latestVersion));
+	}
+
+	private static void inform(String latestVersion) {
+		if (latestVersion != null) {
+			if (isNewer(latestVersion)) {
+				showMessage(latestVersion);
+			} else {
+				Util.verboseMsg("jbang is up-to-date.");
+			}
+		}
+	}
+
+	private static void showMessage(String latestVersion) {
+		Util.infoMsg("There is a new version of jbang available!");
+		Util.infoMsg("You have version " + Util.getJbangVersion()
+				+ " and " + latestVersion + " is the latest.");
+		if (Util.runningManagedJbang()) {
+			Util.infoMsg("Run 'jbang app install --force jbang' to update to the latest version.");
+		} else {
+			showManualInstallMessage();
+		}
+	}
+
+	private static void showManualInstallMessage() {
+		Util.infoMsg("Use your package manager to update jbang to the latest version,");
+		Util.infoMsg("or visit https://jbang.dev to download and install it yourself.");
 	}
 
 	/**
@@ -30,13 +112,13 @@ public class VersionChecker {
 	 */
 	public static String newerVersion() {
 		if (shouldCheck()) {
-			return retrieveLatestVersion();
+			return retrieveLatestVersion(true);
 		}
 		return null;
 	}
 
 	// Figure out if we should check now or wait for a couple of days
-	public static boolean shouldCheck() {
+	private static boolean shouldCheck() {
 		String noVersion = System.getenv().getOrDefault(Settings.ENV_NO_VERSION_CHECK, "false");
 		if (Util.isOffline() || Util.isQuiet() || !noVersion.equalsIgnoreCase("false")) {
 			return false;
@@ -58,20 +140,24 @@ public class VersionChecker {
 	 * Checks if we're running the latest version of Jbang by comparing its version
 	 * against the latest version on GitHub.
 	 */
-	public static boolean isNewer(String latestVersion) {
+	private static boolean isNewer(String latestVersion) {
 		return (latestVersion != null && compareVersions(latestVersion, Util.getJbangVersion()) > 0);
 	}
 
 	// Determines and returns the latest Jbang version from GitHub
-	private static String retrieveLatestVersion() {
+	private static String retrieveLatestVersion(boolean suppressError) {
 		try {
-			Path versionFile = Util.downloadFile(jbangVersionUrl, Settings.getCacheDir().toFile(), 2000);
+			Path versionFile = Util.downloadFile(jbangVersionUrl, Settings.getCacheDir().toFile(), CONNECT_TIMEOUT);
 			List<String> lines = Files.readAllLines(versionFile);
 			if (!lines.isEmpty()) {
 				return lines.get(0);
 			}
 		} catch (IOException e) {
-			Util.verboseMsg("Couldn't determine latest Jbang version", e);
+			if (suppressError) {
+				Util.verboseMsg("Couldn't determine latest Jbang version", e);
+			} else {
+				throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, "Could not retrieve latest jbang version", e);
+			}
 		}
 		return null;
 	}
@@ -104,15 +190,4 @@ public class VersionChecker {
 		return 0;
 	}
 
-	// Determines if the current Jbang we're running was one installed using
-	// `app install` or not
-	public static boolean runningManagedJbang() {
-		try {
-			File jarFile = new File(VersionChecker.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-			return jarFile.toPath().startsWith(Settings.getConfigBinDir());
-		} catch (URISyntaxException e) {
-			// ignore
-		}
-		return false;
-	}
 }
