@@ -275,13 +275,22 @@ For example `iex "& { $(iwr -useb https://ps.jbang.dev) } properties@jbangdev"`
 
 === Version check
 
-jbang will check if a new version is available and print a message with instructions on how to update.
+`jbang` will check once a day if a new version is available. If a new version is available a message will be printed 
+with informaton on how to install.
 
-The check in the background and will only be done
-every 24hrs on the same installation.
+The check happens in the background and will only be done every 24hrs on the same installation.
 
-If you do not wish to have jbang check for a new version you can set `JBANG_NO_VERSION_CHECK` environment variable
-or run in `--offline` mode.
+The version check is done via a HTTP request to fetch a `version.txt` from https://jbang.dev. The request includes a user-agent that contains the current `jbang`, `java` and operating system version with no person identifiable information
+which we use purely to aggreate statistics to know update/usage frequency.
+
+`jbang` will not do its automatic check for version when you run in `--offline` mode nor if you set `JBANG_NO_VERSION_CHECK` environment variable.
+
+Example:
+```shell
+jbang test.java ## if more than 24hrs last check version will be checked
+export JBANG_NO_VERSION_CHECK
+jbang test.java ## no version check made as JBANG_NO_VERSION_CHECK is set
+```
 
 == Usage
 
