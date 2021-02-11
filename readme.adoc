@@ -273,6 +273,16 @@ iex "& { $(iwr -useb https://ps.jbang.dev) } <arguments>"
 
 For example `iex "& { $(iwr -useb https://ps.jbang.dev) } properties@jbangdev"`
 
+=== Version check
+
+jbang will check if a new version is available and print a message with instructions on how to update.
+
+The check in the background and will only be done
+every 24hrs on the same installation.
+
+If you do not wish to have jbang check for a new version you can set `JBANG_NO_VERSION_CHECK` environment variable
+or run in `--offline` mode.
+
 == Usage
 
 A minimal script is a single `.java` file with a typical `static void main` method or a `.jsh` file which will be passed to `jshell`.
