@@ -443,7 +443,8 @@ public class Util {
 
 	static private String getAgentString() {
 		if (agent == null) {
-			String version = System.getProperty("java.version");
+			String version = System.getProperty("java.version") + "/"
+					+ System.getProperty("java.vm.vendor", "<unknown>");
 			agent = "JBang/" + getJbangVersion() + " (" + System.getProperty("os.name") + "/"
 					+ System.getProperty("os.version") + "/" + System.getProperty("os.arch") + ") " + "Java/" + version;
 		}
