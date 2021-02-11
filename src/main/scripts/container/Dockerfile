@@ -7,6 +7,7 @@ ADD ./entrypoint /bin/entrypoint
 
 ENV SCRIPTS_HOME /scripts
 ENV JBANG_VERSION @projectVersion@
+ENV JBANG_NO_VERSION_CHECK true
 
 # Needed for secure run on openshift but breaks github actions
 # removed until can find better alternative
