@@ -986,4 +986,18 @@ public class Util {
 		return Paths.get("").toAbsolutePath();
 	}
 
+	/**
+	 * Determines if the current Jbang we're running was one installed using `app
+	 * install` or not
+	 */
+	public static boolean runningManagedJbang() {
+		try {
+			File jarFile = new File(VersionChecker.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+			return jarFile.toPath().startsWith(Settings.getConfigBinDir());
+		} catch (URISyntaxException e) {
+			// ignore
+		}
+		return false;
+	}
+
 }
