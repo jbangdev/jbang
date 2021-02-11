@@ -45,7 +45,7 @@ public class App {
 
 @CommandLine.Command(name = "install", description = "Install a script as a command.")
 class AppInstall extends BaseCommand {
-	private static final String jbangUrl = "www.jbang.dev/releases/latest/download/jbang.zip";
+	private static final String jbangUrl = "https://www.jbang.dev/releases/latest/download/jbang.zip";
 
 	@CommandLine.Option(names = {
 			"--native" }, description = "Enable native build/run")
