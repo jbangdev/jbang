@@ -17,7 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
@@ -127,7 +127,7 @@ public class Jbang extends BaseCommand {
 		@Override
 		protected List<Object> handle(CommandLine.ParseResult parseResult) throws CommandLine.ExecutionException {
 			Util.verboseMsg("jbang version " + Util.getJbangVersion());
-			CompletableFuture<String> versionCheckResult = VersionChecker.newerVersionAsync();
+			Future<String> versionCheckResult = VersionChecker.newerVersionAsync();
 			List<Object> result = super.handle(parseResult);
 			VersionChecker.inform(versionCheckResult);
 			return result;
