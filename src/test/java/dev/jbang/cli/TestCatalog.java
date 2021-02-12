@@ -45,7 +45,7 @@ public class TestCatalog extends BaseTest {
 		testCatalogFile = cwd.resolve("test-catalog.json");
 		Files.write(testCatalogFile, testCatalog.getBytes());
 		clearSettingsCaches();
-		AliasUtil.addCatalog(null, catsFile, "test", testCatalogFile.toAbsolutePath().toString(), "Test catalog");
+		AliasUtil.addCatalogRef(null, catsFile, "test", testCatalogFile.toAbsolutePath().toString(), "Test catalog");
 	}
 
 	@Rule
@@ -87,7 +87,7 @@ public class TestCatalog extends BaseTest {
 	@Test
 	void testRemove() throws IOException {
 		assertThat(AliasUtil.getCatalog(catsFile).catalogs, hasKey("test"));
-		AliasUtil.removeCatalog(catsFile, "test");
+		AliasUtil.removeCatalogRef(catsFile, "test");
 		assertThat(AliasUtil.getCatalog(catsFile).catalogs, not(hasKey("test")));
 	}
 }

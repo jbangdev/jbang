@@ -10,7 +10,9 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -122,8 +124,12 @@ public class AliasUtil {
 	 * @return An Alias object
 	 */
 	private static Alias getLocalAlias(Path cwd, String aliasName) {
-		Catalog catalog = getMergedCatalog(cwd, false);
-		return catalog.aliases.getOrDefault(aliasName, null);
+		Path catalogFile = findNearestCatalogWithAlias(cwd, aliasName);
+		if (catalogFile != null) {
+			Catalog catalog = getCatalog(catalogFile);
+			return catalog.aliases.getOrDefault(aliasName, null);
+		}
+		return null;
 	}
 
 	/**
@@ -158,14 +164,18 @@ public class AliasUtil {
 	}
 
 	private static CatalogRef getCatalogRef(Path cwd, String catalogName) {
-		Catalog catalog = getMergedCatalog(cwd, true);
-		CatalogRef catalogRef = catalog.catalogs.get(catalogName);
+		CatalogRef catalogRef = null;
+		Path catalogFile = findNearestCatalogWithCatalogRef(cwd, catalogName);
+		if (catalogFile != null) {
+			Catalog catalog = getCatalog(catalogFile);
+			catalogRef = catalog.catalogs.get(catalogName);
+		}
 		if (catalogRef == null) {
 			Util.verboseMsg("Local catalog '" + catalogName + "' not found, trying implicit catalogs...");
 			Optional<String> url = getImplicitCatalogUrl(catalogName);
 			if (url.isPresent()) {
 				Catalog implicitCatalog = AliasUtil.getCatalogByRef(url.get());
-				catalogRef = addCatalog(cwd, Settings.getUserImplicitCatalogFile(), catalogName, url.get(),
+				catalogRef = addCatalogRef(cwd, Settings.getUserImplicitCatalogFile(), catalogName, url.get(),
 						implicitCatalog.description);
 			}
 		}
@@ -251,14 +261,18 @@ public class AliasUtil {
 	 * starting from cwd.
 	 * 
 	 * @param cwd     The folder to use as a starting point for getting the nearest
-	 *                catalog
+	 *                catalog. NB: This method _specifically_ does _not_ return a
+	 *                reference to the implicit catalog ever.
 	 * @param catalog The catalog to return or null to return the nearest catalog
 	 * @return Path to a catalog
 	 */
 	public static Path getCatalogFile(Path cwd, Path catalog) {
 		if (catalog == null) {
-			catalog = findNearestLocalCatalog(cwd);
+			catalog = findNearestCatalog(cwd);
 			if (catalog == null) {
+				// This is here as a backup for when the user catalog doesn't
+				// exist yet, because `findNearestCatalog()` only returns
+				// existing files
 				catalog = Settings.getUserCatalogFile();
 			}
 		}
@@ -336,11 +350,10 @@ public class AliasUtil {
 	 * @param name Name of alias to remove
 	 */
 	public static void removeNearestAlias(Path cwd, String name) {
-		Path catalog = findNearestLocalCatalogWithAlias(cwd, name);
-		if (catalog == null) {
-			catalog = Settings.getUserCatalogFile();
+		Path catalog = findNearestCatalogWithAlias(cwd, name);
+		if (catalog != null) {
+			removeAlias(catalog, name);
 		}
-		removeAlias(catalog, name);
 	}
 
 	/**
@@ -434,34 +447,25 @@ public class AliasUtil {
 	 * @return a Catalog object
 	 */
 	public static Catalog getMergedCatalog(Path cwd, boolean includeImplicits) {
-		if (cwd == null) {
-			cwd = Util.getCwd();
-		}
+		List<Catalog> catalogs = new ArrayList<>();
+		findNearestCatalogWith(cwd, p -> {
+			catalogs.add(getCatalog(p));
+			return false;
+		});
+
 		Catalog result = new Catalog(null, null, null);
-		if (includeImplicits) {
-			mergeCatalog(Settings.getUserImplicitCatalogFile(), result);
+		Collections.reverse(catalogs);
+		for (Catalog catalog : catalogs) {
+			if (!includeImplicits && catalog.catalogFile.equals(Settings.getUserImplicitCatalogFile())) {
+				continue;
+			}
+			mergeCatalog(catalog, result);
 		}
-		mergeCatalog(Settings.getUserCatalogFile(), result);
-		mergeLocalCatalogs(cwd, result);
+
 		return result;
 	}
 
-	private static void mergeLocalCatalogs(Path dir, Catalog result) {
-		if (dir.getParent() != null) {
-			mergeLocalCatalogs(dir.getParent(), result);
-		}
-		Path catalogFile = dir.resolve(JBANG_DOT_DIR).resolve(JBANG_CATALOG_JSON);
-		if (Files.isRegularFile(catalogFile) && Files.isReadable(catalogFile)) {
-			mergeCatalog(catalogFile, result);
-		}
-		catalogFile = dir.resolve(JBANG_CATALOG_JSON);
-		if (Files.isRegularFile(catalogFile) && Files.isReadable(catalogFile)) {
-			mergeCatalog(catalogFile, result);
-		}
-	}
-
-	private static void mergeCatalog(Path catalogFile, Catalog result) {
-		Catalog catalog = getCatalog(catalogFile);
+	private static void mergeCatalog(Catalog catalog, Catalog result) {
 		for (CatalogRef ref : catalog.catalogs.values()) {
 			Catalog cat = getCatalogByRef(ref.catalogRef);
 			result.aliases.putAll(cat.aliases);
@@ -470,22 +474,33 @@ public class AliasUtil {
 		result.catalogs.putAll(catalog.catalogs);
 	}
 
-	private static Path findNearestLocalCatalog(Path dir) {
+	private static Path findNearestCatalog(Path dir) {
 		return findNearestFileWith(dir, JBANG_CATALOG_JSON, p -> true);
 	}
 
-	public static Path findNearestLocalCatalogWithAlias(Path dir, String aliasName) {
-		return findNearestFileWith(dir, JBANG_CATALOG_JSON, catalogFile -> {
+	private static Path findNearestCatalogWithAlias(Path dir, String aliasName) {
+		return findNearestCatalogWith(dir, catalogFile -> {
 			Catalog catalog = getCatalog(catalogFile);
 			return catalog.aliases.containsKey(aliasName);
 		});
 	}
 
-	public static Path findNearestLocalCatalogWithCatalog(Path dir, String catalogName) {
-		return findNearestFileWith(dir, JBANG_CATALOG_JSON, catalogFile -> {
+	private static Path findNearestCatalogWithCatalogRef(Path dir, String catalogName) {
+		return findNearestCatalogWith(dir, catalogFile -> {
 			Catalog catalog = getCatalog(catalogFile);
 			return catalog.catalogs.containsKey(catalogName);
 		});
+	}
+
+	private static Path findNearestCatalogWith(Path dir, Function<Path, Boolean> accept) {
+		Path result = findNearestFileWith(dir, JBANG_CATALOG_JSON, accept);
+		if (result == null) {
+			Path file = Settings.getUserImplicitCatalogFile();
+			if (Files.isRegularFile(file) && Files.isReadable(file) && accept.apply(file)) {
+				result = file;
+			}
+		}
+		return result;
 	}
 
 	public static void clearCache() {
@@ -549,19 +564,19 @@ public class AliasUtil {
 	}
 
 	/**
-	 * Adds a new alias to the nearest catalog
+	 * Adds a new catalog ref to the nearest catalog file
 	 *
 	 * @param cwd  The folder to use as a starting point for getting the nearest
 	 *             catalog
 	 * @param name The name of the new alias
 	 */
-	public static Path addNearestCatalog(Path cwd, String name, String catalogRef, String description) {
+	public static Path addNearestCatalogRef(Path cwd, String name, String catalogRef, String description) {
 		Path catalogFile = getCatalogFile(cwd, null);
-		addCatalog(cwd, catalogFile, name, catalogRef, description);
+		addCatalogRef(cwd, catalogFile, name, catalogRef, description);
 		return catalogFile;
 	}
 
-	public static CatalogRef addCatalog(Path cwd, Path catalogFile, String name, String catalogRef,
+	public static CatalogRef addCatalogRef(Path cwd, Path catalogFile, String name, String catalogRef,
 			String description) {
 		if (cwd == null) {
 			cwd = Util.getCwd();
@@ -594,22 +609,21 @@ public class AliasUtil {
 	}
 
 	/**
-	 * Finds the nearest catalog file that contains a catalog with the given name
-	 * and removes it
+	 * Finds the nearest catalog file that contains a catalog ref with the given
+	 * name and removes it
 	 *
 	 * @param cwd  The folder to use as a starting point for getting the nearest
 	 *             catalog
-	 * @param name Name of catalog to remove
+	 * @param name Name of catalog ref to remove
 	 */
-	public static void removeNearestCatalog(Path cwd, String name) {
-		Path catalog = findNearestLocalCatalogWithCatalog(cwd, name);
-		if (catalog == null) {
-			catalog = Settings.getUserCatalogFile();
+	public static void removeNearestCatalogRef(Path cwd, String name) {
+		Path catalog = findNearestCatalogWithCatalogRef(cwd, name);
+		if (catalog != null) {
+			removeCatalogRef(catalog, name);
 		}
-		removeCatalog(catalog, name);
 	}
 
-	public static void removeCatalog(Path catalogFile, String name) {
+	public static void removeCatalogRef(Path catalogFile, String name) {
 		Catalog catalog = getCatalog(catalogFile);
 		if (catalog.catalogs.containsKey(name)) {
 			catalog.catalogs.remove(name);
@@ -622,17 +636,28 @@ public class AliasUtil {
 	}
 
 	private static Path findNearestFileWith(Path dir, String fileName, Function<Path, Boolean> accept) {
+		Path result = findNearestLocalFileWith(dir, fileName, accept);
+		if (result == null) {
+			Path file = Settings.getConfigDir().resolve(fileName);
+			if (Files.isRegularFile(file) && Files.isReadable(file) && accept.apply(file)) {
+				result = file;
+			}
+		}
+		return result;
+	}
+
+	private static Path findNearestLocalFileWith(Path dir, String fileName, Function<Path, Boolean> accept) {
 		if (dir == null) {
 			dir = Util.getCwd();
 		}
 		while (dir != null) {
-			Path catalog = dir.resolve(fileName);
-			if (Files.isRegularFile(catalog) && Files.isReadable(catalog) && accept.apply(catalog)) {
-				return catalog;
+			Path file = dir.resolve(fileName);
+			if (Files.isRegularFile(file) && Files.isReadable(file) && accept.apply(file)) {
+				return file;
 			}
-			catalog = dir.resolve(JBANG_DOT_DIR).resolve(fileName);
-			if (Files.isRegularFile(catalog) && Files.isReadable(catalog) && accept.apply(catalog)) {
-				return catalog;
+			file = dir.resolve(JBANG_DOT_DIR).resolve(fileName);
+			if (Files.isRegularFile(file) && Files.isReadable(file) && accept.apply(file)) {
+				return file;
 			}
 			dir = dir.getParent();
 		}

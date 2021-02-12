@@ -70,9 +70,9 @@ class CatalogAdd extends BaseCatalogCommand {
 		AliasUtil.CatalogRef ref = AliasUtil.getCatalogRefByRefOrImplicit(urlOrFile);
 		Path catFile = getCatalog(false);
 		if (catFile != null) {
-			AliasUtil.addCatalog(null, catFile, name, ref.catalogRef, ref.description);
+			AliasUtil.addCatalogRef(null, catFile, name, ref.catalogRef, ref.description);
 		} else {
-			catFile = AliasUtil.addNearestCatalog(null, name, ref.catalogRef, ref.description);
+			catFile = AliasUtil.addNearestCatalogRef(null, name, ref.catalogRef, ref.description);
 		}
 		info(String.format("Catalog added to %s", catFile));
 		return EXIT_OK;
@@ -149,9 +149,9 @@ class CatalogRemove extends BaseCatalogCommand {
 	public Integer doCall() {
 		Path cat = getCatalog(true);
 		if (cat != null) {
-			AliasUtil.removeCatalog(cat, name);
+			AliasUtil.removeCatalogRef(cat, name);
 		} else {
-			AliasUtil.removeNearestCatalog(null, name);
+			AliasUtil.removeNearestCatalogRef(null, name);
 		}
 		return EXIT_OK;
 	}
