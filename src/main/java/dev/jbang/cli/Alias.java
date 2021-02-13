@@ -35,8 +35,8 @@ abstract class BaseAliasCommand extends BaseCommand {
 			cat = Settings.getUserCatalogFile();
 		} else {
 			if (catalogFile != null && Files.isDirectory(catalogFile)) {
-				Path defaultCatalog = catalogFile.resolve(AliasUtil.JBANG_CATALOG_JSON);
-				Path hiddenCatalog = catalogFile.resolve(AliasUtil.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
+				Path defaultCatalog = catalogFile.resolve(Catalog.JBANG_CATALOG_JSON);
+				Path hiddenCatalog = catalogFile.resolve(AliasUtil.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
 				if (!Files.exists(defaultCatalog) && Files.exists(hiddenCatalog)) {
 					cat = hiddenCatalog;
 				} else {
@@ -113,11 +113,11 @@ class AliasList extends BaseAliasCommand {
 		Catalog catalog;
 		Path cat = getCatalog(true);
 		if (catalogName != null) {
-			catalog = AliasUtil.getCatalogByName(null, catalogName);
+			catalog = Catalog.getByName(null, catalogName);
 		} else if (cat != null) {
-			catalog = AliasUtil.getCatalog(cat);
+			catalog = Catalog.get(cat);
 		} else {
-			catalog = AliasUtil.getMergedCatalog(null, true);
+			catalog = Catalog.getMerged(null, true);
 		}
 		if (showOrigin) {
 			printAliasesWithOrigin(out, catalogName, catalog);

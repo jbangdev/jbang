@@ -14,7 +14,7 @@ import org.junit.rules.TemporaryFolder;
 
 import dev.jbang.BaseTest;
 import dev.jbang.catalog.Alias;
-import dev.jbang.catalog.AliasUtil;
+import dev.jbang.catalog.Catalog;
 
 public class TestAliasWithBaseRef extends BaseTest {
 
@@ -39,7 +39,7 @@ public class TestAliasWithBaseRef extends BaseTest {
 	@BeforeEach
 	void init() throws IOException {
 		testTempDir.create();
-		Files.write(jbangTempDir.getRoot().toPath().resolve(AliasUtil.JBANG_CATALOG_JSON), aliases.getBytes());
+		Files.write(jbangTempDir.getRoot().toPath().resolve(Catalog.JBANG_CATALOG_JSON), aliases.getBytes());
 		cwd = testTempDir.newFolder("test").toPath();
 	}
 
@@ -50,7 +50,7 @@ public class TestAliasWithBaseRef extends BaseTest {
 
 	@Test
 	void testGetAliasOne() throws IOException {
-		Alias alias = AliasUtil.getAlias(cwd, "one", null, null);
+		Alias alias = Alias.get(cwd, "one", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("foo"));
 		assertThat(alias.resolve(cwd), equalTo("http://dummy/foo"));
@@ -58,7 +58,7 @@ public class TestAliasWithBaseRef extends BaseTest {
 
 	@Test
 	void testGetAliasTwo() throws IOException {
-		Alias alias = AliasUtil.getAlias(cwd, "two", null, null);
+		Alias alias = Alias.get(cwd, "two", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("foo/bar.java"));
 		assertThat(alias.resolve(cwd), equalTo("http://dummy/foo/bar.java"));
@@ -66,7 +66,7 @@ public class TestAliasWithBaseRef extends BaseTest {
 
 	@Test
 	void testGetAliasThree() throws IOException {
-		Alias alias = AliasUtil.getAlias(cwd, "three", null, null);
+		Alias alias = Alias.get(cwd, "three", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy/baz.java"));
 		assertThat(alias.resolve(cwd), equalTo("http://dummy/baz.java"));
@@ -74,7 +74,7 @@ public class TestAliasWithBaseRef extends BaseTest {
 
 	@Test
 	void testGetAliasGav() throws IOException {
-		Alias alias = AliasUtil.getAlias(cwd, "gav", null, null);
+		Alias alias = Alias.get(cwd, "gav", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("org.example:artifact:version"));
 		assertThat(alias.resolve(cwd), equalTo("org.example:artifact:version"));

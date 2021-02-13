@@ -27,6 +27,7 @@ import org.junit.rules.TemporaryFolder;
 import dev.jbang.BaseTest;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.AliasUtil;
+import dev.jbang.catalog.Catalog;
 
 import picocli.CommandLine;
 
@@ -73,7 +74,7 @@ public class TestAlias extends BaseTest {
 	@BeforeEach
 	void init() throws IOException {
 		testTempDir.create();
-		Files.write(jbangTempDir.getRoot().toPath().resolve(AliasUtil.JBANG_CATALOG_JSON), aliases.getBytes());
+		Files.write(jbangTempDir.getRoot().toPath().resolve(Catalog.JBANG_CATALOG_JSON), aliases.getBytes());
 		cwd = testTempDir.newFolder("test").toPath();
 	}
 
@@ -85,7 +86,7 @@ public class TestAlias extends BaseTest {
 	@Test
 	void testReadFromFile() throws IOException {
 		clearSettingsCaches();
-		assertThat(AliasUtil.getAlias(cwd, "one"), notNullValue());
+		assertThat(Alias.get(cwd, "one"), notNullValue());
 	}
 
 	@Test
@@ -95,12 +96,12 @@ public class TestAlias extends BaseTest {
 		Path tmpPath = tmp.getRoot().toPath();
 		Path testFile = tmpPath.resolve("test.java");
 		Files.write(testFile, "// Test file".getBytes());
-		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), AliasUtil.JBANG_CATALOG_JSON)), is(false));
+		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		Jbang jbang = new Jbang();
 		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "--name=name", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), AliasUtil.JBANG_CATALOG_JSON)),
+		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), Catalog.JBANG_CATALOG_JSON)),
 				is(true));
-		Alias name = AliasUtil.getAlias(tmpPath, "name");
+		Alias name = Alias.get(tmpPath, "name");
 		assertThat(name.scriptRef, is(testFile.toString()));
 	}
 
@@ -112,12 +113,12 @@ public class TestAlias extends BaseTest {
 		Path testFile = tmpPath.resolve("test.java");
 		Files.write(testFile, ("// Test file \n" +
 				"//DESCRIPTION Description of the script inside the script").getBytes());
-		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), AliasUtil.JBANG_CATALOG_JSON)), is(false));
+		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		Jbang jbang = new Jbang();
 		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "--name=name", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), AliasUtil.JBANG_CATALOG_JSON)),
+		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), Catalog.JBANG_CATALOG_JSON)),
 				is(true));
-		Alias name = AliasUtil.getAlias(tmpPath, "name");
+		Alias name = Alias.get(tmpPath, "name");
 		assertThat(name.scriptRef, is(testFile.toString()));
 		assertThat(name.description, is("Description of the script inside the script"));
 	}
@@ -130,13 +131,13 @@ public class TestAlias extends BaseTest {
 		Path testFile = tmpPath.resolve("test.java");
 		Files.write(testFile, ("// Test file \n" +
 				"//DESCRIPTION Description of the script inside the script").getBytes());
-		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), AliasUtil.JBANG_CATALOG_JSON)), is(false));
+		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		Jbang jbang = new Jbang();
 		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "--name=name",
 				"-d", "Description of the script in arguments", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), AliasUtil.JBANG_CATALOG_JSON)),
+		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), Catalog.JBANG_CATALOG_JSON)),
 				is(true));
-		Alias name = AliasUtil.getAlias(tmpPath, "name");
+		Alias name = Alias.get(tmpPath, "name");
 		assertThat(name.scriptRef, is(testFile.toString()));
 		// The argument has more precedance than the description tag in the script
 		assertThat(name.description, is("Description of the script in arguments"));
@@ -152,12 +153,12 @@ public class TestAlias extends BaseTest {
 				"//DESCRIPTION Description first tag\n" +
 				"//DESCRIPTION description second tag\n" +
 				"//DESCRIPTION description third tag").getBytes());
-		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), AliasUtil.JBANG_CATALOG_JSON)), is(false));
+		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		Jbang jbang = new Jbang();
 		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "--name=name", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), AliasUtil.JBANG_CATALOG_JSON)),
+		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), Catalog.JBANG_CATALOG_JSON)),
 				is(true));
-		Alias name = AliasUtil.getAlias(tmpPath, "name");
+		Alias name = Alias.get(tmpPath, "name");
 		assertThat(name.scriptRef, is(testFile.toString()));
 		assertThat(name.description,
 				is("Description first tag\ndescription second tag\ndescription third tag"));
@@ -170,12 +171,12 @@ public class TestAlias extends BaseTest {
 		Path tmpPath = tmp.getRoot().toPath();
 		Path testFile = tmpPath.resolve("test.java");
 		Files.write(testFile, ("// Test file \n").getBytes());
-		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), AliasUtil.JBANG_CATALOG_JSON)), is(false));
+		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		Jbang jbang = new Jbang();
 		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "--name=name", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), AliasUtil.JBANG_CATALOG_JSON)),
+		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), Catalog.JBANG_CATALOG_JSON)),
 				is(true));
-		Alias name = AliasUtil.getAlias(tmpPath, "name");
+		Alias name = Alias.get(tmpPath, "name");
 		assertThat(name.scriptRef, is(testFile.toString()));
 		assertThat(name.description,
 				nullValue());
@@ -190,11 +191,11 @@ public class TestAlias extends BaseTest {
 		Files.write(testFile, "// Test file".getBytes());
 		Path hiddenJbangPath = Paths.get(tmpPath.toString(), AliasUtil.JBANG_DOT_DIR);
 		Files.createDirectory(hiddenJbangPath);
-		Files.createFile(Paths.get(tmpPath.toString(), AliasUtil.JBANG_DOT_DIR, AliasUtil.JBANG_CATALOG_JSON));
+		Files.createFile(Paths.get(tmpPath.toString(), AliasUtil.JBANG_DOT_DIR, Catalog.JBANG_CATALOG_JSON));
 		Jbang jbang = new Jbang();
 		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "--name=name", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), AliasUtil.JBANG_CATALOG_JSON)), is(false));
-		Alias name = AliasUtil.getAlias(hiddenJbangPath, "name");
+		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		Alias name = Alias.get(hiddenJbangPath, "name");
 		assertThat(name.scriptRef, is(testFile.toString()));
 	}
 
@@ -205,21 +206,21 @@ public class TestAlias extends BaseTest {
 		Files.write(testFile, "// Test file".getBytes());
 		Jbang jbang = new Jbang();
 		new CommandLine(jbang).execute("alias", "add", "-f", jbangPath.toString(), "--name=name", testFile.toString());
-		Alias one = AliasUtil.getAlias(jbangPath, "one");
-		Alias name = AliasUtil.getAlias(jbangPath, "name");
+		Alias one = Alias.get(jbangPath, "one");
+		Alias name = Alias.get(jbangPath, "name");
 		assertThat(one.scriptRef, is("http://dummy"));
 		assertThat(name.scriptRef, is(testFile.toString()));
 	}
 
 	@Test
 	void testGetAliasNone() throws IOException {
-		Alias alias = AliasUtil.getAlias(cwd, "dummy-alias!", null, null);
+		Alias alias = Alias.get(cwd, "dummy-alias!", null, null);
 		assertThat(alias, nullValue());
 	}
 
 	@Test
 	void testGetAliasOne() throws IOException {
-		Alias alias = AliasUtil.getAlias(cwd, "one", null, null);
+		Alias alias = Alias.get(cwd, "one", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.resolve(cwd), equalTo("http://dummy"));
@@ -229,7 +230,7 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasOneWithArgs() throws IOException {
-		Alias alias = AliasUtil.getAlias(cwd, "one", Collections.singletonList("X"),
+		Alias alias = Alias.get(cwd, "one", Collections.singletonList("X"),
 				Collections.singletonMap("foo", "bar"));
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
@@ -242,7 +243,7 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasTwo() throws IOException {
-		Alias alias = AliasUtil.getAlias(cwd, "two", null, null);
+		Alias alias = Alias.get(cwd, "two", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.resolve(cwd), equalTo("http://dummy"));
@@ -254,7 +255,7 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasTwoAlt() throws IOException {
-		Alias alias = AliasUtil.getAlias(cwd, "two", Collections.emptyList(), Collections.emptyMap());
+		Alias alias = Alias.get(cwd, "two", Collections.emptyList(), Collections.emptyMap());
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.resolve(cwd), equalTo("http://dummy"));
@@ -266,7 +267,7 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasTwoWithArgs() throws IOException {
-		Alias alias = AliasUtil.getAlias(cwd, "two", Collections.singletonList("X"),
+		Alias alias = Alias.get(cwd, "two", Collections.singletonList("X"),
 				Collections.singletonMap("foo", "bar"));
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
@@ -279,7 +280,7 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasFour() throws IOException {
-		Alias alias = AliasUtil.getAlias(cwd, "four", null, null);
+		Alias alias = Alias.get(cwd, "four", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.resolve(cwd), equalTo("http://dummy"));
@@ -291,7 +292,7 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasFourWithArgs() throws IOException {
-		Alias alias = AliasUtil.getAlias(cwd, "four", Collections.singletonList("X"),
+		Alias alias = Alias.get(cwd, "four", Collections.singletonList("X"),
 				Collections.singletonMap("foo", "bar"));
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
@@ -304,7 +305,7 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasFive() throws IOException {
-		Alias alias = AliasUtil.getAlias(cwd, "five", null, null);
+		Alias alias = Alias.get(cwd, "five", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.resolve(cwd), equalTo("http://dummy"));
@@ -316,7 +317,7 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasFiveWithArgs() throws IOException {
-		Alias alias = AliasUtil.getAlias(cwd, "five", Collections.singletonList("X"),
+		Alias alias = Alias.get(cwd, "five", Collections.singletonList("X"),
 				Collections.singletonMap("foo", "bar"));
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
@@ -329,7 +330,7 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasGav() throws IOException {
-		Alias alias = AliasUtil.getAlias(cwd, "gav", null, null);
+		Alias alias = Alias.get(cwd, "gav", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("org.example:artifact:version"));
 		assertThat(alias.resolve(cwd), equalTo("org.example:artifact:version"));
@@ -340,7 +341,7 @@ public class TestAlias extends BaseTest {
 	@Test
 	void testGetAliasLoop() throws IOException {
 		try {
-			AliasUtil.getAlias(cwd, "eight", null, null);
+			Alias.get(cwd, "eight", null, null);
 			Assert.fail();
 		} catch (RuntimeException ex) {
 			assertThat(ex.getMessage(), containsString("seven"));

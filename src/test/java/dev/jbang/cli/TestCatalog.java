@@ -16,6 +16,7 @@ import org.junit.rules.TemporaryFolder;
 import dev.jbang.BaseTest;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.AliasUtil;
+import dev.jbang.catalog.Catalog;
 
 import picocli.CommandLine;
 
@@ -60,8 +61,8 @@ public class TestCatalog extends BaseTest {
 		assertThat(cat, containsString("\"test\""));
 		assertThat(cat, containsString("test-catalog.json\""));
 
-		assertThat(AliasUtil.getCatalog(catsFile).catalogs, hasKey("test"));
-		assertThat(AliasUtil.getCatalog(catsFile).catalogs.get("test").catalogRef,
+		assertThat(Catalog.get(catsFile).catalogs, hasKey("test"));
+		assertThat(Catalog.get(catsFile).catalogs.get("test").catalogRef,
 				is(testCatalogFile.toAbsolutePath().toString()));
 	}
 
@@ -73,7 +74,7 @@ public class TestCatalog extends BaseTest {
 
 	@Test
 	void testGetAlias() throws IOException {
-		Alias alias = AliasUtil.getAlias(null, "one@test", null, null);
+		Alias alias = Alias.get(null, "one@test", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 	}
@@ -86,8 +87,8 @@ public class TestCatalog extends BaseTest {
 
 	@Test
 	void testRemove() throws IOException {
-		assertThat(AliasUtil.getCatalog(catsFile).catalogs, hasKey("test"));
+		assertThat(Catalog.get(catsFile).catalogs, hasKey("test"));
 		AliasUtil.removeCatalogRef(catsFile, "test");
-		assertThat(AliasUtil.getCatalog(catsFile).catalogs, not(hasKey("test")));
+		assertThat(Catalog.get(catsFile).catalogs, not(hasKey("test")));
 	}
 }

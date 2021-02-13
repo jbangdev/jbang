@@ -58,7 +58,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 
 import dev.jbang.BaseTest;
 import dev.jbang.Cache;
-import dev.jbang.catalog.AliasUtil;
+import dev.jbang.catalog.Catalog;
 import dev.jbang.net.TrustedSources;
 import dev.jbang.source.JarSource;
 import dev.jbang.source.RunContext;
@@ -250,7 +250,7 @@ public class TestRun extends BaseTest {
 				"}";
 
 		environmentVariables.set("JBANG_DIR", jbangTempDir.getPath());
-		Files.write(jbangTempDir.toPath().resolve(AliasUtil.JBANG_CATALOG_JSON), aliases.getBytes());
+		Files.write(jbangTempDir.toPath().resolve(Catalog.JBANG_CATALOG_JSON), aliases.getBytes());
 
 		environmentVariables.clear("JAVA_HOME");
 
