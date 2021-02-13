@@ -40,6 +40,12 @@ jobs:
           BREW_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}
           BREW_USER: ${{ secrets.BREW_USER }}
         run: ./misc/updatespec.sh
+      - name: snap
+        continue-on-error: true
+        env:
+          BREW_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}
+          BREW_USER: ${{ secrets.BREW_USER }}
+        run: ./misc/updatesnap.sh
       - name: sdkman
         continue-on-error: true
         env:
@@ -83,4 +89,15 @@ jobs:
           powershell
           choco apikey -k ${{ secrets.CHOCO_API_KEY }} -source https://push.chocolatey.org/
           choco push $(ls *.nupkg | % {$_.FullName}) -s https://push.chocolatey.org/
-
+  snapcraft:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Snapcraft Action
+        uses: samuelmeuli/action-snapcraft@v1.1.3
+        with:
+          snapcraft_token: ${{ secrets.SNAPCRAFT_TOKEN }}
+      - name: Sleep
+        run: sleep 1200
+      - name: Promote
+        run: ./misc/promotesnap.sh
