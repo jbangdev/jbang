@@ -15,6 +15,7 @@ ifdef::env-github[]
 endif::[]
 
 image:https://img.shields.io/github/release/jbangdev/jbang.svg[Release,link=https://github.com/jbangdev/jbang/releases]
+image:https://img.shields.io/github/downloads/jbangdev/jbang/total.svg[Downloads,link=https://hanadigital.github.io/grev/?user=jbangdev&repo=jbang]
 image:https://github.com/jbangdev/jbang/workflows/ci-build/badge.svg[Build Status,link=https://github.com/jbangdev/jbang/actions]
 image:https://www.eclipse.org/che/contribute.svg[Che, link=https://che.openshift.io/f?url=https://github.com/jbangdev/jbang]
 image:https://img.shields.io/badge/Gitpod-Workspace-blue?logo=gitpodp[Gitpod, link=https://gitpod.io/#https://github.com/jbangdev/jbang]
