@@ -1,5 +1,6 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 // //DEPS <dependency1> <dependency2>
+//JAVA_OPTIONS -Dfoo=bar
 
 import static java.lang.System.*;
 

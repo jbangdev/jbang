@@ -100,17 +100,18 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		File outjar = src.getJarFile();
 		boolean nativeBuildRequired = nativeImage && !getImageName(outjar).exists();
 		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
-		String requestedJavaVersion = javaVersion != null ? javaVersion : src.javaVersion();
+		String requestedJavaVersion = javaVersion != null ? javaVersion : src.getJavaVersion();
 		// always build the jar for native mode
 		// it allows integrations the options to produce the native image
 		boolean buildRequired = Util.isFresh() || nativeBuildRequired;
 		if (!buildRequired && outjar.canRead()) {
 			// We already have a Jar, check if we can still use it
 			JarSource jarSrc = src.asJarSource();
-			if (jarSrc == null || JavaUtil.javaVersion(requestedJavaVersion) < jarSrc.getBuildJdk()) {
+			if (jarSrc == null
+					|| JavaUtil.javaVersion(requestedJavaVersion) < JavaUtil.javaVersion(jarSrc.getJavaVersion())) {
 				buildRequired = true;
 			} else {
-				result = jarSrc;
+				result = ctx.importJarMetadataFor(jarSrc);
 			}
 		} else {
 			buildRequired = true;
@@ -326,9 +327,11 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 			}
 		}
 
-		if (ctx.getPersistentJvmArgs() != null) {
+		String runtimeOpts = Stream	.concat(src.getRuntimeOptions().stream(), ctx.getPersistentJvmArgs().stream())
+									.collect(Collectors.joining(" "));
+		if (!runtimeOpts.isEmpty()) {
 			manifest.getMainAttributes()
-					.putValue(Source.ATTR_JBANG_JAVA_OPTIONS, String.join(" ", ctx.getPersistentJvmArgs()));
+					.putValue(Source.ATTR_JBANG_JAVA_OPTIONS, runtimeOpts);
 		}
 		int buildJdk = ctx.getBuildJdk();
 		if (buildJdk > 0) {

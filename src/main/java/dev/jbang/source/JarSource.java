@@ -110,8 +110,8 @@ public class JarSource implements Source {
 	}
 
 	@Override
-	public String javaVersion() {
-		return null;
+	public String getJavaVersion() {
+		return buildJdk + "+";
 	}
 
 	@Override
@@ -122,10 +122,6 @@ public class JarSource implements Source {
 	@Override
 	public List<String> getRuntimeOptions() {
 		return javaRuntimeOptions;
-	}
-
-	public int getBuildJdk() {
-		return buildJdk;
 	}
 
 	public static JarSource prepareJar(ResourceRef resourceRef) {

@@ -105,6 +105,7 @@ public class TestRun extends BaseTest {
 		assertThat(result, endsWith("helloworld"));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, containsString(".jar"));
+		assertThat(result, containsString("-Dfoo=bar"));
 		// assertThat(result, containsString("--source 11"));
 	}
 
