@@ -1210,7 +1210,7 @@ launch faster on consecutive runs.
 
 The caching goes to `~/.jbang/cache` by default, you can run `jbang cache clear` to remove all cache data from this folder.
 
-== Exporting apps [EXPERIMENTAL]
+== Exporting apps
 
 If you want the generated jar or native binary you can use `jbang export <script>` to get it copied (exported)
 for you to use directly.
