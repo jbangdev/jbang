@@ -146,7 +146,7 @@ public class TestScript extends BaseTest {
 	void testCommentsDoesNotGetPickedUp() {
 		ScriptSource script = new ScriptSource(exampleCommandsWithComments);
 
-		assertEquals(script.javaVersion(), "14+");
+		assertEquals(script.getJavaVersion(), "14+");
 
 		List<String> deps = script.getAllDependencies(System.getProperties());
 

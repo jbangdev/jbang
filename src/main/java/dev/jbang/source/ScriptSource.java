@@ -399,7 +399,7 @@ public class ScriptSource implements Source {
 	}
 
 	@Override
-	public String javaVersion() {
+	public String getJavaVersion() {
 		Optional<String> version = collectAll(ScriptSource::collectJavaVersions).stream()
 																				.filter(JavaUtil::checkRequestedVersion)
 																				.max(new JavaUtil.RequestedVersionComparator());

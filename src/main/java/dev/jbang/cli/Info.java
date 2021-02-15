@@ -37,6 +37,8 @@ abstract class BaseInfoCommand extends BaseScriptDepsCommand {
 
 		String javaVersion;
 
+		List<String> runtimeOptions;
+
 		public ScriptInfo(Source src, RunContext ctx) {
 			String cp = ctx.resolveClassPath(src);
 
@@ -54,6 +56,10 @@ abstract class BaseInfoCommand extends BaseScriptDepsCommand {
 
 			if (ctx.getBuildJdk() > 0) {
 				javaVersion = Integer.toString(ctx.getBuildJdk());
+			}
+
+			if (!ctx.getPersistentJvmArgs().isEmpty()) {
+				runtimeOptions = ctx.getPersistentJvmArgs();
 			}
 		}
 	}

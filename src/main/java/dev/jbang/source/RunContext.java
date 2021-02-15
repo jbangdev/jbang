@@ -14,6 +14,7 @@ import dev.jbang.catalog.Alias;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.ModularClassPath;
+import dev.jbang.util.JavaUtil;
 
 /**
  * This class contains all the extra information needed to actually run a
@@ -172,7 +173,7 @@ public class RunContext {
 	}
 
 	public List<String> getPersistentJvmArgs() {
-		return persistentJvmArgs;
+		return persistentJvmArgs != null ? persistentJvmArgs : Collections.emptyList();
 	}
 
 	public void setPersistentJvmArgs(List<String> persistentJvmArgs) {
@@ -283,7 +284,7 @@ public class RunContext {
 					ResourceRef.forNamedFile(src.getResourceRef().getOriginalResource(), jarFile));
 			setMainClass(jar.getMainClass());
 			setPersistentJvmArgs(jar.getRuntimeOptions());
-			setBuildJdk(jar.getBuildJdk());
+			setBuildJdk(JavaUtil.javaVersion(jar.getJavaVersion()));
 			return jar;
 		} else {
 			return src;

@@ -124,7 +124,7 @@ public class Run extends BaseBuildCommand {
 
 			List<String> optionalArgs = new ArrayList<>();
 
-			String requestedJavaVersion = javaVersion != null ? javaVersion : src.javaVersion();
+			String requestedJavaVersion = javaVersion != null ? javaVersion : src.getJavaVersion();
 			String javacmd = resolveInJavaHome("java", requestedJavaVersion);
 			if (ctx.isForceJsh() || src.isJShell()) {
 
@@ -202,9 +202,7 @@ public class Run extends BaseBuildCommand {
 						optionalArgs.add("-XX:SharedArchiveFile=" + cdsJsa);
 					}
 				}
-				if (ctx.getPersistentJvmArgs() != null) {
-					optionalArgs.addAll(ctx.getPersistentJvmArgs());
-				}
+				optionalArgs.addAll(ctx.getPersistentJvmArgs());
 			}
 
 			fullArgs.add(javacmd);

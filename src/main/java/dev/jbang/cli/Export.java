@@ -109,8 +109,8 @@ public class Export extends BaseBuildCommand {
 
 					List<String> optionList = new ArrayList<>();
 					optionList.add(resolveInJavaHome("jar",
-							export.javaVersion != null ? export.javaVersion : src.javaVersion())); // TODO locate it
-																									// on path ?
+							export.javaVersion != null ? export.javaVersion : src.getJavaVersion())); // TODO locate it
+																										// on path ?
 					optionList.add("ufm");
 					optionList.add(outputPath.toString());
 					optionList.add(tempManifest.toString());

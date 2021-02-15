@@ -63,7 +63,7 @@ public interface Source {
 	/**
 	 * Returns the requested Java version
 	 */
-	String javaVersion();
+	String getJavaVersion();
 
 	/**
 	 * Returns the resource's description. Returns `Optional.empty()` if no
