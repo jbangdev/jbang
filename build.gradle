@@ -262,6 +262,21 @@ task scoop(type: Copy) {
 	}
 }
 
+task snap(type: Copy) {
+	dependsOn(createChecksum)
+	inputs.property('version', project.version)
+	from('src/main/scripts/snap/snapcraft.yaml')
+	into(buildDir.toString() + '/snap')
+	doFirst { t ->
+		t.filter(org.apache.tools.ant.filters.ReplaceTokens,
+				tokens: [
+						projectVersion: project.version,
+						sha256        : new File(distZip.archiveFile.asFile.get().absolutePath + '.sha256').text
+				]
+		)
+	}
+}
+
 task chocolatey(type: Copy) {
 	dependsOn(createChecksum)
 	inputs.property('version', project.version)
@@ -340,6 +355,7 @@ build.dependsOn(chocolatey)
 build.dependsOn(scoop)
 build.dependsOn(container)
 build.dependsOn(spec)
+build.dependsOn(snap)
 
 group = "dev.jbang"
 sourceCompatibility = '8'
