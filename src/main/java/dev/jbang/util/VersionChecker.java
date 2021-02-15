@@ -22,6 +22,7 @@ public class VersionChecker {
 	private static final int CONNECT_TIMEOUT = 3000;
 
 	private static Future<String> versionCheckResult;
+	private static boolean informed = false;
 
 	/**
 	 * Check if a new Jbang version is available and if so notify the user. This
@@ -29,12 +30,7 @@ public class VersionChecker {
 	 */
 	public static void checkNowAndInform() {
 		try {
-			String latestVersion = retrieveLatestVersionAsync().get();
-			if (isNewer(latestVersion)) {
-				showMessage(latestVersion);
-			} else {
-				Util.infoMsg("jbang is up-to-date.");
-			}
+			inform(retrieveLatestVersionAsync().get(), false);
 		} catch (ExecutionException e) {
 			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, "Couldn't retrieve latest jbang version");
 		} catch (InterruptedException e) {
@@ -55,15 +51,16 @@ public class VersionChecker {
 	public static boolean updateOrInform(boolean checkForUpdate) {
 		try {
 			if (Util.runningManagedJbang()) {
-				if (!checkForUpdate || isNewer(retrieveLatestVersionAsync().get())) {
+				String latestVersion = retrieveLatestVersionAsync().get();
+				if (!checkForUpdate || isNewer(latestVersion)) {
 					return true;
 				} else if (checkForUpdate) {
-					Util.infoMsg("jbang is up-to-date.");
+					inform(latestVersion, false);
 				}
 			} else {
 				if (checkForUpdate) {
 					checkNowAndInform();
-				} else {
+				} else if (!informed) {
 					showManualInstallMessage();
 				}
 			}
@@ -91,13 +88,14 @@ public class VersionChecker {
 	}
 
 	/**
-	 * Inform the user if the future returned a newer jbang version number
+	 * Inform the user if the future returned a newer Jbang version number, or
+	 * cancel the Future if it isn't done yet.
 	 */
-	public static void inform(Future<String> versionCheckResult) {
+	public static void informOrCancel(Future<String> versionCheckResult) {
 		try {
 			if (versionCheckResult != null) {
 				if (versionCheckResult.isDone()) {
-					inform(versionCheckResult.get());
+					inform(versionCheckResult.get(), true);
 				} else {
 					versionCheckResult.cancel(true);
 				}
@@ -109,13 +107,18 @@ public class VersionChecker {
 		}
 	}
 
-	private static void inform(String latestVersion) {
-		if (latestVersion != null) {
+	private static void inform(String latestVersion, boolean quiet) {
+		if (!informed && latestVersion != null) {
 			if (isNewer(latestVersion)) {
 				showMessage(latestVersion);
 			} else {
-				Util.verboseMsg("jbang is up-to-date.");
+				if (quiet) {
+					Util.verboseMsg("jbang is up-to-date.");
+				} else {
+					Util.infoMsg("jbang is up-to-date.");
+				}
 			}
+			informed = true;
 		}
 	}
 
@@ -124,7 +127,7 @@ public class VersionChecker {
 		Util.infoMsg("You have version " + Util.getJbangVersion()
 				+ " and " + latestVersion + " is the latest.");
 		if (Util.runningManagedJbang()) {
-			Util.infoMsg("Run 'jbang app install --force jbang' to update to the latest version.");
+			Util.infoMsg("Run 'jbang version --update' to update to the latest version.");
 		} else {
 			showManualInstallMessage();
 		}

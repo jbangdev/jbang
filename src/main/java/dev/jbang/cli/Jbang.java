@@ -129,7 +129,7 @@ public class Jbang extends BaseCommand {
 			Util.verboseMsg("jbang version " + Util.getJbangVersion());
 			Future<String> versionCheckResult = VersionChecker.newerVersionAsync();
 			List<Object> result = super.handle(parseResult);
-			VersionChecker.inform(versionCheckResult);
+			VersionChecker.informOrCancel(versionCheckResult);
 			return result;
 		}
 	};
