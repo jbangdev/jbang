@@ -8,8 +8,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import dev.jbang.Settings;
-import dev.jbang.catalog.AliasUtil;
 import dev.jbang.catalog.Catalog;
+import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.Source;
 import dev.jbang.util.Util;
@@ -36,7 +36,7 @@ abstract class BaseAliasCommand extends BaseCommand {
 		} else {
 			if (catalogFile != null && Files.isDirectory(catalogFile)) {
 				Path defaultCatalog = catalogFile.resolve(Catalog.JBANG_CATALOG_JSON);
-				Path hiddenCatalog = catalogFile.resolve(AliasUtil.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
+				Path hiddenCatalog = catalogFile.resolve(CatalogUtil.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
 				if (!Files.exists(defaultCatalog) && Files.exists(hiddenCatalog)) {
 					cat = hiddenCatalog;
 				} else {
@@ -63,7 +63,7 @@ class AliasAdd extends BaseAliasCommand {
 	@CommandLine.Option(names = { "-D" }, description = "set a system property", mapFallbackValue = "true")
 	Map<String, String> properties;
 
-	@CommandLine.Option(names = { "--name" }, description = "A name for the command")
+	@CommandLine.Option(names = { "--name" }, description = "A name for the alias")
 	String name;
 
 	@CommandLine.Parameters(paramLabel = "scriptOrFile", index = "0", description = "A file or URL to a Java code file", arity = "1")
@@ -74,7 +74,7 @@ class AliasAdd extends BaseAliasCommand {
 
 	@Override
 	public Integer doCall() {
-		if (name != null && !AliasUtil.isValidName(name)) {
+		if (name != null && !Catalog.isValidName(name)) {
 			throw new IllegalArgumentException(
 					"Invalid alias name, it should start with a letter followed by 0 or more letters, digits, underscores or hyphens");
 		}
@@ -82,16 +82,16 @@ class AliasAdd extends BaseAliasCommand {
 		RunContext ctx = RunContext.empty();
 		Source src = Source.forResource(scriptOrFile, ctx);
 		if (name == null) {
-			name = AppInstall.chooseCommandName(ctx);
+			name = CatalogUtil.nameFromRef(ctx.getOriginalRef());
 		}
 
 		String desc = description != null ? description : src.getDescription().orElse(null);
 
 		Path catFile = getCatalog(false);
 		if (catFile != null) {
-			AliasUtil.addAlias(null, catFile, name, scriptOrFile, desc, userParams, properties);
+			CatalogUtil.addAlias(null, catFile, name, scriptOrFile, desc, userParams, properties);
 		} else {
-			catFile = AliasUtil.addNearestAlias(null, name, scriptOrFile, desc, userParams, properties);
+			catFile = CatalogUtil.addNearestAlias(null, name, scriptOrFile, desc, userParams, properties);
 		}
 		info(String.format("Alias '%s' added to '%s'", name, catFile));
 		return EXIT_OK;
@@ -154,7 +154,7 @@ class AliasList extends BaseAliasCommand {
 		String fullName = catalogName != null ? name + "@" + catalogName : name;
 		String scriptRef = alias.scriptRef;
 		if (!catalog.aliases.containsKey(scriptRef)
-				&& !AliasUtil.isValidCatalogReference(scriptRef)) {
+				&& !Catalog.isValidCatalogReference(scriptRef)) {
 			scriptRef = alias.resolve(null);
 		}
 		out.print(Util.repeat(" ", indent));
@@ -203,9 +203,9 @@ class AliasRemove extends BaseAliasCommand {
 	public Integer doCall() {
 		final Path cat = getCatalog(true);
 		if (cat != null) {
-			AliasUtil.removeAlias(cat, name);
+			CatalogUtil.removeAlias(cat, name);
 		} else {
-			AliasUtil.removeNearestAlias(null, name);
+			CatalogUtil.removeNearestAlias(null, name);
 		}
 		return EXIT_OK;
 	}

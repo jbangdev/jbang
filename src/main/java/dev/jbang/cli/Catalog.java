@@ -6,8 +6,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import dev.jbang.Settings;
-import dev.jbang.catalog.AliasUtil;
 import dev.jbang.catalog.CatalogRef;
+import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -32,7 +32,7 @@ abstract class BaseCatalogCommand extends BaseCommand {
 		} else {
 			if (catalogFile != null && Files.isDirectory(catalogFile)) {
 				Path defaultCatalog = catalogFile.resolve(dev.jbang.catalog.Catalog.JBANG_CATALOG_JSON);
-				Path hiddenCatalog = catalogFile.resolve(AliasUtil.JBANG_DOT_DIR)
+				Path hiddenCatalog = catalogFile.resolve(CatalogUtil.JBANG_DOT_DIR)
 												.resolve(dev.jbang.catalog.Catalog.JBANG_CATALOG_JSON);
 				if (!Files.exists(defaultCatalog) && Files.exists(hiddenCatalog)) {
 					cat = hiddenCatalog;
@@ -72,9 +72,9 @@ class CatalogAdd extends BaseCatalogCommand {
 		CatalogRef ref = CatalogRef.createByRefOrImplicit(urlOrFile);
 		Path catFile = getCatalog(false);
 		if (catFile != null) {
-			AliasUtil.addCatalogRef(null, catFile, name, ref.catalogRef, ref.description);
+			CatalogUtil.addCatalogRef(null, catFile, name, ref.catalogRef, ref.description);
 		} else {
-			catFile = AliasUtil.addNearestCatalogRef(null, name, ref.catalogRef, ref.description);
+			catFile = CatalogUtil.addNearestCatalogRef(null, name, ref.catalogRef, ref.description);
 		}
 		info(String.format("Catalog added to %s", catFile));
 		return EXIT_OK;
@@ -137,7 +137,7 @@ class CatalogList extends BaseCatalogCommand {
 							});
 		} else {
 			dev.jbang.catalog.Catalog catalog = dev.jbang.catalog.Catalog.getByName(null, name);
-			AliasList.printAliases(out, name, catalog);
+			TemplateList.printTemplates(out, name, catalog);
 		}
 		return EXIT_OK;
 	}
@@ -153,9 +153,9 @@ class CatalogRemove extends BaseCatalogCommand {
 	public Integer doCall() {
 		Path cat = getCatalog(true);
 		if (cat != null) {
-			AliasUtil.removeCatalogRef(cat, name);
+			CatalogUtil.removeCatalogRef(cat, name);
 		} else {
-			AliasUtil.removeNearestCatalogRef(null, name);
+			CatalogUtil.removeNearestCatalogRef(null, name);
 		}
 		return EXIT_OK;
 	}

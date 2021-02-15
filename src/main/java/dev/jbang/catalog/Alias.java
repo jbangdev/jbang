@@ -3,7 +3,6 @@ package dev.jbang.catalog;
 import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -11,23 +10,21 @@ import java.util.Map;
 import com.google.gson.annotations.SerializedName;
 
 import dev.jbang.cli.ExitException;
-import dev.jbang.util.Util;
 
-public class Alias {
+public class Alias extends CatalogItem {
 	@SerializedName(value = "script-ref", alternate = { "scriptRef" })
 	public final String scriptRef;
 	public final String description;
 	public final List<String> arguments;
 	public final Map<String, String> properties;
-	public transient Catalog catalog;
 
 	public Alias(String scriptRef, String description, List<String> arguments, Map<String, String> properties,
 			Catalog catalog) {
+		super(catalog);
 		this.scriptRef = scriptRef;
 		this.description = description;
 		this.arguments = arguments;
 		this.properties = properties;
-		this.catalog = catalog;
 	}
 
 	/**
@@ -35,24 +32,7 @@ public class Alias {
 	 * like baseRefs and current working directories applied.
 	 */
 	public String resolve(Path cwd) {
-		if (cwd == null) {
-			cwd = Util.getCwd();
-		}
-		String baseRef = catalog.getScriptBase();
-		String ref = scriptRef;
-		if (!Catalog.isAbsoluteRef(ref)) {
-			ref = baseRef + "/" + ref;
-		}
-		if (!Catalog.isRemoteRef(ref)) {
-			Path script = Paths.get(ref).normalize();
-			if (cwd.getRoot().equals(script.getRoot())) {
-				script = cwd.relativize(script);
-			} else {
-				script = script.toAbsolutePath();
-			}
-			ref = script.toString();
-		}
-		return ref;
+		return resolve(cwd, scriptRef);
 	}
 
 	/**
@@ -120,9 +100,8 @@ public class Alias {
 	 * @return An Alias object
 	 */
 	private static Alias getLocal(Path cwd, String aliasName) {
-		Path catalogFile = findNearestCatalogWithAlias(cwd, aliasName);
-		if (catalogFile != null) {
-			Catalog catalog = Catalog.get(catalogFile);
+		Catalog catalog = findNearestCatalogWithAlias(cwd, aliasName);
+		if (catalog != null) {
 			return catalog.aliases.getOrDefault(aliasName, null);
 		}
 		return null;
@@ -144,7 +123,7 @@ public class Alias {
 		return alias;
 	}
 
-	static Path findNearestCatalogWithAlias(Path dir, String aliasName) {
+	static Catalog findNearestCatalogWithAlias(Path dir, String aliasName) {
 		return Catalog.findNearestCatalogWith(dir, catalogFile -> {
 			Catalog catalog = Catalog.get(catalogFile);
 			return catalog.aliases.containsKey(aliasName);

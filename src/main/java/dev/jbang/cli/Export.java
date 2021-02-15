@@ -14,6 +14,7 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
+import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.Source;
 import dev.jbang.util.Util;
@@ -153,7 +154,7 @@ public class Export extends BaseBuildCommand {
 		if (outputFile != null) {
 			outputPath = outputFile;
 		} else {
-			String outName = AppInstall.chooseCommandName(ctx);
+			String outName = CatalogUtil.nameFromRef(ctx.getOriginalRef());
 			if (nativeImage) {
 				outName = getImageName(new File(outName)).getName();
 			} else {

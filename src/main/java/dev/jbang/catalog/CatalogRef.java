@@ -47,9 +47,8 @@ public class CatalogRef {
 
 	static CatalogRef get(Path cwd, String catalogName) {
 		CatalogRef catalogRef = null;
-		Path catalogFile = findNearestCatalogWithCatalogRef(cwd, catalogName);
-		if (catalogFile != null) {
-			Catalog catalog = Catalog.get(catalogFile);
+		Catalog catalog = findNearestCatalogWithCatalogRef(cwd, catalogName);
+		if (catalog != null) {
 			catalogRef = catalog.catalogs.get(catalogName);
 		}
 		if (catalogRef == null) {
@@ -57,14 +56,15 @@ public class CatalogRef {
 			Optional<String> url = ImplicitCatalogRef.getImplicitCatalogUrl(catalogName);
 			if (url.isPresent()) {
 				Catalog implicitCatalog = Catalog.getByRef(url.get());
-				catalogRef = AliasUtil.addCatalogRef(cwd, Settings.getUserImplicitCatalogFile(), catalogName, url.get(),
+				catalogRef = CatalogUtil.addCatalogRef(cwd, Settings.getUserImplicitCatalogFile(), catalogName,
+						url.get(),
 						implicitCatalog.description);
 			}
 		}
 		return catalogRef;
 	}
 
-	static Path findNearestCatalogWithCatalogRef(Path dir, String catalogName) {
+	static Catalog findNearestCatalogWithCatalogRef(Path dir, String catalogName) {
 		return Catalog.findNearestCatalogWith(dir, catalogFile -> {
 			Catalog catalog = Catalog.get(catalogFile);
 			return catalog.catalogs.containsKey(catalogName);

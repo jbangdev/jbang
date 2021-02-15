@@ -15,8 +15,8 @@ import org.junit.rules.TemporaryFolder;
 
 import dev.jbang.BaseTest;
 import dev.jbang.catalog.Alias;
-import dev.jbang.catalog.AliasUtil;
 import dev.jbang.catalog.Catalog;
+import dev.jbang.catalog.CatalogUtil;
 
 import picocli.CommandLine;
 
@@ -46,7 +46,7 @@ public class TestCatalog extends BaseTest {
 		testCatalogFile = cwd.resolve("test-catalog.json");
 		Files.write(testCatalogFile, testCatalog.getBytes());
 		clearSettingsCaches();
-		AliasUtil.addCatalogRef(null, catsFile, "test", testCatalogFile.toAbsolutePath().toString(), "Test catalog");
+		CatalogUtil.addCatalogRef(null, catsFile, "test", testCatalogFile.toAbsolutePath().toString(), "Test catalog");
 	}
 
 	@Rule
@@ -88,7 +88,7 @@ public class TestCatalog extends BaseTest {
 	@Test
 	void testRemove() throws IOException {
 		assertThat(Catalog.get(catsFile).catalogs, hasKey("test"));
-		AliasUtil.removeCatalogRef(catsFile, "test");
+		CatalogUtil.removeCatalogRef(catsFile, "test");
 		assertThat(Catalog.get(catsFile).catalogs, not(hasKey("test")));
 	}
 }

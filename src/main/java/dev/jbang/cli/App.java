@@ -1,8 +1,6 @@
 package dev.jbang.cli;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,12 +11,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.net.JdkManager;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.Source;
@@ -76,7 +74,7 @@ class AppInstall extends BaseCommand {
 				if ("jbang".equals(name)) {
 					throw new IllegalArgumentException("jbang is a reserved name.");
 				}
-				if (name != null && !isValidCommandName(name)) {
+				if (name != null && !CatalogUtil.isValidName(name)) {
 					throw new IllegalArgumentException("Not a valid command name: '" + name + "'");
 				}
 				installed = install(name, scriptRef, force, benative);
@@ -101,7 +99,7 @@ class AppInstall extends BaseCommand {
 		RunContext ctx = RunContext.empty();
 		Source src = Source.forResource(scriptRef, ctx);
 		if (name == null) {
-			name = chooseCommandName(ctx);
+			name = CatalogUtil.nameFromRef(ctx.getOriginalRef());
 			if (!force && existScripts(binDir, name)) {
 				Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
 				return false;
@@ -118,55 +116,6 @@ class AppInstall extends BaseCommand {
 	private static boolean existScripts(Path binDir, String name) {
 		return Files.exists(binDir.resolve(name)) || Files.exists(binDir.resolve(name + ".cmd"))
 				|| Files.exists(binDir.resolve(name + ".ps1"));
-	}
-
-	public static String chooseCommandName(RunContext ctx) {
-		String startName = null;
-		String name;
-		if (ctx.getAlias() != null) {
-			// If the script ref is an alias we take that name up to
-			// the @-symbol (if any) to be the command name.
-			startName = ctx.getOriginalRef();
-			name = startName;
-			int p = name.indexOf("@");
-			if (p > 0) {
-				name = name.substring(0, p);
-			}
-		} else {
-			// If the script is a file or a URL we take the last part of
-			// the name without extension (if any) to be the command name.
-			try {
-				URI u = new URI(ctx.getOriginalRef());
-				startName = u.getPath();
-				if (startName.endsWith("/")) { // if using default app use the last segment.
-					startName = startName.substring(0, startName.length() - 1);
-				}
-				startName = u.getPath().substring(Math.max(0, startName.lastIndexOf("/")));
-			} catch (URISyntaxException e) {
-				startName = Paths.get(ctx.getOriginalRef()).getFileName().toString();
-			}
-
-			name = startName;
-			int p = name.lastIndexOf(".");
-			if (p > 0) {
-				name = name.substring(0, p);
-			}
-			name = name.replaceAll("[^" + validCommandNameChars + "]", "");
-
-		}
-		if (!isValidCommandName(name)) {
-			throw new IllegalArgumentException(
-					"A valid command name could not be determined from: '" + startName + "'");
-		}
-		return name;
-	}
-
-	private static final String validCommandNameChars = "-.\\w";
-
-	private static final Pattern validCommandName = Pattern.compile("[" + validCommandNameChars + "]+");
-
-	public static boolean isValidCommandName(String name) {
-		return validCommandName.matcher(name).matches();
 	}
 
 	private static void installScripts(String name, String scriptRef, boolean benative) throws IOException {

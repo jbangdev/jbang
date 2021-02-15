@@ -4,8 +4,10 @@ import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
 import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,6 +23,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.annotations.SerializedName;
 
+import dev.jbang.Main;
 import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
@@ -37,8 +40,11 @@ public class Catalog {
 	// HEAD at least on github gives you latest commit on default branch
 	static final String DEFAULT_REF = "HEAD";
 
+	private static final Path CACHE_BUILTIN = Paths.get(":::BUILTIN:::");
+
 	public Map<String, CatalogRef> catalogs = new HashMap<>();
-	public final Map<String, Alias> aliases = new HashMap<>();
+	public Map<String, Alias> aliases = new HashMap<>();
+	public Map<String, Template> templates = new HashMap<>();
 
 	@SerializedName(value = "base-ref", alternate = { "baseRef" })
 	public final String baseRef;
@@ -67,6 +73,9 @@ public class Catalog {
 	 * @return A string to be used as the base for Alias script locations
 	 */
 	public String getScriptBase() {
+		if (isClassPathRef(catalogFile.toString())) {
+			return "classpath:" + ((baseRef != null) ? "/" + baseRef : "");
+		}
 		Path result;
 		if (baseRef != null) {
 			if (!isRemoteRef(baseRef)) {
@@ -89,6 +98,32 @@ public class Catalog {
 		return result.normalize().toString();
 	}
 
+	String relativize(Path cwd, String scriptRef) {
+		if (!isRemoteRef(scriptRef) && !isValidCatalogReference(scriptRef)) {
+			// If the scriptRef points to an existing file on the local filesystem
+			// or it's obviously a path (but not an absolute path) we'll make it
+			// relative to the location of the catalog we're adding the alias to.
+			Path script = cwd.resolve(scriptRef).normalize();
+			String baseRef = getScriptBase();
+			if (!isAbsoluteRef(scriptRef)
+					&& !isRemoteRef(baseRef)
+					&& (!isValidName(scriptRef) || Files.isRegularFile(script))) {
+				Path base = Paths.get(baseRef);
+				if (base.getRoot().equals(script.getRoot())) {
+					scriptRef = base.relativize(script.toAbsolutePath()).normalize().toString();
+				} else {
+					scriptRef = script.toAbsolutePath().normalize().toString();
+				}
+			}
+			if (!isRemoteRef(baseRef)
+					&& !isValidName(scriptRef)
+					&& !Files.isRegularFile(script)) {
+				throw new IllegalArgumentException("Source file not found: " + scriptRef);
+			}
+		}
+		return scriptRef;
+	}
+
 	/**
 	 * Load a Catalog's aliases given the name of a previously registered Catalog
 	 *
@@ -108,23 +143,26 @@ public class Catalog {
 	 * Will either return the given catalog or search for the nearest catalog
 	 * starting from cwd.
 	 *
-	 * @param cwd     The folder to use as a starting point for getting the nearest
-	 *                catalog. NB: This method _specifically_ does _not_ return a
-	 *                reference to the implicit catalog ever.
-	 * @param catalog The catalog to return or null to return the nearest catalog
+	 * @param cwd         The folder to use as a starting point for getting the
+	 *                    nearest catalog. NB: This method _specifically_ does _not_
+	 *                    return a reference to the implicit catalog ever.
+	 * @param catalogFile The catalog to return or null to return the nearest
+	 *                    catalog
 	 * @return Path to a catalog
 	 */
-	public static Path getCatalogFile(Path cwd, Path catalog) {
-		if (catalog == null) {
-			catalog = findNearestCatalog(cwd);
-			if (catalog == null) {
+	public static Path getCatalogFile(Path cwd, Path catalogFile) {
+		if (catalogFile == null) {
+			Catalog catalog = findNearestCatalog(cwd);
+			if (catalog != null) {
+				catalogFile = catalog.catalogFile;
+			} else {
 				// This is here as a backup for when the user catalog doesn't
 				// exist yet, because `findNearestCatalog()` only returns
 				// existing files
-				catalog = Settings.getUserCatalogFile();
+				catalogFile = Settings.getUserCatalogFile();
 			}
 		}
-		return catalog;
+		return catalogFile;
 	}
 
 	/**
@@ -200,24 +238,31 @@ public class Catalog {
 		for (CatalogRef ref : catalog.catalogs.values()) {
 			Catalog cat = getByRef(ref.catalogRef);
 			result.aliases.putAll(cat.aliases);
+			result.templates.putAll(cat.templates);
 		}
 		result.aliases.putAll(catalog.aliases);
+		result.templates.putAll(catalog.templates);
 		result.catalogs.putAll(catalog.catalogs);
 	}
 
-	private static Path findNearestCatalog(Path dir) {
-		return AliasUtil.findNearestFileWith(dir, JBANG_CATALOG_JSON, p -> true);
+	private static Catalog findNearestCatalog(Path dir) {
+		Path catalogFile = CatalogUtil.findNearestFileWith(dir, JBANG_CATALOG_JSON, p -> true);
+		return catalogFile != null ? get(catalogFile) : null;
 	}
 
-	static Path findNearestCatalogWith(Path dir, Function<Path, Boolean> accept) {
-		Path result = AliasUtil.findNearestFileWith(dir, JBANG_CATALOG_JSON, accept);
-		if (result == null) {
+	static Catalog findNearestCatalogWith(Path dir, Function<Path, Boolean> accept) {
+		Path catalogFile = CatalogUtil.findNearestFileWith(dir, JBANG_CATALOG_JSON, accept);
+		if (catalogFile == null) {
 			Path file = Settings.getUserImplicitCatalogFile();
 			if (Files.isRegularFile(file) && Files.isReadable(file) && accept.apply(file)) {
-				result = file;
+				catalogFile = file;
 			}
 		}
-		return result;
+		if (catalogFile != null) {
+			return get(catalogFile);
+		} else {
+			return getBuiltin();
+		}
 	}
 
 	public static Catalog get(Path catalogPath) {
@@ -232,6 +277,30 @@ public class Catalog {
 		return catalog;
 	}
 
+	// This returns the built-in Catalog that can be found in the resources
+	public static Catalog getBuiltin() {
+		Catalog catalog = new Catalog(null, null, null);
+		if (Util.isFresh() || !catalogCache.containsKey(CACHE_BUILTIN)) {
+			try {
+				ClassLoader cl = Thread.currentThread().getContextClassLoader();
+				if (cl == null) {
+					cl = Main.class.getClassLoader();
+				}
+				URL catalogUrl = cl.getResource(JBANG_CATALOG_JSON);
+				if (catalogUrl != null) {
+					catalog = read(new InputStreamReader(catalogUrl.openStream()));
+					catalog.catalogFile = Paths.get("classpath:/" + JBANG_CATALOG_JSON);
+					catalogCache.put(CACHE_BUILTIN, catalog);
+				}
+			} catch (IOException e) {
+				// Ignore errors
+			}
+		} else {
+			catalog = catalogCache.get(CACHE_BUILTIN);
+		}
+		return catalog;
+	}
+
 	public static void clearCache() {
 		catalogCache.clear();
 	}
@@ -241,28 +310,45 @@ public class Catalog {
 		Catalog catalog = new Catalog(null, null, null);
 		if (Files.isRegularFile(catalogPath)) {
 			try (Reader in = Files.newBufferedReader(catalogPath)) {
-				Gson parser = new Gson();
-				Catalog as = parser.fromJson(in, Catalog.class);
-				if (as != null) {
-					catalog = as;
-					// Validate the result (Gson can't do this)
-					if (catalog.catalogs == null) {
-						catalog.catalogs = new HashMap<>();
-					}
-					for (String catName : catalog.catalogs.keySet()) {
-						CatalogRef cat = catalog.catalogs.get(catName);
-						check(cat.catalogRef != null, "Missing required attribute 'catalogs.catalogRef'");
-					}
-					check(catalog.aliases != null, "Missing required attribute 'aliases' in " + catalogPath);
-					for (String aliasName : catalog.aliases.keySet()) {
-						Alias alias = catalog.aliases.get(aliasName);
-						alias.catalog = catalog;
-						check(alias.scriptRef != null, "Missing required attribute 'aliases.script-ref'");
-					}
-				}
+				catalog = read(in);
 			} catch (IOException e) {
 				// Ignore errors
 			}
+		}
+		return catalog;
+	}
+
+	private static Catalog read(Reader in) {
+		Gson parser = new Gson();
+		Catalog catalog = parser.fromJson(in, Catalog.class);
+		if (catalog != null) {
+			// Validate the result (Gson can't do this)
+			if (catalog.catalogs == null) {
+				catalog.catalogs = new HashMap<>();
+			}
+			if (catalog.aliases == null) {
+				catalog.aliases = new HashMap<>();
+			}
+			if (catalog.templates == null) {
+				catalog.templates = new HashMap<>();
+			}
+			for (String catName : catalog.catalogs.keySet()) {
+				CatalogRef cat = catalog.catalogs.get(catName);
+				check(cat.catalogRef != null, "Missing required attribute 'catalogs.catalogRef'");
+			}
+			for (String aliasName : catalog.aliases.keySet()) {
+				Alias alias = catalog.aliases.get(aliasName);
+				alias.catalog = catalog;
+				check(alias.scriptRef != null, "Missing required attribute 'aliases.script-ref'");
+			}
+			for (String tplName : catalog.templates.keySet()) {
+				Template tpl = catalog.templates.get(tplName);
+				tpl.catalog = catalog;
+				check(tpl.fileRefs != null, "Missing required attribute 'templates.file-refs'");
+				check(!tpl.fileRefs.isEmpty(), "Attribute 'aliases.script-ref' has no elements");
+			}
+		} else {
+			catalog = new Catalog(null, null, null);
 		}
 		return catalog;
 	}
@@ -286,6 +372,22 @@ public class Catalog {
 
 	static boolean isRemoteRef(String ref) {
 		return ref.startsWith("http:") || ref.startsWith("https:") || DependencyUtil.looksLikeAGav(ref);
+	}
+
+	static boolean isClassPathRef(String ref) {
+		return ref.startsWith("classpath:");
+	}
+
+	public static boolean isValidName(String name) {
+		return name.matches("^[a-zA-Z][-\\w]*$");
+	}
+
+	public static boolean isValidCatalogReference(String name) {
+		String[] parts = name.split("@");
+		if (parts.length != 2 || parts[0].isEmpty() || parts[1].isEmpty()) {
+			return false;
+		}
+		return isValidName(parts[0]);
 	}
 
 }

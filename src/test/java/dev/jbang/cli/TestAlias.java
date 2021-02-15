@@ -26,8 +26,8 @@ import org.junit.rules.TemporaryFolder;
 
 import dev.jbang.BaseTest;
 import dev.jbang.catalog.Alias;
-import dev.jbang.catalog.AliasUtil;
 import dev.jbang.catalog.Catalog;
+import dev.jbang.catalog.CatalogUtil;
 
 import picocli.CommandLine;
 
@@ -189,9 +189,9 @@ public class TestAlias extends BaseTest {
 		Path tmpPath = tmp.getRoot().toPath();
 		Path testFile = tmpPath.resolve("test.java");
 		Files.write(testFile, "// Test file".getBytes());
-		Path hiddenJbangPath = Paths.get(tmpPath.toString(), AliasUtil.JBANG_DOT_DIR);
+		Path hiddenJbangPath = Paths.get(tmpPath.toString(), CatalogUtil.JBANG_DOT_DIR);
 		Files.createDirectory(hiddenJbangPath);
-		Files.createFile(Paths.get(tmpPath.toString(), AliasUtil.JBANG_DOT_DIR, Catalog.JBANG_CATALOG_JSON));
+		Files.createFile(Paths.get(tmpPath.toString(), CatalogUtil.JBANG_DOT_DIR, Catalog.JBANG_CATALOG_JSON));
 		Jbang jbang = new Jbang();
 		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "--name=name", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
