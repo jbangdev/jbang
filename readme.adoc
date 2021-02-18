@@ -104,14 +104,14 @@ Linux/OSX/Windows Bash:
 
 [source, bash]
 ----
-curl -Ls https://sh.jbang.dev | bash -s - app install jbang
+curl -Ls https://sh.jbang.dev | bash -s - app setup
 ----
 
 Windows Powershell:
 
 [source, powershell]
 ----
-iex "& { $(iwr -useb https://ps.jbang.dev) } app install jbang"
+iex "& { $(iwr -useb https://ps.jbang.dev) } app setup"
 ----
 
 === SDKMan icon:linux[] / icon:apple[]
