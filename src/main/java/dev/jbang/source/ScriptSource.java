@@ -434,8 +434,7 @@ public class ScriptSource implements Source {
 		JarSource result = null;
 		File jarFile = getJarFile();
 		if (jarFile != null && jarFile.exists()) {
-			JarSource jarSrc = JarSource.prepareJar(
-					ResourceRef.forNamedFile(getResourceRef().getOriginalResource(), jarFile));
+			JarSource jarSrc = JarSource.prepareJar(getResourceRef(), jarFile);
 			if (jarSrc.resolveClassPath(Collections.emptyList()).isValid()) {
 				result = jarSrc;
 			}
