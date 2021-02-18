@@ -30,16 +30,17 @@ import dev.jbang.util.Util;
  */
 public class JarSource implements Source {
 	private final ResourceRef resourceRef;
+	private final File jarFile;
 
 	private String classPath;
 	private String mainClass;
 	private List<String> javaRuntimeOptions;
 	private int buildJdk;
 
-	private JarSource(ResourceRef resourceRef) {
+	private JarSource(ResourceRef resourceRef, File jar) {
 		this.resourceRef = resourceRef;
+		this.jarFile = jar;
 		this.javaRuntimeOptions = Collections.emptyList();
-		File jar = getResourceRef().getFile();
 		if (jar.exists()) {
 			try (JarFile jf = new JarFile(jar)) {
 				Attributes attrs = jf.getManifest().getMainAttributes();
@@ -71,7 +72,7 @@ public class JarSource implements Source {
 
 	@Override
 	public File getJarFile() {
-		return getResourceRef().getFile();
+		return jarFile;
 	}
 
 	@Override
@@ -125,6 +126,10 @@ public class JarSource implements Source {
 	}
 
 	public static JarSource prepareJar(ResourceRef resourceRef) {
-		return new JarSource(resourceRef);
+		return new JarSource(resourceRef, resourceRef.getFile());
+	}
+
+	public static JarSource prepareJar(ResourceRef resourceRef, File jarFile) {
+		return new JarSource(resourceRef, jarFile);
 	}
 }

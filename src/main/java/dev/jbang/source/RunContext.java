@@ -2,7 +2,6 @@ package dev.jbang.source;
 
 import static dev.jbang.dependencies.DependencyUtil.joinClasspaths;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -274,14 +273,10 @@ public class RunContext {
 	 * If the given source is a JarSource its metadata will be copied to this
 	 * RunContext and the JarSource will be returned. In any other case the given
 	 * source will be returned;
-	 * 
-	 * @return
 	 */
 	public Source importJarMetadataFor(Source src) {
-		File jarFile = src.getJarFile();
-		if (jarFile.exists()) {
-			JarSource jar = JarSource.prepareJar(
-					ResourceRef.forNamedFile(src.getResourceRef().getOriginalResource(), jarFile));
+		JarSource jar = src.asJarSource();
+		if (jar != null && jar.getJarFile().exists()) {
 			setMainClass(jar.getMainClass());
 			setPersistentJvmArgs(jar.getRuntimeOptions());
 			setBuildJdk(JavaUtil.javaVersion(jar.getJavaVersion()));
