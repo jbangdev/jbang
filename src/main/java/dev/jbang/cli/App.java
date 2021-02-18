@@ -423,12 +423,15 @@ class AppSetup extends BaseCommand {
 					System.err.println("Please open a new CMD window for changes to take effect");
 				}
 			}
-			System.out.println(cmd);
-			return EXIT_EXECUTE;
 		} else {
 			if (changed) {
 				System.out.println("Please start a new Shell for changes to take effect");
 			}
+		}
+		if (!cmd.isEmpty()) {
+			System.out.println(cmd);
+			return EXIT_EXECUTE;
+		} else {
 			return EXIT_OK;
 		}
 	}
