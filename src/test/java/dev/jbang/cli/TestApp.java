@@ -265,7 +265,8 @@ public class TestApp extends BaseTest {
 			checkedRun(null, "app", "install", "def/not/existing/file");
 			Assert.fail();
 		} catch (ExitException e) {
-			assertThat(e.getMessage(), containsString("Could not read script argument"));
+			assertThat(e.getMessage(),
+					containsString("Script or alias could not be found or read: 'def/not/existing/file'"));
 		}
 	}
 

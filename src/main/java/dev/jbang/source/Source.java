@@ -134,7 +134,8 @@ public interface Source {
 		// Support URLs as script files
 		// just proceed if the script file is a regular file at this point
 		if (resourceRef == null || !resourceRef.getFile().canRead()) {
-			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Could not read script argument " + resource);
+			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+					"Script or alias could not be found or read: '" + resource + "'");
 		}
 
 		// note script file must be not null at this point
