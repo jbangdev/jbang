@@ -166,7 +166,7 @@ public class Util {
 		} else if (Util.isURL(filepattern)) {
 			results.add(filepattern);
 		} else if (!filepattern.contains("?") && !filepattern.contains("*")) {
-			// no a pattern thus just as well return path directly
+			// not a pattern thus just as well return path directly
 			results.add(filepattern);
 		} else {
 			// it is a non-url letls try locate it
@@ -178,7 +178,11 @@ public class Util {
 					Path relpath = baseDir.relativize(file);
 					if (matcher.matches(relpath)) {
 						// to avoid windows fail.
-						results.add(relpath.toString().replace("\\", "/"));
+						if (file.toFile().exists()) {
+							results.add(relpath.toString().replace("\\", "/"));
+						} else {
+							Util.verboseMsg("Warning: " + relpath.toString() + " matches but does not exist!");
+						}
 					}
 					return FileVisitResult.CONTINUE;
 				}

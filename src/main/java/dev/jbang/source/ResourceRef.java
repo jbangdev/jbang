@@ -58,7 +58,11 @@ public class ResourceRef implements Comparable<ResourceRef> {
 			} else {
 				sr = Paths.get(originalResource).resolveSibling(siblingResource).toString();
 			}
-			return forTrustedResource(sr);
+			ResourceRef result = forTrustedResource(sr);
+			if (result == null) {
+				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Could not find " + siblingResource);
+			}
+			return result;
 		} catch (URISyntaxException e) {
 			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, e);
 		}
