@@ -39,7 +39,7 @@ download() {
   fi
 }
 
-abs_jbang_path=$(resolve_symlink $(absolute_path $0))
+abs_jbang_dir=$(dirname $(resolve_symlink $(absolute_path $0)))
 
 case "$(uname -s)" in
   Linux*)
@@ -66,8 +66,8 @@ case "$(uname -m)" in
 esac
 
 ## when mingw/git bash or cygwin fall out to just running the bat file.
-if [[ $os == windows ]]; then
-  $(dirname $abs_jbang_path)/jbang.cmd $*
+if [[ $os == windows && -f "$abs_jbang_dir/jbang.cmd" ]]; then
+  $abs_jbang_dir/jbang.cmd $*
   exit $?
 fi
 
@@ -75,10 +75,10 @@ if [[ -z "$JBANG_DIR" ]]; then JBDIR="$HOME/.jbang"; else JBDIR="$JBANG_DIR"; fi
 if [[ -z "$JBANG_CACHE_DIR" ]]; then TDIR="$JBDIR/cache"; else TDIR="$JBANG_CACHE_DIR"; fi
 
 ## resolve application jar path from script location
-if [ -f "$(dirname $abs_jbang_path)/jbang.jar" ]; then
-  jarPath=$(dirname $abs_jbang_path)/jbang.jar
-elif [ -f "$(dirname $abs_jbang_path)/.jbang/jbang.jar" ]; then
-  jarPath=$(dirname $abs_jbang_path)/.jbang/jbang.jar
+if [ -f "$abs_jbang_dir/jbang.jar" ]; then
+  jarPath=$abs_jbang_dir/jbang.jar
+elif [ -f "$abs_jbang_dir/.jbang/jbang.jar" ]; then
+  jarPath=$abs_jbang_dir/.jbang/jbang.jar
 else
   if [ ! -f "$JBDIR/bin/jbang.jar" ]; then
     echo "Downloading JBang..." 1>&2
