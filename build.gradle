@@ -79,7 +79,7 @@ spotless {
 		eclipse().configFile "misc/eclipse_formatting_nowrap.xml"
 	}
 	format 'xml', {
-		targetExclude 'build/test-results'
+		targetExclude 'build/test-results', fileTree('.idea')
 		target '**/*.xml', '**/*.nuspec'
 	}
 }
