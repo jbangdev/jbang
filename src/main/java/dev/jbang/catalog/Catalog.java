@@ -104,6 +104,9 @@ public class Catalog {
 			// or it's obviously a path (but not an absolute path) we'll make it
 			// relative to the location of the catalog we're adding the alias to.
 			Path script = cwd.resolve(scriptRef).normalize();
+			if (script.startsWith(cwd.normalize())) {
+				scriptRef = cwd.relativize(script).toString();
+			}
 			String baseRef = getScriptBase();
 			if (!isAbsoluteRef(scriptRef)
 					&& !isRemoteRef(baseRef)
@@ -345,7 +348,7 @@ public class Catalog {
 				Template tpl = catalog.templates.get(tplName);
 				tpl.catalog = catalog;
 				check(tpl.fileRefs != null, "Missing required attribute 'templates.file-refs'");
-				check(!tpl.fileRefs.isEmpty(), "Attribute 'aliases.script-ref' has no elements");
+				check(!tpl.fileRefs.isEmpty(), "Attribute 'templates.file-refs' has no elements");
 			}
 		} else {
 			catalog = new Catalog(null, null, null);

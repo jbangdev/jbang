@@ -24,13 +24,6 @@ public abstract class Ref {
 
 	protected Ref(String base, String ref, String destination) {
 		assert (ref != null);
-		if (Paths.get(ref).isAbsolute()) {
-			throw new IllegalStateException("Only relative paths allowed in //FILES. Found absolute path: " + ref);
-		}
-		if (destination != null && Paths.get(destination).isAbsolute()) {
-			throw new IllegalStateException(
-					"Only relative paths allowed in //FILES. Found absolute path: " + destination);
-		}
 		this.base = base;
 		this.ref = ref;
 		this.destination = destination;
@@ -45,7 +38,8 @@ public abstract class Ref {
 	}
 
 	public Path to(Path parent) {
-		return parent.resolve(ref);
+		String p = destination != null ? destination : ref;
+		return parent.resolve(p);
 	}
 
 	public abstract void copy(Path destroot);
@@ -64,25 +58,27 @@ public abstract class Ref {
 	}
 
 	public static Ref fromReference(String base, String fileReference) {
-		String[] split = fileReference.split(" // ")[0].split("=");
+		String[] split = fileReference.split(" // ")[0].split("=", 2);
 		String ref;
 		String dest = null;
 
 		if (split.length == 1) {
 			ref = split[0];
-		} else if (split.length == 2) {
-			ref = split[0];
-			dest = split[1];
 		} else {
-			throw new IllegalStateException("Invalid file reference: " + fileReference);
+			dest = split[0];
+			ref = split[1];
 		}
 
-		if (Ref.isClassPathRef(fileReference) || Ref.isClassPathRef(base)) {
+		return fromReference(base, ref, dest);
+	}
+
+	public static Ref fromReference(String base, String ref, String dest) {
+		if (Ref.isClassPathRef(ref) || Ref.isClassPathRef(base)) {
 			if (isClassPathRef(ref)) {
 				ref = ref.substring(11);
 			}
 			return new ClassPathRef(base, ref, dest);
-		} else if (Ref.isURL(fileReference) || Ref.isURL(base)) {
+		} else if (Ref.isURL(ref) || Ref.isURL(base)) {
 			return new URLRef(base, ref, dest);
 		} else {
 			return new FileRef(base, ref, dest);
@@ -97,8 +93,7 @@ class FileRef extends Ref {
 	}
 
 	protected String from() {
-		String p = destination != null ? destination : ref;
-		return Paths.get(base).resolveSibling(p).toString();
+		return Paths.get(base).resolveSibling(ref).toString();
 	}
 
 	@Override
@@ -125,9 +120,8 @@ class URLRef extends FileRef {
 
 	@Override
 	protected String from() {
-		String p = destination != null ? destination : ref;
 		try {
-			return new URI(base).resolve(p).toString();
+			return new URI(base).resolve(ref).toString();
 		} catch (URISyntaxException e) {
 			throw new IllegalStateException("Could not resolve URI", e);
 		}
@@ -157,8 +151,7 @@ class ClassPathRef extends Ref {
 	}
 
 	public Path to(Path parent) {
-		String r = ref;
-		return parent.resolve(r);
+		return parent.resolve(destination);
 	}
 
 	@Override

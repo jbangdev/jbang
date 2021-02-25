@@ -1,16 +1,16 @@
 package dev.jbang.catalog;
 
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Map;
 
 import com.google.gson.annotations.SerializedName;
 
 public class Template extends CatalogItem {
 	@SerializedName(value = "file-refs")
-	public final List<String> fileRefs;
+	public final Map<String, String> fileRefs;
 	public final String description;
 
-	public Template(List<String> fileRefs, String description, Catalog catalog) {
+	public Template(Map<String, String> fileRefs, String description, Catalog catalog) {
 		super(catalog);
 		this.fileRefs = fileRefs;
 		this.description = description;

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -470,7 +471,16 @@ public class ScriptSource implements Source {
 	}
 
 	private Ref toFileRef(String fileReference) {
-		return Ref.fromReference(resourceRef.getOriginalResource(), fileReference);
+		Ref ref = Ref.fromReference(resourceRef.getOriginalResource(), fileReference);
+		if (Paths.get(ref.getRef()).isAbsolute()) {
+			throw new IllegalStateException(
+					"Only relative paths allowed in //FILES. Found absolute path: " + ref.getRef());
+		}
+		if (ref.getDestination() != null && Paths.get(ref.getDestination()).isAbsolute()) {
+			throw new IllegalStateException(
+					"Only relative paths allowed in //FILES. Found absolute path: " + ref.getDestination());
+		}
+		return ref;
 	}
 
 	public List<ScriptSource> getAllSources() {

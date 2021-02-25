@@ -4,8 +4,10 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.AbstractMap;
 import java.util.List;
 import java.util.Random;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.lang.model.SourceVersion;
@@ -27,7 +29,7 @@ public class Init extends BaseScriptCommand {
 	String initTemplate;
 
 	@CommandLine.Option(names = {
-			"--force" }, description = "Force re-installation")
+			"--force" }, description = "Force overwrite of existing files")
 	boolean force;
 
 	@Override
@@ -38,44 +40,44 @@ public class Init extends BaseScriptCommand {
 					"Could not find init template named: " + initTemplate);
 		}
 
-		List<Ref> refs = tpl.fileRefs
-										.stream()
-										.map(ref -> tpl.resolve(null, ref))
-										.map(ref -> Ref.fromReference(tpl.catalog.catalogFile.toString(), ref))
-										.collect(Collectors.toList());
-
 		Path outFile = Util.getCwd().resolve(scriptOrFile);
 		Path outDir = outFile.getParent();
+		String outName = outFile.getFileName().toString();
+
+		List<Ref> refs = tpl.fileRefs	.entrySet()
+										.stream()
+										.map(e -> new AbstractMap.SimpleEntry<>(
+												resolveBaseName(e.getKey(), e.getValue(), outName),
+												tpl.resolve(null, e.getValue())))
+										.map(e -> Ref.fromReference(tpl.catalog.catalogFile.toString(), e.getValue(),
+												e.getKey()))
+										.collect(Collectors.toList());
 
 		if (!force) {
 			// Check if any of the files already exist
-			boolean first = true;
 			for (Ref ref : refs) {
-				if (Files.exists(refToPath(outFile, ref, first))) {
+				if (Files.exists(ref.to(outDir))) {
 					warn("File " + ref.getRef() + " already exists. Will not initialize.");
 					return EXIT_GENERIC_ERROR;
 				}
-				first = false;
 			}
 		}
 
 		try {
-			boolean first = true;
 			for (Ref ref : refs) {
 				if (ref.getRef().endsWith(".qute")) {
 					// TODO fix outFile path handling
-					Path out = refToPath(outFile, ref, first);
+					Path out = ref.to(outDir);
 					renderQuteTemplate(out, ref.getRef());
 				} else {
 					ref.copy(outDir);
 				}
-				first = false;
 			}
 		} catch (IOException e) {
 			// Clean up any files we already created
 			boolean first = true;
 			for (Ref ref : refs) {
-				Util.deletePath(refToPath(outFile, ref, true), true);
+				Util.deletePath(ref.to(outDir), true);
 				first = false;
 			}
 		}
@@ -88,12 +90,32 @@ public class Init extends BaseScriptCommand {
 		return EXIT_OK;
 	}
 
-	private Path refToPath(Path outFile, Ref ref, boolean first) {
-		if (first) {
-			return outFile;
-		} else {
-			return ref.to(outFile.getParent());
+	private String resolveBaseName(String refTarget, String refSource, String outName) {
+		String baseName = base(outName);
+		String outExt = extension(outName);
+		String targetExt = extension(refTarget);
+		if (targetExt.isEmpty()) {
+			targetExt = refSource.endsWith(".qute") ? extension(base(refSource)) : extension(refSource);
 		}
+		if (!outExt.isEmpty() && !outExt.equals(targetExt)) {
+			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+					"Expected file extension is: " + targetExt + ", but got: " + outExt);
+		}
+		Pattern fnp = Pattern.compile("\\{filename}", Pattern.CASE_INSENSITIVE);
+		String result = fnp.matcher(refTarget).replaceAll(outName);
+		Pattern bnp = Pattern.compile("\\{basename}", Pattern.CASE_INSENSITIVE);
+		result = bnp.matcher(result).replaceAll(baseName);
+		return result;
+	}
+
+	private String base(String name) {
+		int p = name.lastIndexOf('.');
+		return p > 0 ? name.substring(0, p) : name;
+	}
+
+	private String extension(String name) {
+		int p = name.lastIndexOf('.');
+		return p > 0 ? name.substring(p + 1) : "";
 	}
 
 	void renderQuteTemplate(Path outFile, String templatePath) throws IOException {

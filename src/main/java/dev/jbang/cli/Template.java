@@ -3,6 +3,8 @@ package dev.jbang.cli;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -73,8 +75,38 @@ class TemplateAdd extends BaseTemplateCommand {
 					"Invalid template name, it should start with a letter followed by 0 or more letters, digits, underscores or hyphens");
 		}
 
-		// Check that files/URLs exist
+		// Turn list of files into the map that's needed to store in the Catalog
+		Map<String, String> fileRefsMap = new HashMap<>();
 		for (String fileRef : fileRefs) {
+			String[] ref = fileRef.split("=", 2);
+			String target;
+			String source;
+			if (ref.length == 2) {
+				source = ref[1];
+				target = ref[0];
+				Path t = Paths.get(target).normalize();
+				if (t.isAbsolute()) {
+					throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+							"Target name may not be absolute: '" + target + "'");
+				}
+				if (t.normalize().startsWith("..")) {
+					throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+							"Target may not refer to parent folders: '" + target + "'");
+				}
+			} else {
+				source = ref[0];
+				Path t = Paths.get(source).normalize();
+				if (t.isAbsolute() || t.normalize().startsWith("..")) {
+					target = t.getFileName().toString();
+				} else {
+					target = source;
+				}
+			}
+			fileRefsMap.put(target, source);
+		}
+
+		// Check that files/URLs exist
+		for (String fileRef : fileRefsMap.values()) {
 			ResourceRef resourceRef = ResourceRef.forResource(fileRef);
 			if (resourceRef == null || !resourceRef.getFile().canRead()) {
 				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
@@ -87,9 +119,9 @@ class TemplateAdd extends BaseTemplateCommand {
 
 		Path catFile = getCatalog(false);
 		if (catFile != null) {
-			CatalogUtil.addTemplate(null, catFile, name, fileRefs, description);
+			CatalogUtil.addTemplate(null, catFile, name, fileRefsMap, description);
 		} else {
-			catFile = CatalogUtil.addNearestTemplate(null, name, fileRefs, description);
+			catFile = CatalogUtil.addNearestTemplate(null, name, fileRefsMap, description);
 		}
 		info(String.format("Template '%s' added to '%s'", name, catFile));
 		return EXIT_OK;
@@ -159,9 +191,17 @@ class TemplateList extends BaseTemplateCommand {
 		} else {
 			out.println(yellow(fullName) + " = ");
 		}
-		for (String fileRef : template.fileRefs) {
-			fileRef = template.resolve(null, fileRef);
-			out.println("   " + fileRef);
+		for (String dest : template.fileRefs.keySet()) {
+			String ref = template.fileRefs.get(dest);
+			if (ref == null || ref.isEmpty()) {
+				ref = dest;
+			}
+			ref = template.resolve(null, ref);
+			if (ref.equals(dest)) {
+				out.println("   " + ref);
+			} else {
+				out.println("   " + dest + " (from " + ref + ")");
+			}
 		}
 	}
 

@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -110,7 +111,7 @@ public class CatalogUtil {
 	 *             catalog
 	 * @param name The name of the new template
 	 */
-	public static Path addNearestTemplate(Path cwd, String name, List<String> fileRefs, String description) {
+	public static Path addNearestTemplate(Path cwd, String name, Map<String, String> fileRefs, String description) {
 		Path catalogFile = Catalog.getCatalogFile(cwd, null);
 		addTemplate(cwd, catalogFile, name, fileRefs, description);
 		return catalogFile;
@@ -122,14 +123,17 @@ public class CatalogUtil {
 	 * @param catalogFile Path to catalog file
 	 * @param name        The name of the new template
 	 */
-	public static Template addTemplate(Path cwd, Path catalogFile, String name, List<String> fileRefs,
+	public static Template addTemplate(Path cwd, Path catalogFile, String name, Map<String, String> fileRefs,
 			String description) {
 		final Path cwdf = cwd == null ? Util.getCwd() : cwd;
 		catalogFile = cwdf.resolve(catalogFile);
 		Catalog catalog = Catalog.get(catalogFile);
-		List<String> relFileRefs = fileRefs	.stream()
-											.map(ref -> catalog.relativize(cwdf, ref))
-											.collect(Collectors.toList());
+		Map<String, String> relFileRefs = fileRefs	.entrySet()
+													.stream()
+													.map(e -> new AbstractMap.SimpleEntry<>(e.getKey(),
+															catalog.relativize(cwdf, e.getValue())))
+													.collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey,
+															AbstractMap.SimpleEntry::getValue));
 		Template template = new Template(relFileRefs, description, catalog);
 		catalog.templates.put(name, template);
 		try {
