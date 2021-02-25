@@ -55,8 +55,8 @@ public class DependencyUtil {
 			"^(?<groupid>[^:]*):(?<artifactid>[^:]*)(:(?<version>[^:@]*))?(:(?<classifier>[^@]*))?(@(?<type>.*))?$");
 
 	public ModularClassPath resolveDependencies(List<String> deps, List<MavenRepo> repos,
-			boolean offline, boolean loggingEnabled) {
-		return resolveDependencies(deps, repos, offline, loggingEnabled, true);
+			boolean offline, boolean updateCache, boolean loggingEnabled) {
+		return resolveDependencies(deps, repos, offline, updateCache, loggingEnabled, true);
 	}
 
 	/**
@@ -67,7 +67,7 @@ public class DependencyUtil {
 	 * @return string with resolved classpath
 	 */
 	public ModularClassPath resolveDependencies(List<String> deps, List<MavenRepo> repos,
-			boolean offline, boolean loggingEnabled, boolean transitivity) {
+			boolean offline, boolean updateCache, boolean loggingEnabled, boolean transitivity) {
 
 		// if no dependencies were provided we stop here
 		if (deps.isEmpty()) {
@@ -95,11 +95,12 @@ public class DependencyUtil {
 		}
 
 		List<ArtifactInfo> cachedDeps = null;
-
-		cachedDeps = DependencyCache.findDependenciesByHash(depsHash);
-
-		if (cachedDeps != null)
-			return new ModularClassPath(cachedDeps);
+		if (!updateCache) {
+			cachedDeps = DependencyCache.findDependenciesByHash(depsHash);
+			if (cachedDeps != null) {
+				return new ModularClassPath(cachedDeps);
+			}
+		}
 
 		if (loggingEnabled) {
 			infoMsg("Resolving dependencies...");

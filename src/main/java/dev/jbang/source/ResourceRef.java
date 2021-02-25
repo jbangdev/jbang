@@ -216,7 +216,7 @@ public class ResourceRef implements Comparable<ResourceRef> {
 			// todo honor offline
 			String gav = scriptResource;
 			String s = new DependencyUtil().resolveDependencies(Collections.singletonList(gav),
-					Collections.emptyList(), Util.isOffline(), !Util.isQuiet(), false).getClassPath();
+					Collections.emptyList(), Util.isOffline(), Util.isFresh(), !Util.isQuiet(), false).getClassPath();
 			result = forCachedResource(scriptResource, new File(s));
 		}
 
