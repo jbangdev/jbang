@@ -71,8 +71,8 @@ public class DependencyCache {
 			JsonSerializer<ArtifactInfo> serializer = (src, typeOfSrc, context) -> {
 				JsonObject json = new JsonObject();
 				json.addProperty("gav", src.getCoordinate().toCanonicalForm());
-				json.addProperty("file", src.asFile().getPath());
-				json.addProperty("ts", src.asFile().lastModified());
+				json.addProperty("file", src.getFile().getPath());
+				json.addProperty("ts", src.getTimestamp());
 				return json;
 			};
 			Gson parser = new GsonBuilder()
@@ -107,7 +107,7 @@ public class DependencyCache {
 		Optional<ArtifactInfo> result = cache	.values()
 												.stream()
 												.flatMap(Collection::stream)
-												.filter(art -> art.asFile().equals(artifactPath))
+												.filter(art -> art.getFile().equals(artifactPath))
 												.findFirst();
 		return result.orElse(null);
 	}

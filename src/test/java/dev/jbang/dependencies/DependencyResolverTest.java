@@ -145,7 +145,7 @@ class DependencyResolverTest extends BaseTest {
 
 		List<String> deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
 
-		ModularClassPath classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, true);
+		ModularClassPath classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, false, true);
 
 		// if returns 5 its because optional deps are included which they shouldn't
 		assertEquals(2, classpath.getClassPaths().size());
@@ -161,7 +161,7 @@ class DependencyResolverTest extends BaseTest {
 				"org.apache.commons:commons-configuration2:2.7",
 				"org.apache.commons:commons-text:1.8");
 
-		ModularClassPath classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, true);
+		ModularClassPath classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, false, true);
 
 		// if returns with duplicates its because some dependencies are multiple times
 		// in the
@@ -186,7 +186,7 @@ class DependencyResolverTest extends BaseTest {
 		// using shrinkwrap resolves in ${os.detected.version} not being resolved
 		List<String> deps = Collections.singletonList("com.github.docker-java:docker-java:3.1.5");
 
-		ModularClassPath classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, true);
+		ModularClassPath classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, false, true);
 
 		assertEquals(46, classpath.getClassPaths().size());
 
@@ -200,7 +200,7 @@ class DependencyResolverTest extends BaseTest {
 		List<String> deps = Arrays.asList("org.openjfx:javafx-graphics:11.0.2:mac", "com.offbytwo:docopt:0.6+");
 
 		ModularClassPath cp = new ModularClassPath(
-				dr.resolveDependencies(deps, Collections.emptyList(), false, true).getArtifacts()) {
+				dr.resolveDependencies(deps, Collections.emptyList(), false, false, true).getArtifacts()) {
 			@Override
 			protected boolean supportsModules(String requestedVersion) {
 				return true;
@@ -226,7 +226,7 @@ class DependencyResolverTest extends BaseTest {
 				"com.microsoft.azure:azure");
 
 		ModularClassPath classpath = new DependencyUtil().resolveDependencies(deps,
-				Collections.emptyList(), false, true);
+				Collections.emptyList(), false, false, true);
 
 		assertEquals(62, classpath.getArtifacts().size());
 

@@ -30,8 +30,12 @@ public class ArtifactInfo {
 		return coordinate;
 	}
 
-	public File asFile() {
+	public File getFile() {
 		return file;
+	}
+
+	public long getTimestamp() {
+		return timestamp;
 	}
 
 	public boolean isUpToDate() {
@@ -39,7 +43,7 @@ public class ArtifactInfo {
 	}
 
 	public String toString() {
-		String path = asFile().getAbsolutePath();
+		String path = getFile().getAbsolutePath();
 		return getCoordinate() == null ? "<null>" : getCoordinate().toCanonicalForm() + "=" + path;
 	}
 
