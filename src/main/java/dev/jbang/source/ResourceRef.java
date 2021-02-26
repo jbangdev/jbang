@@ -21,6 +21,7 @@ import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.net.TrustedSources;
 import dev.jbang.util.ConsoleInput;
 import dev.jbang.util.Util;
@@ -215,9 +216,13 @@ public class ResourceRef implements Comparable<ResourceRef> {
 		} else if (DependencyUtil.looksLikeAGav(scriptResource)) {
 			// todo honor offline
 			String gav = scriptResource;
-			String s = new DependencyUtil().resolveDependencies(Collections.singletonList(gav),
-					Collections.emptyList(), Util.isOffline(), !Util.isQuiet(), false).getClassPath();
-			result = forCachedResource(scriptResource, new File(s));
+			ModularClassPath mcp = new DependencyUtil().resolveDependencies(Collections.singletonList(gav),
+					Collections.emptyList(), Util.isOffline(), !Util.isQuiet(), true);
+			// We possibly get a whole bunch of artifacts but we're only interested in the
+			// one we asked for, which we assume is always the first one in the list
+			// (hopefully we're right).
+			File file = mcp.getArtifacts().get(0).asFile();
+			result = forCachedResource(scriptResource, file);
 		}
 
 		return result;
