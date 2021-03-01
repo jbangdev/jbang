@@ -510,6 +510,17 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "sxa",
+      "name": "Stewart X Addison",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6487691?v=4",
+      "profile": "https://github.com/sxa",
+      "contributions": [
+        "code"
+      ]
     }
-  ]
+  ],
+  "skipCi": true,
+  "contributorsPerLine": 7
 }

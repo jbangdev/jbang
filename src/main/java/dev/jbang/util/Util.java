@@ -213,11 +213,11 @@ public class Util {
 	}
 
 	public enum OS {
-		linux, mac, windows, unknown
+		linux, mac, windows, aix, unknown
 	}
 
 	public enum Arch {
-		x32, x64, aarch64, ppc64le, s390x, unknown
+		x32, x64, aarch64, ppc64, ppc64le, s390x, unknown
 	}
 
 	public enum Vendor {
@@ -320,6 +320,8 @@ public class Util {
 			return OS.linux;
 		} else if (os.startsWith("win")) {
 			return OS.windows;
+		} else if (os.startsWith("aix")) {
+			return OS.aix;
 		} else {
 			Util.verboseMsg("Unknown OS: " + os);
 			return OS.unknown;
@@ -334,6 +336,8 @@ public class Util {
 			return Arch.x32;
 		} else if (arch.matches("^(aarch64)$")) {
 			return Arch.aarch64;
+		} else if (arch.matches("^(ppc64)$")) {
+			return Arch.ppc64;
 		} else if (arch.matches("^(ppc64le)$")) {
 			return Arch.ppc64le;
 		} else if (arch.matches("^(s390x)$")) {

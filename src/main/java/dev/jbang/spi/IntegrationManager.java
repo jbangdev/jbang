@@ -62,7 +62,7 @@ public class IntegrationManager {
 			boolean nativeRequested) {
 		URL[] urls = artifacts.stream().map(s -> {
 			try {
-				return s.asFile().toURI().toURL();
+				return s.getFile().toURI().toURL();
 			} catch (MalformedURLException e) {
 				throw new RuntimeException(e);
 			}
@@ -76,7 +76,7 @@ public class IntegrationManager {
 															.collect(Collectors.toList());
 		List<Map.Entry<String, Path>> deps = artifacts	.stream()
 														.map(s -> new MapEntry(s.getCoordinate().toCanonicalForm(),
-																s.asFile().toPath()))
+																s.getFile().toPath()))
 														.collect(Collectors.toList());
 		Path nativeImage = null;
 		String mainClass = null;

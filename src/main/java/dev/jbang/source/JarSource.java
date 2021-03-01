@@ -93,17 +93,17 @@ public class JarSource implements Source {
 			List<String> dependencies = new ArrayList<>(additionalDeps);
 			dependencies.add(resourceRef.getOriginalResource());
 			mcp = new DependencyUtil().resolveDependencies(dependencies,
-					Collections.emptyList(), Util.isOffline(), !Util.isQuiet());
+					Collections.emptyList(), Util.isOffline(), Util.isFresh(), !Util.isQuiet());
 		} else if (classPath != null) {
 			ModularClassPath mcp2 = new DependencyUtil().resolveDependencies(additionalDeps,
-					Collections.emptyList(), Util.isOffline(), !Util.isQuiet());
+					Collections.emptyList(), Util.isOffline(), Util.isFresh(), !Util.isQuiet());
 			ModularClassPath mcp3 = ModularClassPath.fromManifestClasspath(classPath);
 			List<ArtifactInfo> arts = Stream.concat(mcp2.getArtifacts().stream(), mcp3.getArtifacts().stream())
 											.collect(Collectors.toList());
 			mcp = new ModularClassPath(arts);
 		} else if (!additionalDeps.isEmpty()) {
 			mcp = new DependencyUtil().resolveDependencies(additionalDeps,
-					Collections.emptyList(), Util.isOffline(), !Util.isQuiet());
+					Collections.emptyList(), Util.isOffline(), Util.isFresh(), !Util.isQuiet());
 		} else {
 			mcp = new ModularClassPath(Collections.emptyList());
 		}
