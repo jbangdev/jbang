@@ -78,7 +78,7 @@ esac
 
 ## when mingw/git bash or cygwin fall out to just running the bat file.
 if [[ $os == windows && -f "$abs_jbang_dir/jbang.cmd" ]]; then
-  $abs_jbang_dir/jbang.cmd $*
+  $abs_jbang_dir/jbang.cmd "$@"
   exit $?
 fi
 
