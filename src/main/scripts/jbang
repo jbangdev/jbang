@@ -101,7 +101,8 @@ else
     rm -f "$JBDIR/bin/jbang" "$JBDIR/bin"/jbang.*
     cp -f "$TDIR/urls/jbang/bin"/* "$JBDIR/bin"
   fi
-  eval "exec $JBDIR/bin/jbang $*"
+  $JBDIR/bin/jbang "$@"
+  exit $?
 fi
 
 # Find/get a JDK
