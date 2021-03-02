@@ -217,7 +217,7 @@ public class Util {
 	}
 
 	public enum Arch {
-		x32, x64, aarch64, ppc64, unknown
+		x32, x64, aarch64, ppc64, ppc64le, s390x, unknown
 	}
 
 	public enum Vendor {
@@ -338,6 +338,10 @@ public class Util {
 			return Arch.aarch64;
 		} else if (arch.matches("^(ppc64)$")) {
 			return Arch.ppc64;
+		} else if (arch.matches("^(ppc64le)$")) {
+			return Arch.ppc64le;
+		} else if (arch.matches("^(s390x)$")) {
+			return Arch.s390x;
 		} else {
 			Util.verboseMsg("Unknown Arch: " + arch);
 			return Arch.unknown;

@@ -63,6 +63,10 @@ case "$(uname -m)" in
     arch=aarch64;;
   armv7l)
     arch=arm;;
+  ppc64le)
+    arch=ppc64le;;
+  s390x)
+    arch=s390x;;
   *)
     ## AIX gives a machine ID for `uname -m` but it only supports ppc64
     if [ "$os" = "aix" ]; then
