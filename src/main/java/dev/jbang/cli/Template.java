@@ -119,9 +119,9 @@ class TemplateAdd extends BaseTemplateCommand {
 
 		Path catFile = getCatalog(false);
 		if (catFile != null) {
-			CatalogUtil.addTemplate(null, catFile, name, fileRefsMap, description);
+			CatalogUtil.addTemplate(catFile, name, fileRefsMap, description);
 		} else {
-			catFile = CatalogUtil.addNearestTemplate(null, name, fileRefsMap, description);
+			catFile = CatalogUtil.addNearestTemplate(name, fileRefsMap, description);
 		}
 		info(String.format("Template '%s' added to '%s'", name, catFile));
 		return EXIT_OK;
@@ -143,11 +143,11 @@ class TemplateList extends BaseTemplateCommand {
 		Catalog catalog;
 		Path cat = getCatalog(true);
 		if (catalogName != null) {
-			catalog = Catalog.getByName(null, catalogName);
+			catalog = Catalog.getByName(catalogName);
 		} else if (cat != null) {
 			catalog = Catalog.get(cat);
 		} else {
-			catalog = Catalog.getMerged(null, true);
+			catalog = Catalog.getMerged(true);
 		}
 		if (showOrigin) {
 			printTemplatesWithOrigin(out, catalogName, catalog);
@@ -196,7 +196,7 @@ class TemplateList extends BaseTemplateCommand {
 			if (ref == null || ref.isEmpty()) {
 				ref = dest;
 			}
-			ref = template.resolve(null, ref);
+			ref = template.resolve(ref);
 			if (ref.equals(dest)) {
 				out.println("   " + ref);
 			} else {
@@ -234,7 +234,7 @@ class TemplateRemove extends BaseTemplateCommand {
 		if (cat != null) {
 			CatalogUtil.removeTemplate(cat, name);
 		} else {
-			CatalogUtil.removeNearestTemplate(null, name);
+			CatalogUtil.removeNearestTemplate(name);
 		}
 		return EXIT_OK;
 	}

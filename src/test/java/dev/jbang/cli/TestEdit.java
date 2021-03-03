@@ -132,7 +132,7 @@ public class TestEdit extends BaseTest {
 	@Test
 	void testEditMultiSource(@TempDir Path outputDir) throws IOException {
 
-		Path p = examplesTestFolder.toPath().resolve("one.java");
+		Path p = examplesTestFolder.resolve("one.java");
 		assertThat(p.toFile().exists(), is(true));
 
 		RunContext ctx = RunContext.empty();

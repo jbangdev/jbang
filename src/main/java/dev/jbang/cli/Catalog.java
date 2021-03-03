@@ -72,9 +72,9 @@ class CatalogAdd extends BaseCatalogCommand {
 		CatalogRef ref = CatalogRef.createByRefOrImplicit(urlOrFile);
 		Path catFile = getCatalog(false);
 		if (catFile != null) {
-			CatalogUtil.addCatalogRef(null, catFile, name, ref.catalogRef, ref.description);
+			CatalogUtil.addCatalogRef(catFile, name, ref.catalogRef, ref.description);
 		} else {
-			catFile = CatalogUtil.addNearestCatalogRef(null, name, ref.catalogRef, ref.description);
+			catFile = CatalogUtil.addNearestCatalogRef(name, ref.catalogRef, ref.description);
 		}
 		info(String.format("Catalog added to %s", catFile));
 		return EXIT_OK;
@@ -87,17 +87,17 @@ class CatalogUpdate extends BaseCatalogCommand {
 	@Override
 	public Integer doCall() {
 		PrintWriter err = spec.commandLine().getErr();
-		dev.jbang.catalog.Catalog.getMerged(null, true).catalogs
-																.entrySet()
-																.stream()
-																.forEach(e -> {
-																	err.println(
-																			"Updating catalog '" + e.getKey()
-																					+ "' from "
-																					+ e.getValue().catalogRef + "...");
-																	dev.jbang.catalog.Catalog.getByRef(
-																			e.getValue().catalogRef);
-																});
+		dev.jbang.catalog.Catalog.getMerged(true).catalogs
+															.entrySet()
+															.stream()
+															.forEach(e -> {
+																err.println(
+																		"Updating catalog '" + e.getKey()
+																				+ "' from "
+																				+ e.getValue().catalogRef + "...");
+																dev.jbang.catalog.Catalog.getByRef(
+																		e.getValue().catalogRef);
+															});
 		return EXIT_OK;
 	}
 }
@@ -117,7 +117,7 @@ class CatalogList extends BaseCatalogCommand {
 			if (cat != null) {
 				catalog = dev.jbang.catalog.Catalog.get(cat);
 			} else {
-				catalog = dev.jbang.catalog.Catalog.getMerged(null, true);
+				catalog = dev.jbang.catalog.Catalog.getMerged(true);
 			}
 			catalog.catalogs
 							.keySet()
@@ -136,7 +136,7 @@ class CatalogList extends BaseCatalogCommand {
 								}
 							});
 		} else {
-			dev.jbang.catalog.Catalog catalog = dev.jbang.catalog.Catalog.getByName(null, name);
+			dev.jbang.catalog.Catalog catalog = dev.jbang.catalog.Catalog.getByName(name);
 			TemplateList.printTemplates(out, name, catalog);
 		}
 		return EXIT_OK;
@@ -155,7 +155,7 @@ class CatalogRemove extends BaseCatalogCommand {
 		if (cat != null) {
 			CatalogUtil.removeCatalogRef(cat, name);
 		} else {
-			CatalogUtil.removeNearestCatalogRef(null, name);
+			CatalogUtil.removeNearestCatalogRef(name);
 		}
 		return EXIT_OK;
 	}

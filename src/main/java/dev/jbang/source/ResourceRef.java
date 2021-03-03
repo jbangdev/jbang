@@ -150,7 +150,7 @@ public class ResourceRef implements Comparable<ResourceRef> {
 		// var includeContext = new File(".").toURI();
 
 		// map script argument to script file
-		File probe = new File(scriptResource);
+		File probe = Util.getCwd().resolve(scriptResource).normalize().toFile();
 
 		if (!probe.canRead()) {
 			// not a file so let's keep the script-file undefined here

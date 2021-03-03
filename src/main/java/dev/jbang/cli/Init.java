@@ -34,7 +34,7 @@ public class Init extends BaseScriptCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
-		dev.jbang.catalog.Template tpl = dev.jbang.catalog.Template.get(null, initTemplate);
+		dev.jbang.catalog.Template tpl = dev.jbang.catalog.Template.get(initTemplate);
 		if (tpl == null) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
 					"Could not find init template named: " + initTemplate);
@@ -48,7 +48,7 @@ public class Init extends BaseScriptCommand {
 										.stream()
 										.map(e -> new AbstractMap.SimpleEntry<>(
 												resolveBaseName(e.getKey(), e.getValue(), outName),
-												tpl.resolve(null, e.getValue())))
+												tpl.resolve(e.getValue())))
 										.map(e -> Ref.fromReference(tpl.catalog.catalogFile.toString(), e.getValue(),
 												e.getKey()))
 										.collect(Collectors.toList());

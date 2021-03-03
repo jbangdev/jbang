@@ -5,6 +5,8 @@ import java.util.Map;
 
 import com.google.gson.annotations.SerializedName;
 
+import dev.jbang.util.Util;
+
 public class Template extends CatalogItem {
 	@SerializedName(value = "file-refs")
 	public final Map<String, String> fileRefs;
@@ -16,9 +18,9 @@ public class Template extends CatalogItem {
 		this.description = description;
 	}
 
-	public static Template get(Path cwd, String templateName) {
+	public static Template get(String templateName) {
 		Template template = null;
-		Catalog catalog = findNearestCatalogWithTemplate(cwd, templateName);
+		Catalog catalog = findNearestCatalogWithTemplate(Util.getCwd(), templateName);
 		if (catalog != null) {
 			template = catalog.templates.get(templateName);
 		}

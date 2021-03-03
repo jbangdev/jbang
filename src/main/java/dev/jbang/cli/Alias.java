@@ -89,9 +89,9 @@ class AliasAdd extends BaseAliasCommand {
 
 		Path catFile = getCatalog(false);
 		if (catFile != null) {
-			CatalogUtil.addAlias(null, catFile, name, scriptOrFile, desc, userParams, properties);
+			CatalogUtil.addAlias(catFile, name, scriptOrFile, desc, userParams, properties);
 		} else {
-			catFile = CatalogUtil.addNearestAlias(null, name, scriptOrFile, desc, userParams, properties);
+			catFile = CatalogUtil.addNearestAlias(name, scriptOrFile, desc, userParams, properties);
 		}
 		info(String.format("Alias '%s' added to '%s'", name, catFile));
 		return EXIT_OK;
@@ -113,11 +113,11 @@ class AliasList extends BaseAliasCommand {
 		Catalog catalog;
 		Path cat = getCatalog(true);
 		if (catalogName != null) {
-			catalog = Catalog.getByName(null, catalogName);
+			catalog = Catalog.getByName(catalogName);
 		} else if (cat != null) {
 			catalog = Catalog.get(cat);
 		} else {
-			catalog = Catalog.getMerged(null, true);
+			catalog = Catalog.getMerged(true);
 		}
 		if (showOrigin) {
 			printAliasesWithOrigin(out, catalogName, catalog);
@@ -205,7 +205,7 @@ class AliasRemove extends BaseAliasCommand {
 		if (cat != null) {
 			CatalogUtil.removeAlias(cat, name);
 		} else {
-			CatalogUtil.removeNearestAlias(null, name);
+			CatalogUtil.removeNearestAlias(name);
 		}
 		return EXIT_OK;
 	}

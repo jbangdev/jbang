@@ -117,9 +117,9 @@ public interface Source {
 		Alias alias = null;
 		if (resourceRef == null) {
 			// Not found as such, so let's check the aliases
-			alias = Alias.get(null, resource, ctx.getArguments(), ctx.getProperties());
+			alias = Alias.get(resource, ctx.getArguments(), ctx.getProperties());
 			if (alias != null) {
-				resourceRef = ResourceRef.forResource(alias.resolve(null));
+				resourceRef = ResourceRef.forResource(alias.resolve());
 				ctx.setArguments(alias.arguments);
 				ctx.setProperties(alias.properties);
 				ctx.setAlias(alias);

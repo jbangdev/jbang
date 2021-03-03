@@ -16,15 +16,13 @@ abstract class CatalogItem {
 	 * This method returns the given scriptRef with all contextual modifiers like
 	 * baseRefs and current working directories applied.
 	 */
-	public String resolve(Path cwd, String scriptRef) {
-		if (cwd == null) {
-			cwd = Util.getCwd();
-		}
+	public String resolve(String scriptRef) {
 		String ref = scriptRef;
 		if (!Catalog.isAbsoluteRef(ref)) {
 			ref = catalog.getScriptBase() + "/" + ref;
 		}
 		if (!Catalog.isRemoteRef(ref) && !Catalog.isClassPathRef(ref)) {
+			Path cwd = Util.getCwd();
 			Path script = Paths.get(ref).normalize();
 			if (cwd.getRoot().equals(script.getRoot())) {
 				script = cwd.relativize(script);

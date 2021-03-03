@@ -70,6 +70,7 @@ public class Util {
 	private static boolean quiet;
 	private static boolean offline;
 	private static boolean fresh;
+	private static Path cwd;
 
 	public static void setVerbose(boolean verbose) {
 		Util.verbose = verbose;
@@ -113,6 +114,14 @@ public class Util {
 
 	public static boolean isFresh() {
 		return fresh;
+	}
+
+	public static Path getCwd() {
+		return cwd != null ? cwd : Paths.get("").toAbsolutePath();
+	}
+
+	public static void setCwd(Path cwd) {
+		Util.cwd = cwd.toAbsolutePath().normalize();
 	}
 
 	public static String kebab2camel(String name) {
@@ -993,10 +1002,6 @@ public class Util {
 			}
 		}
 		return false;
-	}
-
-	public static Path getCwd() {
-		return Paths.get("").toAbsolutePath();
 	}
 
 	/**

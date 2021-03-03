@@ -98,11 +98,12 @@ public class Catalog {
 		return result.normalize().toString();
 	}
 
-	String relativize(Path cwd, String scriptRef) {
+	String relativize(String scriptRef) {
 		if (!isRemoteRef(scriptRef) && !isValidCatalogReference(scriptRef)) {
 			// If the scriptRef points to an existing file on the local filesystem
 			// or it's obviously a path (but not an absolute path) we'll make it
 			// relative to the location of the catalog we're adding the alias to.
+			Path cwd = Util.getCwd();
 			Path script = cwd.resolve(scriptRef).normalize();
 			if (script.startsWith(cwd.normalize())) {
 				scriptRef = cwd.relativize(script).toString();
@@ -133,8 +134,8 @@ public class Catalog {
 	 * @param catalogName The name of a registered
 	 * @return An Aliases object
 	 */
-	public static Catalog getByName(Path cwd, String catalogName) {
-		CatalogRef catalogRef = CatalogRef.get(cwd, catalogName);
+	public static Catalog getByName(String catalogName) {
+		CatalogRef catalogRef = CatalogRef.get(catalogName);
 		if (catalogRef != null) {
 			return getByRef(catalogRef.catalogRef);
 		} else {
@@ -146,16 +147,13 @@ public class Catalog {
 	 * Will either return the given catalog or search for the nearest catalog
 	 * starting from cwd.
 	 *
-	 * @param cwd         The folder to use as a starting point for getting the
-	 *                    nearest catalog. NB: This method _specifically_ does _not_
-	 *                    return a reference to the implicit catalog ever.
 	 * @param catalogFile The catalog to return or null to return the nearest
 	 *                    catalog
 	 * @return Path to a catalog
 	 */
-	public static Path getCatalogFile(Path cwd, Path catalogFile) {
+	public static Path getCatalogFile(Path catalogFile) {
 		if (catalogFile == null) {
-			Catalog catalog = findNearestCatalog(cwd);
+			Catalog catalog = findNearestCatalog(Util.getCwd());
 			if (catalog != null) {
 				catalogFile = catalog.catalogFile;
 			} else {
@@ -218,9 +216,9 @@ public class Catalog {
 	 *                         or not
 	 * @return a Catalog object
 	 */
-	public static Catalog getMerged(Path cwd, boolean includeImplicits) {
+	public static Catalog getMerged(boolean includeImplicits) {
 		List<Catalog> catalogs = new ArrayList<>();
-		findNearestCatalogWith(cwd, p -> {
+		findNearestCatalogWith(Util.getCwd(), p -> {
 			catalogs.add(get(p));
 			return false;
 		});
@@ -271,6 +269,9 @@ public class Catalog {
 	public static Catalog get(Path catalogPath) {
 		Catalog catalog;
 		if (Util.isFresh() || !catalogCache.containsKey(catalogPath)) {
+			if (Files.isDirectory(catalogPath)) {
+				catalogPath = catalogPath.resolve(Catalog.JBANG_CATALOG_JSON);
+			}
 			catalog = read(catalogPath);
 			catalog.catalogFile = catalogPath.toAbsolutePath();
 			catalogCache.put(catalogPath, catalog);

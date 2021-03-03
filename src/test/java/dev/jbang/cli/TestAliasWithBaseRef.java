@@ -9,11 +9,11 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
+import dev.jbang.util.Util;
 
 public class TestAliasWithBaseRef extends BaseTest {
 
@@ -36,43 +36,45 @@ public class TestAliasWithBaseRef extends BaseTest {
 			"}";
 
 	@BeforeEach
-	void init(@TempDir Path tmpPath) throws IOException {
-		Files.write(jbangTempDir.getRoot().toPath().resolve(Catalog.JBANG_CATALOG_JSON), aliases.getBytes());
-		cwd = Files.createDirectory(tmpPath.resolve("test"));
+	void init() throws IOException {
+		Files.write(jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON), aliases.getBytes());
+		Util.setCwd(Files.createDirectory(cwdDir.resolve("test")));
 	}
-
-	private Path cwd;
 
 	@Test
 	void testGetAliasOne() throws IOException {
-		Alias alias = Alias.get(cwd, "one", null, null);
+		Path cwd = Util.getCwd();
+		Alias alias = Alias.get("one", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("foo"));
-		assertThat(alias.resolve(cwd), equalTo("http://dummy/foo"));
+		assertThat(alias.resolve(), equalTo("http://dummy/foo"));
 	}
 
 	@Test
 	void testGetAliasTwo() throws IOException {
-		Alias alias = Alias.get(cwd, "two", null, null);
+		Path cwd = Util.getCwd();
+		Alias alias = Alias.get("two", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("foo/bar.java"));
-		assertThat(alias.resolve(cwd), equalTo("http://dummy/foo/bar.java"));
+		assertThat(alias.resolve(), equalTo("http://dummy/foo/bar.java"));
 	}
 
 	@Test
 	void testGetAliasThree() throws IOException {
-		Alias alias = Alias.get(cwd, "three", null, null);
+		Path cwd = Util.getCwd();
+		Alias alias = Alias.get("three", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy/baz.java"));
-		assertThat(alias.resolve(cwd), equalTo("http://dummy/baz.java"));
+		assertThat(alias.resolve(), equalTo("http://dummy/baz.java"));
 	}
 
 	@Test
 	void testGetAliasGav() throws IOException {
-		Alias alias = Alias.get(cwd, "gav", null, null);
+		Path cwd = Util.getCwd();
+		Alias alias = Alias.get("gav", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("org.example:artifact:version"));
-		assertThat(alias.resolve(cwd), equalTo("org.example:artifact:version"));
+		assertThat(alias.resolve(), equalTo("org.example:artifact:version"));
 	}
 
 }

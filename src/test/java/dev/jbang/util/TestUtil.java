@@ -67,7 +67,7 @@ public class TestUtil extends BaseTest {
 
 	@Test
 	void testExplode() throws IOException {
-		Path baseDir = examplesTestFolder.toPath();
+		Path baseDir = examplesTestFolder;
 
 		String source = ".";
 

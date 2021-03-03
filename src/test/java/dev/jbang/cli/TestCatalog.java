@@ -10,7 +10,6 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.catalog.Alias;
@@ -38,16 +37,13 @@ public class TestCatalog extends BaseTest {
 	static Path testCatalogFile = null;
 
 	@BeforeEach
-	void init(@TempDir Path tmpPath) throws IOException {
-		catsFile = jbangTempDir.getRoot().toPath().resolve("jbang-catalog.json");
-		cwd = tmpPath;
-		testCatalogFile = cwd.resolve("test-catalog.json");
+	void init() throws IOException {
+		catsFile = jbangTempDir.resolve("jbang-catalog.json");
+		testCatalogFile = cwdDir.resolve("test-catalog.json");
 		Files.write(testCatalogFile, testCatalog.getBytes());
 		clearSettingsCaches();
-		CatalogUtil.addCatalogRef(null, catsFile, "test", testCatalogFile.toAbsolutePath().toString(), "Test catalog");
+		CatalogUtil.addCatalogRef(catsFile, "test", testCatalogFile.toAbsolutePath().toString(), "Test catalog");
 	}
-
-	private Path cwd;
 
 	@Test
 	void testAddSucceeded() throws IOException {
@@ -69,7 +65,7 @@ public class TestCatalog extends BaseTest {
 
 	@Test
 	void testGetAlias() throws IOException {
-		Alias alias = Alias.get(null, "one@test", null, null);
+		Alias alias = Alias.get("one@test", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 	}
