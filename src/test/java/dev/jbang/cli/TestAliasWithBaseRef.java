@@ -7,10 +7,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.catalog.Alias;
@@ -37,14 +36,10 @@ public class TestAliasWithBaseRef extends BaseTest {
 			"}";
 
 	@BeforeEach
-	void init() throws IOException {
-		testTempDir.create();
+	void init(@TempDir Path tmpPath) throws IOException {
 		Files.write(jbangTempDir.getRoot().toPath().resolve(Catalog.JBANG_CATALOG_JSON), aliases.getBytes());
-		cwd = testTempDir.newFolder("test").toPath();
+		cwd = Files.createDirectory(tmpPath.resolve("test"));
 	}
-
-	@Rule
-	public final TemporaryFolder testTempDir = new TemporaryFolder();
 
 	private Path cwd;
 

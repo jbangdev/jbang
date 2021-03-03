@@ -5,7 +5,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.io.FileMatchers.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,10 +12,9 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.Settings;
@@ -94,20 +92,16 @@ public class TestAliasNearest extends BaseTest {
 			"}";
 
 	@BeforeEach
-	void init() throws IOException {
-		testTempDir.create();
+	void init(@TempDir Path tmpPath) throws IOException {
 		Files.write(jbangTempDir.getRoot().toPath().resolve(Catalog.JBANG_CATALOG_JSON), global.getBytes());
-		File parentDotDir = testTempDir.newFolder(".jbang");
-		Files.write(parentDotDir.toPath().resolve(Catalog.JBANG_CATALOG_JSON), parent.getBytes());
-		cwd = testTempDir.newFolder("test").toPath();
-		File testDotDir = testTempDir.newFolder("test", ".jbang");
-		Files.write(testDotDir.toPath().resolve(Catalog.JBANG_CATALOG_JSON), dotlocal.getBytes());
+		cwd = Files.createDirectory(tmpPath.resolve("test"));
+		Path parentDotDir = Files.createDirectory(tmpPath.resolve(".jbang"));
+		Files.write(parentDotDir.resolve(Catalog.JBANG_CATALOG_JSON), parent.getBytes());
+		Path testDotDir = Files.createDirectory(tmpPath.resolve("test/.jbang"));
+		Files.write(testDotDir.resolve(Catalog.JBANG_CATALOG_JSON), dotlocal.getBytes());
 		Files.write(cwd.resolve(Catalog.JBANG_CATALOG_JSON), local.getBytes());
 		Files.write(cwd.resolve("dummy.java"), "// Dummy Java File".getBytes());
 	}
-
-	@Rule
-	public final TemporaryFolder testTempDir = new TemporaryFolder();
 
 	private Path cwd;
 
@@ -227,7 +221,8 @@ public class TestAliasNearest extends BaseTest {
 
 	@Test
 	void testAddGlobalFile() throws IOException {
-		testAddGlobal("dummy.java", Paths.get("..", testTempDir.getRoot().getName(), "test/dummy.java").toString());
+		testAddGlobal("dummy.java",
+				Paths.get("..", cwd.getParent().getFileName().toString(), "test/dummy.java").toString());
 	}
 
 	void testAddGlobal(String ref, String result) throws IOException {

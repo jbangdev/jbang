@@ -19,10 +19,9 @@ import java.nio.file.Paths;
 import java.util.Collections;
 
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.catalog.Alias;
@@ -72,14 +71,10 @@ public class TestAlias extends BaseTest {
 			"}";
 
 	@BeforeEach
-	void init() throws IOException {
-		testTempDir.create();
+	void init(@TempDir Path tmpPath) throws IOException {
 		Files.write(jbangTempDir.getRoot().toPath().resolve(Catalog.JBANG_CATALOG_JSON), aliases.getBytes());
-		cwd = testTempDir.newFolder("test").toPath();
+		cwd = Files.createDirectory(tmpPath.resolve("test"));
 	}
-
-	@Rule
-	public final TemporaryFolder testTempDir = new TemporaryFolder();
 
 	private Path cwd;
 
@@ -90,33 +85,27 @@ public class TestAlias extends BaseTest {
 	}
 
 	@Test
-	void testAddWithDefaultCatalogFile() throws IOException {
-		TemporaryFolder tmp = new TemporaryFolder();
-		tmp.create();
-		Path tmpPath = tmp.getRoot().toPath();
+	void testAddWithDefaultCatalogFile(@TempDir Path tmpPath) throws IOException {
 		Path testFile = tmpPath.resolve("test.java");
 		Files.write(testFile, "// Test file".getBytes());
 		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		Jbang jbang = new Jbang();
 		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "--name=name", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), Catalog.JBANG_CATALOG_JSON)),
+		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), Catalog.JBANG_CATALOG_JSON)),
 				is(true));
 		Alias name = Alias.get(tmpPath, "name");
 		assertThat(name.scriptRef, is(testFile.toString()));
 	}
 
 	@Test
-	void testAddWithDescriptionInScript() throws IOException {
-		TemporaryFolder tmp = new TemporaryFolder();
-		tmp.create();
-		Path tmpPath = tmp.getRoot().toPath();
+	void testAddWithDescriptionInScript(@TempDir Path tmpPath) throws IOException {
 		Path testFile = tmpPath.resolve("test.java");
 		Files.write(testFile, ("// Test file \n" +
 				"//DESCRIPTION Description of the script inside the script").getBytes());
 		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		Jbang jbang = new Jbang();
 		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "--name=name", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), Catalog.JBANG_CATALOG_JSON)),
+		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), Catalog.JBANG_CATALOG_JSON)),
 				is(true));
 		Alias name = Alias.get(tmpPath, "name");
 		assertThat(name.scriptRef, is(testFile.toString()));
@@ -124,10 +113,7 @@ public class TestAlias extends BaseTest {
 	}
 
 	@Test
-	void testAddWithDescriptionInArgs() throws IOException {
-		TemporaryFolder tmp = new TemporaryFolder();
-		tmp.create();
-		Path tmpPath = tmp.getRoot().toPath();
+	void testAddWithDescriptionInArgs(@TempDir Path tmpPath) throws IOException {
 		Path testFile = tmpPath.resolve("test.java");
 		Files.write(testFile, ("// Test file \n" +
 				"//DESCRIPTION Description of the script inside the script").getBytes());
@@ -135,7 +121,7 @@ public class TestAlias extends BaseTest {
 		Jbang jbang = new Jbang();
 		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "--name=name",
 				"-d", "Description of the script in arguments", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), Catalog.JBANG_CATALOG_JSON)),
+		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), Catalog.JBANG_CATALOG_JSON)),
 				is(true));
 		Alias name = Alias.get(tmpPath, "name");
 		assertThat(name.scriptRef, is(testFile.toString()));
@@ -144,10 +130,7 @@ public class TestAlias extends BaseTest {
 	}
 
 	@Test
-	void testAddWithMultipleDescriptionTags() throws IOException {
-		TemporaryFolder tmp = new TemporaryFolder();
-		tmp.create();
-		Path tmpPath = tmp.getRoot().toPath();
+	void testAddWithMultipleDescriptionTags(@TempDir Path tmpPath) throws IOException {
 		Path testFile = tmpPath.resolve("test.java");
 		Files.write(testFile, ("// Test file \n" +
 				"//DESCRIPTION Description first tag\n" +
@@ -156,7 +139,7 @@ public class TestAlias extends BaseTest {
 		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		Jbang jbang = new Jbang();
 		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "--name=name", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), Catalog.JBANG_CATALOG_JSON)),
+		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), Catalog.JBANG_CATALOG_JSON)),
 				is(true));
 		Alias name = Alias.get(tmpPath, "name");
 		assertThat(name.scriptRef, is(testFile.toString()));
@@ -165,16 +148,13 @@ public class TestAlias extends BaseTest {
 	}
 
 	@Test
-	void testAddWithNoDescriptionTags() throws IOException {
-		TemporaryFolder tmp = new TemporaryFolder();
-		tmp.create();
-		Path tmpPath = tmp.getRoot().toPath();
+	void testAddWithNoDescriptionTags(@TempDir Path tmpPath) throws IOException {
 		Path testFile = tmpPath.resolve("test.java");
 		Files.write(testFile, ("// Test file \n").getBytes());
 		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		Jbang jbang = new Jbang();
 		new CommandLine(jbang).execute("alias", "add", "-f", tmpPath.toString(), "--name=name", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(tmp.getRoot().toPath().toString(), Catalog.JBANG_CATALOG_JSON)),
+		assertThat(Files.isRegularFile(Paths.get(tmpPath.toString(), Catalog.JBANG_CATALOG_JSON)),
 				is(true));
 		Alias name = Alias.get(tmpPath, "name");
 		assertThat(name.scriptRef, is(testFile.toString()));
@@ -183,10 +163,7 @@ public class TestAlias extends BaseTest {
 	}
 
 	@Test
-	void testAddWithHiddenJbangCatalog() throws IOException {
-		TemporaryFolder tmp = new TemporaryFolder();
-		tmp.create();
-		Path tmpPath = tmp.getRoot().toPath();
+	void testAddWithHiddenJbangCatalog(@TempDir Path tmpPath) throws IOException {
 		Path testFile = tmpPath.resolve("test.java");
 		Files.write(testFile, "// Test file".getBytes());
 		Path hiddenJbangPath = Paths.get(tmpPath.toString(), CatalogUtil.JBANG_DOT_DIR);

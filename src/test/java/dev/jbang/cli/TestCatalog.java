@@ -8,10 +8,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.catalog.Alias;
@@ -39,18 +38,14 @@ public class TestCatalog extends BaseTest {
 	static Path testCatalogFile = null;
 
 	@BeforeEach
-	void init() throws IOException {
-		catalogTempDir.create();
+	void init(@TempDir Path tmpPath) throws IOException {
 		catsFile = jbangTempDir.getRoot().toPath().resolve("jbang-catalog.json");
-		cwd = catalogTempDir.getRoot().toPath();
+		cwd = tmpPath;
 		testCatalogFile = cwd.resolve("test-catalog.json");
 		Files.write(testCatalogFile, testCatalog.getBytes());
 		clearSettingsCaches();
 		CatalogUtil.addCatalogRef(null, catsFile, "test", testCatalogFile.toAbsolutePath().toString(), "Test catalog");
 	}
-
-	@Rule
-	public final TemporaryFolder catalogTempDir = new TemporaryFolder();
 
 	private Path cwd;
 

@@ -5,15 +5,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.catalog.Catalog;
@@ -45,24 +43,20 @@ public class TestAliasNearestWithBaseRef extends BaseTest {
 			"}";
 
 	@BeforeEach
-	void init() throws IOException {
-		testTempDir.create();
+	void init(@TempDir Path tmpPath) throws IOException {
 		Files.write(jbangTempDir.getRoot().toPath().resolve(Catalog.JBANG_CATALOG_JSON), global.getBytes());
-		File parentDotDir = testTempDir.newFolder(".jbang");
-		Files.write(parentDotDir.toPath().resolve(Catalog.JBANG_CATALOG_JSON), parent.getBytes());
-		File parentScriptsDir = testTempDir.newFolder("scripts");
-		Files.write(parentScriptsDir.toPath().resolve("parent.java"), "// Dummy Java File".getBytes());
-		cwd = testTempDir.newFolder("test").toPath();
-		File testDotDir = testTempDir.newFolder("test", ".jbang");
-		Files.write(testDotDir.toPath().resolve(Catalog.JBANG_CATALOG_JSON), dotlocal.getBytes());
+		cwd = Files.createDirectory(tmpPath.resolve("test"));
+		Path parentDotDir = Files.createDirectory(tmpPath.resolve(".jbang"));
+		Files.write(parentDotDir.resolve(Catalog.JBANG_CATALOG_JSON), parent.getBytes());
+		Path parentScriptsDir = Files.createDirectory(tmpPath.resolve("scripts"));
+		Files.write(parentScriptsDir.resolve("parent.java"), "// Dummy Java File".getBytes());
+		Path testDotDir = Files.createDirectory(tmpPath.resolve("test/.jbang"));
+		Files.write(testDotDir.resolve(Catalog.JBANG_CATALOG_JSON), dotlocal.getBytes());
 		Files.write(cwd.resolve(Catalog.JBANG_CATALOG_JSON), local.getBytes());
 		Files.write(cwd.resolve("dummy.java"), "// Dummy Java File".getBytes());
-		File localScriptsDir = testTempDir.newFolder("test", "scripts");
-		Files.write(localScriptsDir.toPath().resolve("local.java"), "// Dummy Java File".getBytes());
+		Path localScriptsDir = Files.createDirectory(tmpPath.resolve("test/scripts"));
+		Files.write(localScriptsDir.resolve("local.java"), "// Dummy Java File".getBytes());
 	}
-
-	@Rule
-	public final TemporaryFolder testTempDir = new TemporaryFolder();
 
 	private Path cwd;
 

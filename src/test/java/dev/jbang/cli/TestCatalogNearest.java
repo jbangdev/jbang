@@ -9,7 +9,6 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,10 +16,9 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.Settings;
@@ -38,36 +36,32 @@ public class TestCatalogNearest extends BaseTest {
 			"}";
 
 	@BeforeEach
-	void init() throws IOException {
-		testTempDir.create();
-		aliasesFile = testTempDir.getRoot().toPath().resolve("aliases.json");
+	void init(@TempDir Path tmpPath) throws IOException {
+		aliasesFile = tmpPath.resolve("aliases.json");
 		Files.write(aliasesFile, aliases.getBytes());
-		parentDotDir = testTempDir.newFolder(".jbang");
-		cwd = testTempDir.newFolder("test").toPath();
-		testDotDir = testTempDir.newFolder("test", ".jbang");
+		parentDotDir = Files.createDirectory(tmpPath.resolve(".jbang"));
+		cwd = Files.createDirectory(tmpPath.resolve("test"));
+		testDotDir = Files.createDirectory(cwd.resolve(".jbang"));
 		CatalogUtil.addCatalogRef(cwd, cwd.resolve(Catalog.JBANG_CATALOG_JSON), "local", aliasesFile.toString(),
 				"Local");
-		CatalogUtil.addCatalogRef(cwd, testDotDir.toPath().resolve(Catalog.JBANG_CATALOG_JSON), "dotlocal",
+		CatalogUtil.addCatalogRef(cwd, testDotDir.resolve(Catalog.JBANG_CATALOG_JSON), "dotlocal",
 				aliasesFile.toString(), "Local .jbang");
-		CatalogUtil.addCatalogRef(cwd, parentDotDir.toPath().resolve(Catalog.JBANG_CATALOG_JSON), "dotparent",
+		CatalogUtil.addCatalogRef(cwd, parentDotDir.resolve(Catalog.JBANG_CATALOG_JSON), "dotparent",
 				aliasesFile.toString(), "Patent .jbang");
 		CatalogUtil.addCatalogRef(cwd, jbangTempDir.getRoot().toPath().resolve(Catalog.JBANG_CATALOG_JSON), "global",
 				aliasesFile.toString(), "Global");
 	}
 
-	@Rule
-	public final TemporaryFolder testTempDir = new TemporaryFolder();
-
 	private Path cwd;
 	private Path aliasesFile;
-	private File testDotDir;
-	private File parentDotDir;
+	private Path testDotDir;
+	private Path parentDotDir;
 
 	@Test
 	void testFilesCreated() {
 		assertThat(cwd.resolve(Catalog.JBANG_CATALOG_JSON).toFile(), anExistingFile());
-		assertThat(testDotDir.toPath().resolve(Catalog.JBANG_CATALOG_JSON).toFile(), anExistingFile());
-		assertThat(parentDotDir.toPath().resolve(Catalog.JBANG_CATALOG_JSON).toFile(), anExistingFile());
+		assertThat(testDotDir.resolve(Catalog.JBANG_CATALOG_JSON).toFile(), anExistingFile());
+		assertThat(parentDotDir.resolve(Catalog.JBANG_CATALOG_JSON).toFile(), anExistingFile());
 		assertThat(jbangTempDir.getRoot().toPath().resolve(Catalog.JBANG_CATALOG_JSON).toFile(), anExistingFile());
 	}
 
