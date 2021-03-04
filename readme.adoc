@@ -85,11 +85,14 @@ To use it install `jbang` and run `jbang yourscript.java`
 
 Tested and verified to use on OSX, Linux, AIX, Windows (incl. command.exe, cygwin and mingw shells).
 
+[NOTE]
+====
 AIX requires the GNU `readlink` tool from the GNU coreutils to be available
 in the PATH when running `jbang`.  This is not supplied by default with AIX.
-Prebuilt vesions can be obtained via the IBM AIX toolbox at 
+Prebuilt versions can be obtained via the IBM AIX toolbox at 
 https://www.ibm.com/support/pages/aix-toolbox-linux-applications-downloads-alpha
-or elsewhere
+or elsewhere.
+====
 
 == Installation
 
