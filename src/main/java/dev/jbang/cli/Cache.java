@@ -10,7 +10,7 @@ import picocli.CommandLine;
 
 @CommandLine.Command(name = "cache", description = "Manage compiled scripts in the local cache.")
 public class Cache {
-	@CommandLine.Command(name = "clear", description = "Clear cache of dependency list and temporary projects. By default this will clear the JAR, script, stdin and URL caches")
+	@CommandLine.Command(name = "clear", description = "Clear the various caches used by jbang. By default this will clear the JAR, script, stdin and URL caches. To clear other caches list them explicitly i.e. '--project' for temporary projects.")
 	public Integer clear(
 			@CommandLine.Option(names = {
 					"--url" }, description = "clear URL cache only", negatable = true) Boolean urls,
