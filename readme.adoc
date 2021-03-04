@@ -64,7 +64,7 @@ toc::[]
 
 * `.java` Scripting for Java 8 and upwards
 * `.jsh` via JShell from Java 9 and upwards
-* Works on icon:windows[] Windows, icon:apple[] OSX and icon:linux[] Linux
+* Works on icon:windows[] Windows, icon:apple[] OSX and icon:linux[] Linux and AIX
 * Install using curl, power shell, SDKMan (icon:apple[]/icon:linux[]), Homebrew (icon:apple[]), Chocolatey (icon:windows[]) or Scoop (icon:windows[])
 * If needed will automatically install Java and even a Java editor (vscodium) for editing
 * Installation of scripts to user `PATH`
@@ -83,7 +83,13 @@ To use it install `jbang` and run `jbang yourscript.java`
 
 == Requirements
 
-Tested and verified to use on OSX, Linux and Windows (incl. command.exe, cygwin and mingw shells).
+Tested and verified to use on OSX, Linux, Windows and AIX (incl. command.exe, cygwin and mingw shells).
+
+AIX require the GNU `readlink` tool from the GNU coreutils to be available
+in the PATH when running `jbang`.  This is not supplied by default with AIX.
+Prebuilt vesions can be obtained via the IBM AIX toolbox at 
+https://www.ibm.com/support/pages/aix-toolbox-linux-applications-downloads-alpha
+or elsewhere
 
 == Installation
 
@@ -98,9 +104,9 @@ it setup a `j!` alias you can use instead of `jbang`.
 === Using Jbang
 
 The simplest way to install `jbang` is using Jbang itself.
-This method has no other requirements (besides `curl` on Linux/OSX).
+This method has no other requirements (besides `curl` on Linux/OSX/AIX).
 
-Linux/OSX/Windows Bash:
+Linux/OSX/Windows/AIX Bash:
 
 [source, bash]
 ----
@@ -256,7 +262,7 @@ The `./.jbang` directory which `jbang wrapper install` creates is just a cache w
 
 If you want to try out jbang without a package manager or similar you can run the following to download jbang in `~/.jbang` and if necessary `java`.
 
-Linux/OSX/Windows Bash:
+Linux/OSX/Windows/AIX Bash:
 
 [source, bash]
 ----
@@ -324,7 +330,7 @@ Now to run this you can call it via `jbang`:
 jbang helloworld.java
 ----
 
-or if on Linux/OSX run it directly. If you created it manually you need to mark it as executable before running it.
+or if on Linux/OSX/AIX run it directly. If you created it manually you need to mark it as executable before running it.
 
 [source]
 ----
@@ -899,7 +905,7 @@ For setting up your current command line environment there's something simpler. 
 
   jbang jdk java-env
 
-On Linux and Mac this will output something like:
+On Linux, Mac and AIX this will output something like:
 
 [source]
 ----
