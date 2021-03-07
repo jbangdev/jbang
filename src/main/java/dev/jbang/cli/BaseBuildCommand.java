@@ -174,11 +174,18 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 			// ignore
 			Util.warnMsg("Could not locate pom.xml template");
 		} else {
+			String group = ctx.getProperties().getOrDefault("group", "g.a.v");
 			String pomfile = pomTemplate
 										.data("baseName", Util.getBaseName(src.getResourceRef().getFile().getName()))
+										.data("group", group)
+										.data("artifact", ctx	.getProperties()
+																.getOrDefault("artifact", Util.getBaseName(
+																		src.getResourceRef().getFile().getName())))
+										.data("version", ctx.getProperties().getOrDefault("version", "999-SNAPSHOT"))
 										.data("dependencies", ctx.getClassPath().getArtifacts())
 										.render();
-			pomPath = new File(tmpJarDir, "META-INF/maven/g/a/v/pom.xml").toPath();
+
+			pomPath = new File(tmpJarDir, "META-INF/maven/" + group.replace(".", "/") + "/pom.xml").toPath();
 			Files.createDirectories(pomPath.getParent());
 			Util.writeString(pomPath, pomfile);
 		}

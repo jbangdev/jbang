@@ -3,9 +3,9 @@
 		 xmlns="http://maven.apache.org/POM/4.0.0"
 		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>dev.jbang.user</groupId>
-	<artifactId>{baseName}</artifactId>
-	<version>999-SNAPSHOT</version>
+	<groupId>{group}</groupId>
+	<artifactId>{artifact}</artifactId>
+	<version>{version}</version>
 	<dependencies>
 		{#for item in dependencies}
 		<dependency>

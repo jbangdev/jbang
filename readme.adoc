@@ -1295,6 +1295,32 @@ Note, the default generated jar will have classpath references that are machine 
 jar use `jbang export --portable <script>` and the dependent jars will be put in `libs` directory and
 generated jar will have relative references to the jars in the `libs` folder.
 
+=== Exporting to Maven Repository
+
+If your application or script need to be used from another java project it can be beneficial to publish your jar into a maven repository.
+You can use `jbang export --mavenrepos -Dgroup=dk.xam yourapp.java` to have it installed in your default maven repository, or use `-O target`
+to get it exported to a directory named `target`.
+
+You can control what maven coordinate will be used via properties named `group`, `artifact` and `version`.
+
+==== Publish via jitpack
+
+You can use `--mavenrepo` to publish any github hosted jbang app into a maven project by using a `jitpack.yml` as follows:
+
+[source, yaml]
+----
+before_install:
+  -  curl -Ls https://sh.jbang.dev | bash -s - app setup
+install:
+  - jbang export --force --mavenpublish -O target -Dgroup=$GROUP -Dartifact=$ARTIFACT -Dversion=$VERSION hello.java
+  - mkdir -p ~/.m2/repository
+  - cp -rv target/* ~/.m2/repository/
+----
+
+You should only need to change `hello.java` to match your application/script.
+
+You can read more about how jitpack handle builds at https://jitpack.io/docs/BUILDING/.
+
 == Install apps
 
 Since version 0.56 jbang comes with ability to setup jbang to put scripts/apps into your `PATH`
