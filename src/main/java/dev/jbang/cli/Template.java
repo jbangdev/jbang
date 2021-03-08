@@ -96,10 +96,9 @@ class TemplateAdd extends BaseTemplateCommand {
 			} else {
 				source = ref[0];
 				Path t = Paths.get(source).normalize();
-				if (t.isAbsolute() || t.normalize().startsWith("..")) {
-					target = t.getFileName().toString();
-				} else {
-					target = source;
+				target = t.getFileName().toString();
+				if (target.endsWith(".qute")) {
+					target = target.substring(0, target.length() - 5);
 				}
 			}
 			fileRefsMap.put(target, source);

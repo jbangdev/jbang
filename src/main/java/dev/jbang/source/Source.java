@@ -112,7 +112,7 @@ public interface Source {
 	JarSource asJarSource();
 
 	static Source forResource(String resource, RunContext ctx) {
-		ResourceRef resourceRef = ResourceRef.forResource(resource);
+		ResourceRef resourceRef = ResourceRef.forScriptResource(resource);
 
 		Alias alias = null;
 		if (resourceRef == null) {

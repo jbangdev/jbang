@@ -26,7 +26,6 @@ import com.google.gson.annotations.SerializedName;
 import dev.jbang.Main;
 import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
-import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.util.Util;
 
 public class Catalog {
@@ -73,12 +72,12 @@ public class Catalog {
 	 * @return A string to be used as the base for Alias script locations
 	 */
 	public String getScriptBase() {
-		if (isClassPathRef(catalogFile.toString())) {
+		if (Util.isClassPathRef(catalogFile.toString())) {
 			return "classpath:" + ((baseRef != null) ? "/" + baseRef : "");
 		}
 		Path result;
 		if (baseRef != null) {
-			if (!isRemoteRef(baseRef)) {
+			if (!Util.isRemoteRef(baseRef)) {
 				Path base = Paths.get(baseRef);
 				if (!base.isAbsolute()) {
 					result = catalogFile.getParent().resolve(base);
@@ -99,7 +98,7 @@ public class Catalog {
 	}
 
 	String relativize(String scriptRef) {
-		if (!isRemoteRef(scriptRef) && !isValidCatalogReference(scriptRef)) {
+		if (!Util.isRemoteRef(scriptRef) && !isValidCatalogReference(scriptRef)) {
 			// If the scriptRef points to an existing file on the local filesystem
 			// or it's obviously a path (but not an absolute path) we'll make it
 			// relative to the location of the catalog we're adding the alias to.
@@ -109,8 +108,8 @@ public class Catalog {
 				scriptRef = cwd.relativize(script).toString();
 			}
 			String baseRef = getScriptBase();
-			if (!isAbsoluteRef(scriptRef)
-					&& !isRemoteRef(baseRef)
+			if (!Util.isAbsoluteRef(scriptRef)
+					&& !Util.isRemoteRef(baseRef)
 					&& (!isValidName(scriptRef) || Files.isRegularFile(script))) {
 				Path base = Paths.get(baseRef);
 				if (base.getRoot().equals(script.getRoot())) {
@@ -119,7 +118,7 @@ public class Catalog {
 					scriptRef = script.toAbsolutePath().normalize().toString();
 				}
 			}
-			if (!isRemoteRef(baseRef)
+			if (!Util.isRemoteRef(baseRef)
 					&& !isValidName(scriptRef)
 					&& !Files.isRegularFile(script)) {
 				throw new IllegalArgumentException("Source file not found: " + scriptRef);
@@ -368,18 +367,6 @@ public class Catalog {
 		if (!ok) {
 			throw new JsonParseException(message);
 		}
-	}
-
-	static boolean isAbsoluteRef(String ref) {
-		return isRemoteRef(ref) || Paths.get(ref).isAbsolute();
-	}
-
-	static boolean isRemoteRef(String ref) {
-		return ref.startsWith("http:") || ref.startsWith("https:") || DependencyUtil.looksLikeAGav(ref);
-	}
-
-	static boolean isClassPathRef(String ref) {
-		return ref.startsWith("classpath:");
 	}
 
 	public static boolean isValidName(String name) {

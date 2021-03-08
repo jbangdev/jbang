@@ -31,7 +31,7 @@ public class CatalogRef {
 	 * @return A CatalogRef object
 	 */
 	public static CatalogRef createByRefOrImplicit(String catalogRef) {
-		if (Catalog.isAbsoluteRef(catalogRef) || Files.isRegularFile(Paths.get(catalogRef))) {
+		if (Util.isAbsoluteRef(catalogRef) || Files.isRegularFile(Paths.get(catalogRef))) {
 			Catalog cat = Catalog.getByRef(catalogRef);
 			return new CatalogRef(catalogRef, cat.description);
 		} else {

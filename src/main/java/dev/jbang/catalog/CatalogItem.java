@@ -18,10 +18,10 @@ abstract class CatalogItem {
 	 */
 	public String resolve(String scriptRef) {
 		String ref = scriptRef;
-		if (!Catalog.isAbsoluteRef(ref)) {
+		if (!Util.isAbsoluteRef(ref)) {
 			ref = catalog.getScriptBase() + "/" + ref;
 		}
-		if (!Catalog.isRemoteRef(ref) && !Catalog.isClassPathRef(ref)) {
+		if (!Util.isRemoteRef(ref) && !Util.isClassPathRef(ref)) {
 			Path cwd = Util.getCwd();
 			Path script = Paths.get(ref).normalize();
 			if (cwd.getRoot().equals(script.getRoot())) {

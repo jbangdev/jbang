@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -67,7 +66,7 @@ public class ScriptSource implements Source {
 	private List<String> lines;
 	private List<MavenRepo> repositories;
 	private List<String> dependencies;
-	private List<Ref> filerefs;
+	private List<RefTarget> filerefs;
 	private List<ScriptSource> sources;
 	private List<KeyValue> agentOptions;
 	private Optional<String> description = Optional.empty();
@@ -446,20 +445,20 @@ public class ScriptSource implements Source {
 	}
 
 	public void copyFilesTo(Path dest) {
-		List<Ref> files = getAllFiles();
-		for (Ref file : files) {
+		List<RefTarget> files = getAllFiles();
+		for (RefTarget file : files) {
 			file.copy(dest);
 		}
 	}
 
-	private List<Ref> getAllFiles() {
+	private List<RefTarget> getAllFiles() {
 		if (filerefs == null) {
 			filerefs = collectAll(ScriptSource::collectFiles);
 		}
 		return filerefs;
 	}
 
-	private List<Ref> collectFiles() {
+	private List<RefTarget> collectFiles() {
 		return getLines()	.stream()
 							.filter(f -> f.startsWith(FILES_COMMENT_PREFIX))
 							.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
@@ -470,17 +469,8 @@ public class ScriptSource implements Source {
 							.collect(Collectors.toCollection(ArrayList::new));
 	}
 
-	private Ref toFileRef(String fileReference) {
-		Ref ref = Ref.fromReference(resourceRef.getOriginalResource(), fileReference);
-		if (Paths.get(ref.getRef()).isAbsolute()) {
-			throw new IllegalStateException(
-					"Only relative paths allowed in //FILES. Found absolute path: " + ref.getRef());
-		}
-		if (ref.getDestination() != null && Paths.get(ref.getDestination()).isAbsolute()) {
-			throw new IllegalStateException(
-					"Only relative paths allowed in //FILES. Found absolute path: " + ref.getDestination());
-		}
-		return ref;
+	private RefTarget toFileRef(String fileReference) {
+		return RefTarget.create(resourceRef.getOriginalResource(), fileReference);
 	}
 
 	public List<ScriptSource> getAllSources() {

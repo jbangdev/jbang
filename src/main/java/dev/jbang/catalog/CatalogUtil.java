@@ -222,7 +222,7 @@ public class CatalogUtil {
 			if (!cat.isAbsolute() && Files.isRegularFile(cat)) {
 				catalogRef = cat.toAbsolutePath().toString();
 			}
-			if (!Catalog.isAbsoluteRef(catalogRef)) {
+			if (!Util.isAbsoluteRef(catalogRef)) {
 				Optional<String> url = ImplicitCatalogRef.getImplicitCatalogUrl(catalogRef);
 				if (url.isPresent()) {
 					catalogRef = url.get();

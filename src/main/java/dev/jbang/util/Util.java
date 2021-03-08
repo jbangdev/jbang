@@ -54,6 +54,7 @@ import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
+import dev.jbang.dependencies.DependencyUtil;
 
 public class Util {
 
@@ -952,6 +953,18 @@ public class Util {
 		} catch (URISyntaxException e) {
 			return false;
 		}
+	}
+
+	public static boolean isAbsoluteRef(String ref) {
+		return isRemoteRef(ref) || Paths.get(ref).isAbsolute();
+	}
+
+	public static boolean isRemoteRef(String ref) {
+		return ref.startsWith("http:") || ref.startsWith("https:") || DependencyUtil.looksLikeAGav(ref);
+	}
+
+	public static boolean isClassPathRef(String ref) {
+		return ref.startsWith("classpath:");
 	}
 
 	/**
