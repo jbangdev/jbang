@@ -95,7 +95,6 @@ public class Alias extends CatalogItem {
 	/**
 	 * Returns the given Alias from the local file system
 	 *
-	 * @param cwd       The current working directory (leave null to auto detect)
 	 * @param aliasName The name of an Alias
 	 * @return An Alias object
 	 */
@@ -124,9 +123,6 @@ public class Alias extends CatalogItem {
 	}
 
 	static Catalog findNearestCatalogWithAlias(Path dir, String aliasName) {
-		return Catalog.findNearestCatalogWith(dir, catalogFile -> {
-			Catalog catalog = Catalog.get(catalogFile);
-			return catalog.aliases.containsKey(aliasName);
-		});
+		return Catalog.findNearestCatalogWith(dir, catalog -> catalog.aliases.containsKey(aliasName));
 	}
 }

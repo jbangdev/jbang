@@ -65,9 +65,6 @@ public class CatalogRef {
 	}
 
 	static Catalog findNearestCatalogWithCatalogRef(Path dir, String catalogName) {
-		return Catalog.findNearestCatalogWith(dir, catalogFile -> {
-			Catalog catalog = Catalog.get(catalogFile);
-			return catalog.catalogs.containsKey(catalogName);
-		});
+		return Catalog.findNearestCatalogWith(dir, catalog -> catalog.catalogs.containsKey(catalogName));
 	}
 }

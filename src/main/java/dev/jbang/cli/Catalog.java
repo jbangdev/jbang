@@ -119,27 +119,50 @@ class CatalogList extends BaseCatalogCommand {
 			} else {
 				catalog = dev.jbang.catalog.Catalog.getMerged(true);
 			}
-			catalog.catalogs
-							.keySet()
-							.stream()
-							.sorted()
-							.forEach(nm -> {
-								CatalogRef ref = catalog.catalogs.get(
-										nm);
-								if (ref.description != null) {
-									out.println(nm + " = " + ref.description);
-									out.println(Util.repeat(" ", nm.length()) + "   ("
-											+ ref.catalogRef
-											+ ")");
-								} else {
-									out.println(nm + " = " + ref.catalogRef);
-								}
-							});
+			printCatalogs(out, name, catalog);
 		} else {
 			dev.jbang.catalog.Catalog catalog = dev.jbang.catalog.Catalog.getByName(name);
-			TemplateList.printTemplates(out, name, catalog);
+			if (!catalog.aliases.isEmpty()) {
+				out.println("Aliases:");
+				out.println("--------");
+				AliasList.printAliases(out, name, catalog);
+			}
+			if (!catalog.templates.isEmpty()) {
+				out.println("Templates:");
+				out.println("----------");
+				TemplateList.printTemplates(out, name, catalog, false);
+			}
+			if (!catalog.catalogs.isEmpty()) {
+				out.println("Catalogs:");
+				out.println("---------");
+				printCatalogs(out, name, catalog);
+			}
 		}
 		return EXIT_OK;
+	}
+
+	static void printCatalogs(PrintStream out, String catalogName, dev.jbang.catalog.Catalog catalog) {
+		catalog.catalogs
+						.keySet()
+						.stream()
+						.sorted()
+						.forEach(nm -> {
+							printCatalog(out, catalogName, catalog, nm);
+						});
+	}
+
+	private static void printCatalog(PrintStream out, String catalogName, dev.jbang.catalog.Catalog catalog,
+			String name) {
+		String fullName = catalogName != null ? name + "@" + catalogName : name;
+		CatalogRef ref = catalog.catalogs.get(name);
+		if (ref.description != null) {
+			out.println(fullName + " = " + ref.description);
+			out.println(Util.repeat(" ", fullName.length()) + "   ("
+					+ ref.catalogRef
+					+ ")");
+		} else {
+			out.println(fullName + " = " + ref.catalogRef);
+		}
 	}
 }
 

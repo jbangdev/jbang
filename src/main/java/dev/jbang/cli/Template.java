@@ -18,8 +18,7 @@ import dev.jbang.util.Util;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "template", description = "Manage templates for scripts.", subcommands = {
-		TemplateAdd.class,
-		TemplateList.class, TemplateRemove.class })
+		TemplateAdd.class, TemplateList.class, TemplateRemove.class })
 public class Template {
 }
 
@@ -133,6 +132,9 @@ class TemplateList extends BaseTemplateCommand {
 	@CommandLine.Option(names = { "--show-origin" }, description = "Show the origin of the template")
 	boolean showOrigin;
 
+	@CommandLine.Option(names = { "--show-files" }, description = "Show list of files for each template")
+	boolean showFiles;
+
 	@CommandLine.Parameters(paramLabel = "catalogName", index = "0", description = "The name of a catalog", arity = "0..1")
 	String catalogName;
 
@@ -149,22 +151,22 @@ class TemplateList extends BaseTemplateCommand {
 			catalog = Catalog.getMerged(true);
 		}
 		if (showOrigin) {
-			printTemplatesWithOrigin(out, catalogName, catalog);
+			printTemplatesWithOrigin(out, catalogName, catalog, showFiles);
 		} else {
-			printTemplates(out, catalogName, catalog);
+			printTemplates(out, catalogName, catalog, showFiles);
 		}
 		return EXIT_OK;
 	}
 
-	static void printTemplates(PrintStream out, String catalogName, Catalog catalog) {
+	static void printTemplates(PrintStream out, String catalogName, Catalog catalog, boolean showFiles) {
 		catalog.templates
 							.keySet()
 							.stream()
 							.sorted()
-							.forEach(name -> printTemplate(out, catalogName, catalog, name, 0));
+							.forEach(name -> printTemplate(out, catalogName, catalog, name, showFiles, 0));
 	}
 
-	static void printTemplatesWithOrigin(PrintStream out, String catalogName, Catalog catalog) {
+	static void printTemplatesWithOrigin(PrintStream out, String catalogName, Catalog catalog, boolean showFiles) {
 		Map<Path, List<Map.Entry<String, dev.jbang.catalog.Template>>> groups = catalog.templates
 																									.entrySet()
 																									.stream()
@@ -176,12 +178,12 @@ class TemplateList extends BaseTemplateCommand {
 			entries	.stream()
 					.map(Map.Entry::getKey)
 					.sorted()
-					.forEach(k -> printTemplate(out, catalogName, catalog, k, 3));
+					.forEach(k -> printTemplate(out, catalogName, catalog, k, showFiles, 3));
 		});
 	}
 
-	private static void printTemplate(PrintStream out, String catalogName, Catalog catalog, String name,
-			int indent) {
+	private static void printTemplate(PrintStream out, String catalogName, Catalog catalog,
+			String name, boolean showFiles, int indent) {
 		dev.jbang.catalog.Template template = catalog.templates.get(name);
 		String fullName = catalogName != null ? name + "@" + catalogName : name;
 		out.print(Util.repeat(" ", indent));
@@ -190,16 +192,19 @@ class TemplateList extends BaseTemplateCommand {
 		} else {
 			out.println(yellow(fullName) + " = ");
 		}
-		for (String dest : template.fileRefs.keySet()) {
-			String ref = template.fileRefs.get(dest);
-			if (ref == null || ref.isEmpty()) {
-				ref = dest;
-			}
-			ref = template.resolve(ref);
-			if (ref.equals(dest)) {
-				out.println("   " + ref);
-			} else {
-				out.println("   " + dest + " (from " + ref + ")");
+		if (showFiles) {
+			for (String dest : template.fileRefs.keySet()) {
+				String ref = template.fileRefs.get(dest);
+				if (ref == null || ref.isEmpty()) {
+					ref = dest;
+				}
+				ref = template.resolve(ref);
+				out.print(Util.repeat(" ", indent));
+				if (ref.equals(dest)) {
+					out.println("   " + ref);
+				} else {
+					out.println("   " + dest + " (from " + ref + ")");
+				}
 			}
 		}
 	}

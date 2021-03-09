@@ -155,7 +155,7 @@ class AliasList extends BaseAliasCommand {
 		String scriptRef = alias.scriptRef;
 		if (!catalog.aliases.containsKey(scriptRef)
 				&& !Catalog.isValidCatalogReference(scriptRef)) {
-			scriptRef = alias.resolve(null);
+			scriptRef = alias.resolve();
 		}
 		out.print(Util.repeat(" ", indent));
 		if (alias.description != null) {

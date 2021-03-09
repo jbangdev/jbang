@@ -28,9 +28,6 @@ public class Template extends CatalogItem {
 	}
 
 	static Catalog findNearestCatalogWithTemplate(Path dir, String templateName) {
-		return Catalog.findNearestCatalogWith(dir, catalogFile -> {
-			Catalog catalog = Catalog.get(catalogFile);
-			return catalog.templates.containsKey(templateName);
-		});
+		return Catalog.findNearestCatalogWith(dir, catalog -> catalog.templates.containsKey(templateName));
 	}
 }
