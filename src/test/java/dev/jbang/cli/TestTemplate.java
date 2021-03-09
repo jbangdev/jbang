@@ -72,7 +72,7 @@ public class TestTemplate extends BaseTest {
 				is(true));
 		Template name = Template.get("name");
 		assertThat(name.fileRefs, aMapWithSize(1));
-		assertThat(name.fileRefs.keySet(), hasItems("test.java"));
+		assertThat(name.fileRefs.keySet(), hasItems("{basename}.java"));
 		assertThat(name.fileRefs.values(), hasItems("test.java"));
 	}
 
@@ -105,7 +105,7 @@ public class TestTemplate extends BaseTest {
 		Catalog catalog = Catalog.get(hiddenJbangPath);
 		Template name = catalog.templates.get("name");
 		assertThat(name.fileRefs, aMapWithSize(1));
-		assertThat(name.fileRefs.keySet(), hasItems("test.java"));
+		assertThat(name.fileRefs.keySet(), hasItems("{basename}.java"));
 		assertThat(name.fileRefs.values(), hasItems(Paths.get("../test.java").toString()));
 	}
 
@@ -116,14 +116,14 @@ public class TestTemplate extends BaseTest {
 		Files.write(testFile, "// Test file".getBytes());
 		Jbang jbang = new Jbang();
 		new CommandLine(jbang).execute("template", "add", "-f", cwd.toString(), "--name=name",
-				"test=" + testFile.toString());
+				testFile.toString());
 		Template one = Template.get("one");
 		Template name = Template.get("name");
 		assertThat(one.fileRefs, aMapWithSize(2));
 		assertThat(one.fileRefs.keySet(), hasItems("{basename}.java", "file2.java"));
 		assertThat(one.fileRefs.values(), hasItems("file1_1.java", "file1_2.java"));
 		assertThat(name.fileRefs, aMapWithSize(1));
-		assertThat(name.fileRefs.keySet(), hasItems("test"));
+		assertThat(name.fileRefs.keySet(), hasItems("{basename}.java"));
 		assertThat(name.fileRefs.values(), hasItems("test.java"));
 	}
 
@@ -170,6 +170,16 @@ public class TestTemplate extends BaseTest {
 		int result = Jbang	.getCommandLine()
 							.execute("template", "add", "-f", cwd.toString(), "--name=name",
 									"test/../..=" + testFile.toString());
+		assertThat(result, is(2));
+	}
+
+	@Test
+	void testAddFailNoTargetPattern() throws IOException {
+		Path cwd = Util.getCwd();
+		Path testFile = Files.createFile(cwd.resolve("file1.java"));
+		int result = Jbang	.getCommandLine()
+							.execute("template", "add", "-f", cwd.toString(), "--name=name",
+									"test=" + testFile.toString());
 		assertThat(result, is(2));
 	}
 }

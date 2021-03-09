@@ -8,7 +8,6 @@ import java.nio.file.Paths;
 import java.util.AbstractMap;
 import java.util.List;
 import java.util.Random;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.lang.model.SourceVersion;
@@ -92,32 +91,20 @@ public class Init extends BaseScriptCommand {
 		return EXIT_OK;
 	}
 
-	private Path resolveBaseName(String refTarget, String refSource, String outName) {
-		String baseName = base(outName);
-		String outExt = extension(outName);
-		String targetExt = extension(refTarget);
+	private static Path resolveBaseName(String refTarget, String refSource, String outName) {
+		String baseName = Util.base(outName);
+		String outExt = Util.extension(outName);
+		String targetExt = Util.extension(refTarget);
 		if (targetExt.isEmpty()) {
-			targetExt = refSource.endsWith(".qute") ? extension(base(refSource)) : extension(refSource);
+			targetExt = refSource.endsWith(".qute") ? Util.extension(Util.base(refSource)) : Util.extension(refSource);
 		}
 		if (!outExt.isEmpty() && !outExt.equals(targetExt)) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
 					"Expected file extension is: " + targetExt + ", but got: " + outExt);
 		}
-		Pattern fnp = Pattern.compile("\\{filename}", Pattern.CASE_INSENSITIVE);
-		String result = fnp.matcher(refTarget).replaceAll(outName);
-		Pattern bnp = Pattern.compile("\\{basename}", Pattern.CASE_INSENSITIVE);
-		result = bnp.matcher(result).replaceAll(baseName);
+		String result = dev.jbang.cli.Template.TPL_FILENAME_PATTERN.matcher(refTarget).replaceAll(outName);
+		result = dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(result).replaceAll(baseName);
 		return Paths.get(result);
-	}
-
-	private String base(String name) {
-		int p = name.lastIndexOf('.');
-		return p > 0 ? name.substring(0, p) : name;
-	}
-
-	private String extension(String name) {
-		int p = name.lastIndexOf('.');
-		return p > 0 ? name.substring(p + 1) : "";
 	}
 
 	void renderQuteTemplate(Path outFile, String templatePath) throws IOException {

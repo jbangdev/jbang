@@ -137,12 +137,22 @@ public class Util {
 	}
 
 	public static String getBaseName(String fileName) {
-		int index = fileName.lastIndexOf('.');
-		if (index == -1) {
+		String ext = extension(fileName);
+		if (ext.isEmpty()) {
 			return kebab2camel(fileName);
 		} else {
-			return fileName.substring(0, index);
+			return base(fileName);
 		}
+	}
+
+	public static String base(String name) {
+		int p = name.lastIndexOf('.');
+		return p > 0 ? name.substring(0, p) : name;
+	}
+
+	public static String extension(String name) {
+		int p = name.lastIndexOf('.');
+		return p > 0 ? name.substring(p + 1) : "";
 	}
 
 	static private boolean isPattern(String pattern) {
