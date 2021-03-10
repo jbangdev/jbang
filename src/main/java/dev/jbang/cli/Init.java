@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import javax.lang.model.SourceVersion;
 
 import dev.jbang.source.RefTarget;
+import dev.jbang.source.ResourceRef;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
 
@@ -57,8 +58,9 @@ public class Init extends BaseScriptCommand {
 		if (!force) {
 			// Check if any of the files already exist
 			for (RefTarget refTarget : refTargets) {
-				if (Files.exists(refTarget.to(outDir))) {
-					warn("File " + refTarget.getSource() + " already exists. Will not initialize.");
+				Path target = refTarget.to(outDir);
+				if (Files.exists(target)) {
+					warn("File " + target + " already exists. Will not initialize.");
 					return EXIT_GENERIC_ERROR;
 				}
 			}
@@ -69,7 +71,7 @@ public class Init extends BaseScriptCommand {
 				if (refTarget.getSource().getOriginalResource().endsWith(".qute")) {
 					// TODO fix outFile path handling
 					Path out = refTarget.to(outDir);
-					renderQuteTemplate(out, refTarget.getSource().getFile().getAbsolutePath());
+					renderQuteTemplate(out, refTarget.getSource());
 				} else {
 					refTarget.copy(outDir);
 				}
@@ -107,6 +109,11 @@ public class Init extends BaseScriptCommand {
 		return Paths.get(result);
 	}
 
+	private void renderQuteTemplate(Path outFile, ResourceRef templateRef) throws IOException {
+		Util.verboseMsg("Rendering template " + templateRef.getOriginalResource() + " to " + outFile);
+		renderQuteTemplate(outFile, templateRef.getFile().getAbsolutePath());
+	}
+
 	void renderQuteTemplate(Path outFile, String templatePath) throws IOException {
 		Template template = TemplateEngine.instance().getTemplate(templatePath);
 		if (template == null) {
@@ -120,6 +127,7 @@ public class Init extends BaseScriptCommand {
 					"'" + basename + "' is not a valid class name in java. Remove the special characters");
 		}
 
+		Files.createDirectories(outFile.getParent());
 		try (BufferedWriter writer = Files.newBufferedWriter(outFile)) {
 			String result = template.data("baseName", basename).render();
 			writer.write(result);

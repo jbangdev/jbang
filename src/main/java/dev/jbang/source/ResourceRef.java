@@ -359,13 +359,14 @@ public class ResourceRef implements Comparable<ResourceRef> {
 			if (f.canRead()) {
 				return forCachedResource(cpResource, f);
 			}
-		} catch (URISyntaxException e) {
+		} catch (URISyntaxException | IllegalArgumentException e) {
 			// Ignore
 		}
 
 		// We couldn't read the file directly from the class path so let's make a copy
 		try (InputStream is = url.openStream()) {
 			Path to = Util.getUrlCache(cpResource);
+			Files.createDirectories(to.getParent());
 			Files.copy(is, to, StandardCopyOption.REPLACE_EXISTING);
 			return forCachedResource(cpResource, to.toFile());
 		} catch (IOException e) {
