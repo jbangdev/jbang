@@ -4,10 +4,8 @@ import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
 import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,23 +21,23 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.annotations.SerializedName;
 
-import dev.jbang.Main;
 import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
+import dev.jbang.source.ResourceRef;
 import dev.jbang.util.Util;
 
 public class Catalog {
 	public static final String JBANG_CATALOG_JSON = "jbang-catalog.json";
 	public static final String JBANG_IMPLICIT_CATALOG_JSON = "implicit-catalog.json";
 
-	static final Map<Path, Catalog> catalogCache = new HashMap<>();
+	static final Map<String, Catalog> catalogCache = new HashMap<>();
 
 	static final String JBANG_CATALOG_REPO = "jbang-catalog";
 
 	// HEAD at least on github gives you latest commit on default branch
 	static final String DEFAULT_REF = "HEAD";
 
-	private static final Path CACHE_BUILTIN = Paths.get(":::BUILTIN:::");
+	private static final String CACHE_BUILTIN = ":::BUILTIN:::";
 
 	public Map<String, CatalogRef> catalogs = new HashMap<>();
 	public Map<String, Alias> aliases = new HashMap<>();
@@ -48,15 +46,15 @@ public class Catalog {
 	@SerializedName(value = "base-ref", alternate = { "baseRef" })
 	public final String baseRef;
 	public final String description;
-	public transient Path catalogFile;
+	public transient String catalogFile;
 
-	public Catalog(String baseRef, String description, Path catalogFile) {
+	public Catalog(String baseRef, String description, String catalogFile) {
 		this.baseRef = baseRef;
 		this.description = description;
 		this.catalogFile = catalogFile;
 	}
 
-	public Catalog(String baseRef, String description, Path catalogFile, Map<String, Alias> aliases) {
+	public Catalog(String baseRef, String description, String catalogFile, Map<String, Alias> aliases) {
 		this.baseRef = baseRef;
 		this.description = description;
 		this.catalogFile = catalogFile;
@@ -72,15 +70,16 @@ public class Catalog {
 	 * @return A string to be used as the base for Alias script locations
 	 */
 	public String getScriptBase() {
-		if (Util.isClassPathRef(catalogFile.toString())) {
+		if (Util.isClassPathRef(catalogFile)) {
 			return "classpath:" + ((baseRef != null) ? "/" + baseRef : "");
 		}
 		Path result;
+		Path catFile = Paths.get(catalogFile);
 		if (baseRef != null) {
 			if (!Util.isRemoteRef(baseRef)) {
 				Path base = Paths.get(baseRef);
 				if (!base.isAbsolute()) {
-					result = catalogFile.getParent().resolve(base);
+					result = catFile.getParent().resolve(base);
 				} else {
 					result = Paths.get(baseRef);
 				}
@@ -92,7 +91,7 @@ public class Catalog {
 				}
 			}
 		} else {
-			result = catalogFile.getParent();
+			result = catFile.getParent();
 		}
 		return result.normalize().toString();
 	}
@@ -127,6 +126,10 @@ public class Catalog {
 		return scriptRef;
 	}
 
+	void write() throws IOException {
+		write(Paths.get(catalogFile), this);
+	}
+
 	/**
 	 * Load a Catalog's aliases given the name of a previously registered Catalog
 	 *
@@ -146,23 +149,22 @@ public class Catalog {
 	 * Will either return the given catalog or search for the nearest catalog
 	 * starting from cwd.
 	 *
-	 * @param catalogFile The catalog to return or null to return the nearest
-	 *                    catalog
+	 * @param catFile The catalog to return or null to return the nearest catalog
 	 * @return Path to a catalog
 	 */
-	public static Path getCatalogFile(Path catalogFile) {
-		if (catalogFile == null) {
+	public static Path getCatalogFile(Path catFile) {
+		if (catFile == null) {
 			Catalog catalog = findNearestCatalog(Util.getCwd());
-			if (catalog != null) {
-				catalogFile = catalog.catalogFile;
+			if (catalog != null && !Util.isClassPathRef(catalog.catalogFile)) {
+				catFile = Paths.get(catalog.catalogFile);
 			} else {
 				// This is here as a backup for when the user catalog doesn't
 				// exist yet, because `findNearestCatalog()` only returns
 				// existing files
-				catalogFile = Settings.getUserCatalogFile();
+				catFile = Settings.getUserCatalogFile();
 			}
 		}
-		return catalogFile;
+		return catFile;
 	}
 
 	/**
@@ -267,15 +269,15 @@ public class Catalog {
 
 	public static Catalog get(Path catalogPath) {
 		Catalog catalog;
-		if (Util.isFresh() || !catalogCache.containsKey(catalogPath)) {
+		if (Util.isFresh() || !catalogCache.containsKey(catalogPath.toString())) {
 			if (Files.isDirectory(catalogPath)) {
 				catalogPath = catalogPath.resolve(Catalog.JBANG_CATALOG_JSON);
 			}
 			catalog = read(catalogPath);
-			catalog.catalogFile = catalogPath.toAbsolutePath();
-			catalogCache.put(catalogPath, catalog);
+			catalog.catalogFile = catalogPath.toAbsolutePath().toString();
+			catalogCache.put(catalogPath.toString(), catalog);
 		} else {
-			catalog = catalogCache.get(catalogPath);
+			catalog = catalogCache.get(catalogPath.toString());
 		}
 		return catalog;
 	}
@@ -284,19 +286,13 @@ public class Catalog {
 	public static Catalog getBuiltin() {
 		Catalog catalog = new Catalog(null, null, null);
 		if (Util.isFresh() || !catalogCache.containsKey(CACHE_BUILTIN)) {
-			try {
-				ClassLoader cl = Thread.currentThread().getContextClassLoader();
-				if (cl == null) {
-					cl = Main.class.getClassLoader();
-				}
-				URL catalogUrl = cl.getResource(JBANG_CATALOG_JSON);
-				if (catalogUrl != null) {
-					catalog = read(new InputStreamReader(catalogUrl.openStream()));
-					catalog.catalogFile = Paths.get("classpath:/" + JBANG_CATALOG_JSON);
-					catalogCache.put(CACHE_BUILTIN, catalog);
-				}
-			} catch (IOException e) {
-				// Ignore errors
+			String res = "classpath:/" + JBANG_CATALOG_JSON;
+			ResourceRef catRef = ResourceRef.forResource(res);
+			if (catRef != null) {
+				Path catPath = catRef.getFile().toPath();
+				catalog = read(catPath);
+				catalog.catalogFile = res;
+				catalogCache.put(CACHE_BUILTIN, catalog);
 			}
 		} else {
 			catalog = catalogCache.get(CACHE_BUILTIN);

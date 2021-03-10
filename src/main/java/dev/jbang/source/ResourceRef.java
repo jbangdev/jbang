@@ -12,6 +12,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -158,11 +159,16 @@ public class ResourceRef implements Comparable<ResourceRef> {
 		ResourceRef result = null;
 
 		// map script argument to script file
-		File probe = Util.getCwd().resolve(scriptResource).normalize().toFile();
+		File probe = null;
+		try {
+			probe = Util.getCwd().resolve(scriptResource).normalize().toFile();
+		} catch (InvalidPathException e) {
+			// Ignore
+		}
 
 		try {
-			if (probe.canRead()) {
-				if (probe.canRead() && !probe.getName().endsWith(".jar") && !probe.getName().endsWith(".java")
+			if (probe != null && probe.canRead()) {
+				if (!probe.getName().endsWith(".jar") && !probe.getName().endsWith(".java")
 						&& !probe.getName().endsWith(".jsh")) {
 					if (probe.isDirectory()) {
 						File defaultApp = new File(probe, "main.java");
@@ -217,12 +223,7 @@ public class ResourceRef implements Comparable<ResourceRef> {
 	private static ResourceRef forResource(String scriptResource, Function<String, ResourceRef> urlFetcher) {
 		ResourceRef result = null;
 
-		// map script argument to script file
-		File probe = Util.getCwd().resolve(scriptResource).normalize().toFile();
-
-		if (probe.canRead()) {
-			result = forNamedFile(scriptResource, probe);
-		} else if (scriptResource.startsWith("http://") || scriptResource.startsWith("https://")
+		if (scriptResource.startsWith("http://") || scriptResource.startsWith("https://")
 				|| scriptResource.startsWith("file:/")) {
 			// support url's as script files
 			result = urlFetcher.apply(scriptResource);
@@ -234,6 +235,16 @@ public class ResourceRef implements Comparable<ResourceRef> {
 			String s = new DependencyUtil().resolveDependencies(Collections.singletonList(gav),
 					Collections.emptyList(), Util.isOffline(), Util.isFresh(), !Util.isQuiet(), false).getClassPath();
 			result = forCachedResource(scriptResource, new File(s));
+		} else {
+			File probe = null;
+			try {
+				probe = Util.getCwd().resolve(scriptResource).normalize().toFile();
+			} catch (InvalidPathException e) {
+				// Ignore
+			}
+			if (probe != null && probe.canRead()) {
+				result = forNamedFile(scriptResource, probe);
+			}
 		}
 
 		return result;

@@ -136,12 +136,12 @@ class AliasList extends BaseAliasCommand {
 	}
 
 	static void printAliasesWithOrigin(PrintStream out, String catalogName, Catalog catalog) {
-		Map<Path, List<Map.Entry<String, dev.jbang.catalog.Alias>>> groups = catalog.aliases
-																							.entrySet()
-																							.stream()
-																							.collect(
-																									Collectors.groupingBy(
-																											e -> e.getValue().catalog.catalogFile));
+		Map<String, List<Map.Entry<String, dev.jbang.catalog.Alias>>> groups = catalog.aliases
+																								.entrySet()
+																								.stream()
+																								.collect(
+																										Collectors.groupingBy(
+																												e -> e.getValue().catalog.catalogFile));
 		groups.forEach((p, entries) -> {
 			out.println(p);
 			entries.stream().map(Map.Entry::getKey).sorted().forEach(k -> printAlias(out, catalogName, catalog, k, 3));

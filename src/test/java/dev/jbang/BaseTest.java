@@ -45,7 +45,7 @@ public abstract class BaseTest {
 	static void init() throws URISyntaxException, IOException {
 		URL examplesUrl = TestRun.class.getClassLoader().getResource(EXAMPLES_FOLDER);
 		if (examplesUrl == null) {
-			examplesTestFolder = Paths.get(EXAMPLES_FOLDER);
+			examplesTestFolder = Paths.get(EXAMPLES_FOLDER).toAbsolutePath();
 		} else {
 			examplesTestFolder = Paths.get(new File(examplesUrl.toURI()).getAbsolutePath());
 		}

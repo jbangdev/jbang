@@ -55,7 +55,7 @@ public class CatalogUtil {
 		Alias alias = new Alias(scriptRef, description, arguments, properties, catalog);
 		catalog.aliases.put(name, alias);
 		try {
-			Catalog.write(catalogFile, catalog);
+			catalog.write();
 			return alias;
 		} catch (IOException ex) {
 			Util.warnMsg("Unable to add alias: " + ex.getMessage());
@@ -91,7 +91,7 @@ public class CatalogUtil {
 		if (catalog.aliases.containsKey(name)) {
 			catalog.aliases.remove(name);
 			try {
-				Catalog.write(catalog.catalogFile, catalog);
+				catalog.write();
 			} catch (IOException ex) {
 				Util.warnMsg("Unable to remove alias: " + ex.getMessage());
 			}
@@ -129,7 +129,7 @@ public class CatalogUtil {
 		Template template = new Template(relFileRefs, description, catalog);
 		catalog.templates.put(name, template);
 		try {
-			Catalog.write(catalogFile, catalog);
+			catalog.write();
 			return template;
 		} catch (IOException ex) {
 			Util.warnMsg("Unable to add template: " + ex.getMessage());
@@ -165,7 +165,7 @@ public class CatalogUtil {
 		if (catalog.templates.containsKey(name)) {
 			catalog.templates.remove(name);
 			try {
-				Catalog.write(catalog.catalogFile, catalog);
+				catalog.write();
 			} catch (IOException ex) {
 				Util.warnMsg("Unable to remove template: " + ex.getMessage());
 			}
@@ -194,7 +194,7 @@ public class CatalogUtil {
 		if (catalog.catalogs.containsKey(name)) {
 			catalog.catalogs.remove(name);
 			try {
-				Catalog.write(catalog.catalogFile, catalog);
+				catalog.write();
 			} catch (IOException ex) {
 				Util.warnMsg("Unable to remove catalog: " + ex.getMessage());
 			}
@@ -234,7 +234,7 @@ public class CatalogUtil {
 		CatalogRef ref = new CatalogRef(catalogRef, description);
 		catalog.catalogs.put(name, ref);
 		try {
-			Catalog.write(catalogFile, catalog);
+			catalog.write();
 			return ref;
 		} catch (IOException ex) {
 			Util.warnMsg("Unable to add catalog: " + ex.getMessage());

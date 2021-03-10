@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
@@ -31,9 +32,8 @@ import picocli.CommandLine;
 public class App {
 
 	public static void deleteCommandFiles(String name) {
-		try {
-			Files	.list(Settings.getConfigBinDir())
-					.filter(f -> f.getFileName().toString().equals(name)
+		try (Stream<Path> files = Files.list(Settings.getConfigBinDir())) {
+			files	.filter(f -> f.getFileName().toString().equals(name)
 							|| f.getFileName().toString().startsWith(name + "."))
 					.forEach(f -> Util.deletePath(f, true));
 		} catch (IOException e) {
@@ -189,16 +189,17 @@ class AppInstall extends BaseCommand {
 
 	private static void copyJbangFiles(Path from, Path to) throws IOException {
 		to.toFile().mkdirs();
-		Files	.list(from)
-				.map(from::relativize)
-				.forEach(f -> {
-					try {
-						Files.copy(from.resolve(f), to.resolve(f), StandardCopyOption.REPLACE_EXISTING,
-								StandardCopyOption.COPY_ATTRIBUTES);
-					} catch (IOException e) {
-						throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
-					}
-				});
+		try (Stream<Path> files = Files.list(from)) {
+			files	.map(from::relativize)
+					.forEach(f -> {
+						try {
+							Files.copy(from.resolve(f), to.resolve(f), StandardCopyOption.REPLACE_EXISTING,
+									StandardCopyOption.COPY_ATTRIBUTES);
+						} catch (IOException e) {
+							throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
+						}
+					});
+		}
 	}
 }
 
@@ -212,8 +213,8 @@ class AppList extends BaseCommand {
 	}
 
 	private static List<String> listCommandFiles() {
-		try {
-			return Files.list(Settings.getConfigBinDir())
+		try (Stream<Path> files = Files.list(Settings.getConfigBinDir())) {
+			return files
 						.map(AppList::baseFileName)
 						.distinct()
 						.sorted()
@@ -252,10 +253,9 @@ class AppUninstall extends BaseCommand {
 	}
 
 	private static boolean commandFilesExist(String name) {
-		try {
-			return Files.list(Settings.getConfigBinDir())
-						.anyMatch(f -> f.getFileName().toString().equals(name)
-								|| f.getFileName().toString().startsWith(name + "."));
+		try (Stream<Path> files = Files.list(Settings.getConfigBinDir())) {
+			return files.anyMatch(f -> f.getFileName().toString().equals(name)
+					|| f.getFileName().toString().startsWith(name + "."));
 		} catch (IOException e) {
 			return false;
 		}

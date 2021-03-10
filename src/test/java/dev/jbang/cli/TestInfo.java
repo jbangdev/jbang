@@ -11,6 +11,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
+import java.nio.file.Paths;
 import java.util.Collection;
 
 import org.hamcrest.Matchers;
@@ -98,6 +99,6 @@ public class TestInfo extends BaseTest {
 		assertThat(info.mainClass, is(nullValue()));
 		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
 				hasSize(equalTo(1)),
-				everyItem(containsString("itests/hellojar.jar"))));
+				everyItem(containsString(Paths.get("itests/hellojar.jar").toString()))));
 	}
 }
