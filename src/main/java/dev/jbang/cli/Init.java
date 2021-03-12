@@ -50,7 +50,8 @@ public class Init extends BaseScriptCommand {
 													.map(e -> new AbstractMap.SimpleEntry<>(
 															resolveBaseName(e.getKey(), e.getValue(), outName),
 															tpl.resolve(e.getValue())))
-													.map(e -> RefTarget.create(tpl.catalog.catalogFile.toString(),
+													.map(e -> RefTarget.create(
+															tpl.catalog.catalogRef.getFile().getAbsolutePath(),
 															e.getValue(),
 															e.getKey()))
 													.collect(Collectors.toList());

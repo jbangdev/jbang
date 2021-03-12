@@ -125,7 +125,7 @@ public interface Source {
 				ctx.setAlias(alias);
 				if (resourceRef == null) {
 					throw new IllegalArgumentException(
-							"Alias " + resource + " from " + alias.catalog.catalogFile + " failed to resolve "
+							"Alias " + resource + " from " + alias.catalog.catalogRef + " failed to resolve "
 									+ alias.scriptRef);
 				}
 			}

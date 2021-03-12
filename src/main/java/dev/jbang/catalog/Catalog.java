@@ -46,18 +46,18 @@ public class Catalog {
 	@SerializedName(value = "base-ref", alternate = { "baseRef" })
 	public final String baseRef;
 	public final String description;
-	public transient String catalogFile;
+	public transient ResourceRef catalogRef;
 
-	public Catalog(String baseRef, String description, String catalogFile) {
+	public Catalog(String baseRef, String description, ResourceRef catalogRef) {
 		this.baseRef = baseRef;
 		this.description = description;
-		this.catalogFile = catalogFile;
+		this.catalogRef = catalogRef;
 	}
 
-	public Catalog(String baseRef, String description, String catalogFile, Map<String, Alias> aliases) {
+	public Catalog(String baseRef, String description, ResourceRef catalogRef, Map<String, Alias> aliases) {
 		this.baseRef = baseRef;
 		this.description = description;
-		this.catalogFile = catalogFile;
+		this.catalogRef = catalogRef;
 		aliases.forEach((key, a) -> this.aliases.put(key,
 				new Alias(a.scriptRef, a.description, a.arguments, a.properties, this)));
 	}
@@ -70,11 +70,11 @@ public class Catalog {
 	 * @return A string to be used as the base for Alias script locations
 	 */
 	public String getScriptBase() {
-		if (Util.isClassPathRef(catalogFile)) {
+		if (catalogRef.isClasspath()) {
 			return "classpath:" + ((baseRef != null) ? "/" + baseRef : "");
 		}
 		Path result;
-		Path catFile = Paths.get(catalogFile);
+		Path catFile = catalogRef.getFile().toPath();
 		if (baseRef != null) {
 			if (!Util.isRemoteRef(baseRef)) {
 				Path base = Paths.get(baseRef);
@@ -127,7 +127,7 @@ public class Catalog {
 	}
 
 	void write() throws IOException {
-		write(Paths.get(catalogFile), this);
+		write(catalogRef.getFile().toPath(), this);
 	}
 
 	/**
@@ -155,8 +155,8 @@ public class Catalog {
 	public static Path getCatalogFile(Path catFile) {
 		if (catFile == null) {
 			Catalog catalog = findNearestCatalog(Util.getCwd());
-			if (catalog != null && !Util.isClassPathRef(catalog.catalogFile)) {
-				catFile = Paths.get(catalog.catalogFile);
+			if (catalog != null && !catalog.catalogRef.isClasspath()) {
+				catFile = catalog.catalogRef.getFile().toPath();
 			} else {
 				// This is here as a backup for when the user catalog doesn't
 				// exist yet, because `findNearestCatalog()` only returns
@@ -184,9 +184,12 @@ public class Catalog {
 		}
 		Path catalogPath = null;
 		try {
-			catalogPath = Util.obtainFile(catalogRef);
+			Catalog catalog = get(ResourceRef.forResource(catalogRef));
+			if (catalog == null) {
+				throw new ExitException(EXIT_UNEXPECTED_STATE,
+						"Unable to download catalog: " + catalogRef);
+			}
 			Util.verboseMsg(String.format("Obtained catalog from %s", catalogRef));
-			Catalog catalog = get(catalogPath);
 			int p = catalogRef.lastIndexOf('/');
 			if (p > 0) {
 				String baseRef = catalog.baseRef;
@@ -198,10 +201,10 @@ public class Catalog {
 				} else {
 					baseRef = catalogBaseRef;
 				}
-				catalog = new Catalog(baseRef, catalog.description, catalog.catalogFile, catalog.aliases);
+				catalog = new Catalog(baseRef, catalog.description, catalog.catalogRef, catalog.aliases);
 			}
 			return catalog;
-		} catch (IOException | JsonParseException ex) {
+		} catch (JsonParseException ex) {
 			throw new ExitException(EXIT_UNEXPECTED_STATE,
 					"Unable to download catalog: " + catalogRef + " via " + catalogPath, ex);
 		}
@@ -226,7 +229,8 @@ public class Catalog {
 		Catalog result = new Catalog(null, null, null);
 		Collections.reverse(catalogs);
 		for (Catalog catalog : catalogs) {
-			if (!includeImplicits && catalog.catalogFile.equals(Settings.getUserImplicitCatalogFile())) {
+			if (!includeImplicits
+					&& catalog.catalogRef.getFile().toPath().equals(Settings.getUserImplicitCatalogFile())) {
 				continue;
 			}
 			merge(catalog, result);
@@ -268,13 +272,18 @@ public class Catalog {
 	}
 
 	public static Catalog get(Path catalogPath) {
+		return get(ResourceRef.forNamedFile(catalogPath.toString(), catalogPath.toFile()));
+	}
+
+	private static Catalog get(ResourceRef ref) {
 		Catalog catalog;
+		Path catalogPath = ref.getFile().toPath();
 		if (Util.isFresh() || !catalogCache.containsKey(catalogPath.toString())) {
 			if (Files.isDirectory(catalogPath)) {
 				catalogPath = catalogPath.resolve(Catalog.JBANG_CATALOG_JSON);
 			}
 			catalog = read(catalogPath);
-			catalog.catalogFile = catalogPath.toAbsolutePath().toString();
+			catalog.catalogRef = ref;
 			catalogCache.put(catalogPath.toString(), catalog);
 		} else {
 			catalog = catalogCache.get(catalogPath.toString());
@@ -291,7 +300,7 @@ public class Catalog {
 			if (catRef != null) {
 				Path catPath = catRef.getFile().toPath();
 				catalog = read(catPath);
-				catalog.catalogFile = res;
+				catalog.catalogRef = catRef;
 				catalogCache.put(CACHE_BUILTIN, catalog);
 			}
 		} else {

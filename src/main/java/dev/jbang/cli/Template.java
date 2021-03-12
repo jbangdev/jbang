@@ -220,14 +220,14 @@ class TemplateList extends BaseTemplateCommand {
 	}
 
 	static void printTemplatesWithOrigin(PrintStream out, String catalogName, Catalog catalog, boolean showFiles) {
-		Map<String, List<Map.Entry<String, dev.jbang.catalog.Template>>> groups = catalog.templates
-																									.entrySet()
-																									.stream()
-																									.collect(
-																											Collectors.groupingBy(
-																													e -> e.getValue().catalog.catalogFile));
-		groups.forEach((p, entries) -> {
-			out.println(p);
+		Map<ResourceRef, List<Map.Entry<String, dev.jbang.catalog.Template>>> groups = catalog.templates
+																										.entrySet()
+																										.stream()
+																										.collect(
+																												Collectors.groupingBy(
+																														e -> e.getValue().catalog.catalogRef));
+		groups.forEach((ref, entries) -> {
+			out.println(ref.getOriginalResource());
 			entries	.stream()
 					.map(Map.Entry::getKey)
 					.sorted()

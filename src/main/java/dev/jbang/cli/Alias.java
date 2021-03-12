@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.catalog.CatalogUtil;
+import dev.jbang.source.ResourceRef;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.Source;
 import dev.jbang.util.Util;
@@ -136,14 +137,14 @@ class AliasList extends BaseAliasCommand {
 	}
 
 	static void printAliasesWithOrigin(PrintStream out, String catalogName, Catalog catalog) {
-		Map<String, List<Map.Entry<String, dev.jbang.catalog.Alias>>> groups = catalog.aliases
-																								.entrySet()
-																								.stream()
-																								.collect(
-																										Collectors.groupingBy(
-																												e -> e.getValue().catalog.catalogFile));
-		groups.forEach((p, entries) -> {
-			out.println(p);
+		Map<ResourceRef, List<Map.Entry<String, dev.jbang.catalog.Alias>>> groups = catalog.aliases
+																									.entrySet()
+																									.stream()
+																									.collect(
+																											Collectors.groupingBy(
+																													e -> e.getValue().catalog.catalogRef));
+		groups.forEach((ref, entries) -> {
+			out.println(ref.getOriginalResource());
 			entries.stream().map(Map.Entry::getKey).sorted().forEach(k -> printAlias(out, catalogName, catalog, k, 3));
 		});
 	}
