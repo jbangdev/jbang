@@ -38,6 +38,20 @@ public class TestApp extends BaseTest {
 	private static final List<String> nativePs1Contents = Collections.singletonList(
 			"jbang run --native $CWD/itests/helloworld.java $args");
 
+	private static final List<String> h2shContents = Arrays.asList("#!/bin/sh",
+			"eval \"exec jbang run com.h2database:h2:1.4.200 $*\"");
+	private static final List<String> h2cmdContents = Arrays.asList("@echo off",
+			"jbang run com.h2database:h2:1.4.200 %*");
+	private static final List<String> h2ps1Contents = Collections.singletonList(
+			"jbang run com.h2database:h2:1.4.200 $args");
+
+	private static final List<String> h2nativeShContents = Arrays.asList("#!/bin/sh",
+			"eval \"exec jbang run --native com.h2database:h2:1.4.200 $*\"");
+	private static final List<String> h2nativeCmdContents = Arrays.asList("@echo off",
+			"jbang run --native com.h2database:h2:1.4.200 %*");
+	private static final List<String> h2nativePs1Contents = Collections.singletonList(
+			"jbang run --native com.h2database:h2:1.4.200 $args");
+
 	@Test
 	void testAppInstallFile() throws IOException {
 		ExecutionResult result = checkedRun(null, "app", "install", "itests/helloworld.java");
@@ -85,6 +99,25 @@ public class TestApp extends BaseTest {
 			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_OK));
 		}
 
+	}
+
+	@Test
+	void testAppInstallGVA() throws IOException {
+		ExecutionResult result = checkedRun(null, "app", "install", "--name", "h2",
+				"com.h2database:h2:1.4.200");
+		assertThat(result.err, containsString("Command installed: h2"));
+		if (Util.isWindows()) {
+			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_EXECUTE));
+		} else {
+			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_OK));
+		}
+
+		if (Util.isWindows()) {
+			testScript("h2.cmd", h2cmdContents);
+			testScript("h2.ps1", h2ps1Contents);
+		} else {
+			testScript("h2", h2shContents);
+		}
 	}
 
 	@Test

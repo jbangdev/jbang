@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
+import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.net.JdkManager;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.Source;
@@ -106,7 +107,7 @@ class AppInstall extends BaseCommand {
 				return false;
 			}
 		}
-		if (ctx.getAlias() == null && !src.getResourceRef().isURL()) {
+		if (ctx.getAlias() == null && !DependencyUtil.looksLikeAGav(scriptRef) && !src.getResourceRef().isURL()) {
 			scriptRef = src.getResourceRef().getFile().getAbsolutePath();
 		}
 		installScripts(name, scriptRef, benative);
