@@ -99,7 +99,8 @@ class TemplateAdd extends BaseTemplateCommand {
 			// There's no {basename} or {filename} in any of the targets
 			Map.Entry<String, String> firstRef = splitRefs.get(0);
 			if (firstRef.getKey() == null) {
-				String ext = Util.extension(firstRef.getValue());
+				String name = firstRef.getValue();
+				String ext = name.endsWith(".qute") ? Util.extension(Util.base(name)) : Util.extension(name);
 				String target = ext.isEmpty() ? "{filename}" : "{basename}." + ext;
 				splitRefs.set(0, new AbstractMap.SimpleEntry<>(target, firstRef.getValue()));
 				warn("No explicit target pattern was set, using first file: " + target + "=" + firstRef.getValue());

@@ -297,11 +297,10 @@ public class CatalogUtil {
 				startName = Paths.get(ref).getFileName().toString();
 			}
 
-			name = startName;
-			int p = name.lastIndexOf(".");
-			if (p > 0) {
-				name = name.substring(0, p);
-			}
+			// Remove the extension. If that extension happens to be ".qute"
+			// we (try to) remove an additional extension.
+			name = startName.endsWith(".qute") ? Util.base(Util.base(startName)) : Util.base(startName);
+
 			name = name.replaceAll("[^" + validNameChars + "]", "");
 
 		}

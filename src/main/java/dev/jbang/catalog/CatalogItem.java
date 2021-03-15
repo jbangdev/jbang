@@ -1,8 +1,5 @@
 package dev.jbang.catalog;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 import dev.jbang.util.Util;
 
 abstract class CatalogItem {
@@ -20,16 +17,6 @@ abstract class CatalogItem {
 		String ref = scriptRef;
 		if (!Util.isAbsoluteRef(ref)) {
 			ref = catalog.getScriptBase() + "/" + ref;
-		}
-		if (!Util.isRemoteRef(ref) && !Util.isClassPathRef(ref)) {
-			Path cwd = Util.getCwd();
-			Path script = Paths.get(ref).normalize();
-			if (cwd.getRoot().equals(script.getRoot())) {
-				script = cwd.relativize(script);
-			} else {
-				script = script.toAbsolutePath();
-			}
-			ref = script.toString();
 		}
 		return ref;
 	}

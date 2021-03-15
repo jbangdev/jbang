@@ -103,7 +103,7 @@ public class Init extends BaseScriptCommand {
 		}
 		if (!outExt.isEmpty() && !outExt.equals(targetExt)) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
-					"Expected file extension is: " + targetExt + ", but got: " + outExt);
+					"Template expects " + targetExt + " extension, not " + outExt);
 		}
 		String result = dev.jbang.cli.Template.TPL_FILENAME_PATTERN.matcher(refTarget).replaceAll(outName);
 		result = dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(result).replaceAll(baseName);

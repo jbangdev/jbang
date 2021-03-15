@@ -146,7 +146,9 @@ public class TestInit extends BaseTest {
 											targetName + "=tpl/file1.java", "tpl/file2.java.qute");
 			assertThat(addResult, is(0));
 		}
-		Path outFile = cwd.resolve(initName);
+		Path appDir = Files.createDirectory(cwd.resolve("app"));
+		Util.setCwd(appDir);
+		Path outFile = appDir.resolve(initName);
 		int result = Jbang.getCommandLine().execute("init", "-t=name", outFile.toString());
 		assertThat(result, is(0));
 		assertThat(outFile.resolveSibling(outName).toFile(), aReadableFile());

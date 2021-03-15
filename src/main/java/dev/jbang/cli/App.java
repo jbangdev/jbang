@@ -16,8 +16,8 @@ import java.util.stream.Stream;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
-import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.catalog.CatalogUtil;
+import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.net.JdkManager;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.Source;
