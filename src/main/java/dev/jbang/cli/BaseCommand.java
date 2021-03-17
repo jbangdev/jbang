@@ -1,6 +1,9 @@
 package dev.jbang.cli;
 
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -54,6 +57,8 @@ public abstract class BaseCommand implements Callable<Integer> {
 			enableInsecure();
 		}
 	}
+
+	public PrintStream realOut = new PrintStream(new FileOutputStream(FileDescriptor.out));
 
 	void debug(String msg) {
 		if (isVerbose()) {

@@ -1,8 +1,5 @@
 package dev.jbang.cli;
 
-import java.io.FileDescriptor;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
 import java.nio.file.Path;
 
 import dev.jbang.source.*;
@@ -29,8 +26,6 @@ public abstract class BaseBuildCommand extends BaseCommand {
 
 	@CommandLine.Option(names = { "--enable-preview" }, description = "Activate Java preview features")
 	Boolean enablePreviewRequested;
-
-	PrintStream out = new PrintStream(new FileOutputStream(FileDescriptor.out));
 
 	protected ProjectBuilder createBaseProjectBuilder() {
 		return Project
