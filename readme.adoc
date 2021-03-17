@@ -236,17 +236,19 @@ You can run `jbang` via Docker:
 
 [source, bash]
 ----
-docker run -v `pwd`:/ws --workdir=/ws jbangdev/jbang-action helloworld.java
+docker run -v `pwd`:/ws --workdir=/ws -ti jbangdev/jbang-action helloworld.java
 ----
 
 or if you prefer using Quay.io:
 
 [source, bash]
 ----
-docker run -v `pwd`:/ws --workdir=/ws quay.io/jbangdev/jbang-action helloworld.java
+docker run -v `pwd`:/ws --workdir=/ws -ti quay.io/jbangdev/jbang-action helloworld.java
 ----
 
 The same container images can be used with GitHub Actions, see https://github.com/jbangdev/jbang-action[jbang-action] for details.
+
+Remember to remove `-ti` from the commands above when using on a GitHub Actions flow.
 
 === Manual install
 
