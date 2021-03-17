@@ -6,7 +6,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import dev.jbang.Settings;
-import dev.jbang.catalog.AliasUtil;
+import dev.jbang.catalog.CatalogRef;
+import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -30,8 +31,9 @@ abstract class BaseCatalogCommand extends BaseCommand {
 			cat = Settings.getUserCatalogFile();
 		} else {
 			if (catalogFile != null && Files.isDirectory(catalogFile)) {
-				Path defaultCatalog = catalogFile.resolve(AliasUtil.JBANG_CATALOG_JSON);
-				Path hiddenCatalog = catalogFile.resolve(AliasUtil.JBANG_DOT_DIR).resolve(AliasUtil.JBANG_CATALOG_JSON);
+				Path defaultCatalog = catalogFile.resolve(dev.jbang.catalog.Catalog.JBANG_CATALOG_JSON);
+				Path hiddenCatalog = catalogFile.resolve(CatalogUtil.JBANG_DOT_DIR)
+												.resolve(dev.jbang.catalog.Catalog.JBANG_CATALOG_JSON);
 				if (!Files.exists(defaultCatalog) && Files.exists(hiddenCatalog)) {
 					cat = hiddenCatalog;
 				} else {
@@ -67,12 +69,12 @@ class CatalogAdd extends BaseCatalogCommand {
 			throw new IllegalArgumentException(
 					"Invalid catalog name, it should start with a letter followed by 0 or more letters, digits, underscores, hyphens or dots");
 		}
-		AliasUtil.CatalogRef ref = AliasUtil.getCatalogRefByRefOrImplicit(urlOrFile);
+		CatalogRef ref = CatalogRef.createByRefOrImplicit(urlOrFile);
 		Path catFile = getCatalog(false);
 		if (catFile != null) {
-			AliasUtil.addCatalog(null, catFile, name, ref.catalogRef, ref.description);
+			CatalogUtil.addCatalogRef(catFile, name, ref.catalogRef, ref.description);
 		} else {
-			catFile = AliasUtil.addNearestCatalog(null, name, ref.catalogRef, ref.description);
+			catFile = CatalogUtil.addNearestCatalogRef(name, ref.catalogRef, ref.description);
 		}
 		info(String.format("Catalog added to %s", catFile));
 		return EXIT_OK;
@@ -85,15 +87,17 @@ class CatalogUpdate extends BaseCatalogCommand {
 	@Override
 	public Integer doCall() {
 		PrintWriter err = spec.commandLine().getErr();
-		AliasUtil.getMergedCatalog(null, true).catalogs
-														.entrySet()
-														.stream()
-														.forEach(e -> {
-															err.println(
-																	"Updating catalog '" + e.getKey() + "' from "
-																			+ e.getValue().catalogRef + "...");
-															AliasUtil.getCatalogByRef(e.getValue().catalogRef);
-														});
+		dev.jbang.catalog.Catalog.getMerged(true).catalogs
+															.entrySet()
+															.stream()
+															.forEach(e -> {
+																err.println(
+																		"Updating catalog '" + e.getKey()
+																				+ "' from "
+																				+ e.getValue().catalogRef + "...");
+																dev.jbang.catalog.Catalog.getByRef(
+																		e.getValue().catalogRef);
+															});
 		return EXIT_OK;
 	}
 }
@@ -111,31 +115,54 @@ class CatalogList extends BaseCatalogCommand {
 			dev.jbang.catalog.Catalog catalog;
 			Path cat = getCatalog(true);
 			if (cat != null) {
-				catalog = AliasUtil.getCatalog(cat);
+				catalog = dev.jbang.catalog.Catalog.get(cat);
 			} else {
-				catalog = AliasUtil.getMergedCatalog(null, true);
+				catalog = dev.jbang.catalog.Catalog.getMerged(true);
 			}
-			catalog.catalogs
-							.keySet()
-							.stream()
-							.sorted()
-							.forEach(nm -> {
-								AliasUtil.CatalogRef ref = catalog.catalogs.get(
-										nm);
-								if (ref.description != null) {
-									out.println(nm + " = " + ref.description);
-									out.println(Util.repeat(" ", nm.length()) + "   ("
-											+ ref.catalogRef
-											+ ")");
-								} else {
-									out.println(nm + " = " + ref.catalogRef);
-								}
-							});
+			printCatalogs(out, name, catalog);
 		} else {
-			dev.jbang.catalog.Catalog catalog = AliasUtil.getCatalogByName(null, name);
-			AliasList.printAliases(out, name, catalog);
+			dev.jbang.catalog.Catalog catalog = dev.jbang.catalog.Catalog.getByName(name);
+			if (!catalog.aliases.isEmpty()) {
+				out.println("Aliases:");
+				out.println("--------");
+				AliasList.printAliases(out, name, catalog);
+			}
+			if (!catalog.templates.isEmpty()) {
+				out.println("Templates:");
+				out.println("----------");
+				TemplateList.printTemplates(out, name, catalog, false);
+			}
+			if (!catalog.catalogs.isEmpty()) {
+				out.println("Catalogs:");
+				out.println("---------");
+				printCatalogs(out, name, catalog);
+			}
 		}
 		return EXIT_OK;
+	}
+
+	static void printCatalogs(PrintStream out, String catalogName, dev.jbang.catalog.Catalog catalog) {
+		catalog.catalogs
+						.keySet()
+						.stream()
+						.sorted()
+						.forEach(nm -> {
+							printCatalog(out, catalogName, catalog, nm);
+						});
+	}
+
+	private static void printCatalog(PrintStream out, String catalogName, dev.jbang.catalog.Catalog catalog,
+			String name) {
+		String fullName = catalogName != null ? name + "@" + catalogName : name;
+		CatalogRef ref = catalog.catalogs.get(name);
+		if (ref.description != null) {
+			out.println(fullName + " = " + ref.description);
+			out.println(Util.repeat(" ", fullName.length()) + "   ("
+					+ ref.catalogRef
+					+ ")");
+		} else {
+			out.println(fullName + " = " + ref.catalogRef);
+		}
 	}
 }
 
@@ -149,9 +176,9 @@ class CatalogRemove extends BaseCatalogCommand {
 	public Integer doCall() {
 		Path cat = getCatalog(true);
 		if (cat != null) {
-			AliasUtil.removeCatalog(cat, name);
+			CatalogUtil.removeCatalogRef(cat, name);
 		} else {
-			AliasUtil.removeNearestCatalog(null, name);
+			CatalogUtil.removeNearestCatalogRef(name);
 		}
 		return EXIT_OK;
 	}

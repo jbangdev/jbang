@@ -2,7 +2,7 @@ Feature: run
 
 Scenario: should fail on missing file
 * command('jbang notthere.java')
-* match err contains 'Could not read script argument notthere.java'
+* match err contains 'Script or alias could not be found or read: \'notthere.java\''
 * match exit == 2
 
 Scenario: parameter passing

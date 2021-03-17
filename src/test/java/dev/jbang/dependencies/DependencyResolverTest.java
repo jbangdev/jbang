@@ -109,7 +109,7 @@ class DependencyResolverTest extends BaseTest {
 				PropertiesValueResolver.replaceProperties("org.openjfx:javafx-base:11.0.2:${os.detected.jfxname}"));
 
 		List<ArtifactInfo> artifacts = dr.resolveDependenciesViaAether(deps,
-				Collections.singletonList(toMavenRepo("jcenter")), false,
+				Collections.singletonList(toMavenRepo("mavencentral")), false,
 				true, true);
 
 		assertEquals(1, artifacts.size());
@@ -124,7 +124,7 @@ class DependencyResolverTest extends BaseTest {
 		List<String> deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
 
 		List<ArtifactInfo> artifacts = dr.resolveDependenciesViaAether(deps,
-				Collections.singletonList(toMavenRepo("jcenter")), false,
+				Collections.singletonList(toMavenRepo("mavencentral")), false,
 				true, true);
 
 		assertEquals(2, artifacts.size());

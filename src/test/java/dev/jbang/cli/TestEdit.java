@@ -132,7 +132,7 @@ public class TestEdit extends BaseTest {
 	@Test
 	void testEditMultiSource(@TempDir Path outputDir) throws IOException {
 
-		Path p = examplesTestFolder.toPath().resolve("one.java");
+		Path p = examplesTestFolder.resolve("one.java");
 		assertThat(p.toFile().exists(), is(true));
 
 		RunContext ctx = RunContext.empty();
@@ -154,10 +154,10 @@ public class TestEdit extends BaseTest {
 
 	@Test
 	void testEditNonJava(@TempDir Path outputDir) throws IOException {
-
 		Path p = outputDir.resolve("kube-example");
+		int result = Jbang.getCommandLine().execute("init", p.toString());
 		String s = p.toString();
-		Jbang.getCommandLine().execute("init", s);
+		assertThat(result, is(0));
 		assertThat(new File(s).exists(), is(true));
 
 		RunContext ctx = RunContext.empty();

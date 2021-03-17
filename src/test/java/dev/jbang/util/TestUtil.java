@@ -15,11 +15,11 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
-import dev.jbang.catalog.AliasUtil;
+import dev.jbang.catalog.Catalog;
 
 public class TestUtil extends BaseTest {
 	public static void clearSettingsCaches() {
-		AliasUtil.clearCache();
+		Catalog.clearCache();
 	}
 
 	@Test
@@ -67,7 +67,7 @@ public class TestUtil extends BaseTest {
 
 	@Test
 	void testExplode() throws IOException {
-		Path baseDir = examplesTestFolder.toPath();
+		Path baseDir = examplesTestFolder;
 
 		String source = ".";
 

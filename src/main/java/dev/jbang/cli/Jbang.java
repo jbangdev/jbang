@@ -44,8 +44,9 @@ import picocli.CommandLine.Model.UsageMessageSpec;
 		"        (to run a .jar file found with a GAV id)",
 
 		"" }, versionProvider = VersionProvider.class, subcommands = {
-				Run.class, Build.class, Edit.class, Init.class, Alias.class, Catalog.class, Trust.class, Cache.class,
-				Completion.class, Jdk.class, Version.class, Wrapper.class, Info.class, App.class, Export.class })
+				Run.class, Build.class, Edit.class, Init.class, Alias.class, Template.class, Catalog.class, Trust.class,
+				Cache.class, Completion.class, Jdk.class, Version.class, Wrapper.class, Info.class, App.class,
+				Export.class })
 public class Jbang extends BaseCommand {
 
 	@CommandLine.ArgGroup(exclusive = true)
@@ -88,8 +89,11 @@ public class Jbang extends BaseCommand {
 	}
 
 	public static CommandLine getCommandLine() {
+		Util.setVerbose(false);
+		Util.setQuiet(false);
+		Util.setOffline(false);
+		Util.setFresh(false);
 		PrintWriter errW = new PrintWriter(err, true);
-
 		return getCommandLine(errW, errW);
 	}
 
@@ -154,7 +158,7 @@ public class Jbang extends BaseCommand {
 		sections.put("Essentials", asList("run", "build"));
 		sections.put("Editing", asList("init", "edit"));
 		sections.put("Caching", asList("cache", "export", "jdk"));
-		sections.put("Configuration", asList("trust", "alias", "catalog", "app"));
+		sections.put("Configuration", asList("trust", "alias", "template", "catalog", "app"));
 		sections.put("Other", asList("completion", "info", "version", "wrapper"));
 		CommandGroupRenderer renderer = new CommandGroupRenderer(sections);
 		return renderer;

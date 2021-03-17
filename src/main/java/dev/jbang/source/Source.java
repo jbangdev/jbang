@@ -7,7 +7,6 @@ import java.util.Optional;
 import java.util.Properties;
 
 import dev.jbang.catalog.Alias;
-import dev.jbang.catalog.AliasUtil;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.ModularClassPath;
@@ -113,20 +112,20 @@ public interface Source {
 	JarSource asJarSource();
 
 	static Source forResource(String resource, RunContext ctx) {
-		ResourceRef resourceRef = ResourceRef.forResource(resource);
+		ResourceRef resourceRef = ResourceRef.forScriptResource(resource);
 
 		Alias alias = null;
 		if (resourceRef == null) {
 			// Not found as such, so let's check the aliases
-			alias = AliasUtil.getAlias(null, resource, ctx.getArguments(), ctx.getProperties());
+			alias = Alias.get(resource, ctx.getArguments(), ctx.getProperties());
 			if (alias != null) {
-				resourceRef = ResourceRef.forResource(alias.resolve(null));
+				resourceRef = ResourceRef.forResource(alias.resolve());
 				ctx.setArguments(alias.arguments);
 				ctx.setProperties(alias.properties);
 				ctx.setAlias(alias);
 				if (resourceRef == null) {
 					throw new IllegalArgumentException(
-							"Alias " + resource + " from " + alias.catalog.catalogFile + " failed to resolve "
+							"Alias " + resource + " from " + alias.catalog.catalogRef + " failed to resolve "
 									+ alias.scriptRef);
 				}
 			}
@@ -135,7 +134,8 @@ public interface Source {
 		// Support URLs as script files
 		// just proceed if the script file is a regular file at this point
 		if (resourceRef == null || !resourceRef.getFile().canRead()) {
-			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Could not read script argument " + resource);
+			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+					"Script or alias could not be found or read: '" + resource + "'");
 		}
 
 		// note script file must be not null at this point

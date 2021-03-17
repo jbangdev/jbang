@@ -25,15 +25,16 @@ public class TestInfo extends BaseTest {
 
 	@Test
 	void testInfoToolsSimple() {
+		String src = examplesTestFolder.resolve("quote.java").toString();
 		Jbang jbang = new Jbang();
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("info", "tools", "itests/quote.java");
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("info", "tools", src);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
 		BaseInfoCommand.ScriptInfo info = tools.getInfo();
-		assertThat(info.originalResource, equalTo("itests/quote.java"));
+		assertThat(info.originalResource, equalTo(src));
 		assertThat(info.applicationJar, allOf(
 				containsString("quote.java."),
 				endsWith(".jar")));
-		assertThat(info.backingResource, equalTo(Paths.get("itests/quote.java").toString()));
+		assertThat(info.backingResource, equalTo(src));
 		assertThat(info.javaVersion, is(nullValue()));
 		assertThat(info.mainClass, is(nullValue()));
 		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
@@ -43,16 +44,17 @@ public class TestInfo extends BaseTest {
 
 	@Test
 	void testInfoToolsBuilt() {
+		String src = examplesTestFolder.resolve("quote.java").toString();
 		Jbang jbang = new Jbang();
-		new CommandLine(jbang).execute("build", "itests/quote.java");
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("info", "tools", "itests/quote.java");
+		new CommandLine(jbang).execute("build", src);
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("info", "tools", src);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
 		BaseInfoCommand.ScriptInfo info = tools.getInfo();
-		assertThat(info.originalResource, equalTo("itests/quote.java"));
+		assertThat(info.originalResource, equalTo(src));
 		assertThat(info.applicationJar, allOf(
 				containsString("quote.java."),
 				endsWith(".jar")));
-		assertThat(info.backingResource, equalTo(Paths.get("itests/quote.java").toString()));
+		assertThat(info.backingResource, equalTo(src));
 		assertThat(Integer.parseInt(info.javaVersion), greaterThan(0));
 		assertThat(info.mainClass, equalTo("quote"));
 		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
@@ -62,16 +64,17 @@ public class TestInfo extends BaseTest {
 
 	@Test
 	void testInfoToolsWithDeps() {
+		String src = examplesTestFolder.resolve("helloworld.java").toString();
 		Jbang jbang = new Jbang();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("info", "tools", "--deps",
-				"info.picocli:picocli:4.5.0", "itests/helloworld.java");
+				"info.picocli:picocli:4.5.0", src);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
 		BaseInfoCommand.ScriptInfo info = tools.getInfo();
-		assertThat(info.originalResource, equalTo("itests/helloworld.java"));
+		assertThat(info.originalResource, equalTo(src));
 		assertThat(info.applicationJar, allOf(
 				containsString("helloworld.java."),
 				endsWith(".jar")));
-		assertThat(info.backingResource, equalTo(Paths.get("itests/helloworld.java").toString()));
+		assertThat(info.backingResource, equalTo(src));
 		assertThat(info.javaVersion, is(nullValue()));
 		assertThat(info.mainClass, is(nullValue()));
 		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
@@ -81,20 +84,21 @@ public class TestInfo extends BaseTest {
 
 	@Test
 	void testInfoToolsWithClasspath() {
+		String src = examplesTestFolder.resolve("helloworld.java").toString();
+		String jar = examplesTestFolder.resolve("hellojar.jar").toString();
 		Jbang jbang = new Jbang();
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("info", "tools", "--cp", "itests/hellojar.jar",
-				"itests/helloworld.java");
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("info", "tools", "--cp", jar, src);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
 		BaseInfoCommand.ScriptInfo info = tools.getInfo();
-		assertThat(info.originalResource, equalTo("itests/helloworld.java"));
+		assertThat(info.originalResource, equalTo(src));
 		assertThat(info.applicationJar, allOf(
 				containsString("helloworld.java."),
 				endsWith(".jar")));
-		assertThat(info.backingResource, equalTo(Paths.get("itests/helloworld.java").toString()));
+		assertThat(info.backingResource, equalTo(src));
 		assertThat(info.javaVersion, is(nullValue()));
 		assertThat(info.mainClass, is(nullValue()));
 		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
 				hasSize(equalTo(1)),
-				everyItem(containsString("itests/hellojar.jar"))));
+				everyItem(containsString(Paths.get("itests/hellojar.jar").toString()))));
 	}
 }

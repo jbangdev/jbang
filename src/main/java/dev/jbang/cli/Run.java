@@ -73,7 +73,7 @@ public class Run extends BaseBuildCommand {
 		Source src = Source.forResource(scriptOrFile, ctx);
 		src = prepareArtifacts(src, ctx);
 
-		String cmdline = generateCommandLine(src, ctx);
+		String cmdline = generateOSCommandLine(src, ctx);
 		debug("run: " + cmdline);
 		out.println(cmdline);
 
@@ -102,7 +102,36 @@ public class Run extends BaseBuildCommand {
 		return src;
 	}
 
+	String generateOSCommandLine(Source src, RunContext ctx) throws IOException {
+		List<String> fullArgs = generateCommandLineList(src, ctx);
+		String args = String.join(" ", escapeArguments(fullArgs));
+		// This avoids long classpath problem on Windows.
+		// @file is only available from java 9 onwards.
+		if (args.length() > COMMAND_LINE_LENGTH_LIMIT && Util.isWindows()
+				&& JavaUtil.determineJavaVersion() >= 9 && !Util.isUsingPowerShell()) {
+			final String javaCmd = fullArgs.get(0);
+			StringJoiner joiner = new StringJoiner(" ");
+			// we must skip the first value
+			for (int i = 1; i < fullArgs.size(); ++i)
+				joiner.add(fullArgs.get(i));
+			args = joiner.toString();
+			final File argsFile = File.createTempFile("jbang", ".args");
+			try (PrintWriter pw = new PrintWriter(argsFile)) {
+				pw.println(args);
+			}
+
+			return javaCmd + " @" + argsFile.toString();
+		} else {
+			return args;
+		}
+	}
+
 	String generateCommandLine(Source src, RunContext ctx) throws IOException {
+		List<String> fullArgs = generateCommandLineList(src, ctx);
+		return String.join(" ", escapeArguments(fullArgs));
+	}
+
+	List<String> generateCommandLineList(Source src, RunContext ctx) throws IOException {
 		List<String> fullArgs = new ArrayList<>();
 
 		if (nativeImage && (ctx.isForceJsh() || src.isJShell())) {
@@ -258,27 +287,7 @@ public class Run extends BaseBuildCommand {
 			fullArgs.add(tempFile.toString());
 		}
 
-		String args = String.join(" ", escapeArguments(fullArgs));
-
-		// This avoids long classpath problem on Windows.
-		// @file is only available from java 9 onwards.
-		if (args.length() > COMMAND_LINE_LENGTH_LIMIT && Util.isWindows()
-				&& JavaUtil.determineJavaVersion() >= 9 && !Util.isUsingPowerShell()) {
-			final String javaCmd = fullArgs.get(0);
-			StringJoiner joiner = new StringJoiner(" ");
-			// we must skip the first value
-			for (int i = 1; i < fullArgs.size(); ++i)
-				joiner.add(fullArgs.get(i));
-			args = joiner.toString();
-			final File argsFile = File.createTempFile("jbang", ".args");
-			try (PrintWriter pw = new PrintWriter(argsFile)) {
-				pw.println(args);
-			}
-
-			return javaCmd + " @" + argsFile.toString();
-		} else {
-			return args;
-		}
+		return fullArgs;
 	}
 
 	static boolean optionActive(Optional<Boolean> master, boolean local) {

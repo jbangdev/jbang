@@ -7,6 +7,9 @@ import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.function.Function;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
@@ -14,42 +17,45 @@ import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.Jbang;
 import dev.jbang.cli.TestRun;
+import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 
 public abstract class BaseTest {
 
 	@BeforeEach
-	void initEnv() throws IOException {
-		jbangTempDir.create();
-		environmentVariables.set(Settings.JBANG_DIR, jbangTempDir.getRoot().getPath());
-		environmentVariables.set(Settings.JBANG_CACHE_DIR, new File(jbangTempDir.getRoot(), "cache").getPath());
+	void initEnv(@TempDir Path tempPath) throws IOException {
+		jbangTempDir = Files.createDirectory(tempPath.resolve("jbang"));
+		cwdDir = Files.createDirectory(tempPath.resolve("cwd"));
+		Util.setCwd(cwdDir);
+		environmentVariables.set(Settings.JBANG_DIR, jbangTempDir.toString());
+		environmentVariables.set(Settings.JBANG_CACHE_DIR, jbangTempDir.resolve("cache").toString());
 		environmentVariables.set(Settings.ENV_NO_VERSION_CHECK, "true");
 	}
 
 	public static final String EXAMPLES_FOLDER = "itests";
-	public static File examplesTestFolder;
+	public static Path examplesTestFolder;
 
 	@BeforeAll
 	static void init() throws URISyntaxException, IOException {
 		URL examplesUrl = TestRun.class.getClassLoader().getResource(EXAMPLES_FOLDER);
 		if (examplesUrl == null) {
-			examplesTestFolder = new File(EXAMPLES_FOLDER);
+			examplesTestFolder = Paths.get(EXAMPLES_FOLDER).toAbsolutePath();
 		} else {
-			examplesTestFolder = new File(new File(examplesUrl.toURI()).getAbsolutePath());
+			examplesTestFolder = Paths.get(new File(examplesUrl.toURI()).getAbsolutePath());
 		}
 	}
 
 	@Rule
 	public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
-	@Rule
-	public final TemporaryFolder jbangTempDir = new TemporaryFolder();
+	public Path jbangTempDir;
+	public Path cwdDir;
 
 	protected <T> ExecutionResult checkedRun(Function<T, Integer> commandRunner, String... args) throws IOException {
 		Jbang jbang = new Jbang();

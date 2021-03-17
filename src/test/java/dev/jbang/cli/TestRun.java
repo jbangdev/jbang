@@ -58,7 +58,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 
 import dev.jbang.BaseTest;
 import dev.jbang.Cache;
-import dev.jbang.catalog.AliasUtil;
+import dev.jbang.catalog.Catalog;
 import dev.jbang.net.TrustedSources;
 import dev.jbang.source.JarSource;
 import dev.jbang.source.RunContext;
@@ -84,7 +84,7 @@ public class TestRun extends BaseTest {
 	void testHelloWorld(boolean first) throws IOException {
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
-		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
+		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
@@ -114,7 +114,7 @@ public class TestRun extends BaseTest {
 
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
-		String arg = new File(examplesTestFolder, "helloworld.jsh").getAbsolutePath();
+		String arg = examplesTestFolder.resolve("helloworld.jsh").toAbsolutePath().toString();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
@@ -165,7 +165,7 @@ public class TestRun extends BaseTest {
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
 
-		String jar = new File(examplesTestFolder, "hellojar.jar").getAbsolutePath();
+		String jar = examplesTestFolder.resolve("hellojar.jar").toAbsolutePath().toString();
 
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
@@ -250,7 +250,7 @@ public class TestRun extends BaseTest {
 				"}";
 
 		environmentVariables.set("JBANG_DIR", jbangTempDir.getPath());
-		Files.write(jbangTempDir.toPath().resolve(AliasUtil.JBANG_CATALOG_JSON), aliases.getBytes());
+		Files.write(jbangTempDir.toPath().resolve(Catalog.JBANG_CATALOG_JSON), aliases.getBytes());
 
 		environmentVariables.clear("JAVA_HOME");
 
@@ -330,7 +330,7 @@ public class TestRun extends BaseTest {
 
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
-		String arg = new File(examplesTestFolder, "helloworld.jsh").getAbsolutePath();
+		String arg = examplesTestFolder.resolve("helloworld.jsh").toAbsolutePath().toString();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--interactive", arg,
 				"blah");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
@@ -356,7 +356,7 @@ public class TestRun extends BaseTest {
 
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
-		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
+		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--debug", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
@@ -379,7 +379,7 @@ public class TestRun extends BaseTest {
 
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
-		String arg = new File(examplesTestFolder, "classpath_example.java").getAbsolutePath();
+		String arg = examplesTestFolder.resolve("classpath_example.java").toAbsolutePath().toString();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
@@ -402,7 +402,7 @@ public class TestRun extends BaseTest {
 
 		environmentVariables.clear("JAVA_HOME");
 		Jbang jbang = new Jbang();
-		String arg = new File(examplesTestFolder, "classpath_example.java").getAbsolutePath();
+		String arg = examplesTestFolder.resolve("classpath_example.java").toAbsolutePath().toString();
 		CommandLine.ParseResult pr = new CommandLine(jbang)	.setStopAtPositional(true)
 															.parseArgs("run", "-Dwonka=panda", "-Dquoted=see this",
 																	arg, "-Dafter=wonka");
@@ -434,7 +434,7 @@ public class TestRun extends BaseTest {
 	@Test
 	void testURLPrepare() throws IOException {
 
-		String url = new File(examplesTestFolder, "classpath_example.java").toURI().toString();
+		String url = examplesTestFolder.resolve("classpath_example.java").toFile().toURI().toString();
 
 		RunContext pctx = RunContext.empty();
 		ScriptSource pre = (ScriptSource) Source.forResource(url, pctx);
@@ -459,7 +459,7 @@ public class TestRun extends BaseTest {
 
 	@Test
 	public void testMetaCharacters() throws IOException {
-		String url = new File(examplesTestFolder, "classpath_example.java").toURI().toString();
+		String url = examplesTestFolder.resolve("classpath_example.java").toFile().toURI().toString();
 		Jbang jbang = new Jbang();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", url, " ~!@#$%^&*()-+\\:;'`<>?/,.{}[]\"");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
@@ -479,7 +479,7 @@ public class TestRun extends BaseTest {
 	@Test
 	void testURLPrepareDoesNotExist() throws IOException {
 
-		String url = new File(examplesTestFolder, "classpath_example.java.dontexist").toURI().toString();
+		String url = examplesTestFolder.resolve("classpath_example.java.dontexist").toFile().toURI().toString();
 
 		assertThrows(ExitException.class, () -> Source.forResource(url, RunContext.empty()));
 	}
@@ -849,7 +849,7 @@ public class TestRun extends BaseTest {
 	@Test
 	void testCDSNotPresent() {
 		Jbang jbang = new Jbang();
-		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
+		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
@@ -859,7 +859,7 @@ public class TestRun extends BaseTest {
 	@Test
 	void testCDSPresent() {
 		Jbang jbang = new Jbang();
-		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
+		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg, "--cds");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
@@ -870,7 +870,7 @@ public class TestRun extends BaseTest {
 	@Test
 	void testCDSPresentButNo() {
 		Jbang jbang = new Jbang();
-		String arg = new File(examplesTestFolder, "helloworld.java").getAbsolutePath();
+		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg, "--no-cds");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
@@ -1030,7 +1030,7 @@ public class TestRun extends BaseTest {
 	@Test
 	void testAssertions() throws IOException {
 		Jbang jbang = new Jbang();
-		File f = new File(examplesTestFolder, "resource.java");
+		File f = examplesTestFolder.resolve("resource.java").toFile();
 
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--ea", f.getAbsolutePath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
@@ -1047,7 +1047,7 @@ public class TestRun extends BaseTest {
 	@Test
 	void testSystemAssertions() throws IOException {
 		Jbang jbang = new Jbang();
-		File f = new File(examplesTestFolder, "resource.java");
+		File f = examplesTestFolder.resolve("resource.java").toFile();
 
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--enablesystemassertions",
 				f.getAbsolutePath());
@@ -1064,7 +1064,7 @@ public class TestRun extends BaseTest {
 
 	@Test
 	void testFilePresentB() throws IOException {
-		File f = new File(examplesTestFolder, "resource.java");
+		File f = examplesTestFolder.resolve("resource.java").toFile();
 
 		Run m = new Run();
 
@@ -1098,7 +1098,7 @@ public class TestRun extends BaseTest {
 	@Test
 	void testMultiSources() throws IOException {
 		Cache.clearCache(Cache.CacheClass.jars);
-		File f = new File(examplesTestFolder, "one.java");
+		File f = examplesTestFolder.resolve("one.java").toFile();
 
 		Run m = new Run();
 

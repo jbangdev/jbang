@@ -4,7 +4,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import dev.jbang.catalog.AliasUtil;
+import dev.jbang.catalog.Catalog;
 
 public class Settings {
 	public static final String JBANG_REPO = "JBANG_REPO";
@@ -105,11 +105,11 @@ public class Settings {
 	}
 
 	public static Path getUserCatalogFile() {
-		return getConfigDir().resolve(AliasUtil.JBANG_CATALOG_JSON);
+		return getConfigDir().resolve(Catalog.JBANG_CATALOG_JSON);
 	}
 
 	public static Path getUserImplicitCatalogFile() {
-		return getConfigDir().resolve(AliasUtil.JBANG_IMPLICIT_CATALOG_JSON);
+		return getConfigDir().resolve(Catalog.JBANG_IMPLICIT_CATALOG_JSON);
 	}
 
 }

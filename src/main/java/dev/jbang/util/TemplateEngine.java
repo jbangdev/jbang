@@ -5,6 +5,9 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 import dev.jbang.Main;
@@ -42,14 +45,14 @@ public class TemplateEngine {
 	 * @return the optional reader
 	 */
 	private Optional<TemplateLocator.TemplateLocation> locate(String path) {
-		URL resource = null;
-		String basePath = "";
-		String templatePath = basePath + path;
-		// LOGGER.debugf("Locate template for %s", templatePath);
-		resource = locatePath(templatePath);
-
-		if (resource != null) {
-			return Optional.of(new ResourceTemplateLocation(resource));
+		Path p = Paths.get(path);
+		if (p.isAbsolute() || Files.isReadable(p)) {
+			return Optional.of(new FileTemplateLocation(p));
+		} else {
+			URL resource = locatePath(path);
+			if (resource != null) {
+				return Optional.of(new ResourceTemplateLocation(resource));
+			}
 		}
 		return Optional.empty();
 	}
@@ -59,7 +62,6 @@ public class TemplateEngine {
 	}
 
 	static class ResourceTemplateLocation implements TemplateLocator.TemplateLocation {
-
 		private final URL resource;
 		private Optional<Variant> variant = Optional.empty();
 
@@ -72,6 +74,31 @@ public class TemplateEngine {
 		public Reader read() {
 			try {
 				return new InputStreamReader(resource.openStream(), StandardCharsets.UTF_8);
+			} catch (IOException e) {
+				return null;
+			}
+		}
+
+		@Override
+		public Optional<Variant> getVariant() {
+			return variant;
+		}
+
+	}
+
+	static class FileTemplateLocation implements TemplateLocator.TemplateLocation {
+		private final Path file;
+		private Optional<Variant> variant = Optional.empty();
+
+		public FileTemplateLocation(Path file) {
+			this.file = file;
+			this.variant = Optional.empty();
+		}
+
+		@Override
+		public Reader read() {
+			try {
+				return Files.newBufferedReader(file);
 			} catch (IOException e) {
 				return null;
 			}

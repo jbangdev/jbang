@@ -8,14 +8,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.rules.TemporaryFolder;
 
 import dev.jbang.BaseTest;
 import dev.jbang.catalog.Alias;
-import dev.jbang.catalog.AliasUtil;
+import dev.jbang.catalog.Catalog;
+import dev.jbang.catalog.CatalogUtil;
 
 import picocli.CommandLine;
 
@@ -39,19 +38,12 @@ public class TestCatalog extends BaseTest {
 
 	@BeforeEach
 	void init() throws IOException {
-		catalogTempDir.create();
-		catsFile = jbangTempDir.getRoot().toPath().resolve("jbang-catalog.json");
-		cwd = catalogTempDir.getRoot().toPath();
-		testCatalogFile = cwd.resolve("test-catalog.json");
+		catsFile = jbangTempDir.resolve("jbang-catalog.json");
+		testCatalogFile = cwdDir.resolve("test-catalog.json");
 		Files.write(testCatalogFile, testCatalog.getBytes());
 		clearSettingsCaches();
-		AliasUtil.addCatalog(null, catsFile, "test", testCatalogFile.toAbsolutePath().toString(), "Test catalog");
+		CatalogUtil.addCatalogRef(catsFile, "test", testCatalogFile.toAbsolutePath().toString(), "Test catalog");
 	}
-
-	@Rule
-	public final TemporaryFolder catalogTempDir = new TemporaryFolder();
-
-	private Path cwd;
 
 	@Test
 	void testAddSucceeded() throws IOException {
@@ -60,8 +52,8 @@ public class TestCatalog extends BaseTest {
 		assertThat(cat, containsString("\"test\""));
 		assertThat(cat, containsString("test-catalog.json\""));
 
-		assertThat(AliasUtil.getCatalog(catsFile).catalogs, hasKey("test"));
-		assertThat(AliasUtil.getCatalog(catsFile).catalogs.get("test").catalogRef,
+		assertThat(Catalog.get(catsFile).catalogs, hasKey("test"));
+		assertThat(Catalog.get(catsFile).catalogs.get("test").catalogRef,
 				is(testCatalogFile.toAbsolutePath().toString()));
 	}
 
@@ -73,7 +65,7 @@ public class TestCatalog extends BaseTest {
 
 	@Test
 	void testGetAlias() throws IOException {
-		Alias alias = AliasUtil.getAlias(null, "one@test", null, null);
+		Alias alias = Alias.get("one@test", null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 	}
@@ -86,8 +78,8 @@ public class TestCatalog extends BaseTest {
 
 	@Test
 	void testRemove() throws IOException {
-		assertThat(AliasUtil.getCatalog(catsFile).catalogs, hasKey("test"));
-		AliasUtil.removeCatalog(catsFile, "test");
-		assertThat(AliasUtil.getCatalog(catsFile).catalogs, not(hasKey("test")));
+		assertThat(Catalog.get(catsFile).catalogs, hasKey("test"));
+		CatalogUtil.removeCatalogRef(catsFile, "test");
+		assertThat(Catalog.get(catsFile).catalogs, not(hasKey("test")));
 	}
 }

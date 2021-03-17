@@ -1,0 +1,29 @@
+{
+  "templates": {
+    "agent": {
+      "file-refs": {"{basename}.java":  "init-agent.java.qute"},
+      "description": "Agent template"
+    },
+    "cli": {
+      "file-refs": {"{filename}":  "init-cli.java.qute"},
+      "description": "CLI template"
+    },
+    "hello": {
+      "file-refs": {"{filename}":  "init-hello.java.qute"},
+      "description": "Basic Hello World template"
+    },
+    "qcli": {
+      "file-refs": {"{basename}.java":  "init-qcli.java.qute"},
+      "description": "Quarkus CLI template"
+    },
+    "qmetrics": {
+      "file-refs": {"{basename}.java":  "init-qmetrics.java.qute"},
+      "description": "Quarkus Metrics template"
+    },
+    "qrest": {
+      "file-refs": {"{basename}.java": "init-qrest.java.qute"},
+      "description": "Quarkus REST template"
+    }
+  },
+  "description": "Jbang built-in templates"
+}

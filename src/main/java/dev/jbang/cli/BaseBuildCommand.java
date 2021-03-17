@@ -231,9 +231,11 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 						// String mainClass = findMainClass(tmpJarDir.toPath(), classfile);
 
 						Indexer indexer = new Indexer();
-						InputStream stream = new FileInputStream(classfile.toFile());
-						indexer.index(stream);
-						Index index = indexer.complete();
+						Index index;
+						try (InputStream stream = new FileInputStream(classfile.toFile())) {
+							indexer.index(stream);
+							index = indexer.complete();
+						}
 
 						Collection<ClassInfo> clazz = index.getKnownClasses();
 

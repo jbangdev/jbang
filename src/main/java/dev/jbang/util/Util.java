@@ -54,6 +54,7 @@ import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
+import dev.jbang.dependencies.DependencyUtil;
 
 public class Util {
 
@@ -70,6 +71,7 @@ public class Util {
 	private static boolean quiet;
 	private static boolean offline;
 	private static boolean fresh;
+	private static Path cwd;
 
 	public static void setVerbose(boolean verbose) {
 		Util.verbose = verbose;
@@ -115,6 +117,14 @@ public class Util {
 		return fresh;
 	}
 
+	public static Path getCwd() {
+		return cwd != null ? cwd : Paths.get("").toAbsolutePath();
+	}
+
+	public static void setCwd(Path cwd) {
+		Util.cwd = cwd.toAbsolutePath().normalize();
+	}
+
 	public static String kebab2camel(String name) {
 
 		if (name.contains("-")) { // xyz-plug becomes XyzPlug
@@ -127,12 +137,22 @@ public class Util {
 	}
 
 	public static String getBaseName(String fileName) {
-		int index = fileName.lastIndexOf('.');
-		if (index == -1) {
+		String ext = extension(fileName);
+		if (ext.isEmpty()) {
 			return kebab2camel(fileName);
 		} else {
-			return fileName.substring(0, index);
+			return base(fileName);
 		}
+	}
+
+	public static String base(String name) {
+		int p = name.lastIndexOf('.');
+		return p > 0 ? name.substring(0, p) : name;
+	}
+
+	public static String extension(String name) {
+		int p = name.lastIndexOf('.');
+		return p > 0 ? name.substring(p + 1) : "";
 	}
 
 	static private boolean isPattern(String pattern) {
@@ -945,6 +965,18 @@ public class Util {
 		}
 	}
 
+	public static boolean isAbsoluteRef(String ref) {
+		return isRemoteRef(ref) || Paths.get(ref).isAbsolute();
+	}
+
+	public static boolean isRemoteRef(String ref) {
+		return ref.startsWith("http:") || ref.startsWith("https:") || DependencyUtil.looksLikeAGav(ref);
+	}
+
+	public static boolean isClassPathRef(String ref) {
+		return ref.startsWith("classpath:");
+	}
+
 	/**
 	 *
 	 * @param content
@@ -993,10 +1025,6 @@ public class Util {
 			}
 		}
 		return false;
-	}
-
-	public static Path getCwd() {
-		return Paths.get("").toAbsolutePath();
 	}
 
 	/**

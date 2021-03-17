@@ -513,6 +513,61 @@ To get started you can run `jbang init helloworld.java` and a simple java class 
 
 Using `jbang init --template=cli helloworld.java` you get a more complete Hello World CLI using https://picocli.info/[picocli] as dependency.
 
+Run `jbang template list` to see the full list of templates that are available.
+
+It's also possible to create your own templates using the `jbang template add` command. For example, running:
+
+[source,bash]
+----
+$ jbang template add --name logo showlogo.java img.jpg some.properties
+----
+
+Would add a template named "logo" with 3 files which could then be instantiated running `jbang init -t=logo mylogo`.
+
+When instantiating a template the paths of the source files are ignored. So the following template:
+
+[source,bash]
+----
+$ jbang template add --name logo src/showlogo.java images/img.jpg resources/some.properties
+----
+
+Has the exact same result as the previous example.
+
+It's also possible to give the instantiated files (the targets) different names or different paths than their originals
+(the sources), like this:
+
+[source,bash]
+----
+$ jbang template add --name logo \
+    src/showlogo.java=showlogo.java \
+    img/img.jpg=img.jpg \
+    resources/logo.properties=some.properties
+----
+
+Btw, if you'd try to run the last command (and assuming the source files would exist) you'd get an error saying:
+
+[source,bash]
+----
+$ jbang template add --name logo ...
+[jbang] [ERROR] A target pattern is required. Prefix at least one of the files with '{filename}=' or '{basename}.ext='
+----
+
+This is because at least one of the files needs a target (the part before the `=` sign) that contains a "pattern".
+That pattern is the part of the name that will be replaced with the name that you pass to `jbang init`
+(if you type `jbang init helloworld.java` any occurrence of `{filename}` would be replaced with `helloworld.java`,
+while any occurrence of `{basename}` would be replaced with `helloworld`).
+
+If you don't specify a "target patterns" for any of the file Jbang will try to pick one for you.
+Basically if the first file you specify doesn't have a target it will use that and add a pattern.
+You will see something like this if it was successful:
+
+[source,bash]
+----
+$ jbang template add showlogo.java img.jpg some.properties
+[jbang] No explicit target pattern was set, using first file: {basename}.java=showlogo.java
+[jbang] Template 'showlogo' added to '.../jbang-catalog.json'
+----
+
 == Declare dependencies
 
 If you want to write real scripts you will want to use some java libraries.

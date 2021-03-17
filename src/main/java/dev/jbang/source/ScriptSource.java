@@ -1,16 +1,9 @@
 package dev.jbang.source;
 
-import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
-
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -73,7 +66,7 @@ public class ScriptSource implements Source {
 	private List<String> lines;
 	private List<MavenRepo> repositories;
 	private List<String> dependencies;
-	private List<FileRef> filerefs;
+	private List<RefTarget> filerefs;
 	private List<ScriptSource> sources;
 	private List<KeyValue> agentOptions;
 	private Optional<String> description = Optional.empty();
@@ -452,20 +445,20 @@ public class ScriptSource implements Source {
 	}
 
 	public void copyFilesTo(Path dest) {
-		List<FileRef> files = getAllFiles();
-		for (FileRef file : files) {
+		List<RefTarget> files = getAllFiles();
+		for (RefTarget file : files) {
 			file.copy(dest);
 		}
 	}
 
-	private List<FileRef> getAllFiles() {
+	private List<RefTarget> getAllFiles() {
 		if (filerefs == null) {
 			filerefs = collectAll(ScriptSource::collectFiles);
 		}
 		return filerefs;
 	}
 
-	private List<FileRef> collectFiles() {
+	private List<RefTarget> collectFiles() {
 		return getLines()	.stream()
 							.filter(f -> f.startsWith(FILES_COMMENT_PREFIX))
 							.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
@@ -476,26 +469,8 @@ public class ScriptSource implements Source {
 							.collect(Collectors.toCollection(ArrayList::new));
 	}
 
-	private FileRef toFileRef(String fileReference) {
-		String[] split = fileReference.split(" // ")[0].split("=");
-		String ref;
-		String dest = null;
-
-		if (split.length == 1) {
-			ref = split[0];
-		} else if (split.length == 2) {
-			ref = split[0];
-			dest = split[1];
-		} else {
-			throw new IllegalStateException("Invalid file reference: " + fileReference);
-		}
-
-		String origResource = resourceRef.getOriginalResource();
-		if (FileRef.isURL(fileReference) || FileRef.isURL(origResource)) {
-			return new URLRef(origResource, ref, dest);
-		} else {
-			return new FileRef(origResource, ref, dest);
-		}
+	private RefTarget toFileRef(String fileReference) {
+		return RefTarget.create(resourceRef.getOriginalResource(), fileReference);
 	}
 
 	public List<ScriptSource> getAllSources() {
@@ -558,100 +533,5 @@ public class ScriptSource implements Source {
 
 	public static ScriptSource prepareScript(ResourceRef resourceRef) {
 		return new ScriptSource(resourceRef);
-	}
-}
-
-class FileRef {
-	final String base;
-	final String ref;
-	final String destination;
-
-	public FileRef(String base, String ref, String destination) {
-		assert (ref != null);
-		this.base = base;
-		this.ref = ref;
-		this.destination = destination;
-	}
-
-	private String from() {
-		String p = destination != null ? destination : ref;
-
-		if (Paths.get(p).isAbsolute()) {
-			throw new IllegalStateException("Only relative paths allowed in //FILES. Found absolute path: " + p);
-		}
-
-		return Paths.get(base).resolveSibling(p).toString();
-	}
-
-	protected Path to(Path parent) {
-		if (Paths.get(ref).isAbsolute()) {
-			throw new IllegalStateException(
-					"Only relative paths allowed in //FILES. Found absolute path: " + ref);
-		}
-
-		return parent.resolve(ref);
-	}
-
-	protected static boolean isURL(String url) {
-		try {
-			new URL(url);
-			return true;
-		} catch (Exception e) {
-			return false;
-		}
-	}
-
-	public void copy(Path destroot) {
-		Path from = Paths.get(from());
-		Path to = to(destroot);
-		Util.verboseMsg("Copying " + from + " to " + to);
-		try {
-			if (!to.toFile().getParentFile().exists()) {
-				to.toFile().getParentFile().mkdirs();
-			}
-			Files.copy(from, to, StandardCopyOption.REPLACE_EXISTING);
-		} catch (IOException ioe) {
-			throw new ExitException(EXIT_UNEXPECTED_STATE, "Could not copy " + from + " to " + to, ioe);
-		}
-	}
-
-	public String getRef() {
-		return ref;
-	}
-}
-
-class URLRef extends FileRef {
-
-	public URLRef(String base, String destination, String ref) {
-		super(base, destination, ref);
-	}
-
-	public String from() {
-		String p = destination != null ? destination : ref;
-
-		if (Paths.get(p).isAbsolute()) {
-			throw new IllegalStateException("Only relative paths allowed in //FILES. Found absolute path: " + p);
-		}
-
-		try {
-			return new URI(base).resolve(p).toString();
-		} catch (URISyntaxException e) {
-			throw new IllegalStateException("Could not resolve URI", e);
-		}
-	}
-
-	public void copy(Path destroot) {
-		String from = from();
-		Path to = to(destroot);
-		Util.verboseMsg("Copying " + from + " to " + to);
-		try {
-			if (!to.toFile().getParentFile().exists()) {
-				to.toFile().getParentFile().mkdirs();
-			}
-			Path dest = Util.downloadAndCacheFile(Util.swizzleURL(from));
-			Files.copy(dest, to, StandardCopyOption.REPLACE_EXISTING);
-		} catch (IOException ioe) {
-			throw new ExitException(EXIT_UNEXPECTED_STATE, "Could not copy " + from + " to " + to, ioe);
-		}
 	}
 }

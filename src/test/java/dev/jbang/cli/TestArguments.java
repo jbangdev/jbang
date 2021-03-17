@@ -119,7 +119,7 @@ class TestArguments extends BaseTest {
 
 	@Test
 	public void testClearCache() {
-		Path dir = jbangTempDir.getRoot().toPath();
+		Path dir = jbangTempDir;
 		environmentVariables.set(Settings.JBANG_CACHE_DIR, dir.toString());
 		assertThat(Files.isDirectory(dir), is(true));
 

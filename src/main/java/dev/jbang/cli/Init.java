@@ -1,13 +1,19 @@
 package dev.jbang.cli;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.AbstractMap;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import javax.lang.model.SourceVersion;
 
+import dev.jbang.source.RefTarget;
+import dev.jbang.source.ResourceRef;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
 
@@ -23,48 +29,110 @@ public class Init extends BaseScriptCommand {
 			"-t" }, description = "Init script with a java class useful for scripting", defaultValue = "hello")
 	String initTemplate;
 
+	@CommandLine.Option(names = {
+			"--force" }, description = "Force overwrite of existing files")
+	boolean force;
+
 	@Override
 	public Integer doCall() throws IOException {
-		File f = new File(scriptOrFile);
-		if (f.exists()) {
-			warn("File " + f + " already exists. Will not initialize.");
-		} else {
-			if (f.getParentFile() != null && !f.getParentFile().exists()) {
-				f.getParentFile().mkdirs();
-			}
-			// Use try-with-resource to get auto-closeable writer instance
-			try (BufferedWriter writer = Files.newBufferedWriter(f.toPath())) {
-				String result = renderInitClass(f, initTemplate);
-				writer.write(result);
-				f.setExecutable(true);
-			} catch (ExitException e) {
-				f.delete(); // if template lookup fails we need to delete file to not end up with a empty
-				// file.
-				throw e;
-			}
-
-			info("File initialized. You can now run it with 'jbang " + scriptOrFile
-					+ "' or edit it using 'jbang edit --open=[editor] "
-					+ scriptOrFile + "' where [editor] is your editor or IDE, e.g. '"
-					+ knowneditors[new Random().nextInt(knowneditors.length)] + "'");
+		dev.jbang.catalog.Template tpl = dev.jbang.catalog.Template.get(initTemplate);
+		if (tpl == null) {
+			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+					"Could not find init template named: " + initTemplate);
 		}
+
+		Path outFile = Util.getCwd().resolve(scriptOrFile);
+		Path outDir = outFile.getParent();
+		String outName = outFile.getFileName().toString();
+
+		List<RefTarget> refTargets = tpl.fileRefs	.entrySet()
+													.stream()
+													.map(e -> new AbstractMap.SimpleEntry<>(
+															resolveBaseName(e.getKey(), e.getValue(), outName),
+															tpl.resolve(e.getValue())))
+													.map(e -> RefTarget.create(
+															tpl.catalog.catalogRef.getFile().getAbsolutePath(),
+															e.getValue(),
+															e.getKey()))
+													.collect(Collectors.toList());
+
+		if (!force) {
+			// Check if any of the files already exist
+			for (RefTarget refTarget : refTargets) {
+				Path target = refTarget.to(outDir);
+				if (Files.exists(target)) {
+					warn("File " + target + " already exists. Will not initialize.");
+					return EXIT_GENERIC_ERROR;
+				}
+			}
+		}
+
+		try {
+			for (RefTarget refTarget : refTargets) {
+				if (refTarget.getSource().getOriginalResource().endsWith(".qute")) {
+					// TODO fix outFile path handling
+					Path out = refTarget.to(outDir);
+					renderQuteTemplate(out, refTarget.getSource());
+				} else {
+					refTarget.copy(outDir);
+				}
+			}
+		} catch (IOException e) {
+			// Clean up any files we already created
+			boolean first = true;
+			for (RefTarget refTarget : refTargets) {
+				Util.deletePath(refTarget.to(outDir), true);
+				first = false;
+			}
+		}
+
+		info("File initialized. You can now run it with 'jbang " + scriptOrFile
+				+ "' or edit it using 'jbang edit --open=[editor] "
+				+ scriptOrFile + "' where [editor] is your editor or IDE, e.g. '"
+				+ knowneditors[new Random().nextInt(knowneditors.length)] + "'");
+
 		return EXIT_OK;
 	}
 
-	String renderInitClass(File f, String template) {
-		Template helloTemplate = TemplateEngine.instance().getTemplate("init-" + template + ".java.qute");
+	private static Path resolveBaseName(String refTarget, String refSource, String outName) {
+		String baseName = Util.base(outName);
+		String outExt = Util.extension(outName);
+		String targetExt = Util.extension(refTarget);
+		if (targetExt.isEmpty()) {
+			targetExt = refSource.endsWith(".qute") ? Util.extension(Util.base(refSource)) : Util.extension(refSource);
+		}
+		if (!outExt.isEmpty() && !outExt.equals(targetExt)) {
+			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+					"Template expects " + targetExt + " extension, not " + outExt);
+		}
+		String result = dev.jbang.cli.Template.TPL_FILENAME_PATTERN.matcher(refTarget).replaceAll(outName);
+		result = dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(result).replaceAll(baseName);
+		return Paths.get(result);
+	}
 
-		if (helloTemplate == null) {
-			throw new ExitException(1, "Could not find init template named: " + template);
-		} else {
-			String basename = Util.getBaseName(f.getName());
+	private void renderQuteTemplate(Path outFile, ResourceRef templateRef) throws IOException {
+		Util.verboseMsg("Rendering template " + templateRef.getOriginalResource() + " to " + outFile);
+		renderQuteTemplate(outFile, templateRef.getFile().getAbsolutePath());
+	}
 
-			if (!SourceVersion.isIdentifier(basename)) {
-				throw new ExitException(EXIT_INVALID_INPUT,
-						"'" + basename + "' is not a valid class name in java. Remove the special charcters");
-			}
+	void renderQuteTemplate(Path outFile, String templatePath) throws IOException {
+		Template template = TemplateEngine.instance().getTemplate(templatePath);
+		if (template == null) {
+			throw new ExitException(EXIT_INVALID_INPUT,
+					"Could not find or load template: " + templatePath);
+		}
 
-			return helloTemplate.data("baseName", basename).render();
+		String basename = Util.getBaseName(outFile.getFileName().toString());
+		if (!SourceVersion.isIdentifier(basename)) {
+			throw new ExitException(EXIT_INVALID_INPUT,
+					"'" + basename + "' is not a valid class name in java. Remove the special characters");
+		}
+
+		Files.createDirectories(outFile.getParent());
+		try (BufferedWriter writer = Files.newBufferedWriter(outFile)) {
+			String result = template.data("baseName", basename).render();
+			writer.write(result);
+			outFile.toFile().setExecutable(true);
 		}
 	}
 }
