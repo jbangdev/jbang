@@ -48,9 +48,7 @@ public class JarSource implements Source {
 
 				String val = attrs.getValue(Source.ATTR_JBANG_JAVA_OPTIONS);
 				if (val != null) {
-					// should parse it but we are assuming it just gets appended on command line
-					// anyway
-					javaRuntimeOptions = Collections.singletonList(val);
+					javaRuntimeOptions = Source.quotedStringToList(val);
 				}
 
 				String ver = attrs.getValue(Source.ATTR_BUILD_JDK);

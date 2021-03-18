@@ -32,7 +32,6 @@ public class RunContext {
 	private String originalRef;
 	private String mainClass;
 	private List<String> javaRuntimeOptions;
-	private List<String> persistentJvmArgs;
 	private int buildJdk;
 	/**
 	 * if this script is used as an agent, agentOption is the option needed to pass
@@ -171,14 +170,6 @@ public class RunContext {
 		this.javaRuntimeOptions = javaRuntimeOptions;
 	}
 
-	public List<String> getPersistentJvmArgs() {
-		return persistentJvmArgs != null ? persistentJvmArgs : Collections.emptyList();
-	}
-
-	public void setPersistentJvmArgs(List<String> persistentJvmArgs) {
-		this.persistentJvmArgs = persistentJvmArgs;
-	}
-
 	public int getBuildJdk() {
 		return buildJdk;
 	}
@@ -278,7 +269,7 @@ public class RunContext {
 		JarSource jar = src.asJarSource();
 		if (jar != null && jar.getJarFile().exists()) {
 			setMainClass(jar.getMainClass());
-			setPersistentJvmArgs(jar.getRuntimeOptions());
+			setRuntimeOptions(jar.getRuntimeOptions());
 			setBuildJdk(JavaUtil.javaVersion(jar.getJavaVersion()));
 			return jar;
 		} else {
