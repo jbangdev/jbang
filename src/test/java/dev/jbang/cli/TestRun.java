@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -105,7 +106,12 @@ public class TestRun extends BaseTest {
 		assertThat(result, endsWith("helloworld"));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, containsString(".jar"));
-		assertThat(result, containsString("-Dfoo=bar"));
+		assertThat(result, containsString("-Dfoo=bar -Dbar=foo"));
+		// Make sure the opts only appear once
+		assertThat(result.replaceFirst(Pattern.quote("-Dfoo=bar -Dbar=foo"), ""),
+				not(containsString("-Dfoo=bar -Dbar=foo")));
+		// Make sure the opts only appear unquoted
+		assertThat(result, not(containsString(Run.escapeArgument("-Dfoo=bar -Dbar=foo"))));
 		// assertThat(result, containsString("--source 11"));
 	}
 

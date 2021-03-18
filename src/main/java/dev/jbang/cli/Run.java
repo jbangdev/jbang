@@ -231,7 +231,6 @@ public class Run extends BaseBuildCommand {
 						optionalArgs.add("-XX:SharedArchiveFile=" + cdsJsa);
 					}
 				}
-				optionalArgs.addAll(ctx.getPersistentJvmArgs());
 			}
 
 			fullArgs.add(javacmd);

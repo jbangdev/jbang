@@ -283,7 +283,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 				throw new ExitException(1, e);
 			}
 		}
-		ctx.setPersistentJvmArgs(integrationResult.javaArgs);
+		ctx.setRuntimeOptions(integrationResult.javaArgs);
 		createJarFile(src, ctx, tmpJarDir, outjar);
 		createdJar = true;
 		return integrationResult;
@@ -329,8 +329,10 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 			}
 		}
 
-		String runtimeOpts = Stream	.concat(src.getRuntimeOptions().stream(), ctx.getPersistentJvmArgs().stream())
-									.collect(Collectors.joining(" "));
+		// When persistent JVM args are set they override any runtime options set on the
+		// Source
+		List<String> rtArgs = ctx.getRuntimeOptionsOr(src);
+		String runtimeOpts = String.join(" ", rtArgs);
 		if (!runtimeOpts.isEmpty()) {
 			manifest.getMainAttributes()
 					.putValue(Source.ATTR_JBANG_JAVA_OPTIONS, runtimeOpts);

@@ -58,8 +58,8 @@ abstract class BaseInfoCommand extends BaseScriptDepsCommand {
 				javaVersion = Integer.toString(ctx.getBuildJdk());
 			}
 
-			if (!ctx.getPersistentJvmArgs().isEmpty()) {
-				runtimeOptions = ctx.getPersistentJvmArgs();
+			if (ctx.getRuntimeOptions() != null && !ctx.getRuntimeOptions().isEmpty()) {
+				runtimeOptions = ctx.getRuntimeOptions();
 			}
 		}
 	}
