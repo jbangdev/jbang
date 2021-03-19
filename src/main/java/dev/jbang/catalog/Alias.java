@@ -77,7 +77,7 @@ public class Alias extends CatalogItem {
 			if (parts[1].isEmpty()) {
 				throw new RuntimeException("Invalid alias name '" + name + "'");
 			}
-			a2 = getCatalogAlias(parts[1], parts[0]);
+			a2 = fromCatalog(parts[1], parts[0]);
 		}
 		if (a2 != null) {
 			names.add(name);
@@ -106,6 +106,10 @@ public class Alias extends CatalogItem {
 		return null;
 	}
 
+	static Catalog findNearestCatalogWithAlias(Path dir, String aliasName) {
+		return Catalog.findNearestCatalogWith(dir, catalog -> catalog.aliases.containsKey(aliasName));
+	}
+
 	/**
 	 * Returns the given Alias from the given registered Catalog
 	 *
@@ -113,16 +117,12 @@ public class Alias extends CatalogItem {
 	 * @param aliasName   The name of an Alias
 	 * @return An Alias object
 	 */
-	private static Alias getCatalogAlias(String catalogName, String aliasName) {
+	private static Alias fromCatalog(String catalogName, String aliasName) {
 		Catalog catalog = Catalog.getByName(catalogName);
 		Alias alias = catalog.aliases.get(aliasName);
 		if (alias == null) {
 			throw new ExitException(EXIT_INVALID_INPUT, "No alias found with name '" + aliasName + "'");
 		}
 		return alias;
-	}
-
-	static Catalog findNearestCatalogWithAlias(Path dir, String aliasName) {
-		return Catalog.findNearestCatalogWith(dir, catalog -> catalog.aliases.containsKey(aliasName));
 	}
 }

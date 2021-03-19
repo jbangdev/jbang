@@ -54,12 +54,17 @@ public class Catalog {
 		this.catalogRef = catalogRef;
 	}
 
-	public Catalog(String baseRef, String description, ResourceRef catalogRef, Map<String, Alias> aliases) {
+	public Catalog(String baseRef, String description, ResourceRef catalogRef, Map<String, CatalogRef> catalogs,
+			Map<String, Alias> aliases, Map<String, Template> templates) {
 		this.baseRef = baseRef;
 		this.description = description;
 		this.catalogRef = catalogRef;
+		catalogs.forEach((key, c) -> this.catalogs.put(key,
+				new CatalogRef(c.catalogRef, c.description)));
 		aliases.forEach((key, a) -> this.aliases.put(key,
 				new Alias(a.scriptRef, a.description, a.arguments, a.properties, this)));
+		templates.forEach((key, t) -> this.templates.put(key,
+				new Template(t.fileRefs, t.description, this)));
 	}
 
 	/**
@@ -201,7 +206,8 @@ public class Catalog {
 				} else {
 					baseRef = catalogBaseRef;
 				}
-				catalog = new Catalog(baseRef, catalog.description, catalog.catalogRef, catalog.aliases);
+				catalog = new Catalog(baseRef, catalog.description, catalog.catalogRef, catalog.catalogs,
+						catalog.aliases, catalog.templates);
 			}
 			return catalog;
 		} catch (JsonParseException ex) {
@@ -314,7 +320,7 @@ public class Catalog {
 	}
 
 	static Catalog read(Path catalogPath) {
-		Util.verboseMsg(String.format("Reading aliases from %s", catalogPath));
+		Util.verboseMsg(String.format("Reading catalog from %s", catalogPath));
 		Catalog catalog = new Catalog(null, null, null);
 		if (Files.isRegularFile(catalogPath)) {
 			try (Reader in = Files.newBufferedReader(catalogPath)) {
