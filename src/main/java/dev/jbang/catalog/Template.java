@@ -1,10 +1,13 @@
 package dev.jbang.catalog;
 
+import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
+
 import java.nio.file.Path;
 import java.util.Map;
 
 import com.google.gson.annotations.SerializedName;
 
+import dev.jbang.cli.ExitException;
 import dev.jbang.util.Util;
 
 public class Template extends CatalogItem {
@@ -19,15 +22,53 @@ public class Template extends CatalogItem {
 	}
 
 	public static Template get(String templateName) {
+		String[] parts = templateName.split("@");
+		if (parts.length > 2 || parts[0].isEmpty()) {
+			throw new RuntimeException("Invalid template name '" + templateName + "'");
+		}
 		Template template = null;
-		Catalog catalog = findNearestCatalogWithTemplate(Util.getCwd(), templateName);
-		if (catalog != null) {
-			template = catalog.templates.get(templateName);
+		if (parts.length == 1) {
+			template = getLocal(templateName);
+		} else {
+			if (parts[1].isEmpty()) {
+				throw new RuntimeException("Invalid template name '" + templateName + "'");
+			}
+			template = fromCatalog(parts[1], parts[0]);
 		}
 		return template;
 	}
 
+	/**
+	 * Returns the given Template from the local file system
+	 *
+	 * @param templateName The name of an Template
+	 * @return An Template object
+	 */
+	private static Template getLocal(String templateName) {
+		Catalog catalog = findNearestCatalogWithTemplate(Util.getCwd(), templateName);
+		if (catalog != null) {
+			return catalog.templates.getOrDefault(templateName, null);
+		}
+		return null;
+	}
+
 	static Catalog findNearestCatalogWithTemplate(Path dir, String templateName) {
 		return Catalog.findNearestCatalogWith(dir, catalog -> catalog.templates.containsKey(templateName));
+	}
+
+	/**
+	 * Returns the given Template from the given registered Catalog
+	 *
+	 * @param catalogName  The name of a registered Catalog
+	 * @param templateName The name of an Template
+	 * @return An Template object
+	 */
+	private static Template fromCatalog(String catalogName, String templateName) {
+		Catalog catalog = Catalog.getByName(catalogName);
+		Template template = catalog.templates.get(templateName);
+		if (template == null) {
+			throw new ExitException(EXIT_INVALID_INPUT, "No template found with name '" + templateName + "'");
+		}
+		return template;
 	}
 }
