@@ -144,7 +144,8 @@ public class TestInit extends BaseTest {
 		assertThat(outFile.resolveSibling("file3.md").toFile(), aReadableFile());
 	}
 
-	void testFailMultipleFiles(String targetName, String initName, String outName, boolean abs, int expectedResult) throws IOException {
+	void testFailMultipleFiles(String targetName, String initName, String outName, boolean abs, int expectedResult)
+			throws IOException {
 		Path outFile = setupInitMultipleFiles(targetName, initName, abs);
 		int result = Jbang.getCommandLine().execute("init", "-t=name", outFile.toString());
 		assertThat(result, is(expectedResult));
@@ -158,13 +159,13 @@ public class TestInit extends BaseTest {
 		Path f3 = Files.createFile(tplDir.resolve("file3.md"));
 		if (abs) {
 			int addResult = Jbang	.getCommandLine()
-					.execute("template", "add", "-f", cwd.toString(), "--name=name",
-							targetName + "=" + f1.toString(), f2.toString(), f3.toString());
+									.execute("template", "add", "-f", cwd.toString(), "--name=name",
+											targetName + "=" + f1.toString(), f2.toString(), f3.toString());
 			assertThat(addResult, is(0));
 		} else {
 			int addResult = Jbang	.getCommandLine()
-					.execute("template", "add", "-f", cwd.toString(), "--name=name",
-							targetName + "=tpl/file1.java", "tpl/file2.java.qute", "tpl/file3.md");
+									.execute("template", "add", "-f", cwd.toString(), "--name=name",
+											targetName + "=tpl/file1.java", "tpl/file2.java.qute", "tpl/file3.md");
 			assertThat(addResult, is(0));
 		}
 		Path appDir = Files.createDirectory(cwd.resolve("app"));
