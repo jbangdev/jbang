@@ -88,10 +88,10 @@ public class TestExport extends BaseTest {
 
 	@Test
 	void testExportMavenPublishNoclasspath() throws IOException {
-		File outFile = out.resolve("target").toFile();
+		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
 		ExecutionResult result = checkedRun(null, "export", "--mavenrepo", "-O", outFile.toString(),
-				"-Dgroup=my.thing.right", "itests/helloworld.java");
+				"-Dgroup=my.thing.right", examplesTestFolder.resolve("helloworld.java").toString());
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*target\n"));
 		assertThat(
 				outFile.toPath().resolve("my/thing/right/helloworld/999-SNAPSHOT/helloworld-999-SNAPSHOT.jar").toFile(),
@@ -104,17 +104,17 @@ public class TestExport extends BaseTest {
 
 	@Test
 	void testExportMavenPublishNoOutputdir() throws IOException {
-		File outFile = out.resolve("target").toFile();
+		File outFile = jbangTempDir.resolve("target").toFile();
 		// outFile.mkdirs();
 		ExecutionResult result = checkedRun(null, "export", "--mavenrepo", "-O", outFile.toString(),
-				"-Dgroup=my.thing.right", "itests/helloworld.java");
+				"-Dgroup=my.thing.right", examplesTestFolder.resolve("helloworld.java").toString());
 		assertThat(result.exitCode, equalTo(BaseCommand.EXIT_INVALID_INPUT));
 
 	}
 
 	// @Test
 	void testExportMavenPublishNoGroup() throws IOException {
-		File outFile = out.resolve("target").toFile();
+		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
 		ExecutionResult result = checkedRun(null, "export", "--force", "--mavenrepo", "-O", outFile.toString(),
 				"itests/helloworld.java");
@@ -127,7 +127,7 @@ public class TestExport extends BaseTest {
 	void testExportMavenPublishWithClasspath() throws IOException {
 		File outFile = Settings.getLocalMavenRepo();
 		ExecutionResult result = checkedRun(null, "export", "--mavenrepo", "--force",
-				"itests/classpath_log.java");
+				examplesTestFolder.resolve("classpath_log.java").toString());
 		assertThat(outFile.toPath().resolve("g/a/v/classpath_log/999-SNAPSHOT/classpath_log-999-SNAPSHOT.jar").toFile(),
 				anExistingFile());
 		assertThat(outFile.toPath().resolve("g/a/v/classpath_log/999-SNAPSHOT/classpath_log-999-SNAPSHOT.pom").toFile(),
