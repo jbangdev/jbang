@@ -130,29 +130,46 @@ public class TestInit extends BaseTest {
 		testInitMultipleFiles("{filename}", "edit.java", "edit.java", true);
 	}
 
+	@Test
+	void testInitMultipleFilesWrongName() throws IOException {
+		testFailMultipleFiles("{filename}", "edit.md", "edit.java", true, 2);
+	}
+
 	void testInitMultipleFiles(String targetName, String initName, String outName, boolean abs) throws IOException {
-		Path cwd = Util.getCwd();
-		Path tplDir = Files.createDirectory(cwd.resolve("tpl"));
-		Path f1 = Files.createFile(tplDir.resolve("file1.java"));
-		Path f2 = Files.createFile(tplDir.resolve("file2.java.qute"));
-		if (abs) {
-			int addResult = Jbang	.getCommandLine()
-									.execute("template", "add", "-f", cwd.toString(), "--name=name",
-											targetName + "=" + f1.toString(), f2.toString());
-			assertThat(addResult, is(0));
-		} else {
-			int addResult = Jbang	.getCommandLine()
-									.execute("template", "add", "-f", cwd.toString(), "--name=name",
-											targetName + "=tpl/file1.java", "tpl/file2.java.qute");
-			assertThat(addResult, is(0));
-		}
-		Path appDir = Files.createDirectory(cwd.resolve("app"));
-		Util.setCwd(appDir);
-		Path outFile = appDir.resolve(initName);
+		Path outFile = setupInitMultipleFiles(targetName, initName, abs);
 		int result = Jbang.getCommandLine().execute("init", "-t=name", outFile.toString());
 		assertThat(result, is(0));
 		assertThat(outFile.resolveSibling(outName).toFile(), aReadableFile());
 		assertThat(outFile.resolveSibling("file2.java").toFile(), aReadableFile());
+		assertThat(outFile.resolveSibling("file3.md").toFile(), aReadableFile());
+	}
+
+	void testFailMultipleFiles(String targetName, String initName, String outName, boolean abs, int expectedResult) throws IOException {
+		Path outFile = setupInitMultipleFiles(targetName, initName, abs);
+		int result = Jbang.getCommandLine().execute("init", "-t=name", outFile.toString());
+		assertThat(result, is(expectedResult));
+	}
+
+	Path setupInitMultipleFiles(String targetName, String initName, boolean abs) throws IOException {
+		Path cwd = Util.getCwd();
+		Path tplDir = Files.createDirectory(cwd.resolve("tpl"));
+		Path f1 = Files.createFile(tplDir.resolve("file1.java"));
+		Path f2 = Files.createFile(tplDir.resolve("file2.java.qute"));
+		Path f3 = Files.createFile(tplDir.resolve("file3.md"));
+		if (abs) {
+			int addResult = Jbang	.getCommandLine()
+					.execute("template", "add", "-f", cwd.toString(), "--name=name",
+							targetName + "=" + f1.toString(), f2.toString(), f3.toString());
+			assertThat(addResult, is(0));
+		} else {
+			int addResult = Jbang	.getCommandLine()
+					.execute("template", "add", "-f", cwd.toString(), "--name=name",
+							targetName + "=tpl/file1.java", "tpl/file2.java.qute", "tpl/file3.md");
+			assertThat(addResult, is(0));
+		}
+		Path appDir = Files.createDirectory(cwd.resolve("app"));
+		Util.setCwd(appDir);
+		return appDir.resolve(initName);
 	}
 
 }

@@ -94,19 +94,24 @@ public class Init extends BaseScriptCommand {
 		return EXIT_OK;
 	}
 
-	private static Path resolveBaseName(String refTarget, String refSource, String outName) {
-		String baseName = Util.base(outName);
-		String outExt = Util.extension(outName);
-		String targetExt = Util.extension(refTarget);
-		if (targetExt.isEmpty()) {
-			targetExt = refSource.endsWith(".qute") ? Util.extension(Util.base(refSource)) : Util.extension(refSource);
+	static Path resolveBaseName(String refTarget, String refSource, String outName) {
+		String result = refTarget;
+		if (dev.jbang.cli.Template.TPL_FILENAME_PATTERN.matcher(refTarget).find()
+				|| dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(refTarget).find()) {
+			String baseName = Util.base(outName);
+			String outExt = Util.extension(outName);
+			String targetExt = Util.extension(refTarget);
+			if (targetExt.isEmpty()) {
+				targetExt = refSource.endsWith(".qute") ? Util.extension(Util.base(refSource))
+						: Util.extension(refSource);
+			}
+			if (!outExt.isEmpty() && !outExt.equals(targetExt)) {
+				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+						"Template expects " + targetExt + " extension, not " + outExt);
+			}
+			result = dev.jbang.cli.Template.TPL_FILENAME_PATTERN.matcher(result).replaceAll(outName);
+			result = dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(result).replaceAll(baseName);
 		}
-		if (!outExt.isEmpty() && !outExt.equals(targetExt)) {
-			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
-					"Template expects " + targetExt + " extension, not " + outExt);
-		}
-		String result = dev.jbang.cli.Template.TPL_FILENAME_PATTERN.matcher(refTarget).replaceAll(outName);
-		result = dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(result).replaceAll(baseName);
 		return Paths.get(result);
 	}
 
