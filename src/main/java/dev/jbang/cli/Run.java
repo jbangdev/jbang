@@ -69,7 +69,8 @@ public class Run extends BaseBuildCommand {
 			enableInsecure();
 		}
 
-		RunContext ctx = RunContext.create(userParams, properties, dependencies, classpaths, forcejsh);
+		RunContext ctx = RunContext.create(userParams, dependencyInfoMixin.getProperties(),
+				dependencyInfoMixin.getDependencies(), dependencyInfoMixin.getClasspaths(), forcejsh);
 		Source src = Source.forResource(scriptOrFile, ctx);
 		src = prepareArtifacts(src, ctx);
 
@@ -88,7 +89,8 @@ public class Run extends BaseBuildCommand {
 				String javaAgent = agentOption.getKey();
 				Optional<String> javaAgentOptions = agentOption.getValue();
 
-				RunContext actx = RunContext.create(userParams, properties, dependencies, classpaths, forcejsh);
+				RunContext actx = RunContext.create(userParams, dependencyInfoMixin.getProperties(),
+						dependencyInfoMixin.getDependencies(), dependencyInfoMixin.getClasspaths(), forcejsh);
 				Source asrc = Source.forResource(javaAgent, actx);
 				actx.setJavaAgentOption(javaAgentOptions.orElse(null));
 				if (needsJar(asrc, actx)) {

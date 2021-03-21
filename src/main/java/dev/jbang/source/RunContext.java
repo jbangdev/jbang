@@ -46,6 +46,8 @@ public class RunContext {
 
 	private ModularClassPath mcp;
 	private ModularClassPath additionalMcp;
+	private boolean nativeImage;
+	private String javaVersion;
 
 	public static RunContext empty() {
 		return new RunContext();
@@ -200,6 +202,14 @@ public class RunContext {
 
 	public void setPreMainClass(String name) {
 		preMainClass = name;
+	}
+
+	public boolean isNativeImage() {
+		return nativeImage;
+	}
+
+	public String getJavaVersion() {
+		return javaVersion;
 	}
 
 	public static class AgentSourceContext {

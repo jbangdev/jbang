@@ -508,7 +508,7 @@ public class ScriptSource implements Source {
 
 	@Override
 	public boolean isCreatedJar() {
-return getJarFile().exists();
+		return getJarFile().exists();
 	}
 
 	public static ScriptSource prepareScript(String resource) {

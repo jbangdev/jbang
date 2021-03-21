@@ -1,5 +1,9 @@
 package dev.jbang.cli;
 
+import static dev.jbang.cli.BaseBuildCommand.buildIfNeeded;
+import static dev.jbang.cli.BaseBuildCommand.getImageName;
+import static dev.jbang.cli.BaseBuildCommand.resolveInJavaHome;
+import static dev.jbang.cli.BaseScriptCommand.enableInsecure;
 import static dev.jbang.util.Util.downloadFile;
 
 import java.io.File;
@@ -26,7 +30,34 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
 @Command(name = "export", description = "Export the result of a build.")
-public class Export extends BaseBuildCommand {
+public class Export extends BaseCommand {
+
+	// TODO: refactor these to be mixins
+	@CommandLine.Option(names = {
+			"-n", "--native" }, description = "Build using native-image", defaultValue = "false")
+	boolean nativeImage;
+	protected String javaVersion;
+
+	@CommandLine.Option(names = { "-j",
+			"--java" }, description = "JDK version to use for running the script.")
+	void setJavaVersion(String javaVersion) {
+		if (!javaVersion.matches("\\d+[+]?")) {
+			throw new IllegalArgumentException(
+					"Invalid version, should be a number optionally followed by a plus sign");
+		}
+		this.javaVersion = javaVersion;
+	}
+
+	@CommandLine.Option(names = {
+			"--insecure" }, description = "Enable insecure trust of all SSL certificates.", defaultValue = "false")
+	boolean insecure;
+
+	@CommandLine.Parameters(paramLabel = "scriptOrFile", index = "0", description = "A file or URL to a Java code file", arity = "1")
+	String scriptOrFile;
+
+	@CommandLine.Mixin
+	DependencyInfoMixin dependencyInfoMixin;
+	// mixins todo above
 
 	@CommandLine.Option(names = { "-O",
 			"--output" }, description = "The name or path to use for the exported file. If not specified a name will be determined from the original source reference and export flags.")
@@ -38,7 +69,6 @@ public class Export extends BaseBuildCommand {
 
 	@CommandLine.ArgGroup(exclusive = true, multiplicity = "0..1")
 	ExportStyle exportStyle = new ExportStyle();
-
 
 	static class ExportStyle {
 		@CommandLine.Option(names = "--local", description = "Export built jar as is")
@@ -251,7 +281,8 @@ public class Export extends BaseBuildCommand {
 			enableInsecure();
 		}
 
-		RunContext ctx = RunContext.create(null, properties, dependencies, classpaths, forcejsh);
+		RunContext ctx = RunContext.create(null, dependencyInfoMixin.getProperties(),
+				dependencyInfoMixin.getDependencies(), dependencyInfoMixin.getClasspaths(), false);
 		Source src = Source.forResource(scriptOrFile, ctx);
 
 		src = buildIfNeeded(src, ctx);

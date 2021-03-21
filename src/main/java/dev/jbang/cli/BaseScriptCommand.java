@@ -27,12 +27,12 @@ public abstract class BaseScriptCommand extends BaseCommand {
 	@CommandLine.Parameters(index = "0", arity = "1", description = "A file with java code or if named .jsh will be run with jshell")
 	String scriptOrFile;
 
-	protected boolean needsJar(Source source, RunContext context) {
+	static protected boolean needsJar(Source source, RunContext context) {
 		// anything but .jar and .jsh files needs jar
 		return !(source.isJar() || context.isForceJsh() || source.isJShell());
 	}
 
-	protected void enableInsecure() {
+	static protected void enableInsecure() {
 		try {
 			// Create a trust manager that does not validate certificate chains
 			TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {

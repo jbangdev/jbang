@@ -12,7 +12,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -72,33 +71,30 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		return Optional.ofNullable(cds);
 	}
 
-	@CommandLine.Option(names = { "-D" }, description = "set a system property", mapFallbackValue = "true")
-	Map<String, String> properties = new HashMap<>();
-
 	@CommandLine.Option(names = {
 			"-n", "--native" }, description = "Build using native-image", defaultValue = "false")
 	boolean nativeImage;
 
 	PrintStream out = new PrintStream(new FileOutputStream(FileDescriptor.out));
 
-	Source buildIfNeeded(Source src, RunContext ctx) throws IOException {
+	static Source buildIfNeeded(Source src, RunContext ctx) throws IOException {
 		if (needsJar(src, ctx)) {
 			src = build((ScriptSource) src, ctx);
 		}
 		return src;
 	}
 
-	Source build(ScriptSource src, RunContext ctx) throws IOException {
+	static Source build(ScriptSource src, RunContext ctx) throws IOException {
 		Source result = src;
 
-		for (Map.Entry<String, String> entry : properties.entrySet()) {
+		for (Map.Entry<String, String> entry : ctx.getProperties().entrySet()) {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
 
 		File outjar = src.getJarFile();
-		boolean nativeBuildRequired = nativeImage && !getImageName(outjar).exists();
+		boolean nativeBuildRequired = ctx.isNativeImage() && !getImageName(outjar).exists();
 		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
-		String requestedJavaVersion = javaVersion != null ? javaVersion : src.getJavaVersion();
+		String requestedJavaVersion = ctx.getJavaVersion() != null ? ctx.getJavaVersion() : src.getJavaVersion();
 		// always build the jar for native mode
 		// it allows integrations the options to produce the native image
 		boolean buildRequired = Util.isFresh() || nativeBuildRequired;
@@ -140,7 +136,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 	}
 
 	// build with javac and then jar... todo: split up in more testable chunks
-	private IntegrationResult buildJar(ScriptSource src, RunContext ctx, File tmpJarDir, File outjar,
+	static private IntegrationResult buildJar(ScriptSource src, RunContext ctx, File tmpJarDir, File outjar,
 			String requestedJavaVersion)
 			throws IOException {
 		IntegrationResult integrationResult;
@@ -188,8 +184,8 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 			Util.writeString(pomPath, pomfile);
 		}
 
-		info("Building jar...");
-		debug("compile: " + String.join(" ", optionList));
+		Util.infoMsg("Building jar...");
+		Util.verboseMsg("compile: " + String.join(" ", optionList));
 
 		Process process = new ProcessBuilder(optionList).inheritIO().start();
 		try {
@@ -206,7 +202,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		integrationResult = IntegrationManager.runIntegration(src.getAllRepositories(),
 				ctx.getClassPath().getArtifacts(),
 				tmpJarDir.toPath(), pomPath,
-				src, nativeImage);
+				src, ctx.isNativeImage());
 		if (integrationResult.mainClass != null) {
 			ctx.setMainClass(integrationResult.mainClass);
 		} else {
@@ -352,7 +348,8 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		target.close();
 	}
 
-	private void buildNative(Source src, RunContext ctx, File outjar, String requestedJavaVersion) throws IOException {
+	static private void buildNative(Source src, RunContext ctx, File outjar, String requestedJavaVersion)
+			throws IOException {
 		List<String> optionList = new ArrayList<>();
 		optionList.add(resolveInGraalVMHome("native-image", requestedJavaVersion));
 
@@ -371,8 +368,8 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		optionList.add(getImageName(outjar).toString());
 
 		File nilog = File.createTempFile("jbang", "native-image");
-		debug("native-image: " + String.join(" ", optionList));
-		info("log: " + nilog.toString());
+		Util.verboseMsg("native-image: " + String.join(" ", optionList));
+		Util.infoMsg("log: " + nilog.toString());
 
 		Process process = new ProcessBuilder(optionList).inheritIO().redirectOutput(nilog).start();
 		try {
