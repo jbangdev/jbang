@@ -39,6 +39,7 @@ public class Export extends BaseBuildCommand {
 	@CommandLine.ArgGroup(exclusive = true, multiplicity = "0..1")
 	ExportStyle exportStyle = new ExportStyle();
 
+
 	static class ExportStyle {
 		@CommandLine.Option(names = "--local", description = "Export built jar as is")
 		boolean local = true;

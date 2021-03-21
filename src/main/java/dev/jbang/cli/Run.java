@@ -230,7 +230,7 @@ public class Run extends BaseBuildCommand {
 
 				if (optionActive(cds(), src.enableCDS())) {
 					String cdsJsa = src.getJarFile().getAbsolutePath() + ".jsa";
-					if (createdJar) {
+					if (src.isCreatedJar()) {
 						debug("CDS: Archiving Classes At Exit at " + cdsJsa);
 						optionalArgs.add("-XX:ArchiveClassesAtExit=" + cdsJsa);
 					} else {

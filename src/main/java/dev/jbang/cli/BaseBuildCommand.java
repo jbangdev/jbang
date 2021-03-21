@@ -81,8 +81,6 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 
 	PrintStream out = new PrintStream(new FileOutputStream(FileDescriptor.out));
 
-	protected boolean createdJar;
-
 	Source buildIfNeeded(Source src, RunContext ctx) throws IOException {
 		if (needsJar(src, ctx)) {
 			src = build((ScriptSource) src, ctx);
@@ -292,7 +290,6 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		}
 		ctx.setRuntimeOptions(integrationResult.javaArgs);
 		createJarFile(src, ctx, tmpJarDir, outjar);
-		createdJar = true;
 		return integrationResult;
 	}
 

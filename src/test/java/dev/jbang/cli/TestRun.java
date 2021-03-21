@@ -897,11 +897,22 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
-	void testCDSPresent() {
+	void testCDSPresent() throws IOException {
 		Jbang jbang = new Jbang();
 		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg, "--cds");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		Source src = Source.forFile(new File(arg));
+		RunContext ctx = RunContext.create(run.userParams, run.properties);
+		String commandLine = run.generateCommandLine(src, ctx);
+
+		assertThat(commandLine,containsString("-XX:SharedArchiveFile="));
+
+		run.doCall();
+
+		commandLine = run.generateCommandLine(src, ctx);
+		assertThat(commandLine,containsString("-XX:ArchiveClassesAtExit="));
 
 		assert (run.cds().isPresent());
 		assert (run.cds().get());
