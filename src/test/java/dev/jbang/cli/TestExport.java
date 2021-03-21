@@ -92,7 +92,7 @@ public class TestExport extends BaseTest {
 		outFile.mkdirs();
 		ExecutionResult result = checkedRun(null, "export", "mavenrepo", "-O", outFile.toString(),
 				"-Dgroup=my.thing.right", examplesTestFolder.resolve("helloworld.java").toString());
-		assertThat(result.err, matchesPattern("(?s).*Exported to.*target\n"));
+		assertThat(result.err, matchesPattern("(?s).*Exported to.*target.*"));
 		assertThat(
 				outFile.toPath().resolve("my/thing/right/helloworld/999-SNAPSHOT/helloworld-999-SNAPSHOT.jar").toFile(),
 				anExistingFile());
