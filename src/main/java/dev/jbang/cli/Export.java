@@ -4,6 +4,7 @@ import static dev.jbang.cli.BaseBuildCommand.buildIfNeeded;
 import static dev.jbang.cli.BaseBuildCommand.getImageName;
 import static dev.jbang.cli.BaseBuildCommand.resolveInJavaHome;
 import static dev.jbang.cli.BaseScriptCommand.enableInsecure;
+import static dev.jbang.cli.Export.handle;
 import static dev.jbang.util.Util.downloadFile;
 
 import java.io.File;
@@ -19,7 +20,6 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 import dev.jbang.Settings;
-import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.Source;
 import dev.jbang.util.TemplateEngine;
@@ -29,99 +29,83 @@ import io.quarkus.qute.Template;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
-@Command(name = "export", description = "Export the result of a build.")
+@Command(name = "export", description = "Export the result of a build.", subcommands = { ExportPortable.class,
+		ExportLocal.class, ExportMavenPublish.class })
 public class Export extends BaseCommand {
 
-	// TODO: refactor these to be mixins
-	@CommandLine.Option(names = {
-			"-n", "--native" }, description = "Build using native-image", defaultValue = "false")
-	boolean nativeImage;
-	protected String javaVersion;
-
-	@CommandLine.Option(names = { "-j",
-			"--java" }, description = "JDK version to use for running the script.")
-	void setJavaVersion(String javaVersion) {
-		if (!javaVersion.matches("\\d+[+]?")) {
-			throw new IllegalArgumentException(
-					"Invalid version, should be a number optionally followed by a plus sign");
+	public static String removeFileExtension(String filename, boolean removeAllExtensions) {
+		if (filename == null || filename.isEmpty()) {
+			return filename;
 		}
-		this.javaVersion = javaVersion;
+
+		String extPattern = "(?<!^)[.]" + (removeAllExtensions ? ".*" : "[^.]*$");
+		return filename.replaceAll(extPattern, "");
 	}
 
-	@CommandLine.Option(names = {
-			"--insecure" }, description = "Enable insecure trust of all SSL certificates.", defaultValue = "false")
-	boolean insecure;
+	static int handle(ExportMixin exportMixin,
+			Style style) throws IOException {
+		if (exportMixin.insecure) {
+			enableInsecure();
+		}
 
-	@CommandLine.Parameters(paramLabel = "scriptOrFile", index = "0", description = "A file or URL to a Java code file", arity = "1")
-	String scriptOrFile;
+		RunContext ctx = RunContext.create(null, exportMixin.dependencyInfoMixin.getProperties(),
+				exportMixin.dependencyInfoMixin.getDependencies(), exportMixin.dependencyInfoMixin.getClasspaths(),
+				false);
+		Source src = Source.forResource(exportMixin.scriptOrFile, ctx);
 
-	@CommandLine.Mixin
-	DependencyInfoMixin dependencyInfoMixin;
-	// mixins todo above
+		src = buildIfNeeded(src, ctx);
 
-	@CommandLine.Option(names = { "-O",
-			"--output" }, description = "The name or path to use for the exported file. If not specified a name will be determined from the original source reference and export flags.")
-	Path outputFile;
+		return style.apply(exportMixin, src, ctx);
+	}
 
-	@CommandLine.Option(names = { "--force",
-	}, description = "Force export, i.e. overwrite exported file if already exists", defaultValue = "false")
-	boolean force;
+	@Override
+	public Integer doCall() throws IOException {
 
-	@CommandLine.ArgGroup(exclusive = true, multiplicity = "0..1")
-	ExportStyle exportStyle = new ExportStyle();
-
-	static class ExportStyle {
-		@CommandLine.Option(names = "--local", description = "Export built jar as is")
-		boolean local = true;
-		@CommandLine.Option(names = "--portable", description = "Make portable and standalone jar")
-		boolean portable;
-		@CommandLine.Option(names = "--mavenrepo", description = "Export artifacts to be used in a maven repository")
-		boolean mavenpublish;
+		throw new RuntimeException("shouldn happen");
 	}
 
 	enum Style {
 		local {
+			public int apply(ExportMixin exportMixin, Source src, RunContext ctx) throws IOException {
 
-			public int apply(Export export, Source src, RunContext ctx) throws IOException {
-
-				Path outputPath = export.getFileOutputPath(ctx);
+				Path outputPath = exportMixin.getFileOutputPath(ctx);
 				// Copy the JAR or native binary
 				Path source = src.getJarFile().toPath();
-				if (export.nativeImage) {
+				if (exportMixin.nativeImage) {
 					source = getImageName(source.toFile()).toPath();
 				}
 
 				if (outputPath.toFile().exists()) {
-					if (export.force) {
+					if (exportMixin.force) {
 						outputPath.toFile().delete();
 					} else {
-						export.warn("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
+						Util.warnMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
 						return EXIT_INVALID_INPUT;
 					}
 				}
 
 				Files.copy(source, outputPath);
-				export.info("Exported to " + outputPath);
+				Util.infoMsg("Exported to " + outputPath);
 				return EXIT_OK;
 			}
 		},
 		portable {
 			@Override
-			public int apply(Export export, Source src, RunContext ctx) throws IOException {
+			public int apply(ExportMixin exportMixin, Source src, RunContext ctx) throws IOException {
 
-				Path outputPath = export.getFileOutputPath(ctx);
+				Path outputPath = exportMixin.getFileOutputPath(ctx);
 
 				// Copy the JAR or native binary
 				Path source = src.getJarFile().toPath();
-				if (export.nativeImage) {
+				if (exportMixin.nativeImage) {
 					source = getImageName(source.toFile()).toPath();
 				}
 
 				if (outputPath.toFile().exists()) {
-					if (export.force) {
+					if (exportMixin.force) {
 						outputPath.toFile().delete();
 					} else {
-						export.warn("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
+						Util.warnMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
 						return EXIT_INVALID_INPUT;
 					}
 				}
@@ -129,7 +113,7 @@ public class Export extends BaseCommand {
 				File tempManifest;
 
 				Files.copy(source, outputPath);
-				if (!export.nativeImage) {
+				if (!exportMixin.nativeImage) {
 					try (JarFile jf = new JarFile(outputPath.toFile())) {
 						String cp = jf.getManifest().getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
 						String[] jars = cp == null ? new String[0] : cp.split(" ");
@@ -157,13 +141,15 @@ public class Export extends BaseCommand {
 
 					List<String> optionList = new ArrayList<>();
 					optionList.add(resolveInJavaHome("jar",
-							export.javaVersion != null ? export.javaVersion : src.getJavaVersion())); // TODO locate it
-																										// on path ?
+							exportMixin.javaVersion != null ? exportMixin.javaVersion : src.getJavaVersion())); // TODO
+																												// locate
+																												// it
+					// on path ?
 					optionList.add("ufm");
 					optionList.add(outputPath.toString());
 					optionList.add(tempManifest.toString());
 					// System.out.println("Executing " + optionList);
-					export.info("Updating jar manifest");
+					Util.infoMsg("Updating jar manifest");
 					// no inheritIO as jar complains unnecessarily about dupilcate manifest entries.
 					Process process = new ProcessBuilder(optionList).start();
 					try {
@@ -176,34 +162,34 @@ public class Export extends BaseCommand {
 						throw new ExitException(1, "Error during updating jar");
 					}
 				}
-				export.info("Exported to " + outputPath);
+				Util.infoMsg("Exported to " + outputPath);
 				return EXIT_OK;
 			}
 		},
 		mavenPublish {
 			@Override
-			public int apply(Export export, Source src, RunContext ctx) throws IOException {
+			public int apply(ExportMixin exportMixin, Source src, RunContext ctx) throws IOException {
 
-				Path outputPath = export.outputFile;
+				Path outputPath = exportMixin.outputFile;
 
 				if (outputPath == null) {
 					outputPath = Settings.getLocalMavenRepo().toPath();
 				}
 				// Copy the JAR or native binary
 				Path source = src.getJarFile().toPath();
-				if (export.nativeImage) {
+				if (exportMixin.nativeImage) {
 					source = getImageName(source.toFile()).toPath();
 				}
 
 				if (!outputPath.toFile().isDirectory()) {
 					if (outputPath.toFile().exists()) {
-						export.warn("Cannot export to maven publish as " + outputPath + " is not a directory.");
+						Util.warnMsg("Cannot export to maven publish as " + outputPath + " is not a directory.");
 						return EXIT_INVALID_INPUT;
 					}
-					if (export.force) {
+					if (exportMixin.force) {
 						outputPath.toFile().mkdirs();
 					} else {
-						export.warn("Cannot export as " + outputPath + " does not exist. Use --force to create.");
+						Util.warnMsg("Cannot export as " + outputPath + " does not exist. Use --force to create.");
 						return EXIT_INVALID_INPUT;
 					}
 				}
@@ -211,7 +197,7 @@ public class Export extends BaseCommand {
 				String group = ctx.getProperties().getOrDefault("group", "g.a.v");
 
 				if (group == null) {
-					export.warn(
+					Util.warnMsg(
 							"Cannot export to maven publish as no group specified. Add -Dgroup=<group id> and run again.");
 					return EXIT_INVALID_INPUT;
 
@@ -234,14 +220,14 @@ public class Export extends BaseCommand {
 				artifactFile.getParent().toFile().mkdirs();
 
 				if (artifactFile.toFile().exists()) {
-					if (export.force) {
+					if (exportMixin.force) {
 						artifactFile.toFile().delete();
 					} else {
-						export.warn("Cannot export as " + artifactFile + " already exists. Use --force to overwrite.");
+						Util.warnMsg("Cannot export as " + artifactFile + " already exists. Use --force to overwrite.");
 						return EXIT_INVALID_INPUT;
 					}
 				}
-				export.info("Writing " + artifactFile);
+				Util.infoMsg("Writing " + artifactFile);
 				Files.copy(source, artifactFile);
 
 				// generate pom.xml ... if jar could technically just copy from the jar ...but
@@ -262,66 +248,63 @@ public class Export extends BaseCommand {
 												.data("version", version)
 												.data("dependencies", ctx.getClassPath().getArtifacts())
 												.render();
-					export.info("Writing " + pomPath);
+					Util.infoMsg("Writing " + pomPath);
 					Util.writeString(pomPath, pomfile);
 
 				}
 
-				export.info("Exported to " + outputPath);
+				Util.infoMsg("Exported to " + outputPath);
 				return EXIT_OK;
 			}
 		};
 
-		public abstract int apply(Export export, Source src, RunContext ctx) throws IOException;
+		public abstract int apply(ExportMixin exportMixin, Source src, RunContext ctx) throws IOException;
 	}
+
+	static class ExportStyle {
+		@CommandLine.Option(names = "--local", description = "Export built jar as is")
+		boolean local = true;
+		@CommandLine.Option(names = "--portable", description = "Make portable and standalone jar")
+		boolean portable;
+		@CommandLine.Option(names = "--mavenrepo", description = "Export artifacts to be used in a maven repository")
+		boolean mavenpublish;
+	}
+}
+
+@Command(name = "local")
+class ExportLocal extends BaseCommand {
+
+	@CommandLine.Mixin
+	ExportMixin exportMixin;
 
 	@Override
 	public Integer doCall() throws IOException {
-		if (insecure) {
-			enableInsecure();
-		}
-
-		RunContext ctx = RunContext.create(null, dependencyInfoMixin.getProperties(),
-				dependencyInfoMixin.getDependencies(), dependencyInfoMixin.getClasspaths(), false);
-		Source src = Source.forResource(scriptOrFile, ctx);
-
-		src = buildIfNeeded(src, ctx);
-
-		Style style = Style.local;
-
-		if (exportStyle.portable) {
-			style = Style.portable;
-		} else if (exportStyle.mavenpublish) {
-			style = Style.mavenPublish;
-		}
-		return style.apply(this, src, ctx);
+		return handle(exportMixin, Export.Style.local);
 	}
+}
 
-	Path getFileOutputPath(RunContext ctx) {
-		// Determine the output file location and name
-		Path cwd = Util.getCwd();
-		Path outputPath;
-		if (outputFile != null) {
-			outputPath = outputFile;
-		} else {
-			String outName = CatalogUtil.nameFromRef(ctx.getOriginalRef());
-			if (nativeImage) {
-				outName = getImageName(new File(outName)).getName();
-			} else {
-				outName += ".jar";
-			}
-			outputPath = Paths.get(outName);
-		}
-		outputPath = cwd.resolve(outputPath);
-		return outputPath;
+@Command(name = "portable")
+
+class ExportPortable extends BaseCommand {
+
+	@CommandLine.Mixin
+	ExportMixin exportMixin;
+
+	@Override
+	public Integer doCall() throws IOException {
+		return handle(exportMixin, Export.Style.portable);
 	}
+}
 
-	public static String removeFileExtension(String filename, boolean removeAllExtensions) {
-		if (filename == null || filename.isEmpty()) {
-			return filename;
-		}
+@Command(name = "mavenrepo")
 
-		String extPattern = "(?<!^)[.]" + (removeAllExtensions ? ".*" : "[^.]*$");
-		return filename.replaceAll(extPattern, "");
+class ExportMavenPublish extends BaseCommand {
+
+	@CommandLine.Mixin
+	ExportMixin exportMixin;
+
+	@Override
+	public Integer doCall() throws IOException {
+		return handle(exportMixin, Export.Style.mavenPublish);
 	}
 }
