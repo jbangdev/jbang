@@ -904,6 +904,7 @@ public class TestRun extends BaseTest {
 
 		Source src = Source.forFile(new File(arg));
 		RunContext ctx = RunContext.create(run.userParams, run.dependencyInfoMixin.getProperties());
+		ctx.setMainClass("fakemain");
 		String commandLine = run.generateCommandLine(src, ctx);
 
 		assertThat(commandLine, containsString("-XX:SharedArchiveFile="));

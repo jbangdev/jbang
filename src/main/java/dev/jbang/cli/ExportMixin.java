@@ -29,8 +29,7 @@ public class ExportMixin {
 	@CommandLine.Option(names = { "--force",
 	}, description = "Force export, i.e. overwrite exported file if already exists", defaultValue = "false")
 	boolean force;
-	@CommandLine.ArgGroup(exclusive = true, multiplicity = "0..1")
-	Export.ExportStyle exportStyle = new Export.ExportStyle();
+
 	@CommandLine.Parameters(paramLabel = "scriptOrFile", index = "0", description = "A file or URL to a Java code file", arity = "1")
 	String scriptOrFile;
 
