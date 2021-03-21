@@ -59,6 +59,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 
 import dev.jbang.BaseTest;
 import dev.jbang.Cache;
+import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.net.TrustedSources;
 import dev.jbang.source.JarSource;
@@ -1333,4 +1334,22 @@ public class TestRun extends BaseTest {
 
 	}
 
+	@Test
+	void testJFRPresent() throws IOException {
+		Jbang jbang = new Jbang();
+		String arg = new File(examplesTestFolder.toFile(), "helloworld.java").getAbsolutePath();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--jfr", arg);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = RunContext.create(run.userParams, run.properties,
+				run.dependencies, run.classpaths, run.forcejsh);
+
+		assert (run.enableFlightRecording());
+		String line = run.generateCommandLine(Source.forResource(arg, ctx), ctx);
+
+		assertThat(line, containsString("helloworld.jfr"));
+		// testing it does not go to cache by accident
+		assertThat(line.split("helloworld.jfr")[0], not(containsString(Settings.getCacheDir().toString())));
+
+	}
 }
