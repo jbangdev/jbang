@@ -519,6 +519,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "piradix",
+      "name": "piradix",
+      "avatar_url": "https://avatars.githubusercontent.com/u/64977993?v=4",
+      "profile": "http://piradix.com",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "skipCi": true,
