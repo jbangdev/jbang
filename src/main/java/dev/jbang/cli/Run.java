@@ -150,12 +150,18 @@ public class Run extends BaseBuildCommand {
 
 		if (fullArgs.isEmpty()) {
 			String classpath = ctx.resolveClassPath(src);
-
+			if (src.getJarFile() != null) {
+				if (classpath.trim().isEmpty()) {
+					classpath = src.getJarFile().getAbsolutePath();
+				} else {
+					classpath = src.getJarFile().getAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
+				}
+			}
 			List<String> optionalArgs = new ArrayList<>();
 
 			String requestedJavaVersion = javaVersion != null ? javaVersion : src.getJavaVersion();
 			String javacmd = resolveInJavaHome("java", requestedJavaVersion);
-			if (ctx.isForceJsh() || src.isJShell()) {
+			if (ctx.isForceJsh() || src.isJShell() || interactive) {
 
 				javacmd = resolveInJavaHome("jshell", requestedJavaVersion);
 				if (!classpath.trim().isEmpty()) {
@@ -173,8 +179,16 @@ public class Run extends BaseBuildCommand {
 						"import java.math.BigInteger;\n" +
 						"import java.math.BigDecimal;\n";
 				Util.writeString(tempFile.toPath(),
-						defaultImports + generateArgs(ctx.getArguments(), ctx.getProperties()));
-
+						defaultImports + generateArgs(ctx.getArguments(), ctx.getProperties()) +
+								generateMain(ctx.getMainClass()));
+				if (ctx.getMainClass() != null) {
+					if (!ctx.getMainClass().contains(".")) {
+						Util.warnMsg("Main class `" + ctx.getMainClass()
+								+ "` is in the default package which JShell unfortunately does not support. You can still use JShell to explore the JDK and any dependencies available on the classpath.");
+					} else {
+						Util.infoMsg("You can run the main class `" + ctx.getMainClass() + "` using: userMain(args)");
+					}
+				}
 				optionalArgs.add("--startup=" + tempFile.getAbsolutePath());
 
 				if (debug()) {
@@ -209,13 +223,6 @@ public class Run extends BaseBuildCommand {
 					Util.verboseMsg("Flight recording enabled with:" + jfropt);
 				}
 
-				if (src.getJarFile() != null) {
-					if (classpath.trim().isEmpty()) {
-						classpath = src.getJarFile().getAbsolutePath();
-					} else {
-						classpath = src.getJarFile().getAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
-					}
-				}
 				if (!classpath.trim().isEmpty()) {
 					optionalArgs.add("-classpath");
 					optionalArgs.add(classpath);
@@ -265,20 +272,26 @@ public class Run extends BaseBuildCommand {
 				ctx.setMainClass(main);
 			}
 
+			// deduce mainclass or jshell argument but skip it in case interactive for a jar
+			// launch.
 			String mainClass = ctx.getMainClassOr(src);
-			if (mainClass != null) {
+			if (!interactive && mainClass != null) {
 				fullArgs.add(mainClass);
 			} else {
-				if (src.isJar()) {
+				if (ctx.isForceJsh() || src.isJShell()) {
+					fullArgs.add(src.getResourceRef().getFile().toString());
+				} else if (!interactive /* && src.isJar() */) {
 					throw new ExitException(EXIT_INVALID_INPUT,
 							"no main class deduced, specified nor found in a manifest");
-				} else {
-					fullArgs.add(src.getResourceRef().getFile().toString());
 				}
 			}
 		}
 
-		if (!ctx.isForceJsh() && !src.isJShell()) {
+		// add additonal java arguments, but if interactive that is passed via jsh
+		// script
+		// thus if !interactive and not jshell then generate the exit mechanics for
+		// jshell to exit at the end.
+		if (!ctx.isForceJsh() && !src.isJShell() && !interactive) {
 			addJavaArgs(ctx.getArguments(), fullArgs);
 		} else if (!interactive) {
 			File tempFile = File.createTempFile("jbang_exit_", src.getResourceRef().getFile().getName());
@@ -337,6 +350,13 @@ public class Run extends BaseBuildCommand {
 			}
 		}
 		return arg;
+	}
+
+	static String generateMain(String main) {
+		if (main != null) {
+			return "\nint userMain(String[] args) { return " + main + "(args);}\n";
+		}
+		return "";
 	}
 
 	static String generateArgs(List<String> args, Map<String, String> properties) {

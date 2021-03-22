@@ -369,6 +369,8 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = RunContext.create(run.userParams, run.properties,
 				run.dependencies, run.classpaths, run.forcejsh);
+		ctx.setMainClass("fakemain");
+
 		ScriptSource src = (ScriptSource) Source.forResource(arg, ctx);
 
 		String result = run.generateCommandLine(src, ctx);
@@ -392,6 +394,8 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = RunContext.create(run.userParams, run.properties,
 				run.dependencies, run.classpaths, run.forcejsh);
+		ctx.setMainClass("fakemain");
+
 		ScriptSource src = (ScriptSource) Source.forResource(arg, ctx);
 
 		String result = run.generateCommandLine(src, ctx);
@@ -402,6 +406,30 @@ public class TestRun extends BaseTest {
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, containsString("log4j"));
+	}
+
+	@Test
+	void testDependenciesInteractive() throws IOException {
+
+		environmentVariables.clear("JAVA_HOME");
+		Jbang jbang = new Jbang();
+		String arg = examplesTestFolder.resolve("classpath_example.java").toAbsolutePath().toString();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--interactive", arg);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = RunContext.create(run.userParams, run.properties,
+				run.dependencies, run.classpaths, run.forcejsh);
+		ScriptSource src = (ScriptSource) Source.forResource(arg, ctx);
+
+		String result = run.generateCommandLine(src, ctx);
+
+		assertThat(result, startsWith("jshell "));
+		assertThat(result, (containsString("classpath_example.java")));
+//		assertThat(result, containsString(" --source 11 "));
+		assertThat(result, not(containsString("  ")));
+		assertThat(result, containsString("classpath"));
+		assertThat(result, containsString("log4j"));
+		assertThat(result, not(endsWith(arg)));
 	}
 
 	@Test
@@ -421,6 +449,7 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = RunContext.create(run.userParams, run.properties,
 				run.dependencies, run.classpaths, run.forcejsh);
+		ctx.setMainClass("fakemain");
 		ScriptSource src = (ScriptSource) Source.forResource(arg, ctx);
 
 		String result = run.generateCommandLine(src, ctx);
@@ -433,9 +462,9 @@ public class TestRun extends BaseTest {
 			assertThat(result, containsString("'-Dquoted=see this'"));
 		}
 		String[] split = result.split("example.java");
-		assertEquals(3, split.length);
+		assertEquals(2, split.length);
 		assertThat(split[0], not(containsString("after=wonka")));
-		assertThat(split[2], containsString("after=wonka"));
+		assertThat(split[1], containsString("after=wonka"));
 	}
 
 	@Test
@@ -457,6 +486,8 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = RunContext.create(run.userParams, run.properties,
 				run.dependencies, run.classpaths, run.forcejsh);
+		ctx.setMainClass("fakemain");
+
 		ScriptSource src = (ScriptSource) Source.forResource(url, ctx);
 
 		String s = run.generateCommandLine(src, ctx);
@@ -473,6 +504,8 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = RunContext.create(run.userParams, run.properties,
 				run.dependencies, run.classpaths, run.forcejsh);
+		ctx.setMainClass("fakemain");
+
 		ScriptSource src = (ScriptSource) Source.forResource(url, ctx);
 
 		String s = run.generateCommandLine(src, ctx);
@@ -1044,6 +1077,8 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = RunContext.create(null, run.properties,
 				run.dependencies, run.classpaths, run.forcejsh);
+		ctx.setMainClass("fakemain");
+
 		ScriptSource src = (ScriptSource) Source.forResource(f.getAbsolutePath(), ctx);
 
 		String line = run.generateCommandLine(src, ctx);
@@ -1056,7 +1091,8 @@ public class TestRun extends BaseTest {
 		Jbang jbang = new Jbang();
 		File f = examplesTestFolder.resolve("resource.java").toFile();
 
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--enablesystemassertions",
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--enablesystemassertions", "--main",
+				"fakemain",
 				f.getAbsolutePath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
@@ -1343,6 +1379,7 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = RunContext.create(run.userParams, run.properties,
 				run.dependencies, run.classpaths, run.forcejsh);
+		ctx.setMainClass("fakemain");
 
 		assert (run.enableFlightRecording());
 		String line = run.generateCommandLine(Source.forResource(arg, ctx), ctx);
