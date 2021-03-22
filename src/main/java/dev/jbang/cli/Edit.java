@@ -1,6 +1,7 @@
 package dev.jbang.cli;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
+import static dev.jbang.cli.Run.escapeArguments;
 import static dev.jbang.util.Util.isWindows;
 import static dev.jbang.util.Util.verboseMsg;
 import static java.lang.System.out;
@@ -76,14 +77,15 @@ public class Edit extends BaseScriptDepsCommand {
 						+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + project.getAbsolutePath() + "\n\n");
 			} else {
 				List<String> optionList = new ArrayList<>();
-				optionList.addAll(Arrays.asList(editor.get().split(" ")));
+				optionList.add(editor.get());
 				optionList.add(project.getAbsolutePath());
 
 				String[] cmd;
+				final String editorCommand = escapeArguments(optionList).stream().collect(Collectors.joining(" "));
 				if (isWindows()) {
-					cmd = new String[] { "cmd", "/c", optionList.stream().collect(Collectors.joining(" ")) };
+					cmd = new String[] { "cmd", "/c", editorCommand };
 				} else {
-					cmd = new String[] { "sh", "-c", optionList.stream().collect(Collectors.joining(" ")) };
+					cmd = new String[] { "sh", "-c", editorCommand };
 				}
 				info("Running `" + String.join(" ", cmd) + "`");
 				new ProcessBuilder(cmd).start();
