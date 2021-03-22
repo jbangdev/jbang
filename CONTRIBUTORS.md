@@ -1,6 +1,6 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-56-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-57-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 ## Contributors ✨
 
@@ -81,6 +81,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/jbardel"><img src="https://avatars3.githubusercontent.com/u/432134?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Julien Bardel</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=jbardel" title="Code">💻</a></td>
     <td align="center"><a href="http://code.msgilligan.com"><img src="https://avatars.githubusercontent.com/u/61612?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Sean Gilligan</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=msgilligan" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/sxa"><img src="https://avatars.githubusercontent.com/u/6487691?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Stewart X Addison</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=sxa" title="Code">💻</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="http://piradix.com"><img src="https://avatars.githubusercontent.com/u/64977993?v=4?s=100" width="100px;" alt=""/><br /><sub><b>piradix</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/issues?q=author%3Apiradix" title="Bug reports">🐛</a></td>
   </tr>
 </table>
 
