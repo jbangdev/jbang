@@ -17,5 +17,6 @@
       "script-ref": "res/resource.java"
     }
   },
+  "templates": {},
   "description": "JBang test scripts"
 }

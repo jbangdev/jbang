@@ -184,4 +184,6 @@ public interface Source {
 	static ScriptSource forScript(String script) {
 		return new ScriptSource(script);
 	}
+
+	boolean isCreatedJar();
 }

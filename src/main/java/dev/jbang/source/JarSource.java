@@ -123,6 +123,11 @@ public class JarSource implements Source {
 		return javaRuntimeOptions;
 	}
 
+	@Override
+	public boolean isCreatedJar() {
+		return false;
+	}
+
 	public static JarSource prepareJar(ResourceRef resourceRef) {
 		return new JarSource(resourceRef, resourceRef.getFile());
 	}

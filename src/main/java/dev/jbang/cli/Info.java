@@ -69,7 +69,8 @@ abstract class BaseInfoCommand extends BaseScriptDepsCommand {
 			enableInsecure();
 		}
 
-		RunContext ctx = RunContext.create(null, null, dependencies, classpaths, forcejsh);
+		RunContext ctx = RunContext.create(null, null, dependencyInfoMixin.getDependencies(),
+				dependencyInfoMixin.getClasspaths(), forcejsh);
 		Source src = ctx.importJarMetadataFor(Source.forResource(scriptOrFile, ctx));
 
 		ScriptInfo info = new ScriptInfo(src, ctx);

@@ -506,6 +506,11 @@ public class ScriptSource implements Source {
 		return Stream.concat(func.apply(this).stream(), subs).collect(Collectors.toList());
 	}
 
+	@Override
+	public boolean isCreatedJar() {
+		return getJarFile().exists();
+	}
+
 	public static ScriptSource prepareScript(String resource) {
 		ResourceRef resourceRef = ResourceRef.forResource(resource);
 		return prepareScript(resourceRef);
