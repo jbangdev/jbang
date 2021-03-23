@@ -1090,6 +1090,16 @@ Java itself will add `JAVA_TOOL_OPTIONS` which will apply to `jbang` too.
 For finer and more explicit control the scripts, `jbang` will add `JBANG_JAVA_OPTIONS` to the call to `jbang` itself.
 Thus if you want to enable debug or other details for `jbang` set that environment variable.
 
+== Interactive REPL
+
+`jbang --interactive` enables use of `jshell` to explore and use your script and any dependencies in a REPL editor.
+
+When using `--interactive` for java/jar scripts/apps jbang sets up a jshell function named `userMain`. `userMain` delegates to
+the main function that would have been called if not running in interactive. You can call it with arguments as follows `userMain(args)`.
+
+NOTE: One caveat about jshell is that it cannt access classes in default package. Thus you will need to add a package statement
+to your script/class to see it.
+
 == Flight Recorder
 
 Flight recorder is a feature of the Java VM that lets you gather diagnostic and profiling data about your script.
