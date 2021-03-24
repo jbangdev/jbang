@@ -167,6 +167,30 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testForceShell() throws IOException {
+
+		environmentVariables.clear("JAVA_HOME");
+		Jbang jbang = new Jbang();
+		String arg = examplesTestFolder.resolve("hellojsh").toAbsolutePath().toString();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--jsh", arg, "helloworld");
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = RunContext.create(run.userParams, run.dependencyInfoMixin.getProperties(),
+				run.dependencyInfoMixin.getDependencies(), run.dependencyInfoMixin.getClasspaths(), run.forcejsh);
+		ScriptSource src = (ScriptSource) Source.forResource(arg, ctx);
+
+		String result = run.generateCommandLine(src, ctx);
+
+		assertThat(result, matchesPattern("^.*jshell(.exe)? --startup.*$"));
+		assertThat(result, not(containsString("  ")));
+		assertThat(result, containsString("hellojsh"));
+		assertThat(result, not(containsString("--source 11")));
+		assertThat(result, containsString("--startup=DEFAULT"));
+		assertThat(result, matchesPattern(".*--startup=[^ ]*hellojsh.*"));
+		assertThat(result, containsString("jbang_exit_"));
+	}
+
+	@Test
 	void testHelloWorldJar() throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");

@@ -152,13 +152,7 @@ public class Run extends BaseBuildCommand {
 
 		if (fullArgs.isEmpty()) {
 			String classpath = ctx.resolveClassPath(src);
-			if (src.getJarFile() != null) {
-				if (classpath.trim().isEmpty()) {
-					classpath = src.getJarFile().getAbsolutePath();
-				} else {
-					classpath = src.getJarFile().getAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
-				}
-			}
+
 			List<String> optionalArgs = new ArrayList<>();
 
 			String requestedJavaVersion = javaVersion != null ? javaVersion : src.getJavaVersion();
@@ -166,6 +160,15 @@ public class Run extends BaseBuildCommand {
 			if (ctx.isForceJsh() || src.isJShell() || interactive) {
 
 				javacmd = resolveInJavaHome("jshell", requestedJavaVersion);
+
+				if (src.getJarFile() != null && src.getJarFile().exists()) {
+					if (classpath.trim().isEmpty()) {
+						classpath = src.getJarFile().getAbsolutePath();
+					} else {
+						classpath = src.getJarFile().getAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
+					}
+				}
+
 				if (!classpath.trim().isEmpty()) {
 					optionalArgs.add("--class-path=" + classpath);
 				}
@@ -225,6 +228,13 @@ public class Run extends BaseBuildCommand {
 					Util.verboseMsg("Flight recording enabled with:" + jfropt);
 				}
 
+				if (src.getJarFile() != null) {
+					if (classpath.trim().isEmpty()) {
+						classpath = src.getJarFile().getAbsolutePath();
+					} else {
+						classpath = src.getJarFile().getAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
+					}
+				}
 				if (!classpath.trim().isEmpty()) {
 					optionalArgs.add("-classpath");
 					optionalArgs.add(classpath);
