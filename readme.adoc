@@ -1312,7 +1312,7 @@ You can use `export mavenrepo` to publish any github hosted jbang app into a mav
 before_install:
   -  curl -Ls https://sh.jbang.dev | bash -s - app setup
 install:
-  - jbang export --force mavenrepo -O target -Dgroup=$GROUP -Dartifact=$ARTIFACT -Dversion=$VERSION hello.java
+  - ~/.jbang/bin/jbang export mavenrepo --force -O target -Dgroup=$GROUP -Dartifact=$ARTIFACT -Dversion=$VERSION hello.java
   - mkdir -p ~/.m2/repository
   - cp -rv target/* ~/.m2/repository/
 ----
