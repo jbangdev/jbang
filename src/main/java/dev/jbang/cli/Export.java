@@ -42,6 +42,8 @@ public class Export {
 		RunContext ctx = RunContext.create(null, exportMixin.dependencyInfoMixin.getProperties(),
 				exportMixin.dependencyInfoMixin.getDependencies(), exportMixin.dependencyInfoMixin.getClasspaths(),
 				false);
+		ctx.setJavaVersion(exportMixin.javaVersion);
+		ctx.setNativeImage(exportMixin.nativeImage);
 		Source src = Source.forResource(exportMixin.scriptOrFile, ctx);
 
 		src = buildIfNeeded(src, ctx);

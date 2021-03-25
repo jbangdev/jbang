@@ -208,6 +208,14 @@ public class RunContext {
 		return nativeImage;
 	}
 
+	public void setNativeImage(boolean nativeImage) {
+		this.nativeImage = nativeImage;
+	}
+
+	public void setJavaVersion(String javaVersion) {
+		this.javaVersion = javaVersion;
+	}
+
 	public String getJavaVersion() {
 		return javaVersion;
 	}

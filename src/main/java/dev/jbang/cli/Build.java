@@ -18,6 +18,8 @@ public class Build extends BaseBuildCommand {
 
 		RunContext ctx = RunContext.create(null, dependencyInfoMixin.getProperties(),
 				dependencyInfoMixin.getDependencies(), dependencyInfoMixin.getClasspaths(), forcejsh);
+		ctx.setJavaVersion(javaVersion);
+		ctx.setNativeImage(nativeImage);
 		Source src = Source.forResource(scriptOrFile, ctx);
 
 		buildIfNeeded(src, ctx);

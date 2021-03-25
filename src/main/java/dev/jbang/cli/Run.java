@@ -71,6 +71,8 @@ public class Run extends BaseBuildCommand {
 
 		RunContext ctx = RunContext.create(userParams, dependencyInfoMixin.getProperties(),
 				dependencyInfoMixin.getDependencies(), dependencyInfoMixin.getClasspaths(), forcejsh);
+		ctx.setJavaVersion(javaVersion);
+		ctx.setNativeImage(nativeImage);
 		Source src = Source.forResource(scriptOrFile, ctx);
 		src = prepareArtifacts(src, ctx);
 
@@ -91,6 +93,8 @@ public class Run extends BaseBuildCommand {
 
 				RunContext actx = RunContext.create(userParams, dependencyInfoMixin.getProperties(),
 						dependencyInfoMixin.getDependencies(), dependencyInfoMixin.getClasspaths(), forcejsh);
+				actx.setJavaVersion(ctx.getJavaVersion());
+				actx.setNativeImage(ctx.isNativeImage());
 				Source asrc = Source.forResource(javaAgent, actx);
 				actx.setJavaAgentOption(javaAgentOptions.orElse(null));
 				if (needsJar(asrc, actx)) {
