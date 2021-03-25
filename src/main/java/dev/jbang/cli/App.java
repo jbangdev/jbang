@@ -69,6 +69,7 @@ class AppInstall extends BaseCommand {
 					throw new IllegalArgumentException(
 							"It's not possible to install jbang with a different name");
 				}
+				Util.setFresh(true);// TODO: workaround as url cache is not honoring changed redirects
 				installed = installJbang(force);
 			} else {
 				if ("jbang".equals(name)) {
