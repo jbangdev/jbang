@@ -78,6 +78,7 @@ toc::[]
 * Can be used for writing plugins to other cli's like `kubectl`
 * Init templates to get started easily (`jbang init -t cli hello.java`)
 * Generate gradle and IDE config with dependencies for easy editing in your favorite IDE (`jbang edit myfile.java`)
+* Maven and Gradle plugins for easy integration with your favorite build tool
 
 To use it install `jbang` and run `jbang yourscript.java`
 
@@ -249,6 +250,57 @@ docker run -v `pwd`:/ws --workdir=/ws -ti quay.io/jbangdev/jbang-action hellowor
 The same container images can be used with GitHub Actions, see https://github.com/jbangdev/jbang-action[jbang-action] for details.
 
 Remember to remove `-ti` from the commands above when using on a GitHub Actions flow.
+
+=== Maven Plugin
+
+The JBang Maven plugin allows JBang scripts to be executed during a Maven build.
+
+Example in your `pom.xml`: 
+
+[source,xml]
+----
+      <plugin>
+        <groupId>dev.jbang</groupId>
+        <artifactId>jbang-maven-plugin</artifactId>
+        <version>0.0.6</version>
+        <executions>
+          <execution>
+            <id>run</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+                <script>hello.java</script>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+---- 
+
+The plugin documentation and more examples are available here: https://github.com/jbangdev/jbang-maven-plugin
+
+=== Gradle Plugin
+
+The JBang Gradle plugin allows JBang scripts to be executed during a Gradle build.
+
+In your `build.gradle` file, add:
+
+[source,gradle]
+----
+plugins {
+    id 'dev.jbang' version '0.2.0'
+}
+----
+
+That will allow your to execute JBang scripts with:
+
+[source,bash]
+----
+$ gradle jbang --jbang-script hello.jsh --jbang-args="Hello world"
+----
+
+The plugin documentation and more examples are available here: https://github.com/jbangdev/jbang-gradle-plugin
 
 === Manual install
 
