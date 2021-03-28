@@ -172,4 +172,27 @@ public class TestEdit extends BaseTest {
 		assert (Files.isSymbolicLink(java.toPath()) || java.exists());
 	}
 
+	@Test
+	void testEditFile(@TempDir Path outputDir) throws IOException {
+
+		Path p = examplesTestFolder.resolve("res/resource.java");
+		assertThat(p.toFile().exists(), is(true));
+
+		RunContext ctx = RunContext.empty();
+		ScriptSource src = (ScriptSource) Source.forResource(p.toString(), ctx);
+		ctx.resolveClassPath(src);
+
+		File project = new Edit().createProjectForEdit(src, ctx, false);
+
+		File gradle = new File(project, "build.gradle");
+		assert (gradle.exists());
+		assertThat(Util.readString(gradle.toPath()), not(containsString("bogus")));
+
+		Arrays	.asList("resource.java", "resource.properties", "renamed.properties", "META-INF/application.properties")
+				.forEach(f -> {
+					File java = new File(project, "src/" + f);
+
+					assertThat(f + " not found", java, aReadableFile());
+				});
+	}
 }

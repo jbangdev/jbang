@@ -294,8 +294,10 @@ public class Util {
 		System.err.print("[jbang] [ERROR] ");
 		if (msg != null) {
 			System.err.println(msg);
-		} else {
+		} else if (e.getMessage() != null) {
 			System.err.println(e.getMessage());
+		} else {
+			System.err.println(e.getClass().toGenericString());
 		}
 		if (isVerbose()) {
 			e.printStackTrace();

@@ -431,7 +431,7 @@ public class ScriptSource implements Source {
 		}
 	}
 
-	private List<RefTarget> getAllFiles() {
+	public List<RefTarget> getAllFiles() {
 		if (filerefs == null) {
 			filerefs = collectAll(ScriptSource::collectFiles);
 		}
