@@ -1390,7 +1390,7 @@ You can also use aliases, like `jbang app install gavsearch@jbangdev`.
 If you have two script/apps with same name or just want to use a specific name you can use `--name` to
 control the generated command: `jbang app install --name mvnsearch gavsearch@jbangdev`
 
-If you want to see which are already installed use `jbang list` and you can use `jbang uinstall <name>` to uninstall
+If you want to see which are already installed use `jbang app list` and you can use `jbang app uinstall <name>` to uninstall
 the script/app.
 
 == Build Integration [EXPERIMENTAL]
