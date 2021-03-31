@@ -1,7 +1,7 @@
 package dev.jbang.cli;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
-import static dev.jbang.cli.Run.escapeArguments;
+import static dev.jbang.cli.BaseBuildCommand.escapeOSArguments;
 import static dev.jbang.util.Util.isWindows;
 import static dev.jbang.util.Util.verboseMsg;
 import static java.lang.System.out;
@@ -82,7 +82,7 @@ public class Edit extends BaseScriptDepsCommand {
 				optionList.add(project.getAbsolutePath());
 
 				String[] cmd;
-				final String editorCommand = escapeArguments(optionList).stream().collect(Collectors.joining(" "));
+				final String editorCommand = escapeOSArguments(optionList).stream().collect(Collectors.joining(" "));
 				if (isWindows()) {
 					cmd = new String[] { "cmd", "/c", editorCommand };
 				} else {

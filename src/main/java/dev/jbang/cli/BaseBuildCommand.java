@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -332,7 +333,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		// When persistent JVM args are set they override any runtime options set on the
 		// Source
 		List<String> rtArgs = ctx.getRuntimeOptionsOr(src);
-		String runtimeOpts = String.join(" ", rtArgs);
+		String runtimeOpts = String.join(" ", escapeArguments(rtArgs));
 		if (!runtimeOpts.isEmpty()) {
 			manifest.getMainAttributes()
 					.putValue(Source.ATTR_JBANG_JAVA_OPTIONS, runtimeOpts);
@@ -432,6 +433,62 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		} else {
 			return cmd;
 		}
+	}
+
+	// NB: This might not be a definitive list of safe characters
+	static Pattern cmdSafeChars = Pattern.compile("[a-zA-Z0-9.,_+=:;@()-]*");
+	// TODO: Figure out what the real list of safe characters is for PowerShell
+	static Pattern pwrSafeChars = Pattern.compile("[a-zA-Z0-9.,_+=:;@()-]*");
+	static Pattern shellSafeChars = Pattern.compile("[a-zA-Z0-9._+=:@%/-]*");
+
+	/**
+	 * Escapes list of arguments where necessary using the current OS' way of
+	 * escaping
+	 */
+	static List<String> escapeOSArguments(List<String> args) {
+		return args.stream().map(BaseBuildCommand::escapeOSArgument).collect(Collectors.toList());
+	}
+
+	/**
+	 * Escapes list of arguments where necessary using a generic way of escaping
+	 * (we'll just be using the Unix way)
+	 */
+	static List<String> escapeArguments(List<String> args) {
+		return args.stream().map(BaseBuildCommand::escapeUnixArgument).collect(Collectors.toList());
+	}
+
+	static String escapeOSArgument(String arg) {
+		if (Util.isWindows()) {
+			arg = escapeWindowsArgument(arg);
+		} else {
+			arg = escapeUnixArgument(arg);
+		}
+		return arg;
+	}
+
+	static String escapeUnixArgument(String arg) {
+		if (!shellSafeChars.matcher(arg).matches()) {
+			arg = arg.replaceAll("(['])", "'\\\\''");
+			arg = "'" + arg + "'";
+		}
+		return arg;
+	}
+
+	static String escapeWindowsArgument(String arg) {
+		if (Util.isUsingPowerShell()) {
+			if (!pwrSafeChars.matcher(arg).matches()) {
+				arg = arg.replaceAll("(['])", "''");
+				arg = "'" + arg + "'";
+			}
+		} else {
+			if (!cmdSafeChars.matcher(arg).matches()) {
+				// Windows quoting is just weird
+				arg = arg.replaceAll("([()!^<>&|% ])", "^$1");
+				arg = arg.replaceAll("([\"])", "\\\\^$1");
+				arg = "^\"" + arg + "^\"";
+			}
+		}
+		return arg;
 	}
 
 }

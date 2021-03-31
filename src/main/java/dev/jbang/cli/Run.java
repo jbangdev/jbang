@@ -110,7 +110,7 @@ public class Run extends BaseBuildCommand {
 
 	String generateOSCommandLine(Source src, RunContext ctx) throws IOException {
 		List<String> fullArgs = generateCommandLineList(src, ctx);
-		String args = String.join(" ", escapeArguments(fullArgs));
+		String args = String.join(" ", escapeOSArguments(fullArgs));
 		// This avoids long classpath problem on Windows.
 		// @file is only available from java 9 onwards.
 		if (args.length() > COMMAND_LINE_LENGTH_LIMIT && Util.isWindows()
@@ -134,7 +134,7 @@ public class Run extends BaseBuildCommand {
 
 	String generateCommandLine(Source src, RunContext ctx) throws IOException {
 		List<String> fullArgs = generateCommandLineList(src, ctx);
-		return String.join(" ", escapeArguments(fullArgs));
+		return String.join(" ", escapeOSArguments(fullArgs));
 	}
 
 	List<String> generateCommandLineList(Source src, RunContext ctx) throws IOException {
@@ -330,42 +330,6 @@ public class Run extends BaseBuildCommand {
 
 	private void addJavaArgs(List<String> args, List<String> result) {
 		result.addAll(args);
-	}
-
-	static List<String> escapeArguments(List<String> args) {
-		return args.stream().map(Run::escapeArgument).collect(Collectors.toList());
-	}
-
-	// NB: This might not be a definitive list of safe characters
-	static Pattern cmdSafeChars = Pattern.compile("[a-zA-Z0-9.,_+=:;@()-]*");
-
-	// TODO: Figure out what the real list of safe characters is for PowerShell
-	static Pattern pwrSafeChars = Pattern.compile("[a-zA-Z0-9.,_+=:;@()-]*");
-
-	static Pattern shellSafeChars = Pattern.compile("[a-zA-Z0-9._+=:@%/-]*");
-
-	static String escapeArgument(String arg) {
-		if (Util.isWindows()) {
-			if (Util.isUsingPowerShell()) {
-				if (!pwrSafeChars.matcher(arg).matches()) {
-					arg = arg.replaceAll("(['])", "''");
-					return "'" + arg + "'";
-				}
-			} else {
-				if (!cmdSafeChars.matcher(arg).matches()) {
-					// Windows quoting is just weird
-					arg = arg.replaceAll("([()!^<>&|% ])", "^$1");
-					arg = arg.replaceAll("([\"])", "\\\\^$1");
-					return "^\"" + arg + "^\"";
-				}
-			}
-		} else {
-			if (!shellSafeChars.matcher(arg).matches()) {
-				arg = arg.replaceAll("(['])", "'\\\\''");
-				return "'" + arg + "'";
-			}
-		}
-		return arg;
 	}
 
 	static String generateMain(String main) {
