@@ -107,12 +107,15 @@ public class TestRun extends BaseTest {
 		assertThat(result, endsWith("helloworld"));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, containsString(".jar"));
-		assertThat(result, containsString("-Dfoo=bar -Dbar=foo"));
+		assertThat(result, containsString("-Dfoo=bar"));
+		assertThat(result, containsString(BaseBuildCommand.escapeOSArgument("-Dbar=aap noot mies")));
 		// Make sure the opts only appear once
-		assertThat(result.replaceFirst(Pattern.quote("-Dfoo=bar -Dbar=foo"), ""),
-				not(containsString("-Dfoo=bar -Dbar=foo")));
+		assertThat(result.replaceFirst(Pattern.quote("-Dfoo=bar"), ""),
+				not(containsString("-Dfoo=bar")));
+		assertThat(result.replaceFirst(Pattern.quote("-Dbar=aap noot mies"), ""),
+				not(containsString("-Dbar=aap noot mies")));
 		// Make sure the opts only appear unquoted
-		assertThat(result, not(containsString(Run.escapeArgument("-Dfoo=bar -Dbar=foo"))));
+		assertThat(result, not(containsString(BaseBuildCommand.escapeOSArgument("-Dfoo=bar -Dbar=aap noot mies"))));
 		// assertThat(result, containsString("--source 11"));
 	}
 
