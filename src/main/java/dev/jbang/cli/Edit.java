@@ -29,6 +29,7 @@ import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.JitPackUtil;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.net.EditorManager;
+import dev.jbang.source.RefTarget;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.ScriptSource;
 import dev.jbang.source.Source;
@@ -242,6 +243,12 @@ public class Edit extends BaseScriptDepsCommand {
 			}
 			Path destFile = source.getResourceRef().getFile().toPath().toAbsolutePath();
 			Util.createLink(sfile.toPath(), destFile);
+		}
+
+		for (RefTarget ref : src.getAllFiles()) {
+			File target = ref.to(srcDir.toPath()).toFile();
+			target.getParentFile().mkdirs();
+			Util.createLink(target.toPath(), ref.getSource().getFile().toPath().toAbsolutePath());
 		}
 
 		// create build gradle
