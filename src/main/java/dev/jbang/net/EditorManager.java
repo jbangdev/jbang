@@ -119,7 +119,7 @@ public class EditorManager {
 
 	public static Path getVSCodiumBinPath() {
 		if (Util.isMac()) {
-			return getVSCodiumPath().resolve("Contents/Resources/app/bin/code");
+			return getVSCodiumPath().resolve("Contents/Resources/app/bin/codium");
 		} else if (Util.isWindows()) {
 			return getVSCodiumPath().resolve("bin/codium.cmd");
 		} else {
