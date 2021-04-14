@@ -105,9 +105,9 @@ Once you have installed from one of the below approaches it is recommended you r
 to have it setup your `PATH` to include jbang app scripts + it will on operating systems that supports
 it setup a `j!` alias you can use instead of `jbang`.
 
-=== Using Jbang
+=== Using JBang
 
-The simplest way to install `jbang` is using Jbang itself.
+The simplest way to install `jbang` is using JBang itself.
 This method has no other requirements (besides `curl` on Linux/OSX/AIX).
 
 Linux/OSX/Windows/AIX Bash:
@@ -126,7 +126,7 @@ iex "& { $(iwr -useb https://ps.jbang.dev) } app setup"
 
 === SDKMan icon:linux[] / icon:apple[]
 
-Although if you want to have easy updates or install multiple Jbang versions we recommend
+Although if you want to have easy updates or install multiple JBang versions we recommend
 https://sdkman.io[sdkman] to install both java and `jbang` on Linux and OSX.
 
 [source, bash]
