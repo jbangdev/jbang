@@ -43,7 +43,12 @@ abs_jbang_dir=$(dirname $(resolve_symlink $(absolute_path $0)))
 
 case "$(uname -s)" in
   Linux*)
-    os=linux;;
+    os=linux
+    if [ -f /etc/alpine-release ]; then
+      os=alpine-linux
+      javaVersion=16
+    fi
+    ;;
   Darwin*)
     os=mac;;
   CYGWIN*|MINGW*|MSYS*)
@@ -73,7 +78,8 @@ case "$(uname -m)" in
       arch=ppc64
     else
       arch=
-    fi;;
+    fi
+    ;;
 esac
 
 ## when mingw/git bash or cygwin fall out to just running the bat file.

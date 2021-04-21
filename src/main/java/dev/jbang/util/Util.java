@@ -233,7 +233,7 @@ public class Util {
 	}
 
 	public enum OS {
-		linux, mac, windows, aix, unknown
+		linux, alpine_linux, mac, windows, aix, unknown
 	}
 
 	public enum Arch {
@@ -339,7 +339,11 @@ public class Util {
 		if (os.startsWith("mac") || os.startsWith("osx")) {
 			return OS.mac;
 		} else if (os.startsWith("linux")) {
-			return OS.linux;
+			if (Files.exists(Paths.get("/etc/alpine-release"))) {
+				return OS.alpine_linux;
+			} else {
+				return OS.linux;
+			}
 		} else if (os.startsWith("win")) {
 			return OS.windows;
 		} else if (os.startsWith("aix")) {
