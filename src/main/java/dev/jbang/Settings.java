@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import dev.jbang.catalog.Catalog;
+import dev.jbang.util.Util;
 
 public class Settings {
 	public static final String JBANG_REPO = "JBANG_REPO";
@@ -21,6 +22,7 @@ public class Settings {
 	public static final String ENV_NO_VERSION_CHECK = "JBANG_NO_VERSION_CHECK";
 
 	public static final int DEFAULT_JAVA_VERSION = 11;
+	public static final int DEFAULT_ALPINE_JAVA_VERSION = 16;
 
 	final public static String CP_SEPARATOR = File.pathSeparator;
 
@@ -97,7 +99,11 @@ public class Settings {
 		if (v != null) {
 			return Integer.parseInt(v);
 		}
-		return DEFAULT_JAVA_VERSION;
+		if (Util.getOS() == Util.OS.alpine_linux) {
+			return DEFAULT_ALPINE_JAVA_VERSION;
+		} else {
+			return DEFAULT_JAVA_VERSION;
+		}
 	}
 
 	public static Path getTrustedSourcesFile() {
