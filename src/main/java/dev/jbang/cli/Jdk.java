@@ -71,7 +71,7 @@ public class Jdk {
 	public Integer home(
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version of the JDK to select", arity = "0..1") Integer version) {
 		Path home = getJdkPath(version);
-		System.out.println("echo " + home);
+		System.out.println(home);
 		return EXIT_OK;
 	}
 
