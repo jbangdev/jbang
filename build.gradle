@@ -49,7 +49,7 @@ dependencies {
 
 	testImplementation "org.junit.jupiter:junit-jupiter:5.7.1"
 	testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.7.1')
-	testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
+	testImplementation "com.github.stefanbirkner:system-rules:1.19.0"
 	testImplementation(
 			'org.hamcrest:hamcrest-library:2.2'
 	)
