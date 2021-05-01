@@ -5,6 +5,7 @@
 //DEPS io.quarkus:quarkus-resteasy
 // //DEPS io.quarkus:quarkus-smallrye-openapi
 // //DEPS io.quarkus:quarkus-swagger-ui
+// //Q:CONFIG quarkus.swagger-ui.always-include=true
 //JAVAC_OPTIONS -parameters
 
 import io.quarkus.runtime.Quarkus;
