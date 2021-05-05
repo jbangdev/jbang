@@ -128,11 +128,15 @@ public interface Source {
 	}
 
 	/**
-	 * Returns the JarSource associated with this Source or `null` if there is none
-	 * or if it's invalid (invalid could mean that the associated jar is out-of-date
-	 * and needs to be rebuilt).
+	 * Returns the JarSource associated with this Source or `null` if there is none.
 	 */
 	JarSource asJarSource();
+
+	/**
+	 * Returns the ScriptSource associated with this Source or `null` if there is
+	 * none.
+	 */
+	ScriptSource asScriptSource();
 
 	static Source forResource(String resource, RunContext ctx) {
 		ResourceRef resourceRef = ResourceRef.forScriptResource(resource);

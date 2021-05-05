@@ -71,6 +71,7 @@ public class ScriptSource implements Source {
 	private List<KeyValue> agentOptions;
 	private Optional<String> description = Optional.empty();
 	private File jar;
+	private JarSource jarSource;
 
 	protected ScriptSource(String script) {
 		this(ResourceRef.forFile(null), script);
@@ -113,7 +114,7 @@ public class ScriptSource implements Source {
 		return dependencies;
 	}
 
-	private List<String> collectDependencies(Properties props) {
+	public List<String> collectDependencies(Properties props) {
 		return collectDependencies(getLines(), props);
 	}
 
@@ -263,7 +264,7 @@ public class ScriptSource implements Source {
 		return repositories;
 	}
 
-	private List<MavenRepo> collectRepositories() {
+	public List<MavenRepo> collectRepositories() {
 		return getLines()	.stream()
 							.filter(ScriptSource::isRepoDeclare)
 							.flatMap(ScriptSource::extractRepositories)
@@ -404,15 +405,18 @@ public class ScriptSource implements Source {
 
 	@Override
 	public JarSource asJarSource() {
-		JarSource result = null;
-		File jarFile = getJarFile();
-		if (jarFile != null && jarFile.exists()) {
-			JarSource jarSrc = JarSource.prepareJar(getResourceRef(), jarFile);
-			if (jarSrc.resolveClassPath(Collections.emptyList()).isValid()) {
-				result = jarSrc;
+		if (jarSource == null) {
+			File jarFile = getJarFile();
+			if (jarFile != null && jarFile.exists()) {
+				jarSource = JarSource.prepareJar(this);
 			}
 		}
-		return result;
+		return jarSource;
+	}
+
+	@Override
+	public ScriptSource asScriptSource() {
+		return this;
 	}
 
 	static private String getBackingFileContent(File backingFile) {
@@ -438,7 +442,7 @@ public class ScriptSource implements Source {
 		return filerefs;
 	}
 
-	private List<RefTarget> collectFiles() {
+	public List<RefTarget> collectFiles() {
 		return getLines()	.stream()
 							.filter(f -> f.startsWith(FILES_COMMENT_PREFIX))
 							.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
@@ -477,7 +481,7 @@ public class ScriptSource implements Source {
 		}
 	}
 
-	private List<ScriptSource> collectSources() {
+	public List<ScriptSource> collectSources() {
 		if (getLines() == null) {
 			return Collections.emptyList();
 		} else {
