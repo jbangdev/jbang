@@ -133,7 +133,7 @@ class AppInstall extends BaseCommand {
 	private static void installShellScript(Path file, String scriptRef, boolean benative) throws IOException {
 		List<String> lines = Arrays.asList(
 				"#!/bin/sh",
-				"eval \"exec jbang run" + (benative ? " --native " : " ") + scriptRef + " $*\"");
+				"exec jbang run" + (benative ? " --native " : " ") + scriptRef + " \"$@\"");
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 		setExecutable(file);
 	}
