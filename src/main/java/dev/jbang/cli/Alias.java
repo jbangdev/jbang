@@ -13,6 +13,7 @@ import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.Source;
+import dev.jbang.util.ConsoleOutput;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -144,7 +145,7 @@ class AliasList extends BaseAliasCommand {
 																											Collectors.groupingBy(
 																													e -> e.getValue().catalog.catalogRef));
 		groups.forEach((ref, entries) -> {
-			out.println(ref.getOriginalResource());
+			out.println(ConsoleOutput.bold(ref.getOriginalResource()));
 			entries.stream().map(Map.Entry::getKey).sorted().forEach(k -> printAlias(out, catalogName, catalog, k, 3));
 		});
 	}
@@ -161,37 +162,23 @@ class AliasList extends BaseAliasCommand {
 		}
 		out.print(Util.repeat(" ", indent));
 		if (alias.description != null) {
-			out.println(yellow(fullName) + " = " + alias.description);
+			out.println(ConsoleOutput.yellow(fullName) + " = " + alias.description);
 			if (Util.isVerbose())
-				out.println(Util.repeat(" ", fullName.length() + indent) + faint("   (" + scriptRef + ")"));
+				out.println(
+						Util.repeat(" ", fullName.length() + indent) + ConsoleOutput.faint("   (" + scriptRef + ")"));
 		} else {
-			out.println(yellow(fullName) + " = " + scriptRef);
+			out.println(ConsoleOutput.yellow(fullName) + " = " + scriptRef);
 		}
 		if (alias.arguments != null) {
 			out.println(
-					Util.repeat(" ", fullName.length() + indent) + cyan("   Arguments: ")
+					Util.repeat(" ", fullName.length() + indent) + ConsoleOutput.cyan("   Arguments: ")
 							+ String.join(" ", alias.arguments));
 		}
 		if (alias.properties != null) {
 			out.println(
-					Util.repeat(" ", fullName.length() + indent) + magenta("   Properties: ") + alias.properties);
+					Util.repeat(" ", fullName.length() + indent) + ConsoleOutput.magenta("   Properties: ")
+							+ alias.properties);
 		}
-	}
-
-	private static String yellow(String text) {
-		return CommandLine.Help.Ansi.AUTO.new Text("@|fg(yellow) " + text + "|@").toString();
-	}
-
-	private static String cyan(String text) {
-		return CommandLine.Help.Ansi.AUTO.new Text("@|fg(cyan) " + text + "|@").toString();
-	}
-
-	private static String magenta(String text) {
-		return CommandLine.Help.Ansi.AUTO.new Text("@|fg(magenta) " + text + "|@").toString();
-	}
-
-	private static String faint(String text) {
-		return CommandLine.Help.Ansi.AUTO.new Text("@|faint " + text + "|@").toString();
 	}
 }
 

@@ -1,9 +1,10 @@
 Feature: catalog testing
 
 Scenario: java catalog list
-  When command('jbang catalog add --global --name tc jbang-catalog.json')
+  When command('jbang catalog add --global --name averylongcatalogname jbang-catalog.json')
   And command('jbang catalog list')
-  Then match out contains "tc = JBang test scripts"
+  Then match out contains "averylongcatalogname"
+  Then match out contains "JBang test scripts"
 
 Scenario: add catalog and run catalog named reference
   When command('jbang catalog add --global --name tc jbang-catalog.json')

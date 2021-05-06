@@ -12,6 +12,7 @@ import dev.jbang.Settings;
 import dev.jbang.catalog.CatalogRef;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.source.ResourceRef;
+import dev.jbang.util.ConsoleOutput;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -173,7 +174,7 @@ class CatalogList extends BaseCatalogCommand {
 																													Collectors.groupingBy(
 																															e -> e.getValue().catalog.catalogRef));
 		groups.forEach((ref, entries) -> {
-			out.println(ref.getOriginalResource());
+			out.println(ConsoleOutput.bold(ref.getOriginalResource()));
 			entries	.stream()
 					.map(Map.Entry::getKey)
 					.sorted()
@@ -187,12 +188,12 @@ class CatalogList extends BaseCatalogCommand {
 		String fullName = catalogName != null ? name + "@" + catalogName : name;
 		CatalogRef ref = catalog.catalogs.get(name);
 		if (ref.description != null) {
-			out.println(fullName + " = " + ref.description);
+			out.println(ConsoleOutput.yellow(fullName) + " = " + ref.description);
 			out.println(Util.repeat(" ", fullName.length() + indent) + "   ("
 					+ ref.catalogRef
 					+ ")");
 		} else {
-			out.println(fullName + " = " + ref.catalogRef);
+			out.println(ConsoleOutput.yellow(fullName) + " = " + ref.catalogRef);
 		}
 	}
 }
