@@ -313,9 +313,9 @@ public class ResourceRef implements Comparable<ResourceRef> {
 
 	private static ResourceRef fetchFromURL(String scriptURL) {
 		try {
-			scriptURL = swizzleURL(scriptURL);
-			Path path = Util.downloadAndCacheFile(scriptURL);
-			return forCachedResource(scriptURL, path.toFile());
+			String url = swizzleURL(scriptURL);
+			Path path = Util.downloadAndCacheFile(url);
+			return forCachedResource(url, path.toFile());
 		} catch (IOException e) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Could not download " + scriptURL, e);
 		}
