@@ -223,7 +223,7 @@ public class TestRun extends BaseTest {
 	@Test
 	void testJarViaHttps(@TempDir Path tdir) throws IOException {
 
-		String jar = "https://bintray.com/cardillo/maven/download_file?file_path=joinery%2Fjoinery-dataframe%2F1.9%2Fjoinery-dataframe-1.9-jar-with-dependencies.jar";
+		String jar = "https://repo1.maven.org/maven2/io/joshworks/runnable-jar/0.2/runnable-jar-0.2.jar";
 
 		try {
 			TrustedSources.instance().add(jar, tdir.resolve("test.trust").toFile());
