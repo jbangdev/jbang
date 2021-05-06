@@ -297,6 +297,23 @@ public class Catalog {
 		return catalog;
 	}
 
+	// Returns the implicit name for a Catalog if that Catalog was found in
+	// the list of implicit catalogs
+	public static String findImplicitName(Catalog catalog) {
+		Path file = Settings.getUserImplicitCatalogFile();
+		if (Files.isRegularFile(file) && Files.isReadable(file)) {
+			Catalog implicit = get(file);
+			return implicit.catalogs.entrySet()
+									.stream()
+									.filter(e -> catalog.catalogRef	.getOriginalResource()
+																	.equals(e.getValue().catalogRef))
+									.map(e -> e.getKey())
+									.findAny()
+									.orElse(null);
+		}
+		return null;
+	}
+
 	// This returns the built-in Catalog that can be found in the resources
 	public static Catalog getBuiltin() {
 		Catalog catalog = new Catalog(null, null, null);
