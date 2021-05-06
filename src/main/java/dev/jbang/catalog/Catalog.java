@@ -48,23 +48,21 @@ public class Catalog {
 	public final String description;
 	public transient ResourceRef catalogRef;
 
-	public Catalog(String baseRef, String description, ResourceRef catalogRef) {
-		this.baseRef = baseRef;
-		this.description = description;
-		this.catalogRef = catalogRef;
-	}
-
 	public Catalog(String baseRef, String description, ResourceRef catalogRef, Map<String, CatalogRef> catalogs,
 			Map<String, Alias> aliases, Map<String, Template> templates) {
 		this.baseRef = baseRef;
 		this.description = description;
 		this.catalogRef = catalogRef;
 		catalogs.forEach((key, c) -> this.catalogs.put(key,
-				new CatalogRef(c.catalogRef, c.description)));
+				new CatalogRef(c.catalogRef, c.description, this)));
 		aliases.forEach((key, a) -> this.aliases.put(key,
 				new Alias(a.scriptRef, a.description, a.arguments, a.properties, this)));
 		templates.forEach((key, t) -> this.templates.put(key,
 				new Template(t.fileRefs, t.description, this)));
+	}
+
+	public static Catalog empty() {
+		return new Catalog(null, null, null, Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap());
 	}
 
 	/**
@@ -136,7 +134,7 @@ public class Catalog {
 	}
 
 	/**
-	 * Load a Catalog's aliases given the name of a previously registered Catalog
+	 * Load a Catalog given the name of a previously registered Catalog
 	 *
 	 * @param catalogName The name of a registered
 	 * @return An Aliases object
@@ -232,7 +230,7 @@ public class Catalog {
 			return false;
 		});
 
-		Catalog result = new Catalog(null, null, null);
+		Catalog result = Catalog.empty();
 		Collections.reverse(catalogs);
 		for (Catalog catalog : catalogs) {
 			if (!includeImplicits
@@ -274,7 +272,7 @@ public class Catalog {
 		} else if (accept.apply(getBuiltin())) {
 			return getBuiltin();
 		}
-		return new Catalog(null, null, null);
+		return Catalog.empty();
 	}
 
 	public static Catalog get(Path catalogPath) {
@@ -316,7 +314,7 @@ public class Catalog {
 
 	// This returns the built-in Catalog that can be found in the resources
 	public static Catalog getBuiltin() {
-		Catalog catalog = new Catalog(null, null, null);
+		Catalog catalog = Catalog.empty();
 		if (Util.isFresh() || !catalogCache.containsKey(CACHE_BUILTIN)) {
 			String res = "classpath:/" + JBANG_CATALOG_JSON;
 			ResourceRef catRef = ResourceRef.forResource(res);
@@ -338,7 +336,7 @@ public class Catalog {
 
 	static Catalog read(Path catalogPath) {
 		Util.verboseMsg(String.format("Reading catalog from %s", catalogPath));
-		Catalog catalog = new Catalog(null, null, null);
+		Catalog catalog = Catalog.empty();
 		if (Files.isRegularFile(catalogPath)) {
 			try (Reader in = Files.newBufferedReader(catalogPath)) {
 				catalog = read(in);
@@ -365,6 +363,7 @@ public class Catalog {
 			}
 			for (String catName : catalog.catalogs.keySet()) {
 				CatalogRef cat = catalog.catalogs.get(catName);
+				cat.catalog = catalog;
 				check(cat.catalogRef != null, "Missing required attribute 'catalogs.catalogRef'");
 			}
 			for (String aliasName : catalog.aliases.keySet()) {
@@ -379,7 +378,7 @@ public class Catalog {
 				check(!tpl.fileRefs.isEmpty(), "Attribute 'templates.file-refs' has no elements");
 			}
 		} else {
-			catalog = new Catalog(null, null, null);
+			catalog = Catalog.empty();
 		}
 		return catalog;
 	}

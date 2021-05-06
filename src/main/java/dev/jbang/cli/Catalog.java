@@ -4,10 +4,14 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import dev.jbang.Settings;
 import dev.jbang.catalog.CatalogRef;
 import dev.jbang.catalog.CatalogUtil;
+import dev.jbang.source.ResourceRef;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -108,6 +112,9 @@ class CatalogUpdate extends BaseCatalogCommand {
 @CommandLine.Command(name = "list", description = "Show currently defined catalogs.")
 class CatalogList extends BaseCatalogCommand {
 
+	@CommandLine.Option(names = { "--show-origin" }, description = "Show the origin of the catalog")
+	boolean showOrigin;
+
 	@CommandLine.Parameters(paramLabel = "name", index = "0", description = "The name of a catalog", arity = "0..1")
 	String name;
 
@@ -122,7 +129,11 @@ class CatalogList extends BaseCatalogCommand {
 			} else {
 				catalog = dev.jbang.catalog.Catalog.getMerged(true);
 			}
-			printCatalogs(out, name, catalog);
+			if (showOrigin) {
+				printCatalogsWithOrigin(out, name, catalog);
+			} else {
+				printCatalogs(out, name, catalog);
+			}
 		} else {
 			dev.jbang.catalog.Catalog catalog = dev.jbang.catalog.Catalog.getByName(name);
 			if (!catalog.aliases.isEmpty()) {
@@ -150,17 +161,34 @@ class CatalogList extends BaseCatalogCommand {
 						.stream()
 						.sorted()
 						.forEach(nm -> {
-							printCatalog(out, catalogName, catalog, nm);
+							printCatalog(out, catalogName, catalog, nm, 0);
 						});
 	}
 
+	static void printCatalogsWithOrigin(PrintStream out, String catalogName, dev.jbang.catalog.Catalog catalog) {
+		Map<ResourceRef, List<Map.Entry<String, dev.jbang.catalog.CatalogRef>>> groups = catalog.catalogs
+																											.entrySet()
+																											.stream()
+																											.collect(
+																													Collectors.groupingBy(
+																															e -> e.getValue().catalog.catalogRef));
+		groups.forEach((ref, entries) -> {
+			out.println(ref.getOriginalResource());
+			entries	.stream()
+					.map(Map.Entry::getKey)
+					.sorted()
+					.forEach(k -> printCatalog(out, catalogName, catalog, k, 3));
+		});
+	}
+
 	private static void printCatalog(PrintStream out, String catalogName, dev.jbang.catalog.Catalog catalog,
-			String name) {
+			String name, int indent) {
+		out.print(Util.repeat(" ", indent));
 		String fullName = catalogName != null ? name + "@" + catalogName : name;
 		CatalogRef ref = catalog.catalogs.get(name);
 		if (ref.description != null) {
 			out.println(fullName + " = " + ref.description);
-			out.println(Util.repeat(" ", fullName.length()) + "   ("
+			out.println(Util.repeat(" ", fullName.length() + indent) + "   ("
 					+ ref.catalogRef
 					+ ")");
 		} else {

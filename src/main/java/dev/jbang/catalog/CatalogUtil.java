@@ -231,7 +231,7 @@ public class CatalogUtil {
 		} catch (InvalidPathException ex) {
 			// Ignore
 		}
-		CatalogRef ref = new CatalogRef(catalogRef, description);
+		CatalogRef ref = new CatalogRef(catalogRef, description, catalog);
 		catalog.catalogs.put(name, ref);
 		try {
 			catalog.write();
