@@ -245,7 +245,7 @@ public class TestApp extends BaseTest {
 	void testAppInstallAliasFromRepo() throws IOException {
 		String src = examplesTestFolder.resolve("helloworld.java").toString();
 		checkedRun(null, "alias", "add", "-g", "--name=apptest", src);
-		checkedRun(null, "catalog", "add", "-g", "testrepo",
+		checkedRun(null, "catalog", "add", "-g", "--name=testrepo",
 				jbangTempDir.resolve("jbang-catalog.json").toString());
 		ExecutionResult result = checkedRun(null, "app", "install", "apptest@testrepo");
 		assertThat(result.err, containsString("Command installed: apptest"));

@@ -57,17 +57,20 @@ class CatalogAdd extends BaseCatalogCommand {
 			"-d" }, description = "A description for the catalog")
 	String description;
 
-	@CommandLine.Parameters(paramLabel = "name", index = "0", description = "A name for the catalog", arity = "1")
+	@CommandLine.Option(names = { "--name" }, description = "A name for the alias")
 	String name;
 
-	@CommandLine.Parameters(paramLabel = "urlOrFile", index = "1", description = "A file or URL to a catalog file", arity = "1")
+	@CommandLine.Parameters(paramLabel = "urlOrFile", index = "0", description = "A file or URL to a catalog file", arity = "1")
 	String urlOrFile;
 
 	@Override
 	public Integer doCall() {
-		if (!name.matches("^[a-zA-Z][-.\\w]*$")) {
+		if (name != null && !dev.jbang.catalog.Catalog.isValidName(name)) {
 			throw new IllegalArgumentException(
 					"Invalid catalog name, it should start with a letter followed by 0 or more letters, digits, underscores, hyphens or dots");
+		}
+		if (name == null) {
+			name = CatalogUtil.nameFromRef(urlOrFile);
 		}
 		CatalogRef ref = CatalogRef.createByRefOrImplicit(urlOrFile);
 		Path catFile = getCatalog(false);
@@ -76,7 +79,7 @@ class CatalogAdd extends BaseCatalogCommand {
 		} else {
 			catFile = CatalogUtil.addNearestCatalogRef(name, ref.catalogRef, ref.description);
 		}
-		info(String.format("Catalog added to %s", catFile));
+		info(String.format("Catalog '%s' added to '%s'", name, catFile));
 		return EXIT_OK;
 	}
 }
