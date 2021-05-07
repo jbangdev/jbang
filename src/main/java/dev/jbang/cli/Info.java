@@ -6,8 +6,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
@@ -52,89 +54,80 @@ abstract class BaseInfoCommand extends BaseScriptDepsCommand {
 	}
 
 	class ScriptInfo {
-
 		String originalResource;
-
 		String backingResource;
-
 		String applicationJar;
-
 		String mainClass;
-
 		List<String> dependencies;
-
 		List<Repo> repositories;
-
 		List<String> resolvedDependencies;
-
 		String javaVersion;
-
 		String requestedJavaVersion;
-
 		String availableJdkPath;
-
 		List<String> compileOptions;
-
 		List<String> runtimeOptions;
-
 		List<ResourceFile> files;
-
 		List<ScriptInfo> sources;
 
 		public ScriptInfo(Source src, RunContext ctx) {
 			originalResource = src.getResourceRef().getOriginalResource();
-			backingResource = src.getResourceRef().getFile().toString();
 
-			ScriptSource ss = src.asScriptSource();
-			List<String> deps = ss.collectDependencies(System.getProperties());
-			if (!deps.isEmpty()) {
-				dependencies = deps;
-			}
-			if (!ss.collectRepositories().isEmpty()) {
-				repositories = ss	.collectRepositories()
-									.stream()
-									.map(repo -> new Repo(repo))
-									.collect(Collectors.toList());
-			}
-			List<RefTarget> refs = ss.collectFiles();
-			if (!refs.isEmpty()) {
-				files = refs.stream()
-							.map(ref -> new ResourceFile(ref))
-							.collect(Collectors.toList());
-			}
-			List<ScriptSource> srcs = ss.collectSources();
-			if (!srcs.isEmpty()) {
-				sources = srcs	.stream()
-								.map(s -> new ScriptInfo(s, null))
+			if (scripts.add(originalResource)) {
+				backingResource = src.getResourceRef().getFile().toString();
+
+				ScriptSource ss = src.asScriptSource();
+				List<String> deps = ss.collectDependencies(System.getProperties());
+				if (!deps.isEmpty()) {
+					dependencies = deps;
+				}
+				if (!ss.collectRepositories().isEmpty()) {
+					repositories = ss	.collectRepositories()
+										.stream()
+										.map(repo -> new Repo(repo))
+										.collect(Collectors.toList());
+				}
+				List<RefTarget> refs = ss.collectFiles();
+				if (!refs.isEmpty()) {
+					files = refs.stream()
+								.map(ref -> new ResourceFile(ref))
 								.collect(Collectors.toList());
-			}
-			if (!ss.getCompileOptions().isEmpty()) {
-				compileOptions = ss.getCompileOptions();
-			}
-
-			if (ctx != null) {
-				applicationJar = src.getJarFile().getAbsolutePath();
-				mainClass = ctx.getMainClassOr(src);
-				requestedJavaVersion = src.getJavaVersion();
-				availableJdkPath = Objects.toString(JdkManager.getCurrentJdk(requestedJavaVersion), null);
-
-				String cp = ctx.resolveClassPath(src);
-				if (cp.isEmpty()) {
-					resolvedDependencies = Collections.emptyList();
-				} else {
-					resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
+				}
+				List<ScriptSource> srcs = ss.collectSources();
+				if (!srcs.isEmpty()) {
+					sources = srcs	.stream()
+									.map(s -> new ScriptInfo(s, null))
+									.collect(Collectors.toList());
+				}
+				if (!ss.getCompileOptions().isEmpty()) {
+					compileOptions = ss.getCompileOptions();
 				}
 
-				if (ctx.getBuildJdk() > 0) {
-					javaVersion = Integer.toString(ctx.getBuildJdk());
-				}
+				if (ctx != null) {
+					applicationJar = src.getJarFile().getAbsolutePath();
+					mainClass = ctx.getMainClassOr(src);
+					requestedJavaVersion = src.getJavaVersion();
+					availableJdkPath = Objects.toString(JdkManager.getCurrentJdk(requestedJavaVersion), null);
 
-				if (ctx.getRuntimeOptions() != null && !ctx.getRuntimeOptions().isEmpty()) {
-					runtimeOptions = ctx.getRuntimeOptions();
+					String cp = ctx.resolveClassPath(src);
+					if (cp.isEmpty()) {
+						resolvedDependencies = Collections.emptyList();
+					} else {
+						resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
+					}
+
+					if (ctx.getBuildJdk() > 0) {
+						javaVersion = Integer.toString(ctx.getBuildJdk());
+					}
+
+					if (ctx.getRuntimeOptions() != null && !ctx.getRuntimeOptions().isEmpty()) {
+						runtimeOptions = ctx.getRuntimeOptions();
+					}
 				}
 			}
 		}
 	}
+
+	private static Set<String> scripts;
 
 	ScriptInfo getInfo() {
 		if (insecure) {
@@ -145,6 +138,7 @@ abstract class BaseInfoCommand extends BaseScriptDepsCommand {
 				dependencyInfoMixin.getClasspaths(), forcejsh);
 		Source src = ctx.importJarMetadataFor(Source.forResource(scriptOrFile, ctx));
 
+		scripts = new HashSet<>();
 		ScriptInfo info = new ScriptInfo(src, ctx);
 
 		return info;
