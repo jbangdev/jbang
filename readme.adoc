@@ -1286,11 +1286,11 @@ Catalogs are lists of Aliases as defined in the previous section, but while the 
 within a catalog, the `catalog` command is for managing references to catalogs. This is mostly useful when dealing with
 remote catalogs. You can for example add a catalog like this:
 
-  jbang catalog add demo https://github.com/jbangdev/jbang-catalog/blob/master/jbang-catalog.json
+  jbang catalog add --name demo https://github.com/jbangdev/jbang-catalog/blob/master/jbang-catalog.json
 
 or simply by using the same "implicit" catalog system described in <<Implicit Alias Catalogs>>:
 
-  jbang catalog add demo jbangdev
+  jbang catalog add --name demo jbangdev
 
 The aliases in that catalog are now available by adding `@demo` to their names. For example:
 
@@ -1303,7 +1303,7 @@ The aliases in that catalog are now available by adding `@demo` to their names. 
   [jbang] Building jar...
   Hello World!
 
-In fact it's possible to run the alias just by using `jbang run hello`, the `@demo` part is only necessary when trying to
+In fact, it's possible to run the alias just by using `jbang run hello`, the `@demo` part is only necessary when trying to
 disambiguate between aliases with the same name from different catalogs.
 
 You can list the available catalogs by running:
