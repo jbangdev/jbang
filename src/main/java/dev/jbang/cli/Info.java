@@ -152,7 +152,7 @@ class Tools extends BaseInfoCommand {
 	@Override
 	public Integer doCall() throws IOException {
 
-		Gson parser = new GsonBuilder().setPrettyPrinting().create();
+		Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 		parser.toJson(getInfo(), System.out);
 
 		return EXIT_OK;
