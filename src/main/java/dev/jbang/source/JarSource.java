@@ -32,10 +32,12 @@ public class JarSource implements Source {
 	private final ResourceRef resourceRef;
 	private final File jarFile;
 
+	// Cached values
 	private String classPath;
 	private String mainClass;
 	private List<String> javaRuntimeOptions;
 	private int buildJdk;
+	private ScriptSource scriptSource;
 
 	private JarSource(ResourceRef resourceRef, File jar) {
 		this.resourceRef = resourceRef;
@@ -76,6 +78,22 @@ public class JarSource implements Source {
 	@Override
 	public JarSource asJarSource() {
 		return this;
+	}
+
+	@Override
+	public ScriptSource asScriptSource() {
+		if (scriptSource == null) {
+			scriptSource = ScriptSource.prepareScript(resourceRef);
+		}
+		return scriptSource;
+	}
+
+	/**
+	 * Determines if the associated jar is up-to-date, returns false if it needs to
+	 * be rebuilt
+	 */
+	public boolean isUpToDate() {
+		return jarFile != null && jarFile.exists() && resolveClassPath(Collections.emptyList()).isValid();
 	}
 
 	@Override
@@ -134,5 +152,11 @@ public class JarSource implements Source {
 
 	public static JarSource prepareJar(ResourceRef resourceRef, File jarFile) {
 		return new JarSource(resourceRef, jarFile);
+	}
+
+	public static JarSource prepareJar(ScriptSource ssrc) {
+		JarSource jsrc = new JarSource(ssrc.getResourceRef(), ssrc.getJarFile());
+		jsrc.scriptSource = ssrc;
+		return jsrc;
 	}
 }

@@ -285,7 +285,7 @@ public class RunContext {
 	 */
 	public Source importJarMetadataFor(Source src) {
 		JarSource jar = src.asJarSource();
-		if (jar != null && jar.getJarFile().exists()) {
+		if (jar != null && jar.isUpToDate()) {
 			setMainClass(jar.getMainClass());
 			setRuntimeOptions(jar.getRuntimeOptions());
 			setBuildJdk(JavaUtil.javaVersion(jar.getJavaVersion()));

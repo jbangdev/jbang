@@ -103,6 +103,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 			// We already have a Jar, check if we can still use it
 			JarSource jarSrc = src.asJarSource();
 			if (jarSrc == null
+					|| !jarSrc.isUpToDate()
 					|| JavaUtil.javaVersion(requestedJavaVersion) < JavaUtil.javaVersion(jarSrc.getJavaVersion())) {
 				buildRequired = true;
 			} else {
