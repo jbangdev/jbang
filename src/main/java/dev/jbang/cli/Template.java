@@ -15,6 +15,7 @@ import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.source.ResourceRef;
+import dev.jbang.util.ConsoleOutput;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -242,9 +243,9 @@ class TemplateList extends BaseTemplateCommand {
 		String fullName = catalogName != null ? name + "@" + catalogName : name;
 		out.print(Util.repeat(" ", indent));
 		if (template.description != null) {
-			out.println(yellow(fullName) + " = " + template.description);
+			out.println(ConsoleOutput.yellow(fullName) + " = " + template.description);
 		} else {
-			out.println(yellow(fullName) + " = ");
+			out.println(ConsoleOutput.yellow(fullName) + " = ");
 		}
 		if (showFiles) {
 			for (String dest : template.fileRefs.keySet()) {
@@ -261,22 +262,6 @@ class TemplateList extends BaseTemplateCommand {
 				}
 			}
 		}
-	}
-
-	private static String yellow(String text) {
-		return CommandLine.Help.Ansi.AUTO.new Text("@|fg(yellow) " + text + "|@").toString();
-	}
-
-	private static String cyan(String text) {
-		return CommandLine.Help.Ansi.AUTO.new Text("@|fg(cyan) " + text + "|@").toString();
-	}
-
-	private static String magenta(String text) {
-		return CommandLine.Help.Ansi.AUTO.new Text("@|fg(magenta) " + text + "|@").toString();
-	}
-
-	private static String faint(String text) {
-		return CommandLine.Help.Ansi.AUTO.new Text("@|faint " + text + "|@").toString();
 	}
 }
 

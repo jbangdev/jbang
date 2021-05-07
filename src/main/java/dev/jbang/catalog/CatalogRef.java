@@ -13,12 +13,13 @@ import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
 import dev.jbang.util.Util;
 
-public class CatalogRef {
+public class CatalogRef extends CatalogItem {
 	@SerializedName(value = "catalog-ref", alternate = { "catalogRef" })
 	public final String catalogRef;
 	public final String description;
 
-	CatalogRef(String catalogRef, String description) {
+	CatalogRef(String catalogRef, String description, Catalog catalog) {
+		super(catalog);
 		this.catalogRef = catalogRef;
 		this.description = description;
 	}
@@ -33,7 +34,7 @@ public class CatalogRef {
 	public static CatalogRef createByRefOrImplicit(String catalogRef) {
 		if (Util.isAbsoluteRef(catalogRef) || Files.isRegularFile(Paths.get(catalogRef))) {
 			Catalog cat = Catalog.getByRef(catalogRef);
-			return new CatalogRef(catalogRef, cat.description);
+			return new CatalogRef(catalogRef, cat.description, cat);
 		} else {
 			Optional<String> url = ImplicitCatalogRef.getImplicitCatalogUrl(catalogRef);
 			if (!url.isPresent()) {
@@ -41,7 +42,7 @@ public class CatalogRef {
 						"Unable to locate catalog: " + catalogRef);
 			}
 			Catalog cat = Catalog.getByRef(url.get());
-			return new CatalogRef(url.get(), cat.description);
+			return new CatalogRef(url.get(), cat.description, cat);
 		}
 	}
 

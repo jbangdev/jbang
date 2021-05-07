@@ -4,10 +4,15 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import dev.jbang.Settings;
 import dev.jbang.catalog.CatalogRef;
 import dev.jbang.catalog.CatalogUtil;
+import dev.jbang.source.ResourceRef;
+import dev.jbang.util.ConsoleOutput;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -57,17 +62,20 @@ class CatalogAdd extends BaseCatalogCommand {
 			"-d" }, description = "A description for the catalog")
 	String description;
 
-	@CommandLine.Parameters(paramLabel = "name", index = "0", description = "A name for the catalog", arity = "1")
+	@CommandLine.Option(names = { "--name" }, description = "A name for the alias")
 	String name;
 
-	@CommandLine.Parameters(paramLabel = "urlOrFile", index = "1", description = "A file or URL to a catalog file", arity = "1")
+	@CommandLine.Parameters(paramLabel = "urlOrFile", index = "0", description = "A file or URL to a catalog file", arity = "1")
 	String urlOrFile;
 
 	@Override
 	public Integer doCall() {
-		if (!name.matches("^[a-zA-Z][-.\\w]*$")) {
+		if (name != null && !dev.jbang.catalog.Catalog.isValidName(name)) {
 			throw new IllegalArgumentException(
 					"Invalid catalog name, it should start with a letter followed by 0 or more letters, digits, underscores, hyphens or dots");
+		}
+		if (name == null) {
+			name = CatalogUtil.nameFromRef(urlOrFile);
 		}
 		CatalogRef ref = CatalogRef.createByRefOrImplicit(urlOrFile);
 		Path catFile = getCatalog(false);
@@ -76,7 +84,7 @@ class CatalogAdd extends BaseCatalogCommand {
 		} else {
 			catFile = CatalogUtil.addNearestCatalogRef(name, ref.catalogRef, ref.description);
 		}
-		info(String.format("Catalog added to %s", catFile));
+		info(String.format("Catalog '%s' added to '%s'", name, catFile));
 		return EXIT_OK;
 	}
 }
@@ -105,6 +113,9 @@ class CatalogUpdate extends BaseCatalogCommand {
 @CommandLine.Command(name = "list", description = "Show currently defined catalogs.")
 class CatalogList extends BaseCatalogCommand {
 
+	@CommandLine.Option(names = { "--show-origin" }, description = "Show the origin of the catalog")
+	boolean showOrigin;
+
 	@CommandLine.Parameters(paramLabel = "name", index = "0", description = "The name of a catalog", arity = "0..1")
 	String name;
 
@@ -119,7 +130,11 @@ class CatalogList extends BaseCatalogCommand {
 			} else {
 				catalog = dev.jbang.catalog.Catalog.getMerged(true);
 			}
-			printCatalogs(out, name, catalog);
+			if (showOrigin) {
+				printCatalogsWithOrigin(out, name, catalog);
+			} else {
+				printCatalogs(out, name, catalog);
+			}
 		} else {
 			dev.jbang.catalog.Catalog catalog = dev.jbang.catalog.Catalog.getByName(name);
 			if (!catalog.aliases.isEmpty()) {
@@ -147,21 +162,38 @@ class CatalogList extends BaseCatalogCommand {
 						.stream()
 						.sorted()
 						.forEach(nm -> {
-							printCatalog(out, catalogName, catalog, nm);
+							printCatalog(out, catalogName, catalog, nm, 0);
 						});
 	}
 
+	static void printCatalogsWithOrigin(PrintStream out, String catalogName, dev.jbang.catalog.Catalog catalog) {
+		Map<ResourceRef, List<Map.Entry<String, dev.jbang.catalog.CatalogRef>>> groups = catalog.catalogs
+																											.entrySet()
+																											.stream()
+																											.collect(
+																													Collectors.groupingBy(
+																															e -> e.getValue().catalog.catalogRef));
+		groups.forEach((ref, entries) -> {
+			out.println(ConsoleOutput.bold(ref.getOriginalResource()));
+			entries	.stream()
+					.map(Map.Entry::getKey)
+					.sorted()
+					.forEach(k -> printCatalog(out, catalogName, catalog, k, 3));
+		});
+	}
+
 	private static void printCatalog(PrintStream out, String catalogName, dev.jbang.catalog.Catalog catalog,
-			String name) {
+			String name, int indent) {
+		out.print(Util.repeat(" ", indent));
 		String fullName = catalogName != null ? name + "@" + catalogName : name;
 		CatalogRef ref = catalog.catalogs.get(name);
 		if (ref.description != null) {
-			out.println(fullName + " = " + ref.description);
-			out.println(Util.repeat(" ", fullName.length()) + "   ("
+			out.println(ConsoleOutput.yellow(fullName) + " = " + ref.description);
+			out.println(Util.repeat(" ", fullName.length() + indent) + "   ("
 					+ ref.catalogRef
 					+ ")");
 		} else {
-			out.println(fullName + " = " + ref.catalogRef);
+			out.println(ConsoleOutput.yellow(fullName) + " = " + ref.catalogRef);
 		}
 	}
 }
