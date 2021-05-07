@@ -1,11 +1,21 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for all configuration options:
-# https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
-
 version: 2
 updates:
-  - package-ecosystem: "gradle" # See documentation for possible values
-    directory: "/" # Location of package manifests
-    schedule:
-      interval: "daily"
+- package-ecosystem: gradle
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: com.diffplug.spotless
+    versions:
+    - ">= 5.8.a, < 5.9"
+  - dependency-name: io.toolebox.git-versioner
+    versions:
+    - "> 1.6.4, < 1.7"
+  - dependency-name: org.asciidoctor.jvm.convert
+    versions:
+    - 3.3.1
+    - 3.3.2
+  - dependency-name: org.junit.jupiter:junit-jupiter
+    versions:
+    - 5.7.1
