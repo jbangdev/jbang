@@ -185,7 +185,7 @@ public class ScriptSource implements Source {
 	public ModularClassPath resolveClassPath(List<String> dependencies) {
 		ModularClassPath classpath;
 		List<MavenRepo> repositories = getAllRepositories();
-		classpath = new DependencyUtil().resolveDependencies(dependencies, repositories, Util.isOffline(),
+		classpath = DependencyUtil.resolveDependencies(dependencies, repositories, Util.isOffline(),
 				Util.isFresh(), !Util.isQuiet());
 		return classpath;
 	}

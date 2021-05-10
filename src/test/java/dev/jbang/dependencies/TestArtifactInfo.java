@@ -18,15 +18,14 @@ public class TestArtifactInfo extends BaseTest {
 
 	@Test
 	public void testDependencyCache() {
-
 		DependencyCache.clear();
 
 		List<String> deps = Arrays.asList(
 				"org.apache.commons:commons-configuration2:2.7",
 				"org.apache.commons:commons-text:1.8");
 
-		DependencyUtil dr = new DependencyUtil();
-		ModularClassPath classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, false, true);
+		ModularClassPath classpath = DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false,
+				true);
 
 		DependencyCache.cache("wonka", classpath.getArtifacts());
 
@@ -38,6 +37,5 @@ public class TestArtifactInfo extends BaseTest {
 		assertThat(wonka, hasSize(6));
 
 		assertThat(wonka, contains(classpath.getArtifacts().toArray()));
-
 	}
 }

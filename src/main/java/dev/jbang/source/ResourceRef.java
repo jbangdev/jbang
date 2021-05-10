@@ -232,7 +232,7 @@ public class ResourceRef implements Comparable<ResourceRef> {
 		} else if (DependencyUtil.looksLikeAGav(scriptResource)) {
 			// todo honor offline
 			String gav = scriptResource;
-			String s = new DependencyUtil().resolveDependencies(Collections.singletonList(gav),
+			String s = DependencyUtil.resolveDependencies(Collections.singletonList(gav),
 					Collections.emptyList(), Util.isOffline(), Util.isFresh(), !Util.isQuiet(), false).getClassPath();
 			result = forCachedResource(scriptResource, new File(s));
 		} else {

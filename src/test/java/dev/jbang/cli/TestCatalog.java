@@ -82,4 +82,10 @@ public class TestCatalog extends BaseTest {
 		CatalogUtil.removeCatalogRef(catsFile, "test");
 		assertThat(Catalog.get(catsFile).catalogs, not(hasKey("test")));
 	}
+
+	@Test
+	void testNameFromGAV() throws IOException {
+		String name = CatalogUtil.nameFromRef("com.intuit.karate:karate-core:LATEST");
+		assertThat(name, equalTo("karate-core"));
+	}
 }
