@@ -29,9 +29,7 @@ class DependencyResolverTest extends BaseTest {
 
 	@Test
 	void testFormatVersion() {
-		DependencyUtil dr = new DependencyUtil();
-
-		assertEquals("[1.0,)", dr.formatVersion("1.0+"));
+		assertEquals("[1.0,)", DependencyUtil.formatVersion("1.0+"));
 	}
 
 	@BeforeEach
@@ -41,44 +39,38 @@ class DependencyResolverTest extends BaseTest {
 
 	@Test
 	void testdepIdToArtifact() {
-		DependencyUtil dr = new DependencyUtil();
-
-		MavenCoordinate artifact = dr.depIdToArtifact("com.offbytwo:docopt:0.6.0.20150202:redhat@doc");
+		MavenCoordinate artifact = DependencyUtil.depIdToArtifact("com.offbytwo:docopt:0.6.0.20150202:redhat@doc");
 		assertEquals("com.offbytwo", artifact.getGroupId());
 		assertEquals("docopt", artifact.getArtifactId());
 		assertEquals("0.6.0.20150202", artifact.getVersion());
 		assertEquals("redhat", artifact.getClassifier());
 		assertEquals("doc", artifact.getType().getId());
 
-		artifact = dr.depIdToArtifact("com.offbytwo:docopt:0.6.0.20150202");
+		artifact = DependencyUtil.depIdToArtifact("com.offbytwo:docopt:0.6.0.20150202");
 		assertEquals("com.offbytwo", artifact.getGroupId());
 		assertEquals("docopt", artifact.getArtifactId());
 		assertEquals("0.6.0.20150202", artifact.getVersion());
 		assertEquals("", artifact.getClassifier());
 		assertEquals("jar", artifact.getType().getId());
 
-		artifact = dr.depIdToArtifact("com.offbytwo:docopt:0.6+");
+		artifact = DependencyUtil.depIdToArtifact("com.offbytwo:docopt:0.6+");
 		assertEquals("com.offbytwo", artifact.getGroupId());
 		assertEquals("docopt", artifact.getArtifactId());
 		assertEquals("[0.6,)", artifact.getVersion());
 		assertEquals("", artifact.getClassifier());
 		assertEquals("jar", artifact.getType().getId());
 
-		assertThrows(IllegalStateException.class, () -> dr.depIdToArtifact("bla?f"));
+		assertThrows(IllegalStateException.class, () -> DependencyUtil.depIdToArtifact("bla?f"));
 	}
 
 	@Test
 	void testdecodeEnv() {
-
-		DependencyUtil dr = new DependencyUtil();
-
-		assertThrows(IllegalStateException.class, () -> dr.decodeEnv("{{wonka}}"));
-		assertEquals("wonka", dr.decodeEnv("wonka"));
+		assertThrows(IllegalStateException.class, () -> DependencyUtil.decodeEnv("{{wonka}}"));
+		assertEquals("wonka", DependencyUtil.decodeEnv("wonka"));
 
 		environmentVariables.set("test.value", "wonka");
 
-		assertEquals("wonka", dr.decodeEnv("{{test.value}}"));
-
+		assertEquals("wonka", DependencyUtil.decodeEnv("{{test.value}}"));
 	}
 
 	@Test
@@ -89,7 +81,7 @@ class DependencyResolverTest extends BaseTest {
 		String gav = PropertiesValueResolver.replaceProperties(
 				"com.example:my-native-library:1.0.0:${os.detected.jfxname}");
 
-		MavenCoordinate artifact = new DependencyUtil().depIdToArtifact(gav);
+		MavenCoordinate artifact = DependencyUtil.depIdToArtifact(gav);
 		assertEquals("com.example", artifact.getGroupId());
 		assertEquals("my-native-library", artifact.getArtifactId());
 		assertEquals("1.0.0", artifact.getVersion());
@@ -99,69 +91,55 @@ class DependencyResolverTest extends BaseTest {
 
 	@Test
 	void testResolveJavaFXWithAether() {
-
 		Detector detector = new Detector();
 		detector.detect(new Properties(), Collections.emptyList());
-
-		DependencyUtil dr = new DependencyUtil();
 
 		List<String> deps = Collections.singletonList(
 				PropertiesValueResolver.replaceProperties("org.openjfx:javafx-base:11.0.2:${os.detected.jfxname}"));
 
-		List<ArtifactInfo> artifacts = dr.resolveDependenciesViaAether(deps,
+		List<ArtifactInfo> artifacts = DependencyUtil.resolveDependenciesViaAether(deps,
 				Collections.singletonList(toMavenRepo("mavencentral")), false,
 				true, true);
 
 		assertEquals(1, artifacts.size());
-
 	}
 
 	@Test
 	void testResolveDependenciesWithAether() {
-
-		DependencyUtil dr = new DependencyUtil();
-
 		List<String> deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
 
-		List<ArtifactInfo> artifacts = dr.resolveDependenciesViaAether(deps,
+		List<ArtifactInfo> artifacts = DependencyUtil.resolveDependenciesViaAether(deps,
 				Collections.singletonList(toMavenRepo("mavencentral")), false,
 				true, true);
 
 		assertEquals(2, artifacts.size());
-
 	}
 
 	@Test
 	void testRedHatJBossRepos() {
 		assertEquals(toMavenRepo("jbossorg").getUrl(), "https://repository.jboss.org/nexus/content/groups/public/");
 		assertEquals(toMavenRepo("redhat").getUrl(), "https://maven.repository.redhat.com/ga/");
-
 	}
 
 	@Test
 	void testResolveDependencies() {
-
-		DependencyUtil dr = new DependencyUtil();
-
 		List<String> deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
 
-		ModularClassPath classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, false, true);
+		ModularClassPath classpath = DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false,
+				true);
 
 		// if returns 5 its because optional deps are included which they shouldn't
 		assertEquals(2, classpath.getClassPaths().size());
-
 	}
 
 	@Test
 	void testResolveDependenciesNoDuplicates() {
-
-		DependencyUtil dr = new DependencyUtil();
-
 		List<String> deps = Arrays.asList(
 				"org.apache.commons:commons-configuration2:2.7",
 				"org.apache.commons:commons-text:1.8");
 
-		ModularClassPath classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, false, true);
+		ModularClassPath classpath = DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false,
+				true);
 
 		// if returns with duplicates its because some dependencies are multiple times
 		// in the
@@ -172,35 +150,29 @@ class DependencyResolverTest extends BaseTest {
 		othercps.addAll(cps);
 
 		assertThat(cps, containsInAnyOrder(othercps.toArray()));
-
 	}
 
 	@Test
 	void testResolveNativeDependencies() {
-
 		Detector detector = new Detector();
 		detector.detect(new Properties(), Collections.emptyList());
-
-		DependencyUtil dr = new DependencyUtil();
 
 		// using shrinkwrap resolves in ${os.detected.version} not being resolved
 		List<String> deps = Collections.singletonList("com.github.docker-java:docker-java:3.1.5");
 
-		ModularClassPath classpath = dr.resolveDependencies(deps, Collections.emptyList(), false, false, true);
+		ModularClassPath classpath = DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false,
+				true);
 
 		assertEquals(46, classpath.getClassPaths().size());
-
 	}
 
 	@Test
 	void testResolveJavaModules() throws IOException {
-		DependencyUtil dr = new DependencyUtil();
-
 		// using shrinkwrap resolves in ${os.detected.version} not being resolved
 		List<String> deps = Arrays.asList("org.openjfx:javafx-graphics:11.0.2:mac", "com.offbytwo:docopt:0.6+");
 
 		ModularClassPath cp = new ModularClassPath(
-				dr.resolveDependencies(deps, Collections.emptyList(), false, false, true).getArtifacts()) {
+				DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false, true).getArtifacts()) {
 			@Override
 			protected boolean supportsModules(String requestedVersion) {
 				return true;
@@ -221,15 +193,13 @@ class DependencyResolverTest extends BaseTest {
 	 */
 	@Test
 	void testImportPOM() {
-
 		List<String> deps = Arrays.asList("com.microsoft.azure:azure-bom:1.0.0.M1@pom",
 				"com.microsoft.azure:azure");
 
-		ModularClassPath classpath = new DependencyUtil().resolveDependencies(deps,
+		ModularClassPath classpath = DependencyUtil.resolveDependencies(deps,
 				Collections.emptyList(), false, false, true);
 
 		assertEquals(62, classpath.getArtifacts().size());
-
 	}
 
 }

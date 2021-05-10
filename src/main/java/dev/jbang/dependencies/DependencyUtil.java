@@ -54,7 +54,10 @@ public class DependencyUtil {
 	public static final Pattern gavPattern = Pattern.compile(
 			"^(?<groupid>[^:]*):(?<artifactid>[^:]*)(:(?<version>[^:@]*))?(:(?<classifier>[^@]*))?(@(?<type>.*))?$");
 
-	public ModularClassPath resolveDependencies(List<String> deps, List<MavenRepo> repos,
+	private DependencyUtil() {
+	}
+
+	public static ModularClassPath resolveDependencies(List<String> deps, List<MavenRepo> repos,
 			boolean offline, boolean updateCache, boolean loggingEnabled) {
 		return resolveDependencies(deps, repos, offline, updateCache, loggingEnabled, true);
 	}
@@ -66,7 +69,7 @@ public class DependencyUtil {
 	 * @param loggingEnabled
 	 * @return string with resolved classpath
 	 */
-	public ModularClassPath resolveDependencies(List<String> deps, List<MavenRepo> repos,
+	public static ModularClassPath resolveDependencies(List<String> deps, List<MavenRepo> repos,
 			boolean offline, boolean updateCache, boolean loggingEnabled, boolean transitivity) {
 
 		// if no dependencies were provided we stop here
@@ -130,7 +133,7 @@ public class DependencyUtil {
 		}
 	}
 
-	public List<ArtifactInfo> resolveDependenciesViaAether(List<String> depIds, List<MavenRepo> customRepos,
+	public static List<ArtifactInfo> resolveDependenciesViaAether(List<String> depIds, List<MavenRepo> customRepos,
 			boolean offline, boolean loggingEnabled, boolean transitively) {
 
 		ConfigurableMavenResolverSystem resolver = Maven.configureResolver()
@@ -205,7 +208,7 @@ public class DependencyUtil {
 		}).collect(Collectors.toList());
 	}
 
-	public String decodeEnv(String value) {
+	public static String decodeEnv(String value) {
 		if (value.startsWith("{{") && value.endsWith("}}")) {
 			String envKey = value.substring(2, value.length() - 2);
 			String envValue = System.getenv(envKey);
@@ -225,7 +228,7 @@ public class DependencyUtil {
 		return (gav.matches());
 	}
 
-	public MavenCoordinate depIdToArtifact(String depId) {
+	public static MavenCoordinate depIdToArtifact(String depId) {
 
 		Matcher gav = gavPattern.matcher(depId);
 		gav.find();
@@ -252,7 +255,7 @@ public class DependencyUtil {
 		return MavenCoordinates.createCoordinate(groupId, artifactId, version, PackagingType.of(type), classifier);
 	}
 
-	public String formatVersion(String version) {
+	public static String formatVersion(String version) {
 		// replace + with open version range for maven
 		if (version != null && version.endsWith("+")) {
 			return "[" + removeLastCharOptional(version) + ",)";
@@ -268,7 +271,7 @@ public class DependencyUtil {
 						.orElse(s);
 	}
 
-	static public MavenRepo toMavenRepo(String repoReference) {
+	public static MavenRepo toMavenRepo(String repoReference) {
 		String[] split = repoReference.split("=");
 		String reporef = null;
 		String repoid = null;
