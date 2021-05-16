@@ -32,7 +32,7 @@ Scenario: java run multiple files using alias
   Then match out contains "hello properties"
 
 Scenario: java run multiple files using remote alias
-  When command('jbang catalog add --name test https://raw.githubusercontent.com/jbangdev/jbang/master/itests/jbang-catalog.json')
+  When command('jbang catalog add --name test https://raw.githubusercontent.com/jbangdev/jbang/HEAD/itests/jbang-catalog.json')
   Then command('jbang trust add https://raw.githubusercontent.com')
   Then command('jbang resource@test')
   Then match out contains "hello properties"

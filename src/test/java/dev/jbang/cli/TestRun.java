@@ -899,12 +899,12 @@ public class TestRun extends BaseTest {
 	void testSwizzle(@TempDir Path dir) throws IOException {
 
 		assertThat(
-				Util.swizzleURL("https://github.com/jbangdev/jbang/blob/master/examples/helloworld.java"),
-				equalTo("https://raw.githubusercontent.com/jbangdev/jbang/master/examples/helloworld.java"));
+				Util.swizzleURL("https://github.com/jbangdev/jbang/blob/HEAD/examples/helloworld.java"),
+				equalTo("https://raw.githubusercontent.com/jbangdev/jbang/HEAD/examples/helloworld.java"));
 
 		assertThat(
-				Util.swizzleURL("https://gitlab.com/jbangdev/jbang-gitlab/-/blob/master/helloworld.java"),
-				equalTo("https://gitlab.com/jbangdev/jbang-gitlab/-/raw/master/helloworld.java"));
+				Util.swizzleURL("https://gitlab.com/jbangdev/jbang-gitlab/-/blob/HEAD/helloworld.java"),
+				equalTo("https://gitlab.com/jbangdev/jbang-gitlab/-/raw/HEAD/helloworld.java"));
 
 		assertThat(
 				Util.swizzleURL("https://bitbucket.org/Shoeboom/test/src/master/helloworld.java"),

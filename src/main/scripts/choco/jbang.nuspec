@@ -8,11 +8,11 @@
     <authors>Max Rydahl Andersen</authors>
     <projectUrl>https://github.com/jbangdev/jbang</projectUrl>
     <copyright>2020 Max Rydahl Andersen</copyright>
-    <licenseUrl>https://github.com/jbangdev/jbang/blob/master/LICENSE</licenseUrl>
+    <licenseUrl>https://github.com/jbangdev/jbang/blob/HEAD/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <projectSourceUrl>https://github.com/jbangdev/jbang</projectSourceUrl>
     <packageSourceUrl>https://github.com/jbangdev/jbang/tree/master/src/main/scripts/choco</packageSourceUrl>
-    <docsUrl>https://github.com/jbangdev/jbang/blob/master/readme.adoc</docsUrl>
+    <docsUrl>https://github.com/jbangdev/jbang/blob/HEAD/readme.adoc</docsUrl>
     <bugTrackerUrl>https://github.com/jbangdev/jbang/issues</bugTrackerUrl>
     <tags>jbang bash java shell scripting</tags>
     <summary>Unleash the power of Java. Use `jbang` to run single .java or .jar file with automatic dependency fetching and immediate compilation and execution.</summary>

@@ -88,8 +88,8 @@ assert "grep -c $SCRATCH/testrepo ~/.jbang/cache/dependency_cache.json" 1
 assert_stderr "jbang classpath_log.java" ""
 
 ## test urls
-assert "jbang trust add raw.githubusercontent.com/jbangdev https://raw.githubusercontent.com/jbangdev/jbang/master/itests/helloworld.java" ""
-assert "jbang https://raw.githubusercontent.com/jbangdev/jbang/master/itests/helloworld.java viaurl" "Hello viaurl"
+assert "jbang trust add raw.githubusercontent.com/jbangdev https://raw.githubusercontent.com/jbangdev/jbang/HEAD/itests/helloworld.java" ""
+assert "jbang https://raw.githubusercontent.com/jbangdev/jbang/HEAD/itests/helloworld.java viaurl" "Hello viaurl"
 
 ## test that can figure out main class with dual classes
 assert "jbang dualclass.java" "Hello World"

@@ -91,8 +91,8 @@ public class TestCatalogNearest extends BaseTest {
 
 	@Test
 	void testAddLocalUrl() throws IOException {
-		testAddLocal("https://github.com/jbangdev/jbang-catalog/blob/master/jbang-catalog.json",
-				"https://github.com/jbangdev/jbang-catalog/blob/master/jbang-catalog.json");
+		testAddLocal("https://github.com/jbangdev/jbang-catalog/blob/HEAD/jbang-catalog.json",
+				"https://github.com/jbangdev/jbang-catalog/blob/HEAD/jbang-catalog.json");
 	}
 
 	@Test

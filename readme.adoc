@@ -1210,7 +1210,7 @@ You can put `//CDS` in the java file to enable it by default, or simply use `--c
 To avoid remembering long paths and to enable easy launch of jbang scripts there is an `alias` command
 to setup and manage aliases to actual scripts.
 
-  jbang alias add hello https://github.com/jbangdev/jbang-examples/blob/master/examples/helloworld.java
+  jbang alias add hello https://github.com/jbangdev/jbang-examples/blob/HEAD/examples/helloworld.java
 
 will add an alias named `hello` pointing to that github url which then can be run using `jbang hello`.
 
@@ -1274,7 +1274,7 @@ looking until it finds a file to use (as a last option it will always be written
 This means that if you want to write the alias to `jbang-catalog.json` in your local folder you will either have to create
 the file first (eg by running `touch jbang-catalog.json`) or by explicitly specifying the file location:
 
-  jbang alias add -f jbang-catalog.json hello https://github.com/jbangdev/jbang-examples/blob/master/examples/helloworld.java
+  jbang alias add -f jbang-catalog.json hello https://github.com/jbangdev/jbang-examples/blob/HEAD/examples/helloworld.java
 
 Btw, the flag `--show-origin` is very useful when listing aliases to find out where exactly an alias is defined:
 
@@ -1286,7 +1286,7 @@ Catalogs are lists of Aliases as defined in the previous section, but while the 
 within a catalog, the `catalog` command is for managing references to catalogs. This is mostly useful when dealing with
 remote catalogs. You can for example add a catalog like this:
 
-  jbang catalog add --name demo https://github.com/jbangdev/jbang-catalog/blob/master/jbang-catalog.json
+  jbang catalog add --name demo https://github.com/jbangdev/jbang-catalog/blob/HEAD/jbang-catalog.json
 
 or simply by using the same "implicit" catalog system described in <<Implicit Alias Catalogs>>:
 

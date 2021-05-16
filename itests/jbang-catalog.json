@@ -1,7 +1,7 @@
 {
   "catalogs": {
     "test": {
-      "catalog-ref": "https://raw.githubusercontent.com/jbangdev/jbang/master/itests/jbang-catalog.json",
+      "catalog-ref": "https://raw.githubusercontent.com/jbangdev/jbang/main/itests/jbang-catalog.json",
       "description": "JBang test scripts"
     }
   },
