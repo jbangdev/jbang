@@ -749,7 +749,7 @@ public class TestRun extends BaseTest {
 	 * testFetchFromGitLab(@TempDir Path dir) throws IOException {
 	 * 
 	 * Path x = Util.downloadFile(
-	 * "https://gitlab.com/maxandersen/jbang-gitlab/-/raw/master/helloworld.java",
+	 * "https://gitlab.com/maxandersen/jbang-gitlab/-/raw/HEAD/helloworld.java",
 	 * dir.toFile()); assertEquals(x.getFileName().toString(), "helloworld.java"); }
 	 */
 
@@ -907,8 +907,8 @@ public class TestRun extends BaseTest {
 				equalTo("https://gitlab.com/jbangdev/jbang-gitlab/-/raw/HEAD/helloworld.java"));
 
 		assertThat(
-				Util.swizzleURL("https://bitbucket.org/Shoeboom/test/src/master/helloworld.java"),
-				equalTo("https://bitbucket.org/Shoeboom/test/raw/master/helloworld.java"));
+				Util.swizzleURL("https://bitbucket.org/Shoeboom/test/src/HEAD/helloworld.java"),
+				equalTo("https://bitbucket.org/Shoeboom/test/raw/HEAD/helloworld.java"));
 
 	}
 

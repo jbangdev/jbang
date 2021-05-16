@@ -11,7 +11,7 @@
     <licenseUrl>https://github.com/jbangdev/jbang/blob/HEAD/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <projectSourceUrl>https://github.com/jbangdev/jbang</projectSourceUrl>
-    <packageSourceUrl>https://github.com/jbangdev/jbang/tree/master/src/main/scripts/choco</packageSourceUrl>
+    <packageSourceUrl>https://github.com/jbangdev/jbang/tree/HEAD/src/main/scripts/choco</packageSourceUrl>
     <docsUrl>https://github.com/jbangdev/jbang/blob/HEAD/readme.adoc</docsUrl>
     <bugTrackerUrl>https://github.com/jbangdev/jbang/issues</bugTrackerUrl>
     <tags>jbang bash java shell scripting</tags>
