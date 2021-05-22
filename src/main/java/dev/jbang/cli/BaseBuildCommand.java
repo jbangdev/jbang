@@ -393,7 +393,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 				if (items.size() > 1) { // todo: this feels like a very sketchy way to find the proper class
 					// name
 					// but it works.
-					String mainname = src.getResourceRef().getFile().getName().replace(src.getExtension(), ".class");
+					String mainname = src.getSuggestedMain();
 					items = items	.stream()
 									.filter(f -> f.toFile().getName().equalsIgnoreCase(mainname))
 									.collect(Collectors.toList());

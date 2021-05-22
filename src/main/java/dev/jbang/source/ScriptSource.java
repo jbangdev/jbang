@@ -104,7 +104,7 @@ public class ScriptSource implements Source {
 		return pubClass -> pubClass.method("main", BaseBuildCommand.STRINGARRAYTYPE) != null;
 	}
 
-	public String getExtension() {
+	protected String getMainExtension() {
 		return ".java";
 	}
 
@@ -210,6 +210,10 @@ public class ScriptSource implements Source {
 		classpath = DependencyUtil.resolveDependencies(dependencies, repositories, Util.isOffline(),
 				Util.isFresh(), !Util.isQuiet());
 		return classpath;
+	}
+
+	public String getSuggestedMain() {
+		return getResourceRef().getFile().getName().replace(getMainExtension(), ".class");
 	}
 
 	public static class KeyValue {

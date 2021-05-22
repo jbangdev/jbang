@@ -34,7 +34,7 @@ public class KotlinScriptSource extends ScriptSource {
 	}
 
 	@Override
-	public String getExtension() {
+	protected String getMainExtension() {
 		return ".kt";
 	}
 
