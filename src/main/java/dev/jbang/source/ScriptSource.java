@@ -1,34 +1,13 @@
 package dev.jbang.source;
 
-import dev.jbang.Cache;
-import dev.jbang.Settings;
-import dev.jbang.cli.BaseBuildCommand;
-import dev.jbang.cli.BaseCommand;
-import dev.jbang.cli.ExitException;
-import dev.jbang.dependencies.DependencyUtil;
-import dev.jbang.dependencies.Detector;
-import dev.jbang.dependencies.MavenRepo;
-import dev.jbang.dependencies.ModularClassPath;
-import dev.jbang.spi.IntegrationManager;
-import dev.jbang.spi.IntegrationResult;
-import dev.jbang.util.JavaUtil;
-import dev.jbang.util.PropertiesValueResolver;
-import dev.jbang.util.TemplateEngine;
-import dev.jbang.util.Util;
-import io.quarkus.qute.Template;
-import org.jboss.jandex.ClassInfo;
-import org.jboss.jandex.Index;
-import org.jboss.jandex.Indexer;
+import static dev.jbang.net.JdkManager.resolveInJavaHome;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,7 +24,20 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static dev.jbang.net.JdkManager.resolveInJavaHome;
+import org.jboss.jandex.ClassInfo;
+
+import dev.jbang.Cache;
+import dev.jbang.Settings;
+import dev.jbang.cli.BaseBuildCommand;
+import dev.jbang.cli.BaseCommand;
+import dev.jbang.cli.ExitException;
+import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.dependencies.Detector;
+import dev.jbang.dependencies.MavenRepo;
+import dev.jbang.dependencies.ModularClassPath;
+import dev.jbang.util.JavaUtil;
+import dev.jbang.util.PropertiesValueResolver;
+import dev.jbang.util.Util;
 
 /**
  * A Script represents a Source (something runnable) in the form of a source
@@ -104,175 +96,16 @@ public class ScriptSource implements Source {
 		return collectOptions("JAVAC_OPTIONS");
 	}
 
-	protected String getCompilerBinary(String requestedJavaVersion) {
+	public String getCompilerBinary(String requestedJavaVersion) {
 		return resolveInJavaHome("javac", requestedJavaVersion);
 	}
 
-	protected Predicate<ClassInfo> getMainFinder() {
+	public Predicate<ClassInfo> getMainFinder() {
 		return pubClass -> pubClass.method("main", BaseBuildCommand.STRINGARRAYTYPE) != null;
 	}
 
-	protected String getExtension() {
+	public String getExtension() {
 		return ".java";
-	}
-
-	// build with javac and then jar... todo: split up in more testable chunks
-	public IntegrationResult buildJar(RunContext ctx, File tmpJarDir, File outjar,
-											 String requestedJavaVersion) throws IOException {
-		IntegrationResult integrationResult;
-		List<String> optionList1 = new ArrayList<>();
-		optionList1.add(getCompilerBinary(requestedJavaVersion));
-		optionList1.addAll(getCompileOptions());
-		String path = ctx.resolveClassPath(this);
-		if (!path.trim().isEmpty()) {
-			optionList1.addAll(Arrays.asList("-classpath", path));
-		}
-		optionList1.addAll(Arrays.asList("-d", tmpJarDir.getAbsolutePath()));
-
-		// add source files to compile
-		optionList1.add(getResourceRef().getFile().getPath());
-		optionList1.addAll(getAllSources().stream()
-										  .map(x -> x.getResourceRef().getFile().getPath())
-										  .collect(Collectors.toList()));
-		List<String> optionList = optionList1;
-
-		// add additional files
-		copyFilesTo(tmpJarDir.toPath());
-
-		Path pomPath = generatePom(ctx, tmpJarDir);
-
-		Util.infoMsg("Building jar...");
-		Util.verboseMsg("compile: " + String.join(" ", optionList));
-
-		Process process = new ProcessBuilder(optionList).inheritIO().start();
-		try {
-			process.waitFor();
-		} catch (InterruptedException e) {
-			throw new ExitException(1, e);
-		}
-
-		if (process.exitValue() != 0) {
-			throw new ExitException(1, "Error during compile");
-		}
-
-		ctx.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
-		integrationResult = IntegrationManager.runIntegration(getAllRepositories(),
-				ctx.getClassPath().getArtifacts(),
-				tmpJarDir.toPath(), pomPath,
-				this, ctx.isNativeImage());
-		if (integrationResult.mainClass != null) {
-			ctx.setMainClass(integrationResult.mainClass);
-		} else {
-			searchForMain(ctx, tmpJarDir);
-		}
-		ctx.setRuntimeOptions(integrationResult.javaArgs);
-		createJarFile(this, ctx, tmpJarDir, outjar);
-		return integrationResult;
-	}
-
-	protected void searchForMain(RunContext ctx, File tmpJarDir) {
-		try {
-			// using Files.walk method with try-with-resources
-			try (Stream<Path> paths = Files.walk(tmpJarDir.toPath())) {
-				List<Path> items = paths.filter(Files::isRegularFile)
-										.filter(f -> !f.toFile().getName().contains("$"))
-										.filter(f -> f.toFile().getName().endsWith(".class"))
-										.collect(Collectors.toList());
-
-				if (items.size() > 1) { // todo: this feels like a very sketchy way to find the proper class
-					// name
-					// but it works.
-					String mainname = getResourceRef().getFile().getName().replace(getExtension(), ".class");
-					items = items.stream()
-								 .filter(f -> f.toFile().getName().equalsIgnoreCase(mainname))
-								 .collect(Collectors.toList());
-				}
-
-				if (items.size() != 1) {
-					throw new ExitException(1,
-						"Could not locate unique class. Found " + items.size() + " candidates.");
-				} else {
-					Path classfile = items.get(0);
-					// TODO: could we use jandex to find the right main class more sanely ?
-					// String mainClass = findMainClass(tmpJarDir.toPath(), classfile);
-
-					Indexer indexer = new Indexer();
-					Index index;
-					try (InputStream stream = new FileInputStream(classfile.toFile())) {
-						indexer.index(stream);
-						index = indexer.complete();
-					}
-
-					Collection<ClassInfo> clazz = index.getKnownClasses();
-
-					Optional<ClassInfo> main = clazz.stream()
-													.filter(getMainFinder())
-													.findFirst();
-
-					if (main.isPresent()) {
-						ctx.setMainClass(main.get().name().toString());
-					}
-
-					if (isAgent()) {
-
-						Optional<ClassInfo> agentmain = clazz.stream()
-															 .filter(pubClass -> pubClass.method("agentmain",
-																 BaseBuildCommand.STRINGTYPE,
-																 BaseBuildCommand.INSTRUMENTATIONTYPE) != null
-																				 ||
-																				 pubClass.method("agentmain",
-																					 BaseBuildCommand.STRINGTYPE) != null)
-															 .findFirst();
-
-						if (agentmain.isPresent()) {
-							ctx.setAgentMainClass(agentmain.get().name().toString());
-						}
-
-						Optional<ClassInfo> premain = clazz.stream()
-														   .filter(pubClass -> pubClass.method("premain",
-															   BaseBuildCommand.STRINGTYPE,
-															   BaseBuildCommand.INSTRUMENTATIONTYPE) != null
-																			   ||
-																			   pubClass.method("premain",
-																				   BaseBuildCommand.STRINGTYPE) != null)
-														   .findFirst();
-
-						if (premain.isPresent()) {
-							ctx.setPreMainClass(premain.get().name().toString());
-						}
-					}
-
-				}
-			}
-		} catch (IOException e) {
-			throw new ExitException(1, e);
-		}
-	}
-
-	protected Path generatePom(RunContext ctx, File tmpJarDir) throws IOException {
-		Template pomTemplate = TemplateEngine.instance().getTemplate("pom.qute.xml");
-
-		Path pomPath = null;
-		if (pomTemplate == null) {
-			// ignore
-			Util.warnMsg("Could not locate pom.xml template");
-		} else {
-			String group = ctx.getProperties().getOrDefault("group", "g.a.v");
-			String pomfile = pomTemplate
-										.data("baseName", Util.getBaseName(getResourceRef().getFile().getName()))
-										.data("group", group)
-										.data("artifact", ctx.getProperties()
-															 .getOrDefault("artifact", Util.getBaseName(
-																		getResourceRef().getFile().getName())))
-										.data("version", ctx.getProperties().getOrDefault("version", "999-SNAPSHOT"))
-										.data("dependencies", ctx.getClassPath().getArtifacts())
-										.render();
-
-			pomPath = new File(tmpJarDir, "META-INF/maven/" + group.replace(".", "/") + "/pom.xml").toPath();
-			Files.createDirectories(pomPath.getParent());
-			Util.writeString(pomPath, pomfile);
-		}
-		return pomPath;
 	}
 
 	@Override
@@ -707,9 +540,9 @@ public class ScriptSource implements Source {
 
 	public static ScriptSource prepareScript(ResourceRef resourceRef) {
 		String originalResource = resourceRef.getOriginalResource();
-		if(originalResource != null && originalResource.endsWith(".kt")) {
+		if (originalResource != null && originalResource.endsWith(".kt")) {
 			return new KotlinScriptSource(resourceRef);
-		} else{
+		} else {
 			return new ScriptSource(resourceRef);
 		}
 	}

@@ -13,10 +13,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import dev.jbang.net.JdkManager;
 import org.apache.commons.text.StringEscapeUtils;
 
 import dev.jbang.Settings;
+import dev.jbang.net.JdkManager;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.Source;
 import dev.jbang.util.JavaUtil;

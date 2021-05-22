@@ -1,5 +1,7 @@
 package dev.jbang.util;
 
+import static java.util.Arrays.asList;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -55,8 +57,6 @@ import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
-
-import static java.util.Arrays.asList;
 
 public class Util {
 
