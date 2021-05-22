@@ -14,9 +14,6 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.jboss.jandex.DotName;
-import org.jboss.jandex.Type;
-
 import dev.jbang.net.JdkManager;
 import dev.jbang.source.JarSource;
 import dev.jbang.source.RunContext;
@@ -171,23 +168,12 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		return mainClass.toString();
 	}
 
-	public static String resolveInJavaHome(String cmd, String requestedVersion) {
-		Path jdkHome = JdkManager.getCurrentJdk(requestedVersion);
-		if (jdkHome != null) {
-			if (Util.isWindows()) {
-				cmd = cmd + ".exe";
-			}
-			return jdkHome.resolve("bin").resolve(cmd).toAbsolutePath().toString();
-		}
-		return cmd;
-	}
-
 	private static String resolveInGraalVMHome(String cmd, String requestedVersion) {
 		String newcmd = resolveInEnv("GRAALVM_HOME", cmd);
 
 		if (newcmd.equals(cmd) &&
 				!new File(newcmd).exists()) {
-			return resolveInJavaHome(cmd, requestedVersion);
+			return JdkManager.resolveInJavaHome(cmd, requestedVersion);
 		} else {
 			return newcmd;
 		}

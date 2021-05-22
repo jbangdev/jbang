@@ -50,7 +50,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static dev.jbang.cli.BaseBuildCommand.resolveInJavaHome;
+import static dev.jbang.net.JdkManager.resolveInJavaHome;
 
 /**
  * A Script represents a Source (something runnable) in the form of a source

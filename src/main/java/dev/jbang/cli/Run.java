@@ -13,6 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import dev.jbang.net.JdkManager;
 import org.apache.commons.text.StringEscapeUtils;
 
 import dev.jbang.Settings;
@@ -160,10 +161,10 @@ public class Run extends BaseBuildCommand {
 			List<String> optionalArgs = new ArrayList<>();
 
 			String requestedJavaVersion = javaVersion != null ? javaVersion : src.getJavaVersion();
-			String javacmd = resolveInJavaHome("java", requestedJavaVersion);
+			String javacmd = JdkManager.resolveInJavaHome("java", requestedJavaVersion);
 			if (ctx.isForceJsh() || src.isJShell() || interactive) {
 
-				javacmd = resolveInJavaHome("jshell", requestedJavaVersion);
+				javacmd = JdkManager.resolveInJavaHome("jshell", requestedJavaVersion);
 
 				if (src.getJarFile() != null && src.getJarFile().exists()) {
 					if (classpath.trim().isEmpty()) {
