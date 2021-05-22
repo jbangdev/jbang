@@ -19,7 +19,7 @@ public class KotlinScriptSource extends ScriptSource {
 
 	@Override
 	public List<String> getCompileOptions() {
-		return Collections.emptyList();
+		return collectOptions("KOTLINC_OPTIONS");
 	}
 
 	@Override
