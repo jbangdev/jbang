@@ -65,7 +65,7 @@ public class KotlinManager {
 					// Ignore
 				}
 			}
-			Util.errorMsg("Required Java version not possible to download or install. You can run with '--java "
+			Util.errorMsg("Required Kotlin version not possible to download or install. You can run with '--kotlin "
 					+ JavaUtil.determineJavaVersion() + "' to force using the default installed Java.");
 			throw new ExitException(EXIT_UNEXPECTED_STATE,
 					"Unable to download or install JDK version " + version, e);
