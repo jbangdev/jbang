@@ -708,7 +708,6 @@ public class ScriptSource implements Source {
 
 	public static ScriptSource prepareScript(ResourceRef resourceRef) {
 		String originalResource = resourceRef.getOriginalResource();
-		System.out.println("originalResource = " + originalResource);
 		if(originalResource != null && originalResource.endsWith(".kt")) {
 			return new KotlinScriptSource(resourceRef);
 		} else{
