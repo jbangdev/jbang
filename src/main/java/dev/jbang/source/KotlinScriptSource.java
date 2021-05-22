@@ -3,7 +3,6 @@ package dev.jbang.source;
 import dev.jbang.cli.BaseBuildCommand;
 import dev.jbang.net.KotlinManager;
 import org.jboss.jandex.ClassInfo;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
@@ -34,7 +33,6 @@ public class KotlinScriptSource extends ScriptSource {
     }
 
     @Override
-    @NotNull
     protected String getExtension() {
         return ".kt";
     }

@@ -6,9 +6,6 @@ import dev.jbang.cli.ExitException;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
-import org.jetbrains.kotlin.config.KotlinCompilerVersion;
-import org.jetbrains.kotlin.library.KotlinAbiVersion;
-import org.jetbrains.kotlin.library.KotlinLibraryKt;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,7 +16,7 @@ import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 public class KotlinManager {
     private static final String KOTLIN_DOWNLOAD_URL =
         "https://github.com/JetBrains/kotlin/releases/download/v%s/kotlin-compiler-%s.zip";
-    public static final String DEFAULT_KOTLIN_VERSION = KotlinCompilerVersion.VERSION;
+    public static final String DEFAULT_KOTLIN_VERSION = "1.5.0";
 
     public static String resolveInKotlinHome(String cmd, String requestedVersion) {
         Path kotlinHome = getKotlin(requestedVersion);
