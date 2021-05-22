@@ -73,11 +73,11 @@ public class KotlinManager {
 	}
 
 	public static Path getKotlinPath(String version) {
-		return getKotlinsPath().resolve(version);
+		return getKotlincsPath().resolve(version);
 	}
 
-	private static Path getKotlinsPath() {
-		return Settings.getCacheDir(Cache.CacheClass.kotlins);
+	private static Path getKotlincsPath() {
+		return Settings.getCacheDir(Cache.CacheClass.kotlincs);
 	}
 
 }

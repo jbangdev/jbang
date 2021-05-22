@@ -21,6 +21,8 @@ public class Cache {
 			@CommandLine.Option(names = {
 					"--jdk" }, description = "clear JDK cache only", negatable = true) Boolean jdks,
 			@CommandLine.Option(names = {
+					"--kotlincs" }, description = "clear kotlinc cache only", negatable = true) Boolean kotlincs,
+			@CommandLine.Option(names = {
 					"--project" }, description = "clear temporary projects cache only", negatable = true) Boolean projects,
 			@CommandLine.Option(names = {
 					"--script" }, description = "clear script cache only", negatable = true) Boolean scripts,
@@ -35,6 +37,7 @@ public class Cache {
 		} else if (urls == null
 				&& jars == null
 				&& jdks == null
+				&& kotlincs == null
 				&& projects == null
 				&& scripts == null
 				&& stdins == null
@@ -51,6 +54,7 @@ public class Cache {
 		toggleCache(urls, dev.jbang.Cache.CacheClass.urls, classes);
 		toggleCache(jars, dev.jbang.Cache.CacheClass.jars, classes);
 		toggleCache(jdks, dev.jbang.Cache.CacheClass.jdks, classes);
+		toggleCache(kotlincs, dev.jbang.Cache.CacheClass.kotlincs, classes);
 		toggleCache(deps, dev.jbang.Cache.CacheClass.deps, classes);
 		toggleCache(projects, dev.jbang.Cache.CacheClass.projects, classes);
 		toggleCache(scripts, dev.jbang.Cache.CacheClass.scripts, classes);
