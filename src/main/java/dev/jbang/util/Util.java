@@ -56,6 +56,8 @@ import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
 
+import static java.util.Arrays.asList;
+
 public class Util {
 
 	public static final String JBANG_JDK_VENDOR = "JBANG_JDK_VENDOR";
@@ -67,6 +69,7 @@ public class Util {
 			"^.*(public\\s+static|static\\s+public)\\s+void\\s+main\\s*\\(.*",
 			Pattern.MULTILINE);
 
+	private static final List<String> EXTENSIONS = asList(".java", ".jsh", ".kt");
 	private static boolean verbose;
 	private static boolean quiet;
 	private static boolean offline;
@@ -201,7 +204,7 @@ public class Util {
 						if (file.toFile().exists()) {
 							results.add(relpath.toString().replace("\\", "/"));
 						} else {
-							Util.verboseMsg("Warning: " + relpath.toString() + " matches but does not exist!");
+							Util.verboseMsg("Warning: " + relpath + " matches but does not exist!");
 						}
 					}
 					return FileVisitResult.CONTINUE;
@@ -226,7 +229,11 @@ public class Util {
 		if (name.endsWith(".sh")) {
 			name = name.substring(0, name.length() - 3);
 		}
-		if (!(name.endsWith(".java") || name.endsWith(".jsh"))) {
+		boolean valid = false;
+		for (String extension : EXTENSIONS) {
+			valid |= name.endsWith(extension);
+		}
+		if (!valid) {
 			name = kebab2camel(name) + ".java";
 		}
 		return name;

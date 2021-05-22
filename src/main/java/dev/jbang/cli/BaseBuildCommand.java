@@ -2,16 +2,12 @@ package dev.jbang.cli;
 
 import java.io.File;
 import java.io.FileDescriptor;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -19,12 +15,8 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
-import org.jboss.jandex.Index;
-import org.jboss.jandex.Indexer;
 import org.jboss.jandex.Type;
 
 import dev.jbang.net.JdkManager;
@@ -32,14 +24,11 @@ import dev.jbang.source.JarSource;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.ScriptSource;
 import dev.jbang.source.Source;
-import dev.jbang.spi.IntegrationManager;
 import dev.jbang.spi.IntegrationResult;
 import dev.jbang.util.JarUtil;
 import dev.jbang.util.JavaUtil;
-import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
 
-import io.quarkus.qute.Template;
 import picocli.CommandLine;
 
 public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
@@ -119,7 +108,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 			tmpJarDir.mkdirs();
 			// do the actual building
 			try {
-				integrationResult = buildJar(src, ctx, tmpJarDir, outjar, requestedJavaVersion);
+				integrationResult = src.buildJar(ctx, tmpJarDir, outjar, requestedJavaVersion);
 			} finally {
 				// clean up temporary folder
 				Util.deletePath(tmpJarDir.toPath(), true);
@@ -137,161 +126,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		return result;
 	}
 
-	// build with javac and then jar... todo: split up in more testable chunks
-	static private IntegrationResult buildJar(ScriptSource src, RunContext ctx, File tmpJarDir, File outjar,
-			String requestedJavaVersion)
-			throws IOException {
-		IntegrationResult integrationResult;
-		List<String> optionList = new ArrayList<>();
-		optionList.add(resolveInJavaHome("javac", requestedJavaVersion));
-		optionList.addAll(src.getCompileOptions());
-		String path = ctx.resolveClassPath(src);
-		if (!path.trim().isEmpty()) {
-			optionList.addAll(Arrays.asList("-classpath", path));
-		}
-		optionList.addAll(Arrays.asList("-d", tmpJarDir.getAbsolutePath()));
-
-		// add source files to compile
-		optionList.add(src.getResourceRef().getFile().getPath());
-		optionList.addAll(
-				src
-					.getAllSources()
-					.stream()
-					.map(x -> x.getResourceRef().getFile().getPath())
-					.collect(Collectors.toList()));
-
-		// add additional files
-		src.copyFilesTo(tmpJarDir.toPath());
-
-		Template pomTemplate = TemplateEngine.instance().getTemplate("pom.qute.xml");
-
-		Path pomPath = null;
-		if (pomTemplate == null) {
-			// ignore
-			Util.warnMsg("Could not locate pom.xml template");
-		} else {
-			String group = ctx.getProperties().getOrDefault("group", "g.a.v");
-			String pomfile = pomTemplate
-										.data("baseName", Util.getBaseName(src.getResourceRef().getFile().getName()))
-										.data("group", group)
-										.data("artifact", ctx	.getProperties()
-																.getOrDefault("artifact", Util.getBaseName(
-																		src.getResourceRef().getFile().getName())))
-										.data("version", ctx.getProperties().getOrDefault("version", "999-SNAPSHOT"))
-										.data("dependencies", ctx.getClassPath().getArtifacts())
-										.render();
-
-			pomPath = new File(tmpJarDir, "META-INF/maven/" + group.replace(".", "/") + "/pom.xml").toPath();
-			Files.createDirectories(pomPath.getParent());
-			Util.writeString(pomPath, pomfile);
-		}
-
-		Util.infoMsg("Building jar...");
-		Util.verboseMsg("compile: " + String.join(" ", optionList));
-
-		Process process = new ProcessBuilder(optionList).inheritIO().start();
-		try {
-			process.waitFor();
-		} catch (InterruptedException e) {
-			throw new ExitException(1, e);
-		}
-
-		if (process.exitValue() != 0) {
-			throw new ExitException(1, "Error during compile");
-		}
-
-		ctx.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
-		integrationResult = IntegrationManager.runIntegration(src.getAllRepositories(),
-				ctx.getClassPath().getArtifacts(),
-				tmpJarDir.toPath(), pomPath,
-				src, ctx.isNativeImage());
-		if (integrationResult.mainClass != null) {
-			ctx.setMainClass(integrationResult.mainClass);
-		} else {
-			try {
-				// using Files.walk method with try-with-resources
-				try (Stream<Path> paths = Files.walk(tmpJarDir.toPath())) {
-					List<Path> items = paths.filter(Files::isRegularFile)
-											.filter(f -> !f.toFile().getName().contains("$"))
-											.filter(f -> f.toFile().getName().endsWith(".class"))
-											.collect(Collectors.toList());
-
-					if (items.size() > 1) { // todo: this feels like a very sketchy way to find the proper class
-											// name
-						// but it works.
-						String mainname = src.getResourceRef().getFile().getName().replace(".java", ".class");
-						items = items	.stream()
-										.filter(f -> f.toFile().getName().equalsIgnoreCase(mainname))
-										.collect(Collectors.toList());
-					}
-
-					if (items.size() != 1) {
-						throw new ExitException(1,
-								"Could not locate unique class. Found " + items.size() + " candidates.");
-					} else {
-						Path classfile = items.get(0);
-						// TODO: could we use jandex to find the right main class more sanely ?
-						// String mainClass = findMainClass(tmpJarDir.toPath(), classfile);
-
-						Indexer indexer = new Indexer();
-						Index index;
-						try (InputStream stream = new FileInputStream(classfile.toFile())) {
-							indexer.index(stream);
-							index = indexer.complete();
-						}
-
-						Collection<ClassInfo> clazz = index.getKnownClasses();
-
-						Optional<ClassInfo> main = clazz.stream()
-														.filter(pubClass -> pubClass.method("main",
-																STRINGARRAYTYPE) != null)
-														.findFirst();
-
-						if (main.isPresent()) {
-							ctx.setMainClass(main.get().name().toString());
-						}
-
-						if (src.isAgent()) {
-
-							Optional<ClassInfo> agentmain = clazz	.stream()
-																	.filter(pubClass -> pubClass.method("agentmain",
-																			STRINGTYPE,
-																			INSTRUMENTATIONTYPE) != null
-																			||
-																			pubClass.method("agentmain",
-																					STRINGTYPE) != null)
-																	.findFirst();
-
-							if (agentmain.isPresent()) {
-								ctx.setAgentMainClass(agentmain.get().name().toString());
-							}
-
-							Optional<ClassInfo> premain = clazz	.stream()
-																.filter(pubClass -> pubClass.method("premain",
-																		STRINGTYPE,
-																		INSTRUMENTATIONTYPE) != null
-																		||
-																		pubClass.method("premain",
-																				STRINGTYPE) != null)
-																.findFirst();
-
-							if (premain.isPresent()) {
-								ctx.setPreMainClass(premain.get().name().toString());
-							}
-						}
-
-					}
-				}
-			} catch (IOException e) {
-				throw new ExitException(1, e);
-			}
-		}
-		ctx.setRuntimeOptions(integrationResult.javaArgs);
-		createJarFile(src, ctx, tmpJarDir, outjar);
-		return integrationResult;
-	}
-
-	static void createJarFile(ScriptSource src, RunContext ctx, File path, File output) throws IOException {
+	public static void createJarFile(ScriptSource src, RunContext ctx, File path, File output) throws IOException {
 		String mainclass = ctx.getMainClassOr(src);
 		Manifest manifest = new Manifest();
 		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
@@ -403,7 +238,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		return mainClass.toString();
 	}
 
-	protected static String resolveInJavaHome(String cmd, String requestedVersion) {
+	public static String resolveInJavaHome(String cmd, String requestedVersion) {
 		Path jdkHome = JdkManager.getCurrentJdk(requestedVersion);
 		if (jdkHome != null) {
 			if (Util.isWindows()) {

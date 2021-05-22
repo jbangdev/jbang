@@ -12,6 +12,10 @@
       "file-refs": {"{filename}":  "init-hello.java.qute"},
       "description": "Basic Hello World template"
     },
+    "kotlin": {
+      "file-refs": {"{filename}":  "init-kotlin.kt.qute"},
+      "description": "Basic kotlin Hello World template"
+    },
     "qcli": {
       "file-refs": {"{basename}.java":  "init-qcli.java.qute"},
       "description": "Quarkus CLI template"
