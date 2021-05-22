@@ -70,28 +70,11 @@ public class Util {
 			Pattern.MULTILINE);
 
 	private static final List<String> EXTENSIONS = asList(".java", ".jsh", ".kt");
-	private static final Pattern shellSafeChars = Pattern.compile("[a-zA-Z0-9._+=:@%/-]*");
 	private static boolean verbose;
 	private static boolean quiet;
 	private static boolean offline;
 	private static boolean fresh;
 	private static Path cwd;
-
-	/**
-	 * Escapes list of arguments where necessary using a generic way of escaping
-	 * (we'll just be using the Unix way)
-	 */
-	public static List<String> escapeArguments(List<String> args) {
-		return args.stream().map(Util::escapeUnixArgument).collect(Collectors.toList());
-	}
-
-	public static String escapeUnixArgument(String arg) {
-		if (!shellSafeChars.matcher(arg).matches()) {
-			arg = arg.replaceAll("(['])", "'\\\\''");
-			arg = "'" + arg + "'";
-		}
-		return arg;
-	}
 
 	public static void setVerbose(boolean verbose) {
 		Util.verbose = verbose;

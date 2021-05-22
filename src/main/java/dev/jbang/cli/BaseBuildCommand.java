@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -20,12 +22,18 @@ import dev.jbang.source.RunContext;
 import dev.jbang.source.ScriptSource;
 import dev.jbang.source.Source;
 import dev.jbang.spi.IntegrationResult;
+import dev.jbang.util.JarUtil;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 
 public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
+	public static final Type STRINGARRAYTYPE = Type.create(DotName.createSimple("[Ljava.lang.String;"),
+			Type.Kind.ARRAY);
+	public static final Type STRINGTYPE = Type.create(DotName.createSimple("java.lang.String"), Type.Kind.CLASS);
+	public static final Type INSTRUMENTATIONTYPE = Type.create(
+			DotName.createSimple("java.lang.instrument.Instrumentation"), Type.Kind.CLASS);
 	protected String javaVersion;
 
 	@CommandLine.Option(names = { "-m",
@@ -115,6 +123,65 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		return result;
 	}
 
+	public static void createJarFile(ScriptSource src, RunContext ctx, File path, File output) throws IOException {
+		String mainclass = ctx.getMainClassOr(src);
+		Manifest manifest = new Manifest();
+		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
+		if (mainclass != null) {
+			manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, mainclass);
+		}
+
+		if (src.isAgent()) {
+			if (ctx.getPreMainClass() != null) {
+				manifest.getMainAttributes().put(new Attributes.Name(Source.ATTR_PREMAIN_CLASS), ctx.getPreMainClass());
+			}
+			if (ctx.getAgentMainClass() != null) {
+				manifest.getMainAttributes().put(new Attributes.Name(Source.ATTR_AGENT_CLASS), ctx.getAgentMainClass());
+			}
+
+			for (ScriptSource.KeyValue kv : src.getAllAgentOptions()) {
+				if (kv.getKey().trim().isEmpty()) {
+					continue;
+				}
+				Attributes.Name k = new Attributes.Name(kv.getKey());
+				String v = kv.getValue() == null ? "true" : kv.getValue();
+				manifest.getMainAttributes().put(k, v);
+			}
+
+			if (ctx.getClassPath() != null) {
+				String bootClasspath = ctx.getClassPath().getManifestPath();
+				if (!bootClasspath.isEmpty()) {
+					manifest.getMainAttributes().put(new Attributes.Name(Source.ATTR_BOOT_CLASS_PATH), bootClasspath);
+				}
+			}
+		} else {
+			if (ctx.getClassPath() != null) {
+				String classpath = ctx.getClassPath().getManifestPath();
+				if (!classpath.isEmpty()) {
+					manifest.getMainAttributes().put(Attributes.Name.CLASS_PATH, classpath);
+				}
+			}
+		}
+
+		// When persistent JVM args are set they override any runtime options set on the
+		// Source
+		List<String> rtArgs = ctx.getRuntimeOptionsOr(src);
+		String runtimeOpts = String.join(" ", escapeArguments(rtArgs));
+		if (!runtimeOpts.isEmpty()) {
+			manifest.getMainAttributes()
+					.putValue(Source.ATTR_JBANG_JAVA_OPTIONS, runtimeOpts);
+		}
+		int buildJdk = ctx.getBuildJdk();
+		if (buildJdk > 0) {
+			String val = buildJdk >= 9 ? Integer.toString(buildJdk) : "1." + buildJdk;
+			manifest.getMainAttributes().putValue(Source.ATTR_BUILD_JDK, val);
+		}
+
+		FileOutputStream target = new FileOutputStream(output);
+		JarUtil.jar(target, path.listFiles(), null, null, manifest);
+		target.close();
+	}
+
 	static private void buildNative(Source src, RunContext ctx, File outjar, String requestedJavaVersion)
 			throws IOException {
 		List<String> optionList = new ArrayList<>();
@@ -194,6 +261,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 	static Pattern cmdSafeChars = Pattern.compile("[a-zA-Z0-9.,_+=:;@()-]*");
 	// TODO: Figure out what the real list of safe characters is for PowerShell
 	static Pattern pwrSafeChars = Pattern.compile("[a-zA-Z0-9.,_+=:;@()-]*");
+	static Pattern shellSafeChars = Pattern.compile("[a-zA-Z0-9._+=:@%/-]*");
 
 	/**
 	 * Escapes list of arguments where necessary using the current OS' way of
@@ -203,11 +271,27 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		return args.stream().map(BaseBuildCommand::escapeOSArgument).collect(Collectors.toList());
 	}
 
+	/**
+	 * Escapes list of arguments where necessary using a generic way of escaping
+	 * (we'll just be using the Unix way)
+	 */
+	static List<String> escapeArguments(List<String> args) {
+		return args.stream().map(BaseBuildCommand::escapeUnixArgument).collect(Collectors.toList());
+	}
+
 	static String escapeOSArgument(String arg) {
 		if (Util.isWindows()) {
 			arg = escapeWindowsArgument(arg);
 		} else {
-			arg = Util.escapeUnixArgument(arg);
+			arg = escapeUnixArgument(arg);
+		}
+		return arg;
+	}
+
+	static String escapeUnixArgument(String arg) {
+		if (!shellSafeChars.matcher(arg).matches()) {
+			arg = arg.replaceAll("(['])", "'\\\\''");
+			arg = "'" + arg + "'";
 		}
 		return arg;
 	}

@@ -2,6 +2,7 @@ package dev.jbang.source;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
+import dev.jbang.cli.BaseBuildCommand;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
@@ -10,21 +11,17 @@ import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.spi.IntegrationManager;
 import dev.jbang.spi.IntegrationResult;
-import dev.jbang.util.JarUtil;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.PropertiesValueResolver;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
 import io.quarkus.qute.Template;
 import org.jboss.jandex.ClassInfo;
-import org.jboss.jandex.DotName;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
-import org.jboss.jandex.Type;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -43,8 +40,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -64,11 +59,6 @@ import static dev.jbang.net.JdkManager.resolveInJavaHome;
  */
 public class ScriptSource implements Source {
 
-	public static final Type INSTRUMENTATIONTYPE = Type.create(
-			DotName.createSimple("java.lang.instrument.Instrumentation"), Type.Kind.CLASS);
-	public static final Type STRINGARRAYTYPE = Type.create(DotName.createSimple("[Ljava.lang.String;"),
-			Type.Kind.ARRAY);
-	public static final Type STRINGTYPE = Type.create(DotName.createSimple("java.lang.String"), Type.Kind.CLASS);
 	private static final String DEPS_COMMENT_PREFIX = "//DEPS ";
 	private static final String FILES_COMMENT_PREFIX = "//FILES ";
 	private static final String SOURCES_COMMENT_PREFIX = "//SOURCES ";
@@ -110,65 +100,6 @@ public class ScriptSource implements Source {
 		this.script = content;
 	}
 
-	public void createJarFile(RunContext ctx, File path, File output) throws IOException {
-		String mainclass = ctx.getMainClassOr(this);
-		Manifest manifest = new Manifest();
-		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
-		if (mainclass != null) {
-			manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, mainclass);
-		}
-
-		if (isAgent()) {
-			if (ctx.getPreMainClass() != null) {
-				manifest.getMainAttributes().put(new Attributes.Name(ATTR_PREMAIN_CLASS), ctx.getPreMainClass());
-			}
-			if (ctx.getAgentMainClass() != null) {
-				manifest.getMainAttributes().put(new Attributes.Name(ATTR_AGENT_CLASS), ctx.getAgentMainClass());
-			}
-
-			for (KeyValue kv : getAllAgentOptions()) {
-				if (kv.getKey().trim().isEmpty()) {
-					continue;
-				}
-				Attributes.Name k = new Attributes.Name(kv.getKey());
-				String v = kv.getValue() == null ? "true" : kv.getValue();
-				manifest.getMainAttributes().put(k, v);
-			}
-
-			if (ctx.getClassPath() != null) {
-				String bootClasspath = ctx.getClassPath().getManifestPath();
-				if (!bootClasspath.isEmpty()) {
-					manifest.getMainAttributes().put(new Attributes.Name(ATTR_BOOT_CLASS_PATH), bootClasspath);
-				}
-			}
-		} else {
-			if (ctx.getClassPath() != null) {
-				String classpath = ctx.getClassPath().getManifestPath();
-				if (!classpath.isEmpty()) {
-					manifest.getMainAttributes().put(Attributes.Name.CLASS_PATH, classpath);
-				}
-			}
-		}
-
-		// When persistent JVM args are set they override any runtime options set on the
-		// Source
-		List<String> rtArgs = ctx.getRuntimeOptionsOr(this);
-		String runtimeOpts = String.join(" ", Util.escapeArguments(rtArgs));
-		if (!runtimeOpts.isEmpty()) {
-			manifest.getMainAttributes()
-					.putValue(ATTR_JBANG_JAVA_OPTIONS, runtimeOpts);
-		}
-		int buildJdk = ctx.getBuildJdk();
-		if (buildJdk > 0) {
-			String val = buildJdk >= 9 ? Integer.toString(buildJdk) : "1." + buildJdk;
-			manifest.getMainAttributes().putValue(ATTR_BUILD_JDK, val);
-		}
-
-		FileOutputStream target = new FileOutputStream(output);
-		JarUtil.jar(target, path.listFiles(), null, null, manifest);
-		target.close();
-	}
-
 	public List<String> getCompileOptions() {
 		return collectOptions("JAVAC_OPTIONS");
 	}
@@ -178,7 +109,7 @@ public class ScriptSource implements Source {
 	}
 
 	protected Predicate<ClassInfo> getMainFinder() {
-		return pubClass -> pubClass.method("main", STRINGARRAYTYPE) != null;
+		return pubClass -> pubClass.method("main", BaseBuildCommand.STRINGARRAYTYPE) != null;
 	}
 
 	protected String getExtension() {
@@ -235,7 +166,7 @@ public class ScriptSource implements Source {
 			searchForMain(ctx, tmpJarDir);
 		}
 		ctx.setRuntimeOptions(integrationResult.javaArgs);
-		createJarFile(ctx, tmpJarDir, outjar);
+		createJarFile(this, ctx, tmpJarDir, outjar);
 		return integrationResult;
 	}
 
@@ -286,11 +217,11 @@ public class ScriptSource implements Source {
 
 						Optional<ClassInfo> agentmain = clazz.stream()
 															 .filter(pubClass -> pubClass.method("agentmain",
-																 STRINGTYPE,
-																 INSTRUMENTATIONTYPE) != null
+																 BaseBuildCommand.STRINGTYPE,
+																 BaseBuildCommand.INSTRUMENTATIONTYPE) != null
 																				 ||
 																				 pubClass.method("agentmain",
-																					 STRINGTYPE) != null)
+																					 BaseBuildCommand.STRINGTYPE) != null)
 															 .findFirst();
 
 						if (agentmain.isPresent()) {
@@ -299,11 +230,11 @@ public class ScriptSource implements Source {
 
 						Optional<ClassInfo> premain = clazz.stream()
 														   .filter(pubClass -> pubClass.method("premain",
-															   STRINGTYPE,
-															   INSTRUMENTATIONTYPE) != null
+															   BaseBuildCommand.STRINGTYPE,
+															   BaseBuildCommand.INSTRUMENTATIONTYPE) != null
 																			   ||
 																			   pubClass.method("premain",
-																				   STRINGTYPE) != null)
+																				   BaseBuildCommand.STRINGTYPE) != null)
 														   .findFirst();
 
 						if (premain.isPresent()) {

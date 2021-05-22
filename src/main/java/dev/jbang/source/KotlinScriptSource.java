@@ -1,5 +1,6 @@
 package dev.jbang.source;
 
+import dev.jbang.cli.BaseBuildCommand;
 import dev.jbang.net.KotlinManager;
 import org.jboss.jandex.ClassInfo;
 
@@ -27,7 +28,7 @@ public class KotlinScriptSource extends ScriptSource {
 
     @Override
     protected Predicate<ClassInfo> getMainFinder() {
-        return pubClass -> pubClass.method("main", ScriptSource.STRINGARRAYTYPE) != null
+        return pubClass -> pubClass.method("main", BaseBuildCommand.STRINGARRAYTYPE) != null
                            || pubClass.method("main") != null;
     }
 

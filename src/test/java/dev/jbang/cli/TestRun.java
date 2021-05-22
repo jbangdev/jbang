@@ -585,7 +585,7 @@ public class TestRun extends BaseTest {
 		ctx.setMainClass("wonkabear");
 
 		ctx.resolveClassPath(src);
-		src.createJarFile(ctx, dir, out);
+		BaseBuildCommand.createJarFile(src, ctx, dir, out);
 
 		try (JarFile jf = new JarFile(out)) {
 
