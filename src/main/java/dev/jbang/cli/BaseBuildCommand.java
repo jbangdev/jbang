@@ -139,7 +139,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 
 	// build with javac and then jar... todo: split up in more testable chunks
 	public static IntegrationResult buildJar(ScriptSource src, RunContext ctx, File tmpJarDir, File outjar,
-											 String requestedJavaVersion) throws IOException {
+			String requestedJavaVersion) throws IOException {
 		IntegrationResult integrationResult;
 		List<String> optionList = new ArrayList<>();
 		optionList.add(src.getCompilerBinary(requestedJavaVersion));
@@ -153,9 +153,9 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		// add source files to compile
 		optionList.add(src.getResourceRef().getFile().getPath());
 		optionList.addAll(src	.getAllSources()
-				.stream()
-				.map(x -> x.getResourceRef().getFile().getPath())
-				.collect(Collectors.toList()));
+								.stream()
+								.map(x -> x.getResourceRef().getFile().getPath())
+								.collect(Collectors.toList()));
 
 		// add additional files
 		src.copyFilesTo(tmpJarDir.toPath());
@@ -386,17 +386,17 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 			// using Files.walk method with try-with-resources
 			try (Stream<Path> paths = Files.walk(tmpJarDir.toPath())) {
 				List<Path> items = paths.filter(Files::isRegularFile)
-						.filter(f -> !f.toFile().getName().contains("$"))
-						.filter(f -> f.toFile().getName().endsWith(".class"))
-						.collect(Collectors.toList());
+										.filter(f -> !f.toFile().getName().contains("$"))
+										.filter(f -> f.toFile().getName().endsWith(".class"))
+										.collect(Collectors.toList());
 
 				if (items.size() > 1) { // todo: this feels like a very sketchy way to find the proper class
 					// name
 					// but it works.
 					String mainname = src.getResourceRef().getFile().getName().replace(src.getExtension(), ".class");
 					items = items	.stream()
-							.filter(f -> f.toFile().getName().equalsIgnoreCase(mainname))
-							.collect(Collectors.toList());
+									.filter(f -> f.toFile().getName().equalsIgnoreCase(mainname))
+									.collect(Collectors.toList());
 				}
 
 				if (items.size() != 1) {
@@ -417,8 +417,8 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 					Collection<ClassInfo> clazz = index.getKnownClasses();
 
 					Optional<ClassInfo> main = clazz.stream()
-							.filter(src.getMainFinder())
-							.findFirst();
+													.filter(src.getMainFinder())
+													.findFirst();
 
 					if (main.isPresent()) {
 						ctx.setMainClass(main.get().name().toString());
@@ -427,26 +427,26 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 					if (src.isAgent()) {
 
 						Optional<ClassInfo> agentmain = clazz	.stream()
-								.filter(pubClass -> pubClass.method("agentmain",
-										STRINGTYPE,
-										INSTRUMENTATIONTYPE) != null
-										||
-										pubClass.method("agentmain",
-												STRINGTYPE) != null)
-								.findFirst();
+																.filter(pubClass -> pubClass.method("agentmain",
+																		STRINGTYPE,
+																		INSTRUMENTATIONTYPE) != null
+																		||
+																		pubClass.method("agentmain",
+																				STRINGTYPE) != null)
+																.findFirst();
 
 						if (agentmain.isPresent()) {
 							ctx.setAgentMainClass(agentmain.get().name().toString());
 						}
 
 						Optional<ClassInfo> premain = clazz	.stream()
-								.filter(pubClass -> pubClass.method("premain",
-										STRINGTYPE,
-										INSTRUMENTATIONTYPE) != null
-										||
-										pubClass.method("premain",
-												STRINGTYPE) != null)
-								.findFirst();
+															.filter(pubClass -> pubClass.method("premain",
+																	STRINGTYPE,
+																	INSTRUMENTATIONTYPE) != null
+																	||
+																	pubClass.method("premain",
+																			STRINGTYPE) != null)
+															.findFirst();
 
 						if (premain.isPresent()) {
 							ctx.setPreMainClass(premain.get().name().toString());
@@ -470,14 +470,14 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		} else {
 			String group = ctx.getProperties().getOrDefault("group", "g.a.v");
 			String pomfile = pomTemplate
-					.data("baseName", Util.getBaseName(src.getResourceRef().getFile().getName()))
-					.data("group", group)
-					.data("artifact", ctx	.getProperties()
-							.getOrDefault("artifact", Util.getBaseName(
-									src.getResourceRef().getFile().getName())))
-					.data("version", ctx.getProperties().getOrDefault("version", "999-SNAPSHOT"))
-					.data("dependencies", ctx.getClassPath().getArtifacts())
-					.render();
+										.data("baseName", Util.getBaseName(src.getResourceRef().getFile().getName()))
+										.data("group", group)
+										.data("artifact", ctx	.getProperties()
+																.getOrDefault("artifact", Util.getBaseName(
+																		src.getResourceRef().getFile().getName())))
+										.data("version", ctx.getProperties().getOrDefault("version", "999-SNAPSHOT"))
+										.data("dependencies", ctx.getClassPath().getArtifacts())
+										.render();
 
 			pomPath = new File(tmpJarDir, "META-INF/maven/" + group.replace(".", "/") + "/pom.xml").toPath();
 			Files.createDirectories(pomPath.getParent());
@@ -485,6 +485,5 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		}
 		return pomPath;
 	}
-
 
 }

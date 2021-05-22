@@ -21,7 +21,7 @@ public class Cache {
 			@CommandLine.Option(names = {
 					"--jdk" }, description = "clear JDK cache only", negatable = true) Boolean jdks,
 			@CommandLine.Option(names = {
-					"--kotlincs" }, description = "clear kotlinc cache only", negatable = true) Boolean kotlincs,
+					"--kotlinc" }, description = "clear kotlinc cache only", negatable = true) Boolean kotlincs,
 			@CommandLine.Option(names = {
 					"--project" }, description = "clear temporary projects cache only", negatable = true) Boolean projects,
 			@CommandLine.Option(names = {
