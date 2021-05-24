@@ -20,7 +20,11 @@ if exist "%~dp0jbang.jar" (
 ) else if exist "%~dp0.jbang\jbang.jar" (
   set jarPath=%~dp0.jbang\jbang.jar
 ) else (
-  if not exist "%JBDIR%\bin\jbang.jar" (
+  if exist "%JBDIR%\bin\jbang.jar.new" (
+    rem a new jbang version was found, we replace the old one with it
+    copy /y "%JBDIR%\bin\jbang.jar.new" "%JBDIR%\bin\jbang.jar" > nul 2>&1
+    del /f /q "%JBDIR%\bin\jbang.jar.new"
+  ) else if not exist "%JBDIR%\bin\jbang.jar" (
     echo Downloading JBang... 1>&2
     if not exist "%TDIR%\urls" ( mkdir "%TDIR%\urls" )
     powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "$ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest %jburl% -OutFile %TDIR%\urls\jbang.zip"

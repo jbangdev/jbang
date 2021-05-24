@@ -54,28 +54,30 @@ if (Test-Path "$PSScriptRoot\jbang.jar") {
 } elseif (Test-Path "$PSScriptRoot\.jbang\jbang.jar") {
   $jarPath="$PSScriptRoot\.jbang\jbang.jar"
 } else {
-  if (-not (Test-Path "$JBDIR\bin\jbang.jar")) {
+  if (Test-Path "$JBDIR\bin\jbang.jar.new") {
+    Move-Item -Path "$JBDIR\bin\jbang.jar.new" -Destination"$JBDIR\bin\jbang.jar" -Force
+  } elseif (-not (Test-Path "$JBDIR\bin\jbang.jar")) {
     [Console]::Error.WriteLine("Downloading JBang...")
     New-Item -ItemType Directory -Force -Path "$TDIR\urls" >$null 2>&1
     $jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.zip"
     try { Invoke-WebRequest "$jburl" -OutFile "$TDIR\urls\jbang.zip"; $ok=$? } catch {
       $ok=$false
-      $error=$_
+      $err=$_
     }
     if (-not ($ok)) { 
       [Console]::Error.WriteLine("Error downloading JBang from $jburl to $TDIR\urls\jbang.zip")
-      [Console]::Error.WriteLine($error)
+      [Console]::Error.WriteLine($err)
       break 
     }
     [Console]::Error.WriteLine("Installing JBang...")
     Remove-Item -LiteralPath "$TDIR\urls\jbang" -Force -Recurse -ErrorAction Ignore >$null 2>&1
     try { Expand-Archive -Path "$TDIR\urls\jbang.zip" -DestinationPath "$TDIR\urls"; $ok=$? } catch {
       $ok=$false 
-      $error=$_
+      $err=$_
     }
     if (-not ($ok)) { 
       [Console]::Error.WriteLine("Error unzipping JBang from $TDIR\urls\jbang.zip to $TDIR\urls")
-      [Console]::Error.WriteLine($error)
+      [Console]::Error.WriteLine($err)
       break 
     }
     New-Item -ItemType Directory -Force -Path "$JBDIR\bin" >$null 2>&1
