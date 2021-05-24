@@ -9,7 +9,6 @@ import java.nio.file.Path;
 import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
-import dev.jbang.util.JavaUtil;
 import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
 
