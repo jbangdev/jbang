@@ -27,7 +27,6 @@ import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
 import org.jboss.jandex.Type;
 
-import dev.jbang.net.JdkManager;
 import dev.jbang.source.JarSource;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.ScriptSource;
@@ -308,7 +307,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 
 		if (newcmd.equals(cmd) &&
 				!new File(newcmd).exists()) {
-			return JdkManager.resolveInJavaHome(cmd, requestedVersion);
+			return JavaUtil.resolveInJavaHome(cmd, requestedVersion);
 		} else {
 			return newcmd;
 		}

@@ -88,17 +88,6 @@ public class JdkManager {
 		}
 	}
 
-	public static String resolveInJavaHome(String cmd, String requestedVersion) {
-		Path jdkHome = getCurrentJdk(requestedVersion);
-		if (jdkHome != null) {
-			if (Util.isWindows()) {
-				cmd = cmd + ".exe";
-			}
-			return jdkHome.resolve("bin").resolve(cmd).toAbsolutePath().toString();
-		}
-		return cmd;
-	}
-
 	public static void uninstallJdk(int version) {
 		Path jdkDir = JdkManager.getInstalledJdk(version);
 		if (jdkDir != null) {

@@ -1,6 +1,6 @@
 package dev.jbang.source;
 
-import static dev.jbang.net.JdkManager.resolveInJavaHome;
+import static dev.jbang.util.JavaUtil.resolveInJavaHome;
 
 import java.io.File;
 import java.io.IOException;

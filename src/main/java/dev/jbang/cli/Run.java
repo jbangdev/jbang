@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.text.StringEscapeUtils;
 
 import dev.jbang.Settings;
-import dev.jbang.net.JdkManager;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.Source;
 import dev.jbang.util.JavaUtil;
@@ -161,10 +160,10 @@ public class Run extends BaseBuildCommand {
 			List<String> optionalArgs = new ArrayList<>();
 
 			String requestedJavaVersion = javaVersion != null ? javaVersion : src.getJavaVersion();
-			String javacmd = JdkManager.resolveInJavaHome("java", requestedJavaVersion);
+			String javacmd = JavaUtil.resolveInJavaHome("java", requestedJavaVersion);
 			if (ctx.isForceJsh() || src.isJShell() || interactive) {
 
-				javacmd = JdkManager.resolveInJavaHome("jshell", requestedJavaVersion);
+				javacmd = JavaUtil.resolveInJavaHome("jshell", requestedJavaVersion);
 
 				if (src.getJarFile() != null && src.getJarFile().exists()) {
 					if (classpath.trim().isEmpty()) {

@@ -4,7 +4,7 @@ import static dev.jbang.cli.BaseBuildCommand.buildIfNeeded;
 import static dev.jbang.cli.BaseBuildCommand.getImageName;
 import static dev.jbang.cli.BaseScriptCommand.enableInsecure;
 import static dev.jbang.cli.Export.handle;
-import static dev.jbang.net.JdkManager.resolveInJavaHome;
+import static dev.jbang.util.JavaUtil.resolveInJavaHome;
 import static dev.jbang.util.Util.downloadFile;
 
 import java.io.File;
