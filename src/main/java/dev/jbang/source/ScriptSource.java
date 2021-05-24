@@ -1,5 +1,7 @@
 package dev.jbang.source;
 
+import static dev.jbang.util.JavaUtil.resolveInJavaHome;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,13 +18,17 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.jboss.jandex.ClassInfo;
+
 import dev.jbang.Cache;
 import dev.jbang.Settings;
+import dev.jbang.cli.BaseBuildCommand;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
@@ -77,13 +83,29 @@ public class ScriptSource implements Source {
 		this(ResourceRef.forFile(null), script);
 	}
 
-	private ScriptSource(ResourceRef resourceRef) {
+	protected ScriptSource(ResourceRef resourceRef) {
 		this(resourceRef, getBackingFileContent(resourceRef.getFile()));
 	}
 
 	private ScriptSource(ResourceRef resourceRef, String content) {
 		this.resourceRef = resourceRef;
 		this.script = content;
+	}
+
+	public List<String> getCompileOptions() {
+		return collectOptions("JAVAC_OPTIONS");
+	}
+
+	public String getCompilerBinary(String requestedJavaVersion) {
+		return resolveInJavaHome("javac", requestedJavaVersion);
+	}
+
+	public Predicate<ClassInfo> getMainFinder() {
+		return pubClass -> pubClass.method("main", BaseBuildCommand.STRINGARRAYTYPE) != null;
+	}
+
+	protected String getMainExtension() {
+		return ".java";
 	}
 
 	@Override
@@ -188,6 +210,10 @@ public class ScriptSource implements Source {
 		classpath = DependencyUtil.resolveDependencies(dependencies, repositories, Util.isOffline(),
 				Util.isFresh(), !Util.isQuiet());
 		return classpath;
+	}
+
+	public String getSuggestedMain() {
+		return getResourceRef().getFile().getName().replace(getMainExtension(), ".class");
 	}
 
 	public static class KeyValue {
@@ -328,12 +354,12 @@ public class ScriptSource implements Source {
 		return line.startsWith(DESCRIPTION_COMMENT_PREFIX);
 	}
 
-	private List<String> collectOptions(String prefix) {
-		List<String> javaOptions = collectRawOptions(prefix);
+	protected List<String> collectOptions(String prefix) {
+		List<String> options = collectRawOptions(prefix);
 
 		// convert quoted content to list of strings as
 		// just passing "--enable-preview --source 14" fails
-		return Source.quotedStringToList(String.join(" ", javaOptions));
+		return Source.quotedStringToList(String.join(" ", options));
 	}
 
 	private List<String> collectRawOptions(String prefix) {
@@ -361,10 +387,6 @@ public class ScriptSource implements Source {
 	@Override
 	public List<String> getRuntimeOptions() {
 		return collectOptions("JAVA_OPTIONS");
-	}
-
-	public List<String> getCompileOptions() {
-		return collectOptions("JAVAC_OPTIONS");
 	}
 
 	@Override
@@ -505,7 +527,7 @@ public class ScriptSource implements Source {
 		}
 	}
 
-	private <R> List<R> collectAll(Function<ScriptSource, List<R>> func) {
+	protected <R> List<R> collectAll(Function<ScriptSource, List<R>> func) {
 		Stream<R> subs = getAllSources().stream().map(s -> func.apply(s).stream()).flatMap(i -> i);
 		return Stream.concat(func.apply(this).stream(), subs).collect(Collectors.toList());
 	}
@@ -521,6 +543,11 @@ public class ScriptSource implements Source {
 	}
 
 	public static ScriptSource prepareScript(ResourceRef resourceRef) {
-		return new ScriptSource(resourceRef);
+		String originalResource = resourceRef.getOriginalResource();
+		if (originalResource != null && originalResource.endsWith(".kt")) {
+			return new KotlinScriptSource(resourceRef);
+		} else {
+			return new ScriptSource(resourceRef);
+		}
 	}
 }

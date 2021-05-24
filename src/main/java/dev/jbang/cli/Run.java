@@ -160,10 +160,10 @@ public class Run extends BaseBuildCommand {
 			List<String> optionalArgs = new ArrayList<>();
 
 			String requestedJavaVersion = javaVersion != null ? javaVersion : src.getJavaVersion();
-			String javacmd = resolveInJavaHome("java", requestedJavaVersion);
+			String javacmd = JavaUtil.resolveInJavaHome("java", requestedJavaVersion);
 			if (ctx.isForceJsh() || src.isJShell() || interactive) {
 
-				javacmd = resolveInJavaHome("jshell", requestedJavaVersion);
+				javacmd = JavaUtil.resolveInJavaHome("jshell", requestedJavaVersion);
 
 				if (src.getJarFile() != null && src.getJarFile().exists()) {
 					if (classpath.trim().isEmpty()) {

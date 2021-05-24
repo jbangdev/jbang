@@ -157,6 +157,17 @@ public class JavaUtil {
 		return rv.matches("\\d+[+]?");
 	}
 
+	public static String resolveInJavaHome(String cmd, String requestedVersion) {
+		Path jdkHome = JdkManager.getCurrentJdk(requestedVersion);
+		if (jdkHome != null) {
+			if (Util.isWindows()) {
+				cmd = cmd + ".exe";
+			}
+			return jdkHome.resolve("bin").resolve(cmd).toAbsolutePath().toString();
+		}
+		return cmd;
+	}
+
 	public static class RequestedVersionComparator implements Comparator<String> {
 		@Override
 		public int compare(String v1, String v2) {
