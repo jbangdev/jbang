@@ -65,10 +65,9 @@ public class KotlinManager {
 					// Ignore
 				}
 			}
-			Util.errorMsg("Required Kotlin version not possible to download or install. You can run with '--kotlin "
-					+ JavaUtil.determineJavaVersion() + "' to force using the default installed Java.");
+			Util.errorMsg("Required Kotlin version not possible to download or install.");
 			throw new ExitException(EXIT_UNEXPECTED_STATE,
-					"Unable to download or install JDK version " + version, e);
+					"Unable to download or install kotlinc version " + version, e);
 		}
 	}
 
