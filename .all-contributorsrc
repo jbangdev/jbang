@@ -529,6 +529,15 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "evanchooly",
+      "name": "Justin Lee",
+      "avatar_url": "https://avatars.githubusercontent.com/u/195021?v=4",
+      "profile": "https://www.antwerkz.com",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,
