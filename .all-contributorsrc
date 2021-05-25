@@ -538,6 +538,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "acisternino",
+      "name": "Andrea Cisternino",
+      "avatar_url": "https://avatars.githubusercontent.com/u/475646?v=4",
+      "profile": "https://mostly-bits.netlify.com/",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "skipCi": true,
