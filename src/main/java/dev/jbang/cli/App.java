@@ -194,7 +194,12 @@ class AppInstall extends BaseCommand {
 			files	.map(from::relativize)
 					.forEach(f -> {
 						try {
-							Files.copy(from.resolve(f), to.resolve(f), StandardCopyOption.REPLACE_EXISTING,
+							Path fromp = from.resolve(f);
+							Path top = to.resolve(f);
+							if (Util.isWindows() && f.endsWith("jbang.jar") && Files.isRegularFile(top)) {
+								top = Paths.get("jbang.jar.new");
+							}
+							Files.copy(fromp, top, StandardCopyOption.REPLACE_EXISTING,
 									StandardCopyOption.COPY_ATTRIBUTES);
 						} catch (IOException e) {
 							throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
