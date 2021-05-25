@@ -54,9 +54,9 @@ if (Test-Path "$PSScriptRoot\jbang.jar") {
 } elseif (Test-Path "$PSScriptRoot\.jbang\jbang.jar") {
   $jarPath="$PSScriptRoot\.jbang\jbang.jar"
 } else {
-  if (Test-Path "$JBDIR\bin\jbang.jar.new") {
+  if (Test-Path "$JBDIR\bin\jbang.jar.new" -and Test-Path "$JBDIR\bin\jbang.ps1") {
     Move-Item -Path "$JBDIR\bin\jbang.jar.new" -Destination"$JBDIR\bin\jbang.jar" -Force
-  } elseif (-not (Test-Path "$JBDIR\bin\jbang.jar")) {
+  } elseif (-not (Test-Path "$JBDIR\bin\jbang.jar") -or -not (Test-Path "$JBDIR\bin\jbang.ps1")) {
     [Console]::Error.WriteLine("Downloading JBang...")
     New-Item -ItemType Directory -Force -Path "$TDIR\urls" >$null 2>&1
     $jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.zip"

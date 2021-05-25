@@ -97,7 +97,7 @@ if [ -f "$abs_jbang_dir/jbang.jar" ]; then
 elif [ -f "$abs_jbang_dir/.jbang/jbang.jar" ]; then
   jarPath=$abs_jbang_dir/.jbang/jbang.jar
 else
-  if [ ! -f "$JBDIR/bin/jbang.jar" ]; then
+  if [ ! -f "$JBDIR/bin/jbang.jar" || ! -f "$JBDIR/bin/jbang" ]; then
     echo "Downloading JBang..." 1>&2
     mkdir -p "$TDIR/urls"
     jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.tar"
