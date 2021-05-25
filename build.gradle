@@ -323,6 +323,7 @@ githubRelease {
 	// set ORG_GRADLE_PROJECT_github_token
 	token = project.hasProperty('github_token') ? getProperty('github_token') : "unknown_github_token"
 	owner = "jbangdev"
+	targetCommitish = "main"
 	draft = true
 	try {
 		body = grgit.resolve.toTag(project.version).fullMessage
