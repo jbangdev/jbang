@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Stack;
-import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -111,19 +110,24 @@ public class Run extends BaseBuildCommand {
 	String generateOSCommandLine(Source src, RunContext ctx) throws IOException {
 		List<String> fullArgs = generateCommandLineList(src, ctx);
 		String args = String.join(" ", escapeOSArguments(fullArgs));
-		// This avoids long classpath problem on Windows.
-		// @file is only available from java 9 onwards.
+		// Check if we need to use @-files on Windows
+		boolean useArgsFile = false;
 		if (args.length() > COMMAND_LINE_LENGTH_LIMIT && Util.isWindows()
-				&& JavaUtil.determineJavaVersion() >= 9 && !Util.isUsingPowerShell()) {
-			final String javaCmd = fullArgs.get(0);
-			StringJoiner joiner = new StringJoiner(" ");
-			// we must skip the first value
-			for (int i = 1; i < fullArgs.size(); ++i)
-				joiner.add(fullArgs.get(i));
-			args = joiner.toString();
+				&& !Util.isUsingPowerShell()) {
+			// @file is only available from java 9 onwards.
+			String requestedJavaVersion = javaVersion != null ? javaVersion : src.getJavaVersion();
+			int actualVersion = JavaUtil.javaVersion(requestedJavaVersion);
+			useArgsFile = actualVersion >= 9;
+		}
+		if (useArgsFile) {
+			// @-files avoid problems on Windows with very long command lines
+			final String javaCmd = escapeOSArgument(fullArgs.get(0));
 			final File argsFile = File.createTempFile("jbang", ".args");
 			try (PrintWriter pw = new PrintWriter(argsFile)) {
-				pw.println(args);
+				// write all arguments except the first to the file
+				for (int i = 1; i < fullArgs.size(); ++i) {
+					pw.println(escapeArgsFileArgument(fullArgs.get(i)));
+				}
 			}
 
 			return javaCmd + " @" + argsFile.toString();

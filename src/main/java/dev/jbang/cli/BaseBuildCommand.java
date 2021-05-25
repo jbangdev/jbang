@@ -363,6 +363,14 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		return arg;
 	}
 
+	static String escapeArgsFileArgument(String arg) {
+		if (!shellSafeChars.matcher(arg).matches()) {
+			arg = arg.replaceAll("([\"'\\\\])", "\\\\$1");
+			arg = "\"" + arg + "\"";
+		}
+		return arg;
+	}
+
 	static String escapeWindowsArgument(String arg) {
 		if (Util.isUsingPowerShell()) {
 			if (!pwrSafeChars.matcher(arg).matches()) {
