@@ -1,6 +1,6 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-58-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-59-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 ## Contributors ✨
 
@@ -85,6 +85,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tr>
     <td align="center"><a href="http://piradix.com"><img src="https://avatars.githubusercontent.com/u/64977993?v=4?s=100" width="100px;" alt=""/><br /><sub><b>piradix</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/issues?q=author%3Apiradix" title="Bug reports">🐛</a></td>
     <td align="center"><a href="https://www.antwerkz.com"><img src="https://avatars.githubusercontent.com/u/195021?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Justin Lee</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=evanchooly" title="Code">💻</a></td>
+    <td align="center"><a href="https://mostly-bits.netlify.com/"><img src="https://avatars.githubusercontent.com/u/475646?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Andrea Cisternino</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/issues?q=author%3Aacisternino" title="Bug reports">🐛</a></td>
   </tr>
 </table>
 
