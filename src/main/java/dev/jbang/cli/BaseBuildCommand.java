@@ -103,7 +103,8 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 			JarSource jarSrc = src.asJarSource();
 			if (jarSrc == null
 					|| !jarSrc.isUpToDate()
-					|| JavaUtil.javaVersion(requestedJavaVersion) < JavaUtil.javaVersion(jarSrc.getJavaVersion())) {
+					|| JavaUtil.javaVersion(requestedJavaVersion) < JavaUtil.minRequestedVersion(
+							jarSrc.getJavaVersion())) {
 				buildRequired = true;
 			} else {
 				result = ctx.importJarMetadataFor(jarSrc);
