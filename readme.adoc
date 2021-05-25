@@ -509,7 +509,7 @@ flags passed into, i.e. `jbang -DskipTests mytestrunner.java`. Now within your s
 
 ==== Running Kotlin (.kt) (EXPERIMENTAL)
 
-As an experiemnt since 0.71.0 JBang supports building Kotlin files using `kotlinc`.
+As an experiment since 0.71.0 JBang supports building Kotlin files using `kotlinc`.
 
 [source,bash]
 ----
