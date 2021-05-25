@@ -31,7 +31,7 @@ dependencies {
 	implementation 'io.quarkus.qute:qute-core:1.12.2.Final'
 	implementation 'kr.motd.maven:os-maven-plugin:1.7.0'
 	implementation 'org.codehaus.plexus:plexus-java:1.0.6'
-	implementation 'com.google.code.gson:gson:2.8.6'
+	implementation 'com.google.code.gson:gson:2.8.7'
 	implementation 'org.jsoup:jsoup:1.13.1'
 
 	implementation 'com.github.jbangdev.jbang-resolver:shrinkwrap-resolver-api:3.1.5-allowpom'
