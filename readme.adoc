@@ -226,7 +226,7 @@ by doing the following:
 
 [source]
 ----
-dnf copr enable maxandersen/jbang
+dnf copr enable @jbangdev/jbang 
 dnf install jbang
 ----
 
