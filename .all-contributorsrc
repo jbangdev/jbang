@@ -538,6 +538,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "phillip-kruger",
+      "name": "Phillip Krüger",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6836179?v=4",
+      "profile": "http://www.phillip-kruger.com",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "skipCi": true,
