@@ -538,6 +538,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "oleg-nenashev",
+      "name": "Oleg Nenashev",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3000480?v=4",
+      "profile": "https://github.com/oleg-nenashev",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,
