@@ -96,7 +96,7 @@ class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 			Files.createSymbolicLink(t, target);
 		} catch (FileSystemException ex) {
 			Assume.assumeThat("Cannot check symbolic link. Permissions should be enabled first. " +
-							"See https://github.com/jbangdev/jbang/blob/main/CONTRIBUTING.adoc#building-on-windows-specifics",
+					"See https://github.com/jbangdev/jbang/blob/main/CONTRIBUTING.adoc#building-on-windows-specifics",
 					ex.getReason(), not(containsString("A required privilege is not held by the client")));
 		}
 		Files.delete(target);
