@@ -78,7 +78,7 @@ spotless {
 	lineEndings 'UNIX'
 	format 'misc', {
 		target '**/*.gradle', '**/*.md', '**/.gitignore'
-		targetExclude 'CONTRIBUTORS.md', 'src/main/scripts/container/README.md', 'build/container/README.md', ' build/reports/**', ' build/test-results/**' // all-contributor bot adds non-indented code
+		targetExclude 'CONTRIBUTORS.md', 'src/main/scripts/container/README.md', 'build/container/README.md', ' build/reports/**', ' build/test-results/**', 'out/**/*'  // all-contributor bot adds non-indented code
 		trimTrailingWhitespace()
 		indentWithTabs(4) // or spaces. Takes an integer argument if you don't like 4
 		endWithNewline()
