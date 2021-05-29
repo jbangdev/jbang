@@ -4,6 +4,8 @@ Anyone is welcome to open issues and/or pull-requests for bugfixes, feature-requ
 
 == How to build
 
+=== Quickstart
+
 Clone the repository, cd `jbang` and run `./gradlew build`.
 There will be a warning in the output but don't despair - that is just
 Java being picky.
@@ -29,6 +31,13 @@ BUILD SUCCESSFUL in 5s
 ----
 <.> This error happens as in the junit tests we test behaviors under different environment variables and to do that we need to modify internal state in java's `System` handling of properties. Java 9+ does not like that.
 <.> Already https://github.com/stefanbirkner/system-rules/issues/64[reported] but it can't be fixed as the jvm does not allow this; but fine for `jbang` as this is just for the test runs.
+
+=== Building on Windows specifics
+
+The guidelines above should work for Windows, and this configuration is covered by the CI pipeline.
+Some tests may be skipped in your local environment if symbolic linking is not enabled for your filesystem
+OR if your test process does not have the required permissions for a directory.
+See the configuration guidelines in the link:readme.adoc#usage-on-windows[Usage on Windows] section.
 
 == Conventional Commits + squash and merge
 
