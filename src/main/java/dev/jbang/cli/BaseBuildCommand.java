@@ -103,7 +103,8 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 			JarSource jarSrc = src.asJarSource();
 			if (jarSrc == null
 					|| !jarSrc.isUpToDate()
-					|| JavaUtil.javaVersion(requestedJavaVersion) < JavaUtil.javaVersion(jarSrc.getJavaVersion())) {
+					|| JavaUtil.javaVersion(requestedJavaVersion) < JavaUtil.minRequestedVersion(
+							jarSrc.getJavaVersion())) {
 				buildRequired = true;
 			} else {
 				result = ctx.importJarMetadataFor(jarSrc);
@@ -359,6 +360,14 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		if (!shellSafeChars.matcher(arg).matches()) {
 			arg = arg.replaceAll("(['])", "'\\\\''");
 			arg = "'" + arg + "'";
+		}
+		return arg;
+	}
+
+	static String escapeArgsFileArgument(String arg) {
+		if (!shellSafeChars.matcher(arg).matches()) {
+			arg = arg.replaceAll("([\"'\\\\])", "\\\\$1");
+			arg = "\"" + arg + "\"";
 		}
 		return arg;
 	}
