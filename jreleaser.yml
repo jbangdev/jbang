@@ -7,12 +7,21 @@ project:
     and immediate compilation and execution.
 
   website: https://jbang.dev
+  docsUrl: https://github.com/jbangdev/jbang/blob/HEAD/readme.adoc
   authors:
-    - Max Andersen
+    - Max Rydahl Andersen
   license: MIT
+  tags:
+    - jbang
+    - bash
+    - java
+    - shell
+    - scripting
   java:
     groupId: dev.jbang
     version: 8
+  extraProperties:
+    inceptionYear: 2020
 
 release:
   github:
