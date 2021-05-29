@@ -1,14 +1,18 @@
 package dev.jbang.source;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.TreeSet;
 
+import org.junit.Assume;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -88,7 +92,13 @@ class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 		t.toFile().delete();
 
 		target = Files.copy(target, target.getParent().resolve("C3.java"), StandardCopyOption.REPLACE_EXISTING);
-		Files.createSymbolicLink(t, target);
+		try {
+			Files.createSymbolicLink(t, target);
+		} catch (FileSystemException ex) {
+			Assume.assumeThat("Cannot check symbolic link. Permissions should be enabled first. " +
+					"See https://github.com/jbangdev/jbang/blob/main/CONTRIBUTING.adoc#building-on-windows-specifics",
+					ex.getReason(), not(containsString("A required privilege is not held by the client")));
+		}
 		Files.delete(target);
 
 		TestScript.createTmpFileWithContent(HiJBangPath.getParent(), "inner", "HelloInner.java",

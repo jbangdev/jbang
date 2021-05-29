@@ -574,6 +574,29 @@ A side effect of running GAV as a jar, the GAV could also be a `.java` or `.jsh`
 No one would want to do that (right?) but now you know.
 ====
 
+=== Usage on Windows
+
+Some JBang commands need to create symbolic links when running on Windows.
+For example, this is required for Managing JDKs or editing the files with the `edit` command.
+To resolve the issue, on Windows 10 you will need to enable symbolic linking for your user account.
+
+* Review security considerations and best practices https://docs.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/create-symbolic-links[here].
+* Enable the `Create symbolic links` group policy setting for your user/group
+  by following the guidelines on the https://docs.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/user-rights-assignment[User Rights Assignment] page.
+
+You might also need elevated privileges to create symbolic links
+If the JBang process has no full administrative rights, the execution may result in an error like:
+
+```
+java.nio.file.FileSystemException: <CURRENT_JDK>: A required privilege is not held by the client.
+```
+
+To resolve this issue, see the options in https://answers.microsoft.com/en-us/windows/forum/windows_10-performance-winpc/how-to-fix-problem-a-required-privilege-is-not/d206b4b3-b6c2-4b0b-8629-5d4dfcb8f8d0[this answers.microsoft.com article].
+There are multiple possible resolutions,
+choose one meeting your needs.
+
+For older Windows versions, see this https://stackoverflow.com/a/24353758[StackOverflow issue].
+
 == Init templates
 
 To get started you can run `jbang init helloworld.java` and a simple java class with a static main is generated.

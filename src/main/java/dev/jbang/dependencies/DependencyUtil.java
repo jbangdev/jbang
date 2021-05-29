@@ -198,7 +198,7 @@ public class DependencyUtil {
 				artifacts = stage.asList(MavenResolvedArtifact.class); // , RUNTIME);
 
 			} catch (RuntimeException e) {
-				throw new ExitException(1, "Could not resolve dependency", e);
+				throw new ExitException(1, "Could not resolve dependency " + it, e);
 			}
 
 			if (loggingEnabled)
