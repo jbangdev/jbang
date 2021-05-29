@@ -940,7 +940,12 @@ public class Util {
 		} catch (IOException e) {
 			infoMsg(e.toString());
 		}
-		infoMsg("Creation of symbolic link failed.");
+		if (Util.isWindows()) {
+			infoMsg("Creation of symbolic link failed." +
+					"For potential causes and resolutions see https://github.com/jbangdev/jbang/blob/main/readme.adoc#usage-on-windows");
+		} else {
+			infoMsg("Creation of symbolic link failed.");
+		}
 		return false;
 	}
 
