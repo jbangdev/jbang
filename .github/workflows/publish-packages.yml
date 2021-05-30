@@ -24,16 +24,10 @@ jobs:
         run: ./misc/updatecontainer.sh
       - name: homebrew
         continue-on-error: true
-        env:
-          BREW_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}
-          BREW_USER: ${{ secrets.BREW_USER }}
-        run: ./misc/updatebrew.sh
+        run: jreleaser publish --tool-name brew
       - name: scoop
         continue-on-error: true
-        env:
-          BREW_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}
-          BREW_USER: ${{ secrets.BREW_USER }}
-        run: ./misc/updatescoop.sh
+        run: jreleaser publish --tool-name scoop
       - name: spec
         continue-on-error: true
         env:
@@ -42,16 +36,10 @@ jobs:
         run: ./misc/updatespec.sh
       - name: snap
         continue-on-error: true
-        env:
-          BREW_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}
-          BREW_USER: ${{ secrets.BREW_USER }}
-        run: ./misc/updatesnap.sh
+        run: jreleaser publish --tool-name snap
       - name: sdkman
         continue-on-error: true
-        env:
-          SDKMAN_CONSUMER_KEY: ${{ secrets.SDKMAN_CONSUMER_KEY }}
-          SDKMAN_CONSUMER_TOKEN: ${{ secrets.SDKMAN_CONSUMER_TOKEN }}
-        run: ./misc/updatesdkman.sh
+        run: jreleaser publish --tool-name sdkman
       - name: upload-choco
         uses: actions/upload-artifact@v1
         with:

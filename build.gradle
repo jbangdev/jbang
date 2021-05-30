@@ -211,21 +211,6 @@ task createChecksum(type: Checksum) {
 	algorithm = Checksum.Algorithm.SHA256
 }
 
-task homebrew(type: Copy) {
-	dependsOn(createChecksum)
-	inputs.property('version', project.version)
-	from('src/main/scripts/brew/jbang.rb')
-	into(buildDir.toString() + '/brew/formula')
-	doFirst { t ->
-		t.filter(org.apache.tools.ant.filters.ReplaceTokens,
-			tokens: [
-				projectVersion: project.version,
-				sha256        : new File(distZip.archiveFile.asFile.get().absolutePath + '.sha256').text
-			]
-		)
-	}
-}
-
 task container(type: Copy) {
 	dependsOn(createChecksum)
 	inputs.property('version', project.version)
@@ -247,36 +232,6 @@ task spec(type: Copy) {
 	inputs.property('version', project.version)
 	from('src/main/scripts/spec/jbang.spec')
 	into(buildDir.toString() + '/spec')
-	doFirst { t ->
-		t.filter(org.apache.tools.ant.filters.ReplaceTokens,
-				tokens: [
-						projectVersion: project.version,
-						sha256        : new File(distZip.archiveFile.asFile.get().absolutePath + '.sha256').text
-				]
-		)
-	}
-}
-
-task scoop(type: Copy) {
-	dependsOn(createChecksum)
-	inputs.property('version', project.version)
-	from('src/main/scripts/scoop/jbang.json')
-	into(buildDir.toString() + '/scoop')
-	doFirst { t ->
-		t.filter(org.apache.tools.ant.filters.ReplaceTokens,
-				tokens: [
-						projectVersion: project.version,
-						sha256        : new File(distZip.archiveFile.asFile.get().absolutePath + '.sha256').text
-				]
-		)
-	}
-}
-
-task snap(type: Copy) {
-	dependsOn(createChecksum)
-	inputs.property('version', project.version)
-	from('src/main/scripts/snap/snapcraft.yaml')
-	into(buildDir.toString() + '/snap')
 	doFirst { t ->
 		t.filter(org.apache.tools.ant.filters.ReplaceTokens,
 				tokens: [
@@ -314,24 +269,6 @@ task tag(type: Exec) {
 	}
 }
 
-githubRelease {
-	// currently does not work as project.version not set.
-	// FilenameFilter filter = { dir, filename -> filename.contains(project.version) } // ensure nothing extra gets included.
-	//releaseAssets = distZip.destinationDir.listFiles filter
-	releaseAssets = files(distZip.destinationDir.listFiles(), new File(project.getBuildDir(), "tmp/version.txt"))
-	//println(getReleaseAssets().getFiles())
-	// set ORG_GRADLE_PROJECT_github_token
-	token = project.hasProperty('github_token') ? getProperty('github_token') : "unknown_github_token"
-	owner = "jbangdev"
-	targetCommitish = "main"
-	draft = true
-	try {
-		body = grgit.resolve.toTag(project.version).fullMessage
-	} catch (Exception e) {
-		body = "No tag description found for " + project.version
-	}
-}
-
 versioner {
 	startFrom {
 		major = 0
@@ -361,12 +298,9 @@ build.dependsOn(versionTxt)
 build.dependsOn(latestDistZip)
 build.dependsOn(latestDistTar)
 build.dependsOn(copyITests)
-build.dependsOn(homebrew)
 build.dependsOn(chocolatey)
-build.dependsOn(scoop)
 build.dependsOn(container)
 build.dependsOn(spec)
-build.dependsOn(snap)
 
 group = "dev.jbang"
 sourceCompatibility = '8'
