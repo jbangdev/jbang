@@ -1,0 +1,1555 @@
+= jbang - Unleash the power of Java
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:toc: left
+:icons: font
+endif::[]
+ifdef::env-github[]
+:toc: macro
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+image:https://img.shields.io/github/release/jbangdev/jbang.svg[Release,link=https://github.com/jbangdev/jbang/releases]
+image:https://img.shields.io/github/downloads/jbangdev/jbang/total.svg[Downloads,link=https://hanadigital.github.io/grev/?user=jbangdev&repo=jbang]
+image:https://github.com/jbangdev/jbang/workflows/ci-build/badge.svg[Build Status,link=https://github.com/jbangdev/jbang/actions]
+image:https://www.eclipse.org/che/contribute.svg[Che, link=https://che.openshift.io/f?url=https://github.com/jbangdev/jbang]
+image:https://img.shields.io/badge/Gitpod-Workspace-blue?logo=gitpodp[Gitpod, link=https://gitpod.io/#https://github.com/jbangdev/jbang]
+image:https://badges.gitter.im/jbangdev/community.svg[Gitter, link=https://gitter.im/jbangdev/community]
+
+
+image:images/jbang_logo.svg[JBang Logo, title="JBang Logo"]
+
+== Intro
+
+Want to learn, explore or use Java instantly without setup ?
+
+Do you like Java but use python, groovy, kotlin or similar languages for scripts, experimentation and exploration ?
+
+Ever wanted to just be able to run java from anywhere without any or very minimal setup ?
+Ever tried out Java 11+ support for running `.java` files directly in your shell but felt it was a bit too cumbersome ?
+
+Then try `jbang` which lets you do this:
+
+image:https://asciinema.org/a/4AiobRxUwPUPztCtrDYcmoKjs.svg[link=https://asciinema.org/a/4AiobRxUwPUPztCtrDYcmoKjs?autoplay=true&theme=solarized-dark]
+
+[source, bash]
+----
+$ jbang init --template=cli hello.java
+$ jbang hello.java Max!
+[jbang] Resolving dependencies...
+[jbang]     Resolving info.picocli:picocli:4.5.0...Done
+[jbang] Dependencies resolved
+[jbang] Building jar...
+Hello Max!
+$ jbang hello.java -h
+Usage: hello [-hV] <greeting>
+hello made with jbang
+      <greeting>   The greeting to print
+  -h, --help       Show this help message and exit.
+  -V, --version    Print version information and exit.
+----
+
+Instant cli app generated built using java and picocli as a dependency that was fetched as needed for the compilation and execution.
+
+JBang goes beyond more than just easy scripting; you can use `jbang` to launch any kind of java application or library packaged as a jar available locally, via http/https download or in a Maven repository.
+
+toc::[]
+
+== Features
+
+* `.java` Scripting for Java 8 and upwards
+* `.jsh` via JShell from Java 9 and upwards
+* `.kt` via kotlinc (EXPERIMENTAL)
+* Works on icon:windows[] Windows, icon:apple[] OSX and icon:linux[] Linux and AIX
+* Install using curl, power shell, SDKMan (icon:apple[]/icon:linux[]), Homebrew (icon:apple[]), Chocolatey (icon:windows[]) or Scoop (icon:windows[])
+* If needed will automatically install Java and even a Java editor (vscodium) for editing
+* Installation of scripts to user `PATH`
+* Include multiple files and sources
+* Dependency declarations using `//DEPS <gav>` for automatic dependency resolution
+* Control compile and runtime options with `//JAVAC_OPTIONS <flags>` and `//JAVA_OPTIONS <flags>`
+* Compiled jar and Dependency resolution caching
+* native-image generation (`--native`)
+* Launch with debug enabled for instant debugging from your favorite IDE
+* Transparent launch of JavaFX Applications on Java 8 and higher
+* Can be used for writing plugins to other cli's like `kubectl`
+* Init templates to get started easily (`jbang init -t cli hello.java`)
+* Generate gradle and IDE config with dependencies for easy editing in your favorite IDE (`jbang edit myfile.java`)
+* Maven and Gradle plugins for easy integration with your favorite build tool
+
+To use it install `jbang` and run `jbang yourscript.java`
+
+== Requirements
+
+Tested and verified to use on OSX, Linux, AIX, Windows (incl. command.exe, cygwin and mingw shells).
+
+[NOTE]
+====
+AIX requires the GNU `readlink` tool from the GNU coreutils to be available
+in the PATH when running `jbang`.  This is not supplied by default with AIX.
+Prebuilt versions can be obtained via the IBM AIX toolbox at 
+https://www.ibm.com/support/pages/aix-toolbox-linux-applications-downloads-alpha
+or elsewhere.
+====
+
+== Installation
+
+To use `jbang` Java 8 is the minimum required version, however Java 11 or higher is recommended.
+
+Note: `jbang` will download and install `java` from Adopt OpenJDK if no `java` is available.
+
+Once you have installed from one of the below approaches it is recommended you run `jbang app setup`
+to have it setup your `PATH` to include jbang app scripts + it will on operating systems that supports
+it setup a `j!` alias you can use instead of `jbang`.
+
+=== Using JBang
+
+The simplest way to install `jbang` is using JBang itself.
+This method has no other requirements (besides `curl` on Linux/OSX/AIX).
+
+Linux/OSX/Windows/AIX Bash:
+
+[source, bash]
+----
+curl -Ls https://sh.jbang.dev | bash -s - app setup
+----
+
+Windows Powershell:
+
+[source, powershell]
+----
+iex "& { $(iwr -useb https://ps.jbang.dev) } app setup"
+----
+
+=== SDKMan icon:linux[] / icon:apple[]
+
+Although if you want to have easy updates or install multiple JBang versions we recommend
+https://sdkman.io[sdkman] to install both java and `jbang` on Linux and OSX.
+
+[source, bash]
+----
+curl -s "https://get.sdkman.io" | bash # <.>
+source ~/.bash_profile # <.>
+
+sdk install java # <.>
+----
+
+Once Java is installed and ready, you install `jbang` with
+
+[source, bash]
+----
+sdk install jbang
+----
+
+To test your installation run:
+
+[source, bash]
+----
+jbang --help
+----
+
+This should print out usage information.
+
+To update run:
+
+[source]
+----
+sdk update jbang
+----
+
+=== Chocolatey icon:windows[]
+
+On Windows you can install both `java` and jbang` with https://chocolatey.org[Chocolatey].
+
+From a command prompt with enough rights to install with choco:
+
+  choco install jdk11
+
+Once Java in installed run:
+
+  choco install jbang
+
+To upgrade to latest version:
+
+  choco upgrade jbang
+
+The latest package will be published to https://chocolatey.org/packages/jbang[jbang choco package page],
+it might be a bit delayed as the review is still manual. In case the default version is not
+the latest you can see the https://chocolatey.org/packages/jbang/#versionhistory[version list] and install specific version using:
+
+  choco install jbang --version=<version number>
+
+=== Scoop icon:windows[]
+
+On Windows you can also install `jbang` with https://scoop.sh[Scoop].
+
+[source, bash]
+----
+scoop bucket add jbangdev https://github.com/jbangdev/scoop-bucket
+scoop install jbang
+----
+
+To upgrade to latest version:
+
+  scoop update jbang
+
+=== Homebrew icon:apple[]
+
+On OSX you can install 'java' and `jbang` with https://brew.sh[Homebrew] using custom taps.
+
+To install Java 11:
+
+[source, bash]
+----
+brew tap AdoptOpenJDK/openjdk
+brew cask install adoptopenjdk11
+----
+
+Once Java is installed you can use brew with https://github.com/jbangdev/homebrew-tap/[jbangdev/tap] to get `jbang`:
+
+  brew install jbangdev/tap/jbang
+
+To upgrade to latest version:
+
+  brew upgrade jbangdev/tap/jbang
+
+=== (Experimental) Linux packages icon:linux[]
+
+WARNING: These builds are not fully automated yet thus might be slightly behind.
+
+You can install rpm packages from https://copr.fedorainfracloud.org/coprs/maxandersen/jbang/[Fedora Copr]
+by doing the following:
+
+[source]
+----
+dnf copr enable @jbangdev/jbang 
+dnf install jbang
+----
+
+The COPR currently includes builds from various versions of CentOS, Fedora, Mageia and OpenSuse.
+
+=== Docker / GitHub Action icon:docker[]
+
+You can run `jbang` via Docker:
+
+[source, bash]
+----
+docker run -v `pwd`:/ws --workdir=/ws -ti jbangdev/jbang-action helloworld.java
+----
+
+or if you prefer using Quay.io:
+
+[source, bash]
+----
+docker run -v `pwd`:/ws --workdir=/ws -ti quay.io/jbangdev/jbang-action helloworld.java
+----
+
+The same container images can be used with GitHub Actions, see https://github.com/jbangdev/jbang-action[jbang-action] for details.
+
+Remember to remove `-ti` from the commands above when using on a GitHub Actions flow.
+
+=== Maven Plugin
+
+The JBang Maven plugin allows JBang scripts to be executed during a Maven build.
+
+Example in your `pom.xml`: 
+
+[source,xml]
+----
+      <plugin>
+        <groupId>dev.jbang</groupId>
+        <artifactId>jbang-maven-plugin</artifactId>
+        <version>0.0.7</version>
+        <executions>
+          <execution>
+            <id>run</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+                <script>hello.java</script>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+---- 
+
+The plugin documentation and more examples are available here: https://github.com/jbangdev/jbang-maven-plugin
+
+=== Gradle Plugin
+
+The JBang Gradle plugin allows JBang scripts to be executed during a Gradle build.
+
+In your `build.gradle` file, add:
+
+[source,gradle]
+----
+plugins {
+    id 'dev.jbang' version '0.2.0'
+}
+----
+
+That will allow your to execute JBang scripts with:
+
+[source,bash]
+----
+$ gradle jbang --jbang-script hello.jsh --jbang-args="Hello world"
+----
+
+The plugin documentation and more examples are available here: https://github.com/jbangdev/jbang-gradle-plugin
+
+=== Manual install
+
+Unzip the https://github.com/jbangdev/jbang/releases/latest[latest binary release], add the `jbang-<version>/bin` folder to your `$PATH` and you are set.
+
+=== Wrapper install
+
+If you would like to have `jbang` available in a local directory and committed into a source code repository (akin to Maven and Gradle wrappers) you can use the `jbang wrapper` command.
+
+If you have `jbang` already installed you call `jbang wrapper install` in a folder to install a local `jbang`
+that will run out of that directory using `./jbang`.
+
+The `./.jbang` directory which `jbang wrapper install` creates is just a cache which you typically would not commit to a source code repository, so you can e.g. `echo .jbang/ >>.gitignore`.
+
+=== "Zero" Install
+
+If you want to try out jbang without a package manager or similar you can run the following to download jbang in `~/.jbang` and if necessary `java`.
+
+Linux/OSX/Windows/AIX Bash:
+
+[source, bash]
+----
+curl -Ls https://sh.jbang.dev | bash -s - <arguments>
+----
+
+For example `curl -Ls https://sh.jbang.dev | bash -s - properties@jbangdev`
+
+Windows Powershell:
+
+[source, powershell]
+----
+iex "& { $(iwr -useb https://ps.jbang.dev) } <arguments>"
+----
+
+For example `iex "& { $(iwr -useb https://ps.jbang.dev) } properties@jbangdev"`
+
+=== Version check
+
+`jbang` will check once a day if a new version is available. If a new version is available a message will be printed 
+with informaton on how to install.
+
+The check happens in the background and will only be done every 24hrs on the same installation.
+
+The version check is done via a HTTP request to fetch a `version.txt` from https://jbang.dev. The request includes a user-agent that contains the current `jbang`, `java` and operating system version with no person identifiable information
+which we use purely to aggreate statistics to know update/usage frequency.
+
+`jbang` will not do its automatic check for version when you run in `--offline` mode nor if you set `JBANG_NO_VERSION_CHECK` environment variable.
+
+Example:
+```shell
+jbang test.java ## if more than 24hrs last check version will be checked
+export JBANG_NO_VERSION_CHECK
+jbang test.java ## no version check made as JBANG_NO_VERSION_CHECK is set
+```
+
+== Usage
+
+A minimal script is a single `.java` file with a typical `static void main` method or a `.jsh` file which will be passed to `jshell`.
+
+Below is an (almost) minimal example you can save in `helloworld.java` or simply run `jbang init helloworld.java`:
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $? # <.>
+
+class helloworld { // <.>
+
+    public static void main(String[] args) {
+        if(args.length==0) {
+            System.out.println("Hello World!");
+        } else {
+            System.out.println("Hello " + args[0]);
+        }
+    }
+}
+----
+<.> By using this `//` style instead of shebang `#!` you trick `bash`, `zsh` etc. to run this as a script while still being valid java code.
+<.> A classname, can be anything when using `jbang` but to be valid java for most IDEs you'll want to name it the same as the source file.
+
+Now to run this you can call it via `jbang`:
+
+[source]
+----
+jbang helloworld.java
+----
+
+or if on Linux/OSX/AIX run it directly. If you created it manually you need to mark it as executable before running it.
+
+[source]
+----
+chmod +x helloworld.java
+./helloworld.java jbang!
+----
+
+[WARNING]
+====
+When no <<java-version,JDK version>> is available in the PATH, JDK 11 will be downloaded by default to bootstrap jbang.
+If your script requires a higher version and you don' want to download two JDK's, you can define an alternative default with `JBANG_DEFAULT_JAVA_VERSION` env variable.
+
+ $ JBANG_DEFAULT_JAVA_VERSION=14 jbang my-script.java
+
+Note that if JDK is found in the PATH, `JBANG_DEFAULT_JAVA_VERSION` will be ignored.
+====
+
+=== Default application
+
+If you pass a directory or a url ending in `/` jbang will look for `main.java` to run as default application for that directory / location.
+
+=== URLs from Trusted Sources
+
+You can use `http(s):/` and `file:/` url's for input:.
+
+[source]
+----
+jbang https://gist.github.com/maxandersen/f43b4c52dfcfc42dcd59a04e49acf6ec
+----
+
+For safety reasons jbang will not run arbitrary urls before you indicated you trust their source.
+Thus when running the above for the first time you will see the following warning about the url not being a trusted source:
+
+[source,bash]
+----
+jbang https://gist.github.com/maxandersen/f43b4c52dfcfc42dcd59a04e49acf6ec
+[jbang] https://gist.github.com/maxandersen/f43b4c52dfcfc42dcd59a04e49acf6ec is not from a trusted source thus not running it automatically.
+
+If you trust the url to be safe to run you can do one of the following:
+0) Trust once: Add no trust, just run this time
+1) Trust this url in future:
+    jbang trust add https://gist.github.com/maxandersen/
+
+
+Any other response will result in exit.
+
+[jbang] Type in your choice (0 or 1) and hit enter. Times out after 10 seconds.
+----
+
+You can then choose 0 to run once or 1 to trust the suggested url. If you don't answer within 10 seconds jbang will exit.
+
+To enable running it without such question you need to mark that url or a sub part of it as a trusted source.
+i.e. `jbang trust add https://github.com/maxandersen/` will tell `jbang` to trust anything with that base url.
+
+You can see more in the comments of the `~/.jbang/trusted-sources.json`.
+
+[TIP]
+====
+Sites such as GitHub, gitlab, bitbucket, gist, carbon.now.sh jbang will try and extract the proper source rather than the raw html.
+i.e. doing `jbang https://carbon.now.sh/ae51bf967c98f31a13cba976903030d5 carbon!` is possible.
+====
+
+[TIP]
+====
+URL's will follow redirects. In case you need to use it with sites with self-signed/non-trusted certificates you can
+if you trust the site use `--insecure`.
+====
+
+=== Build and run native image (Experimental)
+
+There is support for using `native-image` from GraalVM project to produce a binary executable.
+
+Since not all java libraries can automatically be built with `native-image` - especially if using reflection feature are considered highly experimental.
+
+Just run `jbang --native helloworld.java` and `jbang` will use `native-image` from either `$JAVA_HOME/bin` or `$GRAALVM_HOME/bin` or `$PATH` to
+produce a native image binary.
+
+You can install the `native-image` utility binary e.g. by installing GraalVM from https://www.graalvm.org/downloads, and then once running `gu install native-image` as per https://www.graalvm.org/reference-manual/native-image.
+
+
+[TIP]
+====
+If you use `--native` with picocli remember to add `info.picocli:picocli-codegen` as that will ensure it will actually work with `native-image`.
+====
+
+
+=== Using `.jsh` for `jshell`
+
+There is support to run `.jsh` via `jshell`. The advantage of `jshell` is that you do not need to have a class or static main method.
+
+Classic `jshell` does not support passing in arguments nor system properties, `jbang` does.
+
+In the case of `.jsh` files `jbang` injects a startup script that declares a `String[] args` which will contain any passed in arguments,
+and it sets any properties passed in as `-Dkey=value` as parameters to `jbang`.
+
+That means you can run a script as `jbang -Dkey=value helloworld.jsh World` and retrieve arguments and properties as:
+
+[source,java]
+----
+System.out.println("Hello " + (args.length>0?args[0]:"World")); // <.>
+System.out.println(System.getProperty("key")); // <.>
+----
+<.> Line where `args` are accessible without previous declaration.
+<.> System properties set when passed as `-D` arguments to `jbang`
+
+The script will have the output:
+
+ Hello World
+ value
+
+Please note that `.jsh` files are source only, they are not compiled thus they are https://github.com/jbangdev/jbang/issues/506[not cached] nor can they be https://github.com/jbangdev/jbang/issues/510[built as native images].
+
+[TIP]
+====
+If you use `-Dkey` where no value is specified `jbang` will interpret this as `-Dkey=true` allowing you to easily have
+flags passed into, i.e. `jbang -DskipTests mytestrunner.java`. Now within your script `Boolean.getBoolean('skipTests') will return true.
+====
+
+==== Running Kotlin (.kt) (EXPERIMENTAL)
+
+As an experiment since 0.71.0 JBang supports building Kotlin files using `kotlinc`.
+
+[source,bash]
+----
+jbang init -t hello.kt hello
+./hello.kt
+[jbang] Downloading Kotlin 1.5.0. Be patient, this can take several minutes...
+[jbang] Installing Kotlin 1.5.0...
+[jbang] Building jar...
+Hello World
+----
+
+==== Running script from standard input
+
+jbang can run scripts directly from standard input using `-` or `/dev/stdin` as input.
+
+i.e.
+
+`echo 'System.out.println("Hello World!");' | jbang -`
+
+[TIP]
+====
+If you use `--interactive` `jbang` will let `jshell` enter into interactive/REPL mode. You can write `/exit` to leave this mode.
+====
+
+[TIP]
+====
+If your own code needs to handle chained pipes well it is recommended to add the following code:
+
+[source,java]
+----
+import sun.misc.Signal;
+
+if (!"Windows".equals(System.getProperty("os.name"))) {
+    Signal.handle(new Signal("PIPE"), (final Signal sig) -> System.exit(1));
+}
+----
+
+It will give a compiler warning as it is internal API; but for now it works.
+====
+
+=== Running ``.jar``'s
+
+`jbang` will also run `.jar` files directly.
+
+i.e. `jbang helloworld.jar` will run `helloworld.jar` if found on your local file system.
+
+The `.jar` can be a local file or a http/https url.
+
+You can also run a `.jar` file referenced by a Maven coordinate, i.e.:
+
+  jbang info.picocli:picocli-codegen:4.5.0
+
+This will fetch the dependency stated and put the transitive dependencies on the class-path.
+
+If you need to specify a main class you can do so by using `--main` i.e.
+
+  jbang --main picocli.codegen.aot.graalvm.ReflectionConfigGenerator info.picocli:picocli-codegen:4.5.0
+
+[TIP]
+====
+A side effect of running GAV as a jar, the GAV could also be a `.java` or `.jsh` file and it would be launched as a script instead of a jar.
+No one would want to do that (right?) but now you know.
+====
+
+=== Usage on Windows
+
+Some JBang commands need to create symbolic links when running on Windows.
+For example, this is required for Managing JDKs or editing the files with the `edit` command.
+To resolve the issue, on Windows 10 you will need to enable symbolic linking for your user account.
+
+* Review security considerations and best practices https://docs.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/create-symbolic-links[here].
+* Enable the `Create symbolic links` group policy setting for your user/group
+  by following the guidelines on the https://docs.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/user-rights-assignment[User Rights Assignment] page.
+
+You might also need elevated privileges to create symbolic links
+If the JBang process has no full administrative rights, the execution may result in an error like:
+
+```
+java.nio.file.FileSystemException: <CURRENT_JDK>: A required privilege is not held by the client.
+```
+
+To resolve this issue, see the options in https://answers.microsoft.com/en-us/windows/forum/windows_10-performance-winpc/how-to-fix-problem-a-required-privilege-is-not/d206b4b3-b6c2-4b0b-8629-5d4dfcb8f8d0[this answers.microsoft.com article].
+There are multiple possible resolutions,
+choose one meeting your needs.
+
+For older Windows versions, see this https://stackoverflow.com/a/24353758[StackOverflow issue].
+
+== Init templates
+
+To get started you can run `jbang init helloworld.java` and a simple java class with a static main is generated.
+
+Using `jbang init --template=cli helloworld.java` you get a more complete Hello World CLI using https://picocli.info/[picocli] as dependency.
+
+Run `jbang template list` to see the full list of templates that are available.
+
+It's also possible to create your own templates using the `jbang template add` command. For example, running:
+
+[source,bash]
+----
+$ jbang template add --name logo showlogo.java img.jpg some.properties
+----
+
+Would add a template named "logo" with 3 files which could then be instantiated running `jbang init -t=logo mylogo`.
+
+When instantiating a template the paths of the source files are ignored. So the following template:
+
+[source,bash]
+----
+$ jbang template add --name logo src/showlogo.java images/img.jpg resources/some.properties
+----
+
+Has the exact same result as the previous example.
+
+It's also possible to give the instantiated files (the targets) different names or different paths than their originals
+(the sources), like this:
+
+[source,bash]
+----
+$ jbang template add --name logo \
+    src/showlogo.java=showlogo.java \
+    img/img.jpg=img.jpg \
+    resources/logo.properties=some.properties
+----
+
+Btw, if you'd try to run the last command (and assuming the source files would exist) you'd get an error saying:
+
+[source,bash]
+----
+$ jbang template add --name logo ...
+[jbang] [ERROR] A target pattern is required. Prefix at least one of the files with '{filename}=' or '{basename}.ext='
+----
+
+This is because at least one of the files needs a target (the part before the `=` sign) that contains a "pattern".
+That pattern is the part of the name that will be replaced with the name that you pass to `jbang init`
+(if you type `jbang init helloworld.java` any occurrence of `{filename}` would be replaced with `helloworld.java`,
+while any occurrence of `{basename}` would be replaced with `helloworld`).
+
+If you don't specify a "target patterns" for any of the file Jbang will try to pick one for you.
+Basically if the first file you specify doesn't have a target it will use that and add a pattern.
+You will see something like this if it was successful:
+
+[source,bash]
+----
+$ jbang template add showlogo.java img.jpg some.properties
+[jbang] No explicit target pattern was set, using first file: {basename}.java=showlogo.java
+[jbang] Template 'showlogo' added to '.../jbang-catalog.json'
+----
+
+== Declare dependencies
+
+If you want to write real scripts you will want to use some java libraries.
+To specify dependencies you use gradle-style locators or links to Git sources. Below are examples for `log4j`.
+
+=== Using `//DEPS`
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+// <.>
+//DEPS log4j:log4j:1.2.17
+
+import static java.lang.System.out;
+
+import org.apache.log4j.Logger;
+import org.apache.log4j.BasicConfigurator;
+
+import java.util.Arrays;
+
+class classpath_example {
+
+	static final Logger logger = Logger.getLogger(classpath_example.class);
+
+	public static void main(String[] args) {
+		BasicConfigurator.configure(); // <.>
+		logger.info("Welcome to jbang");
+
+		Arrays.asList(args).forEach(arg -> logger.warn("arg: " + arg));
+		logger.info("Hello from Java!");
+	}
+}
+----
+<.> `//DEPS` must be placed at the start of line and can be one or more space separated dependencies.
+<.> Minimal logging setup - required by log4j.
+
+Now when you run this, the first time with no existing dependencies installed you should get an output like this:
+
+[source]
+----
+$ ./classpath_example.java
+[jbang] Resolving dependencies...
+[jbang]     Resolving log4j:log4j:1.2.17...Done
+[jbang] Dependencies resolved
+0 [main] INFO classpath_example  - Welcome to jbang
+1 [main] INFO classpath_example  - Hello from Java!
+----
+
+=== Managed dependencies ("BOM POM"'s) [Experimental]
+
+When using libraries and frameworks it can get tedious to mange and update multiple versions.
+For that jbang started since 0.62 to support so called "BOM POM"'s which are commonly used for managing versions.
+
+You use it by having as the very first dependency a `@pom` reference. This first reference will be used
+to define your managed dependences. Below is an example how that could look like when using Quarkus:
+
+```java
+//DEPS io.quarkus:quarkus-bom:1.11.0.Final@pom
+//DEPS io.quarkus:quarkus-resteasy
+//DEPS io.quarkus:quarkus-smallrye-openapi
+//DEPS io.quarkus:quarkus-swagger-ui
+```
+
+Notice the `@pom` at first line and then following dependencies are not required to use explicit versions.
+
+[NOTE]
+At the moment jbang support only one bom pom; in future it should be expanded to multiple.
+For now you can workaround this by reusing a published pom that includes all the dependency management
+sections you need.
+
+=== Using links to Git sources
+
+Instead of gradle-style locators you can also use URLs to projects on GitHub, GitLab or BitBucket.
+Links to those projects will then be converted to artifacts references on https://jitpack.io/[jitpack].
+You can use links to the root of the project, to the root of a tag/release and to specific commits.
+
+If the project you link to has multiple modules and you want only a specific module you can specify the
+name of the module by appending `#name-of-module` to the URL.
+
+And finally if the link you provide is to a specific branch of the project then you need to append
+`#:SNAPSHOT` to the URL. (If you have both a branch and a module name then use `#name-of-module:SNAPSHOT`)
+
+.Examples of links and their resulting locator:
+|===
+|Link | Locator
+|https://github.com/jbangdev/jbang
+|com.github.jbangdev:jbang:HEAD-SNAPSHOT
+
+|https://github.com/jbangdev/jbang/tree/v1.2.3
+|com.github.jbangdev:jbang:v1.2.3
+
+|https://github.com/jbangdev/jbang/tree/f1f34b031d2163e0cdc6f9a3725b59f47129c923[https://github.com/jbangdev/jbang/tree/f1f34b031...]
+|com.github.jbangdev:jbang:f1f34b031d
+
+|https://github.com/jbangdev/jbang#mymodule
+|com.github.jbangdev.jbang:mymodule:HEAD-SNAPSHOT
+
+|https://github.com/jbangdev/jbang/tree/mybranch#:SNAPSHOT
+|com.github.jbangdev:jbang:mybranch-SNAPSHOT
+
+|https://github.com/jbangdev/jbang/tree/mybranch#mymodule:SNAPSHOT
+|com.github.jbangdev.jbang.mymodule:mybranch-SNAPSHOT
+|===
+
+=== Offline mode
+
+In case you prefer `jbang` to just fail-fast when dependencies cannot be found locally you can run `jbang` in offline mode using
+`jbang -o` or `jbang --offline`. In this mode `jbang` will simply fail if dependencies have not been cached already.
+
+=== Repositories
+
+By default `jbang` uses https://repo1.maven.org/maven2/[maven central]. In past it used `jcenter` but with its imminent shutdown deemed best to use central.
+
+And if you are using the above mentioned URL dependencies https://jitpack.io[jitpack] will be added automatically as well.
+
+If that is not sufficient for you or need some custom repo you can use `//REPOS id=repourl` to
+state which repository URL to use.
+
+For ease of use there are also a few shorthands to use popular commonly available repositories.
+
+|===
+|Short name | Description
+|`mavencentral`
+|Maven Central (`https://repo1.maven.org/maven2/`)
+
+|`jcenter`
+|`https://jcenter.bintray.com/`
+
+|`google`
+|`https://maven.google.com/`
+
+|`jitpack`
+|`https://jitpack.io/`
+|===
+
+Following example enables use of Maven Central and add a custom `acme` repository.
+
+[source,java]
+----
+//REPOS mavencentral,acme=https://maven.acme.local/maven
+----
+
+[WARNING]
+====
+If you add any `//REPOS` lines `jbang` will no longer consult `mavencentral` thus you need to explicitly add it if needed.
+====
+
+[TIP]
+====
+For secure authentication `jbang` will honor `~/.m2/settings-security.xml` for configuring
+username/passwords.
+====
+
+
+=== Using `@Grab`
+
+There is also support for using Groovy lang style `@Grab` syntax.
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+
+import static java.lang.System.out;
+
+import org.apache.log4j.Logger;
+import org.apache.log4j.BasicConfigurator;
+
+import java.util.Arrays;
+
+import groovy.lang.Grab; // <.>
+import groovy.lang.Grapes;
+import groovy.lang.GrabResolver;
+
+@GrabResolver("mavenCentral") // <.>
+@GrabResolver(name='acme', root='https://maven.acme.local/maven')
+@Grapes({ // <.>
+		@Grab(group="org.codehaus.groovy", module="groovy", version="2.5.8"), // <.>
+		@Grab(module = "log4j", group = "log4j", version = "1.2.17")
+})
+class classpath_example {
+
+	static final Logger logger = Logger.getLogger(classpath_example.class);
+
+	public static void main(String[] args) {
+		BasicConfigurator.configure();
+		Arrays.asList(args).forEach(out::println);
+	}
+}
+----
+<.> Import needed to make the compiler be okey with `@Grab` annotation.
+<.> Using `GrabResolver` to enable `mavenCentral` and custom `acme` repository
+<.> In Groovy you normally put `@Grab` on import statements. That is not allowed in Java thus when having multiple imports you need to put them in a `@Grapes` annotation first.
+<.> `jbang` will grab any `@Grab` annotation and assume it is declaring dependencies.
+
+=== System properties and Environment variables
+
+In dependencies you can refer to environment and system properties to parameterize the dependencies.
+It uses the format `${[env.]propertyname:<defaultvalue>}`.
+
+Furthermore to align with properties commonly used to make dependency resolution portable
+`jbang` exposes properties similar to what the `https://github.com/trustin/os-maven-plugin[os-maven-plugin]` does.
+Plus for ease of use for javafx dependencies it also setups a property named `${os.detected.jfxname}`.
+
+Examples:
+
+[source,bash]
+----
+${env.USER} = 'max'
+${os.name} = 'Mac OS X'
+${non.existing.key:empty} = 'empty'
+${os.detected.jfxname} = 'mac'
+----
+
+This can be put to use in `//DEPS` like so:
+
+  //DEPS org.openjfx:javafx-graphics:11.0.2:${os.detected.jfxname}
+
+Here we use the properties to avoid hardcoding your script to a specific operating system.
+
+=== JavaFX
+
+If `jbang` detects you have a `javafx-` dependency in your list of dependencies
+it will if you `java` command supports Java modules automatically set the necessary
+`--module-path` and `--add-modules`.
+
+See `link:examples/jfx.java[]` and `link:examples/jfxtiles.java[]` for examples of this.
+
+== Multiple source files
+
+It is possible to use multiple source files just by having the files in the same source directory, it will
+even work for a limited extent with packages.
+
+For example the example below works by just calling `jbang Main.java`:
+
+.Main.java
+[source,java]
+----
+import model.Person;
+
+public class Main {
+
+    public static void main(String... args) {
+        Person p = new Person(args[0]);
+        System.out.println("Hello " + p.getName());
+    }
+}
+----
+
+.model/Person.java
+[source,java]
+----
+package model;
+
+public class Person {
+    String name;
+    public String getName() { return name; }
+    public Person(String n) { this.name = n; }
+}
+----
+
+There are some cases where the above does not work; i.e. if two packages refer to each other - i.e. `model.Person` referring to `util.Generator`
+will fail. Also `jbang edit` does not know about multiple sources as it runs and must run before compilation occurs.
+
+Thus version 0.46 there is now support for having that all work with multiple source files. The main script file defines all the
+dependencies and you add more source files into the application using `//SOURCES <filename>`.
+If included source has `//SOURCES` that will also get included recursively.
+
+The listed file name(s) gets added to source list when compiling.
+
+Currently there are not `*.java` style matching or support for these `.java` files to declare `//DEPS` or other jbang configuration.
+That will currently only be honored by the main script/app. These will be loosened up in future based on feedback.
+
+== Adding more resources
+
+If you want to add a `META-INF/application.properties` or `META-INF/resource.index.html` or other files to the generated jar
+you can use `//FILES` to add them.
+
+The format is `//FILES <mountpoint>[=<sourcefile>]`.
+
+Example:
+
+  //FILES resource.properties
+  //FILES META-INF/resources/index.html=index.html
+
+Here `resource.properties` will be copied as is and `META-INF/resources/index.html` gets its content from `index.html`.
+
+All locations are relative to the script location.
+
+WARNING: Currently `jbang edit` and http(s) based script do not work with `//FILES`. Will be added later.
+
+== Extension-less/non-java files for cli-plugins
+
+You can use `jbang` to write plugins for cli's like `kubectl`, `git`, etc.
+They expect their plugins to be named like `<cmd>-<plugin>`, i.e. `kubectl-myplugin`.
+
+Furthermore some of them, particularly `kubectl` currently require the file to start with `#!` otherwise you get a `exec format error`.
+
+There are two ways to have that work. The first recommended way is to use `jbang app install` which setups an intermediate script
+to avoid the issue, i.e. `jbang app install --name kubectl-my-plugin myplugin.java`.
+
+The second is to use a bit of auto-magic `jbang` has to help in case you only want a single file, no intermediate script. That
+is described below.
+
+=== Kebab casing of filename
+
+`jbang` lets you name your file without a `.java` or `.jsh` extension, such
+as `kubectl-my-plugin` or `myjavascript.sh`. `jbang` will in this case copy the file to a temporary
+directory using kebab-case to map the name to a proper java class name.
+
+For example, if you make a file called `kubectl-my-plugin` then `jbang` will assume the actual class name to launch
+to be `KubectlMyPlugin`.
+
+Note, similar is done when using `jbang edit`, here the symbolic link will be made so the IDE will treat it as
+regular camel cased java class.
+
+NOTE: If you do not follow this naming pattern you will get a compile error as `javac` expects both the public class and file names to be equal.
+
+=== she-bang auto-stripped
+
+For extension less scripts, you can put `#!' header at the beginning to let apps recognize
+it is to be treated as a script. To avoid issues when compiling, `jbang` will remove
+that line before compilation.
+
+For now this is required for `kubectl` plugin but not `git`. https://github.com/kubernetes/kubectl/issues/822[Issue opened] on this limitation.
+
+== Java version
+
+`jbang` will by default use `JAVA_HOME` and if not available, check the `PATH` to locate the `java` executable to run the script with.
+
+If your script requires a specific or minimal version of Java you can use `//JAVA <version>(+)`.
+
+If Jbang finds a java executable using `JAVA_HOME` or `PATH` which satisfies the stated java version jbang will use it.
+If no such version is found it will automatically download and install it.
+
+Examples:
+
+`//JAVA 11` will force use of Java 11. +
+`//JAVA 13+` will require at least java 13. Java 13 or higher will be used.
+
+In case no matching `java` is found `jbang` will fail.
+
+You can always force running with specific version of `java` using `--java` command line option, i.e.
+`jbang --java 8 hello.java`
+
+== Managing JDKs
+
+In the previous section it was mentioned that Jbang will automatically download and install JDKs when necessary.
+You can use the `jdk` command to manage JDKs, for example you can run the following:
+
+  jbang jdk list
+
+which will list all the JDKs that are currently installed by Jbang.
+
+It's easy to `install` additional JDKs by running:
+
+  jbang jdk install 14
+
+which will download and install JDK version 14 into Jbang's cache (`~/.jbang/cache/jdks` by default).
+The list of versions that are available for installation can be found here: https://adoptopenjdk.net/releases.html
+
+The first JDK that gets installed by Jbang will be set as the "default" JDK. This is from then on the JDK that will be
+used by Jbang if no Java could be found on the system (meaning `javac` wasn't found on the `PATH` and no `JAVA_HOME` is set).
+You can change the default JDK by running:
+
+  jbang jdk default 12
+
+Running it without an argument will return the version of the JDK that is currently set as the default.
+
+NOTE: On Windows you might need elevated privileges to create symbolic links. If you don't have permissions then
+running the above command  will result in an error. To use it https://stackoverflow.com/a/24353758[enable symbolic links]
+for your user or run your shell/terminal as administrator to have this feature working.
+
+When you `uninstall` a JDK by running:
+
+  jbang jdk uninstall 12
+
+and that JDK was set as the default, Jbang will set the next higher version JDK as the default. If no higher version is
+available it will select the next lower version.
+
+=== Using managed JDKs yourself
+
+Given the fact that Jbang is able to easily download and install JDKs we thought that it might be a good option for
+our users to be able to access those JDKs for their own use instead of having to install yet another version themselves.
+
+To make that easy we added a couple of useful commands. The first can be used to set retrieve to location where the JDK
+is installed:
+
+  jbang jdk home
+
+This will return the path to the "default" JDK (by default `~/.jbang/currentjdk)`, if you want to know the location of a
+specific JDK you can pass the version as an argument: `jbang jdk home 14`. This command could be used by scripts to find
+a JDK to use to run a Java program for example (eg: `JAVA_HOME=$(jbang jdk home)`.
+
+For setting up your current command line environment there's something simpler. You can run:
+
+  jbang jdk java-env
+
+On Linux, Mac and AIX this will output something like:
+
+[source]
+----
+export PATH="/home/user/.jbang/currentjdk/bin:$PATH"
+export JAVA_HOME="/home/user/.jbang/currentjdk"
+# Run this command to configure your shell:
+# eval $(jbang jdk java-env)
+----
+
+And the output itself shows how to properly use it to configure your command line to use the JDK. In this case it's by
+running:
+
+  eval $(jbang jdk java-env)
+
+To do this by default for all shells you start simply add the above line to your `~/.bashrc` file.
+
+Unfortunately on Windows using CMD things are not as easy as is show by the output of `jbang jdk java-env` on that  platform:
+
+[source]
+----
+set PATH=C:\Users\user\.jbang\currentjdk\bin;%PATH%
+set JAVA_HOME=C:\Users\user\.jbang\currentjdk
+rem Copy & paste the above commands in your CMD window or add
+rem them to your Environment Variables in the System Settings.
+----
+
+Instead of copying and pasting lines you could also redirect the output to a .bat file and execute that instead:
+
+  > jbang jdk java-env > setenv.bat
+  > setenv
+
+== Editing
+
+You can edit your script in an IDE/editor by using `jbang edit helloworld.java`. This will generate a project in a temporary location with symbolic links to your script
+and output the generated folder name. The easiest way to use that is to use it in a call to your IDE:
+
+[source, bash]
+----
+code `jbang edit helloworld.java`
+----
+
+If you add further dependencies to your file just re-run the edit command and the relevant files will be regenerated with the updated dependencies.
+
+Above does require using a shell that allows for variable evaluation, if you are on i.e. Windows then you might prefer using:
+
+[source, bash]
+----
+jbang edit --open=[editor] helloworld.java
+----
+
+The editor used will be what is specified as the argument to `--open` or value of `JBANG_EDITOR` environment variable.
+The editor command must be available on the PATH to be executed from jbang. If you are executing `jbang edit --open=code helloworld.java` a `code` executable (visual studio code) must be on the PATH. Next to this you can pass the full path to the `open` parameter like in `--open=/usr/bin/code`.
+
+
+NOTE: On Windows you might need elevated privileges to create symbolic links. If you don't have permissions then
+the `edit` option will result in an error. To use it https://stackoverflow.com/a/24353758[enable symbolic links]
+for your user or run your shell/terminal as administrator to have this feature working.
+
+=== Install of default vscodium editor [EXPERIMENTAL]
+
+If no editor available at all jbang will offer to install https://vscodium.com[VSCodium] (free/libre version of Visual Studio code) with
+default java extensions enabled in so called https://code.visualstudio.com/docs/editor/portable["portable mode"]. Portable mode means all 
+the installed binaries and configuration does not affect rest of your system; everything is stored in `~/.jbang/editor`.
+
+This automatic install and setup of editor is fully optional and if you have another IDE or editor already installed
+use it using `jbang edit --open=<editor>` or set JBANG_EDITOR environment variable to have jbang use it by default.
+
+=== Live Editing
+
+You can also use `jbang edit --live` and `jbang` will launch your editor while watching
+for file changes and regenerate the temporary project to pick up changes in dependencies.
+
+
+=== IDE and Editor support
+
+The `edit` feature been tested with the following IDE's:
+
+:sicons: https://simpleicons.org/icons
+.IDE's and Editors tested with `jbang`
+[width=75%,frame=none,grid=none]
+|===
+|image:{sicons}/visualstudiocode.svg[50,50] https://code.visualstudio.com[Visual Studio Code]
+|image:{sicons}/eclipseide.svg[50,50] https://www.eclipse.org/downloads/download.php[Eclipse]
+|image:{sicons}/intellijidea.svg[50,50] https://www.jetbrains.com/idea/download[IntelliJ Idea]
+|image:{sicons}/apachenetbeanside.svg[50,50] https://netbeans.apache.org/download/[Apache NetBeans]
+|image:{sicons}/neovim.svg[50,50] https://github.com/neovim/neovim/wiki/Installing-Neovim[Neovim] w/ https://spacevim.org/use-vim-as-a-java-ide/[spacevim Java]
+|image:{sicons}/gnuemacs.svg[50,50] https://www.gnu.org/software/emacs/[Emacs] w/ https://www.spacemacs.org[Spacemacs Java]
+|===
+
+The `edit` feature works with various IDE's - it generates a `build.gradle` to use with IDE's that understands Gradle directly.
+For speed and consistency `jbang` also generates IDE specific settings.
+
+Currently launchers and project files are generated for Eclipse and vscode. Intellij just reads `build.gradle` for now thus
+to run/debug you will need to manually set it up.
+
+Some editors like Code or IDEA are not per default executable / startable from the command line. Here are some helpfull documentations for supporting command line usage of different editors:
+
+* https://www.jetbrains.com/help/idea/working-with-the-ide-features-from-command-line.html[CLI support for IDEA]
+* https://code.visualstudio.com/docs/setup/mac[Terminal support for VS Code on macOS]
+
+== Debugging
+
+When running `.java` scripts with `jbang` you can pass the `--debug`-flag and the script will enable debug,
+suspend the execution and wait until you connect a debugger to port 4004.
+
+[source, bash]
+----
+jbang --debug helloworld.java
+Listening for transport dt_socket at address: 4004
+----
+
+You can change the debug port and host by passing in a interface pattern and number to the debug argument, e.g., `--debug=*:4321`.
+
+This will make it use port 4321 and make it listen on all ('*') network interfaces.
+
+NOTE: Be sure to put a breakpoint in your IDE/debugger before you connect to make the debugger actually stop when you need it.
+
+=== Debug jbang itself
+
+Java itself will add `JAVA_TOOL_OPTIONS` which will apply to `jbang` too.
+
+For finer and more explicit control the scripts, `jbang` will add `JBANG_JAVA_OPTIONS` to the call to `jbang` itself.
+Thus if you want to enable debug or other details for `jbang` set that environment variable.
+
+== Interactive REPL
+
+`jbang --interactive` enables use of `jshell` to explore and use your script and any dependencies in a REPL editor.
+
+When using `--interactive` for java/jar scripts/apps jbang sets up a jshell function named `userMain`. `userMain` delegates to
+the main function that would have been called if not running in interactive. You can call it with arguments as follows `userMain(args)`.
+
+NOTE: One caveat about jshell is that it cannt access classes in default package. Thus you will need to add a package statement
+to your script/class to see it.
+
+== Flight Recorder
+
+Flight recorder is a feature of the Java VM that lets you gather diagnostic and profiling data about your script.
+
+You can use `//JAVA_OPTIONS` to have full control over it; but for the easiest setup `jbang` lets you just run with `--jfr`, e.g.,
+
+  jbang --jfr myapp.java
+
+By default `--jfr` will start flight recorder and tell it to dump event recordings to `myapp.jfr` (i.e. using base name of the script as its filename).
+
+Then you can use tools like `jvisualvm` or `jmc` to explore the data.
+
+If you want to tweak the configuration you can pass flight recorder options, like `jbang --jfr=filename={baseName}.jfr,maxage=24h` where `{baseName}` will be replaced
+by the filename and then added `maxage=24h` to flight recording options.
+
+If you want further control use `//JAVAC_OPTS -XX:StartFlightRecording=<your options>` instead.
+
+== `java` and `javac` Options
+
+If you want to tweak memory settings or enable preview features you can setup the necessary options using
+`//JAVA_OPTS` and `//COMPILER_OPTS` as in the following example using Java 14 experimental `record` feature:
+
+[source, java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//JAVAC_OPTIONS --enable-preview -source 14 <.>
+//JAVA_OPTIONS --enable-preview // <.>
+
+import static java.lang.System.*;
+
+public class records {
+
+    record Point(int x, int y) {}
+
+    public static void main(String[] args) {
+        var p = new Point(2,4);
+        out.println(p);
+    }
+}
+----
+
+Since Java 9 https://docs.oracle.com/javase/9/tools/java.htm#GUID-3B1CE181-CD30-4178-9602-230B800D4FAE__USINGTHEJDK_JAVA_OPTIONSLAUNCHERENV-F3C0E3BA[JDK_JAVA_OPTIONS] and https://docs.oracle.com/javase/9/tools/javac.htm#GUID-AEEC9F07-CB49-4E96-8BC7-BCC2C7F725C9\_\_USINGJDK_JAVAC_OPTIONSENVIRONMENTVA-F3C76845[JDK_JAVAC_OPTIONS] are also picked up by the Java runtime and compiler automatically.
+
+For Java 8 and if you want to set explicitly only for `jbang` you can also add flags by setting `JBANG_JAVA_OPTIONS` and `JBANG_JAVAC_OPTIONS` respectively.
+
+=== (Experimental) Application Class Data Sharing
+
+If your scripts uses a lot of classes Class Data Sharing might help on your startup. The following requires Java 13+.
+
+Using `--cds` jbang will build the jar with Application Class Data Sharing enabled and when run have it load shared class data.
+
+You can put `//CDS` in the java file to enable it by default, or simply use `--cds` to force it or `--no-cds` to turn it off no matter what the jbang script file contains.
+
+== Aliases
+
+To avoid remembering long paths and to enable easy launch of jbang scripts there is an `alias` command
+to setup and manage aliases to actual scripts.
+
+  jbang alias add hello https://github.com/jbangdev/jbang-examples/blob/HEAD/examples/helloworld.java
+
+will add an alias named `hello` pointing to that github url which then can be run using `jbang hello`.
+
+  jbang alias list
+
+will show you all the aliases that are defined locally.
+
+=== Implicit Alias Catalogs
+
+The aliases you create are stored locally (see <<Local Alias Catalogs>>), but Jbang can also use remote catalogs.
+You can access those catalogs explicitly (see <<Catalogs>>) but it is much easier to use what we call "implicit catalogs", which
+are aliases that have a special format and Jbang is smart enough to know where to find their definition.
+
+Examples:
+
+`jbang hello@jbangdev` will run the alias `hello` as defined in `jbang-catalog.json` found in https://github.com/jbangdev/jbang-catalog.
+
+This allows anyone to provide a set of jbang scripts defined in their github, gitlab or bitbucket repositories.
+
+The full format is `<alias>@<user/org>(/repository)(/branch)(~path)` allowing you to do things like:
+
+.Implicit Catalog Examples:
+|====
+|Command | Description
+
+|`jbang hello@acme`
+|`hello` alias found in `acme/jbang-catalog/jbang-catalog.json` of the default branch searched on github, gitlab and bitbucket in that order.
+
+|`jbang hello@acme/mycatalog`
+|`hello` found in `acme/mycatalog/jbang-catalog.json` searched on github, gitlab and bitbucket in that order.
+
+|`jbang hello@acme/mycatalog/dev`
+|`hello` found in `acme/mycatalog/jbang-catalog.json` in the `dev` branch searched on github, gitlab and bitbucket in that order.
+
+|`jbang hello@acme~experimental`
+|`hello` found in `acme/jbang-catalog/experimental/jbang-catalog.json`
+
+|====
+
+=== Local Alias Catalogs
+
+Jbang will also look in the current directory for a `jbang-catalog.json` file and if it exists it will look up any aliases
+in there too. In fact it will look in several places in the following order:
+
+ 1. Current directory, `./jbang-catalog.json`
+ 2. In `.jbang/jbang-catalog.json`
+ 3. In the parent directory, `../jbang-catalog.json`
+ 4. In the parent's `.jbang` directory, ../.jbang/jbang-catalog.json`
+ 5. And repeating steps 3 and 4 recursively upwards to the root of the file system
+ 6. As the last step it will look in `$HOME/.jbang/jbang-catalog.json`
+
+Jbang will use any aliases defined in those files, but on top of that it will also look at the aliases defined in any
+catalogs mentioned in those files as well. Aliases defined in the file have preference over aliases found in any catalogs
+defined in the same file.
+
+When you create aliases using `jbang alias add`, or add catalogs using `jbang catalog add` the _same_ ordering will be used
+to determine where to store the alias or catalog. Btw, this will only take into account _existing_ files!
+So if no `jbang-catalog.json` file exists in the local directory it will _not_ be created for you, but Jbang will keep
+looking until it finds a file to use (as a last option it will always be written to `$HOME/.jbang/jbang-catalog.json`).
+
+This means that if you want to write the alias to `jbang-catalog.json` in your local folder you will either have to create
+the file first (eg by running `touch jbang-catalog.json`) or by explicitly specifying the file location:
+
+  jbang alias add -f jbang-catalog.json hello https://github.com/jbangdev/jbang-examples/blob/HEAD/examples/helloworld.java
+
+Btw, the flag `--show-origin` is very useful when listing aliases to find out where exactly an alias is defined:
+
+  jbang alias list --show-origin
+
+== Catalogs
+
+Catalogs are lists of Aliases as defined in the previous section, but while the `alias` command is used to manage aliases
+within a catalog, the `catalog` command is for managing references to catalogs. This is mostly useful when dealing with
+remote catalogs. You can for example add a catalog like this:
+
+  jbang catalog add --name demo https://github.com/jbangdev/jbang-catalog/blob/HEAD/jbang-catalog.json
+
+or simply by using the same "implicit" catalog system described in <<Implicit Alias Catalogs>>:
+
+  jbang catalog add --name demo jbangdev
+
+The aliases in that catalog are now available by adding `@demo` to their names. For example:
+
+  $ jbang alias list demo
+  env@demo = Dump table of Environment Variables
+  gavsearch@demo = Search search.maven.org for maven artifacts.
+  hello@demo = Script that says hello back for each argument
+  properties@demo = Dump table of System properties
+  $ jbang run hello@demo World!
+  [jbang] Building jar...
+  Hello World!
+
+In fact, it's possible to run the alias just by using `jbang run hello`, the `@demo` part is only necessary when trying to
+disambiguate between aliases with the same name from different catalogs.
+
+You can list the available catalogs by running:
+
+  jbang catalog list
+
+NB: The output will not only show the catalogs you defined yourself but also the ones that get added implicitly when
+running aliases as described in the section <<Implicit Alias Catalogs>>.
+
+== Java Agents
+
+You can activate a javaagent using `--javaagent=<agent>[=<options>]` where agent can be a already packaged agent jar from file, http url or Maven Coordinate.
+
+It can also be a jbang script itself where you have put `//JAVAAGENT` to activate agent packaging.
+
+You can create a basic agent using `jbang init -t agent myagent.java` to get started.
+
+== Bash/Zsh auto-completion
+
+If you are using bash or zsh in your terminal you can get auto-completion by running the following:
+
+[source, bash]
+----
+source <(jbang completion)
+----
+
+== Caching
+
+In previous versions of `jbang`, Java 10+ direct launch of `.java` was used, but since v0.6 `jbang` works with Java 8 and thus it
+needs to do a separate compile step. Besides now working with Java 8 this also allows to cache the compiled script and thus
+launch faster on consecutive runs.
+
+The caching goes to `~/.jbang/cache` by default, you can run `jbang cache clear` to remove all cache data from this folder.
+
+== Exporting apps
+
+If you want the generated jar or native binary you can use `jbang export local <script>` to get it copied (exported)
+for you to use directly.
+
+Note, the local generated jar will have classpath references that are machine dependent. If you want a portable
+jar use `jbang export portable <script>` and the dependent jars will be put in `libs` directory and
+generated jar will have relative references to the jars in the `libs` folder.
+
+=== Exporting to Maven Repository
+
+If your application or script need to be used from another java project it can be beneficial to publish your jar into a maven repository.
+You can use `jbang export mavenrepo -Dgroup=dk.xam yourapp.java` to have it installed in your default maven repository, or use `-O target`
+to get it exported to a directory named `target`.
+
+You can control what maven coordinate will be used via properties named `group`, `artifact` and `version`.
+
+==== Publish via jitpack
+
+You can use `export mavenrepo` to publish any github hosted jbang app into a maven project by using a `jitpack.yml` as follows:
+
+[source, yaml]
+----
+before_install:
+  -  curl -Ls https://sh.jbang.dev | bash -s - app setup
+install:
+  - ~/.jbang/bin/jbang export mavenrepo --force -O target -Dgroup=$GROUP -Dartifact=$ARTIFACT -Dversion=$VERSION hello.java
+  - mkdir -p ~/.m2/repository
+  - cp -rv target/* ~/.m2/repository/
+----
+
+You should only need to change `hello.java` to match your application/script.
+
+You can read more about how jitpack handle builds at https://jitpack.io/docs/BUILDING/.
+
+== Install apps
+
+Since version 0.56 jbang comes with ability to setup jbang to put scripts/apps into your `PATH`
+using `jbang app`. This is useful to easily make scripts available from anywhere on any Operating System;
+
+To get started run `jbang app setup` this will on Windows modify your system wide `PATH` to include a folder managed by jbang.
+On bash/zsh based shells it will setup `PATH` in your `bashrc` or `zshrc` file(s.)
+
+Once setup, you can use `jbang app install <scriptRef>` to install that script into the jbang managed path.
+
+i.e. `jbang app install myscript.java` will add `myscript` as a command you can run.
+
+You can also use aliases, like `jbang app install gavsearch@jbangdev`.
+
+If you have two script/apps with same name or just want to use a specific name you can use `--name` to
+control the generated command: `jbang app install --name mvnsearch gavsearch@jbangdev`
+
+If you want to see which are already installed use `jbang app list` and you can use `jbang app uninstall <name>` to uninstall
+the script/app.
+
+== Build Integration [EXPERIMENTAL]
+
+While `jbang` prepares and builds the underlying jar used for launch there is since v0.40 (for now) experimental API allowing
+user included dependencies to influence the generated jar and possible native image.
+
+An example use case enabled by this is to have full Quarkus integration, `jbang quarkuscode.java` will have Quarkus participate to perform its build time optimizations rather than doing it at runtime every time. You can even do `jbang -Dquarkus.dev quarkuscode.java` (since Quarkus 1.11+) run in devmode and have automatic build happen without having to restart.
+
+It works as following:
+
+Before the jar is created `jbang` will scan the classpath for `META-INF/jbang-integration.list`.
+Any classes listed in this file will be loaded and jbang will expect and call the following method on these classes:
+
+[source,java]
+----
+/**
+*
+* @param param build dir directory which will be made into a jar when build is done
+* @param pomFile location of pom.xml representing the projects dependencies
+* @param dependencies list of GAV to Path of artifact/classpath dependencies
+* @param nativeImage true if --native been requested
+* @return Map<String, Object> map of returns; special keys are "native-image" which is a and "files" to
+*          return native-image to be run and list of files to get written to the output directory.
+*
+*/
+Map<String, Object> postBuild(Path builddir, Path pomFile, List<Map.Entry<String, Path>> dependencies,
+            boolean nativeImage)
+----
+
+Still very experimental and bound to change. Example of its use can be found in https://github.com/quarkusio/quarkus/pull/11542[Quarkus].
+
+== Cheatsheet
+
+You can get examples on running/using `jbang` using https://github.com/cheat/cheat[cheat] command with `cheat jbang`.
+
+== FAQ
+
+[qanda]
+Why the name j'bang?::
+  I was reading up on how to use the new shebang (#!) feature support in Java 10 and came up with the idea of port `kscript` to Java and needed a name.
+From there came j'bang which is a "bad" spelling of how shebang is pronounced in French.
+
+Why use gradle resource locators rather than ?::
+  kscript used it and it's nice as it is a one-liner and easily parsable.
+
+How does this compare to ?::
+After doing `jbang` I've learned about similar projects and thought it would be nice with some comparison;
++
+https://github.com/scijava/jgo[jgo]: an alternative way to launch jars using maven coordinates. Implemented in python, depends on Java and Maven to be available. Not really for scripting but a novel way to launch java apps already packaged as a maven dependency.
++
+
+Why would I use Java to write scripts ? Java sucks for that... Use groovy, kotlin, scala, etc. instead!::
+  Well, does it really suck ? With Java 8 streams, static imports and greatly improved standard java libraries it is very close to what kscript and grape look like.
+With the following advantages:
++
+* works with plain Java without installing additional compiler/build tools
+* all IDE's support editing .java files very well, content assist, etc.
+* great debugging
++
+And to be honest I built `jbang` just to see if I could and get my Java skills refreshed for the newer features in the language.
+Use it at your own risk :)
+
+Why not use normal shebang(`#!`) in the header ?::
+  You can use normal shebang (`#!/usr/bin/env jbang`) and Java 10+ will actually work with it from the command line. Not recommended though as
+many tools and especially IDE's will start complaining about syntax errors as they don't ignore the first line in this case.
++
+By using the `//` form it is treated as both a bash/shell file AND a valid java file and thus works everywhere a java file will work.
++
+It's worth noting that Go https://golangcookbook.com/chapters/running/shebang/[uses a similar approach] which is also where I learned it from.
+
+HELP! My code formatter keeps breaking my `//` directives!::
+  When using automated code formatting tools, some care and configuration must be made to prevent the tooling from rewriting and preventing `jbang` from working as expected.
++
+Use the following configuration blocks to correctly configure your tool:
++
+.Configuration Tool Settings:
+|====
+| Formatting Tool | Configuration
+
+| Clang Format
+a|
+[source]
+----
+CommentPragmas:  '^[^ ]'
+----
+|====
+
+== Article & Presentations
+
+https://adambien.blog/roller/abien/entry/java_cli_apps_builds_and[Java CLI Apps, Builds and jbang--airhacks.fm podcast] - Adam Bien
+
+https://www.infoq.com/news/2020/10/scripting-java-jbang[Scripting Java with a jBang] - InfoQ - Alex Blewitt
+
+https://www.youtube.com/watch?v=-c9CIT9RfOQ&t=123s[jbang: Unleash the power of Java for shell scripting] - DevNation Tech Talk - Max Rydahl Andersen
+
+https://www.youtube.com/watch?v=A9YeRPSCdVU&t=5s[Creating java code and simplifying execution with JBang] - Daniel Persson
+
+https://www.youtube.com/watch?v=3JopX_mtFiY&t=14s[Quarkus Insights #16: Quarkus with JBang] - Quarkus Insights
+
+https://www.youtube.com/watch?v=gVL-CFEOGs8[jbang, a better Java?] - Swiss JUG - Max Rydahl Andersen
+
+https://www.youtube.com/watch?v=X4x2jM3Y0uE[JBang - Using Java to make Java better?] - Virtual JUG - Max Rydahl Andersen
+
+https://blogs.oracle.com/developers/self-contained-jdbc-scripts-with-groovy-and-jbang[Self contained JDBC scripts with Groovy and jbang] - Andres Almiray
+
+https://www.youtube.com/watch?v=FzKRqvZv-Ro[Neo4j quickie - jbang and the command line] - Gerrit Meier
+
+https://www.youtube.com/watch?v=RgHNOH2_itw&t=300s[Monday Java Lunch & Learn. This week we'll be learning what jbang is and how to use it] - Matthew Gilliard
+
+https://www.twilio.com/blog/cli-app-java-jbang-picocli[How to build a CLI app in Java using jbang and picocli] - Matthew Gilliard
+
+https://javastreets.com/blog/java-jbang-textmate.html[Faster Feedback with Java, JBang, and TextMate] - Manik Magar
+
+
+
+
+
+
+
+
+== Thanks
+
+`jbang` was heavily inspired by how `https://github.com/holgerbrandl/kscript[kscript]` by Holger Brand works.
