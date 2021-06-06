@@ -5,7 +5,7 @@ plugins {
 	id "com.github.johnrengelman.shadow" version "6.1.0"
 	id "java"
 	id "com.github.breadmoirai.github-release" version "2.2.12"
-	id "io.toolebox.git-versioner" version "1.6.4"
+	id "io.toolebox.git-versioner" version "1.6.5"
 	id 'org.gradle.crypto.checksum' version '1.1.0'
 	id "com.diffplug.spotless" version "5.11.0"
 	id 'de.fuerstenau.buildconfig' version '1.1.8'
