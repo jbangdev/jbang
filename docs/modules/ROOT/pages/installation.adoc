@@ -1,0 +1,273 @@
+= Installation
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+toc::[]
+
+To use `jbang` Java 8 is the minimum required version, however Java 11 or higher is recommended.
+
+Note: `jbang` will download and install `java` from Adopt OpenJDK if no `java` is available.
+
+Once you hav installed from one of the below approaches it is recommended you run `jbang app setup`
+ your `PATH` to include jbang app scripts + it will on operating systems that supports
+it setup a `j!` alias you can use instead of `jbang`.
+
+== Using JBang
+
+The simplest way to install `jbang` is using JBang itself.
+This method has no other requirements (besides `curl` on Linux/OSX/AIX).
+
+Linux/OSX/Windows/AIX Bash:
+
+[source, bash]
+----
+curl -Ls https://sh.jbang.dev | bash -s - app setup
+----
+
+Windows Powershell:
+
+[source, powershell]
+----
+iex "& { $(iwr -useb https://ps.jbang.dev) } app setup"
+----
+
+== SDKMan icon:linux[] / icon:apple[]
+
+Although if you want to have easy updates or install multiple JBang versions we recommend
+https://sdkman.io[sdkman] to install both java and `jbang` on Linux and OSX.
+
+[source, bash]
+----
+curl -s "https://get.sdkman.io" | bash # <.>
+source ~/.bash_profile # <.>
+
+sdk install java # <.>
+----
+
+Once Java is installed and ready, you install `jbang` with
+
+[source, bash]
+----
+sdk install jbang
+----
+
+To test your installation run:
+
+[source, bash]
+----
+jbang --help
+----
+
+This should print out usage information.
+
+To update run:
+
+[source]
+----
+sdk update jbang
+----
+
+== Chocolatey icon:windows[]
+
+On Windows you can install both `java` and jbang` with https://chocolatey.org[Chocolatey].
+
+From a command prompt with enough rights to install with choco:
+
+  choco install jdk11
+
+Once Java in installed run:
+
+  choco install jbang
+
+To upgrade to latest version:
+
+  choco upgrade jbang
+
+The latest package will be published to https://chocolatey.org/packages/jbang[jbang choco package page],
+it might be a bit delayed as the review is still manual. In case the default version is not
+the latest you can see the https://chocolatey.org/packages/jbang/#versionhistory[version list] and install specific version using:
+
+  choco install jbang --version=<version number>
+
+== Scoop icon:windows[]
+
+On Windows you can also install `jbang` with https://scoop.sh[Scoop].
+
+[source, bash]
+----
+scoop bucket add jbangdev https://github.com/jbangdev/scoop-bucket
+scoop install jbang
+----
+
+To upgrade to latest version:
+
+  scoop update jbang
+
+== Homebrew icon:apple[]
+
+On OSX you can install 'java' and `jbang` with https://brew.sh[Homebrew] using custom taps.
+
+To install Java 11:
+
+[source, bash]
+----
+brew tap AdoptOpenJDK/openjdk
+brew cask install adoptopenjdk11
+----
+
+Once Java is installed you can use brew with https://github.com/jbangdev/homebrew-tap/[jbangdev/tap] to get `jbang`:
+
+  brew install jbangdev/tap/jbang
+
+To upgrade to latest version:
+
+  brew upgrade jbangdev/tap/jbang
+
+== (Experimental) Linux packages icon:linux[]
+
+WARNING: These builds are not fully automated yet thus might be slightly behind.
+
+You can install rpm packages from https://copr.fedorainfracloud.org/coprs/maxandersen/jbang/[Fedora Copr]
+by doing the following:
+
+[source]
+----
+dnf copr enable @jbangdev/jbang 
+dnf install jbang
+----
+
+The COPR currently includes builds from various versions of CentOS, Fedora, Mageia and OpenSuse.
+
+== Docker / GitHub Action icon:docker[]
+
+You can run `jbang` via Docker:
+
+[source, bash]
+----
+docker run -v `pwd`:/ws --workdir=/ws -ti jbangdev/jbang-action helloworld.java
+----
+
+or if you prefer using Quay.io:
+
+[source, bash]
+----
+docker run -v `pwd`:/ws --workdir=/ws -ti quay.io/jbangdev/jbang-action helloworld.java
+----
+
+The same container images can be used with GitHub Actions, see https://github.com/jbangdev/jbang-action[jbang-action] for details.
+
+Remember to remove `-ti` from the commands above when using on a GitHub Actions flow.
+
+== Maven Plugin
+
+The JBang Maven plugin allows JBang scripts to be executed during a Maven build.
+
+Example in your `pom.xml`: 
+
+[source,xml]
+----
+      <plugin>
+        <groupId>dev.jbang</groupId>
+        <artifactId>jbang-maven-plugin</artifactId>
+        <version>0.0.7</version>
+        <executions>
+          <execution>
+            <id>run</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+                <script>hello.java</script>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+---- 
+
+The plugin documentation and more examples are available here: https://github.com/jbangdev/jbang-maven-plugin
+
+=== Gradle Plugin
+
+The JBang Gradle plugin allows JBang scripts to be executed during a Gradle build.
+
+In your `build.gradle` file, add:
+
+[source,gradle]
+----
+plugins {
+    id 'dev.jbang' version '0.2.0'
+}
+----
+
+That will allow your to execute JBang scripts with:
+
+[source,bash]
+----
+$ gradle jbang --jbang-script hello.jsh --jbang-args="Hello world"
+----
+
+The plugin documentation and more examples are available here: https://github.com/jbangdev/jbang-gradle-plugin
+
+=== Manual install
+
+Unzip the https://github.com/jbangdev/jbang/releases/latest[latest binary release], add the `jbang-<version>/bin` folder to your `$PATH` and you are set.
+
+== Wrapper install
+
+If you would like to have `jbang` available in a local directory and committed into a source code repository (akin to Maven and Gradle wrappers) you can use the `jbang wrapper` command.
+
+If you have `jbang` already installed you call `jbang wrapper install` in a folder to install a local `jbang`
+that will run out of that directory using `./jbang`.
+
+The `./.jbang` directory which `jbang wrapper install` creates is just a cache which you typically would not commit to a source code repository, so you can e.g. `echo .jbang/ >>.gitignore`.
+
+== "Zero" Install
+
+If you want to try out jbang without a package manager or similar you can run the following to download jbang in `~/.jbang` and if necessary `java`.
+
+Linux/OSX/Windows/AIX Bash:
+
+[source, bash]
+----
+curl -Ls https://sh.jbang.dev | bash -s - <arguments>
+----
+
+For example `curl -Ls https://sh.jbang.dev | bash -s - properties@jbangdev`
+
+Windows Powershell:
+
+[source, powershell]
+----
+iex "& { $(iwr -useb https://ps.jbang.dev) } <arguments>"
+----
+
+For example `iex "& { $(iwr -useb https://ps.jbang.dev) } properties@jbangdev"`
+
+== Version check
+
+`jbang` will check once a day if a new version is available. If a new version is available a message will be printed with informaton on how to install.
+
+The check happens in the background and will only be done every 24hrs on the same installation.
+
+The version check is done via a HTTP request to fetch a `version.txt` from https://jbang.dev. The request includes a user-agent that contains the current `jbang`, `java` and operating system version with no person identifiable information
+which we use purely to aggreate statistics to know update/usage frequency.
+
+`jbang` will not do its automatic check for version when you run in `--offline` mode nor if you set `JBANG_NO_VERSION_CHECK` environment variable.
+
+Example:
+```shell
+jbang test.java ## if more than 24hrs last check version will be checked
+export JBANG_NO_VERSION_CHECK
+jbang test.java ## no version check made as JBANG_NO_VERSION_CHECK is set
+```

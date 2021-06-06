@@ -1,0 +1,17 @@
+= Caching
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+In previous versions of `jbang`, Java 10+ direct launch of `.java` was used, but since v0.6 `jbang` works with Java 8 and thus it needs to do a separate compile step. Besides now working with Java 8 this also allows to cache the compiled script and thus launch faster on consecutive runs.
+
+The caching goes to `~/.jbang/cache` by default, you can run `jbang cache clear` to remove all cache data from this folder.

@@ -2,11 +2,9 @@
 :idprefix:
 :idseparator: -
 ifndef::env-github[]
-:toc: left
 :icons: font
 endif::[]
 ifdef::env-github[]
-:toc: macro
 :caution-caption: :fire:
 :important-caption: :exclamation:
 :note-caption: :paperclip:
@@ -28,7 +26,7 @@ image:images/jbang_logo.svg[JBang Logo, title="JBang Logo"]
 
 Want to learn, explore or use Java instantly without setup ?
 
-Do you like Java but use python, groovy, kotlin or similar languages for scripts, experimentation and exploration ?
+Do you likeJava but use python, groovy, kotlin or similar languages for scripts, experimentation and exploration ?
 
 Ever wanted to just be able to run java from anywhere without any or very minimal setup ?
 Ever tried out Java 11+ support for running `.java` files directly in your shell but felt it was a bit too cumbersome ?
@@ -96,266 +94,7 @@ https://www.ibm.com/support/pages/aix-toolbox-linux-applications-downloads-alpha
 or elsewhere.
 ====
 
-== Installation
 
-To use `jbang` Java 8 is the minimum required version, however Java 11 or higher is recommended.
-
-Note: `jbang` will download and install `java` from Adopt OpenJDK if no `java` is available.
-
-Once you have installed from one of the below approaches it is recommended you run `jbang app setup`
-to have it setup your `PATH` to include jbang app scripts + it will on operating systems that supports
-it setup a `j!` alias you can use instead of `jbang`.
-
-=== Using JBang
-
-The simplest way to install `jbang` is using JBang itself.
-This method has no other requirements (besides `curl` on Linux/OSX/AIX).
-
-Linux/OSX/Windows/AIX Bash:
-
-[source, bash]
-----
-curl -Ls https://sh.jbang.dev | bash -s - app setup
-----
-
-Windows Powershell:
-
-[source, powershell]
-----
-iex "& { $(iwr -useb https://ps.jbang.dev) } app setup"
-----
-
-=== SDKMan icon:linux[] / icon:apple[]
-
-Although if you want to have easy updates or install multiple JBang versions we recommend
-https://sdkman.io[sdkman] to install both java and `jbang` on Linux and OSX.
-
-[source, bash]
-----
-curl -s "https://get.sdkman.io" | bash # <.>
-source ~/.bash_profile # <.>
-
-sdk install java # <.>
-----
-
-Once Java is installed and ready, you install `jbang` with
-
-[source, bash]
-----
-sdk install jbang
-----
-
-To test your installation run:
-
-[source, bash]
-----
-jbang --help
-----
-
-This should print out usage information.
-
-To update run:
-
-[source]
-----
-sdk update jbang
-----
-
-=== Chocolatey icon:windows[]
-
-On Windows you can install both `java` and jbang` with https://chocolatey.org[Chocolatey].
-
-From a command prompt with enough rights to install with choco:
-
-  choco install jdk11
-
-Once Java in installed run:
-
-  choco install jbang
-
-To upgrade to latest version:
-
-  choco upgrade jbang
-
-The latest package will be published to https://chocolatey.org/packages/jbang[jbang choco package page],
-it might be a bit delayed as the review is still manual. In case the default version is not
-the latest you can see the https://chocolatey.org/packages/jbang/#versionhistory[version list] and install specific version using:
-
-  choco install jbang --version=<version number>
-
-=== Scoop icon:windows[]
-
-On Windows you can also install `jbang` with https://scoop.sh[Scoop].
-
-[source, bash]
-----
-scoop bucket add jbangdev https://github.com/jbangdev/scoop-bucket
-scoop install jbang
-----
-
-To upgrade to latest version:
-
-  scoop update jbang
-
-=== Homebrew icon:apple[]
-
-On OSX you can install 'java' and `jbang` with https://brew.sh[Homebrew] using custom taps.
-
-To install Java 11:
-
-[source, bash]
-----
-brew tap AdoptOpenJDK/openjdk
-brew cask install adoptopenjdk11
-----
-
-Once Java is installed you can use brew with https://github.com/jbangdev/homebrew-tap/[jbangdev/tap] to get `jbang`:
-
-  brew install jbangdev/tap/jbang
-
-To upgrade to latest version:
-
-  brew upgrade jbangdev/tap/jbang
-
-=== (Experimental) Linux packages icon:linux[]
-
-WARNING: These builds are not fully automated yet thus might be slightly behind.
-
-You can install rpm packages from https://copr.fedorainfracloud.org/coprs/maxandersen/jbang/[Fedora Copr]
-by doing the following:
-
-[source]
-----
-dnf copr enable @jbangdev/jbang 
-dnf install jbang
-----
-
-The COPR currently includes builds from various versions of CentOS, Fedora, Mageia and OpenSuse.
-
-=== Docker / GitHub Action icon:docker[]
-
-You can run `jbang` via Docker:
-
-[source, bash]
-----
-docker run -v `pwd`:/ws --workdir=/ws -ti jbangdev/jbang-action helloworld.java
-----
-
-or if you prefer using Quay.io:
-
-[source, bash]
-----
-docker run -v `pwd`:/ws --workdir=/ws -ti quay.io/jbangdev/jbang-action helloworld.java
-----
-
-The same container images can be used with GitHub Actions, see https://github.com/jbangdev/jbang-action[jbang-action] for details.
-
-Remember to remove `-ti` from the commands above when using on a GitHub Actions flow.
-
-=== Maven Plugin
-
-The JBang Maven plugin allows JBang scripts to be executed during a Maven build.
-
-Example in your `pom.xml`: 
-
-[source,xml]
-----
-      <plugin>
-        <groupId>dev.jbang</groupId>
-        <artifactId>jbang-maven-plugin</artifactId>
-        <version>0.0.7</version>
-        <executions>
-          <execution>
-            <id>run</id>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-                <script>hello.java</script>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
----- 
-
-The plugin documentation and more examples are available here: https://github.com/jbangdev/jbang-maven-plugin
-
-=== Gradle Plugin
-
-The JBang Gradle plugin allows JBang scripts to be executed during a Gradle build.
-
-In your `build.gradle` file, add:
-
-[source,gradle]
-----
-plugins {
-    id 'dev.jbang' version '0.2.0'
-}
-----
-
-That will allow your to execute JBang scripts with:
-
-[source,bash]
-----
-$ gradle jbang --jbang-script hello.jsh --jbang-args="Hello world"
-----
-
-The plugin documentation and more examples are available here: https://github.com/jbangdev/jbang-gradle-plugin
-
-=== Manual install
-
-Unzip the https://github.com/jbangdev/jbang/releases/latest[latest binary release], add the `jbang-<version>/bin` folder to your `$PATH` and you are set.
-
-=== Wrapper install
-
-If you would like to have `jbang` available in a local directory and committed into a source code repository (akin to Maven and Gradle wrappers) you can use the `jbang wrapper` command.
-
-If you have `jbang` already installed you call `jbang wrapper install` in a folder to install a local `jbang`
-that will run out of that directory using `./jbang`.
-
-The `./.jbang` directory which `jbang wrapper install` creates is just a cache which you typically would not commit to a source code repository, so you can e.g. `echo .jbang/ >>.gitignore`.
-
-=== "Zero" Install
-
-If you want to try out jbang without a package manager or similar you can run the following to download jbang in `~/.jbang` and if necessary `java`.
-
-Linux/OSX/Windows/AIX Bash:
-
-[source, bash]
-----
-curl -Ls https://sh.jbang.dev | bash -s - <arguments>
-----
-
-For example `curl -Ls https://sh.jbang.dev | bash -s - properties@jbangdev`
-
-Windows Powershell:
-
-[source, powershell]
-----
-iex "& { $(iwr -useb https://ps.jbang.dev) } <arguments>"
-----
-
-For example `iex "& { $(iwr -useb https://ps.jbang.dev) } properties@jbangdev"`
-
-=== Version check
-
-`jbang` will check once a day if a new version is available. If a new version is available a message will be printed 
-with informaton on how to install.
-
-The check happens in the background and will only be done every 24hrs on the same installation.
-
-The version check is done via a HTTP request to fetch a `version.txt` from https://jbang.dev. The request includes a user-agent that contains the current `jbang`, `java` and operating system version with no person identifiable information
-which we use purely to aggreate statistics to know update/usage frequency.
-
-`jbang` will not do its automatic check for version when you run in `--offline` mode nor if you set `JBANG_NO_VERSION_CHECK` environment variable.
-
-Example:
-```shell
-jbang test.java ## if more than 24hrs last check version will be checked
-export JBANG_NO_VERSION_CHECK
-jbang test.java ## no version check made as JBANG_NO_VERSION_CHECK is set
-```
 
 == Usage
 
@@ -639,13 +378,13 @@ Btw, if you'd try to run the last command (and assuming the source files would e
 [source,bash]
 ----
 $ jbang template add --name logo ...
-[jbang] [ERROR] A target pattern is required. Prefix at least one of the files with '{filename}=' or '{basename}.ext='
+[jbang] [ERROR] A target pattern is required. Prefix at least one of the files with '\\{filename}=' or '\\{basename}.ext='
 ----
 
 This is because at least one of the files needs a target (the part before the `=` sign) that contains a "pattern".
 That pattern is the part of the name that will be replaced with the name that you pass to `jbang init`
-(if you type `jbang init helloworld.java` any occurrence of `{filename}` would be replaced with `helloworld.java`,
-while any occurrence of `{basename}` would be replaced with `helloworld`).
+(if you type `jbang init helloworld.java` any occurrence of `\{filename}` would be replaced with `helloworld.java`,
+while any occurrence of `\{basename}` would be replaced with `helloworld`).
 
 If you don't specify a "target patterns" for any of the file Jbang will try to pick one for you.
 Basically if the first file you specify doesn't have a target it will use that and add a pattern.
@@ -654,7 +393,7 @@ You will see something like this if it was successful:
 [source,bash]
 ----
 $ jbang template add showlogo.java img.jpg some.properties
-[jbang] No explicit target pattern was set, using first file: {basename}.java=showlogo.java
+[jbang] No explicit target pattern was set, using first file: \{basename}.java=showlogo.java
 [jbang] Template 'showlogo' added to '.../jbang-catalog.json'
 ----
 
@@ -876,14 +615,6 @@ This can be put to use in `//DEPS` like so:
   //DEPS org.openjfx:javafx-graphics:11.0.2:${os.detected.jfxname}
 
 Here we use the properties to avoid hardcoding your script to a specific operating system.
-
-=== JavaFX
-
-If `jbang` detects you have a `javafx-` dependency in your list of dependencies
-it will if you `java` command supports Java modules automatically set the necessary
-`--module-path` and `--add-modules`.
-
-See `link:examples/jfx.java[]` and `link:examples/jfxtiles.java[]` for examples of this.
 
 == Multiple source files
 
@@ -1202,7 +933,7 @@ By default `--jfr` will start flight recorder and tell it to dump event recordin
 
 Then you can use tools like `jvisualvm` or `jmc` to explore the data.
 
-If you want to tweak the configuration you can pass flight recorder options, like `jbang --jfr=filename={baseName}.jfr,maxage=24h` where `{baseName}` will be replaced
+If you want to tweak the configuration you can pass flight recorder options, like `jbang --jfr=filename=\{basename}.jfr,maxage=24h` where `\{basename}` will be replaced
 by the filename and then added `maxage=24h` to flight recording options.
 
 If you want further control use `//JAVAC_OPTS -XX:StartFlightRecording=<your options>` instead.

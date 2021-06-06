@@ -1,0 +1,84 @@
+= Running
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+== Interactive REPL
+
+`jbang --interactive` enables use of `jshell` to explore and use your script and any dependencies in a REPL editor.
+
+When using `--interactive` for java/jar scripts/apps jbang sets up a jshell function named `userMain`. `userMain` delegates to
+the main function that would have been called if not running in interactive. You can call it with arguments as follows `userMain(args)`.
+
+NOTE: One caveat about jshell is that it cannt access classes in default package. Thus you will need to add a package statement
+to your script/class to see it.
+
+== Flight Recorder
+
+Flight recorder is a feature of the Java VM that lets you gather diagnostic and profiling data about your script.
+
+You can use `//JAVA_OPTIONS` to have full control over it; but for the easiest setup `jbang` lets you just run with `--jfr`, e.g.,
+
+  jbang --jfr myapp.java
+
+By default `--jfr` will start flight recorder and tell it to dump event recordings to `myapp.jfr` (i.e. using base name of the script as its filename).
+
+Then you can use tools like `jvisualvm` or `jmc` to explore the data.
+
+If you want to tweak the configuration you can pass flight recorder options, like `jbang --jfr=filename=\{basename}.jfr,maxage=24h` where `\{basename}` will be replaced
+by the filename and then added `maxage=24h` to flight recording options.
+
+If you want further control use `//JAVAC_OPTS -XX:StartFlightRecording=<your options>` instead.
+
+== `java` and `javac` Options
+
+If you want to tweak memory settings or enable preview features you can setup the necessary options using
+`//JAVA_OPTS` and `//COMPILER_OPTS` as in the following example using Java 14 experimental `record` feature:
+
+[source, java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//JAVAC_OPTIONS --enable-preview -source 14 <.>
+//JAVA_OPTIONS --enable-preview // <.>
+
+import static java.lang.System.*;
+
+public class records {
+
+    record Point(int x, int y) {}
+
+    public static void main(String[] args) {
+        var p = new Point(2,4);
+        out.println(p);
+    }
+}
+----
+
+Since Java 9 https://docs.oracle.com/javase/9/tools/java.htm#GUID-3B1CE181-CD30-4178-9602-230B800D4FAE__USINGTHEJDK_JAVA_OPTIONSLAUNCHERENV-F3C0E3BA[JDK_JAVA_OPTIONS] and https://docs.oracle.com/javase/9/tools/javac.htm#GUID-AEEC9F07-CB49-4E96-8BC7-BCC2C7F725C9\_\_USINGJDK_JAVAC_OPTIONSENVIRONMENTVA-F3C76845[JDK_JAVAC_OPTIONS] are also picked up by the Java runtime and compiler automatically.
+
+For Java 8 and if you want to set explicitly only for `jbang` you can also add flags by setting `JBANG_JAVA_OPTIONS` and `JBANG_JAVAC_OPTIONS` respectively.
+
+=== (Experimental) Application Class Data Sharing
+
+If your scripts uses a lot of classes Class Data Sharing might help on your startup. The following requires Java 13+.
+
+Using `--cds` jbang will build the jar with Application Class Data Sharing enabled and when run have it load shared class data.
+
+You can put `//CDS` in the java file to enable it by default, or simply use `--cds` to force it or `--no-cds` to turn it off no matter what the jbang script file contains.
+
+== Java Agents
+
+You can activate a javaagent using `--javaagent=<agent>[=<options>]` where agent can be a already packaged agent jar from file, http url or Maven Coordinate.
+
+It can also be a jbang script itself where you have put `//JAVAAGENT` to activate agent packaging.
+
+You can create a basic agent using `jbang init -t agent myagent.java` to get started.

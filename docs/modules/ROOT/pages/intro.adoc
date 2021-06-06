@@ -1,0 +1,86 @@
+= Intro
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+image:images/jbang_logo.svg[JBang Logo, title="JBang Logo"]
+
+Want to learn, explore or use Java instantly without setup ?
+
+Do you likeJava but use python, groovy, kotlin or similar languages for scripts, experimentation and exploration ?
+
+Ever wanted to just be able to run java from anywhere without any or very minimal setup ?
+Ever tried out Java 11+ support for running `.java` files directly in your shell but felt it was a bit too cumbersome ?
+
+Then try `jbang` which lets you do this:
+
+image:https://asciinema.org/a/4AiobRxUwPUPztCtrDYcmoKjs.svg[link=https://asciinema.org/a/4AiobRxUwPUPztCtrDYcmoKjs?autoplay=true&theme=solarized-dark]
+
+[source, bash]
+----
+$ jbang init --template=cli hello.java
+$ jbang hello.java Max!
+[jbang] Resolving dependencies...
+[jbang]     Resolving info.picocli:picocli:4.5.0...Done
+[jbang] Dependencies resolved
+[jbang] Building jar...
+Hello Max!
+$ jbang hello.java -h
+Usage: hello [-hV] <greeting>
+hello made with jbang
+      <greeting>   The greeting to print
+  -h, --help       Show this help message and exit.
+  -V, --version    Print version information and exit.
+----
+
+Instant cli app generated built using java and picocli as a dependency that was fetched as needed for the compilation and execution.
+
+JBang goes beyond more than just easy scripting; you can use `jbang` to launch any kind of java application or library packaged as a jar available locally, via http/https download or in a Maven repository.
+
+toc::[]
+
+== Features
+
+* `.java` Scripting for Java 8 and upwards
+* `.jsh` via JShell from Java 9 and upwards
+* `.kt` via kotlinc (EXPERIMENTAL)
+* Works on icon:windows[] Windows, icon:apple[] OSX and icon:linux[] Linux and AIX
+* Install using curl, power shell, SDKMan (icon:apple[]/icon:linux[]), Homebrew (icon:apple[]), Chocolatey (icon:windows[]) or Scoop (icon:windows[])
+* If needed will automatically install Java and even a Java editor (vscodium) for editing
+* Installation of scripts to user `PATH`
+* Include multiple files and sources
+* Dependency declarations using `//DEPS <gav>` for automatic dependency resolution
+* Control compile and runtime options with `//JAVAC_OPTIONS <flags>` and `//JAVA_OPTIONS <flags>`
+* Compiled jar and Dependency resolution caching
+* native-image generation (`--native`)
+* Launch with debug enabled for instant debugging from your favorite IDE
+* Transparent launch of JavaFX Applications on Java 8 and higher
+* Can be used for writing plugins to other cli's like `kubectl`
+* Init templates to get started easily (`jbang init -t cli hello.java`)
+* Generate gradle and IDE config with dependencies for easy editing in your favorite IDE (`jbang edit myfile.java`)
+* Maven and Gradle plugins for easy integration with your favorite build tool
+
+To use it install `jbang` and run `jbang yourscript.java`
+
+== Requirements
+
+Tested and verified to use on OSX, Linux, AIX, Windows (incl. command.exe, cygwin and mingw shells).
+
+[NOTE]
+====
+AIX requires the GNU `readlink` tool from the GNU coreutils to be available
+in the PATH when running `jbang`.  This is not supplied by default with AIX.
+Prebuilt versions can be obtained via the IBM AIX toolbox at 
+https://www.ibm.com/support/pages/aix-toolbox-linux-applications-downloads-alpha
+or elsewhere.
+====
+
