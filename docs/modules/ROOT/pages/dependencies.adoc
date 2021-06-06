@@ -1,0 +1,239 @@
+= Dependencies
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+If you want to write real scripts you will want to use some java libraries.
+To specify dependencies you use gradle-style locators or links to Git sources. Below are examples for `log4j`.
+
+== Using `//DEPS`
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+// <.>
+//DEPS log4j:log4j:1.2.17
+
+import static java.lang.System.out;
+
+import org.apache.log4j.Logger;
+import org.apache.log4j.BasicConfigurator;
+
+import java.util.Arrays;
+
+class classpath_example {
+
+	static final Logger logger = Logger.getLogger(classpath_example.class);
+
+	public static void main(String[] args) {
+		BasicConfigurator.configure(); // <.>
+		logger.info("Welcome to jbang");
+
+		Arrays.asList(args).forEach(arg -> logger.warn("arg: " + arg));
+		logger.info("Hello from Java!");
+	}
+}
+----
+<.> `//DEPS` must be placed at the start of line and can be one or more space separated dependencies.
+<.> Minimal logging setup - required by log4j.
+
+Now when you run this, the first time with no existing dependencies installed you should get an output like this:
+
+[source]
+----
+$ ./classpath_example.java
+[jbang] Resolving dependencies...
+[jbang]     Resolving log4j:log4j:1.2.17...Done
+[jbang] Dependencies resolved
+0 [main] INFO classpath_example  - Welcome to jbang
+1 [main] INFO classpath_example  - Hello from Java!
+----
+
+== Managed dependencies ("BOM POM"'s) [Experimental]
+
+When using libraries and frameworks it can get tedious to mange and update multiple versions.
+For that jbang started since 0.62 to support so called "BOM POM"'s which are commonly used for managing versions.
+
+You use it by having as the very first dependency a `@pom` reference. This first reference will be used
+to define your managed dependences. Below is an example how that could look like when using Quarkus:
+
+```java
+//DEPS io.quarkus:quarkus-bom:1.11.0.Final@pom
+//DEPS io.quarkus:quarkus-resteasy
+//DEPS io.quarkus:quarkus-smallrye-openapi
+//DEPS io.quarkus:quarkus-swagger-ui
+```
+
+Notice the `@pom` at first line and then following dependencies are not required to use explicit versions.
+
+[NOTE]
+At the moment jbang support only one bom pom; in future it should be expanded to multiple.
+For now you can workaround this by reusing a published pom that includes all the dependency management
+sections you need.
+
+== Using links to Git sources
+
+Instead of gradle-style locators you can also use URLs to projects on GitHub, GitLab or BitBucket.
+Links to those projects will then be converted to artifacts references on https://jitpack.io/[jitpack].
+You can use links to the root of the project, to the root of a tag/release and to specific commits.
+
+If the project you link to has multiple modules and you want only a specific module you can specify the
+name of the module by appending `#name-of-module` to the URL.
+
+And finally if the link you provide is to a specific branch of the project then you need to append
+`#:SNAPSHOT` to the URL. (If you have both a branch and a module name then use `#name-of-module:SNAPSHOT`)
+
+.Examples of links and their resulting locator:
+|===
+|Link | Locator
+|https://github.com/jbangdev/jbang
+|com.github.jbangdev:jbang:HEAD-SNAPSHOT
+
+|https://github.com/jbangdev/jbang/tree/v1.2.3
+|com.github.jbangdev:jbang:v1.2.3
+
+|https://github.com/jbangdev/jbang/tree/f1f34b031d2163e0cdc6f9a3725b59f47129c923[https://github.com/jbangdev/jbang/tree/f1f34b031...]
+|com.github.jbangdev:jbang:f1f34b031d
+
+|https://github.com/jbangdev/jbang#mymodule
+|com.github.jbangdev.jbang:mymodule:HEAD-SNAPSHOT
+
+|https://github.com/jbangdev/jbang/tree/mybranch#:SNAPSHOT
+|com.github.jbangdev:jbang:mybranch-SNAPSHOT
+
+|https://github.com/jbangdev/jbang/tree/mybranch#mymodule:SNAPSHOT
+|com.github.jbangdev.jbang.mymodule:mybranch-SNAPSHOT
+|===
+
+== Offline mode
+
+In case you prefer `jbang` to just fail-fast when dependencies cannot be found locally you can run `jbang` in offline mode using
+`jbang -o` or `jbang --offline`. In this mode `jbang` will simply fail if dependencies have not been cached already.
+
+== Repositories
+
+By default `jbang` uses https://repo1.maven.org/maven2/[maven central]. In past it used `jcenter` but with its imminent shutdown deemed best to use central.
+
+And if you are using the above mentioned URL dependencies https://jitpack.io[jitpack] will be added automatically as well.
+
+If that is not sufficient for you or need some custom repo you can use `//REPOS id=repourl` to
+state which repository URL to use.
+
+For ease of use there are also a few shorthands to use popular commonly available repositories.
+
+|===
+|Short name | Description
+|`mavencentral`
+|Maven Central (`https://repo1.maven.org/maven2/`)
+
+|`jcenter`
+|`https://jcenter.bintray.com/`
+
+|`google`
+|`https://maven.google.com/`
+
+|`jitpack`
+|`https://jitpack.io/`
+|===
+
+Following example enables use of Maven Central and add a custom `acme` repository.
+
+[source,java]
+----
+//REPOS mavencentral,acme=https://maven.acme.local/maven
+----
+
+[WARNING]
+====
+If you add any `//REPOS` lines `jbang` will no longer consult `mavencentral` thus you need to explicitly add it if needed.
+====
+
+[TIP]
+====
+For secure authentication `jbang` will honor `~/.m2/settings-security.xml` for configuring
+username/passwords.
+====
+
+
+== Using `@Grab`
+
+There is also support for using Groovy lang style `@Grab` syntax.
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+
+import static java.lang.System.out;
+
+import org.apache.log4j.Logger;
+import org.apache.log4j.BasicConfigurator;
+
+import java.util.Arrays;
+
+import groovy.lang.Grab; // <.>
+import groovy.lang.Grapes;
+import groovy.lang.GrabResolver;
+
+@GrabResolver("mavenCentral") // <.>
+@GrabResolver(name='acme', root='https://maven.acme.local/maven')
+@Grapes({ // <.>
+		@Grab(group="org.codehaus.groovy", module="groovy", version="2.5.8"), // <.>
+		@Grab(module = "log4j", group = "log4j", version = "1.2.17")
+})
+class classpath_example {
+
+	static final Logger logger = Logger.getLogger(classpath_example.class);
+
+	public static void main(String[] args) {
+		BasicConfigurator.configure();
+		Arrays.asList(args).forEach(out::println);
+	}
+}
+----
+<.> Import needed to make the compiler be okey with `@Grab` annotation.
+<.> Using `GrabResolver` to enable `mavenCentral` and custom `acme` repository
+<.> In Groovy you normally put `@Grab` on import statements. That is not allowed in Java thus when having multiple imports you need to put them in a `@Grapes` annotation first.
+<.> `jbang` will grab any `@Grab` annotation and assume it is declaring dependencies.
+
+=== System properties and Environment variables
+
+In dependencies you can refer to environment and system properties to parameterize the dependencies.
+It uses the format `${[env.]propertyname:<defaultvalue>}`.
+
+Furthermore to align with properties commonly used to make dependency resolution portable
+`jbang` exposes properties similar to what the `https://github.com/trustin/os-maven-plugin[os-maven-plugin]` does.
+Plus for ease of use for javafx dependencies it also setups a property named `${os.detected.jfxname}`.
+
+Examples:
+
+[source,bash]
+----
+${env.USER} = 'max'
+${os.name} = 'Mac OS X'
+${non.existing.key:empty} = 'empty'
+${os.detected.jfxname} = 'mac'
+----
+
+This can be put to use in `//DEPS` like so:
+
+  //DEPS org.openjfx:javafx-graphics:11.0.2:${os.detected.jfxname}
+
+Here we use the properties to avoid hardcoding your script to a specific operating system.
+
+// TODO: move out of dependencies ?
+=== JavaFX
+
+If `jbang` detects you have a `javafx-` dependency in your list of dependencies
+it will if you `java` command supports Java modules automatically set the necessary
+`--module-path` and `--add-modules`.
+
+See `link:examples/jfx.java[]` and `link:examples/jfxtiles.java[]` for examples of this.

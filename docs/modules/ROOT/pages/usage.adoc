@@ -1,0 +1,253 @@
+= Usage
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+toc::[]
+
+A minimal script is a single `.java` file with a typical `static void main` method or a `.jsh` file which will be passed to `jshell`.
+
+Below is an (almost) minimal example you can save in `helloworld.java` or simply run `jbang init helloworld.java`:
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $? # <.>
+
+class helloworld { // <.>
+
+    public static void main(String[] args) {
+        if(args.length==0) {
+            System.out.println("Hello World!");
+        } else {
+            System.out.println("Hello " + args[0]);
+        }
+    }
+}
+----
+<.> By using this `//` style instead of shebang `#!` you trick `bash`, `zsh` etc. to run this as a script while still being valid java code.
+<.> A classname, can be anything when using `jbang` but to be valid java for most IDEs you'll want to name it the same as the source file.
+
+Now to run this you can call it via `jbang`:
+
+[source]
+----
+jbang helloworld.java
+----
+
+or if on Linux/OSX/AIX run it directly. If you created it manually you need to mark it as executable before running it.
+
+[source]
+----
+chmod +x helloworld.java
+./helloworld.java jbang!
+----
+
+[WARNING]
+====
+When no <<java-version,JDK version>> is available in the PATH, JDK 11 will be downloaded by default to bootstrap jbang.
+If your script requires a higher version and you don' want to download two JDK's, you can define an alternative default with `JBANG_DEFAULT_JAVA_VERSION` env variable.
+
+ $ JBANG_DEFAULT_JAVA_VERSION=14 jbang my-script.java
+
+Note that if JDK is found in the PATH, `JBANG_DEFAULT_JAVA_VERSION` will be ignored.
+====
+
+== Default application
+
+If you pass a directory or a url ending in `/` jbang will look for `main.java` to run as default application for that directory / location.
+
+== URLs from Trusted Sources
+
+You can use `http(s):/` and `file:/` url's for input:.
+
+[source]
+----
+jbang https://gist.github.com/maxandersen/f43b4c52dfcfc42dcd59a04e49acf6ec
+----
+
+For safety reasons jbang will not run arbitrary urls before you indicated you trust their source.
+Thus when running the above for the first time you will see the following warning about the url not being a trusted source:
+
+[source,bash]
+----
+jbang https://gist.github.com/maxandersen/f43b4c52dfcfc42dcd59a04e49acf6ec
+[jbang] https://gist.github.com/maxandersen/f43b4c52dfcfc42dcd59a04e49acf6ec is not from a trusted source thus not running it automatically.
+
+If you trust the url to be safe to run you can do one of the following:
+0) Trust once: Add no trust, just run this time
+1) Trust this url in future:
+    jbang trust add https://gist.github.com/maxandersen/
+
+
+Any other response will result in exit.
+
+[jbang] Type in your choice (0 or 1) and hit enter. Times out after 10 seconds.
+----
+
+You can then choose 0 to run once or 1 to trust the suggested url. If you don't answer within 10 seconds jbang will exit.
+
+To enable running it without such question you need to mark that url or a sub part of it as a trusted source.
+i.e. `jbang trust add https://github.com/maxandersen/` will tell `jbang` to trust anything with that base url.
+
+You can see more in the comments of the `~/.jbang/trusted-sources.json`.
+
+[TIP]
+====
+Sites such as GitHub, gitlab, bitbucket, gist, carbon.now.sh jbang will try and extract the proper source rather than the raw html.
+i.e. doing `jbang https://carbon.now.sh/ae51bf967c98f31a13cba976903030d5 carbon!` is possible.
+====
+
+[TIP]
+====
+URL's will follow redirects. In case you need to use it with sites with self-signed/non-trusted certificates you can
+if you trust the site use `--insecure`.
+====
+
+== Build and run native image (Experimental)
+
+There is support for using `native-image` from GraalVM project to produce a binary executable.
+
+Since not all java libraries can automatically be built with `native-image` - especially if using reflection feature are considered highly experimental.
+
+Just run `jbang --native helloworld.java` and `jbang` will use `native-image` from either `$JAVA_HOME/bin` or `$GRAALVM_HOME/bin` or `$PATH` to
+produce a native image binary.
+
+You can install the `native-image` utility binary e.g. by installing GraalVM from https://www.graalvm.org/downloads, and then once running `gu install native-image` as per https://www.graalvm.org/reference-manual/native-image.
+
+
+[TIP]
+====
+If you use `--native` with picocli remember to add `info.picocli:picocli-codegen` as that will ensure it will actually work with `native-image`.
+====
+
+
+== Using `.jsh` for `jshell`
+
+There is support to run `.jsh` via `jshell`. The advantage of `jshell` is that you do not need to have a class or static main method.
+
+Classic `jshell` does not support passing in arguments nor system properties, `jbang` does.
+
+In the case of `.jsh` files `jbang` injects a startup script that declares a `String[] args` which will contain any passed in arguments,
+and it sets any properties passed in as `-Dkey=value` as parameters to `jbang`.
+
+That means you can run a script as `jbang -Dkey=value helloworld.jsh World` and retrieve arguments and properties as:
+
+[source,java]
+----
+System.out.println("Hello " + (args.length>0?args[0]:"World")); // <.>
+System.out.println(System.getProperty("key")); // <.>
+----
+<.> Line where `args` are accessible without previous declaration.
+<.> System properties set when passed as `-D` arguments to `jbang`
+
+The script will have the output:
+
+ Hello World
+ value
+
+Please note that `.jsh` files are source only, they are not compiled thus they are https://github.com/jbangdev/jbang/issues/506[not cached] nor can they be https://github.com/jbangdev/jbang/issues/510[built as native images].
+
+[TIP]
+====
+If you use `-Dkey` where no value is specified `jbang` will interpret this as `-Dkey=true` allowing you to easily have
+flags passed into, i.e. `jbang -DskipTests mytestrunner.java`. Now within your script `Boolean.getBoolean('skipTests') will return true.
+====
+
+== Running Kotlin (.kt) (EXPERIMENTAL)
+
+As an experiment since 0.71.0 JBang supports building Kotlin files using `kotlinc`.
+
+[source,bash]
+----
+jbang init -t hello.kt hello
+./hello.kt
+[jbang] Downloading Kotlin 1.5.0. Be patient, this can take several minutes...
+[jbang] Installing Kotlin 1.5.0...
+[jbang] Building jar...
+Hello World
+----
+
+== Running script from standard input
+
+jbang can run scripts directly from standard input using `-` or `/dev/stdin` as input.
+
+i.e.
+
+`echo 'System.out.println("Hello World!");' | jbang -`
+
+[TIP]
+====
+If you use `--interactive` `jbang` will let `jshell` enter into interactive/REPL mode. You can write `/exit` to leave this mode.
+====
+
+[TIP]
+====
+If your own code needs to handle chained pipes well it is recommended to add the following code:
+
+[source,java]
+----
+import sun.misc.Signal;
+
+if (!"Windows".equals(System.getProperty("os.name"))) {
+    Signal.handle(new Signal("PIPE"), (final Signal sig) -> System.exit(1));
+}
+----
+
+It will give a compiler warning as it is internal API; but for now it works.
+====
+
+== Running ``.jar``'s
+
+`jbang` will also run `.jar` files directly.
+
+i.e. `jbang helloworld.jar` will run `helloworld.jar` if found on your local file system.
+
+The `.jar` can be a local file or a http/https url.
+
+You can also run a `.jar` file referenced by a Maven coordinate, i.e.:
+
+  jbang info.picocli:picocli-codegen:4.5.0
+
+This will fetch the dependency stated and put the transitive dependencies on the class-path.
+
+If you need to specify a main class you can do so by using `--main` i.e.
+
+  jbang --main picocli.codegen.aot.graalvm.ReflectionConfigGenerator info.picocli:picocli-codegen:4.5.0
+
+[TIP]
+====
+A side effect of running GAV as a jar, the GAV could also be a `.java` or `.jsh` file and it would be launched as a script instead of a jar.
+No one would want to do that (right?) but now you know.
+====
+
+== Usage on Windows
+
+Some JBang commands need to create symbolic links when running on Windows.
+For example, this is required for Managing JDKs or editing the files with the `edit` command.
+To resolve the issue, on Windows 10 you will need to enable symbolic linking for your user account.
+
+* Review security considerations and best practices https://docs.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/create-symbolic-links[here].
+* Enable the `Create symbolic links` group policy setting for your user/group
+  by following the guidelines on the https://docs.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/user-rights-assignment[User Rights Assignment] page.
+
+You might also need elevated privileges to create symbolic links
+If the JBang process has no full administrative rights, the execution may result in an error like:
+
+```
+java.nio.file.FileSystemException: <CURRENT_JDK>: A required privilege is not held by the client.
+```
+
+To resolve this issue, see the options in https://answers.microsoft.com/en-us/windows/forum/windows_10-performance-winpc/how-to-fix-problem-a-required-privilege-is-not/d206b4b3-b6c2-4b0b-8629-5d4dfcb8f8d0[this answers.microsoft.com article].
+There are multiple possible resolutions,
+choose one meeting your needs.
+
+For older Windows versions, see this https://stackoverflow.com/a/24353758[StackOverflow issue].

@@ -1,0 +1,119 @@
+= Aliases & Catalogs
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+To avoid remembering long paths and to enable easy launch of jbang scripts there is an `alias` command
+to setup and manage aliases to actual scripts.
+
+  jbang alias add hello https://github.com/jbangdev/jbang-examples/blob/HEAD/examples/helloworld.java
+
+will add an alias named `hello` pointing to that github url which then can be run using `jbang hello`.
+
+  jbang alias list
+
+will show you all the aliases that are defined locally.
+
+== Implicit Alias Catalogs
+
+The aliases you create are stored locally (see <<Local Alias Catalogs>>), but Jbang can also use remote catalogs.
+You can access those catalogs explicitly (see <<Catalogs>>) but it is much easier to use what we call "implicit catalogs", which
+are aliases that have a special format and Jbang is smart enough to know where to find their definition.
+
+Examples:
+
+`jbang hello@jbangdev` will run the alias `hello` as defined in `jbang-catalog.json` found in https://github.com/jbangdev/jbang-catalog.
+
+This allows anyone to provide a set of jbang scripts defined in their github, gitlab or bitbucket repositories.
+
+The full format is `<alias>@<user/org>(/repository)(/branch)(~path)` allowing you to do things like:
+
+.Implicit Catalog Examples:
+|====
+|Command | Description
+
+|`jbang hello@acme`
+|`hello` alias found in `acme/jbang-catalog/jbang-catalog.json` of the default branch searched on github, gitlab and bitbucket in that order.
+
+|`jbang hello@acme/mycatalog`
+|`hello` found in `acme/mycatalog/jbang-catalog.json` searched on github, gitlab and bitbucket in that order.
+
+|`jbang hello@acme/mycatalog/dev`
+|`hello` found in `acme/mycatalog/jbang-catalog.json` in the `dev` branch searched on github, gitlab and bitbucket in that order.
+
+|`jbang hello@acme~experimental`
+|`hello` found in `acme/jbang-catalog/experimental/jbang-catalog.json`
+
+|====
+
+== Local Alias Catalogs
+
+Jbang will also look in the current directory for a `jbang-catalog.json` file and if it exists it will look up any aliases
+in there too. In fact it will look in several places in the following order:
+
+ 1. Current directory, `./jbang-catalog.json`
+ 2. In `.jbang/jbang-catalog.json`
+ 3. In the parent directory, `../jbang-catalog.json`
+ 4. In the parent's `.jbang` directory, ../.jbang/jbang-catalog.json`
+ 5. And repeating steps 3 and 4 recursively upwards to the root of the file system
+ 6. As the last step it will look in `$HOME/.jbang/jbang-catalog.json`
+
+Jbang will use any aliases defined in those files, but on top of that it will also look at the aliases defined in any
+catalogs mentioned in those files as well. Aliases defined in the file have preference over aliases found in any catalogs
+defined in the same file.
+
+When you create aliases using `jbang alias add`, or add catalogs using `jbang catalog add` the _same_ ordering will be used
+to determine where to store the alias or catalog. Btw, this will only take into account _existing_ files!
+So if no `jbang-catalog.json` file exists in the local directory it will _not_ be created for you, but Jbang will keep
+looking until it finds a file to use (as a last option it will always be written to `$HOME/.jbang/jbang-catalog.json`).
+
+This means that if you want to write the alias to `jbang-catalog.json` in your local folder you will either have to create
+the file first (eg by running `touch jbang-catalog.json`) or by explicitly specifying the file location:
+
+  jbang alias add -f jbang-catalog.json hello https://github.com/jbangdev/jbang-examples/blob/HEAD/examples/helloworld.java
+
+Btw, the flag `--show-origin` is very useful when listing aliases to find out where exactly an alias is defined:
+
+  jbang alias list --show-origin
+
+== Catalogs
+
+Catalogs are lists of Aliases as defined in the previous section, but while the `alias` command is used to manage aliases
+within a catalog, the `catalog` command is for managing references to catalogs. This is mostly useful when dealing with
+remote catalogs. You can for example add a catalog like this:
+
+  jbang catalog add --name demo https://github.com/jbangdev/jbang-catalog/blob/HEAD/jbang-catalog.json
+
+or simply by using the same "implicit" catalog system described in <<Implicit Alias Catalogs>>:
+
+  jbang catalog add --name demo jbangdev
+
+The aliases in that catalog are now available by adding `@demo` to their names. For example:
+
+  $ jbang alias list demo
+  env@demo = Dump table of Environment Variables
+  gavsearch@demo = Search search.maven.org for maven artifacts.
+  hello@demo = Script that says hello back for each argument
+  properties@demo = Dump table of System properties
+  $ jbang run hello@demo World!
+  [jbang] Building jar...
+  Hello World!
+
+In fact, it's possible to run the alias just by using `jbang run hello`, the `@demo` part is only necessary when trying to
+disambiguate between aliases with the same name from different catalogs.
+
+You can list the available catalogs by running:
+
+  jbang catalog list
+
+NB: The output will not only show the catalogs you defined yourself but also the ones that get added implicitly when
+running aliases as described in the section <<Implicit Alias Catalogs>>.

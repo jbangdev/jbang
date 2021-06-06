@@ -1,0 +1,31 @@
+= Install Apps
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+Since version 0.56 jbang comes with ability to setup jbang to put scripts/apps into your `PATH`
+using `jbang app`. This is useful to easily make scripts available from anywhere on any Operating System;
+
+To get started run `jbang app setup` this will on Windows modify your system wide `PATH` to include a folder managed by jbang.
+On bash/zsh based shells it will setup `PATH` in your `bashrc` or `zshrc` file(s.)
+
+Once setup, you can use `jbang app install <scriptRef>` to install that script into the jbang managed path.
+
+i.e. `jbang app install myscript.java` will add `myscript` as a command you can run.
+
+You can also use aliases, like `jbang app install gavsearch@jbangdev`.
+
+If you have two script/apps with same name or just want to use a specific name you can use `--name` to
+control the generated command: `jbang app install --name mvnsearch gavsearch@jbangdev`
+
+If you want to see which are already installed use `jbang app list` and you can use `jbang app uninstall <name>` to uninstall
+the script/app.

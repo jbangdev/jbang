@@ -1,0 +1,90 @@
+= FAQ
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+[qanda]
+Why the name j'bang?::
+  I was reading up on how to use the new shebang (#!) feature support in Java 10 and came up with the idea of port `kscript` to Java and needed a name.
+From there came j'bang which is a "bad" spelling of how shebang is pronounced in French.
+
+Why use gradle resource locators rather than ?::
+  kscript used it and it's nice as it is a one-liner and easily parsable.
+
+How does this compare to ?::
+After doing `jbang` I've learned about similar projects and thought it would be nice with some comparison;
++
+https://github.com/scijava/jgo[jgo]: an alternative way to launch jars using maven coordinates. Implemented in python, depends on Java and Maven to be available. Not really for scripting but a novel way to launch java apps already packaged as a maven dependency.
++
+
+Why would I use Java to write scripts ? Java sucks for that... Use groovy, kotlin, scala, etc. instead!::
+  Well, does it really suck ? With Java 8 streams, static imports and greatly improved standard java libraries it is very close to what kscript and grape look like.
+With the following advantages:
++
+* works with plain Java without installing additional compiler/build tools
+* all IDE's support editing .java files very well, content assist, etc.
+* great debugging
++
+And to be honest I built `jbang` just to see if I could and get my Java skills refreshed for the newer features in the language.
+Use it at your own risk :)
+
+Why not use normal shebang(`#!`) in the header ?::
+  You can use normal shebang (`#!/usr/bin/env jbang`) and Java 10+ will actually work with it from the command line. Not recommended though as
+many tools and especially IDE's will start complaining about syntax errors as they don't ignore the first line in this case.
++
+By using the `//` form it is treated as both a bash/shell file AND a valid java file and thus works everywhere a java file will work.
++
+It's worth noting that Go https://golangcookbook.com/chapters/running/shebang/[uses a similar approach] which is also where I learned it from.
+
+HELP! My code formatter keeps breaking my `//` directives!::
+  When using automated code formatting tools, some care and configuration must be made to prevent the tooling from rewriting and preventing `jbang` from working as expected.
++
+Use the following configuration blocks to correctly configure your tool:
++
+.Configuration Tool Settings:
+|====
+| Formatting Tool | Configuration
+
+| Clang Format
+a|
+[source]
+----
+CommentPragmas:  '^[^ ]'
+----
+|====
+
+
+== Article & Presentations
+
+https://adambien.blog/roller/abien/entry/java_cli_apps_builds_and[Java CLI Apps, Builds and jbang--airhacks.fm podcast] - Adam Bien
+
+https://www.infoq.com/news/2020/10/scripting-java-jbang[Scripting Java with a jBang] - InfoQ - Alex Blewitt
+
+https://www.youtube.com/watch?v=-c9CIT9RfOQ&t=123s[jbang: Unleash the power of Java for shell scripting] - DevNation Tech Talk - Max Rydahl Andersen
+
+https://www.youtube.com/watch?v=A9YeRPSCdVU&t=5s[Creating java code and simplifying execution with JBang] - Daniel Persson
+
+https://www.youtube.com/watch?v=3JopX_mtFiY&t=14s[Quarkus Insights #16: Quarkus with JBang] - Quarkus Insights
+
+https://www.youtube.com/watch?v=gVL-CFEOGs8[jbang, a better Java?] - Swiss JUG - Max Rydahl Andersen
+
+https://www.youtube.com/watch?v=X4x2jM3Y0uE[JBang - Using Java to make Java better?] - Virtual JUG - Max Rydahl Andersen
+
+https://blogs.oracle.com/developers/self-contained-jdbc-scripts-with-groovy-and-jbang[Self contained JDBC scripts with Groovy and jbang] - Andres Almiray
+
+https://www.youtube.com/watch?v=FzKRqvZv-Ro[Neo4j quickie - jbang and the command line] - Gerrit Meier
+
+https://www.youtube.com/watch?v=RgHNOH2_itw&t=300s[Monday Java Lunch & Learn. This week we'll be learning what jbang is and how to use it] - Matthew Gilliard
+
+https://www.twilio.com/blog/cli-app-java-jbang-picocli[How to build a CLI app in Java using jbang and picocli] - Matthew Gilliard
+
+https://javastreets.com/blog/java-jbang-textmate.html[Faster Feedback with Java, JBang, and TextMate] - Manik Magar

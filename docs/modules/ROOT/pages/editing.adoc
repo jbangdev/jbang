@@ -1,0 +1,82 @@
+= Editing
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+toc::[]
+
+You can edit your script in an IDE/editor by using `jbang edit helloworld.java`. This will generate a project in a temporary location with symbolic links to your script
+and output the generated folder name. The easiest way to use that is to use it in a call to your IDE:
+
+[source, bash]
+----
+code `jbang edit helloworld.java`
+----
+
+If you add further dependencies to your file just re-run the edit command and the relevant files will be regenerated with the updated dependencies.
+
+Above does require using a shell that allows for variable evaluation, if you are on i.e. Windows then you might prefer using:
+
+[source, bash]
+----
+jbang edit --open=[editor] helloworld.java
+----
+
+The editor used will be what is specified as the argument to `--open` or value of `JBANG_EDITOR` environment variable.
+The editor command must be available on the PATH to be executed from jbang. If you are executing `jbang edit --open=code helloworld.java` a `code` executable (visual studio code) must be on the PATH. Next to this you can pass the full path to the `open` parameter like in `--open=/usr/bin/code`.
+
+
+NOTE: On Windows you might need elevated privileges to create symbolic links. If you don't have permissions then
+the `edit` option will result in an error. To use it https://stackoverflow.com/a/24353758[enable symbolic links]
+for your user or run your shell/terminal as administrator to have this feature working.
+
+== Install of default vscodium editor [EXPERIMENTAL]
+
+If no editor available at all jbang will offer to install https://vscodium.com[VSCodium] (free/libre version of Visual Studio code) with
+default java extensions enabled in so called https://code.visualstudio.com/docs/editor/portable["portable mode"]. Portable mode means all 
+the installed binaries and configuration does not affect rest of your system; everything is stored in `~/.jbang/editor`.
+
+This automatic install and setup of editor is fully optional and if you have another IDE or editor already installed
+use it using `jbang edit --open=<editor>` or set JBANG_EDITOR environment variable to have jbang use it by default.
+
+== Live Editing
+
+You can also use `jbang edit --live` and `jbang` will launch your editor while watching
+for file changes and regenerate the temporary project to pick up changes in dependencies.
+
+
+== IDE and Editor support
+
+The `edit` feature been tested with the following IDE's:
+
+:sicons: https://simpleicons.org/icons
+.IDE's and Editors tested with `jbang`
+[width=75%,frame=none,grid=none]
+|===
+|image:{sicons}/visualstudiocode.svg[50,50] https://code.visualstudio.com[Visual Studio Code]
+|image:{sicons}/eclipseide.svg[50,50] https://www.eclipse.org/downloads/download.php[Eclipse]
+|image:{sicons}/intellijidea.svg[50,50] https://www.jetbrains.com/idea/download[IntelliJ Idea]
+|image:{sicons}/apachenetbeanside.svg[50,50] https://netbeans.apache.org/download/[Apache NetBeans]
+|image:{sicons}/neovim.svg[50,50] https://github.com/neovim/neovim/wiki/Installing-Neovim[Neovim] w/ https://spacevim.org/use-vim-as-a-java-ide/[spacevim Java]
+|image:{sicons}/gnuemacs.svg[50,50] https://www.gnu.org/software/emacs/[Emacs] w/ https://www.spacemacs.org[Spacemacs Java]
+|===
+
+The `edit` feature works with various IDE's - it generates a `build.gradle` to use with IDE's that understands Gradle directly.
+For speed and consistency `jbang` also generates IDE specific settings.
+
+Currently launchers and project files are generated for Eclipse and vscode. Intellij just reads `build.gradle` for now thus
+to run/debug you will need to manually set it up.
+
+Some editors like Code or IDEA are not per default executable / startable from the command line. Here are some helpfull documentations for supporting command line usage of different editors:
+
+* https://www.jetbrains.com/help/idea/working-with-the-ide-features-from-command-line.html[CLI support for IDEA]
+* https://code.visualstudio.com/docs/setup/mac[Terminal support for VS Code on macOS]
