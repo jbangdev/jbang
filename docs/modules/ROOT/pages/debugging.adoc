@@ -1,0 +1,35 @@
+= Debugging
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+When running `.java` scripts with `jbang` you can pass the `--debug`-flag and the script will enable debug,
+suspend the execution and wait until you connect a debugger to port 4004.
+
+[source, bash]
+----
+jbang --debug helloworld.java
+Listening for transport dt_socket at address: 4004
+----
+
+You can change the debug port and host by passing in a interface pattern and number to the debug argument, e.g., `--debug=*:4321`.
+
+This will make it use port 4321 and make it listen on all ('*') network interfaces.
+
+NOTE: Be sure to put a breakpoint in your IDE/debugger before you connect to make the debugger actually stop when you need it.
+
+== Debug jbang itself
+
+Java itself will add `JAVA_TOOL_OPTIONS` which will apply to `jbang` too.
+
+For finer and more explicit control the scripts, `jbang` will add `JBANG_JAVA_OPTIONS` to the call to `jbang` itself.
+Thus if you want to enable debug or other details for `jbang` set that environment variable.

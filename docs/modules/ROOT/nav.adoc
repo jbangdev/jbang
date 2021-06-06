@@ -1,4 +1,3 @@
-* xref:index.adoc[JBang]
 * xref:intro.adoc[]
 * xref:installation.adoc[]
 * xref:usage.adoc[]
@@ -6,11 +5,12 @@
 * xref:javaversions.adoc[]
 * xref:organizing.adoc[]
 * xref:running.adoc[]
+* xref:debugging.adoc[]
 * xref:editing.adoc[]
 * xref:exporting.adoc[]
 * xref:install.adoc[]
 * xref:templates.adoc[]
 * xref:alias_catalogs.adoc[]
+* xref:integration.adoc[]
 * xref:caching.adoc[]
 * xref:faq.adoc[]
-
