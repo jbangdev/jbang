@@ -1,0 +1,44 @@
+= Integration
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+
+== Build Integration [EXPERIMENTAL]
+
+While `jbang` prepares and builds the underlying jar used for launch there is since v0.40 (for now) experimental API allowing
+user included dependencies to influence the generated jar and possible native image.
+
+An example use case enabled by this is to have full Quarkus integration, `jbang quarkuscode.java` will have Quarkus participate to perform its build time optimizations rather than doing it at runtime every time. You can even do `jbang -Dquarkus.dev quarkuscode.java` (since Quarkus 1.11+) run in devmode and have automatic build happen without having to restart.
+
+It works as following:
+
+Before the jar is created `jbang` will scan the classpath for `META-INF/jbang-integration.list`.
+Any classes listed in this file will be loaded and jbang will expect and call the following method on these classes:
+
+[source,java]
+----
+/**
+*
+* @param param build dir directory which will be made into a jar when build is done
+* @param pomFile location of pom.xml representing the projects dependencies
+* @param dependencies list of GAV to Path of artifact/classpath dependencies
+* @param nativeImage true if --native been requested
+* @return Map<String, Object> map of returns; special keys are "native-image" which is a and "files" to
+*          return native-image to be run and list of files to get written to the output directory.
+*
+*/
+Map<String, Object> postBuild(Path builddir, Path pomFile, List<Map.Entry<String, Path>> dependencies,
+            boolean nativeImage)
+----
+
+Still very experimental and bound to change. Example of its use can be found in https://github.com/quarkusio/quarkus/pull/11542[Quarkus].
