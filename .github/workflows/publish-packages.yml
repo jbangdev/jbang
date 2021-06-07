@@ -63,7 +63,7 @@ jobs:
     name: publish-choco
     continue-on-error: true
     steps:
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v2
         with:
           name: build-choco
           path: build/choco

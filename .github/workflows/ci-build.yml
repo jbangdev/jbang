@@ -80,7 +80,7 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java }}
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v2
         with:
           name: ${{ runner.os }}-build-${{ github.sha }}
           path: build
