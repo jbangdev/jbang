@@ -45,7 +45,7 @@ dependencies {
 	//implementation 'com.google.guava:guava:28.2-jre'
 
 
-	testCompile "com.github.tomakehurst:wiremock-jre8:2.27.2"
+	testCompile "com.github.tomakehurst:wiremock-jre8:2.28.1"
 
 	testImplementation "org.junit.jupiter:junit-jupiter:5.7.1"
 	testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.7.1')
