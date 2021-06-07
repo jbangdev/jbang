@@ -94,7 +94,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Snapcraft Action
-        uses: samuelmeuli/action-snapcraft@v1.1.3
+        uses: samuelmeuli/action-snapcraft@v1.2.0
         with:
           snapcraft_token: ${{ secrets.SNAPCRAFT_TOKEN }}
       - name: Sleep
