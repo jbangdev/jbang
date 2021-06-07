@@ -30,7 +30,7 @@ dependencies {
 	implementation 'info.picocli:picocli:4.6.1'
 	implementation 'io.quarkus.qute:qute-core:1.12.2.Final'
 	implementation 'kr.motd.maven:os-maven-plugin:1.7.0'
-	implementation 'org.codehaus.plexus:plexus-java:1.0.6'
+	implementation 'org.codehaus.plexus:plexus-java:1.0.7'
 	implementation 'com.google.code.gson:gson:2.8.6'
 	implementation 'org.jsoup:jsoup:1.13.1'
 
