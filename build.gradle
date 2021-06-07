@@ -2,7 +2,7 @@ import org.gradle.crypto.checksum.Checksum
 
 plugins {
 	id "distribution"
-	id "com.github.johnrengelman.shadow" version "6.1.0"
+	id "com.github.johnrengelman.shadow" version "7.0.0"
 	id "java"
 	id "com.github.breadmoirai.github-release" version "2.2.12"
 	id "io.toolebox.git-versioner" version "1.6.4"
