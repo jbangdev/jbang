@@ -57,13 +57,13 @@ jobs:
           powershell
           choco pack build/choco/jbang.nuspec
       - name: Archive build results
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         if: always()
         with:
           name: ${{ runner.os }}-build-${{ github.sha }}
           path: build
       - name: Upload jbang.zip
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         if: always() && runner.os != 'Windows'
         with:
           name: jbang-${{ github.sha }}
