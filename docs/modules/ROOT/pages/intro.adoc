@@ -12,7 +12,7 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-image:images/jbang_logo.svg[JBang Logo, title="JBang Logo"]
+image:jbang_logo.svg[JBang Logo, title="JBang Logo"]
 
 Want to learn, explore or use Java instantly without setup ?
 
