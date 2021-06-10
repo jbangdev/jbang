@@ -10,12 +10,8 @@ on:
       - main
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    name: build-and-testing
+  updatewebsite:
+    runs-on: ubuntu-latest
     steps:
       - name: Invoke workflow in another repo with inputs
         if: ${{ github.ref == 'refs/heads/main' }}
@@ -24,6 +20,13 @@ jobs:
           workflow: github-pages
           repo: jbangdev/jbang.dev
           token: ${{ secrets.BREW_GITHUB_TOKEN }}
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    name: build-and-testing
+    steps:
       - uses: actions/checkout@v1
       - uses: actions/cache@v1
         with:
