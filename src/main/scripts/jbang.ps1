@@ -54,7 +54,7 @@ if (Test-Path "$PSScriptRoot\jbang.jar") {
 } elseif (Test-Path "$PSScriptRoot\.jbang\jbang.jar") {
   $jarPath="$PSScriptRoot\.jbang\jbang.jar"
 } else {
-  if (Test-Path "$JBDIR\bin\jbang.jar.new" -and Test-Path "$JBDIR\bin\jbang.ps1") {
+  if ((Test-Path "$JBDIR\bin\jbang.jar.new") -and (Test-Path "$JBDIR\bin\jbang.ps1")) {
     Move-Item -Path "$JBDIR\bin\jbang.jar.new" -Destination"$JBDIR\bin\jbang.jar" -Force
   } elseif (-not (Test-Path "$JBDIR\bin\jbang.jar") -or -not (Test-Path "$JBDIR\bin\jbang.ps1")) {
     [Console]::Error.WriteLine("Downloading JBang...")
