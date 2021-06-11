@@ -13,7 +13,7 @@ jobs:
   updatewebsite:
     runs-on: ubuntu-latest
     steps:
-      - name: Invoke workflow in another repo with inputs
+      - name: update website
         if: ${{ github.ref == 'refs/heads/main' }}
         uses: benc-uk/workflow-dispatch@v1
         with:

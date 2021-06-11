@@ -236,4 +236,4 @@ If `jbang` detects you have a `javafx-` dependency in your list of dependencies
 it will if you `java` command supports Java modules automatically set the necessary
 `--module-path` and `--add-modules`.
 
-See `link:examples/jfx.java[]` and `link:examples/jfxtiles.java[]` for examples of this.
+See `link:https://github.com/jbangdev/jbang-examples/blob/main/examples/jfx.java[jfx.java]` and `link:https://github.com/jbangdev/jbang-examples/blob/main/examples/jfxtiles.java[jfxtiles.java]` for examples of this.
