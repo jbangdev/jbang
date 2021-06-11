@@ -547,6 +547,16 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "lukaseder",
+      "name": "Lukas Eder",
+      "avatar_url": "https://avatars.githubusercontent.com/u/734593?v=4",
+      "profile": "https://www.jooq.org",
+      "contributions": [
+        "example",
+        "doc"
+      ]
     }
   ],
   "skipCi": true,
