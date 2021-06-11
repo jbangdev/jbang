@@ -168,7 +168,7 @@ As an experiment since 0.71.0 JBang supports building Kotlin files using `kotlin
 
 [source,bash]
 ----
-jbang init -t hello.kt hello
+jbang init -t hello.kt hello.kt
 ./hello.kt
 [jbang] Downloading Kotlin 1.5.0. Be patient, this can take several minutes...
 [jbang] Installing Kotlin 1.5.0...
