@@ -555,7 +555,8 @@
       "profile": "https://www.jooq.org",
       "contributions": [
         "example",
-        "doc"
+        "doc",
+        "bug"
       ]
     }
   ],
