@@ -16,4 +16,4 @@ In previous versions of `jbang`, Java 10+ direct launch of `.java` was used, but
 
 The caching goes to `~/.jbang/cache` by default, you can run `jbang cache clear` to remove all cache data from this folder.
 
-The default cache location can be overwritten by the environment variable `JBANG_CACHE_DIR`. If `$JBANG_DIR` environment variable is set, the `cache` folder will be placed there.
+The default cache location can be overwritten by the environment variable `JBANG_CACHE_DIR`. If `JBANG_DIR` environment variable is set, the `cache` folder will be placed there.
