@@ -163,6 +163,7 @@ For secure authentication `jbang` will honor `~/.m2/settings-security.xml` for c
 username/passwords.
 ====
 
+By default, `jbang` uses `~/.m2` as local repository, but this can be overwritten by the environment variable `JBANG_REPO`.
 
 == Using `@Grab`
 
