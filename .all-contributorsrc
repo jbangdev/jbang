@@ -558,6 +558,15 @@
         "doc",
         "bug"
       ]
+    },
+    {
+      "login": "mikrethor",
+      "name": "Xavier Bouclet",
+      "avatar_url": "https://avatars.githubusercontent.com/u/957393?v=4",
+      "profile": "https://mikrethor.github.io/blog/",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "skipCi": true,
