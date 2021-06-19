@@ -22,6 +22,11 @@ Once you hav installed from one of the below approaches it is recommended you ru
  your `PATH` to include jbang app scripts + it will on operating systems that supports
 it setup a `j!` alias you can use instead of `jbang`.
 
+[NOTE]
+====
+By default `jbang` uses `~/.jbang` for configurations and build cache. This can be changed using the environment variable `JBANG_DIR`.
+====
+
 == Using JBang
 
 The simplest way to install `jbang` is using JBang itself.
