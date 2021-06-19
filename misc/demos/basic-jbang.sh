@@ -30,12 +30,11 @@ DEMO_COMMENT_COLOR=$GREEN
 clear
 
 pei "# Lets create a directory with a java example made with jbang"
-pei "mkdir example"
-pei "cd example"
+pei "mkdir example; cd example"
 pei "jbang init hello.java"
 pei "# Now we run it using jbang"
 pei "jbang hello.java"
-pei "# On Linux and OSX you can even run the file directly"
+pei "# In a bash or zsh shell you run the file directly"
 pei "./hello.java"
 pei "# That was the basics - now lets create an example using 3rd party dependencies"
 pei "jbang init -t cli hellocli.java"
