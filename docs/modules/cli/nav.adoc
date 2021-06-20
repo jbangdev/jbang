@@ -1,0 +1,5 @@
+* CLI Reference
++
+--
+include::partial$nav-jbang.adoc[]
+--

@@ -1,0 +1,92 @@
+// This is a generated documentation file based on picocli
+// To change it update the picocli code or the genrator
+// tag::picocli-generated-full-manpage[]
+// tag::picocli-generated-man-section-header[]
+:doctype: manpage
+:revnumber: 
+:manmanual: Jbang Manual
+:mansource: 
+:man-linkstyle: pass:[blue R < >]
+= jbang-info-tools(1)
+
+// end::picocli-generated-man-section-header[]
+
+// tag::picocli-generated-man-section-name[]
+== Name
+
+jbang-info-tools - Prints a json description usable for tools/IDE's to get classpath and more info for a jbang script/application. Exact format is still quite experimental.
+
+// end::picocli-generated-man-section-name[]
+
+// tag::picocli-generated-man-section-synopsis[]
+== Synopsis
+
+*jbang info tools* *-o* [*-hV*] [*--fresh*] [*--insecure*] [*--jsh*] *--quiet* *--verbose*
+                 [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
+                 [*--deps*=_<dependencies>_]... _<scriptOrFile>_
+
+// end::picocli-generated-man-section-synopsis[]
+
+// tag::picocli-generated-man-section-description[]
+== Description
+
+Prints a json description usable for tools/IDE's to get classpath and more info for a jbang script/application. Exact format is still quite experimental.
+
+// end::picocli-generated-man-section-description[]
+
+// tag::picocli-generated-man-section-options[]
+== Options
+
+*--cp, --class-path*=_<classpaths>_::
+  Add class path entries.
+
+*-D*, _<String=String>_::
+  set a system property
+
+*--deps*=_<dependencies>_::
+  Add additional dependencies.
+
+*--fresh*::
+  Make sure we use fresh (i.e. non-cached) resources.
+
+*-h*, *--help*::
+  Display help/info. Use 'jbang <command> -h' for detailed usage.
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
+
+*--jsh*::
+  Force input to be interpreted with jsh/jshell
+
+*-o*, *--offline*::
+  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+
+*--quiet*::
+  jbang will be quiet, only print when error occurs.
+
+*-V*, *--version*::
+  Display version info (use `jbang --verbose version` for more details)
+
+*--verbose*::
+  jbang will be verbose on what it does.
+
+// end::picocli-generated-man-section-options[]
+
+// tag::picocli-generated-man-section-arguments[]
+== Arguments
+
+_<scriptOrFile>_::
+  A file with java code or if named .jsh will be run with jshell
+
+// end::picocli-generated-man-section-arguments[]
+
+// tag::picocli-generated-man-section-commands[]
+// end::picocli-generated-man-section-commands[]
+
+// tag::picocli-generated-man-section-exit-status[]
+// end::picocli-generated-man-section-exit-status[]
+
+// tag::picocli-generated-man-section-footer[]
+// end::picocli-generated-man-section-footer[]
+
+// end::picocli-generated-full-manpage[]

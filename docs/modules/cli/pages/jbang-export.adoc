@@ -1,0 +1,75 @@
+// This is a generated documentation file based on picocli
+// To change it update the picocli code or the genrator
+// tag::picocli-generated-full-manpage[]
+// tag::picocli-generated-man-section-header[]
+:doctype: manpage
+:revnumber: 
+:manmanual: Jbang Manual
+:mansource: 
+:man-linkstyle: pass:[blue R < >]
+= jbang-export(1)
+
+// end::picocli-generated-man-section-header[]
+
+// tag::picocli-generated-man-section-name[]
+== Name
+
+jbang-export - Export the result of a build.
+
+// end::picocli-generated-man-section-name[]
+
+// tag::picocli-generated-man-section-synopsis[]
+== Synopsis
+
+*jbang export* *-o* [*--fresh*] *--quiet* *--verbose* [COMMAND]
+
+// end::picocli-generated-man-section-synopsis[]
+
+// tag::picocli-generated-man-section-description[]
+== Description
+
+Export the result of a build.
+
+// end::picocli-generated-man-section-description[]
+
+// tag::picocli-generated-man-section-options[]
+== Options
+
+*--fresh*::
+  Make sure we use fresh (i.e. non-cached) resources.
+
+*-o*, *--offline*::
+  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+
+*--quiet*::
+  jbang will be quiet, only print when error occurs.
+
+*--verbose*::
+  jbang will be verbose on what it does.
+
+// end::picocli-generated-man-section-options[]
+
+// tag::picocli-generated-man-section-arguments[]
+// end::picocli-generated-man-section-arguments[]
+
+// tag::picocli-generated-man-section-commands[]
+== Commands
+
+xref:jbang-export-portable.adoc[*portable*]::
+  Exports jar together with dependencies in way that makes it portable
+
+xref:jbang-export-local.adoc[*local*]::
+  Exports jar with classpath referring to local machine dependent locations
+
+xref:jbang-export-mavenrepo.adoc[*mavenrepo*]::
+  Exports directory that can be used to publish as a maven repository
+
+// end::picocli-generated-man-section-commands[]
+
+// tag::picocli-generated-man-section-exit-status[]
+// end::picocli-generated-man-section-exit-status[]
+
+// tag::picocli-generated-man-section-footer[]
+// end::picocli-generated-man-section-footer[]
+
+// end::picocli-generated-full-manpage[]
