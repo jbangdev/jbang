@@ -28,6 +28,7 @@ public class TemplateEngine {
 						.addDefaults()
 						.removeStandaloneLines(true)
 						.addValueResolver(new ReflectionValueResolver())
+						// .addResultMapper(new PropertyNotFoundThrowException())
 						.addLocator(this::locate)
 						.build();
 	}

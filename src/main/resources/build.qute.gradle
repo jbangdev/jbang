@@ -13,8 +13,8 @@ repositories {
 }
 
 dependencies {
-{#for item in dependencies}
-	compile "{item}"
+{#for item in gradledependencies}
+	{item}
 {/for}
 }
 
