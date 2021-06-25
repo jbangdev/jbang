@@ -126,7 +126,7 @@ public class TestEdit extends BaseTest {
 		assertThat(buildGradle, not(containsString("github.com"))); // should be com.github
 		assertThat(buildGradle, containsString("repo1.maven.org")); // auto-added jcenter
 		assertThat(buildGradle, containsString("jitpack.io")); // auto-added jitpack repo
-		assertThat(buildGradle, containsString("compile \"com.github.oldskoolsh:libvirt-schema:0.0.2\""));
+		assertThat(buildGradle, containsString("implementation 'com.github.oldskoolsh:libvirt-schema:0.0.2'"));
 	}
 
 	@Test

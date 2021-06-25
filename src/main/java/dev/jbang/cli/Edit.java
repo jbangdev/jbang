@@ -385,6 +385,7 @@ public class Edit extends BaseScriptDepsCommand {
 													.map(MavenRepo::getUrl)
 													.filter(s -> !"".equals(s)))
 								.data("dependencies", collectDependencies)
+								.data("gradledependencies", gradleify(collectDependencies))
 								.data("baseName", baseName)
 								.data("fullClassName", fullclassName)
 								.data("classpath",
@@ -396,6 +397,16 @@ public class Edit extends BaseScriptDepsCommand {
 								.render();
 
 		Util.writeString(destination, result);
+	}
+
+	private List<String> gradleify(List<String> collectDependencies) {
+		return collectDependencies.stream().map(item -> {
+			if (item.endsWith("@pom")) {
+				return "implementation platform ('" + item.substring(0, item.lastIndexOf("@pom")) + "')";
+			} else {
+				return "implementation '" + item + "'";
+			}
+		}).collect(Collectors.toList());
 	}
 
 	static String stripPrefix(String fileName) {
