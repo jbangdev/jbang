@@ -1,6 +1,6 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-61-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-62-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 ## Contributors ✨
 
@@ -88,6 +88,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/oleg-nenashev"><img src="https://avatars.githubusercontent.com/u/3000480?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Oleg Nenashev</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=oleg-nenashev" title="Code">💻</a></td>
     <td align="center"><a href="https://www.jooq.org"><img src="https://avatars.githubusercontent.com/u/734593?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Lukas Eder</b></sub></a><br /><a href="#example-lukaseder" title="Examples">💡</a> <a href="https://github.com/jbangdev/jbang/commits?author=lukaseder" title="Documentation">📖</a> <a href="https://github.com/jbangdev/jbang/issues?q=author%3Alukaseder" title="Bug reports">🐛</a></td>
     <td align="center"><a href="https://mikrethor.github.io/blog/"><img src="https://avatars.githubusercontent.com/u/957393?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Xavier Bouclet</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=mikrethor" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://eero.com"><img src="https://avatars.githubusercontent.com/u/52975802?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Will Sargent (eero)</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=will-sargent-eero" title="Documentation">📖</a> <a href="https://github.com/jbangdev/jbang/issues?q=author%3Awill-sargent-eero" title="Bug reports">🐛</a></td>
   </tr>
 </table>
 

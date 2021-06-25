@@ -568,6 +568,16 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "will-sargent-eero",
+      "name": "Will Sargent (eero)",
+      "avatar_url": "https://avatars.githubusercontent.com/u/52975802?v=4",
+      "profile": "https://eero.com",
+      "contributions": [
+        "doc",
+        "bug"
+      ]
     }
   ],
   "skipCi": true,
