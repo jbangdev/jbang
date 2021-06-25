@@ -264,7 +264,7 @@ public class ResourceRef implements Comparable<ResourceRef> {
 				String exmsg = scriptURL
 						+ " is not from a trusted source and user did not confirm trust thus aborting.\n" +
 						"If you trust the url to be safe to run are here a few suggestions:\n" +
-						"Limited trust:\n    jbang trust add " + options[1] + "\n" +
+						"Limited trust:\n     jbang trust add " + options[1] + "\n" +
 						"Trust all subdomains:\n    jbang trust add " + options[2] + "\n" +
 						"Trust all sources (WARNING! disables url protection):\n    jbang trust add " + options[3]
 						+ "\n" +
@@ -273,7 +273,8 @@ public class ResourceRef implements Comparable<ResourceRef> {
 				String question = scriptURL + " is not from a trusted source thus not running it automatically.\n\n" +
 						"If you trust the url to be safe to run you can do one of the following:\n" +
 						"0) Trust once: Add no trust, just run this time\n" +
-						"1) Trust this url in future:\n    jbang trust add " + options[1] + "\n" +
+						"1) Trust " +
+						"limited url in future:\n    jbang trust add " + options[1] + "\n" +
 						"\n\nAny other response will result in exit.\n";
 
 				ConsoleInput con = new ConsoleInput(
@@ -321,7 +322,15 @@ public class ResourceRef implements Comparable<ResourceRef> {
 		}
 	}
 
-	private static String goodTrustURL(String url) {
+	/**
+	 * Takes common patterns and return "parent" urls that are meaningfull to trust.
+	 * i.e. github.com/maxandersen/myproject/myfile.java will offer to trust the
+	 * github.com/maxandersen/myproject project.
+	 * 
+	 * @param url
+	 * @return
+	 */
+	static String goodTrustURL(String url) {
 		String originalUrl = url;
 
 		url = url.replaceFirst("^https://gist.github.com/(.*)?/(.*)$",
@@ -339,14 +348,21 @@ public class ResourceRef implements Comparable<ResourceRef> {
 		url = url.replaceFirst("^https://twitter.com/(.*)/status/(.*)$",
 				"https://twitter.com/$1/");
 
+		url = url.replaceFirst("https://repo1.maven.org/maven2/(.*)/[0-9]+.*$",
+				"https://repo1.maven.org/maven2/$1/");
+
 		if (url.equals(originalUrl)) {
-			java.net.URI u = null;
+			java.net.URI uri = null;
 			try {
-				u = new java.net.URI(url);
+				uri = new java.net.URI(url);
 			} catch (URISyntaxException e) {
 				return url;
 			}
-			url = u.getScheme() + "://" + u.getAuthority();
+			if (uri.getPath().isEmpty() || uri.getPath().equals("/")) {
+				return uri.toString();
+			} else {
+				return (uri.getPath().endsWith("/") ? uri.resolve("..") : uri.resolve(".")).toString();
+			}
 		}
 
 		return url;
