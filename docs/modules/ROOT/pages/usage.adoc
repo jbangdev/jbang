@@ -51,6 +51,13 @@ chmod +x helloworld.java
 ./helloworld.java jbang!
 ----
 
+[NOTE]
+====
+If you are using another shell than bash or zsh, like Fish shell be aware that such shell limits the syntax in top line to start with `!#` thus
+it won't be as transparent. Here you will need to run using `jbang` directly, i.e. `jbang helloworld.java jbang!`.
+====
+
+
 [WARNING]
 ====
 When no <<java-version,JDK version>> is available in the PATH, JDK 11 will be downloaded by default to bootstrap jbang.
