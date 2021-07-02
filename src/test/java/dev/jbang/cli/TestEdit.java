@@ -95,6 +95,43 @@ public class TestEdit extends BaseTest {
 		assertThat(buildGradle, not(containsString("bogus")));
 		assertThat(buildGradle, containsString("id 'application'"));
 		assertThat(buildGradle, containsString("mainClass = 'edit'"));
+		assertThat(buildGradle, containsString("repo1.maven.org")); // auto-added maven
+		assertThat(buildGradle, not(containsString("jitpack.io"))); // auto-added jitpack repo
+
+		File java = new File(project, "src/edit.java");
+
+		// first check for symlink. in some cases on windows (non admin privileg)
+		// symlink cannot be created, as fallback a hardlink will be created.
+		assert (Files.isSymbolicLink(java.toPath()) || java.exists());
+
+		assertThat(Files.isSameFile(java.toPath(), p), equalTo(true));
+	}
+
+	@Test
+	void testEditDepsNoJitpack(@TempDir Path outputDir) throws IOException {
+
+		Path p = outputDir.resolve("edit.java");
+		String s = p.toString();
+		Jbang.getCommandLine().execute("init", s);
+		assertThat(new File(s).exists(), is(true));
+
+		Util.writeString(p, "//DEPS io.quarkus:quarkus-bom:2.0.0.Final@pom\n" +
+				"//DEPS io.quarkus:quarkus-rest-client-reactive\n" +
+				"//DEPS io.quarkus:quarkus-rest-client-reactive-jackson\n" + Util.readString(p));
+
+		RunContext ctx = RunContext.empty();
+		ScriptSource src = (ScriptSource) Source.forResource(s, ctx);
+
+		File project = new Edit().createProjectForEdit(src, ctx, false);
+
+		File gradle = new File(project, "build.gradle");
+		assert (gradle.exists());
+		String buildGradle = Util.readString(gradle.toPath());
+		assertThat(buildGradle, not(containsString("bogus")));
+		assertThat(buildGradle, containsString("id 'application'"));
+		assertThat(buildGradle, containsString("mainClass = 'edit'"));
+		assertThat(buildGradle, containsString("repo1.maven.org")); // auto-added maven
+		assertThat(buildGradle, not(containsString("jitpack.io"))); // auto-added jitpack repo
 
 		File java = new File(project, "src/edit.java");
 
@@ -124,7 +161,7 @@ public class TestEdit extends BaseTest {
 		assert (gradle.exists());
 		String buildGradle = Util.readString(gradle.toPath());
 		assertThat(buildGradle, not(containsString("github.com"))); // should be com.github
-		assertThat(buildGradle, containsString("repo1.maven.org")); // auto-added jcenter
+		assertThat(buildGradle, containsString("repo1.maven.org")); // auto-added maven
 		assertThat(buildGradle, containsString("jitpack.io")); // auto-added jitpack repo
 		assertThat(buildGradle, containsString("implementation 'com.github.oldskoolsh:libvirt-schema:0.0.2'"));
 	}
