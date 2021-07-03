@@ -27,7 +27,11 @@ public class Settings {
 	final public static String CP_SEPARATOR = File.pathSeparator;
 
 	public static File getLocalMavenRepo() {
-		return new File(System.getenv().getOrDefault(JBANG_REPO, System.getProperty("user.home") + "/.m2/repository"))
+		return new File(System	.getenv()
+								.getOrDefault(JBANG_REPO,
+										(String) System	.getProperties()
+														.getOrDefault("maven.repo.local",
+																System.getProperty("user.home") + "/.m2/repository")))
 																														.getAbsoluteFile();
 	}
 
