@@ -273,16 +273,17 @@ public class Edit extends BaseScriptDepsCommand {
 		}
 
 		// Turn any URL dependencies into regular GAV coordinates
-		dependencies = dependencies
-									.stream()
-									.map(JitPackUtil::ensureGAV)
-									.collect(Collectors.toList());
+		List<String> depIds = dependencies
+											.stream()
+											.map(JitPackUtil::ensureGAV)
+											.collect(Collectors.toList());
 		// And if we encountered URLs let's make sure the JitPack repo is available
-		if (!repositories.stream().anyMatch(r -> DependencyUtil.REPO_JITPACK.equals(r.getUrl()))) {
+		if (!depIds.equals(dependencies)
+				&& !repositories.stream().anyMatch(r -> DependencyUtil.REPO_JITPACK.equals(r.getUrl()))) {
 			repositories.add(DependencyUtil.toMavenRepo(DependencyUtil.ALIAS_JITPACK));
 		}
 
-		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
+		renderTemplate(engine, depIds, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
 				ctx.getArguments(),
 				destination);
