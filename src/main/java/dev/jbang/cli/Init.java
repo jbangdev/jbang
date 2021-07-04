@@ -9,7 +9,6 @@ import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -122,7 +121,8 @@ public class Init extends BaseScriptCommand {
 		return Paths.get(result);
 	}
 
-	private void renderQuteTemplate(Path outFile, ResourceRef templateRef, Map<String, Object> properties) throws IOException {
+	private void renderQuteTemplate(Path outFile, ResourceRef templateRef, Map<String, Object> properties)
+			throws IOException {
 		Util.verboseMsg("Rendering template " + templateRef.getOriginalResource() + " to " + outFile);
 		renderQuteTemplate(outFile, templateRef.getFile().getAbsolutePath(), properties);
 	}
@@ -146,15 +146,14 @@ public class Init extends BaseScriptCommand {
 
 		Files.createDirectories(outFile.getParent());
 		try (BufferedWriter writer = Files.newBufferedWriter(outFile)) {
-			if(properties==null) {
+			if (properties == null) {
 				properties = new HashMap<>();
 			}
 			TemplateInstance templateWithData = template.data("properties", properties);
-			properties.forEach((k,v) -> templateWithData.data(k,v));
+			properties.forEach((k, v) -> templateWithData.data(k, v));
 
 			templateWithData.data("baseName", basename);
 			String result = templateWithData.render();
-
 
 			writer.write(result);
 			outFile.toFile().setExecutable(true);

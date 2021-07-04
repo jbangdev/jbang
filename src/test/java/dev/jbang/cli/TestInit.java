@@ -200,12 +200,14 @@ public class TestInit extends BaseTest {
 		Path out = cwd.resolve("result.java");
 
 		int addResult = Jbang	.getCommandLine()
-				.execute("template", "add", "-f", cwd.toString(), "--name=name",
-						"{filename}" + "=" + f1.toAbsolutePath().toString());
+								.execute("template", "add", "-f", cwd.toString(), "--name=name",
+										"{filename}" + "=" + f1.toAbsolutePath().toString());
 
 		assertThat(out.toFile().exists(), not(true));
 
-		int result = Jbang.getCommandLine().execute("init", "--verbose", "--template=name", "-Dprop1=propvalue", "-Dprop2=rocks", out.toAbsolutePath().toString());
+		int result = Jbang	.getCommandLine()
+							.execute("init", "--verbose", "--template=name", "-Dprop1=propvalue", "-Dprop2=rocks",
+									out.toAbsolutePath().toString());
 
 		assertThat(result, is(0));
 		assertThat(out.toFile().exists(), is(true));
