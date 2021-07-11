@@ -149,7 +149,7 @@ public class Init extends BaseScriptCommand {
 			if (properties == null) {
 				properties = new HashMap<>();
 			}
-			TemplateInstance templateWithData = template.data("properties", properties);
+			TemplateInstance templateWithData = template.instance();
 			properties.forEach((k, v) -> templateWithData.data(k, v));
 
 			templateWithData.data("baseName", basename);

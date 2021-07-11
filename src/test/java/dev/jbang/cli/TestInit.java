@@ -196,7 +196,7 @@ public class TestInit extends BaseTest {
 	@Test
 	void testInitProperties() throws IOException {
 		Path cwd = Util.getCwd();
-		Path f1 = Files.write(cwd.resolve("file1.java.qute"), "{properties.prop1}{prop2}".getBytes());
+		Path f1 = Files.write(cwd.resolve("file1.java.qute"), "{prop1}{prop2}".getBytes());
 		Path out = cwd.resolve("result.java");
 
 		int addResult = Jbang	.getCommandLine()

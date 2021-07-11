@@ -72,3 +72,11 @@ $ jbang template add showlogo.java img.jpg some.properties
 [jbang] No explicit target pattern was set, using first file: \{basename}.java=showlogo.java
 [jbang] Template 'showlogo' added to '.../jbang-catalog.json'
 ----
+
+== Properties
+
+Templates can refer to properties passed in using `-Dkey=value` on the `jbang init` command.
+
+Any key specified via `-Dkey=value` becomes available as `{key}` inside the templates.
+
+It is recommended you write templates where there is some kind of valid default or fallback on behavior as users might not be aware there is need for a key.
