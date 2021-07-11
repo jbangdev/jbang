@@ -7,7 +7,7 @@ project:
     and immediate compilation and execution.
 
   website: https://jbang.dev
-  docsUrl: https://github.com/jbangdev/jbang/blob/HEAD/readme.adoc
+  docsUrl: https://jbang.dev/documentation
   authors:
     - Max Rydahl Andersen
   license: MIT
