@@ -31,8 +31,10 @@ public class Settings {
 								.getOrDefault(JBANG_REPO,
 										(String) System	.getProperties()
 														.getOrDefault("maven.repo.local",
-																System.getProperty("user.home") + "/.m2/repository")))
-																														.getAbsoluteFile();
+																System.getProperty("user.home")
+																		+ File.separator + ".m2" + File.separator
+																		+ "repository")))
+																							.getAbsoluteFile();
 	}
 
 	public static Path getCacheDependencyFile() {
