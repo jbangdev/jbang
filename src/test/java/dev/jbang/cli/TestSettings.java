@@ -27,6 +27,7 @@ public class TestSettings {
 
 		environmentVariables.set("JBANG_REPO", "/envrepo");
 		assertEquals(Settings.getLocalMavenRepo().toString(), "/envrepo");
+		environmentVariables.clear("JBANG_REPO");
 
 	}
 }
