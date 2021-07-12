@@ -45,7 +45,7 @@ dependencies {
 	//implementation 'com.google.guava:guava:28.2-jre'
 
 
-	testCompile "com.github.tomakehurst:wiremock-jre8:2.27.2"
+	testImplementation "com.github.tomakehurst:wiremock-jre8:2.27.2"
 
 	testImplementation "org.junit.jupiter:junit-jupiter:5.7.1"
 	testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.7.1')
@@ -132,12 +132,12 @@ distributions {
 }
 
 latestDistZip {
-	archiveName = "${project.name}.zip"
+	archiveFileName = "${project.name}.zip"
 }
 
 
 latestDistTar {
-	archiveName = "${project.name}.tar"
+	archiveFileName = "${project.name}.tar"
 }
 
 jar {
@@ -177,7 +177,7 @@ shadowJar {
 		attributes 'Main-Class': 'dev.jbang.Main'
 	}
 	// warning is printed about deprecation in 7.0 but if I fix this shadowjar turns into a bogus file
-	archiveName = "${baseName}.${extension}"
+	archiveFileName = "${archiveBaseName}.${archiveExtension}"
 }
 
 test {
@@ -207,7 +207,7 @@ processTestResources.dependsOn copyTestResources
 task createChecksum(type: Checksum) {
 	dependsOn(assembleDist)
 	files = files([distZip, latestDistZip, distTar, latestDistTar].outputs.files.flatten())
-	outputDir = distZip.destinationDir
+	outputDir = distZip.destinationDirectory.get().getAsFile()
 	algorithm = Checksum.Algorithm.SHA256
 }
 
@@ -318,7 +318,7 @@ githubRelease {
 	// currently does not work as project.version not set.
 	// FilenameFilter filter = { dir, filename -> filename.contains(project.version) } // ensure nothing extra gets included.
 	//releaseAssets = distZip.destinationDir.listFiles filter
-	releaseAssets = files(distZip.destinationDir.listFiles(), new File(project.getBuildDir(), "tmp/version.txt"))
+	releaseAssets = files(distZip.destinationDirectory.get().getAsFile().listFiles(), new File(project.getBuildDir(), "tmp/version.txt"))
 	//println(getReleaseAssets().getFiles())
 	// set ORG_GRADLE_PROJECT_github_token
 	token = project.hasProperty('github_token') ? getProperty('github_token') : "unknown_github_token"
