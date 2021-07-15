@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Do not remove this test for UTF-8: if “Ω” doesn’t appear as greek uppercase omega letter enclosed in quotation marks, you should use an editor that supports UTF-8, not this one. -->
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>jbang</id>
+    <version>@projectVersion@</version>
+    <title>j'bang</title>
+    <authors>Max Rydahl Andersen</authors>
+    <projectUrl>https://github.com/jbangdev/jbang</projectUrl>
+    <copyright>2020 Max Rydahl Andersen</copyright>
+    <licenseUrl>https://github.com/jbangdev/jbang/blob/HEAD/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectSourceUrl>https://github.com/jbangdev/jbang</projectSourceUrl>
+    <packageSourceUrl>https://github.com/jbangdev/jbang/tree/HEAD/src/main/scripts/choco</packageSourceUrl>
+    <docsUrl>https://github.com/jbangdev/jbang/blob/HEAD/readme.adoc</docsUrl>
+    <bugTrackerUrl>https://github.com/jbangdev/jbang/issues</bugTrackerUrl>
+    <tags>jbang bash java shell scripting</tags>
+    <summary>Unleash the power of Java. Use `jbang` to run single .java or .jar file with automatic dependency fetching and immediate compilation and execution.</summary>
+    <description>
+Want to learn or explore Java instantly without setup ?
+
+Do you like Java but uses python, groovy, kotlin or similar languages for your scripts ?
+
+Ever tried out Java 11+ support for running `.java` files directly in your shell but felt it was a bit too cumbersome ?
+
+Then try `jbang` which lets you do this:
+
+[![asciicast](https://asciinema.org/a/AVwA19yijKRNKEO0bJENN2ME3.svg)](https://asciinema.org/a/AVwA19yijKRNKEO0bJENN2ME3?autoplay=true&amp;speed=2&amp;theme=solarized-dark)
+
+    $ jbang --init=cli hello.java
+    $ jbang hello.java Max!
+    [jbang] Resolving dependencies...
+    [jbang]     Resolving info.picocli:picocli:4.5.0...Done
+    [jbang] Dependencies resolved
+    [jbang] Building jar...
+    Hello Max!
+    $ jbang hello.java -h
+    Usage: hello [-hV] &lt;greeting&gt;
+    hello made with jbang
+          &lt;greeting&gt;   The greeting to print
+      -h, --help       Show this help message and exit.
+      -V, --version    Print version information and exit.
+
+Instant cli app generated built using java and picocli as a dependency that was fetched as needed for the compilation and execution.
+
+## Features
+
+* `.java` Scripting for Java 8 and upwards
+* `.jsh` via JShell from Java 9 and upwards
+* Works on icon:windows[] Windows, icon:apple[] OSX and icon:linux[] Linux
+* Install using SDKMan (icon:apple[]/icon:linux[]), Homebrew (icon:apple[]), Chocolatey (icon:windows[]) or Scoop (icon:windows[])
+* Dependency declarations using `//DEPS &lt;gav&gt;` for automatic dependency resolution
+* Control compile and runtime options with `//JAVAC_OPTIONS &lt;flags&gt;` and `//JAVA_OPTIONS &lt;flags&gt;`
+* Compiled jar and Dependency resolution caching
+* Launch with debug enabled for instant debugging from your favorite IDE
+* Init templates to get started easily (`jbang --init=cli hello.java`)
+* Generate gradle and IDE config with dependencies for easy editing in your favorite IDE (`jbang edit myfile.java`)
+* (PLANNED) Lookup dependencies with a short-hand name, i.e. `// DEPS log4j:1.2+,picocli` for quick getting started.
+
+To use it simply install `jbang` and run `jbang yourscript.java`
+    </description>
+    <releaseNotes>https://github.com/jbangdev/jbang/releases/tag/v@projectVersion@</releaseNotes>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>

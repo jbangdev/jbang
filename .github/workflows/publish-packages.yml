@@ -14,7 +14,7 @@ jobs:
       JRELEASER_TWITTER_CONSUMER_KEY: ${{ secrets.TWITTER_CONSUMER_KEY }}
       JRELEASER_TWITTER_CONSUMER_SECRET: ${{ secrets.TWITTER_CONSUMER_SECRET }}
       JRELEASER_TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
-      JRELEASER_TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_TOKEN_SECRET }}
+      JRELEASER_TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
       JRELEASER_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}
       JRELEASER_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
@@ -27,6 +27,18 @@ jobs:
           java-version: 11
       - name: build-gradle
         run: ./gradlew clean build -x test --build-cache --scan -s
+      - name: version extract
+        id: version
+        run: |
+          RELEASE_VERSION=`cat build/tmp/version.txt`
+          echo "::set-output name=RELEASE_VERSION::$RELEASE_VERSION"
+      - name: Run JReleaser
+        uses: jreleaser/release-action@v1
+        env: 
+          JRELEASER_PROJECT_VERSION: ${{steps.version.outputs.RELEASE_VERSION}}
+        with:
+          version: early-access
+          arguments: release
       - name: docker
         continue-on-error: true
         env:
@@ -35,10 +47,20 @@ jobs:
         run: ./misc/updatecontainer.sh
       - name: homebrew
         continue-on-error: true
-        run: jreleaser publish --tool-name brew
+        uses: jreleaser/release-action@v1
+        env:
+          JRELEASER_PROJECT_VERSION: ${{steps.version.outputs.RELEASE_VERSION}}
+        with:
+          version: early-access
+          arguments: publish --tool-name brew
       - name: scoop
         continue-on-error: true
-        run: jreleaser publish --tool-name scoop
+        uses: jreleaser/release-action@v1
+        env:
+          JRELEASER_PROJECT_VERSION: ${{steps.version.outputs.RELEASE_VERSION}}
+        with:
+          version: early-access
+          arguments: publish --tool-name scoop
       - name: spec
         continue-on-error: true
         env:
@@ -47,10 +69,20 @@ jobs:
         run: ./misc/updatespec.sh
       - name: snap
         continue-on-error: true
-        run: jreleaser publish --tool-name snap
+        uses: jreleaser/release-action@v1
+        env:
+          JRELEASER_PROJECT_VERSION: ${{steps.version.outputs.RELEASE_VERSION}}
+        with:
+          version: early-access
+          arguments: publish --tool-name snap
       - name: sdkman
         continue-on-error: true
-        run: jreleaser announce -an sdkman
+        uses: jreleaser/release-action@v1
+        env:
+          JRELEASER_PROJECT_VERSION: ${{steps.version.outputs.RELEASE_VERSION}}
+        with:
+          version: early-access
+          arguments: announce -an sdkman
       - name: upload-choco
         uses: actions/upload-artifact@v1
         with:
@@ -88,15 +120,4 @@ jobs:
           powershell
           choco apikey -k ${{ secrets.CHOCO_API_KEY }} -source https://push.chocolatey.org/
           choco push $(ls *.nupkg | % {$_.FullName}) -s https://push.chocolatey.org/
-  snapcraft:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Snapcraft Action
-        uses: samuelmeuli/action-snapcraft@v1.1.3
-        with:
-          snapcraft_token: ${{ secrets.SNAPCRAFT_TOKEN }}
-      - name: Sleep
-        run: sleep 1200
-      - name: Promote
-        run: ./misc/promotesnap.sh
+  

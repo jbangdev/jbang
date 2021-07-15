@@ -29,6 +29,7 @@ release:
     draft: true
     sign: true
     releaseName: '{{tagName}}'
+    skipTag: true
     milestone:
       close: false
     changelog:
