@@ -25,9 +25,8 @@ project:
 
 release:
   github:
-    username: maxandersen
     overwrite: true
-    draft: false
+    draft: true
     sign: true
     releaseName: '{{tagName}}'
     milestone:
@@ -102,7 +101,7 @@ distributions:
     brew:
       active: release
       extraProperties:
-        javaSkip: true
+        skipJava: true
     scoop:
       active: release
       bucket:
