@@ -1,7 +1,7 @@
 package dev.jbang.cli;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.io.FileMatchers.aReadableFile;
@@ -13,8 +13,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -29,7 +32,7 @@ public class TestInit extends BaseTest {
 	void testInit(@TempDir Path outputDir) throws IOException {
 		Path out = outputDir.resolve("test.java");
 		new Init().renderQuteTemplate(out, "init-hello.java.qute");
-		assertThat(Util.readString(out), containsString("class test"));
+		assertThat(Util.readString(out), Matchers.containsString("class test"));
 	}
 
 	@ParameterizedTest
@@ -38,7 +41,7 @@ public class TestInit extends BaseTest {
 		Exception ex = assertThrows(ExitException.class, () -> {
 			new Init().renderQuteTemplate(Paths.get(filename), "init-hello.java.qute");
 		});
-		assertThat(ex.getMessage(), containsString("is not a valid class name in java."));
+		assertThat(ex.getMessage(), Matchers.containsString("is not a valid class name in java."));
 	}
 
 	@Test
@@ -48,7 +51,7 @@ public class TestInit extends BaseTest {
 		int result = Jbang.getCommandLine().execute("init", "--verbose", "--template=cli", s);
 		assertThat(result, is(0));
 		assertThat(new File(s).exists(), is(true));
-		MatcherAssert.assertThat(Util.readString(x), containsString("picocli"));
+		MatcherAssert.assertThat(Util.readString(x), Matchers.containsString("picocli"));
 	}
 
 	@Test
@@ -74,7 +77,7 @@ public class TestInit extends BaseTest {
 		int result = Jbang.getCommandLine().execute("init", s);
 		assertThat(result, is(0));
 		assertThat(new File(s).exists(), is(true));
-		assertThat(Util.readString(x), containsString("class edit"));
+		assertThat(Util.readString(x), Matchers.containsString("class edit"));
 	}
 
 	@Test
@@ -84,7 +87,7 @@ public class TestInit extends BaseTest {
 		int result = Jbang.getCommandLine().execute("init", s);
 		assertThat(result, is(0));
 		assertThat(new File(s).exists(), is(true));
-		assertThat(Util.readString(x), containsString("class XyzPlug"));
+		assertThat(Util.readString(x), Matchers.containsString("class XyzPlug"));
 	}
 
 	@Test
@@ -94,7 +97,7 @@ public class TestInit extends BaseTest {
 		int result = Jbang.getCommandLine().execute("init", s);
 		assertThat(result, is(0));
 		assertThat(new File(s).exists(), is(true));
-		assertThat(Util.readString(x), containsString("class xyzplug"));
+		assertThat(Util.readString(x), Matchers.containsString("class xyzplug"));
 	}
 
 	@Test
@@ -173,4 +176,44 @@ public class TestInit extends BaseTest {
 		return appDir.resolve(initName);
 	}
 
+	@Test
+	void testProperties() throws IOException {
+		Path cwd = Util.getCwd();
+		Path f1 = Files.write(cwd.resolve("file1.java.qute"), "{prop1}{prop2}".getBytes());
+
+		Path out = cwd.resolve("result.java");
+		Map<String, Object> m = new HashMap<>();
+		m.put("prop1", "propvalue");
+		m.put("prop2", "rocks");
+
+		new Init().renderQuteTemplate(out, cwd.resolve("file1.java.qute").toFile().getAbsolutePath(), m);
+
+		String outcontent = Util.readString(out);
+
+		assertThat(outcontent, containsString("propvaluerocks"));
+	}
+
+	@Test
+	void testInitProperties() throws IOException {
+		Path cwd = Util.getCwd();
+		Path f1 = Files.write(cwd.resolve("file1.java.qute"), "{prop1}{prop2}".getBytes());
+		Path out = cwd.resolve("result.java");
+
+		int addResult = Jbang	.getCommandLine()
+								.execute("template", "add", "-f", cwd.toString(), "--name=name",
+										"{filename}" + "=" + f1.toAbsolutePath().toString());
+
+		assertThat(out.toFile().exists(), not(true));
+
+		int result = Jbang	.getCommandLine()
+							.execute("init", "--verbose", "--template=name", "-Dprop1=propvalue", "-Dprop2=rocks",
+									out.toAbsolutePath().toString());
+
+		assertThat(result, is(0));
+		assertThat(out.toFile().exists(), is(true));
+
+		String outcontent = Util.readString(out);
+
+		assertThat(outcontent, containsString("propvaluerocks"));
+	}
 }

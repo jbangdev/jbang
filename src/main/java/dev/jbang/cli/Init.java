@@ -6,7 +6,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.AbstractMap;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -18,6 +20,7 @@ import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
 
 import io.quarkus.qute.Template;
+import io.quarkus.qute.TemplateInstance;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "init", description = "Initialize a script.")
@@ -32,6 +35,9 @@ public class Init extends BaseScriptCommand {
 	@CommandLine.Option(names = {
 			"--force" }, description = "Force overwrite of existing files")
 	boolean force;
+
+	@CommandLine.Option(names = { "-D" }, description = "set a system property", mapFallbackValue = "true")
+	Map<String, Object> properties;
 
 	@Override
 	public Integer doCall() throws IOException {
@@ -72,7 +78,7 @@ public class Init extends BaseScriptCommand {
 				if (refTarget.getSource().getOriginalResource().endsWith(".qute")) {
 					// TODO fix outFile path handling
 					Path out = refTarget.to(outDir);
-					renderQuteTemplate(out, refTarget.getSource());
+					renderQuteTemplate(out, refTarget.getSource(), properties);
 				} else {
 					refTarget.copy(outDir);
 				}
@@ -115,12 +121,17 @@ public class Init extends BaseScriptCommand {
 		return Paths.get(result);
 	}
 
-	private void renderQuteTemplate(Path outFile, ResourceRef templateRef) throws IOException {
+	private void renderQuteTemplate(Path outFile, ResourceRef templateRef, Map<String, Object> properties)
+			throws IOException {
 		Util.verboseMsg("Rendering template " + templateRef.getOriginalResource() + " to " + outFile);
-		renderQuteTemplate(outFile, templateRef.getFile().getAbsolutePath());
+		renderQuteTemplate(outFile, templateRef.getFile().getAbsolutePath(), properties);
 	}
 
 	void renderQuteTemplate(Path outFile, String templatePath) throws IOException {
+		renderQuteTemplate(outFile, templatePath, null);
+	}
+
+	void renderQuteTemplate(Path outFile, String templatePath, Map<String, Object> properties) throws IOException {
 		Template template = TemplateEngine.instance().getTemplate(templatePath);
 		if (template == null) {
 			throw new ExitException(EXIT_INVALID_INPUT,
@@ -135,7 +146,15 @@ public class Init extends BaseScriptCommand {
 
 		Files.createDirectories(outFile.getParent());
 		try (BufferedWriter writer = Files.newBufferedWriter(outFile)) {
-			String result = template.data("baseName", basename).render();
+			if (properties == null) {
+				properties = new HashMap<>();
+			}
+			TemplateInstance templateWithData = template.instance();
+			properties.forEach((k, v) -> templateWithData.data(k, v));
+
+			templateWithData.data("baseName", basename);
+			String result = templateWithData.render();
+
 			writer.write(result);
 			outFile.toFile().setExecutable(true);
 		}
