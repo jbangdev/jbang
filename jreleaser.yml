@@ -1,0 +1,119 @@
+project:
+  name: jbang
+  description: Unleash the power of Java
+  longDescription: |
+    Unleash the power of Java.
+    Use `jbang` to run java, jar, jsh or kt file(s) with automatic dependency fetching
+    and immediate compilation and execution.
+
+  website: https://jbang.dev
+  docsUrl: https://jbang.dev/documentation
+  authors:
+    - Max Rydahl Andersen
+  license: MIT
+  tags:
+    - jbang
+    - bash
+    - java
+    - shell
+    - scripting
+  java:
+    groupId: dev.jbang
+    version: 8
+  extraProperties:
+    inceptionYear: 2020
+
+release:
+  github:
+    overwrite: true
+    draft: true
+    sign: true
+    releaseName: '{{tagName}}'
+    milestone:
+      close: false
+    changelog:
+      formatted: always
+      change: '- {{commitShortHash}} {{commitTitle}}'
+      labelers:
+        - label: 'fix'
+          title: 'fix:'
+        - label: 'feature'
+          title: 'feat:'
+        - label: 'task'
+          title: 'chore:'
+        - label: 'dependencies'
+          title: 'chore(deps):'
+        - label: 'test'
+          title: 'test:'
+        - label: 'docs'
+          title: 'docs:'
+        - label: 'docs'
+          title: 'doc:'
+      categories:
+        - title: '🚀 Features'
+          labels:
+            - 'feature'
+        - title: '🐛 Fixes'
+          labels:
+            - 'fix'
+        - title: '🧰 Tasks'
+          labels:
+            - 'task'
+        - title: '✅ Tests'
+          labels:
+            - 'test'
+        - title: '📝 Documentation'
+          labels:
+            - 'docs'
+        - title: '⚙️  Dependencies'
+          labels:
+            - 'dependencies'
+      replacers:
+        - search: 'fix: '
+        - search: 'feat: '
+        - search: 'chore: '
+        - search: 'chore\(deps\): '
+        - search: 'test: '
+        - search: 'docs: '
+        - search: 'doc: '
+
+checksum:
+  individual: true
+
+signing:
+  active: always
+  armored: true
+
+announce:
+  twitter:
+    active: release
+  sdkman:
+    active: release
+
+files:
+  artifacts:
+    - path: build/tmp/version.txt
+    - path: build/distributions/jbang.zip
+    - path: build/distributions/jbang.tar
+
+distributions:
+  jbang:
+    brew:
+      active: release
+      extraProperties:
+        skipJava: true
+    scoop:
+      active: release
+      bucket:
+        name: 'scoop-bucket'
+    chocolatey:
+      active: release
+      remoteBuild: true
+    snap:
+      active: release
+      remoteBuild: true
+      base: core18
+      confinement: classic
+    artifacts:
+      - path: build/distributions/jbang-{{projectVersion}}.zip
+      - path: build/distributions/jbang-{{projectVersion}}.tar

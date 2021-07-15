@@ -4,10 +4,18 @@ on:
       - published
 
 name: release-3rdparty
-jobs:
+jobs:   
   build:
     runs-on: ubuntu-latest
     name: build-and-testing
+    env:
+      JRELEASER_SDKMAN_CONSUMER_KEY: ${{ secrets.SDKMAN_CONSUMER_KEY }}
+      JRELEASER_SDKMAN_CONSUMER_TOKEN: ${{ secrets.SDKMAN_CONSUMER_TOKEN }}
+      JRELEASER_TWITTER_CONSUMER_KEY: ${{ secrets.TWITTER_CONSUMER_KEY }}
+      JRELEASER_TWITTER_CONSUMER_SECRET: ${{ secrets.TWITTER_CONSUMER_SECRET }}
+      JRELEASER_TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+      JRELEASER_TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_TOKEN_SECRET }}
+      JRELEASER_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v1
       - name: install-java11
@@ -24,16 +32,10 @@ jobs:
         run: ./misc/updatecontainer.sh
       - name: homebrew
         continue-on-error: true
-        env:
-          BREW_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}
-          BREW_USER: ${{ secrets.BREW_USER }}
-        run: ./misc/updatebrew.sh
+        run: jreleaser publish --tool-name brew
       - name: scoop
         continue-on-error: true
-        env:
-          BREW_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}
-          BREW_USER: ${{ secrets.BREW_USER }}
-        run: ./misc/updatescoop.sh
+        run: jreleaser publish --tool-name scoop
       - name: spec
         continue-on-error: true
         env:
@@ -42,16 +44,10 @@ jobs:
         run: ./misc/updatespec.sh
       - name: snap
         continue-on-error: true
-        env:
-          BREW_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}
-          BREW_USER: ${{ secrets.BREW_USER }}
-        run: ./misc/updatesnap.sh
+        run: jreleaser publish --tool-name snap
       - name: sdkman
         continue-on-error: true
-        env:
-          SDKMAN_CONSUMER_KEY: ${{ secrets.SDKMAN_CONSUMER_KEY }}
-          SDKMAN_CONSUMER_TOKEN: ${{ secrets.SDKMAN_CONSUMER_TOKEN }}
-        run: ./misc/updatesdkman.sh
+        run: jreleaser announce -an sdkman
       - name: upload-choco
         uses: actions/upload-artifact@v1
         with:
