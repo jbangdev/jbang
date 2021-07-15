@@ -16,6 +16,9 @@ jobs:
       JRELEASER_TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
       JRELEASER_TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_TOKEN_SECRET }}
       JRELEASER_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}
+      JRELEASER_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
+      JRELEASER_GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
     steps:
       - uses: actions/checkout@v1
       - name: install-java11
