@@ -2,18 +2,18 @@ import org.gradle.crypto.checksum.Checksum
 
 plugins {
 	id "distribution"
-	id "com.github.johnrengelman.shadow" version "6.1.0"
+	id "com.github.johnrengelman.shadow" version "7.0.0"
 	id "java"
 	id "com.github.breadmoirai.github-release" version "2.2.12"
-	id "io.toolebox.git-versioner" version "1.6.4"
-	id 'org.gradle.crypto.checksum' version '1.1.0'
-	id "com.diffplug.spotless" version "5.11.0"
+	id "io.toolebox.git-versioner" version "1.6.5"
+	id 'org.gradle.crypto.checksum' version '1.2.0'
+	id "com.diffplug.spotless" version "5.14.1"
 	id 'de.fuerstenau.buildconfig' version '1.1.8'
-	id "com.dorongold.task-tree" version "1.5"
+	id "com.dorongold.task-tree" version "2.1.0"
 	id "com.geoffgranum.gradle-conventional-changelog" version "0.3.1"
 	id "org.asciidoctor.jvm.convert" version "3.3.2"
 	id "org.ajoberstar.grgit" version "4.1.0"
-	id "org.sonarqube" version "3.1.1"
+	id "org.sonarqube" version "3.3"
 
 }
 
@@ -26,30 +26,30 @@ dependencies {
 	implementation 'com.offbytwo:docopt:0.6.0.20150202'
 
 	implementation 'org.apache.commons:commons-text:1.9'
-	implementation 'org.apache.commons:commons-compress:1.20'
+	implementation 'org.apache.commons:commons-compress:1.21'
 	implementation 'info.picocli:picocli:4.6.1'
-	implementation 'io.quarkus.qute:qute-core:1.12.2.Final'
+	implementation 'io.quarkus.qute:qute-core:2.0.2.Final'
 	implementation 'kr.motd.maven:os-maven-plugin:1.7.0'
-	implementation 'org.codehaus.plexus:plexus-java:1.0.6'
-	implementation 'com.google.code.gson:gson:2.8.6'
-	implementation 'org.jsoup:jsoup:1.13.1'
+	implementation 'org.codehaus.plexus:plexus-java:1.0.7'
+	implementation 'com.google.code.gson:gson:2.8.7'
+	implementation 'org.jsoup:jsoup:1.14.1'
 
 	implementation 'com.github.jbangdev.jbang-resolver:shrinkwrap-resolver-api:3.1.5-allowpom'
 	implementation 'com.github.jbangdev.jbang-resolver:shrinkwrap-resolver-impl-maven:3.1.5-allowpom'
 
 	//implementation 'org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-api:3.1.4'
 	//implementation 'org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-impl-maven:3.1.4'
-	implementation "org.slf4j:slf4j-nop:1.7.30"
-	implementation "org.jboss:jandex:2.2.3.Final"
+	implementation "org.slf4j:slf4j-nop:1.7.31"
+	implementation "org.jboss:jandex:2.3.0.Final"
 	//implementation 'org.apache.maven:maven-aether-provider:3.0.5'
 	//implementation 'com.google.guava:guava:28.2-jre'
 
 
-	testCompile "com.github.tomakehurst:wiremock-jre8:2.27.2"
+	testCompile "com.github.tomakehurst:wiremock-jre8:2.29.1"
 
-	testImplementation "org.junit.jupiter:junit-jupiter:5.7.1"
-	testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.7.1')
-	testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
+	testImplementation "org.junit.jupiter:junit-jupiter:5.7.2"
+	testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.7.2')
+	testImplementation "com.github.stefanbirkner:system-rules:1.19.0"
 	testImplementation(
 			'org.hamcrest:hamcrest-library:2.2'
 	)
