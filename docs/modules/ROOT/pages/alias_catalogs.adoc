@@ -15,7 +15,7 @@ endif::[]
 To avoid remembering long paths and to enable easy launch of jbang scripts there is an `alias` command
 to setup and manage aliases to actual scripts.
 
-  jbang alias add hello https://github.com/jbangdev/jbang-examples/blob/HEAD/examples/helloworld.java
+  jbang alias add --name hello https://github.com/jbangdev/jbang-examples/blob/HEAD/examples/helloworld.java
 
 will add an alias named `hello` pointing to that github url which then can be run using `jbang hello`.
 
