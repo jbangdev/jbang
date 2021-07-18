@@ -88,6 +88,7 @@ signing:
 announce:
   twitter:
     active: release
+    status: 'JBang {{projectVersion}} has been released! {{releaseNotesUrl}}'
   sdkman:
     active: release
 
