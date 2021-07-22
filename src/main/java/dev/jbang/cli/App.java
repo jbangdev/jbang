@@ -359,8 +359,14 @@ class AppSetup extends BaseCommand {
 		} else {
 			if (force || needsSetup() || withJava) {
 				// Update shell startup scripts
-				Path bashRcFile = getHome().resolve(".bashrc");
-				changed = changeScript(binDir, jdkHome, bashRcFile) || changed;
+				if (Util.isMac()) {
+					Path bashFile = getHome().resolve(".bash_profile");
+					changed = changeScript(binDir, jdkHome, bashFile) || changed;
+				}
+				if (!changed) {
+					Path bashFile = getHome().resolve(".bashrc");
+					changed = changeScript(binDir, jdkHome, bashFile) || changed;
+				}
 				Path zshRcFile = getHome().resolve(".zshrc");
 				changed = changeScript(binDir, jdkHome, zshRcFile) || changed;
 			}
