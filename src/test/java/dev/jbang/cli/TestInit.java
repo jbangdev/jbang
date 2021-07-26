@@ -143,8 +143,12 @@ public class TestInit extends BaseTest {
 		int result = Jbang.getCommandLine().execute("init", "-t=name", outFile.toString());
 		assertThat(result, is(0));
 		assertThat(outFile.resolveSibling(outName).toFile(), aReadableFile());
-		assertThat(outFile.resolveSibling("file2.java").toFile(), aReadableFile());
+		Path f2 = outFile.resolveSibling("file2.java");
+		assertThat(f2.toFile(), aReadableFile());
+		String assertInit = Util.base(outFile.toString());
+		assertThat(Util.readString(f2), Matchers.containsString("// file2 with " + outFile));
 		assertThat(outFile.resolveSibling("file3.md").toFile(), aReadableFile());
+
 	}
 
 	void testFailMultipleFiles(String targetName, String initName, String outName, boolean abs, int expectedResult)
@@ -159,6 +163,7 @@ public class TestInit extends BaseTest {
 		Path tplDir = Files.createDirectory(cwd.resolve("tpl"));
 		Path f1 = Files.createFile(tplDir.resolve("file1.java"));
 		Path f2 = Files.createFile(tplDir.resolve("file2.java.qute"));
+		Util.writeString(f2, "// {baseName} with {scriptref}");
 		Path f3 = Files.createFile(tplDir.resolve("file3.md"));
 		if (abs) {
 			int addResult = Jbang	.getCommandLine()
