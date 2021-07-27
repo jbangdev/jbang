@@ -91,6 +91,13 @@ announce:
     status: 'JBang {{projectVersion}} has been released! {{releaseNotesUrl}}'
   sdkman:
     active: release
+  article:
+    active: release
+    repository:
+      name: jbang.dev
+    files:
+      - path: 'blogpost.adoc'
+        transform: '_drafts/{{projectName}}-{{#f_dash}}{{projectVersion}}{{/f_dash}}-released.adoc'
 
 files:
   artifacts:
@@ -102,17 +109,21 @@ distributions:
   jbang:
     brew:
       active: release
+      continueOnError: true
       extraProperties:
         skipJava: true
     scoop:
       active: release
+      continueOnError: true
       bucket:
         name: 'scoop-bucket'
     chocolatey:
       active: release
+      continueOnError: true
       remoteBuild: true
     snap:
       active: release
+      continueOnError: true
       remoteBuild: true
       base: core18
       confinement: classic

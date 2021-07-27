@@ -38,44 +38,28 @@ jobs:
           BREW_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}
           BREW_USER: ${{ secrets.BREW_USER }}
         run: ./misc/updatecontainer.sh
-      - name: homebrew
-        continue-on-error: true
-        uses: jreleaser/release-action@v1
-        env:
-          JRELEASER_PROJECT_VERSION: ${{steps.version.outputs.RELEASE_VERSION}}
-        with:
-          version: early-access
-          arguments: publish --tool-name brew
-      - name: scoop
-        continue-on-error: true
-        uses: jreleaser/release-action@v1
-        env:
-          JRELEASER_PROJECT_VERSION: ${{steps.version.outputs.RELEASE_VERSION}}
-        with:
-          version: early-access
-          arguments: publish --tool-name scoop
+      - name: jreleaser publish
+          continue-on-error: true
+          uses: jreleaser/release-action@v1
+          env:
+            JRELEASER_PROJECT_VERSION: ${{steps.version.outputs.RELEASE_VERSION}}
+          with:
+            version: early-access
+            arguments: publish
       - name: spec
         continue-on-error: true
         env:
           BREW_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}
           BREW_USER: ${{ secrets.BREW_USER }}
         run: ./misc/updatespec.sh
-      - name: snap
+      - name: jreleaser announce
         continue-on-error: true
         uses: jreleaser/release-action@v1
         env:
           JRELEASER_PROJECT_VERSION: ${{steps.version.outputs.RELEASE_VERSION}}
         with:
           version: early-access
-          arguments: publish --tool-name snap
-      - name: sdkman
-        continue-on-error: true
-        uses: jreleaser/release-action@v1
-        env:
-          JRELEASER_PROJECT_VERSION: ${{steps.version.outputs.RELEASE_VERSION}}
-        with:
-          version: early-access
-          arguments: announce -an sdkman
+          arguments: announce
       - name: JReleaser output
         if: always()
         uses: actions/upload-artifact@v2
