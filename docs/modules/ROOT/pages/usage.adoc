@@ -189,13 +189,14 @@ Hello World
 
 jbang can run scripts directly from standard input using `-` or `/dev/stdin` as input.
 
-i.e.
+i.e. then you can "pipe" the script to jbang:
 
 `echo 'System.out.println("Hello World!");' | jbang -`
 
 [TIP]
 ====
 If you use `--interactive` `jbang` will let `jshell` enter into interactive/REPL mode. You can write `/exit` to leave this mode.
+If you are after running `.java` code via piping or curl it is better to use jbang's support for running http(s) urls directly, i.e. `jbang <urlto-java>`.
 ====
 
 [TIP]
