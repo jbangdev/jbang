@@ -37,7 +37,7 @@ public class Init extends BaseScriptCommand {
 	boolean force;
 
 	@CommandLine.Option(names = { "-D" }, description = "set a system property", mapFallbackValue = "true")
-	Map<String, Object> properties;
+	Map<String, Object> properties = new HashMap<>();
 
 	@Override
 	public Integer doCall() throws IOException {
@@ -50,6 +50,8 @@ public class Init extends BaseScriptCommand {
 		Path outFile = Util.getCwd().resolve(scriptOrFile);
 		Path outDir = outFile.getParent();
 		String outName = outFile.getFileName().toString();
+
+		properties.put("scriptref", scriptOrFile);
 
 		List<RefTarget> refTargets = tpl.fileRefs	.entrySet()
 													.stream()
