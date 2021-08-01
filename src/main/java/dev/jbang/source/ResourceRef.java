@@ -1,5 +1,7 @@
 package dev.jbang.source;
 
+import static dev.jbang.util.Util.getMainClass;
+import static dev.jbang.util.Util.hasMainMethod;
 import static dev.jbang.util.Util.swizzleURL;
 
 import java.io.BufferedReader;
@@ -208,7 +210,13 @@ public class ResourceRef implements Comparable<ResourceRef> {
 					String urlHash = Util.getStableID(scriptText);
 					File cache = Settings.getCacheDir(Cache.CacheClass.stdins).resolve(urlHash).toFile();
 					cache.mkdirs();
-					File scriptFile = new File(cache, urlHash + ".jsh");
+					String basename = urlHash;
+					String suffix = ".jsh";
+					if (hasMainMethod(scriptText)) {
+						suffix = ".java";
+						basename = getMainClass(scriptText).orElse(basename);
+					}
+					File scriptFile = new File(cache, basename + suffix);
 					Util.writeString(scriptFile.toPath(), scriptText);
 					result = forCachedResource(scriptResource, scriptFile);
 				}

@@ -1,0 +1,12 @@
+---
+---
+# {{projectNameCapitalized}} {{projectEffectiveVersion}} released
+:page-tags: [release]
+:page-tagline: {{projectEffectiveVersion}} is the latest release.
+:page-author: maxandersen
+
+{{projectNameCapitalized}} {{projectEffectiveVersion}} have been released with a new round of bugfixes and documentation improvements.
+
+== Full changelog
+
+You can see {{releaseNotesUrl}}[the full changelog of {{projectEffectiveVersion}} on GitHub].
