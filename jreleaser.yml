@@ -107,6 +107,14 @@ files:
 
 distributions:
   jbang:
+    docker:
+      active: release
+      continueOnError: true
+      postCommands:
+        - "VOLUME /scripts"
+      baseImage: "adoptopenjdk:11-jdk-hotspot"
+      repository:
+        name: jbang-action
     brew:
       active: release
       continueOnError: true

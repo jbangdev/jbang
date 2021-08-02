@@ -69,6 +69,9 @@ public class Util {
 			"^.*(public\\s+static|static\\s+public)\\s+void\\s+main\\s*\\(.*",
 			Pattern.MULTILINE);
 
+	public static final Pattern mainClassMethod = Pattern.compile(
+			"(?<=\\n|\\A)(?:public\\s)\\s*(class)\\s*([^\\n\\s]*)");
+
 	private static final List<String> EXTENSIONS = asList(".java", ".jsh", ".kt");
 	private static boolean verbose;
 	private static boolean quiet;
@@ -967,6 +970,16 @@ public class Util {
 
 	public static boolean hasMainMethod(String content) {
 		return patternMainMethod.matcher(content).find();
+	}
+
+	public static Optional<String> getMainClass(String content) {
+		Matcher pc = publicClassPattern.matcher(content);
+
+		if (pc.find()) {
+			return Optional.ofNullable(pc.group(1));
+		} else {
+			return Optional.ofNullable(null);
+		}
 	}
 
 	public static boolean isGistURL(String scriptURL) {

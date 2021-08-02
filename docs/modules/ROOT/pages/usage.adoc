@@ -193,6 +193,9 @@ i.e. then you can "pipe" the script to jbang:
 
 `echo 'System.out.println("Hello World!");' | jbang -`
 
+jbang will try and guess if the piped content is a java class and if not assume it it is jshell code.
+To force jbang to run it as a jshell script you can use `--jsh` flag.
+
 [TIP]
 ====
 If you use `--interactive` `jbang` will let `jshell` enter into interactive/REPL mode. You can write `/exit` to leave this mode.
