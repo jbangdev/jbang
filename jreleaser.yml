@@ -107,14 +107,17 @@ files:
 
 distributions:
   jbang:
-    docker:
-      active: release
+    docker:  ## not ready to release this way.
+      active: never
       continueOnError: true
       postCommands:
         - "VOLUME /scripts"
       baseImage: "adoptopenjdk:11-jdk-hotspot"
       repository:
         name: jbang-action
+    sdkman:
+      active: never
+      continueOnError: true
     brew:
       active: release
       continueOnError: true
