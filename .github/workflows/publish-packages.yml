@@ -39,13 +39,13 @@ jobs:
           BREW_USER: ${{ secrets.BREW_USER }}
         run: ./misc/updatecontainer.sh
       - name: jreleaser publish
-          continue-on-error: true
-          uses: jreleaser/release-action@v1
-          env:
-            JRELEASER_PROJECT_VERSION: ${{steps.version.outputs.RELEASE_VERSION}}
-          with:
-            version: early-access
-            arguments: publish
+        continue-on-error: true
+        uses: jreleaser/release-action@v1
+        env:
+          JRELEASER_PROJECT_VERSION: ${{steps.version.outputs.RELEASE_VERSION}}
+        with:
+          version: early-access
+          arguments: publish
       - name: spec
         continue-on-error: true
         env:
