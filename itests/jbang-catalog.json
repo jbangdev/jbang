@@ -9,6 +9,10 @@
     "hello": {
       "script-ref": "hello.jsh"
     },
+    "helloworld": {
+      "script-ref": "helloworld.java",
+      "java-options": [ "-showversion" ]
+    },
     "echo": {
       "script-ref": "echo.java",
       "description": "echo echo echo description"

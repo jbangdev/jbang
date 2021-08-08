@@ -16,8 +16,11 @@ public class Build extends BaseBuildCommand {
 			enableInsecure();
 		}
 
-		RunContext ctx = RunContext.create(null, dependencyInfoMixin.getProperties(),
-				dependencyInfoMixin.getDependencies(), dependencyInfoMixin.getClasspaths(), forcejsh);
+		RunContext ctx = RunContext.create(null, null,
+				dependencyInfoMixin.getProperties(),
+				dependencyInfoMixin.getDependencies(),
+				dependencyInfoMixin.getClasspaths(),
+				forcejsh);
 		ctx.setJavaVersion(javaVersion);
 		ctx.setNativeImage(nativeImage);
 		Source src = Source.forResource(scriptOrFile, ctx);

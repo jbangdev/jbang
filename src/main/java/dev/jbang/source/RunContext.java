@@ -2,6 +2,7 @@ package dev.jbang.source;
 
 import static dev.jbang.dependencies.DependencyUtil.joinClasspaths;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,6 +25,7 @@ import dev.jbang.util.JavaUtil;
  */
 public class RunContext {
 	private List<String> arguments;
+	private List<String> javaOptions;
 	private Map<String, String> properties;
 
 	private List<String> additionalDeps = Collections.emptyList();
@@ -31,7 +33,6 @@ public class RunContext {
 	private boolean forceJsh = false; // if true, interpret any input as for jshell
 	private String originalRef;
 	private String mainClass;
-	private List<String> javaRuntimeOptions;
 	private int buildJdk;
 	/**
 	 * if this script is used as an agent, agentOption is the option needed to pass
@@ -40,7 +41,9 @@ public class RunContext {
 	private String javaAgentOption;
 	private List<AgentSourceContext> javaAgents;
 	private String preMainClass;
+	private List<String> integrationOptions;
 	private String agentMainClass;
+	private File catalogFile;
 
 	private Alias alias;
 
@@ -53,13 +56,15 @@ public class RunContext {
 		return new RunContext();
 	}
 
-	public static RunContext create(List<String> arguments, Map<String, String> properties) {
-		return new RunContext(arguments, properties);
+	public static RunContext create(List<String> arguments, List<String> javaRuntimeOptions,
+			Map<String, String> properties) {
+		return new RunContext(arguments, javaRuntimeOptions, properties);
 	}
 
-	public static RunContext create(List<String> arguments, Map<String, String> properties, List<String> dependencies,
+	public static RunContext create(List<String> arguments, List<String> javaRuntimeOptions,
+			Map<String, String> properties, List<String> dependencies,
 			List<String> classpaths, boolean forceJsh) {
-		RunContext ctx = new RunContext(arguments, properties);
+		RunContext ctx = new RunContext(arguments, javaRuntimeOptions, properties);
 		ctx.setAdditionalDependencies(dependencies);
 		ctx.setAdditionalClasspaths(classpaths);
 		ctx.setForceJsh(forceJsh);
@@ -67,11 +72,12 @@ public class RunContext {
 	}
 
 	private RunContext() {
-		this(null, null);
+		this(null, null, null);
 	}
 
-	private RunContext(List<String> arguments, Map<String, String> properties) {
+	private RunContext(List<String> arguments, List<String> javaOptions, Map<String, String> properties) {
 		this.arguments = arguments;
+		this.javaOptions = javaOptions;
 		this.properties = properties;
 	}
 
@@ -160,16 +166,27 @@ public class RunContext {
 		this.mainClass = mainClass;
 	}
 
-	public List<String> getRuntimeOptions() {
-		return javaRuntimeOptions;
+	public List<String> getJavaOptions() {
+		return (javaOptions != null) ? javaOptions : Collections.emptyList();
 	}
 
-	public List<String> getRuntimeOptionsOr(Source src) {
-		return (javaRuntimeOptions != null) ? javaRuntimeOptions : src.getRuntimeOptions();
+	public void setJavaOptions(List<String> javaOptions) {
+		this.javaOptions = javaOptions;
 	}
 
-	public void setRuntimeOptions(List<String> javaRuntimeOptions) {
-		this.javaRuntimeOptions = javaRuntimeOptions;
+	public List<String> getIntegrationOptions() {
+		return (integrationOptions != null) ? integrationOptions : Collections.emptyList();
+	}
+
+	public void setIntegrationOptions(List<String> integrationOptions) {
+		this.integrationOptions = integrationOptions;
+	}
+
+	public List<String> getRuntimeOptionsMerged(Source src) {
+		List<String> opts = new ArrayList<>(src.getRuntimeOptions());
+		opts.addAll(getJavaOptions());
+		opts.addAll(getIntegrationOptions());
+		return opts;
 	}
 
 	public int getBuildJdk() {
@@ -218,6 +235,14 @@ public class RunContext {
 
 	public String getJavaVersion() {
 		return javaVersion;
+	}
+
+	public File getCatalog() {
+		return catalogFile;
+	}
+
+	public void setCatalog(File catalogFile) {
+		this.catalogFile = catalogFile;
 	}
 
 	public static class AgentSourceContext {
@@ -286,8 +311,6 @@ public class RunContext {
 	public Source importJarMetadataFor(Source src) {
 		JarSource jar = src.asJarSource();
 		if (jar != null && jar.isUpToDate()) {
-			setMainClass(jar.getMainClass());
-			setRuntimeOptions(jar.getRuntimeOptions());
 			setBuildJdk(JavaUtil.javaVersion(jar.getJavaVersion()));
 			return jar;
 		} else {

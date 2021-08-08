@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import dev.jbang.catalog.Alias;
+import dev.jbang.catalog.Catalog;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.ModularClassPath;
@@ -98,7 +99,7 @@ public interface Source {
 	/**
 	 * Returns the list of dependencies that are necessary to add to the classpath
 	 * for the application to execute properly.
-	 * 
+	 *
 	 * @param props A `Properties` object whose values can be used during dependency
 	 *              resolution
 	 */
@@ -144,10 +145,16 @@ public interface Source {
 		Alias alias = null;
 		if (resourceRef == null) {
 			// Not found as such, so let's check the aliases
-			alias = Alias.get(resource, ctx.getArguments(), ctx.getProperties());
+			if (ctx.getCatalog() == null) {
+				alias = Alias.get(resource, ctx.getArguments(), ctx.getJavaOptions(), ctx.getProperties());
+			} else {
+				Catalog cat = Catalog.get(ctx.getCatalog().toPath());
+				alias = Alias.get(cat, resource, ctx.getArguments(), ctx.getJavaOptions(), ctx.getProperties());
+			}
 			if (alias != null) {
 				resourceRef = ResourceRef.forResource(alias.resolve());
 				ctx.setArguments(alias.arguments);
+				ctx.setJavaOptions(alias.javaOptions);
 				ctx.setProperties(alias.properties);
 				ctx.setAlias(alias);
 				if (resourceRef == null) {

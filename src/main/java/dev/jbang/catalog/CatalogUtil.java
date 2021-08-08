@@ -34,11 +34,14 @@ public class CatalogUtil {
 	 * 
 	 * @param name The name of the new alias
 	 */
-	public static Path addNearestAlias(String name, String scriptRef, String description,
+	public static Path addNearestAlias(String name,
+			String scriptRef,
+			String description,
 			List<String> arguments,
+			List<String> javaRuntimeOptions,
 			Map<String, String> properties) {
 		Path catalogFile = Catalog.getCatalogFile(null);
-		addAlias(catalogFile, name, scriptRef, description, arguments, properties);
+		addAlias(catalogFile, name, scriptRef, description, arguments, javaRuntimeOptions, properties);
 		return catalogFile;
 	}
 
@@ -48,14 +51,18 @@ public class CatalogUtil {
 	 * @param catalogFile Path to catalog file
 	 * @param name        The name of the new alias
 	 */
-	public static Alias addAlias(Path catalogFile, String name, String scriptRef, String description,
+	public static Alias addAlias(Path catalogFile,
+			String name,
+			String scriptRef,
+			String description,
 			List<String> arguments,
+			List<String> javaRuntimeOptions,
 			Map<String, String> properties) {
 		Path cwd = Util.getCwd();
 		catalogFile = cwd.resolve(catalogFile);
 		Catalog catalog = Catalog.get(catalogFile);
 		scriptRef = catalog.relativize(scriptRef);
-		Alias alias = new Alias(scriptRef, description, arguments, properties, catalog);
+		Alias alias = new Alias(scriptRef, description, arguments, javaRuntimeOptions, properties, catalog);
 		catalog.aliases.put(name, alias);
 		try {
 			catalog.write();
