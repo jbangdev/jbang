@@ -75,6 +75,9 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 			"-n", "--native" }, description = "Build using native-image", defaultValue = "false")
 	boolean nativeImage;
 
+	@CommandLine.Option(names = { "--catalog" }, description = "path to catalog file")
+	File catalog;
+
 	PrintStream out = new PrintStream(new FileOutputStream(FileDescriptor.out));
 
 	static Source buildIfNeeded(Source src, RunContext ctx) throws IOException {
