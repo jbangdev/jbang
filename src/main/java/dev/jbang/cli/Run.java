@@ -59,6 +59,9 @@ public class Run extends BaseBuildCommand {
 	@CommandLine.Option(names = { "--interactive" }, description = "activate interactive mode")
 	boolean interactive;
 
+	@CommandLine.Option(names = { "--catalog" }, description = "path to catalog file")
+	File catalog;
+
 	@CommandLine.Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
 	List<String> userParams = new ArrayList<>();
 
@@ -68,10 +71,14 @@ public class Run extends BaseBuildCommand {
 			enableInsecure();
 		}
 
-		RunContext ctx = RunContext.create(userParams, dependencyInfoMixin.getProperties(),
-				dependencyInfoMixin.getDependencies(), dependencyInfoMixin.getClasspaths(), forcejsh);
+		RunContext ctx = RunContext.create(userParams, null,
+				dependencyInfoMixin.getProperties(),
+				dependencyInfoMixin.getDependencies(),
+				dependencyInfoMixin.getClasspaths(),
+				forcejsh);
 		ctx.setJavaVersion(javaVersion);
 		ctx.setNativeImage(nativeImage);
+		ctx.setCatalog(catalog);
 		Source src = Source.forResource(scriptOrFile, ctx);
 		src = prepareArtifacts(src, ctx);
 
@@ -90,8 +97,11 @@ public class Run extends BaseBuildCommand {
 				String javaAgent = agentOption.getKey();
 				Optional<String> javaAgentOptions = agentOption.getValue();
 
-				RunContext actx = RunContext.create(userParams, dependencyInfoMixin.getProperties(),
-						dependencyInfoMixin.getDependencies(), dependencyInfoMixin.getClasspaths(), forcejsh);
+				RunContext actx = RunContext.create(userParams, null,
+						dependencyInfoMixin.getProperties(),
+						dependencyInfoMixin.getDependencies(),
+						dependencyInfoMixin.getClasspaths(),
+						forcejsh);
 				actx.setJavaVersion(ctx.getJavaVersion());
 				actx.setNativeImage(ctx.isNativeImage());
 				Source asrc = Source.forResource(javaAgent, actx);
@@ -284,7 +294,7 @@ public class Run extends BaseBuildCommand {
 
 				});
 
-			fullArgs.addAll(ctx.getRuntimeOptionsOr(src));
+			fullArgs.addAll(ctx.getRuntimeOptionsMerged(src));
 			fullArgs.addAll(ctx.getAutoDetectedModuleArguments(src, requestedJavaVersion));
 			fullArgs.addAll(optionalArgs);
 

@@ -186,7 +186,7 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		} else {
 			searchForMain(src, ctx, tmpJarDir);
 		}
-		ctx.setRuntimeOptions(integrationResult.javaArgs);
+		ctx.setIntegrationOptions(integrationResult.javaArgs);
 		createJarFile(src, ctx, tmpJarDir, outjar);
 		return integrationResult;
 	}
@@ -231,9 +231,10 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 			}
 		}
 
-		// When persistent JVM args are set they override any runtime options set on the
-		// Source
-		List<String> rtArgs = ctx.getRuntimeOptionsOr(src);
+		// When persistent JVM args are set they are appended to any runtime
+		// options set on the Source (that way persistent args can override
+		// options set on the Source)
+		List<String> rtArgs = ctx.getRuntimeOptionsMerged(src);
 		String runtimeOpts = String.join(" ", escapeArguments(rtArgs));
 		if (!runtimeOpts.isEmpty()) {
 			manifest.getMainAttributes()

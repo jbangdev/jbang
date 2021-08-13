@@ -172,7 +172,7 @@ public class TestScript extends BaseTest {
 		p.put("log4j.version", "1.2.9");
 
 		Source src = Source.forScript(example);
-		RunContext ctx = RunContext.create(null, p);
+		RunContext ctx = RunContext.create(null, null, p);
 
 		List<String> dependencies = ctx.collectAllDependenciesFor(src);
 		assertEquals(2, dependencies.size());

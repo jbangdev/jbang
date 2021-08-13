@@ -150,7 +150,7 @@ public class TestAliasNearest extends BaseTest {
 	void testAddLocal(String ref, String result) throws IOException {
 		Path cwd = Util.getCwd();
 		Path localCatalog = cwd.resolve(Catalog.JBANG_CATALOG_JSON);
-		CatalogUtil.addNearestAlias("new", ref, null, null, null);
+		CatalogUtil.addNearestAlias("new", ref, null, null, null, null);
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(localCatalog);
 		assertThat(catalog.aliases.keySet(), hasItem("new"));
@@ -161,7 +161,7 @@ public class TestAliasNearest extends BaseTest {
 	void testAddLocalExplicit() throws IOException {
 		Path cwd = Util.getCwd();
 		Path localCatalog = cwd.resolve(Catalog.JBANG_CATALOG_JSON);
-		CatalogUtil.addAlias(Paths.get(Catalog.JBANG_CATALOG_JSON), "new", "dummy.java", null, null, null);
+		CatalogUtil.addAlias(Paths.get(Catalog.JBANG_CATALOG_JSON), "new", "dummy.java", null, null, null, null);
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(localCatalog);
 		assertThat(catalog.aliases.keySet(), hasItem("new"));
@@ -183,7 +183,7 @@ public class TestAliasNearest extends BaseTest {
 		Path localCatalog = cwd.resolve(Catalog.JBANG_CATALOG_JSON);
 		Path dotLocalCatalog = cwd.resolve(CatalogUtil.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
 		Files.delete(localCatalog);
-		CatalogUtil.addNearestAlias("new", ref, null, null, null);
+		CatalogUtil.addNearestAlias("new", ref, null, null, null, null);
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(dotLocalCatalog);
@@ -208,7 +208,7 @@ public class TestAliasNearest extends BaseTest {
 		Path parentCatalog = cwd.getParent().resolve(CatalogUtil.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
 		Files.delete(localCatalog);
 		Files.delete(dotLocalCatalog);
-		CatalogUtil.addNearestAlias("new", ref, null, null, null);
+		CatalogUtil.addNearestAlias("new", ref, null, null, null, null);
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		assertThat(dotLocalCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
@@ -237,7 +237,7 @@ public class TestAliasNearest extends BaseTest {
 		Files.delete(localCatalog);
 		Files.delete(dotLocalCatalog);
 		Files.delete(parentCatalog);
-		CatalogUtil.addNearestAlias("new", ref, null, null, null);
+		CatalogUtil.addNearestAlias("new", ref, null, null, null, null);
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		assertThat(dotLocalCatalog.toFile(), not(anExistingFile()));
 		assertThat(parentCatalog.toFile(), not(anExistingFile()));

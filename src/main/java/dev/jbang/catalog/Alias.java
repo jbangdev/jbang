@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -17,14 +18,21 @@ public class Alias extends CatalogItem {
 	public final String scriptRef;
 	public final String description;
 	public final List<String> arguments;
+	@SerializedName(value = "java-options")
+	public final List<String> javaOptions;
 	public final Map<String, String> properties;
 
-	public Alias(String scriptRef, String description, List<String> arguments, Map<String, String> properties,
+	public Alias(String scriptRef,
+			String description,
+			List<String> arguments,
+			List<String> javaOptions,
+			Map<String, String> properties,
 			Catalog catalog) {
 		super(catalog);
 		this.scriptRef = scriptRef;
 		this.description = description;
 		this.arguments = arguments;
+		this.javaOptions = javaOptions;
 		this.properties = properties;
 	}
 
@@ -43,26 +51,50 @@ public class Alias extends CatalogItem {
 	 * @return An Alias object or null if no alias was found
 	 */
 	public static Alias get(String aliasName) {
-		return get(aliasName, null, null);
+		return get(aliasName, null, null, null);
 	}
 
 	/**
-	 * Returns an Alias object for the given name with the given arguments and
-	 * properties applied to it. Or null if no alias with that name could be found.
+	 * Returns an Alias object for the given name with the given arguments, options
+	 * and properties applied to it. Or null if no alias with that name could be
+	 * found.
 	 *
-	 * @param aliasName  The name of an Alias
-	 * @param arguments  Optional arguments to apply to the Alias
-	 * @param properties Optional properties to apply to the Alias
+	 * @param aliasName   The name of an Alias
+	 * @param arguments   Optional arguments to apply to the Alias
+	 * @param javaOptions Optional java runtime options to apply to the Alias
+	 * @param properties  Optional properties to apply to the Alias
 	 * @return An Alias object or null if no alias was found
 	 */
-	public static Alias get(String aliasName, List<String> arguments, Map<String, String> properties) {
+	public static Alias get(String aliasName, List<String> arguments, List<String> javaOptions,
+			Map<String, String> properties) {
 		HashSet<String> names = new HashSet<>();
-		Alias alias = new Alias(null, null, arguments, properties, null);
-		Alias result = merge(alias, aliasName, names);
+		Alias alias = new Alias(null, null, arguments, javaOptions, properties, null);
+		Alias result = merge(alias, aliasName, Alias::getLocal, names);
 		return result.scriptRef != null ? result : null;
 	}
 
-	private static Alias merge(Alias a1, String name, HashSet<String> names) {
+	/**
+	 * Returns an Alias object for the given name with the given arguments, options
+	 * and properties applied to it. Or null if no alias with that name could be
+	 * found. The given Catalog will be used for any unqualified alias lookups.
+	 *
+	 * @param catalog        A Catalog to use for lookups
+	 * @param aliasName      The name of an Alias
+	 * @param arguments      Optional arguments to apply to the Alias
+	 * @param runtimeOptions Optional java runtime options to apply to the Alias
+	 * @param properties     Optional properties to apply to the Alias
+	 * @return An Alias object or null if no alias was found
+	 */
+	public static Alias get(Catalog catalog, String aliasName, List<String> arguments, List<String> runtimeOptions,
+			Map<String, String> properties) {
+		HashSet<String> names = new HashSet<>();
+		Alias alias = new Alias(null, null, arguments, runtimeOptions, properties, null);
+		Alias result = merge(alias, aliasName, catalog.aliases::get, names);
+		return result.scriptRef != null ? result : null;
+	}
+
+	private static Alias merge(Alias a1, String name, Function<String, Alias> findUnqualifiedAlias,
+			HashSet<String> names) {
 		if (names.contains(name)) {
 			throw new RuntimeException("Encountered alias loop on '" + name + "'");
 		}
@@ -72,7 +104,7 @@ public class Alias extends CatalogItem {
 		}
 		Alias a2;
 		if (parts.length == 1) {
-			a2 = getLocal(name);
+			a2 = findUnqualifiedAlias.apply(name);
 		} else {
 			if (parts[1].isEmpty()) {
 				throw new RuntimeException("Invalid alias name '" + name + "'");
@@ -81,12 +113,14 @@ public class Alias extends CatalogItem {
 		}
 		if (a2 != null) {
 			names.add(name);
-			a2 = merge(a2, a2.scriptRef, names);
+			a2 = merge(a2, a2.scriptRef, findUnqualifiedAlias, names);
 			List<String> args = a1.arguments != null && !a1.arguments.isEmpty() ? a1.arguments : a2.arguments;
+			List<String> opts = a1.javaOptions != null && !a1.javaOptions.isEmpty() ? a1.javaOptions
+					: a2.javaOptions;
 			Map<String, String> props = a1.properties != null && !a1.properties.isEmpty() ? a1.properties
 					: a2.properties;
 			Catalog catalog = a2.catalog != null ? a2.catalog : a1.catalog;
-			return new Alias(a2.scriptRef, a2.description, args, props, catalog);
+			return new Alias(a2.scriptRef, a2.description, args, opts, props, catalog);
 		} else {
 			return a1;
 		}

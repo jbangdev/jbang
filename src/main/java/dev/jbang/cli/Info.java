@@ -119,8 +119,9 @@ abstract class BaseInfoCommand extends BaseScriptDepsCommand {
 						javaVersion = Integer.toString(ctx.getBuildJdk());
 					}
 
-					if (ctx.getRuntimeOptions() != null && !ctx.getRuntimeOptions().isEmpty()) {
-						runtimeOptions = ctx.getRuntimeOptions();
+					List<String> opts = ctx.getRuntimeOptionsMerged(src);
+					if (!opts.isEmpty()) {
+						runtimeOptions = opts;
 					}
 				}
 			}
@@ -134,8 +135,11 @@ abstract class BaseInfoCommand extends BaseScriptDepsCommand {
 			enableInsecure();
 		}
 
-		RunContext ctx = RunContext.create(null, null, dependencyInfoMixin.getDependencies(),
-				dependencyInfoMixin.getClasspaths(), forcejsh);
+		RunContext ctx = RunContext.create(null, null,
+				dependencyInfoMixin.getProperties(),
+				dependencyInfoMixin.getDependencies(),
+				dependencyInfoMixin.getClasspaths(),
+				forcejsh);
 		Source src = ctx.importJarMetadataFor(Source.forResource(scriptOrFile, ctx));
 
 		scripts = new HashSet<>();

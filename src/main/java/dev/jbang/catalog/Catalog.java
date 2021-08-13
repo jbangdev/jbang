@@ -56,7 +56,7 @@ public class Catalog {
 		catalogs.forEach((key, c) -> this.catalogs.put(key,
 				new CatalogRef(c.catalogRef, c.description, this)));
 		aliases.forEach((key, a) -> this.aliases.put(key,
-				new Alias(a.scriptRef, a.description, a.arguments, a.properties, this)));
+				new Alias(a.scriptRef, a.description, a.arguments, a.javaOptions, a.properties, this)));
 		templates.forEach((key, t) -> this.templates.put(key,
 				new Template(t.fileRefs, t.description, this)));
 	}

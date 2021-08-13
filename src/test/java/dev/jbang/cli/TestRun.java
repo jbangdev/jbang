@@ -90,7 +90,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = RunContext.create(run.userParams, run.dependencyInfoMixin.getProperties(),
+		RunContext ctx = RunContext.create(run.userParams, null, run.dependencyInfoMixin.getProperties(),
 				run.dependencyInfoMixin.getDependencies(), run.dependencyInfoMixin.getClasspaths(), run.forcejsh);
 		Source src = Source.forResource(arg, ctx);
 
@@ -120,6 +120,39 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testHelloWorldAlias() throws IOException {
+		environmentVariables.clear("JAVA_HOME");
+		Jbang jbang = new Jbang();
+		Path cat = examplesTestFolder.resolve("jbang-catalog.json").toAbsolutePath();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--catalog", cat.toString(), "helloworld");
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = RunContext.create(run.userParams, null, run.dependencyInfoMixin.getProperties(),
+				run.dependencyInfoMixin.getDependencies(), run.dependencyInfoMixin.getClasspaths(), run.forcejsh);
+		ctx.setCatalog(cat.toFile());
+		Source src = Source.forResource("helloworld", ctx);
+
+		src = run.prepareArtifacts(src, ctx);
+		String result = run.generateCommandLine(src, ctx);
+
+		assertThat(result, startsWith("java "));
+		assertThat(result, endsWith("helloworld"));
+		assertThat(result, containsString("classpath"));
+		assertThat(result, containsString(".jar"));
+		assertThat(result, containsString("-Dfoo=bar"));
+		assertThat(result, containsString(BaseBuildCommand.escapeOSArgument("-Dbar=aap noot mies")));
+		// Make sure the opts only appear once
+		assertThat(result.replaceFirst(Pattern.quote("-Dfoo=bar"), ""),
+				not(containsString("-Dfoo=bar")));
+		assertThat(result.replaceFirst(Pattern.quote("-Dbar=aap noot mies"), ""),
+				not(containsString("-Dbar=aap noot mies")));
+		// Make sure the opts only appear unquoted
+		assertThat(result, not(containsString(BaseBuildCommand.escapeOSArgument("-Dfoo=bar -Dbar=aap noot mies"))));
+		assertThat(result, containsString("-showversion"));
+		// assertThat(result, containsString("--source 11"));
+	}
+
+	@Test
 	void testHelloWorldShell() throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");
@@ -128,7 +161,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = RunContext.create(run.userParams, run.dependencyInfoMixin.getProperties(),
+		RunContext ctx = RunContext.create(run.userParams, null, run.dependencyInfoMixin.getProperties(),
 				run.dependencyInfoMixin.getDependencies(), run.dependencyInfoMixin.getClasspaths(), run.forcejsh);
 		ScriptSource src = (ScriptSource) Source.forResource(arg, ctx);
 
@@ -155,7 +188,7 @@ public class TestRun extends BaseTest {
 		File empty = new File(dir, "empty.jsh");
 		empty.createNewFile();
 
-		RunContext ctx = RunContext.create(run.userParams, run.dependencyInfoMixin.getProperties(),
+		RunContext ctx = RunContext.create(run.userParams, null, run.dependencyInfoMixin.getProperties(),
 				run.dependencyInfoMixin.getDependencies(), run.dependencyInfoMixin.getClasspaths(), run.forcejsh);
 		ScriptSource src = (ScriptSource) Source.forResource(empty.toString(), ctx);
 
@@ -178,7 +211,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--jsh", arg, "helloworld");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = RunContext.create(run.userParams, run.dependencyInfoMixin.getProperties(),
+		RunContext ctx = RunContext.create(run.userParams, null, run.dependencyInfoMixin.getProperties(),
 				run.dependencyInfoMixin.getDependencies(), run.dependencyInfoMixin.getClasspaths(), run.forcejsh);
 		ScriptSource src = (ScriptSource) Source.forResource(arg, ctx);
 
@@ -204,7 +237,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = RunContext.create(run.userParams, run.dependencyInfoMixin.getProperties(),
+		RunContext ctx = RunContext.create(run.userParams, null, run.dependencyInfoMixin.getProperties(),
 				run.dependencyInfoMixin.getDependencies(), run.dependencyInfoMixin.getClasspaths(), run.forcejsh);
 		Source src = Source.forResource(jar, ctx);
 
@@ -234,7 +267,7 @@ public class TestRun extends BaseTest {
 			CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 			Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-			RunContext ctx = RunContext.create(run.userParams, run.dependencyInfoMixin.getProperties(),
+			RunContext ctx = RunContext.create(run.userParams, null, run.dependencyInfoMixin.getProperties(),
 					run.dependencyInfoMixin.getDependencies(), run.dependencyInfoMixin.getClasspaths(), run.forcejsh);
 			Source src = Source.forResource(jar, ctx);
 
@@ -260,7 +293,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = RunContext.create(run.userParams, run.dependencyInfoMixin.getProperties(),
+		RunContext ctx = RunContext.create(run.userParams, null, run.dependencyInfoMixin.getProperties(),
 				run.dependencyInfoMixin.getDependencies(), run.dependencyInfoMixin.getClasspaths(), run.forcejsh);
 		Source src = Source.forResource(jar, ctx);
 
@@ -295,7 +328,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = RunContext.create(run.userParams, run.dependencyInfoMixin.getProperties(),
+		RunContext ctx = RunContext.create(run.userParams, null, run.dependencyInfoMixin.getProperties(),
 				run.dependencyInfoMixin.getDependencies(), run.dependencyInfoMixin.getClasspaths(), run.forcejsh);
 		Source src = Source.forResource(jar, ctx);
 
@@ -320,7 +353,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = RunContext.create(run.userParams, run.dependencyInfoMixin.getProperties(),
+		RunContext ctx = RunContext.create(run.userParams, null, run.dependencyInfoMixin.getProperties(),
 				run.dependencyInfoMixin.getDependencies(), run.dependencyInfoMixin.getClasspaths(), run.forcejsh);
 		Source src = Source.forResource(jar, ctx);
 
@@ -344,7 +377,7 @@ public class TestRun extends BaseTest {
 				"picocli.codegen.aot.graalvm.ReflectionConfigGenerator", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = RunContext.create(run.userParams, run.dependencyInfoMixin.getProperties(),
+		RunContext ctx = RunContext.create(run.userParams, null, run.dependencyInfoMixin.getProperties(),
 				run.dependencyInfoMixin.getDependencies(), run.dependencyInfoMixin.getClasspaths(), run.forcejsh);
 		Source src = Source.forResource(jar, ctx);
 
@@ -369,7 +402,7 @@ public class TestRun extends BaseTest {
 				"blah");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = RunContext.create(run.userParams, run.dependencyInfoMixin.getProperties(),
+		RunContext ctx = RunContext.create(run.userParams, null, run.dependencyInfoMixin.getProperties(),
 				run.dependencyInfoMixin.getDependencies(), run.dependencyInfoMixin.getClasspaths(), run.forcejsh);
 		ScriptSource src = (ScriptSource) Source.forResource(arg, ctx);
 
@@ -394,7 +427,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--debug", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = RunContext.create(run.userParams, run.dependencyInfoMixin.getProperties(),
+		RunContext ctx = RunContext.create(run.userParams, null, run.dependencyInfoMixin.getProperties(),
 				run.dependencyInfoMixin.getDependencies(), run.dependencyInfoMixin.getClasspaths(), run.forcejsh);
 		ctx.setMainClass("fakemain");
 		ScriptSource src = (ScriptSource) Source.forResource(arg, ctx);
@@ -418,7 +451,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = RunContext.create(run.userParams, run.dependencyInfoMixin.properties,
+		RunContext ctx = RunContext.create(run.userParams, null, run.dependencyInfoMixin.properties,
 				run.dependencyInfoMixin.dependencies, run.dependencyInfoMixin.classpaths, run.forcejsh);
 		ctx.setMainClass("fakemain");
 
@@ -443,7 +476,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--interactive", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = RunContext.create(run.userParams, run.dependencyInfoMixin.properties,
+		RunContext ctx = RunContext.create(run.userParams, null, run.dependencyInfoMixin.properties,
 				run.dependencyInfoMixin.dependencies, run.dependencyInfoMixin.classpaths, run.forcejsh);
 		ScriptSource src = (ScriptSource) Source.forResource(arg, ctx);
 
@@ -473,7 +506,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(run.dependencyInfoMixin.getProperties().size(), is(2));
 
-		RunContext ctx = RunContext.create(run.userParams, run.dependencyInfoMixin.properties,
+		RunContext ctx = RunContext.create(run.userParams, null, run.dependencyInfoMixin.properties,
 				run.dependencyInfoMixin.dependencies, run.dependencyInfoMixin.classpaths, run.forcejsh);
 		ctx.setMainClass("fakemain");
 		ScriptSource src = (ScriptSource) Source.forResource(arg, ctx);
@@ -510,7 +543,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", url);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = RunContext.create(run.userParams, run.dependencyInfoMixin.properties,
+		RunContext ctx = RunContext.create(run.userParams, null, run.dependencyInfoMixin.properties,
 				run.dependencyInfoMixin.dependencies, run.dependencyInfoMixin.classpaths, run.forcejsh);
 		ctx.setMainClass("fakemain");
 
@@ -528,7 +561,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", url, " ~!@#$%^&*()-+\\:;'`<>?/,.{}[]\"");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = RunContext.create(run.userParams, run.dependencyInfoMixin.properties,
+		RunContext ctx = RunContext.create(run.userParams, null, run.dependencyInfoMixin.properties,
 				run.dependencyInfoMixin.dependencies, run.dependencyInfoMixin.classpaths, run.forcejsh);
 		ctx.setMainClass("fakemain");
 
@@ -729,7 +762,7 @@ public class TestRun extends BaseTest {
 
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = RunContext.create(run.userParams, run.dependencyInfoMixin.getProperties(),
+		RunContext ctx = RunContext.create(run.userParams, null, run.dependencyInfoMixin.getProperties(),
 				run.dependencyInfoMixin.getDependencies(), run.dependencyInfoMixin.getClasspaths(), run.forcejsh);
 		Source src = Source.forResource(arg, ctx);
 
@@ -930,7 +963,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		Source src = Source.forFile(new File(arg));
-		RunContext ctx = RunContext.create(run.userParams, run.dependencyInfoMixin.getProperties());
+		RunContext ctx = RunContext.create(run.userParams, null, run.dependencyInfoMixin.getProperties());
 		ctx.setMainClass("fakemain");
 		String commandLine = run.generateCommandLine(src, ctx);
 
@@ -979,7 +1012,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("build", p.toFile().getAbsolutePath());
 		Build run = (Build) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = RunContext.create(null, run.dependencyInfoMixin.getProperties(),
+		RunContext ctx = RunContext.create(null, null, run.dependencyInfoMixin.getProperties(),
 				run.dependencyInfoMixin.getDependencies(), run.dependencyInfoMixin.getClasspaths(), run.forcejsh);
 		ScriptSource src = (ScriptSource) Source.forResource(p.toFile().getAbsolutePath(), ctx);
 
@@ -1009,7 +1042,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("build", p.toFile().getAbsolutePath());
 		Build run = (Build) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = RunContext.create(null, run.dependencyInfoMixin.getProperties(),
+		RunContext ctx = RunContext.create(null, null, run.dependencyInfoMixin.getProperties(),
 				run.dependencyInfoMixin.getDependencies(), run.dependencyInfoMixin.getClasspaths(), run.forcejsh);
 		ScriptSource src = (ScriptSource) Source.forResource(p.toFile().getAbsolutePath(), ctx);
 
@@ -1058,7 +1091,7 @@ public class TestRun extends BaseTest {
 		assertThat(run.javaAgentSlots.get(agentfile.getAbsolutePath()).get(), equalTo("optionA"));
 
 		Source src = Source.forFile(mainfile);
-		RunContext ctx = RunContext.create(run.userParams, run.dependencyInfoMixin.getProperties());
+		RunContext ctx = RunContext.create(run.userParams, null, run.dependencyInfoMixin.getProperties());
 		ScriptSource asrc = (ScriptSource) Source.forFile(agentfile);
 
 		assertThat(asrc.isAgent(), is(true));
@@ -1113,7 +1146,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--ea", f.getAbsolutePath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = RunContext.create(null, run.dependencyInfoMixin.properties,
+		RunContext ctx = RunContext.create(null, null, run.dependencyInfoMixin.properties,
 				run.dependencyInfoMixin.dependencies, run.dependencyInfoMixin.classpaths, run.forcejsh);
 		ctx.setMainClass("fakemain");
 
@@ -1134,7 +1167,7 @@ public class TestRun extends BaseTest {
 				f.getAbsolutePath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = RunContext.create(null, run.dependencyInfoMixin.getProperties(),
+		RunContext ctx = RunContext.create(null, null, run.dependencyInfoMixin.getProperties(),
 				run.dependencyInfoMixin.getDependencies(), run.dependencyInfoMixin.getClasspaths(), run.forcejsh);
 		ScriptSource src = (ScriptSource) Source.forResource(f.getAbsolutePath(), ctx);
 
@@ -1415,7 +1448,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--jfr", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = RunContext.create(run.userParams, run.dependencyInfoMixin.properties,
+		RunContext ctx = RunContext.create(run.userParams, null, run.dependencyInfoMixin.properties,
 				run.dependencyInfoMixin.dependencies, run.dependencyInfoMixin.classpaths, run.forcejsh);
 		ctx.setMainClass("fakemain");
 

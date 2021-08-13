@@ -58,8 +58,11 @@ public class Edit extends BaseScriptDepsCommand {
 			enableInsecure();
 		}
 
-		RunContext ctx = RunContext.create(null, null, dependencyInfoMixin.getDependencies(),
-				dependencyInfoMixin.getClasspaths(), forcejsh);
+		RunContext ctx = RunContext.create(null, null,
+				dependencyInfoMixin.getProperties(),
+				dependencyInfoMixin.getDependencies(),
+				dependencyInfoMixin.getClasspaths(),
+				forcejsh);
 		Source src = Source.forResource(scriptOrFile, ctx);
 
 		if (!(src instanceof ScriptSource)) {
