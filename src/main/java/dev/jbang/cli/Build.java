@@ -23,6 +23,7 @@ public class Build extends BaseBuildCommand {
 				forcejsh);
 		ctx.setJavaVersion(javaVersion);
 		ctx.setNativeImage(nativeImage);
+		ctx.setCatalog(catalog);
 		Source src = Source.forResource(scriptOrFile, ctx);
 
 		buildIfNeeded(src, ctx);
