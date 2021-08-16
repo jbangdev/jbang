@@ -146,14 +146,18 @@ public interface Source {
 		if (resourceRef == null) {
 			// Not found as such, so let's check the aliases
 			if (ctx.getCatalog() == null) {
-				alias = Alias.get(resource, ctx.getArguments(), ctx.getJavaOptions(), ctx.getProperties());
+				alias = Alias.get(resource, ctx.getArguments(), ctx.getJavaOptions(), ctx.getProperties(),
+						ctx.getJavaVersion(), ctx.getMainClass());
 			} else {
 				Catalog cat = Catalog.get(ctx.getCatalog().toPath());
-				alias = Alias.get(cat, resource, ctx.getArguments(), ctx.getJavaOptions(), ctx.getProperties());
+				alias = Alias.get(cat, resource, ctx.getArguments(), ctx.getJavaOptions(), ctx.getProperties(),
+						ctx.getJavaVersion(), ctx.getMainClass());
 			}
 			if (alias != null) {
 				resourceRef = ResourceRef.forResource(alias.resolve());
 				ctx.setArguments(alias.arguments);
+				ctx.setJavaVersion(alias.javaVersion);
+				ctx.setMainClass(alias.mainClass);
 				ctx.setJavaOptions(alias.javaOptions);
 				ctx.setProperties(alias.properties);
 				ctx.setAlias(alias);

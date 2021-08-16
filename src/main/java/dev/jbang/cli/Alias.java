@@ -65,6 +65,14 @@ class AliasAdd extends BaseAliasCommand {
 	@CommandLine.Option(names = { "--runopt" }, description = "A Java runtime option")
 	List<String> javaRuntimeOptions;
 
+	@CommandLine.Option(names = { "-m",
+			"--main" }, description = "Main class to use when running. Used primarily for running jar's.")
+	String mainClass;
+
+	@CommandLine.Option(names = { "-j",
+			"--java" }, description = "JDK version to use for running the alias.")
+	String javaVersion;
+
 	@CommandLine.Option(names = { "-D" }, description = "Set a system property", mapFallbackValue = "true")
 	Map<String, String> properties;
 
@@ -94,9 +102,11 @@ class AliasAdd extends BaseAliasCommand {
 
 		Path catFile = getCatalog(false);
 		if (catFile != null) {
-			CatalogUtil.addAlias(catFile, name, scriptOrFile, desc, userParams, javaRuntimeOptions, properties);
+			CatalogUtil.addAlias(catFile, name, scriptOrFile, desc, userParams, javaRuntimeOptions, properties,
+					javaVersion, mainClass);
 		} else {
-			catFile = CatalogUtil.addNearestAlias(name, scriptOrFile, desc, userParams, javaRuntimeOptions, properties);
+			catFile = CatalogUtil.addNearestAlias(name, scriptOrFile, desc, userParams, javaRuntimeOptions, properties,
+					javaVersion, mainClass);
 		}
 		info(String.format("Alias '%s' added to '%s'", name, catFile));
 		return EXIT_OK;
@@ -176,6 +186,16 @@ class AliasList extends BaseAliasCommand {
 			out.println(
 					Util.repeat(" ", fullName.length() + indent) + ConsoleOutput.cyan("   Arguments: ")
 							+ String.join(" ", alias.arguments));
+		}
+		if (alias.javaVersion != null) {
+			out.println(
+					Util.repeat(" ", fullName.length() + indent) + ConsoleOutput.cyan("   Java Version: ")
+							+ alias.javaVersion);
+		}
+		if (alias.mainClass != null) {
+			out.println(
+					Util.repeat(" ", fullName.length() + indent) + ConsoleOutput.cyan("   Main Class: ")
+							+ alias.mainClass);
 		}
 		if (alias.javaOptions != null) {
 			out.println(

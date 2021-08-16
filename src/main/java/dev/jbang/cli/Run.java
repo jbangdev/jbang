@@ -68,14 +68,7 @@ public class Run extends BaseBuildCommand {
 			enableInsecure();
 		}
 
-		RunContext ctx = RunContext.create(userParams, null,
-				dependencyInfoMixin.getProperties(),
-				dependencyInfoMixin.getDependencies(),
-				dependencyInfoMixin.getClasspaths(),
-				forcejsh);
-		ctx.setJavaVersion(javaVersion);
-		ctx.setNativeImage(nativeImage);
-		ctx.setCatalog(catalog);
+		RunContext ctx = getRunContext();
 		Source src = Source.forResource(scriptOrFile, ctx);
 		src = prepareArtifacts(src, ctx);
 
@@ -84,6 +77,19 @@ public class Run extends BaseBuildCommand {
 		out.println(cmdline);
 
 		return EXIT_EXECUTE;
+	}
+
+	RunContext getRunContext() {
+		RunContext ctx = RunContext.create(userParams, null,
+				dependencyInfoMixin.getProperties(),
+				dependencyInfoMixin.getDependencies(),
+				dependencyInfoMixin.getClasspaths(),
+				forcejsh);
+		ctx.setJavaVersion(javaVersion);
+		ctx.setMainClass(main);
+		ctx.setNativeImage(nativeImage);
+		ctx.setCatalog(catalog);
+		return ctx;
 	}
 
 	Source prepareArtifacts(Source src, RunContext ctx) throws IOException {
@@ -122,7 +128,7 @@ public class Run extends BaseBuildCommand {
 		if (args.length() > COMMAND_LINE_LENGTH_LIMIT && Util.isWindows()
 				&& !Util.isUsingPowerShell()) {
 			// @file is only available from java 9 onwards.
-			String requestedJavaVersion = javaVersion != null ? javaVersion : src.getJavaVersion();
+			String requestedJavaVersion = ctx.getJavaVersion() != null ? ctx.getJavaVersion() : src.getJavaVersion();
 			int actualVersion = JavaUtil.javaVersion(requestedJavaVersion);
 			useArgsFile = actualVersion >= 9;
 		}
@@ -170,7 +176,7 @@ public class Run extends BaseBuildCommand {
 
 			List<String> optionalArgs = new ArrayList<>();
 
-			String requestedJavaVersion = javaVersion != null ? javaVersion : src.getJavaVersion();
+			String requestedJavaVersion = ctx.getJavaVersion() != null ? ctx.getJavaVersion() : src.getJavaVersion();
 			String javacmd = JavaUtil.resolveInJavaHome("java", requestedJavaVersion);
 			if (ctx.isForceJsh() || src.isJShell() || interactive) {
 
@@ -294,10 +300,6 @@ public class Run extends BaseBuildCommand {
 			fullArgs.addAll(ctx.getRuntimeOptionsMerged(src));
 			fullArgs.addAll(ctx.getAutoDetectedModuleArguments(src, requestedJavaVersion));
 			fullArgs.addAll(optionalArgs);
-
-			if (main != null) { // if user specified main class it overrides any other main class calculation
-				ctx.setMainClass(main);
-			}
 
 			// deduce mainclass or jshell argument but skip it in case interactive for a jar
 			// launch.
