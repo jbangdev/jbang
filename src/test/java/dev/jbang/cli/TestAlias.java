@@ -215,13 +215,13 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasNone() throws IOException {
-		Alias alias = Alias.get("dummy-alias!", null, null, null);
+		Alias alias = Alias.get("dummy-alias!");
 		assertThat(alias, nullValue());
 	}
 
 	@Test
 	void testGetAliasOne() throws IOException {
-		Alias alias = Alias.get("one", null, null, null);
+		Alias alias = Alias.get("one");
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.resolve(), equalTo("http://dummy"));
@@ -234,7 +234,7 @@ public class TestAlias extends BaseTest {
 	void testGetAliasOneWithArgs() throws IOException {
 		Alias alias = Alias.get("one", Collections.singletonList("X"),
 				Collections.singletonList("--foo"),
-				Collections.singletonMap("foo", "bar"));
+				Collections.singletonMap("foo", "bar"), null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.resolve(), equalTo("http://dummy"));
@@ -248,7 +248,7 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasTwo() throws IOException {
-		Alias alias = Alias.get("two", null, null, null);
+		Alias alias = Alias.get("two");
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.resolve(), equalTo("http://dummy"));
@@ -262,7 +262,8 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasTwoAlt() throws IOException {
-		Alias alias = Alias.get("two", Collections.emptyList(), Collections.emptyList(), Collections.emptyMap());
+		Alias alias = Alias.get("two", Collections.emptyList(), Collections.emptyList(), Collections.emptyMap(), null,
+				null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.resolve(), equalTo("http://dummy"));
@@ -278,7 +279,7 @@ public class TestAlias extends BaseTest {
 	void testGetAliasTwoWithArgs() throws IOException {
 		Alias alias = Alias.get("two", Collections.singletonList("X"),
 				Collections.singletonList("--foo"),
-				Collections.singletonMap("foo", "bar"));
+				Collections.singletonMap("foo", "bar"), null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.resolve(), equalTo("http://dummy"));
@@ -292,7 +293,7 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasFour() throws IOException {
-		Alias alias = Alias.get("four", null, null, null);
+		Alias alias = Alias.get("four");
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.resolve(), equalTo("http://dummy"));
@@ -308,7 +309,7 @@ public class TestAlias extends BaseTest {
 	void testGetAliasFourWithArgs() throws IOException {
 		Alias alias = Alias.get("four", Collections.singletonList("X"),
 				Collections.singletonList("--foo"),
-				Collections.singletonMap("foo", "bar"));
+				Collections.singletonMap("foo", "bar"), null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.resolve(), equalTo("http://dummy"));
@@ -322,7 +323,7 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasFive() throws IOException {
-		Alias alias = Alias.get("five", null, null, null);
+		Alias alias = Alias.get("five");
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.resolve(), equalTo("http://dummy"));
@@ -338,7 +339,7 @@ public class TestAlias extends BaseTest {
 	void testGetAliasFiveWithArgs() throws IOException {
 		Alias alias = Alias.get("five", Collections.singletonList("X"),
 				Collections.singletonList("--foo"),
-				Collections.singletonMap("foo", "bar"));
+				Collections.singletonMap("foo", "bar"), null, null);
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.resolve(), equalTo("http://dummy"));
@@ -352,7 +353,7 @@ public class TestAlias extends BaseTest {
 
 	@Test
 	void testGetAliasGav() throws IOException {
-		Alias alias = Alias.get("gav", null, null, null);
+		Alias alias = Alias.get("gav");
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("org.example:artifact:version"));
 		assertThat(alias.resolve(), equalTo("org.example:artifact:version"));
@@ -364,7 +365,7 @@ public class TestAlias extends BaseTest {
 	@Test
 	void testGetAliasLoop() throws IOException {
 		try {
-			Alias.get("eight", null, null, null);
+			Alias.get("eight");
 			Assert.fail();
 		} catch (RuntimeException ex) {
 			assertThat(ex.getMessage(), containsString("seven"));

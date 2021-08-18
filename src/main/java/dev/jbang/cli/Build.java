@@ -16,18 +16,24 @@ public class Build extends BaseBuildCommand {
 			enableInsecure();
 		}
 
+		RunContext ctx = getRunContext();
+		Source src = Source.forResource(scriptOrFile, ctx);
+
+		buildIfNeeded(src, ctx);
+
+		return EXIT_OK;
+	}
+
+	RunContext getRunContext() {
 		RunContext ctx = RunContext.create(null, null,
 				dependencyInfoMixin.getProperties(),
 				dependencyInfoMixin.getDependencies(),
 				dependencyInfoMixin.getClasspaths(),
 				forcejsh);
 		ctx.setJavaVersion(javaVersion);
+		ctx.setMainClass(main);
 		ctx.setNativeImage(nativeImage);
 		ctx.setCatalog(catalog);
-		Source src = Source.forResource(scriptOrFile, ctx);
-
-		buildIfNeeded(src, ctx);
-
-		return EXIT_OK;
+		return ctx;
 	}
 }

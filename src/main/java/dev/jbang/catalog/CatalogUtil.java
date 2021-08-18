@@ -39,9 +39,12 @@ public class CatalogUtil {
 			String description,
 			List<String> arguments,
 			List<String> javaRuntimeOptions,
-			Map<String, String> properties) {
+			Map<String, String> properties,
+			String javaVersion,
+			String mainClass) {
 		Path catalogFile = Catalog.getCatalogFile(null);
-		addAlias(catalogFile, name, scriptRef, description, arguments, javaRuntimeOptions, properties);
+		addAlias(catalogFile, name, scriptRef, description, arguments, javaRuntimeOptions, properties, javaVersion,
+				mainClass);
 		return catalogFile;
 	}
 
@@ -57,12 +60,15 @@ public class CatalogUtil {
 			String description,
 			List<String> arguments,
 			List<String> javaRuntimeOptions,
-			Map<String, String> properties) {
+			Map<String, String> properties,
+			String javaVersion,
+			String mainClass) {
 		Path cwd = Util.getCwd();
 		catalogFile = cwd.resolve(catalogFile);
 		Catalog catalog = Catalog.get(catalogFile);
 		scriptRef = catalog.relativize(scriptRef);
-		Alias alias = new Alias(scriptRef, description, arguments, javaRuntimeOptions, properties, catalog);
+		Alias alias = new Alias(scriptRef, description, arguments, javaRuntimeOptions, properties, javaVersion,
+				mainClass, catalog);
 		catalog.aliases.put(name, alias);
 		try {
 			catalog.write();
