@@ -62,7 +62,7 @@ class AliasAdd extends BaseAliasCommand {
 			"-d" }, description = "A description for the alias")
 	String description;
 
-	@CommandLine.Option(names = { "--runopt" }, description = "A Java runtime option")
+	@CommandLine.Option(names = { "--java-options" }, description = "A Java runtime option")
 	List<String> javaRuntimeOptions;
 
 	@CommandLine.Option(names = { "-m",
