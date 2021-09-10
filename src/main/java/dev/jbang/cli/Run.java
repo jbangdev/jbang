@@ -28,6 +28,9 @@ public class Run extends BaseBuildCommand {
 	// 8192 character command line length limit imposed by CMD.EXE
 	private static final int COMMAND_LINE_LENGTH_LIMIT = 8000;
 
+	@CommandLine.Option(names = { "--java-options" }, description = "A Java runtime option")
+	List<String> javaRuntimeOptions;
+
 	@CommandLine.Option(names = { "-r",
 			"--jfr" }, fallbackValue = "filename={baseName}.jfr", parameterConsumer = KeyValueFallbackConsumer.class, arity = "0..1", description = "Launch with Java Flight Recorder enabled.")
 	String flightRecorderString;
@@ -80,7 +83,7 @@ public class Run extends BaseBuildCommand {
 	}
 
 	RunContext getRunContext() {
-		RunContext ctx = RunContext.create(userParams, null,
+		RunContext ctx = RunContext.create(userParams, javaRuntimeOptions,
 				dependencyInfoMixin.getProperties(),
 				dependencyInfoMixin.getDependencies(),
 				dependencyInfoMixin.getClasspaths(),
@@ -100,7 +103,7 @@ public class Run extends BaseBuildCommand {
 				String javaAgent = agentOption.getKey();
 				Optional<String> javaAgentOptions = agentOption.getValue();
 
-				RunContext actx = RunContext.create(userParams, null,
+				RunContext actx = RunContext.create(userParams, javaRuntimeOptions,
 						dependencyInfoMixin.getProperties(),
 						dependencyInfoMixin.getDependencies(),
 						dependencyInfoMixin.getClasspaths(),
