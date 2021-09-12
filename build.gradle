@@ -45,7 +45,7 @@ dependencies {
 	//implementation 'org.apache.maven:maven-aether-provider:3.0.5'
 	//implementation 'com.google.guava:guava:28.2-jre'
 
-	testImplemetnation "com.github.tomakehurst:wiremock-jre8:2.32.0"
+	testImplementation "com.github.tomakehurst:wiremock-jre8:2.32.0"
 
 	testImplementation "org.junit.jupiter:junit-jupiter:5.7.1"
 	testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.7.1')
@@ -288,23 +288,6 @@ task tag(type: Exec) {
 	doFirst {
 		println 'Tagging with v' + project.version
 		commandLine 'git', 'tag', '-a', 'v' + project.version, '-F', 'CHANGELOG.md'
-	}
-}
-
-githubRelease {
-	// currently does not work as project.version not set.
-	// FilenameFilter filter = { dir, filename -> filename.contains(project.version) } // ensure nothing extra gets included.
-	//releaseAssets = distZip.destinationDir.listFiles filter
-	releaseAssets = files(distZip.destinationDirectory.get().getAsFile().listFiles(), new File(project.getBuildDir(), "tmp/version.txt"))
-	//println(getReleaseAssets().getFiles())
-	// set ORG_GRADLE_PROJECT_github_token
-	token = project.hasProperty('github_token') ? getProperty('github_token') : "unknown_github_token"
-	owner = "jbangdev"
-	draft = true
-	try {
-		body = grgit.resolve.toTag(project.version).fullMessage
-	} catch (Exception e) {
-		body = "No tag description found for " + project.version
 	}
 }
 
