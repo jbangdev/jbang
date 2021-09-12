@@ -275,6 +275,9 @@ versioner {
 		minor = 0
 		patch = 1
 	}
+	pattern {
+		pattern = "%M.%m.%p(.%c)"
+	}
 	git {
 		authentication {
 			https {

@@ -34,7 +34,7 @@ release:
       close: false
     changelog:
       formatted: always
-      change: '- {{commitShortHash}} {{commitTitle}}'
+      format: '- {{commitShortHash}} {{commitTitle}}'
       labelers:
         - label: 'fix'
           title: 'fix:'
