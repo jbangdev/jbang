@@ -146,7 +146,9 @@ jar {
 				'Main-Class': 'dev.jbang.Main',
 		)
 	}
-	}
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE // allow duplicates to work with gradle 7
+
+}
 
 
 compileJava {
