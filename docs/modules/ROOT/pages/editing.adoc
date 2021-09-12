@@ -14,45 +14,39 @@ endif::[]
 
 toc::[]
 
-You can edit your script in an IDE/editor by using `jbang edit helloworld.java`. This will generate a project in a temporary location with symbolic links to your script
-and output the generated folder name. The easiest way to use that is to use it in a call to your IDE:
+You can edit your script in an IDE/editor by using `jbang edit helloworld.java`. This will generate a project in a temporary location with symbolic links to your script and open a editor.
 
 [source, bash]
 ----
-code `jbang edit helloworld.java`
+jbang edit helloworld.java
 ----
 
-If you add further dependencies to your file just re-run the edit command and the relevant files will be regenerated with the updated dependencies.
+By default `jbang` will offer to install https://vscodium.com[VSCodium] (free/libre version of Visual Studio code) with default java extensions enabled in so called https://code.visualstudio.com/docs/editor/portable["portable mode"]. Portable mode means all the installed binaries and configuration does not affect rest of your system; everything is stored in `~/.jbang/editor`.
 
-Above does require using a shell that allows for variable evaluation, if you are on i.e. Windows then you might prefer using:
+This automatic install and setup of editor is fully optional and if you have another IDE or editor already installed use it using `jbang edit --open=<editor>` or set JBANG_EDITOR environment variable to have jbang use it by default.
 
 [source, bash]
 ----
 jbang edit --open=[editor] helloworld.java
 ----
 
-The editor used will be what is specified as the argument to `--open` or value of `JBANG_EDITOR` environment variable.
-The editor command must be available on the PATH to be executed from jbang. If you are executing `jbang edit --open=code helloworld.java` a `code` executable (visual studio code) must be on the PATH. Next to this you can pass the full path to the `open` parameter like in `--open=/usr/bin/code`.
+Finally you can also if you prefer to call the editor/IDE yourself in a shell that supports variable evaluation specify `--no-open` to tell JBang to not open an editor.
 
+[source, bash]
+----
+code `jbang edit --no-open helloworld.java`
+----
+
+If you add further dependencies to your file just re-run the edit command and the relevant files will be regenerated with the updated dependencies.
 
 NOTE: On Windows you might need elevated privileges to create symbolic links. If you don't have permissions then
 the `edit` option will result in an error. To use it https://stackoverflow.com/a/24353758[enable symbolic links]
 for your user or run your shell/terminal as administrator to have this feature working.
 
-== Install of default vscodium editor [EXPERIMENTAL]
-
-If no editor available at all jbang will offer to install https://vscodium.com[VSCodium] (free/libre version of Visual Studio code) with
-default java extensions enabled in so called https://code.visualstudio.com/docs/editor/portable["portable mode"]. Portable mode means all 
-the installed binaries and configuration does not affect rest of your system; everything is stored in `~/.jbang/editor`.
-
-This automatic install and setup of editor is fully optional and if you have another IDE or editor already installed
-use it using `jbang edit --open=<editor>` or set JBANG_EDITOR environment variable to have jbang use it by default.
-
 == Live Editing
 
 You can also use `jbang edit --live` and `jbang` will launch your editor while watching
 for file changes and regenerate the temporary project to pick up changes in dependencies.
-
 
 == IDE and Editor support
 
