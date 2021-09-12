@@ -1436,4 +1436,19 @@ public class TestRun extends BaseTest {
 		assertThat(line.split("helloworld.jfr")[0], not(containsString(Settings.getCacheDir().toString())));
 
 	}
+
+	@Test
+	void testJVMOpts() throws IOException {
+		Jbang jbang = new Jbang();
+		String arg = new File(examplesTestFolder.toFile(), "helloworld.java").getAbsolutePath();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--java-options=--show-version", arg);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+		ctx.setMainClass("fakemain");
+
+		String line = run.generateCommandLine(Source.forResource(arg, ctx), ctx);
+
+		assertThat(line, containsString(" --show-version "));
+	}
 }
