@@ -175,7 +175,7 @@ class AppInstall extends BaseCommand {
 		if (force || !managedJbang) {
 			// Download Jbang and unzip to ~/.jbang/bin/
 			Util.infoMsg("Downloading and installing jbang...");
-			Path zipFile = Util.downloadAndCacheFile(jbangUrl);
+			Path zipFile = Util.downloadFileToCache(jbangUrl);
 			Path urlsDir = Settings.getCacheDir(Cache.CacheClass.urls);
 			Util.deletePath(urlsDir.resolve("jbang"), true);
 			UnpackUtil.unpack(zipFile, urlsDir);
