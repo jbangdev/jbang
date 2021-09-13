@@ -48,8 +48,11 @@ public class Edit extends BaseScriptDepsCommand {
 	boolean live;
 
 	@CommandLine.Option(names = {
-			"--open" }, description = "Opens editor/IDE on the temporary project.", fallbackValue = "${JBANG_EDITOR:-}", preprocessor = StrictParameterPreprocessor.class)
+			"--open" }, description = "Opens editor/IDE on the temporary project.", defaultValue = "${JBANG_EDITOR:-}", preprocessor = StrictParameterPreprocessor.class)
 	Optional<String> editor;
+
+	@CommandLine.Option(names = { "--no-open" })
+	boolean noOpen;
 
 	@Override
 	public Integer doCall() throws IOException {
@@ -73,7 +76,7 @@ public class Edit extends BaseScriptDepsCommand {
 		File project = createProjectForEdit(ssrc, ctx, false);
 		// err.println(project.getAbsolutePath());
 
-		if (editor.isPresent()) {
+		if (!noOpen && editor.isPresent()) {
 			if (editor.get().isEmpty()) {
 				askAndInstallEditor();
 			}
