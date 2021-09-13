@@ -20,8 +20,6 @@ public class Version extends BaseCommand {
 
 	@Override
 	public Integer doCall() {
-		System.out.println(Util.getJbangVersion());
-
 		if (update) {
 			if (VersionChecker.updateOrInform(checkForUpdate)) {
 				try {
@@ -31,7 +29,10 @@ public class Version extends BaseCommand {
 				}
 			}
 		} else if (checkForUpdate) {
+			System.out.println(Util.getJbangVersion());
 			VersionChecker.checkNowAndInform();
+		} else {
+			System.out.println(Util.getJbangVersion());
 		}
 
 		if (isVerbose()) {
