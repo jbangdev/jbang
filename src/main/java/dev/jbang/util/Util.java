@@ -646,8 +646,9 @@ public class Util {
 	}
 
 	/**
-	 * Downloads a file from a URL and stores it in the cache. NB: The last part of
-	 * the URL must contain the name of the file to be downloaded!
+	 * Either retrieves a previously downloaded file from the cache or downloads a
+	 * file from a URL and stores it in the cache. NB: The last part of the URL must
+	 * contain the name of the file to be downloaded!
 	 *
 	 * @param fileURL HTTP URL of the file to be downloaded
 	 * @return Path to the downloaded file
@@ -657,41 +658,58 @@ public class Util {
 		Path urlCache = Util.getUrlCache(fileURL);
 		Path file = getFirstFile(urlCache);
 		if ((Util.isFresh() && !Util.isOffline()) || file == null) {
-			// create a temp directory for the downloaded content
-			Path saveTmpDir = urlCache.getParent().resolve(urlCache.getFileName() + ".tmp");
-			Path saveOldDir = urlCache.getParent().resolve(urlCache.getFileName() + ".old");
-			try {
-				Util.deletePath(saveTmpDir, true);
-				Util.deletePath(saveOldDir, true);
-
-				Path saveFilePath = downloadFile(fileURL, saveTmpDir.toFile());
-
-				// temporarily save the old content
-				if (Files.isDirectory(urlCache)) {
-					Files.move(urlCache, saveOldDir);
-				}
-				// rename the folder to its final name
-				Files.move(saveTmpDir, urlCache);
-				// remove any old content
-				Util.deletePath(saveOldDir, true);
-
-				return urlCache.resolve(saveFilePath.getFileName());
-			} catch (Throwable th) {
-				// remove the temp folder if anything went wrong
-				Util.deletePath(saveTmpDir, true);
-				// and move the old content back if it exists
-				if (!Files.isDirectory(urlCache) && Files.isDirectory(saveOldDir)) {
-					try {
-						Files.move(saveOldDir, urlCache);
-					} catch (IOException ex) {
-						// Ignore
-					}
-				}
-				throw th;
-			}
+			return downloadFileAndCache(fileURL, urlCache);
 		} else {
 			Util.verboseMsg(String.format("Retrieved file from cache %s = %s", fileURL, file));
 			return urlCache.resolve(file);
+		}
+	}
+
+	/**
+	 * Downloads a file from a URL and stores it in the cache. NB: The last part of
+	 * the URL must contain the name of the file to be downloaded!
+	 *
+	 * @param fileURL HTTP URL of the file to be downloaded
+	 * @return Path to the downloaded file
+	 * @throws IOException
+	 */
+	public static Path downloadFileToCache(String fileURL) throws IOException {
+		Path urlCache = Util.getUrlCache(fileURL);
+		return downloadFileAndCache(fileURL, urlCache);
+	}
+
+	private static Path downloadFileAndCache(String fileURL, Path urlCache) throws IOException {
+		// create a temp directory for the downloaded content
+		Path saveTmpDir = urlCache.getParent().resolve(urlCache.getFileName() + ".tmp");
+		Path saveOldDir = urlCache.getParent().resolve(urlCache.getFileName() + ".old");
+		try {
+			Util.deletePath(saveTmpDir, true);
+			Util.deletePath(saveOldDir, true);
+
+			Path saveFilePath = downloadFile(fileURL, saveTmpDir.toFile());
+
+			// temporarily save the old content
+			if (Files.isDirectory(urlCache)) {
+				Files.move(urlCache, saveOldDir);
+			}
+			// rename the folder to its final name
+			Files.move(saveTmpDir, urlCache);
+			// remove any old content
+			Util.deletePath(saveOldDir, true);
+
+			return urlCache.resolve(saveFilePath.getFileName());
+		} catch (Throwable th) {
+			// remove the temp folder if anything went wrong
+			Util.deletePath(saveTmpDir, true);
+			// and move the old content back if it exists
+			if (!Files.isDirectory(urlCache) && Files.isDirectory(saveOldDir)) {
+				try {
+					Files.move(saveOldDir, urlCache);
+				} catch (IOException ex) {
+					// Ignore
+				}
+			}
+			throw th;
 		}
 	}
 
