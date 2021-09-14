@@ -99,12 +99,20 @@ class CatalogUpdate extends BaseCatalogCommand {
 															.entrySet()
 															.stream()
 															.forEach(e -> {
+																String ref = e.getValue().catalogRef;
 																err.println(
 																		"Updating catalog '" + e.getKey()
 																				+ "' from "
-																				+ e.getValue().catalogRef + "...");
-																dev.jbang.catalog.Catalog.getByRef(
-																		e.getValue().catalogRef);
+																				+ ref + "...");
+																try {
+																	dev.jbang.catalog.Catalog.getByRef(ref);
+																} catch (Exception ex) {
+																	Util.warnMsg(
+																			"Unable to read catalog " + ref
+																					+ " (referenced from "
+																					+ e.getValue().catalog.catalogRef
+																					+ ")");
+																}
 															});
 		return EXIT_OK;
 	}
