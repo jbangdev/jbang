@@ -52,6 +52,7 @@ public class Init extends BaseScriptCommand {
 		String outName = outFile.getFileName().toString();
 
 		properties.put("scriptref", scriptOrFile);
+		properties.put("baseName", Util.getBaseName(Paths.get(scriptOrFile).getFileName().toString()));
 
 		List<RefTarget> refTargets = tpl.fileRefs	.entrySet()
 													.stream()
@@ -130,7 +131,7 @@ public class Init extends BaseScriptCommand {
 	}
 
 	void renderQuteTemplate(Path outFile, String templatePath) throws IOException {
-		renderQuteTemplate(outFile, templatePath, null);
+		renderQuteTemplate(outFile, templatePath, new HashMap<>());
 	}
 
 	void renderQuteTemplate(Path outFile, String templatePath, Map<String, Object> properties) throws IOException {
@@ -140,21 +141,19 @@ public class Init extends BaseScriptCommand {
 					"Could not find or load template: " + templatePath);
 		}
 
-		String basename = Util.getBaseName(outFile.getFileName().toString());
-		if (!SourceVersion.isIdentifier(basename)) {
-			throw new ExitException(EXIT_INVALID_INPUT,
-					"'" + basename + "' is not a valid class name in java. Remove the special characters");
+		if (outFile.toString().endsWith(".java")) {
+			String basename = Util.getBaseName(outFile.getFileName().toString());
+			if (!SourceVersion.isIdentifier(basename)) {
+				throw new ExitException(EXIT_INVALID_INPUT,
+						"'" + basename + "' is not a valid class name in java. Remove the special characters");
+			}
 		}
 
 		Files.createDirectories(outFile.getParent());
 		try (BufferedWriter writer = Files.newBufferedWriter(outFile)) {
-			if (properties == null) {
-				properties = new HashMap<>();
-			}
 			TemplateInstance templateWithData = template.instance();
 			properties.forEach((k, v) -> templateWithData.data(k, v));
 
-			templateWithData.data("baseName", basename);
 			String result = templateWithData.render();
 
 			writer.write(result);

@@ -32,6 +32,7 @@ public class TestTemplate extends BaseTest {
 			"      \"description\": \"Template 1\",\n" +
 			"      \"file-refs\": {\n" +
 			"        \"{basename}.java\": \"file1_1.java\",\n" +
+			"        \"{basename}Test.java\": \"file1_1_test.java\",\n" +
 			"        \"file2.java\": \"file1_2.java\"\n" +
 			"      }\n" +
 			"    },\n" +
@@ -119,9 +120,9 @@ public class TestTemplate extends BaseTest {
 				testFile.toString());
 		Template one = Template.get("one");
 		Template name = Template.get("name");
-		assertThat(one.fileRefs, aMapWithSize(2));
-		assertThat(one.fileRefs.keySet(), hasItems("{basename}.java", "file2.java"));
-		assertThat(one.fileRefs.values(), hasItems("file1_1.java", "file1_2.java"));
+		assertThat(one.fileRefs, aMapWithSize(3));
+		assertThat(one.fileRefs.keySet(), hasItems("{basename}.java", "{basename}Test.java", "file2.java"));
+		assertThat(one.fileRefs.values(), hasItems("file1_1.java", "file1_1_test.java", "file1_2.java"));
 		assertThat(name.fileRefs, aMapWithSize(1));
 		assertThat(name.fileRefs.keySet(), hasItems("{basename}.java"));
 		assertThat(name.fileRefs.values(), hasItems("test.java"));
@@ -138,9 +139,9 @@ public class TestTemplate extends BaseTest {
 		Template template = Template.get("one");
 		assertThat(template, notNullValue());
 		assertThat(template.description, is("Template 1"));
-		assertThat(template.fileRefs, aMapWithSize(2));
-		assertThat(template.fileRefs.keySet(), hasItems("{basename}.java", "file2.java"));
-		assertThat(template.fileRefs.values(), hasItems("file1_1.java", "file1_2.java"));
+		assertThat(template.fileRefs, aMapWithSize(3));
+		assertThat(template.fileRefs.keySet(), hasItems("{basename}.java", "{basename}Test.java", "file2.java"));
+		assertThat(template.fileRefs.values(), hasItems("file1_1.java", "file1_1_test.java", "file1_2.java"));
 	}
 
 	@Test
