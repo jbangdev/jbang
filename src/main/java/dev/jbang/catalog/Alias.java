@@ -26,6 +26,10 @@ public class Alias extends CatalogItem {
 	@SerializedName(value = "main")
 	public final String mainClass;
 
+	private Alias() {
+		this(null, null, null, null, null, null, null, null);
+	}
+
 	public Alias(String scriptRef,
 			String description,
 			List<String> arguments,
@@ -59,48 +63,23 @@ public class Alias extends CatalogItem {
 	 * @return An Alias object or null if no alias was found
 	 */
 	public static Alias get(String aliasName) {
-		return get(aliasName, null, null, null, null, null);
-	}
-
-	/**
-	 * Returns an Alias object for the given name with the given arguments, options
-	 * and properties applied to it. Or null if no alias with that name could be
-	 * found.
-	 *
-	 * @param aliasName   The name of an Alias
-	 * @param arguments   Optional arguments to apply to the Alias
-	 * @param javaOptions Optional java runtime options to apply to the Alias
-	 * @param properties  Optional properties to apply to the Alias
-	 * @param javaVersion Optional java version to apply to the Alias
-	 * @param mainClass   Optional main class name to apply to the Alias
-	 * @return An Alias object or null if no alias was found
-	 */
-	public static Alias get(String aliasName, List<String> arguments, List<String> javaOptions,
-			Map<String, String> properties, String javaVersion, String mainClass) {
 		HashSet<String> names = new HashSet<>();
-		Alias alias = new Alias(null, null, arguments, javaOptions, properties, javaVersion, mainClass, null);
+		Alias alias = new Alias();
 		Alias result = merge(alias, aliasName, Alias::getLocal, names);
 		return result.scriptRef != null ? result : null;
 	}
 
 	/**
-	 * Returns an Alias object for the given name with the given arguments, options
-	 * and properties applied to it. Or null if no alias with that name could be
-	 * found. The given Catalog will be used for any unqualified alias lookups.
+	 * Returns an Alias object for the given name. The given Catalog will be used
+	 * for any unqualified alias lookups.
 	 *
-	 * @param catalog        A Catalog to use for lookups
-	 * @param aliasName      The name of an Alias
-	 * @param arguments      Optional arguments to apply to the Alias
-	 * @param runtimeOptions Optional java runtime options to apply to the Alias
-	 * @param properties     Optional properties to apply to the Alias
-	 * @param javaVersion    Optional java version to apply to the Alias
-	 * @param mainClass      Optional main class name to apply to the Alias
+	 * @param catalog   A Catalog to use for lookups
+	 * @param aliasName The name of an Alias
 	 * @return An Alias object or null if no alias was found
 	 */
-	public static Alias get(Catalog catalog, String aliasName, List<String> arguments, List<String> runtimeOptions,
-			Map<String, String> properties, String javaVersion, String mainClass) {
+	public static Alias get(Catalog catalog, String aliasName) {
 		HashSet<String> names = new HashSet<>();
-		Alias alias = new Alias(null, null, arguments, runtimeOptions, properties, javaVersion, mainClass, null);
+		Alias alias = new Alias();
 		Alias result = merge(alias, aliasName, catalog.aliases::get, names);
 		return result.scriptRef != null ? result : null;
 	}
