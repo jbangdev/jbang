@@ -248,9 +248,14 @@ public class Catalog {
 		// Merge the aliases and templates of the catalog refs
 		// into the current catalog
 		for (CatalogRef ref : catalog.catalogs.values()) {
-			Catalog cat = getByRef(ref.catalogRef);
-			result.aliases.putAll(cat.aliases);
-			result.templates.putAll(cat.templates);
+			try {
+				Catalog cat = getByRef(ref.catalogRef);
+				result.aliases.putAll(cat.aliases);
+				result.templates.putAll(cat.templates);
+			} catch (Exception ex) {
+				Util.warnMsg(
+						"Unable to read catalog " + ref.catalogRef + " (referenced from " + catalog.catalogRef + ")");
+			}
 		}
 		result.aliases.putAll(catalog.aliases);
 		result.templates.putAll(catalog.templates);
