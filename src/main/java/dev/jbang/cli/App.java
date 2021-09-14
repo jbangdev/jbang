@@ -197,7 +197,7 @@ class AppInstall extends BaseCommand {
 							Path fromp = from.resolve(f);
 							Path top = to.resolve(f);
 							if (Util.isWindows() && f.endsWith("jbang.jar") && Files.isRegularFile(top)) {
-								top = Paths.get("jbang.jar.new");
+								top = to.resolve("jbang.jar.new");
 							}
 							Files.copy(fromp, top, StandardCopyOption.REPLACE_EXISTING,
 									StandardCopyOption.COPY_ATTRIBUTES);
