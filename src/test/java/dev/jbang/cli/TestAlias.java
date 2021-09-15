@@ -38,8 +38,12 @@ public class TestAlias extends BaseTest {
 			"    },\n" +
 			"    \"two\": {\n" +
 			"      \"script-ref\": \"one\",\n" +
+			"      \"description\": \"twodesc\",\n" +
 			"      \"arguments\": [\"2\"],\n" +
 			"      \"java-options\": [\"--two\"],\n" +
+			"      \"dependencies\": [\"twodep\"],\n" +
+			"      \"repositories\": [\"tworepo\"],\n" +
+			"      \"classpaths\": [\"twocp\"],\n" +
 			"      \"properties\": {\"two\":\"2\"}\n" +
 			"    },\n" +
 			"    \"three\": {\n" +
@@ -50,8 +54,12 @@ public class TestAlias extends BaseTest {
 			"    },\n" +
 			"    \"four\": {\n" +
 			"      \"script-ref\": \"three\",\n" +
+			"      \"description\": \"fourdesc\",\n" +
 			"      \"arguments\": [\"4\"],\n" +
 			"      \"java-options\": [\"--four\"],\n" +
+			"      \"dependencies\": [\"fourdep\"],\n" +
+			"      \"repositories\": [\"fourrepo\"],\n" +
+			"      \"classpaths\": [\"fourcp\"],\n" +
 			"      \"properties\": {\"four\":\"4\"}\n" +
 			"    },\n" +
 			"    \"five\": {\n" +
@@ -94,8 +102,48 @@ public class TestAlias extends BaseTest {
 		new CommandLine(jbang).execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
 				is(true));
-		Alias name = Alias.get("name");
-		assertThat(name.scriptRef, is("test.java"));
+		Alias alias = Alias.get("name");
+		assertThat(alias.scriptRef, is("test.java"));
+	}
+
+	@Test
+	void testAddWithDefaultCatalogFile2() throws IOException {
+		Path cwd = Util.getCwd();
+		Path testFile = cwd.resolve("test.java");
+		Files.write(testFile, "// Test file".getBytes());
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		JBang jbang = new JBang();
+		new CommandLine(jbang).execute("alias", "add",
+				"-f", cwd.toString(),
+				"--name=name", testFile.toString(),
+				"--description", "desc",
+				"--deps", "deps",
+				"--repos", "repos",
+				"--cp", "cps",
+				"--java-options", "jopts",
+				"-D", "prop=val",
+				"--main", "mainclass",
+				"--java", "version",
+				"aap", "noot", "mies");
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
+				is(true));
+		Alias alias = Alias.get("name");
+		assertThat(alias.scriptRef, is("test.java"));
+		assertThat(alias.description, is("desc"));
+		assertThat(alias.javaOptions, iterableWithSize(1));
+		assertThat(alias.javaOptions, contains("jopts"));
+		assertThat(alias.dependencies, iterableWithSize(1));
+		assertThat(alias.dependencies, contains("deps"));
+		assertThat(alias.repositories, iterableWithSize(1));
+		assertThat(alias.repositories, contains("repos"));
+		assertThat(alias.classpaths, iterableWithSize(1));
+		assertThat(alias.classpaths, contains("cps"));
+		assertThat(alias.properties, aMapWithSize(1));
+		assertThat(alias.properties, hasEntry("prop", "val"));
+		assertThat(alias.arguments, iterableWithSize(3));
+		assertThat(alias.mainClass, is("mainclass"));
+		assertThat(alias.javaVersion, is("version"));
+		assertThat(alias.arguments, contains("aap", "noot", "mies"));
 	}
 
 	@Test
@@ -235,10 +283,17 @@ public class TestAlias extends BaseTest {
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.resolve(), equalTo("http://dummy"));
+		assertThat(alias.description, equalTo("twodesc"));
 		assertThat(alias.arguments, iterableWithSize(1));
 		assertThat(alias.arguments, contains("2"));
 		assertThat(alias.javaOptions, iterableWithSize(1));
 		assertThat(alias.javaOptions, contains("--two"));
+		assertThat(alias.dependencies, iterableWithSize(1));
+		assertThat(alias.dependencies, contains("twodep"));
+		assertThat(alias.repositories, iterableWithSize(1));
+		assertThat(alias.repositories, contains("tworepo"));
+		assertThat(alias.classpaths, iterableWithSize(1));
+		assertThat(alias.classpaths, contains("twocp"));
 		assertThat(alias.properties, aMapWithSize(1));
 		assertThat(alias.properties, hasEntry("two", "2"));
 	}
@@ -249,10 +304,17 @@ public class TestAlias extends BaseTest {
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.resolve(), equalTo("http://dummy"));
+		assertThat(alias.description, equalTo("fourdesc"));
 		assertThat(alias.arguments, iterableWithSize(1));
 		assertThat(alias.arguments, contains("4"));
 		assertThat(alias.javaOptions, iterableWithSize(1));
 		assertThat(alias.javaOptions, contains("--four"));
+		assertThat(alias.dependencies, iterableWithSize(1));
+		assertThat(alias.dependencies, contains("fourdep"));
+		assertThat(alias.repositories, iterableWithSize(1));
+		assertThat(alias.repositories, contains("fourrepo"));
+		assertThat(alias.classpaths, iterableWithSize(1));
+		assertThat(alias.classpaths, contains("fourcp"));
 		assertThat(alias.properties, aMapWithSize(1));
 		assertThat(alias.properties, hasEntry("four", "4"));
 	}

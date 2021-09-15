@@ -42,6 +42,7 @@ public class Export {
 		RunContext ctx = RunContext.create(null, null,
 				exportMixin.dependencyInfoMixin.getProperties(),
 				exportMixin.dependencyInfoMixin.getDependencies(),
+				exportMixin.dependencyInfoMixin.getRepositories(),
 				exportMixin.dependencyInfoMixin.getClasspaths(),
 				false);
 		ctx.setJavaVersion(exportMixin.javaVersion);

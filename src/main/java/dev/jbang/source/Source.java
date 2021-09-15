@@ -159,6 +159,15 @@ public interface Source {
 				if (ctx.getJavaOptions() == null || ctx.getJavaOptions().isEmpty()) {
 					ctx.setJavaOptions(alias.javaOptions);
 				}
+				if (ctx.getAdditionalDependencies() == null || ctx.getAdditionalDependencies().isEmpty()) {
+					ctx.setAdditionalDependencies(alias.dependencies);
+				}
+				if (ctx.getAdditionalRepositories() == null || ctx.getAdditionalRepositories().isEmpty()) {
+					ctx.setAdditionalRepositories(alias.repositories);
+				}
+				if (ctx.getAdditionalClasspaths() == null || ctx.getAdditionalClasspaths().isEmpty()) {
+					ctx.setAdditionalClasspaths(alias.classpaths);
+				}
 				if (ctx.getProperties() == null || ctx.getProperties().isEmpty()) {
 					ctx.setProperties(alias.properties);
 				}

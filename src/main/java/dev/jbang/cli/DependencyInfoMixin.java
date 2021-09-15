@@ -11,6 +11,8 @@ public class DependencyInfoMixin {
 	Map<String, String> properties = new HashMap<String, String>();
 	@CommandLine.Option(names = { "--deps" }, description = "Add additional dependencies.")
 	List<String> dependencies;
+	@CommandLine.Option(names = { "--repos" }, description = "Add additional repositories.")
+	List<String> repositories;
 	@CommandLine.Option(names = { "--cp", "--class-path" }, description = "Add class path entries.")
 	List<String> classpaths;
 
@@ -18,11 +20,15 @@ public class DependencyInfoMixin {
 		return dependencies;
 	}
 
-	public Map<String, String> getProperties() {
-		return properties;
+	public List<String> getRepositories() {
+		return repositories;
 	}
 
 	public List<String> getClasspaths() {
 		return classpaths;
+	}
+
+	public Map<String, String> getProperties() {
+		return properties;
 	}
 }

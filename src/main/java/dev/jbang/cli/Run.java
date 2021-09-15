@@ -86,6 +86,7 @@ public class Run extends BaseBuildCommand {
 		RunContext ctx = RunContext.create(userParams, javaRuntimeOptions,
 				dependencyInfoMixin.getProperties(),
 				dependencyInfoMixin.getDependencies(),
+				dependencyInfoMixin.getRepositories(),
 				dependencyInfoMixin.getClasspaths(),
 				forcejsh);
 		ctx.setJavaVersion(javaVersion);
@@ -106,6 +107,7 @@ public class Run extends BaseBuildCommand {
 				RunContext actx = RunContext.create(userParams, javaRuntimeOptions,
 						dependencyInfoMixin.getProperties(),
 						dependencyInfoMixin.getDependencies(),
+						dependencyInfoMixin.getRepositories(),
 						dependencyInfoMixin.getClasspaths(),
 						forcejsh);
 				actx.setJavaVersion(ctx.getJavaVersion());
