@@ -25,7 +25,7 @@ public class TestSameSourceInDifferentPaths extends BaseTest {
 			+ "    public static void main(String args[]) {\n"
 			+ "        new B();\n"
 			+ "        new C();\n"
-			+ "		   new HiJbang();\n"
+			+ "		   new HiJBang();\n"
 			+ "    }\n"
 			+ "}\n";
 

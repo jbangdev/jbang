@@ -18,7 +18,7 @@ toc::[]
 
 If your script requires a specific or minimal version of Java you can use `//JAVA <version>(+)`.
 
-If Jbang finds a java executable using `JAVA_HOME` or `PATH` which satisfies the stated java version jbang will use it.
+If JBang finds a java executable using `JAVA_HOME` or `PATH` which satisfies the stated java version jbang will use it.
 If no such version is found it will automatically download and install it.
 
 Examples:
@@ -33,22 +33,22 @@ You can always force running with specific version of `java` using `--java` comm
 
 == Managing JDKs
 
-In the previous section it was mentioned that Jbang will automatically download and install JDKs when necessary.
+In the previous section it was mentioned that JBang will automatically download and install JDKs when necessary.
 You can use the `jdk` command to manage JDKs, for example you can run the following:
 
   jbang jdk list
 
-which will list all the JDKs that are currently installed by Jbang.
+which will list all the JDKs that are currently installed by JBang.
 
 It's easy to `install` additional JDKs by running:
 
   jbang jdk install 14
 
-which will download and install JDK version 14 into Jbang's cache (`~/.jbang/cache/jdks` by default).
+which will download and install JDK version 14 into JBang's cache (`~/.jbang/cache/jdks` by default).
 The list of versions that are available for installation can be found here: https://adoptopenjdk.net/releases.html
 
-The first JDK that gets installed by Jbang will be set as the "default" JDK. This is from then on the JDK that will be
-used by Jbang if no Java could be found on the system (meaning `javac` wasn't found on the `PATH` and no `JAVA_HOME` is set).
+The first JDK that gets installed by JBang will be set as the "default" JDK. This is from then on the JDK that will be
+used by JBang if no Java could be found on the system (meaning `javac` wasn't found on the `PATH` and no `JAVA_HOME` is set).
 You can change the default JDK by running:
 
   jbang jdk default 12
@@ -63,12 +63,12 @@ When you `uninstall` a JDK by running:
 
   jbang jdk uninstall 12
 
-and that JDK was set as the default, Jbang will set the next higher version JDK as the default. If no higher version is
+and that JDK was set as the default, JBang will set the next higher version JDK as the default. If no higher version is
 available it will select the next lower version.
 
 === Using managed JDKs yourself
 
-Given the fact that Jbang is able to easily download and install JDKs we thought that it might be a good option for
+Given the fact that JBang is able to easily download and install JDKs we thought that it might be a good option for
 our users to be able to access those JDKs for their own use instead of having to install yet another version themselves.
 
 To make that easy we added a couple of useful commands. The first can be used to set retrieve to location where the JDK

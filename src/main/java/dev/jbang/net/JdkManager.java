@@ -31,9 +31,9 @@ public class JdkManager {
 			return JavaUtil.getJdkHome();
 		} else {
 			if (currentVersion == 0) {
-				Util.verboseMsg("No system Java found, using Jbang managed version " + actualVersion);
+				Util.verboseMsg("No system Java found, using JBang managed version " + actualVersion);
 			} else {
-				Util.verboseMsg("System Java version " + currentVersion + " incompatible, using Jbang managed version "
+				Util.verboseMsg("System Java version " + currentVersion + " incompatible, using JBang managed version "
 						+ actualVersion);
 			}
 			return getInstalledJdk(actualVersion);

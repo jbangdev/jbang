@@ -70,7 +70,7 @@ class AppInstall extends BaseCommand {
 							"It's not possible to install jbang with a different name");
 				}
 				Util.setFresh(true);// TODO: workaround as url cache is not honoring changed redirects
-				installed = installJbang(force);
+				installed = installJBang(force);
 			} else {
 				if ("jbang".equals(name)) {
 					throw new IllegalArgumentException("jbang is a reserved name.");
@@ -163,17 +163,17 @@ class AppInstall extends BaseCommand {
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 	}
 
-	public static boolean installJbang(boolean force) throws IOException {
+	public static boolean installJBang(boolean force) throws IOException {
 		Path binDir = Settings.getConfigBinDir();
-		boolean managedJbang = Files.exists(binDir.resolve("jbang.jar"));
+		boolean managedJBang = Files.exists(binDir.resolve("jbang.jar"));
 
-		if (!force && (managedJbang || Util.searchPath("jbang") != null)) {
+		if (!force && (managedJBang || Util.searchPath("jbang") != null)) {
 			Util.infoMsg("jbang is already available, re-run with --force to install anyway.");
 			return false;
 		}
 
-		if (force || !managedJbang) {
-			// Download Jbang and unzip to ~/.jbang/bin/
+		if (force || !managedJBang) {
+			// Download JBang and unzip to ~/.jbang/bin/
 			Util.infoMsg("Downloading and installing jbang...");
 			Path zipFile = Util.downloadFileToCache(jbangUrl);
 			Path urlsDir = Settings.getCacheDir(Cache.CacheClass.urls);
@@ -181,14 +181,14 @@ class AppInstall extends BaseCommand {
 			UnpackUtil.unpack(zipFile, urlsDir);
 			App.deleteCommandFiles("jbang");
 			Path fromDir = urlsDir.resolve("jbang").resolve("bin");
-			copyJbangFiles(fromDir, binDir);
+			copyJBangFiles(fromDir, binDir);
 		} else {
 			Util.infoMsg("jbang is already installed.");
 		}
 		return true;
 	}
 
-	private static void copyJbangFiles(Path from, Path to) throws IOException {
+	private static void copyJBangFiles(Path from, Path to) throws IOException {
 		to.toFile().mkdirs();
 		try (Stream<Path> files = Files.list(from)) {
 			files	.map(from::relativize)
@@ -272,7 +272,7 @@ class AppUninstall extends BaseCommand {
 class AppSetup extends BaseCommand {
 
 	@CommandLine.Option(names = {
-			"--java" }, description = "Add Jbang's Java to the user's environment as well", negatable = true)
+			"--java" }, description = "Add JBang's Java to the user's environment as well", negatable = true)
 	Boolean java;
 
 	@CommandLine.Option(names = {
@@ -330,7 +330,7 @@ class AppSetup extends BaseCommand {
 
 		boolean changed = false;
 		String cmd = "";
-		// Permanently add Jbang's bin folder to the user's PATH
+		// Permanently add JBang's bin folder to the user's PATH
 		if (Util.isWindows()) {
 			String env = "";
 			if (withJava) {
@@ -373,9 +373,9 @@ class AppSetup extends BaseCommand {
 		}
 
 		if (changed) {
-			Util.infoMsg("Setting up Jbang environment...");
+			Util.infoMsg("Setting up JBang environment...");
 		} else if (chatty) {
-			Util.infoMsg("Jbang environment is already set up.");
+			Util.infoMsg("JBang environment is already set up.");
 		}
 		if (Util.isWindows()) {
 			if (changed) {
@@ -400,13 +400,13 @@ class AppSetup extends BaseCommand {
 
 	private static boolean changeScript(Path binDir, Path javaHome, Path bashFile) {
 		try {
-			// Detect if Jbang has already been set up before
+			// Detect if JBang has already been set up before
 			boolean jbangFound = Files.exists(bashFile)
 					&& Files.lines(bashFile)
 							.anyMatch(ln -> ln.trim().startsWith("#") && ln.toLowerCase().contains("jbang"));
 			if (!jbangFound) {
-				// Add lines to add Jbang to PATH
-				String lines = "\n# Add Jbang to environment\n" +
+				// Add lines to add JBang to PATH
+				String lines = "\n# Add JBang to environment\n" +
 						"alias j!=jbang\n";
 				if (javaHome != null) {
 					lines += "export PATH=\"" + toHomePath(binDir) + ":" + toHomePath(javaHome.resolve("bin"))
@@ -416,7 +416,7 @@ class AppSetup extends BaseCommand {
 					lines += "export PATH=\"" + toHomePath(binDir) + ":$PATH\"\n";
 				}
 				Files.write(bashFile, lines.getBytes(), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
-				Util.verboseMsg("Added Jbang setup lines " + bashFile);
+				Util.verboseMsg("Added JBang setup lines " + bashFile);
 				return true;
 			}
 		} catch (IOException e) {

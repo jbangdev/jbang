@@ -493,13 +493,13 @@ public class Util {
 		if (agent == null) {
 			String version = System.getProperty("java.version") + "/"
 					+ System.getProperty("java.vm.vendor", "<unknown>");
-			agent = "JBang/" + getJbangVersion() + " (" + System.getProperty("os.name") + "/"
+			agent = "JBang/" + getJBangVersion() + " (" + System.getProperty("os.name") + "/"
 					+ System.getProperty("os.version") + "/" + System.getProperty("os.arch") + ") " + "Java/" + version;
 		}
 		return agent;
 	}
 
-	public static String getJbangVersion() {
+	public static String getJBangVersion() {
 		return BuildConfig.VERSION;
 	}
 
@@ -1077,10 +1077,10 @@ public class Util {
 	}
 
 	/**
-	 * Determines if the current Jbang we're running was one installed using `app
+	 * Determines if the current JBang we're running was one installed using `app
 	 * install` or not
 	 */
-	public static boolean runningManagedJbang() {
+	public static boolean runningManagedJBang() {
 		try {
 			File jarFile = new File(VersionChecker.class.getProtectionDomain().getCodeSource().getLocation().toURI());
 			return jarFile.toPath().startsWith(Settings.getConfigBinDir());

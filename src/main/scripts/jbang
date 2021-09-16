@@ -2,7 +2,7 @@
 
 #
 # To run this script remotely type this in your shell
-# (where <args>... are the arguments you want to pass to Jbang):
+# (where <args>... are the arguments you want to pass to JBang):
 #   curl -Ls https://sh.jbang.dev | bash -s - <args>...
 #
 

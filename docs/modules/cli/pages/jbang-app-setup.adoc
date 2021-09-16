@@ -4,7 +4,7 @@
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
 :revnumber: 
-:manmanual: Jbang Manual
+:manmanual: JBang Manual
 :mansource: 
 :man-linkstyle: pass:[blue R < >]
 = jbang-app-setup(1)
@@ -45,7 +45,7 @@ Make jbang commands available for the user.
   Display help/info. Use 'jbang <command> -h' for detailed usage.
 
 *--[no-]java*::
-  Add Jbang's Java to the user's environment as well
+  Add JBang's Java to the user's environment as well
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted

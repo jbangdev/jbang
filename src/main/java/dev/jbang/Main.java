@@ -3,13 +3,13 @@ package dev.jbang;
 import java.util.ArrayList;
 import java.util.List;
 
-import dev.jbang.cli.Jbang;
+import dev.jbang.cli.JBang;
 
 import picocli.CommandLine;
 
 public class Main {
 	public static void main(String... args) {
-		CommandLine cli = Jbang.getCommandLine();
+		CommandLine cli = JBang.getCommandLine();
 		args = handleDefaultRun(cli.getCommandSpec(), args);
 		int exitcode = cli.execute(args);
 		System.exit(exitcode);

@@ -50,7 +50,7 @@ public class TestInit extends BaseTest {
 	void testCli(@TempDir Path outputDir) throws IOException {
 		Path x = outputDir.resolve("edit.java");
 		String s = x.toString();
-		int result = Jbang.getCommandLine().execute("init", "--verbose", "--template=cli", s);
+		int result = JBang.getCommandLine().execute("init", "--verbose", "--template=cli", s);
 		assertThat(result, is(0));
 		assertThat(new File(s).exists(), is(true));
 		MatcherAssert.assertThat(Util.readString(x), Matchers.containsString("picocli"));
@@ -60,14 +60,14 @@ public class TestInit extends BaseTest {
 	void testOldInit(@TempDir Path outputDir) throws IOException {
 		Path x = outputDir.resolve("nonexist.java");
 		String s = x.toString();
-		assertEquals(Jbang.getCommandLine().execute("--init", s), 2);
+		assertEquals(JBang.getCommandLine().execute("--init", s), 2);
 	}
 
 	@Test
 	void testMissingTemplate(@TempDir Path outputDir) throws IOException {
 		Path x = outputDir.resolve("edit.java");
 		String s = x.toString();
-		int result = Jbang.getCommandLine().execute("init", "--template=bogus", s);
+		int result = JBang.getCommandLine().execute("init", "--template=bogus", s);
 		assertThat(result, not(0));
 		assertThat(new File(s).exists(), is(false));
 	}
@@ -76,7 +76,7 @@ public class TestInit extends BaseTest {
 	void testDefaultInit(@TempDir Path outputDir) throws IOException {
 		Path x = outputDir.resolve("edit.java");
 		String s = x.toString();
-		int result = Jbang.getCommandLine().execute("init", s);
+		int result = JBang.getCommandLine().execute("init", s);
 		assertThat(result, is(0));
 		assertThat(new File(s).exists(), is(true));
 		assertThat(Util.readString(x), Matchers.containsString("class edit"));
@@ -86,7 +86,7 @@ public class TestInit extends BaseTest {
 	void testInitExtensionlessKebab(@TempDir Path outputDir) throws IOException {
 		Path x = outputDir.resolve("xyz-plug");
 		String s = x.toString();
-		int result = Jbang.getCommandLine().execute("init", s);
+		int result = JBang.getCommandLine().execute("init", s);
 		assertThat(result, is(0));
 		assertThat(new File(s).exists(), is(true));
 		assertThat(Util.readString(x), Matchers.containsString("class XyzPlug"));
@@ -96,7 +96,7 @@ public class TestInit extends BaseTest {
 	void testInitExtensionless(@TempDir Path outputDir) throws IOException {
 		Path x = outputDir.resolve("xyzplug");
 		String s = x.toString();
-		int result = Jbang.getCommandLine().execute("init", s);
+		int result = JBang.getCommandLine().execute("init", s);
 		assertThat(result, is(0));
 		assertThat(new File(s).exists(), is(true));
 		assertThat(Util.readString(x), Matchers.containsString("class xyzplug"));
@@ -104,9 +104,9 @@ public class TestInit extends BaseTest {
 
 	@Test
 	void testCatalog() throws IOException {
-//		int result = Jbang.getCommandLine().execute("run", "jget@quintesse");
-//		int result = Jbang.getCommandLine().execute("catalog", "update");
-		int result = Jbang.getCommandLine().execute("catalog", "list", "quintesse");
+//		int result = JBang.getCommandLine().execute("run", "jget@quintesse");
+//		int result = JBang.getCommandLine().execute("catalog", "update");
+		int result = JBang.getCommandLine().execute("catalog", "list", "quintesse");
 		assertThat(result, is(0));
 	}
 
@@ -142,7 +142,7 @@ public class TestInit extends BaseTest {
 
 	void testInitMultipleFiles(String targetName, String initName, String outName, boolean abs) throws IOException {
 		Path outFile = setupInitMultipleFiles(targetName, initName, abs);
-		int result = Jbang.getCommandLine().execute("init", "-t=name", outFile.toString());
+		int result = JBang.getCommandLine().execute("init", "-t=name", outFile.toString());
 		assertThat(result, is(0));
 		assertThat(outFile.resolveSibling(outName).toFile(), aReadableFile());
 		Path f2 = outFile.resolveSibling("file2.java");
@@ -156,7 +156,7 @@ public class TestInit extends BaseTest {
 	void testFailMultipleFiles(String targetName, String initName, String outName, boolean abs, int expectedResult)
 			throws IOException {
 		Path outFile = setupInitMultipleFiles(targetName, initName, abs);
-		int result = Jbang.getCommandLine().execute("init", "-t=name", outFile.toString());
+		int result = JBang.getCommandLine().execute("init", "-t=name", outFile.toString());
 		assertThat(result, is(expectedResult));
 	}
 
@@ -168,12 +168,12 @@ public class TestInit extends BaseTest {
 		Util.writeString(f2, "// {baseName} with {scriptref}");
 		Path f3 = Files.createFile(tplDir.resolve("file3.md"));
 		if (abs) {
-			int addResult = Jbang	.getCommandLine()
+			int addResult = JBang	.getCommandLine()
 									.execute("template", "add", "-f", cwd.toString(), "--name=name",
 											targetName + "=" + f1.toString(), f2.toString(), f3.toString());
 			assertThat(addResult, is(0));
 		} else {
-			int addResult = Jbang	.getCommandLine()
+			int addResult = JBang	.getCommandLine()
 									.execute("template", "add", "-f", cwd.toString(), "--name=name",
 											targetName + "=tpl/file1.java", "tpl/file2.java.qute", "tpl/file3.md");
 			assertThat(addResult, is(0));
@@ -206,13 +206,13 @@ public class TestInit extends BaseTest {
 		Path f1 = Files.write(cwd.resolve("file1.java.qute"), "{prop1}{prop2}".getBytes());
 		Path out = cwd.resolve("result.java");
 
-		int addResult = Jbang	.getCommandLine()
+		int addResult = JBang	.getCommandLine()
 								.execute("template", "add", "-f", cwd.toString(), "--name=name",
 										"{filename}" + "=" + f1.toAbsolutePath().toString());
 
 		assertThat(out.toFile().exists(), not(true));
 
-		int result = Jbang	.getCommandLine()
+		int result = JBang	.getCommandLine()
 							.execute("init", "--verbose", "--template=name", "-Dprop1=propvalue", "-Dprop2=rocks",
 									out.toAbsolutePath().toString());
 

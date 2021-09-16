@@ -47,7 +47,7 @@ import picocli.CommandLine.Model.UsageMessageSpec;
 				Run.class, Build.class, Edit.class, Init.class, Alias.class, Template.class, Catalog.class, Trust.class,
 				Cache.class, Completion.class, Jdk.class, Version.class, Wrapper.class, Info.class, App.class,
 				Export.class })
-public class Jbang extends BaseCommand {
+public class JBang extends BaseCommand {
 
 	@CommandLine.ArgGroup(exclusive = true)
 	VerboseQuietExclusive verboseQuietExclusive = new VerboseQuietExclusive();
@@ -130,7 +130,7 @@ public class Jbang extends BaseCommand {
 	static CommandLine.IExecutionStrategy executionStrategy = new CommandLine.RunLast() {
 		@Override
 		protected List<Object> handle(CommandLine.ParseResult parseResult) throws CommandLine.ExecutionException {
-			Util.verboseMsg("jbang version " + Util.getJbangVersion());
+			Util.verboseMsg("jbang version " + Util.getJBangVersion());
 			Future<String> versionCheckResult = VersionChecker.newerVersionAsync();
 			List<Object> result = super.handle(parseResult);
 			VersionChecker.informOrCancel(versionCheckResult);
@@ -139,7 +139,7 @@ public class Jbang extends BaseCommand {
 	};
 
 	public static CommandLine getCommandLine(PrintWriter localout, PrintWriter localerr) {
-		CommandLine cl = new CommandLine(new Jbang());
+		CommandLine cl = new CommandLine(new JBang());
 
 		cl.getHelpSectionMap().remove(SECTION_KEY_COMMAND_LIST_HEADING);
 		cl.getHelpSectionMap().put(SECTION_KEY_COMMAND_LIST, getCommandRenderer());

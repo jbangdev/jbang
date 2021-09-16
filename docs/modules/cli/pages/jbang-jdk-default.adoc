@@ -4,7 +4,7 @@
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
 :revnumber: 
-:manmanual: Jbang Manual
+:manmanual: JBang Manual
 :mansource: 
 :man-linkstyle: pass:[blue R < >]
 = jbang-jdk-default(1)
@@ -14,7 +14,7 @@
 // tag::picocli-generated-man-section-name[]
 == Name
 
-jbang-jdk-default - Sets the default JDK to be used by Jbang.
+jbang-jdk-default - Sets the default JDK to be used by JBang.
 
 // end::picocli-generated-man-section-name[]
 
@@ -28,7 +28,7 @@ jbang-jdk-default - Sets the default JDK to be used by Jbang.
 // tag::picocli-generated-man-section-description[]
 == Description
 
-Sets the default JDK to be used by Jbang.
+Sets the default JDK to be used by JBang.
 
 // end::picocli-generated-man-section-description[]
 

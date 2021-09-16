@@ -49,13 +49,13 @@ public class Wrapper {
 				copyScripts(parent.getParent(), dest);
 				copyJar(parent, dest);
 			} else {
-				throw new ExitException(1, "Couldn't find Jbang wrapper files");
+				throw new ExitException(1, "Couldn't find JBang wrapper files");
 			}
 			return EXIT_OK;
 		} catch (URISyntaxException e) {
-			throw new ExitException(1, "Couldn't find Jbang install location", e);
+			throw new ExitException(1, "Couldn't find JBang install location", e);
 		} catch (IOException e) {
-			throw new ExitException(1, "Couldn't copy Jbang wrapper scripts", e);
+			throw new ExitException(1, "Couldn't copy JBang wrapper scripts", e);
 		}
 	}
 

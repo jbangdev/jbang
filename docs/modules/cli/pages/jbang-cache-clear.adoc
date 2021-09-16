@@ -4,7 +4,7 @@
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
 :revnumber: 
-:manmanual: Jbang Manual
+:manmanual: JBang Manual
 :mansource: 
 :man-linkstyle: pass:[blue R < >]
 = jbang-cache-clear(1)

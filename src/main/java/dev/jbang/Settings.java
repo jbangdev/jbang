@@ -51,7 +51,7 @@ public class Settings {
 		}
 
 		if (init)
-			setupJbangDir(dir);
+			setupJBangDir(dir);
 
 		return dir;
 	}
@@ -72,7 +72,7 @@ public class Settings {
 		return getConfigDir(true).resolve(EDITOR_DIR);
 	}
 
-	public static void setupJbangDir(Path dir) {
+	public static void setupJBangDir(Path dir) {
 		// create JBang configuration dir if it does not yet exist
 		dir.toFile().mkdirs();
 	}
