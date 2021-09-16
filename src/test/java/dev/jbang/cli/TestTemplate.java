@@ -157,7 +157,7 @@ public class TestTemplate extends BaseTest {
 	void testAddFailAbsolute() throws IOException {
 		Path cwd = Util.getCwd();
 		Path testFile = Files.createFile(cwd.resolve("file1.java"));
-		int result = JBang.getCommandLine()
+		int result = JBang	.getCommandLine()
 							.execute("template", "add", "-f", cwd.toString(), "--name=name",
 									"/test=" + testFile.toString());
 		assertThat(result, is(2));
@@ -167,7 +167,7 @@ public class TestTemplate extends BaseTest {
 	void testAddFailParent() throws IOException {
 		Path cwd = Util.getCwd();
 		Path testFile = Files.createFile(cwd.resolve("file1.java"));
-		int result = JBang.getCommandLine()
+		int result = JBang	.getCommandLine()
 							.execute("template", "add", "-f", cwd.toString(), "--name=name",
 									"test/../..=" + testFile.toString());
 		assertThat(result, is(2));
@@ -177,7 +177,7 @@ public class TestTemplate extends BaseTest {
 	void testAddFailNoTargetPattern() throws IOException {
 		Path cwd = Util.getCwd();
 		Path testFile = Files.createFile(cwd.resolve("file1.java"));
-		int result = JBang.getCommandLine()
+		int result = JBang	.getCommandLine()
 							.execute("template", "add", "-f", cwd.toString(), "--name=name",
 									"test=" + testFile.toString());
 		assertThat(result, is(2));
