@@ -31,7 +31,9 @@ public class TestInit extends BaseTest {
 	@Test
 	void testInit(@TempDir Path outputDir) throws IOException {
 		Path out = outputDir.resolve("test.java");
-		new Init().renderQuteTemplate(out, "init-hello.java.qute");
+		HashMap<String, Object> props = new HashMap<>();
+		props.put("baseName", "test");
+		new Init().renderQuteTemplate(out, "init-hello.java.qute", props);
 		assertThat(Util.readString(out), Matchers.containsString("class test"));
 	}
 
@@ -145,8 +147,8 @@ public class TestInit extends BaseTest {
 		assertThat(outFile.resolveSibling(outName).toFile(), aReadableFile());
 		Path f2 = outFile.resolveSibling("file2.java");
 		assertThat(f2.toFile(), aReadableFile());
-		String assertInit = Util.base(outFile.toString());
-		assertThat(Util.readString(f2), Matchers.containsString("// file2 with " + outFile));
+		String baseName = Util.getBaseName(Paths.get(initName).getFileName().toString());
+		assertThat(Util.readString(f2), Matchers.containsString("// " + baseName + " with " + outFile));
 		assertThat(outFile.resolveSibling("file3.md").toFile(), aReadableFile());
 
 	}
