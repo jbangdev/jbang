@@ -2,7 +2,7 @@
 
 #
 # To run this script remotely type this in your PowerShell
-# (where <args>... are the arguments you want to pass to Jbang):
+# (where <args>... are the arguments you want to pass to JBang):
 #   iex "& { $(iwr https://ps.jbang.dev) } <args>..."
 #
 # An alternative way is to type:

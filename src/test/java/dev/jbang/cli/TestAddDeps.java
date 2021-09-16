@@ -101,7 +101,7 @@ class TestAddDeps extends BaseTest {
 
 		Util.writeString(pom.toPath(), example);
 
-		List<MavenCoordinate> result = Jbang.findDeps(pom);
+		List<MavenCoordinate> result = JBang.findDeps(pom);
 
 		assertThat(result.stream().map(MavenCoordinate::toCanonicalForm).collect(Collectors.toList()),
 				containsInAnyOrder("org.projectlombok:lombok:jar:1.18.10", "info.picocli:picocli:jar:4.5.0"));

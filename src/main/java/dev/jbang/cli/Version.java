@@ -23,16 +23,16 @@ public class Version extends BaseCommand {
 		if (update) {
 			if (VersionChecker.updateOrInform(checkForUpdate)) {
 				try {
-					AppInstall.installJbang(true);
+					AppInstall.installJBang(true);
 				} catch (IOException e) {
 					throw new ExitException(EXIT_INTERNAL_ERROR, "Could not install command", e);
 				}
 			}
 		} else if (checkForUpdate) {
-			System.out.println(Util.getJbangVersion());
+			System.out.println(Util.getJBangVersion());
 			VersionChecker.checkNowAndInform();
 		} else {
-			System.out.println(Util.getJbangVersion());
+			System.out.println(Util.getJBangVersion());
 		}
 
 		if (isVerbose()) {

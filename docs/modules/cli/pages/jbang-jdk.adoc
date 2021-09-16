@@ -4,7 +4,7 @@
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
 :revnumber: 
-:manmanual: Jbang Manual
+:manmanual: JBang Manual
 :mansource: 
 :man-linkstyle: pass:[blue R < >]
 = jbang-jdk(1)
@@ -56,7 +56,7 @@ Manage Java Development Kits installed by jbang.
 == Commands
 
 xref:jbang-jdk-default.adoc[*default*]::
-  Sets the default JDK to be used by Jbang.
+  Sets the default JDK to be used by JBang.
 
 xref:jbang-jdk-home.adoc[*home*]::
   Returns the folder where the given JDK is installed.

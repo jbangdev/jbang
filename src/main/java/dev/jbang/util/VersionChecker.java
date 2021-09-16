@@ -25,7 +25,7 @@ public class VersionChecker {
 	private static boolean informed = false;
 
 	/**
-	 * Check if a new Jbang version is available and if so notify the user. This
+	 * Check if a new JBang version is available and if so notify the user. This
 	 * code will block while doing the check.
 	 */
 	public static void checkNowAndInform() {
@@ -50,7 +50,7 @@ public class VersionChecker {
 	 */
 	public static boolean updateOrInform(boolean checkForUpdate) {
 		try {
-			if (Util.runningManagedJbang()) {
+			if (Util.runningManagedJBang()) {
 				String latestVersion = retrieveLatestVersionAsync().get();
 				if (!checkForUpdate || isNewer(latestVersion)) {
 					return true;
@@ -73,7 +73,7 @@ public class VersionChecker {
 	}
 
 	/**
-	 * Asynchronously retrieve the latest Jbang version number but only if enough
+	 * Asynchronously retrieve the latest JBang version number but only if enough
 	 * time has passed since the last time we checked. The result of this function
 	 * can be used together with `showMessage()` to inform the user.
 	 * 
@@ -88,7 +88,7 @@ public class VersionChecker {
 	}
 
 	/**
-	 * Inform the user if the future returned a newer Jbang version number, or
+	 * Inform the user if the future returned a newer JBang version number, or
 	 * cancel the Future if it isn't done yet.
 	 */
 	public static void informOrCancel(Future<String> versionCheckResult) {
@@ -124,9 +124,9 @@ public class VersionChecker {
 
 	private static void showMessage(String latestVersion) {
 		Util.infoMsg("There is a new version of jbang available!");
-		Util.infoMsg("You have version " + Util.getJbangVersion()
+		Util.infoMsg("You have version " + Util.getJBangVersion()
 				+ " and " + latestVersion + " is the latest.");
-		if (Util.runningManagedJbang()) {
+		if (Util.runningManagedJBang()) {
 			Util.infoMsg("Run 'jbang version --update' to update to the latest version.");
 		} else {
 			showManualInstallMessage();
@@ -158,11 +158,11 @@ public class VersionChecker {
 	}
 
 	/**
-	 * Checks if we're running the latest version of Jbang by comparing its version
+	 * Checks if we're running the latest version of JBang by comparing its version
 	 * against the latest version on GitHub.
 	 */
 	private static boolean isNewer(String latestVersion) {
-		return (latestVersion != null && compareVersions(latestVersion, Util.getJbangVersion()) > 0);
+		return (latestVersion != null && compareVersions(latestVersion, Util.getJBangVersion()) > 0);
 	}
 
 	private static Future<String> retrieveLatestVersionAsync() {
@@ -172,7 +172,7 @@ public class VersionChecker {
 		return versionCheckResult;
 	}
 
-	// Determines and returns the latest Jbang version from GitHub
+	// Determines and returns the latest JBang version from GitHub
 	private static String retrieveLatestVersion() throws IOException {
 		Path versionFile = Util.downloadFile(jbangVersionUrl, Settings.getCacheDir().toFile(), CONNECT_TIMEOUT);
 		List<String> lines = Files.readAllLines(versionFile);

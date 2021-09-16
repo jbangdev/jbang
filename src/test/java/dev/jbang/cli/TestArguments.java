@@ -22,12 +22,12 @@ class TestArguments extends BaseTest {
 
 	@BeforeEach
 	void setup() {
-		cli = Jbang.getCommandLine();
+		cli = JBang.getCommandLine();
 	}
 
 	@Test
 	public void testHelpSections() {
-		Jbang.getCommandRenderer().validate(Jbang.getCommandLine().getHelp());
+		JBang.getCommandRenderer().validate(JBang.getCommandLine().getHelp());
 	}
 
 	@Test

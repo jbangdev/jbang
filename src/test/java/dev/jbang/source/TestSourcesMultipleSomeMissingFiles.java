@@ -29,7 +29,7 @@ class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 			+ "    \n"
 			+ "    public static void main(String args[]) {\n"
 			+ "        new B();\n"
-			+ "		   new HiJbang();\n"
+			+ "		   new HiJBang();\n"
 			+ "    }\n"
 			+ "}\n";
 
@@ -56,12 +56,12 @@ class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 			+ "        }\n"
 			+ "}\n";
 
-	String classHiJbang = "//SOURCES inner/HelloInner.java\n"
+	String classHiJBang = "//SOURCES inner/HelloInner.java\n"
 			+ "\n"
-			+ "public class HiJbang {\n"
+			+ "public class HiJBang {\n"
 			+ "    \n"
-			+ "	public HiJbang() {\n"
-			+ "		System.out.println(\"HiJbang constructor.\");\n"
+			+ "	public HiJBang() {\n"
+			+ "		System.out.println(\"HiJBang constructor.\");\n"
 			+ "		new HelloInner();\n"
 			+ "	}\n"
 			+ "}\n";
@@ -81,7 +81,7 @@ class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 	 */
 	@Test
 	void testFindSourcesInMultipleFilesSymbolicLinkMissing() throws IOException {
-		Path HiJBangPath = TestScript.createTmpFileWithContent("", "HiJbang.java", classHiJbang);
+		Path HiJBangPath = TestScript.createTmpFileWithContent("", "HiJBang.java", classHiJBang);
 		Path mainPath = TestScript.createTmpFile("somefolder", "A.java");
 		// Add absolute path in //SOURCES
 		final String mainClass = "//SOURCES " + HiJBangPath.toString() + "\n" + classA;
@@ -115,7 +115,7 @@ class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 		assertEquals(fileNames.pollFirst(), "B.java");
 		assertEquals(fileNames.pollFirst(), "C.java");
 		assertEquals(fileNames.pollFirst(), "HelloInner.java");
-		assertEquals(fileNames.pollFirst(), "HiJbang.java");
+		assertEquals(fileNames.pollFirst(), "HiJBang.java");
 	}
 
 	/**
@@ -126,7 +126,7 @@ class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 	 */
 	@Test
 	void testFindSourcesInMultipleFilesSimpleFileMissing() throws IOException {
-		Path HiJBangPath = TestScript.createTmpFileWithContent("", "HiJbang.java", classHiJbang);
+		Path HiJBangPath = TestScript.createTmpFileWithContent("", "HiJBang.java", classHiJBang);
 		Path mainPath = TestScript.createTmpFile("somefolder", "A.java");
 		// Add absolute path in //SOURCES
 		final String mainClass = "//SOURCES " + HiJBangPath.toString() + "\n" + classA;

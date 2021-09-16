@@ -62,7 +62,7 @@ That pattern is the part of the name that will be replaced with the name that yo
 (if you type `jbang init helloworld.java` any occurrence of `\{filename}` would be replaced with `helloworld.java`,
 while any occurrence of `\{basename}` would be replaced with `helloworld`).
 
-If you don't specify a "target patterns" for any of the file Jbang will try to pick one for you.
+If you don't specify a "target patterns" for any of the file JBang will try to pick one for you.
 Basically if the first file you specify doesn't have a target it will use that and add a pattern.
 You will see something like this if it was successful:
 

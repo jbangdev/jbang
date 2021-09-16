@@ -41,7 +41,7 @@ public class TestEdit extends BaseTest {
 	void testEdit(@TempDir Path outputDir) throws IOException {
 
 		String s = outputDir.resolve("edit.java").toString();
-		Jbang.getCommandLine().execute("init", s);
+		JBang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
 		RunContext ctx = RunContext.empty();
@@ -79,7 +79,7 @@ public class TestEdit extends BaseTest {
 
 		Path p = outputDir.resolve("edit.java");
 		String s = p.toString();
-		Jbang.getCommandLine().execute("init", s);
+		JBang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
 		Util.writeString(p, "//DEPS org.openjfx:javafx-graphics:11.0.2${bougus:}\n" + Util.readString(p));
@@ -112,7 +112,7 @@ public class TestEdit extends BaseTest {
 
 		Path p = outputDir.resolve("edit.java");
 		String s = p.toString();
-		Jbang.getCommandLine().execute("init", s);
+		JBang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
 		Util.writeString(p, "//DEPS io.quarkus:quarkus-bom:2.0.0.Final@pom\n" +
@@ -147,7 +147,7 @@ public class TestEdit extends BaseTest {
 
 		Path p = outputDir.resolve("edit.java");
 		String s = p.toString();
-		Jbang.getCommandLine().execute("init", s);
+		JBang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
 		Util.writeString(p, "//DEPS https://github.com/oldskoolsh/libvirt-schema/tree/0.0.2\n" + Util.readString(p));
@@ -192,7 +192,7 @@ public class TestEdit extends BaseTest {
 	@Test
 	void testEditNonJava(@TempDir Path outputDir) throws IOException {
 		Path p = outputDir.resolve("kube-example");
-		int result = Jbang.getCommandLine().execute("init", p.toString());
+		int result = JBang.getCommandLine().execute("init", p.toString());
 		String s = p.toString();
 		assertThat(result, is(0));
 		assertThat(new File(s).exists(), is(true));

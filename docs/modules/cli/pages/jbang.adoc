@@ -4,7 +4,7 @@
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
 :revnumber: 0.71.1.26
-:manmanual: Jbang Manual
+:manmanual: JBang Manual
 :mansource: 0.71.1.26
 :man-linkstyle: pass:[blue R < >]
 = jbang(1)

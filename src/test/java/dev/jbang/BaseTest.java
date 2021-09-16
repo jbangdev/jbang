@@ -20,7 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.cli.BaseCommand;
-import dev.jbang.cli.Jbang;
+import dev.jbang.cli.JBang;
 import dev.jbang.cli.TestRun;
 import dev.jbang.util.Util;
 
@@ -58,7 +58,7 @@ public abstract class BaseTest {
 	public Path cwdDir;
 
 	protected <T> ExecutionResult checkedRun(Function<T, Integer> commandRunner, String... args) throws IOException {
-		Jbang jbang = new Jbang();
+		JBang jbang = new JBang();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs(args);
 		while (pr.subcommand() != null) {
 			pr = pr.subcommand();

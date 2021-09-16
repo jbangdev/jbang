@@ -115,7 +115,7 @@ public class Jdk {
 		return home;
 	}
 
-	@CommandLine.Command(name = "default", description = "Sets the default JDK to be used by Jbang.")
+	@CommandLine.Command(name = "default", description = "Sets the default JDK to be used by JBang.")
 	public Integer defaultJdk(
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version of the JDK to select", arity = "0..1") Integer version)
 			throws IOException {

@@ -59,7 +59,7 @@ public class TestCatalog extends BaseTest {
 
 	@Test
 	void testAddInvalidName() throws IOException {
-		Jbang jbang = new Jbang();
+		JBang jbang = new JBang();
 		new CommandLine(jbang).execute("catalog", "add", "--name=invalid!", "dummy");
 	}
 
@@ -72,7 +72,7 @@ public class TestCatalog extends BaseTest {
 
 	@Test
 	void testUpdate() throws IOException {
-		Jbang jbang = new Jbang();
+		JBang jbang = new JBang();
 		new CommandLine(jbang).execute("catalog", "update");
 	}
 
