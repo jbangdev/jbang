@@ -9,7 +9,7 @@ set os=windows
 set arch=x64
 
 set jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.zip"
-set jdkurl="https://api.adoptopenjdk.net/v3/binary/latest/%javaVersion%/ga/%os%/%arch%/jdk/hotspot/normal/adoptopenjdk"
+set jdkurl="https://api.foojay.io/disco/v2.0/directuris?distro=aoj&libc_type=libc&archive_type=zip&operating_system=%os%&package_type=jdk&version=%javaVersion%&release_status=ga&architecture=%arch%&latest=available"
 
 if "%JBANG_DIR%"=="" (set JBDIR=%userprofile%\.jbang) else (set JBDIR=%JBANG_DIR%)
 if "%JBANG_CACHE_DIR%"=="" (set TDIR=%JBDIR%\cache) else (set TDIR=%JBANG_CACHE_DIR%)

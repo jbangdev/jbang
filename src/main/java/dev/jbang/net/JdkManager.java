@@ -3,9 +3,13 @@ package dev.jbang.net;
 import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -22,6 +26,77 @@ import dev.jbang.util.Util;
 
 public class JdkManager {
 	private static final String JDK_DOWNLOAD_URL = "https://api.adoptopenjdk.net/v3/binary/latest/%d/ga/%s/%s/jdk/hotspot/normal/%s";
+
+	private static final String FOOJAY_JDK_DOWNLOAD_URL = "https://api.foojay.io/disco/v2.0/directuris?";
+
+	static Map<String, String> parameters(int version, Util.Vendor distro, String arch, String archiveType, String os) {
+
+		Map<String, String> param = new HashMap<>();
+		param.put("version", String.valueOf(version));
+
+		if (distro == null) {
+			if (version == 8 || version == 11 || version > 17) {
+				distro = Util.Vendor.termurin;
+			} else {
+				distro = Util.Vendor.adoptopenjdk;
+			}
+		}
+		param.put("distro", distro.foojayname());
+
+		if (archiveType == null) {
+			if ("windows".equals(os)) {
+				archiveType = "zip";
+			} else {
+				archiveType = "tar.gz";
+			}
+		}
+
+		param.put("archive_type", archiveType);
+
+		param.put("architecture", arch);
+		param.put("package_type", "jdk");
+		param.put("operating_system", os);
+
+		if ("windows".equals(os)) {
+			param.put("libc_type", "c_std_lib");
+		} else if (os.equals("mac")) {
+			param.put("libc_type", "libc");
+		} else {
+			param.put("libc_type", "glibc");
+		}
+
+		param.put("release_status", "ga");
+		param.put("javafx_bundled", "false");
+		param.put("latest", "available");
+
+		return param;
+	}
+
+	private static String getJDKUrl(int version, String os, String architecture, Util.Vendor vendor) {
+		String url = FOOJAY_JDK_DOWNLOAD_URL + urlEncodeUTF8(parameters(version, vendor, architecture, null, os));
+		return url;
+	}
+
+	static String urlEncodeUTF8(String s) {
+		try {
+			return URLEncoder.encode(s, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			throw new UnsupportedOperationException(e);
+		}
+	}
+
+	static String urlEncodeUTF8(Map<?, ?> map) {
+		StringBuilder sb = new StringBuilder();
+		for (Map.Entry<?, ?> entry : map.entrySet()) {
+			if (sb.length() > 0) {
+				sb.append("&");
+			}
+			sb.append(String.format("%s=%s",
+					urlEncodeUTF8(entry.getKey().toString()),
+					urlEncodeUTF8(entry.getValue().toString())));
+		}
+		return sb.toString();
+	}
 
 	public static Path getCurrentJdk(String requestedVersion) {
 		int currentVersion = JavaUtil.determineJavaVersion();
@@ -50,8 +125,8 @@ public class JdkManager {
 
 	public static Path downloadAndInstallJdk(int version) {
 		Util.infoMsg("Downloading JDK " + version + ". Be patient, this can take several minutes...");
-		String url = String.format(JDK_DOWNLOAD_URL, version, Util.getOS().name(), Util.getArch().name(),
-				Util.getVendor().name());
+		String url = getJDKUrl(version, Util.getOS().name(), Util.getArch().name(),
+				Util.getVendor());
 		Util.verboseMsg("Downloading " + url);
 		Path jdkDir = getJdkPath(version);
 		Path jdkTmpDir = jdkDir.getParent().resolve(jdkDir.getFileName().toString() + ".tmp");
