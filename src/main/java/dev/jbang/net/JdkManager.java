@@ -21,7 +21,7 @@ import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
 
 public class JdkManager {
-	private static final String JDK_DOWNLOAD_URL = "https://api.adoptopenjdk.net/v3/binary/latest/%d/ga/%s/%s/jdk/hotspot/normal/%s";
+	private static final String JDK_DOWNLOAD_URL = "https://api.adoptium.net/v3/binary/latest/%d/ga/%s/%s/jdk/hotspot/normal/%s";
 
 	public static Path getCurrentJdk(String requestedVersion) {
 		int currentVersion = JavaUtil.determineJavaVersion();

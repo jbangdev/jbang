@@ -148,7 +148,7 @@ if [[ -z "$JAVA_EXEC" ]]; then
       fi
       mkdir -p "$TDIR/jdks"
       echo "Downloading JDK $javaVersion. Be patient, this can take several minutes..." 1>&2
-      jdkurl="https://api.adoptopenjdk.net/v3/binary/latest/$javaVersion/ga/$os/$arch/jdk/hotspot/normal/adoptopenjdk"
+      jdkurl="https://api.adoptium.net/v3/binary/latest/$javaVersion/ga/$os/$arch/jdk/hotspot/normal/adoptopenjdk"
       download $jdkurl "$TDIR/bootstrap-jdk.tgz"
       if [ $retval -ne 0 ]; then echo "Error downloading JDK" 1>&2; exit $retval; fi
       echo "Installing JDK $javaVersion..." 1>&2

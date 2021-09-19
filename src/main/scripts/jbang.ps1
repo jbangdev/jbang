@@ -115,7 +115,7 @@ if ($JAVA_EXEC -eq "") {
       # If not, download and install it
       New-Item -ItemType Directory -Force -Path "$TDIR\jdks" >$null 2>&1
       [Console]::Error.WriteLine("Downloading JDK $javaVersion. Be patient, this can take several minutes...")
-      $jdkurl="https://api.adoptopenjdk.net/v3/binary/latest/$javaVersion/ga/$os/$arch/jdk/hotspot/normal/adoptopenjdk"
+      $jdkurl="https://api.adoptium.net/v3/binary/latest/$javaVersion/ga/$os/$arch/jdk/hotspot/normal/adoptopenjdk"
       try { Invoke-WebRequest "$jdkurl" -OutFile "$TDIR\bootstrap-jdk.zip"; $ok=$? } catch { $ok=$false }
       if (-not ($ok)) { [Console]::Error.WriteLine("Error downloading JDK"); break }
       [Console]::Error.WriteLine("Installing JDK $javaVersion...")
