@@ -44,8 +44,16 @@ jobs:
         env:
           JRELEASER_PROJECT_VERSION: ${{steps.version.outputs.RELEASE_VERSION}}
         with:
-          version: early-access
+          version: 0.6.0
           arguments: publish
+      - name: JReleaser output
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: jreleaser-publish
+          path: |
+            out/jreleaser/trace.log
+            out/jreleaser/output.properties
       - name: spec
         continue-on-error: true
         env:
@@ -58,13 +66,13 @@ jobs:
         env:
           JRELEASER_PROJECT_VERSION: ${{steps.version.outputs.RELEASE_VERSION}}
         with:
-          version: early-access
+          version: 0.6.0
           arguments: announce
       - name: JReleaser output
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: sdkman-jreleaser
+          name: jreleaser-announce
           path: |
             out/jreleaser/trace.log
             out/jreleaser/output.properties

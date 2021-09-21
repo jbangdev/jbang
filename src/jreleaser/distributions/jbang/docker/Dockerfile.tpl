@@ -10,9 +10,10 @@ LABEL {{.}}
 
 COPY assembly/* /
 
-RUN unzip {{distributionArtifactFileName}} && \
+RUN jar xf {{distributionArtifactFileName}} && \
     rm {{distributionArtifactFileName}} && \
-    chmod +x {{distributionArtifactName}}/bin/{{distributionExecutable}}
+    mv jbang-* jbang && \
+    chmod +x jbang/bin/jbang
 
 {{#dockerPostCommands}}
 {{.}}
@@ -20,4 +21,16 @@ RUN unzip {{distributionArtifactFileName}} && \
 
 ENV PATH="${PATH}:/{{distributionArtifactName}}/bin"
 
-ENTRYPOINT ["/{{distributionArtifactName}}/bin/{{distributionExecutable}}"]
+ADD ./entrypoint /bin/entrypoint
+
+ENV SCRIPTS_HOME /scripts
+ENV JBANG_VERSION {{projectVersion}}
+
+VOLUME /scripts
+
+ENV PATH="${PATH}:/jbang/bin"
+
+## github action does not allow writing to $HOME thus routing this elsewhere
+ENV JBANG_DIR="/jbang/.jbang"
+
+ENTRYPOINT ["entrypoint"]

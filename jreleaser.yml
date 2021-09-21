@@ -108,7 +108,7 @@ files:
 distributions:
   jbang:
     docker:  ## not ready to release this way.
-      active: never
+      active: release
       continueOnError: true
       postCommands:
         - "VOLUME /scripts"
@@ -116,7 +116,7 @@ distributions:
       repository:
         name: jbang-action
     sdkman:
-      active: never
+      active: release
       continueOnError: true
     brew:
       active: release
