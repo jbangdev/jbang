@@ -44,6 +44,7 @@ if (-not (Test-Path env:JBANG_DEFAULT_JAVA_VERSION)) { $javaVersion='11' } else 
 
 $os='windows'
 $arch='x64'
+$libc_type='c_std_lib'
 
 if (-not (Test-Path env:JBANG_DIR)) { $JBDIR="$env:userprofile\.jbang" } else { $JBDIR=$env:JBANG_DIR }
 if (-not (Test-Path env:JBANG_CACHE_DIR)) { $TDIR="$JBDIR\cache" } else { $TDIR=$env:JBANG_CACHE_DIR }
@@ -115,7 +116,7 @@ if ($JAVA_EXEC -eq "") {
       # If not, download and install it
       New-Item -ItemType Directory -Force -Path "$TDIR\jdks" >$null 2>&1
       [Console]::Error.WriteLine("Downloading JDK $javaVersion. Be patient, this can take several minutes...")
-      $jdkurl="https://api.adoptopenjdk.net/v3/binary/latest/$javaVersion/ga/$os/$arch/jdk/hotspot/normal/adoptopenjdk"
+      $jdkurl="https://api.foojay.io/disco/v2.0/directuris?distro=aoj&libc_type=$libc_type&archive_type=zip&operating_system=$os&package_type=jdk&version=$javaVersion&release_status=ga&architecture=$arch&latest=available"
       try { Invoke-WebRequest "$jdkurl" -OutFile "$TDIR\bootstrap-jdk.zip"; $ok=$? } catch { $ok=$false }
       if (-not ($ok)) { [Console]::Error.WriteLine("Error downloading JDK"); break }
       [Console]::Error.WriteLine("Installing JDK $javaVersion...")

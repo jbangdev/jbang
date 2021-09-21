@@ -251,7 +251,21 @@ public class Util {
 	}
 
 	public enum Vendor {
-		adoptopenjdk, openjdk
+		adoptopenjdk {
+			public String foojayname() {
+				return "aoj";
+			}
+		},
+		openjdk {
+			public String foojayname() {
+				return "oracle_open_jdk";
+			}
+		},
+		termurin;
+
+		public String foojayname() {
+			return name();
+		}
 	}
 
 	static public void verboseMsg(String msg) {
@@ -561,7 +575,7 @@ public class Util {
 					url = new URL(url, location);
 					url = new URL(swizzleURL(url.toString()));
 					fileURL = url.toExternalForm();
-					// info("Redirecting to: " + url); // Should be debug info
+					Util.verboseMsg("Redirected to: " + url); // Should be debug info
 					urlConnection = url.openConnection();
 					continue;
 				}
@@ -592,7 +606,8 @@ public class Util {
 				 */
 
 			} else {
-				throw new FileNotFoundException("No file to download. Server replied HTTP code: " + responseCode);
+				throw new FileNotFoundException(
+						"No file to download at " + fileURL + ". Server replied HTTP code: " + responseCode);
 			}
 		} else {
 			fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1);
@@ -870,9 +885,11 @@ public class Util {
 		return fileName.toString();
 	}
 
-	static String readStringFromURL(String requestURL, Map<String, String> headers) throws IOException {
+	public static String readStringFromURL(String requestURL, Map<String, String> headers) throws IOException {
 		URLConnection connection = new URL(requestURL).openConnection();
-		headers.forEach(connection::setRequestProperty);
+		if (headers != null) {
+			headers.forEach(connection::setRequestProperty);
+		}
 		try (Scanner scanner = new Scanner(connection.getInputStream(),
 				StandardCharsets.UTF_8.toString())) {
 			scanner.useDelimiter("\\A");

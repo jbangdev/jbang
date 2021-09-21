@@ -41,6 +41,9 @@ download() {
 
 abs_jbang_dir=$(dirname $(resolve_symlink $(absolute_path $0)))
 
+# todo might vary by os so can be overwritten below
+libc_type=glibc
+
 case "$(uname -s)" in
   Linux*)
     os=linux
@@ -50,9 +53,11 @@ case "$(uname -s)" in
     fi
     ;;
   Darwin*)
-    os=mac;;
+    os=mac
+    libc_type=libc;;
   CYGWIN*|MINGW*|MSYS*)
-    os=windows;;
+    os=windows
+    libc_type=c_std_lib;;
   AIX)
     os=aix;;
   *)
@@ -148,7 +153,7 @@ if [[ -z "$JAVA_EXEC" ]]; then
       fi
       mkdir -p "$TDIR/jdks"
       echo "Downloading JDK $javaVersion. Be patient, this can take several minutes..." 1>&2
-      jdkurl="https://api.adoptopenjdk.net/v3/binary/latest/$javaVersion/ga/$os/$arch/jdk/hotspot/normal/adoptopenjdk"
+      jdkurl="https://api.foojay.io/disco/v2.0/directuris?distro=aoj&libc_type=$libc_type&archive_type=zip&operating_system=$os&package_type=jdk&version=$javaVersion&release_status=ga&architecture=$arch&latest=available"
       download $jdkurl "$TDIR/bootstrap-jdk.tgz"
       if [ $retval -ne 0 ]; then echo "Error downloading JDK" 1>&2; exit $retval; fi
       echo "Installing JDK $javaVersion..." 1>&2

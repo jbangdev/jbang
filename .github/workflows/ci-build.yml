@@ -8,6 +8,12 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        default: false
 
 jobs:
   updatewebsite:
@@ -37,6 +43,11 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     name: build-and-testing
     steps:
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
+        with:
+          limit-access-to-actor: true
       - uses: actions/checkout@v1
       - uses: actions/cache@v1
         with:
