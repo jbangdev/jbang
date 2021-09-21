@@ -104,7 +104,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           powershell
-          dotnet nuget add source -username maxandersen --password $GITHUB_TOKEN --store-password-in-clear-text --name github "https://nuget.pkg.github.com/maxandersen/index.json"
+          dotnet nuget source add -username maxandersen --password $GITHUB_TOKEN --store-password-in-clear-text --name github "https://nuget.pkg.github.com/maxandersen/index.json"
           dotnet nuget push $(ls *.nupkg | % {$_.FullName}) --source github
       - name: choco-publish
         continue-on-error: true
