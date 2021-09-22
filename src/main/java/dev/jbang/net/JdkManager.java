@@ -25,7 +25,6 @@ import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
 
 public class JdkManager {
-	private static final String JDK_DOWNLOAD_URL = "https://api.adoptopenjdk.net/v3/binary/latest/%d/ga/%s/%s/jdk/hotspot/normal/%s";
 
 	private static final String FOOJAY_JDK_DOWNLOAD_URL = "https://api.foojay.io/disco/v2.0/directuris?";
 
@@ -36,7 +35,7 @@ public class JdkManager {
 
 		if (distro == null) {
 			if (version == 8 || version == 11 || version > 17) {
-				distro = Util.Vendor.termurin;
+				distro = Util.Vendor.temurin;
 			} else {
 				distro = Util.Vendor.adoptopenjdk;
 			}
