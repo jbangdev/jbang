@@ -4,7 +4,7 @@
   <metadata>
     <id>jbang</id>
     <version>@projectVersion@</version>
-    <title>j'bang</title>
+    <title>JBang</title>
     <authors>Max Rydahl Andersen</authors>
     <projectUrl>https://github.com/jbangdev/jbang</projectUrl>
     <copyright>2020 Max Rydahl Andersen</copyright>
