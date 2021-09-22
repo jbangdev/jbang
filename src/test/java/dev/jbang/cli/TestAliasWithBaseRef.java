@@ -5,7 +5,6 @@ import static org.hamcrest.Matchers.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,7 +42,6 @@ public class TestAliasWithBaseRef extends BaseTest {
 
 	@Test
 	void testGetAliasOne() throws IOException {
-		Path cwd = Util.getCwd();
 		Alias alias = Alias.get("one");
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("foo"));
@@ -52,7 +50,6 @@ public class TestAliasWithBaseRef extends BaseTest {
 
 	@Test
 	void testGetAliasTwo() throws IOException {
-		Path cwd = Util.getCwd();
 		Alias alias = Alias.get("two");
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("foo/bar.java"));
@@ -61,7 +58,6 @@ public class TestAliasWithBaseRef extends BaseTest {
 
 	@Test
 	void testGetAliasThree() throws IOException {
-		Path cwd = Util.getCwd();
 		Alias alias = Alias.get("three");
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy/baz.java"));
@@ -70,7 +66,6 @@ public class TestAliasWithBaseRef extends BaseTest {
 
 	@Test
 	void testGetAliasGav() throws IOException {
-		Path cwd = Util.getCwd();
 		Alias alias = Alias.get("gav");
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("org.example:artifact:version"));
