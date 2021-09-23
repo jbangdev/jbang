@@ -55,7 +55,7 @@ before `git push`:
 
 [source,shell]
 ----
-curl -o .git/hooks/pre-commit https://gist.githubusercontent.com/toefel18/23c8927e28b7e7cf600cb5cdd4d980e1/raw/163337f2ae596d4b3a55936c2652b1e8227db5b7/pre-commit && chmod +x ./.git/hooks/pre-commit
+curl -o .git/hooks/pre-commit https://gist.githubusercontent.com/toefel18/23c8927e28b7e7cf600cb5cdd4d980e1/raw/8636aa5dab09e1f34ba9b6b6544131f96a0112c0/pre-commit && chmod +x ./.git/hooks/pre-commit
 ----
 
 
