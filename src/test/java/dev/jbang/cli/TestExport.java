@@ -128,6 +128,7 @@ public class TestExport extends BaseTest {
 		File outFile = Settings.getLocalMavenRepo();
 		ExecutionResult result = checkedRun(null, "export", "mavenrepo", "--force",
 				examplesTestFolder.resolve("classpath_log.java").toString());
+		assertThat(result.exitCode, equalTo(BaseCommand.EXIT_OK));
 		assertThat(outFile.toPath().resolve("g/a/v/classpath_log/999-SNAPSHOT/classpath_log-999-SNAPSHOT.jar").toFile(),
 				anExistingFile());
 		assertThat(outFile.toPath().resolve("g/a/v/classpath_log/999-SNAPSHOT/classpath_log-999-SNAPSHOT.pom").toFile(),

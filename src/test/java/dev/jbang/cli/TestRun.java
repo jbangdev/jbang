@@ -654,11 +654,9 @@ public class TestRun extends BaseTest {
 
 		Util.writeString(f.toPath(), base);
 
-		Run m = new Run();
-
 		Source src = Source.forFile(f);
 		RunContext ctx = RunContext.empty();
-		src = m.build((ScriptSource) src, ctx);
+		src = BaseBuildCommand.build((ScriptSource) src, ctx);
 
 		assertThat(ctx.getMainClassOr(src), equalTo("aclass"));
 
@@ -705,12 +703,10 @@ public class TestRun extends BaseTest {
 
 		Util.writeString(f.toPath(), base);
 
-		Run m = new Run();
-
 		Source src = Source.forFile(f);
 		RunContext ctx = RunContext.empty();
 
-		src = m.build((ScriptSource) src, ctx);
+		src = BaseBuildCommand.build((ScriptSource) src, ctx);
 
 		assertThat(ctx.getMainClassOr(src), equalTo("dualclass"));
 
@@ -747,7 +743,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		Source src = Source.forResource(arg, ctx);
 
-		src = run.build((ScriptSource) src, ctx);
+		src = BaseBuildCommand.build((ScriptSource) src, ctx);
 
 		assertThat(ctx.getMainClassOr(src), equalTo("dualclass"));
 
@@ -996,7 +992,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		ScriptSource src = (ScriptSource) Source.forResource(p.toFile().getAbsolutePath(), ctx);
 
-		run.build(src, ctx);
+		BaseBuildCommand.build(src, ctx);
 
 		assertThat(src.isAgent(), is(true));
 
@@ -1025,7 +1021,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		ScriptSource src = (ScriptSource) Source.forResource(p.toFile().getAbsolutePath(), ctx);
 
-		run.build(src, ctx);
+		BaseBuildCommand.build(src, ctx);
 
 		assertThat(src.isAgent(), is(true));
 
@@ -1157,12 +1153,10 @@ public class TestRun extends BaseTest {
 	void testFilePresentB() throws IOException {
 		File f = examplesTestFolder.resolve("resource.java").toFile();
 
-		Run m = new Run();
-
 		RunContext ctx = RunContext.empty();
 		Source src = Source.forResource(f.getAbsolutePath(), ctx);
 
-		m.build((ScriptSource) src, ctx);
+		BaseBuildCommand.build((ScriptSource) src, ctx);
 
 		assertThat(ctx.getMainClassOr(src), equalTo("resource"));
 
@@ -1191,12 +1185,10 @@ public class TestRun extends BaseTest {
 		Cache.clearCache(Cache.CacheClass.jars);
 		File f = examplesTestFolder.resolve("one.java").toFile();
 
-		Run m = new Run();
-
 		RunContext ctx = RunContext.empty();
 		Source src = Source.forResource(f.getAbsolutePath(), ctx);
 
-		m.build((ScriptSource) src, ctx);
+		BaseBuildCommand.build((ScriptSource) src, ctx);
 
 		assertThat(ctx.getMainClassOr(src), equalTo("one"));
 
@@ -1251,13 +1243,12 @@ public class TestRun extends BaseTest {
 															" public static void hi() { System.out.println(\"hi\"); }" +
 															"}")));
 		wms.start();
-		Run m = new Run();
 
 		String url = "http://localhost:" + wms.port() + "/sub/one.java";
 		RunContext ctx = RunContext.empty();
 		Source src = Source.forResource(url, ctx);
 
-		m.build((ScriptSource) src, ctx);
+		BaseBuildCommand.build((ScriptSource) src, ctx);
 
 	}
 
@@ -1292,13 +1283,12 @@ public class TestRun extends BaseTest {
 													.withBody("<h1>Yay!</hi>")));
 
 		wms.start();
-		Run m = new Run();
 
 		String url = "http://localhost:" + wms.port() + "/sub/one.java";
 		RunContext ctx = RunContext.empty();
 		Source src = Source.forResource(url, ctx);
 
-		m.build((ScriptSource) src, ctx);
+		BaseBuildCommand.build((ScriptSource) src, ctx);
 
 		try (FileSystem fileSystem = FileSystems.newFileSystem(src.getJarFile().toPath(), null)) {
 			Arrays	.asList("one.class", "index.html")
@@ -1331,13 +1321,12 @@ public class TestRun extends BaseTest {
 															"}")));
 
 		wms.start();
-		Run m = new Run();
 
 		String url = "http://localhost:" + wms.port() + "/sub/one";
 		RunContext ctx = RunContext.empty();
 		Source src = Source.forResource(url, ctx);
 
-		m.build((ScriptSource) src, ctx);
+		BaseBuildCommand.build((ScriptSource) src, ctx);
 	}
 
 	@Test
@@ -1357,12 +1346,10 @@ public class TestRun extends BaseTest {
 
 		Util.writeString(f.toPath(), base);
 
-		Run m = new Run();
-
 		RunContext ctx = RunContext.empty();
 		Source src = Source.forResource(dir.toPath().toString(), ctx);
 
-		m.build((ScriptSource) src, ctx);
+		BaseBuildCommand.build((ScriptSource) src, ctx);
 
 	}
 
@@ -1390,13 +1377,12 @@ public class TestRun extends BaseTest {
 															"}")));
 
 		wms.start();
-		Run m = new Run();
 
 		String url = "http://localhost:" + wms.port() + "/sub/one/";
 		RunContext ctx = RunContext.empty();
 		Source src = Source.forResource(url, ctx);
 
-		m.build((ScriptSource) src, ctx);
+		BaseBuildCommand.build((ScriptSource) src, ctx);
 	}
 
 	@Test

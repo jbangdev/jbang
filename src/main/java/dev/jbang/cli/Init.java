@@ -88,10 +88,8 @@ public class Init extends BaseScriptCommand {
 			}
 		} catch (IOException e) {
 			// Clean up any files we already created
-			boolean first = true;
 			for (RefTarget refTarget : refTargets) {
 				Util.deletePath(refTarget.to(outDir), true);
-				first = false;
 			}
 		}
 

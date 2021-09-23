@@ -45,13 +45,6 @@ public class TestApp extends BaseTest {
 	private static final List<String> h2ps1Contents = Collections.singletonList(
 			"jbang run com.h2database:h2:1.4.200 $args");
 
-	private static final List<String> h2nativeShContents = Arrays.asList("#!/bin/sh",
-			"exec jbang run --native com.h2database:h2:1.4.200 \"$@\"");
-	private static final List<String> h2nativeCmdContents = Arrays.asList("@echo off",
-			"jbang run --native com.h2database:h2:1.4.200 %*");
-	private static final List<String> h2nativePs1Contents = Collections.singletonList(
-			"jbang run --native com.h2database:h2:1.4.200 $args");
-
 	@Test
 	void testAppInstallFile() throws IOException {
 		String src = examplesTestFolder.resolve("helloworld.java").toString();

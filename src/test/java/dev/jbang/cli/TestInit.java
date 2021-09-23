@@ -186,7 +186,7 @@ public class TestInit extends BaseTest {
 	@Test
 	void testProperties() throws IOException {
 		Path cwd = Util.getCwd();
-		Path f1 = Files.write(cwd.resolve("file1.java.qute"), "{prop1}{prop2}".getBytes());
+		Files.write(cwd.resolve("file1.java.qute"), "{prop1}{prop2}".getBytes());
 
 		Path out = cwd.resolve("result.java");
 		Map<String, Object> m = new HashMap<>();
@@ -206,9 +206,9 @@ public class TestInit extends BaseTest {
 		Path f1 = Files.write(cwd.resolve("file1.java.qute"), "{prop1}{prop2}".getBytes());
 		Path out = cwd.resolve("result.java");
 
-		int addResult = JBang	.getCommandLine()
-								.execute("template", "add", "-f", cwd.toString(), "--name=name",
-										"{filename}" + "=" + f1.toAbsolutePath().toString());
+		JBang	.getCommandLine()
+				.execute("template", "add", "-f", cwd.toString(), "--name=name",
+						"{filename}" + "=" + f1.toAbsolutePath().toString());
 
 		assertThat(out.toFile().exists(), not(true));
 
