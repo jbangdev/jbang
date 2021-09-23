@@ -261,7 +261,7 @@ public class Util {
 				return "oracle_open_jdk";
 			}
 		},
-		termurin;
+		temurin;
 
 		public String foojayname() {
 			return name();
@@ -420,7 +420,7 @@ public class Util {
 						+ Arrays.toString(Vendor.values()));
 			}
 		}
-		return Vendor.adoptopenjdk;
+		return null;
 	}
 
 	/**

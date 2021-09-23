@@ -35,8 +35,8 @@ public class JdkManager {
 		param.put("version", String.valueOf(version));
 
 		if (distro == null) {
-			if (version == 8 || version == 11 || version > 17) {
-				distro = Util.Vendor.termurin;
+			if (version == 8 || version == 11 || version >= 17) {
+				distro = Util.Vendor.temurin;
 			} else {
 				distro = Util.Vendor.adoptopenjdk;
 			}
