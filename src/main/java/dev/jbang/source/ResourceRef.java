@@ -171,6 +171,7 @@ public class ResourceRef implements Comparable<ResourceRef> {
 		try {
 			if (probe != null && probe.canRead()) {
 				if (!probe.getName().endsWith(".jar") && !probe.getName().endsWith(".java")
+						&& !probe.getName().endsWith(".kt")
 						&& !probe.getName().endsWith(".jsh")) {
 					if (probe.isDirectory()) {
 						File defaultApp = new File(probe, "main.java");
