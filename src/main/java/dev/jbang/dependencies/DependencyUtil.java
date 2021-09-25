@@ -294,7 +294,7 @@ public class DependencyUtil {
 	}
 
 	@SafeVarargs
-	public static List<String> joinClasspaths(List<String>... classpaths) {
+	public static List<ArtifactInfo> joinClasspaths(List<ArtifactInfo>... classpaths) {
 		return Stream	.of(classpaths)
 						.flatMap(x -> x.stream())
 						.distinct()

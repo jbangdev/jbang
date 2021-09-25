@@ -1208,9 +1208,7 @@ public class TestRun extends BaseTest {
 
 		}
 
-		assertThat("if fails then duplication of deps fixed", ctx.getClassPath().getArtifacts(), hasSize(14));
-		// should be assertThat("if fails then duplication of deps fixed",
-		// script.getClassPath().getArtifacts(), hasSize(7));
+		assertThat("duplication of deps fixed", ctx.getClassPath().getArtifacts(), hasSize(7));
 	}
 
 	@Test
@@ -1436,5 +1434,71 @@ public class TestRun extends BaseTest {
 		String line = run.generateCommandLine(Source.forResource(arg, ctx), ctx);
 
 		assertThat(line, containsString(" --show-version "));
+	}
+
+	@Test
+	void testJavaFXViaFileDeps() throws IOException {
+		JBang jbang = new JBang();
+
+		Path fileref = examplesTestFolder.resolve("SankeyPlotTestWithDeps.java").toAbsolutePath();
+
+		// todo fix so --deps can use system properties
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run",
+				fileref.toString());
+
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+		ctx.setMainClass("fakemain");
+		String line = run.generateCommandLine(Source.forResource(fileref.toString(), ctx), ctx);
+
+		assertThat(line, containsString("org/openjfx".replace("/", File.separator)));
+	}
+
+	@Test
+	void testJavaFXViaCommandLineDeps() throws IOException {
+		JBang jbang = new JBang();
+
+		Path fileref = examplesTestFolder.resolve("SankeyPlotTest.java").toAbsolutePath();
+
+		// todo fix so --deps can use system properties
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run",
+				"--deps", "org.openjfx:javafx-graphics:17:mac",
+				"--deps", "org.openjfx:javafx-controls:17:mac",
+				"--deps", "eu.hansolo.fx:charts:RELEASE",
+				fileref.toString());
+
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+		ctx.setMainClass("fakemain");
+		String line = run.generateCommandLine(Source.forResource(fileref.toString(), ctx), ctx);
+
+		assertThat(line, containsString("org/openjfx".replace("/", File.separator)));
+	}
+
+	@Test
+	void testJavaFXMagicPropertyViaCommandline() throws IOException {
+
+		JBang jbang = new JBang();
+
+		Path fileref = examplesTestFolder.resolve("SankeyPlotTest.java").toAbsolutePath();
+
+		// todo fix so --deps can use system properties
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run",
+				"--java", "11",
+				"--deps", "org.openjfx:javafx-graphics:17:${os.detected.jfxname}",
+				"--deps", "org.openjfx:javafx-controls:17:${os.detected.jfxname}",
+				"--deps", "eu.hansolo.fx:charts:RELEASE",
+				fileref.toString());
+
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+		ctx.setMainClass("fakemain");
+		String line = run.generateCommandLine(Source.forResource(fileref.toString(), ctx), ctx);
+
+		assertThat(line, containsString(" --module-path "));
+
 	}
 }

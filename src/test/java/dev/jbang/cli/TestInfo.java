@@ -54,7 +54,6 @@ public class TestInfo extends BaseTest {
 		assertThat(info.applicationJar, allOf(
 				containsString("quote.java."),
 				endsWith(".jar")));
-		assertThat(info.backingResource, equalTo(src));
 		assertThat(Integer.parseInt(info.javaVersion), greaterThan(0));
 		assertThat(info.mainClass, equalTo("quote"));
 		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(

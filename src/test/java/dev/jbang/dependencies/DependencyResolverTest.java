@@ -76,26 +76,28 @@ class DependencyResolverTest extends BaseTest {
 	@Test
 	void testdepIdWithPlaceHoldersToArtifact() {
 		Detector detector = new Detector();
-		detector.detect(new Properties(), Collections.emptyList());
+		Properties p = new Properties();
+		detector.detect(p, Collections.emptyList());
 
 		String gav = PropertiesValueResolver.replaceProperties(
-				"com.example:my-native-library:1.0.0:${os.detected.jfxname}");
+				"com.example:my-native-library:1.0.0:${os.detected.jfxname}", p);
 
 		MavenCoordinate artifact = DependencyUtil.depIdToArtifact(gav);
 		assertEquals("com.example", artifact.getGroupId());
 		assertEquals("my-native-library", artifact.getArtifactId());
 		assertEquals("1.0.0", artifact.getVersion());
-		assertEquals(System.getProperty("os.detected.jfxname"), artifact.getClassifier());
+		assertEquals(p.getProperty("os.detected.jfxname"), artifact.getClassifier());
 		assertEquals("jar", artifact.getType().getExtension());
 	}
 
 	@Test
 	void testResolveJavaFXWithAether() {
 		Detector detector = new Detector();
-		detector.detect(new Properties(), Collections.emptyList());
+		Properties p = new Properties();
+		detector.detect(p, Collections.emptyList());
 
 		List<String> deps = Collections.singletonList(
-				PropertiesValueResolver.replaceProperties("org.openjfx:javafx-base:11.0.2:${os.detected.jfxname}"));
+				PropertiesValueResolver.replaceProperties("org.openjfx:javafx-base:11.0.2:${os.detected.jfxname}", p));
 
 		List<ArtifactInfo> artifacts = DependencyUtil.resolveDependenciesViaAether(deps,
 				Collections.singletonList(toMavenRepo("mavencentral")), false,

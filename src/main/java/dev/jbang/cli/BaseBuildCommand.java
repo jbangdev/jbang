@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -90,9 +89,11 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 	static Source build(ScriptSource src, RunContext ctx) throws IOException {
 		Source result = src;
 
-		for (Map.Entry<String, String> entry : ctx.getProperties().entrySet()) {
-			System.setProperty(entry.getKey(), entry.getValue());
-		}
+		// todo: pass properties through instead of changing system properties
+		/*
+		 * for (Map.Entry<String, String> entry : ctx.getProperties().entrySet()) {
+		 * System.setProperty(entry.getKey(), entry.getValue()); }
+		 */
 
 		File outjar = src.getJarFile();
 		boolean nativeBuildRequired = ctx.isNativeImage() && !getImageName(outjar).exists();

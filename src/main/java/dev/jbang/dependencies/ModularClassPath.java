@@ -27,6 +27,8 @@ public class ModularClassPath {
 	static final String JAVAFX_PREFIX = "javafx";
 
 	private final List<ArtifactInfo> artifacts;
+	// raw entries provided via --cp/--class-path (not sure they should be here)
+	private final List<String> additionalClasspaths;
 
 	private List<String> classPaths;
 	private String classPath;
@@ -35,6 +37,12 @@ public class ModularClassPath {
 
 	public ModularClassPath(List<ArtifactInfo> artifacts) {
 		this.artifacts = artifacts;
+		this.additionalClasspaths = Collections.emptyList();
+	}
+
+	public ModularClassPath(List<ArtifactInfo> artifacts, List<String> additionalClasspaths) {
+		this.artifacts = artifacts;
+		this.additionalClasspaths = Collections.unmodifiableList(additionalClasspaths);
 	}
 
 	public List<String> getClassPaths() {
@@ -44,6 +52,10 @@ public class ModularClassPath {
 									.map(it -> it.contains(" ") ? '"' + it + '"' : it)
 									.distinct()
 									.collect(Collectors.toList());
+			if (!additionalClasspaths.isEmpty()) {
+				classPaths = new ArrayList<>(classPaths);
+				classPaths.addAll(additionalClasspaths);
+			}
 		}
 
 		return classPaths;
