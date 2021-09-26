@@ -9,6 +9,7 @@ import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -93,9 +94,10 @@ public class Init extends BaseScriptCommand {
 			}
 		}
 
-		info("File initialized. You can now run it with 'jbang " + scriptOrFile
+		String renderedScriptOrFile = getRenderedScriptOrFile(tpl.fileRefs, refTargets);
+		info("File initialized. You can now run it with 'jbang " + renderedScriptOrFile
 				+ "' or edit it using 'jbang edit --open=[editor] "
-				+ scriptOrFile + "' where [editor] is your editor or IDE, e.g. '"
+				+ renderedScriptOrFile + "' where [editor] is your editor or IDE, e.g. '"
 				+ knowneditors[new Random().nextInt(knowneditors.length)] + "'");
 
 		return EXIT_OK;
@@ -157,5 +159,27 @@ public class Init extends BaseScriptCommand {
 			writer.write(result);
 			outFile.toFile().setExecutable(true);
 		}
+	}
+
+	String getRenderedScriptOrFile(Map<String, String> fileRefs, List<RefTarget> refTargets) {
+		Optional<Map.Entry<String, String>> optionalFileRefEntry = fileRefs	.entrySet()
+																			.stream()
+																			.filter(fileRef -> dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(
+																					fileRef.getKey()).find())
+																			.findFirst();
+		if (!optionalFileRefEntry.isEmpty()) {
+			Optional<RefTarget> optionalRefTarget = refTargets	.stream()
+																.filter(refTarget -> refTarget	.getSource()
+																								.getFile()
+																								.getPath()
+																								.endsWith(
+																										optionalFileRefEntry.get()
+																															.getValue()))
+																.findFirst();
+			if (!optionalRefTarget.isEmpty()) {
+				return optionalRefTarget.get().getTarget().toFile().getName();
+			}
+		}
+		return scriptOrFile;
 	}
 }
