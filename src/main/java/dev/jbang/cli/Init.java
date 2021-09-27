@@ -94,7 +94,7 @@ public class Init extends BaseScriptCommand {
 			}
 		}
 
-		String renderedScriptOrFile = getRenderedScriptOrFile(tpl.fileRefs, refTargets);
+		String renderedScriptOrFile = getRenderedScriptOrFile(tpl.fileRefs, refTargets, outDir);
 		info("File initialized. You can now run it with 'jbang " + renderedScriptOrFile
 				+ "' or edit it using 'jbang edit --open=[editor] "
 				+ renderedScriptOrFile + "' where [editor] is your editor or IDE, e.g. '"
@@ -161,7 +161,7 @@ public class Init extends BaseScriptCommand {
 		}
 	}
 
-	String getRenderedScriptOrFile(Map<String, String> fileRefs, List<RefTarget> refTargets) {
+	String getRenderedScriptOrFile(Map<String, String> fileRefs, List<RefTarget> refTargets, Path outDir) {
 		Optional<Map.Entry<String, String>> optionalFileRefEntry = fileRefs	.entrySet()
 																			.stream()
 																			.filter(fileRef -> dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(
@@ -177,7 +177,7 @@ public class Init extends BaseScriptCommand {
 																															.getValue()))
 																.findFirst();
 			if (!optionalRefTarget.isEmpty()) {
-				return optionalRefTarget.get().getTarget().toFile().getName();
+				return Util.getCwd().relativize(optionalRefTarget.get().to(outDir)).toFile().getPath();
 			}
 		}
 		return scriptOrFile;
