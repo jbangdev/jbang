@@ -167,7 +167,7 @@ public class Init extends BaseScriptCommand {
 																			.filter(fileRef -> dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(
 																					fileRef.getKey()).find())
 																			.findFirst();
-		if (!optionalFileRefEntry.isEmpty()) {
+		if (optionalFileRefEntry.isPresent()) {
 			Optional<RefTarget> optionalRefTarget = refTargets	.stream()
 																.filter(refTarget -> refTarget	.getSource()
 																								.getFile()
@@ -176,7 +176,7 @@ public class Init extends BaseScriptCommand {
 																										optionalFileRefEntry.get()
 																															.getValue()))
 																.findFirst();
-			if (!optionalRefTarget.isEmpty()) {
+			if (optionalRefTarget.isPresent()) {
 				return Util.getCwd().relativize(optionalRefTarget.get().to(outDir)).toFile().getPath();
 			}
 		}
