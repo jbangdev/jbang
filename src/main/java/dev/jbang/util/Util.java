@@ -980,7 +980,7 @@ public class Util {
 		}
 		if (Util.isWindows()) {
 			infoMsg("Creation of symbolic link failed." +
-					"For potential causes and resolutions see https://github.com/jbangdev/jbang/blob/main/readme.adoc#usage-on-windows");
+					"For potential causes and resolutions see https://www.jbang.dev/documentation/guide/latest/usage.html#usage-on-windows");
 		} else {
 			infoMsg("Creation of symbolic link failed.");
 		}
