@@ -962,18 +962,18 @@ public class Util {
 		return err[0] == null;
 	}
 
-	public static boolean createLink(Path src, Path target) {
-		if (!Files.exists(src)
-				&& !createSymbolicLink(src, target.toAbsolutePath())) {
-			return createHardLink(src, target.toAbsolutePath());
+	public static boolean createLink(Path link, Path target) {
+		if (!Files.exists(link)
+				&& !createSymbolicLink(link, target.toAbsolutePath())) {
+			return createHardLink(link, target.toAbsolutePath());
 		} else {
 			return false;
 		}
 	}
 
-	private static boolean createSymbolicLink(Path src, Path target) {
+	private static boolean createSymbolicLink(Path link, Path target) {
 		try {
-			Files.createSymbolicLink(src, target);
+			Files.createSymbolicLink(link, target);
 			return true;
 		} catch (IOException e) {
 			infoMsg(e.toString());
@@ -987,10 +987,10 @@ public class Util {
 		return false;
 	}
 
-	private static boolean createHardLink(Path src, Path target) {
+	private static boolean createHardLink(Path link, Path target) {
 		try {
 			infoMsg("Now try creating a hard link instead of symbolic.");
-			Files.createLink(src, target);
+			Files.createLink(link, target);
 		} catch (IOException e) {
 			infoMsg("Creation of hard link failed. Script must be on the same drive as $JBANG_CACHE_DIR (typically under $HOME) for hardlink creation to work. Or call the command with admin rights.");
 			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, e);
