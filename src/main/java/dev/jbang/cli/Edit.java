@@ -124,7 +124,6 @@ public class Edit extends BaseScriptDepsCommand {
 								// TODO only regenerate when dependencies changes.
 								info("Regenerating project.");
 								ctx = RunContext.empty();
-								src = Source.forResource(scriptOrFile, ctx);
 								createProjectForEdit((ScriptSource) src, ctx, true);
 							} catch (RuntimeException ee) {
 								warn("Error when re-generating project. Ignoring it, but state might be undefined: "
