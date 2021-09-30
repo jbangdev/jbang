@@ -196,7 +196,14 @@ public class ResourceRef implements Comparable<ResourceRef> {
 											.resolve(Util.unkebabify(probe.getName()))
 											.toFile();
 					tempFile.getParentFile().mkdirs();
-					Util.writeString(tempFile.toPath().toAbsolutePath(), original);
+					if (!Util.createLink(tempFile.toPath().toAbsolutePath(), probe.toPath())) {
+						// Creating a link didn't work so we just create a copy
+						// TODO: Handle case of not being able to create link better.
+						// If this happens when using `jbang edit` any changes the
+						// user make will NOT be reflected in the original file!
+						// Perhaps there is a way to warn the user in this case?
+						Util.writeString(tempFile.toPath().toAbsolutePath(), original);
+					}
 					result = forCachedResource(scriptResource, tempFile);
 				}
 			} else {
