@@ -32,7 +32,6 @@ import dev.jbang.cli.BaseBuildCommand;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
-import dev.jbang.dependencies.Detector;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.util.JavaUtil;
@@ -141,8 +140,6 @@ public class ScriptSource implements Source {
 	}
 
 	private List<String> collectDependencies(List<String> lines, Properties props) {
-		// early/eager init to property resolution will work.
-		new Detector().detect(new Properties(), Collections.emptyList());
 
 		// Make sure that dependencies declarations are well formatted
 		if (lines.stream().anyMatch(it -> it.startsWith("// DEPS"))) {

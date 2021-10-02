@@ -30,7 +30,6 @@ public class Detector extends kr.motd.maven.os.Detector {
 			os = "win";
 		}
 		properties.setProperty("os.detected.jfxname", os);
-		System.setProperty("os.detected.jfxname", os);
 	}
 
 }

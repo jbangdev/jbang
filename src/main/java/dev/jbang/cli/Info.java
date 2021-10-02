@@ -76,7 +76,7 @@ abstract class BaseInfoCommand extends BaseScriptDepsCommand {
 				backingResource = src.getResourceRef().getFile().toString();
 
 				ScriptSource ss = src.asScriptSource();
-				List<String> deps = ss.collectDependencies(System.getProperties());
+				List<String> deps = ss.collectDependencies(ctx.getContextProperties());
 				if (!deps.isEmpty()) {
 					dependencies = deps;
 				}
