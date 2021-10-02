@@ -42,7 +42,7 @@ abstract class BaseTemplateCommand extends BaseCommand {
 		} else {
 			if (catalogFile != null && Files.isDirectory(catalogFile)) {
 				Path defaultCatalog = catalogFile.resolve(Catalog.JBANG_CATALOG_JSON);
-				Path hiddenCatalog = catalogFile.resolve(CatalogUtil.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
+				Path hiddenCatalog = catalogFile.resolve(Settings.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
 				if (!Files.exists(defaultCatalog) && Files.exists(hiddenCatalog)) {
 					cat = hiddenCatalog;
 				} else {

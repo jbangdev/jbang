@@ -17,8 +17,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
+import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
-import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.catalog.Template;
 import dev.jbang.util.Util;
 
@@ -97,9 +97,9 @@ public class TestTemplate extends BaseTest {
 		Path cwd = Util.getCwd();
 		Path testFile = cwd.resolve("test.java");
 		Files.write(testFile, "// Test file".getBytes());
-		Path hiddenJBangPath = Paths.get(cwd.toString(), CatalogUtil.JBANG_DOT_DIR);
+		Path hiddenJBangPath = Paths.get(cwd.toString(), Settings.JBANG_DOT_DIR);
 		Files.createDirectory(hiddenJBangPath);
-		Files.createFile(Paths.get(cwd.toString(), CatalogUtil.JBANG_DOT_DIR, Catalog.JBANG_CATALOG_JSON));
+		Files.createFile(Paths.get(cwd.toString(), Settings.JBANG_DOT_DIR, Catalog.JBANG_CATALOG_JSON));
 		JBang jbang = new JBang();
 		new CommandLine(jbang).execute("template", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
