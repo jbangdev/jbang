@@ -150,6 +150,9 @@ public class VersionChecker {
 				FileTime ts = Files.getLastModifiedTime(versionFile);
 				long diff = Duration.between(ts.toInstant(), Instant.now()).toDays();
 				return diff > DELAY_DAYS;
+			} else {
+				Files.createFile(versionFile);
+				return false;
 			}
 		} catch (IOException e) {
 			// ignore
