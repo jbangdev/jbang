@@ -44,7 +44,7 @@ jobs:
         env:
           JRELEASER_PROJECT_VERSION: ${{steps.version.outputs.RELEASE_VERSION}}
         with:
-          version: 0.6.0
+          version: 0.7.0
           arguments: publish
       - name: JReleaser output
         if: always()
@@ -66,7 +66,7 @@ jobs:
         env:
           JRELEASER_PROJECT_VERSION: ${{steps.version.outputs.RELEASE_VERSION}}
         with:
-          version: 0.6.0
+          version: 0.7.0
           arguments: announce
       - name: JReleaser output
         if: always()
