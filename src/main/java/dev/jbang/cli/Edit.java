@@ -49,7 +49,7 @@ public class Edit extends BaseScriptDepsCommand {
 
 	@CommandLine.Option(names = {
 			"--open" }, description = "Opens editor/IDE on the temporary project.", defaultValue = "${JBANG_EDITOR:-}", preprocessor = StrictParameterPreprocessor.class)
-	Optional<String> editor;
+	private Optional<String> editor;
 
 	@CommandLine.Option(names = { "--no-open" })
 	boolean noOpen;
@@ -76,20 +76,20 @@ public class Edit extends BaseScriptDepsCommand {
 		File project = createProjectForEdit(ssrc, ctx, false);
 		// err.println(project.getAbsolutePath());
 
-		if (!noOpen && editor.isPresent()) {
-			if (editor.get().isEmpty()) {
+		if (!noOpen) {
+			if (!getEditorToUse().isPresent()) {
 				askAndInstallEditor();
 			}
-			if ("gitpod".equals(editor.get()) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
+			if ("gitpod".equals(getEditorToUse().get()) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
 				info("Open this url to edit the project in your gitpod session:\n\n"
 						+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + project.getAbsolutePath() + "\n\n");
 			} else {
 				List<String> optionList = new ArrayList<>();
-				optionList.add(editor.get());
+				optionList.add(getEditorToUse().get());
 				optionList.add(project.getAbsolutePath());
 
 				String[] cmd;
-				final String editorCommand = escapeOSArguments(optionList).stream().collect(Collectors.joining(" "));
+				final String editorCommand = String.join(" ", escapeOSArguments(optionList));
 				if (isWindows()) {
 					cmd = new String[] { "cmd", "/c", editorCommand };
 				} else {
@@ -193,7 +193,7 @@ public class Edit extends BaseScriptDepsCommand {
 			}
 
 			verboseMsg("Installing Java extensions...");
-			ProcessBuilder pb = new ProcessBuilder(editor.get(),
+			ProcessBuilder pb = new ProcessBuilder(getEditorToUse().get(),
 					"--install-extension", "redhat.java",
 					"--install-extension", "vscjava.vscode-java-debug",
 					"--install-extension", "vscjava.vscode-java-test",
@@ -207,7 +207,7 @@ public class Edit extends BaseScriptDepsCommand {
 							"Could not install and setup extensions into vscodium. Aborting.");
 				}
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				Util.errorMsg("Problems installing vscodium extensions", e);
 			}
 
 		}
@@ -262,11 +262,7 @@ public class Edit extends BaseScriptDepsCommand {
 				new String(Files.readAllBytes(srcFile), Charset.defaultCharset()));
 		String baseName = Util.getBaseName(name);
 		String fullClassName;
-		if (packageName.isPresent()) {
-			fullClassName = packageName.get() + "." + baseName;
-		} else {
-			fullClassName = baseName;
-		}
+		fullClassName = packageName.map(s -> s + "." + baseName).orElse(baseName);
 		String templateName = "build.qute.gradle";
 		Path destination = new File(tmpProjectDir, "build.gradle").toPath();
 		TemplateEngine engine = TemplateEngine.instance();
@@ -285,7 +281,7 @@ public class Edit extends BaseScriptDepsCommand {
 											.collect(Collectors.toList());
 		// And if we encountered URLs let's make sure the JitPack repo is available
 		if (!depIds.equals(dependencies)
-				&& !repositories.stream().anyMatch(r -> DependencyUtil.REPO_JITPACK.equals(r.getUrl()))) {
+				&& repositories.stream().noneMatch(r -> DependencyUtil.REPO_JITPACK.equals(r.getUrl()))) {
 			repositories.add(DependencyUtil.toMavenRepo(DependencyUtil.ALIAS_JITPACK));
 		}
 
@@ -423,4 +419,17 @@ public class Edit extends BaseScriptDepsCommand {
 			return fileName;
 		}
 	}
+
+	/**
+	 * to allow --open to be optional we cannot rely on picocli defaults being set
+	 * thus we do it here if editor is blank
+	 **/
+	public Optional<String> getEditorToUse() {
+		if (editor.isPresent() && !editor.get().trim().isEmpty()) {
+			return editor;
+		} else {
+			return Optional.ofNullable(System.getProperty("JBANG_EDITOR", System.getenv("JBANG_EDITOR")));
+		}
+	}
+
 }
