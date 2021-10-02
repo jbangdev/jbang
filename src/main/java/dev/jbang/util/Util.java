@@ -613,7 +613,7 @@ public class Util {
 					fileName = getDispositionFilename(disposition);
 				}
 
-				if (fileName.trim().isEmpty()) {
+				if (isBlankString(fileName)) {
 					// extracts file name from URL if nothing found
 					fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1);
 				}
@@ -1261,6 +1261,18 @@ public class Util {
 			dir = dir.getParent();
 		}
 		return null;
+	}
+
+	public static boolean isNullOrEmptyString(String str) {
+		return str == null || str.isEmpty();
+	}
+
+	public static boolean isNullOrBlankString(String str) {
+		return str == null || isBlankString(str);
+	}
+
+	public static boolean isBlankString(String str) {
+		return str.trim().isEmpty();
 	}
 
 }

@@ -12,16 +12,22 @@ import static picocli.CommandLine.ScopeType;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.Future;
 
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 
+import dev.jbang.Configuration;
 import dev.jbang.util.Util;
 import dev.jbang.util.VersionChecker;
 
@@ -142,6 +148,81 @@ public class JBang extends BaseCommand {
 		}
 	};
 
+	static CommandLine.IDefaultValueProvider defaultValueProvider = new CommandLine.IDefaultValueProvider() {
+		@Override
+		public String defaultValue(CommandLine.Model.ArgSpec argSpec) {
+			String val = null;
+			if (argSpec.isOption()
+					&& argSpec.defaultValue() == null
+					&& Util.isNullOrEmptyString(((CommandLine.Model.OptionSpec) argSpec).fallbackValue())) {
+				String key = key(argSpec);
+				String propkey = "jbang." + key;
+				if (System.getProperties().containsValue(propkey)) {
+					val = System.getProperty(propkey);
+				} else {
+					Configuration cfg = Configuration.instance();
+					if (cfg.containsKey(key)) {
+						val = Objects.toString(cfg.get(key));
+					}
+				}
+			}
+			return val;
+		}
+
+		private String key(CommandLine.Model.ArgSpec argSpec) {
+			List<String> cmdNames = names(argSpec.command());
+			String cmdName = cmdNames.isEmpty() ? "all" : String.join(".", cmdNames);
+			String optName = stripDashes(((CommandLine.Model.OptionSpec) argSpec).longestName()).replace("-", "");
+			return cmdName + "." + optName;
+		}
+
+		private List<String> names(CommandSpec cmd) {
+			List<String> result = new ArrayList<>();
+			while (!cmd.name().equalsIgnoreCase("jbang")) {
+				result.add(0, cmd.name());
+				cmd = cmd.parent();
+			}
+			return result;
+		}
+
+		private String stripDashes(String name) {
+			if (name.startsWith("--")) {
+				return name.substring(2);
+			} else if (name.startsWith("-")) {
+				return name.substring(1);
+			} else {
+				return name;
+			}
+		}
+	};
+
+	static class ConfigurationResourceBundle extends ResourceBundle {
+		private final Configuration cfg;
+
+		public ConfigurationResourceBundle() {
+			this(Configuration.instance());
+		}
+
+		public ConfigurationResourceBundle(Configuration cfg) {
+			this.cfg = cfg;
+		}
+
+		@Override
+		protected Object handleGetObject(String propkey) {
+			if (propkey.startsWith("jbang.")) {
+				String key = propkey.substring(6);
+				return cfg.get(key);
+			} else {
+				return null;
+			}
+		}
+
+		@Override
+		public Enumeration<String> getKeys() {
+			return Collections.enumeration(cfg.keySet());
+		}
+	};
+
 	public static CommandLine getCommandLine(PrintWriter localout, PrintWriter localerr) {
 		CommandLine cl = new CommandLine(new JBang());
 
@@ -152,6 +233,8 @@ public class JBang extends BaseCommand {
 					.setExecutionExceptionHandler(executionExceptionHandler)
 					.setParameterExceptionHandler(new DeprecatedMessageHandler(cl.getParameterExceptionHandler()))
 					.setExecutionStrategy(executionStrategy)
+					.setDefaultValueProvider(defaultValueProvider)
+					.setResourceBundle(new ConfigurationResourceBundle())
 					.setStopAtPositional(true)
 					.setOut(localout)
 					.setErr(localerr);
