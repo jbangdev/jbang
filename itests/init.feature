@@ -28,7 +28,7 @@ Scenario: init with several file-refs template should display a message regardin
 # have to manually use 'scratch' as can't use $SCRATCH nor %SCRATCH%
 # to be cross platform.
 When command('jbang template add --name test "{basename}Test.java=templates/test.java.qute" "{basename}SecondTest.java=templates/test.java.qute"')
-Then command('jbang init -t test ' + scratch + '/Script.java')
+Then command('jbang --verbose init -t test ' + scratch + '/Script.java')
 * match exit == 0
 * fileexist(scratch + '/ScriptTest.java')
 * fileexist(scratch + '/ScriptSecondTest.java')
