@@ -29,6 +29,7 @@ Scenario: init with several file-refs template should display a message regardin
 # to be cross platform.
 When command('jbang template add --name test "{basename}Test.java=templates/test.java.qute" "{basename}SecondTest.java=templates/test.java.qute"')
 Then command('jbang --verbose init -t test ' + scratch + '/Script.java')
+#
 * match exit == 0
 * fileexist(scratch + '/ScriptTest.java')
 * fileexist(scratch + '/ScriptSecondTest.java')
