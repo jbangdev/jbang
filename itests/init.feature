@@ -24,4 +24,15 @@ When command('jbang init ' + scratch + '/newfolder/test.java')
   * command('jbang ' + scratch + '/newfolder/test.java')
   * match err !contains "[jbang] Building jar"
 
-
+Scenario: init with several file-refs template should display a message regarding the first file using {basename}
+# have to manually use 'scratch' as can't use $SCRATCH nor %SCRATCH%
+# to be cross platform.
+When command('jbang template add --name test "{basename}Test.java=templates/test.java.qute" "{basename}SecondTest.java=templates/test.java.qute"')
+Then command('jbang init -t test ' + scratch + '/Script.java')
+* match exit == 0
+* fileexist(scratch + '/ScriptTest.java')
+* fileexist(scratch + '/ScriptSecondTest.java')
+* match err contains "File initialized. You can now run it with"
+* match err contains "or edit it using"
+* match err contains "ScriptTest.java"
+* match err !contains "ScriptSecondTest.java"
