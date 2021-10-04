@@ -1,6 +1,7 @@
 package dev.jbang.cli;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -48,6 +49,7 @@ public class Init extends BaseScriptCommand {
 					"Could not find init template named: " + initTemplate);
 		}
 
+		boolean absolute = new File(scriptOrFile).isAbsolute();
 		Path outFile = Util.getCwd().resolve(scriptOrFile);
 		Path outDir = outFile.getParent();
 		String outName = outFile.getFileName().toString();
@@ -94,7 +96,7 @@ public class Init extends BaseScriptCommand {
 			}
 		}
 
-		String renderedScriptOrFile = getRenderedScriptOrFile(tpl.fileRefs, refTargets, outDir);
+		String renderedScriptOrFile = getRenderedScriptOrFile(tpl.fileRefs, refTargets, outDir, absolute);
 		info("File initialized. You can now run it with 'jbang " + renderedScriptOrFile
 				+ "' or edit it using 'jbang edit --open=[editor] "
 				+ renderedScriptOrFile + "' where [editor] is your editor or IDE, e.g. '"
@@ -161,7 +163,8 @@ public class Init extends BaseScriptCommand {
 		}
 	}
 
-	String getRenderedScriptOrFile(Map<String, String> fileRefs, List<RefTarget> refTargets, Path outDir) {
+	String getRenderedScriptOrFile(Map<String, String> fileRefs, List<RefTarget> refTargets, Path outDir,
+			boolean absolute) {
 		Optional<Map.Entry<String, String>> optionalFileRefEntry = fileRefs	.entrySet()
 																			.stream()
 																			.filter(fileRef -> dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(
@@ -177,7 +180,12 @@ public class Init extends BaseScriptCommand {
 																															.getValue()))
 																.findFirst();
 			if (optionalRefTarget.isPresent()) {
-				return Util.getCwd().relativize(optionalRefTarget.get().to(outDir)).toFile().getPath();
+				Path path = optionalRefTarget.get().to(outDir);
+				if (absolute) {
+					return path.toString();
+				} else {
+					return Util.getCwd().relativize(path).toString();
+				}
 			}
 		}
 		return scriptOrFile;
