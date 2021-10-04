@@ -182,9 +182,9 @@ public class Init extends BaseScriptCommand {
 			if (optionalRefTarget.isPresent()) {
 				Path path = optionalRefTarget.get().to(outDir);
 				if (absolute) {
-					return path.toFile().getPath();
+					return path.toString();
 				} else {
-					return Util.getCwd().relativize(path).toFile().getPath();
+					return Util.getCwd().relativize(path).toString();
 				}
 			}
 		}
