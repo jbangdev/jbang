@@ -22,9 +22,9 @@ public class Wrapper {
 	@CommandLine.Command(name = "install", description = "Install/Setup jbang as a `wrapper` script in a folder")
 	public Integer install(
 			@CommandLine.Option(names = { "-d",
-					"--dir" }, description = "The folder to install the wrapper into.", defaultValue = ".") Path dest,
+					"--dir" }, description = "The folder to install the wrapper into.") Path dest,
 			@CommandLine.Option(names = { "-f",
-					"--force" }, description = "Force installation of wrapper even if files already exist", defaultValue = "false") boolean force) {
+					"--force" }, description = "Force installation of wrapper even if files already exist") boolean force) {
 		if (!Files.isDirectory(dest)) {
 			throw new ExitException(EXIT_INVALID_INPUT, "Destination folder does not exist");
 		}

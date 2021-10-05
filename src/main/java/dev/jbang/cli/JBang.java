@@ -87,7 +87,7 @@ public class JBang extends BaseCommand {
 		}
 
 		@CommandLine.Option(names = {
-				"--fresh" }, description = "Make sure we use fresh (i.e. non-cached) resources.", defaultValue = "false", scope = ScopeType.INHERIT)
+				"--fresh" }, description = "Make sure we use fresh (i.e. non-cached) resources.", scope = ScopeType.INHERIT)
 		void setFresh(boolean fresh) {
 			Util.setFresh(fresh);
 		}

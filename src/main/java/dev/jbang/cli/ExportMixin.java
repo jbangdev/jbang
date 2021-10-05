@@ -16,10 +16,10 @@ public class ExportMixin {
 
 	protected String javaVersion;// TODO: refactor these to be mixins
 	@CommandLine.Option(names = {
-			"-n", "--native" }, description = "Build using native-image", defaultValue = "false")
+			"-n", "--native" }, description = "Build using native-image")
 	boolean nativeImage;
 	@CommandLine.Option(names = {
-			"--insecure" }, description = "Enable insecure trust of all SSL certificates.", defaultValue = "false")
+			"--insecure" }, description = "Enable insecure trust of all SSL certificates.")
 	boolean insecure;
 	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
@@ -27,7 +27,7 @@ public class ExportMixin {
 			"--output" }, description = "The name or path to use for the exported file. If not specified a name will be determined from the original source reference and export flags.")
 	Path outputFile;// mixins todo above
 	@CommandLine.Option(names = { "--force",
-	}, description = "Force export, i.e. overwrite exported file if already exists", defaultValue = "false")
+	}, description = "Force export, i.e. overwrite exported file if already exists")
 	boolean force;
 
 	@CommandLine.Parameters(paramLabel = "scriptOrFile", index = "0", description = "A file or URL to a Java code file", arity = "1")

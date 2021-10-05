@@ -80,7 +80,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 	}
 
 	@CommandLine.Option(names = {
-			"-n", "--native" }, description = "Build using native-image", defaultValue = "false")
+			"-n", "--native" }, description = "Build using native-image")
 	boolean nativeImage;
 
 	@CommandLine.Option(names = { "--catalog" }, description = "path to catalog file")

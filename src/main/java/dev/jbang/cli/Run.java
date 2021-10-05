@@ -36,7 +36,7 @@ public class Run extends BaseBuildCommand {
 	public String flightRecorderString;
 
 	boolean enableFlightRecording() {
-		return flightRecorderString != null;
+		return flightRecorderString != null && !flightRecorderString.isEmpty();
 	}
 
 	@CommandLine.Option(names = { "-d",
@@ -53,7 +53,7 @@ public class Run extends BaseBuildCommand {
 	boolean enableSystemAssertions;
 
 	boolean debug() {
-		return debugString != null;
+		return debugString != null && !debugString.isEmpty();
 	}
 
 	@CommandLine.Option(names = { "--javaagent" }, parameterConsumer = KeyOptionalValueConsumer.class)

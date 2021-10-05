@@ -51,7 +51,7 @@ public class Edit extends BaseScriptCommand {
 	boolean live;
 
 	@CommandLine.Option(names = {
-			"--open" }, description = "Opens editor/IDE on the temporary project.", defaultValue = "${JBANG_EDITOR:-}", preprocessor = StrictParameterPreprocessor.class)
+			"--open" }, arity = "0..1", defaultValue = "${JBANG_EDITOR:-${jbang.edit.open:-}}", fallbackValue = "${JBANG_EDITOR:-${jbang.edit.open:-}}", description = "Opens editor/IDE on the temporary project.", preprocessor = StrictParameterPreprocessor.class)
 	private Optional<String> editor;
 
 	@CommandLine.Option(names = { "--no-open" })
@@ -82,10 +82,10 @@ public class Edit extends BaseScriptCommand {
 		// err.println(project.getAbsolutePath());
 
 		if (!noOpen) {
-			if (!getEditorToUse().isPresent()) {
+			if (!editor.isPresent() || editor.get().isEmpty()) {
 				askAndInstallEditor();
 			}
-			if ("gitpod".equals(getEditorToUse().get()) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
+			if ("gitpod".equals(editor.get()) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
 				info("Open this url to edit the project in your gitpod session:\n\n"
 						+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + project.getAbsolutePath() + "\n\n");
 			} else {
@@ -111,7 +111,8 @@ public class Edit extends BaseScriptCommand {
 			try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
 				File orginalFile = src.getResourceRef().getFile();
 				if (!orginalFile.exists()) {
-					throw new ExitException(EXIT_UNEXPECTED_STATE, "Cannot live edit " + src.getResourceRef().getOriginalResource());
+					throw new ExitException(EXIT_UNEXPECTED_STATE,
+							"Cannot live edit " + src.getResourceRef().getOriginalResource());
 				}
 				Path watched = orginalFile.getAbsoluteFile().getParentFile().toPath();
 				watched.register(watchService,
@@ -198,7 +199,7 @@ public class Edit extends BaseScriptCommand {
 			}
 
 			verboseMsg("Installing Java extensions...");
-			ProcessBuilder pb = new ProcessBuilder(getEditorToUse().get(),
+			ProcessBuilder pb = new ProcessBuilder(editor.get(),
 					"--install-extension", "redhat.java",
 					"--install-extension", "vscjava.vscode-java-debug",
 					"--install-extension", "vscjava.vscode-java-test",
@@ -422,18 +423,6 @@ public class Edit extends BaseScriptCommand {
 			return fileName.substring(0, fileName.lastIndexOf("."));
 		} else {
 			return fileName;
-		}
-	}
-
-	/**
-	 * to allow --open to be optional we cannot rely on picocli defaults being set
-	 * thus we do it here if editor is blank
-	 **/
-	public Optional<String> getEditorToUse() {
-		if (editor.isPresent() && !editor.get().trim().isEmpty()) {
-			return editor;
-		} else {
-			return Optional.ofNullable(System.getProperty("JBANG_EDITOR", System.getenv("JBANG_EDITOR")));
 		}
 	}
 

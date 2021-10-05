@@ -18,7 +18,7 @@ import picocli.CommandLine;
 public abstract class BaseScriptCommand extends BaseCommand {
 
 	@CommandLine.Option(names = {
-			"--insecure" }, description = "Enable insecure trust of all SSL certificates.", defaultValue = "false")
+			"--insecure" }, description = "Enable insecure trust of all SSL certificates.")
 	boolean insecure;
 
 	@CommandLine.Option(names = { "--jsh" }, description = "Force input to be interpreted with jsh/jshell")
