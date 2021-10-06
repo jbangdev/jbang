@@ -126,7 +126,7 @@ public class ModularClassPath {
 												.filter(module -> module.startsWith(JAVAFX_PREFIX)
 														&& !module.endsWith("Empty"))
 												.collect(Collectors.joining(","));
-				if (!modules.trim().isEmpty()) {
+				if (!Util.isBlankString(modules)) {
 					commandArguments.add("--add-modules");
 					commandArguments.add(modules);
 				}

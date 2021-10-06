@@ -152,7 +152,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		optionList.add(src.getCompilerBinary(requestedJavaVersion));
 		optionList.addAll(src.getCompileOptions());
 		String path = ctx.resolveClassPath(src);
-		if (!path.trim().isEmpty()) {
+		if (!Util.isBlankString(path)) {
 			optionList.addAll(Arrays.asList("-classpath", path));
 		}
 		optionList.addAll(Arrays.asList("-d", tmpJarDir.getAbsolutePath()));
@@ -225,7 +225,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 			}
 
 			for (ScriptSource.KeyValue kv : src.getAllAgentOptions()) {
-				if (kv.getKey().trim().isEmpty()) {
+				if (Util.isBlankString(kv.getKey())) {
 					continue;
 				}
 				Attributes.Name k = new Attributes.Name(kv.getKey());
@@ -278,7 +278,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		optionList.add("--enable-https");
 
 		String classpath = ctx.resolveClassPath(src);
-		if (!classpath.trim().isEmpty()) {
+		if (!Util.isBlankString(classpath)) {
 			optionList.add("--class-path=" + classpath);
 		}
 
