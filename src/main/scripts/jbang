@@ -153,7 +153,7 @@ if [[ -z "$JAVA_EXEC" ]]; then
       fi
       mkdir -p "$TDIR/jdks"
       echo "Downloading JDK $javaVersion. Be patient, this can take several minutes..." 1>&2
-      jdkurl="https://api.foojay.io/disco/v2.0/directuris?distro=aoj&libc_type=$libc_type&archive_type=tar_gz&operating_system=$os&package_type=jdk&version=$javaVersion&release_status=ga&architecture=$arch&latest=available"
+      jdkurl="https://api.foojay.io/disco/v2.0/directuris?distro=aoj&libc_type=$libc_type&archive_type=tar.gz&operating_system=$os&package_type=jdk&version=$javaVersion&release_status=ga&architecture=$arch&latest=available"
       download $jdkurl "$TDIR/bootstrap-jdk.tgz"
       if [ $retval -ne 0 ]; then echo "Error downloading JDK" 1>&2; exit $retval; fi
       echo "Installing JDK $javaVersion..." 1>&2
