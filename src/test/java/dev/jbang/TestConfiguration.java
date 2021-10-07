@@ -3,6 +3,7 @@ package dev.jbang;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,13 +36,52 @@ public class TestConfiguration extends BaseTest {
 	}
 
 	@Test
-	public void testWriteReadConfig() throws IOException {
+	public void testValues() {
 		Configuration cfg = Configuration.create();
 		cfg.put("foo", "bar");
+		assertThat(cfg.get("foo"), equalTo("bar"));
+	}
+
+	@Test
+	public void testValuesInherited() {
+		Configuration fallback = Configuration.create();
+		fallback.put("foo", "bar");
+		Configuration cfg = Configuration.create(fallback);
+		assertThat(cfg.get("foo"), equalTo("bar"));
+	}
+
+	@Test
+	public void testValuesInheritedOverridden() {
+		Configuration fallback = Configuration.create();
+		fallback.put("foo", "bar");
+		Configuration cfg = Configuration.create(fallback);
+		cfg.put("foo", "baz");
+		assertThat(cfg.get("foo"), equalTo("baz"));
+	}
+
+	@Test
+	public void testValuesInheritedRemoved() {
+		Configuration fallback = Configuration.create();
+		fallback.put("foo", "bar");
+		Configuration cfg = Configuration.create(fallback);
+		cfg.put("foo", null);
+		assertThat(cfg.get("foo"), nullValue());
+	}
+
+	@Test
+	public void testWriteReadConfig() throws IOException {
+		Configuration fallback = Configuration.create();
+		fallback.put("foo", "abc");
+		fallback.put("bar", "def");
+		Configuration cfg = Configuration.create(fallback);
+		cfg.put("bar", "ghi");
+		cfg.put("baz", "jkl");
 		Path cfgFile = jbangTempDir.resolve(Configuration.JBANG_CONFIG_JSON);
-		Configuration.write(cfgFile, cfg);
+		Configuration.write(cfgFile, cfg.flatten());
 		Configuration cfg2 = Configuration.read(cfgFile);
-		assertThat(cfg, equalTo(cfg2));
+		assertThat(cfg2.get("foo"), equalTo("abc"));
+		assertThat(cfg2.get("bar"), equalTo("ghi"));
+		assertThat(cfg2.get("baz"), equalTo("jkl"));
 	}
 
 	@Test

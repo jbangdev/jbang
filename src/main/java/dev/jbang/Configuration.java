@@ -9,9 +9,12 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
-import java.util.function.Function;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -19,8 +22,11 @@ import com.google.gson.GsonBuilder;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.util.Util;
 
-public class Configuration extends TreeMap<String, Object> {
-	public transient String configPath;
+public class Configuration {
+	protected final Map<String, Object> values = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+
+	private Configuration fallback;
+	private ResourceRef storeRef;
 
 	public static final String JBANG_CONFIG_JSON = "jbang-config.json";
 
@@ -28,12 +34,112 @@ public class Configuration extends TreeMap<String, Object> {
 	private static Configuration global;
 
 	private Configuration() {
-		super(String.CASE_INSENSITIVE_ORDER);
+		this(null);
+	}
+
+	private Configuration(Configuration fallback) {
+		this.fallback = fallback;
+	}
+
+	public Configuration getFallback() {
+		return fallback;
+	}
+
+	public ResourceRef getStoreRef() {
+		return storeRef;
+	}
+
+	/**
+	 * Determines if the given key can be found in this Configuration or its
+	 * fallback
+	 * 
+	 * @param key The key to find
+	 * @return Boolean indicating if the key exists or not
+	 */
+	public boolean containsKey(String key) {
+		boolean contains = values.containsKey(key);
+		if (!contains && fallback != null) {
+			contains = fallback.containsKey(key);
+		}
+		return contains;
+	}
+
+	/**
+	 * Returns the given value from this Configuration or its fallback
+	 * 
+	 * @param key The key of the value to return
+	 * @return The associated value if it was found or `null` if not
+	 */
+	public String get(String key) {
+		String result;
+		if (values.containsKey(key)) {
+			result = Objects.toString(values.get(key), null);
+		} else if (fallback != null) {
+			result = fallback.get(key);
+		} else {
+			result = null;
+		}
+		return result;
+	}
+
+	/**
+	 * Returns the given value from this Configuration or its fallback
+	 * 
+	 * @param key          The key of the value to return
+	 * @param defaultValue The value to return if the key wasn't found
+	 * @return The associated value if it was found or `defaultValue` if not
+	 */
+	public String get(String key, String defaultValue) {
+		return Objects.toString(get(key), defaultValue);
+	}
+
+	/**
+	 * Sets the given key to the given value in this Configuration
+	 * 
+	 * @param key   The key of the value to set
+	 * @param value The new value for the given key
+	 * @return The old value for the given key or `null`
+	 */
+	public String put(String key, String value) {
+		return Objects.toString(values.put(key, value), null);
+	}
+
+	/**
+	 * Returns the keys for this Configuration. NB: This will NOT return the keys
+	 * for the fallback! Use `flatten()` first if you want all keys()
+	 * 
+	 * @return Set of keys
+	 */
+	public Set<String> keySet() {
+		return values.keySet();
+	}
+
+	/**
+	 * Returns a Configuration that is the union of the keys of this Configuration
+	 * and those of its flattened fallback.
+	 * 
+	 * @return a Configuration object
+	 */
+	public Configuration flatten() {
+		if (fallback != null) {
+			Configuration cfg = create();
+			return flatten(cfg);
+		} else {
+			return this;
+		}
+	}
+
+	protected Configuration flatten(Configuration target) {
+		if (fallback != null) {
+			fallback.flatten(target);
+		}
+		target.values.putAll(values);
+		return target;
 	}
 
 	/**
 	 * Returns a new empty Configuration
-	 *
+	 * 
 	 * @return a Configuration object
 	 */
 	public static Configuration create() {
@@ -41,21 +147,20 @@ public class Configuration extends TreeMap<String, Object> {
 	}
 
 	/**
-	 * Returns a new Configuration initialized with the values from the given
-	 * Configuration
-	 *
+	 * Returns a new Configuration that will look up any keys that it can't find
+	 * among its own values in the given fallback Configuration
+	 * 
+	 * @param fallback The fallback configuration
 	 * @return a Configuration object
 	 */
-	public static Configuration create(Configuration cfg) {
-		Configuration result = new Configuration();
-		result.putAll(cfg);
-		return result;
+	public static Configuration create(Configuration fallback) {
+		return new Configuration(fallback);
 	}
 
 	/**
 	 * Returns a cached Configuration read from the any config files that were found
 	 * in the current environment
-	 *
+	 * 
 	 * @return a Configuration object
 	 */
 	public static Configuration instance() {
@@ -76,7 +181,7 @@ public class Configuration extends TreeMap<String, Object> {
 
 	/**
 	 * Returns the default Configuration
-	 *
+	 * 
 	 * @return a Configuration object
 	 */
 	public static Configuration defaults() {
@@ -91,32 +196,27 @@ public class Configuration extends TreeMap<String, Object> {
 	 * into one. This follows the system where settings that are "nearest" have
 	 * priority. The Config starts out with all the values from `defaults`, any
 	 * values read from files have priority.
-	 *
+	 * 
 	 * @return a Configuration object
 	 */
 	public static Configuration getMerged() {
-		List<Configuration> configs = new ArrayList<>();
-		findNearestConfigWith(Util.getCwd(), cfg -> {
-			configs.add(0, cfg);
+		Set<Path> configFiles = new LinkedHashSet<>();
+		Util.findNearestFileWith(null, JBANG_CONFIG_JSON, cfgFile -> {
+			configFiles.add(cfgFile);
 			return false;
 		});
 
-		Configuration result = create();
-		for (Configuration cfg : configs) {
-			merge(cfg, result);
+		ArrayList<Path> files = new ArrayList<>(configFiles);
+		Collections.reverse(files);
+		Configuration result = defaults();
+		for (Path cfgFile : configFiles) {
+			Configuration cfg = read(cfgFile);
+			cfg.storeRef = ResourceRef.forNamedFile(cfgFile.toString(), cfgFile.toFile());
+			cfg.fallback = result;
+			result = cfg;
 		}
 
 		return result;
-	}
-
-	static Configuration findNearestConfigWith(Path dir, Function<Configuration, Boolean> accept) {
-		Path cfgFile = Util.findNearestFileWith(dir, JBANG_CONFIG_JSON, cfg -> accept.apply(read(cfg)));
-		if (cfgFile != null) {
-			return read(cfgFile);
-		} else if (accept.apply(defaults())) {
-			return defaults();
-		}
-		return Configuration.create();
 	}
 
 	// This returns the built-in Configuration that can be found in the resources
@@ -126,15 +226,11 @@ public class Configuration extends TreeMap<String, Object> {
 		if (cfgRef != null) {
 			Path catPath = cfgRef.getFile().toPath();
 			Configuration cfg = read(catPath);
-			cfg.configPath = res;
+			cfg.storeRef = cfgRef;
 			return cfg;
 		} else {
 			return null;
 		}
-	}
-
-	private static <R> void merge(Configuration cfg, Configuration result) {
-		result.putAll(cfg);
 	}
 
 	public static Configuration read(Path configFile) {
@@ -142,9 +238,10 @@ public class Configuration extends TreeMap<String, Object> {
 		if (Files.isRegularFile(configFile)) {
 			try (Reader in = Files.newBufferedReader(configFile)) {
 				Gson parser = new Gson();
-				Configuration tmp = parser.fromJson(in, Configuration.class);
+				@SuppressWarnings("unchecked")
+				Map<String, Object> tmp = parser.fromJson(in, TreeMap.class);
 				if (tmp != null) {
-					cfg = tmp;
+					cfg.values.putAll(tmp);
 				} else {
 					warnMsg("Couldn't parse configuration: " + configFile);
 				}
@@ -159,7 +256,7 @@ public class Configuration extends TreeMap<String, Object> {
 		verboseMsg(String.format("Reading configuration from %s", configFile));
 		try (Writer out = Files.newBufferedWriter(configFile)) {
 			Gson parser = new GsonBuilder().setPrettyPrinting().create();
-			parser.toJson(cfg, out);
+			parser.toJson(cfg.values, out);
 		}
 	}
 
@@ -171,8 +268,7 @@ public class Configuration extends TreeMap<String, Object> {
 
 	public static void setConfigValue(Path configFile, String key, String value) throws IOException {
 		Configuration cfg = read(configFile);
-		cfg.configPath = configFile.toString();
-		cfg.put(key, value);
+		cfg.values.put(key, value);
 		write(configFile, cfg);
 	}
 
@@ -184,9 +280,8 @@ public class Configuration extends TreeMap<String, Object> {
 
 	public static void unsetConfigValue(Path configFile, String key) throws IOException {
 		Configuration cfg = read(configFile);
-		cfg.configPath = configFile.toString();
 		if (cfg.containsKey(key)) {
-			cfg.remove(key);
+			cfg.values.remove(key);
 			write(configFile, cfg);
 		}
 	}
