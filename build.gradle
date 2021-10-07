@@ -67,11 +67,11 @@ tasks.withType(AbstractArchiveTask) {
 
 
 sonarqube {
-properties {
-	property "sonar.projectKey", "jbangdev_jbang"
-	property "sonar.organization", "jbangdev"
-	property "sonar.host.url", "https://sonarcloud.io"
-}
+	properties {
+		property "sonar.projectKey", "jbangdev_jbang"
+		property "sonar.organization", "jbangdev"
+		property "sonar.host.url", "https://sonarcloud.io"
+	}
 }
 
 spotless {
@@ -100,6 +100,19 @@ task versionTxt() {
 	}
 }
 
+task scripts(type: Copy) {
+	inputs.property('version', project.version)
+	from('src/main/scripts')
+	into(buildDir.toString() + '/bin')
+	doFirst { t ->
+		t.filter(org.apache.tools.ant.filters.ReplaceTokens,
+				tokens: [
+						projectVersion: project.version
+				]
+		)
+	}
+}
+
 def commonSpec = project.copySpec {
 	from('examples') {
 		include '**/*.java'
@@ -110,14 +123,12 @@ def commonSpec = project.copySpec {
 	}
 	from(project.buildDir) {
 		include 'tmp/version.txt'
-	}
-	from('src/main/scripts') {
-		include 'jbang'
-		include 'jbang.cmd'
-		include 'jbang.ps1'
-		into 'bin'
+		include 'bin/jbang'
+		include 'bin/jbang.cmd'
+		include 'bin/jbang.ps1'
 	}
 }
+
 distributions {
 	main {
 		contents {
@@ -146,7 +157,7 @@ jar {
 				'Main-Class': 'dev.jbang.Main',
 		)
 	}
-	}
+}
 
 
 compileJava {
@@ -298,6 +309,7 @@ asciidoctor {
 }
 
 build.dependsOn(versionTxt)
+build.dependsOn(scripts)
 build.dependsOn(latestDistZip)
 build.dependsOn(latestDistTar)
 build.dependsOn(copyITests)

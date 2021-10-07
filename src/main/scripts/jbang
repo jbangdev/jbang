@@ -27,11 +27,13 @@ resolve_symlink() {
 }
 
 download() {
+  osver=$(uname -r)
+  userAgent="User-Agent: JBang/@projectVersion@ ($os/$osver/$arch) bash"
   if [ -x "$(command -v curl)" ]; then
-    curl -sLf -o "$2" $1
+    curl -sLf -H "$userAgent" -o "$2" $1
     retval=$?
   elif [ -x "$(command -v wget)" ]; then
-    wget -q -O "$2" $1
+    wget -q --header="$userAgent" -O "$2" $1
     retval=$?
   else
     echo "Error: curl or wget not found, please make sure one of them is installed" 1>&2
