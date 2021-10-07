@@ -28,10 +28,10 @@ resolve_symlink() {
 
 download() {
   if [ -x "$(command -v curl)" ]; then
-    curl -sLf -H "Accept: application/gzip, application/octet-stream" -o "$2" $1
+    curl -sLf -o "$2" $1
     retval=$?
   elif [ -x "$(command -v wget)" ]; then
-    wget -q --header="Accept: application/gzip, application/octet-stream" -O "$2" $1
+    wget -q -O "$2" $1
     retval=$?
   else
     echo "Error: curl or wget not found, please make sure one of them is installed" 1>&2
