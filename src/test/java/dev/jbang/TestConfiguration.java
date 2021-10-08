@@ -100,6 +100,21 @@ public class TestConfiguration extends BaseTest {
 	}
 
 	@Test
+	public void testInstanceOverride() throws IOException {
+		String config = "{\n" +
+				"  \"foo\": \"explicit\"\n" +
+				"}";
+		environmentVariables.set("JBANG_CONFIG", "explicit-config");
+		try {
+			Files.write(Util.getCwd().resolve("explicit-config"), config.getBytes());
+			Configuration cfg = Configuration.instance();
+			assertThat(cfg.get("foo"), equalTo("explicit"));
+		} finally {
+			environmentVariables.clear("JBANG_CONFIG");
+		}
+	}
+
+	@Test
 	public void testCommandDefaults() {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("init", "dummy");
 		Init init = (Init) pr.subcommand().commandSpec().userObject();

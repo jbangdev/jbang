@@ -159,13 +159,25 @@ public class Configuration {
 
 	/**
 	 * Returns a cached Configuration read from the any config files that were found
-	 * in the current environment
+	 * in the current environment. The `JBANG_CONFIG` environment variable can be
+	 * used to override the normal lookup process. If in that case the file can't be
+	 * found only the default values will be returned.
 	 * 
 	 * @return a Configuration object
 	 */
 	public static Configuration instance() {
 		if (global == null) {
-			global = Configuration.getMerged();
+			String cfgFileName = System.getenv("JBANG_CONFIG");
+			if (cfgFileName != null) {
+				Path cfgFile = Util.getCwd().resolve(cfgFileName);
+				if (Files.isReadable(cfgFile)) {
+					global = read(cfgFile);
+				} else {
+					global = defaults();
+				}
+			} else {
+				global = Configuration.getMerged();
+			}
 		}
 		return global;
 	}
