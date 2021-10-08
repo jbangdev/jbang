@@ -4,12 +4,17 @@ import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
 import static dev.jbang.cli.BaseCommand.EXIT_OK;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import dev.jbang.Configuration;
 import dev.jbang.Settings;
+import dev.jbang.util.ConsoleOutput;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -73,10 +78,39 @@ public class Config {
 	}
 
 	@CommandLine.Command(name = "list", description = "List active configuration values")
-	public Integer list() {
+	public Integer list(
+			@CommandLine.Option(names = {
+					"--show-origin" }, description = "Show the origin of the catalog") boolean showOrigin) {
+		PrintStream out = System.out;
 		Configuration cfg = getConfig(null, true);
-		cfg.keySet().stream().sorted().forEach(key -> System.out.println(key + " = " + cfg.get(key)));
+		if (showOrigin) {
+			while (cfg != null) {
+				Set<String> printedKeys = new HashSet<>();
+				printConfigWithOrigin(out, cfg, printedKeys);
+				cfg = cfg.getFallback();
+			}
+		} else {
+			printConfig(out, cfg);
+		}
 		return EXIT_OK;
+	}
+
+	private void printConfig(PrintStream out, Configuration cfg) {
+		cfg.keySet().stream().sorted().forEach(key -> out.println(ConsoleOutput.yellow(key) + " = " + cfg.get(key)));
+	}
+
+	private void printConfigWithOrigin(PrintStream out, Configuration cfg, Set<String> printedKeys) {
+		Set<String> keysToPrint = cfg	.keySet()
+										.stream()
+										.filter(key -> !printedKeys.contains(key))
+										.collect(Collectors.toSet());
+		if (!keysToPrint.isEmpty()) {
+			out.println(ConsoleOutput.bold(cfg.getStoreRef().getOriginalResource()));
+			keysToPrint	.stream()
+						.sorted()
+						.forEach(key -> out.println("   " + ConsoleOutput.yellow(key) + " = " + cfg.get(key)));
+			printedKeys.addAll(keysToPrint);
+		}
 	}
 
 	private Configuration getConfig(Path cwd, boolean strict) {
