@@ -105,6 +105,20 @@ public class Configuration {
 	}
 
 	/**
+	 * Removes the given value from this Configuration or its fallback
+	 *
+	 * @param key The key of the value to remove
+	 * @return The removed value if it was found or `null` if not
+	 */
+	public String remove(String key) {
+		if (values.containsKey(key)) {
+			return Objects.toString(values.remove(key), null);
+		} else {
+			return fallback.remove(key);
+		}
+	}
+
+	/**
 	 * Returns the keys for this Configuration. NB: This will NOT return the keys
 	 * for the fallback! Use `flatten()` first if you want all keys()
 	 * 
@@ -264,7 +278,7 @@ public class Configuration {
 		return cfg;
 	}
 
-	static void write(Path configFile, Configuration cfg) throws IOException {
+	public static void write(Path configFile, Configuration cfg) throws IOException {
 		verboseMsg(String.format("Reading configuration from %s", configFile));
 		try (Writer out = Files.newBufferedWriter(configFile)) {
 			Gson parser = new GsonBuilder().setPrettyPrinting().create();
@@ -272,57 +286,4 @@ public class Configuration {
 		}
 	}
 
-	public static Path setNearestConfigValue(String key, String value) throws IOException {
-		Path configFile = getConfigFile(null);
-		setConfigValue(configFile, key, value);
-		return configFile;
-	}
-
-	public static void setConfigValue(Path configFile, String key, String value) throws IOException {
-		Configuration cfg = read(configFile);
-		cfg.values.put(key, value);
-		write(configFile, cfg);
-	}
-
-	public static Path unsetNearestConfigValue(String key) throws IOException {
-		Path configFile = findNearestLocalConfigWithKey(null, key);
-		unsetConfigValue(configFile, key);
-		return configFile;
-	}
-
-	public static void unsetConfigValue(Path configFile, String key) throws IOException {
-		Configuration cfg = read(configFile);
-		if (cfg.containsKey(key)) {
-			cfg.values.remove(key);
-			write(configFile, cfg);
-		}
-	}
-
-	/**
-	 * Will either return the path to the given config or search for the nearest
-	 * config starting from cwd.
-	 *
-	 * @param config The config to return or null to return the nearest config
-	 * @return Path to a config
-	 */
-	private static Path getConfigFile(Path config) {
-		if (config == null) {
-			config = findNearestLocalConfig();
-			if (config == null) {
-				config = Settings.getUserConfigFile();
-			}
-		}
-		return config;
-	}
-
-	private static Path findNearestLocalConfig() {
-		return Util.findNearestFileWith(null, JBANG_CONFIG_JSON, p -> true);
-	}
-
-	private static Path findNearestLocalConfigWithKey(Path dir, String key) {
-		return Util.findNearestFileWith(dir, JBANG_CONFIG_JSON, configFile -> {
-			Configuration cfg = read(configFile);
-			return cfg.containsKey(key);
-		});
-	}
 }

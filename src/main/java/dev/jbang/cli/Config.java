@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import dev.jbang.Configuration;
 import dev.jbang.Settings;
+import dev.jbang.util.ConfigUtil;
 import dev.jbang.util.ConsoleOutput;
 import dev.jbang.util.Util;
 
@@ -49,9 +50,9 @@ public class Config {
 			throws IOException {
 		Path cfgFile = getConfigFile(false);
 		if (cfgFile != null) {
-			Configuration.setConfigValue(cfgFile, key, value);
+			ConfigUtil.setConfigValue(cfgFile, key, value);
 		} else {
-			cfgFile = Configuration.setNearestConfigValue(key, value);
+			cfgFile = ConfigUtil.setNearestConfigValue(key, value);
 		}
 		Util.verboseMsg("Option '" + key + "' set to '" + value + "' in " + cfgFile);
 		return EXIT_OK;
@@ -65,9 +66,9 @@ public class Config {
 		if (cfg.containsKey(key)) {
 			Path cfgFile = getConfigFile(false);
 			if (cfgFile != null) {
-				Configuration.unsetConfigValue(cfgFile, key);
+				ConfigUtil.unsetConfigValue(cfgFile, key);
 			} else {
-				cfgFile = Configuration.unsetNearestConfigValue(key);
+				cfgFile = ConfigUtil.unsetNearestConfigValue(key);
 			}
 			Util.verboseMsg("Option '" + key + "' removed from in " + cfgFile);
 			return EXIT_OK;
