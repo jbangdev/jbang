@@ -46,7 +46,8 @@ public class Init extends BaseScriptCommand {
 		dev.jbang.catalog.Template tpl = dev.jbang.catalog.Template.get(initTemplate);
 		if (tpl == null) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
-					"Could not find init template named: " + initTemplate);
+					"Could not find init template named: " + initTemplate
+							+ ". Try run with --fresh to get latest catalog updates.");
 		}
 
 		boolean absolute = new File(scriptOrFile).isAbsolute();
