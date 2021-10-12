@@ -14,7 +14,7 @@ if exist "%~dp0jbang.jar" (
   set jarPath=%~dp0.jbang\jbang.jar
 ) else (
   if not exist "%JBDIR%\bin\jbang.jar" (
-    powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "%~dp0jbang.ps1"
+    powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "%~dp0jbang.ps1 version" > nul
     if !ERRORLEVEL! NEQ 0 ( exit /b %ERRORLEVEL% )
   )
   call "%JBDIR%\bin\jbang.cmd" %*
