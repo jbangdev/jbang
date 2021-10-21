@@ -17,15 +17,15 @@
       "description": "Basic kotlin Hello World template"
     },
     "qcli": {
-      "file-refs": {"{basename}.java":  "init-qcli.java.qute"},
+      "file-refs": {"{filename}":  "init-qcli.java.qute"},
       "description": "Quarkus CLI template"
     },
     "qmetrics": {
-      "file-refs": {"{basename}.java":  "init-qmetrics.java.qute"},
+      "file-refs": {"{filename}":  "init-qmetrics.java.qute"},
       "description": "Quarkus Metrics template"
     },
     "qrest": {
-      "file-refs": {"{basename}.java": "init-qrest.java.qute"},
+      "file-refs": {"{filename}": "init-qrest.java.qute"},
       "description": "Quarkus REST template"
     }
   },
