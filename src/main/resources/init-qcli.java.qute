@@ -3,6 +3,9 @@
 // `-Dquarkus.version=<version>` to override it.
 //DEPS io.quarkus:quarkus-bom:$\{quarkus.version:1.11.0.Final\}@pom
 //DEPS io.quarkus:quarkus-picocli
+{#for dep in dependencies.orEmpty}
+//DEPS {dep}
+{/for}
 //Q:CONFIG quarkus.banner.enabled=false
 //Q:CONFIG quarkus.log.level=WARN
 
