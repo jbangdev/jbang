@@ -84,7 +84,7 @@ sdk update jbang
 
 == Chocolatey icon:windows[]
 
-On Windows you can install both `java` and jbang` with https://chocolatey.org[Chocolatey].
+On Windows you can install both `java` and `jbang` with https://chocolatey.org[Chocolatey].
 
 From a command prompt with enough rights to install with choco:
 
