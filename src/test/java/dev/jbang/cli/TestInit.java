@@ -73,6 +73,28 @@ public class TestInit extends BaseTest {
 	}
 
 	@Test
+	void testDepsInit(@TempDir Path outputDir) throws IOException {
+		Path x = outputDir.resolve("edit.java");
+		String s = x.toString();
+		int result = JBang.getCommandLine().execute("init", "--deps", "a.b.c:mydep:1.0", s);
+		assertThat(result, is(0));
+		assertThat(new File(s).exists(), is(true));
+		assertThat(Util.readString(x), Matchers.containsString("//DEPS a.b.c:mydep:1.0"));
+	}
+
+	@Test
+	void testMultiDepsInit(@TempDir Path outputDir) throws IOException {
+		Path x = outputDir.resolve("edit.java");
+		String s = x.toString();
+		int result = JBang.getCommandLine().execute("init", "--deps", "a.b.c:mydep:1.0", "--deps", "q.z:rrr:2.0", s);
+		assertThat(result, is(0));
+		assertThat(new File(s).exists(), is(true));
+		assertThat(Util.readString(x), Matchers.containsString("//DEPS a.b.c:mydep:1.0"));
+		assertThat(Util.readString(x), Matchers.containsString("//DEPS q.z:rrr:2.0"));
+
+	}
+
+	@Test
 	void testDefaultInit(@TempDir Path outputDir) throws IOException {
 		Path x = outputDir.resolve("edit.java");
 		String s = x.toString();
@@ -223,4 +245,5 @@ public class TestInit extends BaseTest {
 
 		assertThat(outcontent, containsString("propvaluerocks"));
 	}
+
 }

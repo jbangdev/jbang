@@ -1,5 +1,9 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS info.picocli:picocli:4.5.0
+{#for dep in dependencies.orEmpty}
+//DEPS {dep}
+{/for}
+{#if dependencies.isEmpty()}// //DEPS <dependency1> <dependency2>{/if}
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;

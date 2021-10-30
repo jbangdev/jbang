@@ -41,6 +41,9 @@ public class Init extends BaseScriptCommand {
 	@CommandLine.Option(names = { "-D" }, description = "set a system property", mapFallbackValue = "true")
 	Map<String, Object> properties = new HashMap<>();
 
+	@CommandLine.Option(names = { "--deps" }, description = "Add additional dependencies.")
+	List<String> dependencies;
+
 	@Override
 	public Integer doCall() throws IOException {
 		dev.jbang.catalog.Template tpl = dev.jbang.catalog.Template.get(initTemplate);
@@ -57,6 +60,7 @@ public class Init extends BaseScriptCommand {
 
 		properties.put("scriptref", scriptOrFile);
 		properties.put("baseName", Util.getBaseName(Paths.get(scriptOrFile).getFileName().toString()));
+		properties.put("dependencies", dependencies);
 
 		List<RefTarget> refTargets = tpl.fileRefs	.entrySet()
 													.stream()

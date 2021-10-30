@@ -1,5 +1,8 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-// //DEPS <dependency1> <dependency2>
+{#for dep in dependencies.orEmpty}
+//DEPS {dep}
+{/for}
+{#if dependencies.isEmpty()}// //DEPS <dependency1> <dependency2>{/if}
 
 public fun main() {
     println("Hello World");
