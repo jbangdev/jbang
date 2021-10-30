@@ -34,49 +34,8 @@ release:
       close: false
     changelog:
       formatted: always
+      preset: "conventional-commits"
       format: '- {{commitShortHash}} {{commitTitle}}'
-      labelers:
-        - label: 'fix'
-          title: 'fix:'
-        - label: 'feature'
-          title: 'feat:'
-        - label: 'task'
-          title: 'chore:'
-        - label: 'dependencies'
-          title: 'chore(deps):'
-        - label: 'test'
-          title: 'test:'
-        - label: 'docs'
-          title: 'docs:'
-        - label: 'docs'
-          title: 'doc:'
-      categories:
-        - title: '🚀 Features'
-          labels:
-            - 'feature'
-        - title: '🐛 Fixes'
-          labels:
-            - 'fix'
-        - title: '🧰 Tasks'
-          labels:
-            - 'task'
-        - title: '✅ Tests'
-          labels:
-            - 'test'
-        - title: '📝 Documentation'
-          labels:
-            - 'docs'
-        - title: '⚙️  Dependencies'
-          labels:
-            - 'dependencies'
-      replacers:
-        - search: 'fix: '
-        - search: 'feat: '
-        - search: 'chore: '
-        - search: 'chore\(deps\): '
-        - search: 'test: '
-        - search: 'docs: '
-        - search: 'doc: '
 
 checksum:
   individual: true

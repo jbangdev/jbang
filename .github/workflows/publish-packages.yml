@@ -19,6 +19,7 @@ jobs:
       JRELEASER_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
       JRELEASER_GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
+      JRELEASER_VERSION: 0.8.0
     steps:
       - uses: actions/checkout@v1
       - name: install-java11
@@ -44,7 +45,7 @@ jobs:
         env:
           JRELEASER_PROJECT_VERSION: ${{steps.version.outputs.RELEASE_VERSION}}
         with:
-          version: 0.7.0
+          version: ${{ env.JRELEASER_VERSION }}
           arguments: publish
       - name: JReleaser output
         if: always()
@@ -66,7 +67,7 @@ jobs:
         env:
           JRELEASER_PROJECT_VERSION: ${{steps.version.outputs.RELEASE_VERSION}}
         with:
-          version: 0.7.0
+          version: ${{ env.JRELEASER_VERSION }}
           arguments: announce
       - name: JReleaser output
         if: always()
