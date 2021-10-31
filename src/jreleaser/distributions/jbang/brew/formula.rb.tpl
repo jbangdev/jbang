@@ -6,8 +6,6 @@ class {{brewFormulaName}} < Formula
   sha256 "{{distributionSha256}}"
   license "{{projectLicense}}"
 
-  bottle :unneeded
-
   {{#brewDependencies}}
   depends_on {{.}}
   {{/brewDependencies}}
