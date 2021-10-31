@@ -579,6 +579,15 @@
         "doc",
         "bug"
       ]
+    },
+    {
+      "login": "TomerFi",
+      "name": "Tomer Figenblat",
+      "avatar_url": "https://avatars.githubusercontent.com/u/28388442?v=4",
+      "profile": "https://github.com/TomerFi",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "skipCi": true,
