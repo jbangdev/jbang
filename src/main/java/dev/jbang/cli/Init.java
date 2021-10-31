@@ -179,10 +179,11 @@ public class Init extends BaseScriptCommand {
 			Optional<RefTarget> optionalRefTarget = refTargets	.stream()
 																.filter(refTarget -> refTarget	.getSource()
 																								.getFile()
-																								.getPath()
-																								.endsWith(
-																										optionalFileRefEntry.get()
-																															.getValue()))
+																								.getName()
+																								.equals(
+																										new File(
+																												optionalFileRefEntry.get()
+																																	.getValue()).getName()))
 																.findFirst();
 			if (optionalRefTarget.isPresent()) {
 				Path path = optionalRefTarget.get().to(outDir);
