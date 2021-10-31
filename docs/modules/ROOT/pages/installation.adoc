@@ -79,7 +79,7 @@ To update run:
 
 [source]
 ----
-sdk update jbang
+sdk upgrade jbang
 ----
 
 == Chocolatey icon:windows[]
