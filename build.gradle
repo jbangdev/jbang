@@ -108,8 +108,8 @@ def commonSpec = project.copySpec {
 	from(shadowJar) {
 		into 'bin'
 	}
-	from(project.buildDir) {
-		include 'tmp/version.txt'
+	from(project.buildDir.toPath().resolve('tmp')) {
+		include 'version.txt'
 	}
 	from('src/main/scripts') {
 		include 'jbang'
@@ -297,13 +297,20 @@ asciidoctor {
 	baseDirFollowsSourceDir()
 }
 
-build.dependsOn(versionTxt)
+//seems crazy we need versionTxt depend on all dist* but
+//didn't find better way yet.
+distZip.dependsOn(versionTxt)
+distTar.dependsOn(versionTxt)
+latestZip.dependsOn(versionTxt)
+latestTar.dependsOn(versionTxt)
+
 build.dependsOn(latestDistZip)
 build.dependsOn(latestDistTar)
 build.dependsOn(copyITests)
 build.dependsOn(chocolatey)
 build.dependsOn(container)
 build.dependsOn(spec)
+
 
 group = "dev.jbang"
 sourceCompatibility = '8'
