@@ -301,8 +301,6 @@ asciidoctor {
 //didn't find better way yet.
 distZip.dependsOn(versionTxt)
 distTar.dependsOn(versionTxt)
-latestZip.dependsOn(versionTxt)
-latestTar.dependsOn(versionTxt)
 
 build.dependsOn(latestDistZip)
 build.dependsOn(latestDistTar)
