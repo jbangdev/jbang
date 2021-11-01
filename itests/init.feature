@@ -35,4 +35,5 @@ Then command('jbang init -t test ' + scratch + '/Script.java')
 * match err contains "File initialized. You can now run it with"
 * match err contains "or edit it using"
 * match err contains "ScriptTest.java"
+* match err !contains "Script.java"
 * match err !contains "ScriptSecondTest.java"
