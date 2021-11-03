@@ -13,7 +13,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.regex.Pattern;
@@ -88,12 +90,6 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 
 	static Source build(ScriptSource src, RunContext ctx) throws IOException {
 		Source result = src;
-
-		// todo: pass properties through instead of changing system properties
-		/*
-		 * for (Map.Entry<String, String> entry : ctx.getProperties().entrySet()) {
-		 * System.setProperty(entry.getKey(), entry.getValue()); }
-		 */
 
 		File outjar = src.getJarFile();
 		boolean nativeBuildRequired = ctx.isNativeImage() && !getImageName(outjar).exists();
@@ -181,10 +177,18 @@ public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
 		}
 
 		ctx.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
+		// todo: setting properties to avoid loosing properties in integration call.
+		Properties old = System.getProperties();
+		Properties temporay = new Properties(System.getProperties());
+		for (Map.Entry<String, String> entry : ctx.getProperties().entrySet()) {
+			System.setProperty(entry.getKey(), entry.getValue());
+		}
 		integrationResult = IntegrationManager.runIntegration(src.getAllRepositories(),
 				ctx.getClassPath().getArtifacts(),
 				tmpJarDir.toPath(), pomPath,
 				src, ctx.isNativeImage());
+		System.setProperties(old);
+
 		if (integrationResult.mainClass != null) {
 			ctx.setMainClass(integrationResult.mainClass);
 		} else {
