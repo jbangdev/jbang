@@ -249,8 +249,7 @@ For example, this is required for Managing JDKs or editing the files with the `e
 To resolve the issue, on Windows 10 you will need to enable symbolic linking for your user account.
 
 * Review security considerations and best practices https://docs.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/create-symbolic-links[here].
-* Enable the `Create symbolic links` group policy setting for your user/group
-  by following the guidelines on the https://docs.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/user-rights-assignment[User Rights Assignment] page.
+* Enable the `Create symbolic links` group policy setting for your user by running `fsutil behavior set symlinkevaluation l2l:1 l2r:1` from a Command Prompt with Administrator rights.
 
 You might also need elevated privileges to create symbolic links
 If the JBang process has no full administrative rights, the execution may result in an error like:
