@@ -178,8 +178,7 @@ public class Init extends BaseScriptCommand {
 		if (optionalFileRefEntry.isPresent()) {
 			Optional<RefTarget> optionalRefTarget = refTargets	.stream()
 																.filter(refTarget -> refTarget	.getSource()
-																								.getFile()
-																								.getPath()
+																								.getOriginalResource()
 																								.endsWith(
 																										optionalFileRefEntry.get()
 																															.getValue()))
