@@ -1,0 +1,7 @@
+contact_links:
+  - name: Question/Discussion
+    url: https://github.com/jbangdev/jbang/discussions/new
+    about: I have a question or topic to discuss which is not a bug nor new feature.
+  - name: JBang Gitter Chat
+    url: https://gitter.im/jbangdev/community
+    about: If you prefer live chat with the developers, we hang out on Gitter.
