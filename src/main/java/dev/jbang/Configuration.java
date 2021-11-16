@@ -11,24 +11,21 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.Set;
-import java.util.TreeMap;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import java.util.stream.Collectors;
 
 import dev.jbang.source.ResourceRef;
 import dev.jbang.util.Util;
 
 public class Configuration {
-	protected final Map<String, Object> values = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+	protected final Properties values = new Properties();
 
 	private Configuration fallback;
 	private ResourceRef storeRef;
 
-	public static final String JBANG_CONFIG_JSON = "jbang-config.json";
+	public static final String JBANG_CONFIG_PROPS = "jbang.properties";
 
 	private static Configuration defaults;
 	private static Configuration global;
@@ -94,14 +91,19 @@ public class Configuration {
 	}
 
 	/**
-	 * Sets the given key to the given value in this Configuration
+	 * Sets the given key to the given value in this Configuration. Passing `null`
+	 * as a value is the same as calling `remove()`.
 	 * 
 	 * @param key   The key of the value to set
 	 * @param value The new value for the given key
 	 * @return The old value for the given key or `null`
 	 */
 	public String put(String key, String value) {
-		return Objects.toString(values.put(key, value), null);
+		if (value != null) {
+			return Objects.toString(values.put(key, value), null);
+		} else {
+			return remove(key);
+		}
 	}
 
 	/**
@@ -125,7 +127,7 @@ public class Configuration {
 	 * @return Set of keys
 	 */
 	public Set<String> keySet() {
-		return values.keySet();
+		return values.keySet().stream().map(Objects::toString).collect(Collectors.toSet());
 	}
 
 	/**
@@ -227,7 +229,7 @@ public class Configuration {
 	 */
 	public static Configuration getMerged() {
 		Set<Path> configFiles = new LinkedHashSet<>();
-		Util.findNearestFileWith(null, JBANG_CONFIG_JSON, cfgFile -> {
+		Util.findNearestFileWith(null, JBANG_CONFIG_PROPS, cfgFile -> {
 			configFiles.add(cfgFile);
 			return false;
 		});
@@ -247,7 +249,7 @@ public class Configuration {
 
 	// This returns the built-in Configuration that can be found in the resources
 	public static Configuration getBuiltin() {
-		String res = "classpath:/" + JBANG_CONFIG_JSON;
+		String res = "classpath:/" + JBANG_CONFIG_PROPS;
 		ResourceRef cfgRef = ResourceRef.forResource(res);
 		if (cfgRef != null) {
 			Path catPath = cfgRef.getFile().toPath();
@@ -263,16 +265,11 @@ public class Configuration {
 		Configuration cfg = new Configuration();
 		if (Files.isRegularFile(configFile)) {
 			try (Reader in = Files.newBufferedReader(configFile)) {
-				Gson parser = new Gson();
-				@SuppressWarnings("unchecked")
-				Map<String, Object> tmp = parser.fromJson(in, TreeMap.class);
-				if (tmp != null) {
-					cfg.values.putAll(tmp);
-				} else {
-					warnMsg("Couldn't parse configuration: " + configFile);
-				}
+				Properties props = new Properties();
+				props.load(in);
+				cfg.values.putAll(props);
 			} catch (IOException e) {
-				// Ignore errors
+				warnMsg("Couldn't parse configuration: " + configFile);
 			}
 		}
 		return cfg;
@@ -281,8 +278,7 @@ public class Configuration {
 	public static void write(Path configFile, Configuration cfg) throws IOException {
 		verboseMsg(String.format("Reading configuration from %s", configFile));
 		try (Writer out = Files.newBufferedWriter(configFile)) {
-			Gson parser = new GsonBuilder().setPrettyPrinting().create();
-			parser.toJson(cfg.values, out);
+			cfg.values.store(out, "");
 		}
 	}
 

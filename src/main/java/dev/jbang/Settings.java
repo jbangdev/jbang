@@ -126,7 +126,7 @@ public class Settings {
 	}
 
 	public static Path getUserConfigFile() {
-		return getConfigDir().resolve(Configuration.JBANG_CONFIG_JSON);
+		return getConfigDir().resolve(Configuration.JBANG_CONFIG_PROPS);
 	}
 
 }

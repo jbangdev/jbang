@@ -22,16 +22,14 @@ import picocli.CommandLine;
 
 public class TestConfiguration extends BaseTest {
 
-	static final String config = "{\n" +
-			"  \"foo\": \"baz\",\n" +
-			"  \"init.template\": \"bye\",\n" +
-			"  \"edit.open\": \"someeditor.cfg\",\n" +
-			"  \"run.jfr\": \"dummyjfr.cfg\"\n" +
-			"}";
+	static final String config = "foo = baz\n" +
+			"init.template = bye\n" +
+			"edit.open = someeditor.cfg\n" +
+			"run.jfr = dummyjfr.cfg\n";
 
 	@BeforeEach
 	void initCfg() throws IOException {
-		Files.write(jbangTempDir.resolve(Configuration.JBANG_CONFIG_JSON), config.getBytes());
+		Files.write(jbangTempDir.resolve(Configuration.JBANG_CONFIG_PROPS), config.getBytes());
 		Util.setCwd(Files.createDirectory(cwdDir.resolve("test")));
 	}
 
@@ -76,7 +74,7 @@ public class TestConfiguration extends BaseTest {
 		Configuration cfg = Configuration.create(fallback);
 		cfg.put("bar", "ghi");
 		cfg.put("baz", "jkl");
-		Path cfgFile = jbangTempDir.resolve(Configuration.JBANG_CONFIG_JSON);
+		Path cfgFile = jbangTempDir.resolve(Configuration.JBANG_CONFIG_PROPS);
 		Configuration.write(cfgFile, cfg.flatten());
 		Configuration cfg2 = Configuration.read(cfgFile);
 		assertThat(cfg2.get("foo"), equalTo("abc"));
@@ -101,9 +99,7 @@ public class TestConfiguration extends BaseTest {
 
 	@Test
 	public void testInstanceOverride() throws IOException {
-		String config = "{\n" +
-				"  \"foo\": \"explicit\"\n" +
-				"}";
+		String config = "foo = explicit";
 		environmentVariables.set("JBANG_CONFIG", "explicit-config");
 		try {
 			Files.write(Util.getCwd().resolve("explicit-config"), config.getBytes());

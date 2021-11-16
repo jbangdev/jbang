@@ -51,11 +51,11 @@ public class ConfigUtil {
 	}
 
 	private static Path findNearestLocalConfig() {
-		return Util.findNearestFileWith(null, Configuration.JBANG_CONFIG_JSON, p -> true);
+		return Util.findNearestFileWith(null, Configuration.JBANG_CONFIG_PROPS, p -> true);
 	}
 
 	private static Path findNearestLocalConfigWithKey(Path dir, String key) {
-		return Util.findNearestFileWith(dir, Configuration.JBANG_CONFIG_JSON, configFile -> {
+		return Util.findNearestFileWith(dir, Configuration.JBANG_CONFIG_PROPS, configFile -> {
 			Configuration cfg = Configuration.read(configFile);
 			return cfg.containsKey(key);
 		});

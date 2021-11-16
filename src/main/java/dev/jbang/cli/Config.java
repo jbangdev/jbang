@@ -129,9 +129,9 @@ public class Config {
 			cfg = Settings.getUserConfigFile();
 		} else {
 			if (configFile != null && Files.isDirectory(configFile)) {
-				Path defaultConfig = configFile.resolve(Configuration.JBANG_CONFIG_JSON);
+				Path defaultConfig = configFile.resolve(Configuration.JBANG_CONFIG_PROPS);
 				Path hiddenConfig = configFile	.resolve(Settings.JBANG_DOT_DIR)
-												.resolve(Configuration.JBANG_CONFIG_JSON);
+												.resolve(Configuration.JBANG_CONFIG_PROPS);
 				if (!Files.exists(defaultConfig) && Files.exists(hiddenConfig)) {
 					cfg = hiddenConfig;
 				} else {
