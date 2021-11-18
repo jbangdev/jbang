@@ -146,20 +146,37 @@ public interface Source {
 		if (resourceRef == null) {
 			// Not found as such, so let's check the aliases
 			if (ctx.getCatalog() == null) {
-				alias = Alias.get(resource, ctx.getArguments(), ctx.getJavaOptions(), ctx.getProperties(),
-						ctx.getJavaVersion(), ctx.getMainClass());
+				alias = Alias.get(resource);
 			} else {
 				Catalog cat = Catalog.get(ctx.getCatalog().toPath());
-				alias = Alias.get(cat, resource, ctx.getArguments(), ctx.getJavaOptions(), ctx.getProperties(),
-						ctx.getJavaVersion(), ctx.getMainClass());
+				alias = Alias.get(cat, resource);
 			}
 			if (alias != null) {
 				resourceRef = ResourceRef.forResource(alias.resolve());
-				ctx.setArguments(alias.arguments);
-				ctx.setJavaVersion(alias.javaVersion);
-				ctx.setMainClass(alias.mainClass);
-				ctx.setJavaOptions(alias.javaOptions);
-				ctx.setProperties(alias.properties);
+				if (ctx.getArguments() == null || ctx.getArguments().isEmpty()) {
+					ctx.setArguments(alias.arguments);
+				}
+				if (ctx.getJavaOptions() == null || ctx.getJavaOptions().isEmpty()) {
+					ctx.setJavaOptions(alias.javaOptions);
+				}
+				if (ctx.getAdditionalDependencies() == null || ctx.getAdditionalDependencies().isEmpty()) {
+					ctx.setAdditionalDependencies(alias.dependencies);
+				}
+				if (ctx.getAdditionalRepositories() == null || ctx.getAdditionalRepositories().isEmpty()) {
+					ctx.setAdditionalRepositories(alias.repositories);
+				}
+				if (ctx.getAdditionalClasspaths() == null || ctx.getAdditionalClasspaths().isEmpty()) {
+					ctx.setAdditionalClasspaths(alias.classpaths);
+				}
+				if (ctx.getProperties() == null || ctx.getProperties().isEmpty()) {
+					ctx.setProperties(alias.properties);
+				}
+				if (ctx.getJavaVersion() == null) {
+					ctx.setJavaVersion(alias.javaVersion);
+				}
+				if (ctx.getMainClass() == null) {
+					ctx.setMainClass(alias.mainClass);
+				}
 				ctx.setAlias(alias);
 				if (resourceRef == null) {
 					throw new IllegalArgumentException(

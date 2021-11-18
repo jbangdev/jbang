@@ -20,16 +20,26 @@ public class Alias extends CatalogItem {
 	public final List<String> arguments;
 	@SerializedName(value = "java-options")
 	public final List<String> javaOptions;
+	public final List<String> dependencies;
+	public final List<String> repositories;
+	public final List<String> classpaths;
 	public final Map<String, String> properties;
 	@SerializedName(value = "java")
 	public final String javaVersion;
 	@SerializedName(value = "main")
 	public final String mainClass;
 
+	private Alias() {
+		this(null, null, null, null, null, null, null, null, null, null, null);
+	}
+
 	public Alias(String scriptRef,
 			String description,
 			List<String> arguments,
 			List<String> javaOptions,
+			List<String> dependencies,
+			List<String> repositories,
+			List<String> classpaths,
 			Map<String, String> properties,
 			String javaVersion,
 			String mainClass,
@@ -39,6 +49,9 @@ public class Alias extends CatalogItem {
 		this.description = description;
 		this.arguments = arguments;
 		this.javaOptions = javaOptions;
+		this.dependencies = dependencies;
+		this.repositories = repositories;
+		this.classpaths = classpaths;
 		this.properties = properties;
 		this.javaVersion = javaVersion;
 		this.mainClass = mainClass;
@@ -59,48 +72,23 @@ public class Alias extends CatalogItem {
 	 * @return An Alias object or null if no alias was found
 	 */
 	public static Alias get(String aliasName) {
-		return get(aliasName, null, null, null, null, null);
-	}
-
-	/**
-	 * Returns an Alias object for the given name with the given arguments, options
-	 * and properties applied to it. Or null if no alias with that name could be
-	 * found.
-	 *
-	 * @param aliasName   The name of an Alias
-	 * @param arguments   Optional arguments to apply to the Alias
-	 * @param javaOptions Optional java runtime options to apply to the Alias
-	 * @param properties  Optional properties to apply to the Alias
-	 * @param javaVersion Optional java version to apply to the Alias
-	 * @param mainClass   Optional main class name to apply to the Alias
-	 * @return An Alias object or null if no alias was found
-	 */
-	public static Alias get(String aliasName, List<String> arguments, List<String> javaOptions,
-			Map<String, String> properties, String javaVersion, String mainClass) {
 		HashSet<String> names = new HashSet<>();
-		Alias alias = new Alias(null, null, arguments, javaOptions, properties, javaVersion, mainClass, null);
+		Alias alias = new Alias();
 		Alias result = merge(alias, aliasName, Alias::getLocal, names);
 		return result.scriptRef != null ? result : null;
 	}
 
 	/**
-	 * Returns an Alias object for the given name with the given arguments, options
-	 * and properties applied to it. Or null if no alias with that name could be
-	 * found. The given Catalog will be used for any unqualified alias lookups.
+	 * Returns an Alias object for the given name. The given Catalog will be used
+	 * for any unqualified alias lookups.
 	 *
-	 * @param catalog        A Catalog to use for lookups
-	 * @param aliasName      The name of an Alias
-	 * @param arguments      Optional arguments to apply to the Alias
-	 * @param runtimeOptions Optional java runtime options to apply to the Alias
-	 * @param properties     Optional properties to apply to the Alias
-	 * @param javaVersion    Optional java version to apply to the Alias
-	 * @param mainClass      Optional main class name to apply to the Alias
+	 * @param catalog   A Catalog to use for lookups
+	 * @param aliasName The name of an Alias
 	 * @return An Alias object or null if no alias was found
 	 */
-	public static Alias get(Catalog catalog, String aliasName, List<String> arguments, List<String> runtimeOptions,
-			Map<String, String> properties, String javaVersion, String mainClass) {
+	public static Alias get(Catalog catalog, String aliasName) {
 		HashSet<String> names = new HashSet<>();
-		Alias alias = new Alias(null, null, arguments, runtimeOptions, properties, javaVersion, mainClass, null);
+		Alias alias = new Alias();
 		Alias result = merge(alias, aliasName, catalog.aliases::get, names);
 		return result.scriptRef != null ? result : null;
 	}
@@ -126,15 +114,23 @@ public class Alias extends CatalogItem {
 		if (a2 != null) {
 			names.add(name);
 			a2 = merge(a2, a2.scriptRef, findUnqualifiedAlias, names);
+			String desc = a1.description != null ? a1.description : a2.description;
 			List<String> args = a1.arguments != null && !a1.arguments.isEmpty() ? a1.arguments : a2.arguments;
 			List<String> opts = a1.javaOptions != null && !a1.javaOptions.isEmpty() ? a1.javaOptions
 					: a2.javaOptions;
+			List<String> deps = a1.dependencies != null && !a1.dependencies.isEmpty() ? a1.dependencies
+					: a2.dependencies;
+			List<String> repos = a1.repositories != null && !a1.repositories.isEmpty() ? a1.repositories
+					: a2.repositories;
+			List<String> cpaths = a1.classpaths != null && !a1.classpaths.isEmpty() ? a1.classpaths
+					: a2.classpaths;
 			Map<String, String> props = a1.properties != null && !a1.properties.isEmpty() ? a1.properties
 					: a2.properties;
 			String javaVersion = a1.javaVersion != null ? a1.javaVersion : a2.javaVersion;
 			String mainClass = a1.mainClass != null ? a1.mainClass : a2.mainClass;
 			Catalog catalog = a2.catalog != null ? a2.catalog : a1.catalog;
-			return new Alias(a2.scriptRef, a2.description, args, opts, props, javaVersion, mainClass, catalog);
+			return new Alias(a2.scriptRef, desc, args, opts, deps, repos, cpaths, props, javaVersion, mainClass,
+					catalog);
 		} else {
 			return a1;
 		}

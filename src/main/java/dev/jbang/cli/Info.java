@@ -29,7 +29,10 @@ import picocli.CommandLine;
 public class Info {
 }
 
-abstract class BaseInfoCommand extends BaseScriptDepsCommand {
+abstract class BaseInfoCommand extends BaseScriptCommand {
+
+	@CommandLine.Mixin
+	DependencyInfoMixin dependencyInfoMixin;
 
 	class ResourceFile {
 		String originalResource;
@@ -138,6 +141,7 @@ abstract class BaseInfoCommand extends BaseScriptDepsCommand {
 		RunContext ctx = RunContext.create(null, null,
 				dependencyInfoMixin.getProperties(),
 				dependencyInfoMixin.getDependencies(),
+				dependencyInfoMixin.getRepositories(),
 				dependencyInfoMixin.getClasspaths(),
 				forcejsh);
 		Source src = ctx.importJarMetadataFor(Source.forResource(scriptOrFile, ctx));

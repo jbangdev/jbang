@@ -42,13 +42,17 @@ import dev.jbang.util.Util;
 import io.quarkus.qute.Template;
 import picocli.CommandLine;
 
-public abstract class BaseBuildCommand extends BaseScriptDepsCommand {
+public abstract class BaseBuildCommand extends BaseScriptCommand {
+	protected String javaVersion;
+
 	public static final Type STRINGARRAYTYPE = Type.create(DotName.createSimple("[Ljava.lang.String;"),
 			Type.Kind.ARRAY);
 	public static final Type STRINGTYPE = Type.create(DotName.createSimple("java.lang.String"), Type.Kind.CLASS);
 	public static final Type INSTRUMENTATIONTYPE = Type.create(
 			DotName.createSimple("java.lang.instrument.Instrumentation"), Type.Kind.CLASS);
-	protected String javaVersion;
+
+	@CommandLine.Mixin
+	DependencyInfoMixin dependencyInfoMixin;
 
 	@CommandLine.Option(names = { "-m",
 			"--main" }, description = "Main class to use when running. Used primarily for running jar's.")

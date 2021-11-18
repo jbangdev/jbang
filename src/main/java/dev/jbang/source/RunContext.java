@@ -31,6 +31,7 @@ public class RunContext {
 	private Map<String, String> properties;
 
 	private List<String> additionalDeps = Collections.emptyList();
+	private List<String> additionalRepos = Collections.emptyList();
 	private List<String> additionalClasspaths = Collections.emptyList();
 	private boolean forceJsh = false; // if true, interpret any input as for jshell
 	private String originalRef;
@@ -66,10 +67,11 @@ public class RunContext {
 	}
 
 	public static RunContext create(List<String> arguments, List<String> javaRuntimeOptions,
-			Map<String, String> properties, List<String> dependencies,
+			Map<String, String> properties, List<String> dependencies, List<String> repositories,
 			List<String> classpaths, boolean forceJsh) {
 		RunContext ctx = new RunContext(arguments, javaRuntimeOptions, properties);
 		ctx.setAdditionalDependencies(dependencies);
+		ctx.setAdditionalRepositories(repositories);
 		ctx.setAdditionalClasspaths(classpaths);
 		ctx.setForceJsh(forceJsh);
 		return ctx;
@@ -110,6 +112,18 @@ public class RunContext {
 			this.additionalDeps = new ArrayList<>(deps);
 		} else {
 			this.additionalDeps = Collections.emptyList();
+		}
+	}
+
+	public List<String> getAdditionalRepositories() {
+		return additionalRepos;
+	}
+
+	public void setAdditionalRepositories(List<String> repos) {
+		if (repos != null) {
+			this.additionalRepos = new ArrayList<>(repos);
+		} else {
+			this.additionalRepos = Collections.emptyList();
 		}
 	}
 

@@ -28,6 +28,7 @@ public class Build extends BaseBuildCommand {
 		RunContext ctx = RunContext.create(null, null,
 				dependencyInfoMixin.getProperties(),
 				dependencyInfoMixin.getDependencies(),
+				dependencyInfoMixin.getRepositories(),
 				dependencyInfoMixin.getClasspaths(),
 				forcejsh);
 		ctx.setJavaVersion(javaVersion);

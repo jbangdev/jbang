@@ -58,6 +58,9 @@ abstract class BaseAliasCommand extends BaseCommand {
 @CommandLine.Command(name = "add", description = "Add alias for script reference.")
 class AliasAdd extends BaseAliasCommand {
 
+	@CommandLine.Mixin
+	DependencyInfoMixin dependencyInfoMixin;
+
 	@CommandLine.Option(names = { "--description",
 			"-d" }, description = "A description for the alias")
 	String description;
@@ -72,9 +75,6 @@ class AliasAdd extends BaseAliasCommand {
 	@CommandLine.Option(names = { "-j",
 			"--java" }, description = "JDK version to use for running the alias.")
 	String javaVersion;
-
-	@CommandLine.Option(names = { "-D" }, description = "Set a system property", mapFallbackValue = "true")
-	Map<String, String> properties;
 
 	@CommandLine.Option(names = { "--name" }, description = "A name for the alias")
 	String name;
@@ -102,11 +102,13 @@ class AliasAdd extends BaseAliasCommand {
 
 		Path catFile = getCatalog(false);
 		if (catFile != null) {
-			CatalogUtil.addAlias(catFile, name, scriptOrFile, desc, userParams, javaRuntimeOptions, properties,
-					javaVersion, mainClass);
+			CatalogUtil.addAlias(catFile, name, scriptOrFile, desc, userParams, javaRuntimeOptions,
+					dependencyInfoMixin.getDependencies(), dependencyInfoMixin.getRepositories(),
+					dependencyInfoMixin.getClasspaths(), dependencyInfoMixin.getProperties(), javaVersion, mainClass);
 		} else {
-			catFile = CatalogUtil.addNearestAlias(name, scriptOrFile, desc, userParams, javaRuntimeOptions, properties,
-					javaVersion, mainClass);
+			catFile = CatalogUtil.addNearestAlias(name, scriptOrFile, desc, userParams, javaRuntimeOptions,
+					dependencyInfoMixin.getDependencies(), dependencyInfoMixin.getRepositories(),
+					dependencyInfoMixin.getClasspaths(), dependencyInfoMixin.getProperties(), javaVersion, mainClass);
 		}
 		info(String.format("Alias '%s' added to '%s'", name, catFile));
 		return EXIT_OK;

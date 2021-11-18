@@ -41,7 +41,10 @@ import io.quarkus.qute.Template;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "edit", description = "Setup a temporary project to edit script in an IDE.")
-public class Edit extends BaseScriptDepsCommand {
+public class Edit extends BaseScriptCommand {
+
+	@CommandLine.Mixin
+	DependencyInfoMixin dependencyInfoMixin;
 
 	@CommandLine.Option(names = {
 			"--live" }, description = "Setup temporary project, regenerate project on dependency changes.")
@@ -64,6 +67,7 @@ public class Edit extends BaseScriptDepsCommand {
 		RunContext ctx = RunContext.create(null, null,
 				dependencyInfoMixin.getProperties(),
 				dependencyInfoMixin.getDependencies(),
+				dependencyInfoMixin.getRepositories(),
 				dependencyInfoMixin.getClasspaths(),
 				forcejsh);
 		Source src = Source.forResource(scriptOrFile, ctx);
