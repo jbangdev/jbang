@@ -12,9 +12,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Objects;
-import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.codejive.properties.Properties;
 
 import dev.jbang.source.ResourceRef;
 import dev.jbang.util.Util;
@@ -70,7 +71,7 @@ public class Configuration {
 	public String get(String key) {
 		String result;
 		if (values.containsKey(key)) {
-			result = Objects.toString(values.get(key), null);
+			result = values.get(key);
 		} else if (fallback != null) {
 			result = fallback.get(key);
 		} else {
@@ -100,7 +101,7 @@ public class Configuration {
 	 */
 	public String put(String key, String value) {
 		if (value != null) {
-			return Objects.toString(values.put(key, value), null);
+			return values.put(key, value);
 		} else {
 			return remove(key);
 		}
@@ -114,7 +115,7 @@ public class Configuration {
 	 */
 	public String remove(String key) {
 		if (values.containsKey(key)) {
-			return Objects.toString(values.remove(key), null);
+			return values.remove(key);
 		} else {
 			return fallback.remove(key);
 		}
@@ -278,7 +279,7 @@ public class Configuration {
 	public static void write(Path configFile, Configuration cfg) throws IOException {
 		verboseMsg(String.format("Reading configuration from %s", configFile));
 		try (Writer out = Files.newBufferedWriter(configFile)) {
-			cfg.values.store(out, "");
+			cfg.values.store(out);
 		}
 	}
 
