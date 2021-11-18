@@ -24,7 +24,7 @@ jbang-export-local - Exports jar with classpath referring to local machine depen
 *jbang export local* *-o* [*-hnV*] [*--force*] [*--fresh*] [*--insecure*] *--quiet* *--verbose*
                    [*-j*=_<javaVersion>_] [*-O*=_<outputFile>_] [*--cp*=_<classpaths>_]...
                    [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]...
-                   _scriptOrFile_
+                   [*--repos*=_<repositories>_]... _scriptOrFile_
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -73,6 +73,9 @@ Exports jar with classpath referring to local machine dependent locations
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
+
+*--repos*=_<repositories>_::
+  Add additional repositories.
 
 *-V*, *--version*::
   Display version info (use `jbang --verbose version` for more details)

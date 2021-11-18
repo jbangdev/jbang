@@ -23,9 +23,10 @@ jbang-alias-add - Add alias for script reference.
 
 *jbang alias add* *-o* [*-ghV*] [*--fresh*] *--quiet* *--verbose* [*-d*=_<description>_]
                 [*-f*=_<catalogFile>_] [*-j*=_<javaVersion>_] [*-m*=_<mainClass>_]
-                [*--name*=_<name>_] [*-D*=_<String=String>_]...
-                [*--java-options*=_<javaRuntimeOptions>_]... _scriptOrFile_
-                [_params_...]
+                [*--name*=_<name>_] [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
+                [*--deps*=_<dependencies>_]...
+                [*--java-options*=_<javaRuntimeOptions>_]...
+                [*--repos*=_<repositories>_]... _scriptOrFile_ [_params_...]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -39,11 +40,17 @@ Add alias for script reference.
 // tag::picocli-generated-man-section-options[]
 == Options
 
+*--cp, --class-path*=_<classpaths>_::
+  Add class path entries.
+
 *-d*, *--description*=_<description>_::
   A description for the alias
 
 *-D*, _<String=String>_::
-  Set a system property
+  set a system property
+
+*--deps*=_<dependencies>_::
+  Add additional dependencies.
 
 *-f*, *--file*=_<catalogFile>_::
   Path to the catalog file to use
@@ -74,6 +81,9 @@ Add alias for script reference.
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
+
+*--repos*=_<repositories>_::
+  Add additional repositories.
 
 *-V*, *--version*::
   Display version info (use `jbang --verbose version` for more details)

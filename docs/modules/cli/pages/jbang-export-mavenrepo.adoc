@@ -24,7 +24,8 @@ jbang-export-mavenrepo - Exports directory that can be used to publish as a mave
 *jbang export mavenrepo* *-o* [*-hnV*] [*--force*] [*--fresh*] [*--insecure*] *--quiet*
                        *--verbose* [*-j*=_<javaVersion>_] [*-O*=_<outputFile>_]
                        [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
-                       [*--deps*=_<dependencies>_]... _scriptOrFile_
+                       [*--deps*=_<dependencies>_]... [*--repos*=_<repositories>_]...
+                       _scriptOrFile_
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -73,6 +74,9 @@ Exports directory that can be used to publish as a maven repository
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
+
+*--repos*=_<repositories>_::
+  Add additional repositories.
 
 *-V*, *--version*::
   Display version info (use `jbang --verbose version` for more details)

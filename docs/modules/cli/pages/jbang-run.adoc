@@ -27,7 +27,8 @@ jbang-run - Builds and runs provided script.
           [*-j*=_<javaVersion>_] [*-m*=_<main>_] [*--cp*=_<classpaths>_]...
           [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]...
           [*--java-options*=_<javaRuntimeOptions>_]...
-          [*--javaagent*=_<String=Optional>_]... _<scriptOrFile>_ [_<userParams>_...]
+          [*--javaagent*=_<String=Optional>_]... [*--repos*=_<repositories>_]...
+          _<scriptOrFile>_ [_<userParams>_...]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -103,6 +104,9 @@ Builds and runs provided script.
 
 *-r*, *--jfr*[=_<flightRecorderString>_]::
   Launch with Java Flight Recorder enabled.
+
+*--repos*=_<repositories>_::
+  Add additional repositories.
 
 *-V*, *--version*::
   Display version info (use `jbang --verbose version` for more details)

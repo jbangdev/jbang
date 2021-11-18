@@ -23,7 +23,8 @@ jbang-edit - Setup a temporary project to edit script in an IDE.
 
 *jbang edit* *-o* [*-hV*] [*--fresh*] [*--insecure*] [*--jsh*] [*--live*] [*--no-open*] *--quiet*
            *--verbose* [*--open*=_<editor>_] [*--cp*=_<classpaths>_]...
-           [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]... _<scriptOrFile>_
+           [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]...
+           [*--repos*=_<repositories>_]... _<scriptOrFile>_
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -72,6 +73,9 @@ Setup a temporary project to edit script in an IDE.
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
+
+*--repos*=_<repositories>_::
+  Add additional repositories.
 
 *-V*, *--version*::
   Display version info (use `jbang --verbose version` for more details)

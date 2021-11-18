@@ -23,7 +23,8 @@ jbang-info-classpath - Prints classpath used for this application using operatin
 
 *jbang info classpath* *-o* [*-hV*] [*--fresh*] [*--insecure*] [*--jsh*] *--quiet* *--verbose*
                      [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
-                     [*--deps*=_<dependencies>_]... _<scriptOrFile>_
+                     [*--deps*=_<dependencies>_]... [*--repos*=_<repositories>_]...
+                     _<scriptOrFile>_
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -63,6 +64,9 @@ Prints classpath used for this application using operating system specific path 
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
+
+*--repos*=_<repositories>_::
+  Add additional repositories.
 
 *-V*, *--version*::
   Display version info (use `jbang --verbose version` for more details)

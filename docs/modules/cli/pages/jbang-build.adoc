@@ -24,7 +24,8 @@ jbang-build - Compiles and stores script in the cache.
 *jbang build* *-o* [*-hnV*] [*--[no-]cds*] [*--fresh*] [*--insecure*] [*--jsh*] *--quiet*
             *--verbose* [*--catalog*=_<catalog>_] [*-j*=_<javaVersion>_] [*-m*=_<main>_]
             [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
-            [*--deps*=_<dependencies>_]... _<scriptOrFile>_
+            [*--deps*=_<dependencies>_]... [*--repos*=_<repositories>_]...
+            _<scriptOrFile>_
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -79,6 +80,9 @@ Compiles and stores script in the cache.
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
+
+*--repos*=_<repositories>_::
+  Add additional repositories.
 
 *-V*, *--version*::
   Display version info (use `jbang --verbose version` for more details)
