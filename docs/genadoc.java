@@ -506,9 +506,9 @@ public class genadoc implements Callable<Integer> {
         pw.printf("// tag::picocli-generated-man-section-header[]%n");
         pw.printf(":doctype: manpage%n");
         // pw.printf(":authors: %s%n", spec.userObject()); // author
-        pw.printf(":revnumber: %s%n", versionString(spec)); // version
+        //pw.printf(":revnumber: %s%n", versionString(spec)); // version not included to avoid unnecessary generation
         pw.printf(":manmanual: %s%n", manualTitle(spec));
-        pw.printf(":mansource: %s%n", versionString(spec)); // spec.qualifiedName("-").toUpperCase()
+        //pw.printf(":mansource: %s%n", versionString(spec)); // spec.qualifiedName("-").toUpperCase()
         pw.printf(":man-linkstyle: pass:[blue R < >]%n");
         pw.printf("= %s(1)%n", spec.qualifiedName("-")); // command name (lower case)
         pw.println();
@@ -548,7 +548,7 @@ public class genadoc implements Callable<Integer> {
             parent = parent.parent();
         }
         String name = parent.name();
-        return Character.toUpperCase(name.charAt(0)) + name.substring(1) + " Manual";
+        return name + " Manual";
     }
 
     private static String headerDescriptionString(CommandSpec spec) {

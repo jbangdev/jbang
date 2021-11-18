@@ -3,9 +3,7 @@
 // tag::picocli-generated-full-manpage[]
 // tag::picocli-generated-man-section-header[]
 :doctype: manpage
-:revnumber: 
-:manmanual: Jbang Manual
-:mansource: 
+:manmanual: jbang Manual
 :man-linkstyle: pass:[blue R < >]
 = jbang-catalog-list(1)
 

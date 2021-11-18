@@ -297,6 +297,13 @@ asciidoctor {
 	baseDirFollowsSourceDir()
 }
 
+task clidoc(type: Exec) {
+	doFirst {
+		println 'Generating cli man pages'
+		commandLine 'jbang', '--cp', 'build/libs/jbang.jar', 'docs/genadoc.java', '-d', 'docs/modules/cli', '--force', 'dev.jbang.cli.JBang'
+	}
+}
+
 //seems crazy we need versionTxt depend on all dist* but
 //didn't find better way yet.
 distZip.dependsOn(versionTxt)
@@ -308,7 +315,7 @@ build.dependsOn(copyITests)
 build.dependsOn(chocolatey)
 build.dependsOn(container)
 build.dependsOn(spec)
-
+build.dependsOn(clidoc)
 
 group = "dev.jbang"
 sourceCompatibility = '8'
