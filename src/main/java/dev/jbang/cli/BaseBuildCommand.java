@@ -319,7 +319,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 	private static String resolveInGraalVMHome(String cmd, String requestedVersion) {
 		String newcmd = resolveInEnv("GRAALVM_HOME", cmd);
 
-		if (newcmd.equals(cmd) &&
+		if (!newcmd.equals(cmd) &&
 				!new File(newcmd).exists()) {
 			return JavaUtil.resolveInJavaHome(cmd, requestedVersion);
 		} else {
