@@ -80,6 +80,12 @@ jobs:
       - name: codecoverage-report
         run: |
           ./gradlew jacocoTestReport
+      - uses: codecov/codecov-action@v2
+        with:
+          #files: ./coverage1.xml,./coverage2.xml # optional
+          flags: ${{ runner.os }} # optional
+          name: ${{ runner.os }}-tests # optional
+          verbose: true # optional (default = false)
       - name: build-choco-package
         if: runner.os == 'Windows'
         uses: actions/setup-dotnet@v1
