@@ -40,7 +40,7 @@ download() {
 }
 
 javacInPath() {
-  [[ -x "$(command -v javac)" && ( $os != "mac" || $(/usr/libexec/java_home &> /dev/null) ) ]]
+  [[ -x "$(command -v javac)" && ( $os != "mac" || ! $(/usr/libexec/java_home &> /dev/null) ) ]]
 }
 
 abs_jbang_dir=$(dirname $(resolve_symlink $(absolute_path $0)))
@@ -167,7 +167,7 @@ if [[ -z "$JAVA_EXEC" ]]; then
       gzip -cd "$TDIR/bootstrap-jdk.tgz" | tar xf - -C "$TDIR/jdks/$javaVersion.tmp"
       retval=$?
       if [[ $os == mac && $retval -eq 0 ]]; then
-        mv "$TDIR/jdks/$javaVersion.tmp/Contents/Home/"*/* "$TDIR/jdks/$javaVersion.tmp/"
+        mv "$TDIR/jdks/$javaVersion.tmp/"*/Contents/Home/* "$TDIR/jdks/$javaVersion.tmp/"
         retval=$?
       else
         mv "$TDIR/jdks/$javaVersion.tmp/"*/* "$TDIR/jdks/$javaVersion.tmp/"
