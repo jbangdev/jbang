@@ -39,6 +39,10 @@ download() {
   fi
 }
 
+javacInPath() {
+  [[ -x "$(command -v javac)" && ( $os != "mac" || $(/usr/libexec/java_home &> /dev/null) ) ]]
+}
+
 abs_jbang_dir=$(dirname $(resolve_symlink $(absolute_path $0)))
 
 # todo might vary by os so can be overwritten below
@@ -125,19 +129,19 @@ unset JAVA_EXEC
 if [[ -n "$JAVA_HOME" ]]; then
   # Determine if a (working) JDK is available in JAVA_HOME
   if [ -x "$(command -v $JAVA_HOME/bin/javac)" ]; then
-    JAVA_EXEC="$JAVA_HOME/bin/java";
+    JAVA_EXEC="$JAVA_HOME/bin/java"
   else
     echo "JAVA_HOME is set but does not seem to point to a valid Java JDK" 1>&2
   fi
 fi
 if [[ -z "$JAVA_EXEC" ]]; then
   # Determine if a (working) JDK is available on the PATH
-  if [ -x "$(command -v javac)" ]; then
+  if javacInPath; then
     unset JAVA_HOME
-    JAVA_EXEC="java";
+    JAVA_EXEC="java"
   elif [ -x "$JBDIR/currentjdk/bin/javac" ]; then
     export JAVA_HOME="$JBDIR/currentjdk"
-    JAVA_EXEC="$JBDIR/currentjdk/bin/java";
+    JAVA_EXEC="$JBDIR/currentjdk/bin/java"
   else
     export JAVA_HOME="$TDIR/jdks/$javaVersion"
     JAVA_EXEC="$JAVA_HOME/bin/java"
