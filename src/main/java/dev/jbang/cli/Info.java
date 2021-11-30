@@ -144,7 +144,7 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 				dependencyInfoMixin.getRepositories(),
 				dependencyInfoMixin.getClasspaths(),
 				forcejsh);
-		Source src = ctx.importJarMetadataFor(Source.forResource(scriptOrFile, ctx));
+		Source src = ctx.importJarMetadataFor(ctx.forResource(scriptOrFile));
 
 		scripts = new HashSet<>();
 		ScriptInfo info = new ScriptInfo(src, ctx);

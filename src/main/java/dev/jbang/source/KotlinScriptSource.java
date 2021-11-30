@@ -4,6 +4,7 @@ import static dev.jbang.net.KotlinManager.resolveInKotlinHome;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.jboss.jandex.ClassInfo;
@@ -13,8 +14,8 @@ import dev.jbang.net.KotlinManager;
 
 public class KotlinScriptSource extends ScriptSource {
 
-	protected KotlinScriptSource(ResourceRef script) {
-		super(script);
+	protected KotlinScriptSource(ResourceRef script, Function<String, String> replaceProperties) {
+		super(script, replaceProperties);
 	}
 
 	@Override

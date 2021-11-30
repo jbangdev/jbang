@@ -98,7 +98,7 @@ class AppInstall extends BaseCommand {
 			return false;
 		}
 		RunContext ctx = RunContext.empty();
-		Source src = Source.forResource(scriptRef, ctx);
+		Source src = ctx.forResource(scriptRef);
 		if (name == null) {
 			name = CatalogUtil.nameFromRef(ctx.getOriginalRef());
 			if (!force && existScripts(binDir, name)) {

@@ -72,7 +72,7 @@ public class Run extends BaseBuildCommand {
 		}
 
 		RunContext ctx = getRunContext();
-		Source src = Source.forResource(scriptOrFile, ctx);
+		Source src = ctx.forResource(scriptOrFile);
 		src = prepareArtifacts(src, ctx);
 
 		String cmdline = generateOSCommandLine(src, ctx);
@@ -112,7 +112,7 @@ public class Run extends BaseBuildCommand {
 						forcejsh);
 				actx.setJavaVersion(ctx.getJavaVersion());
 				actx.setNativeImage(ctx.isNativeImage());
-				Source asrc = Source.forResource(javaAgent, actx);
+				Source asrc = actx.forResource(javaAgent);
 				actx.setJavaAgentOption(javaAgentOptions.orElse(null));
 				if (needsJar(asrc, actx)) {
 					info("Building javaagent...");

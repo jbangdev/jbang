@@ -17,7 +17,7 @@ public class Build extends BaseBuildCommand {
 		}
 
 		RunContext ctx = getRunContext();
-		Source src = Source.forResource(scriptOrFile, ctx);
+		Source src = ctx.forResource(scriptOrFile);
 
 		buildIfNeeded(src, ctx);
 

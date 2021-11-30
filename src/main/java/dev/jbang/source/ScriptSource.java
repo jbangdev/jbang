@@ -34,7 +34,6 @@ import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.util.JavaUtil;
-import dev.jbang.util.PropertiesValueResolver;
 import dev.jbang.util.Util;
 
 /**
@@ -65,6 +64,7 @@ public class ScriptSource implements Source {
 
 	private final ResourceRef resourceRef;
 	private final String script;
+	private final Function<String, String> replaceProperties;
 
 	// Cached values
 	private List<String> lines;
@@ -77,17 +77,18 @@ public class ScriptSource implements Source {
 	private File jar;
 	private JarSource jarSource;
 
-	protected ScriptSource(String script) {
-		this(ResourceRef.forFile(null), script);
+	public ScriptSource(String script, Function<String, String> replaceProperties) {
+		this(ResourceRef.forFile(null), script, replaceProperties);
 	}
 
-	protected ScriptSource(ResourceRef resourceRef) {
-		this(resourceRef, getBackingFileContent(resourceRef.getFile()));
+	protected ScriptSource(ResourceRef resourceRef, Function<String, String> replaceProperties) {
+		this(resourceRef, getBackingFileContent(resourceRef.getFile()), replaceProperties);
 	}
 
-	private ScriptSource(ResourceRef resourceRef, String content) {
+	private ScriptSource(ResourceRef resourceRef, String content, Function<String, String> replaceProperties) {
 		this.resourceRef = resourceRef;
 		this.script = content;
+		this.replaceProperties = replaceProperties != null ? replaceProperties : Function.identity();
 	}
 
 	public List<String> getCompileOptions() {
@@ -135,20 +136,16 @@ public class ScriptSource implements Source {
 	}
 
 	public List<String> collectDependencies() {
-		return collectDependencies(getLines());
-	}
-
-	private List<String> collectDependencies(List<String> lines) {
-
 		// Make sure that dependencies declarations are well formatted
-		if (lines.stream().anyMatch(it -> it.startsWith("// DEPS"))) {
+		if (getLines().stream().anyMatch(it -> it.startsWith("// DEPS"))) {
 			throw new IllegalArgumentException("Dependencies must be declared by using the line prefix //DEPS");
 		}
 
-		return lines.stream()
-					.filter(ScriptSource::isDependDeclare)
-					.flatMap(ScriptSource::extractDependencies)
-					.collect(Collectors.toList());
+		return getLines()	.stream()
+							.filter(ScriptSource::isDependDeclare)
+							.flatMap(ScriptSource::extractDependencies)
+							.map(replaceProperties)
+							.collect(Collectors.toList());
 	}
 
 	static boolean isDependDeclare(String line) {
@@ -247,7 +244,6 @@ public class ScriptSource implements Source {
 
 	private List<KeyValue> collectAgentOptions() {
 		return collectRawOptions("JAVAAGENT")	.stream()
-												.map(PropertiesValueResolver::replaceProperties)
 												.flatMap(ScriptSource::extractKeyValue)
 												.map(ScriptSource::toKeyValue)
 												.collect(Collectors.toCollection(ArrayList::new));
@@ -289,7 +285,6 @@ public class ScriptSource implements Source {
 		return getLines()	.stream()
 							.filter(ScriptSource::isRepoDeclare)
 							.flatMap(ScriptSource::extractRepositories)
-							.map(PropertiesValueResolver::replaceProperties)
 							.map(DependencyUtil::toMavenRepo)
 							.collect(Collectors.toCollection(ArrayList::new));
 	}
@@ -465,7 +460,7 @@ public class ScriptSource implements Source {
 							.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
 													.skip(1)
 													.map(String::trim))
-							.map(PropertiesValueResolver::replaceProperties)
+							.map(replaceProperties)
 							.map(this::toFileRef)
 							.collect(Collectors.toCollection(ArrayList::new));
 	}
@@ -507,7 +502,7 @@ public class ScriptSource implements Source {
 								.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
 														.skip(1)
 														.map(String::trim))
-								.map(PropertiesValueResolver::replaceProperties)
+								.map(replaceProperties)
 								.flatMap(line -> Util
 														.explode(getResourceRef().getOriginalResource(),
 																getResourceRef().getFile()
@@ -517,7 +512,7 @@ public class ScriptSource implements Source {
 																line)
 														.stream())
 								.map(resourceRef::asSibling)
-								.map(ScriptSource::prepareScript)
+								.map(it -> prepareScript(it, replaceProperties))
 								.collect(Collectors.toCollection(ArrayList::new));
 		}
 	}
@@ -532,17 +527,17 @@ public class ScriptSource implements Source {
 		return getJarFile().exists();
 	}
 
-	public static ScriptSource prepareScript(String resource) {
+	public static ScriptSource prepareScript(String resource, Function<String, String> replaceProperties) {
 		ResourceRef resourceRef = ResourceRef.forResource(resource);
-		return prepareScript(resourceRef);
+		return prepareScript(resourceRef, replaceProperties);
 	}
 
-	public static ScriptSource prepareScript(ResourceRef resourceRef) {
+	public static ScriptSource prepareScript(ResourceRef resourceRef, Function<String, String> replaceProperties) {
 		String originalResource = resourceRef.getOriginalResource();
 		if (originalResource != null && originalResource.endsWith(".kt")) {
-			return new KotlinScriptSource(resourceRef);
+			return new KotlinScriptSource(resourceRef, replaceProperties);
 		} else {
-			return new ScriptSource(resourceRef);
+			return new ScriptSource(resourceRef, replaceProperties);
 		}
 	}
 }

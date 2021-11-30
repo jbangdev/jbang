@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import dev.jbang.BaseTest;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.ScriptSource;
-import dev.jbang.source.Source;
 import dev.jbang.source.TestScript;
 
 public class TestEditWithPackage extends BaseTest {
@@ -57,7 +56,7 @@ public class TestEditWithPackage extends BaseTest {
 		Path CPath = TestScript.createTmpFileWithContent(BPath.getParent(), "model", "C.java", classC);
 		assertTrue(mainPath.toFile().exists());
 		RunContext ctx = RunContext.empty();
-		ScriptSource src = (ScriptSource) Source.forResource(mainPath.toString(), ctx);
+		ScriptSource src = (ScriptSource) ctx.forResource(mainPath.toString());
 		File project = new Edit().createProjectForEdit(src, ctx, false);
 		assertTrue(new File(project, "src/A.java").exists());
 		assertTrue(new File(project, "src/person/B.java").exists());

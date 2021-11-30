@@ -82,7 +82,7 @@ public class JarSource implements Source {
 	@Override
 	public ScriptSource asScriptSource() {
 		if (scriptSource == null) {
-			scriptSource = ScriptSource.prepareScript(resourceRef);
+			scriptSource = ScriptSource.prepareScript(resourceRef, null);
 		}
 		return scriptSource;
 	}

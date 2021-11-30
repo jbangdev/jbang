@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import dev.jbang.BaseTest;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.ScriptSource;
-import dev.jbang.source.Source;
 import dev.jbang.source.TestScript;
 import dev.jbang.util.Util;
 
@@ -49,7 +48,7 @@ public class TestEditWithPom extends BaseTest {
 		Path mainPath = TestScript.createTmpFileWithContent("", "main.java", main);
 		assertTrue(mainPath.toFile().exists());
 		RunContext ctx = RunContext.empty();
-		ScriptSource src = (ScriptSource) Source.forResource(mainPath.toString(), ctx);
+		ScriptSource src = (ScriptSource) ctx.forResource(mainPath.toString());
 		File project = new Edit().createProjectForEdit(src, ctx, false);
 		assertTrue(new File(project, "src/main.java").exists());
 
