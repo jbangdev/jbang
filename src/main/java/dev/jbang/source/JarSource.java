@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -97,7 +96,7 @@ public class JarSource implements Source {
 	}
 
 	@Override
-	public List<String> getAllDependencies(Properties props) {
+	public List<String> getAllDependencies() {
 		return Collections.emptyList();
 	}
 

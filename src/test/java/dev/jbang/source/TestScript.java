@@ -148,7 +148,8 @@ public class TestScript extends BaseTest {
 
 		assertEquals(script.getJavaVersion(), "14+");
 
-		List<String> deps = script.getAllDependencies(System.getProperties());
+		RunContext ctx = RunContext.empty();
+		List<String> deps = ctx.collectAllDependenciesFor(script);
 
 		assertThat(deps, containsInAnyOrder("info.picocli:picocli:4.5.0"));
 	}
@@ -157,11 +158,12 @@ public class TestScript extends BaseTest {
 	void testFindDependencies() {
 		ScriptSource script = new ScriptSource(example);
 
-		List<String> dependencies = script.getAllDependencies(System.getProperties());
-		assertEquals(2, dependencies.size());
+		RunContext ctx = RunContext.empty();
+		List<String> deps = ctx.collectAllDependenciesFor(script);
+		assertEquals(2, deps.size());
 
-		assertTrue(dependencies.contains("com.offbytwo:docopt:0.6.0.20150202"));
-		assertTrue(dependencies.contains("log4j:log4j:1.2.14"));
+		assertTrue(deps.contains("com.offbytwo:docopt:0.6.0.20150202"));
+		assertTrue(deps.contains("log4j:log4j:1.2.14"));
 
 	}
 

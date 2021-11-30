@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -128,18 +127,18 @@ public class ScriptSource implements Source {
 	}
 
 	@Override
-	public List<String> getAllDependencies(Properties props) {
+	public List<String> getAllDependencies() {
 		if (dependencies == null) {
-			dependencies = collectAll(script -> script.collectDependencies(props));
+			dependencies = collectAll(script -> script.collectDependencies());
 		}
 		return dependencies;
 	}
 
-	public List<String> collectDependencies(Properties props) {
-		return collectDependencies(getLines(), props);
+	public List<String> collectDependencies() {
+		return collectDependencies(getLines());
 	}
 
-	private List<String> collectDependencies(List<String> lines, Properties props) {
+	private List<String> collectDependencies(List<String> lines) {
 
 		// Make sure that dependencies declarations are well formatted
 		if (lines.stream().anyMatch(it -> it.startsWith("// DEPS"))) {
@@ -149,7 +148,6 @@ public class ScriptSource implements Source {
 		return lines.stream()
 					.filter(ScriptSource::isDependDeclare)
 					.flatMap(ScriptSource::extractDependencies)
-					.map(it -> PropertiesValueResolver.replaceProperties(it, props))
 					.collect(Collectors.toList());
 	}
 

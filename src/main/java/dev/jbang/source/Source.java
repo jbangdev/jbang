@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -103,7 +102,7 @@ public interface Source {
 	 * @param props A `Properties` object whose values can be used during dependency
 	 *              resolution
 	 */
-	List<String> getAllDependencies(Properties props);
+	List<String> getAllDependencies();
 
 	/**
 	 * Resolves the given list of dependencies

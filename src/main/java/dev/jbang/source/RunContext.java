@@ -296,7 +296,10 @@ public class RunContext {
 	}
 
 	public List<String> collectAllDependenciesFor(Source src) {
-		return src.getAllDependencies(getContextProperties());
+		return src	.getAllDependencies()
+					.stream()
+					.map(it -> PropertiesValueResolver.replaceProperties(it, getContextProperties()))
+					.collect(Collectors.toList());
 	}
 
 	/**
