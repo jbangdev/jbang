@@ -104,7 +104,7 @@ public class JBang extends BaseCommand {
 			Util.errorMsg(null, ex);
 			if (Util.isVerbose()) {
 				Util.infoMsg(
-						"If you believe this a bug in jbang open issue at https://github.com/jbangdev/jbang/issues");
+						"If you believe this a bug in jbang, open an issue at https://github.com/jbangdev/jbang/issues");
 			}
 
 			if (ex instanceof ExitException) {
