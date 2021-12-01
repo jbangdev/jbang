@@ -205,7 +205,11 @@ public class ScriptSource implements Source {
 	}
 
 	public String getSuggestedMain() {
-		return getResourceRef().getFile().getName().replace(getMainExtension(), ".class");
+		if (!getResourceRef().isStdin()) {
+			return getResourceRef().getFile().getName().replace(getMainExtension(), "");
+		} else {
+			return null;
+		}
 	}
 
 	public static class KeyValue {

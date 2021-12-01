@@ -53,6 +53,10 @@ public class ResourceRef implements Comparable<ResourceRef> {
 		return originalResource != null && Util.isClassPathRef(originalResource);
 	}
 
+	public boolean isStdin() {
+		return originalResource != null && isStdin(originalResource);
+	}
+
 	public File getFile() {
 		return file;
 	}
@@ -202,7 +206,7 @@ public class ResourceRef implements Comparable<ResourceRef> {
 				}
 			} else {
 				// support stdin
-				if (scriptResource.equals("-") || scriptResource.equals("/dev/stdin")) {
+				if (isStdin(scriptResource)) {
 					String scriptText = new BufferedReader(
 							new InputStreamReader(System.in, StandardCharsets.UTF_8))
 																						.lines()
@@ -228,6 +232,10 @@ public class ResourceRef implements Comparable<ResourceRef> {
 		}
 
 		return result;
+	}
+
+	private static boolean isStdin(String scriptResource) {
+		return scriptResource.equals("-") || scriptResource.equals("/dev/stdin");
 	}
 
 	private static ResourceRef forResource(String scriptResource, Function<String, ResourceRef> urlFetcher) {

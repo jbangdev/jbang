@@ -1250,6 +1250,30 @@ public class TestRun extends BaseTest {
 
 	}
 
+	String script = "" +
+			"class One {\n" +
+			"}" +
+			"class Two {\n" +
+			"public static void main(String... args) { };\n" +
+			"}" +
+			"class Three {\n" +
+			"}";
+
+	@Test
+	void testMultiSourcesNonPublic(@TempDir Path output) throws IOException {
+		JBang jbang = new JBang();
+		Path p = output.resolve("script");
+		writeString(p, script);
+
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("build", p.toFile().getAbsolutePath());
+		Build run = (Build) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+		ScriptSource src = (ScriptSource) Source.forResource(p.toFile().getAbsolutePath(), ctx);
+
+		BaseBuildCommand.build(src, ctx);
+	}
+
 	WireMockServer wms;
 
 	@BeforeEach
