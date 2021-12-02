@@ -190,6 +190,7 @@ fi
 ## attempt to ensure each argument keeps its original quoting
 
 ## run it using command substitution to have just the user process once jbang is done
+export JBANG_RUNTIME_SHELL=bash
 output=$(CLICOLOR_FORCE=1 ${JAVA_EXEC} ${JBANG_JAVA_OPTIONS} -classpath ${jarPath} dev.jbang.Main "$@")
 err=$?
 if [ $err -eq 255 ]; then

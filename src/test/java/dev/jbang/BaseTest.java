@@ -36,6 +36,9 @@ public abstract class BaseTest {
 		environmentVariables.set(Settings.JBANG_DIR, jbangTempDir.toString());
 		environmentVariables.set(Settings.JBANG_CACHE_DIR, jbangTempDir.resolve("cache").toString());
 		environmentVariables.set(Settings.ENV_NO_VERSION_CHECK, "true");
+		if (Util.isWindows()) {
+			environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "cmd");
+		}
 	}
 
 	public static final String EXAMPLES_FOLDER = "itests";

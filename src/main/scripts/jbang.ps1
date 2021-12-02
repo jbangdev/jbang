@@ -142,7 +142,7 @@ if ($JAVA_EXEC -eq "") {
   }
 }
 
-$env:JBANG_USES_POWERSHELL="true"
+$env:JBANG_RUNTIME_SHELL="powershell"
 $output = & $JAVA_EXEC $env:JBANG_JAVA_OPTIONS -classpath "$jarPath" dev.jbang.Main $args
 $err=$LASTEXITCODE
 

@@ -364,10 +364,13 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 	}
 
 	static String escapeOSArgument(String arg) {
-		if (Util.isWindows()) {
-			arg = escapeWindowsArgument(arg);
-		} else {
-			arg = escapeUnixArgument(arg);
+		switch (Util.getShell()) {
+		case bash:
+			return escapeUnixArgument(arg);
+		case cmd:
+			return escapeCmdArgument(arg);
+		case powershell:
+			return escapePowershellArgument(arg);
 		}
 		return arg;
 	}
@@ -388,19 +391,20 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		return arg;
 	}
 
-	static String escapeWindowsArgument(String arg) {
-		if (Util.isUsingPowerShell()) {
-			if (!pwrSafeChars.matcher(arg).matches()) {
-				arg = arg.replaceAll("(['])", "''");
-				arg = "'" + arg + "'";
-			}
-		} else {
-			if (!cmdSafeChars.matcher(arg).matches()) {
-				// Windows quoting is just weird
-				arg = arg.replaceAll("([()!^<>&|% ])", "^$1");
-				arg = arg.replaceAll("([\"])", "\\\\^$1");
-				arg = "^\"" + arg + "^\"";
-			}
+	static String escapeCmdArgument(String arg) {
+		if (!cmdSafeChars.matcher(arg).matches()) {
+			// Windows quoting is just weird
+			arg = arg.replaceAll("([()!^<>&|% ])", "^$1");
+			arg = arg.replaceAll("([\"])", "\\\\^$1");
+			arg = "^\"" + arg + "^\"";
+		}
+		return arg;
+	}
+
+	static String escapePowershellArgument(String arg) {
+		if (!pwrSafeChars.matcher(arg).matches()) {
+			arg = arg.replaceAll("(['])", "''");
+			arg = "'" + arg + "'";
 		}
 		return arg;
 	}

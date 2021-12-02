@@ -61,7 +61,7 @@ import dev.jbang.dependencies.DependencyUtil;
 public class Util {
 
 	public static final String JBANG_JDK_VENDOR = "JBANG_JDK_VENDOR";
-	public static final String JBANG_USES_POWERSHELL = "JBANG_USES_POWERSHELL";
+	public static final String JBANG_RUNTIME_SHELL = "JBANG_RUNTIME_SHELL";
 
 	public static final String SOURCES_COMMENT_PREFIX = "//SOURCES ";
 
@@ -268,6 +268,10 @@ public class Util {
 		}
 	}
 
+	public enum Shell {
+		bash, cmd, powershell
+	}
+
 	static public void verboseMsg(String msg) {
 		if (isVerbose()) {
 			System.err.print("[jbang] ");
@@ -402,8 +406,13 @@ public class Util {
 		return getOS() == OS.windows;
 	}
 
-	public static boolean isUsingPowerShell() {
-		return isWindows() && "true".equalsIgnoreCase(System.getenv(JBANG_USES_POWERSHELL));
+	public static Shell getShell() {
+		try {
+			return Shell.valueOf(System.getenv(JBANG_RUNTIME_SHELL));
+		} catch (IllegalArgumentException | NullPointerException ex) {
+			// We'll just hope for the best
+			return isWindows() ? Shell.powershell : Shell.bash;
+		}
 	}
 
 	public static boolean isMac() {
@@ -1091,6 +1100,39 @@ public class Util {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Converts a Path to a String. This is normally a trivial operation, but in
+	 * certain circumstances, like for example when we need to write a bash shell
+	 * scripts when running inside a Cygwin bash on Windows, we need to do a bit
+	 * more.
+	 *
+	 * @param path the Path to convert
+	 * @return a String representing the given Path
+	 */
+	public static String pathToString(Path path) {
+		if (isWindows() && getShell() == Shell.bash) {
+			StringBuilder str = new StringBuilder();
+			if (path.isAbsolute()) {
+				if (path.getRoot().toString().endsWith(":\\")) {
+					// Convert `x:` to `/x/`
+					str.append("/").append(path.getRoot().toString().charAt(0)).append("/");
+				} else {
+					// Convert `\\server\share` to `//server/share`
+					str.append(path.getRoot().toString().replace("\\", "/"));
+				}
+				for (int i = 0; i < path.getNameCount(); i++) {
+					if (i > 0) {
+						str.append("/");
+					}
+					str.append(path.getName(i).toString());
+				}
+			}
+			return str.toString();
+		} else {
+			return path.toString();
+		}
 	}
 
 	/**

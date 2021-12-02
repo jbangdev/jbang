@@ -125,6 +125,7 @@ class AppInstall extends BaseCommand {
 		if (Util.isWindows()) {
 			installCmdScript(binDir.resolve(name + ".cmd"), scriptRef, benative);
 			installPSScript(binDir.resolve(name + ".ps1"), scriptRef, benative);
+			installShellScript(binDir.resolve(name), scriptRef, benative);
 		} else {
 			installShellScript(binDir.resolve(name), scriptRef, benative);
 		}
@@ -135,7 +136,9 @@ class AppInstall extends BaseCommand {
 				"#!/bin/sh",
 				"exec jbang run" + (benative ? " --native " : " ") + scriptRef + " \"$@\"");
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
-		setExecutable(file);
+		if (!Util.isWindows()) {
+			setExecutable(file);
+		}
 	}
 
 	private static void setExecutable(Path file) {
@@ -349,7 +352,7 @@ class AppSetup extends BaseCommand {
 						"[EnvironmentVariableTarget]::User)";
 			}
 			if (!env.isEmpty()) {
-				if (Util.isUsingPowerShell()) {
+				if (Util.getShell() == Util.Shell.powershell) {
 					cmd = "{ " + env + " }";
 				} else {
 					cmd = "powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command \"" + env + "\" & ";
@@ -377,17 +380,17 @@ class AppSetup extends BaseCommand {
 		} else if (chatty) {
 			Util.infoMsg("JBang environment is already set up.");
 		}
-		if (Util.isWindows()) {
+		if (Util.getShell() == Util.Shell.bash) {
 			if (changed) {
-				if (Util.isUsingPowerShell()) {
+				System.out.println("Please start a new Shell for changes to take effect");
+			}
+		} else {
+			if (changed) {
+				if (Util.getShell() == Util.Shell.powershell) {
 					System.err.println("Please start a new PowerShell for changes to take effect");
 				} else {
 					System.err.println("Please open a new CMD window for changes to take effect");
 				}
-			}
-		} else {
-			if (changed) {
-				System.out.println("Please start a new Shell for changes to take effect");
 			}
 		}
 		if (!cmd.isEmpty()) {
