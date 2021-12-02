@@ -106,6 +106,7 @@ if ($JAVA_EXEC -eq "") {
   # Determine if a (working) JDK is available on the PATH
   $ok=$false; try { if (Get-Command "javac") { $ok=$true } } catch {}
   if ($ok) {
+    $env:JAVA_HOME=""
     $JAVA_EXEC="java.exe"
   } elseif (Test-Path "$JBDIR\currentjdk\bin\javac") {
     $env:JAVA_HOME="$JBDIR\currentjdk"

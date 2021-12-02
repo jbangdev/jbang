@@ -133,6 +133,7 @@ fi
 if [[ -z "$JAVA_EXEC" ]]; then
   # Determine if a (working) JDK is available on the PATH
   if [ -x "$(command -v javac)" ]; then
+    unset JAVA_HOME
     JAVA_EXEC="java";
   elif [ -x "$JBDIR/currentjdk/bin/javac" ]; then
     export JAVA_HOME="$JBDIR/currentjdk"

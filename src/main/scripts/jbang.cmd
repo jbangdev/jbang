@@ -40,6 +40,7 @@ if "!JAVA_EXEC!"=="" (
   rem Determine if a (working) JDK is available on the PATH
   where javac > nul 2>&1
   if !errorlevel! equ 0 (
+    set JAVA_HOME=
     set JAVA_EXEC=java.exe
   ) else if exist "%JBDIR%\currentjdk\bin\javac" (
     set JAVA_HOME=%JBDIR%\currentjdk
