@@ -70,7 +70,7 @@ public class Edit extends BaseScriptCommand {
 				dependencyInfoMixin.getRepositories(),
 				dependencyInfoMixin.getClasspaths(),
 				forcejsh);
-		Source src = Source.forResource(scriptOrFile, ctx);
+		Source src = ctx.forResource(scriptOrFile);
 
 		if (!(src instanceof ScriptSource)) {
 			throw new ExitException(EXIT_INVALID_INPUT, "You can only edit source files");
@@ -128,7 +128,7 @@ public class Edit extends BaseScriptCommand {
 								// TODO only regenerate when dependencies changes.
 								info("Regenerating project.");
 								ctx = RunContext.empty();
-								src = Source.forResource(scriptOrFile, ctx);
+								src = ctx.forResource(scriptOrFile);
 								createProjectForEdit((ScriptSource) src, ctx, true);
 							} catch (RuntimeException ee) {
 								warn("Error when re-generating project. Ignoring it, but state might be undefined: "
@@ -221,7 +221,7 @@ public class Edit extends BaseScriptCommand {
 	File createProjectForEdit(ScriptSource src, RunContext ctx, boolean reload) throws IOException {
 		File originalFile = src.getResourceRef().getFile();
 
-		List<String> dependencies = ctx.collectAllDependenciesFor(src);
+		List<String> dependencies = src.getAllDependencies();
 		String cp = ctx.resolveClassPath(src);
 		List<String> resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 

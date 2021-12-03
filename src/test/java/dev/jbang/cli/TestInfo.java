@@ -100,4 +100,23 @@ public class TestInfo extends BaseTest {
 				hasSize(equalTo(1)),
 				everyItem(containsString(Paths.get("itests/hellojar.jar").toString()))));
 	}
+
+	@Test
+	void testInfoClasspathNested() {
+		String src = examplesTestFolder.resolve("sources.java").toString();
+		JBang jbang = new JBang();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("info", "tools", src);
+		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
+		BaseInfoCommand.ScriptInfo info = tools.getInfo();
+		assertThat(info.originalResource, equalTo(src));
+		assertThat(info.applicationJar, allOf(
+				containsString("sources.java."),
+				endsWith(".jar")));
+		assertThat(info.backingResource, equalTo(src));
+		assertThat(info.javaVersion, is(nullValue()));
+		assertThat(info.mainClass, is(nullValue()));
+		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
+				hasSize(equalTo(1)),
+				everyItem(containsString("picocli"))));
+	}
 }

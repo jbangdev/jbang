@@ -46,7 +46,7 @@ class TestExternalDeps extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Source src = Source.forResource(f.getPath(), ctx);
+		Source src = ctx.forResource(f.getPath());
 		src = run.prepareArtifacts(src, ctx);
 
 		String result = run.generateCommandLine(src, ctx);
@@ -70,7 +70,7 @@ class TestExternalDeps extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Source src = Source.forResource(f.getPath(), ctx);
+		Source src = ctx.forResource(f.getPath());
 		src = run.prepareArtifacts(src, ctx);
 
 		String result = run.generateCommandLine(src, ctx);

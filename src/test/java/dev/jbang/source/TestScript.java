@@ -14,11 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -26,6 +22,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.net.TrustedSources;
+import dev.jbang.util.PropertiesValueResolver;
 
 public class TestScript extends BaseTest {
 
@@ -144,37 +141,36 @@ public class TestScript extends BaseTest {
 
 	@Test
 	void testCommentsDoesNotGetPickedUp() {
-		ScriptSource script = new ScriptSource(exampleCommandsWithComments);
+		ScriptSource script = new ScriptSource(exampleCommandsWithComments, null);
 
 		assertEquals(script.getJavaVersion(), "14+");
 
-		List<String> deps = script.getAllDependencies(System.getProperties());
+		List<String> deps = script.getAllDependencies();
 
 		assertThat(deps, containsInAnyOrder("info.picocli:picocli:4.5.0"));
 	}
 
 	@Test
 	void testFindDependencies() {
-		ScriptSource script = new ScriptSource(example);
+		Source src = new ScriptSource(example, it -> PropertiesValueResolver.replaceProperties(it, new Properties()));
 
-		List<String> dependencies = script.getAllDependencies(System.getProperties());
-		assertEquals(2, dependencies.size());
+		List<String> deps = src.getAllDependencies();
+		assertEquals(2, deps.size());
 
-		assertTrue(dependencies.contains("com.offbytwo:docopt:0.6.0.20150202"));
-		assertTrue(dependencies.contains("log4j:log4j:1.2.14"));
+		assertTrue(deps.contains("com.offbytwo:docopt:0.6.0.20150202"));
+		assertTrue(deps.contains("log4j:log4j:1.2.14"));
 
 	}
 
 	@Test
 	void testFindDependenciesWithProperty() {
 
-		Map<String, String> p = new HashMap<>();
+		Properties p = new Properties();
 		p.put("log4j.version", "1.2.9");
 
-		Source src = Source.forScript(example);
-		RunContext ctx = RunContext.create(null, null, p);
+		Source src = new ScriptSource(example, it -> PropertiesValueResolver.replaceProperties(it, p));
 
-		List<String> dependencies = ctx.collectAllDependenciesFor(src);
+		List<String> dependencies = src.getAllDependencies();
 		assertEquals(2, dependencies.size());
 
 		assertTrue(dependencies.contains("com.offbytwo:docopt:0.6.0.20150202"));
@@ -189,7 +185,8 @@ public class TestScript extends BaseTest {
 		createTmpFileWithContent("pkg1", "Hello.java", exampleURLInsourceHello);
 		createTmpFileWithContent("pkg1", "Bye.java", exampleURLInsourceBye);
 		String scriptURL = mainPath.toString();
-		ScriptSource src = (ScriptSource) Source.forResource(scriptURL, RunContext.empty());
+		RunContext ctx = RunContext.empty();
+		ScriptSource src = (ScriptSource) ctx.forResource(scriptURL);
 		List<ScriptSource> resolvesourceRecursively = src.getAllSources();
 		assertEquals(resolvesourceRecursively.size(), 7);
 	}
@@ -237,7 +234,8 @@ public class TestScript extends BaseTest {
 		try {
 			TrustedSources.instance().add(url, tempFile);
 
-			ScriptSource src = (ScriptSource) Source.forResource(url, RunContext.empty());
+			RunContext ctx = RunContext.empty();
+			ScriptSource src = (ScriptSource) ctx.forResource(url);
 			assertEquals(2, src.getAllSources().size());
 			boolean foundtwo = false;
 			boolean foundt3 = false;
@@ -255,8 +253,8 @@ public class TestScript extends BaseTest {
 
 	@Test
 	void testCDS() {
-		ScriptSource script = new ScriptSource("//CDS\nclass m { }");
-		ScriptSource script2 = new ScriptSource("class m { }");
+		ScriptSource script = new ScriptSource("//CDS\nclass m { }", null);
+		ScriptSource script2 = new ScriptSource("class m { }", null);
 
 		assertTrue(script.enableCDS());
 		assertFalse(script2.enableCDS());
@@ -304,7 +302,7 @@ public class TestScript extends BaseTest {
 
 	@Test
 	void testExtractOptions() {
-		ScriptSource s = new ScriptSource(example);
+		ScriptSource s = new ScriptSource(example, null);
 
 		assertEquals(s.getCompileOptions(), Arrays.asList("--enable-preview", "--verbose"));
 
@@ -316,7 +314,8 @@ public class TestScript extends BaseTest {
 	void testNonJavaExtension(@TempDir Path output) throws IOException {
 		Path p = output.resolve("kube-example");
 		writeString(p, example);
-		Source.forResource(p.toAbsolutePath().toString(), RunContext.empty());
+		RunContext ctx = RunContext.empty();
+		ctx.forResource(p.toAbsolutePath().toString());
 	}
 
 }

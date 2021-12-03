@@ -93,7 +93,7 @@ class AliasAdd extends BaseAliasCommand {
 		}
 
 		RunContext ctx = RunContext.empty();
-		Source src = Source.forResource(scriptOrFile, ctx);
+		Source src = ctx.forResource(scriptOrFile);
 		if (name == null) {
 			name = CatalogUtil.nameFromRef(ctx.getOriginalRef());
 		}

@@ -25,7 +25,6 @@ import org.junit.jupiter.api.io.TempDir;
 import dev.jbang.*;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.ScriptSource;
-import dev.jbang.source.Source;
 import dev.jbang.util.Util;
 
 public class TestEdit extends BaseTest {
@@ -45,7 +44,7 @@ public class TestEdit extends BaseTest {
 		assertThat(new File(s).exists(), is(true));
 
 		RunContext ctx = RunContext.empty();
-		ScriptSource ssrc = (ScriptSource) Source.forResource(s, ctx);
+		ScriptSource ssrc = (ScriptSource) ctx.forResource(s);
 
 		File project = new Edit().createProjectForEdit(ssrc, ctx, false);
 
@@ -85,7 +84,7 @@ public class TestEdit extends BaseTest {
 		Util.writeString(p, "//DEPS org.openjfx:javafx-graphics:11.0.2${bougus:}\n" + Util.readString(p));
 
 		RunContext ctx = RunContext.empty();
-		ScriptSource src = (ScriptSource) Source.forResource(s, ctx);
+		ScriptSource src = (ScriptSource) ctx.forResource(s);
 
 		File project = new Edit().createProjectForEdit(src, ctx, false);
 
@@ -120,7 +119,7 @@ public class TestEdit extends BaseTest {
 				"//DEPS io.quarkus:quarkus-rest-client-reactive-jackson\n" + Util.readString(p));
 
 		RunContext ctx = RunContext.empty();
-		ScriptSource src = (ScriptSource) Source.forResource(s, ctx);
+		ScriptSource src = (ScriptSource) ctx.forResource(s);
 
 		File project = new Edit().createProjectForEdit(src, ctx, false);
 
@@ -153,7 +152,7 @@ public class TestEdit extends BaseTest {
 		Util.writeString(p, "//DEPS https://github.com/oldskoolsh/libvirt-schema/tree/0.0.2\n" + Util.readString(p));
 
 		RunContext ctx = RunContext.empty();
-		ScriptSource src = (ScriptSource) Source.forResource(s, ctx);
+		ScriptSource src = (ScriptSource) ctx.forResource(s);
 
 		File project = new Edit().createProjectForEdit(src, ctx, false);
 
@@ -173,7 +172,7 @@ public class TestEdit extends BaseTest {
 		assertThat(p.toFile().exists(), is(true));
 
 		RunContext ctx = RunContext.empty();
-		ScriptSource src = (ScriptSource) Source.forResource(p.toString(), ctx);
+		ScriptSource src = (ScriptSource) ctx.forResource(p.toString());
 
 		File project = new Edit().createProjectForEdit(src, ctx, false);
 
@@ -198,7 +197,7 @@ public class TestEdit extends BaseTest {
 		assertThat(new File(s).exists(), is(true));
 
 		RunContext ctx = RunContext.empty();
-		ScriptSource src = (ScriptSource) Source.forResource(s, ctx);
+		ScriptSource src = (ScriptSource) ctx.forResource(s);
 
 		File project = new Edit().createProjectForEdit(src, ctx, false);
 
@@ -216,7 +215,7 @@ public class TestEdit extends BaseTest {
 		assertThat(p.toFile().exists(), is(true));
 
 		RunContext ctx = RunContext.empty();
-		ScriptSource src = (ScriptSource) Source.forResource(p.toString(), ctx);
+		ScriptSource src = (ScriptSource) ctx.forResource(p.toString());
 		ctx.resolveClassPath(src);
 
 		File project = new Edit().createProjectForEdit(src, ctx, false);

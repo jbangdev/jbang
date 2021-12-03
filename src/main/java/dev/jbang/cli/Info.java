@@ -79,7 +79,7 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 				backingResource = src.getResourceRef().getFile().toString();
 
 				ScriptSource ss = src.asScriptSource();
-				List<String> deps = ss.collectDependencies(ctx.getContextProperties());
+				List<String> deps = ss.collectDependencies();
 				if (!deps.isEmpty()) {
 					dependencies = deps;
 				}
@@ -144,7 +144,7 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 				dependencyInfoMixin.getRepositories(),
 				dependencyInfoMixin.getClasspaths(),
 				forcejsh);
-		Source src = ctx.importJarMetadataFor(Source.forResource(scriptOrFile, ctx));
+		Source src = ctx.importJarMetadataFor(ctx.forResource(scriptOrFile));
 
 		scripts = new HashSet<>();
 		ScriptInfo info = new ScriptInfo(src, ctx);

@@ -5,14 +5,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import dev.jbang.catalog.Alias;
-import dev.jbang.catalog.Catalog;
-import dev.jbang.cli.BaseCommand;
-import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.ModularClassPath;
 
 /**
@@ -103,7 +98,7 @@ public interface Source {
 	 * @param props A `Properties` object whose values can be used during dependency
 	 *              resolution
 	 */
-	List<String> getAllDependencies(Properties props);
+	List<String> getAllDependencies();
 
 	/**
 	 * Resolves the given list of dependencies
@@ -138,84 +133,6 @@ public interface Source {
 	 * none.
 	 */
 	ScriptSource asScriptSource();
-
-	static Source forResource(String resource, RunContext ctx) {
-		ResourceRef resourceRef = ResourceRef.forScriptResource(resource);
-
-		Alias alias = null;
-		if (resourceRef == null) {
-			// Not found as such, so let's check the aliases
-			if (ctx.getCatalog() == null) {
-				alias = Alias.get(resource);
-			} else {
-				Catalog cat = Catalog.get(ctx.getCatalog().toPath());
-				alias = Alias.get(cat, resource);
-			}
-			if (alias != null) {
-				resourceRef = ResourceRef.forResource(alias.resolve());
-				if (ctx.getArguments() == null || ctx.getArguments().isEmpty()) {
-					ctx.setArguments(alias.arguments);
-				}
-				if (ctx.getJavaOptions() == null || ctx.getJavaOptions().isEmpty()) {
-					ctx.setJavaOptions(alias.javaOptions);
-				}
-				if (ctx.getAdditionalDependencies() == null || ctx.getAdditionalDependencies().isEmpty()) {
-					ctx.setAdditionalDependencies(alias.dependencies);
-				}
-				if (ctx.getAdditionalRepositories() == null || ctx.getAdditionalRepositories().isEmpty()) {
-					ctx.setAdditionalRepositories(alias.repositories);
-				}
-				if (ctx.getAdditionalClasspaths() == null || ctx.getAdditionalClasspaths().isEmpty()) {
-					ctx.setAdditionalClasspaths(alias.classpaths);
-				}
-				if (ctx.getProperties() == null || ctx.getProperties().isEmpty()) {
-					ctx.setProperties(alias.properties);
-				}
-				if (ctx.getJavaVersion() == null) {
-					ctx.setJavaVersion(alias.javaVersion);
-				}
-				if (ctx.getMainClass() == null) {
-					ctx.setMainClass(alias.mainClass);
-				}
-				ctx.setAlias(alias);
-				if (resourceRef == null) {
-					throw new IllegalArgumentException(
-							"Alias " + resource + " from " + alias.catalog.catalogRef + " failed to resolve "
-									+ alias.scriptRef);
-				}
-			}
-		}
-
-		// Support URLs as script files
-		// just proceed if the script file is a regular file at this point
-		if (resourceRef == null || !resourceRef.getFile().canRead()) {
-			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
-					"Script or alias could not be found or read: '" + resource + "'");
-		}
-
-		// note script file must be not null at this point
-		ctx.setOriginalRef(resource);
-		return forResourceRef(resourceRef);
-	}
-
-	static Source forFile(File resourceFile) {
-		ResourceRef resourceRef = ResourceRef.forFile(resourceFile);
-		return forResourceRef(resourceRef);
-	}
-
-	static Source forResourceRef(ResourceRef resourceRef) {
-		Source src;
-		if (resourceRef.getFile().getName().endsWith(".jar")) {
-			src = JarSource.prepareJar(resourceRef);
-		} else {
-			src = ScriptSource.prepareScript(resourceRef);
-		}
-		return src;
-	}
-
-	static ScriptSource forScript(String script) {
-		return new ScriptSource(script);
-	}
 
 	boolean isCreatedJar();
 }

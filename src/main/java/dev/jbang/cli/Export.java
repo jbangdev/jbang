@@ -47,7 +47,7 @@ public class Export {
 				false);
 		ctx.setJavaVersion(exportMixin.javaVersion);
 		ctx.setNativeImage(exportMixin.nativeImage);
-		Source src = Source.forResource(exportMixin.scriptOrFile, ctx);
+		Source src = ctx.forResource(exportMixin.scriptOrFile);
 
 		src = buildIfNeeded(src, ctx);
 		ctx.resolveClassPath(src);

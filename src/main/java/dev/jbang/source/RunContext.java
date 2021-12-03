@@ -11,6 +11,7 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import dev.jbang.catalog.Alias;
+import dev.jbang.catalog.Catalog;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.Detector;
@@ -295,10 +296,6 @@ public class RunContext {
 		javaAgents.add(new AgentSourceContext(src, ctx));
 	}
 
-	public List<String> collectAllDependenciesFor(Source src) {
-		return src.getAllDependencies(getContextProperties());
-	}
-
 	/**
 	 * Return resolved classpath lazily. resolution will only happen once, any
 	 * consecutive calls return the same classpath.
@@ -314,7 +311,7 @@ public class RunContext {
 			additionalMcp = src.resolveClassPath(acp);
 		}
 		if (mcp == null) {
-			mcp = src.resolveClassPath(collectAllDependenciesFor(src));
+			mcp = src.resolveClassPath(src.getAllDependencies());
 		}
 
 		if (combinedMcp == null) {
@@ -352,6 +349,81 @@ public class RunContext {
 		} else {
 			return src;
 		}
+	}
+
+	public Source forResource(String resource) {
+		ResourceRef resourceRef = ResourceRef.forScriptResource(resource);
+
+		Alias alias = null;
+		if (resourceRef == null) {
+			// Not found as such, so let's check the aliases
+			if (getCatalog() == null) {
+				alias = Alias.get(resource);
+			} else {
+				Catalog cat = Catalog.get(getCatalog().toPath());
+				alias = Alias.get(cat, resource);
+			}
+			if (alias != null) {
+				resourceRef = ResourceRef.forResource(alias.resolve());
+				if (getArguments() == null || getArguments().isEmpty()) {
+					setArguments(alias.arguments);
+				}
+				if (getJavaOptions() == null || getJavaOptions().isEmpty()) {
+					setJavaOptions(alias.javaOptions);
+				}
+				if (getAdditionalDependencies() == null || getAdditionalDependencies().isEmpty()) {
+					setAdditionalDependencies(alias.dependencies);
+				}
+				if (getAdditionalRepositories() == null || getAdditionalRepositories().isEmpty()) {
+					setAdditionalRepositories(alias.repositories);
+				}
+				if (getAdditionalClasspaths() == null || getAdditionalClasspaths().isEmpty()) {
+					setAdditionalClasspaths(alias.classpaths);
+				}
+				if (getProperties() == null || getProperties().isEmpty()) {
+					setProperties(alias.properties);
+				}
+				if (getJavaVersion() == null) {
+					setJavaVersion(alias.javaVersion);
+				}
+				if (getMainClass() == null) {
+					setMainClass(alias.mainClass);
+				}
+				setAlias(alias);
+				if (resourceRef == null) {
+					throw new IllegalArgumentException(
+							"Alias " + resource + " from " + alias.catalog.catalogRef + " failed to resolve "
+									+ alias.scriptRef);
+				}
+			}
+		}
+
+		// Support URLs as script files
+		// just proceed if the script file is a regular file at this point
+		if (resourceRef == null || !resourceRef.getFile().canRead()) {
+			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+					"Script or alias could not be found or read: '" + resource + "'");
+		}
+
+		// note script file must be not null at this point
+		setOriginalRef(resource);
+		return forResourceRef(resourceRef);
+	}
+
+	public Source forResourceRef(ResourceRef resourceRef) {
+		Source src;
+		if (resourceRef.getFile().getName().endsWith(".jar")) {
+			src = JarSource.prepareJar(resourceRef);
+		} else {
+			src = ScriptSource.prepareScript(resourceRef,
+					it -> PropertiesValueResolver.replaceProperties(it, getContextProperties()));
+		}
+		return src;
+	}
+
+	public Source forFile(File resourceFile) {
+		ResourceRef resourceRef = ResourceRef.forFile(resourceFile);
+		return forResourceRef(resourceRef);
 	}
 
 }
