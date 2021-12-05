@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.function.Predicate;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.regex.Pattern;
@@ -193,10 +194,12 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 				src, ctx.isNativeImage());
 		System.setProperties(old);
 
-		if (integrationResult.mainClass != null) {
-			ctx.setMainClass(integrationResult.mainClass);
-		} else {
-			searchForMain(src, ctx, tmpJarDir);
+		if (ctx.getMainClass() == null) { // if non-null user forced set main
+			if (integrationResult.mainClass != null) {
+				ctx.setMainClass(integrationResult.mainClass);
+			} else {
+				searchForMain(src, ctx, tmpJarDir);
+			}
 		}
 		ctx.setIntegrationOptions(integrationResult.javaArgs);
 		createJarFile(src, ctx, tmpJarDir, outjar);
@@ -411,56 +414,56 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 										.filter(f -> f.toFile().getName().endsWith(".class"))
 										.collect(Collectors.toList());
 
-				if (items.size() > 1) { // todo: this feels like a very sketchy way to find the proper class
-					// name
-					// but it works.
-					String mainname = src.getSuggestedMain();
-					items = items	.stream()
-									.filter(f -> f.toFile().getName().equalsIgnoreCase(mainname))
-									.collect(Collectors.toList());
+				Indexer indexer = new Indexer();
+				Index index;
+				for (Path item : items) {
+					try (InputStream stream = new FileInputStream(item.toFile())) {
+						indexer.index(stream);
+					}
+				}
+				index = indexer.complete();
+
+				Collection<ClassInfo> classes = index.getKnownClasses();
+
+				List<ClassInfo> mains = classes	.stream()
+												.filter(src.getMainFinder())
+												.collect(Collectors.toList());
+				String mainName = src.getSuggestedMain();
+				if (mains.size() > 1 && mainName != null) {
+					List<ClassInfo> suggestedmain = mains	.stream()
+															.filter(ci -> ci.simpleName().equals(mainName))
+															.collect(Collectors.toList());
+					if (!suggestedmain.isEmpty()) {
+						mains = suggestedmain;
+					}
 				}
 
-				if (items.size() != 1) {
-					throw new ExitException(1,
-							"Could not locate unique class. Found " + items.size() + " candidates.");
-				} else {
-					Path classfile = items.get(0);
-					// TODO: could we use jandex to find the right main class more sanely ?
-					// String mainClass = findMainClass(tmpJarDir.toPath(), classfile);
+				if (!mains.isEmpty()) {
+					ctx.setMainClass(mains.get(0).name().toString());
+					if (mains.size() > 1) {
+						Util.warnMsg(
+								"Could not locate unique main() method. Use -m to specify explicit main method. Falling back to use first found: "
+										+ mains	.stream()
+												.map(x -> x.name().toString())
+												.collect(Collectors.joining(",")));
+					}
+				}
 
-					Indexer indexer = new Indexer();
-					Index index;
-					try (InputStream stream = new FileInputStream(classfile.toFile())) {
-						indexer.index(stream);
-						index = indexer.complete();
+				if (src.isAgent()) {
+					Optional<ClassInfo> agentmain = classes	.stream()
+															.filter(pubClass -> pubClass.method("agentmain",
+																	STRINGTYPE,
+																	INSTRUMENTATIONTYPE) != null
+																	||
+																	pubClass.method("agentmain",
+																			STRINGTYPE) != null)
+															.findFirst();
+
+					if (agentmain.isPresent()) {
+						ctx.setAgentMainClass(agentmain.get().name().toString());
 					}
 
-					Collection<ClassInfo> clazz = index.getKnownClasses();
-
-					Optional<ClassInfo> main = clazz.stream()
-													.filter(src.getMainFinder())
-													.findFirst();
-
-					if (main.isPresent()) {
-						ctx.setMainClass(main.get().name().toString());
-					}
-
-					if (src.isAgent()) {
-
-						Optional<ClassInfo> agentmain = clazz	.stream()
-																.filter(pubClass -> pubClass.method("agentmain",
-																		STRINGTYPE,
-																		INSTRUMENTATIONTYPE) != null
-																		||
-																		pubClass.method("agentmain",
-																				STRINGTYPE) != null)
-																.findFirst();
-
-						if (agentmain.isPresent()) {
-							ctx.setAgentMainClass(agentmain.get().name().toString());
-						}
-
-						Optional<ClassInfo> premain = clazz	.stream()
+					Optional<ClassInfo> premain = classes	.stream()
 															.filter(pubClass -> pubClass.method("premain",
 																	STRINGTYPE,
 																	INSTRUMENTATIONTYPE) != null
@@ -469,16 +472,18 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 																			STRINGTYPE) != null)
 															.findFirst();
 
-						if (premain.isPresent()) {
-							ctx.setPreMainClass(premain.get().name().toString());
-						}
+					if (premain.isPresent()) {
+						ctx.setPreMainClass(premain.get().name().toString());
 					}
-
 				}
 			}
 		} catch (IOException e) {
 			throw new ExitException(1, e);
 		}
+	}
+
+	private Predicate<ClassInfo> getMainFinder() {
+		return pubClass -> pubClass.method("main", BaseBuildCommand.STRINGARRAYTYPE) != null;
 	}
 
 	protected static Path generatePom(ScriptSource src, RunContext ctx, File tmpJarDir) throws IOException {
