@@ -1269,7 +1269,7 @@ public class TestRun extends BaseTest {
 		Build run = (Build) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		ScriptSource src = (ScriptSource) Source.forResource(p.toFile().getAbsolutePath(), ctx);
+		ScriptSource src = (ScriptSource) ctx.forResource(p.toFile().getAbsolutePath());
 
 		BaseBuildCommand.build(src, ctx);
 
@@ -1298,7 +1298,7 @@ public class TestRun extends BaseTest {
 		Build run = (Build) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		ScriptSource src = (ScriptSource) Source.forResource(p.toFile().getAbsolutePath(), ctx);
+		ScriptSource src = (ScriptSource) ctx.forResource(p.toFile().getAbsolutePath());
 
 		BaseBuildCommand.build(src, ctx);
 
@@ -1317,7 +1317,7 @@ public class TestRun extends BaseTest {
 		Build run = (Build) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		ScriptSource src = (ScriptSource) Source.forResource(p.toFile().getAbsolutePath(), ctx);
+		ScriptSource src = (ScriptSource) ctx.forResource(p.toFile().getAbsolutePath());
 
 		BaseBuildCommand.build(src, ctx);
 
