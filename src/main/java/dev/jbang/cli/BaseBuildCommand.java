@@ -194,10 +194,12 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 				src, ctx.isNativeImage());
 		System.setProperties(old);
 
-		if (integrationResult.mainClass != null) {
-			ctx.setMainClass(integrationResult.mainClass);
-		} else {
-			searchForMain(src, ctx, tmpJarDir);
+		if (ctx.getMainClass() == null) { // if non-null user forced set main
+			if (integrationResult.mainClass != null) {
+				ctx.setMainClass(integrationResult.mainClass);
+			} else {
+				searchForMain(src, ctx, tmpJarDir);
+			}
 		}
 		ctx.setIntegrationOptions(integrationResult.javaArgs);
 		createJarFile(src, ctx, tmpJarDir, outjar);
@@ -428,14 +430,23 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 												.collect(Collectors.toList());
 				String mainName = src.getSuggestedMain();
 				if (mains.size() > 1 && mainName != null) {
-					mains = mains.stream().filter(ci -> ci.simpleName().equals(mainName)).collect(Collectors.toList());
+					List<ClassInfo> suggestedmain = mains	.stream()
+															.filter(ci -> ci.simpleName().equals(mainName))
+															.collect(Collectors.toList());
+					if (!suggestedmain.isEmpty()) {
+						mains = suggestedmain;
+					}
 				}
-				if (mains.size() > 1) {
-					throw new ExitException(EXIT_GENERIC_ERROR,
-							"Could not locate unique main() method. Found " + mains.size() + " candidates.");
-				}
+
 				if (!mains.isEmpty()) {
 					ctx.setMainClass(mains.get(0).name().toString());
+					if (mains.size() > 1) {
+						Util.warnMsg(
+								"Could not locate unique main() method. Use -m to specify explicit main method. Falling back to use first found: "
+										+ mains	.stream()
+												.map(x -> x.name().toString())
+												.collect(Collectors.joining(",")));
+					}
 				}
 
 				if (src.isAgent()) {

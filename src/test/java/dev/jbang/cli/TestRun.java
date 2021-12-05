@@ -1272,6 +1272,57 @@ public class TestRun extends BaseTest {
 		ScriptSource src = (ScriptSource) Source.forResource(p.toFile().getAbsolutePath(), ctx);
 
 		BaseBuildCommand.build(src, ctx);
+
+		assertThat(ctx.getMainClass(), equalTo("Two"));
+
+	}
+
+	String ambigiousScript = "" +
+			"class One {\n" +
+			"public static void main(String... args) { };\n" +
+			"}" +
+			"class Two {\n" +
+			"public static void main(String... args) { };\n" +
+			"}" +
+			"class Three {\n" +
+			"public static void main(String... args) { };\n" +
+			"}";
+
+	@Test
+	void testMultiSourcesNonPublicAmbigious(@TempDir Path output) throws IOException {
+		JBang jbang = new JBang();
+		Path p = output.resolve("script");
+		writeString(p, ambigiousScript);
+
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("build", p.toFile().getAbsolutePath());
+		Build run = (Build) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+		ScriptSource src = (ScriptSource) Source.forResource(p.toFile().getAbsolutePath(), ctx);
+
+		BaseBuildCommand.build(src, ctx);
+
+		assertThat(ctx.getMainClass(), equalTo("One"));
+
+	}
+
+	@Test
+	void testMultiSourcesNonPublicMakeNonAmbigious(@TempDir Path output) throws IOException {
+		JBang jbang = new JBang();
+		Path p = output.resolve("script");
+		writeString(p, ambigiousScript);
+
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("build", "-m", "Three",
+				p.toFile().getAbsolutePath());
+		Build run = (Build) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+		ScriptSource src = (ScriptSource) Source.forResource(p.toFile().getAbsolutePath(), ctx);
+
+		BaseBuildCommand.build(src, ctx);
+
+		assertThat(ctx.getMainClass(), equalTo("Three"));
+
 	}
 
 	WireMockServer wms;
