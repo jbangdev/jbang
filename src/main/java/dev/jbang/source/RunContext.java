@@ -1,7 +1,5 @@
 package dev.jbang.source;
 
-import static dev.jbang.dependencies.DependencyUtil.joinClasspaths;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,8 +12,7 @@ import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
-import dev.jbang.dependencies.Detector;
-import dev.jbang.dependencies.ModularClassPath;
+import dev.jbang.dependencies.*;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.PropertiesValueResolver;
 
@@ -52,10 +49,8 @@ public class RunContext {
 	private Alias alias;
 
 	private ModularClassPath mcp;
-	private ModularClassPath additionalMcp;
 	private boolean nativeImage;
 	private String javaVersion;
-	private ModularClassPath combinedMcp;
 	private Properties contextProperties;
 
 	public static RunContext empty() {
@@ -122,7 +117,7 @@ public class RunContext {
 
 	public void setAdditionalRepositories(List<String> repos) {
 		if (repos != null) {
-			this.additionalRepos = new ArrayList<>(repos);
+			this.additionalRepos = repos;
 		} else {
 			this.additionalRepos = Collections.emptyList();
 		}
@@ -303,37 +298,43 @@ public class RunContext {
 	 * Properties available will be used for property replacemnt.
 	 **/
 	public String resolveClassPath(Source src) {
-		if (additionalMcp == null) {
-			List<String> acp = getAdditionalDependencies()	.stream()
-															.map(it -> PropertiesValueResolver.replaceProperties(it,
-																	getContextProperties()))
-															.collect(Collectors.toList());
-			additionalMcp = src.resolveClassPath(acp);
-		}
 		if (mcp == null) {
-			mcp = src.resolveClassPath(src.getAllDependencies());
+			DependencyResolver resolver = new DependencyResolver()
+																	.addRepositories(allToMavenRepo(replaceAllProps(
+																			getAdditionalRepositories())))
+																	.addDependencies(replaceAllProps(
+																			getAdditionalDependencies()))
+																	.addClassPaths(
+																			replaceAllProps(getAdditionalClasspaths()));
+			src.updateDependencyResolver(resolver);
+			mcp = resolver.resolve();
 		}
+		return mcp.getClassPath();
+	}
 
-		if (combinedMcp == null) {
-			combinedMcp = new ModularClassPath(joinClasspaths(additionalMcp.getArtifacts(), mcp.getArtifacts()),
-					getAdditionalClasspaths());
-		}
+	private List<String> replaceAllProps(List<String> items) {
+		return items.stream()
+					.map(item -> PropertiesValueResolver.replaceProperties(item, getContextProperties()))
+					.collect(Collectors.toList());
+	}
 
-		return combinedMcp.getClassPath();
+	private List<MavenRepo> allToMavenRepo(List<String> repos) {
+		return repos.stream().map(DependencyUtil::toMavenRepo).collect(Collectors.toList());
+
 	}
 
 	public List<String> getAutoDetectedModuleArguments(Source src, String requestedVersion) {
-		if (combinedMcp == null) {
+		if (mcp == null) {
 			resolveClassPath(src);
 		}
-		return combinedMcp.getAutoDectectedModuleArguments(requestedVersion);
+		return mcp.getAutoDectectedModuleArguments(requestedVersion);
 	}
 
 	public ModularClassPath getClassPath() {
-		if (combinedMcp == null) {
+		if (mcp == null) {
 			throw new ExitException(BaseCommand.EXIT_INTERNAL_ERROR, "Classpath must be resolved first");
 		}
-		return combinedMcp;
+		return mcp;
 	}
 
 	/**

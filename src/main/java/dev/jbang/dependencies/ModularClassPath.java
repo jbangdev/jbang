@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.codehaus.plexus.languages.java.jpms.JavaModuleDescriptor;
 import org.codehaus.plexus.languages.java.jpms.LocationManager;
@@ -27,8 +26,6 @@ public class ModularClassPath {
 	static final String JAVAFX_PREFIX = "javafx";
 
 	private final List<ArtifactInfo> artifacts;
-	// raw entries provided via --cp/--class-path (not sure they should be here)
-	private final List<String> additionalClasspaths;
 
 	private List<String> classPaths;
 	private String classPath;
@@ -37,12 +34,6 @@ public class ModularClassPath {
 
 	public ModularClassPath(List<ArtifactInfo> artifacts) {
 		this.artifacts = artifacts;
-		this.additionalClasspaths = Collections.emptyList();
-	}
-
-	public ModularClassPath(List<ArtifactInfo> artifacts, List<String> additionalClasspaths) {
-		this.artifacts = artifacts;
-		this.additionalClasspaths = Collections.unmodifiableList(additionalClasspaths);
 	}
 
 	public List<String> getClassPaths() {
@@ -52,10 +43,6 @@ public class ModularClassPath {
 									.map(it -> it.contains(" ") ? '"' + it + '"' : it)
 									.distinct()
 									.collect(Collectors.toList());
-			if (!additionalClasspaths.isEmpty()) {
-				classPaths = new ArrayList<>(classPaths);
-				classPaths.addAll(additionalClasspaths);
-			}
 		}
 
 		return classPaths;
@@ -167,22 +154,5 @@ public class ModularClassPath {
 	 */
 	public boolean isValid() {
 		return artifacts.stream().allMatch(ArtifactInfo::isUpToDate);
-	}
-
-	/**
-	 * Returns a ModularClassPath with the artifacts from the given MANIFEST class
-	 * path string
-	 * 
-	 * @param classPath A class path string as found in a Jar MANIFEST
-	 */
-	public static ModularClassPath fromManifestClasspath(String classPath) {
-		List<ArtifactInfo> arts = Stream.of(classPath.split(" "))
-										.map(File::new)
-										.map(jar -> {
-											ArtifactInfo art = DependencyCache.findArtifactByPath(jar);
-											return art != null ? art : new ArtifactInfo(null, jar);
-										})
-										.collect(Collectors.toList());
-		return new ModularClassPath(arts);
 	}
 }

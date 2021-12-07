@@ -109,7 +109,7 @@ public class DependencyCache {
 												.flatMap(Collection::stream)
 												.filter(art -> art.getFile().equals(artifactPath))
 												.findFirst();
-		return result.orElse(null);
+		return result.orElseGet(() -> new ArtifactInfo(null, artifactPath));
 	}
 
 	public static void clear() {
