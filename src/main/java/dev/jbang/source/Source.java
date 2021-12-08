@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import dev.jbang.dependencies.ModularClassPath;
+import dev.jbang.dependencies.DependencyResolver;
 
 /**
  * A Source is an interface for classes representing different inputs (sources)
@@ -94,18 +94,14 @@ public interface Source {
 	/**
 	 * Returns the list of dependencies that are necessary to add to the classpath
 	 * for the application to execute properly.
-	 *
-	 * @param props A `Properties` object whose values can be used during dependency
-	 *              resolution
 	 */
 	List<String> getAllDependencies();
 
 	/**
-	 * Resolves the given list of dependencies
-	 *
-	 * @param dependencies List of dependencies
+	 * Updates the given resolver with the dependencies required by this Source
+	 * object
 	 */
-	ModularClassPath resolveClassPath(List<String> dependencies);
+	DependencyResolver updateDependencyResolver(DependencyResolver resolver);
 
 	default boolean isJar() {
 		return Source.isJar(getResourceRef().getFile());

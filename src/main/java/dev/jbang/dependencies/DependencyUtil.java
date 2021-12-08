@@ -15,8 +15,8 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import org.jboss.shrinkwrap.resolver.api.Coordinate;
 import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.MavenFormatStage;
@@ -146,10 +146,13 @@ public class DependencyUtil {
 
 		System.setProperty("maven.repo.local", Settings.getLocalMavenRepo().toPath().toAbsolutePath().toString());
 
-		PomEquippedResolveStage pomResolve = null;
+		List<MavenCoordinate> coords = depIds	.stream()
+												.map(DependencyUtil::depIdToArtifact)
+												.collect(Collectors.toList());
 
-		if (!depIds.isEmpty()) {
-			MavenCoordinate mc = depIdToArtifact(depIds.get(0));
+		PomEquippedResolveStage pomResolve = null;
+		if (!coords.isEmpty()) {
+			MavenCoordinate mc = coords.get(0);
 			if (PackagingType.POM.equals(mc.getType())) {
 				if (loggingEnabled) {
 					infoMsg("Loading " + mc);
@@ -159,53 +162,45 @@ public class DependencyUtil {
 				MavenStrategyStage resolve = resolver.resolve(mc.toCanonicalForm());
 				pomResolve = resolver.loadPomFromFile(resolve.withoutTransitivity().asSingleFile());
 				System.getProperties().remove("jbang-allowpom");
-				depIds.remove(0);
+				coords.remove(0);
 			}
 		}
 
-		final PomEquippedResolveStage ps = pomResolve;
+		Optional<MavenCoordinate> pom = coords.stream().filter(c -> c.getType().equals(PackagingType.POM)).findFirst();
+		if (pom.isPresent()) {
+			// proactively avoiding that we break users in future
+			// when we support more than one BOM POM
+			throw new ExitException(1, "POM imports as found in " + pom.get().toCanonicalForm()
+					+ " is only supported as the first import.");
+		}
 
-		return depIds.stream().flatMap(it -> {
+		List<String> canonicals = coords.stream().map(Coordinate::toCanonicalForm).collect(Collectors.toList());
 
-			MavenCoordinate artifact = depIdToArtifact(it);
+		if (loggingEnabled) {
+			infoHeader();
+			infoMsgFmt("    Resolving %s...", String.join(", ", canonicals));
+		}
 
-			if (PackagingType.POM.equals(artifact.getType())) {
-				// proactively avoiding that we break users in future
-				// when we support more than one BOM POM
-				throw new ExitException(1, "POM imports as found in " + it + " is only supported as the first import.");
+		try {
+			MavenStrategyStage resolve;
+			if (pomResolve != null) {
+				resolve = pomResolve.resolve(canonicals);
+			} else {
+				resolve = resolver.resolve(canonicals);
 			}
 
-			if (loggingEnabled) {
-				infoHeader();
-				infoMsgFmt("    Resolving %s...", it);
-			}
-
-			List<MavenResolvedArtifact> artifacts;
-			try {
-				MavenStrategyStage resolve;
-				MavenFormatStage stage = null;
-				if (ps != null) {
-					resolve = ps.resolve(artifact.toCanonicalForm());
-				} else {
-					resolve = resolver.resolve(artifact.toCanonicalForm());
-				}
-
-				if (transitively) {
-					stage = resolve.withTransitivity();
-				} else {
-					stage = resolve.withoutTransitivity();
-				}
-				artifacts = stage.asList(MavenResolvedArtifact.class); // , RUNTIME);
-
-			} catch (RuntimeException e) {
-				throw new ExitException(1, "Could not resolve dependency " + it, e);
-			}
+			MavenFormatStage stage = transitively ? resolve.withTransitivity() : resolve.withoutTransitivity();
+			List<MavenResolvedArtifact> artifacts = stage.asList(MavenResolvedArtifact.class); // , RUNTIME);
 
 			if (loggingEnabled)
 				infoMsgFmt("Done\n");
 
-			return artifacts.stream().map(xx -> new ArtifactInfo(xx.getCoordinate(), xx.asFile()));
-		}).collect(Collectors.toList());
+			return artifacts.stream()
+							.map(mra -> new ArtifactInfo(mra.getCoordinate(), mra.asFile()))
+							.collect(Collectors.toList());
+		} catch (RuntimeException e) {
+			throw new ExitException(1, "Could not resolve dependency", e);
+		}
 	}
 
 	public static String decodeEnv(String value) {
@@ -291,13 +286,5 @@ public class DependencyUtil {
 		} else {
 			return new MavenRepo(repoid, reporef);
 		}
-	}
-
-	@SafeVarargs
-	public static List<ArtifactInfo> joinClasspaths(List<ArtifactInfo>... classpaths) {
-		return Stream	.of(classpaths)
-						.flatMap(x -> x.stream())
-						.distinct()
-						.collect(Collectors.toList());
 	}
 }

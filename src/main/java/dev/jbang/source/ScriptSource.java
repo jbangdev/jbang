@@ -30,9 +30,9 @@ import dev.jbang.Settings;
 import dev.jbang.cli.BaseBuildCommand;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
+import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.MavenRepo;
-import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
@@ -196,12 +196,10 @@ public class ScriptSource implements Source {
 	}
 
 	@Override
-	public ModularClassPath resolveClassPath(List<String> dependencies) {
-		ModularClassPath classpath;
-		List<MavenRepo> repositories = getAllRepositories();
-		classpath = DependencyUtil.resolveDependencies(dependencies, repositories, Util.isOffline(),
-				Util.isFresh(), !Util.isQuiet());
-		return classpath;
+	public DependencyResolver updateDependencyResolver(DependencyResolver resolver) {
+		resolver.addRepositories(getAllRepositories());
+		resolver.addDependencies(getAllDependencies());
+		return resolver;
 	}
 
 	public String getSuggestedMain() {
@@ -289,6 +287,7 @@ public class ScriptSource implements Source {
 		return getLines()	.stream()
 							.filter(ScriptSource::isRepoDeclare)
 							.flatMap(ScriptSource::extractRepositories)
+							.map(replaceProperties)
 							.map(DependencyUtil::toMavenRepo)
 							.collect(Collectors.toCollection(ArrayList::new));
 	}

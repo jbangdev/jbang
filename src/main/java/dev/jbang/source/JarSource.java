@@ -2,17 +2,14 @@ package dev.jbang.source;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import dev.jbang.dependencies.ArtifactInfo;
+import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.DependencyUtil;
-import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
@@ -31,11 +28,13 @@ public class JarSource implements Source {
 	private final ResourceRef resourceRef;
 	private final File jarFile;
 
-	// Cached values
+	// Values read from MANIFEST
 	private String classPath;
 	private String mainClass;
 	private List<String> javaRuntimeOptions;
 	private int buildJdk;
+
+	// Cached values
 	private ScriptSource scriptSource;
 
 	private JarSource(ResourceRef resourceRef, File jar) {
@@ -92,7 +91,8 @@ public class JarSource implements Source {
 	 * be rebuilt
 	 */
 	public boolean isUpToDate() {
-		return jarFile != null && jarFile.exists() && resolveClassPath(Collections.emptyList()).isValid();
+		return jarFile != null && jarFile.exists()
+				&& updateDependencyResolver(new DependencyResolver()).resolve().isValid();
 	}
 
 	@Override
@@ -101,28 +101,14 @@ public class JarSource implements Source {
 	}
 
 	@Override
-	public ModularClassPath resolveClassPath(List<String> additionalDeps) {
-		ModularClassPath mcp;
+	public DependencyResolver updateDependencyResolver(DependencyResolver resolver) {
 		if (resourceRef.getOriginalResource() != null
 				&& DependencyUtil.looksLikeAGav(resourceRef.getOriginalResource())) {
-			List<String> dependencies = new ArrayList<>(additionalDeps);
-			dependencies.add(resourceRef.getOriginalResource());
-			mcp = DependencyUtil.resolveDependencies(dependencies,
-					Collections.emptyList(), Util.isOffline(), Util.isFresh(), !Util.isQuiet());
+			resolver.addDependency(resourceRef.getOriginalResource());
 		} else if (classPath != null) {
-			ModularClassPath mcp2 = DependencyUtil.resolveDependencies(additionalDeps,
-					Collections.emptyList(), Util.isOffline(), Util.isFresh(), !Util.isQuiet());
-			ModularClassPath mcp3 = ModularClassPath.fromManifestClasspath(classPath);
-			List<ArtifactInfo> arts = Stream.concat(mcp2.getArtifacts().stream(), mcp3.getArtifacts().stream())
-											.collect(Collectors.toList());
-			mcp = new ModularClassPath(arts);
-		} else if (!additionalDeps.isEmpty()) {
-			mcp = DependencyUtil.resolveDependencies(additionalDeps,
-					Collections.emptyList(), Util.isOffline(), Util.isFresh(), !Util.isQuiet());
-		} else {
-			mcp = new ModularClassPath(Collections.emptyList());
+			resolver.addClassPaths(Arrays.asList(classPath.split(" ")));
 		}
-		return mcp;
+		return resolver;
 	}
 
 	@Override

@@ -34,7 +34,7 @@ public class TestArtifactInfo extends BaseTest {
 		List<ArtifactInfo> wonka = DependencyCache.findDependenciesByHash("wonka");
 
 		assertThat(wonka, notNullValue());
-		assertThat(wonka, hasSize(6));
+		assertThat(wonka, hasSize(4));
 
 		assertThat(wonka, contains(classpath.getArtifacts().toArray()));
 	}
