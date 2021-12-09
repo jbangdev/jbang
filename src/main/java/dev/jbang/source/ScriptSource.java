@@ -573,6 +573,8 @@ public class ScriptSource implements Source {
 		}
 		if (originalResource != null && originalResource.endsWith(".md")) {
 			return MarkdownScriptSource.create(resourceRef, replaceProperties);
+		} else if (originalResource != null && originalResource.endsWith(".groovy")) {
+			return new GroovyScriptSource(resourceRef, replaceProperties);
 		} else {
 			return new ScriptSource(resourceRef, replaceProperties);
 		}
