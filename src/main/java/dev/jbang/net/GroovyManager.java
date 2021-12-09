@@ -62,7 +62,7 @@ public class GroovyManager {
 			}
 			Util.errorMsg("Required Groovy version not possible to download or install.");
 			throw new ExitException(EXIT_UNEXPECTED_STATE,
-					"Unable to download or install groovyc version " + version, e);
+					"Unable to download or install Groovy version " + version, e);
 		}
 	}
 
