@@ -35,6 +35,8 @@ import dev.jbang.source.JarSource;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.ScriptSource;
 import dev.jbang.source.Source;
+import dev.jbang.net.JdkManager;
+import dev.jbang.source.*;
 import dev.jbang.spi.IntegrationManager;
 import dev.jbang.spi.IntegrationResult;
 import dev.jbang.util.JarUtil;
@@ -172,7 +174,12 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		Util.infoMsg("Building jar...");
 		Util.verboseMsg("compile: " + String.join(" ", optionList));
 
-		Process process = new ProcessBuilder(optionList).inheritIO().start();
+		final ProcessBuilder processBuilder = new ProcessBuilder(optionList).inheritIO();
+		if (src instanceof GroovyScriptSource) {
+			processBuilder.environment().put("JAVA_HOME", JdkManager.getCurrentJdk(requestedJavaVersion).toString());
+			processBuilder.environment().remove("GROOVY_HOME");
+		}
+		Process process = processBuilder.start();
 		try {
 			process.waitFor();
 		} catch (InterruptedException e) {
