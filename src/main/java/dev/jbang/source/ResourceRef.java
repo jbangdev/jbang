@@ -18,7 +18,6 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -146,20 +145,24 @@ public class ResourceRef implements Comparable<ResourceRef> {
 		return new ResourceRef(scriptResource, cachedResource);
 	}
 
-	public static ResourceRef forScriptResource(String scriptResource) {
+	public static ResourceRef forScriptResource(String scriptResource, Function<String, ModularClassPath> depResolver) {
 		ResourceRef result = forScript(scriptResource);
 		if (result == null) {
-			result = forResource(scriptResource, ResourceRef::fetchScriptFromUntrustedURL);
+			result = forResource(scriptResource, ResourceRef::fetchScriptFromUntrustedURL, depResolver);
 		}
 		return result;
 	}
 
+	public static ResourceRef forResource(String scriptResource, Function<String, ModularClassPath> depResolver) {
+		return forResource(scriptResource, ResourceRef::fetchFromURL, depResolver);
+	}
+
 	public static ResourceRef forResource(String scriptResource) {
-		return forResource(scriptResource, ResourceRef::fetchFromURL);
+		return forResource(scriptResource, ResourceRef::fetchFromURL, ResourceRef::noDepResolve);
 	}
 
 	public static ResourceRef forTrustedResource(String scriptResource) {
-		return forResource(scriptResource, ResourceRef::fetchFromURL);
+		return forResource(scriptResource, ResourceRef::fetchFromURL, ResourceRef::noDepResolve);
 	}
 
 	private static ResourceRef forScript(String scriptResource) {
@@ -238,7 +241,9 @@ public class ResourceRef implements Comparable<ResourceRef> {
 		return scriptResource.equals("-") || scriptResource.equals("/dev/stdin");
 	}
 
-	private static ResourceRef forResource(String scriptResource, Function<String, ResourceRef> urlFetcher) {
+	private static ResourceRef forResource(String scriptResource,
+			Function<String, ResourceRef> urlFetcher,
+			Function<String, ModularClassPath> depResolver) {
 		ResourceRef result = null;
 
 		if (scriptResource.startsWith("http://") || scriptResource.startsWith("https://")
@@ -250,8 +255,7 @@ public class ResourceRef implements Comparable<ResourceRef> {
 		} else if (DependencyUtil.looksLikeAGav(scriptResource)) {
 			// todo honor offline
 			String gav = scriptResource;
-			ModularClassPath mcp = DependencyUtil.resolveDependencies(Collections.singletonList(gav),
-					Collections.emptyList(), Util.isOffline(), Util.isFresh(), !Util.isQuiet(), true);
+			ModularClassPath mcp = depResolver.apply(gav);
 			// We possibly get a whole bunch of artifacts but we're only interested in the
 			// one we asked for, which we assume is always the first one in the list
 			// (hopefully we're right).
@@ -388,6 +392,10 @@ public class ResourceRef implements Comparable<ResourceRef> {
 		}
 
 		return url;
+	}
+
+	private static ModularClassPath noDepResolve(String dep) {
+		throw new ExitException(BaseCommand.EXIT_INTERNAL_ERROR, "Dependency resolving not supported");
 	}
 
 	private static ResourceRef getClasspathResource(String cpResource) {
