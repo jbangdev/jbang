@@ -40,7 +40,7 @@ download() {
 }
 
 javacInPath() {
-  [[ -x "$(command -v javac)" && ( $os != "mac" || ! $(/usr/libexec/java_home &> /dev/null) ) ]]
+  [[ -x "$(command -v javac)" && ( $os != "mac" || $(/usr/libexec/java_home &> /dev/null) ) ]]
 }
 
 abs_jbang_dir=$(dirname $(resolve_symlink $(absolute_path $0)))
