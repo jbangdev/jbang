@@ -1,6 +1,6 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-63-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-64-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 ## Contributors ✨
 
@@ -90,6 +90,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://mikrethor.github.io/blog/"><img src="https://avatars.githubusercontent.com/u/957393?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Xavier Bouclet</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=mikrethor" title="Documentation">📖</a></td>
     <td align="center"><a href="https://eero.com"><img src="https://avatars.githubusercontent.com/u/52975802?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Will Sargent (eero)</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=will-sargent-eero" title="Documentation">📖</a> <a href="https://github.com/jbangdev/jbang/issues?q=author%3Awill-sargent-eero" title="Bug reports">🐛</a></td>
     <td align="center"><a href="https://github.com/TomerFi"><img src="https://avatars.githubusercontent.com/u/28388442?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Tomer Figenblat</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=TomerFi" title="Documentation">📖</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/JakobFels"><img src="https://avatars.githubusercontent.com/u/4647840?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jakob Fels</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/issues?q=author%3AJakobFels" title="Bug reports">🐛</a></td>
   </tr>
 </table>
 
