@@ -589,6 +589,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "JakobFels",
+      "name": "Jakob Fels",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4647840?v=4",
+      "profile": "https://github.com/JakobFels",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "skipCi": true,
