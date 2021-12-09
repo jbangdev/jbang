@@ -91,12 +91,6 @@ case "$(uname -m)" in
     ;;
 esac
 
-## when mingw/git bash or cygwin fall out to just running the bat file.
-if [[ $os == windows && -f "$abs_jbang_dir/jbang.cmd" ]]; then
-  $abs_jbang_dir/jbang.cmd "$@"
-  exit $?
-fi
-
 if [[ -z "$JBANG_DIR" ]]; then JBDIR="$HOME/.jbang"; else JBDIR="$JBANG_DIR"; fi
 if [[ -z "$JBANG_CACHE_DIR" ]]; then TDIR="$JBDIR/cache"; else TDIR="$JBANG_CACHE_DIR"; fi
 
