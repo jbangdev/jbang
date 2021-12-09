@@ -5,6 +5,8 @@ import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
@@ -75,7 +77,12 @@ public class GroovyManager {
 	}
 
 	private static String getGroovyDownloadUrl(String version) {
-		if (version.startsWith("4.0")) {
+		int groovyMajorVersion = 3;
+		Matcher matcher = Pattern.compile("(\\d)\\..*").matcher(version);
+		if (matcher.find()) {
+			groovyMajorVersion = Integer.parseInt(matcher.group(1));
+		}
+		if (groovyMajorVersion >= 4) {
 			return String.format(
 					"https://repo1.maven.org/maven2/org/apache/groovy/groovy-binary/%s/groovy-binary-%s.zip", version,
 					version);
