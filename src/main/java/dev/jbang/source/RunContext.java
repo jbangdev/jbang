@@ -358,9 +358,10 @@ public class RunContext {
 	}
 
 	public Source forResource(String resource) {
-		ResourceRef resourceRef = ResourceRef.forScriptResource(resource, this::resolveDependency);
+		ResourceResolver resolver = ResourceResolver.forScripts(this::resolveDependency);
+		ResourceRef resourceRef = resolver.resolve(resource);
 
-		Alias alias = null;
+		Alias alias;
 		if (resourceRef == null) {
 			// Not found as such, so let's check the aliases
 			if (getCatalog() == null) {
@@ -370,7 +371,7 @@ public class RunContext {
 				alias = Alias.get(cat, resource);
 			}
 			if (alias != null) {
-				resourceRef = ResourceRef.forResource(alias.resolve(), this::resolveDependency);
+				resourceRef = resolver.resolve(alias.resolve());
 				if (getArguments() == null || getArguments().isEmpty()) {
 					setArguments(alias.arguments);
 				}

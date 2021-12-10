@@ -1,4 +1,4 @@
-package dev.jbang.source;
+package dev.jbang.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -16,20 +16,20 @@ public class TestTrustedSources extends BaseTest {
 	@Test
 	void testGoodUrlsToTrust() throws IOException {
 		assertEquals("https://github.com/maxandersen/myproject/",
-				ResourceRef.goodTrustURL("https://github.com/maxandersen/myproject/blob/master/file.java"));
+				Util.goodTrustURL("https://github.com/maxandersen/myproject/blob/master/file.java"));
 
 		assertEquals("https://repo1.maven.org/maven2/io/quarkus/quarkus-cli/",
-				ResourceRef.goodTrustURL(
+				Util.goodTrustURL(
 						"https://repo1.maven.org/maven2/io/quarkus/quarkus-cli/2.0.0.Final/quarkus-cli-2.0.0.Final-runner.jar"));
 
 		assertEquals("https://github.com/",
-				ResourceRef.goodTrustURL("https://github.com/t.java"));
+				Util.goodTrustURL("https://github.com/t.java"));
 
 		assertEquals("https://github.com/",
-				ResourceRef.goodTrustURL("https://github.com/"));
+				Util.goodTrustURL("https://github.com/"));
 
 		assertEquals("https://acme.org",
-				ResourceRef.goodTrustURL("https://acme.org"));
+				Util.goodTrustURL("https://acme.org"));
 
 	}
 
