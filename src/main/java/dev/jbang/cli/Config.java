@@ -135,20 +135,39 @@ class ConfigList extends BaseConfigCommand {
 			"--show-origin" }, description = "Show the origin of the catalog")
 	boolean showOrigin;
 
+	@CommandLine.Option(names = {
+			"--show-available" }, description = "Show the available key names")
+	boolean showAvailable;
+
 	@Override
 	public Integer doCall() throws IOException {
 		PrintStream out = System.out;
-		Configuration cfg = getConfig(null, true);
-		if (showOrigin) {
-			while (cfg != null) {
-				Set<String> printedKeys = new HashSet<>();
-				printConfigWithOrigin(out, cfg, printedKeys);
-				cfg = cfg.getFallback();
-			}
+		if (showAvailable) {
+			Set<String> keys = new HashSet<>();
+			gatherKeys(JBang.getCommandLine(), keys);
+			keys.stream().sorted().forEach(key -> out.println(ConsoleOutput.yellow(key)));
 		} else {
-			printConfig(out, cfg);
+			Configuration cfg = getConfig(null, true);
+			if (showOrigin) {
+				while (cfg != null) {
+					Set<String> printedKeys = new HashSet<>();
+					printConfigWithOrigin(out, cfg, printedKeys);
+					cfg = cfg.getFallback();
+				}
+			} else {
+				printConfig(out, cfg);
+			}
 		}
 		return EXIT_OK;
+	}
+
+	private void gatherKeys(CommandLine cmd, Set<String> keys) {
+		for (CommandLine c : cmd.getCommandSpec().subcommands().values()) {
+			gatherKeys(c, keys);
+		}
+		for (CommandLine.Model.OptionSpec opt : cmd.getCommandSpec().options()) {
+			keys.add(JBang.argSpecKey(opt));
+		}
 	}
 
 	private void printConfig(PrintStream out, Configuration cfg) {

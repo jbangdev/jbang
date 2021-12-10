@@ -155,7 +155,7 @@ public class JBang extends BaseCommand {
 			if (argSpec.isOption()
 					&& argSpec.defaultValue() == null
 					&& Util.isNullOrEmptyString(((CommandLine.Model.OptionSpec) argSpec).fallbackValue())) {
-				String key = key(argSpec);
+				String key = argSpecKey(argSpec);
 				String propkey = "jbang." + key;
 				if (System.getProperties().containsValue(propkey)) {
 					val = System.getProperty(propkey);
@@ -168,33 +168,33 @@ public class JBang extends BaseCommand {
 			}
 			return val;
 		}
-
-		private String key(CommandLine.Model.ArgSpec argSpec) {
-			List<String> cmdNames = names(argSpec.command());
-			String cmdName = cmdNames.isEmpty() ? "all" : String.join(".", cmdNames);
-			String optName = stripDashes(((CommandLine.Model.OptionSpec) argSpec).longestName()).replace("-", "");
-			return cmdName + "." + optName;
-		}
-
-		private List<String> names(CommandSpec cmd) {
-			List<String> result = new ArrayList<>();
-			while (!cmd.name().equalsIgnoreCase("jbang")) {
-				result.add(0, cmd.name());
-				cmd = cmd.parent();
-			}
-			return result;
-		}
-
-		private String stripDashes(String name) {
-			if (name.startsWith("--")) {
-				return name.substring(2);
-			} else if (name.startsWith("-")) {
-				return name.substring(1);
-			} else {
-				return name;
-			}
-		}
 	};
+
+	static String argSpecKey(CommandLine.Model.ArgSpec argSpec) {
+		List<String> cmdNames = names(argSpec.command());
+		String cmdName = cmdNames.isEmpty() ? "all" : String.join(".", cmdNames);
+		String optName = stripDashes(((CommandLine.Model.OptionSpec) argSpec).longestName()).replace("-", "");
+		return cmdName + "." + optName;
+	}
+
+	private static List<String> names(CommandSpec cmd) {
+		List<String> result = new ArrayList<>();
+		while (!cmd.name().equalsIgnoreCase("jbang")) {
+			result.add(0, cmd.name());
+			cmd = cmd.parent();
+		}
+		return result;
+	}
+
+	private static String stripDashes(String name) {
+		if (name.startsWith("--")) {
+			return name.substring(2);
+		} else if (name.startsWith("-")) {
+			return name.substring(1);
+		} else {
+			return name;
+		}
+	}
 
 	static class ConfigurationResourceBundle extends ResourceBundle {
 		@Override
