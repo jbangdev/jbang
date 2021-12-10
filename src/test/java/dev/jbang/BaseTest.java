@@ -62,8 +62,7 @@ public abstract class BaseTest {
 	public Path cwdDir;
 
 	protected <T> ExecutionResult checkedRun(Function<T, Integer> commandRunner, String... args) throws IOException {
-		JBang jbang = new JBang();
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs(args);
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs(args);
 		while (pr.subcommand() != null) {
 			pr = pr.subcommand();
 		}

@@ -197,21 +197,11 @@ public class JBang extends BaseCommand {
 	};
 
 	static class ConfigurationResourceBundle extends ResourceBundle {
-		private final Configuration cfg;
-
-		public ConfigurationResourceBundle() {
-			this(Configuration.instance());
-		}
-
-		public ConfigurationResourceBundle(Configuration cfg) {
-			this.cfg = cfg;
-		}
-
 		@Override
 		protected Object handleGetObject(String propkey) {
 			if (propkey.startsWith("jbang.")) {
 				String key = propkey.substring(6);
-				return cfg.get(key);
+				return Configuration.instance().get(key);
 			} else {
 				return null;
 			}
@@ -219,7 +209,7 @@ public class JBang extends BaseCommand {
 
 		@Override
 		public Enumeration<String> getKeys() {
-			return Collections.enumeration(cfg.keySet());
+			return Collections.enumeration(Configuration.instance().keySet());
 		}
 	};
 

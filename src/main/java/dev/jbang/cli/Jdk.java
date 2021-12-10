@@ -4,7 +4,6 @@ import static dev.jbang.cli.BaseCommand.*;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.Set;
 
@@ -37,20 +36,20 @@ public class Jdk {
 	@CommandLine.Command(name = "list", description = "Lists installed JDKs.")
 	public Integer list() {
 		int v = JdkManager.getDefaultJdk();
-		PrintWriter err = spec.commandLine().getErr();
+		PrintStream out = System.out;
 		final Set<Integer> installedJdks = JdkManager.listInstalledJdks();
 		if (!installedJdks.isEmpty()) {
-			Util.infoMsg("Available installed JDKs:");
+			out.println("Available installed JDKs:");
 			installedJdks.forEach(jdk -> {
 				if (jdk == v) {
-					err.print(" *");
+					out.print(" *");
 				}
-				err.print("  " + jdk);
+				out.print("  " + jdk);
 
-				err.println();
+				out.println();
 			});
 		} else {
-			Util.infoMsg("No JDKs installed");
+			out.println("No JDKs installed");
 		}
 		return EXIT_OK;
 	}

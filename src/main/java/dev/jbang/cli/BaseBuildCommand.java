@@ -83,7 +83,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 			"-n", "--native" }, description = "Build using native-image")
 	boolean nativeImage;
 
-	@CommandLine.Option(names = { "--catalog" }, description = "path to catalog file")
+	@CommandLine.Option(names = { "--catalog" }, description = "Path to catalog file to be used instead of the default")
 	File catalog;
 
 	PrintStream out = new PrintStream(new FileOutputStream(FileDescriptor.out));
