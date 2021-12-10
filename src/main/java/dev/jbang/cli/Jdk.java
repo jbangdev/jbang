@@ -1,6 +1,6 @@
 package dev.jbang.cli;
 
-import static dev.jbang.cli.BaseCommand.EXIT_OK;
+import static dev.jbang.cli.BaseCommand.*;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -67,34 +67,45 @@ public class Jdk {
 		return EXIT_OK;
 	}
 
-	@CommandLine.Command(name = "home", description = "Returns the folder where the given JDK is installed.")
+	@CommandLine.Command(name = "home", description = "Prints the folder where the given JDK is installed.")
 	public Integer home(
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version of the JDK to select", arity = "0..1") Integer version) {
 		Path home = getJdkPath(version);
-		System.out.println(home);
+		String homeStr = Util.pathToString(home);
+		System.out.println(homeStr);
 		return EXIT_OK;
 	}
 
-	@CommandLine.Command(name = "java-env", description = "Returns the folder where the given JDK is installed.")
+	@CommandLine.Command(name = "java-env", description = "Prints out the environment variables needed to use the given JDK.")
 	public Integer javaEnv(
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version of the JDK to select", arity = "0..1") Integer version) {
 		Path home = getJdkPath(version);
 		if (home != null) {
+			String homeStr = Util.pathToString(home);
 			PrintStream out = System.out;
-			if (Util.isWindows()) {
-				out.println("set PATH=" + home + "\\bin;%PATH%");
-				out.println("set JAVA_HOME=" + home);
-				out.println("rem Copy & paste the above commands in your CMD window or add");
-				out.println("rem them to your Environment Variables in the System Settings.");
-			} else {
-				out.println("export PATH=\"" + home + "/bin:$PATH\"");
-				out.println("export JAVA_HOME=\"" + home + "\"");
+			switch (Util.getShell()) {
+			case bash:
+				out.println("export PATH=\"" + homeStr + "/bin:$PATH\"");
+				out.println("export JAVA_HOME=\"" + homeStr + "\"");
 				out.println("# Run this command to configure your shell:");
 				out.print("# eval $(jbang jdk java-env");
 				if (version != null) {
 					out.print(" " + version);
 				}
 				out.println(")");
+				break;
+			case cmd:
+				out.println("set PATH=" + homeStr + "\\bin;%PATH%");
+				out.println("set JAVA_HOME=" + homeStr);
+				out.println("rem Copy & paste the above commands in your CMD window or add");
+				out.println("rem them to your Environment Variables in the System Settings.");
+				break;
+			case powershell:
+				out.println("$env:PATH=\"" + homeStr + "\\bin:$env:PATH\"");
+				out.println("$env:JAVA_HOME=\"" + homeStr + "\"");
+				out.println("# Copy & paste the above commands in your Powershell window or add");
+				out.println("# them to your Environment Variables in the System Settings.");
+				break;
 			}
 		}
 		return EXIT_OK;

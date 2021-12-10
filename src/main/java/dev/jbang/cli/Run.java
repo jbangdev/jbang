@@ -130,8 +130,7 @@ public class Run extends BaseBuildCommand {
 		String args = String.join(" ", escapeOSArguments(fullArgs));
 		// Check if we need to use @-files on Windows
 		boolean useArgsFile = false;
-		if (args.length() > COMMAND_LINE_LENGTH_LIMIT && Util.isWindows()
-				&& !Util.isUsingPowerShell()) {
+		if (args.length() > COMMAND_LINE_LENGTH_LIMIT && Util.getShell() == Util.Shell.cmd) {
 			// @file is only available from java 9 onwards.
 			String requestedJavaVersion = ctx.getJavaVersion() != null ? ctx.getJavaVersion() : src.getJavaVersion();
 			int actualVersion = JavaUtil.javaVersion(requestedJavaVersion);

@@ -91,12 +91,6 @@ case "$(uname -m)" in
     ;;
 esac
 
-## when mingw/git bash or cygwin fall out to just running the bat file.
-if [[ $os == windows && -f "$abs_jbang_dir/jbang.cmd" ]]; then
-  $abs_jbang_dir/jbang.cmd "$@"
-  exit $?
-fi
-
 if [[ -z "$JBANG_DIR" ]]; then JBDIR="$HOME/.jbang"; else JBDIR="$JBANG_DIR"; fi
 if [[ -z "$JBANG_CACHE_DIR" ]]; then TDIR="$JBDIR/cache"; else TDIR="$JBANG_CACHE_DIR"; fi
 
@@ -190,6 +184,7 @@ fi
 ## attempt to ensure each argument keeps its original quoting
 
 ## run it using command substitution to have just the user process once jbang is done
+export JBANG_RUNTIME_SHELL=bash
 output=$(CLICOLOR_FORCE=1 ${JAVA_EXEC} ${JBANG_JAVA_OPTIONS} -classpath ${jarPath} dev.jbang.Main "$@")
 err=$?
 if [ $err -eq 255 ]; then

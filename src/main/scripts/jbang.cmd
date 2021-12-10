@@ -62,7 +62,7 @@ if "!JAVA_EXEC!"=="" (
 if not exist "%TDIR%" ( mkdir "%TDIR%" )
 set tmpfile=%TDIR%\%RANDOM%.jbang.tmp
 rem execute jbang and pipe to temporary random file
-set JBANG_USES_POWERSHELL=
+set JBANG_RUNTIME_SHELL=cmd
 set "CMD=!JAVA_EXEC!"
 SETLOCAL DISABLEDELAYEDEXPANSION
 %CMD% > "%tmpfile%" %JBANG_JAVA_OPTIONS% -classpath "%jarPath%" dev.jbang.Main %*
