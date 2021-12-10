@@ -21,10 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
+import java.io.*;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -1575,5 +1572,83 @@ public class TestRun extends BaseTest {
 
 		assertThat(line, containsString(" --module-path "));
 
+	}
+
+	@Test
+	void testScriptCliReposAndDeps(@TempDir File output) throws IOException {
+		String base = "" +
+				"public class test {\n" +
+				"    public static void main(String... args) {\n" +
+				"        System.out.println(\"Hello World\"));\n" +
+				"    }\n" +
+				"}\n";
+
+		File f = new File(output, "test.java");
+
+		Util.writeString(f.toPath(), base);
+
+		JBang jbang = new JBang();
+		String arg = f.getAbsolutePath();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--repos", "http://dummyrepo", "--deps",
+				"dummygroup:dummyart:0.1", arg);
+
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+		Source src = ctx.forResource(arg);
+
+		try {
+			src = BaseBuildCommand.build((ScriptSource) src, ctx);
+		} catch (ExitException ex) {
+			StringWriter sw = new StringWriter();
+			ex.printStackTrace(new PrintWriter(sw));
+			assertThat(sw.toString(), containsString(
+					"Error transferring file: dummyrepo from http://dummyrepo/dummygroup/dummyart/0.1/dummyart-0.1.pom"));
+		}
+	}
+
+	@Test
+	void testGAVCliReposAndDepsSingleRepo(@TempDir File output) throws IOException {
+		String jar = "info.picocli:picocli-codegen:4.5.0";
+
+		JBang jbang = new JBang();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--repos", "http://dummyrepo", "--deps",
+				"dummygroup:dummyart:0.1", jar);
+
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+
+		try {
+			Source src = ctx.forResource(jar);
+		} catch (ExitException ex) {
+			StringWriter sw = new StringWriter();
+			ex.printStackTrace(new PrintWriter(sw));
+			assertThat(sw.toString(), containsString(
+					"Could not transfer artifact info.picocli:picocli-codegen:pom:4.5.0 from/to http://dummyrepo"));
+		}
+	}
+
+	@Test
+	void testGAVCliReposAndDepsTwoRepos(@TempDir File output) throws IOException {
+		String jar = "info.picocli:picocli-codegen:4.5.0";
+
+		JBang jbang = new JBang();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--repos", "mavencentral", "--repos",
+				"http://dummyrepo", "--deps",
+				"dummygroup:dummyart:0.1", jar);
+
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+
+		try {
+			Source src = ctx.forResource(jar);
+		} catch (ExitException ex) {
+			StringWriter sw = new StringWriter();
+			ex.printStackTrace(new PrintWriter(sw));
+			assertThat(sw.toString(), containsString(
+					"Error transferring file: dummyrepo from http://dummyrepo/dummygroup/dummyart/0.1/dummyart-0.1.pom"));
+		}
 	}
 }

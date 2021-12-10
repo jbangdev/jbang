@@ -67,8 +67,12 @@ public class DependencyResolver {
 		ModularClassPath mcp = DependencyUtil.resolveDependencies(
 				new ArrayList<>(dependencies), new ArrayList<>(repositories),
 				Util.isOffline(), Util.isFresh(), !Util.isQuiet());
-		List<ArtifactInfo> arts = Stream.concat(mcp.getArtifacts().stream(), artifacts.stream())
-										.collect(Collectors.toList());
-		return new ModularClassPath(arts);
+		if (artifacts.isEmpty()) {
+			return mcp;
+		} else {
+			List<ArtifactInfo> arts = Stream.concat(mcp.getArtifacts().stream(), artifacts.stream())
+											.collect(Collectors.toList());
+			return new ModularClassPath(arts);
+		}
 	}
 }

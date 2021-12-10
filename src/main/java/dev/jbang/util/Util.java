@@ -72,7 +72,8 @@ public class Util {
 	public static final Pattern mainClassMethod = Pattern.compile(
 			"(?<=\\n|\\A)(?:public\\s)\\s*(class)\\s*([^\\n\\s]*)");
 
-	private static final List<String> EXTENSIONS = asList(".java", ".jsh", ".kt");
+	public static final List<String> EXTENSIONS = asList(".java", ".jsh", ".kt");
+
 	private static boolean verbose;
 	private static boolean quiet;
 	private static boolean offline;
@@ -787,6 +788,52 @@ public class Util {
 				// ignore
 			}
 
+		}
+
+		return url;
+	}
+
+	/**
+	 * Takes common patterns and return "parent" urls that are meaningfull to trust.
+	 * i.e. github.com/maxandersen/myproject/myfile.java will offer to trust the
+	 * github.com/maxandersen/myproject project.
+	 *
+	 * @param url
+	 * @return
+	 */
+	public static String goodTrustURL(String url) {
+		String originalUrl = url;
+
+		url = url.replaceFirst("^https://gist.github.com/(.*)?/(.*)$",
+				"https://gist.github.com/$1/");
+
+		url = url.replaceFirst("^https://github.com/(.*)/blob/(.*)$",
+				"https://github.com/$1/");
+
+		url = url.replaceFirst("^https://gitlab.com/(.*)/-/blob/(.*)$",
+				"https://gitlab.com/$1/");
+
+		url = url.replaceFirst("^https://bitbucket.org/(.*)/src/(.*)$",
+				"https://bitbucket.org/$1/");
+
+		url = url.replaceFirst("^https://twitter.com/(.*)/status/(.*)$",
+				"https://twitter.com/$1/");
+
+		url = url.replaceFirst("https://repo1.maven.org/maven2/(.*)/[0-9]+.*$",
+				"https://repo1.maven.org/maven2/$1/");
+
+		if (url.equals(originalUrl)) {
+			java.net.URI uri = null;
+			try {
+				uri = new java.net.URI(url);
+			} catch (URISyntaxException e) {
+				return url;
+			}
+			if (uri.getPath().isEmpty() || uri.getPath().equals("/")) {
+				return uri.toString();
+			} else {
+				return (uri.getPath().endsWith("/") ? uri.resolve("..") : uri.resolve(".")).toString();
+			}
 		}
 
 		return url;

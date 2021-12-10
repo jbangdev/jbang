@@ -295,21 +295,26 @@ public class RunContext {
 	 * Return resolved classpath lazily. resolution will only happen once, any
 	 * consecutive calls return the same classpath.
 	 *
-	 * Properties available will be used for property replacemnt.
+	 * Properties available will be used for property replacement.
 	 **/
 	public String resolveClassPath(Source src) {
 		if (mcp == null) {
-			DependencyResolver resolver = new DependencyResolver()
-																	.addRepositories(allToMavenRepo(replaceAllProps(
-																			getAdditionalRepositories())))
-																	.addDependencies(replaceAllProps(
-																			getAdditionalDependencies()))
-																	.addClassPaths(
-																			replaceAllProps(getAdditionalClasspaths()));
+			DependencyResolver resolver = new DependencyResolver();
+			updateDependencyResolver(resolver);
 			src.updateDependencyResolver(resolver);
 			mcp = resolver.resolve();
 		}
 		return mcp.getClassPath();
+	}
+
+	private DependencyResolver updateDependencyResolver(DependencyResolver resolver) {
+		return resolver
+						.addRepositories(allToMavenRepo(replaceAllProps(
+								getAdditionalRepositories())))
+						.addDependencies(replaceAllProps(
+								getAdditionalDependencies()))
+						.addClassPaths(
+								replaceAllProps(getAdditionalClasspaths()));
 	}
 
 	private List<String> replaceAllProps(List<String> items) {
@@ -353,9 +358,10 @@ public class RunContext {
 	}
 
 	public Source forResource(String resource) {
-		ResourceRef resourceRef = ResourceRef.forScriptResource(resource);
+		ResourceResolver resolver = ResourceResolver.forScripts(this::resolveDependency);
+		ResourceRef resourceRef = resolver.resolve(resource);
 
-		Alias alias = null;
+		Alias alias;
 		if (resourceRef == null) {
 			// Not found as such, so let's check the aliases
 			if (getCatalog() == null) {
@@ -365,7 +371,7 @@ public class RunContext {
 				alias = Alias.get(cat, resource);
 			}
 			if (alias != null) {
-				resourceRef = ResourceRef.forResource(alias.resolve());
+				resourceRef = resolver.resolve(alias.resolve());
 				if (getArguments() == null || getArguments().isEmpty()) {
 					setArguments(alias.arguments);
 				}
@@ -425,6 +431,12 @@ public class RunContext {
 	public Source forFile(File resourceFile) {
 		ResourceRef resourceRef = ResourceRef.forFile(resourceFile);
 		return forResourceRef(resourceRef);
+	}
+
+	private ModularClassPath resolveDependency(String dep) {
+		DependencyResolver resolver = new DependencyResolver().addDependency(dep);
+		updateDependencyResolver(resolver);
+		return resolver.resolve();
 	}
 
 }
