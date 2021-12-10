@@ -33,12 +33,6 @@ jobs:
         run: |
           RELEASE_VERSION=`cat build/tmp/version.txt`
           echo "::set-output name=RELEASE_VERSION::$RELEASE_VERSION"
-      - name: docker
-        continue-on-error: true
-        env:
-          BREW_GITHUB_TOKEN: ${{ secrets.BREW_GITHUB_TOKEN }}
-          BREW_USER: ${{ secrets.BREW_USER }}
-        run: ./misc/updatecontainer.sh
       - name: jreleaser publish
         continue-on-error: true
         uses: jreleaser/release-action@v1

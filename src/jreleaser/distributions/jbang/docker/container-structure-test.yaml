@@ -1,0 +1,41 @@
+schemaVersion: "2.0.0"
+
+# check that jbang is in the correct location
+fileExistenceTests:
+  - name: "jbang installation"
+    path: '/jbang/bin/jbang'
+    shouldExist: true 
+
+commandTests:
+  - name: "does basic jbang work"
+    command: "/jbang/bin/jbang"
+    expectedError:
+      - "jbang is a tool for building and running"
+      - "Website: https"
+  - name: "JBANG_VERSION has a version number"
+    command: "echo"
+    args: ["jb $JBANG_VERSION"]
+    expectedOutput: ["jb \\d+.\\d+\\d+"]
+  - name: "hello world via url"
+    command: "entrypoint"
+    args:
+        - "https://github.com/jbangdev/jbang/blob/HEAD/itests/helloworld.java"
+    expectedOutput:
+      - "Hello World"
+  - name: "Does trust work"
+    envVars:
+      - key: INPUT_TRUST
+        value: https://github.com/jruby
+    command: "entrypoint"
+    expectedError:
+        - "Adding .https://github.com/jruby. to /jbang/.jbang/trusted-sources.json"
+  - name: "Does multiple arguments work"
+    envVars:
+      - key: INPUT_SCRIPT
+        value: hello@jbangdev
+      - key: INPUT_SCRIPTARGS
+        value: Hello There
+    command: "entrypoint"
+    expectedOutput:
+       - "Hello Hello"
+       - "Hello There"
