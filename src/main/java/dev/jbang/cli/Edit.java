@@ -2,7 +2,6 @@ package dev.jbang.cli;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
 import static dev.jbang.cli.BaseBuildCommand.escapeOSArguments;
-import static dev.jbang.util.Util.isWindows;
 import static dev.jbang.util.Util.verboseMsg;
 import static java.lang.System.out;
 
@@ -36,6 +35,7 @@ import dev.jbang.source.Source;
 import dev.jbang.util.ConsoleInput;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
+import dev.jbang.util.Util.Shell;
 
 import io.quarkus.qute.Template;
 import picocli.CommandLine;
@@ -78,6 +78,7 @@ public class Edit extends BaseScriptCommand {
 
 		ScriptSource ssrc = (ScriptSource) src;
 		File project = createProjectForEdit(ssrc, ctx, false);
+		String projectPathString = Util.pathToString(project.getAbsoluteFile().toPath());
 		// err.println(project.getAbsolutePath());
 
 		if (!noOpen) {
@@ -90,14 +91,14 @@ public class Edit extends BaseScriptCommand {
 			} else {
 				List<String> optionList = new ArrayList<>();
 				optionList.add(getEditorToUse().get());
-				optionList.add(project.getAbsolutePath());
+				optionList.add(projectPathString);
 
 				String[] cmd;
 				final String editorCommand = String.join(" ", escapeOSArguments(optionList));
-				if (isWindows()) {
-					cmd = new String[] { "cmd", "/c", editorCommand };
-				} else {
+				if (Util.getShell() == Shell.bash) {
 					cmd = new String[] { "sh", "-c", editorCommand };
+				} else {
+					cmd = new String[] { "cmd", "/c", editorCommand };
 				}
 				info("Running `" + String.join(" ", cmd) + "`");
 				new ProcessBuilder(cmd).start();
@@ -105,7 +106,7 @@ public class Edit extends BaseScriptCommand {
 		}
 
 		if (!live) {
-			out.println(project.getAbsolutePath()); // quit(project.getAbsolutePath());
+			out.println(projectPathString); // quit(project.getAbsolutePath());
 		} else {
 			try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
 				File orginalFile = src.getResourceRef().getFile();

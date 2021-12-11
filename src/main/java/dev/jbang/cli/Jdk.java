@@ -82,29 +82,36 @@ public class Jdk {
 		Path home = getJdkPath(version);
 		if (home != null) {
 			String homeStr = Util.pathToString(home);
+			String homeOsStr = Util.pathToOsString(home);
 			PrintStream out = System.out;
 			switch (Util.getShell()) {
 			case bash:
-				out.println("export PATH=\"" + homeStr + "/bin:$PATH\"");
-				out.println("export JAVA_HOME=\"" + homeStr + "\"");
-				out.println("# Run this command to configure your shell:");
+				// Not using `println()` here because it will output /n/r
+				// on Windows which causes problems
+				out.print("export PATH=\"" + homeStr + "/bin:$PATH\"\n");
+				out.print("export JAVA_HOME=\"" + homeOsStr + "\"\n");
+				out.print("# Run this command to configure your shell:\n");
 				out.print("# eval $(jbang jdk java-env");
 				if (version != null) {
 					out.print(" " + version);
 				}
-				out.println(")");
+				out.print(")\n");
 				break;
 			case cmd:
 				out.println("set PATH=" + homeStr + "\\bin;%PATH%");
-				out.println("set JAVA_HOME=" + homeStr);
+				out.println("set JAVA_HOME=" + homeOsStr);
 				out.println("rem Copy & paste the above commands in your CMD window or add");
 				out.println("rem them to your Environment Variables in the System Settings.");
 				break;
 			case powershell:
 				out.println("$env:PATH=\"" + homeStr + "\\bin:$env:PATH\"");
-				out.println("$env:JAVA_HOME=\"" + homeStr + "\"");
-				out.println("# Copy & paste the above commands in your Powershell window or add");
-				out.println("# them to your Environment Variables in the System Settings.");
+				out.println("$env:JAVA_HOME=\"" + homeOsStr + "\"");
+				out.println("# Run this command to configure your environment:");
+				out.print("# jbang jdk java-env");
+				if (version != null) {
+					out.print(" " + version);
+				}
+				out.println(" | iex");
 				break;
 			}
 		}
