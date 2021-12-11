@@ -20,7 +20,7 @@ jobs:
     - name: install jbang
       run: |
         curl -Ls https://sh.jbang.dev | bash -s - app setup
-        source ~/.bashrc
+        source ~/.zshrc
         if ! command -v jbang; then
           echo "jbang not found after install!"
           exit 1
