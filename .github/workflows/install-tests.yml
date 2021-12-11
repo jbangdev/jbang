@@ -1,0 +1,35 @@
+name: install-tests
+on:
+   workflow_dispatch:
+
+jobs:
+  macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Remove Java
+      run: |
+        sudo rm -rf /Library/Java/*
+        sudo rm -rf /Users/runner/hostedtoolcache/Java*
+    - name: check jbang does not exist
+      run: |
+        if command -v jbang; then
+          echo "jbang already exists!"
+          exit 1
+        fi
+    - name: install jbang
+      run: |
+        curl -Ls https://sh.jbang.dev | bash -s - app setup
+        source ~/.bashrc
+        if ! command -v jbang; then
+          echo "jbang not found after install!"
+          exit 1
+        fi
+    - name: run jbang no java
+      run: |
+        jbang init -t cli testcli.java
+        ./testcli.java
+    - name: run jbang java 17
+      run: |
+        jbang init -t cli testcli.java
+        jbang --java 17 testcli.java
