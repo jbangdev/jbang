@@ -27,6 +27,7 @@ jobs:
         fi
     - name: run jbang no java
       run: |
+        source ~/.zshrc
         jbang init -t cli testcli.java
         ./testcli.java
     - name: run jbang java 17
