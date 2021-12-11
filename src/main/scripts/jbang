@@ -117,6 +117,10 @@ else
   $JBDIR/bin/jbang "$@"
   exit $?
 fi
+if [ -f "$jarPath.new" ]; then
+  # a new jbang version was found, we replace the old one with it
+  mv "$jarPath.new" "$jarPath"
+fi
 
 # Find/get a JDK
 unset JAVA_EXEC
