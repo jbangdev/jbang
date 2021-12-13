@@ -15,13 +15,17 @@ public class ConfigUtil {
 
 	public static void setConfigValue(Path configFile, String key, String value) throws IOException {
 		Configuration cfg = Configuration.read(configFile);
-		cfg.put(key, value);
+		if (configFile != null) {
+			cfg.put(key, value);
+		}
 		Configuration.write(configFile, cfg);
 	}
 
 	public static Path unsetNearestConfigValue(String key) throws IOException {
 		Path configFile = findNearestLocalConfigWithKey(null, key);
-		unsetConfigValue(configFile, key);
+		if (configFile != null) {
+			unsetConfigValue(configFile, key);
+		}
 		return configFile;
 	}
 

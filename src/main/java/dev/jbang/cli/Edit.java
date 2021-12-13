@@ -90,7 +90,7 @@ public class Edit extends BaseScriptCommand {
 						+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + project.getAbsolutePath() + "\n\n");
 			} else {
 				List<String> optionList = new ArrayList<>();
-				optionList.add(getEditorToUse().get());
+				optionList.add(editor.get());
 				optionList.add(projectPathString);
 
 				String[] cmd;

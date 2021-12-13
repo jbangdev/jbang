@@ -277,7 +277,7 @@ public class Configuration {
 	}
 
 	public static void write(Path configFile, Configuration cfg) throws IOException {
-		verboseMsg(String.format("Reading configuration from %s", configFile));
+		verboseMsg(String.format("Writing configuration to %s", configFile));
 		try (Writer out = Files.newBufferedWriter(configFile)) {
 			cfg.values.store(out);
 		}

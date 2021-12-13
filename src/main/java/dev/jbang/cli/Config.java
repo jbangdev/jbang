@@ -120,7 +120,11 @@ class ConfigUnset extends BaseConfigCommand {
 			} else {
 				cfgFile = ConfigUtil.unsetNearestConfigValue(key);
 			}
-			Util.verboseMsg("Option '" + key + "' removed from in " + cfgFile);
+			if (cfgFile != null) {
+				Util.verboseMsg("Option '" + key + "' removed from in " + cfgFile);
+			} else {
+				Util.warnMsg("Cannot remove built-in option '" + key + "'");
+			}
 			return EXIT_OK;
 		} else {
 			Util.infoMsg("No configuration option found with that name: " + key);
@@ -132,7 +136,7 @@ class ConfigUnset extends BaseConfigCommand {
 @CommandLine.Command(name = "list", description = "List active configuration values")
 class ConfigList extends BaseConfigCommand {
 	@CommandLine.Option(names = {
-			"--show-origin" }, description = "Show the origin of the catalog")
+			"--show-origin" }, description = "Show the origin of the configuration")
 	boolean showOrigin;
 
 	@CommandLine.Option(names = {

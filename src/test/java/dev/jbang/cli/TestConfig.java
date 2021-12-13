@@ -66,13 +66,44 @@ public class TestConfig extends BaseTest {
 
 	@Test
 	void testSetLocal() throws IOException {
+		assertThat(Configuration.read(testConfigFile).keySet(), not(hasItem("mykey")));
 		ExecutionResult result = checkedRun(null, "config", "set", "mykey", "myvalue");
 		assertThat(Configuration.read(testConfigFile).keySet(), hasItem("mykey"));
 	}
 
 	@Test
 	void testSetGlobal() throws IOException {
+		assertThat(Configuration.read(configFile).keySet(), not(hasItem("mykey")));
 		ExecutionResult result = checkedRun(null, "config", "set", "--global", "mykey", "myvalue");
 		assertThat(Configuration.read(configFile).keySet(), hasItem("mykey"));
+	}
+
+	@Test
+	void testSetBuiltin() throws IOException {
+		Files.deleteIfExists(testConfigFile);
+		assertThat(Configuration.read(configFile).keySet(), not(hasItem("run.debug")));
+		ExecutionResult result = checkedRun(null, "config", "set", "run.debug", "42");
+		assertThat(Configuration.read(configFile).keySet(), hasItem("run.debug"));
+	}
+
+	@Test
+	void testUnsetLocal() throws IOException {
+		assertThat(Configuration.read(testConfigFile).keySet(), hasItem("two"));
+		ExecutionResult result = checkedRun(null, "config", "unset", "two");
+		assertThat(Configuration.read(testConfigFile).keySet(), not(hasItem("two")));
+	}
+
+	@Test
+	void testUnsetGlobal() throws IOException {
+		checkedRun(null, "config", "set", "--global", "mykey", "myvalue");
+		assertThat(Configuration.read(configFile).keySet(), hasItem("mykey"));
+		ExecutionResult result = checkedRun(null, "config", "unset", "--global", "mykey");
+		assertThat(Configuration.read(configFile).keySet(), not(hasItem("mykey")));
+	}
+
+	@Test
+	void testUnsetBuiltin() throws IOException {
+		ExecutionResult result = checkedRun(null, "config", "unset", "run.debug");
+		assertThat(result.normalizedErr(), containsString("Cannot remove built-in option"));
 	}
 }
