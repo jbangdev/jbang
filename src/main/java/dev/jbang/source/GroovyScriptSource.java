@@ -2,6 +2,7 @@ package dev.jbang.source;
 
 import static dev.jbang.net.GroovyManager.resolveInGroovyHome;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
@@ -21,6 +22,10 @@ public class GroovyScriptSource extends ScriptSource {
 	@Override
 	public List<String> getCompileOptions() {
 		return Collections.emptyList();
+	}
+
+	public List<String> getRuntimeOptions() {
+		return Arrays.asList("-Dgroovy.grape.enable=false");
 	}
 
 	@Override
