@@ -95,25 +95,22 @@ class CatalogUpdate extends BaseCatalogCommand {
 	@Override
 	public Integer doCall() {
 		PrintWriter err = spec.commandLine().getErr();
-		dev.jbang.catalog.Catalog.getMerged(true).catalogs
-															.entrySet()
-															.stream()
-															.forEach(e -> {
-																String ref = e.getValue().catalogRef;
-																err.println(
-																		"Updating catalog '" + e.getKey()
-																				+ "' from "
-																				+ ref + "...");
-																try {
-																	dev.jbang.catalog.Catalog.getByRef(ref);
-																} catch (Exception ex) {
-																	Util.warnMsg(
-																			"Unable to read catalog " + ref
-																					+ " (referenced from "
-																					+ e.getValue().catalog.catalogRef
-																					+ ")");
-																}
-															});
+		Map<String, CatalogRef> cats = dev.jbang.catalog.Catalog.getMerged(true).catalogs;
+		cats
+			.entrySet()
+			.stream()
+			.forEach(e -> {
+				String ref = e.getValue().catalogRef;
+				err.println("Updating catalog '" + e.getKey() + "' from " + ref + "...");
+				Util.freshly(() -> {
+					try {
+						dev.jbang.catalog.Catalog.getByRef(ref);
+					} catch (Exception ex) {
+						Util.warnMsg("Unable to read catalog " + ref + " (referenced from "
+								+ e.getValue().catalog.catalogRef + ")");
+					}
+				});
+			});
 		return EXIT_OK;
 	}
 }
