@@ -1,14 +1,10 @@
 package dev.jbang.cli;
 
-import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
-import static dev.jbang.cli.BaseCommand.EXIT_OK;
+import static dev.jbang.cli.BaseCommand.*;
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -37,8 +33,10 @@ public class Wrapper {
 			return EXIT_OK;
 		}
 		try {
-			URI uri = Wrapper.class.getProtectionDomain().getCodeSource().getLocation().toURI();
-			Path jar = new File(uri).toPath();
+			Path jar = Util.getJarLocation();
+			if (!jar.toString().endsWith(".jar")) {
+				throw new ExitException(EXIT_GENERIC_ERROR, "Couldn't find JBang install location");
+			}
 			Path parent = jar.getParent();
 			if (checkScripts(parent) && checkJar(parent)) {
 				copyScripts(parent, dest);
@@ -49,13 +47,11 @@ public class Wrapper {
 				copyScripts(parent.getParent(), dest);
 				copyJar(parent, dest);
 			} else {
-				throw new ExitException(1, "Couldn't find JBang wrapper files");
+				throw new ExitException(EXIT_GENERIC_ERROR, "Couldn't find JBang wrapper files");
 			}
 			return EXIT_OK;
-		} catch (URISyntaxException e) {
-			throw new ExitException(1, "Couldn't find JBang install location", e);
 		} catch (IOException e) {
-			throw new ExitException(1, "Couldn't copy JBang wrapper scripts", e);
+			throw new ExitException(EXIT_GENERIC_ERROR, "Couldn't copy JBang wrapper scripts", e);
 		}
 	}
 

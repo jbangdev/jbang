@@ -1187,13 +1187,21 @@ public class Util {
 	 * install` or not
 	 */
 	public static boolean runningManagedJBang() {
+		return getJarLocation().startsWith(Settings.getConfigBinDir());
+	}
+
+	/**
+	 * Determines the path to the JAR of the currently running JBang
+	 *
+	 * @return An actual Path if it was found, or an empty path if it was not
+	 */
+	public static Path getJarLocation() {
 		try {
 			File jarFile = new File(VersionChecker.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-			return jarFile.toPath().startsWith(Settings.getConfigBinDir());
+			return jarFile.toPath();
 		} catch (URISyntaxException e) {
 			// ignore
 		}
-		return false;
+		return Paths.get("");
 	}
-
 }

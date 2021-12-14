@@ -69,7 +69,6 @@ class AppInstall extends BaseCommand {
 					throw new IllegalArgumentException(
 							"It's not possible to install jbang with a different name");
 				}
-				Util.setFresh(true);// TODO: workaround as url cache is not honoring changed redirects
 				installed = installJBang(force);
 			} else {
 				if ("jbang".equals(name)) {
@@ -176,15 +175,28 @@ class AppInstall extends BaseCommand {
 		}
 
 		if (force || !managedJBang) {
-			// Download JBang and unzip to ~/.jbang/bin/
-			Util.infoMsg("Downloading and installing jbang...");
-			Path zipFile = Util.downloadFileToCache(jbangUrl);
-			Path urlsDir = Settings.getCacheDir(Cache.CacheClass.urls);
-			Util.deletePath(urlsDir.resolve("jbang"), true);
-			UnpackUtil.unpack(zipFile, urlsDir);
-			App.deleteCommandFiles("jbang");
-			Path fromDir = urlsDir.resolve("jbang").resolve("bin");
-			copyJBangFiles(fromDir, binDir);
+			if (!Util.isOffline()) {
+				// Download JBang and unzip to ~/.jbang/bin/
+				Util.setFresh(true);// TODO: workaround as url cache is not honoring changed redirects
+				Util.infoMsg("Downloading and installing jbang...");
+				Path zipFile = Util.downloadFileToCache(jbangUrl);
+				Path urlsDir = Settings.getCacheDir(Cache.CacheClass.urls);
+				Util.deletePath(urlsDir.resolve("jbang"), true);
+				UnpackUtil.unpack(zipFile, urlsDir);
+				App.deleteCommandFiles("jbang");
+				Path fromDir = urlsDir.resolve("jbang").resolve("bin");
+				copyJBangFiles(fromDir, binDir);
+			} else {
+				Path jar = Util.getJarLocation();
+				if (!jar.toString().endsWith(".jar")) {
+					throw new ExitException(EXIT_GENERIC_ERROR, "Could not determine jbang location");
+				}
+				Path fromDir = jar.getParent();
+				if (fromDir.endsWith(".jbang")) {
+					fromDir = fromDir.getParent();
+				}
+				copyJBangFiles(fromDir, binDir);
+			}
 		} else {
 			Util.infoMsg("jbang is already installed.");
 		}
@@ -193,22 +205,27 @@ class AppInstall extends BaseCommand {
 
 	private static void copyJBangFiles(Path from, Path to) throws IOException {
 		to.toFile().mkdirs();
-		try (Stream<Path> files = Files.list(from)) {
-			files	.map(from::relativize)
-					.forEach(f -> {
-						try {
-							Path fromp = from.resolve(f);
-							Path top = to.resolve(f);
-							if (Util.isWindows() && f.endsWith("jbang.jar") && Files.isRegularFile(top)) {
+		Arrays	.asList("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")
+				.stream()
+				.map(f -> Paths.get(f))
+				.forEach(f -> {
+					try {
+						Path fromp = from.resolve(f);
+						Path top = to.resolve(f);
+						if (f.endsWith("jbang.jar")) {
+							if (!Files.isReadable(fromp)) {
+								fromp = from.resolve(".jbang/jbang.jar");
+							}
+							if (Util.isWindows() && Files.isRegularFile(top)) {
 								top = to.resolve("jbang.jar.new");
 							}
-							Files.copy(fromp, top, StandardCopyOption.REPLACE_EXISTING,
-									StandardCopyOption.COPY_ATTRIBUTES);
-						} catch (IOException e) {
-							throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
 						}
-					});
-		}
+						Files.copy(fromp, top, StandardCopyOption.REPLACE_EXISTING,
+								StandardCopyOption.COPY_ATTRIBUTES);
+					} catch (IOException e) {
+						throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
+					}
+				});
 	}
 }
 
