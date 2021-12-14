@@ -8,7 +8,6 @@ plugins {
 	id "com.gradle.enterprise"
 }
 
-
 // Configuration of com.gradle.enterprise (build scan) plugin
 gradleEnterprise {
 	buildScan {
@@ -20,3 +19,5 @@ gradleEnterprise {
 		//publishAlways()
 	}
 }
+
+include 'jbang-core'

@@ -23,6 +23,8 @@ repositories {
 }
 
 dependencies {
+	implementation project(":jbang-core")
+
 	implementation 'com.offbytwo:docopt:0.6.0.20150202'
 
 	implementation 'org.apache.commons:commons-text:1.9'

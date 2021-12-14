@@ -21,7 +21,7 @@ import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import dev.jbang.BaseTest;
+import dev.jbang.BaseTestExt;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.catalog.CatalogUtil;
@@ -29,7 +29,7 @@ import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 
-public class TestAlias extends BaseTest {
+public class TestAlias extends BaseTestExt {
 
 	static final String aliases = "{\n" +
 			"  \"aliases\": {\n" +
