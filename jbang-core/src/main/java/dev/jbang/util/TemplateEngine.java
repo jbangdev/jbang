@@ -10,8 +10,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
-import dev.jbang.Main;
-
 import io.quarkus.qute.Engine;
 import io.quarkus.qute.ReflectionValueResolver;
 import io.quarkus.qute.Template;
@@ -36,7 +34,7 @@ public class TemplateEngine {
 	private URL locatePath(String path) {
 		ClassLoader cl = Thread.currentThread().getContextClassLoader();
 		if (cl == null) {
-			cl = Main.class.getClassLoader();
+			cl = TemplateEngine.class.getClassLoader();
 		}
 		return cl.getResource(path);
 	}
