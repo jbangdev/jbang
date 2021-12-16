@@ -28,7 +28,9 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
 import org.jboss.jandex.Type;
+import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 
+import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.source.JarSource;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.ScriptSource;
@@ -498,14 +500,22 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 			// ignore
 			Util.warnMsg("Could not locate pom.xml template");
 		} else {
-			String group = ctx.getProperties().getOrDefault("group", "g.a.v");
+			String group = "group";
+			String artifact = Util.getBaseName(src.getResourceRef().getFile().getName());
+			String version = "999-SNAPSHOT";
+			if (src.getGav().isPresent()) {
+				MavenCoordinate coord = DependencyUtil.depIdToArtifact(
+						DependencyUtil.gavWithVersion(src.getGav().get()));
+				group = coord.getGroupId();
+				artifact = coord.getArtifactId();
+				version = coord.getVersion();
+			}
 			String pomfile = pomTemplate
 										.data("baseName", Util.getBaseName(src.getResourceRef().getFile().getName()))
 										.data("group", group)
-										.data("artifact", ctx	.getProperties()
-																.getOrDefault("artifact", Util.getBaseName(
-																		src.getResourceRef().getFile().getName())))
-										.data("version", ctx.getProperties().getOrDefault("version", "999-SNAPSHOT"))
+										.data("artifact", artifact)
+										.data("version", version)
+										.data("description", src.getDescription().orElse(""))
 										.data("dependencies", ctx.getClassPath().getArtifacts())
 										.render();
 

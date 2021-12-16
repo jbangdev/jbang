@@ -637,6 +637,7 @@ public class TestRun extends BaseTest {
 
 		String base = "///usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n" +
 				"//DEPS info.picocli:picocli:4.5.0\n" +
+				"//GAV dev.jbang.tests:aclass\n" +
 				"\n" +
 				"import static java.lang.System.*;\n" +
 				"\n" +
@@ -658,7 +659,7 @@ public class TestRun extends BaseTest {
 		assertThat(ctx.getMainClassOr(src), equalTo("aclass"));
 
 		try (FileSystem fileSystem = FileSystems.newFileSystem(src.getJarFile().toPath(), null)) {
-			Path fileToExtract = fileSystem.getPath("META-INF/maven/g/a/v/pom.xml");
+			Path fileToExtract = fileSystem.getPath("META-INF/maven/dev/jbang/tests/pom.xml");
 
 			ByteArrayOutputStream s = new ByteArrayOutputStream();
 

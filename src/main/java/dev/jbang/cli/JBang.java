@@ -49,6 +49,10 @@ import picocli.CommandLine.Model.UsageMessageSpec;
 				Export.class })
 public class JBang extends BaseCommand {
 
+	@CommandLine.Option(names = { "-V",
+			"--version" }, versionHelp = true, description = "Display version info (use `jbang --verbose version` for more details)")
+	boolean versionRequested;
+
 	@CommandLine.ArgGroup(exclusive = true)
 	VerboseQuietExclusive verboseQuietExclusive = new VerboseQuietExclusive();
 

@@ -52,6 +52,7 @@ public class ScriptSource implements Source {
 	private static final String FILES_COMMENT_PREFIX = "//FILES ";
 	private static final String SOURCES_COMMENT_PREFIX = "//SOURCES ";
 	private static final String DESCRIPTION_COMMENT_PREFIX = "//DESCRIPTION ";
+	private static final String GAV_COMMENT_PREFIX = "//GAV ";
 
 	private static final String DEPS_ANNOT_PREFIX = "@Grab(";
 	private static final Pattern DEPS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
@@ -74,6 +75,7 @@ public class ScriptSource implements Source {
 	private List<ScriptSource> sources;
 	private List<KeyValue> agentOptions;
 	private Optional<String> description = Optional.empty();
+	private Optional<String> gav = Optional.empty();
 	private File jar;
 	private JarSource jarSource;
 
@@ -345,6 +347,35 @@ public class ScriptSource implements Source {
 
 	static boolean isDescriptionDeclare(String line) {
 		return line.startsWith(DESCRIPTION_COMMENT_PREFIX);
+	}
+
+	@Override
+	public Optional<String> getGav() {
+		if (!gav.isPresent()) {
+			List<String> gavs = getLines()	.stream()
+											.filter(ScriptSource::isGavDeclare)
+											.map(s -> s.substring(GAV_COMMENT_PREFIX.length()))
+											.collect(Collectors.toList());
+			if (gavs.isEmpty()) {
+				gav = Optional.empty();
+			} else {
+				if (gavs.size() > 1) {
+					Util.warnMsg(
+							"Multiple //GAV lines found, only one should be defined in a source file. Using the first");
+				}
+				String maybeGav = DependencyUtil.gavWithVersion(gavs.get(0));
+				if (!DependencyUtil.looksLikeAGav(maybeGav)) {
+					throw new IllegalArgumentException(
+							"//GAV line has wrong format, should be '//GAV groupid:artifactid[:version]'");
+				}
+				gav = Optional.of(gavs.get(0));
+			}
+		}
+		return gav;
+	}
+
+	static boolean isGavDeclare(String line) {
+		return line.startsWith(GAV_COMMENT_PREFIX);
 	}
 
 	protected List<String> collectOptions(String prefix) {

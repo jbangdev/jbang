@@ -266,6 +266,13 @@ public class DependencyUtil {
 						.orElse(s);
 	}
 
+	public static String gavWithVersion(String gav) {
+		if (gav.replaceAll("[^:]", "").length() == 1) {
+			gav += ":999-SNAPSHOT";
+		}
+		return gav;
+	}
+
 	public static MavenRepo toMavenRepo(String repoReference) {
 		String[] split = repoReference.split("=");
 		String reporef = null;
