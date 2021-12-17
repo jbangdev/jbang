@@ -33,3 +33,15 @@ Scenario: add catalog twice with different name
 Scenario: access remote catalog
   When command('jbang build hello@jbangdev')
   Then  match exit == 0
+
+Scenario: list remote catalog aliases
+  When command('jbang alias list jbangdev/jbang-catalog')
+  Then  match exit == 0
+  And match out contains "@jbangdev"
+  And match out !contains "@jbangdev/jbang-catalog"
+
+Scenario: list remote catalog templates
+  When command('jbang template list jbangdev/jbang-catalog')
+  Then  match exit == 0
+  And match out contains "@jbangdev"
+  And match out !contains "@jbangdev/jbang-catalog"

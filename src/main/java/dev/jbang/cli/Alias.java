@@ -169,7 +169,7 @@ class AliasList extends BaseAliasCommand {
 			int indent) {
 		dev.jbang.catalog.Alias alias = catalog.aliases.get(name);
 		String catName = catalogName != null ? catalogName : Catalog.findImplicitName(alias.catalog);
-		String fullName = catName != null ? name + "@" + catName : name;
+		String fullName = catName != null ? name + "@" + Catalog.simplifyName(catName) : name;
 		String scriptRef = alias.scriptRef;
 		if (!catalog.aliases.containsKey(scriptRef)
 				&& !Catalog.isValidCatalogReference(scriptRef)) {

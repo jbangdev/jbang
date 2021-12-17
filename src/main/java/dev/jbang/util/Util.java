@@ -942,6 +942,7 @@ public class Util {
 	}
 
 	public static String readStringFromURL(String requestURL, Map<String, String> headers) throws IOException {
+		verboseMsg("Reading information from: " + requestURL);
 		URLConnection connection = new URL(requestURL).openConnection();
 		if (headers != null) {
 			headers.forEach(connection::setRequestProperty);
