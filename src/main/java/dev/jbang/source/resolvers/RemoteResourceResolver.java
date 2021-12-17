@@ -109,7 +109,7 @@ public class RemoteResourceResolver implements ResourceResolver {
 		try {
 			String url = swizzleURL(scriptURL);
 			Path path = Util.downloadAndCacheFile(url);
-			return ResourceRef.forCachedResource(url, path.toFile());
+			return ResourceRef.forCachedResource(scriptURL, path.toFile());
 		} catch (IOException e) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Could not download " + scriptURL, e);
 		}

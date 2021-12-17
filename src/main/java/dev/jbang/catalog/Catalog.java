@@ -141,7 +141,7 @@ public class Catalog {
 	 * @return An Aliases object
 	 */
 	public static Catalog getByName(String catalogName) {
-		CatalogRef catalogRef = CatalogRef.get(catalogName);
+		CatalogRef catalogRef = CatalogRef.get(simplifyName(catalogName));
 		if (catalogRef != null) {
 			return getByRef(catalogRef.catalogRef);
 		} else {
@@ -401,6 +401,14 @@ public class Catalog {
 	static void check(boolean ok, String message) {
 		if (!ok) {
 			throw new JsonParseException(message);
+		}
+	}
+
+	public static String simplifyName(String catalog) {
+		if (catalog.endsWith("/" + JBANG_CATALOG_REPO)) {
+			return catalog.substring(0, catalog.length() - 14);
+		} else {
+			return catalog.replace("/" + JBANG_CATALOG_REPO + "~", "~");
 		}
 	}
 

@@ -47,7 +47,7 @@ public class ResourceRef implements Comparable<ResourceRef> {
 			if (Util.isURL(siblingResource)) {
 				sr = new URI(siblingResource).toString();
 			} else if (isURL()) {
-				sr = new URI(originalResource).resolve(siblingResource).toString();
+				sr = new URI(Util.swizzleURL(originalResource)).resolve(siblingResource).toString();
 			} else if (Util.isClassPathRef(siblingResource)) {
 				sr = siblingResource;
 			} else if (isClasspath()) {

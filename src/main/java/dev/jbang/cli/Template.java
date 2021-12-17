@@ -240,7 +240,8 @@ class TemplateList extends BaseTemplateCommand {
 	private static void printTemplate(PrintStream out, String catalogName, Catalog catalog,
 			String name, boolean showFiles, int indent) {
 		dev.jbang.catalog.Template template = catalog.templates.get(name);
-		String fullName = catalogName != null ? name + "@" + catalogName : name;
+		String catName = catalogName != null ? catalogName : Catalog.findImplicitName(template.catalog);
+		String fullName = catName != null ? name + "@" + Catalog.simplifyName(catName) : name;
 		out.print(Util.repeat(" ", indent));
 		if (template.description != null) {
 			out.println(ConsoleOutput.yellow(fullName) + " = " + template.description);
