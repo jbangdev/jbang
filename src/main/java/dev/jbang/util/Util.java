@@ -132,6 +132,15 @@ public class Util {
 		Util.cwd = cwd.toAbsolutePath().normalize();
 	}
 
+	public static void freshly(Runnable func) {
+		setFresh(true);
+		try {
+			func.run();
+		} finally {
+			setFresh(false);
+		}
+	}
+
 	public static String kebab2camel(String name) {
 
 		if (name.contains("-")) { // xyz-plug becomes XyzPlug
