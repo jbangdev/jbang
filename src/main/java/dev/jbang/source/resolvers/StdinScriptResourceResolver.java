@@ -37,23 +37,29 @@ public class StdinScriptResourceResolver implements ResourceResolver {
 																					.collect(Collectors.joining(
 																							System.lineSeparator()));
 
-				String urlHash = Util.getStableID(scriptText);
-				File cache = Settings.getCacheDir(Cache.CacheClass.stdins).resolve(urlHash).toFile();
-				cache.mkdirs();
-				String basename = urlHash;
-				String suffix = ".jsh";
-				if (hasMainMethod(scriptText)) {
-					suffix = ".java";
-					basename = getMainClass(scriptText).orElse(basename);
-				}
-				File scriptFile = new File(cache, basename + suffix);
-				Util.writeString(scriptFile.toPath(), scriptText);
-				result = ResourceRef.forCachedResource(resource, scriptFile);
+				result = stringToResourceRef(resource, scriptText);
 			}
 		} catch (IOException e) {
 			throw new ExitException(BaseCommand.EXIT_UNEXPECTED_STATE, "Could not cache script from stdin", e);
 		}
 
+		return result;
+	}
+
+	protected static ResourceRef stringToResourceRef(String resource, String scriptText) throws IOException {
+		ResourceRef result;
+		String urlHash = Util.getStableID(scriptText);
+		File cache = Settings.getCacheDir(Cache.CacheClass.stdins).resolve(urlHash).toFile();
+		cache.mkdirs();
+		String basename = urlHash;
+		String suffix = ".jsh";
+		if (hasMainMethod(scriptText)) {
+			suffix = ".java";
+			basename = getMainClass(scriptText).orElse(basename);
+		}
+		File scriptFile = new File(cache, basename + suffix);
+		Util.writeString(scriptFile.toPath(), scriptText);
+		result = ResourceRef.forCachedResource(resource, scriptFile);
 		return result;
 	}
 }

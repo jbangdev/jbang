@@ -172,6 +172,22 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testMarkdown() throws IOException {
+
+		JBang jbang = new JBang();
+		String arg = examplesTestFolder.resolve("readme.md").toAbsolutePath().toString();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+		ScriptSource src = (ScriptSource) ctx.forResource(arg);
+
+		String result = run.generateCommandLine(src, ctx);
+
+		assertThat(result, matchesPattern("^.*jshell(.exe)? --class-path=.*figlet.*? --startup.*$"));
+	}
+
+	@Test
 	void testEmptyInteractiveShell(@TempDir File dir) throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");
