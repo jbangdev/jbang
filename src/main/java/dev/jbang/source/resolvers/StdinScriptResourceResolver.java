@@ -46,7 +46,7 @@ public class StdinScriptResourceResolver implements ResourceResolver {
 		return result;
 	}
 
-	protected static ResourceRef stringToResourceRef(String resource, String scriptText) throws IOException {
+	public static ResourceRef stringToResourceRef(String resource, String scriptText) throws IOException {
 		ResourceRef result;
 		String urlHash = Util.getStableID(scriptText);
 		File cache = Settings.getCacheDir(Cache.CacheClass.stdins).resolve(urlHash).toFile();

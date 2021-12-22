@@ -2,7 +2,7 @@
 
 It is possible to write scripts using markdown.
 
-JBang will extract code found in ``` `java ``` or ``` `jsh ``` code blocks.
+JBang will extract code found in `java` or `jsh` or `jshelllanguage` code blocks.
 
 Try run `jbang readme.md`.
 
@@ -16,7 +16,7 @@ class Demo {
 
 It will take all blocks and execute via jshell by default and if main method found it will treat it as a .java file.
 
-```jsh
+```jshelllanguage
 new Demo().test();
 ```
 

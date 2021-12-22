@@ -85,7 +85,7 @@ public class ScriptSource implements Source {
 		this(resourceRef, getBackingFileContent(resourceRef.getFile()), replaceProperties);
 	}
 
-	private ScriptSource(ResourceRef resourceRef, String content, Function<String, String> replaceProperties) {
+	protected ScriptSource(ResourceRef resourceRef, String content, Function<String, String> replaceProperties) {
 		this.resourceRef = resourceRef;
 		this.script = content;
 		this.replaceProperties = replaceProperties != null ? replaceProperties : Function.identity();
@@ -434,7 +434,7 @@ public class ScriptSource implements Source {
 		return this;
 	}
 
-	static private String getBackingFileContent(File backingFile) {
+	protected static String getBackingFileContent(File backingFile) {
 		try {
 			return new String(Files.readAllBytes(backingFile.toPath()));
 		} catch (IOException e) {
@@ -539,6 +539,9 @@ public class ScriptSource implements Source {
 		String originalResource = resourceRef.getOriginalResource();
 		if (originalResource != null && originalResource.endsWith(".kt")) {
 			return new KotlinScriptSource(resourceRef, replaceProperties);
+		}
+		if (originalResource != null && originalResource.endsWith(".md")) {
+			return MarkdownScriptSource.create(resourceRef, replaceProperties);
 		} else {
 			return new ScriptSource(resourceRef, replaceProperties);
 		}

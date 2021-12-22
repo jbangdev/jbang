@@ -1,4 +1,8 @@
+@java9orhigher
 Feature: markdown
+
+Background:
+* if (javaversion == 8) karate.abort()
 
 Scenario: readme.md
 * command('jbang readme.md')
