@@ -1,0 +1,49 @@
+= Configuration
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+toc::[]
+
+JBang try and have decent defaults, for the cases where they do not fit you can use `jbang config` to setup better defaults.
+
+Example, the default editor for `jbang edit` is calculated but sometimes you want it to be one specfic editor. Instead of writing `jbang edit --open=code hello.java` to say it is `code` you want open with, you can use `jbang config set edit.open=code`. When you have done that then `jbang edit hello.java` is all that is needed - JBang will now use `code` as the default editor.
+
+== Configure default value for every argument
+
+If you noticed it what JBang configuration does is to map a configuration key to a command line argument. Meaning any command and its command line arguments can be given default values to change the default behavior of jbang. i.e. `edit.open` is the `--open` argument to `edit` command.
+
+You can see all the available keys by running `jbang config list --show-available` and if you want to see the current default values use `jbang config list`.
+
+== Local vs Global configuration
+
+JBang has a built-in default value and any config setting will by default be set on a global scope. Meaning it will apply to any `jbang` run. The default location for this is at `~/.jbang/jbang.properties`.
+
+If you want to have local settings that only apply within a certain diretory tree simply go that directory and run `jbang config set --file=. edit.open idea`. Then JBang stores settings in a local `jbang.properties`
+wihch will override any global setting.
+
+To see which keys are configured where and in what order run `jbang config list --show-origin` and you will get something like:
+
+```
+/Users/max/code/personal/jbangdev/jbang/jbang.properties
+   edit.open = code
+/Users/max/.jbang/jbang.properties
+   edit.open = idea
+classpath:/jbang.properties
+   init.template = hello
+   run.debug = 4004
+   run.jfr = filename={baseName}.jfr
+   wrapper.dir = .
+```
+
+
+

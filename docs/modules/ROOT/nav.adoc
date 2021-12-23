@@ -12,5 +12,6 @@
 * xref:templates.adoc[]
 * xref:alias_catalogs.adoc[]
 * xref:integration.adoc[]
+* xref:configuration.adoc[]
 * xref:caching.adoc[]
 * xref:faq.adoc[]
