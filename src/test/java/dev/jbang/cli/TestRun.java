@@ -1550,6 +1550,27 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testJavaFXViaCommandLineDepsUsingCommas() throws IOException {
+		JBang jbang = new JBang();
+
+		Path fileref = examplesTestFolder.resolve("SankeyPlotTest.java").toAbsolutePath();
+
+		// todo fix so --deps can use system properties
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run",
+				"--deps",
+				"org.openjfx:javafx-graphics:17:mac,org.openjfx:javafx-controls:17:mac,eu.hansolo.fx:charts:RELEASE",
+				fileref.toString());
+
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+		ctx.setMainClass("fakemain");
+		String line = run.generateCommandLine(ctx.forResource(fileref.toString()), ctx);
+
+		assertThat(line, containsString("org/openjfx".replace("/", File.separator)));
+	}
+
+	@Test
 	void testJavaFXMagicPropertyViaCommandline() throws IOException {
 
 		JBang jbang = new JBang();

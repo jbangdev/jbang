@@ -41,7 +41,8 @@ public class Init extends BaseScriptCommand {
 	@CommandLine.Option(names = { "-D" }, description = "set a system property", mapFallbackValue = "true")
 	Map<String, Object> properties = new HashMap<>();
 
-	@CommandLine.Option(names = { "--deps" }, description = "Add additional dependencies.")
+	@CommandLine.Option(names = {
+			"--deps" }, converter = CommaSeparatedConverter.class, description = "Add additional dependencies (Use commas to provide several ones).")
 	List<String> dependencies;
 
 	@Override
