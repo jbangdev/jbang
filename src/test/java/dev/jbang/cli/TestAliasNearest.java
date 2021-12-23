@@ -183,7 +183,7 @@ public class TestAliasNearest extends BaseTest {
 	void testAddDotLocal(String ref, String result) throws IOException {
 		Path cwd = Util.getCwd();
 		Path localCatalog = cwd.resolve(Catalog.JBANG_CATALOG_JSON);
-		Path dotLocalCatalog = cwd.resolve(CatalogUtil.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
+		Path dotLocalCatalog = cwd.resolve(Settings.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
 		Files.delete(localCatalog);
 		CatalogUtil.addNearestAlias("new", ref, null, null, null, null, null, null, null, null, null);
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
@@ -206,8 +206,8 @@ public class TestAliasNearest extends BaseTest {
 	void testAddParent(String ref, String result) throws IOException {
 		Path cwd = Util.getCwd();
 		Path localCatalog = cwd.resolve(Catalog.JBANG_CATALOG_JSON);
-		Path dotLocalCatalog = cwd.resolve(CatalogUtil.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
-		Path parentCatalog = cwd.getParent().resolve(CatalogUtil.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
+		Path dotLocalCatalog = cwd.resolve(Settings.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
+		Path parentCatalog = cwd.getParent().resolve(Settings.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
 		Files.delete(localCatalog);
 		Files.delete(dotLocalCatalog);
 		CatalogUtil.addNearestAlias("new", ref, null, null, null, null, null, null, null, null, null);
@@ -234,8 +234,8 @@ public class TestAliasNearest extends BaseTest {
 	void testAddGlobal(String ref, String result) throws IOException {
 		Path cwd = Util.getCwd();
 		Path localCatalog = cwd.resolve(Catalog.JBANG_CATALOG_JSON);
-		Path dotLocalCatalog = cwd.resolve(CatalogUtil.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
-		Path parentCatalog = cwd.getParent().resolve(CatalogUtil.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
+		Path dotLocalCatalog = cwd.resolve(Settings.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
+		Path parentCatalog = cwd.getParent().resolve(Settings.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
 		Files.delete(localCatalog);
 		Files.delete(dotLocalCatalog);
 		Files.delete(parentCatalog);
@@ -262,7 +262,7 @@ public class TestAliasNearest extends BaseTest {
 	@Test
 	void testRemoveDotLocal() throws IOException {
 		Path cwd = Util.getCwd();
-		Path dotLocalCatalog = cwd.resolve(CatalogUtil.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
+		Path dotLocalCatalog = cwd.resolve(Settings.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
 		CatalogUtil.removeNearestAlias("dotlocal1");
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(dotLocalCatalog);
@@ -272,7 +272,7 @@ public class TestAliasNearest extends BaseTest {
 	@Test
 	void testRemoveParent() throws IOException {
 		Path cwd = Util.getCwd();
-		Path parentCatalog = cwd.getParent().resolve(CatalogUtil.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
+		Path parentCatalog = cwd.getParent().resolve(Settings.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
 		CatalogUtil.removeNearestAlias("parent1");
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(parentCatalog);

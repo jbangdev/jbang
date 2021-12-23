@@ -13,18 +13,15 @@ import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 
-import dev.jbang.Settings;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.util.Util;
 
 public class CatalogUtil {
-	public static final String JBANG_DOT_DIR = ".jbang";
 
 	private static final String validNameChars = "-.\\w";
 	private static final Pattern validNamePattern = Pattern.compile("[" + validNameChars + "]+");
@@ -262,35 +259,6 @@ public class CatalogUtil {
 			Util.warnMsg("Unable to add catalog: " + ex.getMessage());
 			return null;
 		}
-	}
-
-	static Path findNearestFileWith(Path dir, String fileName, Function<Path, Boolean> accept) {
-		Path result = findNearestLocalFileWith(dir, fileName, accept);
-		if (result == null) {
-			Path file = Settings.getConfigDir().resolve(fileName);
-			if (Files.isRegularFile(file) && Files.isReadable(file) && accept.apply(file)) {
-				result = file;
-			}
-		}
-		return result;
-	}
-
-	private static Path findNearestLocalFileWith(Path dir, String fileName, Function<Path, Boolean> accept) {
-		if (dir == null) {
-			dir = Util.getCwd();
-		}
-		while (dir != null) {
-			Path file = dir.resolve(fileName);
-			if (Files.isRegularFile(file) && Files.isReadable(file) && accept.apply(file)) {
-				return file;
-			}
-			file = dir.resolve(JBANG_DOT_DIR).resolve(fileName);
-			if (Files.isRegularFile(file) && Files.isReadable(file) && accept.apply(file)) {
-				return file;
-			}
-			dir = dir.getParent();
-		}
-		return null;
 	}
 
 	public static String nameFromRef(String ref) {

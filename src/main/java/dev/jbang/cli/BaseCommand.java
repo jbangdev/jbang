@@ -1,10 +1,13 @@
 package dev.jbang.cli;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import dev.jbang.Configuration;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -29,6 +32,15 @@ public abstract class BaseCommand implements Callable<Integer> {
 	@CommandLine.Option(names = { "-h",
 			"--help" }, usageHelp = true, description = "Display help/info. Use 'jbang <command> -h' for detailed usage.")
 	boolean helpRequested;
+
+	@CommandLine.Option(names = { "--config" }, description = "Path to config file to be used instead of the default")
+	void setConfig(Path config) {
+		if (Files.isReadable(config)) {
+			Configuration.instance(Configuration.read(config));
+		} else {
+			warn("Configuration file does not exist or could not be read: " + config);
+		}
+	}
 
 	void debug(String msg) {
 		if (isVerbose()) {

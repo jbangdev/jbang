@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -612,7 +613,7 @@ public class Util {
 					fileName = getDispositionFilename(disposition);
 				}
 
-				if (fileName.trim().isEmpty()) {
+				if (isBlankString(fileName)) {
 					// extracts file name from URL if nothing found
 					fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1);
 				}
@@ -1232,4 +1233,46 @@ public class Util {
 		}
 		return Paths.get("");
 	}
+
+	public static Path findNearestFileWith(Path dir, String fileName, Function<Path, Boolean> accept) {
+		Path result = findNearestLocalFileWith(dir, fileName, accept);
+		if (result == null) {
+			Path file = Settings.getConfigDir().resolve(fileName);
+			if (Files.isRegularFile(file) && Files.isReadable(file) && accept.apply(file)) {
+				result = file;
+			}
+		}
+		return result;
+	}
+
+	private static Path findNearestLocalFileWith(Path dir, String fileName, Function<Path, Boolean> accept) {
+		if (dir == null) {
+			dir = getCwd();
+		}
+		while (dir != null) {
+			Path file = dir.resolve(fileName);
+			if (Files.isRegularFile(file) && Files.isReadable(file) && accept.apply(file)) {
+				return file;
+			}
+			file = dir.resolve(Settings.JBANG_DOT_DIR).resolve(fileName);
+			if (Files.isRegularFile(file) && Files.isReadable(file) && accept.apply(file)) {
+				return file;
+			}
+			dir = dir.getParent();
+		}
+		return null;
+	}
+
+	public static boolean isNullOrEmptyString(String str) {
+		return str == null || str.isEmpty();
+	}
+
+	public static boolean isNullOrBlankString(String str) {
+		return str == null || isBlankString(str);
+	}
+
+	public static boolean isBlankString(String str) {
+		return str.trim().isEmpty();
+	}
+
 }

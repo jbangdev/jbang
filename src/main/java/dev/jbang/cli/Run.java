@@ -29,41 +29,41 @@ public class Run extends BaseBuildCommand {
 	private static final int COMMAND_LINE_LENGTH_LIMIT = 8000;
 
 	@CommandLine.Option(names = { "--java-options" }, description = "A Java runtime option")
-	List<String> javaRuntimeOptions;
+	public List<String> javaRuntimeOptions;
 
 	@CommandLine.Option(names = { "-r",
-			"--jfr" }, fallbackValue = "filename={baseName}.jfr", parameterConsumer = KeyValueFallbackConsumer.class, arity = "0..1", description = "Launch with Java Flight Recorder enabled.")
-	String flightRecorderString;
+			"--jfr" }, fallbackValue = "${jbang.run.jfr}", parameterConsumer = KeyValueFallbackConsumer.class, arity = "0..1", description = "Launch with Java Flight Recorder enabled.")
+	public String flightRecorderString;
 
 	boolean enableFlightRecording() {
-		return flightRecorderString != null;
+		return flightRecorderString != null && !flightRecorderString.isEmpty();
 	}
 
 	@CommandLine.Option(names = { "-d",
-			"--debug" }, fallbackValue = "4004", parameterConsumer = DebugFallbackConsumer.class, description = "Launch with java debug enabled on specified port (default: ${FALLBACK-VALUE}) ")
-	String debugString;
+			"--debug" }, fallbackValue = "${jbang.run.debug}", parameterConsumer = DebugFallbackConsumer.class, arity = "0..1", description = "Launch with java debug enabled on specified port (default: ${FALLBACK-VALUE}) ")
+	public String debugString;
 
 	// should take arguments for package/classes when picocli fixes its flag
 	// handling bug in release 4.6.
 	// https://docs.oracle.com/cd/E19683-01/806-7930/assert-4/index.html
 	@CommandLine.Option(names = { "--enableassertions", "--ea" }, description = "Enable assertions")
-	boolean enableAssertions;
+	public boolean enableAssertions;
 
 	@CommandLine.Option(names = { "--enablesystemassertions", "--esa" }, description = "Enable system assertions")
-	boolean enableSystemAssertions;
+	public boolean enableSystemAssertions;
 
 	boolean debug() {
-		return debugString != null;
+		return debugString != null && !debugString.isEmpty();
 	}
 
 	@CommandLine.Option(names = { "--javaagent" }, parameterConsumer = KeyOptionalValueConsumer.class)
-	Map<String, Optional<String>> javaAgentSlots;
+	public Map<String, Optional<String>> javaAgentSlots;
 
 	@CommandLine.Option(names = { "--interactive" }, description = "activate interactive mode")
-	boolean interactive;
+	public boolean interactive;
 
 	@CommandLine.Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
-	List<String> userParams = new ArrayList<>();
+	public List<String> userParams = new ArrayList<>();
 
 	@Override
 	public Integer doCall() throws IOException {
@@ -187,14 +187,14 @@ public class Run extends BaseBuildCommand {
 				javacmd = JavaUtil.resolveInJavaHome("jshell", requestedJavaVersion);
 
 				if (src.getJarFile() != null && src.getJarFile().exists()) {
-					if (classpath.trim().isEmpty()) {
+					if (Util.isBlankString(classpath)) {
 						classpath = src.getJarFile().getAbsolutePath();
 					} else {
 						classpath = src.getJarFile().getAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
 					}
 				}
 
-				if (!classpath.trim().isEmpty()) {
+				if (!Util.isBlankString(classpath)) {
 					optionalArgs.add("--class-path=" + classpath);
 				}
 
@@ -254,13 +254,13 @@ public class Run extends BaseBuildCommand {
 				}
 
 				if (src.getJarFile() != null) {
-					if (classpath.trim().isEmpty()) {
+					if (Util.isBlankString(classpath)) {
 						classpath = src.getJarFile().getAbsolutePath();
 					} else {
 						classpath = src.getJarFile().getAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
 					}
 				}
-				if (!classpath.trim().isEmpty()) {
+				if (!Util.isBlankString(classpath)) {
 					optionalArgs.add("-classpath");
 					optionalArgs.add(classpath);
 				}
@@ -376,28 +376,12 @@ public class Run extends BaseBuildCommand {
 	 * Helper class to peek ahead at `--debug` to pickup --debug=5000, --debug 5000,
 	 * --debug *:5000 as debug parameters but not --debug somefile.java
 	 */
-	static class DebugFallbackConsumer implements CommandLine.IParameterConsumer {
-
-		Pattern p = Pattern.compile("(.*?:)?(\\d+)");
+	static class DebugFallbackConsumer extends PatternFallbackConsumer {
+		private static final Pattern p = Pattern.compile("(.*?:)?(\\d+)");
 
 		@Override
-		public void consumeParameters(Stack<String> args, CommandLine.Model.ArgSpec argSpec,
-				CommandLine.Model.CommandSpec commandSpec) {
-			String arg = args.pop();
-			Matcher m = p.matcher(arg);
-			if (m.matches()) {
-				argSpec.setValue(arg);
-			} else {
-				String fallbackValue = (argSpec.isOption()) ? ((CommandLine.Model.OptionSpec) argSpec).fallbackValue()
-						: null;
-				try {
-					argSpec.setValue(fallbackValue);
-				} catch (Exception badFallbackValue) {
-					throw new CommandLine.InitializationException("FallbackValue for --debug must be an int",
-							badFallbackValue);
-				}
-				args.push(arg);
-			}
+		protected Pattern getValuePattern() {
+			return p;
 		}
 	}
 
@@ -405,27 +389,40 @@ public class Run extends BaseBuildCommand {
 	 * Helper class to peek ahead at `--jfr` to pickup x=y,t=y but not --jfr
 	 * somefile.java
 	 */
-	static class KeyValueFallbackConsumer implements CommandLine.IParameterConsumer {
+	static class KeyValueFallbackConsumer extends PatternFallbackConsumer {
+		private static final Pattern p = Pattern.compile("(\\S*?)=(\\S+)");
 
-		Pattern p = Pattern.compile("(\\S*?)=(\\S+)");
+		@Override
+		protected Pattern getValuePattern() {
+			return p;
+		}
+	}
+
+	static abstract class PatternFallbackConsumer implements CommandLine.IParameterConsumer {
+
+		protected abstract Pattern getValuePattern();
 
 		@Override
 		public void consumeParameters(Stack<String> args, CommandLine.Model.ArgSpec argSpec,
 				CommandLine.Model.CommandSpec commandSpec) {
-			String arg = args.pop();
-			Matcher m = p.matcher(arg);
+			Matcher m = getValuePattern().matcher(args.peek());
 			if (m.matches()) {
-				argSpec.setValue(arg);
+				argSpec.setValue(args.pop());
 			} else {
-				String fallbackValue = (argSpec.isOption()) ? ((CommandLine.Model.OptionSpec) argSpec).fallbackValue()
-						: null;
-				try {
-					argSpec.setValue(fallbackValue);
-				} catch (Exception badFallbackValue) {
-					throw new CommandLine.InitializationException("FallbackValue for --jfr must be an string",
-							badFallbackValue);
+				String val, name;
+				if (argSpec.isOption()) {
+					CommandLine.Model.OptionSpec opt = (CommandLine.Model.OptionSpec) argSpec;
+					name = opt.longestName();
+					val = opt.fallbackValue();
+				} else {
+					name = argSpec.paramLabel();
+					val = null;
 				}
-				args.push(arg);
+				try {
+					argSpec.setValue(val);
+				} catch (Exception badValue) {
+					throw new CommandLine.InitializationException("Value for " + name + " must be an string", badValue);
+				}
 			}
 		}
 	}

@@ -48,14 +48,14 @@ public class Edit extends BaseScriptCommand {
 
 	@CommandLine.Option(names = {
 			"--live" }, description = "Setup temporary project, regenerate project on dependency changes.")
-	boolean live;
+	public boolean live;
 
 	@CommandLine.Option(names = {
-			"--open" }, description = "Opens editor/IDE on the temporary project.", defaultValue = "${JBANG_EDITOR:-}", preprocessor = StrictParameterPreprocessor.class)
-	private Optional<String> editor;
+			"--open" }, arity = "0..1", defaultValue = "${JBANG_EDITOR:-${jbang.edit.open:-}}", fallbackValue = "${JBANG_EDITOR:-${jbang.edit.open:-}}", description = "Opens editor/IDE on the temporary project.", preprocessor = StrictParameterPreprocessor.class)
+	public Optional<String> editor;
 
 	@CommandLine.Option(names = { "--no-open" })
-	boolean noOpen;
+	public boolean noOpen;
 
 	@Override
 	public Integer doCall() throws IOException {
@@ -82,15 +82,15 @@ public class Edit extends BaseScriptCommand {
 		// err.println(project.getAbsolutePath());
 
 		if (!noOpen) {
-			if (!getEditorToUse().isPresent()) {
+			if (!editor.isPresent() || editor.get().isEmpty()) {
 				askAndInstallEditor();
 			}
-			if ("gitpod".equals(getEditorToUse().get()) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
+			if ("gitpod".equals(editor.get()) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
 				info("Open this url to edit the project in your gitpod session:\n\n"
 						+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + project.getAbsolutePath() + "\n\n");
 			} else {
 				List<String> optionList = new ArrayList<>();
-				optionList.add(getEditorToUse().get());
+				optionList.add(editor.get());
 				optionList.add(projectPathString);
 
 				String[] cmd;
@@ -111,7 +111,8 @@ public class Edit extends BaseScriptCommand {
 			try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
 				File orginalFile = src.getResourceRef().getFile();
 				if (!orginalFile.exists()) {
-					throw new ExitException(2, "Cannot live edit " + src.getResourceRef().getOriginalResource());
+					throw new ExitException(EXIT_UNEXPECTED_STATE,
+							"Cannot live edit " + src.getResourceRef().getOriginalResource());
 				}
 				Path watched = orginalFile.getAbsoluteFile().getParentFile().toPath();
 				watched.register(watchService,
@@ -187,7 +188,7 @@ public class Edit extends BaseScriptCommand {
 			}
 
 			if (abort)
-				throw new ExitException(10,
+				throw new ExitException(EXIT_GENERIC_ERROR,
 						"No default editor configured and automatic download not accepted.\n Please try again accepting the download or use an explicit editor, i.e. `jbang edit --open=eclipse xyz.java`");
 
 			editorPath = EditorManager.downloadAndInstallEditor();
@@ -198,7 +199,7 @@ public class Edit extends BaseScriptCommand {
 			}
 
 			verboseMsg("Installing Java extensions...");
-			ProcessBuilder pb = new ProcessBuilder(getEditorToUse().get(),
+			ProcessBuilder pb = new ProcessBuilder(editor.get(),
 					"--install-extension", "redhat.java",
 					"--install-extension", "vscjava.vscode-java-debug",
 					"--install-extension", "vscjava.vscode-java-test",
@@ -386,7 +387,7 @@ public class Edit extends BaseScriptCommand {
 			throws IOException {
 		Template template = engine.getTemplate(templateName);
 		if (template == null)
-			throw new ExitException(1, "Could not locate template named: '" + templateName + "'");
+			throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateName + "'");
 		String result = template
 								.data("repositories",
 										repositories.stream()
@@ -422,18 +423,6 @@ public class Edit extends BaseScriptCommand {
 			return fileName.substring(0, fileName.lastIndexOf("."));
 		} else {
 			return fileName;
-		}
-	}
-
-	/**
-	 * to allow --open to be optional we cannot rely on picocli defaults being set
-	 * thus we do it here if editor is blank
-	 **/
-	public Optional<String> getEditorToUse() {
-		if (editor.isPresent() && !editor.get().trim().isEmpty()) {
-			return editor;
-		} else {
-			return Optional.ofNullable(System.getProperty("JBANG_EDITOR", System.getenv("JBANG_EDITOR")));
 		}
 	}
 

@@ -227,12 +227,11 @@ public class Catalog {
 	public static Catalog getMerged(boolean includeImplicits) {
 		List<Catalog> catalogs = new ArrayList<>();
 		findNearestCatalogWith(Util.getCwd(), cat -> {
-			catalogs.add(cat);
+			catalogs.add(0, cat);
 			return false;
 		});
 
 		Catalog result = Catalog.empty();
-		Collections.reverse(catalogs);
 		for (Catalog catalog : catalogs) {
 			if (!includeImplicits
 					&& catalog.catalogRef.getFile().toPath().equals(Settings.getUserImplicitCatalogFile())) {
@@ -263,12 +262,12 @@ public class Catalog {
 	}
 
 	private static Catalog findNearestCatalog(Path dir) {
-		Path catalogFile = CatalogUtil.findNearestFileWith(dir, JBANG_CATALOG_JSON, p -> true);
+		Path catalogFile = Util.findNearestFileWith(dir, JBANG_CATALOG_JSON, p -> true);
 		return catalogFile != null ? get(catalogFile) : null;
 	}
 
 	static Catalog findNearestCatalogWith(Path dir, Function<Catalog, Boolean> accept) {
-		Path catalogFile = CatalogUtil.findNearestFileWith(dir, JBANG_CATALOG_JSON, cat -> accept.apply(get(cat)));
+		Path catalogFile = Util.findNearestFileWith(dir, JBANG_CATALOG_JSON, cat -> accept.apply(get(cat)));
 		if (catalogFile == null) {
 			Path file = Settings.getUserImplicitCatalogFile();
 			if (Files.isRegularFile(file) && Files.isReadable(file) && accept.apply(get(file))) {

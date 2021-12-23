@@ -447,9 +447,8 @@ public class TestRun extends BaseTest {
 	void testDebug() throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");
-		JBang jbang = new JBang();
 		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--debug", arg);
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--debug", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
@@ -1517,9 +1516,8 @@ public class TestRun extends BaseTest {
 
 	@Test
 	void testJFRPresent() throws IOException {
-		JBang jbang = new JBang();
 		String arg = new File(examplesTestFolder.toFile(), "helloworld.java").getAbsolutePath();
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--jfr", arg);
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--jfr", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();

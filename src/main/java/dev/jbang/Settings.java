@@ -15,6 +15,7 @@ public class Settings {
 	public static final String TRUSTED_SOURCES_JSON = "trusted-sources.json";
 	public static final String DEPENDENCY_CACHE_JSON = "dependency_cache.json";
 	public static final String CURRENT_JDK = "currentjdk";
+	public static final String JBANG_DOT_DIR = ".jbang";
 	public static final String BIN_DIR = "bin";
 	public static final String EDITOR_DIR = "editor";
 
@@ -122,6 +123,10 @@ public class Settings {
 
 	public static Path getUserImplicitCatalogFile() {
 		return getConfigDir().resolve(Catalog.JBANG_IMPLICIT_CATALOG_JSON);
+	}
+
+	public static Path getUserConfigFile() {
+		return getConfigDir().resolve(Configuration.JBANG_CONFIG_PROPS);
 	}
 
 }

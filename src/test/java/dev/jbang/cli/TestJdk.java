@@ -26,8 +26,8 @@ public class TestJdk extends BaseTest {
 		ExecutionResult result = checkedRun(Jdk::list);
 
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedErr(),
-				equalTo("[jbang] No JDKs installed\n"));
+		assertThat(result.normalizedOut(),
+				equalTo("No JDKs installed\n"));
 	}
 
 	@Test
@@ -42,8 +42,8 @@ public class TestJdk extends BaseTest {
 		ExecutionResult result = checkedRun(Jdk::list);
 
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedErr(),
-				equalTo("[jbang] Available installed JDKs:\n  11\n  12\n  13\n"));
+		assertThat(result.normalizedOut(),
+				equalTo("Available installed JDKs:\n  11\n  12\n  13\n"));
 	}
 
 	@Test
