@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -65,8 +66,10 @@ public class TestInfo extends BaseTest {
 	void testInfoToolsWithDeps() {
 		String src = examplesTestFolder.resolve("helloworld.java").toString();
 		JBang jbang = new JBang();
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("info", "tools", "--deps",
-				"info.picocli:picocli:4.5.0", src);
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("info", "tools",
+				"--deps", "info.picocli:picocli:4.5.0,commons-io:commons-io:2.8.0",
+				"--deps", "org.apache.commons:commons-lang3:3.12.0",
+				src);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
 		BaseInfoCommand.ScriptInfo info = tools.getInfo();
 		assertThat(info.originalResource, equalTo(src));
@@ -77,8 +80,10 @@ public class TestInfo extends BaseTest {
 		assertThat(info.javaVersion, is(nullValue()));
 		assertThat(info.mainClass, is(nullValue()));
 		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
-				hasSize(equalTo(1)),
-				everyItem(containsString("picocli"))));
+				hasSize(equalTo(3)),
+				hasItem(containsString("picocli")),
+				hasItem(containsString("commons-io")),
+				hasItem(containsString("commons-lang3"))));
 	}
 
 	@Test

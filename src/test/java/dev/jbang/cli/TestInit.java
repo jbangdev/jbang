@@ -91,7 +91,24 @@ public class TestInit extends BaseTest {
 		assertThat(new File(s).exists(), is(true));
 		assertThat(Util.readString(x), Matchers.containsString("//DEPS a.b.c:mydep:1.0"));
 		assertThat(Util.readString(x), Matchers.containsString("//DEPS q.z:rrr:2.0"));
+	}
 
+	@Test
+	void testMultiDepsInitUsingCommas(@TempDir Path outputDir) throws IOException {
+		Path x = outputDir.resolve("sqlline.java");
+		String s = x.toString();
+		int result = JBang	.getCommandLine()
+							.execute(
+									"init",
+									"--deps", "org.hsqldb:hsqldb:2.5.0,net.hydromatic:foodmart-data-hsqldb:0.4",
+									"--deps", "org.another.company:dep:0.1",
+									s);
+		assertThat(result, is(0));
+		assertThat(new File(s).exists(), is(true));
+		final String fileContent = Util.readString(x);
+		assertThat(fileContent, Matchers.containsString("//DEPS org.hsqldb:hsqldb:2.5.0"));
+		assertThat(fileContent, Matchers.containsString("//DEPS net.hydromatic:foodmart-data-hsqldb:0.4"));
+		assertThat(fileContent, Matchers.containsString("//DEPS org.another.company:dep:0.1"));
 	}
 
 	@Test
