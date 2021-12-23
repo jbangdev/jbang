@@ -16,7 +16,7 @@ image:jbang_logo.svg[JBang Logo, title="JBang Logo"]
 
 Want to learn, explore or use Java instantly without setup ?
 
-Do you likeJava but use python, groovy, kotlin or similar languages for scripts, experimentation and exploration ?
+Do you like Java but use python, groovy, kotlin or similar languages for scripts, experimentation and exploration ?
 
 Ever wanted to just be able to run java from anywhere without any or very minimal setup ?
 Ever tried out Java 11+ support for running `.java` files directly in your shell but felt it was a bit too cumbersome ?
@@ -52,7 +52,9 @@ toc::[]
 
 * `.java` Scripting for Java 8 and upwards
 * `.jsh` via JShell from Java 9 and upwards
-* `.kt` via kotlinc (EXPERIMENTAL)
+* .kt` via kotlinc (EXPERIMENTAL)
+* .groovy` via groovyc (EXPERIMENTAL)
+* Extract codeblocks from Markdown files (`.md`) (EXPERIMENTAL)
 * Works on icon:windows[] Windows, icon:apple[] OSX and icon:linux[] Linux and AIX
 * Install using curl, power shell, SDKMan (icon:apple[]/icon:linux[]), Homebrew (icon:apple[]), Chocolatey (icon:windows[]) or Scoop (icon:windows[])
 * If needed will automatically install Java and even a Java editor (vscodium) for editing

@@ -1,0 +1,14 @@
+## Read Me Example
+
+Welcome to a basic example on how to do a readme.md file that can be run with JBang:
+
+```java
+{#for dep in dependencies.orEmpty}
+//DEPS {dep}
+{/for}
+{#if dependencies.isEmpty()}// //DEPS <dependency1> <dependency2>{/if}
+System.out.println("Hello World");
+```
+
+You can run this using `jbang {scriptref}.md`
+

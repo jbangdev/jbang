@@ -16,6 +16,14 @@
       "file-refs": {"{filename}":  "init-hello.kt.qute"},
       "description": "Basic kotlin Hello World template"
     },
+    "hello.groovy": {
+      "file-refs": {"{filename}":  "init-hello.groovy.qute"},
+      "description": "Basic groovy Hello World template"
+    },
+    "readme.md": {
+      "file-refs": {"{filename}":  "init-readme.md.qute"},
+      "description": "Basic markdown readme template"
+    },
     "qcli": {
       "file-refs": {"{filename}":  "init-qcli.java.qute"},
       "description": "Quarkus CLI template"

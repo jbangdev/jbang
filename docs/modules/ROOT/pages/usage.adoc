@@ -185,6 +185,37 @@ jbang init -t hello.kt hello.kt
 Hello World
 ----
 
+== Running Groovy (.groovy) (EXPERIMENTAL)
+
+As an experiment since 0.85.0 JBang supports building Groovy files using `groovyc`.
+
+[source,bash]
+----
+jbang init -t hello.groovy hello.groovy
+jbang hello.groovy
+[jbang] Downloading Groovy 3.0.9. Be patient, this can take several minutes...
+[jbang] Installing Groovy 3.0.9...
+[jbang] Resolving dependencies...
+[jbang]     Resolving org.codehaus.groovy:groovy:jar:3.0.9...Done
+[jbang] Dependencies resolved
+[jbang] Building jar...
+Hello World
+----
+
+== Running Markdowns (.md) (EXPERIMENTAL)
+
+As an experiment since 0.85.0 JBang supports "running" Markdown files (.md)
+
+[source,bash]
+----
+jbang init -t hello.kt hello.kt
+./hello.kt
+[jbang] Downloading Kotlin 1.5.0. Be patient, this can take several minutes...
+[jbang] Installing Kotlin 1.5.0...
+[jbang] Building jar...
+Hello World
+----
+
 == Running script from standard input
 
 jbang can run scripts directly from standard input using `-` or `/dev/stdin` as input.
