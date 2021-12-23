@@ -73,12 +73,12 @@ public class Util {
 	public static final Pattern mainClassMethod = Pattern.compile(
 			"(?<=\\n|\\A)(?:public\\s)\\s*(class)\\s*([^\\n\\s]*)");
 
-	private static final List<String> EXTENSIONS = asList(
-		".java",
-		".jsh",
-		".kts",
-		".groovy",
-		".md");
+	public static final List<String> EXTENSIONS = asList(
+			".java",
+			".jsh",
+			".kts",
+			".groovy",
+			".md");
 
 	private static boolean verbose;
 	private static boolean quiet;

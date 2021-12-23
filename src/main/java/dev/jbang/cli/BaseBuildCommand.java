@@ -31,12 +31,12 @@ import org.jboss.jandex.Type;
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 
 import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.net.JdkManager;
+import dev.jbang.source.*;
 import dev.jbang.source.JarSource;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.ScriptSource;
 import dev.jbang.source.Source;
-import dev.jbang.net.JdkManager;
-import dev.jbang.source.*;
 import dev.jbang.spi.IntegrationManager;
 import dev.jbang.spi.IntegrationResult;
 import dev.jbang.util.JarUtil;
