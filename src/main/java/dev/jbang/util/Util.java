@@ -1160,10 +1160,10 @@ public class Util {
 	}
 
 	/**
-	 * Converts a Path to a String. This is normally a trivial operation, but in
-	 * certain circumstances, like for example when we need to write a bash shell
-	 * scripts when running inside a Cygwin bash on Windows, we need to do a bit
-	 * more.
+	 * Converts a Path to a String. This is normally a trivial operation, but this
+	 * method handles the special case when running in a Bash shell on Windows,
+	 * where paths have a special format that Java doesn't know about (eg.
+	 * C:\Directory\File.txt becomes /c/Directory/File.txt).
 	 *
 	 * @param path the Path to convert
 	 * @return a String representing the given Path
@@ -1187,6 +1187,24 @@ public class Util {
 				}
 			}
 			return str.toString();
+		} else {
+			return path.toString();
+		}
+	}
+
+	/**
+	 * Converts a Path to a String. This is normally a trivial operation, but this
+	 * method handles the special case when running in a Bash shell on Windows,
+	 * where the default output format would cause problems because the backslashes
+	 * would be interpreted as escape sequences. So we need to escape the
+	 * backslashes.
+	 *
+	 * @param path the Path to convert
+	 * @return a String representing the given Path
+	 */
+	public static String pathToOsString(Path path) {
+		if (isWindows() && getShell() == Shell.bash) {
+			return path.toString().replace("\\", "\\\\");
 		} else {
 			return path.toString();
 		}
