@@ -33,6 +33,7 @@ public class TestScript extends BaseTest {
 			+ "//JAVA_OPTIONS --enable-preview \"-Dvalue='this is space'\"\n"
 			+ "//JAVAC_OPTIONS --enable-preview\n"
 			+ "//JAVAC_OPTIONS --verbose \n"
+			+ "//GAV org.example:classpath\n"
 			+ "class classpath_example {\n" + "\n"
 			+ "\tString usage = \"jbang  - Enhanced scripting support for Java on *nix-based systems.\\n\" + \"\\n\" + \"Usage:\\n\"\n"
 			+ "\t\t\t+ \"    jbang ( -t | --text ) <version>\\n\"\n"
@@ -316,6 +317,13 @@ public class TestScript extends BaseTest {
 		writeString(p, example);
 		RunContext ctx = RunContext.empty();
 		ctx.forResource(p.toAbsolutePath().toString());
+	}
+
+	@Test
+	void testGav() {
+		Source src = new ScriptSource(example, null);
+		String gav = src.getGav().get();
+		assertEquals("org.example:classpath", gav);
 	}
 
 }

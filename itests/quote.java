@@ -1,10 +1,12 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
+//DEPS info.picocli:picocli:4.5.0
+//DESCRIPTION For testing purposes
+//GAV dev.jbang.itests:quote
+
 import java.util.Map;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
-
-//DEPS info.picocli:picocli:4.5.0
 
 public class quote implements Runnable {
     @Option(names = "-fix", split = "\\|")

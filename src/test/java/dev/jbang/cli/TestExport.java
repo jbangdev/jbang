@@ -91,7 +91,7 @@ public class TestExport extends BaseTest {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
 		ExecutionResult result = checkedRun(null, "export", "mavenrepo", "-O", outFile.toString(),
-				"-Dgroup=my.thing.right", examplesTestFolder.resolve("helloworld.java").toString());
+				"--group=my.thing.right", examplesTestFolder.resolve("helloworld.java").toString());
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*target.*"));
 		assertThat(
 				outFile.toPath().resolve("my/thing/right/helloworld/999-SNAPSHOT/helloworld-999-SNAPSHOT.jar").toFile(),
@@ -107,7 +107,7 @@ public class TestExport extends BaseTest {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		// outFile.mkdirs();
 		ExecutionResult result = checkedRun(null, "export", "mavenrepo", "-O", outFile.toString(),
-				"-Dgroup=my.thing.right", examplesTestFolder.resolve("helloworld.java").toString());
+				"--group=my.thing.right", examplesTestFolder.resolve("helloworld.java").toString());
 		assertThat(result.exitCode, equalTo(BaseCommand.EXIT_INVALID_INPUT));
 
 	}
@@ -127,6 +127,7 @@ public class TestExport extends BaseTest {
 	void testExportMavenPublishWithClasspath() throws IOException {
 		File outFile = Settings.getLocalMavenRepo();
 		ExecutionResult result = checkedRun(null, "export", "mavenrepo", "--force",
+				"--group=g.a.v",
 				examplesTestFolder.resolve("classpath_log.java").toString());
 		assertThat(result.exitCode, equalTo(BaseCommand.EXIT_OK));
 		assertThat(outFile.toPath().resolve("g/a/v/classpath_log/999-SNAPSHOT/classpath_log-999-SNAPSHOT.jar").toFile(),

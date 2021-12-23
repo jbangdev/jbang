@@ -19,7 +19,10 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
+import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
+
 import dev.jbang.Settings;
+import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.Source;
 import dev.jbang.util.TemplateEngine;
@@ -189,8 +192,16 @@ class ExportMavenPublish extends BaseCommand implements Exporter {
 	@CommandLine.Mixin
 	ExportMixin exportMixin;
 
-	public int apply(ExportMixin exportMixin, Source src, RunContext ctx) throws IOException {
+	@CommandLine.Option(names = { "--group", "-g" }, description = "The group ID to use for the generated POM.")
+	String group;
 
+	@CommandLine.Option(names = { "--artifact", "-a" }, description = "The artifact ID to use for the generated POM.")
+	String artifact;
+
+	@CommandLine.Option(names = { "--version", "-v" }, description = "The version to use for the generated POM.")
+	String version;
+
+	public int apply(ExportMixin exportMixin, Source src, RunContext ctx) throws IOException {
 		Path outputPath = exportMixin.outputFile;
 
 		if (outputPath == null) {
@@ -215,22 +226,30 @@ class ExportMavenPublish extends BaseCommand implements Exporter {
 			}
 		}
 
-		String group = ctx.getProperties().getOrDefault("group", "g.a.v");
+		if (src.getGav().isPresent()) {
+			MavenCoordinate coord = DependencyUtil.depIdToArtifact(DependencyUtil.gavWithVersion(src.getGav().get()));
+			if (group == null) {
+				group = coord.getGroupId();
+			}
+			if (artifact == null) {
+				artifact = coord.getArtifactId();
+			}
+			if (version == null) {
+				version = coord.getVersion();
+			}
+		}
 
 		if (group == null) {
 			Util.warnMsg(
-					"Cannot export to maven publish as no group specified. Add -Dgroup=<group id> and run again.");
+					"Cannot export to maven publish as no group specified. Add --group=<group id> and run again.");
 			return EXIT_INVALID_INPUT;
-
 		}
 		Path groupdir = outputPath.resolve(Paths.get(group.replace(".", "/")));
 
-		String artifact = ctx	.getProperties()
-								.getOrDefault("artifact",
-										Util.getBaseName(src.getResourceRef().getFile().getName()));
+		artifact = artifact != null ? artifact : Util.getBaseName(src.getResourceRef().getFile().getName());
 		Path artifactDir = groupdir.resolve(artifact);
 
-		String version = ctx.getProperties().getOrDefault("version", "999-SNAPSHOT");
+		version = version != null ? version : "999-SNAPSHOT";
 		Path versionDir = artifactDir.resolve(version);
 
 		String suffix = source	.getFileName()
@@ -267,6 +286,7 @@ class ExportMavenPublish extends BaseCommand implements Exporter {
 										.data("group", group)
 										.data("artifact", artifact)
 										.data("version", version)
+										.data("description", src.getDescription().orElse(""))
 										.data("dependencies", ctx.getClassPath().getArtifacts())
 										.render();
 			Util.infoMsg("Writing " + pomPath);

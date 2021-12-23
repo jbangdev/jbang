@@ -71,6 +71,8 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 		List<String> runtimeOptions;
 		List<ResourceFile> files;
 		List<ScriptInfo> sources;
+		String description;
+		String gav;
 
 		public ScriptInfo(Source src, RunContext ctx) {
 			originalResource = src.getResourceRef().getOriginalResource();
@@ -104,6 +106,8 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 				if (!ss.getCompileOptions().isEmpty()) {
 					compileOptions = ss.getCompileOptions();
 				}
+				gav = ss.getGav().orElse(null);
+				description = ss.getDescription().orElse(null);
 
 				if (ctx != null) {
 					applicationJar = src.getJarFile().getAbsolutePath();

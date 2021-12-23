@@ -6,6 +6,7 @@
 	<groupId>{group}</groupId>
 	<artifactId>{artifact}</artifactId>
 	<version>{version}</version>
+	<description>{description}</description>
 	<dependencies>
 		{#for item in dependencies}
 		<dependency>

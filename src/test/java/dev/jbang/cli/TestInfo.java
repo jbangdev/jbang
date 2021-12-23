@@ -41,6 +41,8 @@ public class TestInfo extends BaseTest {
 		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
 				hasSize(equalTo(1)),
 				everyItem(containsString("picocli"))));
+		assertThat(info.description, equalTo("For testing purposes"));
+		assertThat(info.gav, equalTo("dev.jbang.itests:quote"));
 	}
 
 	@Test

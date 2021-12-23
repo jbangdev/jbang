@@ -92,6 +92,14 @@ public interface Source {
 	}
 
 	/**
+	 * Returns the resource's Maven GAV. Returns `Optional.empty()` if no GAV is
+	 * available.
+	 */
+	default Optional<String> getGav() {
+		return Optional.empty();
+	}
+
+	/**
 	 * Returns the list of dependencies that are necessary to add to the classpath
 	 * for the application to execute properly.
 	 */
