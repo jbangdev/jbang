@@ -10,7 +10,7 @@ public class DependencyInfoMixin {
 	@CommandLine.Option(names = { "-D" }, description = "set a system property", mapFallbackValue = "true")
 	Map<String, String> properties = new HashMap<String, String>();
 	@CommandLine.Option(names = {
-			"--deps" }, converter = CommaSeparatedConverter.class, description = "Add additional dependencies (Use commas to provide several ones).")
+			"--deps" }, converter = CommaSeparatedConverter.class, description = "Add additional dependencies (Use commas to separate them).")
 	List<String> dependencies;
 	@CommandLine.Option(names = { "--repos" }, description = "Add additional repositories.")
 	List<String> repositories;
