@@ -172,6 +172,46 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testMarkdown() throws IOException {
+
+		JBang jbang = new JBang();
+		String arg = examplesTestFolder.resolve("readme.md").toAbsolutePath().toString();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+		ScriptSource src = (ScriptSource) ctx.forResource(arg);
+
+		String result = run.generateCommandLine(src, ctx);
+
+		assertThat(result, matchesPattern("^.*jshell(.exe)?.+--class-path=.*figlet.*? --startup.*$"));
+	}
+
+	@Test
+	void testRemoteMarkdown() throws IOException {
+
+		wms.stubFor(WireMock.get(urlEqualTo("/readme.md"))
+							.willReturn(aResponse()
+													.withHeader("Content-Type", "text/plain")
+													.withBodyFile("readme.md")
+													.withBody(
+															Util.readString(examplesTestFolder.resolve("readme.md")))));
+
+		wms.start();
+		JBang jbang = new JBang();
+		String arg = "http://localhost:" + wms.port() + "/readme.md";
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+		ScriptSource src = (ScriptSource) ctx.forResource(arg);
+
+		String result = run.generateCommandLine(src, ctx);
+
+		assertThat(result, matchesPattern("^.*jshell(.exe)?.+--class-path=.*figlet.*? --startup.*$"));
+	}
+
+	@Test
 	void testEmptyInteractiveShell(@TempDir File dir) throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");
