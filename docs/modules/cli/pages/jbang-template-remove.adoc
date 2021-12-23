@@ -19,8 +19,8 @@ jbang-template-remove - Remove existing template.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang template remove* *-o* [*-ghV*] [*--fresh*] *--quiet* *--verbose* [*-f*=_<catalogFile>_]
-                      _name_
+*jbang template remove* *-o* [*-gh*] *--fresh* *--quiet* *--verbose* [*--config*=_<config>_]
+                      [*-f*=_<catalogFile>_] _name_
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,6 +33,9 @@ Remove existing template.
 
 // tag::picocli-generated-man-section-options[]
 == Options
+
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
 
 *-f*, *--file*=_<catalogFile>_::
   Path to the catalog file to use
@@ -51,9 +54,6 @@ Remove existing template.
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
-
-*-V*, *--version*::
-  Display version info (use `jbang --verbose version` for more details)
 
 *--verbose*::
   jbang will be verbose on what it does.

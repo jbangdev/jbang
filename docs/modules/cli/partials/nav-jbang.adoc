@@ -46,3 +46,8 @@
 *** xref:jbang-export-portable.adoc[portable]
 *** xref:jbang-export-local.adoc[local]
 *** xref:jbang-export-mavenrepo.adoc[mavenrepo]
+** xref:jbang-config.adoc[config]
+*** xref:jbang-config-get.adoc[get]
+*** xref:jbang-config-set.adoc[set]
+*** xref:jbang-config-unset.adoc[unset]
+*** xref:jbang-config-list.adoc[list]

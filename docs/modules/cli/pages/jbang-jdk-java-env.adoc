@@ -12,21 +12,21 @@
 // tag::picocli-generated-man-section-name[]
 == Name
 
-jbang-jdk-java-env - Returns the folder where the given JDK is installed.
+jbang-jdk-java-env - Prints out the environment variables needed to use the given JDK.
 
 // end::picocli-generated-man-section-name[]
 
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang jdk java-env* *-o* [*--fresh*] *--quiet* *--verbose* [_version_]
+*jbang jdk java-env* *-o* *--fresh* *--quiet* *--verbose* [_version_]
 
 // end::picocli-generated-man-section-synopsis[]
 
 // tag::picocli-generated-man-section-description[]
 == Description
 
-Returns the folder where the given JDK is installed.
+Prints out the environment variables needed to use the given JDK.
 
 // end::picocli-generated-man-section-description[]
 

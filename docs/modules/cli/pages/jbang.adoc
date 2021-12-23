@@ -19,7 +19,7 @@ jbang - jbang is a tool for building and running .java/.jsh scripts and jar pack
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang* [*-hV*] [*--verbose* | *--quiet*] [*-o* | [*--fresh*]] [COMMAND]
+*jbang* [*-hV*] [*--config*=_<config>_] [*--verbose* | *--quiet*] [*-o* | *--fresh*] [COMMAND]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -42,6 +42,9 @@ jbang - jbang is a tool for building and running .java/.jsh scripts and jar pack
 
 // tag::picocli-generated-man-section-options[]
 == Options
+
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
 
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
@@ -118,6 +121,9 @@ xref:jbang-app.adoc[*app*]::
 
 xref:jbang-export.adoc[*export*]::
   Export the result of a build.
+
+xref:jbang-config.adoc[*config*]::
+  Read and write configuration options.
 
 // end::picocli-generated-man-section-commands[]
 

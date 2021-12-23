@@ -19,7 +19,7 @@ jbang-app-uninstall - Removes a previously installed command.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang app uninstall* *-o* [*-hV*] [*--fresh*] *--quiet* *--verbose* _name_
+*jbang app uninstall* *-o* [*-h*] *--fresh* *--quiet* *--verbose* [*--config*=_<config>_] _name_
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,6 +33,9 @@ Removes a previously installed command.
 // tag::picocli-generated-man-section-options[]
 == Options
 
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
+
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
 
@@ -44,9 +47,6 @@ Removes a previously installed command.
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
-
-*-V*, *--version*::
-  Display version info (use `jbang --verbose version` for more details)
 
 *--verbose*::
   jbang will be verbose on what it does.

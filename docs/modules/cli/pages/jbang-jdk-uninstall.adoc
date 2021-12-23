@@ -19,7 +19,7 @@ jbang-jdk-uninstall - Uninstalls an existing JDK.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang jdk uninstall* *-o* [*--fresh*] *--quiet* *--verbose* _version_
+*jbang jdk uninstall* *-o* *--fresh* *--quiet* *--verbose* _version_
 
 // end::picocli-generated-man-section-synopsis[]
 

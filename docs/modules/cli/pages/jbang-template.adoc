@@ -19,7 +19,7 @@ jbang-template - Manage templates for scripts.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang template* *-o* [*--fresh*] *--quiet* *--verbose* [COMMAND]
+*jbang template* *-o* *--fresh* *--quiet* *--verbose* [COMMAND]
 
 // end::picocli-generated-man-section-synopsis[]
 

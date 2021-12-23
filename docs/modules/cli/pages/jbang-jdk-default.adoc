@@ -19,7 +19,7 @@ jbang-jdk-default - Sets the default JDK to be used by JBang.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang jdk default* *-o* [*--fresh*] *--quiet* *--verbose* [_version_]
+*jbang jdk default* *-o* *--fresh* *--quiet* *--verbose* [_version_]
 
 // end::picocli-generated-man-section-synopsis[]
 

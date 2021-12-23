@@ -19,8 +19,8 @@ jbang-export-portable - Exports jar together with dependencies in way that makes
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang export portable* *-o* [*-hnV*] [*--force*] [*--fresh*] [*--insecure*] *--quiet*
-                      *--verbose* [*-j*=_<javaVersion>_] [*-O*=_<outputFile>_]
+*jbang export portable* *-o* [*-hn*] [*--force*] *--fresh* [*--insecure*] *--quiet* *--verbose*
+                      [*--config*=_<config>_] [*-j*=_<javaVersion>_] [*-O*=_<outputFile>_]
                       [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
                       [*--deps*=_<dependencies>_]... [*--repos*=_<repositories>_]...
                       _scriptOrFile_
@@ -37,6 +37,9 @@ Exports jar together with dependencies in way that makes it portable
 // tag::picocli-generated-man-section-options[]
 == Options
 
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
+
 *--cp, --class-path*=_<classpaths>_::
   Add class path entries.
 
@@ -44,7 +47,7 @@ Exports jar together with dependencies in way that makes it portable
   set a system property
 
 *--deps*=_<dependencies>_::
-  Add additional dependencies.
+  Add additional dependencies (Use commas to separate them).
 
 *--force*::
   Force export, i.e. overwrite exported file if already exists
@@ -75,9 +78,6 @@ Exports jar together with dependencies in way that makes it portable
 
 *--repos*=_<repositories>_::
   Add additional repositories.
-
-*-V*, *--version*::
-  Display version info (use `jbang --verbose version` for more details)
 
 *--verbose*::
   jbang will be verbose on what it does.

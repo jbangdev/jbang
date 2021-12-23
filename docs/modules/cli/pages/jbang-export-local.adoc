@@ -19,10 +19,11 @@ jbang-export-local - Exports jar with classpath referring to local machine depen
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang export local* *-o* [*-hnV*] [*--force*] [*--fresh*] [*--insecure*] *--quiet* *--verbose*
-                   [*-j*=_<javaVersion>_] [*-O*=_<outputFile>_] [*--cp*=_<classpaths>_]...
-                   [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]...
-                   [*--repos*=_<repositories>_]... _scriptOrFile_
+*jbang export local* *-o* [*-hn*] [*--force*] *--fresh* [*--insecure*] *--quiet* *--verbose*
+                   [*--config*=_<config>_] [*-j*=_<javaVersion>_] [*-O*=_<outputFile>_]
+                   [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
+                   [*--deps*=_<dependencies>_]... [*--repos*=_<repositories>_]...
+                   _scriptOrFile_
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -36,6 +37,9 @@ Exports jar with classpath referring to local machine dependent locations
 // tag::picocli-generated-man-section-options[]
 == Options
 
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
+
 *--cp, --class-path*=_<classpaths>_::
   Add class path entries.
 
@@ -43,7 +47,7 @@ Exports jar with classpath referring to local machine dependent locations
   set a system property
 
 *--deps*=_<dependencies>_::
-  Add additional dependencies.
+  Add additional dependencies (Use commas to separate them).
 
 *--force*::
   Force export, i.e. overwrite exported file if already exists
@@ -74,9 +78,6 @@ Exports jar with classpath referring to local machine dependent locations
 
 *--repos*=_<repositories>_::
   Add additional repositories.
-
-*-V*, *--version*::
-  Display version info (use `jbang --verbose version` for more details)
 
 *--verbose*::
   jbang will be verbose on what it does.

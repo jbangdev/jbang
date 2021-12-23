@@ -20,7 +20,7 @@ Usage: source <(jbang completion)
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang completion* *-o* [*-hV*] [*--fresh*] *--quiet* *--verbose*
+*jbang completion* *-o* [*-h*] *--fresh* *--quiet* *--verbose* [*--config*=_<config>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -35,6 +35,9 @@ Usage: source <(jbang completion)
 // tag::picocli-generated-man-section-options[]
 == Options
 
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
+
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
 
@@ -46,9 +49,6 @@ Usage: source <(jbang completion)
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
-
-*-V*, *--version*::
-  Display version info (use `jbang --verbose version` for more details)
 
 *--verbose*::
   jbang will be verbose on what it does.

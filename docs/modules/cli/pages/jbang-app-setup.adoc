@@ -19,7 +19,8 @@ jbang-app-setup - Make jbang commands available for the user.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang app setup* *-o* [*-hV*] [*--force*] [*--fresh*] [*--[no-]java*] *--quiet* *--verbose*
+*jbang app setup* *-o* [*-h*] [*--force*] *--fresh* [*--[no-]java*] *--quiet* *--verbose*
+                [*--config*=_<config>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -32,6 +33,9 @@ Make jbang commands available for the user.
 
 // tag::picocli-generated-man-section-options[]
 == Options
+
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
 
 *--force*::
   Force setup to be performed even when existing configuration has been detected
@@ -50,9 +54,6 @@ Make jbang commands available for the user.
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
-
-*-V*, *--version*::
-  Display version info (use `jbang --verbose version` for more details)
 
 *--verbose*::
   jbang will be verbose on what it does.

@@ -19,8 +19,8 @@ jbang-app-install - Install a script as a command.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang app install* *-o* [*-hV*] [*--force*] [*--fresh*] [*--native*] *--quiet* *--verbose*
-                  [*--name*=_<name>_] _scriptRef_
+*jbang app install* *-o* [*-h*] [*--force*] *--fresh* [*--native*] *--quiet* *--verbose*
+                  [*--config*=_<config>_] [*--name*=_<name>_] _scriptRef_
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,6 +33,9 @@ Install a script as a command.
 
 // tag::picocli-generated-man-section-options[]
 == Options
+
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
 
 *--force*::
   Force re-installation
@@ -54,9 +57,6 @@ Install a script as a command.
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
-
-*-V*, *--version*::
-  Display version info (use `jbang --verbose version` for more details)
 
 *--verbose*::
   jbang will be verbose on what it does.

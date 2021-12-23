@@ -19,9 +19,9 @@ jbang-run - Builds and runs provided script.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang run* *-o* [*-hnV*] [*--[no-]cds*] [*--ea*] [*--esa*] [*--fresh*] [*--insecure*]
-          [*--interactive*] [*--jsh*] *--quiet* *--verbose* [*-r*
-          [=_<flightRecorderString>_]] [*--catalog*=_<catalog>_] [*-d*=_<debugString>_]
+*jbang run* *-o* [*-hn*] [*--[no-]cds*] [*--ea*] [*--esa*] *--fresh* [*--insecure*]
+          [*--interactive*] [*--jsh*] *--quiet* *--verbose* [*-d*[=_<debugString>_]] [*-r*
+          [=_<flightRecorderString>_]] [*--catalog*=_<catalog>_] [*--config*=_<config>_]
           [*-j*=_<javaVersion>_] [*-m*=_<main>_] [*--cp*=_<classpaths>_]...
           [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]...
           [*--java-options*=_<javaRuntimeOptions>_]...
@@ -41,22 +41,25 @@ Builds and runs provided script.
 == Options
 
 *--catalog*=_<catalog>_::
-  path to catalog file
+  Path to catalog file to be used instead of the default
 
 *--[no-]cds*::
   If specified Class Data Sharing (CDS) will be used for building and running (requires Java 13+)
 
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
+
 *--cp, --class-path*=_<classpaths>_::
   Add class path entries.
 
-*-d*, *--debug*=_<debugString>_::
-  Launch with java debug enabled on specified port (default: 4004) 
+*-d*, *--debug*[=_<debugString>_]::
+  Launch with java debug enabled on specified port (default: null) 
 
 *-D*, _<String=String>_::
   set a system property
 
 *--deps*=_<dependencies>_::
-  Add additional dependencies.
+  Add additional dependencies (Use commas to separate them).
 
 *--ea, --enableassertions*::
   Enable assertions
@@ -105,9 +108,6 @@ Builds and runs provided script.
 
 *--repos*=_<repositories>_::
   Add additional repositories.
-
-*-V*, *--version*::
-  Display version info (use `jbang --verbose version` for more details)
 
 *--verbose*::
   jbang will be verbose on what it does.

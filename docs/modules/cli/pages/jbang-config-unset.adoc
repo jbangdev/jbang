@@ -5,43 +5,46 @@
 :doctype: manpage
 :manmanual: jbang Manual
 :man-linkstyle: pass:[blue R < >]
-= jbang-version(1)
+= jbang-config-unset(1)
 
 // end::picocli-generated-man-section-header[]
 
 // tag::picocli-generated-man-section-name[]
 == Name
 
-jbang-version - Display version info.
+jbang-config-unset - Remove a configuration value
 
 // end::picocli-generated-man-section-name[]
 
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang version* *-o* [*-h*] [*--check*] *--fresh* *--quiet* [*--update*] *--verbose*
-              [*--config*=_<config>_]
+*jbang config unset* *-o* [*-gh*] *--fresh* *--quiet* *--verbose* [*--config*=_<config>_]
+                   [*-f*=_<configFile>_] _<key>_
 
 // end::picocli-generated-man-section-synopsis[]
 
 // tag::picocli-generated-man-section-description[]
 == Description
 
-Display version info.
+Remove a configuration value
 
 // end::picocli-generated-man-section-description[]
 
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*--check*::
-  Check if a new version of jbang is available
-
 *--config*=_<config>_::
   Path to config file to be used instead of the default
 
+*-f*, *--file*=_<configFile>_::
+  Path to the config file to use
+
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
+
+*-g*, *--global*::
+  Use the global (user) config file
 
 *-h*, *--help*::
   Display help/info. Use 'jbang <command> -h' for detailed usage.
@@ -52,15 +55,17 @@ Display version info.
 *--quiet*::
   jbang will be quiet, only print when error occurs.
 
-*--update*::
-  Update jbang to the latest version
-
 *--verbose*::
   jbang will be verbose on what it does.
 
 // end::picocli-generated-man-section-options[]
 
 // tag::picocli-generated-man-section-arguments[]
+== Arguments
+
+_<key>_::
+  The name of the configuration option to set
+
 // end::picocli-generated-man-section-arguments[]
 
 // tag::picocli-generated-man-section-commands[]

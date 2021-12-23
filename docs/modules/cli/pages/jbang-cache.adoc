@@ -19,7 +19,7 @@ jbang-cache - Manage compiled scripts in the local cache.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang cache* *-o* [*--fresh*] *--quiet* *--verbose* [COMMAND]
+*jbang cache* *-o* *--fresh* *--quiet* *--verbose* [COMMAND]
 
 // end::picocli-generated-man-section-synopsis[]
 

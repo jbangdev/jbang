@@ -19,7 +19,7 @@ jbang-trust-add - Add trust domains.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang trust add* *-o* [*--fresh*] *--quiet* *--verbose* _<arg0>_...
+*jbang trust add* *-o* *--fresh* *--quiet* *--verbose* _<arg0>_...
 
 // end::picocli-generated-man-section-synopsis[]
 

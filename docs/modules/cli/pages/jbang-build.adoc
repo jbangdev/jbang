@@ -19,11 +19,11 @@ jbang-build - Compiles and stores script in the cache.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang build* *-o* [*-hnV*] [*--[no-]cds*] [*--fresh*] [*--insecure*] [*--jsh*] *--quiet*
-            *--verbose* [*--catalog*=_<catalog>_] [*-j*=_<javaVersion>_] [*-m*=_<main>_]
-            [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
-            [*--deps*=_<dependencies>_]... [*--repos*=_<repositories>_]...
-            _<scriptOrFile>_
+*jbang build* *-o* [*-hn*] [*--[no-]cds*] *--fresh* [*--insecure*] [*--jsh*] *--quiet*
+            *--verbose* [*--catalog*=_<catalog>_] [*--config*=_<config>_]
+            [*-j*=_<javaVersion>_] [*-m*=_<main>_] [*--cp*=_<classpaths>_]...
+            [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]...
+            [*--repos*=_<repositories>_]... _<scriptOrFile>_
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -38,10 +38,13 @@ Compiles and stores script in the cache.
 == Options
 
 *--catalog*=_<catalog>_::
-  path to catalog file
+  Path to catalog file to be used instead of the default
 
 *--[no-]cds*::
   If specified Class Data Sharing (CDS) will be used for building and running (requires Java 13+)
+
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
 
 *--cp, --class-path*=_<classpaths>_::
   Add class path entries.
@@ -50,7 +53,7 @@ Compiles and stores script in the cache.
   set a system property
 
 *--deps*=_<dependencies>_::
-  Add additional dependencies.
+  Add additional dependencies (Use commas to separate them).
 
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
@@ -81,9 +84,6 @@ Compiles and stores script in the cache.
 
 *--repos*=_<repositories>_::
   Add additional repositories.
-
-*-V*, *--version*::
-  Display version info (use `jbang --verbose version` for more details)
 
 *--verbose*::
   jbang will be verbose on what it does.

@@ -19,7 +19,8 @@ jbang-catalog-update - Retrieve the latest contents of the catalogs.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang catalog update* *-o* [*-ghV*] [*--fresh*] *--quiet* *--verbose* [*-f*=_<catalogFile>_]
+*jbang catalog update* *-o* [*-gh*] *--fresh* *--quiet* *--verbose* [*--config*=_<config>_]
+                     [*-f*=_<catalogFile>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -32,6 +33,9 @@ Retrieve the latest contents of the catalogs.
 
 // tag::picocli-generated-man-section-options[]
 == Options
+
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
 
 *-f*, *--file*=_<catalogFile>_::
   Path to the catalog file to use
@@ -50,9 +54,6 @@ Retrieve the latest contents of the catalogs.
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
-
-*-V*, *--version*::
-  Display version info (use `jbang --verbose version` for more details)
 
 *--verbose*::
   jbang will be verbose on what it does.

@@ -19,7 +19,7 @@ jbang-app - Manage scripts installed on the user's PATH as commands.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang app* *-o* [*--fresh*] *--quiet* *--verbose* [COMMAND]
+*jbang app* *-o* *--fresh* *--quiet* *--verbose* [COMMAND]
 
 // end::picocli-generated-man-section-synopsis[]
 

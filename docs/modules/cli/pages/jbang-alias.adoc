@@ -19,7 +19,7 @@ jbang-alias - Manage aliases for scripts.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang alias* *-o* [*--fresh*] *--quiet* *--verbose* [COMMAND]
+*jbang alias* *-o* *--fresh* *--quiet* *--verbose* [COMMAND]
 
 // end::picocli-generated-man-section-synopsis[]
 

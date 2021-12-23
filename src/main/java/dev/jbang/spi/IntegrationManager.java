@@ -71,13 +71,8 @@ public class IntegrationManager {
 		URLClassLoader integrationCl = new URLClassLoader(urls);
 		ClassLoader old = Thread.currentThread().getContextClassLoader();
 		Map<String, byte[]> data = new HashMap<>();
-		List<Map.Entry<String, String>> repos = repositories.stream()
-															.map(s -> new MapRepoEntry(s.getId(), s.getUrl()))
-															.collect(Collectors.toList());
-		List<Map.Entry<String, Path>> deps = artifacts	.stream()
-														.map(s -> new MapEntry(s.getCoordinate().toCanonicalForm(),
-																s.getFile().toPath()))
-														.collect(Collectors.toList());
+		List<Map.Entry<String, String>> repos = null;
+		List<Map.Entry<String, Path>> deps = null;
 		Path nativeImage = null;
 		String mainClass = null;
 		List<String> javaArgs = null;
@@ -90,6 +85,17 @@ public class IntegrationManager {
 			Thread.currentThread().setContextClassLoader(integrationCl);
 			Set<String> classNames = loadIntegrationClassNames(integrationCl);
 			for (String className : classNames) {
+				if (repos == null) {
+					repos = repositories.stream()
+										.map(s -> new MapRepoEntry(s.getId(), s.getUrl()))
+										.collect(Collectors.toList());
+				}
+				if (deps == null) {
+					deps = artifacts.stream()
+									.map(s -> new MapEntry(s.getCoordinate().toCanonicalForm(),
+											s.getFile().toPath()))
+									.collect(Collectors.toList());
+				}
 				Class<?> clazz = Class.forName(className, true, integrationCl);
 				Method method = clazz.getDeclaredMethod("postBuild", Path.class, Path.class, List.class, List.class,
 						List.class,

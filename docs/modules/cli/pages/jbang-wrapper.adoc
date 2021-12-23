@@ -19,7 +19,7 @@ jbang-wrapper - Manage jbang wrapper for a folder.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang wrapper* *-o* [*--fresh*] *--quiet* *--verbose* [COMMAND]
+*jbang wrapper* *-o* *--fresh* *--quiet* *--verbose* [COMMAND]
 
 // end::picocli-generated-man-section-synopsis[]
 

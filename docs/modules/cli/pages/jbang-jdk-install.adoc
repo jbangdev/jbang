@@ -19,7 +19,7 @@ jbang-jdk-install - Installs a JDK.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang jdk install* *-o* [*-f*] [*--fresh*] *--quiet* *--verbose* _version_
+*jbang jdk install* *-o* [*-f*] *--fresh* *--quiet* *--verbose* _version_
 
 // end::picocli-generated-man-section-synopsis[]
 

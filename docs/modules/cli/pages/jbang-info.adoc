@@ -19,7 +19,7 @@ jbang-info - Provides info about the script for tools (and humans who are tools)
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang info* *-o* [*--fresh*] *--quiet* *--verbose* [COMMAND]
+*jbang info* *-o* *--fresh* *--quiet* *--verbose* [COMMAND]
 
 // end::picocli-generated-man-section-synopsis[]
 

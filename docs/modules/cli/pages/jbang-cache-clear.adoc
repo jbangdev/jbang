@@ -19,8 +19,8 @@ jbang-cache-clear - Clear the various caches used by jbang. By default this will
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang cache clear* *-o* [*--all*] [*--[no-]deps*] [*--fresh*] [*--[no-]jar*] [*--[no-]jdk*]
-                  [*--[no-]kotlinc*] [*--[no-]project*] *--quiet* [*--[no-]script*] [*--*
+*jbang cache clear* *-o* [*--all*] [*--[no-]deps*] *--fresh* [*--[no-]jar*] [*--[no-]jdk*] [*--*
+                *  [no-]kotlinc*] [*--[no-]project*] *--quiet* [*--[no-]script*] [*--*
                 *  [no-]stdin*] [*--[no-]url*] *--verbose*
 
 // end::picocli-generated-man-section-synopsis[]

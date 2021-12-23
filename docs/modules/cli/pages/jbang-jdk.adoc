@@ -19,7 +19,7 @@ jbang-jdk - Manage Java Development Kits installed by jbang.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang jdk* *-o* [*--fresh*] *--quiet* *--verbose* [COMMAND]
+*jbang jdk* *-o* *--fresh* *--quiet* *--verbose* [COMMAND]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -57,13 +57,13 @@ xref:jbang-jdk-default.adoc[*default*]::
   Sets the default JDK to be used by JBang.
 
 xref:jbang-jdk-home.adoc[*home*]::
-  Returns the folder where the given JDK is installed.
+  Prints the folder where the given JDK is installed.
 
 xref:jbang-jdk-install.adoc[*install*]::
   Installs a JDK.
 
 xref:jbang-jdk-java-env.adoc[*java-env*]::
-  Returns the folder where the given JDK is installed.
+  Prints out the environment variables needed to use the given JDK.
 
 xref:jbang-jdk-list.adoc[*list*]::
   Lists installed JDKs.

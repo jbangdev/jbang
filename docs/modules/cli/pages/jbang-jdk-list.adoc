@@ -19,7 +19,7 @@ jbang-jdk-list - Lists installed JDKs.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang jdk list* *-o* [*--fresh*] *--quiet* *--verbose*
+*jbang jdk list* *-o* *--fresh* *--quiet* *--verbose*
 
 // end::picocli-generated-man-section-synopsis[]
 

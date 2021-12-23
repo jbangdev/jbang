@@ -5,55 +5,42 @@
 :doctype: manpage
 :manmanual: jbang Manual
 :man-linkstyle: pass:[blue R < >]
-= jbang-version(1)
+= jbang-config(1)
 
 // end::picocli-generated-man-section-header[]
 
 // tag::picocli-generated-man-section-name[]
 == Name
 
-jbang-version - Display version info.
+jbang-config - Read and write configuration options.
 
 // end::picocli-generated-man-section-name[]
 
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang version* *-o* [*-h*] [*--check*] *--fresh* *--quiet* [*--update*] *--verbose*
-              [*--config*=_<config>_]
+*jbang config* *-o* *--fresh* *--quiet* *--verbose* [COMMAND]
 
 // end::picocli-generated-man-section-synopsis[]
 
 // tag::picocli-generated-man-section-description[]
 == Description
 
-Display version info.
+Read and write configuration options.
 
 // end::picocli-generated-man-section-description[]
 
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*--check*::
-  Check if a new version of jbang is available
-
-*--config*=_<config>_::
-  Path to config file to be used instead of the default
-
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
-
-*-h*, *--help*::
-  Display help/info. Use 'jbang <command> -h' for detailed usage.
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
-
-*--update*::
-  Update jbang to the latest version
 
 *--verbose*::
   jbang will be verbose on what it does.
@@ -64,6 +51,20 @@ Display version info.
 // end::picocli-generated-man-section-arguments[]
 
 // tag::picocli-generated-man-section-commands[]
+== Commands
+
+xref:jbang-config-get.adoc[*get*]::
+  Get a configuration value
+
+xref:jbang-config-set.adoc[*set*]::
+  Set a configuration value
+
+xref:jbang-config-unset.adoc[*unset*]::
+  Remove a configuration value
+
+xref:jbang-config-list.adoc[*list*]::
+  List active configuration values
+
 // end::picocli-generated-man-section-commands[]
 
 // tag::picocli-generated-man-section-exit-status[]

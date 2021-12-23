@@ -19,7 +19,7 @@ jbang-export - Export the result of a build.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang export* *-o* [*--fresh*] *--quiet* *--verbose* [COMMAND]
+*jbang export* *-o* *--fresh* *--quiet* *--verbose* [COMMAND]
 
 // end::picocli-generated-man-section-synopsis[]
 

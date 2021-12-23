@@ -19,7 +19,7 @@ jbang-wrapper-install - Install/Setup jbang as a `wrapper` script in a folder
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang wrapper install* *-o* [*-f*] [*--fresh*] *--quiet* *--verbose* [*-d*=_<arg0>_]
+*jbang wrapper install* *-o* [*-f*] *--fresh* *--quiet* *--verbose* [*-d*=_<arg0>_]
 
 // end::picocli-generated-man-section-synopsis[]
 

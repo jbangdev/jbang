@@ -19,10 +19,10 @@ jbang-alias-add - Add alias for script reference.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang alias add* *-o* [*-ghV*] [*--fresh*] *--quiet* *--verbose* [*-d*=_<description>_]
-                [*-f*=_<catalogFile>_] [*-j*=_<javaVersion>_] [*-m*=_<mainClass>_]
-                [*--name*=_<name>_] [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
-                [*--deps*=_<dependencies>_]...
+*jbang alias add* *-o* [*-gh*] *--fresh* *--quiet* *--verbose* [*--config*=_<config>_]
+                [*-d*=_<description>_] [*-f*=_<catalogFile>_] [*-j*=_<javaVersion>_]
+                [*-m*=_<mainClass>_] [*--name*=_<name>_] [*--cp*=_<classpaths>_]...
+                [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]...
                 [*--java-options*=_<javaRuntimeOptions>_]...
                 [*--repos*=_<repositories>_]... _scriptOrFile_ [_params_...]
 
@@ -38,6 +38,9 @@ Add alias for script reference.
 // tag::picocli-generated-man-section-options[]
 == Options
 
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
+
 *--cp, --class-path*=_<classpaths>_::
   Add class path entries.
 
@@ -48,7 +51,7 @@ Add alias for script reference.
   set a system property
 
 *--deps*=_<dependencies>_::
-  Add additional dependencies.
+  Add additional dependencies (Use commas to separate them).
 
 *-f*, *--file*=_<catalogFile>_::
   Path to the catalog file to use
@@ -82,9 +85,6 @@ Add alias for script reference.
 
 *--repos*=_<repositories>_::
   Add additional repositories.
-
-*-V*, *--version*::
-  Display version info (use `jbang --verbose version` for more details)
 
 *--verbose*::
   jbang will be verbose on what it does.

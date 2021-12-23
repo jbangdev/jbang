@@ -19,7 +19,7 @@ jbang-catalog - Manage Catalogs of aliases.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang catalog* *-o* [*--fresh*] *--quiet* *--verbose* [COMMAND]
+*jbang catalog* *-o* *--fresh* *--quiet* *--verbose* [COMMAND]
 
 // end::picocli-generated-man-section-synopsis[]
 

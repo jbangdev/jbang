@@ -19,7 +19,7 @@ jbang-trust-list - Show defined trust domains.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang trust list* *-o* [*--fresh*] *--quiet* *--verbose*
+*jbang trust list* *-o* *--fresh* *--quiet* *--verbose*
 
 // end::picocli-generated-man-section-synopsis[]
 

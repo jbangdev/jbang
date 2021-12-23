@@ -19,8 +19,8 @@ jbang-catalog-list - Show currently defined catalogs.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang catalog list* *-o* [*-ghV*] [*--fresh*] *--quiet* [*--show-origin*] *--verbose*
-                   [*-f*=_<catalogFile>_] [_name_]
+*jbang catalog list* *-o* [*-gh*] *--fresh* *--quiet* [*--show-origin*] *--verbose*
+                   [*--config*=_<config>_] [*-f*=_<catalogFile>_] [_name_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,6 +33,9 @@ Show currently defined catalogs.
 
 // tag::picocli-generated-man-section-options[]
 == Options
+
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
 
 *-f*, *--file*=_<catalogFile>_::
   Path to the catalog file to use
@@ -54,9 +57,6 @@ Show currently defined catalogs.
 
 *--show-origin*::
   Show the origin of the catalog
-
-*-V*, *--version*::
-  Display version info (use `jbang --verbose version` for more details)
 
 *--verbose*::
   jbang will be verbose on what it does.

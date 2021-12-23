@@ -19,11 +19,12 @@ jbang-export-mavenrepo - Exports directory that can be used to publish as a mave
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang export mavenrepo* *-o* [*-hnV*] [*--force*] [*--fresh*] [*--insecure*] *--quiet*
-                       *--verbose* [*-j*=_<javaVersion>_] [*-O*=_<outputFile>_]
-                       [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
-                       [*--deps*=_<dependencies>_]... [*--repos*=_<repositories>_]...
-                       _scriptOrFile_
+*jbang export mavenrepo* *-o* [*-hn*] [*--force*] *--fresh* [*--insecure*] *--quiet*
+                       *--verbose* [*-a*=_<artifact>_] [*--config*=_<config>_]
+                       [*-g*=_<group>_] [*-j*=_<javaVersion>_] [*-O*=_<outputFile>_]
+                       [*-v*=_<version>_] [*--cp*=_<classpaths>_]...
+                       [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]...
+                       [*--repos*=_<repositories>_]... _scriptOrFile_
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -37,6 +38,12 @@ Exports directory that can be used to publish as a maven repository
 // tag::picocli-generated-man-section-options[]
 == Options
 
+*-a*, *--artifact*=_<artifact>_::
+  The artifact ID to use for the generated POM.
+
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
+
 *--cp, --class-path*=_<classpaths>_::
   Add class path entries.
 
@@ -44,13 +51,16 @@ Exports directory that can be used to publish as a maven repository
   set a system property
 
 *--deps*=_<dependencies>_::
-  Add additional dependencies.
+  Add additional dependencies (Use commas to separate them).
 
 *--force*::
   Force export, i.e. overwrite exported file if already exists
 
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
+
+*-g*, *--group*=_<group>_::
+  The group ID to use for the generated POM.
 
 *-h*, *--help*::
   Display help/info. Use 'jbang <command> -h' for detailed usage.
@@ -76,8 +86,8 @@ Exports directory that can be used to publish as a maven repository
 *--repos*=_<repositories>_::
   Add additional repositories.
 
-*-V*, *--version*::
-  Display version info (use `jbang --verbose version` for more details)
+*-v*, *--version*=_<version>_::
+  The version to use for the generated POM.
 
 *--verbose*::
   jbang will be verbose on what it does.

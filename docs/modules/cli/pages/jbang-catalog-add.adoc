@@ -19,8 +19,9 @@ jbang-catalog-add - Add a catalog.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang catalog add* *-o* [*-ghV*] [*--fresh*] *--quiet* *--verbose* [*-d*=_<description>_]
-                  [*-f*=_<catalogFile>_] [*--name*=_<name>_] _urlOrFile_
+*jbang catalog add* *-o* [*-gh*] *--fresh* *--quiet* *--verbose* [*--config*=_<config>_]
+                  [*-d*=_<description>_] [*-f*=_<catalogFile>_] [*--name*=_<name>_]
+                  _urlOrFile_
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,6 +34,9 @@ Add a catalog.
 
 // tag::picocli-generated-man-section-options[]
 == Options
+
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
 
 *-d*, *--description*=_<description>_::
   A description for the catalog
@@ -57,9 +61,6 @@ Add a catalog.
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
-
-*-V*, *--version*::
-  Display version info (use `jbang --verbose version` for more details)
 
 *--verbose*::
   jbang will be verbose on what it does.

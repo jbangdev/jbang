@@ -19,8 +19,8 @@ jbang-init - Initialize a script.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang init* *-o* [*-hV*] [*--force*] [*--fresh*] [*--insecure*] [*--jsh*] *--quiet* *--verbose*
-           [*-t*=_<initTemplate>_] [*-D*=_<String=Object>_]...
+*jbang init* *-o* [*-h*] [*--force*] *--fresh* [*--insecure*] [*--jsh*] *--quiet* *--verbose*
+           [*--config*=_<config>_] [*-t*=_<initTemplate>_] [*-D*=_<String=Object>_]...
            [*--deps*=_<dependencies>_]... _<scriptOrFile>_
 
 // end::picocli-generated-man-section-synopsis[]
@@ -35,11 +35,14 @@ Initialize a script.
 // tag::picocli-generated-man-section-options[]
 == Options
 
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
+
 *-D*, _<String=Object>_::
   set a system property
 
 *--deps*=_<dependencies>_::
-  Add additional dependencies.
+  Add additional dependencies (Use commas to separate them).
 
 *--force*::
   Force overwrite of existing files
@@ -64,9 +67,6 @@ Initialize a script.
 
 *-t*, *--template*=_<initTemplate>_::
   Init script with a java class useful for scripting
-
-*-V*, *--version*::
-  Display version info (use `jbang --verbose version` for more details)
 
 *--verbose*::
   jbang will be verbose on what it does.
