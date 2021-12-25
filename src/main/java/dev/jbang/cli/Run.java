@@ -340,9 +340,7 @@ public class Run extends BaseBuildCommand {
 	}
 
 	private void addPropertyFlags(Map<String, String> properties, String def, List<String> result) {
-		properties.forEach((k, e) -> {
-			result.add(def + k + "=" + e);
-		});
+		properties.forEach((k, e) -> result.add(def + k + "=" + e));
 	}
 
 	private void addJavaArgs(List<String> args, List<String> result) {
