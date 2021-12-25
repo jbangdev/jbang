@@ -312,7 +312,7 @@ public class Catalog {
 									.stream()
 									.filter(e -> catalog.catalogRef	.getOriginalResource()
 																	.equals(e.getValue().catalogRef))
-									.map(e -> e.getKey())
+									.map(Map.Entry::getKey)
 									.findAny()
 									.orElse(null);
 		}

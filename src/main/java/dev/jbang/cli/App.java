@@ -207,7 +207,7 @@ class AppInstall extends BaseCommand {
 		to.toFile().mkdirs();
 		Arrays	.asList("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")
 				.stream()
-				.map(f -> Paths.get(f))
+				.map(Paths::get)
 				.forEach(f -> {
 					try {
 						Path fromp = from.resolve(f);

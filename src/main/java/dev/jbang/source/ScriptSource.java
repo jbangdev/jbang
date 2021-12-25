@@ -132,7 +132,7 @@ public class ScriptSource implements Source {
 	@Override
 	public List<String> getAllDependencies() {
 		if (dependencies == null) {
-			dependencies = collectAll(script -> script.collectDependencies());
+			dependencies = collectAll(ScriptSource::collectDependencies);
 		}
 		return dependencies;
 	}

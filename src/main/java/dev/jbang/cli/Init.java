@@ -160,7 +160,7 @@ public class Init extends BaseScriptCommand {
 		Files.createDirectories(outFile.getParent());
 		try (BufferedWriter writer = Files.newBufferedWriter(outFile)) {
 			TemplateInstance templateWithData = template.instance();
-			properties.forEach((k, v) -> templateWithData.data(k, v));
+			properties.forEach(templateWithData::data);
 
 			String result = templateWithData.render();
 
