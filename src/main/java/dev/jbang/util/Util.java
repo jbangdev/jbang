@@ -318,7 +318,7 @@ public class Util {
 
 	static public void infoMsgFmt(String fmt, Object... args) {
 		if (!isQuiet()) {
-			System.err.print(String.format(fmt, args));
+			System.err.printf(fmt, args);
 		}
 	}
 
