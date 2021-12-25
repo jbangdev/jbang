@@ -32,7 +32,7 @@ import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.net.JdkManager;
-import dev.jbang.source.*;
+import dev.jbang.source.GroovyScriptSource;
 import dev.jbang.source.JarSource;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.ScriptSource;
