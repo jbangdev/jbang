@@ -211,7 +211,7 @@ public class JBang extends BaseCommand {
 		public Enumeration<String> getKeys() {
 			return Collections.enumeration(Configuration.instance().keySet());
 		}
-	};
+	}
 
 	public static CommandLine getCommandLine(PrintWriter localout, PrintWriter localerr) {
 		CommandLine cl = new CommandLine(new JBang());
