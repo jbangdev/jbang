@@ -336,7 +336,7 @@ public class Run extends BaseBuildCommand {
 	}
 
 	static boolean optionActive(Optional<Boolean> master, boolean local) {
-		return master.map(Boolean::booleanValue).orElse(local);
+		return master.orElse(local);
 	}
 
 	private void addPropertyFlags(Map<String, String> properties, String def, List<String> result) {
