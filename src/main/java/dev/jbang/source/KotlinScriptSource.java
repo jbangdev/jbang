@@ -39,6 +39,14 @@ public class KotlinScriptSource extends ScriptSource {
 		return ".kt";
 	}
 
+	@Override
+	public List<String> getAllDependencies() {
+		final List<String> allDependencies = super.getAllDependencies();
+		allDependencies.add(0, "org.jetbrains.kotlin:kotlin-bom:" + getKotlinVersion() + "@pom");
+		allDependencies.add(1, "org.jetbrains.kotlin:kotlin-stdlib-jdk8");
+		return allDependencies;
+	}
+
 	public String getKotlinVersion() {
 		return collectAll((s) -> collectOptions("KOTLIN"))
 															.stream()
