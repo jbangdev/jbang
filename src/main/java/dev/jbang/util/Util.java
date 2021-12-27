@@ -76,7 +76,7 @@ public class Util {
 	public static final List<String> EXTENSIONS = asList(
 			".java",
 			".jsh",
-			".kts",
+			".kt",
 			".groovy",
 			".md");
 
