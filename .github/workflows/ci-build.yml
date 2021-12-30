@@ -74,12 +74,16 @@ jobs:
         if: runner.os == 'Windows'
         working-directory: itests
         run: |
-          echo "::add-matcher::.github/karatewindows-matcher.json"   
+          echo "::add-matcher::.github/karatewindows-matcher.json" 
           .\itests.cmd
           echo "::remove-matcher owner=karate-windows::"
       - name: codecoverage-report
         run: |
           ./gradlew jacocoTestReport
+      - uses: ashley-taylor/junit-report-annotations-action@master
+        with:
+          access-token: ${{ secrets.BREW_GITHUB_TOKEN }}
+        if: always()
       - uses: codecov/codecov-action@v2
         with:
           #files: ./coverage1.xml,./coverage2.xml # optional
