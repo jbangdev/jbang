@@ -110,7 +110,7 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 				description = ss.getDescription().orElse(null);
 
 				if (ctx != null) {
-					applicationJar = src.getJarFile().getAbsolutePath();
+					applicationJar = src.getJarFile() == null ? null : src.getJarFile().getAbsolutePath();
 					mainClass = ctx.getMainClassOr(src);
 					requestedJavaVersion = src.getJavaVersion();
 					availableJdkPath = Objects.toString(JdkManager.getCurrentJdk(requestedJavaVersion), null);
