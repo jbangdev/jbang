@@ -9,14 +9,17 @@ import static dev.jbang.util.Util.infoMsgFmt;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.jboss.shrinkwrap.resolver.api.Coordinate;
+import org.jboss.shrinkwrap.resolver.api.ResolutionException;
 import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.MavenFormatStage;
@@ -155,7 +158,7 @@ public class DependencyUtil {
 			MavenCoordinate mc = coords.get(0);
 			if (PackagingType.POM.equals(mc.getType())) {
 				if (loggingEnabled) {
-					infoMsg("Loading " + mc);
+					infoMsg("Fetching POM: " + mc.toCanonicalForm());
 				}
 				System.setProperty("jbang-allowpom", "true"); // big hack to trick shrinkwrap in actually get pom
 																// location
@@ -178,7 +181,7 @@ public class DependencyUtil {
 
 		if (loggingEnabled) {
 			infoHeader();
-			infoMsgFmt("    Resolving %s...", String.join(", ", canonicals));
+			infoMsgFmt("%s\n", String.join("\n         ", canonicals));
 		}
 
 		try {
@@ -198,8 +201,22 @@ public class DependencyUtil {
 			return artifacts.stream()
 							.map(mra -> new ArtifactInfo(mra.getCoordinate(), mra.asFile()))
 							.collect(Collectors.toList());
+		} catch (ResolutionException nrr) {
+			Throwable cause = nrr.getCause();
+			Set<Throwable> causes = new LinkedHashSet<Throwable>();
+			StringBuffer buf = new StringBuffer();
+			buf.append(nrr.getMessage());
+			while (cause != null && !causes.contains(cause)) {
+				causes.add(cause);
+				buf.append("\n  " + cause.getMessage());
+			}
+
+			String repos = customRepos.stream().map(repo -> repo.toString()).collect(Collectors.joining(", "));
+
+			throw new ExitException(1,
+					String.format("Could not resolve dependencies from %s\n", repos) + buf.toString(), nrr);
 		} catch (RuntimeException e) {
-			throw new ExitException(1, "Could not resolve dependency", e);
+			throw new ExitException(1, "Unknown error occurred while trying to resolve dependencies", e);
 		}
 	}
 

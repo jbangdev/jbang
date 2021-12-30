@@ -31,4 +31,9 @@ public class MavenRepo {
 	public void apply(ConfigurableMavenResolverSystem resolver) {
 		resolver.withRemoteRepo(getId() == null ? getUrl() : getId(), getUrl(), "default");
 	}
+
+	@Override
+	public String toString() {
+		return String.format("%s=%s", id, url);
+	}
 }
