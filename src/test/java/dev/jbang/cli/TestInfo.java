@@ -126,4 +126,21 @@ public class TestInfo extends BaseTest {
 				hasSize(equalTo(1)),
 				everyItem(containsString("picocli"))));
 	}
+
+	@Test
+	void testInfoJShell() {
+		String src = examplesTestFolder.resolve("basic.jsh").toString();
+		JBang jbang = new JBang();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("info", "tools", src);
+		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
+		BaseInfoCommand.ScriptInfo info = tools.getInfo();
+		assertThat(info.originalResource, equalTo(src));
+		assertThat(info.applicationJar, equalTo(null));
+		assertThat(info.backingResource, equalTo(src));
+		assertThat(info.javaVersion, is(nullValue()));
+		assertThat(info.mainClass, is(nullValue()));
+		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
+				hasSize(equalTo(1)),
+				everyItem(containsString("commons-lang3"))));
+	}
 }
