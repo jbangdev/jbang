@@ -80,13 +80,9 @@ jobs:
       - name: codecoverage-report
         run: |
           ./gradlew jacocoTestReport
-      #With access token
-      - uses: KyleAure/junit-report-annotations-action@1.5
+      - name: JUnit Report Action
+        uses: mikepenz/action-junit-report@v2.8.3
         if: always()
-        with:
-          name: "unit tests"
-          path: "**/TEST-*.xml"
-          access-token: ${{ secrets.BREW_GITHUB_TOKEN }}
       - uses: codecov/codecov-action@v2
         with:
           #files: ./coverage1.xml,./coverage2.xml # optional
