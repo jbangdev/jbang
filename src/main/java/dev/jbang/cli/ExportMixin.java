@@ -30,6 +30,10 @@ public class ExportMixin {
 	}, description = "Force export, i.e. overwrite exported file if already exists")
 	boolean force;
 
+	@CommandLine.Option(names = { "--package-lib",
+	}, description = "Package the lib folder into the final jar")
+	boolean packageLibFolder;
+
 	@CommandLine.Parameters(paramLabel = "scriptOrFile", index = "0", description = "A file or URL to a Java code file", arity = "1")
 	String scriptOrFile;
 

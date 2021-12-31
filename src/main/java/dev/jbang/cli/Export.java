@@ -102,6 +102,7 @@ class ExportLocal extends BaseCommand implements Exporter {
 @Command(name = "portable", description = "Exports jar together with dependencies in way that makes it portable")
 class ExportPortable extends BaseCommand implements Exporter {
 
+	public static final String LIB = "lib";
 	@CommandLine.Mixin
 	ExportMixin exportMixin;
 
@@ -131,7 +132,7 @@ class ExportPortable extends BaseCommand implements Exporter {
 			try (JarFile jf = new JarFile(outputPath.toFile())) {
 				String cp = jf.getManifest().getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
 				String[] jars = cp == null ? new String[0] : cp.split(" ");
-				File libsdir = new File(outputPath.toFile().getParentFile(), "libs");
+				File libsdir = new File(outputPath.toFile().getParentFile(), LIB);
 				if (jars.length > 0) {
 					if (!libsdir.exists()) {
 						libsdir.mkdirs();
@@ -140,7 +141,7 @@ class ExportPortable extends BaseCommand implements Exporter {
 				StringBuilder newPath = new StringBuilder();
 				for (String jar : jars) {
 					Path file = downloadFile(new File(jar).toURI().toString(), libsdir);
-					newPath.append(" libs/" + file.toFile().getName());
+					newPath.append(" " + LIB + "/" + file.toFile().getName());
 				}
 
 				Path tempDirectory = Files.createTempDirectory("jbang-export");
@@ -162,6 +163,10 @@ class ExportPortable extends BaseCommand implements Exporter {
 			optionList.add("ufm");
 			optionList.add(outputPath.toString());
 			optionList.add(tempManifest.toString());
+            if (exportMixin.packageLibFolder) {
+				Util.infoMsg("Packaging jar file with " + LIB + " folder");
+				optionList.add(LIB + "/");
+            }
 			// System.out.println("Executing " + optionList);
 			Util.infoMsg("Updating jar manifest");
 			// no inheritIO as jar complains unnecessarily about dupilcate manifest entries.
