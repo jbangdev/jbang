@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 
 import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
@@ -100,8 +101,7 @@ class DependencyResolverTest extends BaseTest {
 				PropertiesValueResolver.replaceProperties("org.openjfx:javafx-base:11.0.2:${os.detected.jfxname}", p));
 
 		List<ArtifactInfo> artifacts = DependencyUtil.resolveDependenciesViaAether(deps,
-				Collections.singletonList(toMavenRepo("mavencentral")), false,
-				true, true);
+				Collections.singletonList(toMavenRepo("mavencentral")), false, true, true);
 
 		assertEquals(1, artifacts.size());
 	}
@@ -111,8 +111,7 @@ class DependencyResolverTest extends BaseTest {
 		List<String> deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
 
 		List<ArtifactInfo> artifacts = DependencyUtil.resolveDependenciesViaAether(deps,
-				Collections.singletonList(toMavenRepo("mavencentral")), false,
-				true, true);
+				Collections.singletonList(toMavenRepo("mavencentral")), false, true, true);
 
 		assertEquals(2, artifacts.size());
 	}
@@ -136,8 +135,7 @@ class DependencyResolverTest extends BaseTest {
 
 	@Test
 	void testResolveDependenciesNoDuplicates() {
-		List<String> deps = Arrays.asList(
-				"org.apache.commons:commons-configuration2:2.7",
+		List<String> deps = Arrays.asList("org.apache.commons:commons-configuration2:2.7",
 				"org.apache.commons:commons-text:1.8");
 
 		ModularClassPath classpath = DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false,
@@ -195,13 +193,65 @@ class DependencyResolverTest extends BaseTest {
 	 */
 	@Test
 	void testImportPOM() {
-		List<String> deps = Arrays.asList("com.microsoft.azure:azure-bom:1.0.0.M1@pom",
-				"com.microsoft.azure:azure");
+		List<String> deps = Arrays.asList("com.microsoft.azure:azure-bom:1.0.0.M1@pom", "com.microsoft.azure:azure");
 
-		ModularClassPath classpath = DependencyUtil.resolveDependencies(deps,
-				Collections.emptyList(), false, false, true);
+		ModularClassPath classpath = DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false,
+				true);
 
 		assertEquals(62, classpath.getArtifacts().size());
+	}
+
+	@Test
+	void testImportMultipleBoms() {
+		List<String> deps = Arrays.asList("io.vertx:vertx-stack-depchain:4.2.3@pom", // if not listed then vertx.core
+																						// will be version 3.9.5
+				"org.apache.camel:camel-bom:3.9.0@pom",
+				// "io.vertx:vertx-core",
+				"org.apache.camel:camel-core",
+				"org.apache.camel:camel-vertx",
+				"org.slf4j:slf4j-simple:1.7.30");
+
+		ModularClassPath classpath = DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false,
+				true);
+
+		Optional<ArtifactInfo> coord = classpath.getArtifacts()
+												.stream()
+												.filter(ai -> ai.getCoordinate()
+																.toCanonicalForm()
+																.startsWith("io.vertx:vertx-core"))
+												.findFirst();
+
+		assertEquals(coord.get().getCoordinate().getVersion(), "4.2.3");
+
+		coord = classpath	.getArtifacts()
+							.stream()
+							.filter(ai -> ai.getCoordinate().toCanonicalForm().startsWith("org.slf4j:slf4j-simple:"))
+							.findFirst();
+
+		assertEquals(coord.get().getCoordinate().getVersion(), "1.7.30");
+
+		coord = classpath	.getArtifacts()
+							.stream()
+							.filter(ai -> ai.getCoordinate()
+											.toCanonicalForm()
+											.startsWith("org.apache.camel:camel-vertx"))
+							.findFirst();
+
+		assertEquals(coord.get().getCoordinate().getVersion(), "3.9.0");
+
+		deps = Arrays.asList(
+				"org.apache.camel:camel-bom:3.9.0@pom",
+				"org.apache.camel:camel-core",
+				"org.apache.camel:camel-vertx",
+				"org.slf4j:slf4j-simple:1.7.30");
+		classpath = DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false, true);
+
+		coord = classpath	.getArtifacts()
+							.stream()
+							.filter(ai -> ai.getCoordinate().toCanonicalForm().startsWith("io.vertx:vertx-core"))
+							.findFirst();
+
+		assertEquals(coord.get().getCoordinate().getVersion(), "3.9.5");
 	}
 
 }
