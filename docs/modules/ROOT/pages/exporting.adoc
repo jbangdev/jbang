@@ -16,8 +16,8 @@ If you want the generated jar or native binary you can use `jbang export local <
 for you to use directly.
 
 Note, the local generated jar will have classpath references that are machine dependent. If you want a portable
-jar use `jbang export portable <script>` and the dependent jars will be put in `libs` directory and
-generated jar will have relative references to the jars in the `libs` folder.
+jar use `jbang export portable <script>` and the dependent jars will be put in `lib` directory and
+generated jar will have relative references to the jars in the `lib` folder.
 
 == Exporting to Maven Repository
 

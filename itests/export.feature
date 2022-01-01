@@ -7,7 +7,7 @@ Scenario: basic export no classpath
   Then match err contains "helloworld.jar"
 
   Scenario: basic export slim no classpath
-    When command('rm -rf helloworld.jar libs')
+    When command('rm -rf helloworld.jar lib')
     When command('jbang export portable helloworld.java')
     Then match err contains "Exported to"
     Then match err contains "helloworld.jar"

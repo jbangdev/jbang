@@ -103,6 +103,7 @@ class ExportLocal extends BaseCommand implements Exporter {
 class ExportPortable extends BaseCommand implements Exporter {
 
 	public static final String LIB = "lib";
+
 	@CommandLine.Mixin
 	ExportMixin exportMixin;
 
@@ -132,15 +133,15 @@ class ExportPortable extends BaseCommand implements Exporter {
 			try (JarFile jf = new JarFile(outputPath.toFile())) {
 				String cp = jf.getManifest().getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
 				String[] jars = cp == null ? new String[0] : cp.split(" ");
-				File libsdir = new File(outputPath.toFile().getParentFile(), LIB);
+				File libDir = new File(outputPath.toFile().getParentFile(), LIB);
 				if (jars.length > 0) {
-					if (!libsdir.exists()) {
-						libsdir.mkdirs();
+					if (!libDir.exists()) {
+						libDir.mkdirs();
 					}
 				}
 				StringBuilder newPath = new StringBuilder();
 				for (String jar : jars) {
-					Path file = downloadFile(new File(jar).toURI().toString(), libsdir);
+					Path file = downloadFile(new File(jar).toURI().toString(), libDir);
 					newPath.append(" " + LIB + "/" + file.toFile().getName());
 				}
 
@@ -163,10 +164,6 @@ class ExportPortable extends BaseCommand implements Exporter {
 			optionList.add("ufm");
 			optionList.add(outputPath.toString());
 			optionList.add(tempManifest.toString());
-            if (exportMixin.packageLibFolder) {
-				Util.infoMsg("Packaging jar file with " + LIB + " folder");
-				optionList.add(LIB + "/");
-            }
 			// System.out.println("Executing " + optionList);
 			Util.infoMsg("Updating jar manifest");
 			// no inheritIO as jar complains unnecessarily about dupilcate manifest entries.
