@@ -6,6 +6,9 @@ import static dev.jbang.util.Util.infoHeader;
 import static dev.jbang.util.Util.infoMsg;
 import static dev.jbang.util.Util.infoMsgFmt;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,6 +35,9 @@ import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinates;
 
 import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
+import dev.jbang.util.Util;
+
+import picocli.CommandLine;
 
 public class DependencyUtil {
 
@@ -149,24 +155,57 @@ public class DependencyUtil {
 
 		System.setProperty("maven.repo.local", Settings.getLocalMavenRepo().toPath().toAbsolutePath().toString());
 
-		List<MavenCoordinate> coords = depIds	.stream()
-												.map(DependencyUtil::depIdToArtifact)
-												.collect(Collectors.toList());
+		Map<Boolean, List<MavenCoordinate>> coordList = depIds	.stream()
+																.map(DependencyUtil::depIdToArtifact)
+																.collect(Collectors.partitioningBy(
+																		c -> c.getType().equals(PackagingType.POM)));
+
+		List<MavenCoordinate> coords = coordList.get(false);
+		List<MavenCoordinate> pomcoords = coordList.get(true);
 
 		PomEquippedResolveStage pomResolve = null;
-		if (!coords.isEmpty()) {
-			MavenCoordinate mc = coords.get(0);
-			if (PackagingType.POM.equals(mc.getType())) {
-				if (loggingEnabled) {
-					infoMsg("Fetching POM: " + mc.toCanonicalForm());
-				}
-				System.setProperty("jbang-allowpom", "true"); // big hack to trick shrinkwrap in actually get pom
-																// location
-				MavenStrategyStage resolve = resolver.resolve(mc.toCanonicalForm());
-				pomResolve = resolver.loadPomFromFile(resolve.withoutTransitivity().asSingleFile());
-				System.getProperties().remove("jbang-allowpom");
-				coords.remove(0);
+		if (!pomcoords.isEmpty()) {
+
+			String beforeDepMgmt = "<project xmlns=\"http://maven.apache.org/POM/4.0.0\"\n" +
+					"         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
+					"         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n"
+					+
+					"    <modelVersion>4.0.0</modelVersion>\n" +
+					"\n" +
+					"    <groupId>dev.jbang.internal</groupId>\n" +
+					"    <artifactId>dependency-pom</artifactId>\n" +
+					"    <version>1.0-SNAPSHOT</version>\n" +
+					"    <packaging>pom</packaging>\n" +
+					"<dependencyManagement>\n" +
+					"    <dependencies>\n";
+			String afterDepMgmt = "</dependencies>\n" +
+					"</dependencyManagement>\n" +
+					"</project>";
+			StringBuffer buf = new StringBuffer(beforeDepMgmt);
+			for (MavenCoordinate pomcoord : pomcoords) {
+				buf.append("<dependency>\n" +
+						"      <groupId>" + pomcoord.getGroupId() + "</groupId>\n" +
+						"      <artifactId>" + pomcoord.getArtifactId() + "</artifactId>\n" +
+						"      <version>" + pomcoord.getVersion() + "</version>\n" +
+						"             <type>pom</type>\n" +
+						"      <scope>import</scope>\n" +
+						"    </dependency>\n");
 			}
+			buf.append(afterDepMgmt);
+			Path pompath = null;
+			try {
+				pompath = File.createTempFile("jbang", ".xml").toPath();
+				Util.writeString(pompath, buf.toString());
+			} catch (IOException e) {
+				throw new ExitException(CommandLine.ExitCode.SOFTWARE,
+						"Error trying to generate pom.xml for dependency management");
+			}
+			if (loggingEnabled) {
+				infoMsg("Artifacts used for dependency management:");
+				infoMsgFmt("         %s\n", String.join("\n         ",
+						pomcoords.stream().map(Coordinate::toCanonicalForm).collect(Collectors.toList())));
+			}
+			pomResolve = resolver.loadPomFromFile(pompath.toFile());
 		}
 
 		Optional<MavenCoordinate> pom = coords.stream().filter(c -> c.getType().equals(PackagingType.POM)).findFirst();
