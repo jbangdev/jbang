@@ -102,6 +102,8 @@ class ExportLocal extends BaseCommand implements Exporter {
 @Command(name = "portable", description = "Exports jar together with dependencies in way that makes it portable")
 class ExportPortable extends BaseCommand implements Exporter {
 
+	public static final String LIB = "lib";
+
 	@CommandLine.Mixin
 	ExportMixin exportMixin;
 
@@ -131,16 +133,16 @@ class ExportPortable extends BaseCommand implements Exporter {
 			try (JarFile jf = new JarFile(outputPath.toFile())) {
 				String cp = jf.getManifest().getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
 				String[] jars = cp == null ? new String[0] : cp.split(" ");
-				File libsdir = new File(outputPath.toFile().getParentFile(), "libs");
+				File libDir = new File(outputPath.toFile().getParentFile(), LIB);
 				if (jars.length > 0) {
-					if (!libsdir.exists()) {
-						libsdir.mkdirs();
+					if (!libDir.exists()) {
+						libDir.mkdirs();
 					}
 				}
 				StringBuilder newPath = new StringBuilder();
 				for (String jar : jars) {
-					Path file = downloadFile(new File(jar).toURI().toString(), libsdir);
-					newPath.append(" libs/" + file.toFile().getName());
+					Path file = downloadFile(new File(jar).toURI().toString(), libDir);
+					newPath.append(" " + LIB + "/" + file.toFile().getName());
 				}
 
 				Path tempDirectory = Files.createTempDirectory("jbang-export");
