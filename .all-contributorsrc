@@ -609,6 +609,15 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "nandorholozsnyak",
+      "name": "Nándor Holozsnyák",
+      "avatar_url": "https://avatars.githubusercontent.com/u/11406183?v=4",
+      "profile": "https://github.com/nandorholozsnyak",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,

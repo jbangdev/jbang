@@ -1,6 +1,6 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-65-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-66-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 ## Contributors ✨
 
@@ -94,6 +94,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tr>
     <td align="center"><a href="https://github.com/JakobFels"><img src="https://avatars.githubusercontent.com/u/4647840?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jakob Fels</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/issues?q=author%3AJakobFels" title="Bug reports">🐛</a></td>
     <td align="center"><a href="http://davsclaus.com/"><img src="https://avatars.githubusercontent.com/u/477100?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Claus Ibsen</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/issues?q=author%3Adavsclaus" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://github.com/nandorholozsnyak"><img src="https://avatars.githubusercontent.com/u/11406183?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Nándor Holozsnyák</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=nandorholozsnyak" title="Code">💻</a></td>
   </tr>
 </table>
 
