@@ -100,7 +100,7 @@ class ConfigSet extends BaseConfigCommand {
 		} else {
 			cfgFile = ConfigUtil.setNearestConfigValue(key, value);
 		}
-		Util.verboseMsg("Option '" + key + "' set to '" + value + "' in " + cfgFile);
+		Util.infoMsg("Option '" + key + "' set to '" + value + "' in " + cfgFile);
 		return EXIT_OK;
 	}
 }
@@ -121,7 +121,7 @@ class ConfigUnset extends BaseConfigCommand {
 				cfgFile = ConfigUtil.unsetNearestConfigValue(key);
 			}
 			if (cfgFile != null) {
-				Util.verboseMsg("Option '" + key + "' removed from in " + cfgFile);
+				Util.infoMsg("Option '" + key + "' removed from in " + cfgFile);
 			} else {
 				Util.warnMsg("Cannot remove built-in option '" + key + "'");
 			}
