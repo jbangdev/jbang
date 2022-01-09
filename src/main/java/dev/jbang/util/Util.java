@@ -856,7 +856,13 @@ public class Util {
 			if (uri.getPath().isEmpty() || uri.getPath().equals("/")) {
 				return uri.toString();
 			} else {
-				return (uri.getPath().endsWith("/") ? uri.resolve("..") : uri.resolve(".")).toString();
+				URI suggested = (uri.getPath().endsWith("/") ? uri.resolve("..") : uri.resolve("."));
+				if (suggested.getPath().isEmpty() || suggested.getPath().equals("/")) {
+					// not returning top domain by default
+					return originalUrl;
+				} else {
+					return suggested.toString();
+				}
 			}
 		}
 
