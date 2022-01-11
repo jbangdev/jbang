@@ -32,7 +32,7 @@ import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.net.JdkManager;
-import dev.jbang.source.*;
+import dev.jbang.source.GroovyScriptSource;
 import dev.jbang.source.JarSource;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.ScriptSource;
@@ -106,21 +106,39 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		String requestedJavaVersion = ctx.getJavaVersion() != null ? ctx.getJavaVersion() : src.getJavaVersion();
 		// always build the jar for native mode
 		// it allows integrations the options to produce the native image
-		boolean buildRequired = Util.isFresh() || nativeBuildRequired;
-		if (!buildRequired && outjar.canRead()) {
+		boolean buildRequired = false;
+		if (Util.isFresh()) {
+			Util.verboseMsg("Building as fresh build explicitly requested.");
+			buildRequired = true;
+		} else if (nativeBuildRequired) {
+			Util.verboseMsg("Building as native build required.");
+			buildRequired = true;
+		} else if (outjar.canRead()) {
 			// We already have a Jar, check if we can still use it
 			JarSource jarSrc = src.asJarSource();
-			if (jarSrc == null
-					|| !jarSrc.isUpToDate()
-					|| JavaUtil.javaVersion(requestedJavaVersion) < JavaUtil.minRequestedVersion(
-							jarSrc.getJavaVersion())) {
+
+			if (jarSrc == null) {
+				Util.verboseMsg("Building as previous built jar not found.");
+				buildRequired = true;
+			} else if (!jarSrc.isUpToDate()) {
+				Util.verboseMsg("Building as previous build jar found but it or its dependencies not uptodate.");
+				buildRequired = true;
+			} else if (JavaUtil.javaVersion(requestedJavaVersion) < JavaUtil.minRequestedVersion(
+					jarSrc.getJavaVersion())) {
+				Util.verboseMsg(
+						String.format(
+								"Building as requested Java version %s < than the java version used during last build %s",
+								requestedJavaVersion, jarSrc.getJavaVersion()));
 				buildRequired = true;
 			} else {
+				Util.verboseMsg("No build required. Reusing jar from " + jarSrc.getJarFile());
 				result = ctx.importJarMetadataFor(jarSrc);
 			}
 		} else {
+			Util.verboseMsg("Build required as " + outjar + " not readable or not found.");
 			buildRequired = true;
 		}
+
 		if (buildRequired) {
 			// set up temporary folder for compilation
 			File tmpJarDir = new File(outjar.getParentFile(), outjar.getName() + ".tmp");
