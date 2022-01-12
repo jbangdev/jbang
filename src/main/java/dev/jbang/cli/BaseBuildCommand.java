@@ -121,7 +121,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 				Util.verboseMsg("Building as previous built jar not found.");
 				buildRequired = true;
 			} else if (!jarSrc.isUpToDate()) {
-				Util.verboseMsg("Building as previous build jar found but it or its dependencies not uptodate.");
+				Util.verboseMsg("Building as previous build jar found but it or its dependencies not up-to-date.");
 				buildRequired = true;
 			} else if (JavaUtil.javaVersion(requestedJavaVersion) < JavaUtil.minRequestedVersion(
 					jarSrc.getJavaVersion())) {
