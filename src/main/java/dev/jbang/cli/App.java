@@ -205,9 +205,8 @@ class AppInstall extends BaseCommand {
 
 	private static void copyJBangFiles(Path from, Path to) throws IOException {
 		to.toFile().mkdirs();
-		Arrays	.asList("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")
-				.stream()
-				.map(f -> Paths.get(f))
+		Stream	.of("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")
+				.map(Paths::get)
 				.forEach(f -> {
 					try {
 						Path fromp = from.resolve(f);

@@ -149,9 +149,7 @@ public class DependencyUtil {
 														.withMavenCentralRepo(false)
 														.workOffline(offline);
 
-		customRepos.stream().forEach(mavenRepo -> {
-			mavenRepo.apply(resolver);
-		});
+		customRepos.forEach(mavenRepo -> mavenRepo.apply(resolver));
 
 		System.setProperty("maven.repo.local", Settings.getLocalMavenRepo().toPath().toAbsolutePath().toString());
 

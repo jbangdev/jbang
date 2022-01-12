@@ -55,7 +55,7 @@ public class MarkdownScriptSource extends ScriptSource {
 		}
 
 		public String transformMarkdown(String source) {
-			List<String> output = new ArrayList<String>();
+			List<String> output = new ArrayList<>();
 			String state = "root";
 			boolean prevLineIsEmpty = true;
 			for (String line : source.split("\n")) {

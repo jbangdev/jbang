@@ -34,7 +34,7 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
 
-	class ResourceFile {
+	static class ResourceFile {
 		String originalResource;
 		String backingResource;
 		String target;
@@ -46,7 +46,7 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 		}
 	}
 
-	class Repo {
+	static class Repo {
 		String id;
 		String url;
 
@@ -56,7 +56,7 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 		}
 	}
 
-	class ScriptInfo {
+	static class ScriptInfo {
 		String originalResource;
 		String backingResource;
 		String applicationJar;
@@ -88,13 +88,13 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 				if (!ss.collectRepositories().isEmpty()) {
 					repositories = ss	.collectRepositories()
 										.stream()
-										.map(repo -> new Repo(repo))
+										.map(Repo::new)
 										.collect(Collectors.toList());
 				}
 				List<RefTarget> refs = ss.collectFiles();
 				if (!refs.isEmpty()) {
 					files = refs.stream()
-								.map(ref -> new ResourceFile(ref))
+								.map(ResourceFile::new)
 								.collect(Collectors.toList());
 				}
 				List<ScriptSource> srcs = ss.collectSources();

@@ -132,7 +132,7 @@ public class ScriptSource implements Source {
 	@Override
 	public List<String> getAllDependencies() {
 		if (dependencies == null) {
-			dependencies = collectAll(script -> script.collectDependencies());
+			dependencies = collectAll(ScriptSource::collectDependencies);
 		}
 		return dependencies;
 	}
@@ -552,7 +552,7 @@ public class ScriptSource implements Source {
 	}
 
 	protected <R> List<R> collectAll(Function<ScriptSource, List<R>> func) {
-		Stream<R> subs = getAllSources().stream().map(s -> func.apply(s).stream()).flatMap(i -> i);
+		Stream<R> subs = getAllSources().stream().flatMap(s -> func.apply(s).stream());
 		return Stream.concat(func.apply(this).stream(), subs).collect(Collectors.toList());
 	}
 

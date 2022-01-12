@@ -61,7 +61,7 @@ public class Export {
 }
 
 interface Exporter {
-	public int apply(ExportMixin exportMixin, Source src, RunContext ctx) throws IOException;
+	int apply(ExportMixin exportMixin, Source src, RunContext ctx) throws IOException;
 }
 
 @Command(name = "local", description = "Exports jar with classpath referring to local machine dependent locations")

@@ -146,8 +146,7 @@ class DependencyResolverTest extends BaseTest {
 		// classpath (commons-text-1.8, commons-lang3-3.9)
 		List<String> cps = classpath.getClassPaths();
 
-		HashSet<String> othercps = new HashSet<>();
-		othercps.addAll(cps);
+		HashSet<String> othercps = new HashSet<>(cps);
 
 		assertThat(cps, containsInAnyOrder(othercps.toArray()));
 	}

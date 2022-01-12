@@ -140,7 +140,7 @@ class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 		String scriptURL = mainPath.toString();
 		ResourceRef resourceRef = ResourceRef.forNamedFile(scriptURL, mainPath.toFile());
 		ScriptSource script = ScriptSource.prepareScript(resourceRef, null);
-		Assertions.assertThrows(ExitException.class, () -> script.getAllSources());
+		Assertions.assertThrows(ExitException.class, script::getAllSources);
 
 	}
 

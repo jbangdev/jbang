@@ -40,9 +40,8 @@ public class TestInit extends BaseTest {
 	@ParameterizedTest
 	@ValueSource(strings = { "bad.name.java", "Bad-Name.java" })
 	void testInvalidInit(String filename) {
-		Exception ex = assertThrows(ExitException.class, () -> {
-			new Init().renderQuteTemplate(Paths.get(filename), "init-hello.java.qute");
-		});
+		Exception ex = assertThrows(ExitException.class,
+				() -> new Init().renderQuteTemplate(Paths.get(filename), "init-hello.java.qute"));
 		assertThat(ex.getMessage(), Matchers.containsString("is not a valid class name in java."));
 	}
 

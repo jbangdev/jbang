@@ -199,9 +199,7 @@ public class TrustedSources {
 
 		Util.infoMsg("Adding " + trust + " to " + storage);
 
-		Set<String> newrules = new LinkedHashSet<>();
-
-		newrules.addAll(Arrays.asList(trustedSources));
+		Set<String> newrules = new LinkedHashSet<>(Arrays.asList(trustedSources));
 
 		if (newrules.addAll(trust)) {
 			save(newrules, storage);
@@ -215,9 +213,7 @@ public class TrustedSources {
 
 		Util.infoMsg("Removing " + trust + " from " + storage);
 
-		Set<String> newrules = new LinkedHashSet<>();
-
-		newrules.addAll(Arrays.asList(trustedSources));
+		Set<String> newrules = new LinkedHashSet<>(Arrays.asList(trustedSources));
 
 		if (newrules.removeAll(trust)) {
 			save(newrules, storage);

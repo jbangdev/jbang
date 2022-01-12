@@ -166,9 +166,7 @@ class CatalogList extends BaseCatalogCommand {
 						.keySet()
 						.stream()
 						.sorted()
-						.forEach(nm -> {
-							printCatalog(out, catalogName, catalog, nm, 0);
-						});
+						.forEach(nm -> printCatalog(out, catalogName, catalog, nm, 0));
 	}
 
 	static void printCatalogsWithOrigin(PrintStream out, String catalogName, dev.jbang.catalog.Catalog catalog) {
