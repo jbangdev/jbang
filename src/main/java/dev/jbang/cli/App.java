@@ -398,7 +398,7 @@ class AppSetup extends BaseCommand {
 		}
 		if (Util.getShell() == Util.Shell.bash) {
 			if (changed) {
-				System.out.println("Please start a new Shell for changes to take effect");
+				System.err.println("Please start a new Shell for changes to take effect");
 			}
 		} else {
 			if (changed) {
