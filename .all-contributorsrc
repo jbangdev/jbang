@@ -627,6 +627,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "scottkurz",
+      "name": "Scott Kurz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4081634?v=4",
+      "profile": "https://github.com/scottkurz",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "skipCi": true,
