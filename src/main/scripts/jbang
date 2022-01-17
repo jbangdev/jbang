@@ -39,6 +39,23 @@ download() {
   fi
 }
 
+unpack() {
+  if [[ "$1" == *.tar.gz ]]; then
+    gzip -cd "$1" | tar xf - -C "$2"
+    retval=$?
+    if [[ $os == mac && $retval -eq 0 ]]; then
+      mv "$TDIR/jdks/$javaVersion.tmp/"*/Contents/Home/* "$TDIR/jdks/$javaVersion.tmp/"
+      retval=$?
+    else
+      mv "$TDIR/jdks/$javaVersion.tmp/"*/* "$TDIR/jdks/$javaVersion.tmp/"
+    fi
+  else
+    unzip -qq -o $1 -d "$2"
+    retval=$?
+    mv "$TDIR/jdks/$javaVersion.tmp/"*/* "$TDIR/jdks/$javaVersion.tmp/"
+  fi
+}
+
 javacInPath() {
   [[ -x "$(command -v javac)" && ( $os != "mac" || $(/usr/libexec/java_home &> /dev/null) ) ]]
 }
@@ -47,6 +64,7 @@ abs_jbang_dir=$(dirname $(resolve_symlink $(absolute_path $0)))
 
 # todo might vary by os so can be overwritten below
 libc_type=glibc
+file_type=tar.gz
 
 case "$(uname -s)" in
   Linux*)
@@ -61,7 +79,8 @@ case "$(uname -s)" in
     libc_type=libc;;
   CYGWIN*|MINGW*|MSYS*)
     os=windows
-    libc_type=c_std_lib;;
+    libc_type=c_std_lib
+    file_type=zip;;
   AIX)
     os=aix;;
   *)
@@ -158,20 +177,13 @@ if [[ -z "$JAVA_EXEC" ]]; then
       fi
       mkdir -p "$TDIR/jdks"
       echo "Downloading JDK $javaVersion. Be patient, this can take several minutes..." 1>&2
-      jdkurl="https://api.foojay.io/disco/v2.0/directuris?distro=$distro&javafx_bundled=false&libc_type=$libc_type&archive_type=tar.gz&operating_system=$os&package_type=jdk&version=$javaVersion&release_status=ga&architecture=$arch&latest=available"
-      download $jdkurl "$TDIR/bootstrap-jdk.tgz"
+      jdkurl="https://api.foojay.io/disco/v2.0/directuris?distro=$distro&javafx_bundled=false&libc_type=$libc_type&archive_type=$file_type&operating_system=$os&package_type=jdk&version=$javaVersion&release_status=ga&architecture=$arch&latest=available"
+      download $jdkurl "$TDIR/bootstrap-jdk.$file_type"
       if [ $retval -ne 0 ]; then echo "Error downloading JDK" 1>&2; exit $retval; fi
       echo "Installing JDK $javaVersion..." 1>&2
       rm -rf "$TDIR/jdks/$javaVersion.tmp/"
       mkdir -p "$TDIR/jdks/$javaVersion.tmp"
-      gzip -cd "$TDIR/bootstrap-jdk.tgz" | tar xf - -C "$TDIR/jdks/$javaVersion.tmp"
-      retval=$?
-      if [[ $os == mac && $retval -eq 0 ]]; then
-        mv "$TDIR/jdks/$javaVersion.tmp/"*/Contents/Home/* "$TDIR/jdks/$javaVersion.tmp/"
-        retval=$?
-      else
-        mv "$TDIR/jdks/$javaVersion.tmp/"*/* "$TDIR/jdks/$javaVersion.tmp/"
-      fi
+      unpack "$TDIR/bootstrap-jdk.$file_type" "$TDIR/jdks/$javaVersion.tmp"
       if [ $retval -ne 0 ]; then
         # Check if the JDK was installed properly
         javac -version > /dev/null 2>&1
