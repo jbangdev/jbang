@@ -39,7 +39,7 @@ public class JitPackUtil {
 					actualRef = ref;
 				}
 
-				// Extract GAV coordinates from hte URL
+				// Extract GAV coordinates from the URL
 				// NB: Ordering of the list below is important!
 				Optional<Pgamv> coords = Stream	.<Function<String, Pgamv>>of(
 														JitPackUtil::githubCommitUrlToGAV,
