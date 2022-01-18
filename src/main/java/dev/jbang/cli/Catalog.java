@@ -150,7 +150,7 @@ class CatalogList extends BaseCatalogCommand {
 			if (!catalog.templates.isEmpty()) {
 				out.println("Templates:");
 				out.println("----------");
-				TemplateList.printTemplates(out, name, catalog, false);
+				TemplateList.printTemplates(out, name, catalog, false, false);
 			}
 			if (!catalog.catalogs.isEmpty()) {
 				out.println("Catalogs:");

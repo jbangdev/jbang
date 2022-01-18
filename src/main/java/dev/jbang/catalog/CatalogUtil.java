@@ -9,10 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.AbstractMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -120,22 +117,25 @@ public class CatalogUtil {
 	/**
 	 * Adds a new template to the nearest catalog
 	 *
-	 * @param name The name of the new template
+	 * @param properties
+	 * @param name       The name of the new template
 	 */
-	public static Path addNearestTemplate(String name, Map<String, String> fileRefs, String description) {
+	public static Path addNearestTemplate(String name, Map<String, String> fileRefs, String description,
+			Map<String, TemplateProperty> properties) {
 		Path catalogFile = Catalog.getCatalogFile(null);
-		addTemplate(catalogFile, name, fileRefs, description);
+		addTemplate(catalogFile, name, fileRefs, description, properties);
 		return catalogFile;
 	}
 
 	/**
 	 * Adds a new template to the given catalog
 	 *
+	 * @param properties
 	 * @param catalogFile Path to catalog file
 	 * @param name        The name of the new template
 	 */
 	public static Template addTemplate(Path catalogFile, String name, Map<String, String> fileRefs,
-			String description) {
+			String description, Map<String, TemplateProperty> properties) {
 		Path cwd = Util.getCwd();
 		catalogFile = cwd.resolve(catalogFile);
 		Catalog catalog = Catalog.get(catalogFile);
@@ -145,7 +145,7 @@ public class CatalogUtil {
 															catalog.relativize(e.getValue())))
 													.collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey,
 															AbstractMap.SimpleEntry::getValue));
-		Template template = new Template(relFileRefs, description, catalog);
+		Template template = new Template(relFileRefs, description, catalog, properties);
 		catalog.templates.put(name, template);
 		try {
 			catalog.write();
