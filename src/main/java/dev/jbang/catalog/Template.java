@@ -14,11 +14,14 @@ public class Template extends CatalogItem {
 	@SerializedName(value = "file-refs")
 	public final Map<String, String> fileRefs;
 	public final String description;
+	public final Map<String, TemplateProperty> properties;
 
-	public Template(Map<String, String> fileRefs, String description, Catalog catalog) {
+	public Template(Map<String, String> fileRefs, String description, Catalog catalog,
+			Map<String, TemplateProperty> properties) {
 		super(catalog);
 		this.fileRefs = fileRefs;
 		this.description = description;
+		this.properties = properties;
 	}
 
 	public static Template get(String templateName) {

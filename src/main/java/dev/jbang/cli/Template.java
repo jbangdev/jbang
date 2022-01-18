@@ -11,9 +11,12 @@ import java.util.TreeMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+
 import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.catalog.CatalogUtil;
+import dev.jbang.catalog.TemplateProperty;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.util.ConsoleOutput;
 import dev.jbang.util.Util;
@@ -72,6 +75,10 @@ class TemplateAdd extends BaseTemplateCommand {
 	@CommandLine.Parameters(paramLabel = "files", index = "0..*", arity = "1..*", description = "Paths or URLs to template files")
 	List<String> fileRefs;
 
+	@CommandLine.Option(names = { "--property",
+			"-P" }, description = "Template property", converter = TemplatePropertyConverter.class)
+	List<TemplatePropertyInput> properties;
+
 	@Override
 	public Integer doCall() {
 		if (name != null && !Catalog.isValidName(name)) {
@@ -123,11 +130,18 @@ class TemplateAdd extends BaseTemplateCommand {
 			name = CatalogUtil.nameFromRef(fileRefs.get(0));
 		}
 
+		Map<String, TemplateProperty> propertiesMap = properties
+																.stream()
+																.collect(Collectors.toMap(TemplatePropertyInput::getKey,
+																		(TemplatePropertyInput templatePropertyInput) -> new TemplateProperty(
+																				templatePropertyInput.getDescription(),
+																				templatePropertyInput.getDefaultValue())));
+
 		Path catFile = getCatalog(false);
 		if (catFile != null) {
-			CatalogUtil.addTemplate(catFile, name, fileRefsMap, description);
+			CatalogUtil.addTemplate(catFile, name, fileRefsMap, description, propertiesMap);
 		} else {
-			catFile = CatalogUtil.addNearestTemplate(name, fileRefsMap, description);
+			catFile = CatalogUtil.addNearestTemplate(name, fileRefsMap, description, propertiesMap);
 		}
 		info(String.format("Template '%s' added to '%s'", name, catFile));
 		return EXIT_OK;
@@ -179,6 +193,36 @@ class TemplateAdd extends BaseTemplateCommand {
 			return splitRef;
 		}
 	}
+
+	public static class TemplatePropertyInput {
+		private String key;
+		private String description;
+		private String defaultValue;
+
+		public String getKey() {
+			return key;
+		}
+
+		public void setKey(String key) {
+			this.key = key;
+		}
+
+		public String getDescription() {
+			return description;
+		}
+
+		public void setDescription(String description) {
+			this.description = description;
+		}
+
+		public String getDefaultValue() {
+			return defaultValue;
+		}
+
+		public void setDefaultValue(String defaultValue) {
+			this.defaultValue = defaultValue;
+		}
+	}
 }
 
 @CommandLine.Command(name = "list", description = "Lists locally defined templates or from the given catalog.")
@@ -189,6 +233,9 @@ class TemplateList extends BaseTemplateCommand {
 
 	@CommandLine.Option(names = { "--show-files" }, description = "Show list of files for each template")
 	boolean showFiles;
+
+	@CommandLine.Option(names = { "--show-properties" }, description = "Show list of properties for each template")
+	boolean showProperties;
 
 	@CommandLine.Parameters(paramLabel = "catalogName", index = "0", description = "The name of a catalog", arity = "0..1")
 	String catalogName;
@@ -206,22 +253,25 @@ class TemplateList extends BaseTemplateCommand {
 			catalog = Catalog.getMerged(true);
 		}
 		if (showOrigin) {
-			printTemplatesWithOrigin(out, catalogName, catalog, showFiles);
+			printTemplatesWithOrigin(out, catalogName, catalog, showFiles, showProperties);
 		} else {
-			printTemplates(out, catalogName, catalog, showFiles);
+			printTemplates(out, catalogName, catalog, showFiles, showProperties);
 		}
 		return EXIT_OK;
 	}
 
-	static void printTemplates(PrintStream out, String catalogName, Catalog catalog, boolean showFiles) {
+	static void printTemplates(PrintStream out, String catalogName, Catalog catalog, boolean showFiles,
+			boolean showProperties) {
 		catalog.templates
 							.keySet()
 							.stream()
 							.sorted()
-							.forEach(name -> printTemplate(out, catalogName, catalog, name, showFiles, 0));
+							.forEach(name -> printTemplate(out, catalogName, catalog, name, showFiles, showProperties,
+									0));
 	}
 
-	static void printTemplatesWithOrigin(PrintStream out, String catalogName, Catalog catalog, boolean showFiles) {
+	static void printTemplatesWithOrigin(PrintStream out, String catalogName, Catalog catalog, boolean showFiles,
+			boolean showProperties) {
 		Map<ResourceRef, List<Map.Entry<String, dev.jbang.catalog.Template>>> groups = catalog.templates
 																										.entrySet()
 																										.stream()
@@ -233,12 +283,12 @@ class TemplateList extends BaseTemplateCommand {
 			entries	.stream()
 					.map(Map.Entry::getKey)
 					.sorted()
-					.forEach(k -> printTemplate(out, catalogName, catalog, k, showFiles, 3));
+					.forEach(k -> printTemplate(out, catalogName, catalog, k, showFiles, showProperties, 3));
 		});
 	}
 
 	private static void printTemplate(PrintStream out, String catalogName, Catalog catalog,
-			String name, boolean showFiles, int indent) {
+			String name, boolean showFiles, boolean showProperties, int indent) {
 		dev.jbang.catalog.Template template = catalog.templates.get(name);
 		String catName = catalogName != null ? catalogName : Catalog.findImplicitName(template.catalog);
 		String fullName = catName != null ? name + "@" + Catalog.simplifyName(catName) : name;
@@ -261,6 +311,22 @@ class TemplateList extends BaseTemplateCommand {
 				} else {
 					out.println("   " + dest + " (from " + ref + ")");
 				}
+			}
+		}
+		if (showProperties && template.properties != null) {
+			for (Map.Entry<String, TemplateProperty> entry : template.properties.entrySet()) {
+				out.print(Util.repeat(" ", indent));
+				StringBuilder propertyLineBuilder = new StringBuilder()
+																		.append(Util.repeat(" ", indent + 4))
+																		.append(ConsoleOutput.cyan(entry.getKey()))
+																		.append(" = ");
+				if (StringUtils.isNotBlank(entry.getValue().getDescription())) {
+					propertyLineBuilder.append(entry.getValue().getDescription()).append(" ");
+				}
+				if (StringUtils.isNotBlank(entry.getValue().getDefaultValue())) {
+					propertyLineBuilder.append("[").append(entry.getValue().getDefaultValue()).append("]");
+				}
+				out.println(propertyLineBuilder);
 			}
 		}
 	}
