@@ -11,8 +11,6 @@ import java.util.TreeMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
-
 import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.catalog.CatalogUtil;
@@ -199,6 +197,15 @@ class TemplateAdd extends BaseTemplateCommand {
 		private String description;
 		private String defaultValue;
 
+		public TemplatePropertyInput() {
+		}
+
+		public TemplatePropertyInput(String key, String description, String defaultValue) {
+			this.key = key;
+			this.description = description;
+			this.defaultValue = defaultValue;
+		}
+
 		public String getKey() {
 			return key;
 		}
@@ -221,6 +228,39 @@ class TemplateAdd extends BaseTemplateCommand {
 
 		public void setDefaultValue(String defaultValue) {
 			this.defaultValue = defaultValue;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o)
+				return true;
+			if (o == null || getClass() != o.getClass())
+				return false;
+
+			TemplatePropertyInput that = (TemplatePropertyInput) o;
+
+			if (key != null ? !key.equals(that.key) : that.key != null)
+				return false;
+			if (description != null ? !description.equals(that.description) : that.description != null)
+				return false;
+			return defaultValue != null ? defaultValue.equals(that.defaultValue) : that.defaultValue == null;
+		}
+
+		@Override
+		public int hashCode() {
+			int result = key != null ? key.hashCode() : 0;
+			result = 31 * result + (description != null ? description.hashCode() : 0);
+			result = 31 * result + (defaultValue != null ? defaultValue.hashCode() : 0);
+			return result;
+		}
+
+		@Override
+		public String toString() {
+			return "TemplatePropertyInput{" +
+					"key='" + key + '\'' +
+					", description='" + description + '\'' +
+					", defaultValue='" + defaultValue + '\'' +
+					'}';
 		}
 	}
 }
@@ -320,10 +360,10 @@ class TemplateList extends BaseTemplateCommand {
 																		.append(Util.repeat(" ", indent + 4))
 																		.append(ConsoleOutput.cyan(entry.getKey()))
 																		.append(" = ");
-				if (StringUtils.isNotBlank(entry.getValue().getDescription())) {
+				if (entry.getValue().getDescription() != null) {
 					propertyLineBuilder.append(entry.getValue().getDescription()).append(" ");
 				}
-				if (StringUtils.isNotBlank(entry.getValue().getDefaultValue())) {
+				if (entry.getValue().getDefaultValue() != null) {
 					propertyLineBuilder.append("[").append(entry.getValue().getDefaultValue()).append("]");
 				}
 				out.println(propertyLineBuilder);
