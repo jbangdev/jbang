@@ -16,8 +16,8 @@ public class Template extends CatalogItem {
 	public final String description;
 	public final Map<String, TemplateProperty> properties;
 
-	public Template(Map<String, String> fileRefs, String description, Catalog catalog,
-			Map<String, TemplateProperty> properties) {
+	public Template(Map<String, String> fileRefs, String description, Map<String, TemplateProperty> properties,
+			Catalog catalog) {
 		super(catalog);
 		this.fileRefs = fileRefs;
 		this.description = description;

@@ -59,7 +59,7 @@ public class Catalog {
 				new Alias(a.scriptRef, a.description, a.arguments, a.javaOptions, a.dependencies, a.repositories,
 						a.classpaths, a.properties, a.javaVersion, a.mainClass, this)));
 		templates.forEach((key, t) -> this.templates.put(key,
-				new Template(t.fileRefs, t.description, this, new HashMap<>())));
+				new Template(t.fileRefs, t.description, t.properties, this)));
 	}
 
 	public static Catalog empty() {

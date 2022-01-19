@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName;
 public class TemplateProperty {
 
 	private String description;
-	@SerializedName(value = "default-value")
+	@SerializedName(value = "default")
 	private String defaultValue;
 
 	public TemplateProperty(String description, String defaultValue) {
