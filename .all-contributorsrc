@@ -636,6 +636,15 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "prafullkotecha",
+      "name": "Prafull Kotecha",
+      "avatar_url": "https://avatars.githubusercontent.com/u/563146?v=4",
+      "profile": "https://github.com/prafullkotecha",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "skipCi": true,
