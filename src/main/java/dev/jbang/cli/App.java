@@ -1,5 +1,7 @@
 package dev.jbang.cli;
 
+import static dev.jbang.cli.BaseBuildCommand.buildIfNeeded;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -108,6 +110,7 @@ class AppInstall extends BaseCommand {
 		if (ctx.getAlias() == null && !DependencyUtil.looksLikeAGav(scriptRef) && !src.getResourceRef().isURL()) {
 			scriptRef = src.getResourceRef().getFile().getAbsolutePath();
 		}
+		buildIfNeeded(src.asScriptSource(), ctx);
 		installScripts(name, scriptRef, benative);
 		Util.infoMsg("Command installed: " + name);
 		return true;
