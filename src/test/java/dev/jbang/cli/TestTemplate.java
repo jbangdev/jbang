@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.AbstractMap;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,7 @@ import dev.jbang.BaseTest;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.catalog.Template;
+import dev.jbang.catalog.TemplateProperty;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -42,6 +44,27 @@ public class TestTemplate extends BaseTest {
 			"        \"src/{filename}\": \"tpl2/file2_1.java\",\n" +
 			"        \"src/file2.java\": \"tpl2/file2_2.java\"\n" +
 			"      }\n" +
+			"    },\n" +
+			"    \"three-with-properties\": {\n" +
+			"      \"description\": \"Template 3\",\n" +
+			"      \"file-refs\": {\n" +
+			"        \"src/{filename}\": \"tpl2/file2_1.java\",\n" +
+			"        \"src/file2.java\": \"tpl2/file2_2.java\"\n" +
+			"      },\n" +
+			"     \"properties\": {\n" +
+			"        \"test-key\": {\n" +
+			"        },\n" +
+			"        \"test-key-with-description\": {\n" +
+			"          \"description\": \"This is a test description\"\n" +
+			"        },\n" +
+			"        \"test-key-with-description-and-default-value\": {\n" +
+			"          \"description\": \"This is a test description with default value\",\n" +
+			"          \"default\": \"2.11\"\n" +
+			"        },\n" +
+			"        \"test-key-with-default-value\": {\n" +
+			"          \"default\": \"3.12\"\n" +
+			"        }\n" +
+			"      }\n" +
 			"    }\n" +
 			"  }\n" +
 			"}";
@@ -59,6 +82,8 @@ public class TestTemplate extends BaseTest {
 		assertThat(one, notNullValue());
 		Template two = Template.get("two");
 		assertThat(two, notNullValue());
+		Template threeWithProperties = Template.get("three-with-properties");
+		assertThat(threeWithProperties, notNullValue());
 	}
 
 	@Test
@@ -155,6 +180,23 @@ public class TestTemplate extends BaseTest {
 	}
 
 	@Test
+	void testGetTemplateThreeWithProperties() throws IOException {
+		Template template = Template.get("three-with-properties");
+		assertThat(template, notNullValue());
+		assertThat(template.description, is("Template 3"));
+		assertThat(template.fileRefs, aMapWithSize(2));
+		assertThat(template.fileRefs.keySet(), hasItems("src/{filename}", "src/file2.java"));
+		assertThat(template.fileRefs.values(), hasItems("tpl2/file2_1.java", "tpl2/file2_2.java"));
+		assertThat(template.properties.entrySet(), hasItems(
+				new AbstractMap.SimpleEntry<>("test-key", new TemplateProperty(null, null)),
+				new AbstractMap.SimpleEntry<>("test-key-with-description",
+						new TemplateProperty("This is a test description", null)),
+				new AbstractMap.SimpleEntry<>("test-key-with-description-and-default-value",
+						new TemplateProperty("This is a test description with default value", "2.11")),
+				new AbstractMap.SimpleEntry<>("test-key-with-default-value", new TemplateProperty(null, "3.12"))));
+	}
+
+	@Test
 	void testAddFailAbsolute() throws IOException {
 		Path cwd = Util.getCwd();
 		Path testFile = Files.createFile(cwd.resolve("file1.java"));
@@ -182,5 +224,63 @@ public class TestTemplate extends BaseTest {
 							.execute("template", "add", "-f", cwd.toString(), "--name=name",
 									"test=" + testFile.toString());
 		assertThat(result, is(2));
+	}
+
+	@Test
+	void testAddWithSingleProperty() throws IOException {
+		Path cwd = Util.getCwd();
+		Path testFile = cwd.resolve("test.java");
+		Files.write(testFile, "// Test file".getBytes());
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		JBang jbang = new JBang();
+		new CommandLine(jbang).execute("template", "add", "-f", cwd.toString(), "--name=template-with-single-property",
+				"-d", "Description of the template", "-P", "new-test-key", testFile.toString());
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
+				is(true));
+		Template name = Template.get("template-with-single-property");
+		assertThat(name.properties.entrySet(), hasItems(
+				new AbstractMap.SimpleEntry<>("new-test-key", new TemplateProperty(null, null))));
+	}
+
+	@Test
+	void testAddWithSingleComplexProperty() throws IOException {
+		Path cwd = Util.getCwd();
+		Path testFile = cwd.resolve("test.java");
+		Files.write(testFile, "// Test file".getBytes());
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		JBang jbang = new JBang();
+		new CommandLine(jbang).execute("template", "add", "-f", cwd.toString(),
+				"--name=template-with-single-complex-property",
+				"-d", "Description of the template", "-P",
+				"new-test-key:This is a description for the property key:3.14", testFile.toString());
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
+				is(true));
+		Template name = Template.get("template-with-single-complex-property");
+		assertThat(name.properties.entrySet(), hasItems(
+				new AbstractMap.SimpleEntry<>("new-test-key",
+						new TemplateProperty("This is a description for the property key", "3.14"))));
+	}
+
+	@Test
+	void testAddWithMultipleComplexProperties() throws IOException {
+		Path cwd = Util.getCwd();
+		Path testFile = cwd.resolve("test.java");
+		Files.write(testFile, "// Test file".getBytes());
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		JBang jbang = new JBang();
+		new CommandLine(jbang).execute("template", "add", "-f", cwd.toString(),
+				"--name=template-with-complex-properties",
+				"-d", "Description of the template", "-P",
+				"new-test-key:This is a description for the property key:3.14", "--property",
+				"second-test-key:This is another description for the second property key:Non-Blocker",
+				testFile.toString());
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
+				is(true));
+		Template name = Template.get("template-with-complex-properties");
+		assertThat(name.properties.entrySet(), hasItems(
+				new AbstractMap.SimpleEntry<>("new-test-key",
+						new TemplateProperty("This is a description for the property key", "3.14")),
+				new AbstractMap.SimpleEntry<>("second-test-key", new TemplateProperty(
+						"This is another description for the second property key", "Non-Blocker"))));
 	}
 }
