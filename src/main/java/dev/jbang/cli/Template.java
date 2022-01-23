@@ -5,8 +5,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.AbstractMap;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -128,12 +131,14 @@ class TemplateAdd extends BaseTemplateCommand {
 			name = CatalogUtil.nameFromRef(fileRefs.get(0));
 		}
 
-		Map<String, TemplateProperty> propertiesMap = properties
-																.stream()
-																.collect(Collectors.toMap(TemplatePropertyInput::getKey,
+		Map<String, TemplateProperty> propertiesMap = Optional	.ofNullable(properties)
+																.map(Collection::stream)
+																.map(stream -> stream.collect(Collectors.toMap(
+																		TemplatePropertyInput::getKey,
 																		(TemplatePropertyInput templatePropertyInput) -> new TemplateProperty(
 																				templatePropertyInput.getDescription(),
-																				templatePropertyInput.getDefaultValue())));
+																				templatePropertyInput.getDefaultValue()))))
+																.orElse(new HashMap<>());
 
 		Path catFile = getCatalog(false);
 		if (catFile != null) {
