@@ -15,10 +15,7 @@ import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -43,7 +40,9 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "edit", description = "Setup a temporary project to edit script in an IDE.")
 public class Edit extends BaseScriptCommand {
 
-	static String[] knownEditors = { "code", "eclipse", "idea", "netbeans", "vi", "emacs" };
+	// static String[] knownEditors = { "code", "eclipse", "idea", "netbeans", "vi",
+	// "emacs" };
+	static String[] knownEditors = { "code", "eclipse", "idea", "netbeans" };
 
 	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
@@ -85,7 +84,12 @@ public class Edit extends BaseScriptCommand {
 
 		if (!noOpen) {
 			if (!editor.isPresent() || editor.get().isEmpty()) {
-				askEditor();
+				editor = askEditor();
+				if (!editor.isPresent()) {
+					return EXIT_OK;
+				}
+			} else {
+				showStartingMsg(editor.get(), !editor.get().equals(spec.findOption("open").defaultValue()));
 			}
 			if ("gitpod".equals(editor.get()) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
 				info("Open this url to edit the project in your gitpod session:\n\n"
@@ -102,7 +106,7 @@ public class Edit extends BaseScriptCommand {
 				} else {
 					cmd = new String[] { "cmd", "/c", editorCommand };
 				}
-				info("Running `" + String.join(" ", cmd) + "`");
+				verboseMsg("Running `" + String.join(" ", cmd) + "`");
 				new ProcessBuilder(cmd).start();
 			}
 		}
@@ -166,22 +170,36 @@ public class Edit extends BaseScriptCommand {
 					"\n" +
 					"Do you want to:\n" +
 					"\n" +
-					"1) Jbang to download VSCodium for you into " + editorPath + " ? \n" +
-					"0) Exit without opening an editor\n" +
+					"1) Download and run VSCodium (installs to " + editorPath + ")? \n";
+			List<String> pathEditors = findEditorsOnPath();
+			int editors = 1;
+			for (String ed : pathEditors) {
+				editors++;
+				question += "" + editors + ") Use '" + ed + "'\n";
+			}
+			question += "0) Exit without opening an editor\n" +
 					"\n" +
 					"Any other response will result in exit.\n";
 
 			ConsoleInput con = new ConsoleInput(
 					1,
-					10,
+					30,
 					TimeUnit.SECONDS);
 			Util.infoMsg(question);
-			Util.infoMsg("Type in your choice and hit enter. Times out after 10 seconds.");
+			Util.infoMsg("Type in your choice and hit enter. Times out after 30 seconds.");
 			String input = con.readLine();
 
 			boolean abort = true;
 			try {
 				int result = Integer.parseInt(input);
+				if (result > 1 && result <= editors) {
+					String ed = pathEditors.get(result - 2);
+					showStartingMsg(ed, true);
+					return Optional.of(ed);
+				}
+				if (result == 0) {
+					return Optional.empty();
+				}
 				if (result == 1) {
 					abort = false;
 				}
@@ -189,9 +207,10 @@ public class Edit extends BaseScriptCommand {
 				Util.errorMsg("Could not parse answer as a number. Aborting");
 			}
 
-			if (abort)
+			if (abort) {
 				throw new ExitException(EXIT_GENERIC_ERROR,
-						"No default editor configured and automatic download not accepted.\n Please try again accepting the download or use an explicit editor, i.e. `jbang edit --open=eclipse xyz.java`");
+						"No default editor configured and no other option accepted.\n Please try again making a correct choice or use an explicit editor, i.e. `jbang edit --open=eclipse xyz.java`");
+			}
 
 			editorPath = EditorManager.downloadAndInstallEditor();
 
@@ -221,6 +240,18 @@ public class Edit extends BaseScriptCommand {
 		}
 
 		return Optional.of(editorBinPath.toAbsolutePath().toString());
+	}
+
+	private static List<String> findEditorsOnPath() {
+		return Arrays.stream(knownEditors).filter(e -> Util.searchPath(e) != null).collect(Collectors.toList());
+	}
+
+	private static void showStartingMsg(String ed, boolean showConfig) {
+		String msg = "Starting '" + ed + "'.";
+		if (showConfig) {
+			msg += "If you want to make this the default, run 'jbang config set edit.open " + ed + "'";
+		}
+		Util.infoMsg(msg);
 	}
 
 	/** Create Project to use for editing **/

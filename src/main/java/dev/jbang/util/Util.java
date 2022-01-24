@@ -1153,19 +1153,31 @@ public class Util {
 		String envPath = System.getenv("PATH");
 		envPath = envPath != null ? envPath : "";
 		return Arrays	.stream(envPath.split(File.pathSeparator))
-						.map(Paths::get)
-						.filter(p -> isExecutable(p.resolve(name)))
+						.map(dir -> Paths.get(dir).resolve(name))
+						.flatMap(Util::executables)
+						.filter(Util::isExecutable)
 						.findFirst()
 						.orElse(null);
 	}
 
+	private static Stream<Path> executables(Path base) {
+		if (Util.isWindows()) {
+			return Stream.of(Paths.get(base.toString() + ".exe"),
+					Paths.get(base.toString() + ".bat"),
+					Paths.get(base.toString() + ".cmd"),
+					Paths.get(base.toString() + ".ps1"));
+		} else {
+			return Stream.of(base);
+		}
+	}
+
 	private static boolean isExecutable(Path file) {
-		if (Files.isExecutable(file)) {
+		if (Files.isRegularFile(file)) {
 			if (Util.isWindows()) {
 				String nm = file.getFileName().toString().toLowerCase();
 				return nm.endsWith(".exe") || nm.endsWith(".bat") || nm.endsWith(".cmd") || nm.endsWith(".ps1");
 			} else {
-				return true;
+				return Files.isExecutable(file);
 			}
 		}
 		return false;
