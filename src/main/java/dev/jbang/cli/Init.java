@@ -28,8 +28,6 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "init", description = "Initialize a script.")
 public class Init extends BaseScriptCommand {
 
-	static String[] knowneditors = { "code", "eclipse", "idea", "vi", "emacs", "netbeans" };
-
 	@CommandLine.Option(names = { "--template",
 			"-t" }, description = "Init script with a java class useful for scripting")
 	public String initTemplate;
@@ -106,7 +104,7 @@ public class Init extends BaseScriptCommand {
 		info("File initialized. You can now run it with 'jbang " + renderedScriptOrFile
 				+ "' or edit it using 'jbang edit --open=[editor] "
 				+ renderedScriptOrFile + "' where [editor] is your editor or IDE, e.g. '"
-				+ knowneditors[new Random().nextInt(knowneditors.length)] + "'");
+				+ Edit.knownEditors[new Random().nextInt(Edit.knownEditors.length)] + "'");
 
 		return EXIT_OK;
 	}

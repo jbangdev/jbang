@@ -43,6 +43,8 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "edit", description = "Setup a temporary project to edit script in an IDE.")
 public class Edit extends BaseScriptCommand {
 
+	static String[] knownEditors = { "code", "eclipse", "idea", "netbeans", "vi", "emacs" };
+
 	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
 
@@ -83,7 +85,7 @@ public class Edit extends BaseScriptCommand {
 
 		if (!noOpen) {
 			if (!editor.isPresent() || editor.get().isEmpty()) {
-				askAndInstallEditor();
+				askEditor();
 			}
 			if ("gitpod".equals(editor.get()) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
 				info("Open this url to edit the project in your gitpod session:\n\n"
@@ -151,22 +153,22 @@ public class Edit extends BaseScriptCommand {
 		return EXIT_OK;
 	}
 
-	private void askAndInstallEditor() throws IOException {
-
-		File editorBinPath = EditorManager.getVSCodiumBinPath().toFile();
-		File dataPath = EditorManager.getVSCodiumDataPath().toFile();
+	private static Optional<String> askEditor() throws IOException {
+		Path editorBinPath = EditorManager.getVSCodiumBinPath();
+		Path dataPath = EditorManager.getVSCodiumDataPath();
 		Path editorPath = EditorManager.getVSCodiumPath();
-		editor = Optional.of(editorBinPath.getAbsolutePath());
 
-		if (!editorBinPath.exists()) {
-			String question = "You requested to open default editor but no default editor configured." +
+		if (!Files.exists(editorBinPath)) {
+			String question = "You requested to open default editor but no default editor configured.\n" +
 					"\n" +
-					"jbang can download and configure a visual studio code with Java support to use\n" +
+					"jbang can download and configure a visual studio code (VSCodium) with Java support to use\n" +
 					"See https://vscodium.com for details\n" +
 					"\n" +
-					"Do you want jbang to download VSCodium for you into " + editorPath + " ? \n\n" +
-					"0) Yes, please." +
-					"\n\n" +
+					"Do you want to:\n" +
+					"\n" +
+					"1) Jbang to download VSCodium for you into " + editorPath + " ? \n" +
+					"0) Exit without opening an editor\n" +
+					"\n" +
 					"Any other response will result in exit.\n";
 
 			ConsoleInput con = new ConsoleInput(
@@ -174,13 +176,13 @@ public class Edit extends BaseScriptCommand {
 					10,
 					TimeUnit.SECONDS);
 			Util.infoMsg(question);
-			Util.infoMsg("Type in your choice (0) and hit enter. Times out after 10 seconds.");
+			Util.infoMsg("Type in your choice and hit enter. Times out after 10 seconds.");
 			String input = con.readLine();
 
 			boolean abort = true;
 			try {
 				int result = Integer.parseInt(input);
-				if (result == 0) {
+				if (result == 1) {
 					abort = false;
 				}
 			} catch (NumberFormatException ef) {
@@ -193,13 +195,13 @@ public class Edit extends BaseScriptCommand {
 
 			editorPath = EditorManager.downloadAndInstallEditor();
 
-			if (!dataPath.exists()) {
+			if (!Files.exists(dataPath)) {
 				verboseMsg("Making portable data path " + dataPath.toString());
-				dataPath.mkdirs();
+				Files.createDirectories(dataPath);
 			}
 
 			verboseMsg("Installing Java extensions...");
-			ProcessBuilder pb = new ProcessBuilder(editor.get(),
+			ProcessBuilder pb = new ProcessBuilder(editorBinPath.toAbsolutePath().toString(),
 					"--install-extension", "redhat.java",
 					"--install-extension", "vscjava.vscode-java-debug",
 					"--install-extension", "vscjava.vscode-java-test",
@@ -210,13 +212,15 @@ public class Edit extends BaseScriptCommand {
 				int exit = process.waitFor();
 				if (exit > 0) {
 					throw new ExitException(EXIT_INTERNAL_ERROR,
-							"Could not install and setup extensions into vscodium. Aborting.");
+							"Could not install and setup extensions into VSCodium. Aborting.");
 				}
 			} catch (InterruptedException e) {
-				Util.errorMsg("Problems installing vscodium extensions", e);
+				Util.errorMsg("Problems installing VSCodium extensions", e);
 			}
 
 		}
+
+		return Optional.of(editorBinPath.toAbsolutePath().toString());
 	}
 
 	/** Create Project to use for editing **/
