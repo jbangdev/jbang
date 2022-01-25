@@ -202,7 +202,7 @@ Example in your `pom.xml`:
 
 The plugin documentation and more examples are available here: https://github.com/jbangdev/jbang-maven-plugin
 
-=== Gradle Plugin
+== Gradle Plugin
 
 The JBang Gradle plugin allows JBang scripts to be executed during a Gradle build.
 
@@ -224,7 +224,7 @@ $ gradle jbang --jbang-script hello.jsh --jbang-args="Hello world"
 
 The plugin documentation and more examples are available here: https://github.com/jbangdev/jbang-gradle-plugin
 
-=== Manual install
+== Manual install
 
 Unzip the https://github.com/jbangdev/jbang/releases/latest[latest binary release], add the `jbang-<version>/bin` folder to your `$PATH` and you are set.
 
