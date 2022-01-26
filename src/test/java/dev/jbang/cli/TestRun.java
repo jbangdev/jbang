@@ -444,6 +444,25 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testWithSourcesShell() throws IOException {
+		environmentVariables.clear("JAVA_HOME");
+		String arg = examplesTestFolder.resolve("main.jsh").toAbsolutePath().toString();
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", arg);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+		ScriptSource src = (ScriptSource) ctx.forResource(arg);
+
+		String result = run.generateCommandLine(src, ctx);
+
+		assertThat(result, matchesPattern("^.*jshell(.exe)? --startup.*$"));
+		assertThat(result, containsString("funcs.jsh"));
+		assertThat(result, containsString("main.jsh"));
+		assertThat(result, containsString("--startup=DEFAULT"));
+		assertThat(result, containsString("jbang_exit_"));
+	}
+
+	@Test
 	void testDebug() throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");

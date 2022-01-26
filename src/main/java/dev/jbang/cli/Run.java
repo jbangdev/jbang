@@ -16,6 +16,7 @@ import org.apache.commons.text.StringEscapeUtils;
 
 import dev.jbang.Settings;
 import dev.jbang.source.RunContext;
+import dev.jbang.source.ScriptSource;
 import dev.jbang.source.Source;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
@@ -181,9 +182,8 @@ public class Run extends BaseBuildCommand {
 			List<String> optionalArgs = new ArrayList<>();
 
 			String requestedJavaVersion = ctx.getJavaVersion() != null ? ctx.getJavaVersion() : src.getJavaVersion();
-			String javacmd = JavaUtil.resolveInJavaHome("java", requestedJavaVersion);
+			String javacmd;
 			if (ctx.isForceJsh() || src.isJShell() || interactive) {
-
 				javacmd = JavaUtil.resolveInJavaHome("jshell", requestedJavaVersion);
 
 				if (src.getJarFile() != null && src.getJarFile().exists()) {
@@ -229,6 +229,8 @@ public class Run extends BaseBuildCommand {
 				}
 
 			} else {
+				javacmd = JavaUtil.resolveInJavaHome("java", requestedJavaVersion);
+
 				addPropertyFlags(ctx.getProperties(), "-D", optionalArgs);
 
 				// optionalArgs.add("--source 11");
@@ -312,6 +314,11 @@ public class Run extends BaseBuildCommand {
 				fullArgs.add(mainClass);
 			} else {
 				if (ctx.isForceJsh() || src.isJShell()) {
+					if (src instanceof ScriptSource) {
+						for (Source s : ((ScriptSource) src).getAllSources()) {
+							fullArgs.add(s.getResourceRef().getFile().toString());
+						}
+					}
 					fullArgs.add(src.getResourceRef().getFile().toString());
 				} else if (!interactive /* && src.isJar() */) {
 					throw new ExitException(EXIT_INVALID_INPUT,
