@@ -194,6 +194,8 @@ public class Run extends BaseBuildCommand {
 					}
 				}
 
+				optionalArgs.add("--execution=local");
+
 				if (!Util.isBlankString(classpath)) {
 					optionalArgs.add("--class-path=" + classpath);
 				}
