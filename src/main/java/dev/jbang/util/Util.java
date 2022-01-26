@@ -2,6 +2,7 @@ package dev.jbang.util;
 
 import static java.util.Arrays.asList;
 
+import java.awt.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -40,11 +41,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.swing.*;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -64,6 +68,7 @@ public class Util {
 	public static final String JBANG_JDK_VENDOR = "JBANG_JDK_VENDOR";
 	public static final String JBANG_JDK_RELEASE = "JBANG_JDK_RELEASE";
 	public static final String JBANG_RUNTIME_SHELL = "JBANG_RUNTIME_SHELL";
+	public static final String JBANG_STDIN_NOTTY = "JBANG_STDIN_NOTTY";
 
 	public static final Pattern patternMainMethod = Pattern.compile(
 			"^.*(public\\s+static|static\\s+public)\\s+void\\s+main\\s*\\(.*",
@@ -1324,4 +1329,51 @@ public class Util {
 		return str.trim().isEmpty();
 	}
 
+	public static int askInput(String message, int timeout, int defaultValue, String... options) {
+		if (!"true".equalsIgnoreCase(System.getenv(JBANG_STDIN_NOTTY))) {
+			ConsoleInput con = new ConsoleInput(1, timeout, TimeUnit.SECONDS);
+			StringBuilder msg = new StringBuilder(message + "\n\n");
+			for (int i = 0; i < options.length; i++) {
+				msg.append("(").append(i + 1).append(") ").append(options[i]).append("\n");
+			}
+			msg.append("(0) Cancel\n");
+			Util.infoMsg(msg.toString());
+			while (true) {
+				Util.infoMsg("Type in your choice and hit enter. Will automatically select option (" + defaultValue
+						+ ") after " + timeout + " seconds.");
+				String input = con.readLine();
+				if (input == null) {
+					Util.infoMsg("Timeout reached, selecting option (" + defaultValue + ")");
+					return defaultValue;
+				}
+				if (input.isEmpty()) {
+					break;
+				}
+				try {
+					int result = Integer.parseInt(input);
+					if (result >= 0 && result <= options.length) {
+						return result;
+					}
+				} catch (NumberFormatException ef) {
+					Util.errorMsg("Could not parse answer as a number. Canceling");
+				}
+			}
+		} else if (!GraphicsEnvironment.isHeadless()) {
+			infoMsg("Please make your selection in the pop-up dialog.");
+			String defOpt = defaultValue > 0 ? options[defaultValue - 1] : "";
+			Object selected = JOptionPane.showInputDialog(null, message, "Select your choice",
+					JOptionPane.QUESTION_MESSAGE, null, options, defOpt);
+			if (selected == null) {
+				return 0;
+			}
+			for (int i = 0; i < options.length; i++) {
+				if (options[i] == selected) {
+					return i + 1;
+				}
+			}
+		} else {
+			errorMsg("No console and no graphical interface, we can't ask for feedback!");
+		}
+		return -1;
+	}
 }
