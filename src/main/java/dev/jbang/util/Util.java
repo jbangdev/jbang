@@ -1227,7 +1227,11 @@ public class Util {
 	 * install` or not
 	 */
 	public static boolean runningManagedJBang() {
-		return getJarLocation().startsWith(Settings.getConfigBinDir());
+		try {
+			return getJarLocation().toRealPath().startsWith(Settings.getConfigBinDir().toRealPath());
+		} catch (IOException e) {
+			return getJarLocation().startsWith(Settings.getConfigBinDir());
+		}
 	}
 
 	/**
