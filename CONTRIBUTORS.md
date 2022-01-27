@@ -1,6 +1,6 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-69-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-70-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 ## Contributors ✨
 
@@ -98,6 +98,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://basilcrow.com/"><img src="https://avatars.githubusercontent.com/u/29850?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Basil Crow</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=basil" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/scottkurz"><img src="https://avatars.githubusercontent.com/u/4081634?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Scott Kurz</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/issues?q=author%3Ascottkurz" title="Bug reports">🐛</a></td>
     <td align="center"><a href="https://github.com/prafullkotecha"><img src="https://avatars.githubusercontent.com/u/563146?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Prafull Kotecha</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=prafullkotecha" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/happyherp"><img src="https://avatars.githubusercontent.com/u/2945814?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Carlos Freund</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=happyherp" title="Documentation">📖</a></td>
   </tr>
 </table>
 
