@@ -271,11 +271,17 @@ public class Util {
 				return "aoj";
 			}
 		},
+		azul,
+		debian,
+		microsoft,
 		openjdk {
 			public String foojayname() {
 				return "oracle_open_jdk";
 			}
 		},
+		oracle,
+		oracle_open_jdk,
+		redhat,
 		temurin;
 
 		public String foojayname() {
