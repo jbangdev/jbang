@@ -17,21 +17,21 @@ absolute_path() {
 
 resolve_symlink() {
   if [[ $OSTYPE != darwin* ]]; then minusFarg="-f"; fi
-  sym_resolved=$(readlink ${minusFarg} $1)
+  sym_resolved=$(readlink ${minusFarg} "$1")
 
   if [[ -n $sym_resolved ]]; then
-    echo $sym_resolved
+    echo "$sym_resolved"
   else
-    echo $1
+    echo "$1"
   fi
 }
 
 download() {
   if [ -x "$(command -v curl)" ]; then
-    curl -sLf -o "$2" $1
+    curl -sLf -o "$2" "$1"
     retval=$?
   elif [ -x "$(command -v wget)" ]; then
-    wget -q -O "$2" $1
+    wget -q -O "$2" "$1"
     retval=$?
   else
     echo "Error: curl or wget not found, please make sure one of them is installed" 1>&2
@@ -50,7 +50,7 @@ unpack() {
       mv "$TDIR/jdks/$javaVersion.tmp/"*/* "$TDIR/jdks/$javaVersion.tmp/"
     fi
   else
-    unzip -qq -o $1 -d "$2"
+    unzip -qq -o "$1" -d "$2"
     retval=$?
     mv "$TDIR/jdks/$javaVersion.tmp/"*/* "$TDIR/jdks/$javaVersion.tmp/"
   fi
@@ -60,7 +60,7 @@ javacInPath() {
   [[ -x "$(command -v javac)" && ( $os != "mac" || $(/usr/libexec/java_home &> /dev/null) ) ]]
 }
 
-abs_jbang_dir=$(dirname $(resolve_symlink $(absolute_path $0)))
+abs_jbang_dir=$(dirname "$(resolve_symlink "$(absolute_path "$0")")")
 
 # todo might vary by os so can be overwritten below
 libc_type=glibc
@@ -110,6 +110,12 @@ case "$(uname -m)" in
     ;;
 esac
 
+## when using cygwin fall out to just running the bat file.
+if [[ $os == windows && -f "$abs_jbang_dir/jbang.cmd" && "$(uname -s)" == CYGWIN* ]]; then
+  cmd /c "$(cygpath -m "$abs_jbang_dir"/jbang.cmd)" "$@"
+  exit $?
+fi
+
 if [[ "$javaVersion" -eq 8 || "$javaVersion" -eq 11 || "$javaVersion" -ge 17 ]]; then distro="temurin"; else distro="aoj"; fi
 
 if [[ -z "$JBANG_DIR" ]]; then JBDIR="$HOME/.jbang"; else JBDIR="$JBANG_DIR"; fi
@@ -135,7 +141,7 @@ else
     rm -f "$JBDIR/bin/jbang" "$JBDIR/bin"/jbang.*
     cp -f "$TDIR/urls/jbang/bin"/* "$JBDIR/bin"
   fi
-  $JBDIR/bin/jbang "$@"
+  "$JBDIR"/bin/jbang "$@"
   exit $?
 fi
 if [ -f "$jarPath.new" ]; then
@@ -147,7 +153,7 @@ fi
 unset JAVA_EXEC
 if [[ -n "$JAVA_HOME" ]]; then
   # Determine if a (working) JDK is available in JAVA_HOME
-  if [ -x "$(command -v $JAVA_HOME/bin/javac)" ]; then
+  if [ -x "$(command -v "$JAVA_HOME"/bin/javac)" ]; then
     JAVA_EXEC="$JAVA_HOME/bin/java"
   else
     echo "JAVA_HOME is set but does not seem to point to a valid Java JDK" 1>&2
@@ -178,7 +184,7 @@ if [[ -z "$JAVA_EXEC" ]]; then
       mkdir -p "$TDIR/jdks"
       echo "Downloading JDK $javaVersion. Be patient, this can take several minutes..." 1>&2
       jdkurl="https://api.foojay.io/disco/v2.0/directuris?distro=$distro&javafx_bundled=false&libc_type=$libc_type&archive_type=$file_type&operating_system=$os&package_type=jdk&version=$javaVersion&release_status=ga&architecture=$arch&latest=available"
-      download $jdkurl "$TDIR/bootstrap-jdk.$file_type"
+      download "$jdkurl" "$TDIR/bootstrap-jdk.$file_type"
       if [ $retval -ne 0 ]; then echo "Error downloading JDK" 1>&2; exit $retval; fi
       echo "Installing JDK $javaVersion..." 1>&2
       rm -rf "$TDIR/jdks/$javaVersion.tmp/"
@@ -193,7 +199,7 @@ if [[ -z "$JAVA_EXEC" ]]; then
       # Activate the downloaded JDK giving it its proper name
       mv "$TDIR/jdks/$javaVersion.tmp" "$TDIR/jdks/$javaVersion"
       # Set the current JDK
-      ${JAVA_EXEC} -classpath ${jarPath} dev.jbang.Main jdk default $javaVersion
+      ${JAVA_EXEC} -classpath "${jarPath}" dev.jbang.Main jdk default $javaVersion
     fi
   fi
 fi
@@ -203,11 +209,11 @@ fi
 
 ## run it using command substitution to have just the user process once jbang is done
 export JBANG_RUNTIME_SHELL=bash
-output=$(CLICOLOR_FORCE=1 ${JAVA_EXEC} ${JBANG_JAVA_OPTIONS} -classpath ${jarPath} dev.jbang.Main "$@")
+output=$(CLICOLOR_FORCE=1 ${JAVA_EXEC} ${JBANG_JAVA_OPTIONS} -classpath "${jarPath}" dev.jbang.Main "$@")
 err=$?
 if [ $err -eq 255 ]; then
   eval "exec $output"
-elif [ ! -z "$output" ]; then
+elif [ -n "$output" ]; then
   echo "$output"
   exit $err
 else
