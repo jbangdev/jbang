@@ -50,9 +50,10 @@ public class Person {
 There are some cases where the above does not work; i.e. if two packages refer to each other - i.e. `model.Person` referring to `util.Generator`
 will fail. Also `jbang edit` does not know about multiple sources as it runs and must run before compilation occurs.
 
-Thus version 0.46 there is now support for having that all work with multiple source files. The main script file defines all the
-dependencies and you add more source files into the application using `//SOURCES <filename>`.
-If included source has `//SOURCES` that will also get included recursively.
+Since version 0.46 there is now support for having that all work with multiple source files. The main script file defines all the
+dependencies and you add more source files into the application using `//SOURCES <filename>`. If included source has `//SOURCES`
+that will also get included recursively. In the case of `.jsh` scripts, the included sources will be added in the order they are
+found, depth-first.
 
 The listed file name(s) gets added to source list when compiling.
 

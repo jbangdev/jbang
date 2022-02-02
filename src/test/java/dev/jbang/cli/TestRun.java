@@ -161,7 +161,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.generateCommandLine(src, ctx);
 
-		assertThat(result, matchesPattern("^.*jshell(.exe)? --startup.*$"));
+		assertThat(result, matchesPattern("^.*jshell(.exe)? --execution=local --startup.*$"));
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString("helloworld.jsh"));
 		assertThat(result, not(containsString("--source 11")));
@@ -227,7 +227,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.generateCommandLine(src, ctx);
 
-		assertThat(result, matchesPattern("^.*jshell(.exe)? --startup.*$"));
+		assertThat(result, matchesPattern("^.*jshell(.exe)? --execution=local --startup.*$"));
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString("empty.jsh"));
 		assertThat(result, not(containsString("--source 11")));
@@ -249,7 +249,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.generateCommandLine(src, ctx);
 
-		assertThat(result, matchesPattern("^.*jshell(.exe)? --startup.*$"));
+		assertThat(result, matchesPattern("^.*jshell(.exe)? --execution=local --startup.*$"));
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString("hellojsh"));
 		assertThat(result, not(containsString("--source 11")));
@@ -441,6 +441,25 @@ public class TestRun extends BaseTest {
 		assertThat(result, matchesPattern(".*--startup=[^ ]*helloworld.jsh.*"));
 		assertThat(result, not(containsString("blah")));
 		assertThat(result, not(containsString("jbang_exit_")));
+	}
+
+	@Test
+	void testWithSourcesShell() throws IOException {
+		environmentVariables.clear("JAVA_HOME");
+		String arg = examplesTestFolder.resolve("main.jsh").toAbsolutePath().toString();
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", arg);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+		ScriptSource src = (ScriptSource) ctx.forResource(arg);
+
+		String result = run.generateCommandLine(src, ctx);
+
+		assertThat(result, matchesPattern("^.*jshell(.exe)? --execution=local --startup.*$"));
+		assertThat(result, containsString("funcs.jsh"));
+		assertThat(result, containsString("main.jsh"));
+		assertThat(result, containsString("--startup=DEFAULT"));
+		assertThat(result, containsString("jbang_exit_"));
 	}
 
 	@Test

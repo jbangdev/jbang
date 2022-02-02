@@ -32,3 +32,8 @@ Scenario: force jsh
   When command('jbang --jsh hellojsh hello')
   Then match err == ""
   Then match out == "hello\n"
+
+Scenario: jsh sources
+  When command('jbang main.jsh')
+  Then match err == ""
+  Then match out == "hello\n"
