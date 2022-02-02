@@ -16,7 +16,6 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import dev.jbang.Cache;
@@ -29,7 +28,6 @@ import dev.jbang.source.RefTarget;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.ScriptSource;
 import dev.jbang.source.Source;
-import dev.jbang.util.ConsoleInput;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
 import dev.jbang.util.Util.Shell;
@@ -168,78 +166,59 @@ public class Edit extends BaseScriptCommand {
 					"jbang can download and configure a visual studio code (VSCodium) with Java support to use\n" +
 					"See https://vscodium.com for details\n" +
 					"\n" +
-					"Do you want to:\n" +
-					"\n" +
-					"1) Download and run VSCodium (installs to " + editorPath + ")? \n";
+					"Do you want to";
+
+			List<String> options = new ArrayList<>();
+			options.add("Download and run VSCodium");
+
 			List<String> pathEditors = findEditorsOnPath();
-			int editors = 1;
 			for (String ed : pathEditors) {
-				editors++;
-				question += "" + editors + ") Use '" + ed + "'\n";
-			}
-			question += "0) Exit without opening an editor\n" +
-					"\n" +
-					"Any other response will result in exit.\n";
-
-			ConsoleInput con = new ConsoleInput(
-					1,
-					30,
-					TimeUnit.SECONDS);
-			Util.infoMsg(question);
-			Util.infoMsg("Type in your choice and hit enter. Times out after 30 seconds.");
-			String input = con.readLine();
-
-			boolean abort = true;
-			try {
-				int result = Integer.parseInt(input);
-				if (result > 1 && result <= editors) {
-					String ed = pathEditors.get(result - 2);
-					showStartingMsg(ed, true);
-					return Optional.of(ed);
-				}
-				if (result == 0) {
-					return Optional.empty();
-				}
-				if (result == 1) {
-					abort = false;
-				}
-			} catch (NumberFormatException ef) {
-				Util.errorMsg("Could not parse answer as a number. Aborting");
+				options.add("Use '" + ed + "'");
 			}
 
-			if (abort) {
+			int result = Util.askInput(question, 30, 1, options.toArray(new String[] {}));
+			if (result == 0) {
+				return Optional.empty();
+			} else if (result == 1) {
+				setupEditor(editorBinPath, dataPath);
+			} else if (result > 1) {
+				String ed = pathEditors.get(result - 2);
+				showStartingMsg(ed, true);
+				return Optional.of(ed);
+			} else {
 				throw new ExitException(EXIT_GENERIC_ERROR,
 						"No default editor configured and no other option accepted.\n Please try again making a correct choice or use an explicit editor, i.e. `jbang edit --open=eclipse xyz.java`");
 			}
-
-			editorPath = EditorManager.downloadAndInstallEditor();
-
-			if (!Files.exists(dataPath)) {
-				verboseMsg("Making portable data path " + dataPath.toString());
-				Files.createDirectories(dataPath);
-			}
-
-			verboseMsg("Installing Java extensions...");
-			ProcessBuilder pb = new ProcessBuilder(editorBinPath.toAbsolutePath().toString(),
-					"--install-extension", "redhat.java",
-					"--install-extension", "vscjava.vscode-java-debug",
-					"--install-extension", "vscjava.vscode-java-test",
-					"--install-extension", "vscjava.vscode-java-dependency");
-			pb.inheritIO();
-			Process process = pb.start();
-			try {
-				int exit = process.waitFor();
-				if (exit > 0) {
-					throw new ExitException(EXIT_INTERNAL_ERROR,
-							"Could not install and setup extensions into VSCodium. Aborting.");
-				}
-			} catch (InterruptedException e) {
-				Util.errorMsg("Problems installing VSCodium extensions", e);
-			}
-
 		}
 
 		return Optional.of(editorBinPath.toAbsolutePath().toString());
+	}
+
+	private static void setupEditor(Path editorBinPath, Path dataPath) throws IOException {
+		EditorManager.downloadAndInstallEditor();
+
+		if (!Files.exists(dataPath)) {
+			verboseMsg("Making portable data path " + dataPath.toString());
+			Files.createDirectories(dataPath);
+		}
+
+		verboseMsg("Installing Java extensions...");
+		ProcessBuilder pb = new ProcessBuilder(editorBinPath.toAbsolutePath().toString(),
+				"--install-extension", "redhat.java",
+				"--install-extension", "vscjava.vscode-java-debug",
+				"--install-extension", "vscjava.vscode-java-test",
+				"--install-extension", "vscjava.vscode-java-dependency");
+		pb.inheritIO();
+		Process process = pb.start();
+		try {
+			int exit = process.waitFor();
+			if (exit > 0) {
+				throw new ExitException(EXIT_INTERNAL_ERROR,
+						"Could not install and setup extensions into VSCodium. Aborting.");
+			}
+		} catch (InterruptedException e) {
+			Util.errorMsg("Problems installing VSCodium extensions", e);
+		}
 	}
 
 	private static List<String> findEditorsOnPath() {
