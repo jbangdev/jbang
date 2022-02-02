@@ -10,6 +10,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -1361,6 +1363,7 @@ public class Util {
 		} else if (!GraphicsEnvironment.isHeadless()) {
 			infoMsg("Please make your selection in the pop-up dialog.");
 			String defOpt = defaultValue > 0 ? options[defaultValue - 1] : "";
+			setupApplicationIcon();
 			Object selected = JOptionPane.showInputDialog(null, message, "Select your choice",
 					JOptionPane.QUESTION_MESSAGE, getJbangIcon(), options, defOpt);
 			if (selected == null) {
@@ -1375,6 +1378,20 @@ public class Util {
 			errorMsg("No console and no graphical interface, we can't ask for feedback!");
 		}
 		return -1;
+	}
+
+	private static void setupApplicationIcon() {
+		try {
+			Class<?> clazz = Util.class.getClassLoader().loadClass("java.awt.Taskbar");
+			Method getTaskbarMth = clazz.getMethod("getTaskbar");
+			Object taskbar = getTaskbarMth.invoke(null);
+			Method setIconImageMth = clazz.getMethod("setIconImage", Image.class);
+			setIconImageMth.invoke(taskbar, getJbangIcon().getImage());
+		} catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException e) {
+			verboseMsg("Unable to set application icon: Taskbar API not available");
+		} catch (InvocationTargetException e) {
+			verboseMsg("Unable to set application icon: " + e.getTargetException());
+		}
 	}
 
 	private static ImageIcon getJbangIcon() {
