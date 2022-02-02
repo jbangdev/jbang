@@ -1362,7 +1362,7 @@ public class Util {
 			infoMsg("Please make your selection in the pop-up dialog.");
 			String defOpt = defaultValue > 0 ? options[defaultValue - 1] : "";
 			Object selected = JOptionPane.showInputDialog(null, message, "Select your choice",
-					JOptionPane.QUESTION_MESSAGE, null, options, defOpt);
+					JOptionPane.QUESTION_MESSAGE, getJbangIcon(), options, defOpt);
 			if (selected == null) {
 				return 0;
 			}
@@ -1375,5 +1375,14 @@ public class Util {
 			errorMsg("No console and no graphical interface, we can't ask for feedback!");
 		}
 		return -1;
+	}
+
+	private static ImageIcon getJbangIcon() {
+		URL url = Util.class.getResource("/jbang_icon_64x64.png");
+		if (url != null) {
+			return new ImageIcon(url);
+		} else {
+			return null;
+		}
 	}
 }
