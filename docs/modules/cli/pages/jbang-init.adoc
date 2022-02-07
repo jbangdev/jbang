@@ -65,6 +65,10 @@ Initialize a script.
 *--quiet*::
   jbang will be quiet, only print when error occurs.
 
+*-i*, *--ignore-template-defaults*=_<true|false>_::
+  If *true* and a template is given with properties that have default values, these will not be applied in the render process.
+  By default *false*.
+
 *-t*, *--template*=_<initTemplate>_::
   Init script with a java class useful for scripting
 

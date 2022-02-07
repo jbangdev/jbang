@@ -262,4 +262,76 @@ public class TestInit extends BaseTest {
 		assertThat(outcontent, containsString("propvaluerocks"));
 	}
 
+	@Test
+	void testInitPropertiesWithDefaults() throws IOException {
+		Path cwd = Util.getCwd();
+		Path f1 = Files.write(cwd.resolve("file1.java.qute"), "{prop1}".getBytes());
+		Path out = cwd.resolve("result.java");
+
+		JBang	.getCommandLine()
+				.execute("template", "add", "-f", cwd.toString(), "--name=name", "-P=prop1::my-test-default-value",
+						"{filename}" + "=" + f1.toAbsolutePath().toString());
+
+		assertThat(out.toFile().exists(), not(true));
+
+		int result = JBang	.getCommandLine()
+							.execute("init", "--verbose", "--template=name",
+									out.toAbsolutePath().toString());
+
+		assertThat(result, is(0));
+		assertThat(out.toFile().exists(), is(true));
+
+		String outcontent = Util.readString(out);
+
+		assertThat(outcontent, containsString("my-test-default-value"));
+	}
+
+	@Test
+	void testInitPropertiesWithPropertyWithoutDefaultValue() throws IOException {
+		Path cwd = Util.getCwd();
+		Path f1 = Files.write(cwd.resolve("file1.java.qute"), "{prop1}".getBytes());
+		Path out = cwd.resolve("result.java");
+
+		JBang	.getCommandLine()
+				.execute("template", "add", "-f", cwd.toString(), "--name=name", "-P=prop1::",
+						"{filename}" + "=" + f1.toAbsolutePath().toString());
+
+		assertThat(out.toFile().exists(), not(true));
+
+		int result = JBang	.getCommandLine()
+							.execute("init", "--verbose", "--template=name",
+									out.toAbsolutePath().toString());
+
+		assertThat(result, is(0));
+		assertThat(out.toFile().exists(), is(true));
+
+		String outcontent = Util.readString(out);
+
+		assertThat(outcontent, containsString("NOT_FOUND"));
+	}
+
+	@Test
+	void testInitPropertiesIgnoringPropertyDefaults() throws IOException {
+		Path cwd = Util.getCwd();
+		Path f1 = Files.write(cwd.resolve("file1.java.qute"), "{prop1}".getBytes());
+		Path out = cwd.resolve("result.java");
+
+		JBang	.getCommandLine()
+				.execute("template", "add", "-f", cwd.toString(), "--name=name", "-P=prop1::my-test-default-value",
+						"{filename}" + "=" + f1.toAbsolutePath().toString());
+
+		assertThat(out.toFile().exists(), not(true));
+
+		int result = JBang	.getCommandLine()
+							.execute("init", "--verbose", "--template=name", "--ignore-template-defaults",
+									out.toAbsolutePath().toString());
+
+		assertThat(result, is(0));
+		assertThat(out.toFile().exists(), is(true));
+
+		String outcontent = Util.readString(out);
+
+		assertThat(outcontent, containsString("NOT_FOUND"));
+	}
+
 }

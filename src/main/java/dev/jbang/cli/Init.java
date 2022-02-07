@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 import javax.lang.model.SourceVersion;
 
+import dev.jbang.catalog.TemplateProperty;
 import dev.jbang.source.RefTarget;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.util.TemplateEngine;
@@ -42,6 +43,10 @@ public class Init extends BaseScriptCommand {
 	@CommandLine.Option(names = {
 			"--deps" }, converter = CommaSeparatedConverter.class, description = "Add additional dependencies (Use commas to separate them).")
 	List<String> dependencies;
+
+	@CommandLine.Option(names = { "-i",
+			"--ignore-template-defaults" }, description = "Ignore properties default values when using a template")
+	public boolean ignoreDefaultProperties = false;
 
 	@Override
 	public Integer doCall() throws IOException {
@@ -71,6 +76,8 @@ public class Init extends BaseScriptCommand {
 															e.getValue(),
 															e.getKey()))
 													.collect(Collectors.toList());
+
+		useTemplatePropertiesIfAllowed(tpl);
 
 		if (!force) {
 			// Check if any of the files already exist
@@ -107,6 +114,16 @@ public class Init extends BaseScriptCommand {
 				+ Edit.knownEditors[new Random().nextInt(Edit.knownEditors.length)] + "'");
 
 		return EXIT_OK;
+	}
+
+	private void useTemplatePropertiesIfAllowed(dev.jbang.catalog.Template tpl) {
+		if (!ignoreDefaultProperties && tpl.properties != null) {
+			for (Map.Entry<String, TemplateProperty> entry : tpl.properties.entrySet()) {
+				if (entry.getValue().defaultValue != null) {
+					properties.putIfAbsent(entry.getKey(), entry.getValue().defaultValue);
+				}
+			}
+		}
 	}
 
 	static Path resolveBaseName(String refTarget, String refSource, String outName) {
