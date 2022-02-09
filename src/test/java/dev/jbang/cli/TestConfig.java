@@ -47,7 +47,7 @@ public class TestConfig extends BaseTest {
 						"run.jfr = filename={baseName}.jfr\n" +
 						"three = baz\n" +
 						"two = bar\n" +
-						"wrapper.dir = .\n"));
+						"wrapper.install.dir = .\n"));
 	}
 
 	@Test

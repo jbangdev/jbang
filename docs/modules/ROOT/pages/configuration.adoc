@@ -42,7 +42,7 @@ classpath:/jbang.properties
    init.template = hello
    run.debug = 4004
    run.jfr = filename={baseName}.jfr
-   wrapper.dir = .
+   wrapper.install.dir = .
 ```
 
 
