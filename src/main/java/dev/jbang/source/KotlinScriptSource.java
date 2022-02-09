@@ -9,7 +9,6 @@ import java.util.function.Predicate;
 
 import org.jboss.jandex.ClassInfo;
 
-import dev.jbang.cli.BaseBuildCommand;
 import dev.jbang.net.KotlinManager;
 
 public class KotlinScriptSource extends ScriptSource {
@@ -30,7 +29,7 @@ public class KotlinScriptSource extends ScriptSource {
 
 	@Override
 	public Predicate<ClassInfo> getMainFinder() {
-		return pubClass -> pubClass.method("main", BaseBuildCommand.STRINGARRAYTYPE) != null
+		return pubClass -> pubClass.method("main", JarBuilder.STRINGARRAYTYPE) != null
 				|| pubClass.method("main") != null;
 	}
 

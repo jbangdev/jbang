@@ -9,7 +9,6 @@ import java.util.function.Predicate;
 
 import org.jboss.jandex.ClassInfo;
 
-import dev.jbang.cli.BaseBuildCommand;
 import dev.jbang.net.GroovyManager;
 
 public class GroovyScriptSource extends ScriptSource {
@@ -34,7 +33,7 @@ public class GroovyScriptSource extends ScriptSource {
 
 	@Override
 	public Predicate<ClassInfo> getMainFinder() {
-		return pubClass -> pubClass.method("main", BaseBuildCommand.STRINGARRAYTYPE) != null
+		return pubClass -> pubClass.method("main", JarBuilder.STRINGARRAYTYPE) != null
 				|| pubClass.method("main") != null;
 	}
 

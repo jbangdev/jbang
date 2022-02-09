@@ -1,5 +1,10 @@
 package dev.jbang.cli;
 
+import static dev.jbang.source.JarBuilder.escapeArgsFileArgument;
+import static dev.jbang.source.JarBuilder.escapeOSArgument;
+import static dev.jbang.source.JarBuilder.escapeOSArguments;
+import static dev.jbang.source.JarBuilder.getImageName;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;

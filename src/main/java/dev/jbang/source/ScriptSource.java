@@ -27,7 +27,6 @@ import org.jboss.jandex.ClassInfo;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
-import dev.jbang.cli.BaseBuildCommand;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyResolver;
@@ -102,7 +101,7 @@ public class ScriptSource implements Source {
 	}
 
 	public Predicate<ClassInfo> getMainFinder() {
-		return pubClass -> pubClass.method("main", BaseBuildCommand.STRINGARRAYTYPE) != null;
+		return pubClass -> pubClass.method("main", JarBuilder.STRINGARRAYTYPE) != null;
 	}
 
 	protected String getMainExtension() {
