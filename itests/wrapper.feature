@@ -29,3 +29,8 @@ When command('jbang wrapper install -d ' + scratch)
   * match exit == 0
   * command('jbang wrapper install -f -d ' + scratch)
   * match exit == 0
+
+Scenario: test plain wrapper install
+When command('jbang wrapper install')
+  * match exit == 0
+
