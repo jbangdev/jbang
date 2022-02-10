@@ -161,7 +161,8 @@ public class TestRun extends BaseTest {
 
 		String result = run.generateCommandLine(src, ctx);
 
-		assertThat(result, matchesPattern("^.*jshell(.exe)? --execution=local --startup.*$"));
+		assertThat(result,
+				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString("helloworld.jsh"));
 		assertThat(result, not(containsString("--source 11")));
@@ -227,7 +228,8 @@ public class TestRun extends BaseTest {
 
 		String result = run.generateCommandLine(src, ctx);
 
-		assertThat(result, matchesPattern("^.*jshell(.exe)? --execution=local --startup.*$"));
+		assertThat(result,
+				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString("empty.jsh"));
 		assertThat(result, not(containsString("--source 11")));
@@ -249,7 +251,8 @@ public class TestRun extends BaseTest {
 
 		String result = run.generateCommandLine(src, ctx);
 
-		assertThat(result, matchesPattern("^.*jshell(.exe)? --execution=local --startup.*$"));
+		assertThat(result,
+				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString("hellojsh"));
 		assertThat(result, not(containsString("--source 11")));
@@ -455,7 +458,8 @@ public class TestRun extends BaseTest {
 
 		String result = run.generateCommandLine(src, ctx);
 
-		assertThat(result, matchesPattern("^.*jshell(.exe)? --execution=local --startup.*$"));
+		assertThat(result,
+				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
 		assertThat(result, containsString("funcs.jsh"));
 		assertThat(result, containsString("main.jsh"));
 		assertThat(result, containsString("--startup=DEFAULT"));

@@ -194,10 +194,15 @@ public class Run extends BaseBuildCommand {
 					}
 				}
 
+				// NB: See https://github.com/jbangdev/jbang/issues/992 for the reasons why we
+				// use the -J flags below
+
 				optionalArgs.add("--execution=local");
+				optionalArgs.add("-J--add-modules=ALL-SYSTEM");
 
 				if (!Util.isBlankString(classpath)) {
 					optionalArgs.add("--class-path=" + classpath);
+					optionalArgs.add("-J--class-path=" + classpath);
 				}
 
 				optionalArgs.add("--startup=DEFAULT");

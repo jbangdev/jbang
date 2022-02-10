@@ -37,3 +37,12 @@ Scenario: jsh sources
   When command('jbang main.jsh')
   Then match err == ""
   Then match out == "hello\n"
+
+Scenario: jsh with deps 1
+  When command('jbang deps.jsh')
+  Then match err == ""
+  Then match out == "Hello World\n"
+
+Scenario: jsh with deps 2
+  When command('jbang deps.jsh')
+  Then match err == ""
