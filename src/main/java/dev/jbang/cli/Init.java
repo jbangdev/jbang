@@ -44,10 +44,6 @@ public class Init extends BaseScriptCommand {
 			"--deps" }, converter = CommaSeparatedConverter.class, description = "Add additional dependencies (Use commas to separate them).")
 	List<String> dependencies;
 
-	@CommandLine.Option(names = { "-i",
-			"--ignore-template-defaults" }, description = "Ignore properties default values when using a template")
-	public boolean ignoreDefaultProperties = false;
-
 	@Override
 	public Integer doCall() throws IOException {
 		dev.jbang.catalog.Template tpl = dev.jbang.catalog.Template.get(initTemplate);
@@ -117,7 +113,7 @@ public class Init extends BaseScriptCommand {
 	}
 
 	private void useTemplatePropertiesIfAllowed(dev.jbang.catalog.Template tpl) {
-		if (!ignoreDefaultProperties && tpl.properties != null) {
+		if (tpl.properties != null) {
 			for (Map.Entry<String, TemplateProperty> entry : tpl.properties.entrySet()) {
 				if (entry.getValue().defaultValue != null) {
 					properties.putIfAbsent(entry.getKey(), entry.getValue().defaultValue);

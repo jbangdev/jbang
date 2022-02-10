@@ -322,16 +322,6 @@ public class TestInit extends BaseTest {
 
 		assertThat(out.toFile().exists(), not(true));
 
-		int result = JBang	.getCommandLine()
-							.execute("init", "--verbose", "--template=name", "--ignore-template-defaults",
-									out.toAbsolutePath().toString());
-
-		assertThat(result, is(0));
-		assertThat(out.toFile().exists(), is(true));
-
-		String outcontent = Util.readString(out);
-
-		assertThat(outcontent, containsString("NOT_FOUND"));
 	}
 
 }
