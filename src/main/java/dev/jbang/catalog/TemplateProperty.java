@@ -9,13 +9,21 @@ import com.google.gson.annotations.SerializedName;
  */
 public class TemplateProperty {
 
-	public String description;
+	private String description;
 	@SerializedName(value = "default")
-	public String defaultValue;
+	private String defaultValue;
 
 	public TemplateProperty(String description, String defaultValue) {
 		this.description = description;
 		this.defaultValue = defaultValue;
+	}
+
+	public String getDefaultValue() {
+		return defaultValue;
+	}
+
+	public String getDescription() {
+		return description;
 	}
 
 	@Override

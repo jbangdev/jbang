@@ -365,11 +365,11 @@ class TemplateList extends BaseTemplateCommand {
 																		.append(Util.repeat(" ", indent + 4))
 																		.append(ConsoleOutput.cyan(entry.getKey()))
 																		.append(" = ");
-				if (entry.getValue().description != null) {
-					propertyLineBuilder.append(entry.getValue().description).append(" ");
+				if (entry.getValue().getDescription() != null) {
+					propertyLineBuilder.append(entry.getValue().getDescription()).append(" ");
 				}
-				if (entry.getValue().defaultValue != null) {
-					propertyLineBuilder.append("[").append(entry.getValue().defaultValue).append("]");
+				if (entry.getValue().getDefaultValue() != null) {
+					propertyLineBuilder.append("[").append(entry.getValue().getDefaultValue()).append("]");
 				}
 				out.println(propertyLineBuilder);
 			}

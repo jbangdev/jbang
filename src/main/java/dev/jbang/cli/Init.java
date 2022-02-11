@@ -73,7 +73,7 @@ public class Init extends BaseScriptCommand {
 															e.getKey()))
 													.collect(Collectors.toList());
 
-		useTemplatePropertiesIfAllowed(tpl);
+		applyTemplateProperties(tpl);
 
 		if (!force) {
 			// Check if any of the files already exist
@@ -112,11 +112,11 @@ public class Init extends BaseScriptCommand {
 		return EXIT_OK;
 	}
 
-	private void useTemplatePropertiesIfAllowed(dev.jbang.catalog.Template tpl) {
+	private void applyTemplateProperties(dev.jbang.catalog.Template tpl) {
 		if (tpl.properties != null) {
 			for (Map.Entry<String, TemplateProperty> entry : tpl.properties.entrySet()) {
-				if (entry.getValue().defaultValue != null) {
-					properties.putIfAbsent(entry.getKey(), entry.getValue().defaultValue);
+				if (entry.getValue().getDefaultValue() != null) {
+					properties.putIfAbsent(entry.getKey(), entry.getValue().getDefaultValue());
 				}
 			}
 		}
