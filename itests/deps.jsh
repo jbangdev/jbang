@@ -4,4 +4,5 @@
 import io.bloco.faker.Faker;
 
 Faker fake = new Faker("da-DK");
-System.out.println(fake.name.name());
+System.out.println("Fake output: " + fake.name.firstName());
+

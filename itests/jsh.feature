@@ -40,9 +40,6 @@ Scenario: jsh sources
 
 Scenario: jsh with deps 1
   When command('jbang deps.jsh')
-  Then match err == ""
-  Then match out == "Hello World\n"
+  Then match err !contains ".NoClassDef"
+  Then match out contains "Fake output:"
 
-Scenario: jsh with deps 2
-  When command('jbang deps.jsh')
-  Then match err == ""
