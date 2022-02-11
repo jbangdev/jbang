@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 import javax.lang.model.SourceVersion;
 
+import dev.jbang.catalog.TemplateProperty;
 import dev.jbang.source.RefTarget;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.util.TemplateEngine;
@@ -72,6 +73,8 @@ public class Init extends BaseScriptCommand {
 															e.getKey()))
 													.collect(Collectors.toList());
 
+		applyTemplateProperties(tpl);
+
 		if (!force) {
 			// Check if any of the files already exist
 			for (RefTarget refTarget : refTargets) {
@@ -107,6 +110,16 @@ public class Init extends BaseScriptCommand {
 				+ Edit.knownEditors[new Random().nextInt(Edit.knownEditors.length)] + "'");
 
 		return EXIT_OK;
+	}
+
+	private void applyTemplateProperties(dev.jbang.catalog.Template tpl) {
+		if (tpl.properties != null) {
+			for (Map.Entry<String, TemplateProperty> entry : tpl.properties.entrySet()) {
+				if (entry.getValue().getDefaultValue() != null) {
+					properties.putIfAbsent(entry.getKey(), entry.getValue().getDefaultValue());
+				}
+			}
+		}
 	}
 
 	static Path resolveBaseName(String refTarget, String refSource, String outName) {
