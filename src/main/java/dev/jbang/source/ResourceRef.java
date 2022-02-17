@@ -3,6 +3,7 @@ package dev.jbang.source;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 
@@ -56,7 +57,8 @@ public class ResourceRef implements Comparable<ResourceRef> {
 				sr = Paths.get(originalResource.substring(11)).resolveSibling(siblingResource).toString();
 				sr = "classpath:" + sr;
 			} else {
-				sr = Paths.get(originalResource).resolveSibling(siblingResource).toString();
+				Path baseDir = originalResource != null ? Paths.get(originalResource) : Util.getCwd().resolve("dummy");
+				sr = baseDir.resolveSibling(siblingResource).toString();
 			}
 			ResourceRef result = forResource(sr);
 			if (result == null) {

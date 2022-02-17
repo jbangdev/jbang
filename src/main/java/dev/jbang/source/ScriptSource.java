@@ -531,20 +531,15 @@ public class ScriptSource implements Source {
 		if (getLines() == null) {
 			return Collections.emptyList();
 		} else {
+			String org = getResourceRef().getOriginalResource();
+			Path baseDir = getResourceRef().getFile().getAbsoluteFile().getParentFile().toPath();
 			return getLines()	.stream()
 								.filter(f -> f.startsWith(SOURCES_COMMENT_PREFIX))
 								.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
 														.skip(1)
 														.map(String::trim))
 								.map(replaceProperties)
-								.flatMap(line -> Util
-														.explode(getResourceRef().getOriginalResource(),
-																getResourceRef().getFile()
-																				.getAbsoluteFile()
-																				.getParentFile()
-																				.toPath(),
-																line)
-														.stream())
+								.flatMap(line -> Util.explode(org, baseDir, line).stream())
 								.map(resourceRef::asSibling)
 								.map(it -> prepareScript(it, replaceProperties))
 								.collect(Collectors.toCollection(ArrayList::new));
