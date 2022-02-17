@@ -43,3 +43,7 @@ Scenario: jsh with deps 1
   Then match err !contains ".NoClassDef"
   Then match out contains "Fake output:"
 
+Scenario: as code option
+  * command('jbang --code "System.out.println(\\\"Hello\\\")" jbangtest')
+  * match out == "Hello\n"
+  
