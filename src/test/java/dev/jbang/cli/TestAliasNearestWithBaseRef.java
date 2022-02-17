@@ -64,7 +64,8 @@ public class TestAliasNearestWithBaseRef extends BaseTest {
 	void testAddLocal() throws IOException {
 		Path cwd = Util.getCwd();
 		Path localCatalog = cwd.resolve(Catalog.JBANG_CATALOG_JSON);
-		CatalogUtil.addNearestAlias("new", "scripts/local.java", null, null, null, null, null, null, null, null, null);
+		CatalogUtil.addNearestAlias("new", "scripts/local.java", null, null, null, null, null, null, null, null, null,
+				null);
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(localCatalog);
 		assertThat(catalog.aliases.keySet(), hasItem("new"));
@@ -77,7 +78,8 @@ public class TestAliasNearestWithBaseRef extends BaseTest {
 		Path localCatalog = cwd.resolve(Catalog.JBANG_CATALOG_JSON);
 		Path dotLocalCatalog = cwd.resolve(Settings.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
 		Files.delete(localCatalog);
-		CatalogUtil.addNearestAlias("new", "scripts/local.java", null, null, null, null, null, null, null, null, null);
+		CatalogUtil.addNearestAlias("new", "scripts/local.java", null, null, null, null, null, null, null, null, null,
+				null);
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(dotLocalCatalog);
@@ -93,7 +95,8 @@ public class TestAliasNearestWithBaseRef extends BaseTest {
 		Path parentCatalog = cwd.getParent().resolve(Settings.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
 		Files.delete(localCatalog);
 		Files.delete(dotLocalCatalog);
-		CatalogUtil.addNearestAlias("new", "scripts/local.java", null, null, null, null, null, null, null, null, null);
+		CatalogUtil.addNearestAlias("new", "scripts/local.java", null, null, null, null, null, null, null, null, null,
+				null);
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		assertThat(dotLocalCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
@@ -111,6 +114,7 @@ public class TestAliasNearestWithBaseRef extends BaseTest {
 		Files.delete(localCatalog);
 		Files.delete(dotLocalCatalog);
 		CatalogUtil.addNearestAlias("new", "../scripts/parent.java", null, null, null, null, null, null, null, null,
+				null,
 				null);
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		assertThat(dotLocalCatalog.toFile(), not(anExistingFile()));

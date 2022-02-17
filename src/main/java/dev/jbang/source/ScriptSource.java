@@ -532,7 +532,8 @@ public class ScriptSource implements Source {
 			return Collections.emptyList();
 		} else {
 			String org = getResourceRef().getOriginalResource();
-			Path baseDir = getResourceRef().getFile().getAbsoluteFile().getParentFile().toPath();
+			Path baseDir = org != null ? getResourceRef().getFile().getAbsoluteFile().getParentFile().toPath()
+					: Util.getCwd();
 			return getLines()	.stream()
 								.filter(f -> f.startsWith(SOURCES_COMMENT_PREFIX))
 								.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
@@ -540,10 +541,14 @@ public class ScriptSource implements Source {
 														.map(String::trim))
 								.map(replaceProperties)
 								.flatMap(line -> Util.explode(org, baseDir, line).stream())
-								.map(resourceRef::asSibling)
-								.map(it -> prepareScript(it, replaceProperties))
+								.map(this::getSibling)
 								.collect(Collectors.toCollection(ArrayList::new));
 		}
+	}
+
+	public ScriptSource getSibling(String resource) {
+		ResourceRef siblingRef = resourceRef.asSibling(resource);
+		return prepareScript(siblingRef, replaceProperties);
 	}
 
 	protected <R> List<R> collectAll(Function<ScriptSource, List<R>> func) {

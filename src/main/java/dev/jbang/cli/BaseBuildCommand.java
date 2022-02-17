@@ -59,6 +59,9 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
 
+	@CommandLine.Option(names = { "-s", "--sources" }, description = "Add additional sources.")
+	List<String> sources;
+
 	@CommandLine.Option(names = { "-m",
 			"--main" }, description = "Main class to use when running. Used primarily for running jar's.")
 	String main;
@@ -179,7 +182,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 
 		// add source files to compile
 		optionList.add(src.getResourceRef().getFile().getPath());
-		optionList.addAll(src	.getAllSources()
+		optionList.addAll(ctx	.getAllSources(src)
 								.stream()
 								.map(x -> x.getResourceRef().getFile().getPath())
 								.collect(Collectors.toList()));

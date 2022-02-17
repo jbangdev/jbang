@@ -125,6 +125,7 @@ public class Run extends BaseBuildCommand {
 		ctx.setMainClass(main);
 		ctx.setNativeImage(nativeImage);
 		ctx.setCatalog(catalog);
+		ctx.setAdditionalSources(sources);
 		return ctx;
 	}
 
@@ -353,7 +354,7 @@ public class Run extends BaseBuildCommand {
 			} else {
 				if (ctx.isForceJsh() || src.isJShell()) {
 					if (src instanceof ScriptSource) {
-						for (Source s : ((ScriptSource) src).getAllSources()) {
+						for (Source s : ctx.getAllSources((ScriptSource) src)) {
 							fullArgs.add(s.getResourceRef().getFile().toString());
 						}
 					}

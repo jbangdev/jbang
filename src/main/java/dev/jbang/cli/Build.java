@@ -36,6 +36,7 @@ public class Build extends BaseBuildCommand {
 		ctx.setMainClass(main);
 		ctx.setNativeImage(nativeImage);
 		ctx.setCatalog(catalog);
+		ctx.setAdditionalSources(sources);
 		return ctx;
 	}
 }
