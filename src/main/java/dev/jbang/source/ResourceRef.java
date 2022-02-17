@@ -16,6 +16,8 @@ public class ResourceRef implements Comparable<ResourceRef> {
 	// cache folder it is stored inside
 	private final File file;
 
+	public static final ResourceRef nullRef = new ResourceRef(null, null);
+
 	private ResourceRef(String ref, File file) {
 		this.originalResource = ref;
 		this.file = file;

@@ -18,6 +18,7 @@ import dev.jbang.Settings;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.ScriptSource;
 import dev.jbang.source.Source;
+import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
@@ -60,20 +61,50 @@ public class Run extends BaseBuildCommand {
 	@CommandLine.Option(names = { "--javaagent" }, parameterConsumer = KeyOptionalValueConsumer.class)
 	public Map<String, Optional<String>> javaAgentSlots;
 
-	@CommandLine.Option(names = { "--interactive" }, description = "activate interactive mode")
+	@CommandLine.Option(names = { "-i", "--interactive" }, description = "Activate interactive mode")
 	public boolean interactive;
+
+	@CommandLine.Option(names = { "-c",
+			"--code" }, arity = "0..1", description = "Run the given string as code", preprocessor = StrictParameterPreprocessor.class)
+	public Optional<String> literalScript;
 
 	@CommandLine.Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
 	public List<String> userParams = new ArrayList<>();
 
 	@Override
 	public Integer doCall() throws IOException {
+		if (scriptOrFile == null && !interactive && !literalScript.isPresent()) {
+			throw new IllegalArgumentException("Missing required parameter: '<scriptOrFile>'");
+		}
+
 		if (insecure) {
 			enableInsecure();
 		}
 
 		RunContext ctx = getRunContext();
-		Source src = ctx.forResource(scriptOrFile);
+		Source src;
+		if (literalScript.isPresent()) {
+			String script;
+			if (!literalScript.get().isEmpty()) {
+				script = literalScript.get();
+				if (scriptOrFile != null) {
+					userParams.add(0, scriptOrFile);
+					scriptOrFile = null;
+				}
+			} else {
+				script = scriptOrFile;
+			}
+			src = ctx.forResourceRef(LiteralScriptResourceResolver.stringToResourceRef(null, script));
+		} else {
+			if (scriptOrFile != null) {
+				src = ctx.forResource(scriptOrFile);
+			} else {
+				// HACK it's a crappy way to work around the fact that in the case of
+				// interactive we might not have a file to reference but all the code
+				// expects one to exist
+				src = ctx.forResourceRef(LiteralScriptResourceResolver.stringToResourceRef(null, ""));
+			}
+		}
 		src = prepareArtifacts(src, ctx);
 
 		String cmdline = generateOSCommandLine(src, ctx);

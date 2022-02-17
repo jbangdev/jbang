@@ -23,7 +23,7 @@ import dev.jbang.util.Util;
  * will try to create a copy in the cache with a proper file name and return a
  * reference to that file.
  */
-public class StdinScriptResourceResolver implements ResourceResolver {
+public class LiteralScriptResourceResolver implements ResourceResolver {
 	@Override
 	public ResourceRef resolve(String resource) {
 		ResourceRef result = null;

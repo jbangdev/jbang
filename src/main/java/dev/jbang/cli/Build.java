@@ -12,6 +12,7 @@ public class Build extends BaseBuildCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
+		requireScriptArgument();
 		if (insecure) {
 			enableInsecure();
 		}

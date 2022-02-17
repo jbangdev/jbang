@@ -58,7 +58,7 @@ public class Edit extends BaseScriptCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
-
+		requireScriptArgument();
 		if (insecure) {
 			enableInsecure();
 		}
