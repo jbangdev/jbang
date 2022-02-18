@@ -249,6 +249,7 @@ public class Run extends BaseBuildCommand {
 						"import java.math.BigDecimal;\n";
 				Util.writeString(tempFile.toPath(),
 						defaultImports + generateArgs(ctx.getArguments(), ctx.getProperties()) +
+								generateStdInputHelper() +
 								generateMain(ctx.getMainClass()));
 				if (ctx.getMainClass() != null) {
 					if (!ctx.getMainClass().contains(".")) {
@@ -413,6 +414,12 @@ public class Run extends BaseBuildCommand {
 							.stream()
 							.map(x -> "System.setProperty(\"" + x.getKey() + "\",\"" + x.getValue() + "\");")
 							.collect(Collectors.joining("\n"));
+		return buf;
+	}
+
+	static String generateStdInputHelper() {
+		String buf = "\nStream<String> lines() { return new BufferedReader(new InputStreamReader(System.in)).lines(); }\n";
+		buf += "/open PRINTING\n";
 		return buf;
 	}
 
