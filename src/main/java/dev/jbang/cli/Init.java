@@ -46,6 +46,7 @@ public class Init extends BaseScriptCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
+		requireScriptArgument();
 		dev.jbang.catalog.Template tpl = dev.jbang.catalog.Template.get(initTemplate);
 		if (tpl == null) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,

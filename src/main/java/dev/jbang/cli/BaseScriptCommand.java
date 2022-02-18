@@ -24,8 +24,14 @@ public abstract class BaseScriptCommand extends BaseCommand {
 	@CommandLine.Option(names = { "--jsh" }, description = "Force input to be interpreted with jsh/jshell")
 	boolean forcejsh = false;
 
-	@CommandLine.Parameters(index = "0", arity = "1", description = "A file with java code or if named .jsh will be run with jshell")
+	@CommandLine.Parameters(index = "0", arity = "0..1", description = "A reference to a source file")
 	String scriptOrFile;
+
+	protected void requireScriptArgument() {
+		if (scriptOrFile == null) {
+			throw new IllegalArgumentException("Missing required parameter: '<scriptOrFile>'");
+		}
+	}
 
 	static protected boolean needsJar(Source source, RunContext context) {
 		// anything but .jar and .jsh files needs jar

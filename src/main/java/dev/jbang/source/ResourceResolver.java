@@ -38,7 +38,7 @@ public interface ResourceResolver {
 	static ResourceResolver forScripts(Function<String, ModularClassPath> depResolver) {
 		return new CombinedResourceResolver(
 				new RenamingScriptResourceResolver(),
-				new StdinScriptResourceResolver(),
+				new LiteralScriptResourceResolver(),
 				new RemoteResourceResolver(RemoteResourceResolver::fetchScriptFromUntrustedURL),
 				new ClasspathResourceResolver(),
 				new GavResourceResolver(depResolver),

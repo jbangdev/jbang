@@ -28,6 +28,10 @@ Scenario: java run multiple matching sources
   Then match out contains "NestedOne"
   Then match out contains "NestedTwo"
 
+Scenario: java run multiple sources via cli
+  When command('jbang -s bar/Bar.java foo.java')
+  Then match out contains "Bar"
+
 Scenario: java run multiple files
   When command('jbang res/resource.java')
   Then match out contains "hello properties"

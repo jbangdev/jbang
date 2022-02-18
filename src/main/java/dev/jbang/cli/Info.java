@@ -138,6 +138,7 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 	private static Set<String> scripts;
 
 	ScriptInfo getInfo() {
+		requireScriptArgument();
 		if (insecure) {
 			enableInsecure();
 		}

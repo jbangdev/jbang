@@ -35,6 +35,7 @@ public class CatalogUtil {
 			String scriptRef,
 			String description,
 			List<String> arguments,
+			List<String> sources,
 			List<String> dependencies,
 			List<String> repositories,
 			List<String> classPaths,
@@ -43,8 +44,8 @@ public class CatalogUtil {
 			String javaVersion,
 			String mainClass) {
 		Path catalogFile = Catalog.getCatalogFile(null);
-		addAlias(catalogFile, name, scriptRef, description, arguments, javaRuntimeOptions, dependencies, repositories,
-				classPaths, properties, javaVersion, mainClass);
+		addAlias(catalogFile, name, scriptRef, description, arguments, javaRuntimeOptions, sources, dependencies,
+				repositories, classPaths, properties, javaVersion, mainClass);
 		return catalogFile;
 	}
 
@@ -60,6 +61,7 @@ public class CatalogUtil {
 			String description,
 			List<String> arguments,
 			List<String> javaRuntimeOptions,
+			List<String> sources,
 			List<String> dependencies,
 			List<String> repositories,
 			List<String> classPaths,
@@ -70,7 +72,8 @@ public class CatalogUtil {
 		catalogFile = cwd.resolve(catalogFile);
 		Catalog catalog = Catalog.get(catalogFile);
 		scriptRef = catalog.relativize(scriptRef);
-		Alias alias = new Alias(scriptRef, description, arguments, javaRuntimeOptions, dependencies, repositories,
+		Alias alias = new Alias(scriptRef, description, arguments, javaRuntimeOptions, sources, dependencies,
+				repositories,
 				classPaths, properties, javaVersion, mainClass, catalog);
 		catalog.aliases.put(name, alias);
 		try {

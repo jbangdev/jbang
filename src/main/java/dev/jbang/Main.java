@@ -31,7 +31,8 @@ public class Main {
 		}
 		// Check if we have a parameter and it's not the same as any of the subcommand
 		// names
-		if (!remainingArgs.isEmpty() && !spec.subcommands().containsKey(remainingArgs.get(0))) {
+		if (!remainingArgs.isEmpty() && !spec.subcommands().containsKey(remainingArgs.get(0))
+				|| hasRunOpts(leadingOpts)) {
 			List<String> result = new ArrayList<>();
 			result.add("run");
 			result.addAll(leadingOpts);
@@ -39,5 +40,14 @@ public class Main {
 			args = result.toArray(args);
 		}
 		return args;
+	}
+
+	private static boolean hasRunOpts(List<String> opts) {
+		boolean res = opts.contains("-i") || opts.contains("--interactive")
+				|| opts.contains("-c") || opts.contains("--code");
+		res = res || opts	.stream()
+							.anyMatch(o -> o.startsWith("-i=") || o.startsWith("--interactive=")
+									|| o.startsWith("-c=") || o.startsWith("--code="));
+		return res;
 	}
 }

@@ -12,6 +12,7 @@ public class Build extends BaseBuildCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
+		requireScriptArgument();
 		if (insecure) {
 			enableInsecure();
 		}
@@ -35,6 +36,7 @@ public class Build extends BaseBuildCommand {
 		ctx.setMainClass(main);
 		ctx.setNativeImage(nativeImage);
 		ctx.setCatalog(catalog);
+		ctx.setAdditionalSources(sources);
 		return ctx;
 	}
 }

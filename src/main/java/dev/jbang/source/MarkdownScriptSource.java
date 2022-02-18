@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
-import dev.jbang.source.resolvers.StdinScriptResourceResolver;
+import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 
 public class MarkdownScriptSource extends ScriptSource {
 
@@ -22,7 +22,7 @@ public class MarkdownScriptSource extends ScriptSource {
 			// this will cache the content in stdin cache which is not optimal but needed to
 			// have the transformed script stored
 			// seperately from the possibly originally cached file.
-			resourceRef = StdinScriptResourceResolver.stringToResourceRef(resourceRef.getOriginalResource(),
+			resourceRef = LiteralScriptResourceResolver.stringToResourceRef(resourceRef.getOriginalResource(),
 					scriptText);
 		} catch (IOException e) {
 			throw new ExitException(BaseCommand.EXIT_UNEXPECTED_STATE,

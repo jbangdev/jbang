@@ -230,6 +230,12 @@ jbang init -t hello.kt hello.kt
 Hello World
 ----
 
+== Running script passed as argument
+
+jbang can run scripts that are passed directly on the command line using the `--code` option:
+
+`jbang --code System.out.println("Hello World!")`
+
 == Running script from standard input
 
 jbang can run scripts directly from standard input using `-` or `/dev/stdin` as input.

@@ -202,7 +202,7 @@ public class Util {
 
 		List<String> results = new ArrayList<>();
 
-		if (Util.isURL(source)) {
+		if (source != null && Util.isURL(source)) {
 			// if url then just return it back for others to resolve.
 			// TODO: technically this is really where it should get resolved!
 			if (isPattern(filepattern)) {

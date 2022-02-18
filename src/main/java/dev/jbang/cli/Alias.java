@@ -61,6 +61,9 @@ class AliasAdd extends BaseAliasCommand {
 	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
 
+	@CommandLine.Option(names = { "-s", "--sources" }, description = "Add additional sources.")
+	List<String> sources;
+
 	@CommandLine.Option(names = { "--description",
 			"-d" }, description = "A description for the alias")
 	String description;
@@ -102,11 +105,11 @@ class AliasAdd extends BaseAliasCommand {
 
 		Path catFile = getCatalog(false);
 		if (catFile != null) {
-			CatalogUtil.addAlias(catFile, name, scriptOrFile, desc, userParams, javaRuntimeOptions,
+			CatalogUtil.addAlias(catFile, name, scriptOrFile, desc, userParams, javaRuntimeOptions, sources,
 					dependencyInfoMixin.getDependencies(), dependencyInfoMixin.getRepositories(),
 					dependencyInfoMixin.getClasspaths(), dependencyInfoMixin.getProperties(), javaVersion, mainClass);
 		} else {
-			catFile = CatalogUtil.addNearestAlias(name, scriptOrFile, desc, userParams, javaRuntimeOptions,
+			catFile = CatalogUtil.addNearestAlias(name, scriptOrFile, desc, userParams, javaRuntimeOptions, sources,
 					dependencyInfoMixin.getDependencies(), dependencyInfoMixin.getRepositories(),
 					dependencyInfoMixin.getClasspaths(), dependencyInfoMixin.getProperties(), javaVersion, mainClass);
 		}

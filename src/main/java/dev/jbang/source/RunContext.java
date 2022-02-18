@@ -28,6 +28,7 @@ public class RunContext {
 	private List<String> javaOptions;
 	private Map<String, String> properties;
 
+	private List<String> additionalSources = Collections.emptyList();
 	private List<String> additionalDeps = Collections.emptyList();
 	private List<String> additionalRepos = Collections.emptyList();
 	private List<String> additionalClasspaths = Collections.emptyList();
@@ -63,7 +64,8 @@ public class RunContext {
 	}
 
 	public static RunContext create(List<String> arguments, List<String> javaRuntimeOptions,
-			Map<String, String> properties, List<String> dependencies, List<String> repositories,
+			Map<String, String> properties,
+			List<String> dependencies, List<String> repositories,
 			List<String> classpaths, boolean forceJsh) {
 		RunContext ctx = new RunContext(arguments, javaRuntimeOptions, properties);
 		ctx.setAdditionalDependencies(dependencies);
@@ -97,6 +99,35 @@ public class RunContext {
 
 	public void setProperties(Map<String, String> properties) {
 		this.properties = properties;
+	}
+
+	public List<ScriptSource> getAllSources(ScriptSource src) {
+		List<ScriptSource> ssrcs = src.getAllSources();
+		List<ScriptSource> asrcs = getAdditionalSources()	.stream()
+															.map(src::getSibling)
+															.collect(Collectors.toList());
+		if (asrcs.isEmpty()) {
+			return ssrcs;
+		} else if (ssrcs.isEmpty()) {
+			return asrcs;
+		} else {
+			ArrayList<ScriptSource> result = new ArrayList<>();
+			result.addAll(ssrcs);
+			result.addAll(asrcs);
+			return result;
+		}
+	}
+
+	public List<String> getAdditionalSources() {
+		return additionalSources;
+	}
+
+	public void setAdditionalSources(List<String> sources) {
+		if (sources != null) {
+			this.additionalSources = new ArrayList<>(sources);
+		} else {
+			this.additionalSources = Collections.emptyList();
+		}
 	}
 
 	public List<String> getAdditionalDependencies() {
@@ -377,6 +408,9 @@ public class RunContext {
 				}
 				if (getJavaOptions() == null || getJavaOptions().isEmpty()) {
 					setJavaOptions(alias.javaOptions);
+				}
+				if (getAdditionalSources() == null || getAdditionalSources().isEmpty()) {
+					setAdditionalSources(alias.sources);
 				}
 				if (getAdditionalDependencies() == null || getAdditionalDependencies().isEmpty()) {
 					setAdditionalDependencies(alias.dependencies);
