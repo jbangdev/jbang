@@ -420,6 +420,7 @@ public class Run extends BaseBuildCommand {
 
 	static String generateStdInputHelper() {
 		String buf = "\nStream<String> lines() { return new BufferedReader(new InputStreamReader(System.in)).lines(); }\n";
+		buf += "\nStream<String> lines(String path) throws IOException { return Files.lines(Path.of(path)); }\n";
 		buf += "/open PRINTING\n";
 		return buf;
 	}

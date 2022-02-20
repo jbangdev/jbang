@@ -63,6 +63,7 @@ import dev.jbang.source.JarSource;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.ScriptSource;
 import dev.jbang.source.Source;
+import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -170,6 +171,28 @@ public class TestRun extends BaseTest {
 		assertThat(result, matchesPattern(".*--startup=[^ ]*helloworld.jsh.*"));
 		assertThat(result, not(containsString("blah")));
 		assertThat(result, containsString("jbang_exit_"));
+	}
+
+	@Test
+	void testNestedDeps() throws IOException {
+
+		environmentVariables.clear("JAVA_HOME");
+		JBang jbang = new JBang();
+		String arg = examplesTestFolder.resolve("ec.jsh").toAbsolutePath().toString();
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "-s", arg, "-c", "Collector2.class");
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+		ScriptSource src = (ScriptSource) ctx.forResourceRef(
+				LiteralScriptResourceResolver.stringToResourceRef(null, "Collector2.class"));
+
+		String result = run.generateCommandLine(src, ctx);
+
+		assertThat(result,
+				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
+
+		// this should fail as soon as nested -s is working.
+		assertThat(result, not(containsString("eclipse-collections-api")));
 	}
 
 	@Test
