@@ -73,7 +73,8 @@ public class Run extends BaseBuildCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
-		if (scriptOrFile == null && !interactive && !literalScript.isPresent()) {
+		if (scriptOrFile == null && ((!interactive && !literalScript.isPresent())
+				|| (literalScript.isPresent() && literalScript.get().isEmpty()))) {
 			throw new IllegalArgumentException("Missing required parameter: '<scriptOrFile>'");
 		}
 
