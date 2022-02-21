@@ -24,19 +24,4 @@ public class Build extends BaseBuildCommand {
 
 		return EXIT_OK;
 	}
-
-	RunContext getRunContext() {
-		RunContext ctx = RunContext.create(null, null,
-				dependencyInfoMixin.getProperties(),
-				dependencyInfoMixin.getDependencies(),
-				dependencyInfoMixin.getRepositories(),
-				dependencyInfoMixin.getClasspaths(),
-				forcejsh);
-		ctx.setJavaVersion(javaVersion);
-		ctx.setMainClass(main);
-		ctx.setNativeImage(nativeImage);
-		ctx.setCatalog(catalog);
-		ctx.setAdditionalSources(sources);
-		return ctx;
-	}
 }

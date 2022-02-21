@@ -45,6 +45,9 @@ public class Edit extends BaseScriptCommand {
 	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
 
+	@CommandLine.Option(names = { "-s", "--sources" }, description = "Add additional sources.")
+	List<String> sources;
+
 	@CommandLine.Option(names = {
 			"--live" }, description = "Setup temporary project, regenerate project on dependency changes.")
 	public boolean live;
@@ -63,12 +66,7 @@ public class Edit extends BaseScriptCommand {
 			enableInsecure();
 		}
 
-		RunContext ctx = RunContext.create(null, null,
-				dependencyInfoMixin.getProperties(),
-				dependencyInfoMixin.getDependencies(),
-				dependencyInfoMixin.getRepositories(),
-				dependencyInfoMixin.getClasspaths(),
-				forcejsh);
+		RunContext ctx = getRunContext();
 		Source src = ctx.forResource(scriptOrFile);
 
 		if (!(src instanceof ScriptSource)) {
@@ -153,6 +151,17 @@ public class Edit extends BaseScriptCommand {
 			}
 		}
 		return EXIT_OK;
+	}
+
+	RunContext getRunContext() {
+		RunContext ctx = new RunContext();
+		ctx.setProperties(dependencyInfoMixin.getProperties());
+		ctx.setAdditionalDependencies(dependencyInfoMixin.getDependencies());
+		ctx.setAdditionalRepositories(dependencyInfoMixin.getRepositories());
+		ctx.setAdditionalClasspaths(dependencyInfoMixin.getClasspaths());
+		ctx.setAdditionalSources(sources);
+		ctx.setForceJsh(forcejsh);
+		return ctx;
 	}
 
 	private static Optional<String> askEditor() throws IOException {

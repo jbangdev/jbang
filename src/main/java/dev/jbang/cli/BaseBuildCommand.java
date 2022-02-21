@@ -5,7 +5,7 @@ import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Optional;
+import java.util.List;
 
 import dev.jbang.source.*;
 
@@ -35,14 +35,6 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 	}
 
 	@CommandLine.Option(names = {
-			"--cds" }, description = "If specified Class Data Sharing (CDS) will be used for building and running (requires Java 13+)", negatable = true)
-	Boolean cds;
-
-	Optional<Boolean> cds() {
-		return Optional.ofNullable(cds);
-	}
-
-	@CommandLine.Option(names = {
 			"-n", "--native" }, description = "Build using native-image")
 	boolean nativeImage;
 
@@ -56,5 +48,20 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 			src = new JarBuilder().build((ScriptSource) src, ctx);
 		}
 		return src;
+	}
+
+	RunContext getRunContext() {
+		RunContext ctx = new RunContext();
+		ctx.setProperties(dependencyInfoMixin.getProperties());
+		ctx.setAdditionalDependencies(dependencyInfoMixin.getDependencies());
+		ctx.setAdditionalRepositories(dependencyInfoMixin.getRepositories());
+		ctx.setAdditionalClasspaths(dependencyInfoMixin.getClasspaths());
+		ctx.setAdditionalSources(sources);
+		ctx.setForceJsh(forcejsh);
+		ctx.setJavaVersion(javaVersion);
+		ctx.setMainClass(main);
+		ctx.setNativeImage(nativeImage);
+		ctx.setCatalog(catalog);
+		return ctx;
 	}
 }

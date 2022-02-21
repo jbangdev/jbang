@@ -24,8 +24,6 @@ import dev.jbang.util.PropertiesValueResolver;
  * together determine what finally gets executed and how.
  */
 public class RunContext {
-	private List<String> arguments;
-	private List<String> javaOptions;
 	private Map<String, String> properties;
 
 	private List<String> additionalSources = Collections.emptyList();
@@ -54,35 +52,17 @@ public class RunContext {
 	private String javaVersion;
 	private Properties contextProperties;
 
+	private List<String> arguments;
+	private List<String> javaOptions;
+	private boolean interactive;
+	private boolean enableAssertions;
+	private boolean enableSystemAssertions;
+	private String flightRecorderString;
+	private String debugString;
+	private Boolean classDataSharing;
+
 	public static RunContext empty() {
 		return new RunContext();
-	}
-
-	public static RunContext create(List<String> arguments, List<String> javaRuntimeOptions,
-			Map<String, String> properties) {
-		return new RunContext(arguments, javaRuntimeOptions, properties);
-	}
-
-	public static RunContext create(List<String> arguments, List<String> javaRuntimeOptions,
-			Map<String, String> properties,
-			List<String> dependencies, List<String> repositories,
-			List<String> classpaths, boolean forceJsh) {
-		RunContext ctx = new RunContext(arguments, javaRuntimeOptions, properties);
-		ctx.setAdditionalDependencies(dependencies);
-		ctx.setAdditionalRepositories(repositories);
-		ctx.setAdditionalClasspaths(classpaths);
-		ctx.setForceJsh(forceJsh);
-		return ctx;
-	}
-
-	private RunContext() {
-		this(null, null, null);
-	}
-
-	private RunContext(List<String> arguments, List<String> javaOptions, Map<String, String> properties) {
-		this.arguments = arguments;
-		this.javaOptions = javaOptions;
-		this.properties = properties;
 	}
 
 	public List<String> getArguments() {
@@ -99,6 +79,62 @@ public class RunContext {
 
 	public void setProperties(Map<String, String> properties) {
 		this.properties = properties;
+	}
+
+	public boolean isInteractive() {
+		return interactive;
+	}
+
+	public void setInteractive(boolean interactive) {
+		this.interactive = interactive;
+	}
+
+	public boolean isEnableAssertions() {
+		return enableAssertions;
+	}
+
+	public void setEnableAssertions(boolean enableAssertions) {
+		this.enableAssertions = enableAssertions;
+	}
+
+	public boolean isEnableSystemAssertions() {
+		return enableSystemAssertions;
+	}
+
+	public void setEnableSystemAssertions(boolean enableSystemAssertions) {
+		this.enableSystemAssertions = enableSystemAssertions;
+	}
+
+	public String getFlightRecorderString() {
+		return flightRecorderString;
+	}
+
+	public void setFlightRecorderString(String flightRecorderString) {
+		this.flightRecorderString = flightRecorderString;
+	}
+
+	public boolean isFlightRecordingEnabled() {
+		return flightRecorderString != null && !flightRecorderString.isEmpty();
+	}
+
+	public String getDebugString() {
+		return debugString;
+	}
+
+	public void setDebugString(String debugString) {
+		this.debugString = debugString;
+	}
+
+	public boolean isDebugEnabled() {
+		return debugString != null && !debugString.isEmpty();
+	}
+
+	public Boolean getClassDataSharing() {
+		return classDataSharing;
+	}
+
+	public void setClassDataSharing(Boolean classDataSharing) {
+		this.classDataSharing = classDataSharing;
 	}
 
 	public List<ScriptSource> getAllSources(ScriptSource src) {

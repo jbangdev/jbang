@@ -42,20 +42,25 @@ public class Export {
 			enableInsecure();
 		}
 
-		RunContext ctx = RunContext.create(null, null,
-				exportMixin.dependencyInfoMixin.getProperties(),
-				exportMixin.dependencyInfoMixin.getDependencies(),
-				exportMixin.dependencyInfoMixin.getRepositories(),
-				exportMixin.dependencyInfoMixin.getClasspaths(),
-				false);
-		ctx.setJavaVersion(exportMixin.javaVersion);
-		ctx.setNativeImage(exportMixin.nativeImage);
+		RunContext ctx = getRunContext(exportMixin);
 		Source src = ctx.forResource(exportMixin.scriptOrFile);
 
 		src = buildIfNeeded(src, ctx);
 		ctx.resolveClassPath(src);
 
 		return style.apply(exportMixin, src, ctx);
+	}
+
+	static RunContext getRunContext(ExportMixin exportMixin) {
+		RunContext ctx = new RunContext();
+		ctx.setProperties(exportMixin.dependencyInfoMixin.getProperties());
+		ctx.setAdditionalDependencies(exportMixin.dependencyInfoMixin.getDependencies());
+		ctx.setAdditionalRepositories(exportMixin.dependencyInfoMixin.getRepositories());
+		ctx.setAdditionalClasspaths(exportMixin.dependencyInfoMixin.getClasspaths());
+		// ctx.setAdditionalSources(exportMixin.sources);
+		ctx.setJavaVersion(exportMixin.javaVersion);
+		ctx.setNativeImage(exportMixin.nativeImage);
+		return ctx;
 	}
 
 }

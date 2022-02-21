@@ -117,7 +117,7 @@ public class JarBuilder implements Builder {
 
 		// add source files to compile
 		optionList.add(src.getResourceRef().getFile().getPath());
-		optionList.addAll(src	.getAllSources()
+		optionList.addAll(ctx	.getAllSources(src)
 								.stream()
 								.map(x -> x.getResourceRef().getFile().getPath())
 								.collect(Collectors.toList()));

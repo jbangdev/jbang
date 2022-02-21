@@ -34,6 +34,9 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
 
+	@CommandLine.Option(names = { "-s", "--sources" }, description = "Add additional sources.")
+	List<String> sources;
+
 	static class ResourceFile {
 		String originalResource;
 		String backingResource;
@@ -143,18 +146,24 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 			enableInsecure();
 		}
 
-		RunContext ctx = RunContext.create(null, null,
-				dependencyInfoMixin.getProperties(),
-				dependencyInfoMixin.getDependencies(),
-				dependencyInfoMixin.getRepositories(),
-				dependencyInfoMixin.getClasspaths(),
-				forcejsh);
+		RunContext ctx = getRunContext();
 		Source src = ctx.importJarMetadataFor(ctx.forResource(scriptOrFile));
 
 		scripts = new HashSet<>();
 		ScriptInfo info = new ScriptInfo(src, ctx);
 
 		return info;
+	}
+
+	RunContext getRunContext() {
+		RunContext ctx = new RunContext();
+		ctx.setProperties(dependencyInfoMixin.getProperties());
+		ctx.setAdditionalDependencies(dependencyInfoMixin.getDependencies());
+		ctx.setAdditionalRepositories(dependencyInfoMixin.getRepositories());
+		ctx.setAdditionalClasspaths(dependencyInfoMixin.getClasspaths());
+		ctx.setAdditionalSources(sources);
+		ctx.setForceJsh(forcejsh);
+		return ctx;
 	}
 
 }

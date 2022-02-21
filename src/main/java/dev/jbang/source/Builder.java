@@ -4,6 +4,4 @@ import java.io.IOException;
 
 public interface Builder {
 	Source build(ScriptSource src, RunContext ctx) throws IOException;
-
-	Builder nop = (src, ctx) -> null;
 }
