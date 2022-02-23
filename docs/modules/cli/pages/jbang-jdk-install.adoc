@@ -19,7 +19,7 @@ jbang-jdk-install - Installs a JDK.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang jdk install* *-o* [*-f*] *--fresh* *--quiet* *--verbose* _version_
+*jbang jdk install* *-o* [*-f*] *--fresh* *--quiet* *--verbose* _version_ _[existingJdkPath]_
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -55,6 +55,9 @@ Installs a JDK.
 
 _version_::
   The version to install
+
+_[existingJdkPath]_::
+  Already existing JDK's path on the filesystem. If path is given, its version will be checked against the incoming one, if not the same, the process will not finish successfully.
 
 // end::picocli-generated-man-section-arguments[]
 

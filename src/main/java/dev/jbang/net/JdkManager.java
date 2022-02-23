@@ -1,5 +1,6 @@
 package dev.jbang.net;
 
+import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
 import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 
 import java.io.IOException;
@@ -7,6 +8,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +18,8 @@ import java.util.TreeSet;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.apache.commons.io.FileUtils;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
@@ -203,6 +207,40 @@ public class JdkManager {
 		}
 	}
 
+	/**
+	 * Links JBang JDK folder to an already existing JDK path with a soft link. It
+	 * checks if the incoming version number is the same that the linked JDK has, if
+	 * not an exception will be raised.
+	 *
+	 * @param path    path to the pre-installed JDK.
+	 * @param version requested version to link.
+	 */
+	public static void linkToExistingDirectory(String path, int version) {
+		Path jdkPath = getJdkPath(version);
+		Util.verboseMsg("Trying to link " + path + " to " + jdkPath);
+		if (Files.exists(jdkPath)) {
+			Util.verboseMsg("JBang managed JDK already exists, must be deleted to make sure linking works");
+			try {
+				FileUtils.deleteDirectory(jdkPath.toFile());
+			} catch (IOException e) {
+				throw new ExitException(EXIT_UNEXPECTED_STATE,
+						"Unable delete already existing JBang managed JDK at " + jdkPath, e);
+			}
+		}
+		Path linkedJdkPath = Paths.get(path);
+		if (!Files.isDirectory(linkedJdkPath)) {
+			throw new ExitException(EXIT_INVALID_INPUT, "Unable to resolve path as directory: " + path);
+		}
+		Optional<Integer> ver = resolveJavaVersionFromPath(linkedJdkPath);
+		if (ver.isPresent() && ver.get() == version) {
+			Util.createLink(jdkPath, linkedJdkPath);
+			Util.infoMsg("JDK " + version + " has been linked to: " + linkedJdkPath);
+		} else {
+			throw new ExitException(EXIT_INVALID_INPUT, "Java version in given path: " + path
+					+ " is not having the requested version " + version + ", please provide a proper path");
+		}
+	}
+
 	public static Optional<Integer> nextInstalledJdk(int minVersion) {
 		return listInstalledJdks()
 									.stream()
@@ -262,10 +300,7 @@ public class JdkManager {
 				} else {
 					// Should be a hard link, so we can't parse the version number
 					// from the directory name, so we read the "release" file instead.
-					Optional<Integer> ver = Files	.lines(link.resolve("release"))
-													.filter(l -> l.startsWith("JAVA_VERSION"))
-													.map(JavaUtil::parseJavaOutput)
-													.findAny();
+					Optional<Integer> ver = resolveJavaVersionFromPath(link);
 					if (ver.isPresent()) {
 						return ver.get();
 					}
@@ -301,5 +336,17 @@ public class JdkManager {
 
 	private static Path getJdksPath() {
 		return Settings.getCacheDir(Cache.CacheClass.jdks);
+	}
+
+	private static Optional<Integer> resolveJavaVersionFromPath(Path link) {
+		try {
+			return Files.lines(link.resolve("release"))
+						.filter(l -> l.startsWith("JAVA_VERSION"))
+						.map(JavaUtil::parseJavaOutput)
+						.findAny();
+		} catch (IOException e) {
+			Util.verboseMsg("Unable to read 'release' file in path:" + link);
+			return Optional.empty();
+		}
 	}
 }

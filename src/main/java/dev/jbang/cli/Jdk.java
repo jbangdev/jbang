@@ -7,6 +7,8 @@ import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
+
 import dev.jbang.Settings;
 import dev.jbang.net.JdkManager;
 import dev.jbang.util.Util;
@@ -23,10 +25,15 @@ public class Jdk {
 	public Integer install(
 			@CommandLine.Option(names = { "--force",
 					"-f" }, description = "Force installation even when already installed") boolean force,
-			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version to install", arity = "1") int version)
+			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version to install", arity = "1") int version,
+			@CommandLine.Parameters(paramLabel = "existingJdkPath", index = "1", description = "Pre installed JDK path or command to evaluate", arity = "0..1") String path)
 			throws IOException {
 		if (force || !JdkManager.isInstalledJdk(version)) {
-			JdkManager.downloadAndInstallJdk(version);
+			if (StringUtils.isNotBlank(path)) {
+				JdkManager.linkToExistingDirectory(path, version);
+			} else {
+				JdkManager.downloadAndInstallJdk(version);
+			}
 		} else {
 			Util.infoMsg("JDK " + version + " is already installed");
 		}
