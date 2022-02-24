@@ -57,7 +57,7 @@ _version_::
   The version to install
 
 _[existingJdkPath]_::
-  Already existing JDK's path on the filesystem. If path is given, its version will be checked against the incoming one, if not the same, the process will not finish successfully.
+  Already existing JDK's path on the filesystem. If path is given, its version will be checked against the incoming one, and if the same, the given JDK will be linked successfully.
 
 // end::picocli-generated-man-section-arguments[]
 

@@ -19,8 +19,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.io.FileUtils;
-
 import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
@@ -208,36 +206,36 @@ public class JdkManager {
 	}
 
 	/**
-	 * Links JBang JDK folder to an already existing JDK path with a soft link. It
-	 * checks if the incoming version number is the same that the linked JDK has, if
-	 * not an exception will be raised.
+	 * Links JBang JDK folder to an already existing JDK path with a link. It checks
+	 * if the incoming version number is the same that the linked JDK has, if not an
+	 * exception will be raised.
 	 *
 	 * @param path    path to the pre-installed JDK.
 	 * @param version requested version to link.
 	 */
-	public static void linkToExistingDirectory(String path, int version) {
+	public static void linkToExistingJdk(String path, int version) {
 		Path jdkPath = getJdkPath(version);
 		Util.verboseMsg("Trying to link " + path + " to " + jdkPath);
 		if (Files.exists(jdkPath)) {
 			Util.verboseMsg("JBang managed JDK already exists, must be deleted to make sure linking works");
-			try {
-				FileUtils.deleteDirectory(jdkPath.toFile());
-			} catch (IOException e) {
-				throw new ExitException(EXIT_UNEXPECTED_STATE,
-						"Unable delete already existing JBang managed JDK at " + jdkPath, e);
-			}
+			Util.deletePath(jdkPath, false);
 		}
 		Path linkedJdkPath = Paths.get(path);
 		if (!Files.isDirectory(linkedJdkPath)) {
 			throw new ExitException(EXIT_INVALID_INPUT, "Unable to resolve path as directory: " + path);
 		}
 		Optional<Integer> ver = resolveJavaVersionFromPath(linkedJdkPath);
-		if (ver.isPresent() && ver.get() == version) {
-			Util.createLink(jdkPath, linkedJdkPath);
-			Util.infoMsg("JDK " + version + " has been linked to: " + linkedJdkPath);
+		if (ver.isPresent()) {
+			Integer linkedJdkVersion = ver.get();
+			if (linkedJdkVersion == version) {
+				Util.createLink(jdkPath, linkedJdkPath);
+				Util.infoMsg("JDK " + version + " has been linked to: " + linkedJdkPath);
+			} else {
+				throw new ExitException(EXIT_INVALID_INPUT, "Java version in given path: " + path
+						+ " is " + linkedJdkVersion + " which does not match the requested version " + version + "");
+			}
 		} else {
-			throw new ExitException(EXIT_INVALID_INPUT, "Java version in given path: " + path
-					+ " is not having the requested version " + version + ", please provide a proper path");
+			throw new ExitException(EXIT_INVALID_INPUT, "Unable to determine Java version in given path: " + path);
 		}
 	}
 

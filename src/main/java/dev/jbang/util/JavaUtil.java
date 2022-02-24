@@ -81,7 +81,8 @@ public class JavaUtil {
 		String output = Util.runCommand(javaCmd.toString(), "-version");
 		int version = parseJavaOutput(output);
 		if (version == 0) {
-			Util.verboseMsg("Version is 0, reading it from java.version property");
+			Util.verboseMsg(
+					"Version could not be determined from: '$javaCmd -version', trying 'java.version' property");
 			version = parseJavaVersion(System.getProperty("java.version"));
 		}
 		return version;
