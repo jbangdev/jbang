@@ -117,6 +117,47 @@ public class TestJdk extends BaseTest {
 	}
 
 	@Test
+	void testJdkInstallWithLinkingToExistingJdkPathWithDifferentVersion(@TempDir File javaDir)
+			throws IOException {
+
+		initMockJdkDir(javaDir);
+		final File testCache = initJBangCacheDir();
+		final File jdkPath = new File(testCache, "jdks");
+		jdkPath.mkdirs();
+
+		checkedRunWithException(jdk -> {
+			try {
+				jdk.install(true, 13, javaDir.toPath().toString());
+			} catch (Exception e) {
+				assertTrue(e instanceof ExitException);
+				assertEquals("Java version in given path: " + javaDir.toPath()
+						+ " is " + 11 + " which does not match the requested version " + 13 + "", e.getMessage());
+			}
+			return null;
+		});
+	}
+
+	@Test
+	void testJdkInstallWithLinkingToExistingJdkPathWithNoVersion(@TempDir File javaDir)
+			throws IOException {
+
+		File release = new File(javaDir, "release");
+		final File testCache = initJBangCacheDir();
+		final File jdkPath = new File(testCache, "jdks");
+		jdkPath.mkdirs();
+
+		checkedRunWithException(jdk -> {
+			try {
+				jdk.install(true, 13, javaDir.toPath().toString());
+			} catch (Exception e) {
+				assertTrue(e instanceof ExitException);
+				assertEquals("Unable to determine Java version in given path: " + javaDir.toPath(), e.getMessage());
+			}
+			return null;
+		});
+	}
+
+	@Test
 	void testExistingJdkUninstall() throws IOException {
 
 		final File testCache = initJBangCacheDir();

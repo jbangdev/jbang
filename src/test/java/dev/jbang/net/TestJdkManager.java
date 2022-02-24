@@ -1,6 +1,7 @@
 package dev.jbang.net;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,6 +41,32 @@ class TestJdkManager extends BaseTest {
 
 		// Then
 		assertEquals(8, javaVersion.get());
+	}
+
+	@Test
+	void testResolveJavaVersionFromPathWhenReleaseFileHasNoProperJavaVersion(@TempDir File javaDir) throws IOException {
+		// Given
+		String rawJavaVersion = "EMPTY";
+		File release = new File(javaDir, "release");
+		Util.writeString(release.toPath(), rawJavaVersion);
+
+		// When
+		Optional<Integer> javaVersion = JdkManager.resolveJavaVersionFromPath(javaDir.toPath());
+
+		// Then
+		assertFalse(javaVersion.isPresent());
+	}
+
+	@Test
+	void testResolveJavaVersionFromPathWhenReleaseFileDoesNotExist(@TempDir File javaDir) throws IOException {
+		// Given
+		File release = new File(javaDir, "not-release");
+
+		// When
+		Optional<Integer> javaVersion = JdkManager.resolveJavaVersionFromPath(javaDir.toPath());
+
+		// Then
+		assertFalse(javaVersion.isPresent());
 	}
 
 }
