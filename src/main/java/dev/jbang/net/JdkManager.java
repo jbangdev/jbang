@@ -336,7 +336,7 @@ public class JdkManager {
 		return Settings.getCacheDir(Cache.CacheClass.jdks);
 	}
 
-	private static Optional<Integer> resolveJavaVersionFromPath(Path link) {
+	public static Optional<Integer> resolveJavaVersionFromPath(Path link) {
 		try {
 			return Files.lines(link.resolve("release"))
 						.filter(l -> l.startsWith("JAVA_VERSION"))
