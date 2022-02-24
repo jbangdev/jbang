@@ -246,7 +246,7 @@ public class Edit extends BaseScriptCommand {
 	File createProjectForEdit(ScriptSource src, RunContext ctx, boolean reload) throws IOException {
 		File originalFile = src.getResourceRef().getFile();
 
-		List<String> dependencies = src.getAllDependencies();
+		List<String> dependencies = ctx.getAllDependencies(src);
 		String cp = ctx.resolveClassPath(src);
 		List<String> resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 
@@ -280,7 +280,7 @@ public class Edit extends BaseScriptCommand {
 			Util.createLink(sfile.toPath(), destFile);
 		}
 
-		for (RefTarget ref : src.getAllFiles()) {
+		for (RefTarget ref : ctx.getAllFiles(src)) {
 			File target = ref.to(srcDir.toPath()).toFile();
 			target.getParentFile().mkdirs();
 			Util.createLink(target.toPath(), ref.getSource().getFile().toPath().toAbsolutePath());
@@ -298,7 +298,7 @@ public class Edit extends BaseScriptCommand {
 
 		// both collectDependencies and repositories are manipulated by
 		// resolveDependencies
-		List<MavenRepo> repositories = src.getAllRepositories();
+		List<MavenRepo> repositories = ctx.getAllRepositories(src);
 		if (repositories.isEmpty()) {
 			repositories.add(DependencyUtil.toMavenRepo("mavencentral"));
 		}

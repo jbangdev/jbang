@@ -96,11 +96,6 @@ public class JarSource implements Source {
 	}
 
 	@Override
-	public List<String> getAllDependencies() {
-		return Collections.emptyList();
-	}
-
-	@Override
 	public DependencyResolver updateDependencyResolver(DependencyResolver resolver) {
 		if (resourceRef.getOriginalResource() != null
 				&& DependencyUtil.looksLikeAGav(resourceRef.getOriginalResource())) {

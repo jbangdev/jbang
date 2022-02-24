@@ -38,8 +38,8 @@ public class GroovyScriptSource extends ScriptSource {
 	}
 
 	@Override
-	public List<String> getAllDependencies() {
-		final List<String> allDependencies = super.getAllDependencies();
+	public List<String> collectDependencies() {
+		final List<String> allDependencies = super.collectDependencies();
 		final String groovyVersion = getGroovyVersion();
 		if (groovyVersion.startsWith("4.")) {
 			allDependencies.add("org.apache.groovy:groovy:" + groovyVersion);
@@ -55,9 +55,9 @@ public class GroovyScriptSource extends ScriptSource {
 	}
 
 	public String getGroovyVersion() {
-		return collectAll((s) -> collectOptions("GROOVY"))
-															.stream()
-															.findFirst()
-															.orElse(GroovyManager.DEFAULT_GROOVY_VERSION);
+		return collectOptions("GROOVY")
+										.stream()
+										.findFirst()
+										.orElse(GroovyManager.DEFAULT_GROOVY_VERSION);
 	}
 }

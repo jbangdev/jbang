@@ -1,12 +1,11 @@
 package dev.jbang.source;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
@@ -24,12 +23,17 @@ import dev.jbang.util.PropertiesValueResolver;
  * together determine what finally gets executed and how.
  */
 public class RunContext {
-	private Map<String, String> properties;
+	private List<MavenRepo> repositories;
+	private List<String> dependencies;
+	private List<RefTarget> filerefs;
+	private List<ScriptSource> sources;
+	private List<KeyValue> agentOptions;
 
 	private List<String> additionalSources = Collections.emptyList();
 	private List<String> additionalDeps = Collections.emptyList();
 	private List<String> additionalRepos = Collections.emptyList();
 	private List<String> additionalClasspaths = Collections.emptyList();
+	private Map<String, String> properties;
 	private boolean forceJsh = false; // if true, interpret any input as for jshell
 	private String originalRef;
 	private String mainClass;
@@ -138,7 +142,7 @@ public class RunContext {
 	}
 
 	public List<ScriptSource> getAllSources(ScriptSource src) {
-		List<ScriptSource> ssrcs = src.getAllSources();
+		List<ScriptSource> ssrcs = collectAllSources(src);
 		List<ScriptSource> asrcs = getAdditionalSources()	.stream()
 															.map(src::getSibling)
 															.collect(Collectors.toList());
@@ -154,6 +158,30 @@ public class RunContext {
 		}
 	}
 
+	private List<ScriptSource> collectAllSources(ScriptSource src) {
+		if (sources == null) {
+			List<ScriptSource> scripts = new ArrayList<>();
+			HashSet<ResourceRef> refs = new HashSet<>();
+			// We should only return sources but we must avoid circular references via this
+			// script, so we add this script's ref but not the script itself
+			refs.add(src.getResourceRef());
+			collectAllSources(src, refs, scripts);
+			sources = scripts;
+		}
+		return sources;
+	}
+
+	private void collectAllSources(ScriptSource src, Set<ResourceRef> refs, List<ScriptSource> scripts) {
+		List<ScriptSource> srcs = src.collectSources();
+		for (ScriptSource s : srcs) {
+			if (!refs.contains(s.getResourceRef())) {
+				refs.add(s.getResourceRef());
+				scripts.add(s);
+				collectAllSources(s, refs, scripts);
+			}
+		}
+	}
+
 	public List<String> getAdditionalSources() {
 		return additionalSources;
 	}
@@ -166,6 +194,27 @@ public class RunContext {
 		}
 	}
 
+	public List<RefTarget> getAllFiles(ScriptSource src) {
+		if (filerefs == null) {
+			filerefs = collectAll(src, ScriptSource::collectFiles);
+		}
+		return filerefs;
+	}
+
+	public void copyFilesTo(ScriptSource src, Path dest) {
+		List<RefTarget> files = getAllFiles(src);
+		for (RefTarget file : files) {
+			file.copy(dest);
+		}
+	}
+
+	public List<String> getAllDependencies(ScriptSource src) {
+		if (dependencies == null) {
+			dependencies = collectAll(src, ScriptSource::collectDependencies);
+		}
+		return dependencies;
+	}
+
 	public List<String> getAdditionalDependencies() {
 		return additionalDeps;
 	}
@@ -176,6 +225,13 @@ public class RunContext {
 		} else {
 			this.additionalDeps = Collections.emptyList();
 		}
+	}
+
+	public List<MavenRepo> getAllRepositories(ScriptSource src) {
+		if (repositories == null) {
+			repositories = collectAll(src, ScriptSource::collectRepositories);
+		}
+		return repositories;
 	}
 
 	public List<String> getAdditionalRepositories() {
@@ -278,6 +334,13 @@ public class RunContext {
 		this.buildJdk = javaVersion;
 	}
 
+	public List<KeyValue> getAllAgentOptions(ScriptSource src) {
+		if (agentOptions == null) {
+			agentOptions = collectAll(src, ScriptSource::collectAgentOptions);
+		}
+		return agentOptions;
+	}
+
 	public String getJavaAgentOption() {
 		return javaAgentOption;
 	}
@@ -369,6 +432,9 @@ public class RunContext {
 			DependencyResolver resolver = new DependencyResolver();
 			updateDependencyResolver(resolver);
 			src.updateDependencyResolver(resolver);
+			if (src instanceof ScriptSource) {
+				getAllSources((ScriptSource) src).stream().forEach(s -> s.updateDependencyResolver(resolver));
+			}
 			mcp = resolver.resolve();
 		}
 		return mcp.getClassPath();
@@ -507,6 +573,11 @@ public class RunContext {
 		DependencyResolver resolver = new DependencyResolver().addDependency(dep);
 		updateDependencyResolver(resolver);
 		return resolver.resolve();
+	}
+
+	protected <R> List<R> collectAll(ScriptSource src, Function<ScriptSource, List<R>> func) {
+		Stream<R> subs = getAllSources(src).stream().flatMap(s -> func.apply(s).stream());
+		return Stream.concat(func.apply(src).stream(), subs).collect(Collectors.toList());
 	}
 
 }

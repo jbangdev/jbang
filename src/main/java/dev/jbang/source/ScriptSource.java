@@ -10,12 +10,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -68,13 +66,6 @@ public class ScriptSource implements Source {
 
 	// Cached values
 	private List<String> lines;
-	private List<MavenRepo> repositories;
-	private List<String> dependencies;
-	private List<RefTarget> filerefs;
-	private List<ScriptSource> sources;
-	private List<KeyValue> agentOptions;
-	private Optional<String> description = Optional.empty();
-	private Optional<String> gav = Optional.empty();
 	private File jar;
 	private JarSource jarSource;
 
@@ -126,14 +117,6 @@ public class ScriptSource implements Source {
 		} else {
 			return Optional.empty();
 		}
-	}
-
-	@Override
-	public List<String> getAllDependencies() {
-		if (dependencies == null) {
-			dependencies = collectAll(ScriptSource::collectDependencies);
-		}
-		return dependencies;
 	}
 
 	public List<String> collectDependencies() {
@@ -198,8 +181,8 @@ public class ScriptSource implements Source {
 
 	@Override
 	public DependencyResolver updateDependencyResolver(DependencyResolver resolver) {
-		resolver.addRepositories(getAllRepositories());
-		resolver.addDependencies(getAllDependencies());
+		resolver.addRepositories(collectRepositories());
+		resolver.addDependencies(collectDependencies());
 		return resolver;
 	}
 
@@ -211,41 +194,7 @@ public class ScriptSource implements Source {
 		}
 	}
 
-	public static class KeyValue {
-		final String key;
-		final String value;
-
-		public KeyValue(String key, String value) {
-			this.key = key;
-			this.value = value;
-		}
-
-		public String getKey() {
-			return key;
-		}
-
-		public String getValue() {
-			return value;
-		}
-
-		public String toManifestString() {
-			return getKey() + ": " + value;
-		}
-
-		@Override
-		public String toString() {
-			return getKey() + "=" + getValue() == null ? "" : getValue();
-		}
-	}
-
-	public List<KeyValue> getAllAgentOptions() {
-		if (agentOptions == null) {
-			agentOptions = collectAll(ScriptSource::collectAgentOptions);
-		}
-		return agentOptions;
-	}
-
-	private List<KeyValue> collectAgentOptions() {
+	public List<KeyValue> collectAgentOptions() {
 		return collectRawOptions("JAVAAGENT")	.stream()
 												.flatMap(ScriptSource::extractKeyValue)
 												.map(ScriptSource::toKeyValue)
@@ -274,14 +223,7 @@ public class ScriptSource implements Source {
 	}
 
 	public boolean isAgent() {
-		return !getAllAgentOptions().isEmpty();
-	}
-
-	public List<MavenRepo> getAllRepositories() {
-		if (repositories == null) {
-			repositories = collectAll(ScriptSource::collectRepositories);
-		}
-		return repositories;
+		return !collectAgentOptions().isEmpty();
 	}
 
 	public List<MavenRepo> collectRepositories() {
@@ -330,18 +272,15 @@ public class ScriptSource implements Source {
 
 	@Override
 	public Optional<String> getDescription() {
-		if (!description.isPresent()) {
-			String desc = getLines().stream()
-									.filter(ScriptSource::isDescriptionDeclare)
-									.map(s -> s.substring(DESCRIPTION_COMMENT_PREFIX.length()))
-									.collect(Collectors.joining("\n"));
-			if (desc.isEmpty()) {
-				description = Optional.empty();
-			} else {
-				description = Optional.of(desc);
-			}
+		String desc = getLines().stream()
+								.filter(ScriptSource::isDescriptionDeclare)
+								.map(s -> s.substring(DESCRIPTION_COMMENT_PREFIX.length()))
+								.collect(Collectors.joining("\n"));
+		if (desc.isEmpty()) {
+			return Optional.empty();
+		} else {
+			return Optional.of(desc);
 		}
-		return description;
 	}
 
 	static boolean isDescriptionDeclare(String line) {
@@ -350,27 +289,24 @@ public class ScriptSource implements Source {
 
 	@Override
 	public Optional<String> getGav() {
-		if (!gav.isPresent()) {
-			List<String> gavs = getLines()	.stream()
-											.filter(ScriptSource::isGavDeclare)
-											.map(s -> s.substring(GAV_COMMENT_PREFIX.length()))
-											.collect(Collectors.toList());
-			if (gavs.isEmpty()) {
-				gav = Optional.empty();
-			} else {
-				if (gavs.size() > 1) {
-					Util.warnMsg(
-							"Multiple //GAV lines found, only one should be defined in a source file. Using the first");
-				}
-				String maybeGav = DependencyUtil.gavWithVersion(gavs.get(0));
-				if (!DependencyUtil.looksLikeAGav(maybeGav)) {
-					throw new IllegalArgumentException(
-							"//GAV line has wrong format, should be '//GAV groupid:artifactid[:version]'");
-				}
-				gav = Optional.of(gavs.get(0));
+		List<String> gavs = getLines()	.stream()
+										.filter(ScriptSource::isGavDeclare)
+										.map(s -> s.substring(GAV_COMMENT_PREFIX.length()))
+										.collect(Collectors.toList());
+		if (gavs.isEmpty()) {
+			return Optional.empty();
+		} else {
+			if (gavs.size() > 1) {
+				Util.warnMsg(
+						"Multiple //GAV lines found, only one should be defined in a source file. Using the first");
 			}
+			String maybeGav = DependencyUtil.gavWithVersion(gavs.get(0));
+			if (!DependencyUtil.looksLikeAGav(maybeGav)) {
+				throw new IllegalArgumentException(
+						"//GAV line has wrong format, should be '//GAV groupid:artifactid[:version]'");
+			}
+			return Optional.of(gavs.get(0));
 		}
-		return gav;
 	}
 
 	static boolean isGavDeclare(String line) {
@@ -419,9 +355,9 @@ public class ScriptSource implements Source {
 
 	@Override
 	public String getJavaVersion() {
-		Optional<String> version = collectAll(ScriptSource::collectJavaVersions).stream()
-																				.filter(JavaUtil::checkRequestedVersion)
-																				.max(new JavaUtil.RequestedVersionComparator());
+		Optional<String> version = collectJavaVersions().stream()
+														.filter(JavaUtil::checkRequestedVersion)
+														.max(new JavaUtil.RequestedVersionComparator());
 		return version.orElse(null);
 	}
 
@@ -473,20 +409,6 @@ public class ScriptSource implements Source {
 		}
 	}
 
-	public void copyFilesTo(Path dest) {
-		List<RefTarget> files = getAllFiles();
-		for (RefTarget file : files) {
-			file.copy(dest);
-		}
-	}
-
-	public List<RefTarget> getAllFiles() {
-		if (filerefs == null) {
-			filerefs = collectAll(ScriptSource::collectFiles);
-		}
-		return filerefs;
-	}
-
 	public List<RefTarget> collectFiles() {
 		return getLines()	.stream()
 							.filter(f -> f.startsWith(FILES_COMMENT_PREFIX))
@@ -500,30 +422,6 @@ public class ScriptSource implements Source {
 
 	private RefTarget toFileRef(String fileReference) {
 		return RefTarget.create(resourceRef.getOriginalResource(), fileReference);
-	}
-
-	public List<ScriptSource> getAllSources() {
-		if (sources == null) {
-			List<ScriptSource> scripts = new ArrayList<>();
-			HashSet<ResourceRef> refs = new HashSet<>();
-			// We should only return sources but we must avoid circular references via this
-			// script, so we add this script's ref but not the script itself
-			refs.add(resourceRef);
-			collectAllSources(refs, scripts);
-			sources = scripts;
-		}
-		return sources;
-	}
-
-	private void collectAllSources(Set<ResourceRef> refs, List<ScriptSource> scripts) {
-		List<ScriptSource> srcs = collectSources();
-		for (ScriptSource s : srcs) {
-			if (!refs.contains(s.resourceRef)) {
-				refs.add(s.resourceRef);
-				scripts.add(s);
-				s.collectAllSources(refs, scripts);
-			}
-		}
 	}
 
 	public List<ScriptSource> collectSources() {
@@ -548,11 +446,6 @@ public class ScriptSource implements Source {
 	public ScriptSource getSibling(String resource) {
 		ResourceRef siblingRef = resourceRef.asSibling(resource);
 		return prepareScript(siblingRef, replaceProperties);
-	}
-
-	protected <R> List<R> collectAll(Function<ScriptSource, List<R>> func) {
-		Stream<R> subs = getAllSources().stream().flatMap(s -> func.apply(s).stream());
-		return Stream.concat(func.apply(this).stream(), subs).collect(Collectors.toList());
 	}
 
 	@Override

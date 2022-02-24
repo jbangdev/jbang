@@ -68,7 +68,8 @@ public class TestSameSourceInDifferentPaths extends BaseTest {
 		TestScript.createTmpFileWithContent(mainPath.getParent(), "model", "C.java", classModelC);
 		TestScript.createTmpFileWithContent(BPath.getParent(), "model", "C.java", classPersonModelC);
 		ScriptSource script = ScriptSource.prepareScript(mainPath.toString(), null);
-		assertEquals(script.getAllSources().size(), 3);
+		RunContext ctx = new RunContext();
+		assertEquals(ctx.getAllSources(script).size(), 3);
 	}
 
 }

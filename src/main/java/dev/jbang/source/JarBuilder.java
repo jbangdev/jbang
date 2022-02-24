@@ -123,7 +123,7 @@ public class JarBuilder implements Builder {
 								.collect(Collectors.toList()));
 
 		// add additional files
-		src.copyFilesTo(tmpJarDir.toPath());
+		ctx.copyFilesTo(src, tmpJarDir.toPath());
 
 		Path pomPath = generatePom(src, ctx, tmpJarDir);
 
@@ -153,7 +153,7 @@ public class JarBuilder implements Builder {
 		for (Map.Entry<String, String> entry : ctx.getProperties().entrySet()) {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
-		integrationResult = IntegrationManager.runIntegration(src.getAllRepositories(),
+		integrationResult = IntegrationManager.runIntegration(ctx.getAllRepositories(src),
 				ctx.getClassPath().getArtifacts(),
 				tmpJarDir.toPath(), pomPath,
 				src, ctx.isNativeImage());
@@ -187,7 +187,7 @@ public class JarBuilder implements Builder {
 				manifest.getMainAttributes().put(new Attributes.Name(Source.ATTR_AGENT_CLASS), ctx.getAgentMainClass());
 			}
 
-			for (ScriptSource.KeyValue kv : src.getAllAgentOptions()) {
+			for (KeyValue kv : ctx.getAllAgentOptions(src)) {
 				if (Util.isBlankString(kv.getKey())) {
 					continue;
 				}

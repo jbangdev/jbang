@@ -10,8 +10,8 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
+import dev.jbang.source.RunContext;
 import dev.jbang.source.ScriptSource;
-import dev.jbang.source.Source;
 
 public class TestGrape extends BaseTest {
 
@@ -30,8 +30,9 @@ public class TestGrape extends BaseTest {
 				+
 				"})\n";
 
-		Source src = new ScriptSource(grabBlock, null);
-		List<String> deps = src.getAllDependencies();
+		RunContext ctx = new RunContext();
+		ScriptSource src = new ScriptSource(grabBlock, null);
+		List<String> deps = ctx.getAllDependencies(src);
 
 		assertThat(deps, hasItem("org.hibernate:hibernate-core:5.4.10.Final"));
 		assertThat(deps, hasItem("net.sf.json-lib:json-lib:2.2.3:jdk15"));

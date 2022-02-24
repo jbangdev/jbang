@@ -100,12 +100,6 @@ public interface Source {
 	}
 
 	/**
-	 * Returns the list of dependencies that are necessary to add to the classpath
-	 * for the application to execute properly.
-	 */
-	List<String> getAllDependencies();
-
-	/**
 	 * Updates the given resolver with the dependencies required by this Source
 	 * object
 	 */

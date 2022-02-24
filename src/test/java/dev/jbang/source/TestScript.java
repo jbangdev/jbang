@@ -142,20 +142,23 @@ public class TestScript extends BaseTest {
 
 	@Test
 	void testCommentsDoesNotGetPickedUp() {
+		RunContext ctx = new RunContext();
 		ScriptSource script = new ScriptSource(exampleCommandsWithComments, null);
 
 		assertEquals(script.getJavaVersion(), "14+");
 
-		List<String> deps = script.getAllDependencies();
+		List<String> deps = ctx.getAllDependencies(script);
 
 		assertThat(deps, containsInAnyOrder("info.picocli:picocli:4.5.0"));
 	}
 
 	@Test
 	void testFindDependencies() {
-		Source src = new ScriptSource(example, it -> PropertiesValueResolver.replaceProperties(it, new Properties()));
+		RunContext ctx = new RunContext();
+		ScriptSource src = new ScriptSource(example,
+				it -> PropertiesValueResolver.replaceProperties(it, new Properties()));
 
-		List<String> deps = src.getAllDependencies();
+		List<String> deps = ctx.getAllDependencies(src);
 		assertEquals(2, deps.size());
 
 		assertTrue(deps.contains("com.offbytwo:docopt:0.6.0.20150202"));
@@ -169,9 +172,10 @@ public class TestScript extends BaseTest {
 		Properties p = new Properties();
 		p.put("log4j.version", "1.2.9");
 
-		Source src = new ScriptSource(example, it -> PropertiesValueResolver.replaceProperties(it, p));
+		RunContext ctx = new RunContext();
+		ScriptSource src = new ScriptSource(example, it -> PropertiesValueResolver.replaceProperties(it, p));
 
-		List<String> dependencies = src.getAllDependencies();
+		List<String> dependencies = ctx.getAllDependencies(src);
 		assertEquals(2, dependencies.size());
 
 		assertTrue(dependencies.contains("com.offbytwo:docopt:0.6.0.20150202"));
@@ -188,7 +192,7 @@ public class TestScript extends BaseTest {
 		String scriptURL = mainPath.toString();
 		RunContext ctx = RunContext.empty();
 		ScriptSource src = (ScriptSource) ctx.forResource(scriptURL);
-		List<ScriptSource> resolvesourceRecursively = src.getAllSources();
+		List<ScriptSource> resolvesourceRecursively = ctx.getAllSources(src);
 		assertEquals(resolvesourceRecursively.size(), 7);
 	}
 
@@ -237,10 +241,10 @@ public class TestScript extends BaseTest {
 
 			RunContext ctx = RunContext.empty();
 			ScriptSource src = (ScriptSource) ctx.forResource(url);
-			assertEquals(2, src.getAllSources().size());
+			assertEquals(2, ctx.getAllSources(src).size());
 			boolean foundtwo = false;
 			boolean foundt3 = false;
-			for (ScriptSource source : src.getAllSources()) {
+			for (ScriptSource source : ctx.getAllSources(src)) {
 				if (source.getResourceRef().getFile().getName().equals("two.java"))
 					foundtwo = true;
 				if (source.getResourceRef().getFile().getName().equals("t3.java"))

@@ -39,9 +39,9 @@ public class KotlinScriptSource extends ScriptSource {
 	}
 
 	public String getKotlinVersion() {
-		return collectAll((s) -> collectOptions("KOTLIN"))
-															.stream()
-															.findFirst()
-															.orElse(KotlinManager.DEFAULT_KOTLIN_VERSION);
+		return collectOptions("KOTLIN")
+										.stream()
+										.findFirst()
+										.orElse(KotlinManager.DEFAULT_KOTLIN_VERSION);
 	}
 }
