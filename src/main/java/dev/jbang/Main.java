@@ -3,15 +3,23 @@ package dev.jbang;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fusesource.jansi.AnsiConsole;
+
 import dev.jbang.cli.JBang;
 
 import picocli.CommandLine;
 
 public class Main {
 	public static void main(String... args) {
+		if (isWindows()) {
+			AnsiConsole.systemInstall();
+		}
 		CommandLine cli = JBang.getCommandLine();
 		args = handleDefaultRun(cli.getCommandSpec(), args);
 		int exitcode = cli.execute(args);
+		if (isWindows()) {
+			AnsiConsole.systemUninstall();
+		}
 		System.exit(exitcode);
 	}
 
@@ -49,5 +57,9 @@ public class Main {
 							.anyMatch(o -> o.startsWith("-i=") || o.startsWith("--interactive=")
 									|| o.startsWith("-c=") || o.startsWith("--code="));
 		return res;
+	}
+
+	private static boolean isWindows() {
+		return System.getProperty("os.name").toLowerCase().startsWith("win");
 	}
 }

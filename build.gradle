@@ -35,6 +35,8 @@ dependencies {
 	implementation 'org.jsoup:jsoup:1.13.1'
 	implementation 'org.codejive:java-properties:0.0.3'
 
+	implementation 'org.fusesource.jansi:jansi:2.4.0'
+
 	implementation 'com.github.jbangdev.jbang-resolver:shrinkwrap-resolver-api:3.1.5-allowpom'
 	implementation 'com.github.jbangdev.jbang-resolver:shrinkwrap-resolver-impl-maven:3.1.5-allowpom'
 
@@ -170,6 +172,8 @@ shadowJar {
 		//exclude(dependency('org.slf4j:slf4j-api:.*'))
 		exclude(dependency('org.slf4j:slf4j-nop:.*'))
 		exclude(dependency('org.jboss.logging:jboss-logging:.*'))
+
+		exclude(dependency('org.fusesource.jansi:jansi:.*'))
 
 
 	}
