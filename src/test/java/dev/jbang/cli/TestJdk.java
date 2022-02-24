@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
+import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 
@@ -165,6 +166,6 @@ public class TestJdk extends BaseTest {
 	private void initMockJdkDir(File javaDir) throws IOException {
 		String rawJavaVersion = "JAVA_VERSION=\"11.0.14\"";
 		File release = new File(javaDir, "release");
-		Files.write(release.toPath(), rawJavaVersion.getBytes());
+		Util.writeString(release.toPath(), rawJavaVersion);
 	}
 }
