@@ -45,7 +45,8 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 
 	static Source buildIfNeeded(Source src, RunContext ctx) throws IOException {
 		if (needsJar(src, ctx)) {
-			src = new JarBuilder().build((ScriptSource) src, ctx);
+			SourceSet ss = ctx.createSourceSet((ScriptSource) src);
+			src = new JarBuilder().build(ss, ctx);
 		}
 		return src;
 	}

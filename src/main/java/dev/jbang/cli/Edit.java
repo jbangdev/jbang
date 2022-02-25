@@ -24,10 +24,7 @@ import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.JitPackUtil;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.net.EditorManager;
-import dev.jbang.source.RefTarget;
-import dev.jbang.source.RunContext;
-import dev.jbang.source.ScriptSource;
-import dev.jbang.source.Source;
+import dev.jbang.source.*;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
 import dev.jbang.util.Util.Shell;
@@ -74,7 +71,8 @@ public class Edit extends BaseScriptCommand {
 		}
 
 		ScriptSource ssrc = (ScriptSource) src;
-		File project = createProjectForEdit(ssrc, ctx, false);
+		SourceSet ss = SourceSet.forScript(ssrc);
+		File project = createProjectForEdit(ss, ctx, false);
 		String projectPathString = Util.pathToString(project.getAbsoluteFile().toPath());
 		// err.println(project.getAbsolutePath());
 
@@ -96,7 +94,7 @@ public class Edit extends BaseScriptCommand {
 				optionList.add(projectPathString);
 
 				String[] cmd;
-				final String editorCommand = String.join(" ", escapeOSArguments(optionList));
+				final String editorCommand = String.join(" ", escapeOSArguments(optionList, Util.getShell()));
 				if (Util.getShell() == Shell.bash) {
 					cmd = new String[] { "sh", "-c", editorCommand };
 				} else {
@@ -133,7 +131,9 @@ public class Edit extends BaseScriptCommand {
 								info("Regenerating project.");
 								ctx = RunContext.empty();
 								src = ctx.forResource(scriptOrFile);
-								createProjectForEdit((ScriptSource) src, ctx, true);
+								ssrc = (ScriptSource) src;
+								ss = SourceSet.forScript(ssrc);
+								createProjectForEdit(ss, ctx, true);
 							} catch (RuntimeException ee) {
 								warn("Error when re-generating project. Ignoring it, but state might be undefined: "
 										+ ee.getMessage());
@@ -243,11 +243,11 @@ public class Edit extends BaseScriptCommand {
 	}
 
 	/** Create Project to use for editing **/
-	File createProjectForEdit(ScriptSource src, RunContext ctx, boolean reload) throws IOException {
-		File originalFile = src.getResourceRef().getFile();
+	File createProjectForEdit(SourceSet ss, RunContext ctx, boolean reload) throws IOException {
+		File originalFile = ss.getMainSource().getResourceRef().getFile();
 
-		List<String> dependencies = ctx.getAllDependencies(src);
-		String cp = ctx.resolveClassPath(src);
+		List<String> dependencies = ss.getDependencies();
+		String cp = ss.getClassPath().getClassPath();
 		List<String> resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 
 		File baseDir = Settings.getCacheDir(Cache.CacheClass.projects).toFile();
@@ -267,7 +267,7 @@ public class Edit extends BaseScriptCommand {
 		Path srcFile = srcDir.toPath().resolve(name);
 		Util.createLink(srcFile, originalFile.toPath());
 
-		for (ScriptSource source : ctx.getAllSources(src)) {
+		for (ScriptSource source : ss.getSources()) {
 			File sfile = null;
 			if (source.getJavaPackage().isPresent()) {
 				File packageDir = new File(srcDir, source.getJavaPackage().get().replace(".", File.separator));
@@ -280,7 +280,7 @@ public class Edit extends BaseScriptCommand {
 			Util.createLink(sfile.toPath(), destFile);
 		}
 
-		for (RefTarget ref : ctx.getAllFiles(src)) {
+		for (RefTarget ref : ss.getResources()) {
 			File target = ref.to(srcDir.toPath()).toFile();
 			target.getParentFile().mkdirs();
 			Util.createLink(target.toPath(), ref.getSource().getFile().toPath().toAbsolutePath());
@@ -298,9 +298,9 @@ public class Edit extends BaseScriptCommand {
 
 		// both collectDependencies and repositories are manipulated by
 		// resolveDependencies
-		List<MavenRepo> repositories = ctx.getAllRepositories(src);
+		List<MavenRepo> repositories = ss.getRepositories();
 		if (repositories.isEmpty()) {
-			repositories.add(DependencyUtil.toMavenRepo("mavencentral"));
+			ss.addRepository(DependencyUtil.toMavenRepo("mavencentral"));
 		}
 
 		// Turn any URL dependencies into regular GAV coordinates
@@ -311,7 +311,7 @@ public class Edit extends BaseScriptCommand {
 		// And if we encountered URLs let's make sure the JitPack repo is available
 		if (!depIds.equals(dependencies)
 				&& repositories.stream().noneMatch(r -> DependencyUtil.REPO_JITPACK.equals(r.getUrl()))) {
-			repositories.add(DependencyUtil.toMavenRepo(DependencyUtil.ALIAS_JITPACK));
+			ss.addRepository(DependencyUtil.toMavenRepo(DependencyUtil.ALIAS_JITPACK));
 		}
 
 		renderTemplate(engine, depIds, fullClassName, baseName, resolvedDependencies, repositories,

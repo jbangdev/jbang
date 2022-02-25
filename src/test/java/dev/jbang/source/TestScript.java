@@ -142,23 +142,23 @@ public class TestScript extends BaseTest {
 
 	@Test
 	void testCommentsDoesNotGetPickedUp() {
-		RunContext ctx = new RunContext();
 		ScriptSource script = new ScriptSource(exampleCommandsWithComments, null);
+		SourceSet ss = SourceSet.forScript(script);
 
 		assertEquals(script.getJavaVersion(), "14+");
 
-		List<String> deps = ctx.getAllDependencies(script);
+		List<String> deps = ss.getDependencies();
 
 		assertThat(deps, containsInAnyOrder("info.picocli:picocli:4.5.0"));
 	}
 
 	@Test
 	void testFindDependencies() {
-		RunContext ctx = new RunContext();
 		ScriptSource src = new ScriptSource(example,
 				it -> PropertiesValueResolver.replaceProperties(it, new Properties()));
+		SourceSet ss = SourceSet.forScript(src);
 
-		List<String> deps = ctx.getAllDependencies(src);
+		List<String> deps = ss.getDependencies();
 		assertEquals(2, deps.size());
 
 		assertTrue(deps.contains("com.offbytwo:docopt:0.6.0.20150202"));
@@ -172,10 +172,10 @@ public class TestScript extends BaseTest {
 		Properties p = new Properties();
 		p.put("log4j.version", "1.2.9");
 
-		RunContext ctx = new RunContext();
 		ScriptSource src = new ScriptSource(example, it -> PropertiesValueResolver.replaceProperties(it, p));
+		SourceSet ss = SourceSet.forScript(src);
 
-		List<String> dependencies = ctx.getAllDependencies(src);
+		List<String> dependencies = ss.getDependencies();
 		assertEquals(2, dependencies.size());
 
 		assertTrue(dependencies.contains("com.offbytwo:docopt:0.6.0.20150202"));
@@ -191,9 +191,8 @@ public class TestScript extends BaseTest {
 		createTmpFileWithContent("pkg1", "Bye.java", exampleURLInsourceBye);
 		String scriptURL = mainPath.toString();
 		RunContext ctx = RunContext.empty();
-		ScriptSource src = (ScriptSource) ctx.forResource(scriptURL);
-		List<ScriptSource> resolvesourceRecursively = ctx.getAllSources(src);
-		assertEquals(resolvesourceRecursively.size(), 7);
+		SourceSet ss = ctx.createSourceSet(scriptURL);
+		assertEquals(8, ss.getSources().size());
 	}
 
 	public static Path createTmpFileWithContent(String strPath, String fileName, String content) throws IOException {
@@ -240,17 +239,21 @@ public class TestScript extends BaseTest {
 			TrustedSources.instance().add(url, tempFile);
 
 			RunContext ctx = RunContext.empty();
-			ScriptSource src = (ScriptSource) ctx.forResource(url);
-			assertEquals(2, ctx.getAllSources(src).size());
+			SourceSet ss = ctx.createSourceSet(url);
+			assertEquals(3, ss.getSources().size());
+			boolean foundmain = false;
 			boolean foundtwo = false;
 			boolean foundt3 = false;
-			for (ScriptSource source : ctx.getAllSources(src)) {
-				if (source.getResourceRef().getFile().getName().equals("two.java"))
+			for (ScriptSource source : ss.getSources()) {
+				String name = source.getResourceRef().getFile().getName();
+				if (name.equals("one.java"))
+					foundmain = true;
+				if (name.equals("two.java"))
 					foundtwo = true;
-				if (source.getResourceRef().getFile().getName().equals("t3.java"))
+				if (name.equals("t3.java"))
 					foundt3 = true;
 			}
-			assertTrue(foundtwo && foundt3);
+			assertTrue(foundmain && foundtwo && foundt3);
 		} finally {
 			TrustedSources.instance().remove(Collections.singletonList(url), tempFile);
 		}

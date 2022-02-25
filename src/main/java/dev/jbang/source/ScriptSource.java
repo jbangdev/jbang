@@ -455,6 +455,9 @@ public class ScriptSource implements Source {
 
 	public static ScriptSource prepareScript(String resource, Function<String, String> replaceProperties) {
 		ResourceRef resourceRef = ResourceRef.forResource(resource);
+		if (resourceRef == null) {
+			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Could not find: " + resource);
+		}
 		return prepareScript(resourceRef, replaceProperties);
 	}
 

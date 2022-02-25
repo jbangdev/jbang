@@ -17,13 +17,20 @@ import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 public class DefaultCmdGenerator implements CmdGenerator {
+	private Util.Shell shell = Util.getShell();
+
 	// 8192 character command line length limit imposed by CMD.EXE
 	private static final int COMMAND_LINE_LENGTH_LIMIT = 8000;
+
+	public DefaultCmdGenerator setShell(Util.Shell shell) {
+		this.shell = shell;
+		return this;
+	}
 
 	@Override
 	public String generate(Source src, RunContext ctx) throws IOException {
 		List<String> fullArgs = generateCommandLineList(src, ctx);
-		String args = String.join(" ", escapeOSArguments(fullArgs));
+		String args = String.join(" ", escapeOSArguments(fullArgs, shell));
 		// Check if we need to use @-files on Windows
 		boolean useArgsFile = false;
 		if (args.length() > COMMAND_LINE_LENGTH_LIMIT && Util.getShell() != Util.Shell.bash) {
@@ -34,7 +41,7 @@ public class DefaultCmdGenerator implements CmdGenerator {
 		}
 		if (useArgsFile) {
 			// @-files avoid problems on Windows with very long command lines
-			final String javaCmd = escapeOSArgument(fullArgs.get(0));
+			final String javaCmd = escapeOSArgument(fullArgs.get(0), shell);
 			final File argsFile = File.createTempFile("jbang", ".args");
 			try (PrintWriter pw = new PrintWriter(argsFile)) {
 				// write all arguments except the first to the file
@@ -51,7 +58,7 @@ public class DefaultCmdGenerator implements CmdGenerator {
 
 	String generateCommandLine(Source src, RunContext ctx) throws IOException {
 		List<String> fullArgs = generateCommandLineList(src, ctx);
-		return String.join(" ", escapeOSArguments(fullArgs));
+		return String.join(" ", escapeOSArguments(fullArgs, shell));
 	}
 
 	List<String> generateCommandLineList(Source src, RunContext ctx) throws IOException {
@@ -216,12 +223,10 @@ public class DefaultCmdGenerator implements CmdGenerator {
 				fullArgs.add(mainClass);
 			} else {
 				if (ctx.isForceJsh() || src.isJShell()) {
-					if (src instanceof ScriptSource) {
-						for (Source s : ctx.getAllSources((ScriptSource) src)) {
-							fullArgs.add(s.getResourceRef().getFile().toString());
-						}
+					SourceSet ss = SourceSet.forScript((ScriptSource) src);
+					for (Source s : ss.getSources()) {
+						fullArgs.add(s.getResourceRef().getFile().toString());
 					}
-					fullArgs.add(src.getResourceRef().getFile().toString());
 				} else if (!ctx.isInteractive() /* && src.isJar() */) {
 					throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
 							"no main class deduced, specified nor found in a manifest");

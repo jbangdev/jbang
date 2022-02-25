@@ -106,13 +106,14 @@ class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 		String scriptURL = mainPath.toString();
 		ResourceRef resourceRef = ResourceRef.forNamedFile(scriptURL, mainPath.toFile());
 		ScriptSource script = ScriptSource.prepareScript(resourceRef, null);
-		RunContext ctx = new RunContext();
-		List<ScriptSource> sources = ctx.getAllSources(script);
-		assertEquals(sources.size(), 4);
+		SourceSet ss = SourceSet.forScript(script);
+		List<ScriptSource> sources = ss.getSources();
+		assertEquals(5, sources.size());
 		TreeSet<String> fileNames = new TreeSet<>();
 		for (ScriptSource source : sources) {
 			fileNames.add(source.getResourceRef().getFile().getName());
 		}
+		assertEquals(fileNames.pollFirst(), "A.java");
 		assertEquals(fileNames.pollFirst(), "B.java");
 		assertEquals(fileNames.pollFirst(), "C.java");
 		assertEquals(fileNames.pollFirst(), "HelloInner.java");
@@ -141,9 +142,7 @@ class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 		String scriptURL = mainPath.toString();
 		ResourceRef resourceRef = ResourceRef.forNamedFile(scriptURL, mainPath.toFile());
 		ScriptSource script = ScriptSource.prepareScript(resourceRef, null);
-		RunContext ctx = new RunContext();
-		Assertions.assertThrows(ExitException.class, () -> ctx.getAllSources(script));
-
+		Assertions.assertThrows(ExitException.class, () -> SourceSet.forScript(script));
 	}
 
 }

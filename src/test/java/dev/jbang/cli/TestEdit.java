@@ -24,7 +24,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.*;
 import dev.jbang.source.RunContext;
-import dev.jbang.source.ScriptSource;
+import dev.jbang.source.SourceSet;
 import dev.jbang.util.Util;
 
 public class TestEdit extends BaseTest {
@@ -44,9 +44,9 @@ public class TestEdit extends BaseTest {
 		assertThat(new File(s).exists(), is(true));
 
 		RunContext ctx = RunContext.empty();
-		ScriptSource ssrc = (ScriptSource) ctx.forResource(s);
+		SourceSet ss = ctx.createSourceSet(s);
 
-		File project = new Edit().createProjectForEdit(ssrc, ctx, false);
+		File project = new Edit().createProjectForEdit(ss, ctx, false);
 
 		assertThat(new File(project, "src"), FileMatchers.anExistingDirectory());
 		File build = new File(project, "build.gradle");
@@ -84,9 +84,9 @@ public class TestEdit extends BaseTest {
 		Util.writeString(p, "//DEPS org.openjfx:javafx-graphics:11.0.2${bougus:}\n" + Util.readString(p));
 
 		RunContext ctx = RunContext.empty();
-		ScriptSource src = (ScriptSource) ctx.forResource(s);
+		SourceSet ss = ctx.createSourceSet(s);
 
-		File project = new Edit().createProjectForEdit(src, ctx, false);
+		File project = new Edit().createProjectForEdit(ss, ctx, false);
 
 		File gradle = new File(project, "build.gradle");
 		assert (gradle.exists());
@@ -119,9 +119,9 @@ public class TestEdit extends BaseTest {
 				"//DEPS io.quarkus:quarkus-rest-client-reactive-jackson\n" + Util.readString(p));
 
 		RunContext ctx = RunContext.empty();
-		ScriptSource src = (ScriptSource) ctx.forResource(s);
+		SourceSet ss = ctx.createSourceSet(s);
 
-		File project = new Edit().createProjectForEdit(src, ctx, false);
+		File project = new Edit().createProjectForEdit(ss, ctx, false);
 
 		File gradle = new File(project, "build.gradle");
 		assert (gradle.exists());
@@ -152,9 +152,9 @@ public class TestEdit extends BaseTest {
 		Util.writeString(p, "//DEPS https://github.com/oldskoolsh/libvirt-schema/tree/0.0.2\n" + Util.readString(p));
 
 		RunContext ctx = RunContext.empty();
-		ScriptSource src = (ScriptSource) ctx.forResource(s);
+		SourceSet ss = ctx.createSourceSet(s);
 
-		File project = new Edit().createProjectForEdit(src, ctx, false);
+		File project = new Edit().createProjectForEdit(ss, ctx, false);
 
 		File gradle = new File(project, "build.gradle");
 		assert (gradle.exists());
@@ -172,9 +172,9 @@ public class TestEdit extends BaseTest {
 		assertThat(p.toFile().exists(), is(true));
 
 		RunContext ctx = RunContext.empty();
-		ScriptSource src = (ScriptSource) ctx.forResource(p.toString());
+		SourceSet ss = ctx.createSourceSet(p.toString());
 
-		File project = new Edit().createProjectForEdit(src, ctx, false);
+		File project = new Edit().createProjectForEdit(ss, ctx, false);
 
 		File gradle = new File(project, "build.gradle");
 		assert (gradle.exists());
@@ -197,9 +197,9 @@ public class TestEdit extends BaseTest {
 		assertThat(new File(s).exists(), is(true));
 
 		RunContext ctx = RunContext.empty();
-		ScriptSource src = (ScriptSource) ctx.forResource(s);
+		SourceSet ss = ctx.createSourceSet(s);
 
-		File project = new Edit().createProjectForEdit(src, ctx, false);
+		File project = new Edit().createProjectForEdit(ss, ctx, false);
 
 		File java = new File(project, "src/KubeExample.java");
 
@@ -215,10 +215,10 @@ public class TestEdit extends BaseTest {
 		assertThat(p.toFile().exists(), is(true));
 
 		RunContext ctx = RunContext.empty();
-		ScriptSource src = (ScriptSource) ctx.forResource(p.toString());
-		ctx.resolveClassPath(src);
+		SourceSet ss = ctx.createSourceSet(p.toString());
+		ss.getClassPath();
 
-		File project = new Edit().createProjectForEdit(src, ctx, false);
+		File project = new Edit().createProjectForEdit(ss, ctx, false);
 
 		File gradle = new File(project, "build.gradle");
 		assert (gradle.exists());
