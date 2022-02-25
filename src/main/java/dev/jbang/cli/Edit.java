@@ -176,7 +176,7 @@ public class Edit extends BaseScriptCommand {
 				options.add("Use '" + ed + "'");
 			}
 
-			int result = Util.askInput(question, 30, 1, options.toArray(new String[] {}));
+			int result = Util.askInput(question, 30, 0, options.toArray(new String[] {}));
 			if (result == 0) {
 				return Optional.empty();
 			} else if (result == 1) {
