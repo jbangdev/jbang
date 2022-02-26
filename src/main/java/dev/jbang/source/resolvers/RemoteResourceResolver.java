@@ -60,7 +60,7 @@ public class RemoteResourceResolver implements ResourceResolver {
 					options.add("Trust organization url in future: " + trustOrgUrl);
 				}
 
-				int result = Util.askInput(question, 30, 1, options.toArray(new String[] {}));
+				int result = Util.askInput(question, 30, 0, options.toArray(new String[] {}));
 				TrustedSources ts = TrustedSources.instance();
 				if (result == 2) {
 					ts.add(trustUrl, Settings.getTrustedSourcesFile().toFile());
