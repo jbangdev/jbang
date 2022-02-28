@@ -188,7 +188,7 @@ import groovy.lang.GrabResolver;
 @GrabResolver(name='acme', root='https://maven.acme.local/maven')
 @Grapes({ // <.>
 		@Grab(group="org.codehaus.groovy", module="groovy", version="2.5.8"), // <.>
-		@Grab(module = "log4j", group = "log4j", version = "1.2.17")
+		@Grab(group = "ch.qos.reload4j", module = "reload4j", version = "1.2.19")
 })
 class classpath_example {
 
