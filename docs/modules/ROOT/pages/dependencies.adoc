@@ -21,7 +21,7 @@ To specify dependencies you use gradle-style locators or links to Git sources. B
 ----
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 // <.>
-//DEPS log4j:log4j:1.2.17
+//DEPS ch.qos.reload4j:reload4j:1.2.19
 
 import static java.lang.System.out;
 
@@ -52,7 +52,7 @@ Now when you run this, the first time with no existing dependencies installed yo
 ----
 $ ./classpath_example.java
 [jbang] Resolving dependencies...
-[jbang]     Resolving log4j:log4j:1.2.17...Done
+[jbang]     Resolving ch.qos.reload4j:reload4j:1.2.19...Done
 [jbang] Dependencies resolved
 0 [main] INFO classpath_example  - Welcome to jbang
 1 [main] INFO classpath_example  - Hello from Java!
