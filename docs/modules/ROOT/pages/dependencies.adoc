@@ -185,7 +185,7 @@ import groovy.lang.Grapes;
 import groovy.lang.GrabResolver;
 
 @GrabResolver("mavenCentral") // <.>
-@GrabResolver(name='acme', root='https://maven.acme.local/maven')
+@GrabResolver(name="acme", root="https://maven.acme.local/maven")
 @Grapes({ // <.>
 		@Grab(group = "ch.qos.reload4j", module = "reload4j", version = "1.2.19"), // <.>
 		@Grab(group = "org.apache.groovy", module = "groovy", version = "4.0.0"), // <.>
