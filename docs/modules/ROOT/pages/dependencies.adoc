@@ -187,8 +187,8 @@ import groovy.lang.GrabResolver;
 @GrabResolver("mavenCentral") // <.>
 @GrabResolver(name='acme', root='https://maven.acme.local/maven')
 @Grapes({ // <.>
-		@Grab(group="org.codehaus.groovy", module="groovy", version="2.5.8"), // <.>
-		@Grab(group = "ch.qos.reload4j", module = "reload4j", version = "1.2.19")
+		@Grab(group = "ch.qos.reload4j", module = "reload4j", version = "1.2.19"), // <.>
+		@Grab(group = "org.apache.groovy", module = "groovy", version = "4.0.0"), // <.>
 })
 class classpath_example {
 
@@ -204,6 +204,7 @@ class classpath_example {
 <.> Using `GrabResolver` to enable `mavenCentral` and custom `acme` repository
 <.> In Groovy you normally put `@Grab` on import statements. That is not allowed in Java thus when having multiple imports you need to put them in a `@Grapes` annotation first.
 <.> `jbang` will grab any `@Grab` annotation and assume it is declaring dependencies.
+<.> In particular to be able to import `groovy.lang.*` annotations, groovy itself must be in the list of dependencies.
 
 === System properties and Environment variables
 
