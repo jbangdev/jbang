@@ -58,6 +58,7 @@ import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.net.TrustedSources;
 import dev.jbang.source.*;
+import dev.jbang.source.builders.BaseBuilder;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.source.scripts.JavaScript;
 import dev.jbang.util.Util;
@@ -102,7 +103,7 @@ public class TestRun extends BaseTest {
 		assertThat(result, containsString("classpath"));
 		assertThat(result, containsString(".jar"));
 		assertThat(result, containsString("-Dfoo=bar"));
-		assertThat(result, containsString(JarBuilder.escapeOSArgument("-Dbar=aap noot mies", Util.getShell())));
+		assertThat(result, containsString(BaseBuilder.escapeOSArgument("-Dbar=aap noot mies", Util.getShell())));
 		// Make sure the opts only appear once
 		assertThat(result.replaceFirst(Pattern.quote("-Dfoo=bar"), ""),
 				not(containsString("-Dfoo=bar")));
@@ -110,7 +111,7 @@ public class TestRun extends BaseTest {
 				not(containsString("-Dbar=aap noot mies")));
 		// Make sure the opts only appear unquoted
 		assertThat(result,
-				not(containsString(JarBuilder.escapeOSArgument("-Dfoo=bar -Dbar=aap noot mies", Util.getShell()))));
+				not(containsString(BaseBuilder.escapeOSArgument("-Dfoo=bar -Dbar=aap noot mies", Util.getShell()))));
 		// assertThat(result, containsString("--source 11"));
 	}
 
@@ -134,7 +135,7 @@ public class TestRun extends BaseTest {
 		assertThat(result, containsString("classpath"));
 		assertThat(result, containsString(".jar"));
 		assertThat(result, containsString("-Dfoo=bar"));
-		assertThat(result, containsString(JarBuilder.escapeOSArgument("-Dbar=aap noot mies", Util.getShell())));
+		assertThat(result, containsString(BaseBuilder.escapeOSArgument("-Dbar=aap noot mies", Util.getShell())));
 		// Make sure the opts only appear once
 		assertThat(result.replaceFirst(Pattern.quote("-Dfoo=bar"), ""),
 				not(containsString("-Dfoo=bar")));
@@ -142,7 +143,7 @@ public class TestRun extends BaseTest {
 				not(containsString("-Dbar=aap noot mies")));
 		// Make sure the opts only appear unquoted
 		assertThat(result,
-				not(containsString(JarBuilder.escapeOSArgument("-Dfoo=bar -Dbar=aap noot mies", Util.getShell()))));
+				not(containsString(BaseBuilder.escapeOSArgument("-Dfoo=bar -Dbar=aap noot mies", Util.getShell()))));
 		assertThat(result, containsString("-showversion"));
 		// assertThat(result, containsString("--source 11"));
 	}
@@ -656,7 +657,7 @@ public class TestRun extends BaseTest {
 		classfile.createNewFile();
 		assert (classfile.exists());
 
-		assertEquals(JarBuilder.findMainClass(dir, classfile.toPath()), "a.b.c.mymain");
+		assertEquals(BaseBuilder.findMainClass(dir, classfile.toPath()), "a.b.c.mymain");
 
 	}
 
@@ -681,7 +682,7 @@ public class TestRun extends BaseTest {
 		ctx.setMainClass("wonkabear");
 
 		ctx.resolveClassPath(ss);
-		new JarBuilder().createJarFile(ss, ctx, dir, out);
+		BaseBuilder.createJar(ss, ctx, dir, out);
 
 		try (JarFile jf = new JarFile(out)) {
 
@@ -739,7 +740,7 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forFile(f);
-		Jar jar = new JarBuilder().build(ss, ctx);
+		Jar jar = ss.builder(ctx).build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("aclass"));
 
@@ -789,7 +790,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forFile(f);
 
-		Jar jar = new JarBuilder().build(ss, ctx);
+		Jar jar = ss.builder(ctx).build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("dualclass"));
 
@@ -826,7 +827,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		SourceSet ss = (SourceSet) ctx.forResource(arg);
 
-		Jar jar = new JarBuilder().build(ss, ctx);
+		Jar jar = ss.builder(ctx).build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("dualclass"));
 
@@ -1075,7 +1076,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		SourceSet ss = (SourceSet) ctx.forResource(p.toFile().getAbsolutePath());
 
-		new JarBuilder().build(ss, ctx);
+		ss.builder(ctx).build();
 
 		assertThat(ss.getMainSource().isAgent(), is(true));
 
@@ -1104,7 +1105,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		SourceSet ss = (SourceSet) ctx.forResource(p.toFile().getAbsolutePath());
 
-		new JarBuilder().build(ss, ctx);
+		ss.builder(ctx).build();
 
 		assertThat(ss.getMainSource().isAgent(), is(true));
 
@@ -1226,7 +1227,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forResource(f.getAbsolutePath());
 
-		Jar jar = new JarBuilder().build(ss, ctx);
+		Jar jar = ss.builder(ctx).build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("resource"));
 
@@ -1258,7 +1259,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forResource(f.getAbsolutePath());
 
-		Jar jar = new JarBuilder().build(ss, ctx);
+		Jar jar = ss.builder(ctx).build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("one"));
 
@@ -1316,7 +1317,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forResource(url);
 
-		new JarBuilder().build(ss, ctx);
+		ss.builder(ctx).build();
 
 	}
 
@@ -1341,7 +1342,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		SourceSet ss = (SourceSet) ctx.forResource(p.toFile().getAbsolutePath());
 
-		new JarBuilder().build(ss, ctx);
+		ss.builder(ctx).build();
 
 		assertThat(ctx.getMainClass(), equalTo("Two"));
 
@@ -1370,7 +1371,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		SourceSet ss = (SourceSet) ctx.forResource(p.toFile().getAbsolutePath());
 
-		new JarBuilder().build(ss, ctx);
+		ss.builder(ctx).build();
 
 		assertThat(ctx.getMainClass(), equalTo("One"));
 
@@ -1389,7 +1390,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		SourceSet ss = (SourceSet) ctx.forResource(p.toFile().getAbsolutePath());
 
-		new JarBuilder().build(ss, ctx);
+		ss.builder(ctx).build();
 
 		assertThat(ctx.getMainClass(), equalTo("Three"));
 
@@ -1431,7 +1432,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forResource(url);
 
-		new JarBuilder().build(ss, ctx);
+		ss.builder(ctx).build();
 
 		try (FileSystem fileSystem = FileSystems.newFileSystem(ss.getJarFile().toPath(), null)) {
 			Arrays	.asList("one.class", "index.html")
@@ -1469,7 +1470,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forResource(url);
 
-		new JarBuilder().build(ss, ctx);
+		ss.builder(ctx).build();
 	}
 
 	@Test
@@ -1492,7 +1493,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forResource(dir.toPath().toString());
 
-		new JarBuilder().build(ss, ctx);
+		ss.builder(ctx).build();
 
 	}
 
@@ -1525,7 +1526,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forResource(url);
 
-		new JarBuilder().build(ss, ctx);
+		ss.builder(ctx).build();
 	}
 
 	@Test
@@ -1691,7 +1692,7 @@ public class TestRun extends BaseTest {
 		SourceSet ss = (SourceSet) ctx.forResource(arg);
 
 		try {
-			new JarBuilder().build(ss, ctx);
+			ss.builder(ctx).build();
 		} catch (ExitException ex) {
 			StringWriter sw = new StringWriter();
 			ex.printStackTrace(new PrintWriter(sw));

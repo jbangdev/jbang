@@ -1,8 +1,5 @@
 package dev.jbang.source;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,13 +10,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.jboss.jandex.ClassInfo;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
@@ -71,7 +65,7 @@ public abstract class Script {
 	}
 
 	protected Script(ResourceRef resourceRef, Function<String, String> replaceProperties) {
-		this(resourceRef, getBackingFileContent(resourceRef.getFile()), replaceProperties);
+		this(resourceRef, Util.readFileContent(resourceRef.getFile().toPath()), replaceProperties);
 	}
 
 	protected Script(ResourceRef resourceRef, String content, Function<String, String> replaceProperties) {
@@ -84,11 +78,7 @@ public abstract class Script {
 
 	public abstract List<String> getRuntimeOptions();
 
-	public abstract String getCompilerBinary(String requestedJavaVersion);
-
-	public abstract Predicate<ClassInfo> getMainFinder();
-
-	protected abstract String getMainExtension();
+	public abstract Builder getBuilder(SourceSet ss, RunContext ctx);
 
 	public ResourceRef getResourceRef() {
 		return resourceRef;
@@ -171,14 +161,6 @@ public abstract class Script {
 		}
 
 		return Stream.of();
-	}
-
-	public String getSuggestedMain() {
-		if (!getResourceRef().isStdin()) {
-			return getResourceRef().getFile().getName().replace(getMainExtension(), "");
-		} else {
-			return null;
-		}
 	}
 
 	public List<KeyValue> collectAgentOptions() {
@@ -338,15 +320,6 @@ public abstract class Script {
 
 	private List<String> collectJavaVersions() {
 		return collectOptions("JAVA");
-	}
-
-	protected static String getBackingFileContent(File backingFile) {
-		try {
-			return new String(Files.readAllBytes(backingFile.toPath()));
-		} catch (IOException e) {
-			throw new ExitException(BaseCommand.EXIT_UNEXPECTED_STATE,
-					"Could not read script content for " + backingFile, e);
-		}
 	}
 
 	public List<RefTarget> collectFiles() {

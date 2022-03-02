@@ -15,11 +15,6 @@ import dev.jbang.dependencies.DependencyResolver;
  * (sources/jars) that can be used as, or turned into, executable code.
  */
 public interface Input {
-	String ATTR_BUILD_JDK = "Build-Jdk";
-	String ATTR_JBANG_JAVA_OPTIONS = "JBang-Java-Options";
-	String ATTR_BOOT_CLASS_PATH = "Boot-Class-Path";
-	String ATTR_PREMAIN_CLASS = "Premain-Class";
-	String ATTR_AGENT_CLASS = "Agent-Class";
 
 	/**
 	 * Returns the reference to resource to be executed. This contains both the
@@ -41,26 +36,6 @@ public interface Input {
 	 */
 	default String getMainClass() {
 		return null;
-	}
-
-	// https://stackoverflow.com/questions/366202/regex-for-splitting-a-string-using-space-when-not-surrounded-by-single-or-double
-	static List<String> quotedStringToList(String subjectString) {
-		List<String> matchList = new ArrayList<>();
-		Pattern regex = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
-		Matcher regexMatcher = regex.matcher(subjectString);
-		while (regexMatcher.find()) {
-			if (regexMatcher.group(1) != null) {
-				// Add double-quoted string without the quotes
-				matchList.add(regexMatcher.group(1));
-			} else if (regexMatcher.group(2) != null) {
-				// Add single-quoted string without the quotes
-				matchList.add(regexMatcher.group(2));
-			} else {
-				// Add unquoted word
-				matchList.add(regexMatcher.group());
-			}
-		}
-		return matchList;
 	}
 
 	/**
@@ -134,5 +109,23 @@ public interface Input {
 	 */
 	SourceSet asSourceSet();
 
-	boolean isCreatedJar();
+	// https://stackoverflow.com/questions/366202/regex-for-splitting-a-string-using-space-when-not-surrounded-by-single-or-double
+	static List<String> quotedStringToList(String subjectString) {
+		List<String> matchList = new ArrayList<>();
+		Pattern regex = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
+		Matcher regexMatcher = regex.matcher(subjectString);
+		while (regexMatcher.find()) {
+			if (regexMatcher.group(1) != null) {
+				// Add double-quoted string without the quotes
+				matchList.add(regexMatcher.group(1));
+			} else if (regexMatcher.group(2) != null) {
+				// Add single-quoted string without the quotes
+				matchList.add(regexMatcher.group(2));
+			} else {
+				// Add unquoted word
+				matchList.add(regexMatcher.group());
+			}
+		}
+		return matchList;
+	}
 }

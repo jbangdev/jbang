@@ -1,6 +1,6 @@
 package dev.jbang.source;
 
-import static dev.jbang.source.JarBuilder.*;
+import static dev.jbang.source.builders.BaseBuilder.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -180,7 +180,7 @@ public class DefaultCmdGenerator implements CmdGenerator {
 
 				if (Optional.ofNullable(ctx.getClassDataSharing()).orElse(input.enableCDS())) {
 					String cdsJsa = input.getJarFile().getAbsolutePath() + ".jsa";
-					if (input.isCreatedJar()) {
+					if (input instanceof SourceSet && input.getJarFile().exists()) {
 						Util.verboseMsg("CDS: Archiving Classes At Exit at " + cdsJsa);
 						optionalArgs.add("-XX:ArchiveClassesAtExit=" + cdsJsa);
 					} else {

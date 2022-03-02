@@ -374,6 +374,14 @@ public class Util {
 		throw new ExitException(status);
 	}
 
+	static public String readFileContent(Path file) {
+		try {
+			return readString(file);
+		} catch (IOException e) {
+			throw new ExitException(BaseCommand.EXIT_UNEXPECTED_STATE, "Could not read content for " + file, e);
+		}
+	}
+
 	/**
 	 * Java 8 approximate version of Java 11 Files.readString()
 	 **/
@@ -909,19 +917,19 @@ public class Util {
 	}
 
 	public static String getStableID(String input) {
-		return getStableID(Arrays.asList(input));
+		return getStableID(Stream.of(input));
 	}
 
-	public static String getStableID(List<String> inputs) {
+	public static String getStableID(Stream<String> inputs) {
 		final MessageDigest digest;
 		try {
 			digest = MessageDigest.getInstance("SHA-256");
 		} catch (NoSuchAlgorithmException e) {
 			throw new ExitException(-1, e);
 		}
-		for (String input : inputs) {
+		inputs.forEach(input -> {
 			digest.update(input.getBytes(StandardCharsets.UTF_8));
-		}
+		});
 		final byte[] hashbytes = digest.digest();
 		StringBuilder sb = new StringBuilder();
 		for (byte b : hashbytes) {

@@ -345,15 +345,12 @@ public class RunContext {
 	 **/
 	public String resolveClassPath(Input input) {
 		if (mcp == null) {
-			if (input instanceof SourceSet) {
-				// TODO this definitely shouldn't be implemented like this!
-				mcp = ((SourceSet) input).getClassPath();
-			} else {
-				DependencyResolver resolver = new DependencyResolver();
+			DependencyResolver resolver = new DependencyResolver();
+			if (input instanceof Jar) {
 				updateDependencyResolver(resolver);
-				input.updateDependencyResolver(resolver);
-				mcp = resolver.resolve();
 			}
+			input.updateDependencyResolver(resolver);
+			mcp = resolver.resolve();
 		}
 		return mcp.getClassPath();
 	}

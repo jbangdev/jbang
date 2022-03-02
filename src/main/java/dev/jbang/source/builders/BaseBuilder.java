@@ -1,4 +1,4 @@
-package dev.jbang.source;
+package dev.jbang.source.builders;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -16,8 +16,7 @@ import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
-import dev.jbang.net.JdkManager;
-import dev.jbang.source.scripts.GroovyScript;
+import dev.jbang.source.*;
 import dev.jbang.spi.IntegrationManager;
 import dev.jbang.spi.IntegrationResult;
 import dev.jbang.util.JarUtil;
@@ -27,9 +26,18 @@ import dev.jbang.util.Util;
 
 import io.quarkus.qute.Template;
 
-public class JarBuilder implements Builder {
-	private boolean fresh = Util.isFresh();
-	private Util.Shell shell = Util.getShell();
+public abstract class BaseBuilder implements Builder {
+	protected final SourceSet ss;
+	protected final RunContext ctx;
+
+	protected boolean fresh = Util.isFresh();
+	protected Util.Shell shell = Util.getShell();
+
+	public static final String ATTR_BUILD_JDK = "Build-Jdk";
+	public static final String ATTR_JBANG_JAVA_OPTIONS = "JBang-Java-Options";
+	public static final String ATTR_BOOT_CLASS_PATH = "Boot-Class-Path";
+	public static final String ATTR_PREMAIN_CLASS = "Premain-Class";
+	public static final String ATTR_AGENT_CLASS = "Agent-Class";
 
 	public static final Type STRINGARRAYTYPE = Type.create(DotName.createSimple("[Ljava.lang.String;"),
 			Type.Kind.ARRAY);
@@ -37,25 +45,29 @@ public class JarBuilder implements Builder {
 	public static final Type INSTRUMENTATIONTYPE = Type.create(
 			DotName.createSimple("java.lang.instrument.Instrumentation"), Type.Kind.CLASS);
 
-	public JarBuilder setFresh(boolean fresh) {
+	public BaseBuilder(SourceSet ss, RunContext ctx) {
+		this.ss = ss;
+		this.ctx = ctx;
+	}
+
+	public BaseBuilder setFresh(boolean fresh) {
 		this.fresh = fresh;
 		return this;
 	}
 
-	public JarBuilder setShell(Util.Shell shell) {
+	public BaseBuilder setShell(Util.Shell shell) {
 		this.shell = shell;
 		return this;
 	}
 
 	@Override
-	public Jar build(SourceSet ss, RunContext ctx) throws IOException {
+	public Jar build() throws IOException {
 		Jar result = null;
 
 		File outjar = ss.getJarFile();
 		boolean nativeBuildRequired = ctx.isNativeImage() && !getImageName(outjar).exists();
 		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
-		String requestedJavaVersion = ctx.getJavaVersion() != null ? ctx.getJavaVersion()
-				: ss.getJavaVersion().orElse(null);
+		String requestedJavaVersion = getRequestedJavaVersion();
 		// always build the jar for native mode
 		// it allows integrations the options to produce the native image
 		boolean buildRequired = true;
@@ -88,16 +100,17 @@ public class JarBuilder implements Builder {
 
 		if (buildRequired) {
 			// set up temporary folder for compilation
-			File tmpJarDir = new File(outjar.getParentFile(), outjar.getName() + ".tmp");
-			Util.deletePath(tmpJarDir.toPath(), true);
-			tmpJarDir.mkdirs();
+			File compileDir = getCompileDir();
+			Util.deletePath(compileDir.toPath(), true);
+			compileDir.mkdirs();
 			// do the actual building
 			try {
-				integrationResult = buildJar(ss, ctx, tmpJarDir, outjar, requestedJavaVersion);
+				integrationResult = compile();
+				createJar();
 				result = ss.asJar();
 			} finally {
 				// clean up temporary folder
-				Util.deletePath(tmpJarDir.toPath(), true);
+				Util.deletePath(compileDir.toPath(), true);
 			}
 		}
 
@@ -105,25 +118,25 @@ public class JarBuilder implements Builder {
 			if (integrationResult.nativeImagePath != null) {
 				Files.move(integrationResult.nativeImagePath, getImageName(outjar).toPath());
 			} else {
-				buildNative(ss, ctx, outjar, requestedJavaVersion);
+				buildNative();
 			}
 		}
 
 		return result;
 	}
 
-	// build with javac and then jar... todo: split up in more testable chunks
-	public IntegrationResult buildJar(SourceSet ss, RunContext ctx, File tmpJarDir, File outjar,
-			String requestedJavaVersion) throws IOException {
-		IntegrationResult integrationResult;
+	// build with javac and then jar...
+	public IntegrationResult compile() throws IOException {
+		String requestedJavaVersion = getRequestedJavaVersion();
+		File compileDir = getCompileDir();
 		List<String> optionList = new ArrayList<>();
-		optionList.add(ss.getMainSource().getCompilerBinary(requestedJavaVersion));
+		optionList.add(getCompilerBinary(requestedJavaVersion));
 		optionList.addAll(ss.getCompileOptions());
 		String path = ss.getClassPath().getClassPath();
 		if (!Util.isBlankString(path)) {
 			optionList.addAll(Arrays.asList("-classpath", path));
 		}
-		optionList.addAll(Arrays.asList("-d", tmpJarDir.getAbsolutePath()));
+		optionList.addAll(Arrays.asList("-d", compileDir.getAbsolutePath()));
 
 		// add source files to compile
 		optionList.addAll(ss.getSources()
@@ -132,25 +145,25 @@ public class JarBuilder implements Builder {
 							.collect(Collectors.toList()));
 
 		// add additional files
-		ss.copyResourcesTo(tmpJarDir.toPath());
+		ss.copyResourcesTo(compileDir.toPath());
 
-		Path pomPath = generatePom(ss, ctx, tmpJarDir);
+		Path pomPath = generatePom(compileDir);
 
 		Util.infoMsg("Building jar...");
 		Util.verboseMsg("compile: " + String.join(" ", optionList));
 
-		runCompiler(ss, requestedJavaVersion, optionList);
+		runCompiler(optionList);
 
 		ctx.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
 		// todo: setting properties to avoid loosing properties in integration call.
 		Properties old = System.getProperties();
-		Properties temporay = new Properties(System.getProperties());
+		Properties temp = new Properties(System.getProperties());
 		for (Map.Entry<String, String> entry : ctx.getProperties().entrySet()) {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
-		integrationResult = IntegrationManager.runIntegration(ss.getRepositories(),
+		IntegrationResult integrationResult = IntegrationManager.runIntegration(ss.getRepositories(),
 				ss.getClassPath().getArtifacts(),
-				tmpJarDir.toPath(), pomPath,
+				compileDir.toPath(), pomPath,
 				ss.getMainSource(), ctx.isNativeImage());
 		System.setProperties(old);
 
@@ -158,20 +171,18 @@ public class JarBuilder implements Builder {
 			if (integrationResult.mainClass != null) {
 				ctx.setMainClass(integrationResult.mainClass);
 			} else {
-				searchForMain(ss.getMainSource(), ctx, tmpJarDir);
+				searchForMain(compileDir);
 			}
 		}
 		ctx.setIntegrationOptions(integrationResult.javaArgs);
-		createJarFile(ss, ctx, tmpJarDir, outjar);
 		return integrationResult;
 	}
 
-	protected void runCompiler(SourceSet ss, String requestedJavaVersion, List<String> optionList) throws IOException {
-		final ProcessBuilder processBuilder = new ProcessBuilder(optionList).inheritIO();
-		if (ss.getMainSource() instanceof GroovyScript) {
-			processBuilder.environment().put("JAVA_HOME", JdkManager.getCurrentJdk(requestedJavaVersion).toString());
-			processBuilder.environment().remove("GROOVY_HOME");
-		}
+	protected void runCompiler(List<String> optionList) throws IOException {
+		runCompiler(new ProcessBuilder(optionList).inheritIO());
+	}
+
+	protected void runCompiler(ProcessBuilder processBuilder) throws IOException {
 		Process process = processBuilder.start();
 		try {
 			process.waitFor();
@@ -184,7 +195,11 @@ public class JarBuilder implements Builder {
 		}
 	}
 
-	public void createJarFile(SourceSet ss, RunContext ctx, File path, File output) throws IOException {
+	public void createJar() throws IOException {
+		createJar(ss, ctx, getCompileDir(), ss.getJarFile());
+	}
+
+	public static void createJar(SourceSet ss, RunContext ctx, File compileDir, File jarFile) throws IOException {
 		String mainclass = ctx.getMainClassOr(ss);
 		Manifest manifest = new Manifest();
 		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
@@ -194,10 +209,10 @@ public class JarBuilder implements Builder {
 
 		if (ss.getMainSource().isAgent()) {
 			if (ctx.getPreMainClass() != null) {
-				manifest.getMainAttributes().put(new Attributes.Name(Input.ATTR_PREMAIN_CLASS), ctx.getPreMainClass());
+				manifest.getMainAttributes().put(new Attributes.Name(ATTR_PREMAIN_CLASS), ctx.getPreMainClass());
 			}
 			if (ctx.getAgentMainClass() != null) {
-				manifest.getMainAttributes().put(new Attributes.Name(Input.ATTR_AGENT_CLASS), ctx.getAgentMainClass());
+				manifest.getMainAttributes().put(new Attributes.Name(ATTR_AGENT_CLASS), ctx.getAgentMainClass());
 			}
 
 			for (KeyValue kv : ss.getAgentOptions()) {
@@ -211,7 +226,7 @@ public class JarBuilder implements Builder {
 
 			String bootClasspath = ss.getClassPath().getManifestPath();
 			if (!bootClasspath.isEmpty()) {
-				manifest.getMainAttributes().put(new Attributes.Name(Input.ATTR_BOOT_CLASS_PATH), bootClasspath);
+				manifest.getMainAttributes().put(new Attributes.Name(ATTR_BOOT_CLASS_PATH), bootClasspath);
 			}
 		} else {
 			String classpath = ss.getClassPath().getManifestPath();
@@ -227,23 +242,23 @@ public class JarBuilder implements Builder {
 		String runtimeOpts = String.join(" ", escapeArguments(rtArgs));
 		if (!runtimeOpts.isEmpty()) {
 			manifest.getMainAttributes()
-					.putValue(Input.ATTR_JBANG_JAVA_OPTIONS, runtimeOpts);
+					.putValue(ATTR_JBANG_JAVA_OPTIONS, runtimeOpts);
 		}
 		int buildJdk = ctx.getBuildJdk();
 		if (buildJdk > 0) {
 			String val = buildJdk >= 9 ? Integer.toString(buildJdk) : "1." + buildJdk;
-			manifest.getMainAttributes().putValue(Input.ATTR_BUILD_JDK, val);
+			manifest.getMainAttributes().putValue(ATTR_BUILD_JDK, val);
 		}
 
-		FileOutputStream target = new FileOutputStream(output);
-		JarUtil.jar(target, path.listFiles(), null, null, manifest);
+		FileOutputStream target = new FileOutputStream(jarFile);
+		JarUtil.jar(target, compileDir.listFiles(), null, null, manifest);
 		target.close();
 	}
 
-	protected void buildNative(SourceSet ss, RunContext ctx, File outjar, String requestedJavaVersion)
+	protected void buildNative()
 			throws IOException {
 		List<String> optionList = new ArrayList<>();
-		optionList.add(resolveInGraalVMHome("native-image", requestedJavaVersion));
+		optionList.add(resolveInGraalVMHome("native-image", getRequestedJavaVersion()));
 
 		optionList.add("-H:+ReportExceptionStackTraces");
 
@@ -255,9 +270,9 @@ public class JarBuilder implements Builder {
 		}
 
 		optionList.add("-jar");
-		optionList.add(outjar.toString());
+		optionList.add(ss.getJarFile().toString());
 
-		optionList.add(getImageName(outjar).toString());
+		optionList.add(getImageName(ss.getJarFile()).toString());
 
 		runNativeBuilder(optionList);
 	}
@@ -338,7 +353,7 @@ public class JarBuilder implements Builder {
 	 * (we'll just be using the Unix way)
 	 */
 	static List<String> escapeArguments(List<String> args) {
-		return args.stream().map(JarBuilder::escapeUnixArgument).collect(Collectors.toList());
+		return args.stream().map(BaseBuilder::escapeUnixArgument).collect(Collectors.toList());
 	}
 
 	public static String escapeOSArgument(String arg, Util.Shell shell) {
@@ -387,7 +402,7 @@ public class JarBuilder implements Builder {
 		return arg;
 	}
 
-	protected void searchForMain(Script src, RunContext ctx, File tmpJarDir) {
+	protected void searchForMain(File tmpJarDir) {
 		try {
 			// using Files.walk method with try-with-resources
 			try (Stream<Path> paths = Files.walk(tmpJarDir.toPath())) {
@@ -408,9 +423,9 @@ public class JarBuilder implements Builder {
 				Collection<ClassInfo> classes = index.getKnownClasses();
 
 				List<ClassInfo> mains = classes	.stream()
-												.filter(src.getMainFinder())
+												.filter(getMainFinder())
 												.collect(Collectors.toList());
-				String mainName = src.getSuggestedMain();
+				String mainName = getSuggestedMain();
 				if (mains.size() > 1 && mainName != null) {
 					List<ClassInfo> suggestedmain = mains	.stream()
 															.filter(ci -> ci.simpleName().equals(mainName))
@@ -431,7 +446,7 @@ public class JarBuilder implements Builder {
 					}
 				}
 
-				if (src.isAgent()) {
+				if (ss.getMainSource().isAgent()) {
 					Optional<ClassInfo> agentmain = classes	.stream()
 															.filter(pubClass -> pubClass.method("agentmain",
 																	STRINGTYPE,
@@ -464,11 +479,23 @@ public class JarBuilder implements Builder {
 		}
 	}
 
-	private Predicate<ClassInfo> getMainFinder() {
+	protected String getSuggestedMain() {
+		if (!ss.getResourceRef().isStdin()) {
+			return ss.getResourceRef().getFile().getName().replace(getMainExtension(), "");
+		} else {
+			return null;
+		}
+	}
+
+	protected abstract String getMainExtension();
+
+	protected Predicate<ClassInfo> getMainFinder() {
 		return pubClass -> pubClass.method("main", STRINGARRAYTYPE) != null;
 	}
 
-	protected Path generatePom(SourceSet ss, RunContext ctx, File tmpJarDir) throws IOException {
+	protected abstract String getCompilerBinary(String requestedJavaVersion);
+
+	protected Path generatePom(File tmpJarDir) throws IOException {
 		Template pomTemplate = TemplateEngine.instance().getTemplate("pom.qute.xml");
 
 		Path pomPath = null;
@@ -501,5 +528,13 @@ public class JarBuilder implements Builder {
 			Util.writeString(pomPath, pomfile);
 		}
 		return pomPath;
+	}
+
+	protected String getRequestedJavaVersion() {
+		return ctx.getJavaVersion() != null ? ctx.getJavaVersion() : ss.getJavaVersion().orElse(null);
+	}
+
+	protected File getCompileDir() {
+		return new File(ss.getJarFile().getParentFile(), ss.getJarFile().getName() + ".tmp");
 	}
 }

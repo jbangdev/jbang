@@ -3,7 +3,7 @@ package dev.jbang.source;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -283,18 +283,18 @@ public class SourceSet implements Input {
 			return null;
 		}
 		if (jarFile == null) {
-			List<String> scripts = sources.stream().map(src -> src.getScript()).collect(Collectors.toList());
 			File baseDir = Settings.getCacheDir(Cache.CacheClass.jars).toFile();
-			File tmpJarDir = new File(baseDir, getResourceRef().getFile().getName() +
-					"." + Util.getStableID(scripts));
+			File tmpJarDir = new File(baseDir, getResourceRef().getFile().getName() + "." + getStableId());
 			jarFile = new File(tmpJarDir.getParentFile(), tmpJarDir.getName() + ".jar");
 		}
 		return jarFile;
 	}
 
-	@Override
-	public boolean isCreatedJar() {
-		return getJarFile().exists();
+	private String getStableId() {
+		Stream<String> srcs = sources.stream().map(src -> src.getScript());
+		Stream<String> ress = resources.stream().map(res -> Util.readFileContent(res.getSource().getFile().toPath()));
+		Stream<String> files = Stream.concat(srcs, ress);
+		return Util.getStableID(files);
 	}
 
 	@Override
@@ -311,5 +311,9 @@ public class SourceSet implements Input {
 	@Override
 	public SourceSet asSourceSet() {
 		return this;
+	}
+
+	public Builder builder(RunContext ctx) {
+		return getMainSource().getBuilder(this, ctx);
 	}
 }

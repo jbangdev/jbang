@@ -11,6 +11,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
+import dev.jbang.source.builders.JavaBuilder;
 
 public class TestBuilder extends BaseTest {
 
@@ -22,15 +23,14 @@ public class TestBuilder extends BaseTest {
 		ctx.setAdditionalSources(Arrays.asList(bar.toString()));
 		SourceSet ss = (SourceSet) ctx.forResource(foo.toString());
 
-		Builder b = new JarBuilder() {
+		new JavaBuilder(ss, ctx) {
 			@Override
-			protected void runCompiler(SourceSet ss, String requestedJavaVersion, List<String> optionList)
+			protected void runCompiler(List<String> optionList)
 					throws IOException {
 				assertThat(optionList, hasItem(foo.toString()));
 				assertThat(optionList, hasItem(bar.toString()));
 				// Skip the compiler
 			}
-		}.setFresh(true);
-		b.build(ss, ctx);
+		}.setFresh(true).build();
 	}
 }

@@ -1,18 +1,16 @@
 package dev.jbang.source.scripts;
 
-import static dev.jbang.net.GroovyManager.resolveInGroovyHome;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
-import java.util.function.Predicate;
-
-import org.jboss.jandex.ClassInfo;
 
 import dev.jbang.net.GroovyManager;
-import dev.jbang.source.JarBuilder;
 import dev.jbang.source.ResourceRef;
+import dev.jbang.source.RunContext;
 import dev.jbang.source.Script;
+import dev.jbang.source.SourceSet;
+import dev.jbang.source.builders.BaseBuilder;
+import dev.jbang.source.builders.GroovyBuilder;
 
 public class GroovyScript extends Script {
 
@@ -30,14 +28,8 @@ public class GroovyScript extends Script {
 	}
 
 	@Override
-	public String getCompilerBinary(String requestedJavaVersion) {
-		return resolveInGroovyHome("groovyc", getGroovyVersion());
-	}
-
-	@Override
-	public Predicate<ClassInfo> getMainFinder() {
-		return pubClass -> pubClass.method("main", JarBuilder.STRINGARRAYTYPE) != null
-				|| pubClass.method("main") != null;
+	public BaseBuilder getBuilder(SourceSet ss, RunContext ctx) {
+		return new GroovyBuilder(ss, ctx);
 	}
 
 	@Override
@@ -50,11 +42,6 @@ public class GroovyScript extends Script {
 			allDependencies.add("org.codehaus.groovy:groovy:" + groovyVersion);
 		}
 		return allDependencies;
-	}
-
-	@Override
-	protected String getMainExtension() {
-		return ".groovy";
 	}
 
 	public String getGroovyVersion() {

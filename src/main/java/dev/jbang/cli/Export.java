@@ -3,7 +3,7 @@ package dev.jbang.cli;
 import static dev.jbang.cli.BaseBuildCommand.buildIfNeeded;
 import static dev.jbang.cli.BaseScriptCommand.enableInsecure;
 import static dev.jbang.cli.Export.handle;
-import static dev.jbang.source.JarBuilder.getImageName;
+import static dev.jbang.source.builders.BaseBuilder.getImageName;
 import static dev.jbang.util.JavaUtil.resolveInJavaHome;
 import static dev.jbang.util.Util.downloadFile;
 
@@ -137,16 +137,16 @@ class ExportPortable extends BaseCommand implements Exporter {
 		if (!exportMixin.nativeImage) {
 			try (JarFile jf = new JarFile(outputPath.toFile())) {
 				String cp = jf.getManifest().getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
-				String[] jars = cp == null ? new String[0] : cp.split(" ");
+				String[] deps = cp == null ? new String[0] : cp.split(" ");
 				File libDir = new File(outputPath.toFile().getParentFile(), LIB);
-				if (jars.length > 0) {
+				if (deps.length > 0) {
 					if (!libDir.exists()) {
 						libDir.mkdirs();
 					}
 				}
 				StringBuilder newPath = new StringBuilder();
-				for (String jar : jars) {
-					Path file = downloadFile(new File(jar).toURI().toString(), libDir);
+				for (String dep : deps) {
+					Path file = downloadFile(new File(dep).toURI().toString(), libDir);
 					newPath.append(" " + LIB + "/" + file.toFile().getName());
 				}
 

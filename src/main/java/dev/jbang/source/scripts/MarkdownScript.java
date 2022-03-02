@@ -11,6 +11,7 @@ import dev.jbang.cli.ExitException;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.source.Script;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
+import dev.jbang.util.Util;
 
 public class MarkdownScript extends JavaScript {
 
@@ -19,7 +20,8 @@ public class MarkdownScript extends JavaScript {
 	}
 
 	public static Script create(ResourceRef resourceRef, Function<String, String> replaceProperties) {
-		String scriptText = new MarkdownTransform().transformMarkdown(getBackingFileContent(resourceRef.getFile()));
+		String scriptText = new MarkdownTransform().transformMarkdown(
+				Util.readFileContent(resourceRef.getFile().toPath()));
 		try {
 			// this will cache the content in stdin cache which is not optimal but needed to
 			// have the transformed script stored
@@ -33,11 +35,6 @@ public class MarkdownScript extends JavaScript {
 		return new MarkdownScript(resourceRef,
 				scriptText,
 				replaceProperties);
-	}
-
-	@Override
-	protected String getMainExtension() {
-		return ".java";
 	}
 
 	static class MarkdownTransform {

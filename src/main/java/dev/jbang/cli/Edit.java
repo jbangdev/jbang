@@ -1,7 +1,7 @@
 package dev.jbang.cli;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
-import static dev.jbang.source.JarBuilder.escapeOSArguments;
+import static dev.jbang.source.builders.BaseBuilder.escapeOSArguments;
 import static dev.jbang.util.Util.verboseMsg;
 import static java.lang.System.out;
 

@@ -1,16 +1,14 @@
 package dev.jbang.source.scripts;
 
-import static dev.jbang.util.JavaUtil.resolveInJavaHome;
-
 import java.util.List;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
-import org.jboss.jandex.ClassInfo;
-
-import dev.jbang.source.JarBuilder;
 import dev.jbang.source.ResourceRef;
+import dev.jbang.source.RunContext;
 import dev.jbang.source.Script;
+import dev.jbang.source.SourceSet;
+import dev.jbang.source.builders.BaseBuilder;
+import dev.jbang.source.builders.JavaBuilder;
 
 public class JavaScript extends Script {
 
@@ -37,17 +35,7 @@ public class JavaScript extends Script {
 	}
 
 	@Override
-	public String getCompilerBinary(String requestedJavaVersion) {
-		return resolveInJavaHome("javac", requestedJavaVersion);
-	}
-
-	@Override
-	public Predicate<ClassInfo> getMainFinder() {
-		return pubClass -> pubClass.method("main", JarBuilder.STRINGARRAYTYPE) != null;
-	}
-
-	@Override
-	protected String getMainExtension() {
-		return ".java";
+	public BaseBuilder getBuilder(SourceSet ss, RunContext ctx) {
+		return new JavaBuilder(ss, ctx);
 	}
 }

@@ -11,6 +11,7 @@ import java.util.jar.JarFile;
 
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.source.builders.BaseBuilder;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
@@ -47,12 +48,12 @@ public class Jar implements Input {
 				Attributes attrs = jf.getManifest().getMainAttributes();
 				mainClass = attrs.getValue(Attributes.Name.MAIN_CLASS);
 
-				String val = attrs.getValue(Input.ATTR_JBANG_JAVA_OPTIONS);
+				String val = attrs.getValue(BaseBuilder.ATTR_JBANG_JAVA_OPTIONS);
 				if (val != null) {
 					javaRuntimeOptions = Input.quotedStringToList(val);
 				}
 
-				String ver = attrs.getValue(Input.ATTR_BUILD_JDK);
+				String ver = attrs.getValue(BaseBuilder.ATTR_BUILD_JDK);
 				if (ver != null) {
 					buildJdk = JavaUtil.parseJavaVersion(ver);
 				}
@@ -120,11 +121,6 @@ public class Jar implements Input {
 	@Override
 	public List<String> getRuntimeOptions() {
 		return javaRuntimeOptions;
-	}
-
-	@Override
-	public boolean isCreatedJar() {
-		return false;
 	}
 
 	public static Jar prepareJar(ResourceRef resourceRef) {

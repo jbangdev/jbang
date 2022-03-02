@@ -46,7 +46,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 	static Input buildIfNeeded(Input input, RunContext ctx) throws IOException {
 		if (needsJar(input, ctx)) {
 			SourceSet ss = (SourceSet) input;
-			input = new JarBuilder().build(ss, ctx);
+			input = ss.builder(ctx).build();
 		}
 		return input;
 	}
