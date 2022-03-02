@@ -17,10 +17,10 @@ import com.google.gson.GsonBuilder;
 
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.net.JdkManager;
+import dev.jbang.source.Input;
 import dev.jbang.source.RefTarget;
 import dev.jbang.source.RunContext;
-import dev.jbang.source.ScriptSource;
-import dev.jbang.source.Source;
+import dev.jbang.source.Script;
 
 import picocli.CommandLine;
 
@@ -77,48 +77,22 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 		String description;
 		String gav;
 
-		public ScriptInfo(Source src, RunContext ctx) {
-			originalResource = src.getResourceRef().getOriginalResource();
+		public ScriptInfo(Input input, RunContext ctx) {
+			originalResource = input.getResourceRef().getOriginalResource();
 
 			if (scripts.add(originalResource)) {
-				backingResource = src.getResourceRef().getFile().toString();
+				backingResource = input.getResourceRef().getFile().toString();
 
-				ScriptSource ss = src.asScriptSource();
-				List<String> deps = ss.collectDependencies();
-				if (!deps.isEmpty()) {
-					dependencies = deps;
-				}
-				if (!ss.collectRepositories().isEmpty()) {
-					repositories = ss	.collectRepositories()
-										.stream()
-										.map(Repo::new)
-										.collect(Collectors.toList());
-				}
-				List<RefTarget> refs = ss.collectFiles();
-				if (!refs.isEmpty()) {
-					files = refs.stream()
-								.map(ResourceFile::new)
-								.collect(Collectors.toList());
-				}
-				List<ScriptSource> srcs = ss.collectSources();
-				if (!srcs.isEmpty()) {
-					sources = srcs	.stream()
-									.map(s -> new ScriptInfo(s, null))
-									.collect(Collectors.toList());
-				}
-				if (!ss.getCompileOptions().isEmpty()) {
-					compileOptions = ss.getCompileOptions();
-				}
-				gav = ss.getGav().orElse(null);
-				description = ss.getDescription().orElse(null);
+				Script script = input.asSourceSet().getMainSource();
+				init(script);
 
 				if (ctx != null) {
-					applicationJar = src.getJarFile() == null ? null : src.getJarFile().getAbsolutePath();
-					mainClass = ctx.getMainClassOr(src);
-					requestedJavaVersion = src.getJavaVersion();
+					applicationJar = input.getJarFile() == null ? null : input.getJarFile().getAbsolutePath();
+					mainClass = ctx.getMainClassOr(input);
+					requestedJavaVersion = input.getJavaVersion().orElse(null);
 					availableJdkPath = Objects.toString(JdkManager.getCurrentJdk(requestedJavaVersion), null);
 
-					String cp = ctx.resolveClassPath(src);
+					String cp = ctx.resolveClassPath(input);
 					if (cp.isEmpty()) {
 						resolvedDependencies = Collections.emptyList();
 					} else {
@@ -129,13 +103,48 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 						javaVersion = Integer.toString(ctx.getBuildJdk());
 					}
 
-					List<String> opts = ctx.getRuntimeOptionsMerged(src);
+					List<String> opts = ctx.getRuntimeOptionsMerged(input);
 					if (!opts.isEmpty()) {
 						runtimeOptions = opts;
 					}
 				}
 			}
 		}
+
+		public ScriptInfo(Script script) {
+			init(script);
+		}
+
+		private void init(Script script) {
+			List<String> deps = script.collectDependencies();
+			if (!deps.isEmpty()) {
+				dependencies = deps;
+			}
+			if (!script.collectRepositories().isEmpty()) {
+				repositories = script	.collectRepositories()
+										.stream()
+										.map(Repo::new)
+										.collect(Collectors.toList());
+			}
+			List<RefTarget> refs = script.collectFiles();
+			if (!refs.isEmpty()) {
+				files = refs.stream()
+							.map(ResourceFile::new)
+							.collect(Collectors.toList());
+			}
+			List<Script> srcs = script.collectSources();
+			if (!srcs.isEmpty()) {
+				sources = srcs	.stream()
+								.map(ScriptInfo::new)
+								.collect(Collectors.toList());
+			}
+			if (!script.getCompileOptions().isEmpty()) {
+				compileOptions = script.getCompileOptions();
+			}
+			gav = script.getGav().orElse(null);
+			description = script.getDescription().orElse(null);
+		}
+
 	}
 
 	private static Set<String> scripts;
@@ -147,12 +156,11 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 		}
 
 		RunContext ctx = getRunContext();
-		Source src = ctx.importJarMetadataFor(ctx.forResource(scriptOrFile));
+		Input input = ctx.importJarMetadataFor(ctx.forResource(scriptOrFile));
 
 		scripts = new HashSet<>();
-		ScriptInfo info = new ScriptInfo(src, ctx);
 
-		return info;
+		return new ScriptInfo(input, ctx);
 	}
 
 	RunContext getRunContext() {

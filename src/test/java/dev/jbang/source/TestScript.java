@@ -22,6 +22,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.net.TrustedSources;
+import dev.jbang.source.scripts.JavaScript;
 import dev.jbang.util.PropertiesValueResolver;
 
 public class TestScript extends BaseTest {
@@ -142,7 +143,7 @@ public class TestScript extends BaseTest {
 
 	@Test
 	void testCommentsDoesNotGetPickedUp() {
-		ScriptSource script = new ScriptSource(exampleCommandsWithComments, null);
+		Script script = new JavaScript(exampleCommandsWithComments, null);
 		SourceSet ss = SourceSet.forScript(script);
 
 		assertEquals(script.getJavaVersion(), "14+");
@@ -154,7 +155,7 @@ public class TestScript extends BaseTest {
 
 	@Test
 	void testFindDependencies() {
-		ScriptSource src = new ScriptSource(example,
+		Script src = new JavaScript(example,
 				it -> PropertiesValueResolver.replaceProperties(it, new Properties()));
 		SourceSet ss = SourceSet.forScript(src);
 
@@ -172,7 +173,7 @@ public class TestScript extends BaseTest {
 		Properties p = new Properties();
 		p.put("log4j.version", "1.2.9");
 
-		ScriptSource src = new ScriptSource(example, it -> PropertiesValueResolver.replaceProperties(it, p));
+		Script src = new JavaScript(example, it -> PropertiesValueResolver.replaceProperties(it, p));
 		SourceSet ss = SourceSet.forScript(src);
 
 		List<String> dependencies = ss.getDependencies();
@@ -191,7 +192,7 @@ public class TestScript extends BaseTest {
 		createTmpFileWithContent("pkg1", "Bye.java", exampleURLInsourceBye);
 		String scriptURL = mainPath.toString();
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = ctx.createSourceSet(scriptURL);
+		SourceSet ss = (SourceSet) ctx.forResource(scriptURL);
 		assertEquals(8, ss.getSources().size());
 	}
 
@@ -239,12 +240,12 @@ public class TestScript extends BaseTest {
 			TrustedSources.instance().add(url, tempFile);
 
 			RunContext ctx = RunContext.empty();
-			SourceSet ss = ctx.createSourceSet(url);
+			SourceSet ss = (SourceSet) ctx.forResource(url);
 			assertEquals(3, ss.getSources().size());
 			boolean foundmain = false;
 			boolean foundtwo = false;
 			boolean foundt3 = false;
-			for (ScriptSource source : ss.getSources()) {
+			for (Script source : ss.getSources()) {
 				String name = source.getResourceRef().getFile().getName();
 				if (name.equals("one.java"))
 					foundmain = true;
@@ -261,8 +262,8 @@ public class TestScript extends BaseTest {
 
 	@Test
 	void testCDS() {
-		ScriptSource script = new ScriptSource("//CDS\nclass m { }", null);
-		ScriptSource script2 = new ScriptSource("class m { }", null);
+		Script script = new JavaScript("//CDS\nclass m { }", null);
+		Script script2 = new JavaScript("class m { }", null);
 
 		assertTrue(script.enableCDS());
 		assertFalse(script2.enableCDS());
@@ -271,7 +272,7 @@ public class TestScript extends BaseTest {
 
 	@Test
 	void testExtractDependencies() {
-		List<String> deps = ScriptSource.extractDependencies("//DEPS blah, blue").collect(Collectors.toList());
+		List<String> deps = Script.extractDependencies("//DEPS blah, blue").collect(Collectors.toList());
 
 		assertTrue(deps.contains("blah"));
 
@@ -281,13 +282,13 @@ public class TestScript extends BaseTest {
 
 	@Test
 	void textExtractRepositories() {
-		List<String> repos = ScriptSource	.extractRepositories("//REPOS jcenter=https://xyz.org")
-											.collect(Collectors.toList());
+		List<String> repos = Script	.extractRepositories("//REPOS jcenter=https://xyz.org")
+									.collect(Collectors.toList());
 
 		assertThat(repos, hasItem("jcenter=https://xyz.org"));
 
-		repos = ScriptSource.extractRepositories("//REPOS jcenter=https://xyz.org localMaven xyz=file://~test")
-							.collect(Collectors.toList());
+		repos = Script	.extractRepositories("//REPOS jcenter=https://xyz.org localMaven xyz=file://~test")
+						.collect(Collectors.toList());
 
 		assertThat(repos, hasItem("jcenter=https://xyz.org"));
 		assertThat(repos, hasItem("localMaven"));
@@ -296,13 +297,13 @@ public class TestScript extends BaseTest {
 
 	@Test
 	void textExtractRepositoriesGrape() {
-		List<String> deps = ScriptSource.extractRepositories(
+		List<String> deps = Script.extractRepositories(
 				"@GrabResolver(name=\"restlet.org\", root=\"http://maven.restlet.org\")").collect(Collectors.toList());
 
 		assertThat(deps, hasItem("restlet.org=http://maven.restlet.org"));
 
-		deps = ScriptSource	.extractRepositories("@GrabResolver(\"http://maven.restlet.org\")")
-							.collect(Collectors.toList());
+		deps = Script	.extractRepositories("@GrabResolver(\"http://maven.restlet.org\")")
+						.collect(Collectors.toList());
 
 		assertThat(deps, hasItem("http://maven.restlet.org"));
 
@@ -310,7 +311,7 @@ public class TestScript extends BaseTest {
 
 	@Test
 	void testExtractOptions() {
-		ScriptSource s = new ScriptSource(example, null);
+		Script s = new JavaScript(example, null);
 
 		assertEquals(s.getCompileOptions(), Arrays.asList("--enable-preview", "--verbose"));
 
@@ -328,7 +329,7 @@ public class TestScript extends BaseTest {
 
 	@Test
 	void testGav() {
-		Source src = new ScriptSource(example, null);
+		Script src = new JavaScript(example, null);
 		String gav = src.getGav().get();
 		assertEquals("org.example:classpath", gav);
 	}

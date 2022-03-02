@@ -1,18 +1,23 @@
 package dev.jbang.source;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import dev.jbang.Cache;
+import dev.jbang.Settings;
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.util.JavaUtil;
+import dev.jbang.util.Util;
 
-public class SourceSet {
-	private final List<ScriptSource> sources = new ArrayList<>();
+public class SourceSet implements Input {
+	private final List<Script> sources = new ArrayList<>();
 	private final List<RefTarget> resources = new ArrayList<>();
 	private final List<String> dependencies = new ArrayList<>();
 	private final List<MavenRepo> repositories = new ArrayList<>();
@@ -25,42 +30,43 @@ public class SourceSet {
 	private String gav;
 
 	private ModularClassPath mcp;
+	private File jarFile;
+	private Jar jar;
 
-	public static SourceSet forScript(ScriptSource mainSource) {
+	public static SourceSet forScript(Script mainSource) {
 		return new SourceSet(mainSource);
 	}
 
-	private SourceSet(ScriptSource mainSource) {
+	private SourceSet(Script mainSource) {
 		addSource(mainSource);
 		this.description = mainSource.getDescription().orElse(null);
 		this.gav = mainSource.getGav().orElse(null);
 	}
 
 	@Nonnull
-	public List<ScriptSource> getSources() {
+	public List<Script> getSources() {
 		return Collections.unmodifiableList(sources);
 	}
 
 	@Nonnull
-	public SourceSet addSource(ScriptSource source) {
+	public SourceSet addSource(Script source) {
 		HashSet<ResourceRef> refs = new HashSet<>();
-		sources.stream().map(ScriptSource::getResourceRef).forEach(refs::add);
+		sources.stream().map(Script::getResourceRef).forEach(refs::add);
 		addSource(source, javaVersion, refs);
 		return this;
 	}
 
 	@Nonnull
-	public SourceSet addSources(Collection<ScriptSource> sources) {
+	public SourceSet addSources(Collection<Script> sources) {
 		HashSet<ResourceRef> refs = new HashSet<>();
-		this.sources.stream().map(ScriptSource::getResourceRef).forEach(refs::add);
-		for (ScriptSource source : sources) {
+		this.sources.stream().map(Script::getResourceRef).forEach(refs::add);
+		for (Script source : sources) {
 			addSource(source, javaVersion, refs);
 		}
 		return this;
 	}
 
-	@Nonnull
-	private void addSource(ScriptSource source, String javaVersion, Set<ResourceRef> refs) {
+	private void addSource(Script source, String javaVersion, Set<ResourceRef> refs) {
 		if (!refs.contains(source.getResourceRef())) {
 			refs.add(source.getResourceRef());
 			sources.add(source);
@@ -77,7 +83,7 @@ public class SourceSet {
 					this.javaVersion = version;
 				}
 			}
-			for (ScriptSource includedSource : source.collectSources()) {
+			for (Script includedSource : source.collectSources()) {
 				addSource(includedSource, javaVersion, refs);
 			}
 		}
@@ -250,7 +256,7 @@ public class SourceSet {
 	}
 
 	@Nonnull
-	private DependencyResolver updateDependencyResolver(DependencyResolver resolver) {
+	public DependencyResolver updateDependencyResolver(DependencyResolver resolver) {
 		return resolver.addRepositories(repositories).addDependencies(dependencies).addClassPaths(classPaths);
 	}
 
@@ -261,7 +267,49 @@ public class SourceSet {
 	}
 
 	@Nonnull
-	public ScriptSource getMainSource() {
+	public Script getMainSource() {
 		return sources.get(0);
+	}
+
+	@Override
+	@Nonnull
+	public ResourceRef getResourceRef() {
+		return getMainSource().getResourceRef();
+	}
+
+	@Override
+	public File getJarFile() {
+		if (isJShell()) {
+			return null;
+		}
+		if (jarFile == null) {
+			List<String> scripts = sources.stream().map(src -> src.getScript()).collect(Collectors.toList());
+			File baseDir = Settings.getCacheDir(Cache.CacheClass.jars).toFile();
+			File tmpJarDir = new File(baseDir, getResourceRef().getFile().getName() +
+					"." + Util.getStableID(scripts));
+			jarFile = new File(tmpJarDir.getParentFile(), tmpJarDir.getName() + ".jar");
+		}
+		return jarFile;
+	}
+
+	@Override
+	public boolean isCreatedJar() {
+		return getJarFile().exists();
+	}
+
+	@Override
+	public Jar asJar() {
+		if (jar == null) {
+			File f = getJarFile();
+			if (f != null && f.exists()) {
+				jar = Jar.prepareJar(this);
+			}
+		}
+		return jar;
+	}
+
+	@Override
+	public SourceSet asSourceSet() {
+		return this;
 	}
 }

@@ -1,7 +1,5 @@
 package dev.jbang.source;
 
-import static dev.jbang.util.JavaUtil.resolveInJavaHome;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -23,13 +21,14 @@ import java.util.stream.Stream;
 
 import org.jboss.jandex.ClassInfo;
 
-import dev.jbang.Cache;
-import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
-import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.MavenRepo;
+import dev.jbang.source.scripts.GroovyScript;
+import dev.jbang.source.scripts.JavaScript;
+import dev.jbang.source.scripts.KotlinScript;
+import dev.jbang.source.scripts.MarkdownScript;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
@@ -43,7 +42,7 @@ import dev.jbang.util.Util;
  * induced from the source file. So all Scripts that refer to the same source
  * file will contain/return the exact same information.
  */
-public class ScriptSource implements Source {
+public abstract class Script {
 
 	private static final String DEPS_COMMENT_PREFIX = "//DEPS ";
 	private static final String FILES_COMMENT_PREFIX = "//FILES ";
@@ -66,42 +65,37 @@ public class ScriptSource implements Source {
 
 	// Cached values
 	private List<String> lines;
-	private File jar;
-	private JarSource jarSource;
 
-	public ScriptSource(String script, Function<String, String> replaceProperties) {
+	public Script(String script, Function<String, String> replaceProperties) {
 		this(ResourceRef.forFile(null), script, replaceProperties);
 	}
 
-	protected ScriptSource(ResourceRef resourceRef, Function<String, String> replaceProperties) {
+	protected Script(ResourceRef resourceRef, Function<String, String> replaceProperties) {
 		this(resourceRef, getBackingFileContent(resourceRef.getFile()), replaceProperties);
 	}
 
-	protected ScriptSource(ResourceRef resourceRef, String content, Function<String, String> replaceProperties) {
+	protected Script(ResourceRef resourceRef, String content, Function<String, String> replaceProperties) {
 		this.resourceRef = resourceRef;
 		this.script = content;
 		this.replaceProperties = replaceProperties != null ? replaceProperties : Function.identity();
 	}
 
-	public List<String> getCompileOptions() {
-		return collectOptions("JAVAC_OPTIONS");
-	}
+	public abstract List<String> getCompileOptions();
 
-	public String getCompilerBinary(String requestedJavaVersion) {
-		return resolveInJavaHome("javac", requestedJavaVersion);
-	}
+	public abstract List<String> getRuntimeOptions();
 
-	public Predicate<ClassInfo> getMainFinder() {
-		return pubClass -> pubClass.method("main", JarBuilder.STRINGARRAYTYPE) != null;
-	}
+	public abstract String getCompilerBinary(String requestedJavaVersion);
 
-	protected String getMainExtension() {
-		return ".java";
-	}
+	public abstract Predicate<ClassInfo> getMainFinder();
 
-	@Override
+	protected abstract String getMainExtension();
+
 	public ResourceRef getResourceRef() {
 		return resourceRef;
+	}
+
+	public String getScript() {
+		return script;
 	}
 
 	public List<String> getLines() {
@@ -126,8 +120,8 @@ public class ScriptSource implements Source {
 		}
 
 		return getLines()	.stream()
-							.filter(ScriptSource::isDependDeclare)
-							.flatMap(ScriptSource::extractDependencies)
+							.filter(Script::isDependDeclare)
+							.flatMap(Script::extractDependencies)
 							.map(replaceProperties)
 							.collect(Collectors.toList());
 	}
@@ -179,13 +173,6 @@ public class ScriptSource implements Source {
 		return Stream.of();
 	}
 
-	@Override
-	public DependencyResolver updateDependencyResolver(DependencyResolver resolver) {
-		resolver.addRepositories(collectRepositories());
-		resolver.addDependencies(collectDependencies());
-		return resolver;
-	}
-
 	public String getSuggestedMain() {
 		if (!getResourceRef().isStdin()) {
 			return getResourceRef().getFile().getName().replace(getMainExtension(), "");
@@ -196,8 +183,8 @@ public class ScriptSource implements Source {
 
 	public List<KeyValue> collectAgentOptions() {
 		return collectRawOptions("JAVAAGENT")	.stream()
-												.flatMap(ScriptSource::extractKeyValue)
-												.map(ScriptSource::toKeyValue)
+												.flatMap(Script::extractKeyValue)
+												.map(Script::toKeyValue)
 												.collect(Collectors.toCollection(ArrayList::new));
 	}
 
@@ -228,8 +215,8 @@ public class ScriptSource implements Source {
 
 	public List<MavenRepo> collectRepositories() {
 		return getLines()	.stream()
-							.filter(ScriptSource::isRepoDeclare)
-							.flatMap(ScriptSource::extractRepositories)
+							.filter(Script::isRepoDeclare)
+							.flatMap(Script::extractRepositories)
 							.map(replaceProperties)
 							.map(DependencyUtil::toMavenRepo)
 							.collect(Collectors.toCollection(ArrayList::new));
@@ -270,10 +257,9 @@ public class ScriptSource implements Source {
 		return Stream.of();
 	}
 
-	@Override
 	public Optional<String> getDescription() {
 		String desc = getLines().stream()
-								.filter(ScriptSource::isDescriptionDeclare)
+								.filter(Script::isDescriptionDeclare)
 								.map(s -> s.substring(DESCRIPTION_COMMENT_PREFIX.length()))
 								.collect(Collectors.joining("\n"));
 		if (desc.isEmpty()) {
@@ -287,10 +273,9 @@ public class ScriptSource implements Source {
 		return line.startsWith(DESCRIPTION_COMMENT_PREFIX);
 	}
 
-	@Override
 	public Optional<String> getGav() {
 		List<String> gavs = getLines()	.stream()
-										.filter(ScriptSource::isGavDeclare)
+										.filter(Script::isGavDeclare)
 										.map(s -> s.substring(GAV_COMMENT_PREFIX.length()))
 										.collect(Collectors.toList());
 		if (gavs.isEmpty()) {
@@ -318,13 +303,10 @@ public class ScriptSource implements Source {
 
 		// convert quoted content to list of strings as
 		// just passing "--enable-preview --source 14" fails
-		return Source.quotedStringToList(String.join(" ", options));
+		return Input.quotedStringToList(String.join(" ", options));
 	}
 
 	private List<String> collectRawOptions(String prefix) {
-		// if (forJar())
-		// return Collections.emptyList();
-
 		String joptsPrefix = "//" + prefix;
 
 		List<String> lines = getLines();
@@ -343,17 +325,10 @@ public class ScriptSource implements Source {
 		return javaOptions;
 	}
 
-	@Override
-	public List<String> getRuntimeOptions() {
-		return collectOptions("JAVA_OPTIONS");
-	}
-
-	@Override
 	public boolean enableCDS() {
 		return !collectRawOptions("CDS").isEmpty();
 	}
 
-	@Override
 	public String getJavaVersion() {
 		Optional<String> version = collectJavaVersions().stream()
 														.filter(JavaUtil::checkRequestedVersion)
@@ -363,41 +338,6 @@ public class ScriptSource implements Source {
 
 	private List<String> collectJavaVersions() {
 		return collectOptions("JAVA");
-	}
-
-	@Override
-	public boolean isJShell() {
-		return Source.isJShell(getResourceRef().getFile());
-	}
-
-	@Override
-	public File getJarFile() {
-		if (isJShell()) {
-			return null;
-		}
-		if (jar == null) {
-			File baseDir = Settings.getCacheDir(Cache.CacheClass.jars).toFile();
-			File tmpJarDir = new File(baseDir, getResourceRef().getFile().getName() +
-					"." + Util.getStableID(script));
-			jar = new File(tmpJarDir.getParentFile(), tmpJarDir.getName() + ".jar");
-		}
-		return jar;
-	}
-
-	@Override
-	public JarSource asJarSource() {
-		if (jarSource == null) {
-			File jarFile = getJarFile();
-			if (jarFile != null && jarFile.exists()) {
-				jarSource = JarSource.prepareJar(this);
-			}
-		}
-		return jarSource;
-	}
-
-	@Override
-	public ScriptSource asScriptSource() {
-		return this;
 	}
 
 	protected static String getBackingFileContent(File backingFile) {
@@ -424,7 +364,7 @@ public class ScriptSource implements Source {
 		return RefTarget.create(resourceRef.getOriginalResource(), fileReference);
 	}
 
-	public List<ScriptSource> collectSources() {
+	public List<Script> collectSources() {
 		if (getLines() == null) {
 			return Collections.emptyList();
 		} else {
@@ -443,17 +383,12 @@ public class ScriptSource implements Source {
 		}
 	}
 
-	public ScriptSource getSibling(String resource) {
+	public Script getSibling(String resource) {
 		ResourceRef siblingRef = resourceRef.asSibling(resource);
 		return prepareScript(siblingRef, replaceProperties);
 	}
 
-	@Override
-	public boolean isCreatedJar() {
-		return getJarFile().exists();
-	}
-
-	public static ScriptSource prepareScript(String resource, Function<String, String> replaceProperties) {
+	public static Script prepareScript(String resource, Function<String, String> replaceProperties) {
 		ResourceRef resourceRef = ResourceRef.forResource(resource);
 		if (resourceRef == null) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Could not find: " + resource);
@@ -461,17 +396,17 @@ public class ScriptSource implements Source {
 		return prepareScript(resourceRef, replaceProperties);
 	}
 
-	public static ScriptSource prepareScript(ResourceRef resourceRef, Function<String, String> replaceProperties) {
+	public static Script prepareScript(ResourceRef resourceRef, Function<String, String> replaceProperties) {
 		String originalResource = resourceRef.getOriginalResource();
 		if (originalResource != null && originalResource.endsWith(".kt")) {
-			return new KotlinScriptSource(resourceRef, replaceProperties);
+			return new KotlinScript(resourceRef, replaceProperties);
 		}
 		if (originalResource != null && originalResource.endsWith(".md")) {
-			return MarkdownScriptSource.create(resourceRef, replaceProperties);
+			return MarkdownScript.create(resourceRef, replaceProperties);
 		} else if (originalResource != null && originalResource.endsWith(".groovy")) {
-			return new GroovyScriptSource(resourceRef, replaceProperties);
+			return new GroovyScript(resourceRef, replaceProperties);
 		} else {
-			return new ScriptSource(resourceRef, replaceProperties);
+			return new JavaScript(resourceRef, replaceProperties);
 		}
 	}
 }

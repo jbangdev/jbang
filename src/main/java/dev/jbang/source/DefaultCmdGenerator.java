@@ -28,14 +28,15 @@ public class DefaultCmdGenerator implements CmdGenerator {
 	}
 
 	@Override
-	public String generate(Source src, RunContext ctx) throws IOException {
-		List<String> fullArgs = generateCommandLineList(src, ctx);
+	public String generate(Input input, RunContext ctx) throws IOException {
+		List<String> fullArgs = generateCommandLineList(input, ctx);
 		String args = String.join(" ", escapeOSArguments(fullArgs, shell));
 		// Check if we need to use @-files on Windows
 		boolean useArgsFile = false;
 		if (args.length() > COMMAND_LINE_LENGTH_LIMIT && Util.getShell() != Util.Shell.bash) {
 			// @file is only available from java 9 onwards.
-			String requestedJavaVersion = ctx.getJavaVersion() != null ? ctx.getJavaVersion() : src.getJavaVersion();
+			String requestedJavaVersion = ctx.getJavaVersion() != null ? ctx.getJavaVersion()
+					: input.getJavaVersion().orElse(null);
 			int actualVersion = JavaUtil.javaVersion(requestedJavaVersion);
 			useArgsFile = actualVersion >= 9;
 		}
@@ -56,16 +57,16 @@ public class DefaultCmdGenerator implements CmdGenerator {
 		}
 	}
 
-	String generateCommandLine(Source src, RunContext ctx) throws IOException {
-		List<String> fullArgs = generateCommandLineList(src, ctx);
+	String generateCommandLine(Input input, RunContext ctx) throws IOException {
+		List<String> fullArgs = generateCommandLineList(input, ctx);
 		return String.join(" ", escapeOSArguments(fullArgs, shell));
 	}
 
-	List<String> generateCommandLineList(Source src, RunContext ctx) throws IOException {
+	List<String> generateCommandLineList(Input input, RunContext ctx) throws IOException {
 		List<String> fullArgs = new ArrayList<>();
 
 		if (ctx.isNativeImage()) {
-			String imagename = getImageName(src.getJarFile()).toString();
+			String imagename = getImageName(input.getJarFile()).toString();
 			if (new File(imagename).exists()) {
 				fullArgs.add(imagename);
 			} else {
@@ -74,20 +75,21 @@ public class DefaultCmdGenerator implements CmdGenerator {
 		}
 
 		if (fullArgs.isEmpty()) {
-			String classpath = ctx.resolveClassPath(src);
+			String classpath = ctx.resolveClassPath(input);
 
 			List<String> optionalArgs = new ArrayList<>();
 
-			String requestedJavaVersion = ctx.getJavaVersion() != null ? ctx.getJavaVersion() : src.getJavaVersion();
+			String requestedJavaVersion = ctx.getJavaVersion() != null ? ctx.getJavaVersion()
+					: input.getJavaVersion().orElse(null);
 			String javacmd;
-			if (ctx.isForceJsh() || src.isJShell() || ctx.isInteractive()) {
+			if (ctx.isForceJsh() || input.isJShell() || ctx.isInteractive()) {
 				javacmd = JavaUtil.resolveInJavaHome("jshell", requestedJavaVersion);
 
-				if (src.getJarFile() != null && src.getJarFile().exists()) {
+				if (input.getJarFile() != null && input.getJarFile().exists()) {
 					if (Util.isBlankString(classpath)) {
-						classpath = src.getJarFile().getAbsolutePath();
+						classpath = input.getJarFile().getAbsolutePath();
 					} else {
-						classpath = src.getJarFile().getAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
+						classpath = input.getJarFile().getAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
 					}
 				}
 
@@ -104,7 +106,7 @@ public class DefaultCmdGenerator implements CmdGenerator {
 
 				optionalArgs.add("--startup=DEFAULT");
 
-				File tempFile = File.createTempFile("jbang_arguments_", src.getResourceRef().getFile().getName());
+				File tempFile = File.createTempFile("jbang_arguments_", input.getResourceRef().getFile().getName());
 
 				String defaultImports = "import java.lang.*;\n" +
 						"import java.util.*;\n" +
@@ -157,18 +159,18 @@ public class DefaultCmdGenerator implements CmdGenerator {
 					// have 0 ms thresholds
 					String jfropt = "-XX:StartFlightRecording=" + ctx	.getFlightRecorderString()
 																		.replace("{baseName}",
-																				Util.getBaseName(src.getResourceRef()
-																									.getFile()
-																									.toString()));
+																				Util.getBaseName(input	.getResourceRef()
+																										.getFile()
+																										.toString()));
 					optionalArgs.add(jfropt);
 					Util.verboseMsg("Flight recording enabled with:" + jfropt);
 				}
 
-				if (src.getJarFile() != null) {
+				if (input.getJarFile() != null) {
 					if (Util.isBlankString(classpath)) {
-						classpath = src.getJarFile().getAbsolutePath();
+						classpath = input.getJarFile().getAbsolutePath();
 					} else {
-						classpath = src.getJarFile().getAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
+						classpath = input.getJarFile().getAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
 					}
 				}
 				if (!Util.isBlankString(classpath)) {
@@ -176,9 +178,9 @@ public class DefaultCmdGenerator implements CmdGenerator {
 					optionalArgs.add(classpath);
 				}
 
-				if (Optional.ofNullable(ctx.getClassDataSharing()).orElse(src.enableCDS())) {
-					String cdsJsa = src.getJarFile().getAbsolutePath() + ".jsa";
-					if (src.isCreatedJar()) {
+				if (Optional.ofNullable(ctx.getClassDataSharing()).orElse(input.enableCDS())) {
+					String cdsJsa = input.getJarFile().getAbsolutePath() + ".jsa";
+					if (input.isCreatedJar()) {
 						Util.verboseMsg("CDS: Archiving Classes At Exit at " + cdsJsa);
 						optionalArgs.add("-XX:ArchiveClassesAtExit=" + cdsJsa);
 					} else {
@@ -194,7 +196,7 @@ public class DefaultCmdGenerator implements CmdGenerator {
 					// for now we don't include any transitive dependencies. could consider putting
 					// on bootclasspath...or not.
 					String jar = null;
-					Source asrc = agent.source;
+					Input asrc = agent.source;
 					if (asrc.getJarFile() != null) {
 						jar = asrc.getJarFile().toString();
 					} else if (asrc.isJar()) {
@@ -212,19 +214,19 @@ public class DefaultCmdGenerator implements CmdGenerator {
 
 				});
 
-			fullArgs.addAll(ctx.getRuntimeOptionsMerged(src));
-			fullArgs.addAll(ctx.getAutoDetectedModuleArguments(src, requestedJavaVersion));
+			fullArgs.addAll(ctx.getRuntimeOptionsMerged(input));
+			fullArgs.addAll(ctx.getAutoDetectedModuleArguments(input, requestedJavaVersion));
 			fullArgs.addAll(optionalArgs);
 
 			// deduce mainclass or jshell argument but skip it in case interactive for a jar
 			// launch.
-			String mainClass = ctx.getMainClassOr(src);
+			String mainClass = ctx.getMainClassOr(input);
 			if (!ctx.isInteractive() && mainClass != null) {
 				fullArgs.add(mainClass);
 			} else {
-				if (ctx.isForceJsh() || src.isJShell()) {
-					SourceSet ss = SourceSet.forScript((ScriptSource) src);
-					for (Source s : ss.getSources()) {
+				if (ctx.isForceJsh() || input.isJShell()) {
+					SourceSet ss = (SourceSet) input;
+					for (Script s : ss.getSources()) {
 						fullArgs.add(s.getResourceRef().getFile().toString());
 					}
 				} else if (!ctx.isInteractive() /* && src.isJar() */) {
@@ -238,10 +240,10 @@ public class DefaultCmdGenerator implements CmdGenerator {
 		// script
 		// thus if !interactive and not jshell then generate the exit mechanics for
 		// jshell to exit at the end.
-		if (!ctx.isForceJsh() && !src.isJShell() && !ctx.isInteractive()) {
+		if (!ctx.isForceJsh() && !input.isJShell() && !ctx.isInteractive()) {
 			addJavaArgs(ctx.getArguments(), fullArgs);
 		} else if (!ctx.isInteractive()) {
-			File tempFile = File.createTempFile("jbang_exit_", src.getResourceRef().getFile().getName());
+			File tempFile = File.createTempFile("jbang_exit_", input.getResourceRef().getFile().getName());
 			Util.writeString(tempFile.toPath(), "/exit");
 			fullArgs.add(tempFile.toString());
 		}

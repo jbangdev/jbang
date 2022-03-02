@@ -64,14 +64,13 @@ public class Edit extends BaseScriptCommand {
 		}
 
 		RunContext ctx = getRunContext();
-		Source src = ctx.forResource(scriptOrFile);
+		Input input = ctx.forResource(scriptOrFile);
 
-		if (!(src instanceof ScriptSource)) {
+		if (!(input instanceof SourceSet)) {
 			throw new ExitException(EXIT_INVALID_INPUT, "You can only edit source files");
 		}
 
-		ScriptSource ssrc = (ScriptSource) src;
-		SourceSet ss = SourceSet.forScript(ssrc);
+		SourceSet ss = (SourceSet) input;
 		File project = createProjectForEdit(ss, ctx, false);
 		String projectPathString = Util.pathToString(project.getAbsoluteFile().toPath());
 		// err.println(project.getAbsolutePath());
@@ -109,10 +108,10 @@ public class Edit extends BaseScriptCommand {
 			out.println(projectPathString); // quit(project.getAbsolutePath());
 		} else {
 			try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
-				File orginalFile = src.getResourceRef().getFile();
+				File orginalFile = input.getResourceRef().getFile();
 				if (!orginalFile.exists()) {
 					throw new ExitException(EXIT_UNEXPECTED_STATE,
-							"Cannot live edit " + src.getResourceRef().getOriginalResource());
+							"Cannot live edit " + input.getResourceRef().getOriginalResource());
 				}
 				Path watched = orginalFile.getAbsoluteFile().getParentFile().toPath();
 				watched.register(watchService,
@@ -130,9 +129,8 @@ public class Edit extends BaseScriptCommand {
 								// TODO only regenerate when dependencies changes.
 								info("Regenerating project.");
 								ctx = RunContext.empty();
-								src = ctx.forResource(scriptOrFile);
-								ssrc = (ScriptSource) src;
-								ss = SourceSet.forScript(ssrc);
+								input = ctx.forResource(scriptOrFile);
+								ss = (SourceSet) input;
 								createProjectForEdit(ss, ctx, true);
 							} catch (RuntimeException ee) {
 								warn("Error when re-generating project. Ignoring it, but state might be undefined: "
@@ -244,7 +242,7 @@ public class Edit extends BaseScriptCommand {
 
 	/** Create Project to use for editing **/
 	File createProjectForEdit(SourceSet ss, RunContext ctx, boolean reload) throws IOException {
-		File originalFile = ss.getMainSource().getResourceRef().getFile();
+		File originalFile = ss.getResourceRef().getFile();
 
 		List<String> dependencies = ss.getDependencies();
 		String cp = ss.getClassPath().getClassPath();
@@ -267,7 +265,7 @@ public class Edit extends BaseScriptCommand {
 		Path srcFile = srcDir.toPath().resolve(name);
 		Util.createLink(srcFile, originalFile.toPath());
 
-		for (ScriptSource source : ss.getSources()) {
+		for (Script source : ss.getSources()) {
 			File sfile = null;
 			if (source.getJavaPackage().isPresent()) {
 				File packageDir = new File(srcDir, source.getJavaPackage().get().replace(".", File.separator));

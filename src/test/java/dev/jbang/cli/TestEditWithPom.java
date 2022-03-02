@@ -48,7 +48,7 @@ public class TestEditWithPom extends BaseTest {
 		Path mainPath = TestScript.createTmpFileWithContent("", "main.java", main);
 		assertTrue(mainPath.toFile().exists());
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = ctx.createSourceSet(mainPath.toString());
+		SourceSet ss = (SourceSet) ctx.forResource(mainPath.toString());
 		File project = new Edit().createProjectForEdit(ss, ctx, false);
 		assertTrue(new File(project, "src/main.java").exists());
 

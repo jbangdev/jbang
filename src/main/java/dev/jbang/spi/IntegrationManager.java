@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenRepo;
-import dev.jbang.source.ScriptSource;
+import dev.jbang.source.Script;
 import dev.jbang.util.Util;
 
 /**
@@ -58,7 +58,7 @@ public class IntegrationManager {
 	 */
 	public static IntegrationResult runIntegration(List<MavenRepo> repositories, List<ArtifactInfo> artifacts,
 			Path tmpJarDir,
-			Path pomPath, ScriptSource script,
+			Path pomPath, Script script,
 			boolean nativeRequested) {
 		URL[] urls = artifacts.stream().map(s -> {
 			try {

@@ -2,8 +2,8 @@ package dev.jbang.cli;
 
 import java.io.IOException;
 
+import dev.jbang.source.Input;
 import dev.jbang.source.RunContext;
-import dev.jbang.source.Source;
 
 import picocli.CommandLine.Command;
 
@@ -18,9 +18,9 @@ public class Build extends BaseBuildCommand {
 		}
 
 		RunContext ctx = getRunContext();
-		Source src = ctx.forResource(scriptOrFile);
+		Input input = ctx.forResource(scriptOrFile);
 
-		buildIfNeeded(src, ctx);
+		buildIfNeeded(input, ctx);
 
 		return EXIT_OK;
 	}

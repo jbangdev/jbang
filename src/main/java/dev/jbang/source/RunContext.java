@@ -218,8 +218,8 @@ public class RunContext {
 		return mainClass;
 	}
 
-	public String getMainClassOr(Source src) {
-		return (mainClass != null) ? mainClass : src.getMainClass();
+	public String getMainClassOr(Input input) {
+		return (mainClass != null) ? mainClass : input.getMainClass();
 	}
 
 	public void setMainClass(String mainClass) {
@@ -242,8 +242,8 @@ public class RunContext {
 		this.integrationOptions = integrationOptions;
 	}
 
-	public List<String> getRuntimeOptionsMerged(Source src) {
-		List<String> opts = new ArrayList<>(src.getRuntimeOptions());
+	public List<String> getRuntimeOptionsMerged(Input input) {
+		List<String> opts = new ArrayList<>(input.getRuntimeOptions());
 		opts.addAll(getJavaOptions());
 		opts.addAll(getIntegrationOptions());
 		return opts;
@@ -317,11 +317,11 @@ public class RunContext {
 	}
 
 	public static class AgentSourceContext {
-		final public Source source;
+		final public Input source;
 		final public RunContext context;
 
-		private AgentSourceContext(Source source, RunContext context) {
-			this.source = source;
+		private AgentSourceContext(Input input, RunContext context) {
+			this.source = input;
 			this.context = context;
 		}
 	}
@@ -330,11 +330,11 @@ public class RunContext {
 		return javaAgents != null ? javaAgents : Collections.emptyList();
 	}
 
-	public void addJavaAgent(Source src, RunContext ctx) {
+	public void addJavaAgent(Input input, RunContext ctx) {
 		if (javaAgents == null) {
 			javaAgents = new ArrayList<>();
 		}
-		javaAgents.add(new AgentSourceContext(src, ctx));
+		javaAgents.add(new AgentSourceContext(input, ctx));
 	}
 
 	/**
@@ -343,16 +343,15 @@ public class RunContext {
 	 *
 	 * Properties available will be used for property replacement.
 	 **/
-	public String resolveClassPath(Source src) {
+	public String resolveClassPath(Input input) {
 		if (mcp == null) {
-			if (src instanceof ScriptSource) {
+			if (input instanceof SourceSet) {
 				// TODO this definitely shouldn't be implemented like this!
-				SourceSet ss = createSourceSet((ScriptSource) src);
-				mcp = ss.getClassPath();
+				mcp = ((SourceSet) input).getClassPath();
 			} else {
 				DependencyResolver resolver = new DependencyResolver();
 				updateDependencyResolver(resolver);
-				src.updateDependencyResolver(resolver);
+				input.updateDependencyResolver(resolver);
 				mcp = resolver.resolve();
 			}
 		}
@@ -380,9 +379,9 @@ public class RunContext {
 
 	}
 
-	public List<String> getAutoDetectedModuleArguments(Source src, String requestedVersion) {
+	public List<String> getAutoDetectedModuleArguments(Input input, String requestedVersion) {
 		if (mcp == null) {
-			resolveClassPath(src);
+			resolveClassPath(input);
 		}
 		return mcp.getAutoDectectedModuleArguments(requestedVersion);
 	}
@@ -399,48 +398,30 @@ public class RunContext {
 	 * RunContext and the JarSource will be returned. In any other case the given
 	 * source will be returned;
 	 */
-	public Source importJarMetadataFor(Source src) {
-		JarSource jar = src.asJarSource();
+	public Input importJarMetadataFor(Input input) {
+		Jar jar = input.asJar();
 		if (jar != null && jar.isUpToDate()) {
-			setBuildJdk(JavaUtil.javaVersion(jar.getJavaVersion()));
+			setBuildJdk(JavaUtil.javaVersion(jar.getJavaVersion().orElse(null)));
 			return jar;
 		} else {
-			return src;
+			return input;
 		}
 	}
 
-	public SourceSet createSourceSet(String resource) {
-		Source src = forResource(resource);
-		if (src instanceof ScriptSource) {
-			return createSourceSet((ScriptSource) src);
-		} else {
-			throw new ExitException(BaseCommand.EXIT_INTERNAL_ERROR,
-					"Can't get source set for binary: '" + resource + "'");
-		}
-	}
-
-	public SourceSet createSourceSet(ScriptSource src) {
-		SourceSet ss = SourceSet.forScript((ScriptSource) src);
-		ss.addRepositories(allToMavenRepo(replaceAllProps(getAdditionalRepositories())));
-		ss.addDependencies(replaceAllProps(getAdditionalDependencies()));
-		ss.addClassPaths(replaceAllProps(getAdditionalClasspaths()));
-		ss.addRuntimeOptions(getJavaOptions());
-		ss.addRuntimeOptions(getIntegrationOptions());
-		ss.addSources(allToScriptSource(replaceAllProps(getAdditionalSources())));
-		if (javaVersion != null) {
-			ss.setJavaVersion(javaVersion);
-		}
-		return ss;
-	}
-
-	private List<ScriptSource> allToScriptSource(List<String> sources) {
+	private List<Script> allToScriptSource(List<String> sources) {
 		Function<String, String> propsResolver = it -> PropertiesValueResolver.replaceProperties(it,
 				getContextProperties());
-		return sources.stream().map(s -> ScriptSource.prepareScript(s, propsResolver)).collect(Collectors.toList());
+		return sources.stream().map(s -> Script.prepareScript(s, propsResolver)).collect(Collectors.toList());
 
 	}
 
-	public Source forResource(String resource) {
+	private ModularClassPath resolveDependency(String dep) {
+		DependencyResolver resolver = new DependencyResolver().addDependency(dep);
+		updateDependencyResolver(resolver);
+		return resolver.resolve();
+	}
+
+	public Input forResource(String resource) {
 		ResourceResolver resolver = ResourceResolver.forScripts(this::resolveDependency);
 		ResourceRef resourceRef = resolver.resolve(resource);
 
@@ -503,26 +484,34 @@ public class RunContext {
 		return forResourceRef(resourceRef);
 	}
 
-	public Source forResourceRef(ResourceRef resourceRef) {
-		Source src;
-		if (resourceRef.getFile().getName().endsWith(".jar")) {
-			src = JarSource.prepareJar(resourceRef);
-		} else {
-			src = ScriptSource.prepareScript(resourceRef,
-					it -> PropertiesValueResolver.replaceProperties(it, getContextProperties()));
-		}
-		return src;
-	}
-
-	public Source forFile(File resourceFile) {
+	public Input forFile(File resourceFile) {
 		ResourceRef resourceRef = ResourceRef.forFile(resourceFile);
 		return forResourceRef(resourceRef);
 	}
 
-	private ModularClassPath resolveDependency(String dep) {
-		DependencyResolver resolver = new DependencyResolver().addDependency(dep);
-		updateDependencyResolver(resolver);
-		return resolver.resolve();
+	public Input forResourceRef(ResourceRef resourceRef) {
+		Input input;
+		if (resourceRef.getFile().getName().endsWith(".jar")) {
+			input = Jar.prepareJar(resourceRef);
+		} else {
+			input = createSourceSet(Script.prepareScript(resourceRef,
+					it -> PropertiesValueResolver.replaceProperties(it, getContextProperties())));
+		}
+		return input;
+	}
+
+	private SourceSet createSourceSet(Script src) {
+		SourceSet ss = SourceSet.forScript(src);
+		ss.addRepositories(allToMavenRepo(replaceAllProps(getAdditionalRepositories())));
+		ss.addDependencies(replaceAllProps(getAdditionalDependencies()));
+		ss.addClassPaths(replaceAllProps(getAdditionalClasspaths()));
+		ss.addRuntimeOptions(getJavaOptions());
+		ss.addRuntimeOptions(getIntegrationOptions());
+		ss.addSources(allToScriptSource(replaceAllProps(getAdditionalSources())));
+		if (javaVersion != null) {
+			ss.setJavaVersion(javaVersion);
+		}
+		return ss;
 	}
 
 }

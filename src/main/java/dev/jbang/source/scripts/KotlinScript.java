@@ -1,4 +1,4 @@
-package dev.jbang.source;
+package dev.jbang.source.scripts;
 
 import static dev.jbang.net.KotlinManager.resolveInKotlinHome;
 
@@ -10,16 +10,24 @@ import java.util.function.Predicate;
 import org.jboss.jandex.ClassInfo;
 
 import dev.jbang.net.KotlinManager;
+import dev.jbang.source.JarBuilder;
+import dev.jbang.source.ResourceRef;
+import dev.jbang.source.Script;
 
-public class KotlinScriptSource extends ScriptSource {
+public class KotlinScript extends Script {
 
-	protected KotlinScriptSource(ResourceRef script, Function<String, String> replaceProperties) {
+	public KotlinScript(ResourceRef script, Function<String, String> replaceProperties) {
 		super(script, replaceProperties);
 	}
 
 	@Override
 	public List<String> getCompileOptions() {
 		return Collections.emptyList();
+	}
+
+	@Override
+	public List<String> getRuntimeOptions() {
+		return collectOptions("JAVA_OPTIONS");
 	}
 
 	@Override

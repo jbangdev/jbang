@@ -1,4 +1,4 @@
-package dev.jbang.source;
+package dev.jbang.source.scripts;
 
 import static dev.jbang.net.GroovyManager.resolveInGroovyHome;
 
@@ -10,10 +10,13 @@ import java.util.function.Predicate;
 import org.jboss.jandex.ClassInfo;
 
 import dev.jbang.net.GroovyManager;
+import dev.jbang.source.JarBuilder;
+import dev.jbang.source.ResourceRef;
+import dev.jbang.source.Script;
 
-public class GroovyScriptSource extends ScriptSource {
+public class GroovyScript extends Script {
 
-	protected GroovyScriptSource(ResourceRef script, Function<String, String> replaceProperties) {
+	public GroovyScript(ResourceRef script, Function<String, String> replaceProperties) {
 		super(script, replaceProperties);
 	}
 

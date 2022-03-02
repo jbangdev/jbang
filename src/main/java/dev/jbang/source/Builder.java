@@ -3,5 +3,5 @@ package dev.jbang.source;
 import java.io.IOException;
 
 public interface Builder {
-	Source build(SourceSet ss, RunContext ctx) throws IOException;
+	Input build(SourceSet ss, RunContext ctx) throws IOException;
 }

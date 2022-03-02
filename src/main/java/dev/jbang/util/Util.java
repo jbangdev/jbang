@@ -909,13 +909,20 @@ public class Util {
 	}
 
 	public static String getStableID(String input) {
+		return getStableID(Arrays.asList(input));
+	}
+
+	public static String getStableID(List<String> inputs) {
 		final MessageDigest digest;
 		try {
 			digest = MessageDigest.getInstance("SHA-256");
 		} catch (NoSuchAlgorithmException e) {
 			throw new ExitException(-1, e);
 		}
-		final byte[] hashbytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+		for (String input : inputs) {
+			digest.update(input.getBytes(StandardCharsets.UTF_8));
+		}
+		final byte[] hashbytes = digest.digest();
 		StringBuilder sb = new StringBuilder();
 		for (byte b : hashbytes) {
 			sb.append(String.format("%02x", b));

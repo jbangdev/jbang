@@ -20,7 +20,7 @@ public class TestBuilder extends BaseTest {
 		Path bar = examplesTestFolder.resolve("bar/Bar.java").toAbsolutePath();
 		RunContext ctx = RunContext.empty();
 		ctx.setAdditionalSources(Arrays.asList(bar.toString()));
-		SourceSet ss = ctx.createSourceSet(foo.toString());
+		SourceSet ss = (SourceSet) ctx.forResource(foo.toString());
 
 		Builder b = new JarBuilder() {
 			@Override

@@ -10,8 +10,8 @@ import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
 import dev.jbang.source.DefaultCmdGenerator;
+import dev.jbang.source.Input;
 import dev.jbang.source.RunContext;
-import dev.jbang.source.Source;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -47,10 +47,10 @@ class TestExternalDeps extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Source src = ctx.forResource(f.getPath());
-		src = run.prepareArtifacts(src, ctx);
+		Input input = ctx.forResource(f.getPath());
+		input = run.prepareArtifacts(input, ctx);
 
-		String result = new DefaultCmdGenerator().generate(src, ctx);
+		String result = new DefaultCmdGenerator().generate(input, ctx);
 
 		assertThat(result, containsString("pico"));
 
@@ -71,10 +71,10 @@ class TestExternalDeps extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Source src = ctx.forResource(f.getPath());
-		src = run.prepareArtifacts(src, ctx);
+		Input input = ctx.forResource(f.getPath());
+		input = run.prepareArtifacts(input, ctx);
 
-		String result = new DefaultCmdGenerator().generate(src, ctx);
+		String result = new DefaultCmdGenerator().generate(input, ctx);
 
 		assertThat(result, containsString("com.github.jbangdev.jbang"));
 

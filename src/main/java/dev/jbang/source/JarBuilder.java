@@ -17,6 +17,7 @@ import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.net.JdkManager;
+import dev.jbang.source.scripts.GroovyScript;
 import dev.jbang.spi.IntegrationManager;
 import dev.jbang.spi.IntegrationResult;
 import dev.jbang.util.JarUtil;
@@ -47,47 +48,42 @@ public class JarBuilder implements Builder {
 	}
 
 	@Override
-	public Source build(SourceSet ss, RunContext ctx) throws IOException {
-		Source result = ss.getMainSource();
+	public Jar build(SourceSet ss, RunContext ctx) throws IOException {
+		Jar result = null;
 
-		File outjar = ss.getMainSource().getJarFile();
+		File outjar = ss.getJarFile();
 		boolean nativeBuildRequired = ctx.isNativeImage() && !getImageName(outjar).exists();
 		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
 		String requestedJavaVersion = ctx.getJavaVersion() != null ? ctx.getJavaVersion()
 				: ss.getJavaVersion().orElse(null);
 		// always build the jar for native mode
 		// it allows integrations the options to produce the native image
-		boolean buildRequired = false;
+		boolean buildRequired = true;
 		if (fresh) {
 			Util.verboseMsg("Building as fresh build explicitly requested.");
-			buildRequired = true;
 		} else if (nativeBuildRequired) {
 			Util.verboseMsg("Building as native build required.");
-			buildRequired = true;
 		} else if (outjar.canRead()) {
 			// We already have a Jar, check if we can still use it
-			JarSource jarSrc = ss.getMainSource().asJarSource();
+			Jar jarSrc = ss.asJar();
 
 			if (jarSrc == null) {
 				Util.verboseMsg("Building as previous built jar not found.");
-				buildRequired = true;
 			} else if (!jarSrc.isUpToDate()) {
 				Util.verboseMsg("Building as previous build jar found but it or its dependencies not up-to-date.");
-				buildRequired = true;
 			} else if (JavaUtil.javaVersion(requestedJavaVersion) < JavaUtil.minRequestedVersion(
-					jarSrc.getJavaVersion())) {
+					jarSrc.getJavaVersion().orElse(null))) {
 				Util.verboseMsg(
 						String.format(
 								"Building as requested Java version %s < than the java version used during last build %s",
 								requestedJavaVersion, jarSrc.getJavaVersion()));
-				buildRequired = true;
 			} else {
 				Util.verboseMsg("No build required. Reusing jar from " + jarSrc.getJarFile());
-				result = ctx.importJarMetadataFor(jarSrc);
+				result = (Jar) ctx.importJarMetadataFor(jarSrc);
+				buildRequired = false;
 			}
 		} else {
 			Util.verboseMsg("Build required as " + outjar + " not readable or not found.");
-			buildRequired = true;
 		}
 
 		if (buildRequired) {
@@ -98,6 +94,7 @@ public class JarBuilder implements Builder {
 			// do the actual building
 			try {
 				integrationResult = buildJar(ss, ctx, tmpJarDir, outjar, requestedJavaVersion);
+				result = ss.asJar();
 			} finally {
 				// clean up temporary folder
 				Util.deletePath(tmpJarDir.toPath(), true);
@@ -171,7 +168,7 @@ public class JarBuilder implements Builder {
 
 	protected void runCompiler(SourceSet ss, String requestedJavaVersion, List<String> optionList) throws IOException {
 		final ProcessBuilder processBuilder = new ProcessBuilder(optionList).inheritIO();
-		if (ss.getMainSource() instanceof GroovyScriptSource) {
+		if (ss.getMainSource() instanceof GroovyScript) {
 			processBuilder.environment().put("JAVA_HOME", JdkManager.getCurrentJdk(requestedJavaVersion).toString());
 			processBuilder.environment().remove("GROOVY_HOME");
 		}
@@ -188,7 +185,7 @@ public class JarBuilder implements Builder {
 	}
 
 	public void createJarFile(SourceSet ss, RunContext ctx, File path, File output) throws IOException {
-		String mainclass = ctx.getMainClassOr(ss.getMainSource());
+		String mainclass = ctx.getMainClassOr(ss);
 		Manifest manifest = new Manifest();
 		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
 		if (mainclass != null) {
@@ -197,10 +194,10 @@ public class JarBuilder implements Builder {
 
 		if (ss.getMainSource().isAgent()) {
 			if (ctx.getPreMainClass() != null) {
-				manifest.getMainAttributes().put(new Attributes.Name(Source.ATTR_PREMAIN_CLASS), ctx.getPreMainClass());
+				manifest.getMainAttributes().put(new Attributes.Name(Input.ATTR_PREMAIN_CLASS), ctx.getPreMainClass());
 			}
 			if (ctx.getAgentMainClass() != null) {
-				manifest.getMainAttributes().put(new Attributes.Name(Source.ATTR_AGENT_CLASS), ctx.getAgentMainClass());
+				manifest.getMainAttributes().put(new Attributes.Name(Input.ATTR_AGENT_CLASS), ctx.getAgentMainClass());
 			}
 
 			for (KeyValue kv : ss.getAgentOptions()) {
@@ -214,7 +211,7 @@ public class JarBuilder implements Builder {
 
 			String bootClasspath = ss.getClassPath().getManifestPath();
 			if (!bootClasspath.isEmpty()) {
-				manifest.getMainAttributes().put(new Attributes.Name(Source.ATTR_BOOT_CLASS_PATH), bootClasspath);
+				manifest.getMainAttributes().put(new Attributes.Name(Input.ATTR_BOOT_CLASS_PATH), bootClasspath);
 			}
 		} else {
 			String classpath = ss.getClassPath().getManifestPath();
@@ -226,16 +223,16 @@ public class JarBuilder implements Builder {
 		// When persistent JVM args are set they are appended to any runtime
 		// options set on the Source (that way persistent args can override
 		// options set on the Source)
-		List<String> rtArgs = ctx.getRuntimeOptionsMerged(ss.getMainSource());
+		List<String> rtArgs = ctx.getRuntimeOptionsMerged(ss);
 		String runtimeOpts = String.join(" ", escapeArguments(rtArgs));
 		if (!runtimeOpts.isEmpty()) {
 			manifest.getMainAttributes()
-					.putValue(Source.ATTR_JBANG_JAVA_OPTIONS, runtimeOpts);
+					.putValue(Input.ATTR_JBANG_JAVA_OPTIONS, runtimeOpts);
 		}
 		int buildJdk = ctx.getBuildJdk();
 		if (buildJdk > 0) {
 			String val = buildJdk >= 9 ? Integer.toString(buildJdk) : "1." + buildJdk;
-			manifest.getMainAttributes().putValue(Source.ATTR_BUILD_JDK, val);
+			manifest.getMainAttributes().putValue(Input.ATTR_BUILD_JDK, val);
 		}
 
 		FileOutputStream target = new FileOutputStream(output);
@@ -390,7 +387,7 @@ public class JarBuilder implements Builder {
 		return arg;
 	}
 
-	protected void searchForMain(ScriptSource src, RunContext ctx, File tmpJarDir) {
+	protected void searchForMain(Script src, RunContext ctx, File tmpJarDir) {
 		try {
 			// using Files.walk method with try-with-resources
 			try (Stream<Path> paths = Files.walk(tmpJarDir.toPath())) {
@@ -479,7 +476,7 @@ public class JarBuilder implements Builder {
 			// ignore
 			Util.warnMsg("Could not locate pom.xml template");
 		} else {
-			String baseName = Util.getBaseName(ss.getMainSource().getResourceRef().getFile().getName());
+			String baseName = Util.getBaseName(ss.getResourceRef().getFile().getName());
 			String group = "group";
 			String artifact = baseName;
 			String version = "999-SNAPSHOT";

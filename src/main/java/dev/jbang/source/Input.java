@@ -11,10 +11,10 @@ import java.util.regex.Pattern;
 import dev.jbang.dependencies.DependencyResolver;
 
 /**
- * A Source is an interface for classes representing different inputs (sources)
- * that can be used as or turned into executable code.
+ * An Input is an interface for classes representing different inputs
+ * (sources/jars) that can be used as, or turned into, executable code.
  */
-public interface Source {
+public interface Input {
 	String ATTR_BUILD_JDK = "Build-Jdk";
 	String ATTR_JBANG_JAVA_OPTIONS = "JBang-Java-Options";
 	String ATTR_BOOT_CLASS_PATH = "Boot-Class-Path";
@@ -79,9 +79,12 @@ public interface Source {
 	}
 
 	/**
-	 * Returns the requested Java version
+	 * Returns the requested Java version. Returns `Optional.empty()` if no version
+	 * was set.
 	 */
-	String getJavaVersion();
+	default Optional<String> getJavaVersion() {
+		return Optional.empty();
+	}
 
 	/**
 	 * Returns the resource's description. Returns `Optional.empty()` if no
@@ -106,7 +109,7 @@ public interface Source {
 	DependencyResolver updateDependencyResolver(DependencyResolver resolver);
 
 	default boolean isJar() {
-		return Source.isJar(getResourceRef().getFile());
+		return Input.isJar(getResourceRef().getFile());
 	}
 
 	static boolean isJar(File backingFile) {
@@ -114,7 +117,7 @@ public interface Source {
 	}
 
 	default boolean isJShell() {
-		return Source.isJShell(getResourceRef().getFile());
+		return Input.isJShell(getResourceRef().getFile());
 	}
 
 	static boolean isJShell(File backingFile) {
@@ -122,15 +125,14 @@ public interface Source {
 	}
 
 	/**
-	 * Returns the JarSource associated with this Source or `null` if there is none.
+	 * Returns the Jar associated with this Input or `null` if there is none.
 	 */
-	JarSource asJarSource();
+	Jar asJar();
 
 	/**
-	 * Returns the ScriptSource associated with this Source or `null` if there is
-	 * none.
+	 * Returns the SourceSet associated with this Input or `null` if there is none.
 	 */
-	ScriptSource asScriptSource();
+	SourceSet asSourceSet();
 
 	boolean isCreatedJar();
 }

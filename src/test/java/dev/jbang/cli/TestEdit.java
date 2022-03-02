@@ -44,7 +44,7 @@ public class TestEdit extends BaseTest {
 		assertThat(new File(s).exists(), is(true));
 
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = ctx.createSourceSet(s);
+		SourceSet ss = (SourceSet) ctx.forResource(s);
 
 		File project = new Edit().createProjectForEdit(ss, ctx, false);
 
@@ -84,7 +84,7 @@ public class TestEdit extends BaseTest {
 		Util.writeString(p, "//DEPS org.openjfx:javafx-graphics:11.0.2${bougus:}\n" + Util.readString(p));
 
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = ctx.createSourceSet(s);
+		SourceSet ss = (SourceSet) ctx.forResource(s);
 
 		File project = new Edit().createProjectForEdit(ss, ctx, false);
 
@@ -119,7 +119,7 @@ public class TestEdit extends BaseTest {
 				"//DEPS io.quarkus:quarkus-rest-client-reactive-jackson\n" + Util.readString(p));
 
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = ctx.createSourceSet(s);
+		SourceSet ss = (SourceSet) ctx.forResource(s);
 
 		File project = new Edit().createProjectForEdit(ss, ctx, false);
 
@@ -152,7 +152,7 @@ public class TestEdit extends BaseTest {
 		Util.writeString(p, "//DEPS https://github.com/oldskoolsh/libvirt-schema/tree/0.0.2\n" + Util.readString(p));
 
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = ctx.createSourceSet(s);
+		SourceSet ss = (SourceSet) ctx.forResource(s);
 
 		File project = new Edit().createProjectForEdit(ss, ctx, false);
 
@@ -172,7 +172,7 @@ public class TestEdit extends BaseTest {
 		assertThat(p.toFile().exists(), is(true));
 
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = ctx.createSourceSet(p.toString());
+		SourceSet ss = (SourceSet) ctx.forResource(p.toString());
 
 		File project = new Edit().createProjectForEdit(ss, ctx, false);
 
@@ -197,7 +197,7 @@ public class TestEdit extends BaseTest {
 		assertThat(new File(s).exists(), is(true));
 
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = ctx.createSourceSet(s);
+		SourceSet ss = (SourceSet) ctx.forResource(s);
 
 		File project = new Edit().createProjectForEdit(ss, ctx, false);
 
@@ -215,7 +215,7 @@ public class TestEdit extends BaseTest {
 		assertThat(p.toFile().exists(), is(true));
 
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = ctx.createSourceSet(p.toString());
+		SourceSet ss = (SourceSet) ctx.forResource(p.toString());
 		ss.getClassPath();
 
 		File project = new Edit().createProjectForEdit(ss, ctx, false);

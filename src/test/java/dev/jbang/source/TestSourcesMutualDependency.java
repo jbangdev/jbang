@@ -39,7 +39,7 @@ public class TestSourcesMutualDependency extends BaseTest {
 		TestScript.createTmpFileWithContent("", "A.java", classA);
 		TestScript.createTmpFileWithContent("", "B.java", classB);
 		String scriptURL = mainPath.toString();
-		ScriptSource script = ScriptSource.prepareScript(scriptURL, null);
+		Script script = Script.prepareScript(scriptURL, null);
 		SourceSet ss = SourceSet.forScript(script);
 		assertEquals(3, ss.getSources().size());
 	}

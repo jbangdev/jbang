@@ -10,8 +10,9 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
-import dev.jbang.source.ScriptSource;
+import dev.jbang.source.Script;
 import dev.jbang.source.SourceSet;
+import dev.jbang.source.scripts.JavaScript;
 
 public class TestGrape extends BaseTest {
 
@@ -30,7 +31,7 @@ public class TestGrape extends BaseTest {
 				+
 				"})\n";
 
-		ScriptSource src = new ScriptSource(grabBlock, null);
+		Script src = new JavaScript(grabBlock, null);
 		SourceSet ss = SourceSet.forScript(src);
 		List<String> deps = ss.getDependencies();
 

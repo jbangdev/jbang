@@ -56,7 +56,7 @@ public class TestEditWithPackage extends BaseTest {
 		Path CPath = TestScript.createTmpFileWithContent(BPath.getParent(), "model", "C.java", classC);
 		assertTrue(mainPath.toFile().exists());
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = ctx.createSourceSet(mainPath.toString());
+		SourceSet ss = (SourceSet) ctx.forResource(mainPath.toString());
 		File project = new Edit().createProjectForEdit(ss, ctx, false);
 		assertTrue(new File(project, "src/A.java").exists());
 		assertTrue(new File(project, "src/person/B.java").exists());
