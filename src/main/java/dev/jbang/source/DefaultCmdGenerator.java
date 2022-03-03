@@ -226,7 +226,7 @@ public class DefaultCmdGenerator implements CmdGenerator {
 			} else {
 				if (ctx.isForceJsh() || input.isJShell()) {
 					SourceSet ss = (SourceSet) input;
-					for (Script s : ss.getSources()) {
+					for (Source s : ss.getSources()) {
 						fullArgs.add(s.getResourceRef().getFile().toString());
 					}
 				} else if (!ctx.isInteractive() /* && src.isJar() */) {

@@ -1,26 +1,26 @@
-package dev.jbang.source.scripts;
+package dev.jbang.source.sources;
 
 import java.util.List;
 import java.util.function.Function;
 
 import dev.jbang.source.ResourceRef;
 import dev.jbang.source.RunContext;
-import dev.jbang.source.Script;
+import dev.jbang.source.Source;
 import dev.jbang.source.SourceSet;
 import dev.jbang.source.builders.BaseBuilder;
 import dev.jbang.source.builders.JavaBuilder;
 
-public class JavaScript extends Script {
+public class JavaSource extends Source {
 
-	public JavaScript(String script, Function<String, String> replaceProperties) {
+	public JavaSource(String script, Function<String, String> replaceProperties) {
 		super(script, replaceProperties);
 	}
 
-	public JavaScript(ResourceRef script, Function<String, String> replaceProperties) {
+	public JavaSource(ResourceRef script, Function<String, String> replaceProperties) {
 		super(script, replaceProperties);
 	}
 
-	protected JavaScript(ResourceRef ref, String script, Function<String, String> replaceProperties) {
+	protected JavaSource(ResourceRef ref, String script, Function<String, String> replaceProperties) {
 		super(ref, script, replaceProperties);
 	}
 

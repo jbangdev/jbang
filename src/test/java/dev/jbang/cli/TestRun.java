@@ -60,7 +60,7 @@ import dev.jbang.net.TrustedSources;
 import dev.jbang.source.*;
 import dev.jbang.source.builders.BaseBuilder;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
-import dev.jbang.source.scripts.JavaScript;
+import dev.jbang.source.sources.JavaSource;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -677,8 +677,8 @@ public class TestRun extends BaseTest {
 		File out = new File(rootdir.toFile(), "content.jar");
 
 		RunContext ctx = RunContext.empty();
-		Script src = new JavaScript("", null);
-		SourceSet ss = SourceSet.forScript(src);
+		Source src = new JavaSource("", null);
+		SourceSet ss = SourceSet.forSource(src);
 		ctx.setMainClass("wonkabear");
 
 		ctx.resolveClassPath(ss);

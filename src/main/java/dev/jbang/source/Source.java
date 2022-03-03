@@ -19,10 +19,9 @@ import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.MavenRepo;
-import dev.jbang.source.scripts.GroovyScript;
-import dev.jbang.source.scripts.JavaScript;
-import dev.jbang.source.scripts.KotlinScript;
-import dev.jbang.source.scripts.MarkdownScript;
+import dev.jbang.source.sources.*;
+import dev.jbang.source.sources.KotlinSource;
+import dev.jbang.source.sources.MarkdownSource;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
@@ -36,7 +35,7 @@ import dev.jbang.util.Util;
  * induced from the source file. So all Scripts that refer to the same source
  * file will contain/return the exact same information.
  */
-public abstract class Script {
+public abstract class Source {
 
 	private static final String DEPS_COMMENT_PREFIX = "//DEPS ";
 	private static final String FILES_COMMENT_PREFIX = "//FILES ";
@@ -54,23 +53,23 @@ public abstract class Script {
 	private static final Pattern REPOS_ANNOT_SINGLE = Pattern.compile("@GrabResolver\\(\\s*\"(?<value>.*)\"\\s*\\)");
 
 	private final ResourceRef resourceRef;
-	private final String script;
+	private final String contents;
 	private final Function<String, String> replaceProperties;
 
 	// Cached values
 	private List<String> lines;
 
-	public Script(String script, Function<String, String> replaceProperties) {
-		this(ResourceRef.forFile(null), script, replaceProperties);
+	public Source(String contents, Function<String, String> replaceProperties) {
+		this(ResourceRef.forFile(null), contents, replaceProperties);
 	}
 
-	protected Script(ResourceRef resourceRef, Function<String, String> replaceProperties) {
+	protected Source(ResourceRef resourceRef, Function<String, String> replaceProperties) {
 		this(resourceRef, Util.readFileContent(resourceRef.getFile().toPath()), replaceProperties);
 	}
 
-	protected Script(ResourceRef resourceRef, String content, Function<String, String> replaceProperties) {
+	protected Source(ResourceRef resourceRef, String content, Function<String, String> replaceProperties) {
 		this.resourceRef = resourceRef;
-		this.script = content;
+		this.contents = content;
 		this.replaceProperties = replaceProperties != null ? replaceProperties : Function.identity();
 	}
 
@@ -84,20 +83,20 @@ public abstract class Script {
 		return resourceRef;
 	}
 
-	public String getScript() {
-		return script;
+	public String getContents() {
+		return contents;
 	}
 
 	public List<String> getLines() {
-		if (lines == null && script != null) {
-			lines = Arrays.asList(script.split("\\r?\\n"));
+		if (lines == null && contents != null) {
+			lines = Arrays.asList(contents.split("\\r?\\n"));
 		}
 		return lines;
 	}
 
 	public Optional<String> getJavaPackage() {
-		if (script != null) {
-			return Util.getSourcePackage(script);
+		if (contents != null) {
+			return Util.getSourcePackage(contents);
 		} else {
 			return Optional.empty();
 		}
@@ -110,8 +109,8 @@ public abstract class Script {
 		}
 
 		return getLines()	.stream()
-							.filter(Script::isDependDeclare)
-							.flatMap(Script::extractDependencies)
+							.filter(Source::isDependDeclare)
+							.flatMap(Source::extractDependencies)
 							.map(replaceProperties)
 							.collect(Collectors.toList());
 	}
@@ -165,8 +164,8 @@ public abstract class Script {
 
 	public List<KeyValue> collectAgentOptions() {
 		return collectRawOptions("JAVAAGENT")	.stream()
-												.flatMap(Script::extractKeyValue)
-												.map(Script::toKeyValue)
+												.flatMap(Source::extractKeyValue)
+												.map(Source::toKeyValue)
 												.collect(Collectors.toCollection(ArrayList::new));
 	}
 
@@ -197,8 +196,8 @@ public abstract class Script {
 
 	public List<MavenRepo> collectRepositories() {
 		return getLines()	.stream()
-							.filter(Script::isRepoDeclare)
-							.flatMap(Script::extractRepositories)
+							.filter(Source::isRepoDeclare)
+							.flatMap(Source::extractRepositories)
 							.map(replaceProperties)
 							.map(DependencyUtil::toMavenRepo)
 							.collect(Collectors.toCollection(ArrayList::new));
@@ -241,7 +240,7 @@ public abstract class Script {
 
 	public Optional<String> getDescription() {
 		String desc = getLines().stream()
-								.filter(Script::isDescriptionDeclare)
+								.filter(Source::isDescriptionDeclare)
 								.map(s -> s.substring(DESCRIPTION_COMMENT_PREFIX.length()))
 								.collect(Collectors.joining("\n"));
 		if (desc.isEmpty()) {
@@ -257,7 +256,7 @@ public abstract class Script {
 
 	public Optional<String> getGav() {
 		List<String> gavs = getLines()	.stream()
-										.filter(Script::isGavDeclare)
+										.filter(Source::isGavDeclare)
 										.map(s -> s.substring(GAV_COMMENT_PREFIX.length()))
 										.collect(Collectors.toList());
 		if (gavs.isEmpty()) {
@@ -337,7 +336,7 @@ public abstract class Script {
 		return RefTarget.create(resourceRef.getOriginalResource(), fileReference);
 	}
 
-	public List<Script> collectSources() {
+	public List<Source> collectSources() {
 		if (getLines() == null) {
 			return Collections.emptyList();
 		} else {
@@ -356,30 +355,30 @@ public abstract class Script {
 		}
 	}
 
-	public Script getSibling(String resource) {
+	public Source getSibling(String resource) {
 		ResourceRef siblingRef = resourceRef.asSibling(resource);
-		return prepareScript(siblingRef, replaceProperties);
+		return forResourceRef(siblingRef, replaceProperties);
 	}
 
-	public static Script prepareScript(String resource, Function<String, String> replaceProperties) {
+	public static Source forResource(String resource, Function<String, String> replaceProperties) {
 		ResourceRef resourceRef = ResourceRef.forResource(resource);
 		if (resourceRef == null) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Could not find: " + resource);
 		}
-		return prepareScript(resourceRef, replaceProperties);
+		return forResourceRef(resourceRef, replaceProperties);
 	}
 
-	public static Script prepareScript(ResourceRef resourceRef, Function<String, String> replaceProperties) {
+	public static Source forResourceRef(ResourceRef resourceRef, Function<String, String> replaceProperties) {
 		String originalResource = resourceRef.getOriginalResource();
 		if (originalResource != null && originalResource.endsWith(".kt")) {
-			return new KotlinScript(resourceRef, replaceProperties);
+			return new KotlinSource(resourceRef, replaceProperties);
 		}
 		if (originalResource != null && originalResource.endsWith(".md")) {
-			return MarkdownScript.create(resourceRef, replaceProperties);
+			return MarkdownSource.create(resourceRef, replaceProperties);
 		} else if (originalResource != null && originalResource.endsWith(".groovy")) {
-			return new GroovyScript(resourceRef, replaceProperties);
+			return new GroovySource(resourceRef, replaceProperties);
 		} else {
-			return new JavaScript(resourceRef, replaceProperties);
+			return new JavaSource(resourceRef, replaceProperties);
 		}
 	}
 }

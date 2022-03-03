@@ -1,4 +1,4 @@
-package dev.jbang.source.scripts;
+package dev.jbang.source.sources;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,17 +9,17 @@ import java.util.regex.Pattern;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.source.ResourceRef;
-import dev.jbang.source.Script;
+import dev.jbang.source.Source;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.util.Util;
 
-public class MarkdownScript extends JavaScript {
+public class MarkdownSource extends JavaSource {
 
-	protected MarkdownScript(ResourceRef ref, String script, Function<String, String> replaceProperties) {
+	protected MarkdownSource(ResourceRef ref, String script, Function<String, String> replaceProperties) {
 		super(ref, script, replaceProperties);
 	}
 
-	public static Script create(ResourceRef resourceRef, Function<String, String> replaceProperties) {
+	public static Source create(ResourceRef resourceRef, Function<String, String> replaceProperties) {
 		String scriptText = new MarkdownTransform().transformMarkdown(
 				Util.readFileContent(resourceRef.getFile().toPath()));
 		try {
@@ -32,7 +32,7 @@ public class MarkdownScript extends JavaScript {
 			throw new ExitException(BaseCommand.EXIT_UNEXPECTED_STATE,
 					"Could not cache script from markdown at " + resourceRef.getOriginalResource(), e);
 		}
-		return new MarkdownScript(resourceRef,
+		return new MarkdownSource(resourceRef,
 				scriptText,
 				replaceProperties);
 	}

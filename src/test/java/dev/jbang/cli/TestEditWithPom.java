@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import dev.jbang.BaseTest;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.SourceSet;
-import dev.jbang.source.TestScript;
+import dev.jbang.source.TestSource;
 import dev.jbang.util.Util;
 
 public class TestEditWithPom extends BaseTest {
@@ -45,7 +45,7 @@ public class TestEditWithPom extends BaseTest {
 
 	@Test
 	void testEditWithPom() throws IOException {
-		Path mainPath = TestScript.createTmpFileWithContent("", "main.java", main);
+		Path mainPath = TestSource.createTmpFileWithContent("", "main.java", main);
 		assertTrue(mainPath.toFile().exists());
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forResource(mainPath.toString());

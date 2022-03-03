@@ -81,13 +81,13 @@ class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 	 */
 	@Test
 	void testFindSourcesInMultipleFilesSymbolicLinkMissing() throws IOException {
-		Path HiJBangPath = TestScript.createTmpFileWithContent("", "HiJBang.java", classHiJBang);
-		Path mainPath = TestScript.createTmpFile("somefolder", "A.java");
+		Path HiJBangPath = TestSource.createTmpFileWithContent("", "HiJBang.java", classHiJBang);
+		Path mainPath = TestSource.createTmpFile("somefolder", "A.java");
 		// Add absolute path in //SOURCES
 		final String mainClass = "//SOURCES " + HiJBangPath.toString() + "\n" + classA;
-		TestScript.writeContentToFile(mainPath, mainClass);
-		Path BPath = TestScript.createTmpFileWithContent(mainPath.getParent(), "person", "B.java", classB);
-		Path target = TestScript.createTmpFileWithContent(BPath.getParent(), "model", "C.java", classC);
+		TestSource.writeContentToFile(mainPath, mainClass);
+		Path BPath = TestSource.createTmpFileWithContent(mainPath.getParent(), "person", "B.java", classB);
+		Path target = TestSource.createTmpFileWithContent(BPath.getParent(), "model", "C.java", classC);
 		Path t = target.getParent().resolve("C2.java");
 		t.toFile().delete();
 
@@ -101,16 +101,16 @@ class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 		}
 		Files.delete(target);
 
-		TestScript.createTmpFileWithContent(HiJBangPath.getParent(), "inner", "HelloInner.java",
+		TestSource.createTmpFileWithContent(HiJBangPath.getParent(), "inner", "HelloInner.java",
 				classHelloInner);
 		String scriptURL = mainPath.toString();
 		ResourceRef resourceRef = ResourceRef.forNamedFile(scriptURL, mainPath.toFile());
-		Script script = Script.prepareScript(resourceRef, null);
-		SourceSet ss = SourceSet.forScript(script);
-		List<Script> sources = ss.getSources();
+		Source script = Source.forResourceRef(resourceRef, null);
+		SourceSet ss = SourceSet.forSource(script);
+		List<Source> sources = ss.getSources();
 		assertEquals(5, sources.size());
 		TreeSet<String> fileNames = new TreeSet<>();
-		for (Script source : sources) {
+		for (Source source : sources) {
 			fileNames.add(source.getResourceRef().getFile().getName());
 		}
 		assertEquals(fileNames.pollFirst(), "A.java");
@@ -128,21 +128,21 @@ class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 	 */
 	@Test
 	void testFindSourcesInMultipleFilesSimpleFileMissing() throws IOException {
-		Path HiJBangPath = TestScript.createTmpFileWithContent("", "HiJBang.java", classHiJBang);
-		Path mainPath = TestScript.createTmpFile("somefolder", "A.java");
+		Path HiJBangPath = TestSource.createTmpFileWithContent("", "HiJBang.java", classHiJBang);
+		Path mainPath = TestSource.createTmpFile("somefolder", "A.java");
 		// Add absolute path in //SOURCES
 		final String mainClass = "//SOURCES " + HiJBangPath.toString() + "\n" + classA;
-		TestScript.writeContentToFile(mainPath, mainClass);
-		Path BPath = TestScript.createTmpFileWithContent(mainPath.getParent(), "person", "B.java", classB);
-		Path target = TestScript.createTmpFileWithContent(BPath.getParent(), "model", "C.java", classC);
+		TestSource.writeContentToFile(mainPath, mainClass);
+		Path BPath = TestSource.createTmpFileWithContent(mainPath.getParent(), "person", "B.java", classB);
+		Path target = TestSource.createTmpFileWithContent(BPath.getParent(), "model", "C.java", classC);
 		Files.delete(target);
 
-		TestScript.createTmpFileWithContent(HiJBangPath.getParent(), "inner", "HelloInner.java",
+		TestSource.createTmpFileWithContent(HiJBangPath.getParent(), "inner", "HelloInner.java",
 				classHelloInner);
 		String scriptURL = mainPath.toString();
 		ResourceRef resourceRef = ResourceRef.forNamedFile(scriptURL, mainPath.toFile());
-		Script script = Script.prepareScript(resourceRef, null);
-		Assertions.assertThrows(ExitException.class, () -> SourceSet.forScript(script));
+		Source source = Source.forResourceRef(resourceRef, null);
+		Assertions.assertThrows(ExitException.class, () -> SourceSet.forSource(source));
 	}
 
 }

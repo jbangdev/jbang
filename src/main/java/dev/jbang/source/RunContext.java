@@ -405,10 +405,10 @@ public class RunContext {
 		}
 	}
 
-	private List<Script> allToScriptSource(List<String> sources) {
+	private List<Source> allToScriptSource(List<String> sources) {
 		Function<String, String> propsResolver = it -> PropertiesValueResolver.replaceProperties(it,
 				getContextProperties());
-		return sources.stream().map(s -> Script.prepareScript(s, propsResolver)).collect(Collectors.toList());
+		return sources.stream().map(s -> Source.forResource(s, propsResolver)).collect(Collectors.toList());
 
 	}
 
@@ -491,14 +491,14 @@ public class RunContext {
 		if (resourceRef.getFile().getName().endsWith(".jar")) {
 			input = Jar.prepareJar(resourceRef);
 		} else {
-			input = createSourceSet(Script.prepareScript(resourceRef,
+			input = createSourceSet(Source.forResourceRef(resourceRef,
 					it -> PropertiesValueResolver.replaceProperties(it, getContextProperties())));
 		}
 		return input;
 	}
 
-	private SourceSet createSourceSet(Script src) {
-		SourceSet ss = SourceSet.forScript(src);
+	private SourceSet createSourceSet(Source src) {
+		SourceSet ss = SourceSet.forSource(src);
 		ss.addRepositories(allToMavenRepo(replaceAllProps(getAdditionalRepositories())));
 		ss.addDependencies(replaceAllProps(getAdditionalDependencies()));
 		ss.addClassPaths(replaceAllProps(getAdditionalClasspaths()));

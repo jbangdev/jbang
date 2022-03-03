@@ -1,4 +1,4 @@
-package dev.jbang.source.scripts;
+package dev.jbang.source.sources;
 
 import java.util.Collections;
 import java.util.List;
@@ -7,14 +7,14 @@ import java.util.function.Function;
 import dev.jbang.net.GroovyManager;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.source.RunContext;
-import dev.jbang.source.Script;
+import dev.jbang.source.Source;
 import dev.jbang.source.SourceSet;
 import dev.jbang.source.builders.BaseBuilder;
 import dev.jbang.source.builders.GroovyBuilder;
 
-public class GroovyScript extends Script {
+public class GroovySource extends Source {
 
-	public GroovyScript(ResourceRef script, Function<String, String> replaceProperties) {
+	public GroovySource(ResourceRef script, Function<String, String> replaceProperties) {
 		super(script, replaceProperties);
 	}
 

@@ -7,12 +7,12 @@ import static org.hamcrest.Matchers.not;
 import java.io.FileNotFoundException;
 import java.util.List;
 
+import dev.jbang.source.Source;
+import dev.jbang.source.sources.JavaSource;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
-import dev.jbang.source.Script;
 import dev.jbang.source.SourceSet;
-import dev.jbang.source.scripts.JavaScript;
 
 public class TestGrape extends BaseTest {
 
@@ -31,8 +31,8 @@ public class TestGrape extends BaseTest {
 				+
 				"})\n";
 
-		Script src = new JavaScript(grabBlock, null);
-		SourceSet ss = SourceSet.forScript(src);
+		Source src = new JavaSource(grabBlock, null);
+		SourceSet ss = SourceSet.forSource(src);
 		List<String> deps = ss.getDependencies();
 
 		assertThat(deps, hasItem("org.hibernate:hibernate-core:5.4.10.Final"));

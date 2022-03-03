@@ -4,11 +4,11 @@ import static dev.jbang.net.KotlinManager.resolveInKotlinHome;
 
 import java.util.function.Predicate;
 
+import dev.jbang.source.sources.KotlinSource;
 import org.jboss.jandex.ClassInfo;
 
 import dev.jbang.source.RunContext;
 import dev.jbang.source.SourceSet;
-import dev.jbang.source.scripts.KotlinScript;
 
 public class KotlinBuilder extends BaseBuilder {
 
@@ -18,7 +18,7 @@ public class KotlinBuilder extends BaseBuilder {
 
 	@Override
 	protected String getCompilerBinary(String requestedJavaVersion) {
-		return resolveInKotlinHome("kotlinc", ((KotlinScript) ss.getMainSource()).getKotlinVersion());
+		return resolveInKotlinHome("kotlinc", ((KotlinSource) ss.getMainSource()).getKotlinVersion());
 	}
 
 	@Override

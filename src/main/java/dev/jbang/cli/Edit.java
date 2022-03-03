@@ -265,7 +265,7 @@ public class Edit extends BaseScriptCommand {
 		Path srcFile = srcDir.toPath().resolve(name);
 		Util.createLink(srcFile, originalFile.toPath());
 
-		for (Script source : ss.getSources()) {
+		for (Source source : ss.getSources()) {
 			File sfile = null;
 			if (source.getJavaPackage().isPresent()) {
 				File packageDir = new File(srcDir, source.getJavaPackage().get().replace(".", File.separator));

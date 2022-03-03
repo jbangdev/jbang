@@ -5,12 +5,12 @@ import static dev.jbang.net.GroovyManager.resolveInGroovyHome;
 import java.io.IOException;
 import java.util.function.Predicate;
 
+import dev.jbang.source.sources.GroovySource;
 import org.jboss.jandex.ClassInfo;
 
 import dev.jbang.net.JdkManager;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.SourceSet;
-import dev.jbang.source.scripts.GroovyScript;
 
 public class GroovyBuilder extends BaseBuilder {
 
@@ -20,7 +20,7 @@ public class GroovyBuilder extends BaseBuilder {
 
 	@Override
 	protected String getCompilerBinary(String requestedJavaVersion) {
-		return resolveInGroovyHome("groovyc", ((GroovyScript) ss.getMainSource()).getGroovyVersion());
+		return resolveInGroovyHome("groovyc", ((GroovySource) ss.getMainSource()).getGroovyVersion());
 	}
 
 	@Override
@@ -36,7 +36,7 @@ public class GroovyBuilder extends BaseBuilder {
 
 	@Override
 	protected void runCompiler(ProcessBuilder processBuilder) throws IOException {
-		if (ss.getMainSource() instanceof GroovyScript) {
+		if (ss.getMainSource() instanceof GroovySource) {
 			processBuilder	.environment()
 							.put("JAVA_HOME", JdkManager.getCurrentJdk(getRequestedJavaVersion()).toString());
 			processBuilder.environment().remove("GROOVY_HOME");

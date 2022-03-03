@@ -67,23 +67,23 @@ class TestSourcesRecursivelyMultipleFiles extends BaseTest {
 
 	@Test
 	void testFindSourcesInMultipleFilesRecursively() throws IOException {
-		Path HiJBangPath = TestScript.createTmpFileWithContent("", "HiJBang.java", classHiJBang);
-		Path mainPath = TestScript.createTmpFile("somefolder", "A.java");
+		Path HiJBangPath = TestSource.createTmpFileWithContent("", "HiJBang.java", classHiJBang);
+		Path mainPath = TestSource.createTmpFile("somefolder", "A.java");
 		// Add absolute path in //SOURCES
 		final String mainClass = "//SOURCES " + HiJBangPath.toString() + "\n" + classA;
-		TestScript.writeContentToFile(mainPath, mainClass);
-		Path BPath = TestScript.createTmpFileWithContent(mainPath.getParent(), "person", "B.java", classB);
-		TestScript.createTmpFileWithContent(BPath.getParent(), "model", "C.java", classC);
-		TestScript.createTmpFileWithContent(HiJBangPath.getParent(), "inner", "HelloInner.java",
+		TestSource.writeContentToFile(mainPath, mainClass);
+		Path BPath = TestSource.createTmpFileWithContent(mainPath.getParent(), "person", "B.java", classB);
+		TestSource.createTmpFileWithContent(BPath.getParent(), "model", "C.java", classC);
+		TestSource.createTmpFileWithContent(HiJBangPath.getParent(), "inner", "HelloInner.java",
 				classHelloInner);
 		String scriptURL = mainPath.toString();
 		ResourceRef resourceRef = ResourceRef.forNamedFile(scriptURL, mainPath.toFile());
-		Script script = Script.prepareScript(resourceRef, null);
-		SourceSet ss = SourceSet.forScript(script);
-		List<Script> sources = ss.getSources();
+		Source script = Source.forResourceRef(resourceRef, null);
+		SourceSet ss = SourceSet.forSource(script);
+		List<Source> sources = ss.getSources();
 		assertEquals(5, sources.size());
 		TreeSet<String> fileNames = new TreeSet<>();
-		for (Script source : sources) {
+		for (Source source : sources) {
 			fileNames.add(source.getResourceRef().getFile().getName());
 		}
 		assertEquals(fileNames.pollFirst(), "A.java");

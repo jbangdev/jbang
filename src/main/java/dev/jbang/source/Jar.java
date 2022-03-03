@@ -83,7 +83,7 @@ public class Jar implements Input {
 	@Override
 	public SourceSet asSourceSet() {
 		if (sourceSet == null) {
-			sourceSet = SourceSet.forScript(Script.prepareScript(resourceRef, null));
+			sourceSet = SourceSet.forSource(Source.forResourceRef(resourceRef, null));
 		}
 		return sourceSet;
 	}

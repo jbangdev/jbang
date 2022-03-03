@@ -17,25 +17,30 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import dev.jbang.source.sources.JavaSource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.net.TrustedSources;
-import dev.jbang.source.scripts.JavaScript;
 import dev.jbang.util.PropertiesValueResolver;
 
-public class TestScript extends BaseTest {
+public class TestSource extends BaseTest {
 
 	String example = "//#!/usr/bin/env jbang\n" + "\n"
-			+ "//DEPS com.offbytwo:docopt:0.6.0.20150202,log4j:log4j:${log4j.version:1.2.14}\n" + "\n"
+			+ "//DEPS com.offbytwo:docopt:0.6.0.20150202,log4j:log4j:${log4j.version:1.2.14}\n"
+			+ "\n"
 			+ "import org.docopt.Docopt;\n"
-			+ "import java.io.File;\n" + "import java.util.*;\n" + "import static java.lang.System.*;\n" + "\n"
+			+ "import java.io.File;\n"
+			+ "import java.util.*;\n"
+			+ "import static java.lang.System.*;\n"
+			+ "\n"
 			+ "//JAVA_OPTIONS --enable-preview \"-Dvalue='this is space'\"\n"
 			+ "//JAVAC_OPTIONS --enable-preview\n"
 			+ "//JAVAC_OPTIONS --verbose \n"
 			+ "//GAV org.example:classpath\n"
-			+ "class classpath_example {\n" + "\n"
+			+ "class classpath_example {\n"
+			+ "\n"
 			+ "\tString usage = \"jbang  - Enhanced scripting support for Java on *nix-based systems.\\n\" + \"\\n\" + \"Usage:\\n\"\n"
 			+ "\t\t\t+ \"    jbang ( -t | --text ) <version>\\n\"\n"
 			+ "\t\t\t+ \"    jbang [ --interactive | --idea | --package ] [--] ( - | <file or URL> ) [<args>]...\\n\"\n"
@@ -45,14 +50,19 @@ public class TestScript extends BaseTest {
 			+ "\t\t\t+ \"    --idea             boostrap IDEA from a jbang\\n\"\n"
 			+ "\t\t\t+ \"    -i, --interactive  Create interactive shell with dependencies as declared in script\\n\"\n"
 			+ "\t\t\t+ \"    -                  Read script from the STDIN\\n\" + \"    -h, --help         Print this text\\n\"\n"
-			+ "\t\t\t+ \"    --clear-cache      Wipe cached script jars and urls\\n\" + \"\";\n" + "\n"
+			+ "\t\t\t+ \"    --clear-cache      Wipe cached script jars and urls\\n\" + \"\";\n"
+			+ "\n"
 			+ "\tpublic static void main(String[] args) {\n"
-			+ "\t\tString doArgs = new Docopt(usage).parse(args.toList());\n" + "\n"
-			+ "\t\tout.println(\"parsed args are: \\n$doArgs (${doArgs.javaClass.simpleName})\\n\");\n" + "\n"
+			+ "\t\tString doArgs = new Docopt(usage).parse(args.toList());\n"
+			+ "\n"
+			+ "\t\tout.println(\"parsed args are: \\n$doArgs (${doArgs.javaClass.simpleName})\\n\");\n"
+			+ "\n"
 			+ "\t\t/*doArgs.forEach { (key: Any, value: Any) ->\n"
-			+ "\t\t\t\t    println(\"$key:\\t$value\\t(${value?.javaClass?.canonicalName})\")\n" + "\t\t};*/\n" + "\n"
+			+ "\t\t\t\t    println(\"$key:\\t$value\\t(${value?.javaClass?.canonicalName})\")\n" + "\t\t};*/\n"
+			+ "\n"
 			+ "\t\tout.println(\"\\nHello from Java!\");\n" + "\t\tfor (String arg : args) {\n"
-			+ "\t\t\tout.println(\"arg: $arg\");\n" + "\t\t}\n" + "\t\n" + "\t}\n" + "}";
+			+ "\t\t\tout.println(\"arg: $arg\");\n" + "\t\t}\n" + "\t\n" + "\t}\n"
+			+ "}";
 
 	String exampleURLInsourceMain = "///usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n"
 			+ "\n"
@@ -143,10 +153,10 @@ public class TestScript extends BaseTest {
 
 	@Test
 	void testCommentsDoesNotGetPickedUp() {
-		Script script = new JavaScript(exampleCommandsWithComments, null);
-		SourceSet ss = SourceSet.forScript(script);
+		Source source = new JavaSource(exampleCommandsWithComments, null);
+		SourceSet ss = SourceSet.forSource(source);
 
-		assertEquals(script.getJavaVersion(), "14+");
+		assertEquals(source.getJavaVersion(), "14+");
 
 		List<String> deps = ss.getDependencies();
 
@@ -155,9 +165,9 @@ public class TestScript extends BaseTest {
 
 	@Test
 	void testFindDependencies() {
-		Script src = new JavaScript(example,
+		Source src = new JavaSource(example,
 				it -> PropertiesValueResolver.replaceProperties(it, new Properties()));
-		SourceSet ss = SourceSet.forScript(src);
+		SourceSet ss = SourceSet.forSource(src);
 
 		List<String> deps = ss.getDependencies();
 		assertEquals(2, deps.size());
@@ -173,8 +183,8 @@ public class TestScript extends BaseTest {
 		Properties p = new Properties();
 		p.put("log4j.version", "1.2.9");
 
-		Script src = new JavaScript(example, it -> PropertiesValueResolver.replaceProperties(it, p));
-		SourceSet ss = SourceSet.forScript(src);
+		Source src = new JavaSource(example, it -> PropertiesValueResolver.replaceProperties(it, p));
+		SourceSet ss = SourceSet.forSource(src);
 
 		List<String> dependencies = ss.getDependencies();
 		assertEquals(2, dependencies.size());
@@ -245,7 +255,7 @@ public class TestScript extends BaseTest {
 			boolean foundmain = false;
 			boolean foundtwo = false;
 			boolean foundt3 = false;
-			for (Script source : ss.getSources()) {
+			for (Source source : ss.getSources()) {
 				String name = source.getResourceRef().getFile().getName();
 				if (name.equals("one.java"))
 					foundmain = true;
@@ -262,17 +272,17 @@ public class TestScript extends BaseTest {
 
 	@Test
 	void testCDS() {
-		Script script = new JavaScript("//CDS\nclass m { }", null);
-		Script script2 = new JavaScript("class m { }", null);
+		Source source = new JavaSource("//CDS\nclass m { }", null);
+		Source source2 = new JavaSource("class m { }", null);
 
-		assertTrue(script.enableCDS());
-		assertFalse(script2.enableCDS());
+		assertTrue(source.enableCDS());
+		assertFalse(source2.enableCDS());
 
 	}
 
 	@Test
 	void testExtractDependencies() {
-		List<String> deps = Script.extractDependencies("//DEPS blah, blue").collect(Collectors.toList());
+		List<String> deps = Source.extractDependencies("//DEPS blah, blue").collect(Collectors.toList());
 
 		assertTrue(deps.contains("blah"));
 
@@ -282,12 +292,12 @@ public class TestScript extends BaseTest {
 
 	@Test
 	void textExtractRepositories() {
-		List<String> repos = Script	.extractRepositories("//REPOS jcenter=https://xyz.org")
+		List<String> repos = Source.extractRepositories("//REPOS jcenter=https://xyz.org")
 									.collect(Collectors.toList());
 
 		assertThat(repos, hasItem("jcenter=https://xyz.org"));
 
-		repos = Script	.extractRepositories("//REPOS jcenter=https://xyz.org localMaven xyz=file://~test")
+		repos = Source.extractRepositories("//REPOS jcenter=https://xyz.org localMaven xyz=file://~test")
 						.collect(Collectors.toList());
 
 		assertThat(repos, hasItem("jcenter=https://xyz.org"));
@@ -297,12 +307,12 @@ public class TestScript extends BaseTest {
 
 	@Test
 	void textExtractRepositoriesGrape() {
-		List<String> deps = Script.extractRepositories(
+		List<String> deps = Source.extractRepositories(
 				"@GrabResolver(name=\"restlet.org\", root=\"http://maven.restlet.org\")").collect(Collectors.toList());
 
 		assertThat(deps, hasItem("restlet.org=http://maven.restlet.org"));
 
-		deps = Script	.extractRepositories("@GrabResolver(\"http://maven.restlet.org\")")
+		deps = Source.extractRepositories("@GrabResolver(\"http://maven.restlet.org\")")
 						.collect(Collectors.toList());
 
 		assertThat(deps, hasItem("http://maven.restlet.org"));
@@ -311,7 +321,7 @@ public class TestScript extends BaseTest {
 
 	@Test
 	void testExtractOptions() {
-		Script s = new JavaScript(example, null);
+		Source s = new JavaSource(example, null);
 
 		assertEquals(s.getCompileOptions(), Arrays.asList("--enable-preview", "--verbose"));
 
@@ -329,7 +339,7 @@ public class TestScript extends BaseTest {
 
 	@Test
 	void testGav() {
-		Script src = new JavaScript(example, null);
+		Source src = new JavaSource(example, null);
 		String gav = src.getGav().get();
 		assertEquals("org.example:classpath", gav);
 	}

@@ -35,12 +35,12 @@ public class TestSourcesMutualDependency extends BaseTest {
 
 	@Test
 	void testFindSourcesInMultipleFilesRecursively() throws IOException {
-		Path mainPath = TestScript.createTmpFileWithContent("", "Main.java", classMain);
-		TestScript.createTmpFileWithContent("", "A.java", classA);
-		TestScript.createTmpFileWithContent("", "B.java", classB);
+		Path mainPath = TestSource.createTmpFileWithContent("", "Main.java", classMain);
+		TestSource.createTmpFileWithContent("", "A.java", classA);
+		TestSource.createTmpFileWithContent("", "B.java", classB);
 		String scriptURL = mainPath.toString();
-		Script script = Script.prepareScript(scriptURL, null);
-		SourceSet ss = SourceSet.forScript(script);
+		Source source = Source.forResource(scriptURL, null);
+		SourceSet ss = SourceSet.forSource(source);
 		assertEquals(3, ss.getSources().size());
 	}
 

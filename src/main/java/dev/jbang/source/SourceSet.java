@@ -17,7 +17,7 @@ import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 public class SourceSet implements Input {
-	private final List<Script> sources = new ArrayList<>();
+	private final List<Source> sources = new ArrayList<>();
 	private final List<RefTarget> resources = new ArrayList<>();
 	private final List<String> dependencies = new ArrayList<>();
 	private final List<MavenRepo> repositories = new ArrayList<>();
@@ -33,40 +33,40 @@ public class SourceSet implements Input {
 	private File jarFile;
 	private Jar jar;
 
-	public static SourceSet forScript(Script mainSource) {
+	public static SourceSet forSource(Source mainSource) {
 		return new SourceSet(mainSource);
 	}
 
-	private SourceSet(Script mainSource) {
+	private SourceSet(Source mainSource) {
 		addSource(mainSource);
 		this.description = mainSource.getDescription().orElse(null);
 		this.gav = mainSource.getGav().orElse(null);
 	}
 
 	@Nonnull
-	public List<Script> getSources() {
+	public List<Source> getSources() {
 		return Collections.unmodifiableList(sources);
 	}
 
 	@Nonnull
-	public SourceSet addSource(Script source) {
+	public SourceSet addSource(Source source) {
 		HashSet<ResourceRef> refs = new HashSet<>();
-		sources.stream().map(Script::getResourceRef).forEach(refs::add);
+		sources.stream().map(Source::getResourceRef).forEach(refs::add);
 		addSource(source, javaVersion, refs);
 		return this;
 	}
 
 	@Nonnull
-	public SourceSet addSources(Collection<Script> sources) {
+	public SourceSet addSources(Collection<Source> sources) {
 		HashSet<ResourceRef> refs = new HashSet<>();
-		this.sources.stream().map(Script::getResourceRef).forEach(refs::add);
-		for (Script source : sources) {
+		this.sources.stream().map(Source::getResourceRef).forEach(refs::add);
+		for (Source source : sources) {
 			addSource(source, javaVersion, refs);
 		}
 		return this;
 	}
 
-	private void addSource(Script source, String javaVersion, Set<ResourceRef> refs) {
+	private void addSource(Source source, String javaVersion, Set<ResourceRef> refs) {
 		if (!refs.contains(source.getResourceRef())) {
 			refs.add(source.getResourceRef());
 			sources.add(source);
@@ -83,7 +83,7 @@ public class SourceSet implements Input {
 					this.javaVersion = version;
 				}
 			}
-			for (Script includedSource : source.collectSources()) {
+			for (Source includedSource : source.collectSources()) {
 				addSource(includedSource, javaVersion, refs);
 			}
 		}
@@ -245,6 +245,11 @@ public class SourceSet implements Input {
 		return this;
 	}
 
+	@Override
+	public boolean enableCDS() {
+		return getMainSource().enableCDS();
+	}
+
 	@Nonnull
 	public ModularClassPath getClassPath() {
 		if (mcp == null) {
@@ -267,7 +272,7 @@ public class SourceSet implements Input {
 	}
 
 	@Nonnull
-	public Script getMainSource() {
+	public Source getMainSource() {
 		return sources.get(0);
 	}
 
@@ -291,7 +296,7 @@ public class SourceSet implements Input {
 	}
 
 	private String getStableId() {
-		Stream<String> srcs = sources.stream().map(src -> src.getScript());
+		Stream<String> srcs = sources.stream().map(src -> src.getContents());
 		Stream<String> ress = resources.stream().map(res -> Util.readFileContent(res.getSource().getFile().toPath()));
 		Stream<String> files = Stream.concat(srcs, ress);
 		return Util.getStableID(files);

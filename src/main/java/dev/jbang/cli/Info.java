@@ -20,7 +20,7 @@ import dev.jbang.net.JdkManager;
 import dev.jbang.source.Input;
 import dev.jbang.source.RefTarget;
 import dev.jbang.source.RunContext;
-import dev.jbang.source.Script;
+import dev.jbang.source.Source;
 
 import picocli.CommandLine;
 
@@ -83,8 +83,8 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 			if (scripts.add(originalResource)) {
 				backingResource = input.getResourceRef().getFile().toString();
 
-				Script script = input.asSourceSet().getMainSource();
-				init(script);
+				Source source = input.asSourceSet().getMainSource();
+				init(source);
 
 				if (ctx != null) {
 					applicationJar = input.getJarFile() == null ? null : input.getJarFile().getAbsolutePath();
@@ -111,38 +111,38 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 			}
 		}
 
-		public ScriptInfo(Script script) {
-			init(script);
+		public ScriptInfo(Source source) {
+			init(source);
 		}
 
-		private void init(Script script) {
-			List<String> deps = script.collectDependencies();
+		private void init(Source source) {
+			List<String> deps = source.collectDependencies();
 			if (!deps.isEmpty()) {
 				dependencies = deps;
 			}
-			if (!script.collectRepositories().isEmpty()) {
-				repositories = script	.collectRepositories()
+			if (!source.collectRepositories().isEmpty()) {
+				repositories = source	.collectRepositories()
 										.stream()
 										.map(Repo::new)
 										.collect(Collectors.toList());
 			}
-			List<RefTarget> refs = script.collectFiles();
+			List<RefTarget> refs = source.collectFiles();
 			if (!refs.isEmpty()) {
 				files = refs.stream()
 							.map(ResourceFile::new)
 							.collect(Collectors.toList());
 			}
-			List<Script> srcs = script.collectSources();
+			List<Source> srcs = source.collectSources();
 			if (!srcs.isEmpty()) {
 				sources = srcs	.stream()
 								.map(ScriptInfo::new)
 								.collect(Collectors.toList());
 			}
-			if (!script.getCompileOptions().isEmpty()) {
-				compileOptions = script.getCompileOptions();
+			if (!source.getCompileOptions().isEmpty()) {
+				compileOptions = source.getCompileOptions();
 			}
-			gav = script.getGav().orElse(null);
-			description = script.getDescription().orElse(null);
+			gav = source.getGav().orElse(null);
+			description = source.getDescription().orElse(null);
 		}
 
 	}
