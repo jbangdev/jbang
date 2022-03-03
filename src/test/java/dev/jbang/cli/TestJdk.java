@@ -13,6 +13,8 @@ import java.util.Arrays;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
@@ -20,7 +22,7 @@ import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 
-public class TestJdk extends BaseTest {
+class TestJdk extends BaseTest {
 
 	private static final int SUCCESS_EXIT = CommandLine.ExitCode.OK;
 
@@ -36,7 +38,6 @@ public class TestJdk extends BaseTest {
 
 	@Test
 	void testHasJdksInstalled() throws IOException {
-
 		final File testCache = initJBangCacheDir();
 		final File jdkPath = new File(testCache, "jdks");
 		jdkPath.mkdirs();
@@ -52,7 +53,6 @@ public class TestJdk extends BaseTest {
 
 	@Test
 	void testJdkInstallWithLinkingToExistingJdkPathWhenPathIsInvalid() throws IOException {
-
 		checkedRunWithException(jdk -> {
 			try {
 				jdk.install(true, 11, "/non-existent-path");
@@ -65,9 +65,9 @@ public class TestJdk extends BaseTest {
 	}
 
 	@Test
+	@DisabledOnOs(OS.WINDOWS)
 	void testJdkInstallWithLinkingToExistingJdkPathWhenJBangManagedVersionDoesNotExist(@TempDir File javaDir)
 			throws IOException {
-
 		initMockJdkDir(javaDir);
 		final File testCache = initJBangCacheDir();
 		final File jdkPath = new File(testCache, "jdks");
@@ -90,9 +90,9 @@ public class TestJdk extends BaseTest {
 	}
 
 	@Test
+	@DisabledOnOs(OS.WINDOWS)
 	void testJdkInstallWithLinkingToExistingJdkPathWhenJBangManagedVersionExistsAndInstallIsForced(
 			@TempDir File javaDir) throws IOException {
-
 		initMockJdkDir(javaDir);
 		final File testCache = initJBangCacheDir();
 		final File jdkPath = new File(testCache, "jdks");
@@ -119,7 +119,6 @@ public class TestJdk extends BaseTest {
 	@Test
 	void testJdkInstallWithLinkingToExistingJdkPathWithDifferentVersion(@TempDir File javaDir)
 			throws IOException {
-
 		initMockJdkDir(javaDir);
 		final File testCache = initJBangCacheDir();
 		final File jdkPath = new File(testCache, "jdks");
@@ -159,7 +158,6 @@ public class TestJdk extends BaseTest {
 
 	@Test
 	void testExistingJdkUninstall() throws IOException {
-
 		final File testCache = initJBangCacheDir();
 		final File jdkPath = new File(testCache, "jdks");
 		jdkPath.mkdirs();
@@ -175,7 +173,6 @@ public class TestJdk extends BaseTest {
 
 	@Test
 	void testNonExistingJdkUninstall() throws IOException {
-
 		initJBangCacheDir();
 		int jdkVersion = 16;
 
@@ -196,7 +193,7 @@ public class TestJdk extends BaseTest {
 		return checkedRun(commandRunner, "jdk");
 	}
 
-	private void checkedRunWithException(Function<Jdk, Integer> commandRunner) throws IOException {
+	private void checkedRunWithException(Function<Jdk, Integer> commandRunner) {
 		try {
 			checkedRun(commandRunner, "jdk");
 		} catch (Exception e) {
