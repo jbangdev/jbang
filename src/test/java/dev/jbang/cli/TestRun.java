@@ -16,9 +16,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.*;
 import java.nio.file.FileSystem;
@@ -1019,26 +1017,43 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
-	void testCDSPresent() throws IOException {
+	void testCDSPresentOnCli() throws IOException {
 		JBang jbang = new JBang();
 		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg, "--cds");
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--cds", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
 		Code code = ctx.forFile(new File(arg));
 		ctx.setMainClass("fakemain");
-		String commandLine = code.cmdGenerator(ctx).generate();
 
-		assertThat(commandLine, containsString("-XX:SharedArchiveFile="));
+		String commandLine = code.cmdGenerator(ctx).generate();
+		assertThat(commandLine, containsString("-XX:ArchiveClassesAtExit="));
 
 		run.doCall();
 
 		commandLine = code.cmdGenerator(ctx).generate();
-		assertThat(commandLine, containsString("-XX:ArchiveClassesAtExit="));
+		assertThat(commandLine, containsString("-XX:SharedArchiveFile="));
 
 		assert (run.cds != null);
 		assert (run.cds);
+	}
+
+	@Test
+	void testCDSPresentInSource(@TempDir Path output) throws IOException {
+		String source = "//CDS\nclass cds { }";
+		Path p = output.resolve("cds.java");
+		writeString(p, source);
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", p.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+		Code code = ctx.forFile(p.toFile());
+		ctx.setMainClass("fakemain");
+
+		String commandLine = code.cmdGenerator(ctx).generate();
+		assertThat(commandLine, containsString("-XX:ArchiveClassesAtExit="));
 	}
 
 	@Test
@@ -1073,9 +1088,9 @@ public class TestRun extends BaseTest {
 		writeString(p, agent);
 
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("build", p.toFile().getAbsolutePath());
-		Build run = (Build) pr.subcommand().commandSpec().userObject();
+		Build build = (Build) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = run.getRunContext();
+		RunContext ctx = build.getRunContext();
 		SourceSet ss = (SourceSet) ctx.forResource(p.toFile().getAbsolutePath());
 
 		ss.builder(ctx).build();
@@ -1102,9 +1117,9 @@ public class TestRun extends BaseTest {
 		writeString(p, preagent);
 
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("build", p.toFile().getAbsolutePath());
-		Build run = (Build) pr.subcommand().commandSpec().userObject();
+		Build build = (Build) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = run.getRunContext();
+		RunContext ctx = build.getRunContext();
 		SourceSet ss = (SourceSet) ctx.forResource(p.toFile().getAbsolutePath());
 
 		ss.builder(ctx).build();

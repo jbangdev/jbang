@@ -4,6 +4,8 @@ import static dev.jbang.source.builders.BaseBuilder.getImageName;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -92,13 +94,13 @@ public class JarCmdGenerator extends BaseCmdGenerator {
 			}
 
 			if (Optional.ofNullable(ctx.getClassDataSharing()).orElse(code.enableCDS())) {
-				String cdsJsa = code.getJarFile().getAbsolutePath() + ".jsa";
-				if (code.getJarFile().exists()) {
-					Util.verboseMsg("CDS: Archiving Classes At Exit at " + cdsJsa);
-					optionalArgs.add("-XX:ArchiveClassesAtExit=" + cdsJsa);
-				} else {
+				Path cdsJsa = code.getJarFile().toPath().toAbsolutePath();
+				if (Files.exists(cdsJsa)) {
 					Util.verboseMsg("CDS: Using shared archive classes from " + cdsJsa);
 					optionalArgs.add("-XX:SharedArchiveFile=" + cdsJsa);
+				} else {
+					Util.verboseMsg("CDS: Archiving Classes At Exit at " + cdsJsa);
+					optionalArgs.add("-XX:ArchiveClassesAtExit=" + cdsJsa);
 				}
 			}
 
