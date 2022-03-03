@@ -4,11 +4,11 @@ import static dev.jbang.net.KotlinManager.resolveInKotlinHome;
 
 import java.util.function.Predicate;
 
-import dev.jbang.source.sources.KotlinSource;
 import org.jboss.jandex.ClassInfo;
 
 import dev.jbang.source.RunContext;
 import dev.jbang.source.SourceSet;
+import dev.jbang.source.sources.KotlinSource;
 
 public class KotlinBuilder extends BaseBuilder {
 

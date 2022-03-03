@@ -16,7 +16,7 @@ import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
-public class SourceSet implements Input {
+public class SourceSet implements Code {
 	private final List<Source> sources = new ArrayList<>();
 	private final List<RefTarget> resources = new ArrayList<>();
 	private final List<String> dependencies = new ArrayList<>();

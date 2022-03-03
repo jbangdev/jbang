@@ -11,16 +11,16 @@ import java.util.regex.Pattern;
 import dev.jbang.dependencies.DependencyResolver;
 
 /**
- * An Input is an interface for classes representing different inputs
+ * Code is an interface for classes representing different code bases
  * (sources/jars) that can be used as, or turned into, executable code.
  */
-public interface Input {
+public interface Code {
 
 	/**
 	 * Returns the reference to resource to be executed. This contains both the
 	 * original reference (which can be a URL or Maven GAV or other kinds of
 	 * non-file resource references) and a path to the file that contains the actual
-	 * resource (which can be a ephemeral temporary/cached file).
+	 * resource (which can be an ephemeral temporary/cached file).
 	 */
 	ResourceRef getResourceRef();
 
@@ -84,7 +84,7 @@ public interface Input {
 	DependencyResolver updateDependencyResolver(DependencyResolver resolver);
 
 	default boolean isJar() {
-		return Input.isJar(getResourceRef().getFile());
+		return Code.isJar(getResourceRef().getFile());
 	}
 
 	static boolean isJar(File backingFile) {
@@ -92,7 +92,7 @@ public interface Input {
 	}
 
 	default boolean isJShell() {
-		return Input.isJShell(getResourceRef().getFile());
+		return Code.isJShell(getResourceRef().getFile());
 	}
 
 	static boolean isJShell(File backingFile) {

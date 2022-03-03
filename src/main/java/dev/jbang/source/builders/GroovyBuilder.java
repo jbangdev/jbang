@@ -5,12 +5,12 @@ import static dev.jbang.net.GroovyManager.resolveInGroovyHome;
 import java.io.IOException;
 import java.util.function.Predicate;
 
-import dev.jbang.source.sources.GroovySource;
 import org.jboss.jandex.ClassInfo;
 
 import dev.jbang.net.JdkManager;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.SourceSet;
+import dev.jbang.source.sources.GroovySource;
 
 public class GroovyBuilder extends BaseBuilder {
 

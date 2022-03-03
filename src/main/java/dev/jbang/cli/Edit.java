@@ -64,13 +64,13 @@ public class Edit extends BaseScriptCommand {
 		}
 
 		RunContext ctx = getRunContext();
-		Input input = ctx.forResource(scriptOrFile);
+		Code code = ctx.forResource(scriptOrFile);
 
-		if (!(input instanceof SourceSet)) {
+		if (!(code instanceof SourceSet)) {
 			throw new ExitException(EXIT_INVALID_INPUT, "You can only edit source files");
 		}
 
-		SourceSet ss = (SourceSet) input;
+		SourceSet ss = (SourceSet) code;
 		File project = createProjectForEdit(ss, ctx, false);
 		String projectPathString = Util.pathToString(project.getAbsoluteFile().toPath());
 		// err.println(project.getAbsolutePath());
@@ -108,10 +108,10 @@ public class Edit extends BaseScriptCommand {
 			out.println(projectPathString); // quit(project.getAbsolutePath());
 		} else {
 			try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
-				File orginalFile = input.getResourceRef().getFile();
+				File orginalFile = code.getResourceRef().getFile();
 				if (!orginalFile.exists()) {
 					throw new ExitException(EXIT_UNEXPECTED_STATE,
-							"Cannot live edit " + input.getResourceRef().getOriginalResource());
+							"Cannot live edit " + code.getResourceRef().getOriginalResource());
 				}
 				Path watched = orginalFile.getAbsoluteFile().getParentFile().toPath();
 				watched.register(watchService,
@@ -129,8 +129,8 @@ public class Edit extends BaseScriptCommand {
 								// TODO only regenerate when dependencies changes.
 								info("Regenerating project.");
 								ctx = RunContext.empty();
-								input = ctx.forResource(scriptOrFile);
-								ss = (SourceSet) input;
+								code = ctx.forResource(scriptOrFile);
+								ss = (SourceSet) code;
 								createProjectForEdit(ss, ctx, true);
 							} catch (RuntimeException ee) {
 								warn("Error when re-generating project. Ignoring it, but state might be undefined: "

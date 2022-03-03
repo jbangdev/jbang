@@ -218,8 +218,8 @@ public class RunContext {
 		return mainClass;
 	}
 
-	public String getMainClassOr(Input input) {
-		return (mainClass != null) ? mainClass : input.getMainClass();
+	public String getMainClassOr(Code code) {
+		return (mainClass != null) ? mainClass : code.getMainClass();
 	}
 
 	public void setMainClass(String mainClass) {
@@ -242,8 +242,8 @@ public class RunContext {
 		this.integrationOptions = integrationOptions;
 	}
 
-	public List<String> getRuntimeOptionsMerged(Input input) {
-		List<String> opts = new ArrayList<>(input.getRuntimeOptions());
+	public List<String> getRuntimeOptionsMerged(Code code) {
+		List<String> opts = new ArrayList<>(code.getRuntimeOptions());
 		opts.addAll(getJavaOptions());
 		opts.addAll(getIntegrationOptions());
 		return opts;
@@ -317,11 +317,11 @@ public class RunContext {
 	}
 
 	public static class AgentSourceContext {
-		final public Input source;
+		final public Code source;
 		final public RunContext context;
 
-		private AgentSourceContext(Input input, RunContext context) {
-			this.source = input;
+		private AgentSourceContext(Code code, RunContext context) {
+			this.source = code;
 			this.context = context;
 		}
 	}
@@ -330,11 +330,11 @@ public class RunContext {
 		return javaAgents != null ? javaAgents : Collections.emptyList();
 	}
 
-	public void addJavaAgent(Input input, RunContext ctx) {
+	public void addJavaAgent(Code code, RunContext ctx) {
 		if (javaAgents == null) {
 			javaAgents = new ArrayList<>();
 		}
-		javaAgents.add(new AgentSourceContext(input, ctx));
+		javaAgents.add(new AgentSourceContext(code, ctx));
 	}
 
 	/**
@@ -343,13 +343,13 @@ public class RunContext {
 	 *
 	 * Properties available will be used for property replacement.
 	 **/
-	public String resolveClassPath(Input input) {
+	public String resolveClassPath(Code code) {
 		if (mcp == null) {
 			DependencyResolver resolver = new DependencyResolver();
-			if (input instanceof Jar) {
+			if (code instanceof Jar) {
 				updateDependencyResolver(resolver);
 			}
-			input.updateDependencyResolver(resolver);
+			code.updateDependencyResolver(resolver);
 			mcp = resolver.resolve();
 		}
 		return mcp.getClassPath();
@@ -376,9 +376,9 @@ public class RunContext {
 
 	}
 
-	public List<String> getAutoDetectedModuleArguments(Input input, String requestedVersion) {
+	public List<String> getAutoDetectedModuleArguments(Code code, String requestedVersion) {
 		if (mcp == null) {
-			resolveClassPath(input);
+			resolveClassPath(code);
 		}
 		return mcp.getAutoDectectedModuleArguments(requestedVersion);
 	}
@@ -395,13 +395,13 @@ public class RunContext {
 	 * RunContext and the JarSource will be returned. In any other case the given
 	 * source will be returned;
 	 */
-	public Input importJarMetadataFor(Input input) {
-		Jar jar = input.asJar();
+	public Code importJarMetadataFor(Code code) {
+		Jar jar = code.asJar();
 		if (jar != null && jar.isUpToDate()) {
 			setBuildJdk(JavaUtil.javaVersion(jar.getJavaVersion().orElse(null)));
 			return jar;
 		} else {
-			return input;
+			return code;
 		}
 	}
 
@@ -418,7 +418,7 @@ public class RunContext {
 		return resolver.resolve();
 	}
 
-	public Input forResource(String resource) {
+	public Code forResource(String resource) {
 		ResourceResolver resolver = ResourceResolver.forScripts(this::resolveDependency);
 		ResourceRef resourceRef = resolver.resolve(resource);
 
@@ -481,20 +481,20 @@ public class RunContext {
 		return forResourceRef(resourceRef);
 	}
 
-	public Input forFile(File resourceFile) {
+	public Code forFile(File resourceFile) {
 		ResourceRef resourceRef = ResourceRef.forFile(resourceFile);
 		return forResourceRef(resourceRef);
 	}
 
-	public Input forResourceRef(ResourceRef resourceRef) {
-		Input input;
+	public Code forResourceRef(ResourceRef resourceRef) {
+		Code code;
 		if (resourceRef.getFile().getName().endsWith(".jar")) {
-			input = Jar.prepareJar(resourceRef);
+			code = Jar.prepareJar(resourceRef);
 		} else {
-			input = createSourceSet(Source.forResourceRef(resourceRef,
+			code = createSourceSet(Source.forResourceRef(resourceRef,
 					it -> PropertiesValueResolver.replaceProperties(it, getContextProperties())));
 		}
-		return input;
+		return code;
 	}
 
 	private SourceSet createSourceSet(Source src) {

@@ -9,8 +9,8 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import dev.jbang.source.Code;
 import dev.jbang.source.DefaultCmdGenerator;
-import dev.jbang.source.Input;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 
@@ -68,7 +68,7 @@ public class Run extends BaseBuildCommand {
 		}
 
 		RunContext ctx = getRunContext();
-		Input input;
+		Code code;
 		if (literalScript.isPresent()) {
 			String script;
 			if (!literalScript.get().isEmpty()) {
@@ -80,26 +80,26 @@ public class Run extends BaseBuildCommand {
 			} else {
 				script = scriptOrFile;
 			}
-			input = ctx.forResourceRef(LiteralScriptResourceResolver.stringToResourceRef(null, script));
+			code = ctx.forResourceRef(LiteralScriptResourceResolver.stringToResourceRef(null, script));
 		} else {
 			if (scriptOrFile != null) {
-				input = ctx.forResource(scriptOrFile);
+				code = ctx.forResource(scriptOrFile);
 			} else {
 				// HACK it's a crappy way to work around the fact that in the case of
 				// interactive we might not have a file to reference but all the code
 				// expects one to exist
-				input = ctx.forResourceRef(LiteralScriptResourceResolver.stringToResourceRef(null, ""));
+				code = ctx.forResourceRef(LiteralScriptResourceResolver.stringToResourceRef(null, ""));
 			}
 		}
 
-		input = prepareArtifacts(input, ctx);
+		code = prepareArtifacts(code, ctx);
 
-		if (nativeImage && (ctx.isForceJsh() || input.isJShell())) {
+		if (nativeImage && (ctx.isForceJsh() || code.isJShell())) {
 			warn(".jsh cannot be used with --native thus ignoring --native.");
 			nativeImage = false;
 		}
 
-		String cmdline = new DefaultCmdGenerator().generate(input, ctx);
+		String cmdline = new DefaultCmdGenerator().generate(code, ctx);
 		debug("run: " + cmdline);
 		out.println(cmdline);
 
@@ -119,8 +119,8 @@ public class Run extends BaseBuildCommand {
 		return ctx;
 	}
 
-	Input prepareArtifacts(Input input, RunContext ctx) throws IOException {
-		input = buildIfNeeded(input, ctx);
+	Code prepareArtifacts(Code code, RunContext ctx) throws IOException {
+		code = buildIfNeeded(code, ctx);
 
 		if (javaAgentSlots != null) {
 			for (Map.Entry<String, Optional<String>> agentOption : javaAgentSlots.entrySet()) {
@@ -128,7 +128,7 @@ public class Run extends BaseBuildCommand {
 				Optional<String> javaAgentOptions = agentOption.getValue();
 
 				RunContext actx = super.getRunContext();
-				Input asrc = actx.forResource(javaAgent);
+				Code asrc = actx.forResource(javaAgent);
 				actx.setJavaAgentOption(javaAgentOptions.orElse(null));
 				if (needsJar(asrc, actx)) {
 					info("Building javaagent...");
@@ -138,7 +138,7 @@ public class Run extends BaseBuildCommand {
 			}
 		}
 
-		return input;
+		return code;
 	}
 
 	/**

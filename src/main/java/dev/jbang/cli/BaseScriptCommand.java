@@ -10,7 +10,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import dev.jbang.source.Input;
+import dev.jbang.source.Code;
 import dev.jbang.source.RunContext;
 
 import picocli.CommandLine;
@@ -33,9 +33,9 @@ public abstract class BaseScriptCommand extends BaseCommand {
 		}
 	}
 
-	static protected boolean needsJar(Input input, RunContext context) {
+	static protected boolean needsJar(Code code, RunContext context) {
 		// anything but .jar and .jsh files needs jar
-		return !(input.isJar() || context.isForceJsh() || input.isJShell());
+		return !(code.isJar() || context.isForceJsh() || code.isJShell());
 	}
 
 	static protected void enableInsecure() {

@@ -86,17 +86,17 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Input input = ctx.forResource(arg);
+		Code code = ctx.forResource(arg);
 
 		if (first) {
-			assertThat(input.asJar(), nullValue());
+			assertThat(code.asJar(), nullValue());
 		} else {
-			assertThat(input.asJar(), not(nullValue()));
+			assertThat(code.asJar(), not(nullValue()));
 		}
 
-		input = run.prepareArtifacts(input, ctx);
+		code = run.prepareArtifacts(code, ctx);
 
-		String result = new DefaultCmdGenerator().generate(input, ctx);
+		String result = new DefaultCmdGenerator().generate(code, ctx);
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, endsWith("helloworld"));
@@ -125,10 +125,10 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = run.getRunContext();
 		ctx.setCatalog(cat.toFile());
-		Input input = ctx.forResource("helloworld");
+		Code code = ctx.forResource("helloworld");
 
-		input = run.prepareArtifacts(input, ctx);
-		String result = new DefaultCmdGenerator().generate(input, ctx);
+		code = run.prepareArtifacts(code, ctx);
+		String result = new DefaultCmdGenerator().generate(code, ctx);
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, endsWith("helloworld"));
@@ -296,16 +296,16 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Input input = ctx.forResource(jar);
+		Code code = ctx.forResource(jar);
 
-		String result = new DefaultCmdGenerator().generate(input, ctx);
+		String result = new DefaultCmdGenerator().generate(code, ctx);
 		assertThat(result, matchesPattern("^.*java(.exe)?.*"));
-		assertThat(ctx.getMainClassOr(input), not(nullValue()));
+		assertThat(ctx.getMainClassOr(code), not(nullValue()));
 
 		assertThat(result, containsString("hellojar.jar"));
 
-		assertThat(input.getResourceRef().getFile().toString(), equalTo(jar));
-		assertThat(input.isJar(), equalTo(true));
+		assertThat(code.getResourceRef().getFile().toString(), equalTo(jar));
+		assertThat(code.isJar(), equalTo(true));
 
 		run.doCall();
 	}
@@ -325,9 +325,9 @@ public class TestRun extends BaseTest {
 			Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 			RunContext ctx = run.getRunContext();
-			Input input = ctx.forResource(jar);
+			Code code = ctx.forResource(jar);
 
-			String cmdline = new DefaultCmdGenerator().generate(input, ctx);
+			String cmdline = new DefaultCmdGenerator().generate(code, ctx);
 
 			assertThat(cmdline, not(containsString("https")));
 
@@ -350,12 +350,12 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Input input = ctx.forResource(jar);
+		Code code = ctx.forResource(jar);
 
-		assertThat(input.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
+		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
 
 		ExitException e = Assertions.assertThrows(ExitException.class,
-				() -> new DefaultCmdGenerator().generate(input, ctx));
+				() -> new DefaultCmdGenerator().generate(code, ctx));
 
 		assertThat(e.getMessage(), startsWith("no main class"));
 
@@ -385,15 +385,15 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Input input = ctx.forResource(jar);
+		Code code = ctx.forResource(jar);
 
-		assertThat(input.getResourceRef().getFile().toString(), matchesPattern(".*.jar"));
+		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*.jar"));
 
-		String cmd = new DefaultCmdGenerator().generate(input, ctx);
+		String cmd = new DefaultCmdGenerator().generate(code, ctx);
 
 		assertThat(cmd, matchesPattern(".*quarkus-cli-1.9.0.Final-runner.jar.*"));
 
-		assertThat(ctx.getMainClassOr(input), equalTo("io.quarkus.runner.GeneratedMain"));
+		assertThat(ctx.getMainClassOr(code), equalTo("io.quarkus.runner.GeneratedMain"));
 
 	}
 
@@ -409,13 +409,13 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Input input = ctx.forResource(jar);
+		Code code = ctx.forResource(jar);
 
-		assertThat(input.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*eclipse.jgit.pgm.*.jar"));
+		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*eclipse.jgit.pgm.*.jar"));
 
-		new DefaultCmdGenerator().generate(input, ctx);
+		new DefaultCmdGenerator().generate(code, ctx);
 
-		assertThat(ctx.getMainClassOr(input), equalTo("org.eclipse.jgit.pgm.Main"));
+		assertThat(ctx.getMainClassOr(code), equalTo("org.eclipse.jgit.pgm.Main"));
 
 	}
 
@@ -432,13 +432,13 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Input input = ctx.forResource(jar);
+		Code code = ctx.forResource(jar);
 
-		String cmd = new DefaultCmdGenerator().generate(input, ctx);
+		String cmd = new DefaultCmdGenerator().generate(code, ctx);
 
-		assertThat(ctx.getMainClassOr(input), equalTo("picocli.codegen.aot.graalvm.ReflectionConfigGenerator"));
+		assertThat(ctx.getMainClassOr(code), equalTo("picocli.codegen.aot.graalvm.ReflectionConfigGenerator"));
 
-		assertThat(input.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
+		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
 
 		assertThat(cmd, matchesPattern(".* -classpath .*picocli-4.5.0.jar.*"));
 		assertThat(cmd, not(containsString(" -jar ")));
@@ -1024,15 +1024,15 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Input input = ctx.forFile(new File(arg));
+		Code code = ctx.forFile(new File(arg));
 		ctx.setMainClass("fakemain");
-		String commandLine = new DefaultCmdGenerator().generate(input, ctx);
+		String commandLine = new DefaultCmdGenerator().generate(code, ctx);
 
 		assertThat(commandLine, containsString("-XX:SharedArchiveFile="));
 
 		run.doCall();
 
-		commandLine = new DefaultCmdGenerator().generate(input, ctx);
+		commandLine = new DefaultCmdGenerator().generate(code, ctx);
 		assertThat(commandLine, containsString("-XX:ArchiveClassesAtExit="));
 
 		assert (run.cds != null);
@@ -1150,14 +1150,14 @@ public class TestRun extends BaseTest {
 		assertThat(run.javaAgentSlots.get(agentfile.getAbsolutePath()).get(), equalTo("optionA"));
 
 		RunContext ctx = run.getRunContext();
-		Input input = ctx.forFile(mainfile);
+		Code code = ctx.forFile(mainfile);
 		SourceSet ass = (SourceSet) ctx.forFile(agentfile);
 
 		assertThat(ass.getMainSource().isAgent(), is(true));
 
-		input = run.prepareArtifacts(input, ctx);
+		code = run.prepareArtifacts(code, ctx);
 
-		String result = new DefaultCmdGenerator().generate(input, ctx);
+		String result = new DefaultCmdGenerator().generate(code, ctx);
 
 		assertThat(result, containsString("-javaagent"));
 		assertThat(result, containsString("=optionA"));

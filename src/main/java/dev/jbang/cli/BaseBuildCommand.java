@@ -43,12 +43,12 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 
 	PrintStream out = new PrintStream(new FileOutputStream(FileDescriptor.out));
 
-	static Input buildIfNeeded(Input input, RunContext ctx) throws IOException {
-		if (needsJar(input, ctx)) {
-			SourceSet ss = (SourceSet) input;
-			input = ss.builder(ctx).build();
+	static Code buildIfNeeded(Code code, RunContext ctx) throws IOException {
+		if (needsJar(code, ctx)) {
+			SourceSet ss = (SourceSet) code;
+			code = ss.builder(ctx).build();
 		}
-		return input;
+		return code;
 	}
 
 	RunContext getRunContext() {

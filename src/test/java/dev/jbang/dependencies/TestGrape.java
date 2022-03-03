@@ -7,12 +7,12 @@ import static org.hamcrest.Matchers.not;
 import java.io.FileNotFoundException;
 import java.util.List;
 
-import dev.jbang.source.Source;
-import dev.jbang.source.sources.JavaSource;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
+import dev.jbang.source.Source;
 import dev.jbang.source.SourceSet;
+import dev.jbang.source.sources.JavaSource;
 
 public class TestGrape extends BaseTest {
 

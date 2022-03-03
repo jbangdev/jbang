@@ -26,7 +26,7 @@ import dev.jbang.util.Util;
  * extracted from the JAR file itself. So all Jars that refer to the same JAR
  * file will contain/return the exact same information.
  */
-public class Jar implements Input {
+public class Jar implements Code {
 	private final ResourceRef resourceRef;
 	private final File jarFile;
 
@@ -50,7 +50,7 @@ public class Jar implements Input {
 
 				String val = attrs.getValue(BaseBuilder.ATTR_JBANG_JAVA_OPTIONS);
 				if (val != null) {
-					javaRuntimeOptions = Input.quotedStringToList(val);
+					javaRuntimeOptions = Code.quotedStringToList(val);
 				}
 
 				String ver = attrs.getValue(BaseBuilder.ATTR_BUILD_JDK);

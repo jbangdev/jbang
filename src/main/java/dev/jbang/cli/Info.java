@@ -17,7 +17,7 @@ import com.google.gson.GsonBuilder;
 
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.net.JdkManager;
-import dev.jbang.source.Input;
+import dev.jbang.source.Code;
 import dev.jbang.source.RefTarget;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.Source;
@@ -77,22 +77,22 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 		String description;
 		String gav;
 
-		public ScriptInfo(Input input, RunContext ctx) {
-			originalResource = input.getResourceRef().getOriginalResource();
+		public ScriptInfo(Code code, RunContext ctx) {
+			originalResource = code.getResourceRef().getOriginalResource();
 
 			if (scripts.add(originalResource)) {
-				backingResource = input.getResourceRef().getFile().toString();
+				backingResource = code.getResourceRef().getFile().toString();
 
-				Source source = input.asSourceSet().getMainSource();
+				Source source = code.asSourceSet().getMainSource();
 				init(source);
 
 				if (ctx != null) {
-					applicationJar = input.getJarFile() == null ? null : input.getJarFile().getAbsolutePath();
-					mainClass = ctx.getMainClassOr(input);
-					requestedJavaVersion = input.getJavaVersion().orElse(null);
+					applicationJar = code.getJarFile() == null ? null : code.getJarFile().getAbsolutePath();
+					mainClass = ctx.getMainClassOr(code);
+					requestedJavaVersion = code.getJavaVersion().orElse(null);
 					availableJdkPath = Objects.toString(JdkManager.getCurrentJdk(requestedJavaVersion), null);
 
-					String cp = ctx.resolveClassPath(input);
+					String cp = ctx.resolveClassPath(code);
 					if (cp.isEmpty()) {
 						resolvedDependencies = Collections.emptyList();
 					} else {
@@ -103,7 +103,7 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 						javaVersion = Integer.toString(ctx.getBuildJdk());
 					}
 
-					List<String> opts = ctx.getRuntimeOptionsMerged(input);
+					List<String> opts = ctx.getRuntimeOptionsMerged(code);
 					if (!opts.isEmpty()) {
 						runtimeOptions = opts;
 					}
@@ -156,11 +156,11 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 		}
 
 		RunContext ctx = getRunContext();
-		Input input = ctx.importJarMetadataFor(ctx.forResource(scriptOrFile));
+		Code code = ctx.importJarMetadataFor(ctx.forResource(scriptOrFile));
 
 		scripts = new HashSet<>();
 
-		return new ScriptInfo(input, ctx);
+		return new ScriptInfo(code, ctx);
 	}
 
 	RunContext getRunContext() {

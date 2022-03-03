@@ -9,8 +9,8 @@ import java.io.IOException;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
+import dev.jbang.source.Code;
 import dev.jbang.source.DefaultCmdGenerator;
-import dev.jbang.source.Input;
 import dev.jbang.source.RunContext;
 import dev.jbang.util.Util;
 
@@ -47,10 +47,10 @@ class TestExternalDeps extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Input input = ctx.forResource(f.getPath());
-		input = run.prepareArtifacts(input, ctx);
+		Code code = ctx.forResource(f.getPath());
+		code = run.prepareArtifacts(code, ctx);
 
-		String result = new DefaultCmdGenerator().generate(input, ctx);
+		String result = new DefaultCmdGenerator().generate(code, ctx);
 
 		assertThat(result, containsString("pico"));
 
@@ -71,10 +71,10 @@ class TestExternalDeps extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Input input = ctx.forResource(f.getPath());
-		input = run.prepareArtifacts(input, ctx);
+		Code code = ctx.forResource(f.getPath());
+		code = run.prepareArtifacts(code, ctx);
 
-		String result = new DefaultCmdGenerator().generate(input, ctx);
+		String result = new DefaultCmdGenerator().generate(code, ctx);
 
 		assertThat(result, containsString("com.github.jbangdev.jbang"));
 

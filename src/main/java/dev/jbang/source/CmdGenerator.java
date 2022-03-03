@@ -3,5 +3,5 @@ package dev.jbang.source;
 import java.io.IOException;
 
 public interface CmdGenerator {
-	String generate(Input input, RunContext ctx) throws IOException;
+	String generate(Code code, RunContext ctx) throws IOException;
 }

@@ -23,7 +23,7 @@ import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 
 import dev.jbang.Settings;
 import dev.jbang.dependencies.DependencyUtil;
-import dev.jbang.source.Input;
+import dev.jbang.source.Code;
 import dev.jbang.source.RunContext;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
@@ -43,12 +43,12 @@ public class Export {
 		}
 
 		RunContext ctx = getRunContext(exportMixin);
-		Input input = ctx.forResource(exportMixin.scriptOrFile);
+		Code code = ctx.forResource(exportMixin.scriptOrFile);
 
-		input = buildIfNeeded(input, ctx);
-		ctx.resolveClassPath(input);
+		code = buildIfNeeded(code, ctx);
+		ctx.resolveClassPath(code);
 
-		return style.apply(exportMixin, input, ctx);
+		return style.apply(exportMixin, code, ctx);
 	}
 
 	static RunContext getRunContext(ExportMixin exportMixin) {
@@ -66,7 +66,7 @@ public class Export {
 }
 
 interface Exporter {
-	int apply(ExportMixin exportMixin, Input input, RunContext ctx) throws IOException;
+	int apply(ExportMixin exportMixin, Code code, RunContext ctx) throws IOException;
 }
 
 @Command(name = "local", description = "Exports jar with classpath referring to local machine dependent locations")
@@ -75,11 +75,11 @@ class ExportLocal extends BaseCommand implements Exporter {
 	@CommandLine.Mixin
 	ExportMixin exportMixin;
 
-	public int apply(ExportMixin exportMixin, Input input, RunContext ctx) throws IOException {
+	public int apply(ExportMixin exportMixin, Code code, RunContext ctx) throws IOException {
 
 		Path outputPath = exportMixin.getFileOutputPath(ctx);
 		// Copy the JAR or native binary
-		Path source = input.getJarFile().toPath();
+		Path source = code.getJarFile().toPath();
 		if (exportMixin.nativeImage) {
 			source = getImageName(source.toFile()).toPath();
 		}
@@ -112,12 +112,12 @@ class ExportPortable extends BaseCommand implements Exporter {
 	@CommandLine.Mixin
 	ExportMixin exportMixin;
 
-	public int apply(ExportMixin exportMixin, Input input, RunContext ctx) throws IOException {
+	public int apply(ExportMixin exportMixin, Code code, RunContext ctx) throws IOException {
 
 		Path outputPath = exportMixin.getFileOutputPath(ctx);
 
 		// Copy the JAR or native binary
-		Path source = input.getJarFile().toPath();
+		Path source = code.getJarFile().toPath();
 		if (exportMixin.nativeImage) {
 			source = getImageName(source.toFile()).toPath();
 		}
@@ -162,7 +162,7 @@ class ExportPortable extends BaseCommand implements Exporter {
 
 			List<String> optionList = new ArrayList<>();
 			optionList.add(resolveInJavaHome("jar",
-					exportMixin.javaVersion != null ? exportMixin.javaVersion : input.getJavaVersion().orElse(null))); // TODO
+					exportMixin.javaVersion != null ? exportMixin.javaVersion : code.getJavaVersion().orElse(null))); // TODO
 			// locate
 			// it
 			// on path ?
@@ -208,14 +208,14 @@ class ExportMavenPublish extends BaseCommand implements Exporter {
 	@CommandLine.Option(names = { "--version", "-v" }, description = "The version to use for the generated POM.")
 	String version;
 
-	public int apply(ExportMixin exportMixin, Input input, RunContext ctx) throws IOException {
+	public int apply(ExportMixin exportMixin, Code code, RunContext ctx) throws IOException {
 		Path outputPath = exportMixin.outputFile;
 
 		if (outputPath == null) {
 			outputPath = Settings.getLocalMavenRepo().toPath();
 		}
 		// Copy the JAR or native binary
-		Path source = input.getJarFile().toPath();
+		Path source = code.getJarFile().toPath();
 		if (exportMixin.nativeImage) {
 			source = getImageName(source.toFile()).toPath();
 		}
@@ -233,8 +233,8 @@ class ExportMavenPublish extends BaseCommand implements Exporter {
 			}
 		}
 
-		if (input.getGav().isPresent()) {
-			MavenCoordinate coord = DependencyUtil.depIdToArtifact(DependencyUtil.gavWithVersion(input.getGav().get()));
+		if (code.getGav().isPresent()) {
+			MavenCoordinate coord = DependencyUtil.depIdToArtifact(DependencyUtil.gavWithVersion(code.getGav().get()));
 			if (group == null) {
 				group = coord.getGroupId();
 			}
@@ -253,7 +253,7 @@ class ExportMavenPublish extends BaseCommand implements Exporter {
 		}
 		Path groupdir = outputPath.resolve(Paths.get(group.replace(".", "/")));
 
-		artifact = artifact != null ? artifact : Util.getBaseName(input.getResourceRef().getFile().getName());
+		artifact = artifact != null ? artifact : Util.getBaseName(code.getResourceRef().getFile().getName());
 		Path artifactDir = groupdir.resolve(artifact);
 
 		version = version != null ? version : "999-SNAPSHOT";
@@ -289,11 +289,11 @@ class ExportMavenPublish extends BaseCommand implements Exporter {
 
 			String pomfile = pomTemplate
 										.data("baseName",
-												Util.getBaseName(input.getResourceRef().getFile().getName()))
+												Util.getBaseName(code.getResourceRef().getFile().getName()))
 										.data("group", group)
 										.data("artifact", artifact)
 										.data("version", version)
-										.data("description", input.getDescription().orElse(""))
+										.data("description", code.getDescription().orElse(""))
 										.data("dependencies", ctx.getClassPath().getArtifacts())
 										.render();
 			Util.infoMsg("Writing " + pomPath);
