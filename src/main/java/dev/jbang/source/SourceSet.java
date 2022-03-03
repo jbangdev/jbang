@@ -13,6 +13,8 @@ import dev.jbang.Settings;
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.dependencies.ModularClassPath;
+import dev.jbang.source.generators.JarCmdGenerator;
+import dev.jbang.source.generators.JshCmdGenerator;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
@@ -320,5 +322,14 @@ public class SourceSet implements Code {
 
 	public Builder builder(RunContext ctx) {
 		return getMainSource().getBuilder(this, ctx);
+	}
+
+	@Override
+	public CmdGenerator cmdGenerator(RunContext ctx) {
+		if (isJShell() || ctx.isForceJsh() || ctx.isInteractive()) {
+			return new JshCmdGenerator(this, ctx);
+		} else {
+			return new JarCmdGenerator(this, ctx);
+		}
 	}
 }

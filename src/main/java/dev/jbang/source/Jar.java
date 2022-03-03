@@ -12,6 +12,7 @@ import java.util.jar.JarFile;
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.source.builders.BaseBuilder;
+import dev.jbang.source.generators.JarCmdGenerator;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
@@ -121,6 +122,11 @@ public class Jar implements Code {
 	@Override
 	public List<String> getRuntimeOptions() {
 		return javaRuntimeOptions;
+	}
+
+	@Override
+	public CmdGenerator cmdGenerator(RunContext ctx) {
+		return new JarCmdGenerator(this, ctx);
 	}
 
 	public static Jar prepareJar(ResourceRef resourceRef) {

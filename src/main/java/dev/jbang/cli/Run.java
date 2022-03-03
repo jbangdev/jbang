@@ -10,7 +10,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import dev.jbang.source.Code;
-import dev.jbang.source.DefaultCmdGenerator;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 
@@ -99,7 +98,7 @@ public class Run extends BaseBuildCommand {
 			nativeImage = false;
 		}
 
-		String cmdline = new DefaultCmdGenerator().generate(code, ctx);
+		String cmdline = code.cmdGenerator(ctx).generate();
 		debug("run: " + cmdline);
 		out.println(cmdline);
 

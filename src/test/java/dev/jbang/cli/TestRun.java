@@ -59,6 +59,8 @@ import dev.jbang.catalog.Catalog;
 import dev.jbang.net.TrustedSources;
 import dev.jbang.source.*;
 import dev.jbang.source.builders.BaseBuilder;
+import dev.jbang.source.generators.JarCmdGenerator;
+import dev.jbang.source.generators.JshCmdGenerator;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.source.sources.JavaSource;
 import dev.jbang.util.Util;
@@ -96,7 +98,7 @@ public class TestRun extends BaseTest {
 
 		code = run.prepareArtifacts(code, ctx);
 
-		String result = new DefaultCmdGenerator().generate(code, ctx);
+		String result = new JarCmdGenerator(code, ctx).generate();
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, endsWith("helloworld"));
@@ -128,7 +130,7 @@ public class TestRun extends BaseTest {
 		Code code = ctx.forResource("helloworld");
 
 		code = run.prepareArtifacts(code, ctx);
-		String result = new DefaultCmdGenerator().generate(code, ctx);
+		String result = new JarCmdGenerator(code, ctx).generate();
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, endsWith("helloworld"));
@@ -160,7 +162,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		SourceSet ss = (SourceSet) ctx.forResource(arg);
 
-		String result = new DefaultCmdGenerator().generate(ss, ctx);
+		String result = new JshCmdGenerator(ss, ctx).generate();
 
 		assertThat(result,
 				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
@@ -187,7 +189,7 @@ public class TestRun extends BaseTest {
 		SourceSet ss = (SourceSet) ctx.forResourceRef(
 				LiteralScriptResourceResolver.stringToResourceRef(null, "Collector2.class"));
 
-		String result = new DefaultCmdGenerator().generate(ss, ctx);
+		String result = new JshCmdGenerator(ss, ctx).generate();
 
 		assertThat(result,
 				matchesPattern(
@@ -206,7 +208,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		SourceSet ss = (SourceSet) ctx.forResource(arg);
 
-		String result = new DefaultCmdGenerator().generate(ss, ctx);
+		String result = new JshCmdGenerator(ss, ctx).generate();
 
 		assertThat(result, matchesPattern("^.*jshell(.exe)?.+--class-path=.*figlet.*? --startup.*$"));
 	}
@@ -230,7 +232,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		SourceSet ss = (SourceSet) ctx.forResource(arg);
 
-		String result = new DefaultCmdGenerator().generate(ss, ctx);
+		String result = new JshCmdGenerator(ss, ctx).generate();
 
 		assertThat(result, matchesPattern("^.*jshell(.exe)?.+--class-path=.*figlet.*? --startup.*$"));
 	}
@@ -249,7 +251,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		SourceSet ss = (SourceSet) ctx.forResource(empty.toString());
 
-		String result = new DefaultCmdGenerator().generate(ss, ctx);
+		String result = ss.cmdGenerator(ctx).generate();
 
 		assertThat(result,
 				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
@@ -272,7 +274,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		SourceSet ss = (SourceSet) ctx.forResource(arg);
 
-		String result = new DefaultCmdGenerator().generate(ss, ctx);
+		String result = ss.cmdGenerator(ctx).generate();
 
 		assertThat(result,
 				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
@@ -298,7 +300,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		Code code = ctx.forResource(jar);
 
-		String result = new DefaultCmdGenerator().generate(code, ctx);
+		String result = code.cmdGenerator(ctx).generate();
 		assertThat(result, matchesPattern("^.*java(.exe)?.*"));
 		assertThat(ctx.getMainClassOr(code), not(nullValue()));
 
@@ -327,7 +329,7 @@ public class TestRun extends BaseTest {
 			RunContext ctx = run.getRunContext();
 			Code code = ctx.forResource(jar);
 
-			String cmdline = new DefaultCmdGenerator().generate(code, ctx);
+			String cmdline = code.cmdGenerator(ctx).generate();
 
 			assertThat(cmdline, not(containsString("https")));
 
@@ -355,7 +357,7 @@ public class TestRun extends BaseTest {
 		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
 
 		ExitException e = Assertions.assertThrows(ExitException.class,
-				() -> new DefaultCmdGenerator().generate(code, ctx));
+				() -> code.cmdGenerator(ctx).generate());
 
 		assertThat(e.getMessage(), startsWith("no main class"));
 
@@ -389,7 +391,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*.jar"));
 
-		String cmd = new DefaultCmdGenerator().generate(code, ctx);
+		String cmd = code.cmdGenerator(ctx).generate();
 
 		assertThat(cmd, matchesPattern(".*quarkus-cli-1.9.0.Final-runner.jar.*"));
 
@@ -413,7 +415,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*eclipse.jgit.pgm.*.jar"));
 
-		new DefaultCmdGenerator().generate(code, ctx);
+		code.cmdGenerator(ctx).generate();
 
 		assertThat(ctx.getMainClassOr(code), equalTo("org.eclipse.jgit.pgm.Main"));
 
@@ -434,7 +436,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		Code code = ctx.forResource(jar);
 
-		String cmd = new DefaultCmdGenerator().generate(code, ctx);
+		String cmd = code.cmdGenerator(ctx).generate();
 
 		assertThat(ctx.getMainClassOr(code), equalTo("picocli.codegen.aot.graalvm.ReflectionConfigGenerator"));
 
@@ -458,7 +460,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		SourceSet ss = (SourceSet) ctx.forResource(arg);
 
-		String result = new DefaultCmdGenerator().generate(ss, ctx);
+		String result = ss.cmdGenerator(ctx).generate();
 
 		assertThat(result, startsWith("jshell"));
 		assertThat(result, not(containsString("  ")));
@@ -480,7 +482,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		SourceSet ss = (SourceSet) ctx.forResource(arg);
 
-		String result = new DefaultCmdGenerator().generate(ss, ctx);
+		String result = ss.cmdGenerator(ctx).generate();
 
 		assertThat(result,
 				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
@@ -502,7 +504,7 @@ public class TestRun extends BaseTest {
 		ctx.setMainClass("fakemain");
 		SourceSet ss = (SourceSet) ctx.forResource(arg);
 
-		String result = new DefaultCmdGenerator().generate(ss, ctx);
+		String result = ss.cmdGenerator(ctx).generate();
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("helloworld.java"));
@@ -526,7 +528,7 @@ public class TestRun extends BaseTest {
 
 		SourceSet ss = (SourceSet) ctx.forResource(arg);
 
-		String result = new DefaultCmdGenerator().generate(ss, ctx);
+		String result = ss.cmdGenerator(ctx).generate();
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("classpath_example.java"));
@@ -548,7 +550,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		SourceSet ss = (SourceSet) ctx.forResource(arg);
 
-		String result = new DefaultCmdGenerator().generate(ss, ctx);
+		String result = ss.cmdGenerator(ctx).generate();
 
 		assertThat(result, startsWith("jshell "));
 		assertThat(result, (containsString("classpath_example.java")));
@@ -578,7 +580,7 @@ public class TestRun extends BaseTest {
 		ctx.setMainClass("fakemain");
 		SourceSet ss = (SourceSet) ctx.forResource(arg);
 
-		String result = new DefaultCmdGenerator().generate(ss, ctx);
+		String result = ss.cmdGenerator(ctx).generate();
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("-Dwonka=panda"));
@@ -613,7 +615,7 @@ public class TestRun extends BaseTest {
 
 		SourceSet ss = (SourceSet) ctx.forResource(url);
 
-		String s = new DefaultCmdGenerator().generate(ss, ctx);
+		String s = ss.cmdGenerator(ctx).generate();
 
 		assertThat(s, not(containsString("file:")));
 	}
@@ -630,7 +632,7 @@ public class TestRun extends BaseTest {
 
 		SourceSet ss = (SourceSet) ctx.forResource(url);
 
-		String s = new DefaultCmdGenerator().generate(ss, ctx);
+		String s = ss.cmdGenerator(ctx).generate();
 		if (Util.isWindows()) {
 			assertThat(s, containsString("^\"^ ~^!@#$^%^^^&*^(^)-+\\:;'`^<^>?/,.{}[]\\^\"^\""));
 		} else {
@@ -700,20 +702,20 @@ public class TestRun extends BaseTest {
 
 		Map<String, String> properties = new HashMap<>();
 
-		assertThat(DefaultCmdGenerator.generateArgs(Collections.emptyList(), properties),
+		assertThat(JshCmdGenerator.generateArgs(Collections.emptyList(), properties),
 				equalTo("String[] args = {  }"));
 
-		assertThat(DefaultCmdGenerator.generateArgs(Collections.singletonList("one"), properties),
+		assertThat(JshCmdGenerator.generateArgs(Collections.singletonList("one"), properties),
 				equalTo("String[] args = { \"one\" }"));
 
-		assertThat(DefaultCmdGenerator.generateArgs(Arrays.asList("one", "two"), properties),
+		assertThat(JshCmdGenerator.generateArgs(Arrays.asList("one", "two"), properties),
 				equalTo("String[] args = { \"one\", \"two\" }"));
 
-		assertThat(DefaultCmdGenerator.generateArgs(Arrays.asList("one", "two", "three \"quotes\""), properties),
+		assertThat(JshCmdGenerator.generateArgs(Arrays.asList("one", "two", "three \"quotes\""), properties),
 				equalTo("String[] args = { \"one\", \"two\", \"three \\\"quotes\\\"\" }"));
 
 		properties.put("value", "this value");
-		assertThat(DefaultCmdGenerator.generateArgs(Collections.emptyList(), properties),
+		assertThat(JshCmdGenerator.generateArgs(Collections.emptyList(), properties),
 				equalTo("String[] args = {  }\nSystem.setProperty(\"value\",\"this value\");"));
 
 	}
@@ -1026,13 +1028,13 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		Code code = ctx.forFile(new File(arg));
 		ctx.setMainClass("fakemain");
-		String commandLine = new DefaultCmdGenerator().generate(code, ctx);
+		String commandLine = code.cmdGenerator(ctx).generate();
 
 		assertThat(commandLine, containsString("-XX:SharedArchiveFile="));
 
 		run.doCall();
 
-		commandLine = new DefaultCmdGenerator().generate(code, ctx);
+		commandLine = code.cmdGenerator(ctx).generate();
 		assertThat(commandLine, containsString("-XX:ArchiveClassesAtExit="));
 
 		assert (run.cds != null);
@@ -1157,7 +1159,7 @@ public class TestRun extends BaseTest {
 
 		code = run.prepareArtifacts(code, ctx);
 
-		String result = new DefaultCmdGenerator().generate(code, ctx);
+		String result = code.cmdGenerator(ctx).generate();
 
 		assertThat(result, containsString("-javaagent"));
 		assertThat(result, containsString("=optionA"));
@@ -1197,7 +1199,7 @@ public class TestRun extends BaseTest {
 
 		SourceSet ss = (SourceSet) ctx.forResource(f.getAbsolutePath());
 
-		String line = new DefaultCmdGenerator().generate(ss, ctx);
+		String line = ss.cmdGenerator(ctx).generate();
 
 		assertThat(line, containsString("-ea"));
 	}
@@ -1215,7 +1217,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		SourceSet ss = (SourceSet) ctx.forResource(f.getAbsolutePath());
 
-		String line = new DefaultCmdGenerator().generate(ss, ctx);
+		String line = ss.cmdGenerator(ctx).generate();
 
 		assertThat(line, containsString("-esa"));
 	}
@@ -1558,7 +1560,7 @@ public class TestRun extends BaseTest {
 		ctx.setMainClass("fakemain");
 
 		assert (ctx.isFlightRecordingEnabled());
-		String line = new DefaultCmdGenerator().generate(ctx.forResource(arg), ctx);
+		String line = ctx.forResource(arg).cmdGenerator(ctx).generate();
 
 		assertThat(line, containsString("helloworld.jfr"));
 		// testing it does not go to cache by accident
@@ -1576,7 +1578,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		ctx.setMainClass("fakemain");
 
-		String line = new DefaultCmdGenerator().generate(ctx.forResource(arg), ctx);
+		String line = ctx.forResource(arg).cmdGenerator(ctx).generate();
 
 		assertThat(line, containsString(" --show-version "));
 	}
@@ -1595,7 +1597,7 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = run.getRunContext();
 		ctx.setMainClass("fakemain");
-		String line = new DefaultCmdGenerator().generate(ctx.forResource(fileref.toString()), ctx);
+		String line = ctx.forResource(fileref.toString()).cmdGenerator(ctx).generate();
 
 		assertThat(line, containsString("org/openjfx".replace("/", File.separator)));
 	}
@@ -1617,7 +1619,7 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = run.getRunContext();
 		ctx.setMainClass("fakemain");
-		String line = new DefaultCmdGenerator().generate(ctx.forResource(fileref.toString()), ctx);
+		String line = ctx.forResource(fileref.toString()).cmdGenerator(ctx).generate();
 
 		assertThat(line, containsString("org/openjfx".replace("/", File.separator)));
 	}
@@ -1638,7 +1640,7 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = run.getRunContext();
 		ctx.setMainClass("fakemain");
-		String line = new DefaultCmdGenerator().generate(ctx.forResource(fileref.toString()), ctx);
+		String line = ctx.forResource(fileref.toString()).cmdGenerator(ctx).generate();
 
 		assertThat(line, containsString("org/openjfx".replace("/", File.separator)));
 	}
@@ -1662,7 +1664,7 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = run.getRunContext();
 		ctx.setMainClass("fakemain");
-		String line = new DefaultCmdGenerator().generate(ctx.forResource(fileref.toString()), ctx);
+		String line = new JarCmdGenerator(ctx.forResource(fileref.toString()), ctx).generate();
 
 		assertThat(line, containsString(" --module-path "));
 

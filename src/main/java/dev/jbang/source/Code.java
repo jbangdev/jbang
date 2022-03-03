@@ -109,6 +109,8 @@ public interface Code {
 	 */
 	SourceSet asSourceSet();
 
+	CmdGenerator cmdGenerator(RunContext ctx);
+
 	// https://stackoverflow.com/questions/366202/regex-for-splitting-a-string-using-space-when-not-surrounded-by-single-or-double
 	static List<String> quotedStringToList(String subjectString) {
 		List<String> matchList = new ArrayList<>();
