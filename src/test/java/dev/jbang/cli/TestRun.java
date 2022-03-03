@@ -166,7 +166,7 @@ public class TestRun extends BaseTest {
 				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString(arg));
-		assertThat(result.split(arg, -1).length, equalTo(2));
+		assertThat(result.split(Pattern.quote(arg), -1).length, equalTo(2));
 		assertThat(result, not(containsString("--source 11")));
 		assertThat(result, containsString("--startup=DEFAULT"));
 		assertThat(result, matchesPattern(".*--startup=[^ ]*helloworld.jsh.*"));
@@ -191,7 +191,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(result,
 				matchesPattern(
-						"^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --class-path=.* -J--class-path=.* --startup=DEFAULT --startup.*$"));
+						"^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM (\\^\\\")?--class-path=.*(\\^\\\")? (\\^\\\")?-J--class-path=.*(\\^\\\")? --startup=DEFAULT (\\^\\\")?--startup.*$"));
 		assertThat(result, containsString("eclipse-collections-api"));
 	}
 
@@ -391,7 +391,12 @@ public class TestRun extends BaseTest {
 
 		String cmd = code.cmdGenerator(ctx).generate();
 
-		assertThat(cmd, matchesPattern(".*quarkus-cli-1.9.0.Final-runner.jar.*"));
+		if (Util.getShell() == Util.Shell.bash) {
+			assertThat(cmd, matchesPattern(".*quarkus-cli-1.9.0.Final-runner.jar.*"));
+		} else {
+			// TODO On Windows the command is using an @file, we should parse
+			// the name, read the file and assert against it contents.
+		}
 
 		assertThat(ctx.getMainClassOr(code), equalTo("io.quarkus.runner.GeneratedMain"));
 
