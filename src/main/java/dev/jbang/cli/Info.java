@@ -17,9 +17,9 @@ import com.google.gson.GsonBuilder;
 
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.net.JdkManager;
+import dev.jbang.source.Code;
 import dev.jbang.source.RefTarget;
 import dev.jbang.source.RunContext;
-import dev.jbang.source.ScriptSource;
 import dev.jbang.source.Source;
 
 import picocli.CommandLine;
@@ -33,6 +33,9 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 
 	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
+
+	@CommandLine.Option(names = { "-s", "--sources" }, description = "Add additional sources.")
+	List<String> sources;
 
 	static class ResourceFile {
 		String originalResource;
@@ -74,48 +77,22 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 		String description;
 		String gav;
 
-		public ScriptInfo(Source src, RunContext ctx) {
-			originalResource = src.getResourceRef().getOriginalResource();
+		public ScriptInfo(Code code, RunContext ctx) {
+			originalResource = code.getResourceRef().getOriginalResource();
 
 			if (scripts.add(originalResource)) {
-				backingResource = src.getResourceRef().getFile().toString();
+				backingResource = code.getResourceRef().getFile().toString();
 
-				ScriptSource ss = src.asScriptSource();
-				List<String> deps = ss.collectDependencies();
-				if (!deps.isEmpty()) {
-					dependencies = deps;
-				}
-				if (!ss.collectRepositories().isEmpty()) {
-					repositories = ss	.collectRepositories()
-										.stream()
-										.map(Repo::new)
-										.collect(Collectors.toList());
-				}
-				List<RefTarget> refs = ss.collectFiles();
-				if (!refs.isEmpty()) {
-					files = refs.stream()
-								.map(ResourceFile::new)
-								.collect(Collectors.toList());
-				}
-				List<ScriptSource> srcs = ss.collectSources();
-				if (!srcs.isEmpty()) {
-					sources = srcs	.stream()
-									.map(s -> new ScriptInfo(s, null))
-									.collect(Collectors.toList());
-				}
-				if (!ss.getCompileOptions().isEmpty()) {
-					compileOptions = ss.getCompileOptions();
-				}
-				gav = ss.getGav().orElse(null);
-				description = ss.getDescription().orElse(null);
+				Source source = code.asSourceSet().getMainSource();
+				init(source);
 
 				if (ctx != null) {
-					applicationJar = src.getJarFile() == null ? null : src.getJarFile().getAbsolutePath();
-					mainClass = ctx.getMainClassOr(src);
-					requestedJavaVersion = src.getJavaVersion();
+					applicationJar = code.getJarFile() == null ? null : code.getJarFile().getAbsolutePath();
+					mainClass = ctx.getMainClassOr(code);
+					requestedJavaVersion = code.getJavaVersion().orElse(null);
 					availableJdkPath = Objects.toString(JdkManager.getCurrentJdk(requestedJavaVersion), null);
 
-					String cp = ctx.resolveClassPath(src);
+					String cp = ctx.resolveClassPath(code);
 					if (cp.isEmpty()) {
 						resolvedDependencies = Collections.emptyList();
 					} else {
@@ -126,13 +103,48 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 						javaVersion = Integer.toString(ctx.getBuildJdk());
 					}
 
-					List<String> opts = ctx.getRuntimeOptionsMerged(src);
+					List<String> opts = ctx.getRuntimeOptionsMerged(code);
 					if (!opts.isEmpty()) {
 						runtimeOptions = opts;
 					}
 				}
 			}
 		}
+
+		public ScriptInfo(Source source) {
+			init(source);
+		}
+
+		private void init(Source source) {
+			List<String> deps = source.collectDependencies();
+			if (!deps.isEmpty()) {
+				dependencies = deps;
+			}
+			if (!source.collectRepositories().isEmpty()) {
+				repositories = source	.collectRepositories()
+										.stream()
+										.map(Repo::new)
+										.collect(Collectors.toList());
+			}
+			List<RefTarget> refs = source.collectFiles();
+			if (!refs.isEmpty()) {
+				files = refs.stream()
+							.map(ResourceFile::new)
+							.collect(Collectors.toList());
+			}
+			List<Source> srcs = source.collectSources();
+			if (!srcs.isEmpty()) {
+				sources = srcs	.stream()
+								.map(ScriptInfo::new)
+								.collect(Collectors.toList());
+			}
+			if (!source.getCompileOptions().isEmpty()) {
+				compileOptions = source.getCompileOptions();
+			}
+			gav = source.getGav().orElse(null);
+			description = source.getDescription().orElse(null);
+		}
+
 	}
 
 	private static Set<String> scripts;
@@ -143,18 +155,23 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 			enableInsecure();
 		}
 
-		RunContext ctx = RunContext.create(null, null,
-				dependencyInfoMixin.getProperties(),
-				dependencyInfoMixin.getDependencies(),
-				dependencyInfoMixin.getRepositories(),
-				dependencyInfoMixin.getClasspaths(),
-				forcejsh);
-		Source src = ctx.importJarMetadataFor(ctx.forResource(scriptOrFile));
+		RunContext ctx = getRunContext();
+		Code code = ctx.importJarMetadataFor(ctx.forResource(scriptOrFile));
 
 		scripts = new HashSet<>();
-		ScriptInfo info = new ScriptInfo(src, ctx);
 
-		return info;
+		return new ScriptInfo(code, ctx);
+	}
+
+	RunContext getRunContext() {
+		RunContext ctx = new RunContext();
+		ctx.setProperties(dependencyInfoMixin.getProperties());
+		ctx.setAdditionalDependencies(dependencyInfoMixin.getDependencies());
+		ctx.setAdditionalRepositories(dependencyInfoMixin.getRepositories());
+		ctx.setAdditionalClasspaths(dependencyInfoMixin.getClasspaths());
+		ctx.setAdditionalSources(sources);
+		ctx.setForceJsh(forcejsh);
+		return ctx;
 	}
 
 }

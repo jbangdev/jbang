@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenRepo;
-import dev.jbang.source.ScriptSource;
+import dev.jbang.source.Source;
 import dev.jbang.util.Util;
 
 /**
@@ -52,13 +52,13 @@ public class IntegrationManager {
 	 * @param artifacts
 	 * @param tmpJarDir
 	 * @param pomPath
-	 * @param script
+	 * @param source
 	 * @param nativeRequested
 	 * @return
 	 */
 	public static IntegrationResult runIntegration(List<MavenRepo> repositories, List<ArtifactInfo> artifacts,
 			Path tmpJarDir,
-			Path pomPath, ScriptSource script,
+			Path pomPath, Source source,
 			boolean nativeRequested) {
 		URL[] urls = artifacts.stream().map(s -> {
 			try {
@@ -67,7 +67,7 @@ public class IntegrationManager {
 				throw new RuntimeException(e);
 			}
 		}).toArray(URL[]::new);
-		List<String> comments = script.getLines().stream().filter(s -> s.startsWith("//")).collect(Collectors.toList());
+		List<String> comments = source.getLines().stream().filter(s -> s.startsWith("//")).collect(Collectors.toList());
 		URLClassLoader integrationCl = new URLClassLoader(urls);
 		ClassLoader old = Thread.currentThread().getContextClassLoader();
 		Map<String, byte[]> data = new HashMap<>();
@@ -79,8 +79,8 @@ public class IntegrationManager {
 		PrintStream oldout = System.out;
 		try {
 			// TODO: should we add new properties to the integration method?
-			if (script.getResourceRef().getFile() != null) {
-				System.setProperty("jbang.source", script.getResourceRef().getFile().getAbsolutePath());
+			if (source.getResourceRef().getFile() != null) {
+				System.setProperty("jbang.source", source.getResourceRef().getFile().getAbsolutePath());
 			}
 			Thread.currentThread().setContextClassLoader(integrationCl);
 			Set<String> classNames = loadIntegrationClassNames(integrationCl);

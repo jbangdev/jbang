@@ -1,11 +1,8 @@
 package dev.jbang.source;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import dev.jbang.catalog.Alias;
@@ -24,14 +21,11 @@ import dev.jbang.util.PropertiesValueResolver;
  * together determine what finally gets executed and how.
  */
 public class RunContext {
-	private List<String> arguments;
-	private List<String> javaOptions;
-	private Map<String, String> properties;
-
 	private List<String> additionalSources = Collections.emptyList();
 	private List<String> additionalDeps = Collections.emptyList();
 	private List<String> additionalRepos = Collections.emptyList();
 	private List<String> additionalClasspaths = Collections.emptyList();
+	private Map<String, String> properties;
 	private boolean forceJsh = false; // if true, interpret any input as for jshell
 	private String originalRef;
 	private String mainClass;
@@ -54,35 +48,17 @@ public class RunContext {
 	private String javaVersion;
 	private Properties contextProperties;
 
+	private List<String> arguments;
+	private List<String> javaOptions;
+	private boolean interactive;
+	private boolean enableAssertions;
+	private boolean enableSystemAssertions;
+	private String flightRecorderString;
+	private String debugString;
+	private Boolean classDataSharing;
+
 	public static RunContext empty() {
 		return new RunContext();
-	}
-
-	public static RunContext create(List<String> arguments, List<String> javaRuntimeOptions,
-			Map<String, String> properties) {
-		return new RunContext(arguments, javaRuntimeOptions, properties);
-	}
-
-	public static RunContext create(List<String> arguments, List<String> javaRuntimeOptions,
-			Map<String, String> properties,
-			List<String> dependencies, List<String> repositories,
-			List<String> classpaths, boolean forceJsh) {
-		RunContext ctx = new RunContext(arguments, javaRuntimeOptions, properties);
-		ctx.setAdditionalDependencies(dependencies);
-		ctx.setAdditionalRepositories(repositories);
-		ctx.setAdditionalClasspaths(classpaths);
-		ctx.setForceJsh(forceJsh);
-		return ctx;
-	}
-
-	private RunContext() {
-		this(null, null, null);
-	}
-
-	private RunContext(List<String> arguments, List<String> javaOptions, Map<String, String> properties) {
-		this.arguments = arguments;
-		this.javaOptions = javaOptions;
-		this.properties = properties;
 	}
 
 	public List<String> getArguments() {
@@ -101,21 +77,60 @@ public class RunContext {
 		this.properties = properties;
 	}
 
-	public List<ScriptSource> getAllSources(ScriptSource src) {
-		List<ScriptSource> ssrcs = src.getAllSources();
-		List<ScriptSource> asrcs = getAdditionalSources()	.stream()
-															.map(src::getSibling)
-															.collect(Collectors.toList());
-		if (asrcs.isEmpty()) {
-			return ssrcs;
-		} else if (ssrcs.isEmpty()) {
-			return asrcs;
-		} else {
-			ArrayList<ScriptSource> result = new ArrayList<>();
-			result.addAll(ssrcs);
-			result.addAll(asrcs);
-			return result;
-		}
+	public boolean isInteractive() {
+		return interactive;
+	}
+
+	public void setInteractive(boolean interactive) {
+		this.interactive = interactive;
+	}
+
+	public boolean isEnableAssertions() {
+		return enableAssertions;
+	}
+
+	public void setEnableAssertions(boolean enableAssertions) {
+		this.enableAssertions = enableAssertions;
+	}
+
+	public boolean isEnableSystemAssertions() {
+		return enableSystemAssertions;
+	}
+
+	public void setEnableSystemAssertions(boolean enableSystemAssertions) {
+		this.enableSystemAssertions = enableSystemAssertions;
+	}
+
+	public String getFlightRecorderString() {
+		return flightRecorderString;
+	}
+
+	public void setFlightRecorderString(String flightRecorderString) {
+		this.flightRecorderString = flightRecorderString;
+	}
+
+	public boolean isFlightRecordingEnabled() {
+		return flightRecorderString != null && !flightRecorderString.isEmpty();
+	}
+
+	public String getDebugString() {
+		return debugString;
+	}
+
+	public void setDebugString(String debugString) {
+		this.debugString = debugString;
+	}
+
+	public boolean isDebugEnabled() {
+		return debugString != null && !debugString.isEmpty();
+	}
+
+	public Boolean getClassDataSharing() {
+		return classDataSharing;
+	}
+
+	public void setClassDataSharing(Boolean classDataSharing) {
+		this.classDataSharing = classDataSharing;
 	}
 
 	public List<String> getAdditionalSources() {
@@ -203,8 +218,8 @@ public class RunContext {
 		return mainClass;
 	}
 
-	public String getMainClassOr(Source src) {
-		return (mainClass != null) ? mainClass : src.getMainClass();
+	public String getMainClassOr(Code code) {
+		return (mainClass != null) ? mainClass : code.getMainClass();
 	}
 
 	public void setMainClass(String mainClass) {
@@ -227,8 +242,8 @@ public class RunContext {
 		this.integrationOptions = integrationOptions;
 	}
 
-	public List<String> getRuntimeOptionsMerged(Source src) {
-		List<String> opts = new ArrayList<>(src.getRuntimeOptions());
+	public List<String> getRuntimeOptionsMerged(Code code) {
+		List<String> opts = new ArrayList<>(code.getRuntimeOptions());
 		opts.addAll(getJavaOptions());
 		opts.addAll(getIntegrationOptions());
 		return opts;
@@ -302,11 +317,11 @@ public class RunContext {
 	}
 
 	public static class AgentSourceContext {
-		final public Source source;
+		final public Code source;
 		final public RunContext context;
 
-		private AgentSourceContext(Source source, RunContext context) {
-			this.source = source;
+		private AgentSourceContext(Code code, RunContext context) {
+			this.source = code;
 			this.context = context;
 		}
 	}
@@ -315,11 +330,11 @@ public class RunContext {
 		return javaAgents != null ? javaAgents : Collections.emptyList();
 	}
 
-	public void addJavaAgent(Source src, RunContext ctx) {
+	public void addJavaAgent(Code code, RunContext ctx) {
 		if (javaAgents == null) {
 			javaAgents = new ArrayList<>();
 		}
-		javaAgents.add(new AgentSourceContext(src, ctx));
+		javaAgents.add(new AgentSourceContext(code, ctx));
 	}
 
 	/**
@@ -328,11 +343,13 @@ public class RunContext {
 	 *
 	 * Properties available will be used for property replacement.
 	 **/
-	public String resolveClassPath(Source src) {
+	public String resolveClassPath(Code code) {
 		if (mcp == null) {
 			DependencyResolver resolver = new DependencyResolver();
-			updateDependencyResolver(resolver);
-			src.updateDependencyResolver(resolver);
+			if (code instanceof Jar) {
+				updateDependencyResolver(resolver);
+			}
+			code.updateDependencyResolver(resolver);
 			mcp = resolver.resolve();
 		}
 		return mcp.getClassPath();
@@ -359,9 +376,9 @@ public class RunContext {
 
 	}
 
-	public List<String> getAutoDetectedModuleArguments(Source src, String requestedVersion) {
+	public List<String> getAutoDetectedModuleArguments(Code code, String requestedVersion) {
 		if (mcp == null) {
-			resolveClassPath(src);
+			resolveClassPath(code);
 		}
 		return mcp.getAutoDectectedModuleArguments(requestedVersion);
 	}
@@ -378,17 +395,30 @@ public class RunContext {
 	 * RunContext and the JarSource will be returned. In any other case the given
 	 * source will be returned;
 	 */
-	public Source importJarMetadataFor(Source src) {
-		JarSource jar = src.asJarSource();
+	public Code importJarMetadataFor(Code code) {
+		Jar jar = code.asJar();
 		if (jar != null && jar.isUpToDate()) {
-			setBuildJdk(JavaUtil.javaVersion(jar.getJavaVersion()));
+			setBuildJdk(JavaUtil.javaVersion(jar.getJavaVersion().orElse(null)));
 			return jar;
 		} else {
-			return src;
+			return code;
 		}
 	}
 
-	public Source forResource(String resource) {
+	private List<Source> allToScriptSource(List<String> sources) {
+		Function<String, String> propsResolver = it -> PropertiesValueResolver.replaceProperties(it,
+				getContextProperties());
+		return sources.stream().map(s -> Source.forResource(s, propsResolver)).collect(Collectors.toList());
+
+	}
+
+	private ModularClassPath resolveDependency(String dep) {
+		DependencyResolver resolver = new DependencyResolver().addDependency(dep);
+		updateDependencyResolver(resolver);
+		return resolver.resolve();
+	}
+
+	public Code forResource(String resource) {
 		ResourceResolver resolver = ResourceResolver.forScripts(this::resolveDependency);
 		ResourceRef resourceRef = resolver.resolve(resource);
 
@@ -451,26 +481,34 @@ public class RunContext {
 		return forResourceRef(resourceRef);
 	}
 
-	public Source forResourceRef(ResourceRef resourceRef) {
-		Source src;
-		if (resourceRef.getFile().getName().endsWith(".jar")) {
-			src = JarSource.prepareJar(resourceRef);
-		} else {
-			src = ScriptSource.prepareScript(resourceRef,
-					it -> PropertiesValueResolver.replaceProperties(it, getContextProperties()));
-		}
-		return src;
-	}
-
-	public Source forFile(File resourceFile) {
+	public Code forFile(File resourceFile) {
 		ResourceRef resourceRef = ResourceRef.forFile(resourceFile);
 		return forResourceRef(resourceRef);
 	}
 
-	private ModularClassPath resolveDependency(String dep) {
-		DependencyResolver resolver = new DependencyResolver().addDependency(dep);
-		updateDependencyResolver(resolver);
-		return resolver.resolve();
+	public Code forResourceRef(ResourceRef resourceRef) {
+		Code code;
+		if (resourceRef.getFile().getName().endsWith(".jar")) {
+			code = Jar.prepareJar(resourceRef);
+		} else {
+			code = createSourceSet(Source.forResourceRef(resourceRef,
+					it -> PropertiesValueResolver.replaceProperties(it, getContextProperties())));
+		}
+		return code;
+	}
+
+	private SourceSet createSourceSet(Source src) {
+		SourceSet ss = SourceSet.forSource(src);
+		ss.addRepositories(allToMavenRepo(replaceAllProps(getAdditionalRepositories())));
+		ss.addDependencies(replaceAllProps(getAdditionalDependencies()));
+		ss.addClassPaths(replaceAllProps(getAdditionalClasspaths()));
+		ss.addRuntimeOptions(getJavaOptions());
+		ss.addRuntimeOptions(getIntegrationOptions());
+		ss.addSources(allToScriptSource(replaceAllProps(getAdditionalSources())));
+		if (javaVersion != null) {
+			ss.setJavaVersion(javaVersion);
+		}
+		return ss;
 	}
 
 }

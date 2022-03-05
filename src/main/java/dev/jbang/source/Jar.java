@@ -5,11 +5,14 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.source.builders.BaseBuilder;
+import dev.jbang.source.generators.JarCmdGenerator;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
@@ -24,7 +27,7 @@ import dev.jbang.util.Util;
  * extracted from the JAR file itself. So all Jars that refer to the same JAR
  * file will contain/return the exact same information.
  */
-public class JarSource implements Source {
+public class Jar implements Code {
 	private final ResourceRef resourceRef;
 	private final File jarFile;
 
@@ -35,9 +38,9 @@ public class JarSource implements Source {
 	private int buildJdk;
 
 	// Cached values
-	private ScriptSource scriptSource;
+	private SourceSet sourceSet;
 
-	private JarSource(ResourceRef resourceRef, File jar) {
+	private Jar(ResourceRef resourceRef, File jar) {
 		this.resourceRef = resourceRef;
 		this.jarFile = jar;
 		this.javaRuntimeOptions = Collections.emptyList();
@@ -46,12 +49,12 @@ public class JarSource implements Source {
 				Attributes attrs = jf.getManifest().getMainAttributes();
 				mainClass = attrs.getValue(Attributes.Name.MAIN_CLASS);
 
-				String val = attrs.getValue(Source.ATTR_JBANG_JAVA_OPTIONS);
+				String val = attrs.getValue(BaseBuilder.ATTR_JBANG_JAVA_OPTIONS);
 				if (val != null) {
-					javaRuntimeOptions = Source.quotedStringToList(val);
+					javaRuntimeOptions = Code.quotedStringToList(val);
 				}
 
-				String ver = attrs.getValue(Source.ATTR_BUILD_JDK);
+				String ver = attrs.getValue(BaseBuilder.ATTR_BUILD_JDK);
 				if (ver != null) {
 					buildJdk = JavaUtil.parseJavaVersion(ver);
 				}
@@ -74,16 +77,16 @@ public class JarSource implements Source {
 	}
 
 	@Override
-	public JarSource asJarSource() {
+	public Jar asJar() {
 		return this;
 	}
 
 	@Override
-	public ScriptSource asScriptSource() {
-		if (scriptSource == null) {
-			scriptSource = ScriptSource.prepareScript(resourceRef, null);
+	public SourceSet asSourceSet() {
+		if (sourceSet == null) {
+			sourceSet = SourceSet.forSource(Source.forResourceRef(resourceRef, null));
 		}
-		return scriptSource;
+		return sourceSet;
 	}
 
 	/**
@@ -93,11 +96,6 @@ public class JarSource implements Source {
 	public boolean isUpToDate() {
 		return jarFile != null && jarFile.exists()
 				&& updateDependencyResolver(new DependencyResolver()).resolve().isValid();
-	}
-
-	@Override
-	public List<String> getAllDependencies() {
-		return Collections.emptyList();
 	}
 
 	@Override
@@ -112,8 +110,8 @@ public class JarSource implements Source {
 	}
 
 	@Override
-	public String getJavaVersion() {
-		return buildJdk + "+";
+	public Optional<String> getJavaVersion() {
+		return Optional.of(buildJdk + "+");
 	}
 
 	@Override
@@ -127,21 +125,21 @@ public class JarSource implements Source {
 	}
 
 	@Override
-	public boolean isCreatedJar() {
-		return false;
+	public CmdGenerator cmdGenerator(RunContext ctx) {
+		return new JarCmdGenerator(this, ctx);
 	}
 
-	public static JarSource prepareJar(ResourceRef resourceRef) {
-		return new JarSource(resourceRef, resourceRef.getFile());
+	public static Jar prepareJar(ResourceRef resourceRef) {
+		return new Jar(resourceRef, resourceRef.getFile());
 	}
 
-	public static JarSource prepareJar(ResourceRef resourceRef, File jarFile) {
-		return new JarSource(resourceRef, jarFile);
+	public static Jar prepareJar(ResourceRef resourceRef, File jarFile) {
+		return new Jar(resourceRef, jarFile);
 	}
 
-	public static JarSource prepareJar(ScriptSource ssrc) {
-		JarSource jsrc = new JarSource(ssrc.getResourceRef(), ssrc.getJarFile());
-		jsrc.scriptSource = ssrc;
+	public static Jar prepareJar(SourceSet ss) {
+		Jar jsrc = new Jar(ss.getResourceRef(), ss.getJarFile());
+		jsrc.sourceSet = ss;
 		return jsrc;
 	}
 }

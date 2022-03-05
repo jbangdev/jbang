@@ -1,6 +1,6 @@
 package dev.jbang.cli;
 
-import static dev.jbang.cli.BaseBuildCommand.getImageName;
+import static dev.jbang.source.builders.BaseBuilder.getImageName;
 
 import java.io.File;
 import java.nio.file.Path;

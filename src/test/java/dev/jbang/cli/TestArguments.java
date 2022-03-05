@@ -36,7 +36,7 @@ class TestArguments extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assert run.helpRequested;
-		assertThat(run.debug(), is(true));
+		assertThat(run.getRunContext().isDebugEnabled(), is(true));
 		assertThat(run.scriptOrFile, is("myfile.java"));
 		assertThat(run.userParams.size(), is(0));
 
@@ -47,7 +47,7 @@ class TestArguments extends BaseTest {
 		CommandLine.ParseResult pr = cli.parseArgs("run", "--debug", "test.java", "--debug", "wonka");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		assertThat(run.debug(), is(true));
+		assertThat(run.getRunContext().isDebugEnabled(), is(true));
 		assertThat(run.debugString, is("4004"));
 
 		assertThat(run.scriptOrFile, is("test.java"));
@@ -86,7 +86,7 @@ class TestArguments extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.scriptOrFile, is("test.java"));
-		assertThat(run.debug(), is(true));
+		assertThat(run.getRunContext().isDebugEnabled(), is(true));
 	}
 
 	@Test
@@ -95,7 +95,7 @@ class TestArguments extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.scriptOrFile, is("test.java"));
-		assertThat(run.debug(), is(true));
+		assertThat(run.getRunContext().isDebugEnabled(), is(true));
 		assertThat(run.debugString, is("*:5000"));
 	}
 
@@ -105,7 +105,7 @@ class TestArguments extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.scriptOrFile, is("test.java"));
-		assertThat(run.debug(), is(true));
+		assertThat(run.getRunContext().isDebugEnabled(), is(true));
 		assertThat(run.debugString, is("xyz.dk:5005"));
 	}
 

@@ -1,7 +1,7 @@
 package dev.jbang.cli;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
-import static dev.jbang.cli.BaseBuildCommand.escapeOSArguments;
+import static dev.jbang.source.builders.BaseBuilder.escapeOSArguments;
 import static dev.jbang.util.Util.verboseMsg;
 import static java.lang.System.out;
 
@@ -24,10 +24,7 @@ import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.JitPackUtil;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.net.EditorManager;
-import dev.jbang.source.RefTarget;
-import dev.jbang.source.RunContext;
-import dev.jbang.source.ScriptSource;
-import dev.jbang.source.Source;
+import dev.jbang.source.*;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
 import dev.jbang.util.Util.Shell;
@@ -44,6 +41,9 @@ public class Edit extends BaseScriptCommand {
 
 	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
+
+	@CommandLine.Option(names = { "-s", "--sources" }, description = "Add additional sources.")
+	List<String> sources;
 
 	@CommandLine.Option(names = {
 			"--live" }, description = "Setup temporary project, regenerate project on dependency changes.")
@@ -63,20 +63,15 @@ public class Edit extends BaseScriptCommand {
 			enableInsecure();
 		}
 
-		RunContext ctx = RunContext.create(null, null,
-				dependencyInfoMixin.getProperties(),
-				dependencyInfoMixin.getDependencies(),
-				dependencyInfoMixin.getRepositories(),
-				dependencyInfoMixin.getClasspaths(),
-				forcejsh);
-		Source src = ctx.forResource(scriptOrFile);
+		RunContext ctx = getRunContext();
+		Code code = ctx.forResource(scriptOrFile);
 
-		if (!(src instanceof ScriptSource)) {
+		if (!(code instanceof SourceSet)) {
 			throw new ExitException(EXIT_INVALID_INPUT, "You can only edit source files");
 		}
 
-		ScriptSource ssrc = (ScriptSource) src;
-		File project = createProjectForEdit(ssrc, ctx, false);
+		SourceSet ss = (SourceSet) code;
+		File project = createProjectForEdit(ss, ctx, false);
 		String projectPathString = Util.pathToString(project.getAbsoluteFile().toPath());
 		// err.println(project.getAbsolutePath());
 
@@ -98,7 +93,7 @@ public class Edit extends BaseScriptCommand {
 				optionList.add(projectPathString);
 
 				String[] cmd;
-				final String editorCommand = String.join(" ", escapeOSArguments(optionList));
+				final String editorCommand = String.join(" ", escapeOSArguments(optionList, Util.getShell()));
 				if (Util.getShell() == Shell.bash) {
 					cmd = new String[] { "sh", "-c", editorCommand };
 				} else {
@@ -113,10 +108,10 @@ public class Edit extends BaseScriptCommand {
 			out.println(projectPathString); // quit(project.getAbsolutePath());
 		} else {
 			try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
-				File orginalFile = src.getResourceRef().getFile();
+				File orginalFile = code.getResourceRef().getFile();
 				if (!orginalFile.exists()) {
 					throw new ExitException(EXIT_UNEXPECTED_STATE,
-							"Cannot live edit " + src.getResourceRef().getOriginalResource());
+							"Cannot live edit " + code.getResourceRef().getOriginalResource());
 				}
 				Path watched = orginalFile.getAbsoluteFile().getParentFile().toPath();
 				watched.register(watchService,
@@ -134,8 +129,9 @@ public class Edit extends BaseScriptCommand {
 								// TODO only regenerate when dependencies changes.
 								info("Regenerating project.");
 								ctx = RunContext.empty();
-								src = ctx.forResource(scriptOrFile);
-								createProjectForEdit((ScriptSource) src, ctx, true);
+								code = ctx.forResource(scriptOrFile);
+								ss = (SourceSet) code;
+								createProjectForEdit(ss, ctx, true);
 							} catch (RuntimeException ee) {
 								warn("Error when re-generating project. Ignoring it, but state might be undefined: "
 										+ ee.getMessage());
@@ -153,6 +149,17 @@ public class Edit extends BaseScriptCommand {
 			}
 		}
 		return EXIT_OK;
+	}
+
+	RunContext getRunContext() {
+		RunContext ctx = new RunContext();
+		ctx.setProperties(dependencyInfoMixin.getProperties());
+		ctx.setAdditionalDependencies(dependencyInfoMixin.getDependencies());
+		ctx.setAdditionalRepositories(dependencyInfoMixin.getRepositories());
+		ctx.setAdditionalClasspaths(dependencyInfoMixin.getClasspaths());
+		ctx.setAdditionalSources(sources);
+		ctx.setForceJsh(forcejsh);
+		return ctx;
 	}
 
 	private static Optional<String> askEditor() throws IOException {
@@ -234,11 +241,11 @@ public class Edit extends BaseScriptCommand {
 	}
 
 	/** Create Project to use for editing **/
-	File createProjectForEdit(ScriptSource src, RunContext ctx, boolean reload) throws IOException {
-		File originalFile = src.getResourceRef().getFile();
+	File createProjectForEdit(SourceSet ss, RunContext ctx, boolean reload) throws IOException {
+		File originalFile = ss.getResourceRef().getFile();
 
-		List<String> dependencies = src.getAllDependencies();
-		String cp = ctx.resolveClassPath(src);
+		List<String> dependencies = ss.getDependencies();
+		String cp = ss.getClassPath().getClassPath();
 		List<String> resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 
 		File baseDir = Settings.getCacheDir(Cache.CacheClass.projects).toFile();
@@ -258,7 +265,7 @@ public class Edit extends BaseScriptCommand {
 		Path srcFile = srcDir.toPath().resolve(name);
 		Util.createLink(srcFile, originalFile.toPath());
 
-		for (ScriptSource source : ctx.getAllSources(src)) {
+		for (Source source : ss.getSources()) {
 			File sfile = null;
 			if (source.getJavaPackage().isPresent()) {
 				File packageDir = new File(srcDir, source.getJavaPackage().get().replace(".", File.separator));
@@ -271,7 +278,7 @@ public class Edit extends BaseScriptCommand {
 			Util.createLink(sfile.toPath(), destFile);
 		}
 
-		for (RefTarget ref : src.getAllFiles()) {
+		for (RefTarget ref : ss.getResources()) {
 			File target = ref.to(srcDir.toPath()).toFile();
 			target.getParentFile().mkdirs();
 			Util.createLink(target.toPath(), ref.getSource().getFile().toPath().toAbsolutePath());
@@ -289,9 +296,9 @@ public class Edit extends BaseScriptCommand {
 
 		// both collectDependencies and repositories are manipulated by
 		// resolveDependencies
-		List<MavenRepo> repositories = src.getAllRepositories();
+		List<MavenRepo> repositories = ss.getRepositories();
 		if (repositories.isEmpty()) {
-			repositories.add(DependencyUtil.toMavenRepo("mavencentral"));
+			ss.addRepository(DependencyUtil.toMavenRepo("mavencentral"));
 		}
 
 		// Turn any URL dependencies into regular GAV coordinates
@@ -302,7 +309,7 @@ public class Edit extends BaseScriptCommand {
 		// And if we encountered URLs let's make sure the JitPack repo is available
 		if (!depIds.equals(dependencies)
 				&& repositories.stream().noneMatch(r -> DependencyUtil.REPO_JITPACK.equals(r.getUrl()))) {
-			repositories.add(DependencyUtil.toMavenRepo(DependencyUtil.ALIAS_JITPACK));
+			ss.addRepository(DependencyUtil.toMavenRepo(DependencyUtil.ALIAS_JITPACK));
 		}
 
 		renderTemplate(engine, depIds, fullClassName, baseName, resolvedDependencies, repositories,

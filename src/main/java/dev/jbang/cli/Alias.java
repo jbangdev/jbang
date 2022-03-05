@@ -10,9 +10,9 @@ import java.util.stream.Collectors;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.catalog.CatalogUtil;
+import dev.jbang.source.Code;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.source.RunContext;
-import dev.jbang.source.Source;
 import dev.jbang.util.ConsoleOutput;
 import dev.jbang.util.Util;
 
@@ -96,12 +96,12 @@ class AliasAdd extends BaseAliasCommand {
 		}
 
 		RunContext ctx = RunContext.empty();
-		Source src = ctx.forResource(scriptOrFile);
+		Code code = ctx.forResource(scriptOrFile);
 		if (name == null) {
 			name = CatalogUtil.nameFromRef(ctx.getOriginalRef());
 		}
 
-		String desc = description != null ? description : src.getDescription().orElse(null);
+		String desc = description != null ? description : code.getDescription().orElse(null);
 
 		Path catFile = getCatalog(false);
 		if (catFile != null) {

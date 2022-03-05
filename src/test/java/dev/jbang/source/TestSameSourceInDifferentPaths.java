@@ -63,12 +63,13 @@ public class TestSameSourceInDifferentPaths extends BaseTest {
 
 	@Test
 	void testFindSourcesInMultipleFilesRecursively() throws IOException {
-		Path mainPath = TestScript.createTmpFileWithContent("", "Main.java", classA);
-		Path BPath = TestScript.createTmpFileWithContent(mainPath.getParent(), "person", "B.java", classB);
-		TestScript.createTmpFileWithContent(mainPath.getParent(), "model", "C.java", classModelC);
-		TestScript.createTmpFileWithContent(BPath.getParent(), "model", "C.java", classPersonModelC);
-		ScriptSource script = ScriptSource.prepareScript(mainPath.toString(), null);
-		assertEquals(script.getAllSources().size(), 3);
+		Path mainPath = TestSource.createTmpFileWithContent("", "Main.java", classA);
+		Path BPath = TestSource.createTmpFileWithContent(mainPath.getParent(), "person", "B.java", classB);
+		TestSource.createTmpFileWithContent(mainPath.getParent(), "model", "C.java", classModelC);
+		TestSource.createTmpFileWithContent(BPath.getParent(), "model", "C.java", classPersonModelC);
+		Source source = Source.forResource(mainPath.toString(), null);
+		SourceSet ss = SourceSet.forSource(source);
+		assertEquals(4, ss.getSources().size());
 	}
 
 }

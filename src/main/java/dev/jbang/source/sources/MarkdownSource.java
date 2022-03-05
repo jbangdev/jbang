@@ -1,4 +1,4 @@
-package dev.jbang.source;
+package dev.jbang.source.sources;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -8,16 +8,20 @@ import java.util.regex.Pattern;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
+import dev.jbang.source.ResourceRef;
+import dev.jbang.source.Source;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
+import dev.jbang.util.Util;
 
-public class MarkdownScriptSource extends ScriptSource {
+public class MarkdownSource extends JavaSource {
 
-	protected MarkdownScriptSource(ResourceRef ref, String script, Function<String, String> replaceProperties) {
+	protected MarkdownSource(ResourceRef ref, String script, Function<String, String> replaceProperties) {
 		super(ref, script, replaceProperties);
 	}
 
-	public static ScriptSource create(ResourceRef resourceRef, Function<String, String> replaceProperties) {
-		String scriptText = new MarkdownTransform().transformMarkdown(getBackingFileContent(resourceRef.getFile()));
+	public static Source create(ResourceRef resourceRef, Function<String, String> replaceProperties) {
+		String scriptText = new MarkdownTransform().transformMarkdown(
+				Util.readFileContent(resourceRef.getFile().toPath()));
 		try {
 			// this will cache the content in stdin cache which is not optimal but needed to
 			// have the transformed script stored
@@ -28,19 +32,9 @@ public class MarkdownScriptSource extends ScriptSource {
 			throw new ExitException(BaseCommand.EXIT_UNEXPECTED_STATE,
 					"Could not cache script from markdown at " + resourceRef.getOriginalResource(), e);
 		}
-		return new MarkdownScriptSource(resourceRef,
+		return new MarkdownSource(resourceRef,
 				scriptText,
 				replaceProperties);
-	}
-
-	@Override
-	public boolean isJShell() {
-		return true; // should check to be able to support main java file ?
-	}
-
-	@Override
-	protected String getMainExtension() {
-		return ".java";
 	}
 
 	static class MarkdownTransform {

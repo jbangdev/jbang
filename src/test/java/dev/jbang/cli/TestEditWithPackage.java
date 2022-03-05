@@ -14,8 +14,8 @@ import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
 import dev.jbang.source.RunContext;
-import dev.jbang.source.ScriptSource;
-import dev.jbang.source.TestScript;
+import dev.jbang.source.SourceSet;
+import dev.jbang.source.TestSource;
 
 public class TestEditWithPackage extends BaseTest {
 
@@ -51,13 +51,13 @@ public class TestEditWithPackage extends BaseTest {
 
 	@Test
 	void testEditPackage() throws IOException {
-		Path mainPath = TestScript.createTmpFileWithContent("", "A.java", classA);
-		Path BPath = TestScript.createTmpFileWithContent(mainPath.getParent(), "person", "B.java", classB);
-		Path CPath = TestScript.createTmpFileWithContent(BPath.getParent(), "model", "C.java", classC);
+		Path mainPath = TestSource.createTmpFileWithContent("", "A.java", classA);
+		Path BPath = TestSource.createTmpFileWithContent(mainPath.getParent(), "person", "B.java", classB);
+		Path CPath = TestSource.createTmpFileWithContent(BPath.getParent(), "model", "C.java", classC);
 		assertTrue(mainPath.toFile().exists());
 		RunContext ctx = RunContext.empty();
-		ScriptSource src = (ScriptSource) ctx.forResource(mainPath.toString());
-		File project = new Edit().createProjectForEdit(src, ctx, false);
+		SourceSet ss = (SourceSet) ctx.forResource(mainPath.toString());
+		File project = new Edit().createProjectForEdit(ss, ctx, false);
 		assertTrue(new File(project, "src/A.java").exists());
 		assertTrue(new File(project, "src/person/B.java").exists());
 		assertTrue(new File(project, "src/person/model/C.java").exists());
