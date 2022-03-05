@@ -1,6 +1,5 @@
 package dev.jbang.cli;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -8,7 +7,7 @@ import picocli.CommandLine;
 
 public class DependencyInfoMixin {
 	@CommandLine.Option(names = { "-D" }, description = "set a system property", mapFallbackValue = "true")
-	Map<String, String> properties = new HashMap<>();
+	Map<String, String> properties;
 	@CommandLine.Option(names = {
 			"--deps" }, converter = CommaSeparatedConverter.class, description = "Add additional dependencies (Use commas to separate them).")
 	List<String> dependencies;
