@@ -26,6 +26,7 @@ class TestJdk extends BaseTest {
 
 	@Test
 	void testNoJdksInstalled() throws IOException {
+		initJBangCacheDir();
 		ExecutionResult result = checkedRun(Jdk::list);
 
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
@@ -35,7 +36,8 @@ class TestJdk extends BaseTest {
 
 	@Test
 	void testHasJdksInstalled() throws IOException {
-		final File jdkPath = new File(jbangTempCacheDir.toFile(), "jdks");
+		final File testCache = initJBangCacheDir();
+		final File jdkPath = new File(testCache, "jdks");
 		jdkPath.mkdirs();
 		Arrays	.asList("11", "12", "13")
 				.forEach(jdkId -> new File(jdkPath, jdkId).mkdirs());
@@ -48,7 +50,7 @@ class TestJdk extends BaseTest {
 	}
 
 	@Test
-	void testJdkInstallWithLinkingToExistingJdkPathWhenPathIsInvalid() throws IOException {
+	void testJdkInstallWithLinkingToExistingJdkPathWhenPathIsInvalid() {
 		checkedRunWithException(jdk -> {
 			try {
 				jdk.install(true, 11, "/non-existent-path");
@@ -118,7 +120,8 @@ class TestJdk extends BaseTest {
 	void testJdkInstallWithLinkingToExistingJdkPathWithDifferentVersion(@TempDir File javaDir)
 			throws IOException {
 		initMockJdkDir(javaDir);
-		final File jdkPath = new File(jbangTempCacheDir.toFile(), "jdks");
+		final File testCache = initJBangCacheDir();
+		final File jdkPath = new File(testCache, "jdks");
 		jdkPath.mkdirs();
 
 		checkedRunWithException(jdk -> {
@@ -134,10 +137,11 @@ class TestJdk extends BaseTest {
 	}
 
 	@Test
-	void testJdkInstallWithLinkingToExistingJdkPathWithNoVersion(@TempDir File javaDir) {
+	void testJdkInstallWithLinkingToExistingJdkPathWithNoVersion(@TempDir File javaDir) throws IOException{
 
 		File release = new File(javaDir, "release");
-		final File jdkPath = new File(jbangTempCacheDir.toFile(), "jdks");
+		final File testCache = initJBangCacheDir();
+		final File jdkPath = new File(testCache, "jdks");
 		jdkPath.mkdirs();
 
 		checkedRunWithException(jdk -> {
@@ -153,7 +157,8 @@ class TestJdk extends BaseTest {
 
 	@Test
 	void testExistingJdkUninstall() throws IOException {
-		final File jdkPath = new File(jbangTempCacheDir.toFile(), "jdks");
+		final File testCache = initJBangCacheDir();
+		final File jdkPath = new File(testCache, "jdks");
 		jdkPath.mkdirs();
 		int jdkVersion = 14;
 		new File(jdkPath, String.valueOf(jdkVersion)).mkdirs();
@@ -167,6 +172,7 @@ class TestJdk extends BaseTest {
 
 	@Test
 	void testNonExistingJdkUninstall() throws IOException {
+		initJBangCacheDir();
 		int jdkVersion = 16;
 
 		ExecutionResult result = checkedRun(jdk -> jdk.uninstall(jdkVersion));
