@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.function.Function;
 
@@ -65,7 +66,8 @@ class TestJdk extends BaseTest {
 	void testJdkInstallWithLinkingToExistingJdkPathWhenJBangManagedVersionDoesNotExist(@TempDir File javaDir)
 			throws IOException {
 		initMockJdkDir(javaDir);
-		final File jdkPath = new File(jbangTempCacheDir.toFile(), "jdks");
+		final File testCache = initJBangCacheDir();
+		final File jdkPath = new File(testCache, "jdks");
 		jdkPath.mkdirs();
 
 		ExecutionResult result = checkedRun(jdk -> {
@@ -90,7 +92,8 @@ class TestJdk extends BaseTest {
 	void testJdkInstallWithLinkingToExistingJdkPathWhenJBangManagedVersionExistsAndInstallIsForced(
 			@TempDir File javaDir) throws IOException {
 		initMockJdkDir(javaDir);
-		final File jdkPath = new File(jbangTempCacheDir.toFile(), "jdks");
+		final File testCache = initJBangCacheDir();
+		final File jdkPath = new File(testCache, "jdks");
 		jdkPath.mkdirs();
 		Arrays	.asList("11")
 				.forEach(jdkId -> new File(jdkPath, jdkId).mkdirs());
@@ -183,6 +186,12 @@ class TestJdk extends BaseTest {
 		} catch (Exception e) {
 			// Ignore
 		}
+	}
+
+	private File initJBangCacheDir() throws IOException {
+		Path tempDirectory = Files.createTempDirectory("jbang-test-cache");
+		environmentVariables.set("JBANG_CACHE_DIR", tempDirectory.toAbsolutePath().toString());
+		return tempDirectory.toFile();
 	}
 
 	private void initMockJdkDir(File javaDir) throws IOException {
