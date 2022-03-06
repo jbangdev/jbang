@@ -29,17 +29,28 @@ The aliases you create are stored locally (see <<Local Alias Catalogs>>), but JB
 You can access those catalogs explicitly (see <<Catalogs>>) but it is much easier to use what we call "implicit catalogs", which
 are aliases that have a special format and JBang is smart enough to know where to find their definition.
 
+There are two kinds, one that resolves to a Git backed service (github,gitlab and bitbucket) and one that resolves to
+https sites.
+
 Examples:
+
+`jbang tree@jbang.dev` will (because of the dot in the name) will lookup a catalog first at https://jbang.dev/jbang-catalog.json.
 
 `jbang hello@jbangdev` will run the alias `hello` as defined in `jbang-catalog.json` found in https://github.com/jbangdev/jbang-catalog.
 
-This allows anyone to provide a set of jbang scripts defined in their github, gitlab or bitbucket repositories.
+This allows anyone to provide a set of jbang scripts defined in their website or in a github, gitlab or bitbucket repositories.
 
-The full format is `<alias>@<user/org>(/repository)(/branch)(~path)` allowing you to do things like:
+The full format is `<alias>@<user/org>(/repository)(/branch)(~path)` or `<alias>@<hostname>(/path/to/catalog)` allowing you to do things like:
 
 .Implicit Catalog Examples:
 |====
 |Command | Description
+
+|`jbang hello@acme.corp`
+|`hello` alias found in `https://acme.corp/jbang-catalog.json` if available or the default branch searched on github, gitlab and bitbucket in that order.
+
+|`jbang hello@acme.corp/a/path/to/jbang-catalog.json`
+|`hello` alias found in `https://acme.corp/a/path/to/jbang-catalog.json` if available.
 
 |`jbang hello@acme`
 |`hello` alias found in `acme/jbang-catalog/jbang-catalog.json` of the default branch searched on github, gitlab and bitbucket in that order.
