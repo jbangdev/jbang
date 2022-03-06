@@ -12,8 +12,6 @@ import java.util.Arrays;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
@@ -62,7 +60,8 @@ class TestJdk extends BaseTest {
 	}
 
 	@Test
-	@DisabledOnOs(value = OS.WINDOWS, disabledReason = "Linking folders on Windows is not working without permissions")
+	// @DisabledOnOs(value = OS.WINDOWS, disabledReason = "Linking folders on
+	// Windows is not working without permissions")
 	void testJdkInstallWithLinkingToExistingJdkPathWhenJBangManagedVersionDoesNotExist(@TempDir File javaDir)
 			throws IOException {
 		initMockJdkDir(javaDir);
@@ -86,7 +85,8 @@ class TestJdk extends BaseTest {
 	}
 
 	@Test
-	@DisabledOnOs(value = OS.WINDOWS, disabledReason = "Linking folders on Windows is not working without permissions")
+	// @DisabledOnOs(value = OS.WINDOWS, disabledReason = "Linking folders on
+	// Windows is not working without permissions")
 	void testJdkInstallWithLinkingToExistingJdkPathWhenJBangManagedVersionExistsAndInstallIsForced(
 			@TempDir File javaDir) throws IOException {
 		initMockJdkDir(javaDir);
