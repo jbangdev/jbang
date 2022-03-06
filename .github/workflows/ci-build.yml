@@ -60,7 +60,7 @@ jobs:
         with:
           java-version: 8
       - name: build-gradle
-        run: ./gradlew clean build installDist --build-cache --scan -s --info
+        run: ./gradlew clean build installDist --build-cache --scan -s
       - name: integration-test-non-windows
         if: runner.os != 'Windows'
         run: |
