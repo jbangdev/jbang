@@ -31,10 +31,11 @@ public abstract class BaseTest {
 	@BeforeEach
 	void initEnv(@TempDir Path tempPath) throws IOException {
 		jbangTempDir = Files.createDirectory(tempPath.resolve("jbang"));
+		jbangTempCacheDir = jbangTempDir.resolve("cache");
 		cwdDir = Files.createDirectory(tempPath.resolve("cwd"));
 		Util.setCwd(cwdDir);
 		environmentVariables.set(Settings.JBANG_DIR, jbangTempDir.toString());
-		environmentVariables.set(Settings.JBANG_CACHE_DIR, jbangTempDir.resolve("cache").toString());
+		environmentVariables.set(Settings.JBANG_CACHE_DIR, jbangTempCacheDir.toString());
 		environmentVariables.set(Settings.ENV_NO_VERSION_CHECK, "true");
 		if (Util.isWindows()) {
 			environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "cmd");
@@ -59,6 +60,7 @@ public abstract class BaseTest {
 	public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
 	public Path jbangTempDir;
+	public Path jbangTempCacheDir;
 	public Path cwdDir;
 
 	protected <T> ExecutionResult checkedRun(Function<T, Integer> commandRunner, String... args) throws IOException {

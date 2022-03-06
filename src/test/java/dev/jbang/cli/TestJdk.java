@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.function.Function;
 
@@ -28,7 +27,6 @@ class TestJdk extends BaseTest {
 
 	@Test
 	void testNoJdksInstalled() throws IOException {
-		initJBangCacheDir();
 		ExecutionResult result = checkedRun(Jdk::list);
 
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
@@ -38,8 +36,7 @@ class TestJdk extends BaseTest {
 
 	@Test
 	void testHasJdksInstalled() throws IOException {
-		final File testCache = initJBangCacheDir();
-		final File jdkPath = new File(testCache, "jdks");
+		final File jdkPath = new File(jbangTempCacheDir.toFile(), "jdks");
 		jdkPath.mkdirs();
 		Arrays	.asList("11", "12", "13")
 				.forEach(jdkId -> new File(jdkPath, jdkId).mkdirs());
@@ -65,12 +62,11 @@ class TestJdk extends BaseTest {
 	}
 
 	@Test
-	@DisabledOnOs(OS.WINDOWS)
+	@DisabledOnOs(value = OS.WINDOWS, disabledReason = "Linking folders on Windows is not working without permissions")
 	void testJdkInstallWithLinkingToExistingJdkPathWhenJBangManagedVersionDoesNotExist(@TempDir File javaDir)
 			throws IOException {
 		initMockJdkDir(javaDir);
-		final File testCache = initJBangCacheDir();
-		final File jdkPath = new File(testCache, "jdks");
+		final File jdkPath = new File(jbangTempCacheDir.toFile(), "jdks");
 		jdkPath.mkdirs();
 
 		ExecutionResult result = checkedRun(jdk -> {
@@ -90,12 +86,11 @@ class TestJdk extends BaseTest {
 	}
 
 	@Test
-	@DisabledOnOs(OS.WINDOWS)
+	@DisabledOnOs(value = OS.WINDOWS, disabledReason = "Linking folders on Windows is not working without permissions")
 	void testJdkInstallWithLinkingToExistingJdkPathWhenJBangManagedVersionExistsAndInstallIsForced(
 			@TempDir File javaDir) throws IOException {
 		initMockJdkDir(javaDir);
-		final File testCache = initJBangCacheDir();
-		final File jdkPath = new File(testCache, "jdks");
+		final File jdkPath = new File(jbangTempCacheDir.toFile(), "jdks");
 		jdkPath.mkdirs();
 		Arrays	.asList("11")
 				.forEach(jdkId -> new File(jdkPath, jdkId).mkdirs());
@@ -120,8 +115,7 @@ class TestJdk extends BaseTest {
 	void testJdkInstallWithLinkingToExistingJdkPathWithDifferentVersion(@TempDir File javaDir)
 			throws IOException {
 		initMockJdkDir(javaDir);
-		final File testCache = initJBangCacheDir();
-		final File jdkPath = new File(testCache, "jdks");
+		final File jdkPath = new File(jbangTempCacheDir.toFile(), "jdks");
 		jdkPath.mkdirs();
 
 		checkedRunWithException(jdk -> {
@@ -137,12 +131,10 @@ class TestJdk extends BaseTest {
 	}
 
 	@Test
-	void testJdkInstallWithLinkingToExistingJdkPathWithNoVersion(@TempDir File javaDir)
-			throws IOException {
+	void testJdkInstallWithLinkingToExistingJdkPathWithNoVersion(@TempDir File javaDir) {
 
 		File release = new File(javaDir, "release");
-		final File testCache = initJBangCacheDir();
-		final File jdkPath = new File(testCache, "jdks");
+		final File jdkPath = new File(jbangTempCacheDir.toFile(), "jdks");
 		jdkPath.mkdirs();
 
 		checkedRunWithException(jdk -> {
@@ -158,8 +150,7 @@ class TestJdk extends BaseTest {
 
 	@Test
 	void testExistingJdkUninstall() throws IOException {
-		final File testCache = initJBangCacheDir();
-		final File jdkPath = new File(testCache, "jdks");
+		final File jdkPath = new File(jbangTempCacheDir.toFile(), "jdks");
 		jdkPath.mkdirs();
 		int jdkVersion = 14;
 		new File(jdkPath, String.valueOf(jdkVersion)).mkdirs();
@@ -173,7 +164,6 @@ class TestJdk extends BaseTest {
 
 	@Test
 	void testNonExistingJdkUninstall() throws IOException {
-		initJBangCacheDir();
 		int jdkVersion = 16;
 
 		ExecutionResult result = checkedRun(jdk -> jdk.uninstall(jdkVersion));
@@ -181,12 +171,6 @@ class TestJdk extends BaseTest {
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
 				equalTo("[jbang] JDK 16 is not installed\n"));
-	}
-
-	private File initJBangCacheDir() throws IOException {
-		Path tempDirectory = Files.createTempDirectory("jbang-test-cache");
-		environmentVariables.set("JBANG_CACHE_DIR", tempDirectory.toAbsolutePath().toString());
-		return tempDirectory.toFile();
 	}
 
 	private ExecutionResult checkedRun(Function<Jdk, Integer> commandRunner) throws IOException {
