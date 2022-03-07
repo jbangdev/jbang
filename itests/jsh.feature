@@ -46,4 +46,8 @@ Scenario: jsh with deps 1
 Scenario: as code option
   * command('jbang --code "System.out.println(\\\"Hello\\\")" jbangtest')
   * match out == "Hello\n"
-  
+
+  Scenario: jshell ordering
+    When command('jbang -s helloworld.java --code "helloworld.main()"')
+    Then match out == "Hello World\n"
+
