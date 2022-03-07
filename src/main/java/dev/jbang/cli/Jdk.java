@@ -7,8 +7,6 @@ import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
-
 import dev.jbang.Settings;
 import dev.jbang.net.JdkManager;
 import dev.jbang.util.Util;
@@ -29,7 +27,7 @@ public class Jdk {
 			@CommandLine.Parameters(paramLabel = "existingJdkPath", index = "1", description = "Pre installed JDK path", arity = "0..1") String path)
 			throws IOException {
 		if (force || !JdkManager.isInstalledJdk(version)) {
-			if (StringUtils.isNotBlank(path)) {
+			if (!Util.isNullOrBlankString(path)) {
 				JdkManager.linkToExistingJdk(path, version);
 			} else {
 				JdkManager.downloadAndInstallJdk(version);

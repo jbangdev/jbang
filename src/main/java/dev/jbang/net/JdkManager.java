@@ -332,7 +332,7 @@ public class JdkManager {
 		return getJdksPath().resolve(Integer.toString(version));
 	}
 
-	private static Path getJdksPath() {
+	public static Path getJdksPath() {
 		return Settings.getCacheDir(Cache.CacheClass.jdks);
 	}
 

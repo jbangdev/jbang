@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.function.Function;
 
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
+import dev.jbang.net.JdkManager;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -34,10 +36,9 @@ class TestJdk extends BaseTest {
 
 	@Test
 	void testHasJdksInstalled() throws IOException {
-		final File jdkPath = new File(jbangTempCacheDir.toFile(), "jdks");
-		jdkPath.mkdirs();
+		final Path jdkPath = JdkManager.getJdksPath();
 		Arrays	.asList("11", "12", "13")
-				.forEach(jdkId -> new File(jdkPath, jdkId).mkdirs());
+				.forEach(jdkId -> new File(jdkPath.toFile(), jdkId).mkdirs());
 
 		ExecutionResult result = checkedRun(Jdk::list);
 
@@ -63,8 +64,7 @@ class TestJdk extends BaseTest {
 	void testJdkInstallWithLinkingToExistingJdkPathWhenJBangManagedVersionDoesNotExist(@TempDir File javaDir)
 			throws IOException {
 		initMockJdkDir(javaDir);
-		final File jdkPath = new File(jbangTempCacheDir.toFile(), "jdks");
-		jdkPath.mkdirs();
+		final Path jdkPath = JdkManager.getJdksPath();
 
 		ExecutionResult result = checkedRun(jdk -> {
 			try {
@@ -78,18 +78,17 @@ class TestJdk extends BaseTest {
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
 				equalTo("[jbang] JDK 11 has been linked to: " + javaDir.toPath().toString() + "\n"));
-		assertTrue(Files.isSymbolicLink(jdkPath.toPath().resolve("11")));
-		assertEquals(javaDir.toPath(), Files.readSymbolicLink(jdkPath.toPath().resolve("11")));
+		assertTrue(Files.isSymbolicLink(jdkPath.resolve("11")));
+		assertEquals(javaDir.toPath(), Files.readSymbolicLink(jdkPath.resolve("11")));
 	}
 
 	@Test
 	void testJdkInstallWithLinkingToExistingJdkPathWhenJBangManagedVersionExistsAndInstallIsForced(
 			@TempDir File javaDir) throws IOException {
 		initMockJdkDir(javaDir);
-		final File jdkPath = new File(jbangTempCacheDir.toFile(), "jdks");
-		jdkPath.mkdirs();
+		final Path jdkPath = JdkManager.getJdksPath();
 		Arrays	.asList("11")
-				.forEach(jdkId -> new File(jdkPath, jdkId).mkdirs());
+				.forEach(jdkId -> new File(jdkPath.toFile(), jdkId).mkdirs());
 
 		ExecutionResult result = checkedRun(jdk -> {
 			try {
@@ -103,16 +102,14 @@ class TestJdk extends BaseTest {
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
 				equalTo("[jbang] JDK 11 has been linked to: " + javaDir.toPath().toString() + "\n"));
-		assertTrue(Files.isSymbolicLink(jdkPath.toPath().resolve("11")));
-		assertEquals(javaDir.toPath(), Files.readSymbolicLink(jdkPath.toPath().resolve("11")));
+		assertTrue(Files.isSymbolicLink(jdkPath.resolve("11")));
+		assertEquals(javaDir.toPath(), Files.readSymbolicLink(jdkPath.resolve("11")));
 	}
 
 	@Test
 	void testJdkInstallWithLinkingToExistingJdkPathWithDifferentVersion(@TempDir File javaDir)
 			throws IOException {
 		initMockJdkDir(javaDir);
-		final File jdkPath = new File(jbangTempCacheDir.toFile(), "jdks");
-		jdkPath.mkdirs();
 
 		checkedRunWithException(jdk -> {
 			try {
@@ -130,8 +127,6 @@ class TestJdk extends BaseTest {
 	void testJdkInstallWithLinkingToExistingJdkPathWithNoVersion(@TempDir File javaDir) throws IOException {
 
 		File release = new File(javaDir, "release");
-		final File jdkPath = new File(jbangTempCacheDir.toFile(), "jdks");
-		jdkPath.mkdirs();
 
 		checkedRunWithException(jdk -> {
 			try {
@@ -146,10 +141,9 @@ class TestJdk extends BaseTest {
 
 	@Test
 	void testExistingJdkUninstall() throws IOException {
-		final File jdkPath = new File(jbangTempCacheDir.toFile(), "jdks");
-		jdkPath.mkdirs();
+		final Path jdkPath = JdkManager.getJdksPath();
 		int jdkVersion = 14;
-		new File(jdkPath, String.valueOf(jdkVersion)).mkdirs();
+		new File(jdkPath.toFile(), String.valueOf(jdkVersion)).mkdirs();
 
 		ExecutionResult result = checkedRun(jdk -> jdk.uninstall(jdkVersion));
 
