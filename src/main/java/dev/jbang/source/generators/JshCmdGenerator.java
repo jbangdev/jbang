@@ -2,9 +2,7 @@ package dev.jbang.source.generators;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.text.StringEscapeUtils;
@@ -96,12 +94,14 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 		fullArgs.add(javacmd);
 		addAgentsArgs(fullArgs);
 
-		fullArgs.addAll(ctx.getRuntimeOptionsMerged(ss));
-		fullArgs.addAll(ctx.getAutoDetectedModuleArguments(ss, requestedJavaVersion));
+		fullArgs.addAll(jshellOpts(ctx.getRuntimeOptionsMerged(ss)));
+		fullArgs.addAll(jshellOpts(ctx.getAutoDetectedModuleArguments(ss, requestedJavaVersion)));
 		fullArgs.addAll(optionalArgs);
 
 		if (ss.isJShell() || ctx.isForceJsh()) {
-			for (Source s : ss.getSources()) {
+			ArrayList<Source> revSources = new ArrayList<>(ss.getSources());
+			Collections.reverse(revSources);
+			for (Source s : revSources) {
 				fullArgs.add(s.getResourceRef().getFile().toString());
 			}
 		}
@@ -113,6 +113,10 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 		}
 
 		return fullArgs;
+	}
+
+	private Collection<String> jshellOpts(List<String> opts) {
+		return opts.stream().map(it -> "-J" + it).collect(Collectors.toList());
 	}
 
 	public static String generateArgs(List<String> args, Map<String, String> properties) {
