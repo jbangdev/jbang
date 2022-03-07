@@ -188,7 +188,7 @@ public class Configuration {
 			if (cfgFileName != null) {
 				Path cfgFile = Util.getCwd().resolve(cfgFileName);
 				if (Files.isReadable(cfgFile)) {
-					global = read(cfgFile);
+					global = get(cfgFile);
 				} else {
 					global = defaults();
 				}
@@ -218,6 +218,17 @@ public class Configuration {
 			defaults = Configuration.getBuiltin();
 		}
 		return defaults;
+	}
+
+	public static Configuration get(Path catalogPath) {
+		return get(ResourceRef.forNamedFile(catalogPath.toString(), catalogPath.toFile()));
+	}
+
+	private static Configuration get(ResourceRef ref) {
+		Path configPath = ref.getFile().toPath();
+		Configuration cfg = read(configPath);
+		cfg.storeRef = ref;
+		return cfg;
 	}
 
 	/**

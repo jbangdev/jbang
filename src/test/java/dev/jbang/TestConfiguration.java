@@ -1,9 +1,7 @@
 package dev.jbang;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.emptyOrNullString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,6 +14,7 @@ import dev.jbang.cli.Edit;
 import dev.jbang.cli.Init;
 import dev.jbang.cli.JBang;
 import dev.jbang.cli.Run;
+import dev.jbang.source.ResourceRef;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -80,6 +79,16 @@ public class TestConfiguration extends BaseTest {
 		assertThat(cfg2.get("foo"), equalTo("abc"));
 		assertThat(cfg2.get("bar"), equalTo("ghi"));
 		assertThat(cfg2.get("baz"), equalTo("jkl"));
+	}
+
+	@Test
+	public void testReadAndGetConfig() throws IOException {
+		Path cfgFile = jbangTempDir.resolve(Configuration.JBANG_CONFIG_PROPS);
+		Configuration cfgRead = Configuration.read(cfgFile);
+		assertThat(cfgRead.getStoreRef(), nullValue());
+		Configuration cfgGet = Configuration.get(cfgFile);
+		assertThat(cfgGet.getStoreRef(), notNullValue());
+		assertThat(cfgGet.getStoreRef(), equalTo(ResourceRef.forResource(cfgFile.toString())));
 	}
 
 	@Test

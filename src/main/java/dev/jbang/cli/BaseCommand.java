@@ -36,7 +36,7 @@ public abstract class BaseCommand implements Callable<Integer> {
 	@CommandLine.Option(names = { "--config" }, description = "Path to config file to be used instead of the default")
 	void setConfig(Path config) {
 		if (Files.isReadable(config)) {
-			Configuration.instance(Configuration.read(config));
+			Configuration.instance(Configuration.get(config));
 		} else {
 			warn("Configuration file does not exist or could not be read: " + config);
 		}
