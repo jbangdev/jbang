@@ -34,7 +34,7 @@ abstract class BaseConfigCommand extends BaseCommand {
 	protected Configuration getConfig(Path cwd, boolean strict) {
 		Path cfgFile = getConfigFile(strict);
 		if (cfgFile != null) {
-			return Configuration.read(cfgFile);
+			return Configuration.get(cfgFile);
 		} else {
 			return Configuration.getMerged();
 		}
