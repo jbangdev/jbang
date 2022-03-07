@@ -65,6 +65,7 @@ class TestJdk extends BaseTest {
 			throws IOException {
 		initMockJdkDir(javaDir);
 		final Path jdkPath = JdkManager.getJdksPath();
+		jdkPath.toFile().mkdir();
 
 		ExecutionResult result = checkedRun(jdk -> {
 			try {
