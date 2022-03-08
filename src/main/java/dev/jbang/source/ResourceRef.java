@@ -1,16 +1,10 @@
 package dev.jbang.source;
 
 import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Objects;
 
 import javax.annotation.Nullable;
 
-import dev.jbang.cli.BaseCommand;
-import dev.jbang.cli.ExitException;
 import dev.jbang.util.Util;
 
 public class ResourceRef implements Comparable<ResourceRef> {
@@ -48,32 +42,6 @@ public class ResourceRef implements Comparable<ResourceRef> {
 	@Nullable
 	public String getOriginalResource() {
 		return originalResource;
-	}
-
-	public ResourceRef asSibling(String siblingResource) {
-		String sr;
-		try {
-			if (Util.isURL(siblingResource)) {
-				sr = new URI(siblingResource).toString();
-			} else if (isURL()) {
-				sr = new URI(Util.swizzleURL(originalResource)).resolve(siblingResource).toString();
-			} else if (Util.isClassPathRef(siblingResource)) {
-				sr = siblingResource;
-			} else if (isClasspath()) {
-				sr = Paths.get(originalResource.substring(11)).resolveSibling(siblingResource).toString();
-				sr = "classpath:" + sr;
-			} else {
-				Path baseDir = originalResource != null ? Paths.get(originalResource) : Util.getCwd().resolve("dummy");
-				sr = baseDir.resolveSibling(siblingResource).toString();
-			}
-			ResourceRef result = forResource(sr);
-			if (result == null) {
-				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Could not find " + siblingResource);
-			}
-			return result;
-		} catch (URISyntaxException e) {
-			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, e);
-		}
 	}
 
 	@Override

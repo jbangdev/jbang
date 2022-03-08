@@ -19,6 +19,7 @@ import javax.lang.model.SourceVersion;
 import dev.jbang.catalog.TemplateProperty;
 import dev.jbang.source.RefTarget;
 import dev.jbang.source.ResourceRef;
+import dev.jbang.source.resolvers.SiblingResourceResolver;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
 
@@ -69,9 +70,9 @@ public class Init extends BaseScriptCommand {
 															resolveBaseName(e.getKey(), e.getValue(), outName),
 															tpl.resolve(e.getValue())))
 													.map(e -> RefTarget.create(
-															tpl.catalog.catalogRef.getFile().getAbsolutePath(),
 															e.getValue(),
-															e.getKey()))
+															e.getKey(),
+															new SiblingResourceResolver(tpl.catalog.catalogRef)))
 													.collect(Collectors.toList());
 
 		applyTemplateProperties(tpl);

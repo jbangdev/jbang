@@ -3,6 +3,7 @@ package dev.jbang.cli;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static dev.jbang.util.Util.readString;
 import static dev.jbang.util.Util.writeString;
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -1450,6 +1451,34 @@ public class TestRun extends BaseTest {
 			protected void runCompiler(List<String> optionList)
 					throws IOException {
 				assertThat(optionList, hasItem(mainFile));
+				assertThat(optionList, hasItem(incFile));
+				// Skip the compiler
+			}
+		}.setFresh(true).build();
+	}
+
+	@Test
+	void testIncludedSourcesUsingAlias(@TempDir Path dir) throws IOException {
+		Path mainFile = dir.resolve("foo.java");
+		String incFile = examplesTestFolder.resolve("bar/Bar.java").toString();
+
+		Path fooFile = examplesTestFolder.resolve("foo.java");
+		String fooScript = readString(fooFile);
+		writeString(mainFile, "//SOURCES bar@" + jbangTempDir + "\n" + fooScript);
+
+		CatalogUtil.addNearestAlias("bar", incFile, null, null, null, null, null, null, null, null, null, null);
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build", mainFile.toString());
+		Build build = (Build) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = build.getRunContext();
+		SourceSet ss = (SourceSet) ctx.forResource(mainFile.toString());
+
+		new JavaBuilder(ss, ctx) {
+			@Override
+			protected void runCompiler(List<String> optionList)
+					throws IOException {
+				assertThat(optionList, hasItem(mainFile.toString()));
 				assertThat(optionList, hasItem(incFile));
 				// Skip the compiler
 			}

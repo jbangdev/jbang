@@ -22,12 +22,12 @@ public class AliasResourceResolver implements ResourceResolver {
 	}
 
 	@Override
-	public ResourceRef resolve(String resource) {
-		ResourceRef ref = resolver.resolve(resource);
+	public ResourceRef resolve(String resource, boolean trusted) {
+		ResourceRef ref = resolver.resolve(resource, trusted);
 		if (ref == null) {
 			Alias alias = (catalog != null) ? Alias.get(catalog, resource) : Alias.get(resource);
 			if (alias != null) {
-				ResourceRef aliasRef = resolver.resolve(alias.resolve());
+				ResourceRef aliasRef = resolver.resolve(alias.resolve(), trusted);
 				if (aliasRef == null) {
 					throw new IllegalArgumentException(
 							"Alias " + resource + " from " + alias.catalog.catalogRef + " failed to resolve "
