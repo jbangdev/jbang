@@ -81,6 +81,8 @@ public class JavaUtil {
 		String output = Util.runCommand(javaCmd.toString(), "-version");
 		int version = parseJavaOutput(output);
 		if (version == 0) {
+			Util.verboseMsg(
+					"Version could not be determined from: '$javaCmd -version', trying 'java.version' property");
 			version = parseJavaVersion(System.getProperty("java.version"));
 		}
 		return version;
@@ -104,7 +106,7 @@ public class JavaUtil {
 	public static int parseJavaOutput(String output) {
 		if (output != null) {
 			Matcher m = javaVersionPattern.matcher(output);
-			if (m.find() && m.groupCount() == 2) {
+			if (m.find() && m.groupCount() == 1) {
 				return parseJavaVersion(m.group(1));
 			}
 		}

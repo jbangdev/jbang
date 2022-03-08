@@ -23,10 +23,15 @@ public class Jdk {
 	public Integer install(
 			@CommandLine.Option(names = { "--force",
 					"-f" }, description = "Force installation even when already installed") boolean force,
-			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version to install", arity = "1") int version)
+			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version to install", arity = "1") int version,
+			@CommandLine.Parameters(paramLabel = "existingJdkPath", index = "1", description = "Pre installed JDK path", arity = "0..1") String path)
 			throws IOException {
 		if (force || !JdkManager.isInstalledJdk(version)) {
-			JdkManager.downloadAndInstallJdk(version);
+			if (!Util.isNullOrBlankString(path)) {
+				JdkManager.linkToExistingJdk(path, version);
+			} else {
+				JdkManager.downloadAndInstallJdk(version);
+			}
 		} else {
 			Util.infoMsg("JDK " + version + " is already installed");
 		}
