@@ -115,7 +115,7 @@ public class ResourceRef implements Comparable<ResourceRef> {
 	}
 
 	public static ResourceRef forFile(File file) {
-		return new ResourceRef(null, file);
+		return new ResourceRef(file.toString(), file);
 	}
 
 	public static ResourceRef forNamedFile(String resource, File file) {

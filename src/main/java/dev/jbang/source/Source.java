@@ -60,7 +60,7 @@ public abstract class Source {
 	private List<String> lines;
 
 	public Source(String contents, Function<String, String> replaceProperties) {
-		this(ResourceRef.forFile(null), contents, replaceProperties);
+		this(ResourceRef.nullRef, contents, replaceProperties);
 	}
 
 	protected Source(ResourceRef resourceRef, Function<String, String> replaceProperties) {
