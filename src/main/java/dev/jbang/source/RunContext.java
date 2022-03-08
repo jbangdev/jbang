@@ -10,6 +10,7 @@ import dev.jbang.catalog.Catalog;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.*;
+import dev.jbang.source.resolvers.AliasResourceResolver;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.PropertiesValueResolver;
 
@@ -419,61 +420,50 @@ public class RunContext {
 	}
 
 	public Code forResource(String resource) {
-		ResourceResolver resolver = ResourceResolver.forScripts(this::resolveDependency);
+		Catalog catalog = getCatalog() != null ? Catalog.get(getCatalog().toPath()) : null;
+		ResourceResolver resolver = ResourceResolver.forScripts(this::resolveDependency, catalog);
 		ResourceRef resourceRef = resolver.resolve(resource);
-
-		Alias alias;
-		if (resourceRef == null) {
-			// Not found as such, so let's check the aliases
-			if (getCatalog() == null) {
-				alias = Alias.get(resource);
-			} else {
-				Catalog cat = Catalog.get(getCatalog().toPath());
-				alias = Alias.get(cat, resource);
-			}
-			if (alias != null) {
-				resourceRef = resolver.resolve(alias.resolve());
-				if (getArguments() == null || getArguments().isEmpty()) {
-					setArguments(alias.arguments);
-				}
-				if (getJavaOptions() == null || getJavaOptions().isEmpty()) {
-					setJavaOptions(alias.javaOptions);
-				}
-				if (getAdditionalSources() == null || getAdditionalSources().isEmpty()) {
-					setAdditionalSources(alias.sources);
-				}
-				if (getAdditionalDependencies() == null || getAdditionalDependencies().isEmpty()) {
-					setAdditionalDependencies(alias.dependencies);
-				}
-				if (getAdditionalRepositories() == null || getAdditionalRepositories().isEmpty()) {
-					setAdditionalRepositories(alias.repositories);
-				}
-				if (getAdditionalClasspaths() == null || getAdditionalClasspaths().isEmpty()) {
-					setAdditionalClasspaths(alias.classpaths);
-				}
-				if (getProperties() == null || getProperties().isEmpty()) {
-					setProperties(alias.properties);
-				}
-				if (getJavaVersion() == null) {
-					setJavaVersion(alias.javaVersion);
-				}
-				if (getMainClass() == null) {
-					setMainClass(alias.mainClass);
-				}
-				setAlias(alias);
-				if (resourceRef == null) {
-					throw new IllegalArgumentException(
-							"Alias " + resource + " from " + alias.catalog.catalogRef + " failed to resolve "
-									+ alias.scriptRef);
-				}
-			}
-		}
 
 		// Support URLs as script files
 		// just proceed if the script file is a regular file at this point
 		if (resourceRef == null || !resourceRef.getFile().canRead()) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
 					"Script or alias could not be found or read: '" + resource + "'");
+		}
+
+		if (resourceRef instanceof AliasResourceResolver.AliasedResourceRef) {
+			// The resource we found was obtained from an alias which might
+			// contain extra options that need to be taken into account
+			// when running the code
+			Alias alias = ((AliasResourceResolver.AliasedResourceRef) resourceRef).getAlias();
+			if (getArguments() == null || getArguments().isEmpty()) {
+				setArguments(alias.arguments);
+			}
+			if (getJavaOptions() == null || getJavaOptions().isEmpty()) {
+				setJavaOptions(alias.javaOptions);
+			}
+			if (getAdditionalSources() == null || getAdditionalSources().isEmpty()) {
+				setAdditionalSources(alias.sources);
+			}
+			if (getAdditionalDependencies() == null || getAdditionalDependencies().isEmpty()) {
+				setAdditionalDependencies(alias.dependencies);
+			}
+			if (getAdditionalRepositories() == null || getAdditionalRepositories().isEmpty()) {
+				setAdditionalRepositories(alias.repositories);
+			}
+			if (getAdditionalClasspaths() == null || getAdditionalClasspaths().isEmpty()) {
+				setAdditionalClasspaths(alias.classpaths);
+			}
+			if (getProperties() == null || getProperties().isEmpty()) {
+				setProperties(alias.properties);
+			}
+			if (getJavaVersion() == null) {
+				setJavaVersion(alias.javaVersion);
+			}
+			if (getMainClass() == null) {
+				setMainClass(alias.mainClass);
+			}
+			setAlias(alias);
 		}
 
 		// note script file must be not null at this point
