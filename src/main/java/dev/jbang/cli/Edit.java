@@ -93,10 +93,11 @@ public class Edit extends BaseScriptCommand {
 				optionList.add(projectPathString);
 
 				String[] cmd;
-				final String editorCommand = String.join(" ", escapeOSArguments(optionList, Util.getShell()));
 				if (Util.getShell() == Shell.bash) {
+					final String editorCommand = String.join(" ", escapeOSArguments(optionList, Shell.bash));
 					cmd = new String[] { "sh", "-c", editorCommand };
 				} else {
+					final String editorCommand = String.join(" ", escapeOSArguments(optionList, Shell.cmd));
 					cmd = new String[] { "cmd", "/c", editorCommand };
 				}
 				verboseMsg("Running `" + String.join(" ", cmd) + "`");
