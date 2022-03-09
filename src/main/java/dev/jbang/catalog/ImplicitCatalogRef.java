@@ -47,8 +47,7 @@ public class ImplicitCatalogRef {
 		}
 		String[] names = parts[0].split("/");
 		if (names.length > 3) {
-			// throw new ExitException(EXIT_INVALID_INPUT, "Invalid catalog name '" + name +
-			// "'");
+			
 			return null;
 		}
 		String org = names[0];
