@@ -407,9 +407,13 @@ public class RunContext {
 	}
 
 	private List<Source> allToScriptSource(List<String> sources) {
+		Catalog catalog = getCatalog() != null ? Catalog.get(getCatalog().toPath()) : null;
+		ResourceResolver resolver = ResourceResolver.forScripts(this::resolveDependency, catalog);
 		Function<String, String> propsResolver = it -> PropertiesValueResolver.replaceProperties(it,
 				getContextProperties());
-		return sources.stream().map(s -> Source.forResource(s, propsResolver)).collect(Collectors.toList());
+		return sources	.stream()
+						.map(s -> Source.forResourceRef(resolver.resolve(s), propsResolver))
+						.collect(Collectors.toList());
 
 	}
 

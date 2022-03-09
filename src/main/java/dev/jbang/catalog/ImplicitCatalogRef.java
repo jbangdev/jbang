@@ -47,7 +47,7 @@ public class ImplicitCatalogRef {
 		}
 		String[] names = parts[0].split("/");
 		if (names.length > 3) {
-			
+
 			return null;
 		}
 		String org = names[0];
