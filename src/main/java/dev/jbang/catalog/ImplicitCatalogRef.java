@@ -1,13 +1,10 @@
 package dev.jbang.catalog;
 
-import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
-
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import dev.jbang.cli.ExitException;
 import dev.jbang.util.Util;
 
 public class ImplicitCatalogRef {
@@ -34,6 +31,12 @@ public class ImplicitCatalogRef {
 		return host + org + "/" + repo + infix + ref + "/" + path + Catalog.JBANG_CATALOG_JSON;
 	}
 
+	/**
+	 * Return ImplicitCatalogRef if can be parsed into a git accessible structure.
+	 * 
+	 * @param name
+	 * @return null if cannot parse it
+	 */
 	public static ImplicitCatalogRef parse(String name) {
 		String[] parts = name.split("~", 2);
 		String path;
@@ -44,7 +47,8 @@ public class ImplicitCatalogRef {
 		}
 		String[] names = parts[0].split("/");
 		if (names.length > 3) {
-			throw new ExitException(EXIT_INVALID_INPUT, "Invalid catalog name '" + name + "'");
+			
+			return null;
 		}
 		String org = names[0];
 		String repo;
@@ -62,16 +66,25 @@ public class ImplicitCatalogRef {
 		return new ImplicitCatalogRef(org, repo, ref, path);
 	}
 
-	static Optional<String> getImplicitCatalogUrl(String catalogName) {
-		ImplicitCatalogRef icr = parse(catalogName);
+	public static Optional<String> getImplicitCatalogUrl(String catalogName) {
+
+		Optional<ImplicitCatalogRef> icr = Optional.ofNullable(parse(catalogName));
 		Optional<String> url = chain(
-				() -> tryDownload(icr.url(GITHUB_URL, "/blob/")),
-				() -> icr.isPossibleCommit() ? tryDownload(icr.url(GITHUB_URL, "/blob/")) : Optional.empty(),
-				() -> tryDownload(icr.url(GITLAB_URL, "/-/blob/")),
-				() -> icr.isPossibleCommit() ? tryDownload(icr.url(GITLAB_URL, "/-/blob/")) : Optional.empty(),
-				() -> tryDownload(icr.url(BITBUCKET_URL, "/src/")),
-				() -> icr.isPossibleCommit() ? tryDownload(icr.url(BITBUCKET_URL, "/src/")) : Optional.empty())
-																												.findFirst();
+				() -> catalogName.startsWith("https://") || catalogName.startsWith("http://")
+						|| catalogName.startsWith("file://") ? tryDownload(catalogName) : Optional.empty(),
+				() -> catalogName.contains(".") ? tryDownload("https://" + catalogName) : Optional.empty(),
+				() -> icr.isPresent() ? tryDownload(icr.get().url(GITHUB_URL, "/blob/")) : Optional.empty(),
+				() -> icr.isPresent() && icr.get().isPossibleCommit() ? tryDownload(icr.get().url(GITHUB_URL, "/blob/"))
+						: Optional.empty(),
+				() -> icr.isPresent() ? tryDownload(icr.get().url(GITLAB_URL, "/-/blob/")) : Optional.empty(),
+				() -> icr.isPresent() && icr.get().isPossibleCommit()
+						? tryDownload(icr.get().url(GITLAB_URL, "/-/blob/"))
+						: Optional.empty(),
+				() -> icr.isPresent() ? tryDownload(icr.get().url(BITBUCKET_URL, "/src/")) : Optional.empty(),
+				() -> icr.isPresent() && icr.get().isPossibleCommit()
+						? tryDownload(icr.get().url(BITBUCKET_URL, "/src/"))
+						: Optional.empty())
+											.findFirst();
 		return url;
 	}
 
