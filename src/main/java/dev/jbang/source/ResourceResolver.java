@@ -2,6 +2,7 @@ package dev.jbang.source;
 
 import java.util.function.Function;
 
+import dev.jbang.catalog.Catalog;
 import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.source.resolvers.*;
 
@@ -35,14 +36,15 @@ public interface ResourceResolver {
 	 *                    <code>ModularClassPath</code>
 	 * @return A <code>ResourceRef</code> or <code>null</code>
 	 */
-	static ResourceResolver forScripts(Function<String, ModularClassPath> depResolver) {
-		return new CombinedResourceResolver(
-				new RenamingScriptResourceResolver(),
-				new LiteralScriptResourceResolver(),
-				new RemoteResourceResolver(RemoteResourceResolver::fetchScriptFromUntrustedURL),
-				new ClasspathResourceResolver(),
-				new GavResourceResolver(depResolver),
-				new FileResourceResolver());
+	static ResourceResolver forScripts(Function<String, ModularClassPath> depResolver, Catalog catalog) {
+		return new AliasResourceResolver(catalog,
+				new CombinedResourceResolver(
+						new RenamingScriptResourceResolver(),
+						new LiteralScriptResourceResolver(),
+						new RemoteResourceResolver(RemoteResourceResolver::fetchScriptFromUntrustedURL),
+						new ClasspathResourceResolver(),
+						new GavResourceResolver(depResolver),
+						new FileResourceResolver()));
 	}
 
 	/**

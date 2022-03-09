@@ -251,7 +251,7 @@ public class Configuration {
 		Configuration result = defaults();
 		for (Path cfgFile : configFiles) {
 			Configuration cfg = read(cfgFile);
-			cfg.storeRef = ResourceRef.forNamedFile(cfgFile.toString(), cfgFile.toFile());
+			cfg.storeRef = ResourceRef.forFile(cfgFile.toFile());
 			cfg.fallback = result;
 			result = cfg;
 		}

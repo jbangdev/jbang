@@ -283,7 +283,7 @@ public class Catalog {
 	}
 
 	public static Catalog get(Path catalogPath) {
-		return get(ResourceRef.forNamedFile(catalogPath.toString(), catalogPath.toFile()));
+		return get(ResourceRef.forFile(catalogPath.toFile()));
 	}
 
 	private static Catalog get(ResourceRef ref) {

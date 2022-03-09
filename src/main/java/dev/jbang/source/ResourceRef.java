@@ -7,19 +7,23 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 
+import javax.annotation.Nullable;
+
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.util.Util;
 
 public class ResourceRef implements Comparable<ResourceRef> {
 	// original requested resource
+	@Nullable
 	private final String originalResource;
 	// cache folder it is stored inside
+	@Nullable
 	private final File file;
 
 	public static final ResourceRef nullRef = new ResourceRef(null, null);
 
-	private ResourceRef(String ref, File file) {
+	protected ResourceRef(@Nullable String ref, @Nullable File file) {
 		this.originalResource = ref;
 		this.file = file;
 	}
@@ -36,10 +40,12 @@ public class ResourceRef implements Comparable<ResourceRef> {
 		return originalResource != null && isStdin(originalResource);
 	}
 
+	@Nullable
 	public File getFile() {
 		return file;
 	}
 
+	@Nullable
 	public String getOriginalResource() {
 		return originalResource;
 	}
@@ -115,7 +121,7 @@ public class ResourceRef implements Comparable<ResourceRef> {
 	}
 
 	public static ResourceRef forFile(File file) {
-		return new ResourceRef(null, file);
+		return new ResourceRef(file.toString(), file);
 	}
 
 	public static ResourceRef forNamedFile(String resource, File file) {
