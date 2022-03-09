@@ -7,15 +7,8 @@ import static dev.jbang.util.Util.writeString;
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.hasXPath;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.matchesPattern;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasItem;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.*;
@@ -23,10 +16,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
@@ -54,9 +44,11 @@ import dev.jbang.BaseTest;
 import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
+import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.net.TrustedSources;
 import dev.jbang.source.*;
 import dev.jbang.source.builders.BaseBuilder;
+import dev.jbang.source.builders.JavaBuilder;
 import dev.jbang.source.generators.JarCmdGenerator;
 import dev.jbang.source.generators.JshCmdGenerator;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
@@ -1416,6 +1408,52 @@ public class TestRun extends BaseTest {
 
 		assertThat(ctx.getMainClass(), equalTo("Three"));
 
+	}
+
+	@Test
+	void testAdditionalSources() throws IOException {
+		String mainFile = examplesTestFolder.resolve("foo.java").toString();
+		String incFile = examplesTestFolder.resolve("bar/Bar.java").toString();
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build", "-s", incFile, mainFile);
+		Build build = (Build) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = build.getRunContext();
+		SourceSet ss = (SourceSet) ctx.forResource(mainFile);
+
+		new JavaBuilder(ss, ctx) {
+			@Override
+			protected void runCompiler(List<String> optionList)
+					throws IOException {
+				assertThat(optionList, hasItem(mainFile));
+				assertThat(optionList, hasItem(incFile));
+				// Skip the compiler
+			}
+		}.setFresh(true).build();
+	}
+
+	@Test
+	void testAdditionalSourcesUsingAlias() throws IOException {
+		String mainFile = examplesTestFolder.resolve("foo.java").toString();
+		String incFile = examplesTestFolder.resolve("bar/Bar.java").toString();
+
+		CatalogUtil.addNearestAlias("bar", incFile, null, null, null, null, null, null, null, null, null, null);
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build", "-s", "bar", mainFile);
+		Build build = (Build) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = build.getRunContext();
+		SourceSet ss = (SourceSet) ctx.forResource(mainFile);
+
+		new JavaBuilder(ss, ctx) {
+			@Override
+			protected void runCompiler(List<String> optionList)
+					throws IOException {
+				assertThat(optionList, hasItem(mainFile));
+				assertThat(optionList, hasItem(incFile));
+				// Skip the compiler
+			}
+		}.setFresh(true).build();
 	}
 
 	WireMockServer wms;
