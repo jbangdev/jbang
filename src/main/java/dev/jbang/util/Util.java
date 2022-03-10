@@ -1167,6 +1167,15 @@ public class Util {
 		return ref.startsWith("classpath:");
 	}
 
+	public static boolean isValidPath(String path) {
+		try {
+			Paths.get(path);
+			return true;
+		} catch (InvalidPathException e) {
+			return false;
+		}
+	}
+
 	/**
 	 *
 	 * @param content
