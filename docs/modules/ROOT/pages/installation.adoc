@@ -18,9 +18,12 @@ To use `jbang` Java 8 is the minimum required version, however Java 11 or higher
 
 Note: `jbang` will download and install `java` from Adopt OpenJDK if no `java` is available.
 
-Once you hav installed from one of the below approaches it is recommended you run `jbang app setup`
- your `PATH` to include jbang app scripts + it will on operating systems that supports
-it setup a `j!` alias you can use instead of `jbang`.
+There are multiple ways to install jbang. See below for all available options.
+
+Once you have jbang installed, it is recommended you run `jbang app setup`. This script will make the following changes to your system:
+
+1. Modify `PATH` environment variable to include jbang app scripts
+2. For supported shells, add `j!` as an alias for `jbang`. Try running `j! version` to verify.
 
 [NOTE]
 ====
@@ -215,7 +218,7 @@ plugins {
 }
 ----
 
-That will allow your to execute JBang scripts with:
+That will allow you to execute JBang scripts with:
 
 [source,bash]
 ----
@@ -261,12 +264,12 @@ For example `iex "& { $(iwr -useb https://ps.jbang.dev) } properties@jbangdev"`
 
 == Version check
 
-`jbang` will check once a day if a new version is available. If a new version is available a message will be printed with informaton on how to install.
+`jbang` will check once a day if a new version is available. If a new version is available a message will be printed with information on how to install.
 
 The check happens in the background and will only be done every 24hrs on the same installation.
 
 The version check is done via a HTTP request to fetch a `version.txt` from https://jbang.dev. The request includes a user-agent that contains the current `jbang`, `java` and operating system version with no person identifiable information
-which we use purely to aggreate statistics to know update/usage frequency.
+which we use purely to aggregate statistics to know update/usage frequency.
 
 `jbang` will not do its automatic check for version when you run in `--offline` mode nor if you set `JBANG_NO_VERSION_CHECK` environment variable.
 
