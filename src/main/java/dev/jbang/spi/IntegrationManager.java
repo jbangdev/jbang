@@ -17,12 +17,7 @@ import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import dev.jbang.cli.ExitException;
@@ -87,12 +82,12 @@ public class IntegrationManager {
 			for (String className : classNames) {
 				if (repos == null) {
 					repos = repositories.stream()
-										.map(s -> new MapRepoEntry(s.getId(), s.getUrl()))
+										.map(s -> new AbstractMap.SimpleEntry<>(s.getId(), s.getUrl()))
 										.collect(Collectors.toList());
 				}
 				if (deps == null) {
 					deps = artifacts.stream()
-									.map(s -> new MapEntry(s.getCoordinate().toCanonicalForm(),
+									.map(s -> new AbstractMap.SimpleEntry<>(s.getCoordinate().toCanonicalForm(),
 											s.getFile().toPath()))
 									.collect(Collectors.toList());
 				}
@@ -183,77 +178,6 @@ public class IntegrationManager {
 			}
 		}
 		return classNames;
-	}
-
-	private static class MapEntry implements Map.Entry<String, Path> {
-		private final String key;
-		private Path value;
-
-		private MapEntry(String key, Path value) {
-			this.key = key;
-			this.value = value;
-		}
-
-		@Override
-		public String getKey() {
-			return key;
-		}
-
-		@Override
-		public Path getValue() {
-			return value;
-		}
-
-		@Override
-		public Path setValue(Path value) {
-			Path old = this.value;
-			this.value = value;
-			return old;
-		}
-
-		@Override
-		public String toString() {
-			return "MapEntry{" +
-					"key='" + key + '\'' +
-					", value=" + value +
-					'}';
-		}
-	}
-
-	private static class MapRepoEntry implements Map.Entry<String, String> {
-		private final String key;
-		private String value;
-
-		private MapRepoEntry(String key, String value) {
-			this.key = key;
-			this.value = value;
-		}
-
-		@Override
-		public String getKey() {
-			return key;
-		}
-
-		@Override
-		public String getValue() {
-			return value;
-		}
-
-		@Override
-		public String setValue(String value) {
-			String old = this.value;
-			this.value = value;
-			return old;
-		}
-
-		@Override
-		public String toString() {
-			return "MapEntry{" +
-					"key='" + key + '\'' +
-					", value=" + value +
-					'}';
-
-		}
 	}
 
 }
