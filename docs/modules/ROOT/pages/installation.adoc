@@ -18,9 +18,12 @@ To use `jbang` Java 8 is the minimum required version, however Java 11 or higher
 
 Note: `jbang` will download and install `java` from Adopt OpenJDK if no `java` is available.
 
-Once you hav installed from one of the below approaches it is recommended you run `jbang app setup`
- your `PATH` to include jbang app scripts + it will on operating systems that supports
-it setup a `j!` alias you can use instead of `jbang`.
+There are multiple ways to install jbang. See below for all available options.
+
+Once you have jbang installed, it is recommended you run `jbang app setup`. This script will make following changes on your sysmte - 
+
+1. Modify `PATH` environment variable to include jbang app scripts
+2. For supported shells, add `j!` as an alias for `jbang`. Try running `j! version` to verify.
 
 [NOTE]
 ====
