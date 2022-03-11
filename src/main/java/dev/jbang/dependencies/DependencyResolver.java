@@ -65,7 +65,7 @@ public class DependencyResolver {
 
 	public ModularClassPath resolve() {
 		ModularClassPath mcp = DependencyUtil.resolveDependencies(
-				new ArrayList<>(dependencies), new ArrayList<>(repositories),
+				new ArrayList<>(dependencies), new HashSet<>(repositories),
 				Util.isOffline(), Util.isFresh(), !Util.isQuiet());
 		if (artifacts.isEmpty()) {
 			return mcp;

@@ -9,14 +9,7 @@ import static dev.jbang.util.Util.infoMsgFmt;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -66,7 +59,7 @@ public class DependencyUtil {
 	private DependencyUtil() {
 	}
 
-	public static ModularClassPath resolveDependencies(List<String> deps, List<MavenRepo> repos,
+	public static ModularClassPath resolveDependencies(List<String> deps, Set<MavenRepo> repos,
 			boolean offline, boolean updateCache, boolean loggingEnabled) {
 		return resolveDependencies(deps, repos, offline, updateCache, loggingEnabled, true);
 	}
@@ -78,7 +71,7 @@ public class DependencyUtil {
 	 * @param loggingEnabled
 	 * @return string with resolved classpath
 	 */
-	public static ModularClassPath resolveDependencies(List<String> deps, List<MavenRepo> repos,
+	public static ModularClassPath resolveDependencies(List<String> deps, Set<MavenRepo> repos,
 			boolean offline, boolean updateCache, boolean loggingEnabled, boolean transitivity) {
 
 		// if no dependencies were provided we stop here
@@ -87,7 +80,7 @@ public class DependencyUtil {
 		}
 
 		if (repos.isEmpty()) {
-			repos = new ArrayList<>();
+			repos = new HashSet<>();
 			repos.add(toMavenRepo("mavencentral"));
 		}
 
@@ -142,7 +135,7 @@ public class DependencyUtil {
 		}
 	}
 
-	public static List<ArtifactInfo> resolveDependenciesViaAether(List<String> depIds, List<MavenRepo> customRepos,
+	public static List<ArtifactInfo> resolveDependenciesViaAether(List<String> depIds, Set<MavenRepo> customRepos,
 			boolean offline, boolean loggingEnabled, boolean transitively) {
 
 		ConfigurableMavenResolverSystem resolver = Maven.configureResolver()
