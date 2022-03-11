@@ -350,7 +350,7 @@ public class RunContext {
 			if (code instanceof Jar) {
 				updateDependencyResolver(resolver);
 			}
-			code.updateDependencyResolver(resolver);
+			code.asSourceSet().updateDependencyResolver(resolver);
 			mcp = resolver.resolve();
 		}
 		return mcp.getClassPath();

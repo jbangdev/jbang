@@ -645,21 +645,6 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
-	void testFindMain(@TempDir Path dir) throws IOException {
-
-		File basedir = dir.resolve("a/b/c").toFile();
-		boolean mkdirs = basedir.mkdirs();
-		assert (mkdirs);
-		File classfile = new File(basedir, "mymain.class");
-		classfile.setLastModified(System.currentTimeMillis());
-		classfile.createNewFile();
-		assert (classfile.exists());
-
-		assertEquals(BaseBuilder.findMainClass(dir, classfile.toPath()), "a.b.c.mymain");
-
-	}
-
-	@Test
 	void testCreateJar(@TempDir Path rootdir) throws IOException {
 
 		File dir = new File(rootdir.toFile(), "content");
@@ -1359,7 +1344,7 @@ public class TestRun extends BaseTest {
 
 		ss.builder(ctx).build();
 
-		assertThat(ctx.getMainClass(), equalTo("Two"));
+		assertThat(ss.getMainClass(), equalTo("Two"));
 
 	}
 
@@ -1388,7 +1373,7 @@ public class TestRun extends BaseTest {
 
 		ss.builder(ctx).build();
 
-		assertThat(ctx.getMainClass(), equalTo("One"));
+		assertThat(ss.getMainClass(), equalTo("One"));
 
 	}
 
@@ -1848,6 +1833,36 @@ public class TestRun extends BaseTest {
 			ex.printStackTrace(new PrintWriter(sw));
 			assertThat(sw.toString(), containsString(
 					"Script or alias could not be found or read: 'missing.jsh'"));
+		}
+	}
+
+	@Test
+	void testBuildTwiceWithCliDeps(@TempDir Path output) throws IOException {
+		String script = "" +
+				"//REPOS acme=https://repo1.maven.org/maven2/\n" +
+				"public class script { public static void main(String... args) {} }";
+		JBang jbang = new JBang();
+		Path p = output.resolve("script.java");
+		writeString(p, script);
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build", p.toFile().getAbsolutePath());
+		Build build = (Build) pr.subcommand().commandSpec().userObject();
+		build.call();
+
+		pr = JBang.getCommandLine().parseArgs("run", "--deps", "org.example:dummy:1", p.toFile().getAbsolutePath());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+		Code code = ctx.forResource(p.toString());
+
+		code = run.prepareArtifacts(code, ctx);
+		try {
+			new JarCmdGenerator(code, ctx).generate();
+		} catch (ExitException e) {
+			StringWriter sw = new StringWriter();
+			e.printStackTrace(new PrintWriter(sw));
+			assertThat(sw.toString(), containsString("acme="));
+			assertThat(sw.toString(), not(containsString("mavencentral=")));
 		}
 	}
 }

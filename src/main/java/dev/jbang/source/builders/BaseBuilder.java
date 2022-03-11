@@ -301,15 +301,6 @@ public abstract class BaseBuilder implements Builder {
 		}
 	}
 
-	static public String findMainClass(Path base, Path classfile) {
-		StringBuilder mainClass = new StringBuilder(classfile.getFileName().toString().replace(".class", ""));
-		while (!classfile.getParent().equals(base)) {
-			classfile = classfile.getParent();
-			mainClass.insert(0, classfile.getFileName().toString() + ".");
-		}
-		return mainClass.toString();
-	}
-
 	private static String resolveInGraalVMHome(String cmd, String requestedVersion) {
 		String newcmd = resolveInEnv("GRAALVM_HOME", cmd);
 
@@ -434,7 +425,7 @@ public abstract class BaseBuilder implements Builder {
 				}
 
 				if (!mains.isEmpty()) {
-					ctx.setMainClass(mains.get(0).name().toString());
+					ss.setMainClass(mains.get(0).name().toString());
 					if (mains.size() > 1) {
 						Util.warnMsg(
 								"Could not locate unique main() method. Use -m to specify explicit main method. Falling back to use first found: "
