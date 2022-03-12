@@ -7,7 +7,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
@@ -57,14 +56,18 @@ public class ClasspathResourceResolver implements ResourceResolver {
 		}
 
 		// We couldn't read the file directly from the class path so let's make a copy
-		try (InputStream is = url.openStream()) {
-			Path to = Util.getUrlCache(cpResource);
-			Files.createDirectories(to.getParent());
-			Files.copy(is, to, StandardCopyOption.REPLACE_EXISTING);
-			return ResourceRef.forCachedResource(cpResource, to.toFile());
-		} catch (IOException e) {
-			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR,
-					"Resource could not be copied from class path: " + ref, e);
+		Path to = Util.getUrlCache(cpResource);
+		if (!Files.exists(to)) {
+			try (InputStream is = url.openStream()) {
+				Files.createDirectories(to.getParent());
+				Files.copy(is, to);
+			} catch (IOException e) {
+				Util.deletePath(to, true);
+				throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR,
+						"Resource could not be copied from class path: " + ref, e);
+			}
 		}
+
+		return ResourceRef.forCachedResource(cpResource, to.toFile());
 	}
 }
