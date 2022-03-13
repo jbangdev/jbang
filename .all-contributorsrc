@@ -656,6 +656,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "Chromico",
+      "name": "Chromico Rek",
+      "avatar_url": "https://avatars.githubusercontent.com/u/32539454?v=4",
+      "profile": "https://github.com/Chromico",
+      "contributions": [
+        "infra"
+      ]
     }
   ],
   "skipCi": true,
