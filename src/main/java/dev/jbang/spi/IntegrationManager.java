@@ -1,15 +1,9 @@
 package dev.jbang.spi;
 
-import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
+import static dev.jbang.cli.BaseCommand.*;
+import static dev.jbang.util.JavaUtil.resolveInJavaHome;
 
-import java.io.BufferedReader;
-import java.io.FileDescriptor;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -17,146 +11,102 @@ import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import javax.annotation.Nonnull;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
 
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.source.Source;
+import dev.jbang.source.SourceSet;
 import dev.jbang.util.Util;
 
 /**
  * JBang uses a 'convention based interface' for build time integration.
  */
 public class IntegrationManager {
-
 	public static final String FILES = "files";
 	public static final String NATIVE_IMAGE = "native-image";
 	public static final String MAIN_CLASS = "main-class";
 	public static final String JAVA_ARGS = "java-args";
+
+	private static final GsonBuilder gsonb = new GsonBuilder().registerTypeAdapter(Path.class, new PathTypeAdapter());
 
 	/**
 	 * Discovers all integration points and runs them.
 	 * <p>
 	 * If an integration point created a native image it returns the resulting
 	 * image.
-	 *
-	 *
-	 * @param repositories
-	 * @param artifacts
-	 * @param tmpJarDir
-	 * @param pomPath
-	 * @param source
-	 * @param nativeRequested
-	 * @return
 	 */
-	public static IntegrationResult runIntegration(List<MavenRepo> repositories, List<ArtifactInfo> artifacts,
-			Path tmpJarDir,
-			Path pomPath, Source source,
-			boolean nativeRequested) {
-		URL[] urls = artifacts.stream().map(s -> {
-			try {
-				return s.getFile().toURI().toURL();
-			} catch (MalformedURLException e) {
-				throw new RuntimeException(e);
-			}
-		}).toArray(URL[]::new);
-		List<String> comments = source.getLines().stream().filter(s -> s.startsWith("//")).collect(Collectors.toList());
-		URLClassLoader integrationCl = new URLClassLoader(urls);
+	public static IntegrationResult runIntegrations(SourceSet ss, Path tmpJarDir, Path pomPath,
+			boolean nativeRequested, String requestedJavaVersion) {
+		IntegrationResult result = new IntegrationResult(null, null, null);
+		Source source = ss.getMainSource();
+
+		LinkedHashMap<String, String> repos = new LinkedHashMap<>();
+		LinkedHashMap<String, Path> deps = new LinkedHashMap<>();
+		for (MavenRepo repo : ss.getRepositories()) {
+			repos.put(repo.getId(), repo.getUrl());
+		}
+		for (ArtifactInfo art : ss.getClassPath().getArtifacts()) {
+			deps.put(art.getCoordinate().toCanonicalForm(), art.getFile().toPath());
+		}
+
+		List<String> comments = source.getTags().collect(Collectors.toList());
 		ClassLoader old = Thread.currentThread().getContextClassLoader();
-		Map<String, byte[]> data = new HashMap<>();
-		List<Map.Entry<String, String>> repos = null;
-		List<Map.Entry<String, Path>> deps = null;
-		Path nativeImage = null;
-		String mainClass = null;
-		List<String> javaArgs = null;
 		PrintStream oldout = System.out;
 		try {
-			// TODO: should we add new properties to the integration method?
-			if (source.getResourceRef().getFile() != null) {
-				System.setProperty("jbang.source", source.getResourceRef().getFile().getAbsolutePath());
-			}
+			URLClassLoader integrationCl = getClassLoader(deps);
 			Thread.currentThread().setContextClassLoader(integrationCl);
 			Set<String> classNames = loadIntegrationClassNames(integrationCl);
 			for (String className : classNames) {
-				if (repos == null) {
-					repos = repositories.stream()
-										.map(s -> new MapRepoEntry(s.getId(), s.getUrl()))
-										.collect(Collectors.toList());
-				}
-				if (deps == null) {
-					deps = artifacts.stream()
-									.map(s -> new MapEntry(s.getCoordinate().toCanonicalForm(),
-											s.getFile().toPath()))
-									.collect(Collectors.toList());
-				}
-				Class<?> clazz = Class.forName(className, true, integrationCl);
-				Method method = clazz.getDeclaredMethod("postBuild", Path.class, Path.class, List.class, List.class,
-						List.class,
-						boolean.class);
-				Util.infoMsg("Post build with " + className);
-
-				if (Util.isVerbose()) {
-					System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.err)));
-				} else {
-					System.setOut(new PrintStream(new OutputStream() {
-						public void write(int b) {
-							// DO NOTHING
-							// TODO: capture it for later print if error
-						}
-					}));
-				}
-
-				@SuppressWarnings("unchecked")
-				Map<String, Object> integrationResult = (Map<String, Object>) method.invoke(null, tmpJarDir, pomPath,
-						repos, deps, comments, nativeRequested);
-				@SuppressWarnings("unchecked")
-				Map<String, byte[]> ret = (Map<String, byte[]>) integrationResult.get(FILES);
-				if (ret != null) {
-					data.putAll(ret);
-				}
-				Path image = (Path) integrationResult.get(NATIVE_IMAGE);
-				if (image != null) {
-					nativeImage = image;
-				}
-				String mc = (String) integrationResult.get(MAIN_CLASS);
-				if (mc != null) {
-					mainClass = mc;
-				}
-				@SuppressWarnings("unchecked")
-				List<String> ja = (List<String>) integrationResult.get(JAVA_ARGS);
-				if (ja != null) {
-					javaArgs = ja;
-				}
-			}
-			for (Map.Entry<String, byte[]> entry : data.entrySet()) {
-				Path target = tmpJarDir.resolve(entry.getKey());
-				Files.createDirectories(target.getParent());
-				try (OutputStream out = Files.newOutputStream(target)) {
-					out.write(entry.getValue());
-				}
+				Path srcPath = (source.getResourceRef().getFile() != null)
+						? source.getResourceRef().getFile().toPath().toAbsolutePath()
+						: null;
+				IntegrationInput input = new IntegrationInput(className, srcPath, tmpJarDir, pomPath, repos, deps,
+						comments,
+						nativeRequested);
+				IntegrationResult ir = requestedJavaVersion == null
+						? runIntegrationEmbedded(input, integrationCl)
+						: runIntegrationExternal(input, requestedJavaVersion);
+				result = result.merged(ir);
 			}
 		} catch (ClassNotFoundException e) {
-			throw new ExitException(EXIT_UNEXPECTED_STATE, "Unable to load integration class", e);
+			throw new ExitException(EXIT_INVALID_INPUT, "Unable to load integration class", e);
 		} catch (NoSuchMethodException e) {
 			throw new ExitException(
-					EXIT_UNEXPECTED_STATE,
+					EXIT_INVALID_INPUT,
 					"Integration class missing method with signature public static Map<String, byte[]> postBuild(Path classesDir, Path pomFile, List<Map.Entry<String, Path>> dependencies)",
 					e);
 		} catch (Exception e) {
-			throw new ExitException(EXIT_UNEXPECTED_STATE, "Issue running postBuild()", e);
+			throw new ExitException(EXIT_GENERIC_ERROR, "Issue running postBuild()", e);
 		} finally {
 			Thread.currentThread().setContextClassLoader(old);
 			System.setOut(oldout);
 		}
-		return new IntegrationResult(nativeImage, mainClass, javaArgs);
+		return result;
+	}
 
+	@Nonnull
+	private static URLClassLoader getClassLoader(Map<String, Path> deps) {
+		URL[] urls = deps.values().stream().map(path -> {
+			try {
+				return path.toUri().toURL();
+			} catch (MalformedURLException e) {
+				throw new RuntimeException(e);
+			}
+		}).toArray(URL[]::new);
+		return new URLClassLoader(urls);
 	}
 
 	private static Set<String> loadIntegrationClassNames(URLClassLoader integrationCl) throws IOException {
@@ -185,75 +135,159 @@ public class IntegrationManager {
 		return classNames;
 	}
 
-	private static class MapEntry implements Map.Entry<String, Path> {
-		private final String key;
-		private Path value;
+	private static IntegrationResult runIntegrationEmbedded(IntegrationInput input, URLClassLoader integrationCl)
+			throws Exception {
+		Util.infoMsg("Post build with " + input.integrationClassName);
 
-		private MapEntry(String key, Path value) {
-			this.key = key;
-			this.value = value;
+		if (input.source != null) {
+			// TODO: should we add new properties to the integration method?
+			System.setProperty("jbang.source", input.source.toString());
 		}
 
-		@Override
-		public String getKey() {
-			return key;
+		Class<?> clazz = Class.forName(input.integrationClassName, true, integrationCl);
+		Method method = clazz.getDeclaredMethod("postBuild", Path.class, Path.class, List.class, List.class,
+				List.class, boolean.class);
+
+		if (Util.isVerbose()) {
+			System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.err)));
+		} else {
+			System.setOut(new PrintStream(new OutputStream() {
+				public void write(int b) {
+					// DO NOTHING
+					// TODO: capture it for later print if error
+				}
+			}));
 		}
 
-		@Override
-		public Path getValue() {
-			return value;
+		@SuppressWarnings("unchecked")
+		Map<String, Object> result = (Map<String, Object>) method.invoke(null, input.classes, input.pom,
+				mapToList(input.repositories), mapToList(input.dependencies), input.comments, input.nativeRequested);
+
+		@SuppressWarnings("unchecked")
+		Map<String, byte[]> files = (Map<String, byte[]>) result.get(FILES);
+		if (files != null) {
+			for (Map.Entry<String, byte[]> entry : files.entrySet()) {
+				Path target = input.classes.resolve(entry.getKey());
+				Files.createDirectories(target.getParent());
+				try (OutputStream out = Files.newOutputStream(target)) {
+					out.write(entry.getValue());
+				}
+			}
 		}
 
-		@Override
-		public Path setValue(Path value) {
-			Path old = this.value;
-			this.value = value;
-			return old;
+		Path nativeImage = null;
+		String mainClass = null;
+		List<String> javaArgs = null;
+		Path image = (Path) result.get(NATIVE_IMAGE);
+		if (image != null) {
+			nativeImage = image;
+		}
+		String mc = (String) result.get(MAIN_CLASS);
+		if (mc != null) {
+			mainClass = mc;
+		}
+		@SuppressWarnings("unchecked")
+		List<String> ja = (List<String>) result.get(JAVA_ARGS);
+		if (ja != null) {
+			javaArgs = ja;
 		}
 
-		@Override
-		public String toString() {
-			return "MapEntry{" +
-					"key='" + key + '\'' +
-					", value=" + value +
-					'}';
+		return new IntegrationResult(nativeImage, mainClass, javaArgs);
+	}
+
+	private static IntegrationResult runIntegrationExternal(IntegrationInput input, String requestedJavaVersion)
+			throws Exception {
+		Gson parser = gsonb.create();
+		Util.infoMsg("Running external post build for " + input.integrationClassName);
+
+		List<String> args = new ArrayList<>();
+		args.add(resolveInJavaHome("java", requestedJavaVersion)); // TODO
+		args.add("-cp");
+		args.add(Util.getJarLocation().toString());
+		args.add("dev.jbang.spi.IntegrationManager");
+
+		if (Util.isVerbose()) {
+			Util.verboseMsg("Running: " + String.join(" ", args));
+			Util.verboseMsg("Input: " + parser.toJson(input));
+		}
+
+		Process process = new ProcessBuilder(args)
+													.redirectError(ProcessBuilder.Redirect.INHERIT)
+													.start();
+
+		try (Writer w = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
+			parser.toJson(input, w);
+		}
+
+		String cmdOutput;
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+			cmdOutput = br.lines().collect(Collectors.joining());
+		}
+
+		try {
+			process.waitFor();
+		} catch (InterruptedException e) {
+			throw new ExitException(EXIT_GENERIC_ERROR, "External post build was interrupted", e);
+		}
+
+		Util.verboseMsg("Output: #" + process.exitValue() + " - " + cmdOutput);
+
+		if (process.exitValue() == 0) {
+			return parser.fromJson(new StringReader(cmdOutput), IntegrationResult.class);
+		} else {
+			throw new ExitException(EXIT_GENERIC_ERROR, "External post exited with error: " + cmdOutput);
 		}
 	}
 
-	private static class MapRepoEntry implements Map.Entry<String, String> {
-		private final String key;
-		private String value;
+	private static <K, V> List<Map.Entry<K, V>> mapToList(Map<K, V> map) {
+		return new ArrayList<>(map.entrySet());
+	}
 
-		private MapRepoEntry(String key, String value) {
-			this.key = key;
-			this.value = value;
+	private static class PathTypeAdapter extends TypeAdapter<Path> {
+		@Override
+		public Path read(JsonReader in) throws IOException {
+			if (in.peek() == JsonToken.NULL) {
+				in.nextNull();
+				return null;
+			}
+			String path = in.nextString();
+			return Paths.get(path);
 		}
 
 		@Override
-		public String getKey() {
-			return key;
-		}
-
-		@Override
-		public String getValue() {
-			return value;
-		}
-
-		@Override
-		public String setValue(String value) {
-			String old = this.value;
-			this.value = value;
-			return old;
-		}
-
-		@Override
-		public String toString() {
-			return "MapEntry{" +
-					"key='" + key + '\'' +
-					", value=" + value +
-					'}';
-
+		public void write(JsonWriter out, Path path) throws IOException {
+			if (path == null) {
+				out.nullValue();
+				return;
+			}
+			out.value(path.toString());
 		}
 	}
 
+	public static void main(String... args) {
+		Gson parser = gsonb.create();
+		IntegrationInput input = parser.fromJson(new InputStreamReader(System.in), IntegrationInput.class);
+		ClassLoader old = Thread.currentThread().getContextClassLoader();
+		PrintStream oldout = System.out;
+		String output = "";
+		boolean ok = false;
+		try {
+			URLClassLoader integrationCl = getClassLoader(input.dependencies);
+			Thread.currentThread().setContextClassLoader(integrationCl);
+			IntegrationResult result = runIntegrationEmbedded(input, integrationCl);
+			output = parser.toJson(result);
+			ok = true;
+		} catch (ClassNotFoundException e) {
+			output = "Unable to load integration class";
+		} catch (NoSuchMethodException e) {
+			output = "Integration class missing method with signature public static Map<String, byte[]> postBuild(Path classesDir, Path pomFile, List<Map.Entry<String, Path>> dependencies)";
+		} catch (Exception e) {
+			output = "Issue running postBuild()";
+		} finally {
+			Thread.currentThread().setContextClassLoader(old);
+			System.setOut(oldout);
+		}
+		System.out.println(output);
+		System.exit(ok ? 0 : 1);
+	}
 }

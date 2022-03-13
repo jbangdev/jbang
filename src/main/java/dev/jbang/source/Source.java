@@ -88,11 +88,17 @@ public abstract class Source {
 		return contents;
 	}
 
-	public List<String> getLines() {
+	public Stream<String> getLines() {
 		if (lines == null && contents != null) {
 			lines = Arrays.asList(contents.split("\\r?\\n"));
 		}
-		return lines;
+		return lines.stream();
+	}
+
+	public Stream<String> getTags() {
+		// TODO: Insert `.takeWhile(s -> Util.isBlankString(s) || s.startsWith("//"))`
+		// once we support at least Java 9
+		return getLines().filter(s -> s.startsWith("//"));
 	}
 
 	public Optional<String> getJavaPackage() {
@@ -104,13 +110,7 @@ public abstract class Source {
 	}
 
 	public List<String> collectDependencies() {
-		// Make sure that dependencies declarations are well formatted
-		if (getLines().stream().anyMatch(it -> it.startsWith("// DEPS"))) {
-			throw new IllegalArgumentException("Dependencies must be declared by using the line prefix //DEPS");
-		}
-
-		return getLines()	.stream()
-							.filter(Source::isDependDeclare)
+		return getLines()	.filter(Source::isDependDeclare)
 							.flatMap(Source::extractDependencies)
 							.map(replaceProperties)
 							.collect(Collectors.toList());
@@ -196,8 +196,7 @@ public abstract class Source {
 	}
 
 	public List<MavenRepo> collectRepositories() {
-		return getLines()	.stream()
-							.filter(Source::isRepoDeclare)
+		return getLines()	.filter(Source::isRepoDeclare)
 							.flatMap(Source::extractRepositories)
 							.map(replaceProperties)
 							.map(DependencyUtil::toMavenRepo)
@@ -240,8 +239,7 @@ public abstract class Source {
 	}
 
 	public Optional<String> getDescription() {
-		String desc = getLines().stream()
-								.filter(Source::isDescriptionDeclare)
+		String desc = getTags()	.filter(Source::isDescriptionDeclare)
 								.map(s -> s.substring(DESCRIPTION_COMMENT_PREFIX.length()))
 								.collect(Collectors.joining("\n"));
 		if (desc.isEmpty()) {
@@ -256,8 +254,7 @@ public abstract class Source {
 	}
 
 	public Optional<String> getGav() {
-		List<String> gavs = getLines()	.stream()
-										.filter(Source::isGavDeclare)
+		List<String> gavs = getTags()	.filter(Source::isGavDeclare)
 										.map(s -> s.substring(GAV_COMMENT_PREFIX.length()))
 										.collect(Collectors.toList());
 		if (gavs.isEmpty()) {
@@ -290,15 +287,12 @@ public abstract class Source {
 
 	private List<String> collectRawOptions(String prefix) {
 		String joptsPrefix = "//" + prefix;
-
-		List<String> lines = getLines();
-
-		List<String> javaOptions = lines.stream()
-										.map(it -> it.split(" // ")[0]) // strip away nested comments.
-										.filter(it -> it.startsWith(joptsPrefix + " ")
-												|| it.startsWith(joptsPrefix + "\t") || it.equals(joptsPrefix))
-										.map(it -> it.replaceFirst(joptsPrefix, "").trim())
-										.collect(Collectors.toList());
+		List<String> javaOptions = getTags()
+											.map(it -> it.split(" // ")[0]) // strip away nested comments.
+											.filter(it -> it.startsWith(joptsPrefix + " ")
+													|| it.startsWith(joptsPrefix + "\t") || it.equals(joptsPrefix))
+											.map(it -> it.replaceFirst(joptsPrefix, "").trim())
+											.collect(Collectors.toList());
 
 		String envOptions = System.getenv("JBANG_" + prefix);
 		if (envOptions != null) {
@@ -327,14 +321,13 @@ public abstract class Source {
 	}
 
 	public List<RefTarget> collectFiles(ResourceResolver siblingResolver) {
-		return getLines()	.stream()
-							.filter(f -> f.startsWith(FILES_COMMENT_PREFIX))
-							.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
-													.skip(1)
-													.map(String::trim))
-							.map(replaceProperties)
-							.map(f -> toFileRef(f, siblingResolver))
-							.collect(Collectors.toCollection(ArrayList::new));
+		return getTags().filter(f -> f.startsWith(FILES_COMMENT_PREFIX))
+						.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
+												.skip(1)
+												.map(String::trim))
+						.map(replaceProperties)
+						.map(f -> toFileRef(f, siblingResolver))
+						.collect(Collectors.toCollection(ArrayList::new));
 	}
 
 	private RefTarget toFileRef(String fileReference, ResourceResolver siblingResolver) {
@@ -346,21 +339,20 @@ public abstract class Source {
 	}
 
 	public List<Source> collectSources(ResourceResolver siblingResolver) {
-		if (getLines() == null) {
+		if (getContents() == null) {
 			return Collections.emptyList();
 		} else {
 			String org = getResourceRef().getOriginalResource();
 			Path baseDir = org != null ? getResourceRef().getFile().getAbsoluteFile().getParentFile().toPath()
 					: Util.getCwd();
-			return getLines()	.stream()
-								.filter(f -> f.startsWith(SOURCES_COMMENT_PREFIX))
-								.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
-														.skip(1)
-														.map(String::trim))
-								.map(replaceProperties)
-								.flatMap(line -> Util.explode(org, baseDir, line).stream())
-								.map(ref -> forResource(siblingResolver, ref, replaceProperties))
-								.collect(Collectors.toCollection(ArrayList::new));
+			return getTags().filter(f -> f.startsWith(SOURCES_COMMENT_PREFIX))
+							.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
+													.skip(1)
+													.map(String::trim))
+							.map(replaceProperties)
+							.flatMap(line -> Util.explode(org, baseDir, line).stream())
+							.map(ref -> forResource(siblingResolver, ref, replaceProperties))
+							.collect(Collectors.toCollection(ArrayList::new));
 		}
 	}
 

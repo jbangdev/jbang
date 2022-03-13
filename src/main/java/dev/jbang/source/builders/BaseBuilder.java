@@ -161,10 +161,8 @@ public abstract class BaseBuilder implements Builder {
 		for (Map.Entry<String, String> entry : ctx.getProperties().entrySet()) {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
-		IntegrationResult integrationResult = IntegrationManager.runIntegration(ss.getRepositories(),
-				ss.getClassPath().getArtifacts(),
-				compileDir.toPath(), pomPath,
-				ss.getMainSource(), ctx.isNativeImage());
+		IntegrationResult integrationResult = IntegrationManager.runIntegrations(ss,
+				compileDir.toPath(), pomPath, ctx.isNativeImage(), requestedJavaVersion);
 		System.setProperties(old);
 
 		if (ctx.getMainClass() == null) { // if non-null user forced set main

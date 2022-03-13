@@ -14,4 +14,17 @@ public class IntegrationResult {
 		this.mainClass = mainClass;
 		this.javaArgs = javaArgs;
 	}
+
+	public IntegrationResult merged(IntegrationResult ir) {
+		if (ir.nativeImagePath == null && ir.mainClass == null && ir.javaArgs == null) {
+			return this;
+		} else if (nativeImagePath == null && mainClass == null && javaArgs == null) {
+			return ir;
+		} else {
+			return new IntegrationResult(
+					nativeImagePath != null ? nativeImagePath : ir.nativeImagePath,
+					mainClass != null ? mainClass : ir.mainClass,
+					javaArgs != null ? javaArgs : ir.javaArgs);
+		}
+	}
 }
