@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 import dev.jbang.source.Code;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
+import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 
@@ -79,6 +80,7 @@ public class Run extends BaseBuildCommand {
 			} else {
 				script = scriptOrFile;
 			}
+			Util.verboseMsg("Literal Script to execute: '" + script + "'");
 			code = ctx.forResourceRef(LiteralScriptResourceResolver.stringToResourceRef(null, script));
 		} else {
 			if (scriptOrFile != null) {
