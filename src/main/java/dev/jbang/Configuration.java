@@ -290,7 +290,9 @@ public class Configuration {
 	public static void write(Path configFile, Configuration cfg) throws IOException {
 		verboseMsg(String.format("Writing configuration to %s", configFile));
 		try (Writer out = Files.newBufferedWriter(configFile)) {
-			cfg.values.store(out);
+			Properties props = new Properties();
+			props.putAll(cfg.values);
+			props.store(out);
 		}
 	}
 
