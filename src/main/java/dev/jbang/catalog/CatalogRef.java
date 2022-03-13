@@ -52,6 +52,15 @@ public class CatalogRef extends CatalogItem {
 		if (catalog != null) {
 			catalogRef = catalog.catalogs.get(catalogName);
 		}
+		if (catalogRef == null && Util.isValidPath(catalogName)) {
+			Path p = Util.getCwd().resolve(catalogName);
+			if (!p.getFileName().toString().equals(Catalog.JBANG_CATALOG_JSON)) {
+				p = p.resolve(Catalog.JBANG_CATALOG_JSON);
+			}
+			if (Files.isRegularFile(p)) {
+				catalogRef = createByRefOrImplicit(p.toString());
+			}
+		}
 		if (catalogRef == null) {
 			Util.verboseMsg("Local catalog '" + catalogName + "' not found, trying implicit catalogs...");
 			Optional<String> url = ImplicitCatalogRef.getImplicitCatalogUrl(catalogName);

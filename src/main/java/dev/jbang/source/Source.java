@@ -19,6 +19,7 @@ import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.MavenRepo;
+import dev.jbang.source.resolvers.SiblingResourceResolver;
 import dev.jbang.source.sources.*;
 import dev.jbang.source.sources.KotlinSource;
 import dev.jbang.source.sources.MarkdownSource;
@@ -322,21 +323,29 @@ public abstract class Source {
 	}
 
 	public List<RefTarget> collectFiles() {
+		return collectFiles(new SiblingResourceResolver(resourceRef, ResourceResolver.forResources()));
+	}
+
+	public List<RefTarget> collectFiles(ResourceResolver siblingResolver) {
 		return getLines()	.stream()
 							.filter(f -> f.startsWith(FILES_COMMENT_PREFIX))
 							.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
 													.skip(1)
 													.map(String::trim))
 							.map(replaceProperties)
-							.map(this::toFileRef)
+							.map(f -> toFileRef(f, siblingResolver))
 							.collect(Collectors.toCollection(ArrayList::new));
 	}
 
-	private RefTarget toFileRef(String fileReference) {
-		return RefTarget.create(resourceRef.getOriginalResource(), fileReference);
+	private RefTarget toFileRef(String fileReference, ResourceResolver siblingResolver) {
+		return RefTarget.create(fileReference, siblingResolver);
 	}
 
 	public List<Source> collectSources() {
+		return collectSources(new SiblingResourceResolver(resourceRef, ResourceResolver.forResources()));
+	}
+
+	public List<Source> collectSources(ResourceResolver siblingResolver) {
 		if (getLines() == null) {
 			return Collections.emptyList();
 		} else {
@@ -350,18 +359,18 @@ public abstract class Source {
 														.map(String::trim))
 								.map(replaceProperties)
 								.flatMap(line -> Util.explode(org, baseDir, line).stream())
-								.map(this::getSibling)
+								.map(ref -> forResource(siblingResolver, ref, replaceProperties))
 								.collect(Collectors.toCollection(ArrayList::new));
 		}
 	}
 
-	public Source getSibling(String resource) {
-		ResourceRef siblingRef = resourceRef.asSibling(resource);
-		return forResourceRef(siblingRef, replaceProperties);
+	public static Source forResource(String resource, Function<String, String> replaceProperties) {
+		return forResource(ResourceResolver.forResources(), resource, replaceProperties);
 	}
 
-	public static Source forResource(String resource, Function<String, String> replaceProperties) {
-		ResourceRef resourceRef = ResourceRef.forResource(resource);
+	public static Source forResource(ResourceResolver resolver, String resource,
+			Function<String, String> replaceProperties) {
+		ResourceRef resourceRef = resolver.resolve(resource);
 		if (resourceRef == null) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Could not find: " + resource);
 		}

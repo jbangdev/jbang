@@ -412,9 +412,9 @@ public class RunContext {
 		Function<String, String> propsResolver = it -> PropertiesValueResolver.replaceProperties(it,
 				getContextProperties());
 		return sources	.stream()
-						.map(s -> Source.forResourceRef(resolver.resolve(s), propsResolver))
+						.map(resolver::resolve)
+						.map(ref -> Source.forResourceRef(ref, propsResolver))
 						.collect(Collectors.toList());
-
 	}
 
 	private ModularClassPath resolveDependency(String dep) {
@@ -424,9 +424,7 @@ public class RunContext {
 	}
 
 	public Code forResource(String resource) {
-		Catalog catalog = getCatalog() != null ? Catalog.get(getCatalog().toPath()) : null;
-		ResourceResolver resolver = ResourceResolver.forScripts(this::resolveDependency, catalog);
-		ResourceRef resourceRef = resolver.resolve(resource);
+		ResourceRef resourceRef = getResourceResolver().resolve(resource);
 
 		// Support URLs as script files
 		// just proceed if the script file is a regular file at this point
@@ -485,14 +483,19 @@ public class RunContext {
 		if (resourceRef.getFile().getName().endsWith(".jar")) {
 			code = Jar.prepareJar(resourceRef);
 		} else {
-			code = createSourceSet(Source.forResourceRef(resourceRef,
-					it -> PropertiesValueResolver.replaceProperties(it, getContextProperties())));
+			code = createSourceSet(createSource(resourceRef));
 		}
 		return code;
 	}
 
+	private Source createSource(ResourceRef resourceRef) {
+		return Source.forResourceRef(resourceRef,
+				it -> PropertiesValueResolver.replaceProperties(it, getContextProperties()));
+
+	}
+
 	private SourceSet createSourceSet(Source src) {
-		SourceSet ss = SourceSet.forSource(src);
+		SourceSet ss = SourceSet.forSource(src, getResourceResolver());
 		ss.addRepositories(allToMavenRepo(replaceAllProps(getAdditionalRepositories())));
 		ss.addDependencies(replaceAllProps(getAdditionalDependencies()));
 		ss.addClassPaths(replaceAllProps(getAdditionalClasspaths()));
@@ -503,6 +506,11 @@ public class RunContext {
 			ss.setJavaVersion(javaVersion);
 		}
 		return ss;
+	}
+
+	private ResourceResolver getResourceResolver() {
+		Catalog catalog = getCatalog() != null ? Catalog.get(getCatalog().toPath()) : null;
+		return ResourceResolver.forScripts(this::resolveDependency, catalog);
 	}
 
 }

@@ -15,10 +15,12 @@ import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.source.generators.JarCmdGenerator;
 import dev.jbang.source.generators.JshCmdGenerator;
+import dev.jbang.source.resolvers.SiblingResourceResolver;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 public class SourceSet implements Code {
+	private final ResourceResolver resolver;
 	private final List<Source> sources = new ArrayList<>();
 	private final List<RefTarget> resources = new ArrayList<>();
 	private final List<String> dependencies = new ArrayList<>();
@@ -36,10 +38,15 @@ public class SourceSet implements Code {
 	private Jar jar;
 
 	public static SourceSet forSource(Source mainSource) {
-		return new SourceSet(mainSource);
+		return new SourceSet(mainSource, ResourceResolver.forResources());
 	}
 
-	private SourceSet(Source mainSource) {
+	public static SourceSet forSource(Source mainSource, ResourceResolver resolver) {
+		return new SourceSet(mainSource, resolver);
+	}
+
+	private SourceSet(Source mainSource, ResourceResolver resolver) {
+		this.resolver = resolver;
 		addSource(mainSource);
 		this.description = mainSource.getDescription().orElse(null);
 		this.gav = mainSource.getGav().orElse(null);
@@ -85,7 +92,8 @@ public class SourceSet implements Code {
 					this.javaVersion = version;
 				}
 			}
-			for (Source includedSource : source.collectSources()) {
+			ResourceResolver siblingResolver = new SiblingResourceResolver(source.getResourceRef(), resolver);
+			for (Source includedSource : source.collectSources(siblingResolver)) {
 				addSource(includedSource, javaVersion, refs);
 			}
 		}

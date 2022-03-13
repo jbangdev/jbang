@@ -8,7 +8,6 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
@@ -24,19 +23,18 @@ import dev.jbang.util.Util;
  * document to the cache and return a reference to that file.
  */
 public class RemoteResourceResolver implements ResourceResolver {
-	private final Function<String, ResourceRef> urlFetcher;
+	private final boolean alwaysTrust;
 
-	public RemoteResourceResolver(Function<String, ResourceRef> urlFetcher) {
-		this.urlFetcher = urlFetcher;
+	public RemoteResourceResolver(boolean alwaysTrust) {
+		this.alwaysTrust = alwaysTrust;
 	}
 
 	@Override
-	public ResourceRef resolve(String resource) {
+	public ResourceRef resolve(String resource, boolean trusted) {
 		ResourceRef result = null;
 
 		if (resource.startsWith("http://") || resource.startsWith("https://") || resource.startsWith("file:/")) {
-			// support url's as script files
-			result = urlFetcher.apply(resource);
+			result = alwaysTrust || trusted ? fetchFromURL(resource) : fetchScriptFromUntrustedURL(resource);
 		}
 
 		return result;

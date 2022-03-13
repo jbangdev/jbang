@@ -53,7 +53,7 @@ public class RefTarget {
 		}
 	}
 
-	public static RefTarget create(String base, String fileReference) {
+	public static RefTarget create(String fileReference, ResourceResolver siblingResolver) {
 		String[] split = fileReference.split(" // ")[0].split("=", 2);
 		String ref;
 		String dest = null;
@@ -76,10 +76,10 @@ public class RefTarget {
 					"Only relative paths allowed in //FILES. Found absolute path: " + dest);
 		}
 
-		return create(base, ref, p);
+		return create(ref, p, siblingResolver);
 	}
 
-	public static RefTarget create(String base, String ref, Path dest) {
-		return new RefTarget(ResourceRef.forResource(base).asSibling(ref), dest);
+	public static RefTarget create(String ref, Path dest, ResourceResolver siblingResolver) {
+		return new RefTarget(siblingResolver.resolve(ref), dest);
 	}
 }
