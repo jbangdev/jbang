@@ -656,6 +656,42 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "soul2zimate",
+      "name": "Chao Wang",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1904517?v=4",
+      "profile": "https://github.com/soul2zimate",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "Chromico",
+      "name": "Chromico Rek",
+      "avatar_url": "https://avatars.githubusercontent.com/u/32539454?v=4",
+      "profile": "https://github.com/Chromico",
+      "contributions": [
+        "infra"
+      ]
+    },
+    {
+      "login": "eltociear",
+      "name": "Ikko Ashimine",
+      "avatar_url": "https://avatars.githubusercontent.com/u/22633385?v=4",
+      "profile": "https://bandism.net/",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "phillip-kruger",
+      "name": "Phillip Krüger",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6836179?v=4",
+      "profile": "http://www.phillip-kruger.com",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "skipCi": true,
