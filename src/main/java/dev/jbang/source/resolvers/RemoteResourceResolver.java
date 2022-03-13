@@ -46,7 +46,9 @@ public class RemoteResourceResolver implements ResourceResolver {
 		try {
 			java.net.URI uri = new java.net.URI(scriptURL);
 
-			if (!TrustedSources.instance().isURLTrusted(uri)) {
+			String swizzledUrl = swizzleURL(scriptURL);
+
+			if (!Util.isFileCached(swizzledUrl) && !TrustedSources.instance().isURLTrusted(uri)) {
 				String question = scriptURL + " is not from a trusted source thus not running it automatically.\n" +
 						"\n" +
 						"If you trust the url to be safe to run you can do one of the following";
@@ -54,7 +56,8 @@ public class RemoteResourceResolver implements ResourceResolver {
 				String trustUrl = goodTrustURL(scriptURL);
 				String trustOrgUrl = orgURL(trustUrl);
 				List<String> options = new ArrayList<>();
-				options.add("Trust once: Add no trust, just run this time");
+				options.add(
+						"Trust once: Add no trust, just download this time (can be run multiple times while cached)");
 				options.add("Trust limited url in future: " + trustUrl);
 				if (trustOrgUrl != null) {
 					options.add("Trust organization url in future: " + trustOrgUrl);
@@ -82,8 +85,7 @@ public class RemoteResourceResolver implements ResourceResolver {
 				}
 			}
 
-			scriptURL = swizzleURL(scriptURL);
-			Path path = Util.swizzleContent(scriptURL, Util.downloadAndCacheFile(scriptURL));
+			Path path = Util.swizzleContent(swizzledUrl, Util.downloadAndCacheFile(swizzledUrl));
 
 			return ResourceRef.forCachedResource(scriptURL, path.toFile());
 		} catch (IOException | URISyntaxException e) {

@@ -725,6 +725,20 @@ public class Util {
 	}
 
 	/**
+	 * Checks if a file was previously downloaded and is available in the cache. The
+	 * result takes into account the connection status and freshness requests.
+	 *
+	 * @param fileURL HTTP URL of the file to check
+	 * @return boolean indicating if the file can be retrieved from the cache
+	 * @throws IOException
+	 */
+	public static boolean isFileCached(String fileURL) throws IOException {
+		Path urlCache = Util.getUrlCache(fileURL);
+		Path file = getFirstFile(urlCache);
+		return ((!Util.isFresh() || Util.isOffline()) && file != null);
+	}
+
+	/**
 	 * Either retrieves a previously downloaded file from the cache or downloads a
 	 * file from a URL and stores it in the cache. NB: The last part of the URL must
 	 * contain the name of the file to be downloaded!
