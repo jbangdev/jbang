@@ -412,7 +412,7 @@ public class RunContext {
 		Function<String, String> propsResolver = it -> PropertiesValueResolver.replaceProperties(it,
 				getContextProperties());
 		return sources	.stream()
-						.map(resolver::resolve)
+						.map(s -> resolveChecked(resolver, s))
 						.map(ref -> Source.forResourceRef(ref, propsResolver))
 						.collect(Collectors.toList());
 	}
@@ -424,14 +424,7 @@ public class RunContext {
 	}
 
 	public Code forResource(String resource) {
-		ResourceRef resourceRef = getResourceResolver().resolve(resource);
-
-		// Support URLs as script files
-		// just proceed if the script file is a regular file at this point
-		if (resourceRef == null || !resourceRef.getFile().canRead()) {
-			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
-					"Script or alias could not be found or read: '" + resource + "'");
-		}
+		ResourceRef resourceRef = resolveChecked(getResourceResolver(), resource);
 
 		if (resourceRef instanceof AliasResourceResolver.AliasedResourceRef) {
 			// The resource we found was obtained from an alias which might
@@ -471,6 +464,17 @@ public class RunContext {
 		// note script file must be not null at this point
 		setOriginalRef(resource);
 		return forResourceRef(resourceRef);
+	}
+
+	private static ResourceRef resolveChecked(ResourceResolver resolver, String resource) {
+		ResourceRef ref = resolver.resolve(resource);
+		// Support URLs as script files
+		// just proceed if the script file is a regular file at this point
+		if (ref == null || !ref.getFile().canRead()) {
+			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+					"Script or alias could not be found or read: '" + resource + "'");
+		}
+		return ref;
 	}
 
 	public Code forFile(File resourceFile) {
