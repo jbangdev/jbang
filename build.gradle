@@ -33,7 +33,7 @@ dependencies {
 	implementation 'org.codehaus.plexus:plexus-java:1.0.6'
 	implementation 'com.google.code.gson:gson:2.8.6'
 	implementation 'org.jsoup:jsoup:1.13.1'
-	implementation 'org.codejive:java-properties:0.0.3'
+	implementation 'org.codejive:java-properties:0.0.4'
 
 	implementation 'com.github.jbangdev.jbang-resolver:shrinkwrap-resolver-api:3.1.5-allowpom'
 	implementation 'com.github.jbangdev.jbang-resolver:shrinkwrap-resolver-impl-maven:3.1.5-allowpom'
