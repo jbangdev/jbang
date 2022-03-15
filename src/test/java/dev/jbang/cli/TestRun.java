@@ -1834,4 +1834,20 @@ public class TestRun extends BaseTest {
 					"Error transferring file: dummyrepo from http://dummyrepo/dummygroup/dummyart/0.1/dummyart-0.1.pom"));
 		}
 	}
+
+	@Test
+	void testMissingSource() throws IOException {
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "-s", "missing.jsh", "-i");
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+		try {
+			SourceSet ss = (SourceSet) ctx.forResourceRef(LiteralScriptResourceResolver.stringToResourceRef(null, ""));
+		} catch (ExitException ex) {
+			StringWriter sw = new StringWriter();
+			ex.printStackTrace(new PrintWriter(sw));
+			assertThat(sw.toString(), containsString(
+					"Script or alias could not be found or read: 'missing.jsh'"));
+		}
+	}
 }
