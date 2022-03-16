@@ -283,4 +283,44 @@ public class TestTemplate extends BaseTest {
 				new AbstractMap.SimpleEntry<>("second-test-key", new TemplateProperty(
 						"This is another description for the second property key", "Non-Blocker"))));
 	}
+
+	@Test
+	void testGetTemplateFromLocalCatalog() throws IOException {
+		Path templatesFile = jbangTempDir.resolve("templates.json");
+		Files.write(templatesFile, templates.getBytes());
+
+		String cat = "{\n" +
+				"  \"catalogs\": {\n" +
+				"    \"local\": {\n" +
+				"      \"catalog-ref\": \"" + templatesFile + "\"\n" +
+				"    }\n" +
+				"  }\n" +
+				"}";
+		Path catFile = jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON);
+		Files.write(catFile, cat.getBytes());
+
+		assertThat(Template.get("one@local"), notNullValue());
+		assertThat(Template.get("one"), notNullValue());
+	}
+
+	@Test
+	void testGetAliasFromImplicitCatalog() throws IOException {
+		Path catFile = jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON);
+		Util.deletePath(catFile, true);
+		Path templatesFile = jbangTempDir.resolve("templates.json");
+		Files.write(templatesFile, templates.getBytes());
+
+		String cat = "{\n" +
+				"  \"catalogs\": {\n" +
+				"    \"local\": {\n" +
+				"      \"catalog-ref\": \"" + templatesFile + "\"\n" +
+				"    }\n" +
+				"  }\n" +
+				"}";
+		Path implicitCatFile = Settings.getUserImplicitCatalogFile();
+		Files.write(implicitCatFile, cat.getBytes());
+
+		assertThat(Template.get("one@local"), notNullValue());
+		assertThat(Template.get("one"), nullValue());
+	}
 }
