@@ -23,6 +23,7 @@ function fn() {
         !('JBANG_REPO' in env) && (env.JBANG_REPO = sc + sep + "karate-m2")
         !('JBANG_DIR' in env) && (env.JBANG_DIR = sc + sep + "karate-jbang")
         !('JBANG_NO_VERSION_CHECK' in env) && (env.JBANG_NO_VERSION_CHECK = "true")
+        env.NO_COLOR="1"
 
         var proc = karate.fork({ redirectErrorStream: false, useShell: true, line: line, env: env});
         proc.waitSync();
