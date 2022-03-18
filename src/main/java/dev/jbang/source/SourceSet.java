@@ -32,6 +32,7 @@ public class SourceSet implements Code {
 	private String javaVersion;
 	private String description;
 	private String gav;
+	private String mainClass;
 
 	private ModularClassPath mcp;
 	private File jarFile;
@@ -253,6 +254,15 @@ public class SourceSet implements Code {
 	public SourceSet setGav(String gav) {
 		this.gav = gav;
 		return this;
+	}
+
+	@Override
+	public String getMainClass() {
+		return mainClass;
+	}
+
+	public void setMainClass(String mainClass) {
+		this.mainClass = mainClass;
 	}
 
 	@Override

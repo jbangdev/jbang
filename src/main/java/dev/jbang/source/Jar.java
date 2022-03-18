@@ -85,6 +85,16 @@ public class Jar implements Code {
 	public SourceSet asSourceSet() {
 		if (sourceSet == null) {
 			sourceSet = SourceSet.forSource(Source.forResourceRef(resourceRef, null));
+			sourceSet.setMainClass(getMainClass());
+			sourceSet.addRuntimeOptions(getRuntimeOptions());
+			sourceSet.setJavaVersion(getJavaVersion().orElse(null));
+			// TODO deduplicate with code from updateDependencyResolver()
+			if (resourceRef.getOriginalResource() != null
+					&& DependencyUtil.looksLikeAGav(resourceRef.getOriginalResource())) {
+				sourceSet.addDependency(resourceRef.getOriginalResource());
+			} else if (classPath != null) {
+				sourceSet.addClassPaths(Arrays.asList(classPath.split(" ")));
+			}
 		}
 		return sourceSet;
 	}
