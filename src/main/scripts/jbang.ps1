@@ -66,31 +66,36 @@ if (Test-Path "$PSScriptRoot\jbang.jar") {
 } elseif (Test-Path "$PSScriptRoot\.jbang\jbang.jar") {
   $jarPath="$PSScriptRoot\.jbang\jbang.jar"
 } else {
-  $zidir = New-TemporaryFile | % { Remove-Item $_; New-Item -ItemType Directory -Path $_ }
-  try {
+  if (-not (Test-Path "$JBDIR\bin\jbang.jar") -or -not (Test-Path "$JBDIR\bin\jbang.ps1")) {
+    [Console]::Error.WriteLine("Downloading JBang...")
+    New-Item -ItemType Directory -Force -Path "$TDIR\urls" >$null 2>&1
     $jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.zip"
-    try { Invoke-WebRequest "$jburl" -OutFile "$zidir\jbang.zip"; $ok=$? } catch {
+    try { Invoke-WebRequest "$jburl" -OutFile "$TDIR\urls\jbang.zip"; $ok=$? } catch {
       $ok=$false
       $err=$_
     }
-    if (-not ($ok)) {
-      [Console]::Error.WriteLine("Error downloading JBang")
+    if (-not ($ok)) { 
+      [Console]::Error.WriteLine("Error downloading JBang from $jburl to $TDIR\urls\jbang.zip")
       [Console]::Error.WriteLine($err)
-      break
+      break 
     }
-    try { Expand-Archive -Path "$zidir\jbang.zip" -DestinationPath "$zidir"; $ok=$? } catch {
-      $ok=$false
+    [Console]::Error.WriteLine("Installing JBang...")
+    Remove-Item -LiteralPath "$TDIR\urls\jbang" -Force -Recurse -ErrorAction Ignore >$null 2>&1
+    try { Expand-Archive -Path "$TDIR\urls\jbang.zip" -DestinationPath "$TDIR\urls"; $ok=$? } catch {
+      $ok=$false 
       $err=$_
     }
-    if (-not ($ok)) {
-      [Console]::Error.WriteLine("Error unpacking JBang")
+    if (-not ($ok)) { 
+      [Console]::Error.WriteLine("Error unzipping JBang from $TDIR\urls\jbang.zip to $TDIR\urls")
       [Console]::Error.WriteLine($err)
-      break
+      break 
     }
-    . "$zidir\jbang\bin\jbang.ps1" @args
-  } finally {
-    Remove-Item -LiteralPath "$zidir" -Force -Recurse -ErrorAction Ignore >$null 2>&1
+    New-Item -ItemType Directory -Force -Path "$JBDIR\bin" >$null 2>&1
+    Remove-Item -LiteralPath "$JBDIR\bin\jbang" -Force -ErrorAction Ignore >$null 2>&1
+    Remove-Item -Path "$JBDIR\bin\jbang.*" -Force -ErrorAction Ignore >$null 2>&1
+    Copy-Item -Path "$TDIR\urls\jbang\bin\*" -Destination "$JBDIR\bin" -Force >$null 2>&1
   }
+  . "$JBDIR\bin\jbang.ps1" @args
   break
 }
 if (Test-Path "$jarPath.new") {

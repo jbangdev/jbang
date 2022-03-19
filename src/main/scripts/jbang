@@ -144,15 +144,21 @@ if [ -f "$abs_jbang_dir/jbang.jar" ]; then
 elif [ -f "$abs_jbang_dir/.jbang/jbang.jar" ]; then
   jarPath=$abs_jbang_dir/.jbang/jbang.jar
 else
-  zidir=$(mktemp -d "$(basename $0).XXXXXXXXXX")
-  trap "rm -rf $zidir" EXIT
-  jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.tar"
-  download $jburl "$zidir/jbang.tar"
-  if [ $retval -ne 0 ]; then echo "Error downloading JBang" 1>&2; exit $retval; fi
-  tar xf "$zidir/jbang.tar" -C "$zidir"
-  if [ $retval -ne 0 ]; then echo "Error unpacking JBang" 1>&2; exit $retval; fi
-  "$zidir"/jbang/bin/jbang "$@"
-  rm -rf "$zidir"
+  if [[ ! -f "$JBDIR/bin/jbang.jar" || ! -f "$JBDIR/bin/jbang" ]]; then
+    echo "Downloading JBang..." 1>&2
+    mkdir -p "$TDIR/urls"
+    jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.tar"
+    download $jburl "$TDIR/urls/jbang.tar"
+    if [ $retval -ne 0 ]; then echo "Error downloading JBang" 1>&2; exit $retval; fi
+    echo "Installing JBang..." 1>&2
+    rm -rf "$TDIR/urls/jbang"
+    tar xf "$TDIR/urls/jbang.tar" -C "$TDIR/urls"
+    if [ $retval -ne 0 ]; then echo "Error installing JBang" 1>&2; exit $retval; fi
+    mkdir -p "$JBDIR/bin"
+    rm -f "$JBDIR/bin/jbang" "$JBDIR/bin"/jbang.*
+    cp -f "$TDIR/urls/jbang/bin"/* "$JBDIR/bin"
+  fi
+  "$JBDIR"/bin/jbang "$@"
   exit $?
 fi
 if [ -f "$jarPath.new" ]; then
