@@ -1372,8 +1372,8 @@ public class Util {
 	}
 
 	public static int askInput(String message, int timeout, int defaultValue, String... options) {
-		ConsoleInput con = ConsoleInput.get(1, timeout, TimeUnit.SECONDS);
-		if (con != null) {
+		if (!"true".equalsIgnoreCase(System.getenv(JBANG_STDIN_NOTTY))) {
+			ConsoleInput con = new ConsoleInput(1, timeout, TimeUnit.SECONDS);
 			StringBuilder msg = new StringBuilder(message + "\n\n");
 			for (int i = 0; i < options.length; i++) {
 				msg.append("(").append(i + 1).append(") ").append(options[i]).append("\n");
@@ -1418,10 +1418,6 @@ public class Util {
 			errorMsg("No console and no graphical interface, we can't ask for feedback!");
 		}
 		return -1;
-	}
-
-	public static boolean haveConsole() {
-		return !"true".equalsIgnoreCase(System.getenv(JBANG_STDIN_NOTTY));
 	}
 
 	private static void setupApplicationIcon() {

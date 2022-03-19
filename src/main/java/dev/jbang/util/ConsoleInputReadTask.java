@@ -2,21 +2,17 @@ package dev.jbang.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.concurrent.Callable;
 
 public class ConsoleInputReadTask implements Callable<String> {
-	private final InputStream in;
-
-	public ConsoleInputReadTask(InputStream in) {
-		this.in = in;
-	}
-
 	public String call() throws IOException {
-		BufferedReader br = new BufferedReader(new InputStreamReader(in));
+		BufferedReader br = new BufferedReader(
+				new InputStreamReader(System.in));
+		// System.out.println("ConsoleInputReadTask run() called.");
 		String input;
 		do {
+			// System.out.println("Please type something: ");
 			try {
 				// wait until we have data to complete a readLine()
 				while (!br.ready()) {
@@ -24,9 +20,11 @@ public class ConsoleInputReadTask implements Callable<String> {
 				}
 				input = br.readLine();
 			} catch (InterruptedException e) {
+				// System.out.println("ConsoleInputReadTask() cancelled");
 				return null;
 			}
 		} while ("".equals(input));
+		// System.out.println("Thank You for providing input!");
 		return input;
 	}
 }
