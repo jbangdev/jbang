@@ -52,7 +52,9 @@ jobs:
       - name: install-java8
         uses: actions/setup-java@v1
         with:
-          java-version: 8
+          java-version: 11
+          distribution: temurin
+          cache: gradle
       - name: build-gradle
         run: ./gradlew clean build installDist --build-cache --scan -s
       - name: integration-test-non-windows
