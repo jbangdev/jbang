@@ -142,7 +142,9 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           export PATH=`pwd`/build/install/jbang/bin:$PATH
-          cd itests
+          cd build/itests
+          chmod +x ./test_suite.sh
+          chmod +x ./itests.sh
           ./test_suite.sh
           ./itests.sh
       - name: add-to-path
