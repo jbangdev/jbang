@@ -355,4 +355,24 @@ public class TestInit extends BaseTest {
 
 	}
 
+	@Test
+	void testResolveBaseNameShouldResolveFilenameOrBasename() {
+		// Use case when the {filename} should be resolved to the input name -
+		// result.java
+		String scriptName = "result.java";
+		Path path = Init.resolveBaseName("{filename}", "template-for-script.java", scriptName);
+		assertThat(path.toString(), containsString("result.java"));
+
+		// Use case when the {filename} can not be resolved because the input is
+		// result.java but the reference source has .tf extension not .java
+		ExitException exitException = assertThrows(ExitException.class,
+				() -> Init.resolveBaseName("{filename}", "template-for-script.tf", scriptName));
+		String exceptionMessage = "Template expects tf extension, not java";
+		assertThat(exitException.getMessage(), containsString(exceptionMessage));
+
+		// Use case when the {basename} is being used with prefix and with not .java
+		// extension, and the reference soure also has the .tf extension
+		path = Init.resolveBaseName("template-for-{basename}.tf", "template-for-script.tf", scriptName);
+		assertThat(path.toString(), containsString("template-for-result.tf"));
+	}
 }
