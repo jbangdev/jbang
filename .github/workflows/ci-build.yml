@@ -142,9 +142,16 @@ jobs:
           ./build/install/jbang/bin/jbang init --template=qcli qcli.java
           ./build/install/jbang/bin/jbang --fresh qcli.java
           rm qcli.java
+      - name: smoke-quarkus-diff-version-test
+        run: |
+          java -version
+          chmod +x ./build/install/jbang/bin/jbang
+          ./build/install/jbang/bin/jbang init --template=qcli qcli.java
+          ./build/install/jbang/bin/jbang --fresh --java 17 qcli.java
+          rm qcli.java
       - name: integration-test-non-windows
         ## karate can't run on java 17 or higher due to missing nashorn
-        if: runner.os != 'Windows' || runner.java >= 17
+        if: runner.os != 'Windows' || runner.java != '17'
         run: |
           export PATH=`pwd`/build/install/jbang/bin:$PATH
           cd build/itests
