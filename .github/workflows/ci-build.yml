@@ -113,6 +113,8 @@ jobs:
   testing:
     needs: build
     strategy:
+      ## disable fail-fast so on variance failing don't fail the rest
+      fail-fast: false
       matrix:
         os: [ubuntu-latest]
         java: [8,11,17]
