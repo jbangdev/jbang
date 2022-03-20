@@ -324,4 +324,35 @@ public class TestInit extends BaseTest {
 
 	}
 
+	@Test
+	void testInitUsingTemplateWithFilenameAndBasename() throws IOException {
+		Path cwd = Util.getCwd();
+		Path javaFileQute = Files.write(cwd.resolve("file1.java.qute"), "Hello World".getBytes());
+		Path tfFileQute = Files.write(cwd.resolve("file2.tf.qute"), "Hello World from .tf file".getBytes());
+		Path outJava = cwd.resolve("result.java");
+		Path outTf = cwd.resolve("prefixed-result.tf");
+
+		JBang	.getCommandLine()
+				.execute("template", "add", "-f", cwd.toString(), "--name=template-with-more-files",
+						"{filename}" + "=" + javaFileQute.toAbsolutePath().toString(),
+						"prefixed-{basename}.tf" + "=" + tfFileQute.toAbsolutePath().toString());
+
+		assertThat(outJava.toFile().exists(), not(true));
+
+		int result = JBang	.getCommandLine()
+							.execute("init", "--verbose", "--template=template-with-more-files",
+									outJava.toAbsolutePath().toString());
+
+		assertThat(result, is(0));
+		assertThat(outJava.toFile().exists(), is(true));
+		assertThat(outTf.toFile().exists(), is(true));
+
+		String javaContent = Util.readString(outJava);
+		String tfContent = Util.readString(outTf);
+
+		assertThat(javaContent, containsString("Hello World"));
+		assertThat(tfContent, containsString("Hello World from .tf file"));
+
+	}
+
 }
