@@ -126,9 +126,7 @@ public class Init extends BaseScriptCommand {
 
 	static Path resolveBaseName(String refTarget, String refSource, String outName) {
 		String result = refTarget;
-		if (dev.jbang.cli.Template.TPL_FILENAME_PATTERN.matcher(refTarget).find()
-				|| dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(refTarget).find()) {
-			String baseName = Util.base(outName);
+		if (dev.jbang.cli.Template.TPL_FILENAME_PATTERN.matcher(refTarget).find()) {
 			String outExt = Util.extension(outName);
 			String targetExt = Util.extension(refTarget);
 			if (targetExt.isEmpty()) {
@@ -140,6 +138,9 @@ public class Init extends BaseScriptCommand {
 						"Template expects " + targetExt + " extension, not " + outExt);
 			}
 			result = dev.jbang.cli.Template.TPL_FILENAME_PATTERN.matcher(result).replaceAll(outName);
+		}
+		if (dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(refTarget).find()) {
+			String baseName = Util.base(outName);
 			result = dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(result).replaceAll(baseName);
 		}
 		return Paths.get(result);
