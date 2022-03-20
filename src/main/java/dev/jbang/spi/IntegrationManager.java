@@ -1,9 +1,21 @@
 package dev.jbang.spi;
 
-import static dev.jbang.cli.BaseCommand.*;
+import static dev.jbang.cli.BaseCommand.EXIT_GENERIC_ERROR;
+import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
 import static dev.jbang.util.JavaUtil.resolveInJavaHome;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintStream;
+import java.io.StringReader;
+import java.io.Writer;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -12,7 +24,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
@@ -40,7 +58,8 @@ public class IntegrationManager {
 	public static final String MAIN_CLASS = "main-class";
 	public static final String JAVA_ARGS = "java-args";
 
-	private static final GsonBuilder gsonb = new GsonBuilder().registerTypeAdapter(Path.class, new PathTypeAdapter());
+	private static final GsonBuilder gsonb = new GsonBuilder().registerTypeHierarchyAdapter(Path.class,
+			new PathTypeAdapter());
 
 	/**
 	 * Discovers all integration points and runs them.

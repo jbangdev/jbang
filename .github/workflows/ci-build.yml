@@ -114,7 +114,7 @@ jobs:
     needs: build
     strategy:
       ## disable fail-fast so on variance failing don't fail the rest
-      fail-fast: false
+      #fail-fast: false
       matrix:
         os: [ubuntu-latest]
         java: [8,11,17]
@@ -151,7 +151,7 @@ jobs:
           rm qcli.java
       - name: integration-test-non-windows
         ## karate can't run on java 17 or higher due to missing nashorn
-        if: runner.os != 'Windows' || runner.java != '17'
+        if: runner.os != 'Windows' && matrix.java < 17
         run: |
           export PATH=`pwd`/build/install/jbang/bin:$PATH
           cd build/itests
@@ -162,7 +162,7 @@ jobs:
       - name: add-to-path
         run: echo "../build/install/jbang/bin" >> $env:GITHUB_PATH
       - name: integration-test-windows
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && matrix.java < 17
         working-directory: itests
         run: |
           echo "::add-matcher::.github/karatewindows-matcher.json" 
