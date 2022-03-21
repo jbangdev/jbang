@@ -178,6 +178,11 @@ public class TestInit extends BaseTest {
 		testFailMultipleFiles("{filename}", "edit.md", "edit.java", true, 2);
 	}
 
+	@Test
+	void testInitMultipleFilesWrongName2() throws IOException {
+		testFailMultipleFiles("{basename}.java", "edit.md", "edit.java", true, 2);
+	}
+
 	void testInitMultipleFiles(String targetName, String initName, String outName, boolean abs) throws IOException {
 		Path outFile = setupInitMultipleFiles(targetName, initName, abs);
 		int result = JBang.getCommandLine().execute("init", "-t=name", outFile.toString());
