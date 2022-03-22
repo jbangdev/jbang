@@ -71,7 +71,7 @@ class AppInstall extends BaseCommand {
 					throw new IllegalArgumentException(
 							"It's not possible to install jbang with a different name");
 				}
-				installed = installJBang(force);
+				installed = installJBang(force, false);
 			} else {
 				if ("jbang".equals(name)) {
 					throw new IllegalArgumentException("jbang is a reserved name.");
@@ -80,6 +80,9 @@ class AppInstall extends BaseCommand {
 					throw new IllegalArgumentException("Not a valid command name: '" + name + "'");
 				}
 				installed = install(name, scriptRef, force, benative);
+				if (installed) {
+					installJBang(false, true);
+				}
 			}
 			if (installed) {
 				if (AppSetup.needsSetup()) {
@@ -168,12 +171,14 @@ class AppInstall extends BaseCommand {
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 	}
 
-	public static boolean installJBang(boolean force) throws IOException {
+	public static boolean installJBang(boolean force, boolean quiet) throws IOException {
 		Path binDir = Settings.getConfigBinDir();
 		boolean managedJBang = Files.exists(binDir.resolve("jbang.jar"));
 
 		if (!force && (managedJBang || Util.searchPath("jbang") != null)) {
-			Util.infoMsg("jbang is already available, re-run with --force to install anyway.");
+			if (!quiet) {
+				Util.infoMsg("jbang is already available, re-run with --force to install anyway.");
+			}
 			return false;
 		}
 
@@ -201,7 +206,9 @@ class AppInstall extends BaseCommand {
 				copyJBangFiles(fromDir, binDir);
 			}
 		} else {
-			Util.infoMsg("jbang is already installed.");
+			if (!quiet) {
+				Util.infoMsg("jbang is already installed.");
+			}
 		}
 		return true;
 	}
