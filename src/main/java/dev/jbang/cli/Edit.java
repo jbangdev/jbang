@@ -16,6 +16,7 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import dev.jbang.Cache;
@@ -64,92 +65,112 @@ public class Edit extends BaseScriptCommand {
 		}
 
 		RunContext ctx = getRunContext();
-		Code code = ctx.forResource(scriptOrFile);
+		final Code code = ctx.forResource(scriptOrFile);
 
 		if (!(code instanceof SourceSet)) {
 			throw new ExitException(EXIT_INVALID_INPUT, "You can only edit source files");
 		}
 
 		SourceSet ss = (SourceSet) code;
-		File project = createProjectForEdit(ss, ctx, false);
+		File project = createProjectForLinkedEdit(ss, ctx, false);
 		String projectPathString = Util.pathToString(project.getAbsoluteFile().toPath());
 		// err.println(project.getAbsolutePath());
 
 		if (!noOpen) {
-			if (!editor.isPresent() || editor.get().isEmpty()) {
-				editor = askEditor();
-				if (!editor.isPresent()) {
-					return EXIT_OK;
-				}
-			} else {
-				showStartingMsg(editor.get(), !editor.get().equals(spec.findOption("open").defaultValue()));
-			}
-			if ("gitpod".equals(editor.get()) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
-				info("Open this url to edit the project in your gitpod session:\n\n"
-						+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + project.getAbsolutePath() + "\n\n");
-			} else {
-				List<String> optionList = new ArrayList<>();
-				optionList.add(editor.get());
-				optionList.add(projectPathString);
-
-				String[] cmd;
-				if (Util.getShell() == Shell.bash) {
-					final String editorCommand = String.join(" ", escapeOSArguments(optionList, Shell.bash));
-					cmd = new String[] { "sh", "-c", editorCommand };
-				} else {
-					final String editorCommand = String.join(" ", escapeOSArguments(optionList, Shell.cmd));
-					cmd = new String[] { "cmd", "/c", editorCommand };
-				}
-				verboseMsg("Running `" + String.join(" ", cmd) + "`");
-				new ProcessBuilder(cmd).start();
-			}
+			openEditor(project, projectPathString);
 		}
 
 		if (!live) {
 			out.println(projectPathString); // quit(project.getAbsolutePath());
 		} else {
-			try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
-				File orginalFile = code.getResourceRef().getFile();
-				if (!orginalFile.exists()) {
-					throw new ExitException(EXIT_UNEXPECTED_STATE,
-							"Cannot live edit " + code.getResourceRef().getOriginalResource());
+			watchForChanges(code, () -> {
+				// TODO only regenerate when dependencies changes.
+				info("Regenerating project.");
+				try {
+					createProjectForLinkedEdit((SourceSet) code, RunContext.empty(), true);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
 				}
-				Path watched = orginalFile.getAbsoluteFile().getParentFile().toPath();
-				watched.register(watchService,
-						StandardWatchEventKinds.ENTRY_MODIFY);
-				info("Watching for changes in " + watched);
-				while (true) {
-					final WatchKey wk = watchService.take();
-					for (WatchEvent<?> event : wk.pollEvents()) {
-						// we only register "ENTRY_MODIFY" so the context is always a Path.
-						// but relative to the watched directory
-						final Path changed = watched.resolve((Path) event.context());
-						verboseMsg("Changed file: " + changed.toString());
-						if (Files.isSameFile(orginalFile.toPath(), changed)) {
-							try {
-								// TODO only regenerate when dependencies changes.
-								info("Regenerating project.");
-								ctx = RunContext.empty();
-								code = ctx.forResource(scriptOrFile);
-								ss = (SourceSet) code;
-								createProjectForEdit(ss, ctx, true);
-							} catch (RuntimeException ee) {
-								warn("Error when re-generating project. Ignoring it, but state might be undefined: "
-										+ ee.getMessage());
-							}
-						}
-					}
-					// reset the key
-					boolean valid = wk.reset();
-					if (!valid) {
-						warn("edit-live file watch key no longer valid!");
-					}
-				}
-			} catch (InterruptedException e) {
-				warn("edit-live interrupted");
-			}
+				return null;
+			});
 		}
 		return EXIT_OK;
+	}
+
+	private void watchForChanges(Code code, Callable<Object> action) throws IOException {
+		try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
+			File orginalFile = code.getResourceRef().getFile();
+			if (!orginalFile.exists()) {
+				throw new ExitException(EXIT_UNEXPECTED_STATE,
+						"Cannot live edit " + code.getResourceRef().getOriginalResource());
+			}
+			Path watched = orginalFile.getAbsoluteFile().getParentFile().toPath();
+			watched.register(watchService,
+					StandardWatchEventKinds.ENTRY_MODIFY);
+			info("Watching for changes in " + watched);
+			while (true) {
+				final WatchKey wk = watchService.take();
+				for (WatchEvent<?> event : wk.pollEvents()) {
+					// we only register "ENTRY_MODIFY" so the context is always a Path.
+					// but relative to the watched directory
+					final Path changed = watched.resolve((Path) event.context());
+					verboseMsg("Changed file: " + changed.toString());
+					if (Files.isSameFile(orginalFile.toPath(), changed)) {
+						try {
+							action.call();
+						} catch (RuntimeException ee) {
+							warn("Error when re-generating project. Ignoring it, but state might be undefined: "
+									+ ee.getMessage());
+						} catch (IOException ioe) {
+							throw ioe;
+						} catch (Exception e) {
+							throw new ExitException(EXIT_GENERIC_ERROR, "Exception when re-generating project. Exiting",
+									e);
+						}
+					}
+				}
+				// reset the key
+				boolean valid = wk.reset();
+				if (!valid) {
+					warn("edit-live file watch key no longer valid!");
+				}
+			}
+		} catch (InterruptedException e) {
+			warn("edit-live interrupted");
+		}
+	}
+
+	// try open editor if possible and install if needed, returns true if editor
+	// started, false if not possible (i.e. editor not available)
+	private boolean openEditor(File project, String projectPathString) throws IOException {
+		if (!editor.isPresent() || editor.get().isEmpty()) {
+			editor = askEditor();
+			if (!editor.isPresent()) {
+				return false;
+			}
+		} else {
+			showStartingMsg(editor.get(), !editor.get().equals(spec.findOption("open").defaultValue()));
+		}
+		if ("gitpod".equals(editor.get()) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
+			info("Open this url to edit the project in your gitpod session:\n\n"
+					+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + project.getAbsolutePath() + "\n\n");
+		} else {
+			List<String> optionList = new ArrayList<>();
+			optionList.add(editor.get());
+			optionList.add(projectPathString);
+
+			String[] cmd;
+			if (Util.getShell() == Shell.bash) {
+				final String editorCommand = String.join(" ", escapeOSArguments(optionList, Shell.bash));
+				cmd = new String[] { "sh", "-c", editorCommand };
+			} else {
+				final String editorCommand = String.join(" ", escapeOSArguments(optionList, Shell.cmd));
+				cmd = new String[] { "cmd", "/c", editorCommand };
+			}
+			verboseMsg("Running `" + String.join(" ", cmd) + "`");
+			new ProcessBuilder(cmd).start();
+		}
+		return true;
 	}
 
 	RunContext getRunContext() {
@@ -166,7 +187,6 @@ public class Edit extends BaseScriptCommand {
 	private static Optional<String> askEditor() throws IOException {
 		Path editorBinPath = EditorManager.getVSCodiumBinPath();
 		Path dataPath = EditorManager.getVSCodiumDataPath();
-		Path editorPath = EditorManager.getVSCodiumPath();
 
 		if (!Files.exists(editorBinPath)) {
 			String question = "You requested to open default editor but no default editor configured.\n" +
@@ -242,7 +262,7 @@ public class Edit extends BaseScriptCommand {
 	}
 
 	/** Create Project to use for editing **/
-	File createProjectForEdit(SourceSet ss, RunContext ctx, boolean reload) throws IOException {
+	File createProjectForLinkedEdit(SourceSet ss, RunContext ctx, boolean reload) throws IOException {
 		File originalFile = ss.getResourceRef().getFile();
 
 		List<String> dependencies = ss.getDependencies();

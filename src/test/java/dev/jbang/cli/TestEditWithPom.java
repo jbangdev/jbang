@@ -49,7 +49,7 @@ public class TestEditWithPom extends BaseTest {
 		assertTrue(mainPath.toFile().exists());
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forResource(mainPath.toString());
-		File project = new Edit().createProjectForEdit(ss, ctx, false);
+		File project = new Edit().createProjectForLinkedEdit(ss, ctx, false);
 		assertTrue(new File(project, "src/main.java").exists());
 
 		File gradle = new File(project, "build.gradle");
