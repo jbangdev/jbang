@@ -1,10 +1,7 @@
 package dev.jbang.cli;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
 
 import java.io.File;
@@ -281,7 +278,7 @@ public class TestApp extends BaseTest {
 		checkedRun(null, "app", "install", "--name=hello3", src);
 		ExecutionResult result = checkedRun(null, "app", "list");
 		assertThat(result.exitCode, equalTo(BaseCommand.EXIT_OK));
-		assertThat(result.normalizedOut(), equalTo("hello1\nhello2\nhello3\n"));
+		assertThat(result.normalizedOut(), startsWith("hello1\nhello2\nhello3\n"));
 	}
 
 	@Test
