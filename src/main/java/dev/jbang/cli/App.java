@@ -183,7 +183,18 @@ class AppInstall extends BaseCommand {
 		}
 
 		if (force || !managedJBang) {
-			if (!Util.isOffline()) {
+			if (Util.isOffline() || haveAllJBangFiles() && !force && !Util.isFresh()) {
+				Path jar = Util.getJarLocation();
+				if (!jar.toString().endsWith(".jar")) {
+					throw new ExitException(EXIT_GENERIC_ERROR, "Could not determine jbang location");
+				}
+				Path fromDir = jar.getParent();
+				if (fromDir.endsWith(".jbang")) {
+					fromDir = fromDir.getParent();
+				}
+				Util.infoMsg("Installing jbang...");
+				copyJBangFiles(fromDir, binDir);
+			} else { // !offline && (!haveAllFile || fresh)
 				// Download JBang and unzip to ~/.jbang/bin/
 				Util.setFresh(true);// TODO: workaround as url cache is not honoring changed redirects
 				Util.infoMsg("Downloading and installing jbang...");
@@ -193,16 +204,6 @@ class AppInstall extends BaseCommand {
 				UnpackUtil.unpack(zipFile, urlsDir);
 				App.deleteCommandFiles("jbang");
 				Path fromDir = urlsDir.resolve("jbang").resolve("bin");
-				copyJBangFiles(fromDir, binDir);
-			} else {
-				Path jar = Util.getJarLocation();
-				if (!jar.toString().endsWith(".jar")) {
-					throw new ExitException(EXIT_GENERIC_ERROR, "Could not determine jbang location");
-				}
-				Path fromDir = jar.getParent();
-				if (fromDir.endsWith(".jbang")) {
-					fromDir = fromDir.getParent();
-				}
 				copyJBangFiles(fromDir, binDir);
 			}
 		} else {
@@ -227,28 +228,43 @@ class AppInstall extends BaseCommand {
 		}
 	}
 
-	private static void copyJBangFiles(Path from, Path to) throws IOException {
+	private static void copyJBangFiles(Path from, Path to) {
 		to.toFile().mkdirs();
-		Stream	.of("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")
-				.map(Paths::get)
-				.forEach(f -> {
-					try {
-						Path fromp = from.resolve(f);
-						Path top = to.resolve(f);
-						if (f.endsWith("jbang.jar")) {
-							if (!Files.isReadable(fromp)) {
-								fromp = from.resolve(".jbang/jbang.jar");
-							}
-							if (Util.isWindows() && Files.isRegularFile(top)) {
-								top = to.resolve("jbang.jar.new");
-							}
-						}
-						Files.copy(fromp, top, StandardCopyOption.REPLACE_EXISTING,
-								StandardCopyOption.COPY_ATTRIBUTES);
-					} catch (IOException e) {
-						throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
+		listJBangFiles().forEach(f -> {
+			try {
+				Path fromp = from.resolve(f);
+				Path top = to.resolve(f);
+				if (f.endsWith("jbang.jar")) {
+					if (!Files.isReadable(fromp)) {
+						fromp = from.resolve(".jbang/jbang.jar");
 					}
-				});
+					if (Util.isWindows() && Files.isRegularFile(top)) {
+						top = to.resolve("jbang.jar.new");
+					}
+				}
+				Files.copy(fromp, top, StandardCopyOption.REPLACE_EXISTING,
+						StandardCopyOption.COPY_ATTRIBUTES);
+			} catch (IOException e) {
+				throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
+			}
+		});
+	}
+
+	private static boolean haveAllJBangFiles() {
+		Path jar = Util.getJarLocation();
+		if (jar.toString().endsWith(".jar")) {
+			return haveAllJBangFiles(jar.getParent());
+		} else {
+			return false;
+		}
+	}
+
+	private static boolean haveAllJBangFiles(Path from) {
+		return listJBangFiles().allMatch(f -> Files.isRegularFile(from.resolve(f)));
+	}
+
+	private static Stream<Path> listJBangFiles() {
+		return Stream.of("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar").map(Paths::get);
 	}
 }
 
