@@ -46,7 +46,7 @@ public class App {
 
 @CommandLine.Command(name = "install", description = "Install a script as a command.")
 class AppInstall extends BaseCommand {
-	private static final String jbangUrl = "https://www.jbang.dev/releases/latest/download/jbang.zip";
+	private static final String JBANG_DEFAULT_RELEASE_URL = "https://www.jbang.dev/releases/latest/download/jbang.zip";
 
 	@CommandLine.Option(names = {
 			"--native" }, description = "Enable native build/run")
@@ -187,7 +187,7 @@ class AppInstall extends BaseCommand {
 				// Download JBang and unzip to ~/.jbang/bin/
 				Util.setFresh(true);// TODO: workaround as url cache is not honoring changed redirects
 				Util.infoMsg("Downloading and installing jbang...");
-				Path zipFile = Util.downloadFileToCache(jbangUrl);
+				Path zipFile = Util.downloadFileToCache(getJBangDownloadUrl());
 				Path urlsDir = Settings.getCacheDir(Cache.CacheClass.urls);
 				Util.deletePath(urlsDir.resolve("jbang"), true);
 				UnpackUtil.unpack(zipFile, urlsDir);
@@ -211,6 +211,20 @@ class AppInstall extends BaseCommand {
 			}
 		}
 		return true;
+	}
+
+	private static String getJBangDownloadUrl() {
+		String url = System.getenv(Settings.JBANG_RELEASE_URL);
+		if (url == null) {
+			return JBANG_DEFAULT_RELEASE_URL;
+		} else {
+			// We don't support .tar files, so we'll change the extension
+			// to .zip and hope it exists.
+			if (Util.extension(url) == ".tar") {
+				url = url.substring(0, url.length() - 4) + ".zip";
+			}
+			return url;
+		}
 	}
 
 	private static void copyJBangFiles(Path from, Path to) throws IOException {

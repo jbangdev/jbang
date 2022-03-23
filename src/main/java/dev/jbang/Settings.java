@@ -11,6 +11,7 @@ public class Settings {
 	public static final String JBANG_REPO = "JBANG_REPO";
 	public static final String JBANG_DIR = "JBANG_DIR";
 	public static final String JBANG_CACHE_DIR = "JBANG_CACHE_DIR";
+	public static final String JBANG_RELEASE_URL = "JBANG_RELEASE_URL";
 
 	public static final String TRUSTED_SOURCES_JSON = "trusted-sources.json";
 	public static final String DEPENDENCY_CACHE_JSON = "dependency_cache.json";

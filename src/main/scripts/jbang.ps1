@@ -57,6 +57,12 @@ if (-not (Test-Path env:JBANG_JDK_VENDOR)) {
 }
 if (-not (Test-Path env:JBANG_JDK_RELEASE)) { $release="ga" } else { $release=$env:JBANG_JDK_RELEASE }
 
+if (-not (Test-Path env:JBANG_RELEASE_URL)) {
+    $jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.zip"
+} else {
+    $jburl=$env:JBANG_RELEASE_URL
+}
+
 if (-not (Test-Path env:JBANG_DIR)) { $JBDIR="$env:userprofile\.jbang" } else { $JBDIR=$env:JBANG_DIR }
 if (-not (Test-Path env:JBANG_CACHE_DIR)) { $TDIR="$JBDIR\cache" } else { $TDIR=$env:JBANG_CACHE_DIR }
 
@@ -68,7 +74,6 @@ if (Test-Path "$PSScriptRoot\jbang.jar") {
 } else {
   $zidir = New-TemporaryFile | % { Remove-Item $_; New-Item -ItemType Directory -Path $_ }
   try {
-    $jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.zip"
     try { Invoke-WebRequest "$jburl" -OutFile "$zidir\jbang.zip"; $ok=$? } catch {
       $ok=$false
       $err=$_

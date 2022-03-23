@@ -135,6 +135,12 @@ else
 fi
 if [[ -z "$JBANG_JDK_RELEASE" ]]; then release="ga"; else release="$JBANG_JDK_RELEASE"; fi
 
+if [[ -z "$JBANG_RELEASE_URL" ]]; then
+  jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.tar";
+else
+  jburl="$JBANG_RELEASE_URL";
+fi
+
 if [[ -z "$JBANG_DIR" ]]; then JBDIR="$HOME/.jbang"; else JBDIR="$JBANG_DIR"; fi
 if [[ -z "$JBANG_CACHE_DIR" ]]; then TDIR="$JBDIR/cache"; else TDIR="$JBANG_CACHE_DIR"; fi
 
@@ -146,7 +152,6 @@ elif [ -f "$abs_jbang_dir/.jbang/jbang.jar" ]; then
 else
   zidir=$(mktemp -d "$(basename $0).XXXXXXXXXX")
   trap "rm -rf $zidir" EXIT
-  jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.tar"
   download $jburl "$zidir/jbang.tar"
   if [ $retval -ne 0 ]; then echo "Error downloading JBang" 1>&2; exit $retval; fi
   tar xf "$zidir/jbang.tar" -C "$zidir"
