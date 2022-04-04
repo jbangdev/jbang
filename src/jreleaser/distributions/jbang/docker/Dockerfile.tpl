@@ -25,6 +25,7 @@ ADD ./entrypoint /bin/entrypoint
 
 ENV SCRIPTS_HOME /scripts
 ENV JBANG_VERSION {{projectVersion}}
+ENV JBANG_PATH=/jbang/bin
 
 VOLUME /scripts
 

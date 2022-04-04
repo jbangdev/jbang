@@ -14,8 +14,8 @@ EOF
 fi
 
 if [[ ! -z "$INPUT_TRUST" ]]; then
-  jbang trust add $INPUT_TRUST
+  $JBANG_PATH/jbang trust add $INPUT_TRUST
 fi
 
 echo jbang $INPUT_JBANGARGS $INPUT_SCRIPT $INPUT_ARGS "${@}"
-exec jbang $INPUT_JBANGARGS $INPUT_SCRIPT $INPUT_SCRIPTARGS "${@}"
+exec $JBANG_PATH/jbang $INPUT_JBANGARGS $INPUT_SCRIPT $INPUT_SCRIPTARGS "${@}"
