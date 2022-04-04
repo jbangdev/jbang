@@ -298,6 +298,10 @@ public class RunContext {
 		return javaVersion;
 	}
 
+	public String getJavaVersionOr(Code code) {
+		return javaVersion != null ? javaVersion : code.getJavaVersion().orElse(null);
+	}
+
 	public File getCatalog() {
 		return catalogFile;
 	}

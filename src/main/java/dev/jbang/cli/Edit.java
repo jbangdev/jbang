@@ -2,6 +2,7 @@ package dev.jbang.cli;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
 import static dev.jbang.source.builders.BaseBuilder.escapeOSArguments;
+import static dev.jbang.util.Util.searchPath;
 import static dev.jbang.util.Util.verboseMsg;
 import static java.lang.System.out;
 
@@ -25,6 +26,7 @@ import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.JitPackUtil;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.net.EditorManager;
+import dev.jbang.net.JdkManager;
 import dev.jbang.source.*;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
@@ -73,14 +75,14 @@ public class Edit extends BaseScriptCommand {
 
 		SourceSet ss = (SourceSet) code;
 		File project = createProjectForLinkedEdit(ss, ctx, false);
-		String projectPathString = Util.pathToString(project.getAbsoluteFile().toPath());
 		// err.println(project.getAbsolutePath());
 
 		if (!noOpen) {
-			openEditor(project, projectPathString);
+			openEditor(ss, ctx, project);
 		}
 
 		if (!live) {
+			String projectPathString = Util.pathToString(project.getAbsoluteFile().toPath());
 			out.println(projectPathString); // quit(project.getAbsolutePath());
 		} else {
 			watchForChanges(code, () -> {
@@ -142,7 +144,7 @@ public class Edit extends BaseScriptCommand {
 
 	// try open editor if possible and install if needed, returns true if editor
 	// started, false if not possible (i.e. editor not available)
-	private boolean openEditor(File project, String projectPathString) throws IOException {
+	private boolean openEditor(SourceSet ss, RunContext ctx, File project) throws IOException {
 		if (!editor.isPresent() || editor.get().isEmpty()) {
 			editor = askEditor();
 			if (!editor.isPresent()) {
@@ -155,6 +157,7 @@ public class Edit extends BaseScriptCommand {
 			info("Open this url to edit the project in your gitpod session:\n\n"
 					+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + project.getAbsolutePath() + "\n\n");
 		} else {
+			String projectPathString = Util.pathToString(project.getAbsoluteFile().toPath());
 			List<String> optionList = new ArrayList<>();
 			optionList.add(editor.get());
 			optionList.add(projectPathString);
@@ -168,7 +171,23 @@ public class Edit extends BaseScriptCommand {
 				cmd = new String[] { "cmd", "/c", editorCommand };
 			}
 			verboseMsg("Running `" + String.join(" ", cmd) + "`");
-			new ProcessBuilder(cmd).start();
+			ProcessBuilder pb = new ProcessBuilder(cmd);
+			Path javaHome = JdkManager.getCurrentJdk(ctx.getJavaVersionOr(ss));
+			if (javaHome == null) {
+				// If no Java home was returned it means we're using the default
+				// Java version on the user's PATH. In that case we'll try to
+				// determine the JDK home by looking for `javac` on the PATH.
+				Path javac = searchPath("javac");
+				if (javac != null) {
+					javac = javac.toRealPath();
+					javaHome = javac.getParent().getParent();
+				}
+			}
+			if (javaHome != null) {
+				pb.environment().put("JAVA_HOME", javaHome.toString());
+				pb.environment().put("PATH", javaHome.resolve("bin") + File.pathSeparator + System.getenv("PATH"));
+			}
+			pb.start();
 		}
 		return true;
 	}

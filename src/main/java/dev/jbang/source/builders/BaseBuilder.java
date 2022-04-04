@@ -67,7 +67,7 @@ public abstract class BaseBuilder implements Builder {
 		File outjar = ss.getJarFile();
 		boolean nativeBuildRequired = ctx.isNativeImage() && !getImageName(outjar).exists();
 		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
-		String requestedJavaVersion = getRequestedJavaVersion();
+		String requestedJavaVersion = ctx.getJavaVersionOr(ss);
 		// always build the jar for native mode
 		// it allows integrations the options to produce the native image
 		boolean buildRequired = true;
@@ -127,7 +127,7 @@ public abstract class BaseBuilder implements Builder {
 
 	// build with javac and then jar...
 	public IntegrationResult compile() throws IOException {
-		String requestedJavaVersion = getRequestedJavaVersion();
+		String requestedJavaVersion = ctx.getJavaVersionOr(ss);
 		File compileDir = getCompileDir();
 		List<String> optionList = new ArrayList<>();
 		optionList.add(getCompilerBinary(requestedJavaVersion));
@@ -256,7 +256,7 @@ public abstract class BaseBuilder implements Builder {
 	protected void buildNative()
 			throws IOException {
 		List<String> optionList = new ArrayList<>();
-		optionList.add(resolveInGraalVMHome("native-image", getRequestedJavaVersion()));
+		optionList.add(resolveInGraalVMHome("native-image", ctx.getJavaVersionOr(ss)));
 
 		optionList.add("-H:+ReportExceptionStackTraces");
 
@@ -517,10 +517,6 @@ public abstract class BaseBuilder implements Builder {
 			Util.writeString(pomPath, pomfile);
 		}
 		return pomPath;
-	}
-
-	protected String getRequestedJavaVersion() {
-		return ctx.getJavaVersion() != null ? ctx.getJavaVersion() : ss.getJavaVersion().orElse(null);
 	}
 
 	protected File getCompileDir() {
