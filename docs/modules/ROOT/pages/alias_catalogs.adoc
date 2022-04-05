@@ -47,7 +47,7 @@ The full format is `<alias>@<user/org>(/repository)(/branch)(~path)` or `<alias>
 |Command | Description
 
 |`jbang hello@acme.corp`
-|`hello` alias found in `https://acme.corp/jbang-catalog.json` if available or the default branch searched on github, gitlab and bitbucket in that order.
+|`hello` alias found in `https://acme.corp/jbang-catalog.json` if available.
 
 |`jbang hello@acme.corp/a/path/to/jbang-catalog.json`
 |`hello` alias found in `https://acme.corp/a/path/to/jbang-catalog.json` if available.
@@ -72,9 +72,9 @@ JBang will also look in the current directory for a `jbang-catalog.json` file an
 in there too. In fact it will look in several places in the following order:
 
  1. Current directory, `./jbang-catalog.json`
- 2. In `.jbang/jbang-catalog.json`
+ 2. In `./.jbang/jbang-catalog.json`
  3. In the parent directory, `../jbang-catalog.json`
- 4. In the parent's `.jbang` directory, ../.jbang/jbang-catalog.json`
+ 4. In the parent's `.jbang` directory, `../.jbang/jbang-catalog.json`
  5. And repeating steps 3 and 4 recursively upwards to the root of the file system
  6. As the last step it will look in `$HOME/.jbang/jbang-catalog.json`
 
