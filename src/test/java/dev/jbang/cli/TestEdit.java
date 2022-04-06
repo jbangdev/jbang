@@ -46,7 +46,7 @@ public class TestEdit extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forResource(s);
 
-		File project = new Edit().createProjectForEdit(ss, ctx, false);
+		File project = new Edit().createProjectForLinkedEdit(ss, ctx, false);
 
 		assertThat(new File(project, "src"), FileMatchers.anExistingDirectory());
 		File build = new File(project, "build.gradle");
@@ -86,7 +86,7 @@ public class TestEdit extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forResource(s);
 
-		File project = new Edit().createProjectForEdit(ss, ctx, false);
+		File project = new Edit().createProjectForLinkedEdit(ss, ctx, false);
 
 		File gradle = new File(project, "build.gradle");
 		assert (gradle.exists());
@@ -121,7 +121,7 @@ public class TestEdit extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forResource(s);
 
-		File project = new Edit().createProjectForEdit(ss, ctx, false);
+		File project = new Edit().createProjectForLinkedEdit(ss, ctx, false);
 
 		File gradle = new File(project, "build.gradle");
 		assert (gradle.exists());
@@ -154,7 +154,7 @@ public class TestEdit extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forResource(s);
 
-		File project = new Edit().createProjectForEdit(ss, ctx, false);
+		File project = new Edit().createProjectForLinkedEdit(ss, ctx, false);
 
 		File gradle = new File(project, "build.gradle");
 		assert (gradle.exists());
@@ -174,7 +174,7 @@ public class TestEdit extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forResource(p.toString());
 
-		File project = new Edit().createProjectForEdit(ss, ctx, false);
+		File project = new Edit().createProjectForLinkedEdit(ss, ctx, false);
 
 		File gradle = new File(project, "build.gradle");
 		assert (gradle.exists());
@@ -199,7 +199,7 @@ public class TestEdit extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forResource(s);
 
-		File project = new Edit().createProjectForEdit(ss, ctx, false);
+		File project = new Edit().createProjectForLinkedEdit(ss, ctx, false);
 
 		File java = new File(project, "src/KubeExample.java");
 
@@ -218,7 +218,7 @@ public class TestEdit extends BaseTest {
 		SourceSet ss = (SourceSet) ctx.forResource(p.toString());
 		ss.getClassPath();
 
-		File project = new Edit().createProjectForEdit(ss, ctx, false);
+		File project = new Edit().createProjectForLinkedEdit(ss, ctx, false);
 
 		File gradle = new File(project, "build.gradle");
 		assert (gradle.exists());
