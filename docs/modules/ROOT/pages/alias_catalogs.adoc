@@ -47,7 +47,7 @@ The full format is `<alias>@<user/org>(/repository)(/branch)(~path)` or `<alias>
 |Command | Description
 
 |`jbang hello@acme.corp`
-|`hello` alias found in `https://acme.corp/jbang-catalog.json` if available.
+|`hello` alias found in `https://acme.corp/jbang-catalog.json` if available or the default branch searched on github, gitlab and bitbucket in that order.
 
 |`jbang hello@acme.corp/a/path/to/jbang-catalog.json`
 |`hello` alias found in `https://acme.corp/a/path/to/jbang-catalog.json` if available.
