@@ -19,7 +19,7 @@ public class StrictParameterPreprocessor implements CommandLine.IParameterPrepro
 	public boolean preprocess(Stack<String> args, CommandLine.Model.CommandSpec commandSpec,
 			CommandLine.Model.ArgSpec argSpec, Map<String, Object> info) {
 		if (" ".equals(info.get("separator"))) { // parameter was not attached to option
-			// act as if the user specifed fallback value
+			// act as if the user specified fallback value
 			args.push(((CommandLine.Model.OptionSpec) argSpec).fallbackValue());
 		}
 		return false;
