@@ -6,8 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import dev.jbang.catalog.Catalog;
-import dev.jbang.cli.BaseCommand;
-import dev.jbang.cli.ExitException;
+import dev.jbang.cli.ResourceNotFoundException;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.source.ResourceResolver;
 import dev.jbang.util.Util;
@@ -24,6 +23,11 @@ public class SiblingResourceResolver implements ResourceResolver {
 	public SiblingResourceResolver(ResourceRef sibling, ResourceResolver resolver) {
 		this.sibling = sibling;
 		this.resolver = resolver;
+	}
+
+	@Override
+	public String description() {
+		return String.format("%s via %s", sibling.getOriginalResource(), resolver.description());
 	}
 
 	@Override
@@ -48,11 +52,11 @@ public class SiblingResourceResolver implements ResourceResolver {
 			}
 			ResourceRef result = resolver.resolve(sr, true);
 			if (result == null) {
-				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Could not find " + resource);
+				throw new ResourceNotFoundException(resource, "Could not find " + resource);
 			}
 			return result;
 		} catch (URISyntaxException e) {
-			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, e);
+			throw new ResourceNotFoundException(resource, "Syntax error when trying to find " + resource, e);
 		}
 	}
 }

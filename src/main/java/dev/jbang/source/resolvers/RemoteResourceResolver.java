@@ -30,6 +30,11 @@ public class RemoteResourceResolver implements ResourceResolver {
 	}
 
 	@Override
+	public String description() {
+		return String.format("%s remote resource", alwaysTrust ? "Trusted" : "Non-trusted");
+	}
+
+	@Override
 	public ResourceRef resolve(String resource, boolean trusted) {
 		ResourceRef result = null;
 

@@ -1,6 +1,7 @@
 package dev.jbang.source.resolvers;
 
 import java.io.File;
+import java.util.Objects;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -19,6 +20,12 @@ public class AliasResourceResolver implements ResourceResolver {
 	public AliasResourceResolver(@Nullable Catalog catalog, @Nonnull ResourceResolver resolver) {
 		this.catalog = catalog;
 		this.resolver = resolver;
+	}
+
+	@Override
+	public String description() {
+		return String.format("Alias %s from catalog %s", resolver.description(),
+				Objects.toString(catalog.getScriptBase(), "<none>"));
 	}
 
 	@Override

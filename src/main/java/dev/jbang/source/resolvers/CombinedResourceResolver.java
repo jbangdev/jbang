@@ -3,6 +3,7 @@ package dev.jbang.source.resolvers;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import dev.jbang.source.ResourceRef;
 import dev.jbang.source.ResourceResolver;
@@ -27,5 +28,11 @@ public class CombinedResourceResolver implements ResourceResolver {
 						.filter(Objects::nonNull)
 						.findFirst()
 						.orElse(null);
+	}
+
+	@Override
+	public String description() {
+		return String.format("Chain of [%s]",
+				resolvers.stream().map(r -> r.description()).collect(Collectors.joining(", ")));
 	}
 }

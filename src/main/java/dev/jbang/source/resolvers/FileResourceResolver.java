@@ -13,6 +13,12 @@ import dev.jbang.util.Util;
  * to that file.
  */
 public class FileResourceResolver implements ResourceResolver {
+
+	@Override
+	public String description() {
+		return "File Resource resolver";
+	}
+
 	@Override
 	public ResourceRef resolve(String resource) {
 		ResourceRef result = null;

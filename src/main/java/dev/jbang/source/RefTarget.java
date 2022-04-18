@@ -1,5 +1,6 @@
 package dev.jbang.source;
 
+import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
 import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
 import dev.jbang.cli.ExitException;
+import dev.jbang.cli.ResourceNotFoundException;
 import dev.jbang.util.Util;
 
 /**
@@ -76,7 +78,15 @@ public class RefTarget {
 					"Only relative paths allowed in //FILES. Found absolute path: " + dest);
 		}
 
-		return create(ref, p, siblingResolver);
+		try {
+			return create(ref, p, siblingResolver);
+		} catch (ResourceNotFoundException rnfe) {
+			throw new ExitException(EXIT_INVALID_INPUT, String.format("Could not find '%s' when resolving '%s' in %s",
+					rnfe.getResourceDescription(),
+					fileReference,
+					siblingResolver.description()),
+					rnfe);
+		}
 	}
 
 	public static RefTarget create(String ref, Path dest, ResourceResolver siblingResolver) {

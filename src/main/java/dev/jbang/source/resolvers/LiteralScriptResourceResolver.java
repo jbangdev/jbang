@@ -46,6 +46,11 @@ public class LiteralScriptResourceResolver implements ResourceResolver {
 		return result;
 	}
 
+	@Override
+	public String description() {
+		return "Literal stdin";
+	}
+
 	public static ResourceRef stringToResourceRef(String resource, String scriptText) throws IOException {
 		ResourceRef result;
 		String urlHash = Util.getStableID(scriptText);

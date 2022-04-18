@@ -75,6 +75,7 @@ public class TestUtil extends BaseTest {
 
 		assertThat(p, hasItem("res/resource.java"));
 		assertThat(p, not(hasItem("hello.jsh")));
+		assertThat(p, hasItem("quote.java"));
 
 		p.clear();
 		p.addAll(Util.explode(source, baseDir, "**/*.jsh"));

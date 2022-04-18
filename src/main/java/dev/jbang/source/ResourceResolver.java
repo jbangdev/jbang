@@ -56,6 +56,8 @@ public interface ResourceResolver {
 		return resolve(resource, false);
 	}
 
+	String description();
+
 	/**
 	 * Factory method that returns a resource resolver that knows how to deal with
 	 * script/source files. It should be passed a function for dealing with Maven
