@@ -23,6 +23,11 @@ import dev.jbang.util.Util;
  */
 public class ClasspathResourceResolver implements ResourceResolver {
 	@Override
+	public String description() {
+		return "Classpath resolver";
+	}
+
+	@Override
 	public ResourceRef resolve(String resource) {
 		ResourceRef result = null;
 

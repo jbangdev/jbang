@@ -8,16 +8,36 @@ import static dev.jbang.util.Util.writeString;
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.hasXPath;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.matchesPattern;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.startsWith;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
@@ -47,7 +67,11 @@ import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.net.TrustedSources;
-import dev.jbang.source.*;
+import dev.jbang.source.Code;
+import dev.jbang.source.Jar;
+import dev.jbang.source.RunContext;
+import dev.jbang.source.Source;
+import dev.jbang.source.SourceSet;
 import dev.jbang.source.builders.BaseBuilder;
 import dev.jbang.source.builders.JavaBuilder;
 import dev.jbang.source.generators.JarCmdGenerator;
@@ -1248,6 +1272,19 @@ public class TestRun extends BaseTest {
 					});
 
 		}
+
+	}
+
+	@Test
+	void testFileNotPresent() throws IOException {
+		File f = examplesTestFolder.resolve("brokenresource.java").toFile();
+
+		RunContext ctx = RunContext.empty();
+		ExitException root = assertThrows(ExitException.class, () -> ctx.forResource(f.getAbsolutePath()));
+		assertThat(root.getCause(), instanceOf(ResourceNotFoundException.class));
+		ResourceNotFoundException rnfe = (ResourceNotFoundException) root.getCause();
+		assertThat(root.toString(), containsString("'resourcethatdoesnotexist.properties"));
+		assertThat(root.toString(), containsString("brokenresource.java"));
 
 	}
 

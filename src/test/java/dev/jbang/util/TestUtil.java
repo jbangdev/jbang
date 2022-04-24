@@ -71,16 +71,18 @@ public class TestUtil extends BaseTest {
 
 		String source = ".";
 
-		final List<String> p = Util.explode(source, baseDir, "**/*.java");
+		final List<String> p = Util.explode(source, baseDir, "**.java");
 
 		assertThat(p, hasItem("res/resource.java"));
 		assertThat(p, not(hasItem("hello.jsh")));
+		assertThat(p, hasItem("quote.java"));
 
 		p.clear();
-		p.addAll(Util.explode(source, baseDir, "**/*.jsh"));
+		p.addAll(Util.explode(source, baseDir, "**/*.java"));
 
-		assertThat(p, not(hasItem("res/resource.java")));
-		assertThat(p, not(hasItem("test.java")));
+		assertThat(p, hasItem("res/resource.java"));
+		assertThat(p, not(hasItem("quote.java")));
+		assertThat(p, not(hasItem("main.jsh")));
 
 		p.clear();
 		p.addAll(Util.explode(source, baseDir, "res/resource.java"));

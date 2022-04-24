@@ -21,6 +21,11 @@ import dev.jbang.util.Util;
 public class RenamingScriptResourceResolver implements ResourceResolver {
 
 	@Override
+	public String description() {
+		return "Renaming resolver";
+	}
+
+	@Override
 	public ResourceRef resolve(String resource) {
 		ResourceRef result = null;
 

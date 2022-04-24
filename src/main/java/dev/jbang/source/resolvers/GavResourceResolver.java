@@ -21,6 +21,11 @@ public class GavResourceResolver implements ResourceResolver {
 	}
 
 	@Override
+	public String description() {
+		return "Maven GAV";
+	}
+
+	@Override
 	public ResourceRef resolve(String resource) {
 		ResourceRef result = null;
 
