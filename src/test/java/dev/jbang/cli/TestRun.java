@@ -662,25 +662,16 @@ public class TestRun extends BaseTest {
 
 	@Test
 	void testDependenciesWithRanges() throws IOException {
-
 		environmentVariables.clear("JAVA_HOME");
-		JBang jbang = new JBang();
 		String arg = examplesTestFolder.resolve("classpath_log_grab_with_ranges.java").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", arg);
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
 		ctx.setMainClass("fakemain");
+		SourceSet ss = (SourceSet) ctx.forResource(arg);
+		String result = ss.cmdGenerator(ctx).generate();
 
-		ScriptSource src = (ScriptSource) ctx.forResource(arg);
-
-		String result = run.generateCommandLine(src, ctx);
-
-		assertThat(result, startsWith("java "));
-		assertThat(result, containsString("classpath_log_grab_with_ranges.java"));
-//		assertThat(result, containsString(" --source 11 "));
-		assertThat(result, not(containsString("  ")));
-		assertThat(result, containsString("classpath"));
 		assertThat(result, containsString("reload4j-1.2.18.5.jar"));
 	}
 
