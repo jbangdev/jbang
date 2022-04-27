@@ -766,7 +766,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("aclass"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(jar.getJarFile().toPath(), null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(jar.getJarFile().toPath(), (ClassLoader) null)) {
 			Path fileToExtract = fileSystem.getPath("META-INF/maven/dev/jbang/tests/pom.xml");
 
 			ByteArrayOutputStream s = new ByteArrayOutputStream();
@@ -1270,7 +1270,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("resource"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(jar.getJarFile().toPath(), null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(jar.getJarFile().toPath(), (ClassLoader) null)) {
 
 			Arrays	.asList("resource.properties", "renamed.properties", "META-INF/application.properties")
 					.forEach(path -> {
@@ -1315,7 +1315,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("one"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(jar.getJarFile().toPath(), null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(jar.getJarFile().toPath(), (ClassLoader) null)) {
 			Arrays	.asList("one.class", "Two.class", "gh_release_stats.class", "fetchlatestgraalvm.class")
 					.forEach(path -> {
 						try {
@@ -1560,7 +1560,7 @@ public class TestRun extends BaseTest {
 
 		ss.builder(ctx).build();
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(ss.getJarFile().toPath(), null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(ss.getJarFile().toPath(), (ClassLoader) null)) {
 			Arrays	.asList("one.class", "index.html")
 					.forEach(path -> {
 						try {
