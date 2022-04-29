@@ -5,6 +5,7 @@ import static dev.jbang.source.builders.BaseBuilder.getImageName;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.source.RunContext;
@@ -30,6 +31,8 @@ public class ExportMixin {
 	}, description = "Force export, i.e. overwrite exported file if already exists")
 	boolean force;
 
+	@CommandLine.Option(names = { "-s", "--sources" }, description = "Add additional sources.")
+	List<String> sources;
 	@CommandLine.Parameters(paramLabel = "scriptOrFile", index = "0", description = "A file or URL to a Java code file", arity = "1")
 	String scriptOrFile;
 
