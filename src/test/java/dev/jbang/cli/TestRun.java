@@ -49,6 +49,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.collection.IsCollectionWithSize;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -370,13 +371,11 @@ public class TestRun extends BaseTest {
 
 		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
 
-		String result = code.cmdGenerator(ctx).generate();
-		assertThat(result, matchesPattern("^.*java(.exe)?.*"));
-		assertThat(ctx.getMainClassOr(code), nullValue());
+		ExitException e = Assertions.assertThrows(ExitException.class,
+				() -> code.cmdGenerator(ctx).generate());
 
-		assertThat(code.isJar(), equalTo(true));
+		assertThat(e.getMessage(), startsWith("no main class"));
 
-		run.doCall();
 	}
 
 	@Test

@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import dev.jbang.Settings;
+import dev.jbang.cli.BaseCommand;
+import dev.jbang.cli.ExitException;
 import dev.jbang.source.*;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
@@ -112,6 +114,9 @@ public class JarCmdGenerator extends BaseCmdGenerator {
 			String mainClass = ctx.getMainClassOr(code);
 			if (mainClass != null) {
 				fullArgs.add(mainClass);
+			} else {
+				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+						"no main class deduced, specified nor found in a manifest");
 			}
 		}
 
