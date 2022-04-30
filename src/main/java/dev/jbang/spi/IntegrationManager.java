@@ -78,7 +78,9 @@ public class IntegrationManager {
 			repos.put(repo.getId(), repo.getUrl());
 		}
 		for (ArtifactInfo art : ss.getClassPath().getArtifacts()) {
-			deps.put(art.getCoordinate().toCanonicalForm(), art.getFile().toPath());
+			if (art.getCoordinate() != null) { // skipping dependencies that does not have a GAV
+				deps.put(art.getCoordinate().toCanonicalForm(), art.getFile().toPath());
+			}
 		}
 
 		List<String> comments = source.getTags().collect(Collectors.toList());
