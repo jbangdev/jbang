@@ -57,7 +57,7 @@ public class Export {
 		ctx.setAdditionalDependencies(exportMixin.dependencyInfoMixin.getDependencies());
 		ctx.setAdditionalRepositories(exportMixin.dependencyInfoMixin.getRepositories());
 		ctx.setAdditionalClasspaths(exportMixin.dependencyInfoMixin.getClasspaths());
-		// ctx.setAdditionalSources(exportMixin.sources);
+		ctx.setAdditionalSources(exportMixin.sources);
 		ctx.setJavaVersion(exportMixin.javaVersion);
 		ctx.setNativeImage(exportMixin.nativeImage);
 		return ctx;
