@@ -1,6 +1,6 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-74-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-75-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 ## Contributors ✨
 
@@ -105,6 +105,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/Chromico"><img src="https://avatars.githubusercontent.com/u/32539454?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Chromico Rek</b></sub></a><br /><a href="#infra-Chromico" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
     <td align="center"><a href="https://bandism.net/"><img src="https://avatars.githubusercontent.com/u/22633385?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ikko Ashimine</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=eltociear" title="Documentation">📖</a></td>
     <td align="center"><a href="http://www.phillip-kruger.com"><img src="https://avatars.githubusercontent.com/u/6836179?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Phillip Krüger</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=phillip-kruger" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/andreaTP"><img src="https://avatars.githubusercontent.com/u/5792097?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Andrea Peruffo</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=andreaTP" title="Code">💻</a></td>
   </tr>
 </table>
 

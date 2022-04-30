@@ -692,6 +692,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "andreaTP",
+      "name": "Andrea Peruffo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5792097?v=4",
+      "profile": "https://github.com/andreaTP",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,
