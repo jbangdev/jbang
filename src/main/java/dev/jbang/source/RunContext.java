@@ -51,6 +51,7 @@ public class RunContext {
 
 	private List<String> arguments;
 	private List<String> javaOptions;
+	private boolean runCmd;
 	private boolean interactive;
 	private boolean enableAssertions;
 	private boolean enableSystemAssertions;
@@ -76,6 +77,14 @@ public class RunContext {
 
 	public void setProperties(Map<String, String> properties) {
 		this.properties = properties;
+	}
+
+	public boolean isRunCommand() {
+		return runCmd;
+	}
+
+	public void setRunCommand(boolean runCmd) {
+		this.runCmd = runCmd;
 	}
 
 	public boolean isInteractive() {

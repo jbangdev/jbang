@@ -114,7 +114,7 @@ public class JarCmdGenerator extends BaseCmdGenerator {
 			String mainClass = ctx.getMainClassOr(code);
 			if (mainClass != null) {
 				fullArgs.add(mainClass);
-			} else {
+			} else if (!ctx.isInteractive() && ctx.isRunCommand()) {
 				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
 						"no main class deduced, specified nor found in a manifest");
 			}
