@@ -379,6 +379,31 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testHelloWorldGAVInteractiveWithNoMain() throws IOException {
+
+		environmentVariables.clear("JAVA_HOME");
+		JBang jbang = new JBang();
+
+		String jar = "info.picocli:picocli-codegen:4.5.0";
+
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar, "-i");
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+		Code code = ctx.forResource(jar);
+
+		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
+
+		String result = code.cmdGenerator(ctx).generate();
+		assertThat(result, matchesPattern("^.*java(.exe)?.*"));
+		assertThat(ctx.getMainClassOr(code), nullValue());
+
+		assertThat(code.isJar(), equalTo(true));
+
+		run.doCall();
+	}
+
+	@Test
 	void testHelloWorldGAVWithAMainViaAlias(@TempDir File jbangTempDir, @TempDir File testTempDir) throws IOException {
 
 		final String aliases = "{\n" +

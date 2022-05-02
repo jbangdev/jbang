@@ -109,6 +109,7 @@ public class Run extends BaseBuildCommand {
 
 	RunContext getRunContext() {
 		RunContext ctx = super.getRunContext();
+		ctx.setRunCommand(true);
 		ctx.setArguments(userParams);
 		ctx.setJavaOptions(javaRuntimeOptions);
 		ctx.setInteractive(interactive);
