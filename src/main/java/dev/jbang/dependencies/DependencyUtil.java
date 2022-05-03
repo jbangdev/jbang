@@ -119,8 +119,8 @@ public class DependencyUtil {
 		}
 
 		try {
-			List<ArtifactInfo> artifacts = resolveDependenciesViaAether(depIds, repos, offline, loggingEnabled,
-					transitivity);
+			List<ArtifactInfo> artifacts = resolveDependenciesViaAether(depIds, repos, offline, updateCache,
+					loggingEnabled, transitivity);
 
 			ModularClassPath classPath = new ModularClassPath(artifacts);
 
@@ -143,13 +143,13 @@ public class DependencyUtil {
 	}
 
 	public static List<ArtifactInfo> resolveDependenciesViaAether(List<String> depIds, List<MavenRepo> customRepos,
-			boolean offline, boolean loggingEnabled, boolean transitively) {
+			boolean offline, boolean updateCache, boolean loggingEnabled, boolean transitively) {
 
 		ConfigurableMavenResolverSystem resolver = Maven.configureResolver()
 														.withMavenCentralRepo(false)
 														.workOffline(offline);
 
-		customRepos.forEach(mavenRepo -> mavenRepo.apply(resolver));
+		customRepos.forEach(mavenRepo -> mavenRepo.apply(resolver, updateCache));
 
 		System.setProperty("maven.repo.local", Settings.getLocalMavenRepo().toPath().toAbsolutePath().toString());
 
