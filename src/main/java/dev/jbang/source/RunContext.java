@@ -51,7 +51,7 @@ public class RunContext {
 
 	private List<String> arguments;
 	private List<String> javaOptions;
-	private boolean runCmd;
+	private boolean mainRequired;
 	private boolean interactive;
 	private boolean enableAssertions;
 	private boolean enableSystemAssertions;
@@ -79,12 +79,12 @@ public class RunContext {
 		this.properties = properties;
 	}
 
-	public boolean isRunCommand() {
-		return runCmd;
+	public boolean isMainRequired() {
+		return mainRequired;
 	}
 
-	public void setRunCommand(boolean runCmd) {
-		this.runCmd = runCmd;
+	public void setMainRequired(boolean mainRequired) {
+		this.mainRequired = mainRequired;
 	}
 
 	public boolean isInteractive() {
