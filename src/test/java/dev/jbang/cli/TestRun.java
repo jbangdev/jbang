@@ -1547,6 +1547,52 @@ public class TestRun extends BaseTest {
 		}.setFresh(true).build();
 	}
 
+	@Test
+	void testAdditionalSourcesGlobbing() throws IOException {
+		Util.setCwd(examplesTestFolder);
+		String mainFile = examplesTestFolder.resolve("foo.java").toString();
+		String incFile = examplesTestFolder.resolve("bar/Bar.java").toString();
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build", "-s", "bar/*.java", "foo.java");
+		Build build = (Build) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = build.getRunContext();
+		SourceSet ss = (SourceSet) ctx.forResource(mainFile);
+
+		new JavaBuilder(ss, ctx) {
+			@Override
+			protected void runCompiler(List<String> optionList)
+					throws IOException {
+				assertThat(optionList, hasItem(mainFile));
+				assertThat(optionList, hasItem(incFile));
+				// Skip the compiler
+			}
+		}.setFresh(true).build();
+	}
+
+	@Test
+	void testAdditionalSourcesAbsGlobbing() throws IOException {
+		String mainFile = examplesTestFolder.resolve("foo.java").toString();
+		String incGlob = examplesTestFolder.resolve("bar").toString() + File.separatorChar + "*.java";
+		String incFile = examplesTestFolder.resolve("bar/Bar.java").toString();
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build", "-s", incGlob, mainFile);
+		Build build = (Build) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = build.getRunContext();
+		SourceSet ss = (SourceSet) ctx.forResource(mainFile);
+
+		new JavaBuilder(ss, ctx) {
+			@Override
+			protected void runCompiler(List<String> optionList)
+					throws IOException {
+				assertThat(optionList, hasItem(mainFile));
+				assertThat(optionList, hasItem(incFile));
+				// Skip the compiler
+			}
+		}.setFresh(true).build();
+	}
+
 	WireMockServer wms;
 
 	@BeforeEach

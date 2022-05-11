@@ -13,6 +13,7 @@ import dev.jbang.dependencies.*;
 import dev.jbang.source.resolvers.AliasResourceResolver;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.PropertiesValueResolver;
+import dev.jbang.util.Util;
 
 /**
  * This class contains all the extra information needed to actually run a
@@ -421,6 +422,7 @@ public class RunContext {
 		Function<String, String> propsResolver = it -> PropertiesValueResolver.replaceProperties(it,
 				getContextProperties());
 		return sources	.stream()
+						.flatMap(line -> Util.explode(null, Util.getCwd(), line).stream())
 						.map(s -> resolveChecked(resolver, s))
 						.map(ref -> Source.forResourceRef(ref, propsResolver))
 						.collect(Collectors.toList());

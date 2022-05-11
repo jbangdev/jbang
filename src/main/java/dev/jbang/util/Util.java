@@ -188,46 +188,63 @@ public class Util {
 	}
 
 	/**
-	 * Explodes filepattern found in baseDir returnin list of relative Path names.
+	 * Explodes filePattern found in baseDir returning list of relative Path names.
 	 *
 	 * TODO: this really should return some kind of abstraction of paths that allow
 	 * it be portable for urls as wells as files...or have a filesystem for each...
 	 * 
 	 * @param source
 	 * @param baseDir
-	 * @param filepattern
+	 * @param filePattern
 	 * @return
 	 */
-	public static List<String> explode(String source, Path baseDir, String filepattern) {
-
+	public static List<String> explode(String source, Path baseDir, String filePattern) {
 		List<String> results = new ArrayList<>();
 
 		if (source != null && Util.isURL(source)) {
 			// if url then just return it back for others to resolve.
 			// TODO: technically this is really where it should get resolved!
-			if (isPattern(filepattern)) {
-				Util.warnMsg("Pattern " + filepattern + " used while using URL to run; this could result in errors.");
+			if (isPattern(filePattern)) {
+				Util.warnMsg("Pattern " + filePattern + " used while using URL to run; this could result in errors.");
 				return results;
 			} else {
-				results.add(filepattern);
+				results.add(filePattern);
 			}
-		} else if (Util.isURL(filepattern)) {
-			results.add(filepattern);
-		} else if (!filepattern.contains("?") && !filepattern.contains("*")) {
+		} else if (Util.isURL(filePattern)) {
+			results.add(filePattern);
+		} else if (!filePattern.contains("?") && !filePattern.contains("*")) {
 			// not a pattern thus just as well return path directly
-			results.add(filepattern);
+			results.add(filePattern);
 		} else {
-			// it is a non-url letls try locate it
-			PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + filepattern);
+			// it is a non-url let's try to locate it
+			final Path bd;
+			final boolean useAbsPath;
+			Path base = basePathWithoutPattern(filePattern);
+			String fp;
+			if (base.isAbsolute()) {
+				bd = base;
+				fp = filePattern.substring(bd.toString().length() + 1);
+				useAbsPath = true;
+			} else {
+				bd = baseDir;
+				fp = filePattern;
+				useAbsPath = false;
+			}
+			PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + fp);
 
 			FileVisitor<Path> matcherVisitor = new SimpleFileVisitor<Path>() {
 				@Override
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attribs) {
-					Path relpath = baseDir.relativize(file);
+					Path relpath = bd.relativize(file);
 					if (matcher.matches(relpath)) {
 						// to avoid windows fail.
 						if (file.toFile().exists()) {
-							results.add(relpath.toString().replace("\\", "/"));
+							Path p = useAbsPath ? file : relpath;
+							if (isWindows()) {
+								results.add(p.toString().replace("\\", "/"));
+							} else {
+								results.add(p.toString());
+							}
 						} else {
 							Util.verboseMsg("Warning: " + relpath + " matches but does not exist!");
 						}
@@ -237,13 +254,29 @@ public class Util {
 			};
 
 			try {
-				Files.walkFileTree(baseDir, matcherVisitor);
+				Files.walkFileTree(bd, matcherVisitor);
 			} catch (IOException e) {
-				throw new ExitException(BaseCommand.EXIT_INTERNAL_ERROR,
-						"Problem looking for " + filepattern + " in " + baseDir.toString(), e);
+				throw new ExitException(BaseCommand.EXIT_INTERNAL_ERROR, "Problem looking for " + fp + " in " + bd, e);
 			}
 		}
 		return results;
+	}
+
+	private static Path basePathWithoutPattern(String path) {
+		int p1 = path.indexOf('?');
+		int p2 = path.indexOf('*');
+		int pp = p1 < 0 ? p2 : (p2 < 0 ? p1 : Math.min(p1, p2));
+		if (pp >= 0) {
+			String npath = Util.isWindows() ? path.replace('\\', '/') : path;
+			int ps = npath.lastIndexOf('/', pp);
+			if (ps >= 0) {
+				return Paths.get(path.substring(0, ps + 1));
+			} else {
+				return Paths.get("");
+			}
+		} else {
+			return Paths.get(path);
+		}
 	}
 
 	/**
