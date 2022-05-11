@@ -93,6 +93,34 @@ public class TestUtil extends BaseTest {
 	}
 
 	@Test
+	void testExplodeAbs() throws IOException {
+		Path baseDir = examplesTestFolder;
+
+		String source = ".";
+		String dir = examplesTestFolder.toString().replace('\\', '/');
+
+		final List<String> p = Util.explode(source, cwdDir, dir + "/**.java");
+
+		assertThat(p, hasItem(dir + "/res/resource.java"));
+		assertThat(p, not(hasItem(dir + "/hello.jsh")));
+		assertThat(p, hasItem(dir + "/quote.java"));
+
+		p.clear();
+		p.addAll(Util.explode(source, cwdDir, dir + "/**/*.java"));
+
+		assertThat(p, hasItem(dir + "/res/resource.java"));
+		assertThat(p, not(hasItem(dir + "/quote.java")));
+		assertThat(p, not(hasItem(dir + "/main.jsh")));
+
+		p.clear();
+		p.addAll(Util.explode(source, cwdDir, dir + "/res/resource.java"));
+
+		assertThat(p, containsInAnyOrder(dir + "/res/resource.java"));
+		assertThat(p, not(hasItem(dir + "/test.java")));
+
+	}
+
+	@Test
 	void testDispostionFilename() {
 		assertThat(Util.getDispositionFilename("inline; filename=token"), equalTo("token"));
 		assertThat(Util.getDispositionFilename("inline; filename=\"quoted string\""), equalTo("quoted string"));
