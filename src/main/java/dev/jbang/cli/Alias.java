@@ -65,6 +65,9 @@ class AliasAdd extends BaseAliasCommand {
 			"--sources" }, converter = CommaSeparatedConverter.class, description = "Add additional sources.")
 	List<String> sources;
 
+	@CommandLine.Option(names = { "-r", "--resources" }, description = "Add additional resources.")
+	List<String> resources;
+
 	@CommandLine.Option(names = { "--description",
 			"-d" }, description = "A description for the alias")
 	String description;
@@ -106,12 +109,12 @@ class AliasAdd extends BaseAliasCommand {
 
 		Path catFile = getCatalog(false);
 		if (catFile != null) {
-			CatalogUtil.addAlias(catFile, name, scriptOrFile, desc, userParams, javaRuntimeOptions, sources,
+			CatalogUtil.addAlias(catFile, name, scriptOrFile, desc, userParams, javaRuntimeOptions, sources, resources,
 					dependencyInfoMixin.getDependencies(), dependencyInfoMixin.getRepositories(),
 					dependencyInfoMixin.getClasspaths(), dependencyInfoMixin.getProperties(), javaVersion, main);
 		} else {
 			catFile = CatalogUtil.addNearestAlias(name, scriptOrFile, desc, userParams, javaRuntimeOptions, sources,
-					dependencyInfoMixin.getDependencies(), dependencyInfoMixin.getRepositories(),
+					resources, dependencyInfoMixin.getDependencies(), dependencyInfoMixin.getRepositories(),
 					dependencyInfoMixin.getClasspaths(), dependencyInfoMixin.getProperties(), javaVersion, main);
 		}
 		info(String.format("Alias '%s' added to '%s'", name, catFile));

@@ -1,6 +1,9 @@
 package dev.jbang.source;
 
+import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
+
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,6 +20,7 @@ import java.util.stream.Stream;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
+import dev.jbang.cli.ResourceNotFoundException;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.source.resolvers.SiblingResourceResolver;
@@ -325,17 +329,87 @@ public abstract class Source {
 	}
 
 	public List<RefTarget> collectFiles(ResourceResolver siblingResolver) {
+		String org = getResourceRef().getOriginalResource();
+		Path baseDir = org != null ? getResourceRef().getFile().getAbsoluteFile().getParentFile().toPath()
+				: Util.getCwd();
 		return getTags().filter(f -> f.startsWith(FILES_COMMENT_PREFIX))
 						.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
 												.skip(1)
 												.map(String::trim))
 						.map(replaceProperties)
+						.flatMap(f -> explodeFileRef(org, baseDir, f).stream())
 						.map(f -> toFileRef(f, siblingResolver))
 						.collect(Collectors.toCollection(ArrayList::new));
 	}
 
-	private RefTarget toFileRef(String fileReference, ResourceResolver siblingResolver) {
-		return RefTarget.create(fileReference, siblingResolver);
+	/**
+	 * Resolves any globbing characters found in the given
+	 * <code>fileReference</code>. A line that has no globbing characters will be
+	 * returned unchanged, otherwise a line like `img/**.jpg` or `WEB-INF=web/**`
+	 * gets turned into a list of the same value but with the globbing resolved into
+	 * actual file paths. In the case that an alias was supplied (eg `WEB-INF=`) it
+	 * will be assumed to be the name of the folder the files must be mounted into.
+	 * The paths are considered relative to the given <code>baseDir</code>.
+	 */
+	public static List<String> explodeFileRef(String fileReference, Path baseDir, String filePattern) {
+		String[] split = filePattern.split("=", 2);
+		if (split.length == 1) {
+			return Util.explode(fileReference, baseDir, filePattern);
+		} else {
+			String dest = split[0];
+			String source = split[1];
+			List<String> refs = Util.explode(fileReference, baseDir, source);
+			return refs	.stream()
+						.map(s -> (refs.size() == 1 || dest.endsWith("/") ? dest : dest + "/") + "=" + s)
+						.collect(Collectors.toList());
+		}
+	}
+
+	/**
+	 * Turns a reference like `img/logo.jpg` or `WEB-INF/index.html=web/index.html`
+	 * into a <code>RefTarget</code>. In case no alias was supplied the
+	 * <code>RefTarget</code>'s target will be <code>null</code>. When an alias
+	 * terminates in a <code>/</code> the alias will be assumed to be a folder name
+	 * and the source's file name will be appended to it, meaning that given
+	 * `WEB-INF/=web/index.html` this method will return a <code>RefTarget</code> as
+	 * if `WEB-INF/index.html=web/index.html` was supplied.
+	 */
+	public static RefTarget toFileRef(String fileReference, ResourceResolver siblingResolver) {
+		String[] split = fileReference.split("=", 2);
+		String src;
+		String dest = null;
+
+		if (split.length == 1) {
+			src = split[0];
+		} else {
+			dest = split[0];
+			src = split[1];
+		}
+
+		Path p = dest != null ? Paths.get(dest) : null;
+
+		if (Paths.get(src).isAbsolute()) {
+			throw new IllegalStateException(
+					"Only relative paths allowed in //FILES. Found absolute path: " + src);
+		}
+		if (p != null && p.isAbsolute()) {
+			throw new IllegalStateException(
+					"Only relative paths allowed in //FILES. Found absolute path: " + dest);
+		}
+
+		try {
+			ResourceRef ref = siblingResolver.resolve(src);
+			if (dest != null && dest.endsWith("/")) {
+				p = p.resolve(ref.getFile().toPath().getFileName());
+			}
+			return RefTarget.create(ref, p);
+		} catch (ResourceNotFoundException rnfe) {
+			throw new ExitException(EXIT_INVALID_INPUT, String.format("Could not find '%s' when resolving '%s' in %s",
+					rnfe.getResourceDescription(),
+					fileReference,
+					siblingResolver.description()),
+					rnfe);
+		}
 	}
 
 	public List<Source> collectSources() {

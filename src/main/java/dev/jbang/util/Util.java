@@ -211,7 +211,7 @@ public class Util {
 			}
 		} else if (Util.isURL(filePattern)) {
 			results.add(filePattern);
-		} else if (!filePattern.contains("?") && !filePattern.contains("*")) {
+		} else if (!isPattern(filePattern)) {
 			// not a pattern thus just as well return path directly
 			results.add(filePattern);
 		} else {

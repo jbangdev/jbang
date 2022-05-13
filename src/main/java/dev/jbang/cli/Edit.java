@@ -47,6 +47,9 @@ public class Edit extends BaseScriptCommand {
 			"--sources" }, converter = CommaSeparatedConverter.class, description = "Add additional sources.")
 	List<String> sources;
 
+	@CommandLine.Option(names = { "-r", "--resources" }, description = "Add additional resources.")
+	List<String> resources;
+
 	@CommandLine.Option(names = {
 			"--live" }, description = "Setup temporary project, regenerate project on dependency changes.")
 	public boolean live;
@@ -181,6 +184,7 @@ public class Edit extends BaseScriptCommand {
 		ctx.setAdditionalRepositories(dependencyInfoMixin.getRepositories());
 		ctx.setAdditionalClasspaths(dependencyInfoMixin.getClasspaths());
 		ctx.setAdditionalSources(sources);
+		ctx.setAdditionalSources(resources);
 		ctx.setForceJsh(forcejsh);
 		return ctx;
 	}

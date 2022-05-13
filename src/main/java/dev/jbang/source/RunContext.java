@@ -24,6 +24,7 @@ import dev.jbang.util.Util;
  */
 public class RunContext {
 	private List<String> additionalSources = Collections.emptyList();
+	private List<String> additionalResources = Collections.emptyList();
 	private List<String> additionalDeps = Collections.emptyList();
 	private List<String> additionalRepos = Collections.emptyList();
 	private List<String> additionalClasspaths = Collections.emptyList();
@@ -153,6 +154,18 @@ public class RunContext {
 			this.additionalSources = new ArrayList<>(sources);
 		} else {
 			this.additionalSources = Collections.emptyList();
+		}
+	}
+
+	public List<String> getAdditionalResources() {
+		return additionalResources;
+	}
+
+	public void setAdditionalResources(List<String> resources) {
+		if (resources != null) {
+			this.additionalResources = new ArrayList<>(resources);
+		} else {
+			this.additionalResources = Collections.emptyList();
 		}
 	}
 
@@ -426,6 +439,16 @@ public class RunContext {
 						.collect(Collectors.toList());
 	}
 
+	private List<RefTarget> allToFileRef(List<String> resources) {
+		ResourceResolver resolver = ResourceResolver.forResources();
+		Function<String, String> propsResolver = it -> PropertiesValueResolver.replaceProperties(it,
+				getContextProperties());
+		return resources.stream()
+						.flatMap(f -> Source.explodeFileRef(null, Util.getCwd(), f).stream())
+						.map(f -> Source.toFileRef(f, resolver))
+						.collect(Collectors.toList());
+	}
+
 	public Code forResource(String resource) {
 		ResourceRef resourceRef = resolveChecked(getResourceResolver(), resource);
 		setOriginalRef(resource);
@@ -472,6 +495,7 @@ public class RunContext {
 		ss.addRuntimeOptions(getJavaOptions());
 		ss.addRuntimeOptions(getIntegrationOptions());
 		ss.addSources(allToScriptSource(replaceAllProps(getAdditionalSources())));
+		ss.addResources(allToFileRef(replaceAllProps(getAdditionalResources())));
 		if (javaVersion != null) {
 			ss.setJavaVersion(javaVersion);
 		}

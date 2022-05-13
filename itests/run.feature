@@ -36,6 +36,14 @@ Scenario: java run multiple files
   When command('jbang res/resource.java')
   Then match out contains "hello properties"
 
+Scenario: java run multiple files using globbing
+  When command('jbang resources.java')
+  Then match out contains "hello properties"
+
+Scenario: java run multiple files using globbing and a mounting folder
+  When command('jbang resourcesmnt.java')
+  Then match out contains "hello properties"
+
 Scenario: java run multiple files using alias
   When command('jbang resource')
   Then match out contains "hello properties"
