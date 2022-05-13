@@ -5,6 +5,7 @@ import static dev.jbang.util.Util.errorMsg;
 import static dev.jbang.util.Util.infoHeader;
 import static dev.jbang.util.Util.infoMsg;
 import static dev.jbang.util.Util.infoMsgFmt;
+import static dev.jbang.util.Util.verboseMsg;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,6 +56,11 @@ public class DependencyUtil {
 		aliasToRepos.put("google", "https://maven.google.com/");
 		aliasToRepos.put(ALIAS_JITPACK, REPO_JITPACK);
 		aliasToRepos.put("sponge", "https://repo.spongepowered.org/maven");
+		aliasToRepos.put("sonatype-snapshots", "https://oss.sonatype.org/content/repositories/snapshots");
+		aliasToRepos.put("s01sonatype-snapshots", "https://s01.oss.sonatype.org/content/repositories/snapshots");
+		aliasToRepos.put("spring-snapshot", "https://repo.spring.io/snapshot");
+		aliasToRepos.put("spring-milestone", "https://repo.spring.io/milestone");
+
 	}
 
 	public static final Pattern fullGavPattern = Pattern.compile(
@@ -100,6 +106,9 @@ public class DependencyUtil {
 		if (!depIds.equals(deps) && !repos.stream().anyMatch(r -> REPO_JITPACK.equals(r.getUrl()))) {
 			repos.add(toMavenRepo(ALIAS_JITPACK));
 		}
+
+		verboseMsg(String.format("Repositories: %s",
+				repos.stream().map(m -> m.toString()).collect(Collectors.joining(", "))));
 
 		String depsHash = String.join(CP_SEPARATOR, depIds);
 		if (!transitivity) { // the cached key need to be different for non-transivity
