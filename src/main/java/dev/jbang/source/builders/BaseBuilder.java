@@ -276,11 +276,11 @@ public abstract class BaseBuilder implements Builder {
 	}
 
 	protected void runNativeBuilder(List<String> optionList) throws IOException {
-		File nilog = File.createTempFile("jbang", "native-image");
+		Path nilog = Files.createTempFile("jbang", "native-image");
 		Util.verboseMsg("native-image: " + String.join(" ", optionList));
 		Util.infoMsg("log: " + nilog.toString());
 
-		Process process = new ProcessBuilder(optionList).inheritIO().redirectOutput(nilog).start();
+		Process process = new ProcessBuilder(optionList).inheritIO().redirectOutput(nilog.toFile()).start();
 		try {
 			process.waitFor();
 		} catch (InterruptedException e) {

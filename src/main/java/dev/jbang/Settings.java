@@ -27,15 +27,15 @@ public class Settings {
 
 	final public static String CP_SEPARATOR = File.pathSeparator;
 
-	public static File getLocalMavenRepo() {
-		return new File(System	.getenv()
+	public static Path getLocalMavenRepo() {
+		return Paths.get(System	.getenv()
 								.getOrDefault(JBANG_REPO,
 										(String) System	.getProperties()
 														.getOrDefault("maven.repo.local",
 																System.getProperty("user.home")
 																		+ File.separator + ".m2" + File.separator
 																		+ "repository")))
-																							.getAbsoluteFile();
+					.toAbsolutePath();
 	}
 
 	public static Path getCacheDependencyFile() {

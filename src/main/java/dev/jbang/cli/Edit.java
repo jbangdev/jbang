@@ -72,8 +72,8 @@ public class Edit extends BaseScriptCommand {
 		}
 
 		SourceSet ss = (SourceSet) code;
-		File project = createProjectForLinkedEdit(ss, ctx, false);
-		String projectPathString = Util.pathToString(project.getAbsoluteFile().toPath());
+		Path project = createProjectForLinkedEdit(ss, ctx, false);
+		String projectPathString = Util.pathToString(project.toAbsolutePath());
 		// err.println(project.getAbsolutePath());
 
 		if (!noOpen) {
@@ -142,7 +142,7 @@ public class Edit extends BaseScriptCommand {
 
 	// try open editor if possible and install if needed, returns true if editor
 	// started, false if not possible (i.e. editor not available)
-	private boolean openEditor(File project, String projectPathString) throws IOException {
+	private boolean openEditor(Path project, String projectPathString) throws IOException {
 		if (!editor.isPresent() || editor.get().isEmpty()) {
 			editor = askEditor();
 			if (!editor.isPresent()) {
@@ -153,7 +153,7 @@ public class Edit extends BaseScriptCommand {
 		}
 		if ("gitpod".equals(editor.get()) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
 			info("Open this url to edit the project in your gitpod session:\n\n"
-					+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + project.getAbsolutePath() + "\n\n");
+					+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + project.toAbsolutePath() + "\n\n");
 		} else {
 			List<String> optionList = new ArrayList<>();
 			optionList.add(editor.get());
@@ -262,47 +262,48 @@ public class Edit extends BaseScriptCommand {
 	}
 
 	/** Create Project to use for editing **/
-	File createProjectForLinkedEdit(SourceSet ss, RunContext ctx, boolean reload) throws IOException {
+	Path createProjectForLinkedEdit(SourceSet ss, RunContext ctx, boolean reload) throws IOException {
 		File originalFile = ss.getResourceRef().getFile();
 
 		List<String> dependencies = ss.getDependencies();
 		String cp = ss.getClassPath().getClassPath();
 		List<String> resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 
-		File baseDir = Settings.getCacheDir(Cache.CacheClass.projects).toFile();
+		Path baseDir = Settings.getCacheDir(Cache.CacheClass.projects);
 
 		String name = originalFile.getName();
 		name = Util.unkebabify(name);
 
-		File tmpProjectDir = new File(baseDir, name + "_jbang_" +
+		Path tmpProjectDir = baseDir.resolve(name + "_jbang_" +
 				Util.getStableID(originalFile.getAbsolutePath()));
-		tmpProjectDir.mkdirs();
-		tmpProjectDir = new File(tmpProjectDir, stripPrefix(name));
-		tmpProjectDir.mkdirs();
+		Util.mkdirs(tmpProjectDir);
+		tmpProjectDir = tmpProjectDir.resolve(stripPrefix(name));
+		Util.mkdirs(tmpProjectDir);
 
-		File srcDir = new File(tmpProjectDir, "src");
-		srcDir.mkdir();
+		Path srcDir = tmpProjectDir.resolve("src");
+		Util.mkdirs(srcDir);
 
-		Path srcFile = srcDir.toPath().resolve(name);
+		Path srcFile = srcDir.resolve(name);
 		Util.createLink(srcFile, originalFile.toPath());
 
 		for (Source source : ss.getSources()) {
-			File sfile = null;
+			Path sfile = null;
 			if (source.getJavaPackage().isPresent()) {
-				File packageDir = new File(srcDir, source.getJavaPackage().get().replace(".", File.separator));
-				packageDir.mkdirs();
-				sfile = new File(packageDir, source.getResourceRef().getFile().getName());
+				Path packageDir = srcDir.resolve(source.getJavaPackage().get().replace(".", File.separator));
+				Util.mkdirs(packageDir);
+				sfile = packageDir.resolve(source.getResourceRef().getFile().getName());
 			} else {
-				sfile = new File(srcDir, source.getResourceRef().getFile().getName());
+				sfile = srcDir.resolve(source.getResourceRef().getFile().getName());
 			}
 			Path destFile = source.getResourceRef().getFile().toPath().toAbsolutePath();
-			Util.createLink(sfile.toPath(), destFile);
+			Util.createLink(sfile, destFile);
 		}
 
 		for (RefTarget ref : ss.getResources()) {
-			File target = ref.to(srcDir.toPath()).toFile();
-			target.getParentFile().mkdirs();
-			Util.createLink(target.toPath(), ref.getSource().getFile().toPath().toAbsolutePath());
+			Path target = ref.to(srcDir);
+			;
+			Util.mkdirs(target.getParent());
+			Util.createLink(target, ref.getSource().getFile().toPath().toAbsolutePath());
 		}
 
 		// create build gradle
@@ -312,7 +313,7 @@ public class Edit extends BaseScriptCommand {
 		String fullClassName;
 		fullClassName = packageName.map(s -> s + "." + baseName).orElse(baseName);
 		String templateName = "build.qute.gradle";
-		Path destination = new File(tmpProjectDir, "build.gradle").toPath();
+		Path destination = tmpProjectDir.resolve("build.gradle");
 		TemplateEngine engine = TemplateEngine.instance();
 
 		// both collectDependencies and repositories are manipulated by
@@ -340,21 +341,21 @@ public class Edit extends BaseScriptCommand {
 
 		// setup eclipse
 		templateName = ".qute.classpath";
-		destination = new File(tmpProjectDir, ".classpath").toPath();
+		destination = tmpProjectDir.resolve(".classpath");
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
 				ctx.getArguments(),
 				destination);
 
 		templateName = ".qute.project";
-		destination = new File(tmpProjectDir, ".project").toPath();
+		destination = tmpProjectDir.resolve(".project");
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
 				ctx.getArguments(),
 				destination);
 
 		templateName = "main.qute.launch";
-		destination = new File(tmpProjectDir, ".eclipse/" + baseName + ".launch").toPath();
+		destination = tmpProjectDir.resolve(".eclipse/" + baseName + ".launch");
 		destination.toFile().getParentFile().mkdirs();
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
@@ -362,7 +363,7 @@ public class Edit extends BaseScriptCommand {
 				destination);
 
 		templateName = "main-port-4004.qute.launch";
-		destination = new File(tmpProjectDir, ".eclipse/" + baseName + "-port-4004.launch").toPath();
+		destination = tmpProjectDir.resolve(".eclipse/" + baseName + "-port-4004.launch");
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
 				ctx.getArguments(),
@@ -370,7 +371,7 @@ public class Edit extends BaseScriptCommand {
 
 		// setup vscode
 		templateName = "launch.qute.json";
-		destination = new File(tmpProjectDir, ".vscode/launch.json").toPath();
+		destination = tmpProjectDir.resolve(".vscode/launch.json");
 		if (isNeeded(reload, destination)) {
 			destination.toFile().getParentFile().mkdirs();
 			renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
@@ -381,7 +382,7 @@ public class Edit extends BaseScriptCommand {
 
 		// setup vscode
 		templateName = "README.qute.md";
-		destination = new File(tmpProjectDir, "README.md").toPath();
+		destination = tmpProjectDir.resolve("README.md");
 		if (isNeeded(reload, destination)) {
 			destination.toFile().getParentFile().mkdirs();
 			renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
@@ -391,7 +392,7 @@ public class Edit extends BaseScriptCommand {
 		}
 
 		templateName = "settings.qute.json";
-		destination = new File(tmpProjectDir, ".vscode/settings.json").toPath();
+		destination = tmpProjectDir.resolve(".vscode/settings.json");
 		if (isNeeded(reload, destination)) {
 			destination.toFile().getParentFile().mkdirs();
 			renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,

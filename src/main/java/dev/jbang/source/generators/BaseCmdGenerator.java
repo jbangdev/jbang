@@ -2,9 +2,10 @@ package dev.jbang.source.generators;
 
 import static dev.jbang.source.builders.BaseBuilder.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 import dev.jbang.cli.BaseCommand;
@@ -47,8 +48,8 @@ public abstract class BaseCmdGenerator implements CmdGenerator {
 		if (useArgsFile) {
 			// @-files avoid problems on Windows with very long command lines
 			final String javaCmd = escapeOSArgument(fullArgs.get(0), shell);
-			final File argsFile = File.createTempFile("jbang", ".args");
-			try (PrintWriter pw = new PrintWriter(argsFile)) {
+			final Path argsFile = Files.createTempFile("jbang", ".args");
+			try (PrintWriter pw = new PrintWriter(argsFile.toFile())) {
 				// write all arguments except the first to the file
 				for (int i = 1; i < fullArgs.size(); ++i) {
 					pw.println(escapeArgsFileArgument(fullArgs.get(i)));
