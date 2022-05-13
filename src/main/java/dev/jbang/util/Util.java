@@ -1438,6 +1438,15 @@ public class Util {
 		}
 	}
 
+	public static boolean mkdirs(Path p) {
+		try {
+			Files.createDirectories(p);
+		} catch (IOException e) {
+			return false;
+		}
+		return true;
+	}
+
 	private static ImageIcon getJbangIcon() {
 		URL url = Util.class.getResource("/jbang_icon_64x64.png");
 		if (url != null) {

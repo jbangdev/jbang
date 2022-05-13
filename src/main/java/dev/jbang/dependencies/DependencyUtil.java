@@ -7,8 +7,8 @@ import static dev.jbang.util.Util.infoMsg;
 import static dev.jbang.util.Util.infoMsgFmt;
 import static dev.jbang.util.Util.verboseMsg;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -160,7 +160,7 @@ public class DependencyUtil {
 
 		customRepos.forEach(mavenRepo -> mavenRepo.apply(resolver, updateCache));
 
-		System.setProperty("maven.repo.local", Settings.getLocalMavenRepo().toPath().toAbsolutePath().toString());
+		System.setProperty("maven.repo.local", Settings.getLocalMavenRepo().toAbsolutePath().toString());
 
 		Map<Boolean, List<MavenCoordinate>> coordList = depIds	.stream()
 																.map(DependencyUtil::depIdToArtifact)
@@ -201,7 +201,7 @@ public class DependencyUtil {
 			buf.append(afterDepMgmt);
 			Path pompath = null;
 			try {
-				pompath = File.createTempFile("jbang", ".xml").toPath();
+				pompath = Files.createTempFile("jbang", ".xml");
 				Util.writeString(pompath, buf.toString());
 			} catch (IOException e) {
 				throw new ExitException(CommandLine.ExitCode.SOFTWARE,

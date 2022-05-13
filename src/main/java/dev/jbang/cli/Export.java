@@ -212,7 +212,7 @@ class ExportMavenPublish extends BaseCommand implements Exporter {
 		Path outputPath = exportMixin.outputFile;
 
 		if (outputPath == null) {
-			outputPath = Settings.getLocalMavenRepo().toPath();
+			outputPath = Settings.getLocalMavenRepo();
 		}
 		// Copy the JAR or native binary
 		Path source = code.getJarFile().toPath();

@@ -4,8 +4,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
@@ -49,12 +49,12 @@ public class TestEditWithPom extends BaseTest {
 		assertTrue(mainPath.toFile().exists());
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forResource(mainPath.toString());
-		File project = new Edit().createProjectForLinkedEdit(ss, ctx, false);
-		assertTrue(new File(project, "src/main.java").exists());
+		Path project = new Edit().createProjectForLinkedEdit(ss, ctx, false);
+		assertTrue(project.resolve("src/main.java").toFile().exists());
 
-		File gradle = new File(project, "build.gradle");
-		assert (gradle.exists());
-		String buildGradle = Util.readString(gradle.toPath());
+		Path gradle = project.resolve("build.gradle");
+		assert (Files.exists(gradle));
+		String buildGradle = Util.readString(gradle);
 		assertThat(buildGradle, containsString("implementation platform")); // should be com.github
 
 	}

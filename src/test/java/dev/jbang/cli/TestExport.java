@@ -125,17 +125,17 @@ public class TestExport extends BaseTest {
 
 	@Test
 	void testExportMavenPublishWithClasspath() throws IOException {
-		File outFile = Settings.getLocalMavenRepo();
+		Path outFile = Settings.getLocalMavenRepo();
 		ExecutionResult result = checkedRun(null, "export", "mavenrepo", "--force",
 				"--group=g.a.v",
 				examplesTestFolder.resolve("classpath_log.java").toString());
 		assertThat(result.exitCode, equalTo(BaseCommand.EXIT_OK));
-		assertThat(outFile.toPath().resolve("g/a/v/classpath_log/999-SNAPSHOT/classpath_log-999-SNAPSHOT.jar").toFile(),
+		assertThat(outFile.resolve("g/a/v/classpath_log/999-SNAPSHOT/classpath_log-999-SNAPSHOT.jar").toFile(),
 				anExistingFile());
-		assertThat(outFile.toPath().resolve("g/a/v/classpath_log/999-SNAPSHOT/classpath_log-999-SNAPSHOT.pom").toFile(),
+		assertThat(outFile.resolve("g/a/v/classpath_log/999-SNAPSHOT/classpath_log-999-SNAPSHOT.pom").toFile(),
 				anExistingFile());
 
-		Files	.walk(outFile.toPath().resolve("g"))
+		Files	.walk(outFile.resolve("g"))
 				.sorted(Comparator.reverseOrder())
 				.map(Path::toFile)
 				.forEach(File::delete);

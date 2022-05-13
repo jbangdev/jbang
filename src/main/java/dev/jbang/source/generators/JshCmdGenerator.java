@@ -1,8 +1,13 @@
 package dev.jbang.source.generators;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.text.StringEscapeUtils;
@@ -62,7 +67,7 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 
 		optionalArgs.add("--startup=DEFAULT");
 
-		File tempFile = File.createTempFile("jbang_arguments_", ss.getResourceRef().getFile().getName());
+		Path tempFile = Files.createTempFile("jbang_arguments_", ss.getResourceRef().getFile().getName());
 
 		String defaultImports = "import java.lang.*;\n" +
 				"import java.util.*;\n" +
@@ -70,7 +75,7 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 				"import java.net.*;" +
 				"import java.math.BigInteger;\n" +
 				"import java.math.BigDecimal;\n";
-		Util.writeString(tempFile.toPath(),
+		Util.writeString(tempFile,
 				defaultImports + generateArgs(ctx.getArguments(), ctx.getProperties()) +
 						generateStdInputHelper() +
 						generateMain(ctx.getMainClass()));
@@ -82,7 +87,7 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 				Util.infoMsg("You can run the main class `" + ctx.getMainClass() + "` using: userMain(args)");
 			}
 		}
-		optionalArgs.add("--startup=" + tempFile.getAbsolutePath());
+		optionalArgs.add("--startup=" + tempFile.toAbsolutePath());
 
 		if (ctx.isDebugEnabled()) {
 			Util.warnMsg("debug not possible when running via jshell.");
@@ -107,8 +112,8 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 		}
 
 		if (!ctx.isInteractive()) {
-			File exitFile = File.createTempFile("jbang_exit_", ss.getResourceRef().getFile().getName());
-			Util.writeString(exitFile.toPath(), "/exit");
+			Path exitFile = Files.createTempFile("jbang_exit_", ss.getResourceRef().getFile().getName());
+			Util.writeString(exitFile, "/exit");
 			fullArgs.add(exitFile.toString());
 		}
 
