@@ -22,7 +22,7 @@ public class Run extends BaseBuildCommand {
 	@CommandLine.Option(names = { "--java-options" }, description = "A Java runtime option")
 	public List<String> javaRuntimeOptions;
 
-	@CommandLine.Option(names = { "-r",
+	@CommandLine.Option(names = {
 			"--jfr" }, fallbackValue = "${jbang.run.jfr}", parameterConsumer = KeyValueFallbackConsumer.class, arity = "0..1", description = "Launch with Java Flight Recorder enabled.")
 	public String flightRecorderString;
 

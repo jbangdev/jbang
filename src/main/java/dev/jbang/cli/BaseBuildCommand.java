@@ -21,6 +21,9 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 			"--sources" }, converter = CommaSeparatedConverter.class, description = "Add additional sources.")
 	List<String> sources;
 
+	@CommandLine.Option(names = { "-r", "--resources" }, description = "Add additional files.")
+	List<String> resources;
+
 	@CommandLine.Option(names = { "-m",
 			"--main" }, description = "Main class to use when running. Used primarily for running jar's.")
 	String main;
@@ -59,6 +62,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		ctx.setAdditionalRepositories(dependencyInfoMixin.getRepositories());
 		ctx.setAdditionalClasspaths(dependencyInfoMixin.getClasspaths());
 		ctx.setAdditionalSources(sources);
+		ctx.setAdditionalResources(resources);
 		ctx.setForceJsh(forcejsh);
 		ctx.setJavaVersion(javaVersion);
 		ctx.setMainClass(main);

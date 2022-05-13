@@ -8,17 +8,7 @@ import static dev.jbang.util.Util.writeString;
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.hasXPath;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.matchesPattern;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -29,10 +19,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -41,6 +28,7 @@ import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -1391,6 +1379,60 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testMultiResources() throws IOException {
+		Cache.clearCache(Cache.CacheClass.jars);
+		File f = examplesTestFolder.resolve("resources.java").toFile();
+
+		RunContext ctx = RunContext.empty();
+		SourceSet ss = (SourceSet) ctx.forResource(f.getAbsolutePath());
+
+		Jar jar = ss.builder(ctx).build();
+
+		assertThat(ctx.getMainClassOr(jar), equalTo("resources"));
+
+		try (FileSystem fileSystem = FileSystems.newFileSystem(jar.getJarFile().toPath(), (ClassLoader) null)) {
+			Arrays	.asList("resources.class", "resource.properties", "test.properties")
+					.forEach(path -> {
+						try {
+							Path fileToExtract = fileSystem.getPath(path);
+							ByteArrayOutputStream s = new ByteArrayOutputStream();
+							Files.copy(fileToExtract, s);
+						} catch (Exception e) {
+							fail(e);
+						}
+					});
+
+		}
+	}
+
+	@Test
+	void testMultiResourcesMounted() throws IOException {
+		Cache.clearCache(Cache.CacheClass.jars);
+		File f = examplesTestFolder.resolve("resourcesmnt.java").toFile();
+
+		RunContext ctx = RunContext.empty();
+		SourceSet ss = (SourceSet) ctx.forResource(f.getAbsolutePath());
+
+		Jar jar = ss.builder(ctx).build();
+
+		assertThat(ctx.getMainClassOr(jar), equalTo("resourcesmnt"));
+
+		try (FileSystem fileSystem = FileSystems.newFileSystem(jar.getJarFile().toPath(), (ClassLoader) null)) {
+			Arrays	.asList("resourcesmnt.class", "somedir/resource.properties", "somedir/test.properties")
+					.forEach(path -> {
+						try {
+							Path fileToExtract = fileSystem.getPath(path);
+							ByteArrayOutputStream s = new ByteArrayOutputStream();
+							Files.copy(fileToExtract, s);
+						} catch (Exception e) {
+							fail(e);
+						}
+					});
+
+		}
+	}
+
+	@Test
 	void multiSourcesHttp() throws IOException {
 
 		wms.stubFor(WireMock.get(urlEqualTo("/sub/one.java"))
@@ -1531,7 +1573,7 @@ public class TestRun extends BaseTest {
 		String mainFile = examplesTestFolder.resolve("foo.java").toString();
 		String incFile = examplesTestFolder.resolve("bar/Bar.java").toString();
 
-		CatalogUtil.addNearestAlias("bar", incFile, null, null, null, null, null, null, null, null, null, null);
+		CatalogUtil.addNearestAlias("bar", incFile, null, null, null, null, null, null, null, null, null, null, null);
 
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build", "-s", "bar", mainFile);
 		Build build = (Build) pr.subcommand().commandSpec().userObject();
@@ -1559,7 +1601,7 @@ public class TestRun extends BaseTest {
 		String fooScript = readString(fooFile);
 		writeString(mainFile, "//SOURCES bar@" + jbangTempDir + "\n" + fooScript);
 
-		CatalogUtil.addNearestAlias("bar", incFile, null, null, null, null, null, null, null, null, null, null);
+		CatalogUtil.addNearestAlias("bar", incFile, null, null, null, null, null, null, null, null, null, null, null);
 
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build", mainFile.toString());
 		Build build = (Build) pr.subcommand().commandSpec().userObject();
@@ -1620,6 +1662,70 @@ public class TestRun extends BaseTest {
 				assertThat(optionList, hasItem(mainFile));
 				assertThat(optionList, hasItem(incFile));
 				// Skip the compiler
+			}
+		}.setFresh(true).build();
+	}
+
+	@Test
+	void testAdditionalResources() throws IOException {
+		Util.setCwd(examplesTestFolder);
+		Path mainFile = Paths.get("foo.java");
+		Path resFile = Paths.get("res/resource.properties");
+
+		CommandLine.ParseResult pr = JBang	.getCommandLine()
+											.parseArgs("build", "-r", resFile.toString(), mainFile.toString());
+		Build build = (Build) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = build.getRunContext();
+		SourceSet ss = (SourceSet) ctx.forResource(mainFile.toString());
+
+		new JavaBuilder(ss, ctx) {
+			@Override
+			protected void runCompiler(List<String> optionList) {
+				assertThat(optionList, hasItem(endsWith(File.separator + "foo.java")));
+				// Skip the compiler
+			}
+
+			@Override
+			public void createJar() throws IOException {
+				assertThat(ss.getResources().size(), is(1));
+				List<String> ps = ss.getResources()
+									.stream()
+									.map(r -> r.getSource().getFile().toPath().toString())
+									.collect(Collectors.toList());
+				assertThat(ps, hasItem(endsWith("resource.properties")));
+			}
+		}.setFresh(true).build();
+	}
+
+	@Test
+	void testAdditionalResourcesGlobbing() throws IOException {
+		Util.setCwd(examplesTestFolder);
+		String mainFile = "foo.java";
+
+		CommandLine.ParseResult pr = JBang	.getCommandLine()
+											.parseArgs("build", "-r", "res/*.properties", mainFile);
+		Build build = (Build) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = build.getRunContext();
+		SourceSet ss = (SourceSet) ctx.forResource(mainFile);
+
+		new JavaBuilder(ss, ctx) {
+			@Override
+			protected void runCompiler(List<String> optionList) {
+				assertThat(optionList, hasItem(endsWith(File.separator + "foo.java")));
+				// Skip the compiler
+			}
+
+			@Override
+			public void createJar() throws IOException {
+				assertThat(ss.getResources().size(), is(2));
+				List<String> ps = ss.getResources()
+									.stream()
+									.map(r -> r.getSource().getFile().toPath().toString())
+									.collect(Collectors.toList());
+				assertThat(ps, hasItem(endsWith("resource.properties")));
+				assertThat(ps, hasItem(endsWith("test.properties")));
 			}
 		}.setFresh(true).build();
 	}
