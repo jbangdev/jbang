@@ -1673,7 +1673,7 @@ public class TestRun extends BaseTest {
 		Path resFile = Paths.get("res/resource.properties");
 
 		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("build", "-r", resFile.toString(), mainFile.toString());
+											.parseArgs("build", "-f", resFile.toString(), mainFile.toString());
 		Build build = (Build) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = build.getRunContext();
@@ -1704,7 +1704,7 @@ public class TestRun extends BaseTest {
 		String mainFile = "foo.java";
 
 		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("build", "-r", "res/*.properties", mainFile);
+											.parseArgs("build", "-f", "res/*.properties", mainFile);
 		Build build = (Build) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = build.getRunContext();
