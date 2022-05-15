@@ -61,7 +61,8 @@ class AliasAdd extends BaseAliasCommand {
 	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
 
-	@CommandLine.Option(names = { "-s", "--sources" }, description = "Add additional sources.")
+	@CommandLine.Option(names = { "-s",
+			"--sources" }, converter = CommaSeparatedConverter.class, description = "Add additional sources.")
 	List<String> sources;
 
 	@CommandLine.Option(names = { "--description",

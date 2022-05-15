@@ -151,7 +151,11 @@ public abstract class Source {
 				if (args.containsKey("ext")) {
 					gav = gav + "@" + args.get("ext");
 				}
-				return Stream.of(gav);
+				if (!gav.isEmpty()) { // protects when @Grab might be inside a string (like jbang source)
+					return Stream.of(gav);
+				} else {
+					return Stream.empty();
+				}
 			} else {
 				matcher = DEPS_ANNOT_SINGLE.matcher(line);
 				if (matcher.find()) {
