@@ -31,7 +31,8 @@ public class ExportMixin {
 	}, description = "Force export, i.e. overwrite exported file if already exists")
 	boolean force;
 
-	@CommandLine.Option(names = { "-s", "--sources" }, description = "Add additional sources.")
+	@CommandLine.Option(names = { "-s",
+			"--sources" }, converter = CommaSeparatedConverter.class, description = "Add additional sources.")
 	List<String> sources;
 	@CommandLine.Parameters(paramLabel = "scriptOrFile", index = "0", description = "A file or URL to a Java code file", arity = "1")
 	String scriptOrFile;
