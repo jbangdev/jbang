@@ -35,7 +35,8 @@ public class ExportMixin {
 			"--sources" }, converter = CommaSeparatedConverter.class, description = "Add additional sources.")
 	List<String> sources;
 
-	@CommandLine.Option(names = { "-r", "--resources" }, description = "Add additional resources.")
+	@CommandLine.Option(names = {
+			"--files" }, converter = CommaSeparatedConverter.class, description = "Add additional files.")
 	List<String> resources;
 
 	@CommandLine.Parameters(paramLabel = "scriptOrFile", index = "0", description = "A file or URL to a Java code file", arity = "1")

@@ -21,7 +21,8 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 			"--sources" }, converter = CommaSeparatedConverter.class, description = "Add additional sources.")
 	List<String> sources;
 
-	@CommandLine.Option(names = { "-f", "--files" }, description = "Add additional files.")
+	@CommandLine.Option(names = {
+			"--files" }, converter = CommaSeparatedConverter.class, description = "Add additional files.")
 	List<String> resources;
 
 	@CommandLine.Option(names = { "-m",
