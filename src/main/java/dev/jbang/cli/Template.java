@@ -1,10 +1,11 @@
 package dev.jbang.cli;
 
+import static dev.jbang.util.Util.entry;
+
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -111,7 +112,7 @@ class TemplateAdd extends BaseTemplateCommand {
 				String name = firstRef.getValue();
 				String ext = name.endsWith(".qute") ? Util.extension(Util.base(name)) : Util.extension(name);
 				String target = ext.isEmpty() ? "{filename}" : "{basename}." + ext;
-				splitRefs.set(0, new AbstractMap.SimpleEntry<>(target, firstRef.getValue()));
+				splitRefs.set(0, entry(target, firstRef.getValue()));
 				warn("No explicit target pattern was set, using first file: " + target + "=" + firstRef.getValue());
 			} else {
 				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
@@ -150,7 +151,7 @@ class TemplateAdd extends BaseTemplateCommand {
 		return EXIT_OK;
 	}
 
-	private static AbstractMap.SimpleEntry<String, String> splitFileRef(String fileRef) {
+	private static Map.Entry<String, String> splitFileRef(String fileRef) {
 		String[] ref = fileRef.split("=", 2);
 		String target;
 		String source;
@@ -170,10 +171,10 @@ class TemplateAdd extends BaseTemplateCommand {
 			source = ref[0];
 			target = null;
 		}
-		return new AbstractMap.SimpleEntry<>(target, source);
+		return entry(target, source);
 	}
 
-	private static boolean refExists(AbstractMap.SimpleEntry<String, String> splitRef) {
+	private static boolean refExists(Map.Entry<String, String> splitRef) {
 		String source = splitRef.getValue();
 		ResourceRef resourceRef = ResourceRef.forResource(source);
 		if (resourceRef == null || !resourceRef.getFile().canRead()) {
@@ -191,7 +192,7 @@ class TemplateAdd extends BaseTemplateCommand {
 			if (target.endsWith(".qute")) {
 				target = target.substring(0, target.length() - 5);
 			}
-			return new AbstractMap.SimpleEntry<>(target, source);
+			return entry(target, source);
 		} else {
 			return splitRef;
 		}

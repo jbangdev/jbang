@@ -1673,7 +1673,7 @@ public class TestRun extends BaseTest {
 		Path resFile = Paths.get("res/resource.properties");
 
 		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("build", "-f", resFile.toString(), mainFile.toString());
+											.parseArgs("build", "--files", resFile.toString(), mainFile.toString());
 		Build build = (Build) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = build.getRunContext();
@@ -1704,7 +1704,7 @@ public class TestRun extends BaseTest {
 		String mainFile = "foo.java";
 
 		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("build", "-f", "res/*.properties", mainFile);
+											.parseArgs("build", "--files", "res/**.properties", mainFile);
 		Build build = (Build) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = build.getRunContext();
@@ -1719,13 +1719,14 @@ public class TestRun extends BaseTest {
 
 			@Override
 			public void createJar() throws IOException {
-				assertThat(ss.getResources().size(), is(2));
+				assertThat(ss.getResources().size(), is(3));
 				List<String> ps = ss.getResources()
 									.stream()
 									.map(r -> r.getSource().getFile().toPath().toString())
 									.collect(Collectors.toList());
 				assertThat(ps, hasItem(endsWith("resource.properties")));
 				assertThat(ps, hasItem(endsWith("test.properties")));
+				assertThat(ps, hasItem(endsWith("sub/sub.properties")));
 			}
 		}.setFresh(true).build();
 	}
