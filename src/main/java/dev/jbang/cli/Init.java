@@ -1,12 +1,13 @@
 package dev.jbang.cli;
 
+import static dev.jbang.util.Util.entry;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +67,7 @@ public class Init extends BaseScriptCommand {
 
 		List<RefTarget> refTargets = tpl.fileRefs	.entrySet()
 													.stream()
-													.map(e -> new AbstractMap.SimpleEntry<>(
+													.map(e -> entry(
 															resolveBaseName(e.getKey(), e.getValue(), outName),
 															tpl.resolve(e.getValue())))
 													.map(e -> RefTarget.create(

@@ -351,16 +351,38 @@ public abstract class Source {
 	 * will be assumed to be the name of the folder the files must be mounted into.
 	 * The paths are considered relative to the given <code>baseDir</code>.
 	 */
-	public static List<String> explodeFileRef(String fileReference, Path baseDir, String filePattern) {
-		String[] split = filePattern.split("=", 2);
+	public static List<String> explodeFileRef(String source, Path baseDir, String fileReference) {
+		String[] split = fileReference.split("=", 2);
 		if (split.length == 1) {
-			return Util.explode(fileReference, baseDir, filePattern);
-		} else {
-			String dest = split[0];
-			String source = split[1];
-			List<String> refs = Util.explode(fileReference, baseDir, source);
+			List<String> refs = Util.explode(source, baseDir, fileReference);
 			return refs	.stream()
-						.map(s -> (refs.size() == 1 || dest.endsWith("/") ? dest : dest + "/") + "=" + s)
+						.map(s -> {
+							if (Util.isValidPath(s)) {
+								Path base = Util.basePathWithoutPattern(fileReference);
+								Path sub = base.relativize(Paths.get(s)).getParent();
+								if (sub != null) {
+									return sub + "/=" + s;
+								}
+							}
+							return s;
+						})
+						.collect(Collectors.toList());
+		} else {
+			String filePattern = split[1];
+			String alias = !Util.isPattern(filePattern) || split[0].isEmpty() || split[0].endsWith("/") ? split[0]
+					: split[0] + "/";
+			List<String> refs = Util.explode(source, baseDir, filePattern);
+			return refs	.stream()
+						.map(s -> {
+							if (Util.isValidPath(s)) {
+								Path base = Util.basePathWithoutPattern(filePattern);
+								Path sub = base.relativize(Paths.get(s)).getParent();
+								if (sub != null) {
+									return Paths.get(alias).resolve(sub) + "/=" + s;
+								}
+							}
+							return alias + "=" + s;
+						})
 						.collect(Collectors.toList());
 		}
 	}

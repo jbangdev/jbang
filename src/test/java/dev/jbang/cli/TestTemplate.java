@@ -1,6 +1,7 @@
 package dev.jbang.cli;
 
 import static dev.jbang.util.TestUtil.clearSettingsCaches;
+import static dev.jbang.util.Util.entry;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.aMapWithSize;
 import static org.hamcrest.Matchers.hasItems;
@@ -12,7 +13,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.AbstractMap;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -188,12 +188,12 @@ public class TestTemplate extends BaseTest {
 		assertThat(template.fileRefs.keySet(), hasItems("src/{filename}", "src/file2.java"));
 		assertThat(template.fileRefs.values(), hasItems("tpl2/file2_1.java", "tpl2/file2_2.java"));
 		assertThat(template.properties.entrySet(), hasItems(
-				new AbstractMap.SimpleEntry<>("test-key", new TemplateProperty(null, null)),
-				new AbstractMap.SimpleEntry<>("test-key-with-description",
+				entry("test-key", new TemplateProperty(null, null)),
+				entry("test-key-with-description",
 						new TemplateProperty("This is a test description", null)),
-				new AbstractMap.SimpleEntry<>("test-key-with-description-and-default-value",
+				entry("test-key-with-description-and-default-value",
 						new TemplateProperty("This is a test description with default value", "2.11")),
-				new AbstractMap.SimpleEntry<>("test-key-with-default-value", new TemplateProperty(null, "3.12"))));
+				entry("test-key-with-default-value", new TemplateProperty(null, "3.12"))));
 	}
 
 	@Test
@@ -239,7 +239,7 @@ public class TestTemplate extends BaseTest {
 				is(true));
 		Template name = Template.get("template-with-single-property");
 		assertThat(name.properties.entrySet(), hasItems(
-				new AbstractMap.SimpleEntry<>("new-test-key", new TemplateProperty(null, null))));
+				entry("new-test-key", new TemplateProperty(null, null))));
 	}
 
 	@Test
@@ -257,7 +257,7 @@ public class TestTemplate extends BaseTest {
 				is(true));
 		Template name = Template.get("template-with-single-complex-property");
 		assertThat(name.properties.entrySet(), hasItems(
-				new AbstractMap.SimpleEntry<>("new-test-key",
+				entry("new-test-key",
 						new TemplateProperty("This is a description for the property key", "3.14"))));
 	}
 
@@ -278,9 +278,9 @@ public class TestTemplate extends BaseTest {
 				is(true));
 		Template name = Template.get("template-with-complex-properties");
 		assertThat(name.properties.entrySet(), hasItems(
-				new AbstractMap.SimpleEntry<>("new-test-key",
+				entry("new-test-key",
 						new TemplateProperty("This is a description for the property key", "3.14")),
-				new AbstractMap.SimpleEntry<>("second-test-key", new TemplateProperty(
+				entry("second-test-key", new TemplateProperty(
 						"This is another description for the second property key", "Non-Blocker"))));
 	}
 }

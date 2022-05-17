@@ -36,7 +36,7 @@ public class SiblingResourceResolver implements ResourceResolver {
 			String originalResource = sibling.getOriginalResource();
 			String sr;
 			if (Util.isURL(resource)) {
-				sr = new URI(resource).toString();
+				sr = resource;
 			} else if (sibling.isURL()) {
 				sr = new URI(Util.swizzleURL(originalResource)).resolve(resource).toString();
 			} else if (Util.isClassPathRef(resource)) {

@@ -1,6 +1,7 @@
 package dev.jbang.catalog;
 
 import static dev.jbang.catalog.Catalog.isValidCatalogReference;
+import static dev.jbang.util.Util.entry;
 
 import java.io.IOException;
 import java.net.URI;
@@ -9,7 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -150,10 +150,8 @@ public class CatalogUtil {
 		Catalog catalog = Catalog.get(catalogFile);
 		Map<String, String> relFileRefs = fileRefs	.entrySet()
 													.stream()
-													.map(e -> new AbstractMap.SimpleEntry<>(e.getKey(),
-															catalog.relativize(e.getValue())))
-													.collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey,
-															AbstractMap.SimpleEntry::getValue));
+													.map(e -> entry(e.getKey(), catalog.relativize(e.getValue())))
+													.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 		Template template = new Template(relFileRefs, description, properties, catalog);
 		catalog.templates.put(name, template);
 		try {
