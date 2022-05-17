@@ -16,7 +16,7 @@ toc::[]
 
 JBang try and have decent defaults, for the cases where they do not fit you can use `jbang config` to setup better defaults.
 
-Example, the default editor for `jbang edit` is calculated but sometimes you want it to be one specfic editor. Instead of writing `jbang edit --open=code hello.java` to say it is `code` you want open with, you can use `jbang config set edit.open=code`. When you have done that then `jbang edit hello.java` is all that is needed - JBang will now use `code` as the default editor.
+Example, the default editor for `jbang edit` is calculated but sometimes you want it to be one specific editor. Instead of writing `jbang edit --open=code hello.java` to say it is `code` you want open with, you can use `jbang config set edit.open=code`. When you have done that then `jbang edit hello.java` is all that is needed - JBang will now use `code` as the default editor.
 
 == Configure default value for every argument
 
