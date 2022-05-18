@@ -35,11 +35,11 @@ public class CatalogUtil {
 			String scriptRef,
 			String description,
 			List<String> arguments,
+			List<String> javaRuntimeOptions,
 			List<String> sources,
 			List<String> dependencies,
 			List<String> repositories,
 			List<String> classPaths,
-			List<String> javaRuntimeOptions,
 			Map<String, String> properties,
 			String javaVersion,
 			String mainClass) {

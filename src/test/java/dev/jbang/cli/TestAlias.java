@@ -2,15 +2,7 @@ package dev.jbang.cli;
 
 import static dev.jbang.util.TestUtil.clearSettingsCaches;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.aMapWithSize;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.iterableWithSize;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -127,6 +119,46 @@ public class TestAlias extends BaseTest {
 				"aap", "noot", "mies");
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
 				is(true));
+		Alias alias = Alias.get("name");
+		assertThat(alias.scriptRef, is("test.java"));
+		assertThat(alias.description, is("desc"));
+		assertThat(alias.javaOptions, iterableWithSize(1));
+		assertThat(alias.javaOptions, contains("jopts"));
+		assertThat(alias.dependencies, iterableWithSize(1));
+		assertThat(alias.dependencies, contains("deps"));
+		assertThat(alias.repositories, iterableWithSize(1));
+		assertThat(alias.repositories, contains("repos"));
+		assertThat(alias.classpaths, iterableWithSize(1));
+		assertThat(alias.classpaths, contains("cps"));
+		assertThat(alias.properties, aMapWithSize(1));
+		assertThat(alias.properties, hasEntry("prop", "val"));
+		assertThat(alias.arguments, iterableWithSize(3));
+		assertThat(alias.mainClass, is("mainclass"));
+		assertThat(alias.javaVersion, is("version"));
+		assertThat(alias.arguments, contains("aap", "noot", "mies"));
+	}
+
+	@Test
+	void testAddWithDefaultCatalogFile3() throws IOException {
+		Path cwd = Util.getCwd();
+		Path testFile = cwd.resolve("test.java");
+		Files.write(testFile, "// Test file".getBytes());
+		Path catFile = Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON);
+		Files.write(catFile, "".getBytes());
+		assertThat(Files.size(catFile), is(0L));
+		JBang jbang = new JBang();
+		new CommandLine(jbang).execute("alias", "add",
+				"--name=name", testFile.toString(),
+				"--description", "desc",
+				"--deps", "deps",
+				"--repos", "repos",
+				"--cp", "cps",
+				"--java-options", "jopts",
+				"-D", "prop=val",
+				"--main", "mainclass",
+				"--java", "version",
+				"aap", "noot", "mies");
+		assertThat(Files.size(catFile), not(is(0L)));
 		Alias alias = Alias.get("name");
 		assertThat(alias.scriptRef, is("test.java"));
 		assertThat(alias.description, is("desc"));
