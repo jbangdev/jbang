@@ -69,13 +69,10 @@ with `JBANG_DEFAULT_JAVA_VERSION` env variable.
 Note that if JDK is found in the PATH, `JBANG_DEFAULT_JAVA_VERSION` will be ignored.
 
 It's also possible to override the exact JDK distribution that will be used by setting the `JBANG_JDK_VENDOR` env variable.
-By default this will either be `temurin` or `aoj`, but it can also be set to `azul`, `debian`, `microsoft`, `openjdk`,
-`oracle`, `oracle_open_jdk` or `redhat`.
+By default this will either be `temurin` or `aoj`, but it can also be set to any of the other https://api.foojay.io/disco/v3.0/distributions?include_versions=false[vendors supported by Foojay], like `azul`, `debian`, `microsoft`, `openjdk`,
+`oracle` or `redhat`.
 
-By default JBang will only install final (GA) JDK releases, if you want to install an Early Access (EA) release you can do
-so by setting the `JBANG_JDK_RELEASE` env variable to `ea`.
-
- $ JBANG_DEFAULT_JAVA_VERSION=18 JBANG_JDK_VENDOR=oracle JBANG_JDK_RELEASE=ea jbang my-script.java
+ $ JBANG_DEFAULT_JAVA_VERSION=18 JBANG_JDK_VENDOR=oracle jbang my-script.java
 
 Note that if a JDK of matching version is already installed these env variables will have _no_ effect! They only take
 effect when an actual JDK installation is performed. To force JBang to install such a JDK one would first have to

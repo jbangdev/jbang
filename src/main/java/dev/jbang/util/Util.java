@@ -68,7 +68,6 @@ import dev.jbang.dependencies.DependencyUtil;
 public class Util {
 
 	public static final String JBANG_JDK_VENDOR = "JBANG_JDK_VENDOR";
-	public static final String JBANG_JDK_RELEASE = "JBANG_JDK_RELEASE";
 	public static final String JBANG_RUNTIME_SHELL = "JBANG_RUNTIME_SHELL";
 	public static final String JBANG_STDIN_NOTTY = "JBANG_STDIN_NOTTY";
 
@@ -329,10 +328,6 @@ public class Util {
 		}
 	}
 
-	public enum Release {
-		ga, ea
-	}
-
 	public enum Shell {
 		bash, cmd, powershell
 	}
@@ -502,19 +497,6 @@ public class Util {
 			} catch (IllegalArgumentException ex) {
 				warnMsg("JDK vendor '" + vendorName + "' does not exist, should be one of: "
 						+ Arrays.toString(Vendor.values()));
-			}
-		}
-		return null;
-	}
-
-	public static Release getRelease() {
-		String releaseName = System.getenv(JBANG_JDK_RELEASE);
-		if (releaseName != null) {
-			try {
-				return Release.valueOf(releaseName);
-			} catch (IllegalArgumentException ex) {
-				warnMsg("JDK release '" + releaseName + "' does not exist, should be one of: "
-						+ Arrays.toString(Release.values()));
 			}
 		}
 		return null;

@@ -133,7 +133,6 @@ if [[ -z "$JBANG_JDK_VENDOR" ]]; then
 else
   distro=$JBANG_JDK_VENDOR
 fi
-if [[ -z "$JBANG_JDK_RELEASE" ]]; then release="ga"; else release="$JBANG_JDK_RELEASE"; fi
 
 if [[ -z "$JBANG_DIR" ]]; then JBDIR="$HOME/.jbang"; else JBDIR="$JBANG_DIR"; fi
 if [[ -z "$JBANG_CACHE_DIR" ]]; then TDIR="$JBDIR/cache"; else TDIR="$JBANG_CACHE_DIR"; fi
@@ -200,7 +199,7 @@ if [[ -z "$JAVA_EXEC" ]]; then
       fi
       mkdir -p "$TDIR/jdks"
       echo "Downloading JDK $javaVersion. Be patient, this can take several minutes..." 1>&2
-      jdkurl="https://api.foojay.io/disco/v2.0/directuris?distro=$distro&javafx_bundled=false&libc_type=$libc_type&archive_type=$file_type&operating_system=$os&package_type=jdk&version=$javaVersion&release_status=$release&architecture=$arch&latest=available"
+      jdkurl="https://api.foojay.io/disco/v2.0/directuris?distro=$distro&javafx_bundled=false&libc_type=$libc_type&archive_type=$file_type&operating_system=$os&package_type=jdk&version=$javaVersion&architecture=$arch&latest=available"
       download "$jdkurl" "$TDIR/bootstrap-jdk.$file_type"
       if [ $retval -ne 0 ]; then echo "Error downloading JDK" 1>&2; exit $retval; fi
       echo "Installing JDK $javaVersion..." 1>&2

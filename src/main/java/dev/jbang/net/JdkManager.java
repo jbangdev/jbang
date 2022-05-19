@@ -27,11 +27,9 @@ import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
 
 public class JdkManager {
-	private static final String JDK_DOWNLOAD_URL = "https://api.adoptopenjdk.net/v3/binary/latest/%d/ga/%s/%s/jdk/hotspot/normal/%s";
-
 	private static final String FOOJAY_JDK_DOWNLOAD_URL = "https://api.foojay.io/disco/v2.0/directuris?";
 
-	static Map<String, String> parameters(int version, Util.Vendor distro, Util.Release release, String arch,
+	static Map<String, String> parameters(int version, Util.Vendor distro, String arch,
 			String archiveType, String os) {
 
 		Map<String, String> param = new HashMap<>();
@@ -68,21 +66,15 @@ public class JdkManager {
 			param.put("libc_type", "glibc");
 		}
 
-		if (release == null) {
-			release = Util.Release.ga;
-		}
-		param.put("release_status", release.name());
-
 		param.put("javafx_bundled", "false");
 		param.put("latest", "available");
 
 		return param;
 	}
 
-	private static String getJDKUrl(int version, String os, String architecture, Util.Vendor vendor,
-			Util.Release release) {
+	private static String getDownloadUrl(int version, String os, String architecture, Util.Vendor vendor) {
 		String url = FOOJAY_JDK_DOWNLOAD_URL
-				+ urlEncodeUTF8(parameters(version, vendor, release, architecture, null, os));
+				+ urlEncodeUTF8(parameters(version, vendor, architecture, null, os));
 		return url;
 	}
 
@@ -134,8 +126,7 @@ public class JdkManager {
 
 	public static Path downloadAndInstallJdk(int version) {
 		Util.infoMsg("Downloading JDK " + version + ". Be patient, this can take several minutes...");
-		String url = getJDKUrl(version, Util.getOS().name(), Util.getArch().name(),
-				Util.getVendor(), Util.getRelease());
+		String url = getDownloadUrl(version, Util.getOS().name(), Util.getArch().name(), Util.getVendor());
 		Util.verboseMsg("Downloading " + url);
 		Path jdkDir = getJdkPath(version);
 		Path jdkTmpDir = jdkDir.getParent().resolve(jdkDir.getFileName().toString() + ".tmp");
