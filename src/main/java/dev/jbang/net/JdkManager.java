@@ -29,9 +29,7 @@ import dev.jbang.util.Util;
 public class JdkManager {
 	private static final String FOOJAY_JDK_DOWNLOAD_URL = "https://api.foojay.io/disco/v2.0/directuris?";
 
-	static Map<String, String> parameters(int version, Util.Vendor distro, String arch,
-			String archiveType, String os) {
-
+	private static String getDownloadUrl(int version, Util.OS os, Util.Arch arch, Util.Vendor distro) {
 		Map<String, String> param = new HashMap<>();
 		param.put("version", String.valueOf(version));
 
@@ -44,23 +42,21 @@ public class JdkManager {
 		}
 		param.put("distro", distro.foojayname());
 
-		if (archiveType == null) {
-			if ("windows".equals(os)) {
-				archiveType = "zip";
-			} else {
-				archiveType = "tar.gz";
-			}
+		String archiveType;
+		if (os == Util.OS.windows) {
+			archiveType = "zip";
+		} else {
+			archiveType = "tar.gz";
 		}
-
 		param.put("archive_type", archiveType);
 
-		param.put("architecture", arch);
+		param.put("architecture", arch.name());
 		param.put("package_type", "jdk");
-		param.put("operating_system", os);
+		param.put("operating_system", os.name());
 
-		if ("windows".equals(os)) {
+		if (os == Util.OS.windows) {
 			param.put("libc_type", "c_std_lib");
-		} else if (os.equals("mac")) {
+		} else if (os == Util.OS.mac) {
 			param.put("libc_type", "libc");
 		} else {
 			param.put("libc_type", "glibc");
@@ -69,13 +65,7 @@ public class JdkManager {
 		param.put("javafx_bundled", "false");
 		param.put("latest", "available");
 
-		return param;
-	}
-
-	private static String getDownloadUrl(int version, String os, String architecture, Util.Vendor vendor) {
-		String url = FOOJAY_JDK_DOWNLOAD_URL
-				+ urlEncodeUTF8(parameters(version, vendor, architecture, null, os));
-		return url;
+		return FOOJAY_JDK_DOWNLOAD_URL + urlEncodeUTF8(param);
 	}
 
 	static String urlEncodeUTF8(String s) {
@@ -126,7 +116,7 @@ public class JdkManager {
 
 	public static Path downloadAndInstallJdk(int version) {
 		Util.infoMsg("Downloading JDK " + version + ". Be patient, this can take several minutes...");
-		String url = getDownloadUrl(version, Util.getOS().name(), Util.getArch().name(), Util.getVendor());
+		String url = getDownloadUrl(version, Util.getOS(), Util.getArch(), Util.getVendor());
 		Util.verboseMsg("Downloading " + url);
 		Path jdkDir = getJdkPath(version);
 		Path jdkTmpDir = jdkDir.getParent().resolve(jdkDir.getFileName().toString() + ".tmp");
