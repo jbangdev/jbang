@@ -304,30 +304,6 @@ public class Util {
 		x32, x64, aarch64, arm64, ppc64, ppc64le, s390x, unknown
 	}
 
-	public enum Vendor {
-		adoptopenjdk {
-			public String foojayname() {
-				return "aoj";
-			}
-		},
-		azul,
-		debian,
-		microsoft,
-		openjdk {
-			public String foojayname() {
-				return "oracle_open_jdk";
-			}
-		},
-		oracle,
-		oracle_open_jdk,
-		redhat,
-		temurin;
-
-		public String foojayname() {
-			return name();
-		}
-	}
-
 	public enum Shell {
 		bash, cmd, powershell
 	}
@@ -489,17 +465,8 @@ public class Util {
 		return getOS() == OS.mac;
 	}
 
-	public static Vendor getVendor() {
-		String vendorName = System.getenv(JBANG_JDK_VENDOR);
-		if (vendorName != null) {
-			try {
-				return Vendor.valueOf(vendorName);
-			} catch (IllegalArgumentException ex) {
-				warnMsg("JDK vendor '" + vendorName + "' does not exist, should be one of: "
-						+ Arrays.toString(Vendor.values()));
-			}
-		}
-		return null;
+	public static String getVendor() {
+		return System.getenv(JBANG_JDK_VENDOR);
 	}
 
 	/**

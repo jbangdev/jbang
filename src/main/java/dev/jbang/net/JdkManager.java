@@ -29,18 +29,18 @@ import dev.jbang.util.Util;
 public class JdkManager {
 	private static final String FOOJAY_JDK_DOWNLOAD_URL = "https://api.foojay.io/disco/v2.0/directuris?";
 
-	private static String getDownloadUrl(int version, Util.OS os, Util.Arch arch, Util.Vendor distro) {
+	private static String getDownloadUrl(int version, Util.OS os, Util.Arch arch, String distro) {
 		Map<String, String> param = new HashMap<>();
 		param.put("version", String.valueOf(version));
 
 		if (distro == null) {
 			if (version == 8 || version == 11 || version >= 17) {
-				distro = Util.Vendor.temurin;
+				distro = "temurin";
 			} else {
-				distro = Util.Vendor.adoptopenjdk;
+				distro = "aoj";
 			}
 		}
-		param.put("distro", distro.foojayname());
+		param.put("distro", distro);
 
 		String archiveType;
 		if (os == Util.OS.windows) {
