@@ -943,16 +943,13 @@ public class Util {
 				"https://api.github.com/gists/${gistid}");
 
 		Util.verboseMsg("Gist url api: " + gistapi);
-		String strdata = null;
+		Gist gist = null;
 		try {
-			strdata = readStringFromURL(gistapi, getGitHubHeaders());
+			gist = readJsonFromURL(gistapi, getGitHubHeaders(), Gist.class);
 		} catch (IOException e) {
 			Util.verboseMsg("Error when extracting file from gist url.");
 			throw new IllegalStateException(e);
 		}
-
-		Gson parser = new Gson();
-		Gist gist = parser.fromJson(strdata, Gist.class);
 
 		for (Entry<String, Map<String, String>> entry : gist.files.entrySet()) {
 			String key = entry.getKey();
@@ -1015,6 +1012,17 @@ public class Util {
 			scanner.useDelimiter("\\A");
 			return scanner.hasNext() ? scanner.next() : "";
 		}
+	}
+
+	public static <T> T readJsonFromURL(String requestURL, Map<String, String> headers, Class<T> type)
+			throws IOException {
+		verboseMsg("Reading JSON from: " + requestURL);
+		URLConnection connection = new URL(requestURL).openConnection();
+		if (headers != null) {
+			headers.forEach(connection::setRequestProperty);
+		}
+		Gson parser = new Gson();
+		return parser.fromJson(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8), type);
 	}
 
 	public static String repeat(String s, int times) {

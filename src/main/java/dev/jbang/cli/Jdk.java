@@ -39,22 +39,31 @@ public class Jdk {
 	}
 
 	@CommandLine.Command(name = "list", description = "Lists installed JDKs.")
-	public Integer list() {
-		int v = JdkManager.getDefaultJdk();
+	public Integer list(
+			@CommandLine.Option(names = {
+					"--available" }, description = "Shows versions available for installation") boolean available) {
+		int defaultJdk = JdkManager.getDefaultJdk();
 		PrintStream out = System.out;
 		final Set<Integer> installedJdks = JdkManager.listInstalledJdks();
-		if (!installedJdks.isEmpty()) {
-			out.println("Available installed JDKs:");
-			installedJdks.forEach(jdk -> {
-				if (jdk == v) {
+		final Set<Integer> jdks = available ? JdkManager.listAvailableJdks() : installedJdks;
+		if (!jdks.isEmpty()) {
+			if (available) {
+				out.println("Available JDKs (*=installed, <=default):");
+			} else {
+				out.println("Installed JDKs (<=default):");
+			}
+			jdks.forEach(jdk -> {
+				out.print("  " + jdk);
+				if (jdk == defaultJdk) {
+					out.print(" <");
+				} else if (available && installedJdks.contains(jdk)) {
 					out.print(" *");
 				}
-				out.print("  " + jdk);
 
 				out.println();
 			});
 		} else {
-			out.println("No JDKs installed");
+			out.println(String.format("No JDKs %s", available ? "available" : "installed"));
 		}
 		return EXIT_OK;
 	}

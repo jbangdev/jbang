@@ -9,12 +9,7 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -28,10 +23,11 @@ import dev.jbang.util.Util;
 
 public class JdkManager {
 	private static final String FOOJAY_JDK_DOWNLOAD_URL = "https://api.foojay.io/disco/v2.0/directuris?";
+	private static final String FOOJAY_JDK_VERSIONS_URL = "https://api.foojay.io/disco/v3.0/distributions/%s?";
 
 	private static String getDownloadUrl(int version, Util.OS os, Util.Arch arch, String distro) {
-		Map<String, String> param = new HashMap<>();
-		param.put("version", String.valueOf(version));
+		Map<String, String> params = new HashMap<>();
+		params.put("version", String.valueOf(version));
 
 		if (distro == null) {
 			if (version == 8 || version == 11 || version >= 17) {
@@ -40,7 +36,7 @@ public class JdkManager {
 				distro = "aoj";
 			}
 		}
-		param.put("distro", distro);
+		params.put("distro", distro);
 
 		String archiveType;
 		if (os == Util.OS.windows) {
@@ -48,24 +44,30 @@ public class JdkManager {
 		} else {
 			archiveType = "tar.gz";
 		}
-		param.put("archive_type", archiveType);
+		params.put("archive_type", archiveType);
 
-		param.put("architecture", arch.name());
-		param.put("package_type", "jdk");
-		param.put("operating_system", os.name());
+		params.put("architecture", arch.name());
+		params.put("package_type", "jdk");
+		params.put("operating_system", os.name());
 
 		if (os == Util.OS.windows) {
-			param.put("libc_type", "c_std_lib");
+			params.put("libc_type", "c_std_lib");
 		} else if (os == Util.OS.mac) {
-			param.put("libc_type", "libc");
+			params.put("libc_type", "libc");
 		} else {
-			param.put("libc_type", "glibc");
+			params.put("libc_type", "glibc");
 		}
 
-		param.put("javafx_bundled", "false");
-		param.put("latest", "available");
+		params.put("javafx_bundled", "false");
+		params.put("latest", "available");
 
-		return FOOJAY_JDK_DOWNLOAD_URL + urlEncodeUTF8(param);
+		return FOOJAY_JDK_DOWNLOAD_URL + urlEncodeUTF8(params);
+	}
+
+	private static String getVersionsUrl(String distro) {
+		Map<String, String> params = new HashMap<>();
+		params.put("latest_per_update", "true");
+		return String.format(FOOJAY_JDK_VERSIONS_URL, distro) + urlEncodeUTF8(params);
 	}
 
 	static String urlEncodeUTF8(String s) {
@@ -302,6 +304,34 @@ public class JdkManager {
 		} else {
 			Util.deletePath(link, true);
 		}
+	}
+
+	private static class VersionsResult {
+		List<String> versions;
+	}
+
+	private static class VersionsResponse {
+		List<VersionsResult> result;
+	}
+
+	public static Set<Integer> listAvailableJdks() {
+		try {
+			Set<Integer> result = new TreeSet<>();
+			String distro = Util.getVendor();
+			if (distro == null) {
+				VersionsResponse res = Util.readJsonFromURL(getVersionsUrl("aoj"), null, VersionsResponse.class);
+				res.result.get(0).versions.stream().map(v -> JavaUtil.parseJavaVersion(v)).forEach(v -> result.add(v));
+				res = Util.readJsonFromURL(getVersionsUrl("temurin"), null, VersionsResponse.class);
+				res.result.get(0).versions.stream().map(v -> JavaUtil.parseJavaVersion(v)).forEach(v -> result.add(v));
+			} else {
+				VersionsResponse res = Util.readJsonFromURL(getVersionsUrl(distro), null, VersionsResponse.class);
+				res.result.get(0).versions.stream().map(v -> JavaUtil.parseJavaVersion(v)).forEach(v -> result.add(v));
+			}
+			return Collections.unmodifiableSet(result);
+		} catch (IOException e) {
+			Util.verboseMsg("Couldn't list available JDKs", e);
+		}
+		return Collections.emptySet();
 	}
 
 	public static boolean isCurrentJdkManaged() {
