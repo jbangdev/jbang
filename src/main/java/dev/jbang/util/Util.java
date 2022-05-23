@@ -54,6 +54,7 @@ import com.google.gson.Gson;
 import dev.jbang.BuildConfig;
 import dev.jbang.Cache;
 import dev.jbang.Settings;
+import dev.jbang.catalog.Catalog;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
@@ -181,76 +182,81 @@ public class Util {
 
 	/**
 	 * Explodes filePattern found in baseDir returning list of relative Path names.
-	 *
-	 * TODO: this really should return some kind of abstraction of paths that allow
-	 * it be portable for urls as wells as files...or have a filesystem for each...
-	 * 
-	 * @param source
-	 * @param baseDir
-	 * @param filePattern
-	 * @return
+	 * If the filePattern refers to an existing folder the filePattern will be
+	 * treated as if it ended in "/**".
 	 */
 	public static List<String> explode(String source, Path baseDir, String filePattern) {
-		List<String> results = new ArrayList<>();
-
 		if (source != null && Util.isURL(source)) {
 			// if url then just return it back for others to resolve.
 			// TODO: technically this is really where it should get resolved!
 			if (isPattern(filePattern)) {
 				Util.warnMsg("Pattern " + filePattern + " used while using URL to run; this could result in errors.");
-				return results;
+				return Collections.emptyList();
 			} else {
-				results.add(filePattern);
+				return Collections.singletonList(filePattern);
 			}
 		} else if (Util.isURL(filePattern)) {
-			results.add(filePattern);
-		} else if (!isPattern(filePattern)) {
-			// not a pattern thus just as well return path directly
-			results.add(filePattern);
-		} else {
-			// it is a non-url let's try to locate it
-			final Path bd;
-			final boolean useAbsPath;
-			Path base = basePathWithoutPattern(filePattern);
-			String fp;
-			if (base.isAbsolute()) {
-				bd = base;
-				fp = filePattern.substring(bd.toString().length() + 1);
-				useAbsPath = true;
-			} else {
-				bd = baseDir.resolve(base);
-				fp = base.toString().isEmpty() ? filePattern : filePattern.substring(base.toString().length() + 1);
-				useAbsPath = false;
-			}
-			PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + fp);
+			return Collections.singletonList(filePattern);
+		}
 
-			FileVisitor<Path> matcherVisitor = new SimpleFileVisitor<Path>() {
-				@Override
-				public FileVisitResult visitFile(Path file, BasicFileAttributes attribs) {
-					Path relpath = bd.relativize(file);
-					if (matcher.matches(relpath)) {
-						// to avoid windows fail.
-						if (file.toFile().exists()) {
-							Path p = useAbsPath ? file : base.resolve(relpath);
-							if (isWindows()) {
-								results.add(p.toString().replace("\\", "/"));
-							} else {
-								results.add(p.toString());
-							}
-						} else {
-							Util.verboseMsg("Warning: " + relpath + " matches but does not exist!");
-						}
-					}
-					return FileVisitResult.CONTINUE;
+		if (!isPattern(filePattern)) {
+			if (!Catalog.isValidCatalogReference(filePattern)
+					&& Util.isValidPath(filePattern) && Files.isDirectory(baseDir.resolve(filePattern))) {
+				// The filePattern refers to a folder, so let's add "/**"
+				if (!filePattern.endsWith("/") && !filePattern.endsWith(File.separator)) {
+					filePattern = filePattern + "/";
 				}
-			};
-
-			try {
-				Files.walkFileTree(bd, matcherVisitor);
-			} catch (IOException e) {
-				throw new ExitException(BaseCommand.EXIT_INTERNAL_ERROR, "Problem looking for " + fp + " in " + bd, e);
+				filePattern = filePattern + "**";
+			} else {
+				// not a pattern and not a folder thus just as well return path directly
+				return Collections.singletonList(filePattern);
 			}
 		}
+
+		// it is a non-url let's try to locate it
+		final Path bd;
+		final boolean useAbsPath;
+		Path base = basePathWithoutPattern(filePattern);
+		String fp;
+		if (base.isAbsolute()) {
+			bd = base;
+			fp = filePattern.substring(bd.toString().length() + 1);
+			useAbsPath = true;
+		} else {
+			bd = baseDir.resolve(base);
+			fp = base.toString().isEmpty() ? filePattern : filePattern.substring(base.toString().length() + 1);
+			useAbsPath = false;
+		}
+		PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + fp);
+
+		List<String> results = new ArrayList<>();
+		FileVisitor<Path> matcherVisitor = new SimpleFileVisitor<Path>() {
+			@Override
+			public FileVisitResult visitFile(Path file, BasicFileAttributes attribs) {
+				Path relpath = bd.relativize(file);
+				if (matcher.matches(relpath)) {
+					// to avoid windows fail.
+					if (file.toFile().exists()) {
+						Path p = useAbsPath ? file : base.resolve(relpath);
+						if (isWindows()) {
+							results.add(p.toString().replace("\\", "/"));
+						} else {
+							results.add(p.toString());
+						}
+					} else {
+						Util.verboseMsg("Warning: " + relpath + " matches but does not exist!");
+					}
+				}
+				return FileVisitResult.CONTINUE;
+			}
+		};
+
+		try {
+			Files.walkFileTree(bd, matcherVisitor);
+		} catch (IOException e) {
+			throw new ExitException(BaseCommand.EXIT_INTERNAL_ERROR, "Problem looking for " + fp + " in " + bd, e);
+		}
+
 		return results;
 	}
 
