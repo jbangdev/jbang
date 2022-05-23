@@ -3,6 +3,7 @@ package dev.jbang.source;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -84,9 +85,11 @@ public class TestBuilder extends BaseTest {
 			@Override
 			public void createJar() {
 				assertThat(ss.getResources().size(), is(2));
-				assertThat(ss.getResources().get(0).getTarget().toString(), is("somedir/resource.properties"));
+				assertThat(ss.getResources().get(0).getTarget().toString(),
+						is("somedir" + File.separator + "resource.properties"));
 				assertThat(ss.getResources().get(0).getSource().getFile().toPath().endsWith(res1), is(true));
-				assertThat(ss.getResources().get(1).getTarget().toString(), is("somedir/sub.properties"));
+				assertThat(ss.getResources().get(1).getTarget().toString(),
+						is("somedir" + File.separator + "sub.properties"));
 				assertThat(ss.getResources().get(1).getSource().getFile().toPath().endsWith(res2), is(true));
 			}
 		}.setFresh(true).build();
