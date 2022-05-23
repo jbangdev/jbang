@@ -1,7 +1,6 @@
 package dev.jbang.cli;
 
 import static dev.jbang.cli.BaseBuildCommand.buildIfNeeded;
-import static dev.jbang.cli.BaseScriptCommand.enableInsecure;
 import static dev.jbang.cli.Export.handle;
 import static dev.jbang.source.builders.BaseBuilder.getImageName;
 import static dev.jbang.util.JavaUtil.resolveInJavaHome;
@@ -38,12 +37,8 @@ public class Export {
 
 	static int handle(ExportMixin exportMixin,
 			Exporter style) throws IOException {
-		if (exportMixin.insecure) {
-			enableInsecure();
-		}
-
 		RunContext ctx = getRunContext(exportMixin);
-		Code code = ctx.forResource(exportMixin.scriptOrFile);
+		Code code = ctx.forResource(exportMixin.scriptMixin.scriptOrFile);
 
 		code = buildIfNeeded(code, ctx);
 		ctx.resolveClassPath(code);
@@ -57,8 +52,8 @@ public class Export {
 		ctx.setAdditionalDependencies(exportMixin.dependencyInfoMixin.getDependencies());
 		ctx.setAdditionalRepositories(exportMixin.dependencyInfoMixin.getRepositories());
 		ctx.setAdditionalClasspaths(exportMixin.dependencyInfoMixin.getClasspaths());
-		ctx.setAdditionalSources(exportMixin.sources);
-		ctx.setAdditionalResources(exportMixin.resources);
+		ctx.setAdditionalSources(exportMixin.scriptMixin.sources);
+		ctx.setAdditionalResources(exportMixin.scriptMixin.resources);
 		ctx.setJavaVersion(exportMixin.javaVersion);
 		ctx.setNativeImage(exportMixin.nativeImage);
 		return ctx;

@@ -5,7 +5,6 @@ import static dev.jbang.source.builders.BaseBuilder.getImageName;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.source.RunContext;
@@ -16,31 +15,24 @@ import picocli.CommandLine;
 public class ExportMixin {
 
 	protected String javaVersion;// TODO: refactor these to be mixins
+
+	@CommandLine.Mixin
+	ScriptMixin scriptMixin;
+
 	@CommandLine.Option(names = {
 			"-n", "--native" }, description = "Build using native-image")
 	boolean nativeImage;
-	@CommandLine.Option(names = {
-			"--insecure" }, description = "Enable insecure trust of all SSL certificates.")
-	boolean insecure;
+
 	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
+
 	@CommandLine.Option(names = { "-O",
 			"--output" }, description = "The name or path to use for the exported file. If not specified a name will be determined from the original source reference and export flags.")
 	Path outputFile;// mixins todo above
+
 	@CommandLine.Option(names = { "--force",
 	}, description = "Force export, i.e. overwrite exported file if already exists")
 	boolean force;
-
-	@CommandLine.Option(names = { "-s",
-			"--sources" }, converter = CommaSeparatedConverter.class, description = "Add additional sources.")
-	List<String> sources;
-
-	@CommandLine.Option(names = {
-			"--files" }, converter = CommaSeparatedConverter.class, description = "Add additional files.")
-	List<String> resources;
-
-	@CommandLine.Parameters(paramLabel = "scriptOrFile", index = "0", description = "A file or URL to a Java code file", arity = "1")
-	String scriptOrFile;
 
 	public ExportMixin() {
 	}

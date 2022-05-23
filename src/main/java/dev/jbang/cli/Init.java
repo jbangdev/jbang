@@ -29,7 +29,7 @@ import io.quarkus.qute.TemplateInstance;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "init", description = "Initialize a script.")
-public class Init extends BaseScriptCommand {
+public class Init extends BaseCommand {
 
 	@CommandLine.Option(names = { "--template",
 			"-t" }, description = "Init script with a java class useful for scripting")
@@ -45,6 +45,15 @@ public class Init extends BaseScriptCommand {
 	@CommandLine.Option(names = {
 			"--deps" }, converter = CommaSeparatedConverter.class, description = "Add additional dependencies (Use commas to separate them).")
 	List<String> dependencies;
+
+	@CommandLine.Parameters(paramLabel = "scriptOrFile", index = "0", description = "A file or URL to a Java code file", arity = "1")
+	String scriptOrFile;
+
+	public void requireScriptArgument() {
+		if (scriptOrFile == null) {
+			throw new IllegalArgumentException("Missing required parameter: '<scriptOrFile>'");
+		}
+	}
 
 	@Override
 	public Integer doCall() throws IOException {

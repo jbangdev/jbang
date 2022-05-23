@@ -59,15 +59,10 @@ abstract class BaseAliasCommand extends BaseCommand {
 class AliasAdd extends BaseAliasCommand {
 
 	@CommandLine.Mixin
+	ScriptMixin scriptMixin;
+
+	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
-
-	@CommandLine.Option(names = { "-s",
-			"--sources" }, converter = CommaSeparatedConverter.class, description = "Add additional sources.")
-	List<String> sources;
-
-	@CommandLine.Option(names = {
-			"--files" }, converter = CommaSeparatedConverter.class, description = "Add additional files.")
-	List<String> resources;
 
 	@CommandLine.Option(names = { "--description",
 			"-d" }, description = "A description for the alias")
@@ -87,9 +82,6 @@ class AliasAdd extends BaseAliasCommand {
 	@CommandLine.Option(names = { "--name" }, description = "A name for the alias")
 	String name;
 
-	@CommandLine.Parameters(paramLabel = "scriptOrFile", index = "0", description = "A file or URL to a Java code file", arity = "1")
-	String scriptOrFile;
-
 	@CommandLine.Parameters(paramLabel = "params", index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
 	List<String> userParams;
 
@@ -101,7 +93,7 @@ class AliasAdd extends BaseAliasCommand {
 		}
 
 		RunContext ctx = getRunContext();
-		Code code = ctx.forResource(scriptOrFile);
+		Code code = ctx.forResource(scriptMixin.scriptOrFile);
 		if (name == null) {
 			name = CatalogUtil.nameFromRef(ctx.getOriginalRef());
 		}
@@ -110,13 +102,15 @@ class AliasAdd extends BaseAliasCommand {
 
 		Path catFile = getCatalog(false);
 		if (catFile != null) {
-			CatalogUtil.addAlias(catFile, name, scriptOrFile, desc, userParams, javaRuntimeOptions, sources, resources,
-					dependencyInfoMixin.getDependencies(), dependencyInfoMixin.getRepositories(),
-					dependencyInfoMixin.getClasspaths(), dependencyInfoMixin.getProperties(), javaVersion, main);
+			CatalogUtil.addAlias(catFile, name, scriptMixin.scriptOrFile, desc, userParams, javaRuntimeOptions,
+					scriptMixin.sources, scriptMixin.resources, dependencyInfoMixin.getDependencies(),
+					dependencyInfoMixin.getRepositories(), dependencyInfoMixin.getClasspaths(),
+					dependencyInfoMixin.getProperties(), javaVersion, main);
 		} else {
-			catFile = CatalogUtil.addNearestAlias(name, scriptOrFile, desc, userParams, javaRuntimeOptions, sources,
-					resources, dependencyInfoMixin.getDependencies(), dependencyInfoMixin.getRepositories(),
-					dependencyInfoMixin.getClasspaths(), dependencyInfoMixin.getProperties(), javaVersion, main);
+			catFile = CatalogUtil.addNearestAlias(name, scriptMixin.scriptOrFile, desc, userParams, javaRuntimeOptions,
+					scriptMixin.sources, scriptMixin.resources, dependencyInfoMixin.getDependencies(),
+					dependencyInfoMixin.getRepositories(), dependencyInfoMixin.getClasspaths(),
+					dependencyInfoMixin.getProperties(), javaVersion, main);
 		}
 		info(String.format("Alias '%s' added to '%s'", name, catFile));
 		return EXIT_OK;
@@ -128,7 +122,9 @@ class AliasAdd extends BaseAliasCommand {
 		ctx.setAdditionalDependencies(dependencyInfoMixin.getDependencies());
 		ctx.setAdditionalRepositories(dependencyInfoMixin.getRepositories());
 		ctx.setAdditionalClasspaths(dependencyInfoMixin.getClasspaths());
-		ctx.setAdditionalSources(sources);
+		ctx.setAdditionalSources(scriptMixin.sources);
+		ctx.setAdditionalResources(scriptMixin.resources);
+		ctx.setForceJsh(scriptMixin.forcejsh);
 		ctx.setJavaVersion(javaVersion);
 		ctx.setMainClass(main);
 		Path cat = getCatalog(false);
