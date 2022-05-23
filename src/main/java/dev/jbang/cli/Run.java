@@ -57,12 +57,16 @@ public class Run extends BaseBuildCommand {
 	public List<String> userParams = new ArrayList<>();
 
 	@Override
-	public Integer doCall() throws IOException {
+	protected void requireScriptArgument() {
 		if (scriptOrFile == null && ((!interactive && !literalScript.isPresent())
 				|| (literalScript.isPresent() && literalScript.get().isEmpty()))) {
 			throw new IllegalArgumentException("Missing required parameter: '<scriptOrFile>'");
 		}
+	}
 
+	@Override
+	public Integer doCall() throws IOException {
+		requireScriptArgument();
 		if (insecure) {
 			enableInsecure();
 		}
