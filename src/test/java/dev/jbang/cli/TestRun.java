@@ -1726,7 +1726,7 @@ public class TestRun extends BaseTest {
 									.collect(Collectors.toList());
 				assertThat(ps, hasItem(endsWith("resource.properties")));
 				assertThat(ps, hasItem(endsWith("test.properties")));
-				assertThat(ps, hasItem(endsWith("sub/sub.properties")));
+				assertThat(ps, hasItem(endsWith("sub" + File.separator + "sub.properties")));
 			}
 		}.setFresh(true).build();
 	}
@@ -1735,7 +1735,7 @@ public class TestRun extends BaseTest {
 
 	@BeforeEach
 	void setupMock() {
-		wms = new WireMockServer(options().port(8080));
+		wms = new WireMockServer(options().dynamicPort());
 	}
 
 	@AfterEach
