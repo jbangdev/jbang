@@ -56,9 +56,8 @@ public class Run extends BaseBuildCommand {
 	@CommandLine.Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
 	public List<String> userParams = new ArrayList<>();
 
-	@Override
 	protected void requireScriptArgument() {
-		if (scriptOrFile == null && ((!interactive && !literalScript.isPresent())
+		if (scriptMixin.scriptOrFile == null && ((!interactive && !literalScript.isPresent())
 				|| (literalScript.isPresent() && literalScript.get().isEmpty()))) {
 			throw new IllegalArgumentException("Missing required parameter: '<scriptOrFile>'");
 		}
@@ -67,9 +66,7 @@ public class Run extends BaseBuildCommand {
 	@Override
 	public Integer doCall() throws IOException {
 		requireScriptArgument();
-		if (insecure) {
-			enableInsecure();
-		}
+		String scriptOrFile = scriptMixin.scriptOrFile;
 
 		RunContext ctx = getRunContext();
 		Code code;
@@ -136,7 +133,7 @@ public class Run extends BaseBuildCommand {
 				RunContext actx = super.getRunContext();
 				Code asrc = actx.forResource(javaAgent);
 				actx.setJavaAgentOption(javaAgentOptions.orElse(null));
-				if (needsJar(asrc, actx)) {
+				if (ScriptMixin.needsJar(asrc, actx)) {
 					info("Building javaagent...");
 					asrc = buildIfNeeded(asrc, actx);
 				}

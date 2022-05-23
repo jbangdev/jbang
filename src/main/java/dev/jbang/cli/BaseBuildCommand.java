@@ -5,25 +5,19 @@ import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.List;
 
 import dev.jbang.source.*;
 
 import picocli.CommandLine;
 
-public abstract class BaseBuildCommand extends BaseScriptCommand {
+public abstract class BaseBuildCommand extends BaseCommand {
 	protected String javaVersion;
 
 	@CommandLine.Mixin
+	ScriptMixin scriptMixin;
+
+	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
-
-	@CommandLine.Option(names = { "-s",
-			"--sources" }, converter = CommaSeparatedConverter.class, description = "Add additional sources.")
-	List<String> sources;
-
-	@CommandLine.Option(names = {
-			"--files" }, converter = CommaSeparatedConverter.class, description = "Add additional files.")
-	List<String> resources;
 
 	@CommandLine.Option(names = { "-m",
 			"--main" }, description = "Main class to use when running. Used primarily for running jar's.")
@@ -49,7 +43,7 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 	PrintStream out = new PrintStream(new FileOutputStream(FileDescriptor.out));
 
 	static Code buildIfNeeded(Code code, RunContext ctx) throws IOException {
-		if (needsJar(code, ctx)) {
+		if (ScriptMixin.needsJar(code, ctx)) {
 			SourceSet ss = (SourceSet) code;
 			code = ss.builder(ctx).build();
 		}
@@ -62,9 +56,9 @@ public abstract class BaseBuildCommand extends BaseScriptCommand {
 		ctx.setAdditionalDependencies(dependencyInfoMixin.getDependencies());
 		ctx.setAdditionalRepositories(dependencyInfoMixin.getRepositories());
 		ctx.setAdditionalClasspaths(dependencyInfoMixin.getClasspaths());
-		ctx.setAdditionalSources(sources);
-		ctx.setAdditionalResources(resources);
-		ctx.setForceJsh(forcejsh);
+		ctx.setAdditionalSources(scriptMixin.sources);
+		ctx.setAdditionalResources(scriptMixin.resources);
+		ctx.setForceJsh(scriptMixin.forcejsh);
 		ctx.setJavaVersion(javaVersion);
 		ctx.setMainClass(main);
 		ctx.setNativeImage(nativeImage);

@@ -34,22 +34,15 @@ import io.quarkus.qute.Template;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "edit", description = "Setup a temporary project to edit script in an IDE.")
-public class Edit extends BaseScriptCommand {
+public class Edit extends BaseCommand {
 
-	// static String[] knownEditors = { "code", "eclipse", "idea", "netbeans", "vi",
-	// "emacs" };
 	static String[] knownEditors = { "code", "eclipse", "idea", "netbeans" };
 
 	@CommandLine.Mixin
+	ScriptMixin scriptMixin;
+
+	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
-
-	@CommandLine.Option(names = { "-s",
-			"--sources" }, converter = CommaSeparatedConverter.class, description = "Add additional sources.")
-	List<String> sources;
-
-	@CommandLine.Option(names = {
-			"--files" }, converter = CommaSeparatedConverter.class, description = "Add additional files.")
-	List<String> resources;
 
 	@CommandLine.Option(names = {
 			"--live" }, description = "Setup temporary project, regenerate project on dependency changes.")
@@ -64,13 +57,10 @@ public class Edit extends BaseScriptCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
-		requireScriptArgument();
-		if (insecure) {
-			enableInsecure();
-		}
+		scriptMixin.validate();
 
 		RunContext ctx = getRunContext();
-		final Code code = ctx.forResource(scriptOrFile);
+		final Code code = ctx.forResource(scriptMixin.scriptOrFile);
 
 		if (!(code instanceof SourceSet)) {
 			throw new ExitException(EXIT_INVALID_INPUT, "You can only edit source files");
@@ -184,9 +174,9 @@ public class Edit extends BaseScriptCommand {
 		ctx.setAdditionalDependencies(dependencyInfoMixin.getDependencies());
 		ctx.setAdditionalRepositories(dependencyInfoMixin.getRepositories());
 		ctx.setAdditionalClasspaths(dependencyInfoMixin.getClasspaths());
-		ctx.setAdditionalSources(sources);
-		ctx.setAdditionalSources(resources);
-		ctx.setForceJsh(forcejsh);
+		ctx.setAdditionalSources(scriptMixin.sources);
+		ctx.setAdditionalResources(scriptMixin.resources);
+		ctx.setForceJsh(scriptMixin.forcejsh);
 		return ctx;
 	}
 

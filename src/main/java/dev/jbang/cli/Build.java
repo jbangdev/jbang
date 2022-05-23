@@ -12,13 +12,10 @@ public class Build extends BaseBuildCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
-		requireScriptArgument();
-		if (insecure) {
-			enableInsecure();
-		}
+		scriptMixin.validate();
 
 		RunContext ctx = getRunContext();
-		Code code = ctx.forResource(scriptOrFile);
+		Code code = ctx.forResource(scriptMixin.scriptOrFile);
 
 		buildIfNeeded(code, ctx);
 

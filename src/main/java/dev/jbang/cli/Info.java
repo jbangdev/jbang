@@ -26,18 +26,13 @@ import picocli.CommandLine;
 public class Info {
 }
 
-abstract class BaseInfoCommand extends BaseScriptCommand {
+abstract class BaseInfoCommand extends BaseCommand {
+
+	@CommandLine.Mixin
+	ScriptMixin scriptMixin;
 
 	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
-
-	@CommandLine.Option(names = { "-s",
-			"--sources" }, converter = CommaSeparatedConverter.class, description = "Add additional sources.")
-	List<String> sources;
-
-	@CommandLine.Option(names = {
-			"--files" }, converter = CommaSeparatedConverter.class, description = "Add additional files.")
-	List<String> resources;
 
 	static class ResourceFile {
 		String originalResource;
@@ -152,13 +147,10 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 	private static Set<String> scripts;
 
 	ScriptInfo getInfo() {
-		requireScriptArgument();
-		if (insecure) {
-			enableInsecure();
-		}
+		scriptMixin.validate();
 
 		RunContext ctx = getRunContext();
-		Code code = ctx.importJarMetadataFor(ctx.forResource(scriptOrFile));
+		Code code = ctx.importJarMetadataFor(ctx.forResource(scriptMixin.scriptOrFile));
 
 		scripts = new HashSet<>();
 
@@ -171,9 +163,9 @@ abstract class BaseInfoCommand extends BaseScriptCommand {
 		ctx.setAdditionalDependencies(dependencyInfoMixin.getDependencies());
 		ctx.setAdditionalRepositories(dependencyInfoMixin.getRepositories());
 		ctx.setAdditionalClasspaths(dependencyInfoMixin.getClasspaths());
-		ctx.setAdditionalSources(sources);
-		ctx.setAdditionalSources(resources);
-		ctx.setForceJsh(forcejsh);
+		ctx.setAdditionalSources(scriptMixin.sources);
+		ctx.setAdditionalResources(scriptMixin.resources);
+		ctx.setForceJsh(scriptMixin.forcejsh);
 		return ctx;
 	}
 

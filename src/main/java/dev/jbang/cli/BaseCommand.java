@@ -3,9 +3,14 @@ package dev.jbang.cli;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.net.ssl.*;
 
 import dev.jbang.Configuration;
 import dev.jbang.util.Util;
@@ -39,6 +44,13 @@ public abstract class BaseCommand implements Callable<Integer> {
 			Configuration.instance(Configuration.get(config));
 		} else {
 			warn("Configuration file does not exist or could not be read: " + config);
+		}
+	}
+
+	@CommandLine.Option(names = { "--insecure" }, description = "Enable insecure trust of all SSL certificates.")
+	void setInsecure(boolean insecure) {
+		if (insecure) {
+			enableInsecure();
 		}
 	}
 
@@ -86,6 +98,37 @@ public abstract class BaseCommand implements Callable<Integer> {
 
 	boolean isQuiet() {
 		return Util.isQuiet();
+	}
+
+	static private void enableInsecure() {
+		try {
+			// Create a trust manager that does not validate certificate chains
+			TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+				public X509Certificate[] getAcceptedIssuers() {
+					return null;
+				}
+
+				public void checkClientTrusted(X509Certificate[] certs, String authType) {
+				}
+
+				public void checkServerTrusted(X509Certificate[] certs, String authType) {
+				}
+			}
+			};
+
+			// Install the all-trusting trust manager
+			SSLContext sc = SSLContext.getInstance("SSL");
+			sc.init(null, trustAllCerts, new java.security.SecureRandom());
+			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+			// Create all-trusting host name verifier
+			HostnameVerifier allHostsValid = (hostname, session) -> true;
+
+			// Install the all-trusting host verifier
+			HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+		} catch (NoSuchAlgorithmException | KeyManagementException ex) {
+			throw new RuntimeException(ex);
+		}
 	}
 
 	@Override
