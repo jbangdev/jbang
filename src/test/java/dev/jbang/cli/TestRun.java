@@ -3,7 +3,6 @@ package dev.jbang.cli;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static dev.jbang.util.Util.readString;
 import static dev.jbang.util.Util.writeString;
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -53,7 +52,6 @@ import dev.jbang.BaseTest;
 import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
-import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.net.TrustedSources;
 import dev.jbang.source.Code;
 import dev.jbang.source.Jar;
@@ -1569,104 +1567,6 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
-	void testAdditionalSourcesUsingAlias() throws IOException {
-		String mainFile = examplesTestFolder.resolve("foo.java").toString();
-		String incFile = examplesTestFolder.resolve("bar/Bar.java").toString();
-
-		CatalogUtil.addNearestAlias("bar", incFile, null, null, null, null, null, null, null, null, null, null, null);
-
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build", "-s", "bar", mainFile);
-		Build build = (Build) pr.subcommand().commandSpec().userObject();
-
-		RunContext ctx = build.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResource(mainFile);
-
-		new JavaBuilder(ss, ctx) {
-			@Override
-			protected void runCompiler(List<String> optionList)
-					throws IOException {
-				assertThat(optionList, hasItem(mainFile));
-				assertThat(optionList, hasItem(incFile));
-				// Skip the compiler
-			}
-		}.setFresh(true).build();
-	}
-
-	@Test
-	void testIncludedSourcesUsingAlias(@TempDir Path dir) throws IOException {
-		Path mainFile = dir.resolve("foo.java");
-		String incFile = examplesTestFolder.resolve("bar/Bar.java").toString();
-
-		Path fooFile = examplesTestFolder.resolve("foo.java");
-		String fooScript = readString(fooFile);
-		writeString(mainFile, "//SOURCES bar@" + jbangTempDir + "\n" + fooScript);
-
-		CatalogUtil.addNearestAlias("bar", incFile, null, null, null, null, null, null, null, null, null, null, null);
-
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build", mainFile.toString());
-		Build build = (Build) pr.subcommand().commandSpec().userObject();
-
-		RunContext ctx = build.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResource(mainFile.toString());
-
-		new JavaBuilder(ss, ctx) {
-			@Override
-			protected void runCompiler(List<String> optionList)
-					throws IOException {
-				assertThat(optionList, hasItem(mainFile.toString()));
-				assertThat(optionList, hasItem(incFile));
-				// Skip the compiler
-			}
-		}.setFresh(true).build();
-	}
-
-	@Test
-	void testAdditionalSourcesGlobbing() throws IOException {
-		Util.setCwd(examplesTestFolder);
-		String mainFile = examplesTestFolder.resolve("foo.java").toString();
-		String incFile = examplesTestFolder.resolve("bar/Bar.java").toString();
-
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build", "-s", "bar/*.java", "foo.java");
-		Build build = (Build) pr.subcommand().commandSpec().userObject();
-
-		RunContext ctx = build.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResource(mainFile);
-
-		new JavaBuilder(ss, ctx) {
-			@Override
-			protected void runCompiler(List<String> optionList)
-					throws IOException {
-				assertThat(optionList, hasItem(mainFile));
-				assertThat(optionList, hasItem(incFile));
-				// Skip the compiler
-			}
-		}.setFresh(true).build();
-	}
-
-	@Test
-	void testAdditionalSourcesAbsGlobbing() throws IOException {
-		String mainFile = examplesTestFolder.resolve("foo.java").toString();
-		String incGlob = examplesTestFolder.resolve("bar").toString() + File.separatorChar + "*.java";
-		String incFile = examplesTestFolder.resolve("bar/Bar.java").toString();
-
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build", "-s", incGlob, mainFile);
-		Build build = (Build) pr.subcommand().commandSpec().userObject();
-
-		RunContext ctx = build.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResource(mainFile);
-
-		new JavaBuilder(ss, ctx) {
-			@Override
-			protected void runCompiler(List<String> optionList)
-					throws IOException {
-				assertThat(optionList, hasItem(mainFile));
-				assertThat(optionList, hasItem(incFile));
-				// Skip the compiler
-			}
-		}.setFresh(true).build();
-	}
-
-	@Test
 	void testAdditionalResources() throws IOException {
 		Util.setCwd(examplesTestFolder);
 		Path mainFile = Paths.get("foo.java");
@@ -1694,39 +1594,6 @@ public class TestRun extends BaseTest {
 									.map(r -> r.getSource().getFile().toPath().toString())
 									.collect(Collectors.toList());
 				assertThat(ps, hasItem(endsWith("resource.properties")));
-			}
-		}.setFresh(true).build();
-	}
-
-	@Test
-	void testAdditionalResourcesGlobbing() throws IOException {
-		Util.setCwd(examplesTestFolder);
-		String mainFile = "foo.java";
-
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("build", "--files", "res/**.properties", mainFile);
-		Build build = (Build) pr.subcommand().commandSpec().userObject();
-
-		RunContext ctx = build.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResource(mainFile);
-
-		new JavaBuilder(ss, ctx) {
-			@Override
-			protected void runCompiler(List<String> optionList) {
-				assertThat(optionList, hasItem(endsWith(File.separator + "foo.java")));
-				// Skip the compiler
-			}
-
-			@Override
-			public void createJar() throws IOException {
-				assertThat(ss.getResources().size(), is(3));
-				List<String> ps = ss.getResources()
-									.stream()
-									.map(r -> r.getSource().getFile().toPath().toString())
-									.collect(Collectors.toList());
-				assertThat(ps, hasItem(endsWith("resource.properties")));
-				assertThat(ps, hasItem(endsWith("test.properties")));
-				assertThat(ps, hasItem(endsWith("sub" + File.separator + "sub.properties")));
 			}
 		}.setFresh(true).build();
 	}
