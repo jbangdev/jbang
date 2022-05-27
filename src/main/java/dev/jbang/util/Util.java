@@ -254,7 +254,8 @@ public class Util {
 		try {
 			Files.walkFileTree(bd, matcherVisitor);
 		} catch (IOException e) {
-			throw new ExitException(BaseCommand.EXIT_INTERNAL_ERROR, "Problem looking for " + fp + " in " + bd, e);
+			throw new ExitException(BaseCommand.EXIT_INTERNAL_ERROR,
+					"Problem looking for " + fp + " in " + bd + ": " + e, e);
 		}
 
 		return results;
