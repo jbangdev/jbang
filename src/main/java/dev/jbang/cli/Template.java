@@ -177,7 +177,7 @@ class TemplateAdd extends BaseTemplateCommand {
 	private static boolean refExists(Map.Entry<String, String> splitRef) {
 		String source = splitRef.getValue();
 		ResourceRef resourceRef = ResourceRef.forResource(source);
-		if (resourceRef == null || !resourceRef.getFile().canRead()) {
+		if (resourceRef == null || !Files.isReadable(resourceRef.getFile())) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
 					"File could not be found or read: '" + source + "'");
 		}

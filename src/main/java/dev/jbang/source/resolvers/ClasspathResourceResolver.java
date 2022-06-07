@@ -1,12 +1,13 @@
 package dev.jbang.source.resolvers;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
@@ -52,11 +53,11 @@ public class ClasspathResourceResolver implements ResourceResolver {
 		}
 
 		try {
-			File f = new File(url.toURI());
-			if (f.canRead()) {
+			Path f = Paths.get(url.toURI());
+			if (Files.isReadable(f)) {
 				return ResourceRef.forCachedResource(cpResource, f);
 			}
-		} catch (URISyntaxException | IllegalArgumentException e) {
+		} catch (URISyntaxException | IllegalArgumentException | FileSystemNotFoundException e) {
 			// Ignore
 		}
 
@@ -73,6 +74,6 @@ public class ClasspathResourceResolver implements ResourceResolver {
 			}
 		}
 
-		return ResourceRef.forCachedResource(cpResource, to.toFile());
+		return ResourceRef.forCachedResource(cpResource, to);
 	}
 }

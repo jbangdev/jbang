@@ -82,9 +82,9 @@ public class JarCmdGenerator extends BaseCmdGenerator {
 
 			if (code.getJarFile() != null) {
 				if (Util.isBlankString(classpath)) {
-					classpath = code.getJarFile().getAbsolutePath();
+					classpath = code.getJarFile().toAbsolutePath().toString();
 				} else {
-					classpath = code.getJarFile().getAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
+					classpath = code.getJarFile().toAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
 				}
 			}
 			if (!Util.isBlankString(classpath)) {
@@ -93,7 +93,7 @@ public class JarCmdGenerator extends BaseCmdGenerator {
 			}
 
 			if (Optional.ofNullable(ctx.getClassDataSharing()).orElse(code.enableCDS())) {
-				Path cdsJsa = code.getJarFile().toPath().toAbsolutePath();
+				Path cdsJsa = code.getJarFile().toAbsolutePath();
 				if (Files.exists(cdsJsa)) {
 					Util.verboseMsg("CDS: Using shared archive classes from " + cdsJsa);
 					optionalArgs.add("-XX:SharedArchiveFile=" + cdsJsa);

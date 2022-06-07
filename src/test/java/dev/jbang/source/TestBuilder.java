@@ -174,8 +174,8 @@ public class TestBuilder extends BaseTest {
 			@Override
 			public void createJar() {
 				assertThat(ss.getResources().size(), is(2));
-				assertThat(ss.getResources().get(0).getSource().getFile().toPath().endsWith(res1), is(true));
-				assertThat(ss.getResources().get(1).getSource().getFile().toPath().endsWith(res2), is(true));
+				assertThat(ss.getResources().get(0).getSource().getFile().endsWith(res1), is(true));
+				assertThat(ss.getResources().get(1).getSource().getFile().endsWith(res2), is(true));
 			}
 		}.setFresh(true).build();
 	}
@@ -203,10 +203,10 @@ public class TestBuilder extends BaseTest {
 				assertThat(ss.getResources().size(), is(2));
 				assertThat(ss.getResources().get(0).getTarget().toString(),
 						is("somedir" + File.separator + "resource.properties"));
-				assertThat(ss.getResources().get(0).getSource().getFile().toPath().endsWith(res1), is(true));
+				assertThat(ss.getResources().get(0).getSource().getFile().endsWith(res1), is(true));
 				assertThat(ss.getResources().get(1).getTarget().toString(),
 						is("somedir" + File.separator + "sub.properties"));
-				assertThat(ss.getResources().get(1).getSource().getFile().toPath().endsWith(res2), is(true));
+				assertThat(ss.getResources().get(1).getSource().getFile().endsWith(res2), is(true));
 			}
 		}.setFresh(true).build();
 	}
@@ -233,7 +233,7 @@ public class TestBuilder extends BaseTest {
 				assertThat(ss.getResources().size(), is(3));
 				List<String> ps = ss.getResources()
 									.stream()
-									.map(r -> r.getSource().getFile().toPath().toString())
+									.map(r -> r.getSource().getFile().toString())
 									.collect(Collectors.toList());
 				assertThat(ps, hasItem(endsWith("resource.properties")));
 				assertThat(ps, hasItem(endsWith("test.properties")));
@@ -264,7 +264,7 @@ public class TestBuilder extends BaseTest {
 				assertThat(ss.getResources().size(), is(4));
 				List<String> ps = ss.getResources()
 									.stream()
-									.map(r -> r.getSource().getFile().toPath().toString())
+									.map(r -> r.getSource().getFile().toString())
 									.collect(Collectors.toList());
 				assertThat(ps, hasItem(endsWith("resource.java")));
 				assertThat(ps, hasItem(endsWith("resource.properties")));

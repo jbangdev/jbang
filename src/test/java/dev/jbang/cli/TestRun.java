@@ -716,7 +716,7 @@ public class TestRun extends BaseTest {
 		RunContext pctx = RunContext.empty();
 		SourceSet pre = (SourceSet) pctx.forResource(url);
 
-		MatcherAssert.assertThat(Util.readString(pre.getResourceRef().getFile().toPath()),
+		MatcherAssert.assertThat(Util.readString(pre.getResourceRef().getFile()),
 				containsString("Logger.getLogger(classpath_example.class);"));
 
 		JBang jbang = new JBang();
@@ -779,9 +779,9 @@ public class TestRun extends BaseTest {
 	@Test
 	void testCreateJar(@TempDir Path rootdir) throws IOException {
 
-		File dir = new File(rootdir.toFile(), "content");
+		Path dir = rootdir.resolve("content");
 
-		File basedir = dir.toPath().resolve("a/b/c").toFile();
+		File basedir = dir.resolve("a/b/c").toFile();
 		boolean mkdirs = basedir.mkdirs();
 		assert (mkdirs);
 		File classfile = new File(basedir, "mymain.class");
@@ -789,7 +789,7 @@ public class TestRun extends BaseTest {
 		classfile.createNewFile();
 		assert (classfile.exists());
 
-		File out = new File(rootdir.toFile(), "content.jar");
+		Path out = rootdir.resolve("content.jar");
 
 		RunContext ctx = RunContext.empty();
 		Source src = new JavaSource("", null);
@@ -798,13 +798,13 @@ public class TestRun extends BaseTest {
 
 		BaseBuilder.createJar(ss, ctx, dir, out);
 
-		try (JarFile jf = new JarFile(out)) {
+		try (JarFile jf = new JarFile(out.toFile())) {
 
 			assertThat(Collections.list(jf.entries()), IsCollectionWithSize.hasSize(5));
 
 			assertThat(jf.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS), equalTo("wonkabear"));
 
-			assert (out.exists());
+			assert (Files.exists(out));
 		}
 
 	}
@@ -848,9 +848,9 @@ public class TestRun extends BaseTest {
 				"    }\n" +
 				"}\n";
 
-		File f = new File(output, "aclass.java");
+		Path f = output.toPath().resolve("aclass.java");
 
-		writeString(f.toPath(), base);
+		writeString(f, base);
 
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forFile(f);
@@ -858,7 +858,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("aclass"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(jar.getJarFile().toPath(), (ClassLoader) null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(jar.getJarFile(), (ClassLoader) null)) {
 			Path fileToExtract = fileSystem.getPath("META-INF/maven/dev/jbang/tests/pom.xml");
 
 			ByteArrayOutputStream s = new ByteArrayOutputStream();
@@ -897,9 +897,9 @@ public class TestRun extends BaseTest {
 				"    }\n" +
 				"}\n";
 
-		File f = new File(output, "dualclass.java");
+		Path f = output.toPath().resolve("dualclass.java");
 
-		Util.writeString(f.toPath(), base);
+		Util.writeString(f, base);
 
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forFile(f);
@@ -1138,7 +1138,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Code code = ctx.forFile(new File(arg));
+		Code code = ctx.forFile(Paths.get(arg));
 		ctx.setMainClass("fakemain");
 
 		String commandLine = code.cmdGenerator(ctx).generate();
@@ -1163,7 +1163,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Code code = ctx.forFile(p.toFile());
+		Code code = ctx.forFile(p);
 		ctx.setMainClass("fakemain");
 
 		String commandLine = code.cmdGenerator(ctx).generate();
@@ -1214,7 +1214,7 @@ public class TestRun extends BaseTest {
 		assertThat(ss.getManifestAttributes().get(ATTR_AGENT_CLASS), is("Agent"));
 		assertThat(ss.getManifestAttributes().get(ATTR_PREMAIN_CLASS), is("Agent"));
 
-		try (JarFile jf = new JarFile(ss.getJarFile())) {
+		try (JarFile jf = new JarFile(ss.getJarFile().toFile())) {
 			Attributes attrs = jf.getManifest().getMainAttributes();
 			assertThat(attrs.getValue("Premain-class"), equalTo("Agent"));
 			assertThat(attrs.getValue("Can-Retransform-Classes"), equalTo("true"));
@@ -1265,20 +1265,20 @@ public class TestRun extends BaseTest {
 				"    }\n" +
 				"}\n";
 
-		File agentfile = new File(output, "agent.java");
-		Util.writeString(agentfile.toPath(), base.replace("dualclass", "agent"));
+		Path agentfile = output.toPath().resolve("agent.java");
+		Util.writeString(agentfile, base.replace("dualclass", "agent"));
 
-		File mainfile = new File(output, "main.java");
-		Util.writeString(mainfile.toPath(), base.replace("dualclass", "main"));
+		Path mainfile = output.toPath().resolve("main.java");
+		Util.writeString(mainfile, base.replace("dualclass", "main"));
 
 		JBang jbang = new JBang();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run",
-				"--javaagent=" + agentfile.getAbsolutePath() + "=optionA",
-				"--javaagent=org.jboss.byteman:byteman:4.0.13", mainfile.getAbsolutePath());
+				"--javaagent=" + agentfile.toAbsolutePath() + "=optionA",
+				"--javaagent=org.jboss.byteman:byteman:4.0.13", mainfile.toAbsolutePath().toString());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		assertThat(run.javaAgentSlots.containsKey(agentfile.getAbsolutePath()), is(true));
-		assertThat(run.javaAgentSlots.get(agentfile.getAbsolutePath()), equalTo("optionA"));
+		assertThat(run.javaAgentSlots.containsKey(agentfile.toAbsolutePath().toString()), is(true));
+		assertThat(run.javaAgentSlots.get(agentfile.toAbsolutePath().toString()), equalTo("optionA"));
 
 		RunContext ctx = run.getRunContext();
 		Code code = ctx.forFile(mainfile);
@@ -1362,7 +1362,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("resource"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(jar.getJarFile().toPath(), (ClassLoader) null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(jar.getJarFile(), (ClassLoader) null)) {
 
 			Arrays	.asList("resource.properties", "renamed.properties", "META-INF/application.properties")
 					.forEach(path -> {
@@ -1407,7 +1407,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("one"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(jar.getJarFile().toPath(), (ClassLoader) null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(jar.getJarFile(), (ClassLoader) null)) {
 			Arrays	.asList("one.class", "Two.class", "gh_release_stats.class", "fetchlatestgraalvm.class")
 					.forEach(path -> {
 						try {
@@ -1438,7 +1438,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("resources"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(jar.getJarFile().toPath(), (ClassLoader) null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(jar.getJarFile(), (ClassLoader) null)) {
 			Arrays	.asList("resources.class", "resource.properties", "test.properties")
 					.forEach(path -> {
 						try {
@@ -1465,7 +1465,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("resourcesmnt"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(jar.getJarFile().toPath(), (ClassLoader) null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(jar.getJarFile(), (ClassLoader) null)) {
 			Arrays	.asList("resourcesmnt.class", "somedir/resource.properties", "somedir/test.properties")
 					.forEach(path -> {
 						try {
@@ -1641,7 +1641,7 @@ public class TestRun extends BaseTest {
 				assertThat(ss.getResources().size(), is(1));
 				List<String> ps = ss.getResources()
 									.stream()
-									.map(r -> r.getSource().getFile().toPath().toString())
+									.map(r -> r.getSource().getFile().toString())
 									.collect(Collectors.toList());
 				assertThat(ps, hasItem(endsWith("resource.properties")));
 			}
@@ -1686,7 +1686,7 @@ public class TestRun extends BaseTest {
 
 		ss.builder(ctx).build();
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(ss.getJarFile().toPath(), (ClassLoader) null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(ss.getJarFile(), (ClassLoader) null)) {
 			Arrays	.asList("one.class", "index.html")
 					.forEach(path -> {
 						try {

@@ -79,7 +79,7 @@ public class IntegrationManager {
 		}
 		for (ArtifactInfo art : ctx.resolveClassPath(ss).getArtifacts()) {
 			if (art.getCoordinate() != null) { // skipping dependencies that does not have a GAV
-				deps.put(art.getCoordinate().toCanonicalForm(), art.getFile().toPath());
+				deps.put(art.getCoordinate().toCanonicalForm(), art.getFile());
 			}
 		}
 
@@ -93,7 +93,7 @@ public class IntegrationManager {
 			Set<String> classNames = loadIntegrationClassNames(integrationCl);
 			for (String className : classNames) {
 				Path srcPath = (source.getResourceRef().getFile() != null)
-						? source.getResourceRef().getFile().toPath().toAbsolutePath()
+						? source.getResourceRef().getFile().toAbsolutePath()
 						: null;
 				IntegrationInput input = new IntegrationInput(className, srcPath, tmpJarDir, pomPath, repos, deps,
 						comments,

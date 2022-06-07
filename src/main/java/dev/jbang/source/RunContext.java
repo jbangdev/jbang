@@ -1,6 +1,8 @@
 package dev.jbang.source;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -370,21 +372,21 @@ public class RunContext {
 		ResourceRef ref = resolver.resolve(resource);
 		// Support URLs as script files
 		// just proceed if the script file is a regular file at this point
-		if (ref == null || !ref.getFile().canRead()) {
+		if (ref == null || !Files.isReadable(ref.getFile())) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
 					"Script or alias could not be found or read: '" + resource + "'");
 		}
 		return ref;
 	}
 
-	public Code forFile(File resourceFile) {
+	public Code forFile(Path resourceFile) {
 		ResourceRef resourceRef = ResourceRef.forFile(resourceFile);
 		return forResourceRef(resourceRef);
 	}
 
 	public Code forResourceRef(ResourceRef resourceRef) {
 		Code code;
-		if (resourceRef.getFile().getName().endsWith(".jar")) {
+		if (resourceRef.getFile().getFileName().toString().endsWith(".jar")) {
 			code = Jar.prepareJar(resourceRef);
 		} else {
 			code = updateSourceSet(createSource(resourceRef).createSourceSet(getResourceResolver()));

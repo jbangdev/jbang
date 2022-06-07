@@ -71,7 +71,7 @@ public abstract class Source {
 	}
 
 	protected Source(ResourceRef resourceRef, Function<String, String> replaceProperties) {
-		this(resourceRef, Util.readFileContent(resourceRef.getFile().toPath()), replaceProperties);
+		this(resourceRef, Util.readFileContent(resourceRef.getFile()), replaceProperties);
 	}
 
 	protected Source(ResourceRef resourceRef, String content, Function<String, String> replaceProperties) {
@@ -332,7 +332,7 @@ public abstract class Source {
 
 	public List<RefTarget> collectFiles(ResourceResolver siblingResolver) {
 		String org = getResourceRef().getOriginalResource();
-		Path baseDir = org != null ? getResourceRef().getFile().getAbsoluteFile().getParentFile().toPath()
+		Path baseDir = org != null ? getResourceRef().getFile().toAbsolutePath().getParent()
 				: Util.getCwd();
 		return getTags().filter(f -> f.startsWith(FILES_COMMENT_PREFIX))
 						.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
@@ -424,7 +424,7 @@ public abstract class Source {
 		try {
 			ResourceRef ref = siblingResolver.resolve(src);
 			if (dest != null && dest.endsWith("/")) {
-				p = p.resolve(ref.getFile().toPath().getFileName());
+				p = p.resolve(ref.getFile().getFileName());
 			}
 			return RefTarget.create(ref, p);
 		} catch (ResourceNotFoundException rnfe) {
@@ -445,7 +445,7 @@ public abstract class Source {
 			return Collections.emptyList();
 		} else {
 			String org = getResourceRef().getOriginalResource();
-			Path baseDir = org != null ? getResourceRef().getFile().getAbsoluteFile().getParentFile().toPath()
+			Path baseDir = org != null ? getResourceRef().getFile().toAbsolutePath().getParent()
 					: Util.getCwd();
 			return getTags().filter(f -> f.startsWith(SOURCES_COMMENT_PREFIX))
 							.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))

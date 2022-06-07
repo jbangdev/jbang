@@ -2,12 +2,13 @@ package dev.jbang.dependencies;
 
 import static dev.jbang.util.Util.warnMsg;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -38,7 +39,7 @@ public class DependencyCache {
 					JsonDeserializer<ArtifactInfo> serializer = (json, typeOfT, context) -> {
 						JsonObject jsonObject = json.getAsJsonObject();
 						MavenCoordinate gav = MavenCoordinates.createCoordinate(jsonObject.get("gav").getAsString());
-						File file = new File(jsonObject.get("file").getAsString());
+						Path file = Paths.get(jsonObject.get("file").getAsString());
 						long ts = jsonObject.has("ts") ? jsonObject.get("ts").getAsLong() : 0;
 						return new ArtifactInfo(gav, file, ts);
 					};
@@ -71,7 +72,7 @@ public class DependencyCache {
 			JsonSerializer<ArtifactInfo> serializer = (src, typeOfSrc, context) -> {
 				JsonObject json = new JsonObject();
 				json.addProperty("gav", src.getCoordinate().toCanonicalForm());
-				json.addProperty("file", src.getFile().getPath());
+				json.addProperty("file", src.getFile().toString());
 				json.addProperty("ts", src.getTimestamp());
 				return json;
 			};
@@ -102,7 +103,7 @@ public class DependencyCache {
 		return null;
 	}
 
-	public static ArtifactInfo findArtifactByPath(File artifactPath) {
+	public static ArtifactInfo findArtifactByPath(Path artifactPath) {
 		Map<String, List<ArtifactInfo>> cache = getCache();
 		Optional<ArtifactInfo> result = cache	.values()
 												.stream()

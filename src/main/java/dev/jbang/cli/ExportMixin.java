@@ -2,7 +2,6 @@ package dev.jbang.cli;
 
 import static dev.jbang.source.builders.BaseBuilder.getImageName;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -42,7 +41,7 @@ public class ExportMixin {
 		} else {
 			String outName = CatalogUtil.nameFromRef(scriptMixin.scriptOrFile);
 			if (buildMixin.nativeImage) {
-				outName = getImageName(new File(outName)).getName();
+				outName = getImageName(Paths.get(outName)).getFileName().toString();
 			} else {
 				outName += ".jar";
 			}

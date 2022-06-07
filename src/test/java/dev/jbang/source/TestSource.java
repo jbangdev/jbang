@@ -256,7 +256,7 @@ public class TestSource extends BaseTest {
 			boolean foundtwo = false;
 			boolean foundt3 = false;
 			for (ResourceRef source : ss.getSources()) {
-				String name = source.getFile().getName();
+				String name = source.getFile().getFileName().toString();
 				if (name.equals("one.java"))
 					foundmain = true;
 				if (name.equals("two.java"))

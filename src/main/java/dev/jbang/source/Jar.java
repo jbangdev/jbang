@@ -1,7 +1,8 @@
 package dev.jbang.source;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -28,7 +29,7 @@ import dev.jbang.util.Util;
  */
 public class Jar implements Code {
 	private final ResourceRef resourceRef;
-	private final File jarFile;
+	private final Path jarFile;
 
 	// Values read from MANIFEST
 	private String classPath;
@@ -39,12 +40,12 @@ public class Jar implements Code {
 	// Cached values
 	private SourceSet sourceSet;
 
-	private Jar(ResourceRef resourceRef, File jar) {
+	private Jar(ResourceRef resourceRef, Path jar) {
 		this.resourceRef = resourceRef;
 		this.jarFile = jar;
 		this.javaRuntimeOptions = Collections.emptyList();
-		if (jar.exists()) {
-			try (JarFile jf = new JarFile(jar)) {
+		if (Files.exists(jar)) {
+			try (JarFile jf = new JarFile(jar.toFile())) {
 				Attributes attrs = jf.getManifest().getMainAttributes();
 				mainClass = attrs.getValue(Attributes.Name.MAIN_CLASS);
 
@@ -71,7 +72,7 @@ public class Jar implements Code {
 	}
 
 	@Override
-	public File getJarFile() {
+	public Path getJarFile() {
 		return jarFile;
 	}
 
@@ -103,7 +104,7 @@ public class Jar implements Code {
 	 * be rebuilt
 	 */
 	public boolean isUpToDate() {
-		return jarFile != null && jarFile.exists()
+		return jarFile != null && Files.exists(jarFile)
 				&& updateDependencyResolver(new DependencyResolver()).resolve().isValid();
 	}
 
@@ -147,7 +148,7 @@ public class Jar implements Code {
 		return new Jar(resourceRef, resourceRef.getFile());
 	}
 
-	public static Jar prepareJar(ResourceRef resourceRef, File jarFile) {
+	public static Jar prepareJar(ResourceRef resourceRef, Path jarFile) {
 		return new Jar(resourceRef, jarFile);
 	}
 

@@ -1,6 +1,6 @@
 package dev.jbang.source;
 
-import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Stream;
@@ -38,7 +38,7 @@ public class SourceSet implements Code {
 	private String gav;
 	private String mainClass;
 
-	private File jarFile;
+	private Path jarFile;
 	private Jar jar;
 
 	public static final String ATTR_PREMAIN_CLASS = "Premain-Class";
@@ -251,21 +251,21 @@ public class SourceSet implements Code {
 	}
 
 	@Override
-	public File getJarFile() {
+	public Path getJarFile() {
 		if (isJShell()) {
 			return null;
 		}
 		if (jarFile == null) {
-			File baseDir = Settings.getCacheDir(Cache.CacheClass.jars).toFile();
-			File tmpJarDir = new File(baseDir, getResourceRef().getFile().getName() + "." + getStableId());
-			jarFile = new File(tmpJarDir.getParentFile(), tmpJarDir.getName() + ".jar");
+			Path baseDir = Settings.getCacheDir(Cache.CacheClass.jars);
+			Path tmpJarDir = baseDir.resolve(getResourceRef().getFile().getFileName() + "." + getStableId());
+			jarFile = tmpJarDir.getParent().resolve(tmpJarDir.getFileName() + ".jar");
 		}
 		return jarFile;
 	}
 
 	private String getStableId() {
-		Stream<String> srcs = sources.stream().map(src -> Util.readFileContent(src.getFile().toPath()));
-		Stream<String> ress = resources.stream().map(res -> Util.readFileContent(res.getSource().getFile().toPath()));
+		Stream<String> srcs = sources.stream().map(src -> Util.readFileContent(src.getFile()));
+		Stream<String> ress = resources.stream().map(res -> Util.readFileContent(res.getSource().getFile()));
 		Stream<String> files = Stream.concat(srcs, ress);
 		return Util.getStableID(files);
 	}
@@ -273,8 +273,8 @@ public class SourceSet implements Code {
 	@Override
 	public Jar asJar() {
 		if (jar == null) {
-			File f = getJarFile();
-			if (f != null && f.exists()) {
+			Path f = getJarFile();
+			if (f != null && Files.exists(f)) {
 				jar = Jar.prepareJar(this);
 			}
 		}

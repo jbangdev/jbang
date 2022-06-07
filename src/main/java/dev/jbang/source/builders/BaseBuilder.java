@@ -3,6 +3,7 @@ package dev.jbang.source.builders;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.jar.Attributes;
@@ -62,8 +63,8 @@ public abstract class BaseBuilder implements Builder {
 	public Jar build() throws IOException {
 		Jar result = null;
 
-		File outjar = ss.getJarFile();
-		boolean nativeBuildRequired = ctx.isNativeImage() && !getImageName(outjar).exists();
+		Path outjar = ss.getJarFile();
+		boolean nativeBuildRequired = ctx.isNativeImage() && !Files.exists(getImageName(outjar));
 		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
 		String requestedJavaVersion = ctx.getJavaVersionOr(ss);
 		// always build the jar for native mode
@@ -73,7 +74,7 @@ public abstract class BaseBuilder implements Builder {
 			Util.verboseMsg("Building as fresh build explicitly requested.");
 		} else if (nativeBuildRequired) {
 			Util.verboseMsg("Building as native build required.");
-		} else if (outjar.canRead()) {
+		} else if (Files.isReadable(outjar)) {
 			// We already have a Jar, check if we can still use it
 			Jar jarSrc = ss.asJar();
 
@@ -98,9 +99,9 @@ public abstract class BaseBuilder implements Builder {
 
 		if (buildRequired) {
 			// set up temporary folder for compilation
-			File compileDir = getCompileDir();
-			Util.deletePath(compileDir.toPath(), true);
-			compileDir.mkdirs();
+			Path compileDir = getCompileDir();
+			Util.deletePath(compileDir, true);
+			compileDir.toFile().mkdirs();
 			// do the actual building
 			try {
 				integrationResult = compile();
@@ -108,13 +109,13 @@ public abstract class BaseBuilder implements Builder {
 				result = ss.asJar();
 			} finally {
 				// clean up temporary folder
-				Util.deletePath(compileDir.toPath(), true);
+				Util.deletePath(compileDir, true);
 			}
 		}
 
 		if (nativeBuildRequired) {
 			if (integrationResult.nativeImagePath != null) {
-				Files.move(integrationResult.nativeImagePath, getImageName(outjar).toPath());
+				Files.move(integrationResult.nativeImagePath, getImageName(outjar));
 			} else {
 				buildNative();
 			}
@@ -126,7 +127,7 @@ public abstract class BaseBuilder implements Builder {
 	// build with javac and then jar...
 	public IntegrationResult compile() throws IOException {
 		String requestedJavaVersion = ctx.getJavaVersionOr(ss);
-		File compileDir = getCompileDir();
+		Path compileDir = getCompileDir();
 		List<String> optionList = new ArrayList<>();
 		optionList.add(getCompilerBinary(requestedJavaVersion));
 		optionList.addAll(ss.getCompileOptions());
@@ -134,16 +135,16 @@ public abstract class BaseBuilder implements Builder {
 		if (!Util.isBlankString(path)) {
 			optionList.addAll(Arrays.asList("-classpath", path));
 		}
-		optionList.addAll(Arrays.asList("-d", compileDir.getAbsolutePath()));
+		optionList.addAll(Arrays.asList("-d", compileDir.toAbsolutePath().toString()));
 
 		// add source files to compile
 		optionList.addAll(ss.getSources()
 							.stream()
-							.map(x -> x.getFile().getPath())
+							.map(x -> x.getFile().toString())
 							.collect(Collectors.toList()));
 
 		// add additional files
-		ss.copyResourcesTo(compileDir.toPath());
+		ss.copyResourcesTo(compileDir);
 
 		Path pomPath = generatePom(compileDir);
 
@@ -158,7 +159,7 @@ public abstract class BaseBuilder implements Builder {
 		for (Map.Entry<String, String> entry : ctx.getProperties().entrySet()) {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
-		IntegrationResult integrationResult = IntegrationManager.runIntegrations(ss, ctx, compileDir.toPath(), pomPath);
+		IntegrationResult integrationResult = IntegrationManager.runIntegrations(ss, ctx, compileDir, pomPath);
 		System.setProperties(old);
 
 		if (ctx.getMainClassOr(ss) == null) { // if non-null user forced set main
@@ -197,7 +198,7 @@ public abstract class BaseBuilder implements Builder {
 		createJar(ss, ctx, getCompileDir(), ss.getJarFile());
 	}
 
-	public static void createJar(SourceSet ss, RunContext ctx, File compileDir, File jarFile) throws IOException {
+	public static void createJar(SourceSet ss, RunContext ctx, Path compileDir, Path jarFile) throws IOException {
 		String mainclass = ctx.getMainClassOr(ss);
 		Manifest manifest = new Manifest();
 		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
@@ -234,8 +235,8 @@ public abstract class BaseBuilder implements Builder {
 			manifest.getMainAttributes().putValue(ATTR_BUILD_JDK, val);
 		}
 
-		FileOutputStream target = new FileOutputStream(jarFile);
-		JarUtil.jar(target, compileDir.listFiles(), null, null, manifest);
+		FileOutputStream target = new FileOutputStream(jarFile.toFile());
+		JarUtil.jar(target, compileDir.toFile().listFiles(), null, null, manifest);
 		target.close();
 	}
 
@@ -279,11 +280,11 @@ public abstract class BaseBuilder implements Builder {
 	}
 
 	/** based on jar what will the binary image name be. **/
-	public static File getImageName(File outjar) {
+	public static Path getImageName(Path outjar) {
 		if (Util.isWindows()) {
-			return new File(outjar.toString() + ".exe");
+			return Paths.get(outjar + ".exe");
 		} else {
-			return new File(outjar.toString() + ".bin");
+			return Paths.get(outjar + ".bin");
 		}
 	}
 
@@ -377,10 +378,10 @@ public abstract class BaseBuilder implements Builder {
 		return arg;
 	}
 
-	protected void searchForMain(File tmpJarDir) {
+	protected void searchForMain(Path tmpJarDir) {
 		try {
 			// using Files.walk method with try-with-resources
-			try (Stream<Path> paths = Files.walk(tmpJarDir.toPath())) {
+			try (Stream<Path> paths = Files.walk(tmpJarDir)) {
 				List<Path> items = paths.filter(Files::isRegularFile)
 										.filter(f -> !f.toFile().getName().contains("$"))
 										.filter(f -> f.toFile().getName().endsWith(".class"))
@@ -456,7 +457,7 @@ public abstract class BaseBuilder implements Builder {
 
 	protected String getSuggestedMain() {
 		if (!ss.getResourceRef().isStdin()) {
-			return ss.getResourceRef().getFile().getName().replace(getMainExtension(), "");
+			return ss.getResourceRef().getFile().getFileName().toString().replace(getMainExtension(), "");
 		} else {
 			return null;
 		}
@@ -470,7 +471,7 @@ public abstract class BaseBuilder implements Builder {
 
 	protected abstract String getCompilerBinary(String requestedJavaVersion);
 
-	protected Path generatePom(File tmpJarDir) throws IOException {
+	protected Path generatePom(Path tmpJarDir) throws IOException {
 		Template pomTemplate = TemplateEngine.instance().getTemplate("pom.qute.xml");
 
 		Path pomPath = null;
@@ -478,7 +479,7 @@ public abstract class BaseBuilder implements Builder {
 			// ignore
 			Util.warnMsg("Could not locate pom.xml template");
 		} else {
-			String baseName = Util.getBaseName(ss.getResourceRef().getFile().getName());
+			String baseName = Util.getBaseName(ss.getResourceRef().getFile().getFileName().toString());
 			String group = "group";
 			String artifact = baseName;
 			String version = "999-SNAPSHOT";
@@ -498,14 +499,14 @@ public abstract class BaseBuilder implements Builder {
 										.data("dependencies", ctx.resolveClassPath(ss).getArtifacts())
 										.render();
 
-			pomPath = new File(tmpJarDir, "META-INF/maven/" + group.replace(".", "/") + "/pom.xml").toPath();
+			pomPath = tmpJarDir.resolve("META-INF/maven/" + group.replace(".", "/") + "/pom.xml");
 			Files.createDirectories(pomPath.getParent());
 			Util.writeString(pomPath, pomfile);
 		}
 		return pomPath;
 	}
 
-	protected File getCompileDir() {
-		return new File(ss.getJarFile().getParentFile(), ss.getJarFile().getName() + ".tmp");
+	protected Path getCompileDir() {
+		return ss.getJarFile().getParent().resolve(ss.getJarFile().getFileName() + ".tmp");
 	}
 }

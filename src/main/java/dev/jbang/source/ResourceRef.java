@@ -1,6 +1,6 @@
 package dev.jbang.source;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Objects;
 
 import javax.annotation.Nullable;
@@ -13,11 +13,11 @@ public class ResourceRef implements Comparable<ResourceRef> {
 	private final String originalResource;
 	// cache folder it is stored inside
 	@Nullable
-	private final File file;
+	private final Path file;
 
 	public static final ResourceRef nullRef = new ResourceRef(null, null);
 
-	protected ResourceRef(@Nullable String ref, @Nullable File file) {
+	protected ResourceRef(@Nullable String ref, @Nullable Path file) {
 		this.originalResource = ref;
 		this.file = file;
 	}
@@ -35,7 +35,7 @@ public class ResourceRef implements Comparable<ResourceRef> {
 	}
 
 	@Nullable
-	public File getFile() {
+	public Path getFile() {
 		return file;
 	}
 
@@ -71,10 +71,10 @@ public class ResourceRef implements Comparable<ResourceRef> {
 	@Override
 	public String toString() {
 		if (originalResource != null && file != null) {
-			if (originalResource.equals(file.getPath())) {
+			if (originalResource.equals(file)) {
 				return originalResource;
 			} else {
-				return originalResource + " (cached as: " + file.getPath() + ")";
+				return originalResource + " (cached as: " + file + ")";
 			}
 		} else {
 			String res = "";
@@ -82,21 +82,21 @@ public class ResourceRef implements Comparable<ResourceRef> {
 				res += originalResource;
 			}
 			if (file != null) {
-				res += file.getPath();
+				res += file;
 			}
 			return res;
 		}
 	}
 
-	public static ResourceRef forFile(File file) {
+	public static ResourceRef forFile(Path file) {
 		return new ResourceRef(file.toString(), file);
 	}
 
-	public static ResourceRef forNamedFile(String resource, File file) {
+	public static ResourceRef forNamedFile(String resource, Path file) {
 		return new ResourceRef(resource, file);
 	}
 
-	public static ResourceRef forCachedResource(String resource, File cachedResource) {
+	public static ResourceRef forCachedResource(String resource, Path cachedResource) {
 		return new ResourceRef(resource, cachedResource);
 	}
 

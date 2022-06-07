@@ -84,7 +84,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 				init(source);
 
 				if (ctx != null) {
-					applicationJar = code.getJarFile() == null ? null : code.getJarFile().getAbsolutePath();
+					applicationJar = code.getJarFile() == null ? null : code.getJarFile().toAbsolutePath().toString();
 					mainClass = ctx.getMainClassOr(code);
 					requestedJavaVersion = code.getJavaVersion();
 					availableJdkPath = Objects.toString(JdkManager.getCurrentJdk(requestedJavaVersion), null);

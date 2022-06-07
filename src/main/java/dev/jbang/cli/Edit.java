@@ -94,12 +94,12 @@ public class Edit extends BaseCommand {
 
 	private void watchForChanges(Code code, Callable<Object> action) throws IOException {
 		try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
-			File orginalFile = code.getResourceRef().getFile();
-			if (!orginalFile.exists()) {
+			Path orginalFile = code.getResourceRef().getFile();
+			if (!Files.exists(orginalFile)) {
 				throw new ExitException(EXIT_UNEXPECTED_STATE,
 						"Cannot live edit " + code.getResourceRef().getOriginalResource());
 			}
-			Path watched = orginalFile.getAbsoluteFile().getParentFile().toPath();
+			Path watched = orginalFile.toAbsolutePath().getParent();
 			watched.register(watchService,
 					StandardWatchEventKinds.ENTRY_MODIFY);
 			info("Watching for changes in " + watched);
@@ -110,7 +110,7 @@ public class Edit extends BaseCommand {
 					// but relative to the watched directory
 					final Path changed = watched.resolve((Path) event.context());
 					verboseMsg("Changed file: " + changed.toString());
-					if (Files.isSameFile(orginalFile.toPath(), changed)) {
+					if (Files.isSameFile(orginalFile, changed)) {
 						try {
 							action.call();
 						} catch (RuntimeException ee) {
@@ -259,7 +259,7 @@ public class Edit extends BaseCommand {
 
 	/** Create Project to use for editing **/
 	Path createProjectForLinkedEdit(SourceSet ss, RunContext ctx, boolean reload) throws IOException {
-		File originalFile = ss.getResourceRef().getFile();
+		Path originalFile = ss.getResourceRef().getFile();
 
 		List<String> dependencies = ss.getDependencies();
 		String cp = ctx.resolveClassPath(ss).getClassPath();
@@ -267,11 +267,11 @@ public class Edit extends BaseCommand {
 
 		Path baseDir = Settings.getCacheDir(Cache.CacheClass.projects);
 
-		String name = originalFile.getName();
+		String name = originalFile.getFileName().toString();
 		name = Util.unkebabify(name);
 
 		Path tmpProjectDir = baseDir.resolve(name + "_jbang_" +
-				Util.getStableID(originalFile.getAbsolutePath()));
+				Util.getStableID(originalFile.toAbsolutePath().toString()));
 		Util.mkdirs(tmpProjectDir);
 		tmpProjectDir = tmpProjectDir.resolve(stripPrefix(name));
 		Util.mkdirs(tmpProjectDir);
@@ -280,7 +280,7 @@ public class Edit extends BaseCommand {
 		Util.mkdirs(srcDir);
 
 		Path srcFile = srcDir.resolve(name);
-		Util.createLink(srcFile, originalFile.toPath());
+		Util.createLink(srcFile, originalFile);
 
 		for (ResourceRef sourceRef : ss.getSources()) {
 			Path sfile = null;
@@ -288,11 +288,11 @@ public class Edit extends BaseCommand {
 			if (src.getJavaPackage().isPresent()) {
 				Path packageDir = srcDir.resolve(src.getJavaPackage().get().replace(".", File.separator));
 				Util.mkdirs(packageDir);
-				sfile = packageDir.resolve(sourceRef.getFile().getName());
+				sfile = packageDir.resolve(sourceRef.getFile().getFileName());
 			} else {
-				sfile = srcDir.resolve(sourceRef.getFile().getName());
+				sfile = srcDir.resolve(sourceRef.getFile().getFileName());
 			}
-			Path destFile = sourceRef.getFile().toPath().toAbsolutePath();
+			Path destFile = sourceRef.getFile().toAbsolutePath();
 			Util.createLink(sfile, destFile);
 		}
 
@@ -300,7 +300,7 @@ public class Edit extends BaseCommand {
 			Path target = ref.to(srcDir);
 			;
 			Util.mkdirs(target.getParent());
-			Util.createLink(target, ref.getSource().getFile().toPath().toAbsolutePath());
+			Util.createLink(target, ref.getSource().getFile().toAbsolutePath());
 		}
 
 		// create build gradle
