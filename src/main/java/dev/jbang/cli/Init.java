@@ -158,7 +158,7 @@ public class Init extends BaseCommand {
 	private void renderQuteTemplate(Path outFile, ResourceRef templateRef, Map<String, Object> properties)
 			throws IOException {
 		Util.verboseMsg("Rendering template " + templateRef.getOriginalResource() + " to " + outFile);
-		renderQuteTemplate(outFile, templateRef.getFile().getAbsolutePath(), properties);
+		renderQuteTemplate(outFile, templateRef.getFile().toAbsolutePath().toString(), properties);
 	}
 
 	void renderQuteTemplate(Path outFile, String templatePath) throws IOException {

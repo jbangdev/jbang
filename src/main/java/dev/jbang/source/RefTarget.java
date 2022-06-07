@@ -34,12 +34,12 @@ public class RefTarget {
 	}
 
 	public Path to(Path parent) {
-		Path p = target != null ? target : source.getFile().toPath().getFileName();
+		Path p = target != null ? target : source.getFile().getFileName();
 		return parent.resolve(p);
 	}
 
 	public void copy(Path destroot) {
-		Path from = source.getFile().toPath();
+		Path from = source.getFile();
 		Path to = to(destroot);
 		Util.verboseMsg("Copying " + from + " to " + to);
 		try {

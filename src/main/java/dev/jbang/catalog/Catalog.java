@@ -79,7 +79,7 @@ public class Catalog {
 			return "classpath:" + ((baseRef != null) ? "/" + baseRef : "");
 		}
 		Path result;
-		Path catFile = catalogRef.getFile().toPath();
+		Path catFile = catalogRef.getFile();
 		if (baseRef != null) {
 			if (!Util.isRemoteRef(baseRef)) {
 				Path base = Paths.get(baseRef);
@@ -132,7 +132,7 @@ public class Catalog {
 	}
 
 	void write() throws IOException {
-		write(catalogRef.getFile().toPath(), this);
+		write(catalogRef.getFile(), this);
 	}
 
 	/**
@@ -161,7 +161,7 @@ public class Catalog {
 		if (catFile == null) {
 			Catalog catalog = findNearestCatalog(Util.getCwd());
 			if (catalog != null && !catalog.catalogRef.isClasspath()) {
-				catFile = catalog.catalogRef.getFile().toPath();
+				catFile = catalog.catalogRef.getFile();
 			} else {
 				// This is here as a backup for when the user catalog doesn't
 				// exist yet, because `findNearestCatalog()` only returns
@@ -235,7 +235,7 @@ public class Catalog {
 		Catalog result = Catalog.empty();
 		for (Catalog catalog : catalogs) {
 			if (!includeImplicits
-					&& catalog.catalogRef.getFile().toPath().equals(Settings.getUserImplicitCatalogFile())) {
+					&& catalog.catalogRef.getFile().equals(Settings.getUserImplicitCatalogFile())) {
 				continue;
 			}
 			merge(catalog, result);
@@ -284,12 +284,12 @@ public class Catalog {
 	}
 
 	public static Catalog get(Path catalogPath) {
-		return get(ResourceRef.forFile(catalogPath.toFile()));
+		return get(ResourceRef.forFile(catalogPath));
 	}
 
 	private static Catalog get(ResourceRef ref) {
 		Catalog catalog;
-		Path catalogPath = ref.getFile().toPath();
+		Path catalogPath = ref.getFile();
 		if (Util.isFresh() || !catalogCache.containsKey(catalogPath.toString())) {
 			if (Files.isDirectory(catalogPath)) {
 				catalogPath = catalogPath.resolve(Catalog.JBANG_CATALOG_JSON);
@@ -327,7 +327,7 @@ public class Catalog {
 			String res = "classpath:/" + JBANG_CATALOG_JSON;
 			ResourceRef catRef = ResourceRef.forResource(res);
 			if (catRef != null) {
-				Path catPath = catRef.getFile().toPath();
+				Path catPath = catRef.getFile();
 				catalog = read(catPath);
 				catalog.catalogRef = catRef;
 				catalogCache.put(CACHE_BUILTIN, catalog);

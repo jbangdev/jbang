@@ -106,7 +106,7 @@ class AppInstall extends BaseCommand {
 			}
 		}
 		if (!ctx.isAlias() && !DependencyUtil.looksLikeAGav(scriptRef) && !code.getResourceRef().isURL()) {
-			scriptRef = code.getResourceRef().getFile().getAbsolutePath();
+			scriptRef = code.getResourceRef().getFile().toAbsolutePath().toString();
 		}
 		if (code.needsBuild(ctx)) {
 			code.builder(ctx).build();

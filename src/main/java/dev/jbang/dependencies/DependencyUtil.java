@@ -245,7 +245,7 @@ public class DependencyUtil {
 				infoMsgFmt("Done\n");
 
 			return artifacts.stream()
-							.map(mra -> new ArtifactInfo(mra.getCoordinate(), mra.asFile()))
+							.map(mra -> new ArtifactInfo(mra.getCoordinate(), mra.asFile().toPath()))
 							.collect(Collectors.toList());
 		} catch (ResolutionException nrr) {
 			Throwable cause = nrr.getCause();

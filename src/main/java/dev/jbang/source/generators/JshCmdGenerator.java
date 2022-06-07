@@ -42,11 +42,11 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 		String javacmd;
 		javacmd = JavaUtil.resolveInJavaHome("jshell", requestedJavaVersion);
 
-		if (ss.getJarFile() != null && ss.getJarFile().exists()) {
+		if (ss.getJarFile() != null && Files.exists(ss.getJarFile())) {
 			if (Util.isBlankString(classpath)) {
-				classpath = ss.getJarFile().getAbsolutePath();
+				classpath = ss.getJarFile().toAbsolutePath().toString();
 			} else {
-				classpath = ss.getJarFile().getAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
+				classpath = ss.getJarFile().toAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
 			}
 		}
 
@@ -63,7 +63,8 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 
 		optionalArgs.add("--startup=DEFAULT");
 
-		Path tempFile = Files.createTempFile("jbang_arguments_", ss.getResourceRef().getFile().getName());
+		Path tempFile = Files.createTempFile("jbang_arguments_",
+				ss.getResourceRef().getFile().getFileName().toString());
 
 		String defaultImports = "import java.lang.*;\n" +
 				"import java.util.*;\n" +
@@ -109,7 +110,7 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 		}
 
 		if (!ctx.isInteractive()) {
-			Path exitFile = Files.createTempFile("jbang_exit_", ss.getResourceRef().getFile().getName());
+			Path exitFile = Files.createTempFile("jbang_exit_", ss.getResourceRef().getFile().getFileName().toString());
 			Util.writeString(exitFile, "/exit");
 			fullArgs.add(exitFile.toString());
 		}

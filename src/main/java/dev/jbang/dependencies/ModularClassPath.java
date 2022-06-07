@@ -39,7 +39,7 @@ public class ModularClassPath {
 	public List<String> getClassPaths() {
 		if (classPaths == null) {
 			classPaths = artifacts	.stream()
-									.map(it -> it.getFile().getAbsolutePath())
+									.map(it -> it.getFile().toAbsolutePath().toString())
 									.map(it -> it.contains(" ") ? '"' + it + '"' : it)
 									.distinct()
 									.collect(Collectors.toList());
@@ -59,7 +59,7 @@ public class ModularClassPath {
 	public String getManifestPath() {
 		if (manifestPath == null) {
 			manifestPath = artifacts.stream()
-									.map(it -> it.getFile().getAbsoluteFile().toURI())
+									.map(it -> it.getFile().toAbsolutePath().toUri())
 									.map(URI::getPath)
 									.distinct()
 									.collect(Collectors.joining(" "));
@@ -81,7 +81,7 @@ public class ModularClassPath {
 			List<String> commandArguments = new ArrayList<>();
 
 			List<File> fileList = artifacts	.stream()
-											.map(ArtifactInfo::getFile)
+											.map(ai -> ai.getFile().toFile())
 											.collect(Collectors.toList());
 
 			ResolvePathsRequest<File> result = ResolvePathsRequest	.ofFiles(fileList)

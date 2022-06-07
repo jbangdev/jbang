@@ -221,11 +221,11 @@ public class Configuration {
 	}
 
 	public static Configuration get(Path catalogPath) {
-		return get(ResourceRef.forNamedFile(catalogPath.toString(), catalogPath.toFile()));
+		return get(ResourceRef.forNamedFile(catalogPath.toString(), catalogPath));
 	}
 
 	private static Configuration get(ResourceRef ref) {
-		Path configPath = ref.getFile().toPath();
+		Path configPath = ref.getFile();
 		Configuration cfg = read(configPath);
 		cfg.storeRef = ref;
 		return cfg;
@@ -251,7 +251,7 @@ public class Configuration {
 		Configuration result = defaults();
 		for (Path cfgFile : configFiles) {
 			Configuration cfg = read(cfgFile);
-			cfg.storeRef = ResourceRef.forFile(cfgFile.toFile());
+			cfg.storeRef = ResourceRef.forFile(cfgFile);
 			cfg.fallback = result;
 			result = cfg;
 		}
@@ -264,7 +264,7 @@ public class Configuration {
 		String res = "classpath:/" + JBANG_CONFIG_PROPS;
 		ResourceRef cfgRef = ResourceRef.forResource(res);
 		if (cfgRef != null) {
-			Path catPath = cfgRef.getFile().toPath();
+			Path catPath = cfgRef.getFile();
 			Configuration cfg = read(catPath);
 			cfg.storeRef = cfgRef;
 			return cfg;

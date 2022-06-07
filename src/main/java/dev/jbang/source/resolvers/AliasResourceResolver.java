@@ -1,6 +1,6 @@
 package dev.jbang.source.resolvers;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -55,7 +55,7 @@ public class AliasResourceResolver implements ResourceResolver {
 		@Nonnull
 		private final Alias alias;
 
-		public AliasedResourceRef(String ref, File file, @Nonnull Alias alias) {
+		public AliasedResourceRef(String ref, Path file, @Nonnull Alias alias) {
 			super(ref, file);
 			this.alias = alias;
 		}

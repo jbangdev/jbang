@@ -49,7 +49,8 @@ public class DependencyResolver {
 	}
 
 	public DependencyResolver addClassPath(String classPath) {
-		return addArtifact(DependencyCache.findArtifactByPath(new File(classPath)));
+		// WARN need File here because it's more lenient about paths than Path!
+		return addArtifact(DependencyCache.findArtifactByPath(new File(classPath).toPath()));
 	}
 
 	public DependencyResolver addClassPaths(List<String> classPaths) {

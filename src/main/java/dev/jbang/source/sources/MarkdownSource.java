@@ -21,7 +21,7 @@ public class MarkdownSource extends JavaSource {
 
 	public static Source create(ResourceRef resourceRef, Function<String, String> replaceProperties) {
 		String scriptText = new MarkdownTransform().transformMarkdown(
-				Util.readFileContent(resourceRef.getFile().toPath()));
+				Util.readFileContent(resourceRef.getFile()));
 		try {
 			// this will cache the content in stdin cache which is not optimal but needed to
 			// have the transformed script stored

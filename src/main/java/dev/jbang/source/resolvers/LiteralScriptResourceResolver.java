@@ -4,10 +4,10 @@ import static dev.jbang.util.Util.getMainClass;
 import static dev.jbang.util.Util.hasMainMethod;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.stream.Collectors;
 
 import dev.jbang.Cache;
@@ -54,16 +54,16 @@ public class LiteralScriptResourceResolver implements ResourceResolver {
 	public static ResourceRef stringToResourceRef(String resource, String scriptText) throws IOException {
 		ResourceRef result;
 		String urlHash = Util.getStableID(scriptText);
-		File cache = Settings.getCacheDir(Cache.CacheClass.stdins).resolve(urlHash).toFile();
-		cache.mkdirs();
+		Path cache = Settings.getCacheDir(Cache.CacheClass.stdins).resolve(urlHash);
+		cache.toFile().mkdirs();
 		String basename = urlHash;
 		String suffix = ".jsh";
 		if (hasMainMethod(scriptText)) {
 			suffix = ".java";
 			basename = getMainClass(scriptText).orElse(basename);
 		}
-		File scriptFile = new File(cache, basename + suffix);
-		Util.writeString(scriptFile.toPath(), scriptText);
+		Path scriptFile = cache.resolve(basename + suffix);
+		Util.writeString(scriptFile, scriptText);
 		result = ResourceRef.forCachedResource(resource, scriptFile);
 		return result;
 	}

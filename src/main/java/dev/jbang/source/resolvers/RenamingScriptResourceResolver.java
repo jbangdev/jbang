@@ -3,6 +3,7 @@ package dev.jbang.source.resolvers;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
@@ -59,12 +60,11 @@ public class RenamingScriptResourceResolver implements ResourceResolver {
 						original = original.substring(original.indexOf("\n"));
 					}
 
-					File tempFile = Settings.getCacheDir(Cache.CacheClass.scripts)
+					Path tempFile = Settings.getCacheDir(Cache.CacheClass.scripts)
 											.resolve(urlHash)
-											.resolve(Util.unkebabify(probe.getName()))
-											.toFile();
-					tempFile.getParentFile().mkdirs();
-					Util.writeString(tempFile.toPath().toAbsolutePath(), original);
+											.resolve(Util.unkebabify(probe.getName()));
+					tempFile.getParent().toFile().mkdirs();
+					Util.writeString(tempFile.toAbsolutePath(), original);
 					result = ResourceRef.forCachedResource(resource, tempFile);
 				}
 			}

@@ -79,9 +79,9 @@ class ExportLocal extends BaseCommand implements Exporter {
 
 		Path outputPath = exportMixin.getFileOutputPath();
 		// Copy the JAR or native binary
-		Path source = code.getJarFile().toPath();
+		Path source = code.getJarFile();
 		if (exportMixin.buildMixin.nativeImage) {
-			source = getImageName(source.toFile()).toPath();
+			source = getImageName(source);
 		}
 
 		if (outputPath.toFile().exists()) {
@@ -117,9 +117,9 @@ class ExportPortable extends BaseCommand implements Exporter {
 		Path outputPath = exportMixin.getFileOutputPath();
 
 		// Copy the JAR or native binary
-		Path source = code.getJarFile().toPath();
+		Path source = code.getJarFile();
 		if (exportMixin.buildMixin.nativeImage) {
-			source = getImageName(source.toFile()).toPath();
+			source = getImageName(source);
 		}
 
 		if (outputPath.toFile().exists()) {
@@ -215,9 +215,9 @@ class ExportMavenPublish extends BaseCommand implements Exporter {
 			outputPath = Settings.getLocalMavenRepo();
 		}
 		// Copy the JAR or native binary
-		Path source = code.getJarFile().toPath();
+		Path source = code.getJarFile();
 		if (exportMixin.buildMixin.nativeImage) {
-			source = getImageName(source.toFile()).toPath();
+			source = getImageName(source);
 		}
 
 		if (!outputPath.toFile().isDirectory()) {
@@ -253,7 +253,8 @@ class ExportMavenPublish extends BaseCommand implements Exporter {
 		}
 		Path groupdir = outputPath.resolve(Paths.get(group.replace(".", "/")));
 
-		artifact = artifact != null ? artifact : Util.getBaseName(code.getResourceRef().getFile().getName());
+		artifact = artifact != null ? artifact
+				: Util.getBaseName(code.getResourceRef().getFile().getFileName().toString());
 		Path artifactDir = groupdir.resolve(artifact);
 
 		version = version != null ? version : "999-SNAPSHOT";
@@ -289,7 +290,8 @@ class ExportMavenPublish extends BaseCommand implements Exporter {
 
 			String pomfile = pomTemplate
 										.data("baseName",
-												Util.getBaseName(code.getResourceRef().getFile().getName()))
+												Util.getBaseName(
+														code.getResourceRef().getFile().getFileName().toString()))
 										.data("group", group)
 										.data("artifact", artifact)
 										.data("version", version)
