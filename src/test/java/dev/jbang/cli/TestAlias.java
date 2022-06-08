@@ -3,8 +3,11 @@ package dev.jbang.cli;
 import static dev.jbang.util.TestUtil.clearSettingsCaches;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -92,8 +95,7 @@ public class TestAlias extends BaseTest {
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		JBang jbang = new JBang();
 		new CommandLine(jbang).execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
-				is(true));
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
 		Alias alias = Alias.get("name");
 		assertThat(alias.scriptRef, is("test.java"));
 	}
@@ -187,8 +189,7 @@ public class TestAlias extends BaseTest {
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		JBang jbang = new JBang();
 		new CommandLine(jbang).execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
-				is(true));
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
 		Alias name = Alias.get("name");
 		assertThat(name.scriptRef, is(Paths.get("sub/test.java").toString()));
 	}
@@ -202,8 +203,7 @@ public class TestAlias extends BaseTest {
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		JBang jbang = new JBang();
 		new CommandLine(jbang).execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
-				is(true));
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
 		Alias name = Alias.get("name");
 		assertThat(name.scriptRef, is("test.java"));
 		assertThat(name.description, is("Description of the script inside the script"));
@@ -219,8 +219,7 @@ public class TestAlias extends BaseTest {
 		JBang jbang = new JBang();
 		new CommandLine(jbang).execute("alias", "add", "-f", cwd.toString(), "--name=name",
 				"-d", "Description of the script in arguments", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
-				is(true));
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
 		Alias name = Alias.get("name");
 		assertThat(name.scriptRef, is("test.java"));
 		// The argument has more precedance than the description tag in the script
@@ -238,8 +237,7 @@ public class TestAlias extends BaseTest {
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		JBang jbang = new JBang();
 		new CommandLine(jbang).execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
-				is(true));
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
 		Alias name = Alias.get("name");
 		assertThat(name.scriptRef, is("test.java"));
 		assertThat(name.description,
@@ -254,8 +252,7 @@ public class TestAlias extends BaseTest {
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		JBang jbang = new JBang();
 		new CommandLine(jbang).execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
-				is(true));
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
 		Alias name = Alias.get("name");
 		assertThat(name.scriptRef, is("test.java"));
 		assertThat(name.description,
@@ -290,6 +287,24 @@ public class TestAlias extends BaseTest {
 		Alias name = Alias.get("name");
 		assertThat(one.scriptRef, is("http://dummy"));
 		assertThat(name.scriptRef, is("test.java"));
+	}
+
+	@Test
+	void testAddWithRepos() throws IOException {
+		String jar = "dummygroup:dummyart:0.1";
+		CommandLine.ParseResult pr = JBang	.getCommandLine()
+											.parseArgs("alias", "add", "--name=aliaswithrepo", "--repos",
+													"http://dummyrepo", jar);
+		AliasAdd add = (AliasAdd) pr.subcommand().subcommand().commandSpec().userObject();
+		try {
+			add.doCall();
+			fail("Should have thrown exception");
+		} catch (ExitException ex) {
+			StringWriter sw = new StringWriter();
+			ex.printStackTrace(new PrintWriter(sw));
+			assertThat(sw.toString(), containsString(
+					"Error transferring file: dummyrepo from http://dummyrepo/dummygroup/dummyart/0.1/dummyart-0.1.pom"));
+		}
 	}
 
 	@Test

@@ -74,7 +74,7 @@ class AliasAdd extends BaseAliasCommand {
 
 	@CommandLine.Option(names = { "-m",
 			"--main" }, description = "Main class to use when running. Used primarily for running jar's.")
-	String mainClass;
+	String main;
 
 	@CommandLine.Option(names = { "-j",
 			"--java" }, description = "JDK version to use for running the alias.")
@@ -96,7 +96,7 @@ class AliasAdd extends BaseAliasCommand {
 					"Invalid alias name, it should start with a letter followed by 0 or more letters, digits, underscores or hyphens");
 		}
 
-		RunContext ctx = RunContext.empty();
+		RunContext ctx = getRunContext();
 		Code code = ctx.forResource(scriptOrFile);
 		if (name == null) {
 			name = CatalogUtil.nameFromRef(ctx.getOriginalRef());
@@ -108,14 +108,32 @@ class AliasAdd extends BaseAliasCommand {
 		if (catFile != null) {
 			CatalogUtil.addAlias(catFile, name, scriptOrFile, desc, userParams, javaRuntimeOptions, sources,
 					dependencyInfoMixin.getDependencies(), dependencyInfoMixin.getRepositories(),
-					dependencyInfoMixin.getClasspaths(), dependencyInfoMixin.getProperties(), javaVersion, mainClass);
+					dependencyInfoMixin.getClasspaths(), dependencyInfoMixin.getProperties(), javaVersion, main);
 		} else {
 			catFile = CatalogUtil.addNearestAlias(name, scriptOrFile, desc, userParams, javaRuntimeOptions, sources,
 					dependencyInfoMixin.getDependencies(), dependencyInfoMixin.getRepositories(),
-					dependencyInfoMixin.getClasspaths(), dependencyInfoMixin.getProperties(), javaVersion, mainClass);
+					dependencyInfoMixin.getClasspaths(), dependencyInfoMixin.getProperties(), javaVersion, main);
 		}
 		info(String.format("Alias '%s' added to '%s'", name, catFile));
 		return EXIT_OK;
+	}
+
+	RunContext getRunContext() {
+		RunContext ctx = new RunContext();
+		ctx.setProperties(dependencyInfoMixin.getProperties());
+		ctx.setAdditionalDependencies(dependencyInfoMixin.getDependencies());
+		ctx.setAdditionalRepositories(dependencyInfoMixin.getRepositories());
+		ctx.setAdditionalClasspaths(dependencyInfoMixin.getClasspaths());
+		ctx.setAdditionalSources(sources);
+		ctx.setJavaVersion(javaVersion);
+		ctx.setMainClass(main);
+		Path cat = getCatalog(false);
+		if (cat != null) {
+			ctx.setCatalog(cat.toFile());
+		}
+		ctx.setArguments(userParams);
+		ctx.setJavaOptions(javaRuntimeOptions);
+		return ctx;
 	}
 }
 
