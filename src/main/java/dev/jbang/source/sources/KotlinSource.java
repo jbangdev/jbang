@@ -6,7 +6,6 @@ import java.util.function.Function;
 
 import dev.jbang.net.KotlinManager;
 import dev.jbang.source.*;
-import dev.jbang.source.builders.BaseBuilder;
 import dev.jbang.source.builders.KotlinBuilder;
 
 public class KotlinSource extends Source {
@@ -26,7 +25,7 @@ public class KotlinSource extends Source {
 	}
 
 	@Override
-	public BaseBuilder getBuilder(SourceSet ss, RunContext ctx) {
+	public Builder getBuilder(SourceSet ss, RunContext ctx) {
 		return new KotlinBuilder(ss, ctx);
 	}
 

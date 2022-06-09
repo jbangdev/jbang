@@ -1,9 +1,7 @@
 package dev.jbang.cli;
 
-import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.PrintStream;
 
 import dev.jbang.source.*;
@@ -11,44 +9,17 @@ import dev.jbang.source.*;
 import picocli.CommandLine;
 
 public abstract class BaseBuildCommand extends BaseCommand {
-	protected String javaVersion;
 
 	@CommandLine.Mixin
 	ScriptMixin scriptMixin;
 
 	@CommandLine.Mixin
+	BuildMixin buildMixin;
+
+	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
 
-	@CommandLine.Option(names = { "-m",
-			"--main" }, description = "Main class to use when running. Used primarily for running jar's.")
-	String main;
-
-	@CommandLine.Option(names = { "-j",
-			"--java" }, description = "JDK version to use for running the script.")
-	void setJavaVersion(String javaVersion) {
-		if (!javaVersion.matches("\\d+[+]?")) {
-			throw new IllegalArgumentException(
-					"Invalid version, should be a number optionally followed by a plus sign");
-		}
-		this.javaVersion = javaVersion;
-	}
-
-	@CommandLine.Option(names = {
-			"-n", "--native" }, description = "Build using native-image")
-	boolean nativeImage;
-
-	@CommandLine.Option(names = { "--catalog" }, description = "Path to catalog file to be used instead of the default")
-	File catalog;
-
 	PrintStream out = new PrintStream(new FileOutputStream(FileDescriptor.out));
-
-	static Code buildIfNeeded(Code code, RunContext ctx) throws IOException {
-		if (ScriptMixin.needsJar(code, ctx)) {
-			SourceSet ss = (SourceSet) code;
-			code = ss.builder(ctx).build();
-		}
-		return code;
-	}
 
 	RunContext getRunContext() {
 		RunContext ctx = new RunContext();
@@ -59,10 +30,10 @@ public abstract class BaseBuildCommand extends BaseCommand {
 		ctx.setAdditionalSources(scriptMixin.sources);
 		ctx.setAdditionalResources(scriptMixin.resources);
 		ctx.setForceJsh(scriptMixin.forcejsh);
-		ctx.setJavaVersion(javaVersion);
-		ctx.setMainClass(main);
-		ctx.setNativeImage(nativeImage);
-		ctx.setCatalog(catalog);
+		ctx.setCatalog(scriptMixin.catalog);
+		ctx.setJavaVersion(buildMixin.javaVersion);
+		ctx.setMainClass(buildMixin.main);
+		ctx.setNativeImage(buildMixin.nativeImage);
 		return ctx;
 	}
 }

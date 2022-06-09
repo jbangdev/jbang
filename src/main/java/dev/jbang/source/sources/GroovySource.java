@@ -6,7 +6,6 @@ import java.util.function.Function;
 
 import dev.jbang.net.GroovyManager;
 import dev.jbang.source.*;
-import dev.jbang.source.builders.BaseBuilder;
 import dev.jbang.source.builders.GroovyBuilder;
 
 public class GroovySource extends Source {
@@ -25,7 +24,7 @@ public class GroovySource extends Source {
 	}
 
 	@Override
-	public BaseBuilder getBuilder(SourceSet ss, RunContext ctx) {
+	public Builder getBuilder(SourceSet ss, RunContext ctx) {
 		return new GroovyBuilder(ss, ctx);
 	}
 

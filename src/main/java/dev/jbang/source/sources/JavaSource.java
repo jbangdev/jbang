@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.function.Function;
 
 import dev.jbang.source.*;
-import dev.jbang.source.builders.BaseBuilder;
 import dev.jbang.source.builders.JavaBuilder;
 
 public class JavaSource extends Source {
@@ -32,7 +31,7 @@ public class JavaSource extends Source {
 	}
 
 	@Override
-	public BaseBuilder getBuilder(SourceSet ss, RunContext ctx) {
+	public Builder getBuilder(SourceSet ss, RunContext ctx) {
 		return new JavaBuilder(ss, ctx);
 	}
 }
