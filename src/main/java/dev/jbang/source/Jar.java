@@ -135,6 +135,11 @@ public class Jar implements Code {
 	}
 
 	@Override
+	public Builder builder(RunContext ctx) {
+		return () -> this;
+	}
+
+	@Override
 	public CmdGenerator cmdGenerator(RunContext ctx) {
 		return new JarCmdGenerator(this, ctx);
 	}

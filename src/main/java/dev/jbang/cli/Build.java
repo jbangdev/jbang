@@ -17,7 +17,9 @@ public class Build extends BaseBuildCommand {
 		RunContext ctx = getRunContext();
 		Code code = ctx.forResource(scriptMixin.scriptOrFile);
 
-		buildIfNeeded(code, ctx);
+		if (code.needsBuild(ctx)) {
+			code.builder(ctx).build();
+		}
 
 		return EXIT_OK;
 	}

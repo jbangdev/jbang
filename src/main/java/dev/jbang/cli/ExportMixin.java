@@ -14,14 +14,11 @@ import picocli.CommandLine;
 
 public class ExportMixin {
 
-	protected String javaVersion;// TODO: refactor these to be mixins
-
 	@CommandLine.Mixin
 	ScriptMixin scriptMixin;
 
-	@CommandLine.Option(names = {
-			"-n", "--native" }, description = "Build using native-image")
-	boolean nativeImage;
+	@CommandLine.Mixin
+	BuildMixin buildMixin;
 
 	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
@@ -37,18 +34,7 @@ public class ExportMixin {
 	public ExportMixin() {
 	}
 
-	@CommandLine.Option(names = { "-j",
-			"--java" }, description = "JDK version to use for running the script.")
-	void setJavaVersion(String javaVersion) {
-		if (!javaVersion.matches("\\d+[+]?")) {
-			throw new IllegalArgumentException(
-					"Invalid version, should be a number optionally followed by a plus sign");
-		}
-		this.javaVersion = javaVersion;
-	}
-
-	Path getFileOutputPath(
-			RunContext ctx) {
+	Path getFileOutputPath(RunContext ctx) {
 		// Determine the output file location and name
 		Path cwd = Util.getCwd();
 		Path outputPath;
@@ -56,7 +42,7 @@ public class ExportMixin {
 			outputPath = outputFile;
 		} else {
 			String outName = CatalogUtil.nameFromRef(ctx.getOriginalRef());
-			if (nativeImage) {
+			if (buildMixin.nativeImage) {
 				outName = getImageName(new File(outName)).getName();
 			} else {
 				outName += ".jar";

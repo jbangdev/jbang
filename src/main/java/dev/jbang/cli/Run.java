@@ -96,9 +96,9 @@ public class Run extends BaseBuildCommand {
 
 		code = prepareArtifacts(code, ctx);
 
-		if (nativeImage && (ctx.isForceJsh() || code.isJShell())) {
+		if (buildMixin.nativeImage && (ctx.isForceJsh() || code.isJShell())) {
 			warn(".jsh cannot be used with --native thus ignoring --native.");
-			nativeImage = false;
+			buildMixin.nativeImage = false;
 		}
 
 		String cmdline = code.cmdGenerator(ctx).generate();
@@ -123,19 +123,19 @@ public class Run extends BaseBuildCommand {
 	}
 
 	Code prepareArtifacts(Code code, RunContext ctx) throws IOException {
-		code = buildIfNeeded(code, ctx);
+		if (code.needsBuild(ctx)) {
+			code = code.builder(ctx).build();
+		}
 
 		if (javaAgentSlots != null) {
 			for (Map.Entry<String, Optional<String>> agentOption : javaAgentSlots.entrySet()) {
 				String javaAgent = agentOption.getKey();
 				Optional<String> javaAgentOptions = agentOption.getValue();
-
 				RunContext actx = super.getRunContext();
 				Code asrc = actx.forResource(javaAgent);
 				actx.setJavaAgentOption(javaAgentOptions.orElse(null));
-				if (ScriptMixin.needsJar(asrc, actx)) {
-					info("Building javaagent...");
-					asrc = buildIfNeeded(asrc, actx);
+				if (asrc.needsBuild(actx)) {
+					asrc = asrc.builder(actx).build();
 				}
 				ctx.addJavaAgent(asrc, actx);
 			}

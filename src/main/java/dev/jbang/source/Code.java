@@ -109,6 +109,13 @@ public interface Code {
 	 */
 	SourceSet asSourceSet();
 
+	default boolean needsBuild(RunContext context) {
+		// anything but .jar and .jsh files needs jar
+		return !(isJar() || isJShell() || context.isForceJsh());
+	}
+
+	Builder builder(RunContext ctx);
+
 	CmdGenerator cmdGenerator(RunContext ctx);
 
 	// https://stackoverflow.com/questions/366202/regex-for-splitting-a-string-using-space-when-not-surrounded-by-single-or-double

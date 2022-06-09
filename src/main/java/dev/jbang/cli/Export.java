@@ -1,6 +1,5 @@
 package dev.jbang.cli;
 
-import static dev.jbang.cli.BaseBuildCommand.buildIfNeeded;
 import static dev.jbang.cli.Export.handle;
 import static dev.jbang.source.builders.BaseBuilder.getImageName;
 import static dev.jbang.util.JavaUtil.resolveInJavaHome;
@@ -42,8 +41,10 @@ public class Export {
 		RunContext ctx = getRunContext(exportMixin);
 		Code code = ctx.forResource(exportMixin.scriptMixin.scriptOrFile);
 
-		code = buildIfNeeded(code, ctx);
-		ctx.resolveClassPath(code);
+		if (code.needsBuild(ctx)) {
+			ctx.resolveClassPath(code);
+			code = code.builder(ctx).build();
+		}
 
 		return style.apply(exportMixin, code, ctx);
 	}
@@ -56,11 +57,13 @@ public class Export {
 		ctx.setAdditionalClasspaths(exportMixin.dependencyInfoMixin.getClasspaths());
 		ctx.setAdditionalSources(exportMixin.scriptMixin.sources);
 		ctx.setAdditionalResources(exportMixin.scriptMixin.resources);
-		ctx.setJavaVersion(exportMixin.javaVersion);
-		ctx.setNativeImage(exportMixin.nativeImage);
+		ctx.setForceJsh(exportMixin.scriptMixin.forcejsh);
+		ctx.setCatalog(exportMixin.scriptMixin.catalog);
+		ctx.setJavaVersion(exportMixin.buildMixin.javaVersion);
+		ctx.setMainClass(exportMixin.buildMixin.main);
+		ctx.setNativeImage(exportMixin.buildMixin.nativeImage);
 		return ctx;
 	}
-
 }
 
 interface Exporter {
@@ -78,7 +81,7 @@ class ExportLocal extends BaseCommand implements Exporter {
 		Path outputPath = exportMixin.getFileOutputPath(ctx);
 		// Copy the JAR or native binary
 		Path source = code.getJarFile().toPath();
-		if (exportMixin.nativeImage) {
+		if (exportMixin.buildMixin.nativeImage) {
 			source = getImageName(source.toFile()).toPath();
 		}
 
@@ -116,7 +119,7 @@ class ExportPortable extends BaseCommand implements Exporter {
 
 		// Copy the JAR or native binary
 		Path source = code.getJarFile().toPath();
-		if (exportMixin.nativeImage) {
+		if (exportMixin.buildMixin.nativeImage) {
 			source = getImageName(source.toFile()).toPath();
 		}
 
@@ -132,7 +135,7 @@ class ExportPortable extends BaseCommand implements Exporter {
 		File tempManifest;
 
 		Files.copy(source, outputPath);
-		if (!exportMixin.nativeImage) {
+		if (!exportMixin.buildMixin.nativeImage) {
 			try (JarFile jf = new JarFile(outputPath.toFile())) {
 				String cp = jf.getManifest().getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
 				String[] deps = cp == null ? new String[0] : cp.split(" ");
@@ -160,10 +163,10 @@ class ExportPortable extends BaseCommand implements Exporter {
 
 			List<String> optionList = new ArrayList<>();
 			optionList.add(resolveInJavaHome("jar",
-					exportMixin.javaVersion != null ? exportMixin.javaVersion : code.getJavaVersion().orElse(null))); // TODO
-			// locate
-			// it
-			// on path ?
+					exportMixin.buildMixin.javaVersion != null
+							? exportMixin.buildMixin.javaVersion
+							: code.getJavaVersion().orElse(null))); // TODO
+			// locate it on path ?
 			optionList.add("ufm");
 			optionList.add(outputPath.toString());
 			optionList.add(tempManifest.toString());
@@ -214,7 +217,7 @@ class ExportMavenPublish extends BaseCommand implements Exporter {
 		}
 		// Copy the JAR or native binary
 		Path source = code.getJarFile().toPath();
-		if (exportMixin.nativeImage) {
+		if (exportMixin.buildMixin.nativeImage) {
 			source = getImageName(source.toFile()).toPath();
 		}
 
