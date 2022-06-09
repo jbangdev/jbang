@@ -1,9 +1,5 @@
 package dev.jbang.source;
 
-import java.util.function.Function;
-
-import dev.jbang.catalog.Catalog;
-import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.source.resolvers.*;
 
 /**
@@ -57,26 +53,6 @@ public interface ResourceResolver {
 	}
 
 	String description();
-
-	/**
-	 * Factory method that returns a resource resolver that knows how to deal with
-	 * script/source files. It should be passed a function for dealing with Maven
-	 * GAVs.
-	 *
-	 * @param depResolver A function which, given a GAV string, returns a
-	 *                    <code>ModularClassPath</code>
-	 * @return A <code>ResourceRef</code> or <code>null</code>
-	 */
-	static ResourceResolver forScripts(Function<String, ModularClassPath> depResolver, Catalog catalog) {
-		return new AliasResourceResolver(catalog,
-				new CombinedResourceResolver(
-						new RenamingScriptResourceResolver(),
-						new LiteralScriptResourceResolver(),
-						new RemoteResourceResolver(false),
-						new ClasspathResourceResolver(),
-						new GavResourceResolver(depResolver),
-						new FileResourceResolver()));
-	}
 
 	/**
 	 * Factory method that returns a resource resolver that knows how to deal with

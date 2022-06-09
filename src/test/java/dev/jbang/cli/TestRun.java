@@ -493,6 +493,37 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testAliasWithRepo(@TempDir File output) throws IOException {
+		final String aliases = "{\n" +
+				"  \"aliases\": {\n" +
+				"    \"aliaswithrepo\": {\n" +
+				"      \"script-ref\": \"dummygroup:dummyart:0.1\",\n" +
+				"      \"repositories\": [ \"http://dummyrepo\" ]\n" +
+				"    }\n" +
+				"  }\n" +
+				"}";
+
+		environmentVariables.set("JBANG_DIR", jbangTempDir.toString());
+		Files.write(jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON), aliases.getBytes());
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "aliaswithrepo");
+
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+
+		try {
+			ctx.forResource("aliaswithrepo");
+			fail("Should have thrown exception");
+		} catch (ExitException ex) {
+			StringWriter sw = new StringWriter();
+			ex.printStackTrace(new PrintWriter(sw));
+			assertThat(sw.toString(), containsString(
+					"Error transferring file: dummyrepo from http://dummyrepo/dummygroup/dummyart/0.1/dummyart-0.1.pom"));
+		}
+	}
+
+	@Test
 	void testHelloWorldShellNoExit() throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");
@@ -1890,6 +1921,7 @@ public class TestRun extends BaseTest {
 
 		try {
 			ss.builder(ctx).build();
+			fail("Should have thrown exception");
 		} catch (ExitException ex) {
 			StringWriter sw = new StringWriter();
 			ex.printStackTrace(new PrintWriter(sw));
@@ -1912,6 +1944,7 @@ public class TestRun extends BaseTest {
 
 		try {
 			ctx.forResource(jar);
+			fail("Should have thrown exception");
 		} catch (ExitException ex) {
 			StringWriter sw = new StringWriter();
 			ex.printStackTrace(new PrintWriter(sw));
@@ -1935,6 +1968,7 @@ public class TestRun extends BaseTest {
 
 		try {
 			ctx.forResource(jar);
+			fail("Should have thrown exception");
 		} catch (ExitException ex) {
 			StringWriter sw = new StringWriter();
 			ex.printStackTrace(new PrintWriter(sw));
@@ -1951,6 +1985,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		try {
 			SourceSet ss = (SourceSet) ctx.forResourceRef(LiteralScriptResourceResolver.stringToResourceRef(null, ""));
+			fail("Should have thrown exception");
 		} catch (ExitException ex) {
 			StringWriter sw = new StringWriter();
 			ex.printStackTrace(new PrintWriter(sw));
@@ -1981,6 +2016,7 @@ public class TestRun extends BaseTest {
 		code = run.prepareArtifacts(code, ctx);
 		try {
 			new JarCmdGenerator(code, ctx).generate();
+			fail("Should have thrown exception");
 		} catch (ExitException e) {
 			StringWriter sw = new StringWriter();
 			e.printStackTrace(new PrintWriter(sw));

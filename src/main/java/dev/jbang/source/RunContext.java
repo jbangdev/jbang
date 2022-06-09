@@ -10,7 +10,7 @@ import dev.jbang.catalog.Catalog;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.*;
-import dev.jbang.source.resolvers.AliasResourceResolver;
+import dev.jbang.source.resolvers.*;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.PropertiesValueResolver;
 import dev.jbang.util.Util;
@@ -417,62 +417,17 @@ public class RunContext {
 	}
 
 	private List<Source> allToScriptSource(List<String> sources) {
-		Catalog catalog = getCatalog() != null ? Catalog.get(getCatalog().toPath()) : null;
-		ResourceResolver resolver = ResourceResolver.forScripts(this::resolveDependency, catalog);
 		Function<String, String> propsResolver = it -> PropertiesValueResolver.replaceProperties(it,
 				getContextProperties());
 		return sources	.stream()
 						.flatMap(line -> Util.explode(null, Util.getCwd(), line).stream())
-						.map(s -> resolveChecked(resolver, s))
+						.map(s -> resolveChecked(getResourceResolver(), s))
 						.map(ref -> Source.forResourceRef(ref, propsResolver))
 						.collect(Collectors.toList());
 	}
 
-	private ModularClassPath resolveDependency(String dep) {
-		DependencyResolver resolver = new DependencyResolver().addDependency(dep);
-		updateDependencyResolver(resolver);
-		return resolver.resolve();
-	}
-
 	public Code forResource(String resource) {
 		ResourceRef resourceRef = resolveChecked(getResourceResolver(), resource);
-
-		if (resourceRef instanceof AliasResourceResolver.AliasedResourceRef) {
-			// The resource we found was obtained from an alias which might
-			// contain extra options that need to be taken into account
-			// when running the code
-			Alias alias = ((AliasResourceResolver.AliasedResourceRef) resourceRef).getAlias();
-			if (getArguments() == null || getArguments().isEmpty()) {
-				setArguments(alias.arguments);
-			}
-			if (getJavaOptions() == null || getJavaOptions().isEmpty()) {
-				setJavaOptions(alias.javaOptions);
-			}
-			if (getAdditionalSources() == null || getAdditionalSources().isEmpty()) {
-				setAdditionalSources(alias.sources);
-			}
-			if (getAdditionalDependencies() == null || getAdditionalDependencies().isEmpty()) {
-				setAdditionalDependencies(alias.dependencies);
-			}
-			if (getAdditionalRepositories() == null || getAdditionalRepositories().isEmpty()) {
-				setAdditionalRepositories(alias.repositories);
-			}
-			if (getAdditionalClasspaths() == null || getAdditionalClasspaths().isEmpty()) {
-				setAdditionalClasspaths(alias.classpaths);
-			}
-			if (getProperties() == null || getProperties().isEmpty()) {
-				setProperties(alias.properties);
-			}
-			if (getJavaVersion() == null) {
-				setJavaVersion(alias.javaVersion);
-			}
-			if (getMainClass() == null) {
-				setMainClass(alias.mainClass);
-			}
-			setAlias(alias);
-		}
-
-		// note script file must be not null at this point
 		setOriginalRef(resource);
 		return forResourceRef(resourceRef);
 	}
@@ -525,7 +480,58 @@ public class RunContext {
 
 	private ResourceResolver getResourceResolver() {
 		Catalog catalog = getCatalog() != null ? Catalog.get(getCatalog().toPath()) : null;
-		return ResourceResolver.forScripts(this::resolveDependency, catalog);
+		return new AliasResourceResolver(catalog, this::getAliasResourceResolver);
 	}
 
+	private ResourceResolver getAliasResourceResolver(Alias alias) {
+		if (alias != null) {
+			updateFromAlias(alias);
+		}
+		return new CombinedResourceResolver(
+				new RenamingScriptResourceResolver(),
+				new LiteralScriptResourceResolver(),
+				new RemoteResourceResolver(false),
+				new ClasspathResourceResolver(),
+				new GavResourceResolver(getDependencyResolver(alias)),
+				new FileResourceResolver());
+	}
+
+	private Function<String, ModularClassPath> getDependencyResolver(Alias alias) {
+		return dep -> {
+			DependencyResolver resolver = new DependencyResolver().addDependency(dep);
+			updateDependencyResolver(resolver);
+			return resolver.resolve();
+		};
+	}
+
+	private void updateFromAlias(Alias alias) {
+		if (getArguments() == null || getArguments().isEmpty()) {
+			setArguments(alias.arguments);
+		}
+		if (getJavaOptions() == null || getJavaOptions().isEmpty()) {
+			setJavaOptions(alias.javaOptions);
+		}
+		if (getAdditionalSources() == null || getAdditionalSources().isEmpty()) {
+			setAdditionalSources(alias.sources);
+		}
+		if (getAdditionalDependencies() == null || getAdditionalDependencies().isEmpty()) {
+			setAdditionalDependencies(alias.dependencies);
+		}
+		if (getAdditionalRepositories() == null || getAdditionalRepositories().isEmpty()) {
+			setAdditionalRepositories(alias.repositories);
+		}
+		if (getAdditionalClasspaths() == null || getAdditionalClasspaths().isEmpty()) {
+			setAdditionalClasspaths(alias.classpaths);
+		}
+		if (getProperties() == null || getProperties().isEmpty()) {
+			setProperties(alias.properties);
+		}
+		if (getJavaVersion() == null) {
+			setJavaVersion(alias.javaVersion);
+		}
+		if (getMainClass() == null) {
+			setMainClass(alias.mainClass);
+		}
+		setAlias(alias);
+	}
 }
