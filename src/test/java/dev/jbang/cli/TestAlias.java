@@ -3,6 +3,7 @@ package dev.jbang.cli;
 import static dev.jbang.util.TestUtil.clearSettingsCaches;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
@@ -12,7 +13,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -308,6 +308,15 @@ public class TestAlias extends BaseTest {
 	}
 
 	@Test
+	void testAddMissingScript() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("alias", "add", "--name=name");
+			AliasAdd add = (AliasAdd) pr.subcommand().subcommand().commandSpec().userObject();
+			add.doCall();
+		});
+	}
+
+	@Test
 	void testGetAliasNone() throws IOException {
 		Alias alias = Alias.get("dummy-alias!");
 		assertThat(alias, nullValue());
@@ -395,7 +404,7 @@ public class TestAlias extends BaseTest {
 	void testGetAliasLoop() throws IOException {
 		try {
 			Alias.get("eight");
-			Assert.fail();
+			fail();
 		} catch (RuntimeException ex) {
 			assertThat(ex.getMessage(), containsString("seven"));
 		}

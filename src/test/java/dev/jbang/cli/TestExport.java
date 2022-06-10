@@ -8,6 +8,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.io.FileMatchers.anExistingDirectory;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
 import static org.hamcrest.io.FileMatchers.anExistingFileOrDirectory;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,6 +25,8 @@ import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
 import dev.jbang.Settings;
+
+import picocli.CommandLine;
 
 public class TestExport extends BaseTest {
 
@@ -140,5 +143,14 @@ public class TestExport extends BaseTest {
 				.map(Path::toFile)
 				.forEach(File::delete);
 
+	}
+
+	@Test
+	void testExportMissingScript() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("export", "local");
+			ExportLocal export = (ExportLocal) pr.subcommand().subcommand().commandSpec().userObject();
+			export.doCall();
+		});
 	}
 }

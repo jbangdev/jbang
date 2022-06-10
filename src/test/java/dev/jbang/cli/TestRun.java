@@ -1998,4 +1998,22 @@ public class TestRun extends BaseTest {
 			assertThat(sw.toString(), not(containsString("mavencentral=")));
 		}
 	}
+
+	@Test
+	void testBuildMissingScript() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build");
+			Build build = (Build) pr.subcommand().commandSpec().userObject();
+			build.doCall();
+		});
+	}
+
+	@Test
+	void testRunMissingScript() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run");
+			Run run = (Run) pr.subcommand().commandSpec().userObject();
+			run.doCall();
+		});
+	}
 }
