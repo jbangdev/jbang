@@ -139,7 +139,7 @@ public abstract class BaseBuilder implements Builder {
 		// add source files to compile
 		optionList.addAll(ss.getSources()
 							.stream()
-							.map(x -> x.getResourceRef().getFile().getPath())
+							.map(x -> x.getFile().getPath())
 							.collect(Collectors.toList()));
 
 		// add additional files
@@ -147,9 +147,8 @@ public abstract class BaseBuilder implements Builder {
 
 		Path pomPath = generatePom(compileDir);
 
-		Util.infoMsg("Building jar...");
-		Util.verboseMsg("compile: " + String.join(" ", optionList));
-
+		Util.infoMsg(String.format("Building %s...", ss.getMainSource().isAgent() ? "javaagent" : "jar"));
+		Util.verboseMsg("Compile: " + String.join(" ", optionList));
 		runCompiler(optionList);
 
 		ctx.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
@@ -223,7 +222,7 @@ public abstract class BaseBuilder implements Builder {
 		// When persistent JVM args are set they are appended to any runtime
 		// options set on the Source (that way persistent args can override
 		// options set on the Source)
-		List<String> rtArgs = ctx.getRuntimeOptionsMerged(ss);
+		List<String> rtArgs = ss.getRuntimeOptions();
 		String runtimeOpts = String.join(" ", escapeArguments(rtArgs));
 		if (!runtimeOpts.isEmpty()) {
 			manifest.getMainAttributes()

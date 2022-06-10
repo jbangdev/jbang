@@ -32,7 +32,7 @@ public class TestGrape extends BaseTest {
 				"})\n";
 
 		Source src = new JavaSource(grabBlock, null);
-		SourceSet ss = SourceSet.forSource(src);
+		SourceSet ss = src.createSourceSet();
 		List<String> deps = ss.getDependencies();
 
 		assertThat(deps, hasItem("org.hibernate:hibernate-core:5.4.10.Final"));

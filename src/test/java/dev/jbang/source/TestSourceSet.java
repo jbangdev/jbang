@@ -15,8 +15,8 @@ public class TestSourceSet extends BaseTest {
 		Source source = new JavaSource("//CDS\nclass m { }", null);
 		Source source2 = new JavaSource("class m { }", null);
 
-		SourceSet ss = SourceSet.forSource(source);
-		SourceSet ss2 = SourceSet.forSource(source2);
+		SourceSet ss = source.createSourceSet();
+		SourceSet ss2 = source2.createSourceSet();
 
 		assertTrue(ss.enableCDS());
 		assertFalse(ss2.enableCDS());

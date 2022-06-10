@@ -282,16 +282,17 @@ public class Edit extends BaseCommand {
 		Path srcFile = srcDir.resolve(name);
 		Util.createLink(srcFile, originalFile.toPath());
 
-		for (Source source : ss.getSources()) {
+		for (ResourceRef sourceRef : ss.getSources()) {
 			Path sfile = null;
-			if (source.getJavaPackage().isPresent()) {
-				Path packageDir = srcDir.resolve(source.getJavaPackage().get().replace(".", File.separator));
+			Source src = ctx.createSource(sourceRef);
+			if (src.getJavaPackage().isPresent()) {
+				Path packageDir = srcDir.resolve(src.getJavaPackage().get().replace(".", File.separator));
 				Util.mkdirs(packageDir);
-				sfile = packageDir.resolve(source.getResourceRef().getFile().getName());
+				sfile = packageDir.resolve(sourceRef.getFile().getName());
 			} else {
-				sfile = srcDir.resolve(source.getResourceRef().getFile().getName());
+				sfile = srcDir.resolve(sourceRef.getFile().getName());
 			}
-			Path destFile = source.getResourceRef().getFile().toPath().toAbsolutePath();
+			Path destFile = sourceRef.getFile().toPath().toAbsolutePath();
 			Util.createLink(sfile, destFile);
 		}
 

@@ -361,26 +361,6 @@ public class RunContext {
 		}
 	}
 
-	private List<Source> allToScriptSource(List<String> sources) {
-		Function<String, String> propsResolver = it -> PropertiesValueResolver.replaceProperties(it,
-				getContextProperties());
-		return sources	.stream()
-						.flatMap(line -> Util.explode(null, Util.getCwd(), line).stream())
-						.map(s -> resolveChecked(getResourceResolver(), s))
-						.map(ref -> Source.forResourceRef(ref, propsResolver))
-						.collect(Collectors.toList());
-	}
-
-	private List<RefTarget> allToFileRef(List<String> resources) {
-		ResourceResolver resolver = ResourceResolver.forResources();
-		Function<String, String> propsResolver = it -> PropertiesValueResolver.replaceProperties(it,
-				getContextProperties());
-		return resources.stream()
-						.flatMap(f -> Source.explodeFileRef(null, Util.getCwd(), f).stream())
-						.map(f -> Source.toFileRef(f, resolver))
-						.collect(Collectors.toList());
-	}
-
 	public Code forResource(String resource) {
 		ResourceRef resourceRef = resolveChecked(getResourceResolver(), resource);
 		return forResourceRef(resourceRef);
@@ -407,29 +387,46 @@ public class RunContext {
 		if (resourceRef.getFile().getName().endsWith(".jar")) {
 			code = Jar.prepareJar(resourceRef);
 		} else {
-			code = createSourceSet(createSource(resourceRef));
+			code = updateSourceSet(createSource(resourceRef).createSourceSet(getResourceResolver()));
 		}
 		return code;
 	}
 
-	private Source createSource(ResourceRef resourceRef) {
+	public Source createSource(ResourceRef resourceRef) {
 		return Source.forResourceRef(resourceRef,
 				it -> PropertiesValueResolver.replaceProperties(it, getContextProperties()));
 
 	}
 
-	private SourceSet createSourceSet(Source src) {
-		SourceSet ss = SourceSet.forSource(src, getResourceResolver());
+	private SourceSet updateSourceSet(SourceSet ss) {
 		ss.addRepositories(allToMavenRepo(replaceAllProps(additionalRepos)));
 		ss.addDependencies(replaceAllProps(additionalDeps));
 		ss.addClassPaths(replaceAllProps(additionalClasspaths));
-		ss.addRuntimeOptions(javaOptions);
-		ss.addSources(allToScriptSource(replaceAllProps(additionalSources)));
+		updateAllSources(ss, replaceAllProps(additionalSources));
 		ss.addResources(allToFileRef(replaceAllProps(additionalResources)));
-		if (javaVersion != null) {
-			ss.setJavaVersion(javaVersion);
-		}
 		return ss;
+	}
+
+	private void updateAllSources(SourceSet ss, List<String> sources) {
+		Catalog catalog = catalogFile != null ? Catalog.get(catalogFile.toPath()) : null;
+		ResourceResolver resolver = getResourceResolver();
+		Function<String, String> propsResolver = it -> PropertiesValueResolver.replaceProperties(it,
+				getContextProperties());
+		sources	.stream()
+				.flatMap(f -> Util.explode(null, Util.getCwd(), f).stream())
+				.map(s -> resolveChecked(resolver, s))
+				.map(ref -> Source.forResourceRef(ref, propsResolver))
+				.forEach(src -> src.updateSourceSet(ss, resolver));
+	}
+
+	private List<RefTarget> allToFileRef(List<String> resources) {
+		ResourceResolver resolver = ResourceResolver.forResources();
+		Function<String, String> propsResolver = it -> PropertiesValueResolver.replaceProperties(it,
+				getContextProperties());
+		return resources.stream()
+						.flatMap(f -> Source.explodeFileRef(null, Util.getCwd(), f).stream())
+						.map(f -> Source.toFileRef(f, resolver))
+						.collect(Collectors.toList());
 	}
 
 	private ResourceResolver getResourceResolver() {
@@ -446,16 +443,14 @@ public class RunContext {
 				new LiteralScriptResourceResolver(),
 				new RemoteResourceResolver(false),
 				new ClasspathResourceResolver(),
-				new GavResourceResolver(getDependencyResolver(alias)),
+				new GavResourceResolver(this::resolveDependency),
 				new FileResourceResolver());
 	}
 
-	private Function<String, ModularClassPath> getDependencyResolver(Alias alias) {
-		return dep -> {
-			DependencyResolver resolver = new DependencyResolver().addDependency(dep);
-			updateDependencyResolver(resolver);
-			return resolver.resolve();
-		};
+	private ModularClassPath resolveDependency(String dep) {
+		DependencyResolver resolver = new DependencyResolver().addDependency(dep);
+		updateDependencyResolver(resolver);
+		return resolver.resolve();
 	}
 
 	private void updateFromAlias(Alias alias) {

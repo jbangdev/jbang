@@ -111,7 +111,7 @@ public interface Code {
 
 	default boolean needsBuild(RunContext context) {
 		// anything but .jar and .jsh files needs jar
-		return !(isJar() || isJShell() || context.isForceJsh());
+		return !(isJar() || isJShell() || context.isForceJsh() || context.isInteractive());
 	}
 
 	Builder builder(RunContext ctx);
