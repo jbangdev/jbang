@@ -96,7 +96,7 @@ class AliasAdd extends BaseAliasCommand {
 		RunContext ctx = getRunContext();
 		Code code = ctx.forResource(scriptMixin.scriptOrFile);
 		if (name == null) {
-			name = CatalogUtil.nameFromRef(ctx.getOriginalRef());
+			name = CatalogUtil.nameFromRef(scriptMixin.scriptOrFile);
 		}
 
 		String desc = description != null ? description : code.getDescription().orElse(null);

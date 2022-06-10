@@ -75,7 +75,10 @@ public class Run extends BaseBuildCommand {
 			if (!literalScript.get().isEmpty()) {
 				script = literalScript.get();
 				if (scriptOrFile != null) {
-					userParams.add(0, scriptOrFile);
+					List<String> args = new ArrayList<>();
+					args.add(scriptOrFile);
+					args.addAll(ctx.getArguments());
+					ctx.setArguments(args);
 					scriptOrFile = null;
 				}
 			} else {
@@ -96,9 +99,9 @@ public class Run extends BaseBuildCommand {
 
 		code = prepareArtifacts(code, ctx);
 
-		if (buildMixin.nativeImage && (ctx.isForceJsh() || code.isJShell())) {
+		if (ctx.isNativeImage() && (ctx.isForceJsh() || code.isJShell())) {
 			warn(".jsh cannot be used with --native thus ignoring --native.");
-			buildMixin.nativeImage = false;
+			ctx.setNativeImage(false);
 		}
 
 		String cmdline = code.cmdGenerator(ctx).generate();

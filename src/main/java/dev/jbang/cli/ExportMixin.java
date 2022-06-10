@@ -7,7 +7,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import dev.jbang.catalog.CatalogUtil;
-import dev.jbang.source.RunContext;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -34,14 +33,14 @@ public class ExportMixin {
 	public ExportMixin() {
 	}
 
-	Path getFileOutputPath(RunContext ctx) {
+	Path getFileOutputPath() {
 		// Determine the output file location and name
 		Path cwd = Util.getCwd();
 		Path outputPath;
 		if (outputFile != null) {
 			outputPath = outputFile;
 		} else {
-			String outName = CatalogUtil.nameFromRef(ctx.getOriginalRef());
+			String outName = CatalogUtil.nameFromRef(scriptMixin.scriptOrFile);
 			if (buildMixin.nativeImage) {
 				outName = getImageName(new File(outName)).getName();
 			} else {

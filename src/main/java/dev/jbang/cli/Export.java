@@ -42,7 +42,6 @@ public class Export {
 		Code code = ctx.forResource(exportMixin.scriptMixin.scriptOrFile);
 
 		if (code.needsBuild(ctx)) {
-			ctx.resolveClassPath(code);
 			code = code.builder(ctx).build();
 		}
 
@@ -78,7 +77,7 @@ class ExportLocal extends BaseCommand implements Exporter {
 
 	public int apply(ExportMixin exportMixin, Code code, RunContext ctx) throws IOException {
 
-		Path outputPath = exportMixin.getFileOutputPath(ctx);
+		Path outputPath = exportMixin.getFileOutputPath();
 		// Copy the JAR or native binary
 		Path source = code.getJarFile().toPath();
 		if (exportMixin.buildMixin.nativeImage) {
@@ -115,7 +114,7 @@ class ExportPortable extends BaseCommand implements Exporter {
 
 	public int apply(ExportMixin exportMixin, Code code, RunContext ctx) throws IOException {
 
-		Path outputPath = exportMixin.getFileOutputPath(ctx);
+		Path outputPath = exportMixin.getFileOutputPath();
 
 		// Copy the JAR or native binary
 		Path source = code.getJarFile().toPath();
@@ -295,7 +294,7 @@ class ExportMavenPublish extends BaseCommand implements Exporter {
 										.data("artifact", artifact)
 										.data("version", version)
 										.data("description", code.getDescription().orElse(""))
-										.data("dependencies", ctx.getClassPath().getArtifacts())
+										.data("dependencies", ctx.resolveClassPath(code).getArtifacts())
 										.render();
 			Util.infoMsg("Writing " + pomPath);
 			Util.writeString(pomPath, pomfile);

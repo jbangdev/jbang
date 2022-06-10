@@ -37,12 +37,11 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 	protected List<String> generateCommandLineList() throws IOException {
 		List<String> fullArgs = new ArrayList<>();
 
-		String classpath = ctx.resolveClassPath(ss);
+		String classpath = ctx.resolveClassPath(ss).getClassPath();
 
 		List<String> optionalArgs = new ArrayList<>();
 
-		String requestedJavaVersion = ctx.getJavaVersion() != null ? ctx.getJavaVersion()
-				: ss.getJavaVersion();
+		String requestedJavaVersion = ctx.getJavaVersionOr(getCode());
 		String javacmd;
 		javacmd = JavaUtil.resolveInJavaHome("jshell", requestedJavaVersion);
 
@@ -75,16 +74,17 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 				"import java.net.*;" +
 				"import java.math.BigInteger;\n" +
 				"import java.math.BigDecimal;\n";
+		String mainClass = ctx.getMainClassOr(ss);
 		Util.writeString(tempFile,
 				defaultImports + generateArgs(ctx.getArguments(), ctx.getProperties()) +
 						generateStdInputHelper() +
-						generateMain(ctx.getMainClass()));
-		if (ctx.getMainClass() != null) {
-			if (!ctx.getMainClass().contains(".")) {
-				Util.warnMsg("Main class `" + ctx.getMainClass()
+						generateMain(mainClass));
+		if (mainClass != null) {
+			if (!mainClass.contains(".")) {
+				Util.warnMsg("Main class `" + mainClass
 						+ "` is in the default package which JShell unfortunately does not support. You can still use JShell to explore the JDK and any dependencies available on the classpath.");
 			} else {
-				Util.infoMsg("You can run the main class `" + ctx.getMainClass() + "` using: userMain(args)");
+				Util.infoMsg("You can run the main class `" + mainClass + "` using: userMain(args)");
 			}
 		}
 		optionalArgs.add("--startup=" + tempFile.toAbsolutePath());

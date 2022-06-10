@@ -65,7 +65,7 @@ public abstract class BaseBuilder implements Builder {
 		File outjar = ss.getJarFile();
 		boolean nativeBuildRequired = ctx.isNativeImage() && !getImageName(outjar).exists();
 		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
-		String requestedJavaVersion = getRequestedJavaVersion();
+		String requestedJavaVersion = ctx.getJavaVersionOr(ss);
 		// always build the jar for native mode
 		// it allows integrations the options to produce the native image
 		boolean buildRequired = true;
@@ -125,12 +125,12 @@ public abstract class BaseBuilder implements Builder {
 
 	// build with javac and then jar...
 	public IntegrationResult compile() throws IOException {
-		String requestedJavaVersion = getRequestedJavaVersion();
+		String requestedJavaVersion = ctx.getJavaVersionOr(ss);
 		File compileDir = getCompileDir();
 		List<String> optionList = new ArrayList<>();
 		optionList.add(getCompilerBinary(requestedJavaVersion));
 		optionList.addAll(ss.getCompileOptions());
-		String path = ss.getClassPath().getClassPath();
+		String path = ctx.resolveClassPath(ss).getClassPath();
 		if (!Util.isBlankString(path)) {
 			optionList.addAll(Arrays.asList("-classpath", path));
 		}
@@ -159,18 +159,21 @@ public abstract class BaseBuilder implements Builder {
 		for (Map.Entry<String, String> entry : ctx.getProperties().entrySet()) {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
-		IntegrationResult integrationResult = IntegrationManager.runIntegrations(ss,
-				compileDir.toPath(), pomPath, ctx.isNativeImage(), requestedJavaVersion);
+		IntegrationResult integrationResult = IntegrationManager.runIntegrations(ss, ctx, compileDir.toPath(), pomPath);
 		System.setProperties(old);
 
-		if (ctx.getMainClass() == null) { // if non-null user forced set main
+		if (ctx.getMainClassOr(ss) == null) { // if non-null user forced set main
 			if (integrationResult.mainClass != null) {
 				ctx.setMainClass(integrationResult.mainClass);
 			} else {
 				searchForMain(compileDir);
 			}
 		}
-		ctx.setIntegrationOptions(integrationResult.javaArgs);
+		if (integrationResult.javaArgs != null && !integrationResult.javaArgs.isEmpty()) {
+			// Add integration options to the java options
+			ss.addRuntimeOptions(integrationResult.javaArgs);
+		}
+
 		return integrationResult;
 	}
 
@@ -206,12 +209,12 @@ public abstract class BaseBuilder implements Builder {
 		ss.getManifestAttributes().forEach((k, v) -> manifest.getMainAttributes().putValue(k, v));
 
 		if (ss.getMainSource().isAgent()) {
-			String bootClasspath = ss.getClassPath().getManifestPath();
+			String bootClasspath = ctx.resolveClassPath(ss).getManifestPath();
 			if (!bootClasspath.isEmpty()) {
 				manifest.getMainAttributes().put(new Attributes.Name(ATTR_BOOT_CLASS_PATH), bootClasspath);
 			}
 		} else {
-			String classpath = ss.getClassPath().getManifestPath();
+			String classpath = ctx.resolveClassPath(ss).getManifestPath();
 			if (!classpath.isEmpty()) {
 				manifest.getMainAttributes().put(Attributes.Name.CLASS_PATH, classpath);
 			}
@@ -240,13 +243,13 @@ public abstract class BaseBuilder implements Builder {
 	protected void buildNative()
 			throws IOException {
 		List<String> optionList = new ArrayList<>();
-		optionList.add(resolveInGraalVMHome("native-image", getRequestedJavaVersion()));
+		optionList.add(resolveInGraalVMHome("native-image", ctx.getJavaVersionOr(ss)));
 
 		optionList.add("-H:+ReportExceptionStackTraces");
 
 		optionList.add("--enable-https");
 
-		String classpath = ss.getClassPath().getClassPath();
+		String classpath = ctx.resolveClassPath(ss).getClassPath();
 		if (!Util.isBlankString(classpath)) {
 			optionList.add("--class-path=" + classpath);
 		}
@@ -493,7 +496,7 @@ public abstract class BaseBuilder implements Builder {
 										.data("artifact", artifact)
 										.data("version", version)
 										.data("description", ss.getDescription().orElse(""))
-										.data("dependencies", ss.getClassPath().getArtifacts())
+										.data("dependencies", ctx.resolveClassPath(ss).getArtifacts())
 										.render();
 
 			pomPath = new File(tmpJarDir, "META-INF/maven/" + group.replace(".", "/") + "/pom.xml").toPath();
@@ -501,10 +504,6 @@ public abstract class BaseBuilder implements Builder {
 			Util.writeString(pomPath, pomfile);
 		}
 		return pomPath;
-	}
-
-	protected String getRequestedJavaVersion() {
-		return ctx.getJavaVersion() != null ? ctx.getJavaVersion() : ss.getJavaVersion();
 	}
 
 	protected File getCompileDir() {

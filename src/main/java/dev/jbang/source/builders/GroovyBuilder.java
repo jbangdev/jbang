@@ -38,7 +38,7 @@ public class GroovyBuilder extends BaseBuilder {
 	protected void runCompiler(ProcessBuilder processBuilder) throws IOException {
 		if (ss.getMainSource() instanceof GroovySource) {
 			processBuilder	.environment()
-							.put("JAVA_HOME", JdkManager.getCurrentJdk(getRequestedJavaVersion()).toString());
+							.put("JAVA_HOME", JdkManager.getCurrentJdk(ctx.getJavaVersionOr(ss)).toString());
 			processBuilder.environment().remove("GROOVY_HOME");
 		}
 		super.runCompiler(processBuilder);

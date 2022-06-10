@@ -219,7 +219,6 @@ public class TestEdit extends BaseTest {
 
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forResource(p.toString());
-		ss.getClassPath();
 
 		Path project = new Edit().createProjectForLinkedEdit(ss, ctx, false);
 

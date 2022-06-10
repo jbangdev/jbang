@@ -262,7 +262,7 @@ public class Edit extends BaseCommand {
 		File originalFile = ss.getResourceRef().getFile();
 
 		List<String> dependencies = ss.getDependencies();
-		String cp = ss.getClassPath().getClassPath();
+		String cp = ctx.resolveClassPath(ss).getClassPath();
 		List<String> resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 
 		Path baseDir = Settings.getCacheDir(Cache.CacheClass.projects);
