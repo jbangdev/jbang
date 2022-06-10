@@ -84,7 +84,7 @@ public abstract class BaseBuilder implements Builder {
 			} else if (!jarSrc.isUpToDate()) {
 				Util.verboseMsg("Building as previous build jar found but it or its dependencies not up-to-date.");
 			} else if (JavaUtil.javaVersion(requestedJavaVersion) < JavaUtil.minRequestedVersion(
-					jarSrc.getJavaVersion().orElse(null))) {
+					jarSrc.getJavaVersion())) {
 				Util.verboseMsg(
 						String.format(
 								"Building as requested Java version %s < than the java version used during last build %s",
@@ -520,7 +520,7 @@ public abstract class BaseBuilder implements Builder {
 	}
 
 	protected String getRequestedJavaVersion() {
-		return ctx.getJavaVersion() != null ? ctx.getJavaVersion() : ss.getJavaVersion().orElse(null);
+		return ctx.getJavaVersion() != null ? ctx.getJavaVersion() : ss.getJavaVersion();
 	}
 
 	protected File getCompileDir() {

@@ -42,7 +42,7 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 		List<String> optionalArgs = new ArrayList<>();
 
 		String requestedJavaVersion = ctx.getJavaVersion() != null ? ctx.getJavaVersion()
-				: ss.getJavaVersion().orElse(null);
+				: ss.getJavaVersion();
 		String javacmd;
 		javacmd = JavaUtil.resolveInJavaHome("jshell", requestedJavaVersion);
 

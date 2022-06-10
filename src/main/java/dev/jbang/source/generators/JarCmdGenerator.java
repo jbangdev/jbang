@@ -50,7 +50,7 @@ public class JarCmdGenerator extends BaseCmdGenerator {
 			List<String> optionalArgs = new ArrayList<>();
 
 			String requestedJavaVersion = ctx.getJavaVersion() != null ? ctx.getJavaVersion()
-					: code.getJavaVersion().orElse(null);
+					: code.getJavaVersion();
 			String javacmd = JavaUtil.resolveInJavaHome("java", requestedJavaVersion);
 
 			addPropertyFlags(ctx.getProperties(), "-D", optionalArgs);

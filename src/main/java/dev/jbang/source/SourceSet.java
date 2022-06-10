@@ -224,8 +224,8 @@ public class SourceSet implements Code {
 	}
 
 	@Nullable
-	public Optional<String> getJavaVersion() {
-		return Optional.ofNullable(javaVersion);
+	public String getJavaVersion() {
+		return javaVersion;
 	}
 
 	@Nonnull
