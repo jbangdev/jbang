@@ -3,6 +3,8 @@ package dev.jbang.cli;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static dev.jbang.source.SourceSet.ATTR_AGENT_CLASS;
+import static dev.jbang.source.SourceSet.ATTR_PREMAIN_CLASS;
 import static dev.jbang.util.Util.writeString;
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -1161,8 +1163,8 @@ public class TestRun extends BaseTest {
 
 		assertThat(ss.getMainSource().isAgent(), is(true));
 
-		assertThat(ctx.getAgentMainClass(), is("Agent"));
-		assertThat(ctx.getPreMainClass(), is("Agent"));
+		assertThat(ss.getManifestAttributes().get(ATTR_AGENT_CLASS), is("Agent"));
+		assertThat(ss.getManifestAttributes().get(ATTR_PREMAIN_CLASS), is("Agent"));
 
 		try (JarFile jf = new JarFile(ss.getJarFile())) {
 			Attributes attrs = jf.getManifest().getMainAttributes();
@@ -1190,8 +1192,8 @@ public class TestRun extends BaseTest {
 
 		assertThat(ss.getMainSource().isAgent(), is(true));
 
-		assertThat(ctx.getAgentMainClass(), is(nullValue()));
-		assertThat(ctx.getPreMainClass(), is("Agent"));
+		assertThat(ss.getManifestAttributes().get(ATTR_AGENT_CLASS), is(nullValue()));
+		assertThat(ss.getManifestAttributes().get(ATTR_PREMAIN_CLASS), is("Agent"));
 
 	}
 
