@@ -37,6 +37,8 @@ public class Export {
 
 	static int handle(ExportMixin exportMixin,
 			Exporter style) throws IOException {
+		exportMixin.scriptMixin.validate();
+
 		RunContext ctx = getRunContext(exportMixin);
 		Code code = ctx.forResource(exportMixin.scriptMixin.scriptOrFile);
 

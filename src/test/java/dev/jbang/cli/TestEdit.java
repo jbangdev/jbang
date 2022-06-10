@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.io.FileMatchers.aReadableFile;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +27,8 @@ import dev.jbang.*;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.SourceSet;
 import dev.jbang.util.Util;
+
+import picocli.CommandLine;
 
 public class TestEdit extends BaseTest {
 
@@ -230,5 +233,14 @@ public class TestEdit extends BaseTest {
 
 					assertThat(f + " not found", java.toFile(), aReadableFile());
 				});
+	}
+
+	@Test
+	void testEditMissingScript() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("edit");
+			Edit edit = (Edit) pr.subcommand().commandSpec().userObject();
+			edit.doCall();
+		});
 	}
 }
