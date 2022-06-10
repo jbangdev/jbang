@@ -201,6 +201,25 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testCodeWithArgs() throws IOException {
+		environmentVariables.clear("JAVA_HOME");
+		Path hw = examplesTestFolder.resolve("helloworld.java");
+		String hwtxt = Util.readFileContent(hw);
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "-c", hwtxt, "firstarg");
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+		ctx.setMainClass("fakemain");
+		SourceSet ss = (SourceSet) ctx.forResourceRef(
+				LiteralScriptResourceResolver.stringToResourceRef(null, hwtxt));
+
+		String result = new JarCmdGenerator(ss, ctx).generate();
+
+		assertThat(result, matchesPattern("^.*java(.exe)?.*$"));
+		assertThat(result, containsString("firstarg"));
+	}
+
+	@Test
 	void testMarkdown() throws IOException {
 
 		JBang jbang = new JBang();
@@ -1375,7 +1394,7 @@ public class TestRun extends BaseTest {
 
 		}
 
-		assertThat("duplication of deps fixed", ss.getClassPath().getArtifacts(), hasSize(7));
+		assertThat("duplication of deps fixed", ctx.resolveClassPath(ss).getArtifacts(), hasSize(7));
 	}
 
 	@Test
@@ -1542,7 +1561,7 @@ public class TestRun extends BaseTest {
 
 		ss.builder(ctx).build();
 
-		assertThat(ctx.getMainClass(), equalTo("Three"));
+		assertThat(ctx.getMainClassOr(ss), equalTo("Three"));
 
 	}
 

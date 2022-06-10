@@ -89,7 +89,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 					requestedJavaVersion = code.getJavaVersion();
 					availableJdkPath = Objects.toString(JdkManager.getCurrentJdk(requestedJavaVersion), null);
 
-					String cp = ctx.resolveClassPath(code);
+					String cp = ctx.resolveClassPath(code).getClassPath();
 					if (cp.isEmpty()) {
 						resolvedDependencies = Collections.emptyList();
 					} else {

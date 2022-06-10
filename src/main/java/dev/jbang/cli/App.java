@@ -99,13 +99,13 @@ class AppInstall extends BaseCommand {
 		RunContext ctx = RunContext.empty();
 		Code code = ctx.forResource(scriptRef);
 		if (name == null) {
-			name = CatalogUtil.nameFromRef(ctx.getOriginalRef());
+			name = CatalogUtil.nameFromRef(scriptRef);
 			if (!force && existScripts(binDir, name)) {
 				Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
 				return false;
 			}
 		}
-		if (ctx.getAlias() == null && !DependencyUtil.looksLikeAGav(scriptRef) && !code.getResourceRef().isURL()) {
+		if (!ctx.isAlias() && !DependencyUtil.looksLikeAGav(scriptRef) && !code.getResourceRef().isURL()) {
 			scriptRef = code.getResourceRef().getFile().getAbsolutePath();
 		}
 		if (code.needsBuild(ctx)) {

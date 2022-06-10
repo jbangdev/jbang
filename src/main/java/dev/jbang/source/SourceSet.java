@@ -12,7 +12,6 @@ import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.MavenRepo;
-import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.source.generators.JarCmdGenerator;
 import dev.jbang.source.generators.JshCmdGenerator;
 import dev.jbang.source.resolvers.SiblingResourceResolver;
@@ -34,7 +33,6 @@ public class SourceSet implements Code {
 	private String gav;
 	private String mainClass;
 
-	private ModularClassPath mcp;
 	private File jarFile;
 	private Jar jar;
 
@@ -132,14 +130,12 @@ public class SourceSet implements Code {
 	@Nonnull
 	public SourceSet addDependency(String dependency) {
 		dependencies.add(dependency);
-		mcp = null; // invalidate cached resolved classpath
 		return this;
 	}
 
 	@Nonnull
 	public SourceSet addDependencies(Collection<String> dependencies) {
 		this.dependencies.addAll(dependencies);
-		mcp = null; // invalidate cached resolved classpath
 		return this;
 	}
 
@@ -151,14 +147,12 @@ public class SourceSet implements Code {
 	@Nonnull
 	public SourceSet addRepository(MavenRepo repository) {
 		repositories.add(repository);
-		mcp = null; // invalidate cached resolved classpath
 		return this;
 	}
 
 	@Nonnull
 	public SourceSet addRepositories(Collection<MavenRepo> repositories) {
 		this.repositories.addAll(repositories);
-		mcp = null; // invalidate cached resolved classpath
 		return this;
 	}
 
@@ -271,16 +265,6 @@ public class SourceSet implements Code {
 	@Override
 	public boolean enableCDS() {
 		return getMainSource().enableCDS();
-	}
-
-	@Nonnull
-	public ModularClassPath getClassPath() {
-		if (mcp == null) {
-			DependencyResolver resolver = new DependencyResolver();
-			updateDependencyResolver(resolver);
-			mcp = resolver.resolve();
-		}
-		return mcp;
 	}
 
 	@Nonnull

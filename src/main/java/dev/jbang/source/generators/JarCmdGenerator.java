@@ -45,12 +45,11 @@ public class JarCmdGenerator extends BaseCmdGenerator {
 		}
 
 		if (fullArgs.isEmpty()) {
-			String classpath = ctx.resolveClassPath(code);
+			String classpath = ctx.resolveClassPath(code).getClassPath();
 
 			List<String> optionalArgs = new ArrayList<>();
 
-			String requestedJavaVersion = ctx.getJavaVersion() != null ? ctx.getJavaVersion()
-					: code.getJavaVersion();
+			String requestedJavaVersion = ctx.getJavaVersionOr(getCode());
 			String javacmd = JavaUtil.resolveInJavaHome("java", requestedJavaVersion);
 
 			addPropertyFlags(ctx.getProperties(), "-D", optionalArgs);

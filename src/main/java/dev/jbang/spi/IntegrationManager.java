@@ -45,6 +45,7 @@ import com.google.gson.stream.JsonWriter;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenRepo;
+import dev.jbang.source.RunContext;
 import dev.jbang.source.Source;
 import dev.jbang.source.SourceSet;
 import dev.jbang.util.Util;
@@ -67,8 +68,7 @@ public class IntegrationManager {
 	 * If an integration point created a native image it returns the resulting
 	 * image.
 	 */
-	public static IntegrationResult runIntegrations(SourceSet ss, Path tmpJarDir, Path pomPath,
-			boolean nativeRequested, String requestedJavaVersion) {
+	public static IntegrationResult runIntegrations(SourceSet ss, RunContext ctx, Path tmpJarDir, Path pomPath) {
 		IntegrationResult result = new IntegrationResult(null, null, null);
 		Source source = ss.getMainSource();
 
@@ -77,7 +77,7 @@ public class IntegrationManager {
 		for (MavenRepo repo : ss.getRepositories()) {
 			repos.put(repo.getId(), repo.getUrl());
 		}
-		for (ArtifactInfo art : ss.getClassPath().getArtifacts()) {
+		for (ArtifactInfo art : ctx.resolveClassPath(ss).getArtifacts()) {
 			if (art.getCoordinate() != null) { // skipping dependencies that does not have a GAV
 				deps.put(art.getCoordinate().toCanonicalForm(), art.getFile().toPath());
 			}
@@ -89,6 +89,7 @@ public class IntegrationManager {
 		try {
 			URLClassLoader integrationCl = getClassLoader(deps);
 			Thread.currentThread().setContextClassLoader(integrationCl);
+			String requestedJavaVersion = ctx.getJavaVersionOr(ss);
 			Set<String> classNames = loadIntegrationClassNames(integrationCl);
 			for (String className : classNames) {
 				Path srcPath = (source.getResourceRef().getFile() != null)
@@ -96,7 +97,7 @@ public class IntegrationManager {
 						: null;
 				IntegrationInput input = new IntegrationInput(className, srcPath, tmpJarDir, pomPath, repos, deps,
 						comments,
-						nativeRequested);
+						ctx.isNativeImage());
 				IntegrationResult ir = requestedJavaVersion == null
 						? runIntegrationEmbedded(input, integrationCl)
 						: runIntegrationExternal(input, requestedJavaVersion);

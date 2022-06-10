@@ -40,8 +40,7 @@ public abstract class BaseCmdGenerator implements CmdGenerator {
 		if (!(getCode().isJShell() || ctx.isForceJsh()) &&
 				args.length() > COMMAND_LINE_LENGTH_LIMIT && Util.getShell() != Util.Shell.bash) {
 			// @file is only available from java 9 onwards.
-			String requestedJavaVersion = ctx.getJavaVersion() != null ? ctx.getJavaVersion()
-					: getCode().getJavaVersion();
+			String requestedJavaVersion = ctx.getJavaVersionOr(getCode());
 			int actualVersion = JavaUtil.javaVersion(requestedJavaVersion);
 			useArgsFile = actualVersion >= 9;
 		}

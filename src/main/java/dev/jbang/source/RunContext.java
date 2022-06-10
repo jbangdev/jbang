@@ -28,29 +28,23 @@ public class RunContext {
 	private List<String> additionalDeps = Collections.emptyList();
 	private List<String> additionalRepos = Collections.emptyList();
 	private List<String> additionalClasspaths = Collections.emptyList();
-	private Map<String, String> properties;
+	private Map<String, String> properties = Collections.emptyMap();
 	private boolean forceJsh = false; // if true, interpret any input as for jshell
-	private String originalRef;
 	private String mainClass;
 	private int buildJdk;
-	/**
-	 * if this script is used as an agent, agentOption is the option needed to pass
-	 * in
-	 **/
 	private String javaAgentOption;
 	private List<AgentSourceContext> javaAgents;
-	private List<String> integrationOptions;
 	private File catalogFile;
 
-	private Alias alias;
+	private boolean alias;
 
 	private ModularClassPath mcp;
 	private boolean nativeImage;
 	private String javaVersion;
 	private Properties contextProperties;
 
-	private List<String> arguments;
-	private List<String> javaOptions;
+	private List<String> arguments = Collections.emptyList();
+	private List<String> javaOptions = Collections.emptyList();
 	private boolean mainRequired;
 	private boolean interactive;
 	private boolean enableAssertions;
@@ -64,19 +58,27 @@ public class RunContext {
 	}
 
 	public List<String> getArguments() {
-		return (arguments != null) ? arguments : Collections.emptyList();
+		return Collections.unmodifiableList(arguments);
 	}
 
 	public void setArguments(List<String> arguments) {
-		this.arguments = arguments;
+		if (arguments != null) {
+			this.arguments = new ArrayList<>(arguments);
+		} else {
+			this.arguments = Collections.emptyList();
+		}
 	}
 
 	public Map<String, String> getProperties() {
-		return (properties != null) ? properties : Collections.emptyMap();
+		return Collections.unmodifiableMap(properties);
 	}
 
 	public void setProperties(Map<String, String> properties) {
-		this.properties = properties;
+		if (properties != null) {
+			this.properties = properties;
+		} else {
+			this.properties = Collections.emptyMap();
+		}
 	}
 
 	public boolean isMainRequired() {
@@ -143,20 +145,12 @@ public class RunContext {
 		this.classDataSharing = classDataSharing;
 	}
 
-	public List<String> getAdditionalSources() {
-		return additionalSources;
-	}
-
 	public void setAdditionalSources(List<String> sources) {
 		if (sources != null) {
 			this.additionalSources = new ArrayList<>(sources);
 		} else {
 			this.additionalSources = Collections.emptyList();
 		}
-	}
-
-	public List<String> getAdditionalResources() {
-		return additionalResources;
 	}
 
 	public void setAdditionalResources(List<String> resources) {
@@ -167,20 +161,13 @@ public class RunContext {
 		}
 	}
 
-	public List<String> getAdditionalDependencies() {
-		return additionalDeps;
-	}
-
 	public void setAdditionalDependencies(List<String> deps) {
 		if (deps != null) {
 			this.additionalDeps = new ArrayList<>(deps);
 		} else {
 			this.additionalDeps = Collections.emptyList();
 		}
-	}
-
-	public List<String> getAdditionalRepositories() {
-		return additionalRepos;
+		mcp = null;
 	}
 
 	public void setAdditionalRepositories(List<String> repos) {
@@ -189,10 +176,7 @@ public class RunContext {
 		} else {
 			this.additionalRepos = Collections.emptyList();
 		}
-	}
-
-	public List<String> getAdditionalClasspaths() {
-		return additionalClasspaths;
+		mcp = null;
 	}
 
 	public void setAdditionalClasspaths(List<String> cps) {
@@ -201,19 +185,20 @@ public class RunContext {
 		} else {
 			this.additionalClasspaths = Collections.emptyList();
 		}
+		mcp = null;
 	}
 
 	/**
-	 * Returns the Alias object if originalRef is an alias, otherwise null
+	 * Returns true if originalRef is an alias, otherwise false
 	 */
-	public Alias getAlias() {
+	public boolean isAlias() {
 		return alias;
 	}
 
 	/**
-	 * Sets the Alias object if originalRef is an alias
+	 * Sets if originalRef is an alias or not
 	 */
-	public void setAlias(Alias alias) {
+	public void setAlias(boolean alias) {
 		this.alias = alias;
 	}
 
@@ -225,21 +210,6 @@ public class RunContext {
 		this.forceJsh = forcejsh;
 	}
 
-	/**
-	 * The original script reference. Might ba a URL or an alias.
-	 */
-	public String getOriginalRef() {
-		return originalRef;
-	}
-
-	public void setOriginalRef(String ref) {
-		this.originalRef = ref;
-	}
-
-	public String getMainClass() {
-		return mainClass;
-	}
-
 	public String getMainClassOr(Code code) {
 		return (mainClass != null) ? mainClass : code.getMainClass();
 	}
@@ -248,26 +218,17 @@ public class RunContext {
 		this.mainClass = mainClass;
 	}
 
-	public List<String> getJavaOptions() {
-		return (javaOptions != null) ? javaOptions : Collections.emptyList();
-	}
-
 	public void setJavaOptions(List<String> javaOptions) {
-		this.javaOptions = javaOptions;
-	}
-
-	public List<String> getIntegrationOptions() {
-		return (integrationOptions != null) ? integrationOptions : Collections.emptyList();
-	}
-
-	public void setIntegrationOptions(List<String> integrationOptions) {
-		this.integrationOptions = integrationOptions;
+		if (javaOptions != null) {
+			this.javaOptions = javaOptions;
+		} else {
+			this.javaOptions = Collections.emptyList();
+		}
 	}
 
 	public List<String> getRuntimeOptionsMerged(Code code) {
 		List<String> opts = new ArrayList<>(code.getRuntimeOptions());
-		opts.addAll(getJavaOptions());
-		opts.addAll(getIntegrationOptions());
+		opts.addAll(javaOptions);
 		return opts;
 	}
 
@@ -295,23 +256,19 @@ public class RunContext {
 		this.nativeImage = nativeImage;
 	}
 
+	public String getJavaVersionOr(Code code) {
+		return javaVersion != null ? javaVersion : code.getJavaVersion();
+	}
+
 	public void setJavaVersion(String javaVersion) {
 		this.javaVersion = javaVersion;
-	}
-
-	public String getJavaVersion() {
-		return javaVersion;
-	}
-
-	public File getCatalog() {
-		return catalogFile;
 	}
 
 	public void setCatalog(File catalogFile) {
 		this.catalogFile = catalogFile;
 	}
 
-	public Properties getContextProperties() {
+	private Properties getContextProperties() {
 		if (contextProperties == null) {
 			contextProperties = new Properties(System.getProperties());
 			// early/eager init to property resolution will work.
@@ -349,7 +306,7 @@ public class RunContext {
 	 *
 	 * Properties available will be used for property replacement.
 	 **/
-	public String resolveClassPath(Code code) {
+	public ModularClassPath resolveClassPath(Code code) {
 		if (mcp == null) {
 			DependencyResolver resolver = new DependencyResolver();
 			if (code instanceof Jar) {
@@ -358,17 +315,17 @@ public class RunContext {
 			code.asSourceSet().updateDependencyResolver(resolver);
 			mcp = resolver.resolve();
 		}
-		return mcp.getClassPath();
+		return mcp;
 	}
 
 	private DependencyResolver updateDependencyResolver(DependencyResolver resolver) {
 		return resolver
 						.addRepositories(allToMavenRepo(replaceAllProps(
-								getAdditionalRepositories())))
+								additionalRepos)))
 						.addDependencies(replaceAllProps(
-								getAdditionalDependencies()))
+								additionalDeps))
 						.addClassPaths(
-								replaceAllProps(getAdditionalClasspaths()));
+								replaceAllProps(additionalClasspaths));
 	}
 
 	private List<String> replaceAllProps(List<String> items) {
@@ -387,13 +344,6 @@ public class RunContext {
 			resolveClassPath(code);
 		}
 		return mcp.getAutoDectectedModuleArguments(requestedVersion);
-	}
-
-	public ModularClassPath getClassPath() {
-		if (mcp == null) {
-			throw new ExitException(BaseCommand.EXIT_INTERNAL_ERROR, "Classpath must be resolved first");
-		}
-		return mcp;
 	}
 
 	/**
@@ -433,7 +383,6 @@ public class RunContext {
 
 	public Code forResource(String resource) {
 		ResourceRef resourceRef = resolveChecked(getResourceResolver(), resource);
-		setOriginalRef(resource);
 		return forResourceRef(resourceRef);
 	}
 
@@ -471,13 +420,12 @@ public class RunContext {
 
 	private SourceSet createSourceSet(Source src) {
 		SourceSet ss = SourceSet.forSource(src, getResourceResolver());
-		ss.addRepositories(allToMavenRepo(replaceAllProps(getAdditionalRepositories())));
-		ss.addDependencies(replaceAllProps(getAdditionalDependencies()));
-		ss.addClassPaths(replaceAllProps(getAdditionalClasspaths()));
-		ss.addRuntimeOptions(getJavaOptions());
-		ss.addRuntimeOptions(getIntegrationOptions());
-		ss.addSources(allToScriptSource(replaceAllProps(getAdditionalSources())));
-		ss.addResources(allToFileRef(replaceAllProps(getAdditionalResources())));
+		ss.addRepositories(allToMavenRepo(replaceAllProps(additionalRepos)));
+		ss.addDependencies(replaceAllProps(additionalDeps));
+		ss.addClassPaths(replaceAllProps(additionalClasspaths));
+		ss.addRuntimeOptions(javaOptions);
+		ss.addSources(allToScriptSource(replaceAllProps(additionalSources)));
+		ss.addResources(allToFileRef(replaceAllProps(additionalResources)));
 		if (javaVersion != null) {
 			ss.setJavaVersion(javaVersion);
 		}
@@ -485,8 +433,8 @@ public class RunContext {
 	}
 
 	private ResourceResolver getResourceResolver() {
-		Catalog catalog = getCatalog() != null ? Catalog.get(getCatalog().toPath()) : null;
-		return new AliasResourceResolver(catalog, this::getAliasResourceResolver);
+		Catalog cat = catalogFile != null ? Catalog.get(catalogFile.toPath()) : null;
+		return new AliasResourceResolver(cat, this::getAliasResourceResolver);
 	}
 
 	private ResourceResolver getAliasResourceResolver(Alias alias) {
@@ -511,33 +459,36 @@ public class RunContext {
 	}
 
 	private void updateFromAlias(Alias alias) {
-		if (getArguments() == null || getArguments().isEmpty()) {
+		if (arguments.isEmpty()) {
 			setArguments(alias.arguments);
 		}
-		if (getJavaOptions() == null || getJavaOptions().isEmpty()) {
+		if (javaOptions.isEmpty()) {
 			setJavaOptions(alias.javaOptions);
 		}
-		if (getAdditionalSources() == null || getAdditionalSources().isEmpty()) {
+		if (additionalSources.isEmpty()) {
 			setAdditionalSources(alias.sources);
 		}
-		if (getAdditionalDependencies() == null || getAdditionalDependencies().isEmpty()) {
+		if (additionalResources.isEmpty()) {
+			setAdditionalResources(alias.resources);
+		}
+		if (additionalDeps.isEmpty()) {
 			setAdditionalDependencies(alias.dependencies);
 		}
-		if (getAdditionalRepositories() == null || getAdditionalRepositories().isEmpty()) {
+		if (additionalRepos.isEmpty()) {
 			setAdditionalRepositories(alias.repositories);
 		}
-		if (getAdditionalClasspaths() == null || getAdditionalClasspaths().isEmpty()) {
+		if (additionalClasspaths.isEmpty()) {
 			setAdditionalClasspaths(alias.classpaths);
 		}
-		if (getProperties() == null || getProperties().isEmpty()) {
+		if (properties.isEmpty()) {
 			setProperties(alias.properties);
 		}
-		if (getJavaVersion() == null) {
+		if (javaVersion == null) {
 			setJavaVersion(alias.javaVersion);
 		}
-		if (getMainClass() == null) {
+		if (mainClass == null) {
 			setMainClass(alias.mainClass);
 		}
-		setAlias(alias);
+		setAlias(true);
 	}
 }
