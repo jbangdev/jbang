@@ -39,8 +39,8 @@ public class Run extends BaseBuildCommand {
 	@CommandLine.Option(names = { "--enablesystemassertions", "--esa" }, description = "Enable system assertions")
 	public boolean enableSystemAssertions;
 
-	@CommandLine.Option(names = { "--javaagent" }, parameterConsumer = KeyOptionalValueConsumer.class)
-	public Map<String, Optional<String>> javaAgentSlots;
+	@CommandLine.Option(names = { "--javaagent" }, parameterConsumer = KeyValueConsumer.class)
+	public Map<String, String> javaAgentSlots;
 
 	@CommandLine.Option(names = {
 			"--cds" }, description = "If specified Class Data Sharing (CDS) will be used for building and running (requires Java 13+)", negatable = true)
@@ -128,12 +128,12 @@ public class Run extends BaseBuildCommand {
 		}
 
 		if (javaAgentSlots != null) {
-			for (Map.Entry<String, Optional<String>> agentOption : javaAgentSlots.entrySet()) {
+			for (Map.Entry<String, String> agentOption : javaAgentSlots.entrySet()) {
 				String javaAgent = agentOption.getKey();
-				Optional<String> javaAgentOptions = agentOption.getValue();
+				String javaAgentOptions = agentOption.getValue();
 				RunContext actx = super.getRunContext();
 				Code asrc = actx.forResource(javaAgent);
-				actx.setJavaAgentOption(javaAgentOptions.orElse(null));
+				actx.setJavaAgentOption(javaAgentOptions);
 				if (asrc.needsBuild(actx)) {
 					asrc = asrc.builder(actx).build();
 				}

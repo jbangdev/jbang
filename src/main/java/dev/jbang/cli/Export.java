@@ -165,7 +165,7 @@ class ExportPortable extends BaseCommand implements Exporter {
 			optionList.add(resolveInJavaHome("jar",
 					exportMixin.buildMixin.javaVersion != null
 							? exportMixin.buildMixin.javaVersion
-							: code.getJavaVersion().orElse(null))); // TODO
+							: code.getJavaVersion())); // TODO
 			// locate it on path ?
 			optionList.add("ufm");
 			optionList.add(outputPath.toString());

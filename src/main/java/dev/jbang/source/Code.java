@@ -57,8 +57,8 @@ public interface Code {
 	 * Returns the requested Java version. Returns `Optional.empty()` if no version
 	 * was set.
 	 */
-	default Optional<String> getJavaVersion() {
-		return Optional.empty();
+	default String getJavaVersion() {
+		return null;
 	}
 
 	/**

@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 
@@ -87,7 +86,7 @@ public class Jar implements Code {
 			sourceSet = SourceSet.forSource(Source.forResourceRef(resourceRef, null));
 			sourceSet.setMainClass(getMainClass());
 			sourceSet.addRuntimeOptions(getRuntimeOptions());
-			sourceSet.setJavaVersion(getJavaVersion().orElse(null));
+			sourceSet.setJavaVersion(getJavaVersion());
 			// TODO deduplicate with code from updateDependencyResolver()
 			if (resourceRef.getOriginalResource() != null
 					&& DependencyUtil.looksLikeAGav(resourceRef.getOriginalResource())) {
@@ -120,8 +119,8 @@ public class Jar implements Code {
 	}
 
 	@Override
-	public Optional<String> getJavaVersion() {
-		return Optional.of(buildJdk + "+");
+	public String getJavaVersion() {
+		return buildJdk + "+";
 	}
 
 	@Override

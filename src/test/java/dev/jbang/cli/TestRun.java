@@ -1228,7 +1228,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.javaAgentSlots.containsKey(agentfile.getAbsolutePath()), is(true));
-		assertThat(run.javaAgentSlots.get(agentfile.getAbsolutePath()).get(), equalTo("optionA"));
+		assertThat(run.javaAgentSlots.get(agentfile.getAbsolutePath()), equalTo("optionA"));
 
 		RunContext ctx = run.getRunContext();
 		Code code = ctx.forFile(mainfile);

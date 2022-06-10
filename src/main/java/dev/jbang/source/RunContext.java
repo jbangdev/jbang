@@ -422,7 +422,7 @@ public class RunContext {
 	public Code importJarMetadataFor(Code code) {
 		Jar jar = code.asJar();
 		if (jar != null && jar.isUpToDate()) {
-			setBuildJdk(JavaUtil.javaVersion(jar.getJavaVersion().orElse(null)));
+			setBuildJdk(JavaUtil.javaVersion(jar.getJavaVersion()));
 			return jar;
 		} else {
 			return code;
