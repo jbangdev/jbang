@@ -14,13 +14,18 @@ import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.source.generators.JarCmdGenerator;
 import dev.jbang.source.generators.JshCmdGenerator;
-import dev.jbang.source.resolvers.SiblingResourceResolver;
-import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
+/**
+ * This class gives access to all information necessary to turn source files
+ * into something that can be executed. Typically, this means that it holds
+ * references to source files, resources and dependencies which can be used by a
+ * <code>Builder</code> to create a JAR file, for example.
+ */
 public class SourceSet implements Code {
-	private final ResourceResolver resolver;
-	private final List<Source> sources = new ArrayList<>();
+	private final Source mainSource;
+
+	private final List<ResourceRef> sources = new ArrayList<>();
 	private final List<RefTarget> resources = new ArrayList<>();
 	private final List<String> dependencies = new ArrayList<>();
 	private final List<MavenRepo> repositories = new ArrayList<>();
@@ -39,70 +44,26 @@ public class SourceSet implements Code {
 	public static final String ATTR_PREMAIN_CLASS = "Premain-Class";
 	public static final String ATTR_AGENT_CLASS = "Agent-Class";
 
-	public static SourceSet forSource(Source mainSource) {
-		return new SourceSet(mainSource, ResourceResolver.forResources());
-	}
-
-	public static SourceSet forSource(Source mainSource, ResourceResolver resolver) {
-		return new SourceSet(mainSource, resolver);
-	}
-
-	private SourceSet(Source mainSource, ResourceResolver resolver) {
-		this.resolver = resolver;
-		addSource(mainSource);
-		this.description = mainSource.getDescription().orElse(null);
-		this.gav = mainSource.getGav().orElse(null);
+	// TODO This should be refactored and removed
+	public SourceSet(Source mainSource) {
+		this.mainSource = mainSource;
 	}
 
 	@Nonnull
-	public List<Source> getSources() {
+	public List<ResourceRef> getSources() {
 		return Collections.unmodifiableList(sources);
 	}
 
 	@Nonnull
-	public SourceSet addSource(Source source) {
-		HashSet<ResourceRef> refs = new HashSet<>();
-		sources.stream().map(Source::getResourceRef).forEach(refs::add);
-		addSource(source, javaVersion, refs);
+	public SourceSet addSource(ResourceRef source) {
+		sources.add(source);
 		return this;
 	}
 
 	@Nonnull
-	public SourceSet addSources(Collection<Source> sources) {
-		HashSet<ResourceRef> refs = new HashSet<>();
-		this.sources.stream().map(Source::getResourceRef).forEach(refs::add);
-		for (Source source : sources) {
-			addSource(source, javaVersion, refs);
-		}
+	public SourceSet addSources(Collection<ResourceRef> sources) {
+		this.sources.addAll(sources);
 		return this;
-	}
-
-	private void addSource(Source source, String javaVersion, Set<ResourceRef> refs) {
-		if (!refs.contains(source.getResourceRef())) {
-			refs.add(source.getResourceRef());
-			sources.add(source);
-			resources.addAll(source.collectFiles());
-			dependencies.addAll(source.collectDependencies());
-			repositories.addAll(source.collectRepositories());
-			compileOptions.addAll(source.getCompileOptions());
-			runtimeOptions.addAll(source.getRuntimeOptions());
-			source.collectAgentOptions().forEach(kv -> {
-				if (!kv.getKey().isEmpty()) {
-					getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
-				}
-			});
-			String version = source.getJavaVersion();
-			if (version != null && JavaUtil.checkRequestedVersion(version)) {
-				if (new JavaUtil.RequestedVersionComparator().compare(javaVersion, version) > 0) {
-					javaVersion = version;
-					this.javaVersion = version;
-				}
-			}
-			ResourceResolver siblingResolver = new SiblingResourceResolver(source.getResourceRef(), resolver);
-			for (Source includedSource : source.collectSources(siblingResolver)) {
-				addSource(includedSource, javaVersion, refs);
-			}
-		}
 	}
 
 	@Nonnull
@@ -280,13 +241,13 @@ public class SourceSet implements Code {
 
 	@Nonnull
 	public Source getMainSource() {
-		return sources.get(0);
+		return mainSource;
 	}
 
 	@Override
 	@Nonnull
 	public ResourceRef getResourceRef() {
-		return getMainSource().getResourceRef();
+		return sources.get(0);
 	}
 
 	@Override
@@ -303,7 +264,7 @@ public class SourceSet implements Code {
 	}
 
 	private String getStableId() {
-		Stream<String> srcs = sources.stream().map(src -> src.getContents());
+		Stream<String> srcs = sources.stream().map(src -> Util.readFileContent(src.getFile().toPath()));
 		Stream<String> ress = resources.stream().map(res -> Util.readFileContent(res.getSource().getFile().toPath()));
 		Stream<String> files = Stream.concat(srcs, ress);
 		return Util.getStableID(files);
@@ -325,16 +286,32 @@ public class SourceSet implements Code {
 		return this;
 	}
 
+	/**
+	 * Returns a <code>Builder</code> that can be used to turn this
+	 * <code>SourceSet</code> into executable code.
+	 * 
+	 * @param ctx A reference to a <code>RunContext</code>
+	 * @return A <code>Builder</code>
+	 */
+	@Override
 	public Builder builder(RunContext ctx) {
 		return getMainSource().getBuilder(this, ctx);
 	}
 
+	/**
+	 * Returns a <code>CmdGenerator</code> that can be used to generate the command
+	 * line which, when used in a shell or any other CLI, would run this
+	 * <code>SourceSet</code>'s code.
+	 * 
+	 * @param ctx A reference to a <code>RunContext</code>
+	 * @return A <code>CmdGenerator</code>
+	 */
 	@Override
 	public CmdGenerator cmdGenerator(RunContext ctx) {
-		if (isJShell() || ctx.isForceJsh() || ctx.isInteractive()) {
-			return new JshCmdGenerator(this, ctx);
-		} else {
+		if (needsBuild(ctx)) {
 			return new JarCmdGenerator(this, ctx);
+		} else {
+			return new JshCmdGenerator(this, ctx);
 		}
 	}
 }

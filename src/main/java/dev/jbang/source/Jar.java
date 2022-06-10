@@ -83,7 +83,7 @@ public class Jar implements Code {
 	@Override
 	public SourceSet asSourceSet() {
 		if (sourceSet == null) {
-			sourceSet = SourceSet.forSource(Source.forResourceRef(resourceRef, null));
+			sourceSet = Source.forResourceRef(resourceRef, null).createSourceSet();
 			sourceSet.setMainClass(getMainClass());
 			sourceSet.addRuntimeOptions(getRuntimeOptions());
 			sourceSet.setJavaVersion(getJavaVersion());

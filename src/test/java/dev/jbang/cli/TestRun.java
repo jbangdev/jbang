@@ -763,10 +763,9 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = RunContext.empty();
 		Source src = new JavaSource("", null);
-		SourceSet ss = SourceSet.forSource(src);
+		SourceSet ss = src.createSourceSet();
 		ctx.setMainClass("wonkabear");
 
-		ctx.resolveClassPath(ss);
 		BaseBuilder.createJar(ss, ctx, dir, out);
 
 		try (JarFile jf = new JarFile(out)) {

@@ -154,7 +154,7 @@ public class TestSource extends BaseTest {
 	@Test
 	void testCommentsDoesNotGetPickedUp() {
 		Source source = new JavaSource(exampleCommandsWithComments, null);
-		SourceSet ss = SourceSet.forSource(source);
+		SourceSet ss = source.createSourceSet();
 
 		assertEquals(source.getJavaVersion(), "14+");
 
@@ -167,7 +167,7 @@ public class TestSource extends BaseTest {
 	void testFindDependencies() {
 		Source src = new JavaSource(example,
 				it -> PropertiesValueResolver.replaceProperties(it, new Properties()));
-		SourceSet ss = SourceSet.forSource(src);
+		SourceSet ss = src.createSourceSet();
 
 		List<String> deps = ss.getDependencies();
 		assertEquals(2, deps.size());
@@ -184,7 +184,7 @@ public class TestSource extends BaseTest {
 		p.put("log4j.version", "1.2.9");
 
 		Source src = new JavaSource(example, it -> PropertiesValueResolver.replaceProperties(it, p));
-		SourceSet ss = SourceSet.forSource(src);
+		SourceSet ss = src.createSourceSet();
 
 		List<String> dependencies = ss.getDependencies();
 		assertEquals(2, dependencies.size());
@@ -255,8 +255,8 @@ public class TestSource extends BaseTest {
 			boolean foundmain = false;
 			boolean foundtwo = false;
 			boolean foundt3 = false;
-			for (Source source : ss.getSources()) {
-				String name = source.getResourceRef().getFile().getName();
+			for (ResourceRef source : ss.getSources()) {
+				String name = source.getFile().getName();
 				if (name.equals("one.java"))
 					foundmain = true;
 				if (name.equals("two.java"))

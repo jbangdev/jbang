@@ -13,10 +13,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.text.StringEscapeUtils;
 
 import dev.jbang.Settings;
-import dev.jbang.source.Code;
-import dev.jbang.source.RunContext;
-import dev.jbang.source.Source;
-import dev.jbang.source.SourceSet;
+import dev.jbang.source.*;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
@@ -104,10 +101,10 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 		fullArgs.addAll(optionalArgs);
 
 		if (ss.isJShell() || ctx.isForceJsh()) {
-			ArrayList<Source> revSources = new ArrayList<>(ss.getSources());
+			ArrayList<ResourceRef> revSources = new ArrayList<>(ss.getSources());
 			Collections.reverse(revSources);
-			for (Source s : revSources) {
-				fullArgs.add(s.getResourceRef().getFile().toString());
+			for (ResourceRef s : revSources) {
+				fullArgs.add(s.getFile().toString());
 			}
 		}
 

@@ -18,6 +18,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.cli.ResourceNotFoundException;
@@ -454,6 +456,71 @@ public abstract class Source {
 							.map(ref -> forResource(siblingResolver, ref, replaceProperties))
 							.collect(Collectors.toCollection(ArrayList::new));
 		}
+	}
+
+	/**
+	 * Creates and returns a new <code>SourceSet</code> that has been initialized
+	 * with all relevant information from this <code>Source</code>. Uses a default
+	 * resolver that only knows about resources so this can not be used for
+	 * compiling code (see <code>RunContext.forResource()</code> for that).
+	 *
+	 * @return A <code>SourceSet</code>
+	 */
+	public SourceSet createSourceSet() {
+		return createSourceSet(ResourceResolver.forResources());
+	}
+
+	/**
+	 * Creates and returns a new <code>SourceSet</code> that has been initialized
+	 * with all relevant information from this <code>Source</code>.
+	 *
+	 * @param resolver The resolver to use for dependent (re)sources
+	 * @return A <code>SourceSet</code>
+	 */
+	public SourceSet createSourceSet(ResourceResolver resolver) {
+		SourceSet ss = new SourceSet(this);
+		ss.setDescription(getDescription().orElse(null));
+		ss.setGav(getGav().orElse(null));
+		return updateSourceSet(ss, resolver);
+	}
+
+	/**
+	 * Updates the given <code>SourceSet</code> with all the information from this
+	 * <code>Source</code>. This includes the current source file with all other
+	 * source files it references, all resource files, anything to do with
+	 * dependencies, repositories and class paths as well as compile time and
+	 * runtime options.
+	 * 
+	 * @param ss       The <code>SourceSet</code> to update
+	 * @param resolver The resolver to use for dependent (re)sources
+	 * @return The given <code>SourceSet</code>
+	 */
+	@Nonnull
+	public SourceSet updateSourceSet(SourceSet ss, ResourceResolver resolver) {
+		if (!ss.getSources().contains(getResourceRef())) {
+			ss.addSource(this.getResourceRef());
+			ss.addResources(collectFiles());
+			ss.addDependencies(collectDependencies());
+			ss.addRepositories(collectRepositories());
+			ss.addCompileOptions(getCompileOptions());
+			ss.addRuntimeOptions(getRuntimeOptions());
+			collectAgentOptions().forEach(kv -> {
+				if (!kv.getKey().isEmpty()) {
+					ss.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
+				}
+			});
+			String version = getJavaVersion();
+			if (version != null && JavaUtil.checkRequestedVersion(version)) {
+				if (new JavaUtil.RequestedVersionComparator().compare(ss.getJavaVersion(), version) > 0) {
+					ss.setJavaVersion(version);
+				}
+			}
+			ResourceResolver siblingResolver = new SiblingResourceResolver(getResourceRef(), resolver);
+			for (Source includedSource : collectSources(siblingResolver)) {
+				includedSource.updateSourceSet(ss, resolver);
+			}
+		}
+		return ss;
 	}
 
 	public static Source forResource(String resource, Function<String, String> replaceProperties) {
