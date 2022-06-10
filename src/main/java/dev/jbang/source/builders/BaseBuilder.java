@@ -36,8 +36,6 @@ public abstract class BaseBuilder implements Builder {
 	public static final String ATTR_BUILD_JDK = "Build-Jdk";
 	public static final String ATTR_JBANG_JAVA_OPTIONS = "JBang-Java-Options";
 	public static final String ATTR_BOOT_CLASS_PATH = "Boot-Class-Path";
-	public static final String ATTR_PREMAIN_CLASS = "Premain-Class";
-	public static final String ATTR_AGENT_CLASS = "Agent-Class";
 
 	public static final Type STRINGARRAYTYPE = Type.create(DotName.createSimple("[Ljava.lang.String;"),
 			Type.Kind.ARRAY);
@@ -205,23 +203,9 @@ public abstract class BaseBuilder implements Builder {
 			manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, mainclass);
 		}
 
+		ss.getManifestAttributes().forEach((k, v) -> manifest.getMainAttributes().putValue(k, v));
+
 		if (ss.getMainSource().isAgent()) {
-			if (ctx.getPreMainClass() != null) {
-				manifest.getMainAttributes().put(new Attributes.Name(ATTR_PREMAIN_CLASS), ctx.getPreMainClass());
-			}
-			if (ctx.getAgentMainClass() != null) {
-				manifest.getMainAttributes().put(new Attributes.Name(ATTR_AGENT_CLASS), ctx.getAgentMainClass());
-			}
-
-			for (KeyValue kv : ss.getAgentOptions()) {
-				if (Util.isBlankString(kv.getKey())) {
-					continue;
-				}
-				Attributes.Name k = new Attributes.Name(kv.getKey());
-				String v = kv.getValue() == null ? "true" : kv.getValue();
-				manifest.getMainAttributes().put(k, v);
-			}
-
 			String bootClasspath = ss.getClassPath().getManifestPath();
 			if (!bootClasspath.isEmpty()) {
 				manifest.getMainAttributes().put(new Attributes.Name(ATTR_BOOT_CLASS_PATH), bootClasspath);
@@ -446,7 +430,7 @@ public abstract class BaseBuilder implements Builder {
 															.findFirst();
 
 					if (agentmain.isPresent()) {
-						ctx.setAgentMainClass(agentmain.get().name().toString());
+						ss.setAgentMainClass(agentmain.get().name().toString());
 					}
 
 					Optional<ClassInfo> premain = classes	.stream()
@@ -459,7 +443,7 @@ public abstract class BaseBuilder implements Builder {
 															.findFirst();
 
 					if (premain.isPresent()) {
-						ctx.setPreMainClass(premain.get().name().toString());
+						ss.setPreMainClass(premain.get().name().toString());
 					}
 				}
 			}

@@ -39,9 +39,7 @@ public class RunContext {
 	 **/
 	private String javaAgentOption;
 	private List<AgentSourceContext> javaAgents;
-	private String preMainClass;
 	private List<String> integrationOptions;
-	private String agentMainClass;
 	private File catalogFile;
 
 	private Alias alias;
@@ -287,22 +285,6 @@ public class RunContext {
 
 	public void setJavaAgentOption(String option) {
 		this.javaAgentOption = option;
-	}
-
-	public String getAgentMainClass() {
-		return agentMainClass;
-	}
-
-	public void setAgentMainClass(String b) {
-		agentMainClass = b;
-	}
-
-	public String getPreMainClass() {
-		return preMainClass;
-	}
-
-	public void setPreMainClass(String name) {
-		preMainClass = name;
 	}
 
 	public boolean isNativeImage() {

@@ -28,7 +28,7 @@ public class SourceSet implements Code {
 	private final List<String> classPaths = new ArrayList<>();
 	private final List<String> compileOptions = new ArrayList<>();
 	private final List<String> runtimeOptions = new ArrayList<>();
-	private final List<KeyValue> agentOptions = new ArrayList<>();
+	private final Map<String, String> manifestAttributes = new LinkedHashMap<>();
 	private String javaVersion;
 	private String description;
 	private String gav;
@@ -37,6 +37,9 @@ public class SourceSet implements Code {
 	private ModularClassPath mcp;
 	private File jarFile;
 	private Jar jar;
+
+	public static final String ATTR_PREMAIN_CLASS = "Premain-Class";
+	public static final String ATTR_AGENT_CLASS = "Agent-Class";
 
 	public static SourceSet forSource(Source mainSource) {
 		return new SourceSet(mainSource, ResourceResolver.forResources());
@@ -85,7 +88,11 @@ public class SourceSet implements Code {
 			repositories.addAll(source.collectRepositories());
 			compileOptions.addAll(source.getCompileOptions());
 			runtimeOptions.addAll(source.getRuntimeOptions());
-			agentOptions.addAll(source.collectAgentOptions());
+			source.collectAgentOptions().forEach(kv -> {
+				if (!kv.getKey().isEmpty()) {
+					getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
+				}
+			});
 			String version = source.getJavaVersion();
 			if (version != null && JavaUtil.checkRequestedVersion(version)) {
 				if (new JavaUtil.RequestedVersionComparator().compare(javaVersion, version) > 0) {
@@ -207,20 +214,16 @@ public class SourceSet implements Code {
 	}
 
 	@Nonnull
-	public List<KeyValue> getAgentOptions() {
-		return Collections.unmodifiableList(agentOptions);
+	public Map<String, String> getManifestAttributes() {
+		return manifestAttributes;
 	}
 
-	@Nonnull
-	public SourceSet addAgentOption(KeyValue option) {
-		agentOptions.add(option);
-		return this;
+	public void setAgentMainClass(String agentMainClass) {
+		manifestAttributes.put(ATTR_AGENT_CLASS, agentMainClass);
 	}
 
-	@Nonnull
-	public SourceSet addAgentOptions(Collection<KeyValue> options) {
-		agentOptions.addAll(options);
-		return this;
+	public void setPreMainClass(String preMainClass) {
+		manifestAttributes.put(ATTR_PREMAIN_CLASS, preMainClass);
 	}
 
 	@Nullable
