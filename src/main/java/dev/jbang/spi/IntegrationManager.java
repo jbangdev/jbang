@@ -23,24 +23,13 @@ import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.TypeAdapter;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
-import com.google.gson.stream.JsonWriter;
 
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.ArtifactInfo;
@@ -48,6 +37,7 @@ import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.Source;
 import dev.jbang.source.SourceSet;
+import dev.jbang.util.PathTypeAdapter;
 import dev.jbang.util.Util;
 
 /**
@@ -59,8 +49,9 @@ public class IntegrationManager {
 	public static final String MAIN_CLASS = "main-class";
 	public static final String JAVA_ARGS = "java-args";
 
-	private static final GsonBuilder gsonb = new GsonBuilder().registerTypeHierarchyAdapter(Path.class,
-			new PathTypeAdapter());
+	private static final GsonBuilder gsonb = new GsonBuilder()
+																.registerTypeHierarchyAdapter(Path.class,
+																		new PathTypeAdapter());
 
 	/**
 	 * Discovers all integration points and runs them.
@@ -87,7 +78,7 @@ public class IntegrationManager {
 		ClassLoader old = Thread.currentThread().getContextClassLoader();
 		PrintStream oldout = System.out;
 		try {
-			URLClassLoader integrationCl = getClassLoader(deps);
+			URLClassLoader integrationCl = getClassLoader(deps.values());
 			Thread.currentThread().setContextClassLoader(integrationCl);
 			String requestedJavaVersion = ctx.getJavaVersionOr(ss);
 			Set<String> classNames = loadIntegrationClassNames(integrationCl);
@@ -120,8 +111,8 @@ public class IntegrationManager {
 	}
 
 	@Nonnull
-	private static URLClassLoader getClassLoader(Map<String, Path> deps) {
-		URL[] urls = deps.values().stream().map(path -> {
+	private static URLClassLoader getClassLoader(Collection<Path> deps) {
+		URL[] urls = deps.stream().map(path -> {
 			try {
 				return path.toUri().toURL();
 			} catch (MalformedURLException e) {
@@ -265,27 +256,6 @@ public class IntegrationManager {
 		return new ArrayList<>(map.entrySet());
 	}
 
-	private static class PathTypeAdapter extends TypeAdapter<Path> {
-		@Override
-		public Path read(JsonReader in) throws IOException {
-			if (in.peek() == JsonToken.NULL) {
-				in.nextNull();
-				return null;
-			}
-			String path = in.nextString();
-			return Paths.get(path);
-		}
-
-		@Override
-		public void write(JsonWriter out, Path path) throws IOException {
-			if (path == null) {
-				out.nullValue();
-				return;
-			}
-			out.value(path.toString());
-		}
-	}
-
 	public static void main(String... args) {
 		Gson parser = gsonb.create();
 		IntegrationInput input = parser.fromJson(new InputStreamReader(System.in), IntegrationInput.class);
@@ -294,7 +264,7 @@ public class IntegrationManager {
 		String output = "";
 		boolean ok = false;
 		try {
-			URLClassLoader integrationCl = getClassLoader(input.dependencies);
+			URLClassLoader integrationCl = getClassLoader(input.dependencies.values());
 			Thread.currentThread().setContextClassLoader(integrationCl);
 			IntegrationResult result = runIntegrationEmbedded(input, integrationCl);
 			output = parser.toJson(result);
