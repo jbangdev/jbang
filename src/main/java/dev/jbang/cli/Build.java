@@ -2,7 +2,6 @@ package dev.jbang.cli;
 
 import java.io.IOException;
 
-import dev.jbang.source.Code;
 import dev.jbang.source.RunContext;
 
 import picocli.CommandLine.Command;
@@ -15,11 +14,7 @@ public class Build extends BaseBuildCommand {
 		scriptMixin.validate();
 
 		RunContext ctx = getRunContext();
-		Code code = ctx.forResource(scriptMixin.scriptOrFile);
-
-		if (code.needsBuild(ctx)) {
-			code.builder(ctx).build();
-		}
+		ctx.forResource(scriptMixin.scriptOrFile).builder(ctx).build();
 
 		return EXIT_OK;
 	}

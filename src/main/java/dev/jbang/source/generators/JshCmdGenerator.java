@@ -101,7 +101,7 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 		fullArgs.addAll(jshellOpts(ctx.getAutoDetectedModuleArguments(ss, requestedJavaVersion)));
 		fullArgs.addAll(optionalArgs);
 
-		if (ss.isJShell() || ctx.isForceJsh()) {
+		if (ss.isJShell() || ctx.getForceType() == Source.Type.jshell) {
 			ArrayList<ResourceRef> revSources = new ArrayList<>(ss.getSources());
 			Collections.reverse(revSources);
 			for (ResourceRef s : revSources) {

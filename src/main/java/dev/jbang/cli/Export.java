@@ -39,12 +39,7 @@ public class Export {
 		exportMixin.scriptMixin.validate();
 
 		RunContext ctx = getRunContext(exportMixin);
-		Code code = ctx.forResource(exportMixin.scriptMixin.scriptOrFile);
-
-		if (code.needsBuild(ctx)) {
-			code = code.builder(ctx).build();
-		}
-
+		Code code = ctx.forResource(exportMixin.scriptMixin.scriptOrFile).builder(ctx).build();
 		return style.apply(exportMixin, code, ctx);
 	}
 
@@ -56,7 +51,7 @@ public class Export {
 		ctx.setAdditionalClasspaths(exportMixin.dependencyInfoMixin.getClasspaths());
 		ctx.setAdditionalSources(exportMixin.scriptMixin.sources);
 		ctx.setAdditionalResources(exportMixin.scriptMixin.resources);
-		ctx.setForceJsh(exportMixin.scriptMixin.forcejsh);
+		ctx.setForceType(exportMixin.scriptMixin.forceType);
 		ctx.setCatalog(exportMixin.scriptMixin.catalog);
 		ctx.setJavaVersion(exportMixin.buildMixin.javaVersion);
 		ctx.setMainClass(exportMixin.buildMixin.main);

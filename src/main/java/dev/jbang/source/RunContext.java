@@ -31,7 +31,7 @@ public class RunContext {
 	private List<String> additionalRepos = Collections.emptyList();
 	private List<String> additionalClasspaths = Collections.emptyList();
 	private Map<String, String> properties = Collections.emptyMap();
-	private boolean forceJsh = false; // if true, interpret any input as for jshell
+	private Source.Type forceType = null;
 	private String mainClass;
 	private int buildJdk;
 	private String javaAgentOption;
@@ -204,12 +204,12 @@ public class RunContext {
 		this.alias = alias;
 	}
 
-	public boolean isForceJsh() {
-		return forceJsh;
+	public Source.Type getForceType() {
+		return forceType;
 	}
 
-	public void setForceJsh(boolean forcejsh) {
-		this.forceJsh = forcejsh;
+	public void setForceType(Source.Type forceType) {
+		this.forceType = forceType;
 	}
 
 	public String getMainClassOr(Code code) {
@@ -395,7 +395,7 @@ public class RunContext {
 	}
 
 	public Source createSource(ResourceRef resourceRef) {
-		return Source.forResourceRef(resourceRef,
+		return Source.forResourceRef(resourceRef, forceType,
 				it -> PropertiesValueResolver.replaceProperties(it, getContextProperties()));
 
 	}
@@ -417,7 +417,7 @@ public class RunContext {
 		sources	.stream()
 				.flatMap(f -> Util.explode(null, Util.getCwd(), f).stream())
 				.map(s -> resolveChecked(resolver, s))
-				.map(ref -> Source.forResourceRef(ref, propsResolver))
+				.map(ref -> Source.forResourceRef(ref, forceType, propsResolver))
 				.forEach(src -> src.updateSourceSet(ss, resolver));
 	}
 

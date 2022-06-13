@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 
 import dev.jbang.source.Code;
 import dev.jbang.source.RunContext;
+import dev.jbang.source.Source;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.util.Util;
 
@@ -99,7 +100,7 @@ public class Run extends BaseBuildCommand {
 
 		code = prepareArtifacts(code, ctx);
 
-		if (ctx.isNativeImage() && (ctx.isForceJsh() || code.isJShell())) {
+		if (ctx.isNativeImage() && (ctx.getForceType() == Source.Type.jshell || code.isJShell())) {
 			warn(".jsh cannot be used with --native thus ignoring --native.");
 			ctx.setNativeImage(false);
 		}
@@ -126,20 +127,15 @@ public class Run extends BaseBuildCommand {
 	}
 
 	Code prepareArtifacts(Code code, RunContext ctx) throws IOException {
-		if (code.needsBuild(ctx)) {
-			code = code.builder(ctx).build();
-		}
+		code = code.builder(ctx).build();
 
 		if (javaAgentSlots != null) {
 			for (Map.Entry<String, String> agentOption : javaAgentSlots.entrySet()) {
 				String javaAgent = agentOption.getKey();
 				String javaAgentOptions = agentOption.getValue();
 				RunContext actx = super.getRunContext();
-				Code asrc = actx.forResource(javaAgent);
 				actx.setJavaAgentOption(javaAgentOptions);
-				if (asrc.needsBuild(actx)) {
-					asrc = asrc.builder(actx).build();
-				}
+				Code asrc = actx.forResource(javaAgent).builder(actx).build();
 				ctx.addJavaAgent(asrc, actx);
 			}
 		}

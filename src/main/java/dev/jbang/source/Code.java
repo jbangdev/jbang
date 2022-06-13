@@ -109,9 +109,9 @@ public interface Code {
 	 */
 	SourceSet asSourceSet();
 
-	default boolean needsBuild(RunContext context) {
+	default boolean needsBuild(RunContext ctx) {
 		// anything but .jar and .jsh files needs jar
-		return !(isJar() || isJShell() || context.isForceJsh() || context.isInteractive());
+		return !(isJar() || isJShell() || ctx.getForceType() == Source.Type.jshell || ctx.isInteractive());
 	}
 
 	Builder builder(RunContext ctx);

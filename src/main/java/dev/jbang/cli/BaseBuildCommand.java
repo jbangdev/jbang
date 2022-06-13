@@ -29,7 +29,7 @@ public abstract class BaseBuildCommand extends BaseCommand {
 		ctx.setAdditionalClasspaths(dependencyInfoMixin.getClasspaths());
 		ctx.setAdditionalSources(scriptMixin.sources);
 		ctx.setAdditionalResources(scriptMixin.resources);
-		ctx.setForceJsh(scriptMixin.forcejsh);
+		ctx.setForceType(scriptMixin.forceType);
 		ctx.setCatalog(scriptMixin.catalog);
 		ctx.setJavaVersion(buildMixin.javaVersion);
 		ctx.setMainClass(buildMixin.main);

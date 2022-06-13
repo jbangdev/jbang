@@ -3,6 +3,7 @@ package dev.jbang.source;
 import java.nio.file.Path;
 import java.util.Objects;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import dev.jbang.util.Util;
@@ -44,6 +45,17 @@ public class ResourceRef implements Comparable<ResourceRef> {
 		return originalResource;
 	}
 
+	@Nonnull
+	public String getExtension() {
+		if (file != null) {
+			return Util.extension(file.toString());
+		} else if (originalResource != null) {
+			return Util.extension(originalResource);
+		} else {
+			return "";
+		}
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o)
@@ -71,7 +83,7 @@ public class ResourceRef implements Comparable<ResourceRef> {
 	@Override
 	public String toString() {
 		if (originalResource != null && file != null) {
-			if (originalResource.equals(file)) {
+			if (originalResource.equals(file.toString())) {
 				return originalResource;
 			} else {
 				return originalResource + " (cached as: " + file + ")";

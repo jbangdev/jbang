@@ -56,7 +56,6 @@ import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.net.TrustedSources;
 import dev.jbang.source.Code;
-import dev.jbang.source.Jar;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.Source;
 import dev.jbang.source.SourceSet;
@@ -854,7 +853,7 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forFile(f);
-		Jar jar = ss.builder(ctx).build();
+		Code jar = ss.builder(ctx).build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("aclass"));
 
@@ -904,7 +903,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forFile(f);
 
-		Jar jar = ss.builder(ctx).build();
+		Code jar = ss.builder(ctx).build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("dualclass"));
 
@@ -941,7 +940,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		SourceSet ss = (SourceSet) ctx.forResource(arg);
 
-		Jar jar = ss.builder(ctx).build();
+		Code jar = ss.builder(ctx).build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("dualclass"));
 
@@ -1358,7 +1357,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forResource(f.getAbsolutePath());
 
-		Jar jar = ss.builder(ctx).build();
+		Code jar = ss.builder(ctx).build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("resource"));
 
@@ -1403,7 +1402,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forResource(f.getAbsolutePath());
 
-		Jar jar = ss.builder(ctx).build();
+		Code jar = ss.builder(ctx).build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("one"));
 
@@ -1434,7 +1433,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forResource(f.getAbsolutePath());
 
-		Jar jar = ss.builder(ctx).build();
+		Code jar = ss.builder(ctx).build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("resources"));
 
@@ -1461,7 +1460,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		SourceSet ss = (SourceSet) ctx.forResource(f.getAbsolutePath());
 
-		Jar jar = ss.builder(ctx).build();
+		Code jar = ss.builder(ctx).build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("resourcesmnt"));
 

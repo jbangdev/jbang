@@ -1,7 +1,5 @@
 package dev.jbang.util;
 
-import static java.util.Arrays.asList;
-
 import java.awt.*;
 import java.io.BufferedReader;
 import java.io.File;
@@ -58,6 +56,7 @@ import dev.jbang.catalog.Catalog;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.source.Source;
 
 public class Util {
 
@@ -71,13 +70,6 @@ public class Util {
 
 	public static final Pattern mainClassMethod = Pattern.compile(
 			"(?<=\\n|\\A)(?:public\\s)\\s*(class)\\s*([^\\n\\s]*)");
-
-	public static final List<String> EXTENSIONS = asList(
-			".java",
-			".jsh",
-			".kt",
-			".groovy",
-			".md");
 
 	private static boolean verbose;
 	private static boolean quiet;
@@ -287,8 +279,8 @@ public class Util {
 			name = name.substring(0, name.length() - 3);
 		}
 		boolean valid = false;
-		for (String extension : EXTENSIONS) {
-			valid |= name.endsWith(extension);
+		for (String extension : Source.Type.extensions()) {
+			valid |= name.endsWith("." + extension);
 		}
 		if (!valid) {
 			name = kebab2camel(name) + ".java";

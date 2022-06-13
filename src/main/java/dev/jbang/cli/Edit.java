@@ -176,7 +176,7 @@ public class Edit extends BaseCommand {
 		ctx.setAdditionalClasspaths(dependencyInfoMixin.getClasspaths());
 		ctx.setAdditionalSources(scriptMixin.sources);
 		ctx.setAdditionalResources(scriptMixin.resources);
-		ctx.setForceJsh(scriptMixin.forcejsh);
+		ctx.setForceType(scriptMixin.forceType);
 		return ctx;
 	}
 
