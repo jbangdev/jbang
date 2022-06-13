@@ -79,8 +79,8 @@ class TestSourcesRecursivelyMultipleFiles extends BaseTest {
 		String scriptURL = mainPath.toString();
 		ResourceRef resourceRef = ResourceRef.forNamedFile(scriptURL, mainPath);
 		Source script = Source.forResourceRef(resourceRef, null, null);
-		SourceSet ss = script.createSourceSet();
-		List<ResourceRef> sources = ss.getSources();
+		Project prj = script.createProject();
+		List<ResourceRef> sources = prj.getMainSourceSet().getSources();
 		assertEquals(5, sources.size());
 		TreeSet<String> fileNames = new TreeSet<>();
 		for (ResourceRef source : sources) {

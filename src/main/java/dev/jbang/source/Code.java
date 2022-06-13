@@ -105,9 +105,9 @@ public interface Code {
 	Jar asJar();
 
 	/**
-	 * Returns the SourceSet associated with this Input or `null` if there is none.
+	 * Returns the Project associated with this Code or `null` if there is none.
 	 */
-	SourceSet asSourceSet();
+	Project asProject();
 
 	default boolean needsBuild(RunContext ctx) {
 		// anything but .jar and .jsh files needs jar

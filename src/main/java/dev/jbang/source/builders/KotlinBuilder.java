@@ -6,19 +6,19 @@ import java.util.function.Predicate;
 
 import org.jboss.jandex.ClassInfo;
 
+import dev.jbang.source.Project;
 import dev.jbang.source.RunContext;
-import dev.jbang.source.SourceSet;
 import dev.jbang.source.sources.KotlinSource;
 
 public class KotlinBuilder extends BaseBuilder {
 
-	public KotlinBuilder(SourceSet ss, RunContext ctx) {
-		super(ss, ctx);
+	public KotlinBuilder(Project prj, RunContext ctx) {
+		super(prj, ctx);
 	}
 
 	@Override
 	protected String getCompilerBinary(String requestedJavaVersion) {
-		return resolveInKotlinHome("kotlinc", ((KotlinSource) ss.getMainSource()).getKotlinVersion());
+		return resolveInKotlinHome("kotlinc", ((KotlinSource) prj.getMainSource()).getKotlinVersion());
 	}
 
 	@Override

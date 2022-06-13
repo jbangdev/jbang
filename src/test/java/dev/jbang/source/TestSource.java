@@ -154,11 +154,11 @@ public class TestSource extends BaseTest {
 	@Test
 	void testCommentsDoesNotGetPickedUp() {
 		Source source = new JavaSource(exampleCommandsWithComments, null);
-		SourceSet ss = source.createSourceSet();
+		Project prj = source.createProject();
 
 		assertEquals(source.getJavaVersion(), "14+");
 
-		List<String> deps = ss.getDependencies();
+		List<String> deps = prj.getMainSourceSet().getDependencies();
 
 		assertThat(deps, containsInAnyOrder("info.picocli:picocli:4.5.0"));
 	}
@@ -167,9 +167,9 @@ public class TestSource extends BaseTest {
 	void testFindDependencies() {
 		Source src = new JavaSource(example,
 				it -> PropertiesValueResolver.replaceProperties(it, new Properties()));
-		SourceSet ss = src.createSourceSet();
+		Project prj = src.createProject();
 
-		List<String> deps = ss.getDependencies();
+		List<String> deps = prj.getMainSourceSet().getDependencies();
 		assertEquals(2, deps.size());
 
 		assertTrue(deps.contains("com.offbytwo:docopt:0.6.0.20150202"));
@@ -184,9 +184,9 @@ public class TestSource extends BaseTest {
 		p.put("log4j.version", "1.2.9");
 
 		Source src = new JavaSource(example, it -> PropertiesValueResolver.replaceProperties(it, p));
-		SourceSet ss = src.createSourceSet();
+		Project prj = src.createProject();
 
-		List<String> dependencies = ss.getDependencies();
+		List<String> dependencies = prj.getMainSourceSet().getDependencies();
 		assertEquals(2, dependencies.size());
 
 		assertTrue(dependencies.contains("com.offbytwo:docopt:0.6.0.20150202"));
@@ -202,8 +202,8 @@ public class TestSource extends BaseTest {
 		createTmpFileWithContent("pkg1", "Bye.java", exampleURLInsourceBye);
 		String scriptURL = mainPath.toString();
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(scriptURL);
-		assertEquals(8, ss.getSources().size());
+		Project prj = (Project) ctx.forResource(scriptURL);
+		assertEquals(8, prj.getMainSourceSet().getSources().size());
 	}
 
 	public static Path createTmpFileWithContent(String strPath, String fileName, String content) throws IOException {
@@ -250,12 +250,12 @@ public class TestSource extends BaseTest {
 			TrustedSources.instance().add(url, tempFile);
 
 			RunContext ctx = RunContext.empty();
-			SourceSet ss = (SourceSet) ctx.forResource(url);
-			assertEquals(3, ss.getSources().size());
+			Project prj = (Project) ctx.forResource(url);
+			assertEquals(3, prj.getMainSourceSet().getSources().size());
 			boolean foundmain = false;
 			boolean foundtwo = false;
 			boolean foundt3 = false;
-			for (ResourceRef source : ss.getSources()) {
+			for (ResourceRef source : prj.getMainSourceSet().getSources()) {
 				String name = source.getFile().getFileName().toString();
 				if (name.equals("one.java"))
 					foundmain = true;

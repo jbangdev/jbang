@@ -80,7 +80,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 			if (scripts.add(originalResource)) {
 				backingResource = code.getResourceRef().getFile().toString();
 
-				Source source = code.asSourceSet().getMainSource();
+				Source source = code.asProject().getMainSource();
 				init(source);
 
 				if (ctx != null) {

@@ -99,7 +99,7 @@ public abstract class Source {
 
 	public abstract List<String> getRuntimeOptions();
 
-	public abstract Builder getBuilder(SourceSet ss, RunContext ctx);
+	public abstract Builder getBuilder(Project prj, RunContext ctx);
 
 	public ResourceRef getResourceRef() {
 		return resourceRef;
@@ -474,68 +474,69 @@ public abstract class Source {
 	}
 
 	/**
-	 * Creates and returns a new <code>SourceSet</code> that has been initialized
-	 * with all relevant information from this <code>Source</code>. Uses a default
+	 * Creates and returns a new <code>Project</code> that has been initialized with
+	 * all relevant information from this <code>Source</code>. Uses a default
 	 * resolver that only knows about resources so this can not be used for
 	 * compiling code (see <code>RunContext.forResource()</code> for that).
 	 *
-	 * @return A <code>SourceSet</code>
+	 * @return A <code>Project</code>
 	 */
-	public SourceSet createSourceSet() {
-		return createSourceSet(ResourceResolver.forResources());
+	public Project createProject() {
+		return createProject(ResourceResolver.forResources());
 	}
 
 	/**
-	 * Creates and returns a new <code>SourceSet</code> that has been initialized
-	 * with all relevant information from this <code>Source</code>.
+	 * Creates and returns a new <code>Project</code> that has been initialized with
+	 * all relevant information from this <code>Source</code>.
 	 *
 	 * @param resolver The resolver to use for dependent (re)sources
-	 * @return A <code>SourceSet</code>
+	 * @return A <code>Project</code>
 	 */
-	public SourceSet createSourceSet(ResourceResolver resolver) {
-		SourceSet ss = new SourceSet(this);
-		ss.setDescription(getDescription().orElse(null));
-		ss.setGav(getGav().orElse(null));
-		return updateSourceSet(ss, resolver);
+	public Project createProject(ResourceResolver resolver) {
+		Project prj = new Project(this);
+		prj.setDescription(getDescription().orElse(null));
+		prj.setGav(getGav().orElse(null));
+		return updateProject(prj, resolver);
 	}
 
 	/**
-	 * Updates the given <code>SourceSet</code> with all the information from this
+	 * Updates the given <code>Project</code> with all the information from this
 	 * <code>Source</code>. This includes the current source file with all other
 	 * source files it references, all resource files, anything to do with
 	 * dependencies, repositories and class paths as well as compile time and
 	 * runtime options.
 	 * 
-	 * @param ss       The <code>SourceSet</code> to update
+	 * @param prj      The <code>Project</code> to update
 	 * @param resolver The resolver to use for dependent (re)sources
-	 * @return The given <code>SourceSet</code>
+	 * @return The given <code>Project</code>
 	 */
 	@Nonnull
-	public SourceSet updateSourceSet(SourceSet ss, ResourceResolver resolver) {
-		if (!ss.getSources().contains(getResourceRef())) {
+	public Project updateProject(Project prj, ResourceResolver resolver) {
+		if (!prj.getMainSourceSet().getSources().contains(getResourceRef())) {
+			SourceSet ss = prj.getMainSourceSet();
 			ss.addSource(this.getResourceRef());
 			ss.addResources(collectFiles());
 			ss.addDependencies(collectDependencies());
-			ss.addRepositories(collectRepositories());
 			ss.addCompileOptions(getCompileOptions());
-			ss.addRuntimeOptions(getRuntimeOptions());
+			prj.addRepositories(collectRepositories());
+			prj.addRuntimeOptions(getRuntimeOptions());
 			collectAgentOptions().forEach(kv -> {
 				if (!kv.getKey().isEmpty()) {
-					ss.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
+					prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
 				}
 			});
 			String version = getJavaVersion();
 			if (version != null && JavaUtil.checkRequestedVersion(version)) {
-				if (new JavaUtil.RequestedVersionComparator().compare(ss.getJavaVersion(), version) > 0) {
-					ss.setJavaVersion(version);
+				if (new JavaUtil.RequestedVersionComparator().compare(prj.getJavaVersion(), version) > 0) {
+					prj.setJavaVersion(version);
 				}
 			}
 			ResourceResolver siblingResolver = new SiblingResourceResolver(getResourceRef(), resolver);
 			for (Source includedSource : collectSources(siblingResolver)) {
-				includedSource.updateSourceSet(ss, resolver);
+				includedSource.updateProject(prj, resolver);
 			}
 		}
-		return ss;
+		return prj;
 	}
 
 	public static Source forResource(String resource, Type forceType, Function<String, String> replaceProperties) {

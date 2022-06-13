@@ -24,8 +24,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.*;
+import dev.jbang.source.Project;
 import dev.jbang.source.RunContext;
-import dev.jbang.source.SourceSet;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -47,9 +47,9 @@ public class TestEdit extends BaseTest {
 		assertThat(new File(s).exists(), is(true));
 
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(s);
+		Project prj = (Project) ctx.forResource(s);
 
-		Path project = new Edit().createProjectForLinkedEdit(ss, ctx, false);
+		Path project = new Edit().createProjectForLinkedEdit(prj, ctx, false);
 
 		assertThat(project.resolve("src").toFile(), FileMatchers.anExistingDirectory());
 		Path build = project.resolve("build.gradle");
@@ -87,9 +87,9 @@ public class TestEdit extends BaseTest {
 		Util.writeString(p, "//DEPS org.openjfx:javafx-graphics:11.0.2${bougus:}\n" + Util.readString(p));
 
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(s);
+		Project prj = (Project) ctx.forResource(s);
 
-		Path project = new Edit().createProjectForLinkedEdit(ss, ctx, false);
+		Path project = new Edit().createProjectForLinkedEdit(prj, ctx, false);
 
 		Path gradle = project.resolve("build.gradle");
 		assert (Files.exists(gradle));
@@ -122,9 +122,9 @@ public class TestEdit extends BaseTest {
 				"//DEPS io.quarkus:quarkus-rest-client-reactive-jackson\n" + Util.readString(p));
 
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(s);
+		Project prj = (Project) ctx.forResource(s);
 
-		Path project = new Edit().createProjectForLinkedEdit(ss, ctx, false);
+		Path project = new Edit().createProjectForLinkedEdit(prj, ctx, false);
 
 		Path gradle = project.resolve("build.gradle");
 		assert (Files.exists(gradle));
@@ -155,9 +155,9 @@ public class TestEdit extends BaseTest {
 		Util.writeString(p, "//DEPS https://github.com/oldskoolsh/libvirt-schema/tree/0.0.2\n" + Util.readString(p));
 
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(s);
+		Project prj = (Project) ctx.forResource(s);
 
-		Path project = new Edit().createProjectForLinkedEdit(ss, ctx, false);
+		Path project = new Edit().createProjectForLinkedEdit(prj, ctx, false);
 
 		Path gradle = project.resolve("build.gradle");
 		assert (Files.exists(gradle));
@@ -175,9 +175,9 @@ public class TestEdit extends BaseTest {
 		assertThat(p.toFile().exists(), is(true));
 
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(p.toString());
+		Project prj = (Project) ctx.forResource(p.toString());
 
-		Path project = new Edit().createProjectForLinkedEdit(ss, ctx, false);
+		Path project = new Edit().createProjectForLinkedEdit(prj, ctx, false);
 
 		Path gradle = project.resolve("build.gradle");
 		assert (Files.exists(gradle));
@@ -200,9 +200,9 @@ public class TestEdit extends BaseTest {
 		assertThat(new File(s).exists(), is(true));
 
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(s);
+		Project prj = (Project) ctx.forResource(s);
 
-		Path project = new Edit().createProjectForLinkedEdit(ss, ctx, false);
+		Path project = new Edit().createProjectForLinkedEdit(prj, ctx, false);
 
 		Path java = project.resolve("src/KubeExample.java");
 
@@ -218,9 +218,9 @@ public class TestEdit extends BaseTest {
 		assertThat(p.toFile().exists(), is(true));
 
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(p.toString());
+		Project prj = (Project) ctx.forResource(p.toString());
 
-		Path project = new Edit().createProjectForLinkedEdit(ss, ctx, false);
+		Path project = new Edit().createProjectForLinkedEdit(prj, ctx, false);
 
 		Path gradle = project.resolve("build.gradle");
 		assert (Files.exists(gradle));

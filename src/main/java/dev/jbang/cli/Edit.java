@@ -62,12 +62,12 @@ public class Edit extends BaseCommand {
 		RunContext ctx = getRunContext();
 		final Code code = ctx.forResource(scriptMixin.scriptOrFile);
 
-		if (!(code instanceof SourceSet)) {
+		if (!(code instanceof Project)) {
 			throw new ExitException(EXIT_INVALID_INPUT, "You can only edit source files");
 		}
 
-		SourceSet ss = (SourceSet) code;
-		Path project = createProjectForLinkedEdit(ss, ctx, false);
+		Project prj = (Project) code;
+		Path project = createProjectForLinkedEdit(prj, ctx, false);
 		String projectPathString = Util.pathToString(project.toAbsolutePath());
 		// err.println(project.getAbsolutePath());
 
@@ -82,7 +82,7 @@ public class Edit extends BaseCommand {
 				// TODO only regenerate when dependencies changes.
 				info("Regenerating project.");
 				try {
-					createProjectForLinkedEdit((SourceSet) code, RunContext.empty(), true);
+					createProjectForLinkedEdit((Project) code, RunContext.empty(), true);
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
@@ -285,11 +285,11 @@ public class Edit extends BaseCommand {
 	}
 
 	/** Create Project to use for editing **/
-	Path createProjectForLinkedEdit(SourceSet ss, RunContext ctx, boolean reload) throws IOException {
-		Path originalFile = ss.getResourceRef().getFile();
+	Path createProjectForLinkedEdit(Project prj, RunContext ctx, boolean reload) throws IOException {
+		Path originalFile = prj.getResourceRef().getFile();
 
-		List<String> dependencies = ss.getDependencies();
-		String cp = ctx.resolveClassPath(ss).getClassPath();
+		List<String> dependencies = prj.getMainSourceSet().getDependencies();
+		String cp = ctx.resolveClassPath(prj).getClassPath();
 		List<String> resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 
 		Path baseDir = Settings.getCacheDir(Cache.CacheClass.projects);
@@ -309,7 +309,7 @@ public class Edit extends BaseCommand {
 		Path srcFile = srcDir.resolve(name);
 		Util.createLink(srcFile, originalFile);
 
-		for (ResourceRef sourceRef : ss.getSources()) {
+		for (ResourceRef sourceRef : prj.getMainSourceSet().getSources()) {
 			Path sfile = null;
 			Source src = ctx.createSource(sourceRef);
 			if (src.getJavaPackage().isPresent()) {
@@ -323,7 +323,7 @@ public class Edit extends BaseCommand {
 			Util.createLink(sfile, destFile);
 		}
 
-		for (RefTarget ref : ss.getResources()) {
+		for (RefTarget ref : prj.getMainSourceSet().getResources()) {
 			Path target = ref.to(srcDir);
 			;
 			Util.mkdirs(target.getParent());
@@ -342,9 +342,9 @@ public class Edit extends BaseCommand {
 
 		// both collectDependencies and repositories are manipulated by
 		// resolveDependencies
-		List<MavenRepo> repositories = ss.getRepositories();
+		List<MavenRepo> repositories = prj.getRepositories();
 		if (repositories.isEmpty()) {
-			ss.addRepository(DependencyUtil.toMavenRepo("mavencentral"));
+			prj.addRepository(DependencyUtil.toMavenRepo("mavencentral"));
 		}
 
 		// Turn any URL dependencies into regular GAV coordinates
@@ -355,7 +355,7 @@ public class Edit extends BaseCommand {
 		// And if we encountered URLs let's make sure the JitPack repo is available
 		if (!depIds.equals(dependencies)
 				&& repositories.stream().noneMatch(r -> DependencyUtil.REPO_JITPACK.equals(r.getUrl()))) {
-			ss.addRepository(DependencyUtil.toMavenRepo(DependencyUtil.ALIAS_JITPACK));
+			prj.addRepository(DependencyUtil.toMavenRepo(DependencyUtil.ALIAS_JITPACK));
 		}
 
 		renderTemplate(engine, depIds, fullClassName, baseName, resolvedDependencies, repositories,
