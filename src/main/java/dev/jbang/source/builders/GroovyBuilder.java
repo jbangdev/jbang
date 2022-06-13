@@ -8,19 +8,19 @@ import java.util.function.Predicate;
 import org.jboss.jandex.ClassInfo;
 
 import dev.jbang.net.JdkManager;
+import dev.jbang.source.Project;
 import dev.jbang.source.RunContext;
-import dev.jbang.source.SourceSet;
 import dev.jbang.source.sources.GroovySource;
 
 public class GroovyBuilder extends BaseBuilder {
 
-	public GroovyBuilder(SourceSet ss, RunContext ctx) {
-		super(ss, ctx);
+	public GroovyBuilder(Project prj, RunContext ctx) {
+		super(prj, ctx);
 	}
 
 	@Override
 	protected String getCompilerBinary(String requestedJavaVersion) {
-		return resolveInGroovyHome("groovyc", ((GroovySource) ss.getMainSource()).getGroovyVersion());
+		return resolveInGroovyHome("groovyc", ((GroovySource) prj.getMainSource()).getGroovyVersion());
 	}
 
 	@Override
@@ -36,9 +36,9 @@ public class GroovyBuilder extends BaseBuilder {
 
 	@Override
 	protected void runCompiler(ProcessBuilder processBuilder) throws IOException {
-		if (ss.getMainSource() instanceof GroovySource) {
+		if (prj.getMainSource() instanceof GroovySource) {
 			processBuilder	.environment()
-							.put("JAVA_HOME", JdkManager.getCurrentJdk(ctx.getJavaVersionOr(ss)).toString());
+							.put("JAVA_HOME", JdkManager.getCurrentJdk(ctx.getJavaVersionOr(prj)).toString());
 			processBuilder.environment().remove("GROOVY_HOME");
 		}
 		super.runCompiler(processBuilder);

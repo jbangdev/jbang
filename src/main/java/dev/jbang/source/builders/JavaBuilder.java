@@ -2,13 +2,13 @@ package dev.jbang.source.builders;
 
 import static dev.jbang.util.JavaUtil.resolveInJavaHome;
 
+import dev.jbang.source.Project;
 import dev.jbang.source.RunContext;
-import dev.jbang.source.SourceSet;
 
 public class JavaBuilder extends BaseBuilder {
 
-	public JavaBuilder(SourceSet ss, RunContext ctx) {
-		super(ss, ctx);
+	public JavaBuilder(Project prj, RunContext ctx) {
+		super(prj, ctx);
 	}
 
 	@Override

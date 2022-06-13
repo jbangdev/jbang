@@ -3,8 +3,8 @@ package dev.jbang.cli;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static dev.jbang.source.SourceSet.ATTR_AGENT_CLASS;
-import static dev.jbang.source.SourceSet.ATTR_PREMAIN_CLASS;
+import static dev.jbang.source.Project.ATTR_AGENT_CLASS;
+import static dev.jbang.source.Project.ATTR_PREMAIN_CLASS;
 import static dev.jbang.util.Util.writeString;
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -56,9 +56,9 @@ import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.net.TrustedSources;
 import dev.jbang.source.Code;
+import dev.jbang.source.Project;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.Source;
-import dev.jbang.source.SourceSet;
 import dev.jbang.source.builders.BaseBuilder;
 import dev.jbang.source.builders.JavaBuilder;
 import dev.jbang.source.generators.JarCmdGenerator;
@@ -167,9 +167,9 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResource(arg);
+		Project prj = (Project) ctx.forResource(arg);
 
-		String result = new JshCmdGenerator(ss, ctx).generate();
+		String result = new JshCmdGenerator(prj, ctx).generate();
 
 		assertThat(result,
 				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
@@ -193,10 +193,10 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResourceRef(
+		Project prj = (Project) ctx.forResourceRef(
 				LiteralScriptResourceResolver.stringToResourceRef(null, "Collector2.class"));
 
-		String result = new JshCmdGenerator(ss, ctx).generate();
+		String result = new JshCmdGenerator(prj, ctx).generate();
 
 		assertThat(result,
 				matchesPattern(
@@ -214,10 +214,10 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = run.getRunContext();
 		ctx.setMainClass("fakemain");
-		SourceSet ss = (SourceSet) ctx.forResourceRef(
+		Project prj = (Project) ctx.forResourceRef(
 				LiteralScriptResourceResolver.stringToResourceRef(null, hwtxt));
 
-		String result = new JarCmdGenerator(ss, ctx).generate();
+		String result = new JarCmdGenerator(prj, ctx).generate();
 
 		assertThat(result, matchesPattern("^.*java(.exe)?.*$"));
 		assertThat(result, containsString("firstarg"));
@@ -232,9 +232,9 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResource(arg);
+		Project prj = (Project) ctx.forResource(arg);
 
-		String result = new JshCmdGenerator(ss, ctx).generate();
+		String result = new JshCmdGenerator(prj, ctx).generate();
 
 		assertThat(result, matchesPattern("^.*jshell(.exe)?.+--class-path=.*figlet.*? --startup.*$"));
 	}
@@ -256,9 +256,9 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResource(arg);
+		Project prj = (Project) ctx.forResource(arg);
 
-		String result = new JshCmdGenerator(ss, ctx).generate();
+		String result = new JshCmdGenerator(prj, ctx).generate();
 
 		assertThat(result, matchesPattern("^.*jshell(.exe)?.+--class-path=.*figlet.*? --startup.*$"));
 	}
@@ -275,9 +275,9 @@ public class TestRun extends BaseTest {
 		empty.createNewFile();
 
 		RunContext ctx = run.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResource(empty.toString());
+		Project prj = (Project) ctx.forResource(empty.toString());
 
-		String result = ss.cmdGenerator(ctx).generate();
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result,
 				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
@@ -298,9 +298,9 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResource(arg);
+		Project prj = (Project) ctx.forResource(arg);
 
-		String result = ss.cmdGenerator(ctx).generate();
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result,
 				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
@@ -570,9 +570,9 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResource(arg);
+		Project prj = (Project) ctx.forResource(arg);
 
-		String result = ss.cmdGenerator(ctx).generate();
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result, startsWith("jshell"));
 		assertThat(result, not(containsString("  ")));
@@ -592,9 +592,9 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResource(arg);
+		Project prj = (Project) ctx.forResource(arg);
 
-		String result = ss.cmdGenerator(ctx).generate();
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result,
 				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
@@ -614,9 +614,9 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = run.getRunContext();
 		ctx.setMainClass("fakemain");
-		SourceSet ss = (SourceSet) ctx.forResource(arg);
+		Project prj = (Project) ctx.forResource(arg);
 
-		String result = ss.cmdGenerator(ctx).generate();
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("helloworld.java"));
@@ -638,9 +638,9 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		ctx.setMainClass("fakemain");
 
-		SourceSet ss = (SourceSet) ctx.forResource(arg);
+		Project prj = (Project) ctx.forResource(arg);
 
-		String result = ss.cmdGenerator(ctx).generate();
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("classpath_example.java"));
@@ -660,9 +660,9 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResource(arg);
+		Project prj = (Project) ctx.forResource(arg);
 
-		String result = ss.cmdGenerator(ctx).generate();
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result, startsWith("jshell "));
 		assertThat(result, (containsString("classpath_example.java")));
@@ -690,9 +690,9 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = run.getRunContext();
 		ctx.setMainClass("fakemain");
-		SourceSet ss = (SourceSet) ctx.forResource(arg);
+		Project prj = (Project) ctx.forResource(arg);
 
-		String result = ss.cmdGenerator(ctx).generate();
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result, startsWith("java "));
 		assertThat(result, containsString("-Dwonka=panda"));
@@ -713,7 +713,7 @@ public class TestRun extends BaseTest {
 		String url = examplesTestFolder.resolve("classpath_example.java").toFile().toURI().toString();
 
 		RunContext pctx = RunContext.empty();
-		SourceSet pre = (SourceSet) pctx.forResource(url);
+		Project pre = (Project) pctx.forResource(url);
 
 		MatcherAssert.assertThat(Util.readString(pre.getResourceRef().getFile()),
 				containsString("Logger.getLogger(classpath_example.class);"));
@@ -725,9 +725,9 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		ctx.setMainClass("fakemain");
 
-		SourceSet ss = (SourceSet) ctx.forResource(url);
+		Project prj = (Project) ctx.forResource(url);
 
-		String s = ss.cmdGenerator(ctx).generate();
+		String s = prj.cmdGenerator(ctx).generate();
 
 		assertThat(s, not(containsString("file:")));
 	}
@@ -742,9 +742,9 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		ctx.setMainClass("fakemain");
 
-		SourceSet ss = (SourceSet) ctx.forResource(url);
+		Project prj = (Project) ctx.forResource(url);
 
-		String s = ss.cmdGenerator(ctx).generate();
+		String s = prj.cmdGenerator(ctx).generate();
 		if (Util.isWindows()) {
 			assertThat(s, containsString("^\"^ ~^!@#$^%^^^&*^(^)-+\\:;'`^<^>?/,.{}[]\\^\"^\""));
 		} else {
@@ -761,8 +761,8 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = run.getRunContext();
 		ctx.setMainClass("fakemain");
-		SourceSet ss = (SourceSet) ctx.forResource(arg);
-		String result = ss.cmdGenerator(ctx).generate();
+		Project prj = (Project) ctx.forResource(arg);
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result, containsString("reload4j-1.2.18.5.jar"));
 	}
@@ -792,10 +792,10 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = RunContext.empty();
 		Source src = new JavaSource("", null);
-		SourceSet ss = src.createSourceSet();
+		Project prj = src.createProject();
 		ctx.setMainClass("wonkabear");
 
-		BaseBuilder.createJar(ss, ctx, dir, out);
+		BaseBuilder.createJar(prj, ctx, dir, out);
 
 		try (JarFile jf = new JarFile(out.toFile())) {
 
@@ -852,8 +852,8 @@ public class TestRun extends BaseTest {
 		writeString(f, base);
 
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forFile(f);
-		Code jar = ss.builder(ctx).build();
+		Project prj = (Project) ctx.forFile(f);
+		Code jar = prj.builder(ctx).build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("aclass"));
 
@@ -901,9 +901,9 @@ public class TestRun extends BaseTest {
 		Util.writeString(f, base);
 
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forFile(f);
+		Project prj = (Project) ctx.forFile(f);
 
-		Code jar = ss.builder(ctx).build();
+		Code jar = prj.builder(ctx).build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("dualclass"));
 
@@ -938,9 +938,9 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResource(arg);
+		Project prj = (Project) ctx.forResource(arg);
 
-		Code jar = ss.builder(ctx).build();
+		Code jar = prj.builder(ctx).build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("dualclass"));
 
@@ -1204,16 +1204,16 @@ public class TestRun extends BaseTest {
 		Build build = (Build) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = build.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResource(p.toFile().getAbsolutePath());
+		Project prj = (Project) ctx.forResource(p.toFile().getAbsolutePath());
 
-		ss.builder(ctx).build();
+		prj.builder(ctx).build();
 
-		assertThat(ss.getMainSource().isAgent(), is(true));
+		assertThat(prj.getMainSource().isAgent(), is(true));
 
-		assertThat(ss.getManifestAttributes().get(ATTR_AGENT_CLASS), is("Agent"));
-		assertThat(ss.getManifestAttributes().get(ATTR_PREMAIN_CLASS), is("Agent"));
+		assertThat(prj.getManifestAttributes().get(ATTR_AGENT_CLASS), is("Agent"));
+		assertThat(prj.getManifestAttributes().get(ATTR_PREMAIN_CLASS), is("Agent"));
 
-		try (JarFile jf = new JarFile(ss.getJarFile().toFile())) {
+		try (JarFile jf = new JarFile(prj.getJarFile().toFile())) {
 			Attributes attrs = jf.getManifest().getMainAttributes();
 			assertThat(attrs.getValue("Premain-class"), equalTo("Agent"));
 			assertThat(attrs.getValue("Can-Retransform-Classes"), equalTo("true"));
@@ -1233,14 +1233,14 @@ public class TestRun extends BaseTest {
 		Build build = (Build) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = build.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResource(p.toFile().getAbsolutePath());
+		Project prj = (Project) ctx.forResource(p.toFile().getAbsolutePath());
 
-		ss.builder(ctx).build();
+		prj.builder(ctx).build();
 
-		assertThat(ss.getMainSource().isAgent(), is(true));
+		assertThat(prj.getMainSource().isAgent(), is(true));
 
-		assertThat(ss.getManifestAttributes().get(ATTR_AGENT_CLASS), is(nullValue()));
-		assertThat(ss.getManifestAttributes().get(ATTR_PREMAIN_CLASS), is("Agent"));
+		assertThat(prj.getManifestAttributes().get(ATTR_AGENT_CLASS), is(nullValue()));
+		assertThat(prj.getManifestAttributes().get(ATTR_PREMAIN_CLASS), is("Agent"));
 
 	}
 
@@ -1281,7 +1281,7 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = run.getRunContext();
 		Code code = ctx.forFile(mainfile);
-		SourceSet ass = (SourceSet) ctx.forFile(agentfile);
+		Project ass = (Project) ctx.forFile(agentfile);
 
 		assertThat(ass.getMainSource().isAgent(), is(true));
 
@@ -1325,9 +1325,9 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		ctx.setMainClass("fakemain");
 
-		SourceSet ss = (SourceSet) ctx.forResource(f.getAbsolutePath());
+		Project prj = (Project) ctx.forResource(f.getAbsolutePath());
 
-		String line = ss.cmdGenerator(ctx).generate();
+		String line = prj.cmdGenerator(ctx).generate();
 
 		assertThat(line, containsString("-ea"));
 	}
@@ -1343,9 +1343,9 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResource(f.getAbsolutePath());
+		Project prj = (Project) ctx.forResource(f.getAbsolutePath());
 
-		String line = ss.cmdGenerator(ctx).generate();
+		String line = prj.cmdGenerator(ctx).generate();
 
 		assertThat(line, containsString("-esa"));
 	}
@@ -1355,9 +1355,9 @@ public class TestRun extends BaseTest {
 		File f = examplesTestFolder.resolve("resource.java").toFile();
 
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(f.getAbsolutePath());
+		Project prj = (Project) ctx.forResource(f.getAbsolutePath());
 
-		Code jar = ss.builder(ctx).build();
+		Code jar = prj.builder(ctx).build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("resource"));
 
@@ -1400,9 +1400,9 @@ public class TestRun extends BaseTest {
 		File f = examplesTestFolder.resolve("one.java").toFile();
 
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(f.getAbsolutePath());
+		Project prj = (Project) ctx.forResource(f.getAbsolutePath());
 
-		Code jar = ss.builder(ctx).build();
+		Code jar = prj.builder(ctx).build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("one"));
 
@@ -1422,7 +1422,7 @@ public class TestRun extends BaseTest {
 
 		}
 
-		assertThat("duplication of deps fixed", ctx.resolveClassPath(ss).getArtifacts(), hasSize(7));
+		assertThat("duplication of deps fixed", ctx.resolveClassPath(prj).getArtifacts(), hasSize(7));
 	}
 
 	@Test
@@ -1431,9 +1431,9 @@ public class TestRun extends BaseTest {
 		File f = examplesTestFolder.resolve("resources.java").toFile();
 
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(f.getAbsolutePath());
+		Project prj = (Project) ctx.forResource(f.getAbsolutePath());
 
-		Code jar = ss.builder(ctx).build();
+		Code jar = prj.builder(ctx).build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("resources"));
 
@@ -1458,9 +1458,9 @@ public class TestRun extends BaseTest {
 		File f = examplesTestFolder.resolve("resourcesmnt.java").toFile();
 
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(f.getAbsolutePath());
+		Project prj = (Project) ctx.forResource(f.getAbsolutePath());
 
-		Code jar = ss.builder(ctx).build();
+		Code jar = prj.builder(ctx).build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("resourcesmnt"));
 
@@ -1512,9 +1512,9 @@ public class TestRun extends BaseTest {
 
 		String url = "http://localhost:" + wms.port() + "/sub/one.java";
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(url);
+		Project prj = (Project) ctx.forResource(url);
 
-		ss.builder(ctx).build();
+		prj.builder(ctx).build();
 
 	}
 
@@ -1537,11 +1537,11 @@ public class TestRun extends BaseTest {
 		Build run = (Build) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResource(p.toFile().getAbsolutePath());
+		Project prj = (Project) ctx.forResource(p.toFile().getAbsolutePath());
 
-		ss.builder(ctx).build();
+		prj.builder(ctx).build();
 
-		assertThat(ss.getMainClass(), equalTo("Two"));
+		assertThat(prj.getMainClass(), equalTo("Two"));
 
 	}
 
@@ -1566,11 +1566,11 @@ public class TestRun extends BaseTest {
 		Build run = (Build) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResource(p.toFile().getAbsolutePath());
+		Project prj = (Project) ctx.forResource(p.toFile().getAbsolutePath());
 
-		ss.builder(ctx).build();
+		prj.builder(ctx).build();
 
-		assertThat(ss.getMainClass(), equalTo("One"));
+		assertThat(prj.getMainClass(), equalTo("One"));
 
 	}
 
@@ -1585,11 +1585,11 @@ public class TestRun extends BaseTest {
 		Build run = (Build) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResource(p.toFile().getAbsolutePath());
+		Project prj = (Project) ctx.forResource(p.toFile().getAbsolutePath());
 
-		ss.builder(ctx).build();
+		prj.builder(ctx).build();
 
-		assertThat(ctx.getMainClassOr(ss), equalTo("Three"));
+		assertThat(ctx.getMainClassOr(prj), equalTo("Three"));
 
 	}
 
@@ -1602,9 +1602,9 @@ public class TestRun extends BaseTest {
 		Build build = (Build) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = build.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResource(mainFile);
+		Project prj = (Project) ctx.forResource(mainFile);
 
-		new JavaBuilder(ss, ctx) {
+		new JavaBuilder(prj, ctx) {
 			@Override
 			protected void runCompiler(List<String> optionList)
 					throws IOException {
@@ -1626,9 +1626,9 @@ public class TestRun extends BaseTest {
 		Build build = (Build) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = build.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResource(mainFile.toString());
+		Project prj = (Project) ctx.forResource(mainFile.toString());
 
-		new JavaBuilder(ss, ctx) {
+		new JavaBuilder(prj, ctx) {
 			@Override
 			protected void runCompiler(List<String> optionList) {
 				assertThat(optionList, hasItem(endsWith(File.separator + "foo.java")));
@@ -1637,11 +1637,12 @@ public class TestRun extends BaseTest {
 
 			@Override
 			public void createJar() throws IOException {
-				assertThat(ss.getResources().size(), is(1));
-				List<String> ps = ss.getResources()
-									.stream()
-									.map(r -> r.getSource().getFile().toString())
-									.collect(Collectors.toList());
+				assertThat(prj.getMainSourceSet().getResources().size(), is(1));
+				List<String> ps = prj	.getMainSourceSet()
+										.getResources()
+										.stream()
+										.map(r -> r.getSource().getFile().toString())
+										.collect(Collectors.toList());
 				assertThat(ps, hasItem(endsWith("resource.properties")));
 			}
 		}.setFresh(true).build();
@@ -1681,11 +1682,11 @@ public class TestRun extends BaseTest {
 
 		String url = "http://localhost:" + wms.port() + "/sub/one.java";
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(url);
+		Project prj = (Project) ctx.forResource(url);
 
-		ss.builder(ctx).build();
+		prj.builder(ctx).build();
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(ss.getJarFile(), (ClassLoader) null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(prj.getJarFile(), (ClassLoader) null)) {
 			Arrays	.asList("one.class", "index.html")
 					.forEach(path -> {
 						try {
@@ -1719,9 +1720,9 @@ public class TestRun extends BaseTest {
 
 		String url = "http://localhost:" + wms.port() + "/sub/one";
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(url);
+		Project prj = (Project) ctx.forResource(url);
 
-		ss.builder(ctx).build();
+		prj.builder(ctx).build();
 	}
 
 	@Test
@@ -1742,9 +1743,9 @@ public class TestRun extends BaseTest {
 		Util.writeString(f.toPath(), base);
 
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(dir.toPath().toString());
+		Project prj = (Project) ctx.forResource(dir.toPath().toString());
 
-		ss.builder(ctx).build();
+		prj.builder(ctx).build();
 
 	}
 
@@ -1775,9 +1776,9 @@ public class TestRun extends BaseTest {
 
 		String url = "http://localhost:" + wms.port() + "/sub/one/";
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(url);
+		Project prj = (Project) ctx.forResource(url);
 
-		ss.builder(ctx).build();
+		prj.builder(ctx).build();
 	}
 
 	@Test
@@ -1940,10 +1941,10 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		SourceSet ss = (SourceSet) ctx.forResource(arg);
+		Project prj = (Project) ctx.forResource(arg);
 
 		try {
-			ss.builder(ctx).build();
+			prj.builder(ctx).build();
 			fail("Should have thrown exception");
 		} catch (ExitException ex) {
 			StringWriter sw = new StringWriter();
@@ -2007,7 +2008,7 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = run.getRunContext();
 		try {
-			SourceSet ss = (SourceSet) ctx.forResourceRef(LiteralScriptResourceResolver.stringToResourceRef(null, ""));
+			Project prj = (Project) ctx.forResourceRef(LiteralScriptResourceResolver.stringToResourceRef(null, ""));
 			fail("Should have thrown exception");
 		} catch (ExitException ex) {
 			StringWriter sw = new StringWriter();

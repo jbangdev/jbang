@@ -18,23 +18,23 @@ import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 public class JshCmdGenerator extends BaseCmdGenerator {
-	protected final SourceSet ss;
+	protected final Project prj;
 
-	public JshCmdGenerator(SourceSet ss, RunContext ctx) {
+	public JshCmdGenerator(Project prj, RunContext ctx) {
 		super(ctx);
-		this.ss = ss;
+		this.prj = prj;
 	}
 
 	@Override
 	protected Code getCode() {
-		return ss;
+		return prj;
 	}
 
 	@Override
 	protected List<String> generateCommandLineList() throws IOException {
 		List<String> fullArgs = new ArrayList<>();
 
-		String classpath = ctx.resolveClassPath(ss).getClassPath();
+		String classpath = ctx.resolveClassPath(prj).getClassPath();
 
 		List<String> optionalArgs = new ArrayList<>();
 
@@ -42,11 +42,11 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 		String javacmd;
 		javacmd = JavaUtil.resolveInJavaHome("jshell", requestedJavaVersion);
 
-		if (ss.getJarFile() != null && Files.exists(ss.getJarFile())) {
+		if (prj.getJarFile() != null && Files.exists(prj.getJarFile())) {
 			if (Util.isBlankString(classpath)) {
-				classpath = ss.getJarFile().toAbsolutePath().toString();
+				classpath = prj.getJarFile().toAbsolutePath().toString();
 			} else {
-				classpath = ss.getJarFile().toAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
+				classpath = prj.getJarFile().toAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
 			}
 		}
 
@@ -64,7 +64,7 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 		optionalArgs.add("--startup=DEFAULT");
 
 		Path tempFile = Files.createTempFile("jbang_arguments_",
-				ss.getResourceRef().getFile().getFileName().toString());
+				prj.getResourceRef().getFile().getFileName().toString());
 
 		String defaultImports = "import java.lang.*;\n" +
 				"import java.util.*;\n" +
@@ -72,7 +72,7 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 				"import java.net.*;" +
 				"import java.math.BigInteger;\n" +
 				"import java.math.BigDecimal;\n";
-		String mainClass = ctx.getMainClassOr(ss);
+		String mainClass = ctx.getMainClassOr(prj);
 		Util.writeString(tempFile,
 				defaultImports + generateArgs(ctx.getArguments(), ctx.getProperties()) +
 						generateStdInputHelper() +
@@ -97,12 +97,12 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 		fullArgs.add(javacmd);
 		addAgentsArgs(fullArgs);
 
-		fullArgs.addAll(jshellOpts(ctx.getRuntimeOptionsMerged(ss)));
-		fullArgs.addAll(jshellOpts(ctx.getAutoDetectedModuleArguments(ss, requestedJavaVersion)));
+		fullArgs.addAll(jshellOpts(ctx.getRuntimeOptionsMerged(prj)));
+		fullArgs.addAll(jshellOpts(ctx.getAutoDetectedModuleArguments(prj, requestedJavaVersion)));
 		fullArgs.addAll(optionalArgs);
 
-		if (ss.isJShell() || ctx.getForceType() == Source.Type.jshell) {
-			ArrayList<ResourceRef> revSources = new ArrayList<>(ss.getSources());
+		if (prj.isJShell() || ctx.getForceType() == Source.Type.jshell) {
+			ArrayList<ResourceRef> revSources = new ArrayList<>(prj.getMainSourceSet().getSources());
 			Collections.reverse(revSources);
 			for (ResourceRef s : revSources) {
 				fullArgs.add(s.getFile().toString());
@@ -110,7 +110,8 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 		}
 
 		if (!ctx.isInteractive()) {
-			Path exitFile = Files.createTempFile("jbang_exit_", ss.getResourceRef().getFile().getFileName().toString());
+			Path exitFile = Files.createTempFile("jbang_exit_",
+					prj.getResourceRef().getFile().getFileName().toString());
 			Util.writeString(exitFile, "/exit");
 			fullArgs.add(exitFile.toString());
 		}

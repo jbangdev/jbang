@@ -34,9 +34,9 @@ import com.google.gson.GsonBuilder;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenRepo;
+import dev.jbang.source.Project;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.Source;
-import dev.jbang.source.SourceSet;
 import dev.jbang.util.PathTypeAdapter;
 import dev.jbang.util.Util;
 
@@ -59,16 +59,16 @@ public class IntegrationManager {
 	 * If an integration point created a native image it returns the resulting
 	 * image.
 	 */
-	public static IntegrationResult runIntegrations(SourceSet ss, RunContext ctx, Path tmpJarDir, Path pomPath) {
+	public static IntegrationResult runIntegrations(Project prj, RunContext ctx, Path tmpJarDir, Path pomPath) {
 		IntegrationResult result = new IntegrationResult(null, null, null);
-		Source source = ss.getMainSource();
+		Source source = prj.getMainSource();
 
 		LinkedHashMap<String, String> repos = new LinkedHashMap<>();
 		LinkedHashMap<String, Path> deps = new LinkedHashMap<>();
-		for (MavenRepo repo : ss.getRepositories()) {
+		for (MavenRepo repo : prj.getRepositories()) {
 			repos.put(repo.getId(), repo.getUrl());
 		}
-		for (ArtifactInfo art : ctx.resolveClassPath(ss).getArtifacts()) {
+		for (ArtifactInfo art : ctx.resolveClassPath(prj).getArtifacts()) {
 			if (art.getCoordinate() != null) { // skipping dependencies that does not have a GAV
 				deps.put(art.getCoordinate().toCanonicalForm(), art.getFile());
 			}
@@ -80,7 +80,7 @@ public class IntegrationManager {
 		try {
 			URLClassLoader integrationCl = getClassLoader(deps.values());
 			Thread.currentThread().setContextClassLoader(integrationCl);
-			String requestedJavaVersion = ctx.getJavaVersionOr(ss);
+			String requestedJavaVersion = ctx.getJavaVersionOr(prj);
 			Set<String> classNames = loadIntegrationClassNames(integrationCl);
 			for (String className : classNames) {
 				Path srcPath = (source.getResourceRef().getFile() != null)

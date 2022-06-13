@@ -30,9 +30,9 @@ public class TestBuilder extends BaseTest {
 		Path bar = examplesTestFolder.resolve("bar/Bar.java").toAbsolutePath();
 		RunContext ctx = RunContext.empty();
 		ctx.setAdditionalSources(Arrays.asList(bar.toString()));
-		SourceSet ss = (SourceSet) ctx.forResource(foo.toString());
+		Project prj = (Project) ctx.forResource(foo.toString());
 
-		new JavaBuilder(ss, ctx) {
+		new JavaBuilder(prj, ctx) {
 			@Override
 			protected void runCompiler(List<String> optionList)
 					throws IOException {
@@ -52,9 +52,9 @@ public class TestBuilder extends BaseTest {
 
 		RunContext ctx = RunContext.empty();
 		ctx.setAdditionalSources(Arrays.asList("bar"));
-		SourceSet ss = (SourceSet) ctx.forResource(mainFile);
+		Project prj = (Project) ctx.forResource(mainFile);
 
-		new JavaBuilder(ss, ctx) {
+		new JavaBuilder(prj, ctx) {
 			@Override
 			protected void runCompiler(List<String> optionList)
 					throws IOException {
@@ -77,9 +77,9 @@ public class TestBuilder extends BaseTest {
 		CatalogUtil.addNearestAlias("bar", incFile, null, null, null, null, null, null, null, null, null, null, null);
 
 		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(mainFile.toString());
+		Project prj = (Project) ctx.forResource(mainFile.toString());
 
-		new JavaBuilder(ss, ctx) {
+		new JavaBuilder(prj, ctx) {
 			@Override
 			protected void runCompiler(List<String> optionList)
 					throws IOException {
@@ -98,9 +98,9 @@ public class TestBuilder extends BaseTest {
 
 		RunContext ctx = RunContext.empty();
 		ctx.setAdditionalSources(Arrays.asList("bar/*.java"));
-		SourceSet ss = (SourceSet) ctx.forResource(mainFile);
+		Project prj = (Project) ctx.forResource(mainFile);
 
-		new JavaBuilder(ss, ctx) {
+		new JavaBuilder(prj, ctx) {
 			@Override
 			protected void runCompiler(List<String> optionList)
 					throws IOException {
@@ -119,9 +119,9 @@ public class TestBuilder extends BaseTest {
 
 		RunContext ctx = RunContext.empty();
 		ctx.setAdditionalSources(Arrays.asList(incGlob));
-		SourceSet ss = (SourceSet) ctx.forResource(mainFile);
+		Project prj = (Project) ctx.forResource(mainFile);
 
-		new JavaBuilder(ss, ctx) {
+		new JavaBuilder(prj, ctx) {
 			@Override
 			protected void runCompiler(List<String> optionList)
 					throws IOException {
@@ -140,9 +140,9 @@ public class TestBuilder extends BaseTest {
 
 		RunContext ctx = RunContext.empty();
 		ctx.setAdditionalSources(Arrays.asList("bar"));
-		SourceSet ss = (SourceSet) ctx.forResource(mainFile);
+		Project prj = (Project) ctx.forResource(mainFile);
 
-		new JavaBuilder(ss, ctx) {
+		new JavaBuilder(prj, ctx) {
 			@Override
 			protected void runCompiler(List<String> optionList)
 					throws IOException {
@@ -163,9 +163,9 @@ public class TestBuilder extends BaseTest {
 		ctx.setAdditionalResources(Arrays.asList(
 				Paths.get("res").resolve(res1).toString(),
 				Paths.get("res").resolve(res2).toString()));
-		SourceSet ss = (SourceSet) ctx.forResource(foo.toString());
+		Project prj = (Project) ctx.forResource(foo.toString());
 
-		new JavaBuilder(ss, ctx) {
+		new JavaBuilder(prj, ctx) {
 			@Override
 			protected void runCompiler(List<String> optionList) {
 				// Skip the compiler
@@ -173,9 +173,9 @@ public class TestBuilder extends BaseTest {
 
 			@Override
 			public void createJar() {
-				assertThat(ss.getResources().size(), is(2));
-				assertThat(ss.getResources().get(0).getSource().getFile().endsWith(res1), is(true));
-				assertThat(ss.getResources().get(1).getSource().getFile().endsWith(res2), is(true));
+				assertThat(prj.getMainSourceSet().getResources().size(), is(2));
+				assertThat(prj.getMainSourceSet().getResources().get(0).getSource().getFile().endsWith(res1), is(true));
+				assertThat(prj.getMainSourceSet().getResources().get(1).getSource().getFile().endsWith(res2), is(true));
 			}
 		}.setFresh(true).build();
 	}
@@ -190,9 +190,9 @@ public class TestBuilder extends BaseTest {
 		ctx.setAdditionalResources(Arrays.asList(
 				"somedir/=" + Paths.get("res").resolve(res1),
 				"somedir/=" + Paths.get("res").resolve(res2)));
-		SourceSet ss = (SourceSet) ctx.forResource(foo.toString());
+		Project prj = (Project) ctx.forResource(foo.toString());
 
-		new JavaBuilder(ss, ctx) {
+		new JavaBuilder(prj, ctx) {
 			@Override
 			protected void runCompiler(List<String> optionList) {
 				// Skip the compiler
@@ -200,13 +200,13 @@ public class TestBuilder extends BaseTest {
 
 			@Override
 			public void createJar() {
-				assertThat(ss.getResources().size(), is(2));
-				assertThat(ss.getResources().get(0).getTarget().toString(),
+				assertThat(prj.getMainSourceSet().getResources().size(), is(2));
+				assertThat(prj.getMainSourceSet().getResources().get(0).getTarget().toString(),
 						is("somedir" + File.separator + "resource.properties"));
-				assertThat(ss.getResources().get(0).getSource().getFile().endsWith(res1), is(true));
-				assertThat(ss.getResources().get(1).getTarget().toString(),
+				assertThat(prj.getMainSourceSet().getResources().get(0).getSource().getFile().endsWith(res1), is(true));
+				assertThat(prj.getMainSourceSet().getResources().get(1).getTarget().toString(),
 						is("somedir" + File.separator + "sub.properties"));
-				assertThat(ss.getResources().get(1).getSource().getFile().endsWith(res2), is(true));
+				assertThat(prj.getMainSourceSet().getResources().get(1).getSource().getFile().endsWith(res2), is(true));
 			}
 		}.setFresh(true).build();
 	}
@@ -219,9 +219,9 @@ public class TestBuilder extends BaseTest {
 		Path res2 = Paths.get("sub/sub.properties");
 		RunContext ctx = RunContext.empty();
 		ctx.setAdditionalResources(Arrays.asList("res/**.properties"));
-		SourceSet ss = (SourceSet) ctx.forResource(foo.toString());
+		Project prj = (Project) ctx.forResource(foo.toString());
 
-		new JavaBuilder(ss, ctx) {
+		new JavaBuilder(prj, ctx) {
 			@Override
 			protected void runCompiler(List<String> optionList) {
 				assertThat(optionList, hasItem(endsWith(File.separator + "foo.java")));
@@ -230,11 +230,12 @@ public class TestBuilder extends BaseTest {
 
 			@Override
 			public void createJar() throws IOException {
-				assertThat(ss.getResources().size(), is(3));
-				List<String> ps = ss.getResources()
-									.stream()
-									.map(r -> r.getSource().getFile().toString())
-									.collect(Collectors.toList());
+				assertThat(prj.getMainSourceSet().getResources().size(), is(3));
+				List<String> ps = prj	.getMainSourceSet()
+										.getResources()
+										.stream()
+										.map(r -> r.getSource().getFile().toString())
+										.collect(Collectors.toList());
 				assertThat(ps, hasItem(endsWith("resource.properties")));
 				assertThat(ps, hasItem(endsWith("test.properties")));
 				assertThat(ps, hasItem(endsWith("sub" + File.separator + "sub.properties")));
@@ -250,9 +251,9 @@ public class TestBuilder extends BaseTest {
 		Path res2 = Paths.get("sub/sub.properties");
 		RunContext ctx = RunContext.empty();
 		ctx.setAdditionalResources(Arrays.asList("res"));
-		SourceSet ss = (SourceSet) ctx.forResource(foo.toString());
+		Project prj = (Project) ctx.forResource(foo.toString());
 
-		new JavaBuilder(ss, ctx) {
+		new JavaBuilder(prj, ctx) {
 			@Override
 			protected void runCompiler(List<String> optionList) {
 				assertThat(optionList, hasItem(endsWith(File.separator + "foo.java")));
@@ -261,11 +262,12 @@ public class TestBuilder extends BaseTest {
 
 			@Override
 			public void createJar() throws IOException {
-				assertThat(ss.getResources().size(), is(4));
-				List<String> ps = ss.getResources()
-									.stream()
-									.map(r -> r.getSource().getFile().toString())
-									.collect(Collectors.toList());
+				assertThat(prj.getMainSourceSet().getResources().size(), is(4));
+				List<String> ps = prj	.getMainSourceSet()
+										.getResources()
+										.stream()
+										.map(r -> r.getSource().getFile().toString())
+										.collect(Collectors.toList());
 				assertThat(ps, hasItem(endsWith("resource.java")));
 				assertThat(ps, hasItem(endsWith("resource.properties")));
 				assertThat(ps, hasItem(endsWith("test.properties")));

@@ -28,7 +28,7 @@ import dev.jbang.util.Util;
 import io.quarkus.qute.Template;
 
 public abstract class BaseBuilder implements Builder {
-	protected final SourceSet ss;
+	protected final Project prj;
 	protected final RunContext ctx;
 
 	protected boolean fresh = Util.isFresh();
@@ -44,8 +44,8 @@ public abstract class BaseBuilder implements Builder {
 	public static final Type INSTRUMENTATIONTYPE = Type.create(
 			DotName.createSimple("java.lang.instrument.Instrumentation"), Type.Kind.CLASS);
 
-	public BaseBuilder(SourceSet ss, RunContext ctx) {
-		this.ss = ss;
+	public BaseBuilder(Project prj, RunContext ctx) {
+		this.prj = prj;
 		this.ctx = ctx;
 	}
 
@@ -63,10 +63,10 @@ public abstract class BaseBuilder implements Builder {
 	public Jar build() throws IOException {
 		Jar result = null;
 
-		Path outjar = ss.getJarFile();
+		Path outjar = prj.getJarFile();
 		boolean nativeBuildRequired = ctx.isNativeImage() && !Files.exists(getImageName(outjar));
 		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
-		String requestedJavaVersion = ctx.getJavaVersionOr(ss);
+		String requestedJavaVersion = ctx.getJavaVersionOr(prj);
 		// always build the jar for native mode
 		// it allows integrations the options to produce the native image
 		boolean buildRequired = true;
@@ -76,7 +76,7 @@ public abstract class BaseBuilder implements Builder {
 			Util.verboseMsg("Building as native build required.");
 		} else if (Files.isReadable(outjar)) {
 			// We already have a Jar, check if we can still use it
-			Jar jarSrc = ss.asJar();
+			Jar jarSrc = prj.asJar();
 
 			if (jarSrc == null) {
 				Util.verboseMsg("Building as previous built jar not found.");
@@ -106,7 +106,7 @@ public abstract class BaseBuilder implements Builder {
 			try {
 				integrationResult = compile();
 				createJar();
-				result = ss.asJar();
+				result = prj.asJar();
 			} finally {
 				// clean up temporary folder
 				Util.deletePath(compileDir, true);
@@ -126,29 +126,30 @@ public abstract class BaseBuilder implements Builder {
 
 	// build with javac and then jar...
 	public IntegrationResult compile() throws IOException {
-		String requestedJavaVersion = ctx.getJavaVersionOr(ss);
+		String requestedJavaVersion = ctx.getJavaVersionOr(prj);
 		Path compileDir = getCompileDir();
 		List<String> optionList = new ArrayList<>();
 		optionList.add(getCompilerBinary(requestedJavaVersion));
-		optionList.addAll(ss.getCompileOptions());
-		String path = ctx.resolveClassPath(ss).getClassPath();
+		optionList.addAll(prj.getMainSourceSet().getCompileOptions());
+		String path = ctx.resolveClassPath(prj).getClassPath();
 		if (!Util.isBlankString(path)) {
 			optionList.addAll(Arrays.asList("-classpath", path));
 		}
 		optionList.addAll(Arrays.asList("-d", compileDir.toAbsolutePath().toString()));
 
 		// add source files to compile
-		optionList.addAll(ss.getSources()
-							.stream()
-							.map(x -> x.getFile().toString())
-							.collect(Collectors.toList()));
+		optionList.addAll(prj	.getMainSourceSet()
+								.getSources()
+								.stream()
+								.map(x -> x.getFile().toString())
+								.collect(Collectors.toList()));
 
 		// add additional files
-		ss.copyResourcesTo(compileDir);
+		prj.getMainSourceSet().copyResourcesTo(compileDir);
 
 		Path pomPath = generatePom(compileDir);
 
-		Util.infoMsg(String.format("Building %s...", ss.getMainSource().isAgent() ? "javaagent" : "jar"));
+		Util.infoMsg(String.format("Building %s...", prj.getMainSource().isAgent() ? "javaagent" : "jar"));
 		Util.verboseMsg("Compile: " + String.join(" ", optionList));
 		runCompiler(optionList);
 
@@ -159,10 +160,10 @@ public abstract class BaseBuilder implements Builder {
 		for (Map.Entry<String, String> entry : ctx.getProperties().entrySet()) {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
-		IntegrationResult integrationResult = IntegrationManager.runIntegrations(ss, ctx, compileDir, pomPath);
+		IntegrationResult integrationResult = IntegrationManager.runIntegrations(prj, ctx, compileDir, pomPath);
 		System.setProperties(old);
 
-		if (ctx.getMainClassOr(ss) == null) { // if non-null user forced set main
+		if (ctx.getMainClassOr(prj) == null) { // if non-null user forced set main
 			if (integrationResult.mainClass != null) {
 				ctx.setMainClass(integrationResult.mainClass);
 			} else {
@@ -171,7 +172,7 @@ public abstract class BaseBuilder implements Builder {
 		}
 		if (integrationResult.javaArgs != null && !integrationResult.javaArgs.isEmpty()) {
 			// Add integration options to the java options
-			ss.addRuntimeOptions(integrationResult.javaArgs);
+			prj.addRuntimeOptions(integrationResult.javaArgs);
 		}
 
 		return integrationResult;
@@ -195,23 +196,23 @@ public abstract class BaseBuilder implements Builder {
 	}
 
 	public void createJar() throws IOException {
-		createJar(ss, ctx, getCompileDir(), ss.getJarFile());
+		createJar(prj, ctx, getCompileDir(), prj.getJarFile());
 	}
 
-	public static void createJar(SourceSet ss, RunContext ctx, Path compileDir, Path jarFile) throws IOException {
-		String mainclass = ctx.getMainClassOr(ss);
+	public static void createJar(Project prj, RunContext ctx, Path compileDir, Path jarFile) throws IOException {
+		String mainclass = ctx.getMainClassOr(prj);
 		Manifest manifest = new Manifest();
 		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
 		if (mainclass != null) {
 			manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, mainclass);
 		}
 
-		ss.getManifestAttributes().forEach((k, v) -> manifest.getMainAttributes().putValue(k, v));
+		prj.getManifestAttributes().forEach((k, v) -> manifest.getMainAttributes().putValue(k, v));
 
 		// When persistent JVM args are set they are appended to any runtime
 		// options set on the Source (that way persistent args can override
 		// options set on the Source)
-		List<String> rtArgs = ss.getRuntimeOptions();
+		List<String> rtArgs = prj.getRuntimeOptions();
 		String runtimeOpts = String.join(" ", escapeArguments(rtArgs));
 		if (!runtimeOpts.isEmpty()) {
 			manifest.getMainAttributes()
@@ -231,21 +232,21 @@ public abstract class BaseBuilder implements Builder {
 	protected void buildNative()
 			throws IOException {
 		List<String> optionList = new ArrayList<>();
-		optionList.add(resolveInGraalVMHome("native-image", ctx.getJavaVersionOr(ss)));
+		optionList.add(resolveInGraalVMHome("native-image", ctx.getJavaVersionOr(prj)));
 
 		optionList.add("-H:+ReportExceptionStackTraces");
 
 		optionList.add("--enable-https");
 
-		String classpath = ctx.resolveClassPath(ss).getClassPath();
+		String classpath = ctx.resolveClassPath(prj).getClassPath();
 		if (!Util.isBlankString(classpath)) {
 			optionList.add("--class-path=" + classpath);
 		}
 
 		optionList.add("-jar");
-		optionList.add(ss.getJarFile().toString());
+		optionList.add(prj.getJarFile().toString());
 
-		optionList.add(getNativeImageOutputName(ss.getJarFile()).toString());
+		optionList.add(getNativeImageOutputName(prj.getJarFile()).toString());
 
 		runNativeBuilder(optionList);
 	}
@@ -420,7 +421,7 @@ public abstract class BaseBuilder implements Builder {
 				}
 
 				if (!mains.isEmpty()) {
-					ss.setMainClass(mains.get(0).name().toString());
+					prj.setMainClass(mains.get(0).name().toString());
 					if (mains.size() > 1) {
 						Util.warnMsg(
 								"Could not locate unique main() method. Use -m to specify explicit main method. Falling back to use first found: "
@@ -430,7 +431,7 @@ public abstract class BaseBuilder implements Builder {
 					}
 				}
 
-				if (ss.getMainSource().isAgent()) {
+				if (prj.getMainSource().isAgent()) {
 					Optional<ClassInfo> agentmain = classes	.stream()
 															.filter(pubClass -> pubClass.method("agentmain",
 																	STRINGTYPE,
@@ -441,7 +442,7 @@ public abstract class BaseBuilder implements Builder {
 															.findFirst();
 
 					if (agentmain.isPresent()) {
-						ss.setAgentMainClass(agentmain.get().name().toString());
+						prj.setAgentMainClass(agentmain.get().name().toString());
 					}
 
 					Optional<ClassInfo> premain = classes	.stream()
@@ -454,7 +455,7 @@ public abstract class BaseBuilder implements Builder {
 															.findFirst();
 
 					if (premain.isPresent()) {
-						ss.setPreMainClass(premain.get().name().toString());
+						prj.setPreMainClass(premain.get().name().toString());
 					}
 				}
 			}
@@ -464,8 +465,8 @@ public abstract class BaseBuilder implements Builder {
 	}
 
 	protected String getSuggestedMain() {
-		if (!ss.getResourceRef().isStdin()) {
-			return ss.getResourceRef().getFile().getFileName().toString().replace(getMainExtension(), "");
+		if (!prj.getResourceRef().isStdin()) {
+			return prj.getResourceRef().getFile().getFileName().toString().replace(getMainExtension(), "");
 		} else {
 			return null;
 		}
@@ -487,13 +488,13 @@ public abstract class BaseBuilder implements Builder {
 			// ignore
 			Util.warnMsg("Could not locate pom.xml template");
 		} else {
-			String baseName = Util.getBaseName(ss.getResourceRef().getFile().getFileName().toString());
+			String baseName = Util.getBaseName(prj.getResourceRef().getFile().getFileName().toString());
 			String group = "group";
 			String artifact = baseName;
 			String version = "999-SNAPSHOT";
-			if (ss.getGav().isPresent()) {
+			if (prj.getGav().isPresent()) {
 				MavenCoordinate coord = DependencyUtil.depIdToArtifact(
-						DependencyUtil.gavWithVersion(ss.getGav().get()));
+						DependencyUtil.gavWithVersion(prj.getGav().get()));
 				group = coord.getGroupId();
 				artifact = coord.getArtifactId();
 				version = coord.getVersion();
@@ -503,8 +504,8 @@ public abstract class BaseBuilder implements Builder {
 										.data("group", group)
 										.data("artifact", artifact)
 										.data("version", version)
-										.data("description", ss.getDescription().orElse(""))
-										.data("dependencies", ctx.resolveClassPath(ss).getArtifacts())
+										.data("description", prj.getDescription().orElse(""))
+										.data("dependencies", ctx.resolveClassPath(prj).getArtifacts())
 										.render();
 
 			pomPath = tmpJarDir.resolve("META-INF/maven/" + group.replace(".", "/") + "/pom.xml");
@@ -515,6 +516,6 @@ public abstract class BaseBuilder implements Builder {
 	}
 
 	protected Path getCompileDir() {
-		return ss.getJarFile().getParent().resolve(ss.getJarFile().getFileName() + ".tmp");
+		return prj.getJarFile().getParent().resolve(prj.getJarFile().getFileName() + ".tmp");
 	}
 }

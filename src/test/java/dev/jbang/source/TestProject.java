@@ -8,17 +8,17 @@ import org.junit.jupiter.api.Test;
 import dev.jbang.BaseTest;
 import dev.jbang.source.sources.JavaSource;
 
-public class TestSourceSet extends BaseTest {
+public class TestProject extends BaseTest {
 
 	@Test
 	void testCDS() {
 		Source source = new JavaSource("//CDS\nclass m { }", null);
 		Source source2 = new JavaSource("class m { }", null);
 
-		SourceSet ss = source.createSourceSet();
-		SourceSet ss2 = source2.createSourceSet();
+		Project prj = source.createProject();
+		Project prj2 = source2.createProject();
 
-		assertTrue(ss.enableCDS());
-		assertFalse(ss2.enableCDS());
+		assertTrue(prj.enableCDS());
+		assertFalse(prj2.enableCDS());
 	}
 }

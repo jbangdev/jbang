@@ -38,7 +38,7 @@ public class Jar implements Code {
 	private int buildJdk;
 
 	// Cached values
-	private SourceSet sourceSet;
+	private Project project;
 
 	private Jar(ResourceRef resourceRef, Path jar) {
 		this.resourceRef = resourceRef;
@@ -82,21 +82,21 @@ public class Jar implements Code {
 	}
 
 	@Override
-	public SourceSet asSourceSet() {
-		if (sourceSet == null) {
-			sourceSet = Source.forResourceRef(resourceRef, null, null).createSourceSet();
-			sourceSet.setMainClass(getMainClass());
-			sourceSet.addRuntimeOptions(getRuntimeOptions());
-			sourceSet.setJavaVersion(getJavaVersion());
+	public Project asProject() {
+		if (project == null) {
+			project = Source.forResourceRef(resourceRef, null, null).createProject();
+			project.setMainClass(getMainClass());
+			project.addRuntimeOptions(getRuntimeOptions());
+			project.setJavaVersion(getJavaVersion());
 			// TODO deduplicate with code from updateDependencyResolver()
 			if (resourceRef.getOriginalResource() != null
 					&& DependencyUtil.looksLikeAGav(resourceRef.getOriginalResource())) {
-				sourceSet.addDependency(resourceRef.getOriginalResource());
+				project.getMainSourceSet().addDependency(resourceRef.getOriginalResource());
 			} else if (classPath != null) {
-				sourceSet.addClassPaths(Arrays.asList(classPath.split(" ")));
+				project.getMainSourceSet().addClassPaths(Arrays.asList(classPath.split(" ")));
 			}
 		}
-		return sourceSet;
+		return project;
 	}
 
 	/**
@@ -152,9 +152,9 @@ public class Jar implements Code {
 		return new Jar(resourceRef, jarFile);
 	}
 
-	public static Jar prepareJar(SourceSet ss) {
-		Jar jsrc = new Jar(ss.getResourceRef(), ss.getJarFile());
-		jsrc.sourceSet = ss;
+	public static Jar prepareJar(Project prj) {
+		Jar jsrc = new Jar(prj.getResourceRef(), prj.getJarFile());
+		jsrc.project = prj;
 		return jsrc;
 	}
 }

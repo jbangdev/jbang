@@ -313,7 +313,7 @@ public class RunContext {
 			if (code instanceof Jar) {
 				updateDependencyResolver(resolver);
 			}
-			code.asSourceSet().updateDependencyResolver(resolver);
+			code.asProject().updateDependencyResolver(resolver);
 			mcp = resolver.resolve();
 		}
 		return mcp;
@@ -388,7 +388,7 @@ public class RunContext {
 		if (resourceRef.getFile().getFileName().toString().endsWith(".jar")) {
 			code = Jar.prepareJar(resourceRef);
 		} else {
-			code = updateSourceSet(createSource(resourceRef).createSourceSet(getResourceResolver()));
+			code = updateProject(createSource(resourceRef).createProject(getResourceResolver()));
 		}
 		return code;
 	}
@@ -399,16 +399,17 @@ public class RunContext {
 
 	}
 
-	private SourceSet updateSourceSet(SourceSet ss) {
-		ss.addRepositories(allToMavenRepo(replaceAllProps(additionalRepos)));
+	private Project updateProject(Project prj) {
+		SourceSet ss = prj.getMainSourceSet();
+		prj.addRepositories(allToMavenRepo(replaceAllProps(additionalRepos)));
 		ss.addDependencies(replaceAllProps(additionalDeps));
 		ss.addClassPaths(replaceAllProps(additionalClasspaths));
-		updateAllSources(ss, replaceAllProps(additionalSources));
+		updateAllSources(prj, replaceAllProps(additionalSources));
 		ss.addResources(allToFileRef(replaceAllProps(additionalResources)));
-		return ss;
+		return prj;
 	}
 
-	private void updateAllSources(SourceSet ss, List<String> sources) {
+	private void updateAllSources(Project prj, List<String> sources) {
 		Catalog catalog = catalogFile != null ? Catalog.get(catalogFile.toPath()) : null;
 		ResourceResolver resolver = getResourceResolver();
 		Function<String, String> propsResolver = it -> PropertiesValueResolver.replaceProperties(it,
@@ -417,7 +418,7 @@ public class RunContext {
 				.flatMap(f -> Util.explode(null, Util.getCwd(), f).stream())
 				.map(s -> resolveChecked(resolver, s))
 				.map(ref -> Source.forResourceRef(ref, forceType, propsResolver))
-				.forEach(src -> src.updateSourceSet(ss, resolver));
+				.forEach(src -> src.updateProject(prj, resolver));
 	}
 
 	private List<RefTarget> allToFileRef(List<String> resources) {

@@ -15,11 +15,11 @@ public class JshSource extends JavaSource {
 	}
 
 	@Override
-	public Builder getBuilder(SourceSet ss, RunContext ctx) {
+	public Builder getBuilder(Project prj, RunContext ctx) {
 		return new Builder() {
 			@Override
-			public SourceSet build() throws IOException {
-				return ss;
+			public Project build() throws IOException {
+				return prj;
 			}
 		};
 	}
