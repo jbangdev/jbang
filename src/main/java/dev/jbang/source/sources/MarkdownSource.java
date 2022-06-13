@@ -13,7 +13,7 @@ import dev.jbang.source.Source;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.util.Util;
 
-public class MarkdownSource extends JavaSource {
+public class MarkdownSource extends JshSource {
 
 	protected MarkdownSource(ResourceRef ref, String script, Function<String, String> replaceProperties) {
 		super(ref, script, replaceProperties);

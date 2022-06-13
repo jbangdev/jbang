@@ -66,6 +66,21 @@ public abstract class Source {
 	// Cached values
 	private List<String> lines;
 
+	public enum Type {
+		java("java"), jshell("jsh"), kotlin("kt"),
+		groovy("groovy"), markdown("md");
+
+		public final String extension;
+
+		Type(String extension) {
+			this.extension = extension;
+		}
+
+		public static List<String> extensions() {
+			return Arrays.stream(values()).map(v -> v.extension).collect(Collectors.toList());
+		}
+	}
+
 	public Source(String contents, Function<String, String> replaceProperties) {
 		this(ResourceRef.nullRef, contents, replaceProperties);
 	}
@@ -453,7 +468,7 @@ public abstract class Source {
 													.map(String::trim))
 							.map(replaceProperties)
 							.flatMap(line -> Util.explode(org, baseDir, line).stream())
-							.map(ref -> forResource(siblingResolver, ref, replaceProperties))
+							.map(ref -> forResource(siblingResolver, ref, null, replaceProperties))
 							.collect(Collectors.toCollection(ArrayList::new));
 		}
 	}
@@ -523,28 +538,30 @@ public abstract class Source {
 		return ss;
 	}
 
-	public static Source forResource(String resource, Function<String, String> replaceProperties) {
-		return forResource(ResourceResolver.forResources(), resource, replaceProperties);
+	public static Source forResource(String resource, Type forceType, Function<String, String> replaceProperties) {
+		return forResource(ResourceResolver.forResources(), resource, forceType, replaceProperties);
 	}
 
-	public static Source forResource(ResourceResolver resolver, String resource,
+	public static Source forResource(ResourceResolver resolver, String resource, Type forceType,
 			Function<String, String> replaceProperties) {
 		ResourceRef resourceRef = resolver.resolve(resource);
 		if (resourceRef == null) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Could not find: " + resource);
 		}
-		return forResourceRef(resourceRef, replaceProperties);
+		return forResourceRef(resourceRef, forceType, replaceProperties);
 	}
 
-	public static Source forResourceRef(ResourceRef resourceRef, Function<String, String> replaceProperties) {
-		String originalResource = resourceRef.getOriginalResource();
-		if (originalResource != null && originalResource.endsWith(".kt")) {
+	public static Source forResourceRef(ResourceRef resourceRef, Type forceType,
+			Function<String, String> replaceProperties) {
+		String ext = forceType != null ? forceType.extension : resourceRef.getExtension();
+		if (ext.equals("kt")) {
 			return new KotlinSource(resourceRef, replaceProperties);
-		}
-		if (originalResource != null && originalResource.endsWith(".md")) {
-			return MarkdownSource.create(resourceRef, replaceProperties);
-		} else if (originalResource != null && originalResource.endsWith(".groovy")) {
+		} else if (ext.equals("groovy")) {
 			return new GroovySource(resourceRef, replaceProperties);
+		} else if (ext.equals("jsh")) {
+			return new JshSource(resourceRef, replaceProperties);
+		} else if (ext.equals("md")) {
+			return MarkdownSource.create(resourceRef, replaceProperties);
 		} else {
 			return new JavaSource(resourceRef, replaceProperties);
 		}

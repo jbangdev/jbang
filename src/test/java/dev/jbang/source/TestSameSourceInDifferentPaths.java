@@ -67,7 +67,7 @@ public class TestSameSourceInDifferentPaths extends BaseTest {
 		Path BPath = TestSource.createTmpFileWithContent(mainPath.getParent(), "person", "B.java", classB);
 		TestSource.createTmpFileWithContent(mainPath.getParent(), "model", "C.java", classModelC);
 		TestSource.createTmpFileWithContent(BPath.getParent(), "model", "C.java", classPersonModelC);
-		Source source = Source.forResource(mainPath.toString(), null);
+		Source source = Source.forResource(mainPath.toString(), null, null);
 		SourceSet ss = source.createSourceSet();
 		assertEquals(4, ss.getSources().size());
 	}

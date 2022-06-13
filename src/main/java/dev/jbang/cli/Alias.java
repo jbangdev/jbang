@@ -125,7 +125,7 @@ class AliasAdd extends BaseAliasCommand {
 		ctx.setAdditionalClasspaths(dependencyInfoMixin.getClasspaths());
 		ctx.setAdditionalSources(scriptMixin.sources);
 		ctx.setAdditionalResources(scriptMixin.resources);
-		ctx.setForceJsh(scriptMixin.forcejsh);
+		ctx.setForceType(scriptMixin.forceType);
 		ctx.setJavaVersion(javaVersion);
 		ctx.setMainClass(main);
 		Path cat = getCatalog(false);

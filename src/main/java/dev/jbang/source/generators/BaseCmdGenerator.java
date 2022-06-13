@@ -37,7 +37,7 @@ public abstract class BaseCmdGenerator implements CmdGenerator {
 		String args = String.join(" ", escapeOSArguments(fullArgs, shell));
 		// Check if we can and need to use @-files on Windows
 		boolean useArgsFile = false;
-		if (!(getCode().isJShell() || ctx.isForceJsh()) &&
+		if (!(getCode().isJShell() || ctx.getForceType() == Source.Type.jshell) &&
 				args.length() > COMMAND_LINE_LENGTH_LIMIT && Util.getShell() != Util.Shell.bash) {
 			// @file is only available from java 9 onwards.
 			String requestedJavaVersion = ctx.getJavaVersionOr(getCode());
