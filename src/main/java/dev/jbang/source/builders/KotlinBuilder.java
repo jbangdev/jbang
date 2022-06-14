@@ -7,13 +7,12 @@ import java.util.function.Predicate;
 import org.jboss.jandex.ClassInfo;
 
 import dev.jbang.source.Project;
-import dev.jbang.source.RunContext;
 import dev.jbang.source.sources.KotlinSource;
 
 public class KotlinBuilder extends BaseBuilder {
 
-	public KotlinBuilder(Project prj, RunContext ctx) {
-		super(prj, ctx);
+	public KotlinBuilder(Project prj) {
+		super(prj);
 	}
 
 	@Override

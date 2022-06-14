@@ -31,7 +31,7 @@ public class JavaSource extends Source {
 	}
 
 	@Override
-	public Builder getBuilder(Project prj, RunContext ctx) {
-		return new JavaBuilder(prj, ctx);
+	public Builder getBuilder(Project prj) {
+		return new JavaBuilder(prj);
 	}
 }

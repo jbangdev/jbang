@@ -15,7 +15,7 @@ public class JshSource extends JavaSource {
 	}
 
 	@Override
-	public Builder getBuilder(Project prj, RunContext ctx) {
+	public Builder getBuilder(Project prj) {
 		return new Builder() {
 			@Override
 			public Project build() throws IOException {

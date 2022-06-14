@@ -29,7 +29,6 @@ import io.quarkus.qute.Template;
 
 public abstract class BaseBuilder implements Builder {
 	protected final Project prj;
-	protected final RunContext ctx;
 
 	protected boolean fresh = Util.isFresh();
 	protected Util.Shell shell = Util.getShell();
@@ -44,9 +43,8 @@ public abstract class BaseBuilder implements Builder {
 	public static final Type INSTRUMENTATIONTYPE = Type.create(
 			DotName.createSimple("java.lang.instrument.Instrumentation"), Type.Kind.CLASS);
 
-	public BaseBuilder(Project prj, RunContext ctx) {
+	public BaseBuilder(Project prj) {
 		this.prj = prj;
-		this.ctx = ctx;
 	}
 
 	public BaseBuilder setFresh(boolean fresh) {
@@ -64,9 +62,9 @@ public abstract class BaseBuilder implements Builder {
 		Jar result = null;
 
 		Path outjar = prj.getJarFile();
-		boolean nativeBuildRequired = ctx.isNativeImage() && !Files.exists(getImageName(outjar));
+		boolean nativeBuildRequired = prj.isNativeImage() && !Files.exists(getImageName(outjar));
 		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
-		String requestedJavaVersion = ctx.getJavaVersionOr(prj);
+		String requestedJavaVersion = prj.getJavaVersion();
 		// always build the jar for native mode
 		// it allows integrations the options to produce the native image
 		boolean buildRequired = true;
@@ -90,7 +88,7 @@ public abstract class BaseBuilder implements Builder {
 								requestedJavaVersion, jarSrc.getJavaVersion()));
 			} else {
 				Util.verboseMsg("No build required. Reusing jar from " + jarSrc.getJarFile());
-				result = (Jar) ctx.importJarMetadataFor(jarSrc);
+				result = jarSrc;
 				buildRequired = false;
 			}
 		} else {
@@ -126,12 +124,12 @@ public abstract class BaseBuilder implements Builder {
 
 	// build with javac and then jar...
 	public IntegrationResult compile() throws IOException {
-		String requestedJavaVersion = ctx.getJavaVersionOr(prj);
+		String requestedJavaVersion = prj.getJavaVersion();
 		Path compileDir = getCompileDir();
 		List<String> optionList = new ArrayList<>();
 		optionList.add(getCompilerBinary(requestedJavaVersion));
 		optionList.addAll(prj.getMainSourceSet().getCompileOptions());
-		String path = ctx.resolveClassPath(prj).getClassPath();
+		String path = prj.resolveClassPath().getClassPath();
 		if (!Util.isBlankString(path)) {
 			optionList.addAll(Arrays.asList("-classpath", path));
 		}
@@ -153,19 +151,18 @@ public abstract class BaseBuilder implements Builder {
 		Util.verboseMsg("Compile: " + String.join(" ", optionList));
 		runCompiler(optionList);
 
-		ctx.setBuildJdk(JavaUtil.javaVersion(requestedJavaVersion));
 		// todo: setting properties to avoid loosing properties in integration call.
 		Properties old = System.getProperties();
 		Properties temp = new Properties(System.getProperties());
-		for (Map.Entry<String, String> entry : ctx.getProperties().entrySet()) {
+		for (Map.Entry<String, String> entry : prj.getProperties().entrySet()) {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
-		IntegrationResult integrationResult = IntegrationManager.runIntegrations(prj, ctx, compileDir, pomPath);
+		IntegrationResult integrationResult = IntegrationManager.runIntegrations(prj, compileDir, pomPath);
 		System.setProperties(old);
 
-		if (ctx.getMainClassOr(prj) == null) { // if non-null user forced set main
+		if (prj.getMainClass() == null) { // if non-null user forced set main
 			if (integrationResult.mainClass != null) {
-				ctx.setMainClass(integrationResult.mainClass);
+				prj.setMainClass(integrationResult.mainClass);
 			} else {
 				searchForMain(compileDir);
 			}
@@ -196,11 +193,11 @@ public abstract class BaseBuilder implements Builder {
 	}
 
 	public void createJar() throws IOException {
-		createJar(prj, ctx, getCompileDir(), prj.getJarFile());
+		createJar(prj, getCompileDir(), prj.getJarFile());
 	}
 
-	public static void createJar(Project prj, RunContext ctx, Path compileDir, Path jarFile) throws IOException {
-		String mainclass = ctx.getMainClassOr(prj);
+	public static void createJar(Project prj, Path compileDir, Path jarFile) throws IOException {
+		String mainclass = prj.getMainClass();
 		Manifest manifest = new Manifest();
 		manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
 		if (mainclass != null) {
@@ -218,7 +215,7 @@ public abstract class BaseBuilder implements Builder {
 			manifest.getMainAttributes()
 					.putValue(ATTR_JBANG_JAVA_OPTIONS, runtimeOpts);
 		}
-		int buildJdk = ctx.getBuildJdk();
+		int buildJdk = JavaUtil.javaVersion(prj.getJavaVersion());
 		if (buildJdk > 0) {
 			String val = buildJdk >= 9 ? Integer.toString(buildJdk) : "1." + buildJdk;
 			manifest.getMainAttributes().putValue(ATTR_BUILD_JDK, val);
@@ -232,13 +229,13 @@ public abstract class BaseBuilder implements Builder {
 	protected void buildNative()
 			throws IOException {
 		List<String> optionList = new ArrayList<>();
-		optionList.add(resolveInGraalVMHome("native-image", ctx.getJavaVersionOr(prj)));
+		optionList.add(resolveInGraalVMHome("native-image", prj.getJavaVersion()));
 
 		optionList.add("-H:+ReportExceptionStackTraces");
 
 		optionList.add("--enable-https");
 
-		String classpath = ctx.resolveClassPath(prj).getClassPath();
+		String classpath = prj.resolveClassPath().getClassPath();
 		if (!Util.isBlankString(classpath)) {
 			optionList.add("--class-path=" + classpath);
 		}
@@ -505,7 +502,7 @@ public abstract class BaseBuilder implements Builder {
 										.data("artifact", artifact)
 										.data("version", version)
 										.data("description", prj.getDescription().orElse(""))
-										.data("dependencies", ctx.resolveClassPath(prj).getArtifacts())
+										.data("dependencies", prj.resolveClassPath().getArtifacts())
 										.render();
 
 			pomPath = tmpJarDir.resolve("META-INF/maven/" + group.replace(".", "/") + "/pom.xml");

@@ -124,6 +124,17 @@ public class Jar implements Code {
 		return buildJdk + "+";
 	}
 
+	/**
+	 * Returns the actual Java version that was used to build this Jar. Will return
+	 * 0 if the information is not available (for example because the Jar hasn't
+	 * been built yet).
+	 *
+	 * @return The Java version that was used to build this code or 0
+	 */
+	public int getBuildJdk() {
+		return buildJdk;
+	}
+
 	@Override
 	public String getMainClass() {
 		return mainClass;
@@ -135,7 +146,7 @@ public class Jar implements Code {
 	}
 
 	@Override
-	public Builder builder(RunContext ctx) {
+	public Builder builder() {
 		return () -> this;
 	}
 

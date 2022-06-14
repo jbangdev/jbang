@@ -108,7 +108,7 @@ class AppInstall extends BaseCommand {
 		if (!ctx.isAlias() && !DependencyUtil.looksLikeAGav(scriptRef) && !code.getResourceRef().isURL()) {
 			scriptRef = code.getResourceRef().getFile().toAbsolutePath().toString();
 		}
-		code.builder(ctx).build();
+		code.builder().build();
 		installScripts(name, scriptRef, benative);
 		Util.infoMsg("Command installed: " + name);
 		return true;

@@ -32,7 +32,7 @@ public class TestBuilder extends BaseTest {
 		ctx.setAdditionalSources(Arrays.asList(bar.toString()));
 		Project prj = (Project) ctx.forResource(foo.toString());
 
-		new JavaBuilder(prj, ctx) {
+		new JavaBuilder(prj) {
 			@Override
 			protected void runCompiler(List<String> optionList)
 					throws IOException {
@@ -54,7 +54,7 @@ public class TestBuilder extends BaseTest {
 		ctx.setAdditionalSources(Arrays.asList("bar"));
 		Project prj = (Project) ctx.forResource(mainFile);
 
-		new JavaBuilder(prj, ctx) {
+		new JavaBuilder(prj) {
 			@Override
 			protected void runCompiler(List<String> optionList)
 					throws IOException {
@@ -79,7 +79,7 @@ public class TestBuilder extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		Project prj = (Project) ctx.forResource(mainFile.toString());
 
-		new JavaBuilder(prj, ctx) {
+		new JavaBuilder(prj) {
 			@Override
 			protected void runCompiler(List<String> optionList)
 					throws IOException {
@@ -100,7 +100,7 @@ public class TestBuilder extends BaseTest {
 		ctx.setAdditionalSources(Arrays.asList("bar/*.java"));
 		Project prj = (Project) ctx.forResource(mainFile);
 
-		new JavaBuilder(prj, ctx) {
+		new JavaBuilder(prj) {
 			@Override
 			protected void runCompiler(List<String> optionList)
 					throws IOException {
@@ -121,7 +121,7 @@ public class TestBuilder extends BaseTest {
 		ctx.setAdditionalSources(Arrays.asList(incGlob));
 		Project prj = (Project) ctx.forResource(mainFile);
 
-		new JavaBuilder(prj, ctx) {
+		new JavaBuilder(prj) {
 			@Override
 			protected void runCompiler(List<String> optionList)
 					throws IOException {
@@ -142,7 +142,7 @@ public class TestBuilder extends BaseTest {
 		ctx.setAdditionalSources(Arrays.asList("bar"));
 		Project prj = (Project) ctx.forResource(mainFile);
 
-		new JavaBuilder(prj, ctx) {
+		new JavaBuilder(prj) {
 			@Override
 			protected void runCompiler(List<String> optionList)
 					throws IOException {
@@ -165,7 +165,7 @@ public class TestBuilder extends BaseTest {
 				Paths.get("res").resolve(res2).toString()));
 		Project prj = (Project) ctx.forResource(foo.toString());
 
-		new JavaBuilder(prj, ctx) {
+		new JavaBuilder(prj) {
 			@Override
 			protected void runCompiler(List<String> optionList) {
 				// Skip the compiler
@@ -192,7 +192,7 @@ public class TestBuilder extends BaseTest {
 				"somedir/=" + Paths.get("res").resolve(res2)));
 		Project prj = (Project) ctx.forResource(foo.toString());
 
-		new JavaBuilder(prj, ctx) {
+		new JavaBuilder(prj) {
 			@Override
 			protected void runCompiler(List<String> optionList) {
 				// Skip the compiler
@@ -221,7 +221,7 @@ public class TestBuilder extends BaseTest {
 		ctx.setAdditionalResources(Arrays.asList("res/**.properties"));
 		Project prj = (Project) ctx.forResource(foo.toString());
 
-		new JavaBuilder(prj, ctx) {
+		new JavaBuilder(prj) {
 			@Override
 			protected void runCompiler(List<String> optionList) {
 				assertThat(optionList, hasItem(endsWith(File.separator + "foo.java")));
@@ -253,7 +253,7 @@ public class TestBuilder extends BaseTest {
 		ctx.setAdditionalResources(Arrays.asList("res"));
 		Project prj = (Project) ctx.forResource(foo.toString());
 
-		new JavaBuilder(prj, ctx) {
+		new JavaBuilder(prj) {
 			@Override
 			protected void runCompiler(List<String> optionList) {
 				assertThat(optionList, hasItem(endsWith(File.separator + "foo.java")));

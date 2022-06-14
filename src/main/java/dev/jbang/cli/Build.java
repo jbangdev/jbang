@@ -14,7 +14,7 @@ public class Build extends BaseBuildCommand {
 		scriptMixin.validate();
 
 		RunContext ctx = getRunContext();
-		ctx.forResource(scriptMixin.scriptOrFile).builder(ctx).build();
+		ctx.forResource(scriptMixin.scriptOrFile).builder().build();
 
 		return EXIT_OK;
 	}

@@ -8,6 +8,8 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nonnull;
+
 import dev.jbang.dependencies.DependencyResolver;
 
 /**
@@ -42,6 +44,7 @@ public interface Code {
 	 * Returns the runtime Java options that should be passed to the `java`
 	 * executable when the application gets run.
 	 */
+	@Nonnull
 	default List<String> getRuntimeOptions() {
 		return Collections.emptyList();
 	}
@@ -54,8 +57,7 @@ public interface Code {
 	}
 
 	/**
-	 * Returns the requested Java version. Returns `Optional.empty()` if no version
-	 * was set.
+	 * Returns the requested Java version. Returns `null` if no version was set.
 	 */
 	default String getJavaVersion() {
 		return null;
@@ -83,6 +85,38 @@ public interface Code {
 	 */
 	DependencyResolver updateDependencyResolver(DependencyResolver resolver);
 
+	/**
+	 * Returns the Jar associated with this Input or `null` if there is none.
+	 */
+	Jar asJar();
+
+	/**
+	 * Returns the Project associated with this Code or `null` if there is none.
+	 */
+	Project asProject();
+
+	/**
+	 * Returns true if the Code needs to be turned into a Jar before it can be
+	 * executed. Only Code that never needs building returns false, for example when
+	 * dealing with scripting code (eg JShell) or with pre-existing jar files (e.g.
+	 * we're directly running a Maven GAV). This method can _not_ be used to detect
+	 * if a jar doesn't exist or is not up-to-date and needs to be rebuilt!
+	 * 
+	 * @param ctx a <code>RunContext</code>
+	 * @return a boolean indicating if this Code needs building before it can be
+	 *         executed
+	 */
+	default boolean needsBuild(RunContext ctx) {
+		// anything but .jar and .jsh files needs jar
+		return !(isJar() || isJShell() || ctx.getForceType() == Source.Type.jshell || ctx.isInteractive());
+	}
+
+	@Nonnull
+	Builder builder();
+
+	@Nonnull
+	CmdGenerator cmdGenerator(RunContext ctx);
+
 	default boolean isJar() {
 		return Code.isJar(getResourceRef().getFile());
 	}
@@ -98,25 +132,6 @@ public interface Code {
 	static boolean isJShell(Path backingFile) {
 		return backingFile != null && backingFile.toString().endsWith(".jsh");
 	}
-
-	/**
-	 * Returns the Jar associated with this Input or `null` if there is none.
-	 */
-	Jar asJar();
-
-	/**
-	 * Returns the Project associated with this Code or `null` if there is none.
-	 */
-	Project asProject();
-
-	default boolean needsBuild(RunContext ctx) {
-		// anything but .jar and .jsh files needs jar
-		return !(isJar() || isJShell() || ctx.getForceType() == Source.Type.jshell || ctx.isInteractive());
-	}
-
-	Builder builder(RunContext ctx);
-
-	CmdGenerator cmdGenerator(RunContext ctx);
 
 	// https://stackoverflow.com/questions/366202/regex-for-splitting-a-string-using-space-when-not-surrounded-by-single-or-double
 	static List<String> quotedStringToList(String subjectString) {

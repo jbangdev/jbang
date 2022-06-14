@@ -127,7 +127,7 @@ public class Run extends BaseBuildCommand {
 	}
 
 	Code prepareArtifacts(Code code, RunContext ctx) throws IOException {
-		code = code.builder(ctx).build();
+		code = code.builder().build();
 
 		if (javaAgentSlots != null) {
 			for (Map.Entry<String, String> agentOption : javaAgentSlots.entrySet()) {
@@ -135,7 +135,7 @@ public class Run extends BaseBuildCommand {
 				String javaAgentOptions = agentOption.getValue();
 				RunContext actx = super.getRunContext();
 				actx.setJavaAgentOption(javaAgentOptions);
-				Code asrc = actx.forResource(javaAgent).builder(actx).build();
+				Code asrc = actx.forResource(javaAgent).builder().build();
 				ctx.addJavaAgent(asrc, actx);
 			}
 		}

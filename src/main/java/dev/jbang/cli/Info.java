@@ -96,8 +96,8 @@ abstract class BaseInfoCommand extends BaseCommand {
 						resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 					}
 
-					if (ctx.getBuildJdk() > 0) {
-						javaVersion = Integer.toString(ctx.getBuildJdk());
+					if (code.asJar() != null && code.asJar().getBuildJdk() > 0) {
+						javaVersion = Integer.toString(code.asJar().getBuildJdk());
 					}
 
 					List<String> opts = ctx.getRuntimeOptionsMerged(code);
@@ -152,7 +152,10 @@ abstract class BaseInfoCommand extends BaseCommand {
 		scriptMixin.validate();
 
 		RunContext ctx = getRunContext();
-		Code code = ctx.importJarMetadataFor(ctx.forResource(scriptMixin.scriptOrFile));
+		Code code = ctx.forResource(scriptMixin.scriptOrFile);
+		if (code.asJar() != null) {
+			code = code.asJar();
+		}
 
 		scripts = new HashSet<>();
 
