@@ -11,6 +11,7 @@ import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.MavenRepo;
+import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.source.generators.JarCmdGenerator;
 import dev.jbang.source.generators.JshCmdGenerator;
 
@@ -23,17 +24,22 @@ import dev.jbang.source.generators.JshCmdGenerator;
 public class Project implements Code {
 	private final Source mainSource;
 
+	// Public (user) input values (can be changed from the outside at any time)
 	private final SourceSet mainSourceSet = new SourceSet();
 	private final List<MavenRepo> repositories = new ArrayList<>();
 	private final List<String> runtimeOptions = new ArrayList<>();
+	private Map<String, String> properties = new HashMap<>();
 	private final Map<String, String> manifestAttributes = new LinkedHashMap<>();
 	private String javaVersion;
 	private String description;
 	private String gav;
 	private String mainClass;
+	private boolean nativeImage;
 
+	// Cached values
 	private Path jarFile;
 	private Jar jar;
+	private ModularClassPath mcp;
 
 	public static final String ATTR_PREMAIN_CLASS = "Premain-Class";
 	public static final String ATTR_AGENT_CLASS = "Agent-Class";
@@ -54,13 +60,13 @@ public class Project implements Code {
 	}
 
 	@Nonnull
-	public Project addRepository(MavenRepo repository) {
+	public Project addRepository(@Nonnull MavenRepo repository) {
 		repositories.add(repository);
 		return this;
 	}
 
 	@Nonnull
-	public Project addRepositories(Collection<MavenRepo> repositories) {
+	public Project addRepositories(@Nonnull Collection<MavenRepo> repositories) {
 		this.repositories.addAll(repositories);
 		return this;
 	}
@@ -71,15 +77,24 @@ public class Project implements Code {
 	}
 
 	@Nonnull
-	public Project addRuntimeOption(String option) {
+	public Project addRuntimeOption(@Nonnull String option) {
 		runtimeOptions.add(option);
 		return this;
 	}
 
 	@Nonnull
-	public Project addRuntimeOptions(Collection<String> options) {
+	public Project addRuntimeOptions(@Nonnull Collection<String> options) {
 		runtimeOptions.addAll(options);
 		return this;
+	}
+
+	@Nonnull
+	public Map<String, String> getProperties() {
+		return properties;
+	}
+
+	public void setProperties(@Nonnull Map<String, String> properties) {
+		this.properties = properties;
 	}
 
 	@Nonnull
@@ -137,9 +152,27 @@ public class Project implements Code {
 		this.mainClass = mainClass;
 	}
 
+	public boolean isNativeImage() {
+		return nativeImage;
+	}
+
+	public void setNativeImage(boolean isNative) {
+		this.nativeImage = isNative;
+	}
+
 	@Override
 	public boolean enableCDS() {
 		return getMainSource().enableCDS();
+	}
+
+	@Nonnull
+	public ModularClassPath resolveClassPath() {
+		if (mcp == null) {
+			DependencyResolver resolver = new DependencyResolver();
+			updateDependencyResolver(resolver);
+			mcp = resolver.resolve();
+		}
+		return mcp;
 	}
 
 	@Nonnull
@@ -197,8 +230,9 @@ public class Project implements Code {
 	 * @return A <code>Builder</code>
 	 */
 	@Override
-	public Builder builder(RunContext ctx) {
-		return getMainSource().getBuilder(this, ctx);
+	@Nonnull
+	public Builder builder() {
+		return getMainSource().getBuilder(this);
 	}
 
 	/**
@@ -210,6 +244,7 @@ public class Project implements Code {
 	 * @return A <code>CmdGenerator</code>
 	 */
 	@Override
+	@Nonnull
 	public CmdGenerator cmdGenerator(RunContext ctx) {
 		if (needsBuild(ctx)) {
 			return new JarCmdGenerator(this, ctx);

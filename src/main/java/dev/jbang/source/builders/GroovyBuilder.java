@@ -9,13 +9,12 @@ import org.jboss.jandex.ClassInfo;
 
 import dev.jbang.net.JdkManager;
 import dev.jbang.source.Project;
-import dev.jbang.source.RunContext;
 import dev.jbang.source.sources.GroovySource;
 
 public class GroovyBuilder extends BaseBuilder {
 
-	public GroovyBuilder(Project prj, RunContext ctx) {
-		super(prj, ctx);
+	public GroovyBuilder(Project prj) {
+		super(prj);
 	}
 
 	@Override
@@ -38,7 +37,7 @@ public class GroovyBuilder extends BaseBuilder {
 	protected void runCompiler(ProcessBuilder processBuilder) throws IOException {
 		if (prj.getMainSource() instanceof GroovySource) {
 			processBuilder	.environment()
-							.put("JAVA_HOME", JdkManager.getCurrentJdk(ctx.getJavaVersionOr(prj)).toString());
+							.put("JAVA_HOME", JdkManager.getCurrentJdk(prj.getJavaVersion()).toString());
 			processBuilder.environment().remove("GROOVY_HOME");
 		}
 		super.runCompiler(processBuilder);

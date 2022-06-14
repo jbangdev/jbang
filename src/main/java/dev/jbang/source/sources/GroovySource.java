@@ -24,8 +24,8 @@ public class GroovySource extends Source {
 	}
 
 	@Override
-	public Builder getBuilder(Project prj, RunContext ctx) {
-		return new GroovyBuilder(prj, ctx);
+	public Builder getBuilder(Project prj) {
+		return new GroovyBuilder(prj);
 	}
 
 	@Override

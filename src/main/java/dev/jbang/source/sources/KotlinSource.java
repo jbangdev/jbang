@@ -25,8 +25,8 @@ public class KotlinSource extends Source {
 	}
 
 	@Override
-	public Builder getBuilder(Project prj, RunContext ctx) {
-		return new KotlinBuilder(prj, ctx);
+	public Builder getBuilder(Project prj) {
+		return new KotlinBuilder(prj);
 	}
 
 	public String getKotlinVersion() {

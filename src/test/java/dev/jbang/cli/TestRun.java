@@ -65,6 +65,7 @@ import dev.jbang.source.generators.JarCmdGenerator;
 import dev.jbang.source.generators.JshCmdGenerator;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.source.sources.JavaSource;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -793,9 +794,9 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		Source src = new JavaSource("", null);
 		Project prj = src.createProject();
-		ctx.setMainClass("wonkabear");
+		prj.setMainClass("wonkabear");
 
-		BaseBuilder.createJar(prj, ctx, dir, out);
+		BaseBuilder.createJar(prj, dir, out);
 
 		try (JarFile jf = new JarFile(out.toFile())) {
 
@@ -853,7 +854,7 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = RunContext.empty();
 		Project prj = (Project) ctx.forFile(f);
-		Code jar = prj.builder(ctx).build();
+		Code jar = prj.builder().build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("aclass"));
 
@@ -903,7 +904,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		Project prj = (Project) ctx.forFile(f);
 
-		Code jar = prj.builder(ctx).build();
+		Code jar = prj.builder().build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("dualclass"));
 
@@ -940,7 +941,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		Project prj = (Project) ctx.forResource(arg);
 
-		Code jar = prj.builder(ctx).build();
+		Code jar = prj.builder().build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("dualclass"));
 
@@ -1206,7 +1207,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = build.getRunContext();
 		Project prj = (Project) ctx.forResource(p.toFile().getAbsolutePath());
 
-		prj.builder(ctx).build();
+		prj.builder().build();
 
 		assertThat(prj.getMainSource().isAgent(), is(true));
 
@@ -1235,7 +1236,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = build.getRunContext();
 		Project prj = (Project) ctx.forResource(p.toFile().getAbsolutePath());
 
-		prj.builder(ctx).build();
+		prj.builder().build();
 
 		assertThat(prj.getMainSource().isAgent(), is(true));
 
@@ -1357,7 +1358,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		Project prj = (Project) ctx.forResource(f.getAbsolutePath());
 
-		Code jar = prj.builder(ctx).build();
+		Code jar = prj.builder().build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("resource"));
 
@@ -1402,7 +1403,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		Project prj = (Project) ctx.forResource(f.getAbsolutePath());
 
-		Code jar = prj.builder(ctx).build();
+		Code jar = prj.builder().build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("one"));
 
@@ -1433,7 +1434,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		Project prj = (Project) ctx.forResource(f.getAbsolutePath());
 
-		Code jar = prj.builder(ctx).build();
+		Code jar = prj.builder().build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("resources"));
 
@@ -1460,7 +1461,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		Project prj = (Project) ctx.forResource(f.getAbsolutePath());
 
-		Code jar = prj.builder(ctx).build();
+		Code jar = prj.builder().build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("resourcesmnt"));
 
@@ -1514,7 +1515,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		Project prj = (Project) ctx.forResource(url);
 
-		prj.builder(ctx).build();
+		prj.builder().build();
 
 	}
 
@@ -1539,7 +1540,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		Project prj = (Project) ctx.forResource(p.toFile().getAbsolutePath());
 
-		prj.builder(ctx).build();
+		prj.builder().build();
 
 		assertThat(prj.getMainClass(), equalTo("Two"));
 
@@ -1568,7 +1569,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		Project prj = (Project) ctx.forResource(p.toFile().getAbsolutePath());
 
-		prj.builder(ctx).build();
+		prj.builder().build();
 
 		assertThat(prj.getMainClass(), equalTo("One"));
 
@@ -1587,7 +1588,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		Project prj = (Project) ctx.forResource(p.toFile().getAbsolutePath());
 
-		prj.builder(ctx).build();
+		prj.builder().build();
 
 		assertThat(ctx.getMainClassOr(prj), equalTo("Three"));
 
@@ -1604,7 +1605,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = build.getRunContext();
 		Project prj = (Project) ctx.forResource(mainFile);
 
-		new JavaBuilder(prj, ctx) {
+		new JavaBuilder(prj) {
 			@Override
 			protected void runCompiler(List<String> optionList)
 					throws IOException {
@@ -1628,7 +1629,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = build.getRunContext();
 		Project prj = (Project) ctx.forResource(mainFile.toString());
 
-		new JavaBuilder(prj, ctx) {
+		new JavaBuilder(prj) {
 			@Override
 			protected void runCompiler(List<String> optionList) {
 				assertThat(optionList, hasItem(endsWith(File.separator + "foo.java")));
@@ -1684,7 +1685,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		Project prj = (Project) ctx.forResource(url);
 
-		prj.builder(ctx).build();
+		prj.builder().build();
 
 		try (FileSystem fileSystem = FileSystems.newFileSystem(prj.getJarFile(), (ClassLoader) null)) {
 			Arrays	.asList("one.class", "index.html")
@@ -1722,7 +1723,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		Project prj = (Project) ctx.forResource(url);
 
-		prj.builder(ctx).build();
+		prj.builder().build();
 	}
 
 	@Test
@@ -1745,7 +1746,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		Project prj = (Project) ctx.forResource(dir.toPath().toString());
 
-		prj.builder(ctx).build();
+		prj.builder().build();
 
 	}
 
@@ -1778,7 +1779,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = RunContext.empty();
 		Project prj = (Project) ctx.forResource(url);
 
-		prj.builder(ctx).build();
+		prj.builder().build();
 	}
 
 	@Test
@@ -1944,7 +1945,7 @@ public class TestRun extends BaseTest {
 		Project prj = (Project) ctx.forResource(arg);
 
 		try {
-			prj.builder(ctx).build();
+			prj.builder().build();
 			fail("Should have thrown exception");
 		} catch (ExitException ex) {
 			StringWriter sw = new StringWriter();
@@ -2092,8 +2093,8 @@ public class TestRun extends BaseTest {
 				+ "}";
 		Util.writeString(f.toPath(), content);
 
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "--fresh", "--repos", "mavencentral", f.getPath());
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+				.parseArgs("run", "--fresh", "--repos", "mavencentral", f.getPath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
@@ -2103,5 +2104,17 @@ public class TestRun extends BaseTest {
 		String result = code.cmdGenerator(ctx).generate();
 
 		assertThat(result, containsString("log4j-1.2.17.jar"));
+	}
+
+	@Test
+	void testForceJavaVersion() throws IOException {
+		int v = JavaUtil.determineJavaVersion();
+		String arg = examplesTestFolder.resolve("java4321.java").toAbsolutePath().toString();
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--java", "" + v, arg);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+		Code code = ctx.forResource(arg);
+		assertThat(code.getJavaVersion(), equalTo("" + v));
 	}
 }

@@ -13,7 +13,6 @@ import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.*;
 import dev.jbang.source.resolvers.*;
-import dev.jbang.util.JavaUtil;
 import dev.jbang.util.PropertiesValueResolver;
 import dev.jbang.util.Util;
 
@@ -33,7 +32,6 @@ public class RunContext {
 	private Map<String, String> properties = Collections.emptyMap();
 	private Source.Type forceType = null;
 	private String mainClass;
-	private int buildJdk;
 	private String javaAgentOption;
 	private List<AgentSourceContext> javaAgents;
 	private File catalogFile;
@@ -234,14 +232,6 @@ public class RunContext {
 		return opts;
 	}
 
-	public int getBuildJdk() {
-		return buildJdk;
-	}
-
-	public void setBuildJdk(int javaVersion) {
-		this.buildJdk = javaVersion;
-	}
-
 	public String getJavaAgentOption() {
 		return javaAgentOption;
 	}
@@ -347,21 +337,6 @@ public class RunContext {
 		return mcp.getAutoDectectedModuleArguments(requestedVersion);
 	}
 
-	/**
-	 * If the given source is a JarSource its metadata will be copied to this
-	 * RunContext and the JarSource will be returned. In any other case the given
-	 * source will be returned;
-	 */
-	public Code importJarMetadataFor(Code code) {
-		Jar jar = code.asJar();
-		if (jar != null && jar.isUpToDate()) {
-			setBuildJdk(JavaUtil.javaVersion(jar.getJavaVersion()));
-			return jar;
-		} else {
-			return code;
-		}
-	}
-
 	public Code forResource(String resource) {
 		ResourceRef resourceRef = resolveChecked(getResourceResolver(), resource);
 		return forResourceRef(resourceRef);
@@ -406,6 +381,14 @@ public class RunContext {
 		ss.addClassPaths(replaceAllProps(additionalClasspaths));
 		updateAllSources(prj, replaceAllProps(additionalSources));
 		ss.addResources(allToFileRef(replaceAllProps(additionalResources)));
+		prj.setProperties(properties);
+		if (mainClass != null) {
+			prj.setMainClass(mainClass);
+		}
+		if (javaVersion != null) {
+			prj.setJavaVersion(javaVersion);
+		}
+		prj.setNativeImage(nativeImage);
 		return prj;
 	}
 
