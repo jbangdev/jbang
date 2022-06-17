@@ -22,7 +22,9 @@ import dev.jbang.source.generators.JshCmdGenerator;
  * <code>Builder</code> to create a JAR file, for example.
  */
 public class Project implements Code {
-	private final Source mainSource;
+	@Nonnull
+	private final ResourceRef resourceRef;
+	private Source mainSource;
 
 	// Public (user) input values (can be changed from the outside at any time)
 	private final SourceSet mainSourceSet = new SourceSet();
@@ -44,9 +46,23 @@ public class Project implements Code {
 	public static final String ATTR_PREMAIN_CLASS = "Premain-Class";
 	public static final String ATTR_AGENT_CLASS = "Agent-Class";
 
+	public Project(@Nonnull ResourceRef resourceRef) {
+		this.resourceRef = resourceRef;
+		if (Code.isJar(resourceRef.getFile())) {
+			jarFile = resourceRef.getFile();
+		}
+	}
+
 	// TODO This should be refactored and removed
-	public Project(Source mainSource) {
+	public Project(@Nonnull Source mainSource) {
+		this.resourceRef = mainSource.getResourceRef();
 		this.mainSource = mainSource;
+	}
+
+	@Override
+	@Nonnull
+	public ResourceRef getResourceRef() {
+		return resourceRef;
 	}
 
 	@Nonnull
@@ -162,7 +178,7 @@ public class Project implements Code {
 
 	@Override
 	public boolean enableCDS() {
-		return getMainSource().enableCDS();
+		return mainSource != null && mainSource.enableCDS();
 	}
 
 	@Nonnull
@@ -186,10 +202,8 @@ public class Project implements Code {
 		return mainSource;
 	}
 
-	@Override
-	@Nonnull
-	public ResourceRef getResourceRef() {
-		return mainSource.getResourceRef();
+	public void setMainSource(Source mainSource) {
+		this.mainSource = mainSource;
 	}
 
 	@Override
@@ -226,13 +240,16 @@ public class Project implements Code {
 	 * Returns a <code>Builder</code> that can be used to turn this
 	 * <code>Project</code> into executable code.
 	 * 
-	 * @param ctx A reference to a <code>RunContext</code>
 	 * @return A <code>Builder</code>
 	 */
 	@Override
 	@Nonnull
 	public Builder builder() {
-		return getMainSource().getBuilder(this);
+		if (mainSource != null) {
+			return mainSource.getBuilder(this);
+		} else {
+			return this::asJar;
+		}
 	}
 
 	/**
@@ -246,10 +263,10 @@ public class Project implements Code {
 	@Override
 	@Nonnull
 	public CmdGenerator cmdGenerator(RunContext ctx) {
-		if (needsBuild(ctx)) {
-			return new JarCmdGenerator(this, ctx);
-		} else {
+		if (isJShell() || ctx.getForceType() == Source.Type.jshell || ctx.isInteractive()) {
 			return new JshCmdGenerator(this, ctx);
+		} else {
+			return new JarCmdGenerator(this, ctx);
 		}
 	}
 }

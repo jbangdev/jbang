@@ -300,9 +300,6 @@ public class RunContext {
 	public ModularClassPath resolveClassPath(Code code) {
 		if (mcp == null) {
 			DependencyResolver resolver = new DependencyResolver();
-			if (code instanceof Jar) {
-				updateDependencyResolver(resolver);
-			}
 			code.asProject().updateDependencyResolver(resolver);
 			mcp = resolver.resolve();
 		}
@@ -337,7 +334,7 @@ public class RunContext {
 		return mcp.getAutoDectectedModuleArguments(requestedVersion);
 	}
 
-	public Code forResource(String resource) {
+	public Project forResource(String resource) {
 		ResourceRef resourceRef = resolveChecked(getResourceResolver(), resource);
 		return forResourceRef(resourceRef);
 	}
@@ -353,19 +350,19 @@ public class RunContext {
 		return ref;
 	}
 
-	public Code forFile(Path resourceFile) {
+	public Project forFile(Path resourceFile) {
 		ResourceRef resourceRef = ResourceRef.forFile(resourceFile);
 		return forResourceRef(resourceRef);
 	}
 
-	public Code forResourceRef(ResourceRef resourceRef) {
-		Code code;
+	public Project forResourceRef(ResourceRef resourceRef) {
+		Project prj;
 		if (resourceRef.getFile().getFileName().toString().endsWith(".jar")) {
-			code = Jar.prepareJar(resourceRef);
+			prj = updateProject(Jar.prepareJar(resourceRef).asProject());
 		} else {
-			code = updateProject(createSource(resourceRef).createProject(getResourceResolver()));
+			prj = updateProject(createSource(resourceRef).createProject(getResourceResolver()));
 		}
-		return code;
+		return prj;
 	}
 
 	public Source createSource(ResourceRef resourceRef) {

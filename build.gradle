@@ -185,6 +185,9 @@ test {
 	useJUnitPlatform()
 	//testLogging.showStandardStreams = true
 
+	jacoco {
+		enabled = false
+	}
 }
 
 jacoco {

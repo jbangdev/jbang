@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import dev.jbang.source.Code;
+import dev.jbang.source.Project;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.Source;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
@@ -70,7 +71,7 @@ public class Run extends BaseBuildCommand {
 		String scriptOrFile = scriptMixin.scriptOrFile;
 
 		RunContext ctx = getRunContext();
-		Code code;
+		Project prj;
 		if (literalScript.isPresent()) {
 			String script;
 			if (!literalScript.get().isEmpty()) {
@@ -80,25 +81,24 @@ public class Run extends BaseBuildCommand {
 					args.add(scriptOrFile);
 					args.addAll(ctx.getArguments());
 					ctx.setArguments(args);
-					scriptOrFile = null;
 				}
 			} else {
 				script = scriptOrFile;
 			}
 			Util.verboseMsg("Literal Script to execute: '" + script + "'");
-			code = ctx.forResourceRef(LiteralScriptResourceResolver.stringToResourceRef(null, script));
+			prj = ctx.forResourceRef(LiteralScriptResourceResolver.stringToResourceRef(null, script));
 		} else {
 			if (scriptOrFile != null) {
-				code = ctx.forResource(scriptOrFile);
+				prj = ctx.forResource(scriptOrFile);
 			} else {
 				// HACK it's a crappy way to work around the fact that in the case of
 				// interactive we might not have a file to reference but all the code
 				// expects one to exist
-				code = ctx.forResourceRef(LiteralScriptResourceResolver.stringToResourceRef(null, ""));
+				prj = ctx.forResourceRef(LiteralScriptResourceResolver.stringToResourceRef(null, ""));
 			}
 		}
 
-		code = prepareArtifacts(code, ctx);
+		Code code = prepareArtifacts(prj, ctx);
 
 		if (ctx.isNativeImage() && (ctx.getForceType() == Source.Type.jshell || code.isJShell())) {
 			warn(".jsh cannot be used with --native thus ignoring --native.");

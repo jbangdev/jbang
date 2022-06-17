@@ -19,7 +19,7 @@ import dev.jbang.Settings;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.net.JdkManager;
-import dev.jbang.source.Code;
+import dev.jbang.source.Project;
 import dev.jbang.source.RunContext;
 import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
@@ -97,7 +97,7 @@ class AppInstall extends BaseCommand {
 			return false;
 		}
 		RunContext ctx = RunContext.empty();
-		Code code = ctx.forResource(scriptRef);
+		Project prj = ctx.forResource(scriptRef);
 		if (name == null) {
 			name = CatalogUtil.nameFromRef(scriptRef);
 			if (!force && existScripts(binDir, name)) {
@@ -105,10 +105,10 @@ class AppInstall extends BaseCommand {
 				return false;
 			}
 		}
-		if (!ctx.isAlias() && !DependencyUtil.looksLikeAGav(scriptRef) && !code.getResourceRef().isURL()) {
-			scriptRef = code.getResourceRef().getFile().toAbsolutePath().toString();
+		if (!ctx.isAlias() && !DependencyUtil.looksLikeAGav(scriptRef) && !prj.getResourceRef().isURL()) {
+			scriptRef = prj.getResourceRef().getFile().toAbsolutePath().toString();
 		}
-		code.builder().build();
+		prj.builder().build();
 		installScripts(name, scriptRef, benative);
 		Util.infoMsg("Command installed: " + name);
 		return true;
