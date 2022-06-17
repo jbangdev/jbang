@@ -2065,4 +2065,42 @@ public class TestRun extends BaseTest {
 			run.doCall();
 		});
 	}
+
+	@Test
+	void testReposWorksWithFresh() throws IOException {
+		File f = Util.getCwd().resolve("classpath_example.java").toFile();
+
+		String content = ""
+				+ "///usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n"
+				+ "\n"
+				+ "//DEPS log4j:log4j:1.2.17\n"
+				+ "\n"
+				+ "import org.apache.log4j.Logger;\n"
+				+ "import org.apache.log4j.BasicConfigurator;\n"
+				+ "\n"
+				+ "import java.util.Arrays;\n"
+				+ "\n"
+				+ "class classpath_example {\n"
+				+ "\n"
+				+ "	static final Logger logger = Logger.getLogger(classpath_example.class);\n"
+				+ "\n"
+				+ "	public static void main(String[] args) {\n"
+				+ "		BasicConfigurator.configure();\n"
+				+ "		logger.info(\"Welcome to jbang\");\n"
+				+ "	}\n"
+				+ "}";
+		Util.writeString(f.toPath(), content);
+
+		CommandLine.ParseResult pr = JBang	.getCommandLine()
+											.parseArgs("run", "--fresh", "--repos", "mavencentral", f.getPath());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+		Code code = ctx.forResource(f.getPath());
+		code = run.prepareArtifacts(code, ctx);
+
+		String result = code.cmdGenerator(ctx).generate();
+
+		assertThat(result, containsString("log4j-1.2.17.jar"));
+	}
 }
