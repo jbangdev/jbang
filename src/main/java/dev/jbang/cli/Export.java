@@ -77,7 +77,7 @@ abstract class BaseExportCommand extends BaseCommand {
 	public Integer doCall() throws IOException {
 		exportMixin.validate();
 		RunContext ctx = getRunContext(exportMixin);
-		Code code = ctx.forResource(exportMixin.scriptMixin.scriptOrFile).builder(ctx).build();
+		Code code = ctx.forResource(exportMixin.scriptMixin.scriptOrFile).builder().build();
 		return apply(code, ctx);
 	}
 

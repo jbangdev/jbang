@@ -84,7 +84,9 @@ public class Jar implements Code {
 	@Override
 	public Project asProject() {
 		if (project == null) {
-			project = Source.forResourceRef(resourceRef, null, null).createProject();
+			project = new Project(getResourceRef());
+			project.setDescription(getDescription().orElse(null));
+			project.setGav(getGav().orElse(null));
 			project.setMainClass(getMainClass());
 			project.addRuntimeOptions(getRuntimeOptions());
 			project.setJavaVersion(getJavaVersion());
@@ -121,7 +123,7 @@ public class Jar implements Code {
 
 	@Override
 	public String getJavaVersion() {
-		return buildJdk + "+";
+		return buildJdk > 0 ? buildJdk + "+" : null;
 	}
 
 	/**

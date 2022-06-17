@@ -95,22 +95,6 @@ public interface Code {
 	 */
 	Project asProject();
 
-	/**
-	 * Returns true if the Code needs to be turned into a Jar before it can be
-	 * executed. Only Code that never needs building returns false, for example when
-	 * dealing with scripting code (eg JShell) or with pre-existing jar files (e.g.
-	 * we're directly running a Maven GAV). This method can _not_ be used to detect
-	 * if a jar doesn't exist or is not up-to-date and needs to be rebuilt!
-	 * 
-	 * @param ctx a <code>RunContext</code>
-	 * @return a boolean indicating if this Code needs building before it can be
-	 *         executed
-	 */
-	default boolean needsBuild(RunContext ctx) {
-		// anything but .jar and .jsh files needs jar
-		return !(isJar() || isJShell() || ctx.getForceType() == Source.Type.jshell || ctx.isInteractive());
-	}
-
 	@Nonnull
 	Builder builder();
 

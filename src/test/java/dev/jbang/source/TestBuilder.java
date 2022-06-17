@@ -30,7 +30,7 @@ public class TestBuilder extends BaseTest {
 		Path bar = examplesTestFolder.resolve("bar/Bar.java").toAbsolutePath();
 		RunContext ctx = RunContext.empty();
 		ctx.setAdditionalSources(Arrays.asList(bar.toString()));
-		Project prj = (Project) ctx.forResource(foo.toString());
+		Project prj = ctx.forResource(foo.toString());
 
 		new JavaBuilder(prj) {
 			@Override
@@ -52,7 +52,7 @@ public class TestBuilder extends BaseTest {
 
 		RunContext ctx = RunContext.empty();
 		ctx.setAdditionalSources(Arrays.asList("bar"));
-		Project prj = (Project) ctx.forResource(mainFile);
+		Project prj = ctx.forResource(mainFile);
 
 		new JavaBuilder(prj) {
 			@Override
@@ -77,7 +77,7 @@ public class TestBuilder extends BaseTest {
 		CatalogUtil.addNearestAlias("bar", incFile, null, null, null, null, null, null, null, null, null, null, null);
 
 		RunContext ctx = RunContext.empty();
-		Project prj = (Project) ctx.forResource(mainFile.toString());
+		Project prj = ctx.forResource(mainFile.toString());
 
 		new JavaBuilder(prj) {
 			@Override
@@ -98,7 +98,7 @@ public class TestBuilder extends BaseTest {
 
 		RunContext ctx = RunContext.empty();
 		ctx.setAdditionalSources(Arrays.asList("bar/*.java"));
-		Project prj = (Project) ctx.forResource(mainFile);
+		Project prj = ctx.forResource(mainFile);
 
 		new JavaBuilder(prj) {
 			@Override
@@ -119,7 +119,7 @@ public class TestBuilder extends BaseTest {
 
 		RunContext ctx = RunContext.empty();
 		ctx.setAdditionalSources(Arrays.asList(incGlob));
-		Project prj = (Project) ctx.forResource(mainFile);
+		Project prj = ctx.forResource(mainFile);
 
 		new JavaBuilder(prj) {
 			@Override
@@ -140,7 +140,7 @@ public class TestBuilder extends BaseTest {
 
 		RunContext ctx = RunContext.empty();
 		ctx.setAdditionalSources(Arrays.asList("bar"));
-		Project prj = (Project) ctx.forResource(mainFile);
+		Project prj = ctx.forResource(mainFile);
 
 		new JavaBuilder(prj) {
 			@Override
@@ -163,7 +163,7 @@ public class TestBuilder extends BaseTest {
 		ctx.setAdditionalResources(Arrays.asList(
 				Paths.get("res").resolve(res1).toString(),
 				Paths.get("res").resolve(res2).toString()));
-		Project prj = (Project) ctx.forResource(foo.toString());
+		Project prj = ctx.forResource(foo.toString());
 
 		new JavaBuilder(prj) {
 			@Override
@@ -190,7 +190,7 @@ public class TestBuilder extends BaseTest {
 		ctx.setAdditionalResources(Arrays.asList(
 				"somedir/=" + Paths.get("res").resolve(res1),
 				"somedir/=" + Paths.get("res").resolve(res2)));
-		Project prj = (Project) ctx.forResource(foo.toString());
+		Project prj = ctx.forResource(foo.toString());
 
 		new JavaBuilder(prj) {
 			@Override
@@ -219,7 +219,7 @@ public class TestBuilder extends BaseTest {
 		Path res2 = Paths.get("sub/sub.properties");
 		RunContext ctx = RunContext.empty();
 		ctx.setAdditionalResources(Arrays.asList("res/**.properties"));
-		Project prj = (Project) ctx.forResource(foo.toString());
+		Project prj = ctx.forResource(foo.toString());
 
 		new JavaBuilder(prj) {
 			@Override
@@ -251,7 +251,7 @@ public class TestBuilder extends BaseTest {
 		Path res2 = Paths.get("sub/sub.properties");
 		RunContext ctx = RunContext.empty();
 		ctx.setAdditionalResources(Arrays.asList("res"));
-		Project prj = (Project) ctx.forResource(foo.toString());
+		Project prj = ctx.forResource(foo.toString());
 
 		new JavaBuilder(prj) {
 			@Override
@@ -283,9 +283,9 @@ public class TestBuilder extends BaseTest {
 
 		RunContext ctx = RunContext.empty();
 		ctx.setNativeImage(true);
-		SourceSet ss = (SourceSet) ctx.forResource(mainFile);
+		Project prj = ctx.forResource(mainFile);
 
-		new JavaBuilder(ss, ctx) {
+		new JavaBuilder(prj) {
 			@Override
 			protected void runCompiler(List<String> optionList) {
 			}

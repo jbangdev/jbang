@@ -168,7 +168,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Project prj = (Project) ctx.forResource(arg);
+		Project prj = ctx.forResource(arg);
 
 		String result = new JshCmdGenerator(prj, ctx).generate();
 
@@ -194,7 +194,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Project prj = (Project) ctx.forResourceRef(
+		Project prj = ctx.forResourceRef(
 				LiteralScriptResourceResolver.stringToResourceRef(null, "Collector2.class"));
 
 		String result = new JshCmdGenerator(prj, ctx).generate();
@@ -215,7 +215,7 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = run.getRunContext();
 		ctx.setMainClass("fakemain");
-		Project prj = (Project) ctx.forResourceRef(
+		Project prj = ctx.forResourceRef(
 				LiteralScriptResourceResolver.stringToResourceRef(null, hwtxt));
 
 		String result = new JarCmdGenerator(prj, ctx).generate();
@@ -233,7 +233,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Project prj = (Project) ctx.forResource(arg);
+		Project prj = ctx.forResource(arg);
 
 		String result = new JshCmdGenerator(prj, ctx).generate();
 
@@ -257,7 +257,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Project prj = (Project) ctx.forResource(arg);
+		Project prj = ctx.forResource(arg);
 
 		String result = new JshCmdGenerator(prj, ctx).generate();
 
@@ -276,7 +276,7 @@ public class TestRun extends BaseTest {
 		empty.createNewFile();
 
 		RunContext ctx = run.getRunContext();
-		Project prj = (Project) ctx.forResource(empty.toString());
+		Project prj = ctx.forResource(empty.toString());
 
 		String result = prj.cmdGenerator(ctx).generate();
 
@@ -299,7 +299,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Project prj = (Project) ctx.forResource(arg);
+		Project prj = ctx.forResource(arg);
 
 		String result = prj.cmdGenerator(ctx).generate();
 
@@ -410,7 +410,7 @@ public class TestRun extends BaseTest {
 		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
 
 		String result = code.cmdGenerator(ctx).generate();
-		assertThat(result, matchesPattern("^.*java(.exe)?.*"));
+		assertThat(result, matchesPattern("^.*jshell(.exe)?.*"));
 		assertThat(ctx.getMainClassOr(code), nullValue());
 
 		assertThat(code.isJar(), equalTo(true));
@@ -571,7 +571,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Project prj = (Project) ctx.forResource(arg);
+		Project prj = ctx.forResource(arg);
 
 		String result = prj.cmdGenerator(ctx).generate();
 
@@ -593,7 +593,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Project prj = (Project) ctx.forResource(arg);
+		Project prj = ctx.forResource(arg);
 
 		String result = prj.cmdGenerator(ctx).generate();
 
@@ -615,7 +615,7 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = run.getRunContext();
 		ctx.setMainClass("fakemain");
-		Project prj = (Project) ctx.forResource(arg);
+		Project prj = ctx.forResource(arg);
 
 		String result = prj.cmdGenerator(ctx).generate();
 
@@ -639,7 +639,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		ctx.setMainClass("fakemain");
 
-		Project prj = (Project) ctx.forResource(arg);
+		Project prj = ctx.forResource(arg);
 
 		String result = prj.cmdGenerator(ctx).generate();
 
@@ -661,7 +661,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Project prj = (Project) ctx.forResource(arg);
+		Project prj = ctx.forResource(arg);
 
 		String result = prj.cmdGenerator(ctx).generate();
 
@@ -691,7 +691,7 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = run.getRunContext();
 		ctx.setMainClass("fakemain");
-		Project prj = (Project) ctx.forResource(arg);
+		Project prj = ctx.forResource(arg);
 
 		String result = prj.cmdGenerator(ctx).generate();
 
@@ -726,7 +726,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		ctx.setMainClass("fakemain");
 
-		Project prj = (Project) ctx.forResource(url);
+		Project prj = ctx.forResource(url);
 
 		String s = prj.cmdGenerator(ctx).generate();
 
@@ -743,7 +743,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		ctx.setMainClass("fakemain");
 
-		Project prj = (Project) ctx.forResource(url);
+		Project prj = ctx.forResource(url);
 
 		String s = prj.cmdGenerator(ctx).generate();
 		if (Util.isWindows()) {
@@ -762,7 +762,7 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = run.getRunContext();
 		ctx.setMainClass("fakemain");
-		Project prj = (Project) ctx.forResource(arg);
+		Project prj = ctx.forResource(arg);
 		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result, containsString("reload4j-1.2.18.5.jar"));
@@ -853,7 +853,7 @@ public class TestRun extends BaseTest {
 		writeString(f, base);
 
 		RunContext ctx = RunContext.empty();
-		Project prj = (Project) ctx.forFile(f);
+		Project prj = ctx.forFile(f);
 		Code jar = prj.builder().build();
 
 		assertThat(ctx.getMainClassOr(jar), equalTo("aclass"));
@@ -902,7 +902,7 @@ public class TestRun extends BaseTest {
 		Util.writeString(f, base);
 
 		RunContext ctx = RunContext.empty();
-		Project prj = (Project) ctx.forFile(f);
+		Project prj = ctx.forFile(f);
 
 		Code jar = prj.builder().build();
 
@@ -939,7 +939,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Project prj = (Project) ctx.forResource(arg);
+		Project prj = ctx.forResource(arg);
 
 		Code jar = prj.builder().build();
 
@@ -1205,7 +1205,7 @@ public class TestRun extends BaseTest {
 		Build build = (Build) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = build.getRunContext();
-		Project prj = (Project) ctx.forResource(p.toFile().getAbsolutePath());
+		Project prj = ctx.forResource(p.toFile().getAbsolutePath());
 
 		prj.builder().build();
 
@@ -1234,7 +1234,7 @@ public class TestRun extends BaseTest {
 		Build build = (Build) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = build.getRunContext();
-		Project prj = (Project) ctx.forResource(p.toFile().getAbsolutePath());
+		Project prj = ctx.forResource(p.toFile().getAbsolutePath());
 
 		prj.builder().build();
 
@@ -1326,7 +1326,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		ctx.setMainClass("fakemain");
 
-		Project prj = (Project) ctx.forResource(f.getAbsolutePath());
+		Project prj = ctx.forResource(f.getAbsolutePath());
 
 		String line = prj.cmdGenerator(ctx).generate();
 
@@ -1344,7 +1344,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Project prj = (Project) ctx.forResource(f.getAbsolutePath());
+		Project prj = ctx.forResource(f.getAbsolutePath());
 
 		String line = prj.cmdGenerator(ctx).generate();
 
@@ -1356,7 +1356,7 @@ public class TestRun extends BaseTest {
 		File f = examplesTestFolder.resolve("resource.java").toFile();
 
 		RunContext ctx = RunContext.empty();
-		Project prj = (Project) ctx.forResource(f.getAbsolutePath());
+		Project prj = ctx.forResource(f.getAbsolutePath());
 
 		Code jar = prj.builder().build();
 
@@ -1401,7 +1401,7 @@ public class TestRun extends BaseTest {
 		File f = examplesTestFolder.resolve("one.java").toFile();
 
 		RunContext ctx = RunContext.empty();
-		Project prj = (Project) ctx.forResource(f.getAbsolutePath());
+		Project prj = ctx.forResource(f.getAbsolutePath());
 
 		Code jar = prj.builder().build();
 
@@ -1432,7 +1432,7 @@ public class TestRun extends BaseTest {
 		File f = examplesTestFolder.resolve("resources.java").toFile();
 
 		RunContext ctx = RunContext.empty();
-		Project prj = (Project) ctx.forResource(f.getAbsolutePath());
+		Project prj = ctx.forResource(f.getAbsolutePath());
 
 		Code jar = prj.builder().build();
 
@@ -1459,7 +1459,7 @@ public class TestRun extends BaseTest {
 		File f = examplesTestFolder.resolve("resourcesmnt.java").toFile();
 
 		RunContext ctx = RunContext.empty();
-		Project prj = (Project) ctx.forResource(f.getAbsolutePath());
+		Project prj = ctx.forResource(f.getAbsolutePath());
 
 		Code jar = prj.builder().build();
 
@@ -1513,7 +1513,7 @@ public class TestRun extends BaseTest {
 
 		String url = "http://localhost:" + wms.port() + "/sub/one.java";
 		RunContext ctx = RunContext.empty();
-		Project prj = (Project) ctx.forResource(url);
+		Project prj = ctx.forResource(url);
 
 		prj.builder().build();
 
@@ -1538,7 +1538,7 @@ public class TestRun extends BaseTest {
 		Build run = (Build) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Project prj = (Project) ctx.forResource(p.toFile().getAbsolutePath());
+		Project prj = ctx.forResource(p.toFile().getAbsolutePath());
 
 		prj.builder().build();
 
@@ -1567,7 +1567,7 @@ public class TestRun extends BaseTest {
 		Build run = (Build) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Project prj = (Project) ctx.forResource(p.toFile().getAbsolutePath());
+		Project prj = ctx.forResource(p.toFile().getAbsolutePath());
 
 		prj.builder().build();
 
@@ -1586,7 +1586,7 @@ public class TestRun extends BaseTest {
 		Build run = (Build) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Project prj = (Project) ctx.forResource(p.toFile().getAbsolutePath());
+		Project prj = ctx.forResource(p.toFile().getAbsolutePath());
 
 		prj.builder().build();
 
@@ -1603,7 +1603,7 @@ public class TestRun extends BaseTest {
 		Build build = (Build) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = build.getRunContext();
-		Project prj = (Project) ctx.forResource(mainFile);
+		Project prj = ctx.forResource(mainFile);
 
 		new JavaBuilder(prj) {
 			@Override
@@ -1627,7 +1627,7 @@ public class TestRun extends BaseTest {
 		Build build = (Build) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = build.getRunContext();
-		Project prj = (Project) ctx.forResource(mainFile.toString());
+		Project prj = ctx.forResource(mainFile.toString());
 
 		new JavaBuilder(prj) {
 			@Override
@@ -1683,7 +1683,7 @@ public class TestRun extends BaseTest {
 
 		String url = "http://localhost:" + wms.port() + "/sub/one.java";
 		RunContext ctx = RunContext.empty();
-		Project prj = (Project) ctx.forResource(url);
+		Project prj = ctx.forResource(url);
 
 		prj.builder().build();
 
@@ -1721,7 +1721,7 @@ public class TestRun extends BaseTest {
 
 		String url = "http://localhost:" + wms.port() + "/sub/one";
 		RunContext ctx = RunContext.empty();
-		Project prj = (Project) ctx.forResource(url);
+		Project prj = ctx.forResource(url);
 
 		prj.builder().build();
 	}
@@ -1744,7 +1744,7 @@ public class TestRun extends BaseTest {
 		Util.writeString(f.toPath(), base);
 
 		RunContext ctx = RunContext.empty();
-		Project prj = (Project) ctx.forResource(dir.toPath().toString());
+		Project prj = ctx.forResource(dir.toPath().toString());
 
 		prj.builder().build();
 
@@ -1777,7 +1777,7 @@ public class TestRun extends BaseTest {
 
 		String url = "http://localhost:" + wms.port() + "/sub/one/";
 		RunContext ctx = RunContext.empty();
-		Project prj = (Project) ctx.forResource(url);
+		Project prj = ctx.forResource(url);
 
 		prj.builder().build();
 	}
@@ -1942,7 +1942,7 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Project prj = (Project) ctx.forResource(arg);
+		Project prj = ctx.forResource(arg);
 
 		try {
 			prj.builder().build();
@@ -2009,7 +2009,7 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = run.getRunContext();
 		try {
-			Project prj = (Project) ctx.forResourceRef(LiteralScriptResourceResolver.stringToResourceRef(null, ""));
+			Project prj = ctx.forResourceRef(LiteralScriptResourceResolver.stringToResourceRef(null, ""));
 			fail("Should have thrown exception");
 		} catch (ExitException ex) {
 			StringWriter sw = new StringWriter();

@@ -48,7 +48,7 @@ public class TestEditWithPom extends BaseTest {
 		Path mainPath = TestSource.createTmpFileWithContent("", "main.java", main);
 		assertTrue(mainPath.toFile().exists());
 		RunContext ctx = RunContext.empty();
-		Project prj = (Project) ctx.forResource(mainPath.toString());
+		Project prj = ctx.forResource(mainPath.toString());
 		Path project = new Edit().createProjectForLinkedEdit(prj, ctx, false);
 		assertTrue(project.resolve("src/main.java").toFile().exists());
 

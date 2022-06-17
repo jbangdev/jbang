@@ -60,13 +60,12 @@ public class Edit extends BaseCommand {
 		scriptMixin.validate();
 
 		RunContext ctx = getRunContext();
-		final Code code = ctx.forResource(scriptMixin.scriptOrFile);
+		final Project prj = ctx.forResource(scriptMixin.scriptOrFile);
 
-		if (!(code instanceof Project)) {
+		if (prj.isJar() || prj.getMainSourceSet().getSources().isEmpty()) {
 			throw new ExitException(EXIT_INVALID_INPUT, "You can only edit source files");
 		}
 
-		Project prj = (Project) code;
 		Path project = createProjectForLinkedEdit(prj, ctx, false);
 		String projectPathString = Util.pathToString(project.toAbsolutePath());
 		// err.println(project.getAbsolutePath());
@@ -78,11 +77,11 @@ public class Edit extends BaseCommand {
 		if (!live) {
 			out.println(projectPathString); // quit(project.getAbsolutePath());
 		} else {
-			watchForChanges(code, () -> {
+			watchForChanges(prj, () -> {
 				// TODO only regenerate when dependencies changes.
 				info("Regenerating project.");
 				try {
-					createProjectForLinkedEdit((Project) code, RunContext.empty(), true);
+					createProjectForLinkedEdit(prj, RunContext.empty(), true);
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}

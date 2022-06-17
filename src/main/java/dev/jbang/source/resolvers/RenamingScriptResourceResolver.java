@@ -42,7 +42,8 @@ public class RenamingScriptResourceResolver implements ResourceResolver {
 		try {
 			if (probe != null && probe.canRead()) {
 				String ext = Util.extension(probe.getName());
-				if (!ext.equals("jar") && !Source.Type.extensions().contains(ext)) {
+				if (!ext.equals("jar")
+						&& !Source.Type.extensions().contains(ext)) {
 					if (probe.isDirectory()) {
 						File defaultApp = new File(probe, "main.java");
 						if (defaultApp.exists()) {

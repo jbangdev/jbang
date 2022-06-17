@@ -202,7 +202,7 @@ public class TestSource extends BaseTest {
 		createTmpFileWithContent("pkg1", "Bye.java", exampleURLInsourceBye);
 		String scriptURL = mainPath.toString();
 		RunContext ctx = RunContext.empty();
-		Project prj = (Project) ctx.forResource(scriptURL);
+		Project prj = ctx.forResource(scriptURL);
 		assertEquals(8, prj.getMainSourceSet().getSources().size());
 	}
 
@@ -250,7 +250,7 @@ public class TestSource extends BaseTest {
 			TrustedSources.instance().add(url, tempFile);
 
 			RunContext ctx = RunContext.empty();
-			Project prj = (Project) ctx.forResource(url);
+			Project prj = ctx.forResource(url);
 			assertEquals(3, prj.getMainSourceSet().getSources().size());
 			boolean foundmain = false;
 			boolean foundtwo = false;
