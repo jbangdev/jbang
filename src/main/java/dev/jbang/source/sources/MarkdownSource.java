@@ -25,7 +25,7 @@ public class MarkdownSource extends JshSource {
 		try {
 			// this will cache the content in stdin cache which is not optimal but needed to
 			// have the transformed script stored
-			// seperately from the possibly originally cached file.
+			// separately from the possibly originally cached file.
 			resourceRef = LiteralScriptResourceResolver.stringToResourceRef(resourceRef.getOriginalResource(),
 					scriptText);
 		} catch (IOException e) {
