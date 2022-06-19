@@ -27,18 +27,31 @@ Any classes listed in this file will be loaded and jbang will expect and call th
 
 [source,java]
 ----
-/**
-*
-* @param param build dir directory which will be made into a jar when build is done
-* @param pomFile location of pom.xml representing the projects dependencies
-* @param dependencies list of GAV to Path of artifact/classpath dependencies
-* @param nativeImage true if --native been requested
-* @return Map<String, Object> map of returns; special keys are "native-image" which is a and "files" to
-*          return native-image to be run and list of files to get written to the output directory.
-*
-*/
-Map<String, Object> postBuild(Path builddir, Path pomFile, List<Map.Entry<String, Path>> dependencies,
-            boolean nativeImage)
+
+public class JBangIntegrationExample {
+
+    /**
+    *
+    * @param temporaryJar temporary JAR file path
+    * @param pomFile location of pom.xml representing the projects dependencies
+    * @param repositories list of the used repositories
+    * @param dependencies list of GAV to Path of artifact/classpath dependencies
+    * @param comments comments from the source file
+    * @param nativeImage true if --native been requested
+    * @return Map<String, Object> map of returns; special keys are "native-image" which is a and "files" to
+    *          return native-image to be run and list of files to get written to the output directory.
+    *
+    */
+    public static Map<String, Object> postBuild(Path temporaryJar,
+                                                Path pomFile,
+                                                List<Map.Entry<String, String>> repositories,
+                                                List<Map.Entry<String, Path>> dependencies,
+                                                List<String> comments,
+                                                boolean nativeImage) {
+    }
+}
 ----
+
+Since version 0.92.0 the full path to the JBang script could be acquired by querying the `jbang.source` system property - `System.getProperty("jbang.source")`
 
 Still very experimental and bound to change. Example of its use can be found in https://github.com/quarkusio/quarkus/pull/11542[Quarkus].
