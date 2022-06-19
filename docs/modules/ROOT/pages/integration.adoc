@@ -52,6 +52,6 @@ public class JBangIntegrationExample {
 }
 ----
 
-Since version 0.92.0 the full path to the JBang script could be acquired by querying the `jbang.source` system property - `System.getProperty("jbang.source")`
+Since version 0.92.0 the full path to the JBang script can be acquired by querying the `jbang.source` system property - `System.getProperty("jbang.source")`
 
 Still very experimental and bound to change. Example of its use can be found in https://github.com/quarkusio/quarkus/pull/11542[Quarkus].
