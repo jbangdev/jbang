@@ -2093,8 +2093,8 @@ public class TestRun extends BaseTest {
 				+ "}";
 		Util.writeString(f.toPath(), content);
 
-		CommandLine.ParseResult pr = JBang.getCommandLine()
-				.parseArgs("run", "--fresh", "--repos", "mavencentral", f.getPath());
+		CommandLine.ParseResult pr = JBang	.getCommandLine()
+											.parseArgs("run", "--fresh", "--repos", "mavencentral", f.getPath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
@@ -2116,5 +2116,45 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		Code code = ctx.forResource(arg);
 		assertThat(code.getJavaVersion(), equalTo("" + v));
+	}
+
+	@Test
+	void testBuildJbangProject() throws IOException {
+		environmentVariables.clear("JAVA_HOME");
+		String arg = examplesTestFolder.resolve("build.jbang").toAbsolutePath().toString();
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", arg);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		RunContext ctx = run.getRunContext();
+		Project prj = ctx.forResource(arg);
+
+		new JavaBuilder(prj) {
+			@Override
+			protected void runCompiler(List<String> optionList)
+					throws IOException {
+				// Make sure the file "build.jbang" isn't passed to the compiler
+				assertThat(optionList.stream().filter(o -> o.contains("build.jbang")).count(), equalTo(1L));
+				super.runCompiler(optionList);
+			}
+		}.setFresh(true).build();
+
+		String result = new JarCmdGenerator(prj, ctx).generate();
+
+		assertThat(result, startsWith("java "));
+		assertThat(result, endsWith("quote_notags"));
+		assertThat(result, containsString("classpath"));
+		assertThat(result, matchesRegex(".*build\\.jbang\\.[a-z0-9]+\\.jar.*"));
+		assertThat(result, containsString("picocli-4.5.0.jar"));
+		assertThat(result, containsString("-Dfoo=bar"));
+		assertThat(result, containsString(BaseBuilder.escapeOSArgument("-Dbar=aap noot mies", Util.getShell())));
+		// Make sure the opts only appear once
+		assertThat(result.replaceFirst(Pattern.quote("-Dfoo=bar"), ""),
+				not(containsString("-Dfoo=bar")));
+		assertThat(result.replaceFirst(Pattern.quote("-Dbar=aap noot mies"), ""),
+				not(containsString("-Dbar=aap noot mies")));
+		// Make sure the opts only appear unquoted
+		assertThat(result,
+				not(containsString(BaseBuilder.escapeOSArgument("-Dfoo=bar -Dbar=aap noot mies", Util.getShell()))));
+		// assertThat(result, containsString("--source 11"));
 	}
 }

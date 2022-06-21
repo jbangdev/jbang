@@ -3,6 +3,7 @@ package dev.jbang.source;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -45,6 +46,20 @@ public class Project implements Code {
 
 	public static final String ATTR_PREMAIN_CLASS = "Premain-Class";
 	public static final String ATTR_AGENT_CLASS = "Agent-Class";
+
+	public enum BuildFile {
+		jbang("build.jbang");
+
+		public final String fileName;
+
+		BuildFile(String fileName) {
+			this.fileName = fileName;
+		}
+
+		public static List<String> fileNames() {
+			return Arrays.stream(values()).map(v -> v.fileName).collect(Collectors.toList());
+		}
+	}
 
 	public Project(@Nonnull ResourceRef resourceRef) {
 		this.resourceRef = resourceRef;

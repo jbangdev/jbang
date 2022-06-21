@@ -359,6 +359,16 @@ public class RunContext {
 		Project prj;
 		if (resourceRef.getFile().getFileName().toString().endsWith(".jar")) {
 			prj = updateProject(Jar.prepareJar(resourceRef).asProject());
+		} else if (resourceRef.getFile().getFileName().toString().equals(Project.BuildFile.jbang.fileName)) {
+			// This is a bit of a hack, but what we do here is treat "build.jbang"
+			// as if it were a source file, which we can do because it's syntax is
+			// the same, just that it can only contain //-lines but no code.
+			prj = updateProject(createSource(resourceRef).createProject(getResourceResolver()));
+			// But once we get the resulting <code>Project</code> we remove the
+			// first file from the sources to prevent "build.jbang" from being
+			// passed to the compiler.
+			prj.getMainSourceSet().getSources().remove(0);
+			prj.setMainSource(createSource(prj.getMainSourceSet().getSources().get(0)));
 		} else {
 			prj = updateProject(createSource(resourceRef).createProject(getResourceResolver()));
 		}
