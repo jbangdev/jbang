@@ -9,6 +9,7 @@ import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
+import dev.jbang.source.Project;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.source.ResourceResolver;
 import dev.jbang.source.Source;
@@ -43,7 +44,8 @@ public class RenamingScriptResourceResolver implements ResourceResolver {
 			if (probe != null && probe.canRead()) {
 				String ext = Util.extension(probe.getName());
 				if (!ext.equals("jar")
-						&& !Source.Type.extensions().contains(ext)) {
+						&& !Source.Type.extensions().contains(ext)
+						&& !Project.BuildFile.fileNames().contains(probe.getName())) {
 					if (probe.isDirectory()) {
 						File defaultApp = new File(probe, "main.java");
 						if (defaultApp.exists()) {

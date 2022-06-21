@@ -3,7 +3,6 @@ package dev.jbang.source;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -27,7 +26,7 @@ public class SourceSet {
 
 	@Nonnull
 	public List<ResourceRef> getSources() {
-		return Collections.unmodifiableList(sources);
+		return sources;
 	}
 
 	@Nonnull
@@ -44,7 +43,7 @@ public class SourceSet {
 
 	@Nonnull
 	public List<RefTarget> getResources() {
-		return Collections.unmodifiableList(resources);
+		return resources;
 	}
 
 	@Nonnull
@@ -61,7 +60,7 @@ public class SourceSet {
 
 	@Nonnull
 	public List<String> getDependencies() {
-		return Collections.unmodifiableList(dependencies);
+		return dependencies;
 	}
 
 	@Nonnull
@@ -78,7 +77,7 @@ public class SourceSet {
 
 	@Nonnull
 	public List<String> getClassPaths() {
-		return Collections.unmodifiableList(classPaths);
+		return classPaths;
 	}
 
 	@Nonnull
@@ -95,7 +94,7 @@ public class SourceSet {
 
 	@Nonnull
 	public List<String> getCompileOptions() {
-		return Collections.unmodifiableList(compileOptions);
+		return compileOptions;
 	}
 
 	@Nonnull
