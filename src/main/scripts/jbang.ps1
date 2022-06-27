@@ -3,12 +3,12 @@
 #
 # To run this script remotely type this in your PowerShell
 # (where <args>... are the arguments you want to pass to JBang):
-#   iex "& { $(iwr https://ps.jbang.dev) } <args>..."
+#   iex "& { $(iwr -useb https://ps.jbang.dev) } <args>..."
 #
 # An alternative way is to type:
-#   & ([scriptblock]::Create($(iwr https://ps.jbang.dev))) <args>...
+#   & ([scriptblock]::Create($(iwr -useb https://ps.jbang.dev))) <args>...
 # Which even allows you to store the command in a variable for re-use:
-#   $jbang = ([scriptblock]::Create($(iwr https://ps.jbang.dev)))
+#   $jbang = ([scriptblock]::Create($(iwr -useb https://ps.jbang.dev)))
 #   & $jbang <args>...
 #
 
