@@ -7,6 +7,8 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 
 import dev.jbang.util.Util;
 
@@ -15,9 +17,8 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "wrapper", description = "Manage jbang wrapper for a folder.")
 public class Wrapper {
 	public static final String DIR_NAME = ".jbang";
-	public static final String SHELL_NAME = "jbang";
-	public static final String CMD_NAME = "jbang.cmd";
 	public static final String JAR_NAME = "jbang.jar";
+	public static final List<String> SCRIPT_NAMES = Arrays.asList("jbang", "jbang.cmd", "jbang.ps1");
 
 	@CommandLine.Command(name = "install", description = "Install/Setup jbang as a `wrapper` script in a folder")
 	public Integer install(
@@ -56,7 +57,7 @@ public class Wrapper {
 	}
 
 	private boolean checkScripts(Path dir) {
-		return Files.isRegularFile(dir.resolve(SHELL_NAME)) && Files.isRegularFile(dir.resolve(CMD_NAME));
+		return SCRIPT_NAMES.stream().map(dir::resolve).allMatch(Files::isRegularFile);
 	}
 
 	private boolean checkJar(Path dir) {
@@ -64,8 +65,9 @@ public class Wrapper {
 	}
 
 	private void copyScripts(Path dir, Path dest) throws IOException {
-		Files.copy(dir.resolve(SHELL_NAME), dest.resolve(SHELL_NAME), COPY_ATTRIBUTES, REPLACE_EXISTING);
-		Files.copy(dir.resolve(CMD_NAME), dest.resolve(CMD_NAME), COPY_ATTRIBUTES, REPLACE_EXISTING);
+		for (String nm : SCRIPT_NAMES) {
+			Files.copy(dir.resolve(nm), dest.resolve(nm), COPY_ATTRIBUTES, REPLACE_EXISTING);
+		}
 	}
 
 	private void copyJar(Path dir, Path dest) throws IOException {
