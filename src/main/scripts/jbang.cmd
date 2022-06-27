@@ -54,7 +54,7 @@ if "!JAVA_EXEC!"=="" (
       echo powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "%~dp0jbang.ps1 jdk install %JBANG_DEFAULT_JAVA_VERSION%"
       if !ERRORLEVEL! NEQ 0 ( exit /b %ERRORLEVEL% )
       rem Set the current JDK
-      !JAVA_EXEC! -classpath "%jarPath%" dev.jbang.Main jdk default "%javaVersion%"
+      "!JAVA_EXEC!" -classpath "%jarPath%" dev.jbang.Main jdk default "%javaVersion%"
     )
   )
 )
@@ -66,7 +66,7 @@ set JBANG_RUNTIME_SHELL=cmd
 2>nul >nul timeout /t 0 && (set JBANG_STDIN_NOTTY=false) || (set JBANG_STDIN_NOTTY=true)
 set "CMD=!JAVA_EXEC!"
 SETLOCAL DISABLEDELAYEDEXPANSION
-%CMD% > "%tmpfile%" %JBANG_JAVA_OPTIONS% -classpath "%jarPath%" dev.jbang.Main %*
+"%CMD%" > "%tmpfile%" %JBANG_JAVA_OPTIONS% -classpath "%jarPath%" dev.jbang.Main %*
 set ERROR=%ERRORLEVEL%
 rem catch errorlevel straight after; rem or FOR /F swallow would have swallowed the errorlevel
 

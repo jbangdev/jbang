@@ -147,14 +147,14 @@ if ($JAVA_EXEC -eq "") {
       # Activate the downloaded JDK giving it its proper name
       Rename-Item -Path "$TDIR\jdks\$javaVersion.tmp" -NewName "$javaVersion" >$null 2>&1
       # Set the current JDK
-      & $JAVA_EXEC -classpath "$jarPath" dev.jbang.Main jdk default $javaVersion
+      & "$JAVA_EXEC" -classpath "$jarPath" dev.jbang.Main jdk default $javaVersion
     }
   }
 }
 
 $env:JBANG_RUNTIME_SHELL="powershell"
 $env:JBANG_STDIN_NOTTY=$MyInvocation.ExpectingInput
-$output = & $JAVA_EXEC $env:JBANG_JAVA_OPTIONS -classpath "$jarPath" dev.jbang.Main $args
+$output = & "$JAVA_EXEC" $env:JBANG_JAVA_OPTIONS -classpath "$jarPath" dev.jbang.Main $args
 $err=$LASTEXITCODE
 
 $erroractionpreference=$old_erroractionpreference
