@@ -1197,14 +1197,25 @@ public class Util {
 	/**
 	 * Searches the locations defined by PATH for the given executable
 	 * 
-	 * @param name The name of the executable to look for
+	 * @param cmd The name of the executable to look for
 	 * @return A Path to the executable, if found, null otherwise
 	 */
-	public static Path searchPath(String name) {
+	public static Path searchPath(String cmd) {
 		String envPath = System.getenv("PATH");
 		envPath = envPath != null ? envPath : "";
-		return Arrays	.stream(envPath.split(File.pathSeparator))
-						.map(dir -> Paths.get(dir).resolve(name))
+		return searchPath(cmd, envPath);
+	}
+
+	/**
+	 * Searches the locations defined by `paths` for the given executable
+	 *
+	 * @param cmd   The name of the executable to look for
+	 * @param paths A string containing the paths to search
+	 * @return A Path to the executable, if found, null otherwise
+	 */
+	public static Path searchPath(String cmd, String paths) {
+		return Arrays	.stream(paths.split(File.pathSeparator))
+						.map(dir -> Paths.get(dir).resolve(cmd))
 						.flatMap(Util::executables)
 						.filter(Util::isExecutable)
 						.findFirst()

@@ -301,10 +301,9 @@ public abstract class BaseBuilder implements Builder {
 
 	private static String resolveInEnv(String env, String cmd) {
 		if (System.getenv(env) != null) {
-			if (Util.isWindows()) {
-				cmd = cmd + ".exe";
-			}
-			return new File(System.getenv(env)).toPath().resolve("bin").resolve(cmd).toAbsolutePath().toString();
+			Path dir = Paths.get(System.getenv(env)).toAbsolutePath().resolve("bin");
+			Path cmdPath = Util.searchPath(cmd, dir.toString());
+			return cmdPath != null ? cmdPath.toString() : cmd;
 		} else {
 			return cmd;
 		}
