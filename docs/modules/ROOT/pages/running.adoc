@@ -42,7 +42,7 @@ If you want further control use `//JAVAC_OPTS -XX:StartFlightRecording=<your opt
 == `java` and `javac` Options
 
 If you want to tweak memory settings or enable preview features you can setup the necessary options using
-`//JAVA_OPTS` and `//COMPILER_OPTS` as in the following example using Java 14 experimental `record` feature:
+`//JAVA_OPTS` and `//JAVAC_OPTIONS` as in the following example using Java 14 experimental `record` feature:
 
 [source, java]
 ----
