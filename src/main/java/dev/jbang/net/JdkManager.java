@@ -22,6 +22,7 @@ import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
 
 public class JdkManager {
+	private static final int LATEST_GA = 18;
 	private static final String FOOJAY_JDK_DOWNLOAD_URL = "https://api.foojay.io/disco/v2.0/directuris?";
 	private static final String FOOJAY_JDK_VERSIONS_URL = "https://api.foojay.io/disco/v3.0/distributions/%s?";
 
@@ -60,6 +61,10 @@ public class JdkManager {
 
 		params.put("javafx_bundled", "false");
 		params.put("latest", "available");
+
+		if (version > LATEST_GA) {
+			params.put("release_status", "ea");
+		}
 
 		return FOOJAY_JDK_DOWNLOAD_URL + urlEncodeUTF8(params);
 	}
