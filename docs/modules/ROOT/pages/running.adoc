@@ -37,12 +37,12 @@ Then you can use tools like `jvisualvm` or `jmc` to explore the data.
 If you want to tweak the configuration you can pass flight recorder options, like `jbang --jfr=filename=\{basename}.jfr,maxage=24h` where `\{basename}` will be replaced
 by the filename and then added `maxage=24h` to flight recording options.
 
-If you want further control use `//JAVAC_OPTS -XX:StartFlightRecording=<your options>` instead.
+If you want further control use `//JAVAC_OPTIONS -XX:StartFlightRecording=<your options>` instead.
 
 == `java` and `javac` Options
 
 If you want to tweak memory settings or enable preview features you can setup the necessary options using
-`//JAVA_OPTS` and `//JAVAC_OPTIONS` as in the following example using Java 14 experimental `record` feature:
+`//JAVA_OPTIONS` and `//JAVAC_OPTIONS` as in the following example using Java 14 experimental `record` feature:
 
 [source, java]
 ----
