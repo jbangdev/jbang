@@ -208,18 +208,6 @@ public abstract class BaseBuilder implements Builder {
 
 		ss.getManifestAttributes().forEach((k, v) -> manifest.getMainAttributes().putValue(k, v));
 
-		if (ss.getMainSource().isAgent()) {
-			String bootClasspath = ctx.resolveClassPath(ss).getManifestPath();
-			if (!bootClasspath.isEmpty()) {
-				manifest.getMainAttributes().put(new Attributes.Name(ATTR_BOOT_CLASS_PATH), bootClasspath);
-			}
-		} else {
-			String classpath = ctx.resolveClassPath(ss).getManifestPath();
-			if (!classpath.isEmpty()) {
-				manifest.getMainAttributes().put(Attributes.Name.CLASS_PATH, classpath);
-			}
-		}
-
 		// When persistent JVM args are set they are appended to any runtime
 		// options set on the Source (that way persistent args can override
 		// options set on the Source)
