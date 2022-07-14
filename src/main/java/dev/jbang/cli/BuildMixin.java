@@ -18,8 +18,4 @@ public class BuildMixin {
 	@CommandLine.Option(names = { "-m",
 			"--main" }, description = "Main class to use when running. Used primarily for running jar's.")
 	String main;
-
-	@CommandLine.Option(names = {
-			"-n", "--native" }, description = "Build using native-image")
-	boolean nativeImage;
 }

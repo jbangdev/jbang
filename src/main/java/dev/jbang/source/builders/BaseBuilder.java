@@ -269,6 +269,10 @@ public abstract class BaseBuilder implements Builder {
 
 	/** based on jar what will the binary image name be. **/
 	public static Path getImageName(Path outjar) {
+		// Let's strip the .jar extension
+		if (outjar.toString().endsWith(".jar")) {
+			outjar = Paths.get(Util.getBaseName(outjar.toString()));
+		}
 		if (Util.isWindows()) {
 			return Paths.get(outjar + ".exe");
 		} else {

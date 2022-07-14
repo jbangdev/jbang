@@ -16,6 +16,10 @@ public abstract class BaseBuildCommand extends BaseCommand {
 	@CommandLine.Mixin
 	BuildMixin buildMixin;
 
+	@CommandLine.Option(names = {
+			"-n", "--native" }, description = "Build using native-image")
+	boolean nativeImage;
+
 	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
 
@@ -33,7 +37,7 @@ public abstract class BaseBuildCommand extends BaseCommand {
 		ctx.setCatalog(scriptMixin.catalog);
 		ctx.setJavaVersion(buildMixin.javaVersion);
 		ctx.setMainClass(buildMixin.main);
-		ctx.setNativeImage(buildMixin.nativeImage);
+		ctx.setNativeImage(nativeImage);
 		return ctx;
 	}
 }
