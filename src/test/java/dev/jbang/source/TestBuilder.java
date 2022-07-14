@@ -273,4 +273,29 @@ public class TestBuilder extends BaseTest {
 			}
 		}.setFresh(true).build();
 	}
+
+	@Test
+	void testNativeOutputName() throws IOException {
+		Util.setCwd(examplesTestFolder);
+		String mainFile = examplesTestFolder.resolve("foo.java").toString();
+
+		RunContext ctx = RunContext.empty();
+		ctx.setNativeImage(true);
+		SourceSet ss = (SourceSet) ctx.forResource(mainFile);
+
+		new JavaBuilder(ss, ctx) {
+			@Override
+			protected void runCompiler(List<String> optionList) {
+			}
+
+			@Override
+			protected void runNativeBuilder(List<String> optionList) throws IOException {
+				if (Util.isWindows()) {
+					assertThat(optionList.get(optionList.size() - 1), not(endsWith(".exe")));
+				} else {
+					assertThat(optionList.get(optionList.size() - 1), endsWith(".bin"));
+				}
+			}
+		}.setFresh(true).build();
+	}
 }
