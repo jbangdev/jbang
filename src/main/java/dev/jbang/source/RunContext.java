@@ -359,7 +359,8 @@ public class RunContext {
 		Project prj;
 		if (resourceRef.getFile().getFileName().toString().endsWith(".jar")) {
 			prj = updateProject(Jar.prepareJar(resourceRef).asProject());
-		} else if (resourceRef.getFile().getFileName().toString().equals(Project.BuildFile.jbang.fileName)) {
+		} else if (Util.isPreview()
+				&& resourceRef.getFile().getFileName().toString().equals(Project.BuildFile.jbang.fileName)) {
 			// This is a bit of a hack, but what we do here is treat "build.jbang"
 			// as if it were a source file, which we can do because it's syntax is
 			// the same, just that it can only contain //-lines but no code.

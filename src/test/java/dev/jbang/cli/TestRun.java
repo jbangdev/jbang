@@ -2122,7 +2122,7 @@ public class TestRun extends BaseTest {
 	void testBuildJbangProject() throws IOException {
 		environmentVariables.clear("JAVA_HOME");
 		String arg = examplesTestFolder.resolve("build.jbang").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", arg);
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("--preview", "run", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
