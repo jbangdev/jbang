@@ -75,6 +75,7 @@ public class Util {
 	private static boolean quiet;
 	private static boolean offline;
 	private static boolean fresh;
+	private static boolean preview;
 	private static Path cwd;
 
 	public static void setVerbose(boolean verbose) {
@@ -115,6 +116,14 @@ public class Util {
 		if (fresh) {
 			setOffline(false);
 		}
+	}
+
+	public static boolean isPreview() {
+		return preview;
+	}
+
+	public static void setPreview(boolean preview) {
+		Util.preview = preview;
 	}
 
 	public static boolean isFresh() {

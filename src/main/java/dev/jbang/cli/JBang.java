@@ -59,6 +59,11 @@ public class JBang extends BaseCommand {
 			"--version" }, versionHelp = true, description = "Display version info (use `jbang --verbose version` for more details)")
 	boolean versionRequested;
 
+	@CommandLine.Option(names = { "--preview" }, description = "Enable preview features")
+	void setPreview(boolean preview) {
+		Util.setPreview(preview);
+	}
+
 	@CommandLine.ArgGroup(exclusive = true)
 	VerboseQuietExclusive verboseQuietExclusive = new VerboseQuietExclusive();
 
@@ -103,6 +108,7 @@ public class JBang extends BaseCommand {
 		Util.setQuiet(false);
 		Util.setOffline(false);
 		Util.setFresh(false);
+		Util.setPreview(false);
 		PrintWriter errW = new PrintWriter(err, true);
 		return getCommandLine(errW, errW);
 	}
