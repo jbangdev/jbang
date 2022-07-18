@@ -1,5 +1,7 @@
 package dev.jbang.dependencies;
 
+import java.util.Objects;
+
 import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem;
 import org.jboss.shrinkwrap.resolver.api.maven.repository.MavenRemoteRepositories;
 import org.jboss.shrinkwrap.resolver.api.maven.repository.MavenRemoteRepository;
@@ -43,5 +45,20 @@ public class MavenRepo {
 	@Override
 	public String toString() {
 		return String.format("%s=%s", id, url);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		MavenRepo mavenRepo = (MavenRepo) o;
+		return Objects.equals(id, mavenRepo.id) && Objects.equals(url, mavenRepo.url);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, url);
 	}
 }
