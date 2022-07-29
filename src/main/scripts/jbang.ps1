@@ -154,7 +154,7 @@ if ($JAVA_EXEC -eq "") {
 
 $env:JBANG_RUNTIME_SHELL="powershell"
 $env:JBANG_STDIN_NOTTY=$MyInvocation.ExpectingInput
-$output = & "$JAVA_EXEC" $env:JBANG_JAVA_OPTIONS -classpath "$jarPath" dev.jbang.Main $args
+$output = & "$JAVA_EXEC" $env:JBANG_JAVA_OPTIONS -classpath "$jarPath" dev.jbang.Main @args
 $err=$LASTEXITCODE
 
 $erroractionpreference=$old_erroractionpreference
