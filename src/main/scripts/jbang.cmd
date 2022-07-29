@@ -31,7 +31,7 @@ set JAVA_EXEC=
 if not "%JAVA_HOME%"=="" (
   rem Determine if a (working) JDK is available in JAVA_HOME
   if exist "%JAVA_HOME%\bin\javac.exe" (
-    set JAVA_EXEC="%JAVA_HOME%\bin\java.exe"
+    set JAVA_EXEC=%JAVA_HOME%\bin\java.exe
   ) else (
     echo JAVA_HOME is set but does not seem to point to a valid Java JDK 1>&2
   )
