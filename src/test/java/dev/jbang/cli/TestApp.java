@@ -29,21 +29,21 @@ public class TestApp extends BaseTest {
 	private static final List<String> cmdContents = Arrays.asList("@echo off",
 			"jbang run $CWD/itests/helloworld.java %*");
 	private static final List<String> ps1Contents = Collections.singletonList(
-			"jbang run $CWD/itests/helloworld.java $args");
+			"jbang run $CWD/itests/helloworld.java @args");
 
 	private static final List<String> nativeShContents = Arrays.asList("#!/bin/sh",
 			"exec jbang run --native $CWD/itests/helloworld.java \"$@\"");
 	private static final List<String> nativeCmdContents = Arrays.asList("@echo off",
 			"jbang run --native $CWD/itests/helloworld.java %*");
 	private static final List<String> nativePs1Contents = Collections.singletonList(
-			"jbang run --native $CWD/itests/helloworld.java $args");
+			"jbang run --native $CWD/itests/helloworld.java @args");
 
 	private static final List<String> h2shContents = Arrays.asList("#!/bin/sh",
 			"exec jbang run com.h2database:h2:1.4.200 \"$@\"");
 	private static final List<String> h2cmdContents = Arrays.asList("@echo off",
 			"jbang run com.h2database:h2:1.4.200 %*");
 	private static final List<String> h2ps1Contents = Collections.singletonList(
-			"jbang run com.h2database:h2:1.4.200 $args");
+			"jbang run com.h2database:h2:1.4.200 @args");
 
 	@Test
 	void testAppInstallFile() throws IOException {
