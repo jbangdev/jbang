@@ -21,7 +21,6 @@ import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.JBang;
-import dev.jbang.cli.TestRun;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -47,7 +46,7 @@ public abstract class BaseTest {
 
 	@BeforeAll
 	static void init() throws URISyntaxException, IOException {
-		URL examplesUrl = TestRun.class.getClassLoader().getResource(EXAMPLES_FOLDER);
+		URL examplesUrl = BaseTest.class.getClassLoader().getResource(EXAMPLES_FOLDER);
 		if (examplesUrl == null) {
 			examplesTestFolder = Paths.get(EXAMPLES_FOLDER).toAbsolutePath();
 		} else {
