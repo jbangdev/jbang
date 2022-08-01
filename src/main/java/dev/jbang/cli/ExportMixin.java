@@ -1,7 +1,5 @@
 package dev.jbang.cli;
 
-import static dev.jbang.source.builders.BaseBuilder.getImageName;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -32,7 +30,25 @@ public class ExportMixin {
 	public ExportMixin() {
 	}
 
-	Path getFileOutputPath() {
+	Path getJarOutputPath() {
+		Path outputPath = getOutputPath();
+		// Ensure the file ends in `.jar`
+		if (!outputPath.toString().endsWith(".jar")) {
+			outputPath = Paths.get(outputPath + ".jar");
+		}
+		return outputPath;
+	}
+
+	Path getNativeOutputPath() {
+		Path outputPath = getOutputPath();
+		// Ensure that on Windows the file ends in `.exe`
+		if (Util.isWindows() && !outputPath.toString().endsWith(".exe")) {
+			outputPath = Paths.get(outputPath + ".exe");
+		}
+		return outputPath;
+	}
+
+	private Path getOutputPath() {
 		// Determine the output file location and name
 		Path cwd = Util.getCwd();
 		Path outputPath;
@@ -40,11 +56,6 @@ public class ExportMixin {
 			outputPath = outputFile;
 		} else {
 			String outName = CatalogUtil.nameFromRef(scriptMixin.scriptOrFile);
-			if (buildMixin.nativeImage) {
-				outName = getImageName(Paths.get(outName)).getFileName().toString();
-			} else {
-				outName += ".jar";
-			}
 			outputPath = Paths.get(outName);
 		}
 		outputPath = cwd.resolve(outputPath);

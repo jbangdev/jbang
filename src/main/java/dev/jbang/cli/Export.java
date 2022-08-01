@@ -1,6 +1,5 @@
 package dev.jbang.cli;
 
-import static dev.jbang.cli.Export.handle;
 import static dev.jbang.source.builders.BaseBuilder.getImageName;
 import static dev.jbang.util.JavaUtil.resolveInJavaHome;
 
@@ -29,40 +28,14 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
 @Command(name = "export", description = "Export the result of a build.", subcommands = { ExportPortable.class,
-		ExportLocal.class, ExportMavenPublish.class })
+		ExportLocal.class, ExportMavenPublish.class, ExportNative.class })
 public class Export {
-
-	static int handle(ExportMixin exportMixin,
-			Exporter style) throws IOException {
-		exportMixin.scriptMixin.validate();
-
-		RunContext ctx = getRunContext(exportMixin);
-		Code code = ctx.forResource(exportMixin.scriptMixin.scriptOrFile).builder(ctx).build();
-		return style.apply(exportMixin, code, ctx);
-	}
-
-	static RunContext getRunContext(ExportMixin exportMixin) {
-		RunContext ctx = new RunContext();
-		ctx.setProperties(exportMixin.dependencyInfoMixin.getProperties());
-		ctx.setAdditionalDependencies(exportMixin.dependencyInfoMixin.getDependencies());
-		ctx.setAdditionalRepositories(exportMixin.dependencyInfoMixin.getRepositories());
-		ctx.setAdditionalClasspaths(exportMixin.dependencyInfoMixin.getClasspaths());
-		ctx.setAdditionalSources(exportMixin.scriptMixin.sources);
-		ctx.setAdditionalResources(exportMixin.scriptMixin.resources);
-		ctx.setForceType(exportMixin.scriptMixin.forceType);
-		ctx.setCatalog(exportMixin.scriptMixin.catalog);
-		ctx.setJavaVersion(exportMixin.buildMixin.javaVersion);
-		ctx.setMainClass(exportMixin.buildMixin.main);
-		ctx.setNativeImage(exportMixin.buildMixin.nativeImage);
-		return ctx;
-	}
 }
 
-interface Exporter {
-	int apply(ExportMixin exportMixin, Code code, RunContext ctx) throws IOException;
-}
+abstract class BaseExportCommand extends BaseCommand {
 
-abstract class BaseExporter extends BaseCommand implements Exporter {
+	@CommandLine.Mixin
+	ExportMixin exportMixin;
 
 	protected void updateJarManifest(Path jar, Path manifest, String javaVersion) throws IOException {
 		List<String> optionList = new ArrayList<>();
@@ -99,23 +72,41 @@ abstract class BaseExporter extends BaseCommand implements Exporter {
 		}
 		return tempManifest;
 	}
+
+	@Override
+	public Integer doCall() throws IOException {
+		exportMixin.scriptMixin.validate();
+		RunContext ctx = getRunContext(exportMixin);
+		Code code = ctx.forResource(exportMixin.scriptMixin.scriptOrFile).builder(ctx).build();
+		return apply(code, ctx);
+	}
+
+	abstract int apply(Code code, RunContext ctx) throws IOException;
+
+	protected RunContext getRunContext(ExportMixin exportMixin) {
+		RunContext ctx = new RunContext();
+		ctx.setProperties(exportMixin.dependencyInfoMixin.getProperties());
+		ctx.setAdditionalDependencies(exportMixin.dependencyInfoMixin.getDependencies());
+		ctx.setAdditionalRepositories(exportMixin.dependencyInfoMixin.getRepositories());
+		ctx.setAdditionalClasspaths(exportMixin.dependencyInfoMixin.getClasspaths());
+		ctx.setAdditionalSources(exportMixin.scriptMixin.sources);
+		ctx.setAdditionalResources(exportMixin.scriptMixin.resources);
+		ctx.setForceType(exportMixin.scriptMixin.forceType);
+		ctx.setCatalog(exportMixin.scriptMixin.catalog);
+		ctx.setJavaVersion(exportMixin.buildMixin.javaVersion);
+		ctx.setMainClass(exportMixin.buildMixin.main);
+		return ctx;
+	}
 }
 
 @Command(name = "local", description = "Exports jar with classpath referring to local machine dependent locations")
-class ExportLocal extends BaseExporter {
+class ExportLocal extends BaseExportCommand {
 
-	@CommandLine.Mixin
-	ExportMixin exportMixin;
-
-	public int apply(ExportMixin exportMixin, Code code, RunContext ctx) throws IOException {
-
-		Path outputPath = exportMixin.getFileOutputPath();
-		// Copy the JAR or native binary
+	@Override
+	int apply(Code code, RunContext ctx) throws IOException {
+		// Copy the JAR
 		Path source = code.getJarFile();
-		if (exportMixin.buildMixin.nativeImage) {
-			source = getImageName(source);
-		}
-
+		Path outputPath = exportMixin.getJarOutputPath();
 		if (outputPath.toFile().exists()) {
 			if (exportMixin.force) {
 				outputPath.toFile().delete();
@@ -124,51 +115,35 @@ class ExportLocal extends BaseExporter {
 				return EXIT_INVALID_INPUT;
 			}
 		}
-
 		Files.copy(source, outputPath);
 
-		if (!exportMixin.buildMixin.nativeImage) {
-			// Update the JAR's MANIFEST.MF Class-Path to point to
-			// its dependencies
-			String newPath = ctx.resolveClassPath(code).getManifestPath();
-			if (!newPath.isEmpty()) {
-				Path tempManifest = createManifest(newPath);
+		// Update the JAR's MANIFEST.MF Class-Path to point to
+		// its dependencies
+		String newPath = ctx.resolveClassPath(code).getManifestPath();
+		if (!newPath.isEmpty()) {
+			Path tempManifest = createManifest(newPath);
 
-				String javaVersion = exportMixin.buildMixin.javaVersion != null
-						? exportMixin.buildMixin.javaVersion
-						: code.getJavaVersion();
-				updateJarManifest(outputPath, tempManifest, javaVersion);
-			}
+			String javaVersion = exportMixin.buildMixin.javaVersion != null
+					? exportMixin.buildMixin.javaVersion
+					: code.getJavaVersion();
+			updateJarManifest(outputPath, tempManifest, javaVersion);
 		}
 
 		Util.infoMsg("Exported to " + outputPath);
 		return EXIT_OK;
-	}
-
-	@Override
-	public Integer doCall() throws IOException {
-		return handle(exportMixin, this);
 	}
 }
 
 @Command(name = "portable", description = "Exports jar together with dependencies in way that makes it portable")
-class ExportPortable extends BaseExporter {
+class ExportPortable extends BaseExportCommand {
 
 	public static final String LIB = "lib";
 
-	@CommandLine.Mixin
-	ExportMixin exportMixin;
-
-	public int apply(ExportMixin exportMixin, Code code, RunContext ctx) throws IOException {
-
-		Path outputPath = exportMixin.getFileOutputPath();
-
-		// Copy the JAR or native binary
+	@Override
+	int apply(Code code, RunContext ctx) throws IOException {
+		// Copy the JAR
 		Path source = code.getJarFile();
-		if (exportMixin.buildMixin.nativeImage) {
-			source = getImageName(source);
-		}
-
+		Path outputPath = exportMixin.getJarOutputPath();
 		if (outputPath.toFile().exists()) {
 			if (exportMixin.force) {
 				outputPath.toFile().delete();
@@ -179,41 +154,31 @@ class ExportPortable extends BaseExporter {
 		}
 
 		Files.copy(source, outputPath);
-		if (!exportMixin.buildMixin.nativeImage) {
-			List<ArtifactInfo> deps = ctx.resolveClassPath(code).getArtifacts();
-			if (!deps.isEmpty()) {
-				// Copy dependencies to "./lib" dir
-				Path libDir = outputPath.getParent().resolve(LIB);
-				Util.mkdirs(libDir);
-				StringBuilder newPath = new StringBuilder();
-				for (ArtifactInfo dep : deps) {
-					Files.copy(dep.getFile(), libDir.resolve(dep.getFile().getFileName()));
-					newPath.append(" " + LIB + "/" + dep.getFile().getFileName());
-				}
-
-				Path tempManifest = createManifest(newPath.toString());
-
-				String javaVersion = exportMixin.buildMixin.javaVersion != null
-						? exportMixin.buildMixin.javaVersion
-						: code.getJavaVersion();
-				updateJarManifest(outputPath, tempManifest, javaVersion);
+		List<ArtifactInfo> deps = ctx.resolveClassPath(code).getArtifacts();
+		if (!deps.isEmpty()) {
+			// Copy dependencies to "./lib" dir
+			Path libDir = outputPath.getParent().resolve(LIB);
+			Util.mkdirs(libDir);
+			StringBuilder newPath = new StringBuilder();
+			for (ArtifactInfo dep : deps) {
+				Files.copy(dep.getFile(), libDir.resolve(dep.getFile().getFileName()));
+				newPath.append(" " + LIB + "/" + dep.getFile().getFileName());
 			}
+
+			Path tempManifest = createManifest(newPath.toString());
+
+			String javaVersion = exportMixin.buildMixin.javaVersion != null
+					? exportMixin.buildMixin.javaVersion
+					: code.getJavaVersion();
+			updateJarManifest(outputPath, tempManifest, javaVersion);
 		}
 		Util.infoMsg("Exported to " + outputPath);
 		return EXIT_OK;
 	}
-
-	@Override
-	public Integer doCall() throws IOException {
-		return handle(exportMixin, this);
-	}
 }
 
 @Command(name = "mavenrepo", description = "Exports directory that can be used to publish as a maven repository")
-class ExportMavenPublish extends BaseExporter {
-
-	@CommandLine.Mixin
-	ExportMixin exportMixin;
+class ExportMavenPublish extends BaseExportCommand {
 
 	@CommandLine.Option(names = { "--group", "-g" }, description = "The group ID to use for the generated POM.")
 	String group;
@@ -224,17 +189,15 @@ class ExportMavenPublish extends BaseExporter {
 	@CommandLine.Option(names = { "--version", "-v" }, description = "The version to use for the generated POM.")
 	String version;
 
-	public int apply(ExportMixin exportMixin, Code code, RunContext ctx) throws IOException {
+	@Override
+	int apply(Code code, RunContext ctx) throws IOException {
 		Path outputPath = exportMixin.outputFile;
 
 		if (outputPath == null) {
 			outputPath = Settings.getLocalMavenRepo();
 		}
-		// Copy the JAR or native binary
+		// Copy the JAR
 		Path source = code.getJarFile();
-		if (exportMixin.buildMixin.nativeImage) {
-			source = getImageName(source);
-		}
 
 		if (!outputPath.toFile().isDirectory()) {
 			if (outputPath.toFile().exists()) {
@@ -322,9 +285,34 @@ class ExportMavenPublish extends BaseExporter {
 		Util.infoMsg("Exported to " + outputPath);
 		return EXIT_OK;
 	}
+}
+
+@Command(name = "native", description = "Exports native executable")
+class ExportNative extends BaseExportCommand {
 
 	@Override
-	public Integer doCall() throws IOException {
-		return handle(exportMixin, this);
+	int apply(Code code, RunContext ctx) throws IOException {
+		// Copy the native binary
+		Path source = getImageName(code.getJarFile());
+		Path outputPath = exportMixin.getNativeOutputPath();
+		if (outputPath.toFile().exists()) {
+			if (exportMixin.force) {
+				outputPath.toFile().delete();
+			} else {
+				Util.warnMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
+				return EXIT_INVALID_INPUT;
+			}
+		}
+		Files.copy(source, outputPath);
+
+		Util.infoMsg("Exported to " + outputPath);
+		return EXIT_OK;
+	}
+
+	@Override
+	protected RunContext getRunContext(ExportMixin exportMixin) {
+		RunContext ctx = super.getRunContext(exportMixin);
+		ctx.setNativeImage(true);
+		return ctx;
 	}
 }
