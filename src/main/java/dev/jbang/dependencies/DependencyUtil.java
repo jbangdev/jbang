@@ -343,6 +343,7 @@ public class DependencyUtil {
 
 		if (split.length == 1) {
 			reporef = split[0];
+			repoid = reporef.toLowerCase();
 		} else if (split.length == 2) {
 			repoid = split[0];
 			reporef = split[1];
@@ -352,7 +353,7 @@ public class DependencyUtil {
 
 		String repo = aliasToRepos.get(reporef.toLowerCase());
 		if (repo != null) {
-			return new MavenRepo(Optional.ofNullable(repoid).orElse(reporef.toLowerCase()), repo);
+			return new MavenRepo(repoid, repo);
 		} else {
 			return new MavenRepo(repoid, reporef);
 		}
