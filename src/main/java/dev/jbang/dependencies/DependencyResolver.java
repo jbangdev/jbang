@@ -19,12 +19,24 @@ public class DependencyResolver {
 	}
 
 	public DependencyResolver addRepository(MavenRepo repository) {
-		repositories.add(repository);
+		MavenRepo repo = repositories	.stream()
+										.filter(r -> r.getId().equals(repository.getId()))
+										.findFirst()
+										.orElse(null);
+		if (repo != null && !repo.getUrl().equals(repository.getUrl())) {
+			throw new IllegalArgumentException("Repository with duplicate id and different url: "
+					+ repository + " vs " + repo);
+		}
+		if (repo == null) {
+			repositories.add(repository);
+		}
 		return this;
 	}
 
 	public DependencyResolver addRepositories(List<MavenRepo> repositories) {
-		this.repositories.addAll(repositories);
+		for (MavenRepo repo : repositories) {
+			addRepository(repo);
+		}
 		return this;
 	}
 

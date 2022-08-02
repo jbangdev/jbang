@@ -304,10 +304,9 @@ public class RunContext {
 
 	/**
 	 * Return resolved classpath lazily. resolution will only happen once, any
-	 * consecutive calls return the same classpath.
-	 *
-	 * Properties available will be used for property replacement.
-	 **/
+	 * consecutive calls return the same classpath. Properties available will be
+	 * used for property replacement.
+	 */
 	public ModularClassPath resolveClassPath(Code code) {
 		if (mcp == null) {
 			DependencyResolver resolver = new DependencyResolver();
