@@ -23,9 +23,14 @@ public class ExportMixin {
 			"--output" }, description = "The name or path to use for the exported file. If not specified a name will be determined from the original source reference and export flags.")
 	Path outputFile;// mixins todo above
 
-	@CommandLine.Option(names = { "--force",
-	}, description = "Force export, i.e. overwrite exported file if already exists")
+	@CommandLine.Option(names = {
+			"--force" }, description = "Force export, i.e. overwrite exported file if already exists")
 	boolean force;
+
+	@Deprecated
+	@CommandLine.Option(names = {
+			"-n", "--native" }, description = "Deprecated: use `jbang export native`", hidden = true)
+	boolean nativeImage;
 
 	public ExportMixin() {
 	}
@@ -60,5 +65,13 @@ public class ExportMixin {
 		}
 		outputPath = cwd.resolve(outputPath);
 		return outputPath;
+	}
+
+	public void validate() {
+		scriptMixin.validate();
+		if (nativeImage) {
+			throw new IllegalArgumentException(
+					"Use of the `-n` and `--native` flags is deprecated, use `jbang export native` instead.");
+		}
 	}
 }
