@@ -50,7 +50,7 @@ Here it is assumed you have a jbang script called `createissue.java` in the root
 on: [push]
 
 jobs:
-    jbang:
+  jbang:
     runs-on: ubuntu-latest
     name: A job to run jbang
     steps:
