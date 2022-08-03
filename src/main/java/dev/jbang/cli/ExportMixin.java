@@ -71,7 +71,7 @@ public class ExportMixin {
 		scriptMixin.validate();
 		if (nativeImage) {
 			throw new IllegalArgumentException(
-					"Use of the `-n` and `--native` flags is deprecated, use `jbang export native` instead.");
+					"The `-n` and `--native` flags have been removed, use `jbang export native` instead.");
 		}
 	}
 }
