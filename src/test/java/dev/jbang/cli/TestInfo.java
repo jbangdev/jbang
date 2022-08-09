@@ -111,6 +111,7 @@ public class TestInfo extends BaseTest {
 	@Test
 	void testInfoClasspathNested() {
 		String src = examplesTestFolder.resolve("sources.java").toString();
+		String quote = examplesTestFolder.resolve("quote.java").toString();
 		JBang jbang = new JBang();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("info", "tools", src);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
@@ -125,6 +126,9 @@ public class TestInfo extends BaseTest {
 		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
 				hasSize(equalTo(1)),
 				everyItem(containsString("picocli"))));
+		assertThat(info.sources, hasSize(equalTo(1)));
+		assertThat(info.sources.get(0).originalResource, equalTo(quote));
+		assertThat(info.sources.get(0).backingResource, equalTo(quote));
 	}
 
 	@Test

@@ -109,6 +109,8 @@ abstract class BaseInfoCommand extends BaseCommand {
 		}
 
 		public ScriptInfo(Source source) {
+			originalResource = source.getResourceRef().getOriginalResource();
+			backingResource = source.getResourceRef().getFile().toString();
 			init(source);
 		}
 
