@@ -36,7 +36,7 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "edit", description = "Setup a temporary project to edit script in an IDE.")
 public class Edit extends BaseCommand {
 
-	static String[] knownEditors = { "code", "eclipse", "idea", "netbeans" };
+	static String[] knownEditors = { "codium", "code", "eclipse", "idea", "netbeans" };
 
 	@CommandLine.Mixin
 	ScriptMixin scriptMixin;
@@ -226,12 +226,39 @@ public class Edit extends BaseCommand {
 			Files.createDirectories(dataPath);
 		}
 
+		Path settingsjson = dataPath.resolve("user-data/User/settings.json");
+
+		if (!Files.exists(settingsjson)) {
+			verboseMsg("Setting up some good default settings at " + settingsjson);
+			Files.createDirectories(settingsjson.getParent());
+
+			String vscodeSettings = "{\n" +
+			// better than breadcrumbs
+					"    \"editor.experimental.stickyScroll.enabled\": true,\n" +
+					// autosave because vscode has it default and it just makes things work smoother
+					"    \"files.autoSave\": \"onFocusChange\",\n" +
+					// use modern java
+					"    \"java.codeGeneration.hashCodeEquals.useJava7Objects\": true,\n" +
+					// instead of `out.println(x);` you get
+					// `out.println(argClosestWithMatchingType)`
+					"    \"java.completion.guessMethodArguments\": true,\n" +
+					// when editing html/xml editing tags updates the matching pair
+					"    \"editor.linkedEditing\": true,\n" +
+					// looks cooler - doesn't hurt
+					"    \"editor.cursorBlinking\": \"phase\",\n" +
+					// making easy to zoom for presentations
+					"    \"editor.mouseWheelZoom\": true\n" +
+					"}";
+			Util.writeString(settingsjson, vscodeSettings);
+		}
+
 		verboseMsg("Installing Java extensions...");
 		ProcessBuilder pb = new ProcessBuilder(editorBinPath.toAbsolutePath().toString(),
 				"--install-extension", "redhat.java",
 				"--install-extension", "vscjava.vscode-java-debug",
 				"--install-extension", "vscjava.vscode-java-test",
-				"--install-extension", "vscjava.vscode-java-dependency");
+				"--install-extension", "vscjava.vscode-java-dependency",
+				"--install-extension", "jbangdev.jbang-vscode");
 		pb.inheritIO();
 		Process process = pb.start();
 		try {
