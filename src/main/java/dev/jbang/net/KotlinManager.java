@@ -20,7 +20,7 @@ public class KotlinManager {
 		Path kotlinHome = getKotlin(requestedVersion);
 		if (kotlinHome != null) {
 			if (Util.isWindows()) {
-				cmd = cmd + ".exe";
+				cmd = cmd + ".bat";
 			}
 			return kotlinHome.resolve("bin").resolve(cmd).toAbsolutePath().toString();
 		}
