@@ -19,10 +19,9 @@ public class KotlinManager {
 	public static String resolveInKotlinHome(String cmd, String requestedVersion) {
 		Path kotlinHome = getKotlin(requestedVersion);
 		if (kotlinHome != null) {
-			if (Util.isWindows()) {
-				cmd = cmd + ".bat";
-			}
-			return kotlinHome.resolve("bin").resolve(cmd).toAbsolutePath().toString();
+			Path dir = kotlinHome.toAbsolutePath().resolve("bin");
+			Path cmdPath = Util.searchPath(cmd, dir.toString());
+			return cmdPath != null ? cmdPath.toString() : cmd;
 		}
 		return cmd;
 	}
