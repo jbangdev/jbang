@@ -67,7 +67,7 @@ You use it by having as the very first dependency a `@pom` reference. This first
 to define your managed dependences. Below is an example how that could look like when using Quarkus:
 
 ```java
-//DEPS io.quarkus:quarkus-bom:1.11.0.Final@pom
+//DEPS io.quarkus:quarkus-bom:2.11.2.Final@pom
 //DEPS io.quarkus:quarkus-resteasy
 //DEPS io.quarkus:quarkus-smallrye-openapi
 //DEPS io.quarkus:quarkus-swagger-ui
