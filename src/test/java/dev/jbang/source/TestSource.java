@@ -145,7 +145,7 @@ public class TestSource extends BaseTest {
 			+ "    }\n"
 			+ "}";
 
-	String exampleCommandsWithComments = "//DEPS info.picocli:picocli:4.5.0 // <.>\n" +
+	String exampleCommandsWithComments = "//DEPS info.picocli:picocli:4.6.3 // <.>\n" +
 			"//JAVA 14+ // <.>\n" +
 			"//JAVAC_OPTIONS commons-codec:commons-codec:1.15 // <.>\n" +
 			"public class test {" +
@@ -160,7 +160,7 @@ public class TestSource extends BaseTest {
 
 		List<String> deps = prj.getMainSourceSet().getDependencies();
 
-		assertThat(deps, containsInAnyOrder("info.picocli:picocli:4.5.0"));
+		assertThat(deps, containsInAnyOrder("info.picocli:picocli:4.6.3"));
 	}
 
 	@Test

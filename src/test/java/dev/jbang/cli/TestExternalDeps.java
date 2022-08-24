@@ -41,7 +41,7 @@ class TestExternalDeps extends BaseTest {
 		Util.writeString(f.toPath(), checkdeps);
 
 		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "--deps", "info.picocli:picocli:4.6.1",
+											.parseArgs("run", "--deps", "info.picocli:picocli:4.6.3",
 													f.getPath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 

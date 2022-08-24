@@ -1,5 +1,5 @@
-//DEPS info.picocli:picocli:4.6.1
-//DEPS info.picocli:picocli-codegen:4.6.1
+//DEPS info.picocli:picocli:4.6.3
+//DEPS info.picocli:picocli-codegen:4.6.3
 //JAVA 16
 
 import picocli.CommandLine;

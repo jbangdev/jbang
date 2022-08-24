@@ -1,5 +1,5 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS info.picocli:picocli:4.5.0
+//DEPS info.picocli:picocli:4.6.3
 //DESCRIPTION For testing purposes
 //GAV dev.jbang.itests:quote
 //SOURCES quote_notags.java

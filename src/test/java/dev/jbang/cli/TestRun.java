@@ -88,7 +88,7 @@ public class TestRun extends BaseTest {
 		JBang jbang = new JBang();
 		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
 		String extracp = examplesTestFolder.resolve("hellojar.jar").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--deps", "info.picocli:picocli:4.5.0",
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--deps", "info.picocli:picocli:4.6.3",
 				"--cp", extracp, arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
@@ -109,7 +109,7 @@ public class TestRun extends BaseTest {
 		assertThat(result, endsWith("helloworld"));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, matchesRegex(".*helloworld\\.java\\.[a-z0-9]+\\.jar.*"));
-		assertThat(result, containsString("picocli-4.5.0.jar"));
+		assertThat(result, containsString("picocli-4.6.3.jar"));
 		assertThat(result, containsString("hellojar.jar"));
 		assertThat(result, containsString("-Dfoo=bar"));
 		assertThat(result, containsString(BaseBuilder.escapeOSArgument("-Dbar=aap noot mies", Util.getShell())));
@@ -321,7 +321,7 @@ public class TestRun extends BaseTest {
 
 		String jar = examplesTestFolder.resolve("hellojar.jar").toAbsolutePath().toString();
 
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--deps", "info.picocli:picocli:4.5.0",
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--deps", "info.picocli:picocli:4.6.3",
 				"--cp", "dummy.jar", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
@@ -332,7 +332,7 @@ public class TestRun extends BaseTest {
 		assertThat(result, matchesPattern("^.*java(.exe)?.*"));
 		assertThat(ctx.getMainClassOr(code), not(nullValue()));
 
-		assertThat(result, containsString("picocli-4.5.0.jar"));
+		assertThat(result, containsString("picocli-4.6.3.jar"));
 		assertThat(result, containsString("dummy.jar"));
 		assertThat(result, containsString("hellojar.jar"));
 
@@ -376,7 +376,7 @@ public class TestRun extends BaseTest {
 		environmentVariables.clear("JAVA_HOME");
 		JBang jbang = new JBang();
 
-		String jar = "info.picocli:picocli-codegen:4.5.0";
+		String jar = "info.picocli:picocli-codegen:4.6.3";
 
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
@@ -384,7 +384,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		Code code = ctx.forResource(jar);
 
-		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
+		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*codegen-4.6.3.jar"));
 
 		ExitException e = Assertions.assertThrows(ExitException.class,
 				() -> code.cmdGenerator(ctx).generate());
@@ -399,7 +399,7 @@ public class TestRun extends BaseTest {
 		environmentVariables.clear("JAVA_HOME");
 		JBang jbang = new JBang();
 
-		String jar = "info.picocli:picocli-codegen:4.5.0";
+		String jar = "info.picocli:picocli-codegen:4.6.3";
 
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar, "-i");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
@@ -407,7 +407,7 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		Code code = ctx.forResource(jar);
 
-		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
+		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*codegen-4.6.3.jar"));
 
 		String result = code.cmdGenerator(ctx).generate();
 		assertThat(result, matchesPattern("^.*jshell(.exe)?.*"));
@@ -487,7 +487,7 @@ public class TestRun extends BaseTest {
 		environmentVariables.clear("JAVA_HOME");
 		JBang jbang = new JBang();
 
-		String jar = "info.picocli:picocli-codegen:4.5.0";
+		String jar = "info.picocli:picocli-codegen:4.6.3";
 
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--main",
 				"picocli.codegen.aot.graalvm.ReflectionConfigGenerator", jar);
@@ -500,9 +500,9 @@ public class TestRun extends BaseTest {
 
 		assertThat(ctx.getMainClassOr(code), equalTo("picocli.codegen.aot.graalvm.ReflectionConfigGenerator"));
 
-		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*codegen-4.5.0.jar"));
+		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*codegen-4.6.3.jar"));
 
-		assertThat(cmd, matchesPattern(".* -classpath .*picocli-4.5.0.jar.*"));
+		assertThat(cmd, matchesPattern(".* -classpath .*picocli-4.6.3.jar.*"));
 		assertThat(cmd, not(containsString(" -jar ")));
 
 	}
@@ -545,7 +545,7 @@ public class TestRun extends BaseTest {
 
 		String jar = "org.eclipse.jgit:org.eclipse.jgit.pgm:5.9.0.202009080501-r";
 		String extracp = examplesTestFolder.resolve("hellojar.jar").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--deps", "info.picocli:picocli:4.5.0",
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--deps", "info.picocli:picocli:4.6.3",
 				"--cp", extracp, jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
@@ -556,7 +556,7 @@ public class TestRun extends BaseTest {
 
 		String result = code.cmdGenerator(ctx).generate();
 
-		assertThat(result, containsString("picocli-4.5.0.jar"));
+		assertThat(result, containsString("picocli-4.6.3.jar"));
 		assertThat(result, containsString("hellojar.jar"));
 	}
 
@@ -836,7 +836,7 @@ public class TestRun extends BaseTest {
 	void testBuildPom(@TempDir File output) throws IOException, ParserConfigurationException, SAXException {
 
 		String base = "///usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n" +
-				"//DEPS info.picocli:picocli:4.5.0\n" +
+				"//DEPS info.picocli:picocli:4.6.3\n" +
 				"//GAV dev.jbang.tests:aclass\n" +
 				"\n" +
 				"import static java.lang.System.*;\n" +
@@ -1957,7 +1957,7 @@ public class TestRun extends BaseTest {
 
 	@Test
 	void testGAVCliReposAndDepsSingleRepo(@TempDir File output) throws IOException {
-		String jar = "info.picocli:picocli-codegen:4.5.0";
+		String jar = "info.picocli:picocli-codegen:4.6.3";
 
 		JBang jbang = new JBang();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--repos", "http://dummyrepo", "--deps",
@@ -1974,13 +1974,13 @@ public class TestRun extends BaseTest {
 			StringWriter sw = new StringWriter();
 			ex.printStackTrace(new PrintWriter(sw));
 			assertThat(sw.toString(), containsString(
-					"Could not transfer artifact info.picocli:picocli-codegen:pom:4.5.0 from/to http://dummyrepo"));
+					"Could not transfer artifact info.picocli:picocli-codegen:pom:4.6.3 from/to http://dummyrepo"));
 		}
 	}
 
 	@Test
 	void testGAVCliReposAndDepsTwoRepos(@TempDir File output) throws IOException {
-		String jar = "info.picocli:picocli-codegen:4.5.0";
+		String jar = "info.picocli:picocli-codegen:4.6.3";
 
 		JBang jbang = new JBang();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--repos", "mavencentral", "--repos",
@@ -2144,7 +2144,7 @@ public class TestRun extends BaseTest {
 		assertThat(result, endsWith("quote_notags"));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, matchesRegex(".*build\\.jbang\\.[a-z0-9]+\\.jar.*"));
-		assertThat(result, containsString("picocli-4.5.0.jar"));
+		assertThat(result, containsString("picocli-4.6.3.jar"));
 		assertThat(result, containsString("-Dfoo=bar"));
 		assertThat(result, containsString(BaseBuilder.escapeOSArgument("-Dbar=aap noot mies", Util.getShell())));
 		// Make sure the opts only appear once

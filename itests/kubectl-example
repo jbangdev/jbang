@@ -6,7 +6,7 @@
 // client-java for k8s
 //DEPS io.kubernetes:client-java:5.0.0
 // pico for cli
-//DEPS info.picocli:picocli:4.1.4
+//DEPS info.picocli:picocli:4.6.3
 // text output table
 //DEPS com.massisframework:j-text-utils:0.3.4
 // to quiet down log4j

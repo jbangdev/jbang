@@ -69,7 +69,7 @@ public class TestInfo extends BaseTest {
 		String src = examplesTestFolder.resolve("helloworld.java").toString();
 		JBang jbang = new JBang();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("info", "tools",
-				"--deps", "info.picocli:picocli:4.5.0,commons-io:commons-io:2.8.0",
+				"--deps", "info.picocli:picocli:4.6.3,commons-io:commons-io:2.8.0",
 				"--deps", "org.apache.commons:commons-lang3:3.12.0",
 				src);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();

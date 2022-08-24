@@ -328,13 +328,13 @@ The `.jar` can be a local file or a http/https url.
 
 You can also run a `.jar` file referenced by a Maven coordinate, i.e.:
 
-  jbang info.picocli:picocli-codegen:4.5.0
+  jbang info.picocli:picocli-codegen:4.6.3
 
 This will fetch the dependency stated and put the transitive dependencies on the class-path.
 
 If you need to specify a main class you can do so by using `--main` i.e.
 
-  jbang --main picocli.codegen.aot.graalvm.ReflectionConfigGenerator info.picocli:picocli-codegen:4.5.0
+  jbang --main picocli.codegen.aot.graalvm.ReflectionConfigGenerator info.picocli:picocli-codegen:4.6.3
 
 [TIP]
 ====
