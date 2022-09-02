@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
@@ -309,17 +310,22 @@ public class TestBuilder extends BaseTest {
 		Path mainFile = examplesTestFolder.resolve("helloworld.java");
 
 		RunContext ctx = RunContext.empty();
+		HashMap<String, String> props = new HashMap<>();
+		props.put("bazprop", "algo");
+		ctx.setProperties(props);
 		Project prj = ctx.forResource(mainFile.toFile().getAbsolutePath());
 
 		prj.builder().build();
 
 		assertThat(prj.getManifestAttributes().get("foo"), is("true"));
 		assertThat(prj.getManifestAttributes().get("bar"), is("baz"));
+		assertThat(prj.getManifestAttributes().get("baz"), is("algo"));
 
 		try (JarFile jf = new JarFile(prj.getJarFile().toFile())) {
 			Attributes attrs = jf.getManifest().getMainAttributes();
 			assertThat(attrs.getValue("foo"), equalTo("true"));
 			assertThat(attrs.getValue("bar"), equalTo("baz"));
+			assertThat(attrs.getValue("baz"), equalTo("algo"));
 		}
 
 	}

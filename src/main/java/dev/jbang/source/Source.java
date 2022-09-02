@@ -190,24 +190,23 @@ public abstract class Source {
 
 	public List<KeyValue> collectManifestOptions() {
 		return collectRawOptions("MANIFEST").stream()
-											.flatMap(Source::extractKeyValue)
-											.map(Source::toKeyValue)
+											.flatMap(Source::extractKeyValues)
+											.map(this::toKeyValue)
 											.collect(Collectors.toCollection(ArrayList::new));
 	}
 
 	public List<KeyValue> collectAgentOptions() {
 		return collectRawOptions("JAVAAGENT")	.stream()
-												.flatMap(Source::extractKeyValue)
-												.map(Source::toKeyValue)
+												.flatMap(Source::extractKeyValues)
+												.map(this::toKeyValue)
 												.collect(Collectors.toCollection(ArrayList::new));
 	}
 
-	static Stream<String> extractKeyValue(String line) {
+	private static Stream<String> extractKeyValues(String line) {
 		return Arrays.stream(line.split(" +")).map(String::trim);
 	}
 
-	static public KeyValue toKeyValue(String line) {
-
+	private KeyValue toKeyValue(String line) {
 		String[] split = line.split("=");
 		String key;
 		String value = null;
@@ -216,10 +215,11 @@ public abstract class Source {
 			key = split[0];
 		} else if (split.length == 2) {
 			key = split[0];
-			value = split[1];
+			value = replaceProperties.apply(split[1]);
 		} else {
 			throw new IllegalStateException("Invalid key/value: " + line);
 		}
+
 		return new KeyValue(key, value);
 	}
 
