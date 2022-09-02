@@ -41,6 +41,9 @@ public class Run extends BaseBuildCommand {
 	@CommandLine.Option(names = { "--enablesystemassertions", "--esa" }, description = "Enable system assertions")
 	public boolean enableSystemAssertions;
 
+	@CommandLine.Option(names = { "--manifest" }, parameterConsumer = KeyValueConsumer.class)
+	public Map<String, String> manifestOptions;
+
 	@CommandLine.Option(names = { "--javaagent" }, parameterConsumer = KeyValueConsumer.class)
 	public Map<String, String> javaAgentSlots;
 

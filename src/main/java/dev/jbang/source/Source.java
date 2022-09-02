@@ -188,6 +188,13 @@ public abstract class Source {
 		return Stream.of();
 	}
 
+	public List<KeyValue> collectManifestOptions() {
+		return collectRawOptions("MANIFEST").stream()
+											.flatMap(Source::extractKeyValue)
+											.map(Source::toKeyValue)
+											.collect(Collectors.toCollection(ArrayList::new));
+	}
+
 	public List<KeyValue> collectAgentOptions() {
 		return collectRawOptions("JAVAAGENT")	.stream()
 												.flatMap(Source::extractKeyValue)
@@ -520,6 +527,11 @@ public abstract class Source {
 			ss.addCompileOptions(getCompileOptions());
 			prj.addRepositories(collectRepositories());
 			prj.addRuntimeOptions(getRuntimeOptions());
+			collectManifestOptions().forEach(kv -> {
+				if (!kv.getKey().isEmpty()) {
+					prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
+				}
+			});
 			collectAgentOptions().forEach(kv -> {
 				if (!kv.getKey().isEmpty()) {
 					prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
