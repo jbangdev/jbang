@@ -131,9 +131,9 @@ public abstract class BaseBuilder implements Builder {
 		optionList.addAll(prj.getMainSourceSet().getCompileOptions());
 		String path = prj.resolveClassPath().getClassPath();
 		if (!Util.isBlankString(path)) {
-			optionList.addAll(Arrays.asList("-classpath", path));
+			optionList.addAll(Arrays.asList("-classpath", escapeOSArgument(path, shell)));
 		}
-		optionList.addAll(Arrays.asList("-d", compileDir.toAbsolutePath().toString()));
+		optionList.addAll(Arrays.asList("-d", esacpeOSArgument(compileDir.toAbsolutePath().toString(), shell)));
 
 		// add source files to compile
 		optionList.addAll(prj	.getMainSourceSet()
