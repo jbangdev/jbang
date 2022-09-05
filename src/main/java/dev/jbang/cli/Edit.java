@@ -1,7 +1,6 @@
 package dev.jbang.cli;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
-import static dev.jbang.source.builders.BaseBuilder.escapeOSArguments;
 import static dev.jbang.util.Util.verboseMsg;
 import static java.lang.System.out;
 
@@ -26,6 +25,7 @@ import dev.jbang.dependencies.JitPackUtil;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.net.EditorManager;
 import dev.jbang.source.*;
+import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
 import dev.jbang.util.Util.Shell;
@@ -155,10 +155,10 @@ public class Edit extends BaseCommand {
 
 			String[] cmd;
 			if (Util.getShell() == Shell.bash) {
-				final String editorCommand = String.join(" ", escapeOSArguments(optionList, Shell.bash));
+				final String editorCommand = CommandBuffer.of(optionList).asCommandLine(Shell.bash);
 				cmd = new String[] { "sh", "-c", editorCommand };
 			} else {
-				final String editorCommand = String.join(" ", escapeOSArguments(optionList, Shell.cmd));
+				final String editorCommand = CommandBuffer.of(optionList).asCommandLine(Shell.cmd);
 				cmd = new String[] { "cmd", "/c", editorCommand };
 			}
 			verboseMsg("Running `" + String.join(" ", cmd) + "`");

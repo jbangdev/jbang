@@ -1049,7 +1049,7 @@ public class Util {
 	 */
 	public static String runCommand(String... cmd) {
 		try {
-			ProcessBuilder pb = new ProcessBuilder(cmd);
+			ProcessBuilder pb = CommandBuffer.of(cmd).asProcessBuilder();
 			pb.redirectErrorStream(true);
 			Process p = pb.start();
 			BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));

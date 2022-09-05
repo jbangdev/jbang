@@ -3,14 +3,12 @@ package dev.jbang.source.generators;
 import static dev.jbang.source.builders.BaseBuilder.*;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.source.*;
+import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
@@ -34,7 +32,8 @@ public abstract class BaseCmdGenerator implements CmdGenerator {
 	@Override
 	public String generate() throws IOException {
 		List<String> fullArgs = generateCommandLineList();
-		String args = String.join(" ", escapeOSArguments(fullArgs, shell));
+		CommandBuffer cb = CommandBuffer.of(fullArgs);
+		String args = cb.asCommandLine(shell);
 		// Check if we can and need to use @-files on Windows
 		boolean useArgsFile = false;
 		if (!(getCode().isJShell() || ctx.getForceType() == Source.Type.jshell) &&
@@ -45,17 +44,7 @@ public abstract class BaseCmdGenerator implements CmdGenerator {
 			useArgsFile = actualVersion >= 9;
 		}
 		if (useArgsFile) {
-			// @-files avoid problems on Windows with very long command lines
-			final String javaCmd = escapeOSArgument(fullArgs.get(0), shell);
-			final Path argsFile = Files.createTempFile("jbang", ".args");
-			try (PrintWriter pw = new PrintWriter(argsFile.toFile())) {
-				// write all arguments except the first to the file
-				for (int i = 1; i < fullArgs.size(); ++i) {
-					pw.println(escapeArgsFileArgument(fullArgs.get(i)));
-				}
-			}
-
-			return javaCmd + " @" + argsFile;
+			return cb.asJavaArgsFile(shell);
 		} else {
 			return args;
 		}
