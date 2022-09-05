@@ -15,12 +15,13 @@ public class CommandBuffer {
 	private List<String> arguments;
 
 	// NB: This might not be a definitive list of safe characters
-	// static Pattern cmdSafeChars = Pattern.compile("[^&()\\[]\\{}\\^=;!'+,`~<>|
-	// ]*");
+	// cmdSafeChars = Pattern.compile("[^\\Q&()[]{}^=;!'+,`~<>|\\E]*");
 	static Pattern cmdSafeChars = Pattern.compile("[a-zA-Z0-9.,_+=:;@()-]*");
 	// TODO: Figure out what the real list of safe characters is for PowerShell
 	static Pattern pwrSafeChars = Pattern.compile("[a-zA-Z0-9.,_+=:;@()-]*");
 	static Pattern shellSafeChars = Pattern.compile("[a-zA-Z0-9._+=:@%/-]*");
+
+	static Pattern cmdNeedQuotesChars = Pattern.compile("[\\Q&()[]{}^=;!'+,`~\\E]");
 
 	public static CommandBuffer of() {
 		return new CommandBuffer();
@@ -47,7 +48,14 @@ public class CommandBuffer {
 	}
 
 	public ProcessBuilder asProcessBuilder() {
-		return new ProcessBuilder(arguments);
+		return asProcessBuilder(Util.getShell());
+	}
+
+	public ProcessBuilder asProcessBuilder(Util.Shell shell) {
+		List<String> args = arguments	.stream()
+										.map(a -> escapeProcessBuilderArgument(a, shell))
+										.collect(Collectors.toList());
+		return new ProcessBuilder(args);
 	}
 
 	public String asCommandLine() {
@@ -126,8 +134,15 @@ public class CommandBuffer {
 	}
 
 	private static String escapeProcessBuilderArgument(String arg, Util.Shell shell) {
-		if (shell != Util.Shell.bash) {
-			arg = escapeCmdArgument(arg);
+		// This code is meant to deal with special characters on Windows
+		// that get treated as argument separators if left unquoted.
+		// (For a list of those characters see the output of `CMD /?`)
+		// The code is NOT able to handle double quotes as part of the
+		// argument, this is close to impossible to handle on Windows.
+		// (see
+		// https://stackoverflow.com/questions/30157414/batch-argument-with-quotes-and-spaces)
+		if (shell != Util.Shell.bash && cmdNeedQuotesChars.matcher(arg).find()) {
+			arg = "\"" + arg + "\"";
 		}
 		return arg;
 	}

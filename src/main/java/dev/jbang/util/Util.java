@@ -1053,7 +1053,7 @@ public class Util {
 			pb.redirectErrorStream(true);
 			Process p = pb.start();
 			BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			String cmdOutput = br.lines().collect(Collectors.joining());
+			String cmdOutput = br.lines().collect(Collectors.joining("\n"));
 			int exitCode = p.waitFor();
 			if (exitCode == 0) {
 				return cmdOutput;
