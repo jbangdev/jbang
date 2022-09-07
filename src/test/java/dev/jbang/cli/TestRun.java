@@ -65,6 +65,7 @@ import dev.jbang.source.generators.JarCmdGenerator;
 import dev.jbang.source.generators.JshCmdGenerator;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.source.sources.JavaSource;
+import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
@@ -112,7 +113,7 @@ public class TestRun extends BaseTest {
 		assertThat(result, containsString("picocli-4.6.3.jar"));
 		assertThat(result, containsString("hellojar.jar"));
 		assertThat(result, containsString("-Dfoo=bar"));
-		assertThat(result, containsString(BaseBuilder.escapeOSArgument("-Dbar=aap noot mies", Util.getShell())));
+		assertThat(result, containsString(CommandBuffer.escapeShellArgument("-Dbar=aap noot mies", Util.getShell())));
 		// Make sure the opts only appear once
 		assertThat(result.replaceFirst(Pattern.quote("-Dfoo=bar"), ""),
 				not(containsString("-Dfoo=bar")));
@@ -120,7 +121,8 @@ public class TestRun extends BaseTest {
 				not(containsString("-Dbar=aap noot mies")));
 		// Make sure the opts only appear unquoted
 		assertThat(result,
-				not(containsString(BaseBuilder.escapeOSArgument("-Dfoo=bar -Dbar=aap noot mies", Util.getShell()))));
+				not(containsString(
+						CommandBuffer.escapeShellArgument("-Dfoo=bar -Dbar=aap noot mies", Util.getShell()))));
 		// assertThat(result, containsString("--source 11"));
 	}
 
@@ -143,7 +145,7 @@ public class TestRun extends BaseTest {
 		assertThat(result, containsString("classpath"));
 		assertThat(result, containsString(".jar"));
 		assertThat(result, containsString("-Dfoo=bar"));
-		assertThat(result, containsString(BaseBuilder.escapeOSArgument("-Dbar=aap noot mies", Util.getShell())));
+		assertThat(result, containsString(CommandBuffer.escapeShellArgument("-Dbar=aap noot mies", Util.getShell())));
 		assertThat(result, containsString("-showversion"));
 		// Make sure the opts only appear once
 		assertThat(result.replaceFirst(Pattern.quote("-Dfoo=bar"), ""),
@@ -154,7 +156,8 @@ public class TestRun extends BaseTest {
 				not(containsString("-showversion")));
 		// Make sure the opts only appear unquoted
 		assertThat(result,
-				not(containsString(BaseBuilder.escapeOSArgument("-Dfoo=bar -Dbar=aap noot mies", Util.getShell()))));
+				not(containsString(
+						CommandBuffer.escapeShellArgument("-Dfoo=bar -Dbar=aap noot mies", Util.getShell()))));
 		// assertThat(result, containsString("--source 11"));
 	}
 
@@ -2146,7 +2149,7 @@ public class TestRun extends BaseTest {
 		assertThat(result, matchesRegex(".*build\\.jbang\\.[a-z0-9]+\\.jar.*"));
 		assertThat(result, containsString("picocli-4.6.3.jar"));
 		assertThat(result, containsString("-Dfoo=bar"));
-		assertThat(result, containsString(BaseBuilder.escapeOSArgument("-Dbar=aap noot mies", Util.getShell())));
+		assertThat(result, containsString(CommandBuffer.escapeShellArgument("-Dbar=aap noot mies", Util.getShell())));
 		// Make sure the opts only appear once
 		assertThat(result.replaceFirst(Pattern.quote("-Dfoo=bar"), ""),
 				not(containsString("-Dfoo=bar")));
@@ -2154,7 +2157,8 @@ public class TestRun extends BaseTest {
 				not(containsString("-Dbar=aap noot mies")));
 		// Make sure the opts only appear unquoted
 		assertThat(result,
-				not(containsString(BaseBuilder.escapeOSArgument("-Dfoo=bar -Dbar=aap noot mies", Util.getShell()))));
+				not(containsString(
+						CommandBuffer.escapeShellArgument("-Dfoo=bar -Dbar=aap noot mies", Util.getShell()))));
 		// assertThat(result, containsString("--source 11"));
 	}
 }

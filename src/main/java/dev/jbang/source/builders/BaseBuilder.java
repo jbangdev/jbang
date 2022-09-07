@@ -8,7 +8,6 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -20,10 +19,7 @@ import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.source.*;
 import dev.jbang.spi.IntegrationManager;
 import dev.jbang.spi.IntegrationResult;
-import dev.jbang.util.JarUtil;
-import dev.jbang.util.JavaUtil;
-import dev.jbang.util.TemplateEngine;
-import dev.jbang.util.Util;
+import dev.jbang.util.*;
 
 import io.quarkus.qute.Template;
 
@@ -176,7 +172,7 @@ public abstract class BaseBuilder implements Builder {
 	}
 
 	protected void runCompiler(List<String> optionList) throws IOException {
-		runCompiler(new ProcessBuilder(optionList).inheritIO());
+		runCompiler(CommandBuffer.of(optionList).asProcessBuilder().inheritIO());
 	}
 
 	protected void runCompiler(ProcessBuilder processBuilder) throws IOException {
@@ -210,7 +206,7 @@ public abstract class BaseBuilder implements Builder {
 		// options set on the Source (that way persistent args can override
 		// options set on the Source)
 		List<String> rtArgs = prj.getRuntimeOptions();
-		String runtimeOpts = String.join(" ", escapeArguments(rtArgs));
+		String runtimeOpts = CommandBuffer.of(rtArgs).asCommandLine(Util.Shell.bash);
 		if (!runtimeOpts.isEmpty()) {
 			manifest.getMainAttributes()
 					.putValue(ATTR_JBANG_JAVA_OPTIONS, runtimeOpts);
@@ -270,7 +266,11 @@ public abstract class BaseBuilder implements Builder {
 		Util.verboseMsg("native-image: " + String.join(" ", optionList));
 		Util.infoMsg("log: " + nilog.toString());
 
-		Process process = new ProcessBuilder(optionList).inheritIO().redirectOutput(nilog.toFile()).start();
+		Process process = CommandBuffer	.of(optionList)
+										.asProcessBuilder()
+										.inheritIO()
+										.redirectOutput(nilog.toFile())
+										.start();
 		try {
 			process.waitFor();
 		} catch (InterruptedException e) {
@@ -314,74 +314,6 @@ public abstract class BaseBuilder implements Builder {
 		} else {
 			return cmd;
 		}
-	}
-
-	// NB: This might not be a definitive list of safe characters
-	static Pattern cmdSafeChars = Pattern.compile("[a-zA-Z0-9.,_+=:;@()-]*");
-	// TODO: Figure out what the real list of safe characters is for PowerShell
-	static Pattern pwrSafeChars = Pattern.compile("[a-zA-Z0-9.,_+=:;@()-]*");
-	static Pattern shellSafeChars = Pattern.compile("[a-zA-Z0-9._+=:@%/-]*");
-
-	/**
-	 * Escapes list of arguments where necessary using the current OS' way of
-	 * escaping
-	 */
-	public static List<String> escapeOSArguments(List<String> args, Util.Shell shell) {
-		return args.stream().map(arg -> escapeOSArgument(arg, shell)).collect(Collectors.toList());
-	}
-
-	/**
-	 * Escapes list of arguments where necessary using a generic way of escaping
-	 * (we'll just be using the Unix way)
-	 */
-	static List<String> escapeArguments(List<String> args) {
-		return args.stream().map(BaseBuilder::escapeUnixArgument).collect(Collectors.toList());
-	}
-
-	public static String escapeOSArgument(String arg, Util.Shell shell) {
-		switch (shell) {
-		case bash:
-			return escapeUnixArgument(arg);
-		case cmd:
-			return escapeCmdArgument(arg);
-		case powershell:
-			return escapePowershellArgument(arg);
-		}
-		return arg;
-	}
-
-	static String escapeUnixArgument(String arg) {
-		if (!shellSafeChars.matcher(arg).matches()) {
-			arg = arg.replaceAll("(['])", "'\\\\''");
-			arg = "'" + arg + "'";
-		}
-		return arg;
-	}
-
-	public static String escapeArgsFileArgument(String arg) {
-		if (!shellSafeChars.matcher(arg).matches()) {
-			arg = arg.replaceAll("([\"'\\\\])", "\\\\$1");
-			arg = "\"" + arg + "\"";
-		}
-		return arg;
-	}
-
-	static String escapeCmdArgument(String arg) {
-		if (!cmdSafeChars.matcher(arg).matches()) {
-			// Windows quoting is just weird
-			arg = arg.replaceAll("([()!^<>&|% ])", "^$1");
-			arg = arg.replaceAll("([\"])", "\\\\^$1");
-			arg = "^\"" + arg + "^\"";
-		}
-		return arg;
-	}
-
-	static String escapePowershellArgument(String arg) {
-		if (!pwrSafeChars.matcher(arg).matches()) {
-			arg = arg.replaceAll("(['])", "''");
-			arg = "'" + arg + "'";
-		}
-		return arg;
 	}
 
 	protected void searchForMain(Path tmpJarDir) {
