@@ -1,16 +1,7 @@
 package dev.jbang.cli;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -146,5 +137,19 @@ public class TestInfo extends BaseTest {
 		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
 				hasSize(equalTo(1)),
 				everyItem(containsString("commons-lang3"))));
+	}
+
+	@Test
+	void testInfoHelloJar() {
+		String jar = examplesTestFolder.resolve("hellojar.jar").toString();
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", jar);
+		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
+		BaseInfoCommand.ScriptInfo info = tools.getInfo();
+		assertThat(info.originalResource, equalTo(jar));
+		assertThat(info.applicationJar, equalTo(jar));
+		assertThat(info.backingResource, equalTo(jar));
+		assertThat(info.javaVersion, not(nullValue()));
+		assertThat(info.mainClass, equalTo("helloworld"));
+		assertThat(info.resolvedDependencies, empty());
 	}
 }
