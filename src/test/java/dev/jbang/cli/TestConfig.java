@@ -21,18 +21,26 @@ public class TestConfig extends BaseTest {
 	private static final int SUCCESS_EXIT = CommandLine.ExitCode.OK;
 
 	static final String testConfig = "" +
-			"one=foo\n" +
-			"two=bar\n" +
+			"one=footop\n" +
+			"two=bar\n";
+
+	static final String testConfigSub = "" +
+			"one=foosub\n" +
 			"three=baz\n";
 
 	static Path configFile = null;
 	static Path testConfigFile = null;
+	static Path testConfigFileSub = null;
 
 	@BeforeEach
 	void init() throws IOException {
 		configFile = jbangTempDir.resolve(Configuration.JBANG_CONFIG_PROPS);
-		testConfigFile = cwdDir.resolve("jbang.properties");
+		testConfigFile = cwdDir.resolve(Configuration.JBANG_CONFIG_PROPS);
 		Files.write(testConfigFile, testConfig.getBytes());
+		Path testSubDir = cwdDir.resolve(".jbang");
+		testSubDir.toFile().mkdir();
+		testConfigFileSub = testSubDir.resolve(Configuration.JBANG_CONFIG_PROPS);
+		Files.write(testConfigFileSub, testConfigSub.getBytes());
 		clearSettingsCaches();
 	}
 
@@ -42,7 +50,7 @@ public class TestConfig extends BaseTest {
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(),
 				equalTo("init.template = hello\n" +
-						"one = foo\n" +
+						"one = footop\n" +
 						"run.debug = 4004\n" +
 						"run.jfr = filename={baseName}.jfr\n" +
 						"three = baz\n" +
@@ -81,6 +89,7 @@ public class TestConfig extends BaseTest {
 	@Test
 	void testSetBuiltin() throws IOException {
 		Files.deleteIfExists(testConfigFile);
+		Files.deleteIfExists(testConfigFileSub);
 		assertThat(Configuration.read(configFile).keySet(), not(hasItem("run.debug")));
 		ExecutionResult result = checkedRun(null, "config", "set", "run.debug", "42");
 		assertThat(Configuration.read(configFile).keySet(), hasItem("run.debug"));

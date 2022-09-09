@@ -8,11 +8,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.codejive.properties.Properties;
@@ -154,6 +150,10 @@ public class Configuration {
 		return target;
 	}
 
+	public Map<String, String> asMap() {
+		return new HashMap<>(values);
+	}
+
 	/**
 	 * Returns a new empty Configuration
 	 * 
@@ -249,7 +249,7 @@ public class Configuration {
 		ArrayList<Path> files = new ArrayList<>(configFiles);
 		Collections.reverse(files);
 		Configuration result = defaults();
-		for (Path cfgFile : configFiles) {
+		for (Path cfgFile : files) {
 			Configuration cfg = read(cfgFile);
 			cfg.storeRef = ResourceRef.forFile(cfgFile);
 			cfg.fallback = result;
@@ -293,5 +293,4 @@ public class Configuration {
 			cfg.values.store(out);
 		}
 	}
-
 }
