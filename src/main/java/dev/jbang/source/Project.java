@@ -152,7 +152,7 @@ public class Project implements Code {
 		return this;
 	}
 
-	@Nullable
+	@Nonnull
 	public Optional<String> getDescription() {
 		return Optional.ofNullable(description);
 	}
@@ -163,7 +163,7 @@ public class Project implements Code {
 		return this;
 	}
 
-	@Nullable
+	@Nonnull
 	public Optional<String> getGav() {
 		return Optional.ofNullable(gav);
 	}
@@ -212,7 +212,7 @@ public class Project implements Code {
 		return getMainSourceSet().updateDependencyResolver(resolver);
 	}
 
-	@Nonnull
+	@Nullable
 	public Source getMainSource() {
 		return mainSource;
 	}

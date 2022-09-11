@@ -80,8 +80,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 			if (scripts.add(originalResource)) {
 				backingResource = code.getResourceRef().getFile().toString();
 
-				Source source = code.asProject().getMainSource();
-				init(source);
+				init(code.asProject());
 
 				if (ctx != null) {
 					applicationJar = code.getJarFile() == null ? null : code.getJarFile().toAbsolutePath().toString();
@@ -112,6 +111,25 @@ abstract class BaseInfoCommand extends BaseCommand {
 			originalResource = source.getResourceRef().getOriginalResource();
 			backingResource = source.getResourceRef().getFile().toString();
 			init(source);
+		}
+
+		private void init(Project prj) {
+			List<String> deps = prj.resolveClassPath().getClassPaths();
+			if (!deps.isEmpty()) {
+				dependencies = deps;
+			}
+			if (prj.getMainSource() == null) {
+				if (!prj.getRepositories().isEmpty()) {
+					repositories = prj	.getRepositories()
+										.stream()
+										.map(Repo::new)
+										.collect(Collectors.toList());
+				}
+				gav = prj.getGav().orElse(null);
+				description = prj.getDescription().orElse(null);
+			} else {
+				init(prj.getMainSource());
+			}
 		}
 
 		private void init(Source source) {
@@ -171,6 +189,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 		ctx.setAdditionalSources(scriptMixin.sources);
 		ctx.setAdditionalResources(scriptMixin.resources);
 		ctx.setForceType(scriptMixin.forceType);
+		ctx.setCatalog(scriptMixin.catalog);
 		return ctx;
 	}
 
