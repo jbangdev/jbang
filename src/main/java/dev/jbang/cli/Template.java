@@ -281,11 +281,11 @@ class TemplateList extends BaseTemplateCommand {
 	@CommandLine.Option(names = { "--show-properties" }, description = "Show list of properties for each template")
 	boolean showProperties;
 
-	@CommandLine.Option(names = { "--json" }, description = "Output as JSON")
-	boolean json;
-
 	@CommandLine.Parameters(paramLabel = "catalogName", index = "0", description = "The name of a catalog", arity = "0..1")
 	String catalogName;
+
+	@CommandLine.Mixin
+	FormatMixin formatMixin;
 
 	@Override
 	public Integer doCall() {
@@ -300,15 +300,15 @@ class TemplateList extends BaseTemplateCommand {
 			catalog = Catalog.getMerged(true);
 		}
 		if (showOrigin) {
-			printTemplatesWithOrigin(out, catalogName, catalog, showFiles, showProperties, json);
+			printTemplatesWithOrigin(out, catalogName, catalog, showFiles, showProperties, formatMixin.format);
 		} else {
-			printTemplates(out, catalogName, catalog, showFiles, showProperties, json);
+			printTemplates(out, catalogName, catalog, showFiles, showProperties, formatMixin.format);
 		}
 		return EXIT_OK;
 	}
 
 	static void printTemplates(PrintStream out, String catalogName, Catalog catalog, boolean showFiles,
-			boolean showProperties, boolean json) {
+			boolean showProperties, FormatMixin.Format format) {
 		List<TemplateOut> templates = catalog.templates
 														.keySet()
 														.stream()
@@ -316,7 +316,7 @@ class TemplateList extends BaseTemplateCommand {
 														.map(name -> getTemplateOut(catalogName, catalog, name,
 																showFiles, showProperties))
 														.collect(Collectors.toList());
-		if (json) {
+		if (format == FormatMixin.Format.json) {
 			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 			parser.toJson(templates, out);
 		} else {
@@ -343,9 +343,9 @@ class TemplateList extends BaseTemplateCommand {
 	}
 
 	static void printTemplatesWithOrigin(PrintStream out, String catalogName, Catalog catalog, boolean showFiles,
-			boolean showProperties, boolean json) {
+			boolean showProperties, FormatMixin.Format format) {
 		List<CatalogList.CatalogOut> catalogs = getTemplatesWithOrigin(catalogName, catalog, showFiles, showProperties);
-		if (json) {
+		if (format == FormatMixin.Format.json) {
 			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 			parser.toJson(catalogs, out);
 		} else {

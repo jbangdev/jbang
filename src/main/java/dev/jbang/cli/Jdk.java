@@ -49,7 +49,7 @@ public class Jdk {
 			@CommandLine.Option(names = {
 					"--available" }, description = "Shows versions available for installation") boolean available,
 			@CommandLine.Option(names = {
-					"--json" }, description = "Output as JSON") boolean json) {
+					"--format" }, description = "Specify output format ('text' or 'json')") FormatMixin.Format format) {
 		int defaultJdk = JdkManager.getDefaultJdk();
 		PrintStream out = System.out;
 		final Set<Integer> installedJdks = JdkManager.listInstalledJdks();
@@ -57,7 +57,7 @@ public class Jdk {
 		List<JdkOut> jdkOuts = jdks	.stream()
 									.map(jdk -> new JdkOut(jdk, installedJdks.contains(jdk), jdk == defaultJdk))
 									.collect(Collectors.toList());
-		if (json) {
+		if (format == FormatMixin.Format.json) {
 			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 			parser.toJson(jdkOuts, out);
 		} else {

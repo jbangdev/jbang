@@ -144,8 +144,8 @@ class ConfigList extends BaseConfigCommand {
 			"--show-available" }, description = "Show the available key names")
 	boolean showAvailable;
 
-	@CommandLine.Option(names = { "--json" }, description = "Output as JSON")
-	boolean json;
+	@CommandLine.Mixin
+	FormatMixin formatMixin;
 
 	@Override
 	public Integer doCall() throws IOException {
@@ -157,7 +157,7 @@ class ConfigList extends BaseConfigCommand {
 		if (showAvailable) {
 			Set<String> keys = new HashSet<>();
 			gatherKeys(JBang.getCommandLine(), keys);
-			if (json) {
+			if (formatMixin.format == FormatMixin.Format.json) {
 				Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 				parser.toJson(keys.stream().sorted().collect(Collectors.toList()), out);
 			} else {
@@ -166,9 +166,9 @@ class ConfigList extends BaseConfigCommand {
 		} else {
 			Configuration cfg = getConfig(null, true);
 			if (showOrigin) {
-				printConfigWithOrigin(out, cfg, json);
+				printConfigWithOrigin(out, cfg, formatMixin.format);
 			} else {
-				printConfig(out, cfg, json);
+				printConfig(out, cfg, formatMixin.format);
 			}
 		}
 		return EXIT_OK;
@@ -183,8 +183,8 @@ class ConfigList extends BaseConfigCommand {
 		}
 	}
 
-	private void printConfig(PrintStream out, Configuration cfg, boolean json) {
-		if (json) {
+	private void printConfig(PrintStream out, Configuration cfg, FormatMixin.Format format) {
+		if (format == FormatMixin.Format.json) {
 			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 			parser.toJson(cfg.asMap(), out);
 		} else {
@@ -201,7 +201,7 @@ class ConfigList extends BaseConfigCommand {
 		Map<String, String> properties;
 	}
 
-	private void printConfigWithOrigin(PrintStream out, Configuration cfg, boolean json) {
+	private void printConfigWithOrigin(PrintStream out, Configuration cfg, FormatMixin.Format format) {
 		List<OriginOut> orgs = new ArrayList<>();
 		while (cfg != null) {
 			OriginOut org = new OriginOut();
@@ -211,7 +211,7 @@ class ConfigList extends BaseConfigCommand {
 			cfg = cfg.getFallback();
 		}
 
-		if (json) {
+		if (format == FormatMixin.Format.json) {
 			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 			parser.toJson(orgs, out);
 		} else {

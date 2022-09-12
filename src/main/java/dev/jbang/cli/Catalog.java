@@ -125,11 +125,11 @@ class CatalogList extends BaseCatalogCommand {
 	@CommandLine.Option(names = { "--show-origin" }, description = "Show the origin of the catalog")
 	boolean showOrigin;
 
-	@CommandLine.Option(names = { "--json" }, description = "Output as JSON")
-	boolean json;
-
 	@CommandLine.Parameters(paramLabel = "name", index = "0", description = "The name of a catalog", arity = "0..1")
 	String name;
+
+	@CommandLine.Mixin
+	FormatMixin formatMixin;
 
 	@Override
 	public Integer doCall() {
@@ -143,13 +143,13 @@ class CatalogList extends BaseCatalogCommand {
 				catalog = dev.jbang.catalog.Catalog.getMerged(true);
 			}
 			if (showOrigin) {
-				printCatalogsWithOrigin(out, name, catalog, json);
+				printCatalogsWithOrigin(out, name, catalog, formatMixin.format);
 			} else {
-				printCatalogs(out, name, catalog, json);
+				printCatalogs(out, name, catalog, formatMixin.format);
 			}
 		} else {
 			dev.jbang.catalog.Catalog catalog = dev.jbang.catalog.Catalog.getByName(name);
-			if (json) {
+			if (formatMixin.format == FormatMixin.Format.json) {
 				List<CatalogOut> aliasCats = AliasList.getAliasesWithOrigin(name, catalog);
 				List<CatalogOut> tplCats = TemplateList.getTemplatesWithOrigin(name, catalog, false, false);
 				List<CatalogOut> catCats = getCatalogsWithOrigin(name, catalog);
@@ -177,24 +177,25 @@ class CatalogList extends BaseCatalogCommand {
 				if (!catalog.aliases.isEmpty()) {
 					out.println("Aliases:");
 					out.println("--------");
-					AliasList.printAliases(out, name, catalog, false);
+					AliasList.printAliases(out, name, catalog, FormatMixin.Format.text);
 				}
 				if (!catalog.templates.isEmpty()) {
 					out.println("Templates:");
 					out.println("----------");
-					TemplateList.printTemplates(out, name, catalog, false, false, false);
+					TemplateList.printTemplates(out, name, catalog, false, false, FormatMixin.Format.text);
 				}
 				if (!catalog.catalogs.isEmpty()) {
 					out.println("Catalogs:");
 					out.println("---------");
-					printCatalogs(out, name, catalog, false);
+					printCatalogs(out, name, catalog, FormatMixin.Format.text);
 				}
 			}
 		}
 		return EXIT_OK;
 	}
 
-	static void printCatalogs(PrintStream out, String catalogName, dev.jbang.catalog.Catalog catalog, boolean json) {
+	static void printCatalogs(PrintStream out, String catalogName, dev.jbang.catalog.Catalog catalog,
+			FormatMixin.Format format) {
 		List<CatalogRefOut> catalogs = catalog.catalogs
 														.keySet()
 														.stream()
@@ -202,7 +203,7 @@ class CatalogList extends BaseCatalogCommand {
 														.map(name -> getCatalogRefOut(catalogName, catalog, name))
 														.collect(Collectors.toList());
 
-		if (json) {
+		if (format == FormatMixin.Format.json) {
 			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 			parser.toJson(catalogs, out);
 		} else {
@@ -227,9 +228,9 @@ class CatalogList extends BaseCatalogCommand {
 	}
 
 	static void printCatalogsWithOrigin(PrintStream out, String catalogName, dev.jbang.catalog.Catalog catalog,
-			boolean json) {
+			FormatMixin.Format format) {
 		List<CatalogOut> catalogs = getCatalogsWithOrigin(catalogName, catalog);
-		if (json) {
+		if (format == FormatMixin.Format.json) {
 			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 			parser.toJson(catalogs, out);
 		} else {

@@ -147,11 +147,11 @@ class AliasList extends BaseAliasCommand {
 	@CommandLine.Option(names = { "--show-origin" }, description = "Show the origin of the alias")
 	boolean showOrigin;
 
-	@CommandLine.Option(names = { "--json" }, description = "Output as JSON")
-	boolean json;
-
 	@CommandLine.Parameters(paramLabel = "catalogName", index = "0", description = "The name of a catalog", arity = "0..1")
 	String catalogName;
+
+	@CommandLine.Mixin
+	FormatMixin formatMixin;
 
 	@Override
 	public Integer doCall() {
@@ -166,14 +166,14 @@ class AliasList extends BaseAliasCommand {
 			catalog = Catalog.getMerged(true);
 		}
 		if (showOrigin) {
-			printAliasesWithOrigin(out, catalogName, catalog, json);
+			printAliasesWithOrigin(out, catalogName, catalog, formatMixin.format);
 		} else {
-			printAliases(out, catalogName, catalog, json);
+			printAliases(out, catalogName, catalog, formatMixin.format);
 		}
 		return EXIT_OK;
 	}
 
-	static void printAliases(PrintStream out, String catalogName, Catalog catalog, boolean json) {
+	static void printAliases(PrintStream out, String catalogName, Catalog catalog, FormatMixin.Format format) {
 		List<AliasOut> aliases = catalog.aliases
 												.keySet()
 												.stream()
@@ -181,7 +181,7 @@ class AliasList extends BaseAliasCommand {
 												.map(name -> getAliasOut(catalogName, catalog, name))
 												.collect(Collectors.toList());
 
-		if (json) {
+		if (format == FormatMixin.Format.json) {
 			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 			parser.toJson(aliases, out);
 		} else {
@@ -205,9 +205,10 @@ class AliasList extends BaseAliasCommand {
 						.collect(Collectors.toList());
 	}
 
-	static void printAliasesWithOrigin(PrintStream out, String catalogName, Catalog catalog, boolean json) {
+	static void printAliasesWithOrigin(PrintStream out, String catalogName, Catalog catalog,
+			FormatMixin.Format format) {
 		List<CatalogList.CatalogOut> catalogs = getAliasesWithOrigin(catalogName, catalog);
-		if (json) {
+		if (format == FormatMixin.Format.json) {
 			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 			parser.toJson(catalogs, out);
 		} else {

@@ -30,10 +30,10 @@ public class Trust {
 	@CommandLine.Command(name = "list", description = "Show defined trust domains.")
 	public Integer list(
 			@CommandLine.Option(names = {
-					"--json" }, description = "Output as JSON") boolean json) {
+					"--format" }, description = "Specify output format ('text' or 'json')") FormatMixin.Format format) {
 		int idx = 0;
 		PrintStream out = System.out;
-		if (json) {
+		if (format == FormatMixin.Format.json) {
 			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 			parser.toJson(TrustedSources.instance().getTrustedSources(), out);
 		} else {

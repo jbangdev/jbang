@@ -238,12 +238,12 @@ class AppInstall extends BaseCommand {
 @CommandLine.Command(name = "list", description = "Lists installed commands.")
 class AppList extends BaseCommand {
 
-	@CommandLine.Option(names = { "--json" }, description = "Output as JSON")
-	boolean json;
+	@CommandLine.Mixin
+	FormatMixin formatMixin;
 
 	@Override
 	public Integer doCall() {
-		if (json) {
+		if (formatMixin.format == FormatMixin.Format.json) {
 			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 			parser.toJson(listCommandFiles(), System.out);
 		} else {
