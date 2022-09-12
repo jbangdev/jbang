@@ -4,10 +4,11 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import dev.jbang.Configuration;
 import dev.jbang.Settings;
@@ -143,23 +144,31 @@ class ConfigList extends BaseConfigCommand {
 			"--show-available" }, description = "Show the available key names")
 	boolean showAvailable;
 
+	@CommandLine.Mixin
+	FormatMixin formatMixin;
+
 	@Override
 	public Integer doCall() throws IOException {
 		PrintStream out = System.out;
+		if (showAvailable && showOrigin) {
+			throw new IllegalArgumentException(
+					"Options '--show-available' and '--show-origin' cannot be used together");
+		}
 		if (showAvailable) {
 			Set<String> keys = new HashSet<>();
 			gatherKeys(JBang.getCommandLine(), keys);
-			keys.stream().sorted().forEach(key -> out.println(ConsoleOutput.yellow(key)));
+			if (formatMixin.format == FormatMixin.Format.json) {
+				Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+				parser.toJson(keys.stream().sorted().collect(Collectors.toList()), out);
+			} else {
+				keys.stream().sorted().forEach(key -> out.println(ConsoleOutput.yellow(key)));
+			}
 		} else {
 			Configuration cfg = getConfig(null, true);
 			if (showOrigin) {
-				while (cfg != null) {
-					Set<String> printedKeys = new HashSet<>();
-					printConfigWithOrigin(out, cfg, printedKeys);
-					cfg = cfg.getFallback();
-				}
+				printConfigWithOrigin(out, cfg, formatMixin.format);
 			} else {
-				printConfig(out, cfg);
+				printConfig(out, cfg, formatMixin.format);
 			}
 		}
 		return EXIT_OK;
@@ -174,25 +183,53 @@ class ConfigList extends BaseConfigCommand {
 		}
 	}
 
-	private void printConfig(PrintStream out, Configuration cfg) {
-		cfg	.flatten()
-			.keySet()
-			.stream()
-			.sorted()
-			.forEach(key -> out.println(ConsoleOutput.yellow(key) + " = " + cfg.get(key)));
+	private void printConfig(PrintStream out, Configuration cfg, FormatMixin.Format format) {
+		if (format == FormatMixin.Format.json) {
+			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+			parser.toJson(cfg.asMap(), out);
+		} else {
+			cfg	.flatten()
+				.keySet()
+				.stream()
+				.sorted()
+				.forEach(key -> out.println(ConsoleOutput.yellow(key) + " = " + cfg.get(key)));
+		}
 	}
 
-	private void printConfigWithOrigin(PrintStream out, Configuration cfg, Set<String> printedKeys) {
-		Set<String> keysToPrint = cfg	.keySet()
-										.stream()
-										.filter(key -> !printedKeys.contains(key))
-										.collect(Collectors.toSet());
-		if (!keysToPrint.isEmpty()) {
-			out.println(ConsoleOutput.bold(cfg.getStoreRef().getOriginalResource()));
-			keysToPrint	.stream()
-						.sorted()
-						.forEach(key -> out.println("   " + ConsoleOutput.yellow(key) + " = " + cfg.get(key)));
-			printedKeys.addAll(keysToPrint);
+	static class OriginOut {
+		String resourceRef;
+		Map<String, String> properties;
+	}
+
+	private void printConfigWithOrigin(PrintStream out, Configuration cfg, FormatMixin.Format format) {
+		List<OriginOut> orgs = new ArrayList<>();
+		while (cfg != null) {
+			OriginOut org = new OriginOut();
+			org.resourceRef = cfg.getStoreRef().getOriginalResource();
+			org.properties = cfg.asMap();
+			orgs.add(org);
+			cfg = cfg.getFallback();
+		}
+
+		if (format == FormatMixin.Format.json) {
+			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+			parser.toJson(orgs, out);
+		} else {
+			Set<String> printedKeys = new HashSet<>();
+			for (OriginOut org : orgs) {
+				Set<String> keysToPrint = org.properties.keySet()
+														.stream()
+														.filter(key -> !printedKeys.contains(key))
+														.collect(Collectors.toSet());
+				if (!keysToPrint.isEmpty()) {
+					out.println(ConsoleOutput.bold(org.resourceRef));
+					keysToPrint	.stream()
+								.sorted()
+								.forEach(key -> out.println(
+										"   " + ConsoleOutput.yellow(key) + " = " + org.properties.get(key)));
+					printedKeys.addAll(keysToPrint);
+				}
+			}
 		}
 	}
 }

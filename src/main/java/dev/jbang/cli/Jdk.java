@@ -5,7 +5,13 @@ import static dev.jbang.cli.BaseCommand.*;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.SerializedName;
 
 import dev.jbang.Settings;
 import dev.jbang.net.JdkManager;
@@ -41,31 +47,61 @@ public class Jdk {
 	@CommandLine.Command(name = "list", description = "Lists installed JDKs.")
 	public Integer list(
 			@CommandLine.Option(names = {
-					"--available" }, description = "Shows versions available for installation") boolean available) {
+					"--available" }, description = "Shows versions available for installation") boolean available,
+			@CommandLine.Option(names = {
+					"--format" }, description = "Specify output format ('text' or 'json')") FormatMixin.Format format) {
 		int defaultJdk = JdkManager.getDefaultJdk();
 		PrintStream out = System.out;
 		final Set<Integer> installedJdks = JdkManager.listInstalledJdks();
 		final Set<Integer> jdks = available ? JdkManager.listAvailableJdks() : installedJdks;
-		if (!jdks.isEmpty()) {
-			if (available) {
-				out.println("Available JDKs (*=installed, <=default):");
-			} else {
-				out.println("Installed JDKs (<=default):");
-			}
-			jdks.forEach(jdk -> {
-				out.print("  " + jdk);
-				if (jdk == defaultJdk) {
-					out.print(" <");
-				} else if (available && installedJdks.contains(jdk)) {
-					out.print(" *");
-				}
-
-				out.println();
-			});
+		List<JdkOut> jdkOuts = jdks	.stream()
+									.map(jdk -> new JdkOut(jdk, installedJdks.contains(jdk), jdk == defaultJdk))
+									.collect(Collectors.toList());
+		if (format == FormatMixin.Format.json) {
+			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+			parser.toJson(jdkOuts, out);
 		} else {
-			out.println(String.format("No JDKs %s", available ? "available" : "installed"));
+			if (!jdkOuts.isEmpty()) {
+				if (available) {
+					out.println("Available JDKs (*=installed, <=default):");
+				} else {
+					out.println("Installed JDKs (<=default):");
+				}
+				jdkOuts.forEach(jdk -> {
+					out.print("  " + jdk.version);
+					if (jdk.version == defaultJdk) {
+						out.print(" <");
+					} else if (available && installedJdks.contains(jdk.version)) {
+						out.print(" *");
+					}
+					out.println();
+				});
+			} else {
+				out.println(String.format("No JDKs %s", available ? "available" : "installed"));
+			}
 		}
 		return EXIT_OK;
+	}
+
+	static class JdkOut {
+		int version;
+		String javaHomeDir;
+		@SerializedName("default")
+		Boolean isDefault;
+
+		public JdkOut(int version, boolean isInstalled, boolean isDefault) {
+			this.version = version;
+			if (isInstalled) {
+				try {
+					this.javaHomeDir = JdkManager.getJdkPath(version).toRealPath().toString();
+				} catch (IOException e) {
+					this.javaHomeDir = JdkManager.getJdkPath(version).toString();
+				}
+			}
+			if (isDefault) {
+				this.isDefault = true;
+			}
+		}
 	}
 
 	@CommandLine.Command(name = "uninstall", description = "Uninstalls an existing JDK.")

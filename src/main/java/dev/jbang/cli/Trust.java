@@ -6,6 +6,9 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import dev.jbang.Settings;
 import dev.jbang.net.TrustedSources;
 
@@ -25,11 +28,18 @@ public class Trust {
 	}
 
 	@CommandLine.Command(name = "list", description = "Show defined trust domains.")
-	public Integer list() {
+	public Integer list(
+			@CommandLine.Option(names = {
+					"--format" }, description = "Specify output format ('text' or 'json')") FormatMixin.Format format) {
 		int idx = 0;
 		PrintStream out = System.out;
-		for (String src : TrustedSources.instance().getTrustedSources()) {
-			out.println(++idx + " = " + src);
+		if (format == FormatMixin.Format.json) {
+			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+			parser.toJson(TrustedSources.instance().getTrustedSources(), out);
+		} else {
+			for (String src : TrustedSources.instance().getTrustedSources()) {
+				out.println(++idx + " = " + src);
+			}
 		}
 		return EXIT_OK;
 	}

@@ -11,8 +11,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
@@ -232,31 +238,47 @@ class AppInstall extends BaseCommand {
 @CommandLine.Command(name = "list", description = "Lists installed commands.")
 class AppList extends BaseCommand {
 
+	@CommandLine.Mixin
+	FormatMixin formatMixin;
+
 	@Override
 	public Integer doCall() {
-		listCommandFiles().forEach(System.out::println);
+		if (formatMixin.format == FormatMixin.Format.json) {
+			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+			parser.toJson(listCommandFiles(), System.out);
+		} else {
+			listCommandFiles().forEach(app -> System.out.println(app.name));
+		}
 		return EXIT_OK;
 	}
 
-	private static List<String> listCommandFiles() {
+	static class AppOut {
+		String name;
+
+		public String getName() {
+			return name;
+		}
+
+		public AppOut(Path file) {
+			name = Util.base(file.getFileName().toString());
+		}
+	}
+
+	private static List<AppOut> listCommandFiles() {
 		try (Stream<Path> files = Files.list(Settings.getConfigBinDir())) {
 			return files
-						.map(AppList::baseFileName)
-						.distinct()
 						.sorted()
+						.map(AppOut::new)
+						.filter(distinctByKey(AppOut::getName))
 						.collect(Collectors.toList());
 		} catch (IOException e) {
 			return Collections.emptyList();
 		}
 	}
 
-	private static String baseFileName(Path file) {
-		String nm = file.getFileName().toString();
-		int p = nm.lastIndexOf('.');
-		if (p > 0) {
-			nm = nm.substring(0, p);
-		}
-		return nm;
+	private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+		Set<Object> seen = ConcurrentHashMap.newKeySet();
+		return t -> seen.add(keyExtractor.apply(t));
 	}
 }
 

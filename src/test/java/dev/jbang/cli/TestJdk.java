@@ -27,7 +27,7 @@ class TestJdk extends BaseTest {
 
 	@Test
 	void testNoJdksInstalled() throws IOException {
-		ExecutionResult result = checkedRun(jdk -> jdk.list(false));
+		ExecutionResult result = checkedRun(jdk -> jdk.list(false, FormatMixin.Format.text));
 
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(),
@@ -40,7 +40,7 @@ class TestJdk extends BaseTest {
 		Arrays	.asList("11", "12", "13")
 				.forEach(jdkId -> new File(jdkPath.toFile(), jdkId).mkdirs());
 
-		ExecutionResult result = checkedRun(jdk -> jdk.list(false));
+		ExecutionResult result = checkedRun(jdk -> jdk.list(false, FormatMixin.Format.text));
 
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(),

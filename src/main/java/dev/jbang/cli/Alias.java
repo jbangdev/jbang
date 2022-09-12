@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.catalog.CatalogUtil;
@@ -147,6 +150,9 @@ class AliasList extends BaseAliasCommand {
 	@CommandLine.Parameters(paramLabel = "catalogName", index = "0", description = "The name of a catalog", arity = "0..1")
 	String catalogName;
 
+	@CommandLine.Mixin
+	FormatMixin formatMixin;
+
 	@Override
 	public Integer doCall() {
 		PrintStream out = System.out;
@@ -160,36 +166,74 @@ class AliasList extends BaseAliasCommand {
 			catalog = Catalog.getMerged(true);
 		}
 		if (showOrigin) {
-			printAliasesWithOrigin(out, catalogName, catalog);
+			printAliasesWithOrigin(out, catalogName, catalog, formatMixin.format);
 		} else {
-			printAliases(out, catalogName, catalog);
+			printAliases(out, catalogName, catalog, formatMixin.format);
 		}
 		return EXIT_OK;
 	}
 
-	static void printAliases(PrintStream out, String catalogName, Catalog catalog) {
-		catalog.aliases
-						.keySet()
+	static void printAliases(PrintStream out, String catalogName, Catalog catalog, FormatMixin.Format format) {
+		List<AliasOut> aliases = catalog.aliases
+												.keySet()
+												.stream()
+												.sorted()
+												.map(name -> getAliasOut(catalogName, catalog, name))
+												.collect(Collectors.toList());
+
+		if (format == FormatMixin.Format.json) {
+			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+			parser.toJson(aliases, out);
+		} else {
+			aliases.forEach(a -> printAlias(out, a, 0));
+		}
+	}
+
+	static List<CatalogList.CatalogOut> getAliasesWithOrigin(String catalogName, Catalog catalog) {
+		Map<ResourceRef, List<AliasOut>> groups = catalog.aliases
+																	.keySet()
+																	.stream()
+																	.sorted()
+																	.map(name -> getAliasOut(catalogName, catalog,
+																			name))
+																	.collect(Collectors.groupingBy(
+																			a -> a._catalogRef));
+		return groups	.entrySet()
 						.stream()
-						.sorted()
-						.forEach(name -> printAlias(out, catalogName, catalog, name, 0));
+						.map(e -> new CatalogList.CatalogOut(null, e.getKey(),
+								e.getValue(), null, null))
+						.collect(Collectors.toList());
 	}
 
-	static void printAliasesWithOrigin(PrintStream out, String catalogName, Catalog catalog) {
-		Map<ResourceRef, List<Map.Entry<String, dev.jbang.catalog.Alias>>> groups = catalog.aliases
-																									.entrySet()
-																									.stream()
-																									.collect(
-																											Collectors.groupingBy(
-																													e -> e.getValue().catalog.catalogRef));
-		groups.forEach((ref, entries) -> {
-			out.println(ConsoleOutput.bold(ref.getOriginalResource()));
-			entries.stream().map(Map.Entry::getKey).sorted().forEach(k -> printAlias(out, catalogName, catalog, k, 3));
-		});
+	static void printAliasesWithOrigin(PrintStream out, String catalogName, Catalog catalog,
+			FormatMixin.Format format) {
+		List<CatalogList.CatalogOut> catalogs = getAliasesWithOrigin(catalogName, catalog);
+		if (format == FormatMixin.Format.json) {
+			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+			parser.toJson(catalogs, out);
+		} else {
+			catalogs.forEach(cat -> {
+				out.println(ConsoleOutput.bold(cat.resourceRef));
+				cat.aliases.forEach(a -> printAlias(out, a, 3));
+			});
+		}
 	}
 
-	private static void printAlias(PrintStream out, String catalogName, Catalog catalog, String name,
-			int indent) {
+	static class AliasOut {
+		public String name;
+		public String catalogName;
+		public String fullName;
+		public String scriptRef;
+		public String description;
+		public List<String> arguments;
+		public String javaVersion;
+		public String mainClass;
+		public List<String> javaOptions;
+		public Map<String, String> properties;
+		public transient ResourceRef _catalogRef;
+	}
+
+	private static AliasOut getAliasOut(String catalogName, Catalog catalog, String name) {
 		dev.jbang.catalog.Alias alias = catalog.aliases.get(name);
 		String catName = catalogName != null ? catalogName : Catalog.findImplicitName(alias.catalog);
 		String fullName = catName != null ? name + "@" + Catalog.simplifyName(catName) : name;
@@ -198,39 +242,46 @@ class AliasList extends BaseAliasCommand {
 				&& !Catalog.isValidCatalogReference(scriptRef)) {
 			scriptRef = alias.resolve();
 		}
+
+		AliasOut out = new AliasOut();
+		out.name = name;
+		out.catalogName = catName != null ? Catalog.simplifyName(catName) : null;
+		out.fullName = fullName;
+		out.scriptRef = scriptRef;
+		out.description = alias.description;
+		out.arguments = alias.arguments;
+		out.javaVersion = alias.javaVersion;
+		out.mainClass = alias.mainClass;
+		out.javaOptions = alias.javaOptions;
+		out.properties = alias.properties;
+		out._catalogRef = alias.catalog.catalogRef;
+		return out;
+	}
+
+	private static void printAlias(PrintStream out, AliasOut alias, int indent) {
 		out.print(Util.repeat(" ", indent));
+		String prefix = Util.repeat(" ", alias.fullName.length() + indent);
 		if (alias.description != null) {
-			out.println(ConsoleOutput.yellow(fullName) + " = " + alias.description);
+			out.println(ConsoleOutput.yellow(alias.fullName) + " = " + alias.description);
 			if (Util.isVerbose())
-				out.println(
-						Util.repeat(" ", fullName.length() + indent) + ConsoleOutput.faint("   (" + scriptRef + ")"));
+				out.println(prefix + ConsoleOutput.faint("   (" + alias.scriptRef + ")"));
 		} else {
-			out.println(ConsoleOutput.yellow(fullName) + " = " + scriptRef);
+			out.println(ConsoleOutput.yellow(alias.fullName) + " = " + alias.scriptRef);
 		}
 		if (alias.arguments != null) {
-			out.println(
-					Util.repeat(" ", fullName.length() + indent) + ConsoleOutput.cyan("   Arguments: ")
-							+ String.join(" ", alias.arguments));
+			out.println(prefix + ConsoleOutput.cyan("   Arguments: ") + String.join(" ", alias.arguments));
 		}
 		if (alias.javaVersion != null) {
-			out.println(
-					Util.repeat(" ", fullName.length() + indent) + ConsoleOutput.cyan("   Java Version: ")
-							+ alias.javaVersion);
+			out.println(prefix + ConsoleOutput.cyan("   Java Version: ") + alias.javaVersion);
 		}
 		if (alias.mainClass != null) {
-			out.println(
-					Util.repeat(" ", fullName.length() + indent) + ConsoleOutput.cyan("   Main Class: ")
-							+ alias.mainClass);
+			out.println(prefix + ConsoleOutput.cyan("   Main Class: ") + alias.mainClass);
 		}
 		if (alias.javaOptions != null) {
-			out.println(
-					Util.repeat(" ", fullName.length() + indent) + ConsoleOutput.cyan("   Java Options: ")
-							+ String.join(" ", alias.javaOptions));
+			out.println(prefix + ConsoleOutput.cyan("   Java Options: ") + String.join(" ", alias.javaOptions));
 		}
 		if (alias.properties != null) {
-			out.println(
-					Util.repeat(" ", fullName.length() + indent) + ConsoleOutput.magenta("   Properties: ")
-							+ alias.properties);
+			out.println(prefix + ConsoleOutput.magenta("   Properties: ") + alias.properties);
 		}
 	}
 }
