@@ -2,6 +2,7 @@ package dev.jbang.cli;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.matchesPattern;
 
 import java.io.File;
 import java.io.IOException;
@@ -75,7 +76,7 @@ class TestExternalDeps extends BaseTest {
 
 		String result = code.cmdGenerator(ctx).generate();
 
-		assertThat(result, containsString("com.github.jbangdev.jbang"));
+		assertThat(result, matchesPattern(".*com[/\\\\]github[/\\\\]jbangdev[/\\\\]jbang.*"));
 
 	}
 

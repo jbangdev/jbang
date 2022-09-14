@@ -13,11 +13,10 @@ import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
-
 import dev.jbang.Settings;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.source.Code;
 import dev.jbang.source.RunContext;
 import dev.jbang.util.TemplateEngine;
@@ -213,7 +212,7 @@ class ExportMavenPublish extends BaseExportCommand {
 		}
 
 		if (code.getGav().isPresent()) {
-			MavenCoordinate coord = DependencyUtil.depIdToArtifact(DependencyUtil.gavWithVersion(code.getGav().get()));
+			MavenCoordinate coord = MavenCoordinate.fromString(DependencyUtil.gavWithVersion(code.getGav().get()));
 			if (group == null) {
 				group = coord.getGroupId();
 			}

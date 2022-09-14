@@ -35,25 +35,26 @@ dependencies {
 	implementation 'org.jsoup:jsoup:1.13.1'
 	implementation 'org.codejive:java-properties:0.0.5'
 
-	implementation 'com.github.jbangdev.jbang-resolver:shrinkwrap-resolver-api:3.1.5-allowpom'
-	implementation 'com.github.jbangdev.jbang-resolver:shrinkwrap-resolver-impl-maven:3.1.5-allowpom'
-
-	//implementation 'org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-api:3.1.4'
-	//implementation 'org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-impl-maven:3.1.4'
 	implementation "org.slf4j:slf4j-nop:1.7.30"
 	implementation "org.jboss:jandex:2.2.3.Final"
-	//implementation 'org.apache.maven:maven-aether-provider:3.0.5'
-	//implementation 'com.google.guava:guava:28.2-jre'
 
+	implementation "org.apache.maven:maven-model:3.8.6"
+	implementation "org.apache.maven:maven-settings:3.8.6"
+	implementation "org.apache.maven:maven-settings-builder:3.8.6"
+	implementation "org.apache.maven:maven-resolver-provider:3.8.6"
+	implementation "org.apache.maven.resolver:maven-resolver-api:1.8.2"
+	implementation "org.apache.maven.resolver:maven-resolver-spi:1.8.2"
+	implementation "org.apache.maven.resolver:maven-resolver-impl:1.8.2"
+	implementation "org.apache.maven.resolver:maven-resolver-connector-basic:1.8.2"
+	implementation "org.apache.maven.resolver:maven-resolver-transport-file:1.8.2"
+	implementation "org.apache.maven.resolver:maven-resolver-transport-http:1.8.2"
 
 	testCompile "com.github.tomakehurst:wiremock-jre8:2.32.0"
 
 	testImplementation "org.junit.jupiter:junit-jupiter:5.9.0"
-	testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.9.0')
+	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.9.0"
 	testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
-	testImplementation(
-			'org.hamcrest:hamcrest-library:2.2'
-	)
+	testImplementation "org.hamcrest:hamcrest-library:2.2"
 
 	//testCompile 'com.github.maxandersen.karate:karate-junit:19e06766'
 	//testCompile 'com.github.maxandersen.karate:karate-apache:19e06766'

@@ -1,137 +1,459 @@
 package dev.jbang.dependencies;
 
-import static dev.jbang.util.Util.*;
+import static dev.jbang.util.Util.infoMsg;
 
-import java.io.IOException;
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.jboss.shrinkwrap.resolver.api.Coordinate;
-import org.jboss.shrinkwrap.resolver.api.ResolutionException;
-import org.jboss.shrinkwrap.resolver.api.maven.*;
-import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
+import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
+import org.apache.maven.settings.Activation;
+import org.apache.maven.settings.Mirror;
+import org.apache.maven.settings.Profile;
+import org.apache.maven.settings.Proxy;
+import org.apache.maven.settings.Repository;
+import org.apache.maven.settings.Server;
+import org.apache.maven.settings.Settings;
+import org.apache.maven.settings.building.DefaultSettingsBuilder;
+import org.apache.maven.settings.building.DefaultSettingsBuilderFactory;
+import org.apache.maven.settings.building.DefaultSettingsBuildingRequest;
+import org.apache.maven.settings.building.SettingsBuildingException;
+import org.apache.maven.settings.building.SettingsBuildingRequest;
+import org.apache.maven.settings.building.SettingsBuildingResult;
+import org.eclipse.aether.AbstractRepositoryListener;
+import org.eclipse.aether.ConfigurationProperties;
+import org.eclipse.aether.DefaultRepositorySystemSession;
+import org.eclipse.aether.RepositoryEvent;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.collection.CollectRequest;
+import org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory;
+import org.eclipse.aether.graph.Dependency;
+import org.eclipse.aether.impl.DefaultServiceLocator;
+import org.eclipse.aether.repository.LocalRepository;
+import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.repository.RepositoryPolicy;
+import org.eclipse.aether.resolution.ArtifactDescriptorException;
+import org.eclipse.aether.resolution.ArtifactDescriptorRequest;
+import org.eclipse.aether.resolution.ArtifactDescriptorResult;
+import org.eclipse.aether.resolution.ArtifactResult;
+import org.eclipse.aether.resolution.DependencyRequest;
+import org.eclipse.aether.resolution.DependencyResolutionException;
+import org.eclipse.aether.resolution.DependencyResult;
+import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
+import org.eclipse.aether.spi.connector.transport.TransporterFactory;
+import org.eclipse.aether.transport.file.FileTransporterFactory;
+import org.eclipse.aether.transport.http.HttpTransporterFactory;
+import org.eclipse.aether.util.artifact.JavaScopes;
+import org.eclipse.aether.util.repository.AuthenticationBuilder;
+import org.eclipse.aether.util.repository.DefaultAuthenticationSelector;
+import org.eclipse.aether.util.repository.DefaultMirrorSelector;
+import org.eclipse.aether.util.repository.DefaultProxySelector;
 
-import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
-
-import picocli.CommandLine;
+import dev.jbang.util.Util;
 
 public class ArtifactResolver {
+	private final List<RemoteRepository> repositories;
+	private final int timeout;
+	private final boolean offline;
+	private final boolean withUserSettings;
+	private final Path settingsXml;
+	private final Path localFolderOverride;
+	private final boolean updateCache;
+	private final boolean loggingEnabled;
 
-	public static List<ArtifactInfo> resolve(List<String> depIds, List<MavenRepo> customRepos, boolean offline,
-			boolean updateCache, boolean loggingEnabled, boolean transitively) {
+	private final RepositorySystem system;
+	private final Settings settings;
+	private final DefaultRepositorySystemSession session;
 
-		ConfigurableMavenResolverSystem resolver = Maven.configureResolver()
-														.withMavenCentralRepo(false)
-														.workOffline(offline);
+	public static class Builder {
+		private List<MavenRepo> repositories;
+		private int timeout;
+		private boolean offline;
+		private boolean withUserSettings;
+		private Path localFolder;
+		private Path settingsXml;
+		private boolean updateCache;
+		private boolean loggingEnabled;
 
-		customRepos.forEach(mavenRepo -> mavenRepo.apply(resolver, updateCache));
-
-		System.setProperty("maven.repo.local", Settings.getLocalMavenRepo().toAbsolutePath().toString());
-
-		Map<Boolean, List<MavenCoordinate>> coordList = depIds	.stream()
-																.map(DependencyUtil::depIdToArtifact)
-																.collect(Collectors.partitioningBy(
-																		c -> c.getType().equals(PackagingType.POM)));
-
-		List<MavenCoordinate> coords = coordList.get(false);
-		List<MavenCoordinate> pomcoords = coordList.get(true);
-
-		PomEquippedResolveStage pomResolve = null;
-		if (!pomcoords.isEmpty()) {
-
-			String beforeDepMgmt = "<project xmlns=\"http://maven.apache.org/POM/4.0.0\"\n" +
-					"         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
-					"         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n"
-					+
-					"    <modelVersion>4.0.0</modelVersion>\n" +
-					"\n" +
-					"    <groupId>dev.jbang.internal</groupId>\n" +
-					"    <artifactId>dependency-pom</artifactId>\n" +
-					"    <version>1.0-SNAPSHOT</version>\n" +
-					"    <packaging>pom</packaging>\n" +
-					"<dependencyManagement>\n" +
-					"    <dependencies>\n";
-			String afterDepMgmt = "</dependencies>\n" +
-					"</dependencyManagement>\n" +
-					"</project>";
-			StringBuffer buf = new StringBuffer(beforeDepMgmt);
-			for (MavenCoordinate pomcoord : pomcoords) {
-				buf.append("<dependency>\n" +
-						"      <groupId>" + pomcoord.getGroupId() + "</groupId>\n" +
-						"      <artifactId>" + pomcoord.getArtifactId() + "</artifactId>\n" +
-						"      <version>" + pomcoord.getVersion() + "</version>\n" +
-						"             <type>pom</type>\n" +
-						"      <scope>import</scope>\n" +
-						"    </dependency>\n");
-			}
-			buf.append(afterDepMgmt);
-			Path pompath = null;
-			try {
-				pompath = Files.createTempFile("jbang", ".xml");
-				writeString(pompath, buf.toString());
-			} catch (IOException e) {
-				throw new ExitException(CommandLine.ExitCode.SOFTWARE,
-						"Error trying to generate pom.xml for dependency management");
-			}
-			if (loggingEnabled) {
-				infoMsg("Artifacts used for dependency management:");
-				infoMsgFmt("         %s\n", String.join("\n         ",
-						pomcoords.stream().map(Coordinate::toCanonicalForm).collect(Collectors.toList())));
-			}
-			pomResolve = resolver.loadPomFromFile(pompath.toFile());
+		public static Builder create() {
+			return new Builder();
 		}
 
-		Optional<MavenCoordinate> pom = coords.stream().filter(c -> c.getType().equals(PackagingType.POM)).findFirst();
-		if (pom.isPresent()) {
-			// proactively avoiding that we break users in future
-			// when we support more than one BOM POM
-			throw new ExitException(1, "POM imports as found in " + pom.get().toCanonicalForm()
-					+ " is only supported as the first import.");
+		private Builder() {
 		}
 
-		List<String> canonicals = coords.stream().map(Coordinate::toCanonicalForm).collect(Collectors.toList());
-
-		if (loggingEnabled) {
-			infoHeader();
-			infoMsgFmt("%s\n", String.join("\n         ", canonicals));
+		public Builder repositories(List<MavenRepo> repositories) {
+			this.repositories = repositories;
+			return this;
 		}
 
+		public Builder timeout(int timeout) {
+			this.timeout = timeout;
+			return this;
+		}
+
+		public Builder withUserSettings(boolean withUserSettings) {
+			this.withUserSettings = withUserSettings;
+			return this;
+		}
+
+		public Builder localFolder(Path localFolder) {
+			this.localFolder = localFolder;
+			return this;
+		}
+
+		public Builder settingsXml(Path settingsXml) {
+			this.settingsXml = settingsXml;
+			return this;
+		}
+
+		public Builder forceCacheUpdate(boolean updateCache) {
+			this.updateCache = updateCache;
+			return this;
+		}
+
+		public Builder offline(boolean offline) {
+			this.offline = offline;
+			return this;
+		}
+
+		public Builder logging(boolean logging) {
+			this.loggingEnabled = logging;
+			return this;
+		}
+
+		public ArtifactResolver build() {
+			return new ArtifactResolver(this);
+		}
+	}
+
+	private ArtifactResolver(Builder builder) {
+		this.timeout = builder.timeout;
+		this.offline = builder.offline;
+		this.withUserSettings = builder.withUserSettings;
+		this.settingsXml = builder.settingsXml;
+		this.localFolderOverride = builder.localFolder;
+		this.updateCache = builder.updateCache;
+		this.loggingEnabled = builder.loggingEnabled;
+
+		system = newRepositorySystem();
+		settings = newEffectiveSettings();
+		session = newSession(system, settings);
+		configureSession(session, settings);
+		if (builder.repositories != null) {
+			repositories = builder.repositories.stream().map(this::toRemoteRepo).collect(Collectors.toList());
+		} else {
+			repositories = newRepositories();
+		}
+	}
+
+	public List<ArtifactInfo> resolve(List<String> depIds) {
 		try {
-			MavenStrategyStage resolve;
-			if (pomResolve != null) {
-				resolve = pomResolve.resolve(canonicals);
-			} else {
-				resolve = resolver.resolve(canonicals);
+			Map<String, List<Dependency>> scopeDeps = depIds.stream()
+															.map(coord -> toDependency(toArtifact(coord)))
+															.collect(Collectors.groupingBy(Dependency::getScope));
+
+			List<Dependency> deps = scopeDeps.get(JavaScopes.COMPILE);
+			List<Dependency> managedDeps = null;
+			if (scopeDeps.containsKey("import")) {
+				// If there are any @pom artifacts we'll apply their
+				// managed dependencies to the given dependencies
+				List<Dependency> boms = scopeDeps.get("import");
+				List<Dependency> mdeps = boms	.stream()
+												.flatMap(d -> getManagedDependencies(d).stream())
+												.collect(Collectors.toList());
+				deps = deps.stream().map(d -> applyManagedDependencies(d, mdeps)).collect(Collectors.toList());
+				managedDeps = mdeps;
 			}
 
-			MavenFormatStage stage = transitively ? resolve.withTransitivity() : resolve.withoutTransitivity();
-			List<MavenResolvedArtifact> artifacts = stage.asList(MavenResolvedArtifact.class); // , RUNTIME);
+			CollectRequest collectRequest = new CollectRequest()
+																.setManagedDependencies(managedDeps)
+																.setDependencies(deps)
+																.setRepositories(repositories);
 
-			if (loggingEnabled)
-				infoMsgFmt("Done\n");
+			DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, null);
+			DependencyResult dependencyResult = system.resolveDependencies(session, dependencyRequest);
+			List<ArtifactResult> artifacts = dependencyResult.getArtifactResults();
 
 			return artifacts.stream()
-							.map(mra -> new ArtifactInfo(mra.getCoordinate(), mra.asFile().toPath()))
+							.map(ArtifactResult::getArtifact)
+							.map(ArtifactResolver::toArtifactInfo)
 							.collect(Collectors.toList());
-		} catch (ResolutionException nrr) {
-			Throwable cause = nrr.getCause();
-			Set<Throwable> causes = new LinkedHashSet<Throwable>();
-			StringBuffer buf = new StringBuffer();
-			buf.append(nrr.getMessage());
-			while (cause != null && !causes.contains(cause)) {
-				causes.add(cause);
-				buf.append("\n  " + cause.getMessage());
+		} catch (DependencyResolutionException ex) {
+			throw new ExitException(1, "Could not resolve dependencies: " + ex.getMessage(), ex);
+		}
+	}
+
+	private Dependency applyManagedDependencies(Dependency d, List<Dependency> managedDeps) {
+		Artifact art = d.getArtifact();
+		if (art.getVersion().isEmpty()) {
+			Optional<Artifact> ma = managedDeps	.stream()
+												.map(Dependency::getArtifact)
+												.filter(a -> a.getGroupId().equals(art.getGroupId())
+														&& a.getArtifactId().equals(art.getArtifactId()))
+												.findFirst();
+			if (ma.isPresent()) {
+				return new Dependency(ma.get(), d.getScope(), d.getOptional(), d.getExclusions());
+			}
+		}
+		return d;
+	}
+
+	private List<Dependency> getManagedDependencies(Dependency dependency) {
+		return resolveDescriptor(dependency.getArtifact()).getManagedDependencies();
+	}
+
+	private ArtifactDescriptorResult resolveDescriptor(Artifact artifact) {
+		try {
+			ArtifactDescriptorRequest descriptorRequest = new ArtifactDescriptorRequest()
+																							.setArtifact(artifact)
+																							.setRepositories(
+																									repositories);
+			return system.readArtifactDescriptor(session, descriptorRequest);
+		} catch (ArtifactDescriptorException ex) {
+			throw new ExitException(1, "Could not read artifact descriptor for " + artifact, ex);
+		}
+	}
+
+	private RemoteRepository toRemoteRepo(MavenRepo repo) {
+		return new RemoteRepository.Builder(repo.getId(), "default", repo.getUrl())
+																					.setPolicy(getUpdatePolicy())
+																					.build();
+	}
+
+	private static Dependency toDependency(Artifact artifact) {
+		return new Dependency(artifact,
+				"pom".equalsIgnoreCase(artifact.getExtension()) ? "import" : JavaScopes.COMPILE);
+	}
+
+	private static Artifact toArtifact(String coord) {
+		return toArtifact(MavenCoordinate.fromString(coord));
+	}
+
+	private static Artifact toArtifact(MavenCoordinate coord) {
+		return new DefaultArtifact(coord.getGroupId(), coord.getArtifactId(), coord.getClassifier(),
+				coord.getPackaging(), coord.getVersion());
+	}
+
+	private static ArtifactInfo toArtifactInfo(Artifact artifact) {
+		MavenCoordinate coord = new MavenCoordinate(artifact.getGroupId(), artifact.getArtifactId(),
+				artifact.getVersion(), artifact.getClassifier(), artifact.getExtension());
+		return new ArtifactInfo(coord, artifact.getFile().toPath());
+	}
+
+	private RepositorySystem newRepositorySystem() {
+		DefaultServiceLocator locator = MavenRepositorySystemUtils	.newServiceLocator()
+																	.addService(RepositoryConnectorFactory.class,
+																			BasicRepositoryConnectorFactory.class)
+																	.addService(TransporterFactory.class,
+																			FileTransporterFactory.class)
+																	.addService(TransporterFactory.class,
+																			HttpTransporterFactory.class);
+		return locator.getService(RepositorySystem.class);
+	}
+
+	private Settings newEffectiveSettings() {
+		DefaultSettingsBuilderFactory factory = new DefaultSettingsBuilderFactory();
+		DefaultSettingsBuilder builder = factory.newInstance();
+
+		SettingsBuildingRequest settingsBuilderRequest = new DefaultSettingsBuildingRequest();
+		settingsBuilderRequest.setSystemProperties(System.getProperties());
+
+		// if we have a root folder, don't read settings at all
+		if (withUserSettings && (localFolderOverride == null || settingsXml != null)) {
+			// find the settings
+			Path settingsFile = settingsXml;
+			if (settingsFile == null) {
+				Path userSettings = Paths.get(System.getProperty("user.home"), ".m2", "settings.xml");
+				if (Files.exists(userSettings)) {
+					settingsFile = userSettings.toAbsolutePath();
+				}
+			}
+			if (settingsFile != null) {
+				settingsBuilderRequest.setUserSettingsFile(settingsFile.toFile());
+			}
+		}
+
+		// read it
+		SettingsBuildingResult settingsBuildingResult;
+		try {
+			settingsBuildingResult = builder.build(settingsBuilderRequest);
+		} catch (SettingsBuildingException e) {
+			throw new RuntimeException(e);
+		}
+
+		return settingsBuildingResult.getEffectiveSettings();
+	}
+
+	private DefaultRepositorySystemSession newSession(RepositorySystem system, Settings settings) {
+		DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
+		LocalRepository localRepo = newLocalRepository(settings);
+		session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
+		return session;
+	}
+
+	private LocalRepository newLocalRepository(Settings set) {
+		String localRepository = localFolderOverride != null ? localFolderOverride.toString() : null;
+		if (localRepository == null && set != null)
+			localRepository = set.getLocalRepository();
+		if (localRepository == null)
+			localRepository = System.getProperty("user.home") + File.separator + ".m2" + File.separator + "repository";
+		else if (!new File(localRepository).isAbsolute())
+			localRepository = Util.getCwd().resolve(localRepository).toAbsolutePath().toString();
+		return new LocalRepository(localRepository);
+	}
+
+	private void configureSession(DefaultRepositorySystemSession session, Settings settings) {
+		// set up authentication
+		DefaultAuthenticationSelector authenticationSelector = new DefaultAuthenticationSelector();
+		for (Server server : settings.getServers()) {
+			AuthenticationBuilder auth = new AuthenticationBuilder();
+			if (server.getUsername() != null)
+				auth.addUsername(server.getUsername());
+			if (server.getPassword() != null)
+				auth.addPassword(server.getPassword());
+			if (server.getPrivateKey() != null)
+				auth.addPrivateKey(server.getPrivateKey(), server.getPassphrase());
+			authenticationSelector.add(server.getId(), auth.build());
+		}
+		session.setAuthenticationSelector(authenticationSelector);
+
+		// set up mirrors
+		DefaultMirrorSelector mirrorSelector = new DefaultMirrorSelector();
+		for (Mirror mirror : settings.getMirrors()) {
+			mirrorSelector.add(mirror.getId(), mirror.getUrl(), mirror.getLayout(), false, false,
+					mirror.getMirrorOf(), mirror.getMirrorOfLayouts());
+		}
+		session.setMirrorSelector(mirrorSelector);
+
+		// set up proxies
+		DefaultProxySelector proxySelector = new DefaultProxySelector();
+		for (Proxy proxy : settings.getProxies()) {
+			if (proxy.isActive()) {
+				AuthenticationBuilder auth = new AuthenticationBuilder();
+				if (proxy.getUsername() != null)
+					auth.addUsername(proxy.getUsername());
+				if (proxy.getPassword() != null)
+					auth.addPassword(proxy.getPassword());
+				proxySelector.add(
+						new org.eclipse.aether.repository.Proxy(
+								proxy.getProtocol(), proxy.getHost(), proxy.getPort(),
+								auth.build()),
+						proxy.getNonProxyHosts());
+			}
+		}
+		session.setProxySelector(proxySelector);
+
+		if (loggingEnabled) {
+			session.setRepositoryListener(new AbstractRepositoryListener() {
+				@Override
+				public void artifactDownloading(RepositoryEvent event) {
+					if ("jar".equalsIgnoreCase(event.getArtifact().getExtension())) {
+						infoMsg("          " + event.getArtifact());
+					}
+				}
+
+				@Override
+				public void artifactResolving(RepositoryEvent event) {
+					if (Util.isVerbose() && "jar".equalsIgnoreCase(event.getArtifact().getExtension())) {
+						infoMsg("          [" + event.getArtifact() + "]");
+					}
+				}
+			});
+		}
+
+		session.setUpdatePolicy(getUpdatePolicy().getUpdatePolicy());
+
+		// connection settings
+		session.setConfigProperty(ConfigurationProperties.CONNECT_TIMEOUT, timeout);
+		session.setOffline(offline || settings.isOffline());
+	}
+
+	private List<RemoteRepository> newRepositories() {
+		List<RemoteRepository> repos = new ArrayList<>();
+		repos.add(toRemoteRepo(new MavenRepo("central", "https://repo1.maven.org/maven2/")));
+		return repos;
+	}
+
+	private List<RemoteRepository> getRepositoriesFromProfile(Settings set) {
+		List<RemoteRepository> repos = new ArrayList<>();
+		if (set != null) {
+			Set<String> activeProfiles = getActiveProfiles(set);
+			for (String profileId : activeProfiles) {
+				Profile profile = set.getProfilesAsMap().get(profileId);
+				if (profile != null) {
+					addReposFromProfile(repos, profile);
+				}
+			}
+		}
+		return repos;
+	}
+
+	private static Set<String> getActiveProfiles(Settings set) {
+		Set<String> activeProfiles = new HashSet<>(set.getActiveProfiles());
+		for (Profile profile : set.getProfiles()) {
+			Activation activation = profile.getActivation();
+			if (activation != null) {
+				if (activation.isActiveByDefault())
+					activeProfiles.add(profile.getId());
+			}
+		}
+		return activeProfiles;
+	}
+
+	private void addReposFromProfile(List<RemoteRepository> repos, Profile profile) {
+		String policy = getUpdatePolicy().getUpdatePolicy();
+		for (Repository repo : profile.getRepositories()) {
+			RemoteRepository.Builder remoteRepo = new RemoteRepository.Builder(repo.getId(), repo.getLayout(),
+					repo.getUrl());
+
+			// policies
+			org.apache.maven.settings.RepositoryPolicy repoReleasePolicy = repo.getReleases();
+			if (repoReleasePolicy != null) {
+				String updatePolicy = repoReleasePolicy.getUpdatePolicy();
+				if (updatePolicy == null || updatePolicy.isEmpty()) {
+					updatePolicy = policy;
+				}
+				RepositoryPolicy releasePolicy = new RepositoryPolicy(repoReleasePolicy.isEnabled(), updatePolicy,
+						repoReleasePolicy.getChecksumPolicy());
+				remoteRepo.setReleasePolicy(releasePolicy);
 			}
 
-			String repos = customRepos.stream().map(repo -> repo.toString()).collect(Collectors.joining(", "));
+			org.apache.maven.settings.RepositoryPolicy repoSnapshotPolicy = repo.getSnapshots();
+			if (repoSnapshotPolicy != null) {
+				String updatePolicy = repoSnapshotPolicy.getUpdatePolicy();
+				// This is the default anyway and saves us a message on STDERR
+				if (updatePolicy == null || updatePolicy.isEmpty()) {
+					updatePolicy = policy;
+				}
+				RepositoryPolicy snapshotPolicy = new RepositoryPolicy(repoSnapshotPolicy.isEnabled(), updatePolicy,
+						repoSnapshotPolicy.getChecksumPolicy());
+				remoteRepo.setSnapshotPolicy(snapshotPolicy);
+			}
 
-			throw new ExitException(1,
-					String.format("Could not resolve dependencies from %s\n", repos) + buf.toString(), nrr);
-		} catch (RuntimeException e) {
-			throw new ExitException(1, "Unknown error occurred while trying to resolve dependencies", e);
+			// auth, proxy and mirrors are done in the session
+			repos.add(remoteRepo.build());
+		}
+	}
+
+	private RepositoryPolicy getUpdatePolicy() {
+		if (updateCache) {
+			return new RepositoryPolicy(true, RepositoryPolicy.UPDATE_POLICY_ALWAYS,
+					RepositoryPolicy.CHECKSUM_POLICY_WARN);
+		} else {
+			return new RepositoryPolicy(true, RepositoryPolicy.UPDATE_POLICY_DAILY,
+					RepositoryPolicy.CHECKSUM_POLICY_WARN);
 		}
 	}
 }

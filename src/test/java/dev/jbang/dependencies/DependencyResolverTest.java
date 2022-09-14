@@ -1,14 +1,14 @@
 package dev.jbang.dependencies;
 
 import static dev.jbang.dependencies.DependencyUtil.toMavenRepo;
+import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,9 +17,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
-import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
+import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.Settings;
@@ -40,28 +41,28 @@ class DependencyResolverTest extends BaseTest {
 
 	@Test
 	void testdepIdToArtifact() {
-		MavenCoordinate artifact = DependencyUtil.depIdToArtifact("com.offbytwo:docopt:0.6.0.20150202:redhat@doc");
+		MavenCoordinate artifact = MavenCoordinate.fromString("com.offbytwo:docopt:0.6.0.20150202:redhat@doc");
 		assertEquals("com.offbytwo", artifact.getGroupId());
 		assertEquals("docopt", artifact.getArtifactId());
 		assertEquals("0.6.0.20150202", artifact.getVersion());
 		assertEquals("redhat", artifact.getClassifier());
-		assertEquals("doc", artifact.getType().getId());
+		assertEquals("doc", artifact.getPackaging());
 
-		artifact = DependencyUtil.depIdToArtifact("com.offbytwo:docopt:0.6.0.20150202");
+		artifact = MavenCoordinate.fromString("com.offbytwo:docopt:0.6.0.20150202");
 		assertEquals("com.offbytwo", artifact.getGroupId());
 		assertEquals("docopt", artifact.getArtifactId());
 		assertEquals("0.6.0.20150202", artifact.getVersion());
-		assertEquals("", artifact.getClassifier());
-		assertEquals("jar", artifact.getType().getId());
+		assertNull(artifact.getClassifier());
+		assertEquals("jar", artifact.getPackaging());
 
-		artifact = DependencyUtil.depIdToArtifact("com.offbytwo:docopt:0.6+");
+		artifact = MavenCoordinate.fromString("com.offbytwo:docopt:0.6+");
 		assertEquals("com.offbytwo", artifact.getGroupId());
 		assertEquals("docopt", artifact.getArtifactId());
 		assertEquals("[0.6,)", artifact.getVersion());
-		assertEquals("", artifact.getClassifier());
-		assertEquals("jar", artifact.getType().getId());
+		assertNull(artifact.getClassifier());
+		assertEquals("jar", artifact.getPackaging());
 
-		assertThrows(IllegalStateException.class, () -> DependencyUtil.depIdToArtifact("bla?f"));
+		assertThrows(IllegalStateException.class, () -> MavenCoordinate.fromString("bla?f"));
 	}
 
 	@Test
@@ -83,12 +84,12 @@ class DependencyResolverTest extends BaseTest {
 		String gav = PropertiesValueResolver.replaceProperties(
 				"com.example:my-native-library:1.0.0:${os.detected.jfxname}", p);
 
-		MavenCoordinate artifact = DependencyUtil.depIdToArtifact(gav);
+		MavenCoordinate artifact = MavenCoordinate.fromString(gav);
 		assertEquals("com.example", artifact.getGroupId());
 		assertEquals("my-native-library", artifact.getArtifactId());
 		assertEquals("1.0.0", artifact.getVersion());
 		assertEquals(p.getProperty("os.detected.jfxname"), artifact.getClassifier());
-		assertEquals("jar", artifact.getType().getExtension());
+		assertEquals("jar", artifact.getPackaging());
 	}
 
 	@Test
@@ -99,21 +100,27 @@ class DependencyResolverTest extends BaseTest {
 
 		List<String> deps = Collections.singletonList(
 				PropertiesValueResolver.replaceProperties("org.openjfx:javafx-base:11.0.2:${os.detected.jfxname}", p));
-
-		List<ArtifactInfo> artifacts = ArtifactResolver.resolve(deps,
-				Collections.singletonList(toMavenRepo("mavencentral")), false, false, true, true);
-
+		List<ArtifactInfo> artifacts = ArtifactResolver.Builder.create().build().resolve(deps);
 		assertEquals(1, artifacts.size());
 	}
 
 	@Test
 	void testResolveDependenciesWithAether() {
 		List<String> deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
-
-		List<ArtifactInfo> artifacts = ArtifactResolver.resolve(deps,
-				Collections.singletonList(toMavenRepo("mavencentral")), false, false, true, true);
-
+		List<ArtifactInfo> artifacts = ArtifactResolver.Builder.create().build().resolve(deps);
 		assertEquals(2, artifacts.size());
+	}
+
+	@Test
+	void testResolveDependenciesAltRepo(@TempDir File altrepo) {
+		List<String> deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
+		List<ArtifactInfo> artifacts = ArtifactResolver.Builder
+																.create()
+																.localFolder(altrepo.toPath())
+																.build()
+																.resolve(deps);
+		assertEquals(2, artifacts.size());
+		MatcherAssert.assertThat(altrepo.listFiles(), arrayWithSize(4));
 	}
 
 	@Test
@@ -148,7 +155,7 @@ class DependencyResolverTest extends BaseTest {
 
 		HashSet<String> othercps = new HashSet<>(cps);
 
-		assertThat(cps, containsInAnyOrder(othercps.toArray()));
+		MatcherAssert.assertThat(cps, containsInAnyOrder(othercps.toArray()));
 	}
 
 	@Test
@@ -180,16 +187,13 @@ class DependencyResolverTest extends BaseTest {
 
 		List<String> ma = cp.getAutoDectectedModuleArguments(null);
 
-		assertThat(ma, hasItem("--module-path"));
+		MatcherAssert.assertThat(ma, hasItem("--module-path"));
 
-		assertThat(ma, not(hasItem("docopt")));
+		MatcherAssert.assertThat(ma, not(hasItem("docopt")));
 
-		assertThat(cp.getClassPath(), containsString("docopt"));
+		MatcherAssert.assertThat(cp.getClassPath(), containsString("docopt"));
 	}
 
-	/*
-	 * @Ignore("BOM import not yet figured out with shrinkwrap")
-	 */
 	@Test
 	void testImportPOM() {
 		List<String> deps = Arrays.asList("com.microsoft.azure:azure-bom:1.0.0.M1@pom", "com.microsoft.azure:azure");
@@ -220,14 +224,14 @@ class DependencyResolverTest extends BaseTest {
 																.startsWith("io.vertx:vertx-core"))
 												.findFirst();
 
-		assertEquals(coord.get().getCoordinate().getVersion(), "4.2.3");
+		assertEquals("4.2.3", coord.get().getCoordinate().getVersion());
 
 		coord = classpath	.getArtifacts()
 							.stream()
 							.filter(ai -> ai.getCoordinate().toCanonicalForm().startsWith("org.slf4j:slf4j-simple:"))
 							.findFirst();
 
-		assertEquals(coord.get().getCoordinate().getVersion(), "1.7.30");
+		assertEquals("1.7.30", coord.get().getCoordinate().getVersion());
 
 		coord = classpath	.getArtifacts()
 							.stream()
@@ -250,7 +254,7 @@ class DependencyResolverTest extends BaseTest {
 							.filter(ai -> ai.getCoordinate().toCanonicalForm().startsWith("io.vertx:vertx-core"))
 							.findFirst();
 
-		assertEquals(coord.get().getCoordinate().getVersion(), "3.9.5");
+		assertEquals("3.9.5", coord.get().getCoordinate().getVersion());
 	}
 
 }

@@ -1,6 +1,7 @@
 package dev.jbang.dependencies;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
+import static dev.jbang.Settings.getLocalMavenRepo;
 import static dev.jbang.util.Util.errorMsg;
 import static dev.jbang.util.Util.infoMsg;
 import static dev.jbang.util.Util.verboseMsg;
@@ -14,10 +15,6 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import org.jboss.shrinkwrap.resolver.api.maven.PackagingType;
-import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
-import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinates;
 
 import dev.jbang.cli.ExitException;
 
@@ -47,15 +44,7 @@ public class DependencyUtil {
 	public static final Pattern fullGavPattern = Pattern.compile(
 			"^(?<groupid>[^:]*):(?<artifactid>[^:]*):(?<version>[^:@]*)(:(?<classifier>[^@]*))?(@(?<type>.*))?$");
 
-	public static final Pattern gavPattern = Pattern.compile(
-			"^(?<groupid>[^:]*):(?<artifactid>[^:]*)(:(?<version>[^:@]*))?(:(?<classifier>[^@]*))?(@(?<type>.*))?$");
-
 	private DependencyUtil() {
-	}
-
-	public static ModularClassPath resolveDependencies(List<String> deps, List<MavenRepo> repos,
-			boolean offline, boolean updateCache, boolean loggingEnabled) {
-		return resolveDependencies(deps, repos, offline, updateCache, loggingEnabled, true);
 	}
 
 	/**
@@ -66,7 +55,7 @@ public class DependencyUtil {
 	 * @return string with resolved classpath
 	 */
 	public static ModularClassPath resolveDependencies(List<String> deps, List<MavenRepo> repos,
-			boolean offline, boolean updateCache, boolean loggingEnabled, boolean transitivity) {
+			boolean offline, boolean updateCache, boolean loggingEnabled) {
 
 		// if no dependencies were provided we stop here
 		if (deps.isEmpty()) {
@@ -92,9 +81,10 @@ public class DependencyUtil {
 				repos.stream().map(m -> m.toString()).collect(Collectors.joining(", "))));
 
 		String depsHash = String.join(CP_SEPARATOR, depIds);
-		if (!transitivity) { // the cached key need to be different for non-transivity
-			depsHash = "notransitivity-" + depsHash;
-		}
+		// if (!transitivity) { // the cached key need to be different for
+		// non-transivity
+		// depsHash = "notransitivity-" + depsHash;
+		// }
 
 		List<ArtifactInfo> cachedDeps = null;
 		if (!updateCache) {
@@ -109,8 +99,16 @@ public class DependencyUtil {
 		}
 
 		try {
-			List<ArtifactInfo> artifacts = ArtifactResolver.resolve(depIds, repos, offline, updateCache,
-					loggingEnabled, transitivity);
+			ArtifactResolver resolver = ArtifactResolver.Builder
+																.create()
+																.repositories(repos)
+																.withUserSettings(true)
+																.localFolder(getLocalMavenRepo())
+																.offline(offline)
+																.forceCacheUpdate(updateCache)
+																.logging(loggingEnabled)
+																.build();
+			List<ArtifactInfo> artifacts = resolver.resolve(depIds);
 
 			ModularClassPath classPath = new ModularClassPath(artifacts);
 
@@ -150,33 +148,6 @@ public class DependencyUtil {
 		Matcher gav = fullGavPattern.matcher(candidate);
 		gav.find();
 		return (gav.matches());
-	}
-
-	public static MavenCoordinate depIdToArtifact(String depId) {
-
-		Matcher gav = gavPattern.matcher(depId);
-		gav.find();
-
-		if (!gav.matches()) {
-			throw new IllegalStateException(String.format(
-					"[ERROR] Invalid dependency locator: '%s'.  Expected format is groupId:artifactId:version[:classifier][@type]",
-					depId));
-		}
-
-		String groupId = gav.group("groupid");
-		String artifactId = gav.group("artifactid");
-		String version = formatVersion(gav.group("version"));
-		String classifier = gav.group("classifier");
-		String type = Optional.ofNullable(gav.group("type")).orElse("jar");
-
-		// String groupId, String artifactId, String classifier, String extension,
-		// String version
-		// String groupId, String artifactId, String version, String scope, String type,
-		// String classifier, ArtifactHandler artifactHandler
-
-		// shrinkwrap format: groupId:artifactId:[packagingType:[classifier]]:version
-
-		return MavenCoordinates.createCoordinate(groupId, artifactId, version, PackagingType.of(type), classifier);
 	}
 
 	public static String formatVersion(String version) {

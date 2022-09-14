@@ -441,6 +441,7 @@ public class RunContext {
 	}
 
 	private ModularClassPath resolveDependency(String dep) {
+		// TODO Use/set `mcp` here
 		DependencyResolver resolver = new DependencyResolver().addDependency(dep);
 		updateDependencyResolver(resolver);
 		return resolver.resolve();
