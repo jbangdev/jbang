@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,7 @@ import org.apache.maven.settings.building.DefaultSettingsBuildingRequest;
 import org.apache.maven.settings.building.SettingsBuildingException;
 import org.apache.maven.settings.building.SettingsBuildingRequest;
 import org.apache.maven.settings.building.SettingsBuildingResult;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.aether.AbstractRepositoryListener;
 import org.eclipse.aether.ConfigurationProperties;
 import org.eclipse.aether.DefaultRepositorySystemSession;
@@ -270,8 +272,7 @@ public class ArtifactResolver {
 		SettingsBuildingRequest settingsBuilderRequest = new DefaultSettingsBuildingRequest();
 		settingsBuilderRequest.setSystemProperties(System.getProperties());
 
-		// if we have a root folder, don't read settings at all
-		if (withUserSettings && (localFolderOverride == null || settingsXml != null)) {
+		if (withUserSettings) {
 			// find the settings
 			Path settingsFile = settingsXml;
 			if (settingsFile == null) {
@@ -315,20 +316,6 @@ public class ArtifactResolver {
 	}
 
 	private void configureSession(DefaultRepositorySystemSession session, Settings settings) {
-		// set up authentication
-		DefaultAuthenticationSelector authenticationSelector = new DefaultAuthenticationSelector();
-		for (Server server : settings.getServers()) {
-			AuthenticationBuilder auth = new AuthenticationBuilder();
-			if (server.getUsername() != null)
-				auth.addUsername(server.getUsername());
-			if (server.getPassword() != null)
-				auth.addPassword(server.getPassword());
-			if (server.getPrivateKey() != null)
-				auth.addPrivateKey(server.getPrivateKey(), server.getPassphrase());
-			authenticationSelector.add(server.getId(), auth.build());
-		}
-		session.setAuthenticationSelector(authenticationSelector);
-
 		// set up mirrors
 		DefaultMirrorSelector mirrorSelector = new DefaultMirrorSelector();
 		for (Mirror mirror : settings.getMirrors()) {
@@ -341,19 +328,45 @@ public class ArtifactResolver {
 		DefaultProxySelector proxySelector = new DefaultProxySelector();
 		for (Proxy proxy : settings.getProxies()) {
 			if (proxy.isActive()) {
-				AuthenticationBuilder auth = new AuthenticationBuilder();
-				if (proxy.getUsername() != null)
-					auth.addUsername(proxy.getUsername());
-				if (proxy.getPassword() != null)
-					auth.addPassword(proxy.getPassword());
+				AuthenticationBuilder authBuilder = new AuthenticationBuilder();
+				authBuilder.addUsername(proxy.getUsername()).addPassword(proxy.getPassword());
 				proxySelector.add(
-						new org.eclipse.aether.repository.Proxy(
-								proxy.getProtocol(), proxy.getHost(), proxy.getPort(),
-								auth.build()),
+						new org.eclipse.aether.repository.Proxy(proxy.getProtocol(), proxy.getHost(), proxy.getPort(),
+								authBuilder.build()),
 						proxy.getNonProxyHosts());
 			}
 		}
 		session.setProxySelector(proxySelector);
+
+		// set up authentication
+		DefaultAuthenticationSelector authenticationSelector = new DefaultAuthenticationSelector();
+		for (Server server : settings.getServers()) {
+			AuthenticationBuilder authBuilder = new AuthenticationBuilder();
+			authBuilder.addUsername(server.getUsername()).addPassword(server.getPassword());
+			authBuilder.addPrivateKey(server.getPrivateKey(), server.getPassphrase());
+			authenticationSelector.add(server.getId(), authBuilder.build());
+
+			if (server.getConfiguration() != null) {
+				Xpp3Dom dom = (Xpp3Dom) server.getConfiguration();
+				for (int i = dom.getChildCount() - 1; i >= 0; i--) {
+					Xpp3Dom child = dom.getChild(i);
+					if ("httpHeaders".equals(child.getName())) {
+						HashMap<String, String> headers = new HashMap<>();
+						Xpp3Dom[] properties = child.getChildren("property");
+						for (Xpp3Dom property : properties) {
+							headers.put(property.getChild("name").getValue(), property.getChild("value").getValue());
+						}
+						session.setConfigProperty(ConfigurationProperties.HTTP_HEADERS + "." + server.getId(), headers);
+					}
+				}
+			}
+
+			session.setConfigProperty("aether.connector.perms.fileMode." + server.getId(),
+					server.getFilePermissions());
+			session.setConfigProperty("aether.connector.perms.dirMode." + server.getId(),
+					server.getDirectoryPermissions());
+		}
+		session.setAuthenticationSelector(authenticationSelector);
 
 		if (loggingEnabled) {
 			session.setRepositoryListener(new AbstractRepositoryListener() {
