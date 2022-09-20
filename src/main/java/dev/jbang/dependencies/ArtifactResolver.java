@@ -41,6 +41,7 @@ import org.eclipse.aether.collection.CollectRequest;
 import org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory;
 import org.eclipse.aether.graph.Dependency;
 import org.eclipse.aether.impl.DefaultServiceLocator;
+import org.eclipse.aether.metadata.Metadata;
 import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.repository.RepositoryPolicy;
@@ -161,6 +162,7 @@ public class ArtifactResolver {
 	}
 
 	public List<ArtifactInfo> resolve(List<String> depIds) {
+		setupSessionLogging(depIds);
 		try {
 			Map<String, List<Dependency>> scopeDeps = depIds.stream()
 															.map(coord -> toDependency(toArtifact(coord)))
@@ -194,6 +196,73 @@ public class ArtifactResolver {
 							.collect(Collectors.toList());
 		} catch (DependencyResolutionException ex) {
 			throw new ExitException(1, "Could not resolve dependencies: " + ex.getMessage(), ex);
+		}
+	}
+
+	private void setupSessionLogging(List<String> depIds) {
+		if (loggingEnabled) {
+			Set<String> ids = new HashSet<>(depIds);
+			Set<String> printed = new HashSet<>();
+
+			session.setRepositoryListener(new AbstractRepositoryListener() {
+
+				@Override
+				public void metadataResolving(RepositoryEvent event) {
+					Metadata md = event.getMetadata();
+					printEvent(md.getGroupId(), md.getArtifactId(), md.getVersion(), md.getType());
+				}
+
+				@Override
+				public void metadataDownloading(RepositoryEvent event) {
+					Metadata md = event.getMetadata();
+					printEvent(md.getGroupId(), md.getArtifactId(), md.getVersion(), md.getType());
+				}
+
+				@Override
+				public void artifactResolving(RepositoryEvent event) {
+					Artifact art = event.getArtifact();
+					printEvent(art.getGroupId(), art.getArtifactId(), art.getVersion(), art.getExtension());
+				}
+
+				@Override
+				public void artifactResolved(RepositoryEvent event) {
+					Artifact art = event.getArtifact();
+					printEvent(art.getGroupId(), art.getArtifactId(), art.getVersion(), art.getExtension());
+				}
+
+				@Override
+				public void artifactDownloading(RepositoryEvent event) {
+					Artifact art = event.getArtifact();
+					printEvent(art.getGroupId(), art.getArtifactId(), art.getVersion(), art.getExtension());
+				}
+
+				private void printEvent(String groupId, String artId, String version, String type) {
+					String id = coord(groupId, artId, null, null);
+					if (!printed.contains(id)) {
+						String coord = coord(groupId, artId, version, null);
+						String pomcoord = coord(groupId, artId, version, "pom");
+						if (ids.contains(id) || ids.contains(coord) || ids.contains(pomcoord) || Util.isVerbose()) {
+							if (ids.contains(pomcoord)) {
+								infoMsg("   " + pomcoord);
+							} else {
+								infoMsg("   " + coord);
+							}
+							printed.add(id);
+						}
+					}
+				}
+
+				private String coord(String groupId, String artId, String version, String type) {
+					String res = groupId + ":" + artId;
+					if (version != null && !version.isEmpty()) {
+						res += ":" + version;
+					}
+					if ("pom".equals(type)) {
+						res += "@" + type;
+					}
+					return res;
+				}
+			});
 		}
 	}
 
@@ -367,24 +436,6 @@ public class ArtifactResolver {
 					server.getDirectoryPermissions());
 		}
 		session.setAuthenticationSelector(authenticationSelector);
-
-		if (loggingEnabled) {
-			session.setRepositoryListener(new AbstractRepositoryListener() {
-				@Override
-				public void artifactDownloading(RepositoryEvent event) {
-					if ("jar".equalsIgnoreCase(event.getArtifact().getExtension())) {
-						infoMsg("          " + event.getArtifact());
-					}
-				}
-
-				@Override
-				public void artifactResolving(RepositoryEvent event) {
-					if (Util.isVerbose() && "jar".equalsIgnoreCase(event.getArtifact().getExtension())) {
-						infoMsg("          [" + event.getArtifact() + "]");
-					}
-				}
-			});
-		}
 
 		session.setUpdatePolicy(getUpdatePolicy().getUpdatePolicy());
 
