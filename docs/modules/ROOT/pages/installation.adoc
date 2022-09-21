@@ -130,7 +130,7 @@ To install Java 11:
 [source, bash]
 ----
 brew tap AdoptOpenJDK/openjdk
-brew cask install adoptopenjdk11
+brew install adoptopenjdk11 --cask
 ----
 
 Once Java is installed you can use brew with https://github.com/jbangdev/homebrew-tap/[jbangdev/tap] to get `jbang`:
