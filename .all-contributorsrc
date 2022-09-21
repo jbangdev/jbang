@@ -710,22 +710,32 @@
       "contributions": [
         "code"
       ]
-      } ,{
+    },
+    {
       "login": "someth2say",
       "name": "Jordi Sola",
       "avatar_url": "https://avatars.githubusercontent.com/u/13310156?v=4",
       "profile": "http://someth2say.com",
-       "contributions": [
+      "contributions": [
         "code"
       ]
-      },
-      {
+    },
+    {
       "login": "agoalofalife",
       "name": "Ilya",
       "avatar_url": "https://avatars.githubusercontent.com/u/15719824?v=4",
       "profile": "https://github.com/agoalofalife",
       "contributions": [
         "doc"
+      ]
+    },
+    {
+      "login": "garodriguezlp",
+      "name": "Gustavo Adolfo Rodríguez Libreros",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1432287?v=4",
+      "profile": "https://github.com/garodriguezlp",
+      "contributions": [
+        "code"
       ]
     }
   ],
