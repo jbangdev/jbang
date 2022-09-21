@@ -701,6 +701,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "jarryDk",
+      "name": "Michael Bornholdt Nielsen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5236615?v=4",
+      "profile": "https://www.jarry.dk",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,
