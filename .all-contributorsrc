@@ -737,6 +737,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "yeung66",
+      "name": "YeungYeah",
+      "avatar_url": "https://avatars.githubusercontent.com/u/22522618?v=4",
+      "profile": "https://scottyeung.top/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,
