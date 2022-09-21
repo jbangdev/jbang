@@ -1,6 +1,6 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-76-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-79-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 ## Contributors ✨
 
@@ -108,8 +108,11 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center"><a href="http://www.phillip-kruger.com"><img src="https://avatars.githubusercontent.com/u/6836179?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Phillip Krüger</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=phillip-kruger" title="Documentation">📖</a></td>
       <td align="center"><a href="https://github.com/andreaTP"><img src="https://avatars.githubusercontent.com/u/5792097?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Andrea Peruffo</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=andreaTP" title="Code">💻</a></td>
       <td align="center"><a href="https://www.jarry.dk"><img src="https://avatars.githubusercontent.com/u/5236615?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Michael Bornholdt Nielsen</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=jarryDk" title="Code">💻</a></td>
-      <td align="center"><a href="http://someth2say.com"><img src="https://avatars.githubusercontent.com/u/13310156?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jordi Sola</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=someth2say" title="Documentation">📖</a></td>
+      <td align="center"><a href="http://someth2say.com"><img src="https://avatars.githubusercontent.com/u/13310156?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jordi Sola</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=someth2say" title="Code">💻</a></td>
+    </tr>
+    <tr>
       <td align="center"><a href="https://github.com/agoalofalife"><img src="https://avatars.githubusercontent.com/u/15719824?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ilya</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=agoalofalife" title="Documentation">📖</a></td>
+      <td align="center"><a href="https://github.com/garodriguezlp"><img src="https://avatars.githubusercontent.com/u/1432287?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Gustavo Adolfo Rodríguez Libreros</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=garodriguezlp" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
