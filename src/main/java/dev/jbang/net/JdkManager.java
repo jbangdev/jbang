@@ -22,7 +22,7 @@ import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
 
 public class JdkManager {
-	private static final String FOOJAY_JDK_DOWNLOAD_URL = "https://api.foojay.io/disco/v2.0/directuris?";
+	private static final String FOOJAY_JDK_DOWNLOAD_URL = "https://api.foojay.io/disco/v3.0/directuris?";
 	private static final String FOOJAY_JDK_VERSIONS_URL = "https://api.foojay.io/disco/v3.0/distributions/%s?";
 
 	private static String getDownloadUrl(int version, Util.OS os, Util.Arch arch, String distro) {
