@@ -10,7 +10,6 @@ import static picocli.CommandLine.Model.UsageMessageSpec.SECTION_KEY_COMMAND_LIS
 import static picocli.CommandLine.Option;
 import static picocli.CommandLine.ScopeType;
 
-import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,9 +22,6 @@ import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.Future;
-
-import org.jboss.shrinkwrap.resolver.api.maven.Maven;
-import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 
 import dev.jbang.Configuration;
 import dev.jbang.util.Util;
@@ -245,16 +241,6 @@ public class JBang extends BaseCommand {
 		sections.put("Other", asList("completion", "info", "version", "wrapper"));
 		CommandGroupRenderer renderer = new CommandGroupRenderer(sections);
 		return renderer;
-	}
-
-	static List<MavenCoordinate> findDeps(File pom) {
-		// todo use to dump out pom dependencies
-		return Maven.resolver()
-					.loadPomFromFile(pom)
-					.importCompileAndRuntimeDependencies()
-					.resolve()
-					.withoutTransitivity()
-					.asList(MavenCoordinate.class);
 	}
 
 	public static class CommandGroupRenderer implements CommandLine.IHelpSectionRenderer {

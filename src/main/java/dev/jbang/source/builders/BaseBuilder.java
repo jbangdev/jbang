@@ -12,10 +12,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.jboss.jandex.*;
-import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
 
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.source.*;
 import dev.jbang.spi.IntegrationManager;
 import dev.jbang.spi.IntegrationResult;
@@ -422,7 +422,7 @@ public abstract class BaseBuilder implements Builder {
 			String artifact = baseName;
 			String version = "999-SNAPSHOT";
 			if (prj.getGav().isPresent()) {
-				MavenCoordinate coord = DependencyUtil.depIdToArtifact(
+				MavenCoordinate coord = MavenCoordinate.fromString(
 						DependencyUtil.gavWithVersion(prj.getGav().get()));
 				group = coord.getGroupId();
 				artifact = coord.getArtifactId();

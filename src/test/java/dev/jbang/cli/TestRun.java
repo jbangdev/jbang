@@ -537,7 +537,7 @@ public class TestRun extends BaseTest {
 			StringWriter sw = new StringWriter();
 			ex.printStackTrace(new PrintWriter(sw));
 			assertThat(sw.toString(), containsString(
-					"Error transferring file: dummyrepo from http://dummyrepo/dummygroup/dummyart/0.1/dummyart-0.1.pom"));
+					"Could not transfer artifact dummygroup:dummyart:pom:0.1 from/to http://dummyrepo"));
 		}
 	}
 
@@ -1954,7 +1954,7 @@ public class TestRun extends BaseTest {
 			StringWriter sw = new StringWriter();
 			ex.printStackTrace(new PrintWriter(sw));
 			assertThat(sw.toString(), containsString(
-					"Error transferring file: dummyrepo from http://dummyrepo/dummygroup/dummyart/0.1/dummyart-0.1.pom"));
+					"Could not transfer artifact dummygroup:dummyart:pom:0.1 from/to http://dummyrepo"));
 		}
 	}
 
@@ -2001,7 +2001,7 @@ public class TestRun extends BaseTest {
 			StringWriter sw = new StringWriter();
 			ex.printStackTrace(new PrintWriter(sw));
 			assertThat(sw.toString(), containsString(
-					"Error transferring file: dummyrepo from http://dummyrepo/dummygroup/dummyart/0.1/dummyart-0.1.pom"));
+					"Could not transfer artifact dummygroup:dummyart:pom:0.1 from/to http://dummyrepo"));
 		}
 	}
 
@@ -2048,8 +2048,8 @@ public class TestRun extends BaseTest {
 		} catch (ExitException e) {
 			StringWriter sw = new StringWriter();
 			e.printStackTrace(new PrintWriter(sw));
-			assertThat(sw.toString(), containsString("acme="));
-			assertThat(sw.toString(), not(containsString("mavencentral=")));
+			assertThat(sw.toString(), containsString("in acme"));
+			assertThat(sw.toString(), not(containsString("in mavencentral=")));
 		}
 	}
 

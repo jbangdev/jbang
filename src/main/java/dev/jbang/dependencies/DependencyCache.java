@@ -15,9 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
-import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinates;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
@@ -38,7 +35,7 @@ public class DependencyCache {
 				try (Reader out = Files.newBufferedReader(Settings.getCacheDependencyFile())) {
 					JsonDeserializer<ArtifactInfo> serializer = (json, typeOfT, context) -> {
 						JsonObject jsonObject = json.getAsJsonObject();
-						MavenCoordinate gav = MavenCoordinates.createCoordinate(jsonObject.get("gav").getAsString());
+						MavenCoordinate gav = MavenCoordinate.fromCanonicalString(jsonObject.get("gav").getAsString());
 						Path file = Paths.get(jsonObject.get("file").getAsString());
 						long ts = jsonObject.has("ts") ? jsonObject.get("ts").getAsLong() : 0;
 						return new ArtifactInfo(gav, file, ts);

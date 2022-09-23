@@ -299,9 +299,7 @@ public class RunContext {
 	 */
 	public ModularClassPath resolveClassPath(Code code) {
 		if (mcp == null) {
-			DependencyResolver resolver = new DependencyResolver();
-			code.asProject().updateDependencyResolver(resolver);
-			mcp = resolver.resolve();
+			mcp = code.asProject().resolveClassPath();
 		}
 		return mcp;
 	}
@@ -441,9 +439,12 @@ public class RunContext {
 	}
 
 	private ModularClassPath resolveDependency(String dep) {
-		DependencyResolver resolver = new DependencyResolver().addDependency(dep);
-		updateDependencyResolver(resolver);
-		return resolver.resolve();
+		if (mcp == null) {
+			DependencyResolver resolver = new DependencyResolver().addDependency(dep);
+			updateDependencyResolver(resolver);
+			mcp = resolver.resolve();
+		}
+		return mcp;
 	}
 
 	private void updateFromAlias(Alias alias) {

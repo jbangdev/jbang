@@ -16,9 +16,8 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
-
 import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.util.Util;
 
 public class CatalogUtil {
@@ -281,7 +280,7 @@ public class CatalogUtil {
 				name = name.substring(0, p);
 			}
 		} else if (DependencyUtil.looksLikeAGav(ref)) {
-			MavenCoordinate coord = DependencyUtil.depIdToArtifact(ref);
+			MavenCoordinate coord = MavenCoordinate.fromString(ref);
 			name = coord.getArtifactId();
 		} else {
 			// If the script is a file or a URL we take the last part of

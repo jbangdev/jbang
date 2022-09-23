@@ -64,7 +64,7 @@ public class TestExport extends BaseTest {
 		ExecutionResult result = checkedRun(null, "export", "portable", "-O", outFile, src);
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*helloworld.jar.*"));
 		assertThat(new File(outFile), anExistingFile());
-		assertThat(new File(ExportPortable.LIB), not(anExistingFileOrDirectory()));
+		assertThat(cwdDir.resolve(ExportPortable.LIB).toFile(), not(anExistingFileOrDirectory()));
 	}
 
 	@Test
@@ -96,7 +96,7 @@ public class TestExport extends BaseTest {
 		ExecutionResult result = checkedRun(null, "export", "local", "-O", outFile, src);
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*classpath_log.jar.*"));
 		assertThat(new File(outFile), anExistingFile());
-		assertThat(new File(ExportPortable.LIB), not(anExistingDirectory()));
+		assertThat(cwdDir.resolve(ExportPortable.LIB).toFile(), not(anExistingDirectory()));
 
 		File jar = new File(outFile);
 
