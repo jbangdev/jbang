@@ -152,4 +152,18 @@ public class TestInfo extends BaseTest {
 		assertThat(info.mainClass, equalTo("helloworld"));
 		assertThat(info.resolvedDependencies, empty());
 	}
+
+	@Test
+	void testInfoStarSources() {
+		String src = examplesTestFolder.resolve("sources/ying.java").toString();
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", src);
+		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
+		BaseInfoCommand.ScriptInfo info = tools.getInfo();
+		assertThat(info.originalResource, equalTo(src));
+		// assertThat(info.applicationJar, equalTo(src));
+		assertThat(info.backingResource, equalTo(src));
+		// assertThat(info.javaVersion, not(nullValue()));
+		// assertThat(info.mainClass, equalTo("helloworld"));
+		assertThat(info.resolvedDependencies, empty());
+	}
 }
