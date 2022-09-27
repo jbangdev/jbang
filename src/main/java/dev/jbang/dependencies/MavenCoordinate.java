@@ -14,6 +14,9 @@ public class MavenCoordinate {
 	private final String classifier;
 	private final String packaging;
 
+	public static final String DUMMY_GROUP = "group";
+	public static final String DEFAULT_VERSION = "999-SNAPSHOT";
+
 	private static final Pattern gavPattern = Pattern.compile(
 			"^(?<groupid>[^:]*):(?<artifactid>[^:]*)(:(?<version>[^:@]*))?(:(?<classifier>[^@]*))?(@(?<type>.*))?$");
 
@@ -78,6 +81,11 @@ public class MavenCoordinate {
 		this.version = version;
 		this.classifier = classifier;
 		this.packaging = packaging;
+	}
+
+	public MavenCoordinate withVersion() {
+		return version != null ? this
+				: new MavenCoordinate(groupId, artifactId, DEFAULT_VERSION, classifier, packaging);
 	}
 
 	/**

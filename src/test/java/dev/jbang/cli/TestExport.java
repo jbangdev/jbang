@@ -136,23 +136,21 @@ public class TestExport extends BaseTest {
 
 	}
 
-	// @Test
+	@Test
 	void testExportMavenPublishNoGroup() throws IOException {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
-		ExecutionResult result = checkedRun(null, "export", "mavenrepo", "--force", "-O", outFile.toString(),
-				"itests/helloworld.java");
+		ExecutionResult result = checkedRun(null, "export", "mavenrepo", "--force", "-O",
+				outFile.toString(), examplesTestFolder.resolve("helloworld.java").toString());
 		assertThat(result.exitCode, equalTo(BaseCommand.EXIT_INVALID_INPUT));
-		assertThat(result.err, matchesPattern("(?s).*-Dgroup=.*"));
-
+		assertThat(result.err, containsString("Add --group=<group id> and run again"));
 	}
 
 	@Test
 	void testExportMavenPublishWithClasspath() throws IOException {
 		Path outFile = Settings.getLocalMavenRepo();
 		ExecutionResult result = checkedRun(null, "export", "mavenrepo", "--force",
-				"--group=g.a.v",
-				examplesTestFolder.resolve("classpath_log.java").toString());
+				"--group=g.a.v", examplesTestFolder.resolve("classpath_log.java").toString());
 		assertThat(result.exitCode, equalTo(BaseCommand.EXIT_OK));
 		assertThat(outFile.resolve("g/a/v/classpath_log/999-SNAPSHOT/classpath_log-999-SNAPSHOT.jar").toFile(),
 				anExistingFile());
@@ -163,6 +161,22 @@ public class TestExport extends BaseTest {
 				.sorted(Comparator.reverseOrder())
 				.map(Path::toFile)
 				.forEach(File::delete);
+
+	}
+
+	@Test
+	void testExportMavenPublishWithGAV() throws IOException {
+		File outFile = jbangTempDir.resolve("target").toFile();
+		outFile.mkdirs();
+		ExecutionResult result = checkedRun(null, "export", "mavenrepo", "-O", outFile.toString(),
+				examplesTestFolder.resolve("quote.java").toString());
+		assertThat(result.err, matchesPattern("(?s).*Exported to.*target.*"));
+		assertThat(
+				outFile.toPath().resolve("dev/jbang/itests/quote/999-SNAPSHOT/quote-999-SNAPSHOT.jar").toFile(),
+				anExistingFile());
+		assertThat(
+				outFile.toPath().resolve("dev/jbang/itests/quote/999-SNAPSHOT/quote-999-SNAPSHOT.pom").toFile(),
+				anExistingFile());
 
 	}
 

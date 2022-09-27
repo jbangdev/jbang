@@ -14,7 +14,6 @@ import java.util.stream.Stream;
 import org.jboss.jandex.*;
 
 import dev.jbang.cli.ExitException;
-import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.source.*;
 import dev.jbang.spi.IntegrationManager;
@@ -418,12 +417,11 @@ public abstract class BaseBuilder implements Builder {
 			Util.warnMsg("Could not locate pom.xml template");
 		} else {
 			String baseName = Util.getBaseName(prj.getResourceRef().getFile().getFileName().toString());
-			String group = "group";
+			String group = MavenCoordinate.DUMMY_GROUP;
 			String artifact = baseName;
-			String version = "999-SNAPSHOT";
+			String version = MavenCoordinate.DEFAULT_VERSION;
 			if (prj.getGav().isPresent()) {
-				MavenCoordinate coord = MavenCoordinate.fromString(
-						DependencyUtil.gavWithVersion(prj.getGav().get()));
+				MavenCoordinate coord = MavenCoordinate.fromString(prj.getGav().get()).withVersion();
 				group = coord.getGroupId();
 				artifact = coord.getArtifactId();
 				version = coord.getVersion();

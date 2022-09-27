@@ -1,16 +1,26 @@
 package dev.jbang.source;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+
+import javax.annotation.Nonnull;
+
+import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.source.builders.BaseBuilder;
 import dev.jbang.source.generators.JarCmdGenerator;
 import dev.jbang.util.JavaUtil;
@@ -35,6 +45,7 @@ public class Jar implements Code {
 	private String classPath;
 	private String mainClass;
 	private List<String> javaRuntimeOptions;
+	private String gav;
 	private int buildJdk;
 
 	// Cached values
@@ -48,6 +59,25 @@ public class Jar implements Code {
 			try (JarFile jf = new JarFile(jar.toFile())) {
 				Attributes attrs = jf.getManifest().getMainAttributes();
 				mainClass = attrs.getValue(Attributes.Name.MAIN_CLASS);
+
+				Optional<JarEntry> pom = jf.stream().filter(e -> e.getName().endsWith("/pom.xml")).findFirst();
+				if (pom.isPresent()) {
+					try (InputStream is = jf.getInputStream(pom.get())) {
+						MavenXpp3Reader reader = new MavenXpp3Reader();
+						Model model = reader.read(is);
+						// GAVS of the form "group:xxxx:999-SNAPSHOT" are skipped
+						if (!MavenCoordinate.DUMMY_GROUP.equals(model.getGroupId())
+								|| !MavenCoordinate.DEFAULT_VERSION.equals(model.getVersion())) {
+							gav = model.getGroupId() + ":" + model.getArtifactId();
+							// The version "999-SNAPSHOT" is ignored
+							if (!MavenCoordinate.DEFAULT_VERSION.equals(model.getVersion())) {
+								gav += ":" + model.getVersion();
+							}
+						}
+					} catch (XmlPullParserException e) {
+						Util.verboseMsg("Unable to read the JAR's pom.xml file", e);
+					}
+				}
 
 				String val = attrs.getValue(BaseBuilder.ATTR_JBANG_JAVA_OPTIONS);
 				if (val != null) {
@@ -126,6 +156,12 @@ public class Jar implements Code {
 		return buildJdk > 0 ? buildJdk + "+" : null;
 	}
 
+	@Nonnull
+	@Override
+	public Optional<String> getGav() {
+		return Optional.ofNullable(gav);
+	}
+
 	/**
 	 * Returns the actual Java version that was used to build this Jar. Will return
 	 * 0 if the information is not available (for example because the Jar hasn't
@@ -142,16 +178,19 @@ public class Jar implements Code {
 		return mainClass;
 	}
 
+	@Nonnull
 	@Override
 	public List<String> getRuntimeOptions() {
 		return javaRuntimeOptions;
 	}
 
+	@Nonnull
 	@Override
 	public Builder builder() {
 		return () -> this;
 	}
 
+	@Nonnull
 	@Override
 	public CmdGenerator cmdGenerator(RunContext ctx) {
 		return new JarCmdGenerator(this, ctx);
@@ -168,6 +207,13 @@ public class Jar implements Code {
 	public static Jar prepareJar(Project prj) {
 		Jar jsrc = new Jar(prj.getResourceRef(), prj.getJarFile());
 		jsrc.project = prj;
+		if (!Files.exists(prj.getJarFile())) {
+			jsrc.classPath = prj.resolveClassPath().getManifestPath();
+			jsrc.mainClass = prj.getMainClass();
+			jsrc.javaRuntimeOptions = prj.getRuntimeOptions();
+			jsrc.gav = prj.getGav().orElse(null);
+			jsrc.buildJdk = JavaUtil.javaVersion(prj.getJavaVersion());
+		}
 		return jsrc;
 	}
 }

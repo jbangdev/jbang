@@ -15,7 +15,6 @@ import java.util.jar.Manifest;
 
 import dev.jbang.Settings;
 import dev.jbang.dependencies.ArtifactInfo;
-import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.source.Code;
 import dev.jbang.source.RunContext;
@@ -200,7 +199,7 @@ class ExportMavenPublish extends BaseExportCommand {
 
 		if (!outputPath.toFile().isDirectory()) {
 			if (outputPath.toFile().exists()) {
-				Util.warnMsg("Cannot export to maven publish as " + outputPath + " is not a directory.");
+				Util.warnMsg("Cannot export as maven repository as " + outputPath + " is not a directory.");
 				return EXIT_INVALID_INPUT;
 			}
 			if (exportMixin.force) {
@@ -212,7 +211,7 @@ class ExportMavenPublish extends BaseExportCommand {
 		}
 
 		if (code.getGav().isPresent()) {
-			MavenCoordinate coord = MavenCoordinate.fromString(DependencyUtil.gavWithVersion(code.getGav().get()));
+			MavenCoordinate coord = MavenCoordinate.fromString(code.getGav().get()).withVersion();
 			if (group == null) {
 				group = coord.getGroupId();
 			}
@@ -226,7 +225,7 @@ class ExportMavenPublish extends BaseExportCommand {
 
 		if (group == null) {
 			Util.warnMsg(
-					"Cannot export to maven publish as no group specified. Add --group=<group id> and run again.");
+					"Cannot export as maven repository as no group specified. Add --group=<group id> and run again.");
 			return EXIT_INVALID_INPUT;
 		}
 		Path groupdir = outputPath.resolve(Paths.get(group.replace(".", "/")));
@@ -235,7 +234,7 @@ class ExportMavenPublish extends BaseExportCommand {
 				: Util.getBaseName(code.getResourceRef().getFile().getFileName().toString());
 		Path artifactDir = groupdir.resolve(artifact);
 
-		version = version != null ? version : "999-SNAPSHOT";
+		version = version != null ? version : MavenCoordinate.DEFAULT_VERSION;
 		Path versionDir = artifactDir.resolve(version);
 
 		String suffix = source	.getFileName()
