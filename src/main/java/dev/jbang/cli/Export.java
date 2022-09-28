@@ -16,7 +16,7 @@ import java.util.jar.Manifest;
 import dev.jbang.Settings;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenCoordinate;
-import dev.jbang.source.Code;
+import dev.jbang.source.Project;
 import dev.jbang.source.RunContext;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
@@ -75,11 +75,11 @@ abstract class BaseExportCommand extends BaseCommand {
 	public Integer doCall() throws IOException {
 		exportMixin.validate();
 		RunContext ctx = getRunContext(exportMixin);
-		Code code = ctx.forResource(exportMixin.scriptMixin.scriptOrFile).builder().build();
-		return apply(code, ctx);
+		Project prj = ctx.forResource(exportMixin.scriptMixin.scriptOrFile).builder().build();
+		return apply(prj, ctx);
 	}
 
-	abstract int apply(Code code, RunContext ctx) throws IOException;
+	abstract int apply(Project prj, RunContext ctx) throws IOException;
 
 	protected RunContext getRunContext(ExportMixin exportMixin) {
 		RunContext ctx = new RunContext();
@@ -101,9 +101,9 @@ abstract class BaseExportCommand extends BaseCommand {
 class ExportLocal extends BaseExportCommand {
 
 	@Override
-	int apply(Code code, RunContext ctx) throws IOException {
+	int apply(Project prj, RunContext ctx) throws IOException {
 		// Copy the JAR
-		Path source = code.getJarFile();
+		Path source = prj.getJarFile();
 		Path outputPath = exportMixin.getJarOutputPath();
 		if (outputPath.toFile().exists()) {
 			if (exportMixin.force) {
@@ -117,13 +117,13 @@ class ExportLocal extends BaseExportCommand {
 
 		// Update the JAR's MANIFEST.MF Class-Path to point to
 		// its dependencies
-		String newPath = code.asProject().resolveClassPath().getManifestPath();
+		String newPath = prj.resolveClassPath().getManifestPath();
 		if (!newPath.isEmpty()) {
 			Path tempManifest = createManifest(newPath);
 
 			String javaVersion = exportMixin.buildMixin.javaVersion != null
 					? exportMixin.buildMixin.javaVersion
-					: code.getJavaVersion();
+					: prj.getJavaVersion();
 			updateJarManifest(outputPath, tempManifest, javaVersion);
 		}
 
@@ -138,9 +138,9 @@ class ExportPortable extends BaseExportCommand {
 	public static final String LIB = "lib";
 
 	@Override
-	int apply(Code code, RunContext ctx) throws IOException {
+	int apply(Project prj, RunContext ctx) throws IOException {
 		// Copy the JAR
-		Path source = code.getJarFile();
+		Path source = prj.getJarFile();
 		Path outputPath = exportMixin.getJarOutputPath();
 		if (outputPath.toFile().exists()) {
 			if (exportMixin.force) {
@@ -152,7 +152,7 @@ class ExportPortable extends BaseExportCommand {
 		}
 
 		Files.copy(source, outputPath);
-		List<ArtifactInfo> deps = code.asProject().resolveClassPath().getArtifacts();
+		List<ArtifactInfo> deps = prj.resolveClassPath().getArtifacts();
 		if (!deps.isEmpty()) {
 			// Copy dependencies to "./lib" dir
 			Path libDir = outputPath.getParent().resolve(LIB);
@@ -167,7 +167,7 @@ class ExportPortable extends BaseExportCommand {
 
 			String javaVersion = exportMixin.buildMixin.javaVersion != null
 					? exportMixin.buildMixin.javaVersion
-					: code.getJavaVersion();
+					: prj.getJavaVersion();
 			updateJarManifest(outputPath, tempManifest, javaVersion);
 		}
 		Util.infoMsg("Exported to " + outputPath);
@@ -188,14 +188,14 @@ class ExportMavenPublish extends BaseExportCommand {
 	String version;
 
 	@Override
-	int apply(Code code, RunContext ctx) throws IOException {
+	int apply(Project prj, RunContext ctx) throws IOException {
 		Path outputPath = exportMixin.outputFile;
 
 		if (outputPath == null) {
 			outputPath = Settings.getLocalMavenRepo();
 		}
 		// Copy the JAR
-		Path source = code.getJarFile();
+		Path source = prj.getJarFile();
 
 		if (!outputPath.toFile().isDirectory()) {
 			if (outputPath.toFile().exists()) {
@@ -210,8 +210,8 @@ class ExportMavenPublish extends BaseExportCommand {
 			}
 		}
 
-		if (code.getGav().isPresent()) {
-			MavenCoordinate coord = MavenCoordinate.fromString(code.getGav().get()).withVersion();
+		if (prj.getGav().isPresent()) {
+			MavenCoordinate coord = MavenCoordinate.fromString(prj.getGav().get()).withVersion();
 			if (group == null) {
 				group = coord.getGroupId();
 			}
@@ -231,7 +231,7 @@ class ExportMavenPublish extends BaseExportCommand {
 		Path groupdir = outputPath.resolve(Paths.get(group.replace(".", "/")));
 
 		artifact = artifact != null ? artifact
-				: Util.getBaseName(code.getResourceRef().getFile().getFileName().toString());
+				: Util.getBaseName(prj.getResourceRef().getFile().getFileName().toString());
 		Path artifactDir = groupdir.resolve(artifact);
 
 		version = version != null ? version : MavenCoordinate.DEFAULT_VERSION;
@@ -268,12 +268,12 @@ class ExportMavenPublish extends BaseExportCommand {
 			String pomfile = pomTemplate
 										.data("baseName",
 												Util.getBaseName(
-														code.getResourceRef().getFile().getFileName().toString()))
+														prj.getResourceRef().getFile().getFileName().toString()))
 										.data("group", group)
 										.data("artifact", artifact)
 										.data("version", version)
-										.data("description", code.getDescription().orElse(""))
-										.data("dependencies", code.asProject().resolveClassPath().getArtifacts())
+										.data("description", prj.getDescription().orElse(""))
+										.data("dependencies", prj.resolveClassPath().getArtifacts())
 										.render();
 			Util.infoMsg("Writing " + pomPath);
 			Util.writeString(pomPath, pomfile);
@@ -289,9 +289,9 @@ class ExportMavenPublish extends BaseExportCommand {
 class ExportNative extends BaseExportCommand {
 
 	@Override
-	int apply(Code code, RunContext ctx) throws IOException {
+	int apply(Project prj, RunContext ctx) throws IOException {
 		// Copy the native binary
-		Path source = getImageName(code.getJarFile());
+		Path source = getImageName(prj.getJarFile());
 		Path outputPath = exportMixin.getNativeOutputPath();
 		if (outputPath.toFile().exists()) {
 			if (exportMixin.force) {

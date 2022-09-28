@@ -322,7 +322,7 @@ public abstract class Source {
 
 		// convert quoted content to list of strings as
 		// just passing "--enable-preview --source 14" fails
-		return Code.quotedStringToList(String.join(" ", options));
+		return Project.quotedStringToList(String.join(" ", options));
 	}
 
 	private List<String> collectRawOptions(String prefix) {

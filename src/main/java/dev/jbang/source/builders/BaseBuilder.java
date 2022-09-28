@@ -53,9 +53,7 @@ public abstract class BaseBuilder implements Builder {
 	}
 
 	@Override
-	public Jar build() throws IOException {
-		Jar result = null;
-
+	public Project build() throws IOException {
 		Path outjar = prj.getJarFile();
 		boolean nativeBuildRequired = prj.isNativeImage() && !Files.exists(getImageName(outjar));
 		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
@@ -69,21 +67,16 @@ public abstract class BaseBuilder implements Builder {
 			Util.verboseMsg("Building as native build required.");
 		} else if (Files.isReadable(outjar)) {
 			// We already have a Jar, check if we can still use it
-			Jar jarSrc = prj.asJar();
-
-			if (jarSrc == null) {
-				Util.verboseMsg("Building as previous built jar not found.");
-			} else if (!jarSrc.isUpToDate()) {
+			if (!prj.isUpToDate()) {
 				Util.verboseMsg("Building as previous build jar found but it or its dependencies not up-to-date.");
 			} else if (JavaUtil.javaVersion(requestedJavaVersion) < JavaUtil.minRequestedVersion(
-					jarSrc.getJavaVersion())) {
+					prj.getJavaVersion())) {
 				Util.verboseMsg(
 						String.format(
 								"Building as requested Java version %s < than the java version used during last build %s",
-								requestedJavaVersion, jarSrc.getJavaVersion()));
+								requestedJavaVersion, prj.getJavaVersion()));
 			} else {
-				Util.verboseMsg("No build required. Reusing jar from " + jarSrc.getJarFile());
-				result = jarSrc;
+				Util.verboseMsg("No build required. Reusing jar from " + prj.getJarFile());
 				buildRequired = false;
 			}
 		} else {
@@ -99,7 +92,6 @@ public abstract class BaseBuilder implements Builder {
 			try {
 				integrationResult = compile();
 				createJar();
-				result = prj.asJar();
 			} finally {
 				// clean up temporary folder
 				Util.deletePath(compileDir, true);
@@ -114,7 +106,7 @@ public abstract class BaseBuilder implements Builder {
 			}
 		}
 
-		return result;
+		return prj;
 	}
 
 	// build with javac and then jar...
@@ -206,10 +198,11 @@ public abstract class BaseBuilder implements Builder {
 		// options set on the Source)
 		List<String> rtArgs = prj.getRuntimeOptions();
 		String runtimeOpts = CommandBuffer.of(rtArgs).asCommandLine(Util.Shell.bash);
-		if (!runtimeOpts.isEmpty()) {
-			manifest.getMainAttributes()
-					.putValue(ATTR_JBANG_JAVA_OPTIONS, runtimeOpts);
-		}
+		// TODO should be removed
+		// if (!runtimeOpts.isEmpty()) {
+		// manifest.getMainAttributes()
+		// .putValue(ATTR_JBANG_JAVA_OPTIONS, runtimeOpts);
+		// }
 		int buildJdk = JavaUtil.javaVersion(prj.getJavaVersion());
 		if (buildJdk > 0) {
 			String val = buildJdk >= 9 ? Integer.toString(buildJdk) : "1." + buildJdk;

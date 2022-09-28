@@ -16,7 +16,7 @@ import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
-	private final Code code;
+	private final Project project;
 
 	private boolean assertions;
 	private boolean systemAssertions;
@@ -43,24 +43,24 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		return this;
 	}
 
-	public JarCmdGenerator(Code code) {
-		this.code = code;
+	public JarCmdGenerator(Project prj) {
+		this.project = prj;
 	}
 
 	@Override
-	protected Code getCode() {
-		return code;
+	protected Project getProject() {
+		return project;
 	}
 
 	@Override
 	protected List<String> generateCommandLineList() throws IOException {
 		List<String> fullArgs = new ArrayList<>();
 
-		String classpath = code.asProject().resolveClassPath().getClassPath();
+		String classpath = project.resolveClassPath().getClassPath();
 
 		List<String> optionalArgs = new ArrayList<>();
 
-		String requestedJavaVersion = getCode().getJavaVersion();
+		String requestedJavaVersion = getProject().getJavaVersion();
 		String javacmd = JavaUtil.resolveInJavaHome("java", requestedJavaVersion);
 
 		addPropertyFlags(properties, "-D", optionalArgs);
@@ -84,18 +84,18 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 			String jfropt = "-XX:StartFlightRecording=" + flightRecorderString
 																				.replace("{baseName}",
 																						Util.getBaseName(
-																								code.getResourceRef()
-																									.getFile()
-																									.toString()));
+																								project	.getResourceRef()
+																										.getFile()
+																										.toString()));
 			optionalArgs.add(jfropt);
 			Util.verboseMsg("Flight recording enabled with:" + jfropt);
 		}
 
-		if (code.getJarFile() != null) {
+		if (project.getJarFile() != null) {
 			if (Util.isBlankString(classpath)) {
-				classpath = code.getJarFile().toAbsolutePath().toString();
+				classpath = project.getJarFile().toAbsolutePath().toString();
 			} else {
-				classpath = code.getJarFile().toAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
+				classpath = project.getJarFile().toAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
 			}
 		}
 		if (!Util.isBlankString(classpath)) {
@@ -103,8 +103,8 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 			optionalArgs.add(classpath);
 		}
 
-		if (classDataSharing || code.enableCDS()) {
-			Path cdsJsa = code.getJarFile().toAbsolutePath();
+		if (classDataSharing || project.enableCDS()) {
+			Path cdsJsa = project.getJarFile().toAbsolutePath();
 			if (Files.exists(cdsJsa)) {
 				Util.verboseMsg("CDS: Using shared archive classes from " + cdsJsa);
 				optionalArgs.add("-XX:SharedArchiveFile=" + cdsJsa);
@@ -117,11 +117,11 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		fullArgs.add(javacmd);
 		addAgentsArgs(fullArgs);
 
-		fullArgs.addAll(code.getRuntimeOptions());
-		fullArgs.addAll(code.asProject().resolveClassPath().getAutoDectectedModuleArguments(requestedJavaVersion));
+		fullArgs.addAll(project.getRuntimeOptions());
+		fullArgs.addAll(project.resolveClassPath().getAutoDectectedModuleArguments(requestedJavaVersion));
 		fullArgs.addAll(optionalArgs);
 
-		String mainClass = code.getMainClass();
+		String mainClass = project.getMainClass();
 		if (mainClass != null) {
 			fullArgs.add(mainClass);
 		} else if (mainRequired) {
@@ -141,7 +141,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		boolean useArgsFile = false;
 		if (args.length() > COMMAND_LINE_LENGTH_LIMIT && Util.getShell() != Util.Shell.bash) {
 			// @file is only available from java 9 onwards.
-			String requestedJavaVersion = getCode().getJavaVersion();
+			String requestedJavaVersion = getProject().getJavaVersion();
 			int actualVersion = JavaUtil.javaVersion(requestedJavaVersion);
 			useArgsFile = actualVersion >= 9;
 		}

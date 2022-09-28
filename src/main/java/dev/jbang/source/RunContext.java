@@ -1,21 +1,32 @@
 package dev.jbang.source;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Function;
+import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.stream.Collectors;
+
+import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.*;
+import dev.jbang.source.builders.BaseBuilder;
 import dev.jbang.source.generators.JarCmdGenerator;
 import dev.jbang.source.generators.JshCmdGenerator;
 import dev.jbang.source.generators.NativeCmdGenerator;
 import dev.jbang.source.resolvers.*;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.PropertiesValueResolver;
 import dev.jbang.util.Util;
 
@@ -257,11 +268,11 @@ public class RunContext {
 	}
 
 	public static class AgentSourceContext {
-		final public Code source;
+		final public Project project;
 		final public String javaAgentOption;
 
-		private AgentSourceContext(Code code, RunContext context) {
-			this.source = code;
+		private AgentSourceContext(Project prj, RunContext context) {
+			this.project = prj;
 			this.javaAgentOption = context.getJavaAgentOption();
 		}
 	}
@@ -270,11 +281,11 @@ public class RunContext {
 		return javaAgents != null ? javaAgents : Collections.emptyList();
 	}
 
-	public void addJavaAgent(Code code, RunContext ctx) {
+	public void addJavaAgent(Project prj, RunContext ctx) {
 		if (javaAgents == null) {
 			javaAgents = new ArrayList<>();
 		}
-		javaAgents.add(new AgentSourceContext(code, ctx));
+		javaAgents.add(new AgentSourceContext(prj, ctx));
 	}
 
 	private DependencyResolver updateDependencyResolver(DependencyResolver resolver) {
@@ -322,23 +333,31 @@ public class RunContext {
 	public Project forResourceRef(ResourceRef resourceRef) {
 		Project prj;
 		if (resourceRef.getFile().getFileName().toString().endsWith(".jar")) {
-			Jar jar = Jar.prepareJar(resourceRef);
-			prj = updateProject(jar.asProject());
+			prj = createJarProject(resourceRef);
 		} else if (Util.isPreview()
 				&& resourceRef.getFile().getFileName().toString().equals(Project.BuildFile.jbang.fileName)) {
 			// This is a bit of a hack, but what we do here is treat "build.jbang"
 			// as if it were a source file, which we can do because it's syntax is
 			// the same, just that it can only contain //-lines but no code.
-			prj = createProject(resourceRef);
+			prj = createSourceProject(resourceRef);
 			// But once we get the resulting <code>Project</code> we remove the
 			// first file from the sources to prevent "build.jbang" from being
 			// passed to the compiler.
 			prj.getMainSourceSet().getSources().remove(0);
 			prj.setMainSource(createSource(prj.getMainSourceSet().getSources().get(0)));
 		} else {
-			prj = createProject(resourceRef);
+			prj = createSourceProject(resourceRef);
 		}
 		return prj;
+	}
+
+	private Project createJarProject(ResourceRef resourceRef) {
+		return updateProject(importJarMetadata(new Project(resourceRef)));
+	}
+
+	private Project createSourceProject(ResourceRef resourceRef) {
+		Project prj = createSource(resourceRef).createProject(getResourceResolver());
+		return updateProject(importJarMetadata(prj));
 	}
 
 	public Source createSource(ResourceRef resourceRef) {
@@ -347,25 +366,74 @@ public class RunContext {
 
 	}
 
-	private Project createProject(ResourceRef resourceRef) {
-		Project prj = createSource(resourceRef).createProject(getResourceResolver());
-		return updateProject(prj);
+	private Project importJarMetadata(Project prj) {
+		ResourceRef resourceRef = prj.getResourceRef();
+		Path jar = prj.getJarFile();
+		if (jar != null && Files.exists(jar)) {
+			try (JarFile jf = new JarFile(jar.toFile())) {
+				Attributes attrs = jf.getManifest().getMainAttributes();
+				prj.setMainClass(attrs.getValue(Attributes.Name.MAIN_CLASS));
+
+				Optional<JarEntry> pom = jf.stream().filter(e -> e.getName().endsWith("/pom.xml")).findFirst();
+				if (pom.isPresent()) {
+					try (InputStream is = jf.getInputStream(pom.get())) {
+						MavenXpp3Reader reader = new MavenXpp3Reader();
+						Model model = reader.read(is);
+						// GAVS of the form "group:xxxx:999-SNAPSHOT" are skipped
+						if (!MavenCoordinate.DUMMY_GROUP.equals(model.getGroupId())
+								|| !MavenCoordinate.DEFAULT_VERSION.equals(model.getVersion())) {
+							String gav = model.getGroupId() + ":" + model.getArtifactId();
+							// The version "999-SNAPSHOT" is ignored
+							if (!MavenCoordinate.DEFAULT_VERSION.equals(model.getVersion())) {
+								gav += ":" + model.getVersion();
+							}
+							prj.setGav(gav);
+						}
+					} catch (XmlPullParserException e) {
+						Util.verboseMsg("Unable to read the JAR's pom.xml file", e);
+					}
+				}
+
+				// TODO should be removed
+				// String val = attrs.getValue(BaseBuilder.ATTR_JBANG_JAVA_OPTIONS);
+				// if (val != null) {
+				// prj.addRuntimeOptions(Project.quotedStringToList(val));
+				// }
+
+				String ver = attrs.getValue(BaseBuilder.ATTR_BUILD_JDK);
+				if (ver != null) {
+					// buildJdk = JavaUtil.parseJavaVersion(ver);
+					prj.setJavaVersion(JavaUtil.parseJavaVersion(ver) + "+");
+				}
+
+				String classPath = attrs.getValue(Attributes.Name.CLASS_PATH);
+				if (resourceRef.getOriginalResource() != null
+						&& DependencyUtil.looksLikeAGav(resourceRef.getOriginalResource())) {
+					prj.getMainSourceSet().addDependency(resourceRef.getOriginalResource());
+				} else if (classPath != null) {
+					prj.getMainSourceSet().addClassPaths(Arrays.asList(classPath.split(" ")));
+				}
+			} catch (IOException e) {
+				Util.warnMsg("Problem reading manifest from " + jar);
+			}
+		}
+		return prj;
 	}
 
-	public CmdGenerator createCmdGenerator(Code code) {
-		if (code.isJShell() || getForceType() == Source.Type.jshell || isInteractive()) {
-			return createJshCmdGenerator(code.asProject());
+	public CmdGenerator createCmdGenerator(Project prj) {
+		if (prj.isJShell() || getForceType() == Source.Type.jshell || isInteractive()) {
+			return createJshCmdGenerator(prj);
 		} else {
 			if (isNativeImage()) {
-				return createNativeCmdGenerator(code);
+				return createNativeCmdGenerator(prj);
 			} else {
-				return createJarCmdGenerator(code);
+				return createJarCmdGenerator(prj);
 			}
 		}
 	}
 
-	public JarCmdGenerator createJarCmdGenerator(Code code) {
-		return new JarCmdGenerator(code)
+	public JarCmdGenerator createJarCmdGenerator(Project prj) {
+		return new JarCmdGenerator(prj)
 										.arguments(getArguments())
 										.properties(properties)
 										.javaAgents(getJavaAgents())
@@ -388,9 +456,9 @@ public class RunContext {
 										.flightRecorderString(getFlightRecorderString());
 	}
 
-	public NativeCmdGenerator createNativeCmdGenerator(Code code) {
-		return new NativeCmdGenerator(code, this)
-													.arguments(getArguments());
+	public NativeCmdGenerator createNativeCmdGenerator(Project prj) {
+		return new NativeCmdGenerator(prj, this)
+												.arguments(getArguments());
 	}
 
 	private Project updateProject(Project prj) {

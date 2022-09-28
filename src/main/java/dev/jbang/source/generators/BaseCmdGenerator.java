@@ -65,7 +65,7 @@ public abstract class BaseCmdGenerator<T extends CmdGenerator> implements CmdGen
 		return generateCommandLineString(fullArgs);
 	}
 
-	protected abstract Code getCode();
+	protected abstract Project getProject();
 
 	protected abstract List<String> generateCommandLineList() throws IOException;
 
@@ -80,16 +80,16 @@ public abstract class BaseCmdGenerator<T extends CmdGenerator> implements CmdGen
 						// for now we don't include any transitive dependencies. could consider putting
 						// on bootclasspath...or not.
 						String jar = null;
-						Code asrc = agent.source;
-						if (asrc.getJarFile() != null) {
-							jar = asrc.getJarFile().toString();
-						} else if (asrc.isJar()) {
-							jar = asrc.getResourceRef().getFile().toString();
+						Project aprj = agent.project;
+						if (aprj.getJarFile() != null) {
+							jar = aprj.getJarFile().toString();
+						} else if (aprj.isJar()) {
+							jar = aprj.getResourceRef().getFile().toString();
 							// should we log a warning/error if agent jar not present ?
 						}
 						if (jar == null) {
 							throw new ExitException(BaseCommand.EXIT_INTERNAL_ERROR,
-									"No jar found for agent " + asrc.getResourceRef().getOriginalResource());
+									"No jar found for agent " + aprj.getResourceRef().getOriginalResource());
 						}
 						fullArgs.add("-javaagent:" + jar
 								+ (agent.javaAgentOption != null ? "=" + agent.javaAgentOption : ""));

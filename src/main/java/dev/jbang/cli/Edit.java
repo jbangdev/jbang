@@ -91,12 +91,12 @@ public class Edit extends BaseCommand {
 		return EXIT_OK;
 	}
 
-	private void watchForChanges(Code code, Callable<Object> action) throws IOException {
+	private void watchForChanges(Project prj, Callable<Object> action) throws IOException {
 		try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
-			Path orginalFile = code.getResourceRef().getFile();
+			Path orginalFile = prj.getResourceRef().getFile();
 			if (!Files.exists(orginalFile)) {
 				throw new ExitException(EXIT_UNEXPECTED_STATE,
-						"Cannot live edit " + code.getResourceRef().getOriginalResource());
+						"Cannot live edit " + prj.getResourceRef().getOriginalResource());
 			}
 			Path watched = orginalFile.toAbsolutePath().getParent();
 			watched.register(watchService,

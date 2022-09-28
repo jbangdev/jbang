@@ -18,6 +18,7 @@ import com.google.gson.GsonBuilder;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.net.JdkManager;
 import dev.jbang.source.*;
+import dev.jbang.util.JavaUtil;
 
 import picocli.CommandLine;
 
@@ -74,32 +75,36 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String description;
 		String gav;
 
-		public ScriptInfo(Code code, RunContext ctx) {
-			originalResource = code.getResourceRef().getOriginalResource();
+		public ScriptInfo(Project prj, RunContext ctx) {
+			originalResource = prj.getResourceRef().getOriginalResource();
 
 			if (scripts.add(originalResource)) {
-				backingResource = code.getResourceRef().getFile().toString();
+				backingResource = prj.getResourceRef().getFile().toString();
 
-				init(code.asProject());
+				init(prj);
 
 				if (ctx != null) {
-					applicationJar = code.getJarFile() == null ? null : code.getJarFile().toAbsolutePath().toString();
-					mainClass = code.getMainClass();
-					requestedJavaVersion = code.getJavaVersion();
+					applicationJar = prj.getJarFile() == null ? null : prj.getJarFile().toAbsolutePath().toString();
+					mainClass = prj.getMainClass();
+					requestedJavaVersion = prj.getJavaVersion();
 					availableJdkPath = Objects.toString(JdkManager.getCurrentJdk(requestedJavaVersion), null);
 
-					String cp = code.asProject().resolveClassPath().getClassPath();
+					String cp = prj.resolveClassPath().getClassPath();
 					if (cp.isEmpty()) {
 						resolvedDependencies = Collections.emptyList();
 					} else {
 						resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 					}
 
-					if (code.asJar() != null && code.asJar().getBuildJdk() > 0) {
-						javaVersion = Integer.toString(code.asJar().getBuildJdk());
+					// TODO remove if everything okay
+					// if (prj.isJar() && prj.getBuildJdk() > 0) {
+					// javaVersion = Integer.toString(prj.getBuildJdk());
+					// }
+					if (prj.getJavaVersion() != null) {
+						javaVersion = Integer.toString(JavaUtil.parseJavaVersion(prj.getJavaVersion()));
 					}
 
-					List<String> opts = code.getRuntimeOptions();
+					List<String> opts = prj.getRuntimeOptions();
 					if (!opts.isEmpty()) {
 						runtimeOptions = opts;
 					}
@@ -172,14 +177,11 @@ abstract class BaseInfoCommand extends BaseCommand {
 		scriptMixin.validate();
 
 		RunContext ctx = getRunContext();
-		Code code = ctx.forResource(scriptMixin.scriptOrFile);
-		if (code.asJar() != null) {
-			code = code.asJar();
-		}
+		Project prj = ctx.forResource(scriptMixin.scriptOrFile);
 
 		scripts = new HashSet<>();
 
-		return new ScriptInfo(code, ctx);
+		return new ScriptInfo(prj, ctx);
 	}
 
 	RunContext getRunContext() {

@@ -17,9 +17,9 @@ public class TestRunContext extends BaseTest {
 		RunContext ctx = new RunContext();
 		ctx.setAdditionalRepositories(Arrays.asList("foo=http://foo", "foo=http://foo"));
 		Path src = examplesTestFolder.resolve("quote.java");
-		Code code = ctx.forFile(src);
+		Project prj = ctx.forFile(src);
 		assertThrows(ExitException.class, () -> {
-			code.asProject().resolveClassPath();
+			prj.resolveClassPath();
 		});
 	}
 
@@ -28,9 +28,9 @@ public class TestRunContext extends BaseTest {
 		RunContext ctx = new RunContext();
 		ctx.setAdditionalRepositories(Arrays.asList("foo=http://foo", "foo=http://foo"));
 		Path src = examplesTestFolder.resolve("quote.java");
-		Code code = ctx.forFile(src);
+		Project prj = ctx.forFile(src);
 		assertThrows(ExitException.class, () -> {
-			code.asProject().resolveClassPath();
+			prj.resolveClassPath();
 		});
 	}
 
@@ -39,9 +39,9 @@ public class TestRunContext extends BaseTest {
 		RunContext ctx = new RunContext();
 		ctx.setAdditionalRepositories(Arrays.asList("foo=http://foo", "foo=http://bar"));
 		Path src = examplesTestFolder.resolve("quote.java");
-		Code code = ctx.forFile(src);
+		Project prj = ctx.forFile(src);
 		assertThrows(IllegalArgumentException.class, () -> {
-			code.asProject().resolveClassPath();
+			prj.resolveClassPath();
 		});
 	}
 }

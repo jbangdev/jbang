@@ -3,6 +3,8 @@ package dev.jbang.source;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
@@ -20,7 +22,7 @@ import dev.jbang.dependencies.ModularClassPath;
  * references to source files, resources and dependencies which can be used by a
  * <code>Builder</code> to create a JAR file, for example.
  */
-public class Project implements Code {
+public class Project {
 	@Nonnull
 	private final ResourceRef resourceRef;
 	private Source mainSource;
@@ -39,7 +41,6 @@ public class Project implements Code {
 
 	// Cached values
 	private Path jarFile;
-	private Jar jar;
 	private ModularClassPath mcp;
 
 	public static final String ATTR_PREMAIN_CLASS = "Premain-Class";
@@ -61,7 +62,7 @@ public class Project implements Code {
 
 	public Project(@Nonnull ResourceRef resourceRef) {
 		this.resourceRef = resourceRef;
-		if (Code.isJar(resourceRef.getFile())) {
+		if (Project.isJar(resourceRef.getFile())) {
 			jarFile = resourceRef.getFile();
 		}
 	}
@@ -72,7 +73,6 @@ public class Project implements Code {
 		this.mainSource = mainSource;
 	}
 
-	@Override
 	@Nonnull
 	public ResourceRef getResourceRef() {
 		return resourceRef;
@@ -162,7 +162,6 @@ public class Project implements Code {
 	}
 
 	@Nonnull
-	@Override
 	public Optional<String> getGav() {
 		return Optional.ofNullable(gav);
 	}
@@ -173,7 +172,6 @@ public class Project implements Code {
 		return this;
 	}
 
-	@Override
 	public String getMainClass() {
 		return mainClass;
 	}
@@ -190,7 +188,6 @@ public class Project implements Code {
 		this.nativeImage = isNative;
 	}
 
-	@Override
 	public boolean enableCDS() {
 		return mainSource != null && mainSource.enableCDS();
 	}
@@ -220,7 +217,6 @@ public class Project implements Code {
 		this.mainSource = mainSource;
 	}
 
-	@Override
 	public Path getJarFile() {
 		if (isJShell()) {
 			return null;
@@ -234,20 +230,13 @@ public class Project implements Code {
 		return jarFile;
 	}
 
-	@Override
-	public Jar asJar() {
-		if (jar == null) {
-			Path f = getJarFile();
-			if (f != null && Files.exists(f)) {
-				jar = Jar.prepareJar(this);
-			}
-		}
-		return jar;
-	}
-
-	@Override
-	public Project asProject() {
-		return this;
+	/**
+	 * Determines if the associated jar is up-to-date, returns false if it needs to
+	 * be rebuilt
+	 */
+	public boolean isUpToDate() {
+		return getJarFile() != null && Files.exists(getJarFile())
+				&& updateDependencyResolver(new DependencyResolver()).resolve().isValid();
 	}
 
 	/**
@@ -256,13 +245,61 @@ public class Project implements Code {
 	 * 
 	 * @return A <code>Builder</code>
 	 */
-	@Override
 	@Nonnull
 	public Builder builder() {
 		if (mainSource != null) {
 			return mainSource.getBuilder(this);
 		} else {
-			return this::asJar;
+			return () -> this;
 		}
+	}
+
+	/**
+	 * Returns a <code>CmdGenerator</code> that can be used to generate the command
+	 * line which, when used in a shell or any other CLI, would run this
+	 * <code>Project</code>'s code.
+	 *
+	 * @param ctx A reference to a <code>RunContext</code>
+	 * @return A <code>CmdGenerator</code>
+	 */
+	@Nonnull
+	public CmdGenerator cmdGenerator(RunContext ctx) {
+		return ctx.createCmdGenerator(this);
+	}
+
+	public boolean isJar() {
+		return Project.isJar(getResourceRef().getFile());
+	}
+
+	static boolean isJar(Path backingFile) {
+		return backingFile != null && backingFile.toString().endsWith(".jar");
+	}
+
+	public boolean isJShell() {
+		return Project.isJShell(getResourceRef().getFile());
+	}
+
+	static boolean isJShell(Path backingFile) {
+		return backingFile != null && backingFile.toString().endsWith(".jsh");
+	}
+
+	// https://stackoverflow.com/questions/366202/regex-for-splitting-a-string-using-space-when-not-surrounded-by-single-or-double
+	static List<String> quotedStringToList(String subjectString) {
+		List<String> matchList = new ArrayList<>();
+		Pattern regex = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
+		Matcher regexMatcher = regex.matcher(subjectString);
+		while (regexMatcher.find()) {
+			if (regexMatcher.group(1) != null) {
+				// Add double-quoted string without the quotes
+				matchList.add(regexMatcher.group(1));
+			} else if (regexMatcher.group(2) != null) {
+				// Add single-quoted string without the quotes
+				matchList.add(regexMatcher.group(2));
+			} else {
+				// Add unquoted word
+				matchList.add(regexMatcher.group());
+			}
+		}
+		return matchList;
 	}
 }
