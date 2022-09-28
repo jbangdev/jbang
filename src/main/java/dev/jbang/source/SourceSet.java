@@ -3,6 +3,7 @@ package dev.jbang.source;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -24,43 +25,58 @@ public class SourceSet {
 	private final List<String> classPaths = new ArrayList<>();
 	private final List<String> compileOptions = new ArrayList<>();
 
+	// Cached values
+	private String stableId;
+
 	@Nonnull
 	public List<ResourceRef> getSources() {
-		return sources;
+		return Collections.unmodifiableList(sources);
 	}
 
 	@Nonnull
 	public SourceSet addSource(ResourceRef source) {
 		sources.add(source);
+		stableId = null;
 		return this;
 	}
 
 	@Nonnull
 	public SourceSet addSources(Collection<ResourceRef> sources) {
 		this.sources.addAll(sources);
+		stableId = null;
+		return this;
+	}
+
+	// TODO: Remove this once the HACK in RunContext.forResourceRef()
+	// is no longer necessary
+	public SourceSet removeSource(ResourceRef source) {
+		sources.remove(source);
+		stableId = null;
 		return this;
 	}
 
 	@Nonnull
 	public List<RefTarget> getResources() {
-		return resources;
+		return Collections.unmodifiableList(resources);
 	}
 
 	@Nonnull
 	public SourceSet addResource(RefTarget resource) {
 		resources.add(resource);
+		stableId = null;
 		return this;
 	}
 
 	@Nonnull
 	public SourceSet addResources(Collection<RefTarget> resources) {
 		this.resources.addAll(resources);
+		stableId = null;
 		return this;
 	}
 
 	@Nonnull
 	public List<String> getDependencies() {
-		return dependencies;
+		return Collections.unmodifiableList(dependencies);
 	}
 
 	@Nonnull
@@ -77,7 +93,7 @@ public class SourceSet {
 
 	@Nonnull
 	public List<String> getClassPaths() {
-		return classPaths;
+		return Collections.unmodifiableList(classPaths);
 	}
 
 	@Nonnull
@@ -94,7 +110,7 @@ public class SourceSet {
 
 	@Nonnull
 	public List<String> getCompileOptions() {
-		return compileOptions;
+		return Collections.unmodifiableList(compileOptions);
 	}
 
 	@Nonnull
@@ -121,10 +137,13 @@ public class SourceSet {
 	}
 
 	public String getStableId() {
-		Stream<String> srcs = sources.stream().map(src -> Util.readFileContent(src.getFile()));
-		Stream<String> ress = resources.stream().map(res -> Util.readFileContent(res.getSource().getFile()));
-		Stream<String> files = Stream.concat(srcs, ress);
-		return Util.getStableID(files);
+		if (stableId == null) {
+			Stream<String> srcs = sources.stream().map(src -> Util.readFileContent(src.getFile()));
+			Stream<String> ress = resources.stream().map(res -> Util.readFileContent(res.getSource().getFile()));
+			Stream<String> files = Stream.concat(srcs, ress);
+			stableId = Util.getStableID(files);
+		}
+		return stableId;
 	}
 
 }

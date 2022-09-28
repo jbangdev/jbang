@@ -291,7 +291,7 @@ public class RunContext {
 			// But once we get the resulting <code>Project</code> we remove the
 			// first file from the sources to prevent "build.jbang" from being
 			// passed to the compiler.
-			prj.getMainSourceSet().getSources().remove(0);
+			prj.getMainSourceSet().removeSource(prj.getMainSourceSet().getSources().get(0));
 			prj.setMainSource(createSource(prj.getMainSourceSet().getSources().get(0)));
 		} else {
 			prj = createSourceProject(resourceRef);

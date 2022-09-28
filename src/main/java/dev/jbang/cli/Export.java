@@ -1,6 +1,5 @@
 package dev.jbang.cli;
 
-import static dev.jbang.source.builders.BaseBuilder.getImageName;
 import static dev.jbang.util.JavaUtil.resolveInJavaHome;
 
 import java.io.IOException;
@@ -291,7 +290,7 @@ class ExportNative extends BaseExportCommand {
 	@Override
 	int apply(Project prj, RunContext ctx) throws IOException {
 		// Copy the native binary
-		Path source = getImageName(prj.getJarFile());
+		Path source = prj.getNativeImageFile();
 		Path outputPath = exportMixin.getNativeOutputPath();
 		if (outputPath.toFile().exists()) {
 			if (exportMixin.force) {

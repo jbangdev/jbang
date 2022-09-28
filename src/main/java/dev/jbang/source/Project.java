@@ -18,6 +18,8 @@ import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.dependencies.ModularClassPath;
+import dev.jbang.source.builders.JavaBuilder;
+import dev.jbang.util.Util;
 
 /**
  * This class gives access to all information necessary to turn source files
@@ -230,12 +232,34 @@ public class Project {
 			return null;
 		}
 		if (jarFile == null) {
-			Path baseDir = Settings.getCacheDir(Cache.CacheClass.jars);
-			Path tmpJarDir = baseDir.resolve(
-					getResourceRef().getFile().getFileName() + "." + getMainSourceSet().getStableId());
+			Path tmpJarDir = getTempPath();
 			jarFile = tmpJarDir.getParent().resolve(tmpJarDir.getFileName() + ".jar");
 		}
 		return jarFile;
+	}
+
+	public Path getNativeImageFile() {
+		if (isJShell()) {
+			return null;
+		}
+		Path tmpJarDir = getTempPath();
+		if (Util.isWindows()) {
+			return tmpJarDir.getParent().resolve(tmpJarDir.getFileName() + ".exe");
+		} else {
+			return tmpJarDir.getParent().resolve(tmpJarDir.getFileName() + ".bin");
+		}
+	}
+
+	public Path getBuildDir() {
+		Path tmpJarDir = getTempPath();
+		return tmpJarDir.getParent().resolve(tmpJarDir.getFileName() + ".tmp");
+	}
+
+	@Nonnull
+	private Path getTempPath() {
+		Path baseDir = Settings.getCacheDir(Cache.CacheClass.jars);
+		return baseDir.resolve(
+				getResourceRef().getFile().getFileName() + "." + getMainSourceSet().getStableId());
 	}
 
 	/**
@@ -258,7 +282,11 @@ public class Project {
 		if (mainSource != null) {
 			return mainSource.getBuilder(this);
 		} else {
-			return () -> this;
+			if (isJar() && nativeImage) {
+				return new JavaBuilder(this);
+			} else {
+				return () -> this;
+			}
 		}
 	}
 

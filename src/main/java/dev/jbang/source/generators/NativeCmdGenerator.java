@@ -1,9 +1,8 @@
 package dev.jbang.source.generators;
 
-import static dev.jbang.source.builders.BaseBuilder.getImageName;
-
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,9 +28,9 @@ public class NativeCmdGenerator extends BaseCmdGenerator<NativeCmdGenerator> {
 	public String generate() throws IOException {
 		List<String> fullArgs = new ArrayList<>();
 
-		String imagename = getImageName(project.getJarFile()).toString();
-		if (new File(imagename).exists()) {
-			fullArgs.add(imagename);
+		Path image = project.getNativeImageFile();
+		if (Files.exists(image)) {
+			fullArgs.add(image.toString());
 		} else {
 			Util.warnMsg("native built image not found - running in java mode.");
 			return fallback.generate();
