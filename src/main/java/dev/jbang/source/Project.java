@@ -3,6 +3,7 @@ package dev.jbang.source;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -12,6 +13,8 @@ import javax.annotation.Nullable;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
+import dev.jbang.cli.BaseCommand;
+import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.dependencies.ModularClassPath;
@@ -26,6 +29,7 @@ public class Project {
 	@Nonnull
 	private final ResourceRef resourceRef;
 	private Source mainSource;
+	private Supplier<CmdGenerator> cmdGeneratorFactory;
 
 	// Public (user) input values (can be changed from the outside at any time)
 	private final SourceSet mainSourceSet = new SourceSet();
@@ -192,6 +196,19 @@ public class Project {
 		return mainSource != null && mainSource.enableCDS();
 	}
 
+	@Nullable
+	public Source getMainSource() {
+		return mainSource;
+	}
+
+	public void setMainSource(Source mainSource) {
+		this.mainSource = mainSource;
+	}
+
+	public void setCmdGeneratorFactory(Supplier<CmdGenerator> cmdGeneratorFactory) {
+		this.cmdGeneratorFactory = cmdGeneratorFactory;
+	}
+
 	@Nonnull
 	public ModularClassPath resolveClassPath() {
 		if (mcp == null) {
@@ -206,15 +223,6 @@ public class Project {
 	public DependencyResolver updateDependencyResolver(DependencyResolver resolver) {
 		resolver.addRepositories(repositories);
 		return getMainSourceSet().updateDependencyResolver(resolver);
-	}
-
-	@Nullable
-	public Source getMainSource() {
-		return mainSource;
-	}
-
-	public void setMainSource(Source mainSource) {
-		this.mainSource = mainSource;
 	}
 
 	public Path getJarFile() {
@@ -259,12 +267,15 @@ public class Project {
 	 * line which, when used in a shell or any other CLI, would run this
 	 * <code>Project</code>'s code.
 	 *
-	 * @param ctx A reference to a <code>RunContext</code>
 	 * @return A <code>CmdGenerator</code>
 	 */
 	@Nonnull
-	public CmdGenerator cmdGenerator(RunContext ctx) {
-		return ctx.createCmdGenerator(this);
+	public CmdGenerator cmdGenerator() {
+		if (cmdGeneratorFactory != null) {
+			return cmdGeneratorFactory.get();
+		} else {
+			throw new ExitException(BaseCommand.EXIT_INTERNAL_ERROR, "Missing CmdGenerator factory for Project");
+		}
 	}
 
 	public boolean isJar() {

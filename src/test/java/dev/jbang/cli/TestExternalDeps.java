@@ -50,7 +50,7 @@ class TestExternalDeps extends BaseTest {
 		Project prj = ctx.forResource(f.getPath());
 		prj = run.prepareArtifacts(prj, ctx);
 
-		String result = prj.cmdGenerator(ctx).generate();
+		String result = prj.cmdGenerator().generate();
 
 		assertThat(result, containsString("pico"));
 
@@ -74,7 +74,7 @@ class TestExternalDeps extends BaseTest {
 		Project prj = ctx.forResource(f.getPath());
 		prj = run.prepareArtifacts(prj, ctx);
 
-		String result = prj.cmdGenerator(ctx).generate();
+		String result = prj.cmdGenerator().generate();
 
 		assertThat(result, matchesPattern(".*com[/\\\\]github[/\\\\]jbangdev[/\\\\]jbang.*"));
 

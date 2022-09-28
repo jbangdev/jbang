@@ -59,7 +59,6 @@ public class RunContext {
 
 	private List<String> arguments = Collections.emptyList();
 	private List<String> javaOptions = Collections.emptyList();
-	private boolean mainRequired;
 	private boolean interactive;
 	private boolean enableAssertions;
 	private boolean enableSystemAssertions;
@@ -91,64 +90,24 @@ public class RunContext {
 		}
 	}
 
-	public boolean isMainRequired() {
-		return mainRequired;
-	}
-
-	public void setMainRequired(boolean mainRequired) {
-		this.mainRequired = mainRequired;
-	}
-
-	public boolean isInteractive() {
-		return interactive;
-	}
-
 	public void setInteractive(boolean interactive) {
 		this.interactive = interactive;
-	}
-
-	public boolean isEnableAssertions() {
-		return enableAssertions;
 	}
 
 	public void setEnableAssertions(boolean enableAssertions) {
 		this.enableAssertions = enableAssertions;
 	}
 
-	public boolean isEnableSystemAssertions() {
-		return enableSystemAssertions;
-	}
-
 	public void setEnableSystemAssertions(boolean enableSystemAssertions) {
 		this.enableSystemAssertions = enableSystemAssertions;
-	}
-
-	public String getFlightRecorderString() {
-		return flightRecorderString;
 	}
 
 	public void setFlightRecorderString(String flightRecorderString) {
 		this.flightRecorderString = flightRecorderString;
 	}
 
-	public boolean isFlightRecordingEnabled() {
-		return flightRecorderString != null && !flightRecorderString.isEmpty();
-	}
-
-	public String getDebugString() {
-		return debugString;
-	}
-
 	public void setDebugString(String debugString) {
 		this.debugString = debugString;
-	}
-
-	public boolean isDebugEnabled() {
-		return debugString != null && !debugString.isEmpty();
-	}
-
-	public Boolean getClassDataSharing() {
-		return classDataSharing;
 	}
 
 	public void setClassDataSharing(Boolean classDataSharing) {
@@ -212,10 +171,6 @@ public class RunContext {
 		this.alias = alias;
 	}
 
-	public Source.Type getForceType() {
-		return forceType;
-	}
-
 	public void setForceType(Source.Type forceType) {
 		this.forceType = forceType;
 	}
@@ -238,10 +193,6 @@ public class RunContext {
 
 	public void setJavaAgentOption(String option) {
 		this.javaAgentOption = option;
-	}
-
-	public boolean isNativeImage() {
-		return nativeImage;
 	}
 
 	public void setNativeImage(boolean nativeImage) {
@@ -277,10 +228,6 @@ public class RunContext {
 		}
 	}
 
-	public List<AgentSourceContext> getJavaAgents() {
-		return javaAgents != null ? javaAgents : Collections.emptyList();
-	}
-
 	public void addJavaAgent(Project prj, RunContext ctx) {
 		if (javaAgents == null) {
 			javaAgents = new ArrayList<>();
@@ -288,14 +235,14 @@ public class RunContext {
 		javaAgents.add(new AgentSourceContext(prj, ctx));
 	}
 
-	private DependencyResolver updateDependencyResolver(DependencyResolver resolver) {
-		return resolver
-						.addRepositories(allToMavenRepo(replaceAllProps(
-								additionalRepos)))
-						.addDependencies(replaceAllProps(
-								additionalDeps))
-						.addClassPaths(
-								replaceAllProps(additionalClasspaths));
+	private void updateDependencyResolver(DependencyResolver resolver) {
+		resolver
+				.addRepositories(allToMavenRepo(replaceAllProps(
+						additionalRepos)))
+				.addDependencies(replaceAllProps(
+						additionalDeps))
+				.addClassPaths(
+						replaceAllProps(additionalClasspaths));
 	}
 
 	private List<String> replaceAllProps(List<String> items) {
@@ -325,6 +272,7 @@ public class RunContext {
 		return ref;
 	}
 
+	// Only used by tests
 	public Project forFile(Path resourceFile) {
 		ResourceRef resourceRef = ResourceRef.forFile(resourceFile);
 		return forResourceRef(resourceRef);
@@ -420,11 +368,11 @@ public class RunContext {
 		return prj;
 	}
 
-	public CmdGenerator createCmdGenerator(Project prj) {
-		if (prj.isJShell() || getForceType() == Source.Type.jshell || isInteractive()) {
+	private CmdGenerator createCmdGenerator(Project prj) {
+		if (prj.isJShell() || forceType == Source.Type.jshell || interactive) {
 			return createJshCmdGenerator(prj);
 		} else {
-			if (isNativeImage()) {
+			if (nativeImage) {
 				return createNativeCmdGenerator(prj);
 			} else {
 				return createJarCmdGenerator(prj);
@@ -432,33 +380,33 @@ public class RunContext {
 		}
 	}
 
-	public JarCmdGenerator createJarCmdGenerator(Project prj) {
+	private JarCmdGenerator createJarCmdGenerator(Project prj) {
 		return new JarCmdGenerator(prj)
-										.arguments(getArguments())
+										.arguments(arguments)
 										.properties(properties)
-										.javaAgents(getJavaAgents())
-										.mainRequired(!isInteractive())
-										.assertions(isEnableAssertions())
-										.systemAssertions(isEnableSystemAssertions())
-										.classDataSharing(Optional.ofNullable(getClassDataSharing()).orElse(false))
-										.debugString(getDebugString())
-										.flightRecorderString(getFlightRecorderString());
+										.javaAgents(javaAgents)
+										.mainRequired(!interactive)
+										.assertions(enableAssertions)
+										.systemAssertions(enableSystemAssertions)
+										.classDataSharing(Optional.ofNullable(classDataSharing).orElse(false))
+										.debugString(debugString)
+										.flightRecorderString(flightRecorderString);
 	}
 
-	public JshCmdGenerator createJshCmdGenerator(Project prj) {
+	private JshCmdGenerator createJshCmdGenerator(Project prj) {
 		return new JshCmdGenerator(prj)
-										.arguments(getArguments())
+										.arguments(arguments)
 										.properties(properties)
-										.sourceType(getForceType())
-										.javaAgents(getJavaAgents())
-										.interactive(isInteractive())
-										.debugString(getDebugString())
-										.flightRecorderString(getFlightRecorderString());
+										.sourceType(forceType)
+										.javaAgents(javaAgents)
+										.interactive(interactive)
+										.debugString(debugString)
+										.flightRecorderString(flightRecorderString);
 	}
 
-	public NativeCmdGenerator createNativeCmdGenerator(Project prj) {
-		return new NativeCmdGenerator(prj, this)
-												.arguments(getArguments());
+	private NativeCmdGenerator createNativeCmdGenerator(Project prj) {
+		return new NativeCmdGenerator(prj, createJarCmdGenerator(prj))
+																		.arguments(arguments);
 	}
 
 	private Project updateProject(Project prj) {
@@ -477,6 +425,7 @@ public class RunContext {
 			prj.setJavaVersion(javaVersion);
 		}
 		prj.setNativeImage(nativeImage);
+		prj.setCmdGeneratorFactory(() -> createCmdGenerator(prj));
 		return prj;
 	}
 

@@ -23,13 +23,13 @@ public abstract class BaseCmdGenerator<T extends CmdGenerator> implements CmdGen
 
 	@SuppressWarnings("unchecked")
 	public T arguments(List<String> arguments) {
-		this.arguments = arguments;
+		this.arguments = arguments != null ? arguments : Collections.emptyList();
 		return (T) this;
 	}
 
 	@SuppressWarnings("unchecked")
 	public T properties(Map<String, String> properties) {
-		this.properties = properties;
+		this.properties = properties != null ? properties : Collections.emptyMap();
 		return (T) this;
 	}
 
@@ -41,7 +41,7 @@ public abstract class BaseCmdGenerator<T extends CmdGenerator> implements CmdGen
 
 	@SuppressWarnings("unchecked")
 	public T javaAgents(List<RunContext.AgentSourceContext> javaAgents) {
-		this.javaAgents = javaAgents;
+		this.javaAgents = javaAgents != null ? javaAgents : Collections.emptyList();
 		return (T) this;
 	}
 

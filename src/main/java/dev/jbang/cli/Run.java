@@ -102,12 +102,12 @@ public class Run extends BaseBuildCommand {
 
 		prj = prepareArtifacts(prj, ctx);
 
-		if (ctx.isNativeImage() && (ctx.getForceType() == Source.Type.jshell || prj.isJShell())) {
+		if (nativeImage && (scriptMixin.forceType == Source.Type.jshell || prj.isJShell())) {
 			warn(".jsh cannot be used with --native thus ignoring --native.");
 			ctx.setNativeImage(false);
 		}
 
-		String cmdline = prj.cmdGenerator(ctx).generate();
+		String cmdline = prj.cmdGenerator().generate();
 		debug("run: " + cmdline);
 		out.println(cmdline);
 
@@ -119,7 +119,6 @@ public class Run extends BaseBuildCommand {
 		ctx.setArguments(userParams);
 		ctx.setJavaOptions(javaRuntimeOptions);
 		ctx.setInteractive(interactive);
-		ctx.setMainRequired(!interactive);
 		ctx.setEnableAssertions(enableAssertions);
 		ctx.setEnableSystemAssertions(enableSystemAssertions);
 		ctx.setFlightRecorderString(flightRecorderString);

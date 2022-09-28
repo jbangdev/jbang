@@ -7,17 +7,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import dev.jbang.source.CmdGenerator;
 import dev.jbang.source.Project;
-import dev.jbang.source.RunContext;
 import dev.jbang.util.Util;
 
 public class NativeCmdGenerator extends BaseCmdGenerator<NativeCmdGenerator> {
-	protected final Project project;
-	protected final RunContext ctx;
+	private final Project project;
+	private final CmdGenerator fallback;
 
-	public NativeCmdGenerator(Project prj, RunContext ctx) {
+	public NativeCmdGenerator(Project prj, CmdGenerator fallback) {
 		this.project = prj;
-		this.ctx = ctx;
+		this.fallback = fallback;
 	}
 
 	@Override
@@ -34,7 +34,7 @@ public class NativeCmdGenerator extends BaseCmdGenerator<NativeCmdGenerator> {
 			fullArgs.add(imagename);
 		} else {
 			Util.warnMsg("native built image not found - running in java mode.");
-			return getProject().cmdGenerator(ctx).generate();
+			return fallback.generate();
 		}
 
 		fullArgs.addAll(arguments);
