@@ -3,6 +3,8 @@ package dev.jbang.cli;
 import static dev.jbang.Settings.CP_SEPARATOR;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,6 +37,10 @@ abstract class BaseInfoCommand extends BaseCommand {
 	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
 
+	@CommandLine.Option(names = {
+			"--build-dir" }, description = "Use given directory for build results")
+	Path buildDir;
+
 	static class ResourceFile {
 		String originalResource;
 		String backingResource;
@@ -61,6 +67,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String originalResource;
 		String backingResource;
 		String applicationJar;
+		String nativeImage;
 		String mainClass;
 		List<String> dependencies;
 		List<Repo> repositories;
@@ -85,6 +92,8 @@ abstract class BaseInfoCommand extends BaseCommand {
 
 				if (ctx != null) {
 					applicationJar = prj.getJarFile() == null ? null : prj.getJarFile().toAbsolutePath().toString();
+					nativeImage = prj.getNativeImageFile() == null || !Files.exists(prj.getNativeImageFile()) ? null
+							: prj.getNativeImageFile().toAbsolutePath().toString();
 					mainClass = prj.getMainClass();
 					requestedJavaVersion = prj.getJavaVersion();
 					availableJdkPath = Objects.toString(JdkManager.getCurrentJdk(requestedJavaVersion), null);
@@ -194,6 +203,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 		ctx.setAdditionalResources(scriptMixin.resources);
 		ctx.setForceType(scriptMixin.forceType);
 		ctx.setCatalog(scriptMixin.catalog);
+		ctx.setBuildDir(buildDir);
 		return ctx;
 	}
 

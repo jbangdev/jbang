@@ -61,15 +61,18 @@ public class NativeBuildStep implements Builder<Project> {
 	}
 
 	protected void runNativeBuilder(List<String> optionList) throws IOException {
-		Path nilog = Files.createTempFile("jbang", "native-image");
 		Util.verboseMsg("native-image: " + String.join(" ", optionList));
-		Util.infoMsg("log: " + nilog.toString());
 
-		Process process = CommandBuffer	.of(optionList)
-										.asProcessBuilder()
-										.inheritIO()
-										.redirectOutput(nilog.toFile())
-										.start();
+		ProcessBuilder pb = CommandBuffer	.of(optionList)
+											.asProcessBuilder()
+											.inheritIO();
+
+		// Redirect the output of the native builder to a file
+		Path nilog = Files.createTempFile("jbang", "native-image");
+		Util.infoMsg("log: " + nilog.toString());
+		pb.redirectOutput(nilog.toFile());
+
+		Process process = pb.start();
 		try {
 			process.waitFor();
 		} catch (InterruptedException e) {
