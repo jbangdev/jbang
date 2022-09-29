@@ -24,6 +24,7 @@ import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.cli.ResourceNotFoundException;
 import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.source.resolvers.SiblingResourceResolver;
 import dev.jbang.source.sources.*;
@@ -296,13 +297,20 @@ public abstract class Source {
 				Util.warnMsg(
 						"Multiple //GAV lines found, only one should be defined in a source file. Using the first");
 			}
-			String maybeGav = DependencyUtil.gavWithVersion(gavs.get(0));
+			String maybeGav = gavWithVersion(gavs.get(0));
 			if (!DependencyUtil.looksLikeAGav(maybeGav)) {
 				throw new IllegalArgumentException(
 						"//GAV line has wrong format, should be '//GAV groupid:artifactid[:version]'");
 			}
 			return Optional.of(gavs.get(0));
 		}
+	}
+
+	private static String gavWithVersion(String gav) {
+		if (gav.replaceAll("[^:]", "").length() == 1) {
+			gav += ":" + MavenCoordinate.DEFAULT_VERSION;
+		}
+		return gav;
 	}
 
 	static boolean isGavDeclare(String line) {

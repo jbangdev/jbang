@@ -164,6 +164,7 @@ public class Project implements Code {
 	}
 
 	@Nonnull
+	@Override
 	public Optional<String> getGav() {
 		return Optional.ofNullable(gav);
 	}

@@ -75,6 +75,7 @@ public interface Code {
 	 * Returns the resource's Maven GAV. Returns `Optional.empty()` if no GAV is
 	 * available.
 	 */
+	@Nonnull
 	default Optional<String> getGav() {
 		return Optional.empty();
 	}
