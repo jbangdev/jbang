@@ -1,10 +1,15 @@
 package dev.jbang.source.sources;
 
+import static dev.jbang.util.JavaUtil.resolveInJavaHome;
+
 import java.util.List;
 import java.util.function.Function;
 
 import dev.jbang.source.*;
-import dev.jbang.source.builders.JavaBuilder;
+import dev.jbang.source.ProjectBuilder;
+import dev.jbang.source.buildsteps.CompileBuildStep;
+import dev.jbang.source.buildsteps.IntegrationBuildStep;
+import dev.jbang.spi.IntegrationResult;
 
 public class JavaSource extends Source {
 
@@ -31,7 +36,46 @@ public class JavaSource extends Source {
 	}
 
 	@Override
-	public Builder getBuilder(Project prj) {
-		return new JavaBuilder(prj);
+	public Builder<Project> getBuilder(Project prj) {
+		return new JavaProjectBuilder(prj);
+	}
+
+	public static class JavaProjectBuilder extends ProjectBuilder {
+		public JavaProjectBuilder(Project project) {
+			super(project);
+		}
+
+		@Override
+		protected Builder<Project> getCompileBuildStep() {
+			return new JavaCompileBuildStep();
+		}
+
+		@Override
+		protected Builder<IntegrationResult> getIntegrationBuildStep() {
+			return new JavaIntegrationBuildStep();
+		}
+
+		public class JavaCompileBuildStep extends CompileBuildStep {
+
+			public JavaCompileBuildStep() {
+				super(JavaProjectBuilder.this.project);
+			}
+
+			@Override
+			protected String getCompilerBinary(String requestedJavaVersion) {
+				return resolveInJavaHome("javac", requestedJavaVersion);
+			}
+		}
+
+		public class JavaIntegrationBuildStep extends IntegrationBuildStep {
+			public JavaIntegrationBuildStep() {
+				super(JavaProjectBuilder.this.project);
+			}
+
+			@Override
+			protected String getMainExtension() {
+				return ".java";
+			}
+		}
 	}
 }

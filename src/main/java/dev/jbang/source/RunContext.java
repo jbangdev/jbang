@@ -21,7 +21,7 @@ import dev.jbang.catalog.Catalog;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.*;
-import dev.jbang.source.builders.BaseBuilder;
+import dev.jbang.source.buildsteps.JarBuildStep;
 import dev.jbang.source.generators.JarCmdGenerator;
 import dev.jbang.source.generators.JshCmdGenerator;
 import dev.jbang.source.generators.NativeCmdGenerator;
@@ -348,7 +348,7 @@ public class RunContext {
 				// prj.addRuntimeOptions(Project.quotedStringToList(val));
 				// }
 
-				String ver = attrs.getValue(BaseBuilder.ATTR_BUILD_JDK);
+				String ver = attrs.getValue(JarBuildStep.ATTR_BUILD_JDK);
 				if (ver != null) {
 					// buildJdk = JavaUtil.parseJavaVersion(ver);
 					prj.setJavaVersion(JavaUtil.parseJavaVersion(ver) + "+");

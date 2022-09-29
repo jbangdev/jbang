@@ -1,12 +1,22 @@
 package dev.jbang.source.sources;
 
+import static dev.jbang.net.GroovyManager.resolveInGroovyHome;
+
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
+
+import org.jboss.jandex.ClassInfo;
 
 import dev.jbang.net.GroovyManager;
+import dev.jbang.net.JdkManager;
 import dev.jbang.source.*;
-import dev.jbang.source.builders.GroovyBuilder;
+import dev.jbang.source.ProjectBuilder;
+import dev.jbang.source.buildsteps.CompileBuildStep;
+import dev.jbang.source.buildsteps.IntegrationBuildStep;
+import dev.jbang.spi.IntegrationResult;
 
 public class GroovySource extends Source {
 
@@ -21,11 +31,6 @@ public class GroovySource extends Source {
 
 	public List<String> getRuntimeOptions() {
 		return Collections.singletonList("-Dgroovy.grape.enable=false");
-	}
-
-	@Override
-	public Builder getBuilder(Project prj) {
-		return new GroovyBuilder(prj);
 	}
 
 	@Override
@@ -45,5 +50,66 @@ public class GroovySource extends Source {
 										.stream()
 										.findFirst()
 										.orElse(GroovyManager.DEFAULT_GROOVY_VERSION);
+	}
+
+	@Override
+	public Builder<Project> getBuilder(Project prj) {
+		return new GroovyProjectBuilder(prj);
+	}
+
+	private static class GroovyProjectBuilder extends ProjectBuilder {
+		public GroovyProjectBuilder(Project project) {
+			super(project);
+		}
+
+		@Override
+		protected Builder<Project> getCompileBuildStep() {
+			return new GroovyCompileBuildStep();
+		}
+
+		@Override
+		protected Builder<IntegrationResult> getIntegrationBuildStep() {
+			return new GroovyIntegrationBuildStep();
+		}
+
+		private class GroovyCompileBuildStep extends CompileBuildStep {
+
+			public GroovyCompileBuildStep() {
+				super(GroovyProjectBuilder.this.project);
+			}
+
+			@Override
+			protected String getCompilerBinary(String requestedJavaVersion) {
+				return resolveInGroovyHome("groovyc", ((GroovySource) project.getMainSource()).getGroovyVersion());
+			}
+
+			@Override
+			protected void runCompiler(ProcessBuilder processBuilder) throws IOException {
+				if (project.getMainSource() instanceof GroovySource) {
+					processBuilder	.environment()
+									.put("JAVA_HOME",
+											JdkManager.getCurrentJdk(project.getJavaVersion()).toString());
+					processBuilder.environment().remove("GROOVY_HOME");
+				}
+				super.runCompiler(processBuilder);
+			}
+		}
+
+		private class GroovyIntegrationBuildStep extends IntegrationBuildStep {
+			public GroovyIntegrationBuildStep() {
+				super(GroovyProjectBuilder.this.project);
+			}
+
+			@Override
+			protected String getMainExtension() {
+				return ".groovy";
+			}
+
+			@Override
+			protected Predicate<ClassInfo> getMainFinder() {
+				return pubClass -> pubClass.method("main", IntegrationBuildStep.STRINGARRAYTYPE) != null
+						|| pubClass.method("main") != null;
+			}
+		}
 	}
 }

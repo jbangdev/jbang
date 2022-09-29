@@ -100,7 +100,7 @@ public abstract class Source {
 
 	public abstract List<String> getRuntimeOptions();
 
-	public abstract Builder getBuilder(Project prj);
+	public abstract Builder<Project> getBuilder(Project prj);
 
 	public ResourceRef getResourceRef() {
 		return resourceRef;

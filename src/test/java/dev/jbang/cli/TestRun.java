@@ -55,11 +55,11 @@ import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.net.TrustedSources;
+import dev.jbang.source.Builder;
 import dev.jbang.source.Project;
 import dev.jbang.source.RunContext;
 import dev.jbang.source.Source;
-import dev.jbang.source.builders.BaseBuilder;
-import dev.jbang.source.builders.JavaBuilder;
+import dev.jbang.source.buildsteps.JarBuildStep;
 import dev.jbang.source.generators.JshCmdGenerator;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.source.sources.JavaSource;
@@ -793,7 +793,7 @@ public class TestRun extends BaseTest {
 		Project prj = src.createProject();
 		prj.setMainClass("wonkabear");
 
-		BaseBuilder.createJar(prj, dir, out);
+		JarBuildStep.createJar(prj, dir, out);
 
 		try (JarFile jf = new JarFile(out.toFile())) {
 
@@ -1602,13 +1602,17 @@ public class TestRun extends BaseTest {
 		RunContext ctx = build.getRunContext();
 		Project prj = ctx.forResource(mainFile);
 
-		new JavaBuilder(prj) {
+		new JavaSource.JavaProjectBuilder(prj) {
 			@Override
-			protected void runCompiler(List<String> optionList)
-					throws IOException {
-				assertThat(optionList, hasItem(mainFile));
-				assertThat(optionList, hasItem(incFile));
-				// Skip the compiler
+			protected Builder<Project> getCompileBuildStep() {
+				return new JavaCompileBuildStep() {
+					@Override
+					protected void runCompiler(List<String> optionList) {
+						assertThat(optionList, hasItem(mainFile));
+						assertThat(optionList, hasItem(incFile));
+						// Skip the compiler
+					}
+				};
 			}
 		}.setFresh(true).build();
 	}
@@ -1626,22 +1630,33 @@ public class TestRun extends BaseTest {
 		RunContext ctx = build.getRunContext();
 		Project prj = ctx.forResource(mainFile.toString());
 
-		new JavaBuilder(prj) {
+		new JavaSource.JavaProjectBuilder(prj) {
 			@Override
-			protected void runCompiler(List<String> optionList) {
-				assertThat(optionList, hasItem(endsWith(File.separator + "foo.java")));
-				// Skip the compiler
+			protected Builder<Project> getCompileBuildStep() {
+				return new JavaCompileBuildStep() {
+					@Override
+					protected void runCompiler(List<String> optionList) {
+						assertThat(optionList, hasItem(endsWith(File.separator + "foo.java")));
+						// Skip the compiler
+					}
+				};
 			}
 
 			@Override
-			public void createJar() throws IOException {
-				assertThat(prj.getMainSourceSet().getResources().size(), is(1));
-				List<String> ps = prj	.getMainSourceSet()
-										.getResources()
-										.stream()
-										.map(r -> r.getSource().getFile().toString())
-										.collect(Collectors.toList());
-				assertThat(ps, hasItem(endsWith("resource.properties")));
+			protected Builder<Project> getJarBuildStep() {
+				return new JarBuildStep(project) {
+					@Override
+					public Project build() {
+						assertThat(project.getMainSourceSet().getResources().size(), is(1));
+						List<String> ps = project	.getMainSourceSet()
+													.getResources()
+													.stream()
+													.map(r -> r.getSource().getFile().toString())
+													.collect(Collectors.toList());
+						assertThat(ps, hasItem(endsWith("resource.properties")));
+						return project;
+					}
+				};
 			}
 		}.setFresh(true).build();
 	}
@@ -2124,13 +2139,17 @@ public class TestRun extends BaseTest {
 		RunContext ctx = run.getRunContext();
 		Project prj = ctx.forResource(arg);
 
-		new JavaBuilder(prj) {
+		new JavaSource.JavaProjectBuilder(prj) {
 			@Override
-			protected void runCompiler(List<String> optionList)
-					throws IOException {
-				// Make sure the file "build.jbang" isn't passed to the compiler
-				assertThat(optionList.stream().filter(o -> o.contains("build.jbang")).count(), equalTo(1L));
-				super.runCompiler(optionList);
+			protected Builder<Project> getCompileBuildStep() {
+				return new JavaCompileBuildStep() {
+					@Override
+					protected void runCompiler(List<String> optionList) throws IOException {
+						// Make sure the file "build.jbang" isn't passed to the compiler
+						assertThat(optionList.stream().filter(o -> o.contains("build.jbang")).count(), equalTo(1L));
+						super.runCompiler(optionList);
+					}
+				};
 			}
 		}.setFresh(true).build();
 

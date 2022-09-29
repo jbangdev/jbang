@@ -18,7 +18,7 @@ import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.dependencies.ModularClassPath;
-import dev.jbang.source.builders.JavaBuilder;
+import dev.jbang.source.sources.JavaSource;
 import dev.jbang.util.Util;
 
 /**
@@ -278,12 +278,12 @@ public class Project {
 	 * @return A <code>Builder</code>
 	 */
 	@Nonnull
-	public Builder builder() {
+	public Builder<Project> builder() {
 		if (mainSource != null) {
 			return mainSource.getBuilder(this);
 		} else {
 			if (isJar() && nativeImage) {
-				return new JavaBuilder(this);
+				return new JavaSource.JavaProjectBuilder(this);
 			} else {
 				return () -> this;
 			}
