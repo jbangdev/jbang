@@ -27,6 +27,12 @@ import dev.jbang.spi.IntegrationManager;
 import dev.jbang.spi.IntegrationResult;
 import dev.jbang.util.Util;
 
+/**
+ * This class takes a <code>Project</code> and the result of a previous
+ * "compile" step and runs any integrations that might be found. Those
+ * integration can make changes to the project that will be used as the input
+ * for the next build step.
+ */
 public abstract class IntegrationBuildStep implements Builder<IntegrationResult> {
 	private final Project project;
 

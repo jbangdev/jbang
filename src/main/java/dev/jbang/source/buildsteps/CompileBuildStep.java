@@ -18,6 +18,9 @@ import dev.jbang.util.Util;
 
 import io.quarkus.qute.Template;
 
+/**
+ * This class takes a <code>Project</code> and compiles it.
+ */
 public abstract class CompileBuildStep implements Builder<Project> {
 	protected final Project project;
 

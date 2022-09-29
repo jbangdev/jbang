@@ -167,11 +167,43 @@ public class Util {
 		}
 	}
 
+	/**
+	 * Returns the name without extension. Will return the name itself if it has no
+	 * extension
+	 * 
+	 * @param name A file name
+	 * @return A name without extension
+	 */
 	public static String base(String name) {
 		int p = name.lastIndexOf('.');
 		return p > 0 ? name.substring(0, p) : name;
 	}
 
+	/**
+	 * Returns the name without a valid source file extension. Will return the name
+	 * itself if it has no extension or if the extension is not a valid source file
+	 * extension.
+	 * 
+	 * @param name A file name
+	 * @return A name without a source file extension
+	 */
+	public static String sourceBase(String name) {
+		for (String extension : Source.Type.extensions()) {
+			if (name.endsWith("." + extension)) {
+				return base(name);
+			}
+		}
+		return name;
+	}
+
+	/**
+	 * Returns the extension of the given file name. The extension will not include
+	 * the dot as part of the result. Returns an empty string if the name has no
+	 * extension.
+	 * 
+	 * @param name A file name
+	 * @return An extension or an empty string
+	 */
 	public static String extension(String name) {
 		int p = name.lastIndexOf('.');
 		return p > 0 ? name.substring(p + 1) : "";

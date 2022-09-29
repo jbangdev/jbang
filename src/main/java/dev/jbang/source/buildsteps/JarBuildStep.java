@@ -2,6 +2,8 @@ package dev.jbang.source.buildsteps;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.jar.Attributes;
@@ -9,11 +11,16 @@ import java.util.jar.Manifest;
 
 import dev.jbang.source.Builder;
 import dev.jbang.source.Project;
+import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.JarUtil;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
+/**
+ * This class takes a <code>Project</code> and the result from a previous
+ * "compile" step and packages the whole into a JAR file.
+ */
 public class JarBuildStep implements Builder<Project> {
 	private final Project project;
 
@@ -60,5 +67,16 @@ public class JarBuildStep implements Builder<Project> {
 		FileOutputStream target = new FileOutputStream(jarFile.toFile());
 		JarUtil.jar(target, compileDir.toFile().listFiles(), null, null, manifest);
 		target.close();
+
+		if (ProjectBuilder.keepClasses()) {
+			// In the case the "keep classes" option is specified we write
+			// an extra copy if the manifest to its proper location.
+			// This file is never used but is there so the user can take
+			// a look at it and know what its contents are
+			Path mf = compileDir.resolve("META-INF/MANIFEST.MF");
+			try (OutputStream os = Files.newOutputStream(mf)) {
+				manifest.write(os);
+			}
+		}
 	}
 }

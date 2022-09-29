@@ -44,6 +44,7 @@ public class Project {
 	private String gav;
 	private String mainClass;
 	private boolean nativeImage;
+	private Path cacheDir;
 
 	// Cached values
 	private Path jarFile;
@@ -207,6 +208,10 @@ public class Project {
 		this.mainSource = mainSource;
 	}
 
+	public void setCacheDir(Path cacheDir) {
+		this.cacheDir = cacheDir;
+	}
+
 	public void setCmdGeneratorFactory(Supplier<CmdGenerator> cmdGeneratorFactory) {
 		this.cmdGeneratorFactory = cmdGeneratorFactory;
 	}
@@ -232,8 +237,7 @@ public class Project {
 			return null;
 		}
 		if (jarFile == null) {
-			Path tmpJarDir = getTempPath();
-			jarFile = tmpJarDir.getParent().resolve(tmpJarDir.getFileName() + ".jar");
+			jarFile = getTempPath(".jar");
 		}
 		return jarFile;
 	}
@@ -242,24 +246,30 @@ public class Project {
 		if (isJShell()) {
 			return null;
 		}
-		Path tmpJarDir = getTempPath();
 		if (Util.isWindows()) {
-			return tmpJarDir.getParent().resolve(tmpJarDir.getFileName() + ".exe");
+			return getTempPath(".exe");
 		} else {
-			return tmpJarDir.getParent().resolve(tmpJarDir.getFileName() + ".bin");
+			return getTempPath(".bin");
 		}
 	}
 
 	public Path getBuildDir() {
-		Path tmpJarDir = getTempPath();
-		return tmpJarDir.getParent().resolve(tmpJarDir.getFileName() + ".tmp");
+		if (cacheDir != null) {
+			return cacheDir.resolve("classes");
+		} else {
+			return getTempPath(".tmp");
+		}
 	}
 
 	@Nonnull
-	private Path getTempPath() {
-		Path baseDir = Settings.getCacheDir(Cache.CacheClass.jars);
-		return baseDir.resolve(
-				getResourceRef().getFile().getFileName() + "." + getMainSourceSet().getStableId());
+	private Path getTempPath(String extension) {
+		if (cacheDir != null) {
+			return cacheDir.resolve(Util.sourceBase(getResourceRef().getFile().getFileName().toString()) + extension);
+		} else {
+			Path baseDir = Settings.getCacheDir(Cache.CacheClass.jars);
+			return baseDir.resolve(
+					getResourceRef().getFile().getFileName() + "." + getMainSourceSet().getStableId() + extension);
+		}
 	}
 
 	/**

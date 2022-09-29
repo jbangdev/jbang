@@ -9,6 +9,15 @@ import dev.jbang.source.buildsteps.NativeBuildStep;
 import dev.jbang.spi.IntegrationResult;
 import dev.jbang.util.*;
 
+/**
+ * This class takes a <code>Project</code> and "builds" it. Which more precisely
+ * means that it performs all the necessary steps to turn the project into
+ * runnable code. (Sometimes the project is already runnable, in those cases it
+ * will silently skip any unneeded steps).
+ *
+ * The steps it performs are called "build steps" and the most common ones are
+ * (in order): "compile", "integration", "jar" and "native".
+ */
 public abstract class ProjectBuilder implements Builder<Project> {
 	protected final Project project;
 
@@ -74,8 +83,10 @@ public abstract class ProjectBuilder implements Builder<Project> {
 				integrationResult = getIntegrationBuildStep().build();
 				getJarBuildStep().build();
 			} finally {
-				// clean up temporary folder
-				Util.deletePath(compileDir, true);
+				if (!keepClasses()) {
+					// clean up temporary folder
+					Util.deletePath(compileDir, true);
+				}
 			}
 		}
 
@@ -88,6 +99,10 @@ public abstract class ProjectBuilder implements Builder<Project> {
 		}
 
 		return project;
+	}
+
+	public static boolean keepClasses() {
+		return "true".equals(System.getProperty("jbang.build.keepclasses"));
 	}
 
 	protected abstract Builder<Project> getCompileBuildStep();

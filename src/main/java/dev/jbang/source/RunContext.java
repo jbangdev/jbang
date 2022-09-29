@@ -65,6 +65,7 @@ public class RunContext {
 	private String flightRecorderString;
 	private String debugString;
 	private Boolean classDataSharing;
+	private Path buildDir;
 
 	public static RunContext empty() {
 		return new RunContext();
@@ -207,6 +208,10 @@ public class RunContext {
 		this.catalogFile = catalogFile;
 	}
 
+	public void setBuildDir(Path buildDir) {
+		this.buildDir = buildDir;
+	}
+
 	private Properties getContextProperties() {
 		if (contextProperties == null) {
 			contextProperties = new Properties(System.getProperties());
@@ -316,6 +321,7 @@ public class RunContext {
 
 	private Project importJarMetadata(Project prj) {
 		ResourceRef resourceRef = prj.getResourceRef();
+		prj.setCacheDir(buildDir);
 		Path jar = prj.getJarFile();
 		if (jar != null && Files.exists(jar)) {
 			try (JarFile jf = new JarFile(jar.toFile())) {

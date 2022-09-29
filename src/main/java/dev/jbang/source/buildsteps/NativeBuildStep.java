@@ -15,6 +15,11 @@ import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
+/**
+ * This class takes a <code>Project</code> and the result from a previous
+ * packaging (ie "jar") step and tries to run the native image compiler to turn
+ * it into a native application.
+ */
 public class NativeBuildStep implements Builder<Project> {
 	private final Project project;
 
