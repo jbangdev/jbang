@@ -98,6 +98,10 @@ public abstract class ProjectBuilder implements Builder<Project> {
 			}
 		}
 
+		for (Project aprj : project.getJavaAgents()) {
+			aprj.builder().build();
+		}
+
 		return project;
 	}
 

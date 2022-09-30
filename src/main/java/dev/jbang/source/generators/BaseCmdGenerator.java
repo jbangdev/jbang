@@ -12,7 +12,6 @@ import dev.jbang.util.Util;
 public abstract class BaseCmdGenerator<T extends CmdGenerator> implements CmdGenerator {
 	protected List<String> arguments = Collections.emptyList();
 	protected Map<String, String> properties = Collections.emptyMap();
-	protected List<RunContext.AgentSourceContext> javaAgents = Collections.emptyList();
 	protected String debugString;
 	protected String flightRecorderString;
 
@@ -36,12 +35,6 @@ public abstract class BaseCmdGenerator<T extends CmdGenerator> implements CmdGen
 	@SuppressWarnings("unchecked")
 	public T shell(Util.Shell shell) {
 		this.shell = shell;
-		return (T) this;
-	}
-
-	@SuppressWarnings("unchecked")
-	public T javaAgents(List<RunContext.AgentSourceContext> javaAgents) {
-		this.javaAgents = javaAgents != null ? javaAgents : Collections.emptyList();
 		return (T) this;
 	}
 
@@ -75,12 +68,12 @@ public abstract class BaseCmdGenerator<T extends CmdGenerator> implements CmdGen
 	}
 
 	protected void addAgentsArgs(List<String> fullArgs) {
-		javaAgents
-					.forEach(agent -> {
+		getProject()
+					.getJavaAgents()
+					.forEach(aprj -> {
 						// for now we don't include any transitive dependencies. could consider putting
 						// on bootclasspath...or not.
 						String jar = null;
-						Project aprj = agent.project;
 						if (aprj.getJarFile() != null) {
 							jar = aprj.getJarFile().toString();
 						} else if (aprj.isJar()) {
@@ -91,8 +84,7 @@ public abstract class BaseCmdGenerator<T extends CmdGenerator> implements CmdGen
 							throw new ExitException(BaseCommand.EXIT_INTERNAL_ERROR,
 									"No jar found for agent " + aprj.getResourceRef().getOriginalResource());
 						}
-						fullArgs.add("-javaagent:" + jar
-								+ (agent.javaAgentOption != null ? "=" + agent.javaAgentOption : ""));
+						fullArgs.addAll(aprj.getRuntimeOptions());
 					});
 	}
 }

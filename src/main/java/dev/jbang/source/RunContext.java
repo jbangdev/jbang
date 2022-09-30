@@ -46,8 +46,7 @@ public class RunContext {
 	private Map<String, String> properties = Collections.emptyMap();
 	private Source.Type forceType = null;
 	private String mainClass;
-	private String javaAgentOption;
-	private List<AgentSourceContext> javaAgents;
+	private List<Project> javaAgents;
 	private File catalogFile;
 
 	private boolean alias;
@@ -158,18 +157,9 @@ public class RunContext {
 		mcp = null;
 	}
 
-	/**
-	 * Returns true if originalRef is an alias, otherwise false
-	 */
+	// TODO remove this!!!
 	public boolean isAlias() {
 		return alias;
-	}
-
-	/**
-	 * Sets if originalRef is an alias or not
-	 */
-	public void setAlias(boolean alias) {
-		this.alias = alias;
 	}
 
 	public void setForceType(Source.Type forceType) {
@@ -186,14 +176,6 @@ public class RunContext {
 		} else {
 			this.javaOptions = Collections.emptyList();
 		}
-	}
-
-	public String getJavaAgentOption() {
-		return javaAgentOption;
-	}
-
-	public void setJavaAgentOption(String option) {
-		this.javaAgentOption = option;
 	}
 
 	public void setNativeImage(boolean nativeImage) {
@@ -223,21 +205,11 @@ public class RunContext {
 		return contextProperties;
 	}
 
-	public static class AgentSourceContext {
-		final public Project project;
-		final public String javaAgentOption;
-
-		private AgentSourceContext(Project prj, RunContext context) {
-			this.project = prj;
-			this.javaAgentOption = context.getJavaAgentOption();
-		}
-	}
-
-	public void addJavaAgent(Project prj, RunContext ctx) {
+	public void addJavaAgent(Project prj) {
 		if (javaAgents == null) {
 			javaAgents = new ArrayList<>();
 		}
-		javaAgents.add(new AgentSourceContext(prj, ctx));
+		javaAgents.add(prj);
 	}
 
 	private void updateDependencyResolver(DependencyResolver resolver) {
@@ -390,7 +362,6 @@ public class RunContext {
 		return new JarCmdGenerator(prj)
 										.arguments(arguments)
 										.properties(properties)
-										.javaAgents(javaAgents)
 										.mainRequired(!interactive)
 										.assertions(enableAssertions)
 										.systemAssertions(enableSystemAssertions)
@@ -404,7 +375,6 @@ public class RunContext {
 										.arguments(arguments)
 										.properties(properties)
 										.sourceType(forceType)
-										.javaAgents(javaAgents)
 										.interactive(interactive)
 										.debugString(debugString)
 										.flightRecorderString(flightRecorderString);
@@ -424,6 +394,7 @@ public class RunContext {
 		ss.addResources(allToFileRef(replaceAllProps(additionalResources)));
 		prj.putProperties(properties);
 		prj.addRuntimeOptions(javaOptions);
+		prj.addJavaAgents(javaAgents);
 		if (mainClass != null) {
 			prj.setMainClass(mainClass);
 		}
@@ -438,12 +409,10 @@ public class RunContext {
 	private void updateAllSources(Project prj, List<String> sources) {
 		Catalog catalog = catalogFile != null ? Catalog.get(catalogFile.toPath()) : null;
 		ResourceResolver resolver = getResourceResolver();
-		Function<String, String> propsResolver = it -> PropertiesValueResolver.replaceProperties(it,
-				getContextProperties());
 		sources	.stream()
 				.flatMap(f -> Util.explode(null, Util.getCwd(), f).stream())
 				.map(s -> resolveChecked(resolver, s))
-				.map(ref -> Source.forResourceRef(ref, forceType, propsResolver))
+				.map(this::createSource)
 				.forEach(src -> src.updateProject(prj, resolver));
 	}
 
@@ -515,6 +484,6 @@ public class RunContext {
 		if (mainClass == null) {
 			setMainClass(alias.mainClass);
 		}
-		setAlias(true);
+		this.alias = true;
 	}
 }

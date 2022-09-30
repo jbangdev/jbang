@@ -100,7 +100,7 @@ public class Run extends BaseBuildCommand {
 			}
 		}
 
-		prj = prepareArtifacts(prj, ctx);
+		prj.builder().build();
 
 		if (nativeImage && (scriptMixin.forceType == Source.Type.jshell || prj.isJShell())) {
 			warn(".jsh cannot be used with --native thus ignoring --native.");
@@ -124,24 +124,18 @@ public class Run extends BaseBuildCommand {
 		ctx.setFlightRecorderString(flightRecorderString);
 		ctx.setDebugString(debugString);
 		ctx.setClassDataSharing(cds);
-		return ctx;
-	}
-
-	Project prepareArtifacts(Project prj, RunContext ctx) throws IOException {
-		prj = prj.builder().build();
-
 		if (javaAgentSlots != null) {
 			for (Map.Entry<String, String> agentOption : javaAgentSlots.entrySet()) {
 				String javaAgent = agentOption.getKey();
 				String javaAgentOptions = agentOption.getValue();
 				RunContext actx = super.getRunContext();
-				actx.setJavaAgentOption(javaAgentOptions);
-				Project aprj = actx.forResource(javaAgent).builder().build();
-				ctx.addJavaAgent(aprj, actx);
+				Project aprj = actx.forResource(javaAgent);
+				aprj.addRuntimeOption("-javaagent:" + aprj.getJarFile()
+						+ (javaAgentOptions != null ? "=" + javaAgentOptions : ""));
+				ctx.addJavaAgent(aprj);
 			}
 		}
-
-		return prj;
+		return ctx;
 	}
 
 	/**

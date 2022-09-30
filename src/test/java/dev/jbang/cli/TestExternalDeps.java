@@ -47,8 +47,7 @@ class TestExternalDeps extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Project prj = ctx.forResource(f.getPath());
-		prj = run.prepareArtifacts(prj, ctx);
+		Project prj = ctx.forResource(f.getPath()).builder().build();
 
 		String result = prj.cmdGenerator().generate();
 
@@ -71,8 +70,7 @@ class TestExternalDeps extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		RunContext ctx = run.getRunContext();
-		Project prj = ctx.forResource(f.getPath());
-		prj = run.prepareArtifacts(prj, ctx);
+		Project prj = ctx.forResource(f.getPath()).builder().build();
 
 		String result = prj.cmdGenerator().generate();
 

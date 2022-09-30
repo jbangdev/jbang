@@ -96,7 +96,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(Files.exists(code.getJarFile()), equalTo(!first));
 
-		code = run.prepareArtifacts(code, ctx);
+		code = code.builder().build();
 
 		String result = code.cmdGenerator().generate();
 
@@ -131,7 +131,7 @@ public class TestRun extends BaseTest {
 		ctx.setCatalog(cat.toFile());
 		Project code = ctx.forResource("helloworld");
 
-		code = run.prepareArtifacts(code, ctx);
+		code = code.builder().build();
 		String result = code.cmdGenerator().generate();
 
 		assertThat(result, startsWith("java "));
@@ -711,7 +711,7 @@ public class TestRun extends BaseTest {
 		String url = examplesTestFolder.resolve("classpath_example.java").toFile().toURI().toString();
 
 		RunContext pctx = RunContext.empty();
-		Project pre = (Project) pctx.forResource(url);
+		Project pre = pctx.forResource(url);
 
 		MatcherAssert.assertThat(Util.readString(pre.getResourceRef().getFile()),
 				containsString("Logger.getLogger(classpath_example.class);"));
@@ -1279,11 +1279,11 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = run.getRunContext();
 		Project code = ctx.forFile(mainfile);
-		Project ass = (Project) ctx.forFile(agentfile);
+		Project ass = ctx.forFile(agentfile);
 
 		assertThat(ass.getMainSource().isAgent(), is(true));
 
-		code = run.prepareArtifacts(code, ctx);
+		code = code.builder().build();
 
 		String result = code.cmdGenerator().generate();
 
@@ -2050,7 +2050,7 @@ public class TestRun extends BaseTest {
 		Project code = ctx.forResource(p.toString());
 
 		try {
-			code = run.prepareArtifacts(code, ctx);
+			code = code.builder().build();
 			code.cmdGenerator().generate();
 			fail("Should have thrown exception");
 		} catch (ExitException e) {
@@ -2110,7 +2110,7 @@ public class TestRun extends BaseTest {
 
 		RunContext ctx = run.getRunContext();
 		Project code = ctx.forResource(f.getPath());
-		code = run.prepareArtifacts(code, ctx);
+		code = code.builder().build();
 
 		String result = code.cmdGenerator().generate();
 
