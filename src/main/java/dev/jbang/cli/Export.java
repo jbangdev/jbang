@@ -117,7 +117,7 @@ class ExportLocal extends BaseExportCommand {
 
 		// Update the JAR's MANIFEST.MF Class-Path to point to
 		// its dependencies
-		String newPath = ctx.resolveClassPath(code).getManifestPath();
+		String newPath = code.asProject().resolveClassPath().getManifestPath();
 		if (!newPath.isEmpty()) {
 			Path tempManifest = createManifest(newPath);
 
@@ -152,7 +152,7 @@ class ExportPortable extends BaseExportCommand {
 		}
 
 		Files.copy(source, outputPath);
-		List<ArtifactInfo> deps = ctx.resolveClassPath(code).getArtifacts();
+		List<ArtifactInfo> deps = code.asProject().resolveClassPath().getArtifacts();
 		if (!deps.isEmpty()) {
 			// Copy dependencies to "./lib" dir
 			Path libDir = outputPath.getParent().resolve(LIB);
@@ -273,7 +273,7 @@ class ExportMavenPublish extends BaseExportCommand {
 										.data("artifact", artifact)
 										.data("version", version)
 										.data("description", code.getDescription().orElse(""))
-										.data("dependencies", ctx.resolveClassPath(code).getArtifacts())
+										.data("dependencies", code.asProject().resolveClassPath().getArtifacts())
 										.render();
 			Util.infoMsg("Writing " + pomPath);
 			Util.writeString(pomPath, pomfile);

@@ -99,8 +99,18 @@ public interface Code {
 	@Nonnull
 	Builder builder();
 
+	/**
+	 * Returns a <code>CmdGenerator</code> that can be used to generate the command
+	 * line which, when used in a shell or any other CLI, would run this
+	 * <code>Project</code>'s code.
+	 *
+	 * @param ctx A reference to a <code>RunContext</code>
+	 * @return A <code>CmdGenerator</code>
+	 */
 	@Nonnull
-	CmdGenerator cmdGenerator(RunContext ctx);
+	default CmdGenerator cmdGenerator(RunContext ctx) {
+		return ctx.createCmdGenerator(this);
+	}
 
 	default boolean isJar() {
 		return Code.isJar(getResourceRef().getFile());

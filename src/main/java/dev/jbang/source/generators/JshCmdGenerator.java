@@ -12,16 +12,27 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.text.StringEscapeUtils;
 
-import dev.jbang.Settings;
 import dev.jbang.source.*;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
-public class JshCmdGenerator extends BaseCmdGenerator {
-	protected final Project prj;
+public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
+	private final Project prj;
 
-	public JshCmdGenerator(Project prj, RunContext ctx) {
-		super(ctx);
+	private Source.Type sourceType;
+	private boolean interactive;
+
+	public JshCmdGenerator sourceType(Source.Type sourceType) {
+		this.sourceType = sourceType;
+		return this;
+	}
+
+	public JshCmdGenerator interactive(boolean interactive) {
+		this.interactive = interactive;
+		return this;
+	}
+
+	public JshCmdGenerator(Project prj) {
 		this.prj = prj;
 	}
 
@@ -34,21 +45,13 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 	protected List<String> generateCommandLineList() throws IOException {
 		List<String> fullArgs = new ArrayList<>();
 
-		String classpath = ctx.resolveClassPath(prj).getClassPath();
+		String classpath = prj.resolveClassPath().getClassPath();
 
 		List<String> optionalArgs = new ArrayList<>();
 
-		String requestedJavaVersion = ctx.getJavaVersionOr(getCode());
+		String requestedJavaVersion = getCode().getJavaVersion();
 		String javacmd;
 		javacmd = JavaUtil.resolveInJavaHome("jshell", requestedJavaVersion);
-
-		if (prj.getJarFile() != null && Files.exists(prj.getJarFile())) {
-			if (Util.isBlankString(classpath)) {
-				classpath = prj.getJarFile().toAbsolutePath().toString();
-			} else {
-				classpath = prj.getJarFile().toAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
-			}
-		}
 
 		// NB: See https://github.com/jbangdev/jbang/issues/992 for the reasons why we
 		// use the -J flags below
@@ -72,9 +75,9 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 				"import java.net.*;" +
 				"import java.math.BigInteger;\n" +
 				"import java.math.BigDecimal;\n";
-		String mainClass = ctx.getMainClassOr(prj);
+		String mainClass = prj.getMainClass();
 		Util.writeString(tempFile,
-				defaultImports + generateArgs(ctx.getArguments(), ctx.getProperties()) +
+				defaultImports + generateArgs(arguments, properties) +
 						generateStdInputHelper() +
 						generateMain(mainClass));
 		if (mainClass != null) {
@@ -87,21 +90,21 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 		}
 		optionalArgs.add("--startup=" + tempFile.toAbsolutePath());
 
-		if (ctx.isDebugEnabled()) {
+		if (debugString != null) {
 			Util.warnMsg("debug not possible when running via jshell.");
 		}
-		if (ctx.isFlightRecordingEnabled()) {
+		if (flightRecorderString != null) {
 			Util.warnMsg("Java Flight Recording not possible when running via jshell.");
 		}
 
 		fullArgs.add(javacmd);
 		addAgentsArgs(fullArgs);
 
-		fullArgs.addAll(jshellOpts(ctx.getRuntimeOptionsMerged(prj)));
-		fullArgs.addAll(jshellOpts(ctx.getAutoDetectedModuleArguments(prj, requestedJavaVersion)));
+		fullArgs.addAll(jshellOpts(prj.getRuntimeOptions()));
+		fullArgs.addAll(prj.resolveClassPath().getAutoDectectedModuleArguments(requestedJavaVersion));
 		fullArgs.addAll(optionalArgs);
 
-		if (prj.isJShell() || ctx.getForceType() == Source.Type.jshell) {
+		if (prj.isJShell() || sourceType == Source.Type.jshell) {
 			ArrayList<ResourceRef> revSources = new ArrayList<>(prj.getMainSourceSet().getSources());
 			Collections.reverse(revSources);
 			for (ResourceRef s : revSources) {
@@ -109,7 +112,7 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 			}
 		}
 
-		if (!ctx.isInteractive()) {
+		if (!interactive) {
 			Path exitFile = Files.createTempFile("jbang_exit_",
 					prj.getResourceRef().getFile().getFileName().toString());
 			Util.writeString(exitFile, "/exit");

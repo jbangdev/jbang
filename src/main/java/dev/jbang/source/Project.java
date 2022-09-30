@@ -13,8 +13,6 @@ import dev.jbang.Settings;
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.dependencies.ModularClassPath;
-import dev.jbang.source.generators.JarCmdGenerator;
-import dev.jbang.source.generators.JshCmdGenerator;
 
 /**
  * This class gives access to all information necessary to turn source files
@@ -121,10 +119,10 @@ public class Project implements Code {
 
 	@Nonnull
 	public Map<String, String> getProperties() {
-		return properties;
+		return Collections.unmodifiableMap(properties);
 	}
 
-	public void setProperties(@Nonnull Map<String, String> properties) {
+	public void putProperties(@Nonnull Map<String, String> properties) {
 		this.properties = properties;
 	}
 
@@ -265,24 +263,6 @@ public class Project implements Code {
 			return mainSource.getBuilder(this);
 		} else {
 			return this::asJar;
-		}
-	}
-
-	/**
-	 * Returns a <code>CmdGenerator</code> that can be used to generate the command
-	 * line which, when used in a shell or any other CLI, would run this
-	 * <code>Project</code>'s code.
-	 * 
-	 * @param ctx A reference to a <code>RunContext</code>
-	 * @return A <code>CmdGenerator</code>
-	 */
-	@Override
-	@Nonnull
-	public CmdGenerator cmdGenerator(RunContext ctx) {
-		if (isJShell() || ctx.getForceType() == Source.Type.jshell || ctx.isInteractive()) {
-			return new JshCmdGenerator(this, ctx);
-		} else {
-			return new JarCmdGenerator(this, ctx);
 		}
 	}
 }

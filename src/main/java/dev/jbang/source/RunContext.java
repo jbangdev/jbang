@@ -12,6 +12,9 @@ import dev.jbang.catalog.Catalog;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.*;
+import dev.jbang.source.generators.JarCmdGenerator;
+import dev.jbang.source.generators.JshCmdGenerator;
+import dev.jbang.source.generators.NativeCmdGenerator;
 import dev.jbang.source.resolvers.*;
 import dev.jbang.util.PropertiesValueResolver;
 import dev.jbang.util.Util;
@@ -67,10 +70,6 @@ public class RunContext {
 		} else {
 			this.arguments = Collections.emptyList();
 		}
-	}
-
-	public Map<String, String> getProperties() {
-		return Collections.unmodifiableMap(properties);
 	}
 
 	public void setProperties(Map<String, String> properties) {
@@ -210,10 +209,6 @@ public class RunContext {
 		this.forceType = forceType;
 	}
 
-	public String getMainClassOr(Code code) {
-		return (mainClass != null) ? mainClass : code.getMainClass();
-	}
-
 	public void setMainClass(String mainClass) {
 		this.mainClass = mainClass;
 	}
@@ -224,12 +219,6 @@ public class RunContext {
 		} else {
 			this.javaOptions = Collections.emptyList();
 		}
-	}
-
-	public List<String> getRuntimeOptionsMerged(Code code) {
-		List<String> opts = new ArrayList<>(code.getRuntimeOptions());
-		opts.addAll(javaOptions);
-		return opts;
 	}
 
 	public String getJavaAgentOption() {
@@ -248,10 +237,6 @@ public class RunContext {
 		this.nativeImage = nativeImage;
 	}
 
-	public String getJavaVersionOr(Code code) {
-		return javaVersion != null ? javaVersion : code.getJavaVersion();
-	}
-
 	public void setJavaVersion(String javaVersion) {
 		this.javaVersion = javaVersion;
 	}
@@ -266,18 +251,18 @@ public class RunContext {
 			// early/eager init to property resolution will work.
 			new Detector().detect(contextProperties, Collections.emptyList());
 
-			contextProperties.putAll(getProperties());
+			contextProperties.putAll(properties);
 		}
 		return contextProperties;
 	}
 
 	public static class AgentSourceContext {
 		final public Code source;
-		final public RunContext context;
+		final public String javaAgentOption;
 
 		private AgentSourceContext(Code code, RunContext context) {
 			this.source = code;
-			this.context = context;
+			this.javaAgentOption = context.getJavaAgentOption();
 		}
 	}
 
@@ -290,18 +275,6 @@ public class RunContext {
 			javaAgents = new ArrayList<>();
 		}
 		javaAgents.add(new AgentSourceContext(code, ctx));
-	}
-
-	/**
-	 * Return resolved classpath lazily. resolution will only happen once, any
-	 * consecutive calls return the same classpath. Properties available will be
-	 * used for property replacement.
-	 */
-	public ModularClassPath resolveClassPath(Code code) {
-		if (mcp == null) {
-			mcp = code.asProject().resolveClassPath();
-		}
-		return mcp;
 	}
 
 	private DependencyResolver updateDependencyResolver(DependencyResolver resolver) {
@@ -323,13 +296,6 @@ public class RunContext {
 	private List<MavenRepo> allToMavenRepo(List<String> repos) {
 		return repos.stream().map(DependencyUtil::toMavenRepo).collect(Collectors.toList());
 
-	}
-
-	public List<String> getAutoDetectedModuleArguments(Code code, String requestedVersion) {
-		if (mcp == null) {
-			resolveClassPath(code);
-		}
-		return mcp.getAutoDectectedModuleArguments(requestedVersion);
 	}
 
 	public Project forResource(String resource) {
@@ -356,20 +322,21 @@ public class RunContext {
 	public Project forResourceRef(ResourceRef resourceRef) {
 		Project prj;
 		if (resourceRef.getFile().getFileName().toString().endsWith(".jar")) {
-			prj = updateProject(Jar.prepareJar(resourceRef).asProject());
+			Jar jar = Jar.prepareJar(resourceRef);
+			prj = updateProject(jar.asProject());
 		} else if (Util.isPreview()
 				&& resourceRef.getFile().getFileName().toString().equals(Project.BuildFile.jbang.fileName)) {
 			// This is a bit of a hack, but what we do here is treat "build.jbang"
 			// as if it were a source file, which we can do because it's syntax is
 			// the same, just that it can only contain //-lines but no code.
-			prj = updateProject(createSource(resourceRef).createProject(getResourceResolver()));
+			prj = createProject(resourceRef);
 			// But once we get the resulting <code>Project</code> we remove the
 			// first file from the sources to prevent "build.jbang" from being
 			// passed to the compiler.
 			prj.getMainSourceSet().getSources().remove(0);
 			prj.setMainSource(createSource(prj.getMainSourceSet().getSources().get(0)));
 		} else {
-			prj = updateProject(createSource(resourceRef).createProject(getResourceResolver()));
+			prj = createProject(resourceRef);
 		}
 		return prj;
 	}
@@ -380,6 +347,52 @@ public class RunContext {
 
 	}
 
+	private Project createProject(ResourceRef resourceRef) {
+		Project prj = createSource(resourceRef).createProject(getResourceResolver());
+		return updateProject(prj);
+	}
+
+	public CmdGenerator createCmdGenerator(Code code) {
+		if (code.isJShell() || getForceType() == Source.Type.jshell || isInteractive()) {
+			return createJshCmdGenerator(code.asProject());
+		} else {
+			if (isNativeImage()) {
+				return createNativeCmdGenerator(code);
+			} else {
+				return createJarCmdGenerator(code);
+			}
+		}
+	}
+
+	public JarCmdGenerator createJarCmdGenerator(Code code) {
+		return new JarCmdGenerator(code)
+										.arguments(getArguments())
+										.properties(properties)
+										.javaAgents(getJavaAgents())
+										.mainRequired(!isInteractive())
+										.assertions(isEnableAssertions())
+										.systemAssertions(isEnableSystemAssertions())
+										.classDataSharing(Optional.ofNullable(getClassDataSharing()).orElse(false))
+										.debugString(getDebugString())
+										.flightRecorderString(getFlightRecorderString());
+	}
+
+	public JshCmdGenerator createJshCmdGenerator(Project prj) {
+		return new JshCmdGenerator(prj)
+										.arguments(getArguments())
+										.properties(properties)
+										.sourceType(getForceType())
+										.javaAgents(getJavaAgents())
+										.interactive(isInteractive())
+										.debugString(getDebugString())
+										.flightRecorderString(getFlightRecorderString());
+	}
+
+	public NativeCmdGenerator createNativeCmdGenerator(Code code) {
+		return new NativeCmdGenerator(code, this)
+													.arguments(getArguments());
+	}
+
 	private Project updateProject(Project prj) {
 		SourceSet ss = prj.getMainSourceSet();
 		prj.addRepositories(allToMavenRepo(replaceAllProps(additionalRepos)));
@@ -387,7 +400,8 @@ public class RunContext {
 		ss.addClassPaths(replaceAllProps(additionalClasspaths));
 		updateAllSources(prj, replaceAllProps(additionalSources));
 		ss.addResources(allToFileRef(replaceAllProps(additionalResources)));
-		prj.setProperties(properties);
+		prj.putProperties(properties);
+		prj.addRuntimeOptions(javaOptions);
 		if (mainClass != null) {
 			prj.setMainClass(mainClass);
 		}

@@ -22,7 +22,6 @@ import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.source.builders.BaseBuilder;
-import dev.jbang.source.generators.JarCmdGenerator;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
@@ -190,12 +189,6 @@ public class Jar implements Code {
 		return () -> this;
 	}
 
-	@Nonnull
-	@Override
-	public CmdGenerator cmdGenerator(RunContext ctx) {
-		return new JarCmdGenerator(this, ctx);
-	}
-
 	public static Jar prepareJar(ResourceRef resourceRef) {
 		return new Jar(resourceRef, resourceRef.getFile());
 	}
@@ -207,11 +200,19 @@ public class Jar implements Code {
 	public static Jar prepareJar(Project prj) {
 		Jar jsrc = new Jar(prj.getResourceRef(), prj.getJarFile());
 		jsrc.project = prj;
-		if (!Files.exists(prj.getJarFile())) {
+		if (jsrc.classPath == null) {
 			jsrc.classPath = prj.resolveClassPath().getManifestPath();
+		}
+		if (jsrc.mainClass == null) {
 			jsrc.mainClass = prj.getMainClass();
+		}
+		if (jsrc.getRuntimeOptions().isEmpty()) {
 			jsrc.javaRuntimeOptions = prj.getRuntimeOptions();
+		}
+		if (jsrc.gav == null) {
 			jsrc.gav = prj.getGav().orElse(null);
+		}
+		if (jsrc.buildJdk == 0) {
 			jsrc.buildJdk = JavaUtil.javaVersion(prj.getJavaVersion());
 		}
 		return jsrc;

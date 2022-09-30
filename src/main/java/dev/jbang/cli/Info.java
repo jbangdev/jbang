@@ -84,11 +84,11 @@ abstract class BaseInfoCommand extends BaseCommand {
 
 				if (ctx != null) {
 					applicationJar = code.getJarFile() == null ? null : code.getJarFile().toAbsolutePath().toString();
-					mainClass = ctx.getMainClassOr(code);
+					mainClass = code.getMainClass();
 					requestedJavaVersion = code.getJavaVersion();
 					availableJdkPath = Objects.toString(JdkManager.getCurrentJdk(requestedJavaVersion), null);
 
-					String cp = ctx.resolveClassPath(code).getClassPath();
+					String cp = code.asProject().resolveClassPath().getClassPath();
 					if (cp.isEmpty()) {
 						resolvedDependencies = Collections.emptyList();
 					} else {
@@ -99,7 +99,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 						javaVersion = Integer.toString(code.asJar().getBuildJdk());
 					}
 
-					List<String> opts = ctx.getRuntimeOptionsMerged(code);
+					List<String> opts = code.getRuntimeOptions();
 					if (!opts.isEmpty()) {
 						runtimeOptions = opts;
 					}

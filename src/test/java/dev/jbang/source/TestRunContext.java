@@ -19,7 +19,7 @@ public class TestRunContext extends BaseTest {
 		Path src = examplesTestFolder.resolve("quote.java");
 		Code code = ctx.forFile(src);
 		assertThrows(ExitException.class, () -> {
-			ctx.resolveClassPath(code);
+			code.asProject().resolveClassPath();
 		});
 	}
 
@@ -30,7 +30,7 @@ public class TestRunContext extends BaseTest {
 		Path src = examplesTestFolder.resolve("quote.java");
 		Code code = ctx.forFile(src);
 		assertThrows(ExitException.class, () -> {
-			ctx.resolveClassPath(code);
+			code.asProject().resolveClassPath();
 		});
 	}
 
@@ -41,7 +41,7 @@ public class TestRunContext extends BaseTest {
 		Path src = examplesTestFolder.resolve("quote.java");
 		Code code = ctx.forFile(src);
 		assertThrows(IllegalArgumentException.class, () -> {
-			ctx.resolveClassPath(code);
+			code.asProject().resolveClassPath();
 		});
 	}
 }
