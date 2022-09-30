@@ -14,8 +14,8 @@ import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.source.Project;
+import dev.jbang.source.ProjectBuilder;
 import dev.jbang.source.ResourceRef;
-import dev.jbang.source.RunContext;
 import dev.jbang.util.ConsoleOutput;
 import dev.jbang.util.Util;
 
@@ -96,8 +96,8 @@ class AliasAdd extends BaseAliasCommand {
 					"Invalid alias name, it should start with a letter followed by 0 or more letters, digits, underscores or hyphens");
 		}
 
-		RunContext ctx = getRunContext();
-		Project prj = ctx.forResource(scriptMixin.scriptOrFile);
+		ProjectBuilder pb = createProjectBuilder();
+		Project prj = pb.build(scriptMixin.scriptOrFile);
 		if (name == null) {
 			name = CatalogUtil.nameFromRef(scriptMixin.scriptOrFile);
 		}
@@ -120,24 +120,25 @@ class AliasAdd extends BaseAliasCommand {
 		return EXIT_OK;
 	}
 
-	RunContext getRunContext() {
-		RunContext ctx = new RunContext();
-		ctx.setProperties(dependencyInfoMixin.getProperties());
-		ctx.setAdditionalDependencies(dependencyInfoMixin.getDependencies());
-		ctx.setAdditionalRepositories(dependencyInfoMixin.getRepositories());
-		ctx.setAdditionalClasspaths(dependencyInfoMixin.getClasspaths());
-		ctx.setAdditionalSources(scriptMixin.sources);
-		ctx.setAdditionalResources(scriptMixin.resources);
-		ctx.setForceType(scriptMixin.forceType);
-		ctx.setJavaVersion(javaVersion);
-		ctx.setMainClass(main);
+	ProjectBuilder createProjectBuilder() {
+		ProjectBuilder pb = ProjectBuilder
+											.create()
+											.setProperties(dependencyInfoMixin.getProperties())
+											.additionalDependencies(dependencyInfoMixin.getDependencies())
+											.additionalRepositories(dependencyInfoMixin.getRepositories())
+											.additionalClasspaths(dependencyInfoMixin.getClasspaths())
+											.additionalSources(scriptMixin.sources)
+											.additionalResources(scriptMixin.resources)
+											.forceType(scriptMixin.forceType)
+											.javaVersion(javaVersion)
+											.mainClass(main)
+											.setArguments(userParams)
+											.javaOptions(javaRuntimeOptions);
 		Path cat = getCatalog(false);
 		if (cat != null) {
-			ctx.setCatalog(cat.toFile());
+			pb.catalog(cat.toFile());
 		}
-		ctx.setArguments(userParams);
-		ctx.setJavaOptions(javaRuntimeOptions);
-		return ctx;
+		return pb;
 	}
 }
 

@@ -30,20 +30,20 @@ public abstract class BaseBuildCommand extends BaseCommand {
 
 	PrintStream out = new PrintStream(new FileOutputStream(FileDescriptor.out));
 
-	RunContext getRunContext() {
-		RunContext ctx = new RunContext();
-		ctx.setProperties(dependencyInfoMixin.getProperties());
-		ctx.setAdditionalDependencies(dependencyInfoMixin.getDependencies());
-		ctx.setAdditionalRepositories(dependencyInfoMixin.getRepositories());
-		ctx.setAdditionalClasspaths(dependencyInfoMixin.getClasspaths());
-		ctx.setAdditionalSources(scriptMixin.sources);
-		ctx.setAdditionalResources(scriptMixin.resources);
-		ctx.setForceType(scriptMixin.forceType);
-		ctx.setCatalog(scriptMixin.catalog);
-		ctx.setJavaVersion(buildMixin.javaVersion);
-		ctx.setMainClass(buildMixin.main);
-		ctx.setNativeImage(nativeImage);
-		ctx.setBuildDir(buildDir);
-		return ctx;
+	ProjectBuilder createProjectBuilder() {
+		return ProjectBuilder
+								.create()
+								.setProperties(dependencyInfoMixin.getProperties())
+								.additionalDependencies(dependencyInfoMixin.getDependencies())
+								.additionalRepositories(dependencyInfoMixin.getRepositories())
+								.additionalClasspaths(dependencyInfoMixin.getClasspaths())
+								.additionalSources(scriptMixin.sources)
+								.additionalResources(scriptMixin.resources)
+								.forceType(scriptMixin.forceType)
+								.catalog(scriptMixin.catalog)
+								.javaVersion(buildMixin.javaVersion)
+								.mainClass(buildMixin.main)
+								.nativeImage(nativeImage)
+								.buildDir(buildDir);
 	}
 }

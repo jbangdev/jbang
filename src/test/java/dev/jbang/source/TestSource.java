@@ -201,8 +201,8 @@ public class TestSource extends BaseTest {
 		createTmpFileWithContent("pkg1", "Hello.java", exampleURLInsourceHello);
 		createTmpFileWithContent("pkg1", "Bye.java", exampleURLInsourceBye);
 		String scriptURL = mainPath.toString();
-		RunContext ctx = RunContext.empty();
-		Project prj = ctx.forResource(scriptURL);
+		ProjectBuilder pb = ProjectBuilder.create();
+		Project prj = pb.build(scriptURL);
 		assertEquals(8, prj.getMainSourceSet().getSources().size());
 	}
 
@@ -249,8 +249,8 @@ public class TestSource extends BaseTest {
 		try {
 			TrustedSources.instance().add(url, tempFile);
 
-			RunContext ctx = RunContext.empty();
-			Project prj = ctx.forResource(url);
+			ProjectBuilder pb = ProjectBuilder.create();
+			Project prj = pb.build(url);
 			assertEquals(3, prj.getMainSourceSet().getSources().size());
 			boolean foundmain = false;
 			boolean foundtwo = false;
@@ -333,8 +333,8 @@ public class TestSource extends BaseTest {
 	void testNonJavaExtension(@TempDir Path output) throws IOException {
 		Path p = output.resolve("kube-example");
 		writeString(p, example);
-		RunContext ctx = RunContext.empty();
-		ctx.forResource(p.toAbsolutePath().toString());
+		ProjectBuilder pb = ProjectBuilder.create();
+		pb.build(p.toAbsolutePath().toString());
 	}
 
 	@Test

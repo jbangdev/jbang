@@ -11,7 +11,7 @@ import org.jboss.jandex.ClassInfo;
 
 import dev.jbang.net.KotlinManager;
 import dev.jbang.source.*;
-import dev.jbang.source.ProjectBuilder;
+import dev.jbang.source.AppBuilder;
 import dev.jbang.source.buildsteps.CompileBuildStep;
 import dev.jbang.source.buildsteps.IntegrationBuildStep;
 import dev.jbang.spi.IntegrationResult;
@@ -34,7 +34,7 @@ public class KotlinSource extends Source {
 
 	@Override
 	public Builder<Project> getBuilder(Project prj) {
-		return new KotlinProjectBuilder(prj);
+		return new KotlinAppBuilder(prj);
 	}
 
 	public String getKotlinVersion() {
@@ -44,8 +44,8 @@ public class KotlinSource extends Source {
 										.orElse(KotlinManager.DEFAULT_KOTLIN_VERSION);
 	}
 
-	private static class KotlinProjectBuilder extends ProjectBuilder {
-		public KotlinProjectBuilder(Project project) {
+	private static class KotlinAppBuilder extends AppBuilder {
+		public KotlinAppBuilder(Project project) {
 			super(project);
 		}
 
@@ -62,7 +62,7 @@ public class KotlinSource extends Source {
 		private class KotlinCompileBuildStep extends CompileBuildStep {
 
 			public KotlinCompileBuildStep() {
-				super(KotlinProjectBuilder.this.project);
+				super(KotlinAppBuilder.this.project);
 			}
 
 			@Override
@@ -73,7 +73,7 @@ public class KotlinSource extends Source {
 
 		private class KotlinIntegrationBuildStep extends IntegrationBuildStep {
 			public KotlinIntegrationBuildStep() {
-				super(KotlinProjectBuilder.this.project);
+				super(KotlinAppBuilder.this.project);
 			}
 
 			@Override

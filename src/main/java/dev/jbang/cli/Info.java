@@ -82,7 +82,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String description;
 		String gav;
 
-		public ScriptInfo(Project prj, RunContext ctx) {
+		public ScriptInfo(Project prj, ProjectBuilder pb) {
 			originalResource = prj.getResourceRef().getOriginalResource();
 
 			if (scripts.add(originalResource)) {
@@ -90,7 +90,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 
 				init(prj);
 
-				if (ctx != null) {
+				if (pb != null) {
 					applicationJar = prj.getJarFile() == null ? null : prj.getJarFile().toAbsolutePath().toString();
 					nativeImage = prj.getNativeImageFile() == null || !Files.exists(prj.getNativeImageFile()) ? null
 							: prj.getNativeImageFile().toAbsolutePath().toString();
@@ -185,26 +185,25 @@ abstract class BaseInfoCommand extends BaseCommand {
 	ScriptInfo getInfo() {
 		scriptMixin.validate();
 
-		RunContext ctx = getRunContext();
-		Project prj = ctx.forResource(scriptMixin.scriptOrFile);
+		ProjectBuilder pb = createProjectBuilder();
+		Project prj = pb.build(scriptMixin.scriptOrFile);
 
 		scripts = new HashSet<>();
 
-		return new ScriptInfo(prj, ctx);
+		return new ScriptInfo(prj, pb);
 	}
 
-	RunContext getRunContext() {
-		RunContext ctx = new RunContext();
-		ctx.setProperties(dependencyInfoMixin.getProperties());
-		ctx.setAdditionalDependencies(dependencyInfoMixin.getDependencies());
-		ctx.setAdditionalRepositories(dependencyInfoMixin.getRepositories());
-		ctx.setAdditionalClasspaths(dependencyInfoMixin.getClasspaths());
-		ctx.setAdditionalSources(scriptMixin.sources);
-		ctx.setAdditionalResources(scriptMixin.resources);
-		ctx.setForceType(scriptMixin.forceType);
-		ctx.setCatalog(scriptMixin.catalog);
-		ctx.setBuildDir(buildDir);
-		return ctx;
+	ProjectBuilder createProjectBuilder() {
+		return ProjectBuilder	.create()
+								.setProperties(dependencyInfoMixin.getProperties())
+								.additionalDependencies(dependencyInfoMixin.getDependencies())
+								.additionalRepositories(dependencyInfoMixin.getRepositories())
+								.additionalClasspaths(dependencyInfoMixin.getClasspaths())
+								.additionalSources(scriptMixin.sources)
+								.additionalResources(scriptMixin.resources)
+								.forceType(scriptMixin.forceType)
+								.catalog(scriptMixin.catalog)
+								.buildDir(buildDir);
 	}
 
 }

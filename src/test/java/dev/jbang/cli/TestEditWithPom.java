@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
 import dev.jbang.source.Project;
-import dev.jbang.source.RunContext;
+import dev.jbang.source.ProjectBuilder;
 import dev.jbang.source.TestSource;
 import dev.jbang.util.Util;
 
@@ -47,9 +47,9 @@ public class TestEditWithPom extends BaseTest {
 	void testEditWithPom() throws IOException {
 		Path mainPath = TestSource.createTmpFileWithContent("", "main.java", main);
 		assertTrue(mainPath.toFile().exists());
-		RunContext ctx = RunContext.empty();
-		Project prj = ctx.forResource(mainPath.toString());
-		Path project = new Edit().createProjectForLinkedEdit(prj, ctx, false);
+		ProjectBuilder pb = ProjectBuilder.create();
+		Project prj = pb.build(mainPath.toString());
+		Path project = new Edit().createProjectForLinkedEdit(prj, pb, false);
 		assertTrue(project.resolve("src/main.java").toFile().exists());
 
 		Path gradle = project.resolve("build.gradle");

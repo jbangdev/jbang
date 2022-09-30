@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import dev.jbang.source.*;
-import dev.jbang.source.ProjectBuilder;
+import dev.jbang.source.AppBuilder;
 import dev.jbang.source.buildsteps.CompileBuildStep;
 import dev.jbang.source.buildsteps.IntegrationBuildStep;
 import dev.jbang.spi.IntegrationResult;
@@ -37,11 +37,11 @@ public class JavaSource extends Source {
 
 	@Override
 	public Builder<Project> getBuilder(Project prj) {
-		return new JavaProjectBuilder(prj);
+		return new JavaAppBuilder(prj);
 	}
 
-	public static class JavaProjectBuilder extends ProjectBuilder {
-		public JavaProjectBuilder(Project project) {
+	public static class JavaAppBuilder extends AppBuilder {
+		public JavaAppBuilder(Project project) {
 			super(project);
 		}
 
@@ -58,7 +58,7 @@ public class JavaSource extends Source {
 		public class JavaCompileBuildStep extends CompileBuildStep {
 
 			public JavaCompileBuildStep() {
-				super(JavaProjectBuilder.this.project);
+				super(JavaAppBuilder.this.project);
 			}
 
 			@Override
@@ -69,7 +69,7 @@ public class JavaSource extends Source {
 
 		public class JavaIntegrationBuildStep extends IntegrationBuildStep {
 			public JavaIntegrationBuildStep() {
-				super(JavaProjectBuilder.this.project);
+				super(JavaAppBuilder.this.project);
 			}
 
 			@Override

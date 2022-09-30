@@ -44,6 +44,13 @@ public class TestApp extends BaseTest {
 	private static final List<String> h2ps1Contents = Collections.singletonList(
 			"jbang run com.h2database:h2:1.4.200 @args");
 
+	private static final List<String> aliasShContents = Arrays.asList("@echo off",
+			"jbang run myalias %*");
+	private static final List<String> aliasCmdContents = Arrays.asList("@echo off",
+			"jbang run myalias %*");
+	private static final List<String> aliasPs1Contents = Collections.singletonList(
+			"jbang run myalias @args");
+
 	@Test
 	void testAppInstallFile() throws IOException {
 		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();

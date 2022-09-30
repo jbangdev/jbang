@@ -16,7 +16,7 @@ import dev.jbang.Settings;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.source.Project;
-import dev.jbang.source.RunContext;
+import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
 
@@ -73,26 +73,26 @@ abstract class BaseExportCommand extends BaseCommand {
 	@Override
 	public Integer doCall() throws IOException {
 		exportMixin.validate();
-		RunContext ctx = getRunContext(exportMixin);
-		Project prj = ctx.forResource(exportMixin.scriptMixin.scriptOrFile).builder().build();
-		return apply(prj, ctx);
+		ProjectBuilder pb = createProjectBuilder(exportMixin);
+		Project prj = pb.build(exportMixin.scriptMixin.scriptOrFile).builder().build();
+		return apply(prj, pb);
 	}
 
-	abstract int apply(Project prj, RunContext ctx) throws IOException;
+	abstract int apply(Project prj, ProjectBuilder pb) throws IOException;
 
-	protected RunContext getRunContext(ExportMixin exportMixin) {
-		RunContext ctx = new RunContext();
-		ctx.setProperties(exportMixin.dependencyInfoMixin.getProperties());
-		ctx.setAdditionalDependencies(exportMixin.dependencyInfoMixin.getDependencies());
-		ctx.setAdditionalRepositories(exportMixin.dependencyInfoMixin.getRepositories());
-		ctx.setAdditionalClasspaths(exportMixin.dependencyInfoMixin.getClasspaths());
-		ctx.setAdditionalSources(exportMixin.scriptMixin.sources);
-		ctx.setAdditionalResources(exportMixin.scriptMixin.resources);
-		ctx.setForceType(exportMixin.scriptMixin.forceType);
-		ctx.setCatalog(exportMixin.scriptMixin.catalog);
-		ctx.setJavaVersion(exportMixin.buildMixin.javaVersion);
-		ctx.setMainClass(exportMixin.buildMixin.main);
-		return ctx;
+	protected ProjectBuilder createProjectBuilder(ExportMixin exportMixin) {
+		return ProjectBuilder
+								.create()
+								.setProperties(exportMixin.dependencyInfoMixin.getProperties())
+								.additionalDependencies(exportMixin.dependencyInfoMixin.getDependencies())
+								.additionalRepositories(exportMixin.dependencyInfoMixin.getRepositories())
+								.additionalClasspaths(exportMixin.dependencyInfoMixin.getClasspaths())
+								.additionalSources(exportMixin.scriptMixin.sources)
+								.additionalResources(exportMixin.scriptMixin.resources)
+								.forceType(exportMixin.scriptMixin.forceType)
+								.catalog(exportMixin.scriptMixin.catalog)
+								.javaVersion(exportMixin.buildMixin.javaVersion)
+								.mainClass(exportMixin.buildMixin.main);
 	}
 }
 
@@ -100,7 +100,7 @@ abstract class BaseExportCommand extends BaseCommand {
 class ExportLocal extends BaseExportCommand {
 
 	@Override
-	int apply(Project prj, RunContext ctx) throws IOException {
+	int apply(Project prj, ProjectBuilder pb) throws IOException {
 		// Copy the JAR
 		Path source = prj.getJarFile();
 		Path outputPath = exportMixin.getJarOutputPath();
@@ -137,7 +137,7 @@ class ExportPortable extends BaseExportCommand {
 	public static final String LIB = "lib";
 
 	@Override
-	int apply(Project prj, RunContext ctx) throws IOException {
+	int apply(Project prj, ProjectBuilder pb) throws IOException {
 		// Copy the JAR
 		Path source = prj.getJarFile();
 		Path outputPath = exportMixin.getJarOutputPath();
@@ -187,7 +187,7 @@ class ExportMavenPublish extends BaseExportCommand {
 	String version;
 
 	@Override
-	int apply(Project prj, RunContext ctx) throws IOException {
+	int apply(Project prj, ProjectBuilder pb) throws IOException {
 		Path outputPath = exportMixin.outputFile;
 
 		if (outputPath == null) {
@@ -288,7 +288,7 @@ class ExportMavenPublish extends BaseExportCommand {
 class ExportNative extends BaseExportCommand {
 
 	@Override
-	int apply(Project prj, RunContext ctx) throws IOException {
+	int apply(Project prj, ProjectBuilder pb) throws IOException {
 		// Copy the native binary
 		Path source = prj.getNativeImageFile();
 		Path outputPath = exportMixin.getNativeOutputPath();
@@ -307,9 +307,9 @@ class ExportNative extends BaseExportCommand {
 	}
 
 	@Override
-	protected RunContext getRunContext(ExportMixin exportMixin) {
-		RunContext ctx = super.getRunContext(exportMixin);
-		ctx.setNativeImage(true);
-		return ctx;
+	protected ProjectBuilder createProjectBuilder(ExportMixin exportMixin) {
+		ProjectBuilder pb = super.createProjectBuilder(exportMixin);
+		pb.nativeImage(true);
+		return pb;
 	}
 }

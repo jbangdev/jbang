@@ -47,7 +47,7 @@ public class SourceSet {
 		return this;
 	}
 
-	// TODO: Remove this once the HACK in RunContext.forResourceRef()
+	// TODO: Remove this once the HACK in ProjectBuilder.forResourceRef()
 	// is no longer necessary
 	public SourceSet removeSource(ResourceRef source) {
 		sources.remove(source);

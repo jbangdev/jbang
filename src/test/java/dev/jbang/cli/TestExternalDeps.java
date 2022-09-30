@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
 import dev.jbang.source.Project;
-import dev.jbang.source.RunContext;
+import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -46,8 +46,8 @@ class TestExternalDeps extends BaseTest {
 													f.getPath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = run.getRunContext();
-		Project prj = ctx.forResource(f.getPath()).builder().build();
+		ProjectBuilder pb = run.createProjectBuilder();
+		Project prj = pb.build(f.getPath()).builder().build();
 
 		String result = prj.cmdGenerator().generate();
 
@@ -69,8 +69,8 @@ class TestExternalDeps extends BaseTest {
 													f.getPath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = run.getRunContext();
-		Project prj = ctx.forResource(f.getPath()).builder().build();
+		ProjectBuilder pb = run.createProjectBuilder();
+		Project prj = pb.build(f.getPath()).builder().build();
 
 		String result = prj.cmdGenerator().generate();
 

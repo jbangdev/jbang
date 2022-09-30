@@ -13,7 +13,7 @@ import org.jboss.jandex.ClassInfo;
 import dev.jbang.net.GroovyManager;
 import dev.jbang.net.JdkManager;
 import dev.jbang.source.*;
-import dev.jbang.source.ProjectBuilder;
+import dev.jbang.source.AppBuilder;
 import dev.jbang.source.buildsteps.CompileBuildStep;
 import dev.jbang.source.buildsteps.IntegrationBuildStep;
 import dev.jbang.spi.IntegrationResult;
@@ -54,11 +54,11 @@ public class GroovySource extends Source {
 
 	@Override
 	public Builder<Project> getBuilder(Project prj) {
-		return new GroovyProjectBuilder(prj);
+		return new GroovyAppBuilder(prj);
 	}
 
-	private static class GroovyProjectBuilder extends ProjectBuilder {
-		public GroovyProjectBuilder(Project project) {
+	private static class GroovyAppBuilder extends AppBuilder {
+		public GroovyAppBuilder(Project project) {
 			super(project);
 		}
 
@@ -75,7 +75,7 @@ public class GroovySource extends Source {
 		private class GroovyCompileBuildStep extends CompileBuildStep {
 
 			public GroovyCompileBuildStep() {
-				super(GroovyProjectBuilder.this.project);
+				super(GroovyAppBuilder.this.project);
 			}
 
 			@Override
@@ -97,7 +97,7 @@ public class GroovySource extends Source {
 
 		private class GroovyIntegrationBuildStep extends IntegrationBuildStep {
 			public GroovyIntegrationBuildStep() {
-				super(GroovyProjectBuilder.this.project);
+				super(GroovyAppBuilder.this.project);
 			}
 
 			@Override

@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
+import dev.jbang.source.AppBuilder;
 import dev.jbang.source.Builder;
 import dev.jbang.source.Project;
-import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.JarUtil;
 import dev.jbang.util.JavaUtil;
@@ -68,7 +68,7 @@ public class JarBuildStep implements Builder<Project> {
 		JarUtil.jar(target, compileDir.toFile().listFiles(), null, null, manifest);
 		target.close();
 
-		if (ProjectBuilder.keepClasses()) {
+		if (AppBuilder.keepClasses()) {
 			// In the case the "keep classes" option is specified we write
 			// an extra copy if the manifest to its proper location.
 			// This file is never used but is there so the user can take

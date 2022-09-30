@@ -33,11 +33,11 @@ public class TestBuilder extends BaseTest {
 	void testBuildAdditionalSources() throws IOException {
 		Path foo = examplesTestFolder.resolve("foo.java").toAbsolutePath();
 		Path bar = examplesTestFolder.resolve("bar/Bar.java").toAbsolutePath();
-		RunContext ctx = RunContext.empty();
-		ctx.setAdditionalSources(Arrays.asList(bar.toString()));
-		Project prj = ctx.forResource(foo.toString());
+		ProjectBuilder pb = ProjectBuilder.create();
+		pb.additionalSources(Arrays.asList(bar.toString()));
+		Project prj = pb.build(foo.toString());
 
-		new JavaSource.JavaProjectBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -59,11 +59,11 @@ public class TestBuilder extends BaseTest {
 
 		CatalogUtil.addNearestAlias("bar", incFile, null, null, null, null, null, null, null, null, null, null, null);
 
-		RunContext ctx = RunContext.empty();
-		ctx.setAdditionalSources(Arrays.asList("bar"));
-		Project prj = ctx.forResource(mainFile);
+		ProjectBuilder pb = ProjectBuilder.create();
+		pb.additionalSources(Arrays.asList("bar"));
+		Project prj = pb.build(mainFile);
 
-		new JavaSource.JavaProjectBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -89,10 +89,10 @@ public class TestBuilder extends BaseTest {
 
 		CatalogUtil.addNearestAlias("bar", incFile, null, null, null, null, null, null, null, null, null, null, null);
 
-		RunContext ctx = RunContext.empty();
-		Project prj = ctx.forResource(mainFile.toString());
+		ProjectBuilder pb = ProjectBuilder.create();
+		Project prj = pb.build(mainFile.toString());
 
-		new JavaSource.JavaProjectBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -113,11 +113,11 @@ public class TestBuilder extends BaseTest {
 		String mainFile = examplesTestFolder.resolve("foo.java").toString();
 		String incFile = examplesTestFolder.resolve("bar/Bar.java").toString();
 
-		RunContext ctx = RunContext.empty();
-		ctx.setAdditionalSources(Arrays.asList("bar/*.java"));
-		Project prj = ctx.forResource(mainFile);
+		ProjectBuilder pb = ProjectBuilder.create();
+		pb.additionalSources(Arrays.asList("bar/*.java"));
+		Project prj = pb.build(mainFile);
 
-		new JavaSource.JavaProjectBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -138,11 +138,11 @@ public class TestBuilder extends BaseTest {
 		String incGlob = examplesTestFolder.resolve("bar").toString() + File.separatorChar + "*.java";
 		String incFile = examplesTestFolder.resolve("bar/Bar.java").toString();
 
-		RunContext ctx = RunContext.empty();
-		ctx.setAdditionalSources(Arrays.asList(incGlob));
-		Project prj = ctx.forResource(mainFile);
+		ProjectBuilder pb = ProjectBuilder.create();
+		pb.additionalSources(Arrays.asList(incGlob));
+		Project prj = pb.build(mainFile);
 
-		new JavaSource.JavaProjectBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -163,11 +163,11 @@ public class TestBuilder extends BaseTest {
 		String mainFile = examplesTestFolder.resolve("foo.java").toString();
 		String incFile = examplesTestFolder.resolve("bar/Bar.java").toString();
 
-		RunContext ctx = RunContext.empty();
-		ctx.setAdditionalSources(Arrays.asList("bar"));
-		Project prj = ctx.forResource(mainFile);
+		ProjectBuilder pb = ProjectBuilder.create();
+		pb.additionalSources(Arrays.asList("bar"));
+		Project prj = pb.build(mainFile);
 
-		new JavaSource.JavaProjectBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -188,13 +188,13 @@ public class TestBuilder extends BaseTest {
 		Path foo = Paths.get("foo.java");
 		Path res1 = Paths.get("resource.properties");
 		Path res2 = Paths.get("sub/sub.properties");
-		RunContext ctx = RunContext.empty();
-		ctx.setAdditionalResources(Arrays.asList(
+		ProjectBuilder pb = ProjectBuilder.create();
+		pb.additionalResources(Arrays.asList(
 				Paths.get("res").resolve(res1).toString(),
 				Paths.get("res").resolve(res2).toString()));
-		Project prj = ctx.forResource(foo.toString());
+		Project prj = pb.build(foo.toString());
 
-		new JavaSource.JavaProjectBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -230,13 +230,13 @@ public class TestBuilder extends BaseTest {
 		Path foo = Paths.get("foo.java");
 		Path res1 = Paths.get("resource.properties");
 		Path res2 = Paths.get("sub/sub.properties");
-		RunContext ctx = RunContext.empty();
-		ctx.setAdditionalResources(Arrays.asList(
+		ProjectBuilder pb = ProjectBuilder.create();
+		pb.additionalResources(Arrays.asList(
 				"somedir/=" + Paths.get("res").resolve(res1),
 				"somedir/=" + Paths.get("res").resolve(res2)));
-		Project prj = ctx.forResource(foo.toString());
+		Project prj = pb.build(foo.toString());
 
-		new JavaSource.JavaProjectBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -276,11 +276,11 @@ public class TestBuilder extends BaseTest {
 		Path foo = Paths.get("foo.java");
 		Path res1 = Paths.get("resource.properties");
 		Path res2 = Paths.get("sub/sub.properties");
-		RunContext ctx = RunContext.empty();
-		ctx.setAdditionalResources(Arrays.asList("res/**.properties"));
-		Project prj = ctx.forResource(foo.toString());
+		ProjectBuilder pb = ProjectBuilder.create();
+		pb.additionalResources(Arrays.asList("res/**.properties"));
+		Project prj = pb.build(foo.toString());
 
-		new JavaSource.JavaProjectBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -319,11 +319,11 @@ public class TestBuilder extends BaseTest {
 		Path foo = Paths.get("foo.java");
 		Path res1 = Paths.get("resource.properties");
 		Path res2 = Paths.get("sub/sub.properties");
-		RunContext ctx = RunContext.empty();
-		ctx.setAdditionalResources(Arrays.asList("res"));
-		Project prj = ctx.forResource(foo.toString());
+		ProjectBuilder pb = ProjectBuilder.create();
+		pb.additionalResources(Arrays.asList("res"));
+		Project prj = pb.build(foo.toString());
 
-		new JavaSource.JavaProjectBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -362,11 +362,11 @@ public class TestBuilder extends BaseTest {
 		Util.setCwd(examplesTestFolder);
 		String mainFile = examplesTestFolder.resolve("foo.java").toString();
 
-		RunContext ctx = RunContext.empty();
-		ctx.setNativeImage(true);
-		Project prj = ctx.forResource(mainFile);
+		ProjectBuilder pb = ProjectBuilder.create();
+		pb.nativeImage(true);
+		Project prj = pb.build(mainFile);
 
-		new JavaSource.JavaProjectBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -399,11 +399,11 @@ public class TestBuilder extends BaseTest {
 		Util.setCwd(examplesTestFolder);
 		Path mainFile = examplesTestFolder.resolve("helloworld.java");
 
-		RunContext ctx = RunContext.empty();
+		ProjectBuilder pb = ProjectBuilder.create();
 		HashMap<String, String> props = new HashMap<>();
 		props.put("bazprop", "algo");
-		ctx.setProperties(props);
-		Project prj = ctx.forResource(mainFile.toFile().getAbsolutePath());
+		pb.setProperties(props);
+		Project prj = pb.build(mainFile.toFile().getAbsolutePath());
 
 		prj.builder().build();
 

@@ -492,7 +492,7 @@ public abstract class Source {
 	 * Creates and returns a new <code>Project</code> that has been initialized with
 	 * all relevant information from this <code>Source</code>. Uses a default
 	 * resolver that only knows about resources so this can not be used for
-	 * compiling code (see <code>RunContext.forResource()</code> for that).
+	 * compiling code (see <code>ProjectBuilder.forResource()</code> for that).
 	 *
 	 * @return A <code>Project</code>
 	 */

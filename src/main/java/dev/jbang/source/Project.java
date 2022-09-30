@@ -24,8 +24,8 @@ import dev.jbang.util.Util;
 /**
  * This class gives access to all information necessary to turn source files
  * into something that can be executed. Typically, this means that it holds
- * references to source files, resources and dependencies which can be used by a
- * <code>Builder</code> to create a JAR file, for example.
+ * references to source files, resources and dependencies which can be used by
+ * the <code>AppBuilder</code> to create a JAR file, for example.
  */
 public class Project {
 	@Nonnull
@@ -305,7 +305,7 @@ public class Project {
 			return mainSource.getBuilder(this);
 		} else {
 			if (isJar() && nativeImage) {
-				return new JavaSource.JavaProjectBuilder(this);
+				return new JavaSource.JavaAppBuilder(this);
 			} else {
 				return () -> this;
 			}
