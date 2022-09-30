@@ -18,14 +18,7 @@ import dev.jbang.util.Util;
 
 public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
 	private final Project project;
-
-	private Source.Type sourceType;
 	private boolean interactive;
-
-	public JshCmdGenerator sourceType(Source.Type sourceType) {
-		this.sourceType = sourceType;
-		return this;
-	}
 
 	public JshCmdGenerator interactive(boolean interactive) {
 		this.interactive = interactive;
@@ -104,7 +97,7 @@ public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
 		fullArgs.addAll(project.resolveClassPath().getAutoDectectedModuleArguments(requestedJavaVersion));
 		fullArgs.addAll(optionalArgs);
 
-		if (project.isJShell() || sourceType == Source.Type.jshell) {
+		if (project.isJShell()) {
 			ArrayList<ResourceRef> revSources = new ArrayList<>(project.getMainSourceSet().getSources());
 			Collections.reverse(revSources);
 			for (ResourceRef s : revSources) {

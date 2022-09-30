@@ -483,7 +483,7 @@ public abstract class Source {
 													.map(String::trim))
 							.map(replaceProperties)
 							.flatMap(line -> Util.explode(org, baseDir, line).stream())
-							.map(ref -> forResource(siblingResolver, ref, null, replaceProperties))
+							.map(ref -> forResource(siblingResolver, ref, replaceProperties))
 							.collect(Collectors.toCollection(ArrayList::new));
 		}
 	}
@@ -559,22 +559,21 @@ public abstract class Source {
 		return prj;
 	}
 
-	public static Source forResource(String resource, Type forceType, Function<String, String> replaceProperties) {
-		return forResource(ResourceResolver.forResources(), resource, forceType, replaceProperties);
+	public static Source forResource(String resource, Function<String, String> replaceProperties) {
+		return forResource(ResourceResolver.forResources(), resource, replaceProperties);
 	}
 
-	public static Source forResource(ResourceResolver resolver, String resource, Type forceType,
+	public static Source forResource(ResourceResolver resolver, String resource,
 			Function<String, String> replaceProperties) {
 		ResourceRef resourceRef = resolver.resolve(resource);
 		if (resourceRef == null) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Could not find: " + resource);
 		}
-		return forResourceRef(resourceRef, forceType, replaceProperties);
+		return forResourceRef(resourceRef, replaceProperties);
 	}
 
-	public static Source forResourceRef(ResourceRef resourceRef, Type forceType,
-			Function<String, String> replaceProperties) {
-		String ext = forceType != null ? forceType.extension : resourceRef.getExtension();
+	public static Source forResourceRef(ResourceRef resourceRef, Function<String, String> replaceProperties) {
+		String ext = resourceRef.getExtension();
 		if (ext.equals("kt")) {
 			return new KotlinSource(resourceRef, replaceProperties);
 		} else if (ext.equals("groovy")) {

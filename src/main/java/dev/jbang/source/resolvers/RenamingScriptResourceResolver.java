@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
@@ -22,6 +24,11 @@ import dev.jbang.util.Util;
  * file name and return a reference to that file.
  */
 public class RenamingScriptResourceResolver implements ResourceResolver {
+	private Source.Type forceType;
+
+	public RenamingScriptResourceResolver(Source.Type forceType) {
+		this.forceType = forceType;
+	}
 
 	@Override
 	public String description() {
@@ -42,9 +49,11 @@ public class RenamingScriptResourceResolver implements ResourceResolver {
 
 		try {
 			if (probe != null && probe.canRead()) {
+				List<String> knownExtensions = forceType != null ? Collections.singletonList(forceType.extension)
+						: Source.Type.extensions();
 				String ext = Util.extension(probe.getName());
 				if (!ext.equals("jar")
-						&& !Source.Type.extensions().contains(ext)
+						&& !knownExtensions.contains(ext)
 						&& (!Util.isPreview() || !Project.BuildFile.fileNames().contains(probe.getName()))) {
 					if (probe.isDirectory()) {
 						File defaultApp = new File(probe, "main.java");
@@ -64,9 +73,10 @@ public class RenamingScriptResourceResolver implements ResourceResolver {
 						original = original.substring(original.indexOf("\n"));
 					}
 
+					String name = probe.getName() + (forceType != null ? "." + forceType.extension : "");
 					Path tempFile = Settings.getCacheDir(Cache.CacheClass.scripts)
 											.resolve(urlHash)
-											.resolve(Util.unkebabify(probe.getName()));
+											.resolve(Util.unkebabify(name));
 					tempFile.getParent().toFile().mkdirs();
 					Util.writeString(tempFile.toAbsolutePath(), original);
 					result = ResourceRef.forCachedResource(resource, tempFile);

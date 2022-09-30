@@ -302,7 +302,7 @@ public class ProjectBuilder {
 	}
 
 	public Source createSource(ResourceRef resourceRef) {
-		return Source.forResourceRef(resourceRef, forceType,
+		return Source.forResourceRef(resourceRef,
 				it -> PropertiesValueResolver.replaceProperties(it, getContextProperties()));
 
 	}
@@ -390,7 +390,6 @@ public class ProjectBuilder {
 		return new JshCmdGenerator(prj)
 										.arguments(arguments)
 										.properties(properties)
-										.sourceType(forceType)
 										.interactive(interactive)
 										.debugString(debugString)
 										.flightRecorderString(flightRecorderString);
@@ -452,7 +451,7 @@ public class ProjectBuilder {
 			updateFromAlias(alias);
 		}
 		return new CombinedResourceResolver(
-				new RenamingScriptResourceResolver(),
+				new RenamingScriptResourceResolver(forceType),
 				new LiteralScriptResourceResolver(),
 				new RemoteResourceResolver(false),
 				new ClasspathResourceResolver(),
