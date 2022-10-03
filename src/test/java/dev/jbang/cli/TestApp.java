@@ -7,7 +7,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,16 +26,16 @@ public class TestApp extends BaseTest {
 	private static final List<String> shContents = Arrays.asList("#!/bin/sh",
 			"exec jbang run $CWD/itests/helloworld.java \"$@\"");
 	private static final List<String> cmdContents = Arrays.asList("@echo off",
-			"jbang run $CWD/itests/helloworld.java %*");
+			"jbang run $CWD\\itests\\helloworld.java %*");
 	private static final List<String> ps1Contents = Collections.singletonList(
-			"jbang run $CWD/itests/helloworld.java @args");
+			"jbang run $CWD\\itests\\helloworld.java @args");
 
 	private static final List<String> nativeShContents = Arrays.asList("#!/bin/sh",
 			"exec jbang run --native $CWD/itests/helloworld.java \"$@\"");
 	private static final List<String> nativeCmdContents = Arrays.asList("@echo off",
-			"jbang run --native $CWD/itests/helloworld.java %*");
+			"jbang run --native $CWD\\itests\\helloworld.java %*");
 	private static final List<String> nativePs1Contents = Collections.singletonList(
-			"jbang run --native $CWD/itests/helloworld.java @args");
+			"jbang run --native $CWD\\itests\\helloworld.java @args");
 
 	private static final List<String> h2shContents = Arrays.asList("#!/bin/sh",
 			"exec jbang run com.h2database:h2:1.4.200 \"$@\"");
@@ -108,11 +107,13 @@ public class TestApp extends BaseTest {
 			assertThat(result.exitCode, equalTo(BaseCommand.EXIT_OK));
 		}
 
+		String cwd = examplesTestFolder.getParent().toString();
 		if (Util.isWindows()) {
-			testScript("h2.cmd", h2cmdContents);
-			testScript("h2.ps1", h2ps1Contents);
+			testScript("h2.cmd", cwd, h2cmdContents);
+			testScript("h2.ps1", cwd, h2ps1Contents);
+			testScript("h2", cwd.replace('\\', '/'), h2shContents);
 		} else {
-			testScript("h2", h2shContents);
+			testScript("h2", cwd, h2shContents);
 		}
 	}
 
@@ -147,27 +148,30 @@ public class TestApp extends BaseTest {
 	}
 
 	private void testScripts() throws IOException {
+		String cwd = examplesTestFolder.getParent().toString();
 		if (Util.isWindows()) {
-			testScript("helloworld.cmd", cmdContents);
-			testScript("helloworld.ps1", ps1Contents);
+			testScript("helloworld.cmd", cwd, cmdContents);
+			testScript("helloworld.ps1", cwd, ps1Contents);
+			testScript("helloworld", cwd.replace('\\', '/'), shContents);
 		} else {
-			testScript("helloworld", shContents);
+			testScript("helloworld", cwd, shContents);
 		}
 	}
 
 	private void testNativeScripts() throws IOException {
+		String cwd = examplesTestFolder.getParent().toString();
 		if (Util.isWindows()) {
-			testScript("helloworld.cmd", nativeCmdContents);
-			testScript("helloworld.ps1", nativePs1Contents);
+			testScript("helloworld.cmd", cwd, nativeCmdContents);
+			testScript("helloworld.ps1", cwd, nativePs1Contents);
+			testScript("helloworld", cwd.replace('\\', '/'), nativeShContents);
 		} else {
-			testScript("helloworld", nativeShContents);
+			testScript("helloworld", cwd, nativeShContents);
 		}
 	}
 
-	private void testScript(String name, List<String> contents) throws IOException {
+	private void testScript(String name, String cwd, List<String> contents) throws IOException {
 		List<String> cs = contents	.stream()
-									.map(l -> l	.replace('/', File.separatorChar)
-												.replace("$CWD", examplesTestFolder.getParent().toString()))
+									.map(l -> l.replace("$CWD", cwd))
 									.collect(Collectors.toList());
 		Path shFile = Settings.getConfigBinDir().resolve(name);
 		assertThat(shFile.toFile(), anExistingFile());

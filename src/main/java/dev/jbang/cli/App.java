@@ -131,7 +131,9 @@ class AppInstall extends BaseCommand {
 		if (Util.isWindows()) {
 			installCmdScript(binDir.resolve(name + ".cmd"), scriptRef, benative);
 			installPSScript(binDir.resolve(name + ".ps1"), scriptRef, benative);
-			installShellScript(binDir.resolve(name), scriptRef, benative);
+			// Script references on Linux/Mac should never contain backslashes
+			String nixRef = scriptRef.replace('\\', '/');
+			installShellScript(binDir.resolve(name), nixRef, benative);
 		} else {
 			installShellScript(binDir.resolve(name), scriptRef, benative);
 		}
