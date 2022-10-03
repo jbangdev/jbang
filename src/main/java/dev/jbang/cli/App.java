@@ -27,6 +27,7 @@ import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.net.JdkManager;
 import dev.jbang.source.Project;
 import dev.jbang.source.RunContext;
+import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
 
@@ -140,9 +141,13 @@ class AppInstall extends BaseCommand {
 	}
 
 	private static void installShellScript(Path file, String scriptRef, boolean benative) throws IOException {
-		List<String> lines = Arrays.asList(
-				"#!/bin/sh",
-				"exec jbang run" + (benative ? " --native " : " ") + scriptRef + " \"$@\"");
+		CommandBuffer cb;
+		if (benative) {
+			cb = CommandBuffer.of("exec", "jbang", "run", "--native", scriptRef);
+		} else {
+			cb = CommandBuffer.of("exec", "jbang", "run", scriptRef);
+		}
+		List<String> lines = Arrays.asList("#!/bin/sh", cb.asCommandLine(Util.Shell.bash) + " \"$@\"");
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 		if (!Util.isWindows()) {
 			setExecutable(file);
@@ -162,15 +167,24 @@ class AppInstall extends BaseCommand {
 	}
 
 	private static void installCmdScript(Path file, String scriptRef, boolean benative) throws IOException {
-		List<String> lines = Arrays.asList(
-				"@echo off",
-				"jbang run" + (benative ? " --native " : " ") + scriptRef + " %*");
+		CommandBuffer cb;
+		if (benative) {
+			cb = CommandBuffer.of("jbang", "run", "--native", scriptRef);
+		} else {
+			cb = CommandBuffer.of("jbang", "run", scriptRef);
+		}
+		List<String> lines = Arrays.asList("@echo off", cb.asCommandLine(Util.Shell.cmd) + " %*");
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 	}
 
 	private static void installPSScript(Path file, String scriptRef, boolean benative) throws IOException {
-		List<String> lines = Collections.singletonList(
-				"jbang run" + (benative ? " --native " : " ") + scriptRef + " @args");
+		CommandBuffer cb;
+		if (benative) {
+			cb = CommandBuffer.of("jbang", "run", "--native", scriptRef);
+		} else {
+			cb = CommandBuffer.of("jbang", "run", scriptRef);
+		}
+		List<String> lines = Collections.singletonList(cb.asCommandLine(Util.Shell.powershell) + " @args");
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 	}
 

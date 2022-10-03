@@ -24,18 +24,18 @@ import dev.jbang.util.Util;
 
 public class TestApp extends BaseTest {
 	private static final List<String> shContents = Arrays.asList("#!/bin/sh",
-			"exec jbang run $CWD/itests/helloworld.java \"$@\"");
+			"exec jbang run '$CWD/itests/with space/helloworld.java' \"$@\"");
 	private static final List<String> cmdContents = Arrays.asList("@echo off",
-			"jbang run $CWD\\itests\\helloworld.java %*");
+			"jbang run ^\"$CWD\\itests\\with^ space\\helloworld.java^\" %*");
 	private static final List<String> ps1Contents = Collections.singletonList(
-			"jbang run $CWD\\itests\\helloworld.java @args");
+			"jbang run '$CWD\\itests\\with space\\helloworld.java' @args");
 
 	private static final List<String> nativeShContents = Arrays.asList("#!/bin/sh",
-			"exec jbang run --native $CWD/itests/helloworld.java \"$@\"");
+			"exec jbang run --native '$CWD/itests/with space/helloworld.java' \"$@\"");
 	private static final List<String> nativeCmdContents = Arrays.asList("@echo off",
-			"jbang run --native $CWD\\itests\\helloworld.java %*");
+			"jbang run --native ^\"$CWD\\itests\\with^ space\\helloworld.java^\" %*");
 	private static final List<String> nativePs1Contents = Collections.singletonList(
-			"jbang run --native $CWD\\itests\\helloworld.java @args");
+			"jbang run --native '$CWD\\itests\\with space\\helloworld.java' @args");
 
 	private static final List<String> h2shContents = Arrays.asList("#!/bin/sh",
 			"exec jbang run com.h2database:h2:1.4.200 \"$@\"");
@@ -46,7 +46,7 @@ public class TestApp extends BaseTest {
 
 	@Test
 	void testAppInstallFile() throws IOException {
-		String src = examplesTestFolder.resolve("helloworld.java").toString();
+		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();
 		ExecutionResult result = checkedRun(null, "app", "install", src);
 		assertThat(result.err, containsString("Command installed: helloworld"));
 		if (Util.isWindows()) {
@@ -59,7 +59,7 @@ public class TestApp extends BaseTest {
 
 	@Test
 	void testAppNativeInstallFile() throws IOException {
-		String src = examplesTestFolder.resolve("helloworld.java").toString();
+		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();
 		ExecutionResult result = checkedRun(null, "app", "install", "--native", src);
 		assertThat(result.err, containsString("Command installed: helloworld"));
 		if (Util.isWindows()) {
@@ -119,7 +119,7 @@ public class TestApp extends BaseTest {
 
 	@Test
 	void testAppInstallFileExists() throws IOException {
-		String src = examplesTestFolder.resolve("helloworld.java").toString();
+		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();
 		ExecutionResult result = checkedRun(null, "app", "install", src);
 		assertThat(result.err, containsString("Command installed: helloworld"));
 		if (Util.isWindows()) {
@@ -134,7 +134,7 @@ public class TestApp extends BaseTest {
 
 	@Test
 	void testAppInstallFileForce() throws IOException {
-		String src = examplesTestFolder.resolve("helloworld.java").toString();
+		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();
 		ExecutionResult result = checkedRun(null, "app", "install", src);
 		assertThat(result.err, containsString("Command installed: helloworld"));
 		if (Util.isWindows()) {
@@ -180,7 +180,7 @@ public class TestApp extends BaseTest {
 
 	@Test
 	void testAppInstallFileWithName() throws IOException {
-		String src = examplesTestFolder.resolve("helloworld.java").toString();
+		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();
 		ExecutionResult result = checkedRun(null, "app", "install", "--name=hello", src);
 		assertThat(result.err, containsString("Command installed: hello"));
 		if (Util.isWindows()) {
@@ -195,7 +195,7 @@ public class TestApp extends BaseTest {
 
 	@Test
 	void testAppInstallFileWithNameExists() throws IOException {
-		String src = examplesTestFolder.resolve("helloworld.java").toString();
+		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();
 		ExecutionResult result = checkedRun(null, "app", "install", "--name=hello", src);
 		assertThat(result.err, containsString("Command installed: hello"));
 		if (Util.isWindows()) {
@@ -210,7 +210,7 @@ public class TestApp extends BaseTest {
 
 	@Test
 	void testAppInstallFileWithNameForce() throws IOException {
-		String src = examplesTestFolder.resolve("helloworld.java").toString();
+		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();
 		ExecutionResult result = checkedRun(null, "app", "install", "--name=hello", src);
 		assertThat(result.err, containsString("Command installed: hello"));
 		if (Util.isWindows()) {
@@ -224,7 +224,7 @@ public class TestApp extends BaseTest {
 
 	@Test
 	void testAppInstallAlias() throws IOException {
-		String src = examplesTestFolder.resolve("helloworld.java").toString();
+		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();
 		checkedRun(null, "alias", "add", "-g", "--name=apptest", src);
 		ExecutionResult result = checkedRun(null, "app", "install", "apptest");
 		assertThat(result.err, containsString("Command installed: apptest"));
@@ -240,7 +240,7 @@ public class TestApp extends BaseTest {
 
 	@Test
 	void testAppInstallAliasFromRepo() throws IOException {
-		String src = examplesTestFolder.resolve("helloworld.java").toString();
+		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();
 		checkedRun(null, "alias", "add", "-g", "--name=apptest", src);
 		checkedRun(null, "catalog", "add", "-g", "--name=testrepo",
 				jbangTempDir.resolve("jbang-catalog.json").toString());
@@ -279,7 +279,7 @@ public class TestApp extends BaseTest {
 
 	@Test
 	void testAppList() throws IOException {
-		String src = examplesTestFolder.resolve("helloworld.java").toString();
+		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();
 		checkedRun(null, "app", "install", "--name=hello1", src);
 		checkedRun(null, "app", "install", "--name=hello2", src);
 		checkedRun(null, "app", "install", "--name=hello3", src);
@@ -290,7 +290,7 @@ public class TestApp extends BaseTest {
 
 	@Test
 	void testAppUninstall() throws IOException {
-		String src = examplesTestFolder.resolve("helloworld.java").toString();
+		String src = examplesTestFolder.resolve("with space/helloworld.java").toString();
 		checkedRun(null, "app", "install", src);
 		if (Util.isWindows()) {
 			assertThat(Settings.getConfigBinDir().resolve("helloworld.cmd").toFile(), anExistingFile());
