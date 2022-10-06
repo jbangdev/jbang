@@ -60,10 +60,10 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 
 		List<String> optionalArgs = new ArrayList<>();
 
-		String requestedJavaVersion = getProject().getJavaVersion();
+		String requestedJavaVersion = project.getJavaVersion();
 		String javacmd = JavaUtil.resolveInJavaHome("java", requestedJavaVersion);
 
-		addPropertyFlags(properties, "-D", optionalArgs);
+		addPropertyFlags(project.getProperties(), "-D", optionalArgs);
 
 		if (debugString != null) {
 			optionalArgs.add(
@@ -141,7 +141,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		boolean useArgsFile = false;
 		if (args.length() > COMMAND_LINE_LENGTH_LIMIT && Util.getShell() != Util.Shell.bash) {
 			// @file is only available from java 9 onwards.
-			String requestedJavaVersion = getProject().getJavaVersion();
+			String requestedJavaVersion = project.getJavaVersion();
 			int actualVersion = JavaUtil.javaVersion(requestedJavaVersion);
 			useArgsFile = actualVersion >= 9;
 		}

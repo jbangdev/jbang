@@ -16,6 +16,7 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import dev.jbang.Cache;
@@ -309,8 +310,8 @@ public class Edit extends BaseCommand {
 		Util.createLink(srcFile, originalFile);
 
 		for (ResourceRef sourceRef : prj.getMainSourceSet().getSources()) {
-			Path sfile = null;
-			Source src = pb.createSource(sourceRef);
+			Path sfile;
+			Source src = Source.forResourceRef(sourceRef, Function.identity());
 			if (src.getJavaPackage().isPresent()) {
 				Path packageDir = srcDir.resolve(src.getJavaPackage().get().replace(".", File.separator));
 				Util.mkdirs(packageDir);

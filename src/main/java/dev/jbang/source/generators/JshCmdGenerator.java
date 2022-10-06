@@ -70,7 +70,7 @@ public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
 				"import java.math.BigDecimal;\n";
 		String mainClass = project.getMainClass();
 		Util.writeString(tempFile,
-				defaultImports + generateArgs(arguments, properties) +
+				defaultImports + generateArgs(arguments, project.getProperties()) +
 						generateStdInputHelper() +
 						generateMain(mainClass));
 		if (mainClass != null) {

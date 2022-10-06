@@ -11,7 +11,6 @@ import dev.jbang.util.Util;
 
 public abstract class BaseCmdGenerator<T extends CmdGenerator> implements CmdGenerator {
 	protected List<String> arguments = Collections.emptyList();
-	protected Map<String, String> properties = Collections.emptyMap();
 	protected String debugString;
 	protected String flightRecorderString;
 
@@ -23,12 +22,6 @@ public abstract class BaseCmdGenerator<T extends CmdGenerator> implements CmdGen
 	@SuppressWarnings("unchecked")
 	public T arguments(List<String> arguments) {
 		this.arguments = arguments != null ? arguments : Collections.emptyList();
-		return (T) this;
-	}
-
-	@SuppressWarnings("unchecked")
-	public T properties(Map<String, String> properties) {
-		this.properties = properties != null ? properties : Collections.emptyMap();
 		return (T) this;
 	}
 

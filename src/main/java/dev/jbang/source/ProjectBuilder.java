@@ -219,12 +219,17 @@ public class ProjectBuilder {
 
 	private Properties getContextProperties() {
 		if (contextProperties == null) {
-			contextProperties = new Properties(System.getProperties());
-			// early/eager init to property resolution will work.
-			new Detector().detect(contextProperties, Collections.emptyList());
-
-			contextProperties.putAll(properties);
+			contextProperties = getContextProperties(properties);
 		}
+		return contextProperties;
+	}
+
+	public static Properties getContextProperties(Map<String, String> properties) {
+		Properties contextProperties = new Properties(System.getProperties());
+		// early/eager init to property resolution will work.
+		new Detector().detect(contextProperties, Collections.emptyList());
+
+		contextProperties.putAll(properties);
 		return contextProperties;
 	}
 
@@ -301,7 +306,7 @@ public class ProjectBuilder {
 		return updateProject(importJarMetadata(prj));
 	}
 
-	public Source createSource(ResourceRef resourceRef) {
+	private Source createSource(ResourceRef resourceRef) {
 		return Source.forResourceRef(resourceRef,
 				it -> PropertiesValueResolver.replaceProperties(it, getContextProperties()));
 
@@ -377,7 +382,6 @@ public class ProjectBuilder {
 	private JarCmdGenerator createJarCmdGenerator(Project prj) {
 		return new JarCmdGenerator(prj)
 										.arguments(arguments)
-										.properties(properties)
 										.mainRequired(!interactive)
 										.assertions(enableAssertions)
 										.systemAssertions(enableSystemAssertions)
@@ -389,7 +393,6 @@ public class ProjectBuilder {
 	private JshCmdGenerator createJshCmdGenerator(Project prj) {
 		return new JshCmdGenerator(prj)
 										.arguments(arguments)
-										.properties(properties)
 										.interactive(interactive)
 										.debugString(debugString)
 										.flightRecorderString(flightRecorderString);

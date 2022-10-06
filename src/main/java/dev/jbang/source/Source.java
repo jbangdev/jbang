@@ -559,11 +559,12 @@ public abstract class Source {
 		return prj;
 	}
 
-	public static Source forResource(String resource, Function<String, String> replaceProperties) {
+	// Used only by tests
+	static Source forResource(String resource, Function<String, String> replaceProperties) {
 		return forResource(ResourceResolver.forResources(), resource, replaceProperties);
 	}
 
-	public static Source forResource(ResourceResolver resolver, String resource,
+	private static Source forResource(ResourceResolver resolver, String resource,
 			Function<String, String> replaceProperties) {
 		ResourceRef resourceRef = resolver.resolve(resource);
 		if (resourceRef == null) {
