@@ -19,7 +19,7 @@ endif::[]
 When using `--interactive` for java/jar scripts/apps jbang sets up a jshell function named `userMain`. `userMain` delegates to
 the main function that would have been called if not running in interactive. You can call it with arguments as follows `userMain(args)`.
 
-NOTE: One caveat about jshell is that it cannt access classes in default package. Thus you will need to add a package statement
+NOTE: One caveat about jshell is that it cannot access classes in default package. Thus you will need to add a package statement
 to your script/class to see it.
 
 == Flight Recorder
