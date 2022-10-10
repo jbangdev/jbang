@@ -25,16 +25,16 @@ public class GroovySource extends Source {
 	}
 
 	@Override
-	public List<String> getCompileOptions() {
+	protected List<String> getCompileOptions() {
 		return Collections.emptyList();
 	}
 
-	public List<String> getRuntimeOptions() {
+	protected List<String> getRuntimeOptions() {
 		return Collections.singletonList("-Dgroovy.grape.enable=false");
 	}
 
 	@Override
-	public List<String> collectDependencies() {
+	protected List<String> collectDependencies() {
 		final List<String> allDependencies = super.collectDependencies();
 		final String groovyVersion = getGroovyVersion();
 		if (groovyVersion.startsWith("4.")) {
@@ -46,10 +46,10 @@ public class GroovySource extends Source {
 	}
 
 	public String getGroovyVersion() {
-		return collectOptions("GROOVY")
-										.stream()
-										.findFirst()
-										.orElse(GroovyManager.DEFAULT_GROOVY_VERSION);
+		return tagReader.collectOptions("GROOVY")
+						.stream()
+						.findFirst()
+						.orElse(GroovyManager.DEFAULT_GROOVY_VERSION);
 	}
 
 	@Override

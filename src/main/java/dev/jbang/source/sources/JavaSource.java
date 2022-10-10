@@ -26,13 +26,13 @@ public class JavaSource extends Source {
 	}
 
 	@Override
-	public List<String> getCompileOptions() {
-		return collectOptions("JAVAC_OPTIONS");
+	protected List<String> getCompileOptions() {
+		return tagReader.collectOptions("JAVAC_OPTIONS");
 	}
 
 	@Override
-	public List<String> getRuntimeOptions() {
-		return collectOptions("JAVA_OPTIONS");
+	protected List<String> getRuntimeOptions() {
+		return tagReader.collectOptions("JAVA_OPTIONS");
 	}
 
 	@Override

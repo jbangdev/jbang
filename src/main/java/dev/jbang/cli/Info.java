@@ -41,14 +41,18 @@ abstract class BaseInfoCommand extends BaseCommand {
 			"--build-dir" }, description = "Use given directory for build results")
 	Path buildDir;
 
-	static class ResourceFile {
+	static class ProjectFile {
 		String originalResource;
 		String backingResource;
 		String target;
 
-		ResourceFile(RefTarget ref) {
-			originalResource = ref.getSource().getOriginalResource();
-			backingResource = ref.getSource().getFile().toString();
+		ProjectFile(ResourceRef ref) {
+			originalResource = ref.getOriginalResource();
+			backingResource = ref.getFile().toString();
+		}
+
+		ProjectFile(RefTarget ref) {
+			this(ref.getSource());
 			target = Objects.toString(ref.getTarget(), null);
 		}
 	}
@@ -77,8 +81,8 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String availableJdkPath;
 		List<String> compileOptions;
 		List<String> runtimeOptions;
-		List<ResourceFile> files;
-		List<ScriptInfo> sources;
+		List<ProjectFile> files;
+		List<ProjectFile> sources;
 		String description;
 		String gav;
 
@@ -121,14 +125,6 @@ abstract class BaseInfoCommand extends BaseCommand {
 			}
 		}
 
-		public ScriptInfo(Source source) {
-			originalResource = source.getResourceRef().getOriginalResource();
-			if (scripts.add(originalResource)) {
-				backingResource = source.getResourceRef().getFile().toString();
-				init(source);
-			}
-		}
-
 		private void init(Project prj) {
 			List<String> deps = prj.resolveClassPath().getClassPaths();
 			if (!deps.isEmpty()) {
@@ -141,41 +137,39 @@ abstract class BaseInfoCommand extends BaseCommand {
 										.map(Repo::new)
 										.collect(Collectors.toList());
 				}
-				gav = prj.getGav().orElse(null);
-				description = prj.getDescription().orElse(null);
 			} else {
-				init(prj.getMainSource());
+				init(prj.getMainSourceSet());
 			}
+			if (!prj.getRepositories().isEmpty()) {
+				repositories = prj	.getRepositories()
+									.stream()
+									.map(Repo::new)
+									.collect(Collectors.toList());
+			}
+			gav = prj.getGav().orElse(null);
+			description = prj.getDescription().orElse(null);
 		}
 
-		private void init(Source source) {
-			List<String> deps = source.collectDependencies();
+		private void init(SourceSet ss) {
+			List<String> deps = ss.getDependencies();
 			if (!deps.isEmpty()) {
 				dependencies = deps;
 			}
-			if (!source.collectRepositories().isEmpty()) {
-				repositories = source	.collectRepositories()
-										.stream()
-										.map(Repo::new)
-										.collect(Collectors.toList());
-			}
-			List<RefTarget> refs = source.collectFiles();
+			List<RefTarget> refs = ss.getResources();
 			if (!refs.isEmpty()) {
 				files = refs.stream()
-							.map(ResourceFile::new)
+							.map(ProjectFile::new)
 							.collect(Collectors.toList());
 			}
-			List<Source> srcs = source.collectSources();
+			List<ResourceRef> srcs = ss.getSources();
 			if (!srcs.isEmpty()) {
 				sources = srcs	.stream()
-								.map(ScriptInfo::new)
+								.map(ProjectFile::new)
 								.collect(Collectors.toList());
 			}
-			if (!source.getCompileOptions().isEmpty()) {
-				compileOptions = source.getCompileOptions();
+			if (!ss.getCompileOptions().isEmpty()) {
+				compileOptions = ss.getCompileOptions();
 			}
-			gav = source.getGav().orElse(null);
-			description = source.getDescription().orElse(null);
 		}
 
 	}

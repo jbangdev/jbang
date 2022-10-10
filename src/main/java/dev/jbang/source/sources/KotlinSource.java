@@ -23,13 +23,13 @@ public class KotlinSource extends Source {
 	}
 
 	@Override
-	public List<String> getCompileOptions() {
+	protected List<String> getCompileOptions() {
 		return Collections.emptyList();
 	}
 
 	@Override
-	public List<String> getRuntimeOptions() {
-		return collectOptions("JAVA_OPTIONS");
+	protected List<String> getRuntimeOptions() {
+		return tagReader.collectOptions("JAVA_OPTIONS");
 	}
 
 	@Override
@@ -38,10 +38,10 @@ public class KotlinSource extends Source {
 	}
 
 	public String getKotlinVersion() {
-		return collectOptions("KOTLIN")
-										.stream()
-										.findFirst()
-										.orElse(KotlinManager.DEFAULT_KOTLIN_VERSION);
+		return tagReader.collectOptions("KOTLIN")
+						.stream()
+						.findFirst()
+						.orElse(KotlinManager.DEFAULT_KOTLIN_VERSION);
 	}
 
 	private static class KotlinAppBuilder extends AppBuilder {

@@ -439,8 +439,8 @@ public class ProjectBuilder {
 		Function<String, String> propsResolver = it -> PropertiesValueResolver.replaceProperties(it,
 				getContextProperties());
 		return resources.stream()
-						.flatMap(f -> Source.explodeFileRef(null, Util.getCwd(), f).stream())
-						.map(f -> Source.toFileRef(f, resolver))
+						.flatMap(f -> TagReader.explodeFileRef(null, Util.getCwd(), f).stream())
+						.map(f -> TagReader.toFileRef(f, resolver))
 						.collect(Collectors.toList());
 	}
 
