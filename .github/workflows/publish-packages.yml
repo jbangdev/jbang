@@ -27,7 +27,7 @@ jobs:
         with:
           java-version: 11
       - name: build-gradle
-        run: ./gradlew clean build -x test --build-cache --scan -s
+        run: ./gradlew --no-daemon clean build -x test --build-cache --scan -s
       - name: version extract
         id: version
         run: |

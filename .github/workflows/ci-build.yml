@@ -56,7 +56,7 @@ jobs:
           distribution: temurin
           cache: gradle
       - name: build-gradle
-        run: ./gradlew clean build installDist --build-cache --scan -s
+        run: ./gradlew --no-daemon clean build installDist --build-cache --scan -s
       - name: integration-test-non-windows
         if: runner.os != 'Windows'
         run: |
@@ -75,7 +75,7 @@ jobs:
           echo "::remove-matcher owner=karate-windows::"
       - name: codecoverage-report
         run: |
-          ./gradlew jacocoTestReport
+          ./gradlew --no-daemon jacocoTestReport
       - name: JUnit Report Action
         uses: mikepenz/action-junit-report@v2.8.3
         with:
