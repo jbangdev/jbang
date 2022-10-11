@@ -14,7 +14,7 @@ public class TestTagReader {
 
 	@Test
 	void testExtractDependencies() {
-		List<String> deps = new TagReader("//DEPS blah, blue", null).collectDependencies();
+		List<String> deps = new TagReader.Extended("//DEPS blah, blue", null).collectDependencies();
 
 		assertTrue(deps.contains("blah"));
 
@@ -24,11 +24,11 @@ public class TestTagReader {
 
 	@Test
 	void textExtractRepositories() {
-		List<MavenRepo> repos = new TagReader("//REPOS jcenter=https://xyz.org", null).collectRepositories();
+		List<MavenRepo> repos = new TagReader.Extended("//REPOS jcenter=https://xyz.org", null).collectRepositories();
 
 		assertThat(repos, hasItem(new MavenRepo("jcenter", "https://xyz.org")));
 
-		repos = new TagReader("//REPOS jcenter=https://xyz.org localMaven xyz=file://~test",
+		repos = new TagReader.Extended("//REPOS jcenter=https://xyz.org localMaven xyz=file://~test",
 				null).collectRepositories();
 
 		assertThat(repos, hasItem(new MavenRepo("jcenter", "https://xyz.org")));
@@ -38,14 +38,14 @@ public class TestTagReader {
 
 	@Test
 	void textExtractRepositoriesGrape() {
-		List<MavenRepo> deps = new TagReader(
+		List<MavenRepo> deps = new TagReader.Extended(
 				"@GrabResolver(name=\"restlet.org\", root=\"http://maven.restlet.org\")", null)
 																								.collectRepositories();
 
 		assertThat(deps, hasItem(new MavenRepo("restlet.org", "http://maven.restlet.org")));
 
-		deps = new TagReader("@GrabResolver(\"http://maven.restlet.org\")", null)
-																					.collectRepositories();
+		deps = new TagReader.Extended("@GrabResolver(\"http://maven.restlet.org\")", null)
+																							.collectRepositories();
 
 		assertThat(deps, hasItem(new MavenRepo("http://maven.restlet.org", "http://maven.restlet.org")));
 

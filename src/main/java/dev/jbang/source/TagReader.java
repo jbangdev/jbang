@@ -26,107 +26,64 @@ import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
-public class TagReader {
-	private final String contents;
-	private final Function<String, String> replaceProperties;
+public abstract class TagReader {
+	protected final String contents;
+	protected final Function<String, String> replaceProperties;
 
 	// Cached values
 	private List<String> lines;
 
-	private static final String DEPS_COMMENT_PREFIX = "//DEPS ";
-	private static final String FILES_COMMENT_PREFIX = "//FILES ";
-	private static final String SOURCES_COMMENT_PREFIX = "//SOURCES ";
-	private static final String DESCRIPTION_COMMENT_PREFIX = "//DESCRIPTION ";
-	private static final String GAV_COMMENT_PREFIX = "//GAV ";
+	private static final String REPOS_COMMENT_PREFIX = "REPOS ";
+	private static final String DEPS_COMMENT_PREFIX = "DEPS ";
+	private static final String FILES_COMMENT_PREFIX = "FILES ";
+	private static final String SOURCES_COMMENT_PREFIX = "SOURCES ";
+	private static final String DESCRIPTION_COMMENT_PREFIX = "DESCRIPTION ";
+	private static final String GAV_COMMENT_PREFIX = "GAV ";
 
-	private static final String DEPS_ANNOT_PREFIX = "@Grab(";
-	private static final Pattern DEPS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
-	private static final Pattern DEPS_ANNOT_SINGLE = Pattern.compile("@Grab\\(\\s*\"(?<value>.*)\"\\s*\\)");
-
-	private static final String REPOS_COMMENT_PREFIX = "//REPOS ";
-	private static final String REPOS_ANNOT_PREFIX = "@GrabResolver(";
-	private static final Pattern REPOS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
-	private static final Pattern REPOS_ANNOT_SINGLE = Pattern.compile("@GrabResolver\\(\\s*\"(?<value>.*)\"\\s*\\)");
+	private static final Pattern EOL = Pattern.compile("\\r?\\n");
 
 	public TagReader(String contents, Function<String, String> replaceProperties) {
 		this.contents = contents;
 		this.replaceProperties = replaceProperties != null ? replaceProperties : Function.identity();
 	}
 
-	public String getContents() {
+	protected String getContents() {
 		return contents;
 	}
 
-	public Stream<String> getLines() {
-		if (lines == null && contents != null) {
-			lines = Arrays.asList(contents.split("\\r?\\n"));
-		}
-		return lines.stream();
-	}
-
-	protected Stream<String> getTags() {
-		// TODO: Insert `.takeWhile(s -> Util.isBlankString(s) || s.startsWith("//"))`
-		// once we support at least Java 9
-		return getLines().filter(s -> s.startsWith("//"));
-	}
+	protected abstract Stream<String> getTags();
 
 	public List<String> collectDependencies() {
-		return getLines()
-							.filter(this::isDependDeclare)
-							.flatMap(this::extractDependencies)
-							.map(replaceProperties)
-							.collect(Collectors.toList());
+		return getTags()
+						.filter(this::isDependDeclare)
+						.flatMap(this::extractDependencies)
+						.map(replaceProperties)
+						.collect(Collectors.toList());
 	}
 
 	protected boolean isDependDeclare(String line) {
-		return line.startsWith(DEPS_COMMENT_PREFIX) || line.contains(DEPS_ANNOT_PREFIX);
+		return line.startsWith(DEPS_COMMENT_PREFIX);
 	}
 
 	protected Stream<String> extractDependencies(String line) {
-		if (line.startsWith(DEPS_COMMENT_PREFIX)) {
-			return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
-		}
+		return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
+	}
 
-		if (line.contains(DEPS_ANNOT_PREFIX)) {
-			int commentOrEnd = line.indexOf("//");
-			if (commentOrEnd < 0) {
-				commentOrEnd = line.length();
-			}
-			if (line.indexOf(DEPS_ANNOT_PREFIX) > commentOrEnd) {
-				// ignore if on line that is a comment
-				return Stream.of();
-			}
+	public List<MavenRepo> collectRepositories() {
+		return getTags()
+						.filter(this::isRepoDeclare)
+						.flatMap(this::extractRepositories)
+						.map(replaceProperties)
+						.map(DependencyUtil::toMavenRepo)
+						.collect(Collectors.toCollection(ArrayList::new));
+	}
 
-			Map<String, String> args = new HashMap<>();
+	protected boolean isRepoDeclare(String line) {
+		return line.startsWith(REPOS_COMMENT_PREFIX);
+	}
 
-			Matcher matcher = DEPS_ANNOT_PAIRS.matcher(line);
-			while (matcher.find()) {
-				args.put(matcher.group("key"), matcher.group("value"));
-			}
-			if (!args.isEmpty()) {
-				// groupId:artifactId:version[:classifier][@type]
-				String gav = Stream.of(
-						args.get("group"),
-						args.get("module"),
-						args.get("version"),
-						args.get("classifier")).filter(Objects::nonNull).collect(Collectors.joining(":"));
-				if (args.containsKey("ext")) {
-					gav = gav + "@" + args.get("ext");
-				}
-				if (!gav.isEmpty()) { // protects when @Grab might be inside a string (like jbang source)
-					return Stream.of(gav);
-				} else {
-					return Stream.empty();
-				}
-			} else {
-				matcher = DEPS_ANNOT_SINGLE.matcher(line);
-				if (matcher.find()) {
-					return Stream.of(matcher.group("value"));
-				}
-			}
-		}
-
-		return Stream.of();
+	protected Stream<String> extractRepositories(String line) {
+		return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
 	}
 
 	public List<KeyValue> collectManifestOptions() {
@@ -162,50 +119,6 @@ public class TagReader {
 		}
 
 		return new KeyValue(key, value);
-	}
-
-	public List<MavenRepo> collectRepositories() {
-		return getLines()
-							.filter(this::isRepoDeclare)
-							.flatMap(this::extractRepositories)
-							.map(replaceProperties)
-							.map(DependencyUtil::toMavenRepo)
-							.collect(Collectors.toCollection(ArrayList::new));
-	}
-
-	protected boolean isRepoDeclare(String line) {
-		return line.startsWith(REPOS_COMMENT_PREFIX) || line.contains(REPOS_ANNOT_PREFIX);
-	}
-
-	protected Stream<String> extractRepositories(String line) {
-		if (line.startsWith(REPOS_COMMENT_PREFIX)) {
-			return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
-		}
-
-		if (line.contains(REPOS_ANNOT_PREFIX)) {
-			if (line.indexOf(REPOS_ANNOT_PREFIX) > line.indexOf("//")) {
-				// ignore if on line that is a comment
-				return Stream.of();
-			}
-
-			Map<String, String> args = new HashMap<>();
-
-			Matcher matcher = REPOS_ANNOT_PAIRS.matcher(line);
-			while (matcher.find()) {
-				args.put(matcher.group("key"), matcher.group("value"));
-			}
-			if (!args.isEmpty()) {
-				String repo = args.getOrDefault("name", args.get("root")) + "=" + args.get("root");
-				return Stream.of(repo);
-			} else {
-				matcher = REPOS_ANNOT_SINGLE.matcher(line);
-				if (matcher.find()) {
-					return Stream.of(matcher.group("value"));
-				}
-			}
-		}
-
-		return Stream.of();
 	}
 
 	public Optional<String> getDescription() {
@@ -265,7 +178,7 @@ public class TagReader {
 	}
 
 	List<String> collectRawOptions(String prefix) {
-		String joptsPrefix = "//" + prefix;
+		String joptsPrefix = prefix;
 		List<String> javaOptions = getTags()
 											.map(it -> it.split(" // ")[0]) // strip away nested comments.
 											.filter(it -> it.startsWith(joptsPrefix + " ")
@@ -415,4 +328,122 @@ public class TagReader {
 		}
 	}
 
+	/**
+	 * This class extends the default <code>TagReader</code> with support for Groovy
+	 * "grab" annotations.
+	 */
+	public static class Extended extends TagReader {
+		private static final String DEPS_ANNOT_PREFIX = "@Grab(";
+		private static final Pattern DEPS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
+		private static final Pattern DEPS_ANNOT_SINGLE = Pattern.compile("@Grab\\(\\s*\"(?<value>.*)\"\\s*\\)");
+
+		private static final String REPOS_ANNOT_PREFIX = "@GrabResolver(";
+		private static final Pattern REPOS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
+		private static final Pattern REPOS_ANNOT_SINGLE = Pattern.compile(
+				"@GrabResolver\\(\\s*\"(?<value>.*)\"\\s*\\)");
+
+		public Extended(String contents, Function<String, String> replaceProperties) {
+			super(contents, replaceProperties);
+		}
+
+		@Override
+		protected Stream<String> getTags() {
+			return EOL	.splitAsStream(contents)
+						.filter(s -> s.startsWith("//")
+								|| s.contains(DEPS_ANNOT_PREFIX)
+								|| s.contains(REPOS_ANNOT_PREFIX))
+						.map(s -> s.contains(DEPS_ANNOT_PREFIX)
+								|| s.contains(REPOS_ANNOT_PREFIX) ? s : s.substring(2));
+		}
+
+		@Override
+		protected boolean isDependDeclare(String line) {
+			return line.startsWith(DEPS_COMMENT_PREFIX) || line.contains(DEPS_ANNOT_PREFIX);
+		}
+
+		@Override
+		protected Stream<String> extractDependencies(String line) {
+			if (line.startsWith(DEPS_COMMENT_PREFIX)) {
+				return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
+			}
+
+			if (line.contains(DEPS_ANNOT_PREFIX)) {
+				int commentOrEnd = line.indexOf("//");
+				if (commentOrEnd < 0) {
+					commentOrEnd = line.length();
+				}
+				if (line.indexOf(DEPS_ANNOT_PREFIX) > commentOrEnd) {
+					// ignore if on line that is a comment
+					return Stream.of();
+				}
+
+				Map<String, String> args = new HashMap<>();
+
+				Matcher matcher = DEPS_ANNOT_PAIRS.matcher(line);
+				while (matcher.find()) {
+					args.put(matcher.group("key"), matcher.group("value"));
+				}
+				if (!args.isEmpty()) {
+					// groupId:artifactId:version[:classifier][@type]
+					String gav = Stream.of(
+							args.get("group"),
+							args.get("module"),
+							args.get("version"),
+							args.get("classifier")).filter(Objects::nonNull).collect(Collectors.joining(":"));
+					if (args.containsKey("ext")) {
+						gav = gav + "@" + args.get("ext");
+					}
+					if (!gav.isEmpty()) { // protects when @Grab might be inside a string (like jbang source)
+						return Stream.of(gav);
+					} else {
+						return Stream.empty();
+					}
+				} else {
+					matcher = DEPS_ANNOT_SINGLE.matcher(line);
+					if (matcher.find()) {
+						return Stream.of(matcher.group("value"));
+					}
+				}
+			}
+
+			return Stream.of();
+		}
+
+		@Override
+		protected boolean isRepoDeclare(String line) {
+			return line.startsWith(REPOS_COMMENT_PREFIX) || line.contains(REPOS_ANNOT_PREFIX);
+		}
+
+		@Override
+		protected Stream<String> extractRepositories(String line) {
+			if (line.startsWith(REPOS_COMMENT_PREFIX)) {
+				return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
+			}
+
+			if (line.contains(REPOS_ANNOT_PREFIX)) {
+				if (line.indexOf(REPOS_ANNOT_PREFIX) > line.indexOf("//")) {
+					// ignore if on line that is a comment
+					return Stream.of();
+				}
+
+				Map<String, String> args = new HashMap<>();
+
+				Matcher matcher = REPOS_ANNOT_PAIRS.matcher(line);
+				while (matcher.find()) {
+					args.put(matcher.group("key"), matcher.group("value"));
+				}
+				if (!args.isEmpty()) {
+					String repo = args.getOrDefault("name", args.get("root")) + "=" + args.get("root");
+					return Stream.of(repo);
+				} else {
+					matcher = REPOS_ANNOT_SINGLE.matcher(line);
+					if (matcher.find()) {
+						return Stream.of(matcher.group("value"));
+					}
+				}
+			}
+
+			return Stream.of();
+		}
+	}
 }

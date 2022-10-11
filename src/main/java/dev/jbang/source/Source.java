@@ -64,7 +64,7 @@ public abstract class Source {
 	}
 
 	protected TagReader createTagReader(String contents, Function<String, String> replaceProperties) {
-		return new TagReader(contents, replaceProperties);
+		return new TagReader.Extended(contents, replaceProperties);
 	}
 
 	public Stream<String> getTags() {
