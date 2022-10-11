@@ -27,6 +27,10 @@ This will make it use port 4321 and make it listen on all ('*') network interfac
 
 NOTE: Be sure to put a breakpoint in your IDE/debugger before you connect to make the debugger actually stop when you need it.
 
+== Debug info
+
+JBang since version 0.100 compiles with debug info enabled by default.
+
 == Debug jbang itself
 
 Java itself will add `JAVA_TOOL_OPTIONS` which will apply to `jbang` too.

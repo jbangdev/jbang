@@ -30,6 +30,27 @@ import dev.jbang.util.Util;
 public class TestBuilder extends BaseTest {
 
 	@Test
+	void testHelloworld() throws IOException {
+		Path foo = examplesTestFolder.resolve("helloworld.java").toAbsolutePath();
+		ProjectBuilder pb = ProjectBuilder.create();
+		Project prj = pb.build(foo.toString());
+
+		new JavaSource.JavaAppBuilder(prj) {
+			@Override
+			protected Builder<Project> getCompileBuildStep() {
+				return new JavaCompileBuildStep() {
+					@Override
+					protected void runCompiler(List<String> optionList) {
+						assertThat(optionList, hasItem(foo.toString()));
+						assertThat(optionList, hasItem("-g"));
+						// Skip the compiler
+					}
+				};
+			}
+		}.setFresh(true).build();
+	}
+
+	@Test
 	void testBuildAdditionalSources() throws IOException {
 		Path foo = examplesTestFolder.resolve("foo.java").toAbsolutePath();
 		Path bar = examplesTestFolder.resolve("bar/Bar.java").toAbsolutePath();
