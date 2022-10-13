@@ -12,7 +12,7 @@ public class MavenCoordinate {
 	private final String artifactId;
 	private final String version;
 	private final String classifier;
-	private final String packaging;
+	private final String type;
 
 	public static final String DUMMY_GROUP = "group";
 	public static final String DEFAULT_VERSION = "999-SNAPSHOT";
@@ -39,8 +39,8 @@ public class MavenCoordinate {
 		return classifier;
 	}
 
-	public String getPackaging() {
-		return packaging;
+	public String getType() {
+		return type;
 	}
 
 	public static MavenCoordinate fromString(String depId) {
@@ -75,17 +75,17 @@ public class MavenCoordinate {
 	}
 
 	public MavenCoordinate(@Nonnull String groupId, @Nonnull String artifactId, @Nonnull String version,
-			@Nullable String classifier, @Nullable String packaging) {
+			@Nullable String classifier, @Nullable String type) {
 		this.groupId = groupId;
 		this.artifactId = artifactId;
 		this.version = version;
 		this.classifier = classifier;
-		this.packaging = packaging;
+		this.type = type;
 	}
 
 	public MavenCoordinate withVersion() {
 		return version != null ? this
-				: new MavenCoordinate(groupId, artifactId, DEFAULT_VERSION, classifier, packaging);
+				: new MavenCoordinate(groupId, artifactId, DEFAULT_VERSION, classifier, type);
 	}
 
 	/**
@@ -102,8 +102,8 @@ public class MavenCoordinate {
 		if (classifier != null && !classifier.isEmpty()) {
 			out += ":" + classifier;
 		}
-		if (packaging != null && !packaging.isEmpty()) {
-			out += "@" + packaging;
+		if (type != null && !type.isEmpty()) {
+			out += "@" + type;
 		}
 		return out;
 	}
@@ -118,11 +118,11 @@ public class MavenCoordinate {
 	public String toCanonicalForm() {
 		String out = groupId + ":" + artifactId;
 		if (version != null && !version.isEmpty()) {
-			if (packaging != null && !packaging.isEmpty()) {
+			if (type != null && !type.isEmpty()) {
 				if (classifier != null && !classifier.isEmpty()) {
 					out += ":" + classifier;
 				}
-				out += ":" + packaging;
+				out += ":" + type;
 			}
 			out += ":" + version;
 		}
