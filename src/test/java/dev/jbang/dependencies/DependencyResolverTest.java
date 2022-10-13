@@ -1,10 +1,14 @@
 package dev.jbang.dependencies;
 
 import static dev.jbang.dependencies.DependencyUtil.toMavenRepo;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,7 +21,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
-import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -46,21 +49,21 @@ class DependencyResolverTest extends BaseTest {
 		assertEquals("docopt", artifact.getArtifactId());
 		assertEquals("0.6.0.20150202", artifact.getVersion());
 		assertEquals("redhat", artifact.getClassifier());
-		assertEquals("doc", artifact.getPackaging());
+		assertEquals("doc", artifact.getType());
 
 		artifact = MavenCoordinate.fromString("com.offbytwo:docopt:0.6.0.20150202");
 		assertEquals("com.offbytwo", artifact.getGroupId());
 		assertEquals("docopt", artifact.getArtifactId());
 		assertEquals("0.6.0.20150202", artifact.getVersion());
 		assertNull(artifact.getClassifier());
-		assertEquals("jar", artifact.getPackaging());
+		assertEquals("jar", artifact.getType());
 
 		artifact = MavenCoordinate.fromString("com.offbytwo:docopt:0.6+");
 		assertEquals("com.offbytwo", artifact.getGroupId());
 		assertEquals("docopt", artifact.getArtifactId());
 		assertEquals("[0.6,)", artifact.getVersion());
 		assertNull(artifact.getClassifier());
-		assertEquals("jar", artifact.getPackaging());
+		assertEquals("jar", artifact.getType());
 
 		assertThrows(IllegalStateException.class, () -> MavenCoordinate.fromString("bla?f"));
 	}
@@ -89,7 +92,7 @@ class DependencyResolverTest extends BaseTest {
 		assertEquals("my-native-library", artifact.getArtifactId());
 		assertEquals("1.0.0", artifact.getVersion());
 		assertEquals(p.getProperty("os.detected.jfxname"), artifact.getClassifier());
-		assertEquals("jar", artifact.getPackaging());
+		assertEquals("jar", artifact.getType());
 	}
 
 	@Test
@@ -120,7 +123,7 @@ class DependencyResolverTest extends BaseTest {
 																.build()
 																.resolve(deps);
 		assertEquals(2, artifacts.size());
-		MatcherAssert.assertThat(altrepo.listFiles(), arrayWithSize(4));
+		assertThat(altrepo.listFiles(), arrayWithSize(4));
 	}
 
 	@Test
@@ -155,7 +158,7 @@ class DependencyResolverTest extends BaseTest {
 
 		HashSet<String> othercps = new HashSet<>(cps);
 
-		MatcherAssert.assertThat(cps, containsInAnyOrder(othercps.toArray()));
+		assertThat(cps, containsInAnyOrder(othercps.toArray()));
 	}
 
 	@Test
@@ -187,11 +190,11 @@ class DependencyResolverTest extends BaseTest {
 
 		List<String> ma = cp.getAutoDectectedModuleArguments(null);
 
-		MatcherAssert.assertThat(ma, hasItem("--module-path"));
+		assertThat(ma, hasItem("--module-path"));
 
-		MatcherAssert.assertThat(ma, not(hasItem("docopt")));
+		assertThat(ma, not(hasItem("docopt")));
 
-		MatcherAssert.assertThat(cp.getClassPath(), containsString("docopt"));
+		assertThat(cp.getClassPath(), containsString("docopt"));
 	}
 
 	@Test
@@ -255,6 +258,21 @@ class DependencyResolverTest extends BaseTest {
 							.findFirst();
 
 		assertEquals("3.9.5", coord.get().getCoordinate().getVersion());
+	}
+
+	@Test
+	void testResolveTestJar() {
+		List<String> deps = Arrays.asList("org.infinispan:infinispan-commons:13.0.5.Final@test-jar");
+
+		ModularClassPath classpath = DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false,
+				true);
+
+		assertThat(classpath.getArtifacts(), hasSize(7));
+		ArtifactInfo ai = classpath.getArtifacts().get(0);
+		assertThat(ai.getCoordinate().toCanonicalForm(),
+				equalTo("org.infinispan:infinispan-commons:tests:jar:13.0.5.Final"));
+		assertThat(ai.getFile().toString(),
+				endsWith("infinispan-commons-13.0.5.Final-tests.jar"));
 	}
 
 }

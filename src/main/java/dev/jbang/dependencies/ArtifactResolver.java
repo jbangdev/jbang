@@ -36,6 +36,7 @@ import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositoryEvent;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.artifact.ArtifactType;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.collection.CollectRequest;
 import org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory;
@@ -308,13 +309,21 @@ public class ArtifactResolver {
 				"pom".equalsIgnoreCase(artifact.getExtension()) ? "import" : JavaScopes.COMPILE);
 	}
 
-	private static Artifact toArtifact(String coord) {
+	private Artifact toArtifact(String coord) {
 		return toArtifact(MavenCoordinate.fromString(coord));
 	}
 
-	private static Artifact toArtifact(MavenCoordinate coord) {
-		return new DefaultArtifact(coord.getGroupId(), coord.getArtifactId(), coord.getClassifier(),
-				coord.getPackaging(), coord.getVersion());
+	private Artifact toArtifact(MavenCoordinate coord) {
+		String cls = coord.getClassifier();
+		String ext = coord.getType();
+		if (coord.getType() != null) {
+			ArtifactType type = session.getArtifactTypeRegistry().get(coord.getType());
+			if (type != null) {
+				ext = type.getExtension();
+				cls = Optional.ofNullable(cls).orElse(type.getClassifier());
+			}
+		}
+		return new DefaultArtifact(coord.getGroupId(), coord.getArtifactId(), cls, ext, coord.getVersion());
 	}
 
 	private static ArtifactInfo toArtifactInfo(Artifact artifact) {
