@@ -39,7 +39,7 @@ public class Project {
 	private final List<String> runtimeOptions = new ArrayList<>();
 	private Map<String, String> properties = new HashMap<>();
 	private final Map<String, String> manifestAttributes = new LinkedHashMap<>();
-	protected List<Project> javaAgents = new ArrayList<>();
+	private List<Project> javaAgents = new ArrayList<>();
 	private String javaVersion;
 	private String description;
 	private String gav;
@@ -132,7 +132,7 @@ public class Project {
 
 	@Nonnull
 	public Project addJavaAgents(List<Project> javaAgents) {
-		this.javaAgents = javaAgents != null ? javaAgents : Collections.emptyList();
+		this.javaAgents.addAll(javaAgents);
 		return this;
 	}
 

@@ -47,14 +47,6 @@ public class SourceSet {
 		return this;
 	}
 
-	// TODO: Remove this once the HACK in ProjectBuilder.forResourceRef()
-	// is no longer necessary
-	public SourceSet removeSource(ResourceRef source) {
-		sources.remove(source);
-		stableId = null;
-		return this;
-	}
-
 	@Nonnull
 	public List<RefTarget> getResources() {
 		return Collections.unmodifiableList(resources);

@@ -36,15 +36,15 @@ import dev.jbang.util.Util;
  * environment.
  */
 public class ProjectBuilder {
-	private List<String> additionalSources = Collections.emptyList();
-	private List<String> additionalResources = Collections.emptyList();
-	private List<String> additionalDeps = Collections.emptyList();
-	private List<String> additionalRepos = Collections.emptyList();
-	private List<String> additionalClasspaths = Collections.emptyList();
-	private Map<String, String> properties = Collections.emptyMap();
+	private List<String> additionalSources = new ArrayList<>();
+	private List<String> additionalResources = new ArrayList<>();
+	private List<String> additionalDeps = new ArrayList<>();
+	private List<String> additionalRepos = new ArrayList<>();
+	private List<String> additionalClasspaths = new ArrayList<>();
+	private Map<String, String> properties = new HashMap<>();
+	private List<Project> javaAgents = new ArrayList<>();
 	private Source.Type forceType = null;
 	private String mainClass;
-	private List<Project> javaAgents;
 	private File catalogFile;
 
 	private ModularClassPath mcp;
@@ -210,9 +210,6 @@ public class ProjectBuilder {
 	}
 
 	public ProjectBuilder addJavaAgent(Project prj) {
-		if (javaAgents == null) {
-			javaAgents = new ArrayList<>();
-		}
 		javaAgents.add(prj);
 		return this;
 	}
@@ -282,15 +279,7 @@ public class ProjectBuilder {
 			prj = createJarProject(resourceRef);
 		} else if (Util.isPreview()
 				&& resourceRef.getFile().getFileName().toString().equals(Project.BuildFile.jbang.fileName)) {
-			// This is a bit of a hack, but what we do here is treat "build.jbang"
-			// as if it were a source file, which we can do because it's syntax is
-			// the same, just that it can only contain //-lines but no code.
-			prj = createSourceProject(resourceRef);
-			// But once we get the resulting <code>Project</code> we remove the
-			// first file from the sources to prevent "build.jbang" from being
-			// passed to the compiler.
-			prj.getMainSourceSet().removeSource(prj.getMainSourceSet().getSources().get(0));
-			prj.setMainSource(createSource(prj.getMainSourceSet().getSources().get(0)));
+			prj = createJbangProject(resourceRef);
 		} else {
 			prj = createSourceProject(resourceRef);
 		}
@@ -299,6 +288,51 @@ public class ProjectBuilder {
 
 	private Project createJarProject(ResourceRef resourceRef) {
 		return updateProject(importJarMetadata(new Project(resourceRef)));
+	}
+
+	private Project createJbangProject(ResourceRef resourceRef) {
+		Project prj = new Project(resourceRef);
+		String contents = Util.readFileContent(resourceRef.getFile());
+		TagReader tagReader = new TagReader.JbangProject(contents,
+				it -> PropertiesValueResolver.replaceProperties(it, getContextProperties()));
+		prj.setDescription(tagReader.getDescription().orElse(null));
+		prj.setGav(tagReader.getGav().orElse(null));
+
+		SourceSet ss = prj.getMainSourceSet();
+		ss.addResources(tagReader.collectFiles(resourceRef,
+				new SiblingResourceResolver(resourceRef, ResourceResolver.forResources())));
+		ss.addDependencies(tagReader.collectDependencies());
+		ss.addCompileOptions(tagReader.collectOptions("JAVAC_OPTIONS"));
+		prj.addRepositories(tagReader.collectRepositories());
+		prj.addRuntimeOptions(tagReader.collectOptions("JAVA_OPTIONS"));
+		tagReader.collectManifestOptions().forEach(kv -> {
+			if (!kv.getKey().isEmpty()) {
+				prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
+			}
+		});
+		tagReader.collectAgentOptions().forEach(kv -> {
+			if (!kv.getKey().isEmpty()) {
+				prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
+			}
+		});
+		String version = tagReader.getJavaVersion();
+		if (version != null && JavaUtil.checkRequestedVersion(version)) {
+			if (new JavaUtil.RequestedVersionComparator().compare(prj.getJavaVersion(), version) > 0) {
+				prj.setJavaVersion(version);
+			}
+		}
+		boolean first = true;
+		ResourceResolver resolver = getAliasResourceResolver(null);
+		ResourceResolver siblingResolver = new SiblingResourceResolver(resourceRef, resolver);
+		for (Source includedSource : tagReader.collectSources(resourceRef, siblingResolver)) {
+			includedSource.updateProject(prj, resolver);
+			if (first) {
+				prj.setMainSource(includedSource);
+				first = false;
+			}
+		}
+
+		return updateProject(importJarMetadata(prj));
 	}
 
 	private Project createSourceProject(ResourceRef resourceRef) {

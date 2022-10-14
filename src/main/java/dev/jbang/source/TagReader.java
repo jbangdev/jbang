@@ -446,4 +446,17 @@ public abstract class TagReader {
 			return Stream.of();
 		}
 	}
+
+	public static class JbangProject extends TagReader {
+
+		public JbangProject(String contents, Function<String, String> replaceProperties) {
+			super(contents, replaceProperties);
+		}
+
+		@Override
+		protected Stream<String> getTags() {
+			return EOL.splitAsStream(contents).filter(s -> !s.startsWith("//"));
+		}
+
+	}
 }
