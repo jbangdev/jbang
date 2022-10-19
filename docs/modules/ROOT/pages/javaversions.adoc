@@ -80,6 +80,15 @@ This will return the path to the "default" JDK (by default `~/.jbang/currentjdk)
 specific JDK you can pass the version as an argument: `jbang jdk home 14`. This command could be used by scripts to find
 a JDK to use to run a Java program for example (eg: `JAVA_HOME=$(jbang jdk home)`.
 
+The `install` command decribed in the previous section allows you to specify the path of your existing JDK installation:
+
+  jbang jdk install 17 <path-of-existing-java-17-installation>
+
+So if you are managing your jdk installations with https://sdkman.io/[SDKMAN!] you can easilly configure Jbang to use one of your installed version:
+
+  jbang jdk install 17 `sdk home java 17.0.4.1-tem`
+
+
 For setting up your current command line environment there's something simpler. You can run:
 
   jbang jdk java-env
