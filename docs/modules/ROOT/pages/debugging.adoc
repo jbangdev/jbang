@@ -29,7 +29,7 @@ NOTE: Be sure to put a breakpoint in your IDE/debugger before you connect to mak
 
 == Debug info
 
-JBang since version 0.100 compiles with debug info enabled by default.
+JBang since version 0.100 compiles with debug info enabled by default. You can use `-C=-g` to tweak how much debug info is included: `jbang -C=-g=lines,vars,source` or to turn it off use `jbang -C=-g=none".
 
 == Debug jbang itself
 

@@ -36,6 +36,7 @@ public class TestAlias extends BaseTest {
 			"      \"description\": \"twodesc\",\n" +
 			"      \"arguments\": [\"2\"],\n" +
 			"      \"java-options\": [\"--two\"],\n" +
+			"      \"compile-options\": [\"--ctwo\"],\n" +
 			"      \"dependencies\": [\"twodep\"],\n" +
 			"      \"repositories\": [\"tworepo\"],\n" +
 			"      \"classpaths\": [\"twocp\"],\n" +
@@ -45,6 +46,7 @@ public class TestAlias extends BaseTest {
 			"      \"script-ref\": \"http://dummy\",\n" +
 			"      \"arguments\": [\"3\"],\n" +
 			"      \"java-options\": [\"--three\"],\n" +
+			"      \"compile-options\": [\"--cthree\"],\n" +
 			"      \"properties\": {\"three\":\"3\"}\n" +
 			"    },\n" +
 			"    \"four\": {\n" +
@@ -52,6 +54,7 @@ public class TestAlias extends BaseTest {
 			"      \"description\": \"fourdesc\",\n" +
 			"      \"arguments\": [\"4\"],\n" +
 			"      \"java-options\": [\"--four\"],\n" +
+			"      \"compile-options\": [\"--cfour\"],\n" +
 			"      \"dependencies\": [\"fourdep\"],\n" +
 			"      \"repositories\": [\"fourrepo\"],\n" +
 			"      \"classpaths\": [\"fourcp\"],\n" +
@@ -117,7 +120,8 @@ public class TestAlias extends BaseTest {
 				"--java-options", "jopts",
 				"-D", "prop=val",
 				"--main", "mainclass",
-				"--java", "version",
+				"--compile-options", "copts",
+				"--java", "999",
 				"aap", "noot", "mies");
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
 				is(true));
@@ -136,7 +140,9 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.properties, hasEntry("prop", "val"));
 		assertThat(alias.arguments, iterableWithSize(3));
 		assertThat(alias.mainClass, is("mainclass"));
-		assertThat(alias.javaVersion, is("version"));
+		assertThat(alias.compileOptions, iterableWithSize(1));
+		assertThat(alias.compileOptions, contains("copts"));
+		assertThat(alias.javaVersion, is("999"));
 		assertThat(alias.arguments, contains("aap", "noot", "mies"));
 	}
 
@@ -158,7 +164,8 @@ public class TestAlias extends BaseTest {
 				"--java-options", "jopts",
 				"-D", "prop=val",
 				"--main", "mainclass",
-				"--java", "version",
+				"--compile-options", "copts",
+				"--java", "999",
 				"aap", "noot", "mies");
 		assertThat(Files.size(catFile), not(is(0L)));
 		Alias alias = Alias.get("name");
@@ -176,7 +183,9 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.properties, hasEntry("prop", "val"));
 		assertThat(alias.arguments, iterableWithSize(3));
 		assertThat(alias.mainClass, is("mainclass"));
-		assertThat(alias.javaVersion, is("version"));
+		assertThat(alias.compileOptions, iterableWithSize(1));
+		assertThat(alias.compileOptions, contains("copts"));
+		assertThat(alias.javaVersion, is("999"));
 		assertThat(alias.arguments, contains("aap", "noot", "mies"));
 	}
 
@@ -331,6 +340,7 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.arguments, nullValue());
 		assertThat(alias.javaOptions, nullValue());
 		assertThat(alias.properties, nullValue());
+		assertThat(alias.compileOptions, nullValue());
 	}
 
 	@Test
@@ -352,6 +362,8 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.classpaths, contains("twocp"));
 		assertThat(alias.properties, aMapWithSize(1));
 		assertThat(alias.properties, hasEntry("two", "2"));
+		assertThat(alias.compileOptions, iterableWithSize(1));
+		assertThat(alias.compileOptions, contains("--ctwo"));
 	}
 
 	@Test
@@ -373,6 +385,8 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.classpaths, contains("fourcp"));
 		assertThat(alias.properties, aMapWithSize(1));
 		assertThat(alias.properties, hasEntry("four", "4"));
+		assertThat(alias.compileOptions, iterableWithSize(1));
+		assertThat(alias.compileOptions, contains("--cfour"));
 	}
 
 	@Test
@@ -387,6 +401,8 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.javaOptions, contains("--three"));
 		assertThat(alias.properties, aMapWithSize(1));
 		assertThat(alias.properties, hasEntry("three", "3"));
+		assertThat(alias.compileOptions, iterableWithSize(1));
+		assertThat(alias.compileOptions, contains("--cthree"));
 	}
 
 	@Test
@@ -398,6 +414,7 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.arguments, nullValue());
 		assertThat(alias.javaOptions, nullValue());
 		assertThat(alias.properties, nullValue());
+		assertThat(alias.compileOptions, nullValue());
 	}
 
 	@Test

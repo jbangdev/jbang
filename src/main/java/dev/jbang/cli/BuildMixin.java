@@ -1,5 +1,7 @@
 package dev.jbang.cli;
 
+import java.util.List;
+
 import picocli.CommandLine;
 
 public class BuildMixin {
@@ -18,4 +20,7 @@ public class BuildMixin {
 	@CommandLine.Option(names = { "-m",
 			"--main" }, description = "Main class to use when running. Used primarily for running jar's.")
 	String main;
+
+	@CommandLine.Option(names = { "-C", "--compile-options" }, description = "Options to pass to the compiler")
+	public List<String> compileOptions;
 }

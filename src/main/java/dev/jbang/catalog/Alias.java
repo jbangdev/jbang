@@ -31,9 +31,11 @@ public class Alias extends CatalogItem {
 	public final String javaVersion;
 	@SerializedName(value = "main")
 	public final String mainClass;
+	@SerializedName(value = "compile-options")
+	public final List<String> compileOptions;
 
 	private Alias() {
-		this(null, null, null, null, null, null, null, null, null, null, null, null, null);
+		this(null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 	}
 
 	public Alias(String scriptRef,
@@ -48,6 +50,7 @@ public class Alias extends CatalogItem {
 			Map<String, String> properties,
 			String javaVersion,
 			String mainClass,
+			List<String> compileOptions,
 			Catalog catalog) {
 		super(catalog);
 		this.scriptRef = scriptRef;
@@ -62,6 +65,7 @@ public class Alias extends CatalogItem {
 		this.properties = properties;
 		this.javaVersion = javaVersion;
 		this.mainClass = mainClass;
+		this.compileOptions = compileOptions;
 	}
 
 	/**
@@ -123,7 +127,7 @@ public class Alias extends CatalogItem {
 			a2 = merge(a2, a2.scriptRef, findUnqualifiedAlias, names);
 			String desc = a1.description != null ? a1.description : a2.description;
 			List<String> args = a1.arguments != null && !a1.arguments.isEmpty() ? a1.arguments : a2.arguments;
-			List<String> opts = a1.javaOptions != null && !a1.javaOptions.isEmpty() ? a1.javaOptions
+			List<String> jopts = a1.javaOptions != null && !a1.javaOptions.isEmpty() ? a1.javaOptions
 					: a2.javaOptions;
 			List<String> srcs = a1.sources != null && !a1.sources.isEmpty() ? a1.sources
 					: a2.sources;
@@ -139,10 +143,11 @@ public class Alias extends CatalogItem {
 					: a2.properties;
 			String javaVersion = a1.javaVersion != null ? a1.javaVersion : a2.javaVersion;
 			String mainClass = a1.mainClass != null ? a1.mainClass : a2.mainClass;
+			List<String> copts = a1.compileOptions != null && !a1.compileOptions.isEmpty() ? a1.compileOptions
+					: a2.compileOptions;
 			Catalog catalog = a2.catalog != null ? a2.catalog : a1.catalog;
-			return new Alias(a2.scriptRef, desc, args, opts, srcs, ress, deps, repos, cpaths, props, javaVersion,
-					mainClass,
-					catalog);
+			return new Alias(a2.scriptRef, desc, args, jopts, srcs, ress, deps, repos, cpaths, props, javaVersion,
+					mainClass, copts, catalog);
 		} else {
 			return a1;
 		}

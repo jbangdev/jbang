@@ -45,6 +45,7 @@ public class ProjectBuilder {
 	private List<Project> javaAgents = new ArrayList<>();
 	private Source.Type forceType = null;
 	private String mainClass;
+	private List<String> compileOptions = Collections.emptyList();
 	private File catalogFile;
 
 	private ModularClassPath mcp;
@@ -177,6 +178,15 @@ public class ProjectBuilder {
 
 	public ProjectBuilder mainClass(String mainClass) {
 		this.mainClass = mainClass;
+		return this;
+	}
+
+	public ProjectBuilder compileOptions(List<String> compileOptions) {
+		if (compileOptions != null) {
+			this.compileOptions = compileOptions;
+		} else {
+			this.compileOptions = Collections.emptyList();
+		}
 		return this;
 	}
 
@@ -444,6 +454,7 @@ public class ProjectBuilder {
 		ss.addClassPaths(replaceAllProps(additionalClasspaths));
 		updateAllSources(prj, replaceAllProps(additionalSources));
 		ss.addResources(allToFileRef(replaceAllProps(additionalResources)));
+		ss.addCompileOptions(compileOptions);
 		prj.putProperties(properties);
 		prj.addRuntimeOptions(javaOptions);
 		prj.addJavaAgents(javaAgents);
@@ -535,6 +546,9 @@ public class ProjectBuilder {
 		}
 		if (mainClass == null) {
 			mainClass(alias.mainClass);
+		}
+		if (compileOptions.isEmpty()) {
+			compileOptions(alias.compileOptions);
 		}
 	}
 

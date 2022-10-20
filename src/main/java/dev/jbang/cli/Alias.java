@@ -65,6 +65,9 @@ class AliasAdd extends BaseAliasCommand {
 	ScriptMixin scriptMixin;
 
 	@CommandLine.Mixin
+	BuildMixin buildMixin;
+
+	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
 
 	@CommandLine.Option(names = { "--description",
@@ -73,14 +76,6 @@ class AliasAdd extends BaseAliasCommand {
 
 	@CommandLine.Option(names = { "--java-options" }, description = "A Java runtime option")
 	List<String> javaRuntimeOptions;
-
-	@CommandLine.Option(names = { "-m",
-			"--main" }, description = "Main class to use when running. Used primarily for running jar's.")
-	String main;
-
-	@CommandLine.Option(names = { "-j",
-			"--java" }, description = "JDK version to use for running the alias.")
-	String javaVersion;
 
 	@CommandLine.Option(names = { "--name" }, description = "A name for the alias")
 	String name;
@@ -109,12 +104,14 @@ class AliasAdd extends BaseAliasCommand {
 			CatalogUtil.addAlias(catFile, name, scriptMixin.scriptOrFile, desc, userParams, javaRuntimeOptions,
 					scriptMixin.sources, scriptMixin.resources, dependencyInfoMixin.getDependencies(),
 					dependencyInfoMixin.getRepositories(), dependencyInfoMixin.getClasspaths(),
-					dependencyInfoMixin.getProperties(), javaVersion, main);
+					dependencyInfoMixin.getProperties(), buildMixin.javaVersion, buildMixin.main,
+					buildMixin.compileOptions);
 		} else {
 			catFile = CatalogUtil.addNearestAlias(name, scriptMixin.scriptOrFile, desc, userParams, javaRuntimeOptions,
 					scriptMixin.sources, scriptMixin.resources, dependencyInfoMixin.getDependencies(),
 					dependencyInfoMixin.getRepositories(), dependencyInfoMixin.getClasspaths(),
-					dependencyInfoMixin.getProperties(), javaVersion, main);
+					dependencyInfoMixin.getProperties(), buildMixin.javaVersion, buildMixin.main,
+					buildMixin.compileOptions);
 		}
 		info(String.format("Alias '%s' added to '%s'", name, catFile));
 		return EXIT_OK;
@@ -130,8 +127,8 @@ class AliasAdd extends BaseAliasCommand {
 											.additionalSources(scriptMixin.sources)
 											.additionalResources(scriptMixin.resources)
 											.forceType(scriptMixin.forceType)
-											.javaVersion(javaVersion)
-											.mainClass(main)
+											.javaVersion(buildMixin.javaVersion)
+											.mainClass(buildMixin.main)
 											.setArguments(userParams)
 											.javaOptions(javaRuntimeOptions);
 		Path cat = getCatalog(false);
