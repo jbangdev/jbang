@@ -20,7 +20,7 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "run", description = "Builds and runs provided script.")
 public class Run extends BaseBuildCommand {
 
-	@CommandLine.Option(names = { "--java-options" }, description = "A Java runtime option")
+	@CommandLine.Option(names = { "-R", "--java-options" }, description = "Options to pass to the Java runtime")
 	public List<String> javaRuntimeOptions;
 
 	@CommandLine.Option(names = {
