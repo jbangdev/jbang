@@ -44,10 +44,10 @@ public class Main {
 
 	private static boolean hasRunOpts(List<String> opts) {
 		boolean res = opts.contains("-i") || opts.contains("--interactive")
-				|| opts.contains("-c") || opts.contains("--code");
+				|| opts.contains("-c") || opts.contains("--code") || opts.contains("--build-dir");
 		res = res || opts	.stream()
 							.anyMatch(o -> o.startsWith("-i=") || o.startsWith("--interactive=")
-									|| o.startsWith("-c=") || o.startsWith("--code="));
+									|| o.startsWith("-c=") || o.startsWith("--code=") || o.startsWith("--build-dir="));
 		return res;
 	}
 }

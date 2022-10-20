@@ -1,12 +1,20 @@
 package dev.jbang.source.sources;
 
+import static dev.jbang.net.KotlinManager.resolveInKotlinHome;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
+
+import org.jboss.jandex.ClassInfo;
 
 import dev.jbang.net.KotlinManager;
 import dev.jbang.source.*;
-import dev.jbang.source.builders.KotlinBuilder;
+import dev.jbang.source.AppBuilder;
+import dev.jbang.source.buildsteps.CompileBuildStep;
+import dev.jbang.source.buildsteps.IntegrationBuildStep;
+import dev.jbang.spi.IntegrationResult;
 
 public class KotlinSource extends Source {
 
@@ -15,24 +23,69 @@ public class KotlinSource extends Source {
 	}
 
 	@Override
-	public List<String> getCompileOptions() {
+	protected List<String> getCompileOptions() {
 		return Collections.emptyList();
 	}
 
 	@Override
-	public List<String> getRuntimeOptions() {
-		return collectOptions("JAVA_OPTIONS");
+	protected List<String> getRuntimeOptions() {
+		return tagReader.collectOptions("JAVA_OPTIONS");
 	}
 
 	@Override
-	public Builder getBuilder(Project prj) {
-		return new KotlinBuilder(prj);
+	public Builder<Project> getBuilder(Project prj) {
+		return new KotlinAppBuilder(prj);
 	}
 
 	public String getKotlinVersion() {
-		return collectOptions("KOTLIN")
-										.stream()
-										.findFirst()
-										.orElse(KotlinManager.DEFAULT_KOTLIN_VERSION);
+		return tagReader.collectOptions("KOTLIN")
+						.stream()
+						.findFirst()
+						.orElse(KotlinManager.DEFAULT_KOTLIN_VERSION);
+	}
+
+	private static class KotlinAppBuilder extends AppBuilder {
+		public KotlinAppBuilder(Project project) {
+			super(project);
+		}
+
+		@Override
+		protected Builder<Project> getCompileBuildStep() {
+			return new KotlinCompileBuildStep();
+		}
+
+		@Override
+		protected Builder<IntegrationResult> getIntegrationBuildStep() {
+			return new KotlinIntegrationBuildStep();
+		}
+
+		private class KotlinCompileBuildStep extends CompileBuildStep {
+
+			public KotlinCompileBuildStep() {
+				super(KotlinAppBuilder.this.project);
+			}
+
+			@Override
+			protected String getCompilerBinary(String requestedJavaVersion) {
+				return resolveInKotlinHome("kotlinc", ((KotlinSource) project.getMainSource()).getKotlinVersion());
+			}
+		}
+
+		private class KotlinIntegrationBuildStep extends IntegrationBuildStep {
+			public KotlinIntegrationBuildStep() {
+				super(KotlinAppBuilder.this.project);
+			}
+
+			@Override
+			protected String getMainExtension() {
+				return ".kt";
+			}
+
+			@Override
+			protected Predicate<ClassInfo> getMainFinder() {
+				return pubClass -> pubClass.method("main", IntegrationBuildStep.STRINGARRAYTYPE) != null
+						|| pubClass.method("main") != null;
+			}
+		}
 	}
 }

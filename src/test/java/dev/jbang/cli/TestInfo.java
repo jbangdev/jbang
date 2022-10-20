@@ -117,9 +117,11 @@ public class TestInfo extends BaseTest {
 		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
 				hasSize(equalTo(1)),
 				everyItem(containsString("picocli"))));
-		assertThat(info.sources, hasSize(equalTo(1)));
-		assertThat(info.sources.get(0).originalResource, equalTo(quote));
-		assertThat(info.sources.get(0).backingResource, equalTo(quote));
+		assertThat(info.sources, hasSize(equalTo(2)));
+		assertThat(info.sources.get(0).originalResource, equalTo(src));
+		assertThat(info.sources.get(0).backingResource, equalTo(src));
+		assertThat(info.sources.get(1).originalResource, equalTo(quote));
+		assertThat(info.sources.get(1).backingResource, equalTo(quote));
 	}
 
 	@Test

@@ -10,38 +10,38 @@ import org.junit.jupiter.api.Test;
 import dev.jbang.BaseTest;
 import dev.jbang.cli.ExitException;
 
-public class TestRunContext extends BaseTest {
+public class TestProjectBuilder extends BaseTest {
 
 	@Test
 	void testDuplicateAnonRepos() {
-		RunContext ctx = new RunContext();
-		ctx.setAdditionalRepositories(Arrays.asList("foo=http://foo", "foo=http://foo"));
+		ProjectBuilder pb = ProjectBuilder.create();
+		pb.additionalRepositories(Arrays.asList("foo=http://foo", "foo=http://foo"));
 		Path src = examplesTestFolder.resolve("quote.java");
-		Code code = ctx.forFile(src);
+		Project prj = pb.build(src);
 		assertThrows(ExitException.class, () -> {
-			ctx.resolveClassPath(code);
+			prj.resolveClassPath();
 		});
 	}
 
 	@Test
 	void testDuplicateNamedRepos() {
-		RunContext ctx = new RunContext();
-		ctx.setAdditionalRepositories(Arrays.asList("foo=http://foo", "foo=http://foo"));
+		ProjectBuilder pb = ProjectBuilder.create();
+		pb.additionalRepositories(Arrays.asList("foo=http://foo", "foo=http://foo"));
 		Path src = examplesTestFolder.resolve("quote.java");
-		Code code = ctx.forFile(src);
+		Project prj = pb.build(src);
 		assertThrows(ExitException.class, () -> {
-			ctx.resolveClassPath(code);
+			prj.resolveClassPath();
 		});
 	}
 
 	@Test
 	void testReposSameIdDifferentUrl() {
-		RunContext ctx = new RunContext();
-		ctx.setAdditionalRepositories(Arrays.asList("foo=http://foo", "foo=http://bar"));
+		ProjectBuilder pb = ProjectBuilder.create();
+		pb.additionalRepositories(Arrays.asList("foo=http://foo", "foo=http://bar"));
 		Path src = examplesTestFolder.resolve("quote.java");
-		Code code = ctx.forFile(src);
+		Project prj = pb.build(src);
 		assertThrows(IllegalArgumentException.class, () -> {
-			ctx.resolveClassPath(code);
+			prj.resolveClassPath();
 		});
 	}
 }

@@ -3,7 +3,6 @@ package dev.jbang.source;
 import static dev.jbang.util.Util.writeString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasItem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -15,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -156,7 +154,7 @@ public class TestSource extends BaseTest {
 		Source source = new JavaSource(exampleCommandsWithComments, null);
 		Project prj = source.createProject();
 
-		assertEquals(source.getJavaVersion(), "14+");
+		assertEquals(prj.getJavaVersion(), "14+");
 
 		List<String> deps = prj.getMainSourceSet().getDependencies();
 
@@ -201,8 +199,8 @@ public class TestSource extends BaseTest {
 		createTmpFileWithContent("pkg1", "Hello.java", exampleURLInsourceHello);
 		createTmpFileWithContent("pkg1", "Bye.java", exampleURLInsourceBye);
 		String scriptURL = mainPath.toString();
-		RunContext ctx = RunContext.empty();
-		Project prj = ctx.forResource(scriptURL);
+		ProjectBuilder pb = ProjectBuilder.create();
+		Project prj = pb.build(scriptURL);
 		assertEquals(8, prj.getMainSourceSet().getSources().size());
 	}
 
@@ -249,8 +247,8 @@ public class TestSource extends BaseTest {
 		try {
 			TrustedSources.instance().add(url, tempFile);
 
-			RunContext ctx = RunContext.empty();
-			Project prj = ctx.forResource(url);
+			ProjectBuilder pb = ProjectBuilder.create();
+			Project prj = pb.build(url);
 			assertEquals(3, prj.getMainSourceSet().getSources().size());
 			boolean foundmain = false;
 			boolean foundtwo = false;
@@ -281,45 +279,6 @@ public class TestSource extends BaseTest {
 	}
 
 	@Test
-	void testExtractDependencies() {
-		List<String> deps = Source.extractDependencies("//DEPS blah, blue").collect(Collectors.toList());
-
-		assertTrue(deps.contains("blah"));
-
-		assertTrue(deps.contains("blue"));
-
-	}
-
-	@Test
-	void textExtractRepositories() {
-		List<String> repos = Source	.extractRepositories("//REPOS jcenter=https://xyz.org")
-									.collect(Collectors.toList());
-
-		assertThat(repos, hasItem("jcenter=https://xyz.org"));
-
-		repos = Source	.extractRepositories("//REPOS jcenter=https://xyz.org localMaven xyz=file://~test")
-						.collect(Collectors.toList());
-
-		assertThat(repos, hasItem("jcenter=https://xyz.org"));
-		assertThat(repos, hasItem("localMaven"));
-		assertThat(repos, hasItem("xyz=file://~test"));
-	}
-
-	@Test
-	void textExtractRepositoriesGrape() {
-		List<String> deps = Source.extractRepositories(
-				"@GrabResolver(name=\"restlet.org\", root=\"http://maven.restlet.org\")").collect(Collectors.toList());
-
-		assertThat(deps, hasItem("restlet.org=http://maven.restlet.org"));
-
-		deps = Source	.extractRepositories("@GrabResolver(\"http://maven.restlet.org\")")
-						.collect(Collectors.toList());
-
-		assertThat(deps, hasItem("http://maven.restlet.org"));
-
-	}
-
-	@Test
 	void testExtractOptions() {
 		Source s = new JavaSource(example, null);
 
@@ -333,14 +292,14 @@ public class TestSource extends BaseTest {
 	void testNonJavaExtension(@TempDir Path output) throws IOException {
 		Path p = output.resolve("kube-example");
 		writeString(p, example);
-		RunContext ctx = RunContext.empty();
-		ctx.forResource(p.toAbsolutePath().toString());
+		ProjectBuilder pb = ProjectBuilder.create();
+		pb.build(p.toAbsolutePath().toString());
 	}
 
 	@Test
 	void testGav() {
 		Source src = new JavaSource(example, null);
-		String gav = src.getGav().get();
+		String gav = src.createProject().getGav().get();
 		assertEquals("org.example:classpath", gav);
 	}
 

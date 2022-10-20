@@ -12,43 +12,39 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.text.StringEscapeUtils;
 
-import dev.jbang.Settings;
 import dev.jbang.source.*;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
-public class JshCmdGenerator extends BaseCmdGenerator {
-	protected final Project prj;
+public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
+	private final Project project;
+	private boolean interactive;
 
-	public JshCmdGenerator(Project prj, RunContext ctx) {
-		super(ctx);
-		this.prj = prj;
+	public JshCmdGenerator interactive(boolean interactive) {
+		this.interactive = interactive;
+		return this;
+	}
+
+	public JshCmdGenerator(Project project) {
+		this.project = project;
 	}
 
 	@Override
-	protected Code getCode() {
-		return prj;
+	protected Project getProject() {
+		return project;
 	}
 
 	@Override
 	protected List<String> generateCommandLineList() throws IOException {
 		List<String> fullArgs = new ArrayList<>();
 
-		String classpath = ctx.resolveClassPath(prj).getClassPath();
+		String classpath = project.resolveClassPath().getClassPath();
 
 		List<String> optionalArgs = new ArrayList<>();
 
-		String requestedJavaVersion = ctx.getJavaVersionOr(getCode());
+		String requestedJavaVersion = getProject().getJavaVersion();
 		String javacmd;
 		javacmd = JavaUtil.resolveInJavaHome("jshell", requestedJavaVersion);
-
-		if (prj.getJarFile() != null && Files.exists(prj.getJarFile())) {
-			if (Util.isBlankString(classpath)) {
-				classpath = prj.getJarFile().toAbsolutePath().toString();
-			} else {
-				classpath = prj.getJarFile().toAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
-			}
-		}
 
 		// NB: See https://github.com/jbangdev/jbang/issues/992 for the reasons why we
 		// use the -J flags below
@@ -64,7 +60,7 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 		optionalArgs.add("--startup=DEFAULT");
 
 		Path tempFile = Files.createTempFile("jbang_arguments_",
-				prj.getResourceRef().getFile().getFileName().toString());
+				project.getResourceRef().getFile().getFileName().toString());
 
 		String defaultImports = "import java.lang.*;\n" +
 				"import java.util.*;\n" +
@@ -72,9 +68,9 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 				"import java.net.*;" +
 				"import java.math.BigInteger;\n" +
 				"import java.math.BigDecimal;\n";
-		String mainClass = ctx.getMainClassOr(prj);
+		String mainClass = project.getMainClass();
 		Util.writeString(tempFile,
-				defaultImports + generateArgs(ctx.getArguments(), ctx.getProperties()) +
+				defaultImports + generateArgs(arguments, project.getProperties()) +
 						generateStdInputHelper() +
 						generateMain(mainClass));
 		if (mainClass != null) {
@@ -87,31 +83,31 @@ public class JshCmdGenerator extends BaseCmdGenerator {
 		}
 		optionalArgs.add("--startup=" + tempFile.toAbsolutePath());
 
-		if (ctx.isDebugEnabled()) {
+		if (debugString != null) {
 			Util.warnMsg("debug not possible when running via jshell.");
 		}
-		if (ctx.isFlightRecordingEnabled()) {
+		if (flightRecorderString != null) {
 			Util.warnMsg("Java Flight Recording not possible when running via jshell.");
 		}
 
 		fullArgs.add(javacmd);
 		addAgentsArgs(fullArgs);
 
-		fullArgs.addAll(jshellOpts(ctx.getRuntimeOptionsMerged(prj)));
-		fullArgs.addAll(jshellOpts(ctx.getAutoDetectedModuleArguments(prj, requestedJavaVersion)));
+		fullArgs.addAll(jshellOpts(project.getRuntimeOptions()));
+		fullArgs.addAll(project.resolveClassPath().getAutoDectectedModuleArguments(requestedJavaVersion));
 		fullArgs.addAll(optionalArgs);
 
-		if (prj.isJShell() || ctx.getForceType() == Source.Type.jshell) {
-			ArrayList<ResourceRef> revSources = new ArrayList<>(prj.getMainSourceSet().getSources());
+		if (project.isJShell()) {
+			ArrayList<ResourceRef> revSources = new ArrayList<>(project.getMainSourceSet().getSources());
 			Collections.reverse(revSources);
 			for (ResourceRef s : revSources) {
 				fullArgs.add(s.getFile().toString());
 			}
 		}
 
-		if (!ctx.isInteractive()) {
+		if (!interactive) {
 			Path exitFile = Files.createTempFile("jbang_exit_",
-					prj.getResourceRef().getFile().getFileName().toString());
+					project.getResourceRef().getFile().getFileName().toString());
 			Util.writeString(exitFile, "/exit");
 			fullArgs.add(exitFile.toString());
 		}

@@ -3,6 +3,9 @@ package dev.jbang.source;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
@@ -10,22 +13,25 @@ import javax.annotation.Nullable;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
+import dev.jbang.cli.BaseCommand;
+import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.dependencies.ModularClassPath;
-import dev.jbang.source.generators.JarCmdGenerator;
-import dev.jbang.source.generators.JshCmdGenerator;
+import dev.jbang.source.sources.JavaSource;
+import dev.jbang.util.Util;
 
 /**
  * This class gives access to all information necessary to turn source files
  * into something that can be executed. Typically, this means that it holds
- * references to source files, resources and dependencies which can be used by a
- * <code>Builder</code> to create a JAR file, for example.
+ * references to source files, resources and dependencies which can be used by
+ * the <code>AppBuilder</code> to create a JAR file, for example.
  */
-public class Project implements Code {
+public class Project {
 	@Nonnull
 	private final ResourceRef resourceRef;
 	private Source mainSource;
+	private Supplier<CmdGenerator> cmdGeneratorFactory;
 
 	// Public (user) input values (can be changed from the outside at any time)
 	private final SourceSet mainSourceSet = new SourceSet();
@@ -33,15 +39,16 @@ public class Project implements Code {
 	private final List<String> runtimeOptions = new ArrayList<>();
 	private Map<String, String> properties = new HashMap<>();
 	private final Map<String, String> manifestAttributes = new LinkedHashMap<>();
+	private List<Project> javaAgents = new ArrayList<>();
 	private String javaVersion;
 	private String description;
 	private String gav;
 	private String mainClass;
 	private boolean nativeImage;
+	private Path cacheDir;
 
 	// Cached values
 	private Path jarFile;
-	private Jar jar;
 	private ModularClassPath mcp;
 
 	public static final String ATTR_PREMAIN_CLASS = "Premain-Class";
@@ -63,7 +70,7 @@ public class Project implements Code {
 
 	public Project(@Nonnull ResourceRef resourceRef) {
 		this.resourceRef = resourceRef;
-		if (Code.isJar(resourceRef.getFile())) {
+		if (Project.isJar(resourceRef.getFile())) {
 			jarFile = resourceRef.getFile();
 		}
 	}
@@ -74,7 +81,6 @@ public class Project implements Code {
 		this.mainSource = mainSource;
 	}
 
-	@Override
 	@Nonnull
 	public ResourceRef getResourceRef() {
 		return resourceRef;
@@ -120,11 +126,22 @@ public class Project implements Code {
 	}
 
 	@Nonnull
-	public Map<String, String> getProperties() {
-		return properties;
+	public List<Project> getJavaAgents() {
+		return Collections.unmodifiableList(javaAgents);
 	}
 
-	public void setProperties(@Nonnull Map<String, String> properties) {
+	@Nonnull
+	public Project addJavaAgents(List<Project> javaAgents) {
+		this.javaAgents.addAll(javaAgents);
+		return this;
+	}
+
+	@Nonnull
+	public Map<String, String> getProperties() {
+		return Collections.unmodifiableMap(properties);
+	}
+
+	public void putProperties(@Nonnull Map<String, String> properties) {
 		this.properties = properties;
 	}
 
@@ -164,7 +181,6 @@ public class Project implements Code {
 	}
 
 	@Nonnull
-	@Override
 	public Optional<String> getGav() {
 		return Optional.ofNullable(gav);
 	}
@@ -175,7 +191,6 @@ public class Project implements Code {
 		return this;
 	}
 
-	@Override
 	public String getMainClass() {
 		return mainClass;
 	}
@@ -192,9 +207,25 @@ public class Project implements Code {
 		this.nativeImage = isNative;
 	}
 
-	@Override
 	public boolean enableCDS() {
 		return mainSource != null && mainSource.enableCDS();
+	}
+
+	@Nullable
+	public Source getMainSource() {
+		return mainSource;
+	}
+
+	public void setMainSource(Source mainSource) {
+		this.mainSource = mainSource;
+	}
+
+	public void setCacheDir(Path cacheDir) {
+		this.cacheDir = cacheDir;
+	}
+
+	public void setCmdGeneratorFactory(Supplier<CmdGenerator> cmdGeneratorFactory) {
+		this.cmdGeneratorFactory = cmdGeneratorFactory;
 	}
 
 	@Nonnull
@@ -213,43 +244,53 @@ public class Project implements Code {
 		return getMainSourceSet().updateDependencyResolver(resolver);
 	}
 
-	@Nullable
-	public Source getMainSource() {
-		return mainSource;
-	}
-
-	public void setMainSource(Source mainSource) {
-		this.mainSource = mainSource;
-	}
-
-	@Override
 	public Path getJarFile() {
 		if (isJShell()) {
 			return null;
 		}
 		if (jarFile == null) {
-			Path baseDir = Settings.getCacheDir(Cache.CacheClass.jars);
-			Path tmpJarDir = baseDir.resolve(
-					getResourceRef().getFile().getFileName() + "." + getMainSourceSet().getStableId());
-			jarFile = tmpJarDir.getParent().resolve(tmpJarDir.getFileName() + ".jar");
+			jarFile = getTempPath(".jar");
 		}
 		return jarFile;
 	}
 
-	@Override
-	public Jar asJar() {
-		if (jar == null) {
-			Path f = getJarFile();
-			if (f != null && Files.exists(f)) {
-				jar = Jar.prepareJar(this);
-			}
+	public Path getNativeImageFile() {
+		if (isJShell()) {
+			return null;
 		}
-		return jar;
+		if (Util.isWindows()) {
+			return getTempPath(".exe");
+		} else {
+			return getTempPath(".bin");
+		}
 	}
 
-	@Override
-	public Project asProject() {
-		return this;
+	public Path getBuildDir() {
+		if (cacheDir != null) {
+			return cacheDir.resolve("classes");
+		} else {
+			return getTempPath(".tmp");
+		}
+	}
+
+	@Nonnull
+	private Path getTempPath(String extension) {
+		if (cacheDir != null) {
+			return cacheDir.resolve(Util.sourceBase(getResourceRef().getFile().getFileName().toString()) + extension);
+		} else {
+			Path baseDir = Settings.getCacheDir(Cache.CacheClass.jars);
+			return baseDir.resolve(
+					getResourceRef().getFile().getFileName() + "." + getMainSourceSet().getStableId() + extension);
+		}
+	}
+
+	/**
+	 * Determines if the associated jar is up-to-date, returns false if it needs to
+	 * be rebuilt
+	 */
+	public boolean isUpToDate() {
+		return getJarFile() != null && Files.exists(getJarFile())
+				&& updateDependencyResolver(new DependencyResolver()).resolve().isValid();
 	}
 
 	/**
@@ -258,13 +299,16 @@ public class Project implements Code {
 	 * 
 	 * @return A <code>Builder</code>
 	 */
-	@Override
 	@Nonnull
-	public Builder builder() {
+	public Builder<Project> builder() {
 		if (mainSource != null) {
 			return mainSource.getBuilder(this);
 		} else {
-			return this::asJar;
+			if (isJar() && nativeImage) {
+				return new JavaSource.JavaAppBuilder(this);
+			} else {
+				return () -> this;
+			}
 		}
 	}
 
@@ -272,17 +316,51 @@ public class Project implements Code {
 	 * Returns a <code>CmdGenerator</code> that can be used to generate the command
 	 * line which, when used in a shell or any other CLI, would run this
 	 * <code>Project</code>'s code.
-	 * 
-	 * @param ctx A reference to a <code>RunContext</code>
+	 *
 	 * @return A <code>CmdGenerator</code>
 	 */
-	@Override
 	@Nonnull
-	public CmdGenerator cmdGenerator(RunContext ctx) {
-		if (isJShell() || ctx.getForceType() == Source.Type.jshell || ctx.isInteractive()) {
-			return new JshCmdGenerator(this, ctx);
+	public CmdGenerator cmdGenerator() {
+		if (cmdGeneratorFactory != null) {
+			return cmdGeneratorFactory.get();
 		} else {
-			return new JarCmdGenerator(this, ctx);
+			throw new ExitException(BaseCommand.EXIT_INTERNAL_ERROR, "Missing CmdGenerator factory for Project");
 		}
+	}
+
+	public boolean isJar() {
+		return Project.isJar(getResourceRef().getFile());
+	}
+
+	static boolean isJar(Path backingFile) {
+		return backingFile != null && backingFile.toString().endsWith(".jar");
+	}
+
+	public boolean isJShell() {
+		return Project.isJShell(getResourceRef().getFile());
+	}
+
+	static boolean isJShell(Path backingFile) {
+		return backingFile != null && backingFile.toString().endsWith(".jsh");
+	}
+
+	// https://stackoverflow.com/questions/366202/regex-for-splitting-a-string-using-space-when-not-surrounded-by-single-or-double
+	static List<String> quotedStringToList(String subjectString) {
+		List<String> matchList = new ArrayList<>();
+		Pattern regex = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
+		Matcher regexMatcher = regex.matcher(subjectString);
+		while (regexMatcher.find()) {
+			if (regexMatcher.group(1) != null) {
+				// Add double-quoted string without the quotes
+				matchList.add(regexMatcher.group(1));
+			} else if (regexMatcher.group(2) != null) {
+				// Add single-quoted string without the quotes
+				matchList.add(regexMatcher.group(2));
+			} else {
+				// Add unquoted word
+				matchList.add(regexMatcher.group());
+			}
+		}
+		return matchList;
 	}
 }

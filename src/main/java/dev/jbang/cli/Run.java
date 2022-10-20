@@ -9,9 +9,8 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import dev.jbang.source.Code;
 import dev.jbang.source.Project;
-import dev.jbang.source.RunContext;
+import dev.jbang.source.ProjectBuilder;
 import dev.jbang.source.Source;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.util.Util;
@@ -73,7 +72,7 @@ public class Run extends BaseBuildCommand {
 		requireScriptArgument();
 		String scriptOrFile = scriptMixin.scriptOrFile;
 
-		RunContext ctx = getRunContext();
+		ProjectBuilder pb = createProjectBuilder();
 		Project prj;
 		if (literalScript.isPresent()) {
 			String script;
@@ -82,68 +81,61 @@ public class Run extends BaseBuildCommand {
 				if (scriptOrFile != null) {
 					List<String> args = new ArrayList<>();
 					args.add(scriptOrFile);
-					args.addAll(ctx.getArguments());
-					ctx.setArguments(args);
+					args.addAll(pb.getArguments());
+					pb.setArguments(args);
 				}
 			} else {
 				script = scriptOrFile;
 			}
 			Util.verboseMsg("Literal Script to execute: '" + script + "'");
-			prj = ctx.forResourceRef(LiteralScriptResourceResolver.stringToResourceRef(null, script));
+			prj = pb.build(LiteralScriptResourceResolver.stringToResourceRef(null, script));
 		} else {
 			if (scriptOrFile != null) {
-				prj = ctx.forResource(scriptOrFile);
+				prj = pb.build(scriptOrFile);
 			} else {
 				// HACK it's a crappy way to work around the fact that in the case of
 				// interactive we might not have a file to reference but all the code
 				// expects one to exist
-				prj = ctx.forResourceRef(LiteralScriptResourceResolver.stringToResourceRef(null, ""));
+				prj = pb.build(LiteralScriptResourceResolver.stringToResourceRef(null, ""));
 			}
 		}
 
-		Code code = prepareArtifacts(prj, ctx);
+		prj.builder().build();
 
-		if (ctx.isNativeImage() && (ctx.getForceType() == Source.Type.jshell || code.isJShell())) {
+		if (nativeImage && (scriptMixin.forceType == Source.Type.jshell || prj.isJShell())) {
 			warn(".jsh cannot be used with --native thus ignoring --native.");
-			ctx.setNativeImage(false);
+			pb.nativeImage(false);
 		}
 
-		String cmdline = code.cmdGenerator(ctx).generate();
+		String cmdline = prj.cmdGenerator().generate();
 		debug("run: " + cmdline);
 		out.println(cmdline);
 
 		return EXIT_EXECUTE;
 	}
 
-	RunContext getRunContext() {
-		RunContext ctx = super.getRunContext();
-		ctx.setArguments(userParams);
-		ctx.setJavaOptions(javaRuntimeOptions);
-		ctx.setInteractive(interactive);
-		ctx.setMainRequired(!interactive);
-		ctx.setEnableAssertions(enableAssertions);
-		ctx.setEnableSystemAssertions(enableSystemAssertions);
-		ctx.setFlightRecorderString(flightRecorderString);
-		ctx.setDebugString(debugString);
-		ctx.setClassDataSharing(cds);
-		return ctx;
-	}
-
-	Code prepareArtifacts(Code code, RunContext ctx) throws IOException {
-		code = code.builder().build();
-
+	ProjectBuilder createProjectBuilder() {
+		ProjectBuilder pb = super.createProjectBuilder()
+														.setArguments(userParams)
+														.javaOptions(javaRuntimeOptions)
+														.interactive(interactive)
+														.enableAssertions(enableAssertions)
+														.enableSystemAssertions(enableSystemAssertions)
+														.flightRecorderString(flightRecorderString)
+														.debugString(debugString)
+														.classDataSharing(cds);
 		if (javaAgentSlots != null) {
 			for (Map.Entry<String, String> agentOption : javaAgentSlots.entrySet()) {
 				String javaAgent = agentOption.getKey();
 				String javaAgentOptions = agentOption.getValue();
-				RunContext actx = super.getRunContext();
-				actx.setJavaAgentOption(javaAgentOptions);
-				Code asrc = actx.forResource(javaAgent).builder().build();
-				ctx.addJavaAgent(asrc, actx);
+				ProjectBuilder apb = super.createProjectBuilder();
+				Project aprj = apb.build(javaAgent);
+				aprj.addRuntimeOption("-javaagent:" + aprj.getJarFile()
+						+ (javaAgentOptions != null ? "=" + javaAgentOptions : ""));
+				pb.addJavaAgent(aprj);
 			}
 		}
-
-		return code;
+		return pb;
 	}
 
 	/**

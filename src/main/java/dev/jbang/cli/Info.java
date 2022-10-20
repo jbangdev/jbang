@@ -3,6 +3,8 @@ package dev.jbang.cli;
 import static dev.jbang.Settings.CP_SEPARATOR;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -18,6 +20,7 @@ import com.google.gson.GsonBuilder;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.net.JdkManager;
 import dev.jbang.source.*;
+import dev.jbang.util.JavaUtil;
 
 import picocli.CommandLine;
 
@@ -34,14 +37,22 @@ abstract class BaseInfoCommand extends BaseCommand {
 	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
 
-	static class ResourceFile {
+	@CommandLine.Option(names = {
+			"--build-dir" }, description = "Use given directory for build results")
+	Path buildDir;
+
+	static class ProjectFile {
 		String originalResource;
 		String backingResource;
 		String target;
 
-		ResourceFile(RefTarget ref) {
-			originalResource = ref.getSource().getOriginalResource();
-			backingResource = ref.getSource().getFile().toString();
+		ProjectFile(ResourceRef ref) {
+			originalResource = ref.getOriginalResource();
+			backingResource = ref.getFile().toString();
+		}
+
+		ProjectFile(RefTarget ref) {
+			this(ref.getSource());
 			target = Objects.toString(ref.getTarget(), null);
 		}
 	}
@@ -60,6 +71,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String originalResource;
 		String backingResource;
 		String applicationJar;
+		String nativeImage;
 		String mainClass;
 		List<String> dependencies;
 		List<Repo> repositories;
@@ -69,49 +81,47 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String availableJdkPath;
 		List<String> compileOptions;
 		List<String> runtimeOptions;
-		List<ResourceFile> files;
-		List<ScriptInfo> sources;
+		List<ProjectFile> files;
+		List<ProjectFile> sources;
 		String description;
 		String gav;
 
-		public ScriptInfo(Code code, RunContext ctx) {
-			originalResource = code.getResourceRef().getOriginalResource();
+		public ScriptInfo(Project prj, ProjectBuilder pb) {
+			originalResource = prj.getResourceRef().getOriginalResource();
 
 			if (scripts.add(originalResource)) {
-				backingResource = code.getResourceRef().getFile().toString();
+				backingResource = prj.getResourceRef().getFile().toString();
 
-				init(code.asProject());
+				init(prj);
 
-				if (ctx != null) {
-					applicationJar = code.getJarFile() == null ? null : code.getJarFile().toAbsolutePath().toString();
-					mainClass = ctx.getMainClassOr(code);
-					requestedJavaVersion = code.getJavaVersion();
+				if (pb != null) {
+					applicationJar = prj.getJarFile() == null ? null : prj.getJarFile().toAbsolutePath().toString();
+					nativeImage = prj.getNativeImageFile() == null || !Files.exists(prj.getNativeImageFile()) ? null
+							: prj.getNativeImageFile().toAbsolutePath().toString();
+					mainClass = prj.getMainClass();
+					requestedJavaVersion = prj.getJavaVersion();
 					availableJdkPath = Objects.toString(JdkManager.getCurrentJdk(requestedJavaVersion), null);
 
-					String cp = ctx.resolveClassPath(code).getClassPath();
+					String cp = prj.resolveClassPath().getClassPath();
 					if (cp.isEmpty()) {
 						resolvedDependencies = Collections.emptyList();
 					} else {
 						resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 					}
 
-					if (code.asJar() != null && code.asJar().getBuildJdk() > 0) {
-						javaVersion = Integer.toString(code.asJar().getBuildJdk());
+					// TODO remove if everything okay
+					// if (prj.isJar() && prj.getBuildJdk() > 0) {
+					// javaVersion = Integer.toString(prj.getBuildJdk());
+					// }
+					if (prj.getJavaVersion() != null) {
+						javaVersion = Integer.toString(JavaUtil.parseJavaVersion(prj.getJavaVersion()));
 					}
 
-					List<String> opts = ctx.getRuntimeOptionsMerged(code);
+					List<String> opts = prj.getRuntimeOptions();
 					if (!opts.isEmpty()) {
 						runtimeOptions = opts;
 					}
 				}
-			}
-		}
-
-		public ScriptInfo(Source source) {
-			originalResource = source.getResourceRef().getOriginalResource();
-			if (scripts.add(originalResource)) {
-				backingResource = source.getResourceRef().getFile().toString();
-				init(source);
 			}
 		}
 
@@ -127,41 +137,39 @@ abstract class BaseInfoCommand extends BaseCommand {
 										.map(Repo::new)
 										.collect(Collectors.toList());
 				}
-				gav = prj.getGav().orElse(null);
-				description = prj.getDescription().orElse(null);
 			} else {
-				init(prj.getMainSource());
+				init(prj.getMainSourceSet());
 			}
+			if (!prj.getRepositories().isEmpty()) {
+				repositories = prj	.getRepositories()
+									.stream()
+									.map(Repo::new)
+									.collect(Collectors.toList());
+			}
+			gav = prj.getGav().orElse(null);
+			description = prj.getDescription().orElse(null);
 		}
 
-		private void init(Source source) {
-			List<String> deps = source.collectDependencies();
+		private void init(SourceSet ss) {
+			List<String> deps = ss.getDependencies();
 			if (!deps.isEmpty()) {
 				dependencies = deps;
 			}
-			if (!source.collectRepositories().isEmpty()) {
-				repositories = source	.collectRepositories()
-										.stream()
-										.map(Repo::new)
-										.collect(Collectors.toList());
-			}
-			List<RefTarget> refs = source.collectFiles();
+			List<RefTarget> refs = ss.getResources();
 			if (!refs.isEmpty()) {
 				files = refs.stream()
-							.map(ResourceFile::new)
+							.map(ProjectFile::new)
 							.collect(Collectors.toList());
 			}
-			List<Source> srcs = source.collectSources();
+			List<ResourceRef> srcs = ss.getSources();
 			if (!srcs.isEmpty()) {
 				sources = srcs	.stream()
-								.map(ScriptInfo::new)
+								.map(ProjectFile::new)
 								.collect(Collectors.toList());
 			}
-			if (!source.getCompileOptions().isEmpty()) {
-				compileOptions = source.getCompileOptions();
+			if (!ss.getCompileOptions().isEmpty()) {
+				compileOptions = ss.getCompileOptions();
 			}
-			gav = source.getGav().orElse(null);
-			description = source.getDescription().orElse(null);
 		}
 
 	}
@@ -171,28 +179,25 @@ abstract class BaseInfoCommand extends BaseCommand {
 	ScriptInfo getInfo() {
 		scriptMixin.validate();
 
-		RunContext ctx = getRunContext();
-		Code code = ctx.forResource(scriptMixin.scriptOrFile);
-		if (code.asJar() != null) {
-			code = code.asJar();
-		}
+		ProjectBuilder pb = createProjectBuilder();
+		Project prj = pb.build(scriptMixin.scriptOrFile);
 
 		scripts = new HashSet<>();
 
-		return new ScriptInfo(code, ctx);
+		return new ScriptInfo(prj, pb);
 	}
 
-	RunContext getRunContext() {
-		RunContext ctx = new RunContext();
-		ctx.setProperties(dependencyInfoMixin.getProperties());
-		ctx.setAdditionalDependencies(dependencyInfoMixin.getDependencies());
-		ctx.setAdditionalRepositories(dependencyInfoMixin.getRepositories());
-		ctx.setAdditionalClasspaths(dependencyInfoMixin.getClasspaths());
-		ctx.setAdditionalSources(scriptMixin.sources);
-		ctx.setAdditionalResources(scriptMixin.resources);
-		ctx.setForceType(scriptMixin.forceType);
-		ctx.setCatalog(scriptMixin.catalog);
-		return ctx;
+	ProjectBuilder createProjectBuilder() {
+		return ProjectBuilder	.create()
+								.setProperties(dependencyInfoMixin.getProperties())
+								.additionalDependencies(dependencyInfoMixin.getDependencies())
+								.additionalRepositories(dependencyInfoMixin.getRepositories())
+								.additionalClasspaths(dependencyInfoMixin.getClasspaths())
+								.additionalSources(scriptMixin.sources)
+								.additionalResources(scriptMixin.resources)
+								.forceType(scriptMixin.forceType)
+								.catalog(scriptMixin.catalog)
+								.buildDir(buildDir);
 	}
 
 }

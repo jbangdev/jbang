@@ -1,6 +1,5 @@
 package dev.jbang.source.sources;
 
-import java.io.IOException;
 import java.util.function.Function;
 
 import dev.jbang.source.*;
@@ -15,12 +14,7 @@ public class JshSource extends JavaSource {
 	}
 
 	@Override
-	public Builder getBuilder(Project prj) {
-		return new Builder() {
-			@Override
-			public Project build() throws IOException {
-				return prj;
-			}
-		};
+	public Builder<Project> getBuilder(Project prj) {
+		return () -> prj;
 	}
 }

@@ -1,6 +1,5 @@
 package dev.jbang.cli;
 
-import static dev.jbang.source.builders.BaseBuilder.getImageName;
 import static dev.jbang.util.JavaUtil.resolveInJavaHome;
 
 import java.io.IOException;
@@ -16,8 +15,8 @@ import java.util.jar.Manifest;
 import dev.jbang.Settings;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenCoordinate;
-import dev.jbang.source.Code;
-import dev.jbang.source.RunContext;
+import dev.jbang.source.Project;
+import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
 
@@ -74,26 +73,26 @@ abstract class BaseExportCommand extends BaseCommand {
 	@Override
 	public Integer doCall() throws IOException {
 		exportMixin.validate();
-		RunContext ctx = getRunContext(exportMixin);
-		Code code = ctx.forResource(exportMixin.scriptMixin.scriptOrFile).builder().build();
-		return apply(code, ctx);
+		ProjectBuilder pb = createProjectBuilder(exportMixin);
+		Project prj = pb.build(exportMixin.scriptMixin.scriptOrFile).builder().build();
+		return apply(prj, pb);
 	}
 
-	abstract int apply(Code code, RunContext ctx) throws IOException;
+	abstract int apply(Project prj, ProjectBuilder pb) throws IOException;
 
-	protected RunContext getRunContext(ExportMixin exportMixin) {
-		RunContext ctx = new RunContext();
-		ctx.setProperties(exportMixin.dependencyInfoMixin.getProperties());
-		ctx.setAdditionalDependencies(exportMixin.dependencyInfoMixin.getDependencies());
-		ctx.setAdditionalRepositories(exportMixin.dependencyInfoMixin.getRepositories());
-		ctx.setAdditionalClasspaths(exportMixin.dependencyInfoMixin.getClasspaths());
-		ctx.setAdditionalSources(exportMixin.scriptMixin.sources);
-		ctx.setAdditionalResources(exportMixin.scriptMixin.resources);
-		ctx.setForceType(exportMixin.scriptMixin.forceType);
-		ctx.setCatalog(exportMixin.scriptMixin.catalog);
-		ctx.setJavaVersion(exportMixin.buildMixin.javaVersion);
-		ctx.setMainClass(exportMixin.buildMixin.main);
-		return ctx;
+	protected ProjectBuilder createProjectBuilder(ExportMixin exportMixin) {
+		return ProjectBuilder
+								.create()
+								.setProperties(exportMixin.dependencyInfoMixin.getProperties())
+								.additionalDependencies(exportMixin.dependencyInfoMixin.getDependencies())
+								.additionalRepositories(exportMixin.dependencyInfoMixin.getRepositories())
+								.additionalClasspaths(exportMixin.dependencyInfoMixin.getClasspaths())
+								.additionalSources(exportMixin.scriptMixin.sources)
+								.additionalResources(exportMixin.scriptMixin.resources)
+								.forceType(exportMixin.scriptMixin.forceType)
+								.catalog(exportMixin.scriptMixin.catalog)
+								.javaVersion(exportMixin.buildMixin.javaVersion)
+								.mainClass(exportMixin.buildMixin.main);
 	}
 }
 
@@ -101,9 +100,9 @@ abstract class BaseExportCommand extends BaseCommand {
 class ExportLocal extends BaseExportCommand {
 
 	@Override
-	int apply(Code code, RunContext ctx) throws IOException {
+	int apply(Project prj, ProjectBuilder pb) throws IOException {
 		// Copy the JAR
-		Path source = code.getJarFile();
+		Path source = prj.getJarFile();
 		Path outputPath = exportMixin.getJarOutputPath();
 		if (outputPath.toFile().exists()) {
 			if (exportMixin.force) {
@@ -117,13 +116,13 @@ class ExportLocal extends BaseExportCommand {
 
 		// Update the JAR's MANIFEST.MF Class-Path to point to
 		// its dependencies
-		String newPath = ctx.resolveClassPath(code).getManifestPath();
+		String newPath = prj.resolveClassPath().getManifestPath();
 		if (!newPath.isEmpty()) {
 			Path tempManifest = createManifest(newPath);
 
 			String javaVersion = exportMixin.buildMixin.javaVersion != null
 					? exportMixin.buildMixin.javaVersion
-					: code.getJavaVersion();
+					: prj.getJavaVersion();
 			updateJarManifest(outputPath, tempManifest, javaVersion);
 		}
 
@@ -138,9 +137,9 @@ class ExportPortable extends BaseExportCommand {
 	public static final String LIB = "lib";
 
 	@Override
-	int apply(Code code, RunContext ctx) throws IOException {
+	int apply(Project prj, ProjectBuilder pb) throws IOException {
 		// Copy the JAR
-		Path source = code.getJarFile();
+		Path source = prj.getJarFile();
 		Path outputPath = exportMixin.getJarOutputPath();
 		if (outputPath.toFile().exists()) {
 			if (exportMixin.force) {
@@ -152,7 +151,7 @@ class ExportPortable extends BaseExportCommand {
 		}
 
 		Files.copy(source, outputPath);
-		List<ArtifactInfo> deps = ctx.resolveClassPath(code).getArtifacts();
+		List<ArtifactInfo> deps = prj.resolveClassPath().getArtifacts();
 		if (!deps.isEmpty()) {
 			// Copy dependencies to "./lib" dir
 			Path libDir = outputPath.getParent().resolve(LIB);
@@ -167,7 +166,7 @@ class ExportPortable extends BaseExportCommand {
 
 			String javaVersion = exportMixin.buildMixin.javaVersion != null
 					? exportMixin.buildMixin.javaVersion
-					: code.getJavaVersion();
+					: prj.getJavaVersion();
 			updateJarManifest(outputPath, tempManifest, javaVersion);
 		}
 		Util.infoMsg("Exported to " + outputPath);
@@ -188,14 +187,14 @@ class ExportMavenPublish extends BaseExportCommand {
 	String version;
 
 	@Override
-	int apply(Code code, RunContext ctx) throws IOException {
+	int apply(Project prj, ProjectBuilder pb) throws IOException {
 		Path outputPath = exportMixin.outputFile;
 
 		if (outputPath == null) {
 			outputPath = Settings.getLocalMavenRepo();
 		}
 		// Copy the JAR
-		Path source = code.getJarFile();
+		Path source = prj.getJarFile();
 
 		if (!outputPath.toFile().isDirectory()) {
 			if (outputPath.toFile().exists()) {
@@ -210,8 +209,8 @@ class ExportMavenPublish extends BaseExportCommand {
 			}
 		}
 
-		if (code.getGav().isPresent()) {
-			MavenCoordinate coord = MavenCoordinate.fromString(code.getGav().get()).withVersion();
+		if (prj.getGav().isPresent()) {
+			MavenCoordinate coord = MavenCoordinate.fromString(prj.getGav().get()).withVersion();
 			if (group == null) {
 				group = coord.getGroupId();
 			}
@@ -231,7 +230,7 @@ class ExportMavenPublish extends BaseExportCommand {
 		Path groupdir = outputPath.resolve(Paths.get(group.replace(".", "/")));
 
 		artifact = artifact != null ? artifact
-				: Util.getBaseName(code.getResourceRef().getFile().getFileName().toString());
+				: Util.getBaseName(prj.getResourceRef().getFile().getFileName().toString());
 		Path artifactDir = groupdir.resolve(artifact);
 
 		version = version != null ? version : MavenCoordinate.DEFAULT_VERSION;
@@ -268,12 +267,12 @@ class ExportMavenPublish extends BaseExportCommand {
 			String pomfile = pomTemplate
 										.data("baseName",
 												Util.getBaseName(
-														code.getResourceRef().getFile().getFileName().toString()))
+														prj.getResourceRef().getFile().getFileName().toString()))
 										.data("group", group)
 										.data("artifact", artifact)
 										.data("version", version)
-										.data("description", code.getDescription().orElse(""))
-										.data("dependencies", ctx.resolveClassPath(code).getArtifacts())
+										.data("description", prj.getDescription().orElse(""))
+										.data("dependencies", prj.resolveClassPath().getArtifacts())
 										.render();
 			Util.infoMsg("Writing " + pomPath);
 			Util.writeString(pomPath, pomfile);
@@ -289,9 +288,9 @@ class ExportMavenPublish extends BaseExportCommand {
 class ExportNative extends BaseExportCommand {
 
 	@Override
-	int apply(Code code, RunContext ctx) throws IOException {
+	int apply(Project prj, ProjectBuilder pb) throws IOException {
 		// Copy the native binary
-		Path source = getImageName(code.getJarFile());
+		Path source = prj.getNativeImageFile();
 		Path outputPath = exportMixin.getNativeOutputPath();
 		if (outputPath.toFile().exists()) {
 			if (exportMixin.force) {
@@ -308,9 +307,9 @@ class ExportNative extends BaseExportCommand {
 	}
 
 	@Override
-	protected RunContext getRunContext(ExportMixin exportMixin) {
-		RunContext ctx = super.getRunContext(exportMixin);
-		ctx.setNativeImage(true);
-		return ctx;
+	protected ProjectBuilder createProjectBuilder(ExportMixin exportMixin) {
+		ProjectBuilder pb = super.createProjectBuilder(exportMixin);
+		pb.nativeImage(true);
+		return pb;
 	}
 }

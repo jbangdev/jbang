@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
 import dev.jbang.source.Project;
-import dev.jbang.source.RunContext;
+import dev.jbang.source.ProjectBuilder;
 import dev.jbang.source.TestSource;
 
 public class TestEditWithPackage extends BaseTest {
@@ -54,9 +54,9 @@ public class TestEditWithPackage extends BaseTest {
 		Path BPath = TestSource.createTmpFileWithContent(mainPath.getParent(), "person", "B.java", classB);
 		Path CPath = TestSource.createTmpFileWithContent(BPath.getParent(), "model", "C.java", classC);
 		assertTrue(mainPath.toFile().exists());
-		RunContext ctx = RunContext.empty();
-		Project prj = ctx.forResource(mainPath.toString());
-		Path project = new Edit().createProjectForLinkedEdit(prj, ctx, false);
+		ProjectBuilder pb = ProjectBuilder.create();
+		Project prj = pb.build(mainPath.toString());
+		Path project = new Edit().createProjectForLinkedEdit(prj, pb, false);
 		assertTrue(Files.exists(project.resolve("src/A.java")));
 		assertTrue(Files.exists(project.resolve("src/person/B.java")));
 		assertTrue(Files.exists(project.resolve("src/person/model/C.java")));

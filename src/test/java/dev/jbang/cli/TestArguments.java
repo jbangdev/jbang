@@ -2,6 +2,7 @@ package dev.jbang.cli;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,7 +37,7 @@ class TestArguments extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assert run.helpRequested;
-		assertThat(run.getRunContext().isDebugEnabled(), is(true));
+		assertThat(run.debugString, notNullValue());
 		assertThat(run.scriptMixin.scriptOrFile, is("myfile.java"));
 		assertThat(run.userParams.size(), is(0));
 
@@ -47,7 +48,6 @@ class TestArguments extends BaseTest {
 		CommandLine.ParseResult pr = cli.parseArgs("run", "--debug", "test.java", "--debug", "wonka");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		assertThat(run.getRunContext().isDebugEnabled(), is(true));
 		assertThat(run.debugString, is("4004"));
 
 		assertThat(run.scriptMixin.scriptOrFile, is("test.java"));
@@ -86,7 +86,7 @@ class TestArguments extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.scriptMixin.scriptOrFile, is("test.java"));
-		assertThat(run.getRunContext().isDebugEnabled(), is(true));
+		assertThat(run.debugString, notNullValue());
 	}
 
 	@Test
@@ -95,7 +95,7 @@ class TestArguments extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.scriptMixin.scriptOrFile, is("test.java"));
-		assertThat(run.getRunContext().isDebugEnabled(), is(true));
+		assertThat(run.debugString, notNullValue());
 		assertThat(run.debugString, is("*:5000"));
 	}
 
@@ -105,7 +105,7 @@ class TestArguments extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.scriptMixin.scriptOrFile, is("test.java"));
-		assertThat(run.getRunContext().isDebugEnabled(), is(true));
+		assertThat(run.debugString, notNullValue());
 		assertThat(run.debugString, is("xyz.dk:5005"));
 	}
 

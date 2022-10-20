@@ -16,6 +16,7 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import dev.jbang.Cache;
@@ -59,14 +60,14 @@ public class Edit extends BaseCommand {
 	public Integer doCall() throws IOException {
 		scriptMixin.validate();
 
-		RunContext ctx = getRunContext();
-		final Project prj = ctx.forResource(scriptMixin.scriptOrFile);
+		ProjectBuilder pb = createProjectBuilder();
+		final Project prj = pb.build(scriptMixin.scriptOrFile);
 
 		if (prj.isJar() || prj.getMainSourceSet().getSources().isEmpty()) {
 			throw new ExitException(EXIT_INVALID_INPUT, "You can only edit source files");
 		}
 
-		Path project = createProjectForLinkedEdit(prj, ctx, false);
+		Path project = createProjectForLinkedEdit(prj, pb, false);
 		String projectPathString = Util.pathToString(project.toAbsolutePath());
 		// err.println(project.getAbsolutePath());
 
@@ -81,7 +82,7 @@ public class Edit extends BaseCommand {
 				// TODO only regenerate when dependencies changes.
 				info("Regenerating project.");
 				try {
-					createProjectForLinkedEdit(prj, RunContext.empty(), true);
+					createProjectForLinkedEdit(prj, ProjectBuilder.create(), true);
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
@@ -91,12 +92,12 @@ public class Edit extends BaseCommand {
 		return EXIT_OK;
 	}
 
-	private void watchForChanges(Code code, Callable<Object> action) throws IOException {
+	private void watchForChanges(Project prj, Callable<Object> action) throws IOException {
 		try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
-			Path orginalFile = code.getResourceRef().getFile();
+			Path orginalFile = prj.getResourceRef().getFile();
 			if (!Files.exists(orginalFile)) {
 				throw new ExitException(EXIT_UNEXPECTED_STATE,
-						"Cannot live edit " + code.getResourceRef().getOriginalResource());
+						"Cannot live edit " + prj.getResourceRef().getOriginalResource());
 			}
 			Path watched = orginalFile.toAbsolutePath().getParent();
 			watched.register(watchService,
@@ -167,16 +168,16 @@ public class Edit extends BaseCommand {
 		return true;
 	}
 
-	RunContext getRunContext() {
-		RunContext ctx = new RunContext();
-		ctx.setProperties(dependencyInfoMixin.getProperties());
-		ctx.setAdditionalDependencies(dependencyInfoMixin.getDependencies());
-		ctx.setAdditionalRepositories(dependencyInfoMixin.getRepositories());
-		ctx.setAdditionalClasspaths(dependencyInfoMixin.getClasspaths());
-		ctx.setAdditionalSources(scriptMixin.sources);
-		ctx.setAdditionalResources(scriptMixin.resources);
-		ctx.setForceType(scriptMixin.forceType);
-		return ctx;
+	ProjectBuilder createProjectBuilder() {
+		return ProjectBuilder
+								.create()
+								.setProperties(dependencyInfoMixin.getProperties())
+								.additionalDependencies(dependencyInfoMixin.getDependencies())
+								.additionalRepositories(dependencyInfoMixin.getRepositories())
+								.additionalClasspaths(dependencyInfoMixin.getClasspaths())
+								.additionalSources(scriptMixin.sources)
+								.additionalResources(scriptMixin.resources)
+								.forceType(scriptMixin.forceType);
 	}
 
 	private static Optional<String> askEditor() throws IOException {
@@ -284,11 +285,11 @@ public class Edit extends BaseCommand {
 	}
 
 	/** Create Project to use for editing **/
-	Path createProjectForLinkedEdit(Project prj, RunContext ctx, boolean reload) throws IOException {
+	Path createProjectForLinkedEdit(Project prj, ProjectBuilder pb, boolean reload) throws IOException {
 		Path originalFile = prj.getResourceRef().getFile();
 
 		List<String> dependencies = prj.getMainSourceSet().getDependencies();
-		String cp = ctx.resolveClassPath(prj).getClassPath();
+		String cp = prj.resolveClassPath().getClassPath();
 		List<String> resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 
 		Path baseDir = Settings.getCacheDir(Cache.CacheClass.projects);
@@ -309,8 +310,8 @@ public class Edit extends BaseCommand {
 		Util.createLink(srcFile, originalFile);
 
 		for (ResourceRef sourceRef : prj.getMainSourceSet().getSources()) {
-			Path sfile = null;
-			Source src = ctx.createSource(sourceRef);
+			Path sfile;
+			Source src = Source.forResourceRef(sourceRef, Function.identity());
 			if (src.getJavaPackage().isPresent()) {
 				Path packageDir = srcDir.resolve(src.getJavaPackage().get().replace(".", File.separator));
 				Util.mkdirs(packageDir);
@@ -359,7 +360,7 @@ public class Edit extends BaseCommand {
 
 		renderTemplate(engine, depIds, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
-				ctx.getArguments(),
+				pb.getArguments(),
 				destination);
 
 		// setup eclipse
@@ -367,14 +368,14 @@ public class Edit extends BaseCommand {
 		destination = tmpProjectDir.resolve(".classpath");
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
-				ctx.getArguments(),
+				pb.getArguments(),
 				destination);
 
 		templateName = ".qute.project";
 		destination = tmpProjectDir.resolve(".project");
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
-				ctx.getArguments(),
+				pb.getArguments(),
 				destination);
 
 		templateName = "main.qute.launch";
@@ -382,14 +383,14 @@ public class Edit extends BaseCommand {
 		destination.toFile().getParentFile().mkdirs();
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
-				ctx.getArguments(),
+				pb.getArguments(),
 				destination);
 
 		templateName = "main-port-4004.qute.launch";
 		destination = tmpProjectDir.resolve(".eclipse/" + baseName + "-port-4004.launch");
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 				templateName,
-				ctx.getArguments(),
+				pb.getArguments(),
 				destination);
 
 		// setup vscode
@@ -399,7 +400,7 @@ public class Edit extends BaseCommand {
 			destination.toFile().getParentFile().mkdirs();
 			renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 					templateName,
-					ctx.getArguments(),
+					pb.getArguments(),
 					destination);
 		}
 
@@ -410,7 +411,7 @@ public class Edit extends BaseCommand {
 			destination.toFile().getParentFile().mkdirs();
 			renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 					templateName,
-					ctx.getArguments(),
+					pb.getArguments(),
 					destination);
 		}
 
@@ -420,7 +421,7 @@ public class Edit extends BaseCommand {
 			destination.toFile().getParentFile().mkdirs();
 			renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
 					templateName,
-					ctx.getArguments(),
+					pb.getArguments(),
 					destination);
 		}
 
