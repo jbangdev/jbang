@@ -84,7 +84,7 @@ The `install` command decribed in the previous section allows you to specify the
 
   jbang jdk install 17 <path-of-existing-java-17-installation>
 
-So if you are managing your jdk installations with https://sdkman.io/[SDKMAN!] you can easilly configure Jbang to use one of your installed version:
+So if you are managing your jdk installations with https://sdkman.io/[SDKMAN!] you can easilly configure JBang to use one of your installed version:
 
   jbang jdk install 17 `sdk home java 17.0.4.1-tem`
 
