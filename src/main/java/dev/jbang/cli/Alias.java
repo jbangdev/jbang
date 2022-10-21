@@ -74,7 +74,8 @@ class AliasAdd extends BaseAliasCommand {
 			"-d" }, description = "A description for the alias")
 	String description;
 
-	@CommandLine.Option(names = { "--java-options" }, description = "A Java runtime option")
+	@CommandLine.Option(names = { "-R", "--runtime-option",
+			"--jave-options" }, description = "Options to pass to the Java runtime")
 	List<String> javaRuntimeOptions;
 
 	@CommandLine.Option(names = { "--name" }, description = "A name for the alias")
@@ -250,7 +251,7 @@ class AliasList extends BaseAliasCommand {
 		out.arguments = alias.arguments;
 		out.javaVersion = alias.javaVersion;
 		out.mainClass = alias.mainClass;
-		out.javaOptions = alias.javaOptions;
+		out.javaOptions = alias.runtimeOptions;
 		out.properties = alias.properties;
 		out._catalogRef = alias.catalog.catalogRef;
 		return out;

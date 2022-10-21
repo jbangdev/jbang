@@ -117,10 +117,10 @@ public class TestAlias extends BaseTest {
 				"--deps", "deps",
 				"--repos", "repos",
 				"--cp", "cps",
-				"--java-options", "jopts",
+				"--runtime-option", "jopts",
 				"-D", "prop=val",
 				"--main", "mainclass",
-				"--compile-options", "copts",
+				"--compile-option", "copts",
 				"--java", "999",
 				"aap", "noot", "mies");
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
@@ -128,8 +128,8 @@ public class TestAlias extends BaseTest {
 		Alias alias = Alias.get("name");
 		assertThat(alias.scriptRef, is("test.java"));
 		assertThat(alias.description, is("desc"));
-		assertThat(alias.javaOptions, iterableWithSize(1));
-		assertThat(alias.javaOptions, contains("jopts"));
+		assertThat(alias.runtimeOptions, iterableWithSize(1));
+		assertThat(alias.runtimeOptions, contains("jopts"));
 		assertThat(alias.dependencies, iterableWithSize(1));
 		assertThat(alias.dependencies, contains("deps"));
 		assertThat(alias.repositories, iterableWithSize(1));
@@ -161,18 +161,18 @@ public class TestAlias extends BaseTest {
 				"--deps", "deps",
 				"--repos", "repos",
 				"--cp", "cps",
-				"--java-options", "jopts",
+				"--runtime-option", "jopts",
 				"-D", "prop=val",
 				"--main", "mainclass",
-				"--compile-options", "copts",
+				"--compile-option", "copts",
 				"--java", "999",
 				"aap", "noot", "mies");
 		assertThat(Files.size(catFile), not(is(0L)));
 		Alias alias = Alias.get("name");
 		assertThat(alias.scriptRef, is("test.java"));
 		assertThat(alias.description, is("desc"));
-		assertThat(alias.javaOptions, iterableWithSize(1));
-		assertThat(alias.javaOptions, contains("jopts"));
+		assertThat(alias.runtimeOptions, iterableWithSize(1));
+		assertThat(alias.runtimeOptions, contains("jopts"));
 		assertThat(alias.dependencies, iterableWithSize(1));
 		assertThat(alias.dependencies, contains("deps"));
 		assertThat(alias.repositories, iterableWithSize(1));
@@ -338,7 +338,7 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
 		assertThat(alias.resolve(), equalTo("http://dummy"));
 		assertThat(alias.arguments, nullValue());
-		assertThat(alias.javaOptions, nullValue());
+		assertThat(alias.runtimeOptions, nullValue());
 		assertThat(alias.properties, nullValue());
 		assertThat(alias.compileOptions, nullValue());
 	}
@@ -352,8 +352,8 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.description, equalTo("twodesc"));
 		assertThat(alias.arguments, iterableWithSize(1));
 		assertThat(alias.arguments, contains("2"));
-		assertThat(alias.javaOptions, iterableWithSize(1));
-		assertThat(alias.javaOptions, contains("--two"));
+		assertThat(alias.runtimeOptions, iterableWithSize(1));
+		assertThat(alias.runtimeOptions, contains("--two"));
 		assertThat(alias.dependencies, iterableWithSize(1));
 		assertThat(alias.dependencies, contains("twodep"));
 		assertThat(alias.repositories, iterableWithSize(1));
@@ -375,8 +375,8 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.description, equalTo("fourdesc"));
 		assertThat(alias.arguments, iterableWithSize(1));
 		assertThat(alias.arguments, contains("4"));
-		assertThat(alias.javaOptions, iterableWithSize(1));
-		assertThat(alias.javaOptions, contains("--four"));
+		assertThat(alias.runtimeOptions, iterableWithSize(1));
+		assertThat(alias.runtimeOptions, contains("--four"));
 		assertThat(alias.dependencies, iterableWithSize(1));
 		assertThat(alias.dependencies, contains("fourdep"));
 		assertThat(alias.repositories, iterableWithSize(1));
@@ -397,8 +397,8 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.resolve(), equalTo("http://dummy"));
 		assertThat(alias.arguments, iterableWithSize(1));
 		assertThat(alias.arguments, contains("3"));
-		assertThat(alias.javaOptions, iterableWithSize(1));
-		assertThat(alias.javaOptions, contains("--three"));
+		assertThat(alias.runtimeOptions, iterableWithSize(1));
+		assertThat(alias.runtimeOptions, contains("--three"));
 		assertThat(alias.properties, aMapWithSize(1));
 		assertThat(alias.properties, hasEntry("three", "3"));
 		assertThat(alias.compileOptions, iterableWithSize(1));
@@ -412,7 +412,7 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.scriptRef, equalTo("org.example:artifact:version"));
 		assertThat(alias.resolve(), equalTo("org.example:artifact:version"));
 		assertThat(alias.arguments, nullValue());
-		assertThat(alias.javaOptions, nullValue());
+		assertThat(alias.runtimeOptions, nullValue());
 		assertThat(alias.properties, nullValue());
 		assertThat(alias.compileOptions, nullValue());
 	}

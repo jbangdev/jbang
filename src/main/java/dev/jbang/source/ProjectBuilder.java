@@ -521,7 +521,7 @@ public class ProjectBuilder {
 			setArguments(alias.arguments);
 		}
 		if (javaOptions.isEmpty()) {
-			javaOptions(alias.javaOptions);
+			javaOptions(alias.runtimeOptions);
 		}
 		if (additionalSources.isEmpty()) {
 			additionalSources(alias.sources);

@@ -1834,7 +1834,7 @@ public class TestRun extends BaseTest {
 	void testJVMOpts() throws IOException {
 		JBang jbang = new JBang();
 		String arg = new File(examplesTestFolder.toFile(), "helloworld.java").getAbsolutePath();
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--java-options=--show-version", arg);
+		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--runtime-option=--show-version", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		ProjectBuilder pb = run.createProjectBuilder();

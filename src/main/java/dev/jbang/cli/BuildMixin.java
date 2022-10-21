@@ -21,6 +21,6 @@ public class BuildMixin {
 			"--main" }, description = "Main class to use when running. Used primarily for running jar's.")
 	String main;
 
-	@CommandLine.Option(names = { "-C", "--compile-options" }, description = "Options to pass to the compiler")
+	@CommandLine.Option(names = { "-C", "--compile-option" }, description = "Options to pass to the compiler")
 	public List<String> compileOptions;
 }
