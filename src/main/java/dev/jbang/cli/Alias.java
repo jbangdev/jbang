@@ -65,22 +65,18 @@ class AliasAdd extends BaseAliasCommand {
 	ScriptMixin scriptMixin;
 
 	@CommandLine.Mixin
+	BuildMixin buildMixin;
+
+	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
 
 	@CommandLine.Option(names = { "--description",
 			"-d" }, description = "A description for the alias")
 	String description;
 
-	@CommandLine.Option(names = { "--java-options" }, description = "A Java runtime option")
+	@CommandLine.Option(names = { "-R", "--runtime-option",
+			"--jave-options" }, description = "Options to pass to the Java runtime")
 	List<String> javaRuntimeOptions;
-
-	@CommandLine.Option(names = { "-m",
-			"--main" }, description = "Main class to use when running. Used primarily for running jar's.")
-	String main;
-
-	@CommandLine.Option(names = { "-j",
-			"--java" }, description = "JDK version to use for running the alias.")
-	String javaVersion;
 
 	@CommandLine.Option(names = { "--name" }, description = "A name for the alias")
 	String name;
@@ -109,12 +105,14 @@ class AliasAdd extends BaseAliasCommand {
 			CatalogUtil.addAlias(catFile, name, scriptMixin.scriptOrFile, desc, userParams, javaRuntimeOptions,
 					scriptMixin.sources, scriptMixin.resources, dependencyInfoMixin.getDependencies(),
 					dependencyInfoMixin.getRepositories(), dependencyInfoMixin.getClasspaths(),
-					dependencyInfoMixin.getProperties(), javaVersion, main);
+					dependencyInfoMixin.getProperties(), buildMixin.javaVersion, buildMixin.main,
+					buildMixin.compileOptions);
 		} else {
 			catFile = CatalogUtil.addNearestAlias(name, scriptMixin.scriptOrFile, desc, userParams, javaRuntimeOptions,
 					scriptMixin.sources, scriptMixin.resources, dependencyInfoMixin.getDependencies(),
 					dependencyInfoMixin.getRepositories(), dependencyInfoMixin.getClasspaths(),
-					dependencyInfoMixin.getProperties(), javaVersion, main);
+					dependencyInfoMixin.getProperties(), buildMixin.javaVersion, buildMixin.main,
+					buildMixin.compileOptions);
 		}
 		info(String.format("Alias '%s' added to '%s'", name, catFile));
 		return EXIT_OK;
@@ -130,8 +128,8 @@ class AliasAdd extends BaseAliasCommand {
 											.additionalSources(scriptMixin.sources)
 											.additionalResources(scriptMixin.resources)
 											.forceType(scriptMixin.forceType)
-											.javaVersion(javaVersion)
-											.mainClass(main)
+											.javaVersion(buildMixin.javaVersion)
+											.mainClass(buildMixin.main)
 											.setArguments(userParams)
 											.javaOptions(javaRuntimeOptions);
 		Path cat = getCatalog(false);
@@ -253,7 +251,7 @@ class AliasList extends BaseAliasCommand {
 		out.arguments = alias.arguments;
 		out.javaVersion = alias.javaVersion;
 		out.mainClass = alias.mainClass;
-		out.javaOptions = alias.javaOptions;
+		out.javaOptions = alias.runtimeOptions;
 		out.properties = alias.properties;
 		out._catalogRef = alias.catalog.catalogRef;
 		return out;

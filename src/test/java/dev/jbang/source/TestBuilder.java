@@ -30,6 +30,46 @@ import dev.jbang.util.Util;
 public class TestBuilder extends BaseTest {
 
 	@Test
+	void testHelloworld() throws IOException {
+		Path foo = examplesTestFolder.resolve("helloworld.java").toAbsolutePath();
+		ProjectBuilder pb = ProjectBuilder.create();
+		Project prj = pb.build(foo.toString());
+
+		new JavaSource.JavaAppBuilder(prj) {
+			@Override
+			protected Builder<Project> getCompileBuildStep() {
+				return new JavaCompileBuildStep() {
+					@Override
+					protected void runCompiler(List<String> optionList) {
+						assertThat(optionList, hasItems(foo.toString(), "-g"));
+						// Skip the compiler
+					}
+				};
+			}
+		}.setFresh(true).build();
+	}
+
+	@Test
+	void testCompileOptions() throws IOException {
+		Path foo = examplesTestFolder.resolve("helloworld.java").toAbsolutePath();
+		ProjectBuilder pb = ProjectBuilder.create().compileOptions(Arrays.asList("--foo", "--bar"));
+		Project prj = pb.build(foo.toString());
+
+		new JavaSource.JavaAppBuilder(prj) {
+			@Override
+			protected Builder<Project> getCompileBuildStep() {
+				return new JavaCompileBuildStep() {
+					@Override
+					protected void runCompiler(List<String> optionList) {
+						assertThat(optionList, hasItems(foo.toString(), "-g", "--foo", "--bar"));
+						// Skip the compiler
+					}
+				};
+			}
+		}.setFresh(true).build();
+	}
+
+	@Test
 	void testBuildAdditionalSources() throws IOException {
 		Path foo = examplesTestFolder.resolve("foo.java").toAbsolutePath();
 		Path bar = examplesTestFolder.resolve("bar/Bar.java").toAbsolutePath();
@@ -57,7 +97,8 @@ public class TestBuilder extends BaseTest {
 		String mainFile = examplesTestFolder.resolve("foo.java").toString();
 		String incFile = examplesTestFolder.resolve("bar/Bar.java").toString();
 
-		CatalogUtil.addNearestAlias("bar", incFile, null, null, null, null, null, null, null, null, null, null, null);
+		CatalogUtil.addNearestAlias("bar", incFile, null, null, null, null, null, null, null, null, null, null, null,
+				null);
 
 		ProjectBuilder pb = ProjectBuilder.create();
 		pb.additionalSources(Arrays.asList("bar"));
@@ -87,7 +128,8 @@ public class TestBuilder extends BaseTest {
 		String fooScript = readString(fooFile);
 		writeString(mainFile, "//SOURCES bar@" + jbangTempDir + "\n" + fooScript);
 
-		CatalogUtil.addNearestAlias("bar", incFile, null, null, null, null, null, null, null, null, null, null, null);
+		CatalogUtil.addNearestAlias("bar", incFile, null, null, null, null, null, null, null, null, null, null, null,
+				null);
 
 		ProjectBuilder pb = ProjectBuilder.create();
 		Project prj = pb.build(mainFile.toString());
