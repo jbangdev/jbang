@@ -31,6 +31,12 @@ public class NativeBuildStep implements Builder<Project> {
 		List<String> optionList = new ArrayList<>();
 		optionList.add(resolveInGraalVMHome("native-image", project.getJavaVersion()));
 
+		final int actualVersion = JavaUtil.javaVersion(project.getJavaVersion());
+		if (actualVersion == 19) {
+			optionList.add("--enable-preview");
+			optionList.add("--add-modules=jdk.incubator.concurrent");
+		}
+
 		optionList.add("-H:+ReportExceptionStackTraces");
 
 		optionList.add("--enable-https");
