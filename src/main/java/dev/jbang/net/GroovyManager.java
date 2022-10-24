@@ -15,7 +15,7 @@ import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
 
 public class GroovyManager {
-	public static final String DEFAULT_GROOVY_VERSION = "3.0.9";
+	public static final String DEFAULT_GROOVY_VERSION = "3.0.13";
 
 	public static String resolveInGroovyHome(String cmd, String requestedVersion) {
 		Path groovyHome = getGroovy(requestedVersion);
