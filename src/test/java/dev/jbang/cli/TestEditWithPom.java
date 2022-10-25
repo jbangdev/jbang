@@ -24,7 +24,7 @@ public class TestEditWithPom extends BaseTest {
 			"//DEPS io.quarkus:quarkus-rest-client-reactive-jackson\n" +
 			"//Q:CONFIG quarkus.banner.enabled=false\n" +
 			"//Q:CONFIG quarkus.log.level=WARN\n" +
-			"//JAVAC_OPTIONS -parameters\n" +
+			"//COMPILE_OPTIONS -parameters\n" +
 			"\n" +
 			"import javax.ws.rs.client.ClientBuilder;\n" +
 			"\n" +

@@ -24,6 +24,7 @@ public class SourceSet {
 	private final List<String> dependencies = new ArrayList<>();
 	private final List<String> classPaths = new ArrayList<>();
 	private final List<String> compileOptions = new ArrayList<>();
+	private final List<String> nativeOptions = new ArrayList<>();
 
 	// Cached values
 	private String stableId;
@@ -114,6 +115,23 @@ public class SourceSet {
 	@Nonnull
 	public SourceSet addCompileOptions(Collection<String> options) {
 		compileOptions.addAll(options);
+		return this;
+	}
+
+	@Nonnull
+	public List<String> getNativeOptions() {
+		return Collections.unmodifiableList(nativeOptions);
+	}
+
+	@Nonnull
+	public SourceSet addNativeOption(String option) {
+		nativeOptions.add(option);
+		return this;
+	}
+
+	@Nonnull
+	public SourceSet addNativeOptions(Collection<String> options) {
+		nativeOptions.addAll(options);
 		return this;
 	}
 

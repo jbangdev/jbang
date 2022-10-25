@@ -50,7 +50,7 @@ Instant cli app generated built using java and picocli as a dependency that was 
 * Works on icon:windows[] Windows, icon:apple[] OSX and icon:linux[] Linux
 * Install using SDKMan (icon:apple[]/icon:linux[]), Homebrew (icon:apple[]), Chocolatey (icon:windows[]) or Scoop (icon:windows[])
 * Dependency declarations using `//DEPS &lt;gav&gt;` for automatic dependency resolution
-* Control compile and runtime options with `//JAVAC_OPTIONS &lt;flags&gt;` and `//JAVA_OPTIONS &lt;flags&gt;`
+* Control compile and runtime options with `//COMPILE_OPTIONS &lt;flags&gt;` and `//RUNTIME_OPTIONS &lt;flags&gt;`
 * Compiled jar and Dependency resolution caching
 * Launch with debug enabled for instant debugging from your favorite IDE
 * Init templates to get started easily (`jbang --init=cli hello.java`)

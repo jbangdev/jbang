@@ -37,6 +37,7 @@ public class TestAlias extends BaseTest {
 			"      \"arguments\": [\"2\"],\n" +
 			"      \"java-options\": [\"--two\"],\n" +
 			"      \"compile-options\": [\"--ctwo\"],\n" +
+			"      \"native-options\": [\"--ntwo\"],\n" +
 			"      \"dependencies\": [\"twodep\"],\n" +
 			"      \"repositories\": [\"tworepo\"],\n" +
 			"      \"classpaths\": [\"twocp\"],\n" +
@@ -47,6 +48,7 @@ public class TestAlias extends BaseTest {
 			"      \"arguments\": [\"3\"],\n" +
 			"      \"java-options\": [\"--three\"],\n" +
 			"      \"compile-options\": [\"--cthree\"],\n" +
+			"      \"native-options\": [\"--nthree\"],\n" +
 			"      \"properties\": {\"three\":\"3\"}\n" +
 			"    },\n" +
 			"    \"four\": {\n" +
@@ -55,6 +57,7 @@ public class TestAlias extends BaseTest {
 			"      \"arguments\": [\"4\"],\n" +
 			"      \"java-options\": [\"--four\"],\n" +
 			"      \"compile-options\": [\"--cfour\"],\n" +
+			"      \"native-options\": [\"--nfour\"],\n" +
 			"      \"dependencies\": [\"fourdep\"],\n" +
 			"      \"repositories\": [\"fourrepo\"],\n" +
 			"      \"classpaths\": [\"fourcp\"],\n" +
@@ -121,6 +124,7 @@ public class TestAlias extends BaseTest {
 				"-D", "prop=val",
 				"--main", "mainclass",
 				"--compile-option", "copts",
+				"--native-option", "nopts",
 				"--java", "999",
 				"aap", "noot", "mies");
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
@@ -142,6 +146,8 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.mainClass, is("mainclass"));
 		assertThat(alias.compileOptions, iterableWithSize(1));
 		assertThat(alias.compileOptions, contains("copts"));
+		assertThat(alias.nativeOptions, iterableWithSize(1));
+		assertThat(alias.nativeOptions, contains("nopts"));
 		assertThat(alias.javaVersion, is("999"));
 		assertThat(alias.arguments, contains("aap", "noot", "mies"));
 	}
@@ -165,6 +171,7 @@ public class TestAlias extends BaseTest {
 				"-D", "prop=val",
 				"--main", "mainclass",
 				"--compile-option", "copts",
+				"--native-option", "nopts",
 				"--java", "999",
 				"aap", "noot", "mies");
 		assertThat(Files.size(catFile), not(is(0L)));
@@ -185,6 +192,8 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.mainClass, is("mainclass"));
 		assertThat(alias.compileOptions, iterableWithSize(1));
 		assertThat(alias.compileOptions, contains("copts"));
+		assertThat(alias.nativeOptions, iterableWithSize(1));
+		assertThat(alias.nativeOptions, contains("nopts"));
 		assertThat(alias.javaVersion, is("999"));
 		assertThat(alias.arguments, contains("aap", "noot", "mies"));
 	}
@@ -341,6 +350,7 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.runtimeOptions, nullValue());
 		assertThat(alias.properties, nullValue());
 		assertThat(alias.compileOptions, nullValue());
+		assertThat(alias.nativeOptions, nullValue());
 	}
 
 	@Test
@@ -364,6 +374,8 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.properties, hasEntry("two", "2"));
 		assertThat(alias.compileOptions, iterableWithSize(1));
 		assertThat(alias.compileOptions, contains("--ctwo"));
+		assertThat(alias.nativeOptions, iterableWithSize(1));
+		assertThat(alias.nativeOptions, contains("--ntwo"));
 	}
 
 	@Test
@@ -387,6 +399,8 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.properties, hasEntry("four", "4"));
 		assertThat(alias.compileOptions, iterableWithSize(1));
 		assertThat(alias.compileOptions, contains("--cfour"));
+		assertThat(alias.nativeOptions, iterableWithSize(1));
+		assertThat(alias.nativeOptions, contains("--nfour"));
 	}
 
 	@Test
@@ -403,6 +417,8 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.properties, hasEntry("three", "3"));
 		assertThat(alias.compileOptions, iterableWithSize(1));
 		assertThat(alias.compileOptions, contains("--cthree"));
+		assertThat(alias.nativeOptions, iterableWithSize(1));
+		assertThat(alias.nativeOptions, contains("--nthree"));
 	}
 
 	@Test
@@ -415,6 +431,7 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.runtimeOptions, nullValue());
 		assertThat(alias.properties, nullValue());
 		assertThat(alias.compileOptions, nullValue());
+		assertThat(alias.nativeOptions, nullValue());
 	}
 
 	@Test

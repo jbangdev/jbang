@@ -77,6 +77,8 @@ public abstract class Source {
 
 	protected abstract List<String> getCompileOptions();
 
+	protected abstract List<String> getNativeOptions();
+
 	protected abstract List<String> getRuntimeOptions();
 
 	public abstract Builder<Project> getBuilder(Project prj);
@@ -147,6 +149,7 @@ public abstract class Source {
 					new SiblingResourceResolver(resourceRef, ResourceResolver.forResources())));
 			ss.addDependencies(collectDependencies());
 			ss.addCompileOptions(getCompileOptions());
+			ss.addNativeOptions(getNativeOptions());
 			prj.addRepositories(tagReader.collectRepositories());
 			prj.addRuntimeOptions(getRuntimeOptions());
 			tagReader.collectManifestOptions().forEach(kv -> {

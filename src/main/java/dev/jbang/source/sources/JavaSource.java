@@ -27,12 +27,17 @@ public class JavaSource extends Source {
 
 	@Override
 	protected List<String> getCompileOptions() {
-		return tagReader.collectOptions("JAVAC_OPTIONS");
+		return tagReader.collectOptions("JAVAC_OPTIONS", "COMPILE_OPTIONS");
+	}
+
+	@Override
+	protected List<String> getNativeOptions() {
+		return tagReader.collectOptions("NATIVE_OPTIONS");
 	}
 
 	@Override
 	protected List<String> getRuntimeOptions() {
-		return tagReader.collectOptions("JAVA_OPTIONS");
+		return tagReader.collectOptions("JAVA_OPTIONS", "RUNTIME_OPTIONS");
 	}
 
 	@Override

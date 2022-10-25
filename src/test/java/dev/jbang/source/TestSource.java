@@ -33,9 +33,11 @@ public class TestSource extends BaseTest {
 			+ "import java.util.*;\n"
 			+ "import static java.lang.System.*;\n"
 			+ "\n"
-			+ "//JAVA_OPTIONS --enable-preview \"-Dvalue='this is space'\"\n"
-			+ "//JAVAC_OPTIONS --enable-preview\n"
+			+ "//RUNTIME_OPTIONS --enable-preview \"-Dvalue='this is space'\"\n"
+			+ "//JAVA_OPTIONS --enable-preview\n"
+			+ "//COMPILE_OPTIONS --enable-preview\n"
 			+ "//JAVAC_OPTIONS --verbose \n"
+			+ "//NATIVE_OPTIONS -O1\n"
 			+ "//GAV org.example:classpath\n"
 			+ "class classpath_example {\n"
 			+ "\n"
@@ -145,7 +147,7 @@ public class TestSource extends BaseTest {
 
 	String exampleCommandsWithComments = "//DEPS info.picocli:picocli:4.6.3 // <.>\n" +
 			"//JAVA 14+ // <.>\n" +
-			"//JAVAC_OPTIONS commons-codec:commons-codec:1.15 // <.>\n" +
+			"//COMPILE_OPTIONS commons-codec:commons-codec:1.15 // <.>\n" +
 			"public class test {" +
 			"}";
 
@@ -282,9 +284,10 @@ public class TestSource extends BaseTest {
 	void testExtractOptions() {
 		Source s = new JavaSource(example, null);
 
-		assertEquals(s.getCompileOptions(), Arrays.asList("--enable-preview", "--verbose"));
-
-		assertEquals(s.getRuntimeOptions(), Arrays.asList("--enable-preview", "-Dvalue='this is space'"));
+		assertEquals(Arrays.asList("--verbose", "--enable-preview"), s.getCompileOptions());
+		assertEquals(Arrays.asList("-O1"), s.getNativeOptions());
+		assertEquals(Arrays.asList("--enable-preview", "--enable-preview", "-Dvalue='this is space'"),
+				s.getRuntimeOptions());
 
 	}
 

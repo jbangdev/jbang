@@ -17,6 +17,7 @@ import dev.jbang.source.AppBuilder;
 import dev.jbang.source.buildsteps.CompileBuildStep;
 import dev.jbang.source.buildsteps.IntegrationBuildStep;
 import dev.jbang.spi.IntegrationResult;
+import dev.jbang.util.Util;
 
 public class GroovySource extends Source {
 
@@ -26,11 +27,18 @@ public class GroovySource extends Source {
 
 	@Override
 	protected List<String> getCompileOptions() {
-		return Collections.emptyList();
+		return tagReader.collectOptions("COMPILE_OPTIONS");
+	}
+
+	@Override
+	protected List<String> getNativeOptions() {
+		return tagReader.collectOptions("NATIVE_OPTIONS");
 	}
 
 	protected List<String> getRuntimeOptions() {
-		return Collections.singletonList("-Dgroovy.grape.enable=false");
+		List<String> gopts = Collections.singletonList("-Dgroovy.grape.enable=false");
+		List<String> opts = tagReader.collectOptions("JAVA_OPTIONS", "RUNTIME_OPTIONS");
+		return Util.join(gopts, opts);
 	}
 
 	@Override

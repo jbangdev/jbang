@@ -106,13 +106,13 @@ class AliasAdd extends BaseAliasCommand {
 					scriptMixin.sources, scriptMixin.resources, dependencyInfoMixin.getDependencies(),
 					dependencyInfoMixin.getRepositories(), dependencyInfoMixin.getClasspaths(),
 					dependencyInfoMixin.getProperties(), buildMixin.javaVersion, buildMixin.main,
-					buildMixin.compileOptions);
+					buildMixin.compileOptions, buildMixin.nativeOptions);
 		} else {
 			catFile = CatalogUtil.addNearestAlias(name, scriptMixin.scriptOrFile, desc, userParams, javaRuntimeOptions,
 					scriptMixin.sources, scriptMixin.resources, dependencyInfoMixin.getDependencies(),
 					dependencyInfoMixin.getRepositories(), dependencyInfoMixin.getClasspaths(),
 					dependencyInfoMixin.getProperties(), buildMixin.javaVersion, buildMixin.main,
-					buildMixin.compileOptions);
+					buildMixin.compileOptions, buildMixin.nativeOptions);
 		}
 		info(String.format("Alias '%s' added to '%s'", name, catFile));
 		return EXIT_OK;
@@ -131,7 +131,7 @@ class AliasAdd extends BaseAliasCommand {
 											.javaVersion(buildMixin.javaVersion)
 											.mainClass(buildMixin.main)
 											.setArguments(userParams)
-											.javaOptions(javaRuntimeOptions);
+											.runtimeOptions(javaRuntimeOptions);
 		Path cat = getCatalog(false);
 		if (cat != null) {
 			pb.catalog(cat.toFile());
