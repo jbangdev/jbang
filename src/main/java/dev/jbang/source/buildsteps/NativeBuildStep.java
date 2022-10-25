@@ -32,8 +32,8 @@ public class NativeBuildStep implements Builder<Project> {
 		optionList.add(resolveInGraalVMHome("native-image", project.getJavaVersion()));
 
 		optionList.add("-H:+ReportExceptionStackTraces");
-
 		optionList.add("--enable-https");
+		optionList.addAll(project.getMainSourceSet().getNativeOptions());
 
 		String classpath = project.resolveClassPath().getClassPath();
 		if (!Util.isBlankString(classpath)) {

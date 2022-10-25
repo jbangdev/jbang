@@ -459,6 +459,35 @@ public class TestBuilder extends BaseTest {
 			assertThat(attrs.getValue("bar"), equalTo("baz"));
 			assertThat(attrs.getValue("baz"), equalTo("algo"));
 		}
+	}
 
+	@Test
+	void testNative() throws IOException {
+		Path foo = examplesTestFolder.resolve("helloworld.java").toAbsolutePath();
+		ProjectBuilder pb = ProjectBuilder.create().nativeImage(true);
+		Project prj = pb.build(foo.toString());
+
+		new JavaSource.JavaAppBuilder(prj) {
+			@Override
+			protected Builder<Project> getCompileBuildStep() {
+				return new JavaCompileBuildStep() {
+					@Override
+					protected void runCompiler(List<String> optionList) {
+						// Skip the compiler
+					}
+				};
+			}
+
+			@Override
+			protected Builder<Project> getNativeBuildStep() {
+				return new NativeBuildStep(prj) {
+					@Override
+					protected void runNativeBuilder(List<String> optionList) throws IOException {
+						// Skip the native image builder
+						assertThat(optionList, hasItem("-O1"));
+					}
+				};
+			}
+		}.setFresh(true).build();
 	}
 }
