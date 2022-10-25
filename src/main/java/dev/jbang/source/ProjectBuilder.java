@@ -46,6 +46,7 @@ public class ProjectBuilder {
 	private Source.Type forceType = null;
 	private String mainClass;
 	private List<String> compileOptions = Collections.emptyList();
+	private List<String> nativeOptions = Collections.emptyList();
 	private File catalogFile;
 
 	private ModularClassPath mcp;
@@ -54,7 +55,7 @@ public class ProjectBuilder {
 	private Properties contextProperties;
 
 	private List<String> arguments = Collections.emptyList();
-	private List<String> javaOptions = Collections.emptyList();
+	private List<String> runtimeOptions = Collections.emptyList();
 	private boolean interactive;
 	private boolean enableAssertions;
 	private boolean enableSystemAssertions;
@@ -190,11 +191,20 @@ public class ProjectBuilder {
 		return this;
 	}
 
-	public ProjectBuilder javaOptions(List<String> javaOptions) {
-		if (javaOptions != null) {
-			this.javaOptions = javaOptions;
+	public ProjectBuilder nativeOptions(List<String> nativeOptions) {
+		if (nativeOptions != null) {
+			this.nativeOptions = nativeOptions;
 		} else {
-			this.javaOptions = Collections.emptyList();
+			this.nativeOptions = Collections.emptyList();
+		}
+		return this;
+	}
+
+	public ProjectBuilder runtimeOptions(List<String> runtimeOptions) {
+		if (runtimeOptions != null) {
+			this.runtimeOptions = runtimeOptions;
+		} else {
+			this.runtimeOptions = Collections.emptyList();
 		}
 		return this;
 	}
@@ -312,9 +322,10 @@ public class ProjectBuilder {
 		ss.addResources(tagReader.collectFiles(resourceRef,
 				new SiblingResourceResolver(resourceRef, ResourceResolver.forResources())));
 		ss.addDependencies(tagReader.collectDependencies());
-		ss.addCompileOptions(tagReader.collectOptions("JAVAC_OPTIONS"));
+		ss.addCompileOptions(tagReader.collectOptions("JAVAC_OPTIONS", "COMPILE_OPTIONS"));
+		ss.addNativeOptions(tagReader.collectOptions("NATIVE_OPTIONS"));
 		prj.addRepositories(tagReader.collectRepositories());
-		prj.addRuntimeOptions(tagReader.collectOptions("JAVA_OPTIONS"));
+		prj.addRuntimeOptions(tagReader.collectOptions("JAVA_OPTIONS", "RUNTIME_OPTIONS"));
 		tagReader.collectManifestOptions().forEach(kv -> {
 			if (!kv.getKey().isEmpty()) {
 				prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
@@ -456,7 +467,7 @@ public class ProjectBuilder {
 		ss.addResources(allToFileRef(replaceAllProps(additionalResources)));
 		ss.addCompileOptions(compileOptions);
 		prj.putProperties(properties);
-		prj.addRuntimeOptions(javaOptions);
+		prj.addRuntimeOptions(runtimeOptions);
 		prj.addJavaAgents(javaAgents);
 		if (mainClass != null) {
 			prj.setMainClass(mainClass);
@@ -520,8 +531,8 @@ public class ProjectBuilder {
 		if (arguments.isEmpty()) {
 			setArguments(alias.arguments);
 		}
-		if (javaOptions.isEmpty()) {
-			javaOptions(alias.runtimeOptions);
+		if (runtimeOptions.isEmpty()) {
+			runtimeOptions(alias.runtimeOptions);
 		}
 		if (additionalSources.isEmpty()) {
 			additionalSources(alias.sources);
@@ -549,6 +560,9 @@ public class ProjectBuilder {
 		}
 		if (compileOptions.isEmpty()) {
 			compileOptions(alias.compileOptions);
+		}
+		if (nativeOptions.isEmpty()) {
+			nativeOptions(alias.nativeOptions);
 		}
 	}
 

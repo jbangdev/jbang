@@ -1,6 +1,6 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 // //DEPS <dependency1> <dependency2>
-//JAVA_OPTIONS -Dfoo=bar "-Dbar=aap noot mies"
+//RUNTIME_OPTIONS -Dfoo=bar "-Dbar=aap noot mies"
 //MANIFEST foo bar=baz baz=${bazprop:nada}
 
 import static java.lang.System.*;

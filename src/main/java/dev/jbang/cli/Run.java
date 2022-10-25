@@ -118,7 +118,7 @@ public class Run extends BaseBuildCommand {
 	ProjectBuilder createProjectBuilder() {
 		ProjectBuilder pb = super.createProjectBuilder()
 														.setArguments(userParams)
-														.javaOptions(javaRuntimeOptions)
+														.runtimeOptions(javaRuntimeOptions)
 														.interactive(interactive)
 														.enableAssertions(enableAssertions)
 														.enableSystemAssertions(enableSystemAssertions)

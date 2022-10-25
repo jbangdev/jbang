@@ -61,7 +61,7 @@ toc::[]
 * Installation of scripts to user `PATH`
 * Include multiple files and sources
 * Dependency declarations using `//DEPS <gav>` for automatic dependency resolution
-* Control compile and runtime options with `//JAVAC_OPTIONS <flags>` and `//JAVA_OPTIONS <flags>`
+* Control compile and runtime options with `//COMPILE_OPTIONS <flags>`, `//NATIVE_OPTIONS <flags>` and `//RUNTIME_OPTIONS <flags>`
 * Compiled jar and Dependency resolution caching
 * native-image generation (`--native`)
 * Launch with debug enabled for instant debugging from your favorite IDE

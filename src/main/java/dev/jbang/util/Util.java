@@ -1490,6 +1490,17 @@ public class Util {
 		}
 	}
 
+	@SafeVarargs
+	public static <T> List<T> join(Collection<T>... lists) {
+		List<T> res = new ArrayList<>();
+		for (Collection<T> c : lists) {
+			if (c != null && !c.isEmpty()) {
+				res.addAll(c);
+			}
+		}
+		return res;
+	}
+
 	public static <K, V> Entry<K, V> entry(K k, V v) {
 		return new AbstractMap.SimpleEntry<K, V>(k, v);
 	}

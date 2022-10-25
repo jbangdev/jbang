@@ -18,6 +18,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import dev.jbang.cli.ExitException;
 import dev.jbang.cli.ResourceNotFoundException;
 import dev.jbang.dependencies.DependencyUtil;
@@ -169,21 +171,30 @@ public abstract class TagReader {
 		return line.startsWith(GAV_COMMENT_PREFIX);
 	}
 
-	public List<String> collectOptions(String prefix) {
-		List<String> options = collectRawOptions(prefix);
+	@Nonnull
+	public List<String> collectOptions(String... prefixes) {
+		List<String> options;
+		if (prefixes.length > 1) {
+			options = new ArrayList<>();
+			for (String prefix : prefixes) {
+				options.addAll(collectRawOptions(prefix));
+			}
+		} else {
+			options = collectRawOptions(prefixes[0]);
+		}
 
 		// convert quoted content to list of strings as
 		// just passing "--enable-preview --source 14" fails
 		return Project.quotedStringToList(String.join(" ", options));
 	}
 
+	@Nonnull
 	List<String> collectRawOptions(String prefix) {
-		String joptsPrefix = prefix;
 		List<String> javaOptions = getTags()
 											.map(it -> it.split(" // ")[0]) // strip away nested comments.
-											.filter(it -> it.startsWith(joptsPrefix + " ")
-													|| it.startsWith(joptsPrefix + "\t") || it.equals(joptsPrefix))
-											.map(it -> it.replaceFirst(joptsPrefix, "").trim())
+											.filter(it -> it.startsWith(prefix + " ")
+													|| it.startsWith(prefix + "\t") || it.equals(prefix))
+											.map(it -> it.replaceFirst(prefix, "").trim())
 											.collect(Collectors.toList());
 
 		String envOptions = System.getenv("JBANG_" + prefix);

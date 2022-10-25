@@ -26,7 +26,7 @@ to your script/class to see it.
 
 Flight recorder is a feature of the Java VM that lets you gather diagnostic and profiling data about your script.
 
-You can use `//JAVA_OPTIONS` to have full control over it; but for the easiest setup `jbang` lets you just run with `--jfr`, e.g.,
+You can use `//RUNTIME_OPTIONS` to have full control over it; but for the easiest setup `jbang` lets you just run with `--jfr`, e.g.,
 
   jbang --jfr myapp.java
 
@@ -37,18 +37,23 @@ Then you can use tools like `jvisualvm` or `jmc` to explore the data.
 If you want to tweak the configuration you can pass flight recorder options, like `jbang --jfr=filename=\{basename}.jfr,maxage=24h` where `\{basename}` will be replaced
 by the filename and then added `maxage=24h` to flight recording options.
 
-If you want further control use `//JAVAC_OPTIONS -XX:StartFlightRecording=<your options>` instead.
+If you want further control use `//COMPILE_OPTIONS -XX:StartFlightRecording=<your options>` instead.
 
-== `java` and `javac` Options
+== `java`, `javac` and `nativeimage` Options
 
-If you want to tweak memory settings or enable preview features you can setup the necessary options using
-`//JAVA_OPTIONS` and `//JAVAC_OPTIONS` as in the following example using Java 14 experimental `record` feature:
+You can pass options directly from JBang to the compiler and runtime tools that it uses to build and run your code.
+
+The following source tags are available for setting JVM (`java`) options, compiler options (`javac`, `kotlinc`, etc) and native image builders (`nativeimage`) respectively: `//RUNTIME_OPTIONS`, `//COMPILE_OPTIONS` and `//NATIVE_OPTIONS`.
+
+You can also set the same options from the command line using: `--runtime-option`, `--compile-option` and `--native-option`.
+
+As an example, if you want to enable preview features you can set up the necessary options as in the following example that uses Java 14 experimental `record` feature:
 
 [source, java]
 ----
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-//JAVAC_OPTIONS --enable-preview -source 14 <.>
-//JAVA_OPTIONS --enable-preview // <.>
+//COMPILE_OPTIONS --enable-preview -source 14
+//RUNTIME_OPTIONS --enable-preview
 
 import static java.lang.System.*;
 

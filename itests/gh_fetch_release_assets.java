@@ -1,6 +1,6 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-///JAVA_OPTIONS --add-opens java.base/java.net=ALL-UNNAMED
-///JAVA_OPTIONS --add-opens java.base/sun.net.www.protocol.https=ALL-UNNAMED
+///RUNTIME_OPTIONS --add-opens java.base/java.net=ALL-UNNAMED
+///RUNTIME_OPTIONS --add-opens java.base/sun.net.www.protocol.https=ALL-UNNAMED
 //DEPS info.picocli:picocli:4.6.3
 //DEPS org.kohsuke:github-api:1.116
 

@@ -2,7 +2,6 @@ package dev.jbang.source.sources;
 
 import static dev.jbang.net.KotlinManager.resolveInKotlinHome;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -24,12 +23,17 @@ public class KotlinSource extends Source {
 
 	@Override
 	protected List<String> getCompileOptions() {
-		return Collections.emptyList();
+		return tagReader.collectOptions("COMPILE_OPTIONS");
+	}
+
+	@Override
+	protected List<String> getNativeOptions() {
+		return tagReader.collectOptions("NATIVE_OPTIONS");
 	}
 
 	@Override
 	protected List<String> getRuntimeOptions() {
-		return tagReader.collectOptions("JAVA_OPTIONS");
+		return tagReader.collectOptions("JAVA_OPTIONS", "RUNTIME_OPTIONS");
 	}
 
 	@Override
