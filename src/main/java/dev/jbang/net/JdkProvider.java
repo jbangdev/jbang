@@ -1,0 +1,219 @@
+package dev.jbang.net;
+
+import java.nio.file.Path;
+import java.util.Objects;
+import java.util.SortedSet;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import dev.jbang.util.JavaUtil;
+
+/**
+ * This interface must be implemented by providers that are able to give access
+ * to JDKs installed on the user's system. Some providers will also be able to
+ * manage those JDKs by installing and uninstalling them at the user's request.
+ * In those cases the <code>canUpdate()</code> should return <code>true</code>.
+ *
+ * The providers deal in JDK identifiers, not in versions. Those identifiers are
+ * specific to the implementation but should follow two important rules: 1. they
+ * must be unique across implementations 2. they must start with an integer
+ * specifying the main JDK version
+ */
+public interface JdkProvider {
+
+	class Jdk implements Comparable<Jdk> {
+		@Nonnull
+		public final JdkProvider provider;
+
+		/**
+		 * The id that is used to uniquely identify this JDK across all providers
+		 */
+		@Nonnull
+		public final String id;
+
+		/**
+		 * The major JDK version
+		 */
+		public final String version;
+
+		/**
+		 * The path to where the JDK is installed. Can be <code>null</code> which means
+		 * the JDK isn't currently installed by that provider
+		 */
+		@Nullable
+		public final Path home;
+
+		private Jdk(@Nonnull JdkProvider provider, @Nonnull String id, String version, @Nullable Path home) {
+			this.provider = provider;
+			this.id = id;
+			this.version = version;
+			this.home = home;
+		}
+
+		public int getMajorVersion() {
+			return JavaUtil.parseJavaVersion(version);
+		}
+
+		public Jdk install() {
+			return provider.install(id);
+		}
+
+		public void uninstall() {
+			provider.uninstall(id);
+		}
+
+		public void setAsDefault() {
+			provider.setDefault(id);
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o)
+				return true;
+			if (o == null || getClass() != o.getClass())
+				return false;
+			Jdk jdk = (Jdk) o;
+			return id.equals(jdk.id);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(id);
+		}
+
+		@Override
+		public int compareTo(Jdk o) {
+			if (getMajorVersion() != o.getMajorVersion()) {
+				return Integer.compare(getMajorVersion(), o.getMajorVersion());
+			} else {
+				return id.compareTo(o.id);
+			}
+		}
+	}
+
+	default Jdk createJdk(@Nonnull String id, String version, @Nullable Path home) {
+		return new Jdk(this, id, version, home);
+	}
+
+	/**
+	 * For providers that can update this returns a set of JDKs that are available
+	 * for installation. Providers might set the <code>home</code> field of the JDK
+	 * objects if the respective JDK is currently installed on the user's system,
+	 * but only if they can ensure that it's the exact same version, otherwise they
+	 * should just leave the field <code>null</code>.
+	 *
+	 * @return List of <code>Jdk</code> objects
+	 */
+	@Nonnull
+	default SortedSet<Jdk> listAvailable() {
+		throw new UnsupportedOperationException("Listing available JDKs is not supported by " + getClass().getName());
+	}
+
+	/**
+	 * Returns a set of JDKs that are currently installed on the user's system.
+	 *
+	 * @return List of <code>Jdk</code> objects, possibly empty
+	 */
+	@Nonnull
+	SortedSet<Jdk> listInstalled();
+
+	/**
+	 * Determines if a JDK of the requested version is currently installed by this
+	 * provider and if so returns its respective <code>Jdk</code> object, otherwise
+	 * it returns <code>null</code>.
+	 *
+	 * @param version The specific JDK version to return
+	 * @return A <code>Jdk</code> object or <code>null</code>
+	 */
+	@Nullable
+	default Jdk getJdkByVersion(int version) {
+		return listInstalled().stream().filter(jdk -> jdk.getMajorVersion() == version).findFirst().orElse(null);
+	}
+
+	/**
+	 * Determines if the given path belongs to a JDK managed by this provider and if
+	 * so returns its respective <code>Jdk</code> object, otherwise it returns
+	 * <code>null</code>.
+	 * 
+	 * @param jdkPath The path to validate
+	 * @return A code>Jdk</code> object or <code>null</code>
+	 */
+	@Nullable
+	Jdk getJdkByPath(@Nonnull Path jdkPath);
+
+	/**
+	 * For providers that can update this installs the indicated JDK
+	 * 
+	 * @param jdk The identifier of the JDK to install
+	 * @return A <code>Jdk</code> object
+	 * @throws UnsupportedOperationException if the provider can not update
+	 */
+	@Nonnull
+	default Jdk install(@Nonnull String jdk) {
+		throw new UnsupportedOperationException("Installing a JDK is not supported by " + getClass().getName());
+	}
+
+	/**
+	 * Uninstalls the indicated JDK
+	 * 
+	 * @param jdk The identifier of the JDK to install
+	 * @throws UnsupportedOperationException if the provider can not update
+	 */
+	default void uninstall(@Nonnull String jdk) {
+		throw new UnsupportedOperationException("Uninstalling a JDK is not supported by " + getClass().getName());
+	}
+
+	/**
+	 * Returns a path to the requested JDK. This method should never return
+	 * <code>null</code> and should return the path where the requested JDK is
+	 * either currently installed or where it would be installed if it were
+	 * available.
+	 * 
+	 * @param jdk The identifier of the JDK to install
+	 * @return A path to the requested JDK
+	 */
+	@Nonnull
+	Path getJdkPath(@Nonnull String jdk);
+
+	/**
+	 * Returns the identifier of the default JDK. The default JDK is the one that is
+	 * to be used when no specific version or id is specified. Returns
+	 * <code>null</code> if no default JDK is set.
+	 * 
+	 * @return The identifier of the default JDK or <code>null</code>
+	 */
+	@Nullable
+	Jdk getDefault();
+
+	/**
+	 * For providers that can update this sets the JDK with the specified identifier
+	 * as the default JDK. The default JDK is the one that is to be used when no
+	 * specific version or id is specified.
+	 * 
+	 * @param jdk The identifier of the JDK to be set as the default
+	 * @throws UnsupportedOperationException if the provider can not update
+	 */
+	default void setDefault(@Nonnull String jdk) {
+		throw new UnsupportedOperationException("Setting the default JDK is not supported by " + getClass().getName());
+	}
+
+	/**
+	 * Unsets the default JDK. For providers that can update this it means that
+	 * calls to <code>getDefault()</code> will return <code>null</code> after this.
+	 * 
+	 * @throws UnsupportedOperationException if the provider can not update
+	 */
+	default void removeDefault() {
+		throw new UnsupportedOperationException("Removing the default JDK is not supported by " + getClass().getName());
+	}
+
+	/**
+	 * Indicates if the provider is able to (un)install JDKs or not
+	 * 
+	 * @return True if JDKs can be (un)installed, false otherwise
+	 */
+	default boolean canUpdate() {
+		return false;
+	}
+}

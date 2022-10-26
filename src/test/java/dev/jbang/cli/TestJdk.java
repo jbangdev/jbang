@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
-import dev.jbang.net.JdkManager;
+import dev.jbang.net.jdkproviders.JBangJdkProvider;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -36,15 +36,15 @@ class TestJdk extends BaseTest {
 
 	@Test
 	void testHasJdksInstalled() throws IOException {
-		final Path jdkPath = JdkManager.getJdksPath();
-		Arrays	.asList("11", "12", "13")
-				.forEach(jdkId -> new File(jdkPath.toFile(), jdkId).mkdirs());
+		final Path jdkPath = JBangJdkProvider.getJdksPath();
+		Arrays	.asList(11, 12, 13)
+				.forEach(v -> createMockJdk(v));
 
 		ExecutionResult result = checkedRun(jdk -> jdk.list(false, FormatMixin.Format.text));
 
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(),
-				equalTo("Installed JDKs (<=default):\n  11\n  12\n  13\n"));
+				equalTo("Installed JDKs (<=default):\n   11 (11.0.7)\n   12 (12.0.7)\n   13 (13.0.7)\n"));
 	}
 
 	@Test
@@ -63,8 +63,8 @@ class TestJdk extends BaseTest {
 	@Test
 	void testJdkInstallWithLinkingToExistingJdkPathWhenJBangManagedVersionDoesNotExist(@TempDir File javaDir)
 			throws IOException {
-		initMockJdkDir(javaDir);
-		final Path jdkPath = JdkManager.getJdksPath();
+		initMockJdkDir(javaDir.toPath(), "11.0.14");
+		final Path jdkPath = JBangJdkProvider.getJdksPath();
 		jdkPath.toFile().mkdir();
 
 		ExecutionResult result = checkedRun(jdk -> {
@@ -86,10 +86,10 @@ class TestJdk extends BaseTest {
 	@Test
 	void testJdkInstallWithLinkingToExistingJdkPathWhenJBangManagedVersionExistsAndInstallIsForced(
 			@TempDir File javaDir) throws IOException {
-		initMockJdkDir(javaDir);
-		final Path jdkPath = JdkManager.getJdksPath();
-		Arrays	.asList("11")
-				.forEach(jdkId -> new File(jdkPath.toFile(), jdkId).mkdirs());
+		initMockJdkDir(javaDir.toPath(), "11.0.14");
+		final Path jdkPath = JBangJdkProvider.getJdksPath();
+		Arrays	.asList(11)
+				.forEach(v -> createMockJdk(v));
 
 		ExecutionResult result = checkedRun(jdk -> {
 			try {
@@ -110,7 +110,7 @@ class TestJdk extends BaseTest {
 	@Test
 	void testJdkInstallWithLinkingToExistingJdkPathWithDifferentVersion(@TempDir File javaDir)
 			throws IOException {
-		initMockJdkDir(javaDir);
+		initMockJdkDir(javaDir.toPath(), "11.0.14");
 
 		checkedRunWithException(jdk -> {
 			try {
@@ -142,9 +142,9 @@ class TestJdk extends BaseTest {
 
 	@Test
 	void testExistingJdkUninstall() throws IOException {
-		final Path jdkPath = JdkManager.getJdksPath();
 		int jdkVersion = 14;
-		new File(jdkPath.toFile(), String.valueOf(jdkVersion)).mkdirs();
+		final Path jdkPath = JBangJdkProvider.getJdksPath();
+		createMockJdk(jdkVersion);
 
 		ExecutionResult result = checkedRun(jdk -> jdk.uninstall(jdkVersion));
 
@@ -176,9 +176,19 @@ class TestJdk extends BaseTest {
 		}
 	}
 
-	private void initMockJdkDir(File javaDir) throws IOException {
-		String rawJavaVersion = "JAVA_VERSION=\"11.0.14\"";
-		File release = new File(javaDir, "release");
-		Util.writeString(release.toPath(), rawJavaVersion);
+	private void createMockJdk(int jdkVersion) {
+		Path jdkPath = JBangJdkProvider.getJdksPath().resolve(String.valueOf(jdkVersion));
+		Util.mkdirs(jdkPath);
+		initMockJdkDir(jdkPath, jdkVersion + ".0.7");
+	}
+
+	private void initMockJdkDir(Path jdkPath, String version) {
+		String rawJavaVersion = "JAVA_VERSION=\"" + version + "\"";
+		Path release = jdkPath.resolve("release");
+		try {
+			Util.writeString(release, rawJavaVersion);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

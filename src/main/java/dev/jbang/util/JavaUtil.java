@@ -79,7 +79,7 @@ public class JavaUtil {
 
 	private static int determineJavaVersion(Path javaCmd) {
 		String output = Util.runCommand(javaCmd.toString(), "-version");
-		int version = parseJavaOutput(output);
+		int version = parseJavaVersion(parseJavaOutput(output));
 		if (version == 0) {
 			Util.verboseMsg(
 					"Version could not be determined from: '$javaCmd -version', trying 'java.version' property");
@@ -103,14 +103,14 @@ public class JavaUtil {
 
 	private static final Pattern javaVersionPattern = Pattern.compile("\"([^\"]+)\"");
 
-	public static int parseJavaOutput(String output) {
+	public static String parseJavaOutput(String output) {
 		if (output != null) {
 			Matcher m = javaVersionPattern.matcher(output);
 			if (m.find() && m.groupCount() == 1) {
-				return parseJavaVersion(m.group(1));
+				return m.group(1);
 			}
 		}
-		return 0;
+		return null;
 	}
 
 	public static int parseJavaVersion(String version) {
@@ -120,7 +120,6 @@ public class JavaUtil {
 				String num = nums.length > 1 && nums[0].equals("1") ? nums[1] : nums[0];
 				return Integer.parseInt(num);
 			} catch (NumberFormatException ex) {
-				Util.verboseMsg("Couldn't parse Java version", ex);
 				// Ignore
 			}
 		}
