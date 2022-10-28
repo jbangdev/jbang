@@ -12,12 +12,18 @@ import java.util.stream.Collectors;
 import dev.jbang.cli.ExitException;
 import dev.jbang.net.jdkproviders.BaseFoldersJdkProvider;
 import dev.jbang.net.jdkproviders.JBangJdkProvider;
+import dev.jbang.net.jdkproviders.SdkmanJdkProvider;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 public class JdkManager {
 	private static List<JdkProvider> providers() {
-		return Collections.singletonList(new JBangJdkProvider());
+		List<JdkProvider> provs = new ArrayList<>();
+		provs.add(new JBangJdkProvider());
+		if (SdkmanJdkProvider.canUse()) {
+			provs.add(new SdkmanJdkProvider());
+		}
+		return provs;
 	}
 
 	private static List<JdkProvider> updatableProviders() {

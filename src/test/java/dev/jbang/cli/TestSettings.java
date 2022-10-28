@@ -4,25 +4,17 @@ import static org.hamcrest.Matchers.endsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-import java.io.File;
-
-import org.junit.Rule;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.jupiter.api.Test;
 
+import dev.jbang.BaseTest;
 import dev.jbang.Settings;
 
-public class TestSettings {
-
-	@Rule
-	public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+public class TestSettings extends BaseTest {
 
 	@Test
 	void testRepo() {
 
-		assertEquals(Settings.getLocalMavenRepo().toString(),
-				System.getProperty("user.home") + File.separator + ".m2" + File.separator
-						+ "repository");
+		assertEquals(Settings.getLocalMavenRepo().toString(), mavenTempDir.toString());
 
 		System.setProperty("maven.repo.local", "nowhere");
 		try {

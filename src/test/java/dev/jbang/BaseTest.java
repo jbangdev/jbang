@@ -15,6 +15,7 @@ import java.util.function.Function;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.io.TempDir;
@@ -32,6 +33,8 @@ public abstract class BaseTest {
 		jbangTempDir = Files.createDirectory(tempPath.resolve("jbang"));
 		cwdDir = Files.createDirectory(tempPath.resolve("cwd"));
 		Util.setCwd(cwdDir);
+		System.setProperty("user.home", tempPath.toString());
+		System.setProperty("maven.repo.local", mavenTempDir.toString());
 		environmentVariables.set(Settings.JBANG_DIR, jbangTempDir.toString());
 		environmentVariables.set(Settings.JBANG_CACHE_DIR, jbangTempDir.resolve("cache").toString());
 		environmentVariables.set(Settings.ENV_NO_VERSION_CHECK, "true");
@@ -46,6 +49,7 @@ public abstract class BaseTest {
 
 	@BeforeAll
 	static void init() throws URISyntaxException, IOException {
+		mavenTempDir = Files.createTempDirectory("jbang_tests_maven");
 		URL examplesUrl = BaseTest.class.getClassLoader().getResource(EXAMPLES_FOLDER);
 		if (examplesUrl == null) {
 			examplesTestFolder = Paths.get(EXAMPLES_FOLDER).toAbsolutePath();
@@ -54,9 +58,15 @@ public abstract class BaseTest {
 		}
 	}
 
+	@AfterAll
+	static void cleanup() {
+		Util.deletePath(mavenTempDir, true);
+	}
+
 	@Rule
 	public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
+	public static Path mavenTempDir;
 	public Path jbangTempDir;
 	public Path cwdDir;
 
