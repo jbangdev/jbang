@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import dev.jbang.cli.ExitException;
 import dev.jbang.net.jdkproviders.BaseFoldersJdkProvider;
 import dev.jbang.net.jdkproviders.JBangJdkProvider;
+import dev.jbang.net.jdkproviders.ScoopJdkProvider;
 import dev.jbang.net.jdkproviders.SdkmanJdkProvider;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
@@ -22,6 +23,9 @@ public class JdkManager {
 		provs.add(new JBangJdkProvider());
 		if (SdkmanJdkProvider.canUse()) {
 			provs.add(new SdkmanJdkProvider());
+		}
+		if (ScoopJdkProvider.canUse()) {
+			provs.add(new ScoopJdkProvider());
 		}
 		return provs;
 	}

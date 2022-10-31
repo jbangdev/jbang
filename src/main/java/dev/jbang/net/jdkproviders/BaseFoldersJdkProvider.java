@@ -24,11 +24,11 @@ public abstract class BaseFoldersJdkProvider implements JdkProvider {
 	@Override
 	public SortedSet<Jdk> listInstalled() {
 		if (Files.isDirectory(getJdksRoot())) {
-			try (Stream<Path> files = Files.list(getJdksRoot())) {
-				return files
-							.map(this::createJdk)
-							.filter(Objects::nonNull)
-							.collect(Collectors.toCollection(TreeSet::new));
+			try (Stream<Path> jdkPaths = listJdkPaths()) {
+				return jdkPaths
+								.map(this::createJdk)
+								.filter(Objects::nonNull)
+								.collect(Collectors.toCollection(TreeSet::new));
 			} catch (IOException e) {
 				Util.verboseMsg("Couldn't list installed JDKs", e);
 			}
@@ -40,17 +40,32 @@ public abstract class BaseFoldersJdkProvider implements JdkProvider {
 	@Override
 	public Jdk getJdkByPath(@Nonnull Path jdkPath) {
 		if (jdkPath.startsWith(getJdksRoot())) {
-			return listInstalled()	.stream()
-									.filter(jdk -> jdkPath.startsWith(jdk.home))
-									.findFirst()
-									.orElse(null);
+			try (Stream<Path> jdkPaths = listJdkPaths()) {
+				return jdkPaths
+								.filter(jdkPath::startsWith)
+								.map(this::createJdk)
+								.filter(Objects::nonNull)
+								.findFirst()
+								.orElse(null);
+			} catch (IOException e) {
+				Util.verboseMsg("Couldn't list installed JDKs", e);
+			}
 		}
 		return null;
 	}
 
+	/**
+	 * Returns a path to the requested JDK. This method should never return
+	 * <code>null</code> and should return the path where the requested JDK is
+	 * either currently installed or where it would be installed if it were
+	 * available. This only needs to be implemented for providers that are
+	 * updatable.
+	 *
+	 * @param jdk The identifier of the JDK to install
+	 * @return A path to the requested JDK
+	 */
 	@Nonnull
-	@Override
-	public Path getJdkPath(@Nonnull String jdk) {
+	protected Path getJdkPath(@Nonnull String jdk) {
 		return getJdksRoot().resolve(jdk);
 	}
 
@@ -64,13 +79,13 @@ public abstract class BaseFoldersJdkProvider implements JdkProvider {
 					Path dest = Files.readSymbolicLink(link);
 					return createJdk(dest);
 				} else {
-					try (Stream<Path> dirs = Files.list(getJdksRoot())) {
-						return dirs	.filter(p -> JavaUtil.parseJavaVersion(p.getFileName().toString()) > 0)
-									.filter(sameJdk(link))
-									.map(this::createJdk)
-									.filter(Objects::nonNull)
-									.findAny()
-									.orElse(null);
+					try (Stream<Path> jdkPaths = listJdkPaths()) {
+						return jdkPaths	.filter(p -> JavaUtil.parseJavaVersion(p.getFileName().toString()) > 0)
+										.filter(sameJdk(link))
+										.map(this::createJdk)
+										.filter(Objects::nonNull)
+										.findAny()
+										.orElse(null);
 					}
 
 				}
@@ -92,8 +107,17 @@ public abstract class BaseFoldersJdkProvider implements JdkProvider {
 		};
 	}
 
+	protected Stream<Path> listJdkPaths() throws IOException {
+		if (Files.isDirectory(getJdksRoot())) {
+			return Files.list(getJdksRoot());
+		}
+		return Stream.empty();
+	}
+
 	@Nonnull
-	protected abstract Path getJdksRoot();
+	protected Path getJdksRoot() {
+		throw new UnsupportedOperationException("Getting the JDK root folder not supported by " + getClass().getName());
+	}
 
 	@Nullable
 	protected abstract Path getDefaultJdkPath();

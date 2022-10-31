@@ -165,18 +165,6 @@ public interface JdkProvider {
 	}
 
 	/**
-	 * Returns a path to the requested JDK. This method should never return
-	 * <code>null</code> and should return the path where the requested JDK is
-	 * either currently installed or where it would be installed if it were
-	 * available.
-	 * 
-	 * @param jdk The identifier of the JDK to install
-	 * @return A path to the requested JDK
-	 */
-	@Nonnull
-	Path getJdkPath(@Nonnull String jdk);
-
-	/**
 	 * Returns the identifier of the default JDK. The default JDK is the one that is
 	 * to be used when no specific version or id is specified. Returns
 	 * <code>null</code> if no default JDK is set.

@@ -119,7 +119,7 @@ public class JBangJdkProvider extends BaseFoldersJdkProvider {
 
 	@Nonnull
 	@Override
-	public Path getJdkPath(@Nonnull String jdk) {
+	protected Path getJdkPath(@Nonnull String jdk) {
 		return getJdksPath().resolve(Integer.toString(jdkVersion(jdk)));
 	}
 
