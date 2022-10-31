@@ -51,7 +51,7 @@ public class App {
 
 @CommandLine.Command(name = "install", description = "Install a script as a command.")
 class AppInstall extends BaseCommand {
-	private static final String jbangUrl = "https://www.jbang.dev/releases/latest/download/jbang.zip";
+	private static final String JBANG_DEFAULT_RELEASE_URL = "https://www.jbang.dev/releases/latest/download/jbang.zip";
 
 	@CommandLine.Option(names = {
 			"--native" }, description = "Enable native build/run")
@@ -76,7 +76,7 @@ class AppInstall extends BaseCommand {
 					throw new IllegalArgumentException(
 							"It's not possible to install jbang with a different name");
 				}
-				installed = installJBang(force);
+				installed = installJBang(force, false);
 			} else {
 				if ("jbang".equals(name)) {
 					throw new IllegalArgumentException("jbang is a reserved name.");
@@ -85,6 +85,9 @@ class AppInstall extends BaseCommand {
 					throw new IllegalArgumentException("Not a valid command name: '" + name + "'");
 				}
 				installed = install(name, scriptRef, force, benative);
+				if (installed) {
+					installJBang(false, true);
+				}
 			}
 			if (installed) {
 				if (AppSetup.needsSetup()) {
@@ -189,28 +192,19 @@ class AppInstall extends BaseCommand {
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 	}
 
-	public static boolean installJBang(boolean force) throws IOException {
+	public static boolean installJBang(boolean force, boolean quiet) throws IOException {
 		Path binDir = Settings.getConfigBinDir();
 		boolean managedJBang = Files.exists(binDir.resolve("jbang.jar"));
 
 		if (!force && (managedJBang || Util.searchPath("jbang") != null)) {
-			Util.infoMsg("jbang is already available, re-run with --force to install anyway.");
+			if (!quiet) {
+				Util.infoMsg("jbang is already available, re-run with --force to install anyway.");
+			}
 			return false;
 		}
 
 		if (force || !managedJBang) {
-			if (!Util.isOffline()) {
-				// Download JBang and unzip to ~/.jbang/bin/
-				Util.setFresh(true);// TODO: workaround as url cache is not honoring changed redirects
-				Util.infoMsg("Downloading and installing jbang...");
-				Path zipFile = Util.downloadFileToCache(jbangUrl);
-				Path urlsDir = Settings.getCacheDir(Cache.CacheClass.urls);
-				Util.deletePath(urlsDir.resolve("jbang"), true);
-				UnpackUtil.unpack(zipFile, urlsDir);
-				App.deleteCommandFiles("jbang");
-				Path fromDir = urlsDir.resolve("jbang").resolve("bin");
-				copyJBangFiles(fromDir, binDir);
-			} else {
+			if (Util.isOffline() || haveAllJBangFiles() && !force && !Util.isFresh()) {
 				Path jar = Util.getJarLocation();
 				if (!jar.toString().endsWith(".jar")) {
 					throw new ExitException(EXIT_GENERIC_ERROR, "Could not determine jbang location");
@@ -219,36 +213,79 @@ class AppInstall extends BaseCommand {
 				if (fromDir.endsWith(".jbang")) {
 					fromDir = fromDir.getParent();
 				}
+				Util.infoMsg("Installing jbang...");
+				copyJBangFiles(fromDir, binDir);
+			} else { // !offline && (!haveAllFile || fresh)
+				// Download JBang and unzip to ~/.jbang/bin/
+				Util.setFresh(true);// TODO: workaround as url cache is not honoring changed redirects
+				Util.infoMsg("Downloading and installing jbang...");
+				Path zipFile = Util.downloadFileToCache(getJBangDownloadUrl());
+				Path urlsDir = Settings.getCacheDir(Cache.CacheClass.urls);
+				Util.deletePath(urlsDir.resolve("jbang"), true);
+				UnpackUtil.unpack(zipFile, urlsDir);
+				App.deleteCommandFiles("jbang");
+				Path fromDir = urlsDir.resolve("jbang").resolve("bin");
 				copyJBangFiles(fromDir, binDir);
 			}
 		} else {
-			Util.infoMsg("jbang is already installed.");
+			if (!quiet) {
+				Util.infoMsg("jbang is already installed.");
+			}
 		}
 		return true;
 	}
 
-	private static void copyJBangFiles(Path from, Path to) throws IOException {
+	private static String getJBangDownloadUrl() {
+		String url = System.getenv(Settings.JBANG_RELEASE_URL);
+		if (url == null) {
+			return JBANG_DEFAULT_RELEASE_URL;
+		} else {
+			// We don't support .tar files, so we'll change the extension
+			// to .zip and hope it exists.
+			if (Util.extension(url) == ".tar") {
+				url = url.substring(0, url.length() - 4) + ".zip";
+			}
+			return url;
+		}
+	}
+
+	private static void copyJBangFiles(Path from, Path to) {
 		to.toFile().mkdirs();
-		Stream	.of("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")
-				.map(Paths::get)
-				.forEach(f -> {
-					try {
-						Path fromp = from.resolve(f);
-						Path top = to.resolve(f);
-						if (f.endsWith("jbang.jar")) {
-							if (!Files.isReadable(fromp)) {
-								fromp = from.resolve(".jbang/jbang.jar");
-							}
-							if (Util.isWindows() && Files.isRegularFile(top)) {
-								top = to.resolve("jbang.jar.new");
-							}
-						}
-						Files.copy(fromp, top, StandardCopyOption.REPLACE_EXISTING,
-								StandardCopyOption.COPY_ATTRIBUTES);
-					} catch (IOException e) {
-						throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
+		listJBangFiles().forEach(f -> {
+			try {
+				Path fromp = from.resolve(f);
+				Path top = to.resolve(f);
+				if (f.endsWith("jbang.jar")) {
+					if (!Files.isReadable(fromp)) {
+						fromp = from.resolve(".jbang/jbang.jar");
 					}
-				});
+					if (Util.isWindows() && Files.isRegularFile(top)) {
+						top = to.resolve("jbang.jar.new");
+					}
+				}
+				Files.copy(fromp, top, StandardCopyOption.REPLACE_EXISTING,
+						StandardCopyOption.COPY_ATTRIBUTES);
+			} catch (IOException e) {
+				throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
+			}
+		});
+	}
+
+	private static boolean haveAllJBangFiles() {
+		Path jar = Util.getJarLocation();
+		if (jar.toString().endsWith(".jar")) {
+			return haveAllJBangFiles(jar.getParent());
+		} else {
+			return false;
+		}
+	}
+
+	private static boolean haveAllJBangFiles(Path from) {
+		return listJBangFiles().allMatch(f -> Files.isRegularFile(from.resolve(f)));
+	}
+
+	private static Stream<Path> listJBangFiles() {
+		return Stream.of("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar").map(Paths::get);
 	}
 }
 

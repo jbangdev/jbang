@@ -23,7 +23,7 @@ public class Version extends BaseCommand {
 		if (update) {
 			if (VersionChecker.updateOrInform(checkForUpdate)) {
 				try {
-					AppInstall.installJBang(true);
+					AppInstall.installJBang(true, false);
 				} catch (IOException e) {
 					throw new ExitException(EXIT_INTERNAL_ERROR, "Could not install command", e);
 				}
