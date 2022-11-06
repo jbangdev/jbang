@@ -70,9 +70,9 @@ if (Test-Path "$PSScriptRoot\jbang.jar") {
     if (-not (Test-Path env:JBANG_DOWNLOAD_VERSION)) {
         $jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.zip"
     } else {
-        $jburl="https://github.com/jbangdev/jbang/releases/download/v$JBANG_DOWNLOAD_VERSION/jbang.zip";
+        $jburl="https://github.com/jbangdev/jbang/releases/download/v$env:JBANG_DOWNLOAD_VERSION/jbang.zip";
     }
-    [Console]::Error.WriteLine("Downloading JBang $JBANG_DOWNLOAD_VERSION...")
+    [Console]::Error.WriteLine("Downloading JBang $env:JBANG_DOWNLOAD_VERSION...")
     try { Invoke-WebRequest "$jburl" -OutFile "$TDIR\urls\jbang.zip"; $ok=$? } catch {
       $ok=$false
       $err=$_
