@@ -155,11 +155,13 @@ public class ArtifactResolver {
 		settings = newEffectiveSettings();
 		session = newSession(system, settings);
 		configureSession(session, settings);
+		List<RemoteRepository> partialRepos;
 		if (builder.repositories != null) {
-			repositories = builder.repositories.stream().map(this::toRemoteRepo).collect(Collectors.toList());
+			partialRepos = builder.repositories.stream().map(this::toRemoteRepo).collect(Collectors.toList());
 		} else {
-			repositories = newRepositories();
+			partialRepos = newRepositories();
 		}
+		repositories = system.newResolutionRepositories(session, partialRepos);
 	}
 
 	public List<ArtifactInfo> resolve(List<String> depIds) {
@@ -302,6 +304,7 @@ public class ArtifactResolver {
 		return new RemoteRepository.Builder(repo.getId(), "default", repo.getUrl())
 																					.setPolicy(getUpdatePolicy())
 																					.build();
+
 	}
 
 	private static Dependency toDependency(Artifact artifact) {
@@ -354,13 +357,13 @@ public class ArtifactResolver {
 			// find the settings
 			Path settingsFile = settingsXml;
 			if (settingsFile == null) {
-				Path userSettings = Paths.get(System.getProperty("user.home"), ".m2", "settings.xml");
-				if (Files.exists(userSettings)) {
-					settingsFile = userSettings.toAbsolutePath();
+				Path globalSettings = Paths.get(System.getProperty("user.home"), ".m2", "settings.xml");
+				if (Files.exists(globalSettings)) {
+					settingsFile = globalSettings.toAbsolutePath();
 				}
 			}
 			if (settingsFile != null) {
-				settingsBuilderRequest.setUserSettingsFile(settingsFile.toFile());
+				settingsBuilderRequest.setGlobalSettingsFile(settingsFile.toFile());
 			}
 		}
 
