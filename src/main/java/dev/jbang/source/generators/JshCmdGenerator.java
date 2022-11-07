@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.text.StringEscapeUtils;
 
+import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.source.*;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
@@ -98,6 +99,17 @@ public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
 		fullArgs.addAll(optionalArgs);
 
 		if (project.isJShell()) {
+			// add -sourcepath for all source folders
+			List<String> srcDirs = project	.getMainSourceSet()
+											.getSourceDirs()
+											.stream()
+											.map(d -> d.getFile().toString())
+											.collect(Collectors.toList());
+			if (!srcDirs.isEmpty()) {
+				fullArgs.add("-C-sourcepath");
+				fullArgs.add(ModularClassPath.toClassPath(srcDirs));
+			}
+
 			ArrayList<ResourceRef> revSources = new ArrayList<>(project.getMainSourceSet().getSources());
 			Collections.reverse(revSources);
 			for (ResourceRef s : revSources) {

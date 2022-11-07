@@ -226,6 +226,7 @@ public class TestBuilder extends BaseTest {
 		Util.setCwd(examplesTestFolder);
 		String mainFile = examplesTestFolder.resolve("foo.java").toString();
 		String incFile = examplesTestFolder.resolve("bar/Bar.java").toString();
+		String srcPath = examplesTestFolder.resolve("bar") + File.pathSeparator + examplesTestFolder;
 
 		ProjectBuilder pb = ProjectBuilder.create();
 		pb.additionalSources(Arrays.asList("bar"));
@@ -239,6 +240,7 @@ public class TestBuilder extends BaseTest {
 					protected void runCompiler(List<String> optionList) {
 						assertThat(optionList, hasItem(mainFile));
 						assertThat(optionList, hasItem(incFile));
+						assertThat(optionList, hasItems("-sourcepath", srcPath));
 						// Skip the compiler
 					}
 				};
@@ -507,6 +509,26 @@ public class TestBuilder extends BaseTest {
 					protected void runNativeBuilder(List<String> optionList) throws IOException {
 						// Skip the native image builder
 						assertThat(optionList, hasItem("-O1"));
+					}
+				};
+			}
+		}.setFresh(true).build();
+	}
+
+	@Test
+	void testMultiSourceWithDeps() throws IOException {
+		Path foo = examplesTestFolder.resolve("extending").resolve("Foo.java");
+		ProjectBuilder pb = ProjectBuilder.create();
+		Project prj = pb.build(foo.toString());
+
+		new JavaSource.JavaAppBuilder(prj) {
+			@Override
+			protected Builder<Project> getCompileBuildStep() {
+				return new JavaCompileBuildStep() {
+					@Override
+					protected void runCompiler(List<String> optionList) {
+						assertThat(optionList, hasItems("-sourcepath", examplesTestFolder.toString(), foo.toString()));
+						// Skip the compiler
 					}
 				};
 			}

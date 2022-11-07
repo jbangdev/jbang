@@ -1,6 +1,8 @@
 package dev.jbang.source;
 
+import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -8,6 +10,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
@@ -87,6 +90,29 @@ public abstract class Source {
 		return resourceRef;
 	}
 
+	@Nullable
+	public ResourceRef getSourceDirRef() {
+		if (contents != null && resourceRef.isFile()) {
+			Path parent = getResourceRef().getFile().getParent();
+			Optional<String> pkg = getJavaPackage();
+			if (pkg.isPresent()) {
+				String[] elems = pkg.get().split("\\.");
+				Collections.reverse(Arrays.asList(elems));
+				for (String elem : elems) {
+					if (parent != null && !elem.equals(parent.getFileName().toString())) {
+						// if path doesn't match package we return null
+						return null;
+					}
+					parent = parent.getParent();
+				}
+			}
+			return ResourceRef.forFile(parent);
+		} else {
+			// If the resource isn't a local file we return null
+			return null;
+		}
+	}
+
 	public Optional<String> getJavaPackage() {
 		if (contents != null) {
 			return Util.getSourcePackage(contents);
@@ -145,6 +171,10 @@ public abstract class Source {
 		if (!prj.getMainSourceSet().getSources().contains(getResourceRef())) {
 			SourceSet ss = prj.getMainSourceSet();
 			ss.addSource(this.getResourceRef());
+			ResourceRef srcDir = getSourceDirRef();
+			if (srcDir != null) {
+				ss.addSourceDir(srcDir);
+			}
 			ss.addResources(tagReader.collectFiles(resourceRef,
 					new SiblingResourceResolver(resourceRef, ResourceResolver.forResources())));
 			ss.addDependencies(collectDependencies());

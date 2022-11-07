@@ -50,10 +50,14 @@ public class ModularClassPath {
 
 	public String getClassPath() {
 		if (classPath == null) {
-			classPath = String.join(CP_SEPARATOR, getClassPaths());
+			classPath = toClassPath(getClassPaths());
 		}
 
 		return classPath;
+	}
+
+	public static String toClassPath(List<String> pathElements) {
+		return String.join(CP_SEPARATOR, pathElements);
 	}
 
 	public String getManifestPath() {

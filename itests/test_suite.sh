@@ -47,7 +47,7 @@ assert_stderr(){
 export NL=$'\n'
 
 echo "Cleaning JBANG_CACHE"
-rm -rf ~/.jbang/cache
+rm -rf ~/.jbang/cache/{jars,urls,scripts,stdins}
 
 echo Testing with `which jbang`
 
