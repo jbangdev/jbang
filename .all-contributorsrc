@@ -746,6 +746,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "oliv37",
+      "name": "oliv37",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7140102?v=4",
+      "profile": "https://github.com/oliv37",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,
