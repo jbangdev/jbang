@@ -211,6 +211,7 @@ public class JdkManager {
 		if (ver.isPresent()) {
 			Integer linkedJdkVersion = ver.get();
 			if (linkedJdkVersion == version) {
+				Util.mkdirs(jdkPath.getParent());
 				Util.createLink(jdkPath, linkedJdkPath);
 				Util.infoMsg("JDK " + version + " has been linked to: " + linkedJdkPath);
 			} else {
