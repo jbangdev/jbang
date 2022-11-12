@@ -25,6 +25,8 @@ import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.source.buildsteps.JarBuildStep;
 import dev.jbang.source.buildsteps.NativeBuildStep;
 import dev.jbang.source.sources.JavaSource;
+import dev.jbang.source.sources.JavaSource.JavaAppBuilder.JavaCompileBuildStep;
+import dev.jbang.source.sources.KotlinSource;
 import dev.jbang.util.Util;
 
 public class TestBuilder extends BaseTest {
@@ -62,6 +64,26 @@ public class TestBuilder extends BaseTest {
 					@Override
 					protected void runCompiler(List<String> optionList) {
 						assertThat(optionList, hasItems(foo.toString(), "-g", "--foo", "--bar"));
+						// Skip the compiler
+					}
+				};
+			}
+		}.setFresh(true).build();
+	}
+
+	@Test
+	void testKotlinCompileOptions() throws IOException {
+		Path foo = examplesTestFolder.resolve("helloworld.kt").toAbsolutePath();
+		ProjectBuilder pb = ProjectBuilder.create().compileOptions(Arrays.asList("--foo", "--bar"));
+		Project prj = pb.build(foo.toString());
+
+		new KotlinSource.KotlinAppBuilder(prj) {
+			@Override
+			protected Builder<Project> getCompileBuildStep() {
+				return new KotlinCompileBuildStep() {
+					@Override
+					protected void runCompiler(List<String> optionList) {
+						assertThat(optionList, hasItems(foo.toString(), "--foo", "--bar"));
 						// Skip the compiler
 					}
 				};

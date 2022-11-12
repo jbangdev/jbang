@@ -48,7 +48,7 @@ public class KotlinSource extends Source {
 						.orElse(KotlinManager.DEFAULT_KOTLIN_VERSION);
 	}
 
-	private static class KotlinAppBuilder extends AppBuilder {
+	public static class KotlinAppBuilder extends AppBuilder {
 		public KotlinAppBuilder(Project project) {
 			super(project);
 		}
@@ -63,7 +63,7 @@ public class KotlinSource extends Source {
 			return new KotlinIntegrationBuildStep();
 		}
 
-		private class KotlinCompileBuildStep extends CompileBuildStep {
+		protected class KotlinCompileBuildStep extends CompileBuildStep {
 
 			public KotlinCompileBuildStep() {
 				super(KotlinAppBuilder.this.project);
