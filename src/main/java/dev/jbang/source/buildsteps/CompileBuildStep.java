@@ -38,7 +38,6 @@ public abstract class CompileBuildStep implements Builder<Project> {
 		Path compileDir = project.getBuildDir();
 		List<String> optionList = new ArrayList<>();
 		optionList.add(getCompilerBinary(requestedJavaVersion));
-		optionList.add("-g");
 		optionList.addAll(project.getMainSourceSet().getCompileOptions());
 		String path = project.resolveClassPath().getClassPath();
 		if (!Util.isBlankString(path)) {
