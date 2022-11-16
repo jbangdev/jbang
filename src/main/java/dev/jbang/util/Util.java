@@ -628,6 +628,7 @@ public class Util {
 
 		URLConnection urlConnection = url.openConnection();
 		urlConnection.setRequestProperty("User-Agent", getAgentString());
+		addAuthHeaderIfNeeded(urlConnection);
 
 		HttpURLConnection httpConn = null;
 
@@ -695,7 +696,7 @@ public class Util {
 		// copy content from connection to file
 		saveDir.mkdirs();
 		Path saveFilePath = saveDir.toPath().resolve(fileName);
-		try (ReadableByteChannel readableByteChannel = Channels.newChannel(url.openStream());
+		try (ReadableByteChannel readableByteChannel = Channels.newChannel(urlConnection.getInputStream());
 				FileOutputStream fileOutputStream = new FileOutputStream(saveFilePath.toFile())) {
 			fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
 		}
@@ -707,6 +708,16 @@ public class Util {
 
 		return saveFilePath;
 
+	}
+
+	private static void addAuthHeaderIfNeeded(URLConnection urlConnection) {
+		String username = System.getenv("JBANG_BASIC_AUTH_USERNAME");
+		String password = System.getenv("JBANG_BASIC_AUTH_PASSWORD");
+		if (username != null && password != null) {
+			String auth = username + ":" + password;
+			String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
+			urlConnection.setRequestProperty("Authorization", "Basic " + encodedAuth);
+		}
 	}
 
 	public static String getDispositionFilename(String disposition) {
