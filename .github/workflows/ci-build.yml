@@ -49,6 +49,7 @@ jobs:
         with:
           limit-access-to-actor: true
       - uses: actions/checkout@v1
+      - uses: gradle/wrapper-validation-action@v1
       - name: install-java8
         uses: actions/setup-java@v2
         with:
