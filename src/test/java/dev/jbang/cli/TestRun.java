@@ -1068,6 +1068,12 @@ public class TestRun extends BaseTest {
 		verifyHello("https://twitter.com/maxandersen/status/1266329490927616001", dir);
 	}
 
+	@Test
+	void testFetchFromMastdon(@TempDir Path dir) throws IOException {
+		verifyHello("https://mastodon.social/@maxandersen/109361828562755062", dir);
+		verifyHello("https://fosstodon.org/@jbangdev/109367735752497165", dir);
+	}
+
 	/*
 	 * carbon gist rate limited so it fails
 	 *
