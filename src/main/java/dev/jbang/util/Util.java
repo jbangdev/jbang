@@ -49,7 +49,6 @@ import org.jsoup.parser.Parser;
 
 import com.google.gson.Gson;
 
-import dev.jbang.BuildConfig;
 import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;

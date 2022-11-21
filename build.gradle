@@ -8,7 +8,7 @@ plugins {
 	id "io.toolebox.git-versioner" version "1.6.4"
 	id 'org.gradle.crypto.checksum' version '1.1.0'
 	id "com.diffplug.spotless" version "5.11.0"
-	id 'de.fuerstenau.buildconfig' version '1.1.8'
+	id 'com.github.gmazzo.buildconfig' version "3.1.0"
 	id "com.dorongold.task-tree" version "1.5"
 	id "com.geoffgranum.gradle-conventional-changelog" version "0.3.1"
 	id "org.asciidoctor.jvm.convert" version "3.3.2"
@@ -49,16 +49,21 @@ dependencies {
 	implementation "org.apache.maven.resolver:maven-resolver-transport-file:1.8.2"
 	implementation "org.apache.maven.resolver:maven-resolver-transport-http:1.8.2"
 
-	testCompile "com.github.tomakehurst:wiremock-jre8:2.32.0"
-
-	testImplementation "org.junit.jupiter:junit-jupiter:5.9.0"
 	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.9.0"
+	testImplementation "org.junit.jupiter:junit-jupiter:5.9.0"
 	testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
 	testImplementation "org.hamcrest:hamcrest-library:2.2"
+	testImplementation "com.github.tomakehurst:wiremock-jre8:2.32.0"
 
-	//testCompile 'com.github.maxandersen.karate:karate-junit:19e06766'
-	//testCompile 'com.github.maxandersen.karate:karate-apache:19e06766'
-	//testCompile 'com.github.maxandersen.karate:karate-netty:19e06766'
+	//testImplementation 'com.github.maxandersen.karate:karate-junit:19e06766'
+	//testImplementation 'com.github.maxandersen.karate:karate-apache:19e06766'
+	//testImplementation 'com.github.maxandersen.karate:karate-netty:19e06766'
+}
+
+buildConfig {
+	packageName("dev.jbang.util")
+	buildConfigField('String', 'NAME', "\"${project.name}\"")
+	buildConfigField('String', 'VERSION', provider { "\"${project.version}\"" })
 }
 
 // to enable reproducible builds
@@ -69,18 +74,18 @@ tasks.withType(AbstractArchiveTask) {
 
 
 sonarqube {
-properties {
-	property "sonar.projectKey", "jbangdev_jbang"
-	property "sonar.organization", "jbangdev"
-	property "sonar.host.url", "https://sonarcloud.io"
-}
+	properties {
+		property "sonar.projectKey", "jbangdev_jbang"
+		property "sonar.organization", "jbangdev"
+		property "sonar.host.url", "https://sonarcloud.io"
+	}
 }
 
 spotless {
 	lineEndings 'UNIX'
 	format 'misc', {
 		target '**/*.gradle', '**/*.md', '**/.gitignore'
-		targetExclude 'CONTRIBUTORS.md', 'src/main/scripts/container/README.md', 'build/container/README.md', ' build/reports/**', ' build/test-results/**', 'out/**/*'  // all-contributor bot adds non-indented code
+		targetExclude 'CONTRIBUTORS.md', 'src/main/scripts/container/README.md', 'build/**/*', 'out/**/*'  // all-contributor bot adds non-indented code
 		trimTrailingWhitespace()
 		indentWithTabs(4) // or spaces. Takes an integer argument if you don't like 4
 		endWithNewline()
@@ -148,7 +153,7 @@ jar {
 				'Main-Class': 'dev.jbang.Main',
 		)
 	}
-	}
+}
 
 
 compileJava {
