@@ -61,6 +61,12 @@ assert_raises "rm $SCRATCH/test.java" 0
 
 assert "jbang helloworld.java jbangtest" "Hello jbangtest"
 
+echo "JAVA::::"
+java -version
+echo $JAVA_HOME
+which java
+which jshell
+
 java -version 2>&1 >/dev/null| grep version | grep "1.8" >/dev/null
 JAVA8=$?
 
