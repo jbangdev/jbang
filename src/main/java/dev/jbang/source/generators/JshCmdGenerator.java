@@ -44,8 +44,10 @@ public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
 		List<String> optionalArgs = new ArrayList<>();
 
 		String requestedJavaVersion = getProject().getJavaVersion();
-		String javacmd;
-		javacmd = JavaUtil.resolveInJavaHome("jshell", requestedJavaVersion);
+		if (requestedJavaVersion == null) {
+			requestedJavaVersion = "9+";
+		}
+		String jshcmd = JavaUtil.resolveInJavaHome("jshell", requestedJavaVersion);
 
 		// NB: See https://github.com/jbangdev/jbang/issues/992 for the reasons why we
 		// use the -J flags below
@@ -91,7 +93,7 @@ public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
 			Util.warnMsg("Java Flight Recording not possible when running via jshell.");
 		}
 
-		fullArgs.add(javacmd);
+		fullArgs.add(jshcmd);
 		addAgentsArgs(fullArgs);
 
 		fullArgs.addAll(jshellOpts(project.getRuntimeOptions()));
