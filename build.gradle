@@ -94,6 +94,7 @@ spotless {
 		importOrder 'java', 'javax', 'org', 'com', 'dev.jbang', ''
 		removeUnusedImports()
 		eclipse().configFile "misc/eclipse_formatting_nowrap.xml"
+		targetExclude 'build/**/*'
 	}
 	format 'xml', {
 		targetExclude 'build/test-results', fileTree('.idea')
