@@ -45,7 +45,6 @@ import javax.swing.*;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.parser.Parser;
 
 import com.google.gson.Gson;
 
@@ -503,11 +502,11 @@ public class Util {
 
 	/**
 	 * Swizzles the content retrieved from sites that are known to possibly embed
-	 * code (i.e. twitter and carbon)
+	 * code (i.e. mastodon and carbon)
 	 */
 	public static Path swizzleContent(String fileURL, Path filePath) throws IOException {
-		boolean twitter = fileURL.startsWith("https://mobile.twitter.com");
-		if (twitter || fileURL.startsWith("https://carbon.now.sh")) { // sites known
+		boolean mastodon = fileURL.matches("https://.*/@(\\w+)/([0-9]+)");
+		if (mastodon || fileURL.startsWith("https://carbon.now.sh")) { // sites known
 																		// to have
 																		// og:description
 																		// meta name or
@@ -516,22 +515,19 @@ public class Util {
 				Document doc = Jsoup.parse(filePath.toFile(), "UTF-8", fileURL);
 
 				String proposedString = null;
-				if (twitter) {
-					proposedString = doc.select("div[class=dir-ltr]").first().wholeText().trim();
-				} else {
-					proposedString = doc.select("meta[property=og:description],meta[name=og:description]")
-										.first()
-										.attr("content");
-				}
 
-				if (twitter) {
-					// remove fake quotes
-					// proposedString = proposedString.replace("\u201c", "");
-					// proposedString = proposedString.replace("\u201d", "");
-					// unescape properly
-					proposedString = Parser.unescapeEntities(proposedString, true);
+				proposedString = doc.select("meta[property=og:description],meta[name=og:description]")
+									.first()
+									.attr("content");
 
-				}
+				/*
+				 * if (twitter) { // remove fake quotes // proposedString =
+				 * proposedString.replace("\u201c", ""); // proposedString =
+				 * proposedString.replace("\u201d", ""); // unescape properly proposedString =
+				 * Parser.unescapeEntities(proposedString, true);
+				 * 
+				 * }
+				 */
 
 				if (proposedString != null) {
 					Matcher m = mainClassPattern.matcher(proposedString);
