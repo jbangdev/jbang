@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Consumer;
@@ -25,6 +26,10 @@ import dev.jbang.util.JavaUtil;
 import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
 
+/**
+ * JBang's main JDK provider that can download and install the JDKs provided by
+ * the Foojay Disco API. They get installed in JBang's cache folder.
+ */
 public class JBangJdkProvider extends BaseFoldersJdkProvider {
 	private static final String FOOJAY_JDK_DOWNLOAD_URL = "https://api.foojay.io/disco/v3.0/directuris?";
 	private static final String FOOJAY_JDK_VERSIONS_URL = "https://api.foojay.io/disco/v3.0/distributions/%s?";
@@ -43,7 +48,7 @@ public class JBangJdkProvider extends BaseFoldersJdkProvider {
 		try {
 			TreeSet<Jdk> result = new TreeSet<>();
 			Consumer<String> addJdk = version -> {
-				result.add(createJdk(jdkId(version), version, null));
+				result.add(createJdk(jdkId(version), null, jdk -> Optional.of(version)));
 			};
 			String distro = Util.getVendor();
 			if (distro == null) {
@@ -94,7 +99,7 @@ public class JBangJdkProvider extends BaseFoldersJdkProvider {
 			}
 			Files.move(jdkTmpDir, jdkDir);
 			Util.deletePath(jdkOldDir, false);
-			return createJdk(jdk, resolveJavaVersionStringFromPath(jdkDir).orElse(null), jdkDir);
+			return createJdk(jdk, jdkDir, j -> resolveJavaVersionStringFromPath(jdkDir));
 		} catch (Exception e) {
 			Util.deletePath(jdkTmpDir, true);
 			if (!Files.isDirectory(jdkDir) && Files.isDirectory(jdkOldDir)) {

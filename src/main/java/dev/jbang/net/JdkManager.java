@@ -1,6 +1,7 @@
 package dev.jbang.net;
 
 import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
+import static dev.jbang.util.JavaUtil.isOpenVersion;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -9,8 +10,10 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
 import dev.jbang.net.jdkproviders.BaseFoldersJdkProvider;
+import dev.jbang.net.jdkproviders.EnvJdkProvider;
 import dev.jbang.net.jdkproviders.JBangJdkProvider;
 import dev.jbang.net.jdkproviders.ScoopJdkProvider;
 import dev.jbang.net.jdkproviders.SdkmanJdkProvider;
@@ -18,28 +21,54 @@ import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 public class JdkManager {
+	private static List<JdkProvider> providers = new ArrayList<>();
+
 	private static List<JdkProvider> providers() {
-		List<JdkProvider> provs = new ArrayList<>();
-		provs.add(new JBangJdkProvider());
-		if (SdkmanJdkProvider.canUse()) {
-			provs.add(new SdkmanJdkProvider());
+		if (providers == null) {
+			providers = new ArrayList<>();
+			providers.add(new EnvJdkProvider());
+			providers.add(new JBangJdkProvider());
+			if (SdkmanJdkProvider.canUse()) {
+				providers.add(new SdkmanJdkProvider());
+			}
+			if (ScoopJdkProvider.canUse()) {
+				providers.add(new ScoopJdkProvider());
+			}
+			if (Util.isVerbose()) {
+				Util.verboseMsg("Using JDK provider(s): " + providers	.stream()
+																		.map(p -> p.getClass().getSimpleName())
+																		.collect(Collectors.joining(", ")));
+			}
 		}
-		if (ScoopJdkProvider.canUse()) {
-			provs.add(new ScoopJdkProvider());
-		}
-		return provs;
+		return providers;
 	}
 
 	private static List<JdkProvider> updatableProviders() {
 		return providers().stream().filter(JdkProvider::canUpdate).collect(Collectors.toList());
 	}
 
-	public static Path getCurrentJdk(String requestedVersion) {
+	public static JdkProvider.Jdk getJdk(String requestedVersion) {
+		JdkProvider.Jdk jdk = getDefaultJdk();
+		int defVersion = jdk != null ? jdk.getMajorVersion() : 0;
+		if (requestedVersion != null) {
+			if (!JavaUtil.satisfiesRequestedVersion(requestedVersion, defVersion)) {
+				int minVersion = JavaUtil.minRequestedVersion(requestedVersion);
+				if (isOpenVersion(requestedVersion)) {
+					jdk = nextInstalledJdk(minVersion).orElse(null);
+				} else {
+					jdk = getInstalledJdk(minVersion);
+				}
+			}
+		} else {
+			if (defVersion < 8) {
+				jdk = getJdk(Settings.getDefaultJavaVersion() + "+");
+			}
+		}
+
+		int actualVersion = jdk != null ? jdk.getMajorVersion() : 0;
 		int currentVersion = JavaUtil.determineJavaVersion();
-		int actualVersion = JavaUtil.javaVersion(requestedVersion);
 		if (currentVersion == actualVersion) {
 			Util.verboseMsg("System Java version matches requested version " + actualVersion);
-			return JavaUtil.getJdkHome();
 		} else {
 			if (currentVersion == 0) {
 				Util.verboseMsg("No system Java found, using JBang managed version " + actualVersion);
@@ -47,8 +76,9 @@ public class JdkManager {
 				Util.verboseMsg("System Java version " + currentVersion + " incompatible, using JBang managed version "
 						+ actualVersion);
 			}
-			return getInstalledJdk(actualVersion).home;
 		}
+
+		return jdk;
 	}
 
 	public static JdkProvider.Jdk getInstalledJdk(int version) {
@@ -87,9 +117,9 @@ public class JdkManager {
 				// On Windows we have to check nobody is currently using the JDK or we could
 				// be causing all kinds of trouble
 				try {
-					Path jdkTmpDir = jdk.home.getParent().resolve(jdk.home.getFileName().toString() + ".tmp");
+					Path jdkTmpDir = jdk.getHome().getParent().resolve(jdk.getHome().getFileName().toString() + ".tmp");
 					Util.deletePath(jdkTmpDir, true);
-					Files.move(jdk.home, jdkTmpDir);
+					Files.move(jdk.getHome(), jdkTmpDir);
 				} catch (IOException ex) {
 					Util.warnMsg("Cannot uninstall JDK " + version + ", it's being used");
 					return;
@@ -97,12 +127,12 @@ public class JdkManager {
 			}
 			jdk.uninstall();
 			if (defaultJdk != null && defaultJdk.getMajorVersion() == version) {
-				Optional<Integer> newver = nextInstalledJdk(version);
-				if (!newver.isPresent()) {
-					newver = prevInstalledJdk(version);
+				Optional<JdkProvider.Jdk> newjdk = nextInstalledJdk(version);
+				if (!newjdk.isPresent()) {
+					newjdk = prevInstalledJdk(version);
 				}
-				if (newver.isPresent()) {
-					setDefaultJdk(newver.get());
+				if (newjdk.isPresent()) {
+					setDefaultJdk(newjdk.get().getMajorVersion());
 				} else {
 					removeDefaultJdk();
 					Util.infoMsg("Default JDK unset");
@@ -146,20 +176,34 @@ public class JdkManager {
 		}
 	}
 
-	public static Optional<Integer> nextInstalledJdk(int minVersion) {
+	/**
+	 * Returns an installed JDK that matches the requested version or the next
+	 * available version. Returns <code>Optional.empty()</code> if no matching JDK
+	 * was found;
+	 * 
+	 * @param minVersion the minimal version to return
+	 * @return an optional JDK
+	 */
+	private static Optional<JdkProvider.Jdk> nextInstalledJdk(int minVersion) {
 		return listInstalledJdks()
 									.stream()
-									.map(JdkProvider.Jdk::getMajorVersion)
-									.filter(v -> v >= minVersion)
-									.min(Integer::compareTo);
+									.filter(jdk -> jdk.getMajorVersion() >= minVersion)
+									.min(JdkProvider.Jdk::compareTo);
 	}
 
-	public static Optional<Integer> prevInstalledJdk(int maxVersion) {
+	/**
+	 * Returns an installed JDK that matches the requested version or the previous
+	 * available version. Returns <code>Optional.empty()</code> if no matching JDK
+	 * was found;
+	 * 
+	 * @param maxVersion the maximum version to return
+	 * @return an optional JDK
+	 */
+	private static Optional<JdkProvider.Jdk> prevInstalledJdk(int maxVersion) {
 		return listInstalledJdks()
 									.stream()
-									.map(JdkProvider.Jdk::getMajorVersion)
-									.filter(v -> v <= maxVersion)
-									.max(Integer::compareTo);
+									.filter(jdk -> jdk.getMajorVersion() <= maxVersion)
+									.min(JdkProvider.Jdk::compareTo);
 	}
 
 	public static SortedSet<JdkProvider.Jdk> listAvailableJdks() {

@@ -13,6 +13,10 @@ import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.util.Util;
 
+/**
+ * This JDK provider detects any JDKs that have been installed using the Scoop
+ * package manager. Windows only.
+ */
 public class ScoopJdkProvider extends BaseFoldersJdkProvider {
 	private static final Path SCOOP_APPS = Paths.get(System.getProperty("user.home")).resolve("scoop/apps");
 

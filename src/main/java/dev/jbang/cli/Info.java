@@ -100,7 +100,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 							: prj.getNativeImageFile().toAbsolutePath().toString();
 					mainClass = prj.getMainClass();
 					requestedJavaVersion = prj.getJavaVersion();
-					availableJdkPath = Objects.toString(JdkManager.getCurrentJdk(requestedJavaVersion), null);
+					availableJdkPath = Objects.toString(JdkManager.getJdk(requestedJavaVersion), null);
 
 					String cp = prj.resolveClassPath().getClassPath();
 					if (cp.isEmpty()) {

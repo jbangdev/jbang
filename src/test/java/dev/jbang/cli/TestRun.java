@@ -100,7 +100,7 @@ public class TestRun extends BaseTest {
 
 		String result = code.cmdGenerator().generate();
 
-		assertThat(result, startsWith("java "));
+		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
 		assertThat(result, endsWith("helloworld"));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, matchesRegex(".*helloworld\\.java\\.[a-z0-9]+\\.jar.*"));
@@ -134,7 +134,7 @@ public class TestRun extends BaseTest {
 		code = code.builder().build();
 		String result = code.cmdGenerator().generate();
 
-		assertThat(result, startsWith("java "));
+		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
 		assertThat(result, endsWith("helloworld"));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, containsString(".jar"));
@@ -576,7 +576,7 @@ public class TestRun extends BaseTest {
 
 		String result = prj.cmdGenerator().generate();
 
-		assertThat(result, startsWith("jshell"));
+		assertThat(result, matchesPattern("^.*jshell(.exe)? .*$"));
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString("helloworld.jsh"));
 		assertThat(result, not(containsString("--source 11")));
@@ -620,7 +620,7 @@ public class TestRun extends BaseTest {
 
 		String result = prj.cmdGenerator().generate();
 
-		assertThat(result, startsWith("java "));
+		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
 		assertThat(result, containsString("helloworld.java"));
 		assertThat(result, containsString("classpath"));
 //		assertThat(result, containsString(" --source 11 "));
@@ -644,7 +644,7 @@ public class TestRun extends BaseTest {
 
 		String result = prj.cmdGenerator().generate();
 
-		assertThat(result, startsWith("java "));
+		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
 		assertThat(result, containsString("classpath_example.java"));
 //		assertThat(result, containsString(" --source 11 "));
 		assertThat(result, not(containsString("  ")));
@@ -666,7 +666,7 @@ public class TestRun extends BaseTest {
 
 		String result = prj.cmdGenerator().generate();
 
-		assertThat(result, startsWith("jshell "));
+		assertThat(result, matchesPattern("^.*jshell(.exe)? .*$"));
 		assertThat(result, (containsString("classpath_example.java")));
 //		assertThat(result, containsString(" --source 11 "));
 		assertThat(result, not(containsString("  ")));
@@ -696,7 +696,7 @@ public class TestRun extends BaseTest {
 
 		String result = prj.cmdGenerator().generate();
 
-		assertThat(result, startsWith("java "));
+		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
 		assertThat(result, containsString("-Dwonka=panda"));
 		if (Util.isWindows()) {
 			assertThat(result, containsString("^\"-Dquoted=see^ this^\""));
@@ -2165,7 +2165,7 @@ public class TestRun extends BaseTest {
 
 		String result = prj.cmdGenerator().generate();
 
-		assertThat(result, startsWith("java "));
+		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
 		assertThat(result, endsWith("quote_notags"));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, matchesRegex(".*build\\.jbang\\.[a-z0-9]+\\.jar.*"));

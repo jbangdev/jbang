@@ -30,15 +30,13 @@ class TestJdk extends BaseTest {
 		ExecutionResult result = checkedRun(jdk -> jdk.list(false, FormatMixin.Format.text));
 
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedOut(),
-				equalTo("No JDKs installed\n"));
+		assertThat(result.normalizedOut(), equalTo("No JDKs installed\n"));
 	}
 
 	@Test
 	void testHasJdksInstalled() throws IOException {
 		final Path jdkPath = JBangJdkProvider.getJdksPath();
-		Arrays	.asList(11, 12, 13)
-				.forEach(v -> createMockJdk(v));
+		Arrays.asList(11, 12, 13).forEach(v -> createMockJdk(v));
 
 		ExecutionResult result = checkedRun(jdk -> jdk.list(false, FormatMixin.Format.text));
 

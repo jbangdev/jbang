@@ -2,7 +2,9 @@ package dev.jbang.net;
 
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.SortedSet;
+import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -24,35 +26,59 @@ public interface JdkProvider {
 
 	class Jdk implements Comparable<Jdk> {
 		@Nonnull
-		public final JdkProvider provider;
+		private final transient JdkProvider provider;
+		@Nonnull
+		private final String id;
+		@Nonnull
+		private final Function<Jdk, Optional<String>> versionProvider;
+		@Nullable
+		private final Path home;
+
+		private String version;
+
+		private Jdk(@Nonnull JdkProvider provider, @Nonnull String id, @Nullable Path home,
+				@Nonnull Function<Jdk, Optional<String>> versionProvider) {
+			this.provider = provider;
+			this.id = id;
+			this.versionProvider = versionProvider;
+			this.home = home;
+		}
+
+		@Nonnull
+		public JdkProvider getProvider() {
+			return provider;
+		}
 
 		/**
-		 * The id that is used to uniquely identify this JDK across all providers
+		 * Returns the id that is used to uniquely identify this JDK across all
+		 * providers
 		 */
 		@Nonnull
-		public final String id;
+		public String getId() {
+			return id;
+		}
 
 		/**
-		 * The major JDK version
+		 * Returns the JDK's version
 		 */
-		public final String version;
+		public String getVersion() {
+			if (version == null) {
+				version = versionProvider.apply(this).orElse(null);
+			}
+			return version;
+		}
 
 		/**
 		 * The path to where the JDK is installed. Can be <code>null</code> which means
 		 * the JDK isn't currently installed by that provider
 		 */
 		@Nullable
-		public final Path home;
-
-		private Jdk(@Nonnull JdkProvider provider, @Nonnull String id, String version, @Nullable Path home) {
-			this.provider = provider;
-			this.id = id;
-			this.version = version;
-			this.home = home;
+		public Path getHome() {
+			return home;
 		}
 
 		public int getMajorVersion() {
-			return JavaUtil.parseJavaVersion(version);
+			return JavaUtil.parseJavaVersion(getVersion());
 		}
 
 		public Jdk install() {
@@ -74,12 +100,12 @@ public interface JdkProvider {
 			if (o == null || getClass() != o.getClass())
 				return false;
 			Jdk jdk = (Jdk) o;
-			return id.equals(jdk.id);
+			return Objects.equals(home, jdk.home) || ((home == null || jdk.home == null) && id.equals(jdk.id));
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(id);
+			return Objects.hash(home, id);
 		}
 
 		@Override
@@ -92,8 +118,8 @@ public interface JdkProvider {
 		}
 	}
 
-	default Jdk createJdk(@Nonnull String id, String version, @Nullable Path home) {
-		return new Jdk(this, id, version, home);
+	default Jdk createJdk(@Nonnull String id, @Nullable Path home, Function<Jdk, Optional<String>> versionProvider) {
+		return new Jdk(this, id, home, versionProvider);
 	}
 
 	/**

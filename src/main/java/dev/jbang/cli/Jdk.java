@@ -61,7 +61,8 @@ public class Jdk {
 			jdks = JdkManager.listInstalledJdks();
 		}
 		List<JdkOut> jdkOuts = jdks	.stream()
-									.map(jdk -> new JdkOut(jdk.id, jdk.version, jdk.home, jdk.equals(defaultJdk)))
+									.map(jdk -> new JdkOut(jdk.getId(), jdk.getVersion(), jdk.getHome(),
+											jdk.equals(defaultJdk)))
 									.collect(Collectors.toList());
 		if (format == FormatMixin.Format.json) {
 			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
@@ -201,7 +202,7 @@ public class Jdk {
 			home = Settings.getCurrentJdkDir();
 		} else {
 			JdkProvider.Jdk jdk = JdkManager.getInstalledJdk(version);
-			home = jdk != null ? jdk.home : null;
+			home = jdk != null ? jdk.getHome() : null;
 		}
 		return home;
 	}

@@ -129,7 +129,7 @@ public abstract class BaseFoldersJdkProvider implements JdkProvider {
 		if (JavaUtil.parseJavaVersion(name) > 0) {
 			Optional<String> version = resolveJavaVersionStringFromPath(home);
 			if (version.isPresent()) {
-				return createJdk(jdkId(name), version.get(), home);
+				return createJdk(jdkId(name), home, jdk -> version);
 			}
 		}
 		return null;

@@ -5,12 +5,12 @@ import static java.lang.System.getenv;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import dev.jbang.Settings;
 import dev.jbang.net.JdkManager;
+import dev.jbang.net.JdkProvider;
+import dev.jbang.net.jdkproviders.EnvJdkProvider;
 
 public class JavaUtil {
 
@@ -26,27 +26,8 @@ public class JavaUtil {
 	 * @return The Java version that will be used
 	 */
 	public static int javaVersion(String requestedVersion) {
-		int currentVersion = determineJavaVersion();
-		if (requestedVersion != null) {
-			if (JavaUtil.satisfiesRequestedVersion(requestedVersion, currentVersion)) {
-				return currentVersion;
-			} else {
-				int minVersion = JavaUtil.minRequestedVersion(requestedVersion);
-				if (isOpenVersion(requestedVersion)) {
-					Optional<Integer> minInstalledVersion = JdkManager.nextInstalledJdk(minVersion);
-					if (minInstalledVersion.isPresent()) {
-						return minInstalledVersion.get();
-					}
-				}
-				return minVersion;
-			}
-		} else {
-			if (currentVersion < 8) {
-				return Settings.getDefaultJavaVersion();
-			} else {
-				return currentVersion;
-			}
-		}
+		JdkProvider.Jdk jdk = JdkManager.getJdk(requestedVersion);
+		return jdk.getMajorVersion();
 	}
 
 	/**
@@ -60,14 +41,8 @@ public class JavaUtil {
 	 */
 	public static int determineJavaVersion() {
 		if (javaVersion == null) {
-			Path jdkHome = getJdkHome();
-			Path javaCmd;
-			if (jdkHome != null) {
-				javaCmd = jdkHome.resolve("bin").resolve("java").toAbsolutePath();
-			} else {
-				javaCmd = Paths.get("java");
-			}
-			javaVersion = determineJavaVersion(javaCmd);
+			EnvJdkProvider prov = new EnvJdkProvider();
+			javaVersion = parseJavaVersion(prov.getDefault().getVersion());
 			if (javaVersion != 0) {
 				Util.verboseMsg("System Java version detected as " + javaVersion);
 			} else {
@@ -75,17 +50,6 @@ public class JavaUtil {
 			}
 		}
 		return javaVersion;
-	}
-
-	private static int determineJavaVersion(Path javaCmd) {
-		String output = Util.runCommand(javaCmd.toString(), "-version");
-		int version = parseJavaVersion(parseJavaOutput(output));
-		if (version == 0) {
-			Util.verboseMsg(
-					"Version could not be determined from: '$javaCmd -version', trying 'java.version' property");
-			version = parseJavaVersion(System.getProperty("java.version"));
-		}
-		return version;
 	}
 
 	/**
@@ -126,7 +90,7 @@ public class JavaUtil {
 		return 0;
 	}
 
-	private static boolean isOpenVersion(String version) {
+	public static boolean isOpenVersion(String version) {
 		return version.endsWith("+");
 	}
 
@@ -159,7 +123,7 @@ public class JavaUtil {
 	}
 
 	public static String resolveInJavaHome(String cmd, String requestedVersion) {
-		Path jdkHome = JdkManager.getCurrentJdk(requestedVersion);
+		Path jdkHome = JdkManager.getJdk(requestedVersion).getHome();
 		if (jdkHome != null) {
 			if (Util.isWindows()) {
 				cmd = cmd + ".exe";
