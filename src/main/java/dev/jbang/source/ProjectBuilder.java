@@ -561,6 +561,9 @@ public class ProjectBuilder {
 		if (compileOptions.isEmpty()) {
 			compileOptions(alias.compileOptions);
 		}
+		if (!nativeImage && alias.nativeImage != null) {
+			nativeImage(alias.nativeImage);
+		}
 		if (nativeOptions.isEmpty()) {
 			nativeOptions(alias.nativeOptions);
 		}

@@ -120,7 +120,7 @@ public class TestBuilder extends BaseTest {
 		String incFile = examplesTestFolder.resolve("bar/Bar.java").toString();
 
 		CatalogUtil.addNearestAlias("bar", incFile, null, null, null, null, null, null, null, null, null, null, null,
-				null, null);
+				null, null, null);
 
 		ProjectBuilder pb = ProjectBuilder.create();
 		pb.additionalSources(Arrays.asList("bar"));
@@ -151,7 +151,7 @@ public class TestBuilder extends BaseTest {
 		writeString(mainFile, "//SOURCES bar@" + jbangTempDir + "\n" + fooScript);
 
 		CatalogUtil.addNearestAlias("bar", incFile, null, null, null, null, null, null, null, null, null, null, null,
-				null, null);
+				null, null, null);
 
 		ProjectBuilder pb = ProjectBuilder.create();
 		Project prj = pb.build(mainFile.toString());

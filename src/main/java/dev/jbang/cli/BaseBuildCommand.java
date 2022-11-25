@@ -20,13 +20,12 @@ public abstract class BaseBuildCommand extends BaseCommand {
 	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
 
+	@CommandLine.Mixin
+	NativeMixin nativeMixin;
+
 	@CommandLine.Option(names = {
 			"--build-dir" }, description = "Use given directory for build results")
 	Path buildDir;
-
-	@CommandLine.Option(names = {
-			"-n", "--native" }, description = "Build using native-image")
-	boolean nativeImage;
 
 	PrintStream out = new PrintStream(new FileOutputStream(FileDescriptor.out));
 
@@ -44,7 +43,8 @@ public abstract class BaseBuildCommand extends BaseCommand {
 								.javaVersion(buildMixin.javaVersion)
 								.mainClass(buildMixin.main)
 								.compileOptions(buildMixin.compileOptions)
-								.nativeImage(nativeImage)
+								.nativeImage(Boolean.TRUE.equals(nativeMixin.nativeImage))
+								.nativeOptions(nativeMixin.nativeOptions)
 								.buildDir(buildDir);
 	}
 }

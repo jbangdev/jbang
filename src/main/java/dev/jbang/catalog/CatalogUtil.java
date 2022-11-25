@@ -44,11 +44,12 @@ public class CatalogUtil {
 			String javaVersion,
 			String mainClass,
 			List<String> compileOptions,
+			Boolean nativeImage,
 			List<String> nativeOptions) {
 		Path catalogFile = Catalog.getCatalogFile(null);
 		addAlias(catalogFile, name, scriptRef, description, arguments, javaRuntimeOptions, sources, resources,
 				dependencies, repositories, classPaths, properties, javaVersion, mainClass, compileOptions,
-				nativeOptions);
+				nativeImage, nativeOptions);
 		return catalogFile;
 	}
 
@@ -73,6 +74,7 @@ public class CatalogUtil {
 			String javaVersion,
 			String mainClass,
 			List<String> compileOptions,
+			Boolean nativeImage,
 			List<String> nativeOptions) {
 		Path cwd = Util.getCwd();
 		catalogFile = cwd.resolve(catalogFile);
@@ -80,7 +82,7 @@ public class CatalogUtil {
 		scriptRef = catalog.relativize(scriptRef);
 		Alias alias = new Alias(scriptRef, description, arguments, javaRuntimeOptions, sources, resources,
 				dependencies, repositories, classPaths, properties, javaVersion, mainClass, compileOptions,
-				nativeOptions, catalog);
+				nativeImage, nativeOptions, catalog);
 		catalog.aliases.put(name, alias);
 		try {
 			catalog.write();
