@@ -63,6 +63,8 @@ public class Util {
 	public static final String JBANG_JDK_VENDOR = "JBANG_JDK_VENDOR";
 	public static final String JBANG_RUNTIME_SHELL = "JBANG_RUNTIME_SHELL";
 	public static final String JBANG_STDIN_NOTTY = "JBANG_STDIN_NOTTY";
+	public static final String JBANG_AUTH_BASIC_USERNAME = "JBANG_AUTH_BASIC_USERNAME";
+	public static final String JBANG_AUTH_BASIC_PASSWORD = "JBANG_AUTH_BASIC_PASSWORD";
 
 	public static final Pattern patternMainMethod = Pattern.compile(
 			"^.*(public\\s+static|static\\s+public)\\s+void\\s+main\\s*\\(.*",
@@ -711,8 +713,8 @@ public class Util {
 	}
 
 	private static void addAuthHeaderIfNeeded(URLConnection urlConnection) {
-		String username = System.getenv("JBANG_BASIC_AUTH_USERNAME");
-		String password = System.getenv("JBANG_BASIC_AUTH_PASSWORD");
+		String username = System.getenv(JBANG_AUTH_BASIC_USERNAME);
+		String password = System.getenv(JBANG_AUTH_BASIC_PASSWORD);
 		if (username != null && password != null) {
 			String auth = username + ":" + password;
 			String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
