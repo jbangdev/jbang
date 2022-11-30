@@ -51,7 +51,7 @@ if "!JAVA_EXEC!"=="" (
     rem Check if we installed a JDK before
     if not exist "%TDIR%\jdks\%javaVersion%" (
       rem If not, download and install it
-      echo powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "%~dp0jbang.ps1 jdk install %JBANG_DEFAULT_JAVA_VERSION%"
+      powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "%~dp0jbang.ps1 jdk install %JBANG_DEFAULT_JAVA_VERSION%"
       if !ERRORLEVEL! NEQ 0 ( exit /b %ERRORLEVEL% )
       rem Set the current JDK
       "!JAVA_EXEC!" -classpath "%jarPath%" dev.jbang.Main jdk default "%javaVersion%"
