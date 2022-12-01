@@ -14,10 +14,6 @@ import javax.annotation.Nullable;
 public class SdkmanJdkProvider extends BaseFoldersJdkProvider {
 	private static final Path JDKS_ROOT = Paths.get(System.getProperty("user.home")).resolve(".sdkman/candidates/java");
 
-	public static boolean canUse() {
-		return Files.isDirectory(JDKS_ROOT);
-	}
-
 	@Nullable
 	@Override
 	public Jdk getDefault() {
@@ -39,5 +35,10 @@ public class SdkmanJdkProvider extends BaseFoldersJdkProvider {
 	@Override
 	protected String jdkId(String name) {
 		return name + "-sdk";
+	}
+
+	@Override
+	public boolean canUse() {
+		return Files.isDirectory(JDKS_ROOT);
 	}
 }

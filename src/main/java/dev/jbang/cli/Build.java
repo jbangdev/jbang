@@ -12,6 +12,7 @@ public class Build extends BaseBuildCommand {
 	@Override
 	public Integer doCall() throws IOException {
 		scriptMixin.validate();
+		jdkProvidersMixin.initJdkProviders();
 
 		ProjectBuilder pb = createProjectBuilder();
 		pb.build(scriptMixin.scriptOrFile).builder().build();

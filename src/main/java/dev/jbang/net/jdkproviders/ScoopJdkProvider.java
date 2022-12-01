@@ -20,10 +20,6 @@ import dev.jbang.util.Util;
 public class ScoopJdkProvider extends BaseFoldersJdkProvider {
 	private static final Path SCOOP_APPS = Paths.get(System.getProperty("user.home")).resolve("scoop/apps");
 
-	public static boolean canUse() {
-		return Util.isWindows() && Files.isDirectory(SCOOP_APPS);
-	}
-
 	@Nullable
 	@Override
 	public Jdk getDefault() {
@@ -62,5 +58,10 @@ public class ScoopJdkProvider extends BaseFoldersJdkProvider {
 			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, "Couldn't resolve 'current' link: " + home, e);
 		}
 		return super.createJdk(home);
+	}
+
+	@Override
+	public boolean canUse() {
+		return Util.isWindows() && Files.isDirectory(SCOOP_APPS);
 	}
 }

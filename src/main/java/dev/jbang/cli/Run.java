@@ -71,6 +71,7 @@ public class Run extends BaseBuildCommand {
 	@Override
 	public Integer doCall() throws IOException {
 		requireScriptArgument();
+		jdkProvidersMixin.initJdkProviders();
 		String scriptOrFile = scriptMixin.scriptOrFile;
 
 		ProjectBuilder pb = createProjectBuilder();

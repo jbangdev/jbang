@@ -10,6 +10,8 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+
 import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
 import dev.jbang.net.jdkproviders.BaseFoldersJdkProvider;
@@ -21,32 +23,66 @@ import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 public class JdkManager {
-	private static List<JdkProvider> providers = new ArrayList<>();
+	private static List<JdkProvider> providers = null;
 
+	public static void initProvidersByName(String... providerNames) {
+		initProvidersByName(Arrays.asList(providerNames));
+	}
+
+	public static void initProvidersByName(List<String> providerNames) {
+		// TODO Make providers know their names instead of hard-coding
+		providers = new ArrayList<>();
+		for (String name : providerNames) {
+			JdkProvider provider;
+			switch (name) {
+			case "env":
+				provider = new EnvJdkProvider();
+				break;
+			case "jbang":
+				provider = new JBangJdkProvider();
+				break;
+			case "sdkman":
+				provider = new SdkmanJdkProvider();
+				break;
+			case "scoop":
+				provider = new ScoopJdkProvider();
+				break;
+			default:
+				Util.warnMsg("Unknown JDK provider: " + name);
+				continue;
+			}
+			if (provider.canUse()) {
+				providers.add(provider);
+			}
+		}
+		if (providers.isEmpty()) {
+			throw new ExitException(EXIT_INVALID_INPUT, "No providers could be initialized. Aborting.");
+		}
+	}
+
+	public static void initProviders(List<JdkProvider> provs) {
+		providers = provs;
+		if (Util.isVerbose()) {
+			Util.verboseMsg("Using JDK provider(s): " + providers	.stream()
+																	.map(p -> p.getClass().getSimpleName())
+																	.collect(Collectors.joining(", ")));
+		}
+	}
+
+	@Nonnull
 	private static List<JdkProvider> providers() {
 		if (providers == null) {
-			providers = new ArrayList<>();
-			providers.add(new EnvJdkProvider());
-			providers.add(new JBangJdkProvider());
-			if (SdkmanJdkProvider.canUse()) {
-				providers.add(new SdkmanJdkProvider());
-			}
-			if (ScoopJdkProvider.canUse()) {
-				providers.add(new ScoopJdkProvider());
-			}
-			if (Util.isVerbose()) {
-				Util.verboseMsg("Using JDK provider(s): " + providers	.stream()
-																		.map(p -> p.getClass().getSimpleName())
-																		.collect(Collectors.joining(", ")));
-			}
+			initProvidersByName("env", "jbang");
 		}
 		return providers;
 	}
 
+	@Nonnull
 	private static List<JdkProvider> updatableProviders() {
 		return providers().stream().filter(JdkProvider::canUpdate).collect(Collectors.toList());
 	}
 
+	@Nonnull
 	public static JdkProvider.Jdk getJdk(String requestedVersion) {
 		JdkProvider.Jdk jdk = getDefaultJdk();
 		int defVersion = jdk != null ? jdk.getMajorVersion() : 0;
@@ -54,7 +90,7 @@ public class JdkManager {
 			if (!JavaUtil.satisfiesRequestedVersion(requestedVersion, defVersion)) {
 				int minVersion = JavaUtil.minRequestedVersion(requestedVersion);
 				if (isOpenVersion(requestedVersion)) {
-					jdk = nextInstalledJdk(minVersion).orElse(null);
+					jdk = nextInstalledJdk(minVersion).orElseGet(() -> getInstalledJdk(minVersion));
 				} else {
 					jdk = getInstalledJdk(minVersion);
 				}
@@ -81,6 +117,7 @@ public class JdkManager {
 		return jdk;
 	}
 
+	@Nonnull
 	public static JdkProvider.Jdk getInstalledJdk(int version) {
 		JdkProvider.Jdk jdk = providers()	.stream()
 											.map(p -> p.getJdkByVersion(version))
@@ -93,6 +130,7 @@ public class JdkManager {
 		return downloadAndInstallJdk(version);
 	}
 
+	@Nonnull
 	public static JdkProvider.Jdk downloadAndInstallJdk(int version) {
 		List<JdkProvider.Jdk> jdks = getJdkByVersion(listAvailableJdks(), version);
 		if (jdks.isEmpty()) {

@@ -223,6 +223,17 @@ public interface JdkProvider {
 	}
 
 	/**
+	 * Indicates if the provider can be used or not. This can perform sanity checks
+	 * like the availability of certain package being installed on the system or
+	 * even if the system is running a supported operating system.
+	 *
+	 * @return True if the provider can be used, false otherwise
+	 */
+	default boolean canUse() {
+		return true;
+	}
+
+	/**
 	 * Indicates if the provider is able to (un)install JDKs or not
 	 * 
 	 * @return True if JDKs can be (un)installed, false otherwise

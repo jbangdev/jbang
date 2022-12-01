@@ -163,7 +163,7 @@ class TestJdk extends BaseTest {
 	}
 
 	private ExecutionResult checkedRun(Function<Jdk, Integer> commandRunner) throws IOException {
-		return checkedRun(commandRunner, "jdk");
+		return checkedRun(commandRunner, "jdk", "--jdk-providers", "jbang");
 	}
 
 	private void checkedRunWithException(Function<Jdk, Integer> commandRunner) {

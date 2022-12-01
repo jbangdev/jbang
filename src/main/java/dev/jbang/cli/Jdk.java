@@ -27,6 +27,9 @@ public class Jdk {
 	@CommandLine.Spec
 	CommandLine.Model.CommandSpec spec;
 
+	@CommandLine.Mixin
+	JdkProvidersMixin jdkProvidersMixin;
+
 	@CommandLine.Command(name = "install", description = "Installs a JDK.")
 	public Integer install(
 			@CommandLine.Option(names = { "--force",
@@ -34,6 +37,7 @@ public class Jdk {
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version to install", arity = "1") int version,
 			@CommandLine.Parameters(paramLabel = "existingJdkPath", index = "1", description = "Pre installed JDK path", arity = "0..1") String path)
 			throws IOException {
+		jdkProvidersMixin.initJdkProviders();
 		if (force || !JdkManager.isInstalledJdk(version)) {
 			if (!Util.isNullOrBlankString(path)) {
 				JdkManager.linkToExistingJdk(path, version);
@@ -52,6 +56,7 @@ public class Jdk {
 					"--available" }, description = "Shows versions available for installation") boolean available,
 			@CommandLine.Option(names = {
 					"--format" }, description = "Specify output format ('text' or 'json')") FormatMixin.Format format) {
+		jdkProvidersMixin.initJdkProviders();
 		JdkProvider.Jdk defaultJdk = JdkManager.getDefaultJdk();
 		PrintStream out = System.out;
 		SortedSet<JdkProvider.Jdk> jdks;
@@ -131,6 +136,7 @@ public class Jdk {
 	@CommandLine.Command(name = "uninstall", description = "Uninstalls an existing JDK.")
 	public Integer uninstall(
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version to install", arity = "1") int version) {
+		jdkProvidersMixin.initJdkProviders();
 		if (JdkManager.isInstalledJdk(version)) {
 			JdkManager.uninstallJdk(version);
 			Util.infoMsg("Uninstalled JDK:\n  " + version);
@@ -143,6 +149,7 @@ public class Jdk {
 	@CommandLine.Command(name = "home", description = "Prints the folder where the given JDK is installed.")
 	public Integer home(
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version of the JDK to select", arity = "0..1") Integer version) {
+		jdkProvidersMixin.initJdkProviders();
 		Path home = getJdkPath(version);
 		String homeStr = Util.pathToString(home);
 		System.out.println(homeStr);
@@ -152,6 +159,7 @@ public class Jdk {
 	@CommandLine.Command(name = "java-env", description = "Prints out the environment variables needed to use the given JDK.")
 	public Integer javaEnv(
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version of the JDK to select", arity = "0..1") Integer version) {
+		jdkProvidersMixin.initJdkProviders();
 		Path home = getJdkPath(version);
 		if (home != null) {
 			String homeStr = Util.pathToString(home);
@@ -211,6 +219,7 @@ public class Jdk {
 	public Integer defaultJdk(
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version of the JDK to select", arity = "0..1") Integer version)
 			throws IOException {
+		jdkProvidersMixin.initJdkProviders();
 		JdkProvider.Jdk jdk = JdkManager.getDefaultJdk();
 		if (version != null) {
 			if (jdk.getMajorVersion() != version) {

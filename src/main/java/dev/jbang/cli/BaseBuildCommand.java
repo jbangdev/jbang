@@ -23,6 +23,9 @@ public abstract class BaseBuildCommand extends BaseCommand {
 	@CommandLine.Mixin
 	NativeMixin nativeMixin;
 
+	@CommandLine.Mixin
+	JdkProvidersMixin jdkProvidersMixin;
+
 	@CommandLine.Option(names = {
 			"--build-dir" }, description = "Use given directory for build results")
 	Path buildDir;
