@@ -98,7 +98,15 @@ public class Settings {
 	}
 
 	public static Path getCacheDir(Cache.CacheClass cclass) {
-		return getCacheDir().resolve(cclass.name());
+		Path dir;
+		String v = System.getenv(JBANG_CACHE_DIR + "_" + cclass.name().toUpperCase());
+		if (v != null) {
+			dir = Paths.get(v);
+			Cache.setupCache(dir);
+		} else {
+			dir = getCacheDir().resolve(cclass.name());
+		}
+		return dir;
 	}
 
 	public static int getDefaultJavaVersion() {
