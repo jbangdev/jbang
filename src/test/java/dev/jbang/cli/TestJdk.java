@@ -12,10 +12,12 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.function.Function;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
+import dev.jbang.Settings;
 import dev.jbang.net.jdkproviders.JBangJdkProvider;
 import dev.jbang.util.Util;
 
@@ -24,6 +26,11 @@ import picocli.CommandLine;
 class TestJdk extends BaseTest {
 
 	private static final int SUCCESS_EXIT = CommandLine.ExitCode.OK;
+
+	@BeforeEach
+	void initJdk() {
+		environmentVariables.clear(Settings.JBANG_CACHE_DIR + "_JDKS");
+	}
 
 	@Test
 	void testNoJdksInstalled() throws IOException {
