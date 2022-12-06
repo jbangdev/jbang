@@ -15,8 +15,9 @@ import javax.annotation.Nonnull;
 import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
 import dev.jbang.net.jdkproviders.BaseFoldersJdkProvider;
-import dev.jbang.net.jdkproviders.EnvJdkProvider;
 import dev.jbang.net.jdkproviders.JBangJdkProvider;
+import dev.jbang.net.jdkproviders.JavaHomeJdkProvider;
+import dev.jbang.net.jdkproviders.PathJdkProvider;
 import dev.jbang.net.jdkproviders.ScoopJdkProvider;
 import dev.jbang.net.jdkproviders.SdkmanJdkProvider;
 import dev.jbang.util.JavaUtil;
@@ -35,8 +36,11 @@ public class JdkManager {
 		for (String name : providerNames) {
 			JdkProvider provider;
 			switch (name) {
-			case "env":
-				provider = new EnvJdkProvider();
+			case "javahome":
+				provider = new JavaHomeJdkProvider();
+				break;
+			case "path":
+				provider = new PathJdkProvider();
 				break;
 			case "jbang":
 				provider = new JBangJdkProvider();
@@ -72,7 +76,7 @@ public class JdkManager {
 	@Nonnull
 	private static List<JdkProvider> providers() {
 		if (providers == null) {
-			initProvidersByName("env", "jbang");
+			initProvidersByName("javahome", "path", "jbang");
 		}
 		return providers;
 	}

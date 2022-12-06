@@ -5,7 +5,6 @@ import static dev.jbang.util.JavaUtil.parseJavaOutput;
 import static dev.jbang.util.JavaUtil.parseJavaVersion;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Optional;
@@ -16,34 +15,30 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import dev.jbang.net.JdkProvider;
-import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 /**
  * This JDK provider detects if a JDK is already available on the system by
- * first looking at <code>JAVA_HOME</code> and if that doesn't exist it checks
- * the user's <code>PATH</code>.
+ * first looking at the user's <code>PATH</code>.
  */
-public class EnvJdkProvider implements JdkProvider {
+public class PathJdkProvider implements JdkProvider {
 	@Nonnull
 	@Override
 	public SortedSet<Jdk> listInstalled() {
-		Path jdkHome = JavaUtil.getJdkHome();
-		if (jdkHome == null || !Files.isDirectory(jdkHome)) {
-			Path javac = Util.searchPath("javac");
-			if (javac != null) {
-				try {
-					javac = javac.toRealPath();
-					jdkHome = javac.getParent().getParent();
-				} catch (IOException e) {
-					// Ignoring any errors
-				}
+		Path jdkHome = null;
+		Path javac = Util.searchPath("javac");
+		if (javac != null) {
+			try {
+				javac = javac.toRealPath();
+				jdkHome = javac.getParent().getParent();
+			} catch (IOException e) {
+				// Ignoring any errors
 			}
 		}
 		if (jdkHome != null) {
 			Optional<String> version = resolveJavaVersionStringFromPath(jdkHome);
 			if (version.isPresent()) {
-				String id = "default-env";
+				String id = "default-path";
 				return new TreeSet<>(Collections.singleton(createJdk(id, jdkHome,
 						jdk -> resolveJavaVersionStringFromPath(jdk.getHome()))));
 			}

@@ -10,7 +10,8 @@ import java.util.regex.Pattern;
 
 import dev.jbang.net.JdkManager;
 import dev.jbang.net.JdkProvider;
-import dev.jbang.net.jdkproviders.EnvJdkProvider;
+import dev.jbang.net.jdkproviders.JavaHomeJdkProvider;
+import dev.jbang.net.jdkproviders.PathJdkProvider;
 
 public class JavaUtil {
 
@@ -41,7 +42,10 @@ public class JavaUtil {
 	 */
 	public static int determineJavaVersion() {
 		if (javaVersion == null) {
-			EnvJdkProvider prov = new EnvJdkProvider();
+			JdkProvider prov = new JavaHomeJdkProvider();
+			if (prov.getDefault() == null) {
+				prov = new PathJdkProvider();
+			}
 			javaVersion = parseJavaVersion(prov.getDefault().getVersion());
 			if (javaVersion != 0) {
 				Util.verboseMsg("System Java version detected as " + javaVersion);
