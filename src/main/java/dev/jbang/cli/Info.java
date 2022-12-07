@@ -21,6 +21,7 @@ import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.net.JdkManager;
 import dev.jbang.source.*;
 import dev.jbang.util.JavaUtil;
+import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 
@@ -197,7 +198,8 @@ abstract class BaseInfoCommand extends BaseCommand {
 								.additionalResources(scriptMixin.resources)
 								.forceType(scriptMixin.forceType)
 								.catalog(scriptMixin.catalog)
-								.buildDir(buildDir);
+								.buildDir(buildDir)
+								.skipMetadataImport(Util.isFresh());
 	}
 
 }
