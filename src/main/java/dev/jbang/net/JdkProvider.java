@@ -89,6 +89,10 @@ public interface JdkProvider {
 			provider.uninstall(id);
 		}
 
+		public boolean isInstalled() {
+			return home != null;
+		}
+
 		public void setAsDefault() {
 			provider.setDefault(id);
 		}
@@ -115,6 +119,11 @@ public interface JdkProvider {
 			} else {
 				return id.compareTo(o.id);
 			}
+		}
+
+		@Override
+		public String toString() {
+			return getMajorVersion() + " (" + version + ", " + id + ", " + home + ")";
 		}
 	}
 

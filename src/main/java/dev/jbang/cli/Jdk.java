@@ -137,12 +137,11 @@ public class Jdk {
 	public Integer uninstall(
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version to install", arity = "1") int version) {
 		jdkProvidersMixin.initJdkProviders();
-		if (JdkManager.isInstalledJdk(version)) {
-			JdkManager.uninstallJdk(version);
-			Util.infoMsg("Uninstalled JDK:\n  " + version);
-		} else {
-			Util.infoMsg("JDK " + version + " is not installed");
+		if (!JdkManager.isInstalledJdk(version)) {
+			throw new ExitException(EXIT_INVALID_INPUT, "JDK " + version + " is not installed");
 		}
+		JdkManager.uninstallJdk(version);
+		Util.infoMsg("Uninstalled JDK:\n  " + version);
 		return EXIT_OK;
 	}
 
@@ -151,6 +150,9 @@ public class Jdk {
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version of the JDK to select", arity = "0..1") Integer version) {
 		jdkProvidersMixin.initJdkProviders();
 		Path home = getJdkPath(version);
+		if (home == null) {
+			throw new ExitException(EXIT_INVALID_INPUT, "JDK " + version + " is not installed");
+		}
 		String homeStr = Util.pathToString(home);
 		System.out.println(homeStr);
 		return EXIT_OK;
@@ -161,40 +163,41 @@ public class Jdk {
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version of the JDK to select", arity = "0..1") Integer version) {
 		jdkProvidersMixin.initJdkProviders();
 		Path home = getJdkPath(version);
-		if (home != null) {
-			String homeStr = Util.pathToString(home);
-			String homeOsStr = Util.pathToOsString(home);
-			PrintStream out = System.out;
-			switch (Util.getShell()) {
-			case bash:
-				// Not using `println()` here because it will output /n/r
-				// on Windows which causes problems
-				out.print("export PATH=\"" + homeStr + "/bin:$PATH\"\n");
-				out.print("export JAVA_HOME=\"" + homeOsStr + "\"\n");
-				out.print("# Run this command to configure your shell:\n");
-				out.print("# eval $(jbang jdk java-env");
-				if (version != null) {
-					out.print(" " + version);
-				}
-				out.print(")\n");
-				break;
-			case cmd:
-				out.println("set PATH=" + homeStr + "\\bin;%PATH%");
-				out.println("set JAVA_HOME=" + homeOsStr);
-				out.println("rem Copy & paste the above commands in your CMD window or add");
-				out.println("rem them to your Environment Variables in the System Settings.");
-				break;
-			case powershell:
-				out.println("$env:PATH=\"" + homeStr + "\\bin:$env:PATH\"");
-				out.println("$env:JAVA_HOME=\"" + homeOsStr + "\"");
-				out.println("# Run this command to configure your environment:");
-				out.print("# jbang jdk java-env");
-				if (version != null) {
-					out.print(" " + version);
-				}
-				out.println(" | iex");
-				break;
+		if (home == null) {
+			throw new ExitException(EXIT_INVALID_INPUT, "JDK " + version + " is not installed");
+		}
+		String homeStr = Util.pathToString(home);
+		String homeOsStr = Util.pathToOsString(home);
+		PrintStream out = System.out;
+		switch (Util.getShell()) {
+		case bash:
+			// Not using `println()` here because it will output /n/r
+			// on Windows which causes problems
+			out.print("export PATH=\"" + homeStr + "/bin:$PATH\"\n");
+			out.print("export JAVA_HOME=\"" + homeOsStr + "\"\n");
+			out.print("# Run this command to configure your shell:\n");
+			out.print("# eval $(jbang jdk java-env");
+			if (version != null) {
+				out.print(" " + version);
 			}
+			out.print(")\n");
+			break;
+		case cmd:
+			out.println("set PATH=" + homeStr + "\\bin;%PATH%");
+			out.println("set JAVA_HOME=" + homeOsStr);
+			out.println("rem Copy & paste the above commands in your CMD window or add");
+			out.println("rem them to your Environment Variables in the System Settings.");
+			break;
+		case powershell:
+			out.println("$env:PATH=\"" + homeStr + "\\bin:$env:PATH\"");
+			out.println("$env:JAVA_HOME=\"" + homeOsStr + "\"");
+			out.println("# Run this command to configure your environment:");
+			out.print("# jbang jdk java-env");
+			if (version != null) {
+				out.print(" " + version);
+			}
+			out.println(" | iex");
+			break;
 		}
 		return EXIT_OK;
 	}
@@ -220,18 +223,22 @@ public class Jdk {
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version of the JDK to select", arity = "0..1") Integer version)
 			throws IOException {
 		jdkProvidersMixin.initJdkProviders();
-		JdkProvider.Jdk jdk = JdkManager.getDefaultJdk();
+		JdkProvider.Jdk defjdk = JdkManager.getDefaultJdk();
 		if (version != null) {
-			if (jdk.getMajorVersion() != version) {
-				JdkManager.setDefaultJdk(version);
+			if (defjdk.getMajorVersion() != version) {
+				JdkProvider.Jdk jdk = JdkManager.getInstalledJdk(version);
+				if (jdk == null) {
+					throw new ExitException(EXIT_INVALID_INPUT, "JDK " + version + " is not installed");
+				}
+				JdkManager.setDefaultJdk(jdk);
 			} else {
-				Util.infoMsg("Default JDK already set to " + jdk.getMajorVersion());
+				Util.infoMsg("Default JDK already set to " + defjdk.getMajorVersion());
 			}
 		} else {
-			if (jdk == null) {
+			if (defjdk == null) {
 				Util.infoMsg("No default JDK set, use 'jbang jdk default <version>' to set one.");
 			} else {
-				Util.infoMsg("Default JDK is currently set to " + jdk.getMajorVersion());
+				Util.infoMsg("Default JDK is currently set to " + defjdk.getMajorVersion());
 			}
 		}
 		return EXIT_OK;

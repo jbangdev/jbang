@@ -96,7 +96,7 @@ public class GroovySource extends Source {
 				if (project.getMainSource() instanceof GroovySource) {
 					processBuilder	.environment()
 									.put("JAVA_HOME",
-											JdkManager.getJdk(project.getJavaVersion()).toString());
+											JdkManager.getOrInstallJdk(project.getJavaVersion()).toString());
 					processBuilder.environment().remove("GROOVY_HOME");
 				}
 				super.runCompiler(processBuilder);

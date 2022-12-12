@@ -27,7 +27,7 @@ public class JavaUtil {
 	 * @return The Java version that will be used
 	 */
 	public static int javaVersion(String requestedVersion) {
-		JdkProvider.Jdk jdk = JdkManager.getJdk(requestedVersion);
+		JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(requestedVersion);
 		return jdk.getMajorVersion();
 	}
 
@@ -127,7 +127,7 @@ public class JavaUtil {
 	}
 
 	public static String resolveInJavaHome(String cmd, String requestedVersion) {
-		Path jdkHome = JdkManager.getJdk(requestedVersion).getHome();
+		Path jdkHome = JdkManager.getOrInstallJdk(requestedVersion).getHome();
 		if (jdkHome != null) {
 			if (Util.isWindows()) {
 				cmd = cmd + ".exe";

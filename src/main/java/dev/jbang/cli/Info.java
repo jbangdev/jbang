@@ -19,6 +19,7 @@ import com.google.gson.GsonBuilder;
 
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.net.JdkManager;
+import dev.jbang.net.JdkProvider;
 import dev.jbang.source.*;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
@@ -101,7 +102,15 @@ abstract class BaseInfoCommand extends BaseCommand {
 							: prj.getNativeImageFile().toAbsolutePath().toString();
 					mainClass = prj.getMainClass();
 					requestedJavaVersion = prj.getJavaVersion();
-					availableJdkPath = Objects.toString(JdkManager.getJdk(requestedJavaVersion), null);
+
+					try {
+						JdkProvider.Jdk jdk = JdkManager.getJdk(requestedJavaVersion);
+						if (jdk != null && jdk.isInstalled()) {
+							availableJdkPath = jdk.getHome().toString();
+						}
+					} catch (ExitException e) {
+						// Ignore
+					}
 
 					String cp = prj.resolveClassPath().getClassPath();
 					if (cp.isEmpty()) {

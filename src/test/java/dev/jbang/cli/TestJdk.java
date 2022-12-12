@@ -162,11 +162,15 @@ class TestJdk extends BaseTest {
 	void testNonExistingJdkUninstall() throws IOException {
 		int jdkVersion = 16;
 
-		ExecutionResult result = checkedRun(jdk -> jdk.uninstall(jdkVersion));
-
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedErr(),
-				equalTo("[jbang] JDK 16 is not installed\n"));
+		checkedRunWithException(jdk -> {
+			try {
+				jdk.uninstall(jdkVersion);
+			} catch (Exception e) {
+				assertTrue(e instanceof ExitException);
+				assertEquals("JDK 16 is not installed", e.getMessage());
+			}
+			return null;
+		});
 	}
 
 	private ExecutionResult checkedRun(Function<Jdk, Integer> commandRunner) throws IOException {

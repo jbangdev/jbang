@@ -1,6 +1,7 @@
 package dev.jbang.net;
 
 import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
+import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 import static dev.jbang.util.JavaUtil.isOpenVersion;
 
 import java.io.IOException;
@@ -11,6 +12,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
@@ -86,7 +88,71 @@ public class JdkManager {
 		return providers().stream().filter(JdkProvider::canUpdate).collect(Collectors.toList());
 	}
 
+	/**
+	 * This method is like <code>getJdk()</code> but will make sure that the JDK
+	 * being returned is actually installed. It will perform an installation if
+	 * necessary.
+	 *
+	 * @param requestedVersion A version pattern or <code>null</code>
+	 * @return A <code>Jdk</code> object or <code>null</code>
+	 * @throws ExitException If no JDK could be found at all or if one failed to
+	 *                       install
+	 */
 	@Nonnull
+	public static JdkProvider.Jdk getOrInstallJdk(String requestedVersion) {
+		JdkProvider.Jdk jdk = getJdk(requestedVersion);
+		if (jdk == null) {
+			if (requestedVersion != null) {
+				throw new ExitException(EXIT_UNEXPECTED_STATE,
+						"No suitable JDK was found for requested version: " + requestedVersion);
+			} else {
+				throw new ExitException(EXIT_UNEXPECTED_STATE, "No suitable JDK was found");
+			}
+		}
+		if (!jdk.isInstalled()) {
+			jdk = jdk.install();
+			if (getDefaultJdk() == null) {
+				setDefaultJdk(jdk);
+			}
+		}
+
+		if (Util.isVerbose()) {
+			int actualVersion = jdk.getMajorVersion();
+			int currentVersion = JavaUtil.determineJavaVersion();
+			if (currentVersion == actualVersion) {
+				Util.verboseMsg("System Java version matches requested version " + actualVersion);
+			} else {
+				if (currentVersion == 0) {
+					Util.verboseMsg("No system Java found, using JBang managed version " + actualVersion);
+				} else {
+					Util.verboseMsg(
+							"System Java version " + currentVersion + " incompatible, using JBang managed version "
+									+ actualVersion);
+				}
+			}
+		}
+
+		return jdk;
+	}
+
+	/**
+	 * Returns an <code>Jdk</code> object that matches the requested version from
+	 * the list of currently installed JDKs or from the ones available for
+	 * installation. The requested version is a string that either contains the
+	 * actual (strict) major version of the JDK that should be returned or an open
+	 * version terminated with a <code>+</code> sign to indicate that any later
+	 * version is valid as well. If the requested version is <code>null</code> the
+	 * "default" JDK will be returned, this is normally the JDK currently being used
+	 * to run JBang itself. The method will return <code>null</code> if no installed
+	 * or available JDK matches. NB: This method can return <code>Jdk</code> objects
+	 * for JDKs that are currently _not_ installed. It will not cause any installs
+	 * to be performed. See <code>getOrInstallJdk()</code> for that.
+	 * 
+	 * @param requestedVersion A version pattern or <code>null</code>
+	 * @return A <code>Jdk</code> object or <code>null</code>
+	 * @throws ExitException If no JDK could be found at all
+	 */
+	@Nullable
 	public static JdkProvider.Jdk getJdk(String requestedVersion) {
 		JdkProvider.Jdk jdk = getDefaultJdk();
 		int defVersion = jdk != null ? jdk.getMajorVersion() : 0;
@@ -94,9 +160,9 @@ public class JdkManager {
 			if (!JavaUtil.satisfiesRequestedVersion(requestedVersion, defVersion)) {
 				int minVersion = JavaUtil.minRequestedVersion(requestedVersion);
 				if (isOpenVersion(requestedVersion)) {
-					jdk = nextInstalledJdk(minVersion).orElseGet(() -> getInstalledJdk(minVersion));
+					jdk = nextInstalledJdk(minVersion).orElseGet(() -> getJdk(minVersion));
 				} else {
-					jdk = getInstalledJdk(minVersion);
+					jdk = getJdk(minVersion);
 				}
 			}
 		} else {
@@ -104,47 +170,51 @@ public class JdkManager {
 				jdk = getJdk(Settings.getDefaultJavaVersion() + "+");
 			}
 		}
-
-		int actualVersion = jdk != null ? jdk.getMajorVersion() : 0;
-		int currentVersion = JavaUtil.determineJavaVersion();
-		if (currentVersion == actualVersion) {
-			Util.verboseMsg("System Java version matches requested version " + actualVersion);
-		} else {
-			if (currentVersion == 0) {
-				Util.verboseMsg("No system Java found, using JBang managed version " + actualVersion);
-			} else {
-				Util.verboseMsg("System Java version " + currentVersion + " incompatible, using JBang managed version "
-						+ actualVersion);
-			}
-		}
-
 		return jdk;
 	}
 
 	@Nonnull
-	public static JdkProvider.Jdk getInstalledJdk(int version) {
-		JdkProvider.Jdk jdk = providers()	.stream()
-											.map(p -> p.getJdkByVersion(version))
-											.filter(Objects::nonNull)
-											.findFirst()
-											.orElse(null);
-		if (jdk != null) {
-			return jdk;
+	private static JdkProvider.Jdk getJdk(int version) {
+		JdkProvider.Jdk jdk = getInstalledJdk(version);
+		if (jdk == null) {
+			jdk = getAvailableJdk(version);
 		}
-		return downloadAndInstallJdk(version);
+		return jdk;
+	}
+
+	/**
+	 * Returns an <code>Jdk</code> object for an installed JDK of the given version.
+	 * Will return <code>null</code> if no JDK of that version is currently
+	 * installed.
+	 *
+	 * @param version The (major) version of the JDK to return
+	 * @return A <code>Jdk</code> object or <code>null</code>
+	 */
+	@Nullable
+	public static JdkProvider.Jdk getInstalledJdk(int version) {
+		return providers()	.stream()
+							.map(p -> p.getJdkByVersion(version))
+							.filter(Objects::nonNull)
+							.findFirst()
+							.orElse(null);
 	}
 
 	@Nonnull
 	public static JdkProvider.Jdk downloadAndInstallJdk(int version) {
+		JdkProvider.Jdk jdk = getAvailableJdk(version).install();
+		if (getDefaultJdk() == null) {
+			setDefaultJdk(jdk);
+		}
+		return jdk;
+	}
+
+	@Nonnull
+	private static JdkProvider.Jdk getAvailableJdk(int version) {
 		List<JdkProvider.Jdk> jdks = getJdkByVersion(listAvailableJdks(), version);
 		if (jdks.isEmpty()) {
 			throw new ExitException(EXIT_INVALID_INPUT, "JDK version is not available for installation: " + version);
 		}
-		JdkProvider.Jdk jdk = jdks.get(0).install();
-		if (getDefaultJdk() == null) {
-			setDefaultJdk(version);
-		}
-		return jdk;
+		return jdks.get(0);
 	}
 
 	public static void uninstallJdk(int version) {
@@ -174,7 +244,7 @@ public class JdkManager {
 					newjdk = prevInstalledJdk(version);
 				}
 				if (newjdk.isPresent()) {
-					setDefaultJdk(newjdk.get().getMajorVersion());
+					setDefaultJdk(newjdk.get());
 				} else {
 					removeDefaultJdk();
 					Util.infoMsg("Default JDK unset");
@@ -266,19 +336,12 @@ public class JdkManager {
 							.anyMatch(Objects::nonNull);
 	}
 
-	public static void setDefaultJdk(int version) {
+	public static void setDefaultJdk(JdkProvider.Jdk jdk) {
 		JdkProvider.Jdk defJdk = getDefaultJdk();
-		int defVer = defJdk != null ? defJdk.getMajorVersion() : 0;
-		if (!isInstalledJdk(version) || defVer != version) {
-			// Call this just to make sure the JDK is installed
-			JdkProvider.Jdk jdk = getInstalledJdk(version);
-			// Check again if we really need to create a link because the
-			// previous line might already have caused it to be created
-			if (defVer != version) {
-				removeDefaultJdk();
-				jdk.setAsDefault();
-				Util.infoMsg("Default JDK set to " + version);
-			}
+		if (jdk.isInstalled() && !jdk.equals(defJdk)) {
+			removeDefaultJdk();
+			jdk.setAsDefault();
+			Util.infoMsg("Default JDK set to " + jdk);
 		}
 	}
 
