@@ -5,8 +5,11 @@ import static dev.jbang.cli.BaseCommand.*;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.SortedSet;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
@@ -55,20 +58,31 @@ public class Jdk {
 			@CommandLine.Option(names = {
 					"--available" }, description = "Shows versions available for installation") boolean available,
 			@CommandLine.Option(names = {
+					"--show-details" }, description = "Shows detailed information for each JDK (only when format=text)") boolean details,
+			@CommandLine.Option(names = {
 					"--format" }, description = "Specify output format ('text' or 'json')") FormatMixin.Format format) {
 		jdkProvidersMixin.initJdkProviders();
 		JdkProvider.Jdk defaultJdk = JdkManager.getDefaultJdk();
+		int defMajorVersion = defaultJdk != null ? defaultJdk.getMajorVersion() : 0;
 		PrintStream out = System.out;
-		SortedSet<JdkProvider.Jdk> jdks;
+		List<JdkProvider.Jdk> jdks;
 		if (available) {
 			jdks = JdkManager.listAvailableJdks();
 		} else {
 			jdks = JdkManager.listInstalledJdks();
 		}
 		List<JdkOut> jdkOuts = jdks	.stream()
-									.map(jdk -> new JdkOut(jdk.getId(), jdk.getVersion(), jdk.getHome(),
-											jdk.equals(defaultJdk)))
+									.map(jdk -> new JdkOut(jdk.getId(), jdk.getVersion(), jdk.getProvider().name(),
+											jdk.getHome(),
+											details ? jdk.equals(defaultJdk)
+													: jdk.getMajorVersion() == defMajorVersion))
 									.collect(Collectors.toList());
+		if (!details) {
+			// Only keep a list of unique major versions
+			Set<JdkOut> uniqueJdks = new TreeSet<>(Comparator.comparingInt(j -> j.version));
+			uniqueJdks.addAll(jdkOuts);
+			jdkOuts = new ArrayList<>(uniqueJdks);
+		}
 		if (format == FormatMixin.Format.json) {
 			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 			parser.toJson(jdkOuts, out);
@@ -79,12 +93,16 @@ public class Jdk {
 				}
 				jdkOuts.forEach(jdk -> {
 					out.print("   ");
-					/*
-					 * Uncomment if we ever have multiple updatable jdk providers if (available) {
-					 * out.print(jdk.id + " = "); }
-					 */
 					out.print(jdk.version);
-					out.print(" (" + jdk.fullVersion + ")");
+					out.print(" (");
+					out.print(jdk.fullVersion);
+					if (details) {
+						out.print(", " + jdk.providerName + ", " + jdk.id);
+						if (jdk.javaHomeDir != null) {
+							out.print(", " + jdk.javaHomeDir);
+						}
+					}
+					out.print(")");
 					if (!available) {
 						if (Boolean.TRUE.equals(jdk.isDefault)) {
 							out.print(" <");
@@ -103,20 +121,18 @@ public class Jdk {
 		String id;
 		int version;
 		String fullVersion;
+		String providerName;
 		String javaHomeDir;
 		@SerializedName("default")
 		Boolean isDefault;
 
-		public JdkOut(String id, String version, Path home, boolean isDefault) {
+		public JdkOut(String id, String version, String providerName, Path home, boolean isDefault) {
 			this.id = id;
 			this.version = JavaUtil.parseJavaVersion(version);
 			this.fullVersion = version;
+			this.providerName = providerName;
 			if (home != null) {
-				try {
-					this.javaHomeDir = home.toRealPath().toString();
-				} catch (IOException e) {
-					this.javaHomeDir = home.toString();
-				}
+				this.javaHomeDir = home.toString();
 			}
 			if (isDefault) {
 				this.isDefault = true;
@@ -212,7 +228,7 @@ public class Jdk {
 			}
 			home = Settings.getCurrentJdkDir();
 		} else {
-			JdkProvider.Jdk jdk = JdkManager.getInstalledJdk(version);
+			JdkProvider.Jdk jdk = JdkManager.getInstalledJdk(version, false);
 			home = jdk != null ? jdk.getHome() : null;
 		}
 		return home;
@@ -220,13 +236,12 @@ public class Jdk {
 
 	@CommandLine.Command(name = "default", description = "Sets the default JDK to be used by JBang.")
 	public Integer defaultJdk(
-			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version of the JDK to select", arity = "0..1") Integer version)
-			throws IOException {
+			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version of the JDK to select", arity = "0..1") Integer version) {
 		jdkProvidersMixin.initJdkProviders();
-		JdkProvider.Jdk defjdk = JdkManager.getDefaultJdk();
+		JdkProvider.Jdk defjdk = JdkManager.getUpdatableDefaultJdk();
 		if (version != null) {
-			if (defjdk.getMajorVersion() != version) {
-				JdkProvider.Jdk jdk = JdkManager.getInstalledJdk(version);
+			if (defjdk == null || defjdk.getMajorVersion() != version) {
+				JdkProvider.Jdk jdk = JdkManager.getInstalledJdk(version, true);
 				if (jdk == null) {
 					throw new ExitException(EXIT_INVALID_INPUT, "JDK " + version + " is not installed");
 				}

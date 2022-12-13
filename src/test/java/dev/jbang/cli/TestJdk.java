@@ -2,6 +2,7 @@ package dev.jbang.cli;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -34,7 +35,7 @@ class TestJdk extends BaseTest {
 
 	@Test
 	void testNoJdksInstalled() throws IOException {
-		ExecutionResult result = checkedRun(jdk -> jdk.list(false, FormatMixin.Format.text));
+		ExecutionResult result = checkedRun(jdk -> jdk.list(false, false, FormatMixin.Format.text));
 
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(), equalTo("No JDKs installed\n"));
@@ -45,11 +46,64 @@ class TestJdk extends BaseTest {
 		final Path jdkPath = JBangJdkProvider.getJdksPath();
 		Arrays.asList(11, 12, 13).forEach(v -> createMockJdk(v));
 
-		ExecutionResult result = checkedRun(jdk -> jdk.list(false, FormatMixin.Format.text));
+		ExecutionResult result = checkedRun(jdk -> jdk.list(false, false, FormatMixin.Format.text));
 
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(),
 				equalTo("Installed JDKs (<=default):\n   11 (11.0.7)\n   12 (12.0.7)\n   13 (13.0.7)\n"));
+	}
+
+	@Test
+	void testHasJdksInstalledWithJavaHome() throws IOException {
+		Arrays.asList(11, 12).forEach(v -> createMockJdk(v));
+
+		Path jdkPath = jbangTempDir.resolve("jdk13");
+		Util.mkdirs(jdkPath);
+		initMockJdkDir(jdkPath, "13.0.7");
+		environmentVariables.set("JAVA_HOME", jdkPath.toString());
+
+		ExecutionResult result = checkedRun((Jdk jdk) -> jdk.list(false, false, FormatMixin.Format.text),
+				"jdk", "--jdk-providers", "javahome,jbang");
+
+		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedOut(),
+				equalTo("Installed JDKs (<=default):\n   11 (11.0.7)\n   12 (12.0.7)\n   13 (13.0.7) <\n"));
+	}
+
+	@Test
+	void testDefault() throws IOException {
+		Arrays.asList(11, 12, 13).forEach(v -> createMockJdk(v));
+
+		ExecutionResult result = checkedRun(jdk -> jdk.defaultJdk(12));
+
+		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedErr(), startsWith("[jbang] Default JDK set to 12"));
+
+		result = checkedRun(jdk -> jdk.defaultJdk(null));
+
+		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedErr(), equalTo("[jbang] Default JDK is currently set to 12\n"));
+	}
+
+	@Test
+	void testDefaultWithJavaHome() throws IOException {
+		Arrays.asList(11, 12, 13).forEach(v -> createMockJdk(v));
+
+		Path jdkPath = jbangTempDir.resolve("jdk12");
+		Util.mkdirs(jdkPath);
+		initMockJdkDir(jdkPath, "12.0.7");
+		environmentVariables.set("JAVA_HOME", jdkPath.toString());
+
+		ExecutionResult result = checkedRun((Jdk jdk) -> jdk.defaultJdk(12), "jdk", "--jdk-providers",
+				"javahome,jbang");
+
+		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedErr(), startsWith("[jbang] Default JDK set to 12"));
+
+		result = checkedRun(jdk -> jdk.defaultJdk(null));
+
+		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedErr(), equalTo("[jbang] Default JDK is currently set to 12\n"));
 	}
 
 	@Test
@@ -148,7 +202,6 @@ class TestJdk extends BaseTest {
 	@Test
 	void testExistingJdkUninstall() throws IOException {
 		int jdkVersion = 14;
-		final Path jdkPath = JBangJdkProvider.getJdksPath();
 		createMockJdk(jdkVersion);
 
 		ExecutionResult result = checkedRun(jdk -> jdk.uninstall(jdkVersion));
@@ -156,6 +209,22 @@ class TestJdk extends BaseTest {
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
 				equalTo("[jbang] Uninstalled JDK:\n  " + jdkVersion + "\n"));
+	}
+
+	@Test
+	void testExistingJdkUninstallWithJavaHome() throws IOException {
+		int jdkVersion = 14;
+		createMockJdk(jdkVersion);
+
+		Path jdkPath = JBangJdkProvider.getJdksPath().resolve("14");
+		environmentVariables.set("JAVA_HOME", jdkPath.toString());
+
+		ExecutionResult result = checkedRun((Jdk jdk) -> jdk.uninstall(jdkVersion), "jdk", "--jdk-providers",
+				"javahome,jbang");
+
+		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedErr(),
+				equalTo("[jbang] Default JDK unset\n[jbang] Uninstalled JDK:\n  " + jdkVersion + "\n"));
 	}
 
 	@Test

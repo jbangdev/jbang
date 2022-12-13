@@ -34,7 +34,7 @@ public class SdkmanJdkProvider extends BaseFoldersJdkProvider {
 
 	@Override
 	protected String jdkId(String name) {
-		return name + "-sdk";
+		return name + "-sdkman";
 	}
 
 	@Override

@@ -7,13 +7,12 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
@@ -44,9 +43,9 @@ public class JBangJdkProvider extends BaseFoldersJdkProvider {
 
 	@Nonnull
 	@Override
-	public SortedSet<Jdk> listAvailable() {
+	public List<Jdk> listAvailable() {
 		try {
-			TreeSet<Jdk> result = new TreeSet<>();
+			List<Jdk> result = new ArrayList<>();
 			Consumer<String> addJdk = version -> {
 				result.add(createJdk(jdkId(version), null, jdk -> Optional.of(version)));
 			};
@@ -60,11 +59,12 @@ public class JBangJdkProvider extends BaseFoldersJdkProvider {
 				VersionsResponse res = Util.readJsonFromURL(getVersionsUrl(distro), null, VersionsResponse.class);
 				res.result.get(0).versions.forEach(addJdk);
 			}
-			return Collections.unmodifiableSortedSet(result);
+			result.sort(Jdk::compareTo);
+			return Collections.unmodifiableList(result);
 		} catch (IOException e) {
 			Util.verboseMsg("Couldn't list available JDKs", e);
 		}
-		return Collections.emptySortedSet();
+		return Collections.emptyList();
 	}
 
 	@Nullable

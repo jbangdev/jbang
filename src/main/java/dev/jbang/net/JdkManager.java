@@ -8,8 +8,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -33,6 +39,11 @@ public class JdkManager {
 	}
 
 	public static void initProvidersByName(List<String> providerNames) {
+		if (providerNames.size() == 1 && "all".equals(providerNames.get(0))) {
+			// TODO Don't hard-code this list
+			initProvidersByName("javahome", "path", "jbang", "sdkman", "scoop");
+			return;
+		}
 		// TODO Make providers know their names instead of hard-coding
 		providers = new ArrayList<>();
 		for (String name : providerNames) {
@@ -175,7 +186,7 @@ public class JdkManager {
 
 	@Nonnull
 	private static JdkProvider.Jdk getJdk(int version) {
-		JdkProvider.Jdk jdk = getInstalledJdk(version);
+		JdkProvider.Jdk jdk = getInstalledJdk(version, false);
 		if (jdk == null) {
 			jdk = getAvailableJdk(version);
 		}
@@ -187,12 +198,15 @@ public class JdkManager {
 	 * Will return <code>null</code> if no JDK of that version is currently
 	 * installed.
 	 *
-	 * @param version The (major) version of the JDK to return
+	 * @param version       The (major) version of the JDK to return
+	 * @param updatableOnly Determines if the result should be from an updatable
+	 *                      provider
 	 * @return A <code>Jdk</code> object or <code>null</code>
 	 */
 	@Nullable
-	public static JdkProvider.Jdk getInstalledJdk(int version) {
+	public static JdkProvider.Jdk getInstalledJdk(int version, boolean updatableOnly) {
 		return providers()	.stream()
+							.filter(p -> !updatableOnly || p.canUpdate())
 							.map(p -> p.getJdkByVersion(version))
 							.filter(Objects::nonNull)
 							.findFirst()
@@ -218,11 +232,19 @@ public class JdkManager {
 	}
 
 	public static void uninstallJdk(int version) {
-		JdkProvider.Jdk jdk = providers()	.stream()
-											.map(p -> p.getJdkByVersion(version))
-											.filter(Objects::nonNull)
-											.findFirst()
-											.orElse(null);
+		List<JdkProvider.Jdk> jdks = providers().stream()
+												.map(p -> p.getJdkByVersion(version))
+												.filter(Objects::nonNull)
+												.collect(Collectors.toList());
+		JdkProvider.Jdk jdk;
+		if (jdks.size() > 1) {
+			// Get the first JDK from a provider that can update, or just the first
+			jdk = jdks.stream().filter(j -> j.getProvider().canUpdate()).findFirst().orElse(jdks.get(0));
+		} else if (jdks.size() == 1) {
+			jdk = jdks.get(0);
+		} else {
+			jdk = null;
+		}
 		if (jdk != null) {
 			JdkProvider.Jdk defaultJdk = getDefaultJdk();
 			if (Util.isWindows()) {
@@ -246,7 +268,7 @@ public class JdkManager {
 				if (newjdk.isPresent()) {
 					setDefaultJdk(newjdk.get());
 				} else {
-					removeDefaultJdk();
+					jdk.getProvider().removeDefault();
 					Util.infoMsg("Default JDK unset");
 				}
 			}
@@ -318,22 +340,40 @@ public class JdkManager {
 									.min(JdkProvider.Jdk::compareTo);
 	}
 
-	public static SortedSet<JdkProvider.Jdk> listAvailableJdks() {
+	public static List<JdkProvider.Jdk> listAvailableJdks() {
 		return updatableProviders()	.stream()
 									.flatMap(p -> p.listAvailable().stream())
-									.collect(Collectors.toCollection(TreeSet::new));
+									.collect(Collectors.toList());
 	}
 
-	public static SortedSet<JdkProvider.Jdk> listInstalledJdks() {
+	public static List<JdkProvider.Jdk> listInstalledJdks() {
 		return providers()	.stream()
 							.flatMap(p -> p.listInstalled().stream())
-							.collect(Collectors.toCollection(TreeSet::new));
+							.sorted()
+							.collect(Collectors.toList());
 	}
 
 	public static boolean isInstalledJdk(int version) {
 		return providers()	.stream()
 							.map(p -> p.getJdkByVersion(version))
 							.anyMatch(Objects::nonNull);
+	}
+
+	public static JdkProvider.Jdk getDefaultJdk() {
+		return streamDefaultJdks().findFirst().orElse(null);
+	}
+
+	public static JdkProvider.Jdk getUpdatableDefaultJdk() {
+		return JdkManager	.streamDefaultJdks()
+							.filter(j -> j.getProvider().canUpdate())
+							.findFirst()
+							.orElse(null);
+	}
+
+	public static Stream<JdkProvider.Jdk> streamDefaultJdks() {
+		return providers()	.stream()
+							.map(JdkProvider::getDefault)
+							.filter(Objects::nonNull);
 	}
 
 	public static void setDefaultJdk(JdkProvider.Jdk jdk) {
@@ -343,14 +383,6 @@ public class JdkManager {
 			jdk.setAsDefault();
 			Util.infoMsg("Default JDK set to " + jdk);
 		}
-	}
-
-	public static JdkProvider.Jdk getDefaultJdk() {
-		return providers()	.stream()
-							.map(JdkProvider::getDefault)
-							.filter(Objects::nonNull)
-							.findFirst()
-							.orElse(null);
 	}
 
 	public static void removeDefaultJdk() {

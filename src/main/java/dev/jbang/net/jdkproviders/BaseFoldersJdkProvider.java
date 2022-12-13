@@ -1,13 +1,15 @@
 package dev.jbang.net.jdkproviders;
 
+import static dev.jbang.util.JavaUtil.parseJavaOutput;
+import static dev.jbang.util.JavaUtil.parseJavaVersion;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -22,18 +24,19 @@ import dev.jbang.util.Util;
 public abstract class BaseFoldersJdkProvider implements JdkProvider {
 	@Nonnull
 	@Override
-	public SortedSet<Jdk> listInstalled() {
+	public List<Jdk> listInstalled() {
 		if (Files.isDirectory(getJdksRoot())) {
 			try (Stream<Path> jdkPaths = listJdkPaths()) {
 				return jdkPaths
 								.map(this::createJdk)
 								.filter(Objects::nonNull)
-								.collect(Collectors.toCollection(TreeSet::new));
+								.sorted(Jdk::compareTo)
+								.collect(Collectors.toList());
 			} catch (IOException e) {
 				Util.verboseMsg("Couldn't list installed JDKs", e);
 			}
 		}
-		return Collections.emptySortedSet();
+		return Collections.emptyList();
 	}
 
 	@Nullable
@@ -151,5 +154,17 @@ public abstract class BaseFoldersJdkProvider implements JdkProvider {
 			Util.verboseMsg("Unable to read 'release' file in path: " + home);
 			return Optional.empty();
 		}
+	}
+
+	// TODO most likely not needed anymore and can be removed
+	private static int determineJavaVersion(Path javaCmd) {
+		String output = Util.runCommand(javaCmd.toString(), "-version");
+		int version = parseJavaVersion(parseJavaOutput(output));
+		if (version == 0) {
+			Util.verboseMsg(
+					"Version could not be determined from: '$javaCmd -version', trying 'java.version' property");
+			version = parseJavaVersion(System.getProperty("java.version"));
+		}
+		return version;
 	}
 }

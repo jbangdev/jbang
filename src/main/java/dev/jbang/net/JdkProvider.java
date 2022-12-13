@@ -1,9 +1,9 @@
 package dev.jbang.net;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.SortedSet;
 import java.util.function.Function;
 
 import javax.annotation.Nonnull;
@@ -104,7 +104,7 @@ public interface JdkProvider {
 			if (o == null || getClass() != o.getClass())
 				return false;
 			Jdk jdk = (Jdk) o;
-			return Objects.equals(home, jdk.home) || ((home == null || jdk.home == null) && id.equals(jdk.id));
+			return id.equals(jdk.id) && Objects.equals(home, jdk.home);
 		}
 
 		@Override
@@ -114,11 +114,7 @@ public interface JdkProvider {
 
 		@Override
 		public int compareTo(Jdk o) {
-			if (getMajorVersion() != o.getMajorVersion()) {
-				return Integer.compare(getMajorVersion(), o.getMajorVersion());
-			} else {
-				return id.compareTo(o.id);
-			}
+			return Integer.compare(getMajorVersion(), o.getMajorVersion());
 		}
 
 		@Override
@@ -131,6 +127,11 @@ public interface JdkProvider {
 		return new Jdk(this, id, home, versionProvider);
 	}
 
+	default String name() {
+		String nm = getClass().getSimpleName();
+		return nm.substring(0, nm.length() - 11).toLowerCase();
+	}
+
 	/**
 	 * For providers that can update this returns a set of JDKs that are available
 	 * for installation. Providers might set the <code>home</code> field of the JDK
@@ -141,7 +142,7 @@ public interface JdkProvider {
 	 * @return List of <code>Jdk</code> objects
 	 */
 	@Nonnull
-	default SortedSet<Jdk> listAvailable() {
+	default List<Jdk> listAvailable() {
 		throw new UnsupportedOperationException("Listing available JDKs is not supported by " + getClass().getName());
 	}
 
@@ -151,7 +152,7 @@ public interface JdkProvider {
 	 * @return List of <code>Jdk</code> objects, possibly empty
 	 */
 	@Nonnull
-	SortedSet<Jdk> listInstalled();
+	List<Jdk> listInstalled();
 
 	/**
 	 * Determines if a JDK of the requested version is currently installed by this

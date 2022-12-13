@@ -4,9 +4,8 @@ import static dev.jbang.net.jdkproviders.BaseFoldersJdkProvider.resolveJavaVersi
 
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -21,30 +20,29 @@ import dev.jbang.util.JavaUtil;
 public class JavaHomeJdkProvider implements JdkProvider {
 	@Nonnull
 	@Override
-	public SortedSet<Jdk> listInstalled() {
+	public List<Jdk> listInstalled() {
 		Path jdkHome = JavaUtil.getJdkHome();
 		if (jdkHome != null) {
 			Optional<String> version = resolveJavaVersionStringFromPath(jdkHome);
 			if (version.isPresent()) {
 				String id = "default-javahome";
-				return new TreeSet<>(Collections.singleton(createJdk(id, jdkHome,
-						jdk -> resolveJavaVersionStringFromPath(jdk.getHome()))));
+				return Collections.singletonList(createJdk(id, jdkHome, jdk -> version));
 			}
 		}
-		return Collections.emptySortedSet();
+		return Collections.emptyList();
 	}
 
 	@Nullable
 	@Override
 	public Jdk getJdkByPath(@Nonnull Path jdkPath) {
 		Jdk def = getDefault();
-		return jdkPath.startsWith(def.getHome()) ? def : null;
+		return def != null && def.getHome() != null && jdkPath.startsWith(def.getHome()) ? def : null;
 	}
 
 	@Nullable
 	@Override
 	public Jdk getDefault() {
-		SortedSet<Jdk> installed = listInstalled();
-		return !installed.isEmpty() ? installed.first() : null;
+		List<Jdk> installed = listInstalled();
+		return !installed.isEmpty() ? installed.get(0) : null;
 	}
 }
