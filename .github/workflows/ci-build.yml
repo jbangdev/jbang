@@ -136,21 +136,21 @@ jobs:
           java -version
           chmod +x ./build/install/jbang/bin/jbang
           ./build/install/jbang/bin/jbang init --template=cli helloworld.java
-          ./build/install/jbang/bin/jbang helloworld.java
+          ./build/install/jbang/bin/jbang --verbose helloworld.java
           rm helloworld.java
       - name: smoke-quarkus-test
         run: |
           java -version
           chmod +x ./build/install/jbang/bin/jbang
           ./build/install/jbang/bin/jbang init --template=qcli qcli.java
-          ./build/install/jbang/bin/jbang --fresh qcli.java
+          ./build/install/jbang/bin/jbang --fresh --verbose qcli.java
           rm qcli.java
       - name: smoke-quarkus-diff-version-test
         run: |
           java -version
           chmod +x ./build/install/jbang/bin/jbang
           ./build/install/jbang/bin/jbang init --template=qcli qcli.java
-          ./build/install/jbang/bin/jbang --fresh --java 17 qcli.java
+          ./build/install/jbang/bin/jbang --fresh --verbose --java 17 qcli.java
           rm qcli.java
       - name: integration-test-non-windows
         ## karate can't run on java 17 or higher due to missing nashorn

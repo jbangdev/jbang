@@ -14,12 +14,6 @@ import javax.annotation.Nullable;
 public class SdkmanJdkProvider extends BaseFoldersJdkProvider {
 	private static final Path JDKS_ROOT = Paths.get(System.getProperty("user.home")).resolve(".sdkman/candidates/java");
 
-	@Nullable
-	@Override
-	public Jdk getDefault() {
-		return null;
-	}
-
 	@Nonnull
 	@Override
 	protected Path getJdksRoot() {
@@ -27,11 +21,6 @@ public class SdkmanJdkProvider extends BaseFoldersJdkProvider {
 	}
 
 	@Nullable
-	@Override
-	protected Path getDefaultJdkPath() {
-		return getJdksRoot().resolve("current");
-	}
-
 	@Override
 	protected String jdkId(String name) {
 		return name + "-sdkman";

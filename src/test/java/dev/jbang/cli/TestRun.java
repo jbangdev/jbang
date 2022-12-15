@@ -54,6 +54,7 @@ import dev.jbang.BaseTest;
 import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
+import dev.jbang.net.JdkManager;
 import dev.jbang.net.TrustedSources;
 import dev.jbang.source.Builder;
 import dev.jbang.source.Project;
@@ -64,7 +65,6 @@ import dev.jbang.source.generators.JshCmdGenerator;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.source.sources.JavaSource;
 import dev.jbang.util.CommandBuffer;
-import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -2129,7 +2129,7 @@ public class TestRun extends BaseTest {
 
 	@Test
 	void testForceJavaVersion() throws IOException {
-		int v = JavaUtil.determineJavaVersion();
+		int v = JdkManager.getJdk(null).getMajorVersion();
 		String arg = examplesTestFolder.resolve("java4321.java").toAbsolutePath().toString();
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--java", "" + v, arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();

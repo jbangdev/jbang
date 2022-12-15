@@ -50,7 +50,7 @@ class TestJdk extends BaseTest {
 
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(),
-				equalTo("Installed JDKs (<=default):\n   11 (11.0.7)\n   12 (12.0.7)\n   13 (13.0.7)\n"));
+				equalTo("Installed JDKs (<=default):\n   11 (11.0.7) <\n   12 (12.0.7)\n   13 (13.0.7)\n"));
 	}
 
 	@Test
@@ -67,7 +67,7 @@ class TestJdk extends BaseTest {
 
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(),
-				equalTo("Installed JDKs (<=default):\n   11 (11.0.7)\n   12 (12.0.7)\n   13 (13.0.7) <\n"));
+				equalTo("Installed JDKs (<=default):\n   11 (11.0.7) <\n   12 (12.0.7)\n   13 (13.0.7)\n"));
 	}
 
 	@Test
@@ -208,7 +208,7 @@ class TestJdk extends BaseTest {
 
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
-				equalTo("[jbang] Uninstalled JDK:\n  " + jdkVersion + "\n"));
+				equalTo("[jbang] Default JDK unset\n[jbang] Uninstalled JDK:\n  " + jdkVersion + "\n"));
 	}
 
 	@Test
@@ -258,6 +258,10 @@ class TestJdk extends BaseTest {
 		Path jdkPath = JBangJdkProvider.getJdksPath().resolve(String.valueOf(jdkVersion));
 		Util.mkdirs(jdkPath);
 		initMockJdkDir(jdkPath, jdkVersion + ".0.7");
+		Path def = Settings.getCurrentJdkDir();
+		if (!Files.exists(def)) {
+			Util.createLink(def, jdkPath);
+		}
 	}
 
 	private void initMockJdkDir(Path jdkPath, String version) {

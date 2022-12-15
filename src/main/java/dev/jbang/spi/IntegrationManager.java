@@ -89,8 +89,8 @@ public class IntegrationManager {
 				IntegrationInput input = new IntegrationInput(className, srcPath, tmpJarDir, pomPath, repos, deps,
 						comments,
 						prj.isNativeImage());
-				IntegrationResult ir = requestedJavaVersion == null
-						|| JavaUtil.satisfiesRequestedVersion(requestedJavaVersion, JavaUtil.determineJavaVersion())
+				IntegrationResult ir = requestedJavaVersion == null || JavaUtil.satisfiesRequestedVersion(
+						requestedJavaVersion, JavaUtil.getCurrentMajorJavaVersion())
 								? runIntegrationEmbedded(input, integrationCl)
 								: runIntegrationExternal(input, prj.getProperties(), requestedJavaVersion);
 				result = result.merged(ir);

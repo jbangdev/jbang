@@ -2,6 +2,7 @@ package dev.jbang.net.jdkproviders;
 
 import static dev.jbang.net.jdkproviders.BaseFoldersJdkProvider.resolveJavaVersionStringFromPath;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
@@ -22,11 +23,11 @@ public class JavaHomeJdkProvider implements JdkProvider {
 	@Override
 	public List<Jdk> listInstalled() {
 		Path jdkHome = JavaUtil.getJdkHome();
-		if (jdkHome != null) {
+		if (jdkHome != null && Files.isDirectory(jdkHome)) {
 			Optional<String> version = resolveJavaVersionStringFromPath(jdkHome);
 			if (version.isPresent()) {
 				String id = "default-javahome";
-				return Collections.singletonList(createJdk(id, jdkHome, jdk -> version));
+				return Collections.singletonList(createJdk(id, jdkHome, version.get()));
 			}
 		}
 		return Collections.emptyList();
@@ -35,14 +36,8 @@ public class JavaHomeJdkProvider implements JdkProvider {
 	@Nullable
 	@Override
 	public Jdk getJdkByPath(@Nonnull Path jdkPath) {
-		Jdk def = getDefault();
-		return def != null && def.getHome() != null && jdkPath.startsWith(def.getHome()) ? def : null;
-	}
-
-	@Nullable
-	@Override
-	public Jdk getDefault() {
 		List<Jdk> installed = listInstalled();
-		return !installed.isEmpty() ? installed.get(0) : null;
+		Jdk def = !installed.isEmpty() ? installed.get(0) : null;
+		return def != null && def.getHome() != null && jdkPath.startsWith(def.getHome()) ? def : null;
 	}
 }

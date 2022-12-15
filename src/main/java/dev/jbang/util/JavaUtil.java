@@ -10,8 +10,6 @@ import java.util.regex.Pattern;
 
 import dev.jbang.net.JdkManager;
 import dev.jbang.net.JdkProvider;
-import dev.jbang.net.jdkproviders.JavaHomeJdkProvider;
-import dev.jbang.net.jdkproviders.PathJdkProvider;
 
 public class JavaUtil {
 
@@ -29,31 +27,6 @@ public class JavaUtil {
 	public static int javaVersion(String requestedVersion) {
 		JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(requestedVersion);
 		return jdk.getMajorVersion();
-	}
-
-	/**
-	 * Determine the Java version that's found in either the folder pointed at by
-	 * JAVA_HOME or on the PATH. In all other cases it's assumed that we know what
-	 * the version is because it would be a JDK installed by us. The result of this
-	 * call is cached so it can be called multiple times without having to worry
-	 * about efficiency.
-	 * 
-	 * @return The detected Java version or 0 if it couldn't be determined
-	 */
-	public static int determineJavaVersion() {
-		if (javaVersion == null) {
-			JdkProvider prov = new JavaHomeJdkProvider();
-			if (prov.getDefault() == null) {
-				prov = new PathJdkProvider();
-			}
-			javaVersion = parseJavaVersion(prov.getDefault().getVersion());
-			if (javaVersion != 0) {
-				Util.verboseMsg("System Java version detected as " + javaVersion);
-			} else {
-				Util.verboseMsg("No Java found on the system");
-			}
-		}
-		return javaVersion;
 	}
 
 	/**
@@ -103,7 +76,14 @@ public class JavaUtil {
 			return true;
 		}
 		int reqVer = minRequestedVersion(rv);
-		if (isOpenVersion(rv)) {
+		return satisfiesRequestedVersion(reqVer, isOpenVersion(rv), v);
+	}
+
+	public static boolean satisfiesRequestedVersion(int reqVer, boolean open, int v) {
+		if (reqVer <= 0) {
+			return true;
+		}
+		if (open) {
 			return v >= reqVer;
 		} else {
 			return v == reqVer;
@@ -124,6 +104,10 @@ public class JavaUtil {
 
 	public static boolean isRequestedVersion(String rv) {
 		return rv.matches("\\d+[+]?");
+	}
+
+	public static int getCurrentMajorJavaVersion() {
+		return parseJavaVersion(System.getProperty("java.version"));
 	}
 
 	public static String resolveInJavaHome(String cmd, String requestedVersion) {

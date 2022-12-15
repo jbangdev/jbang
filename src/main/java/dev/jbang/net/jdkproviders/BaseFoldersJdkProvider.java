@@ -1,7 +1,6 @@
 package dev.jbang.net.jdkproviders;
 
 import static dev.jbang.util.JavaUtil.parseJavaOutput;
-import static dev.jbang.util.JavaUtil.parseJavaVersion;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -72,33 +71,6 @@ public abstract class BaseFoldersJdkProvider implements JdkProvider {
 		return getJdksRoot().resolve(jdk);
 	}
 
-	@Nullable
-	@Override
-	public Jdk getDefault() {
-		try {
-			Path link = getDefaultJdkPath();
-			if (link != null && Files.isDirectory(link)) {
-				if (Files.isSymbolicLink(link)) {
-					Path dest = Files.readSymbolicLink(link);
-					return createJdk(dest);
-				} else {
-					try (Stream<Path> jdkPaths = listJdkPaths()) {
-						return jdkPaths	.filter(p -> JavaUtil.parseJavaVersion(p.getFileName().toString()) > 0)
-										.filter(sameJdk(link))
-										.map(this::createJdk)
-										.filter(Objects::nonNull)
-										.findAny()
-										.orElse(null);
-					}
-
-				}
-			}
-		} catch (IOException ex) {
-			// Ignore
-		}
-		return null;
-	}
-
 	private Predicate<Path> sameJdk(Path jdkRoot) {
 		Path release = jdkRoot.resolve("release");
 		return (Path p) -> {
@@ -123,17 +95,11 @@ public abstract class BaseFoldersJdkProvider implements JdkProvider {
 	}
 
 	@Nullable
-	protected abstract Path getDefaultJdkPath();
-
-	@Nullable
 	protected Jdk createJdk(Path home) {
 		String name = home.getFileName().toString();
-		// Make sure folders start with a number
-		if (JavaUtil.parseJavaVersion(name) > 0) {
-			Optional<String> version = resolveJavaVersionStringFromPath(home);
-			if (version.isPresent()) {
-				return createJdk(jdkId(name), home, jdk -> version);
-			}
+		Optional<String> version = resolveJavaVersionStringFromPath(home);
+		if (version.isPresent()) {
+			return createJdk(jdkId(name), home, version.get());
 		}
 		return null;
 	}
@@ -145,6 +111,14 @@ public abstract class BaseFoldersJdkProvider implements JdkProvider {
 	}
 
 	public static Optional<String> resolveJavaVersionStringFromPath(Path home) {
+		Optional<String> res = readJavaVersionStringFromReleaseFile(home);
+		if (!res.isPresent()) {
+			res = readJavaVersionStringFromJavaCommand(home);
+		}
+		return res;
+	}
+
+	private static Optional<String> readJavaVersionStringFromReleaseFile(Path home) {
 		try (Stream<String> lines = Files.lines(home.resolve("release"))) {
 			return lines
 						.filter(l -> l.startsWith("JAVA_VERSION"))
@@ -156,15 +130,18 @@ public abstract class BaseFoldersJdkProvider implements JdkProvider {
 		}
 	}
 
-	// TODO most likely not needed anymore and can be removed
-	private static int determineJavaVersion(Path javaCmd) {
-		String output = Util.runCommand(javaCmd.toString(), "-version");
-		int version = parseJavaVersion(parseJavaOutput(output));
-		if (version == 0) {
-			Util.verboseMsg(
-					"Version could not be determined from: '$javaCmd -version', trying 'java.version' property");
-			version = parseJavaVersion(System.getProperty("java.version"));
+	private static Optional<String> readJavaVersionStringFromJavaCommand(Path home) {
+		Optional<String> res;
+		Path javaCmd = Util.searchPath("java", home.resolve("bin").toString());
+		if (javaCmd != null) {
+			String output = Util.runCommand(javaCmd.toString(), "-version");
+			res = Optional.ofNullable(parseJavaOutput(output));
+		} else {
+			res = Optional.empty();
 		}
-		return version;
+		if (!res.isPresent()) {
+			Util.verboseMsg("Unable to obtain version from: '" + javaCmd + " -version'");
+		}
+		return res;
 	}
 }

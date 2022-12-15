@@ -21,6 +21,7 @@ import javax.annotation.Nullable;
 import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
+import dev.jbang.net.JdkManager;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
@@ -47,7 +48,7 @@ public class JBangJdkProvider extends BaseFoldersJdkProvider {
 		try {
 			List<Jdk> result = new ArrayList<>();
 			Consumer<String> addJdk = version -> {
-				result.add(createJdk(jdkId(version), null, jdk -> Optional.of(version)));
+				result.add(createJdk(jdkId(version), null, version));
 			};
 			String distro = Util.getVendor();
 			if (distro == null) {
@@ -69,10 +70,12 @@ public class JBangJdkProvider extends BaseFoldersJdkProvider {
 
 	@Nullable
 	@Override
-	public Jdk getJdkByVersion(int version) {
+	public Jdk getJdkByVersion(int version, boolean openVersion) {
 		Path jdk = getJdksRoot().resolve(Integer.toString(version));
 		if (Files.isDirectory(jdk)) {
 			return createJdk(jdk);
+		} else if (openVersion) {
+			return super.getJdkByVersion(version, true);
 		}
 		return null;
 	}
@@ -99,7 +102,11 @@ public class JBangJdkProvider extends BaseFoldersJdkProvider {
 			}
 			Files.move(jdkTmpDir, jdkDir);
 			Util.deletePath(jdkOldDir, false);
-			return createJdk(jdk, jdkDir, j -> resolveJavaVersionStringFromPath(jdkDir));
+			Optional<String> fullVersion = resolveJavaVersionStringFromPath(jdkDir);
+			if (!fullVersion.isPresent()) {
+				throw new ExitException(EXIT_UNEXPECTED_STATE, "Cannot obtain version of recently installed JDK");
+			}
+			return createJdk(jdk, jdkDir, fullVersion.get());
 		} catch (Exception e) {
 			Util.deletePath(jdkTmpDir, true);
 			if (!Files.isDirectory(jdkDir) && Files.isDirectory(jdkOldDir)) {
@@ -109,8 +116,13 @@ public class JBangJdkProvider extends BaseFoldersJdkProvider {
 					// Ignore
 				}
 			}
-			Util.errorMsg("Required Java version not possible to download or install. You can run with '--java "
-					+ JavaUtil.determineJavaVersion() + "' to force using the default installed Java.");
+			String msg = "Required Java version not possible to download or install.";
+			Jdk defjdk = JdkManager.getJdk(null);
+			if (defjdk != null) {
+				msg += " You can run with '--java " + defjdk.getMajorVersion()
+						+ "' to force using the default installed Java.";
+			}
+			Util.errorMsg(msg);
 			throw new ExitException(EXIT_UNEXPECTED_STATE,
 					"Unable to download or install JDK version " + version, e);
 		}
@@ -126,26 +138,6 @@ public class JBangJdkProvider extends BaseFoldersJdkProvider {
 	@Override
 	protected Path getJdkPath(@Nonnull String jdk) {
 		return getJdksPath().resolve(Integer.toString(jdkVersion(jdk)));
-	}
-
-	@Override
-	public void setDefault(@Nonnull String jdk) {
-		Path jdkDir = getJdkPath(jdk);
-		Util.createLink(getDefaultJdkPath(), jdkDir);
-	}
-
-	@Override
-	public void removeDefault() {
-		Path link = getDefaultJdkPath();
-		if (Files.isSymbolicLink(link)) {
-			try {
-				Files.deleteIfExists(link);
-			} catch (IOException e) {
-				// Ignore
-			}
-		} else {
-			Util.deletePath(link, true);
-		}
 	}
 
 	@Override
@@ -227,12 +219,6 @@ public class JBangJdkProvider extends BaseFoldersJdkProvider {
 
 	public static Path getJdksPath() {
 		return Settings.getCacheDir(Cache.CacheClass.jdks);
-	}
-
-	@Nonnull
-	@Override
-	protected Path getDefaultJdkPath() {
-		return Settings.getCurrentJdkDir();
 	}
 
 	@Nonnull

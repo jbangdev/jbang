@@ -20,12 +20,6 @@ import dev.jbang.util.Util;
 public class ScoopJdkProvider extends BaseFoldersJdkProvider {
 	private static final Path SCOOP_APPS = Paths.get(System.getProperty("user.home")).resolve("scoop/apps");
 
-	@Nullable
-	@Override
-	public Jdk getDefault() {
-		return null;
-	}
-
 	@Nonnull
 	@Override
 	protected Stream<Path> listJdkPaths() throws IOException {
@@ -35,12 +29,6 @@ public class ScoopJdkProvider extends BaseFoldersJdkProvider {
 						.map(p -> p.resolve("current"));
 		}
 		return Stream.empty();
-	}
-
-	@Nullable
-	@Override
-	protected Path getDefaultJdkPath() {
-		return null;
 	}
 
 	@Override

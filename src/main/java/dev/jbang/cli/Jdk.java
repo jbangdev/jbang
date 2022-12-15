@@ -41,14 +41,16 @@ public class Jdk {
 			@CommandLine.Parameters(paramLabel = "existingJdkPath", index = "1", description = "Pre installed JDK path", arity = "0..1") String path)
 			throws IOException {
 		jdkProvidersMixin.initJdkProviders();
-		if (force || !JdkManager.isInstalledJdk(version)) {
+		JdkProvider.Jdk jdk = !force ? JdkManager.getInstalledJdk(version, false, false) : null;
+		if (force || jdk == null) {
 			if (!Util.isNullOrBlankString(path)) {
 				JdkManager.linkToExistingJdk(path, version);
 			} else {
 				JdkManager.downloadAndInstallJdk(version);
 			}
 		} else {
-			Util.infoMsg("JDK " + version + " is already installed");
+			Util.infoMsg("JDK is already installed: " + jdk);
+			Util.infoMsg("Use --force to install anyway");
 		}
 		return EXIT_OK;
 	}
@@ -180,7 +182,8 @@ public class Jdk {
 		jdkProvidersMixin.initJdkProviders();
 		Path home = getJdkPath(version);
 		if (home == null) {
-			throw new ExitException(EXIT_INVALID_INPUT, "JDK " + version + " is not installed");
+			throw new ExitException(EXIT_INVALID_INPUT,
+					version != null ? "JDK " + version + " is not installed" : "No JDKs installed");
 		}
 		String homeStr = Util.pathToString(home);
 		String homeOsStr = Util.pathToOsString(home);
@@ -228,7 +231,7 @@ public class Jdk {
 			}
 			home = Settings.getCurrentJdkDir();
 		} else {
-			JdkProvider.Jdk jdk = JdkManager.getInstalledJdk(version, false);
+			JdkProvider.Jdk jdk = JdkManager.getJdk(version, false, false);
 			home = jdk != null ? jdk.getHome() : null;
 		}
 		return home;
@@ -238,13 +241,10 @@ public class Jdk {
 	public Integer defaultJdk(
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version of the JDK to select", arity = "0..1") Integer version) {
 		jdkProvidersMixin.initJdkProviders();
-		JdkProvider.Jdk defjdk = JdkManager.getUpdatableDefaultJdk();
+		JdkProvider.Jdk defjdk = JdkManager.getDefaultJdk();
 		if (version != null) {
 			if (defjdk == null || defjdk.getMajorVersion() != version) {
-				JdkProvider.Jdk jdk = JdkManager.getInstalledJdk(version, true);
-				if (jdk == null) {
-					throw new ExitException(EXIT_INVALID_INPUT, "JDK " + version + " is not installed");
-				}
+				JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(version, false, true);
 				JdkManager.setDefaultJdk(jdk);
 			} else {
 				Util.infoMsg("Default JDK already set to " + defjdk.getMajorVersion());
