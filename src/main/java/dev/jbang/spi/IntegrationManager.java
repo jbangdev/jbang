@@ -36,6 +36,7 @@ import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.source.Project;
 import dev.jbang.source.Source;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.PathTypeAdapter;
 import dev.jbang.util.Util;
 
@@ -89,8 +90,9 @@ public class IntegrationManager {
 						comments,
 						prj.isNativeImage());
 				IntegrationResult ir = requestedJavaVersion == null
-						? runIntegrationEmbedded(input, integrationCl)
-						: runIntegrationExternal(input, requestedJavaVersion);
+						|| JavaUtil.satisfiesRequestedVersion(requestedJavaVersion, JavaUtil.determineJavaVersion())
+								? runIntegrationEmbedded(input, integrationCl)
+								: runIntegrationExternal(input, requestedJavaVersion);
 				result = result.merged(ir);
 			}
 		} catch (ClassNotFoundException e) {
