@@ -74,7 +74,7 @@ public class IntegrationManager {
 			}
 		}
 
-		List<String> comments = source.getTags().collect(Collectors.toList());
+		List<String> comments = source.getTags().map(s -> "//" + s).collect(Collectors.toList());
 		ClassLoader old = Thread.currentThread().getContextClassLoader();
 		PrintStream oldout = System.out;
 		try {
