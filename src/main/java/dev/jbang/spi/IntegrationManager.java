@@ -92,7 +92,7 @@ public class IntegrationManager {
 				IntegrationResult ir = requestedJavaVersion == null
 						|| JavaUtil.satisfiesRequestedVersion(requestedJavaVersion, JavaUtil.determineJavaVersion())
 								? runIntegrationEmbedded(input, integrationCl)
-								: runIntegrationExternal(input, requestedJavaVersion);
+								: runIntegrationExternal(input, prj.getProperties(), requestedJavaVersion);
 				result = result.merged(ir);
 			}
 		} catch (ClassNotFoundException e) {
@@ -209,13 +209,18 @@ public class IntegrationManager {
 		return new IntegrationResult(nativeImage, mainClass, javaArgs);
 	}
 
-	private static IntegrationResult runIntegrationExternal(IntegrationInput input, String requestedJavaVersion)
+	private static IntegrationResult runIntegrationExternal(IntegrationInput input,
+			Map<String, String> properties,
+			String requestedJavaVersion)
 			throws Exception {
 		Gson parser = gsonb.create();
 		Util.infoMsg("Running external post build for " + input.integrationClassName);
 
 		List<String> args = new ArrayList<>();
 		args.add(resolveInJavaHome("java", requestedJavaVersion)); // TODO
+		for (Map.Entry<String, String> entry : properties.entrySet()) {
+			args.add("-D" + entry.getKey() + "=" + entry.getValue());
+		}
 		args.add("-cp");
 		args.add(Util.getJarLocation().toString());
 		args.add("dev.jbang.spi.IntegrationManager");
