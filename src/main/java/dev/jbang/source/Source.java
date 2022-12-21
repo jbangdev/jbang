@@ -67,6 +67,7 @@ public abstract class Source {
 		return new TagReader.Extended(contents, replaceProperties);
 	}
 
+	@Nonnull
 	public Stream<String> getTags() {
 		return tagReader.getTags();
 	}

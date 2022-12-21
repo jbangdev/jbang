@@ -36,6 +36,7 @@ import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.source.Project;
 import dev.jbang.source.Source;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.PathTypeAdapter;
 import dev.jbang.util.Util;
 
@@ -73,7 +74,7 @@ public class IntegrationManager {
 			}
 		}
 
-		List<String> comments = source.getTags().collect(Collectors.toList());
+		List<String> comments = source.getTags().map(s -> "//" + s).collect(Collectors.toList());
 		ClassLoader old = Thread.currentThread().getContextClassLoader();
 		PrintStream oldout = System.out;
 		try {
@@ -89,8 +90,9 @@ public class IntegrationManager {
 						comments,
 						prj.isNativeImage());
 				IntegrationResult ir = requestedJavaVersion == null
-						? runIntegrationEmbedded(input, integrationCl)
-						: runIntegrationExternal(input, requestedJavaVersion);
+						|| JavaUtil.satisfiesRequestedVersion(requestedJavaVersion, JavaUtil.determineJavaVersion())
+								? runIntegrationEmbedded(input, integrationCl)
+								: runIntegrationExternal(input, prj.getProperties(), requestedJavaVersion);
 				result = result.merged(ir);
 			}
 		} catch (ClassNotFoundException e) {
@@ -207,13 +209,18 @@ public class IntegrationManager {
 		return new IntegrationResult(nativeImage, mainClass, javaArgs);
 	}
 
-	private static IntegrationResult runIntegrationExternal(IntegrationInput input, String requestedJavaVersion)
+	private static IntegrationResult runIntegrationExternal(IntegrationInput input,
+			Map<String, String> properties,
+			String requestedJavaVersion)
 			throws Exception {
 		Gson parser = gsonb.create();
 		Util.infoMsg("Running external post build for " + input.integrationClassName);
 
 		List<String> args = new ArrayList<>();
 		args.add(resolveInJavaHome("java", requestedJavaVersion)); // TODO
+		for (Map.Entry<String, String> entry : properties.entrySet()) {
+			args.add("-D" + entry.getKey() + "=" + entry.getValue());
+		}
 		args.add("-cp");
 		args.add(Util.getJarLocation().toString());
 		args.add("dev.jbang.spi.IntegrationManager");
