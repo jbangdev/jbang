@@ -61,6 +61,8 @@ public class Util {
 	public static final String JBANG_JDK_VENDOR = "JBANG_JDK_VENDOR";
 	public static final String JBANG_RUNTIME_SHELL = "JBANG_RUNTIME_SHELL";
 	public static final String JBANG_STDIN_NOTTY = "JBANG_STDIN_NOTTY";
+	public static final String JBANG_AUTH_BASIC_USERNAME = "JBANG_AUTH_BASIC_USERNAME";
+	public static final String JBANG_AUTH_BASIC_PASSWORD = "JBANG_AUTH_BASIC_PASSWORD";
 
 	public static final Pattern patternMainMethod = Pattern.compile(
 			"^.*(public\\s+static|static\\s+public)\\s+void\\s+main\\s*\\(.*",
@@ -623,6 +625,7 @@ public class Util {
 
 		URLConnection urlConnection = url.openConnection();
 		urlConnection.setRequestProperty("User-Agent", getAgentString());
+		addAuthHeaderIfNeeded(urlConnection);
 
 		HttpURLConnection httpConn = null;
 
@@ -690,7 +693,7 @@ public class Util {
 		// copy content from connection to file
 		saveDir.mkdirs();
 		Path saveFilePath = saveDir.toPath().resolve(fileName);
-		try (ReadableByteChannel readableByteChannel = Channels.newChannel(url.openStream());
+		try (ReadableByteChannel readableByteChannel = Channels.newChannel(urlConnection.getInputStream());
 				FileOutputStream fileOutputStream = new FileOutputStream(saveFilePath.toFile())) {
 			fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
 		}
@@ -702,6 +705,16 @@ public class Util {
 
 		return saveFilePath;
 
+	}
+
+	private static void addAuthHeaderIfNeeded(URLConnection urlConnection) {
+		String username = System.getenv(JBANG_AUTH_BASIC_USERNAME);
+		String password = System.getenv(JBANG_AUTH_BASIC_PASSWORD);
+		if (username != null && password != null) {
+			String auth = username + ":" + password;
+			String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
+			urlConnection.setRequestProperty("Authorization", "Basic " + encodedAuth);
+		}
 	}
 
 	public static String getDispositionFilename(String disposition) {
