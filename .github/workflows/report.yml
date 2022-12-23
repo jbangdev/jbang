@@ -5,7 +5,7 @@
 name: report
 on:
   workflow_run:
-    workflows: [build]
+    workflows: [ci-build]
     types: [completed]
     
 permissions:
