@@ -77,11 +77,13 @@ jobs:
       - name: codecoverage-report
         run: |
           ./gradlew --no-daemon jacocoTestReport
-      - name: JUnit Report Action
-        uses: mikepenz/action-junit-report@v2.8.3
+      - name: Upload Test Report
+        uses: actions/upload-artifact@v3
+        if: always() # always run even if the previous step fails
         with:
-          report_paths: '**/build/test-results/test/TEST-*.xml'
-        if: always()
+          name: junit-test-results
+          path: '**/build/test-results/test/TEST-*.xml'
+          retention-days: 1
       - uses: codecov/codecov-action@v2
         with:
           #files: ./coverage1.xml,./coverage2.xml # optional
