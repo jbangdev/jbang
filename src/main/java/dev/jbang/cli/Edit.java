@@ -45,8 +45,11 @@ public class Edit extends BaseCommand {
 	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
 
+	@CommandLine.Parameters
+	List<String> additionalFiles;
+
 	@CommandLine.Option(names = {
-			"--live" }, description = "Setup temporary project, regenerate project on dependency changes.")
+			"--live" }, description = "Open directory in IDE's that support JBang or generate temporary project with option to regenerate project on dependency changes.")
 	public boolean live;
 
 	@CommandLine.Option(names = {
@@ -63,34 +66,41 @@ public class Edit extends BaseCommand {
 		// force download sources when editing
 		Util.setDownloadSources(true);
 
-		ProjectBuilder pb = createProjectBuilder();
-		final Project prj = pb.build(scriptMixin.scriptOrFile);
-
-		if (prj.isJar() || prj.getMainSourceSet().getSources().isEmpty()) {
-			throw new ExitException(EXIT_INVALID_INPUT, "You can only edit source files");
-		}
-
-		Path project = createProjectForLinkedEdit(prj, Collections.emptyList(), false);
-		String projectPathString = Util.pathToString(project.toAbsolutePath());
-		// err.println(project.getAbsolutePath());
-
-		if (!noOpen) {
-			openEditor(project, projectPathString);
-		}
-
-		if (!live) {
-			out.println(projectPathString); // quit(project.getAbsolutePath());
+		File location = new File(scriptMixin.scriptOrFile);
+		if (!noOpen && location.isDirectory()) {
+			info(location + " is a directory. Opening with IDE assuming it have JBang support installed.");
+			openEditor(Util.pathToString(location.toPath()), additionalFiles);
 		} else {
-			watchForChanges(prj, () -> {
-				// TODO only regenerate when dependencies changes.
-				info("Regenerating project.");
-				try {
-					createProjectForLinkedEdit(prj, Collections.emptyList(), true);
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
-				return null;
-			});
+
+			ProjectBuilder pb = createProjectBuilder();
+			final Project prj = pb.build(scriptMixin.scriptOrFile);
+
+			if (prj.isJar() || prj.getMainSourceSet().getSources().isEmpty()) {
+				throw new ExitException(EXIT_INVALID_INPUT, "You can only edit source files");
+			}
+
+			Path project = createProjectForLinkedEdit(prj, pb, false);
+			String projectPathString = Util.pathToString(project.toAbsolutePath());
+			// err.println(project.getAbsolutePath());
+
+			if (!noOpen) {
+				openEditor(projectPathString, additionalFiles);
+			}
+
+			if (!live) {
+				out.println(projectPathString); // quit(project.getAbsolutePath());
+			} else {
+				watchForChanges(prj, () -> {
+					// TODO only regenerate when dependencies changes.
+					info("Regenerating project.");
+					try {
+						createProjectForLinkedEdit(prj, ProjectBuilder.create(), true);
+					} catch (IOException e) {
+						throw new RuntimeException(e);
+					}
+					return null;
+				});
+			}
 		}
 		return EXIT_OK;
 	}
@@ -140,7 +150,7 @@ public class Edit extends BaseCommand {
 
 	// try open editor if possible and install if needed, returns true if editor
 	// started, false if not possible (i.e. editor not available)
-	private boolean openEditor(Path project, String projectPathString) throws IOException {
+	private boolean openEditor(String projectPathString, List<String> additionalFiles) throws IOException {
 		if (!editor.isPresent() || editor.get().isEmpty()) {
 			editor = askEditor();
 			if (!editor.isPresent()) {
@@ -151,11 +161,12 @@ public class Edit extends BaseCommand {
 		}
 		if ("gitpod".equals(editor.get()) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
 			info("Open this url to edit the project in your gitpod session:\n\n"
-					+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + project.toAbsolutePath() + "\n\n");
+					+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + projectPathString + "\n\n");
 		} else {
 			List<String> optionList = new ArrayList<>();
 			optionList.add(editor.get());
 			optionList.add(projectPathString);
+			optionList.addAll(additionalFiles);
 
 			String[] cmd;
 			if (Util.getShell() == Shell.bash) {
