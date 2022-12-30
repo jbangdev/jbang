@@ -14,11 +14,18 @@ endif::[]
 
 toc::[]
 
-You can edit your script in an IDE/editor by using `jbang edit helloworld.java`. This will generate a project in a temporary location with symbolic links to your script and open a editor.
+You can edit your script in an IDE/editor by using `jbang edit helloworld.java`. This will generate a project in a temporary location with symbolic links to your script and open a editor. If your IDE supports JBang directly (see https://jbang.dev/ide) then you can open the folder instead and avoid the symbolic links and temporary location. That will generally be faster and more reliable.
 
 [source, bash]
 ----
 jbang edit helloworld.java
+----
+
+or 
+
+[source, bash]
+----
+jbang edit . helloworld.java
 ----
 
 By default `jbang` will offer to install https://vscodium.com[VSCodium] (free/libre version of Visual Studio code) with default java extensions enabled in so called https://code.visualstudio.com/docs/editor/portable["portable mode"]. Portable mode means all the installed binaries and configuration does not affect rest of your system; everything is stored in `~/.jbang/editor`.
@@ -48,9 +55,26 @@ for your user or run your shell/terminal as administrator to have this feature w
 You can also use `jbang edit --live` and `jbang` will launch your editor while watching
 for file changes and regenerate the temporary project to pick up changes in dependencies.
 
-== IDE and Editor support
+== IDE Support
 
-The `edit` feature been tested with the following IDE's:
+Some IDE's have dedicated JBang support and is recommended to use those if you can; by using `jbang edit .` (the dot is important) to edit a directory directly. 
+Wit this approach you avoid the symbolic links and temporary location and simply have the IDE understand the implicit project structure as understood by JBang.
+
+The following IDE's have dedicated support (at time of writing): 
+
+:sicons: https://simpleicons.org/icons
+.IDE's with JBang support
+[width=75%,frame=none,grid=none]
+|===
+|image:{sicons}/visualstudiocode.svg[50,50] https://code.visualstudio.com[Visual Studio Code]
+|image:{sicons}/eclipseide.svg[50,50] https://www.eclipse.org/downloads/download.php[Eclipse]
+|image:{sicons}/intellijidea.svg[50,50] https://www.jetbrains.com/idea/download[IntelliJ Idea]
+|image:{sicons}/gitpod.svg[50,50] https://www.gitpod.io[GitPod]
+|===
+
+== Generic edit support
+
+The generic `edit` feature using temporary directory and symbolic links been tested with the following IDE's:
 
 :sicons: https://simpleicons.org/icons
 .IDE's and Editors tested with `jbang`

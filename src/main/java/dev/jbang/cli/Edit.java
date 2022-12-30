@@ -1,6 +1,7 @@
 package dev.jbang.cli;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
+import static dev.jbang.util.Util.pathToString;
 import static dev.jbang.util.Util.verboseMsg;
 import static java.lang.System.out;
 
@@ -45,8 +46,8 @@ public class Edit extends BaseCommand {
 	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
 
-	@CommandLine.Parameters
-	List<String> additionalFiles;
+	@CommandLine.Parameters(index = "1", arity = "0..N")
+	List<String> additionalFiles = new ArrayList<>();
 
 	@CommandLine.Option(names = {
 			"--live" }, description = "Open directory in IDE's that support JBang or generate temporary project with option to regenerate project on dependency changes.")
@@ -59,6 +60,9 @@ public class Edit extends BaseCommand {
 	@CommandLine.Option(names = { "--no-open" })
 	public boolean noOpen;
 
+	@CommandLine.Option(names = { "-b", "--sandbox" })
+	boolean sandbox;
+
 	@Override
 	public Integer doCall() throws IOException {
 		scriptMixin.validate();
@@ -67,11 +71,17 @@ public class Edit extends BaseCommand {
 		Util.setDownloadSources(true);
 
 		File location = new File(scriptMixin.scriptOrFile);
-		if (!noOpen && location.isDirectory()) {
-			info(location + " is a directory. Opening with IDE assuming it have JBang support installed.");
-			openEditor(Util.pathToString(location.toPath()), additionalFiles);
+		if (!noOpen && !sandbox) {
+			info("Opening with IDE assuming it have JBang support installed. See https://jbang.dev/ide");
+			if (location.isDirectory()) {
+				openEditor(pathToString(location.toPath()), additionalFiles);
+			} else {
+				additionalFiles.add(0, pathToString(location.toPath()));
+				// TODO: should we locate the parent more intelligently?
+				openEditor(pathToString(location.getAbsoluteFile().getParentFile().toPath()), additionalFiles);
+			}
 		} else {
-
+			info("Creating sandbox for script editing " + location);
 			ProjectBuilder pb = createProjectBuilder();
 			final Project prj = pb.build(scriptMixin.scriptOrFile);
 
@@ -79,8 +89,10 @@ public class Edit extends BaseCommand {
 				throw new ExitException(EXIT_INVALID_INPUT, "You can only edit source files");
 			}
 
-			Path project = createProjectForLinkedEdit(prj, pb, false);
-			String projectPathString = Util.pathToString(project.toAbsolutePath());
+			Path project = createProjectForLinkedEdit(prj, Collections
+																		.emptyList(),
+					false);
+			String projectPathString = pathToString(project.toAbsolutePath());
 			// err.println(project.getAbsolutePath());
 
 			if (!noOpen) {
@@ -94,7 +106,7 @@ public class Edit extends BaseCommand {
 					// TODO only regenerate when dependencies changes.
 					info("Regenerating project.");
 					try {
-						createProjectForLinkedEdit(prj, ProjectBuilder.create(), true);
+						createProjectForLinkedEdit(prj, Collections.emptyList(), true);
 					} catch (IOException e) {
 						throw new RuntimeException(e);
 					}
