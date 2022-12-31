@@ -348,6 +348,15 @@ build.dependsOn(container)
 build.dependsOn(spec)
 //build.dependsOn(clidoc)
 
+//fix implicit dependencies
+tasks.named("spotlessXml").configure { dependsOn("compileJava") }
+tasks.named("spotlessXml").configure { dependsOn("copyResources") }
+tasks.named("spotlessXml").configure { dependsOn("processResources") }
+tasks.named("spotlessXml").configure { dependsOn("compileTestJava") }
+tasks.named("spotlessXml").configure { dependsOn("copyTestResources") }
+tasks.named("spotlessXml").configure { dependsOn("chocolatey") }
+tasks.named("spotlessXml").configure { dependsOn("copyITests") }
+
 group = "dev.jbang"
 sourceCompatibility = '8'
 targetCompatibility = '8'
