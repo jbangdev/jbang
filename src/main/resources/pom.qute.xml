@@ -7,12 +7,35 @@
 	<artifactId>{artifact}</artifactId>
 	<version>{version}</version>
 	<description>{description}</description>
+
+	<properties>
+		<project.java.version>1.8</project.java.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<maven.compiler.source>{javaTarget}</maven.compiler.source>
+		<maven.compiler.target>{javaTarget}</maven.compiler.target>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			{#for item in managedDependencies}
+			<dependency>
+				<groupId>{item.groupId}</groupId>
+				<artifactId>{item.artifactId}</artifactId>
+				<version>{item.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			{/for}
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
 		{#for item in dependencies}
 		<dependency>
-			<groupId>{item.coordinate.groupId}</groupId>
-			<artifactId>{item.coordinate.artifactId}</artifactId>
-			<version>{item.coordinate.version}</version>
+			<groupId>{item.groupId}</groupId>
+			<artifactId>{item.artifactId}</artifactId>
+			<version>{item.version}</version>
 			<scope>compile</scope>
 		</dependency>
 		{/for}

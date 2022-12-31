@@ -4,13 +4,13 @@ import static dev.jbang.util.JavaUtil.resolveInJavaHome;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
+import java.util.stream.Collectors;
 
 import dev.jbang.Settings;
 import dev.jbang.dependencies.ArtifactInfo;
@@ -25,7 +25,7 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
 @Command(name = "export", description = "Export the result of a build.", subcommands = { ExportPortable.class,
-		ExportLocal.class, ExportMavenPublish.class, ExportNative.class })
+		ExportLocal.class, ExportMavenPublish.class, ExportNative.class, ExportProject.class })
 public class Export {
 }
 
@@ -260,7 +260,7 @@ class ExportMavenPublish extends BaseExportCommand {
 		// not possible when native thus for now just regenerate it
 		Template pomTemplate = TemplateEngine.instance().getTemplate("pom.qute.xml");
 
-		Path pomPath = versionDir.resolve(artifact + "-" + version + ".pom");
+		Path pomPath = versionDir.resolve("pom.xml");
 		if (pomTemplate == null) {
 			// ignore
 			Util.warnMsg("Could not locate pom.xml template");
@@ -275,6 +275,131 @@ class ExportMavenPublish extends BaseExportCommand {
 										.data("version", version)
 										.data("description", prj.getDescription().orElse(""))
 										.data("dependencies", prj.resolveClassPath().getArtifacts())
+										.render();
+			Util.infoMsg("Writing " + pomPath);
+			Util.writeString(pomPath, pomfile);
+
+		}
+
+		Util.infoMsg("Exported to " + outputPath);
+		return EXIT_OK;
+	}
+}
+
+@Command(name = "project", description = "Exports as a buildable project")
+class ExportProject extends BaseExportCommand {
+
+	@CommandLine.Option(names = { "--group", "-g" }, description = "The group ID to use for the generated POM.")
+	String group;
+
+	@CommandLine.Option(names = { "--artifact", "-a" }, description = "The artifact ID to use for the generated POM.")
+	String artifact;
+
+	@CommandLine.Option(names = { "--version", "-v" }, description = "The version to use for the generated POM.")
+	String version;
+
+	@Override
+	int apply(Project prj, ProjectBuilder pb) throws IOException {
+		Path outputPath = exportMixin.outputFile;
+
+		if (outputPath == null) {
+			outputPath = Paths.get(".");
+		}
+
+		if (!outputPath.toFile().isDirectory()) {
+			if (outputPath.toFile().exists()) {
+				Util.warnMsg("Cannot export as maven repository as " + outputPath + " is not a directory.");
+				return EXIT_INVALID_INPUT;
+			}
+			if (exportMixin.force) {
+				outputPath.toFile().mkdirs();
+			} else {
+				Util.warnMsg("Cannot export as " + outputPath + " does not exist. Use --force to create.");
+				return EXIT_INVALID_INPUT;
+			}
+		}
+
+		if (prj.getGav().isPresent()) {
+			MavenCoordinate coord = MavenCoordinate.fromString(prj.getGav().get()).withVersion();
+			if (group == null) {
+				group = coord.getGroupId();
+			}
+			if (artifact == null) {
+				artifact = coord.getArtifactId();
+			}
+			if (version == null) {
+				version = coord.getVersion();
+			}
+		}
+
+		if (group == null) {
+			Util.warnMsg(
+					"Cannot export as maven repository as no group specified. Add --group=<group id> and run again.");
+			return EXIT_INVALID_INPUT;
+		}
+		Path groupdir = outputPath.resolve(Paths.get(group.replace(".", "/")));
+
+		artifact = artifact != null ? artifact
+				: Util.getBaseName(prj.getResourceRef().getFile().getFileName().toString());
+
+		version = version != null ? version : MavenCoordinate.DEFAULT_VERSION;
+
+		Path javaDir = outputPath.resolve("src/main/java");
+		Files.createDirectories(javaDir);
+
+		prj.getMainSourceSet().getSources().forEach(source -> {
+			Util.infoMsg("Copying " + source.getFile() + " to " + javaDir.resolve(source.getOriginalResource()));
+			try {
+				// TODO guard against file/releative path copying.
+				if (exportMixin.force) {
+					Files.copy(source.getFile(), javaDir.resolve(source.getOriginalResource()),
+							StandardCopyOption.REPLACE_EXISTING);
+				} else {
+					Files.copy(source.getFile(), javaDir.resolve(source.getOriginalResource()));
+				}
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+
+		});
+
+		// generate pom.xml ... if jar could technically just copy from the jar ...but
+		// not possible when native thus for now just regenerate it
+		Template pomTemplate = TemplateEngine.instance().getTemplate("pom.qute.xml");
+
+		Path pomPath = outputPath.resolve("pom.xml");
+		if (pomTemplate == null) {
+			// ignore
+			Util.warnMsg("Could not locate pom.xml template");
+		} else {
+
+			Map<Boolean, List<String>> groupedArticles = prj.getMainSourceSet()
+															.getDependencies()
+															.stream()
+															.collect(
+																	Collectors.partitioningBy(a -> a.endsWith("@pom")));
+
+			List managedDeps = groupedArticles	.get(true)
+												.stream()
+												.map(aid -> MavenCoordinate.fromCanonicalString(
+														aid.substring(0, aid.lastIndexOf("@pom"))))
+												.collect(Collectors.toList());
+			List deps = groupedArticles	.get(false)
+										.stream()
+										.map(aid -> MavenCoordinate.fromCanonicalString(aid))
+										.collect(Collectors.toList());
+
+			String pomfile = pomTemplate
+										.data("baseName",
+												Util.getBaseName(
+														prj.getResourceRef().getFile().getFileName().toString()))
+										.data("group", group)
+										.data("artifact", artifact)
+										.data("version", version)
+										.data("description", prj.getDescription().orElse(""))
+										.data("managedDependencies", managedDeps)
+										.data("dependencies", deps)
+										.data("javaTarget", prj.getJavaVersion().replace("+", ""))
 										.render();
 			Util.infoMsg("Writing " + pomPath);
 			Util.writeString(pomPath, pomfile);
