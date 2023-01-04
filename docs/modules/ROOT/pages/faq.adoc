@@ -88,3 +88,7 @@ https://www.youtube.com/watch?v=RgHNOH2_itw&t=300s[Monday Java Lunch & Learn. Th
 https://www.twilio.com/blog/cli-app-java-jbang-picocli[How to build a CLI app in Java using jbang and picocli] - Matthew Gilliard
 
 https://javastreets.com/blog/java-jbang-textmate.html[Faster Feedback with Java, JBang, and TextMate] - Manik Magar
+
+http://www.mastertheboss.com/java/java-scripting-with-jbang/[ JBang: Create Java scripts like a pro] - Francesco Marchioni
+
+http://www.mastertheboss.com/java/jbang-vs-jshell/[ 6 things you can do with JBang but you can’t with Shell] - Francesco Marchioni 
