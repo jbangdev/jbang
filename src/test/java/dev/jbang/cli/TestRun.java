@@ -572,7 +572,7 @@ public class TestRun extends BaseTest {
 
 		String result = prj.cmdGenerator().generate();
 
-		assertThat(result, startsWith("jshell"));
+		assertThat(result, matchesPattern("^.*jshell(.exe)?.*"));
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString("helloworld.jsh"));
 		assertThat(result, not(containsString("--source 11")));
@@ -662,7 +662,7 @@ public class TestRun extends BaseTest {
 
 		String result = prj.cmdGenerator().generate();
 
-		assertThat(result, startsWith("jshell "));
+		assertThat(result, matchesPattern("^.*jshell(.exe)?.*"));
 		assertThat(result, (containsString("classpath_example.java")));
 //		assertThat(result, containsString(" --source 11 "));
 		assertThat(result, not(containsString("  ")));

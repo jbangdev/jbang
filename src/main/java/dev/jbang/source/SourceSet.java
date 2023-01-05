@@ -4,7 +4,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
@@ -21,6 +23,7 @@ import dev.jbang.util.Util;
 public class SourceSet {
 	private final List<ResourceRef> sources = new ArrayList<>();
 	private final List<RefTarget> resources = new ArrayList<>();
+	private final Set<ResourceRef> sourceDirs = new HashSet<>();
 	private final List<String> dependencies = new ArrayList<>();
 	private final List<String> classPaths = new ArrayList<>();
 	private final List<String> compileOptions = new ArrayList<>();
@@ -64,6 +67,23 @@ public class SourceSet {
 	public SourceSet addResources(Collection<RefTarget> resources) {
 		this.resources.addAll(resources);
 		stableId = null;
+		return this;
+	}
+
+	@Nonnull
+	public Set<ResourceRef> getSourceDirs() {
+		return Collections.unmodifiableSet(sourceDirs);
+	}
+
+	@Nonnull
+	public SourceSet addSourceDir(ResourceRef sourceDir) {
+		sourceDirs.add(sourceDir);
+		return this;
+	}
+
+	@Nonnull
+	public SourceSet addSourceDirs(Collection<ResourceRef> sourceDirs) {
+		this.sourceDirs.addAll(sourceDirs);
 		return this;
 	}
 

@@ -35,6 +35,10 @@ public class ResourceRef implements Comparable<ResourceRef> {
 		return originalResource != null && isStdin(originalResource);
 	}
 
+	public boolean isFile() {
+		return originalResource != null && Util.isValidPath(originalResource);
+	}
+
 	@Nullable
 	public Path getFile() {
 		return file;

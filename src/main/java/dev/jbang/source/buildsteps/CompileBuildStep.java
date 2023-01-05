@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.MavenCoordinate;
+import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.source.Builder;
 import dev.jbang.source.Project;
 import dev.jbang.util.CommandBuffer;
@@ -41,9 +42,21 @@ public abstract class CompileBuildStep implements Builder<Project> {
 		optionList.addAll(project.getMainSourceSet().getCompileOptions());
 		String path = project.resolveClassPath().getClassPath();
 		if (!Util.isBlankString(path)) {
-			optionList.addAll(Arrays.asList("-classpath", path));
+			optionList.add("-classpath");
+			optionList.add(path);
 		}
 		optionList.addAll(Arrays.asList("-d", compileDir.toAbsolutePath().toString()));
+
+		// add -sourcepath for all source folders
+		List<String> srcDirs = project	.getMainSourceSet()
+										.getSourceDirs()
+										.stream()
+										.map(d -> d.getFile().toString())
+										.collect(Collectors.toList());
+		if (!srcDirs.isEmpty()) {
+			optionList.add("-sourcepath");
+			optionList.add(ModularClassPath.toClassPath(srcDirs));
+		}
 
 		// add source files to compile
 		optionList.addAll(project	.getMainSourceSet()
