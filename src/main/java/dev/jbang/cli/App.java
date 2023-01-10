@@ -363,7 +363,7 @@ class AppSetup extends BaseCommand {
 	 */
 	public static boolean guessWithJava() {
 		boolean withJava;
-		JdkProvider.Jdk defJdk = JdkManager.getDefaultJdk();
+		JdkProvider.Jdk defJdk = JdkManager.getJdk(null);
 		String javaHome = System.getenv("JAVA_HOME");
 		Path javacCmd = Util.searchPath("javac");
 		withJava = defJdk != null

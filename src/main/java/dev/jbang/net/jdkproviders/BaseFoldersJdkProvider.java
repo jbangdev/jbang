@@ -1,7 +1,5 @@
 package dev.jbang.net.jdkproviders;
 
-import static dev.jbang.util.JavaUtil.parseJavaOutput;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -97,7 +95,7 @@ public abstract class BaseFoldersJdkProvider implements JdkProvider {
 	@Nullable
 	protected Jdk createJdk(Path home) {
 		String name = home.getFileName().toString();
-		Optional<String> version = resolveJavaVersionStringFromPath(home);
+		Optional<String> version = JavaUtil.resolveJavaVersionStringFromPath(home);
 		if (version.isPresent()) {
 			return createJdk(jdkId(name), home, version.get());
 		}
@@ -106,42 +104,4 @@ public abstract class BaseFoldersJdkProvider implements JdkProvider {
 
 	protected abstract String jdkId(String name);
 
-	public static Optional<Integer> resolveJavaVersionFromPath(Path home) {
-		return resolveJavaVersionStringFromPath(home).map(JavaUtil::parseJavaVersion);
-	}
-
-	public static Optional<String> resolveJavaVersionStringFromPath(Path home) {
-		Optional<String> res = readJavaVersionStringFromReleaseFile(home);
-		if (!res.isPresent()) {
-			res = readJavaVersionStringFromJavaCommand(home);
-		}
-		return res;
-	}
-
-	private static Optional<String> readJavaVersionStringFromReleaseFile(Path home) {
-		try (Stream<String> lines = Files.lines(home.resolve("release"))) {
-			return lines
-						.filter(l -> l.startsWith("JAVA_VERSION"))
-						.map(JavaUtil::parseJavaOutput)
-						.findAny();
-		} catch (IOException e) {
-			Util.verboseMsg("Unable to read 'release' file in path: " + home);
-			return Optional.empty();
-		}
-	}
-
-	private static Optional<String> readJavaVersionStringFromJavaCommand(Path home) {
-		Optional<String> res;
-		Path javaCmd = Util.searchPath("java", home.resolve("bin").toString());
-		if (javaCmd != null) {
-			String output = Util.runCommand(javaCmd.toString(), "-version");
-			res = Optional.ofNullable(parseJavaOutput(output));
-		} else {
-			res = Optional.empty();
-		}
-		if (!res.isPresent()) {
-			Util.verboseMsg("Unable to obtain version from: '" + javaCmd + " -version'");
-		}
-		return res;
-	}
 }

@@ -102,7 +102,7 @@ public class JBangJdkProvider extends BaseFoldersJdkProvider {
 			}
 			Files.move(jdkTmpDir, jdkDir);
 			Util.deletePath(jdkOldDir, false);
-			Optional<String> fullVersion = resolveJavaVersionStringFromPath(jdkDir);
+			Optional<String> fullVersion = JavaUtil.resolveJavaVersionStringFromPath(jdkDir);
 			if (!fullVersion.isPresent()) {
 				throw new ExitException(EXIT_UNEXPECTED_STATE, "Cannot obtain version of recently installed JDK");
 			}

@@ -1,6 +1,6 @@
 package dev.jbang.net.jdkproviders;
 
-import static dev.jbang.net.jdkproviders.BaseFoldersJdkProvider.resolveJavaVersionStringFromPath;
+import static dev.jbang.util.JavaUtil.resolveJavaVersionStringFromPath;
 
 import java.nio.file.Path;
 import java.util.Collections;
@@ -30,7 +30,7 @@ public class PathJdkProvider implements JdkProvider {
 		if (jdkHome != null) {
 			Optional<String> version = resolveJavaVersionStringFromPath(jdkHome);
 			if (version.isPresent()) {
-				String id = "default-path";
+				String id = "path";
 				return Collections.singletonList(createJdk(id, jdkHome, version.get()));
 			}
 		}

@@ -2,11 +2,15 @@ package dev.jbang.util;
 
 import static java.lang.System.getenv;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import dev.jbang.net.JdkManager;
 import dev.jbang.net.JdkProvider;
@@ -119,6 +123,66 @@ public class JavaUtil {
 			return jdkHome.resolve("bin").resolve(cmd).toAbsolutePath().toString();
 		}
 		return cmd;
+	}
+
+	public static Optional<Integer> resolveJavaVersionFromPath(Path home) {
+		return resolveJavaVersionStringFromPath(home).map(JavaUtil::parseJavaVersion);
+	}
+
+	public static Optional<String> resolveJavaVersionStringFromPath(Path home) {
+		Optional<String> res = readJavaVersionStringFromReleaseFile(home);
+		if (!res.isPresent()) {
+			res = readJavaVersionStringFromJavaCommand(home);
+		}
+		return res;
+	}
+
+	public static Optional<String> readJavaVersionStringFromReleaseFile(Path home) {
+		try (Stream<String> lines = Files.lines(home.resolve("release"))) {
+			return lines
+						.filter(l -> l.startsWith("JAVA_VERSION"))
+						.map(JavaUtil::parseJavaOutput)
+						.findAny();
+		} catch (IOException e) {
+			Util.verboseMsg("Unable to read 'release' file in path: " + home);
+			return Optional.empty();
+		}
+	}
+
+	public static Optional<String> readJavaVersionStringFromJavaCommand(Path home) {
+		Optional<String> res;
+		Path javaCmd = Util.searchPath("java", home.resolve("bin").toString());
+		if (javaCmd != null) {
+			String output = Util.runCommand(javaCmd.toString(), "-version");
+			res = Optional.ofNullable(parseJavaOutput(output));
+		} else {
+			res = Optional.empty();
+		}
+		if (!res.isPresent()) {
+			Util.verboseMsg("Unable to obtain version from: '" + javaCmd + " -version'");
+		}
+		return res;
+	}
+
+	/**
+	 * Method takes the given path which might point to a Java home directory or to
+	 * the `jre` directory inside it and makes sure to return the path to the actual
+	 * home directory.
+	 */
+	public static Path jre2jdk(Path jdkHome) {
+		// Detect if the current JDK is a JRE and try to find the real home
+		if (!Files.isRegularFile(jdkHome.resolve("release"))) {
+			Path jh = jdkHome.toAbsolutePath();
+			try {
+				jh = jh.toRealPath();
+			} catch (IOException e) {
+				// Ignore error
+			}
+			if (jh.endsWith("jre") && Files.isRegularFile(jh.getParent().resolve("release"))) {
+				jdkHome = jh.getParent();
+			}
+		}
+		return jdkHome;
 	}
 
 	public static class RequestedVersionComparator implements Comparator<String> {

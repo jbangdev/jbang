@@ -2,8 +2,8 @@ package dev.jbang.net.jdkproviders;
 
 import static dev.jbang.util.JavaUtil.resolveJavaVersionStringFromPath;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -15,18 +15,20 @@ import dev.jbang.net.JdkProvider;
 import dev.jbang.util.JavaUtil;
 
 /**
- * This JDK provider detects if a JDK is already available on the system by
- * looking at <code>JAVA_HOME</code> environment variable.
+ * This JDK provider returns the "current" JDK, which is the JDK that is
+ * currently being used to run JBang.
  */
-public class JavaHomeJdkProvider implements JdkProvider {
+public class CurrentJdkProvider implements JdkProvider {
 	@Nonnull
 	@Override
 	public List<Jdk> listInstalled() {
-		Path jdkHome = JavaUtil.getJdkHome();
-		if (jdkHome != null && Files.isDirectory(jdkHome)) {
+		String jh = System.getProperty("java.home");
+		if (jh != null) {
+			Path jdkHome = Paths.get(jh);
+			jdkHome = JavaUtil.jre2jdk(jdkHome);
 			Optional<String> version = resolveJavaVersionStringFromPath(jdkHome);
 			if (version.isPresent()) {
-				String id = "javahome";
+				String id = "current";
 				return Collections.singletonList(createJdk(id, jdkHome, version.get()));
 			}
 		}

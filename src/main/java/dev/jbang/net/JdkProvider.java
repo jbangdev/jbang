@@ -1,6 +1,6 @@
 package dev.jbang.net;
 
-import static dev.jbang.net.jdkproviders.BaseFoldersJdkProvider.resolveJavaVersionStringFromPath;
+import static dev.jbang.util.JavaUtil.resolveJavaVersionStringFromPath;
 
 import java.nio.file.Path;
 import java.util.Collections;
@@ -258,4 +258,5 @@ public interface JdkProvider {
 			return instance.getJdkByPath(jdkPath);
 		}
 	}
+
 }

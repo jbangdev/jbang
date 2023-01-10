@@ -20,7 +20,8 @@ import javax.annotation.Nullable;
 
 import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
-import dev.jbang.net.jdkproviders.BaseFoldersJdkProvider;
+import dev.jbang.net.jdkproviders.CurrentJdkProvider;
+import dev.jbang.net.jdkproviders.DefaultJdkProvider;
 import dev.jbang.net.jdkproviders.JBangJdkProvider;
 import dev.jbang.net.jdkproviders.JavaHomeJdkProvider;
 import dev.jbang.net.jdkproviders.PathJdkProvider;
@@ -32,14 +33,19 @@ import dev.jbang.util.Util;
 public class JdkManager {
 	private static List<JdkProvider> providers = null;
 
+	// TODO Don't hard-code this list
+	public static final String[] PROVIDERS_ALL = new String[] { "current", "default", "javahome", "path", "jbang",
+			"sdkman", "scoop" };
+	public static final String[] PROVIDERS_DEFAULT = new String[] { "current", "default", "javahome", "path", "jbang" };
+	public static final String PROVIDERS_DEFAULT_STR = "current,default,javahome,path,jbang";
+
 	public static void initProvidersByName(String... providerNames) {
 		initProvidersByName(Arrays.asList(providerNames));
 	}
 
 	public static void initProvidersByName(List<String> providerNames) {
 		if (providerNames.size() == 1 && "all".equals(providerNames.get(0))) {
-			// TODO Don't hard-code this list
-			initProvidersByName("javahome", "path", "jbang", "sdkman", "scoop");
+			initProvidersByName(PROVIDERS_ALL);
 			return;
 		}
 		// TODO Make providers know their names instead of hard-coding
@@ -47,6 +53,12 @@ public class JdkManager {
 		for (String name : providerNames) {
 			JdkProvider provider;
 			switch (name) {
+			case "current":
+				provider = new CurrentJdkProvider();
+				break;
+			case "default":
+				provider = new DefaultJdkProvider();
+				break;
 			case "javahome":
 				provider = new JavaHomeJdkProvider();
 				break;
@@ -87,7 +99,7 @@ public class JdkManager {
 	@Nonnull
 	private static List<JdkProvider> providers() {
 		if (providers == null) {
-			initProvidersByName("javahome", "path", "jbang");
+			initProvidersByName(PROVIDERS_DEFAULT);
 		}
 		return providers;
 	}
@@ -153,17 +165,17 @@ public class JdkManager {
 	}
 
 	/**
-	 * Returns an <code>Jdk</code> object that matches the requested version from
-	 * the list of currently installed JDKs or from the ones available for
-	 * installation. The requested version is a string that either contains the
-	 * actual (strict) major version of the JDK that should be returned or an open
-	 * version terminated with a <code>+</code> sign to indicate that any later
-	 * version is valid as well. If the requested version is <code>null</code> the
-	 * "default" JDK will be returned, this is normally the JDK currently being used
-	 * to run JBang itself. The method will return <code>null</code> if no installed
-	 * or available JDK matches. NB: This method can return <code>Jdk</code> objects
-	 * for JDKs that are currently _not_ installed. It will not cause any installs
-	 * to be performed. See <code>getOrInstallJdk()</code> for that.
+	 * Returns a <code>Jdk</code> object that matches the requested version from the
+	 * list of currently installed JDKs or from the ones available for installation.
+	 * The requested version is a string that either contains the actual (strict)
+	 * major version of the JDK that should be returned or an open version
+	 * terminated with a <code>+</code> sign to indicate that any later version is
+	 * valid as well. If the requested version is <code>null</code> the "active" JDK
+	 * will be returned, this is normally the JDK currently being used to run JBang
+	 * itself. The method will return <code>null</code> if no installed or available
+	 * JDK matches. NB: This method can return <code>Jdk</code> objects for JDKs
+	 * that are currently _not_ installed. It will not cause any installs to be
+	 * performed. See <code>getOrInstallJdk()</code> for that.
 	 *
 	 * @param requestedVersion A version pattern or <code>null</code>
 	 * @return A <code>Jdk</code> object or <code>null</code>
@@ -186,7 +198,7 @@ public class JdkManager {
 	 * actual (strict) major version of the JDK that should be returned or an open
 	 * version terminated with a <code>+</code> sign to indicate that any later
 	 * version is valid as well. If the requested version is <code>null</code> the
-	 * "default" JDK will be returned, this is normally the JDK currently being used
+	 * "active" JDK will be returned, this is normally the JDK currently being used
 	 * to run JBang itself. The method will return <code>null</code> if no installed
 	 * or available JDK matches. NB: This method can return <code>Jdk</code> objects
 	 * for JDKs that are currently _not_ installed. It will not cause any installs
@@ -200,17 +212,11 @@ public class JdkManager {
 	 */
 	@Nullable
 	public static JdkProvider.Jdk getJdk(int requestedVersion, boolean openVersion, boolean updatableOnly) {
-		JdkProvider.Jdk jdk = getDefaultJdk();
-		int defVersion = jdk != null ? jdk.getMajorVersion() : 0;
-		if (requestedVersion > 0) {
-			if (!JavaUtil.satisfiesRequestedVersion(requestedVersion, openVersion, defVersion)) {
-				jdk = getInstalledJdk(requestedVersion, openVersion, updatableOnly);
-				if (jdk == null) {
-					jdk = getAvailableJdk(requestedVersion);
-				}
-			}
-		} else {
-			if (defVersion < 8) {
+		JdkProvider.Jdk jdk = getInstalledJdk(requestedVersion, openVersion, updatableOnly);
+		if (jdk == null) {
+			if (requestedVersion > 0) {
+				jdk = getAvailableJdk(requestedVersion);
+			} else {
 				jdk = getJdk(Settings.getDefaultJavaVersion(), true, updatableOnly);
 			}
 		}
@@ -320,7 +326,7 @@ public class JdkManager {
 		if (!Files.isDirectory(linkedJdkPath)) {
 			throw new ExitException(EXIT_INVALID_INPUT, "Unable to resolve path as directory: " + path);
 		}
-		Optional<Integer> ver = BaseFoldersJdkProvider.resolveJavaVersionFromPath(linkedJdkPath);
+		Optional<Integer> ver = JavaUtil.resolveJavaVersionFromPath(linkedJdkPath);
 		if (ver.isPresent()) {
 			Integer linkedJdkVersion = ver.get();
 			if (linkedJdkVersion == version) {

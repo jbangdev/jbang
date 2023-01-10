@@ -9,7 +9,7 @@ import picocli.CommandLine;
 public class JdkProvidersMixin {
 
 	@CommandLine.Option(names = {
-			"--jdk-providers" }, description = "Use the given providers to check for installed JDKs", split = ",", defaultValue = "javahome,path,jbang", hidden = true)
+			"--jdk-providers" }, description = "Use the given providers to check for installed JDKs", split = ",", defaultValue = JdkManager.PROVIDERS_DEFAULT_STR, hidden = true)
 	List<String> jdkProviders;
 
 	protected void initJdkProviders() {
