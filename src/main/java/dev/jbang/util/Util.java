@@ -63,6 +63,7 @@ public class Util {
 	public static final String JBANG_STDIN_NOTTY = "JBANG_STDIN_NOTTY";
 	public static final String JBANG_AUTH_BASIC_USERNAME = "JBANG_AUTH_BASIC_USERNAME";
 	public static final String JBANG_AUTH_BASIC_PASSWORD = "JBANG_AUTH_BASIC_PASSWORD";
+	private static final String JBANG_DOWNLOAD_SOURCES = "JBANG_DOWNLOAD_SOURCES";
 
 	public static final Pattern patternMainMethod = Pattern.compile(
 			"^.*(public\\s+static|static\\s+public)\\s+void\\s+main\\s*\\(.*",
@@ -76,7 +77,9 @@ public class Util {
 	private static boolean offline;
 	private static boolean fresh;
 	private static boolean preview;
+
 	private static Path cwd;
+	private static Boolean downloadSources;
 
 	public static void setVerbose(boolean verbose) {
 		Util.verbose = verbose;
@@ -105,6 +108,17 @@ public class Util {
 		if (offline) {
 			setFresh(false);
 		}
+	}
+
+	public static void setDownloadSources(boolean flag) {
+		downloadSources = flag;
+	}
+
+	public static boolean downloadSources() {
+		if (downloadSources == null) {
+			downloadSources = Boolean.valueOf(System.getenv(JBANG_DOWNLOAD_SOURCES));
+		}
+		return downloadSources;
 	}
 
 	public static boolean isOffline() {

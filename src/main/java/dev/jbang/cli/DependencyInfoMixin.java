@@ -32,4 +32,5 @@ public class DependencyInfoMixin {
 	public Map<String, String> getProperties() {
 		return properties;
 	}
+
 }

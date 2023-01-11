@@ -55,7 +55,7 @@ public class DependencyUtil {
 	 * @return string with resolved classpath
 	 */
 	public static ModularClassPath resolveDependencies(List<String> deps, List<MavenRepo> repos,
-			boolean offline, boolean updateCache, boolean loggingEnabled) {
+			boolean offline, boolean updateCache, boolean loggingEnabled, boolean downloadSources) {
 
 		// if no dependencies were provided we stop here
 		if (deps.isEmpty()) {
@@ -107,6 +107,7 @@ public class DependencyUtil {
 																.offline(offline)
 																.forceCacheUpdate(updateCache)
 																.logging(loggingEnabled)
+																.downloadSources(downloadSources)
 																.build();
 			List<ArtifactInfo> artifacts = resolver.resolve(depIds);
 
