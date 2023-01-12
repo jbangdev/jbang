@@ -168,11 +168,10 @@ public class Jdk {
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version of the JDK to select", arity = "0..1") Integer version) {
 		jdkProvidersMixin.initJdkProviders();
 		Path home = getJdkPath(version);
-		if (home == null) {
-			throw new ExitException(EXIT_INVALID_INPUT, "JDK " + version + " is not installed");
+		if (home != null) {
+			String homeStr = Util.pathToString(home);
+			System.out.println(homeStr);
 		}
-		String homeStr = Util.pathToString(home);
-		System.out.println(homeStr);
 		return EXIT_OK;
 	}
 
@@ -181,42 +180,40 @@ public class Jdk {
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version of the JDK to select", arity = "0..1") Integer version) {
 		jdkProvidersMixin.initJdkProviders();
 		Path home = getJdkPath(version);
-		if (home == null) {
-			throw new ExitException(EXIT_INVALID_INPUT,
-					version != null ? "JDK " + version + " is not installed" : "No JDKs installed");
-		}
-		String homeStr = Util.pathToString(home);
-		String homeOsStr = Util.pathToOsString(home);
-		PrintStream out = System.out;
-		switch (Util.getShell()) {
-		case bash:
-			// Not using `println()` here because it will output /n/r
-			// on Windows which causes problems
-			out.print("export PATH=\"" + homeStr + "/bin:$PATH\"\n");
-			out.print("export JAVA_HOME=\"" + homeOsStr + "\"\n");
-			out.print("# Run this command to configure your shell:\n");
-			out.print("# eval $(jbang jdk java-env");
-			if (version != null) {
-				out.print(" " + version);
+		if (home != null) {
+			String homeStr = Util.pathToString(home);
+			String homeOsStr = Util.pathToOsString(home);
+			PrintStream out = System.out;
+			switch (Util.getShell()) {
+			case bash:
+				// Not using `println()` here because it will output /n/r
+				// on Windows which causes problems
+				out.print("export PATH=\"" + homeStr + "/bin:$PATH\"\n");
+				out.print("export JAVA_HOME=\"" + homeOsStr + "\"\n");
+				out.print("# Run this command to configure your shell:\n");
+				out.print("# eval $(jbang jdk java-env");
+				if (version != null) {
+					out.print(" " + version);
+				}
+				out.print(")\n");
+				break;
+			case cmd:
+				out.println("set PATH=" + homeStr + "\\bin;%PATH%");
+				out.println("set JAVA_HOME=" + homeOsStr);
+				out.println("rem Copy & paste the above commands in your CMD window or add");
+				out.println("rem them to your Environment Variables in the System Settings.");
+				break;
+			case powershell:
+				out.println("$env:PATH=\"" + homeStr + "\\bin:$env:PATH\"");
+				out.println("$env:JAVA_HOME=\"" + homeOsStr + "\"");
+				out.println("# Run this command to configure your environment:");
+				out.print("# jbang jdk java-env");
+				if (version != null) {
+					out.print(" " + version);
+				}
+				out.println(" | iex");
+				break;
 			}
-			out.print(")\n");
-			break;
-		case cmd:
-			out.println("set PATH=" + homeStr + "\\bin;%PATH%");
-			out.println("set JAVA_HOME=" + homeOsStr);
-			out.println("rem Copy & paste the above commands in your CMD window or add");
-			out.println("rem them to your Environment Variables in the System Settings.");
-			break;
-		case powershell:
-			out.println("$env:PATH=\"" + homeStr + "\\bin:$env:PATH\"");
-			out.println("$env:JAVA_HOME=\"" + homeOsStr + "\"");
-			out.println("# Run this command to configure your environment:");
-			out.print("# jbang jdk java-env");
-			if (version != null) {
-				out.print(" " + version);
-			}
-			out.println(" | iex");
-			break;
 		}
 		return EXIT_OK;
 	}
@@ -231,8 +228,8 @@ public class Jdk {
 			}
 			home = Settings.getCurrentJdkDir();
 		} else {
-			JdkProvider.Jdk jdk = JdkManager.getJdk(version, false, false);
-			home = jdk != null ? jdk.getHome() : null;
+			JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(version, false, false);
+			home = jdk.getHome();
 		}
 		return home;
 	}
