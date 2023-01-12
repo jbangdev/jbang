@@ -119,6 +119,10 @@ And finally if the link you provide is to a specific branch of the project then 
 In case you prefer `jbang` to just fail-fast when dependencies cannot be found locally you can run `jbang` in offline mode using
 `jbang -o` or `jbang --offline`. In this mode `jbang` will simply fail if dependencies have not been cached already.
 
+== Downloading Sources
+
+JBang can download sources for your dependencies and make them available in your IDE. `jbang edit` will do it automatically but you can also enable it globally by setting environment variable `JBANG_DOWNLOAD_SOURCES` to `true`.
+
 == Repositories
 
 By default `jbang` uses https://repo1.maven.org/maven2/[maven central]. In past it used `jcenter` but with its imminent shutdown deemed best to use central.

@@ -46,18 +46,13 @@ import org.eclipse.aether.metadata.Metadata;
 import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.repository.RepositoryPolicy;
-import org.eclipse.aether.resolution.ArtifactDescriptorException;
-import org.eclipse.aether.resolution.ArtifactDescriptorRequest;
-import org.eclipse.aether.resolution.ArtifactDescriptorResult;
-import org.eclipse.aether.resolution.ArtifactResult;
-import org.eclipse.aether.resolution.DependencyRequest;
-import org.eclipse.aether.resolution.DependencyResolutionException;
-import org.eclipse.aether.resolution.DependencyResult;
+import org.eclipse.aether.resolution.*;
 import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 import org.eclipse.aether.spi.connector.transport.TransporterFactory;
 import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import org.eclipse.aether.util.artifact.JavaScopes;
+import org.eclipse.aether.util.artifact.SubArtifact;
 import org.eclipse.aether.util.repository.AuthenticationBuilder;
 import org.eclipse.aether.util.repository.DefaultAuthenticationSelector;
 import org.eclipse.aether.util.repository.DefaultMirrorSelector;
@@ -79,6 +74,7 @@ public class ArtifactResolver {
 	private final RepositorySystem system;
 	private final Settings settings;
 	private final DefaultRepositorySystemSession session;
+	private final boolean downloadSources;
 
 	public static class Builder {
 		private List<MavenRepo> repositories;
@@ -89,6 +85,8 @@ public class ArtifactResolver {
 		private Path settingsXml;
 		private boolean updateCache;
 		private boolean loggingEnabled;
+
+		private boolean downloadSources = false;
 
 		public static Builder create() {
 			return new Builder();
@@ -137,6 +135,11 @@ public class ArtifactResolver {
 			return this;
 		}
 
+		public Builder downloadSources(boolean downloadSources) {
+			this.downloadSources = downloadSources;
+			return this;
+		}
+
 		public ArtifactResolver build() {
 			return new ArtifactResolver(this);
 		}
@@ -150,6 +153,7 @@ public class ArtifactResolver {
 		this.localFolderOverride = builder.localFolder;
 		this.updateCache = builder.updateCache;
 		this.loggingEnabled = builder.loggingEnabled;
+		this.downloadSources = builder.downloadSources;
 
 		system = newRepositorySystem();
 		settings = newEffectiveSettings();
@@ -162,6 +166,18 @@ public class ArtifactResolver {
 			partialRepos = newRepositories();
 		}
 		repositories = system.newResolutionRepositories(session, partialRepos);
+	}
+
+	public void downloadSources(Artifact artifact) {
+		try {
+			system.resolveArtifact(session, new ArtifactRequest()
+																	.setArtifact(
+																			new SubArtifact(artifact, "sources",
+																					"jar"))
+																	.setRepositories(repositories));
+		} catch (ArtifactResolutionException e) {
+			Util.verboseMsg("Could not resolve sources for " + artifact.toString());
+		}
 	}
 
 	public List<ArtifactInfo> resolve(List<String> depIds) {
@@ -193,8 +209,17 @@ public class ArtifactResolver {
 			DependencyResult dependencyResult = system.resolveDependencies(session, dependencyRequest);
 			List<ArtifactResult> artifacts = dependencyResult.getArtifactResults();
 
+			if (downloadSources) {
+				Util.infoMsg("Resolving sources for dependencies...");
+			}
+
 			return artifacts.stream()
-							.map(ArtifactResult::getArtifact)
+							.map(ar -> {
+								if (downloadSources) {
+									downloadSources(ar.getArtifact());
+								}
+								return ar.getArtifact();
+							})
 							.map(ArtifactResolver::toArtifactInfo)
 							.collect(Collectors.toList());
 		} catch (DependencyResolutionException ex) {
@@ -212,38 +237,41 @@ public class ArtifactResolver {
 				@Override
 				public void metadataResolving(RepositoryEvent event) {
 					Metadata md = event.getMetadata();
-					printEvent(md.getGroupId(), md.getArtifactId(), md.getVersion(), md.getType());
+					printEvent(md.getGroupId(), md.getArtifactId(), md.getVersion(), md.getType(), null);
 				}
 
 				@Override
 				public void metadataDownloading(RepositoryEvent event) {
 					Metadata md = event.getMetadata();
-					printEvent(md.getGroupId(), md.getArtifactId(), md.getVersion(), md.getType());
+					printEvent(md.getGroupId(), md.getArtifactId(), md.getVersion(), md.getType(), null);
 				}
 
 				@Override
 				public void artifactResolving(RepositoryEvent event) {
 					Artifact art = event.getArtifact();
-					printEvent(art.getGroupId(), art.getArtifactId(), art.getVersion(), art.getExtension());
+					printEvent(art.getGroupId(), art.getArtifactId(), art.getVersion(), art.getExtension(),
+							art.getClassifier());
 				}
 
 				@Override
 				public void artifactResolved(RepositoryEvent event) {
 					Artifact art = event.getArtifact();
-					printEvent(art.getGroupId(), art.getArtifactId(), art.getVersion(), art.getExtension());
+					printEvent(art.getGroupId(), art.getArtifactId(), art.getVersion(), art.getExtension(),
+							art.getClassifier());
 				}
 
 				@Override
 				public void artifactDownloading(RepositoryEvent event) {
 					Artifact art = event.getArtifact();
-					printEvent(art.getGroupId(), art.getArtifactId(), art.getVersion(), art.getExtension());
+					printEvent(art.getGroupId(), art.getArtifactId(), art.getVersion(), art.getExtension(),
+							art.getClassifier());
 				}
 
-				private void printEvent(String groupId, String artId, String version, String type) {
-					String id = coord(groupId, artId, null, null);
+				private void printEvent(String groupId, String artId, String version, String type, String classifier) {
+					String id = coord(groupId, artId, null, null, classifier);
 					if (!printed.contains(id)) {
-						String coord = coord(groupId, artId, version, null);
-						String pomcoord = coord(groupId, artId, version, "pom");
+						String coord = coord(groupId, artId, version, null, classifier);
+						String pomcoord = coord(groupId, artId, version, "pom", null);
 						if (ids.contains(id) || ids.contains(coord) || ids.contains(pomcoord) || Util.isVerbose()) {
 							if (ids.contains(pomcoord)) {
 								infoMsg("   " + pomcoord);
@@ -255,14 +283,18 @@ public class ArtifactResolver {
 					}
 				}
 
-				private String coord(String groupId, String artId, String version, String type) {
+				private String coord(String groupId, String artId, String version, String type, String classifier) {
 					String res = groupId + ":" + artId;
 					if (version != null && !version.isEmpty()) {
 						res += ":" + version;
 					}
+					if (classifier != null && classifier.length() > 0) {
+						res += "-" + classifier;
+					}
 					if ("pom".equals(type)) {
 						res += "@" + type;
 					}
+
 					return res;
 				}
 			});

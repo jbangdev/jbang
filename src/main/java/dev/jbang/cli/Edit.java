@@ -60,6 +60,9 @@ public class Edit extends BaseCommand {
 	public Integer doCall() throws IOException {
 		scriptMixin.validate();
 
+		// force download sources when editing
+		Util.setDownloadSources(true);
+
 		ProjectBuilder pb = createProjectBuilder();
 		final Project prj = pb.build(scriptMixin.scriptOrFile);
 

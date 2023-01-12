@@ -25,7 +25,7 @@ public class TestArtifactInfo extends BaseTest {
 				"org.apache.commons:commons-text:1.8");
 
 		ModularClassPath classpath = DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false,
-				true);
+				true, false);
 
 		DependencyCache.cache("wonka", classpath.getArtifacts());
 
