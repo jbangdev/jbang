@@ -27,7 +27,7 @@ public class Cache {
 				// We're running using a managed JDK on Windows so we can't just delete the
 				// entire folder!
 				for (JdkProvider.Jdk jdk : JdkManager.listInstalledJdks()) {
-					JdkManager.uninstallJdk(jdk.getMajorVersion());
+					JdkManager.uninstallJdk(jdk);
 				}
 			}
 			if (cc == CacheClass.deps) {

@@ -177,11 +177,22 @@ public interface JdkProvider {
 	}
 
 	/**
+	 * Determines if the given id refers to a JDK managed by this provider and if so
+	 * returns its respective <code>Jdk</code> object, otherwise it returns
+	 * <code>null</code>.
+	 *
+	 * @param id The id to look for
+	 * @return A code>Jdk</code> object or <code>null</code>
+	 */
+	@Nullable
+	Jdk getJdkById(@Nonnull String id);
+
+	/**
 	 * Determines if the given path belongs to a JDK managed by this provider and if
 	 * so returns its respective <code>Jdk</code> object, otherwise it returns
 	 * <code>null</code>.
 	 * 
-	 * @param jdkPath The path to validate
+	 * @param jdkPath The path to look for
 	 * @return A code>Jdk</code> object or <code>null</code>
 	 */
 	@Nullable
@@ -241,6 +252,12 @@ public interface JdkProvider {
 		@Override
 		public List<Jdk> listInstalled() {
 			return Collections.emptyList();
+		}
+
+		@Nullable
+		@Override
+		public Jdk getJdkById(@Nonnull String id) {
+			return null;
 		}
 
 		@Nullable

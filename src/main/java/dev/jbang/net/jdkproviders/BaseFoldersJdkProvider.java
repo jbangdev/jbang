@@ -38,6 +38,24 @@ public abstract class BaseFoldersJdkProvider implements JdkProvider {
 
 	@Nullable
 	@Override
+	public Jdk getJdkById(@Nonnull String id) {
+		if (isValidId(id)) {
+			try (Stream<Path> jdkPaths = listJdkPaths()) {
+				return jdkPaths
+								.filter(p -> jdkId(p.getFileName().toString()).equals(id))
+								.map(this::createJdk)
+								.filter(Objects::nonNull)
+								.findFirst()
+								.orElse(null);
+			} catch (IOException e) {
+				Util.verboseMsg("Couldn't list installed JDKs", e);
+			}
+		}
+		return null;
+	}
+
+	@Nullable
+	@Override
 	public Jdk getJdkByPath(@Nonnull Path jdkPath) {
 		if (jdkPath.startsWith(getJdksRoot())) {
 			try (Stream<Path> jdkPaths = listJdkPaths()) {
@@ -102,6 +120,9 @@ public abstract class BaseFoldersJdkProvider implements JdkProvider {
 		return null;
 	}
 
-	protected abstract String jdkId(String name);
+	protected boolean isValidId(String id) {
+		return id.endsWith("-" + name());
+	}
 
+	protected abstract String jdkId(String name);
 }

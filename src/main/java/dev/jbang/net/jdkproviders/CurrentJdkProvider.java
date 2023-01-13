@@ -37,6 +37,18 @@ public class CurrentJdkProvider implements JdkProvider {
 
 	@Nullable
 	@Override
+	public Jdk getJdkById(@Nonnull String id) {
+		if (id.equals(name())) {
+			List<Jdk> l = listInstalled();
+			if (!l.isEmpty()) {
+				return l.get(0);
+			}
+		}
+		return null;
+	}
+
+	@Nullable
+	@Override
 	public Jdk getJdkByPath(@Nonnull Path jdkPath) {
 		List<Jdk> installed = listInstalled();
 		Jdk def = !installed.isEmpty() ? installed.get(0) : null;

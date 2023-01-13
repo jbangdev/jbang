@@ -16,7 +16,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 
-import dev.jbang.Settings;
 import dev.jbang.net.JdkManager;
 import dev.jbang.net.JdkProvider;
 import dev.jbang.util.JavaUtil;
@@ -37,16 +36,16 @@ public class Jdk {
 	public Integer install(
 			@CommandLine.Option(names = { "--force",
 					"-f" }, description = "Force installation even when already installed") boolean force,
-			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version to install", arity = "1") int version,
+			@CommandLine.Parameters(paramLabel = "versionOrId", index = "0", description = "The version or id to install", arity = "1") String versionOrId,
 			@CommandLine.Parameters(paramLabel = "existingJdkPath", index = "1", description = "Pre installed JDK path", arity = "0..1") String path)
 			throws IOException {
 		jdkProvidersMixin.initJdkProviders();
-		JdkProvider.Jdk jdk = !force ? JdkManager.getInstalledJdk(version, false, false) : null;
+		JdkProvider.Jdk jdk = !force ? JdkManager.getInstalledJdk(versionOrId, false) : null;
 		if (force || jdk == null) {
 			if (!Util.isNullOrBlankString(path)) {
-				JdkManager.linkToExistingJdk(path, version);
+				JdkManager.linkToExistingJdk(path, Integer.parseInt(versionOrId));
 			} else {
-				JdkManager.downloadAndInstallJdk(version);
+				JdkManager.getOrInstallJdk(versionOrId);
 			}
 		} else {
 			Util.infoMsg("JDK is already installed: " + jdk);
@@ -153,21 +152,22 @@ public class Jdk {
 
 	@CommandLine.Command(name = "uninstall", description = "Uninstalls an existing JDK.")
 	public Integer uninstall(
-			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version to install", arity = "1") int version) {
+			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version to install", arity = "1") String versionOrId) {
 		jdkProvidersMixin.initJdkProviders();
-		if (!JdkManager.isInstalledJdk(version)) {
-			throw new ExitException(EXIT_INVALID_INPUT, "JDK " + version + " is not installed");
+		JdkProvider.Jdk jdk = JdkManager.getInstalledJdk(versionOrId, true);
+		if (jdk == null) {
+			throw new ExitException(EXIT_INVALID_INPUT, "JDK " + versionOrId + " is not installed");
 		}
-		JdkManager.uninstallJdk(version);
-		Util.infoMsg("Uninstalled JDK:\n  " + version);
+		JdkManager.uninstallJdk(jdk);
+		Util.infoMsg("Uninstalled JDK:\n  " + versionOrId);
 		return EXIT_OK;
 	}
 
 	@CommandLine.Command(name = "home", description = "Prints the folder where the given JDK is installed.")
 	public Integer home(
-			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version of the JDK to select", arity = "0..1") Integer version) {
+			@CommandLine.Parameters(paramLabel = "versionOrId", index = "0", description = "The version of the JDK to select", arity = "0..1") String versionOrId) {
 		jdkProvidersMixin.initJdkProviders();
-		Path home = getJdkPath(version);
+		Path home = getJdkPath(versionOrId);
 		if (home != null) {
 			String homeStr = Util.pathToString(home);
 			System.out.println(homeStr);
@@ -177,9 +177,9 @@ public class Jdk {
 
 	@CommandLine.Command(name = "java-env", description = "Prints out the environment variables needed to use the given JDK.")
 	public Integer javaEnv(
-			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version of the JDK to select", arity = "0..1") Integer version) {
+			@CommandLine.Parameters(paramLabel = "versionOrId", index = "0", description = "The version of the JDK to select", arity = "0..1") String versionOrId) {
 		jdkProvidersMixin.initJdkProviders();
-		Path home = getJdkPath(version);
+		Path home = getJdkPath(versionOrId);
 		if (home != null) {
 			String homeStr = Util.pathToString(home);
 			String homeOsStr = Util.pathToOsString(home);
@@ -192,8 +192,8 @@ public class Jdk {
 				out.print("export JAVA_HOME=\"" + homeOsStr + "\"\n");
 				out.print("# Run this command to configure your shell:\n");
 				out.print("# eval $(jbang jdk java-env");
-				if (version != null) {
-					out.print(" " + version);
+				if (versionOrId != null) {
+					out.print(" " + versionOrId);
 				}
 				out.print(")\n");
 				break;
@@ -208,8 +208,8 @@ public class Jdk {
 				out.println("$env:JAVA_HOME=\"" + homeOsStr + "\"");
 				out.println("# Run this command to configure your environment:");
 				out.print("# jbang jdk java-env");
-				if (version != null) {
-					out.print(" " + version);
+				if (versionOrId != null) {
+					out.print(" " + versionOrId);
 				}
 				out.println(" | iex");
 				break;
@@ -218,30 +218,19 @@ public class Jdk {
 		return EXIT_OK;
 	}
 
-	private Path getJdkPath(Integer version) {
-		Path home;
-		if (version == null) {
-			JdkProvider.Jdk jdk = JdkManager.getDefaultJdk();
-			if (jdk == null) {
-				Util.infoMsg("No default JDK set, use 'jbang jdk default <version>' to set one.");
-				return null;
-			}
-			home = Settings.getCurrentJdkDir();
-		} else {
-			JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(version, false, false);
-			home = jdk.getHome();
-		}
-		return home;
+	private Path getJdkPath(String versionOrId) {
+		JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(versionOrId);
+		return jdk.getHome();
 	}
 
 	@CommandLine.Command(name = "default", description = "Sets the default JDK to be used by JBang.")
 	public Integer defaultJdk(
-			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version of the JDK to select", arity = "0..1") Integer version) {
+			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version of the JDK to select", arity = "0..1") String versionOrId) {
 		jdkProvidersMixin.initJdkProviders();
 		JdkProvider.Jdk defjdk = JdkManager.getDefaultJdk();
-		if (version != null) {
-			if (defjdk == null || defjdk.getMajorVersion() != version) {
-				JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(version, false, true);
+		if (versionOrId != null) {
+			JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(versionOrId);
+			if (!jdk.equals(defjdk)) {
 				JdkManager.setDefaultJdk(jdk);
 			} else {
 				Util.infoMsg("Default JDK already set to " + defjdk.getMajorVersion());
