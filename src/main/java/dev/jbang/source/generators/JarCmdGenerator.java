@@ -136,7 +136,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		if (args.length() > COMMAND_LINE_LENGTH_LIMIT && Util.getShell() != Util.Shell.bash) {
 			// @file is only available from java 9 onwards.
 			String requestedJavaVersion = project.getJavaVersion();
-			int actualVersion = JavaUtil.javaVersion(requestedJavaVersion);
+			int actualVersion = JavaUtil.javaVersion(requestedJavaVersion, "java");
 			useArgsFile = actualVersion >= 9;
 		}
 		if (useArgsFile) {

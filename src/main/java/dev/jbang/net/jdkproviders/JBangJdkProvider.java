@@ -120,7 +120,7 @@ public class JBangJdkProvider extends BaseFoldersJdkProvider {
 				}
 			}
 			String msg = "Required Java version not possible to download or install.";
-			Jdk defjdk = JdkManager.getJdk(null, false);
+			Jdk defjdk = JdkManager.getJdk(null, null, false);
 			if (defjdk != null) {
 				msg += " You can run with '--java " + defjdk.getMajorVersion()
 						+ "' to force using the default installed Java.";

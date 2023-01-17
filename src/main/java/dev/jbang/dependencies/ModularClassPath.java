@@ -142,7 +142,7 @@ public class ModularClassPath {
 	}
 
 	protected boolean supportsModules(String requestedVersion) {
-		return JavaUtil.javaVersion(requestedVersion) >= 9;
+		return JavaUtil.javaVersion(requestedVersion, "javac") >= 9;
 	}
 
 	public List<ArtifactInfo> getArtifacts() {

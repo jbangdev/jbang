@@ -12,6 +12,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import dev.jbang.util.JavaUtil;
+import dev.jbang.util.Util;
 
 /**
  * This interface must be implemented by providers that are able to give access
@@ -87,6 +88,10 @@ public interface JdkProvider {
 
 		public boolean isInstalled() {
 			return home != null;
+		}
+
+		public boolean hasCommand(String command) {
+			return home != null && Util.searchPath(command, home.resolve("bin").toString()) != null;
 		}
 
 		@Override

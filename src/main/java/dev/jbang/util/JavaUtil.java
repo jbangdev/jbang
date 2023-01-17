@@ -12,6 +12,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import javax.annotation.Nullable;
+
 import dev.jbang.net.JdkManager;
 import dev.jbang.net.JdkProvider;
 
@@ -26,10 +28,13 @@ public class JavaUtil {
 	 * PATH)
 	 * 
 	 * @param requestedVersion The Java version requested by the user
+	 * @param command          The name of a command that must be available in the
+	 *                         JDK to be considered as a valid result. Can be
+	 *                         <code>null</code>
 	 * @return The Java version that will be used
 	 */
-	public static int javaVersion(String requestedVersion) {
-		JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(requestedVersion);
+	public static int javaVersion(@Nullable String requestedVersion, @Nullable String command) {
+		JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(requestedVersion, command);
 		return jdk.getMajorVersion();
 	}
 
@@ -115,7 +120,7 @@ public class JavaUtil {
 	}
 
 	public static String resolveInJavaHome(String cmd, String requestedVersion) {
-		Path jdkHome = JdkManager.getOrInstallJdk(requestedVersion).getHome();
+		Path jdkHome = JdkManager.getOrInstallJdk(requestedVersion, cmd).getHome();
 		if (jdkHome != null) {
 			if (Util.isWindows()) {
 				cmd = cmd + ".exe";

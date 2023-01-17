@@ -66,6 +66,8 @@ public class GroovySource extends Source {
 	}
 
 	private static class GroovyAppBuilder extends AppBuilder {
+		public static final String GROOVY_COMPILER = "groovyc";
+
 		public GroovyAppBuilder(Project project, BuildContext ctx) {
 			super(project, ctx);
 		}
@@ -88,7 +90,8 @@ public class GroovySource extends Source {
 
 			@Override
 			protected String getCompilerBinary(String requestedJavaVersion) {
-				return resolveInGroovyHome("groovyc", ((GroovySource) project.getMainSource()).getGroovyVersion());
+				return resolveInGroovyHome(GROOVY_COMPILER,
+						((GroovySource) project.getMainSource()).getGroovyVersion());
 			}
 
 			@Override
@@ -96,7 +99,9 @@ public class GroovySource extends Source {
 				if (project.getMainSource() instanceof GroovySource) {
 					processBuilder	.environment()
 									.put("JAVA_HOME",
-											JdkManager.getOrInstallJdk(project.getJavaVersion()).getHome().toString());
+											JdkManager	.getOrInstallJdk(project.getJavaVersion(), null)
+														.getHome()
+														.toString());
 					processBuilder.environment().remove("GROOVY_HOME");
 				}
 				super.runCompiler(processBuilder);
