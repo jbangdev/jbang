@@ -106,23 +106,21 @@ if (Test-Path "$jarPath.new") {
   Move-Item -Path "$jarPath.new" -Destination "$jarPath" -Force
 }
 
-# Find/get a JDK
+# Find/get a JRE/JDK
 $JAVA_EXEC=""
 if (Test-Path env:JAVA_HOME) {
-  # Determine if a (working) JDK is available in JAVA_HOME
-  if (Test-Path "$env:JAVA_HOME\bin\javac.exe") {
+  # Determine if a (working) JRE/JDK is available in JAVA_HOME
+  if (Test-Path "$env:JAVA_HOME\bin\java.exe") {
     $JAVA_EXEC="$env:JAVA_HOME\bin\java.exe"
-  } else {
-    [Console]::Error.WriteLine("JAVA_HOME is set but does not seem to point to a valid Java JDK")
   }
 }
 if ($JAVA_EXEC -eq "") {
-  # Determine if a (working) JDK is available on the PATH
-  $ok=$false; try { if (Get-Command "javac") { $ok=$true } } catch {}
+  # Determine if a (working) JRE/JDK is available on the PATH
+  $ok=$false; try { if (Get-Command "java") { $ok=$true } } catch {}
   if ($ok) {
     $env:JAVA_HOME=""
     $JAVA_EXEC="java.exe"
-  } elseif (Test-Path "$JBDIR\currentjdk\bin\javac") {
+  } elseif (Test-Path "$JBDIR\currentjdk\bin\java") {
     $env:JAVA_HOME="$JBDIR\currentjdk"
     $JAVA_EXEC="$JBDIR\currentjdk\bin\java"
   } else {

@@ -50,8 +50,8 @@ unpack() {
   fi
 }
 
-javacInPath() {
-  [[ -x "$(command -v javac)" ]] && ( [[ $os != "mac" ]] || /usr/libexec/java_home &> /dev/null )
+javaInPath() {
+  [[ -x "$(command -v java)" ]] && ( [[ $os != "mac" ]] || /usr/libexec/java_home &> /dev/null )
 }
 
 abs_jbang_dir=$(script_dir)
@@ -163,22 +163,20 @@ if [ -f "$jarPath.new" ]; then
   mv "$jarPath.new" "$jarPath"
 fi
 
-# Find/get a JDK
+# Find/get a JRE/JDK
 unset JAVA_EXEC
 if [[ -n "$JAVA_HOME" ]]; then
-  # Determine if a (working) JDK is available in JAVA_HOME
-  if [ -x "$(command -v "$JAVA_HOME"/bin/javac)" ]; then
+  # Determine if a (working) JRE/JDK is available in JAVA_HOME
+  if [ -x "$(command -v "$JAVA_HOME"/bin/java)" ]; then
     JAVA_EXEC="$JAVA_HOME/bin/java"
-  else
-    echo "JAVA_HOME is set but does not seem to point to a valid Java JDK" 1>&2
   fi
 fi
 if [[ -z "$JAVA_EXEC" ]]; then
-  # Determine if a (working) JDK is available on the PATH
-  if javacInPath; then
+  # Determine if a (working) JRE/JDK is available on the PATH
+  if javaInPath; then
     unset JAVA_HOME
     JAVA_EXEC="java"
-  elif [ -x "$JBDIR/currentjdk/bin/javac" ]; then
+  elif [ -x "$JBDIR/currentjdk/bin/java" ]; then
     export JAVA_HOME="$JBDIR/currentjdk"
     JAVA_EXEC="$JBDIR/currentjdk/bin/java"
   else
@@ -206,7 +204,7 @@ if [[ -z "$JAVA_EXEC" ]]; then
       unpack "$TDIR/bootstrap-jdk.$file_type" "$TDIR/jdks/$javaVersion.tmp"
       if [ $retval -ne 0 ]; then
         # Check if the JDK was installed properly
-        javac -version > /dev/null 2>&1
+        "$TDIR/jdks/$javaVersion.tmp/bin/javac" -version > /dev/null 2>&1
         retval=$?
       fi
       if [ $retval -ne 0 ]; then echo "Error installing JDK" 1>&2; exit $retval; fi
