@@ -71,6 +71,7 @@ public class Run extends BaseBuildCommand {
 	@Override
 	public Integer doCall() throws IOException {
 		requireScriptArgument();
+		jdkProvidersMixin.initJdkProviders();
 		String scriptOrFile = scriptMixin.scriptOrFile;
 
 		ProjectBuilder pb = createProjectBuilder();
@@ -103,7 +104,8 @@ public class Run extends BaseBuildCommand {
 
 		prj.builder().build();
 
-		if (nativeImage && (scriptMixin.forceType == Source.Type.jshell || prj.isJShell())) {
+		if (Boolean.TRUE.equals(nativeMixin.nativeImage)
+				&& (scriptMixin.forceType == Source.Type.jshell || prj.isJShell())) {
 			warn(".jsh cannot be used with --native thus ignoring --native.");
 			pb.nativeImage(false);
 		}

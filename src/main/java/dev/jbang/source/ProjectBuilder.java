@@ -50,7 +50,7 @@ public class ProjectBuilder {
 	private File catalogFile;
 
 	private ModularClassPath mcp;
-	private boolean nativeImage;
+	private Boolean nativeImage;
 	private String javaVersion;
 	private Properties contextProperties;
 
@@ -63,6 +63,7 @@ public class ProjectBuilder {
 	private String debugString;
 	private Boolean classDataSharing;
 	private Path buildDir;
+	private boolean skipMetadataImport;
 
 	public static ProjectBuilder create() {
 		return new ProjectBuilder();
@@ -209,7 +210,7 @@ public class ProjectBuilder {
 		return this;
 	}
 
-	public ProjectBuilder nativeImage(boolean nativeImage) {
+	public ProjectBuilder nativeImage(Boolean nativeImage) {
 		this.nativeImage = nativeImage;
 		return this;
 	}
@@ -231,6 +232,11 @@ public class ProjectBuilder {
 
 	public ProjectBuilder addJavaAgent(Project prj) {
 		javaAgents.add(prj);
+		return this;
+	}
+
+	public ProjectBuilder skipMetadataImport(boolean skipMetadataImport) {
+		this.skipMetadataImport = skipMetadataImport;
 		return this;
 	}
 
@@ -307,7 +313,7 @@ public class ProjectBuilder {
 	}
 
 	private Project createJarProject(ResourceRef resourceRef) {
-		return updateProject(importJarMetadata(new Project(resourceRef)));
+		return importJarMetadata(updateProject(new Project(resourceRef)));
 	}
 
 	private Project createJbangProject(ResourceRef resourceRef) {
@@ -353,12 +359,20 @@ public class ProjectBuilder {
 			}
 		}
 
-		return updateProject(importJarMetadata(prj));
+		if (!skipMetadataImport) {
+			return importJarMetadata(updateProject(prj));
+		} else {
+			return updateProject(prj);
+		}
 	}
 
 	private Project createSourceProject(ResourceRef resourceRef) {
 		Project prj = createSource(resourceRef).createProject(getResourceResolver());
-		return updateProject(importJarMetadata(prj));
+		if (!skipMetadataImport) {
+			return importJarMetadata(updateProject(prj));
+		} else {
+			return updateProject(prj);
+		}
 	}
 
 	private Source createSource(ResourceRef resourceRef) {
@@ -374,7 +388,9 @@ public class ProjectBuilder {
 		if (jar != null && Files.exists(jar)) {
 			try (JarFile jf = new JarFile(jar.toFile())) {
 				Attributes attrs = jf.getManifest().getMainAttributes();
-				prj.setMainClass(attrs.getValue(Attributes.Name.MAIN_CLASS));
+				if (attrs.containsKey(Attributes.Name.MAIN_CLASS)) {
+					prj.setMainClass(attrs.getValue(Attributes.Name.MAIN_CLASS));
+				}
 
 				Optional<JarEntry> pom = jf.stream().filter(e -> e.getName().endsWith("/pom.xml")).findFirst();
 				if (pom.isPresent()) {
@@ -426,7 +442,7 @@ public class ProjectBuilder {
 		if (prj.isJShell() || forceType == Source.Type.jshell || interactive) {
 			return createJshCmdGenerator(prj);
 		} else {
-			if (nativeImage) {
+			if (Boolean.TRUE.equals(nativeImage)) {
 				return createNativeCmdGenerator(prj);
 			} else {
 				return createJarCmdGenerator(prj);
@@ -475,7 +491,9 @@ public class ProjectBuilder {
 		if (javaVersion != null) {
 			prj.setJavaVersion(javaVersion);
 		}
-		prj.setNativeImage(nativeImage);
+		if (nativeImage != null) {
+			prj.setNativeImage(nativeImage);
+		}
 		prj.setCmdGeneratorFactory(() -> createCmdGenerator(prj));
 		return prj;
 	}
@@ -560,6 +578,9 @@ public class ProjectBuilder {
 		}
 		if (compileOptions.isEmpty()) {
 			compileOptions(alias.compileOptions);
+		}
+		if (nativeImage == null) {
+			nativeImage(alias.nativeImage);
 		}
 		if (nativeOptions.isEmpty()) {
 			nativeOptions(alias.nativeOptions);

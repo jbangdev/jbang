@@ -54,6 +54,7 @@ import dev.jbang.BaseTest;
 import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
+import dev.jbang.net.JdkManager;
 import dev.jbang.net.TrustedSources;
 import dev.jbang.source.Builder;
 import dev.jbang.source.Project;
@@ -64,7 +65,6 @@ import dev.jbang.source.generators.JshCmdGenerator;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.source.sources.JavaSource;
 import dev.jbang.util.CommandBuffer;
-import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -100,7 +100,7 @@ public class TestRun extends BaseTest {
 
 		String result = code.cmdGenerator().generate();
 
-		assertThat(result, startsWith("java "));
+		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
 		assertThat(result, endsWith("helloworld"));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, matchesRegex(".*helloworld\\.java\\.[a-z0-9]+\\.jar.*"));
@@ -134,7 +134,7 @@ public class TestRun extends BaseTest {
 		code = code.builder().build();
 		String result = code.cmdGenerator().generate();
 
-		assertThat(result, startsWith("java "));
+		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
 		assertThat(result, endsWith("helloworld"));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, containsString(".jar"));
@@ -381,7 +381,8 @@ public class TestRun extends BaseTest {
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project code = pb.build(jar);
 
-		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*codegen-4.6.3.jar"));
+		assertThat(code.getResourceRef().getFile().toString(),
+				matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
 
 		ExitException e = Assertions.assertThrows(ExitException.class,
 				() -> code.cmdGenerator().generate());
@@ -404,7 +405,8 @@ public class TestRun extends BaseTest {
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project code = pb.build(jar);
 
-		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*codegen-4.6.3.jar"));
+		assertThat(code.getResourceRef().getFile().toString(),
+				matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
 
 		String result = code.cmdGenerator().generate();
 		assertThat(result, matchesPattern("^.*jshell(.exe)?.*"));
@@ -470,7 +472,8 @@ public class TestRun extends BaseTest {
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project code = pb.build(jar);
 
-		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*eclipse.jgit.pgm.*.jar"));
+		assertThat(code.getResourceRef().getFile().toString(),
+				matchesPattern(".*jbang_tests_maven.*eclipse.jgit.pgm.*.jar"));
 
 		code.cmdGenerator().generate();
 
@@ -497,7 +500,8 @@ public class TestRun extends BaseTest {
 
 		assertThat(code.getMainClass(), equalTo("picocli.codegen.aot.graalvm.ReflectionConfigGenerator"));
 
-		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*codegen-4.6.3.jar"));
+		assertThat(code.getResourceRef().getFile().toString(),
+				matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
 
 		assertThat(cmd, matchesPattern(".* -classpath .*picocli-4.6.3.jar.*"));
 		assertThat(cmd, not(containsString(" -jar ")));
@@ -572,7 +576,7 @@ public class TestRun extends BaseTest {
 
 		String result = prj.cmdGenerator().generate();
 
-		assertThat(result, startsWith("jshell"));
+		assertThat(result, matchesPattern("^.*jshell(.exe)? .*$"));
 		assertThat(result, not(containsString("  ")));
 		assertThat(result, containsString("helloworld.jsh"));
 		assertThat(result, not(containsString("--source 11")));
@@ -616,7 +620,7 @@ public class TestRun extends BaseTest {
 
 		String result = prj.cmdGenerator().generate();
 
-		assertThat(result, startsWith("java "));
+		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
 		assertThat(result, containsString("helloworld.java"));
 		assertThat(result, containsString("classpath"));
 //		assertThat(result, containsString(" --source 11 "));
@@ -640,7 +644,7 @@ public class TestRun extends BaseTest {
 
 		String result = prj.cmdGenerator().generate();
 
-		assertThat(result, startsWith("java "));
+		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
 		assertThat(result, containsString("classpath_example.java"));
 //		assertThat(result, containsString(" --source 11 "));
 		assertThat(result, not(containsString("  ")));
@@ -662,7 +666,7 @@ public class TestRun extends BaseTest {
 
 		String result = prj.cmdGenerator().generate();
 
-		assertThat(result, startsWith("jshell "));
+		assertThat(result, matchesPattern("^.*jshell(.exe)? .*$"));
 		assertThat(result, (containsString("classpath_example.java")));
 //		assertThat(result, containsString(" --source 11 "));
 		assertThat(result, not(containsString("  ")));
@@ -692,7 +696,7 @@ public class TestRun extends BaseTest {
 
 		String result = prj.cmdGenerator().generate();
 
-		assertThat(result, startsWith("java "));
+		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
 		assertThat(result, containsString("-Dwonka=panda"));
 		if (Util.isWindows()) {
 			assertThat(result, containsString("^\"-Dquoted=see^ this^\""));
@@ -2125,7 +2129,7 @@ public class TestRun extends BaseTest {
 
 	@Test
 	void testForceJavaVersion() throws IOException {
-		int v = JavaUtil.determineJavaVersion();
+		int v = JdkManager.getJdk(null).getMajorVersion();
 		String arg = examplesTestFolder.resolve("java4321.java").toAbsolutePath().toString();
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--java", "" + v, arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
@@ -2161,7 +2165,7 @@ public class TestRun extends BaseTest {
 
 		String result = prj.cmdGenerator().generate();
 
-		assertThat(result, startsWith("java "));
+		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
 		assertThat(result, endsWith("quote_notags"));
 		assertThat(result, containsString("classpath"));
 		assertThat(result, matchesRegex(".*build\\.jbang\\.[a-z0-9]+\\.jar.*"));

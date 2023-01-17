@@ -15,6 +15,7 @@ import java.util.function.Function;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.io.TempDir;
@@ -32,10 +33,19 @@ public abstract class BaseTest {
 		jbangTempDir = Files.createDirectory(tempPath.resolve("jbang"));
 		cwdDir = Files.createDirectory(tempPath.resolve("cwd"));
 		Util.setCwd(cwdDir);
+		System.setProperty("user.home", tempPath.toString());
+		System.setProperty("maven.repo.local", mavenTempDir.toString());
+		// Each test gets a fresh JBang config folder
 		environmentVariables.set(Settings.JBANG_DIR, jbangTempDir.toString());
+		// Each test gets a fresh cache folder
 		environmentVariables.set(Settings.JBANG_CACHE_DIR, jbangTempDir.resolve("cache").toString());
+		// Except we make all tests use the same JDK installation folder to prevent
+		// excessive downloads
+		environmentVariables.set(Settings.JBANG_CACHE_DIR + "_JDKS", jdksTempDir.toString());
+		// Don't check fo rnew versions while running tests
 		environmentVariables.set(Settings.ENV_NO_VERSION_CHECK, "true");
 		if (Util.isWindows()) {
+			// On Windows assume we're running from within a CMD shell
 			environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "cmd");
 		}
 		Configuration.instance(null);
@@ -46,6 +56,8 @@ public abstract class BaseTest {
 
 	@BeforeAll
 	static void init() throws URISyntaxException, IOException {
+		mavenTempDir = Files.createTempDirectory("jbang_tests_maven");
+		jdksTempDir = Files.createTempDirectory("jbang_tests_jdks");
 		URL examplesUrl = BaseTest.class.getClassLoader().getResource(EXAMPLES_FOLDER);
 		if (examplesUrl == null) {
 			examplesTestFolder = Paths.get(EXAMPLES_FOLDER).toAbsolutePath();
@@ -54,9 +66,17 @@ public abstract class BaseTest {
 		}
 	}
 
+	@AfterAll
+	static void cleanup() {
+		Util.deletePath(mavenTempDir, true);
+		Util.deletePath(jdksTempDir, true);
+	}
+
 	@Rule
 	public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
+	public static Path mavenTempDir;
+	public static Path jdksTempDir;
 	public Path jbangTempDir;
 	public Path cwdDir;
 

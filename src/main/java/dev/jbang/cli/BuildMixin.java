@@ -23,7 +23,4 @@ public class BuildMixin {
 
 	@CommandLine.Option(names = { "-C", "--compile-option" }, description = "Options to pass to the compiler")
 	public List<String> compileOptions;
-
-	@CommandLine.Option(names = { "-N", "--native-option" }, description = "Options to pass to the native image tool")
-	public List<String> nativeOptions;
 }

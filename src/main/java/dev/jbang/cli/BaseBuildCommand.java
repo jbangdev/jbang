@@ -6,6 +6,7 @@ import java.io.PrintStream;
 import java.nio.file.Path;
 
 import dev.jbang.source.*;
+import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 
@@ -20,13 +21,15 @@ public abstract class BaseBuildCommand extends BaseCommand {
 	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
 
+	@CommandLine.Mixin
+	NativeMixin nativeMixin;
+
+	@CommandLine.Mixin
+	JdkProvidersMixin jdkProvidersMixin;
+
 	@CommandLine.Option(names = {
 			"--build-dir" }, description = "Use given directory for build results")
 	Path buildDir;
-
-	@CommandLine.Option(names = {
-			"-n", "--native" }, description = "Build using native-image")
-	boolean nativeImage;
 
 	PrintStream out = new PrintStream(new FileOutputStream(FileDescriptor.out));
 
@@ -44,7 +47,9 @@ public abstract class BaseBuildCommand extends BaseCommand {
 								.javaVersion(buildMixin.javaVersion)
 								.mainClass(buildMixin.main)
 								.compileOptions(buildMixin.compileOptions)
-								.nativeImage(nativeImage)
-								.buildDir(buildDir);
+								.nativeImage(nativeMixin.nativeImage)
+								.nativeOptions(nativeMixin.nativeOptions)
+								.buildDir(buildDir)
+								.skipMetadataImport(Util.isFresh());
 	}
 }

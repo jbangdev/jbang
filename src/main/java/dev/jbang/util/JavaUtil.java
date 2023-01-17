@@ -2,15 +2,18 @@ package dev.jbang.util;
 
 import static java.lang.System.getenv;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
-import dev.jbang.Settings;
 import dev.jbang.net.JdkManager;
+import dev.jbang.net.JdkProvider;
 
 public class JavaUtil {
 
@@ -26,66 +29,8 @@ public class JavaUtil {
 	 * @return The Java version that will be used
 	 */
 	public static int javaVersion(String requestedVersion) {
-		int currentVersion = determineJavaVersion();
-		if (requestedVersion != null) {
-			if (JavaUtil.satisfiesRequestedVersion(requestedVersion, currentVersion)) {
-				return currentVersion;
-			} else {
-				int minVersion = JavaUtil.minRequestedVersion(requestedVersion);
-				if (isOpenVersion(requestedVersion)) {
-					Optional<Integer> minInstalledVersion = JdkManager.nextInstalledJdk(minVersion);
-					if (minInstalledVersion.isPresent()) {
-						return minInstalledVersion.get();
-					}
-				}
-				return minVersion;
-			}
-		} else {
-			if (currentVersion < 8) {
-				return Settings.getDefaultJavaVersion();
-			} else {
-				return currentVersion;
-			}
-		}
-	}
-
-	/**
-	 * Determine the Java version that's found in either the folder pointed at by
-	 * JAVA_HOME or on the PATH. In all other cases it's assumed that we know what
-	 * the version is because it would be a JDK installed by us. The result of this
-	 * call is cached so it can be called multiple times without having to worry
-	 * about efficiency.
-	 * 
-	 * @return The detected Java version or 0 if it couldn't be determined
-	 */
-	public static int determineJavaVersion() {
-		if (javaVersion == null) {
-			Path jdkHome = getJdkHome();
-			Path javaCmd;
-			if (jdkHome != null) {
-				javaCmd = jdkHome.resolve("bin").resolve("java").toAbsolutePath();
-			} else {
-				javaCmd = Paths.get("java");
-			}
-			javaVersion = determineJavaVersion(javaCmd);
-			if (javaVersion != 0) {
-				Util.verboseMsg("System Java version detected as " + javaVersion);
-			} else {
-				Util.verboseMsg("No Java found on the system");
-			}
-		}
-		return javaVersion;
-	}
-
-	private static int determineJavaVersion(Path javaCmd) {
-		String output = Util.runCommand(javaCmd.toString(), "-version");
-		int version = parseJavaOutput(output);
-		if (version == 0) {
-			Util.verboseMsg(
-					"Version could not be determined from: '$javaCmd -version', trying 'java.version' property");
-			version = parseJavaVersion(System.getProperty("java.version"));
-		}
-		return version;
+		JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(requestedVersion);
+		return jdk.getMajorVersion();
 	}
 
 	/**
@@ -103,14 +48,14 @@ public class JavaUtil {
 
 	private static final Pattern javaVersionPattern = Pattern.compile("\"([^\"]+)\"");
 
-	public static int parseJavaOutput(String output) {
+	public static String parseJavaOutput(String output) {
 		if (output != null) {
 			Matcher m = javaVersionPattern.matcher(output);
 			if (m.find() && m.groupCount() == 1) {
-				return parseJavaVersion(m.group(1));
+				return m.group(1);
 			}
 		}
-		return 0;
+		return null;
 	}
 
 	public static int parseJavaVersion(String version) {
@@ -120,14 +65,13 @@ public class JavaUtil {
 				String num = nums.length > 1 && nums[0].equals("1") ? nums[1] : nums[0];
 				return Integer.parseInt(num);
 			} catch (NumberFormatException ex) {
-				Util.verboseMsg("Couldn't parse Java version", ex);
 				// Ignore
 			}
 		}
 		return 0;
 	}
 
-	private static boolean isOpenVersion(String version) {
+	public static boolean isOpenVersion(String version) {
 		return version.endsWith("+");
 	}
 
@@ -136,7 +80,14 @@ public class JavaUtil {
 			return true;
 		}
 		int reqVer = minRequestedVersion(rv);
-		if (isOpenVersion(rv)) {
+		return satisfiesRequestedVersion(reqVer, isOpenVersion(rv), v);
+	}
+
+	public static boolean satisfiesRequestedVersion(int reqVer, boolean open, int v) {
+		if (reqVer <= 0) {
+			return true;
+		}
+		if (open) {
 			return v >= reqVer;
 		} else {
 			return v == reqVer;
@@ -159,8 +110,12 @@ public class JavaUtil {
 		return rv.matches("\\d+[+]?");
 	}
 
+	public static int getCurrentMajorJavaVersion() {
+		return parseJavaVersion(System.getProperty("java.version"));
+	}
+
 	public static String resolveInJavaHome(String cmd, String requestedVersion) {
-		Path jdkHome = JdkManager.getCurrentJdk(requestedVersion);
+		Path jdkHome = JdkManager.getOrInstallJdk(requestedVersion).getHome();
 		if (jdkHome != null) {
 			if (Util.isWindows()) {
 				cmd = cmd + ".exe";
@@ -168,6 +123,66 @@ public class JavaUtil {
 			return jdkHome.resolve("bin").resolve(cmd).toAbsolutePath().toString();
 		}
 		return cmd;
+	}
+
+	public static Optional<Integer> resolveJavaVersionFromPath(Path home) {
+		return resolveJavaVersionStringFromPath(home).map(JavaUtil::parseJavaVersion);
+	}
+
+	public static Optional<String> resolveJavaVersionStringFromPath(Path home) {
+		Optional<String> res = readJavaVersionStringFromReleaseFile(home);
+		if (!res.isPresent()) {
+			res = readJavaVersionStringFromJavaCommand(home);
+		}
+		return res;
+	}
+
+	public static Optional<String> readJavaVersionStringFromReleaseFile(Path home) {
+		try (Stream<String> lines = Files.lines(home.resolve("release"))) {
+			return lines
+						.filter(l -> l.startsWith("JAVA_VERSION"))
+						.map(JavaUtil::parseJavaOutput)
+						.findAny();
+		} catch (IOException e) {
+			Util.verboseMsg("Unable to read 'release' file in path: " + home);
+			return Optional.empty();
+		}
+	}
+
+	public static Optional<String> readJavaVersionStringFromJavaCommand(Path home) {
+		Optional<String> res;
+		Path javaCmd = Util.searchPath("java", home.resolve("bin").toString());
+		if (javaCmd != null) {
+			String output = Util.runCommand(javaCmd.toString(), "-version");
+			res = Optional.ofNullable(parseJavaOutput(output));
+		} else {
+			res = Optional.empty();
+		}
+		if (!res.isPresent()) {
+			Util.verboseMsg("Unable to obtain version from: '" + javaCmd + " -version'");
+		}
+		return res;
+	}
+
+	/**
+	 * Method takes the given path which might point to a Java home directory or to
+	 * the `jre` directory inside it and makes sure to return the path to the actual
+	 * home directory.
+	 */
+	public static Path jre2jdk(Path jdkHome) {
+		// Detect if the current JDK is a JRE and try to find the real home
+		if (!Files.isRegularFile(jdkHome.resolve("release"))) {
+			Path jh = jdkHome.toAbsolutePath();
+			try {
+				jh = jh.toRealPath();
+			} catch (IOException e) {
+				// Ignore error
+			}
+			if (jh.endsWith("jre") && Files.isRegularFile(jh.getParent().resolve("release"))) {
+				jdkHome = jh.getParent();
+			}
+		}
+		return jdkHome;
 	}
 
 	public static class RequestedVersionComparator implements Comparator<String> {

@@ -33,11 +33,13 @@ public class Alias extends CatalogItem {
 	public final String mainClass;
 	@SerializedName(value = "compile-options")
 	public final List<String> compileOptions;
+	@SerializedName(value = "native-image")
+	public final Boolean nativeImage;
 	@SerializedName(value = "native-options")
 	public final List<String> nativeOptions;
 
 	private Alias() {
-		this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+		this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 	}
 
 	public Alias(String scriptRef,
@@ -53,6 +55,7 @@ public class Alias extends CatalogItem {
 			String javaVersion,
 			String mainClass,
 			List<String> compileOptions,
+			Boolean nativeImage,
 			List<String> nativeOptions,
 			Catalog catalog) {
 		super(catalog);
@@ -69,6 +72,7 @@ public class Alias extends CatalogItem {
 		this.javaVersion = javaVersion;
 		this.mainClass = mainClass;
 		this.compileOptions = compileOptions;
+		this.nativeImage = nativeImage;
 		this.nativeOptions = nativeOptions;
 	}
 
@@ -151,9 +155,10 @@ public class Alias extends CatalogItem {
 					: a2.compileOptions;
 			List<String> nopts = a1.nativeOptions != null && !a1.nativeOptions.isEmpty() ? a1.nativeOptions
 					: a2.nativeOptions;
+			Boolean nimg = a1.nativeImage != null ? a1.nativeImage : a2.nativeImage;
 			Catalog catalog = a2.catalog != null ? a2.catalog : a1.catalog;
 			return new Alias(a2.scriptRef, desc, args, jopts, srcs, ress, deps, repos, cpaths, props, javaVersion,
-					mainClass, copts, nopts, catalog);
+					mainClass, copts, nimg, nopts, catalog);
 		} else {
 			return a1;
 		}

@@ -70,6 +70,9 @@ class AliasAdd extends BaseAliasCommand {
 	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
 
+	@CommandLine.Mixin
+	NativeMixin nativeMixin;
+
 	@CommandLine.Option(names = { "--description",
 			"-d" }, description = "A description for the alias")
 	String description;
@@ -106,13 +109,13 @@ class AliasAdd extends BaseAliasCommand {
 					scriptMixin.sources, scriptMixin.resources, dependencyInfoMixin.getDependencies(),
 					dependencyInfoMixin.getRepositories(), dependencyInfoMixin.getClasspaths(),
 					dependencyInfoMixin.getProperties(), buildMixin.javaVersion, buildMixin.main,
-					buildMixin.compileOptions, buildMixin.nativeOptions);
+					buildMixin.compileOptions, nativeMixin.nativeImage, nativeMixin.nativeOptions);
 		} else {
 			catFile = CatalogUtil.addNearestAlias(name, scriptMixin.scriptOrFile, desc, userParams, javaRuntimeOptions,
 					scriptMixin.sources, scriptMixin.resources, dependencyInfoMixin.getDependencies(),
 					dependencyInfoMixin.getRepositories(), dependencyInfoMixin.getClasspaths(),
 					dependencyInfoMixin.getProperties(), buildMixin.javaVersion, buildMixin.main,
-					buildMixin.compileOptions, buildMixin.nativeOptions);
+					buildMixin.compileOptions, nativeMixin.nativeImage, nativeMixin.nativeOptions);
 		}
 		info(String.format("Alias '%s' added to '%s'", name, catFile));
 		return EXIT_OK;

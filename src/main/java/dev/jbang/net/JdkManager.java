@@ -4,186 +4,403 @@ import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
 import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
-import java.util.function.Supplier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import dev.jbang.Cache;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
+import dev.jbang.net.jdkproviders.CurrentJdkProvider;
+import dev.jbang.net.jdkproviders.DefaultJdkProvider;
+import dev.jbang.net.jdkproviders.JBangJdkProvider;
+import dev.jbang.net.jdkproviders.JavaHomeJdkProvider;
+import dev.jbang.net.jdkproviders.PathJdkProvider;
+import dev.jbang.net.jdkproviders.ScoopJdkProvider;
+import dev.jbang.net.jdkproviders.SdkmanJdkProvider;
 import dev.jbang.util.JavaUtil;
-import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
 
 public class JdkManager {
-	private static final String FOOJAY_JDK_DOWNLOAD_URL = "https://api.foojay.io/disco/v3.0/directuris?";
-	private static final String FOOJAY_JDK_VERSIONS_URL = "https://api.foojay.io/disco/v3.0/distributions/%s?";
+	private static List<JdkProvider> providers = null;
 
-	private static String getDownloadUrl(int version, Util.OS os, Util.Arch arch, String distro) {
-		Map<String, String> params = new HashMap<>();
-		params.put("version", String.valueOf(version));
+	// TODO Don't hard-code this list
+	public static final String[] PROVIDERS_ALL = new String[] { "current", "default", "javahome", "path", "jbang",
+			"sdkman", "scoop" };
+	public static final String[] PROVIDERS_DEFAULT = new String[] { "current", "default", "javahome", "path", "jbang" };
+	public static final String PROVIDERS_DEFAULT_STR = "current,default,javahome,path,jbang";
 
-		if (distro == null) {
-			if (version == 8 || version == 11 || version >= 17) {
-				distro = "temurin";
+	public static void initProvidersByName(String... providerNames) {
+		initProvidersByName(Arrays.asList(providerNames));
+	}
+
+	public static void initProvidersByName(List<String> providerNames) {
+		if (providerNames.size() == 1 && "all".equals(providerNames.get(0))) {
+			initProvidersByName(PROVIDERS_ALL);
+			return;
+		}
+		// TODO Make providers know their names instead of hard-coding
+		providers = new ArrayList<>();
+		for (String name : providerNames) {
+			JdkProvider provider;
+			switch (name) {
+			case "current":
+				provider = new CurrentJdkProvider();
+				break;
+			case "default":
+				provider = new DefaultJdkProvider();
+				break;
+			case "javahome":
+				provider = new JavaHomeJdkProvider();
+				break;
+			case "path":
+				provider = new PathJdkProvider();
+				break;
+			case "jbang":
+				provider = new JBangJdkProvider();
+				break;
+			case "sdkman":
+				provider = new SdkmanJdkProvider();
+				break;
+			case "scoop":
+				provider = new ScoopJdkProvider();
+				break;
+			default:
+				Util.warnMsg("Unknown JDK provider: " + name);
+				continue;
+			}
+			if (provider.canUse()) {
+				providers.add(provider);
+			}
+		}
+		if (providers.isEmpty()) {
+			throw new ExitException(EXIT_INVALID_INPUT, "No providers could be initialized. Aborting.");
+		}
+	}
+
+	public static void initProviders(List<JdkProvider> provs) {
+		providers = provs;
+		if (Util.isVerbose()) {
+			Util.verboseMsg("Using JDK provider(s): " + providers	.stream()
+																	.map(p -> p.getClass().getSimpleName())
+																	.collect(Collectors.joining(", ")));
+		}
+	}
+
+	@Nonnull
+	private static List<JdkProvider> providers() {
+		if (providers == null) {
+			initProvidersByName(PROVIDERS_DEFAULT);
+		}
+		return providers;
+	}
+
+	@Nonnull
+	private static List<JdkProvider> updatableProviders() {
+		return providers().stream().filter(JdkProvider::canUpdate).collect(Collectors.toList());
+	}
+
+	/**
+	 * This method is like <code>getJdk()</code> but will make sure that the JDK
+	 * being returned is actually installed. It will perform an installation if
+	 * necessary.
+	 *
+	 * @param versionOrId A version pattern, id or <code>null</code>
+	 * @return A <code>Jdk</code> object or <code>null</code>
+	 * @throws ExitException If no JDK could be found at all or if one failed to
+	 *                       install
+	 */
+	@Nonnull
+	public static JdkProvider.Jdk getOrInstallJdk(String versionOrId) {
+		if (versionOrId != null) {
+			if (JavaUtil.isRequestedVersion(versionOrId)) {
+				return getOrInstallJdkByVersion(JavaUtil.minRequestedVersion(versionOrId),
+						JavaUtil.isOpenVersion(versionOrId), false);
 			} else {
-				distro = "aoj";
+				return getOrInstallJdkById(versionOrId);
 			}
-		}
-		params.put("distro", distro);
-
-		String archiveType;
-		if (os == Util.OS.windows) {
-			archiveType = "zip";
 		} else {
-			archiveType = "tar.gz";
-		}
-		params.put("archive_type", archiveType);
-
-		params.put("architecture", arch.name());
-		params.put("package_type", "jdk");
-		params.put("operating_system", os.name());
-
-		if (os == Util.OS.windows) {
-			params.put("libc_type", "c_std_lib");
-		} else if (os == Util.OS.mac) {
-			params.put("libc_type", "libc");
-		} else {
-			params.put("libc_type", "glibc");
-		}
-
-		params.put("javafx_bundled", "false");
-		params.put("latest", "available");
-
-		return FOOJAY_JDK_DOWNLOAD_URL + urlEncodeUTF8(params);
-	}
-
-	private static String getVersionsUrl(String distro) {
-		Map<String, String> params = new HashMap<>();
-		params.put("latest_per_update", "true");
-		return String.format(FOOJAY_JDK_VERSIONS_URL, distro) + urlEncodeUTF8(params);
-	}
-
-	static String urlEncodeUTF8(String s) {
-		try {
-			return URLEncoder.encode(s, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			throw new UnsupportedOperationException(e);
+			return getOrInstallJdkByVersion(0, true, false);
 		}
 	}
 
-	static String urlEncodeUTF8(Map<?, ?> map) {
-		StringBuilder sb = new StringBuilder();
-		for (Map.Entry<?, ?> entry : map.entrySet()) {
-			if (sb.length() > 0) {
-				sb.append("&");
-			}
-			sb.append(String.format("%s=%s",
-					urlEncodeUTF8(entry.getKey().toString()),
-					urlEncodeUTF8(entry.getValue().toString())));
-		}
-		return sb.toString();
-	}
-
-	public static Path getCurrentJdk(String requestedVersion) {
-		int currentVersion = JavaUtil.determineJavaVersion();
-		int actualVersion = JavaUtil.javaVersion(requestedVersion);
-		if (currentVersion == actualVersion) {
-			Util.verboseMsg("System Java version matches requested version " + actualVersion);
-			return JavaUtil.getJdkHome();
-		} else {
-			if (currentVersion == 0) {
-				Util.verboseMsg("No system Java found, using JBang managed version " + actualVersion);
+	/**
+	 * This method is like <code>getJdkByVersion()</code> but will make sure that
+	 * the JDK being returned is actually installed. It will perform an installation
+	 * if necessary.
+	 *
+	 * @param requestedVersion The (minimal) version to return, can be 0
+	 * @param openVersion      Return newer version if exact is not available
+	 * @param updatableOnly    Only return JDKs from updatable providers or not
+	 * @return A <code>Jdk</code> object or <code>null</code>
+	 * @throws ExitException If no JDK could be found at all or if one failed to
+	 *                       install
+	 */
+	@Nonnull
+	private static JdkProvider.Jdk getOrInstallJdkByVersion(int requestedVersion, boolean openVersion,
+			boolean updatableOnly) {
+		JdkProvider.Jdk jdk = getJdkByVersion(requestedVersion, openVersion, updatableOnly);
+		if (jdk == null) {
+			if (requestedVersion > 0) {
+				throw new ExitException(EXIT_UNEXPECTED_STATE,
+						"No suitable JDK was found for requested version: " + requestedVersion);
 			} else {
-				Util.verboseMsg("System Java version " + currentVersion + " incompatible, using JBang managed version "
-						+ actualVersion);
+				throw new ExitException(EXIT_UNEXPECTED_STATE, "No suitable JDK was found");
 			}
-			return getInstalledJdk(actualVersion);
 		}
+		jdk = ensureInstalled(jdk);
+
+		Util.verboseMsg("Using JDK: " + jdk);
+
+		return jdk;
 	}
 
-	public static Path getInstalledJdk(int version) {
-		Path jdkDir = getJdkPath(version);
-		if (!Files.isDirectory(jdkDir)) {
-			jdkDir = downloadAndInstallJdk(version);
-		}
-		return jdkDir;
-	}
-
-	public static Path downloadAndInstallJdk(int version) {
-		Util.infoMsg("Downloading JDK " + version + ". Be patient, this can take several minutes...");
-		String url = getDownloadUrl(version, Util.getOS(), Util.getArch(), Util.getVendor());
-		Util.verboseMsg("Downloading " + url);
-		Path jdkDir = getJdkPath(version);
-		Path jdkTmpDir = jdkDir.getParent().resolve(jdkDir.getFileName().toString() + ".tmp");
-		Path jdkOldDir = jdkDir.getParent().resolve(jdkDir.getFileName().toString() + ".old");
-		Util.deletePath(jdkTmpDir, false);
-		Util.deletePath(jdkOldDir, false);
-		try {
-			Path jdkPkg = Util.downloadAndCacheFile(url);
-			Util.infoMsg("Installing JDK " + version + "...");
-			Util.verboseMsg("Unpacking to " + jdkDir.toString());
-			UnpackUtil.unpackJdk(jdkPkg, jdkTmpDir);
-			if (Files.isDirectory(jdkDir)) {
-				Files.move(jdkDir, jdkOldDir);
-			}
-			Files.move(jdkTmpDir, jdkDir);
-			Util.deletePath(jdkOldDir, false);
-			if (getDefaultJdk() < 0) {
-				setDefaultJdk(version);
-			}
-			return jdkDir;
-		} catch (Exception e) {
-			Util.deletePath(jdkTmpDir, true);
-			if (!Files.isDirectory(jdkDir) && Files.isDirectory(jdkOldDir)) {
-				try {
-					Files.move(jdkOldDir, jdkDir);
-				} catch (IOException ex) {
-					// Ignore
-				}
-			}
-			Util.errorMsg("Required Java version not possible to download or install. You can run with '--java "
-					+ JavaUtil.determineJavaVersion() + "' to force using the default installed Java.");
+	/**
+	 * This method is like <code>getJdkByVersion()</code> but will make sure that
+	 * the JDK being returned is actually installed. It will perform an installation
+	 * if necessary.
+	 *
+	 * @param requestedId The id of the JDK to return
+	 * @return A <code>Jdk</code> object or <code>null</code>
+	 * @throws ExitException If no JDK could be found at all or if one failed to
+	 *                       install
+	 */
+	@Nonnull
+	private static JdkProvider.Jdk getOrInstallJdkById(@Nonnull String requestedId) {
+		JdkProvider.Jdk jdk = getJdkById(requestedId);
+		if (jdk == null) {
 			throw new ExitException(EXIT_UNEXPECTED_STATE,
-					"Unable to download or install JDK version " + version, e);
+					"No suitable JDK was found for requested id: " + requestedId);
+		}
+		jdk = ensureInstalled(jdk);
+
+		Util.verboseMsg("Using JDK: " + jdk);
+
+		return jdk;
+	}
+
+	private static JdkProvider.Jdk ensureInstalled(JdkProvider.Jdk jdk) {
+		if (!jdk.isInstalled()) {
+			jdk = jdk.install();
+			if (getDefaultJdk() == null) {
+				setDefaultJdk(jdk);
+			}
+		}
+		return jdk;
+	}
+
+	/**
+	 * Returns a <code>Jdk</code> object that matches the requested version from the
+	 * list of currently installed JDKs or from the ones available for installation.
+	 * The parameter is a string that either contains the actual (strict) major
+	 * version of the JDK that should be returned, an open version terminated with a
+	 * <code>+</code> sign to indicate that any later version is valid as well, or
+	 * it is an id that will be matched against the ids of JDKs that are currently
+	 * installed. If the requested version is <code>null</code> the "active" JDK
+	 * will be returned, this is normally the JDK currently being used to run JBang
+	 * itself. The method will return <code>null</code> if no installed or available
+	 * JDK matches. NB: This method can return <code>Jdk</code> objects for JDKs
+	 * that are currently _not_ installed. It will not cause any installs to be
+	 * performed. See <code>getOrInstallJdk()</code> for that.
+	 *
+	 * @param versionOrId A version pattern, id or <code>null</code>
+	 * @return A <code>Jdk</code> object or <code>null</code>
+	 * @throws ExitException If no JDK could be found at all
+	 */
+	@Nullable
+	public static JdkProvider.Jdk getJdk(@Nullable String versionOrId) {
+		if (versionOrId != null) {
+			if (JavaUtil.isRequestedVersion(versionOrId)) {
+				return getJdkByVersion(JavaUtil.minRequestedVersion(versionOrId), JavaUtil.isOpenVersion(versionOrId),
+						false);
+			} else {
+				return getJdkById(versionOrId);
+			}
+		} else {
+			return getJdkByVersion(0, true, false);
 		}
 	}
 
-	public static void uninstallJdk(int version) {
-		Path jdkDir = JdkManager.getInstalledJdk(version);
-		if (jdkDir != null) {
-			int defaultJdk = getDefaultJdk();
-			if (Util.isWindows()) {
-				// On Windows we have to check nobody is currently using the JDK or we could
-				// be causing all kinds of trouble
-				try {
-					Path jdkTmpDir = jdkDir.getParent().resolve(jdkDir.getFileName().toString() + ".tmp");
-					Util.deletePath(jdkTmpDir, true);
-					Files.move(jdkDir, jdkTmpDir);
-					jdkDir = jdkTmpDir;
-				} catch (IOException ex) {
-					Util.warnMsg("Cannot uninstall JDK " + version + ", it's being used");
-					return;
-				}
+	/**
+	 * Returns an <code>Jdk</code> object that matches the requested version from
+	 * the list of currently installed JDKs or from the ones available for
+	 * installation. The method will return <code>null</code> if no installed or
+	 * available JDK matches. NB: This method can return <code>Jdk</code> objects
+	 * for JDKs that are currently _not_ installed. It will not cause any installs
+	 * to be performed. See <code>getOrInstallJdkByVersion()</code> for that.
+	 *
+	 * @param requestedVersion The (minimal) version to return, can be 0
+	 * @param openVersion      Return newer version if exact is not available
+	 * @param updatableOnly    Only return JDKs from updatable providers or not
+	 * @return A <code>Jdk</code> object or <code>null</code>
+	 * @throws ExitException If no JDK could be found at all
+	 */
+	@Nullable
+	private static JdkProvider.Jdk getJdkByVersion(int requestedVersion, boolean openVersion, boolean updatableOnly) {
+		JdkProvider.Jdk jdk = getInstalledJdkByVersion(requestedVersion, openVersion, updatableOnly);
+		if (jdk == null) {
+			if (requestedVersion > 0) {
+				jdk = getAvailableJdkByVersion(requestedVersion);
+			} else {
+				jdk = getJdkByVersion(Settings.getDefaultJavaVersion(), true, updatableOnly);
 			}
-			Util.deletePath(jdkDir, false);
-			if (defaultJdk == version) {
-				Optional<Integer> newver = nextInstalledJdk(version);
-				if (!newver.isPresent()) {
-					newver = prevInstalledJdk(version);
-				}
-				if (newver.isPresent()) {
-					setDefaultJdk(newver.get());
-				} else {
-					removeDefaultJdk();
-					Util.infoMsg("Default JDK unset");
-				}
+		}
+		return jdk;
+	}
+
+	/**
+	 * Returns an <code>Jdk</code> object that matches the requested version from
+	 * the list of currently installed JDKs or from the ones available for
+	 * installation. The method will return <code>null</code> if no installed or
+	 * available JDK matches. NB: This method can return <code>Jdk</code> objects
+	 * for JDKs that are currently _not_ installed. It will not cause any installs
+	 * to be performed. See <code>getOrInstallJdkByVersion()</code> for that.
+	 *
+	 * @param requestedId The id of the JDK to return
+	 * @return A <code>Jdk</code> object or <code>null</code>
+	 * @throws ExitException If no JDK could be found at all
+	 */
+	@Nullable
+	private static JdkProvider.Jdk getJdkById(@Nonnull String requestedId) {
+		JdkProvider.Jdk jdk = getInstalledJdkById(requestedId, false);
+		if (jdk == null) {
+			jdk = getAvailableJdkById(requestedId);
+		}
+		return jdk;
+	}
+
+	/**
+	 * Returns an <code>Jdk</code> object for an installed JDK of the given version
+	 * or id. Will return <code>null</code> if no JDK of that version or id is
+	 * currently installed.
+	 *
+	 * @param versionOrId   A version pattern, id or <code>null</code>
+	 * @param updatableOnly Only return JDKs from updatable providers or not
+	 * @return A <code>Jdk</code> object or <code>null</code>
+	 */
+	@Nullable
+	public static JdkProvider.Jdk getInstalledJdk(String versionOrId, boolean updatableOnly) {
+		if (versionOrId != null) {
+			if (JavaUtil.isRequestedVersion(versionOrId)) {
+				return getInstalledJdkByVersion(JavaUtil.minRequestedVersion(versionOrId),
+						JavaUtil.isOpenVersion(versionOrId), updatableOnly);
+			} else {
+				return getInstalledJdkById(versionOrId, updatableOnly);
+			}
+		} else {
+			return getInstalledJdkByVersion(0, true, updatableOnly);
+		}
+	}
+
+	/**
+	 * Returns an <code>Jdk</code> object for an installed JDK of the given version.
+	 * Will return <code>null</code> if no JDK of that version is currently
+	 * installed.
+	 *
+	 * @param version       The (major) version of the JDK to return
+	 * @param openVersion   Return newer version if exact is not available
+	 * @param updatableOnly Only return JDKs from updatable providers or not
+	 * @return A <code>Jdk</code> object or <code>null</code>
+	 */
+	@Nullable
+	private static JdkProvider.Jdk getInstalledJdkByVersion(int version, boolean openVersion, boolean updatableOnly) {
+		return providers()	.stream()
+							.filter(p -> !updatableOnly || p.canUpdate())
+							.map(p -> p.getJdkByVersion(version, openVersion))
+							.filter(Objects::nonNull)
+							.findFirst()
+							.orElse(null);
+	}
+
+	/**
+	 * Returns an <code>Jdk</code> object for an installed JDK with the given id.
+	 * Will return <code>null</code> if no JDK with that id is currently installed.
+	 *
+	 * @param requestedId   The id of the JDK to return
+	 * @param updatableOnly Only return JDKs from updatable providers or not
+	 * @return A <code>Jdk</code> object or <code>null</code>
+	 */
+	@Nullable
+	private static JdkProvider.Jdk getInstalledJdkById(String requestedId, boolean updatableOnly) {
+		return providers()	.stream()
+							.filter(p -> !updatableOnly || p.canUpdate())
+							.map(p -> p.getJdkById(requestedId))
+							.filter(Objects::nonNull)
+							.findFirst()
+							.orElse(null);
+	}
+
+	@Nonnull
+	private static JdkProvider.Jdk getAvailableJdkByVersion(int version) {
+		List<JdkProvider.Jdk> jdks = getJdkByVersion(listAvailableJdks(), version);
+		if (jdks.isEmpty()) {
+			throw new ExitException(EXIT_INVALID_INPUT, "JDK version is not available for installation: " + version
+					+ "\n"
+					+ "Use 'jbang jdk list --available' to see a list of JDKs available for installation");
+		}
+		return jdks.get(0);
+	}
+
+	@Nonnull
+	private static JdkProvider.Jdk getAvailableJdkById(String id) {
+		List<JdkProvider.Jdk> jdks = getJdkById(listAvailableJdks(), id);
+		if (jdks.isEmpty()) {
+			throw new ExitException(EXIT_INVALID_INPUT, "JDK id is not available for installation: " + id
+					+ "\n"
+					+ "Use 'jbang jdk list --available --show-details' to see a list of JDKs available for installation");
+		}
+		return jdks.get(0);
+	}
+
+	public static void uninstallJdk(JdkProvider.Jdk jdk) {
+		JdkProvider.Jdk defaultJdk = getDefaultJdk();
+		if (Util.isWindows()) {
+			// On Windows we have to check nobody is currently using the JDK or we could
+			// be causing all kinds of trouble
+			try {
+				Path jdkTmpDir = jdk.getHome()
+									.getParent()
+									.resolve("_delete_me_" + jdk.getHome().getFileName().toString());
+				Files.move(jdk.getHome(), jdkTmpDir);
+				Files.move(jdkTmpDir, jdk.getHome());
+			} catch (IOException ex) {
+				Util.warnMsg("Cannot uninstall JDK, it's being used: " + jdk);
+				return;
+			}
+		}
+
+		boolean resetDefault = false;
+		if (defaultJdk != null) {
+			Path defHome = defaultJdk.getHome();
+			try {
+				resetDefault = Files.isSameFile(defHome, jdk.getHome());
+			} catch (IOException ex) {
+				Util.verboseMsg("Error while trying to reset default JDK", ex);
+				resetDefault = defHome.equals(jdk.getHome());
+			}
+		}
+
+		jdk.uninstall();
+
+		if (resetDefault) {
+			Optional<JdkProvider.Jdk> newjdk = nextInstalledJdk(jdk.getMajorVersion(), true);
+			if (!newjdk.isPresent()) {
+				newjdk = prevInstalledJdk(jdk.getMajorVersion(), true);
+			}
+			if (newjdk.isPresent()) {
+				setDefaultJdk(newjdk.get());
+			} else {
+				removeDefaultJdk();
+				Util.infoMsg("Default JDK unset");
 			}
 		}
 	}
@@ -197,7 +414,7 @@ public class JdkManager {
 	 * @param version requested version to link.
 	 */
 	public static void linkToExistingJdk(String path, int version) {
-		Path jdkPath = getJdkPath(version);
+		Path jdkPath = JBangJdkProvider.getJdksPath().resolve(Integer.toString(version));
 		Util.verboseMsg("Trying to link " + path + " to " + jdkPath);
 		if (Files.exists(jdkPath)) {
 			Util.verboseMsg("JBang managed JDK already exists, must be deleted to make sure linking works");
@@ -207,7 +424,7 @@ public class JdkManager {
 		if (!Files.isDirectory(linkedJdkPath)) {
 			throw new ExitException(EXIT_INVALID_INPUT, "Unable to resolve path as directory: " + path);
 		}
-		Optional<Integer> ver = resolveJavaVersionFromPath(linkedJdkPath);
+		Optional<Integer> ver = JavaUtil.resolveJavaVersionFromPath(linkedJdkPath);
 		if (ver.isPresent()) {
 			Integer linkedJdkVersion = ver.get();
 			if (linkedJdkVersion == version) {
@@ -223,79 +440,69 @@ public class JdkManager {
 		}
 	}
 
-	public static Optional<Integer> nextInstalledJdk(int minVersion) {
+	/**
+	 * Returns an installed JDK that matches the requested version or the next
+	 * available version. Returns <code>Optional.empty()</code> if no matching JDK
+	 * was found;
+	 *
+	 * @param minVersion    the minimal version to return
+	 * @param updatableOnly Only return JDKs from updatable providers or not
+	 * @return an optional JDK
+	 */
+	private static Optional<JdkProvider.Jdk> nextInstalledJdk(int minVersion, boolean updatableOnly) {
 		return listInstalledJdks()
 									.stream()
-									.filter(v -> v >= minVersion)
-									.min(Integer::compareTo);
+									.filter(jdk -> !updatableOnly || jdk.getProvider().canUpdate())
+									.filter(jdk -> jdk.getMajorVersion() >= minVersion)
+									.min(JdkProvider.Jdk::compareTo);
 	}
 
-	public static Optional<Integer> prevInstalledJdk(int maxVersion) {
+	/**
+	 * Returns an installed JDK that matches the requested version or the previous
+	 * available version. Returns <code>Optional.empty()</code> if no matching JDK
+	 * was found;
+	 * 
+	 * @param maxVersion    the maximum version to return
+	 * @param updatableOnly Only return JDKs from updatable providers or not
+	 * @return an optional JDK
+	 */
+	private static Optional<JdkProvider.Jdk> prevInstalledJdk(int maxVersion, boolean updatableOnly) {
 		return listInstalledJdks()
 									.stream()
-									.filter(v -> v <= maxVersion)
-									.max(Integer::compareTo);
+									.filter(jdk -> !updatableOnly || jdk.getProvider().canUpdate())
+									.filter(jdk -> jdk.getMajorVersion() <= maxVersion)
+									.min(JdkProvider.Jdk::compareTo);
 	}
 
-	public static Set<Integer> listInstalledJdks() {
-		if (Files.isDirectory(getJdksPath())) {
-			Supplier<TreeSet<Integer>> sset = TreeSet::new;
-			try (Stream<Path> files = Files.list(getJdksPath())) {
-				return files.map(p -> {
-					try {
-						return Integer.parseInt(p.getFileName().toString());
-					} catch (NumberFormatException ex) {
-						return -1;
-					}
-				}).filter(v -> v > 0).collect(Collectors.toCollection(sset));
-			} catch (IOException e) {
-				Util.verboseMsg("Couldn't list installed JDKs", e);
-			}
+	public static List<JdkProvider.Jdk> listAvailableJdks() {
+		return updatableProviders()	.stream()
+									.flatMap(p -> p.listAvailable().stream())
+									.collect(Collectors.toList());
+	}
+
+	public static List<JdkProvider.Jdk> listInstalledJdks() {
+		return providers()	.stream()
+							.flatMap(p -> p.listInstalled().stream())
+							.sorted()
+							.collect(Collectors.toList());
+	}
+
+	@Nullable
+	public static JdkProvider.Jdk getDefaultJdk() {
+		return (new DefaultJdkProvider()).getJdkById("default");
+	}
+
+	public static void setDefaultJdk(JdkProvider.Jdk jdk) {
+		JdkProvider.Jdk defJdk = getDefaultJdk();
+		if (jdk.isInstalled() && !jdk.equals(defJdk)) {
+			removeDefaultJdk();
+			Util.createLink(getDefaultJdkPath(), jdk.getHome());
+			Util.infoMsg("Default JDK set to " + jdk);
 		}
-		return Collections.emptySet();
-	}
-
-	public static boolean isInstalledJdk(int version) {
-		return Files.isDirectory(getJdkPath(version));
-	}
-
-	public static void setDefaultJdk(int version) {
-		if (!isInstalledJdk(version) || getDefaultJdk() != version) {
-			Path jdk = getInstalledJdk(version);
-			// Check again if we really need to create a link because the
-			// previous line might already have caused it to be created
-			if (getDefaultJdk() != version) {
-				removeDefaultJdk();
-				Util.createLink(Settings.getCurrentJdkDir(), jdk);
-				Util.infoMsg("Default JDK set to " + version);
-			}
-		}
-	}
-
-	public static int getDefaultJdk() {
-		try {
-			Path link = Settings.getCurrentJdkDir();
-			if (Files.isDirectory(link)) {
-				if (Files.isSymbolicLink(link)) {
-					Path dest = Files.readSymbolicLink(link);
-					return Integer.parseInt(dest.getFileName().toString());
-				} else {
-					// Should be a hard link, so we can't parse the version number
-					// from the directory name, so we read the "release" file instead.
-					Optional<Integer> ver = resolveJavaVersionFromPath(link);
-					if (ver.isPresent()) {
-						return ver.get();
-					}
-				}
-			}
-		} catch (IOException ex) {
-			// Ignore
-		}
-		return -1;
 	}
 
 	public static void removeDefaultJdk() {
-		Path link = Settings.getCurrentJdkDir();
+		Path link = getDefaultJdkPath();
 		if (Files.isSymbolicLink(link)) {
 			try {
 				Files.deleteIfExists(link);
@@ -307,56 +514,20 @@ public class JdkManager {
 		}
 	}
 
-	private static class VersionsResult {
-		List<String> versions;
-	}
-
-	private static class VersionsResponse {
-		List<VersionsResult> result;
-	}
-
-	public static Set<Integer> listAvailableJdks() {
-		try {
-			Set<Integer> result = new TreeSet<>();
-			String distro = Util.getVendor();
-			if (distro == null) {
-				VersionsResponse res = Util.readJsonFromURL(getVersionsUrl("aoj"), null, VersionsResponse.class);
-				res.result.get(0).versions.stream().map(v -> JavaUtil.parseJavaVersion(v)).forEach(v -> result.add(v));
-				res = Util.readJsonFromURL(getVersionsUrl("temurin"), null, VersionsResponse.class);
-				res.result.get(0).versions.stream().map(v -> JavaUtil.parseJavaVersion(v)).forEach(v -> result.add(v));
-			} else {
-				VersionsResponse res = Util.readJsonFromURL(getVersionsUrl(distro), null, VersionsResponse.class);
-				res.result.get(0).versions.stream().map(v -> JavaUtil.parseJavaVersion(v)).forEach(v -> result.add(v));
-			}
-			return Collections.unmodifiableSet(result);
-		} catch (IOException e) {
-			Util.verboseMsg("Couldn't list available JDKs", e);
-		}
-		return Collections.emptySet();
+	private static Path getDefaultJdkPath() {
+		return Settings.getCurrentJdkDir();
 	}
 
 	public static boolean isCurrentJdkManaged() {
 		Path home = JavaUtil.getJdkHome();
-		return (home != null && home.startsWith(getJdksPath()));
+		return home != null && updatableProviders().stream().anyMatch(p -> p.getJdkByPath(home) != null);
 	}
 
-	public static Path getJdkPath(int version) {
-		return getJdksPath().resolve(Integer.toString(version));
+	private static List<JdkProvider.Jdk> getJdkByVersion(Collection<JdkProvider.Jdk> jdks, int version) {
+		return jdks.stream().filter(jdk -> jdk.getMajorVersion() == version).collect(Collectors.toList());
 	}
 
-	public static Path getJdksPath() {
-		return Settings.getCacheDir(Cache.CacheClass.jdks);
-	}
-
-	public static Optional<Integer> resolveJavaVersionFromPath(Path link) {
-		try {
-			return Files.lines(link.resolve("release"))
-						.filter(l -> l.startsWith("JAVA_VERSION"))
-						.map(JavaUtil::parseJavaOutput)
-						.findAny();
-		} catch (IOException e) {
-			Util.verboseMsg("Unable to read 'release' file in path:" + link);
-			return Optional.empty();
-		}
+	private static List<JdkProvider.Jdk> getJdkById(Collection<JdkProvider.Jdk> jdks, String id) {
+		return jdks.stream().filter(jdk -> jdk.getId().equals(id)).collect(Collectors.toList());
 	}
 }

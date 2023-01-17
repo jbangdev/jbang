@@ -48,6 +48,7 @@ public class TestAlias extends BaseTest {
 			"      \"arguments\": [\"3\"],\n" +
 			"      \"java-options\": [\"--three\"],\n" +
 			"      \"compile-options\": [\"--cthree\"],\n" +
+			"      \"native-image\": true,\n" +
 			"      \"native-options\": [\"--nthree\"],\n" +
 			"      \"properties\": {\"three\":\"3\"}\n" +
 			"    },\n" +
@@ -57,6 +58,7 @@ public class TestAlias extends BaseTest {
 			"      \"arguments\": [\"4\"],\n" +
 			"      \"java-options\": [\"--four\"],\n" +
 			"      \"compile-options\": [\"--cfour\"],\n" +
+			"      \"native-image\": false,\n" +
 			"      \"native-options\": [\"--nfour\"],\n" +
 			"      \"dependencies\": [\"fourdep\"],\n" +
 			"      \"repositories\": [\"fourrepo\"],\n" +
@@ -82,7 +84,7 @@ public class TestAlias extends BaseTest {
 			"}";
 
 	@BeforeEach
-	void init() throws IOException {
+	void initCatalog() throws IOException {
 		Files.write(jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON), aliases.getBytes());
 		Util.setCwd(Files.createDirectory(cwdDir.resolve("test")));
 	}
@@ -124,6 +126,7 @@ public class TestAlias extends BaseTest {
 				"-D", "prop=val",
 				"--main", "mainclass",
 				"--compile-option", "copts",
+				"--native",
 				"--native-option", "nopts",
 				"--java", "999",
 				"aap", "noot", "mies");
@@ -146,6 +149,7 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.mainClass, is("mainclass"));
 		assertThat(alias.compileOptions, iterableWithSize(1));
 		assertThat(alias.compileOptions, contains("copts"));
+		assertThat(alias.nativeImage, is(Boolean.TRUE));
 		assertThat(alias.nativeOptions, iterableWithSize(1));
 		assertThat(alias.nativeOptions, contains("nopts"));
 		assertThat(alias.javaVersion, is("999"));
@@ -192,6 +196,7 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.mainClass, is("mainclass"));
 		assertThat(alias.compileOptions, iterableWithSize(1));
 		assertThat(alias.compileOptions, contains("copts"));
+		assertThat(alias.nativeImage, is(nullValue()));
 		assertThat(alias.nativeOptions, iterableWithSize(1));
 		assertThat(alias.nativeOptions, contains("nopts"));
 		assertThat(alias.javaVersion, is("999"));
@@ -350,6 +355,7 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.runtimeOptions, nullValue());
 		assertThat(alias.properties, nullValue());
 		assertThat(alias.compileOptions, nullValue());
+		assertThat(alias.nativeImage, nullValue());
 		assertThat(alias.nativeOptions, nullValue());
 	}
 
@@ -374,6 +380,7 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.properties, hasEntry("two", "2"));
 		assertThat(alias.compileOptions, iterableWithSize(1));
 		assertThat(alias.compileOptions, contains("--ctwo"));
+		assertThat(alias.nativeImage, nullValue());
 		assertThat(alias.nativeOptions, iterableWithSize(1));
 		assertThat(alias.nativeOptions, contains("--ntwo"));
 	}
@@ -399,6 +406,7 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.properties, hasEntry("four", "4"));
 		assertThat(alias.compileOptions, iterableWithSize(1));
 		assertThat(alias.compileOptions, contains("--cfour"));
+		assertThat(alias.nativeImage, is(Boolean.FALSE));
 		assertThat(alias.nativeOptions, iterableWithSize(1));
 		assertThat(alias.nativeOptions, contains("--nfour"));
 	}
@@ -417,6 +425,7 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.properties, hasEntry("three", "3"));
 		assertThat(alias.compileOptions, iterableWithSize(1));
 		assertThat(alias.compileOptions, contains("--cthree"));
+		assertThat(alias.nativeImage, is(Boolean.TRUE));
 		assertThat(alias.nativeOptions, iterableWithSize(1));
 		assertThat(alias.nativeOptions, contains("--nthree"));
 	}
@@ -431,6 +440,7 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.runtimeOptions, nullValue());
 		assertThat(alias.properties, nullValue());
 		assertThat(alias.compileOptions, nullValue());
+		assertThat(alias.nativeImage, nullValue());
 		assertThat(alias.nativeOptions, nullValue());
 	}
 
