@@ -55,16 +55,20 @@ public abstract class AppBuilder implements Builder<Project> {
 		} else if (nativeBuildRequired) {
 			Util.verboseMsg("Building as native build required.");
 		} else if (Files.isReadable(outjar)) {
+			Project jarProject = ProjectBuilder.create().build(outjar);
 			// We already have a Jar, check if we can still use it
 			if (!project.isUpToDate()) {
 				Util.verboseMsg("Building as previous build jar found but it or its dependencies not up-to-date.");
 			} else if (JavaUtil.javaVersion(requestedJavaVersion) < JavaUtil.minRequestedVersion(
-					project.getJavaVersion())) {
+					jarProject.getJavaVersion())) {
 				Util.verboseMsg(
 						String.format(
 								"Building as requested Java version %s < than the java version used during last build %s",
 								requestedJavaVersion, project.getJavaVersion()));
 			} else {
+				if (project.getMainClass() == null) {
+					project.setMainClass(jarProject.getMainClass());
+				}
 				Util.verboseMsg("No build required. Reusing jar from " + project.getJarFile());
 				buildRequired = false;
 			}
