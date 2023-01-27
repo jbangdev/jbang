@@ -128,6 +128,7 @@ class AliasAdd extends BaseAliasCommand {
 											.additionalDependencies(dependencyInfoMixin.getDependencies())
 											.additionalRepositories(dependencyInfoMixin.getRepositories())
 											.additionalClasspaths(dependencyInfoMixin.getClasspaths())
+											.nativeImage(nativeMixin.nativeImage)
 											.additionalSources(scriptMixin.sources)
 											.additionalResources(scriptMixin.resources)
 											.forceType(scriptMixin.forceType)
