@@ -131,6 +131,7 @@ class AliasAdd extends BaseAliasCommand {
 											.additionalSources(scriptMixin.sources)
 											.additionalResources(scriptMixin.resources)
 											.forceType(scriptMixin.forceType)
+											.nativeImage(nativeMixin.nativeImage)
 											.javaVersion(buildMixin.javaVersion)
 											.mainClass(buildMixin.main)
 											.setArguments(userParams)
