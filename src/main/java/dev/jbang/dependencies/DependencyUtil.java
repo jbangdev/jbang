@@ -62,6 +62,8 @@ public class DependencyUtil {
 			return new ModularClassPath(Collections.emptyList());
 		}
 
+		verboseMsg(String.format("Resolving artifact(s): %s", String.join(", ", deps)));
+
 		if (repos.isEmpty()) {
 			repos = new ArrayList<>();
 			repos.add(toMavenRepo("mavencentral"));
@@ -73,24 +75,22 @@ public class DependencyUtil {
 									.map(JitPackUtil::ensureGAV)
 									.collect(Collectors.toList());
 		// And if we encountered URLs let's make sure the JitPack repo is available
-		if (!depIds.equals(deps) && !repos.stream().anyMatch(r -> REPO_JITPACK.equals(r.getUrl()))) {
+		if (!depIds.equals(deps) && repos.stream().noneMatch(r -> REPO_JITPACK.equals(r.getUrl()))) {
 			repos.add(toMavenRepo(ALIAS_JITPACK));
 		}
 
 		verboseMsg(String.format("Repositories: %s",
-				repos.stream().map(m -> m.toString()).collect(Collectors.joining(", "))));
+				repos.stream().map(MavenRepo::toString).collect(Collectors.joining(", "))));
 
 		String depsHash = String.join(CP_SEPARATOR, depIds);
-		// if (!transitivity) { // the cached key need to be different for
-		// non-transivity
-		// depsHash = "notransitivity-" + depsHash;
-		// }
 
 		List<ArtifactInfo> cachedDeps = null;
 		if (!updateCache) {
 			cachedDeps = DependencyCache.findDependenciesByHash(depsHash);
 			if (cachedDeps != null) {
-				return new ModularClassPath(cachedDeps);
+				ModularClassPath mcp = new ModularClassPath(cachedDeps);
+				verboseMsg(String.format("Resolved artifact(s) from cache: %s", mcp));
+				return mcp;
 			}
 		}
 
@@ -111,16 +111,17 @@ public class DependencyUtil {
 																.build();
 			List<ArtifactInfo> artifacts = resolver.resolve(depIds);
 
-			ModularClassPath classPath = new ModularClassPath(artifacts);
+			ModularClassPath mcp = new ModularClassPath(artifacts);
 
 			if (loggingEnabled) {
 				infoMsg("Dependencies resolved");
 			}
 
-			DependencyCache.cache(depsHash, classPath.getArtifacts());
+			DependencyCache.cache(depsHash, mcp.getArtifacts());
 
-			// Print the classpath
-			return classPath;
+			verboseMsg(String.format("Resolved artifact(s): %s", mcp));
+
+			return mcp;
 		} catch (DependencyException e) { // Probably a wrapped Nullpointer from
 											// 'DefaultRepositorySystem.resolveDependencies()', this however is probably
 											// a connection problem.

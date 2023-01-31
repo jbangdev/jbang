@@ -283,6 +283,7 @@ public class ProjectBuilder {
 	}
 
 	private static ResourceRef resolveChecked(ResourceResolver resolver, String resource) {
+		Util.verboseMsg("Resolving resource ref: " + resource);
 		ResourceRef ref = resolver.resolve(resource);
 		// Support URLs as script files
 		// just proceed if the script file is a regular file at this point
@@ -290,6 +291,7 @@ public class ProjectBuilder {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
 					"Script or alias could not be found or read: '" + resource + "'");
 		}
+		Util.verboseMsg("Resolved resource ref as: " + ref);
 		return ref;
 	}
 
