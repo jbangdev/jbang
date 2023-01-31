@@ -1,6 +1,7 @@
 package dev.jbang.cli;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyManagementException;
@@ -57,7 +58,9 @@ public abstract class BaseCommand implements Callable<Integer> {
 	void debug(String msg) {
 		if (isVerbose()) {
 			if (spec != null) {
-				spec.commandLine().getErr().println("[jbang] " + msg);
+				PrintWriter err = spec.commandLine().getErr();
+				err.print(Util.getMsgHeader());
+				err.println(msg);
 			} else {
 				Util.verboseMsg(msg);
 			}
@@ -67,7 +70,9 @@ public abstract class BaseCommand implements Callable<Integer> {
 	void info(String msg) {
 		if (!isQuiet()) {
 			if (spec != null) {
-				spec.commandLine().getErr().println("[jbang] " + msg);
+				PrintWriter err = spec.commandLine().getErr();
+				err.print(Util.getMsgHeader());
+				err.println(msg);
 			} else {
 				Util.infoMsg(msg);
 			}
@@ -77,7 +82,9 @@ public abstract class BaseCommand implements Callable<Integer> {
 	void warn(String msg) {
 		if (!isQuiet()) {
 			if (spec != null) {
-				spec.commandLine().getErr().println("[jbang] " + msg);
+				PrintWriter err = spec.commandLine().getErr();
+				err.print(Util.getMsgHeader());
+				err.println(msg);
 			} else {
 				Util.warnMsg(msg);
 			}
@@ -86,7 +93,9 @@ public abstract class BaseCommand implements Callable<Integer> {
 
 	void error(String msg, Throwable th) {
 		if (spec != null) {
-			spec.commandLine().getErr().println("[jbang] " + msg);
+			PrintWriter err = spec.commandLine().getErr();
+			err.print(Util.getMsgHeader());
+			err.println(msg);
 		} else {
 			Util.errorMsg(msg, th);
 		}
