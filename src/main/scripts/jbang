@@ -9,21 +9,15 @@
 # The Java version to install when it's not installed on the system yet
 javaVersion=${JBANG_DEFAULT_JAVA_VERSION:-11}
 
-absolute_path() {
-  # if the given path to the jbang launcher is absolute (i.e. it is either starting with / or a
-  # 'letter:/' when using gitbash on windows) it is returned unchanged, otherwise we construct an absolute path
-  [[ $1 = /* ]] || [[ $1 =~ ^[A-z]:/ ]] && echo "$1" || echo "$PWD/${1#./}"
-}
-
-resolve_symlink() {
-  if [[ $OSTYPE != darwin* ]]; then minusFarg="-f"; fi
-  sym_resolved=$(readlink ${minusFarg} "$1")
-
-  if [[ -n $sym_resolved ]]; then
-    echo "$sym_resolved"
-  else
-    echo "$1"
-  fi
+script_dir() {
+  script=${BASH_SOURCE[0]}
+  while [ -L "$script" ]; do
+    dir=$( cd -P "$( dirname "$script" )" >/dev/null 2>&1 && pwd )
+    script=$(readlink "$script")
+    [[ $script != /* ]] && script=$dir/$script
+  done
+  dir=$( cd -P "$( dirname "$script" )" >/dev/null 2>&1 && pwd )
+  echo $dir
 }
 
 download() {
@@ -60,7 +54,7 @@ javacInPath() {
   [[ -x "$(command -v javac)" ]] && ( [[ $os != "mac" ]] || /usr/libexec/java_home &> /dev/null )
 }
 
-abs_jbang_dir=$(dirname "$(resolve_symlink "$(absolute_path "$0")")")
+abs_jbang_dir=$(script_dir)
 
 # todo might vary by os so can be overwritten below
 libc_type=glibc
