@@ -150,6 +150,12 @@ public class Configuration {
 		return target;
 	}
 
+	public Configuration clone() {
+		Configuration cfg = new Configuration(fallback);
+		cfg.values.putAll(values);
+		return cfg;
+	}
+
 	public Map<String, String> asMap() {
 		return new HashMap<>(values);
 	}
@@ -190,7 +196,7 @@ public class Configuration {
 				if (Files.isReadable(cfgFile)) {
 					global = get(cfgFile);
 				} else {
-					global = defaults();
+					global = defaults().clone();
 				}
 			} else {
 				global = Configuration.getMerged();
@@ -246,16 +252,19 @@ public class Configuration {
 			return false;
 		});
 
-		ArrayList<Path> files = new ArrayList<>(configFiles);
-		Collections.reverse(files);
 		Configuration result = defaults();
-		for (Path cfgFile : files) {
-			Configuration cfg = read(cfgFile);
-			cfg.storeRef = ResourceRef.forFile(cfgFile);
-			cfg.fallback = result;
-			result = cfg;
+		if (!configFiles.isEmpty()) {
+			ArrayList<Path> files = new ArrayList<>(configFiles);
+			Collections.reverse(files);
+			for (Path cfgFile : files) {
+				Configuration cfg = read(cfgFile);
+				cfg.storeRef = ResourceRef.forFile(cfgFile);
+				cfg.fallback = result;
+				result = cfg;
+			}
+		} else {
+			result = Configuration.create(result);
 		}
-
 		return result;
 	}
 
@@ -269,7 +278,7 @@ public class Configuration {
 			cfg.storeRef = cfgRef;
 			return cfg;
 		} else {
-			return null;
+			return new Configuration();
 		}
 	}
 
