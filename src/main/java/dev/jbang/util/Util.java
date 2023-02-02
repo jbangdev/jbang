@@ -33,6 +33,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.List;
@@ -52,6 +55,7 @@ import org.jsoup.nodes.Document;
 import com.google.gson.Gson;
 
 import dev.jbang.Cache;
+import dev.jbang.Configuration;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.cli.BaseCommand;
@@ -614,6 +618,173 @@ public class Util {
 	}
 
 	/**
+	 * Either retrieves a previously downloaded file from the cache or downloads a
+	 * file from a URL and stores it in the cache. NB: The last part of the URL must
+	 * contain the name of the file to be downloaded!
+	 *
+	 * @param fileURL HTTP URL of the file to be downloaded
+	 * @return Path to the downloaded file
+	 * @throws IOException
+	 */
+	public static Path downloadAndCacheFile(String fileURL) throws IOException {
+		Path urlCache = Util.getUrlCache(fileURL);
+		Path cachedFile = getCachedFile(urlCache);
+		if (cachedFile == null
+				|| (Util.isEvicted(cachedFile) && !checkFileUpToDate(fileURL, urlCache, -1))) {
+			return downloadFileAndCache(fileURL, urlCache);
+		} else {
+			Util.verboseMsg(String.format("Retrieved file from cache %s = %s", fileURL, cachedFile));
+			return urlCache.resolve(cachedFile);
+		}
+	}
+
+	// Returns true if the cached file doesn't exist or if its last
+	// modified time is longer ago than the configuration value
+	// indicated by "cache-evict" (defaults to "0" which will
+	// cause this method to always return "true").
+	private static boolean isEvicted(Path cachedFile) {
+		if (Util.isOffline()) {
+			return false;
+		}
+		if (Util.isFresh()) {
+			return true;
+		}
+		if (Files.isRegularFile(cachedFile)) {
+			String cmaText = Configuration.instance().get("cache-evict", "0");
+			if (cmaText.equals("never")) {
+				return false;
+			}
+			long cma;
+			try {
+				// First try to parse as a simple number
+				cma = Long.parseLong(cmaText);
+			} catch (NumberFormatException ex) {
+				try {
+					// If that failed try again using ISO8601 Duration format
+					cma = Duration.parse(cmaText).getSeconds();
+				} catch (DateTimeParseException ex2) {
+					cma = 0;
+				}
+			}
+			if (cma == 0) {
+				return true;
+			} else if (cma == -1) {
+				return false;
+			}
+			try {
+				Instant cachedLastModified = Files.getLastModifiedTime(cachedFile).toInstant();
+				Duration d = Duration.between(cachedLastModified, Instant.now());
+				return d.getSeconds() >= cma;
+			} catch (IOException e) {
+				return true;
+			}
+		} else {
+			return true;
+		}
+	}
+
+	/**
+	 * Checks if a cached file is still up-to-date with the version from a URL
+	 *
+	 * @param fileURL HTTP URL of the cached file
+	 * @param saveDir path of the directory where the file was saved
+	 * @param timeOut the timeout in milliseconds to use for opening the connection.
+	 *                0 is an infinite timeout while -1 uses the defaults
+	 * @return boolean indicating if the cached file is up-to-date or not
+	 * @throws IOException
+	 */
+	public static boolean checkFileUpToDate(String fileURL, Path saveDir, int timeOut) throws IOException {
+		if (Util.isOffline()) {
+			return true;
+		}
+		if (Util.isFresh()) {
+			return false;
+		}
+		return connect(fileURL, saveDir, "HEAD", timeOut, (conn, file) -> {
+			if (Files.isRegularFile(file)) {
+				String lastModifiedText = conn.getHeaderField("Last-Modified");
+				if (lastModifiedText != null) {
+					try {
+						Instant remoteLastModified = ZonedDateTime.parse(lastModifiedText,
+								DateTimeFormatter.RFC_1123_DATE_TIME).toInstant();
+						Instant cachedLastModified = Files.getLastModifiedTime(file).toInstant();
+						if (remoteLastModified.isAfter(cachedLastModified)) {
+							file = null;
+						}
+						Util.verboseMsg(String.format("Cached file %s %s up-to-date with %s", file,
+								file != null ? "is" : "is NOT", conn.getURL().toExternalForm()));
+					} catch (DateTimeParseException ex) {
+						Util.verboseMsg(String.format(
+								"Last-Modified information (%s) could not be parsed for %s, we'll assume the cache is up-to-date",
+								lastModifiedText, conn.getURL().toExternalForm()));
+					}
+				} else {
+					Util.verboseMsg(String.format(
+							"No Last-Modified information provided for %s, we'll assume the cache is up-to-date",
+							conn.getURL().toExternalForm()));
+					if (conn.getHeaderField("ETag") != null) {
+						Util.verboseMsg(
+								"(NB: ETag information IS provided, perhaps we should consider implementing support for that!)");
+					}
+				}
+				return file;
+			} else {
+				Util.verboseMsg(String.format("No cached information found for %s, we need to update",
+						conn.getURL().toExternalForm()));
+				return null;
+			}
+		}) != null;
+	}
+
+	/**
+	 * Downloads a file from a URL and stores it in the cache. NB: The last part of
+	 * the URL must contain the name of the file to be downloaded!
+	 *
+	 * @param fileURL HTTP URL of the file to be downloaded
+	 * @return Path to the downloaded file
+	 * @throws IOException
+	 */
+	public static Path downloadFileToCache(String fileURL) throws IOException {
+		Path urlCache = Util.getUrlCache(fileURL);
+		return downloadFileAndCache(fileURL, urlCache);
+	}
+
+	private static Path downloadFileAndCache(String fileURL, Path urlCache) throws IOException {
+		// create a temp directory for the downloaded content
+		Path saveTmpDir = urlCache.getParent().resolve(urlCache.getFileName() + ".tmp");
+		Path saveOldDir = urlCache.getParent().resolve(urlCache.getFileName() + ".old");
+		try {
+			Util.deletePath(saveTmpDir, true);
+			Util.deletePath(saveOldDir, true);
+
+			Path saveFilePath = downloadFile(fileURL, saveTmpDir);
+
+			// temporarily save the old content
+			if (Files.isDirectory(urlCache)) {
+				Files.move(urlCache, saveOldDir);
+			}
+			// rename the folder to its final name
+			Files.move(saveTmpDir, urlCache);
+			// remove any old content
+			Util.deletePath(saveOldDir, true);
+
+			return urlCache.resolve(saveFilePath.getFileName());
+		} catch (Throwable th) {
+			// remove the temp folder if anything went wrong
+			Util.deletePath(saveTmpDir, true);
+			// and move the old content back if it exists
+			if (!Files.isDirectory(urlCache) && Files.isDirectory(saveOldDir)) {
+				try {
+					Files.move(saveOldDir, urlCache);
+				} catch (IOException ex) {
+					// Ignore
+				}
+			}
+			throw th;
+		}
+	}
+
+	/**
 	 * Downloads a file from a URL
 	 *
 	 * @param fileURL HTTP URL of the file to be downloaded
@@ -621,7 +792,7 @@ public class Util {
 	 * @return Path to the downloaded file
 	 * @throws IOException
 	 */
-	public static Path downloadFile(String fileURL, File saveDir) throws IOException {
+	public static Path downloadFile(String fileURL, Path saveDir) throws IOException {
 		return downloadFile(fileURL, saveDir, -1);
 	}
 
@@ -635,95 +806,103 @@ public class Util {
 	 * @return Path to the downloaded file
 	 * @throws IOException
 	 */
-	public static Path downloadFile(String fileURL, File saveDir, int timeOut) throws IOException {
+	public static Path downloadFile(String fileURL, Path saveDir, int timeOut) throws IOException {
 		if (Util.isOffline()) {
 			throw new FileNotFoundException("jbang is in offline mode, no remote access permitted");
 		}
+		return connect(fileURL, saveDir, "GET", timeOut, (conn, file) -> {
+			// copy content from connection to file
+			Files.createDirectories(saveDir);
+			try (ReadableByteChannel readableByteChannel = Channels.newChannel(conn.getInputStream());
+					FileOutputStream fileOutputStream = new FileOutputStream(file.toFile())) {
+				fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+			}
+			Util.verboseMsg(String.format("Downloaded file %s", conn.getURL().toExternalForm()));
+			return file;
+		});
+	}
 
+	private static Path connect(String fileURL, Path saveDir, String method, int timeOut, ResultHandler resultHandler)
+			throws IOException {
 		URL url = new URL(fileURL);
 
 		URLConnection urlConnection = url.openConnection();
 		urlConnection.setRequestProperty("User-Agent", getAgentString());
 		addAuthHeaderIfNeeded(urlConnection);
 
-		HttpURLConnection httpConn = null;
-
-		String fileName = "";
-
-		if (urlConnection instanceof HttpURLConnection) {
-			int responseCode;
-			int redirects = 0;
-			while (true) {
-				httpConn = (HttpURLConnection) urlConnection;
-				httpConn.setInstanceFollowRedirects(false);
-				if (timeOut >= 0) {
-					httpConn.setConnectTimeout(timeOut);
-					httpConn.setReadTimeout(timeOut);
-				}
-				responseCode = httpConn.getResponseCode();
-				if (responseCode == HttpURLConnection.HTTP_MOVED_PERM ||
-						responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
-						responseCode == 307 /* TEMP REDIRECT */) {
-					if (redirects++ > 8) {
-						throw new IOException("Too many redirects");
+		try {
+			String fileName = "";
+			if (urlConnection instanceof HttpURLConnection) {
+				HttpURLConnection httpConn = handleRedirects((HttpURLConnection) urlConnection, method, timeOut);
+				int responseCode = httpConn.getResponseCode();
+				// always check HTTP response code first
+				if (responseCode == HttpURLConnection.HTTP_OK) {
+					String disposition = httpConn.getHeaderField("Content-Disposition");
+					if (disposition != null) {
+						// extracts file name from header field
+						fileName = getDispositionFilename(disposition);
+					} else {
+						// obtain the final URL (after redirects)
+						fileURL = httpConn.getURL().toExternalForm();
 					}
-					String location = httpConn.getHeaderField("Location");
-					url = new URL(url, location);
-					url = new URL(swizzleURL(url.toString()));
-					fileURL = url.toExternalForm();
-					Util.verboseMsg("Redirected to: " + url); // Should be debug info
-					urlConnection = url.openConnection();
-					continue;
+					if (isBlankString(fileName)) {
+						// extracts file name from URL if nothing found
+						int p = fileURL.indexOf("?");
+						fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1, p > 0 ? p : fileURL.length());
+					}
+					urlConnection = httpConn;
+				} else {
+					throw new FileNotFoundException(
+							"No file to download at " + fileURL + ". Server replied HTTP code: " + responseCode);
 				}
-				break;
-			}
-
-			// always check HTTP response code first
-			if (responseCode == HttpURLConnection.HTTP_OK) {
-				String disposition = httpConn.getHeaderField("Content-Disposition");
-				// String contentType = httpConn.getContentType();
-				// int contentLength = httpConn.getContentLength();
-
-				if (disposition != null) {
-					// extracts file name from header field
-					fileName = getDispositionFilename(disposition);
-				}
-
-				if (isBlankString(fileName)) {
-					// extracts file name from URL if nothing found
-					fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1);
-				}
-
-				/*
-				 * System.out.println("Content-Type = " + contentType);
-				 * System.out.println("Content-Disposition = " + disposition);
-				 * System.out.println("Content-Length = " + contentLength);
-				 * System.out.println("fileName = " + fileName);
-				 */
-
 			} else {
-				throw new FileNotFoundException(
-						"No file to download at " + fileURL + ". Server replied HTTP code: " + responseCode);
+				fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1);
 			}
-		} else {
-			fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1);
+
+			Path saveFilePath = saveDir.resolve(fileName);
+
+			saveFilePath = resultHandler.handle(urlConnection, saveFilePath);
+
+			return saveFilePath;
+		} finally {
+			if (urlConnection instanceof HttpURLConnection) {
+				((HttpURLConnection) urlConnection).disconnect();
+			}
 		}
+	}
 
-		// copy content from connection to file
-		saveDir.mkdirs();
-		Path saveFilePath = saveDir.toPath().resolve(fileName);
-		try (ReadableByteChannel readableByteChannel = Channels.newChannel(urlConnection.getInputStream());
-				FileOutputStream fileOutputStream = new FileOutputStream(saveFilePath.toFile())) {
-			fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+	private interface ResultHandler {
+		Path handle(URLConnection urlConnection, Path path) throws IOException;
+	}
+
+	private static HttpURLConnection handleRedirects(HttpURLConnection httpConn, String method, int timeOut)
+			throws IOException {
+		int responseCode;
+		int redirects = 0;
+		while (true) {
+			httpConn.setRequestMethod(method);
+			httpConn.setInstanceFollowRedirects(false);
+			if (timeOut >= 0) {
+				httpConn.setConnectTimeout(timeOut);
+				httpConn.setReadTimeout(timeOut);
+			}
+			responseCode = httpConn.getResponseCode();
+			if (responseCode == HttpURLConnection.HTTP_MOVED_PERM ||
+					responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
+					responseCode == 307 /* TEMP REDIRECT */) {
+				if (redirects++ > 8) {
+					throw new IOException("Too many redirects");
+				}
+				String location = httpConn.getHeaderField("Location");
+				URL url = new URL(httpConn.getURL(), location);
+				url = new URL(swizzleURL(url.toString()));
+				Util.verboseMsg("Redirected to: " + url); // Should be debug info
+				httpConn = (HttpURLConnection) url.openConnection();
+				continue;
+			}
+			break;
 		}
-
-		if (httpConn != null)
-			httpConn.disconnect();
-
-		Util.verboseMsg(String.format("Downloaded file %s", fileURL));
-
-		return saveFilePath;
-
+		return httpConn;
 	}
 
 	private static void addAuthHeaderIfNeeded(URLConnection urlConnection) {
@@ -784,79 +963,11 @@ public class Util {
 	 */
 	public static boolean isFileCached(String fileURL) throws IOException {
 		Path urlCache = Util.getUrlCache(fileURL);
-		Path file = getFirstFile(urlCache);
+		Path file = getCachedFile(urlCache);
 		return ((!Util.isFresh() || Util.isOffline()) && file != null);
 	}
 
-	/**
-	 * Either retrieves a previously downloaded file from the cache or downloads a
-	 * file from a URL and stores it in the cache. NB: The last part of the URL must
-	 * contain the name of the file to be downloaded!
-	 *
-	 * @param fileURL HTTP URL of the file to be downloaded
-	 * @return Path to the downloaded file
-	 * @throws IOException
-	 */
-	public static Path downloadAndCacheFile(String fileURL) throws IOException {
-		Path urlCache = Util.getUrlCache(fileURL);
-		Path file = getFirstFile(urlCache);
-		if ((Util.isFresh() && !Util.isOffline()) || file == null) {
-			return downloadFileAndCache(fileURL, urlCache);
-		} else {
-			Util.verboseMsg(String.format("Retrieved file from cache %s = %s", fileURL, file));
-			return urlCache.resolve(file);
-		}
-	}
-
-	/**
-	 * Downloads a file from a URL and stores it in the cache. NB: The last part of
-	 * the URL must contain the name of the file to be downloaded!
-	 *
-	 * @param fileURL HTTP URL of the file to be downloaded
-	 * @return Path to the downloaded file
-	 * @throws IOException
-	 */
-	public static Path downloadFileToCache(String fileURL) throws IOException {
-		Path urlCache = Util.getUrlCache(fileURL);
-		return downloadFileAndCache(fileURL, urlCache);
-	}
-
-	private static Path downloadFileAndCache(String fileURL, Path urlCache) throws IOException {
-		// create a temp directory for the downloaded content
-		Path saveTmpDir = urlCache.getParent().resolve(urlCache.getFileName() + ".tmp");
-		Path saveOldDir = urlCache.getParent().resolve(urlCache.getFileName() + ".old");
-		try {
-			Util.deletePath(saveTmpDir, true);
-			Util.deletePath(saveOldDir, true);
-
-			Path saveFilePath = downloadFile(fileURL, saveTmpDir.toFile());
-
-			// temporarily save the old content
-			if (Files.isDirectory(urlCache)) {
-				Files.move(urlCache, saveOldDir);
-			}
-			// rename the folder to its final name
-			Files.move(saveTmpDir, urlCache);
-			// remove any old content
-			Util.deletePath(saveOldDir, true);
-
-			return urlCache.resolve(saveFilePath.getFileName());
-		} catch (Throwable th) {
-			// remove the temp folder if anything went wrong
-			Util.deletePath(saveTmpDir, true);
-			// and move the old content back if it exists
-			if (!Files.isDirectory(urlCache) && Files.isDirectory(saveOldDir)) {
-				try {
-					Files.move(saveOldDir, urlCache);
-				} catch (IOException ex) {
-					// Ignore
-				}
-			}
-			throw th;
-		}
-	}
-
-	private static Path getFirstFile(Path dir) throws IOException {
+	private static Path getCachedFile(Path dir) throws IOException {
 		if (Files.isDirectory(dir)) {
 			try (Stream<Path> files = Files.list(dir)) {
 				return files.findFirst().orElse(null);
