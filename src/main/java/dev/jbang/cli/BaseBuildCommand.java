@@ -6,7 +6,6 @@ import java.io.PrintStream;
 import java.nio.file.Path;
 
 import dev.jbang.source.*;
-import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 
@@ -49,7 +48,6 @@ public abstract class BaseBuildCommand extends BaseCommand {
 								.compileOptions(buildMixin.compileOptions)
 								.nativeImage(nativeMixin.nativeImage)
 								.nativeOptions(nativeMixin.nativeOptions)
-								.buildDir(buildDir)
-								.skipMetadataImport(Util.isFresh());
+								.buildDir(buildDir);
 	}
 }

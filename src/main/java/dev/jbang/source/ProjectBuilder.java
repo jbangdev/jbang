@@ -63,7 +63,6 @@ public class ProjectBuilder {
 	private String debugString;
 	private Boolean classDataSharing;
 	private Path buildDir;
-	private boolean skipMetadataImport;
 
 	public static ProjectBuilder create() {
 		return new ProjectBuilder();
@@ -235,11 +234,6 @@ public class ProjectBuilder {
 		return this;
 	}
 
-	public ProjectBuilder skipMetadataImport(boolean skipMetadataImport) {
-		this.skipMetadataImport = skipMetadataImport;
-		return this;
-	}
-
 	private Properties getContextProperties() {
 		if (contextProperties == null) {
 			contextProperties = getContextProperties(properties);
@@ -361,20 +355,11 @@ public class ProjectBuilder {
 			}
 		}
 
-		if (!skipMetadataImport) {
-			return importJarMetadata(updateProject(prj));
-		} else {
-			return updateProject(prj);
-		}
+		return updateProject(prj);
 	}
 
 	private Project createSourceProject(ResourceRef resourceRef) {
-		Project prj = createSource(resourceRef).createProject(getResourceResolver());
-		if (!skipMetadataImport) {
-			return importJarMetadata(updateProject(prj));
-		} else {
-			return updateProject(prj);
-		}
+		return updateProject(createSource(resourceRef).createProject(getResourceResolver()));
 	}
 
 	private Source createSource(ResourceRef resourceRef) {
@@ -385,7 +370,6 @@ public class ProjectBuilder {
 
 	private Project importJarMetadata(Project prj) {
 		ResourceRef resourceRef = prj.getResourceRef();
-		prj.setCacheDir(buildDir);
 		Path jar = prj.getJarFile();
 		if (jar != null && Files.exists(jar)) {
 			try (JarFile jf = new JarFile(jar.toFile())) {
@@ -413,12 +397,6 @@ public class ProjectBuilder {
 						Util.verboseMsg("Unable to read the JAR's pom.xml file", e);
 					}
 				}
-
-				// TODO should be removed
-				// String val = attrs.getValue(BaseBuilder.ATTR_JBANG_JAVA_OPTIONS);
-				// if (val != null) {
-				// prj.addRuntimeOptions(Project.quotedStringToList(val));
-				// }
 
 				String ver = attrs.getValue(JarBuildStep.ATTR_BUILD_JDK);
 				if (ver != null) {
@@ -496,6 +474,7 @@ public class ProjectBuilder {
 		if (nativeImage != null) {
 			prj.setNativeImage(nativeImage);
 		}
+		prj.setCacheDir(buildDir);
 		prj.setCmdGeneratorFactory(() -> createCmdGenerator(prj));
 		return prj;
 	}

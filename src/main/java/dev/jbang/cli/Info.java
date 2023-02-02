@@ -22,7 +22,6 @@ import dev.jbang.net.JdkManager;
 import dev.jbang.net.JdkProvider;
 import dev.jbang.source.*;
 import dev.jbang.util.JavaUtil;
-import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 
@@ -119,10 +118,6 @@ abstract class BaseInfoCommand extends BaseCommand {
 						resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 					}
 
-					// TODO remove if everything okay
-					// if (prj.isJar() && prj.getBuildJdk() > 0) {
-					// javaVersion = Integer.toString(prj.getBuildJdk());
-					// }
 					if (prj.getJavaVersion() != null) {
 						javaVersion = Integer.toString(JavaUtil.parseJavaVersion(prj.getJavaVersion()));
 					}
@@ -130,6 +125,12 @@ abstract class BaseInfoCommand extends BaseCommand {
 					List<String> opts = prj.getRuntimeOptions();
 					if (!opts.isEmpty()) {
 						runtimeOptions = opts;
+					}
+
+					if (prj.getJarFile() != null && Files.exists(prj.getJarFile())) {
+						Project jarProject = ProjectBuilder.create().build(prj.getJarFile());
+						mainClass = jarProject.getMainClass();
+						gav = jarProject.getGav().orElse(gav);
 					}
 				}
 			}
@@ -207,8 +208,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 								.additionalResources(scriptMixin.resources)
 								.forceType(scriptMixin.forceType)
 								.catalog(scriptMixin.catalog)
-								.buildDir(buildDir)
-								.skipMetadataImport(Util.isFresh());
+								.buildDir(buildDir);
 	}
 
 }
