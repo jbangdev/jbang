@@ -43,6 +43,8 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     name: build-and-testing
     steps:
+      - name: Rate limit info
+        run: 'curl -H "Accept: application/vnd.github+json" https://api.github.com/rate_limit'
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
