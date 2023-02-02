@@ -40,12 +40,15 @@ public class Jdk {
 			@CommandLine.Parameters(paramLabel = "existingJdkPath", index = "1", description = "Pre installed JDK path", arity = "0..1") String path)
 			throws IOException {
 		jdkProvidersMixin.initJdkProviders();
-		JdkProvider.Jdk jdk = !force ? JdkManager.getInstalledJdk(versionOrId, false) : null;
+		JdkProvider.Jdk jdk = JdkManager.getInstalledJdk(versionOrId, true);
 		if (force || jdk == null) {
 			if (!Util.isNullOrBlankString(path)) {
 				JdkManager.linkToExistingJdk(path, Integer.parseInt(versionOrId));
 			} else {
-				JdkManager.getOrInstallJdk(versionOrId);
+				if (jdk == null) {
+					jdk = JdkManager.getJdk(versionOrId, true);
+				}
+				jdk.install();
 			}
 		} else {
 			Util.infoMsg("JDK is already installed: " + jdk);
