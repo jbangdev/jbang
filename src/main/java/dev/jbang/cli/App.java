@@ -436,6 +436,7 @@ class AppSetup extends BaseCommand {
 			Util.infoMsg("Setting up JBang environment...");
 		} else if (chatty) {
 			Util.infoMsg("JBang environment is already set up.");
+			Util.infoMsg("(You can use --force to perform the setup anyway)");
 		}
 		if (Util.getShell() == Util.Shell.bash) {
 			if (changed) {
