@@ -52,12 +52,12 @@ public class JBangJdkProvider extends BaseFoldersJdkProvider {
 			};
 			String distro = Util.getVendor();
 			if (distro == null) {
-				VersionsResponse res = Util.readJsonFromURL(getVersionsUrl("temurin"), null, VersionsResponse.class);
+				VersionsResponse res = Util.readJsonFromURL(getVersionsUrl("temurin"), VersionsResponse.class);
 				res.result.get(0).versions.forEach(addJdk);
-				res = Util.readJsonFromURL(getVersionsUrl("aoj"), null, VersionsResponse.class);
+				res = Util.readJsonFromURL(getVersionsUrl("aoj"), VersionsResponse.class);
 				res.result.get(0).versions.forEach(addJdk);
 			} else {
-				VersionsResponse res = Util.readJsonFromURL(getVersionsUrl(distro), null, VersionsResponse.class);
+				VersionsResponse res = Util.readJsonFromURL(getVersionsUrl(distro), VersionsResponse.class);
 				res.result.get(0).versions.forEach(addJdk);
 			}
 			result.sort(Jdk::compareTo);
