@@ -126,7 +126,7 @@ public class JdkManager {
 				return getOrInstallJdkByVersion(JavaUtil.minRequestedVersion(versionOrId),
 						JavaUtil.isOpenVersion(versionOrId), false);
 			} else {
-				return getOrInstallJdkById(versionOrId);
+				return getOrInstallJdkById(versionOrId, false);
 			}
 		} else {
 			return getOrInstallJdkByVersion(0, true, false);
@@ -170,15 +170,16 @@ public class JdkManager {
 	 * the JDK being returned is actually installed. It will perform an installation
 	 * if necessary.
 	 *
-	 * @param requestedId The id of the JDK to return
+	 * @param requestedId   The id of the JDK to return
+	 * @param updatableOnly Only return JDKs from updatable providers or not
 	 * @return A <code>Jdk</code> object or <code>null</code>
 	 * @throws ExitException If no JDK could be found at all or if one failed to
 	 *                       install
 	 */
 	@Nonnull
-	private static JdkProvider.Jdk getOrInstallJdkById(@Nonnull String requestedId) {
+	private static JdkProvider.Jdk getOrInstallJdkById(@Nonnull String requestedId, boolean updatableOnly) {
 		Util.verboseMsg("Looking for JDK: " + requestedId);
-		JdkProvider.Jdk jdk = getJdkById(requestedId);
+		JdkProvider.Jdk jdk = getJdkById(requestedId, updatableOnly);
 		if (jdk == null) {
 			throw new ExitException(EXIT_UNEXPECTED_STATE,
 					"No suitable JDK was found for requested id: " + requestedId);
@@ -214,21 +215,22 @@ public class JdkManager {
 	 * that are currently _not_ installed. It will not cause any installs to be
 	 * performed. See <code>getOrInstallJdk()</code> for that.
 	 *
-	 * @param versionOrId A version pattern, id or <code>null</code>
+	 * @param versionOrId   A version pattern, id or <code>null</code>
+	 * @param updatableOnly Only return JDKs from updatable providers or not
 	 * @return A <code>Jdk</code> object or <code>null</code>
 	 * @throws ExitException If no JDK could be found at all
 	 */
 	@Nullable
-	public static JdkProvider.Jdk getJdk(@Nullable String versionOrId) {
+	public static JdkProvider.Jdk getJdk(@Nullable String versionOrId, boolean updatableOnly) {
 		if (versionOrId != null) {
 			if (JavaUtil.isRequestedVersion(versionOrId)) {
 				return getJdkByVersion(JavaUtil.minRequestedVersion(versionOrId), JavaUtil.isOpenVersion(versionOrId),
-						false);
+						updatableOnly);
 			} else {
-				return getJdkById(versionOrId);
+				return getJdkById(versionOrId, updatableOnly);
 			}
 		} else {
-			return getJdkByVersion(0, true, false);
+			return getJdkByVersion(0, true, updatableOnly);
 		}
 	}
 
@@ -267,13 +269,14 @@ public class JdkManager {
 	 * for JDKs that are currently _not_ installed. It will not cause any installs
 	 * to be performed. See <code>getOrInstallJdkByVersion()</code> for that.
 	 *
-	 * @param requestedId The id of the JDK to return
+	 * @param requestedId   The id of the JDK to return
+	 * @param updatableOnly Only return JDKs from updatable providers or not
 	 * @return A <code>Jdk</code> object or <code>null</code>
 	 * @throws ExitException If no JDK could be found at all
 	 */
 	@Nullable
-	private static JdkProvider.Jdk getJdkById(@Nonnull String requestedId) {
-		JdkProvider.Jdk jdk = getInstalledJdkById(requestedId, false);
+	private static JdkProvider.Jdk getJdkById(@Nonnull String requestedId, boolean updatableOnly) {
+		JdkProvider.Jdk jdk = getInstalledJdkById(requestedId, updatableOnly);
 		if (jdk == null) {
 			jdk = getAvailableJdkById(requestedId);
 		}
