@@ -148,6 +148,7 @@ public class JdkManager {
 	@Nonnull
 	private static JdkProvider.Jdk getOrInstallJdkByVersion(int requestedVersion, boolean openVersion,
 			boolean updatableOnly) {
+		Util.verboseMsg("Looking for JDK: " + requestedVersion);
 		JdkProvider.Jdk jdk = getJdkByVersion(requestedVersion, openVersion, updatableOnly);
 		if (jdk == null) {
 			if (requestedVersion > 0) {
@@ -176,6 +177,7 @@ public class JdkManager {
 	 */
 	@Nonnull
 	private static JdkProvider.Jdk getOrInstallJdkById(@Nonnull String requestedId) {
+		Util.verboseMsg("Looking for JDK: " + requestedId);
 		JdkProvider.Jdk jdk = getJdkById(requestedId);
 		if (jdk == null) {
 			throw new ExitException(EXIT_UNEXPECTED_STATE,

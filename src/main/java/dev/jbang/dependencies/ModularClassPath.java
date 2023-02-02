@@ -155,4 +155,9 @@ public class ModularClassPath {
 	public boolean isValid() {
 		return artifacts.stream().allMatch(ArtifactInfo::isUpToDate);
 	}
+
+	@Override
+	public String toString() {
+		return artifacts.stream().map(ArtifactInfo::toString).collect(Collectors.joining(", "));
+	}
 }

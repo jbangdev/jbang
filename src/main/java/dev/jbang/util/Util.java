@@ -31,6 +31,9 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
@@ -80,6 +83,7 @@ public class Util {
 
 	private static Path cwd;
 	private static Boolean downloadSources;
+	private static Instant startTime = Instant.now();
 
 	public static void setVerbose(boolean verbose) {
 		Util.verbose = verbose;
@@ -357,14 +361,14 @@ public class Util {
 
 	static public void verboseMsg(String msg) {
 		if (isVerbose()) {
-			System.err.print("[jbang] ");
+			System.err.print(getMsgHeader());
 			System.err.println(msg);
 		}
 	}
 
 	static public void verboseMsg(String msg, Throwable e) {
 		if (isVerbose()) {
-			System.err.print("[jbang] ");
+			System.err.print(getMsgHeader());
 			System.err.println(msg);
 			e.printStackTrace();
 		}
@@ -372,37 +376,28 @@ public class Util {
 
 	static public void infoMsg(String msg) {
 		if (!isQuiet()) {
-			System.err.print("[jbang] ");
+			System.err.print(getMsgHeader());
 			System.err.println(msg);
-		}
-	}
-
-	static public void infoHeader() {
-		if (!isQuiet()) {
-			System.err.print("[jbang] ");
-		}
-	}
-
-	static public void infoMsgFmt(String fmt, Object... args) {
-		if (!isQuiet()) {
-			System.err.printf(fmt, args);
 		}
 	}
 
 	static public void warnMsg(String msg) {
 		if (!isQuiet()) {
-			System.err.print("[jbang] [WARN] ");
+			System.err.print(getMsgHeader());
+			System.err.print("[WARN] ");
 			System.err.println(msg);
 		}
 	}
 
 	static public void errorMsg(String msg) {
-		System.err.print("[jbang] [ERROR] ");
+		System.err.print(getMsgHeader());
+		System.err.print("[ERROR] ");
 		System.err.println(msg);
 	}
 
 	static public void errorMsg(String msg, Throwable e) {
-		System.err.print("[jbang] [ERROR] ");
+		System.err.print(getMsgHeader());
+		System.err.print("[ERROR] ");
 		if (msg != null) {
 			System.err.println(msg);
 		} else if (e.getMessage() != null) {
@@ -417,6 +412,17 @@ public class Util {
 				infoMsg(e.getMessage());
 			}
 			infoMsg("Run with --verbose for more details");
+		}
+	}
+
+	static public String getMsgHeader() {
+		if (isVerbose()) {
+			Duration d = Duration.between(startTime, Instant.now());
+			long s = d.getSeconds();
+			long n = d.minus(s, ChronoUnit.SECONDS).toMillis();
+			return String.format("[jbang] [%d:%03d] ", s, n);
+		} else {
+			return "[jbang] ";
 		}
 	}
 
