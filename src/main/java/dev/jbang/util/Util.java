@@ -635,8 +635,7 @@ public class Util {
 	 * @return Path to the downloaded file
 	 * @throws IOException
 	 */
-	public static Path downloadFile(String fileURL, File saveDir, int timeOut)
-			throws IOException {
+	public static Path downloadFile(String fileURL, File saveDir, int timeOut) throws IOException {
 		if (Util.isOffline()) {
 			throw new FileNotFoundException("jbang is in offline mode, no remote access permitted");
 		}
@@ -728,12 +727,20 @@ public class Util {
 	}
 
 	private static void addAuthHeaderIfNeeded(URLConnection urlConnection) {
-		String username = System.getenv(JBANG_AUTH_BASIC_USERNAME);
-		String password = System.getenv(JBANG_AUTH_BASIC_PASSWORD);
-		if (username != null && password != null) {
-			String auth = username + ":" + password;
-			String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
-			urlConnection.setRequestProperty("Authorization", "Basic " + encodedAuth);
+		String auth = null;
+		if (urlConnection.getURL().getHost().endsWith("github.com") && System.getenv().containsKey("GITHUB_TOKEN")) {
+			auth = "token " + System.getenv("GITHUB_TOKEN");
+		} else {
+			String username = System.getenv(JBANG_AUTH_BASIC_USERNAME);
+			String password = System.getenv(JBANG_AUTH_BASIC_PASSWORD);
+			if (username != null && password != null) {
+				String id = username + ":" + password;
+				String encodedId = Base64.getEncoder().encodeToString(id.getBytes(StandardCharsets.UTF_8));
+				auth = "Basic " + encodedId;
+			}
+		}
+		if (auth != null) {
+			urlConnection.setRequestProperty("Authorization", auth);
 		}
 	}
 
@@ -1006,7 +1013,7 @@ public class Util {
 		Util.verboseMsg("Gist url api: " + gistapi);
 		Gist gist = null;
 		try {
-			gist = readJsonFromURL(gistapi, getGitHubHeaders(), Gist.class);
+			gist = readJsonFromURL(gistapi, Gist.class);
 		} catch (IOException e) {
 			Util.verboseMsg("Error when extracting file from gist url.");
 			throw new IllegalStateException(e);
@@ -1040,14 +1047,6 @@ public class Util {
 		return rawURL;
 	}
 
-	private static Map<String, String> getGitHubHeaders() {
-		if (System.getenv().containsKey("GITHUB_TOKEN")) {
-			return Collections.singletonMap("Authorization", "token " + System.getenv("GITHUB_TOKEN"));
-		} else {
-			return Collections.emptyMap();
-		}
-	}
-
 	private static String getFileNameFromGistURL(String url) {
 		StringBuilder fileName = new StringBuilder();
 		String[] pathPlusAnchor = url.split("#");
@@ -1062,28 +1061,12 @@ public class Util {
 		return fileName.toString();
 	}
 
-	public static String readStringFromURL(String requestURL, Map<String, String> headers) throws IOException {
-		verboseMsg("Reading information from: " + requestURL);
-		URLConnection connection = new URL(requestURL).openConnection();
-		if (headers != null) {
-			headers.forEach(connection::setRequestProperty);
+	public static <T> T readJsonFromURL(String requestURL, Class<T> type) throws IOException {
+		Path jsonFile = downloadAndCacheFile(requestURL);
+		try (BufferedReader rdr = Files.newBufferedReader(jsonFile, StandardCharsets.UTF_8)) {
+			Gson parser = new Gson();
+			return parser.fromJson(rdr, type);
 		}
-		try (Scanner scanner = new Scanner(connection.getInputStream(),
-				StandardCharsets.UTF_8.toString())) {
-			scanner.useDelimiter("\\A");
-			return scanner.hasNext() ? scanner.next() : "";
-		}
-	}
-
-	public static <T> T readJsonFromURL(String requestURL, Map<String, String> headers, Class<T> type)
-			throws IOException {
-		verboseMsg("Reading JSON from: " + requestURL);
-		URLConnection connection = new URL(requestURL).openConnection();
-		if (headers != null) {
-			headers.forEach(connection::setRequestProperty);
-		}
-		Gson parser = new Gson();
-		return parser.fromJson(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8), type);
 	}
 
 	public static String repeat(String s, int times) {
