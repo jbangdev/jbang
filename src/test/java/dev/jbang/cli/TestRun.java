@@ -967,8 +967,7 @@ public class TestRun extends BaseTest {
 
 		String u = Util.swizzleURL("https://gist.github.com/maxandersen/590b8a0e824faeb3ee7ddfad741ce842");
 
-		Path x = Util.downloadFile(u,
-				dir.toFile());
+		Path x = Util.downloadFile(u, dir);
 		assertEquals(x.getFileName().toString(), "checklabeler.java");
 	}
 
@@ -978,7 +977,7 @@ public class TestRun extends BaseTest {
 		String u = Util.swizzleURL(
 				"https://gist.github.com/tivrfoa/503c88fb5123b1000c37a3f2832d4773#file-file2-java");
 
-		Path x = Util.downloadFile(u, dir.toFile());
+		Path x = Util.downloadFile(u, dir);
 		assertEquals(x.getFileName().toString(), "file2.java");
 	}
 
@@ -988,7 +987,7 @@ public class TestRun extends BaseTest {
 		String u = Util.swizzleURL(
 				"https://gist.github.com/tivrfoa/503c88fb5123b1000c37a3f2832d4773#file-dash-test-java");
 
-		Path x = Util.downloadFile(u, dir.toFile());
+		Path x = Util.downloadFile(u, dir);
 		assertEquals(x.getFileName().toString(), "dash-test.java");
 	}
 
@@ -1012,8 +1011,7 @@ public class TestRun extends BaseTest {
 
 		String u = Util.swizzleURL("https://gist.github.com/maxandersen/d4fa63eb16d8fc99448d37b10c7d8980");
 
-		Path x = Util.downloadFile(u,
-				dir.toFile());
+		Path x = Util.downloadFile(u, dir);
 		assertEquals(x.getFileName().toString(), "hello.jsh");
 	}
 
@@ -1023,8 +1021,7 @@ public class TestRun extends BaseTest {
 		String u = Util.swizzleURL(
 				"https://gist.github.com/tivrfoa/503c88fb5123b1000c37a3f2832d4773#file-file3-jsh");
 
-		Path x = Util.downloadFile(u,
-				dir.toFile());
+		Path x = Util.downloadFile(u, dir);
 		assertEquals(x.getFileName().toString(), "file3.jsh");
 	}
 
@@ -1034,7 +1031,7 @@ public class TestRun extends BaseTest {
 		String u = Util.swizzleURL(
 				"https://gist.github.com/tivrfoa/503c88fb5123b1000c37a3f2832d4773#file-java-shell-script-jsh");
 
-		Path x = Util.downloadFile(u, dir.toFile());
+		Path x = Util.downloadFile(u, dir);
 		assertEquals(x.getFileName().toString(), "java-shell-script.jsh");
 	}
 
@@ -1046,7 +1043,7 @@ public class TestRun extends BaseTest {
 	@Test
 	void testFetchFromRedirected(@TempDir Path dir) throws IOException {
 		String url = "https://git.io/JLyV8";
-		Path x = Util.swizzleContent(url, Util.downloadFile(url, dir.toFile()));
+		Path x = Util.swizzleContent(url, Util.downloadFile(url, dir));
 		assertEquals(x.getFileName().toString(), "helloworld.java");
 
 		String s = Util.readString(x);
@@ -1060,8 +1057,7 @@ public class TestRun extends BaseTest {
 
 		String u = Util.swizzleURL("https://gist.github.com/590b8a0e824faeb3ee7ddfad741ce842");
 
-		Path x = Util.downloadFile(u,
-				dir.toFile());
+		Path x = Util.downloadFile(u, dir);
 		assertEquals("checklabeler.java", x.getFileName().toString());
 	}
 
@@ -1088,7 +1084,7 @@ public class TestRun extends BaseTest {
 
 	private void verifyHello(String url, Path dir) throws IOException {
 		String u = Util.swizzleURL(url);
-		Path x = Util.swizzleContent(u, Util.downloadFile(u, dir.toFile()));
+		Path x = Util.swizzleContent(u, Util.downloadFile(u, dir));
 		assertEquals("hello.java", x.getFileName().toString());
 		String java = Util.readString(x);
 		assertThat(java, startsWith("//DEPS"));
@@ -1100,7 +1096,7 @@ public class TestRun extends BaseTest {
 	@Disabled("twitter stopped supporting non-javascript get")
 	void testTwitterjsh(@TempDir Path dir) throws IOException {
 		String u = Util.swizzleURL("https://twitter.com/maxandersen/status/1266904846239752192");
-		Path x = Util.swizzleContent(u, Util.downloadFile(u, dir.toFile()));
+		Path x = Util.swizzleContent(u, Util.downloadFile(u, dir));
 		assertEquals("1266904846239752192.jsh", x.getFileName().toString());
 		String java = Util.readString(x);
 		assertThat(java, startsWith("//DEPS"));
