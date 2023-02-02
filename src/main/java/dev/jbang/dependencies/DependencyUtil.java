@@ -47,13 +47,6 @@ public class DependencyUtil {
 	private DependencyUtil() {
 	}
 
-	/**
-	 *
-	 * @param deps
-	 * @param repos
-	 * @param loggingEnabled
-	 * @return string with resolved classpath
-	 */
 	public static ModularClassPath resolveDependencies(List<String> deps, List<MavenRepo> repos,
 			boolean offline, boolean updateCache, boolean loggingEnabled, boolean downloadSources) {
 
@@ -81,10 +74,6 @@ public class DependencyUtil {
 				repos.stream().map(m -> m.toString()).collect(Collectors.joining(", "))));
 
 		String depsHash = String.join(CP_SEPARATOR, depIds);
-		// if (!transitivity) { // the cached key need to be different for
-		// non-transivity
-		// depsHash = "notransitivity-" + depsHash;
-		// }
 
 		List<ArtifactInfo> cachedDeps = null;
 		if (!updateCache) {

@@ -289,8 +289,7 @@ public class Project {
 	 * be rebuilt
 	 */
 	public boolean isUpToDate() {
-		return getJarFile() != null && Files.exists(getJarFile())
-				&& updateDependencyResolver(new DependencyResolver()).resolve().isValid();
+		return getJarFile() != null && Files.exists(getJarFile()) && resolveClassPath().isValid();
 	}
 
 	/**
