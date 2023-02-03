@@ -87,6 +87,36 @@ public class Configuration {
 		return Objects.toString(get(key), defaultValue);
 	}
 
+	public Long getNumber(String key) {
+		String val = get(key);
+		if (key != null) {
+			try {
+				return Long.parseLong(val);
+			} catch (NumberFormatException ex) {
+				// Ignore
+			}
+		}
+		return null;
+	}
+
+	public long getNumber(String key, long defaultValue) {
+		Long val = getNumber(key);
+		return val != null ? val : defaultValue;
+	}
+
+	public Boolean getBoolean(String key) {
+		String val = get(key);
+		if (key != null) {
+			return Boolean.parseBoolean(val);
+		}
+		return null;
+	}
+
+	public boolean getBoolean(String key, boolean defaultValue) {
+		Boolean val = getBoolean(key);
+		return val != null ? val : defaultValue;
+	}
+
 	/**
 	 * Sets the given key to the given value in this Configuration. Passing `null`
 	 * as a value is the same as calling `remove()`.
