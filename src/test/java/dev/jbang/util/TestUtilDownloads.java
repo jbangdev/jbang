@@ -9,13 +9,20 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import com.github.tomakehurst.wiremock.matching.EqualToPattern;
+import com.github.tomakehurst.wiremock.matching.MatchResult;
+import com.github.tomakehurst.wiremock.matching.ValueMatcher;
 
 import dev.jbang.BaseTest;
 import dev.jbang.Configuration;
@@ -31,6 +38,8 @@ public class TestUtilDownloads extends BaseTest {
 	@Test
 	void test1ReqSimple(WireMockRuntimeInfo wmri) throws IOException {
 		stubFor(get(urlEqualTo("/test.txt"))
+											.andMatching(withoutHeader("If-None-Match"))
+											.andMatching(withoutHeader("If-Modified-Since"))
 											.willReturn(aResponse()
 																	.withHeader("Content-Type", "text/plain")
 																	.withBody("test")));
@@ -42,10 +51,49 @@ public class TestUtilDownloads extends BaseTest {
 	}
 
 	@Test
-	void test2ReqSimple(WireMockRuntimeInfo wmri) throws IOException {
+	void test2ReqSimple(WireMockRuntimeInfo wmri) throws IOException, InterruptedException {
 		UUID id = UUID.randomUUID();
-		stubFor(any(urlEqualTo("/test.txt"))
+		stubFor(get(urlEqualTo("/test.txt"))
 											.withId(id)
+											.andMatching(withoutHeader("If-None-Match"))
+											.andMatching(withoutHeader("If-Modified-Since"))
+											.willReturn(aResponse()
+																	.withHeader("Content-Type", "text/plain")
+																	.withBody("test")));
+
+		String url = wmri.getHttpBaseUrl() + "/test.txt";
+		Path file = Util.downloadAndCacheFile(url);
+		FileTime lmt = Files.getLastModifiedTime(file);
+		ZonedDateTime zlmt = ZonedDateTime.ofInstant(lmt.toInstant(), ZoneId.of("GMT"));
+		String cachedLastModified = DateTimeFormatter.RFC_1123_DATE_TIME.format(zlmt);
+		assertThat(file.toFile(), anExistingFile());
+		assertThat(Util.readString(file), is("test"));
+
+		Thread.sleep(1100);
+
+		editStub(get(urlEqualTo("/test.txt"))
+												.withId(id)
+												.andMatching(withoutHeader("If-None-Match"))
+												.withHeader("If-Modified-Since", new EqualToPattern(
+														cachedLastModified))
+												.willReturn(aResponse()
+																		.withHeader("Content-Type", "text/plain")
+																		.withBody("test2")));
+
+		Path file2 = Util.downloadAndCacheFile(url);
+		assertThat(file2.toFile(), anExistingFile());
+		assertThat(file2, equalTo(file));
+		assertThat(Files.getLastModifiedTime(file2), not(equalTo(lmt)));
+		assertThat(Util.readString(file2), is("test2"));
+	}
+
+	@Test
+	void test2ReqSimpleFresh(WireMockRuntimeInfo wmri) throws IOException, InterruptedException {
+		UUID id = UUID.randomUUID();
+		stubFor(get(urlEqualTo("/test.txt"))
+											.withId(id)
+											.andMatching(withoutHeader("If-None-Match"))
+											.andMatching(withoutHeader("If-Modified-Since"))
 											.willReturn(aResponse()
 																	.withHeader("Content-Type", "text/plain")
 																	.withBody("test")));
@@ -56,24 +104,33 @@ public class TestUtilDownloads extends BaseTest {
 		assertThat(file.toFile(), anExistingFile());
 		assertThat(Util.readString(file), is("test"));
 
-		editStub(any(urlEqualTo("/test.txt"))
+		Thread.sleep(1100);
+
+		editStub(get(urlEqualTo("/test.txt"))
 												.withId(id)
+												.andMatching(withoutHeader("If-None-Match"))
+												.andMatching(withoutHeader("If-Modified-Since"))
 												.willReturn(aResponse()
 																		.withHeader("Content-Type", "text/plain")
 																		.withBody("test2")));
 
-		Path file2 = Util.downloadAndCacheFile(url);
-		assertThat(file2.toFile(), anExistingFile());
-		assertThat(file2, equalTo(file));
-		assertThat(Files.getLastModifiedTime(file2), equalTo(lmt));
-		assertThat(Util.readString(file2), is("test"));
+		Util.freshly(() -> {
+			Path file2 = Util.downloadAndCacheFile(url);
+			assertThat(file2.toFile(), anExistingFile());
+			assertThat(file2, equalTo(file));
+			assertThat(Files.getLastModifiedTime(file2), not(equalTo(lmt)));
+			assertThat(Util.readString(file2), is("test2"));
+			return null;
+		});
 	}
 
 	@Test
 	void test2ReqWithLastModifiedSame(WireMockRuntimeInfo wmri) throws IOException {
 		UUID id = UUID.randomUUID();
-		stubFor(any(urlEqualTo("/test.txt"))
+		stubFor(get(urlEqualTo("/test.txt"))
 											.withId(id)
+											.andMatching(withoutHeader("If-None-Match"))
+											.andMatching(withoutHeader("If-Modified-Since"))
 											.willReturn(aResponse()
 																	.withHeader("Content-Type", "text/plain")
 																	.withHeader("Last-Modified",
@@ -83,12 +140,18 @@ public class TestUtilDownloads extends BaseTest {
 		String url = wmri.getHttpBaseUrl() + "/test.txt";
 		Path file = Util.downloadAndCacheFile(url);
 		FileTime lmt = Files.getLastModifiedTime(file);
+		ZonedDateTime zlmt = ZonedDateTime.ofInstant(lmt.toInstant(), ZoneId.of("GMT"));
+		String cachedLastModified = DateTimeFormatter.RFC_1123_DATE_TIME.format(zlmt);
 		assertThat(file.toFile(), anExistingFile());
 		assertThat(Util.readString(file), is("test"));
 
-		editStub(any(urlEqualTo("/test.txt"))
+		editStub(get(urlEqualTo("/test.txt"))
 												.withId(id)
+												.andMatching(withoutHeader("If-None-Match"))
+												.withHeader("If-Modified-Since", new EqualToPattern(
+														cachedLastModified))
 												.willReturn(aResponse()
+																		.withStatus(304)
 																		.withHeader("Content-Type", "text/plain")
 																		.withHeader("Last-Modified",
 																				"Thu, 02 Feb 2023 22:22:49 GMT")
@@ -97,15 +160,17 @@ public class TestUtilDownloads extends BaseTest {
 		Path file2 = Util.downloadAndCacheFile(url);
 		assertThat(file2.toFile(), anExistingFile());
 		assertThat(file2, equalTo(file));
-		assertThat(Files.getLastModifiedTime(file2), equalTo(lmt));
+		assertThat(Files.getLastModifiedTime(file2), greaterThanOrEqualTo(lmt));
 		assertThat(Util.readString(file2), is("test"));
 	}
 
 	@Test
-	void test2ReqWithLastModifiedUpdated(WireMockRuntimeInfo wmri) throws IOException {
+	void test2ReqWithLastModifiedUpdated(WireMockRuntimeInfo wmri) throws IOException, InterruptedException {
 		UUID id = UUID.randomUUID();
-		stubFor(any(urlEqualTo("/test.txt"))
+		stubFor(get(urlEqualTo("/test.txt"))
 											.withId(id)
+											.andMatching(withoutHeader("If-None-Match"))
+											.andMatching(withoutHeader("If-Modified-Since"))
 											.willReturn(aResponse()
 																	.withHeader("Content-Type", "text/plain")
 																	.withHeader("Last-Modified",
@@ -118,7 +183,9 @@ public class TestUtilDownloads extends BaseTest {
 		assertThat(file.toFile(), anExistingFile());
 		assertThat(Util.readString(file), is("test"));
 
-		editStub(any(urlEqualTo("/test.txt"))
+		Thread.sleep(1100);
+
+		editStub(get(urlEqualTo("/test.txt"))
 												.withId(id)
 												.willReturn(aResponse()
 																		.withHeader("Content-Type", "text/plain")
@@ -138,8 +205,10 @@ public class TestUtilDownloads extends BaseTest {
 		Configuration.instance().put("cache-evict", "never");
 
 		UUID id = UUID.randomUUID();
-		stubFor(any(urlEqualTo("/test.txt"))
+		stubFor(get(urlEqualTo("/test.txt"))
 											.withId(id)
+											.andMatching(withoutHeader("If-None-Match"))
+											.andMatching(withoutHeader("If-Modified-Since"))
 											.willReturn(aResponse()
 																	.withHeader("Content-Type", "text/plain")
 																	.withHeader("Last-Modified",
@@ -152,7 +221,7 @@ public class TestUtilDownloads extends BaseTest {
 		assertThat(file.toFile(), anExistingFile());
 		assertThat(Util.readString(file), is("test"));
 
-		editStub(any(urlEqualTo("/test.txt"))
+		editStub(get(urlEqualTo("/test.txt"))
 												.withId(id)
 												.willReturn(aResponse()
 																		.withHeader("Content-Type", "text/plain")
@@ -172,8 +241,10 @@ public class TestUtilDownloads extends BaseTest {
 		Configuration.instance().put("cache-evict", "1");
 
 		UUID id = UUID.randomUUID();
-		stubFor(any(urlEqualTo("/test.txt"))
+		stubFor(get(urlEqualTo("/test.txt"))
 											.withId(id)
+											.andMatching(withoutHeader("If-None-Match"))
+											.andMatching(withoutHeader("If-Modified-Since"))
 											.willReturn(aResponse()
 																	.withHeader("Content-Type", "text/plain")
 																	.withHeader("Last-Modified",
@@ -188,7 +259,7 @@ public class TestUtilDownloads extends BaseTest {
 
 		Thread.sleep(1100);
 
-		editStub(any(urlEqualTo("/test.txt"))
+		editStub(get(urlEqualTo("/test.txt"))
 												.withId(id)
 												.willReturn(aResponse()
 																		.withHeader("Content-Type", "text/plain")
@@ -208,8 +279,10 @@ public class TestUtilDownloads extends BaseTest {
 		Configuration.instance().put("cache-evict", "pt1s");
 
 		UUID id = UUID.randomUUID();
-		stubFor(any(urlEqualTo("/test.txt"))
+		stubFor(get(urlEqualTo("/test.txt"))
 											.withId(id)
+											.andMatching(withoutHeader("If-None-Match"))
+											.andMatching(withoutHeader("If-Modified-Since"))
 											.willReturn(aResponse()
 																	.withHeader("Content-Type", "text/plain")
 																	.withHeader("Last-Modified",
@@ -224,7 +297,7 @@ public class TestUtilDownloads extends BaseTest {
 
 		Thread.sleep(1100);
 
-		editStub(any(urlEqualTo("/test.txt"))
+		editStub(get(urlEqualTo("/test.txt"))
 												.withId(id)
 												.willReturn(aResponse()
 																		.withHeader("Content-Type", "text/plain")
@@ -237,6 +310,93 @@ public class TestUtilDownloads extends BaseTest {
 		assertThat(file2, equalTo(file));
 		assertThat(Files.getLastModifiedTime(file2), not(equalTo(lmt)));
 		assertThat(Util.readString(file2), is("test2"));
+	}
+
+	@Test
+	void test2ReqWithETagSame(WireMockRuntimeInfo wmri) throws IOException {
+		UUID id = UUID.randomUUID();
+		stubFor(get(urlEqualTo("/test.txt"))
+											.withId(id)
+											.andMatching(withoutHeader("If-None-Match"))
+											.andMatching(withoutHeader("If-Modified-Since"))
+											.willReturn(aResponse()
+																	.withHeader("Content-Type", "text/plain")
+																	.withHeader("ETag", "tag1")
+																	.withBody("test")));
+
+		String url = wmri.getHttpBaseUrl() + "/test.txt";
+		Path file = Util.downloadAndCacheFile(url);
+		FileTime lmt = Files.getLastModifiedTime(file);
+		ZonedDateTime zlmt = ZonedDateTime.ofInstant(lmt.toInstant(), ZoneId.of("GMT"));
+		String cachedLastModified = DateTimeFormatter.RFC_1123_DATE_TIME.format(zlmt);
+		assertThat(file.toFile(), anExistingFile());
+		assertThat(Util.readString(file), is("test"));
+		Path etag = Util.etagFile(file);
+		assertThat(etag.toFile(), anExistingFile());
+		assertThat(Util.readString(etag), is("tag1"));
+
+		editStub(get(urlEqualTo("/test.txt"))
+												.withId(id)
+												.withHeader("If-None-Match", new EqualToPattern("tag1"))
+												.withHeader("If-Modified-Since", new EqualToPattern(cachedLastModified))
+												.willReturn(aResponse()
+																		.withStatus(304)
+																		.withHeader("Content-Type", "text/plain")
+																		.withHeader("ETag", "tag1")
+																		.withBody("test2")));
+
+		Path file2 = Util.downloadAndCacheFile(url);
+		assertThat(file2.toFile(), anExistingFile());
+		assertThat(file2, equalTo(file));
+		assertThat(Files.getLastModifiedTime(file2), greaterThanOrEqualTo(lmt));
+		assertThat(Util.readString(file2), is("test"));
+		Path etag2 = Util.etagFile(file2);
+		assertThat(etag2.toFile(), anExistingFile());
+		assertThat(Util.readString(etag2), is("tag1"));
+	}
+
+	@Test
+	void test2ReqWithETagUpdated(WireMockRuntimeInfo wmri) throws IOException, InterruptedException {
+		UUID id = UUID.randomUUID();
+		stubFor(get(urlEqualTo("/test.txt"))
+											.withId(id)
+											.andMatching(withoutHeader("If-None-Match"))
+											.andMatching(withoutHeader("If-Modified-Since"))
+											.willReturn(aResponse()
+																	.withHeader("Content-Type", "text/plain")
+																	.withHeader("ETag", "tag1")
+																	.withBody("test")));
+
+		String url = wmri.getHttpBaseUrl() + "/test.txt";
+		Path file = Util.downloadAndCacheFile(url);
+		FileTime lmt = Files.getLastModifiedTime(file);
+		assertThat(file.toFile(), anExistingFile());
+		assertThat(Util.readString(file), is("test"));
+		Path etag = Util.etagFile(file);
+		assertThat(etag.toFile(), anExistingFile());
+		assertThat(Util.readString(etag), is("tag1"));
+
+		Thread.sleep(1100);
+
+		editStub(get(urlEqualTo("/test.txt"))
+												.withId(id)
+												.willReturn(aResponse()
+																		.withHeader("Content-Type", "text/plain")
+																		.withHeader("ETag", "tag2")
+																		.withBody("test2")));
+
+		Path file2 = Util.downloadAndCacheFile(url);
+		assertThat(file2.toFile(), anExistingFile());
+		assertThat(file2, equalTo(file));
+		assertThat(Files.getLastModifiedTime(file2), not(equalTo(lmt)));
+		assertThat(Util.readString(file2), is("test2"));
+		Path etag2 = Util.etagFile(file2);
+		assertThat(etag2.toFile(), anExistingFile());
+		assertThat(Util.readString(etag2), is("tag2"));
+	}
+
+	private static ValueMatcher<Request> withoutHeader(String hdr) {
+		return req -> MatchResult.of(!req.containsHeader(hdr));
 	}
 
 }
