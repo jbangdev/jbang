@@ -22,6 +22,16 @@ import picocli.CommandLine;
 		ConfigGet.class, ConfigSet.class, ConfigUnset.class, ConfigList.class
 })
 public class Config {
+
+	// IMPORTANT: These are options that can NOT be dynamically read from the
+	// PicoCLI configuration and have to maintained manually! Make sure to add
+	// an option for each configuration key that gets added!
+	static AvailableOption[] extraOptions = {
+			new AvailableOption(Settings.CONFIG_CACHE_EVICT,
+					"Time that locally cached files are kept before they are evicted. Can be a simple number in seconds, an ISO8601 Duration or the word 'never'"),
+			new AvailableOption(Settings.CONFIG_CONNECTION_TIMEOUT,
+					"The timeout in milliseconds that will be used for any remote connections")
+	};
 }
 
 abstract class BaseConfigCommand extends BaseCommand {
@@ -155,13 +165,17 @@ class ConfigList extends BaseConfigCommand {
 					"Options '--show-available' and '--show-origin' cannot be used together");
 		}
 		if (showAvailable) {
-			Set<String> keys = new HashSet<>();
-			gatherKeys(JBang.getCommandLine(), keys);
+			Set<AvailableOption> opts = new HashSet<>(Arrays.asList(Config.extraOptions));
+			gatherKeys(JBang.getCommandLine(), opts);
 			if (formatMixin.format == FormatMixin.Format.json) {
 				Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
-				parser.toJson(keys.stream().sorted().collect(Collectors.toList()), out);
+				parser.toJson(opts.stream().sorted().collect(Collectors.toList()), out);
 			} else {
-				keys.stream().sorted().forEach(key -> out.println(ConsoleOutput.yellow(key)));
+				opts.stream().sorted().forEach(opt -> {
+					out.print(ConsoleOutput.yellow(opt.key));
+					out.print(" = ");
+					out.println(opt.description);
+				});
 			}
 		} else {
 			Configuration cfg = getConfig(null, true);
@@ -174,12 +188,12 @@ class ConfigList extends BaseConfigCommand {
 		return EXIT_OK;
 	}
 
-	private void gatherKeys(CommandLine cmd, Set<String> keys) {
+	private void gatherKeys(CommandLine cmd, Set<AvailableOption> keys) {
 		for (CommandLine c : cmd.getCommandSpec().subcommands().values()) {
 			gatherKeys(c, keys);
 		}
 		for (CommandLine.Model.OptionSpec opt : cmd.getCommandSpec().options()) {
-			keys.add(JBang.argSpecKey(opt));
+			keys.add(new AvailableOption(JBang.argSpecKey(opt), String.join(" ", opt.description())));
 		}
 	}
 
@@ -231,5 +245,35 @@ class ConfigList extends BaseConfigCommand {
 				}
 			}
 		}
+	}
+}
+
+class AvailableOption implements Comparable<AvailableOption> {
+	final String key;
+	final String description;
+
+	public AvailableOption(String key, String description) {
+		this.key = key;
+		this.description = description;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		AvailableOption that = (AvailableOption) o;
+		return key.equals(that.key);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(key);
+	}
+
+	@Override
+	public int compareTo(AvailableOption o) {
+		return key.compareTo(o.key);
 	}
 }
