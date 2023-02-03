@@ -113,6 +113,7 @@ class CatalogUpdate extends BaseCatalogCommand {
 						Util.warnMsg("Unable to read catalog " + ref + " (referenced from "
 								+ e.getValue().catalog.catalogRef + ")");
 					}
+					return null;
 				});
 			});
 		return EXIT_OK;

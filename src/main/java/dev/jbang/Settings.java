@@ -3,6 +3,8 @@ package dev.jbang;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.format.DateTimeParseException;
 
 import dev.jbang.catalog.Catalog;
 import dev.jbang.util.Util;
@@ -26,6 +28,10 @@ public class Settings {
 	public static final int DEFAULT_ALPINE_JAVA_VERSION = 16;
 
 	final public static String CP_SEPARATOR = File.pathSeparator;
+
+	final public static String CONFIG_CONNECTION_TIMEOUT = "connection-timeout";
+
+	final public static String CONFIG_CACHE_EVICT = "cache-evict";
 
 	public static Path getLocalMavenRepo() {
 		return Paths.get(System	.getenv()
@@ -135,6 +141,31 @@ public class Settings {
 
 	public static Path getUserConfigFile() {
 		return getConfigDir().resolve(Configuration.JBANG_CONFIG_PROPS);
+	}
+
+	public static int getConnectionTimeout() {
+		return (int) Configuration.instance().getNumber(CONFIG_CONNECTION_TIMEOUT, -1);
+	}
+
+	public static long getCacheEvict() {
+		String val = Configuration.instance().get(CONFIG_CACHE_EVICT);
+		if ("never".equalsIgnoreCase(val)) {
+			return -1L;
+		} else if (val == null) {
+			return 0;
+		} else {
+			try {
+				// First try to parse as a simple number
+				return Long.parseLong(val);
+			} catch (NumberFormatException ex) {
+				try {
+					// If that failed try again using ISO8601 Duration format
+					return Duration.parse(val).getSeconds();
+				} catch (DateTimeParseException ex2) {
+					return 0;
+				}
+			}
+		}
 	}
 
 }

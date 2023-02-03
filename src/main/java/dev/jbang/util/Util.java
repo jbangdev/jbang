@@ -29,17 +29,19 @@ import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -55,7 +57,6 @@ import org.jsoup.nodes.Document;
 import com.google.gson.Gson;
 
 import dev.jbang.Cache;
-import dev.jbang.Configuration;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.cli.BaseCommand;
@@ -160,10 +161,12 @@ public class Util {
 		Util.cwd = cwd.toAbsolutePath().normalize();
 	}
 
-	public static void freshly(Runnable func) {
+	public static void freshly(Callable<Void> func) {
 		setFresh(true);
 		try {
-			func.run();
+			func.call();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		} finally {
 			setFresh(false);
 		}
@@ -241,22 +244,22 @@ public class Util {
 	 * treated as if it ended in "/**".
 	 */
 	public static List<String> explode(String source, Path baseDir, String filePattern) {
-		if (source != null && Util.isURL(source)) {
+		if (source != null && isURL(source)) {
 			// if url then just return it back for others to resolve.
 			// TODO: technically this is really where it should get resolved!
 			if (isPattern(filePattern)) {
-				Util.warnMsg("Pattern " + filePattern + " used while using URL to run; this could result in errors.");
+				warnMsg("Pattern " + filePattern + " used while using URL to run; this could result in errors.");
 				return Collections.emptyList();
 			} else {
 				return Collections.singletonList(filePattern);
 			}
-		} else if (Util.isURL(filePattern)) {
+		} else if (isURL(filePattern)) {
 			return Collections.singletonList(filePattern);
 		}
 
 		if (!isPattern(filePattern)) {
 			if (!Catalog.isValidCatalogReference(filePattern)
-					&& Util.isValidPath(filePattern) && Files.isDirectory(baseDir.resolve(filePattern))) {
+					&& isValidPath(filePattern) && Files.isDirectory(baseDir.resolve(filePattern))) {
 				// The filePattern refers to a folder, so let's add "/**"
 				if (!filePattern.endsWith("/") && !filePattern.endsWith(File.separator)) {
 					filePattern = filePattern + "/";
@@ -299,7 +302,7 @@ public class Util {
 							results.add(p.toString());
 						}
 					} else {
-						Util.verboseMsg("Warning: " + relpath + " matches but does not exist!");
+						verboseMsg("Warning: " + relpath + " matches but does not exist!");
 					}
 				}
 				return FileVisitResult.CONTINUE;
@@ -321,7 +324,7 @@ public class Util {
 		int p2 = path.indexOf('*');
 		int pp = p1 < 0 ? p2 : (p2 < 0 ? p1 : Math.min(p1, p2));
 		if (pp >= 0) {
-			String npath = Util.isWindows() ? path.replace('\\', '/') : path;
+			String npath = isWindows() ? path.replace('\\', '/') : path;
 			int ps = npath.lastIndexOf('/', pp);
 			if (ps >= 0) {
 				return Paths.get(path.substring(0, ps + 1));
@@ -478,7 +481,7 @@ public class Util {
 		} else if (os.startsWith("aix")) {
 			return OS.aix;
 		} else {
-			Util.verboseMsg("Unknown OS: " + os);
+			verboseMsg("Unknown OS: " + os);
 			return OS.unknown;
 		}
 	}
@@ -500,7 +503,7 @@ public class Util {
 		} else if (arch.matches("^(arm64)$")) {
 			return Arch.arm64;
 		} else {
-			Util.verboseMsg("Unknown Arch: " + arch);
+			verboseMsg("Unknown Arch: " + arch);
 			return Arch.unknown;
 		}
 	}
@@ -619,21 +622,19 @@ public class Util {
 
 	/**
 	 * Either retrieves a previously downloaded file from the cache or downloads a
-	 * file from a URL and stores it in the cache. NB: The last part of the URL must
-	 * contain the name of the file to be downloaded!
+	 * file from a URL and stores it in the cache.
 	 *
 	 * @param fileURL HTTP URL of the file to be downloaded
 	 * @return Path to the downloaded file
 	 * @throws IOException
 	 */
 	public static Path downloadAndCacheFile(String fileURL) throws IOException {
-		Path urlCache = Util.getUrlCache(fileURL);
+		Path urlCache = getUrlCache(fileURL);
 		Path cachedFile = getCachedFile(urlCache);
-		if (cachedFile == null
-				|| (Util.isEvicted(cachedFile) && !checkFileUpToDate(fileURL, urlCache, -1))) {
-			return downloadFileAndCache(fileURL, urlCache);
+		if (cachedFile == null || isEvicted(cachedFile)) {
+			return downloadFileAndCache(fileURL, urlCache, cachedFile);
 		} else {
-			Util.verboseMsg(String.format("Retrieved file from cache %s = %s", fileURL, cachedFile));
+			verboseMsg(String.format("Using cached file %s for remote %s", cachedFile, fileURL));
 			return urlCache.resolve(cachedFile);
 		}
 	}
@@ -643,29 +644,14 @@ public class Util {
 	// indicated by "cache-evict" (defaults to "0" which will
 	// cause this method to always return "true").
 	private static boolean isEvicted(Path cachedFile) {
-		if (Util.isOffline()) {
+		if (isOffline()) {
 			return false;
 		}
-		if (Util.isFresh()) {
+		if (isFresh()) {
 			return true;
 		}
 		if (Files.isRegularFile(cachedFile)) {
-			String cmaText = Configuration.instance().get("cache-evict", "0");
-			if (cmaText.equals("never")) {
-				return false;
-			}
-			long cma;
-			try {
-				// First try to parse as a simple number
-				cma = Long.parseLong(cmaText);
-			} catch (NumberFormatException ex) {
-				try {
-					// If that failed try again using ISO8601 Duration format
-					cma = Duration.parse(cmaText).getSeconds();
-				} catch (DateTimeParseException ex2) {
-					cma = 0;
-				}
-			}
+			long cma = Settings.getCacheEvict();
 			if (cma == 0) {
 				return true;
 			} else if (cma == -1) {
@@ -683,105 +669,18 @@ public class Util {
 		}
 	}
 
-	/**
-	 * Checks if a cached file is still up-to-date with the version from a URL
-	 *
-	 * @param fileURL HTTP URL of the cached file
-	 * @param saveDir path of the directory where the file was saved
-	 * @param timeOut the timeout in milliseconds to use for opening the connection.
-	 *                0 is an infinite timeout while -1 uses the defaults
-	 * @return boolean indicating if the cached file is up-to-date or not
-	 * @throws IOException
-	 */
-	public static boolean checkFileUpToDate(String fileURL, Path saveDir, int timeOut) throws IOException {
-		if (Util.isOffline()) {
-			return true;
-		}
-		if (Util.isFresh()) {
-			return false;
-		}
-		return connect(fileURL, saveDir, "HEAD", timeOut, (conn, file) -> {
-			if (Files.isRegularFile(file)) {
-				String lastModifiedText = conn.getHeaderField("Last-Modified");
-				if (lastModifiedText != null) {
-					try {
-						Instant remoteLastModified = ZonedDateTime.parse(lastModifiedText,
-								DateTimeFormatter.RFC_1123_DATE_TIME).toInstant();
-						Instant cachedLastModified = Files.getLastModifiedTime(file).toInstant();
-						if (remoteLastModified.isAfter(cachedLastModified)) {
-							file = null;
-						}
-						Util.verboseMsg(String.format("Cached file %s %s up-to-date with %s", file,
-								file != null ? "is" : "is NOT", conn.getURL().toExternalForm()));
-					} catch (DateTimeParseException ex) {
-						Util.verboseMsg(String.format(
-								"Last-Modified information (%s) could not be parsed for %s, we'll assume the cache is up-to-date",
-								lastModifiedText, conn.getURL().toExternalForm()));
-					}
-				} else {
-					Util.verboseMsg(String.format(
-							"No Last-Modified information provided for %s, we'll assume the cache is up-to-date",
-							conn.getURL().toExternalForm()));
-					if (conn.getHeaderField("ETag") != null) {
-						Util.verboseMsg(
-								"(NB: ETag information IS provided, perhaps we should consider implementing support for that!)");
-					}
-				}
-				return file;
-			} else {
-				Util.verboseMsg(String.format("No cached information found for %s, we need to update",
-						conn.getURL().toExternalForm()));
-				return null;
-			}
-		}) != null;
-	}
-
-	/**
-	 * Downloads a file from a URL and stores it in the cache. NB: The last part of
-	 * the URL must contain the name of the file to be downloaded!
-	 *
-	 * @param fileURL HTTP URL of the file to be downloaded
-	 * @return Path to the downloaded file
-	 * @throws IOException
-	 */
-	public static Path downloadFileToCache(String fileURL) throws IOException {
-		Path urlCache = Util.getUrlCache(fileURL);
-		return downloadFileAndCache(fileURL, urlCache);
-	}
-
-	private static Path downloadFileAndCache(String fileURL, Path urlCache) throws IOException {
-		// create a temp directory for the downloaded content
-		Path saveTmpDir = urlCache.getParent().resolve(urlCache.getFileName() + ".tmp");
-		Path saveOldDir = urlCache.getParent().resolve(urlCache.getFileName() + ".old");
-		try {
-			Util.deletePath(saveTmpDir, true);
-			Util.deletePath(saveOldDir, true);
-
-			Path saveFilePath = downloadFile(fileURL, saveTmpDir);
-
-			// temporarily save the old content
-			if (Files.isDirectory(urlCache)) {
-				Files.move(urlCache, saveOldDir);
-			}
-			// rename the folder to its final name
-			Files.move(saveTmpDir, urlCache);
-			// remove any old content
-			Util.deletePath(saveOldDir, true);
-
-			return urlCache.resolve(saveFilePath.getFileName());
-		} catch (Throwable th) {
-			// remove the temp folder if anything went wrong
-			Util.deletePath(saveTmpDir, true);
-			// and move the old content back if it exists
-			if (!Files.isDirectory(urlCache) && Files.isDirectory(saveOldDir)) {
-				try {
-					Files.move(saveOldDir, urlCache);
-				} catch (IOException ex) {
-					// Ignore
-				}
-			}
-			throw th;
-		}
+	private static Path downloadFileAndCache(String fileURL, Path urlCache, Path cachedFile) throws IOException {
+		ConnectionConfigurator cfg = ConnectionConfigurator.all(
+				ConnectionConfigurator.userAgent(),
+				ConnectionConfigurator.authentication(),
+				ConnectionConfigurator.timeout(null),
+				ConnectionConfigurator.cacheControl(cachedFile));
+		ResultHandler handler = ResultHandler.redirects(cfg,
+				ResultHandler.handleUnmodified(cachedFile,
+						ResultHandler.throwOnError(
+								ResultHandler.downloadToTempDir(urlCache,
+										ResultHandler::downloadTo))));
+		return connect(fileURL, cfg, handler);
 	}
 
 	/**
@@ -806,64 +705,45 @@ public class Util {
 	 * @return Path to the downloaded file
 	 * @throws IOException
 	 */
-	public static Path downloadFile(String fileURL, Path saveDir, int timeOut) throws IOException {
-		if (Util.isOffline()) {
-			throw new FileNotFoundException("jbang is in offline mode, no remote access permitted");
-		}
-		return connect(fileURL, saveDir, "GET", timeOut, (conn, file) -> {
-			// copy content from connection to file
-			Files.createDirectories(saveDir);
-			try (ReadableByteChannel readableByteChannel = Channels.newChannel(conn.getInputStream());
-					FileOutputStream fileOutputStream = new FileOutputStream(file.toFile())) {
-				fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
-			}
-			Util.verboseMsg(String.format("Downloaded file %s", conn.getURL().toExternalForm()));
-			return file;
-		});
+	public static Path downloadFile(String fileURL, Path saveDir, Integer timeOut) throws IOException {
+		ConnectionConfigurator cfg = ConnectionConfigurator.all(
+				ConnectionConfigurator.userAgent(),
+				ConnectionConfigurator.authentication(),
+				ConnectionConfigurator.timeout(timeOut));
+		ResultHandler handler = ResultHandler.redirects(cfg,
+				ResultHandler.throwOnError(
+						ResultHandler.downloadTo(saveDir)));
+		return connect(fileURL, cfg, handler);
 	}
 
-	private static Path connect(String fileURL, Path saveDir, String method, int timeOut, ResultHandler resultHandler)
-			throws IOException {
-		URL url = new URL(fileURL);
+	static Path etagFile(Path cachedFile) {
+		return cachedFile.getParent().resolve(cachedFile.getFileName() + ".etag");
+	}
 
+	private static String safeReadEtagFile(Path cachedFile) {
+		Path etag = etagFile(cachedFile);
+		if (Files.isRegularFile(etag)) {
+			try {
+				return readString(etag);
+			} catch (IOException e) {
+				// Ignore
+			}
+		}
+		return null;
+	}
+
+	private static Path connect(String fileURL, ConnectionConfigurator configurator, ResultHandler resultHandler)
+			throws IOException {
+		if (isOffline()) {
+			throw new FileNotFoundException("jbang is in offline mode, no remote access permitted");
+		}
+
+		URL url = new URL(fileURL);
 		URLConnection urlConnection = url.openConnection();
-		urlConnection.setRequestProperty("User-Agent", getAgentString());
-		addAuthHeaderIfNeeded(urlConnection);
+		configurator.configure(urlConnection);
 
 		try {
-			String fileName = "";
-			if (urlConnection instanceof HttpURLConnection) {
-				HttpURLConnection httpConn = handleRedirects((HttpURLConnection) urlConnection, method, timeOut);
-				int responseCode = httpConn.getResponseCode();
-				// always check HTTP response code first
-				if (responseCode == HttpURLConnection.HTTP_OK) {
-					String disposition = httpConn.getHeaderField("Content-Disposition");
-					if (disposition != null) {
-						// extracts file name from header field
-						fileName = getDispositionFilename(disposition);
-					} else {
-						// obtain the final URL (after redirects)
-						fileURL = httpConn.getURL().toExternalForm();
-					}
-					if (isBlankString(fileName)) {
-						// extracts file name from URL if nothing found
-						int p = fileURL.indexOf("?");
-						fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1, p > 0 ? p : fileURL.length());
-					}
-					urlConnection = httpConn;
-				} else {
-					throw new FileNotFoundException(
-							"No file to download at " + fileURL + ". Server replied HTTP code: " + responseCode);
-				}
-			} else {
-				fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1);
-			}
-
-			Path saveFilePath = saveDir.resolve(fileName);
-
-			saveFilePath = resultHandler.handle(urlConnection, saveFilePath);
-
-			return saveFilePath;
+			return resultHandler.handle(urlConnection);
 		} finally {
 			if (urlConnection instanceof HttpURLConnection) {
 				((HttpURLConnection) urlConnection).disconnect();
@@ -871,21 +751,206 @@ public class Util {
 		}
 	}
 
-	private interface ResultHandler {
-		Path handle(URLConnection urlConnection, Path path) throws IOException;
+	private interface ConnectionConfigurator {
+
+		void configure(URLConnection conn) throws IOException;
+
+		static ConnectionConfigurator all(ConnectionConfigurator... configurators) {
+			return conn -> {
+				for (ConnectionConfigurator c : configurators) {
+					c.configure(conn);
+				}
+			};
+		}
+
+		static ConnectionConfigurator userAgent() {
+			return conn -> {
+				conn.setRequestProperty("User-Agent", getAgentString());
+			};
+		}
+
+		static ConnectionConfigurator authentication() {
+			return Util::addAuthHeaderIfNeeded;
+		}
+
+		interface HttpConnectionConfigurator {
+			void configure(HttpURLConnection conn) throws IOException;
+		}
+
+		static ConnectionConfigurator forHttp(HttpConnectionConfigurator configurator) {
+			return conn -> {
+				if (conn instanceof HttpURLConnection) {
+					configurator.configure((HttpURLConnection) conn);
+				}
+			};
+		}
+
+		static ConnectionConfigurator timeout(Integer timeOut) {
+			return forHttp(conn -> {
+				int t = (timeOut != null) ? timeOut : Settings.getConnectionTimeout();
+				if (t >= 0) {
+					conn.setConnectTimeout(t);
+					conn.setReadTimeout(t);
+				}
+			});
+		}
+
+		static ConnectionConfigurator cacheControl(Path cachedFile) throws IOException {
+			if (cachedFile != null && !isFresh()) {
+				String cachedETag = safeReadEtagFile(cachedFile);
+				Instant lmt = Files.getLastModifiedTime(cachedFile).toInstant();
+				ZonedDateTime zlmt = ZonedDateTime.ofInstant(lmt, ZoneId.of("GMT"));
+				String cachedLastModified = DateTimeFormatter.RFC_1123_DATE_TIME.format(zlmt);
+				return conn -> {
+					if (cachedETag != null) {
+						conn.setRequestProperty("If-None-Match", cachedETag);
+					}
+					conn.setRequestProperty("If-Modified-Since", cachedLastModified);
+				};
+			} else {
+				return conn -> {
+				};
+			}
+		}
 	}
 
-	private static HttpURLConnection handleRedirects(HttpURLConnection httpConn, String method, int timeOut)
+	private interface ResultHandler {
+
+		Path handle(URLConnection urlConnection) throws IOException;
+
+		static ResultHandler redirects(ConnectionConfigurator configurator, ResultHandler okHandler) {
+			return conn -> {
+				if (conn instanceof HttpURLConnection) {
+					conn = handleRedirects((HttpURLConnection) conn, configurator);
+				}
+				return okHandler.handle(conn);
+			};
+		}
+
+		static ResultHandler throwOnError(ResultHandler okHandler) {
+			return conn -> {
+				if (conn instanceof HttpURLConnection) {
+					HttpURLConnection httpConn = (HttpURLConnection) conn;
+					int responseCode = httpConn.getResponseCode();
+					if (responseCode == HttpURLConnection.HTTP_NOT_MODIFIED) {
+						String fileURL = conn.getURL().toExternalForm();
+						throw new FileNotFoundException(
+								"No file to download at " + fileURL + ". Server replied HTTP code: " + responseCode);
+					}
+				}
+				return okHandler.handle(conn);
+			};
+		}
+
+		static ResultHandler downloadTo(Path saveDir) {
+			return (conn) -> {
+				// copy content from connection to file
+				String fileName = extractFileName(conn);
+				Path file = saveDir.resolve(fileName);
+				Files.createDirectories(saveDir);
+				try (ReadableByteChannel readableByteChannel = Channels.newChannel(conn.getInputStream());
+						FileOutputStream fileOutputStream = new FileOutputStream(file.toFile())) {
+					fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+				}
+				// create an .etag file if the information is present in the response headers
+				String etag = conn.getHeaderField("ETag");
+				if (etag != null) {
+					writeString(etagFile(file), etag);
+				}
+				verboseMsg(String.format("Downloaded file %s", conn.getURL().toExternalForm()));
+				return file;
+			};
+		}
+
+		static ResultHandler downloadToTempDir(Path saveDir, Function<Path, ResultHandler> downloader) {
+			return (conn) -> {
+				// create a temp directory for the downloaded content
+				Path saveTmpDir = saveDir.getParent().resolve(saveDir.getFileName() + ".tmp");
+				Path saveOldDir = saveDir.getParent().resolve(saveDir.getFileName() + ".old");
+				try {
+					deletePath(saveTmpDir, true);
+					deletePath(saveOldDir, true);
+
+					Path saveFilePath = downloader.apply(saveTmpDir).handle(conn);
+
+					// temporarily save the old content
+					if (Files.isDirectory(saveDir)) {
+						Files.move(saveDir, saveOldDir);
+					}
+					// rename the folder to its final name
+					Files.move(saveTmpDir, saveDir);
+					// remove any old content
+					deletePath(saveOldDir, true);
+
+					return saveDir.resolve(saveFilePath.getFileName());
+				} catch (Throwable th) {
+					// remove the temp folder if anything went wrong
+					deletePath(saveTmpDir, true);
+					// and move the old content back if it exists
+					if (!Files.isDirectory(saveDir) && Files.isDirectory(saveOldDir)) {
+						try {
+							Files.move(saveOldDir, saveDir);
+						} catch (IOException ex) {
+							// Ignore
+						}
+					}
+					throw th;
+				}
+			};
+		}
+
+		static ResultHandler handleUnmodified(Path cachedFile, ResultHandler okHandler) {
+			if (cachedFile != null) {
+				return (conn) -> {
+					if (conn instanceof HttpURLConnection) {
+						HttpURLConnection httpConn = (HttpURLConnection) conn;
+						if (httpConn.getResponseCode() == HttpURLConnection.HTTP_NOT_MODIFIED) {
+							verboseMsg(String.format("Not modified, using cached file %s for remote %s", cachedFile,
+									conn.getURL().toExternalForm()));
+							// Update cached file's last modified time
+							Files.setLastModifiedTime(cachedFile, FileTime.from(ZonedDateTime.now().toInstant()));
+							return cachedFile;
+						}
+					}
+					return okHandler.handle(conn);
+				};
+			} else {
+				return okHandler;
+			}
+		}
+	}
+
+	private static String extractFileName(URLConnection urlConnection) throws IOException {
+		String fileURL = urlConnection.getURL().toExternalForm();
+		String fileName = "";
+		if (urlConnection instanceof HttpURLConnection) {
+			HttpURLConnection httpConn = (HttpURLConnection) urlConnection;
+			int responseCode = httpConn.getResponseCode();
+			// always check HTTP response code first
+			if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_NOT_MODIFIED) {
+				String disposition = httpConn.getHeaderField("Content-Disposition");
+				if (disposition != null) {
+					// extracts file name from header field
+					fileName = getDispositionFilename(disposition);
+				}
+				if (isBlankString(fileName)) {
+					// extracts file name from URL if nothing found
+					int p = fileURL.indexOf("?");
+					fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1, p > 0 ? p : fileURL.length());
+				}
+			}
+		} else {
+			fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1);
+		}
+		return fileName;
+	}
+
+	private static HttpURLConnection handleRedirects(HttpURLConnection httpConn, ConnectionConfigurator configurator)
 			throws IOException {
 		int responseCode;
 		int redirects = 0;
 		while (true) {
-			httpConn.setRequestMethod(method);
 			httpConn.setInstanceFollowRedirects(false);
-			if (timeOut >= 0) {
-				httpConn.setConnectTimeout(timeOut);
-				httpConn.setReadTimeout(timeOut);
-			}
 			responseCode = httpConn.getResponseCode();
 			if (responseCode == HttpURLConnection.HTTP_MOVED_PERM ||
 					responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
@@ -896,8 +961,9 @@ public class Util {
 				String location = httpConn.getHeaderField("Location");
 				URL url = new URL(httpConn.getURL(), location);
 				url = new URL(swizzleURL(url.toString()));
-				Util.verboseMsg("Redirected to: " + url); // Should be debug info
+				verboseMsg("Redirected to: " + url); // Should be debug info
 				httpConn = (HttpURLConnection) url.openConnection();
+				configurator.configure(httpConn);
 				continue;
 			}
 			break;
@@ -939,7 +1005,7 @@ public class Util {
 				try {
 					fileName = URLDecoder.decode(name, encoding);
 				} catch (UnsupportedEncodingException e) {
-					Util.infoMsg("Content-Disposition contains unsupported encoding " + encoding);
+					infoMsg("Content-Disposition contains unsupported encoding " + encoding);
 				}
 			}
 		}
@@ -962,15 +1028,15 @@ public class Util {
 	 * @throws IOException
 	 */
 	public static boolean isFileCached(String fileURL) throws IOException {
-		Path urlCache = Util.getUrlCache(fileURL);
+		Path urlCache = getUrlCache(fileURL);
 		Path file = getCachedFile(urlCache);
-		return ((!Util.isFresh() || Util.isOffline()) && file != null);
+		return ((!isFresh() || isOffline()) && file != null);
 	}
 
 	private static Path getCachedFile(Path dir) throws IOException {
 		if (Files.isDirectory(dir)) {
 			try (Stream<Path> files = Files.list(dir)) {
-				return files.findFirst().orElse(null);
+				return files.filter(f -> !f.toString().endsWith(".etag")).findFirst().orElse(null);
 			}
 		} else {
 			return null;
@@ -1019,7 +1085,7 @@ public class Util {
 			try {
 				URI u = new URI(url);
 				if (u.getPath().endsWith("/")) {
-					Util.verboseMsg("Directory url, assuming user want to get default application at main.java");
+					verboseMsg("Directory url, assuming user want to get default application at main.java");
 					url = url + "main.java";
 				}
 			} catch (URISyntaxException e) {
@@ -1121,12 +1187,12 @@ public class Util {
 				"^https://gist.github.com/(([a-zA-Z0-9\\-]*)/)?(?<gistid>[a-zA-Z0-9]*)$",
 				"https://api.github.com/gists/${gistid}");
 
-		Util.verboseMsg("Gist url api: " + gistapi);
+		verboseMsg("Gist url api: " + gistapi);
 		Gist gist = null;
 		try {
 			gist = readJsonFromURL(gistapi, Gist.class);
 		} catch (IOException e) {
-			Util.verboseMsg("Error when extracting file from gist url.");
+			verboseMsg("Error when extracting file from gist url.");
 			throw new IllegalStateException(e);
 		}
 
@@ -1142,7 +1208,7 @@ public class Util {
 					if ((fileName + ".java").equals(lowerCaseKey) || (fileName + ".jsh").equals(lowerCaseKey))
 						return mostRecentVersionRawUrl;
 				} else {
-					if (key.endsWith(".jsh") || Util.hasMainMethod(entry.getValue().get("content")))
+					if (key.endsWith(".jsh") || hasMainMethod(entry.getValue().get("content")))
 						return mostRecentVersionRawUrl;
 					rawURL = mostRecentVersionRawUrl;
 				}
@@ -1222,7 +1288,7 @@ public class Util {
 		Exception[] err = new Exception[] { null };
 		try {
 			if (Files.isDirectory(path)) {
-				Util.verboseMsg("Deleting folder " + path);
+				verboseMsg("Deleting folder " + path);
 				Files	.walk(path)
 						.sorted(Comparator.reverseOrder())
 						.forEach(f -> {
@@ -1233,7 +1299,7 @@ public class Util {
 							}
 						});
 			} else if (Files.exists(path)) {
-				Util.verboseMsg("Deleting file " + path);
+				verboseMsg("Deleting file " + path);
 				Files.delete(path);
 			}
 		} catch (IOException e) {
@@ -1261,7 +1327,7 @@ public class Util {
 		} catch (IOException e) {
 			infoMsg(e.toString());
 		}
-		if (Util.isWindows()) {
+		if (isWindows()) {
 			infoMsg("Creation of symbolic link failed." +
 					"For potential causes and resolutions see https://www.jbang.dev/documentation/guide/latest/usage.html#usage-on-windows");
 		} else {
@@ -1386,7 +1452,7 @@ public class Util {
 	}
 
 	private static Stream<Path> executables(Path base) {
-		if (Util.isWindows()) {
+		if (isWindows()) {
 			return Stream.of(Paths.get(base.toString() + ".exe"),
 					Paths.get(base.toString() + ".bat"),
 					Paths.get(base.toString() + ".cmd"),
@@ -1398,7 +1464,7 @@ public class Util {
 
 	private static boolean isExecutable(Path file) {
 		if (Files.isRegularFile(file)) {
-			if (Util.isWindows()) {
+			if (isWindows()) {
 				String nm = file.getFileName().toString().toLowerCase();
 				return nm.endsWith(".exe") || nm.endsWith(".bat") || nm.endsWith(".cmd") || nm.endsWith(".ps1");
 			} else {
@@ -1535,13 +1601,13 @@ public class Util {
 				msg.append("(").append(i + 1).append(") ").append(options[i]).append("\n");
 			}
 			msg.append("(0) Cancel\n");
-			Util.infoMsg(msg.toString());
+			infoMsg(msg.toString());
 			while (true) {
-				Util.infoMsg("Type in your choice and hit enter. Will automatically select option (" + defaultValue
+				infoMsg("Type in your choice and hit enter. Will automatically select option (" + defaultValue
 						+ ") after " + timeout + " seconds.");
 				String input = con.readLine();
 				if (input == null) {
-					Util.infoMsg("Timeout reached, selecting option (" + defaultValue + ")");
+					infoMsg("Timeout reached, selecting option (" + defaultValue + ")");
 					return defaultValue;
 				}
 				if (input.isEmpty()) {
@@ -1553,7 +1619,7 @@ public class Util {
 						return result;
 					}
 				} catch (NumberFormatException ef) {
-					Util.errorMsg("Could not parse answer as a number. Canceling");
+					errorMsg("Could not parse answer as a number. Canceling");
 				}
 			}
 		} else if (!GraphicsEnvironment.isHeadless()) {
