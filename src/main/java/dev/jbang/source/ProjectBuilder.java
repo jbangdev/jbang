@@ -16,6 +16,7 @@ import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
+import dev.jbang.Settings;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.cli.BaseCommand;
@@ -276,11 +277,27 @@ public class ProjectBuilder {
 		return build(resourceRef);
 	}
 
-	private static ResourceRef resolveChecked(ResourceResolver resolver, String resource) {
+	private ResourceRef resolveChecked(ResourceResolver resolver, String resource) {
 		Util.verboseMsg("Resolving resource ref: " + resource);
-		ResourceRef ref = resolver.resolve(resource);
-		// Support URLs as script files
-		// just proceed if the script file is a regular file at this point
+		boolean retryCandidate = catalogFile == null && !Util.isFresh() && Settings.getCacheEvict() != 0
+				&& (Catalog.isValidName(resource) || Catalog.isValidCatalogReference(resource)
+						|| Util.isRemoteRef(resource));
+		ResourceRef ref = null;
+		try {
+			ref = resolver.resolve(resource);
+		} catch (ExitException ee) {
+			if (ee.getStatus() != BaseCommand.EXIT_INVALID_INPUT || !retryCandidate) {
+				throw ee;
+			}
+		}
+		if (ref == null && retryCandidate) {
+			// We didn't get a result and the resource looks like something
+			// that could be an alias or a remote URL, so we'll try again
+			// with the cache evict set to 0, forcing Jbang to actually check
+			// if all its cached information is up-to-date.
+			Util.verboseMsg("Retry using cache-evict: " + resource);
+			ref = Util.withCacheEvict(() -> resolver.resolve(resource));
+		}
 		if (ref == null || !Files.isReadable(ref.getFile())) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
 					"Script or alias could not be found or read: '" + resource + "'");
