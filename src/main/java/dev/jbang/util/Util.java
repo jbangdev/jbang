@@ -57,6 +57,7 @@ import org.jsoup.nodes.Document;
 import com.google.gson.Gson;
 
 import dev.jbang.Cache;
+import dev.jbang.Configuration;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.cli.BaseCommand;
@@ -161,14 +162,51 @@ public class Util {
 		Util.cwd = cwd.toAbsolutePath().normalize();
 	}
 
-	public static void freshly(Callable<Void> func) {
+	/**
+	 * Runs the given code with the global <code>fresh</code> variable set to
+	 * <code>true</code>, thereby forcing that all requests to remote resources are
+	 * actually performed and any previously cached documents are updated to their
+	 * latest versions.
+	 */
+	public static <T> T freshly(Callable<T> func) {
+		boolean oldFresh = isFresh();
 		setFresh(true);
 		try {
-			func.call();
+			return func.call();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		} finally {
-			setFresh(false);
+			setFresh(oldFresh);
+		}
+	}
+
+	/**
+	 * Runs the given code with the "cache-evict" configuration key set to a very
+	 * low value. This forces all requests to remote resources to be performed.
+	 * Cached resources will only be updated if the remote documents have actually
+	 * been updated.
+	 */
+	public static <T> T withCacheEvict(Callable<T> func) {
+		return withConfig(Settings.CONFIG_CACHE_EVICT, "5", func);
+	}
+
+	public static <T> T withConfig(String key, String value, Callable<T> func) {
+		Configuration cfg = Configuration.create(Configuration.instance());
+		cfg.put(key, value);
+		return withConfig(cfg, func);
+	}
+
+	public static <T> T withConfig(Configuration cfg, Callable<T> func) {
+		Configuration oldCfg = Configuration.instance();
+		Configuration.instance(cfg);
+		try {
+			return func.call();
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		} finally {
+			Configuration.instance(oldCfg);
 		}
 	}
 
