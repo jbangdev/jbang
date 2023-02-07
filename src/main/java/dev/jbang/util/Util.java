@@ -1141,6 +1141,9 @@ public class Util {
 			} else if (Files.exists(path)) {
 				Util.verboseMsg("Deleting file " + path);
 				Files.delete(path);
+			} else if (Files.isSymbolicLink(path)) {
+				Util.verboseMsg("Deleting broken symbolic link " + path);
+				Files.delete(path);
 			}
 		} catch (IOException e) {
 			err[0] = e;

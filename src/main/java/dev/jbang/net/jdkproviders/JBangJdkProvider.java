@@ -99,6 +99,9 @@ public class JBangJdkProvider extends BaseFoldersJdkProvider {
 			UnpackUtil.unpackJdk(jdkPkg, jdkTmpDir);
 			if (Files.isDirectory(jdkDir)) {
 				Files.move(jdkDir, jdkOldDir);
+			} else if (Files.isSymbolicLink(jdkDir)) {
+				// This means we have a broken/invalid link
+				Util.deletePath(jdkDir, true);
 			}
 			Files.move(jdkTmpDir, jdkDir);
 			Util.deletePath(jdkOldDir, false);

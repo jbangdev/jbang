@@ -421,7 +421,7 @@ public class JdkManager {
 	public static void linkToExistingJdk(String path, int version) {
 		Path jdkPath = JBangJdkProvider.getJdksPath().resolve(Integer.toString(version));
 		Util.verboseMsg("Trying to link " + path + " to " + jdkPath);
-		if (Files.exists(jdkPath)) {
+		if (Files.exists(jdkPath) || Files.isSymbolicLink(jdkPath)) {
 			Util.verboseMsg("JBang managed JDK already exists, must be deleted to make sure linking works");
 			Util.deletePath(jdkPath, false);
 		}
