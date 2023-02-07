@@ -234,7 +234,7 @@ class ClassPath extends BaseInfoCommand {
 
 		ScriptInfo info = getInfo();
 		List<String> cp = new ArrayList<>(info.resolvedDependencies.size() + 1);
-		if (info.applicationJar != null) {
+		if (info.applicationJar != null && !info.resolvedDependencies.contains(info.applicationJar)) {
 			cp.add(info.applicationJar);
 		}
 		cp.addAll(info.resolvedDependencies);
