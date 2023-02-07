@@ -297,6 +297,44 @@ class TestJdk extends BaseTest {
 	}
 
 	@Test
+	void testJdkInstallWithLinkingToExistingBrokenLink(
+			@TempDir File javaDir) throws IOException {
+		Path jdkBroken = javaDir.toPath().resolve("14broken");
+		Path jdkOk = javaDir.toPath().resolve("14ok");
+		initMockJdkDir(jdkBroken, "11.0.14-broken");
+		initMockJdkDir(jdkOk, "11.0.14-ok");
+		final Path jdkPath = JBangJdkProvider.getJdksPath();
+
+		ExecutionResult result = checkedRun(jdk -> {
+			try {
+				return jdk.install(true, "11", jdkBroken.toString());
+			} catch (IOException e) {
+				// Escaping with a runtime exception
+				throw new RuntimeException(e);
+			}
+		});
+
+		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+
+		Util.deletePath(jdkBroken, false);
+
+		result = checkedRun(jdk -> {
+			try {
+				return jdk.install(true, "11", jdkOk.toString());
+			} catch (IOException e) {
+				// Escaping with a runtime exception
+				throw new RuntimeException(e);
+			}
+		});
+
+		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedErr(),
+				equalTo("[jbang] JDK 11 has been linked to: " + jdkOk + "\n"));
+		assertTrue(Files.isSymbolicLink(jdkPath.resolve("11")));
+		assertEquals(jdkOk, Files.readSymbolicLink(jdkPath.resolve("11")));
+	}
+
+	@Test
 	void testExistingJdkUninstall() throws IOException {
 		int jdkVersion = 14;
 		createMockJdk(jdkVersion);
@@ -356,7 +394,6 @@ class TestJdk extends BaseTest {
 
 	private void createMockJdk(int jdkVersion) {
 		Path jdkPath = JBangJdkProvider.getJdksPath().resolve(String.valueOf(jdkVersion));
-		Util.mkdirs(jdkPath);
 		initMockJdkDir(jdkPath, jdkVersion + ".0.7");
 		Path def = Settings.getCurrentJdkDir();
 		if (!Files.exists(def)) {
@@ -365,6 +402,7 @@ class TestJdk extends BaseTest {
 	}
 
 	private void initMockJdkDir(Path jdkPath, String version) {
+		Util.mkdirs(jdkPath);
 		String rawJavaVersion = "JAVA_VERSION=\"" + version + "\"";
 		Path release = jdkPath.resolve("release");
 		try {
