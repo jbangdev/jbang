@@ -309,7 +309,12 @@ public class ProjectBuilder {
 	}
 
 	private Project createJarProject(ResourceRef resourceRef) {
-		return importJarMetadata(updateProject(new Project(resourceRef)));
+		Project prj = new Project(resourceRef);
+		if (resourceRef.getOriginalResource() != null
+				&& DependencyUtil.looksLikeAGav(resourceRef.getOriginalResource())) {
+			prj.getMainSourceSet().addDependency(resourceRef.getOriginalResource());
+		}
+		return importJarMetadata(updateProject(prj));
 	}
 
 	private Project createJbangProject(ResourceRef resourceRef) {
@@ -402,14 +407,6 @@ public class ProjectBuilder {
 				if (ver != null) {
 					// buildJdk = JavaUtil.parseJavaVersion(ver);
 					prj.setJavaVersion(JavaUtil.parseJavaVersion(ver) + "+");
-				}
-
-				String classPath = attrs.getValue(Attributes.Name.CLASS_PATH);
-				if (resourceRef.getOriginalResource() != null
-						&& DependencyUtil.looksLikeAGav(resourceRef.getOriginalResource())) {
-					prj.getMainSourceSet().addDependency(resourceRef.getOriginalResource());
-				} else if (classPath != null) {
-					prj.getMainSourceSet().addClassPaths(Arrays.asList(classPath.split(" ")));
 				}
 			} catch (IOException e) {
 				Util.warnMsg("Problem reading manifest from " + jar);
