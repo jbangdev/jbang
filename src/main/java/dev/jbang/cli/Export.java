@@ -2,8 +2,11 @@ package dev.jbang.cli;
 
 import static dev.jbang.util.JavaUtil.resolveInJavaHome;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,12 +15,17 @@ import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipFile;
+
 import dev.jbang.Settings;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
+import dev.jbang.util.JarUtil;
 import dev.jbang.util.TemplateEngine;
+import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
 
 import io.quarkus.qute.Template;
@@ -25,7 +33,7 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
 @Command(name = "export", description = "Export the result of a build.", subcommands = { ExportPortable.class,
-		ExportLocal.class, ExportMavenPublish.class, ExportNative.class })
+		ExportLocal.class, ExportMavenPublish.class, ExportNative.class, ExportFatjar.class })
 public class Export {
 }
 
@@ -95,6 +103,15 @@ abstract class BaseExportCommand extends BaseCommand {
 								.mainClass(exportMixin.buildMixin.main)
 								.compileOptions(exportMixin.buildMixin.compileOptions);
 	}
+
+	Path getJarOutputPath() {
+		Path outputPath = exportMixin.getOutputPath("");
+		// Ensure the file ends in `.jar`
+		if (!outputPath.toString().endsWith(".jar")) {
+			outputPath = Paths.get(outputPath + ".jar");
+		}
+		return outputPath;
+	}
 }
 
 @Command(name = "local", description = "Exports jar with classpath referring to local machine dependent locations")
@@ -104,7 +121,7 @@ class ExportLocal extends BaseExportCommand {
 	int apply(Project prj, ProjectBuilder pb) throws IOException {
 		// Copy the JAR
 		Path source = prj.getJarFile();
-		Path outputPath = exportMixin.getJarOutputPath();
+		Path outputPath = getJarOutputPath();
 		if (outputPath.toFile().exists()) {
 			if (exportMixin.force) {
 				outputPath.toFile().delete();
@@ -141,7 +158,7 @@ class ExportPortable extends BaseExportCommand {
 	int apply(Project prj, ProjectBuilder pb) throws IOException {
 		// Copy the JAR
 		Path source = prj.getJarFile();
-		Path outputPath = exportMixin.getJarOutputPath();
+		Path outputPath = getJarOutputPath();
 		if (outputPath.toFile().exists()) {
 			if (exportMixin.force) {
 				outputPath.toFile().delete();
@@ -292,7 +309,7 @@ class ExportNative extends BaseExportCommand {
 	int apply(Project prj, ProjectBuilder pb) throws IOException {
 		// Copy the native binary
 		Path source = prj.getNativeImageFile();
-		Path outputPath = exportMixin.getNativeOutputPath();
+		Path outputPath = getNativeOutputPath();
 		if (outputPath.toFile().exists()) {
 			if (exportMixin.force) {
 				outputPath.toFile().delete();
@@ -312,5 +329,81 @@ class ExportNative extends BaseExportCommand {
 		ProjectBuilder pb = super.createProjectBuilder(exportMixin);
 		pb.nativeImage(true);
 		return pb;
+	}
+
+	Path getNativeOutputPath() {
+		Path outputPath = exportMixin.getOutputPath("");
+		// Ensure that on Windows the file ends in `.exe`
+		if (Util.isWindows() && !outputPath.toString().endsWith(".exe")) {
+			outputPath = Paths.get(outputPath + ".exe");
+		}
+		return outputPath;
+	}
+}
+
+@Command(name = "fatjar", description = "Exports an executable jar with all necessary dependencies included inside")
+class ExportFatjar extends BaseExportCommand {
+
+	@Override
+	int apply(Project prj, ProjectBuilder pb) throws IOException {
+		// Copy the native binary
+		Path source = prj.getJarFile();
+		Path outputPath = getFatjarOutputPath();
+		if (outputPath.toFile().exists()) {
+			if (exportMixin.force) {
+				outputPath.toFile().delete();
+			} else {
+				Util.warnMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
+				return EXIT_INVALID_INPUT;
+			}
+		}
+
+		List<ArtifactInfo> deps = prj.resolveClassPath().getArtifacts();
+		if (!deps.isEmpty()) {
+			// Extract main jar and all dependencies to a temp dir
+			Path tmpDir = Files.createTempDirectory("fatjar");
+			try {
+				Util.verboseMsg("Unpacking main jar: " + source);
+				UnpackUtil.unzip(source, tmpDir, false, null, ExportFatjar::handleExistingFile);
+				for (ArtifactInfo dep : deps) {
+					Util.verboseMsg("Unpacking artifact: " + dep);
+					UnpackUtil.unzip(dep.getFile(), tmpDir, false, null, ExportFatjar::handleExistingFile);
+				}
+				try (OutputStream out = Files.newOutputStream(outputPath)) {
+					JarUtil.jar(out, tmpDir.toFile().listFiles());
+				}
+			} finally {
+				Util.deletePath(tmpDir, true);
+			}
+		} else {
+			// No dependencies so we simply copy the main jar
+			Files.copy(source, outputPath);
+		}
+
+		Util.infoMsg("Exported to " + outputPath);
+		Util.infoMsg("This is an experimental feature and might not to work for certain applications!");
+		Util.infoMsg("Help us improve by reporting any issue you find at https://github.com/jbangdev/jbang/issues");
+		return EXIT_OK;
+	}
+
+	public static void handleExistingFile(ZipFile zipFile, ZipArchiveEntry zipEntry, Path outFile) throws IOException {
+		if (zipEntry.getName().startsWith("META-INF/services/")) {
+			Util.verboseMsg("Merging service files: " + zipEntry.getName());
+			try (ReadableByteChannel readableByteChannel = Channels.newChannel(zipFile.getInputStream(zipEntry));
+					FileOutputStream fileOutputStream = new FileOutputStream(outFile.toFile(), true)) {
+				fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+			}
+		} else {
+			Util.verboseMsg("Skipping duplicate file: " + zipEntry.getName());
+		}
+	}
+
+	private Path getFatjarOutputPath() {
+		Path outputPath = exportMixin.getOutputPath("-fatjar");
+		// Ensure the file ends in `.jar`
+		if (!outputPath.toString().endsWith(".jar")) {
+			outputPath = Paths.get(outputPath + ".jar");
+		}
+		return outputPath;
 	}
 }

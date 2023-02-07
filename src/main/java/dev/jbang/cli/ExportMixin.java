@@ -35,25 +35,7 @@ public class ExportMixin {
 	public ExportMixin() {
 	}
 
-	Path getJarOutputPath() {
-		Path outputPath = getOutputPath();
-		// Ensure the file ends in `.jar`
-		if (!outputPath.toString().endsWith(".jar")) {
-			outputPath = Paths.get(outputPath + ".jar");
-		}
-		return outputPath;
-	}
-
-	Path getNativeOutputPath() {
-		Path outputPath = getOutputPath();
-		// Ensure that on Windows the file ends in `.exe`
-		if (Util.isWindows() && !outputPath.toString().endsWith(".exe")) {
-			outputPath = Paths.get(outputPath + ".exe");
-		}
-		return outputPath;
-	}
-
-	private Path getOutputPath() {
+	Path getOutputPath(String postFix) {
 		// Determine the output file location and name
 		Path cwd = Util.getCwd();
 		Path outputPath;
@@ -61,7 +43,7 @@ public class ExportMixin {
 			outputPath = outputFile;
 		} else {
 			String outName = CatalogUtil.nameFromRef(scriptMixin.scriptOrFile);
-			outputPath = Paths.get(outName);
+			outputPath = Paths.get(outName + postFix);
 		}
 		outputPath = cwd.resolve(outputPath);
 		return outputPath;
