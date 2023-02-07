@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
@@ -26,7 +27,7 @@ public class UnpackUtil {
 		Path selectFolder = null; // Util.isMac() ? Paths.get("Contents/Home") : null;
 		boolean stripRootFolder = Util.isMac();
 		if (name.endsWith(".zip")) {
-			unzip(archive, outputDir, stripRootFolder, selectFolder);
+			unzip(archive, outputDir, stripRootFolder, selectFolder, UnpackUtil::defaultZipEntryCopy);
 		} else if (name.endsWith(".tar.gz") || name.endsWith(".tgz")) {
 			untargz(archive, outputDir, false, selectFolder);
 		}
@@ -36,7 +37,7 @@ public class UnpackUtil {
 		String name = archive.toString().toLowerCase(Locale.ENGLISH);
 		Path selectFolder = Util.isMac() ? Paths.get("Contents/Home") : null;
 		if (name.endsWith(".zip")) {
-			unzip(archive, outputDir, true, selectFolder);
+			unzip(archive, outputDir, true, selectFolder, UnpackUtil::defaultZipEntryCopy);
 		} else if (name.endsWith(".tar.gz") || name.endsWith(".tgz")) {
 			untargz(archive, outputDir, true, selectFolder);
 		}
@@ -53,14 +54,17 @@ public class UnpackUtil {
 	public static void unpack(Path archive, Path outputDir, boolean stripRootFolder, Path selectFolder)
 			throws IOException {
 		String name = archive.toString().toLowerCase(Locale.ENGLISH);
-		if (name.endsWith(".zip")) {
-			unzip(archive, outputDir, stripRootFolder, selectFolder);
+		if (name.endsWith(".zip") || name.endsWith(".jar")) {
+			unzip(archive, outputDir, stripRootFolder, selectFolder, UnpackUtil::defaultZipEntryCopy);
 		} else if (name.endsWith(".tar.gz") || name.endsWith(".tgz")) {
 			untargz(archive, outputDir, stripRootFolder, selectFolder);
+		} else {
+			throw new IllegalArgumentException("Unsupported archive format: " + Util.extension(archive.toString()));
 		}
 	}
 
-	public static void unzip(Path zip, Path outputDir, boolean stripRootFolder, Path selectFolder) throws IOException {
+	public static void unzip(Path zip, Path outputDir, boolean stripRootFolder, Path selectFolder,
+			ExistingZipFileHandler onExisting) throws IOException {
 		try (ZipFile zipFile = new ZipFile(zip.toFile())) {
 			Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
 			while (entries.hasMoreElements()) {
@@ -92,16 +96,28 @@ public class UnpackUtil {
 					if (!Files.isDirectory(entry.getParent())) {
 						Files.createDirectories(entry.getParent());
 					}
-					try (InputStream zis = zipFile.getInputStream(zipEntry)) {
-						Files.copy(zis, entry);
-					}
-					int mode = zipEntry.getUnixMode();
-					if (mode != 0 && !Util.isWindows()) {
-						Set<PosixFilePermission> permissions = PosixFilePermissionSupport.toPosixFilePermissions(mode);
-						Files.setPosixFilePermissions(entry, permissions);
+					if (Files.isRegularFile(entry)) {
+						onExisting.handle(zipFile, zipEntry, entry);
+					} else {
+						defaultZipEntryCopy(zipFile, zipEntry, entry);
 					}
 				}
 			}
+		}
+	}
+
+	public interface ExistingZipFileHandler {
+		void handle(ZipFile zipFile, ZipArchiveEntry zipEntry, Path outFile) throws IOException;
+	}
+
+	public static void defaultZipEntryCopy(ZipFile zipFile, ZipArchiveEntry zipEntry, Path outFile) throws IOException {
+		try (InputStream zis = zipFile.getInputStream(zipEntry)) {
+			Files.copy(zis, outFile, StandardCopyOption.REPLACE_EXISTING);
+		}
+		int mode = zipEntry.getUnixMode();
+		if (mode != 0 && !Util.isWindows()) {
+			Set<PosixFilePermission> permissions = PosixFilePermissionSupport.toPosixFilePermissions(mode);
+			Files.setPosixFilePermissions(outFile, permissions);
 		}
 	}
 
@@ -135,7 +151,7 @@ public class UnpackUtil {
 					if (!Files.isDirectory(entry.getParent())) {
 						Files.createDirectories(entry.getParent());
 					}
-					Files.copy(tarArchiveInputStream, entry);
+					Files.copy(tarArchiveInputStream, entry, StandardCopyOption.REPLACE_EXISTING);
 					int mode = targzEntry.getMode();
 					if (mode != 0 && !Util.isWindows()) {
 						Set<PosixFilePermission> permissions = PosixFilePermissionSupport.toPosixFilePermissions(mode);
