@@ -187,7 +187,11 @@ public class Util {
 	 * been updated.
 	 */
 	public static <T> T withCacheEvict(Callable<T> func) {
-		return withConfig(Settings.CONFIG_CACHE_EVICT, "5", func);
+		return withCacheEvict("5", func);
+	}
+
+	public static <T> T withCacheEvict(String val, Callable<T> func) {
+		return withConfig(Settings.CONFIG_CACHE_EVICT, val, func);
 	}
 
 	public static <T> T withConfig(String key, String value, Callable<T> func) {
@@ -779,6 +783,14 @@ public class Util {
 		URL url = new URL(fileURL);
 		URLConnection urlConnection = url.openConnection();
 		configurator.configure(urlConnection);
+
+		if (urlConnection instanceof HttpURLConnection) {
+			HttpURLConnection httpConn = (HttpURLConnection) urlConnection;
+			verboseMsg(String.format("Requesting HTTP %s %s", httpConn.getRequestMethod(), httpConn.getURL()));
+			verboseMsg(String.format("Headers %s", httpConn.getRequestProperties()));
+		} else {
+			verboseMsg(String.format("Requesting %s", urlConnection.getURL()));
+		}
 
 		try {
 			return resultHandler.handle(urlConnection);
