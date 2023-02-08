@@ -30,8 +30,10 @@ public class Settings {
 	final public static String CP_SEPARATOR = File.pathSeparator;
 
 	final public static String CONFIG_CONNECTION_TIMEOUT = "connection-timeout";
+	final public static int DEFAULT_CONNECTION_TIMEOUT = -1;
 
 	final public static String CONFIG_CACHE_EVICT = "cache-evict";
+	final public static String DEFAULT_CACHE_EVICT = "PT12H";
 
 	public static Path getLocalMavenRepo() {
 		return Paths.get(System	.getenv()
@@ -144,15 +146,13 @@ public class Settings {
 	}
 
 	public static int getConnectionTimeout() {
-		return (int) Configuration.instance().getNumber(CONFIG_CONNECTION_TIMEOUT, -1);
+		return (int) Configuration.instance().getNumber(CONFIG_CONNECTION_TIMEOUT, DEFAULT_CONNECTION_TIMEOUT);
 	}
 
 	public static long getCacheEvict() {
-		String val = Configuration.instance().get(CONFIG_CACHE_EVICT);
+		String val = Configuration.instance().get(CONFIG_CACHE_EVICT, DEFAULT_CACHE_EVICT);
 		if ("never".equalsIgnoreCase(val)) {
 			return -1L;
-		} else if (val == null) {
-			return 0;
 		} else {
 			try {
 				// First try to parse as a simple number
@@ -162,6 +162,7 @@ public class Settings {
 					// If that failed try again using ISO8601 Duration format
 					return Duration.parse(val).getSeconds();
 				} catch (DateTimeParseException ex2) {
+					Util.warnMsg("Invalid duration in config: " + val);
 					return 0;
 				}
 			}

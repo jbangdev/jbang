@@ -80,11 +80,14 @@ public class TestUtilDownloads extends BaseTest {
 																		.withHeader("Content-Type", "text/plain")
 																		.withBody("test2")));
 
-		Path file2 = Util.downloadAndCacheFile(url);
-		assertThat(file2.toFile(), anExistingFile());
-		assertThat(file2, equalTo(file));
-		assertThat(Files.getLastModifiedTime(file2), not(equalTo(lmt)));
-		assertThat(Util.readString(file2), is("test2"));
+		Util.withCacheEvict("0", () -> {
+			Path file2 = Util.downloadAndCacheFile(url);
+			assertThat(file2.toFile(), anExistingFile());
+			assertThat(file2, equalTo(file));
+			assertThat(Files.getLastModifiedTime(file2), not(equalTo(lmt)));
+			assertThat(Util.readString(file2), is("test2"));
+			return 0;
+		});
 	}
 
 	@Test
@@ -193,11 +196,14 @@ public class TestUtilDownloads extends BaseTest {
 																				"Sun, 02 Feb 3023 22:22:49 GMT")
 																		.withBody("test2")));
 
-		Path file2 = Util.downloadAndCacheFile(url);
-		assertThat(file2.toFile(), anExistingFile());
-		assertThat(file2, equalTo(file));
-		assertThat(Files.getLastModifiedTime(file2), not(equalTo(lmt)));
-		assertThat(Util.readString(file2), is("test2"));
+		Util.withCacheEvict("0", () -> {
+			Path file2 = Util.downloadAndCacheFile(url);
+			assertThat(file2.toFile(), anExistingFile());
+			assertThat(file2, equalTo(file));
+			assertThat(Files.getLastModifiedTime(file2), not(equalTo(lmt)));
+			assertThat(Util.readString(file2), is("test2"));
+			return 0;
+		});
 	}
 
 	@Test
@@ -385,14 +391,17 @@ public class TestUtilDownloads extends BaseTest {
 																		.withHeader("ETag", "tag2")
 																		.withBody("test2")));
 
-		Path file2 = Util.downloadAndCacheFile(url);
-		assertThat(file2.toFile(), anExistingFile());
-		assertThat(file2, equalTo(file));
-		assertThat(Files.getLastModifiedTime(file2), not(equalTo(lmt)));
-		assertThat(Util.readString(file2), is("test2"));
-		Path etag2 = Util.etagFile(file2);
-		assertThat(etag2.toFile(), anExistingFile());
-		assertThat(Util.readString(etag2), is("tag2"));
+		Util.withCacheEvict("0", () -> {
+			Path file2 = Util.downloadAndCacheFile(url);
+			assertThat(file2.toFile(), anExistingFile());
+			assertThat(file2, equalTo(file));
+			assertThat(Files.getLastModifiedTime(file2), not(equalTo(lmt)));
+			assertThat(Util.readString(file2), is("test2"));
+			Path etag2 = Util.etagFile(file2);
+			assertThat(etag2.toFile(), anExistingFile());
+			assertThat(Util.readString(etag2), is("tag2"));
+			return 0;
+		});
 	}
 
 	private static ValueMatcher<Request> withoutHeader(String hdr) {
