@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -252,8 +253,8 @@ public class JdkManager {
 	private static JdkProvider.Jdk getJdkByVersion(int requestedVersion, boolean openVersion, boolean updatableOnly) {
 		JdkProvider.Jdk jdk = getInstalledJdkByVersion(requestedVersion, openVersion, updatableOnly);
 		if (jdk == null) {
-			if (requestedVersion > 0) {
-				jdk = getAvailableJdkByVersion(requestedVersion);
+			if (requestedVersion > 0 && (requestedVersion >= Settings.getDefaultJavaVersion() || !openVersion)) {
+				jdk = getAvailableJdkByVersion(requestedVersion, false);
 			} else {
 				jdk = getJdkByVersion(Settings.getDefaultJavaVersion(), true, updatableOnly);
 			}
@@ -345,8 +346,8 @@ public class JdkManager {
 	}
 
 	@Nonnull
-	private static JdkProvider.Jdk getAvailableJdkByVersion(int version) {
-		List<JdkProvider.Jdk> jdks = getJdkByVersion(listAvailableJdks(), version);
+	private static JdkProvider.Jdk getAvailableJdkByVersion(int version, boolean openVersion) {
+		List<JdkProvider.Jdk> jdks = getJdkByVersion(listAvailableJdks(), version, openVersion);
 		if (jdks.isEmpty()) {
 			throw new ExitException(EXIT_INVALID_INPUT, "JDK version is not available for installation: " + version
 					+ "\n"
@@ -528,8 +529,15 @@ public class JdkManager {
 		return home != null && updatableProviders().stream().anyMatch(p -> p.getJdkByPath(home) != null);
 	}
 
-	private static List<JdkProvider.Jdk> getJdkByVersion(Collection<JdkProvider.Jdk> jdks, int version) {
-		return jdks.stream().filter(jdk -> jdk.getMajorVersion() == version).collect(Collectors.toList());
+	private static List<JdkProvider.Jdk> getJdkByVersion(Collection<JdkProvider.Jdk> jdks, int version,
+			boolean openVersion) {
+		Stream<JdkProvider.Jdk> s = jdks.stream();
+		if (openVersion) {
+			s = s.filter(jdk -> jdk.getMajorVersion() >= version);
+		} else {
+			s = s.filter(jdk -> jdk.getMajorVersion() == version);
+		}
+		return s.collect(Collectors.toList());
 	}
 
 	private static List<JdkProvider.Jdk> getJdkById(Collection<JdkProvider.Jdk> jdks, String id) {
