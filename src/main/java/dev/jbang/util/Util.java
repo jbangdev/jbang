@@ -85,6 +85,9 @@ public class Util {
 	public static final Pattern mainClassMethod = Pattern.compile(
 			"(?<=\\n|\\A)(?:public\\s)\\s*(class)\\s*([^\\n\\s]*)");
 
+	public static final Pattern patternModuleId = Pattern.compile(
+			"^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$");
+
 	private static boolean verbose;
 	private static boolean quiet;
 	private static boolean offline;
@@ -904,6 +907,7 @@ public class Util {
 				String fileName = extractFileName(conn);
 				Path file = saveDir.resolve(fileName);
 				Files.createDirectories(saveDir);
+				Files.createDirectories(metaSaveDir);
 				try (ReadableByteChannel readableByteChannel = Channels.newChannel(conn.getInputStream());
 						FileOutputStream fileOutputStream = new FileOutputStream(file.toFile())) {
 					fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
@@ -911,7 +915,6 @@ public class Util {
 				// create an .etag file if the information is present in the response headers
 				String etag = conn.getHeaderField("ETag");
 				if (etag != null) {
-					Files.createDirectories(metaSaveDir);
 					writeString(etagFile(file, metaSaveDir), etag);
 				}
 				verboseMsg(String.format("Downloaded file %s", conn.getURL().toExternalForm()));
@@ -1498,6 +1501,10 @@ public class Util {
 		}
 
 		return Optional.empty();
+	}
+
+	public static boolean isValidModuleIdentifier(String id) {
+		return patternModuleId.matcher(id).matches();
 	}
 
 	/**

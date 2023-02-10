@@ -45,6 +45,7 @@ public abstract class BaseBuildCommand extends BaseCommand {
 								.catalog(scriptMixin.catalog)
 								.javaVersion(buildMixin.javaVersion)
 								.mainClass(buildMixin.main)
+								.moduleName(buildMixin.module)
 								.compileOptions(buildMixin.compileOptions)
 								.nativeImage(nativeMixin.nativeImage)
 								.nativeOptions(nativeMixin.nativeOptions);

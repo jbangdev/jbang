@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.codehaus.plexus.languages.java.jpms.JavaModuleDescriptor;
 import org.codehaus.plexus.languages.java.jpms.LocationManager;
@@ -28,8 +29,7 @@ public class ModularClassPath {
 	private final List<ArtifactInfo> artifacts;
 
 	private List<String> classPaths;
-	private String classPath;
-	private String manifestPath;
+	private List<String> modulePaths;
 	private Optional<Boolean> javafx = Optional.empty();
 
 	public ModularClassPath(List<ArtifactInfo> artifacts) {
@@ -38,34 +38,41 @@ public class ModularClassPath {
 
 	public List<String> getClassPaths() {
 		if (classPaths == null) {
-			classPaths = artifacts	.stream()
-									.map(it -> it.getFile().toAbsolutePath().toString())
-									.map(it -> it.contains(" ") ? '"' + it + '"' : it)
-									.distinct()
-									.collect(Collectors.toList());
+			classPaths = getArtifactPaths(artifacts.stream());
 		}
-
 		return classPaths;
 	}
 
 	public String getClassPath() {
-		if (classPath == null) {
-			classPath = String.join(CP_SEPARATOR, getClassPaths());
+		return String.join(CP_SEPARATOR, getClassPaths());
+	}
+
+	public List<String> getModulePaths() {
+		if (modulePaths == null) {
+			modulePaths = getArtifactPaths(artifacts.stream().filter(ArtifactInfo::isModule));
 		}
 
-		return classPath;
+		return modulePaths;
+	}
+
+	private List<String> getArtifactPaths(Stream<ArtifactInfo> artifacts) {
+		return artifacts
+						.map(it -> it.getFile().toAbsolutePath().toString())
+						.map(it -> it.contains(" ") ? '"' + it + '"' : it)
+						.distinct()
+						.collect(Collectors.toList());
+	}
+
+	public String getModulePath() {
+		return String.join(CP_SEPARATOR, getModulePaths());
 	}
 
 	public String getManifestPath() {
-		if (manifestPath == null) {
-			manifestPath = artifacts.stream()
-									.map(it -> it.getFile().toAbsolutePath().toUri())
-									.map(URI::getPath)
-									.distinct()
-									.collect(Collectors.joining(" "));
-		}
-
-		return manifestPath;
+		return artifacts.stream()
+						.map(it -> it.getFile().toAbsolutePath().toUri())
+						.map(URI::getPath)
+						.distinct()
+						.collect(Collectors.joining(" "));
 	}
 
 	boolean hasJavaFX() {

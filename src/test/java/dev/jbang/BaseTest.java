@@ -22,6 +22,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.JBang;
+import dev.jbang.dependencies.DependencyCache;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -49,6 +50,7 @@ public abstract class BaseTest {
 			environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "cmd");
 		}
 		Configuration.instance(null);
+		DependencyCache.clear();
 	}
 
 	public static final String EXAMPLES_FOLDER = "itests";

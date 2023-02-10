@@ -6,6 +6,7 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -16,6 +17,7 @@ import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.source.sources.JavaSource;
+import dev.jbang.util.Util;
 
 /**
  * This class gives access to all information necessary to turn source files
@@ -40,9 +42,11 @@ public class Project {
 	private String description;
 	private String gav;
 	private String mainClass;
+	private String moduleName;
 	private boolean nativeImage;
 
 	// Cached values
+	private String stableId;
 	private ModularClassPath mcp;
 
 	public static final String ATTR_PREMAIN_CLASS = "Premain-Class";
@@ -190,6 +194,17 @@ public class Project {
 		this.mainClass = mainClass;
 	}
 
+	@Nonnull
+	public Optional<String> getModuleName() {
+		return Optional.ofNullable(moduleName);
+	}
+
+	@Nonnull
+	public Project setModuleName(String moduleName) {
+		this.moduleName = moduleName;
+		return this;
+	}
+
 	public boolean isNativeImage() {
 		return nativeImage;
 	}
@@ -213,6 +228,20 @@ public class Project {
 
 	public void setCmdGeneratorFactory(Function<BuildContext, CmdGenerator> cmdGeneratorFactory) {
 		this.cmdGeneratorFactory = cmdGeneratorFactory;
+	}
+
+	protected String getStableId() {
+		if (stableId == null) {
+			Stream<String> sss = mainSourceSet.getStableIdInfo();
+			if (moduleName != null) {
+				Stream<String> ps = Stream.of(moduleName);
+				Stream<String> info = Stream.concat(sss, ps);
+				stableId = Util.getStableID(info);
+			} else {
+				stableId = Util.getStableID(sss);
+			}
+		}
+		return stableId;
 	}
 
 	@Nonnull

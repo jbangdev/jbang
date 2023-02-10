@@ -117,6 +117,7 @@ public abstract class Source {
 	public Project updateProjectMain(Project prj, ResourceResolver resolver) {
 		prj.setDescription(tagReader.getDescription().orElse(null));
 		prj.setGav(tagReader.getGav().orElse(null));
+		prj.setModuleName(tagReader.getModule().orElse(null));
 		return updateProject(prj, resolver);
 	}
 

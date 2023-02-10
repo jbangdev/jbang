@@ -79,10 +79,14 @@ public abstract class AppBuilder implements Builder<Project> {
 		}
 
 		if (buildRequired) {
-			// set up temporary folder for compilation
+			// set up temporary folders for compilation
 			Path compileDir = ctx.getCompileDir();
 			Util.deletePath(compileDir, true);
 			compileDir.toFile().mkdirs();
+			Path generatedDir = ctx.getGeneratedSourcesDir();
+			Util.deletePath(generatedDir, true);
+			generatedDir.toFile().mkdirs();
+
 			// do the actual building
 			try {
 				getCompileBuildStep().build();
@@ -90,8 +94,9 @@ public abstract class AppBuilder implements Builder<Project> {
 				getJarBuildStep().build();
 			} finally {
 				if (!keepClasses()) {
-					// clean up temporary folder
-					Util.deletePath(compileDir, true);
+					// clean up temporary folders
+					// Util.deletePath(compileDir, true);
+					// Util.deletePath(generatedDir, true);
 				}
 			}
 		}

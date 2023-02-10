@@ -1,5 +1,6 @@
 package dev.jbang.dependencies;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -79,7 +80,7 @@ public class MavenCoordinate {
 		this.groupId = groupId;
 		this.artifactId = artifactId;
 		this.version = version;
-		this.classifier = classifier;
+		this.classifier = classifier != null && classifier.isEmpty() ? null : classifier;
 		this.type = type;
 	}
 
@@ -127,5 +128,22 @@ public class MavenCoordinate {
 			out += ":" + version;
 		}
 		return out;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		MavenCoordinate that = (MavenCoordinate) o;
+		return groupId.equals(that.groupId) && artifactId.equals(that.artifactId)
+				&& Objects.equals(version, that.version) && Objects.equals(classifier, that.classifier)
+				&& Objects.equals(type, that.type);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(groupId, artifactId, version, classifier, type);
 	}
 }

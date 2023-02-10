@@ -109,13 +109,13 @@ class AliasAdd extends BaseAliasCommand {
 					scriptMixin.sources, scriptMixin.resources, dependencyInfoMixin.getDependencies(),
 					dependencyInfoMixin.getRepositories(), dependencyInfoMixin.getClasspaths(),
 					dependencyInfoMixin.getProperties(), buildMixin.javaVersion, buildMixin.main,
-					buildMixin.compileOptions, nativeMixin.nativeImage, nativeMixin.nativeOptions);
+					buildMixin.module, buildMixin.compileOptions, nativeMixin.nativeImage, nativeMixin.nativeOptions);
 		} else {
 			catFile = CatalogUtil.addNearestAlias(name, scriptMixin.scriptOrFile, desc, userParams, javaRuntimeOptions,
 					scriptMixin.sources, scriptMixin.resources, dependencyInfoMixin.getDependencies(),
 					dependencyInfoMixin.getRepositories(), dependencyInfoMixin.getClasspaths(),
 					dependencyInfoMixin.getProperties(), buildMixin.javaVersion, buildMixin.main,
-					buildMixin.compileOptions, nativeMixin.nativeImage, nativeMixin.nativeOptions);
+					buildMixin.module, buildMixin.compileOptions, nativeMixin.nativeImage, nativeMixin.nativeOptions);
 		}
 		info(String.format("Alias '%s' added to '%s'", name, catFile));
 		return EXIT_OK;
@@ -134,6 +134,7 @@ class AliasAdd extends BaseAliasCommand {
 											.nativeImage(nativeMixin.nativeImage)
 											.javaVersion(buildMixin.javaVersion)
 											.mainClass(buildMixin.main)
+											.moduleName(buildMixin.module)
 											.setArguments(userParams)
 											.runtimeOptions(javaRuntimeOptions);
 		Path cat = getCatalog(false);

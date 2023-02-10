@@ -104,6 +104,7 @@ abstract class BaseExportCommand extends BaseCommand {
 								.catalog(exportMixin.scriptMixin.catalog)
 								.javaVersion(exportMixin.buildMixin.javaVersion)
 								.mainClass(exportMixin.buildMixin.main)
+								.moduleName(exportMixin.buildMixin.module)
 								.compileOptions(exportMixin.buildMixin.compileOptions);
 	}
 

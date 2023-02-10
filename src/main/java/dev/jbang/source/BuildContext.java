@@ -29,7 +29,7 @@ public class BuildContext {
 	private static Path getBuildDir(Project project) {
 		Path baseDir = Settings.getCacheDir(Cache.CacheClass.jars);
 		return baseDir.resolve(
-				project.getResourceRef().getFile().getFileName() + "." + project.getMainSourceSet().getStableId());
+				project.getResourceRef().getFile().getFileName() + "." + project.getStableId());
 	}
 
 	private BuildContext(Project project, Path buildDir) {
@@ -62,8 +62,14 @@ public class BuildContext {
 		}
 	}
 
+	@Nonnull
 	public Path getCompileDir() {
 		return buildDir.resolve("classes");
+	}
+
+	@Nonnull
+	public Path getGeneratedSourcesDir() {
+		return buildDir.resolve("generated");
 	}
 
 	@Nonnull

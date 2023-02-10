@@ -46,6 +46,7 @@ public class ProjectBuilder {
 	private List<Project> javaAgents = new ArrayList<>();
 	private Source.Type forceType = null;
 	private String mainClass;
+	private String moduleName;
 	private List<String> compileOptions = Collections.emptyList();
 	private List<String> nativeOptions = Collections.emptyList();
 	private File catalogFile;
@@ -179,6 +180,11 @@ public class ProjectBuilder {
 
 	public ProjectBuilder mainClass(String mainClass) {
 		this.mainClass = mainClass;
+		return this;
+	}
+
+	public ProjectBuilder moduleName(String moduleName) {
+		this.moduleName = moduleName;
 		return this;
 	}
 
@@ -335,6 +341,7 @@ public class ProjectBuilder {
 				it -> PropertiesValueResolver.replaceProperties(it, getContextProperties()));
 		prj.setDescription(tagReader.getDescription().orElse(null));
 		prj.setGav(tagReader.getGav().orElse(null));
+		prj.setModuleName(tagReader.getModule().orElse(null));
 
 		SourceSet ss = prj.getMainSourceSet();
 		ss.addResources(tagReader.collectFiles(resourceRef,
@@ -399,6 +406,9 @@ public class ProjectBuilder {
 				if (attrs.containsKey(Attributes.Name.MAIN_CLASS)) {
 					prj.setMainClass(attrs.getValue(Attributes.Name.MAIN_CLASS));
 				}
+				// NB: we don't import Automatic-Module-Name or any information
+				// from module-info because that would force jbang into module
+				// mode, preventing the user to use it as plain Java
 
 				Optional<JarEntry> pom = jf.stream().filter(e -> e.getName().endsWith("/pom.xml")).findFirst();
 				if (pom.isPresent()) {
@@ -480,6 +490,11 @@ public class ProjectBuilder {
 		prj.putProperties(properties);
 		prj.addRuntimeOptions(runtimeOptions);
 		prj.addJavaAgents(javaAgents);
+		if (moduleName != null) {
+			if (!moduleName.isEmpty() || !prj.getModuleName().isPresent()) {
+				prj.setModuleName(moduleName);
+			}
+		}
 		if (mainClass != null) {
 			prj.setMainClass(mainClass);
 		}
