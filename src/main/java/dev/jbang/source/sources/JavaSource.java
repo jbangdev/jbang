@@ -45,13 +45,13 @@ public class JavaSource extends Source {
 	}
 
 	@Override
-	public Builder<Project> getBuilder(Project prj) {
-		return new JavaAppBuilder(prj);
+	public Builder<Project> getBuilder(Project prj, BuildContext ctx) {
+		return new JavaAppBuilder(prj, ctx);
 	}
 
 	public static class JavaAppBuilder extends AppBuilder {
-		public JavaAppBuilder(Project project) {
-			super(project);
+		public JavaAppBuilder(Project project, BuildContext ctx) {
+			super(project, ctx);
 		}
 
 		@Override
@@ -67,7 +67,7 @@ public class JavaSource extends Source {
 		public class JavaCompileBuildStep extends CompileBuildStep {
 
 			public JavaCompileBuildStep() {
-				super(JavaAppBuilder.this.project);
+				super(JavaAppBuilder.this.project, JavaAppBuilder.this.ctx);
 			}
 
 			@Override
@@ -78,7 +78,7 @@ public class JavaSource extends Source {
 
 		public class JavaIntegrationBuildStep extends IntegrationBuildStep {
 			public JavaIntegrationBuildStep() {
-				super(JavaAppBuilder.this.project);
+				super(JavaAppBuilder.this.project, JavaAppBuilder.this.ctx);
 			}
 
 			@Override

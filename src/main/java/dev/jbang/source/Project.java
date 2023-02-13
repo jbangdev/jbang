@@ -1,9 +1,8 @@
 package dev.jbang.source;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.function.Supplier;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -11,15 +10,12 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import dev.jbang.Cache;
-import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.source.sources.JavaSource;
-import dev.jbang.util.Util;
 
 /**
  * This class gives access to all information necessary to turn source files
@@ -31,7 +27,7 @@ public class Project {
 	@Nonnull
 	private final ResourceRef resourceRef;
 	private Source mainSource;
-	private Supplier<CmdGenerator> cmdGeneratorFactory;
+	private Function<BuildContext, CmdGenerator> cmdGeneratorFactory;
 
 	// Public (user) input values (can be changed from the outside at any time)
 	private final SourceSet mainSourceSet = new SourceSet();
@@ -45,10 +41,8 @@ public class Project {
 	private String gav;
 	private String mainClass;
 	private boolean nativeImage;
-	private Path cacheDir;
 
 	// Cached values
-	private Path jarFile;
 	private ModularClassPath mcp;
 
 	public static final String ATTR_PREMAIN_CLASS = "Premain-Class";
@@ -70,9 +64,6 @@ public class Project {
 
 	public Project(@Nonnull ResourceRef resourceRef) {
 		this.resourceRef = resourceRef;
-		if (Project.isJar(resourceRef.getFile())) {
-			jarFile = resourceRef.getFile();
-		}
 	}
 
 	// TODO This should be refactored and removed
@@ -220,11 +211,7 @@ public class Project {
 		this.mainSource = mainSource;
 	}
 
-	public void setCacheDir(Path cacheDir) {
-		this.cacheDir = cacheDir;
-	}
-
-	public void setCmdGeneratorFactory(Supplier<CmdGenerator> cmdGeneratorFactory) {
+	public void setCmdGeneratorFactory(Function<BuildContext, CmdGenerator> cmdGeneratorFactory) {
 		this.cmdGeneratorFactory = cmdGeneratorFactory;
 	}
 
@@ -244,54 +231,6 @@ public class Project {
 		return getMainSourceSet().updateDependencyResolver(resolver);
 	}
 
-	public Path getJarFile() {
-		if (isJShell()) {
-			return null;
-		}
-		if (jarFile == null) {
-			jarFile = getTempPath(".jar");
-		}
-		return jarFile;
-	}
-
-	public Path getNativeImageFile() {
-		if (isJShell()) {
-			return null;
-		}
-		if (Util.isWindows()) {
-			return getTempPath(".exe");
-		} else {
-			return getTempPath(".bin");
-		}
-	}
-
-	public Path getBuildDir() {
-		if (cacheDir != null) {
-			return cacheDir.resolve("classes");
-		} else {
-			return getTempPath(".tmp");
-		}
-	}
-
-	@Nonnull
-	private Path getTempPath(String extension) {
-		if (cacheDir != null) {
-			return cacheDir.resolve(Util.sourceBase(getResourceRef().getFile().getFileName().toString()) + extension);
-		} else {
-			Path baseDir = Settings.getCacheDir(Cache.CacheClass.jars);
-			return baseDir.resolve(
-					getResourceRef().getFile().getFileName() + "." + getMainSourceSet().getStableId() + extension);
-		}
-	}
-
-	/**
-	 * Determines if the associated jar is up-to-date, returns false if it needs to
-	 * be rebuilt
-	 */
-	public boolean isUpToDate() {
-		return getJarFile() != null && Files.exists(getJarFile()) && resolveClassPath().isValid();
-	}
-
 	/**
 	 * Returns a <code>Builder</code> that can be used to turn this
 	 * <code>Project</code> into executable code.
@@ -299,12 +238,12 @@ public class Project {
 	 * @return A <code>Builder</code>
 	 */
 	@Nonnull
-	public Builder<Project> builder() {
+	public Builder<Project> builder(BuildContext ctx) {
 		if (mainSource != null) {
-			return mainSource.getBuilder(this);
+			return mainSource.getBuilder(this, ctx);
 		} else {
 			if (isJar() && nativeImage) {
-				return new JavaSource.JavaAppBuilder(this);
+				return new JavaSource.JavaAppBuilder(this, ctx);
 			} else {
 				return () -> this;
 			}
@@ -319,9 +258,9 @@ public class Project {
 	 * @return A <code>CmdGenerator</code>
 	 */
 	@Nonnull
-	public CmdGenerator cmdGenerator() {
+	public CmdGenerator cmdGenerator(BuildContext ctx) {
 		if (cmdGeneratorFactory != null) {
-			return cmdGeneratorFactory.get();
+			return cmdGeneratorFactory.apply(ctx);
 		} else {
 			throw new ExitException(BaseCommand.EXIT_INTERNAL_ERROR, "Missing CmdGenerator factory for Project");
 		}

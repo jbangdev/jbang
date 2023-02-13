@@ -17,7 +17,6 @@ import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
-	private final Project project;
 	private boolean interactive;
 
 	public JshCmdGenerator interactive(boolean interactive) {
@@ -25,13 +24,8 @@ public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
 		return this;
 	}
 
-	public JshCmdGenerator(Project project) {
-		this.project = project;
-	}
-
-	@Override
-	protected Project getProject() {
-		return project;
+	public JshCmdGenerator(Project prj, BuildContext ctx) {
+		super(prj, ctx);
 	}
 
 	@Override
@@ -42,7 +36,7 @@ public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
 
 		List<String> optionalArgs = new ArrayList<>();
 
-		String requestedJavaVersion = getProject().getJavaVersion();
+		String requestedJavaVersion = project.getJavaVersion();
 		String javacmd;
 		javacmd = JavaUtil.resolveInJavaHome("jshell", requestedJavaVersion);
 

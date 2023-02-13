@@ -14,7 +14,7 @@ public class JshSource extends JavaSource {
 	}
 
 	@Override
-	public Builder<Project> getBuilder(Project prj) {
+	public Builder<Project> getBuilder(Project prj, BuildContext ctx) {
 		return () -> prj;
 	}
 }

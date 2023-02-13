@@ -21,6 +21,7 @@ import org.jboss.jandex.Indexer;
 import org.jboss.jandex.Type;
 
 import dev.jbang.cli.ExitException;
+import dev.jbang.source.BuildContext;
 import dev.jbang.source.Builder;
 import dev.jbang.source.Project;
 import dev.jbang.spi.IntegrationManager;
@@ -35,6 +36,7 @@ import dev.jbang.util.Util;
  */
 public abstract class IntegrationBuildStep implements Builder<IntegrationResult> {
 	private final Project project;
+	private final BuildContext ctx;
 
 	public static final Type STRINGARRAYTYPE = Type.create(DotName.createSimple("[Ljava.lang.String;"),
 			Type.Kind.ARRAY);
@@ -42,15 +44,16 @@ public abstract class IntegrationBuildStep implements Builder<IntegrationResult>
 	public static final Type INSTRUMENTATIONTYPE = Type.create(
 			DotName.createSimple("java.lang.instrument.Instrumentation"), Type.Kind.CLASS);
 
-	public IntegrationBuildStep(Project project) {
+	public IntegrationBuildStep(Project project, BuildContext ctx) {
 		this.project = project;
+		this.ctx = ctx;
 	}
 
 	@Override
 	public IntegrationResult build() throws IOException {
 		// todo: setting properties to avoid loosing properties in integration call.
-		Path compileDir = project.getBuildDir();
-		Path pomPath = CompileBuildStep.getPomPath(project);
+		Path compileDir = ctx.getCompileDir();
+		Path pomPath = CompileBuildStep.getPomPath(project, ctx);
 		Properties old = System.getProperties();
 		Properties temp = new Properties(System.getProperties());
 		for (Map.Entry<String, String> entry : project.getProperties().entrySet()) {

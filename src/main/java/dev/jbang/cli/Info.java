@@ -87,7 +87,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String description;
 		String gav;
 
-		public ScriptInfo(Project prj, ProjectBuilder pb) {
+		public ScriptInfo(Project prj, BuildContext ctx) {
 			originalResource = prj.getResourceRef().getOriginalResource();
 
 			if (scripts.add(originalResource)) {
@@ -95,43 +95,43 @@ abstract class BaseInfoCommand extends BaseCommand {
 
 				init(prj);
 
-				if (pb != null) {
-					applicationJar = prj.getJarFile() == null ? null : prj.getJarFile().toAbsolutePath().toString();
-					nativeImage = prj.getNativeImageFile() == null || !Files.exists(prj.getNativeImageFile()) ? null
-							: prj.getNativeImageFile().toAbsolutePath().toString();
-					mainClass = prj.getMainClass();
-					requestedJavaVersion = prj.getJavaVersion();
+				applicationJar = ctx.getJarFile() == null ? null
+						: ctx.getJarFile().toAbsolutePath().toString();
+				nativeImage = ctx.getNativeImageFile() == null
+						|| !Files.exists(ctx.getNativeImageFile()) ? null
+								: ctx.getNativeImageFile().toAbsolutePath().toString();
+				mainClass = prj.getMainClass();
+				requestedJavaVersion = prj.getJavaVersion();
 
-					try {
-						JdkProvider.Jdk jdk = JdkManager.getJdk(requestedJavaVersion, false);
-						if (jdk != null && jdk.isInstalled()) {
-							availableJdkPath = jdk.getHome().toString();
-						}
-					} catch (ExitException e) {
-						// Ignore
+				try {
+					JdkProvider.Jdk jdk = JdkManager.getJdk(requestedJavaVersion, false);
+					if (jdk != null && jdk.isInstalled()) {
+						availableJdkPath = jdk.getHome().toString();
 					}
+				} catch (ExitException e) {
+					// Ignore
+				}
 
-					String cp = prj.resolveClassPath().getClassPath();
-					if (cp.isEmpty()) {
-						resolvedDependencies = Collections.emptyList();
-					} else {
-						resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
-					}
+				String cp = prj.resolveClassPath().getClassPath();
+				if (cp.isEmpty()) {
+					resolvedDependencies = Collections.emptyList();
+				} else {
+					resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
+				}
 
-					if (prj.getJavaVersion() != null) {
-						javaVersion = Integer.toString(JavaUtil.parseJavaVersion(prj.getJavaVersion()));
-					}
+				if (prj.getJavaVersion() != null) {
+					javaVersion = Integer.toString(JavaUtil.parseJavaVersion(prj.getJavaVersion()));
+				}
 
-					List<String> opts = prj.getRuntimeOptions();
-					if (!opts.isEmpty()) {
-						runtimeOptions = opts;
-					}
+				List<String> opts = prj.getRuntimeOptions();
+				if (!opts.isEmpty()) {
+					runtimeOptions = opts;
+				}
 
-					if (prj.getJarFile() != null && Files.exists(prj.getJarFile())) {
-						Project jarProject = ProjectBuilder.create().build(prj.getJarFile());
-						mainClass = jarProject.getMainClass();
-						gav = jarProject.getGav().orElse(gav);
-					}
+				if (ctx.getJarFile() != null && Files.exists(ctx.getJarFile())) {
+					Project jarProject = ProjectBuilder.create().build(ctx.getJarFile());
+					mainClass = jarProject.getMainClass();
+					gav = jarProject.getGav().orElse(gav);
 				}
 			}
 		}
@@ -195,7 +195,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 
 		scripts = new HashSet<>();
 
-		return new ScriptInfo(prj, pb);
+		return new ScriptInfo(prj, BuildContext.forProject(prj, buildDir));
 	}
 
 	ProjectBuilder createProjectBuilder() {
@@ -207,8 +207,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 								.additionalSources(scriptMixin.sources)
 								.additionalResources(scriptMixin.resources)
 								.forceType(scriptMixin.forceType)
-								.catalog(scriptMixin.catalog)
-								.buildDir(buildDir);
+								.catalog(scriptMixin.catalog);
 	}
 
 }

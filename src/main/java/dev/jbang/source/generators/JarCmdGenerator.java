@@ -16,7 +16,6 @@ import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
-	private final Project project;
 
 	private boolean assertions;
 	private boolean systemAssertions;
@@ -43,13 +42,8 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		return this;
 	}
 
-	public JarCmdGenerator(Project prj) {
-		this.project = prj;
-	}
-
-	@Override
-	protected Project getProject() {
-		return project;
+	public JarCmdGenerator(Project prj, BuildContext ctx) {
+		super(prj, ctx);
 	}
 
 	@Override
@@ -91,11 +85,11 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 			Util.verboseMsg("Flight recording enabled with:" + jfropt);
 		}
 
-		if (project.getJarFile() != null) {
+		if (ctx.getJarFile() != null) {
 			if (Util.isBlankString(classpath)) {
-				classpath = project.getJarFile().toAbsolutePath().toString();
+				classpath = ctx.getJarFile().toAbsolutePath().toString();
 			} else {
-				classpath = project.getJarFile().toAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
+				classpath = ctx.getJarFile().toAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
 			}
 		}
 		if (!Util.isBlankString(classpath)) {
@@ -104,7 +98,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		}
 
 		if (classDataSharing || project.enableCDS()) {
-			Path cdsJsa = project.getJarFile().toAbsolutePath();
+			Path cdsJsa = ctx.getJarFile().toAbsolutePath();
 			if (Files.exists(cdsJsa)) {
 				Util.verboseMsg("CDS: Using shared archive classes from " + cdsJsa);
 				optionalArgs.add("-XX:SharedArchiveFile=" + cdsJsa);

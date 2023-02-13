@@ -61,13 +61,13 @@ public class GroovySource extends Source {
 	}
 
 	@Override
-	public Builder<Project> getBuilder(Project prj) {
-		return new GroovyAppBuilder(prj);
+	public Builder<Project> getBuilder(Project prj, BuildContext ctx) {
+		return new GroovyAppBuilder(prj, ctx);
 	}
 
 	private static class GroovyAppBuilder extends AppBuilder {
-		public GroovyAppBuilder(Project project) {
-			super(project);
+		public GroovyAppBuilder(Project project, BuildContext ctx) {
+			super(project, ctx);
 		}
 
 		@Override
@@ -83,7 +83,7 @@ public class GroovySource extends Source {
 		private class GroovyCompileBuildStep extends CompileBuildStep {
 
 			public GroovyCompileBuildStep() {
-				super(GroovyAppBuilder.this.project);
+				super(GroovyAppBuilder.this.project, GroovyAppBuilder.this.ctx);
 			}
 
 			@Override
@@ -105,7 +105,7 @@ public class GroovySource extends Source {
 
 		private class GroovyIntegrationBuildStep extends IntegrationBuildStep {
 			public GroovyIntegrationBuildStep() {
-				super(GroovyAppBuilder.this.project);
+				super(GroovyAppBuilder.this.project, GroovyAppBuilder.this.ctx);
 			}
 
 			@Override

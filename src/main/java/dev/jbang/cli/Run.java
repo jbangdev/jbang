@@ -9,6 +9,7 @@ import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import dev.jbang.source.BuildContext;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.source.Source;
@@ -102,7 +103,8 @@ public class Run extends BaseBuildCommand {
 			}
 		}
 
-		prj.builder().build();
+		BuildContext ctx = BuildContext.forProject(prj, buildDir);
+		prj.builder(ctx).build();
 
 		if (Boolean.TRUE.equals(nativeMixin.nativeImage)
 				&& (scriptMixin.forceType == Source.Type.jshell || prj.isJShell())) {
@@ -110,7 +112,7 @@ public class Run extends BaseBuildCommand {
 			pb.nativeImage(false);
 		}
 
-		String cmdline = prj.cmdGenerator().generate();
+		String cmdline = prj.cmdGenerator(ctx).generate();
 		debug("run: " + cmdline);
 		out.println(cmdline);
 
@@ -133,8 +135,7 @@ public class Run extends BaseBuildCommand {
 				String javaAgentOptions = agentOption.getValue();
 				ProjectBuilder apb = super.createProjectBuilder();
 				Project aprj = apb.build(javaAgent);
-				aprj.addRuntimeOption("-javaagent:" + aprj.getJarFile()
-						+ (javaAgentOptions != null ? "=" + javaAgentOptions : ""));
+				aprj.addRuntimeOption("-javaagent:$JAR$" + (javaAgentOptions != null ? "=" + javaAgentOptions : ""));
 				pb.addJavaAgent(aprj);
 			}
 		}

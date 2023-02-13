@@ -21,6 +21,7 @@ import org.apache.commons.compress.archivers.zip.ZipFile;
 import dev.jbang.Settings;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenCoordinate;
+import dev.jbang.source.BuildContext;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.JarUtil;
@@ -82,11 +83,13 @@ abstract class BaseExportCommand extends BaseCommand {
 	public Integer doCall() throws IOException {
 		exportMixin.validate();
 		ProjectBuilder pb = createProjectBuilder(exportMixin);
-		Project prj = pb.build(exportMixin.scriptMixin.scriptOrFile).builder().build();
-		return apply(prj, pb);
+		Project prj = pb.build(exportMixin.scriptMixin.scriptOrFile);
+		BuildContext ctx = BuildContext.forProject(prj);
+		prj.builder(ctx).build();
+		return apply(prj, ctx);
 	}
 
-	abstract int apply(Project prj, ProjectBuilder pb) throws IOException;
+	abstract int apply(Project prj, BuildContext ctx) throws IOException;
 
 	protected ProjectBuilder createProjectBuilder(ExportMixin exportMixin) {
 		return ProjectBuilder
@@ -118,9 +121,9 @@ abstract class BaseExportCommand extends BaseCommand {
 class ExportLocal extends BaseExportCommand {
 
 	@Override
-	int apply(Project prj, ProjectBuilder pb) throws IOException {
+	int apply(Project prj, BuildContext ctx) throws IOException {
 		// Copy the JAR
-		Path source = prj.getJarFile();
+		Path source = ctx.getJarFile();
 		Path outputPath = getJarOutputPath();
 		if (outputPath.toFile().exists()) {
 			if (exportMixin.force) {
@@ -155,9 +158,9 @@ class ExportPortable extends BaseExportCommand {
 	public static final String LIB = "lib";
 
 	@Override
-	int apply(Project prj, ProjectBuilder pb) throws IOException {
+	int apply(Project prj, BuildContext ctx) throws IOException {
 		// Copy the JAR
-		Path source = prj.getJarFile();
+		Path source = ctx.getJarFile();
 		Path outputPath = getJarOutputPath();
 		if (outputPath.toFile().exists()) {
 			if (exportMixin.force) {
@@ -205,14 +208,14 @@ class ExportMavenPublish extends BaseExportCommand {
 	String version;
 
 	@Override
-	int apply(Project prj, ProjectBuilder pb) throws IOException {
+	int apply(Project prj, BuildContext ctx) throws IOException {
 		Path outputPath = exportMixin.outputFile;
 
 		if (outputPath == null) {
 			outputPath = Settings.getLocalMavenRepo();
 		}
 		// Copy the JAR
-		Path source = prj.getJarFile();
+		Path source = ctx.getJarFile();
 
 		if (!outputPath.toFile().isDirectory()) {
 			if (outputPath.toFile().exists()) {
@@ -306,9 +309,9 @@ class ExportMavenPublish extends BaseExportCommand {
 class ExportNative extends BaseExportCommand {
 
 	@Override
-	int apply(Project prj, ProjectBuilder pb) throws IOException {
+	int apply(Project prj, BuildContext ctx) throws IOException {
 		// Copy the native binary
-		Path source = prj.getNativeImageFile();
+		Path source = ctx.getNativeImageFile();
 		Path outputPath = getNativeOutputPath();
 		if (outputPath.toFile().exists()) {
 			if (exportMixin.force) {
@@ -345,9 +348,9 @@ class ExportNative extends BaseExportCommand {
 class ExportFatjar extends BaseExportCommand {
 
 	@Override
-	int apply(Project prj, ProjectBuilder pb) throws IOException {
+	int apply(Project prj, BuildContext ctx) throws IOException {
 		// Copy the native binary
-		Path source = prj.getJarFile();
+		Path source = ctx.getJarFile();
 		Path outputPath = getFatjarOutputPath();
 		if (outputPath.toFile().exists()) {
 			if (exportMixin.force) {

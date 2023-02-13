@@ -56,6 +56,7 @@ import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.net.JdkManager;
 import dev.jbang.net.TrustedSources;
+import dev.jbang.source.BuildContext;
 import dev.jbang.source.Builder;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
@@ -93,17 +94,18 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project code = pb.build(arg);
+		BuildContext ctx = BuildContext.forProject(code);
 
-		assertThat(Files.exists(code.getJarFile()), equalTo(!first));
+		assertThat(Files.exists(ctx.getJarFile()), equalTo(!first));
 
-		code = code.builder().build();
+		code = code.builder(ctx).build();
 
-		String result = code.cmdGenerator().generate();
+		String result = code.cmdGenerator(ctx).generate();
 
 		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
 		assertThat(result, endsWith("helloworld"));
 		assertThat(result, containsString("classpath"));
-		assertThat(result, matchesRegex(".*helloworld\\.java\\.[a-z0-9]+\\.jar.*"));
+		assertThat(result, matchesRegex(".*helloworld\\.java\\.[a-z0-9]+.helloworld\\.jar.*"));
 		assertThat(result, containsString("picocli-4.6.3.jar"));
 		assertThat(result, containsString("hellojar.jar"));
 		assertThat(result, containsString("-Dfoo=bar"));
@@ -130,9 +132,10 @@ public class TestRun extends BaseTest {
 		ProjectBuilder pb = run.createProjectBuilder();
 		pb.catalog(cat.toFile());
 		Project code = pb.build("helloworld");
+		BuildContext ctx = BuildContext.forProject(code);
 
-		code = code.builder().build();
-		String result = code.cmdGenerator().generate();
+		code = code.builder(ctx).build();
+		String result = code.cmdGenerator(ctx).generate();
 
 		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
 		assertThat(result, endsWith("helloworld"));
@@ -166,8 +169,9 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project prj = pb.build(arg);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		String result = prj.cmdGenerator().generate();
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result,
 				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
@@ -193,8 +197,9 @@ public class TestRun extends BaseTest {
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project prj = pb.build(
 				LiteralScriptResourceResolver.stringToResourceRef(null, "Collector2.class"));
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		String result = prj.cmdGenerator().generate();
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result,
 				matchesPattern(
@@ -214,8 +219,9 @@ public class TestRun extends BaseTest {
 		pb.mainClass("fakemain");
 		Project prj = pb.build(
 				LiteralScriptResourceResolver.stringToResourceRef(null, hwtxt));
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		String result = prj.cmdGenerator().generate();
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result, matchesPattern("^.*java(.exe)?.*$"));
 		assertThat(result, containsString("firstarg"));
@@ -231,8 +237,9 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project prj = pb.build(arg);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		String result = prj.cmdGenerator().generate();
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result, matchesPattern("^.*jshell(.exe)?.+--class-path=.*figlet.*? --startup.*$"));
 	}
@@ -255,8 +262,9 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project prj = pb.build(arg);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		String result = prj.cmdGenerator().generate();
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result, matchesPattern("^.*jshell(.exe)?.+--class-path=.*figlet.*? --startup.*$"));
 	}
@@ -274,8 +282,9 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project prj = pb.build(empty.toString());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		String result = prj.cmdGenerator().generate();
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result,
 				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
@@ -297,8 +306,9 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project prj = pb.build(arg);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		String result = prj.cmdGenerator().generate();
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result,
 				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
@@ -324,8 +334,9 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project code = pb.build(jar);
+		BuildContext ctx = BuildContext.forProject(code);
 
-		String result = code.cmdGenerator().generate();
+		String result = code.cmdGenerator(ctx).generate();
 		assertThat(result, matchesPattern("^.*java(.exe)?.*"));
 		assertThat(code.getMainClass(), not(nullValue()));
 
@@ -355,8 +366,9 @@ public class TestRun extends BaseTest {
 
 			ProjectBuilder pb = run.createProjectBuilder();
 			Project code = pb.build(jar);
+			BuildContext ctx = BuildContext.forProject(code);
 
-			String cmdline = code.cmdGenerator().generate();
+			String cmdline = code.cmdGenerator(ctx).generate();
 
 			assertThat(cmdline, not(containsString("https")));
 
@@ -380,12 +392,13 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project code = pb.build(jar);
+		BuildContext ctx = BuildContext.forProject(code);
 
 		assertThat(code.getResourceRef().getFile().toString(),
 				matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
 
 		ExitException e = Assertions.assertThrows(ExitException.class,
-				() -> code.cmdGenerator().generate());
+				() -> code.cmdGenerator(ctx).generate());
 
 		assertThat(e.getMessage(), startsWith("no main class"));
 
@@ -404,11 +417,12 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project code = pb.build(jar);
+		BuildContext ctx = BuildContext.forProject(code);
 
 		assertThat(code.getResourceRef().getFile().toString(),
 				matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
 
-		String result = code.cmdGenerator().generate();
+		String result = code.cmdGenerator(ctx).generate();
 		assertThat(result, matchesPattern("^.*jshell(.exe)?.*"));
 		assertThat(code.getMainClass(), nullValue());
 
@@ -442,10 +456,11 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project code = pb.build(jar);
+		BuildContext ctx = BuildContext.forProject(code);
 
 		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*.jar"));
 
-		String cmd = code.cmdGenerator().generate();
+		String cmd = code.cmdGenerator(ctx).generate();
 
 		if (Util.getShell() == Util.Shell.bash) {
 			assertThat(cmd, matchesPattern(".*quarkus-cli-1.9.0.Final-runner.jar.*"));
@@ -471,11 +486,12 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project code = pb.build(jar);
+		BuildContext ctx = BuildContext.forProject(code);
 
 		assertThat(code.getResourceRef().getFile().toString(),
 				matchesPattern(".*jbang_tests_maven.*eclipse.jgit.pgm.*.jar"));
 
-		code.cmdGenerator().generate();
+		code.cmdGenerator(ctx).generate();
 
 		assertThat(code.getMainClass(), equalTo("org.eclipse.jgit.pgm.Main"));
 
@@ -495,8 +511,9 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project code = pb.build(jar);
+		BuildContext ctx = BuildContext.forProject(code);
 
-		String cmd = code.cmdGenerator().generate();
+		String cmd = code.cmdGenerator(ctx).generate();
 
 		assertThat(code.getMainClass(), equalTo("picocli.codegen.aot.graalvm.ReflectionConfigGenerator"));
 
@@ -552,10 +569,11 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project code = pb.build(jar);
+		BuildContext ctx = BuildContext.forProject(code);
 
 		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*eclipse.jgit.pgm.*.jar"));
 
-		String result = code.cmdGenerator().generate();
+		String result = code.cmdGenerator(ctx).generate();
 
 		assertThat(result, containsString("picocli-4.6.3.jar"));
 		assertThat(result, containsString("hellojar.jar"));
@@ -573,8 +591,9 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project prj = pb.build(arg);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		String result = prj.cmdGenerator().generate();
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result, matchesPattern("^.*jshell(.exe)? .*$"));
 		assertThat(result, not(containsString("  ")));
@@ -595,8 +614,9 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project prj = pb.build(arg);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		String result = prj.cmdGenerator().generate();
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result,
 				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
@@ -617,8 +637,9 @@ public class TestRun extends BaseTest {
 		ProjectBuilder pb = run.createProjectBuilder();
 		pb.mainClass("fakemain");
 		Project prj = pb.build(arg);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		String result = prj.cmdGenerator().generate();
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
 		assertThat(result, containsString("helloworld.java"));
@@ -641,8 +662,9 @@ public class TestRun extends BaseTest {
 		pb.mainClass("fakemain");
 
 		Project prj = pb.build(arg);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		String result = prj.cmdGenerator().generate();
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
 		assertThat(result, containsString("classpath_example.java"));
@@ -663,8 +685,9 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project prj = pb.build(arg);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		String result = prj.cmdGenerator().generate();
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result, matchesPattern("^.*jshell(.exe)? .*$"));
 		assertThat(result, (containsString("classpath_example.java")));
@@ -693,8 +716,9 @@ public class TestRun extends BaseTest {
 		ProjectBuilder pb = run.createProjectBuilder();
 		pb.mainClass("fakemain");
 		Project prj = pb.build(arg);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		String result = prj.cmdGenerator().generate();
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
 		assertThat(result, containsString("-Dwonka=panda"));
@@ -728,8 +752,9 @@ public class TestRun extends BaseTest {
 		pb.mainClass("fakemain");
 
 		Project prj = pb.build(url);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		String s = prj.cmdGenerator().generate();
+		String s = prj.cmdGenerator(ctx).generate();
 
 		assertThat(s, not(containsString("file:")));
 	}
@@ -745,8 +770,9 @@ public class TestRun extends BaseTest {
 		pb.mainClass("fakemain");
 
 		Project prj = pb.build(url);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		String s = prj.cmdGenerator().generate();
+		String s = prj.cmdGenerator(ctx).generate();
 		if (Util.isWindows()) {
 			assertThat(s, containsString("^\"^ ~^!@#$^%^^^&*^(^)-+\\:;'`^<^>?/,.{}[]\\^\"^\""));
 		} else {
@@ -764,7 +790,9 @@ public class TestRun extends BaseTest {
 		ProjectBuilder pb = run.createProjectBuilder();
 		pb.mainClass("fakemain");
 		Project prj = pb.build(arg);
-		String result = prj.cmdGenerator().generate();
+		BuildContext ctx = BuildContext.forProject(prj);
+
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result, containsString("reload4j-1.2.18.5.jar"));
 	}
@@ -794,7 +822,7 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = ProjectBuilder.create();
 		Source src = new JavaSource("", null);
-		Project prj = src.createProject();
+		Project prj = ProjectBuilder.create().build(src);
 		prj.setMainClass("wonkabear");
 
 		JarBuildStep.createJar(prj, dir, out);
@@ -855,11 +883,13 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = ProjectBuilder.create();
 		Project prj = pb.build(f);
-		prj = prj.builder().build();
+		BuildContext ctx = BuildContext.forProject(prj);
+
+		prj = prj.builder(ctx).build();
 
 		assertThat(prj.getMainClass(), equalTo("aclass"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(prj.getJarFile(), (ClassLoader) null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(ctx.getJarFile(), (ClassLoader) null)) {
 			Path fileToExtract = fileSystem.getPath("META-INF/maven/dev/jbang/tests/pom.xml");
 
 			ByteArrayOutputStream s = new ByteArrayOutputStream();
@@ -904,8 +934,9 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = ProjectBuilder.create();
 		Project prj = pb.build(f);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj = prj.builder().build();
+		prj = prj.builder(ctx).build();
 
 		assertThat(prj.getMainClass(), equalTo("dualclass"));
 
@@ -941,8 +972,9 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project prj = pb.build(arg);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj = prj.builder().build();
+		prj = prj.builder(ctx).build();
 
 		assertThat(prj.getMainClass(), equalTo("dualclass"));
 
@@ -1143,13 +1175,14 @@ public class TestRun extends BaseTest {
 		ProjectBuilder pb = run.createProjectBuilder();
 		pb.mainClass("fakemain");
 		Project code = pb.build(Paths.get(arg));
+		BuildContext ctx = BuildContext.forProject(code);
 
-		String commandLine = code.cmdGenerator().generate();
+		String commandLine = code.cmdGenerator(ctx).generate();
 		assertThat(commandLine, containsString("-XX:ArchiveClassesAtExit="));
 
 		run.doCall();
 
-		commandLine = code.cmdGenerator().generate();
+		commandLine = code.cmdGenerator(ctx).generate();
 		assertThat(commandLine, containsString("-XX:SharedArchiveFile="));
 
 		assert (run.cds != null);
@@ -1168,8 +1201,9 @@ public class TestRun extends BaseTest {
 		ProjectBuilder pb = run.createProjectBuilder();
 		pb.mainClass("fakemain");
 		Project code = pb.build(p);
+		BuildContext ctx = BuildContext.forProject(code);
 
-		String commandLine = code.cmdGenerator().generate();
+		String commandLine = code.cmdGenerator(ctx).generate();
 		assertThat(commandLine, containsString("-XX:ArchiveClassesAtExit="));
 	}
 
@@ -1209,15 +1243,16 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = build.createProjectBuilder();
 		Project prj = pb.build(p.toFile().getAbsolutePath());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj.builder().build();
+		prj.builder(ctx).build();
 
 		assertThat(prj.getMainSource().isAgent(), is(true));
 
 		assertThat(prj.getManifestAttributes().get(ATTR_AGENT_CLASS), is("Agent"));
 		assertThat(prj.getManifestAttributes().get(ATTR_PREMAIN_CLASS), is("Agent"));
 
-		try (JarFile jf = new JarFile(prj.getJarFile().toFile())) {
+		try (JarFile jf = new JarFile(ctx.getJarFile().toFile())) {
 			Attributes attrs = jf.getManifest().getMainAttributes();
 			assertThat(attrs.getValue("Premain-class"), equalTo("Agent"));
 			assertThat(attrs.getValue("Can-Retransform-Classes"), equalTo("true"));
@@ -1238,8 +1273,9 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = build.createProjectBuilder();
 		Project prj = pb.build(p.toFile().getAbsolutePath());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj.builder().build();
+		prj.builder(ctx).build();
 
 		assertThat(prj.getMainSource().isAgent(), is(true));
 
@@ -1285,13 +1321,14 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project code = pb.build(mainfile);
+		BuildContext ctx = BuildContext.forProject(code);
 		Project ass = pb.build(agentfile);
 
 		assertThat(ass.getMainSource().isAgent(), is(true));
 
-		code = code.builder().build();
+		code = code.builder(ctx).build();
 
-		String result = code.cmdGenerator().generate();
+		String result = code.cmdGenerator(ctx).generate();
 
 		assertThat(result, containsString("-javaagent"));
 		assertThat(result, containsString("=optionA"));
@@ -1330,8 +1367,9 @@ public class TestRun extends BaseTest {
 		pb.mainClass("fakemain");
 
 		Project prj = pb.build(f.getAbsolutePath());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		String line = prj.cmdGenerator().generate();
+		String line = prj.cmdGenerator(ctx).generate();
 
 		assertThat(line, containsString("-ea"));
 	}
@@ -1348,8 +1386,9 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project prj = pb.build(f.getAbsolutePath());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		String line = prj.cmdGenerator().generate();
+		String line = prj.cmdGenerator(ctx).generate();
 
 		assertThat(line, containsString("-esa"));
 	}
@@ -1360,12 +1399,13 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = ProjectBuilder.create();
 		Project prj = pb.build(f.getAbsolutePath());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj = prj.builder().build();
+		prj = prj.builder(ctx).build();
 
 		assertThat(prj.getMainClass(), equalTo("resource"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(prj.getJarFile(), (ClassLoader) null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(ctx.getJarFile(), (ClassLoader) null)) {
 
 			Arrays	.asList("resource.properties", "renamed.properties", "META-INF/application.properties")
 					.forEach(path -> {
@@ -1405,12 +1445,13 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = ProjectBuilder.create();
 		Project prj = pb.build(f.getAbsolutePath());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj = prj.builder().build();
+		prj = prj.builder(ctx).build();
 
 		assertThat(prj.getMainClass(), equalTo("one"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(prj.getJarFile(), (ClassLoader) null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(ctx.getJarFile(), (ClassLoader) null)) {
 			Arrays	.asList("one.class", "Two.class", "gh_release_stats.class", "fetchlatestgraalvm.class")
 					.forEach(path -> {
 						try {
@@ -1436,12 +1477,13 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = ProjectBuilder.create();
 		Project prj = pb.build(f.getAbsolutePath());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj = prj.builder().build();
+		prj = prj.builder(ctx).build();
 
 		assertThat(prj.getMainClass(), equalTo("resources"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(prj.getJarFile(), (ClassLoader) null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(ctx.getJarFile(), (ClassLoader) null)) {
 			Arrays	.asList("resources.class", "resource.properties", "test.properties")
 					.forEach(path -> {
 						try {
@@ -1463,12 +1505,13 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = ProjectBuilder.create();
 		Project prj = pb.build(f.getAbsolutePath());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj = prj.builder().build();
+		prj = prj.builder(ctx).build();
 
 		assertThat(prj.getMainClass(), equalTo("resourcesmnt"));
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(prj.getJarFile(), (ClassLoader) null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(ctx.getJarFile(), (ClassLoader) null)) {
 			Arrays	.asList("resourcesmnt.class", "somedir/resource.properties", "somedir/test.properties")
 					.forEach(path -> {
 						try {
@@ -1517,8 +1560,9 @@ public class TestRun extends BaseTest {
 		String url = "http://localhost:" + wms.port() + "/sub/one.java";
 		ProjectBuilder pb = ProjectBuilder.create();
 		Project prj = pb.build(url);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj.builder().build();
+		prj.builder(ctx).build();
 
 	}
 
@@ -1542,8 +1586,9 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project prj = pb.build(p.toFile().getAbsolutePath());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj.builder().build();
+		prj.builder(ctx).build();
 
 		assertThat(prj.getMainClass(), equalTo("Two"));
 
@@ -1571,8 +1616,9 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project prj = pb.build(p.toFile().getAbsolutePath());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj.builder().build();
+		prj.builder(ctx).build();
 
 		assertThat(prj.getMainClass(), equalTo("One"));
 
@@ -1590,8 +1636,9 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project prj = pb.build(p.toFile().getAbsolutePath());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj.builder().build();
+		prj.builder(ctx).build();
 
 		assertThat(prj.getMainClass(), equalTo("Three"));
 
@@ -1607,8 +1654,9 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = build.createProjectBuilder();
 		Project prj = pb.build(mainFile);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		new JavaSource.JavaAppBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj, ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -1635,8 +1683,9 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = build.createProjectBuilder();
 		Project prj = pb.build(mainFile.toString());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		new JavaSource.JavaAppBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj, ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -1650,7 +1699,7 @@ public class TestRun extends BaseTest {
 
 			@Override
 			protected Builder<Project> getJarBuildStep() {
-				return new JarBuildStep(project) {
+				return new JarBuildStep(project, ctx) {
 					@Override
 					public Project build() {
 						assertThat(project.getMainSourceSet().getResources().size(), is(1));
@@ -1702,10 +1751,11 @@ public class TestRun extends BaseTest {
 		String url = "http://localhost:" + wms.port() + "/sub/one.java";
 		ProjectBuilder pb = ProjectBuilder.create();
 		Project prj = pb.build(url);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj.builder().build();
+		prj.builder(ctx).build();
 
-		try (FileSystem fileSystem = FileSystems.newFileSystem(prj.getJarFile(), (ClassLoader) null)) {
+		try (FileSystem fileSystem = FileSystems.newFileSystem(ctx.getJarFile(), (ClassLoader) null)) {
 			Arrays	.asList("one.class", "index.html")
 					.forEach(path -> {
 						try {
@@ -1740,8 +1790,9 @@ public class TestRun extends BaseTest {
 		String url = "http://localhost:" + wms.port() + "/sub/one";
 		ProjectBuilder pb = ProjectBuilder.create();
 		Project prj = pb.build(url);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj.builder().build();
+		prj.builder(ctx).build();
 	}
 
 	@Test
@@ -1763,8 +1814,9 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = ProjectBuilder.create();
 		Project prj = pb.build(dir.toPath().toString());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj.builder().build();
+		prj.builder(ctx).build();
 
 	}
 
@@ -1796,8 +1848,9 @@ public class TestRun extends BaseTest {
 		String url = "http://localhost:" + wms.port() + "/sub/one/";
 		ProjectBuilder pb = ProjectBuilder.create();
 		Project prj = pb.build(url);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj.builder().build();
+		prj.builder(ctx).build();
 	}
 
 	@Test
@@ -1828,7 +1881,9 @@ public class TestRun extends BaseTest {
 		ProjectBuilder pb = run.createProjectBuilder();
 		pb.mainClass("fakemain");
 
-		String line = pb.build(arg).cmdGenerator().generate();
+		Project prj = pb.build(arg);
+		BuildContext ctx = BuildContext.forProject(prj);
+		String line = prj.cmdGenerator(ctx).generate();
 
 		assertThat(line, containsString("helloworld.jfr"));
 		// testing it does not go to cache by accident
@@ -1846,7 +1901,9 @@ public class TestRun extends BaseTest {
 		ProjectBuilder pb = run.createProjectBuilder();
 		pb.mainClass("fakemain");
 
-		String line = pb.build(arg).cmdGenerator().generate();
+		Project prj = pb.build(arg);
+		BuildContext ctx = BuildContext.forProject(prj);
+		String line = prj.cmdGenerator(ctx).generate();
 
 		assertThat(line, containsString(" --show-version "));
 	}
@@ -1865,7 +1922,10 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		pb.mainClass("fakemain");
-		String line = pb.build(fileref.toString()).cmdGenerator().generate();
+
+		Project prj = pb.build(fileref.toString());
+		BuildContext ctx = BuildContext.forProject(prj);
+		String line = prj.cmdGenerator(ctx).generate();
 
 		assertThat(line, containsString("org/openjfx".replace("/", File.separator)));
 	}
@@ -1887,7 +1947,10 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		pb.mainClass("fakemain");
-		String line = pb.build(fileref.toString()).cmdGenerator().generate();
+
+		Project prj = pb.build(fileref.toString());
+		BuildContext ctx = BuildContext.forProject(prj);
+		String line = prj.cmdGenerator(ctx).generate();
 
 		assertThat(line, containsString("org/openjfx".replace("/", File.separator)));
 	}
@@ -1908,7 +1971,10 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		pb.mainClass("fakemain");
-		String line = pb.build(fileref.toString()).cmdGenerator().generate();
+
+		Project prj = pb.build(fileref.toString());
+		BuildContext ctx = BuildContext.forProject(prj);
+		String line = prj.cmdGenerator(ctx).generate();
 
 		assertThat(line, containsString("org/openjfx".replace("/", File.separator)));
 	}
@@ -1932,7 +1998,10 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		pb.mainClass("fakemain");
-		String line = pb.build(fileref.toString()).cmdGenerator().generate();
+
+		Project prj = pb.build(fileref.toString());
+		BuildContext ctx = BuildContext.forProject(prj);
+		String line = prj.cmdGenerator(ctx).generate();
 
 		assertThat(line, containsString(" --module-path "));
 
@@ -1960,9 +2029,10 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project prj = pb.build(arg);
+		BuildContext ctx = BuildContext.forProject(prj);
 
 		try {
-			prj.builder().build();
+			prj.builder(ctx).build();
 			fail("Should have thrown exception");
 		} catch (ExitException ex) {
 			StringWriter sw = new StringWriter();
@@ -2054,10 +2124,11 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project code = pb.build(p.toString());
+		BuildContext ctx = BuildContext.forProject(code);
 
 		try {
-			code = code.builder().build();
-			code.cmdGenerator().generate();
+			code = code.builder(ctx).build();
+			code.cmdGenerator(ctx).generate();
 			fail("Should have thrown exception");
 		} catch (ExitException e) {
 			StringWriter sw = new StringWriter();
@@ -2116,9 +2187,10 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project code = pb.build(f.getPath());
-		code = code.builder().build();
+		BuildContext ctx = BuildContext.forProject(code);
+		code = code.builder(ctx).build();
 
-		String result = code.cmdGenerator().generate();
+		String result = code.cmdGenerator(ctx).generate();
 
 		assertThat(result, containsString("log4j-1.2.17.jar"));
 	}
@@ -2144,8 +2216,9 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilder();
 		Project prj = pb.build(arg);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		new JavaSource.JavaAppBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj, ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -2159,12 +2232,12 @@ public class TestRun extends BaseTest {
 			}
 		}.setFresh(true).build();
 
-		String result = prj.cmdGenerator().generate();
+		String result = prj.cmdGenerator(ctx).generate();
 
 		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
 		assertThat(result, endsWith("quote_notags"));
 		assertThat(result, containsString("classpath"));
-		assertThat(result, matchesRegex(".*build\\.jbang\\.[a-z0-9]+\\.jar.*"));
+		assertThat(result, matchesRegex(".*build\\.jbang\\.[a-z0-9]+.build.jbang.jar.*"));
 		assertThat(result, containsString("picocli-4.6.3.jar"));
 		assertThat(result, containsString("-Dfoo=bar"));
 		assertThat(result, containsString(CommandBuffer.escapeShellArgument("-Dbar=aap noot mies", Util.getShell())));

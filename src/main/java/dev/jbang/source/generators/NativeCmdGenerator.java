@@ -6,29 +6,24 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import dev.jbang.source.BuildContext;
 import dev.jbang.source.CmdGenerator;
 import dev.jbang.source.Project;
 import dev.jbang.util.Util;
 
 public class NativeCmdGenerator extends BaseCmdGenerator<NativeCmdGenerator> {
-	private final Project project;
 	private final CmdGenerator fallback;
 
-	public NativeCmdGenerator(Project prj, CmdGenerator fallback) {
-		this.project = prj;
+	public NativeCmdGenerator(Project prj, BuildContext ctx, CmdGenerator fallback) {
+		super(prj, ctx);
 		this.fallback = fallback;
-	}
-
-	@Override
-	protected Project getProject() {
-		return project;
 	}
 
 	@Override
 	public String generate() throws IOException {
 		List<String> fullArgs = new ArrayList<>();
 
-		Path image = project.getNativeImageFile();
+		Path image = ctx.getNativeImageFile();
 		if (Files.exists(image)) {
 			fullArgs.add(image.toString());
 		} else {

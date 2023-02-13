@@ -20,12 +20,14 @@ import dev.jbang.util.*;
  */
 public abstract class AppBuilder implements Builder<Project> {
 	protected final Project project;
+	protected final BuildContext ctx;
 
 	protected boolean fresh = Util.isFresh();
 	protected Util.Shell shell = Util.getShell();
 
-	public AppBuilder(Project project) {
+	public AppBuilder(Project project, BuildContext ctx) {
 		this.project = project;
+		this.ctx = ctx;
 	}
 
 	public AppBuilder setFresh(boolean fresh) {
@@ -40,8 +42,8 @@ public abstract class AppBuilder implements Builder<Project> {
 
 	@Override
 	public Project build() throws IOException {
-		Path outjar = project.getJarFile();
-		boolean nativeBuildRequired = project.isNativeImage() && !Files.exists(project.getNativeImageFile());
+		Path outjar = ctx.getJarFile();
+		boolean nativeBuildRequired = project.isNativeImage() && !Files.exists(ctx.getNativeImageFile());
 		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
 		String requestedJavaVersion = project.getJavaVersion();
 		// always build the jar for native mode
@@ -57,7 +59,7 @@ public abstract class AppBuilder implements Builder<Project> {
 		} else if (Files.isReadable(outjar)) {
 			Project jarProject = ProjectBuilder.create().build(outjar);
 			// We already have a Jar, check if we can still use it
-			if (!project.isUpToDate()) {
+			if (!ctx.isUpToDate()) {
 				Util.verboseMsg("Building as previous build jar found but it or its dependencies not up-to-date.");
 			} else if (JavaUtil.javaVersion(requestedJavaVersion) < JavaUtil.minRequestedVersion(
 					jarProject.getJavaVersion())) {
@@ -69,7 +71,7 @@ public abstract class AppBuilder implements Builder<Project> {
 				if (project.getMainClass() == null) {
 					project.setMainClass(jarProject.getMainClass());
 				}
-				Util.verboseMsg("No build required. Reusing jar from " + project.getJarFile());
+				Util.verboseMsg("No build required. Reusing jar from " + ctx.getJarFile());
 				buildRequired = false;
 			}
 		} else {
@@ -78,7 +80,7 @@ public abstract class AppBuilder implements Builder<Project> {
 
 		if (buildRequired) {
 			// set up temporary folder for compilation
-			Path compileDir = project.getBuildDir();
+			Path compileDir = ctx.getCompileDir();
 			Util.deletePath(compileDir, true);
 			compileDir.toFile().mkdirs();
 			// do the actual building
@@ -96,14 +98,15 @@ public abstract class AppBuilder implements Builder<Project> {
 
 		if (nativeBuildRequired) {
 			if (integrationResult.nativeImagePath != null) {
-				Files.move(integrationResult.nativeImagePath, project.getNativeImageFile());
+				Files.move(integrationResult.nativeImagePath, ctx.getNativeImageFile());
 			} else {
 				getNativeBuildStep().build();
 			}
 		}
 
 		for (Project aprj : project.getJavaAgents()) {
-			aprj.builder().build();
+			BuildContext actx = ctx.forSubProject(aprj, "agents");
+			aprj.builder(actx).build();
 		}
 
 		return project;
@@ -118,10 +121,10 @@ public abstract class AppBuilder implements Builder<Project> {
 	protected abstract Builder<IntegrationResult> getIntegrationBuildStep();
 
 	protected Builder<Project> getJarBuildStep() {
-		return new JarBuildStep(project);
+		return new JarBuildStep(project, ctx);
 	}
 
 	protected Builder<Project> getNativeBuildStep() {
-		return new NativeBuildStep(project);
+		return new NativeBuildStep(project, ctx);
 	}
 }
