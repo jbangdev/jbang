@@ -2,6 +2,7 @@ package dev.jbang.source.generators;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
@@ -10,6 +11,9 @@ import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.Util;
 
 public abstract class BaseCmdGenerator<T extends CmdGenerator> implements CmdGenerator {
+	protected final Project project;
+	protected final BuildContext ctx;
+
 	protected List<String> arguments = Collections.emptyList();
 	protected String debugString;
 	protected String flightRecorderString;
@@ -45,13 +49,16 @@ public abstract class BaseCmdGenerator<T extends CmdGenerator> implements CmdGen
 		return (T) this;
 	}
 
+	public BaseCmdGenerator(Project prj, BuildContext ctx) {
+		this.project = prj;
+		this.ctx = ctx;
+	}
+
 	@Override
 	public String generate() throws IOException {
 		List<String> fullArgs = generateCommandLineList();
 		return generateCommandLineString(fullArgs);
 	}
-
-	protected abstract Project getProject();
 
 	protected abstract List<String> generateCommandLineList() throws IOException;
 
@@ -61,23 +68,30 @@ public abstract class BaseCmdGenerator<T extends CmdGenerator> implements CmdGen
 	}
 
 	protected void addAgentsArgs(List<String> fullArgs) {
-		getProject()
-					.getJavaAgents()
-					.forEach(aprj -> {
-						// for now we don't include any transitive dependencies. could consider putting
-						// on bootclasspath...or not.
-						String jar = null;
-						if (aprj.getJarFile() != null) {
-							jar = aprj.getJarFile().toString();
-						} else if (aprj.isJar()) {
-							jar = aprj.getResourceRef().getFile().toString();
-							// should we log a warning/error if agent jar not present ?
-						}
-						if (jar == null) {
-							throw new ExitException(BaseCommand.EXIT_INTERNAL_ERROR,
-									"No jar found for agent " + aprj.getResourceRef().getOriginalResource());
-						}
-						fullArgs.addAll(aprj.getRuntimeOptions());
-					});
+		project
+				.getJavaAgents()
+				.forEach(aprj -> {
+					// for now we don't include any transitive dependencies. could consider putting
+					// on bootclasspath...or not.
+					String jar;
+					BuildContext actx = ctx.forSubProject(aprj, "agents");
+					if (actx.getJarFile() != null) {
+						jar = actx.getJarFile().toString();
+					} else if (aprj.isJar()) {
+						jar = aprj.getResourceRef().getFile().toString();
+						// should we log a warning/error if agent jar not present ?
+					} else {
+						jar = null;
+					}
+					if (jar == null) {
+						throw new ExitException(BaseCommand.EXIT_INTERNAL_ERROR,
+								"No jar found for agent " + aprj.getResourceRef().getOriginalResource());
+					}
+					List<String> opts = aprj.getRuntimeOptions()
+											.stream()
+											.map(s -> s.replace("$JAR$", jar))
+											.collect(Collectors.toList());
+					fullArgs.addAll(opts);
+				});
 	}
 }

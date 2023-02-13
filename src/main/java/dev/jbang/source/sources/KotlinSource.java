@@ -37,8 +37,8 @@ public class KotlinSource extends Source {
 	}
 
 	@Override
-	public Builder<Project> getBuilder(Project prj) {
-		return new KotlinAppBuilder(prj);
+	public Builder<Project> getBuilder(Project prj, BuildContext ctx) {
+		return new KotlinAppBuilder(prj, ctx);
 	}
 
 	public String getKotlinVersion() {
@@ -49,8 +49,8 @@ public class KotlinSource extends Source {
 	}
 
 	public static class KotlinAppBuilder extends AppBuilder {
-		public KotlinAppBuilder(Project project) {
-			super(project);
+		public KotlinAppBuilder(Project project, BuildContext ctx) {
+			super(project, ctx);
 		}
 
 		@Override
@@ -66,7 +66,7 @@ public class KotlinSource extends Source {
 		protected class KotlinCompileBuildStep extends CompileBuildStep {
 
 			public KotlinCompileBuildStep() {
-				super(KotlinAppBuilder.this.project);
+				super(KotlinAppBuilder.this.project, KotlinAppBuilder.this.ctx);
 			}
 
 			@Override
@@ -77,7 +77,7 @@ public class KotlinSource extends Source {
 
 		private class KotlinIntegrationBuildStep extends IntegrationBuildStep {
 			public KotlinIntegrationBuildStep() {
-				super(KotlinAppBuilder.this.project);
+				super(KotlinAppBuilder.this.project, KotlinAppBuilder.this.ctx);
 			}
 
 			@Override

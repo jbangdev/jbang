@@ -10,6 +10,7 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 import dev.jbang.source.AppBuilder;
+import dev.jbang.source.BuildContext;
 import dev.jbang.source.Builder;
 import dev.jbang.source.Project;
 import dev.jbang.util.CommandBuffer;
@@ -23,18 +24,20 @@ import dev.jbang.util.Util;
  */
 public class JarBuildStep implements Builder<Project> {
 	private final Project project;
+	private final BuildContext ctx;
 
 	public static final String ATTR_BUILD_JDK = "Build-Jdk";
 	public static final String ATTR_JBANG_JAVA_OPTIONS = "JBang-Java-Options";
 	public static final String ATTR_BOOT_CLASS_PATH = "Boot-Class-Path";
 
-	public JarBuildStep(Project project) {
+	public JarBuildStep(Project project, BuildContext ctx) {
 		this.project = project;
+		this.ctx = ctx;
 	}
 
 	@Override
 	public Project build() throws IOException {
-		createJar(project, project.getBuildDir(), project.getJarFile());
+		createJar(project, ctx.getCompileDir(), ctx.getJarFile());
 		return project;
 	}
 

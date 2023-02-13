@@ -63,7 +63,6 @@ public class ProjectBuilder {
 	private String flightRecorderString;
 	private String debugString;
 	private Boolean classDataSharing;
-	private Path buildDir;
 
 	public static ProjectBuilder create() {
 		return new ProjectBuilder();
@@ -225,11 +224,6 @@ public class ProjectBuilder {
 		return this;
 	}
 
-	public ProjectBuilder buildDir(Path buildDir) {
-		this.buildDir = buildDir;
-		return this;
-	}
-
 	public ProjectBuilder addJavaAgent(Project prj) {
 		javaAgents.add(prj);
 		return this;
@@ -381,7 +375,9 @@ public class ProjectBuilder {
 	}
 
 	private Project createSourceProject(ResourceRef resourceRef) {
-		return updateProject(createSource(resourceRef).createProject(getResourceResolver()));
+		Source src = createSource(resourceRef);
+		Project prj = new Project(src);
+		return updateProject(src.updateProjectMain(prj, getResourceResolver()));
 	}
 
 	private Source createSource(ResourceRef resourceRef) {
@@ -390,9 +386,13 @@ public class ProjectBuilder {
 
 	}
 
+	public Project build(Source src) {
+		Project prj = new Project(src);
+		return updateProject(src.updateProjectMain(prj, getResourceResolver()));
+	}
+
 	private Project importJarMetadata(Project prj) {
-		ResourceRef resourceRef = prj.getResourceRef();
-		Path jar = prj.getJarFile();
+		Path jar = prj.getResourceRef().getFile();
 		if (jar != null && Files.exists(jar)) {
 			try (JarFile jf = new JarFile(jar.toFile())) {
 				Attributes attrs = jf.getManifest().getMainAttributes();
@@ -432,40 +432,41 @@ public class ProjectBuilder {
 		return prj;
 	}
 
-	private CmdGenerator createCmdGenerator(Project prj) {
+	private CmdGenerator createCmdGenerator(Project prj, BuildContext ctx) {
 		if (prj.isJShell() || forceType == Source.Type.jshell || interactive) {
-			return createJshCmdGenerator(prj);
+			return createJshCmdGenerator(prj, ctx);
 		} else {
 			if (Boolean.TRUE.equals(nativeImage)) {
-				return createNativeCmdGenerator(prj);
+				return createNativeCmdGenerator(prj, ctx);
 			} else {
-				return createJarCmdGenerator(prj);
+				return createJarCmdGenerator(prj, ctx);
 			}
 		}
 	}
 
-	private JarCmdGenerator createJarCmdGenerator(Project prj) {
-		return new JarCmdGenerator(prj)
-										.arguments(arguments)
-										.mainRequired(!interactive)
-										.assertions(enableAssertions)
-										.systemAssertions(enableSystemAssertions)
-										.classDataSharing(Optional.ofNullable(classDataSharing).orElse(false))
-										.debugString(debugString)
-										.flightRecorderString(flightRecorderString);
+	private JarCmdGenerator createJarCmdGenerator(Project prj, BuildContext ctx) {
+		return new JarCmdGenerator(prj, ctx)
+											.arguments(arguments)
+											.mainRequired(!interactive)
+											.assertions(enableAssertions)
+											.systemAssertions(enableSystemAssertions)
+											.classDataSharing(
+													Optional.ofNullable(classDataSharing).orElse(false))
+											.debugString(debugString)
+											.flightRecorderString(flightRecorderString);
 	}
 
-	private JshCmdGenerator createJshCmdGenerator(Project prj) {
-		return new JshCmdGenerator(prj)
-										.arguments(arguments)
-										.interactive(interactive)
-										.debugString(debugString)
-										.flightRecorderString(flightRecorderString);
+	private JshCmdGenerator createJshCmdGenerator(Project prj, BuildContext ctx) {
+		return new JshCmdGenerator(prj, ctx)
+											.arguments(arguments)
+											.interactive(interactive)
+											.debugString(debugString)
+											.flightRecorderString(flightRecorderString);
 	}
 
-	private NativeCmdGenerator createNativeCmdGenerator(Project prj) {
-		return new NativeCmdGenerator(prj, createJarCmdGenerator(prj))
-																		.arguments(arguments);
+	private NativeCmdGenerator createNativeCmdGenerator(Project prj, BuildContext ctx) {
+		return new NativeCmdGenerator(prj, ctx, createJarCmdGenerator(prj, ctx))
+																				.arguments(arguments);
 	}
 
 	private Project updateProject(Project prj) {
@@ -488,8 +489,7 @@ public class ProjectBuilder {
 		if (nativeImage != null) {
 			prj.setNativeImage(nativeImage);
 		}
-		prj.setCacheDir(buildDir);
-		prj.setCmdGeneratorFactory(() -> createCmdGenerator(prj));
+		prj.setCmdGeneratorFactory((BuildContext ctx) -> createCmdGenerator(prj, ctx));
 		return prj;
 	}
 

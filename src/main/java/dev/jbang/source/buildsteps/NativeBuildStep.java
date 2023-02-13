@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import dev.jbang.cli.ExitException;
+import dev.jbang.source.BuildContext;
 import dev.jbang.source.Builder;
 import dev.jbang.source.Project;
 import dev.jbang.util.CommandBuffer;
@@ -22,9 +23,11 @@ import dev.jbang.util.Util;
  */
 public class NativeBuildStep implements Builder<Project> {
 	private final Project project;
+	private final BuildContext ctx;
 
-	public NativeBuildStep(Project project) {
+	public NativeBuildStep(Project project, BuildContext ctx) {
 		this.project = project;
+		this.ctx = ctx;
 	}
 
 	public Project build() throws IOException {
@@ -41,7 +44,7 @@ public class NativeBuildStep implements Builder<Project> {
 		}
 
 		optionList.add("-jar");
-		optionList.add(project.getJarFile().toString());
+		optionList.add(ctx.getJarFile().toString());
 
 		optionList.add(getNativeImageOutputName().toString());
 
@@ -56,7 +59,7 @@ public class NativeBuildStep implements Builder<Project> {
 	 * `.exe` to the name!
 	 */
 	private Path getNativeImageOutputName() {
-		Path image = project.getNativeImageFile();
+		Path image = ctx.getNativeImageFile();
 		if (Util.isWindows()) {
 			// NB: On Windows the compiler always adds `.exe` to the name!
 			// So we remove the extension from the name before returning it

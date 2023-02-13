@@ -26,6 +26,7 @@ import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.net.JdkManager;
 import dev.jbang.net.JdkProvider;
+import dev.jbang.source.BuildContext;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.CommandBuffer;
@@ -117,7 +118,7 @@ class AppInstall extends BaseCommand {
 				&& !prj.getResourceRef().isURL()) {
 			scriptRef = prj.getResourceRef().getFile().toAbsolutePath().toString();
 		}
-		prj.builder().build();
+		prj.builder(BuildContext.forProject(prj)).build();
 		installScripts(name, scriptRef, benative);
 		Util.infoMsg("Command installed: " + name);
 		return true;

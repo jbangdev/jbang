@@ -82,7 +82,7 @@ public abstract class Source {
 
 	protected abstract List<String> getRuntimeOptions();
 
-	public abstract Builder<Project> getBuilder(Project prj);
+	public abstract Builder<Project> getBuilder(Project prj, BuildContext ctx);
 
 	public ResourceRef getResourceRef() {
 		return resourceRef;
@@ -105,26 +105,16 @@ public abstract class Source {
 	}
 
 	/**
-	 * Creates and returns a new <code>Project</code> that has been initialized with
-	 * all relevant information from this <code>Source</code>. Uses a default
-	 * resolver that only knows about resources so this can not be used for
-	 * compiling code (see <code>ProjectBuilder.forResource()</code> for that).
+	 * Updates the given <code>Project</code> with all the information from this
+	 * <code>Source</code> when that source is the main file. It updates certain
+	 * things at the project level and then calls <code>updateProject()</code> which
+	 * will update things at the <code>SourceSet</code> level.
 	 *
-	 * @return A <code>Project</code>
-	 */
-	public Project createProject() {
-		return createProject(ResourceResolver.forResources());
-	}
-
-	/**
-	 * Creates and returns a new <code>Project</code> that has been initialized with
-	 * all relevant information from this <code>Source</code>.
-	 *
+	 * @param prj      The <code>Project</code> to update
 	 * @param resolver The resolver to use for dependent (re)sources
 	 * @return A <code>Project</code>
 	 */
-	public Project createProject(ResourceResolver resolver) {
-		Project prj = new Project(this);
+	public Project updateProjectMain(Project prj, ResourceResolver resolver) {
 		prj.setDescription(tagReader.getDescription().orElse(null));
 		prj.setGav(tagReader.getGav().orElse(null));
 		return updateProject(prj, resolver);

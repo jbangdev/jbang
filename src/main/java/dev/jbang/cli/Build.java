@@ -2,6 +2,8 @@ package dev.jbang.cli;
 
 import java.io.IOException;
 
+import dev.jbang.source.BuildContext;
+import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 
 import picocli.CommandLine.Command;
@@ -15,7 +17,8 @@ public class Build extends BaseBuildCommand {
 		jdkProvidersMixin.initJdkProviders();
 
 		ProjectBuilder pb = createProjectBuilder();
-		pb.build(scriptMixin.scriptOrFile).builder().build();
+		Project prj = pb.build(scriptMixin.scriptOrFile);
+		prj.builder(BuildContext.forProject(prj, buildDir)).build();
 
 		return EXIT_OK;
 	}

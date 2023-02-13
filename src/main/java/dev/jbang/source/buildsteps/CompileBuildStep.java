@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.MavenCoordinate;
+import dev.jbang.source.BuildContext;
 import dev.jbang.source.Builder;
 import dev.jbang.source.Project;
 import dev.jbang.util.CommandBuffer;
@@ -23,9 +24,11 @@ import io.quarkus.qute.Template;
  */
 public abstract class CompileBuildStep implements Builder<Project> {
 	protected final Project project;
+	protected final BuildContext ctx;
 
-	public CompileBuildStep(Project project) {
+	public CompileBuildStep(Project project, BuildContext ctx) {
 		this.project = project;
+		this.ctx = ctx;
 	}
 
 	@Override
@@ -35,7 +38,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 
 	protected Project compile() throws IOException {
 		String requestedJavaVersion = project.getJavaVersion();
-		Path compileDir = project.getBuildDir();
+		Path compileDir = ctx.getCompileDir();
 		List<String> optionList = new ArrayList<>();
 		optionList.add(getCompilerBinary(requestedJavaVersion));
 		optionList.addAll(project.getMainSourceSet().getCompileOptions());
@@ -100,7 +103,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 										.data("dependencies", project.resolveClassPath().getArtifacts())
 										.render();
 
-			pomPath = getPomPath(project);
+			pomPath = getPomPath(project, ctx);
 			Files.createDirectories(pomPath.getParent());
 			Util.writeString(pomPath, pomfile);
 		}
@@ -118,9 +121,9 @@ public abstract class CompileBuildStep implements Builder<Project> {
 
 	}
 
-	public static Path getPomPath(Project prj) {
+	public static Path getPomPath(Project prj, BuildContext ctx) {
 		MavenCoordinate gav = getPomGav(prj);
-		return prj.getBuildDir().resolve("META-INF/maven/" + gav.getGroupId().replace(".", "/") + "/pom.xml");
+		return ctx.getCompileDir().resolve("META-INF/maven/" + gav.getGroupId().replace(".", "/") + "/pom.xml");
 	}
 
 	protected abstract String getCompilerBinary(String requestedJavaVersion);

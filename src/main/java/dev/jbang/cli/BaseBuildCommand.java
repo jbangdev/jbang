@@ -47,7 +47,6 @@ public abstract class BaseBuildCommand extends BaseCommand {
 								.mainClass(buildMixin.main)
 								.compileOptions(buildMixin.compileOptions)
 								.nativeImage(nativeMixin.nativeImage)
-								.nativeOptions(nativeMixin.nativeOptions)
-								.buildDir(buildDir);
+								.nativeOptions(nativeMixin.nativeOptions);
 	}
 }

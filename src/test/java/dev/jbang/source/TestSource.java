@@ -154,7 +154,7 @@ public class TestSource extends BaseTest {
 	@Test
 	void testCommentsDoesNotGetPickedUp() {
 		Source source = new JavaSource(exampleCommandsWithComments, null);
-		Project prj = source.createProject();
+		Project prj = ProjectBuilder.create().build(source);
 
 		assertEquals(prj.getJavaVersion(), "14+");
 
@@ -167,7 +167,7 @@ public class TestSource extends BaseTest {
 	void testFindDependencies() {
 		Source src = new JavaSource(example,
 				it -> PropertiesValueResolver.replaceProperties(it, new Properties()));
-		Project prj = src.createProject();
+		Project prj = ProjectBuilder.create().build(src);
 
 		List<String> deps = prj.getMainSourceSet().getDependencies();
 		assertEquals(2, deps.size());
@@ -184,7 +184,7 @@ public class TestSource extends BaseTest {
 		p.put("log4j.version", "1.2.9");
 
 		Source src = new JavaSource(example, it -> PropertiesValueResolver.replaceProperties(it, p));
-		Project prj = src.createProject();
+		Project prj = ProjectBuilder.create().build(src);
 
 		List<String> dependencies = prj.getMainSourceSet().getDependencies();
 		assertEquals(2, dependencies.size());
@@ -302,7 +302,7 @@ public class TestSource extends BaseTest {
 	@Test
 	void testGav() {
 		Source src = new JavaSource(example, null);
-		String gav = src.createProject().getGav().get();
+		String gav = ProjectBuilder.create().build(src).getGav().get();
 		assertEquals("org.example:classpath", gav);
 	}
 

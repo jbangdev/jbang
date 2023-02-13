@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
+import dev.jbang.Settings;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.source.buildsteps.JarBuildStep;
 import dev.jbang.source.buildsteps.NativeBuildStep;
@@ -36,8 +37,9 @@ public class TestBuilder extends BaseTest {
 		Path foo = examplesTestFolder.resolve("helloworld.java").toAbsolutePath();
 		ProjectBuilder pb = ProjectBuilder.create();
 		Project prj = pb.build(foo.toString());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		new JavaSource.JavaAppBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj, ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -52,12 +54,78 @@ public class TestBuilder extends BaseTest {
 	}
 
 	@Test
+	void testDualHelloworld(@TempDir File out1, @TempDir File out2) throws IOException {
+		Path foo = examplesTestFolder.resolve("helloworld.java").toAbsolutePath();
+		ProjectBuilder pb = ProjectBuilder.create();
+		Project prj = pb.build(foo.toString());
+		BuildContext ctx1 = BuildContext.forProject(prj, out1.toPath());
+		BuildContext ctx2 = BuildContext.forProject(prj, out2.toPath());
+
+		new JavaSource.JavaAppBuilder(prj, ctx1) {
+			@Override
+			protected Builder<Project> getCompileBuildStep() {
+				return new JavaCompileBuildStep() {
+					@Override
+					protected void runCompiler(List<String> optionList) {
+						assertThat(optionList, hasItems(containsString(out1.toString())));
+						assertThat(optionList, not(hasItems(containsString(out2.toString()))));
+						assertThat(optionList, not(hasItems(containsString(Settings.getCacheDir().toString()))));
+						// Skip the compiler
+					}
+				};
+			}
+
+			@Override
+			protected Builder<Project> getJarBuildStep() {
+				return new JarBuildStep(project, ctx) {
+					@Override
+					public Project build() {
+						assertThat(ctx.getJarFile().toString(), containsString(out1.toString()));
+						assertThat(ctx.getJarFile().toString(), not(containsString(out2.toString())));
+						assertThat(ctx.getJarFile().toString(), not(containsString(Settings.getCacheDir().toString())));
+						return project;
+					}
+				};
+			}
+		}.setFresh(true).build();
+
+		new JavaSource.JavaAppBuilder(prj, ctx2) {
+			@Override
+			protected Builder<Project> getCompileBuildStep() {
+				return new JavaCompileBuildStep() {
+					@Override
+					protected void runCompiler(List<String> optionList) {
+						assertThat(optionList, hasItems(containsString(out2.toString())));
+						assertThat(optionList, not(hasItems(containsString(out1.toString()))));
+						assertThat(optionList, not(hasItems(containsString(Settings.getCacheDir().toString()))));
+						// Skip the compiler
+					}
+				};
+			}
+
+			@Override
+			protected Builder<Project> getJarBuildStep() {
+				return new JarBuildStep(project, ctx) {
+					@Override
+					public Project build() {
+						assertThat(ctx.getJarFile().toString(), containsString(out2.toString()));
+						assertThat(ctx.getJarFile().toString(), not(containsString(out1.toString())));
+						assertThat(ctx.getJarFile().toString(), not(containsString(Settings.getCacheDir().toString())));
+						return project;
+					}
+				};
+			}
+		}.setFresh(true).build();
+	}
+
+	@Test
 	void testCompileOptions() throws IOException {
 		Path foo = examplesTestFolder.resolve("helloworld.java").toAbsolutePath();
 		ProjectBuilder pb = ProjectBuilder.create().compileOptions(Arrays.asList("--foo", "--bar"));
 		Project prj = pb.build(foo.toString());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		new JavaSource.JavaAppBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj, ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -76,8 +144,9 @@ public class TestBuilder extends BaseTest {
 		Path foo = examplesTestFolder.resolve("helloworld.kt").toAbsolutePath();
 		ProjectBuilder pb = ProjectBuilder.create().compileOptions(Arrays.asList("--foo", "--bar"));
 		Project prj = pb.build(foo.toString());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		new KotlinSource.KotlinAppBuilder(prj) {
+		new KotlinSource.KotlinAppBuilder(prj, ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new KotlinCompileBuildStep() {
@@ -98,8 +167,9 @@ public class TestBuilder extends BaseTest {
 		ProjectBuilder pb = ProjectBuilder.create();
 		pb.additionalSources(Arrays.asList(bar.toString()));
 		Project prj = pb.build(foo.toString());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		new JavaSource.JavaAppBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj, ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -125,8 +195,9 @@ public class TestBuilder extends BaseTest {
 		ProjectBuilder pb = ProjectBuilder.create();
 		pb.additionalSources(Arrays.asList("bar"));
 		Project prj = pb.build(mainFile);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		new JavaSource.JavaAppBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj, ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -155,8 +226,9 @@ public class TestBuilder extends BaseTest {
 
 		ProjectBuilder pb = ProjectBuilder.create();
 		Project prj = pb.build(mainFile.toString());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		new JavaSource.JavaAppBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj, ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -180,8 +252,9 @@ public class TestBuilder extends BaseTest {
 		ProjectBuilder pb = ProjectBuilder.create();
 		pb.additionalSources(Arrays.asList("bar/*.java"));
 		Project prj = pb.build(mainFile);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		new JavaSource.JavaAppBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj, ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -205,8 +278,9 @@ public class TestBuilder extends BaseTest {
 		ProjectBuilder pb = ProjectBuilder.create();
 		pb.additionalSources(Arrays.asList(incGlob));
 		Project prj = pb.build(mainFile);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		new JavaSource.JavaAppBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj, ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -230,8 +304,9 @@ public class TestBuilder extends BaseTest {
 		ProjectBuilder pb = ProjectBuilder.create();
 		pb.additionalSources(Arrays.asList("bar"));
 		Project prj = pb.build(mainFile);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		new JavaSource.JavaAppBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj, ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -257,8 +332,9 @@ public class TestBuilder extends BaseTest {
 				Paths.get("res").resolve(res1).toString(),
 				Paths.get("res").resolve(res2).toString()));
 		Project prj = pb.build(foo.toString());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		new JavaSource.JavaAppBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj, ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -271,7 +347,7 @@ public class TestBuilder extends BaseTest {
 
 			@Override
 			protected Builder<Project> getJarBuildStep() {
-				return new JarBuildStep(project) {
+				return new JarBuildStep(project, ctx) {
 					@Override
 					public Project build() {
 						assertThat(project.getMainSourceSet().getResources().size(), is(2));
@@ -299,8 +375,9 @@ public class TestBuilder extends BaseTest {
 				"somedir/=" + Paths.get("res").resolve(res1),
 				"somedir/=" + Paths.get("res").resolve(res2)));
 		Project prj = pb.build(foo.toString());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		new JavaSource.JavaAppBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj, ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -313,7 +390,7 @@ public class TestBuilder extends BaseTest {
 
 			@Override
 			protected Builder<Project> getJarBuildStep() {
-				return new JarBuildStep(project) {
+				return new JarBuildStep(project, ctx) {
 					@Override
 					public Project build() {
 						assertThat(project.getMainSourceSet().getResources().size(), is(2));
@@ -343,8 +420,9 @@ public class TestBuilder extends BaseTest {
 		ProjectBuilder pb = ProjectBuilder.create();
 		pb.additionalResources(Arrays.asList("res/**.properties"));
 		Project prj = pb.build(foo.toString());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		new JavaSource.JavaAppBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj, ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -358,7 +436,7 @@ public class TestBuilder extends BaseTest {
 
 			@Override
 			protected Builder<Project> getJarBuildStep() {
-				return new JarBuildStep(project) {
+				return new JarBuildStep(project, ctx) {
 					@Override
 					public Project build() {
 						assertThat(project.getMainSourceSet().getResources().size(), is(3));
@@ -381,13 +459,12 @@ public class TestBuilder extends BaseTest {
 	void testAdditionalResourcesFolder() throws IOException {
 		Util.setCwd(examplesTestFolder);
 		Path foo = Paths.get("foo.java");
-		Path res1 = Paths.get("resource.properties");
-		Path res2 = Paths.get("sub/sub.properties");
 		ProjectBuilder pb = ProjectBuilder.create();
 		pb.additionalResources(Arrays.asList("res"));
 		Project prj = pb.build(foo.toString());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		new JavaSource.JavaAppBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj, ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -401,7 +478,7 @@ public class TestBuilder extends BaseTest {
 
 			@Override
 			protected Builder<Project> getJarBuildStep() {
-				return new JarBuildStep(project) {
+				return new JarBuildStep(project, ctx) {
 					@Override
 					public Project build() {
 						assertThat(project.getMainSourceSet().getResources().size(), is(4));
@@ -429,8 +506,9 @@ public class TestBuilder extends BaseTest {
 		ProjectBuilder pb = ProjectBuilder.create();
 		pb.nativeImage(true);
 		Project prj = pb.build(mainFile);
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		new JavaSource.JavaAppBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj, ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -444,7 +522,7 @@ public class TestBuilder extends BaseTest {
 
 			@Override
 			protected Builder<Project> getNativeBuildStep() {
-				return new NativeBuildStep(project) {
+				return new NativeBuildStep(project, ctx) {
 					@Override
 					protected void runNativeBuilder(List<String> optionList) throws IOException {
 						if (Util.isWindows()) {
@@ -468,14 +546,15 @@ public class TestBuilder extends BaseTest {
 		props.put("bazprop", "algo");
 		pb.setProperties(props);
 		Project prj = pb.build(mainFile.toFile().getAbsolutePath());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj.builder().build();
+		prj.builder(ctx).build();
 
 		assertThat(prj.getManifestAttributes().get("foo"), is("true"));
 		assertThat(prj.getManifestAttributes().get("bar"), is("baz"));
 		assertThat(prj.getManifestAttributes().get("baz"), is("algo"));
 
-		try (JarFile jf = new JarFile(prj.getJarFile().toFile())) {
+		try (JarFile jf = new JarFile(ctx.getJarFile().toFile())) {
 			Attributes attrs = jf.getManifest().getMainAttributes();
 			assertThat(attrs.getValue("foo"), equalTo("true"));
 			assertThat(attrs.getValue("bar"), equalTo("baz"));
@@ -488,8 +567,9 @@ public class TestBuilder extends BaseTest {
 		Path foo = examplesTestFolder.resolve("helloworld.java").toAbsolutePath();
 		ProjectBuilder pb = ProjectBuilder.create().nativeImage(true);
 		Project prj = pb.build(foo.toString());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		new JavaSource.JavaAppBuilder(prj) {
+		new JavaSource.JavaAppBuilder(prj, ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -502,7 +582,7 @@ public class TestBuilder extends BaseTest {
 
 			@Override
 			protected Builder<Project> getNativeBuildStep() {
-				return new NativeBuildStep(prj) {
+				return new NativeBuildStep(prj, ctx) {
 					@Override
 					protected void runNativeBuilder(List<String> optionList) throws IOException {
 						// Skip the native image builder
