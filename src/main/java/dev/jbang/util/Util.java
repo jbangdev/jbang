@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -671,13 +672,14 @@ public class Util {
 	 * @throws IOException
 	 */
 	public static Path downloadAndCacheFile(String fileURL) throws IOException {
-		Path urlCache = getUrlCache(fileURL);
-		Path cachedFile = getCachedFile(urlCache);
+		Path saveDir = getUrlCacheDir(fileURL);
+		Path metaSaveDir = getCacheMetaDir(saveDir);
+		Path cachedFile = getCachedFile(saveDir);
 		if (cachedFile == null || isEvicted(cachedFile)) {
-			return downloadFileAndCache(fileURL, urlCache, cachedFile);
+			return downloadFileAndCache(fileURL, saveDir, metaSaveDir, cachedFile);
 		} else {
 			verboseMsg(String.format("Using cached file %s for remote %s", cachedFile, fileURL));
-			return urlCache.resolve(cachedFile);
+			return saveDir.resolve(cachedFile);
 		}
 	}
 
@@ -711,16 +713,17 @@ public class Util {
 		}
 	}
 
-	private static Path downloadFileAndCache(String fileURL, Path urlCache, Path cachedFile) throws IOException {
+	private static Path downloadFileAndCache(String fileURL, Path saveDir, Path metaSaveDir, Path cachedFile)
+			throws IOException {
 		ConnectionConfigurator cfg = ConnectionConfigurator.all(
 				ConnectionConfigurator.userAgent(),
 				ConnectionConfigurator.authentication(),
 				ConnectionConfigurator.timeout(null),
-				ConnectionConfigurator.cacheControl(cachedFile));
+				ConnectionConfigurator.cacheControl(cachedFile, metaSaveDir));
 		ResultHandler handler = ResultHandler.redirects(cfg,
 				ResultHandler.handleUnmodified(cachedFile,
 						ResultHandler.throwOnError(
-								ResultHandler.downloadToTempDir(urlCache,
+								ResultHandler.downloadToTempDir(saveDir, metaSaveDir,
 										ResultHandler::downloadTo))));
 		return connect(fileURL, cfg, handler);
 	}
@@ -754,16 +757,16 @@ public class Util {
 				ConnectionConfigurator.timeout(timeOut));
 		ResultHandler handler = ResultHandler.redirects(cfg,
 				ResultHandler.throwOnError(
-						ResultHandler.downloadTo(saveDir)));
+						ResultHandler.downloadTo(saveDir, saveDir)));
 		return connect(fileURL, cfg, handler);
 	}
 
-	static Path etagFile(Path cachedFile) {
-		return cachedFile.getParent().resolve(cachedFile.getFileName() + ".etag");
+	static Path etagFile(Path cachedFile, Path metaSaveDir) {
+		return metaSaveDir.resolve(cachedFile.getFileName() + ".etag");
 	}
 
-	private static String safeReadEtagFile(Path cachedFile) {
-		Path etag = etagFile(cachedFile);
+	private static String safeReadEtagFile(Path cachedFile, Path metaSaveDir) {
+		Path etag = etagFile(cachedFile, metaSaveDir);
 		if (Files.isRegularFile(etag)) {
 			try {
 				return readString(etag);
@@ -845,9 +848,9 @@ public class Util {
 			});
 		}
 
-		static ConnectionConfigurator cacheControl(Path cachedFile) throws IOException {
+		static ConnectionConfigurator cacheControl(Path cachedFile, Path metaSaveDir) throws IOException {
 			if (cachedFile != null && !isFresh()) {
-				String cachedETag = safeReadEtagFile(cachedFile);
+				String cachedETag = safeReadEtagFile(cachedFile, metaSaveDir);
 				Instant lmt = Files.getLastModifiedTime(cachedFile).toInstant();
 				ZonedDateTime zlmt = ZonedDateTime.ofInstant(lmt, ZoneId.of("GMT"));
 				String cachedLastModified = DateTimeFormatter.RFC_1123_DATE_TIME.format(zlmt);
@@ -892,7 +895,7 @@ public class Util {
 			};
 		}
 
-		static ResultHandler downloadTo(Path saveDir) {
+		static ResultHandler downloadTo(Path saveDir, Path metaSaveDir) {
 			return (conn) -> {
 				// copy content from connection to file
 				String fileName = extractFileName(conn);
@@ -905,14 +908,16 @@ public class Util {
 				// create an .etag file if the information is present in the response headers
 				String etag = conn.getHeaderField("ETag");
 				if (etag != null) {
-					writeString(etagFile(file), etag);
+					Files.createDirectories(metaSaveDir);
+					writeString(etagFile(file, metaSaveDir), etag);
 				}
 				verboseMsg(String.format("Downloaded file %s", conn.getURL().toExternalForm()));
 				return file;
 			};
 		}
 
-		static ResultHandler downloadToTempDir(Path saveDir, Function<Path, ResultHandler> downloader) {
+		static ResultHandler downloadToTempDir(Path saveDir, Path metaSaveDir,
+				BiFunction<Path, Path, ResultHandler> downloader) {
 			return (conn) -> {
 				// create a temp directory for the downloaded content
 				Path saveTmpDir = saveDir.getParent().resolve(saveDir.getFileName() + ".tmp");
@@ -921,7 +926,7 @@ public class Util {
 					deletePath(saveTmpDir, true);
 					deletePath(saveOldDir, true);
 
-					Path saveFilePath = downloader.apply(saveTmpDir).handle(conn);
+					Path saveFilePath = downloader.apply(saveTmpDir, metaSaveDir).handle(conn);
 
 					// temporarily save the old content
 					if (Files.isDirectory(saveDir)) {
@@ -1078,7 +1083,7 @@ public class Util {
 	 * @throws IOException
 	 */
 	public static boolean isFileCached(String fileURL) throws IOException {
-		Path urlCache = getUrlCache(fileURL);
+		Path urlCache = getUrlCacheDir(fileURL);
 		Path file = getCachedFile(urlCache);
 		return ((!isFresh() || isOffline()) && file != null);
 	}
@@ -1086,7 +1091,7 @@ public class Util {
 	private static Path getCachedFile(Path dir) throws IOException {
 		if (Files.isDirectory(dir)) {
 			try (Stream<Path> files = Files.list(dir)) {
-				return files.filter(f -> !f.toString().endsWith(".etag")).findFirst().orElse(null);
+				return files.findFirst().orElse(null);
 			}
 		} else {
 			return null;
@@ -1400,9 +1405,13 @@ public class Util {
 		return true;
 	}
 
-	public static Path getUrlCache(String fileURL) {
+	public static Path getUrlCacheDir(String fileURL) {
 		String urlHash = getStableID(fileURL);
 		return Settings.getCacheDir(Cache.CacheClass.urls).resolve(urlHash);
+	}
+
+	public static Path getCacheMetaDir(Path cacheDir) {
+		return cacheDir.getParent().resolve(cacheDir.getFileName() + "-meta");
 	}
 
 	public static boolean hasMainMethod(String content) {

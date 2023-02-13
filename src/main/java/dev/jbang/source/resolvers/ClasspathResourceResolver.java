@@ -62,7 +62,7 @@ public class ClasspathResourceResolver implements ResourceResolver {
 		}
 
 		// We couldn't read the file directly from the class path so let's make a copy
-		Path to = Util.getUrlCache(cpResource);
+		Path to = Util.getUrlCacheDir(cpResource);
 		if (!Files.exists(to)) {
 			try (InputStream is = url.openStream()) {
 				Files.createDirectories(to.getParent());
