@@ -337,7 +337,7 @@ public class TestUtilDownloads extends BaseTest {
 		String cachedLastModified = DateTimeFormatter.RFC_1123_DATE_TIME.format(zlmt);
 		assertThat(file.toFile(), anExistingFile());
 		assertThat(Util.readString(file), is("test"));
-		Path etag = Util.etagFile(file);
+		Path etag = Util.etagFile(file, Util.getCacheMetaDir(file.getParent()));
 		assertThat(etag.toFile(), anExistingFile());
 		assertThat(Util.readString(etag), is("tag1"));
 
@@ -356,7 +356,7 @@ public class TestUtilDownloads extends BaseTest {
 		assertThat(file2, equalTo(file));
 		assertThat(Files.getLastModifiedTime(file2), greaterThanOrEqualTo(lmt));
 		assertThat(Util.readString(file2), is("test"));
-		Path etag2 = Util.etagFile(file2);
+		Path etag2 = Util.etagFile(file, Util.getCacheMetaDir(file2.getParent()));
 		assertThat(etag2.toFile(), anExistingFile());
 		assertThat(Util.readString(etag2), is("tag1"));
 	}
@@ -378,7 +378,7 @@ public class TestUtilDownloads extends BaseTest {
 		FileTime lmt = Files.getLastModifiedTime(file);
 		assertThat(file.toFile(), anExistingFile());
 		assertThat(Util.readString(file), is("test"));
-		Path etag = Util.etagFile(file);
+		Path etag = Util.etagFile(file, Util.getCacheMetaDir(file.getParent()));
 		assertThat(etag.toFile(), anExistingFile());
 		assertThat(Util.readString(etag), is("tag1"));
 
@@ -397,7 +397,7 @@ public class TestUtilDownloads extends BaseTest {
 			assertThat(file2, equalTo(file));
 			assertThat(Files.getLastModifiedTime(file2), not(equalTo(lmt)));
 			assertThat(Util.readString(file2), is("test2"));
-			Path etag2 = Util.etagFile(file2);
+			Path etag2 = Util.etagFile(file, Util.getCacheMetaDir(file2.getParent()));
 			assertThat(etag2.toFile(), anExistingFile());
 			assertThat(Util.readString(etag2), is("tag2"));
 			return 0;
