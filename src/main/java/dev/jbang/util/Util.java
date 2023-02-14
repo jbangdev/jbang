@@ -41,10 +41,13 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Scanner;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -238,7 +241,7 @@ public class Util {
 	/**
 	 * Returns the name without extension. Will return the name itself if it has no
 	 * extension
-	 * 
+	 *
 	 * @param name A file name
 	 * @return A name without extension
 	 */
@@ -268,7 +271,7 @@ public class Util {
 	 * Returns the extension of the given file name. The extension will not include
 	 * the dot as part of the result. Returns an empty string if the name has no
 	 * extension.
-	 * 
+	 *
 	 * @param name A file name
 	 * @return An extension or an empty string
 	 */
@@ -1486,7 +1489,7 @@ public class Util {
 	}
 
 	/**
-	 * Searches the locations defined by PATH for the given executable
+	 * Searches the locations defined by `PATH` for the given executable
 	 * 
 	 * @param cmd The name of the executable to look for
 	 * @return A Path to the executable, if found, null otherwise
@@ -1494,21 +1497,34 @@ public class Util {
 	public static Path searchPath(String cmd) {
 		String envPath = System.getenv("PATH");
 		envPath = envPath != null ? envPath : "";
-		return searchPath(cmd, envPath);
+		return searchPath(cmd, envPath, p -> true);
 	}
 
 	/**
-	 * Searches the locations defined by `paths` for the given executable
+	 * Searches the given `paths` for the given executable
 	 *
 	 * @param cmd   The name of the executable to look for
 	 * @param paths A string containing the paths to search
 	 * @return A Path to the executable, if found, null otherwise
 	 */
 	public static Path searchPath(String cmd, String paths) {
+		return searchPath(cmd, paths, p -> true);
+	}
+
+	/**
+	 * Searches the locations defined by `paths` for the given executable
+	 *
+	 * @param cmd        The name of the executable to look for
+	 * @param paths      A string containing the paths to search
+	 * @param pathFilter User filter for the executables found
+	 * @return A Path to the executable, if found, null otherwise
+	 */
+	public static Path searchPath(String cmd, String paths, Predicate<Path> pathFilter) {
 		return Arrays	.stream(paths.split(File.pathSeparator))
 						.map(dir -> Paths.get(dir).resolve(cmd))
 						.flatMap(Util::executables)
 						.filter(Util::isExecutable)
+						.filter(pathFilter)
 						.findFirst()
 						.orElse(null);
 	}
@@ -1753,5 +1769,26 @@ public class Util {
 
 	public static <K, V> Entry<K, V> entry(K k, V v) {
 		return new AbstractMap.SimpleEntry<K, V>(k, v);
+	}
+
+	public static List<Path> findCommandsWith(Predicate<Path> accept) {
+		String[] elems = System.getenv().getOrDefault("PATH", "").split(File.pathSeparator);
+		return Stream
+						.of(elems)
+						.map(elem -> Util.getCwd().resolve(elem))
+						.flatMap(dir -> listFiles(dir).filter(p -> isExecutable(p)).filter(accept))
+						.collect(Collectors.toList());
+	}
+
+	private static Stream<Path> listFiles(Path dir) {
+		if (Files.isDirectory(dir)) {
+			try {
+				return Files.list(dir);
+			} catch (IOException e) {
+				throw new RuntimeException(e.getMessage(), e);
+			}
+		} else {
+			return Stream.empty();
+		}
 	}
 }
