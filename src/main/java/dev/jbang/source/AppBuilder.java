@@ -61,7 +61,7 @@ public abstract class AppBuilder implements Builder<Project> {
 			// We already have a Jar, check if we can still use it
 			if (!ctx.isUpToDate()) {
 				Util.verboseMsg("Building as previous build jar found but it or its dependencies not up-to-date.");
-			} else if (JavaUtil.javaVersion(requestedJavaVersion) < JavaUtil.minRequestedVersion(
+			} else if (JavaUtil.javaVersion(requestedJavaVersion, "java") < JavaUtil.minRequestedVersion(
 					jarProject.getJavaVersion())) {
 				Util.verboseMsg(
 						String.format(

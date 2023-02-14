@@ -40,13 +40,13 @@ public class Jdk {
 			@CommandLine.Parameters(paramLabel = "existingJdkPath", index = "1", description = "Pre installed JDK path", arity = "0..1") String path)
 			throws IOException {
 		jdkProvidersMixin.initJdkProviders();
-		JdkProvider.Jdk jdk = JdkManager.getInstalledJdk(versionOrId, true);
+		JdkProvider.Jdk jdk = JdkManager.getInstalledJdk(versionOrId, "javac", true);
 		if (force || jdk == null) {
 			if (!Util.isNullOrBlankString(path)) {
 				JdkManager.linkToExistingJdk(path, Integer.parseInt(versionOrId));
 			} else {
 				if (jdk == null) {
-					jdk = JdkManager.getJdk(versionOrId, true);
+					jdk = JdkManager.getJdk(versionOrId, null, true);
 				}
 				jdk.install();
 			}
@@ -157,7 +157,7 @@ public class Jdk {
 	public Integer uninstall(
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version to install", arity = "1") String versionOrId) {
 		jdkProvidersMixin.initJdkProviders();
-		JdkProvider.Jdk jdk = JdkManager.getInstalledJdk(versionOrId, true);
+		JdkProvider.Jdk jdk = JdkManager.getInstalledJdk(versionOrId, null, true);
 		if (jdk == null) {
 			throw new ExitException(EXIT_INVALID_INPUT, "JDK " + versionOrId + " is not installed");
 		}
@@ -222,7 +222,7 @@ public class Jdk {
 	}
 
 	private Path getJdkPath(String versionOrId) {
-		JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(versionOrId);
+		JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(versionOrId, null);
 		return jdk.getHome();
 	}
 
@@ -232,7 +232,7 @@ public class Jdk {
 		jdkProvidersMixin.initJdkProviders();
 		JdkProvider.Jdk defjdk = JdkManager.getDefaultJdk();
 		if (versionOrId != null) {
-			JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(versionOrId);
+			JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(versionOrId, "javac");
 			if (!jdk.equals(defjdk)) {
 				JdkManager.setDefaultJdk(jdk);
 			} else {

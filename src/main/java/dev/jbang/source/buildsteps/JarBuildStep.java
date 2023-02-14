@@ -56,12 +56,7 @@ public class JarBuildStep implements Builder<Project> {
 		// options set on the Source)
 		List<String> rtArgs = prj.getRuntimeOptions();
 		String runtimeOpts = CommandBuffer.of(rtArgs).asCommandLine(Util.Shell.bash);
-		// TODO should be removed
-		// if (!runtimeOpts.isEmpty()) {
-		// manifest.getMainAttributes()
-		// .putValue(ATTR_JBANG_JAVA_OPTIONS, runtimeOpts);
-		// }
-		int buildJdk = JavaUtil.javaVersion(prj.getJavaVersion());
+		int buildJdk = JavaUtil.javaVersion(prj.getJavaVersion(), "javac");
 		if (buildJdk > 0) {
 			String val = buildJdk >= 9 ? Integer.toString(buildJdk) : "1." + buildJdk;
 			manifest.getMainAttributes().putValue(ATTR_BUILD_JDK, val);

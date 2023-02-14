@@ -2197,7 +2197,7 @@ public class TestRun extends BaseTest {
 
 	@Test
 	void testForceJavaVersion() throws IOException {
-		int v = JdkManager.getJdk(null, false).getMajorVersion();
+		int v = JdkManager.getJdk(null, null, false).getMajorVersion();
 		String arg = examplesTestFolder.resolve("java4321.java").toAbsolutePath().toString();
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--java", "" + v, arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();

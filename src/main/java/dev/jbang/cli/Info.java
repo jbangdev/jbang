@@ -104,7 +104,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 				requestedJavaVersion = prj.getJavaVersion();
 
 				try {
-					JdkProvider.Jdk jdk = JdkManager.getJdk(requestedJavaVersion, false);
+					JdkProvider.Jdk jdk = JdkManager.getJdk(requestedJavaVersion, null, false);
 					if (jdk != null && jdk.isInstalled()) {
 						availableJdkPath = jdk.getHome().toString();
 					}
