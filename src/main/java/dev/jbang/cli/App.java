@@ -201,15 +201,18 @@ class AppInstall extends BaseCommand {
 
 		if (force || !managedJBang) {
 			if (!Util.isOffline()) {
-				// Download JBang and unzip to ~/.jbang/bin/
-				Util.infoMsg("Downloading and installing jbang...");
-				Path zipFile = Util.downloadAndCacheFile(jbangUrl);
-				Path urlsDir = Settings.getCacheDir(Cache.CacheClass.urls);
-				Util.deletePath(urlsDir.resolve("jbang"), true);
-				UnpackUtil.unpack(zipFile, urlsDir);
-				App.deleteCommandFiles("jbang");
-				Path fromDir = urlsDir.resolve("jbang").resolve("bin");
-				copyJBangFiles(fromDir, binDir);
+				Util.withCacheEvict(() -> {
+					// Download JBang and unzip to ~/.jbang/bin/
+					Util.infoMsg("Downloading and installing jbang...");
+					Path zipFile = Util.downloadAndCacheFile(jbangUrl);
+					Path urlsDir = Settings.getCacheDir(Cache.CacheClass.urls);
+					Util.deletePath(urlsDir.resolve("jbang"), true);
+					UnpackUtil.unpack(zipFile, urlsDir);
+					App.deleteCommandFiles("jbang");
+					Path fromDir = urlsDir.resolve("jbang").resolve("bin");
+					copyJBangFiles(fromDir, binDir);
+					return 0;
+				});
 			} else {
 				Path jar = Util.getJarLocation();
 				if (!jar.toString().endsWith(".jar")) {
