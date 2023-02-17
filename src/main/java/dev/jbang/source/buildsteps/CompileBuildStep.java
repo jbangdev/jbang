@@ -1,14 +1,26 @@
 package dev.jbang.source.buildsteps;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.jboss.jandex.ClassInfo;
+import org.jboss.jandex.DotName;
+import org.jboss.jandex.Index;
+import org.jboss.jandex.Indexer;
+import org.jboss.jandex.Type;
 
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.ArtifactInfo;
@@ -29,6 +41,12 @@ import io.quarkus.qute.Template;
 public abstract class CompileBuildStep implements Builder<Project> {
 	protected final Project project;
 	protected final BuildContext ctx;
+
+	public static final Type STRINGARRAYTYPE = Type.create(DotName.createSimple("[Ljava.lang.String;"),
+			Type.Kind.ARRAY);
+	public static final Type STRINGTYPE = Type.create(DotName.createSimple("java.lang.String"), Type.Kind.CLASS);
+	public static final Type INSTRUMENTATIONTYPE = Type.create(
+			DotName.createSimple("java.lang.instrument.Instrumentation"), Type.Kind.CLASS);
 
 	public CompileBuildStep(Project project, BuildContext ctx) {
 		this.project = project;
@@ -86,6 +104,8 @@ public abstract class CompileBuildStep implements Builder<Project> {
 		Util.infoMsg(String.format("Building %s...", project.getMainSource().isAgent() ? "javaagent" : "jar"));
 		Util.verboseMsg("Compile: " + String.join(" ", optionList));
 		runCompiler(optionList);
+
+		searchForMain(compileDir);
 
 		return project;
 	}
@@ -195,5 +215,98 @@ public abstract class CompileBuildStep implements Builder<Project> {
 		return ctx.getCompileDir().resolve("META-INF/maven/" + gav.getGroupId().replace(".", "/") + "/pom.xml");
 	}
 
+	protected void searchForMain(Path tmpJarDir) {
+		try {
+			// using Files.walk method with try-with-resources
+			try (Stream<Path> paths = Files.walk(tmpJarDir)) {
+				List<Path> items = paths.filter(Files::isRegularFile)
+										.filter(f -> !f.toFile().getName().contains("$"))
+										.filter(f -> f.toFile().getName().endsWith(".class"))
+										.collect(Collectors.toList());
+
+				Indexer indexer = new Indexer();
+				Index index;
+				for (Path item : items) {
+					try (InputStream stream = new FileInputStream(item.toFile())) {
+						indexer.index(stream);
+					}
+				}
+				index = indexer.complete();
+
+				Collection<ClassInfo> classes = index.getKnownClasses();
+
+				if (project.getMainClass() == null) { // if non-null user forced set main
+					List<ClassInfo> mains = classes	.stream()
+													.filter(getMainFinder())
+													.collect(Collectors.toList());
+					String mainName = getSuggestedMain();
+					if (mains.size() > 1 && mainName != null) {
+						List<ClassInfo> suggestedmain = mains	.stream()
+																.filter(ci -> ci.simpleName().equals(mainName))
+																.collect(Collectors.toList());
+						if (!suggestedmain.isEmpty()) {
+							mains = suggestedmain;
+						}
+					}
+
+					if (!mains.isEmpty()) {
+						project.setMainClass(mains.get(0).name().toString());
+						if (mains.size() > 1) {
+							Util.warnMsg(
+									"Could not locate unique main() method. Use -m to specify explicit main method. Falling back to use first found: "
+											+ mains	.stream()
+													.map(x -> x.name().toString())
+													.collect(Collectors.joining(",")));
+						}
+					}
+				}
+
+				if (project.getMainSource().isAgent()) {
+					Optional<ClassInfo> agentmain = classes	.stream()
+															.filter(pubClass -> pubClass.method("agentmain",
+																	STRINGTYPE,
+																	INSTRUMENTATIONTYPE) != null
+																	||
+																	pubClass.method("agentmain",
+																			STRINGTYPE) != null)
+															.findFirst();
+
+					if (agentmain.isPresent()) {
+						project.setAgentMainClass(agentmain.get().name().toString());
+					}
+
+					Optional<ClassInfo> premain = classes	.stream()
+															.filter(pubClass -> pubClass.method("premain",
+																	STRINGTYPE,
+																	INSTRUMENTATIONTYPE) != null
+																	||
+																	pubClass.method("premain",
+																			STRINGTYPE) != null)
+															.findFirst();
+
+					if (premain.isPresent()) {
+						project.setPreMainClass(premain.get().name().toString());
+					}
+				}
+			}
+		} catch (IOException e) {
+			throw new ExitException(1, e);
+		}
+	}
+
+	protected String getSuggestedMain() {
+		if (!project.getResourceRef().isStdin()) {
+			return project.getResourceRef().getFile().getFileName().toString().replace(getMainExtension(), "");
+		} else {
+			return null;
+		}
+	}
+
 	protected abstract String getCompilerBinary(String requestedJavaVersion);
+
+	protected abstract String getMainExtension();
+
+	protected Predicate<ClassInfo> getMainFinder() {
+		return pubClass -> pubClass.method("main", STRINGARRAYTYPE) != null;
+	}
 }

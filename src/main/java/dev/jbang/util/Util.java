@@ -85,6 +85,9 @@ public class Util {
 	public static final Pattern mainClassMethod = Pattern.compile(
 			"(?<=\\n|\\A)(?:public\\s)\\s*(class)\\s*([^\\n\\s]*)");
 
+	public static final Pattern patternFQCN = Pattern.compile(
+			"^([a-z][a-z0-9]*\\.)*[a-zA-Z][a-zA-Z0-9_]*$");
+
 	public static final Pattern patternModuleId = Pattern.compile(
 			"^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$");
 
@@ -1505,6 +1508,10 @@ public class Util {
 
 	public static boolean isValidModuleIdentifier(String id) {
 		return patternModuleId.matcher(id).matches();
+	}
+
+	public static boolean isValidClassIdentifier(String id) {
+		return patternFQCN.matcher(id).matches();
 	}
 
 	/**

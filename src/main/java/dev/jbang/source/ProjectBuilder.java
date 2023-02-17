@@ -341,6 +341,7 @@ public class ProjectBuilder {
 				it -> PropertiesValueResolver.replaceProperties(it, getContextProperties()));
 		prj.setDescription(tagReader.getDescription().orElse(null));
 		prj.setGav(tagReader.getGav().orElse(null));
+		prj.setMainClass(tagReader.getMain().orElse(null));
 		prj.setModuleName(tagReader.getModule().orElse(null));
 
 		SourceSet ss = prj.getMainSourceSet();
