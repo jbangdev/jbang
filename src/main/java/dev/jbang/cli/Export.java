@@ -85,27 +85,27 @@ abstract class BaseExportCommand extends BaseCommand {
 		ProjectBuilder pb = createProjectBuilder(exportMixin);
 		Project prj = pb.build(exportMixin.scriptMixin.scriptOrFile);
 		BuildContext ctx = BuildContext.forProject(prj);
-		prj.builder(ctx).build();
+		prj.codeBuilder(ctx).build();
 		return apply(prj, ctx);
 	}
 
 	abstract int apply(Project prj, BuildContext ctx) throws IOException;
 
 	protected ProjectBuilder createProjectBuilder(ExportMixin exportMixin) {
-		return ProjectBuilder
-								.create()
-								.setProperties(exportMixin.dependencyInfoMixin.getProperties())
-								.additionalDependencies(exportMixin.dependencyInfoMixin.getDependencies())
-								.additionalRepositories(exportMixin.dependencyInfoMixin.getRepositories())
-								.additionalClasspaths(exportMixin.dependencyInfoMixin.getClasspaths())
-								.additionalSources(exportMixin.scriptMixin.sources)
-								.additionalResources(exportMixin.scriptMixin.resources)
-								.forceType(exportMixin.scriptMixin.forceType)
-								.catalog(exportMixin.scriptMixin.catalog)
-								.javaVersion(exportMixin.buildMixin.javaVersion)
-								.mainClass(exportMixin.buildMixin.main)
-								.moduleName(exportMixin.buildMixin.module)
-								.compileOptions(exportMixin.buildMixin.compileOptions);
+		return Project
+						.builder()
+						.setProperties(exportMixin.dependencyInfoMixin.getProperties())
+						.additionalDependencies(exportMixin.dependencyInfoMixin.getDependencies())
+						.additionalRepositories(exportMixin.dependencyInfoMixin.getRepositories())
+						.additionalClasspaths(exportMixin.dependencyInfoMixin.getClasspaths())
+						.additionalSources(exportMixin.scriptMixin.sources)
+						.additionalResources(exportMixin.scriptMixin.resources)
+						.forceType(exportMixin.scriptMixin.forceType)
+						.catalog(exportMixin.scriptMixin.catalog)
+						.javaVersion(exportMixin.buildMixin.javaVersion)
+						.mainClass(exportMixin.buildMixin.main)
+						.moduleName(exportMixin.buildMixin.module)
+						.compileOptions(exportMixin.buildMixin.compileOptions);
 	}
 
 	Path getJarOutputPath() {

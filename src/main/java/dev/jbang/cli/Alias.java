@@ -122,21 +122,20 @@ class AliasAdd extends BaseAliasCommand {
 	}
 
 	ProjectBuilder createProjectBuilder() {
-		ProjectBuilder pb = ProjectBuilder
-											.create()
-											.setProperties(dependencyInfoMixin.getProperties())
-											.additionalDependencies(dependencyInfoMixin.getDependencies())
-											.additionalRepositories(dependencyInfoMixin.getRepositories())
-											.additionalClasspaths(dependencyInfoMixin.getClasspaths())
-											.additionalSources(scriptMixin.sources)
-											.additionalResources(scriptMixin.resources)
-											.forceType(scriptMixin.forceType)
-											.nativeImage(nativeMixin.nativeImage)
-											.javaVersion(buildMixin.javaVersion)
-											.mainClass(buildMixin.main)
-											.moduleName(buildMixin.module)
-											.setArguments(userParams)
-											.runtimeOptions(javaRuntimeOptions);
+		ProjectBuilder pb = Project
+									.builder()
+									.setProperties(dependencyInfoMixin.getProperties())
+									.additionalDependencies(dependencyInfoMixin.getDependencies())
+									.additionalRepositories(dependencyInfoMixin.getRepositories())
+									.additionalClasspaths(dependencyInfoMixin.getClasspaths())
+									.additionalSources(scriptMixin.sources)
+									.additionalResources(scriptMixin.resources)
+									.forceType(scriptMixin.forceType)
+									.javaVersion(buildMixin.javaVersion)
+									.moduleName(buildMixin.module)
+									.compileOptions(buildMixin.compileOptions)
+									.nativeImage(nativeMixin.nativeImage)
+									.nativeOptions(nativeMixin.nativeOptions);
 		Path cat = getCatalog(false);
 		if (cat != null) {
 			pb.catalog(cat.toFile());

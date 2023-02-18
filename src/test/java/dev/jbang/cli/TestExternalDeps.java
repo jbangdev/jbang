@@ -10,7 +10,6 @@ import java.io.IOException;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
-import dev.jbang.source.BuildContext;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.Util;
@@ -47,15 +46,11 @@ class TestExternalDeps extends BaseTest {
 													f.getPath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ProjectBuilder pb = run.createProjectBuilder();
+		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(f.getPath());
-		BuildContext ctx = BuildContext.forProject(prj);
-		prj.builder(ctx).build();
-
-		String result = prj.cmdGenerator(ctx).generate();
+		String result = run.updateGeneratorForRun(prj.codeBuilder().build()).build().generate();
 
 		assertThat(result, containsString("pico"));
-
 	}
 
 	@Test
@@ -72,15 +67,11 @@ class TestExternalDeps extends BaseTest {
 													f.getPath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ProjectBuilder pb = run.createProjectBuilder();
+		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(f.getPath());
-		BuildContext ctx = BuildContext.forProject(prj);
-		prj.builder(ctx).build();
-
-		String result = prj.cmdGenerator(ctx).generate();
+		String result = run.updateGeneratorForRun(prj.codeBuilder().build()).build().generate();
 
 		assertThat(result, matchesPattern(".*com[/\\\\]github[/\\\\]jbangdev[/\\\\]jbang.*"));
-
 	}
 
 }

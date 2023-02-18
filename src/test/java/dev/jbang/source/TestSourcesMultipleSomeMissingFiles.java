@@ -106,7 +106,7 @@ class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 		String scriptURL = mainPath.toString();
 		ResourceRef resourceRef = ResourceRef.forNamedFile(scriptURL, mainPath);
 		Source script = Source.forResourceRef(resourceRef, null);
-		Project prj = ProjectBuilder.create().build(script);
+		Project prj = Project.builder().build(script);
 		List<ResourceRef> sources = prj.getMainSourceSet().getSources();
 		assertEquals(5, sources.size());
 		TreeSet<String> fileNames = new TreeSet<>();
@@ -142,7 +142,7 @@ class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 		String scriptURL = mainPath.toString();
 		ResourceRef resourceRef = ResourceRef.forNamedFile(scriptURL, mainPath);
 		Source source = Source.forResourceRef(resourceRef, null);
-		Assertions.assertThrows(ResourceNotFoundException.class, () -> ProjectBuilder.create().build(source));
+		Assertions.assertThrows(ResourceNotFoundException.class, () -> Project.builder().build(source));
 	}
 
 }

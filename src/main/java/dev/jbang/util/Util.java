@@ -931,29 +931,46 @@ public class Util {
 				// create a temp directory for the downloaded content
 				Path saveTmpDir = saveDir.getParent().resolve(saveDir.getFileName() + ".tmp");
 				Path saveOldDir = saveDir.getParent().resolve(saveDir.getFileName() + ".old");
+				Path metaTmpDir = metaSaveDir.getParent().resolve(metaSaveDir.getFileName() + ".tmp");
+				Path metaOldDir = metaSaveDir.getParent().resolve(metaSaveDir.getFileName() + ".old");
 				try {
 					deletePath(saveTmpDir, true);
 					deletePath(saveOldDir, true);
+					deletePath(metaTmpDir, true);
+					deletePath(metaOldDir, true);
 
-					Path saveFilePath = downloader.apply(saveTmpDir, metaSaveDir).handle(conn);
+					Path saveFilePath = downloader.apply(saveTmpDir, metaTmpDir).handle(conn);
 
 					// temporarily save the old content
 					if (Files.isDirectory(saveDir)) {
 						Files.move(saveDir, saveOldDir);
 					}
+					if (Files.isDirectory(metaSaveDir)) {
+						Files.move(metaSaveDir, metaOldDir);
+					}
 					// rename the folder to its final name
 					Files.move(saveTmpDir, saveDir);
+					Files.move(metaTmpDir, metaSaveDir);
 					// remove any old content
 					deletePath(saveOldDir, true);
+					deletePath(metaOldDir, true);
 
 					return saveDir.resolve(saveFilePath.getFileName());
 				} catch (Throwable th) {
 					// remove the temp folder if anything went wrong
 					deletePath(saveTmpDir, true);
+					deletePath(metaTmpDir, true);
 					// and move the old content back if it exists
 					if (!Files.isDirectory(saveDir) && Files.isDirectory(saveOldDir)) {
 						try {
 							Files.move(saveOldDir, saveDir);
+						} catch (IOException ex) {
+							// Ignore
+						}
+					}
+					if (!Files.isDirectory(metaSaveDir) && Files.isDirectory(metaOldDir)) {
+						try {
+							Files.move(metaOldDir, metaSaveDir);
 						} catch (IOException ex) {
 							// Ignore
 						}

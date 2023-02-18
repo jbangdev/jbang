@@ -26,7 +26,6 @@ import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.net.JdkManager;
 import dev.jbang.net.JdkProvider;
-import dev.jbang.source.BuildContext;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.CommandBuffer;
@@ -105,7 +104,7 @@ class AppInstall extends BaseCommand {
 			Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
 			return false;
 		}
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(scriptRef);
 		if (name == null) {
 			name = CatalogUtil.nameFromRef(scriptRef);
@@ -118,7 +117,7 @@ class AppInstall extends BaseCommand {
 				&& !prj.getResourceRef().isURL()) {
 			scriptRef = prj.getResourceRef().getFile().toAbsolutePath().toString();
 		}
-		prj.builder(BuildContext.forProject(prj)).build();
+		prj.codeBuilder().build();
 		installScripts(name, scriptRef, benative);
 		Util.infoMsg("Command installed: " + name);
 		return true;

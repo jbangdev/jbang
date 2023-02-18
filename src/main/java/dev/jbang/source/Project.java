@@ -2,7 +2,6 @@ package dev.jbang.source;
 
 import java.nio.file.Path;
 import java.util.*;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -11,8 +10,6 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import dev.jbang.cli.BaseCommand;
-import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.dependencies.ModularClassPath;
@@ -29,7 +26,6 @@ public class Project {
 	@Nonnull
 	private final ResourceRef resourceRef;
 	private Source mainSource;
-	private Function<BuildContext, CmdGenerator> cmdGeneratorFactory;
 
 	// Public (user) input values (can be changed from the outside at any time)
 	private final SourceSet mainSourceSet = new SourceSet();
@@ -37,7 +33,6 @@ public class Project {
 	private final List<String> runtimeOptions = new ArrayList<>();
 	private Map<String, String> properties = new HashMap<>();
 	private final Map<String, String> manifestAttributes = new LinkedHashMap<>();
-	private List<Project> javaAgents = new ArrayList<>();
 	private String javaVersion;
 	private String description;
 	private String gav;
@@ -64,6 +59,10 @@ public class Project {
 		public static List<String> fileNames() {
 			return Arrays.stream(values()).map(v -> v.fileName).collect(Collectors.toList());
 		}
+	}
+
+	public static ProjectBuilder builder() {
+		return new ProjectBuilder();
 	}
 
 	public Project(@Nonnull ResourceRef resourceRef) {
@@ -120,18 +119,6 @@ public class Project {
 		return this;
 	}
 
-	@Nonnull
-	public List<Project> getJavaAgents() {
-		return Collections.unmodifiableList(javaAgents);
-	}
-
-	@Nonnull
-	public Project addJavaAgents(List<Project> javaAgents) {
-		this.javaAgents.addAll(javaAgents);
-		return this;
-	}
-
-	@Nonnull
 	public Map<String, String> getProperties() {
 		return Collections.unmodifiableMap(properties);
 	}
@@ -226,10 +213,6 @@ public class Project {
 		this.mainSource = mainSource;
 	}
 
-	public void setCmdGeneratorFactory(Function<BuildContext, CmdGenerator> cmdGeneratorFactory) {
-		this.cmdGeneratorFactory = cmdGeneratorFactory;
-	}
-
 	protected String getStableId() {
 		if (stableId == null) {
 			Stream<String> sss = mainSourceSet.getStableIdInfo();
@@ -263,35 +246,32 @@ public class Project {
 	/**
 	 * Returns a <code>Builder</code> that can be used to turn this
 	 * <code>Project</code> into executable code.
-	 * 
+	 *
 	 * @return A <code>Builder</code>
 	 */
 	@Nonnull
-	public Builder<Project> builder(BuildContext ctx) {
+	public Builder<CmdGeneratorBuilder> codeBuilder() {
+		return codeBuilder(BuildContext.forProject(this));
+	}
+
+	/**
+	 * Returns a <code>Builder</code> that can be used to turn this
+	 * <code>Project</code> into executable code.
+	 *
+	 * @param ctx will use the given <code>BuildContext</code> to store target files
+	 *            and intermediate results
+	 * @return A <code>Builder</code>
+	 */
+	@Nonnull
+	public Builder<CmdGeneratorBuilder> codeBuilder(BuildContext ctx) {
 		if (mainSource != null) {
 			return mainSource.getBuilder(this, ctx);
 		} else {
 			if (isJar() && nativeImage) {
 				return new JavaSource.JavaAppBuilder(this, ctx);
 			} else {
-				return () -> this;
+				return () -> CmdGenerator.builder(this, ctx);
 			}
-		}
-	}
-
-	/**
-	 * Returns a <code>CmdGenerator</code> that can be used to generate the command
-	 * line which, when used in a shell or any other CLI, would run this
-	 * <code>Project</code>'s code.
-	 *
-	 * @return A <code>CmdGenerator</code>
-	 */
-	@Nonnull
-	public CmdGenerator cmdGenerator(BuildContext ctx) {
-		if (cmdGeneratorFactory != null) {
-			return cmdGeneratorFactory.apply(ctx);
-		} else {
-			throw new ExitException(BaseCommand.EXIT_INTERNAL_ERROR, "Missing CmdGenerator factory for Project");
 		}
 	}
 

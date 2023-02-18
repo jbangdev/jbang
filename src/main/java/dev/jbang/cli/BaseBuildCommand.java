@@ -32,22 +32,23 @@ public abstract class BaseBuildCommand extends BaseCommand {
 
 	PrintStream out = new PrintStream(new FileOutputStream(FileDescriptor.out));
 
-	ProjectBuilder createProjectBuilder() {
-		return ProjectBuilder
-								.create()
-								.setProperties(dependencyInfoMixin.getProperties())
-								.additionalDependencies(dependencyInfoMixin.getDependencies())
-								.additionalRepositories(dependencyInfoMixin.getRepositories())
-								.additionalClasspaths(dependencyInfoMixin.getClasspaths())
-								.additionalSources(scriptMixin.sources)
-								.additionalResources(scriptMixin.resources)
-								.forceType(scriptMixin.forceType)
-								.catalog(scriptMixin.catalog)
-								.javaVersion(buildMixin.javaVersion)
-								.mainClass(buildMixin.main)
-								.moduleName(buildMixin.module)
-								.compileOptions(buildMixin.compileOptions)
-								.nativeImage(nativeMixin.nativeImage)
-								.nativeOptions(nativeMixin.nativeOptions);
+	protected ProjectBuilder createBaseProjectBuilder() {
+		return Project
+						.builder()
+						.setProperties(dependencyInfoMixin.getProperties())
+						.additionalDependencies(dependencyInfoMixin.getDependencies())
+						.additionalRepositories(dependencyInfoMixin.getRepositories())
+						.additionalClasspaths(dependencyInfoMixin.getClasspaths())
+						.additionalSources(scriptMixin.sources)
+						.additionalResources(scriptMixin.resources)
+						.forceType(scriptMixin.forceType)
+						.catalog(scriptMixin.catalog)
+						.javaVersion(buildMixin.javaVersion)
+						.moduleName(buildMixin.module)
+						.compileOptions(buildMixin.compileOptions)
+						.nativeImage(nativeMixin.nativeImage)
+						.nativeOptions(nativeMixin.nativeOptions);
+
+		// NB: Do not put `.mainClass(buildMixin.main)` here
 	}
 }

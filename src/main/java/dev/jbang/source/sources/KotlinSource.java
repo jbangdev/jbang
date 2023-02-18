@@ -37,7 +37,7 @@ public class KotlinSource extends Source {
 	}
 
 	@Override
-	public Builder<Project> getBuilder(Project prj, BuildContext ctx) {
+	public Builder<CmdGeneratorBuilder> getBuilder(Project prj, BuildContext ctx) {
 		return new KotlinAppBuilder(prj, ctx);
 	}
 

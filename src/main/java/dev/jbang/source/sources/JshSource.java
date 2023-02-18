@@ -14,7 +14,7 @@ public class JshSource extends JavaSource {
 	}
 
 	@Override
-	public Builder<Project> getBuilder(Project prj, BuildContext ctx) {
-		return () -> prj;
+	public Builder<CmdGeneratorBuilder> getBuilder(Project prj, BuildContext ctx) {
+		return () -> CmdGenerator.builder(prj, ctx);
 	}
 }

@@ -44,6 +44,10 @@ abstract class BaseInfoCommand extends BaseCommand {
 			"--build-dir" }, description = "Use given directory for build results")
 	Path buildDir;
 
+	@CommandLine.Option(names = {
+			"--module" }, arity = "0..1", fallbackValue = "", description = "Treat resource as a module. Optionally with the given module name", preprocessor = StrictParameterPreprocessor.class)
+	String module;
+
 	static class ProjectFile {
 		String originalResource;
 		String backingResource;
@@ -141,7 +145,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 				}
 
 				if (ctx.getJarFile() != null && Files.exists(ctx.getJarFile())) {
-					Project jarProject = ProjectBuilder.create().build(ctx.getJarFile());
+					Project jarProject = Project.builder().build(ctx.getJarFile());
 					mainClass = jarProject.getMainClass();
 					gav = jarProject.getGav().orElse(gav);
 					module = jarProject.getModuleName().orElse(module);
@@ -213,15 +217,17 @@ abstract class BaseInfoCommand extends BaseCommand {
 	}
 
 	ProjectBuilder createProjectBuilder() {
-		return ProjectBuilder	.create()
-								.setProperties(dependencyInfoMixin.getProperties())
-								.additionalDependencies(dependencyInfoMixin.getDependencies())
-								.additionalRepositories(dependencyInfoMixin.getRepositories())
-								.additionalClasspaths(dependencyInfoMixin.getClasspaths())
-								.additionalSources(scriptMixin.sources)
-								.additionalResources(scriptMixin.resources)
-								.forceType(scriptMixin.forceType)
-								.catalog(scriptMixin.catalog);
+		return Project
+						.builder()
+						.setProperties(dependencyInfoMixin.getProperties())
+						.additionalDependencies(dependencyInfoMixin.getDependencies())
+						.additionalRepositories(dependencyInfoMixin.getRepositories())
+						.additionalClasspaths(dependencyInfoMixin.getClasspaths())
+						.additionalSources(scriptMixin.sources)
+						.additionalResources(scriptMixin.resources)
+						.forceType(scriptMixin.forceType)
+						.moduleName(module)
+						.catalog(scriptMixin.catalog);
 	}
 
 }

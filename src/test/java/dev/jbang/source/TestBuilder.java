@@ -26,7 +26,6 @@ import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.source.buildsteps.JarBuildStep;
 import dev.jbang.source.buildsteps.NativeBuildStep;
 import dev.jbang.source.sources.JavaSource;
-import dev.jbang.source.sources.JavaSource.JavaAppBuilder.JavaCompileBuildStep;
 import dev.jbang.source.sources.KotlinSource;
 import dev.jbang.util.Util;
 
@@ -35,7 +34,7 @@ public class TestBuilder extends BaseTest {
 	@Test
 	void testHelloworld() throws IOException {
 		Path foo = examplesTestFolder.resolve("helloworld.java").toAbsolutePath();
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
 
@@ -56,7 +55,7 @@ public class TestBuilder extends BaseTest {
 	@Test
 	void testDualHelloworld(@TempDir File out1, @TempDir File out2) throws IOException {
 		Path foo = examplesTestFolder.resolve("helloworld.java").toAbsolutePath();
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx1 = BuildContext.forProject(prj, out1.toPath());
 		BuildContext ctx2 = BuildContext.forProject(prj, out2.toPath());
@@ -121,7 +120,7 @@ public class TestBuilder extends BaseTest {
 	@Test
 	void testCompileOptions() throws IOException {
 		Path foo = examplesTestFolder.resolve("helloworld.java").toAbsolutePath();
-		ProjectBuilder pb = ProjectBuilder.create().compileOptions(Arrays.asList("--foo", "--bar"));
+		ProjectBuilder pb = Project.builder().compileOptions(Arrays.asList("--foo", "--bar"));
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
 
@@ -142,7 +141,7 @@ public class TestBuilder extends BaseTest {
 	@Test
 	void testKotlinCompileOptions() throws IOException {
 		Path foo = examplesTestFolder.resolve("helloworld.kt").toAbsolutePath();
-		ProjectBuilder pb = ProjectBuilder.create().compileOptions(Arrays.asList("--foo", "--bar"));
+		ProjectBuilder pb = Project.builder().compileOptions(Arrays.asList("--foo", "--bar"));
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
 
@@ -164,7 +163,7 @@ public class TestBuilder extends BaseTest {
 	void testBuildAdditionalSources() throws IOException {
 		Path foo = examplesTestFolder.resolve("foo.java").toAbsolutePath();
 		Path bar = examplesTestFolder.resolve("bar/Bar.java").toAbsolutePath();
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		pb.additionalSources(Arrays.asList(bar.toString()));
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
@@ -192,7 +191,7 @@ public class TestBuilder extends BaseTest {
 		CatalogUtil.addNearestAlias("bar", incFile, null, null, null, null, null, null, null, null, null, null, null,
 				null, null, null, null);
 
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		pb.additionalSources(Arrays.asList("bar"));
 		Project prj = pb.build(mainFile);
 		BuildContext ctx = BuildContext.forProject(prj);
@@ -224,7 +223,7 @@ public class TestBuilder extends BaseTest {
 		CatalogUtil.addNearestAlias("bar", incFile, null, null, null, null, null, null, null, null, null, null, null,
 				null, null, null, null);
 
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(mainFile.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
 
@@ -249,7 +248,7 @@ public class TestBuilder extends BaseTest {
 		String mainFile = examplesTestFolder.resolve("foo.java").toString();
 		String incFile = examplesTestFolder.resolve("bar/Bar.java").toString();
 
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		pb.additionalSources(Arrays.asList("bar/*.java"));
 		Project prj = pb.build(mainFile);
 		BuildContext ctx = BuildContext.forProject(prj);
@@ -275,7 +274,7 @@ public class TestBuilder extends BaseTest {
 		String incGlob = examplesTestFolder.resolve("bar").toString() + File.separatorChar + "*.java";
 		String incFile = examplesTestFolder.resolve("bar/Bar.java").toString();
 
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		pb.additionalSources(Arrays.asList(incGlob));
 		Project prj = pb.build(mainFile);
 		BuildContext ctx = BuildContext.forProject(prj);
@@ -301,7 +300,7 @@ public class TestBuilder extends BaseTest {
 		String mainFile = examplesTestFolder.resolve("foo.java").toString();
 		String incFile = examplesTestFolder.resolve("bar/Bar.java").toString();
 
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		pb.additionalSources(Arrays.asList("bar"));
 		Project prj = pb.build(mainFile);
 		BuildContext ctx = BuildContext.forProject(prj);
@@ -327,7 +326,7 @@ public class TestBuilder extends BaseTest {
 		Path foo = Paths.get("foo.java");
 		Path res1 = Paths.get("resource.properties");
 		Path res2 = Paths.get("sub/sub.properties");
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		pb.additionalResources(Arrays.asList(
 				Paths.get("res").resolve(res1).toString(),
 				Paths.get("res").resolve(res2).toString()));
@@ -370,7 +369,7 @@ public class TestBuilder extends BaseTest {
 		Path foo = Paths.get("foo.java");
 		Path res1 = Paths.get("resource.properties");
 		Path res2 = Paths.get("sub/sub.properties");
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		pb.additionalResources(Arrays.asList(
 				"somedir/=" + Paths.get("res").resolve(res1),
 				"somedir/=" + Paths.get("res").resolve(res2)));
@@ -417,7 +416,7 @@ public class TestBuilder extends BaseTest {
 		Path foo = Paths.get("foo.java");
 		Path res1 = Paths.get("resource.properties");
 		Path res2 = Paths.get("sub/sub.properties");
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		pb.additionalResources(Arrays.asList("res/**.properties"));
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
@@ -459,7 +458,7 @@ public class TestBuilder extends BaseTest {
 	void testAdditionalResourcesFolder() throws IOException {
 		Util.setCwd(examplesTestFolder);
 		Path foo = Paths.get("foo.java");
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		pb.additionalResources(Arrays.asList("res"));
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
@@ -503,7 +502,7 @@ public class TestBuilder extends BaseTest {
 		Util.setCwd(examplesTestFolder);
 		String mainFile = examplesTestFolder.resolve("foo.java").toString();
 
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		pb.nativeImage(true);
 		Project prj = pb.build(mainFile);
 		BuildContext ctx = BuildContext.forProject(prj);
@@ -541,14 +540,13 @@ public class TestBuilder extends BaseTest {
 		Util.setCwd(examplesTestFolder);
 		Path mainFile = examplesTestFolder.resolve("helloworld.java");
 
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		HashMap<String, String> props = new HashMap<>();
 		props.put("bazprop", "algo");
 		pb.setProperties(props);
 		Project prj = pb.build(mainFile.toFile().getAbsolutePath());
 		BuildContext ctx = BuildContext.forProject(prj);
-
-		prj.builder(ctx).build();
+		prj.codeBuilder(ctx).build();
 
 		assertThat(prj.getManifestAttributes().get("foo"), is("true"));
 		assertThat(prj.getManifestAttributes().get("bar"), is("baz"));
@@ -565,7 +563,7 @@ public class TestBuilder extends BaseTest {
 	@Test
 	void testNative() throws IOException {
 		Path foo = examplesTestFolder.resolve("helloworld.java").toAbsolutePath();
-		ProjectBuilder pb = ProjectBuilder.create().nativeImage(true);
+		ProjectBuilder pb = Project.builder().nativeImage(true);
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
 

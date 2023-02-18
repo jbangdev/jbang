@@ -14,7 +14,7 @@ public class TestProjectBuilder extends BaseTest {
 
 	@Test
 	void testDuplicateAnonRepos() {
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		pb.additionalRepositories(Arrays.asList("foo=http://foo", "foo=http://foo"));
 		Path src = examplesTestFolder.resolve("quote.java");
 		Project prj = pb.build(src);
@@ -25,7 +25,7 @@ public class TestProjectBuilder extends BaseTest {
 
 	@Test
 	void testDuplicateNamedRepos() {
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		pb.additionalRepositories(Arrays.asList("foo=http://foo", "foo=http://foo"));
 		Path src = examplesTestFolder.resolve("quote.java");
 		Project prj = pb.build(src);
@@ -36,7 +36,7 @@ public class TestProjectBuilder extends BaseTest {
 
 	@Test
 	void testReposSameIdDifferentUrl() {
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		pb.additionalRepositories(Arrays.asList("foo=http://foo", "foo=http://bar"));
 		Path src = examplesTestFolder.resolve("quote.java");
 		Project prj = pb.build(src);

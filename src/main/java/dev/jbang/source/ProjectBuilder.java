@@ -23,11 +23,9 @@ import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.*;
 import dev.jbang.source.buildsteps.JarBuildStep;
-import dev.jbang.source.generators.JarCmdGenerator;
-import dev.jbang.source.generators.JshCmdGenerator;
-import dev.jbang.source.generators.NativeCmdGenerator;
 import dev.jbang.source.resolvers.*;
 import dev.jbang.util.JavaUtil;
+import dev.jbang.util.ModuleUtil;
 import dev.jbang.util.PropertiesValueResolver;
 import dev.jbang.util.Util;
 
@@ -43,7 +41,6 @@ public class ProjectBuilder {
 	private List<String> additionalRepos = new ArrayList<>();
 	private List<String> additionalClasspaths = new ArrayList<>();
 	private Map<String, String> properties = new HashMap<>();
-	private List<Project> javaAgents = new ArrayList<>();
 	private Source.Type forceType = null;
 	private String mainClass;
 	private String moduleName;
@@ -56,34 +53,7 @@ public class ProjectBuilder {
 	private String javaVersion;
 	private Properties contextProperties;
 
-	private List<String> arguments = Collections.emptyList();
-	private List<String> runtimeOptions = Collections.emptyList();
-	private boolean interactive;
-	private boolean enableAssertions;
-	private boolean enableSystemAssertions;
-	private String flightRecorderString;
-	private String debugString;
-	private Boolean classDataSharing;
-
-	public static ProjectBuilder create() {
-		return new ProjectBuilder();
-	}
-
-	private ProjectBuilder() {
-	}
-
-	// TODO Try to get rid of this getter
-	public List<String> getArguments() {
-		return Collections.unmodifiableList(arguments);
-	}
-
-	public ProjectBuilder setArguments(List<String> arguments) {
-		if (arguments != null) {
-			this.arguments = new ArrayList<>(arguments);
-		} else {
-			this.arguments = Collections.emptyList();
-		}
-		return this;
+	ProjectBuilder() {
 	}
 
 	public ProjectBuilder setProperties(Map<String, String> properties) {
@@ -92,36 +62,6 @@ public class ProjectBuilder {
 		} else {
 			this.properties = Collections.emptyMap();
 		}
-		return this;
-	}
-
-	public ProjectBuilder interactive(boolean interactive) {
-		this.interactive = interactive;
-		return this;
-	}
-
-	public ProjectBuilder enableAssertions(boolean enableAssertions) {
-		this.enableAssertions = enableAssertions;
-		return this;
-	}
-
-	public ProjectBuilder enableSystemAssertions(boolean enableSystemAssertions) {
-		this.enableSystemAssertions = enableSystemAssertions;
-		return this;
-	}
-
-	public ProjectBuilder flightRecorderString(String flightRecorderString) {
-		this.flightRecorderString = flightRecorderString;
-		return this;
-	}
-
-	public ProjectBuilder debugString(String debugString) {
-		this.debugString = debugString;
-		return this;
-	}
-
-	public ProjectBuilder classDataSharing(Boolean classDataSharing) {
-		this.classDataSharing = classDataSharing;
 		return this;
 	}
 
@@ -206,15 +146,6 @@ public class ProjectBuilder {
 		return this;
 	}
 
-	public ProjectBuilder runtimeOptions(List<String> runtimeOptions) {
-		if (runtimeOptions != null) {
-			this.runtimeOptions = runtimeOptions;
-		} else {
-			this.runtimeOptions = Collections.emptyList();
-		}
-		return this;
-	}
-
 	public ProjectBuilder nativeImage(Boolean nativeImage) {
 		this.nativeImage = nativeImage;
 		return this;
@@ -227,11 +158,6 @@ public class ProjectBuilder {
 
 	public ProjectBuilder catalog(File catalogFile) {
 		this.catalogFile = catalogFile;
-		return this;
-	}
-
-	public ProjectBuilder addJavaAgent(Project prj) {
-		javaAgents.add(prj);
 		return this;
 	}
 
@@ -403,13 +329,18 @@ public class ProjectBuilder {
 		Path jar = prj.getResourceRef().getFile();
 		if (jar != null && Files.exists(jar)) {
 			try (JarFile jf = new JarFile(jar.toFile())) {
+				String moduleName = ModuleUtil.getModuleName(jar);
+				if (moduleName != null && "".equals(prj.getModuleName().orElse(null))) {
+					// We only import the module name if the project's module
+					// name was set to an empty string, which basically means
+					// "we want module support, but we don't know the name".
+					prj.setModuleName(moduleName);
+				}
+
 				Attributes attrs = jf.getManifest().getMainAttributes();
 				if (attrs.containsKey(Attributes.Name.MAIN_CLASS)) {
 					prj.setMainClass(attrs.getValue(Attributes.Name.MAIN_CLASS));
 				}
-				// NB: we don't import Automatic-Module-Name or any information
-				// from module-info because that would force jbang into module
-				// mode, preventing the user to use it as plain Java
 
 				Optional<JarEntry> pom = jf.stream().filter(e -> e.getName().endsWith("/pom.xml")).findFirst();
 				if (pom.isPresent()) {
@@ -443,43 +374,6 @@ public class ProjectBuilder {
 		return prj;
 	}
 
-	private CmdGenerator createCmdGenerator(Project prj, BuildContext ctx) {
-		if (prj.isJShell() || forceType == Source.Type.jshell || interactive) {
-			return createJshCmdGenerator(prj, ctx);
-		} else {
-			if (Boolean.TRUE.equals(nativeImage)) {
-				return createNativeCmdGenerator(prj, ctx);
-			} else {
-				return createJarCmdGenerator(prj, ctx);
-			}
-		}
-	}
-
-	private JarCmdGenerator createJarCmdGenerator(Project prj, BuildContext ctx) {
-		return new JarCmdGenerator(prj, ctx)
-											.arguments(arguments)
-											.mainRequired(!interactive)
-											.assertions(enableAssertions)
-											.systemAssertions(enableSystemAssertions)
-											.classDataSharing(
-													Optional.ofNullable(classDataSharing).orElse(false))
-											.debugString(debugString)
-											.flightRecorderString(flightRecorderString);
-	}
-
-	private JshCmdGenerator createJshCmdGenerator(Project prj, BuildContext ctx) {
-		return new JshCmdGenerator(prj, ctx)
-											.arguments(arguments)
-											.interactive(interactive)
-											.debugString(debugString)
-											.flightRecorderString(flightRecorderString);
-	}
-
-	private NativeCmdGenerator createNativeCmdGenerator(Project prj, BuildContext ctx) {
-		return new NativeCmdGenerator(prj, ctx, createJarCmdGenerator(prj, ctx))
-																				.arguments(arguments);
-	}
-
 	private Project updateProject(Project prj) {
 		SourceSet ss = prj.getMainSourceSet();
 		prj.addRepositories(allToMavenRepo(replaceAllProps(additionalRepos)));
@@ -489,8 +383,6 @@ public class ProjectBuilder {
 		ss.addResources(allToFileRef(replaceAllProps(additionalResources)));
 		ss.addCompileOptions(compileOptions);
 		prj.putProperties(properties);
-		prj.addRuntimeOptions(runtimeOptions);
-		prj.addJavaAgents(javaAgents);
 		if (moduleName != null) {
 			if (!moduleName.isEmpty() || !prj.getModuleName().isPresent()) {
 				prj.setModuleName(moduleName);
@@ -505,7 +397,6 @@ public class ProjectBuilder {
 		if (nativeImage != null) {
 			prj.setNativeImage(nativeImage);
 		}
-		prj.setCmdGeneratorFactory((BuildContext ctx) -> createCmdGenerator(prj, ctx));
 		return prj;
 	}
 
@@ -557,12 +448,6 @@ public class ProjectBuilder {
 	}
 
 	private void updateFromAlias(Alias alias) {
-		if (arguments.isEmpty()) {
-			setArguments(alias.arguments);
-		}
-		if (runtimeOptions.isEmpty()) {
-			runtimeOptions(alias.runtimeOptions);
-		}
 		if (additionalSources.isEmpty()) {
 			additionalSources(alias.sources);
 		}
@@ -583,9 +468,6 @@ public class ProjectBuilder {
 		}
 		if (javaVersion == null) {
 			javaVersion(alias.javaVersion);
-		}
-		if (mainClass == null) {
-			mainClass(alias.mainClass);
 		}
 		if (compileOptions.isEmpty()) {
 			compileOptions(alias.compileOptions);

@@ -9,7 +9,7 @@ import java.util.Set;
 /**
  * WARNING: This file MUST be compiled with Java 9+
  */
-public class ModuleUtil {
+public class ModuleUtil9 {
 	public static String getModuleName(Path file) {
 		try {
 			Set<ModuleReference> refs = ModuleFinder.of(file).findAll();

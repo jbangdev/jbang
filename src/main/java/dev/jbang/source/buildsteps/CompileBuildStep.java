@@ -22,6 +22,7 @@ import org.jboss.jandex.Index;
 import org.jboss.jandex.Indexer;
 import org.jboss.jandex.Type;
 
+import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenCoordinate;
@@ -30,6 +31,7 @@ import dev.jbang.source.Builder;
 import dev.jbang.source.Project;
 import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.JavaUtil;
+import dev.jbang.util.ModuleUtil;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
 
@@ -88,11 +90,16 @@ public abstract class CompileBuildStep implements Builder<Project> {
 									.map(x -> x.getFile().toString())
 									.collect(Collectors.toList()));
 
-		if (project.getModuleName().isPresent() && !hasModuleInfoFile()) {
-			// generate module-info descriptor and add it to list of files to compile
-			Path infoFile = generateModuleInfo();
-			if (infoFile != null) {
-				optionList.add(infoFile.toString());
+		if (project.getModuleName().isPresent()) {
+			if (project.getMainSource() != null && !project.getMainSource().getJavaPackage().isPresent()) {
+				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Module code is missing a 'package' statement");
+			}
+			if (!hasModuleInfoFile()) {
+				// generate module-info descriptor and add it to list of files to compile
+				Path infoFile = generateModuleInfo();
+				if (infoFile != null) {
+					optionList.add(infoFile.toString());
+				}
 			}
 		}
 
@@ -186,7 +193,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 												.collect(Collectors.toList());
 			// Finally create a module-info file with the name of the module
 			// and the list of required modules using the names we just listed
-			String modName = project.getModuleName().orElse(project.getGav().orElse("jbangapp"));
+			String modName = ModuleUtil.getModuleName(project);
 			String infoFile = infoTemplate
 											.data("name", modName)
 											.data("dependencies", moduleNames)

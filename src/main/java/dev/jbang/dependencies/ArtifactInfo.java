@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 
-import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
 
 /**
@@ -62,11 +61,7 @@ public class ArtifactInfo {
 	}
 
 	public static String getModuleName(Path file) {
-		if (JavaUtil.getCurrentMajorJavaVersion() >= 9) {
-			return ModuleUtil.getModuleName(file);
-		} else {
-			return null;
-		}
+		return ModuleUtil.getModuleName(file);
 	}
 
 	public boolean isUpToDate() {

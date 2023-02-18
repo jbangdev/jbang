@@ -15,6 +15,7 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 import org.hamcrest.MatcherAssert;
@@ -46,10 +47,10 @@ public class TestEdit extends BaseTest {
 		JBang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(s);
 
-		Path project = new Edit().createProjectForLinkedEdit(prj, pb, false);
+		Path project = new Edit().createProjectForLinkedEdit(prj, Collections.emptyList(), false);
 
 		assertThat(project.resolve("src").toFile(), FileMatchers.anExistingDirectory());
 		Path build = project.resolve("build.gradle");
@@ -86,10 +87,10 @@ public class TestEdit extends BaseTest {
 
 		Util.writeString(p, "//DEPS org.openjfx:javafx-graphics:11.0.2${bougus:}\n" + Util.readString(p));
 
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(s);
 
-		Path project = new Edit().createProjectForLinkedEdit(prj, pb, false);
+		Path project = new Edit().createProjectForLinkedEdit(prj, Collections.emptyList(), false);
 
 		Path gradle = project.resolve("build.gradle");
 		assert (Files.exists(gradle));
@@ -121,10 +122,10 @@ public class TestEdit extends BaseTest {
 				"//DEPS io.quarkus:quarkus-rest-client-reactive\n" +
 				"//DEPS io.quarkus:quarkus-rest-client-reactive-jackson\n" + Util.readString(p));
 
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(s);
 
-		Path project = new Edit().createProjectForLinkedEdit(prj, pb, false);
+		Path project = new Edit().createProjectForLinkedEdit(prj, Collections.emptyList(), false);
 
 		Path gradle = project.resolve("build.gradle");
 		assert (Files.exists(gradle));
@@ -154,10 +155,10 @@ public class TestEdit extends BaseTest {
 
 		Util.writeString(p, "//DEPS https://github.com/oldskoolsh/libvirt-schema/tree/0.0.2\n" + Util.readString(p));
 
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(s);
 
-		Path project = new Edit().createProjectForLinkedEdit(prj, pb, false);
+		Path project = new Edit().createProjectForLinkedEdit(prj, Collections.emptyList(), false);
 
 		Path gradle = project.resolve("build.gradle");
 		assert (Files.exists(gradle));
@@ -174,10 +175,10 @@ public class TestEdit extends BaseTest {
 		Path p = examplesTestFolder.resolve("one.java");
 		assertThat(p.toFile().exists(), is(true));
 
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(p.toString());
 
-		Path project = new Edit().createProjectForLinkedEdit(prj, pb, false);
+		Path project = new Edit().createProjectForLinkedEdit(prj, Collections.emptyList(), false);
 
 		Path gradle = project.resolve("build.gradle");
 		assert (Files.exists(gradle));
@@ -199,10 +200,10 @@ public class TestEdit extends BaseTest {
 		assertThat(result, is(0));
 		assertThat(new File(s).exists(), is(true));
 
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(s);
 
-		Path project = new Edit().createProjectForLinkedEdit(prj, pb, false);
+		Path project = new Edit().createProjectForLinkedEdit(prj, Collections.emptyList(), false);
 
 		Path java = project.resolve("src/KubeExample.java");
 
@@ -217,10 +218,10 @@ public class TestEdit extends BaseTest {
 		Path p = examplesTestFolder.resolve("res/resource.java");
 		assertThat(p.toFile().exists(), is(true));
 
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(p.toString());
 
-		Path project = new Edit().createProjectForLinkedEdit(prj, pb, false);
+		Path project = new Edit().createProjectForLinkedEdit(prj, Collections.emptyList(), false);
 
 		Path gradle = project.resolve("build.gradle");
 		assert (Files.exists(gradle));

@@ -82,12 +82,13 @@ public abstract class Source {
 
 	protected abstract List<String> getRuntimeOptions();
 
-	public abstract Builder<Project> getBuilder(Project prj, BuildContext ctx);
+	public abstract Builder<CmdGeneratorBuilder> getBuilder(Project prj, BuildContext ctx);
 
 	public ResourceRef getResourceRef() {
 		return resourceRef;
 	}
 
+	@Nonnull
 	public Optional<String> getJavaPackage() {
 		if (contents != null) {
 			return Util.getSourcePackage(contents);
