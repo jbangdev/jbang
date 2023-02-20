@@ -53,6 +53,13 @@ public class BuildContext {
 		}
 	}
 
+	public Path getJsaFile() {
+		if (project.isJShell()) {
+			return null;
+		}
+		return getBasePath(".jsa");
+	}
+
 	public Path getNativeImageFile() {
 		if (project.isJShell()) {
 			return null;

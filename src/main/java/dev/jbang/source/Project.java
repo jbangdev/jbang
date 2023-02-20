@@ -30,6 +30,7 @@ public class Project {
 	// Public (user) input values (can be changed from the outside at any time)
 	private final SourceSet mainSourceSet = new SourceSet();
 	private final List<MavenRepo> repositories = new ArrayList<>();
+	// TODO move runtimeOptions to CmdGenerator!
 	private final List<String> runtimeOptions = new ArrayList<>();
 	private Map<String, String> properties = new HashMap<>();
 	private final Map<String, String> manifestAttributes = new LinkedHashMap<>();
@@ -217,12 +218,10 @@ public class Project {
 		if (stableId == null) {
 			Stream<String> sss = mainSourceSet.getStableIdInfo();
 			if (moduleName != null) {
-				Stream<String> ps = Stream.of(moduleName);
-				Stream<String> info = Stream.concat(sss, ps);
-				stableId = Util.getStableID(info);
-			} else {
-				stableId = Util.getStableID(sss);
+				Stream<String> s = Stream.of(moduleName);
+				sss = Stream.concat(sss, s);
 			}
+			stableId = Util.getStableID(sss);
 		}
 		return stableId;
 	}

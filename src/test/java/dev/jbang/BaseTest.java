@@ -10,6 +10,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.Callable;
 import java.util.function.Function;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
@@ -82,7 +83,7 @@ public abstract class BaseTest {
 	public Path jbangTempDir;
 	public Path cwdDir;
 
-	protected <T> ExecutionResult checkedRun(Function<T, Integer> commandRunner, String... args) throws IOException {
+	protected <T> CaptureResult checkedRun(Function<T, Integer> commandRunner, String... args) throws Exception {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs(args);
 		while (pr.subcommand() != null) {
 			pr = pr.subcommand();
@@ -90,6 +91,18 @@ public abstract class BaseTest {
 		@SuppressWarnings("unchecked")
 		T usrobj = (T) pr.commandSpec().userObject();
 
+		return captureOutput(() -> {
+			if (commandRunner != null) {
+				return commandRunner.apply(usrobj);
+			} else if (usrobj instanceof BaseCommand) {
+				return ((BaseCommand) usrobj).doCall();
+			} else {
+				throw new IllegalStateException("usrobj is of unsupported type");
+			}
+		});
+	}
+
+	protected <T> CaptureResult<T> captureOutput(Callable<T> func) throws Exception {
 		ByteArrayOutputStream newOut = new ByteArrayOutputStream();
 		PrintWriter pwOut = new PrintWriter(newOut);
 		final PrintStream originalOut = System.out;
@@ -102,16 +115,10 @@ public abstract class BaseTest {
 		PrintStream psErr = new PrintStream(newErr);
 		System.setErr(psErr);
 
-		final Integer result;
+		final T result;
 		String outStr, errStr;
 		try {
-			if (commandRunner != null) {
-				result = commandRunner.apply(usrobj);
-			} else if (usrobj instanceof BaseCommand) {
-				result = ((BaseCommand) usrobj).doCall();
-			} else {
-				throw new IllegalStateException("usrobj is of unsupported type");
-			}
+			result = func.call();
 		} finally {
 			pwOut.flush();
 			System.setOut(originalOut);
@@ -124,16 +131,16 @@ public abstract class BaseTest {
 			System.err.println(errStr);
 		}
 
-		return new ExecutionResult(result, outStr, errStr);
+		return new CaptureResult<>(result, outStr, errStr);
 	}
 
-	protected static class ExecutionResult {
-		public final Integer exitCode;
+	protected static class CaptureResult<T> {
+		public final T result;
 		public final String out;
 		public final String err;
 
-		ExecutionResult(Integer value, String out, String err) {
-			this.exitCode = value;
+		CaptureResult(T result, String out, String err) {
+			this.result = result;
 			this.out = out;
 			this.err = err;
 		}

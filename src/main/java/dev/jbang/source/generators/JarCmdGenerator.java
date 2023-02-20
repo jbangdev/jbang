@@ -13,6 +13,8 @@ import java.util.Optional;
 import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
+import dev.jbang.net.JdkManager;
+import dev.jbang.net.JdkProvider;
 import dev.jbang.source.*;
 import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.JavaUtil;
@@ -74,6 +76,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		List<String> optionalArgs = new ArrayList<>();
 
 		String requestedJavaVersion = project.getJavaVersion();
+		JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(requestedJavaVersion);
 		String javacmd = JavaUtil.resolveInJavaHome("java", requestedJavaVersion);
 
 		addPropertyFlags(project.getProperties(), "-D", optionalArgs);
@@ -120,13 +123,18 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		}
 
 		if (classDataSharing || project.enableCDS()) {
-			Path cdsJsa = ctx.getJarFile().toAbsolutePath();
-			if (Files.exists(cdsJsa)) {
-				Util.verboseMsg("CDS: Using shared archive classes from " + cdsJsa);
-				optionalArgs.add("-XX:SharedArchiveFile=" + cdsJsa);
+			if (jdk.getMajorVersion() >= 13) {
+				Path cdsJsa = ctx.getJsaFile().toAbsolutePath();
+				if (Files.exists(cdsJsa)) {
+					Util.verboseMsg("CDS: Using shared archive classes from " + cdsJsa);
+					optionalArgs.add("-XX:SharedArchiveFile=" + cdsJsa);
+				} else {
+					Util.verboseMsg("CDS: Archiving Classes At Exit at " + cdsJsa);
+					optionalArgs.add("-XX:ArchiveClassesAtExit=" + cdsJsa);
+				}
 			} else {
-				Util.verboseMsg("CDS: Archiving Classes At Exit at " + cdsJsa);
-				optionalArgs.add("-XX:ArchiveClassesAtExit=" + cdsJsa);
+				Util.warnMsg(
+						"ClassDataSharing can only be used on Java versions 13 and later. Rerun with `--java 13+` to enforce that");
 			}
 		}
 
@@ -134,7 +142,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 
 		fullArgs.addAll(project.getRuntimeOptions());
 		fullArgs.addAll(runtimeOptions);
-		fullArgs.addAll(project.resolveClassPath().getAutoDectectedModuleArguments(requestedJavaVersion));
+		fullArgs.addAll(project.resolveClassPath().getAutoDectectedModuleArguments(jdk));
 		fullArgs.addAll(optionalArgs);
 
 		String main = Optional.ofNullable(mainClass).orElse(project.getMainClass());

@@ -15,12 +15,14 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import org.codehaus.plexus.languages.java.jpms.JavaModuleDescriptor;
 import org.codehaus.plexus.languages.java.jpms.LocationManager;
 import org.codehaus.plexus.languages.java.jpms.ResolvePathsRequest;
 import org.codehaus.plexus.languages.java.jpms.ResolvePathsResult;
 
-import dev.jbang.util.JavaUtil;
+import dev.jbang.net.JdkProvider;
 import dev.jbang.util.Util;
 
 public class ModularClassPath {
@@ -83,8 +85,8 @@ public class ModularClassPath {
 		return javafx.get();
 	}
 
-	public List<String> getAutoDectectedModuleArguments(String requestedVersion) {
-		if (hasJavaFX() && supportsModules(requestedVersion)) {
+	public List<String> getAutoDectectedModuleArguments(@Nonnull JdkProvider.Jdk jdk) {
+		if (hasJavaFX() && supportsModules(jdk)) {
 			List<String> commandArguments = new ArrayList<>();
 
 			List<File> fileList = artifacts	.stream()
@@ -148,8 +150,8 @@ public class ModularClassPath {
 		}
 	}
 
-	protected boolean supportsModules(String requestedVersion) {
-		return JavaUtil.javaVersion(requestedVersion) >= 9;
+	protected boolean supportsModules(JdkProvider.Jdk jdk) {
+		return jdk.getMajorVersion() >= 9;
 	}
 
 	public List<ArtifactInfo> getArtifacts() {

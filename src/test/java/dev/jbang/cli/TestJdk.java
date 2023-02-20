@@ -36,27 +36,27 @@ class TestJdk extends BaseTest {
 	}
 
 	@Test
-	void testNoJdksInstalled() throws IOException {
-		ExecutionResult result = checkedRun(jdk -> jdk.list(false, false, FormatMixin.Format.text));
+	void testNoJdksInstalled() throws Exception {
+		CaptureResult result = checkedRun(jdk -> jdk.list(false, false, FormatMixin.Format.text));
 
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(), equalTo("No JDKs installed\n"));
 	}
 
 	@Test
-	void testHasJdksInstalled() throws IOException {
+	void testHasJdksInstalled() throws Exception {
 		final Path jdkPath = JBangJdkProvider.getJdksPath();
 		Arrays.asList(11, 12, 13).forEach(this::createMockJdk);
 
-		ExecutionResult result = checkedRun(jdk -> jdk.list(false, false, FormatMixin.Format.text));
+		CaptureResult result = checkedRun(jdk -> jdk.list(false, false, FormatMixin.Format.text));
 
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(),
 				equalTo("Installed JDKs (<=default):\n   11 (11.0.7) <\n   12 (12.0.7)\n   13 (13.0.7)\n"));
 	}
 
 	@Test
-	void testHasJdksInstalledWithJavaHome() throws IOException {
+	void testHasJdksInstalledWithJavaHome() throws Exception {
 		Arrays.asList(11, 12).forEach(this::createMockJdk);
 
 		Path jdkPath = jbangTempDir.resolve("jdk13");
@@ -64,126 +64,126 @@ class TestJdk extends BaseTest {
 		initMockJdkDir(jdkPath, "13.0.7");
 		environmentVariables.set("JAVA_HOME", jdkPath.toString());
 
-		ExecutionResult result = checkedRun((Jdk jdk) -> jdk.list(false, false, FormatMixin.Format.text),
+		CaptureResult result = checkedRun((Jdk jdk) -> jdk.list(false, false, FormatMixin.Format.text),
 				"jdk", "--jdk-providers", "javahome,jbang");
 
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(),
 				equalTo("Installed JDKs (<=default):\n   11 (11.0.7) <\n   12 (12.0.7)\n   13 (13.0.7)\n"));
 	}
 
 	@Test
-	void testDefault() throws IOException {
+	void testDefault() throws Exception {
 		Arrays.asList(11, 12, 13).forEach(this::createMockJdk);
 
-		ExecutionResult result = checkedRun(jdk -> jdk.defaultJdk("12"));
+		CaptureResult result = checkedRun(jdk -> jdk.defaultJdk("12"));
 
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(), startsWith("[jbang] Default JDK set to 12"));
 
 		result = checkedRun(jdk -> jdk.defaultJdk(null));
 
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(), equalTo("[jbang] Default JDK is currently set to 12\n"));
 	}
 
 	@Test
-	void testDefaultPlus() throws IOException {
+	void testDefaultPlus() throws Exception {
 		Arrays.asList(11, 14, 17).forEach(this::createMockJdk);
 
-		ExecutionResult result = checkedRun(jdk -> jdk.defaultJdk("16+"));
+		CaptureResult result = checkedRun(jdk -> jdk.defaultJdk("16+"));
 
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(), startsWith("[jbang] Default JDK set to 17"));
 
 		result = checkedRun(jdk -> jdk.defaultJdk(null));
 
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(), equalTo("[jbang] Default JDK is currently set to 17\n"));
 	}
 
 	@Test
-	void testHome() throws IOException {
+	void testHome() throws Exception {
 		Arrays.asList(11, 14, 17).forEach(this::createMockJdk);
 
-		ExecutionResult result = checkedRun(jdk -> jdk.home(null));
+		CaptureResult result = checkedRun(jdk -> jdk.home(null));
 
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(), endsWith(File.separator + "currentjdk\n"));
 	}
 
 	@Test
-	void testHomeDefault() throws IOException {
+	void testHomeDefault() throws Exception {
 		Arrays.asList(11, 14, 17).forEach(this::createMockJdk);
 
-		ExecutionResult result = checkedRun(jdk -> jdk.home("default"));
+		CaptureResult result = checkedRun(jdk -> jdk.home("default"));
 
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(), endsWith(File.separator + "currentjdk\n"));
 	}
 
 	@Test
-	void testHomeWithVersion() throws IOException {
+	void testHomeWithVersion() throws Exception {
 		Arrays.asList(11, 14, 17).forEach(this::createMockJdk);
 
-		ExecutionResult result = checkedRun(jdk -> jdk.home("17"));
+		CaptureResult result = checkedRun(jdk -> jdk.home("17"));
 
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(), endsWith("cache" + File.separator + "jdks" + File.separator + "17\n"));
 	}
 
 	@Test
-	void testHomePlus() throws IOException {
+	void testHomePlus() throws Exception {
 		Arrays.asList(11, 14, 17).forEach(this::createMockJdk);
 
-		ExecutionResult result = checkedRun(jdk -> jdk.home("16+"));
+		CaptureResult result = checkedRun(jdk -> jdk.home("16+"));
 
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(), endsWith("cache" + File.separator + "jdks" + File.separator + "17\n"));
 	}
 
 	@Test
-	void testJavaEnv() throws IOException {
+	void testJavaEnv() throws Exception {
 		Arrays.asList(11, 14, 17).forEach(this::createMockJdk);
 
-		ExecutionResult result = checkedRun(jdk -> jdk.javaEnv(null));
+		CaptureResult result = checkedRun(jdk -> jdk.javaEnv(null));
 
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(), containsString(File.separator + "currentjdk"));
 	}
 
 	@Test
-	void testJavaEnvDefault() throws IOException {
+	void testJavaEnvDefault() throws Exception {
 		Arrays.asList(11, 14, 17).forEach(this::createMockJdk);
 
-		ExecutionResult result = checkedRun(jdk -> jdk.javaEnv("default"));
+		CaptureResult result = checkedRun(jdk -> jdk.javaEnv("default"));
 
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(), containsString(File.separator + "currentjdk"));
 	}
 
 	@Test
-	void testJavaEnvWithVersion() throws IOException {
+	void testJavaEnvWithVersion() throws Exception {
 		Arrays.asList(11, 14, 17).forEach(this::createMockJdk);
 
-		ExecutionResult result = checkedRun(jdk -> jdk.javaEnv("17"));
+		CaptureResult result = checkedRun(jdk -> jdk.javaEnv("17"));
 
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(), containsString("cache" + File.separator + "jdks" + File.separator + "17"));
 	}
 
 	@Test
-	void testJavaEnvPlus() throws IOException {
+	void testJavaEnvPlus() throws Exception {
 		Arrays.asList(11, 14, 17).forEach(this::createMockJdk);
 
-		ExecutionResult result = checkedRun(jdk -> jdk.javaEnv("16+"));
+		CaptureResult result = checkedRun(jdk -> jdk.javaEnv("16+"));
 
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(), containsString("cache" + File.separator + "jdks" + File.separator + "17"));
 	}
 
 	@Test
-	void testDefaultWithJavaHome() throws IOException {
+	void testDefaultWithJavaHome() throws Exception {
 		Arrays.asList(11, 12, 13).forEach(this::createMockJdk);
 
 		Path jdkPath = jbangTempDir.resolve("jdk12");
@@ -191,15 +191,15 @@ class TestJdk extends BaseTest {
 		initMockJdkDir(jdkPath, "12.0.7");
 		environmentVariables.set("JAVA_HOME", jdkPath.toString());
 
-		ExecutionResult result = checkedRun((Jdk jdk) -> jdk.defaultJdk("12"), "jdk", "--jdk-providers",
+		CaptureResult result = checkedRun((Jdk jdk) -> jdk.defaultJdk("12"), "jdk", "--jdk-providers",
 				"javahome,jbang");
 
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(), startsWith("[jbang] Default JDK set to 12"));
 
 		result = checkedRun(jdk -> jdk.defaultJdk(null));
 
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(), equalTo("[jbang] Default JDK is currently set to 12\n"));
 	}
 
@@ -218,12 +218,12 @@ class TestJdk extends BaseTest {
 
 	@Test
 	void testJdkInstallWithLinkingToExistingJdkPathWhenJBangManagedVersionDoesNotExist(@TempDir File javaDir)
-			throws IOException {
+			throws Exception {
 		initMockJdkDir(javaDir.toPath(), "11.0.14");
 		final Path jdkPath = JBangJdkProvider.getJdksPath();
 		jdkPath.toFile().mkdir();
 
-		ExecutionResult result = checkedRun(jdk -> {
+		CaptureResult result = checkedRun(jdk -> {
 			try {
 				return jdk.install(false, "11", javaDir.toPath().toString());
 			} catch (IOException e) {
@@ -232,7 +232,7 @@ class TestJdk extends BaseTest {
 			}
 		});
 
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
 				equalTo("[jbang] JDK 11 has been linked to: " + javaDir.toPath().toString() + "\n"));
 		assertTrue(Files.isSymbolicLink(jdkPath.resolve("11")));
@@ -241,13 +241,13 @@ class TestJdk extends BaseTest {
 
 	@Test
 	void testJdkInstallWithLinkingToExistingJdkPathWhenJBangManagedVersionExistsAndInstallIsForced(
-			@TempDir File javaDir) throws IOException {
+			@TempDir File javaDir) throws Exception {
 		initMockJdkDir(javaDir.toPath(), "11.0.14");
 		final Path jdkPath = JBangJdkProvider.getJdksPath();
 		Arrays	.asList(11)
 				.forEach(this::createMockJdk);
 
-		ExecutionResult result = checkedRun(jdk -> {
+		CaptureResult result = checkedRun(jdk -> {
 			try {
 				return jdk.install(true, "11", javaDir.toPath().toString());
 			} catch (IOException e) {
@@ -256,7 +256,7 @@ class TestJdk extends BaseTest {
 			}
 		});
 
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
 				equalTo("[jbang] JDK 11 has been linked to: " + javaDir.toPath().toString() + "\n"));
 		assertTrue(Files.isSymbolicLink(jdkPath.resolve("11")));
@@ -264,8 +264,7 @@ class TestJdk extends BaseTest {
 	}
 
 	@Test
-	void testJdkInstallWithLinkingToExistingJdkPathWithDifferentVersion(@TempDir File javaDir)
-			throws IOException {
+	void testJdkInstallWithLinkingToExistingJdkPathWithDifferentVersion(@TempDir File javaDir) {
 		initMockJdkDir(javaDir.toPath(), "11.0.14");
 
 		checkedRunWithException(jdk -> {
@@ -281,7 +280,7 @@ class TestJdk extends BaseTest {
 	}
 
 	@Test
-	void testJdkInstallWithLinkingToExistingJdkPathWithNoVersion(@TempDir File javaDir) throws IOException {
+	void testJdkInstallWithLinkingToExistingJdkPathWithNoVersion(@TempDir File javaDir) {
 
 		File release = new File(javaDir, "release");
 
@@ -298,14 +297,14 @@ class TestJdk extends BaseTest {
 
 	@Test
 	void testJdkInstallWithLinkingToExistingBrokenLink(
-			@TempDir File javaDir) throws IOException {
+			@TempDir File javaDir) throws Exception {
 		Path jdkBroken = javaDir.toPath().resolve("14broken");
 		Path jdkOk = javaDir.toPath().resolve("14ok");
 		initMockJdkDir(jdkBroken, "11.0.14-broken");
 		initMockJdkDir(jdkOk, "11.0.14-ok");
 		final Path jdkPath = JBangJdkProvider.getJdksPath();
 
-		ExecutionResult result = checkedRun(jdk -> {
+		CaptureResult result = checkedRun(jdk -> {
 			try {
 				return jdk.install(true, "11", jdkBroken.toString());
 			} catch (IOException e) {
@@ -314,7 +313,7 @@ class TestJdk extends BaseTest {
 			}
 		});
 
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 
 		Util.deletePath(jdkBroken, false);
 
@@ -327,7 +326,7 @@ class TestJdk extends BaseTest {
 			}
 		});
 
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
 				equalTo("[jbang] JDK 11 has been linked to: " + jdkOk + "\n"));
 		assertTrue(Files.isSymbolicLink(jdkPath.resolve("11")));
@@ -335,13 +334,13 @@ class TestJdk extends BaseTest {
 	}
 
 	@Test
-	void testExistingJdkUninstall() throws IOException {
+	void testExistingJdkUninstall() throws Exception {
 		int jdkVersion = 14;
 		createMockJdk(jdkVersion);
 
-		ExecutionResult result = checkedRun(jdk -> jdk.uninstall(Integer.toString(jdkVersion)));
+		CaptureResult result = checkedRun(jdk -> jdk.uninstall(Integer.toString(jdkVersion)));
 
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
 				containsString("[jbang] Default JDK unset"));
 		assertThat(result.normalizedErr(),
@@ -349,18 +348,18 @@ class TestJdk extends BaseTest {
 	}
 
 	@Test
-	void testExistingJdkUninstallWithJavaHome() throws IOException {
+	void testExistingJdkUninstallWithJavaHome() throws Exception {
 		int jdkVersion = 14;
 		createMockJdk(jdkVersion);
 
 		Path jdkPath = JBangJdkProvider.getJdksPath().resolve("14");
 		environmentVariables.set("JAVA_HOME", jdkPath.toString());
 
-		ExecutionResult result = checkedRun((Jdk jdk) -> jdk.uninstall(Integer.toString(jdkVersion)), "jdk",
+		CaptureResult result = checkedRun((Jdk jdk) -> jdk.uninstall(Integer.toString(jdkVersion)), "jdk",
 				"--jdk-providers",
 				"javahome,jbang");
 
-		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
 				containsString("[jbang] Default JDK unset"));
 		assertThat(result.normalizedErr(),
@@ -380,7 +379,7 @@ class TestJdk extends BaseTest {
 		});
 	}
 
-	private ExecutionResult checkedRun(Function<Jdk, Integer> commandRunner) throws IOException {
+	private CaptureResult checkedRun(Function<Jdk, Integer> commandRunner) throws Exception {
 		return checkedRun(commandRunner, "jdk", "--jdk-providers", "default,jbang");
 	}
 

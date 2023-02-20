@@ -37,6 +37,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.collection.IsCollectionWithSize;
+import org.hamcrest.io.FileMatchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,6 +69,7 @@ import dev.jbang.source.generators.JshCmdGenerator;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.source.sources.JavaSource;
 import dev.jbang.util.CommandBuffer;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -1111,25 +1113,38 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--cds", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		ProjectBuilder pb = run.createProjectBuilderForRun();
-		pb.mainClass("fakemain");
-		Project code = pb.build(Paths.get(arg));
-		BuildContext ctx = BuildContext.forProject(code);
-
-		String commandLine = run.updateGeneratorForRun(CmdGenerator.builder(code, ctx)).build().generate();
-		assertThat(commandLine, containsString("-XX:ArchiveClassesAtExit="));
-
-		run.doCall();
-
-		commandLine = run.updateGeneratorForRun(CmdGenerator.builder(code, ctx)).build().generate();
-		assertThat(commandLine, containsString("-XX:SharedArchiveFile="));
-
 		assert (run.cds != null);
 		assert (run.cds);
 	}
 
 	@Test
-	void testCDSPresentInSource(@TempDir Path output) throws IOException {
+	void testCDSGeneratesJSAFile() throws Exception {
+		String arg = examplesTestFolder.resolve("echo.java").toAbsolutePath().toString();
+
+		Project code = Project.builder().mainClass("echo").build(Paths.get(arg));
+		BuildContext ctx = BuildContext.forProject(code);
+		Path jsa = ctx.getJsaFile();
+
+		if (JavaUtil.getCurrentMajorJavaVersion() >= 13) {
+			String commandLine = CmdGenerator.builder(code, ctx).classDataSharing(true).build().generate();
+			assertThat(commandLine, containsString("-XX:ArchiveClassesAtExit="));
+			assertThat(jsa.toFile(), not(FileMatchers.anExistingFile()));
+
+			String out = Util.runCommand(commandLine.split(" "));
+			assertThat(out, notNullValue());
+
+			commandLine = CmdGenerator.builder(code, ctx).classDataSharing(true).build().generate();
+			assertThat(commandLine, containsString("-XX:SharedArchiveFile="));
+			assertThat(jsa.toFile(), FileMatchers.anExistingFile());
+		} else {
+			CaptureResult<String> cap = captureOutput(
+					() -> CmdGenerator.builder(code, ctx).classDataSharing(true).build().generate());
+			assertThat(cap.err, containsString("ClassDataSharing can only be used on Java versions 13 and later"));
+		}
+	}
+
+	@Test
+	void testCDSPresentInSource(@TempDir Path output) throws Exception {
 		String source = "//CDS\nclass cds { }";
 		Path p = output.resolve("cds.java");
 		writeString(p, source);
@@ -1141,8 +1156,14 @@ public class TestRun extends BaseTest {
 		pb.mainClass("fakemain");
 		Project code = pb.build(p);
 
-		String commandLine = run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
-		assertThat(commandLine, containsString("-XX:ArchiveClassesAtExit="));
+		if (JavaUtil.getCurrentMajorJavaVersion() >= 13) {
+			String commandLine = run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
+			assertThat(commandLine, containsString("-XX:ArchiveClassesAtExit="));
+		} else {
+			CaptureResult<String> cap = captureOutput(
+					() -> run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate());
+			assertThat(cap.err, containsString("ClassDataSharing can only be used on Java versions 13 and later"));
+		}
 	}
 
 	@Test

@@ -78,6 +78,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String originalResource;
 		String backingResource;
 		String applicationJar;
+		String applicationJsa;
 		String nativeImage;
 		String mainClass;
 		List<String> dependencies;
@@ -105,9 +106,12 @@ abstract class BaseInfoCommand extends BaseCommand {
 
 				applicationJar = ctx.getJarFile() == null ? null
 						: ctx.getJarFile().toAbsolutePath().toString();
-				nativeImage = ctx.getNativeImageFile() == null
-						|| !Files.exists(ctx.getNativeImageFile()) ? null
-								: ctx.getNativeImageFile().toAbsolutePath().toString();
+				applicationJsa = ctx.getJsaFile() != null && Files.isRegularFile(ctx.getJsaFile())
+						? ctx.getJsaFile().toAbsolutePath().toString()
+						: null;
+				nativeImage = ctx.getNativeImageFile() != null && Files.exists(ctx.getNativeImageFile())
+						? ctx.getNativeImageFile().toAbsolutePath().toString()
+						: null;
 				mainClass = prj.getMainClass();
 				requestedJavaVersion = prj.getJavaVersion();
 
