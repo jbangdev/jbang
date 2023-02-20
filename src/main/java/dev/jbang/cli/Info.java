@@ -87,7 +87,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String description;
 		String gav;
 
-		public ScriptInfo(Project prj, BuildContext ctx) {
+		public ScriptInfo(Project prj, BuildContext ctx, boolean assureJdkInstalled) {
 			originalResource = prj.getResourceRef().getOriginalResource();
 
 			if (scripts.add(originalResource)) {
@@ -104,7 +104,8 @@ abstract class BaseInfoCommand extends BaseCommand {
 				requestedJavaVersion = prj.getJavaVersion();
 
 				try {
-					JdkProvider.Jdk jdk = JdkManager.getJdk(requestedJavaVersion, false);
+					JdkProvider.Jdk jdk = assureJdkInstalled ? JdkManager.getOrInstallJdk(requestedJavaVersion)
+							: JdkManager.getJdk(requestedJavaVersion, false);
 					if (jdk != null && jdk.isInstalled()) {
 						availableJdkPath = jdk.getHome().toString();
 					}
@@ -187,7 +188,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 
 	private static Set<String> scripts;
 
-	ScriptInfo getInfo() {
+	ScriptInfo getInfo(boolean assureJdkInstalled) {
 		scriptMixin.validate();
 
 		ProjectBuilder pb = createProjectBuilder();
@@ -195,7 +196,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 
 		scripts = new HashSet<>();
 
-		return new ScriptInfo(prj, BuildContext.forProject(prj, buildDir));
+		return new ScriptInfo(prj, BuildContext.forProject(prj, buildDir), assureJdkInstalled);
 	}
 
 	ProjectBuilder createProjectBuilder() {
@@ -219,7 +220,7 @@ class Tools extends BaseInfoCommand {
 	public Integer doCall() throws IOException {
 
 		Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
-		parser.toJson(getInfo(), System.out);
+		parser.toJson(getInfo(true), System.out);
 
 		return EXIT_OK;
 	}
@@ -231,7 +232,7 @@ class ClassPath extends BaseInfoCommand {
 	@Override
 	public Integer doCall() throws IOException {
 
-		ScriptInfo info = getInfo();
+		ScriptInfo info = getInfo(false);
 		List<String> cp = new ArrayList<>(info.resolvedDependencies.size() + 1);
 		if (info.applicationJar != null && !info.resolvedDependencies.contains(info.applicationJar)) {
 			cp.add(info.applicationJar);
