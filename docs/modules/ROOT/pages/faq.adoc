@@ -26,6 +26,9 @@ After doing `jbang` I've learned about similar projects and thought it would be 
 https://github.com/scijava/jgo[jgo]: an alternative way to launch jars using maven coordinates. Implemented in python, depends on Java and Maven to be available. Not really for scripting but a novel way to launch java apps already packaged as a maven dependency.
 +
 
+Why is JBang scripting examples using lower case class names ?::
+  JBang works with any valid Java class names including Java's standard camel case conventions. The scripting examples are using lower case because the scripts can be used as a command line tool. i.e. `./hello.java`. Just like people are used to Java using camel case for class names, they are also used to using lower case for command line tools. So JBang is just following the convention most relevant for the scripting use case. Thus `helloworld.java` instead of `HelloWorld.java`; but if you prefer the latter you can always use it.
+
 Why would I use Java to write scripts ? Java sucks for that... Use groovy, kotlin, scala, etc. instead!::
   Well, does it really suck ? With Java 8 streams, static imports and greatly improved standard java libraries it is very close to what kscript and grape look like.
 With the following advantages:
