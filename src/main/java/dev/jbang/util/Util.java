@@ -59,6 +59,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import dev.jbang.Cache;
 import dev.jbang.Configuration;
@@ -894,10 +895,42 @@ public class Util {
 				if (conn instanceof HttpURLConnection) {
 					HttpURLConnection httpConn = (HttpURLConnection) conn;
 					int responseCode = httpConn.getResponseCode();
-					if (responseCode == HttpURLConnection.HTTP_NOT_MODIFIED) {
+					if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
 						String fileURL = conn.getURL().toExternalForm();
 						throw new FileNotFoundException(
 								"No file to download at " + fileURL + ". Server replied HTTP code: " + responseCode);
+					} else if (responseCode >= 400) {
+						String message = null;
+						if (httpConn.getErrorStream() != null) {
+							String err = new BufferedReader(new InputStreamReader(httpConn.getErrorStream()))
+																												.lines()
+																												.collect(
+																														Collectors.joining(
+																																"\n"))
+																												.trim();
+							verboseMsg("HTTP: " + responseCode + " - " + err);
+							if (err.startsWith("{") && err.endsWith("}")) {
+								// Could be JSON, let's try to parse it
+								try {
+									Gson parser = new Gson();
+									Map json = parser.fromJson(err, Map.class);
+									// GitHub returns useful information in `message`,
+									// if it's there we use it.
+									// TODO add support for other known sites
+									message = Objects.toString(json.get("message"));
+								} catch (JsonSyntaxException ex) {
+									// Not JSON it seems
+								}
+							}
+						}
+						if (message != null) {
+							throw new IOException(
+									String.format("Server returned HTTP response code: %d for URL: %s with message: %s",
+											responseCode, conn.getURL().toString(), message));
+						} else {
+							throw new IOException(String.format("Server returned HTTP response code: %d for URL: %s",
+									responseCode, conn.getURL().toString()));
+						}
 					}
 				}
 				return okHandler.handle(conn);
