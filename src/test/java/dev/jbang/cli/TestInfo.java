@@ -21,7 +21,7 @@ public class TestInfo extends BaseTest {
 		JBang jbang = new JBang();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("info", "tools", src);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
-		BaseInfoCommand.ScriptInfo info = tools.getInfo();
+		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
 		assertThat(info.originalResource, equalTo(src));
 		assertThat(info.applicationJar, allOf(
 				containsString("quote.java."),
@@ -43,7 +43,7 @@ public class TestInfo extends BaseTest {
 		new CommandLine(jbang).execute("build", src);
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("info", "tools", src);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
-		BaseInfoCommand.ScriptInfo info = tools.getInfo();
+		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
 		assertThat(info.originalResource, equalTo(src));
 		assertThat(info.applicationJar, allOf(
 				containsString("quote.java."),
@@ -63,7 +63,7 @@ public class TestInfo extends BaseTest {
 				"--deps", "org.apache.commons:commons-lang3:3.12.0",
 				src);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
-		BaseInfoCommand.ScriptInfo info = tools.getInfo();
+		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
 		assertThat(info.originalResource, equalTo(src));
 		assertThat(info.applicationJar, allOf(
 				containsString("helloworld.java."),
@@ -85,7 +85,7 @@ public class TestInfo extends BaseTest {
 		JBang jbang = new JBang();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("info", "tools", "--cp", jar, src);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
-		BaseInfoCommand.ScriptInfo info = tools.getInfo();
+		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
 		assertThat(info.originalResource, equalTo(src));
 		assertThat(info.applicationJar, allOf(
 				containsString("helloworld.java."),
@@ -105,7 +105,7 @@ public class TestInfo extends BaseTest {
 		JBang jbang = new JBang();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("info", "tools", src);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
-		BaseInfoCommand.ScriptInfo info = tools.getInfo();
+		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
 		assertThat(info.originalResource, equalTo(src));
 		assertThat(info.applicationJar, allOf(
 				containsString("sources.java."),
@@ -129,7 +129,7 @@ public class TestInfo extends BaseTest {
 		JBang jbang = new JBang();
 		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("info", "tools", src);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
-		BaseInfoCommand.ScriptInfo info = tools.getInfo();
+		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
 		assertThat(info.originalResource, equalTo(src));
 		assertThat(info.applicationJar, equalTo(null));
 		assertThat(info.backingResource, equalTo(src));
@@ -145,7 +145,7 @@ public class TestInfo extends BaseTest {
 		String jar = examplesTestFolder.resolve("hellojar.jar").toString();
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", jar);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
-		BaseInfoCommand.ScriptInfo info = tools.getInfo();
+		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
 		assertThat(info.originalResource, equalTo(jar));
 		assertThat(info.applicationJar, equalTo(jar));
 		assertThat(info.backingResource, equalTo(jar));
@@ -159,7 +159,7 @@ public class TestInfo extends BaseTest {
 		String src = examplesTestFolder.resolve("sources/ying.java").toString();
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", src);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
-		BaseInfoCommand.ScriptInfo info = tools.getInfo();
+		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
 		assertThat(info.originalResource, equalTo(src));
 		// assertThat(info.applicationJar, equalTo(src));
 		assertThat(info.backingResource, equalTo(src));

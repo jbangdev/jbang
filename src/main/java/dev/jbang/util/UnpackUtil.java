@@ -128,7 +128,7 @@ public class UnpackUtil {
 						new FileInputStream(targz.toFile())))) {
 			TarArchiveEntry targzEntry;
 			while ((targzEntry = tarArchiveInputStream.getNextTarEntry()) != null) {
-				Path entry = Paths.get(targzEntry.getName());
+				Path entry = Paths.get(targzEntry.getName()).normalize();
 				if (stripRootFolder) {
 					if (entry.getNameCount() == 1) {
 						continue;
