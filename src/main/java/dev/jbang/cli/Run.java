@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import dev.jbang.source.BuildContext;
 import dev.jbang.source.Project;
@@ -73,6 +74,8 @@ public class Run extends BaseBuildCommand {
 	public Integer doCall() throws IOException {
 		requireScriptArgument();
 		jdkProvidersMixin.initJdkProviders();
+
+		userParams = handleRemoteFiles(userParams);
 		String scriptOrFile = scriptMixin.scriptOrFile;
 
 		ProjectBuilder pb = createProjectBuilder();
@@ -140,6 +143,26 @@ public class Run extends BaseBuildCommand {
 			}
 		}
 		return pb;
+	}
+
+	private static List<String> handleRemoteFiles(List<String> args) {
+		return args.stream().map(Run::substituteRemote).collect(Collectors.toList());
+	}
+
+	private static String substituteRemote(String arg) {
+		if (arg == null) {
+			return null;
+		} else if (arg.startsWith("@http://") || arg.startsWith("@https://")) {
+			try {
+				return Util.downloadAndCacheFile(arg.substring(1)).toString();
+			} catch (IOException e) {
+				throw new ExitException(EXIT_INVALID_INPUT, "Error substituting remote file: " + arg.substring(1), e);
+			}
+		} else if (arg.startsWith("@@http://") || arg.startsWith("@h@ttps://")) {
+			return arg.substring(1);
+		} else {
+			return arg;
+		}
 	}
 
 	/**

@@ -2252,4 +2252,22 @@ public class TestRun extends BaseTest {
 						CommandBuffer.escapeShellArgument("-Dfoo=bar -Dbar=aap noot mies", Util.getShell()))));
 		// assertThat(result, containsString("--source 11"));
 	}
+
+	@Test
+	void testRemoteFileArg() throws IOException {
+
+		wms.stubFor(WireMock.get(urlEqualTo("/readme.md"))
+							.willReturn(aResponse()
+													.withHeader("Content-Type", "text/plain")
+													.withBodyFile("readme.md")
+													.withBody(
+															Util.readString(
+																	examplesTestFolder.resolve("readme.md")))));
+
+		wms.start();
+		String script = examplesTestFolder.resolve("helloworld.java").toString();
+		String arg = "http://localhost:" + wms.port() + "/readme.md";
+		ExecutionResult result = checkedRun(null, "run", "--verbose", script, "@" + arg);
+		assertThat(result.err, containsString("Requesting HTTP GET " + arg));
+	}
 }
