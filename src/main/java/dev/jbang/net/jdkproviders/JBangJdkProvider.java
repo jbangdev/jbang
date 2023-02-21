@@ -13,7 +13,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -32,14 +34,16 @@ import dev.jbang.util.Util;
  */
 public class JBangJdkProvider extends BaseFoldersJdkProvider {
 	private static final String FOOJAY_JDK_DOWNLOAD_URL = "https://api.foojay.io/disco/v3.0/directuris?";
-	private static final String FOOJAY_JDK_VERSIONS_URL = "https://api.foojay.io/disco/v3.0/distributions/%s?";
+	private static final String FOOJAY_JDK_VERSIONS_URL = "https://api.foojay.io/disco/v3.0/packages?";
 
-	private static class VersionsResult {
-		List<String> versions;
+	private static class JdkResult {
+		String java_version;
+		int major_version;
+		String release_status;
 	}
 
 	private static class VersionsResponse {
-		List<VersionsResult> result;
+		List<JdkResult> result;
 	}
 
 	@Nonnull
@@ -52,13 +56,15 @@ public class JBangJdkProvider extends BaseFoldersJdkProvider {
 			};
 			String distro = Util.getVendor();
 			if (distro == null) {
-				VersionsResponse res = Util.readJsonFromURL(getVersionsUrl("temurin"), VersionsResponse.class);
-				res.result.get(0).versions.forEach(addJdk);
-				res = Util.readJsonFromURL(getVersionsUrl("aoj"), VersionsResponse.class);
-				res.result.get(0).versions.forEach(addJdk);
+				VersionsResponse res = Util.readJsonFromURL(getVersionsUrl(Util.getOS(), Util.getArch(), "temurin"),
+						VersionsResponse.class);
+				filterEA(res.result).forEach(jdk -> addJdk.accept(jdk.java_version));
+				res = Util.readJsonFromURL(getVersionsUrl(Util.getOS(), Util.getArch(), "aoj"), VersionsResponse.class);
+				filterEA(res.result).forEach(jdk -> addJdk.accept(jdk.java_version));
 			} else {
-				VersionsResponse res = Util.readJsonFromURL(getVersionsUrl(distro), VersionsResponse.class);
-				res.result.get(0).versions.forEach(addJdk);
+				VersionsResponse res = Util.readJsonFromURL(getVersionsUrl(Util.getOS(), Util.getArch(), distro),
+						VersionsResponse.class);
+				filterEA(res.result).forEach(jdk -> addJdk.accept(jdk.java_version));
 			}
 			result.sort(Jdk::compareTo);
 			return Collections.unmodifiableList(result);
@@ -66,6 +72,31 @@ public class JBangJdkProvider extends BaseFoldersJdkProvider {
 			Util.verboseMsg("Couldn't list available JDKs", e);
 		}
 		return Collections.emptyList();
+	}
+
+	// Filter out any EA releases for which a GA with
+	// the same major version exists
+	private List<JdkResult> filterEA(List<JdkResult> jdks) {
+		Set<Integer> GAs = jdks
+								.stream()
+								.filter(jdk -> jdk.release_status.equals("ga"))
+								.map(jdk -> jdk.major_version)
+								.collect(Collectors.toSet());
+
+		JdkResult[] lastJdk = new JdkResult[] { null };
+		return jdks
+					.stream()
+					.filter(jdk -> {
+						if (lastJdk[0] == null
+								|| lastJdk[0].major_version != jdk.major_version
+										&& (jdk.release_status.equals("ga") || !GAs.contains(jdk.major_version))) {
+							lastJdk[0] = jdk;
+							return true;
+						} else {
+							return false;
+						}
+					})
+					.collect(Collectors.toList());
 	}
 
 	@Nullable
@@ -149,11 +180,21 @@ public class JBangJdkProvider extends BaseFoldersJdkProvider {
 	}
 
 	private static String getDownloadUrl(int version, Util.OS os, Util.Arch arch, String distro) {
+		return FOOJAY_JDK_DOWNLOAD_URL + getUrlParams(version, os, arch, distro);
+	}
+
+	private static String getVersionsUrl(Util.OS os, Util.Arch arch, String distro) {
+		return FOOJAY_JDK_VERSIONS_URL + getUrlParams(null, os, arch, distro);
+	}
+
+	private static String getUrlParams(Integer version, Util.OS os, Util.Arch arch, String distro) {
 		Map<String, String> params = new HashMap<>();
-		params.put("version", String.valueOf(version));
+		if (version != null) {
+			params.put("version", String.valueOf(version));
+		}
 
 		if (distro == null) {
-			if (version == 8 || version == 11 || version >= 17) {
+			if (version == null || version == 8 || version == 11 || version >= 17) {
 				distro = "temurin";
 			} else {
 				distro = "aoj";
@@ -183,14 +224,10 @@ public class JBangJdkProvider extends BaseFoldersJdkProvider {
 
 		params.put("javafx_bundled", "false");
 		params.put("latest", "available");
+		params.put("release_status", "ga,ea");
+		params.put("directly_downloadable", "true");
 
-		return FOOJAY_JDK_DOWNLOAD_URL + urlEncodeUTF8(params);
-	}
-
-	private static String getVersionsUrl(String distro) {
-		Map<String, String> params = new HashMap<>();
-		params.put("latest_per_update", "true");
-		return String.format(FOOJAY_JDK_VERSIONS_URL, distro) + urlEncodeUTF8(params);
+		return urlEncodeUTF8(params);
 	}
 
 	static String urlEncodeUTF8(Map<?, ?> map) {
