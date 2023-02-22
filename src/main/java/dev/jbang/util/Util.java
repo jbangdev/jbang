@@ -45,11 +45,13 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
 import javax.swing.*;
 
 import org.jsoup.Jsoup;
@@ -1749,6 +1751,24 @@ public class Util {
 			}
 		}
 		return res;
+	}
+
+	public static String replaceAll(@Nonnull Pattern pattern, @Nonnull String input,
+			@Nonnull Function<MatchResult, String> replacer) {
+		Matcher matcher = pattern.matcher(input);
+		matcher.reset();
+		boolean result = matcher.find();
+		if (result) {
+			StringBuffer sb = new StringBuffer();
+			do {
+				String replacement = replacer.apply(matcher);
+				matcher.appendReplacement(sb, replacement);
+				result = matcher.find();
+			} while (result);
+			matcher.appendTail(sb);
+			return sb.toString();
+		}
+		return input;
 	}
 
 	public static <K, V> Entry<K, V> entry(K k, V v) {
