@@ -16,8 +16,6 @@ import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.catalog.CatalogUtil;
 
-import picocli.CommandLine;
-
 public class TestCatalog extends BaseTest {
 
 	static final String testCatalog = "{\n" +
@@ -59,8 +57,7 @@ public class TestCatalog extends BaseTest {
 
 	@Test
 	void testAddInvalidName() throws IOException {
-		JBang jbang = new JBang();
-		new CommandLine(jbang).execute("catalog", "add", "--name=invalid!", "dummy");
+		JBang.getCommandLine().execute("catalog", "add", "--name=invalid!", "dummy");
 	}
 
 	@Test
@@ -72,8 +69,7 @@ public class TestCatalog extends BaseTest {
 
 	@Test
 	void testUpdate() throws IOException {
-		JBang jbang = new JBang();
-		new CommandLine(jbang).execute("catalog", "update");
+		JBang.getCommandLine().execute("catalog", "update");
 	}
 
 	@Test
