@@ -9,6 +9,6 @@ public class FormatMixin {
 	}
 
 	@CommandLine.Option(names = {
-			"--format" }, description = "Specify output format ('text' or 'json')", defaultValue = "text")
+			"--format" }, description = "Specify output format ('text' or 'json')")
 	protected Format format;
 }

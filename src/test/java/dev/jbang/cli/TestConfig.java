@@ -33,7 +33,7 @@ public class TestConfig extends BaseTest {
 	static Path testConfigFileSub = null;
 
 	@BeforeEach
-	void init() throws IOException {
+	void initEach() throws IOException {
 		configFile = jbangTempDir.resolve(Configuration.JBANG_CONFIG_PROPS);
 		testConfigFile = cwdDir.resolve(Configuration.JBANG_CONFIG_PROPS);
 		Files.write(testConfigFile, testConfig.getBytes());
@@ -49,7 +49,9 @@ public class TestConfig extends BaseTest {
 		ExecutionResult result = checkedRun(null, "config", "list");
 		assertThat(result.exitCode, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(),
-				equalTo("init.template = hello\n" +
+				equalTo("format = text\n" +
+						"init.template = hello\n" +
+						"jdkproviders = current,default,javahome,path,jbang\n" +
 						"one = footop\n" +
 						"run.debug = 4004\n" +
 						"run.jfr = filename={baseName}.jfr\n" +
@@ -114,5 +116,28 @@ public class TestConfig extends BaseTest {
 	void testUnsetBuiltin() throws IOException {
 		ExecutionResult result = checkedRun(null, "config", "unset", "run.debug");
 		assertThat(result.normalizedErr(), containsString("Cannot remove built-in option"));
+	}
+
+	@Test
+	void testCommandDefaultValueDefault() {
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("app", "list");
+		AppList app = (AppList) pr.subcommand().subcommand().commandSpec().userObject();
+		assertThat(app.formatMixin.format, equalTo(FormatMixin.Format.text));
+	}
+
+	@Test
+	void testCommandDefaultValueSpecificOverride() {
+		Configuration.instance().put("app.list.format", "json");
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("app", "list");
+		AppList app = (AppList) pr.subcommand().subcommand().commandSpec().userObject();
+		assertThat(app.formatMixin.format, equalTo(FormatMixin.Format.json));
+	}
+
+	@Test
+	void testCommandDefaultValueGlobalOverride() {
+		Configuration.instance().put("format", "json");
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("app", "list");
+		AppList app = (AppList) pr.subcommand().subcommand().commandSpec().userObject();
+		assertThat(app.formatMixin.format, equalTo(FormatMixin.Format.json));
 	}
 }

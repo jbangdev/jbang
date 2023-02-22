@@ -157,15 +157,26 @@ public class JBang extends BaseCommand {
 			if (argSpec.isOption()
 					&& argSpec.defaultValue() == null
 					&& Util.isNullOrEmptyString(((CommandLine.Model.OptionSpec) argSpec).fallbackValue())) {
+				// First we check the full name, eg "app.list.format"
 				String key = argSpecKey(argSpec);
-				String propkey = "jbang." + key;
-				if (System.getProperties().containsValue(propkey)) {
-					val = System.getProperty(propkey);
-				} else {
-					Configuration cfg = Configuration.instance();
-					if (cfg.containsKey(key)) {
-						val = Objects.toString(cfg.get(key));
-					}
+				val = getValue(key);
+				if (val == null) {
+					// Finally we check the option name only, eg "format"
+					val = getValue(argOptName(argSpec));
+				}
+			}
+			return val;
+		}
+
+		private String getValue(String key) {
+			String val = null;
+			String propkey = "jbang." + key;
+			if (System.getProperties().containsValue(propkey)) {
+				val = System.getProperty(propkey);
+			} else {
+				Configuration cfg = Configuration.instance();
+				if (cfg.containsKey(key)) {
+					val = Objects.toString(cfg.get(key));
 				}
 			}
 			return val;
@@ -174,9 +185,12 @@ public class JBang extends BaseCommand {
 
 	static String argSpecKey(CommandLine.Model.ArgSpec argSpec) {
 		List<String> cmdNames = names(argSpec.command());
-		String cmdName = cmdNames.isEmpty() ? "all" : String.join(".", cmdNames);
-		String optName = stripDashes(((CommandLine.Model.OptionSpec) argSpec).longestName()).replace("-", "");
-		return cmdName + "." + optName;
+		cmdNames.add(argOptName(argSpec));
+		return String.join(".", cmdNames);
+	}
+
+	static String argOptName(CommandLine.Model.ArgSpec argSpec) {
+		return stripDashes(((CommandLine.Model.OptionSpec) argSpec).longestName()).replace("-", "");
 	}
 
 	private static List<String> names(CommandSpec cmd) {

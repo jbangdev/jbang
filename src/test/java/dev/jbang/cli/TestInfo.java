@@ -39,9 +39,8 @@ public class TestInfo extends BaseTest {
 	@Test
 	void testInfoToolsBuilt() {
 		String src = examplesTestFolder.resolve("quote.java").toString();
-		JBang jbang = new JBang();
-		new CommandLine(jbang).execute("build", src);
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("info", "tools", src);
+		JBang.getCommandLine().execute("build", src);
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", src);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
 		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
 		assertThat(info.originalResource, equalTo(src));

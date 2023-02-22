@@ -38,7 +38,6 @@ public class JdkManager {
 	public static final String[] PROVIDERS_ALL = new String[] { "current", "default", "javahome", "path", "jbang",
 			"sdkman", "scoop" };
 	public static final String[] PROVIDERS_DEFAULT = new String[] { "current", "default", "javahome", "path", "jbang" };
-	public static final String PROVIDERS_DEFAULT_STR = "current,default,javahome,path,jbang";
 
 	public static void initProvidersByName(String... providerNames) {
 		initProvidersByName(Arrays.asList(providerNames));

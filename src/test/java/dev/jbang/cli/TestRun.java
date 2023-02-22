@@ -324,12 +324,12 @@ public class TestRun extends BaseTest {
 	void testHelloWorldJar() throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");
-		JBang jbang = new JBang();
 
 		String jar = examplesTestFolder.resolve("hellojar.jar").toAbsolutePath().toString();
 
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--deps", "info.picocli:picocli:4.6.3",
-				"--cp", "dummy.jar", jar);
+		CommandLine.ParseResult pr = JBang	.getCommandLine()
+											.parseArgs("run", "--deps", "info.picocli:picocli:4.6.3",
+													"--cp", "dummy.jar", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		ProjectBuilder pb = run.createProjectBuilder();
@@ -408,11 +408,10 @@ public class TestRun extends BaseTest {
 	void testHelloWorldGAVInteractiveWithNoMain() throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");
-		JBang jbang = new JBang();
 
 		String jar = "info.picocli:picocli-codegen:4.6.3";
 
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", jar, "-i");
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "-i", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		ProjectBuilder pb = run.createProjectBuilder();
@@ -1167,9 +1166,8 @@ public class TestRun extends BaseTest {
 
 	@Test
 	void testCDSPresentOnCli() throws IOException {
-		JBang jbang = new JBang();
 		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = new CommandLine(jbang).parseArgs("run", "--cds", arg);
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--cds", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		ProjectBuilder pb = run.createProjectBuilder();
