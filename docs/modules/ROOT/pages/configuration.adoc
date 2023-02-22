@@ -14,22 +14,27 @@ endif::[]
 
 toc::[]
 
-JBang try and have decent defaults, for the cases where they do not fit you can use `jbang config` to setup better defaults.
+JBang tries to have decent defaults, for the cases where they do not fit you can use `jbang config` to set up better defaults.
 
-Example, the default editor for `jbang edit` is calculated but sometimes you want it to be one specific editor. Instead of writing `jbang edit --open=code hello.java` to say it is `code` you want open with, you can use `jbang config set edit.open=code`. When you have done that then `jbang edit hello.java` is all that is needed - JBang will now use `code` as the default editor.
+Example, the default editor for `jbang edit` is automatically determined, but sometimes you want it to be one specific editor. Instead of writing `jbang edit --open=code hello.java` to say it is `code` you want open with, you can use `jbang config set edit.open=code`. When you have done that then `jbang edit hello.java` is all that is needed - JBang will now use `code` as the default editor.
 
 == Configure default value for every argument
 
 If you noticed it what JBang configuration does is to map a configuration key to a command line argument. Meaning any command and its command line arguments can be given default values to change the default behavior of jbang. i.e. `edit.open` is the `--open` argument to `edit` command.
 
-You can see all the available keys by running `jbang config list --show-available` and if you want to see the current default values use `jbang config list`.
+Basically any option can be set by taking the full name of the command, which for example is `run` for `jbang run` and `app.list` for `jbang app list`, together with the name of the option without any dashes. So the option `--format` for `jbang app list` becomes `app.list.format`, and `--jdk-providers` for `build` becomes `build.jdkproviders`.
+
+You can see all the available keys by running `jbang config list --show-available` and if you want to see the current values use `jbang config list`.
+
+Additionally, any option can be set by simply using its name, this is especially useful when there are several commands that all have the same option, and you want ot set them all. So if we take the example above where we set the `app.list.format`, we can also simply use `jbang config set format json`. But that will affect _all_ commands that have a format option, like `alias list`, `catalog list`, `jdk list` and others.
+
+In the case that you set both a simple value, like `format`, and a fully named value, like `app.list.format`, the most specific one takes precedence.
 
 == Local vs Global configuration
 
-JBang has a built-in default value and any config setting will by default be set on a global scope. Meaning it will apply to any `jbang` run. The default location for this is at `~/.jbang/jbang.properties`.
+JBang has built-in default values and any config setting will by default be set on a global scope. Meaning it will apply to any `jbang` run. The default location for this is at `~/.jbang/jbang.properties`.
 
-If you want to have local settings that only apply within a certain diretory tree simply go that directory and run `jbang config set --file=. edit.open idea`. Then JBang stores settings in a local `jbang.properties`
-wihch will override any global setting.
+If you want to have local settings that only apply within a certain directory tree simply go into that directory and run, for example, `jbang config set --file=. edit.open idea`. Then JBang will store that setting in a local `jbang.properties` file which will override any global setting.
 
 To see which keys are configured where and in what order run `jbang config list --show-origin` and you will get something like:
 
