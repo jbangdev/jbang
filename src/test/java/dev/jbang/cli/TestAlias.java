@@ -101,8 +101,7 @@ public class TestAlias extends BaseTest {
 		Path testFile = cwd.resolve("test.java");
 		Files.write(testFile, "// Test file".getBytes());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
-		JBang jbang = new JBang();
-		new CommandLine(jbang).execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
+		JBang.getCommandLine().execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
 		Alias alias = Alias.get("name");
 		assertThat(alias.scriptRef, is("test.java"));
@@ -114,22 +113,23 @@ public class TestAlias extends BaseTest {
 		Path testFile = cwd.resolve("test.java");
 		Files.write(testFile, "// Test file".getBytes());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
-		JBang jbang = new JBang();
-		new CommandLine(jbang).execute("alias", "add",
-				"-f", cwd.toString(),
-				"--name=name", testFile.toString(),
-				"--description", "desc",
-				"--deps", "deps",
-				"--repos", "repos",
-				"--cp", "cps",
-				"--runtime-option", "jopts",
-				"-D", "prop=val",
-				"--main", "mainclass",
-				"--compile-option", "copts",
-				"--native",
-				"--native-option", "nopts",
-				"--java", "999",
-				"aap", "noot", "mies");
+		JBang	.getCommandLine()
+				.execute("alias", "add",
+						"-f", cwd.toString(),
+						"--name=name",
+						"--description", "desc",
+						"--deps", "deps",
+						"--repos", "repos",
+						"--cp", "cps",
+						"--runtime-option", "jopts",
+						"-D", "prop=val",
+						"--main", "mainclass",
+						"--compile-option", "copts",
+						"--native",
+						"--native-option", "nopts",
+						"--java", "999",
+						testFile.toString(),
+						"aap", "noot", "mies");
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
 				is(true));
 		Alias alias = Alias.get("name");
@@ -164,20 +164,21 @@ public class TestAlias extends BaseTest {
 		Path catFile = Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON);
 		Files.write(catFile, "".getBytes());
 		assertThat(Files.size(catFile), is(0L));
-		JBang jbang = new JBang();
-		new CommandLine(jbang).execute("alias", "add",
-				"--name=name", testFile.toString(),
-				"--description", "desc",
-				"--deps", "deps",
-				"--repos", "repos",
-				"--cp", "cps",
-				"--runtime-option", "jopts",
-				"-D", "prop=val",
-				"--main", "mainclass",
-				"--compile-option", "copts",
-				"--native-option", "nopts",
-				"--java", "999",
-				"aap", "noot", "mies");
+		JBang	.getCommandLine()
+				.execute("alias", "add",
+						"--name=name",
+						"--description", "desc",
+						"--deps", "deps",
+						"--repos", "repos",
+						"--cp", "cps",
+						"--runtime-option", "jopts",
+						"-D", "prop=val",
+						"--main", "mainclass",
+						"--compile-option", "copts",
+						"--native-option", "nopts",
+						"--java", "999",
+						testFile.toString(),
+						"aap", "noot", "mies");
 		assertThat(Files.size(catFile), not(is(0L)));
 		Alias alias = Alias.get("name");
 		assertThat(alias.scriptRef, is("test.java"));
@@ -210,8 +211,7 @@ public class TestAlias extends BaseTest {
 		Path testFile = sub.resolve("test.java");
 		Files.write(testFile, "// Test file".getBytes());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
-		JBang jbang = new JBang();
-		new CommandLine(jbang).execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
+		JBang.getCommandLine().execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
 		Alias name = Alias.get("name");
 		assertThat(name.scriptRef, is(Paths.get("sub/test.java").toString()));
@@ -224,8 +224,7 @@ public class TestAlias extends BaseTest {
 		Files.write(testFile, ("// Test file \n" +
 				"//DESCRIPTION Description of the script inside the script").getBytes());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
-		JBang jbang = new JBang();
-		new CommandLine(jbang).execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
+		JBang.getCommandLine().execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
 		Alias name = Alias.get("name");
 		assertThat(name.scriptRef, is("test.java"));
@@ -239,9 +238,9 @@ public class TestAlias extends BaseTest {
 		Files.write(testFile, ("// Test file \n" +
 				"//DESCRIPTION Description of the script inside the script").getBytes());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
-		JBang jbang = new JBang();
-		new CommandLine(jbang).execute("alias", "add", "-f", cwd.toString(), "--name=name",
-				"-d", "Description of the script in arguments", testFile.toString());
+		JBang	.getCommandLine()
+				.execute("alias", "add", "-f", cwd.toString(), "--name=name",
+						"-d", "Description of the script in arguments", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
 		Alias name = Alias.get("name");
 		assertThat(name.scriptRef, is("test.java"));
@@ -258,8 +257,7 @@ public class TestAlias extends BaseTest {
 				"//DESCRIPTION description second tag\n" +
 				"//DESCRIPTION description third tag").getBytes());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
-		JBang jbang = new JBang();
-		new CommandLine(jbang).execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
+		JBang.getCommandLine().execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
 		Alias name = Alias.get("name");
 		assertThat(name.scriptRef, is("test.java"));
@@ -273,8 +271,7 @@ public class TestAlias extends BaseTest {
 		Path testFile = cwd.resolve("test.java");
 		Files.write(testFile, ("// Test file \n").getBytes());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
-		JBang jbang = new JBang();
-		new CommandLine(jbang).execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
+		JBang.getCommandLine().execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
 		Alias name = Alias.get("name");
 		assertThat(name.scriptRef, is("test.java"));
@@ -291,8 +288,7 @@ public class TestAlias extends BaseTest {
 		Path hiddenJBangPath = Paths.get(cwd.toString(), Settings.JBANG_DOT_DIR);
 		Files.createDirectory(hiddenJBangPath);
 		Files.createFile(Paths.get(cwd.toString(), Settings.JBANG_DOT_DIR, Catalog.JBANG_CATALOG_JSON));
-		JBang jbang = new JBang();
-		new CommandLine(jbang).execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
+		JBang.getCommandLine().execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		Catalog catalog = Catalog.get(hiddenJBangPath);
 		Alias name = catalog.aliases.get("name");
@@ -304,8 +300,7 @@ public class TestAlias extends BaseTest {
 		Path cwd = Util.getCwd();
 		Path testFile = cwd.resolve("test.java");
 		Files.write(testFile, "// Test file".getBytes());
-		JBang jbang = new JBang();
-		new CommandLine(jbang).execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
+		JBang.getCommandLine().execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
 		Alias one = Alias.get("one");
 		Alias name = Alias.get("name");
 		assertThat(one.scriptRef, is("http://dummy"));
