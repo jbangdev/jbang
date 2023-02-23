@@ -18,7 +18,7 @@ public class CommandBuffer {
 	// cmdSafeChars = Pattern.compile("[^\\Q&()[]{}^=;!'+,`~<>|\\E]*");
 	static Pattern cmdSafeChars = Pattern.compile("[a-zA-Z0-9.,_+=:;@()-\\\\]*");
 	// TODO: Figure out what the real list of safe characters is for PowerShell
-	static Pattern pwrSafeChars = Pattern.compile("[a-zA-Z0-9.,_+=:@()-\\\\]*");
+	static Pattern pwrSafeChars = Pattern.compile("[a-zA-Z0-9.,_+=:@()\\\\-]*");
 	static Pattern shellSafeChars = Pattern.compile("[a-zA-Z0-9._+=:@%/-]*");
 
 	static Pattern cmdNeedQuotesChars = Pattern.compile("[\\Q&()[]{}^=;!'+,`~\\E]");
