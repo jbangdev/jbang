@@ -32,7 +32,7 @@ import picocli.CommandLine.Help.TextTable;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Model.UsageMessageSpec;
 
-@Command(name = "jbang", header = "${COMMAND-NAME} is a tool for building and running .java/.jsh scripts and jar packages.", footer = "\nCopyright: 2020-2022 jbang.dev contributors, License: MIT\nWebsite: https://jbang.dev", description = {
+@Command(name = "jbang", header = "${COMMAND-NAME} is a tool for building and running .java/.jsh scripts and jar packages.", footer = "\nCopyright: 2020-2023 jbang.dev contributors, License: MIT\nWebsite: https://jbang.dev", description = {
 		"",
 		"  ${COMMAND-NAME} init hello.java [args...]",
 		"        (to initialize a script)",
