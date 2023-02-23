@@ -21,9 +21,9 @@ jobs:
       JRELEASER_GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
       JRELEASER_VERSION: 0.9.0
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
       - name: install-java11
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
           java-version: 11
       - name: build-gradle
@@ -43,7 +43,7 @@ jobs:
           arguments: publish
       - name: JReleaser output
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: jreleaser-publish
           path: |
@@ -65,14 +65,14 @@ jobs:
           arguments: announce
       - name: JReleaser output
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: jreleaser-announce
           path: |
             out/jreleaser/trace.log
             out/jreleaser/output.properties
       - name: upload-choco
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: build-choco
           path: build/choco
@@ -82,11 +82,11 @@ jobs:
     name: publish-choco
     continue-on-error: true
     steps:
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@v3
         with:
           name: build-choco
           path: build/choco
-      - uses: actions/setup-dotnet@v1
+      - uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '2.2.204' # SDK Version to use.
       - name: choco-build

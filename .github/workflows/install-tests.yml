@@ -6,7 +6,7 @@ jobs:
   macos:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Remove Java
       run: |
         sudo rm -rf /Library/Java/*
