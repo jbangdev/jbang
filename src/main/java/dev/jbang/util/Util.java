@@ -19,6 +19,7 @@ import java.net.URLDecoder;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
@@ -1369,12 +1370,15 @@ public class Util {
 		return err[0] == null;
 	}
 
-	public static boolean createLink(Path src, Path target) {
-		if (!Files.exists(src)
-				&& !createSymbolicLink(src, target.toAbsolutePath())) {
-			return createHardLink(src, target.toAbsolutePath());
-		} else {
-			return false;
+	public static void createLink(Path src, Path target) {
+		if (!Files.exists(src) && !createSymbolicLink(src, target.toAbsolutePath())) {
+			if (getOS() != OS.windows || !Files.isDirectory(src)) {
+				infoMsg("Now try creating a hard link instead of symbolic.");
+				if (createHardLink(src, target.toAbsolutePath())) {
+					return;
+				}
+			}
+			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, "Failed to create link " + src + " -> " + target);
 		}
 	}
 
@@ -1383,26 +1387,35 @@ public class Util {
 			Files.createSymbolicLink(src, target);
 			return true;
 		} catch (IOException e) {
-			infoMsg(e.toString());
-		}
-		if (isWindows()) {
-			infoMsg("Creation of symbolic link failed." +
-					"For potential causes and resolutions see https://www.jbang.dev/documentation/guide/latest/usage.html#usage-on-windows");
-		} else {
-			infoMsg("Creation of symbolic link failed.");
+			infoMsg(String.format("Creation of symbolic link failed %s -> %s", src, target));
+			if (isWindows() && e instanceof AccessDeniedException && e.getMessage().contains("privilege")
+					&& JavaUtil.getCurrentMajorJavaVersion() < 13) {
+				infoMsg("This is a known issue with trying to create symbolic links on Windows.");
+				infoMsg("Either use a Java version equal to or newer than 13 and make sure that");
+				infoMsg("it is in your PATH (check by running 'java -version`) or if no Java is");
+				infoMsg("available on the PATH use 'jbang jdk default <version>'.");
+				infoMsg("The other solution is to change the privileges for your user, see:");
+				infoMsg("https://www.jbang.dev/documentation/guide/latest/usage.html#usage-on-windows");
+			}
+			verboseMsg(e.toString());
 		}
 		return false;
 	}
 
 	private static boolean createHardLink(Path src, Path target) {
 		try {
-			infoMsg("Now try creating a hard link instead of symbolic.");
+			if (getOS() == OS.windows && Files.isDirectory(src)) {
+				warnMsg(String.format("Creation of hard links to folders is not supported on Windows %s -> %s", src,
+						target));
+				return false;
+			}
 			Files.createLink(src, target);
+			return true;
 		} catch (IOException e) {
-			infoMsg("Creation of hard link failed. Script must be on the same drive as $JBANG_CACHE_DIR (typically under $HOME) for hardlink creation to work. Or call the command with admin rights.");
-			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, e);
+			verboseMsg(e.toString());
 		}
-		return true;
+		infoMsg(String.format("Creation of hard link failed %s -> %s", src, target));
+		return false;
 	}
 
 	public static Path getUrlCacheDir(String fileURL) {

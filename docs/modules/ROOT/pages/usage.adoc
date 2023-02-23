@@ -346,21 +346,24 @@ No one would want to do that (right?) but now you know.
 
 Some JBang commands need to create symbolic links when running on Windows.
 For example, this is required for Managing JDKs or editing the files with the `edit` command.
-To resolve the issue, on Windows 10 you will need to enable symbolic linking for your user account.
 
-* Review security considerations and best practices https://docs.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/create-symbolic-links[here].
-* Enable the `Create symbolic links` group policy setting for your user/group
-  by following the guidelines on the https://docs.microsoft.com/en-us/windows/security/threat-protection/security-policy-settings/user-rights-assignment[User Rights Assignment] page.
+If you encounter issues on Windows related to the creation of symbolic links follow
+these instructions:
 
-You might also need elevated privileges to create symbolic links
-If the JBang process has no full administrative rights, the execution may result in an error like:
+1. From Windows 10 onwards you can turn on "Developer Mode", this will automatically
+enable the possibility to create symbolic links. Read here how to enable this mode:
+https://learn.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development[Enable your device for development]. On Windows 11 this might already
+be enabled by default.
 
-```
-java.nio.file.FileSystemException: <CURRENT_JDK>: A required privilege is not held by the client.
-```
+2. If you're using a Java version equal to or newer than 13 then you're good to go.
+This Java version already works correctly. Make sure that JBang is actually using
+that Java version, either by running `java -version` to check if the Java on the
+`PATH` is version 13 or newer, or if you don't have Java available on the `PATH`
+by running `jbang jdk default 13` (or some newer version of course).
 
-To resolve this issue, see the options in https://answers.microsoft.com/en-us/windows/forum/windows_10-performance-winpc/how-to-fix-problem-a-required-privilege-is-not/d206b4b3-b6c2-4b0b-8629-5d4dfcb8f8d0[this answers.microsoft.com article].
-There are multiple possible resolutions,
-choose one meeting your needs.
+3. If you need symbolic links to work on older Java versions as well, then there
+is no  other option than setting the correct privileges for your user by enabling
+the `Create symbolic links` group policy setting. See the instruction on this page
+for more information on how to do this:
+https://superuser.com/a/105381[Permission to make symbolic links in Windows].
 
-For older Windows versions, see this https://stackoverflow.com/a/24353758[StackOverflow issue].

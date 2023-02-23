@@ -39,6 +39,15 @@ if ([System.Enum]::GetNames([System.Net.SecurityProtocolType]) -notcontains 'Tls
     break
 }
 
+$DevModRegistryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
+if (!(Test-Path -Path $DevModRegistryPath) -or (Get-ItemProperty -Path `
+        $DevModRegistryPath -Name AllowDevelopmentWithoutDevLicense -ErrorAction `
+        SilentlyContinue).AllowDevelopmentWithoutDevLicense -ne 1) {
+    [Console]::Error.WriteLine("WARNING: Windows Developer Mode is not enabled on your system, this is necessary");
+    [Console]::Error.WriteLine("for JBang to be able to function correctly, see this page for more information:");
+    [Console]::Error.WriteLine("https://www.jbang.dev/documentation/guide/latest/usage.html#usage-on-windows");
+}
+
 # The Java version to install when it's not installed on the system yet
 if (-not (Test-Path env:JBANG_DEFAULT_JAVA_VERSION)) { $javaVersion='11' } else { $javaVersion=$env:JBANG_DEFAULT_JAVA_VERSION }
 
