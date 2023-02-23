@@ -49,7 +49,7 @@ if (!(Test-Path -Path $DevModRegistryPath) -or (Get-ItemProperty -Path `
 }
 
 # The Java version to install when it's not installed on the system yet
-if (-not (Test-Path env:JBANG_DEFAULT_JAVA_VERSION)) { $javaVersion='11' } else { $javaVersion=$env:JBANG_DEFAULT_JAVA_VERSION }
+if (-not (Test-Path env:JBANG_DEFAULT_JAVA_VERSION)) { $javaVersion='17' } else { $javaVersion=$env:JBANG_DEFAULT_JAVA_VERSION }
 
 $os='windows'
 $arch='x64'
