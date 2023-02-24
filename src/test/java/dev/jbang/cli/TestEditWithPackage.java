@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
 
@@ -54,9 +55,9 @@ public class TestEditWithPackage extends BaseTest {
 		Path BPath = TestSource.createTmpFileWithContent(mainPath.getParent(), "person", "B.java", classB);
 		Path CPath = TestSource.createTmpFileWithContent(BPath.getParent(), "model", "C.java", classC);
 		assertTrue(mainPath.toFile().exists());
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(mainPath.toString());
-		Path project = new Edit().createProjectForLinkedEdit(prj, pb, false);
+		Path project = new Edit().createProjectForLinkedEdit(prj, Collections.emptyList(), false);
 		assertTrue(Files.exists(project.resolve("src/A.java")));
 		assertTrue(Files.exists(project.resolve("src/person/B.java")));
 		assertTrue(Files.exists(project.resolve("src/person/model/C.java")));

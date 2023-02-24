@@ -61,7 +61,7 @@ public class GroovySource extends Source {
 	}
 
 	@Override
-	public Builder<Project> getBuilder(Project prj, BuildContext ctx) {
+	public Builder<CmdGeneratorBuilder> getBuilder(Project prj, BuildContext ctx) {
 		return new GroovyAppBuilder(prj, ctx);
 	}
 
@@ -101,12 +101,6 @@ public class GroovySource extends Source {
 				}
 				super.runCompiler(processBuilder);
 			}
-		}
-
-		private class GroovyIntegrationBuildStep extends IntegrationBuildStep {
-			public GroovyIntegrationBuildStep() {
-				super(GroovyAppBuilder.this.project, GroovyAppBuilder.this.ctx);
-			}
 
 			@Override
 			protected String getMainExtension() {
@@ -115,8 +109,14 @@ public class GroovySource extends Source {
 
 			@Override
 			protected Predicate<ClassInfo> getMainFinder() {
-				return pubClass -> pubClass.method("main", IntegrationBuildStep.STRINGARRAYTYPE) != null
+				return pubClass -> pubClass.method("main", CompileBuildStep.STRINGARRAYTYPE) != null
 						|| pubClass.method("main") != null;
+			}
+		}
+
+		private class GroovyIntegrationBuildStep extends IntegrationBuildStep {
+			public GroovyIntegrationBuildStep() {
+				super(GroovyAppBuilder.this.project, GroovyAppBuilder.this.ctx);
 			}
 		}
 	}

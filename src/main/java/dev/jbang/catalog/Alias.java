@@ -31,6 +31,8 @@ public class Alias extends CatalogItem {
 	public final String javaVersion;
 	@SerializedName(value = "main")
 	public final String mainClass;
+	@SerializedName(value = "module")
+	public final String moduleName;
 	@SerializedName(value = "compile-options")
 	public final List<String> compileOptions;
 	@SerializedName(value = "native-image")
@@ -39,7 +41,7 @@ public class Alias extends CatalogItem {
 	public final List<String> nativeOptions;
 
 	private Alias() {
-		this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+		this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 	}
 
 	public Alias(String scriptRef,
@@ -54,6 +56,7 @@ public class Alias extends CatalogItem {
 			Map<String, String> properties,
 			String javaVersion,
 			String mainClass,
+			String moduleName,
 			List<String> compileOptions,
 			Boolean nativeImage,
 			List<String> nativeOptions,
@@ -71,6 +74,7 @@ public class Alias extends CatalogItem {
 		this.properties = properties;
 		this.javaVersion = javaVersion;
 		this.mainClass = mainClass;
+		this.moduleName = moduleName;
 		this.compileOptions = compileOptions;
 		this.nativeImage = nativeImage;
 		this.nativeOptions = nativeOptions;
@@ -151,6 +155,7 @@ public class Alias extends CatalogItem {
 					: a2.properties;
 			String javaVersion = a1.javaVersion != null ? a1.javaVersion : a2.javaVersion;
 			String mainClass = a1.mainClass != null ? a1.mainClass : a2.mainClass;
+			String moduleName = a1.moduleName != null ? a1.moduleName : a2.moduleName;
 			List<String> copts = a1.compileOptions != null && !a1.compileOptions.isEmpty() ? a1.compileOptions
 					: a2.compileOptions;
 			List<String> nopts = a1.nativeOptions != null && !a1.nativeOptions.isEmpty() ? a1.nativeOptions
@@ -158,7 +163,7 @@ public class Alias extends CatalogItem {
 			Boolean nimg = a1.nativeImage != null ? a1.nativeImage : a2.nativeImage;
 			Catalog catalog = a2.catalog != null ? a2.catalog : a1.catalog;
 			return new Alias(a2.scriptRef, desc, args, jopts, srcs, ress, deps, repos, cpaths, props, javaVersion,
-					mainClass, copts, nimg, nopts, catalog);
+					mainClass, moduleName, copts, nimg, nopts, catalog);
 		} else {
 			return a1;
 		}

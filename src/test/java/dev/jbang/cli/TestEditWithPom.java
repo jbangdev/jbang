@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
 
@@ -47,9 +48,9 @@ public class TestEditWithPom extends BaseTest {
 	void testEditWithPom() throws IOException {
 		Path mainPath = TestSource.createTmpFileWithContent("", "main.java", main);
 		assertTrue(mainPath.toFile().exists());
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(mainPath.toString());
-		Path project = new Edit().createProjectForLinkedEdit(prj, pb, false);
+		Path project = new Edit().createProjectForLinkedEdit(prj, Collections.emptyList(), false);
 		assertTrue(project.resolve("src/main.java").toFile().exists());
 
 		Path gradle = project.resolve("build.gradle");

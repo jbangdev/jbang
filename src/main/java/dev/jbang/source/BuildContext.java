@@ -21,15 +21,17 @@ public class BuildContext {
 		if (buildDirOverride != null) {
 			return new BuildContext(project, buildDirOverride);
 		} else {
-			return new BuildContext(project, getBuildDir(project));
+			return new BuildContext(project, getBuildDir(null, project));
 		}
 	}
 
 	@Nonnull
-	private static Path getBuildDir(Project project) {
-		Path baseDir = Settings.getCacheDir(Cache.CacheClass.jars);
+	private static Path getBuildDir(Path baseDir, Project project) {
+		if (baseDir == null) {
+			baseDir = Settings.getCacheDir(Cache.CacheClass.jars);
+		}
 		return baseDir.resolve(
-				project.getResourceRef().getFile().getFileName() + "." + project.getMainSourceSet().getStableId());
+				project.getResourceRef().getFile().getFileName() + "." + project.getStableId());
 	}
 
 	private BuildContext(Project project, Path buildDir) {
@@ -38,7 +40,7 @@ public class BuildContext {
 	}
 
 	public BuildContext forSubProject(Project subProject, String subProjectTypeName) {
-		return forProject(subProject, buildDir.resolve(subProjectTypeName));
+		return forProject(subProject, getBuildDir(buildDir.resolve(subProjectTypeName), subProject));
 	}
 
 	public Path getJarFile() {
@@ -49,6 +51,13 @@ public class BuildContext {
 		} else {
 			return getBasePath(".jar");
 		}
+	}
+
+	public Path getJsaFile() {
+		if (project.isJShell()) {
+			return null;
+		}
+		return getBasePath(".jsa");
 	}
 
 	public Path getNativeImageFile() {
@@ -62,8 +71,14 @@ public class BuildContext {
 		}
 	}
 
+	@Nonnull
 	public Path getCompileDir() {
 		return buildDir.resolve("classes");
+	}
+
+	@Nonnull
+	public Path getGeneratedSourcesDir() {
+		return buildDir.resolve("generated");
 	}
 
 	@Nonnull

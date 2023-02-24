@@ -18,7 +18,7 @@ import dev.jbang.util.*;
  * The steps it performs are called "build steps" and the most common ones are
  * (in order): "compile", "integration", "jar" and "native".
  */
-public abstract class AppBuilder implements Builder<Project> {
+public abstract class AppBuilder implements Builder<CmdGeneratorBuilder> {
 	protected final Project project;
 	protected final BuildContext ctx;
 
@@ -41,7 +41,7 @@ public abstract class AppBuilder implements Builder<Project> {
 	}
 
 	@Override
-	public Project build() throws IOException {
+	public CmdGeneratorBuilder build() throws IOException {
 		Path outjar = ctx.getJarFile();
 		boolean nativeBuildRequired = project.isNativeImage() && !Files.exists(ctx.getNativeImageFile());
 		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
@@ -57,7 +57,7 @@ public abstract class AppBuilder implements Builder<Project> {
 		} else if (nativeBuildRequired) {
 			Util.verboseMsg("Building as native build required.");
 		} else if (Files.isReadable(outjar)) {
-			Project jarProject = ProjectBuilder.create().build(outjar);
+			Project jarProject = Project.builder().build(outjar);
 			// We already have a Jar, check if we can still use it
 			if (!ctx.isUpToDate()) {
 				Util.verboseMsg("Building as previous build jar found but it or its dependencies not up-to-date.");
@@ -71,6 +71,9 @@ public abstract class AppBuilder implements Builder<Project> {
 				if (project.getMainClass() == null) {
 					project.setMainClass(jarProject.getMainClass());
 				}
+				if (!project.getModuleName().isPresent()) {
+					project.setModuleName(jarProject.getModuleName().orElse(null));
+				}
 				Util.verboseMsg("No build required. Reusing jar from " + ctx.getJarFile());
 				buildRequired = false;
 			}
@@ -79,10 +82,14 @@ public abstract class AppBuilder implements Builder<Project> {
 		}
 
 		if (buildRequired) {
-			// set up temporary folder for compilation
+			// set up temporary folders for compilation
 			Path compileDir = ctx.getCompileDir();
 			Util.deletePath(compileDir, true);
 			compileDir.toFile().mkdirs();
+			Path generatedDir = ctx.getGeneratedSourcesDir();
+			Util.deletePath(generatedDir, true);
+			generatedDir.toFile().mkdirs();
+
 			// do the actual building
 			try {
 				getCompileBuildStep().build();
@@ -90,8 +97,9 @@ public abstract class AppBuilder implements Builder<Project> {
 				getJarBuildStep().build();
 			} finally {
 				if (!keepClasses()) {
-					// clean up temporary folder
+					// clean up temporary folders
 					Util.deletePath(compileDir, true);
+					Util.deletePath(generatedDir, true);
 				}
 			}
 		}
@@ -104,12 +112,7 @@ public abstract class AppBuilder implements Builder<Project> {
 			}
 		}
 
-		for (Project aprj : project.getJavaAgents()) {
-			BuildContext actx = ctx.forSubProject(aprj, "agents");
-			aprj.builder(actx).build();
-		}
-
-		return project;
+		return CmdGenerator.builder(project, ctx);
 	}
 
 	public static boolean keepClasses() {

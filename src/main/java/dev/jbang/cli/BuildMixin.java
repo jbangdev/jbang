@@ -21,6 +21,10 @@ public class BuildMixin {
 			"--main" }, description = "Main class to use when running. Used primarily for running jar's.")
 	String main;
 
+	@CommandLine.Option(names = {
+			"--module" }, arity = "0..1", fallbackValue = "", description = "Treat resource as a module. Optionally with the given module name", preprocessor = StrictParameterPreprocessor.class)
+	String module;
+
 	@CommandLine.Option(names = { "-C", "--compile-option" }, description = "Options to pass to the compiler")
 	public List<String> compileOptions;
 }

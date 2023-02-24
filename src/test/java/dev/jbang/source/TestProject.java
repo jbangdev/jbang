@@ -15,8 +15,8 @@ public class TestProject extends BaseTest {
 		Source source = new JavaSource("//CDS\nclass m { }", null);
 		Source source2 = new JavaSource("class m { }", null);
 
-		Project prj = ProjectBuilder.create().build(source);
-		Project prj2 = ProjectBuilder.create().build(source2);
+		Project prj = Project.builder().build(source);
+		Project prj2 = Project.builder().build(source2);
 
 		assertTrue(prj.enableCDS());
 		assertFalse(prj2.enableCDS());

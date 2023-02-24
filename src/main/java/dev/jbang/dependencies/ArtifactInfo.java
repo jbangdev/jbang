@@ -1,8 +1,12 @@
 package dev.jbang.dependencies;
 
+import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
+
+import dev.jbang.util.ModuleUtil;
 
 /**
  * class describing artifact coordinates and its resolved physical location.
@@ -35,6 +39,29 @@ public class ArtifactInfo {
 
 	public long getTimestamp() {
 		return timestamp;
+	}
+
+	public boolean isModule() {
+		return isModule(file);
+	}
+
+	public static boolean isModule(Path file) {
+		try {
+			URL url = new URL("jar:" + file.toUri().toURL() + "!/module-info.class");
+			try (InputStream s = url.openStream()) {
+				return true;
+			}
+		} catch (Exception ex) {
+			return false;
+		}
+	}
+
+	public String getModuleName() {
+		return getModuleName(file);
+	}
+
+	public static String getModuleName(Path file) {
+		return ModuleUtil.getModuleName(file);
 	}
 
 	public boolean isUpToDate() {

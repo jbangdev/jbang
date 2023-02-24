@@ -82,12 +82,13 @@ public abstract class Source {
 
 	protected abstract List<String> getRuntimeOptions();
 
-	public abstract Builder<Project> getBuilder(Project prj, BuildContext ctx);
+	public abstract Builder<CmdGeneratorBuilder> getBuilder(Project prj, BuildContext ctx);
 
 	public ResourceRef getResourceRef() {
 		return resourceRef;
 	}
 
+	@Nonnull
 	public Optional<String> getJavaPackage() {
 		if (contents != null) {
 			return Util.getSourcePackage(contents);
@@ -117,6 +118,8 @@ public abstract class Source {
 	public Project updateProjectMain(Project prj, ResourceResolver resolver) {
 		prj.setDescription(tagReader.getDescription().orElse(null));
 		prj.setGav(tagReader.getGav().orElse(null));
+		prj.setMainClass(tagReader.getMain().orElse(null));
+		prj.setModuleName(tagReader.getModule().orElse(null));
 		return updateProject(prj, resolver);
 	}
 

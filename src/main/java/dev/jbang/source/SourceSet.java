@@ -26,9 +26,6 @@ public class SourceSet {
 	private final List<String> compileOptions = new ArrayList<>();
 	private final List<String> nativeOptions = new ArrayList<>();
 
-	// Cached values
-	private String stableId;
-
 	@Nonnull
 	public List<ResourceRef> getSources() {
 		return Collections.unmodifiableList(sources);
@@ -37,14 +34,12 @@ public class SourceSet {
 	@Nonnull
 	public SourceSet addSource(ResourceRef source) {
 		sources.add(source);
-		stableId = null;
 		return this;
 	}
 
 	@Nonnull
 	public SourceSet addSources(Collection<ResourceRef> sources) {
 		this.sources.addAll(sources);
-		stableId = null;
 		return this;
 	}
 
@@ -56,14 +51,12 @@ public class SourceSet {
 	@Nonnull
 	public SourceSet addResource(RefTarget resource) {
 		resources.add(resource);
-		stableId = null;
 		return this;
 	}
 
 	@Nonnull
 	public SourceSet addResources(Collection<RefTarget> resources) {
 		this.resources.addAll(resources);
-		stableId = null;
 		return this;
 	}
 
@@ -146,14 +139,10 @@ public class SourceSet {
 		}
 	}
 
-	public String getStableId() {
-		if (stableId == null) {
-			Stream<String> srcs = sources.stream().map(src -> Util.readFileContent(src.getFile()));
-			Stream<String> ress = resources.stream().map(res -> Util.readFileContent(res.getSource().getFile()));
-			Stream<String> files = Stream.concat(srcs, ress);
-			stableId = Util.getStableID(files);
-		}
-		return stableId;
+	protected Stream<String> getStableIdInfo() {
+		Stream<String> srcs = sources.stream().map(src -> Util.readFileContent(src.getFile()));
+		Stream<String> ress = resources.stream().map(res -> Util.readFileContent(res.getSource().getFile()));
+		return Stream.concat(srcs, ress);
 	}
 
 }

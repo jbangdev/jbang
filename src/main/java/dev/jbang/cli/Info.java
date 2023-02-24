@@ -5,6 +5,7 @@ import static dev.jbang.Settings.CP_SEPARATOR;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.net.JdkManager;
 import dev.jbang.net.JdkProvider;
@@ -26,7 +28,7 @@ import dev.jbang.util.JavaUtil;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "info", description = "Provides info about the script for tools (and humans who are tools).", subcommands = {
-		Tools.class, ClassPath.class })
+		Tools.class, ClassPath.class, ModulePath.class })
 public class Info {
 }
 
@@ -41,6 +43,10 @@ abstract class BaseInfoCommand extends BaseCommand {
 	@CommandLine.Option(names = {
 			"--build-dir" }, description = "Use given directory for build results")
 	Path buildDir;
+
+	@CommandLine.Option(names = {
+			"--module" }, arity = "0..1", fallbackValue = "", description = "Treat resource as a module. Optionally with the given module name", preprocessor = StrictParameterPreprocessor.class)
+	String module;
 
 	static class ProjectFile {
 		String originalResource;
@@ -72,11 +78,13 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String originalResource;
 		String backingResource;
 		String applicationJar;
+		String applicationJsa;
 		String nativeImage;
 		String mainClass;
 		List<String> dependencies;
 		List<Repo> repositories;
 		List<String> resolvedDependencies;
+		List<String> resolvedModules;
 		String javaVersion;
 		String requestedJavaVersion;
 		String availableJdkPath;
@@ -86,6 +94,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 		List<ProjectFile> sources;
 		String description;
 		String gav;
+		String module;
 
 		public ScriptInfo(Project prj, BuildContext ctx, boolean assureJdkInstalled) {
 			originalResource = prj.getResourceRef().getOriginalResource();
@@ -97,9 +106,12 @@ abstract class BaseInfoCommand extends BaseCommand {
 
 				applicationJar = ctx.getJarFile() == null ? null
 						: ctx.getJarFile().toAbsolutePath().toString();
-				nativeImage = ctx.getNativeImageFile() == null
-						|| !Files.exists(ctx.getNativeImageFile()) ? null
-								: ctx.getNativeImageFile().toAbsolutePath().toString();
+				applicationJsa = ctx.getJsaFile() != null && Files.isRegularFile(ctx.getJsaFile())
+						? ctx.getJsaFile().toAbsolutePath().toString()
+						: null;
+				nativeImage = ctx.getNativeImageFile() != null && Files.exists(ctx.getNativeImageFile())
+						? ctx.getNativeImageFile().toAbsolutePath().toString()
+						: null;
 				mainClass = prj.getMainClass();
 				requestedJavaVersion = prj.getJavaVersion();
 
@@ -120,6 +132,13 @@ abstract class BaseInfoCommand extends BaseCommand {
 					resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 				}
 
+				String mp = prj.resolveClassPath().getModulePath();
+				if (mp.isEmpty()) {
+					resolvedModules = null;
+				} else {
+					resolvedModules = Arrays.asList(cp.split(CP_SEPARATOR));
+				}
+
 				if (prj.getJavaVersion() != null) {
 					javaVersion = Integer.toString(JavaUtil.parseJavaVersion(prj.getJavaVersion()));
 				}
@@ -130,9 +149,10 @@ abstract class BaseInfoCommand extends BaseCommand {
 				}
 
 				if (ctx.getJarFile() != null && Files.exists(ctx.getJarFile())) {
-					Project jarProject = ProjectBuilder.create().build(ctx.getJarFile());
+					Project jarProject = Project.builder().build(ctx.getJarFile());
 					mainClass = jarProject.getMainClass();
 					gav = jarProject.getGav().orElse(gav);
+					module = jarProject.getModuleName().orElse(module);
 				}
 			}
 		}
@@ -160,6 +180,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 			}
 			gav = prj.getGav().orElse(null);
 			description = prj.getDescription().orElse(null);
+			module = prj.getModuleName().orElse(null);
 		}
 
 		private void init(SourceSet ss) {
@@ -200,15 +221,17 @@ abstract class BaseInfoCommand extends BaseCommand {
 	}
 
 	ProjectBuilder createProjectBuilder() {
-		return ProjectBuilder	.create()
-								.setProperties(dependencyInfoMixin.getProperties())
-								.additionalDependencies(dependencyInfoMixin.getDependencies())
-								.additionalRepositories(dependencyInfoMixin.getRepositories())
-								.additionalClasspaths(dependencyInfoMixin.getClasspaths())
-								.additionalSources(scriptMixin.sources)
-								.additionalResources(scriptMixin.resources)
-								.forceType(scriptMixin.forceType)
-								.catalog(scriptMixin.catalog);
+		return Project
+						.builder()
+						.setProperties(dependencyInfoMixin.getProperties())
+						.additionalDependencies(dependencyInfoMixin.getDependencies())
+						.additionalRepositories(dependencyInfoMixin.getRepositories())
+						.additionalClasspaths(dependencyInfoMixin.getClasspaths())
+						.additionalSources(scriptMixin.sources)
+						.additionalResources(scriptMixin.resources)
+						.forceType(scriptMixin.forceType)
+						.moduleName(module)
+						.catalog(scriptMixin.catalog);
 	}
 
 }
@@ -226,7 +249,7 @@ class Tools extends BaseInfoCommand {
 	}
 }
 
-@CommandLine.Command(name = "classpath", description = "Prints classpath used for this application using operating system specific path separation.")
+@CommandLine.Command(name = "classpath", description = "Prints class-path used for this application using operating system specific path separation.")
 class ClassPath extends BaseInfoCommand {
 
 	@Override
@@ -239,6 +262,28 @@ class ClassPath extends BaseInfoCommand {
 		}
 		cp.addAll(info.resolvedDependencies);
 		System.out.println(String.join(CP_SEPARATOR, cp));
+
+		return EXIT_OK;
+	}
+}
+
+@CommandLine.Command(name = "modulepath", description = "Prints module-path used for this application using operating system specific path separation.")
+class ModulePath extends BaseInfoCommand {
+
+	@Override
+	public Integer doCall() throws IOException {
+
+		ScriptInfo info = getInfo(false);
+		if (info.resolvedModules != null) {
+			List<String> cp = new ArrayList<>(info.resolvedModules.size() + 1);
+			if (info.applicationJar != null
+					&& !info.resolvedModules.contains(info.applicationJar)
+					&& ArtifactInfo.isModule(Paths.get(info.applicationJar))) {
+				cp.add(info.applicationJar);
+			}
+			cp.addAll(info.resolvedModules);
+			System.out.println(String.join(CP_SEPARATOR, cp));
+		}
 
 		return EXIT_OK;
 	}

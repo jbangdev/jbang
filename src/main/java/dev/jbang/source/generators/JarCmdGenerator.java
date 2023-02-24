@@ -4,23 +4,39 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
+import dev.jbang.net.JdkManager;
+import dev.jbang.net.JdkProvider;
 import dev.jbang.source.*;
 import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.JavaUtil;
+import dev.jbang.util.ModuleUtil;
 import dev.jbang.util.Util;
 
 public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
-
+	private List<String> runtimeOptions = Collections.emptyList();
 	private boolean assertions;
 	private boolean systemAssertions;
 	private boolean classDataSharing;
+	private String mainClass;
 	private boolean mainRequired;
+
+	public JarCmdGenerator runtimeOptions(List<String> runtimeOptions) {
+		if (runtimeOptions != null) {
+			this.runtimeOptions = runtimeOptions;
+		} else {
+			this.runtimeOptions = Collections.emptyList();
+		}
+		return this;
+	}
 
 	public JarCmdGenerator assertions(boolean assertions) {
 		this.assertions = assertions;
@@ -34,6 +50,11 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 
 	public JarCmdGenerator classDataSharing(boolean classDataSharing) {
 		this.classDataSharing = classDataSharing;
+		return this;
+	}
+
+	public JarCmdGenerator mainClass(String mainClass) {
+		this.mainClass = mainClass;
 		return this;
 	}
 
@@ -55,6 +76,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		List<String> optionalArgs = new ArrayList<>();
 
 		String requestedJavaVersion = project.getJavaVersion();
+		JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(requestedJavaVersion);
 		String javacmd = JavaUtil.resolveInJavaHome("java", requestedJavaVersion);
 
 		addPropertyFlags(project.getProperties(), "-D", optionalArgs);
@@ -93,31 +115,45 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 			}
 		}
 		if (!Util.isBlankString(classpath)) {
-			optionalArgs.add("-classpath");
-			optionalArgs.add(classpath);
+			if (project.getModuleName().isPresent()) {
+				optionalArgs.addAll(Arrays.asList("-p", classpath));
+			} else {
+				optionalArgs.addAll(Arrays.asList("-classpath", classpath));
+			}
 		}
 
 		if (classDataSharing || project.enableCDS()) {
-			Path cdsJsa = ctx.getJarFile().toAbsolutePath();
-			if (Files.exists(cdsJsa)) {
-				Util.verboseMsg("CDS: Using shared archive classes from " + cdsJsa);
-				optionalArgs.add("-XX:SharedArchiveFile=" + cdsJsa);
+			if (jdk.getMajorVersion() >= 13) {
+				Path cdsJsa = ctx.getJsaFile().toAbsolutePath();
+				if (Files.exists(cdsJsa)) {
+					Util.verboseMsg("CDS: Using shared archive classes from " + cdsJsa);
+					optionalArgs.add("-XX:SharedArchiveFile=" + cdsJsa);
+				} else {
+					Util.verboseMsg("CDS: Archiving Classes At Exit at " + cdsJsa);
+					optionalArgs.add("-XX:ArchiveClassesAtExit=" + cdsJsa);
+				}
 			} else {
-				Util.verboseMsg("CDS: Archiving Classes At Exit at " + cdsJsa);
-				optionalArgs.add("-XX:ArchiveClassesAtExit=" + cdsJsa);
+				Util.warnMsg(
+						"ClassDataSharing can only be used on Java versions 13 and later. Rerun with `--java 13+` to enforce that");
 			}
 		}
 
 		fullArgs.add(javacmd);
-		addAgentsArgs(fullArgs);
 
 		fullArgs.addAll(project.getRuntimeOptions());
-		fullArgs.addAll(project.resolveClassPath().getAutoDectectedModuleArguments(requestedJavaVersion));
+		fullArgs.addAll(runtimeOptions);
+		fullArgs.addAll(project.resolveClassPath().getAutoDectectedModuleArguments(jdk));
 		fullArgs.addAll(optionalArgs);
 
-		String mainClass = project.getMainClass();
-		if (mainClass != null) {
-			fullArgs.add(mainClass);
+		String main = Optional.ofNullable(mainClass).orElse(project.getMainClass());
+		if (main != null) {
+			if (project.getModuleName().isPresent()) {
+				String modName = ModuleUtil.getModuleName(project);
+				fullArgs.add("-m");
+				fullArgs.add(modName + "/" + main);
+			} else {
+				fullArgs.add(main);
+			}
 		} else if (mainRequired) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
 					"no main class deduced, specified nor found in a manifest");

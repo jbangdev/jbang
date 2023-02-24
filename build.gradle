@@ -22,6 +22,16 @@ repositories {
 	maven { url 'https://jitpack.io' }
 }
 
+sourceSets {
+	java9 {
+		java {
+			srcDirs = ['src/main/java9']
+			destinationDirectory.set(file('build/classes/java/main'))
+		}
+	}
+}
+sourceSets.main.compileClasspath += sourceSets.java9.output.classesDirs;
+
 dependencies {
 	implementation 'com.offbytwo:docopt:0.6.0.20150202'
 
@@ -72,7 +82,6 @@ tasks.withType(AbstractArchiveTask) {
 	reproducibleFileOrder = true
 }
 
-
 sonarqube {
 	properties {
 		property "sonar.projectKey", "jbangdev_jbang"
@@ -85,7 +94,8 @@ spotless {
 	lineEndings 'UNIX'
 	format 'misc', {
 		target '**/*.gradle', '**/*.md', '**/.gitignore'
-		targetExclude 'CONTRIBUTORS.md', 'src/main/scripts/container/README.md', 'build/**/*', 'out/**/*'  // all-contributor bot adds non-indented code
+		targetExclude 'CONTRIBUTORS.md', 'src/main/scripts/container/README.md', 'build/**/*', 'out/**/*'
+		// all-contributor bot adds non-indented code
 		trimTrailingWhitespace()
 		indentWithTabs(4) // or spaces. Takes an integer argument if you don't like 4
 		endWithNewline()
@@ -126,6 +136,7 @@ def commonSpec = project.copySpec {
 		into 'bin'
 	}
 }
+
 distributions {
 	main {
 		contents {
@@ -150,12 +161,11 @@ latestDistTar {
 
 jar {
 	manifest {
-		attributes (
-				'Main-Class': 'dev.jbang.Main',
+		attributes(
+			'Main-Class': 'dev.jbang.Main',
 		)
 	}
 }
-
 
 compileJava {
 	options.encoding = 'UTF-8'
@@ -167,8 +177,15 @@ compileTestJava {
 	options.compilerArgs << "-Xlint:unchecked"
 }
 
+compileJava9Java {
+	sourceCompatibility = 9
+	targetCompatibility = 9
+	options.encoding = 'UTF-8'
+	options.compilerArgs << "-Xlint:unchecked"
+}
+
 shadowJar {
-	minimize()  {
+	minimize() {
 		//exclude(dependency('org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-spi:.*'))
 		//exclude(dependency('org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-impl-maven:.*'))
 		exclude(dependency('com.github.jbangdev.jbang-resolver:shrinkwrap-resolver-spi:.*'))
@@ -177,8 +194,6 @@ shadowJar {
 		//exclude(dependency('org.slf4j:slf4j-api:.*'))
 		exclude(dependency('org.slf4j:slf4j-nop:.*'))
 		exclude(dependency('org.jboss.logging:jboss-logging:.*'))
-
-
 	}
 	mergeServiceFiles()
 	manifest {
@@ -202,19 +217,16 @@ jacoco {
 }
 
 jacocoTestReport {
-
 	afterEvaluate {
 		executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
 	}
 
 	reports {
 		html.enabled true
-		xml.enabled  true
-		csv.enabled  false
+		xml.enabled true
+		csv.enabled false
 	}
 }
-
-
 
 
 task karateExecute(type: JavaExec) {
@@ -347,6 +359,9 @@ build.dependsOn(chocolatey)
 build.dependsOn(container)
 build.dependsOn(spec)
 //build.dependsOn(clidoc)
+
+compileJava.dependsOn(compileJava9Java);
+compileTestJava.dependsOn(compileJava9Java);
 
 //fix implicit dependencies
 tasks.named("spotlessXml").configure { dependsOn("compileJava") }

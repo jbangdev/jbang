@@ -45,7 +45,7 @@ public class JavaSource extends Source {
 	}
 
 	@Override
-	public Builder<Project> getBuilder(Project prj, BuildContext ctx) {
+	public Builder<CmdGeneratorBuilder> getBuilder(Project prj, BuildContext ctx) {
 		return new JavaAppBuilder(prj, ctx);
 	}
 
@@ -74,16 +74,16 @@ public class JavaSource extends Source {
 			protected String getCompilerBinary(String requestedJavaVersion) {
 				return resolveInJavaHome("javac", requestedJavaVersion);
 			}
+
+			@Override
+			protected String getMainExtension() {
+				return ".java";
+			}
 		}
 
 		public class JavaIntegrationBuildStep extends IntegrationBuildStep {
 			public JavaIntegrationBuildStep() {
 				super(JavaAppBuilder.this.project, JavaAppBuilder.this.ctx);
-			}
-
-			@Override
-			protected String getMainExtension() {
-				return ".java";
 			}
 		}
 	}

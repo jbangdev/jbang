@@ -115,7 +115,7 @@ public class JdkManager {
 	 * necessary.
 	 *
 	 * @param versionOrId A version pattern, id or <code>null</code>
-	 * @return A <code>Jdk</code> object or <code>null</code>
+	 * @return A <code>Jdk</code> object
 	 * @throws ExitException If no JDK could be found at all or if one failed to
 	 *                       install
 	 */

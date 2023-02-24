@@ -59,6 +59,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import dev.jbang.Cache;
 import dev.jbang.Configuration;
@@ -84,6 +85,12 @@ public class Util {
 
 	public static final Pattern mainClassMethod = Pattern.compile(
 			"(?<=\\n|\\A)(?:public\\s)\\s*(class)\\s*([^\\n\\s]*)");
+
+	public static final Pattern patternFQCN = Pattern.compile(
+			"^([a-z][a-z0-9]*\\.)*[a-zA-Z][a-zA-Z0-9_]*$");
+
+	public static final Pattern patternModuleId = Pattern.compile(
+			"^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$");
 
 	private static boolean verbose;
 	private static boolean quiet;
@@ -888,10 +895,42 @@ public class Util {
 				if (conn instanceof HttpURLConnection) {
 					HttpURLConnection httpConn = (HttpURLConnection) conn;
 					int responseCode = httpConn.getResponseCode();
-					if (responseCode == HttpURLConnection.HTTP_NOT_MODIFIED) {
+					if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
 						String fileURL = conn.getURL().toExternalForm();
 						throw new FileNotFoundException(
 								"No file to download at " + fileURL + ". Server replied HTTP code: " + responseCode);
+					} else if (responseCode >= 400) {
+						String message = null;
+						if (httpConn.getErrorStream() != null) {
+							String err = new BufferedReader(new InputStreamReader(httpConn.getErrorStream()))
+																												.lines()
+																												.collect(
+																														Collectors.joining(
+																																"\n"))
+																												.trim();
+							verboseMsg("HTTP: " + responseCode + " - " + err);
+							if (err.startsWith("{") && err.endsWith("}")) {
+								// Could be JSON, let's try to parse it
+								try {
+									Gson parser = new Gson();
+									Map json = parser.fromJson(err, Map.class);
+									// GitHub returns useful information in `message`,
+									// if it's there we use it.
+									// TODO add support for other known sites
+									message = Objects.toString(json.get("message"));
+								} catch (JsonSyntaxException ex) {
+									// Not JSON it seems
+								}
+							}
+						}
+						if (message != null) {
+							throw new IOException(
+									String.format("Server returned HTTP response code: %d for URL: %s with message: %s",
+											responseCode, conn.getURL().toString(), message));
+						} else {
+							throw new IOException(String.format("Server returned HTTP response code: %d for URL: %s",
+									responseCode, conn.getURL().toString()));
+						}
 					}
 				}
 				return okHandler.handle(conn);
@@ -904,6 +943,7 @@ public class Util {
 				String fileName = extractFileName(conn);
 				Path file = saveDir.resolve(fileName);
 				Files.createDirectories(saveDir);
+				Files.createDirectories(metaSaveDir);
 				try (ReadableByteChannel readableByteChannel = Channels.newChannel(conn.getInputStream());
 						FileOutputStream fileOutputStream = new FileOutputStream(file.toFile())) {
 					fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
@@ -911,7 +951,6 @@ public class Util {
 				// create an .etag file if the information is present in the response headers
 				String etag = conn.getHeaderField("ETag");
 				if (etag != null) {
-					Files.createDirectories(metaSaveDir);
 					writeString(etagFile(file, metaSaveDir), etag);
 				}
 				verboseMsg(String.format("Downloaded file %s", conn.getURL().toExternalForm()));
@@ -925,29 +964,46 @@ public class Util {
 				// create a temp directory for the downloaded content
 				Path saveTmpDir = saveDir.getParent().resolve(saveDir.getFileName() + ".tmp");
 				Path saveOldDir = saveDir.getParent().resolve(saveDir.getFileName() + ".old");
+				Path metaTmpDir = metaSaveDir.getParent().resolve(metaSaveDir.getFileName() + ".tmp");
+				Path metaOldDir = metaSaveDir.getParent().resolve(metaSaveDir.getFileName() + ".old");
 				try {
 					deletePath(saveTmpDir, true);
 					deletePath(saveOldDir, true);
+					deletePath(metaTmpDir, true);
+					deletePath(metaOldDir, true);
 
-					Path saveFilePath = downloader.apply(saveTmpDir, metaSaveDir).handle(conn);
+					Path saveFilePath = downloader.apply(saveTmpDir, metaTmpDir).handle(conn);
 
 					// temporarily save the old content
 					if (Files.isDirectory(saveDir)) {
 						Files.move(saveDir, saveOldDir);
 					}
+					if (Files.isDirectory(metaSaveDir)) {
+						Files.move(metaSaveDir, metaOldDir);
+					}
 					// rename the folder to its final name
 					Files.move(saveTmpDir, saveDir);
+					Files.move(metaTmpDir, metaSaveDir);
 					// remove any old content
 					deletePath(saveOldDir, true);
+					deletePath(metaOldDir, true);
 
 					return saveDir.resolve(saveFilePath.getFileName());
 				} catch (Throwable th) {
 					// remove the temp folder if anything went wrong
 					deletePath(saveTmpDir, true);
+					deletePath(metaTmpDir, true);
 					// and move the old content back if it exists
 					if (!Files.isDirectory(saveDir) && Files.isDirectory(saveOldDir)) {
 						try {
 							Files.move(saveOldDir, saveDir);
+						} catch (IOException ex) {
+							// Ignore
+						}
+					}
+					if (!Files.isDirectory(metaSaveDir) && Files.isDirectory(metaOldDir)) {
+						try {
+							Files.move(metaOldDir, metaSaveDir);
 						} catch (IOException ex) {
 							// Ignore
 						}
@@ -1498,6 +1554,14 @@ public class Util {
 		}
 
 		return Optional.empty();
+	}
+
+	public static boolean isValidModuleIdentifier(String id) {
+		return patternModuleId.matcher(id).matches();
+	}
+
+	public static boolean isValidClassIdentifier(String id) {
+		return patternFQCN.matcher(id).matches();
 	}
 
 	/**

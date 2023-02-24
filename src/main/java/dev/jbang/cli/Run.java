@@ -2,6 +2,7 @@ package dev.jbang.cli;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import dev.jbang.source.BuildContext;
+import dev.jbang.source.CmdGeneratorBuilder;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.source.Source;
@@ -71,27 +73,32 @@ public class Run extends BaseBuildCommand {
 		}
 	}
 
+	private void rewriteScriptArguments() {
+		if (literalScript.isPresent() && !literalScript.get().isEmpty() && scriptMixin.scriptOrFile != null) {
+			List<String> args = new ArrayList<>();
+			args.add(scriptMixin.scriptOrFile);
+			args.addAll(userParams);
+			userParams = args;
+		}
+	}
+
 	@Override
 	public Integer doCall() throws IOException {
 		requireScriptArgument();
+		rewriteScriptArguments();
 		jdkProvidersMixin.initJdkProviders();
 
 		userParams = handleRemoteFiles(userParams);
 		javaAgentSlots = handleRemoteFiles(javaAgentSlots);
 		String scriptOrFile = scriptMixin.scriptOrFile;
 
-		ProjectBuilder pb = createProjectBuilder();
+		ProjectBuilder pb = createProjectBuilderForRun();
+
 		Project prj;
 		if (literalScript.isPresent()) {
 			String script;
 			if (!literalScript.get().isEmpty()) {
 				script = literalScript.get();
-				if (scriptOrFile != null) {
-					List<String> args = new ArrayList<>();
-					args.add(scriptOrFile);
-					args.addAll(pb.getArguments());
-					pb.setArguments(args);
-				}
 			} else {
 				script = scriptOrFile;
 			}
@@ -108,43 +115,64 @@ public class Run extends BaseBuildCommand {
 			}
 		}
 
-		BuildContext ctx = BuildContext.forProject(prj, buildDir);
-		prj.builder(ctx).build();
-
 		if (Boolean.TRUE.equals(nativeMixin.nativeImage)
 				&& (scriptMixin.forceType == Source.Type.jshell || prj.isJShell())) {
 			warn(".jsh cannot be used with --native thus ignoring --native.");
-			pb.nativeImage(false);
+			prj.setNativeImage(false);
 		}
 
-		String cmdline = prj.cmdGenerator(ctx).generate();
+		BuildContext ctx = BuildContext.forProject(prj, buildDir);
+		CmdGeneratorBuilder genb = prj.codeBuilder(ctx).build();
+
+		buildAgents(ctx);
+
+		String cmdline = updateGeneratorForRun(genb).build().generate();
+
 		Util.verboseMsg("run: " + cmdline);
 		out.println(cmdline);
 
 		return EXIT_EXECUTE;
 	}
 
-	ProjectBuilder createProjectBuilder() {
-		ProjectBuilder pb = super.createProjectBuilder()
-														.setArguments(userParams)
-														.runtimeOptions(javaRuntimeOptions)
-														.interactive(interactive)
-														.enableAssertions(enableAssertions)
-														.enableSystemAssertions(enableSystemAssertions)
-														.flightRecorderString(flightRecorderString)
-														.debugString(debugString)
-														.classDataSharing(cds);
+	void buildAgents(BuildContext ctx) throws IOException {
 		if (javaAgentSlots != null) {
+			if (javaRuntimeOptions == null) {
+				javaRuntimeOptions = new ArrayList<>();
+			}
 			for (Map.Entry<String, String> agentOption : javaAgentSlots.entrySet()) {
 				String javaAgent = agentOption.getKey();
 				String javaAgentOptions = agentOption.getValue();
-				ProjectBuilder apb = super.createProjectBuilder();
+				ProjectBuilder apb = createBaseProjectBuilder();
 				Project aprj = apb.build(javaAgent);
-				aprj.addRuntimeOption("-javaagent:$JAR$" + (javaAgentOptions != null ? "=" + javaAgentOptions : ""));
-				pb.addJavaAgent(aprj);
+				BuildContext actx = ctx.forSubProject(aprj, "agents");
+				aprj.codeBuilder(actx).build();
+				javaRuntimeOptions.addAll(javaAgentOptions(actx, javaAgentOptions));
 			}
 		}
-		return pb;
+	}
+
+	private List<String> javaAgentOptions(BuildContext agentCtx, String agentOptions) {
+		return Collections.singletonList(
+				"-javaagent:" + agentCtx.getJarFile() + (agentOptions != null ? "=" + agentOptions : ""));
+	}
+
+	ProjectBuilder createProjectBuilderForRun() {
+		return createBaseProjectBuilder();
+	}
+
+	CmdGeneratorBuilder updateGeneratorForRun(CmdGeneratorBuilder gb) {
+		gb
+			.setArguments(userParams)
+			.runtimeOptions(javaRuntimeOptions)
+			.mainClass(buildMixin.main)
+			.interactive(interactive)
+			.enableAssertions(enableAssertions)
+			.enableSystemAssertions(enableSystemAssertions)
+			.flightRecorderString(flightRecorderString)
+			.debugString(debugString)
+			.classDataSharing(cds);
+
+		return gb;
 	}
 
 	private static List<String> handleRemoteFiles(List<String> args) {

@@ -39,6 +39,8 @@ public abstract class TagReader {
 	private static final String DEPS_COMMENT_PREFIX = "DEPS ";
 	private static final String FILES_COMMENT_PREFIX = "FILES ";
 	private static final String SOURCES_COMMENT_PREFIX = "SOURCES ";
+	private static final String MAIN_COMMENT_PREFIX = "MAIN ";
+	private static final String MODULE_COMMENT_PREFIX = "MODULE ";
 	private static final String DESCRIPTION_COMMENT_PREFIX = "DESCRIPTION ";
 	private static final String GAV_COMMENT_PREFIX = "GAV ";
 
@@ -137,6 +139,54 @@ public abstract class TagReader {
 
 	protected boolean isDescriptionDeclare(String line) {
 		return line.startsWith(DESCRIPTION_COMMENT_PREFIX);
+	}
+
+	public Optional<String> getMain() {
+		List<String> mains = getTags()
+										.filter(this::isMainDeclare)
+										.map(s -> s.substring(MAIN_COMMENT_PREFIX.length()))
+										.collect(Collectors.toList());
+		if (mains.isEmpty()) {
+			return Optional.empty();
+		} else {
+			if (mains.size() > 1) {
+				Util.warnMsg(
+						"Multiple //MAIN lines found, only one should be defined in a source file. Using the first");
+			}
+			if (!Util.isValidClassIdentifier(mains.get(0))) {
+				throw new IllegalArgumentException(
+						"//MAIN line has wrong format, should be '//MAIN fullyQualifiedClassName]'");
+			}
+			return Optional.of(mains.get(0));
+		}
+	}
+
+	protected boolean isMainDeclare(String line) {
+		return line.startsWith(MAIN_COMMENT_PREFIX);
+	}
+
+	public Optional<String> getModule() {
+		List<String> mods = getTags()
+										.filter(this::isModuleDeclare)
+										.map(s -> s.substring(MODULE_COMMENT_PREFIX.length()))
+										.collect(Collectors.toList());
+		if (mods.isEmpty()) {
+			return Optional.empty();
+		} else {
+			if (mods.size() > 1) {
+				Util.warnMsg(
+						"Multiple //MODULE lines found, only one should be defined in a source file. Using the first");
+			}
+			if (!Util.isValidModuleIdentifier(mods.get(0))) {
+				throw new IllegalArgumentException(
+						"//MODULE line has wrong format, should be '//MODULE identifier]'");
+			}
+			return Optional.of(mods.get(0));
+		}
+	}
+
+	protected boolean isModuleDeclare(String line) {
+		return line.startsWith(MODULE_COMMENT_PREFIX);
 	}
 
 	public Optional<String> getGav() {

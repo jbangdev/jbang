@@ -27,6 +27,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.Settings;
+import dev.jbang.net.JdkManager;
+import dev.jbang.net.JdkProvider;
 import dev.jbang.util.PropertiesValueResolver;
 import dev.jbang.util.Util;
 
@@ -184,12 +186,12 @@ class DependencyResolverTest extends BaseTest {
 				DependencyUtil	.resolveDependencies(deps, Collections.emptyList(), false, false, true, false)
 								.getArtifacts()) {
 			@Override
-			protected boolean supportsModules(String requestedVersion) {
+			protected boolean supportsModules(JdkProvider.Jdk jdk) {
 				return true;
 			}
 		};
 
-		List<String> ma = cp.getAutoDectectedModuleArguments(null);
+		List<String> ma = cp.getAutoDectectedModuleArguments(JdkManager.getOrInstallJdk(null));
 
 		assertThat(ma, hasItem("--module-path"));
 

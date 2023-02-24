@@ -154,7 +154,7 @@ public class TestSource extends BaseTest {
 	@Test
 	void testCommentsDoesNotGetPickedUp() {
 		Source source = new JavaSource(exampleCommandsWithComments, null);
-		Project prj = ProjectBuilder.create().build(source);
+		Project prj = Project.builder().build(source);
 
 		assertEquals(prj.getJavaVersion(), "14+");
 
@@ -167,7 +167,7 @@ public class TestSource extends BaseTest {
 	void testFindDependencies() {
 		Source src = new JavaSource(example,
 				it -> PropertiesValueResolver.replaceProperties(it, new Properties()));
-		Project prj = ProjectBuilder.create().build(src);
+		Project prj = Project.builder().build(src);
 
 		List<String> deps = prj.getMainSourceSet().getDependencies();
 		assertEquals(2, deps.size());
@@ -184,7 +184,7 @@ public class TestSource extends BaseTest {
 		p.put("log4j.version", "1.2.9");
 
 		Source src = new JavaSource(example, it -> PropertiesValueResolver.replaceProperties(it, p));
-		Project prj = ProjectBuilder.create().build(src);
+		Project prj = Project.builder().build(src);
 
 		List<String> dependencies = prj.getMainSourceSet().getDependencies();
 		assertEquals(2, dependencies.size());
@@ -201,7 +201,7 @@ public class TestSource extends BaseTest {
 		createTmpFileWithContent("pkg1", "Hello.java", exampleURLInsourceHello);
 		createTmpFileWithContent("pkg1", "Bye.java", exampleURLInsourceBye);
 		String scriptURL = mainPath.toString();
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(scriptURL);
 		assertEquals(8, prj.getMainSourceSet().getSources().size());
 	}
@@ -249,7 +249,7 @@ public class TestSource extends BaseTest {
 		try {
 			TrustedSources.instance().add(url, tempFile);
 
-			ProjectBuilder pb = ProjectBuilder.create();
+			ProjectBuilder pb = Project.builder();
 			Project prj = pb.build(url);
 			assertEquals(3, prj.getMainSourceSet().getSources().size());
 			boolean foundmain = false;
@@ -295,14 +295,14 @@ public class TestSource extends BaseTest {
 	void testNonJavaExtension(@TempDir Path output) throws IOException {
 		Path p = output.resolve("kube-example");
 		writeString(p, example);
-		ProjectBuilder pb = ProjectBuilder.create();
+		ProjectBuilder pb = Project.builder();
 		pb.build(p.toAbsolutePath().toString());
 	}
 
 	@Test
 	void testGav() {
 		Source src = new JavaSource(example, null);
-		String gav = ProjectBuilder.create().build(src).getGav().get();
+		String gav = Project.builder().build(src).getGav().get();
 		assertEquals("org.example:classpath", gav);
 	}
 

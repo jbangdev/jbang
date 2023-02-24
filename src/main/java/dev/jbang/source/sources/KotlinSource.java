@@ -37,7 +37,7 @@ public class KotlinSource extends Source {
 	}
 
 	@Override
-	public Builder<Project> getBuilder(Project prj, BuildContext ctx) {
+	public Builder<CmdGeneratorBuilder> getBuilder(Project prj, BuildContext ctx) {
 		return new KotlinAppBuilder(prj, ctx);
 	}
 
@@ -73,12 +73,6 @@ public class KotlinSource extends Source {
 			protected String getCompilerBinary(String requestedJavaVersion) {
 				return resolveInKotlinHome("kotlinc", ((KotlinSource) project.getMainSource()).getKotlinVersion());
 			}
-		}
-
-		private class KotlinIntegrationBuildStep extends IntegrationBuildStep {
-			public KotlinIntegrationBuildStep() {
-				super(KotlinAppBuilder.this.project, KotlinAppBuilder.this.ctx);
-			}
 
 			@Override
 			protected String getMainExtension() {
@@ -87,8 +81,14 @@ public class KotlinSource extends Source {
 
 			@Override
 			protected Predicate<ClassInfo> getMainFinder() {
-				return pubClass -> pubClass.method("main", IntegrationBuildStep.STRINGARRAYTYPE) != null
+				return pubClass -> pubClass.method("main", CompileBuildStep.STRINGARRAYTYPE) != null
 						|| pubClass.method("main") != null;
+			}
+		}
+
+		private class KotlinIntegrationBuildStep extends IntegrationBuildStep {
+			public KotlinIntegrationBuildStep() {
+				super(KotlinAppBuilder.this.project, KotlinAppBuilder.this.ctx);
 			}
 		}
 	}

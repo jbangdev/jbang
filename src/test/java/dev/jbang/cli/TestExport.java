@@ -12,7 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
@@ -31,47 +30,47 @@ import picocli.CommandLine;
 public class TestExport extends BaseTest {
 
 	@Test
-	void testExportFile() throws IOException {
+	void testExportFile() throws Exception {
 		String src = examplesTestFolder.resolve("helloworld.java").toString();
 		String outFile = cwdDir.resolve("helloworld.jar").toString();
-		ExecutionResult result = checkedRun(null, "export", "local", "-O", outFile, src);
+		CaptureResult result = checkedRun(null, "export", "local", "-O", outFile, src);
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*helloworld.jar.*"));
 		assertThat(new File(outFile), anExistingFile());
 	}
 
 	@Test
-	void testExportFileName() throws IOException {
+	void testExportFileName() throws Exception {
 		String src = examplesTestFolder.resolve("helloworld.java").toString();
 		String outFile = cwdDir.resolve("helloworld").toString();
-		ExecutionResult result = checkedRun(null, "export", "local", "-O", outFile, src);
+		CaptureResult result = checkedRun(null, "export", "local", "-O", outFile, src);
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*helloworld.jar.*"));
 		assertThat(new File(outFile + ".jar"), anExistingFile());
 	}
 
 	@Test
-	void testExportNoFileName() throws IOException {
+	void testExportNoFileName() throws Exception {
 		String src = examplesTestFolder.resolve("helloworld.java").toString();
 		String outFile = cwdDir.resolve("helloworld.jar").toString();
-		ExecutionResult result = checkedRun(null, "export", "local", src);
+		CaptureResult result = checkedRun(null, "export", "local", src);
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*helloworld.jar.*"));
 		assertThat(new File(outFile), anExistingFile());
 	}
 
 	@Test
-	void testExportPortableNoclasspath() throws IOException {
+	void testExportPortableNoclasspath() throws Exception {
 		String src = examplesTestFolder.resolve("helloworld.java").toString();
 		String outFile = cwdDir.resolve("helloworld.jar").toString();
-		ExecutionResult result = checkedRun(null, "export", "portable", "-O", outFile, src);
+		CaptureResult result = checkedRun(null, "export", "portable", "-O", outFile, src);
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*helloworld.jar.*"));
 		assertThat(new File(outFile), anExistingFile());
 		assertThat(cwdDir.resolve(ExportPortable.LIB).toFile(), not(anExistingFileOrDirectory()));
 	}
 
 	@Test
-	void testExportPortableWithClasspath() throws IOException {
+	void testExportPortableWithClasspath() throws Exception {
 		String src = examplesTestFolder.resolve("classpath_log.java").toString();
 		String outFile = cwdDir.resolve("classpath_log.jar").toString();
-		ExecutionResult result = checkedRun(null, "export", "portable", "-O", outFile, src);
+		CaptureResult result = checkedRun(null, "export", "portable", "-O", outFile, src);
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*classpath_log.jar.*"));
 		assertThat(new File(outFile), anExistingFile());
 		assertThat(cwdDir.resolve(ExportPortable.LIB).toFile(), anExistingDirectory());
@@ -90,10 +89,10 @@ public class TestExport extends BaseTest {
 	}
 
 	@Test
-	void testExportWithClasspath() throws IOException {
+	void testExportWithClasspath() throws Exception {
 		String src = examplesTestFolder.resolve("classpath_log.java").toString();
 		String outFile = cwdDir.resolve("classpath_log.jar").toString();
-		ExecutionResult result = checkedRun(null, "export", "local", "-O", outFile, src);
+		CaptureResult result = checkedRun(null, "export", "local", "-O", outFile, src);
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*classpath_log.jar.*"));
 		assertThat(new File(outFile), anExistingFile());
 		assertThat(cwdDir.resolve(ExportPortable.LIB).toFile(), not(anExistingDirectory()));
@@ -111,10 +110,10 @@ public class TestExport extends BaseTest {
 	}
 
 	@Test
-	void testExportMavenPublishNoclasspath() throws IOException {
+	void testExportMavenPublishNoclasspath() throws Exception {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
-		ExecutionResult result = checkedRun(null, "export", "mavenrepo", "-O", outFile.toString(),
+		CaptureResult result = checkedRun(null, "export", "mavenrepo", "-O", outFile.toString(),
 				"--group=my.thing.right", examplesTestFolder.resolve("helloworld.java").toString());
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*target.*"));
 		assertThat(
@@ -127,31 +126,31 @@ public class TestExport extends BaseTest {
 	}
 
 	@Test
-	void testExportMavenPublishNoOutputdir() throws IOException {
+	void testExportMavenPublishNoOutputdir() throws Exception {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		// outFile.mkdirs();
-		ExecutionResult result = checkedRun(null, "export", "mavenrepo", "-O", outFile.toString(),
+		CaptureResult result = checkedRun(null, "export", "mavenrepo", "-O", outFile.toString(),
 				"--group=my.thing.right", examplesTestFolder.resolve("helloworld.java").toString());
-		assertThat(result.exitCode, equalTo(BaseCommand.EXIT_INVALID_INPUT));
+		assertThat(result.result, equalTo(BaseCommand.EXIT_INVALID_INPUT));
 
 	}
 
 	@Test
-	void testExportMavenPublishNoGroup() throws IOException {
+	void testExportMavenPublishNoGroup() throws Exception {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
-		ExecutionResult result = checkedRun(null, "export", "mavenrepo", "--force", "-O",
+		CaptureResult result = checkedRun(null, "export", "mavenrepo", "--force", "-O",
 				outFile.toString(), examplesTestFolder.resolve("helloworld.java").toString());
-		assertThat(result.exitCode, equalTo(BaseCommand.EXIT_INVALID_INPUT));
+		assertThat(result.result, equalTo(BaseCommand.EXIT_INVALID_INPUT));
 		assertThat(result.err, containsString("Add --group=<group id> and run again"));
 	}
 
 	@Test
-	void testExportMavenPublishWithClasspath() throws IOException {
+	void testExportMavenPublishWithClasspath() throws Exception {
 		Path outFile = Settings.getLocalMavenRepo();
-		ExecutionResult result = checkedRun(null, "export", "mavenrepo", "--force",
+		CaptureResult result = checkedRun(null, "export", "mavenrepo", "--force",
 				"--group=g.a.v", examplesTestFolder.resolve("classpath_log.java").toString());
-		assertThat(result.exitCode, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		assertThat(outFile.resolve("g/a/v/classpath_log/999-SNAPSHOT/classpath_log-999-SNAPSHOT.jar").toFile(),
 				anExistingFile());
 		assertThat(outFile.resolve("g/a/v/classpath_log/999-SNAPSHOT/classpath_log-999-SNAPSHOT.pom").toFile(),
@@ -165,10 +164,10 @@ public class TestExport extends BaseTest {
 	}
 
 	@Test
-	void testExportMavenPublishWithGAV() throws IOException {
+	void testExportMavenPublishWithGAV() throws Exception {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
-		ExecutionResult result = checkedRun(null, "export", "mavenrepo", "-O", outFile.toString(),
+		CaptureResult result = checkedRun(null, "export", "mavenrepo", "-O", outFile.toString(),
 				examplesTestFolder.resolve("quote.java").toString());
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*target.*"));
 		assertThat(

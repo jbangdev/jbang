@@ -8,19 +8,38 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.text.StringEscapeUtils;
 
+import dev.jbang.net.JdkManager;
+import dev.jbang.net.JdkProvider;
 import dev.jbang.source.*;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
+	private List<String> runtimeOptions = Collections.emptyList();
 	private boolean interactive;
+	private String mainClass;
+
+	public JshCmdGenerator runtimeOptions(List<String> runtimeOptions) {
+		if (runtimeOptions != null) {
+			this.runtimeOptions = runtimeOptions;
+		} else {
+			this.runtimeOptions = Collections.emptyList();
+		}
+		return this;
+	}
 
 	public JshCmdGenerator interactive(boolean interactive) {
 		this.interactive = interactive;
+		return this;
+	}
+
+	public JshCmdGenerator mainClass(String mainClass) {
+		this.mainClass = mainClass;
 		return this;
 	}
 
@@ -37,8 +56,8 @@ public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
 		List<String> optionalArgs = new ArrayList<>();
 
 		String requestedJavaVersion = project.getJavaVersion();
-		String javacmd;
-		javacmd = JavaUtil.resolveInJavaHome("jshell", requestedJavaVersion);
+		JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(requestedJavaVersion);
+		String javacmd = JavaUtil.resolveInJavaHome("jshell", jdk);
 
 		// NB: See https://github.com/jbangdev/jbang/issues/992 for the reasons why we
 		// use the -J flags below
@@ -62,17 +81,17 @@ public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
 				"import java.net.*;" +
 				"import java.math.BigInteger;\n" +
 				"import java.math.BigDecimal;\n";
-		String mainClass = project.getMainClass();
+		String main = Optional.ofNullable(mainClass).orElse(project.getMainClass());
 		Util.writeString(tempFile,
 				defaultImports + generateArgs(arguments, project.getProperties()) +
 						generateStdInputHelper() +
-						generateMain(mainClass));
-		if (mainClass != null) {
-			if (!mainClass.contains(".")) {
-				Util.warnMsg("Main class `" + mainClass
+						generateMain(main));
+		if (main != null) {
+			if (!main.contains(".")) {
+				Util.warnMsg("Main class `" + main
 						+ "` is in the default package which JShell unfortunately does not support. You can still use JShell to explore the JDK and any dependencies available on the classpath.");
 			} else {
-				Util.infoMsg("You can run the main class `" + mainClass + "` using: userMain(args)");
+				Util.infoMsg("You can run the main class `" + main + "` using: userMain(args)");
 			}
 		}
 		optionalArgs.add("--startup=" + tempFile.toAbsolutePath());
@@ -85,10 +104,10 @@ public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
 		}
 
 		fullArgs.add(javacmd);
-		addAgentsArgs(fullArgs);
 
 		fullArgs.addAll(jshellOpts(project.getRuntimeOptions()));
-		fullArgs.addAll(project.resolveClassPath().getAutoDectectedModuleArguments(requestedJavaVersion));
+		fullArgs.addAll(jshellOpts(runtimeOptions));
+		fullArgs.addAll(project.resolveClassPath().getAutoDectectedModuleArguments(jdk));
 		fullArgs.addAll(optionalArgs);
 
 		if (project.isJShell()) {

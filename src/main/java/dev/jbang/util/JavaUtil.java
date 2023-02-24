@@ -12,6 +12,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import dev.jbang.net.JdkManager;
 import dev.jbang.net.JdkProvider;
 
@@ -114,8 +117,12 @@ public class JavaUtil {
 		return parseJavaVersion(System.getProperty("java.version"));
 	}
 
-	public static String resolveInJavaHome(String cmd, String requestedVersion) {
-		Path jdkHome = JdkManager.getOrInstallJdk(requestedVersion).getHome();
+	public static String resolveInJavaHome(@Nonnull String cmd, @Nullable String requestedVersion) {
+		return resolveInJavaHome(cmd, JdkManager.getOrInstallJdk(requestedVersion));
+	}
+
+	public static String resolveInJavaHome(@Nonnull String cmd, @Nonnull JdkProvider.Jdk jdk) {
+		Path jdkHome = jdk.getHome();
 		if (jdkHome != null) {
 			if (Util.isWindows()) {
 				cmd = cmd + ".exe";

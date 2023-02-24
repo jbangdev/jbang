@@ -16,10 +16,15 @@ public class Build extends BaseBuildCommand {
 		scriptMixin.validate();
 		jdkProvidersMixin.initJdkProviders();
 
-		ProjectBuilder pb = createProjectBuilder();
+		ProjectBuilder pb = createProjectBuilderForBuild();
 		Project prj = pb.build(scriptMixin.scriptOrFile);
-		prj.builder(BuildContext.forProject(prj, buildDir)).build();
+		prj.codeBuilder(BuildContext.forProject(prj, buildDir)).build();
 
 		return EXIT_OK;
+	}
+
+	ProjectBuilder createProjectBuilderForBuild() {
+		return createBaseProjectBuilder()
+											.mainClass(buildMixin.main);
 	}
 }
