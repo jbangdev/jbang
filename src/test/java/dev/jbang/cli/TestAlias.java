@@ -240,7 +240,7 @@ public class TestAlias extends BaseTest {
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		JBang	.getCommandLine()
 				.execute("alias", "add", "-f", cwd.toString(), "--name=name",
-						"-d", "Description of the script in arguments", testFile.toString());
+						"--description", "Description of the script in arguments", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
 		Alias name = Alias.get("name");
 		assertThat(name.scriptRef, is("test.java"));

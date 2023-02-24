@@ -92,6 +92,9 @@ public class Util {
 	public static final Pattern patternModuleId = Pattern.compile(
 			"^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$");
 
+	private static final Pattern subUrlPattern = Pattern.compile(
+			"^(%?%https?://.+$)|(%?%\\{https?://[^}]+})");
+
 	private static boolean verbose;
 	private static boolean quiet;
 	private static boolean offline;
@@ -1846,6 +1849,26 @@ public class Util {
 			return sb.toString();
 		}
 		return input;
+	}
+
+	public static String substituteRemote(String arg) {
+		if (arg == null) {
+			return null;
+		}
+		return Util.replaceAll(subUrlPattern, arg, m -> {
+			String txt = m.group().substring(1);
+			if (txt.startsWith("%")) {
+				return Matcher.quoteReplacement(txt);
+			}
+			if (txt.startsWith("{") && txt.endsWith("}")) {
+				txt = txt.substring(1, txt.length() - 1);
+			}
+			try {
+				return Matcher.quoteReplacement(Util.downloadAndCacheFile(txt).toString());
+			} catch (IOException e) {
+				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Error substituting remote file: " + txt, e);
+			}
+		});
 	}
 
 	public static <K, V> Entry<K, V> entry(K k, V v) {

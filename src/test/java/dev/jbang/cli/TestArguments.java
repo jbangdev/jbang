@@ -37,7 +37,7 @@ class TestArguments extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assert run.helpRequested;
-		assertThat(run.debugString, notNullValue());
+		assertThat(run.runMixin.debugString, notNullValue());
 		assertThat(run.scriptMixin.scriptOrFile, is("myfile.java"));
 		assertThat(run.userParams.size(), is(0));
 
@@ -48,7 +48,7 @@ class TestArguments extends BaseTest {
 		CommandLine.ParseResult pr = cli.parseArgs("run", "--debug", "test.java", "--debug", "wonka");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		assertThat(run.debugString, is("4004"));
+		assertThat(run.runMixin.debugString, is("4004"));
 
 		assertThat(run.scriptMixin.scriptOrFile, is("test.java"));
 		assertThat(run.userParams, is(Arrays.asList("--debug", "wonka")));
@@ -86,7 +86,7 @@ class TestArguments extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.scriptMixin.scriptOrFile, is("test.java"));
-		assertThat(run.debugString, notNullValue());
+		assertThat(run.runMixin.debugString, notNullValue());
 	}
 
 	@Test
@@ -95,8 +95,8 @@ class TestArguments extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.scriptMixin.scriptOrFile, is("test.java"));
-		assertThat(run.debugString, notNullValue());
-		assertThat(run.debugString, is("*:5000"));
+		assertThat(run.runMixin.debugString, notNullValue());
+		assertThat(run.runMixin.debugString, is("*:5000"));
 	}
 
 	@Test
@@ -105,8 +105,8 @@ class TestArguments extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.scriptMixin.scriptOrFile, is("test.java"));
-		assertThat(run.debugString, notNullValue());
-		assertThat(run.debugString, is("xyz.dk:5005"));
+		assertThat(run.runMixin.debugString, notNullValue());
+		assertThat(run.runMixin.debugString, is("xyz.dk:5005"));
 	}
 
 	@Test

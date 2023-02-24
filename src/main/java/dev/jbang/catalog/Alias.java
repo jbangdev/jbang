@@ -39,9 +39,37 @@ public class Alias extends CatalogItem {
 	public final Boolean nativeImage;
 	@SerializedName(value = "native-options")
 	public final List<String> nativeOptions;
+	public final String jfr;
+	public final String debug;
+	public final Boolean cds;
+	public final Boolean interactive;
+	@SerializedName(value = "enable-assertions")
+	public final Boolean enableAssertions;
+	@SerializedName(value = "enable-system-assertions")
+	public final Boolean enableSystemAssertions;
+	@SerializedName(value = "manifest-options")
+	public final Map<String, String> manifestOptions;
+	@SerializedName(value = "java-agents")
+	public final List<JavaAgent> javaAgents;
+
+	public static class JavaAgent {
+		@SerializedName(value = "agent-ref")
+		public final String agentRef;
+		public final String options;
+
+		private JavaAgent() {
+			this(null, null);
+		}
+
+		public JavaAgent(String agentRef, String options) {
+			this.agentRef = agentRef;
+			this.options = options;
+		}
+	}
 
 	public Alias() {
-		this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+		this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+				null, null, null, null, null, null, null);
 	}
 
 	public Alias(String scriptRef,
@@ -60,6 +88,14 @@ public class Alias extends CatalogItem {
 			List<String> compileOptions,
 			Boolean nativeImage,
 			List<String> nativeOptions,
+			String jfr,
+			String debug,
+			Boolean cds,
+			Boolean interactive,
+			Boolean enableAssertions,
+			Boolean enableSystemAssertions,
+			Map<String, String> manifestOptions,
+			List<JavaAgent> javaAgents,
 			Catalog catalog) {
 		super(catalog);
 		this.scriptRef = scriptRef;
@@ -78,6 +114,14 @@ public class Alias extends CatalogItem {
 		this.compileOptions = compileOptions;
 		this.nativeImage = nativeImage;
 		this.nativeOptions = nativeOptions;
+		this.jfr = jfr;
+		this.debug = debug;
+		this.cds = cds;
+		this.interactive = interactive;
+		this.enableAssertions = enableAssertions;
+		this.enableSystemAssertions = enableSystemAssertions;
+		this.manifestOptions = manifestOptions;
+		this.javaAgents = javaAgents;
 	}
 
 	/**
@@ -161,9 +205,18 @@ public class Alias extends CatalogItem {
 			List<String> nopts = a1.nativeOptions != null && !a1.nativeOptions.isEmpty() ? a1.nativeOptions
 					: a2.nativeOptions;
 			Boolean nimg = a1.nativeImage != null ? a1.nativeImage : a2.nativeImage;
+			String jfr = a1.jfr != null ? a1.jfr : a2.jfr;
+			String debug = a1.debug != null ? a1.debug : a2.debug;
+			Boolean cds = a1.cds != null ? a1.cds : a2.cds;
+			Boolean inter = a1.interactive != null ? a1.interactive : a2.interactive;
+			Boolean ea = a1.enableAssertions != null ? a1.enableAssertions : a2.enableAssertions;
+			Boolean esa = a1.enableSystemAssertions != null ? a1.enableSystemAssertions : a2.enableSystemAssertions;
+			Map<String, String> mopts = a1.manifestOptions != null && !a1.manifestOptions.isEmpty() ? a1.manifestOptions
+					: a2.manifestOptions;
+			List<JavaAgent> jags = a1.javaAgents != null && !a1.javaAgents.isEmpty() ? a1.javaAgents : a2.javaAgents;
 			Catalog catalog = a2.catalog != null ? a2.catalog : a1.catalog;
 			return new Alias(a2.scriptRef, desc, args, jopts, srcs, ress, deps, repos, cpaths, props, javaVersion,
-					mainClass, moduleName, copts, nimg, nopts, catalog);
+					mainClass, moduleName, copts, nimg, nopts, jfr, debug, cds, inter, ea, esa, mopts, jags, catalog);
 		} else {
 			return a1;
 		}
@@ -206,12 +259,14 @@ public class Alias extends CatalogItem {
 	public Alias withCatalog(Catalog catalog) {
 		return new Alias(scriptRef, description, arguments, runtimeOptions, sources, resources, dependencies,
 				repositories, classpaths, properties, javaVersion, mainClass, moduleName, compileOptions, nativeImage,
-				nativeOptions, catalog);
+				nativeOptions, jfr, debug, cds, interactive, enableAssertions, enableSystemAssertions, manifestOptions,
+				javaAgents, catalog);
 	}
 
 	public Alias withScriptRef(String scriptRef) {
 		return new Alias(scriptRef, description, arguments, runtimeOptions, sources, resources, dependencies,
 				repositories, classpaths, properties, javaVersion, mainClass, moduleName, compileOptions, nativeImage,
-				nativeOptions, catalog);
+				nativeOptions, jfr, debug, cds, interactive, enableAssertions, enableSystemAssertions, manifestOptions,
+				javaAgents, catalog);
 	}
 }

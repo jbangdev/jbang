@@ -107,7 +107,7 @@ public class TestTemplate extends BaseTest {
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		JBang	.getCommandLine()
 				.execute("template", "add", "-f", cwd.toString(), "--name=name",
-						"-d", "Description of the template", testFile.toString());
+						"--description", "Description of the template", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
 				is(true));
 		Template name = Template.get("name");
@@ -230,7 +230,7 @@ public class TestTemplate extends BaseTest {
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		JBang	.getCommandLine()
 				.execute("template", "add", "-f", cwd.toString(), "--name=template-with-single-property",
-						"-d", "Description of the template", "-P", "new-test-key", testFile.toString());
+						"--description", "Description of the template", "-P", "new-test-key", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
 				is(true));
 		Template name = Template.get("template-with-single-property");
@@ -247,7 +247,7 @@ public class TestTemplate extends BaseTest {
 		JBang	.getCommandLine()
 				.execute("template", "add", "-f", cwd.toString(),
 						"--name=template-with-single-complex-property",
-						"-d", "Description of the template", "-P",
+						"--description", "Description of the template", "-P",
 						"new-test-key:This is a description for the property key:3.14", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
 				is(true));
@@ -266,7 +266,7 @@ public class TestTemplate extends BaseTest {
 		JBang	.getCommandLine()
 				.execute("template", "add", "-f", cwd.toString(),
 						"--name=template-with-complex-properties",
-						"-d", "Description of the template", "-P",
+						"--description", "Description of the template", "-P",
 						"new-test-key:This is a description for the property key:3.14", "--property",
 						"second-test-key:This is another description for the second property key:Non-Blocker",
 						testFile.toString());

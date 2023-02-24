@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import dev.jbang.catalog.Alias;
 import dev.jbang.source.generators.JarCmdGenerator;
 import dev.jbang.source.generators.JshCmdGenerator;
 import dev.jbang.source.generators.NativeCmdGenerator;
 import dev.jbang.source.resolvers.AliasResourceResolver;
+import dev.jbang.util.Util;
 
 public class CmdGeneratorBuilder {
 	private final Project project;
@@ -19,9 +21,9 @@ public class CmdGeneratorBuilder {
 	private List<String> runtimeOptions = Collections.emptyList();
 
 	private String mainClass;
-	private boolean interactive;
-	private boolean enableAssertions;
-	private boolean enableSystemAssertions;
+	private Boolean interactive;
+	private Boolean enableAssertions;
+	private Boolean enableSystemAssertions;
 	private String flightRecorderString;
 	private String debugString;
 	private Boolean classDataSharing;
@@ -59,17 +61,17 @@ public class CmdGeneratorBuilder {
 		return this;
 	}
 
-	public CmdGeneratorBuilder interactive(boolean interactive) {
+	public CmdGeneratorBuilder interactive(Boolean interactive) {
 		this.interactive = interactive;
 		return this;
 	}
 
-	public CmdGeneratorBuilder enableAssertions(boolean enableAssertions) {
+	public CmdGeneratorBuilder enableAssertions(Boolean enableAssertions) {
 		this.enableAssertions = enableAssertions;
 		return this;
 	}
 
-	public CmdGeneratorBuilder enableSystemAssertions(boolean enableSystemAssertions) {
+	public CmdGeneratorBuilder enableSystemAssertions(Boolean enableSystemAssertions) {
 		this.enableSystemAssertions = enableSystemAssertions;
 		return this;
 	}
@@ -97,7 +99,7 @@ public class CmdGeneratorBuilder {
 			updateFromAlias(alias);
 		}
 		CmdGenerator gen;
-		if (project.isJShell() || interactive) {
+		if (project.isJShell() || interactive == Boolean.TRUE) {
 			gen = createJshCmdGenerator();
 		} else {
 			if (Boolean.TRUE.equals(project.isNativeImage())) {
@@ -114,9 +116,9 @@ public class CmdGeneratorBuilder {
 												.arguments(arguments)
 												.runtimeOptions(runtimeOptions)
 												.mainClass(mainClass)
-												.mainRequired(!interactive)
-												.assertions(enableAssertions)
-												.systemAssertions(enableSystemAssertions)
+												.mainRequired(interactive != Boolean.TRUE)
+												.assertions(enableAssertions == Boolean.TRUE)
+												.systemAssertions(enableSystemAssertions == Boolean.TRUE)
 												.classDataSharing(
 														Optional.ofNullable(classDataSharing).orElse(false))
 												.debugString(debugString)
@@ -128,7 +130,7 @@ public class CmdGeneratorBuilder {
 												.arguments(arguments)
 												.runtimeOptions(runtimeOptions)
 												.mainClass(mainClass)
-												.interactive(interactive)
+												.interactive(interactive == Boolean.TRUE)
 												.debugString(debugString)
 												.flightRecorderString(flightRecorderString);
 	}
@@ -140,13 +142,39 @@ public class CmdGeneratorBuilder {
 
 	private void updateFromAlias(Alias alias) {
 		if (arguments.isEmpty()) {
-			setArguments(alias.arguments);
+			setArguments(handleRemoteFiles(alias.arguments));
 		}
 		if (runtimeOptions.isEmpty()) {
 			runtimeOptions(alias.runtimeOptions);
 		}
 		if (mainClass == null) {
 			mainClass(alias.mainClass);
+		}
+		if (flightRecorderString == null) {
+			flightRecorderString(alias.jfr);
+		}
+		if (debugString == null) {
+			debugString(alias.debug);
+		}
+		if (classDataSharing == null) {
+			classDataSharing(alias.cds);
+		}
+		if (interactive == null) {
+			interactive(alias.interactive);
+		}
+		if (enableAssertions == null) {
+			enableAssertions(alias.enableAssertions);
+		}
+		if (enableSystemAssertions == null) {
+			enableSystemAssertions(alias.enableSystemAssertions);
+		}
+	}
+
+	private static List<String> handleRemoteFiles(List<String> args) {
+		if (args != null) {
+			return args.stream().map(Util::substituteRemote).collect(Collectors.toList());
+		} else {
+			return null;
 		}
 	}
 }

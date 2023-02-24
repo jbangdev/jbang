@@ -1104,7 +1104,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		assert (run.cds == null);
+		assert (run.runMixin.cds == null);
 	}
 
 	@Test
@@ -1113,8 +1113,8 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--cds", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		assert (run.cds != null);
-		assert (run.cds);
+		assert (run.runMixin.cds != null);
+		assert (run.runMixin.cds);
 	}
 
 	@Test
@@ -1172,8 +1172,8 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--no-cds", arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		assert (run.cds != null);
-		assert (!run.cds);
+		assert (run.runMixin.cds != null);
+		assert (!run.runMixin.cds);
 	}
 
 	String agent = "//JAVAAGENT Can-Redefine-Classes=false Can-Retransform-Classes\n" +
@@ -1269,8 +1269,8 @@ public class TestRun extends BaseTest {
 													mainFile.toAbsolutePath().toString());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		assertThat(run.javaAgentSlots.containsKey(agentFile.toAbsolutePath().toString()), is(true));
-		assertThat(run.javaAgentSlots.get(agentFile.toAbsolutePath().toString()), equalTo("optionA"));
+		assertThat(run.runMixin.javaAgentSlots.containsKey(agentFile.toAbsolutePath().toString()), is(true));
+		assertThat(run.runMixin.javaAgentSlots.get(agentFile.toAbsolutePath().toString()), equalTo("optionA"));
 
 		ProjectBuilder pb = run.createProjectBuilderForRun().mainClass("fakemain");
 		Project code = pb.build(mainFile);
@@ -1279,7 +1279,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(ass1.getMainSource().isAgent(), is(true));
 
-		run.buildAgents(ctx);
+		run.buildAgents(code, ctx);
 
 		CmdGeneratorBuilder bgen = CmdGenerator.builder(code);
 		String result = run.updateGeneratorForRun(bgen).build().generate();
@@ -1295,7 +1295,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--javaagent=xyz.jar", "wonka.java");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		assertThat(run.javaAgentSlots, hasKey("xyz.jar"));
+		assertThat(run.runMixin.javaAgentSlots, hasKey("xyz.jar"));
 	}
 
 	@Test
@@ -1305,7 +1305,7 @@ public class TestRun extends BaseTest {
 													"--javaagent=org.jboss.byteman:byteman:4.0.13", "wonka.java");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		assertThat(run.javaAgentSlots, hasKey("org.jboss.byteman:byteman:4.0.13"));
+		assertThat(run.runMixin.javaAgentSlots, hasKey("org.jboss.byteman:byteman:4.0.13"));
 	}
 
 	@Test
