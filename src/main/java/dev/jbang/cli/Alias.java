@@ -3,6 +3,7 @@ package dev.jbang.cli;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -11,6 +12,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import dev.jbang.Settings;
+import dev.jbang.catalog.Alias.JavaAgent;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.source.Project;
@@ -73,13 +75,11 @@ class AliasAdd extends BaseAliasCommand {
 	@CommandLine.Mixin
 	NativeMixin nativeMixin;
 
-	@CommandLine.Option(names = { "--description",
-			"-d" }, description = "A description for the alias")
-	String description;
+	@CommandLine.Mixin
+	RunMixin runMixin;
 
-	@CommandLine.Option(names = { "-R", "--runtime-option",
-			"--jave-options" }, description = "Options to pass to the Java runtime")
-	List<String> javaRuntimeOptions;
+	@CommandLine.Option(names = { "--description" }, description = "A description for the alias")
+	String description;
 
 	@CommandLine.Option(names = { "--name" }, description = "A name for the alias")
 	String name;
@@ -105,11 +105,14 @@ class AliasAdd extends BaseAliasCommand {
 
 		Path catFile = getCatalog(false);
 		dev.jbang.catalog.Alias alias = new dev.jbang.catalog.Alias(scriptMixin.scriptOrFile, desc, userParams,
-				javaRuntimeOptions,
-				scriptMixin.sources, scriptMixin.resources, dependencyInfoMixin.getDependencies(),
+				runMixin.javaRuntimeOptions, scriptMixin.sources, scriptMixin.resources,
+				dependencyInfoMixin.getDependencies(),
 				dependencyInfoMixin.getRepositories(), dependencyInfoMixin.getClasspaths(),
-				dependencyInfoMixin.getProperties(), buildMixin.javaVersion, buildMixin.main,
-				buildMixin.module, buildMixin.compileOptions, nativeMixin.nativeImage, nativeMixin.nativeOptions, null);
+				dependencyInfoMixin.getProperties(), buildMixin.javaVersion, buildMixin.main, buildMixin.module,
+				buildMixin.compileOptions, nativeMixin.nativeImage, nativeMixin.nativeOptions,
+				runMixin.flightRecorderString, runMixin.debugString, runMixin.cds, runMixin.interactive,
+				runMixin.enableAssertions, runMixin.enableSystemAssertions, runMixin.manifestOptions,
+				createJavaAgents(), null);
 		if (catFile != null) {
 			CatalogUtil.addAlias(catFile, name, alias);
 		} else {
@@ -139,6 +142,16 @@ class AliasAdd extends BaseAliasCommand {
 			pb.catalog(cat.toFile());
 		}
 		return pb;
+	}
+
+	private List<JavaAgent> createJavaAgents() {
+		if (runMixin.javaAgentSlots == null) {
+			return Collections.emptyList();
+		}
+		return runMixin.javaAgentSlots	.entrySet()
+										.stream()
+										.map(e -> new JavaAgent(e.getKey(), e.getValue()))
+										.collect(Collectors.toList());
 	}
 }
 

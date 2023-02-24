@@ -17,6 +17,7 @@ import dev.jbang.source.CmdGeneratorBuilder;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.source.Source;
+import dev.jbang.source.resolvers.AliasResourceResolver;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.util.Util;
 
@@ -25,39 +26,8 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "run", description = "Builds and runs provided script.")
 public class Run extends BaseBuildCommand {
 
-	@CommandLine.Option(names = { "-R", "--runtime-option",
-			"--java-options" }, description = "Options to pass to the Java runtime")
-	public List<String> javaRuntimeOptions;
-
-	@CommandLine.Option(names = {
-			"--jfr" }, fallbackValue = "${jbang.run.jfr}", parameterConsumer = KeyValueFallbackConsumer.class, arity = "0..1", description = "Launch with Java Flight Recorder enabled.")
-	public String flightRecorderString;
-
-	@CommandLine.Option(names = { "-d",
-			"--debug" }, fallbackValue = "${jbang.run.debug}", parameterConsumer = DebugFallbackConsumer.class, arity = "0..1", description = "Launch with java debug enabled on specified port (default: ${FALLBACK-VALUE}) ")
-	public String debugString;
-
-	// should take arguments for package/classes when picocli fixes its flag
-	// handling bug in release 4.6.
-	// https://docs.oracle.com/cd/E19683-01/806-7930/assert-4/index.html
-	@CommandLine.Option(names = { "--enableassertions", "--ea" }, description = "Enable assertions")
-	public boolean enableAssertions;
-
-	@CommandLine.Option(names = { "--enablesystemassertions", "--esa" }, description = "Enable system assertions")
-	public boolean enableSystemAssertions;
-
-	@CommandLine.Option(names = { "--manifest" }, parameterConsumer = KeyValueConsumer.class)
-	public Map<String, String> manifestOptions;
-
-	@CommandLine.Option(names = { "--javaagent" }, parameterConsumer = KeyValueConsumer.class)
-	public Map<String, String> javaAgentSlots;
-
-	@CommandLine.Option(names = {
-			"--cds" }, description = "If specified Class Data Sharing (CDS) will be used for building and running (requires Java 13+)", negatable = true)
-	Boolean cds;
-
-	@CommandLine.Option(names = { "-i", "--interactive" }, description = "Activate interactive mode")
-	public boolean interactive;
+	@CommandLine.Mixin
+	public RunMixin runMixin;
 
 	@CommandLine.Option(names = { "-c",
 			"--code" }, arity = "0..1", description = "Run the given string as code", preprocessor = StrictParameterPreprocessor.class)
@@ -67,14 +37,15 @@ public class Run extends BaseBuildCommand {
 	public List<String> userParams = new ArrayList<>();
 
 	protected void requireScriptArgument() {
-		if (scriptMixin.scriptOrFile == null && ((!interactive && !literalScript.isPresent())
+		if (scriptMixin.scriptOrFile == null && ((runMixin.interactive != Boolean.TRUE && !literalScript.isPresent())
 				|| (literalScript.isPresent() && literalScript.get().isEmpty()))) {
 			throw new IllegalArgumentException("Missing required parameter: '<scriptOrFile>'");
 		}
 	}
 
 	private void rewriteScriptArguments() {
-		if (literalScript.isPresent() && !literalScript.get().isEmpty() && scriptMixin.scriptOrFile != null) {
+		if (literalScript.isPresent() && !literalScript.get().isEmpty()
+				&& scriptMixin.scriptOrFile != null) {
 			List<String> args = new ArrayList<>();
 			args.add(scriptMixin.scriptOrFile);
 			args.addAll(userParams);
@@ -89,7 +60,6 @@ public class Run extends BaseBuildCommand {
 		jdkProvidersMixin.initJdkProviders();
 
 		userParams = handleRemoteFiles(userParams);
-		javaAgentSlots = handleRemoteFiles(javaAgentSlots);
 		String scriptOrFile = scriptMixin.scriptOrFile;
 
 		ProjectBuilder pb = createProjectBuilderForRun();
@@ -124,7 +94,7 @@ public class Run extends BaseBuildCommand {
 		BuildContext ctx = BuildContext.forProject(prj, buildDir);
 		CmdGeneratorBuilder genb = prj.codeBuilder(ctx).build();
 
-		buildAgents(ctx);
+		buildAgents(prj, ctx);
 
 		String cmdline = updateGeneratorForRun(genb).build().generate();
 
@@ -134,19 +104,29 @@ public class Run extends BaseBuildCommand {
 		return EXIT_EXECUTE;
 	}
 
-	void buildAgents(BuildContext ctx) throws IOException {
-		if (javaAgentSlots != null) {
-			if (javaRuntimeOptions == null) {
-				javaRuntimeOptions = new ArrayList<>();
+	void buildAgents(Project prj, BuildContext ctx) throws IOException {
+		Map<String, String> agents = runMixin.javaAgentSlots;
+		if (agents == null && prj.getResourceRef() instanceof AliasResourceResolver.AliasedResourceRef) {
+			AliasResourceResolver.AliasedResourceRef aref = (AliasResourceResolver.AliasedResourceRef) prj.getResourceRef();
+			if (aref.getAlias().javaAgents != null) {
+				Map<String, String> tmpAgents = new HashMap<>();
+				aref.getAlias().javaAgents.forEach(a -> tmpAgents.put(a.agentRef, a.options));
+				agents = tmpAgents;
 			}
-			for (Map.Entry<String, String> agentOption : javaAgentSlots.entrySet()) {
+		}
+		if (agents != null) {
+			if (runMixin.javaRuntimeOptions == null) {
+				runMixin.javaRuntimeOptions = new ArrayList<>();
+			}
+			agents = handleRemoteFiles(agents);
+			for (Map.Entry<String, String> agentOption : agents.entrySet()) {
 				String javaAgent = agentOption.getKey();
 				String javaAgentOptions = agentOption.getValue();
 				ProjectBuilder apb = createBaseProjectBuilder();
 				Project aprj = apb.build(javaAgent);
 				BuildContext actx = ctx.forSubProject(aprj, "agents");
 				aprj.codeBuilder(actx).build();
-				javaRuntimeOptions.addAll(javaAgentOptions(actx, javaAgentOptions));
+				runMixin.javaRuntimeOptions.addAll(javaAgentOptions(actx, javaAgentOptions));
 			}
 		}
 	}
@@ -163,52 +143,26 @@ public class Run extends BaseBuildCommand {
 	CmdGeneratorBuilder updateGeneratorForRun(CmdGeneratorBuilder gb) {
 		gb
 			.setArguments(userParams)
-			.runtimeOptions(javaRuntimeOptions)
+			.runtimeOptions(runMixin.javaRuntimeOptions)
 			.mainClass(buildMixin.main)
-			.interactive(interactive)
-			.enableAssertions(enableAssertions)
-			.enableSystemAssertions(enableSystemAssertions)
-			.flightRecorderString(flightRecorderString)
-			.debugString(debugString)
-			.classDataSharing(cds);
+			.interactive(runMixin.interactive)
+			.enableAssertions(runMixin.enableAssertions)
+			.enableSystemAssertions(runMixin.enableSystemAssertions)
+			.flightRecorderString(runMixin.flightRecorderString)
+			.debugString(runMixin.debugString)
+			.classDataSharing(runMixin.cds);
 
 		return gb;
 	}
 
 	private static List<String> handleRemoteFiles(List<String> args) {
-		return args.stream().map(Run::substituteRemote).collect(Collectors.toList());
+		return args.stream().map(Util::substituteRemote).collect(Collectors.toList());
 	}
 
 	private static Map<String, String> handleRemoteFiles(Map<String, String> slots) {
-		if (slots != null) {
-			Map<String, String> result = new HashMap<>();
-			slots.forEach((key, value) -> result.put(key, substituteRemote(value)));
-			return result;
-		} else {
-			return null;
-		}
-	}
-
-	private static final Pattern subUrlPattern = Pattern.compile("^(%?%https?://.+$)|(%?%\\{https?://[^}]+})");
-
-	private static String substituteRemote(String arg) {
-		if (arg == null) {
-			return null;
-		}
-		return Util.replaceAll(subUrlPattern, arg, m -> {
-			String txt = m.group().substring(1);
-			if (txt.startsWith("%")) {
-				return Matcher.quoteReplacement(txt);
-			}
-			if (txt.startsWith("{") && txt.endsWith("}")) {
-				txt = txt.substring(1, txt.length() - 1);
-			}
-			try {
-				return Matcher.quoteReplacement(Util.downloadAndCacheFile(txt).toString());
-			} catch (IOException e) {
-				throw new ExitException(EXIT_INVALID_INPUT, "Error substituting remote file: " + txt, e);
-			}
-		});
+		Map<String, String> result = new HashMap<>();
+		slots.forEach((key, value) -> result.put(key, Util.substituteRemote(value)));
+		return result;
 	}
 
 	/**
