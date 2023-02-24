@@ -22,6 +22,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.Settings;
+import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.source.buildsteps.JarBuildStep;
 import dev.jbang.source.buildsteps.NativeBuildStep;
@@ -188,8 +189,7 @@ public class TestBuilder extends BaseTest {
 		String mainFile = examplesTestFolder.resolve("foo.java").toString();
 		String incFile = examplesTestFolder.resolve("bar/Bar.java").toString();
 
-		CatalogUtil.addNearestAlias("bar", incFile, null, null, null, null, null, null, null, null, null, null, null,
-				null, null, null, null);
+		CatalogUtil.addNearestAlias("bar", new Alias().withScriptRef(incFile));
 
 		ProjectBuilder pb = Project.builder();
 		pb.additionalSources(Arrays.asList("bar"));
@@ -220,8 +220,7 @@ public class TestBuilder extends BaseTest {
 		String fooScript = readString(fooFile);
 		writeString(mainFile, "//SOURCES bar@" + jbangTempDir + "\n" + fooScript);
 
-		CatalogUtil.addNearestAlias("bar", incFile, null, null, null, null, null, null, null, null, null, null, null,
-				null, null, null, null);
+		CatalogUtil.addNearestAlias("bar", new Alias().withScriptRef(incFile));
 
 		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(mainFile.toString());

@@ -40,7 +40,7 @@ public class Alias extends CatalogItem {
 	@SerializedName(value = "native-options")
 	public final List<String> nativeOptions;
 
-	private Alias() {
+	public Alias() {
 		this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 	}
 
@@ -201,5 +201,17 @@ public class Alias extends CatalogItem {
 			throw new ExitException(EXIT_INVALID_INPUT, "No alias found with name '" + aliasName + "'");
 		}
 		return alias;
+	}
+
+	public Alias withCatalog(Catalog catalog) {
+		return new Alias(scriptRef, description, arguments, runtimeOptions, sources, resources, dependencies,
+				repositories, classpaths, properties, javaVersion, mainClass, moduleName, compileOptions, nativeImage,
+				nativeOptions, catalog);
+	}
+
+	public Alias withScriptRef(String scriptRef) {
+		return new Alias(scriptRef, description, arguments, runtimeOptions, sources, resources, dependencies,
+				repositories, classpaths, properties, javaVersion, mainClass, moduleName, compileOptions, nativeImage,
+				nativeOptions, catalog);
 	}
 }
