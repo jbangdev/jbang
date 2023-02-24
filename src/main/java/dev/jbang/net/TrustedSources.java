@@ -20,6 +20,7 @@ import com.google.gson.JsonPrimitive;
 
 import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
+import dev.jbang.source.ResourceRef;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
 
@@ -185,7 +186,8 @@ public class TrustedSources {
 						.collect(Collectors.toCollection(LinkedHashSet::new));
 
 		String trustedsources = TemplateEngine	.instance()
-												.getTemplate("trusted-sources.json.qute")
+												.getTemplate(
+														ResourceRef.forResource("classpath:/trusted-sources.json.qute"))
 												.data("trustedsources", rules)
 												.render();
 		return trustedsources;
@@ -236,10 +238,10 @@ public class TrustedSources {
 	public static void createTrustedSources() {
 		Path trustedSourcesFile = Settings.getTrustedSourcesFile();
 		if (Files.notExists(trustedSourcesFile)) {
-			String templateName = "trusted-sources.qute";
-			Template template = TemplateEngine.instance().getTemplate(templateName);
+			ResourceRef templateRef = ResourceRef.forResource("classpath:/trusted-sources.qute");
+			Template template = TemplateEngine.instance().getTemplate(templateRef);
 			if (template == null)
-				throw new ExitException(1, "Could not locate template named: '" + templateName + "'");
+				throw new ExitException(1, "Could not locate template named: '" + templateRef + "'");
 			String result = template.render();
 
 			try {

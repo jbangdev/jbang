@@ -82,7 +82,7 @@ public class TestEdit extends BaseTest {
 
 		Path p = outputDir.resolve("edit.java");
 		String s = p.toString();
-		JBang.getCommandLine().execute("init", s);
+		JBang.getCommandLine().execute("--verbose", "init", s);
 		assertThat(new File(s).exists(), is(true));
 
 		Util.writeString(p, "//DEPS org.openjfx:javafx-graphics:11.0.2${bougus:}\n" + Util.readString(p));
