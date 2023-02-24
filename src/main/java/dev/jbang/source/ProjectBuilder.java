@@ -46,6 +46,7 @@ public class ProjectBuilder {
 	private String moduleName;
 	private List<String> compileOptions = Collections.emptyList();
 	private List<String> nativeOptions = Collections.emptyList();
+	private Map<String, String> manifestOptions = new HashMap<>();
 	private File catalogFile;
 
 	private ModularClassPath mcp;
@@ -142,6 +143,15 @@ public class ProjectBuilder {
 			this.nativeOptions = nativeOptions;
 		} else {
 			this.nativeOptions = Collections.emptyList();
+		}
+		return this;
+	}
+
+	public ProjectBuilder manifestOptions(Map<String, String> manifestOptions) {
+		if (manifestOptions != null) {
+			this.manifestOptions = manifestOptions;
+		} else {
+			this.manifestOptions = Collections.emptyMap();
 		}
 		return this;
 	}
@@ -383,6 +393,7 @@ public class ProjectBuilder {
 		ss.addResources(allToFileRef(replaceAllProps(additionalResources)));
 		ss.addCompileOptions(compileOptions);
 		prj.putProperties(properties);
+		prj.getManifestAttributes().putAll(manifestOptions);
 		if (moduleName != null) {
 			if (!moduleName.isEmpty() || !prj.getModuleName().isPresent()) {
 				prj.setModuleName(moduleName);
@@ -477,6 +488,9 @@ public class ProjectBuilder {
 		}
 		if (nativeOptions.isEmpty()) {
 			nativeOptions(alias.nativeOptions);
+		}
+		if (manifestOptions.isEmpty()) {
+			manifestOptions(alias.manifestOptions);
 		}
 	}
 
