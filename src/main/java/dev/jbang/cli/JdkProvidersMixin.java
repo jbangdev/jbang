@@ -13,7 +13,7 @@ public class JdkProvidersMixin {
 	List<String> jdkProviders;
 
 	protected void initJdkProviders() {
-		if (!jdkProviders.isEmpty()) {
+		if (jdkProviders != null && !jdkProviders.isEmpty()) {
 			JdkManager.initProvidersByName(jdkProviders);
 		}
 	}

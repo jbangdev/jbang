@@ -8,6 +8,9 @@ import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.HashSet;
+import java.util.Set;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
@@ -28,6 +31,9 @@ public class ClasspathResourceResolver implements ResourceResolver {
 		return "Classpath resolver";
 	}
 
+	// To make sure we duplicate classpath resources only once
+	private static Set<String> duplicated = new HashSet<>();
+
 	@Override
 	public ResourceRef resolve(String resource) {
 		ResourceRef result = null;
@@ -41,7 +47,6 @@ public class ClasspathResourceResolver implements ResourceResolver {
 
 	private static ResourceRef getClasspathResource(String cpResource) {
 		String ref = cpResource.substring(11);
-		Util.verboseMsg("Duplicating classpath resource " + ref);
 		ClassLoader cl = Thread.currentThread().getContextClassLoader();
 		if (cl == null) {
 			cl = ResourceRef.class.getClassLoader();
@@ -62,11 +67,14 @@ public class ClasspathResourceResolver implements ResourceResolver {
 		}
 
 		// We couldn't read the file directly from the class path so let's make a copy
+		// This is because ResourceRefs only deal with Files and resources are streams
+		Util.verboseMsg("Duplicating classpath resource " + ref);
 		Path to = Util.getUrlCacheDir(cpResource);
-		if (!Files.exists(to)) {
+		if (!duplicated.contains(ref) || !Files.exists(to)) {
 			try (InputStream is = url.openStream()) {
 				Files.createDirectories(to.getParent());
-				Files.copy(is, to);
+				Files.copy(is, to, StandardCopyOption.REPLACE_EXISTING);
+				duplicated.add(ref);
 			} catch (IOException e) {
 				Util.deletePath(to, true);
 				throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR,
