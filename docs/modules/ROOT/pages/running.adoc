@@ -73,7 +73,7 @@ Since Java 9 https://docs.oracle.com/javase/9/tools/java.htm#GUID-3B1CE181-CD30-
 For Java 8 and if you want to set explicitly only for `jbang` you can also add flags by setting `JBANG_JAVA_OPTIONS` and `JBANG_JAVAC_OPTIONS` respectively.
 
 
-== Module support (BETA)
+== Module support (EXPERIMENTAL)
 
 You can mark code as being part of a module by adding the following line:
 
