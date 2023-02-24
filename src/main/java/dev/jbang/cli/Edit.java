@@ -338,7 +338,7 @@ public class Edit extends BaseCommand {
 		String baseName = Util.getBaseName(name);
 		String fullClassName;
 		fullClassName = packageName.map(s -> s + "." + baseName).orElse(baseName);
-		String templateName = "build.qute.gradle";
+		ResourceRef templateRef = ResourceRef.forResource("classpath:/build.qute.gradle");
 		Path destination = tmpProjectDir.resolve("build.gradle");
 		TemplateEngine engine = TemplateEngine.instance();
 
@@ -361,68 +361,68 @@ public class Edit extends BaseCommand {
 		}
 
 		renderTemplate(engine, depIds, fullClassName, baseName, resolvedDependencies, repositories,
-				templateName,
+				templateRef,
 				arguments,
 				destination);
 
 		// setup eclipse
-		templateName = ".qute.classpath";
+		templateRef = ResourceRef.forResource("classpath:/.qute.classpath");
 		destination = tmpProjectDir.resolve(".classpath");
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
-				templateName,
+				templateRef,
 				arguments,
 				destination);
 
-		templateName = ".qute.project";
+		templateRef = ResourceRef.forResource("classpath:/.qute.project");
 		destination = tmpProjectDir.resolve(".project");
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
-				templateName,
+				templateRef,
 				arguments,
 				destination);
 
-		templateName = "main.qute.launch";
+		templateRef = ResourceRef.forResource("classpath:/main.qute.launch");
 		destination = tmpProjectDir.resolve(".eclipse/" + baseName + ".launch");
 		destination.toFile().getParentFile().mkdirs();
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
-				templateName,
+				templateRef,
 				arguments,
 				destination);
 
-		templateName = "main-port-4004.qute.launch";
+		templateRef = ResourceRef.forResource("classpath:/main-port-4004.qute.launch");
 		destination = tmpProjectDir.resolve(".eclipse/" + baseName + "-port-4004.launch");
 		renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
-				templateName,
+				templateRef,
 				arguments,
 				destination);
 
 		// setup vscode
-		templateName = "launch.qute.json";
+		templateRef = ResourceRef.forResource("classpath:/launch.qute.json");
 		destination = tmpProjectDir.resolve(".vscode/launch.json");
 		if (isNeeded(reload, destination)) {
 			destination.toFile().getParentFile().mkdirs();
 			renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
-					templateName,
+					templateRef,
 					arguments,
 					destination);
 		}
 
 		// setup vscode
-		templateName = "README.qute.md";
+		templateRef = ResourceRef.forResource("classpath:/README.qute.md");
 		destination = tmpProjectDir.resolve("README.md");
 		if (isNeeded(reload, destination)) {
 			destination.toFile().getParentFile().mkdirs();
 			renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
-					templateName,
+					templateRef,
 					arguments,
 					destination);
 		}
 
-		templateName = "settings.qute.json";
+		templateRef = ResourceRef.forResource("classpath:/settings.qute.json");
 		destination = tmpProjectDir.resolve(".vscode/settings.json");
 		if (isNeeded(reload, destination)) {
 			destination.toFile().getParentFile().mkdirs();
 			renderTemplate(engine, dependencies, fullClassName, baseName, resolvedDependencies, repositories,
-					templateName,
+					templateRef,
 					arguments,
 					destination);
 		}
@@ -450,13 +450,12 @@ public class Edit extends BaseCommand {
 	}
 
 	private void renderTemplate(TemplateEngine engine, List<String> collectDependencies, String fullclassName,
-			String baseName,
-			List<String> resolvedDependencies, List<MavenRepo> repositories, String templateName,
+			String baseName, List<String> resolvedDependencies, List<MavenRepo> repositories, ResourceRef templateRef,
 			List<String> userParams, Path destination)
 			throws IOException {
-		Template template = engine.getTemplate(templateName);
+		Template template = engine.getTemplate(templateRef);
 		if (template == null)
-			throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateName + "'");
+			throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateRef + "'");
 		String result = template
 								.data("repositories",
 										repositories.stream()

@@ -24,6 +24,7 @@ import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.source.BuildContext;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
+import dev.jbang.source.ResourceRef;
 import dev.jbang.util.JarUtil;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.UnpackUtil;
@@ -278,7 +279,8 @@ class ExportMavenPublish extends BaseExportCommand {
 
 		// generate pom.xml ... if jar could technically just copy from the jar ...but
 		// not possible when native thus for now just regenerate it
-		Template pomTemplate = TemplateEngine.instance().getTemplate("pom.qute.xml");
+		Template pomTemplate = TemplateEngine	.instance()
+												.getTemplate(ResourceRef.forResource("classpath:/pom.qute.xml"));
 
 		Path pomPath = versionDir.resolve(artifact + "-" + version + ".pom");
 		if (pomTemplate == null) {

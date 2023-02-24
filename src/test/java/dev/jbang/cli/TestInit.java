@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,6 +25,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import dev.jbang.BaseTest;
+import dev.jbang.source.ResourceRef;
 import dev.jbang.util.Util;
 
 public class TestInit extends BaseTest {
@@ -33,7 +35,7 @@ public class TestInit extends BaseTest {
 		Path out = outputDir.resolve("test.java");
 		HashMap<String, Object> props = new HashMap<>();
 		props.put("baseName", "test");
-		new Init().renderQuteTemplate(out, "init-hello.java.qute", props);
+		new Init().renderQuteTemplate(out, ResourceRef.forResource("classpath:/init-hello.java.qute"), props);
 		assertThat(Util.readString(out), Matchers.containsString("class test"));
 	}
 
@@ -41,7 +43,8 @@ public class TestInit extends BaseTest {
 	@ValueSource(strings = { "bad.name.java", "Bad-Name.java" })
 	void testInvalidInit(String filename) {
 		Exception ex = assertThrows(ExitException.class,
-				() -> new Init().renderQuteTemplate(Paths.get(filename), "init-hello.java.qute"));
+				() -> new Init().renderQuteTemplate(Paths.get(filename),
+						ResourceRef.forResource("classpath:/init-hello.java.qute"), Collections.emptyMap()));
 		assertThat(ex.getMessage(), Matchers.containsString("is not a valid class name in java."));
 	}
 
@@ -231,7 +234,8 @@ public class TestInit extends BaseTest {
 		m.put("prop1", "propvalue");
 		m.put("prop2", "rocks");
 
-		new Init().renderQuteTemplate(out, cwd.resolve("file1.java.qute").toFile().getAbsolutePath(), m);
+		ResourceRef ref = ResourceRef.forFile(cwd.resolve("file1.java.qute"));
+		new Init().renderQuteTemplate(out, ref, m);
 
 		String outcontent = Util.readString(out);
 

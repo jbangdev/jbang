@@ -2,21 +2,16 @@ package dev.jbang.source.resolvers;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.FileSystemNotFoundException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.HashSet;
-import java.util.Set;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.source.ResourceResolver;
-import dev.jbang.util.Util;
 
 /**
  * A <code>ResourceResolver</code> that, when given a resource string which
@@ -31,17 +26,12 @@ public class ClasspathResourceResolver implements ResourceResolver {
 		return "Classpath resolver";
 	}
 
-	// To make sure we duplicate classpath resources only once
-	private static Set<String> duplicated = new HashSet<>();
-
 	@Override
 	public ResourceRef resolve(String resource) {
 		ResourceRef result = null;
-
 		if (resource.startsWith("classpath:/")) {
 			result = getClasspathResource(resource);
 		}
-
 		return result;
 	}
 
@@ -56,32 +46,33 @@ public class ClasspathResourceResolver implements ResourceResolver {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
 					"Resource not found on class path: " + ref);
 		}
+		return new ClasspathResourceRef(cpResource, url);
+	}
 
-		try {
-			Path f = Paths.get(url.toURI());
-			if (Files.isReadable(f)) {
-				return ResourceRef.forCachedResource(cpResource, f);
-			}
-		} catch (URISyntaxException | IllegalArgumentException | FileSystemNotFoundException e) {
-			// Ignore
+	public static class ClasspathResourceRef extends ResourceRef {
+		@Nonnull
+		private URL url;
+
+		protected ClasspathResourceRef(@Nonnull String ref, @Nonnull URL url) {
+			super(ref, null);
+			this.url = url;
 		}
 
-		// We couldn't read the file directly from the class path so let's make a copy
-		// This is because ResourceRefs only deal with Files and resources are streams
-		Util.verboseMsg("Duplicating classpath resource " + ref);
-		Path to = Util.getUrlCacheDir(cpResource);
-		if (!duplicated.contains(ref) || !Files.exists(to)) {
-			try (InputStream is = url.openStream()) {
-				Files.createDirectories(to.getParent());
-				Files.copy(is, to, StandardCopyOption.REPLACE_EXISTING);
-				duplicated.add(ref);
-			} catch (IOException e) {
-				Util.deletePath(to, true);
-				throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR,
-						"Resource could not be copied from class path: " + ref, e);
-			}
+		@Override
+		public boolean exists() {
+			return true;
 		}
 
-		return ResourceRef.forCachedResource(cpResource, to);
+		@Nullable
+		@Override
+		public Path getFile() {
+			return null;
+		}
+
+		@Nonnull
+		@Override
+		public InputStream getInputStream() throws IOException {
+			return url.openStream();
+		}
 	}
 }

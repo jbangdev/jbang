@@ -155,21 +155,12 @@ public class Init extends BaseCommand {
 		return Paths.get(result);
 	}
 
-	private void renderQuteTemplate(Path outFile, ResourceRef templateRef, Map<String, Object> properties)
+	void renderQuteTemplate(Path outFile, ResourceRef templateRef, Map<String, Object> properties)
 			throws IOException {
-		Util.verboseMsg("Rendering template " + templateRef.getOriginalResource() + " to " + outFile);
-		renderQuteTemplate(outFile, templateRef.getFile().toAbsolutePath().toString(), properties);
-	}
-
-	void renderQuteTemplate(Path outFile, String templatePath) throws IOException {
-		renderQuteTemplate(outFile, templatePath, new HashMap<>());
-	}
-
-	void renderQuteTemplate(Path outFile, String templatePath, Map<String, Object> properties) throws IOException {
-		Template template = TemplateEngine.instance().getTemplate(templatePath);
+		Template template = TemplateEngine.instance().getTemplate(templateRef);
 		if (template == null) {
 			throw new ExitException(EXIT_INVALID_INPUT,
-					"Could not find or load template: " + templatePath);
+					"Could not find or load template: " + templateRef);
 		}
 
 		if (outFile.toString().endsWith(".java")) {

@@ -3,14 +3,10 @@ package dev.jbang.util;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 
-import dev.jbang.Main;
+import dev.jbang.source.ResourceRef;
 
 import io.quarkus.qute.Engine;
 import io.quarkus.qute.ReflectionValueResolver;
@@ -33,73 +29,31 @@ public class TemplateEngine {
 						.build();
 	}
 
-	private URL locatePath(String path) {
-		ClassLoader cl = Thread.currentThread().getContextClassLoader();
-		if (cl == null) {
-			cl = Main.class.getClassLoader();
-		}
-		return cl.getResource(path);
-	}
-
 	/**
-	 * @param path
+	 * @param ref
 	 * @return the optional reader
 	 */
-	private Optional<TemplateLocator.TemplateLocation> locate(String path) {
-		Path p = Paths.get(path);
-		if (p.isAbsolute() || Files.isReadable(p)) {
-			return Optional.of(new FileTemplateLocation(p));
-		} else {
-			URL resource = locatePath(path);
-			if (resource != null) {
-				return Optional.of(new ResourceTemplateLocation(resource));
-			}
-		}
-		return Optional.empty();
+	private Optional<TemplateLocator.TemplateLocation> locate(String ref) {
+		return Optional.of(new ResourceRefTemplateLocation(ResourceRef.forResource(ref)));
 	}
 
-	public Template getTemplate(String templateName) {
-		return engine.getTemplate(templateName);
+	public Template getTemplate(ResourceRef templateRef) {
+		return engine.getTemplate(templateRef.getOriginalResource());
 	}
 
-	static class ResourceTemplateLocation implements TemplateLocator.TemplateLocation {
-		private final URL resource;
+	static class ResourceRefTemplateLocation implements TemplateLocator.TemplateLocation {
+		private final ResourceRef resourceRef;
 		private Optional<Variant> variant = Optional.empty();
 
-		public ResourceTemplateLocation(URL resource) {
-			this.resource = resource;
+		public ResourceRefTemplateLocation(ResourceRef resourceRef) {
+			this.resourceRef = resourceRef;
 			this.variant = Optional.empty();
 		}
 
 		@Override
 		public Reader read() {
 			try {
-				return new InputStreamReader(resource.openStream(), StandardCharsets.UTF_8);
-			} catch (IOException e) {
-				return null;
-			}
-		}
-
-		@Override
-		public Optional<Variant> getVariant() {
-			return variant;
-		}
-
-	}
-
-	static class FileTemplateLocation implements TemplateLocator.TemplateLocation {
-		private final Path file;
-		private Optional<Variant> variant = Optional.empty();
-
-		public FileTemplateLocation(Path file) {
-			this.file = file;
-			this.variant = Optional.empty();
-		}
-
-		@Override
-		public Reader read() {
-			try {
-				return Files.newBufferedReader(file);
+				return new InputStreamReader(resourceRef.getInputStream(), StandardCharsets.UTF_8);
 			} catch (IOException e) {
 				return null;
 			}

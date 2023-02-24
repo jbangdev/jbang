@@ -29,6 +29,7 @@ import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.source.BuildContext;
 import dev.jbang.source.Builder;
 import dev.jbang.source.Project;
+import dev.jbang.source.ResourceRef;
 import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
@@ -142,7 +143,8 @@ public abstract class CompileBuildStep implements Builder<Project> {
 	}
 
 	protected Path generatePom() throws IOException {
-		Template pomTemplate = TemplateEngine.instance().getTemplate("pom.qute.xml");
+		Template pomTemplate = TemplateEngine	.instance()
+												.getTemplate(ResourceRef.forResource("classpath:/pom.qute.xml"));
 
 		Path pomPath = null;
 		if (pomTemplate == null) {
@@ -169,7 +171,9 @@ public abstract class CompileBuildStep implements Builder<Project> {
 	}
 
 	protected Path generateModuleInfo() throws IOException {
-		Template infoTemplate = TemplateEngine.instance().getTemplate("module-info.qute.java");
+		Template infoTemplate = TemplateEngine	.instance()
+												.getTemplate(
+														ResourceRef.forResource("classpath:/module-info.qute.java"));
 
 		Path infoPath = null;
 		if (infoTemplate == null) {

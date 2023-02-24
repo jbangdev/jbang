@@ -4,7 +4,8 @@ import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
 import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 
 import java.io.IOException;
-import java.io.Reader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -235,7 +236,7 @@ public class Catalog {
 		Catalog result = Catalog.empty();
 		for (Catalog catalog : catalogs) {
 			if (!includeImplicits
-					&& catalog.catalogRef.getFile().equals(Settings.getUserImplicitCatalogFile())) {
+					&& Settings.getUserImplicitCatalogFile().equals(catalog.catalogRef.getFile())) {
 				continue;
 			}
 			merge(catalog, result);
@@ -284,6 +285,9 @@ public class Catalog {
 	}
 
 	public static Catalog get(Path catalogPath) {
+		if (Files.isDirectory(catalogPath)) {
+			catalogPath = catalogPath.resolve(Catalog.JBANG_CATALOG_JSON);
+		}
 		return get(ResourceRef.forFile(catalogPath));
 	}
 
@@ -291,10 +295,7 @@ public class Catalog {
 		Catalog catalog;
 		Path catalogPath = ref.getFile();
 		if (Util.isFresh() || !catalogCache.containsKey(catalogPath.toString())) {
-			if (Files.isDirectory(catalogPath)) {
-				catalogPath = catalogPath.resolve(Catalog.JBANG_CATALOG_JSON);
-			}
-			catalog = read(catalogPath);
+			catalog = read(ref);
 			catalog.catalogRef = ref;
 			catalogCache.put(catalogPath.toString(), catalog);
 		} else {
@@ -327,8 +328,7 @@ public class Catalog {
 			String res = "classpath:/" + JBANG_CATALOG_JSON;
 			ResourceRef catRef = ResourceRef.forResource(res);
 			if (catRef != null) {
-				Path catPath = catRef.getFile();
-				catalog = read(catPath);
+				catalog = read(catRef);
 				catalog.catalogRef = catRef;
 				catalogCache.put(CACHE_BUILTIN, catalog);
 			}
@@ -342,12 +342,12 @@ public class Catalog {
 		catalogCache.clear();
 	}
 
-	static Catalog read(Path catalogPath) {
-		Util.verboseMsg(String.format("Reading catalog from %s", catalogPath));
+	static Catalog read(ResourceRef catalogRef) {
+		Util.verboseMsg(String.format("Reading catalog from %s", catalogRef.getOriginalResource()));
 		Catalog catalog = Catalog.empty();
-		if (Files.isRegularFile(catalogPath)) {
-			try (Reader in = Files.newBufferedReader(catalogPath)) {
-				catalog = read(in);
+		if (catalogRef.exists()) {
+			try (InputStream is = catalogRef.getInputStream()) {
+				catalog = read(is);
 			} catch (IOException e) {
 				// Ignore errors
 			}
@@ -355,9 +355,9 @@ public class Catalog {
 		return catalog;
 	}
 
-	private static Catalog read(Reader in) {
+	private static Catalog read(InputStream is) {
 		Gson parser = new Gson();
-		Catalog catalog = parser.fromJson(in, Catalog.class);
+		Catalog catalog = parser.fromJson(new InputStreamReader(is), Catalog.class);
 		if (catalog != null) {
 			// Validate the result (Gson can't do this)
 			if (catalog.catalogs == null) {

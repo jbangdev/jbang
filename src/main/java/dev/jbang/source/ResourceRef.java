@@ -1,5 +1,8 @@
 package dev.jbang.source;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 
@@ -35,9 +38,21 @@ public class ResourceRef implements Comparable<ResourceRef> {
 		return originalResource != null && isStdin(originalResource);
 	}
 
+	public boolean exists() {
+		return file != null && Files.isRegularFile(file);
+	}
+
 	@Nullable
 	public Path getFile() {
 		return file;
+	}
+
+	public InputStream getInputStream() throws IOException {
+		if (getFile() != null) {
+			return Files.newInputStream(getFile());
+		} else {
+			return null;
+		}
 	}
 
 	@Nullable
