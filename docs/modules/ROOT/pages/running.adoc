@@ -82,7 +82,7 @@ You can mark code as being part of a module by adding the following line:
 //MODULE <module-name>
 ----
 
-This will make Jbang treat the code a being a module with the given name, and it will compile it as such.
+This will make JBang treat the code a being a module with the given name, and it will compile it as such.
 Any declared dependencies are automatically marked as being required.
 
 You can also set this on the command line by using the `--module=<name>` option on the `jbang build` command.
@@ -90,7 +90,7 @@ The option also exists for `jbang run` where it will treat anything to be run as
 
 == Setting main class
 
-Normally Jbang will figure out by itself what your code's main class is, but in case you want to override
+Normally JBang will figure out by itself what your code's main class is, but in case you want to override
 this behaviour in code, you can use the following line:
 
 [source, java]
