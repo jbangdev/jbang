@@ -2,7 +2,7 @@
 SETLOCAL ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
 
 rem The Java version to install when it's not installed on the system yet
-if "%JBANG_DEFAULT_JAVA_VERSION%"=="" (set javaVersion=11) else (set javaVersion=%JBANG_DEFAULT_JAVA_VERSION%)
+if "%JBANG_DEFAULT_JAVA_VERSION%"=="" (set javaVersion=17) else (set javaVersion=%JBANG_DEFAULT_JAVA_VERSION%)
 
 if "%JBANG_DIR%"=="" (set JBDIR=%userprofile%\.jbang) else (set JBDIR=%JBANG_DIR%)
 if "%JBANG_CACHE_DIR%"=="" (set TDIR=%JBDIR%\cache) else (set TDIR=%JBANG_CACHE_DIR%)

@@ -7,7 +7,7 @@
 #
 
 # The Java version to install when it's not installed on the system yet
-javaVersion=${JBANG_DEFAULT_JAVA_VERSION:-11}
+javaVersion=${JBANG_DEFAULT_JAVA_VERSION:-17}
 
 script_dir() {
   script=${BASH_SOURCE[0]}
@@ -95,13 +95,7 @@ case "$(uname -m)" in
   s390x)
     arch=s390x;;
   arm64)
-    if [ "$os" = "mac" ]; then
-      arch=arm64
-      ## force use of 17 as 11 not yet available https://github.com/adoptium/adoptium/issues/96
-      javaVersion=17
-    else
-      arch=arm64
-    fi
+    arch=arm64
     ;;
   *)
     ## AIX gives a machine ID for `uname -m` but it only supports ppc64
