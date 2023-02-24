@@ -1,6 +1,7 @@
 package dev.jbang.cli;
 
 import java.util.List;
+import java.util.Map;
 
 import picocli.CommandLine;
 
@@ -27,4 +28,7 @@ public class BuildMixin {
 
 	@CommandLine.Option(names = { "-C", "--compile-option" }, description = "Options to pass to the compiler")
 	public List<String> compileOptions;
+
+	@CommandLine.Option(names = { "--manifest" }, parameterConsumer = KeyValueConsumer.class)
+	public Map<String, String> manifestOptions;
 }

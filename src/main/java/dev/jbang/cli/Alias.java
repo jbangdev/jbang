@@ -111,7 +111,7 @@ class AliasAdd extends BaseAliasCommand {
 				dependencyInfoMixin.getProperties(), buildMixin.javaVersion, buildMixin.main, buildMixin.module,
 				buildMixin.compileOptions, nativeMixin.nativeImage, nativeMixin.nativeOptions,
 				runMixin.flightRecorderString, runMixin.debugString, runMixin.cds, runMixin.interactive,
-				runMixin.enableAssertions, runMixin.enableSystemAssertions, runMixin.manifestOptions,
+				runMixin.enableAssertions, runMixin.enableSystemAssertions, buildMixin.manifestOptions,
 				createJavaAgents(), null);
 		if (catFile != null) {
 			CatalogUtil.addAlias(catFile, name, alias);

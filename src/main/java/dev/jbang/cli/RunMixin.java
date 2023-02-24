@@ -28,9 +28,6 @@ public class RunMixin {
 	@CommandLine.Option(names = { "--enablesystemassertions", "--esa" }, description = "Enable system assertions")
 	public Boolean enableSystemAssertions;
 
-	@CommandLine.Option(names = { "--manifest" }, parameterConsumer = KeyValueConsumer.class)
-	public Map<String, String> manifestOptions;
-
 	@CommandLine.Option(names = { "--javaagent" }, parameterConsumer = KeyValueConsumer.class)
 	public Map<String, String> javaAgentSlots;
 
