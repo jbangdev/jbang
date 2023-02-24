@@ -2207,4 +2207,128 @@ public class TestRun extends BaseTest {
 						CommandBuffer.escapeShellArgument("-Dfoo=bar -Dbar=aap noot mies", Util.getShell()))));
 		// assertThat(result, containsString("--source 11"));
 	}
+
+	@Test
+	void testRemoteFileArgSimple() throws IOException {
+
+		wms.stubFor(WireMock.get(urlEqualTo("/readme.md"))
+							.willReturn(aResponse()
+													.withHeader("Content-Type", "text/plain")
+													.withBodyFile("readme.md")
+													.withBody(
+															Util.readString(
+																	examplesTestFolder.resolve("readme.md")))));
+
+		wms.start();
+		String script = examplesTestFolder.resolve("helloworld.java").toString();
+		String arg = "http://localhost:" + wms.port() + "/readme.md";
+		ExecutionResult result = checkedRun(null, "run", "--verbose", script, "%" + arg);
+		assertThat(result.err, containsString("Requesting HTTP GET " + arg));
+		Path file = Util.downloadAndCacheFile(arg);
+		assertThat(result.err, containsString(file.toString()));
+	}
+
+	@Test
+	void testRemoteFileArgBraced() throws IOException {
+
+		wms.stubFor(WireMock.get(urlEqualTo("/readme.md"))
+							.willReturn(aResponse()
+													.withHeader("Content-Type", "text/plain")
+													.withBodyFile("readme.md")
+													.withBody(
+															Util.readString(
+																	examplesTestFolder.resolve("readme.md")))));
+
+		wms.start();
+		String script = examplesTestFolder.resolve("helloworld.java").toString();
+		String arg = "http://localhost:" + wms.port() + "/readme.md";
+		ExecutionResult result = checkedRun(null, "run", "--verbose", script, "%{" + arg + "}");
+		assertThat(result.err, containsString("Requesting HTTP GET " + arg));
+		Path file = Util.downloadAndCacheFile(arg);
+		assertThat(result.err, containsString(file.toString()));
+	}
+
+	@Test
+	void testRemoteFileArgComplex() throws IOException {
+
+		wms.stubFor(
+				WireMock.get(urlEqualTo("/readme1.md"))
+						.willReturn(aResponse()
+												.withHeader("Content-Type", "text/plain")
+												.withBodyFile("readme1.md")
+												.withBody(
+														Util.readString(
+																examplesTestFolder.resolve("readme.md")))));
+		wms.stubFor(
+				WireMock.get(urlEqualTo("/readme2.md"))
+						.willReturn(aResponse()
+												.withHeader("Content-Type", "text/plain")
+												.withBodyFile("readme2.md")
+												.withBody(
+														Util.readString(
+																examplesTestFolder.resolve("readme.md")))));
+
+		wms.start();
+		String script = examplesTestFolder.resolve("helloworld.java").toString();
+		String arg1 = "http://localhost:" + wms.port() + "/readme1.md";
+		String arg2 = "http://localhost:" + wms.port() + "/readme2.md";
+		ExecutionResult result = checkedRun(null, "run", "--verbose", script,
+				"foo%{" + arg1 + "}bar%{" + arg2 + "}baz");
+		assertThat(result.err, containsString("Requesting HTTP GET " + arg1));
+		assertThat(result.err, containsString("Requesting HTTP GET " + arg2));
+		Path file1 = Util.downloadAndCacheFile(arg1);
+		Path file2 = Util.downloadAndCacheFile(arg2);
+		assertThat(result.err, containsString("foo" + file1 + "bar" + file2 + "baz"));
+	}
+
+	@Test
+	void testRemoteFileJavaagentComplex() throws IOException {
+
+		wms.stubFor(
+				WireMock.get(urlEqualTo("/readme.md"))
+						.willReturn(aResponse()
+												.withHeader("Content-Type", "text/plain")
+												.withBodyFile("readme.md")
+												.withBody(
+														Util.readString(
+																examplesTestFolder.resolve("readme.md")))));
+
+		wms.start();
+		String script = examplesTestFolder.resolve("helloworld.java").toString();
+		String agent = examplesTestFolder.resolve("JULAgent.java").toString();
+		String arg = "http://localhost:" + wms.port() + "/readme.md";
+		ExecutionResult result = checkedRun(null, "run", "--verbose", "--javaagent=" + agent + "=test:%{" + arg + "}",
+				script);
+		assertThat(result.err, containsString("Requesting HTTP GET " + arg));
+		Path file = Util.downloadAndCacheFile(arg);
+		Project prj = ProjectBuilder.create().build(script);
+		Project aprj = ProjectBuilder.create().build(agent);
+		BuildContext ctx = BuildContext.forProject(prj);
+		BuildContext actx = ctx.forSubProject(aprj, "agents");
+		Path jar = actx.getJarFile();
+		assertThat(result.err, containsString("-javaagent:" + jar + "=test:" + file));
+	}
+
+	@Test
+	void testRemoteFileArgSimpleEscaped() throws IOException {
+		String script = examplesTestFolder.resolve("helloworld.java").toString();
+		String arg = "http://localhost:1234/readme.md";
+		ExecutionResult result = checkedRun(null, "run", "--verbose", script, "%%" + arg);
+		assertThat(result.err, not(containsString("Requesting HTTP GET " + arg)));
+		assertThat(result.err, containsString("%" + arg));
+		assertThat(result.err, not(containsString("%%" + arg)));
+	}
+
+	@Test
+	void testRemoteFileArgComplexEscaped() throws IOException {
+		if (Util.isWindows()) {
+			environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "powershell");
+		}
+		String script = examplesTestFolder.resolve("helloworld.java").toString();
+		String arg = "http://localhost:1234/readme.md";
+		ExecutionResult result = checkedRun(null, "run", "--verbose", script, "foo%%{" + arg + "}bar");
+		assertThat(result.err, not(containsString("Requesting HTTP GET " + arg)));
+		assertThat(result.err, containsString("foo%{" + arg + "}bar"));
+		assertThat(result.err, not(containsString("foo%%{" + arg + "}bar")));
+	}
 }

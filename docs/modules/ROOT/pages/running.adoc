@@ -100,3 +100,52 @@ You can activate a javaagent using `--javaagent=<agent>[=<options>]` where agent
 It can also be a jbang script itself where you have put `//JAVAAGENT` to activate agent packaging.
 
 You can create a basic agent using `jbang init -t agent myagent.java` to get started.
+
+== Remote File Arguments
+
+The `run` command has a special feature where any of the arguments for the code to be
+executed can be a reference to a remote file by appending a `%` in front  of a URL.
+Imagine for example a `wordcount.java` script that takes as its argument a path
+to a file. Now with this feature we could write:
+
+```
+$ jbang run wordcount.java %https://github.com/jbangdev/jbang/blob/main/README.md
+```
+
+JBang will download the given file to its local cache and then run the code with the path
+to the file substituted for the URL. It will be as if the code has suddenly acquired the
+feature to read and analyse remote files!
+
+There is an alternative syntax in case the substitution needs to be part of an existing
+text, for example when it has to be part of a flag passed to an application:
+
+```
+$ jbang run analyse.java --file=%{https://github.com/jbangdev/jbang/blob/main/README.md}
+```
+
+In this case wrap the URL with braces to explicitly mark the beginning and end.
+
+=== Remote-File for --javaagent
+
+The remote-file syntax is also available for the `--javaagent` option for the `run`
+command, for example:
+
+```
+$ jbang —javaagent=byteman@maxandersen=script:%{https://xam.dk/myscript.btm myapp.java}
+```
+
+As you can see it's necessary here to use the syntax with the braces because it's part
+of larger string of text.
+
+=== Escaping Remote-File Arguments
+
+If, for some reason, you really need to be able to pass the text `%http://some.url` to
+an application without JBang downloading the file and turning it into a file path for you,
+then you simply add an extra `%` to the beginning. That will tell JBang to ignore what
+follows and just treat it as an ordinary string of text. For example:
+
+```
+$ jbang run wordcount.java %%https://github.com/jbangdev/jbang/blob/main/README.md
+```
+
+Would simply pass `%https://github.com/jbangdev/jbang/blob/main/README.md` to the script.

@@ -2,12 +2,14 @@ package dev.jbang.cli;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import dev.jbang.source.BuildContext;
 import dev.jbang.source.Project;
@@ -73,6 +75,9 @@ public class Run extends BaseBuildCommand {
 	public Integer doCall() throws IOException {
 		requireScriptArgument();
 		jdkProvidersMixin.initJdkProviders();
+
+		userParams = handleRemoteFiles(userParams);
+		javaAgentSlots = handleRemoteFiles(javaAgentSlots);
 		String scriptOrFile = scriptMixin.scriptOrFile;
 
 		ProjectBuilder pb = createProjectBuilder();
@@ -113,7 +118,7 @@ public class Run extends BaseBuildCommand {
 		}
 
 		String cmdline = prj.cmdGenerator(ctx).generate();
-		debug("run: " + cmdline);
+		Util.verboseMsg("run: " + cmdline);
 		out.println(cmdline);
 
 		return EXIT_EXECUTE;
@@ -140,6 +145,42 @@ public class Run extends BaseBuildCommand {
 			}
 		}
 		return pb;
+	}
+
+	private static List<String> handleRemoteFiles(List<String> args) {
+		return args.stream().map(Run::substituteRemote).collect(Collectors.toList());
+	}
+
+	private static Map<String, String> handleRemoteFiles(Map<String, String> slots) {
+		if (slots != null) {
+			Map<String, String> result = new HashMap<>();
+			slots.forEach((key, value) -> result.put(key, substituteRemote(value)));
+			return result;
+		} else {
+			return null;
+		}
+	}
+
+	private static final Pattern subUrlPattern = Pattern.compile("^(%?%https?://.+$)|(%?%\\{https?://[^}]+})");
+
+	private static String substituteRemote(String arg) {
+		if (arg == null) {
+			return null;
+		}
+		return Util.replaceAll(subUrlPattern, arg, m -> {
+			String txt = m.group().substring(1);
+			if (txt.startsWith("%")) {
+				return Matcher.quoteReplacement(txt);
+			}
+			if (txt.startsWith("{") && txt.endsWith("}")) {
+				txt = txt.substring(1, txt.length() - 1);
+			}
+			try {
+				return Matcher.quoteReplacement(Util.downloadAndCacheFile(txt).toString());
+			} catch (IOException e) {
+				throw new ExitException(EXIT_INVALID_INPUT, "Error substituting remote file: " + txt, e);
+			}
+		});
 	}
 
 	/**
