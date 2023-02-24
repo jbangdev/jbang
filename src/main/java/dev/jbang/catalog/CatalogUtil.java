@@ -10,7 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -30,27 +29,9 @@ public class CatalogUtil {
 	 * 
 	 * @param name The name of the new alias
 	 */
-	public static Path addNearestAlias(String name,
-			String scriptRef,
-			String description,
-			List<String> arguments,
-			List<String> javaRuntimeOptions,
-			List<String> sources,
-			List<String> resources,
-			List<String> dependencies,
-			List<String> repositories,
-			List<String> classPaths,
-			Map<String, String> properties,
-			String javaVersion,
-			String mainClass,
-			String moduleName,
-			List<String> compileOptions,
-			Boolean nativeImage,
-			List<String> nativeOptions) {
+	public static Path addNearestAlias(String name, Alias alias) {
 		Path catalogFile = Catalog.getCatalogFile(null);
-		addAlias(catalogFile, name, scriptRef, description, arguments, javaRuntimeOptions, sources, resources,
-				dependencies, repositories, classPaths, properties, javaVersion, mainClass, moduleName,
-				compileOptions, nativeImage, nativeOptions);
+		addAlias(catalogFile, name, alias);
 		return catalogFile;
 	}
 
@@ -60,32 +41,12 @@ public class CatalogUtil {
 	 * @param catalogFile Path to catalog file
 	 * @param name        The name of the new alias
 	 */
-	public static Alias addAlias(Path catalogFile,
-			String name,
-			String scriptRef,
-			String description,
-			List<String> arguments,
-			List<String> javaRuntimeOptions,
-			List<String> sources,
-			List<String> resources,
-			List<String> dependencies,
-			List<String> repositories,
-			List<String> classPaths,
-			Map<String, String> properties,
-			String javaVersion,
-			String mainClass,
-			String moduleName,
-			List<String> compileOptions,
-			Boolean nativeImage,
-			List<String> nativeOptions) {
+	public static Alias addAlias(Path catalogFile, String name, Alias alias) {
 		Path cwd = Util.getCwd();
 		catalogFile = cwd.resolve(catalogFile);
 		Catalog catalog = Catalog.get(catalogFile);
-		scriptRef = catalog.relativize(scriptRef);
-		Alias alias = new Alias(scriptRef, description, arguments, javaRuntimeOptions, sources, resources,
-				dependencies, repositories, classPaths, properties, javaVersion, mainClass, moduleName,
-				compileOptions, nativeImage, nativeOptions, catalog);
-		catalog.aliases.put(name, alias);
+		String scriptRef = catalog.relativize(alias.scriptRef);
+		catalog.aliases.put(name, alias.withCatalog(catalog).withScriptRef(scriptRef));
 		try {
 			catalog.write();
 			return alias;

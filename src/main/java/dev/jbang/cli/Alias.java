@@ -104,18 +104,16 @@ class AliasAdd extends BaseAliasCommand {
 		String desc = description != null ? description : prj.getDescription().orElse(null);
 
 		Path catFile = getCatalog(false);
+		dev.jbang.catalog.Alias alias = new dev.jbang.catalog.Alias(scriptMixin.scriptOrFile, desc, userParams,
+				javaRuntimeOptions,
+				scriptMixin.sources, scriptMixin.resources, dependencyInfoMixin.getDependencies(),
+				dependencyInfoMixin.getRepositories(), dependencyInfoMixin.getClasspaths(),
+				dependencyInfoMixin.getProperties(), buildMixin.javaVersion, buildMixin.main,
+				buildMixin.module, buildMixin.compileOptions, nativeMixin.nativeImage, nativeMixin.nativeOptions, null);
 		if (catFile != null) {
-			CatalogUtil.addAlias(catFile, name, scriptMixin.scriptOrFile, desc, userParams, javaRuntimeOptions,
-					scriptMixin.sources, scriptMixin.resources, dependencyInfoMixin.getDependencies(),
-					dependencyInfoMixin.getRepositories(), dependencyInfoMixin.getClasspaths(),
-					dependencyInfoMixin.getProperties(), buildMixin.javaVersion, buildMixin.main,
-					buildMixin.module, buildMixin.compileOptions, nativeMixin.nativeImage, nativeMixin.nativeOptions);
+			CatalogUtil.addAlias(catFile, name, alias);
 		} else {
-			catFile = CatalogUtil.addNearestAlias(name, scriptMixin.scriptOrFile, desc, userParams, javaRuntimeOptions,
-					scriptMixin.sources, scriptMixin.resources, dependencyInfoMixin.getDependencies(),
-					dependencyInfoMixin.getRepositories(), dependencyInfoMixin.getClasspaths(),
-					dependencyInfoMixin.getProperties(), buildMixin.javaVersion, buildMixin.main,
-					buildMixin.module, buildMixin.compileOptions, nativeMixin.nativeImage, nativeMixin.nativeOptions);
+			catFile = CatalogUtil.addNearestAlias(name, alias);
 		}
 		info(String.format("Alias '%s' added to '%s'", name, catFile));
 		return EXIT_OK;
