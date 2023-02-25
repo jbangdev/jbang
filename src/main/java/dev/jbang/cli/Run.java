@@ -124,7 +124,7 @@ public class Run extends BaseBuildCommand {
 				String javaAgentOptions = agentOption.getValue();
 				ProjectBuilder apb = createBaseProjectBuilder();
 				Project aprj = apb.build(javaAgent);
-				BuildContext actx = ctx.forSubProject(aprj, "agents");
+				BuildContext actx = BuildContext.forProject(aprj);
 				aprj.codeBuilder(actx).build();
 				runMixin.javaRuntimeOptions.addAll(javaAgentOptions(actx, javaAgentOptions));
 			}

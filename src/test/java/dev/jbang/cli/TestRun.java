@@ -2251,10 +2251,8 @@ public class TestRun extends BaseTest {
 				script);
 		assertThat(result.err, containsString("Requesting HTTP GET " + arg));
 		Path file = Util.downloadAndCacheFile(arg);
-		Project prj = Project.builder().build(script);
 		Project aprj = Project.builder().build(agent);
-		BuildContext ctx = BuildContext.forProject(prj);
-		BuildContext actx = ctx.forSubProject(aprj, "agents");
+		BuildContext actx = BuildContext.forProject(aprj);
 		Path jar = actx.getJarFile();
 		assertThat(result.err, containsString("-javaagent:" + jar + "=test:" + file));
 	}
