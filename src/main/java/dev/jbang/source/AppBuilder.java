@@ -4,6 +4,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import dev.jbang.source.buildsteps.IntegrationBuildStep;
 import dev.jbang.source.buildsteps.JarBuildStep;
 import dev.jbang.source.buildsteps.NativeBuildStep;
 import dev.jbang.spi.IntegrationResult;
@@ -121,7 +122,9 @@ public abstract class AppBuilder implements Builder<CmdGeneratorBuilder> {
 
 	protected abstract Builder<Project> getCompileBuildStep();
 
-	protected abstract Builder<IntegrationResult> getIntegrationBuildStep();
+	protected Builder<IntegrationResult> getIntegrationBuildStep() {
+		return new IntegrationBuildStep(project, ctx);
+	}
 
 	protected Builder<Project> getJarBuildStep() {
 		return new JarBuildStep(project, ctx);

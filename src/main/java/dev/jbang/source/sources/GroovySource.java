@@ -15,8 +15,6 @@ import dev.jbang.net.JdkManager;
 import dev.jbang.source.*;
 import dev.jbang.source.AppBuilder;
 import dev.jbang.source.buildsteps.CompileBuildStep;
-import dev.jbang.source.buildsteps.IntegrationBuildStep;
-import dev.jbang.spi.IntegrationResult;
 import dev.jbang.util.Util;
 
 public class GroovySource extends Source {
@@ -75,11 +73,6 @@ public class GroovySource extends Source {
 			return new GroovyCompileBuildStep();
 		}
 
-		@Override
-		protected Builder<IntegrationResult> getIntegrationBuildStep() {
-			return new GroovyIntegrationBuildStep();
-		}
-
 		private class GroovyCompileBuildStep extends CompileBuildStep {
 
 			public GroovyCompileBuildStep() {
@@ -111,12 +104,6 @@ public class GroovySource extends Source {
 			protected Predicate<ClassInfo> getMainFinder() {
 				return pubClass -> pubClass.method("main", CompileBuildStep.STRINGARRAYTYPE) != null
 						|| pubClass.method("main") != null;
-			}
-		}
-
-		private class GroovyIntegrationBuildStep extends IntegrationBuildStep {
-			public GroovyIntegrationBuildStep() {
-				super(GroovyAppBuilder.this.project, GroovyAppBuilder.this.ctx);
 			}
 		}
 	}
