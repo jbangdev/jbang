@@ -12,8 +12,6 @@ import dev.jbang.net.KotlinManager;
 import dev.jbang.source.*;
 import dev.jbang.source.AppBuilder;
 import dev.jbang.source.buildsteps.CompileBuildStep;
-import dev.jbang.source.buildsteps.IntegrationBuildStep;
-import dev.jbang.spi.IntegrationResult;
 
 public class KotlinSource extends Source {
 
@@ -58,11 +56,6 @@ public class KotlinSource extends Source {
 			return new KotlinCompileBuildStep();
 		}
 
-		@Override
-		protected Builder<IntegrationResult> getIntegrationBuildStep() {
-			return new KotlinIntegrationBuildStep();
-		}
-
 		protected class KotlinCompileBuildStep extends CompileBuildStep {
 
 			public KotlinCompileBuildStep() {
@@ -83,12 +76,6 @@ public class KotlinSource extends Source {
 			protected Predicate<ClassInfo> getMainFinder() {
 				return pubClass -> pubClass.method("main", CompileBuildStep.STRINGARRAYTYPE) != null
 						|| pubClass.method("main") != null;
-			}
-		}
-
-		private class KotlinIntegrationBuildStep extends IntegrationBuildStep {
-			public KotlinIntegrationBuildStep() {
-				super(KotlinAppBuilder.this.project, KotlinAppBuilder.this.ctx);
 			}
 		}
 	}

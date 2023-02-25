@@ -17,7 +17,7 @@ import dev.jbang.spi.IntegrationResult;
  * integration can make changes to the project that will be used as the input
  * for the next build step.
  */
-public abstract class IntegrationBuildStep implements Builder<IntegrationResult> {
+public class IntegrationBuildStep implements Builder<IntegrationResult> {
 	private final Project project;
 	private final BuildContext ctx;
 

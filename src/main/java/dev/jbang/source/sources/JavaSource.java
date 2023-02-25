@@ -9,8 +9,6 @@ import java.util.function.Function;
 import dev.jbang.source.*;
 import dev.jbang.source.AppBuilder;
 import dev.jbang.source.buildsteps.CompileBuildStep;
-import dev.jbang.source.buildsteps.IntegrationBuildStep;
-import dev.jbang.spi.IntegrationResult;
 import dev.jbang.util.Util;
 
 public class JavaSource extends Source {
@@ -59,11 +57,6 @@ public class JavaSource extends Source {
 			return new JavaCompileBuildStep();
 		}
 
-		@Override
-		protected Builder<IntegrationResult> getIntegrationBuildStep() {
-			return new JavaIntegrationBuildStep();
-		}
-
 		public class JavaCompileBuildStep extends CompileBuildStep {
 
 			public JavaCompileBuildStep() {
@@ -78,12 +71,6 @@ public class JavaSource extends Source {
 			@Override
 			protected String getMainExtension() {
 				return ".java";
-			}
-		}
-
-		public class JavaIntegrationBuildStep extends IntegrationBuildStep {
-			public JavaIntegrationBuildStep() {
-				super(JavaAppBuilder.this.project, JavaAppBuilder.this.ctx);
 			}
 		}
 	}
