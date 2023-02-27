@@ -1,16 +1,12 @@
 package dev.jbang.cli;
 
-import static dev.jbang.util.JavaUtil.resolveInJavaHome;
-
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -44,40 +40,13 @@ abstract class BaseExportCommand extends BaseCommand {
 	@CommandLine.Mixin
 	ExportMixin exportMixin;
 
-	protected void updateJarManifest(Path jar, Path manifest, String javaVersion) throws IOException {
-		List<String> optionList = new ArrayList<>();
-		optionList.add(resolveInJavaHome("jar", javaVersion));
-		// locate it on path ?
-		optionList.add("ufm");
-		optionList.add(jar.toString());
-		optionList.add(manifest.toString());
-		// System.out.println("Executing " + optionList);
-		Util.infoMsg("Updating jar manifest");
-		Util.verboseMsg(String.join(" ", optionList));
-		// no inheritIO as jar complains unnecessarily about duplicate manifest entries.
-		Process process = new ProcessBuilder(optionList).start();
-		try {
-			process.waitFor();
-		} catch (InterruptedException e) {
-			throw new ExitException(1, e);
-		}
-
-		if (process.exitValue() != 0) {
-			throw new ExitException(1, "Error updating jar manifest");
-		}
-	}
-
-	protected Path createManifest(String newPath) throws IOException {
-		// Create a MANIFEST.MF file with a Class-Path option
-		Path tempManifest = Files.createTempFile("MANIFEST", "MF");
+	protected Manifest createManifest(String newPath) {
+		// Create a Manifest with a Class-Path option
 		Manifest mf = new Manifest();
 		// without MANIFEST_VERSION nothing is saved.
 		mf.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
 		mf.getMainAttributes().putValue(Attributes.Name.CLASS_PATH.toString(), newPath);
-		try (OutputStream out = Files.newOutputStream(tempManifest)) {
-			mf.write(out);
-		}
-		return tempManifest;
+		return mf;
 	}
 
 	@Override
@@ -141,12 +110,11 @@ class ExportLocal extends BaseExportCommand {
 		// its dependencies
 		String newPath = prj.resolveClassPath().getManifestPath();
 		if (!newPath.isEmpty()) {
-			Path tempManifest = createManifest(newPath);
-
+			Util.infoMsg("Updating jar...");
 			String javaVersion = exportMixin.buildMixin.javaVersion != null
 					? exportMixin.buildMixin.javaVersion
 					: prj.getJavaVersion();
-			updateJarManifest(outputPath, tempManifest, javaVersion);
+			JarUtil.updateJar(outputPath, createManifest(newPath), prj.getMainClass(), javaVersion);
 		}
 
 		Util.infoMsg("Exported to " + outputPath);
@@ -185,12 +153,11 @@ class ExportPortable extends BaseExportCommand {
 				newPath.append(" " + LIB + "/" + dep.getFile().getFileName());
 			}
 
-			Path tempManifest = createManifest(newPath.toString());
-
+			Util.infoMsg("Updating jar...");
 			String javaVersion = exportMixin.buildMixin.javaVersion != null
 					? exportMixin.buildMixin.javaVersion
 					: prj.getJavaVersion();
-			updateJarManifest(outputPath, tempManifest, javaVersion);
+			JarUtil.updateJar(outputPath, createManifest(newPath.toString()), prj.getMainClass(), javaVersion);
 		}
 		Util.infoMsg("Exported to " + outputPath);
 		return EXIT_OK;
@@ -375,9 +342,7 @@ class ExportFatjar extends BaseExportCommand {
 					Util.verboseMsg("Unpacking artifact: " + dep);
 					UnpackUtil.unzip(dep.getFile(), tmpDir, false, null, ExportFatjar::handleExistingFile);
 				}
-				try (OutputStream out = Files.newOutputStream(outputPath)) {
-					JarUtil.jar(out, tmpDir.toFile().listFiles());
-				}
+				JarUtil.createJar(outputPath, tmpDir, null, prj.getMainClass(), prj.getJavaVersion());
 			} finally {
 				Util.deletePath(tmpDir, true);
 			}

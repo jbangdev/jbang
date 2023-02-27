@@ -779,7 +779,7 @@ public class TestRun extends BaseTest {
 
 		try (JarFile jf = new JarFile(out.toFile())) {
 
-			assertThat(Collections.list(jf.entries()), IsCollectionWithSize.hasSize(5));
+			assertThat(Collections.list(jf.entries()), IsCollectionWithSize.hasSize(6));
 
 			assertThat(jf.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS), equalTo("wonkabear"));
 

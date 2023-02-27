@@ -61,7 +61,9 @@ public abstract class AppBuilder implements Builder<CmdGeneratorBuilder> {
 			Project jarProject = Project.builder().build(outjar);
 			// We already have a Jar, check if we can still use it
 			if (!ctx.isUpToDate()) {
-				Util.verboseMsg("Building as previous build jar found but it or its dependencies not up-to-date.");
+				Util.verboseMsg("Building as previously built jar found but it or its dependencies not up-to-date.");
+			} else if (jarProject.getJavaVersion() == null) {
+				Util.verboseMsg("Building as previously built jar found but it has incomplete meta data.");
 			} else if (JavaUtil.javaVersion(requestedJavaVersion) < JavaUtil.minRequestedVersion(
 					jarProject.getJavaVersion())) {
 				Util.verboseMsg(
