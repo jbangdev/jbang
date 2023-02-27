@@ -354,8 +354,12 @@ build.dependsOn(container)
 build.dependsOn(spec)
 //build.dependsOn(clidoc)
 
+compileJava.dependsOn(copyResources);
 compileJava.dependsOn(compileJava9Java);
 compileTestJava.dependsOn(compileJava9Java);
+
+// Don't know how to tell shadowJar _not_ to depend on this
+shadowJar.dependsOn(copyTestResources);
 
 //fix implicit dependencies
 tasks.named("spotlessXml").configure { dependsOn("compileJava") }
