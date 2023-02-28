@@ -22,6 +22,7 @@ import dev.jbang.net.JdkManager;
 import dev.jbang.net.JdkProvider;
 import dev.jbang.source.*;
 import dev.jbang.util.JavaUtil;
+import dev.jbang.util.ModuleUtil;
 
 import picocli.CommandLine;
 
@@ -110,6 +111,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 						? ctx.getNativeImageFile().toAbsolutePath().toString()
 						: null;
 				mainClass = prj.getMainClass();
+				module = ModuleUtil.getModuleName(prj);
 				requestedJavaVersion = prj.getJavaVersion();
 
 				try {
@@ -142,7 +144,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 					Project jarProject = Project.builder().build(ctx.getJarFile());
 					mainClass = jarProject.getMainClass();
 					gav = jarProject.getGav().orElse(gav);
-					module = jarProject.getModuleName().orElse(module);
+					module = ModuleUtil.getModuleName(jarProject);
 				}
 			}
 		}

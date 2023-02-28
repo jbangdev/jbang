@@ -14,6 +14,7 @@ import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.source.sources.JavaSource;
+import dev.jbang.util.ModuleUtil;
 import dev.jbang.util.Util;
 
 /**
@@ -218,7 +219,7 @@ public class Project {
 		if (stableId == null) {
 			Stream<String> sss = mainSourceSet.getStableIdInfo();
 			if (moduleName != null) {
-				Stream<String> s = Stream.of(moduleName);
+				Stream<String> s = Stream.of(ModuleUtil.getModuleName(this));
 				sss = Stream.concat(sss, s);
 			}
 			stableId = Util.getStableID(sss);

@@ -2,6 +2,9 @@ package dev.jbang.util;
 
 import java.nio.file.Path;
 
+import javax.annotation.Nullable;
+
+import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.source.Project;
 
 /**
@@ -16,11 +19,21 @@ public class ModuleUtil {
 		}
 	}
 
+	@Nullable
 	public static String getModuleName(Project project) {
 		String modName = project.getModuleName().orElse(null);
-		if (modName == null || modName.isEmpty()) {
-			modName = project.getGav().orElse("jbangapp");
+		if (modName != null && modName.isEmpty()) {
+			modName = project.getGav().orElse(CatalogUtil.nameFromRef(project.getResourceRef().getOriginalResource()));
 		}
 		return modName;
+	}
+
+	@Nullable
+	public static String getModuleMain(Project project) {
+		if (project.getModuleName().isPresent() && project.getMainClass() != null) {
+			return getModuleName(project) + "/" + project.getMainClass();
+		} else {
+			return null;
+		}
 	}
 }
