@@ -389,6 +389,13 @@ class ExportFatjar extends BaseExportCommand {
 class ExportJlink extends BaseExportCommand {
 
 	@Override
+	protected ProjectBuilder createProjectBuilder(ExportMixin exportMixin) {
+		ProjectBuilder pb = super.createProjectBuilder(exportMixin);
+		pb.moduleName("");
+		return pb;
+	}
+
+	@Override
 	int apply(Project prj, BuildContext ctx) throws IOException {
 		Path outputPath = getJlinkOutputPath();
 		if (outputPath.toFile().exists()) {
