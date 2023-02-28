@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -17,6 +16,7 @@ import java.util.stream.Collectors;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.net.JdkManager;
 import dev.jbang.net.JdkProvider;
@@ -124,11 +124,14 @@ abstract class BaseInfoCommand extends BaseCommand {
 					// Ignore
 				}
 
-				String cp = prj.resolveClassPath().getClassPath();
-				if (cp.isEmpty()) {
+				List<ArtifactInfo> artifacts = prj.resolveClassPath().getArtifacts();
+				if (artifacts.isEmpty()) {
 					resolvedDependencies = Collections.emptyList();
 				} else {
-					resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
+					resolvedDependencies = artifacts
+													.stream()
+													.map(a -> a.getFile().toString())
+													.collect(Collectors.toList());
 				}
 
 				if (prj.getJavaVersion() != null) {
