@@ -1,5 +1,7 @@
 package dev.jbang.cli;
 
+import static dev.jbang.Settings.CP_SEPARATOR;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.Channels;
@@ -7,6 +9,7 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -15,6 +18,7 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 
 import dev.jbang.Settings;
+import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.source.BuildContext;
@@ -22,6 +26,8 @@ import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.util.JarUtil;
+import dev.jbang.util.JavaUtil;
+import dev.jbang.util.ModuleUtil;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
@@ -31,7 +37,7 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
 @Command(name = "export", description = "Export the result of a build.", subcommands = { ExportPortable.class,
-		ExportLocal.class, ExportMavenPublish.class, ExportNative.class, ExportFatjar.class })
+		ExportLocal.class, ExportMavenPublish.class, ExportNative.class, ExportFatjar.class, ExportJlink.class })
 public class Export {
 }
 
@@ -375,6 +381,63 @@ class ExportFatjar extends BaseExportCommand {
 		if (!outputPath.toString().endsWith(".jar")) {
 			outputPath = Paths.get(outputPath + ".jar");
 		}
+		return outputPath;
+	}
+}
+
+@Command(name = "jlink", description = "Exports a minimized JDK distribution")
+class ExportJlink extends BaseExportCommand {
+
+	@Override
+	int apply(Project prj, BuildContext ctx) throws IOException {
+		Path outputPath = getJlinkOutputPath();
+		if (outputPath.toFile().exists()) {
+			if (exportMixin.force) {
+				Util.deletePath(outputPath, false);
+			} else {
+				Util.warnMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
+				return EXIT_INVALID_INPUT;
+			}
+		}
+
+		String jlinkCmd = JavaUtil.resolveInJavaHome("jlink", null);
+		String modMain = ModuleUtil.getModuleMain(prj);
+		List<String> cps = prj.resolveClassPath().getClassPaths();
+		List<String> cp = new ArrayList<>(cps.size() + 1);
+		if (ctx.getJarFile() != null && !cps.contains(ctx.getJarFile())) {
+			cp.add(ctx.getJarFile().toString());
+		}
+		cp.addAll(cps);
+
+		List<String> args = new ArrayList<>();
+		args.add(jlinkCmd);
+		args.add("--output");
+		args.add(outputPath.toString());
+		args.add("-p");
+		args.add(String.join(CP_SEPARATOR, cp));
+		args.add("--add-modules");
+		args.add(ModuleUtil.getModuleName(prj));
+		if (modMain != null) {
+			String name = CatalogUtil.nameFromRef(exportMixin.scriptMixin.scriptOrFile);
+			args.add("--launcher");
+			args.add(name + "=" + modMain);
+		} else {
+			info("No launcher will be generated because no main class is defined. Use '--main' to set a main class");
+		}
+
+		Util.verboseMsg("Run: " + String.join(" ", args));
+		String out = Util.runCommand(args.toArray(new String[] {}));
+		if (out == null) {
+			Util.warnMsg("Unable to export Jdk distribution.");
+			return EXIT_GENERIC_ERROR;
+		}
+
+		Util.infoMsg("Exported to " + outputPath);
+		return EXIT_OK;
+	}
+
+	private Path getJlinkOutputPath() {
+		Path outputPath = exportMixin.getOutputPath("-jlink");
 		return outputPath;
 	}
 }
