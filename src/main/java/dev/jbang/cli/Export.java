@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
+import java.util.stream.Collectors;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
@@ -106,7 +107,7 @@ class ExportLocal extends BaseExportCommand {
 			if (exportMixin.force) {
 				outputPath.toFile().delete();
 			} else {
-				Util.warnMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
+				Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
 				return EXIT_INVALID_INPUT;
 			}
 		}
@@ -142,7 +143,7 @@ class ExportPortable extends BaseExportCommand {
 			if (exportMixin.force) {
 				outputPath.toFile().delete();
 			} else {
-				Util.warnMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
+				Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
 				return EXIT_INVALID_INPUT;
 			}
 		}
@@ -194,13 +195,13 @@ class ExportMavenPublish extends BaseExportCommand {
 
 		if (!outputPath.toFile().isDirectory()) {
 			if (outputPath.toFile().exists()) {
-				Util.warnMsg("Cannot export as maven repository as " + outputPath + " is not a directory.");
+				Util.errorMsg("Cannot export as maven repository as " + outputPath + " is not a directory.");
 				return EXIT_INVALID_INPUT;
 			}
 			if (exportMixin.force) {
 				outputPath.toFile().mkdirs();
 			} else {
-				Util.warnMsg("Cannot export as " + outputPath + " does not exist. Use --force to create.");
+				Util.errorMsg("Cannot export as " + outputPath + " does not exist. Use --force to create.");
 				return EXIT_INVALID_INPUT;
 			}
 		}
@@ -219,7 +220,7 @@ class ExportMavenPublish extends BaseExportCommand {
 		}
 
 		if (group == null) {
-			Util.warnMsg(
+			Util.errorMsg(
 					"Cannot export as maven repository as no group specified. Add --group=<group id> and run again.");
 			return EXIT_INVALID_INPUT;
 		}
@@ -243,7 +244,7 @@ class ExportMavenPublish extends BaseExportCommand {
 			if (exportMixin.force) {
 				artifactFile.toFile().delete();
 			} else {
-				Util.warnMsg("Cannot export as " + artifactFile + " already exists. Use --force to overwrite.");
+				Util.errorMsg("Cannot export as " + artifactFile + " already exists. Use --force to overwrite.");
 				return EXIT_INVALID_INPUT;
 			}
 		}
@@ -293,7 +294,7 @@ class ExportNative extends BaseExportCommand {
 			if (exportMixin.force) {
 				outputPath.toFile().delete();
 			} else {
-				Util.warnMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
+				Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
 				return EXIT_INVALID_INPUT;
 			}
 		}
@@ -332,7 +333,7 @@ class ExportFatjar extends BaseExportCommand {
 			if (exportMixin.force) {
 				outputPath.toFile().delete();
 			} else {
-				Util.warnMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
+				Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
 				return EXIT_INVALID_INPUT;
 			}
 		}
@@ -397,21 +398,34 @@ class ExportJlink extends BaseExportCommand {
 
 	@Override
 	int apply(Project prj, BuildContext ctx) throws IOException {
+		List<ArtifactInfo> artifacts = prj.resolveClassPath().getArtifacts();
+		List<ArtifactInfo> nonMods = artifacts
+												.stream()
+												.filter(a -> !ModuleUtil.isModule(a.getFile()))
+												.collect(Collectors.toList());
+		if (!nonMods.isEmpty()) {
+			String lst = nonMods
+								.stream()
+								.map(a -> a.getCoordinate().toCanonicalForm())
+								.collect(Collectors.joining(", "));
+			Util.warnMsg("Export might fail because some dependencies are not full modules: " + lst);
+		}
+
 		Path outputPath = getJlinkOutputPath();
 		if (outputPath.toFile().exists()) {
 			if (exportMixin.force) {
 				Util.deletePath(outputPath, false);
 			} else {
-				Util.warnMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
+				Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
 				return EXIT_INVALID_INPUT;
 			}
 		}
 
 		String jlinkCmd = JavaUtil.resolveInJavaHome("jlink", null);
 		String modMain = ModuleUtil.getModuleMain(prj);
-		List<String> cps = prj.resolveClassPath().getClassPaths();
-		List<String> cp = new ArrayList<>(cps.size() + 1);
-		if (ctx.getJarFile() != null && !cps.contains(ctx.getJarFile())) {
+		List<String> cps = artifacts.stream().map(a -> a.getFile().toString()).collect(Collectors.toList());
+		List<String> cp = new ArrayList<>(artifacts.size() + 1);
+		if (ctx.getJarFile() != null && !cps.contains(ctx.getJarFile().toString())) {
 			cp.add(ctx.getJarFile().toString());
 		}
 		cp.addAll(cps);
@@ -429,13 +443,14 @@ class ExportJlink extends BaseExportCommand {
 			args.add("--launcher");
 			args.add(name + "=" + modMain);
 		} else {
-			info("No launcher will be generated because no main class is defined. Use '--main' to set a main class");
+			Util.warnMsg(
+					"No launcher will be generated because no main class is defined. Use '--main' to set a main class");
 		}
 
 		Util.verboseMsg("Run: " + String.join(" ", args));
 		String out = Util.runCommand(args.toArray(new String[] {}));
 		if (out == null) {
-			Util.warnMsg("Unable to export Jdk distribution.");
+			Util.errorMsg("Unable to export Jdk distribution.");
 			return EXIT_GENERIC_ERROR;
 		}
 

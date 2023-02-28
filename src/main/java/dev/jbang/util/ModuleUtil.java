@@ -21,9 +21,6 @@ import dev.jbang.source.ResourceRef;
 
 import io.quarkus.qute.Template;
 
-/**
- * WARNING: This file MUST be compiled with Java 9+
- */
 public class ModuleUtil {
 	public static boolean isModule(Path file) {
 		try {
