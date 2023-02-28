@@ -118,11 +118,7 @@ public class JavaUtil {
 	}
 
 	public static String resolveInJavaHome(@Nonnull String cmd, @Nullable String requestedVersion) {
-		return resolveInJavaHome(cmd, JdkManager.getOrInstallJdk(requestedVersion));
-	}
-
-	public static String resolveInJavaHome(@Nonnull String cmd, @Nonnull JdkProvider.Jdk jdk) {
-		Path jdkHome = jdk.getHome();
+		Path jdkHome = JdkManager.getOrInstallJdk(requestedVersion).getHome();
 		if (jdkHome != null) {
 			if (Util.isWindows()) {
 				cmd = cmd + ".exe";
