@@ -67,18 +67,8 @@ public final class JarUtil {
 	private static void runJarCommand(List<String> arguments, String requestedJavaVersion) throws IOException {
 		arguments.add(0, resolveInJavaHome("jar", requestedJavaVersion));
 		Util.verboseMsg("Jar: " + String.join(" ", arguments));
-		// no inheritIO as jar complains unnecessarily about duplicate manifest entries.
-		ProcessBuilder pb = new ProcessBuilder(arguments);
-		if (Util.isVerbose()) {
-			pb.inheritIO();
-		}
-		Process process = pb.start();
-		try {
-			process.waitFor();
-		} catch (InterruptedException e) {
-			throw new ExitException(1, e);
-		}
-		if (process.exitValue() != 0) {
+		String out = Util.runCommand(arguments.toArray(new String[] {}));
+		if (out == null) {
 			throw new ExitException(1, "Error creating/updating jar");
 		}
 	}
