@@ -49,24 +49,12 @@ public class ModularClassPath {
 		return String.join(CP_SEPARATOR, getClassPaths());
 	}
 
-	public List<String> getModulePaths() {
-		if (modulePaths == null) {
-			modulePaths = getArtifactPaths(artifacts.stream().filter(ArtifactInfo::isModule));
-		}
-
-		return modulePaths;
-	}
-
 	private List<String> getArtifactPaths(Stream<ArtifactInfo> artifacts) {
 		return artifacts
 						.map(it -> it.getFile().toAbsolutePath().toString())
 						.map(it -> it.contains(" ") ? '"' + it + '"' : it)
 						.distinct()
 						.collect(Collectors.toList());
-	}
-
-	public String getModulePath() {
-		return String.join(CP_SEPARATOR, getModulePaths());
 	}
 
 	public String getManifestPath() {

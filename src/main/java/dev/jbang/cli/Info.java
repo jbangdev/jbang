@@ -5,7 +5,6 @@ import static dev.jbang.Settings.CP_SEPARATOR;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -18,7 +17,6 @@ import java.util.stream.Collectors;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.net.JdkManager;
 import dev.jbang.net.JdkProvider;
@@ -28,7 +26,7 @@ import dev.jbang.util.JavaUtil;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "info", description = "Provides info about the script for tools (and humans who are tools).", subcommands = {
-		Tools.class, ClassPath.class, ModulePath.class })
+		Tools.class, ClassPath.class })
 public class Info {
 }
 
@@ -84,7 +82,6 @@ abstract class BaseInfoCommand extends BaseCommand {
 		List<String> dependencies;
 		List<Repo> repositories;
 		List<String> resolvedDependencies;
-		List<String> resolvedModules;
 		String javaVersion;
 		String requestedJavaVersion;
 		String availableJdkPath;
@@ -130,13 +127,6 @@ abstract class BaseInfoCommand extends BaseCommand {
 					resolvedDependencies = Collections.emptyList();
 				} else {
 					resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
-				}
-
-				String mp = prj.resolveClassPath().getModulePath();
-				if (mp.isEmpty()) {
-					resolvedModules = null;
-				} else {
-					resolvedModules = Arrays.asList(cp.split(CP_SEPARATOR));
 				}
 
 				if (prj.getJavaVersion() != null) {
@@ -262,28 +252,6 @@ class ClassPath extends BaseInfoCommand {
 		}
 		cp.addAll(info.resolvedDependencies);
 		System.out.println(String.join(CP_SEPARATOR, cp));
-
-		return EXIT_OK;
-	}
-}
-
-@CommandLine.Command(name = "modulepath", description = "Prints module-path used for this application using operating system specific path separation.")
-class ModulePath extends BaseInfoCommand {
-
-	@Override
-	public Integer doCall() throws IOException {
-
-		ScriptInfo info = getInfo(false);
-		if (info.resolvedModules != null) {
-			List<String> cp = new ArrayList<>(info.resolvedModules.size() + 1);
-			if (info.applicationJar != null
-					&& !info.resolvedModules.contains(info.applicationJar)
-					&& ArtifactInfo.isModule(Paths.get(info.applicationJar))) {
-				cp.add(info.applicationJar);
-			}
-			cp.addAll(info.resolvedModules);
-			System.out.println(String.join(CP_SEPARATOR, cp));
-		}
 
 		return EXIT_OK;
 	}
