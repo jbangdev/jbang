@@ -66,7 +66,7 @@ public final class JarUtil {
 
 	private static void runJarCommand(List<String> arguments, String requestedJavaVersion) throws IOException {
 		arguments.add(0, resolveInJavaHome("jar", requestedJavaVersion));
-		Util.verboseMsg("Jar: " + String.join(" ", arguments));
+		Util.verboseMsg("Package: " + String.join(" ", arguments));
 		String out = Util.runCommand(arguments.toArray(new String[] {}));
 		if (out == null) {
 			throw new ExitException(1, "Error creating/updating jar");
