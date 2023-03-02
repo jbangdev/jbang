@@ -488,7 +488,31 @@ public class TestRun extends BaseTest {
 
 		assertThat(cmd, matchesPattern(".* -classpath .*picocli-4.6.3.jar.*"));
 		assertThat(cmd, not(containsString(" -jar ")));
+	}
 
+	@Test
+	void testHelloWorldGAVWithModule() throws IOException {
+		environmentVariables.clear("JAVA_HOME");
+		String jar = "info.picocli:picocli-codegen:4.6.3";
+
+		CommandLine.ParseResult pr = JBang	.getCommandLine()
+											.parseArgs("run", "--module", "--main",
+													"picocli.codegen.aot.graalvm.ReflectionConfigGenerator", jar);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar);
+
+		String cmd = run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
+
+		assertThat(code.getMainClass(), nullValue());
+		assertThat(cmd, endsWith("info.picocli.codegen/picocli.codegen.aot.graalvm.ReflectionConfigGenerator"));
+
+		assertThat(code.getResourceRef().getFile().toString(),
+				matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
+
+		assertThat(cmd, matchesPattern(".* -p .*picocli-4.6.3.jar.*"));
+		assertThat(cmd, not(containsString(" -jar ")));
 	}
 
 	@Test

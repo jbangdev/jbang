@@ -101,7 +101,7 @@ public class TestModule extends BaseTest {
 			}
 		}.setFresh(true).build();
 
-		String cmd = gen.mainClass("test.moduletest").build().generate();
+		String cmd = gen.build().generate();
 		assertThat(cmd, endsWith(" -m testmodule/test.moduletest"));
 	}
 
@@ -112,7 +112,9 @@ public class TestModule extends BaseTest {
 		Path mi = output.toPath().resolve("module-info.java");
 		Util.writeString(mi, "FAKE MODULE INFO");
 
-		ProjectBuilder pb = Project.builder().additionalSources(Collections.singletonList(mi.toString()));
+		ProjectBuilder pb = Project	.builder()
+									.mainClass("test.moduletest")
+									.additionalSources(Collections.singletonList(mi.toString()));
 		Project prj = pb.build(f);
 		BuildContext ctx = BuildContext.forProject(prj);
 
@@ -132,7 +134,7 @@ public class TestModule extends BaseTest {
 			}
 		}.setFresh(true).build();
 
-		String cmd = gen.mainClass("test.moduletest").build().generate();
+		String cmd = gen.build().generate();
 		assertThat(cmd, endsWith(" -m testmodule/test.moduletest"));
 	}
 
