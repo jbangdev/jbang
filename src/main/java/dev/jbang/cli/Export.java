@@ -389,6 +389,9 @@ class ExportFatjar extends BaseExportCommand {
 @Command(name = "jlink", description = "Exports a minimized JDK distribution")
 class ExportJlink extends BaseExportCommand {
 
+	@CommandLine.Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the jlink command")
+	public List<String> params = new ArrayList<>();
+
 	@Override
 	protected ProjectBuilder createProjectBuilder(ExportMixin exportMixin) {
 		ProjectBuilder pb = super.createProjectBuilder(exportMixin);
@@ -446,6 +449,7 @@ class ExportJlink extends BaseExportCommand {
 			Util.warnMsg(
 					"No launcher will be generated because no main class is defined. Use '--main' to set a main class");
 		}
+		args.addAll(params);
 
 		Util.verboseMsg("Run: " + String.join(" ", args));
 		String out = Util.runCommand(args.toArray(new String[] {}));
