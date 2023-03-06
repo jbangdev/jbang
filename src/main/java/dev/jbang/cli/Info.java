@@ -3,6 +3,7 @@ package dev.jbang.cli;
 import static dev.jbang.Settings.CP_SEPARATOR;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -27,7 +28,7 @@ import dev.jbang.util.ModuleUtil;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "info", description = "Provides info about the script for tools (and humans who are tools).", subcommands = {
-		Tools.class, ClassPath.class })
+		Tools.class, ClassPath.class, Jar.class })
 public class Info {
 }
 
@@ -234,11 +235,38 @@ abstract class BaseInfoCommand extends BaseCommand {
 @CommandLine.Command(name = "tools", description = "Prints a json description usable for tools/IDE's to get classpath and more info for a jbang script/application. Exact format is still quite experimental.")
 class Tools extends BaseInfoCommand {
 
+	@CommandLine.Option(names = {
+			"--select" }, description = "Indicate the name of the field to select and return from the full info result")
+	String select;
+
 	@Override
 	public Integer doCall() throws IOException {
 
 		Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
-		parser.toJson(getInfo(true), System.out);
+		ScriptInfo info = getInfo(true);
+		if (select != null) {
+			try {
+				Field f = info.getClass().getDeclaredField(select);
+				Object v = f.get(info);
+				if (v != null) {
+					if (v instanceof String || v instanceof Number) {
+						System.out.println(v);
+					} else {
+						parser.toJson(v, System.out);
+					}
+				} else {
+					// We'll return an error code for `null` so
+					// any calling scripts can easily detect that
+					// situation instead of having to ambiguously
+					// compare against the string "null"
+					return EXIT_GENERIC_ERROR;
+				}
+			} catch (NoSuchFieldException | IllegalAccessException e) {
+				throw new ExitException(EXIT_INVALID_INPUT, "Cannot return value of unknown field: " + select, e);
+			}
+		} else {
+			parser.toJson(info, System.out);
+		}
 
 		return EXIT_OK;
 	}
@@ -247,17 +275,33 @@ class Tools extends BaseInfoCommand {
 @CommandLine.Command(name = "classpath", description = "Prints class-path used for this application using operating system specific path separation.")
 class ClassPath extends BaseInfoCommand {
 
+	@CommandLine.Option(names = {
+			"--deps-only" }, description = "Only include the dependencies in the output, not the application jar itself")
+	boolean dependenciesOnly;
+
 	@Override
 	public Integer doCall() throws IOException {
 
 		ScriptInfo info = getInfo(false);
 		List<String> cp = new ArrayList<>(info.resolvedDependencies.size() + 1);
-		if (info.applicationJar != null && !info.resolvedDependencies.contains(info.applicationJar)) {
+		if (!dependenciesOnly && info.applicationJar != null
+				&& !info.resolvedDependencies.contains(info.applicationJar)) {
 			cp.add(info.applicationJar);
 		}
 		cp.addAll(info.resolvedDependencies);
 		System.out.println(String.join(CP_SEPARATOR, cp));
 
+		return EXIT_OK;
+	}
+}
+
+@CommandLine.Command(name = "jar", description = "Prints the path to this application's JAR file.")
+class Jar extends BaseInfoCommand {
+
+	@Override
+	public Integer doCall() throws IOException {
+		ScriptInfo info = getInfo(false);
+		System.out.println(info.applicationJar);
 		return EXIT_OK;
 	}
 }
