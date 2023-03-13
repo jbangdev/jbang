@@ -20,6 +20,7 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 
 import dev.jbang.Settings;
+import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenCoordinate;
@@ -27,6 +28,7 @@ import dev.jbang.source.BuildContext;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.source.ResourceRef;
+import dev.jbang.source.resolvers.AliasResourceResolver;
 import dev.jbang.util.JarUtil;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
@@ -64,6 +66,12 @@ abstract class BaseExportCommand extends BaseCommand {
 		Project prj = pb.build(exportMixin.scriptMixin.scriptOrFile);
 		BuildContext ctx = BuildContext.forProject(prj);
 		prj.codeBuilder(ctx).build();
+		if (prj.getResourceRef() instanceof AliasResourceResolver.AliasedResourceRef) {
+			Alias alias = ((AliasResourceResolver.AliasedResourceRef) prj.getResourceRef()).getAlias();
+			if (prj.getMainClass() == null) {
+				prj.setMainClass(alias.mainClass);
+			}
+		}
 		return apply(prj, ctx);
 	}
 
