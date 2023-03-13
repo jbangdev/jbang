@@ -2,6 +2,7 @@ package dev.jbang.cli;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.Channels;
@@ -415,11 +416,17 @@ class ExportJlink extends BaseExportCommand {
 		}
 
 		Path outputPath = getJlinkOutputPath();
+		String relativeOP;
+		if (Util.getCwd().relativize(outputPath).isAbsolute()) {
+			relativeOP = outputPath.toString();
+		} else {
+			relativeOP = "." + File.separator + Util.getCwd().relativize(outputPath);
+		}
 		if (outputPath.toFile().exists()) {
 			if (exportMixin.force) {
 				Util.deletePath(outputPath, false);
 			} else {
-				Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
+				Util.errorMsg("Cannot export as " + relativeOP + " already exists. Use --force to overwrite.");
 				return EXIT_INVALID_INPUT;
 			}
 		}
@@ -441,10 +448,11 @@ class ExportJlink extends BaseExportCommand {
 		args.add(String.join(CP_SEPARATOR, cp));
 		args.add("--add-modules");
 		args.add(ModuleUtil.getModuleName(prj));
+		String launcherName = null;
 		if (modMain != null) {
-			String name = CatalogUtil.nameFromRef(exportMixin.scriptMixin.scriptOrFile);
+			launcherName = CatalogUtil.nameFromRef(exportMixin.scriptMixin.scriptOrFile);
 			args.add("--launcher");
-			args.add(name + "=" + modMain);
+			args.add(launcherName + "=" + modMain);
 		} else {
 			Util.warnMsg(
 					"No launcher will be generated because no main class is defined. Use '--main' to set a main class");
@@ -458,7 +466,10 @@ class ExportJlink extends BaseExportCommand {
 			return EXIT_GENERIC_ERROR;
 		}
 
-		Util.infoMsg("Exported to " + outputPath);
+		Util.infoMsg("Exported to " + relativeOP);
+		if (modMain != null) {
+			Util.infoMsg("A launcher has been created which you can run using: " + relativeOP + "/bin/" + launcherName);
+		}
 		return EXIT_OK;
 	}
 
