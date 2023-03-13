@@ -93,7 +93,8 @@ public abstract class CompileBuildStep implements Builder<Project> {
 
 		if (project.getModuleName().isPresent()) {
 			if (project.getMainSource() != null && !project.getMainSource().getJavaPackage().isPresent()) {
-				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Module code is missing a 'package' statement");
+				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+						"Module code cannot work with the default package, adding a 'package' statement is required");
 			}
 			if (!hasModuleInfoFile()) {
 				// generate module-info descriptor and add it to list of files to compile
