@@ -1711,7 +1711,8 @@ public class Util {
 		if (dir == null) {
 			dir = getCwd();
 		}
-		while (dir != null) {
+		Path root = Settings.getLocalRootDir();
+		while (dir != null && (root == null || !isSameFile(dir, root))) {
 			Path file = dir.resolve(fileName);
 			if (Files.isRegularFile(file) && Files.isReadable(file) && accept.apply(file)) {
 				return file;
@@ -1723,6 +1724,14 @@ public class Util {
 			dir = dir.getParent();
 		}
 		return null;
+	}
+
+	public static boolean isSameFile(Path f1, Path f2) {
+		try {
+			return Files.isSameFile(f1, f2);
+		} catch (IOException e) {
+			return f1.toAbsolutePath().equals(f2.toAbsolutePath());
+		}
 	}
 
 	public static boolean isNullOrEmptyString(String str) {

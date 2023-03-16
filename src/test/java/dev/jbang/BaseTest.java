@@ -44,6 +44,8 @@ public abstract class BaseTest {
 		// Except we make all tests use the same JDK installation folder to prevent
 		// excessive downloads
 		environmentVariables.set(Settings.JBANG_CACHE_DIR + "_JDKS", jdksTempDir.toString());
+		// Make sure we don't go looking outside our temp dir
+		environmentVariables.set(Settings.JBANG_LOCAL_ROOT, tempPath.toString());
 		// Don't check fo rnew versions while running tests
 		environmentVariables.set(Settings.ENV_NO_VERSION_CHECK, "true");
 		if (Util.isWindows()) {

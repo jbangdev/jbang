@@ -45,7 +45,7 @@ public class TestAliasNearestWithBaseRef extends BaseTest {
 			"}";
 
 	@BeforeEach
-	void init() throws IOException {
+	void initEach() throws IOException {
 		Files.write(jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON), global.getBytes());
 		Path cwd = Files.createDirectory(cwdDir.resolve("test"));
 		Util.setCwd(cwd);
