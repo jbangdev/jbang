@@ -8,13 +8,7 @@ import static java.lang.System.out;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
+import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
@@ -63,24 +57,88 @@ public class Edit extends BaseCommand {
 	@CommandLine.Option(names = { "-b", "--sandbox" })
 	boolean sandbox;
 
+	static Path checkFileExistenceInParents(Path filePath, Set<String> targetFileNames) {
+		Path file = filePath.toAbsolutePath().normalize();
+		Path parent = file.getParent();
+
+		while (parent != null) {
+			for (String targetFileName : targetFileNames) {
+				Path targetFile = parent.resolve(targetFileName);
+				if (Files.exists(targetFile)) {
+					return parent;
+				}
+			}
+			parent = parent.getParent();
+		}
+
+		return null;
+	}
+
+	static Set<String> buildRootMarkers = Set.of("jbang.build", ".jbang", "pom.xml", "build.gradle");
+
+	static public Path locateProjectDir(Path location2) {
+		Path location = location2;
+		if (!Files.isDirectory(location)) {
+			try {
+				String pkg = Util.getSourcePackage(Util.readString(location)).orElse("");
+				if (!"".equals(pkg)) { // if package found try resolve matching parent dirs
+					String parentPath = pkg.replace(".", "/");
+					if (location.getParent().endsWith(parentPath)) {
+						String relativeParent = String.join("/", Collections.nCopies(pkg.indexOf(".") + 1, ".."));
+						location = location.getParent().resolve(relativeParent);
+					} else {
+						location = location.getParent();
+					}
+				} else {
+					location = location.getParent();
+				}
+			} catch (IOException e) {
+				Util.verboseMsg("Could not read package from " + location, e);
+				// ignore
+			}
+
+			Path buildRoot = checkFileExistenceInParents(location, buildRootMarkers);
+			if (buildRoot != null) {
+				location = buildRoot;
+			}
+
+		} else {
+			Path buildRoot = checkFileExistenceInParents(location, buildRootMarkers);
+			if (buildRoot != null) {
+				location = buildRoot;
+			} // location = location.toAbsolutePath().getParent();
+		}
+		return location.normalize();
+	}
+
 	@Override
 	public Integer doCall() throws IOException {
-		scriptMixin.validate();
 
 		// force download sources when editing
 		Util.setDownloadSources(true);
 
-		File location = new File(scriptMixin.scriptOrFile);
 		if (!noOpen && !sandbox) {
+			File location;
+			if (scriptMixin.scriptOrFile != null) {
+				location = new File(scriptMixin.scriptOrFile);
+			} else {
+				location = null;
+			}
 			info("Opening with IDE assuming it have JBang support installed. See https://jbang.dev/ide");
-			if (location.isDirectory()) {
-				openEditor(pathToString(location.toPath()), additionalFiles);
+			String path = null;
+			if (location == null) {
+				path = locateProjectDir(Paths.get(".")).toString();
+			} else if (location.isDirectory()) {
+				path = pathToString(location.toPath());
 			} else {
 				additionalFiles.add(0, pathToString(location.toPath()));
-				// TODO: should we locate the parent more intelligently?
-				openEditor(pathToString(location.getAbsoluteFile().getParentFile().toPath()), additionalFiles);
+				path = path;
 			}
+			openEditor(path, additionalFiles);
+			System.out.println(path);
 		} else {
+			scriptMixin.validate(false);
+			File location = new File(scriptMixin.scriptOrFile);
 			info("Creating sandbox for script editing " + location);
 			ProjectBuilder pb = createProjectBuilder();
 			final Project prj = pb.build(scriptMixin.scriptOrFile);

@@ -371,5 +371,5 @@ tasks.named("spotlessXml").configure { dependsOn("chocolatey") }
 tasks.named("spotlessXml").configure { dependsOn("copyITests") }
 
 group = "dev.jbang"
-sourceCompatibility = '8'
-targetCompatibility = '8'
+sourceCompatibility = "1.9"
+targetCompatibility = "1.9"

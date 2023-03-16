@@ -38,4 +38,9 @@ public class ScriptMixin {
 		}
 	}
 
+	public void validate(boolean scriptRequired) {
+		if (scriptRequired) {
+			validate();
+		}
+	}
 }
