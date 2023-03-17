@@ -1,7 +1,5 @@
 package dev.jbang.dependencies;
 
-import java.io.InputStream;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
@@ -46,14 +44,7 @@ public class ArtifactInfo {
 	}
 
 	public static boolean isModule(Path file) {
-		try {
-			URL url = new URL("jar:" + file.toUri().toURL() + "!/module-info.class");
-			try (InputStream s = url.openStream()) {
-				return true;
-			}
-		} catch (Exception ex) {
-			return false;
-		}
+		return ModuleUtil.isModule(file);
 	}
 
 	public String getModuleName() {

@@ -35,7 +35,7 @@ public class TestCatalog extends BaseTest {
 	static Path testCatalogFile = null;
 
 	@BeforeEach
-	void init() throws IOException {
+	void initEach() throws IOException {
 		catsFile = jbangTempDir.resolve("jbang-catalog.json");
 		testCatalogFile = cwdDir.resolve("test-catalog.json");
 		Files.write(testCatalogFile, testCatalog.getBytes());

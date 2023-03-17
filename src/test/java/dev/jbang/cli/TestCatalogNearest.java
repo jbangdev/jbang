@@ -36,7 +36,7 @@ public class TestCatalogNearest extends BaseTest {
 			"}";
 
 	@BeforeEach
-	void init() throws IOException {
+	void initEach() throws IOException {
 		aliasesFile = cwdDir.resolve("aliases.json");
 		Files.write(aliasesFile, aliases.getBytes());
 		parentDotDir = Files.createDirectory(cwdDir.resolve(".jbang"));
@@ -48,7 +48,7 @@ public class TestCatalogNearest extends BaseTest {
 		CatalogUtil.addCatalogRef(testDotDir.resolve(Catalog.JBANG_CATALOG_JSON), "dotlocal",
 				aliasesFile.toString(), "Local .jbang");
 		CatalogUtil.addCatalogRef(parentDotDir.resolve(Catalog.JBANG_CATALOG_JSON), "dotparent",
-				aliasesFile.toString(), "Patent .jbang");
+				aliasesFile.toString(), "Parent .jbang");
 		CatalogUtil.addCatalogRef(jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON), "global",
 				aliasesFile.toString(), "Global");
 	}

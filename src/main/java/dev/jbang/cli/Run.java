@@ -145,6 +145,7 @@ public class Run extends BaseBuildCommand {
 			.setArguments(userParams)
 			.runtimeOptions(runMixin.javaRuntimeOptions)
 			.mainClass(buildMixin.main)
+			.moduleName(buildMixin.module)
 			.interactive(runMixin.interactive)
 			.enableAssertions(runMixin.enableAssertions)
 			.enableSystemAssertions(runMixin.enableSystemAssertions)

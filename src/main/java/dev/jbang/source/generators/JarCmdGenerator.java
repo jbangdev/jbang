@@ -28,6 +28,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 	private boolean classDataSharing;
 	private String mainClass;
 	private boolean mainRequired;
+	private String moduleName;
 
 	public JarCmdGenerator runtimeOptions(List<String> runtimeOptions) {
 		if (runtimeOptions != null) {
@@ -60,6 +61,11 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 
 	public JarCmdGenerator mainRequired(boolean mainRequired) {
 		this.mainRequired = mainRequired;
+		return this;
+	}
+
+	public JarCmdGenerator moduleName(String moduleName) {
+		this.moduleName = moduleName;
 		return this;
 	}
 
@@ -115,7 +121,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 			}
 		}
 		if (!Util.isBlankString(classpath)) {
-			if (project.getModuleName().isPresent()) {
+			if (moduleName != null && project.getModuleName().isPresent()) {
 				optionalArgs.addAll(Arrays.asList("-p", classpath));
 			} else {
 				optionalArgs.addAll(Arrays.asList("-classpath", classpath));
@@ -147,8 +153,8 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 
 		String main = Optional.ofNullable(mainClass).orElse(project.getMainClass());
 		if (main != null) {
-			if (project.getModuleName().isPresent()) {
-				String modName = ModuleUtil.getModuleName(project);
+			if (moduleName != null && project.getModuleName().isPresent()) {
+				String modName = moduleName.isEmpty() ? ModuleUtil.getModuleName(project) : moduleName;
 				fullArgs.add("-m");
 				fullArgs.add(modName + "/" + main);
 			} else {

@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.text.StringEscapeUtils;
 
 import dev.jbang.net.JdkManager;
-import dev.jbang.net.JdkProvider;
 import dev.jbang.source.*;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
@@ -56,8 +55,7 @@ public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
 		List<String> optionalArgs = new ArrayList<>();
 
 		String requestedJavaVersion = project.getJavaVersion();
-		JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(requestedJavaVersion);
-		String javacmd = JavaUtil.resolveInJavaHome("jshell", jdk);
+		String javacmd = JavaUtil.resolveInJavaHome("jshell", requestedJavaVersion);
 
 		// NB: See https://github.com/jbangdev/jbang/issues/992 for the reasons why we
 		// use the -J flags below
@@ -107,7 +105,9 @@ public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
 
 		fullArgs.addAll(jshellOpts(project.getRuntimeOptions()));
 		fullArgs.addAll(jshellOpts(runtimeOptions));
-		fullArgs.addAll(project.resolveClassPath().getAutoDectectedModuleArguments(jdk));
+		fullArgs.addAll(project	.resolveClassPath()
+								.getAutoDectectedModuleArguments(
+										JdkManager.getOrInstallJdk(requestedJavaVersion)));
 		fullArgs.addAll(optionalArgs);
 
 		if (project.isJShell()) {

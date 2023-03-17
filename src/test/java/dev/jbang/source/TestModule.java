@@ -43,6 +43,15 @@ public class TestModule extends BaseTest {
 			"    }\n" +
 			"}\n";
 
+	String srcWithEmptyModDep = "//MODULE\n" +
+			"//DEPS info.picocli:picocli:4.6.3\n" +
+			"package test;" +
+			"public class moduletest {\n" +
+			"    public static void main(String... args) {\n" +
+			"        System.out.println(\"Hello World\");\n" +
+			"    }\n" +
+			"}\n";
+
 	String srcWithoutMod = "//DEPS info.picocli:picocli:4.6.3\n" +
 			"package test;" +
 			"public class moduletest {\n" +
@@ -101,8 +110,51 @@ public class TestModule extends BaseTest {
 			}
 		}.setFresh(true).build();
 
-		String cmd = gen.mainClass("test.moduletest").build().generate();
+		String cmd = gen.build().generate();
 		assertThat(cmd, endsWith(" -m testmodule/test.moduletest"));
+	}
+
+	@Test
+	void testEmptyModule(@TempDir File output) throws IOException {
+		Path f = output.toPath().resolve("moduletest.java");
+		Util.writeString(f, srcWithEmptyModDep);
+
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(f);
+		BuildContext ctx = BuildContext.forProject(prj);
+
+		CmdGeneratorBuilder gen = new JavaSource.JavaAppBuilder(prj, ctx) {
+			@Override
+			protected Builder<Project> getCompileBuildStep() {
+				return new JavaCompileBuildStep() {
+					@Override
+					protected void runCompiler(List<String> optionList) throws IOException {
+						assertThat(optionList, hasItems(endsWith("module-info.java")));
+
+						Path modInfo = ctx.getGeneratedSourcesDir().resolve("module-info.java");
+						assertThat(modInfo.toFile(), anExistingFile());
+						assertThat(Util.readFileContent(modInfo), containsString("requires info.picocli;"));
+
+						super.runCompiler(optionList);
+					}
+				};
+			}
+
+			@Override
+			protected Builder<Project> getJarBuildStep() {
+				return new JarBuildStep(project, ctx) {
+					@Override
+					public Project build() {
+						assertThat(ctx.getCompileDir().resolve("module-info.class").toFile(), anExistingFile());
+						// Skip building of JAR
+						return project;
+					}
+				};
+			}
+		}.setFresh(true).build();
+
+		String cmd = gen.build().generate();
+		assertThat(cmd, endsWith(" -m moduletest/test.moduletest"));
 	}
 
 	@Test
@@ -112,7 +164,9 @@ public class TestModule extends BaseTest {
 		Path mi = output.toPath().resolve("module-info.java");
 		Util.writeString(mi, "FAKE MODULE INFO");
 
-		ProjectBuilder pb = Project.builder().additionalSources(Collections.singletonList(mi.toString()));
+		ProjectBuilder pb = Project	.builder()
+									.mainClass("test.moduletest")
+									.additionalSources(Collections.singletonList(mi.toString()));
 		Project prj = pb.build(f);
 		BuildContext ctx = BuildContext.forProject(prj);
 
@@ -132,7 +186,7 @@ public class TestModule extends BaseTest {
 			}
 		}.setFresh(true).build();
 
-		String cmd = gen.mainClass("test.moduletest").build().generate();
+		String cmd = gen.build().generate();
 		assertThat(cmd, endsWith(" -m testmodule/test.moduletest"));
 	}
 

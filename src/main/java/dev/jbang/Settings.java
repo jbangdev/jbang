@@ -13,6 +13,7 @@ public class Settings {
 	public static final String JBANG_REPO = "JBANG_REPO";
 	public static final String JBANG_DIR = "JBANG_DIR";
 	public static final String JBANG_CACHE_DIR = "JBANG_CACHE_DIR";
+	public static final String JBANG_LOCAL_ROOT = "JBANG_LOCAL_ROOT";
 
 	public static final String TRUSTED_SOURCES_JSON = "trusted-sources.json";
 	public static final String DEPENDENCY_CACHE_JSON = "dependency_cache.json";
@@ -79,6 +80,26 @@ public class Settings {
 
 	public static Path getConfigEditorDir() {
 		return getConfigDir(true).resolve(EDITOR_DIR);
+	}
+
+	/**
+	 * This returns the directory where the lookup of "local" files should stop.
+	 * Local files are files like `jbang-catalog.json` that are read from the
+	 * current directory and then recursively upwards until the root of the file
+	 * system has been reached or until the folder returned by this method was
+	 * encountered.
+	 * 
+	 * @return The directory where local lookup should be stopped
+	 */
+	public static Path getLocalRootDir() {
+		Path dir;
+		String jlr = System.getenv(JBANG_LOCAL_ROOT);
+		if (jlr != null) {
+			dir = Paths.get(jlr);
+		} else {
+			dir = Paths.get(System.getProperty("user.home"));
+		}
+		return dir;
 	}
 
 	public static void setupJBangDir(Path dir) {

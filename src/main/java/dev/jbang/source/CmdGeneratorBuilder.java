@@ -21,6 +21,7 @@ public class CmdGeneratorBuilder {
 	private List<String> runtimeOptions = Collections.emptyList();
 
 	private String mainClass;
+	private String moduleName;
 	private Boolean interactive;
 	private Boolean enableAssertions;
 	private Boolean enableSystemAssertions;
@@ -58,6 +59,11 @@ public class CmdGeneratorBuilder {
 
 	public CmdGeneratorBuilder mainClass(String mainClass) {
 		this.mainClass = mainClass;
+		return this;
+	}
+
+	public CmdGeneratorBuilder moduleName(String moduleName) {
+		this.moduleName = moduleName;
 		return this;
 	}
 
@@ -117,6 +123,7 @@ public class CmdGeneratorBuilder {
 												.runtimeOptions(runtimeOptions)
 												.mainClass(mainClass)
 												.mainRequired(interactive != Boolean.TRUE)
+												.moduleName(moduleName)
 												.assertions(enableAssertions == Boolean.TRUE)
 												.systemAssertions(enableSystemAssertions == Boolean.TRUE)
 												.classDataSharing(
@@ -149,6 +156,9 @@ public class CmdGeneratorBuilder {
 		}
 		if (mainClass == null) {
 			mainClass(alias.mainClass);
+		}
+		if (moduleName == null) {
+			moduleName(alias.moduleName);
 		}
 		if (flightRecorderString == null) {
 			flightRecorderString(alias.jfr);

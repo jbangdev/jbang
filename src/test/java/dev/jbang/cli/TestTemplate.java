@@ -68,7 +68,7 @@ public class TestTemplate extends BaseTest {
 			"}";
 
 	@BeforeEach
-	void init() throws IOException {
+	void initEach() throws IOException {
 		Files.write(jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON), templates.getBytes());
 		Util.setCwd(Files.createDirectory(cwdDir.resolve("test")));
 	}

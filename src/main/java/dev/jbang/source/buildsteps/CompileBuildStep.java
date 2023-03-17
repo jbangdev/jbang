@@ -9,9 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -24,7 +22,6 @@ import org.jboss.jandex.Type;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
-import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.source.BuildContext;
 import dev.jbang.source.Builder;
@@ -93,11 +90,12 @@ public abstract class CompileBuildStep implements Builder<Project> {
 
 		if (project.getModuleName().isPresent()) {
 			if (project.getMainSource() != null && !project.getMainSource().getJavaPackage().isPresent()) {
-				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Module code is missing a 'package' statement");
+				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+						"Module code cannot work with the default package, adding a 'package' statement is required");
 			}
 			if (!hasModuleInfoFile()) {
 				// generate module-info descriptor and add it to list of files to compile
-				Path infoFile = generateModuleInfo();
+				Path infoFile = ModuleUtil.generateModuleInfo(project, ctx.getGeneratedSourcesDir());
 				if (infoFile != null) {
 					optionList.add(infoFile.toString());
 				}
@@ -170,48 +168,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 		return pomPath;
 	}
 
-	protected Path generateModuleInfo() throws IOException {
-		Template infoTemplate = TemplateEngine	.instance()
-												.getTemplate(
-														ResourceRef.forResource("classpath:/module-info.qute.java"));
-
-		Path infoPath = null;
-		if (infoTemplate == null) {
-			// ignore
-			Util.warnMsg("Could not locate module-info.java template");
-		} else {
-			// First get the list of root dependencies as proper maven coordinates
-			Set<MavenCoordinate> deps = project	.getMainSourceSet()
-												.getDependencies()
-												.stream()
-												.map(MavenCoordinate::fromString)
-												.collect(Collectors.toSet());
-			// Now filter out the resolved artifacts that are root dependencies
-			// and get their names
-			List<String> moduleNames = project	.resolveClassPath()
-												.getArtifacts()
-												.stream()
-												.filter(a -> deps.contains(a.getCoordinate()))
-												.map(ArtifactInfo::getModuleName)
-												.filter(Objects::nonNull)
-												.collect(Collectors.toList());
-			// Finally create a module-info file with the name of the module
-			// and the list of required modules using the names we just listed
-			String modName = ModuleUtil.getModuleName(project);
-			String infoFile = infoTemplate
-											.data("name", modName)
-											.data("dependencies", moduleNames)
-											.render();
-
-			infoPath = ctx.getGeneratedSourcesDir().resolve("module-info.java");
-			Files.createDirectories(infoPath.getParent());
-			Util.writeString(infoPath, infoFile);
-		}
-
-		return infoPath;
-	}
-
-	public static MavenCoordinate getPomGav(Project prj) {
+	private static MavenCoordinate getPomGav(Project prj) {
 		if (prj.getGav().isPresent()) {
 			return MavenCoordinate.fromString(prj.getGav().get()).withVersion();
 		} else {
@@ -223,7 +180,8 @@ public abstract class CompileBuildStep implements Builder<Project> {
 
 	public static Path getPomPath(Project prj, BuildContext ctx) {
 		MavenCoordinate gav = getPomGav(prj);
-		return ctx.getCompileDir().resolve("META-INF/maven/" + gav.getGroupId().replace(".", "/") + "/pom.xml");
+		return ctx	.getCompileDir()
+					.resolve("META-INF/maven/" + gav.getGroupId().replace(".", "/") + "/pom.xml");
 	}
 
 	protected void searchForMain(Path tmpJarDir) {
