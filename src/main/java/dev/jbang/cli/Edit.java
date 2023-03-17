@@ -57,56 +57,72 @@ public class Edit extends BaseCommand {
 	@CommandLine.Option(names = { "-b", "--sandbox" })
 	boolean sandbox;
 
-	static Path checkFileExistenceInParents(Path filePath, Set<String> targetFileNames) {
+	/**
+	 * Returns a parent path if one of the targetFileNames exist in such parent.
+	 *
+	 * @param filePath
+	 * @param targetFileNames list of markers to search for
+	 * @return if found returns the marker path, if none found return null.
+	 */
+	static Path findNearestRoot(Path filePath, List<String> targetFileNames) {
 		Path file = filePath.toAbsolutePath().normalize();
 		Path parent = file.getParent();
 
-		while (parent != null) {
+		// stop/skip local root dir (user.home)
+		while (parent != null && !Settings.getLocalRootDir().equals(parent)) {
 			for (String targetFileName : targetFileNames) {
 				Path targetFile = parent.resolve(targetFileName);
 				if (Files.exists(targetFile)) {
-					return parent;
+					return targetFile;
 				}
 			}
 			parent = parent.getParent();
 		}
-
 		return null;
 	}
 
-	static Set<String> buildRootMarkers = Set.of("jbang.build", ".jbang", "pom.xml", "build.gradle");
+	static List<String> buildRootMarkers = List.of("jbang.build", "pom.xml", "build.gradle", ".jbang", ".project");
+	static List<String> editorRootMarkers = List.of(".vscode", ".idea", ".eclipse");
 
-	static public Path locateProjectDir(Path location2) {
-		Path location = location2;
+	static Path safeParent(Path p) {
+		if (!p.isAbsolute()) {
+			p = p.toAbsolutePath();
+		}
+		return p.getParent();
+	}
+
+	static public Path locateProjectDir(Path location) {
 		if (!Files.isDirectory(location)) {
+			// peek into file and find package statement - then start searching from that
+			// root instead.
 			try {
 				String pkg = Util.getSourcePackage(Util.readString(location)).orElse("");
 				if (!"".equals(pkg)) { // if package found try resolve matching parent dirs
 					String parentPath = pkg.replace(".", "/");
-					if (location.getParent().endsWith(parentPath)) {
+					if (safeParent(location).endsWith(parentPath)) {
 						String relativeParent = String.join("/", Collections.nCopies(pkg.indexOf(".") + 1, ".."));
-						location = location.getParent().resolve(relativeParent);
+						location = safeParent(location).resolve(relativeParent);
 					} else {
-						location = location.getParent();
+						location = safeParent(location);
 					}
 				} else {
-					location = location.getParent();
+					location = safeParent(location);
 				}
 			} catch (IOException e) {
 				Util.verboseMsg("Could not read package from " + location, e);
 				// ignore
 			}
-
-			Path buildRoot = checkFileExistenceInParents(location, buildRootMarkers);
-			if (buildRoot != null) {
-				location = buildRoot;
-			}
-
-		} else {
-			Path buildRoot = checkFileExistenceInParents(location, buildRootMarkers);
-			if (buildRoot != null) {
-				location = buildRoot;
-			} // location = location.toAbsolutePath().getParent();
+		}
+		// once we have a initial root dir to search from based on package or dir.
+		// Look for first level project markers by finding editor metadata
+		Path nearestRoot = findNearestRoot(location, editorRootMarkers);
+		if (nearestRoot == null) {
+			// if no edit location found try build projects
+			nearestRoot = findNearestRoot(location, buildRootMarkers);
+		}
+		if (nearestRoot != null) {
+			Util.verboseMsg("Found project root for edit: " + nearestRoot);
+			location = safeParent(nearestRoot);
 		}
 		return location.normalize();
 	}
@@ -117,24 +133,28 @@ public class Edit extends BaseCommand {
 		// force download sources when editing
 		Util.setDownloadSources(true);
 
-		if (!noOpen && !sandbox) {
+		if (!sandbox) {
 			File location;
 			if (scriptMixin.scriptOrFile != null) {
 				location = new File(scriptMixin.scriptOrFile);
 			} else {
 				location = null;
 			}
-			info("Opening with IDE assuming it have JBang support installed. See https://jbang.dev/ide");
-			String path = null;
+			info("Assuming your editor have JBang support installed. See https://jbang.dev/ide");
+			info("If you prefer to open in a sandbox run with `jbang edit -b` instead.");
+			Path path = null;
 			if (location == null) {
-				path = locateProjectDir(Paths.get(".")).toString();
-			} else if (location.isDirectory()) {
-				path = pathToString(location.toPath());
+				path = locateProjectDir(Paths.get("."));
 			} else {
-				additionalFiles.add(0, pathToString(location.toPath()));
-				path = path;
+				path = locateProjectDir(location.toPath());
 			}
-			openEditor(path, additionalFiles);
+			if (path != null && ((location != null) && !path.equals(location.toPath()))) {
+				additionalFiles.add(0, pathToString(location.toPath()));
+			}
+
+			if (!noOpen) {
+				openEditor(pathToString(path), additionalFiles);
+			}
 			System.out.println(path);
 		} else {
 			scriptMixin.validate(false);

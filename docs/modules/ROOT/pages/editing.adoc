@@ -14,7 +14,7 @@ endif::[]
 
 toc::[]
 
-You can edit your script in an IDE/editor by using `jbang edit helloworld.java`. This will generate a project in a temporary location with symbolic links to your script and open a editor. If your IDE supports JBang directly (see https://jbang.dev/ide) then you can open the folder instead and avoid the symbolic links and temporary location. That will generally be faster and more reliable.
+You can edit your script in an IDE/editor by using `jbang edit helloworld.java`.
 
 [source, bash]
 ----
@@ -37,6 +37,8 @@ This automatic install and setup of editor is fully optional and if you have ano
 jbang edit --open=[editor] helloworld.java
 ----
 
+If your IDE does not support JBang style project you can use "sandbox" (`-b`) mode where `jbang` will generate a project in a temporary location with symbolic links to your script and open a editor.
+
 Finally you can also if you prefer to call the editor/IDE yourself in a shell that supports variable evaluation specify `--no-open` to tell JBang to not open an editor.
 
 [source, bash]
@@ -57,10 +59,13 @@ for file changes and regenerate the temporary project to pick up changes in depe
 
 == IDE Support
 
-Some IDE's have dedicated JBang support and is recommended to use those if you can; by using `jbang edit .` (the dot is important) to edit a directory directly. 
-Wit this approach you avoid the symbolic links and temporary location and simply have the IDE understand the implicit project structure as understood by JBang.
+Some IDE's have dedicated JBang support and `jbang edit` assumes your IDE has this support installed.
 
-The following IDE's have dedicated support (at time of writing): 
+If your IDE does not support JBang directly you can use "sandbox" mode a temporary project is created with
+symoblic links and a project setup that works in most Java based IDE's. This is useful for single file scripts.
+If you have multiple files we highly recommend to use a IDE that have JBang plugin.
+
+The following IDE's have dedicated support (at time of writing):
 
 :sicons: https://simpleicons.org/icons
 .IDE's with JBang support
@@ -72,9 +77,9 @@ The following IDE's have dedicated support (at time of writing):
 |image:{sicons}/gitpod.svg[50,50] https://www.gitpod.io[GitPod]
 |===
 
-== Generic edit support
+== Sandbox edit support
 
-The generic `edit` feature using temporary directory and symbolic links been tested with the following IDE's:
+The sandbox `edit -b` feature using temporary directory and symbolic links been tested with the following IDE's:
 
 :sicons: https://simpleicons.org/icons
 .IDE's and Editors tested with `jbang`
