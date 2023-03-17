@@ -1,5 +1,8 @@
 package dev.jbang.cli;
 
+import static dev.jbang.Settings.CP_SEPARATOR;
+
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.Channels;
@@ -7,21 +10,28 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
+import java.util.stream.Collectors;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 
 import dev.jbang.Settings;
+import dev.jbang.catalog.Alias;
+import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.source.BuildContext;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.source.ResourceRef;
+import dev.jbang.source.resolvers.AliasResourceResolver;
 import dev.jbang.util.JarUtil;
+import dev.jbang.util.JavaUtil;
+import dev.jbang.util.ModuleUtil;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
@@ -31,7 +41,7 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
 @Command(name = "export", description = "Export the result of a build.", subcommands = { ExportPortable.class,
-		ExportLocal.class, ExportMavenPublish.class, ExportNative.class, ExportFatjar.class })
+		ExportLocal.class, ExportMavenPublish.class, ExportNative.class, ExportFatjar.class, ExportJlink.class })
 public class Export {
 }
 
@@ -56,6 +66,12 @@ abstract class BaseExportCommand extends BaseCommand {
 		Project prj = pb.build(exportMixin.scriptMixin.scriptOrFile);
 		BuildContext ctx = BuildContext.forProject(prj);
 		prj.codeBuilder(ctx).build();
+		if (prj.getResourceRef() instanceof AliasResourceResolver.AliasedResourceRef) {
+			Alias alias = ((AliasResourceResolver.AliasedResourceRef) prj.getResourceRef()).getAlias();
+			if (prj.getMainClass() == null) {
+				prj.setMainClass(alias.mainClass);
+			}
+		}
 		return apply(prj, ctx);
 	}
 
@@ -100,7 +116,7 @@ class ExportLocal extends BaseExportCommand {
 			if (exportMixin.force) {
 				outputPath.toFile().delete();
 			} else {
-				Util.warnMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
+				Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
 				return EXIT_INVALID_INPUT;
 			}
 		}
@@ -136,7 +152,7 @@ class ExportPortable extends BaseExportCommand {
 			if (exportMixin.force) {
 				outputPath.toFile().delete();
 			} else {
-				Util.warnMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
+				Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
 				return EXIT_INVALID_INPUT;
 			}
 		}
@@ -188,13 +204,13 @@ class ExportMavenPublish extends BaseExportCommand {
 
 		if (!outputPath.toFile().isDirectory()) {
 			if (outputPath.toFile().exists()) {
-				Util.warnMsg("Cannot export as maven repository as " + outputPath + " is not a directory.");
+				Util.errorMsg("Cannot export as maven repository as " + outputPath + " is not a directory.");
 				return EXIT_INVALID_INPUT;
 			}
 			if (exportMixin.force) {
 				outputPath.toFile().mkdirs();
 			} else {
-				Util.warnMsg("Cannot export as " + outputPath + " does not exist. Use --force to create.");
+				Util.errorMsg("Cannot export as " + outputPath + " does not exist. Use --force to create.");
 				return EXIT_INVALID_INPUT;
 			}
 		}
@@ -213,7 +229,7 @@ class ExportMavenPublish extends BaseExportCommand {
 		}
 
 		if (group == null) {
-			Util.warnMsg(
+			Util.errorMsg(
 					"Cannot export as maven repository as no group specified. Add --group=<group id> and run again.");
 			return EXIT_INVALID_INPUT;
 		}
@@ -237,7 +253,7 @@ class ExportMavenPublish extends BaseExportCommand {
 			if (exportMixin.force) {
 				artifactFile.toFile().delete();
 			} else {
-				Util.warnMsg("Cannot export as " + artifactFile + " already exists. Use --force to overwrite.");
+				Util.errorMsg("Cannot export as " + artifactFile + " already exists. Use --force to overwrite.");
 				return EXIT_INVALID_INPUT;
 			}
 		}
@@ -287,7 +303,7 @@ class ExportNative extends BaseExportCommand {
 			if (exportMixin.force) {
 				outputPath.toFile().delete();
 			} else {
-				Util.warnMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
+				Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
 				return EXIT_INVALID_INPUT;
 			}
 		}
@@ -326,7 +342,7 @@ class ExportFatjar extends BaseExportCommand {
 			if (exportMixin.force) {
 				outputPath.toFile().delete();
 			} else {
-				Util.warnMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
+				Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
 				return EXIT_INVALID_INPUT;
 			}
 		}
@@ -375,6 +391,98 @@ class ExportFatjar extends BaseExportCommand {
 		if (!outputPath.toString().endsWith(".jar")) {
 			outputPath = Paths.get(outputPath + ".jar");
 		}
+		return outputPath;
+	}
+}
+
+@Command(name = "jlink", description = "Exports a minimized JDK distribution")
+class ExportJlink extends BaseExportCommand {
+
+	@CommandLine.Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the jlink command")
+	public List<String> params = new ArrayList<>();
+
+	@Override
+	protected ProjectBuilder createProjectBuilder(ExportMixin exportMixin) {
+		ProjectBuilder pb = super.createProjectBuilder(exportMixin);
+		pb.moduleName("");
+		return pb;
+	}
+
+	@Override
+	int apply(Project prj, BuildContext ctx) throws IOException {
+		List<ArtifactInfo> artifacts = prj.resolveClassPath().getArtifacts();
+		List<ArtifactInfo> nonMods = artifacts
+												.stream()
+												.filter(a -> !ModuleUtil.isModule(a.getFile()))
+												.collect(Collectors.toList());
+		if (!nonMods.isEmpty()) {
+			String lst = nonMods
+								.stream()
+								.map(a -> a.getCoordinate().toCanonicalForm())
+								.collect(Collectors.joining(", "));
+			Util.warnMsg("Export might fail because some dependencies are not full modules: " + lst);
+		}
+
+		Path outputPath = getJlinkOutputPath();
+		String relativeOP;
+		if (Util.getCwd().relativize(outputPath).isAbsolute()) {
+			relativeOP = outputPath.toString();
+		} else {
+			relativeOP = "." + File.separator + Util.getCwd().relativize(outputPath);
+		}
+		if (outputPath.toFile().exists()) {
+			if (exportMixin.force) {
+				Util.deletePath(outputPath, false);
+			} else {
+				Util.errorMsg("Cannot export as " + relativeOP + " already exists. Use --force to overwrite.");
+				return EXIT_INVALID_INPUT;
+			}
+		}
+
+		String jlinkCmd = JavaUtil.resolveInJavaHome("jlink", null);
+		String modMain = ModuleUtil.getModuleMain(prj);
+		List<String> cps = artifacts.stream().map(a -> a.getFile().toString()).collect(Collectors.toList());
+		List<String> cp = new ArrayList<>(artifacts.size() + 1);
+		if (ctx.getJarFile() != null && !cps.contains(ctx.getJarFile().toString())) {
+			cp.add(ctx.getJarFile().toString());
+		}
+		cp.addAll(cps);
+
+		List<String> args = new ArrayList<>();
+		args.add(jlinkCmd);
+		args.add("--output");
+		args.add(outputPath.toString());
+		args.add("-p");
+		args.add(String.join(CP_SEPARATOR, cp));
+		args.add("--add-modules");
+		args.add(ModuleUtil.getModuleName(prj));
+		String launcherName = null;
+		if (modMain != null) {
+			launcherName = CatalogUtil.nameFromRef(exportMixin.scriptMixin.scriptOrFile);
+			args.add("--launcher");
+			args.add(launcherName + "=" + modMain);
+		} else {
+			Util.warnMsg(
+					"No launcher will be generated because no main class is defined. Use '--main' to set a main class");
+		}
+		args.addAll(params);
+
+		Util.verboseMsg("Run: " + String.join(" ", args));
+		String out = Util.runCommand(args.toArray(new String[] {}));
+		if (out == null) {
+			Util.errorMsg("Unable to export Jdk distribution.");
+			return EXIT_GENERIC_ERROR;
+		}
+
+		Util.infoMsg("Exported to " + relativeOP);
+		if (modMain != null) {
+			Util.infoMsg("A launcher has been created which you can run using: " + relativeOP + "/bin/" + launcherName);
+		}
+		return EXIT_OK;
+	}
+
+	private Path getJlinkOutputPath() {
+		Path outputPath = exportMixin.getOutputPath("-jlink");
 		return outputPath;
 	}
 }

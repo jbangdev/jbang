@@ -1394,9 +1394,11 @@ public class Util {
 			int exitCode = p.waitFor();
 			if (exitCode == 0) {
 				return cmdOutput;
+			} else {
+				verboseMsg(String.format("Command failed: #%d - %s", exitCode, cmdOutput));
 			}
 		} catch (IOException | InterruptedException ex) {
-			// Ignore
+			verboseMsg("Error running: " + String.join(" ", cmd), ex);
 		}
 		return null;
 	}
