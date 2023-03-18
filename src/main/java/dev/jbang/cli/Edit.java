@@ -81,8 +81,9 @@ public class Edit extends BaseCommand {
 		return null;
 	}
 
-	static List<String> buildRootMarkers = List.of("jbang.build", "pom.xml", "build.gradle", ".jbang", ".project");
-	static List<String> editorRootMarkers = List.of(".vscode", ".idea", ".eclipse");
+	static List<String> buildRootMarkers = Arrays.asList("jbang.build", "pom.xml", "build.gradle", ".jbang",
+			".project");
+	static List<String> editorRootMarkers = Arrays.asList(".vscode", ".idea", ".eclipse");
 
 	static Path safeParent(Path p) {
 		if (!p.isAbsolute()) {
