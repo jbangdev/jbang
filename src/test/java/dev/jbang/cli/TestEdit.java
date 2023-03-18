@@ -235,29 +235,27 @@ public class TestEdit extends BaseTest {
 				});
 	}
 
-	@Test
-	void testEditMissingScript() {
-		assertThrows(IllegalArgumentException.class, () -> {
-			CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("edit");
-			Edit edit = (Edit) pr.subcommand().commandSpec().userObject();
-			edit.doCall();
-		});
-	}
+	/*
+	 * @Test void testEditMissingScript() {
+	 * assertThrows(IllegalArgumentException.class, () -> { CommandLine.ParseResult
+	 * pr = JBang.getCommandLine().parseArgs("edit"); Edit edit = (Edit)
+	 * pr.subcommand().commandSpec().userObject(); edit.doCall(); }); }
+	 */
 
 	@Test
-	void testEditNonSource() {
+	void testSandboxEditNonSource() {
 		assertThrows(ExitException.class, () -> {
 			Path jar = examplesTestFolder.resolve("hellojar.jar");
-			CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("edit", "--no-open", jar.toString());
+			CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("edit", "-b", "--no-open", jar.toString());
 			Edit edit = (Edit) pr.subcommand().commandSpec().userObject();
 			edit.doCall();
 		});
 	}
 
 	@Test
-	void testEdit() throws IOException {
+	void testSandboxEdit() throws IOException {
 		Path src = examplesTestFolder.resolve("helloworld.java");
-		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("edit", "--no-open", src.toString());
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("edit", "-b", "--no-open", src.toString());
 		Edit edit = (Edit) pr.subcommand().commandSpec().userObject();
 		edit.doCall();
 	}

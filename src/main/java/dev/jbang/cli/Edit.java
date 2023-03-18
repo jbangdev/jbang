@@ -1,19 +1,14 @@
 package dev.jbang.cli;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
+import static dev.jbang.util.Util.pathToString;
 import static dev.jbang.util.Util.verboseMsg;
 import static java.lang.System.out;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
+import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
@@ -45,8 +40,11 @@ public class Edit extends BaseCommand {
 	@CommandLine.Mixin
 	DependencyInfoMixin dependencyInfoMixin;
 
+	@CommandLine.Parameters(index = "1", arity = "0..N")
+	List<String> additionalFiles = new ArrayList<>();
+
 	@CommandLine.Option(names = {
-			"--live" }, description = "Setup temporary project, regenerate project on dependency changes.")
+			"--live" }, description = "Open directory in IDE's that support JBang or generate temporary project with option to regenerate project on dependency changes.")
 	public boolean live;
 
 	@CommandLine.Option(names = {
@@ -56,41 +54,144 @@ public class Edit extends BaseCommand {
 	@CommandLine.Option(names = { "--no-open" })
 	public boolean noOpen;
 
+	@CommandLine.Option(names = { "-b", "--sandbox" })
+	boolean sandbox;
+
+	/**
+	 * Returns a parent path if one of the targetFileNames exist in such parent.
+	 *
+	 * @param filePath
+	 * @param targetFileNames list of markers to search for
+	 * @return if found returns the marker path, if none found return null.
+	 */
+	static Path findNearestRoot(Path filePath, List<String> targetFileNames) {
+		Path file = filePath.toAbsolutePath().normalize();
+		Path parent = file.getParent();
+
+		// stop/skip local root dir (user.home)
+		while (parent != null && !Settings.getLocalRootDir().equals(parent)) {
+			for (String targetFileName : targetFileNames) {
+				Path targetFile = parent.resolve(targetFileName);
+				if (Files.exists(targetFile)) {
+					return targetFile;
+				}
+			}
+			parent = parent.getParent();
+		}
+		return null;
+	}
+
+	static List<String> buildRootMarkers = Arrays.asList("jbang.build", "pom.xml", "build.gradle", ".jbang",
+			".project");
+	static List<String> editorRootMarkers = Arrays.asList(".vscode", ".idea", ".eclipse");
+
+	static Path safeParent(Path p) {
+		if (!p.isAbsolute()) {
+			p = p.toAbsolutePath();
+		}
+		return p.getParent();
+	}
+
+	static public Path locateProjectDir(Path location) {
+		if (!Files.isDirectory(location)) {
+			// peek into file and find package statement - then start searching from that
+			// root instead.
+			try {
+				String pkg = Util.getSourcePackage(Util.readString(location)).orElse("");
+				if (!"".equals(pkg)) { // if package found try resolve matching parent dirs
+					String parentPath = pkg.replace(".", "/");
+					if (safeParent(location).endsWith(parentPath)) {
+						String relativeParent = String.join("/", Collections.nCopies(pkg.indexOf(".") + 1, ".."));
+						location = safeParent(location).resolve(relativeParent);
+					} else {
+						location = safeParent(location);
+					}
+				} else {
+					location = safeParent(location);
+				}
+			} catch (IOException e) {
+				Util.verboseMsg("Could not read package from " + location, e);
+				// ignore
+			}
+		}
+		// once we have a initial root dir to search from based on package or dir.
+		// Look for first level project markers by finding editor metadata
+		Path nearestRoot = findNearestRoot(location, editorRootMarkers);
+		if (nearestRoot == null) {
+			// if no edit location found try build projects
+			nearestRoot = findNearestRoot(location, buildRootMarkers);
+		}
+		if (nearestRoot != null) {
+			Util.verboseMsg("Found project root for edit: " + nearestRoot);
+			location = safeParent(nearestRoot);
+		}
+		return location.normalize();
+	}
+
 	@Override
 	public Integer doCall() throws IOException {
-		scriptMixin.validate();
 
 		// force download sources when editing
 		Util.setDownloadSources(true);
 
-		ProjectBuilder pb = createProjectBuilder();
-		final Project prj = pb.build(scriptMixin.scriptOrFile);
+		if (!sandbox) {
+			File location;
+			if (scriptMixin.scriptOrFile != null) {
+				location = new File(scriptMixin.scriptOrFile);
+			} else {
+				location = null;
+			}
+			info("Assuming your editor have JBang support installed. See https://jbang.dev/ide");
+			info("If you prefer to open in a sandbox run with `jbang edit -b` instead.");
+			Path path = null;
+			if (location == null) {
+				path = locateProjectDir(Paths.get("."));
+			} else {
+				path = locateProjectDir(location.toPath());
+			}
+			if (path != null && ((location != null) && !path.equals(location.toPath()))) {
+				additionalFiles.add(0, pathToString(location.toPath()));
+			}
 
-		if (prj.isJar() || prj.getMainSourceSet().getSources().isEmpty()) {
-			throw new ExitException(EXIT_INVALID_INPUT, "You can only edit source files");
-		}
-
-		Path project = createProjectForLinkedEdit(prj, Collections.emptyList(), false);
-		String projectPathString = Util.pathToString(project.toAbsolutePath());
-		// err.println(project.getAbsolutePath());
-
-		if (!noOpen) {
-			openEditor(project, projectPathString);
-		}
-
-		if (!live) {
-			out.println(projectPathString); // quit(project.getAbsolutePath());
+			if (!noOpen) {
+				openEditor(pathToString(path), additionalFiles);
+			}
+			System.out.println(path);
 		} else {
-			watchForChanges(prj, () -> {
-				// TODO only regenerate when dependencies changes.
-				info("Regenerating project.");
-				try {
-					createProjectForLinkedEdit(prj, Collections.emptyList(), true);
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
-				return null;
-			});
+			scriptMixin.validate(false);
+			File location = new File(scriptMixin.scriptOrFile);
+			info("Creating sandbox for script editing " + location);
+			ProjectBuilder pb = createProjectBuilder();
+			final Project prj = pb.build(scriptMixin.scriptOrFile);
+
+			if (prj.isJar() || prj.getMainSourceSet().getSources().isEmpty()) {
+				throw new ExitException(EXIT_INVALID_INPUT, "You can only edit source files");
+			}
+
+			Path project = createProjectForLinkedEdit(prj, Collections
+																		.emptyList(),
+					false);
+			String projectPathString = pathToString(project.toAbsolutePath());
+			// err.println(project.getAbsolutePath());
+
+			if (!noOpen) {
+				openEditor(projectPathString, additionalFiles);
+			}
+
+			if (!live) {
+				out.println(projectPathString); // quit(project.getAbsolutePath());
+			} else {
+				watchForChanges(prj, () -> {
+					// TODO only regenerate when dependencies changes.
+					info("Regenerating project.");
+					try {
+						createProjectForLinkedEdit(prj, Collections.emptyList(), true);
+					} catch (IOException e) {
+						throw new RuntimeException(e);
+					}
+					return null;
+				});
+			}
 		}
 		return EXIT_OK;
 	}
@@ -140,7 +241,7 @@ public class Edit extends BaseCommand {
 
 	// try open editor if possible and install if needed, returns true if editor
 	// started, false if not possible (i.e. editor not available)
-	private boolean openEditor(Path project, String projectPathString) throws IOException {
+	private boolean openEditor(String projectPathString, List<String> additionalFiles) throws IOException {
 		if (!editor.isPresent() || editor.get().isEmpty()) {
 			editor = askEditor();
 			if (!editor.isPresent()) {
@@ -151,11 +252,12 @@ public class Edit extends BaseCommand {
 		}
 		if ("gitpod".equals(editor.get()) && System.getenv("GITPOD_WORKSPACE_URL") != null) {
 			info("Open this url to edit the project in your gitpod session:\n\n"
-					+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + project.toAbsolutePath() + "\n\n");
+					+ System.getenv("GITPOD_WORKSPACE_URL") + "#" + projectPathString + "\n\n");
 		} else {
 			List<String> optionList = new ArrayList<>();
 			optionList.add(editor.get());
 			optionList.add(projectPathString);
+			optionList.addAll(additionalFiles);
 
 			String[] cmd;
 			if (Util.getShell() == Shell.bash) {

@@ -29,7 +29,9 @@ jbang - jbang is a tool for building and running .java/.jsh scripts and jar pack
   jbang init hello.java [args...]
         (to initialize a script)
   or  jbang edit --open=code --live hello.java
-        (to edit a script in IDE with live updates)
+        (to edit a script in any IDE with live updates)
+  or  jbang edit . hello.java
+        (to edit a folder in IDE that supports JBang, see https://jbang.dev/ide)
   or  jbang hello.java [args...]
         (to run a .java file)
   or  jbang gavsearch@jbangdev [args...]

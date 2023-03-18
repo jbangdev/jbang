@@ -119,7 +119,9 @@ public class Init extends BaseCommand {
 		info("File initialized. You can now run it with 'jbang " + renderedScriptOrFile
 				+ "' or edit it using 'jbang edit --open=[editor] "
 				+ renderedScriptOrFile + "' where [editor] is your editor or IDE, e.g. '"
-				+ Edit.knownEditors[new Random().nextInt(Edit.knownEditors.length)] + "'");
+				+ Edit.knownEditors[new Random().nextInt(Edit.knownEditors.length)]
+				+ "'. If your IDE supports JBang, you can edit the directory instead: 'jbang edit . '"
+				+ renderedScriptOrFile + ". See https://jbang.dev/ide");
 
 		return EXIT_OK;
 	}
