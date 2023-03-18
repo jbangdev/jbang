@@ -104,7 +104,7 @@ class DependencyResolverTest extends BaseTest {
 		detector.detect(p, Collections.emptyList());
 
 		List<String> deps = Collections.singletonList(
-				PropertiesValueResolver.replaceProperties("org.openjfx:javafx-base:11.0.2:${os.detected.jfxname}", p));
+				PropertiesValueResolver.replaceProperties("org.openjfx:javafx-base:18.0.2:${os.detected.jfxname}", p));
 		List<ArtifactInfo> artifacts = ArtifactResolver.Builder.create().build().resolve(deps);
 		assertEquals(1, artifacts.size());
 	}
