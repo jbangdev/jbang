@@ -39,6 +39,9 @@ public class Init extends BaseCommand {
 			"--force" }, description = "Force overwrite of existing files")
 	public boolean force;
 
+	@CommandLine.Option(names = { "--edit" }, description = "Open editor on the generated file(s)")
+	public boolean edit;
+
 	@CommandLine.Option(names = { "-D" }, description = "set a system property", mapFallbackValue = "true")
 	public Map<String, Object> properties = new HashMap<>();
 
@@ -116,13 +119,22 @@ public class Init extends BaseCommand {
 		}
 
 		String renderedScriptOrFile = getRenderedScriptOrFile(tpl.fileRefs, refTargets, outDir, absolute);
-		info("File initialized. You can now run it with 'jbang " + renderedScriptOrFile
-				+ "' or edit it using 'jbang edit --open=[editor] "
-				+ renderedScriptOrFile + "' where [editor] is your editor or IDE, e.g. '"
-				+ Edit.knownEditors[new Random().nextInt(Edit.knownEditors.length)]
-				+ "'. If your IDE supports JBang, you can edit the directory instead: 'jbang edit . '"
-				+ renderedScriptOrFile + ". See https://jbang.dev/ide");
-
+		if (edit) {
+			info("File initialized. Opening editor for you. You can also now run it with 'jbang "
+					+ renderedScriptOrFile);
+			// TODO: quick hack that gets the job of opening editor done; but really should
+			// make a isolated api to open editor instead of invoking subcommand.
+			// nice thing wit this is that it will honor you jbang config for edit
+			// automatically.
+			JBang.getCommandLine().execute("edit", renderedScriptOrFile);
+		} else {
+			info("File initialized. You can now run it with 'jbang " + renderedScriptOrFile
+					+ "' or edit it using 'jbang edit --open=[editor] "
+					+ renderedScriptOrFile + "' where [editor] is your editor or IDE, e.g. '"
+					+ Edit.knownEditors[new Random().nextInt(Edit.knownEditors.length)]
+					+ "'. If your IDE supports JBang, you can edit the directory instead: 'jbang edit . '"
+					+ renderedScriptOrFile + ". See https://jbang.dev/ide");
+		}
 		return EXIT_OK;
 	}
 
