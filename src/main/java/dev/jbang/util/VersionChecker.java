@@ -104,6 +104,8 @@ public class VersionChecker {
 			Util.verboseMsg("Couldn't retrieve latest jbang version", e);
 		} catch (InterruptedException e) {
 			// Ignore
+		} catch (java.util.concurrent.CancellationException e) {
+			// Ignore
 		}
 	}
 
