@@ -28,6 +28,7 @@ public class TestUtil extends BaseTest {
 		assertEquals("blahpackagewonka", Util.getSourcePackage("package blahpackagewonka;").get());
 
 	}
+
 	@Test
 	void testHasMainMethod() {
 
