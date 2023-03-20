@@ -29,7 +29,8 @@ public class ModuleUtil9 {
 		return ml	.modules()
 					.stream()
 					.filter(m -> m.isNamed() && m.getAnnotation(Deprecated.class) == null
-							&& (m.getName().startsWith("java.") || m.getName().startsWith("jdk.")))
+							&& (m.getName().startsWith("java.") || m.getName().startsWith("jdk."))
+							&& (!m.getName().equals("jdk.naming.ldap")))
 					.map(m -> m.getName())
 					.collect(Collectors.toList());
 	}

@@ -5,8 +5,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -22,6 +21,13 @@ public class TestUtil extends BaseTest {
 		Catalog.clearCache();
 	}
 
+	@Test
+	void testGetSourcePackage() {
+		assertEquals("blah", Util.getSourcePackage("package blah;").get());
+		assertEquals("blahpackage", Util.getSourcePackage("package blahpackage;").get());
+		assertEquals("blahpackagewonka", Util.getSourcePackage("package blahpackagewonka;").get());
+
+	}
 	@Test
 	void testHasMainMethod() {
 

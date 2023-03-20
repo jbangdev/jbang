@@ -1548,9 +1548,9 @@ public class Util {
 		try (Scanner sc = new Scanner(content)) {
 			while (sc.hasNextLine()) {
 				String line = sc.nextLine();
-				if (!line.trim().startsWith("package"))
+				if (!line.trim().startsWith("package "))
 					continue;
-				String[] pkgLine = line.split("package");
+				String[] pkgLine = line.split("package ");
 				if (pkgLine.length == 1)
 					continue;
 				String packageName = pkgLine[1];
