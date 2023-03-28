@@ -13,12 +13,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -29,6 +29,14 @@ import dev.jbang.source.ResourceRef;
 import dev.jbang.util.Util;
 
 public class TestInit extends BaseTest {
+
+	@Test
+	@Disabled("just for quick testing. requires key to be present")
+	void testGPT() {
+		String prompt = "write me a helloworld with StringUtils from commons-lang3";
+		String result = Init.fetchGptResponse("test", "java", prompt, System.getenv("OPENAI_API_KEY"));
+		Assertions.assertEquals(result, "magic");
+	}
 
 	@Test
 	void testInit(@TempDir Path outputDir) throws IOException {
