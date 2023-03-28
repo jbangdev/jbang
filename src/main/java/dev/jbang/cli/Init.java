@@ -1,21 +1,20 @@
 package dev.jbang.cli;
 
 import static dev.jbang.util.Util.entry;
+import static java.lang.System.getenv;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.lang.model.SourceVersion;
+
+import com.google.gson.Gson;
 
 import dev.jbang.catalog.TemplateProperty;
 import dev.jbang.source.RefTarget;
@@ -51,6 +50,8 @@ public class Init extends BaseCommand {
 
 	@CommandLine.Parameters(paramLabel = "scriptOrFile", index = "0", description = "A file or URL to a Java code file", arity = "1")
 	String scriptOrFile;
+	@CommandLine.Parameters(paramLabel = "params", index = "1..*", arity = "0..*", description = "Parameters to pass on to the generation")
+	List<String> params = new ArrayList<>();
 
 	public void requireScriptArgument() {
 		if (scriptOrFile == null) {
@@ -61,6 +62,7 @@ public class Init extends BaseCommand {
 	@Override
 	public Integer doCall() throws IOException {
 		requireScriptArgument();
+
 		dev.jbang.catalog.Template tpl = dev.jbang.catalog.Template.get(initTemplate);
 		if (tpl == null) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
@@ -73,9 +75,25 @@ public class Init extends BaseCommand {
 		Path outDir = outFile.getParent();
 		String outName = outFile.getFileName().toString();
 
+		String baseName = Util.getBaseName(Paths.get(scriptOrFile).getFileName().toString());
+		String extension = Util.extension(scriptOrFile);
+
 		properties.put("scriptref", scriptOrFile);
-		properties.put("baseName", Util.getBaseName(Paths.get(scriptOrFile).getFileName().toString()));
+		properties.put("baseName", baseName);
 		properties.put("dependencies", dependencies);
+		properties.put("gptcontent", "//no gpt response. make sure you ran with --preview and OPENAI_API_KEY set");
+		if (Util.isPreview()) {
+			Util.infoMsg("JBangGPT Preview activated");
+			Util.warnMsg(
+					"The result can vary greatly. Sometimes it works - others its just for inspiration or a good laugh.");
+			String openaiKey = getenv("OPENAI_API_KEY");
+			if (openaiKey != null && !openaiKey.trim().isEmpty()) {
+				properties.put("gptcontent",
+						fetchGptResponse(baseName, extension, String.join(" ", params), openaiKey));
+			} else {
+				Util.warnMsg("OPENAI_API_KEY environment variable not found. Will use normal jbang init.");
+			}
+		}
 
 		List<RefTarget> refTargets = tpl.fileRefs	.entrySet()
 													.stream()
@@ -136,6 +154,78 @@ public class Init extends BaseCommand {
 					+ renderedScriptOrFile + ". See https://jbang.dev/ide");
 		}
 		return EXIT_OK;
+	}
+
+	static class JsonResponse {
+		public String id;
+		public String object;
+		public double created;
+		public String model;
+		public Map<String, Double> usage;
+		public List<Choice> choices;
+
+		static public class Choice {
+			public Message message;
+
+			public static class Message {
+				public String role;
+				public String content;
+			}
+		}
+	}
+
+	public static String fetchGptResponse(String baseName, String extension, String request, String key) {
+		String answer = null;
+		try {
+			URL url = new URL("https://api.openai.com/v1/chat/completions");
+			HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
+			httpConn.setRequestMethod("POST");
+
+			httpConn.setRequestProperty("Content-Type", "application/json");
+			httpConn.setRequestProperty("Authorization", "Bearer " + key);
+
+			httpConn.setDoOutput(true);
+			OutputStreamWriter writer = new OutputStreamWriter(httpConn.getOutputStream());
+
+			Map<String, Object> prompt = new HashMap<>();
+			prompt.put("model", "gpt-3.5-turbo");
+			prompt.put("temperature", 0.8); // reduce variation, more deterministic
+			Gson gson = new Gson();
+
+			List<Map> messages = new ArrayList<>();
+			messages.add(prompt("system",
+					"You are to generate a response that only contain code that is written in a file ending in "
+							+ extension + " in the style of jbang. The main class must be named "
+							+ baseName
+							+ "." +
+							"Add no additional text." +
+							"You can put comments in the code."));
+			messages.add(prompt("user", request));
+			prompt.put("messages", messages);
+
+			writer.write(gson.toJson(prompt));
+			writer.flush();
+			writer.close();
+			httpConn.getOutputStream().close();
+
+			InputStream responseStream = httpConn.getResponseCode() / 100 == 2
+					? httpConn.getInputStream()
+					: httpConn.getErrorStream();
+			Scanner s = new Scanner(responseStream).useDelimiter("\\A");
+			String response = s.hasNext() ? s.next() : "";
+			JsonResponse result = gson.fromJson(response, JsonResponse.class);
+			answer = result.choices.stream().map(c -> c.message.content).collect(Collectors.joining("\n"));
+		} catch (IOException e) {
+			Util.errorMsg("Problem fetching response from ChatGPT", e);
+		}
+		return answer;
+	}
+
+	private static Map prompt(String role, String content) {
+		Map<String, String> m = new HashMap<>();
+		m.put("role", role);
+		m.put("content", content);
+		return m;
 	}
 
 	private void applyTemplateProperties(dev.jbang.catalog.Template tpl) {
