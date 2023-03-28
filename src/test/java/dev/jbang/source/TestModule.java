@@ -116,8 +116,17 @@ public class TestModule extends BaseTest {
 
 	@Test
 	void testEmptyModule(@TempDir File output) throws IOException {
+		testEmptyModule(srcWithEmptyModDep, output);
+	}
+
+	@Test
+	void testEmptyModuleTrailingWhiteSpaces(@TempDir File output) throws IOException {
+		testEmptyModule(srcWithEmptyModDep.replace("//MODULE", "//MODULE  \t  "), output);
+	}
+
+	void testEmptyModule(String script, File output) throws IOException {
 		Path f = output.toPath().resolve("moduletest.java");
-		Util.writeString(f, srcWithEmptyModDep);
+		Util.writeString(f, script);
 
 		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(f);
