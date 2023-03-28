@@ -32,9 +32,6 @@ public abstract class TagReader {
 	protected final String contents;
 	protected final Function<String, String> replaceProperties;
 
-	// Cached values
-	private List<String> lines;
-
 	private static final String REPOS_COMMENT_PREFIX = "REPOS ";
 	private static final String DEPS_COMMENT_PREFIX = "DEPS ";
 	private static final String FILES_COMMENT_PREFIX = "FILES ";
@@ -168,6 +165,7 @@ public abstract class TagReader {
 	public Optional<String> getModule() {
 		List<String> mods = getTags()
 										.filter(this::isModuleDeclare)
+										.map(String::trim)
 										.map(s -> s.substring(MODULE_COMMENT_PREFIX.length()))
 										.collect(Collectors.toList());
 		if (mods.isEmpty()) {
