@@ -5,14 +5,20 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import dev.jbang.util.Util;
 
+import eu.maveniverse.maven.mima.context.Context;
+
 public class DependencyResolver {
+	private final Context rootContext;
 	private final Set<MavenRepo> repositories;
 	private final Set<String> dependencies;
 	private final Set<ArtifactInfo> artifacts;
 
-	public DependencyResolver() {
+	public DependencyResolver(@Nonnull Context rootContext) {
+		this.rootContext = rootContext;
 		repositories = new LinkedHashSet<>();
 		dependencies = new LinkedHashSet<>();
 		artifacts = new LinkedHashSet<>();
@@ -77,9 +83,9 @@ public class DependencyResolver {
 	}
 
 	public ModularClassPath resolve() {
-		ModularClassPath mcp = DependencyUtil.resolveDependencies(
+		ModularClassPath mcp = DependencyUtil.resolveDependencies(rootContext,
 				new ArrayList<>(dependencies), new ArrayList<>(repositories),
-				Util.isOffline(), Util.isFresh(), !Util.isQuiet(), Util.downloadSources());
+				Util.downloadSources(), !Util.isQuiet());
 		if (artifacts.isEmpty()) {
 			return mcp;
 		} else {

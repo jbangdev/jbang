@@ -39,7 +39,8 @@ public class Version extends BaseCommand {
 			PrintWriter out = spec.commandLine().getOut();
 			out.println("Cache: " + Settings.getCacheDir());
 			out.println("Config: " + Settings.getConfigDir());
-			out.println("Repository:" + Settings.getLocalMavenRepo());
+			// To know WHERE repo is, you need to create Context
+			// out.println("Repository:" + Settings.getLocalMavenRepo());
 		}
 
 		return EXIT_OK;

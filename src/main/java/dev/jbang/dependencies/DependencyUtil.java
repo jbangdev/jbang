@@ -1,7 +1,6 @@
 package dev.jbang.dependencies;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
-import static dev.jbang.Settings.getLocalMavenRepo;
 import static dev.jbang.util.Util.errorMsg;
 import static dev.jbang.util.Util.infoMsg;
 import static dev.jbang.util.Util.verboseMsg;
@@ -17,6 +16,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import dev.jbang.cli.ExitException;
+import dev.jbang.util.Util;
+
+import eu.maveniverse.maven.mima.context.Context;
 
 public class DependencyUtil {
 
@@ -47,8 +49,8 @@ public class DependencyUtil {
 	private DependencyUtil() {
 	}
 
-	public static ModularClassPath resolveDependencies(List<String> deps, List<MavenRepo> repos,
-			boolean offline, boolean updateCache, boolean loggingEnabled, boolean downloadSources) {
+	public static ModularClassPath resolveDependencies(Context rootContext, List<String> deps, List<MavenRepo> repos,
+			boolean downloadSources, boolean logging) {
 
 		// if no dependencies were provided we stop here
 		if (deps.isEmpty()) {
@@ -77,8 +79,8 @@ public class DependencyUtil {
 
 		String depsHash = String.join(CP_SEPARATOR, depIds);
 
-		List<ArtifactInfo> cachedDeps = null;
-		if (!updateCache) {
+		List<ArtifactInfo> cachedDeps;
+		if (!Util.isFresh()) {
 			cachedDeps = DependencyCache.findDependenciesByHash(depsHash);
 			if (cachedDeps != null) {
 				ModularClassPath mcp = new ModularClassPath(cachedDeps);
@@ -87,25 +89,23 @@ public class DependencyUtil {
 			}
 		}
 
-		if (loggingEnabled) {
+		if (logging) {
 			infoMsg("Resolving dependencies...");
 		}
 
-		try (ArtifactResolver resolver = ArtifactResolver.Builder
-																	.create()
-																	.repositories(repos)
-																	.withUserSettings(true)
-																	.localFolder(getLocalMavenRepo())
-																	.offline(offline)
-																	.forceCacheUpdate(updateCache)
-																	.logging(loggingEnabled)
-																	.downloadSources(downloadSources)
-																	.build()) {
+		try {
+			ArtifactResolver resolver = ArtifactResolver.Builder
+																.create(rootContext)
+																.repositories(repos)
+																.downloadSources(downloadSources)
+																.logging(logging)
+																.build();
+
 			List<ArtifactInfo> artifacts = resolver.resolve(depIds);
 
 			ModularClassPath mcp = new ModularClassPath(artifacts);
 
-			if (loggingEnabled) {
+			if (logging) {
 				infoMsg("Dependencies resolved");
 			}
 

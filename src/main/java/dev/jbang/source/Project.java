@@ -17,6 +17,8 @@ import dev.jbang.source.sources.JavaSource;
 import dev.jbang.util.ModuleUtil;
 import dev.jbang.util.Util;
 
+import eu.maveniverse.maven.mima.context.Context;
+
 /**
  * This class gives access to all information necessary to turn source files
  * into something that can be executed. Typically, this means that it holds
@@ -26,6 +28,10 @@ import dev.jbang.util.Util;
 public class Project {
 	@Nonnull
 	private final ResourceRef resourceRef;
+
+	@Nonnull
+	private final Context rootContext;
+
 	private Source mainSource;
 
 	// Public (user) input values (can be changed from the outside at any time)
@@ -68,17 +74,22 @@ public class Project {
 		}
 	}
 
+	public Context getRootContext() {
+		return rootContext;
+	}
+
 	public static ProjectBuilder builder() {
 		return new ProjectBuilder();
 	}
 
-	public Project(@Nonnull ResourceRef resourceRef) {
+	public Project(@Nonnull ResourceRef resourceRef, @Nonnull Context rootContext) {
 		this.resourceRef = resourceRef;
+		this.rootContext = rootContext;
 	}
 
 	// TODO This should be refactored and removed
-	public Project(@Nonnull Source mainSource) {
-		this.resourceRef = mainSource.getResourceRef();
+	public Project(@Nonnull Source mainSource, @Nonnull Context rootContext) {
+		this(mainSource.getResourceRef(), rootContext);
 		this.mainSource = mainSource;
 	}
 
@@ -239,7 +250,7 @@ public class Project {
 	@Nonnull
 	public ModularClassPath resolveClassPath() {
 		if (mcp == null) {
-			DependencyResolver resolver = new DependencyResolver();
+			DependencyResolver resolver = new DependencyResolver(rootContext);
 			updateDependencyResolver(resolver);
 			mcp = resolver.resolve();
 		}
