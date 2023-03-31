@@ -182,7 +182,11 @@ shadowJar {
 		//exclude(dependency('org.slf4j:slf4j-api:.*'))
 		exclude(dependency('org.slf4j:slf4j-nop:.*'))
 		exclude(dependency('org.jboss.logging:jboss-logging:.*'))
+		exclude(dependency('eu.maveniverse.maven.mima:.*'))
+		exclude(dependency('eu.maveniverse.maven.mima.runtime:.*'))
+		exclude(dependency('org.apache.maven.resolver:.*'))
 	}
+	append 'META-INF/sisu/javax.inject.Named'
 	mergeServiceFiles()
 	manifest {
 		attributes 'Main-Class': 'dev.jbang.Main'
