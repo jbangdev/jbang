@@ -91,17 +91,16 @@ public class DependencyUtil {
 			infoMsg("Resolving dependencies...");
 		}
 
-		try {
-			ArtifactResolver resolver = ArtifactResolver.Builder
-																.create()
-																.repositories(repos)
-																.withUserSettings(true)
-																.localFolder(getLocalMavenRepo())
-																.offline(offline)
-																.forceCacheUpdate(updateCache)
-																.logging(loggingEnabled)
-																.downloadSources(downloadSources)
-																.build();
+		try (ArtifactResolver resolver = ArtifactResolver.Builder
+																	.create()
+																	.repositories(repos)
+																	.withUserSettings(true)
+																	.localFolder(getLocalMavenRepo())
+																	.offline(offline)
+																	.forceCacheUpdate(updateCache)
+																	.logging(loggingEnabled)
+																	.downloadSources(downloadSources)
+																	.build()) {
 			List<ArtifactInfo> artifacts = resolver.resolve(depIds);
 
 			ModularClassPath mcp = new ModularClassPath(artifacts);
