@@ -81,15 +81,19 @@ public class Init extends BaseCommand {
 		properties.put("scriptref", scriptOrFile);
 		properties.put("baseName", baseName);
 		properties.put("dependencies", dependencies);
-		properties.put("gptcontent", "//no gpt response. make sure you ran with --preview and OPENAI_API_KEY set");
-		if (Util.isPreview()) {
+		// properties.put("magiccontent", "//no gpt response. make sure you ran with
+		// --preview and OPENAI_API_KEY set");
+		if (Util.isPreview() && !params.isEmpty()) {
 			Util.infoMsg("JBangGPT Preview activated");
 			Util.warnMsg(
 					"The result can vary greatly. Sometimes it works - other times it is just for inspiration or a good laugh.");
 			String openaiKey = getenv("OPENAI_API_KEY");
 			if (openaiKey != null && !openaiKey.trim().isEmpty()) {
-				properties.put("gptcontent",
-						fetchGptResponse(baseName, extension, String.join(" ", params), openaiKey));
+				String response = fetchGptResponse(baseName, extension, String.join(" ", params), openaiKey);
+				// sometimes gpt adds a markdown ```java block so lets remove all lines starting
+				// with ``` in the output.
+				response = response.replaceAll("(?m)^```.*(?:\r?\n|$)", "");
+				properties.put("magiccontent", response);
 			} else {
 				Util.warnMsg("OPENAI_API_KEY environment variable not found. Will use normal jbang init.");
 			}
@@ -156,7 +160,7 @@ public class Init extends BaseCommand {
 		return EXIT_OK;
 	}
 
-	static class JsonResponse {
+	static class GPTResponse {
 		public String id;
 		public String object;
 		public double created;
@@ -213,7 +217,7 @@ public class Init extends BaseCommand {
 					: httpConn.getErrorStream();
 			Scanner s = new Scanner(responseStream).useDelimiter("\\A");
 			String response = s.hasNext() ? s.next() : "";
-			JsonResponse result = gson.fromJson(response, JsonResponse.class);
+			GPTResponse result = gson.fromJson(response, GPTResponse.class);
 			answer = result.choices.stream().map(c -> c.message.content).collect(Collectors.joining("\n"));
 		} catch (IOException e) {
 			Util.errorMsg("Problem fetching response from ChatGPT", e);
