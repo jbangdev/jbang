@@ -19,19 +19,17 @@ jobs:
       JRELEASER_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
       JRELEASER_GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
-      JRELEASER_VERSION: 0.9.0
+      JRELEASER_VERSION: 1.5.1
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/cache@v1
+      - uses: actions/checkout@v3
         with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+          fetch-depth: 0
       - name: install-java11
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
           java-version: 11
+          distribution: temurin
+          cache: gradle
       - name: build-gradle
         run: ./gradlew --no-daemon clean build installDist --build-cache --scan -s
       - name: integration-test
@@ -48,9 +46,18 @@ jobs:
           RELEASE_VERSION=`cat build/tmp/version.txt`
           echo "::set-output name=RELEASE_VERSION::$RELEASE_VERSION"
       - name: Run JReleaser
-        uses: jreleaser/release-action@v1
+        uses: jreleaser/release-action@v2
         env: 
           JRELEASER_PROJECT_VERSION: ${{steps.version.outputs.RELEASE_VERSION}}
         with:
           version: ${{ env.JRELEASER_VERSION }}
           arguments: release
+          setup-java: false
+      - name: JReleaser output
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: jreleaser-release
+          path: |
+            out/jreleaser/trace.log
+            out/jreleaser/output.properties
