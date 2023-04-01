@@ -4,6 +4,10 @@
 {/for}
 {#if dependencies.isEmpty()}// //DEPS <dependency1> <dependency2>{/if}
 
+{#if magiccontent}
+{magiccontent}
+{#else}
 public fun main() {
     println("Hello World");
 }
+{/if}

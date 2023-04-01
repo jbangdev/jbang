@@ -4,5 +4,8 @@
 {/for}
 {#if dependencies.isEmpty()}// //DEPS <dependency1> <dependency2>{/if}
 
+{#if magiccontent}
+{magiccontent}
+{#else}
 println("Hello World");
-
+{/if}
