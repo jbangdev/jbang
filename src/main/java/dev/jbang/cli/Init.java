@@ -85,7 +85,7 @@ public class Init extends BaseCommand {
 		if (Util.isPreview()) {
 			Util.infoMsg("JBangGPT Preview activated");
 			Util.warnMsg(
-					"The result can vary greatly. Sometimes it works - others its just for inspiration or a good laugh.");
+					"The result can vary greatly. Sometimes it works - other times it is just for inspiration or a good laugh.");
 			String openaiKey = getenv("OPENAI_API_KEY");
 			if (openaiKey != null && !openaiKey.trim().isEmpty()) {
 				properties.put("gptcontent",
@@ -197,12 +197,12 @@ public class Init extends BaseCommand {
 					"You are to generate a response that only contain code that is written in a file ending in "
 							+ extension + " in the style of jbang. The main class must be named "
 							+ baseName
-							+ "." +
-							"Add no additional text." +
+							+ " " +
+							". Add no additional text." +
 							"You can put comments in the code."));
 			messages.add(prompt("user", request));
 			prompt.put("messages", messages);
-
+			Util.verboseMsg("ChatGPT prompt " + prompt);
 			writer.write(gson.toJson(prompt));
 			writer.flush();
 			writer.close();
