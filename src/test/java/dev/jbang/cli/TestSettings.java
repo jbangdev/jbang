@@ -1,6 +1,7 @@
 package dev.jbang.cli;
 
 import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
@@ -14,8 +15,9 @@ public class TestSettings extends BaseTest {
 	@Test
 	void testRepo() {
 		environmentVariables.clear("JBANG_REPO");
-		assertThat(Settings.getJBangLocalMavenRepoOverride().toString(), nullValue());
+		assertThat(Settings.getJBangLocalMavenRepoOverride(), nullValue());
 		environmentVariables.set("JBANG_REPO", "envrepo");
+		assertThat(Settings.getJBangLocalMavenRepoOverride(), notNullValue());
 		assertThat(Settings.getJBangLocalMavenRepoOverride().toString(), endsWith("envrepo"));
 		environmentVariables.clear("JBANG_REPO");
 	}
