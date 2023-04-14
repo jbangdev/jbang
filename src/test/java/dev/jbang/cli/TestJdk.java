@@ -149,7 +149,8 @@ class TestJdk extends BaseTest {
 		CaptureResult result = checkedRun(jdk -> jdk.javaEnv(null));
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedOut(), containsString(File.separator + "currentjdk" + File.separator + "bin" + File.pathSeparator));
+		assertThat(result.normalizedOut(),
+				containsString(File.separator + "currentjdk" + File.separator + "bin" + File.pathSeparator));
 
 		if (Util.isWindows()) {
 			// By default, on Windows we only test with CMD, so let's retest
@@ -158,7 +159,8 @@ class TestJdk extends BaseTest {
 			result = checkedRun(jdk -> jdk.javaEnv(null));
 
 			assertThat(result.result, equalTo(SUCCESS_EXIT));
-			assertThat(result.normalizedOut(), containsString(File.separator + "currentjdk" + File.separator + "bin" + File.pathSeparator));
+			assertThat(result.normalizedOut(),
+					containsString(File.separator + "currentjdk" + File.separator + "bin" + File.pathSeparator));
 		}
 	}
 
@@ -180,6 +182,16 @@ class TestJdk extends BaseTest {
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(), containsString("cache" + File.separator + "jdks" + File.separator + "17"));
+	}
+
+	@Test
+	void testJavaEnvWithDefaultVersion() throws Exception {
+		Arrays.asList(11, 14, 17).forEach(this::createMockJdk);
+
+		CaptureResult result = checkedRun(jdk -> jdk.javaEnv("11"));
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedOut(), containsString("cache" + File.separator + "jdks" + File.separator + "11"));
 	}
 
 	@Test
