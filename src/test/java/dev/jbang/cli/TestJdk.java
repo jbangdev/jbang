@@ -149,7 +149,17 @@ class TestJdk extends BaseTest {
 		CaptureResult result = checkedRun(jdk -> jdk.javaEnv(null));
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedOut(), containsString(File.separator + "currentjdk"));
+		assertThat(result.normalizedOut(), containsString(File.separator + "currentjdk" + File.separator + "bin" + File.pathSeparator));
+
+		if (Util.isWindows()) {
+			// By default, on Windows we only test with CMD, so let's retest
+			// pretending we're running from PowerShell
+			environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "powershell");
+			result = checkedRun(jdk -> jdk.javaEnv(null));
+
+			assertThat(result.result, equalTo(SUCCESS_EXIT));
+			assertThat(result.normalizedOut(), containsString(File.separator + "currentjdk" + File.separator + "bin" + File.pathSeparator));
+		}
 	}
 
 	@Test

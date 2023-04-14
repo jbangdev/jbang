@@ -207,7 +207,7 @@ public class Jdk {
 				out.println("rem them to your Environment Variables in the System Settings.");
 				break;
 			case powershell:
-				out.println("$env:PATH=\"" + homeStr + "\\bin:$env:PATH\"");
+				out.println("$env:PATH=\"" + homeStr + "\\bin;$env:PATH\"");
 				out.println("$env:JAVA_HOME=\"" + homeOsStr + "\"");
 				out.println("# Run this command to configure your environment:");
 				out.print("# jbang jdk java-env");
