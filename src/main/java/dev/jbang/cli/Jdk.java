@@ -170,7 +170,7 @@ public class Jdk {
 	public Integer home(
 			@CommandLine.Parameters(paramLabel = "versionOrId", index = "0", description = "The version of the JDK to select", arity = "0..1") String versionOrId) {
 		jdkProvidersMixin.initJdkProviders();
-		Path home = getJdkPath(versionOrId);
+		Path home = JdkManager.getOrInstallJdk(versionOrId).getHome();
 		if (home != null) {
 			String homeStr = Util.pathToString(home);
 			System.out.println(homeStr);
@@ -182,7 +182,14 @@ public class Jdk {
 	public Integer javaEnv(
 			@CommandLine.Parameters(paramLabel = "versionOrId", index = "0", description = "The version of the JDK to select", arity = "0..1") String versionOrId) {
 		jdkProvidersMixin.initJdkProviders();
-		Path home = getJdkPath(versionOrId);
+		JdkProvider.Jdk jdk = null;
+		if (versionOrId != null && JavaUtil.isRequestedVersion(versionOrId)) {
+			jdk = JdkManager.getJdk(versionOrId, true);
+		}
+		if (jdk == null || !jdk.isInstalled()) {
+			jdk = JdkManager.getOrInstallJdk(versionOrId);
+		}
+		Path home = jdk.getHome();
 		if (home != null) {
 			String homeStr = Util.pathToString(home);
 			String homeOsStr = Util.pathToOsString(home);
@@ -207,7 +214,7 @@ public class Jdk {
 				out.println("rem them to your Environment Variables in the System Settings.");
 				break;
 			case powershell:
-				out.println("$env:PATH=\"" + homeStr + "\\bin:$env:PATH\"");
+				out.println("$env:PATH=\"" + homeStr + "\\bin;$env:PATH\"");
 				out.println("$env:JAVA_HOME=\"" + homeOsStr + "\"");
 				out.println("# Run this command to configure your environment:");
 				out.print("# jbang jdk java-env");
@@ -219,11 +226,6 @@ public class Jdk {
 			}
 		}
 		return EXIT_OK;
-	}
-
-	private Path getJdkPath(String versionOrId) {
-		JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(versionOrId);
-		return jdk.getHome();
 	}
 
 	@CommandLine.Command(name = "default", description = "Sets the default JDK to be used by JBang.")
