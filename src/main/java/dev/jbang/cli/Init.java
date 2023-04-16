@@ -217,8 +217,14 @@ public class Init extends BaseCommand {
 					: httpConn.getErrorStream();
 			Scanner s = new Scanner(responseStream).useDelimiter("\\A");
 			String response = s.hasNext() ? s.next() : "";
+			Util.verboseMsg("ChatGPT response: " + response);
 			GPTResponse result = gson.fromJson(response, GPTResponse.class);
-			answer = result.choices.stream().map(c -> c.message.content).collect(Collectors.joining("\n"));
+			if (result.choices != null) {
+				answer = result.choices.stream().map(c -> c.message.content).collect(Collectors.joining("\n"));
+			} else {
+				Util.errorMsg("Received no useful response from ChatGPT. Usage limit exceeded?");
+				throw new ExitException(EXIT_UNEXPECTED_STATE);
+			}
 		} catch (IOException e) {
 			Util.errorMsg("Problem fetching response from ChatGPT", e);
 		}
