@@ -176,6 +176,20 @@ public class Init extends BaseCommand {
 				public String content;
 			}
 		}
+
+		public Error error;
+
+		static public class Error {
+			String message;
+			String type;
+			String param;
+			String code;
+
+			@Override
+			public String toString() {
+				return type + ": " + message + " (code:" + code + "/param:" + param + ")";
+			}
+		}
 	}
 
 	public static String fetchGptResponse(String baseName, String extension, String request, String key) {
@@ -219,10 +233,10 @@ public class Init extends BaseCommand {
 			String response = s.hasNext() ? s.next() : "";
 			Util.verboseMsg("ChatGPT response: " + response);
 			GPTResponse result = gson.fromJson(response, GPTResponse.class);
-			if (result.choices != null) {
+			if (result.choices != null && result.error == null) {
 				answer = result.choices.stream().map(c -> c.message.content).collect(Collectors.joining("\n"));
 			} else {
-				Util.errorMsg("Received no useful response from ChatGPT. Usage limit exceeded?");
+				Util.errorMsg("Received no useful response from ChatGPT. Usage limit exceeded or wrong key? " + result.error);
 				throw new ExitException(EXIT_UNEXPECTED_STATE);
 			}
 		} catch (IOException e) {
