@@ -236,7 +236,8 @@ public class Init extends BaseCommand {
 			if (result.choices != null && result.error == null) {
 				answer = result.choices.stream().map(c -> c.message.content).collect(Collectors.joining("\n"));
 			} else {
-				Util.errorMsg("Received no useful response from ChatGPT. Usage limit exceeded or wrong key? " + result.error);
+				Util.errorMsg(
+						"Received no useful response from ChatGPT. Usage limit exceeded or wrong key? " + result.error);
 				throw new ExitException(EXIT_UNEXPECTED_STATE);
 			}
 		} catch (IOException e) {
