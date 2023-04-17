@@ -22,6 +22,7 @@ import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import dev.jbang.Configuration;
 import dev.jbang.util.Util;
@@ -213,10 +214,13 @@ public class JBang extends BaseCommand {
 	}
 
 	static class ConfigurationResourceBundle extends ResourceBundle {
+
+		private static final String PREFIX = "default.";
+
 		@Override
 		protected Object handleGetObject(String propkey) {
-			if (propkey.startsWith("jbang.")) {
-				String key = propkey.substring(6);
+			if (propkey.startsWith(PREFIX)) {
+				String key = propkey.substring(PREFIX.length());
 				return Configuration.instance().get(key);
 			} else {
 				return null;
@@ -225,7 +229,12 @@ public class JBang extends BaseCommand {
 
 		@Override
 		public Enumeration<String> getKeys() {
-			return Collections.enumeration(Configuration.instance().keySet());
+			return Collections.enumeration(Configuration.instance()
+														.flatten()
+														.keySet()
+														.stream()
+														.map(k -> "default." + k)
+														.collect(Collectors.toSet()));
 		}
 	}
 

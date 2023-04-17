@@ -12,11 +12,11 @@ public class RunMixin {
 	public List<String> javaRuntimeOptions;
 
 	@CommandLine.Option(names = {
-			"--jfr" }, fallbackValue = "${jbang.run.jfr}", parameterConsumer = Run.KeyValueFallbackConsumer.class, arity = "0..1", description = "Launch with Java Flight Recorder enabled.")
+			"--jfr" }, fallbackValue = "${default.run.jfr}", parameterConsumer = Run.KeyValueFallbackConsumer.class, arity = "0..1", description = "Launch with Java Flight Recorder enabled.")
 	public String flightRecorderString;
 
 	@CommandLine.Option(names = { "-d",
-			"--debug" }, fallbackValue = "${jbang.run.debug}", parameterConsumer = Run.DebugFallbackConsumer.class, arity = "0..1", description = "Launch with java debug enabled on specified port (default: ${FALLBACK-VALUE}) ")
+			"--debug" }, fallbackValue = "${default.run.debug}", parameterConsumer = Run.DebugFallbackConsumer.class, arity = "0..1", description = "Launch with java debug enabled on specified port (default: ${FALLBACK-VALUE}) ")
 	public String debugString;
 
 	// should take arguments for package/classes when picocli fixes its flag
