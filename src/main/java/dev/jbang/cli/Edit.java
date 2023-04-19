@@ -48,7 +48,7 @@ public class Edit extends BaseCommand {
 	public boolean live;
 
 	@CommandLine.Option(names = {
-			"--open" }, arity = "0..1", defaultValue = "${JBANG_EDITOR:-${jbang.edit.open:-}}", fallbackValue = "${JBANG_EDITOR:-${jbang.edit.open:-}}", description = "Opens editor/IDE on the temporary project.", preprocessor = StrictParameterPreprocessor.class)
+			"--open" }, arity = "0..1", defaultValue = "${JBANG_EDITOR:-${default.edit.open:-}}", fallbackValue = "${JBANG_EDITOR:-${default.edit.open:-}}", description = "Opens editor/IDE on the temporary project.", preprocessor = StrictParameterPreprocessor.class)
 	public Optional<String> editor;
 
 	@CommandLine.Option(names = { "--no-open" })
