@@ -32,7 +32,7 @@ public class TestExport extends BaseTest {
 	@Test
 	void testExportFile() throws Exception {
 		String src = examplesTestFolder.resolve("helloworld.java").toString();
-		String outFile = cwdDir.resolve("helloworld.jar").toString();
+		String outFile = cwdDir.resolve("subdir/helloworld.jar").toString();
 		CaptureResult result = checkedRun(null, "export", "local", "-O", outFile, src);
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*helloworld.jar.*"));
 		assertThat(new File(outFile), anExistingFile());
@@ -186,5 +186,14 @@ public class TestExport extends BaseTest {
 			ExportLocal export = (ExportLocal) pr.subcommand().subcommand().commandSpec().userObject();
 			export.doCall();
 		});
+	}
+
+	@Test
+	void testExportFatJar() throws Exception {
+		String src = examplesTestFolder.resolve("helloworld.java").toString();
+		String outFile = cwdDir.resolve("subdir/helloworld.jar").toString();
+		CaptureResult result = checkedRun(null, "export", "fatjar", "-O", outFile, src);
+		assertThat(result.err, matchesPattern("(?s).*Exported to.*helloworld.jar.*"));
+		assertThat(new File(outFile), anExistingFile());
 	}
 }

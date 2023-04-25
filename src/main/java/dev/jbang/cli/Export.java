@@ -114,11 +114,13 @@ class ExportLocal extends BaseExportCommand {
 		Path outputPath = getJarOutputPath();
 		if (outputPath.toFile().exists()) {
 			if (exportMixin.force) {
-				outputPath.toFile().delete();
+				Util.deletePath(outputPath, false);
 			} else {
 				Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
 				return EXIT_INVALID_INPUT;
 			}
+		} else {
+			Util.mkdirs(outputPath.getParent());
 		}
 		Files.copy(source, outputPath);
 
@@ -150,11 +152,13 @@ class ExportPortable extends BaseExportCommand {
 		Path outputPath = getJarOutputPath();
 		if (outputPath.toFile().exists()) {
 			if (exportMixin.force) {
-				outputPath.toFile().delete();
+				Util.deletePath(outputPath, false);
 			} else {
 				Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
 				return EXIT_INVALID_INPUT;
 			}
+		} else {
+			Util.mkdirs(outputPath.getParent());
 		}
 
 		Files.copy(source, outputPath);
@@ -208,7 +212,7 @@ class ExportMavenPublish extends BaseExportCommand {
 				return EXIT_INVALID_INPUT;
 			}
 			if (exportMixin.force) {
-				outputPath.toFile().mkdirs();
+				Util.mkdirs(outputPath);
 			} else {
 				Util.errorMsg("Cannot export as " + outputPath + " does not exist. Use --force to create.");
 				return EXIT_INVALID_INPUT;
@@ -301,11 +305,13 @@ class ExportNative extends BaseExportCommand {
 		Path outputPath = getNativeOutputPath();
 		if (outputPath.toFile().exists()) {
 			if (exportMixin.force) {
-				outputPath.toFile().delete();
+				Util.deletePath(outputPath, false);
 			} else {
 				Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
 				return EXIT_INVALID_INPUT;
 			}
+		} else {
+			Util.mkdirs(outputPath.getParent());
 		}
 		Files.copy(source, outputPath);
 
@@ -340,11 +346,13 @@ class ExportFatjar extends BaseExportCommand {
 		Path outputPath = getFatjarOutputPath();
 		if (outputPath.toFile().exists()) {
 			if (exportMixin.force) {
-				outputPath.toFile().delete();
+				Util.deletePath(outputPath, false);
 			} else {
 				Util.errorMsg("Cannot export as " + outputPath + " already exists. Use --force to overwrite.");
 				return EXIT_INVALID_INPUT;
 			}
+		} else {
+			Util.mkdirs(outputPath.getParent());
 		}
 
 		List<ArtifactInfo> deps = prj.resolveClassPath().getArtifacts();
