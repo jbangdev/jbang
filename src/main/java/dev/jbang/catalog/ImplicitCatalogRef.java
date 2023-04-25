@@ -38,6 +38,9 @@ public class ImplicitCatalogRef {
 	 * @return null if cannot parse it
 	 */
 	public static ImplicitCatalogRef parse(String name) {
+		if (Util.isURL(name)) {
+			return null;
+		}
 		String[] parts = name.split("~", 2);
 		String path;
 		if (parts.length == 2) {
@@ -47,7 +50,6 @@ public class ImplicitCatalogRef {
 		}
 		String[] names = parts[0].split("/");
 		if (names.length > 3) {
-
 			return null;
 		}
 		String org = names[0];
@@ -67,11 +69,9 @@ public class ImplicitCatalogRef {
 	}
 
 	public static Optional<String> getImplicitCatalogUrl(String catalogName) {
-
 		Optional<ImplicitCatalogRef> icr = Optional.ofNullable(parse(catalogName));
 		Optional<String> url = chain(
-				() -> catalogName.startsWith("https://") || catalogName.startsWith("http://")
-						|| catalogName.startsWith("file://") ? tryDownload(catalogName) : Optional.empty(),
+				() -> Util.isURL(catalogName) ? tryDownload(catalogName) : Optional.empty(),
 				() -> catalogName.contains(".") ? tryDownload("https://" + catalogName) : Optional.empty(),
 				() -> icr.isPresent() ? tryDownload(icr.get().url(GITHUB_URL, "/blob/")) : Optional.empty(),
 				() -> icr.isPresent() && icr.get().isPossibleCommit() ? tryDownload(icr.get().url(GITHUB_URL, "/blob/"))
