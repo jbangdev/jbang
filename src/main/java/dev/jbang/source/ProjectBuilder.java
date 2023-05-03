@@ -29,17 +29,12 @@ import dev.jbang.util.ModuleUtil;
 import dev.jbang.util.PropertiesValueResolver;
 import dev.jbang.util.Util;
 
-import eu.maveniverse.maven.mima.context.Context;
-import eu.maveniverse.maven.mima.context.ContextOverrides;
-import eu.maveniverse.maven.mima.context.Runtimes;
-
 /**
  * This class constructs a <code>Project</code>. It uses the options given by
  * the user on the command line or things that are part of the user's
  * environment.
  */
 public class ProjectBuilder {
-	private final Context rootContext;
 	private List<String> additionalSources = new ArrayList<>();
 	private List<String> additionalResources = new ArrayList<>();
 	private List<String> additionalDeps = new ArrayList<>();
@@ -61,23 +56,6 @@ public class ProjectBuilder {
 	private boolean enablePreview;
 
 	ProjectBuilder() {
-		this.rootContext = Runtimes.INSTANCE.getRuntime()
-											.create(
-													ContextOverrides.Builder.create()
-																			// .userProperties()
-																			// .repositories()
-																			.offline(Util.isOffline())
-																			.localRepository(
-																					Settings.getJBangLocalMavenRepoOverride())
-																			.snapshotUpdatePolicy(Util.isFresh()
-																					? ContextOverrides.SnapshotUpdatePolicy.ALWAYS
-																					: null)
-																			// .checksumPolicy()
-																			.withUserSettings(true)
-																			// .settingsXml()
-																			// .repositoryListener()
-																			// .transferListener()
-																			.build());
 	}
 
 	public ProjectBuilder setProperties(Map<String, String> properties) {
@@ -290,7 +268,7 @@ public class ProjectBuilder {
 	}
 
 	private Project createJarProject(ResourceRef resourceRef) {
-		Project prj = new Project(resourceRef, rootContext);
+		Project prj = new Project(resourceRef);
 		if (resourceRef.getOriginalResource() != null
 				&& DependencyUtil.looksLikeAGav(resourceRef.getOriginalResource())) {
 			prj.getMainSourceSet().addDependency(resourceRef.getOriginalResource());
@@ -299,7 +277,7 @@ public class ProjectBuilder {
 	}
 
 	private Project createJbangProject(ResourceRef resourceRef) {
-		Project prj = new Project(resourceRef, rootContext);
+		Project prj = new Project(resourceRef);
 		String contents = Util.readFileContent(resourceRef.getFile());
 		TagReader tagReader = new TagReader.JbangProject(contents,
 				it -> PropertiesValueResolver.replaceProperties(it, getContextProperties()));
@@ -348,7 +326,7 @@ public class ProjectBuilder {
 
 	private Project createSourceProject(ResourceRef resourceRef) {
 		Source src = createSource(resourceRef);
-		Project prj = new Project(src, rootContext);
+		Project prj = new Project(src);
 		return updateProject(src.updateProjectMain(prj, getResourceResolver()));
 	}
 
@@ -359,7 +337,7 @@ public class ProjectBuilder {
 	}
 
 	public Project build(Source src) {
-		Project prj = new Project(src, rootContext);
+		Project prj = new Project(src);
 		return updateProject(src.updateProjectMain(prj, getResourceResolver()));
 	}
 
@@ -480,7 +458,7 @@ public class ProjectBuilder {
 
 	private ModularClassPath resolveDependency(String dep) {
 		if (mcp == null) {
-			DependencyResolver resolver = new DependencyResolver(rootContext).addDependency(dep);
+			DependencyResolver resolver = new DependencyResolver().addDependency(dep);
 			updateDependencyResolver(resolver);
 			mcp = resolver.resolve();
 		}

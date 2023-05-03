@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -33,29 +32,7 @@ import dev.jbang.net.JdkProvider;
 import dev.jbang.util.PropertiesValueResolver;
 import dev.jbang.util.Util;
 
-import eu.maveniverse.maven.mima.context.Context;
-import eu.maveniverse.maven.mima.context.ContextOverrides;
-import eu.maveniverse.maven.mima.context.Runtimes;
-
 class DependencyResolverTest extends BaseTest {
-
-	private Context ctx;
-
-	public Context createCtx(File localRepo) {
-		return ctx = Runtimes.INSTANCE
-										.getRuntime()
-										.create(ContextOverrides.Builder.create()
-																		.localRepository(localRepo.toPath())
-																		.build());
-	}
-
-	@AfterEach
-	public void mayCloseCtx() {
-		if (ctx != null) {
-			ctx.close();
-			ctx = null;
-		}
-	}
 
 	@Test
 	void testFormatVersion() {
@@ -121,21 +98,21 @@ class DependencyResolverTest extends BaseTest {
 	}
 
 	@Test
-	void testResolveJavaFXWithAether(@TempDir File lr) {
+	void testResolveJavaFXWithAether() {
 		Detector detector = new Detector();
 		Properties p = new Properties();
 		detector.detect(p, Collections.emptyList());
 
 		List<String> deps = Collections.singletonList(
 				PropertiesValueResolver.replaceProperties("org.openjfx:javafx-base:18.0.2:${os.detected.jfxname}", p));
-		List<ArtifactInfo> artifacts = ArtifactResolver.Builder.create(createCtx(lr)).build().resolve(deps);
+		List<ArtifactInfo> artifacts = ArtifactResolver.Builder.create().build().resolve(deps);
 		assertEquals(1, artifacts.size());
 	}
 
 	@Test
-	void testResolveDependenciesWithAether(@TempDir File lr) {
+	void testResolveDependenciesWithAether() {
 		List<String> deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
-		List<ArtifactInfo> artifacts = ArtifactResolver.Builder.create(createCtx(lr)).build().resolve(deps);
+		List<ArtifactInfo> artifacts = ArtifactResolver.Builder.create().build().resolve(deps);
 		assertEquals(2, artifacts.size());
 	}
 
@@ -143,7 +120,8 @@ class DependencyResolverTest extends BaseTest {
 	void testResolveDependenciesAltRepo(@TempDir File altrepo) {
 		List<String> deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
 		List<ArtifactInfo> artifacts = ArtifactResolver.Builder
-																.create(createCtx(altrepo))
+																.create()
+																.localFolder(altrepo.toPath())
 																.build()
 																.resolve(deps);
 		assertEquals(2, artifacts.size());
@@ -157,23 +135,23 @@ class DependencyResolverTest extends BaseTest {
 	}
 
 	@Test
-	void testResolveDependencies(@TempDir File lr) {
+	void testResolveDependencies() {
 		List<String> deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
 
-		ModularClassPath classpath = DependencyUtil.resolveDependencies(createCtx(lr), deps, Collections.emptyList(),
-				false, false);
+		ModularClassPath classpath = DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false,
+				true, false);
 
 		// if returns 5 its because optional deps are included which they shouldn't
 		assertEquals(2, classpath.getClassPaths().size());
 	}
 
 	@Test
-	void testResolveDependenciesNoDuplicates(@TempDir File lr) {
+	void testResolveDependenciesNoDuplicates() {
 		List<String> deps = Arrays.asList("org.apache.commons:commons-configuration2:2.7",
 				"org.apache.commons:commons-text:1.8");
 
-		ModularClassPath classpath = DependencyUtil.resolveDependencies(createCtx(lr), deps, Collections.emptyList(),
-				false, false);
+		ModularClassPath classpath = DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false,
+				true, false);
 
 		// if returns with duplicates its because some dependencies are multiple times
 		// in the
@@ -186,26 +164,26 @@ class DependencyResolverTest extends BaseTest {
 	}
 
 	@Test
-	void testResolveNativeDependencies(@TempDir File lr) {
+	void testResolveNativeDependencies() {
 		Detector detector = new Detector();
 		detector.detect(new Properties(), Collections.emptyList());
 
 		// using shrinkwrap resolves in ${os.detected.version} not being resolved
 		List<String> deps = Collections.singletonList("com.github.docker-java:docker-java:3.1.5");
 
-		ModularClassPath classpath = DependencyUtil.resolveDependencies(createCtx(lr), deps, Collections.emptyList(),
-				false, false);
+		ModularClassPath classpath = DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false,
+				true, false);
 
 		assertEquals(46, classpath.getClassPaths().size());
 	}
 
 	@Test
-	void testResolveJavaModules(@TempDir File lr) throws IOException {
+	void testResolveJavaModules() throws IOException {
 		// using shrinkwrap resolves in ${os.detected.version} not being resolved
 		List<String> deps = Arrays.asList("org.openjfx:javafx-graphics:11.0.2:mac", "com.offbytwo:docopt:0.6+");
 
 		ModularClassPath cp = new ModularClassPath(
-				DependencyUtil	.resolveDependencies(createCtx(lr), deps, Collections.emptyList(), false, false)
+				DependencyUtil	.resolveDependencies(deps, Collections.emptyList(), false, false, true, false)
 								.getArtifacts()) {
 			@Override
 			protected boolean supportsModules(JdkProvider.Jdk jdk) {
@@ -223,17 +201,17 @@ class DependencyResolverTest extends BaseTest {
 	}
 
 	@Test
-	void testImportPOM(@TempDir File lr) {
+	void testImportPOM() {
 		List<String> deps = Arrays.asList("com.microsoft.azure:azure-bom:1.0.0.M1@pom", "com.microsoft.azure:azure");
 
-		ModularClassPath classpath = DependencyUtil.resolveDependencies(createCtx(lr), deps, Collections.emptyList(),
-				false, false);
+		ModularClassPath classpath = DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false,
+				true, false);
 
 		assertEquals(62, classpath.getArtifacts().size());
 	}
 
 	@Test
-	void testImportMultipleBoms(@TempDir File lr) {
+	void testImportMultipleBoms() {
 		List<String> deps = Arrays.asList("io.vertx:vertx-stack-depchain:4.2.3@pom", // if not listed then vertx.core
 																						// will be version 3.9.5
 				"org.apache.camel:camel-bom:3.9.0@pom",
@@ -242,8 +220,8 @@ class DependencyResolverTest extends BaseTest {
 				"org.apache.camel:camel-vertx",
 				"org.slf4j:slf4j-simple:1.7.30");
 
-		ModularClassPath classpath = DependencyUtil.resolveDependencies(createCtx(lr), deps, Collections.emptyList(),
-				false, false);
+		ModularClassPath classpath = DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false,
+				true, false);
 
 		Optional<ArtifactInfo> coord = classpath.getArtifacts()
 												.stream()
@@ -275,7 +253,7 @@ class DependencyResolverTest extends BaseTest {
 				"org.apache.camel:camel-core",
 				"org.apache.camel:camel-vertx",
 				"org.slf4j:slf4j-simple:1.7.30");
-		classpath = DependencyUtil.resolveDependencies(createCtx(lr), deps, Collections.emptyList(), false, false);
+		classpath = DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false, true, false);
 
 		coord = classpath	.getArtifacts()
 							.stream()
@@ -286,11 +264,11 @@ class DependencyResolverTest extends BaseTest {
 	}
 
 	@Test
-	void testResolveTestJar(@TempDir File lr) {
+	void testResolveTestJar() {
 		List<String> deps = Arrays.asList("org.infinispan:infinispan-commons:13.0.5.Final@test-jar");
 
-		ModularClassPath classpath = DependencyUtil.resolveDependencies(createCtx(lr), deps, Collections.emptyList(),
-				false, false);
+		ModularClassPath classpath = DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false,
+				true, false);
 
 		assertThat(classpath.getArtifacts(), hasSize(7));
 		ArtifactInfo ai = classpath.getArtifacts().get(0);

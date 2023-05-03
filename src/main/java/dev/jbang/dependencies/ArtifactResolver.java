@@ -2,6 +2,9 @@ package dev.jbang.dependencies;
 
 import static dev.jbang.util.Util.infoMsg;
 
+import java.io.Closeable;
+import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -10,7 +13,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.eclipse.aether.AbstractRepositoryListener;
+import org.eclipse.aether.ConfigurationProperties;
 import org.eclipse.aether.RepositoryEvent;
+import org.eclipse.aether.RepositoryListener;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.ArtifactType;
@@ -36,23 +41,30 @@ import dev.jbang.util.Util;
 
 import eu.maveniverse.maven.mima.context.Context;
 import eu.maveniverse.maven.mima.context.ContextOverrides;
+import eu.maveniverse.maven.mima.context.Runtimes;
 
-public class ArtifactResolver {
+public class ArtifactResolver implements Closeable {
 	private final Context context;
+	private final boolean loggingEnabled;
 	private final boolean downloadSources;
 
 	public static class Builder {
-		private final Context rootContext;
 		private List<MavenRepo> repositories;
-		private boolean downloadSources = false;
-		private boolean loggingEnabled = false;
+		private int timeout;
+		private boolean offline;
+		private boolean withUserSettings;
+		private Path localFolder;
+		private Path settingsXml;
+		private boolean updateCache;
+		private boolean loggingEnabled;
 
-		public static Builder create(Context rootContext) {
-			return new Builder(rootContext);
+		private boolean downloadSources = false;
+
+		public static Builder create() {
+			return new Builder();
 		}
 
-		private Builder(Context rootContext) {
-			this.rootContext = rootContext;
+		private Builder() {
 		}
 
 		public Builder repositories(List<MavenRepo> repositories) {
@@ -60,13 +72,43 @@ public class ArtifactResolver {
 			return this;
 		}
 
-		public Builder downloadSources(boolean downloadSources) {
-			this.downloadSources = downloadSources;
+		public Builder timeout(int timeout) {
+			this.timeout = timeout;
+			return this;
+		}
+
+		public Builder withUserSettings(boolean withUserSettings) {
+			this.withUserSettings = withUserSettings;
+			return this;
+		}
+
+		public Builder localFolder(Path localFolder) {
+			this.localFolder = localFolder;
+			return this;
+		}
+
+		public Builder settingsXml(Path settingsXml) {
+			this.settingsXml = settingsXml;
+			return this;
+		}
+
+		public Builder forceCacheUpdate(boolean updateCache) {
+			this.updateCache = updateCache;
+			return this;
+		}
+
+		public Builder offline(boolean offline) {
+			this.offline = offline;
 			return this;
 		}
 
 		public Builder logging(boolean logging) {
 			this.loggingEnabled = logging;
+			return this;
+		}
+
+		public Builder downloadSources(boolean downloadSources) {
+			this.downloadSources = downloadSources;
 			return this;
 		}
 
@@ -76,6 +118,11 @@ public class ArtifactResolver {
 	}
 
 	private ArtifactResolver(Builder builder) {
+		HashMap<String, String> userProperties = new HashMap<>();
+		if (builder.timeout > 0) {
+			userProperties.put(ConfigurationProperties.CONNECT_TIMEOUT, String.valueOf(builder.timeout));
+		}
+
 		List<RemoteRepository> partialRepos;
 		if (builder.repositories != null) {
 			partialRepos = builder.repositories.stream().map(this::toRemoteRepo).collect(Collectors.toList());
@@ -83,12 +130,29 @@ public class ArtifactResolver {
 			partialRepos = null;
 		}
 
+		RepositoryListener listener = setupSessionLogging();
+
+		ContextOverrides overrides = ContextOverrides.Builder	.create()
+																.userProperties(userProperties)
+																.offline(builder.offline)
+																.withUserSettings(builder.withUserSettings)
+																.settingsXml(builder.settingsXml)
+																.localRepository(builder.localFolder)
+																.snapshotUpdatePolicy(builder.updateCache
+																		? ContextOverrides.SnapshotUpdatePolicy.ALWAYS
+																		: null)
+																.repositories(partialRepos)
+																.repositoryListener(listener)
+																.build();
+		this.context = Runtimes.INSTANCE.getRuntime().create(overrides);
+
+		this.loggingEnabled = builder.loggingEnabled;
 		this.downloadSources = builder.downloadSources;
-		this.context = builder.rootContext.customize(
-				ContextOverrides.Builder.create()
-										.repositories(partialRepos)
-										.repositoryListener(builder.loggingEnabled ? listener() : null)
-										.build());
+	}
+
+	@Override
+	public void close() {
+		context.close();
 	}
 
 	public void downloadSources(Artifact artifact) {
@@ -156,84 +220,87 @@ public class ArtifactResolver {
 		}
 	}
 
-	private AbstractRepositoryListener listener() {
-		return new AbstractRepositoryListener() {
+	private AbstractRepositoryListener setupSessionLogging() {
+		if (loggingEnabled) {
 
-			@Override
-			public void metadataResolving(RepositoryEvent event) {
-				Metadata md = event.getMetadata();
-				printEvent(md.getGroupId(), md.getArtifactId(), md.getVersion(), md.getType(), null);
-			}
+			return new AbstractRepositoryListener() {
 
-			@Override
-			public void metadataDownloading(RepositoryEvent event) {
-				Metadata md = event.getMetadata();
-				printEvent(md.getGroupId(), md.getArtifactId(), md.getVersion(), md.getType(), null);
-			}
-
-			@Override
-			public void artifactResolving(RepositoryEvent event) {
-				Artifact art = event.getArtifact();
-				printEvent(art.getGroupId(), art.getArtifactId(), art.getVersion(), art.getExtension(),
-						art.getClassifier());
-			}
-
-			@Override
-			public void artifactResolved(RepositoryEvent event) {
-				Artifact art = event.getArtifact();
-				printEvent(art.getGroupId(), art.getArtifactId(), art.getVersion(), art.getExtension(),
-						art.getClassifier());
-			}
-
-			@Override
-			public void artifactDownloading(RepositoryEvent event) {
-				Artifact art = event.getArtifact();
-				printEvent(art.getGroupId(), art.getArtifactId(), art.getVersion(), art.getExtension(),
-						art.getClassifier());
-			}
-
-			@SuppressWarnings("unchecked")
-			private void printEvent(String groupId, String artId, String version, String type, String classifier) {
-				RepositorySystemSession session = context.repositorySystemSession();
-				List<String> depIds = (List<String>) session.getData().get("depIds");
-				if (depIds == null) {
-					return;
+				@Override
+				public void metadataResolving(RepositoryEvent event) {
+					Metadata md = event.getMetadata();
+					printEvent(md.getGroupId(), md.getArtifactId(), md.getVersion(), md.getType(), null);
 				}
-				Set<String> ids = (Set<String>) session	.getData()
-														.computeIfAbsent("ids", () -> new HashSet<>(depIds));
-				Set<String> printed = (Set<String>) session	.getData()
-															.computeIfAbsent("printed", HashSet::new);
 
-				String id = coord(groupId, artId, null, null, classifier);
-				if (!printed.contains(id)) {
-					String coord = coord(groupId, artId, version, null, classifier);
-					String pomcoord = coord(groupId, artId, version, "pom", null);
-					if (ids.contains(id) || ids.contains(coord) || ids.contains(pomcoord) || Util.isVerbose()) {
-						if (ids.contains(pomcoord)) {
-							infoMsg("   " + pomcoord);
-						} else {
-							infoMsg("   " + coord);
+				@Override
+				public void metadataDownloading(RepositoryEvent event) {
+					Metadata md = event.getMetadata();
+					printEvent(md.getGroupId(), md.getArtifactId(), md.getVersion(), md.getType(), null);
+				}
+
+				@Override
+				public void artifactResolving(RepositoryEvent event) {
+					Artifact art = event.getArtifact();
+					printEvent(art.getGroupId(), art.getArtifactId(), art.getVersion(), art.getExtension(),
+							art.getClassifier());
+				}
+
+				@Override
+				public void artifactResolved(RepositoryEvent event) {
+					Artifact art = event.getArtifact();
+					printEvent(art.getGroupId(), art.getArtifactId(), art.getVersion(), art.getExtension(),
+							art.getClassifier());
+				}
+
+				@Override
+				public void artifactDownloading(RepositoryEvent event) {
+					Artifact art = event.getArtifact();
+					printEvent(art.getGroupId(), art.getArtifactId(), art.getVersion(), art.getExtension(),
+							art.getClassifier());
+				}
+
+				private void printEvent(String groupId, String artId, String version, String type, String classifier) {
+					RepositorySystemSession session = context.repositorySystemSession();
+					List<String> depIds = (List<String>) session.getData().get("depIds");
+					if (depIds == null) {
+						return;
+					}
+					Set<String> ids = (Set<String>) session	.getData()
+															.computeIfAbsent("ids", () -> new HashSet<>(depIds));
+					Set<String> printed = (Set<String>) session	.getData()
+																.computeIfAbsent("printed", () -> new HashSet<>());
+
+					String id = coord(groupId, artId, null, null, classifier);
+					if (!printed.contains(id)) {
+						String coord = coord(groupId, artId, version, null, classifier);
+						String pomcoord = coord(groupId, artId, version, "pom", null);
+						if (ids.contains(id) || ids.contains(coord) || ids.contains(pomcoord) || Util.isVerbose()) {
+							if (ids.contains(pomcoord)) {
+								infoMsg("   " + pomcoord);
+							} else {
+								infoMsg("   " + coord);
+							}
+							printed.add(id);
 						}
-						printed.add(id);
 					}
 				}
-			}
 
-			private String coord(String groupId, String artId, String version, String type, String classifier) {
-				String res = groupId + ":" + artId;
-				if (version != null && !version.isEmpty()) {
-					res += ":" + version;
-				}
-				if (classifier != null && classifier.length() > 0) {
-					res += "-" + classifier;
-				}
-				if ("pom".equals(type)) {
-					res += "@" + type;
-				}
+				private String coord(String groupId, String artId, String version, String type, String classifier) {
+					String res = groupId + ":" + artId;
+					if (version != null && !version.isEmpty()) {
+						res += ":" + version;
+					}
+					if (classifier != null && classifier.length() > 0) {
+						res += "-" + classifier;
+					}
+					if ("pom".equals(type)) {
+						res += "@" + type;
+					}
 
-				return res;
-			}
-		};
+					return res;
+				}
+			};
+		}
+		return null;
 	}
 
 	private Dependency applyManagedDependencies(Dependency d, List<Dependency> managedDeps) {

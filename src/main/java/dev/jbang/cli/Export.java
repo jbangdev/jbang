@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 
+import dev.jbang.Settings;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.dependencies.ArtifactInfo;
@@ -200,11 +201,7 @@ class ExportMavenPublish extends BaseExportCommand {
 		Path outputPath = exportMixin.outputFile;
 
 		if (outputPath == null) {
-			outputPath = prj.getRootContext()
-							.repositorySystemSession()
-							.getLocalRepository()
-							.getBasedir()
-							.toPath();
+			outputPath = Settings.getLocalMavenRepo();
 		}
 		// Copy the JAR
 		Path source = ctx.getJarFile();
