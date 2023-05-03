@@ -36,6 +36,7 @@ import org.eclipse.aether.resolution.DependencyResult;
 import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.util.artifact.SubArtifact;
 
+import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
 import dev.jbang.util.Util;
 
@@ -258,6 +259,7 @@ public class ArtifactResolver implements Closeable {
 							art.getClassifier());
 				}
 
+				@SuppressWarnings("unchecked")
 				private void printEvent(String groupId, String artId, String version, String type, String classifier) {
 					RepositorySystemSession session = context.repositorySystemSession();
 					List<String> depIds = (List<String>) session.getData().get("depIds");
@@ -367,5 +369,15 @@ public class ArtifactResolver implements Closeable {
 		MavenCoordinate coord = new MavenCoordinate(artifact.getGroupId(), artifact.getArtifactId(),
 				artifact.getVersion(), artifact.getClassifier(), artifact.getExtension());
 		return new ArtifactInfo(coord, artifact.getFile().toPath());
+	}
+
+	public static Path getLocalMavenRepo() {
+		try (ArtifactResolver ar = Builder.create().localFolder(Settings.getJBangLocalMavenRepoOverride()).build()) {
+			return ar.context
+								.repositorySystemSession()
+								.getLocalRepository()
+								.getBasedir()
+								.toPath();
+		}
 	}
 }
