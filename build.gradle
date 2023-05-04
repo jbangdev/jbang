@@ -48,9 +48,9 @@ dependencies {
 	implementation "org.slf4j:slf4j-nop:1.7.30"
 	implementation "org.jboss:jandex:2.2.3.Final"
 
-	implementation "eu.maveniverse.maven.mima:context:1.0.2"
-	runtimeOnly    "eu.maveniverse.maven.mima.runtime:embedded-maven:1.0.2"
-	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-sisu:1.0.2"
+	implementation "eu.maveniverse.maven.mima:context:1.1.0"
+	runtimeOnly    "eu.maveniverse.maven.mima.runtime:embedded-maven:1.1.0"
+	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static-uber:1.1.0"
 
 	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.9.0"
 	testImplementation "org.junit.jupiter:junit-jupiter:5.9.0"
