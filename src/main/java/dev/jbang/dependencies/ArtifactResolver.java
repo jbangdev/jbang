@@ -131,10 +131,7 @@ public class ArtifactResolver implements Closeable {
 		}
 
 		this.downloadSources = builder.downloadSources;
-		RepositoryListener listener = null;
-		if (builder.loggingEnabled) {
-			listener = setupSessionLogging();
-		}
+		final RepositoryListener listener = builder.loggingEnabled ? setupSessionLogging() : null;
 
 		ContextOverrides overrides = ContextOverrides.Builder	.create()
 																.userProperties(userProperties)
