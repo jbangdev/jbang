@@ -46,7 +46,6 @@ import eu.maveniverse.maven.mima.context.Runtimes;
 
 public class ArtifactResolver implements Closeable {
 	private final Context context;
-	private final boolean loggingEnabled;
 	private final boolean downloadSources;
 
 	public static class Builder {
@@ -131,7 +130,11 @@ public class ArtifactResolver implements Closeable {
 			partialRepos = null;
 		}
 
-		RepositoryListener listener = setupSessionLogging();
+		this.downloadSources = builder.downloadSources;
+		RepositoryListener listener = null;
+		if (builder.loggingEnabled) {
+			listener = setupSessionLogging();
+		}
 
 		ContextOverrides overrides = ContextOverrides.Builder	.create()
 																.userProperties(userProperties)
@@ -146,9 +149,6 @@ public class ArtifactResolver implements Closeable {
 																.repositoryListener(listener)
 																.build();
 		this.context = Runtimes.INSTANCE.getRuntime().create(overrides);
-
-		this.loggingEnabled = builder.loggingEnabled;
-		this.downloadSources = builder.downloadSources;
 	}
 
 	@Override
@@ -222,87 +222,83 @@ public class ArtifactResolver implements Closeable {
 	}
 
 	private AbstractRepositoryListener setupSessionLogging() {
-		if (loggingEnabled) {
+		return new AbstractRepositoryListener() {
 
-			return new AbstractRepositoryListener() {
+			@Override
+			public void metadataResolving(RepositoryEvent event) {
+				Metadata md = event.getMetadata();
+				printEvent(md.getGroupId(), md.getArtifactId(), md.getVersion(), md.getType(), null);
+			}
 
-				@Override
-				public void metadataResolving(RepositoryEvent event) {
-					Metadata md = event.getMetadata();
-					printEvent(md.getGroupId(), md.getArtifactId(), md.getVersion(), md.getType(), null);
+			@Override
+			public void metadataDownloading(RepositoryEvent event) {
+				Metadata md = event.getMetadata();
+				printEvent(md.getGroupId(), md.getArtifactId(), md.getVersion(), md.getType(), null);
+			}
+
+			@Override
+			public void artifactResolving(RepositoryEvent event) {
+				Artifact art = event.getArtifact();
+				printEvent(art.getGroupId(), art.getArtifactId(), art.getVersion(), art.getExtension(),
+						art.getClassifier());
+			}
+
+			@Override
+			public void artifactResolved(RepositoryEvent event) {
+				Artifact art = event.getArtifact();
+				printEvent(art.getGroupId(), art.getArtifactId(), art.getVersion(), art.getExtension(),
+						art.getClassifier());
+			}
+
+			@Override
+			public void artifactDownloading(RepositoryEvent event) {
+				Artifact art = event.getArtifact();
+				printEvent(art.getGroupId(), art.getArtifactId(), art.getVersion(), art.getExtension(),
+						art.getClassifier());
+			}
+
+			@SuppressWarnings("unchecked")
+			private void printEvent(String groupId, String artId, String version, String type, String classifier) {
+				RepositorySystemSession session = context.repositorySystemSession();
+				List<String> depIds = (List<String>) session.getData().get("depIds");
+				if (depIds == null) {
+					return;
 				}
+				Set<String> ids = (Set<String>) session	.getData()
+														.computeIfAbsent("ids", () -> new HashSet<>(depIds));
+				Set<String> printed = (Set<String>) session	.getData()
+															.computeIfAbsent("printed", () -> new HashSet<>());
 
-				@Override
-				public void metadataDownloading(RepositoryEvent event) {
-					Metadata md = event.getMetadata();
-					printEvent(md.getGroupId(), md.getArtifactId(), md.getVersion(), md.getType(), null);
-				}
-
-				@Override
-				public void artifactResolving(RepositoryEvent event) {
-					Artifact art = event.getArtifact();
-					printEvent(art.getGroupId(), art.getArtifactId(), art.getVersion(), art.getExtension(),
-							art.getClassifier());
-				}
-
-				@Override
-				public void artifactResolved(RepositoryEvent event) {
-					Artifact art = event.getArtifact();
-					printEvent(art.getGroupId(), art.getArtifactId(), art.getVersion(), art.getExtension(),
-							art.getClassifier());
-				}
-
-				@Override
-				public void artifactDownloading(RepositoryEvent event) {
-					Artifact art = event.getArtifact();
-					printEvent(art.getGroupId(), art.getArtifactId(), art.getVersion(), art.getExtension(),
-							art.getClassifier());
-				}
-
-				@SuppressWarnings("unchecked")
-				private void printEvent(String groupId, String artId, String version, String type, String classifier) {
-					RepositorySystemSession session = context.repositorySystemSession();
-					List<String> depIds = (List<String>) session.getData().get("depIds");
-					if (depIds == null) {
-						return;
-					}
-					Set<String> ids = (Set<String>) session	.getData()
-															.computeIfAbsent("ids", () -> new HashSet<>(depIds));
-					Set<String> printed = (Set<String>) session	.getData()
-																.computeIfAbsent("printed", () -> new HashSet<>());
-
-					String id = coord(groupId, artId, null, null, classifier);
-					if (!printed.contains(id)) {
-						String coord = coord(groupId, artId, version, null, classifier);
-						String pomcoord = coord(groupId, artId, version, "pom", null);
-						if (ids.contains(id) || ids.contains(coord) || ids.contains(pomcoord) || Util.isVerbose()) {
-							if (ids.contains(pomcoord)) {
-								infoMsg("   " + pomcoord);
-							} else {
-								infoMsg("   " + coord);
-							}
-							printed.add(id);
+				String id = coord(groupId, artId, null, null, classifier);
+				if (!printed.contains(id)) {
+					String coord = coord(groupId, artId, version, null, classifier);
+					String pomcoord = coord(groupId, artId, version, "pom", null);
+					if (ids.contains(id) || ids.contains(coord) || ids.contains(pomcoord) || Util.isVerbose()) {
+						if (ids.contains(pomcoord)) {
+							infoMsg("   " + pomcoord);
+						} else {
+							infoMsg("   " + coord);
 						}
+						printed.add(id);
 					}
 				}
+			}
 
-				private String coord(String groupId, String artId, String version, String type, String classifier) {
-					String res = groupId + ":" + artId;
-					if (version != null && !version.isEmpty()) {
-						res += ":" + version;
-					}
-					if (classifier != null && classifier.length() > 0) {
-						res += "-" + classifier;
-					}
-					if ("pom".equals(type)) {
-						res += "@" + type;
-					}
-
-					return res;
+			private String coord(String groupId, String artId, String version, String type, String classifier) {
+				String res = groupId + ":" + artId;
+				if (version != null && !version.isEmpty()) {
+					res += ":" + version;
 				}
-			};
-		}
-		return null;
+				if (classifier != null && classifier.length() > 0) {
+					res += "-" + classifier;
+				}
+				if ("pom".equals(type)) {
+					res += "@" + type;
+				}
+
+				return res;
+			}
+		};
 	}
 
 	private Dependency applyManagedDependencies(Dependency d, List<Dependency> managedDeps) {
