@@ -23,6 +23,10 @@ public class NativeCmdGenerator extends BaseCmdGenerator<NativeCmdGenerator> {
 	public String generate() throws IOException {
 		List<String> fullArgs = new ArrayList<>();
 
+		if (project.enablePreview()) {
+			fullArgs.add("--enable-preview");
+		}
+
 		Path image = ctx.getNativeImageFile();
 		if (Files.exists(image)) {
 			fullArgs.add(image.toString());

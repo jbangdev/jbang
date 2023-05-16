@@ -56,7 +56,7 @@ public class JBang extends BaseCommand {
 			"--version" }, versionHelp = true, description = "Display version info (use `jbang --verbose version` for more details)")
 	boolean versionRequested;
 
-	@CommandLine.Option(names = { "--preview" }, description = "Enable preview features")
+	@CommandLine.Option(names = { "--preview" }, description = "Enable jbang preview features")
 	void setPreview(boolean preview) {
 		Util.setPreview(preview);
 	}

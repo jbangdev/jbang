@@ -53,6 +53,7 @@ public class ProjectBuilder {
 	private Boolean nativeImage;
 	private String javaVersion;
 	private Properties contextProperties;
+	private boolean enablePreview;
 
 	ProjectBuilder() {
 	}
@@ -158,6 +159,11 @@ public class ProjectBuilder {
 
 	public ProjectBuilder nativeImage(Boolean nativeImage) {
 		this.nativeImage = nativeImage;
+		return this;
+	}
+
+	public ProjectBuilder enablePreview(boolean enablePreviewRequested) {
+		this.enablePreview = enablePreviewRequested;
 		return this;
 	}
 
@@ -408,6 +414,7 @@ public class ProjectBuilder {
 		if (nativeImage != null) {
 			prj.setNativeImage(nativeImage);
 		}
+		prj.setEnablePreviewRequested(enablePreview);
 		return prj;
 	}
 
@@ -497,4 +504,5 @@ public class ProjectBuilder {
 	public static boolean isAlias(ResourceRef resourceRef) {
 		return resourceRef instanceof AliasResourceResolver.AliasedResourceRef;
 	}
+
 }

@@ -41,6 +41,7 @@ public class Project {
 	private String mainClass;
 	private String moduleName;
 	private boolean nativeImage;
+	private boolean enablePreviewRequested;
 
 	// Cached values
 	private String stableId;
@@ -48,6 +49,10 @@ public class Project {
 
 	public static final String ATTR_PREMAIN_CLASS = "Premain-Class";
 	public static final String ATTR_AGENT_CLASS = "Agent-Class";
+
+	public boolean enablePreview() {
+		return enablePreviewRequested || (mainSource != null && mainSource.enablePreview());
+	}
 
 	public enum BuildFile {
 		jbang("build.jbang");
@@ -181,6 +186,10 @@ public class Project {
 
 	public void setMainClass(String mainClass) {
 		this.mainClass = mainClass;
+	}
+
+	public void setEnablePreviewRequested(boolean enablePreview) {
+		this.enablePreviewRequested = enablePreview;
 	}
 
 	@Nonnull

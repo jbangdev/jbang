@@ -100,6 +100,10 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 			optionalArgs.add("-esa");
 		}
 
+		if (project.enablePreview()) {
+			optionalArgs.add("--enable-preview");
+		}
+
 		if (flightRecorderString != null) {
 			// TODO: find way to generate ~/.jbang/script.jfc to configure flightrecorder to
 			// have 0 ms thresholds

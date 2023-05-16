@@ -60,6 +60,13 @@ public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
 		// NB: See https://github.com/jbangdev/jbang/issues/992 for the reasons why we
 		// use the -J flags below
 
+		if (project.enablePreview()) {
+			// jshell does not seem to automaticall pass enable-preview to runtime/compiler
+			optionalArgs.add("--enable-preview");
+			optionalArgs.add("-J--enable-preview");
+			optionalArgs.add("-C--enable-preview");
+		}
+
 		optionalArgs.add("--execution=local");
 		optionalArgs.add("-J--add-modules=ALL-SYSTEM");
 
