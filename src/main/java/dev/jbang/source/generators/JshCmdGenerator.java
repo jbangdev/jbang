@@ -63,6 +63,7 @@ public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
 		if (project.enablePreview()) {
 			// jshell does not seem to automaticall pass enable-preview to runtime/compiler
 			optionalArgs.add("--enable-preview");
+			// only required because --execution=local cause it to break otherwise.
 			optionalArgs.add("-J--enable-preview");
 			optionalArgs.add("-C--enable-preview");
 		}
