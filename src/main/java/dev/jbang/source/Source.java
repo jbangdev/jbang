@@ -105,6 +105,10 @@ public abstract class Source {
 		return !tagReader.collectRawOptions("CDS").isEmpty();
 	}
 
+	public boolean enablePreview() {
+		return !tagReader.collectRawOptions("PREVIEW").isEmpty();
+	}
+
 	/**
 	 * Updates the given <code>Project</code> with all the information from this
 	 * <code>Source</code> when that source is the main file. It updates certain

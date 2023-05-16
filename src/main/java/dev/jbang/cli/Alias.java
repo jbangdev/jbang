@@ -84,6 +84,9 @@ class AliasAdd extends BaseAliasCommand {
 	@CommandLine.Option(names = { "--name" }, description = "A name for the alias")
 	String name;
 
+	@CommandLine.Option(names = { "--enable-preview" }, description = "Activate Java preview features")
+	boolean enablePreviewRequested;
+
 	@CommandLine.Parameters(paramLabel = "params", index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
 	List<String> userParams;
 
@@ -111,6 +114,7 @@ class AliasAdd extends BaseAliasCommand {
 				dependencyInfoMixin.getProperties(), buildMixin.javaVersion, buildMixin.main, buildMixin.module,
 				buildMixin.compileOptions, nativeMixin.nativeImage, nativeMixin.nativeOptions,
 				runMixin.flightRecorderString, runMixin.debugString, runMixin.cds, runMixin.interactive,
+				enablePreviewRequested,
 				runMixin.enableAssertions, runMixin.enableSystemAssertions, buildMixin.manifestOptions,
 				createJavaAgents(), null);
 		if (catFile != null) {
@@ -136,7 +140,8 @@ class AliasAdd extends BaseAliasCommand {
 									.moduleName(buildMixin.module)
 									.compileOptions(buildMixin.compileOptions)
 									.nativeImage(nativeMixin.nativeImage)
-									.nativeOptions(nativeMixin.nativeOptions);
+									.nativeOptions(nativeMixin.nativeOptions)
+									.enablePreview(enablePreviewRequested);
 		Path cat = getCatalog(false);
 		if (cat != null) {
 			pb.catalog(cat.toFile());
@@ -245,6 +250,7 @@ class AliasList extends BaseAliasCommand {
 		public List<String> javaOptions;
 		public Map<String, String> properties;
 		public transient ResourceRef _catalogRef;
+		public Boolean enablePreview;
 	}
 
 	private static AliasOut getAliasOut(String catalogName, Catalog catalog, String name) {
@@ -269,6 +275,7 @@ class AliasList extends BaseAliasCommand {
 		out.javaOptions = alias.runtimeOptions;
 		out.properties = alias.properties;
 		out._catalogRef = alias.catalog.catalogRef;
+		out.enablePreview = alias.enablePreview;
 		return out;
 	}
 
@@ -290,6 +297,9 @@ class AliasList extends BaseAliasCommand {
 		}
 		if (alias.mainClass != null) {
 			out.println(prefix + ConsoleOutput.cyan("   Main Class: ") + alias.mainClass);
+		}
+		if (alias.enablePreview != null) {
+			out.println(prefix + ConsoleOutput.cyan("   Enable Preview: ") + alias.enablePreview);
 		}
 		if (alias.javaOptions != null) {
 			out.println(prefix + ConsoleOutput.cyan("   Java Options: ") + String.join(" ", alias.javaOptions));

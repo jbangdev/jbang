@@ -43,6 +43,8 @@ public class Alias extends CatalogItem {
 	public final String debug;
 	public final Boolean cds;
 	public final Boolean interactive;
+	@SerializedName(value = "enable-preview")
+	public final Boolean enablePreview;
 	@SerializedName(value = "enable-assertions")
 	public final Boolean enableAssertions;
 	@SerializedName(value = "enable-system-assertions")
@@ -69,6 +71,7 @@ public class Alias extends CatalogItem {
 
 	public Alias() {
 		this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+				null,
 				null, null, null, null, null, null, null);
 	}
 
@@ -92,6 +95,7 @@ public class Alias extends CatalogItem {
 			String debug,
 			Boolean cds,
 			Boolean interactive,
+			Boolean enablePreview,
 			Boolean enableAssertions,
 			Boolean enableSystemAssertions,
 			Map<String, String> manifestOptions,
@@ -118,6 +122,7 @@ public class Alias extends CatalogItem {
 		this.debug = debug;
 		this.cds = cds;
 		this.interactive = interactive;
+		this.enablePreview = enablePreview;
 		this.enableAssertions = enableAssertions;
 		this.enableSystemAssertions = enableSystemAssertions;
 		this.manifestOptions = manifestOptions;
@@ -209,6 +214,7 @@ public class Alias extends CatalogItem {
 			String debug = a1.debug != null ? a1.debug : a2.debug;
 			Boolean cds = a1.cds != null ? a1.cds : a2.cds;
 			Boolean inter = a1.interactive != null ? a1.interactive : a2.interactive;
+			Boolean ep = a1.enablePreview != null ? a1.enablePreview : a2.enablePreview;
 			Boolean ea = a1.enableAssertions != null ? a1.enableAssertions : a2.enableAssertions;
 			Boolean esa = a1.enableSystemAssertions != null ? a1.enableSystemAssertions : a2.enableSystemAssertions;
 			Map<String, String> mopts = a1.manifestOptions != null && !a1.manifestOptions.isEmpty() ? a1.manifestOptions
@@ -216,7 +222,8 @@ public class Alias extends CatalogItem {
 			List<JavaAgent> jags = a1.javaAgents != null && !a1.javaAgents.isEmpty() ? a1.javaAgents : a2.javaAgents;
 			Catalog catalog = a2.catalog != null ? a2.catalog : a1.catalog;
 			return new Alias(a2.scriptRef, desc, args, jopts, srcs, ress, deps, repos, cpaths, props, javaVersion,
-					mainClass, moduleName, copts, nimg, nopts, jfr, debug, cds, inter, ea, esa, mopts, jags, catalog);
+					mainClass, moduleName, copts, nimg, nopts, jfr, debug, cds, inter, ep, ea, esa, mopts, jags,
+					catalog);
 		} else {
 			return a1;
 		}
@@ -259,14 +266,16 @@ public class Alias extends CatalogItem {
 	public Alias withCatalog(Catalog catalog) {
 		return new Alias(scriptRef, description, arguments, runtimeOptions, sources, resources, dependencies,
 				repositories, classpaths, properties, javaVersion, mainClass, moduleName, compileOptions, nativeImage,
-				nativeOptions, jfr, debug, cds, interactive, enableAssertions, enableSystemAssertions, manifestOptions,
+				nativeOptions, jfr, debug, cds, interactive, enablePreview, enableAssertions, enableSystemAssertions,
+				manifestOptions,
 				javaAgents, catalog);
 	}
 
 	public Alias withScriptRef(String scriptRef) {
 		return new Alias(scriptRef, description, arguments, runtimeOptions, sources, resources, dependencies,
 				repositories, classpaths, properties, javaVersion, mainClass, moduleName, compileOptions, nativeImage,
-				nativeOptions, jfr, debug, cds, interactive, enableAssertions, enableSystemAssertions, manifestOptions,
+				nativeOptions, jfr, debug, cds, interactive, enablePreview, enableAssertions, enableSystemAssertions,
+				manifestOptions,
 				javaAgents, catalog);
 	}
 }

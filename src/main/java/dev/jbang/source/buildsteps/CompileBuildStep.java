@@ -70,6 +70,11 @@ public abstract class CompileBuildStep implements Builder<Project> {
 		Path compileDir = ctx.getCompileDir();
 		List<String> optionList = new ArrayList<>();
 		optionList.add(getCompilerBinary(requestedJavaVersion));
+		if (project.enablePreview()) {
+			optionList.add("--enable-preview");
+			optionList.add("-source");
+			optionList.add("" + JavaUtil.javaVersion(requestedJavaVersion));
+		}
 		optionList.addAll(project.getMainSourceSet().getCompileOptions());
 		String path = project.resolveClassPath().getClassPath();
 		if (!Util.isBlankString(path)) {

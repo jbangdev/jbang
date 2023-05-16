@@ -54,6 +54,28 @@ public class TestBuilder extends BaseTest {
 	}
 
 	@Test
+	void testEnablePreview() throws IOException {
+		Path foo = examplesTestFolder.resolve("helloworld.java").toAbsolutePath();
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(foo.toString());
+		prj.setEnablePreviewRequested(true);
+		BuildContext ctx = BuildContext.forProject(prj);
+
+		new JavaSource.JavaAppBuilder(prj, ctx) {
+			@Override
+			protected Builder<Project> getCompileBuildStep() {
+				return new JavaCompileBuildStep() {
+					@Override
+					protected void runCompiler(List<String> optionList) {
+						assertThat(optionList, hasItems(foo.toString(), "--enable-preview"));
+						// Skip the compiler
+					}
+				};
+			}
+		}.setFresh(true).build();
+	}
+
+	@Test
 	void testDualHelloworld(@TempDir File out1, @TempDir File out2) throws IOException {
 		Path foo = examplesTestFolder.resolve("helloworld.java").toAbsolutePath();
 		ProjectBuilder pb = Project.builder();

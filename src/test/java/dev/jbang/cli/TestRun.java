@@ -1368,6 +1368,87 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testEnablePreviewInSource(@TempDir Path output) throws Exception {
+		String source = "//PREVIEW\nclass cds { }";
+		Path p = output.resolve("cds.java");
+		writeString(p, source);
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", p.toString());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		pb.mainClass("fakemain");
+		Project code = pb.build(p);
+
+		String commandLine = run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
+		assertThat(commandLine, containsString("--enable-preview"));
+	}
+
+	@Test
+	void testEnablePreview() throws IOException {
+		File f = examplesTestFolder.resolve("resource.java").toFile();
+
+		CommandLine.ParseResult pr = JBang	.getCommandLine()
+											.parseArgs("run", "--enable-preview", "--main",
+													"fakemain",
+													f.getAbsolutePath());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project prj = pb.build(f.getAbsolutePath());
+
+		String line = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
+
+		assertThat(line, containsString("--enable-preview"));
+	}
+
+	@Test
+	void testEnablePreviewJsh() throws IOException {
+		File f = examplesTestFolder.resolve("resource.java").toFile();
+
+		CommandLine.ParseResult pr = JBang	.getCommandLine()
+											.parseArgs("run", "--enable-preview", "-i", "--main",
+													"fakemain",
+													f.getAbsolutePath());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project prj = pb.build(f.getAbsolutePath());
+
+		BuildContext ctx = BuildContext.forProject(prj, null);
+		CmdGeneratorBuilder genb = prj.codeBuilder(ctx).build();
+
+		String cmdline = run.updateGeneratorForRun(genb).build().generate();
+
+		assertThat(cmdline, containsString("--enable-preview"));
+		assertThat(cmdline, containsString("-C--enable-preview"));
+		assertThat(cmdline, containsString("-J--enable-preview"));
+	}
+
+	@Test
+	void testEnablePreviewJava() throws IOException {
+		File f = examplesTestFolder.resolve("resource.java").toFile();
+
+		CommandLine.ParseResult pr = JBang	.getCommandLine()
+											.parseArgs("run", "--enable-preview", "--main",
+													"fakemain",
+													f.getAbsolutePath());
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project prj = pb.build(f.getAbsolutePath());
+
+		BuildContext ctx = BuildContext.forProject(prj, null);
+		CmdGeneratorBuilder genb = prj.codeBuilder(ctx).build();
+
+		String cmdline = run.updateGeneratorForRun(genb).build().generate();
+
+		assertThat(cmdline, containsString("--enable-preview"));
+		assertThat(cmdline, not(containsString("-C--enable-preview")));
+		assertThat(cmdline, not(containsString("-J--enable-preview")));
+	}
+
+	@Test
 	void testFilePresentB() throws IOException {
 		File f = examplesTestFolder.resolve("resource.java").toFile();
 

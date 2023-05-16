@@ -30,6 +30,9 @@ public abstract class BaseBuildCommand extends BaseCommand {
 			"--build-dir" }, description = "Use given directory for build results")
 	Path buildDir;
 
+	@CommandLine.Option(names = { "--enable-preview" }, description = "Activate Java preview features")
+	boolean enablePreviewRequested;
+
 	PrintStream out = new PrintStream(new FileOutputStream(FileDescriptor.out));
 
 	protected ProjectBuilder createBaseProjectBuilder() {
@@ -48,7 +51,8 @@ public abstract class BaseBuildCommand extends BaseCommand {
 						.compileOptions(buildMixin.compileOptions)
 						.manifestOptions(buildMixin.manifestOptions)
 						.nativeImage(nativeMixin.nativeImage)
-						.nativeOptions(nativeMixin.nativeOptions);
+						.nativeOptions(nativeMixin.nativeOptions)
+						.enablePreview(enablePreviewRequested);
 
 		// NB: Do not put `.mainClass(buildMixin.main)` here
 	}
