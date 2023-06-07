@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -192,6 +194,16 @@ class TestJdk extends BaseTest {
 
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(), containsString("cache" + File.separator + "jdks" + File.separator + "11"));
+	}
+
+	@Test
+	void testJavaRuntimeVersion() throws Exception {
+		Arrays.asList(21).forEach(this::createMockJdkRuntime);
+
+		CaptureResult result = checkedRun(jdk -> jdk.javaEnv("21"));
+
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.normalizedOut(), containsString("cache" + File.separator + "jdks" + File.separator + "21"));
 	}
 
 	@Test
@@ -414,17 +426,33 @@ class TestJdk extends BaseTest {
 	}
 
 	private void createMockJdk(int jdkVersion) {
+		createMockJdk(jdkVersion, this::initMockJdkDir);
+	}
+
+	private void createMockJdkRuntime(int jdkVersion) {
+		createMockJdk(jdkVersion, this::initMockJdkDirRuntime);
+	}
+
+	private void createMockJdk(int jdkVersion, BiConsumer<Path, String> init) {
 		Path jdkPath = JBangJdkProvider.getJdksPath().resolve(String.valueOf(jdkVersion));
-		initMockJdkDir(jdkPath, jdkVersion + ".0.7");
+		init.accept(jdkPath, jdkVersion + ".0.7");
 		Path def = Settings.getCurrentJdkDir();
 		if (!Files.exists(def)) {
 			Util.createLink(def, jdkPath);
 		}
 	}
 
+
+	private void initMockJdkDirRuntime(Path jdkPath, String version) {
+		initMockJdkDir(jdkPath, version, "JAVA_RUNTIME_VERSION");
+	}
+
 	private void initMockJdkDir(Path jdkPath, String version) {
+		initMockJdkDir(jdkPath, version, "JAVA_VERSION");
+	}
+	private void initMockJdkDir(Path jdkPath, String version, String key) {
 		Util.mkdirs(jdkPath);
-		String rawJavaVersion = "JAVA_VERSION=\"" + version + "\"";
+		String rawJavaVersion = key + "=\"" + version + "\"";
 		Path release = jdkPath.resolve("release");
 		try {
 			Util.writeString(release, rawJavaVersion);
