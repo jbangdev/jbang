@@ -216,8 +216,7 @@ public class IntegrationManager {
 	}
 
 	private static IntegrationResult runIntegrationExternal(IntegrationInput input,
-			Map<String, String> properties,
-			Jdk jdk)
+			Map<String, String> properties, Jdk jdk)
 			throws Exception {
 		Gson parser = gsonb.create();
 		Util.infoMsg("Running external post build for " + input.integrationClassName);
