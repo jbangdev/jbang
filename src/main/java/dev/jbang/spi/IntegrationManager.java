@@ -87,8 +87,7 @@ public class IntegrationManager {
 						? source.getResourceRef().getFile().toAbsolutePath()
 						: null;
 				IntegrationInput input = new IntegrationInput(className, srcPath, tmpJarDir, pomPath, repos, deps,
-						comments,
-						prj.isNativeImage());
+						comments, prj.isNativeImage(), Util.isVerbose());
 				IntegrationResult ir = requestedJavaVersion == null || JavaUtil.satisfiesRequestedVersion(
 						requestedJavaVersion, JavaUtil.getCurrentMajorJavaVersion())
 								? runIntegrationEmbedded(input, integrationCl)
@@ -267,6 +266,7 @@ public class IntegrationManager {
 		IntegrationInput input = parser.fromJson(new InputStreamReader(System.in), IntegrationInput.class);
 		ClassLoader old = Thread.currentThread().getContextClassLoader();
 		PrintStream oldout = System.out;
+		Util.setVerbose(input.verbose);
 		String output = "";
 		boolean ok = false;
 		try {
@@ -281,6 +281,9 @@ public class IntegrationManager {
 			output = "Integration class missing method with signature public static Map<String, byte[]> postBuild(Path classesDir, Path pomFile, List<Map.Entry<String, Path>> dependencies)";
 		} catch (Exception e) {
 			output = "Issue running postBuild()";
+			if (input.verbose) {
+				e.printStackTrace(System.err);
+			}
 		} finally {
 			Thread.currentThread().setContextClassLoader(old);
 			System.setOut(oldout);

@@ -17,10 +17,11 @@ public class IntegrationInput {
 	public final List<String> comments;
 	@SerializedName(value = "native")
 	public final boolean nativeRequested;
+	public final boolean verbose;
 
 	public IntegrationInput(String integrationClassName, Path source, Path classes, Path pom,
 			Map<String, String> repositories, Map<String, Path> dependencies, List<String> comments,
-			boolean nativeRequested) {
+			boolean nativeRequested, boolean verbose) {
 		this.integrationClassName = integrationClassName;
 		this.source = source;
 		this.classes = classes;
@@ -29,5 +30,6 @@ public class IntegrationInput {
 		this.dependencies = dependencies;
 		this.comments = comments;
 		this.nativeRequested = nativeRequested;
+		this.verbose = verbose;
 	}
 }
