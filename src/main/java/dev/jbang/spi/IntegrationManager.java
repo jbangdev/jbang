@@ -6,6 +6,7 @@ import static dev.jbang.util.JavaUtil.resolveInJavaHome;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -225,8 +226,19 @@ public class IntegrationManager {
 		for (Map.Entry<String, String> entry : properties.entrySet()) {
 			args.add("-D" + entry.getKey() + "=" + entry.getValue());
 		}
+
+		Path jbangJar = Util.getJarLocation();
 		args.add("-cp");
-		args.add(Util.getJarLocation().toString());
+		if (jbangJar.toString().endsWith(".jar")) {
+			args.add(jbangJar.toString());
+		} else {
+			// We will assume that we're running inside an IDE or
+			// some kind of test environment and need to manually
+			// add the Gson dependency
+			Path gsonJar = Util.getJarLocation(Gson.class);
+			args.add(jbangJar + File.pathSeparator + gsonJar);
+		}
+
 		args.add("dev.jbang.spi.IntegrationManager");
 
 		if (Util.isVerbose()) {
