@@ -143,7 +143,7 @@ public class JavaUtil {
 	public static Optional<String> readJavaVersionStringFromReleaseFile(Path home) {
 		try (Stream<String> lines = Files.lines(home.resolve("release"))) {
 			return lines
-						.filter(l -> l.startsWith("JAVA_VERSION"))
+						.filter(l -> l.startsWith("JAVA_VERSION=") || l.startsWith("JAVA_RUNTIME_VERSION="))
 						.map(JavaUtil::parseJavaOutput)
 						.findAny();
 		} catch (IOException e) {
