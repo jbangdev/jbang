@@ -80,7 +80,7 @@ public class Util {
 	private static final String JBANG_DOWNLOAD_SOURCES = "JBANG_DOWNLOAD_SOURCES";
 
 	public static final Pattern patternMainMethod = Pattern.compile(
-			"^.*(public\\s+static|static\\s+public)\\s+void\\s+main\\s*\\(.*",
+			"^.*(public\\s+static|static\\s+public)\\s+void\\s+main\\s*\\(.*|void\\s+main\\s*\\(\\)",
 			Pattern.MULTILINE);
 
 	public static final Pattern mainClassMethod = Pattern.compile(

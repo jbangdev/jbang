@@ -70,6 +70,21 @@ public class TestUtil extends BaseTest {
 
 		content = "public static\nvoid\nmain(String\nargs[]) {";
 		assertTrue(Util.hasMainMethod(content));
+
+		// the Java 21 / JEP-445
+
+		content = "class HelloWorld {\n" +
+				"\tvoid main() {\n" +
+				"\t\tSystem.out.println(\"Hello world from an instance main method o/\");\n" +
+				"\t}\n" +
+				"}";
+		assertTrue(Util.hasMainMethod(content));
+
+		content = "void main() {\n" +
+				"\t\tSystem.out.println(\"Hello world from an unnamed main method o/\");\n" +
+				"\t}\n";
+		assertTrue(Util.hasMainMethod(content));
+
 	}
 
 	@Test
