@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -442,7 +441,6 @@ class TestJdk extends BaseTest {
 		}
 	}
 
-
 	private void initMockJdkDirRuntime(Path jdkPath, String version) {
 		initMockJdkDir(jdkPath, version, "JAVA_RUNTIME_VERSION");
 	}
@@ -450,6 +448,7 @@ class TestJdk extends BaseTest {
 	private void initMockJdkDir(Path jdkPath, String version) {
 		initMockJdkDir(jdkPath, version, "JAVA_VERSION");
 	}
+
 	private void initMockJdkDir(Path jdkPath, String version, String key) {
 		Util.mkdirs(jdkPath);
 		String rawJavaVersion = key + "=\"" + version + "\"";
