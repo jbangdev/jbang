@@ -95,7 +95,8 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String gav;
 		String module;
 
-		public ScriptInfo(Project prj, BuildContext ctx, boolean assureJdkInstalled) {
+		public ScriptInfo(BuildContext ctx, boolean assureJdkInstalled) {
+			Project prj = ctx.getProject();
 			originalResource = prj.getResourceRef().getOriginalResource();
 
 			if (scripts.add(originalResource)) {
@@ -213,7 +214,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 
 		scripts = new HashSet<>();
 
-		return new ScriptInfo(prj, BuildContext.forProject(prj, buildDir), assureJdkInstalled);
+		return new ScriptInfo(BuildContext.forProject(prj, buildDir), assureJdkInstalled);
 	}
 
 	ProjectBuilder createProjectBuilder() {

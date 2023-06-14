@@ -20,14 +20,12 @@ import dev.jbang.util.*;
  * (in order): "compile", "integration", "jar" and "native".
  */
 public abstract class AppBuilder implements Builder<CmdGeneratorBuilder> {
-	protected final Project project;
 	protected final BuildContext ctx;
 
 	protected boolean fresh = Util.isFresh();
 	protected Util.Shell shell = Util.getShell();
 
-	public AppBuilder(Project project, BuildContext ctx) {
-		this.project = project;
+	public AppBuilder(BuildContext ctx) {
 		this.ctx = ctx;
 	}
 
@@ -43,6 +41,7 @@ public abstract class AppBuilder implements Builder<CmdGeneratorBuilder> {
 
 	@Override
 	public CmdGeneratorBuilder build() throws IOException {
+		Project project = ctx.getProject();
 		Path outjar = ctx.getJarFile();
 		boolean nativeBuildRequired = project.isNativeImage() && !Files.exists(ctx.getNativeImageFile());
 		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
@@ -115,7 +114,7 @@ public abstract class AppBuilder implements Builder<CmdGeneratorBuilder> {
 			}
 		}
 
-		return CmdGenerator	.builder(project, ctx)
+		return CmdGenerator	.builder(ctx)
 							.mainClass(project.getMainClass())
 							.moduleName(project.getModuleName().orElse(null));
 	}
@@ -127,14 +126,14 @@ public abstract class AppBuilder implements Builder<CmdGeneratorBuilder> {
 	protected abstract Builder<Project> getCompileBuildStep();
 
 	protected Builder<IntegrationResult> getIntegrationBuildStep() {
-		return new IntegrationBuildStep(project, ctx);
+		return new IntegrationBuildStep(ctx);
 	}
 
 	protected Builder<Project> getJarBuildStep() {
-		return new JarBuildStep(project, ctx);
+		return new JarBuildStep(ctx);
 	}
 
 	protected Builder<Project> getNativeBuildStep() {
-		return new NativeBuildStep(project, ctx);
+		return new NativeBuildStep(ctx);
 	}
 }

@@ -18,19 +18,18 @@ import dev.jbang.spi.IntegrationResult;
  * for the next build step.
  */
 public class IntegrationBuildStep implements Builder<IntegrationResult> {
-	private final Project project;
 	private final BuildContext ctx;
 
-	public IntegrationBuildStep(Project project, BuildContext ctx) {
-		this.project = project;
+	public IntegrationBuildStep(BuildContext ctx) {
 		this.ctx = ctx;
 	}
 
 	@Override
 	public IntegrationResult build() throws IOException {
 		// todo: setting properties to avoid loosing properties in integration call.
+		Project project = ctx.getProject();
 		Path compileDir = ctx.getCompileDir();
-		Path pomPath = CompileBuildStep.getPomPath(project, ctx);
+		Path pomPath = CompileBuildStep.getPomPath(ctx);
 		Properties old = System.getProperties();
 		Properties temp = new Properties(System.getProperties());
 		for (Map.Entry<String, String> entry : project.getProperties().entrySet()) {

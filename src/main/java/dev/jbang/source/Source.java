@@ -82,7 +82,7 @@ public abstract class Source {
 
 	protected abstract List<String> getRuntimeOptions();
 
-	public abstract Builder<CmdGeneratorBuilder> getBuilder(Project prj, BuildContext ctx);
+	public abstract Builder<CmdGeneratorBuilder> getBuilder(BuildContext ctx);
 
 	public ResourceRef getResourceRef() {
 		return resourceRef;

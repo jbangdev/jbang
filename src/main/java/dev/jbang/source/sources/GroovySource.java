@@ -59,13 +59,13 @@ public class GroovySource extends Source {
 	}
 
 	@Override
-	public Builder<CmdGeneratorBuilder> getBuilder(Project prj, BuildContext ctx) {
-		return new GroovyAppBuilder(prj, ctx);
+	public Builder<CmdGeneratorBuilder> getBuilder(BuildContext ctx) {
+		return new GroovyAppBuilder(ctx);
 	}
 
 	private static class GroovyAppBuilder extends AppBuilder {
-		public GroovyAppBuilder(Project project, BuildContext ctx) {
-			super(project, ctx);
+		public GroovyAppBuilder(BuildContext ctx) {
+			super(ctx);
 		}
 
 		@Override
@@ -76,16 +76,18 @@ public class GroovySource extends Source {
 		private class GroovyCompileBuildStep extends CompileBuildStep {
 
 			public GroovyCompileBuildStep() {
-				super(GroovyAppBuilder.this.project, GroovyAppBuilder.this.ctx);
+				super(GroovyAppBuilder.this.ctx);
 			}
 
 			@Override
 			protected String getCompilerBinary(String requestedJavaVersion) {
-				return resolveInGroovyHome("groovyc", ((GroovySource) project.getMainSource()).getGroovyVersion());
+				return resolveInGroovyHome("groovyc",
+						((GroovySource) ctx.getProject().getMainSource()).getGroovyVersion());
 			}
 
 			@Override
 			protected void runCompiler(ProcessBuilder processBuilder) throws IOException {
+				Project project = ctx.getProject();
 				if (project.getMainSource() instanceof GroovySource) {
 					processBuilder	.environment()
 									.put("JAVA_HOME",

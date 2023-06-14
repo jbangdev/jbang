@@ -44,7 +44,7 @@ public class TestMain extends BaseTest {
 		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(f);
 		BuildContext ctx = BuildContext.forProject(prj);
-		prj.codeBuilder(ctx).build();
+		Project.codeBuilder(ctx).build();
 
 		try (JarInputStream jarStream = new JarInputStream(Files.newInputStream(ctx.getJarFile()))) {
 			Manifest mf = jarStream.getManifest();
@@ -61,7 +61,7 @@ public class TestMain extends BaseTest {
 		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(f);
 		BuildContext ctx = BuildContext.forProject(prj);
-		prj.codeBuilder(ctx).build();
+		Project.codeBuilder(ctx).build();
 
 		try (JarInputStream jarStream = new JarInputStream(Files.newInputStream(ctx.getJarFile()))) {
 			Manifest mf = jarStream.getManifest();
@@ -78,7 +78,7 @@ public class TestMain extends BaseTest {
 		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(f);
 		BuildContext ctx = BuildContext.forProject(prj);
-		CmdGeneratorBuilder gen = prj.codeBuilder(ctx).build();
+		CmdGeneratorBuilder gen = Project.codeBuilder(ctx).build();
 
 		try (JarInputStream jarStream = new JarInputStream(Files.newInputStream(ctx.getJarFile()))) {
 			Manifest mf = jarStream.getManifest();

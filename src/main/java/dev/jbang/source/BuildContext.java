@@ -43,6 +43,10 @@ public class BuildContext {
 		return forProject(subProject, getBuildDir(buildDir.resolve(subProjectTypeName), subProject));
 	}
 
+	public Project getProject() {
+		return project;
+	}
+
 	public Path getJarFile() {
 		if (project.isJShell()) {
 			return null;

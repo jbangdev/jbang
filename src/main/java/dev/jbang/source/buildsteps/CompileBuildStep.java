@@ -39,7 +39,6 @@ import io.quarkus.qute.Template;
  * This class takes a <code>Project</code> and compiles it.
  */
 public abstract class CompileBuildStep implements Builder<Project> {
-	protected final Project project;
 	protected final BuildContext ctx;
 
 	public static final Type STRINGARRAYTYPE = Type.create(DotName.createSimple("[Ljava.lang.String;"),
@@ -48,8 +47,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 	public static final Type INSTRUMENTATIONTYPE = Type.create(
 			DotName.createSimple("java.lang.instrument.Instrumentation"), Type.Kind.CLASS);
 
-	public CompileBuildStep(Project project, BuildContext ctx) {
-		this.project = project;
+	public CompileBuildStep(BuildContext ctx) {
 		this.ctx = ctx;
 	}
 
@@ -59,6 +57,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 	}
 
 	protected Project compile() throws IOException {
+		Project project = ctx.getProject();
 		String requestedJavaVersion = project.getJavaVersion();
 		if (requestedJavaVersion == null
 				&& project.getModuleName().isPresent()
@@ -122,10 +121,11 @@ public abstract class CompileBuildStep implements Builder<Project> {
 	}
 
 	private boolean hasModuleInfoFile() {
-		return project	.getMainSourceSet()
-						.getSources()
-						.stream()
-						.anyMatch(s -> s.getFile().getFileName().toString().equals("module-info.java"));
+		return ctx	.getProject()
+					.getMainSourceSet()
+					.getSources()
+					.stream()
+					.anyMatch(s -> s.getFile().getFileName().toString().equals("module-info.java"));
 	}
 
 	protected void runCompiler(List<String> optionList) throws IOException {
@@ -154,6 +154,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 			// ignore
 			Util.warnMsg("Could not locate pom.xml template");
 		} else {
+			Project project = ctx.getProject();
 			String baseName = Util.getBaseName(project.getResourceRef().getFile().getFileName().toString());
 			MavenCoordinate gav = getPomGav(project);
 			String pomfile = pomTemplate
@@ -165,7 +166,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 										.data("dependencies", project.resolveClassPath().getArtifacts())
 										.render();
 
-			pomPath = getPomPath(project, ctx);
+			pomPath = getPomPath(ctx);
 			Files.createDirectories(pomPath.getParent());
 			Util.writeString(pomPath, pomfile);
 		}
@@ -183,8 +184,8 @@ public abstract class CompileBuildStep implements Builder<Project> {
 
 	}
 
-	public static Path getPomPath(Project prj, BuildContext ctx) {
-		MavenCoordinate gav = getPomGav(prj);
+	public static Path getPomPath(BuildContext ctx) {
+		MavenCoordinate gav = getPomGav(ctx.getProject());
 		return ctx	.getCompileDir()
 					.resolve("META-INF/maven/" + gav.getGroupId().replace(".", "/") + "/pom.xml");
 	}
@@ -209,6 +210,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 
 				Collection<ClassInfo> classes = index.getKnownClasses();
 
+				Project project = ctx.getProject();
 				if (project.getMainClass() == null) { // if non-null user forced set main
 					List<ClassInfo> mains = classes	.stream()
 													.filter(getMainFinder())
@@ -269,6 +271,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 	}
 
 	protected String getSuggestedMain() {
+		Project project = ctx.getProject();
 		if (!project.getResourceRef().isStdin()) {
 			return project.getResourceRef().getFile().getFileName().toString().replace(getMainExtension(), "");
 		} else {

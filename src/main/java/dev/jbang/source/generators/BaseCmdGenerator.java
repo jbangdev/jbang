@@ -8,7 +8,6 @@ import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.Util;
 
 public abstract class BaseCmdGenerator<T extends CmdGenerator> implements CmdGenerator {
-	protected final Project project;
 	protected final BuildContext ctx;
 
 	protected List<String> arguments = Collections.emptyList();
@@ -46,8 +45,7 @@ public abstract class BaseCmdGenerator<T extends CmdGenerator> implements CmdGen
 		return (T) this;
 	}
 
-	public BaseCmdGenerator(Project prj, BuildContext ctx) {
-		this.project = prj;
+	public BaseCmdGenerator(BuildContext ctx) {
 		this.ctx = ctx;
 	}
 

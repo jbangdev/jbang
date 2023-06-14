@@ -272,14 +272,15 @@ public class Project {
 	 * @return A <code>Builder</code>
 	 */
 	@Nonnull
-	public Builder<CmdGeneratorBuilder> codeBuilder(BuildContext ctx) {
-		if (mainSource != null) {
-			return mainSource.getBuilder(this, ctx);
+	public static Builder<CmdGeneratorBuilder> codeBuilder(BuildContext ctx) {
+		Project prj = ctx.getProject();
+		if (prj.getMainSource() != null) {
+			return prj.getMainSource().getBuilder(ctx);
 		} else {
-			if (isJar() && nativeImage) {
-				return new JavaSource.JavaAppBuilder(this, ctx);
+			if (prj.isJar() && prj.isNativeImage()) {
+				return new JavaSource.JavaAppBuilder(ctx);
 			} else {
-				return () -> CmdGenerator.builder(this, ctx);
+				return () -> CmdGenerator.builder(ctx);
 			}
 		}
 	}

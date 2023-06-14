@@ -8,14 +8,13 @@ import java.util.List;
 
 import dev.jbang.source.BuildContext;
 import dev.jbang.source.CmdGenerator;
-import dev.jbang.source.Project;
 import dev.jbang.util.Util;
 
 public class NativeCmdGenerator extends BaseCmdGenerator<NativeCmdGenerator> {
 	private final CmdGenerator fallback;
 
-	public NativeCmdGenerator(Project prj, BuildContext ctx, CmdGenerator fallback) {
-		super(prj, ctx);
+	public NativeCmdGenerator(BuildContext ctx, CmdGenerator fallback) {
+		super(ctx);
 		this.fallback = fallback;
 	}
 
@@ -23,7 +22,7 @@ public class NativeCmdGenerator extends BaseCmdGenerator<NativeCmdGenerator> {
 	public String generate() throws IOException {
 		List<String> fullArgs = new ArrayList<>();
 
-		if (project.enablePreview()) {
+		if (ctx.getProject().enablePreview()) {
 			fullArgs.add("--enable-preview");
 		}
 

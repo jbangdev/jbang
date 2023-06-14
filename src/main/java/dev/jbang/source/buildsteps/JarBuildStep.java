@@ -19,20 +19,19 @@ import dev.jbang.util.JavaUtil;
  * "compile" step and packages the whole into a JAR file.
  */
 public class JarBuildStep implements Builder<Project> {
-	private final Project project;
 	private final BuildContext ctx;
 
 	public static final String ATTR_BUILD_JDK = "Build-Jdk";
 	public static final String ATTR_JBANG_JAVA_OPTIONS = "JBang-Java-Options";
 	public static final String ATTR_BOOT_CLASS_PATH = "Boot-Class-Path";
 
-	public JarBuildStep(Project project, BuildContext ctx) {
-		this.project = project;
+	public JarBuildStep(BuildContext ctx) {
 		this.ctx = ctx;
 	}
 
 	@Override
 	public Project build() throws IOException {
+		Project project = ctx.getProject();
 		createJar(project, ctx.getCompileDir(), ctx.getJarFile());
 		return project;
 	}

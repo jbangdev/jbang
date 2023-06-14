@@ -14,7 +14,6 @@ import dev.jbang.source.resolvers.AliasResourceResolver;
 import dev.jbang.util.Util;
 
 public class CmdGeneratorBuilder {
-	private final Project project;
 	private final BuildContext ctx;
 
 	private List<String> arguments = Collections.emptyList();
@@ -29,8 +28,7 @@ public class CmdGeneratorBuilder {
 	private String debugString;
 	private Boolean classDataSharing;
 
-	CmdGeneratorBuilder(Project project, BuildContext ctx) {
-		this.project = project;
+	CmdGeneratorBuilder(BuildContext ctx) {
 		this.ctx = ctx;
 	}
 
@@ -100,6 +98,7 @@ public class CmdGeneratorBuilder {
 	public CmdGenerator build() {
 		// If the project was created from an Alias, it might
 		// have some values we need to update
+		Project project = ctx.getProject();
 		if (project.getResourceRef() instanceof AliasResourceResolver.AliasedResourceRef) {
 			Alias alias = ((AliasResourceResolver.AliasedResourceRef) project.getResourceRef()).getAlias();
 			updateFromAlias(alias);
@@ -118,33 +117,33 @@ public class CmdGeneratorBuilder {
 	}
 
 	private JarCmdGenerator createJarCmdGenerator() {
-		return new JarCmdGenerator(project, ctx)
-												.arguments(arguments)
-												.runtimeOptions(runtimeOptions)
-												.mainClass(mainClass)
-												.mainRequired(interactive != Boolean.TRUE)
-												.moduleName(moduleName)
-												.assertions(enableAssertions == Boolean.TRUE)
-												.systemAssertions(enableSystemAssertions == Boolean.TRUE)
-												.classDataSharing(
-														Optional.ofNullable(classDataSharing).orElse(false))
-												.debugString(debugString)
-												.flightRecorderString(flightRecorderString);
+		return new JarCmdGenerator(ctx)
+										.arguments(arguments)
+										.runtimeOptions(runtimeOptions)
+										.mainClass(mainClass)
+										.mainRequired(interactive != Boolean.TRUE)
+										.moduleName(moduleName)
+										.assertions(enableAssertions == Boolean.TRUE)
+										.systemAssertions(enableSystemAssertions == Boolean.TRUE)
+										.classDataSharing(
+												Optional.ofNullable(classDataSharing).orElse(false))
+										.debugString(debugString)
+										.flightRecorderString(flightRecorderString);
 	}
 
 	private JshCmdGenerator createJshCmdGenerator() {
-		return new JshCmdGenerator(project, ctx)
-												.arguments(arguments)
-												.runtimeOptions(runtimeOptions)
-												.mainClass(mainClass)
-												.interactive(interactive == Boolean.TRUE)
-												.debugString(debugString)
-												.flightRecorderString(flightRecorderString);
+		return new JshCmdGenerator(ctx)
+										.arguments(arguments)
+										.runtimeOptions(runtimeOptions)
+										.mainClass(mainClass)
+										.interactive(interactive == Boolean.TRUE)
+										.debugString(debugString)
+										.flightRecorderString(flightRecorderString);
 	}
 
 	private NativeCmdGenerator createNativeCmdGenerator() {
-		return new NativeCmdGenerator(project, ctx, createJarCmdGenerator())
-																			.arguments(arguments);
+		return new NativeCmdGenerator(ctx, createJarCmdGenerator())
+																	.arguments(arguments);
 	}
 
 	private void updateFromAlias(Alias alias) {
