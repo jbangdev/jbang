@@ -55,14 +55,9 @@ public class DependencyResolver {
 		return this;
 	}
 
-	public DependencyResolver addArtifacts(List<ArtifactInfo> artifacts) {
-		this.artifacts.addAll(artifacts);
-		return this;
-	}
-
 	public DependencyResolver addClassPath(String classPath) {
 		// WARN need File here because it's more lenient about paths than Path!
-		return addArtifact(DependencyCache.findArtifactByPath(new File(classPath).toPath()));
+		return addArtifact(new ArtifactInfo(null, new File(classPath).toPath()));
 	}
 
 	public DependencyResolver addClassPaths(List<String> classPaths) {
