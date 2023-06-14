@@ -193,16 +193,6 @@ public class ProjectBuilder {
 		return contextProperties;
 	}
 
-	private void updateDependencyResolver(DependencyResolver resolver) {
-		resolver
-				.addRepositories(allToMavenRepo(replaceAllProps(
-						additionalRepos)))
-				.addDependencies(replaceAllProps(
-						additionalDeps))
-				.addClassPaths(
-						replaceAllProps(additionalClasspaths));
-	}
-
 	private List<String> replaceAllProps(List<String> items) {
 		return items.stream()
 					.map(item -> PropertiesValueResolver.replaceProperties(item, getContextProperties()))
@@ -458,8 +448,13 @@ public class ProjectBuilder {
 
 	private ModularClassPath resolveDependency(String dep) {
 		if (mcp == null) {
-			DependencyResolver resolver = new DependencyResolver().addDependency(dep);
-			updateDependencyResolver(resolver);
+			DependencyResolver resolver = new DependencyResolver()
+																	.addDependency(dep)
+																	.addRepositories(allToMavenRepo(
+																			replaceAllProps(additionalRepos)))
+																	.addDependencies(replaceAllProps(additionalDeps))
+																	.addClassPaths(
+																			replaceAllProps(additionalClasspaths));
 			mcp = resolver.resolve();
 		}
 		return mcp;

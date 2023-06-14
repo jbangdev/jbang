@@ -240,16 +240,11 @@ public class Project {
 	public ModularClassPath resolveClassPath() {
 		if (mcp == null) {
 			DependencyResolver resolver = new DependencyResolver();
-			updateDependencyResolver(resolver);
+			resolver.addRepositories(repositories);
+			getMainSourceSet().updateDependencyResolver(resolver);
 			mcp = resolver.resolve();
 		}
 		return mcp;
-	}
-
-	@Nonnull
-	public DependencyResolver updateDependencyResolver(DependencyResolver resolver) {
-		resolver.addRepositories(repositories);
-		return getMainSourceSet().updateDependencyResolver(resolver);
 	}
 
 	/**
