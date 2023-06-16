@@ -102,7 +102,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 			if (scripts.add(originalResource)) {
 				backingResource = prj.getResourceRef().getFile().toString();
 
-				init(prj);
+				init(ctx);
 
 				applicationJar = ctx.getJarFile() == null ? null
 						: ctx.getJarFile().toAbsolutePath().toString();
@@ -126,7 +126,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 					// Ignore
 				}
 
-				List<ArtifactInfo> artifacts = prj.resolveClassPath().getArtifacts();
+				List<ArtifactInfo> artifacts = ctx.resolveClassPath().getArtifacts();
 				if (artifacts.isEmpty()) {
 					resolvedDependencies = Collections.emptyList();
 				} else {
@@ -154,8 +154,9 @@ abstract class BaseInfoCommand extends BaseCommand {
 			}
 		}
 
-		private void init(Project prj) {
-			List<String> deps = prj.resolveClassPath().getClassPaths();
+		private void init(BuildContext ctx) {
+			Project prj = ctx.getProject();
+			List<String> deps = ctx.resolveClassPath().getClassPaths();
 			if (!deps.isEmpty()) {
 				dependencies = deps;
 			}

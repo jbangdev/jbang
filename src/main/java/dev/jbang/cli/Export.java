@@ -127,7 +127,7 @@ class ExportLocal extends BaseExportCommand {
 		// Update the JAR's MANIFEST.MF Class-Path to point to
 		// its dependencies
 		Project prj = ctx.getProject();
-		String newPath = prj.resolveClassPath().getManifestPath();
+		String newPath = ctx.resolveClassPath().getManifestPath();
 		if (!newPath.isEmpty()) {
 			Util.infoMsg("Updating jar...");
 			String javaVersion = exportMixin.buildMixin.javaVersion != null
@@ -164,7 +164,7 @@ class ExportPortable extends BaseExportCommand {
 
 		Files.copy(source, outputPath);
 		Project prj = ctx.getProject();
-		List<ArtifactInfo> deps = prj.resolveClassPath().getArtifacts();
+		List<ArtifactInfo> deps = ctx.resolveClassPath().getArtifacts();
 		if (!deps.isEmpty()) {
 			// Copy dependencies to "./lib" dir
 			Path libDir = outputPath.getParent().resolve(LIB);
@@ -286,7 +286,7 @@ class ExportMavenPublish extends BaseExportCommand {
 										.data("artifact", artifact)
 										.data("version", version)
 										.data("description", prj.getDescription().orElse(""))
-										.data("dependencies", prj.resolveClassPath().getArtifacts())
+										.data("dependencies", ctx.resolveClassPath().getArtifacts())
 										.render();
 			Util.infoMsg("Writing " + pomPath);
 			Util.writeString(pomPath, pomfile);
@@ -359,7 +359,7 @@ class ExportFatjar extends BaseExportCommand {
 		}
 
 		Project prj = ctx.getProject();
-		List<ArtifactInfo> deps = prj.resolveClassPath().getArtifacts();
+		List<ArtifactInfo> deps = ctx.resolveClassPath().getArtifacts();
 		if (!deps.isEmpty()) {
 			// Extract main jar and all dependencies to a temp dir
 			Path tmpDir = Files.createTempDirectory("fatjar");
@@ -423,7 +423,7 @@ class ExportJlink extends BaseExportCommand {
 	@Override
 	int apply(BuildContext ctx) throws IOException {
 		Project prj = ctx.getProject();
-		List<ArtifactInfo> artifacts = prj.resolveClassPath().getArtifacts();
+		List<ArtifactInfo> artifacts = ctx.resolveClassPath().getArtifacts();
 		List<ArtifactInfo> nonMods = artifacts
 												.stream()
 												.filter(a -> !ModuleUtil.isModule(a.getFile()))

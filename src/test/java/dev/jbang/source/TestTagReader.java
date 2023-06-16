@@ -1,8 +1,8 @@
 package dev.jbang.source;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItem;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -14,12 +14,14 @@ public class TestTagReader {
 
 	@Test
 	void testExtractDependencies() {
-		List<String> deps = new TagReader.Extended("//DEPS blah, blue", null).collectDependencies();
+		TagReader tr = new TagReader.Extended(
+				"//DEPS foo:bar, abc:def:123, https://github.com/jbangdev/jbang, something", null);
 
-		assertTrue(deps.contains("blah"));
+		List<String> deps = tr.collectBinaryDependencies();
+		assertThat(deps, containsInAnyOrder("foo:bar", "abc:def:123", "https://github.com/jbangdev/jbang"));
 
-		assertTrue(deps.contains("blue"));
-
+		List<String> subs = tr.collectSourceDependencies();
+		assertThat(subs, containsInAnyOrder("something"));
 	}
 
 	@Test

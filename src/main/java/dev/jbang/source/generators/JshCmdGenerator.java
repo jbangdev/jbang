@@ -51,7 +51,7 @@ public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
 		List<String> fullArgs = new ArrayList<>();
 
 		Project project = ctx.getProject();
-		String classpath = project.resolveClassPath().getClassPath();
+		String classpath = ctx.resolveClassPath().getClassPath();
 
 		List<String> optionalArgs = new ArrayList<>();
 
@@ -114,9 +114,9 @@ public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
 
 		fullArgs.addAll(jshellOpts(project.getRuntimeOptions()));
 		fullArgs.addAll(jshellOpts(runtimeOptions));
-		fullArgs.addAll(project	.resolveClassPath()
-								.getAutoDectectedModuleArguments(
-										JdkManager.getOrInstallJdk(requestedJavaVersion)));
+		fullArgs.addAll(ctx	.resolveClassPath()
+							.getAutoDectectedModuleArguments(
+									JdkManager.getOrInstallJdk(requestedJavaVersion)));
 		fullArgs.addAll(optionalArgs);
 
 		if (project.isJShell()) {

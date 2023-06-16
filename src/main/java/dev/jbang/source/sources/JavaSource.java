@@ -2,14 +2,12 @@ package dev.jbang.source.sources;
 
 import static dev.jbang.util.JavaUtil.resolveInJavaHome;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
 import dev.jbang.source.*;
 import dev.jbang.source.AppBuilder;
 import dev.jbang.source.buildsteps.CompileBuildStep;
-import dev.jbang.util.Util;
 
 public class JavaSource extends Source {
 
@@ -27,9 +25,7 @@ public class JavaSource extends Source {
 
 	@Override
 	protected List<String> getCompileOptions() {
-		List<String> jopts = Collections.singletonList("-g");
-		List<String> opts = tagReader.collectOptions("JAVAC_OPTIONS", "COMPILE_OPTIONS");
-		return Util.join(jopts, opts);
+		return tagReader.collectOptions("JAVAC_OPTIONS", "COMPILE_OPTIONS");
 	}
 
 	@Override

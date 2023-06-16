@@ -1520,7 +1520,7 @@ public class TestRun extends BaseTest {
 
 		}
 
-		assertThat("duplication of deps fixed", prj.resolveClassPath().getArtifacts(), hasSize(7));
+		assertThat("duplication of deps fixed", ctx.resolveClassPath().getArtifacts(), hasSize(7));
 	}
 
 	@Test

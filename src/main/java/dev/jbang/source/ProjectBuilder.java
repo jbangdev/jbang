@@ -279,7 +279,7 @@ public class ProjectBuilder {
 		SourceSet ss = prj.getMainSourceSet();
 		ss.addResources(tagReader.collectFiles(resourceRef,
 				new SiblingResourceResolver(resourceRef, ResourceResolver.forResources())));
-		ss.addDependencies(tagReader.collectDependencies());
+		ss.addDependencies(tagReader.collectBinaryDependencies());
 		ss.addCompileOptions(tagReader.collectOptions("JAVAC_OPTIONS", "COMPILE_OPTIONS"));
 		ss.addNativeOptions(tagReader.collectOptions("NATIVE_OPTIONS"));
 		prj.addRepositories(tagReader.collectRepositories());
@@ -300,9 +300,16 @@ public class ProjectBuilder {
 				prj.setJavaVersion(version);
 			}
 		}
-		boolean first = true;
+
 		ResourceResolver resolver = getAliasResourceResolver(null);
 		ResourceResolver siblingResolver = new SiblingResourceResolver(resourceRef, resolver);
+
+		for (String srcDep : tagReader.collectSourceDependencies()) {
+			ResourceRef subRef = resolver.resolve(srcDep, true);
+			prj.addSubProject(new ProjectBuilder().build(subRef));
+		}
+
+		boolean first = true;
 		for (Source includedSource : tagReader.collectSources(resourceRef, siblingResolver)) {
 			includedSource.updateProject(prj, resolver);
 			if (first) {

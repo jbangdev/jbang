@@ -7,11 +7,16 @@ import javax.annotation.Nonnull;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
+import dev.jbang.dependencies.DependencyResolver;
+import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.util.Util;
 
 public class BuildContext {
 	private final Project project;
 	private final Path buildDir;
+
+	// Cached values
+	private ModularClassPath mcp;
 
 	public static BuildContext forProject(Project project) {
 		return forProject(project, null);
@@ -39,8 +44,8 @@ public class BuildContext {
 		this.buildDir = buildDir;
 	}
 
-	public BuildContext forSubProject(Project subProject, String subProjectTypeName) {
-		return forProject(subProject, getBuildDir(buildDir.resolve(subProjectTypeName), subProject));
+	public BuildContext forSubProject(Project subProject) {
+		return forProject(subProject, getBuildDir(buildDir, subProject));
 	}
 
 	public Project getProject() {
@@ -96,6 +101,20 @@ public class BuildContext {
 	 * be rebuilt
 	 */
 	public boolean isUpToDate() {
-		return getJarFile() != null && Files.exists(getJarFile()) && project.resolveClassPath().isValid();
+		return getJarFile() != null && Files.exists(getJarFile()) && resolveClassPath().isValid();
+	}
+
+	@Nonnull
+	public ModularClassPath resolveClassPath() {
+		if (mcp == null) {
+			DependencyResolver resolver = new DependencyResolver();
+			project.updateDependencyResolver(resolver);
+			for (Project prj : project.getSubProjects()) {
+				prj.updateDependencyResolver(resolver);
+				resolver.addClassPath(forSubProject(prj).getJarFile().toAbsolutePath().toString());
+			}
+			mcp = resolver.resolve();
+		}
+		return mcp;
 	}
 }

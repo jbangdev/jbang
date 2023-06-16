@@ -168,9 +168,7 @@ public class Edit extends BaseCommand {
 				throw new ExitException(EXIT_INVALID_INPUT, "You can only edit source files");
 			}
 
-			Path project = createProjectForLinkedEdit(prj, Collections
-																		.emptyList(),
-					false);
+			Path project = createProjectForLinkedEdit(prj, Collections.emptyList(), false);
 			String projectPathString = pathToString(project.toAbsolutePath());
 			// err.println(project.getAbsolutePath());
 
@@ -394,7 +392,7 @@ public class Edit extends BaseCommand {
 		Path originalFile = prj.getResourceRef().getFile();
 
 		List<String> dependencies = prj.getMainSourceSet().getDependencies();
-		String cp = prj.resolveClassPath().getClassPath();
+		String cp = BuildContext.forProject(prj).resolveClassPath().getClassPath();
 		List<String> resolvedDependencies = Arrays.asList(cp.split(CP_SEPARATOR));
 
 		Path baseDir = Settings.getCacheDir(Cache.CacheClass.projects);

@@ -78,7 +78,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		List<String> fullArgs = new ArrayList<>();
 
 		Project project = ctx.getProject();
-		String classpath = project.resolveClassPath().getClassPath();
+		String classpath = ctx.resolveClassPath().getClassPath();
 
 		List<String> optionalArgs = new ArrayList<>();
 
@@ -153,7 +153,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 
 		fullArgs.addAll(project.getRuntimeOptions());
 		fullArgs.addAll(runtimeOptions);
-		fullArgs.addAll(project.resolveClassPath().getAutoDectectedModuleArguments(jdk));
+		fullArgs.addAll(ctx.resolveClassPath().getAutoDectectedModuleArguments(jdk));
 		fullArgs.addAll(optionalArgs);
 
 		String main = Optional.ofNullable(mainClass).orElse(project.getMainClass());

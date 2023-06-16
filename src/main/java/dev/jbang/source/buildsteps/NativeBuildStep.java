@@ -37,7 +37,7 @@ public class NativeBuildStep implements Builder<Project> {
 		optionList.add("--enable-https");
 		optionList.addAll(project.getMainSourceSet().getNativeOptions());
 
-		String classpath = project.resolveClassPath().getClassPath();
+		String classpath = ctx.resolveClassPath().getClassPath();
 		if (!Util.isBlankString(classpath)) {
 			optionList.add("--class-path=" + classpath);
 		}

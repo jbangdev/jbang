@@ -40,8 +40,8 @@ public class GroovySource extends Source {
 	}
 
 	@Override
-	protected List<String> collectDependencies() {
-		final List<String> allDependencies = super.collectDependencies();
+	protected List<String> collectBinaryDependencies() {
+		final List<String> allDependencies = super.collectBinaryDependencies();
 		final String groovyVersion = getGroovyVersion();
 		if (groovyVersion.startsWith("4.")) {
 			allDependencies.add("org.apache.groovy:groovy:" + groovyVersion);

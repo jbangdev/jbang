@@ -72,8 +72,12 @@ public abstract class Source {
 		return tagReader.getTags();
 	}
 
-	protected List<String> collectDependencies() {
-		return tagReader.collectDependencies();
+	protected List<String> collectBinaryDependencies() {
+		return tagReader.collectBinaryDependencies();
+	}
+
+	protected List<String> collectSourceDependencies() {
+		return tagReader.collectSourceDependencies();
 	}
 
 	protected abstract List<String> getCompileOptions();
@@ -124,6 +128,7 @@ public abstract class Source {
 		prj.setGav(tagReader.getGav().orElse(null));
 		prj.setMainClass(tagReader.getMain().orElse(null));
 		prj.setModuleName(tagReader.getModule().orElse(null));
+		prj.getMainSourceSet().addCompileOption("-g");
 		return updateProject(prj, resolver);
 	}
 
@@ -141,11 +146,11 @@ public abstract class Source {
 	@Nonnull
 	public Project updateProject(Project prj, ResourceResolver resolver) {
 		if (!prj.getMainSourceSet().getSources().contains(getResourceRef())) {
+			ResourceResolver sibRes1 = new SiblingResourceResolver(resourceRef, ResourceResolver.forResources());
 			SourceSet ss = prj.getMainSourceSet();
 			ss.addSource(this.getResourceRef());
-			ss.addResources(tagReader.collectFiles(resourceRef,
-					new SiblingResourceResolver(resourceRef, ResourceResolver.forResources())));
-			ss.addDependencies(collectDependencies());
+			ss.addResources(tagReader.collectFiles(resourceRef, sibRes1));
+			ss.addDependencies(collectBinaryDependencies());
 			ss.addCompileOptions(getCompileOptions());
 			ss.addNativeOptions(getNativeOptions());
 			prj.addRepositories(tagReader.collectRepositories());
@@ -166,8 +171,12 @@ public abstract class Source {
 					prj.setJavaVersion(version);
 				}
 			}
-			ResourceResolver siblingResolver = new SiblingResourceResolver(getResourceRef(), resolver);
-			for (Source includedSource : tagReader.collectSources(resourceRef, siblingResolver)) {
+			for (String srcDep : collectSourceDependencies()) {
+				ResourceRef subRef = sibRes1.resolve(srcDep, true);
+				prj.addSubProject(new ProjectBuilder().build(subRef));
+			}
+			ResourceResolver sibRes2 = new SiblingResourceResolver(getResourceRef(), resolver);
+			for (Source includedSource : tagReader.collectSources(resourceRef, sibRes2)) {
 				includedSource.updateProject(prj, resolver);
 			}
 		}

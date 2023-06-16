@@ -75,7 +75,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 			optionList.add("" + JavaUtil.javaVersion(requestedJavaVersion));
 		}
 		optionList.addAll(project.getMainSourceSet().getCompileOptions());
-		String path = project.resolveClassPath().getClassPath();
+		String path = ctx.resolveClassPath().getClassPath();
 		if (!Util.isBlankString(path)) {
 			if (project.getModuleName().isPresent()) {
 				optionList.addAll(Arrays.asList("-p", path));
@@ -99,7 +99,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 			}
 			if (!hasModuleInfoFile()) {
 				// generate module-info descriptor and add it to list of files to compile
-				Path infoFile = ModuleUtil.generateModuleInfo(project, ctx.getGeneratedSourcesDir());
+				Path infoFile = ModuleUtil.generateModuleInfo(ctx);
 				if (infoFile != null) {
 					optionList.add(infoFile.toString());
 				}
@@ -163,7 +163,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 										.data("artifact", gav.getArtifactId())
 										.data("version", gav.getVersion())
 										.data("description", project.getDescription().orElse(""))
-										.data("dependencies", project.resolveClassPath().getArtifacts())
+										.data("dependencies", ctx.resolveClassPath().getArtifacts())
 										.render();
 
 			pomPath = getPomPath(ctx);

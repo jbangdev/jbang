@@ -12,8 +12,6 @@ import javax.annotation.Nullable;
 
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.MavenRepo;
-import dev.jbang.dependencies.ModularClassPath;
-import dev.jbang.source.sources.JavaSource;
 import dev.jbang.util.ModuleUtil;
 import dev.jbang.util.Util;
 
@@ -43,9 +41,10 @@ public class Project {
 	private boolean nativeImage;
 	private boolean enablePreviewRequested;
 
+	private final List<Project> subProjects = new ArrayList<>();
+
 	// Cached values
 	private String stableId;
-	private ModularClassPath mcp;
 
 	public static final String ATTR_PREMAIN_CLASS = "Premain-Class";
 	public static final String ATTR_AGENT_CLASS = "Agent-Class";
@@ -124,6 +123,16 @@ public class Project {
 	public Project addRuntimeOptions(@Nonnull Collection<String> options) {
 		runtimeOptions.addAll(options);
 		return this;
+	}
+
+	@Nonnull
+	public List<Project> getSubProjects() {
+		return Collections.unmodifiableList(subProjects);
+	}
+
+	@Nonnull
+	public void addSubProject(@Nonnull Project subProject) {
+		subProjects.add(subProject);
 	}
 
 	public Map<String, String> getProperties() {
@@ -236,15 +245,9 @@ public class Project {
 		return stableId;
 	}
 
-	@Nonnull
-	public ModularClassPath resolveClassPath() {
-		if (mcp == null) {
-			DependencyResolver resolver = new DependencyResolver();
-			resolver.addRepositories(repositories);
-			getMainSourceSet().updateDependencyResolver(resolver);
-			mcp = resolver.resolve();
-		}
-		return mcp;
+	protected void updateDependencyResolver(DependencyResolver resolver) {
+		resolver.addRepositories(repositories);
+		getMainSourceSet().updateDependencyResolver(resolver);
 	}
 
 	/**
@@ -255,7 +258,7 @@ public class Project {
 	 */
 	@Nonnull
 	public Builder<CmdGeneratorBuilder> codeBuilder() {
-		return codeBuilder(BuildContext.forProject(this));
+		return CodeBuilderProvider.create(this).get();
 	}
 
 	/**
@@ -268,16 +271,7 @@ public class Project {
 	 */
 	@Nonnull
 	public static Builder<CmdGeneratorBuilder> codeBuilder(BuildContext ctx) {
-		Project prj = ctx.getProject();
-		if (prj.getMainSource() != null) {
-			return prj.getMainSource().getBuilder(ctx);
-		} else {
-			if (prj.isJar() && prj.isNativeImage()) {
-				return new JavaSource.JavaAppBuilder(ctx);
-			} else {
-				return () -> CmdGenerator.builder(ctx);
-			}
-		}
+		return CodeBuilderProvider.create(ctx).get();
 	}
 
 	public boolean isJar() {

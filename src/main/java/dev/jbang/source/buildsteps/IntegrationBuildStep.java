@@ -1,7 +1,6 @@
 package dev.jbang.source.buildsteps;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Map;
 import java.util.Properties;
 
@@ -28,14 +27,12 @@ public class IntegrationBuildStep implements Builder<IntegrationResult> {
 	public IntegrationResult build() throws IOException {
 		// todo: setting properties to avoid loosing properties in integration call.
 		Project project = ctx.getProject();
-		Path compileDir = ctx.getCompileDir();
-		Path pomPath = CompileBuildStep.getPomPath(ctx);
 		Properties old = System.getProperties();
 		Properties temp = new Properties(System.getProperties());
 		for (Map.Entry<String, String> entry : project.getProperties().entrySet()) {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
-		IntegrationResult integrationResult = IntegrationManager.runIntegrations(project, compileDir, pomPath);
+		IntegrationResult integrationResult = IntegrationManager.runIntegrations(ctx);
 		System.setProperties(old);
 
 		if (project.getMainClass() == null) { // if non-null user forced set main
