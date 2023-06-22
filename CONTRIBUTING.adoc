@@ -2,6 +2,12 @@
 
 Anyone is welcome to open issues and/or pull-requests for bugfixes, feature-requests and/or ideas.
 
+== Just
+
+If you have https://github.com/casey/just[just] installed you can run `just` to see and choose from the available commands.
+
+If `just` fails with error about `fzf` missing you can use `just --list` to manually see the commands.
+
 == How to build
 
 === Quickstart
