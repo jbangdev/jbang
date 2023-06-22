@@ -1025,7 +1025,18 @@ public class Util {
 							verboseMsg(String.format("Not modified, using cached file %s for remote %s", cachedFile,
 									conn.getURL().toExternalForm()));
 							// Update cached file's last modified time
-							Files.setLastModifiedTime(cachedFile, FileTime.from(ZonedDateTime.now().toInstant()));
+							try {
+								Files.setLastModifiedTime(cachedFile, FileTime.from(ZonedDateTime.now().toInstant()));
+							} catch (IOException e) {
+								// There is an issue with Java not being able to set the file's last modified
+								// time
+								// on certain systems, resulting in an exception. There's not much we can do
+								// about
+								// that, so we'll just ignore it. It does mean that files affected by this will
+								// be
+								// re-downloaded every time.
+								verboseMsg("Unable to set last-modified time for " + cachedFile, e);
+							}
 							return cachedFile;
 						}
 					}

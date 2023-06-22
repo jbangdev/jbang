@@ -221,7 +221,7 @@ public class ProjectBuilder {
 
 	private ResourceRef resolveChecked(ResourceResolver resolver, String resource) {
 		Util.verboseMsg("Resolving resource ref: " + resource);
-		boolean retryCandidate = catalogFile == null && !Util.isFresh() && Settings.getCacheEvict() != 0
+		boolean retryCandidate = catalogFile == null && !Util.isFresh() && Settings.getCacheEvict() > 0
 				&& (Catalog.isValidName(resource) || Catalog.isValidCatalogReference(resource)
 						|| Util.isRemoteRef(resource));
 		ResourceRef ref = null;
