@@ -42,10 +42,10 @@ public class DependencyUtil {
 	}
 
 	public static final Pattern fullGavPattern = Pattern.compile(
-			"^(?<groupid>[^:]*):(?<artifactid>[^:]*):(?<version>[^:@]*)(:(?<classifier>[^@]*))?(@(?<type>.*))?$");
+			"^(?<groupid>[a-z0-9_.-]*):(?<artifactid>[a-z0-9_.-]*):(?<version>[^:@]*)(:(?<classifier>[^@]*))?(@(?<type>.*))?$");
 
 	public static final Pattern lenientGavPattern = Pattern.compile(
-			"^(?<groupid>[^:]*):(?<artifactid>[^:]*)(:(?<version>[^:@]*)(:(?<classifier>[^@]*))?)?(@(?<type>.*))?$");
+			"^(?<groupid>[a-z0-9_.-]*):(?<artifactid>[a-z0-9_.-]*)(:(?<version>[^:@]*)(:(?<classifier>[^@]*))?)?(@(?<type>.*))?$");
 
 	private DependencyUtil() {
 	}
