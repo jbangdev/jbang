@@ -11,17 +11,17 @@ import java.util.stream.Stream;
 
 public class JitPackUtil {
 	private static final Pattern GITHUB_TREE_PATTERN = Pattern.compile(
-			"^https?://github.com/(.+?)/(.+?)(/tree/(.+?)(/(.+?))?)?/?$");
+			"^https?://github.com/([^/]+?)/([^/]+?)(/tree/([^/]+?)(/(.+?))?)?/?$");
 	private static final Pattern GITUB_COMMIT_PATTERN = Pattern.compile(
-			"^https?://github.com/(.+?)/(.+?)/commit/(.+)$");
+			"^https?://github.com/([^/]+?)/([^/]+?)/commit/(.+)$");
 	private static final Pattern GITLAB_TREE_PATTERN = Pattern.compile(
-			"^https?://gitlab.com/(.+?)/(.+?)(/-/tree/(.+?)(/(.+?))?)?/?$");
+			"^https?://gitlab.com/([^/]+?)/([^/]+?)(/-/tree/([^/]+?)(/(.+?))?)?/?$");
 	private static final Pattern GITLAB_COMMIT_PATTERN = Pattern.compile(
-			"^https?://gitlab.com/(.+?)/(.+?)/-/commit/(.+)$");
+			"^https?://gitlab.com/([^/]+?)/([^/]+?)/-/commit/(.+)$");
 	private static final Pattern BITBUCKET_TREE_PATTERN = Pattern.compile(
-			"^https?://bitbucket.org/(.+?)/(.+?)(/src/(.+?)(/(.+?))?)?/?$");
+			"^https?://bitbucket.org/([^/]+?)/([^/]+?)(/src/([^/]+?)(/(.+?))?)?/?$");
 	private static final Pattern BITBUCKET_COMMIT_PATTERN = Pattern.compile(
-			"^https?://bitbucket.org/(.+?)/(.+?)/commits/(.+)$");
+			"^https?://bitbucket.org/([^/]+?)/([^/]+?)/commits/(.+)$");
 
 	private static final Pattern POSSIBLE_SHA1_PATTERN = Pattern.compile("^[0-9a-f]{40}$");
 
