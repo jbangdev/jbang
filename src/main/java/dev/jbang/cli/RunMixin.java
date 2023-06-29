@@ -16,8 +16,8 @@ public class RunMixin {
 	public String flightRecorderString;
 
 	@CommandLine.Option(names = { "-d",
-			"--debug" }, fallbackValue = "${default.run.debug}", parameterConsumer = Run.DebugFallbackConsumer.class, arity = "0..1", description = "Launch with java debug enabled on specified port (default: ${FALLBACK-VALUE}) ")
-	public String debugString;
+			"--debug" }, fallbackValue = "${default.run.debug}", parameterConsumer = Run.DebugFallbackConsumer.class, arity = "0..1", description = "Launch with java debug enabled. Set host/port or provide key/value list of JPDA options (default: ${FALLBACK-VALUE}) ")
+	public Map<String, String> debugString;
 
 	// should take arguments for package/classes when picocli fixes its flag
 	// handling bug in release 4.6.

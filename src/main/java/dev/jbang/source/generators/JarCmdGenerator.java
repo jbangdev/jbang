@@ -3,12 +3,8 @@ package dev.jbang.source.generators;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
@@ -88,8 +84,20 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		addPropertyFlags(project.getProperties(), "-D", optionalArgs);
 
 		if (debugString != null) {
+			Map<String, String> fallbackDebug = new LinkedHashMap<>();
+			fallbackDebug.put("transport", "dt_socket");
+			fallbackDebug.put("server", "y");
+			fallbackDebug.put("suspend", "y");
+			fallbackDebug.putAll(debugString);
+			// needed even though there is a fallbackvalue as user might have set some other
+			// key/value
+			// i.e. --debug=server=n
+			fallbackDebug.put("address", "4004");
 			optionalArgs.add(
-					"-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + debugString);
+					"-agentlib:jdwp=" + fallbackDebug	.entrySet()
+														.stream()
+														.map(e -> e.getKey() + "=" + e.getValue())
+														.collect(Collectors.joining(",")));
 		}
 
 		if (assertions) {

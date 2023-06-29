@@ -1,8 +1,7 @@
 package dev.jbang.cli;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,7 +36,7 @@ class TestArguments extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assert run.helpRequested;
-		assertThat(run.runMixin.debugString, notNullValue());
+		assertThat(run.runMixin.debugString, hasEntry("address", "4004"));
 		assertThat(run.scriptMixin.scriptOrFile, is("myfile.java"));
 		assertThat(run.userParams.size(), is(0));
 
@@ -48,7 +47,7 @@ class TestArguments extends BaseTest {
 		CommandLine.ParseResult pr = cli.parseArgs("run", "--debug", "test.java", "--debug", "wonka");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		assertThat(run.runMixin.debugString, is("4004"));
+		assertThat(run.runMixin.debugString, hasEntry("address", "4004"));
 
 		assertThat(run.scriptMixin.scriptOrFile, is("test.java"));
 		assertThat(run.userParams, is(Arrays.asList("--debug", "wonka")));
@@ -96,7 +95,8 @@ class TestArguments extends BaseTest {
 
 		assertThat(run.scriptMixin.scriptOrFile, is("test.java"));
 		assertThat(run.runMixin.debugString, notNullValue());
-		assertThat(run.runMixin.debugString, is("*:5000"));
+		assertThat(run.runMixin.debugString, hasEntry("address", "*:5000"));
+		assertThat(run.runMixin.debugString.size(), is(1));
 	}
 
 	@Test
@@ -106,7 +106,7 @@ class TestArguments extends BaseTest {
 
 		assertThat(run.scriptMixin.scriptOrFile, is("test.java"));
 		assertThat(run.runMixin.debugString, notNullValue());
-		assertThat(run.runMixin.debugString, is("xyz.dk:5005"));
+		assertThat(run.runMixin.debugString, hasEntry("address", "xyz.dk:5005"));
 	}
 
 	@Test

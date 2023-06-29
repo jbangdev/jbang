@@ -40,7 +40,7 @@ public class Alias extends CatalogItem {
 	@SerializedName(value = "native-options")
 	public final List<String> nativeOptions;
 	public final String jfr;
-	public final String debug;
+	public final Map<String, String> debug;
 	public final Boolean cds;
 	public final Boolean interactive;
 	@SerializedName(value = "enable-preview")
@@ -92,7 +92,7 @@ public class Alias extends CatalogItem {
 			Boolean nativeImage,
 			List<String> nativeOptions,
 			String jfr,
-			String debug,
+			Map<String, String> debug,
 			Boolean cds,
 			Boolean interactive,
 			Boolean enablePreview,
@@ -211,7 +211,7 @@ public class Alias extends CatalogItem {
 					: a2.nativeOptions;
 			Boolean nimg = a1.nativeImage != null ? a1.nativeImage : a2.nativeImage;
 			String jfr = a1.jfr != null ? a1.jfr : a2.jfr;
-			String debug = a1.debug != null ? a1.debug : a2.debug;
+			Map<String, String> debug = a1.debug != null ? a1.debug : a2.debug;
 			Boolean cds = a1.cds != null ? a1.cds : a2.cds;
 			Boolean inter = a1.interactive != null ? a1.interactive : a2.interactive;
 			Boolean ep = a1.enablePreview != null ? a1.enablePreview : a2.enablePreview;
