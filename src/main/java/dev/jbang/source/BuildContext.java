@@ -13,6 +13,7 @@ import dev.jbang.util.Util;
 
 public class BuildContext {
 	private final Project project;
+	private final Path buildDirOverride;
 	private final Path buildDir;
 
 	// Cached values
@@ -24,9 +25,9 @@ public class BuildContext {
 
 	public static BuildContext forProject(Project project, Path buildDirOverride) {
 		if (buildDirOverride != null) {
-			return new BuildContext(project, buildDirOverride);
+			return new BuildContext(project, buildDirOverride, buildDirOverride);
 		} else {
-			return new BuildContext(project, getBuildDir(null, project));
+			return new BuildContext(project, null, getBuildDir(null, project));
 		}
 	}
 
@@ -39,13 +40,14 @@ public class BuildContext {
 				project.getResourceRef().getFile().getFileName() + "." + project.getStableId());
 	}
 
-	private BuildContext(Project project, Path buildDir) {
+	private BuildContext(Project project, Path buildDirOverride, Path buildDir) {
 		this.project = project;
+		this.buildDirOverride = buildDirOverride;
 		this.buildDir = buildDir;
 	}
 
 	public BuildContext forSubProject(Project subProject) {
-		return forProject(subProject, getBuildDir(buildDir, subProject));
+		return forProject(subProject, getBuildDir(buildDirOverride, subProject));
 	}
 
 	public Project getProject() {
