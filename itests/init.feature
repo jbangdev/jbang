@@ -8,7 +8,7 @@ When command('jbang init ' + scratch + '/test.java')
 * def contents = read(scratch + '/test.java')
 * match contents contains "class test"
 * command('jbang ' + scratch + '/test.java')
-* match err == "[jbang] Building jar...\n"
+* match err == "[jbang] Building jar for test.java...\n"
 * command('jbang ' + scratch + '/test.java')
 * match err !contains "[jbang] Building jar"
 
@@ -20,7 +20,7 @@ When command('jbang init ' + scratch + '/newfolder/test.java')
   * def contents = read(scratch + '/newfolder/test.java')
   * match contents contains "class test"
   * command('jbang ' + scratch + '/newfolder/test.java')
-  * match err == "[jbang] Building jar...\n"
+  * match err == "[jbang] Building jar for test.java...\n"
   * command('jbang ' + scratch + '/newfolder/test.java')
   * match err !contains "[jbang] Building jar"
 

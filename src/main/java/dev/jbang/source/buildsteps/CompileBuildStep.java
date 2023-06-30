@@ -111,7 +111,8 @@ public abstract class CompileBuildStep implements Builder<Project> {
 
 		generatePom();
 
-		Util.infoMsg(String.format("Building %s...", project.getMainSource().isAgent() ? "javaagent" : "jar"));
+		Util.infoMsg(String.format("Building %s for %s...", project.getMainSource().isAgent() ? "javaagent" : "jar",
+				project.getResourceRef().getFile().getFileName().toString()));
 		Util.verboseMsg("Compile: " + String.join(" ", optionList));
 		runCompiler(optionList);
 
