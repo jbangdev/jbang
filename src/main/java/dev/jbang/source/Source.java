@@ -11,11 +11,9 @@ import javax.annotation.Nonnull;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
-import dev.jbang.source.resolvers.SiblingResourceResolver;
 import dev.jbang.source.sources.*;
 import dev.jbang.source.sources.KotlinSource;
 import dev.jbang.source.sources.MarkdownSource;
-import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 /**
@@ -111,76 +109,6 @@ public abstract class Source {
 
 	public boolean enablePreview() {
 		return !tagReader.collectRawOptions("PREVIEW").isEmpty();
-	}
-
-	/**
-	 * Updates the given <code>Project</code> with all the information from this
-	 * <code>Source</code> when that source is the main file. It updates certain
-	 * things at the project level and then calls <code>updateProject()</code> which
-	 * will update things at the <code>SourceSet</code> level.
-	 *
-	 * @param prj      The <code>Project</code> to update
-	 * @param resolver The resolver to use for dependent (re)sources
-	 * @return A <code>Project</code>
-	 */
-	public Project updateProjectMain(Project prj, ResourceResolver resolver) {
-		prj.setDescription(tagReader.getDescription().orElse(null));
-		prj.setGav(tagReader.getGav().orElse(null));
-		prj.setMainClass(tagReader.getMain().orElse(null));
-		prj.setModuleName(tagReader.getModule().orElse(null));
-		prj.getMainSourceSet().addCompileOption("-g");
-		return updateProject(prj, resolver);
-	}
-
-	/**
-	 * Updates the given <code>Project</code> with all the information from this
-	 * <code>Source</code>. This includes the current source file with all other
-	 * source files it references, all resource files, anything to do with
-	 * dependencies, repositories and class paths as well as compile time and
-	 * runtime options.
-	 * 
-	 * @param prj      The <code>Project</code> to update
-	 * @param resolver The resolver to use for dependent (re)sources
-	 * @return The given <code>Project</code>
-	 */
-	@Nonnull
-	public Project updateProject(Project prj, ResourceResolver resolver) {
-		if (!prj.getMainSourceSet().getSources().contains(getResourceRef())) {
-			ResourceResolver sibRes1 = new SiblingResourceResolver(resourceRef, ResourceResolver.forResources());
-			SourceSet ss = prj.getMainSourceSet();
-			ss.addSource(this.getResourceRef());
-			ss.addResources(tagReader.collectFiles(resourceRef, sibRes1));
-			ss.addDependencies(collectBinaryDependencies());
-			ss.addCompileOptions(getCompileOptions());
-			ss.addNativeOptions(getNativeOptions());
-			prj.addRepositories(tagReader.collectRepositories());
-			prj.addRuntimeOptions(getRuntimeOptions());
-			tagReader.collectManifestOptions().forEach(kv -> {
-				if (!kv.getKey().isEmpty()) {
-					prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
-				}
-			});
-			tagReader.collectAgentOptions().forEach(kv -> {
-				if (!kv.getKey().isEmpty()) {
-					prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
-				}
-			});
-			String version = tagReader.getJavaVersion();
-			if (version != null && JavaUtil.checkRequestedVersion(version)) {
-				if (new JavaUtil.RequestedVersionComparator().compare(prj.getJavaVersion(), version) > 0) {
-					prj.setJavaVersion(version);
-				}
-			}
-			for (String srcDep : collectSourceDependencies()) {
-				ResourceRef subRef = sibRes1.resolve(srcDep, true);
-				prj.addSubProject(new ProjectBuilder().build(subRef));
-			}
-			ResourceResolver sibRes2 = new SiblingResourceResolver(getResourceRef(), resolver);
-			for (Source includedSource : tagReader.collectSources(resourceRef, sibRes2)) {
-				includedSource.updateProject(prj, resolver);
-			}
-		}
-		return prj;
 	}
 
 	// Used only by tests

@@ -29,6 +29,7 @@ import dev.jbang.BaseTest;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.CatalogUtil;
+import dev.jbang.cli.ExitException;
 import dev.jbang.source.buildsteps.JarBuildStep;
 import dev.jbang.source.buildsteps.NativeBuildStep;
 import dev.jbang.source.sources.JavaSource;
@@ -391,6 +392,17 @@ public class TestBuilder extends BaseTest {
 			}
 		}, null, null);
 		assertThat(callCount.get(), equalTo(2));
+	}
+
+	@Test
+	void testSourceSelfDep() throws IOException {
+		try {
+			Path selfdep = examplesTestFolder.resolve("selfdep.java").toAbsolutePath();
+			ProjectBuilder pb = Project.builder();
+			Project prj = pb.build(selfdep.toString());
+		} catch (ExitException ex) {
+			assertThat(ex.getMessage(), startsWith("Self-referencing project dependency found for:"));
+		}
 	}
 
 	private void runBuild(BuildContext ctx, BiConsumer<BuildContext, List<String>> compileStep,
