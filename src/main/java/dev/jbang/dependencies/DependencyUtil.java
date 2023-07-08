@@ -27,7 +27,9 @@ public class DependencyUtil {
 
 	static {
 		aliasToRepos = new HashMap<>();
-		aliasToRepos.put("mavencentral", "https://repo1.maven.org/maven2/");
+		aliasToRepos.put("mavencentral", "https://repo1.maven.org/maven2/"); // deprecated; kept for backwards
+																				// compatability
+		aliasToRepos.put("central", "https://repo1.maven.org/maven2/"); // deprecated; kept for backwards compatability
 		aliasToRepos.put("jbossorg", "https://repository.jboss.org/nexus/content/groups/public/");
 		aliasToRepos.put("redhat", "https://maven.repository.redhat.com/ga/");
 		aliasToRepos.put("jcenter", "https://jcenter.bintray.com/");
@@ -62,7 +64,7 @@ public class DependencyUtil {
 
 		if (repos.isEmpty()) {
 			repos = new ArrayList<>();
-			repos.add(toMavenRepo("mavencentral"));
+			repos.add(toMavenRepo("central"));
 		}
 
 		// Turn any URL dependencies into regular GAV coordinates

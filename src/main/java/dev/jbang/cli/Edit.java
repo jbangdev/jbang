@@ -446,7 +446,7 @@ public class Edit extends BaseCommand {
 		// resolveDependencies
 		List<MavenRepo> repositories = prj.getRepositories();
 		if (repositories.isEmpty()) {
-			prj.addRepository(DependencyUtil.toMavenRepo("mavencentral"));
+			prj.addRepository(DependencyUtil.toMavenRepo("central"));
 		}
 
 		// Turn any URL dependencies into regular GAV coordinates

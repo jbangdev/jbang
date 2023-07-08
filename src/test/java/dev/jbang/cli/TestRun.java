@@ -2210,7 +2210,7 @@ public class TestRun extends BaseTest {
 		Util.writeString(f.toPath(), content);
 
 		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "--fresh", "--repos", "mavencentral", f.getPath());
+											.parseArgs("run", "--fresh", "--repos", "central", f.getPath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
