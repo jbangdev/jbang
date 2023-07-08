@@ -80,7 +80,7 @@ public class TestModule extends BaseTest {
 		Project prj = pb.build(f);
 		BuildContext ctx = BuildContext.forProject(prj);
 
-		CmdGeneratorBuilder gen = new JavaSource.JavaAppBuilder(prj, ctx) {
+		CmdGeneratorBuilder gen = new JavaSource.JavaAppBuilder(ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -99,12 +99,12 @@ public class TestModule extends BaseTest {
 
 			@Override
 			protected Builder<Project> getJarBuildStep() {
-				return new JarBuildStep(project, ctx) {
+				return new JarBuildStep(ctx) {
 					@Override
 					public Project build() {
 						assertThat(ctx.getCompileDir().resolve("module-info.class").toFile(), anExistingFile());
 						// Skip building of JAR
-						return project;
+						return ctx.getProject();
 					}
 				};
 			}
@@ -132,7 +132,7 @@ public class TestModule extends BaseTest {
 		Project prj = pb.build(f);
 		BuildContext ctx = BuildContext.forProject(prj);
 
-		CmdGeneratorBuilder gen = new JavaSource.JavaAppBuilder(prj, ctx) {
+		CmdGeneratorBuilder gen = new JavaSource.JavaAppBuilder(ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -151,12 +151,12 @@ public class TestModule extends BaseTest {
 
 			@Override
 			protected Builder<Project> getJarBuildStep() {
-				return new JarBuildStep(project, ctx) {
+				return new JarBuildStep(ctx) {
 					@Override
 					public Project build() {
 						assertThat(ctx.getCompileDir().resolve("module-info.class").toFile(), anExistingFile());
 						// Skip building of JAR
-						return project;
+						return ctx.getProject();
 					}
 				};
 			}
@@ -179,7 +179,7 @@ public class TestModule extends BaseTest {
 		Project prj = pb.build(f);
 		BuildContext ctx = BuildContext.forProject(prj);
 
-		CmdGeneratorBuilder gen = new JavaSource.JavaAppBuilder(prj, ctx) {
+		CmdGeneratorBuilder gen = new JavaSource.JavaAppBuilder(ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -208,7 +208,7 @@ public class TestModule extends BaseTest {
 		Project prj = pb.build(f);
 		BuildContext ctx = BuildContext.forProject(prj);
 
-		CmdGeneratorBuilder gen = new JavaSource.JavaAppBuilder(prj, ctx) {
+		CmdGeneratorBuilder gen = new JavaSource.JavaAppBuilder(ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {

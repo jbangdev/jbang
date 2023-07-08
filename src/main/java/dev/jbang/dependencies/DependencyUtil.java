@@ -42,7 +42,10 @@ public class DependencyUtil {
 	}
 
 	public static final Pattern fullGavPattern = Pattern.compile(
-			"^(?<groupid>[^:]*):(?<artifactid>[^:]*):(?<version>[^:@]*)(:(?<classifier>[^@]*))?(@(?<type>.*))?$");
+			"^(?<groupid>[a-z0-9_.-]*):(?<artifactid>[a-z0-9_.-]*):(?<version>[^:@]*)(:(?<classifier>[^@]*))?(@(?<type>.*))?$");
+
+	public static final Pattern lenientGavPattern = Pattern.compile(
+			"^(?<groupid>[a-z0-9_.-]*):(?<artifactid>[a-z0-9_.-]*)(:(?<version>[^:@]*)(:(?<classifier>[^@]*))?)?(@(?<type>.*))?$");
 
 	private DependencyUtil() {
 	}
@@ -141,6 +144,12 @@ public class DependencyUtil {
 
 	public static boolean looksLikeAGav(String candidate) {
 		Matcher gav = fullGavPattern.matcher(candidate);
+		gav.find();
+		return (gav.matches());
+	}
+
+	public static boolean looksLikeAPossibleGav(String candidate) {
+		Matcher gav = lenientGavPattern.matcher(candidate);
 		gav.find();
 		return (gav.matches());
 	}

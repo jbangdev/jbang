@@ -34,8 +34,10 @@ import com.google.gson.GsonBuilder;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenRepo;
+import dev.jbang.source.BuildContext;
 import dev.jbang.source.Project;
 import dev.jbang.source.Source;
+import dev.jbang.source.buildsteps.CompileBuildStep;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.PathTypeAdapter;
 import dev.jbang.util.Util;
@@ -59,8 +61,11 @@ public class IntegrationManager {
 	 * If an integration point created a native image it returns the resulting
 	 * image.
 	 */
-	public static IntegrationResult runIntegrations(Project prj, Path tmpJarDir, Path pomPath) {
+	public static IntegrationResult runIntegrations(BuildContext ctx) {
 		IntegrationResult result = new IntegrationResult(null, null, null);
+		Project prj = ctx.getProject();
+		Path compileDir = ctx.getCompileDir();
+		Path pomPath = CompileBuildStep.getPomPath(ctx);
 		Source source = prj.getMainSource();
 
 		LinkedHashMap<String, String> repos = new LinkedHashMap<>();
@@ -68,7 +73,7 @@ public class IntegrationManager {
 		for (MavenRepo repo : prj.getRepositories()) {
 			repos.put(repo.getId(), repo.getUrl());
 		}
-		for (ArtifactInfo art : prj.resolveClassPath().getArtifacts()) {
+		for (ArtifactInfo art : ctx.resolveClassPath().getArtifacts()) {
 			if (art.getCoordinate() != null) { // skipping dependencies that does not have a GAV
 				deps.put(art.getCoordinate().toCanonicalForm(), art.getFile());
 			}
@@ -86,7 +91,7 @@ public class IntegrationManager {
 				Path srcPath = (source.getResourceRef().getFile() != null)
 						? source.getResourceRef().getFile().toAbsolutePath()
 						: null;
-				IntegrationInput input = new IntegrationInput(className, srcPath, tmpJarDir, pomPath, repos, deps,
+				IntegrationInput input = new IntegrationInput(className, srcPath, compileDir, pomPath, repos, deps,
 						comments,
 						prj.isNativeImage());
 				IntegrationResult ir = requestedJavaVersion == null || JavaUtil.satisfiesRequestedVersion(

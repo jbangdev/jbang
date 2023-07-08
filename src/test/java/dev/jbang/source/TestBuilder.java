@@ -13,9 +13,14 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
+
+import javax.annotation.Nonnull;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -24,10 +29,10 @@ import dev.jbang.BaseTest;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.CatalogUtil;
+import dev.jbang.cli.ExitException;
 import dev.jbang.source.buildsteps.JarBuildStep;
 import dev.jbang.source.buildsteps.NativeBuildStep;
 import dev.jbang.source.sources.JavaSource;
-import dev.jbang.source.sources.KotlinSource;
 import dev.jbang.util.Util;
 
 public class TestBuilder extends BaseTest {
@@ -38,19 +43,7 @@ public class TestBuilder extends BaseTest {
 		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
-
-		new JavaSource.JavaAppBuilder(prj, ctx) {
-			@Override
-			protected Builder<Project> getCompileBuildStep() {
-				return new JavaCompileBuildStep() {
-					@Override
-					protected void runCompiler(List<String> optionList) {
-						assertThat(optionList, hasItems(foo.toString(), "-g"));
-						// Skip the compiler
-					}
-				};
-			}
-		}.setFresh(true).build();
+		runBuild(ctx, (ctxx, optionList) -> assertThat(optionList, hasItems(foo.toString(), "-g")), null, null);
 	}
 
 	@Test
@@ -60,19 +53,8 @@ public class TestBuilder extends BaseTest {
 		Project prj = pb.build(foo.toString());
 		prj.setEnablePreviewRequested(true);
 		BuildContext ctx = BuildContext.forProject(prj);
-
-		new JavaSource.JavaAppBuilder(prj, ctx) {
-			@Override
-			protected Builder<Project> getCompileBuildStep() {
-				return new JavaCompileBuildStep() {
-					@Override
-					protected void runCompiler(List<String> optionList) {
-						assertThat(optionList, hasItems(foo.toString(), "--enable-preview"));
-						// Skip the compiler
-					}
-				};
-			}
-		}.setFresh(true).build();
+		runBuild(ctx, (ctxx, optionList) -> assertThat(optionList, hasItems(foo.toString(), "--enable-preview")), null,
+				null);
 	}
 
 	@Test
@@ -82,62 +64,26 @@ public class TestBuilder extends BaseTest {
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx1 = BuildContext.forProject(prj, out1.toPath());
 		BuildContext ctx2 = BuildContext.forProject(prj, out2.toPath());
-
-		new JavaSource.JavaAppBuilder(prj, ctx1) {
-			@Override
-			protected Builder<Project> getCompileBuildStep() {
-				return new JavaCompileBuildStep() {
-					@Override
-					protected void runCompiler(List<String> optionList) {
-						assertThat(optionList, hasItems(containsString(out1.toString())));
-						assertThat(optionList, not(hasItems(containsString(out2.toString()))));
-						assertThat(optionList, not(hasItems(containsString(Settings.getCacheDir().toString()))));
-						// Skip the compiler
-					}
-				};
-			}
-
-			@Override
-			protected Builder<Project> getJarBuildStep() {
-				return new JarBuildStep(project, ctx) {
-					@Override
-					public Project build() {
-						assertThat(ctx.getJarFile().toString(), containsString(out1.toString()));
-						assertThat(ctx.getJarFile().toString(), not(containsString(out2.toString())));
-						assertThat(ctx.getJarFile().toString(), not(containsString(Settings.getCacheDir().toString())));
-						return project;
-					}
-				};
-			}
-		}.setFresh(true).build();
-
-		new JavaSource.JavaAppBuilder(prj, ctx2) {
-			@Override
-			protected Builder<Project> getCompileBuildStep() {
-				return new JavaCompileBuildStep() {
-					@Override
-					protected void runCompiler(List<String> optionList) {
-						assertThat(optionList, hasItems(containsString(out2.toString())));
-						assertThat(optionList, not(hasItems(containsString(out1.toString()))));
-						assertThat(optionList, not(hasItems(containsString(Settings.getCacheDir().toString()))));
-						// Skip the compiler
-					}
-				};
-			}
-
-			@Override
-			protected Builder<Project> getJarBuildStep() {
-				return new JarBuildStep(project, ctx) {
-					@Override
-					public Project build() {
-						assertThat(ctx.getJarFile().toString(), containsString(out2.toString()));
-						assertThat(ctx.getJarFile().toString(), not(containsString(out1.toString())));
-						assertThat(ctx.getJarFile().toString(), not(containsString(Settings.getCacheDir().toString())));
-						return project;
-					}
-				};
-			}
-		}.setFresh(true).build();
+		runBuild(ctx1, (ctxx, optionList) -> {
+			assertThat(optionList, hasItems(containsString(out1.toString())));
+			assertThat(optionList, not(hasItems(containsString(out2.toString()))));
+			assertThat(optionList, not(hasItems(containsString(Settings.getCacheDir().toString()))));
+		}, ctxx -> {
+			assertThat(ctxx.getJarFile().toString(), containsString(out1.toString()));
+			assertThat(ctxx.getJarFile().toString(), not(containsString(out2.toString())));
+			assertThat(ctxx.getJarFile().toString(), not(containsString(Settings.getCacheDir().toString())));
+			return ctxx.getProject();
+		}, null);
+		runBuild(ctx2, (ctxx, optionList) -> {
+			assertThat(optionList, hasItems(containsString(out2.toString())));
+			assertThat(optionList, not(hasItems(containsString(out1.toString()))));
+			assertThat(optionList, not(hasItems(containsString(Settings.getCacheDir().toString()))));
+		}, ctxx -> {
+			assertThat(ctxx.getJarFile().toString(), containsString(out2.toString()));
+			assertThat(ctxx.getJarFile().toString(), not(containsString(out1.toString())));
+			assertThat(ctxx.getJarFile().toString(), not(containsString(Settings.getCacheDir().toString())));
+			return ctxx.getProject();
+		}, null);
 	}
 
 	@Test
@@ -146,19 +92,8 @@ public class TestBuilder extends BaseTest {
 		ProjectBuilder pb = Project.builder().compileOptions(Arrays.asList("--foo", "--bar"));
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
-
-		new JavaSource.JavaAppBuilder(prj, ctx) {
-			@Override
-			protected Builder<Project> getCompileBuildStep() {
-				return new JavaCompileBuildStep() {
-					@Override
-					protected void runCompiler(List<String> optionList) {
-						assertThat(optionList, hasItems(foo.toString(), "-g", "--foo", "--bar"));
-						// Skip the compiler
-					}
-				};
-			}
-		}.setFresh(true).build();
+		runBuild(ctx, (ctxx, optionList) -> assertThat(optionList, hasItems(foo.toString(), "-g", "--foo", "--bar")),
+				null, null);
 	}
 
 	@Test
@@ -167,19 +102,8 @@ public class TestBuilder extends BaseTest {
 		ProjectBuilder pb = Project.builder().compileOptions(Arrays.asList("--foo", "--bar"));
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
-
-		new KotlinSource.KotlinAppBuilder(prj, ctx) {
-			@Override
-			protected Builder<Project> getCompileBuildStep() {
-				return new KotlinCompileBuildStep() {
-					@Override
-					protected void runCompiler(List<String> optionList) {
-						assertThat(optionList, hasItems(foo.toString(), "--foo", "--bar"));
-						// Skip the compiler
-					}
-				};
-			}
-		}.setFresh(true).build();
+		runBuild(ctx, (ctxx, optionList) -> assertThat(optionList, hasItems(foo.toString(), "--foo", "--bar")), null,
+				null);
 	}
 
 	@Test
@@ -190,20 +114,10 @@ public class TestBuilder extends BaseTest {
 		pb.additionalSources(Arrays.asList(bar.toString()));
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
-
-		new JavaSource.JavaAppBuilder(prj, ctx) {
-			@Override
-			protected Builder<Project> getCompileBuildStep() {
-				return new JavaCompileBuildStep() {
-					@Override
-					protected void runCompiler(List<String> optionList) {
-						assertThat(optionList, hasItem(foo.toString()));
-						assertThat(optionList, hasItem(bar.toString()));
-						// Skip the compiler
-					}
-				};
-			}
-		}.setFresh(true).build();
+		runBuild(ctx, (ctxx, optionList) -> {
+			assertThat(optionList, hasItem(foo.toString()));
+			assertThat(optionList, hasItem(bar.toString()));
+		}, null, null);
 	}
 
 	@Test
@@ -217,20 +131,10 @@ public class TestBuilder extends BaseTest {
 		pb.additionalSources(Arrays.asList("bar"));
 		Project prj = pb.build(mainFile);
 		BuildContext ctx = BuildContext.forProject(prj);
-
-		new JavaSource.JavaAppBuilder(prj, ctx) {
-			@Override
-			protected Builder<Project> getCompileBuildStep() {
-				return new JavaCompileBuildStep() {
-					@Override
-					protected void runCompiler(List<String> optionList) {
-						assertThat(optionList, hasItem(mainFile));
-						assertThat(optionList, hasItem(incFile));
-						// Skip the compiler
-					}
-				};
-			}
-		}.setFresh(true).build();
+		runBuild(ctx, (ctxx, optionList) -> {
+			assertThat(optionList, hasItem(mainFile));
+			assertThat(optionList, hasItem(incFile));
+		}, null, null);
 	}
 
 	@Test
@@ -247,20 +151,10 @@ public class TestBuilder extends BaseTest {
 		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(mainFile.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
-
-		new JavaSource.JavaAppBuilder(prj, ctx) {
-			@Override
-			protected Builder<Project> getCompileBuildStep() {
-				return new JavaCompileBuildStep() {
-					@Override
-					protected void runCompiler(List<String> optionList) {
-						assertThat(optionList, hasItem(mainFile.toString()));
-						assertThat(optionList, hasItem(incFile));
-						// Skip the compiler
-					}
-				};
-			}
-		}.setFresh(true).build();
+		runBuild(ctx, (ctxx, optionList) -> {
+			assertThat(optionList, hasItem(mainFile.toString()));
+			assertThat(optionList, hasItem(incFile));
+		}, null, null);
 	}
 
 	@Test
@@ -273,20 +167,10 @@ public class TestBuilder extends BaseTest {
 		pb.additionalSources(Arrays.asList("bar/*.java"));
 		Project prj = pb.build(mainFile);
 		BuildContext ctx = BuildContext.forProject(prj);
-
-		new JavaSource.JavaAppBuilder(prj, ctx) {
-			@Override
-			protected Builder<Project> getCompileBuildStep() {
-				return new JavaCompileBuildStep() {
-					@Override
-					protected void runCompiler(List<String> optionList) {
-						assertThat(optionList, hasItem(mainFile));
-						assertThat(optionList, hasItem(incFile));
-						// Skip the compiler
-					}
-				};
-			}
-		}.setFresh(true).build();
+		runBuild(ctx, (ctxx, optionList) -> {
+			assertThat(optionList, hasItem(mainFile));
+			assertThat(optionList, hasItem(incFile));
+		}, null, null);
 	}
 
 	@Test
@@ -299,20 +183,10 @@ public class TestBuilder extends BaseTest {
 		pb.additionalSources(Arrays.asList(incGlob));
 		Project prj = pb.build(mainFile);
 		BuildContext ctx = BuildContext.forProject(prj);
-
-		new JavaSource.JavaAppBuilder(prj, ctx) {
-			@Override
-			protected Builder<Project> getCompileBuildStep() {
-				return new JavaCompileBuildStep() {
-					@Override
-					protected void runCompiler(List<String> optionList) {
-						assertThat(optionList, hasItem(mainFile));
-						assertThat(optionList, hasItem(incFile));
-						// Skip the compiler
-					}
-				};
-			}
-		}.setFresh(true).build();
+		runBuild(ctx, (ctxx, optionList) -> {
+			assertThat(optionList, hasItem(mainFile));
+			assertThat(optionList, hasItem(incFile));
+		}, null, null);
 	}
 
 	@Test
@@ -325,20 +199,10 @@ public class TestBuilder extends BaseTest {
 		pb.additionalSources(Arrays.asList("bar"));
 		Project prj = pb.build(mainFile);
 		BuildContext ctx = BuildContext.forProject(prj);
-
-		new JavaSource.JavaAppBuilder(prj, ctx) {
-			@Override
-			protected Builder<Project> getCompileBuildStep() {
-				return new JavaCompileBuildStep() {
-					@Override
-					protected void runCompiler(List<String> optionList) {
-						assertThat(optionList, hasItem(mainFile));
-						assertThat(optionList, hasItem(incFile));
-						// Skip the compiler
-					}
-				};
-			}
-		}.setFresh(true).build();
+		runBuild(ctx, (ctxx, optionList) -> {
+			assertThat(optionList, hasItem(mainFile));
+			assertThat(optionList, hasItem(incFile));
+		}, null, null);
 	}
 
 	@Test
@@ -353,35 +217,18 @@ public class TestBuilder extends BaseTest {
 				Paths.get("res").resolve(res2).toString()));
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
-
-		new JavaSource.JavaAppBuilder(prj, ctx) {
-			@Override
-			protected Builder<Project> getCompileBuildStep() {
-				return new JavaCompileBuildStep() {
-					@Override
-					protected void runCompiler(List<String> optionList) {
-						// Skip the compiler
-					}
-				};
-			}
-
-			@Override
-			protected Builder<Project> getJarBuildStep() {
-				return new JarBuildStep(project, ctx) {
-					@Override
-					public Project build() {
-						assertThat(project.getMainSourceSet().getResources().size(), is(2));
-						assertThat(
-								project.getMainSourceSet().getResources().get(0).getSource().getFile().endsWith(res1),
-								is(true));
-						assertThat(
-								project.getMainSourceSet().getResources().get(1).getSource().getFile().endsWith(res2),
-								is(true));
-						return project;
-					}
-				};
-			}
-		}.setFresh(true).build();
+		runBuild(ctx, (ctxx, optionList) -> {
+		}, ctxx -> {
+			Project project = ctxx.getProject();
+			assertThat(project.getMainSourceSet().getResources().size(), is(2));
+			assertThat(
+					project.getMainSourceSet().getResources().get(0).getSource().getFile().endsWith(res1),
+					is(true));
+			assertThat(
+					project.getMainSourceSet().getResources().get(1).getSource().getFile().endsWith(res2),
+					is(true));
+			return project;
+		}, null);
 	}
 
 	@Test
@@ -396,39 +243,22 @@ public class TestBuilder extends BaseTest {
 				"somedir/=" + Paths.get("res").resolve(res2)));
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
-
-		new JavaSource.JavaAppBuilder(prj, ctx) {
-			@Override
-			protected Builder<Project> getCompileBuildStep() {
-				return new JavaCompileBuildStep() {
-					@Override
-					protected void runCompiler(List<String> optionList) {
-						// Skip the compiler
-					}
-				};
-			}
-
-			@Override
-			protected Builder<Project> getJarBuildStep() {
-				return new JarBuildStep(project, ctx) {
-					@Override
-					public Project build() {
-						assertThat(project.getMainSourceSet().getResources().size(), is(2));
-						assertThat(project.getMainSourceSet().getResources().get(0).getTarget().toString(),
-								is("somedir" + File.separator + "resource.properties"));
-						assertThat(
-								project.getMainSourceSet().getResources().get(0).getSource().getFile().endsWith(res1),
-								is(true));
-						assertThat(project.getMainSourceSet().getResources().get(1).getTarget().toString(),
-								is("somedir" + File.separator + "sub.properties"));
-						assertThat(
-								project.getMainSourceSet().getResources().get(1).getSource().getFile().endsWith(res2),
-								is(true));
-						return project;
-					}
-				};
-			}
-		}.setFresh(true).build();
+		runBuild(ctx, (ctxx, optionList) -> {
+		}, ctxx -> {
+			Project project = ctxx.getProject();
+			assertThat(project.getMainSourceSet().getResources().size(), is(2));
+			assertThat(project.getMainSourceSet().getResources().get(0).getTarget().toString(),
+					is("somedir" + File.separator + "resource.properties"));
+			assertThat(
+					project.getMainSourceSet().getResources().get(0).getSource().getFile().endsWith(res1),
+					is(true));
+			assertThat(project.getMainSourceSet().getResources().get(1).getTarget().toString(),
+					is("somedir" + File.separator + "sub.properties"));
+			assertThat(
+					project.getMainSourceSet().getResources().get(1).getSource().getFile().endsWith(res2),
+					is(true));
+			return project;
+		}, null);
 	}
 
 	@Test
@@ -441,38 +271,21 @@ public class TestBuilder extends BaseTest {
 		pb.additionalResources(Arrays.asList("res/**.properties"));
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
-
-		new JavaSource.JavaAppBuilder(prj, ctx) {
-			@Override
-			protected Builder<Project> getCompileBuildStep() {
-				return new JavaCompileBuildStep() {
-					@Override
-					protected void runCompiler(List<String> optionList) {
-						assertThat(optionList, hasItem(endsWith(File.separator + "foo.java")));
-						// Skip the compiler
-					}
-				};
-			}
-
-			@Override
-			protected Builder<Project> getJarBuildStep() {
-				return new JarBuildStep(project, ctx) {
-					@Override
-					public Project build() {
-						assertThat(project.getMainSourceSet().getResources().size(), is(3));
-						List<String> ps = project	.getMainSourceSet()
-													.getResources()
-													.stream()
-													.map(r -> r.getSource().getFile().toString())
-													.collect(Collectors.toList());
-						assertThat(ps, hasItem(endsWith("resource.properties")));
-						assertThat(ps, hasItem(endsWith("test.properties")));
-						assertThat(ps, hasItem(endsWith("sub" + File.separator + "sub.properties")));
-						return project;
-					}
-				};
-			}
-		}.setFresh(true).build();
+		runBuild(ctx, (ctxx, optionList) -> {
+			assertThat(optionList, hasItem(endsWith(File.separator + "foo.java")));
+		}, ctxx -> {
+			Project project = ctxx.getProject();
+			assertThat(project.getMainSourceSet().getResources().size(), is(3));
+			List<String> ps = project	.getMainSourceSet()
+										.getResources()
+										.stream()
+										.map(r -> r.getSource().getFile().toString())
+										.collect(Collectors.toList());
+			assertThat(ps, hasItem(endsWith("resource.properties")));
+			assertThat(ps, hasItem(endsWith("test.properties")));
+			assertThat(ps, hasItem(endsWith("sub" + File.separator + "sub.properties")));
+			return project;
+		}, null);
 	}
 
 	@Test
@@ -483,39 +296,22 @@ public class TestBuilder extends BaseTest {
 		pb.additionalResources(Arrays.asList("res"));
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
-
-		new JavaSource.JavaAppBuilder(prj, ctx) {
-			@Override
-			protected Builder<Project> getCompileBuildStep() {
-				return new JavaCompileBuildStep() {
-					@Override
-					protected void runCompiler(List<String> optionList) {
-						assertThat(optionList, hasItem(endsWith(File.separator + "foo.java")));
-						// Skip the compiler
-					}
-				};
-			}
-
-			@Override
-			protected Builder<Project> getJarBuildStep() {
-				return new JarBuildStep(project, ctx) {
-					@Override
-					public Project build() {
-						assertThat(project.getMainSourceSet().getResources().size(), is(4));
-						List<String> ps = project	.getMainSourceSet()
-													.getResources()
-													.stream()
-													.map(r -> r.getSource().getFile().toString())
-													.collect(Collectors.toList());
-						assertThat(ps, hasItem(endsWith("resource.java")));
-						assertThat(ps, hasItem(endsWith("resource.properties")));
-						assertThat(ps, hasItem(endsWith("test.properties")));
-						assertThat(ps, hasItem(endsWith("sub" + File.separator + "sub.properties")));
-						return project;
-					}
-				};
-			}
-		}.setFresh(true).build();
+		runBuild(ctx, (ctxx, optionList) -> {
+			assertThat(optionList, hasItem(endsWith(File.separator + "foo.java")));
+		}, ctxx -> {
+			Project project = ctxx.getProject();
+			assertThat(project.getMainSourceSet().getResources().size(), is(4));
+			List<String> ps = project	.getMainSourceSet()
+										.getResources()
+										.stream()
+										.map(r -> r.getSource().getFile().toString())
+										.collect(Collectors.toList());
+			assertThat(ps, hasItem(endsWith("resource.java")));
+			assertThat(ps, hasItem(endsWith("resource.properties")));
+			assertThat(ps, hasItem(endsWith("test.properties")));
+			assertThat(ps, hasItem(endsWith("sub" + File.separator + "sub.properties")));
+			return project;
+		}, null);
 	}
 
 	@Test
@@ -527,33 +323,15 @@ public class TestBuilder extends BaseTest {
 		pb.nativeImage(true);
 		Project prj = pb.build(mainFile);
 		BuildContext ctx = BuildContext.forProject(prj);
-
-		new JavaSource.JavaAppBuilder(prj, ctx) {
-			@Override
-			protected Builder<Project> getCompileBuildStep() {
-				return new JavaCompileBuildStep() {
-					@Override
-					protected void runCompiler(List<String> optionList) {
-						assertThat(optionList, hasItem(endsWith(File.separator + "foo.java")));
-						// Skip the compiler
-					}
-				};
+		runBuild(ctx, (ctxx, optionList) -> {
+			assertThat(optionList, hasItem(endsWith(File.separator + "foo.java")));
+		}, null, (ctxx, optionList) -> {
+			if (Util.isWindows()) {
+				assertThat(optionList.get(optionList.size() - 1), not(endsWith(".exe")));
+			} else {
+				assertThat(optionList.get(optionList.size() - 1), endsWith(".bin"));
 			}
-
-			@Override
-			protected Builder<Project> getNativeBuildStep() {
-				return new NativeBuildStep(project, ctx) {
-					@Override
-					protected void runNativeBuilder(List<String> optionList) throws IOException {
-						if (Util.isWindows()) {
-							assertThat(optionList.get(optionList.size() - 1), not(endsWith(".exe")));
-						} else {
-							assertThat(optionList.get(optionList.size() - 1), endsWith(".bin"));
-						}
-					}
-				};
-			}
-		}.setFresh(true).build();
+		});
 	}
 
 	@Test
@@ -567,7 +345,7 @@ public class TestBuilder extends BaseTest {
 		pb.setProperties(props);
 		Project prj = pb.build(mainFile.toFile().getAbsolutePath());
 		BuildContext ctx = BuildContext.forProject(prj);
-		prj.codeBuilder(ctx).build();
+		Project.codeBuilder(ctx).build();
 
 		assertThat(prj.getManifestAttributes().get("foo"), is("true"));
 		assertThat(prj.getManifestAttributes().get("bar"), is("baz"));
@@ -587,28 +365,97 @@ public class TestBuilder extends BaseTest {
 		ProjectBuilder pb = Project.builder().nativeImage(true);
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
+		runBuild(ctx, (ctxx, optionList) -> {
+		}, null, (ctxx, optionList) -> assertThat(optionList, hasItem("-O1")));
+	}
 
-		new JavaSource.JavaAppBuilder(prj, ctx) {
-			@Override
-			protected Builder<Project> getCompileBuildStep() {
-				return new JavaCompileBuildStep() {
-					@Override
-					protected void runCompiler(List<String> optionList) {
-						// Skip the compiler
-					}
-				};
+	@Test
+	void testSourceDep() throws IOException {
+		Path onedep = examplesTestFolder.resolve("onedep.java").toAbsolutePath();
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(onedep.toString());
+		BuildContext ctx = BuildContext.forProject(prj);
+		AtomicInteger callCount = new AtomicInteger(0);
+		runBuild(ctx, (ctxx, optionList) -> {
+			int cc = callCount.incrementAndGet();
+			if (cc == 1) {
+				assertThat(ctxx, not(is(ctx)));
+				assertThat(ctxx.getProject().getSubProjects(), is(empty()));
+				assertThat(ctxx.resolveClassPath().getArtifacts(), hasSize(7));
+			} else if (cc == 2) {
+				assertThat(ctxx, is(ctx));
+				assertThat(ctxx.getProject().getSubProjects(), hasSize(1));
+				assertThat(ctxx.resolveClassPath().getArtifacts(), hasSize(8));
+				assertThat(ctxx.resolveClassPath().getClassPath(), containsString("Two.jar"));
+			} else {
+				throw new IllegalStateException("Should not be called more than twice!");
 			}
+		}, null, null);
+		assertThat(callCount.get(), equalTo(2));
+	}
 
+	@Test
+	void testSourceSelfDep() throws IOException {
+		try {
+			Path selfdep = examplesTestFolder.resolve("selfdep.java").toAbsolutePath();
+			ProjectBuilder pb = Project.builder();
+			Project prj = pb.build(selfdep.toString());
+		} catch (ExitException ex) {
+			assertThat(ex.getMessage(), startsWith("Self-referencing project dependency found for:"));
+		}
+	}
+
+	private void runBuild(BuildContext ctx, BiConsumer<BuildContext, List<String>> compileStep,
+			Function<BuildContext, Project> jarStep, BiConsumer<BuildContext, List<String>> nativeStep)
+			throws IOException {
+		new CodeBuilderProvider(ctx) {
+			@Nonnull
 			@Override
-			protected Builder<Project> getNativeBuildStep() {
-				return new NativeBuildStep(prj, ctx) {
+			protected Builder<CmdGeneratorBuilder> getBuilder(BuildContext ctx) {
+				return new JavaSource.JavaAppBuilder(ctx) {
 					@Override
-					protected void runNativeBuilder(List<String> optionList) throws IOException {
-						// Skip the native image builder
-						assertThat(optionList, hasItem("-O1"));
+					protected Builder<Project> getCompileBuildStep() {
+						return new JavaCompileBuildStep() {
+							@Override
+							protected void runCompiler(List<String> optionList) throws IOException {
+								if (compileStep != null) {
+									compileStep.accept(ctx, optionList);
+								} else {
+									super.runCompiler(optionList);
+								}
+							}
+						};
 					}
-				};
+
+					@Override
+					protected Builder<Project> getJarBuildStep() {
+						return new JarBuildStep(ctx) {
+							@Override
+							public Project build() throws IOException {
+								if (jarStep != null) {
+									return jarStep.apply(ctx);
+								} else {
+									return super.build();
+								}
+							}
+						};
+					}
+
+					@Override
+					protected Builder<Project> getNativeBuildStep() {
+						return new NativeBuildStep(ctx) {
+							@Override
+							protected void runNativeBuilder(List<String> optionList) throws IOException {
+								if (nativeStep != null) {
+									nativeStep.accept(ctx, optionList);
+								} else {
+									super.runNativeBuilder(optionList);
+								}
+							}
+						};
+					}
+				}.setFresh(true);
 			}
-		}.setFresh(true).build();
+		}.get().build();
 	}
 }

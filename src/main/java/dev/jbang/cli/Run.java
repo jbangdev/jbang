@@ -86,9 +86,9 @@ public class Run extends BaseBuildCommand {
 		}
 
 		BuildContext ctx = BuildContext.forProject(prj, buildDir);
-		CmdGeneratorBuilder genb = prj.codeBuilder(ctx).build();
+		CmdGeneratorBuilder genb = Project.codeBuilder(ctx).build();
 
-		buildAgents(prj, ctx);
+		buildAgents(ctx);
 
 		String cmdline = updateGeneratorForRun(genb).build().generate();
 
@@ -98,7 +98,8 @@ public class Run extends BaseBuildCommand {
 		return EXIT_EXECUTE;
 	}
 
-	void buildAgents(Project prj, BuildContext ctx) throws IOException {
+	void buildAgents(BuildContext ctx) throws IOException {
+		Project prj = ctx.getProject();
 		Map<String, String> agents = runMixin.javaAgentSlots;
 		if (agents == null && prj.getResourceRef() instanceof AliasResourceResolver.AliasedResourceRef) {
 			AliasResourceResolver.AliasedResourceRef aref = (AliasResourceResolver.AliasedResourceRef) prj.getResourceRef();
@@ -119,7 +120,7 @@ public class Run extends BaseBuildCommand {
 				ProjectBuilder apb = createBaseProjectBuilder();
 				Project aprj = apb.build(javaAgent);
 				BuildContext actx = BuildContext.forProject(aprj);
-				aprj.codeBuilder(actx).build();
+				Project.codeBuilder(actx).build();
 				runMixin.javaRuntimeOptions.addAll(javaAgentOptions(actx, javaAgentOptions));
 			}
 		}

@@ -102,7 +102,7 @@ public class TestRun extends BaseTest {
 
 		assertThat(Files.exists(ctx.getJarFile()), equalTo(!first));
 
-		String result = code.codeBuilder(ctx).build().build().generate();
+		String result = Project.codeBuilder(ctx).build().build().generate();
 
 		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
 		assertThat(result, endsWith("helloworld"));
@@ -877,7 +877,7 @@ public class TestRun extends BaseTest {
 		Project prj = Project.builder().build(f);
 		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj.codeBuilder(ctx).build();
+		Project.codeBuilder(ctx).build();
 
 		assertThat(prj.getMainClass(), equalTo("aclass"));
 
@@ -1164,24 +1164,24 @@ public class TestRun extends BaseTest {
 	void testCDSGeneratesJSAFile() throws Exception {
 		String arg = examplesTestFolder.resolve("echo.java").toAbsolutePath().toString();
 
-		Project code = Project.builder().mainClass("echo").build(Paths.get(arg));
-		BuildContext ctx = BuildContext.forProject(code);
+		Project prj = Project.builder().mainClass("echo").build(Paths.get(arg));
+		BuildContext ctx = BuildContext.forProject(prj);
 		Path jsa = ctx.getJsaFile();
 
 		if (JavaUtil.getCurrentMajorJavaVersion() >= 13) {
-			String commandLine = CmdGenerator.builder(code, ctx).classDataSharing(true).build().generate();
+			String commandLine = CmdGenerator.builder(ctx).classDataSharing(true).build().generate();
 			assertThat(commandLine, containsString("-XX:ArchiveClassesAtExit="));
 			assertThat(jsa.toFile(), not(FileMatchers.anExistingFile()));
 
 			String out = Util.runCommand(commandLine.split(" "));
 			assertThat(out, notNullValue());
 
-			commandLine = CmdGenerator.builder(code, ctx).classDataSharing(true).build().generate();
+			commandLine = CmdGenerator.builder(ctx).classDataSharing(true).build().generate();
 			assertThat(commandLine, containsString("-XX:SharedArchiveFile="));
 			assertThat(jsa.toFile(), FileMatchers.anExistingFile());
 		} else {
 			CaptureResult<String> cap = captureOutput(
-					() -> CmdGenerator.builder(code, ctx).classDataSharing(true).build().generate());
+					() -> CmdGenerator.builder(ctx).classDataSharing(true).build().generate());
 			assertThat(cap.err, containsString("ClassDataSharing can only be used on Java versions 13 and later"));
 		}
 	}
@@ -1244,7 +1244,7 @@ public class TestRun extends BaseTest {
 		Project prj = pb.build(p.toFile().getAbsolutePath());
 		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj.codeBuilder(ctx).build();
+		Project.codeBuilder(ctx).build();
 
 		assertThat(prj.getMainSource().isAgent(), is(true));
 
@@ -1316,15 +1316,15 @@ public class TestRun extends BaseTest {
 		assertThat(run.runMixin.javaAgentSlots.get(agentFile.toAbsolutePath().toString()), equalTo("optionA"));
 
 		ProjectBuilder pb = run.createProjectBuilderForRun().mainClass("fakemain");
-		Project code = pb.build(mainFile);
+		Project prj = pb.build(mainFile);
 		Project ass1 = pb.build(agentFile);
-		BuildContext ctx = BuildContext.forProject(code);
+		BuildContext ctx = BuildContext.forProject(prj);
 
 		assertThat(ass1.getMainSource().isAgent(), is(true));
 
-		run.buildAgents(code, ctx);
+		run.buildAgents(ctx);
 
-		CmdGeneratorBuilder bgen = CmdGenerator.builder(code);
+		CmdGeneratorBuilder bgen = CmdGenerator.builder(prj);
 		String result = run.updateGeneratorForRun(bgen).build().generate();
 
 		assertThat(result, containsString("-javaagent"));
@@ -1435,7 +1435,7 @@ public class TestRun extends BaseTest {
 		Project prj = pb.build(f.getAbsolutePath());
 
 		BuildContext ctx = BuildContext.forProject(prj, null);
-		CmdGeneratorBuilder genb = prj.codeBuilder(ctx).build();
+		CmdGeneratorBuilder genb = Project.codeBuilder(ctx).build();
 
 		String cmdline = run.updateGeneratorForRun(genb).build().generate();
 
@@ -1458,7 +1458,7 @@ public class TestRun extends BaseTest {
 		Project prj = pb.build(f.getAbsolutePath());
 
 		BuildContext ctx = BuildContext.forProject(prj, null);
-		CmdGeneratorBuilder genb = prj.codeBuilder(ctx).build();
+		CmdGeneratorBuilder genb = Project.codeBuilder(ctx).build();
 
 		String cmdline = run.updateGeneratorForRun(genb).build().generate();
 
@@ -1474,7 +1474,7 @@ public class TestRun extends BaseTest {
 		Project prj = Project.builder().build(f.getAbsolutePath());
 		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj.codeBuilder(ctx).build();
+		Project.codeBuilder(ctx).build();
 
 		assertThat(prj.getMainClass(), equalTo("resource"));
 
@@ -1519,7 +1519,7 @@ public class TestRun extends BaseTest {
 		Project prj = Project.builder().build(f.getAbsolutePath());
 		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj.codeBuilder(ctx).build();
+		Project.codeBuilder(ctx).build();
 
 		assertThat(prj.getMainClass(), equalTo("one"));
 
@@ -1539,7 +1539,7 @@ public class TestRun extends BaseTest {
 
 		}
 
-		assertThat("duplication of deps fixed", prj.resolveClassPath().getArtifacts(), hasSize(7));
+		assertThat("duplication of deps fixed", ctx.resolveClassPath().getArtifacts(), hasSize(7));
 	}
 
 	@Test
@@ -1550,7 +1550,7 @@ public class TestRun extends BaseTest {
 		Project prj = Project.builder().build(f.getAbsolutePath());
 		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj.codeBuilder(ctx).build();
+		Project.codeBuilder(ctx).build();
 
 		assertThat(prj.getMainClass(), equalTo("resources"));
 
@@ -1577,7 +1577,7 @@ public class TestRun extends BaseTest {
 		Project prj = Project.builder().build(f.getAbsolutePath());
 		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj.codeBuilder(ctx).build();
+		Project.codeBuilder(ctx).build();
 
 		assertThat(prj.getMainClass(), equalTo("resourcesmnt"));
 
@@ -1713,7 +1713,7 @@ public class TestRun extends BaseTest {
 		Project prj = pb.build(mainFile);
 		BuildContext ctx = BuildContext.forProject(prj);
 
-		new JavaSource.JavaAppBuilder(prj, ctx) {
+		new JavaSource.JavaAppBuilder(ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -1742,7 +1742,7 @@ public class TestRun extends BaseTest {
 		Project prj = pb.build(mainFile.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
 
-		new JavaSource.JavaAppBuilder(prj, ctx) {
+		new JavaSource.JavaAppBuilder(ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {
@@ -1756,9 +1756,10 @@ public class TestRun extends BaseTest {
 
 			@Override
 			protected Builder<Project> getJarBuildStep() {
-				return new JarBuildStep(project, ctx) {
+				return new JarBuildStep(ctx) {
 					@Override
 					public Project build() {
+						Project project = ctx.getProject();
 						assertThat(project.getMainSourceSet().getResources().size(), is(1));
 						List<String> ps = project	.getMainSourceSet()
 													.getResources()
@@ -1809,7 +1810,7 @@ public class TestRun extends BaseTest {
 		Project prj = Project.builder().build(url);
 		BuildContext ctx = BuildContext.forProject(prj);
 
-		prj.codeBuilder(ctx).build();
+		Project.codeBuilder(ctx).build();
 
 		try (FileSystem fileSystem = FileSystems.newFileSystem(ctx.getJarFile(), (ClassLoader) null)) {
 			Arrays	.asList("one.class", "index.html")
@@ -2242,7 +2243,7 @@ public class TestRun extends BaseTest {
 		Project prj = pb.build(arg);
 		BuildContext ctx = BuildContext.forProject(prj);
 
-		new JavaSource.JavaAppBuilder(prj, ctx) {
+		new JavaSource.JavaAppBuilder(ctx) {
 			@Override
 			protected Builder<Project> getCompileBuildStep() {
 				return new JavaCompileBuildStep() {

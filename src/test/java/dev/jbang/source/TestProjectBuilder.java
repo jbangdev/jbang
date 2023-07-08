@@ -19,7 +19,7 @@ public class TestProjectBuilder extends BaseTest {
 		Path src = examplesTestFolder.resolve("quote.java");
 		Project prj = pb.build(src);
 		assertThrows(ExitException.class, () -> {
-			prj.resolveClassPath();
+			BuildContext.forProject(prj).resolveClassPath();
 		});
 	}
 
@@ -30,7 +30,7 @@ public class TestProjectBuilder extends BaseTest {
 		Path src = examplesTestFolder.resolve("quote.java");
 		Project prj = pb.build(src);
 		assertThrows(ExitException.class, () -> {
-			prj.resolveClassPath();
+			BuildContext.forProject(prj).resolveClassPath();
 		});
 	}
 
@@ -41,7 +41,7 @@ public class TestProjectBuilder extends BaseTest {
 		Path src = examplesTestFolder.resolve("quote.java");
 		Project prj = pb.build(src);
 		assertThrows(IllegalArgumentException.class, () -> {
-			prj.resolveClassPath();
+			BuildContext.forProject(prj).resolveClassPath();
 		});
 	}
 }

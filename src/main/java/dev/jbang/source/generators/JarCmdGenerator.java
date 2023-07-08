@@ -65,15 +65,16 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		return this;
 	}
 
-	public JarCmdGenerator(Project prj, BuildContext ctx) {
-		super(prj, ctx);
+	public JarCmdGenerator(BuildContext ctx) {
+		super(ctx);
 	}
 
 	@Override
 	protected List<String> generateCommandLineList() throws IOException {
 		List<String> fullArgs = new ArrayList<>();
 
-		String classpath = project.resolveClassPath().getClassPath();
+		Project project = ctx.getProject();
+		String classpath = ctx.resolveClassPath().getClassPath();
 
 		List<String> optionalArgs = new ArrayList<>();
 
@@ -160,7 +161,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 
 		fullArgs.addAll(project.getRuntimeOptions());
 		fullArgs.addAll(runtimeOptions);
-		fullArgs.addAll(project.resolveClassPath().getAutoDectectedModuleArguments(jdk));
+		fullArgs.addAll(ctx.resolveClassPath().getAutoDectectedModuleArguments(jdk));
 		fullArgs.addAll(optionalArgs);
 
 		String main = Optional.ofNullable(mainClass).orElse(project.getMainClass());
@@ -189,7 +190,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		boolean useArgsFile = false;
 		if (args.length() > COMMAND_LINE_LENGTH_LIMIT && Util.getShell() != Util.Shell.bash) {
 			// @file is only available from java 9 onwards.
-			String requestedJavaVersion = project.getJavaVersion();
+			String requestedJavaVersion = ctx.getProject().getJavaVersion();
 			int actualVersion = JavaUtil.javaVersion(requestedJavaVersion);
 			useArgsFile = actualVersion >= 9;
 		}

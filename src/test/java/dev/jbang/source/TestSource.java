@@ -284,7 +284,7 @@ public class TestSource extends BaseTest {
 	void testExtractOptions() {
 		Source s = new JavaSource(example, null);
 
-		assertEquals(Arrays.asList("-g", "--verbose", "--enable-preview"), s.getCompileOptions());
+		assertEquals(Arrays.asList("--verbose", "--enable-preview"), s.getCompileOptions());
 		assertEquals(Arrays.asList("-O1"), s.getNativeOptions());
 		assertEquals(Arrays.asList("--enable-preview", "--enable-preview", "-Dvalue='this is space'"),
 				s.getRuntimeOptions());

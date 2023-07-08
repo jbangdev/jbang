@@ -7,11 +7,17 @@ import javax.annotation.Nonnull;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
+import dev.jbang.dependencies.DependencyResolver;
+import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.util.Util;
 
 public class BuildContext {
 	private final Project project;
+	private final Path buildDirOverride;
 	private final Path buildDir;
+
+	// Cached values
+	private ModularClassPath mcp;
 
 	public static BuildContext forProject(Project project) {
 		return forProject(project, null);
@@ -19,9 +25,9 @@ public class BuildContext {
 
 	public static BuildContext forProject(Project project, Path buildDirOverride) {
 		if (buildDirOverride != null) {
-			return new BuildContext(project, buildDirOverride);
+			return new BuildContext(project, buildDirOverride, buildDirOverride);
 		} else {
-			return new BuildContext(project, getBuildDir(null, project));
+			return new BuildContext(project, null, getBuildDir(null, project));
 		}
 	}
 
@@ -34,13 +40,18 @@ public class BuildContext {
 				project.getResourceRef().getFile().getFileName() + "." + project.getStableId());
 	}
 
-	private BuildContext(Project project, Path buildDir) {
+	private BuildContext(Project project, Path buildDirOverride, Path buildDir) {
 		this.project = project;
+		this.buildDirOverride = buildDirOverride;
 		this.buildDir = buildDir;
 	}
 
-	public BuildContext forSubProject(Project subProject, String subProjectTypeName) {
-		return forProject(subProject, getBuildDir(buildDir.resolve(subProjectTypeName), subProject));
+	public BuildContext forSubProject(Project subProject) {
+		return forProject(subProject, getBuildDir(buildDirOverride, subProject));
+	}
+
+	public Project getProject() {
+		return project;
 	}
 
 	public Path getJarFile() {
@@ -92,6 +103,20 @@ public class BuildContext {
 	 * be rebuilt
 	 */
 	public boolean isUpToDate() {
-		return getJarFile() != null && Files.exists(getJarFile()) && project.resolveClassPath().isValid();
+		return getJarFile() != null && Files.exists(getJarFile()) && resolveClassPath().isValid();
+	}
+
+	@Nonnull
+	public ModularClassPath resolveClassPath() {
+		if (mcp == null) {
+			DependencyResolver resolver = new DependencyResolver();
+			project.updateDependencyResolver(resolver);
+			for (Project prj : project.getSubProjects()) {
+				prj.updateDependencyResolver(resolver);
+				resolver.addClassPath(forSubProject(prj).getJarFile().toAbsolutePath().toString());
+			}
+			mcp = resolver.resolve();
+		}
+		return mcp;
 	}
 }

@@ -6,11 +6,11 @@ public interface CmdGenerator {
 	String generate() throws IOException;
 
 	static CmdGeneratorBuilder builder(Project project) {
-		return new CmdGeneratorBuilder(project, BuildContext.forProject(project));
+		return new CmdGeneratorBuilder(BuildContext.forProject(project));
 	}
 
-	static CmdGeneratorBuilder builder(Project project, BuildContext ctx) {
-		return new CmdGeneratorBuilder(project, ctx);
+	static CmdGeneratorBuilder builder(BuildContext ctx) {
+		return new CmdGeneratorBuilder(ctx);
 	}
 
 }

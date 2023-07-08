@@ -65,17 +65,17 @@ abstract class BaseExportCommand extends BaseCommand {
 		ProjectBuilder pb = createProjectBuilder(exportMixin);
 		Project prj = pb.build(exportMixin.scriptMixin.scriptOrFile);
 		BuildContext ctx = BuildContext.forProject(prj);
-		prj.codeBuilder(ctx).build();
+		Project.codeBuilder(ctx).build();
 		if (prj.getResourceRef() instanceof AliasResourceResolver.AliasedResourceRef) {
 			Alias alias = ((AliasResourceResolver.AliasedResourceRef) prj.getResourceRef()).getAlias();
 			if (prj.getMainClass() == null) {
 				prj.setMainClass(alias.mainClass);
 			}
 		}
-		return apply(prj, ctx);
+		return apply(ctx);
 	}
 
-	abstract int apply(Project prj, BuildContext ctx) throws IOException;
+	abstract int apply(BuildContext ctx) throws IOException;
 
 	protected ProjectBuilder createProjectBuilder(ExportMixin exportMixin) {
 		return Project
@@ -108,7 +108,7 @@ abstract class BaseExportCommand extends BaseCommand {
 class ExportLocal extends BaseExportCommand {
 
 	@Override
-	int apply(Project prj, BuildContext ctx) throws IOException {
+	int apply(BuildContext ctx) throws IOException {
 		// Copy the JAR
 		Path source = ctx.getJarFile();
 		Path outputPath = getJarOutputPath();
@@ -126,7 +126,8 @@ class ExportLocal extends BaseExportCommand {
 
 		// Update the JAR's MANIFEST.MF Class-Path to point to
 		// its dependencies
-		String newPath = prj.resolveClassPath().getManifestPath();
+		Project prj = ctx.getProject();
+		String newPath = ctx.resolveClassPath().getManifestPath();
 		if (!newPath.isEmpty()) {
 			Util.infoMsg("Updating jar...");
 			String javaVersion = exportMixin.buildMixin.javaVersion != null
@@ -146,7 +147,7 @@ class ExportPortable extends BaseExportCommand {
 	public static final String LIB = "lib";
 
 	@Override
-	int apply(Project prj, BuildContext ctx) throws IOException {
+	int apply(BuildContext ctx) throws IOException {
 		// Copy the JAR
 		Path source = ctx.getJarFile();
 		Path outputPath = getJarOutputPath();
@@ -162,7 +163,8 @@ class ExportPortable extends BaseExportCommand {
 		}
 
 		Files.copy(source, outputPath);
-		List<ArtifactInfo> deps = prj.resolveClassPath().getArtifacts();
+		Project prj = ctx.getProject();
+		List<ArtifactInfo> deps = ctx.resolveClassPath().getArtifacts();
 		if (!deps.isEmpty()) {
 			// Copy dependencies to "./lib" dir
 			Path libDir = outputPath.getParent().resolve(LIB);
@@ -197,7 +199,7 @@ class ExportMavenPublish extends BaseExportCommand {
 	String version;
 
 	@Override
-	int apply(Project prj, BuildContext ctx) throws IOException {
+	int apply(BuildContext ctx) throws IOException {
 		Path outputPath = exportMixin.outputFile;
 
 		if (outputPath == null) {
@@ -219,6 +221,7 @@ class ExportMavenPublish extends BaseExportCommand {
 			}
 		}
 
+		Project prj = ctx.getProject();
 		if (prj.getGav().isPresent()) {
 			MavenCoordinate coord = MavenCoordinate.fromString(prj.getGav().get()).withVersion();
 			if (group == null) {
@@ -283,7 +286,7 @@ class ExportMavenPublish extends BaseExportCommand {
 										.data("artifact", artifact)
 										.data("version", version)
 										.data("description", prj.getDescription().orElse(""))
-										.data("dependencies", prj.resolveClassPath().getArtifacts())
+										.data("dependencies", ctx.resolveClassPath().getArtifacts())
 										.render();
 			Util.infoMsg("Writing " + pomPath);
 			Util.writeString(pomPath, pomfile);
@@ -299,7 +302,7 @@ class ExportMavenPublish extends BaseExportCommand {
 class ExportNative extends BaseExportCommand {
 
 	@Override
-	int apply(Project prj, BuildContext ctx) throws IOException {
+	int apply(BuildContext ctx) throws IOException {
 		// Copy the native binary
 		Path source = ctx.getNativeImageFile();
 		Path outputPath = getNativeOutputPath();
@@ -340,7 +343,7 @@ class ExportNative extends BaseExportCommand {
 class ExportFatjar extends BaseExportCommand {
 
 	@Override
-	int apply(Project prj, BuildContext ctx) throws IOException {
+	int apply(BuildContext ctx) throws IOException {
 		// Copy the native binary
 		Path source = ctx.getJarFile();
 		Path outputPath = getFatjarOutputPath();
@@ -355,7 +358,8 @@ class ExportFatjar extends BaseExportCommand {
 			Util.mkdirs(outputPath.getParent());
 		}
 
-		List<ArtifactInfo> deps = prj.resolveClassPath().getArtifacts();
+		Project prj = ctx.getProject();
+		List<ArtifactInfo> deps = ctx.resolveClassPath().getArtifacts();
 		if (!deps.isEmpty()) {
 			// Extract main jar and all dependencies to a temp dir
 			Path tmpDir = Files.createTempDirectory("fatjar");
@@ -417,8 +421,9 @@ class ExportJlink extends BaseExportCommand {
 	}
 
 	@Override
-	int apply(Project prj, BuildContext ctx) throws IOException {
-		List<ArtifactInfo> artifacts = prj.resolveClassPath().getArtifacts();
+	int apply(BuildContext ctx) throws IOException {
+		Project prj = ctx.getProject();
+		List<ArtifactInfo> artifacts = ctx.resolveClassPath().getArtifacts();
 		List<ArtifactInfo> nonMods = artifacts
 												.stream()
 												.filter(a -> !ModuleUtil.isModule(a.getFile()))
