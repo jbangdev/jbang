@@ -1700,8 +1700,17 @@ public class Util {
 	 * @return An actual Path if it was found, or an empty path if it was not
 	 */
 	public static Path getJarLocation() {
+		return getJarLocation(VersionChecker.class);
+	}
+
+	/**
+	 * Determines the path to the JAR that contains the given class
+	 *
+	 * @return An actual Path if it was found, or an empty path if it was not
+	 */
+	public static Path getJarLocation(Class<?> klazz) {
 		try {
-			File jarFile = new File(VersionChecker.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+			File jarFile = new File(klazz.getProtectionDomain().getCodeSource().getLocation().toURI());
 			return jarFile.toPath();
 		} catch (URISyntaxException e) {
 			// ignore

@@ -6,6 +6,7 @@ import static dev.jbang.util.JavaUtil.resolveInJavaHome;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -25,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 
@@ -78,7 +80,7 @@ public class IntegrationManager {
 		ClassLoader old = Thread.currentThread().getContextClassLoader();
 		PrintStream oldout = System.out;
 		try {
-			URLClassLoader integrationCl = getClassLoader(deps.values());
+			URLClassLoader integrationCl = getClassLoader(tmpJarDir, deps.values());
 			Thread.currentThread().setContextClassLoader(integrationCl);
 			String requestedJavaVersion = prj.getJavaVersion();
 			Set<String> classNames = loadIntegrationClassNames(integrationCl);
@@ -87,8 +89,7 @@ public class IntegrationManager {
 						? source.getResourceRef().getFile().toAbsolutePath()
 						: null;
 				IntegrationInput input = new IntegrationInput(className, srcPath, tmpJarDir, pomPath, repos, deps,
-						comments,
-						prj.isNativeImage());
+						comments, prj.isNativeImage(), Util.isVerbose());
 				IntegrationResult ir = requestedJavaVersion == null || JavaUtil.satisfiesRequestedVersion(
 						requestedJavaVersion, JavaUtil.getCurrentMajorJavaVersion())
 								? runIntegrationEmbedded(input, integrationCl)
@@ -112,8 +113,9 @@ public class IntegrationManager {
 	}
 
 	@Nonnull
-	private static URLClassLoader getClassLoader(Collection<Path> deps) {
-		URL[] urls = deps.stream().map(path -> {
+	private static URLClassLoader getClassLoader(Path classes, Collection<Path> deps) {
+		Stream<Path> paths = Stream.concat(Stream.of(classes), deps.stream());
+		URL[] urls = paths.map(path -> {
 			try {
 				return path.toUri().toURL();
 			} catch (MalformedURLException e) {
@@ -221,8 +223,19 @@ public class IntegrationManager {
 		for (Map.Entry<String, String> entry : properties.entrySet()) {
 			args.add("-D" + entry.getKey() + "=" + entry.getValue());
 		}
+
+		Path jbangJar = Util.getJarLocation();
 		args.add("-cp");
-		args.add(Util.getJarLocation().toString());
+		if (jbangJar.toString().endsWith(".jar")) {
+			args.add(jbangJar.toString());
+		} else {
+			// We will assume that we're running inside an IDE or
+			// some kind of test environment and need to manually
+			// add the Gson dependency
+			Path gsonJar = Util.getJarLocation(Gson.class);
+			args.add(jbangJar + File.pathSeparator + gsonJar);
+		}
+
 		args.add("dev.jbang.spi.IntegrationManager");
 
 		if (Util.isVerbose()) {
@@ -267,10 +280,11 @@ public class IntegrationManager {
 		IntegrationInput input = parser.fromJson(new InputStreamReader(System.in), IntegrationInput.class);
 		ClassLoader old = Thread.currentThread().getContextClassLoader();
 		PrintStream oldout = System.out;
+		Util.setVerbose(input.verbose);
 		String output = "";
 		boolean ok = false;
 		try {
-			URLClassLoader integrationCl = getClassLoader(input.dependencies.values());
+			URLClassLoader integrationCl = getClassLoader(input.classes, input.dependencies.values());
 			Thread.currentThread().setContextClassLoader(integrationCl);
 			IntegrationResult result = runIntegrationEmbedded(input, integrationCl);
 			output = parser.toJson(result);
@@ -281,6 +295,9 @@ public class IntegrationManager {
 			output = "Integration class missing method with signature public static Map<String, byte[]> postBuild(Path classesDir, Path pomFile, List<Map.Entry<String, Path>> dependencies)";
 		} catch (Exception e) {
 			output = "Issue running postBuild()";
+			if (input.verbose) {
+				e.printStackTrace(System.err);
+			}
 		} finally {
 			Thread.currentThread().setContextClassLoader(old);
 			System.setOut(oldout);
