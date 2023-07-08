@@ -12,7 +12,7 @@ public abstract class BaseCmdGenerator<T extends CmdGenerator> implements CmdGen
 	protected final BuildContext ctx;
 
 	protected List<String> arguments = Collections.emptyList();
-	protected String debugString;
+	protected Map<String, String> debugString;
 	protected String flightRecorderString;
 
 	protected Util.Shell shell = Util.getShell();
@@ -33,7 +33,7 @@ public abstract class BaseCmdGenerator<T extends CmdGenerator> implements CmdGen
 	}
 
 	@SuppressWarnings("unchecked")
-	public T debugString(String debugString) {
+	public T debugString(Map<String, String> debugString) {
 		this.debugString = debugString != null && !debugString.isEmpty() ? debugString : null;
 		return (T) this;
 	}

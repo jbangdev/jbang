@@ -1,9 +1,6 @@
 package dev.jbang.source;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import dev.jbang.catalog.Alias;
@@ -26,7 +23,7 @@ public class CmdGeneratorBuilder {
 	private Boolean enableAssertions;
 	private Boolean enableSystemAssertions;
 	private String flightRecorderString;
-	private String debugString;
+	private Map<String, String> debugString;
 	private Boolean classDataSharing;
 
 	CmdGeneratorBuilder(Project project, BuildContext ctx) {
@@ -87,7 +84,7 @@ public class CmdGeneratorBuilder {
 		return this;
 	}
 
-	public CmdGeneratorBuilder debugString(String debugString) {
+	public CmdGeneratorBuilder debugString(Map<String, String> debugString) {
 		this.debugString = debugString;
 		return this;
 	}
