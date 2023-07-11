@@ -9,7 +9,7 @@ import groovy.lang.Grab;
 import groovy.lang.Grapes;
 import groovy.lang.GrabResolver;
 
-@GrabResolver("mavenCentral")
+@GrabResolver("central")
 @Grapes({
     @Grab(group="ch.qos.reload4j", module="reload4j", version="[1.2.18,1.2.19)"),
     @Grab(group = "org.apache.groovy", module = "groovy", version = "4.0.0"),

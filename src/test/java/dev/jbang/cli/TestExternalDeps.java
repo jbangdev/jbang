@@ -60,7 +60,7 @@ class TestExternalDeps extends BaseTest {
 		Util.writeString(f.toPath(), checkdeps);
 
 		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "--repos", "mavencentral", "--repos",
+											.parseArgs("run", "--repos", "central", "--repos",
 													"https://jitpack.io",
 													"--deps",
 													"com.github.jbangdev.jbang-resolver:shrinkwrap-resolver-api:3.1.5-allowpom",

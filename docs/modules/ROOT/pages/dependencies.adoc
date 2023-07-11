@@ -136,7 +136,7 @@ For ease of use there are also a few shorthands to use popular commonly availabl
 
 |===
 |Short name | Description
-|`mavencentral`
+|`central`
 |Maven Central (`https://repo1.maven.org/maven2/`)
 
 |`jcenter`
@@ -188,7 +188,7 @@ import groovy.lang.Grab; // <.>
 import groovy.lang.Grapes;
 import groovy.lang.GrabResolver;
 
-@GrabResolver("mavenCentral") // <.>
+@GrabResolver("central") // <.>
 @GrabResolver(name="acme", root="https://maven.acme.local/maven")
 @Grapes({ // <.>
 		@Grab(group = "ch.qos.reload4j", module = "reload4j", version = "1.2.19"), // <.>
