@@ -82,16 +82,47 @@ files:
 
 distributions:
   jbang:
+    extraProperties:
+      # Key will be capitalized and prefixed with `distribution`, i.e, `distributionFoo`.
+      # Used to trigger only specific multi docker builds
+      distro: jbang-container
     executable:
       windowsExtension: cmd
-    #docker:  ## not ready to release this way.
-    #  active: RELEASE
-    #  continueOnError: true
-    #  postCommands:
-    #    - "VOLUME /scripts"
-    #  baseImage: "adoptopenjdk:11-jdk-hotspot"
-    #  repository:
-    #    name: jbang-action
+    docker: 
+      active: RELEASE
+      continueOnError: true
+      templateDirectory: src/jreleaser/distributions/jbang/docker
+      repository:
+        name: jbang-container
+      specs:
+        java-11:
+          baseImage: "eclipse-temurin:11"          
+          templateDirectory: src/jreleaser/distributions/jbang/docker
+          imageNames:
+            - 'jbangdev/jbang:{{tagName}}-{{dockerSpecName}}'
+          matchers:
+            distro: jbang-container
+        java-17:
+          baseImage: "eclipse-temurin:17"
+          templateDirectory: src/jreleaser/distributions/jbang/docker
+          imageNames:
+            - 'jbangdev/jbang:{{tagName}}-{{dockerSpecName}}'
+          matchers:
+            distro: jbang-container
+        java-21:
+          baseImage: "eclipse-temurin:21"
+          templateDirectory: src/jreleaser/distributions/jbang/docker
+          imageNames:
+            - 'jbangdev/jbang:{{tagName}}-{{dockerSpecName}}'
+          matchers:
+            distro: jbang-container
+        java-24:
+          baseImage: "eclipse-temurin:24"
+          templateDirectory: src/jreleaser/distributions/jbang/docker
+          imageNames:
+            - 'jbangdev/jbang:{{tagName}}-{{dockerSpecName}}'
+          matchers:
+            distro: jbang-container
     sdkman:
       active: RELEASE
       continueOnError: true
@@ -119,3 +150,16 @@ distributions:
     artifacts:
       - path: build/distributions/jbang-{{projectVersion}}.zip
       - path: build/distributions/jbang-{{projectVersion}}.tar
+  jbang-action:
+    docker:  ## not ready to release this way.
+      active: RELEASE
+      continueOnError: true
+      postCommands:
+        - "VOLUME /scripts"
+      baseImage: "eclipse-temurin:11"
+      repository:
+        name: jbang-action
+    artifacts:
+      - path: build/distributions/jbang-{{projectVersion}}.zip
+      - path: build/distributions/jbang-{{projectVersion}}.tar
+    
