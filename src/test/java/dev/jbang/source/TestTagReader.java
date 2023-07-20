@@ -15,10 +15,10 @@ public class TestTagReader {
 	@Test
 	void testExtractDependencies() {
 		TagReader tr = new TagReader.Extended(
-				"//DEPS foo:bar, abc:def:123, https://github.com/jbangdev/jbang, something", null);
+				"//DEPS foo:bar, abc:DEF:123, https://github.com/jbangdev/jbang, something", null);
 
 		List<String> deps = tr.collectBinaryDependencies();
-		assertThat(deps, containsInAnyOrder("foo:bar", "abc:def:123", "https://github.com/jbangdev/jbang"));
+		assertThat(deps, containsInAnyOrder("foo:bar", "abc:DEF:123", "https://github.com/jbangdev/jbang"));
 
 		List<String> subs = tr.collectSourceDependencies();
 		assertThat(subs, containsInAnyOrder("something"));
