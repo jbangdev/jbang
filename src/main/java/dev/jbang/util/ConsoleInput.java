@@ -1,13 +1,18 @@
 package dev.jbang.util;
 
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.*;
 
 public abstract class ConsoleInput {
 	private final int tries;
 	private final int timeout;
 	private final TimeUnit unit;
+
+	private static final Path TTY = Paths.get("/dev/tty");
 
 	/**
 	 * Will either return a ConsoleInput that enables reading a line from the
@@ -17,7 +22,7 @@ public abstract class ConsoleInput {
 	public static ConsoleInput get(int tries, int timeout, TimeUnit unit) {
 		if (Util.haveConsole()) {
 			return stdin(tries, timeout, unit);
-		} else if (!Util.isWindows()) {
+		} else if (!Util.isWindows() && haveTTY()) {
 			return tty(tries, timeout, unit);
 		} else {
 			return null;
@@ -27,7 +32,7 @@ public abstract class ConsoleInput {
 	/**
 	 * Returns a regular ConsoleInput based upon System.in
 	 */
-	public static ConsoleInput stdin(int tries, int timeout, TimeUnit unit) {
+	private static ConsoleInput stdin(int tries, int timeout, TimeUnit unit) {
 		return new ConsoleInput(tries, timeout, unit) {
 			@Override
 			protected Callable<String> readerTask() {
@@ -36,14 +41,25 @@ public abstract class ConsoleInput {
 		};
 	}
 
+	private static boolean haveTTY() {
+		if (Files.isReadable(TTY)) {
+			try (InputStream is = Files.newInputStream(TTY)) {
+				return true;
+			} catch (IOException e) {
+				// Ignore
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * Returns a ConsoleInput based upon /dev/tty which only works on Linux and Mac.
 	 */
-	public static ConsoleInput tty(int tries, int timeout, TimeUnit unit) {
+	private static ConsoleInput tty(int tries, int timeout, TimeUnit unit) {
 		return new ConsoleInput(tries, timeout, unit) {
 			@Override
 			protected Callable<String> readerTask() throws IOException {
-				return new ConsoleInputReadTask(new FileInputStream("/dev/tty"));
+				return new ConsoleInputReadTask(Files.newInputStream(TTY));
 			}
 		};
 	}
@@ -68,11 +84,9 @@ public abstract class ConsoleInput {
 					input = result.get(timeout, unit);
 					break;
 				} catch (ExecutionException | IOException e) {
-					e.getCause().printStackTrace();
+					Util.verboseMsg("Error accessing console", e);
 				} catch (TimeoutException e) {
-					if (result != null) {
-						result.cancel(true);
-					}
+					result.cancel(true);
 				} catch (InterruptedException ie) {
 					throw new RuntimeException(ie);
 				}
