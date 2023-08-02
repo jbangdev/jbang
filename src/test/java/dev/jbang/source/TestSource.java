@@ -20,7 +20,9 @@ import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.net.TrustedSources;
+import dev.jbang.source.sources.GroovySource;
 import dev.jbang.source.sources.JavaSource;
+import dev.jbang.source.sources.KotlinSource;
 import dev.jbang.util.PropertiesValueResolver;
 
 public class TestSource extends BaseTest {
@@ -150,6 +152,28 @@ public class TestSource extends BaseTest {
 			"//COMPILE_OPTIONS commons-codec:commons-codec:1.15 // <.>\n" +
 			"public class test {" +
 			"}";
+
+	String groovyExample = "///usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n" +
+			"//DEPS info.picocli:picocli:4.6.3\n" +
+			"\n" +
+			"//RUNTIME_OPTIONS --enable-preview \"-Dvalue='this is space'\"\n" +
+			"//JAVA_OPTIONS --enable-preview\n" +
+			"//COMPILE_OPTIONS --enable-preview\n" +
+			"//NATIVE_OPTIONS -O1\n" +
+			"\n" +
+			"println(\"Hello World\");\n";
+
+	String kotlinExample = "///usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n" +
+			"//DEPS info.picocli:picocli:4.6.3\n" +
+			"\n" +
+			"//RUNTIME_OPTIONS --enable-preview \"-Dvalue='this is space'\"\n" +
+			"//JAVA_OPTIONS --enable-preview\n" +
+			"//COMPILE_OPTIONS --enable-preview\n" +
+			"//NATIVE_OPTIONS -O1\n" +
+			"\n" +
+			"public fun main() {\n" +
+			"    println(\"Hello World\");\n" +
+			"}\n";
 
 	@Test
 	void testCommentsDoesNotGetPickedUp() {
@@ -281,10 +305,31 @@ public class TestSource extends BaseTest {
 	}
 
 	@Test
-	void testExtractOptions() {
+	void testExtractJavaOptions() {
 		Source s = new JavaSource(example, null);
 
 		assertEquals(Arrays.asList("--verbose", "--enable-preview"), s.getCompileOptions());
+		assertEquals(Arrays.asList("-O1"), s.getNativeOptions());
+		assertEquals(Arrays.asList("--enable-preview", "--enable-preview", "-Dvalue='this is space'"),
+				s.getRuntimeOptions());
+
+	}
+
+	@Test
+	void testExtractGroovyOptions() {
+		Source s = new GroovySource(groovyExample, null);
+
+		assertEquals(Arrays.asList("--enable-preview"), s.getCompileOptions());
+		assertEquals(Arrays.asList("-O1"), s.getNativeOptions());
+		assertEquals(Arrays.asList("-Dgroovy.grape.enable=false", "--enable-preview", "--enable-preview",
+				"-Dvalue='this is space'"), s.getRuntimeOptions());
+	}
+
+	@Test
+	void testExtractKotlinOptions() {
+		Source s = new KotlinSource(kotlinExample, null);
+
+		assertEquals(Arrays.asList("--enable-preview"), s.getCompileOptions());
 		assertEquals(Arrays.asList("-O1"), s.getNativeOptions());
 		assertEquals(Arrays.asList("--enable-preview", "--enable-preview", "-Dvalue='this is space'"),
 				s.getRuntimeOptions());

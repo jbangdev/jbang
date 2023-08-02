@@ -19,6 +19,10 @@ public class KotlinSource extends Source {
 		super(script, replaceProperties);
 	}
 
+	public KotlinSource(String script, Function<String, String> replaceProperties) {
+		super(script, replaceProperties);
+	}
+
 	@Override
 	protected List<String> getCompileOptions() {
 		return tagReader.collectOptions("COMPILE_OPTIONS");
