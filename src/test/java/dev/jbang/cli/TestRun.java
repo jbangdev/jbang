@@ -521,7 +521,7 @@ public class TestRun extends BaseTest {
 				"  \"aliases\": {\n" +
 				"    \"aliaswithrepo\": {\n" +
 				"      \"script-ref\": \"dummygroup:dummyart:0.1\",\n" +
-				"      \"repositories\": [ \"http://dummyrepo\" ]\n" +
+				"      \"repositories\": [ \"https://dummyrepo\" ]\n" +
 				"    }\n" +
 				"  }\n" +
 				"}";
@@ -542,7 +542,7 @@ public class TestRun extends BaseTest {
 			StringWriter sw = new StringWriter();
 			ex.printStackTrace(new PrintWriter(sw));
 			assertThat(sw.toString(), containsString(
-					"Could not transfer artifact dummygroup:dummyart:pom:0.1 from/to http://dummyrepo"));
+					"Could not transfer artifact dummygroup:dummyart:pom:0.1 from/to https://dummyrepo"));
 		}
 	}
 
@@ -2033,7 +2033,7 @@ public class TestRun extends BaseTest {
 
 		String arg = f.getAbsolutePath();
 		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "--repos", "http://dummyrepo", "--deps",
+											.parseArgs("run", "--repos", "https://dummyrepo", "--deps",
 													"dummygroup:dummyart:0.1", arg);
 
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
@@ -2048,7 +2048,7 @@ public class TestRun extends BaseTest {
 			StringWriter sw = new StringWriter();
 			ex.printStackTrace(new PrintWriter(sw));
 			assertThat(sw.toString(), containsString(
-					"Could not transfer artifact dummygroup:dummyart:pom:0.1 from/to http://dummyrepo"));
+					"Could not transfer artifact dummygroup:dummyart:pom:0.1 from/to https://dummyrepo"));
 		}
 	}
 
@@ -2057,7 +2057,7 @@ public class TestRun extends BaseTest {
 		String jar = "info.picocli:picocli-codegen:4.6.3";
 
 		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "--repos", "http://dummyrepo", "--deps",
+											.parseArgs("run", "--repos", "https://dummyrepo", "--deps",
 													"dummygroup:dummyart:0.1", jar);
 
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
@@ -2071,7 +2071,7 @@ public class TestRun extends BaseTest {
 			StringWriter sw = new StringWriter();
 			ex.printStackTrace(new PrintWriter(sw));
 			assertThat(sw.toString(), containsString(
-					"Could not transfer artifact info.picocli:picocli-codegen:pom:4.6.3 from/to http://dummyrepo"));
+					"Could not transfer artifact info.picocli:picocli-codegen:pom:4.6.3 from/to https://dummyrepo"));
 		}
 	}
 
@@ -2081,7 +2081,7 @@ public class TestRun extends BaseTest {
 
 		CommandLine.ParseResult pr = JBang	.getCommandLine()
 											.parseArgs("run", "--repos", "mavencentral", "--repos",
-													"http://dummyrepo", "--deps",
+													"https://dummyrepo", "--deps",
 													"dummygroup:dummyart:0.1", jar);
 
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
@@ -2095,7 +2095,7 @@ public class TestRun extends BaseTest {
 			StringWriter sw = new StringWriter();
 			ex.printStackTrace(new PrintWriter(sw));
 			assertThat(sw.toString(), containsString(
-					"Could not transfer artifact dummygroup:dummyart:pom:0.1 from/to http://dummyrepo"));
+					"Could not transfer artifact dummygroup:dummyart:pom:0.1 from/to https://dummyrepo"));
 		}
 	}
 
