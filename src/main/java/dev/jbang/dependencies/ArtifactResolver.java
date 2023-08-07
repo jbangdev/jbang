@@ -137,8 +137,8 @@ public class ArtifactResolver implements Closeable {
 																.userProperties(userProperties)
 																.offline(builder.offline)
 																.withUserSettings(builder.withUserSettings)
-																.settingsXml(builder.settingsXml)
-																.localRepository(builder.localFolder)
+																.withUserSettingsXmlOverride(builder.settingsXml)
+																.withLocalRepositoryOverride(builder.localFolder)
 																.snapshotUpdatePolicy(builder.updateCache
 																		? ContextOverrides.SnapshotUpdatePolicy.ALWAYS
 																		: null)
