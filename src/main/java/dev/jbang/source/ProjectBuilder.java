@@ -26,6 +26,7 @@ import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.*;
 import dev.jbang.source.buildsteps.JarBuildStep;
 import dev.jbang.source.resolvers.*;
+import dev.jbang.source.sources.JavaSource;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
 import dev.jbang.util.PropertiesValueResolver;
@@ -464,7 +465,9 @@ public class ProjectBuilder {
 		prj.setGav(src.tagReader.getGav().orElse(null));
 		prj.setMainClass(src.tagReader.getMain().orElse(null));
 		prj.setModuleName(src.tagReader.getModule().orElse(null));
-		prj.getMainSourceSet().addCompileOption("-g");
+		if (prj.getMainSource() instanceof JavaSource) {
+			prj.getMainSourceSet().addCompileOption("-g");
+		}
 		return updateProject(src, prj, resolver);
 	}
 
