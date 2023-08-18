@@ -74,7 +74,7 @@ Example:
 
 Here `resource.properties` will be copied as is and `META-INF/resources/index.html` gets its content from `index.html`.
 
-All locations are relative to the script location.
+NOTE: All locations need to be relative to the script location.
 
 WARNING: Currently `jbang edit` and http(s) based script do not work with `//FILES`.
 
