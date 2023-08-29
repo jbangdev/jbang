@@ -40,6 +40,7 @@ public class GroovySource extends Source {
 	protected List<String> getRuntimeOptions() {
 		List<String> gopts = Collections.singletonList("-Dgroovy.grape.enable=false");
 		List<String> opts = tagReader.collectOptions("JAVA_OPTIONS", "RUNTIME_OPTIONS");
+		opts.remove("-g");
 		return Util.join(gopts, opts);
 	}
 
@@ -47,7 +48,7 @@ public class GroovySource extends Source {
 	protected List<String> collectBinaryDependencies() {
 		final List<String> allDependencies = super.collectBinaryDependencies();
 		final String groovyVersion = getGroovyVersion();
-		if (groovyVersion.startsWith("4.")) {
+		if (groovyVersion.startsWith("4.") || groovyVersion.startsWith("5.")) {
 			allDependencies.add("org.apache.groovy:groovy:" + groovyVersion);
 		} else {
 			allDependencies.add("org.codehaus.groovy:groovy:" + groovyVersion);
