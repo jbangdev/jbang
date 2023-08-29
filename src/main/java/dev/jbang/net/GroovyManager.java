@@ -15,7 +15,7 @@ import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
 
 public class GroovyManager {
-	public static final String DEFAULT_GROOVY_VERSION = "3.0.9";
+	public static final String DEFAULT_GROOVY_VERSION = "4.0.14";
 
 	public static String resolveInGroovyHome(String cmd, String requestedVersion) {
 		Path groovyHome = getGroovy(requestedVersion);
@@ -77,7 +77,7 @@ public class GroovyManager {
 	}
 
 	private static String getGroovyDownloadUrl(String version) {
-		int groovyMajorVersion = 3;
+		int groovyMajorVersion = 4;
 		Matcher matcher = Pattern.compile("(\\d)\\..*").matcher(version);
 		if (matcher.find()) {
 			groovyMajorVersion = Integer.parseInt(matcher.group(1));
