@@ -40,7 +40,6 @@ public class GroovySource extends Source {
 	protected List<String> getRuntimeOptions() {
 		List<String> gopts = Collections.singletonList("-Dgroovy.grape.enable=false");
 		List<String> opts = tagReader.collectOptions("JAVA_OPTIONS", "RUNTIME_OPTIONS");
-		opts.remove("-g");
 		return Util.join(gopts, opts);
 	}
 
