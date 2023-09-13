@@ -756,8 +756,18 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "sucker",
+      "name": "sucker",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1361207?v=4",
+      "profile": "https://github.com/sucker",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,
-  "contributorsPerLine": 7
+  "contributorsPerLine": 7,
+  "commitType": "docs"
 }
