@@ -20,6 +20,7 @@ image:https://github.com/jbangdev/jbang/workflows/ci-build/badge.svg[Build Statu
 image:https://www.eclipse.org/che/contribute.svg[Che, link=https://che.openshift.io/f?url=https://github.com/jbangdev/jbang]
 image:https://img.shields.io/badge/Gitpod-Workspace-blue?logo=gitpodp[Gitpod, link=https://gitpod.io/#https://github.com/jbangdev/jbang]
 image:https://badges.gitter.im/jbangdev/community.svg[Gitter, link=https://gitter.im/jbangdev/community]
+image:https://sourcespy.com/shield.svg[Gitter, link=https://sourcespy.com/github/jbangdevjbang/]
 
 
 image:images/jbang_logo.svg[JBang Logo, title="JBang Logo"]
@@ -60,7 +61,7 @@ JBang goes beyond more than just easy scripting; you can use `jbang` to launch a
 
 == Documentation
 
-Full documentation at https://jbang.dev/documentation
+Full documentation at https://jbang.dev/documentation. For a project architecture overview refer to https://sourcespy.com/github/jbangdevjbang/[build, module, dependency and other diagrams].
 
 == Thanks
 
