@@ -53,7 +53,7 @@ public class ProjectBuilder {
 	private File catalogFile;
 	private Boolean nativeImage;
 	private String javaVersion;
-	private boolean enablePreview;
+	private Boolean enablePreview;
 
 	// Cached values
 	private Properties contextProperties;
@@ -172,7 +172,7 @@ public class ProjectBuilder {
 		return this;
 	}
 
-	public ProjectBuilder enablePreview(boolean enablePreviewRequested) {
+	public ProjectBuilder enablePreview(Boolean enablePreviewRequested) {
 		this.enablePreview = enablePreviewRequested;
 		return this;
 	}
@@ -426,7 +426,9 @@ public class ProjectBuilder {
 		if (nativeImage != null) {
 			prj.setNativeImage(nativeImage);
 		}
-		prj.setEnablePreviewRequested(enablePreview);
+		if (enablePreview != null) {
+			prj.setEnablePreviewRequested(enablePreview);
+		}
 		return prj;
 	}
 
@@ -588,6 +590,9 @@ public class ProjectBuilder {
 		}
 		if (manifestOptions.isEmpty()) {
 			manifestOptions(alias.manifestOptions);
+		}
+		if (enablePreview == null) {
+			enablePreview(alias.enablePreview);
 		}
 	}
 
