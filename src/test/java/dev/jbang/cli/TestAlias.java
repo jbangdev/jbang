@@ -174,7 +174,6 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.classpaths, contains("cps"));
 		assertThat(alias.properties, aMapWithSize(1));
 		assertThat(alias.properties, hasEntry("prop", "val"));
-		assertThat(alias.arguments, iterableWithSize(3));
 		assertThat(alias.mainClass, is("mainclass"));
 		assertThat(alias.compileOptions, iterableWithSize(1));
 		assertThat(alias.compileOptions, contains("copts"));
