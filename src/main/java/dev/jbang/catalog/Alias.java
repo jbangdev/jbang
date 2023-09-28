@@ -6,7 +6,10 @@ import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
+
+import javax.annotation.Nonnull;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -56,16 +59,29 @@ public class Alias extends CatalogItem {
 
 	public static class JavaAgent {
 		@SerializedName(value = "agent-ref")
+		@Nonnull
 		public final String agentRef;
+		@Nonnull
 		public final String options;
 
-		private JavaAgent() {
-			this(null, null);
-		}
-
-		public JavaAgent(String agentRef, String options) {
+		public JavaAgent(@Nonnull String agentRef, @Nonnull String options) {
 			this.agentRef = agentRef;
 			this.options = options;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o)
+				return true;
+			if (o == null || getClass() != o.getClass())
+				return false;
+			JavaAgent javaAgent = (JavaAgent) o;
+			return agentRef.equals(javaAgent.agentRef) && options.equals(javaAgent.options);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(agentRef, options);
 		}
 	}
 

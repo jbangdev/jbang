@@ -35,18 +35,33 @@ public class TestAlias extends BaseTest {
 			"      \"script-ref\": \"one\",\n" +
 			"      \"description\": \"twodesc\",\n" +
 			"      \"arguments\": [\"2\"],\n" +
-			"      \"java-options\": [\"--two\"],\n" +
-			"      \"compile-options\": [\"--ctwo\"],\n" +
-			"      \"native-options\": [\"--ntwo\"],\n" +
+			"      \"runtime-options\": [\"--two\"],\n" +
+			"      \"sources\": [\"twosrc\"],\n" +
+			"      \"files\": [\"twofiles\"],\n" +
 			"      \"dependencies\": [\"twodep\"],\n" +
 			"      \"repositories\": [\"tworepo\"],\n" +
 			"      \"classpaths\": [\"twocp\"],\n" +
-			"      \"properties\": {\"two\":\"2\"}\n" +
+			"      \"properties\": {\"two\":\"2\"},\n" +
+			"      \"java\": \"twojava\",\n" +
+			"      \"main\": \"twomain\",\n" +
+			"      \"module\": \"twomodule\",\n" +
+			"      \"compile-options\": [\"--ctwo\"],\n" +
+			"      \"native-image\": true,\n" +
+			"      \"native-options\": [\"--ntwo\"],\n" +
+			"      \"jfr\": \"twojfr\",\n" +
+			"      \"debug\": {\"twod\":\"2\"},\n" +
+			"      \"cds\": true,\n" +
+			"      \"interactive\": true,\n" +
+			"      \"enable-preview\": true,\n" +
+			"      \"enable-assertions\": true,\n" +
+			"      \"enable-system-assertions\": true,\n" +
+			"      \"manifest-options\": {\"twom\":\"2\"},\n" +
+			"      \"java-agents\": [{\"agent-ref\":\"twojag\",\"options\":\"twoopts\"}]\n" +
 			"    },\n" +
 			"    \"three\": {\n" +
 			"      \"script-ref\": \"http://dummy\",\n" +
 			"      \"arguments\": [\"3\"],\n" +
-			"      \"java-options\": [\"--three\"],\n" +
+			"      \"runtime-options\": [\"--three\"],\n" +
 			"      \"compile-options\": [\"--cthree\"],\n" +
 			"      \"native-image\": true,\n" +
 			"      \"native-options\": [\"--nthree\"],\n" +
@@ -56,14 +71,28 @@ public class TestAlias extends BaseTest {
 			"      \"script-ref\": \"three\",\n" +
 			"      \"description\": \"fourdesc\",\n" +
 			"      \"arguments\": [\"4\"],\n" +
-			"      \"java-options\": [\"--four\"],\n" +
-			"      \"compile-options\": [\"--cfour\"],\n" +
-			"      \"native-image\": false,\n" +
-			"      \"native-options\": [\"--nfour\"],\n" +
+			"      \"runtime-options\": [\"--four\"],\n" +
+			"      \"sources\": [\"foursrc\"],\n" +
+			"      \"files\": [\"fourfiles\"],\n" +
 			"      \"dependencies\": [\"fourdep\"],\n" +
 			"      \"repositories\": [\"fourrepo\"],\n" +
 			"      \"classpaths\": [\"fourcp\"],\n" +
-			"      \"properties\": {\"four\":\"4\"}\n" +
+			"      \"properties\": {\"four\":\"4\"},\n" +
+			"      \"java\": \"fourjava\",\n" +
+			"      \"main\": \"fourmain\",\n" +
+			"      \"module\": \"fourmodule\",\n" +
+			"      \"compile-options\": [\"--cfour\"],\n" +
+			"      \"native-image\": false,\n" +
+			"      \"native-options\": [\"--nfour\"],\n" +
+			"      \"jfr\": \"fourjfr\",\n" +
+			"      \"debug\": {\"fourd\":\"4\"},\n" +
+			"      \"cds\": false,\n" +
+			"      \"interactive\": false,\n" +
+			"      \"enable-preview\": false,\n" +
+			"      \"enable-assertions\": false,\n" +
+			"      \"enable-system-assertions\": false,\n" +
+			"      \"manifest-options\": {\"fourm\":\"4\"},\n" +
+			"      \"java-agents\": [{\"agent-ref\":\"fourjag\",\"options\":\"fouropts\"}]\n" +
 			"    },\n" +
 			"    \"five\": {\n" +
 			"      \"script-ref\": \"three\"\n" +
@@ -365,6 +394,10 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.arguments, contains("2"));
 		assertThat(alias.runtimeOptions, iterableWithSize(1));
 		assertThat(alias.runtimeOptions, contains("--two"));
+		assertThat(alias.sources, iterableWithSize(1));
+		assertThat(alias.sources, contains("twosrc"));
+		assertThat(alias.resources, iterableWithSize(1));
+		assertThat(alias.resources, contains("twofiles"));
 		assertThat(alias.dependencies, iterableWithSize(1));
 		assertThat(alias.dependencies, contains("twodep"));
 		assertThat(alias.repositories, iterableWithSize(1));
@@ -373,11 +406,26 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.classpaths, contains("twocp"));
 		assertThat(alias.properties, aMapWithSize(1));
 		assertThat(alias.properties, hasEntry("two", "2"));
+		assertThat(alias.javaVersion, equalTo("twojava"));
+		assertThat(alias.mainClass, equalTo("twomain"));
+		assertThat(alias.moduleName, equalTo("twomodule"));
 		assertThat(alias.compileOptions, iterableWithSize(1));
 		assertThat(alias.compileOptions, contains("--ctwo"));
-		assertThat(alias.nativeImage, nullValue());
+		assertThat(alias.nativeImage, is(Boolean.TRUE));
 		assertThat(alias.nativeOptions, iterableWithSize(1));
 		assertThat(alias.nativeOptions, contains("--ntwo"));
+		assertThat(alias.jfr, equalTo("twojfr"));
+		assertThat(alias.debug, aMapWithSize(1));
+		assertThat(alias.debug, hasEntry("twod", "2"));
+		assertThat(alias.cds, is(Boolean.TRUE));
+		assertThat(alias.interactive, is(Boolean.TRUE));
+		assertThat(alias.enablePreview, is(Boolean.TRUE));
+		assertThat(alias.enableAssertions, is(Boolean.TRUE));
+		assertThat(alias.enableSystemAssertions, is(Boolean.TRUE));
+		assertThat(alias.manifestOptions, aMapWithSize(1));
+		assertThat(alias.manifestOptions, hasEntry("twom", "2"));
+		assertThat(alias.javaAgents, iterableWithSize(1));
+		assertThat(alias.javaAgents, contains(new Alias.JavaAgent("twojag", "twoopts")));
 	}
 
 	@Test
@@ -391,6 +439,10 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.arguments, contains("4"));
 		assertThat(alias.runtimeOptions, iterableWithSize(1));
 		assertThat(alias.runtimeOptions, contains("--four"));
+		assertThat(alias.sources, iterableWithSize(1));
+		assertThat(alias.sources, contains("foursrc"));
+		assertThat(alias.resources, iterableWithSize(1));
+		assertThat(alias.resources, contains("fourfiles"));
 		assertThat(alias.dependencies, iterableWithSize(1));
 		assertThat(alias.dependencies, contains("fourdep"));
 		assertThat(alias.repositories, iterableWithSize(1));
@@ -399,11 +451,26 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.classpaths, contains("fourcp"));
 		assertThat(alias.properties, aMapWithSize(1));
 		assertThat(alias.properties, hasEntry("four", "4"));
+		assertThat(alias.javaVersion, equalTo("fourjava"));
+		assertThat(alias.mainClass, equalTo("fourmain"));
+		assertThat(alias.moduleName, equalTo("fourmodule"));
 		assertThat(alias.compileOptions, iterableWithSize(1));
 		assertThat(alias.compileOptions, contains("--cfour"));
 		assertThat(alias.nativeImage, is(Boolean.FALSE));
 		assertThat(alias.nativeOptions, iterableWithSize(1));
 		assertThat(alias.nativeOptions, contains("--nfour"));
+		assertThat(alias.jfr, equalTo("fourjfr"));
+		assertThat(alias.debug, aMapWithSize(1));
+		assertThat(alias.debug, hasEntry("fourd", "4"));
+		assertThat(alias.cds, is(Boolean.FALSE));
+		assertThat(alias.interactive, is(Boolean.FALSE));
+		assertThat(alias.enablePreview, is(Boolean.FALSE));
+		assertThat(alias.enableAssertions, is(Boolean.FALSE));
+		assertThat(alias.enableSystemAssertions, is(Boolean.FALSE));
+		assertThat(alias.manifestOptions, aMapWithSize(1));
+		assertThat(alias.manifestOptions, hasEntry("fourm", "4"));
+		assertThat(alias.javaAgents, iterableWithSize(1));
+		assertThat(alias.javaAgents, contains(new Alias.JavaAgent("fourjag", "fouropts")));
 	}
 
 	@Test
