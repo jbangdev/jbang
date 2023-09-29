@@ -2406,4 +2406,24 @@ public class TestRun extends BaseTest {
 		assertThat(result.err, containsString("foo%{" + arg + "}bar"));
 		assertThat(result.err, not(containsString("foo%%{" + arg + "}bar")));
 	}
+
+	@Test
+	void testHelloWorldGAVWithModulesButNoManifest() throws IOException {
+		environmentVariables.clear("JAVA_HOME");
+		String jar = "org.graalvm.python:python-launcher:23.1.0";
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar);
+
+		// assertThat(code.getResourceRef().getFile().toString(),
+		// matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
+
+		ExitException e = Assertions.assertThrows(ExitException.class,
+				() -> run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate());
+
+		assertThat(e.getMessage(), startsWith("no main class"));
+	}
 }
