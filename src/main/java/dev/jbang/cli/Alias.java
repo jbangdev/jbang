@@ -85,7 +85,7 @@ class AliasAdd extends BaseAliasCommand {
 	String name;
 
 	@CommandLine.Option(names = { "--enable-preview" }, description = "Activate Java preview features")
-	boolean enablePreviewRequested;
+	Boolean enablePreviewRequested;
 
 	@CommandLine.Parameters(paramLabel = "params", index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
 	List<String> userParams;

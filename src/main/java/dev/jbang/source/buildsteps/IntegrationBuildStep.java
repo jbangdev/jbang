@@ -27,23 +27,28 @@ public class IntegrationBuildStep implements Builder<IntegrationResult> {
 	public IntegrationResult build() throws IOException {
 		// todo: setting properties to avoid loosing properties in integration call.
 		Project project = ctx.getProject();
-		Properties old = System.getProperties();
-		Properties temp = new Properties(System.getProperties());
+		Properties oldProps = System.getProperties();
+		Properties tempProps = new Properties();
+		tempProps.putAll(oldProps);
+		System.setProperties(tempProps);
 		for (Map.Entry<String, String> entry : project.getProperties().entrySet()) {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
-		IntegrationResult integrationResult = IntegrationManager.runIntegrations(ctx);
-		System.setProperties(old);
+		try {
+			IntegrationResult integrationResult = IntegrationManager.runIntegrations(ctx);
 
-		if (project.getMainClass() == null) { // if non-null user forced set main
-			if (integrationResult.mainClass != null) {
-				project.setMainClass(integrationResult.mainClass);
+			if (project.getMainClass() == null) { // if non-null user forced set main
+				if (integrationResult.mainClass != null) {
+					project.setMainClass(integrationResult.mainClass);
+				}
 			}
+			if (integrationResult.javaArgs != null && !integrationResult.javaArgs.isEmpty()) {
+				// Add integration options to the java options
+				project.addRuntimeOptions(integrationResult.javaArgs);
+			}
+			return integrationResult;
+		} finally {
+			System.setProperties(oldProps);
 		}
-		if (integrationResult.javaArgs != null && !integrationResult.javaArgs.isEmpty()) {
-			// Add integration options to the java options
-			project.addRuntimeOptions(integrationResult.javaArgs);
-		}
-		return integrationResult;
 	}
 }

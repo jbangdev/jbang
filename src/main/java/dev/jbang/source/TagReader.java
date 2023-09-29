@@ -392,6 +392,13 @@ public abstract class TagReader {
 
 		try {
 			ResourceRef ref = siblingResolver.resolve(src);
+			if (ref == null) {
+				throw new ExitException(EXIT_INVALID_INPUT,
+						String.format("Could not find '%s' when resolving '%s' in %s",
+								src,
+								fileReference,
+								siblingResolver.description()));
+			}
 			if (dest != null && dest.endsWith("/")) {
 				p = p.resolve(ref.getFile().getFileName());
 			}

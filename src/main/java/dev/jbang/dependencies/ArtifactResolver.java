@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -382,8 +383,10 @@ public class ArtifactResolver {
 		DefaultSettingsBuilderFactory factory = new DefaultSettingsBuilderFactory();
 		DefaultSettingsBuilder builder = factory.newInstance();
 
+		Properties props = new Properties();
+		props.putAll(System.getProperties());
 		SettingsBuildingRequest settingsBuilderRequest = new DefaultSettingsBuildingRequest();
-		settingsBuilderRequest.setSystemProperties(System.getProperties());
+		settingsBuilderRequest.setSystemProperties(props);
 
 		if (withUserSettings) {
 			// find the settings

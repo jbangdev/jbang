@@ -53,7 +53,7 @@ public class ProjectBuilder {
 	private File catalogFile;
 	private Boolean nativeImage;
 	private String javaVersion;
-	private boolean enablePreview;
+	private Boolean enablePreview;
 
 	// Cached values
 	private Properties contextProperties;
@@ -172,7 +172,7 @@ public class ProjectBuilder {
 		return this;
 	}
 
-	public ProjectBuilder enablePreview(boolean enablePreviewRequested) {
+	public ProjectBuilder enablePreview(Boolean enablePreviewRequested) {
 		this.enablePreview = enablePreviewRequested;
 		return this;
 	}
@@ -278,7 +278,7 @@ public class ProjectBuilder {
 				&& DependencyUtil.looksLikeAGav(resourceRef.getOriginalResource())) {
 			prj.getMainSourceSet().addDependency(resourceRef.getOriginalResource());
 		}
-		return importJarMetadata(updateProject(prj));
+		return updateProject(importJarMetadata(prj, moduleName != null && moduleName.isEmpty()));
 	}
 
 	private Project createJbangProject(ResourceRef resourceRef) {
@@ -353,12 +353,12 @@ public class ProjectBuilder {
 		return updateProject(updateProjectMain(src, prj, getResourceResolver()));
 	}
 
-	private Project importJarMetadata(Project prj) {
+	private Project importJarMetadata(Project prj, boolean importModuleName) {
 		Path jar = prj.getResourceRef().getFile();
 		if (jar != null && Files.exists(jar)) {
 			try (JarFile jf = new JarFile(jar.toFile())) {
 				String moduleName = ModuleUtil.getModuleName(jar);
-				if (moduleName != null && "".equals(prj.getModuleName().orElse(null))) {
+				if (moduleName != null && importModuleName) {
 					// We only import the module name if the project's module
 					// name was set to an empty string, which basically means
 					// "we want module support, but we don't know the name".
@@ -410,6 +410,7 @@ public class ProjectBuilder {
 		updateAllSources(prj, replaceAllProps(additionalSources));
 		ss.addResources(allToFileRef(replaceAllProps(additionalResources)));
 		ss.addCompileOptions(compileOptions);
+		ss.addNativeOptions(nativeOptions);
 		prj.putProperties(properties);
 		prj.getManifestAttributes().putAll(manifestOptions);
 		if (moduleName != null) {
@@ -426,7 +427,9 @@ public class ProjectBuilder {
 		if (nativeImage != null) {
 			prj.setNativeImage(nativeImage);
 		}
-		prj.setEnablePreviewRequested(enablePreview);
+		if (enablePreview != null) {
+			prj.setEnablePreviewRequested(enablePreview);
+		}
 		return prj;
 	}
 
@@ -588,6 +591,9 @@ public class ProjectBuilder {
 		}
 		if (manifestOptions.isEmpty()) {
 			manifestOptions(alias.manifestOptions);
+		}
+		if (enablePreview == null) {
+			enablePreview(alias.enablePreview);
 		}
 	}
 
