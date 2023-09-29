@@ -365,9 +365,16 @@ public class ProjectBuilder {
 					prj.setModuleName(moduleName);
 				}
 
-				Attributes attrs = jf.getManifest().getMainAttributes();
-				if (attrs.containsKey(Attributes.Name.MAIN_CLASS)) {
-					prj.setMainClass(attrs.getValue(Attributes.Name.MAIN_CLASS));
+				if (jf.getManifest() != null) {
+					Attributes attrs = jf.getManifest().getMainAttributes();
+					if (attrs.containsKey(Attributes.Name.MAIN_CLASS)) {
+						prj.setMainClass(attrs.getValue(Attributes.Name.MAIN_CLASS));
+					}
+					String ver = attrs.getValue(JarBuildStep.ATTR_BUILD_JDK);
+					if (ver != null) {
+						// buildJdk = JavaUtil.parseJavaVersion(ver);
+						prj.setJavaVersion(JavaUtil.parseJavaVersion(ver) + "+");
+					}
 				}
 
 				Optional<JarEntry> pom = jf.stream().filter(e -> e.getName().endsWith("/pom.xml")).findFirst();
@@ -390,11 +397,6 @@ public class ProjectBuilder {
 					}
 				}
 
-				String ver = attrs.getValue(JarBuildStep.ATTR_BUILD_JDK);
-				if (ver != null) {
-					// buildJdk = JavaUtil.parseJavaVersion(ver);
-					prj.setJavaVersion(JavaUtil.parseJavaVersion(ver) + "+");
-				}
 			} catch (IOException e) {
 				Util.warnMsg("Problem reading manifest from " + jar);
 			}
