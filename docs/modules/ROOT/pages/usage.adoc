@@ -213,6 +213,9 @@ jbang hello.groovy
 Hello World
 ----
 
+You can control the version of Groovy used via `//GROOVY <version>` in the script.
+For example `//GROOVY 3.0.19` will use Groovy 3.0.19.
+
 == Running Markdowns (.md) (EXPERIMENTAL)
 
 As an experiment since 0.85.0 JBang supports "running" Markdown files (.md)
