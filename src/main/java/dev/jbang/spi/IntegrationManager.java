@@ -6,6 +6,7 @@ import static dev.jbang.util.JavaUtil.resolveInJavaHome;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -92,8 +93,7 @@ public class IntegrationManager {
 						? source.getResourceRef().getFile().toAbsolutePath()
 						: null;
 				IntegrationInput input = new IntegrationInput(className, srcPath, compileDir, pomPath, repos, deps,
-						comments,
-						prj.isNativeImage());
+						comments, prj.isNativeImage(), Util.isVerbose());
 				IntegrationResult ir = requestedJavaVersion == null || JavaUtil.satisfiesRequestedVersion(
 						requestedJavaVersion, JavaUtil.getCurrentMajorJavaVersion())
 								? runIntegrationEmbedded(input, integrationCl)
@@ -226,8 +226,19 @@ public class IntegrationManager {
 		for (Map.Entry<String, String> entry : properties.entrySet()) {
 			args.add("-D" + entry.getKey() + "=" + entry.getValue());
 		}
+
+		Path jbangJar = Util.getJarLocation();
 		args.add("-cp");
-		args.add(Util.getJarLocation().toString());
+		if (jbangJar.toString().endsWith(".jar")) {
+			args.add(jbangJar.toString());
+		} else {
+			// We will assume that we're running inside an IDE or
+			// some kind of test environment and need to manually
+			// add the Gson dependency
+			Path gsonJar = Util.getJarLocation(Gson.class);
+			args.add(jbangJar + File.pathSeparator + gsonJar);
+		}
+
 		args.add("dev.jbang.spi.IntegrationManager");
 
 		if (Util.isVerbose()) {
@@ -272,6 +283,7 @@ public class IntegrationManager {
 		IntegrationInput input = parser.fromJson(new InputStreamReader(System.in), IntegrationInput.class);
 		ClassLoader old = Thread.currentThread().getContextClassLoader();
 		PrintStream oldout = System.out;
+		Util.setVerbose(input.verbose);
 		String output = "";
 		boolean ok = false;
 		try {
@@ -286,6 +298,9 @@ public class IntegrationManager {
 			output = "Integration class missing method with signature public static Map<String, byte[]> postBuild(Path classesDir, Path pomFile, List<Map.Entry<String, Path>> dependencies)";
 		} catch (Exception e) {
 			output = "Issue running postBuild()";
+			if (input.verbose) {
+				e.printStackTrace(System.err);
+			}
 		} finally {
 			Thread.currentThread().setContextClassLoader(old);
 			System.setOut(oldout);
