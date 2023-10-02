@@ -654,6 +654,26 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testDebugHostWithCustomPort() throws IOException {
+		environmentVariables.clear("JAVA_HOME");
+		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--debug=5000", arg);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		pb.mainClass("fakemain");
+		Project prj = pb.build(arg);
+
+		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
+
+		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
+		assertThat(result, containsString("helloworld.java"));
+		assertThat(result, containsString("classpath"));
+		assertThat(result, containsString("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5000"));
+		assertThat(result, not(containsString("  ")));
+	}
+
+	@Test
 	void testDependencies() throws IOException {
 
 		environmentVariables.clear("JAVA_HOME");
