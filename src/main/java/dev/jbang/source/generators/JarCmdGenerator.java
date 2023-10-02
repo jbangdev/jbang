@@ -89,11 +89,12 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 			fallbackDebug.put("transport", "dt_socket");
 			fallbackDebug.put("server", "y");
 			fallbackDebug.put("suspend", "y");
-			fallbackDebug.putAll(debugString);
 			// needed even though there is a fallbackvalue as user might have set some other
 			// key/value
 			// i.e. --debug=server=n
 			fallbackDebug.put("address", "4004");
+			fallbackDebug.putAll(debugString);
+
 			optionalArgs.add(
 					"-agentlib:jdwp=" + fallbackDebug	.entrySet()
 														.stream()

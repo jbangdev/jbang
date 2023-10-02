@@ -634,6 +634,28 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testDebugWithPort() throws IOException {
+		environmentVariables.clear("JAVA_HOME");
+		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--debug", "5000", arg);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		pb.mainClass("fakemain");
+		Project prj = pb.build(arg);
+
+		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
+
+		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
+		assertThat(result, containsString("helloworld.java"));
+		assertThat(result, containsString("classpath"));
+//		assertThat(result, containsString(" --source 11 "));
+		assertThat(result, containsString("jdwp"));
+		assertThat(result, containsString("5000"));
+		assertThat(result, not(containsString("  ")));
+	}
+
+	@Test
 	void testDebugHost() throws IOException {
 		environmentVariables.clear("JAVA_HOME");
 		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
@@ -2219,6 +2241,8 @@ public class TestRun extends BaseTest {
 
 		assertThat(result, containsString("log4j-1.2.17.jar"));
 	}
+
+
 
 	@Test
 	void testForceJavaVersion() throws IOException {
