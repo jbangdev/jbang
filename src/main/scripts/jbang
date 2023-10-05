@@ -221,6 +221,11 @@ export JBANG_STDIN_NOTTY=$([ -t 0 ] && echo "false" || echo "true")
 output=$(CLICOLOR_FORCE=1 "${JAVA_EXEC}" ${JBANG_JAVA_OPTIONS} -classpath "${jarPath}" dev.jbang.Main "$@")
 err=$?
 if [ $err -eq 255 ]; then
+  nl=$'\n'
+  if [[ $output =~ $nl  ]]; then
+    ## keep the last output line to avoid being polluted by the potential verbosity of the JVM
+    output=$(echo "$output" | tail -1)
+  fi
   eval "exec $output"
 elif [ -n "$output" ]; then
   echo "$output"
