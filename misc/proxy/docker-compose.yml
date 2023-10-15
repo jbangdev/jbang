@@ -7,6 +7,8 @@ services:
     networks:
       - no-internet
       - internet
+    volumes:
+      - ./config:/etc/tinyproxy
     restart: unless-stopped
 
   jbang:
