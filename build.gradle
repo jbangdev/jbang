@@ -49,9 +49,8 @@ dependencies {
 	implementation "org.slf4j:jcl-over-slf4j:1.7.30"
 	implementation "org.jboss:jandex:2.2.3.Final"
 
-	implementation "eu.maveniverse.maven.mima:context:2.3.4"
-	runtimeOnly    "eu.maveniverse.maven.mima.runtime:embedded-maven:2.3.4"
-	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.3.4"
+	implementation "eu.maveniverse.maven.mima:context:2.3.5"
+	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.3.5"
 
 	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.9.0"
 	testImplementation "org.junit.jupiter:junit-jupiter:5.9.0"
@@ -186,7 +185,6 @@ shadowJar {
 		exclude(dependency('org.slf4j:slf4j-nop:.*'))
 		exclude(dependency('org.jboss.logging:jboss-logging:.*'))
 	}
-	append 'META-INF/sisu/javax.inject.Named'
 	mergeServiceFiles()
 	manifest {
 		attributes 'Main-Class': 'dev.jbang.Main'
