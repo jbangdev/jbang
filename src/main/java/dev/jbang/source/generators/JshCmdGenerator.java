@@ -42,15 +42,16 @@ public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
 		return this;
 	}
 
-	public JshCmdGenerator(Project prj, BuildContext ctx) {
-		super(prj, ctx);
+	public JshCmdGenerator(BuildContext ctx) {
+		super(ctx);
 	}
 
 	@Override
 	protected List<String> generateCommandLineList() throws IOException {
 		List<String> fullArgs = new ArrayList<>();
 
-		String classpath = project.resolveClassPath().getClassPath();
+		Project project = ctx.getProject();
+		String classpath = ctx.resolveClassPath().getClassPath();
 
 		List<String> optionalArgs = new ArrayList<>();
 
@@ -113,9 +114,9 @@ public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
 
 		fullArgs.addAll(jshellOpts(project.getRuntimeOptions()));
 		fullArgs.addAll(jshellOpts(runtimeOptions));
-		fullArgs.addAll(project	.resolveClassPath()
-								.getAutoDectectedModuleArguments(
-										JdkManager.getOrInstallJdk(requestedJavaVersion)));
+		fullArgs.addAll(ctx	.resolveClassPath()
+							.getAutoDectectedModuleArguments(
+									JdkManager.getOrInstallJdk(requestedJavaVersion)));
 		fullArgs.addAll(optionalArgs);
 
 		if (project.isJShell()) {

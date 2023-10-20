@@ -10,8 +10,8 @@ LABEL {{.}}
 
 COPY assembly/* /
 
-RUN jar xf {{distributionArtifactFileName}} && \
-    rm {{distributionArtifactFileName}} && \
+RUN jar xf {{distributionArtifactFileName}}{{distributionArtifactFileExtension}} && \
+    rm {{distributionArtifactFileName}}{{distributionArtifactFileExtension}} && \
     mv jbang-* jbang && \
     chmod +x jbang/bin/jbang
 

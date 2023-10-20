@@ -18,7 +18,6 @@ public class KeyValueConsumer implements CommandLine.IParameterConsumer {
 		String arg = args.pop();
 		Matcher m = p.matcher(arg);
 		if (m.matches()) {
-
 			Map<String, String> kv = argSpec.getValue();
 
 			if (kv == null) {

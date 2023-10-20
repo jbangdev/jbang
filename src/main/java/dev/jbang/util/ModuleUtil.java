@@ -16,6 +16,7 @@ import javax.annotation.Nullable;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenCoordinate;
+import dev.jbang.source.BuildContext;
 import dev.jbang.source.Project;
 import dev.jbang.source.ResourceRef;
 
@@ -67,7 +68,9 @@ public class ModuleUtil {
 		}
 	}
 
-	public static Path generateModuleInfo(Project project, Path targetDir) throws IOException {
+	public static Path generateModuleInfo(BuildContext ctx) throws IOException {
+		Project project = ctx.getProject();
+		Path targetDir = ctx.getGeneratedSourcesDir();
 		Template infoTemplate = TemplateEngine	.instance()
 												.getTemplate(
 														ResourceRef.forResource("classpath:/module-info.qute.java"));
@@ -85,12 +88,12 @@ public class ModuleUtil {
 												.collect(Collectors.toSet());
 			// Now filter out the resolved artifacts that are root dependencies
 			// and get their names
-			Stream<String> depModNames = project.resolveClassPath()
-												.getArtifacts()
-												.stream()
-												.filter(a -> deps.contains(a.getCoordinate()))
-												.map(ArtifactInfo::getModuleName)
-												.filter(Objects::nonNull);
+			Stream<String> depModNames = ctx.resolveClassPath()
+											.getArtifacts()
+											.stream()
+											.filter(a -> deps.contains(a.getCoordinate()))
+											.map(ArtifactInfo::getModuleName)
+											.filter(Objects::nonNull);
 			// And join this list of names with the JDK module names
 			List<String> moduleNames = Stream	.concat(ModuleUtil.listJdkModules().stream(), depModNames)
 												.collect(Collectors.toList());

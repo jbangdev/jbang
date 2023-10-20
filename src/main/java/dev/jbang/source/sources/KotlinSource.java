@@ -19,6 +19,10 @@ public class KotlinSource extends Source {
 		super(script, replaceProperties);
 	}
 
+	public KotlinSource(String script, Function<String, String> replaceProperties) {
+		super(script, replaceProperties);
+	}
+
 	@Override
 	protected List<String> getCompileOptions() {
 		return tagReader.collectOptions("COMPILE_OPTIONS");
@@ -35,8 +39,8 @@ public class KotlinSource extends Source {
 	}
 
 	@Override
-	public Builder<CmdGeneratorBuilder> getBuilder(Project prj, BuildContext ctx) {
-		return new KotlinAppBuilder(prj, ctx);
+	public Builder<CmdGeneratorBuilder> getBuilder(BuildContext ctx) {
+		return new KotlinAppBuilder(ctx);
 	}
 
 	public String getKotlinVersion() {
@@ -47,8 +51,8 @@ public class KotlinSource extends Source {
 	}
 
 	public static class KotlinAppBuilder extends AppBuilder {
-		public KotlinAppBuilder(Project project, BuildContext ctx) {
-			super(project, ctx);
+		public KotlinAppBuilder(BuildContext ctx) {
+			super(ctx);
 		}
 
 		@Override
@@ -59,12 +63,13 @@ public class KotlinSource extends Source {
 		protected class KotlinCompileBuildStep extends CompileBuildStep {
 
 			public KotlinCompileBuildStep() {
-				super(KotlinAppBuilder.this.project, KotlinAppBuilder.this.ctx);
+				super(KotlinAppBuilder.this.ctx);
 			}
 
 			@Override
 			protected String getCompilerBinary(String requestedJavaVersion) {
-				return resolveInKotlinHome("kotlinc", ((KotlinSource) project.getMainSource()).getKotlinVersion());
+				return resolveInKotlinHome("kotlinc",
+						((KotlinSource) ctx.getProject().getMainSource()).getKotlinVersion());
 			}
 
 			@Override

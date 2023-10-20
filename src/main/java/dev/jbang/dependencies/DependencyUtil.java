@@ -27,7 +27,9 @@ public class DependencyUtil {
 
 	static {
 		aliasToRepos = new HashMap<>();
-		aliasToRepos.put("mavencentral", "https://repo1.maven.org/maven2/");
+		aliasToRepos.put("mavencentral", "https://repo1.maven.org/maven2/"); // deprecated; kept for backwards
+																				// compatability
+		aliasToRepos.put("central", "https://repo1.maven.org/maven2/"); // deprecated; kept for backwards compatability
 		aliasToRepos.put("jbossorg", "https://repository.jboss.org/nexus/content/groups/public/");
 		aliasToRepos.put("redhat", "https://maven.repository.redhat.com/ga/");
 		aliasToRepos.put("jcenter", "https://jcenter.bintray.com/");
@@ -42,7 +44,10 @@ public class DependencyUtil {
 	}
 
 	public static final Pattern fullGavPattern = Pattern.compile(
-			"^(?<groupid>[^:]*):(?<artifactid>[^:]*):(?<version>[^:@]*)(:(?<classifier>[^@]*))?(@(?<type>.*))?$");
+			"^(?<groupid>[a-zA-Z0-9_.-]*):(?<artifactid>[a-zA-Z0-9_.-]*):(?<version>[^:@]*)(:(?<classifier>[^@]*))?(@(?<type>.*))?$");
+
+	public static final Pattern lenientGavPattern = Pattern.compile(
+			"^(?<groupid>[a-zA-Z0-9_.-]*):(?<artifactid>[a-zA-Z0-9_.-]*)(:(?<version>[^:@]*)(:(?<classifier>[^@]*))?)?(@(?<type>.*))?$");
 
 	private DependencyUtil() {
 	}
@@ -59,7 +64,7 @@ public class DependencyUtil {
 
 		if (repos.isEmpty()) {
 			repos = new ArrayList<>();
-			repos.add(toMavenRepo("mavencentral"));
+			repos.add(toMavenRepo("central"));
 		}
 
 		// Turn any URL dependencies into regular GAV coordinates
@@ -140,6 +145,12 @@ public class DependencyUtil {
 
 	public static boolean looksLikeAGav(String candidate) {
 		Matcher gav = fullGavPattern.matcher(candidate);
+		gav.find();
+		return (gav.matches());
+	}
+
+	public static boolean looksLikeAPossibleGav(String candidate) {
+		Matcher gav = lenientGavPattern.matcher(candidate);
 		gav.find();
 		return (gav.matches());
 	}

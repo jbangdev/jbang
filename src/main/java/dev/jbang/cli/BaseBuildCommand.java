@@ -31,7 +31,7 @@ public abstract class BaseBuildCommand extends BaseCommand {
 	Path buildDir;
 
 	@CommandLine.Option(names = { "--enable-preview" }, description = "Activate Java preview features")
-	boolean enablePreviewRequested;
+	Boolean enablePreviewRequested;
 
 	PrintStream out = new PrintStream(new FileOutputStream(FileDescriptor.out));
 

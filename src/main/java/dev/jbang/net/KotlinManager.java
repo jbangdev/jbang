@@ -14,7 +14,7 @@ import dev.jbang.util.Util;
 
 public class KotlinManager {
 	private static final String KOTLIN_DOWNLOAD_URL = "https://github.com/JetBrains/kotlin/releases/download/v%s/kotlin-compiler-%s.zip";
-	public static final String DEFAULT_KOTLIN_VERSION = "1.6.10";
+	public static final String DEFAULT_KOTLIN_VERSION = "1.8.22";
 
 	public static String resolveInKotlinHome(String cmd, String requestedVersion) {
 		Path kotlinHome = getKotlin(requestedVersion);

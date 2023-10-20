@@ -3,12 +3,8 @@ package dev.jbang.source.generators;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
@@ -69,15 +65,16 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		return this;
 	}
 
-	public JarCmdGenerator(Project prj, BuildContext ctx) {
-		super(prj, ctx);
+	public JarCmdGenerator(BuildContext ctx) {
+		super(ctx);
 	}
 
 	@Override
 	protected List<String> generateCommandLineList() throws IOException {
 		List<String> fullArgs = new ArrayList<>();
 
-		String classpath = project.resolveClassPath().getClassPath();
+		Project project = ctx.getProject();
+		String classpath = ctx.resolveClassPath().getClassPath();
 
 		List<String> optionalArgs = new ArrayList<>();
 
@@ -88,8 +85,20 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		addPropertyFlags(project.getProperties(), "-D", optionalArgs);
 
 		if (debugString != null) {
+			Map<String, String> fallbackDebug = new LinkedHashMap<>();
+			fallbackDebug.put("transport", "dt_socket");
+			fallbackDebug.put("server", "y");
+			fallbackDebug.put("suspend", "y");
+			fallbackDebug.put("address", "4004");
+			// needed even though there is a fallbackvalue as user might have set some other
+			// key/value
+			// i.e. --debug=server=n
+			fallbackDebug.putAll(debugString);
 			optionalArgs.add(
-					"-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + debugString);
+					"-agentlib:jdwp=" + fallbackDebug	.entrySet()
+														.stream()
+														.map(e -> e.getKey() + "=" + e.getValue())
+														.collect(Collectors.joining(",")));
 		}
 
 		if (assertions) {
@@ -152,7 +161,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 
 		fullArgs.addAll(project.getRuntimeOptions());
 		fullArgs.addAll(runtimeOptions);
-		fullArgs.addAll(project.resolveClassPath().getAutoDectectedModuleArguments(jdk));
+		fullArgs.addAll(ctx.resolveClassPath().getAutoDectectedModuleArguments(jdk));
 		fullArgs.addAll(optionalArgs);
 
 		String main = Optional.ofNullable(mainClass).orElse(project.getMainClass());
@@ -181,7 +190,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		boolean useArgsFile = false;
 		if (args.length() > COMMAND_LINE_LENGTH_LIMIT && Util.getShell() != Util.Shell.bash) {
 			// @file is only available from java 9 onwards.
-			String requestedJavaVersion = project.getJavaVersion();
+			String requestedJavaVersion = ctx.getProject().getJavaVersion();
 			int actualVersion = JavaUtil.javaVersion(requestedJavaVersion);
 			useArgsFile = actualVersion >= 9;
 		}

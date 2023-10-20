@@ -9,11 +9,9 @@ import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -109,16 +107,6 @@ public class DependencyCache {
 			}
 		}
 		return null;
-	}
-
-	public static ArtifactInfo findArtifactByPath(Path artifactPath) {
-		Map<String, List<ArtifactInfo>> cache = getCache();
-		Optional<ArtifactInfo> result = cache	.values()
-												.stream()
-												.flatMap(Collection::stream)
-												.filter(art -> art.getFile().equals(artifactPath))
-												.findFirst();
-		return result.orElseGet(() -> new ArtifactInfo(null, artifactPath));
 	}
 
 	public static void clear() {

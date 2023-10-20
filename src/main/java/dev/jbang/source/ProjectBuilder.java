@@ -12,6 +12,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
@@ -24,6 +26,7 @@ import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.*;
 import dev.jbang.source.buildsteps.JarBuildStep;
 import dev.jbang.source.resolvers.*;
+import dev.jbang.source.sources.JavaSource;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
 import dev.jbang.util.PropertiesValueResolver;
@@ -48,14 +51,21 @@ public class ProjectBuilder {
 	private List<String> nativeOptions = Collections.emptyList();
 	private Map<String, String> manifestOptions = new HashMap<>();
 	private File catalogFile;
-
-	private ModularClassPath mcp;
 	private Boolean nativeImage;
 	private String javaVersion;
+	private Boolean enablePreview;
+
+	// Cached values
 	private Properties contextProperties;
-	private boolean enablePreview;
+	private ModularClassPath mcp;
+	private final Set<ResourceRef> buildRefs;
 
 	ProjectBuilder() {
+		buildRefs = new HashSet<>();
+	}
+
+	private ProjectBuilder(Set<ResourceRef> buildRefs) {
+		this.buildRefs = buildRefs;
 	}
 
 	public ProjectBuilder setProperties(Map<String, String> properties) {
@@ -162,7 +172,7 @@ public class ProjectBuilder {
 		return this;
 	}
 
-	public ProjectBuilder enablePreview(boolean enablePreviewRequested) {
+	public ProjectBuilder enablePreview(Boolean enablePreviewRequested) {
 		this.enablePreview = enablePreviewRequested;
 		return this;
 	}
@@ -191,16 +201,6 @@ public class ProjectBuilder {
 
 		contextProperties.putAll(properties);
 		return contextProperties;
-	}
-
-	private void updateDependencyResolver(DependencyResolver resolver) {
-		resolver
-				.addRepositories(allToMavenRepo(replaceAllProps(
-						additionalRepos)))
-				.addDependencies(replaceAllProps(
-						additionalDeps))
-				.addClassPaths(
-						replaceAllProps(additionalClasspaths));
 	}
 
 	private List<String> replaceAllProps(List<String> items) {
@@ -255,6 +255,11 @@ public class ProjectBuilder {
 	}
 
 	public Project build(ResourceRef resourceRef) {
+		if (!buildRefs.add(resourceRef)) {
+			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+					"Self-referencing project dependency found for: '" + resourceRef.getOriginalResource() + "'");
+		}
+
 		Project prj;
 		if (resourceRef.getFile().getFileName().toString().endsWith(".jar")) {
 			prj = createJarProject(resourceRef);
@@ -273,7 +278,7 @@ public class ProjectBuilder {
 				&& DependencyUtil.looksLikeAGav(resourceRef.getOriginalResource())) {
 			prj.getMainSourceSet().addDependency(resourceRef.getOriginalResource());
 		}
-		return importJarMetadata(updateProject(prj));
+		return updateProject(importJarMetadata(prj, moduleName != null && moduleName.isEmpty()));
 	}
 
 	private Project createJbangProject(ResourceRef resourceRef) {
@@ -289,7 +294,7 @@ public class ProjectBuilder {
 		SourceSet ss = prj.getMainSourceSet();
 		ss.addResources(tagReader.collectFiles(resourceRef,
 				new SiblingResourceResolver(resourceRef, ResourceResolver.forResources())));
-		ss.addDependencies(tagReader.collectDependencies());
+		ss.addDependencies(tagReader.collectBinaryDependencies());
 		ss.addCompileOptions(tagReader.collectOptions("JAVAC_OPTIONS", "COMPILE_OPTIONS"));
 		ss.addNativeOptions(tagReader.collectOptions("NATIVE_OPTIONS"));
 		prj.addRepositories(tagReader.collectRepositories());
@@ -310,11 +315,18 @@ public class ProjectBuilder {
 				prj.setJavaVersion(version);
 			}
 		}
-		boolean first = true;
+
 		ResourceResolver resolver = getAliasResourceResolver(null);
 		ResourceResolver siblingResolver = new SiblingResourceResolver(resourceRef, resolver);
+
+		for (String srcDep : tagReader.collectSourceDependencies()) {
+			ResourceRef subRef = resolver.resolve(srcDep, true);
+			prj.addSubProject(new ProjectBuilder(buildRefs).build(subRef));
+		}
+
+		boolean first = true;
 		for (Source includedSource : tagReader.collectSources(resourceRef, siblingResolver)) {
-			includedSource.updateProject(prj, resolver);
+			updateProject(includedSource, prj, resolver);
 			if (first) {
 				prj.setMainSource(includedSource);
 				first = false;
@@ -327,7 +339,7 @@ public class ProjectBuilder {
 	private Project createSourceProject(ResourceRef resourceRef) {
 		Source src = createSource(resourceRef);
 		Project prj = new Project(src);
-		return updateProject(src.updateProjectMain(prj, getResourceResolver()));
+		return updateProject(updateProjectMain(src, prj, getResourceResolver()));
 	}
 
 	private Source createSource(ResourceRef resourceRef) {
@@ -338,24 +350,31 @@ public class ProjectBuilder {
 
 	public Project build(Source src) {
 		Project prj = new Project(src);
-		return updateProject(src.updateProjectMain(prj, getResourceResolver()));
+		return updateProject(updateProjectMain(src, prj, getResourceResolver()));
 	}
 
-	private Project importJarMetadata(Project prj) {
+	private Project importJarMetadata(Project prj, boolean importModuleName) {
 		Path jar = prj.getResourceRef().getFile();
 		if (jar != null && Files.exists(jar)) {
 			try (JarFile jf = new JarFile(jar.toFile())) {
 				String moduleName = ModuleUtil.getModuleName(jar);
-				if (moduleName != null && "".equals(prj.getModuleName().orElse(null))) {
+				if (moduleName != null && importModuleName) {
 					// We only import the module name if the project's module
 					// name was set to an empty string, which basically means
 					// "we want module support, but we don't know the name".
 					prj.setModuleName(moduleName);
 				}
 
-				Attributes attrs = jf.getManifest().getMainAttributes();
-				if (attrs.containsKey(Attributes.Name.MAIN_CLASS)) {
-					prj.setMainClass(attrs.getValue(Attributes.Name.MAIN_CLASS));
+				if (jf.getManifest() != null) {
+					Attributes attrs = jf.getManifest().getMainAttributes();
+					if (attrs.containsKey(Attributes.Name.MAIN_CLASS)) {
+						prj.setMainClass(attrs.getValue(Attributes.Name.MAIN_CLASS));
+					}
+					String ver = attrs.getValue(JarBuildStep.ATTR_BUILD_JDK);
+					if (ver != null) {
+						// buildJdk = JavaUtil.parseJavaVersion(ver);
+						prj.setJavaVersion(JavaUtil.parseJavaVersion(ver) + "+");
+					}
 				}
 
 				Optional<JarEntry> pom = jf.stream().filter(e -> e.getName().endsWith("/pom.xml")).findFirst();
@@ -378,11 +397,6 @@ public class ProjectBuilder {
 					}
 				}
 
-				String ver = attrs.getValue(JarBuildStep.ATTR_BUILD_JDK);
-				if (ver != null) {
-					// buildJdk = JavaUtil.parseJavaVersion(ver);
-					prj.setJavaVersion(JavaUtil.parseJavaVersion(ver) + "+");
-				}
 			} catch (IOException e) {
 				Util.warnMsg("Problem reading manifest from " + jar);
 			}
@@ -398,6 +412,7 @@ public class ProjectBuilder {
 		updateAllSources(prj, replaceAllProps(additionalSources));
 		ss.addResources(allToFileRef(replaceAllProps(additionalResources)));
 		ss.addCompileOptions(compileOptions);
+		ss.addNativeOptions(nativeOptions);
 		prj.putProperties(properties);
 		prj.getManifestAttributes().putAll(manifestOptions);
 		if (moduleName != null) {
@@ -414,7 +429,9 @@ public class ProjectBuilder {
 		if (nativeImage != null) {
 			prj.setNativeImage(nativeImage);
 		}
-		prj.setEnablePreviewRequested(enablePreview);
+		if (enablePreview != null) {
+			prj.setEnablePreviewRequested(enablePreview);
+		}
 		return prj;
 	}
 
@@ -425,7 +442,7 @@ public class ProjectBuilder {
 				.flatMap(f -> Util.explode(null, Util.getCwd(), f).stream())
 				.map(s -> resolveChecked(resolver, s))
 				.map(this::createSource)
-				.forEach(src -> src.updateProject(prj, resolver));
+				.forEach(src -> updateProject(src, prj, resolver));
 	}
 
 	private List<RefTarget> allToFileRef(List<String> resources) {
@@ -436,6 +453,79 @@ public class ProjectBuilder {
 						.flatMap(f -> TagReader.explodeFileRef(null, Util.getCwd(), f).stream())
 						.map(f -> TagReader.toFileRef(f, resolver))
 						.collect(Collectors.toList());
+	}
+
+	/**
+	 * Updates the given <code>Project</code> with all the information from the
+	 * <code>Source</code> when that source is the main file. It updates certain
+	 * things at the project level and then calls <code>updateProject()</code> which
+	 * will update things at the <code>SourceSet</code> level.
+	 *
+	 * @param prj      The <code>Project</code> to update
+	 * @param resolver The resolver to use for dependent (re)sources
+	 * @return A <code>Project</code>
+	 */
+	private Project updateProjectMain(Source src, Project prj, ResourceResolver resolver) {
+		prj.setDescription(src.tagReader.getDescription().orElse(null));
+		prj.setGav(src.tagReader.getGav().orElse(null));
+		prj.setMainClass(src.tagReader.getMain().orElse(null));
+		prj.setModuleName(src.tagReader.getModule().orElse(null));
+		if (prj.getMainSource() instanceof JavaSource) {
+			prj.getMainSourceSet().addCompileOption("-g");
+		}
+		return updateProject(src, prj, resolver);
+	}
+
+	/**
+	 * Updates the given <code>Project</code> with all the information from the
+	 * <code>Source</code>. This includes the current source file with all other
+	 * source files it references, all resource files, anything to do with
+	 * dependencies, repositories and class paths as well as compile time and
+	 * runtime options.
+	 *
+	 * @param prj      The <code>Project</code> to update
+	 * @param resolver The resolver to use for dependent (re)sources
+	 * @return The given <code>Project</code>
+	 */
+	@Nonnull
+	private Project updateProject(Source src, Project prj, ResourceResolver resolver) {
+		ResourceRef srcRef = src.getResourceRef();
+		if (!prj.getMainSourceSet().getSources().contains(srcRef)) {
+			ResourceResolver sibRes1 = new SiblingResourceResolver(srcRef, ResourceResolver.forResources());
+			SourceSet ss = prj.getMainSourceSet();
+			ss.addSource(srcRef);
+			ss.addResources(src.tagReader.collectFiles(srcRef, sibRes1));
+			ss.addDependencies(src.collectBinaryDependencies());
+			ss.addCompileOptions(src.getCompileOptions());
+			ss.addNativeOptions(src.getNativeOptions());
+			prj.addRepositories(src.tagReader.collectRepositories());
+			prj.addRuntimeOptions(src.getRuntimeOptions());
+			src.tagReader.collectManifestOptions().forEach(kv -> {
+				if (!kv.getKey().isEmpty()) {
+					prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
+				}
+			});
+			src.tagReader.collectAgentOptions().forEach(kv -> {
+				if (!kv.getKey().isEmpty()) {
+					prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
+				}
+			});
+			String version = src.tagReader.getJavaVersion();
+			if (version != null && JavaUtil.checkRequestedVersion(version)) {
+				if (new JavaUtil.RequestedVersionComparator().compare(prj.getJavaVersion(), version) > 0) {
+					prj.setJavaVersion(version);
+				}
+			}
+			for (String srcDep : src.collectSourceDependencies()) {
+				ResourceRef subRef = sibRes1.resolve(srcDep, true);
+				prj.addSubProject(new ProjectBuilder(buildRefs).build(subRef));
+			}
+			ResourceResolver sibRes2 = new SiblingResourceResolver(srcRef, resolver);
+			for (Source includedSource : src.tagReader.collectSources(srcRef, sibRes2)) {
+				updateProject(includedSource, prj, resolver);
+			}
+		}
+		return prj;
 	}
 
 	private ResourceResolver getResourceResolver() {
@@ -458,8 +548,13 @@ public class ProjectBuilder {
 
 	private ModularClassPath resolveDependency(String dep) {
 		if (mcp == null) {
-			DependencyResolver resolver = new DependencyResolver().addDependency(dep);
-			updateDependencyResolver(resolver);
+			DependencyResolver resolver = new DependencyResolver()
+																	.addDependency(dep)
+																	.addRepositories(allToMavenRepo(
+																			replaceAllProps(additionalRepos)))
+																	.addDependencies(replaceAllProps(additionalDeps))
+																	.addClassPaths(
+																			replaceAllProps(additionalClasspaths));
 			mcp = resolver.resolve();
 		}
 		return mcp;
@@ -498,6 +593,9 @@ public class ProjectBuilder {
 		}
 		if (manifestOptions.isEmpty()) {
 			manifestOptions(alias.manifestOptions);
+		}
+		if (enablePreview == null) {
+			enablePreview(alias.enablePreview);
 		}
 	}
 

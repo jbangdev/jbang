@@ -23,6 +23,7 @@ import javax.annotation.Nonnull;
 import dev.jbang.cli.ExitException;
 import dev.jbang.cli.ResourceNotFoundException;
 import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.dependencies.JitPackUtil;
 import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.util.JavaUtil;
@@ -54,11 +55,21 @@ public abstract class TagReader {
 
 	protected abstract Stream<String> getTags();
 
-	public List<String> collectDependencies() {
+	public List<String> collectBinaryDependencies() {
 		return getTags()
 						.filter(this::isDependDeclare)
 						.flatMap(this::extractDependencies)
 						.map(replaceProperties)
+						.filter(TagReader::isGav)
+						.collect(Collectors.toList());
+	}
+
+	public List<String> collectSourceDependencies() {
+		return getTags()
+						.filter(this::isDependDeclare)
+						.flatMap(this::extractDependencies)
+						.map(replaceProperties)
+						.filter(it -> !isGav(it))
 						.collect(Collectors.toList());
 	}
 
@@ -68,6 +79,10 @@ public abstract class TagReader {
 
 	protected Stream<String> extractDependencies(String line) {
 		return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
+	}
+
+	private static boolean isGav(String ref) {
+		return DependencyUtil.looksLikeAPossibleGav(ref) || !JitPackUtil.ensureGAV(ref).equals(ref);
 	}
 
 	public List<MavenRepo> collectRepositories() {
@@ -377,6 +392,13 @@ public abstract class TagReader {
 
 		try {
 			ResourceRef ref = siblingResolver.resolve(src);
+			if (ref == null) {
+				throw new ExitException(EXIT_INVALID_INPUT,
+						String.format("Could not find '%s' when resolving '%s' in %s",
+								src,
+								fileReference,
+								siblingResolver.description()));
+			}
 			if (dest != null && dest.endsWith("/")) {
 				p = p.resolve(ref.getFile().getFileName());
 			}

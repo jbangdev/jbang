@@ -6,6 +6,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Objects;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import dev.jbang.cli.ExitException;
 import dev.jbang.util.Util;
@@ -16,19 +20,23 @@ import dev.jbang.util.Util;
  * //FILES target=source directives in scripts and templates.
  */
 public class RefTarget {
+	@Nonnull
 	protected final ResourceRef source;
+	@Nullable
 	protected final Path target;
 
-	protected RefTarget(ResourceRef source, Path target) {
+	protected RefTarget(@Nonnull ResourceRef source, @Nullable Path target) {
 		assert (source != null);
 		this.source = source;
 		this.target = target;
 	}
 
+	@Nonnull
 	public ResourceRef getSource() {
 		return source;
 	}
 
+	@Nullable
 	public Path getTarget() {
 		return target;
 	}
@@ -50,6 +58,29 @@ public class RefTarget {
 		} catch (IOException ioe) {
 			throw new ExitException(EXIT_UNEXPECTED_STATE, "Could not copy " + from + " to " + to, ioe);
 		}
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		RefTarget refTarget = (RefTarget) o;
+		return source.equals(refTarget.source) && Objects.equals(target, refTarget.target);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(source, target);
+	}
+
+	@Override
+	public String toString() {
+		return "RefTarget{" +
+				"source=" + source +
+				", target=" + target +
+				'}';
 	}
 
 	public static RefTarget create(String ref, Path dest, ResourceResolver siblingResolver) {

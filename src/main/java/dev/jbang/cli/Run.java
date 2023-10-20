@@ -1,13 +1,7 @@
 package dev.jbang.cli;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Stack;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -92,9 +86,9 @@ public class Run extends BaseBuildCommand {
 		}
 
 		BuildContext ctx = BuildContext.forProject(prj, buildDir);
-		CmdGeneratorBuilder genb = prj.codeBuilder(ctx).build();
+		CmdGeneratorBuilder genb = Project.codeBuilder(ctx).build();
 
-		buildAgents(prj, ctx);
+		buildAgents(ctx);
 
 		String cmdline = updateGeneratorForRun(genb).build().generate();
 
@@ -104,7 +98,8 @@ public class Run extends BaseBuildCommand {
 		return EXIT_EXECUTE;
 	}
 
-	void buildAgents(Project prj, BuildContext ctx) throws IOException {
+	void buildAgents(BuildContext ctx) throws IOException {
+		Project prj = ctx.getProject();
 		Map<String, String> agents = runMixin.javaAgentSlots;
 		if (agents == null && prj.getResourceRef() instanceof AliasResourceResolver.AliasedResourceRef) {
 			AliasResourceResolver.AliasedResourceRef aref = (AliasResourceResolver.AliasedResourceRef) prj.getResourceRef();
@@ -125,7 +120,7 @@ public class Run extends BaseBuildCommand {
 				ProjectBuilder apb = createBaseProjectBuilder();
 				Project aprj = apb.build(javaAgent);
 				BuildContext actx = BuildContext.forProject(aprj);
-				aprj.codeBuilder(actx).build();
+				Project.codeBuilder(actx).build();
 				runMixin.javaRuntimeOptions.addAll(javaAgentOptions(actx, javaAgentOptions));
 			}
 		}
@@ -170,12 +165,37 @@ public class Run extends BaseBuildCommand {
 	 * Helper class to peek ahead at `--debug` to pickup --debug=5000, --debug 5000,
 	 * --debug *:5000 as debug parameters but not --debug somefile.java
 	 */
-	static class DebugFallbackConsumer extends PatternFallbackConsumer {
-		private static final Pattern p = Pattern.compile("(.*?:)?(\\d+)");
+	static class DebugFallbackConsumer implements CommandLine.IParameterConsumer {
+
+		private static Pattern p = Pattern.compile("(?<address>(.*?:)?(\\d+))|(?<key>\\S*)=(?<value>\\S+)");
 
 		@Override
-		protected Pattern getValuePattern() {
-			return p;
+		public void consumeParameters(Stack<String> args, CommandLine.Model.ArgSpec argSpec,
+				CommandLine.Model.CommandSpec commandSpec) {
+			String arg = args.peek();
+			Matcher m = p.matcher(arg);
+
+			if (!m.matches()) {
+				m = p.matcher(((CommandLine.Model.OptionSpec) argSpec).fallbackValue());
+			} else {
+				args.pop();
+			}
+
+			if (m.matches()) {
+				Map<String, String> kv = argSpec.getValue();
+
+				if (kv == null) {
+					kv = new LinkedHashMap<>();
+				}
+
+				String address = m.group("address");
+				if (address != null) {
+					kv.put("address", address);
+				} else {
+					kv.put(m.group("key"), m.group("value"));
+				}
+				argSpec.setValue(kv);
+			}
 		}
 	}
 
@@ -190,6 +210,7 @@ public class Run extends BaseBuildCommand {
 		protected Pattern getValuePattern() {
 			return p;
 		}
+
 	}
 
 	static abstract class PatternFallbackConsumer implements CommandLine.IParameterConsumer {

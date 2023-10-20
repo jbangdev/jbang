@@ -11,11 +11,9 @@ import javax.annotation.Nonnull;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
-import dev.jbang.source.resolvers.SiblingResourceResolver;
 import dev.jbang.source.sources.*;
 import dev.jbang.source.sources.KotlinSource;
 import dev.jbang.source.sources.MarkdownSource;
-import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 /**
@@ -72,8 +70,12 @@ public abstract class Source {
 		return tagReader.getTags();
 	}
 
-	protected List<String> collectDependencies() {
-		return tagReader.collectDependencies();
+	protected List<String> collectBinaryDependencies() {
+		return tagReader.collectBinaryDependencies();
+	}
+
+	protected List<String> collectSourceDependencies() {
+		return tagReader.collectSourceDependencies();
 	}
 
 	protected abstract List<String> getCompileOptions();
@@ -82,7 +84,7 @@ public abstract class Source {
 
 	protected abstract List<String> getRuntimeOptions();
 
-	public abstract Builder<CmdGeneratorBuilder> getBuilder(Project prj, BuildContext ctx);
+	public abstract Builder<CmdGeneratorBuilder> getBuilder(BuildContext ctx);
 
 	public ResourceRef getResourceRef() {
 		return resourceRef;
@@ -107,71 +109,6 @@ public abstract class Source {
 
 	public boolean enablePreview() {
 		return !tagReader.collectRawOptions("PREVIEW").isEmpty();
-	}
-
-	/**
-	 * Updates the given <code>Project</code> with all the information from this
-	 * <code>Source</code> when that source is the main file. It updates certain
-	 * things at the project level and then calls <code>updateProject()</code> which
-	 * will update things at the <code>SourceSet</code> level.
-	 *
-	 * @param prj      The <code>Project</code> to update
-	 * @param resolver The resolver to use for dependent (re)sources
-	 * @return A <code>Project</code>
-	 */
-	public Project updateProjectMain(Project prj, ResourceResolver resolver) {
-		prj.setDescription(tagReader.getDescription().orElse(null));
-		prj.setGav(tagReader.getGav().orElse(null));
-		prj.setMainClass(tagReader.getMain().orElse(null));
-		prj.setModuleName(tagReader.getModule().orElse(null));
-		return updateProject(prj, resolver);
-	}
-
-	/**
-	 * Updates the given <code>Project</code> with all the information from this
-	 * <code>Source</code>. This includes the current source file with all other
-	 * source files it references, all resource files, anything to do with
-	 * dependencies, repositories and class paths as well as compile time and
-	 * runtime options.
-	 * 
-	 * @param prj      The <code>Project</code> to update
-	 * @param resolver The resolver to use for dependent (re)sources
-	 * @return The given <code>Project</code>
-	 */
-	@Nonnull
-	public Project updateProject(Project prj, ResourceResolver resolver) {
-		if (!prj.getMainSourceSet().getSources().contains(getResourceRef())) {
-			SourceSet ss = prj.getMainSourceSet();
-			ss.addSource(this.getResourceRef());
-			ss.addResources(tagReader.collectFiles(resourceRef,
-					new SiblingResourceResolver(resourceRef, ResourceResolver.forResources())));
-			ss.addDependencies(collectDependencies());
-			ss.addCompileOptions(getCompileOptions());
-			ss.addNativeOptions(getNativeOptions());
-			prj.addRepositories(tagReader.collectRepositories());
-			prj.addRuntimeOptions(getRuntimeOptions());
-			tagReader.collectManifestOptions().forEach(kv -> {
-				if (!kv.getKey().isEmpty()) {
-					prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
-				}
-			});
-			tagReader.collectAgentOptions().forEach(kv -> {
-				if (!kv.getKey().isEmpty()) {
-					prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
-				}
-			});
-			String version = tagReader.getJavaVersion();
-			if (version != null && JavaUtil.checkRequestedVersion(version)) {
-				if (new JavaUtil.RequestedVersionComparator().compare(prj.getJavaVersion(), version) > 0) {
-					prj.setJavaVersion(version);
-				}
-			}
-			ResourceResolver siblingResolver = new SiblingResourceResolver(getResourceRef(), resolver);
-			for (Source includedSource : tagReader.collectSources(resourceRef, siblingResolver)) {
-				includedSource.updateProject(prj, resolver);
-			}
-		}
-		return prj;
 	}
 
 	// Used only by tests

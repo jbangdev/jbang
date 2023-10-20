@@ -22,23 +22,22 @@ import dev.jbang.util.Util;
  * it into a native application.
  */
 public class NativeBuildStep implements Builder<Project> {
-	private final Project project;
 	private final BuildContext ctx;
 
-	public NativeBuildStep(Project project, BuildContext ctx) {
-		this.project = project;
+	public NativeBuildStep(BuildContext ctx) {
 		this.ctx = ctx;
 	}
 
 	public Project build() throws IOException {
 		List<String> optionList = new ArrayList<>();
+		Project project = ctx.getProject();
 		optionList.add(resolveInGraalVMHome("native-image", project.getJavaVersion()));
 
 		optionList.add("-H:+ReportExceptionStackTraces");
 		optionList.add("--enable-https");
 		optionList.addAll(project.getMainSourceSet().getNativeOptions());
 
-		String classpath = project.resolveClassPath().getClassPath();
+		String classpath = ctx.resolveClassPath().getClassPath();
 		if (!Util.isBlankString(classpath)) {
 			optionList.add("--class-path=" + classpath);
 		}

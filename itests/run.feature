@@ -7,12 +7,12 @@ Scenario: should fail on missing file
 
 Scenario: parameter passing
 * command('jbang helloworld.java jbangtest')
-* match err == "[jbang] Building jar...\n"
+* match err == "[jbang] Building jar for helloworld.java...\n"
 * match out == "Hello jbangtest\n"
 
 Scenario: std in
 * command('cat helloworld.java | jbang - jbangtest')
-* match err == "[jbang] Building jar...\n"
+* match err == "[jbang] Building jar for helloworld.java...\n"
 * match out == "Hello jbangtest\n"
 
 Scenario: java launch helloworld with jfr

@@ -1,7 +1,6 @@
 package dev.jbang.source.buildsteps;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Map;
 import java.util.Properties;
 
@@ -18,36 +17,38 @@ import dev.jbang.spi.IntegrationResult;
  * for the next build step.
  */
 public class IntegrationBuildStep implements Builder<IntegrationResult> {
-	private final Project project;
 	private final BuildContext ctx;
 
-	public IntegrationBuildStep(Project project, BuildContext ctx) {
-		this.project = project;
+	public IntegrationBuildStep(BuildContext ctx) {
 		this.ctx = ctx;
 	}
 
 	@Override
 	public IntegrationResult build() throws IOException {
 		// todo: setting properties to avoid loosing properties in integration call.
-		Path compileDir = ctx.getCompileDir();
-		Path pomPath = CompileBuildStep.getPomPath(project, ctx);
-		Properties old = System.getProperties();
-		Properties temp = new Properties(System.getProperties());
+		Project project = ctx.getProject();
+		Properties oldProps = System.getProperties();
+		Properties tempProps = new Properties();
+		tempProps.putAll(oldProps);
+		System.setProperties(tempProps);
 		for (Map.Entry<String, String> entry : project.getProperties().entrySet()) {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
-		IntegrationResult integrationResult = IntegrationManager.runIntegrations(project, compileDir, pomPath);
-		System.setProperties(old);
+		try {
+			IntegrationResult integrationResult = IntegrationManager.runIntegrations(ctx);
 
-		if (project.getMainClass() == null) { // if non-null user forced set main
-			if (integrationResult.mainClass != null) {
-				project.setMainClass(integrationResult.mainClass);
+			if (project.getMainClass() == null) { // if non-null user forced set main
+				if (integrationResult.mainClass != null) {
+					project.setMainClass(integrationResult.mainClass);
+				}
 			}
+			if (integrationResult.javaArgs != null && !integrationResult.javaArgs.isEmpty()) {
+				// Add integration options to the java options
+				project.addRuntimeOptions(integrationResult.javaArgs);
+			}
+			return integrationResult;
+		} finally {
+			System.setProperties(oldProps);
 		}
-		if (integrationResult.javaArgs != null && !integrationResult.javaArgs.isEmpty()) {
-			// Add integration options to the java options
-			project.addRuntimeOptions(integrationResult.javaArgs);
-		}
-		return integrationResult;
 	}
 }

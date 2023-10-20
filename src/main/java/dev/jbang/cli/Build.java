@@ -18,7 +18,7 @@ public class Build extends BaseBuildCommand {
 
 		ProjectBuilder pb = createProjectBuilderForBuild();
 		Project prj = pb.build(scriptMixin.scriptOrFile);
-		prj.codeBuilder(BuildContext.forProject(prj, buildDir)).build();
+		Project.codeBuilder(BuildContext.forProject(prj, buildDir)).build();
 
 		return EXIT_OK;
 	}

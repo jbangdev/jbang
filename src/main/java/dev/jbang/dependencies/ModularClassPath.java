@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 
@@ -31,7 +30,6 @@ public class ModularClassPath {
 	private final List<ArtifactInfo> artifacts;
 
 	private List<String> classPaths;
-	private List<String> modulePaths;
 	private Optional<Boolean> javafx = Optional.empty();
 
 	public ModularClassPath(List<ArtifactInfo> artifacts) {
@@ -40,21 +38,17 @@ public class ModularClassPath {
 
 	public List<String> getClassPaths() {
 		if (classPaths == null) {
-			classPaths = getArtifactPaths(artifacts.stream());
+			classPaths = artifacts
+									.stream()
+									.map(it -> it.getFile().toAbsolutePath().toString())
+									.distinct()
+									.collect(Collectors.toList());
 		}
 		return classPaths;
 	}
 
 	public String getClassPath() {
 		return String.join(CP_SEPARATOR, getClassPaths());
-	}
-
-	private List<String> getArtifactPaths(Stream<ArtifactInfo> artifacts) {
-		return artifacts
-						.map(it -> it.getFile().toAbsolutePath().toString())
-						.map(it -> it.contains(" ") ? '"' + it + '"' : it)
-						.distinct()
-						.collect(Collectors.toList());
 	}
 
 	public String getManifestPath() {
