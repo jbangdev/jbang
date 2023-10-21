@@ -85,7 +85,7 @@ public class TrustedSources {
 			}
 
 			URI parsedTrustedSource;
-			if (trustedSource.startsWith("http://")) {
+			if (trustedSource.startsWith("https://")||trustedSource.startsWith("http://")) {
 				parsedTrustedSource = new URI(trustedSource);
 				if (!url.getScheme().equals(parsedTrustedSource.getScheme())) {
 					continue;
