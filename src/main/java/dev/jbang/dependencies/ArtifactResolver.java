@@ -133,18 +133,18 @@ public class ArtifactResolver implements Closeable {
 		this.downloadSources = builder.downloadSources;
 		final RepositoryListener listener = builder.loggingEnabled ? setupSessionLogging() : null;
 
-		ContextOverrides overrides = ContextOverrides.Builder	.create()
-																.userProperties(userProperties)
-																.offline(builder.offline)
-																.withUserSettings(builder.withUserSettings)
-																.withUserSettingsXmlOverride(builder.settingsXml)
-																.withLocalRepositoryOverride(builder.localFolder)
-																.snapshotUpdatePolicy(builder.updateCache
-																		? ContextOverrides.SnapshotUpdatePolicy.ALWAYS
-																		: null)
-																.repositories(partialRepos)
-																.repositoryListener(listener)
-																.build();
+		ContextOverrides overrides = ContextOverrides	.create()
+														.userProperties(userProperties)
+														.offline(builder.offline)
+														.withUserSettings(builder.withUserSettings)
+														.withUserSettingsXmlOverride(builder.settingsXml)
+														.withLocalRepositoryOverride(builder.localFolder)
+														.snapshotUpdatePolicy(builder.updateCache
+																? ContextOverrides.SnapshotUpdatePolicy.ALWAYS
+																: null)
+														.repositories(partialRepos)
+														.repositoryListener(listener)
+														.build();
 		this.context = Runtimes.INSTANCE.getRuntime().create(overrides);
 	}
 

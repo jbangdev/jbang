@@ -49,8 +49,8 @@ dependencies {
 	implementation "org.slf4j:jcl-over-slf4j:1.7.30"
 	implementation "org.jboss:jandex:2.2.3.Final"
 
-	implementation "eu.maveniverse.maven.mima:context:2.3.5"
-	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.3.5"
+	implementation "eu.maveniverse.maven.mima:context:2.4.0"
+	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.0"
 
 	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.9.0"
 	testImplementation "org.junit.jupiter:junit-jupiter:5.9.0"
