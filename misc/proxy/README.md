@@ -21,17 +21,18 @@ docker-compose run --rm jbang
 You'll now have access to a shell in a container that can only access
 the Internet via the proxy at the URL `tinyproxy:8888`. Environment
 variables have already been set for Linux itself so `curl` will work
-just fine.
+just fine. Likewise `~/.m2/settings.xml` is setup so that Maven will
+honor the proxy settings too.
 
 Setting the proxy options for Java requires a bit more work and doesn't
 always work. One way is to inherit the settings from the OS, like this:
 
 ```
-JAVA_TOOL_OPTIONS="-Djava.net.useSystemProxies=true"
+export JAVA_TOOL_OPTIONS="-Djava.net.useSystemProxies=true"
 ```
 
 The other option is to set it explicitly:
 
 ```
-JAVA_TOOL_OPTIONS="-Dhttp.proxyHost=tinyproxy -Dhttp.proxyPort=8888 -Dhttps.proxyHost=tinyproxy -Dhttps.proxyPort=8888"
+export JAVA_TOOL_OPTIONS="-Dhttp.proxyHost=tinyproxy -Dhttp.proxyPort=8888 -Dhttps.proxyHost=tinyproxy -Dhttps.proxyPort=8888"
 ```
