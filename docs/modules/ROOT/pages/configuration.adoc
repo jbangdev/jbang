@@ -50,5 +50,55 @@ classpath:/jbang.properties
    wrapper.install.dir = .
 ```
 
+== Proxy configuration
 
+If you use proxies there are a few settings to apply to make JBang *fully* work with proxies. Unfortunately Java treats proxy setup a little bit different based on OS and environment.
+
+
+First the proxy settings for bash/zsh scripting part (needed if jbang nor java is not already installed). If you use Windows, OSX or Gnome Linux and have proxy configured it *should* just but if not setting the `http_proxy` and `https_proxy` environment variables will enable JBang scripts to access the proxy. For example:
+
+```bash
+http_proxy=http://proxyhost:8888
+https_proxy=http://proxyhost:8888
+```
+
+Second the proxy settings for Java itself. This is done by setting the `JAVA_TOOL_OPTIONS` environment variable. For systems with proxy setup built in you can use system proxies like this:
+
+```bash
+JAVA_TOOL_OPTIONS="-D-Djava.net.useSystemProxies=true"
+```
+
+if that does not work set it using Java http.proxy properties:
+
+```bash
+export JAVA_TOOL_OPTIONS="-Dhttp.proxyHost=proxyhost -Dhttp.proxyPort=8888 -Dhttps.proxyHost=proxyhost -Dhttps.proxyPort=8888"
+```
+
+Finally JBang uses maven resolver to download dependencies. Maven resolver uses the `settings.xml` file to configure proxies. The `settings.xml` file is usually located in `~/.m2/settings.xml`. For example:
+
+```xml
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                              http://maven.apache.org/xsd/settings-1.0.0.xsd">
+    <proxies>
+        <!-- For HTTP -->
+        <proxy>
+            <id>http-proxy</id>
+            <active>true</active>
+            <protocol>http</protocol>
+            <host>proxyhost</host>
+            <port>8888</port>
+        </proxy>
+        <!-- For HTTPS -->
+        <proxy>
+            <id>https-proxy</id>
+            <active>true</active>
+            <protocol>https</protocol>
+            <host>proxyhost</host>
+            <port>8888</port>
+        </proxy>
+    </proxies>
+</settings>
+```
 

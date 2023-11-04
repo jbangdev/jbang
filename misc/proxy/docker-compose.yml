@@ -8,7 +8,7 @@ services:
       - no-internet
       - internet
     volumes:
-      - ./config:/etc/tinyproxy
+      - ./config/tinyproxy.conf:/etc/tinyproxy/tinyproxy.conf
     restart: unless-stopped
 
   jbang:
@@ -24,6 +24,7 @@ services:
     volumes:
       - ../../build/install/jbang/bin:/jbang/bin:ro
       - ../../itests:/itests:ro
+      - ./config/settings.xml:/root/.m2/settings.xml
     working_dir: /itests
 
 networks:
