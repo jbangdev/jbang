@@ -1,18 +1,18 @@
 open := if os() == "macos" { "open" } else { "xdg-open" }
 
-@default:
-    just --choose
+#@default:
+#    just --choose
 
 # build without tests
 build:
-    gradle spotlessApply installDist -x test
+    ./gradlew spotlessApply installDist -x test
 
 # run tests
 test:
-    gradle test
+    ./gradlew test
 
 preitest := if path_exists('build/install/jbang/bin') != 'true' {
-  'gradle installDist -x test'
+  './gradlew installDist -x test'
 } else {
     ''
 }
