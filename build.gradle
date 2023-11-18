@@ -15,11 +15,65 @@ plugins {
 	id "org.ajoberstar.grgit" version "4.1.1"
 	id "org.sonarqube" version "4.0.0.2929"
 	id 'jacoco'
+	id 'maven-publish'
 }
+
+//remove this to see all the missing tags/parameters.
+javadoc.options.addStringOption('Xdoclint:none', '-quiet')
 
 repositories {
 	mavenCentral()
-	maven { url 'https://jitpack.io' }
+	//maven { url 'https://jitpack.io' }
+}
+
+java {
+	withJavadocJar()
+	withSourcesJar()
+}
+
+publishing {
+	publications {
+		maven(MavenPublication) {
+			groupId = 'dev.jbang'
+			artifactId = 'jbang-cli'
+
+			from components.java
+
+			pom {
+				name = 'JBang CLI'
+				description = 'JBang Command Line Interface'
+				url = 'https://jbang.dev'
+				inceptionYear = '2019'
+				licenses {
+					license {
+						name = 'MIT'
+						url = 'https://github.com/jbangdev/jbang/blob/main/LICENSE'
+					}
+				}
+				developers {
+					developer {
+						id = 'maxandersen'
+						name = 'Max Rydahl Andersen'
+					}
+					developer {
+						id = 'quintesse'
+						name = 'Tako Schotanus'
+					}
+				}
+				scm {
+					connection = 'scm:git:https://github.com/jbangdev/jbang'
+					developerConnection = 'scm:git:https://github.com/jbangdev/jbang'
+					url = 'http://github.com/jbangdev/jbang'
+				}
+			}
+		}
+	}
+
+	repositories {
+		maven {
+			url = layout.buildDirectory.dir('staging-deploy')
+		}
+	}
 }
 
 sourceSets {
@@ -165,6 +219,7 @@ jar {
 			'Main-Class': 'dev.jbang.Main',
 		)
 	}
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 compileJava {
