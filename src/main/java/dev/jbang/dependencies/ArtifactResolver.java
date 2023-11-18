@@ -4,7 +4,6 @@ import static dev.jbang.util.Util.infoMsg;
 
 import java.io.Closeable;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -128,13 +127,13 @@ public class ArtifactResolver implements Closeable {
 		if (builder.repositories != null) {
 			partialRepos = builder.repositories.stream().map(this::toRemoteRepo).collect(Collectors.toList());
 		} else {
-			partialRepos = Collections.singletonList(ContextOverrides.CENTRAL);
+			partialRepos = null;
 		}
 
 		this.downloadSources = builder.downloadSources;
 		final RepositoryListener listener = builder.loggingEnabled ? setupSessionLogging() : null;
 
-		ContextOverrides overrides = ContextOverrides	.create()
+		ContextOverrides.Builder overridesBuilder = ContextOverrides	.create()
 														.userProperties(userProperties)
 														.offline(builder.offline)
 														.withUserSettings(builder.withUserSettings)
@@ -143,11 +142,12 @@ public class ArtifactResolver implements Closeable {
 														.snapshotUpdatePolicy(builder.updateCache
 																? ContextOverrides.SnapshotUpdatePolicy.ALWAYS
 																: null)
-														.repositories(partialRepos)
-														.addRepositoriesOp(ContextOverrides.AddRepositoriesOp.PREPEND)
-														.repositoryListener(listener)
-														.build();
-		this.context = Runtimes.INSTANCE.getRuntime().create(overrides);
+														.repositoryListener(listener);
+
+		if (partialRepos != null) {
+			overridesBuilder.repositories(partialRepos);
+		}
+		this.context = Runtimes.INSTANCE.getRuntime().create(overridesBuilder.build());
 	}
 
 	@Override
