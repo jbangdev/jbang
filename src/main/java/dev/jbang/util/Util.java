@@ -67,7 +67,9 @@ import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
+import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.source.Source;
 
 public class Util {
@@ -93,7 +95,7 @@ public class Util {
 			"^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$");
 
 	private static final Pattern subUrlPattern = Pattern.compile(
-			"^(%?%https?://.+$)|(%?%\\{https?://[^}]+})");
+			"^(%?%https?://.+$)|(%?%\\{[a-z]+:[^}]+})");
 
 	private static boolean verbose;
 	private static boolean quiet;
@@ -1894,10 +1896,22 @@ public class Util {
 			if (txt.startsWith("{") && txt.endsWith("}")) {
 				txt = txt.substring(1, txt.length() - 1);
 			}
-			try {
-				return Matcher.quoteReplacement(Util.downloadAndCacheFile(txt).toString());
-			} catch (IOException e) {
-				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Error substituting remote file: " + txt, e);
+			if (txt.startsWith("http://") || txt.startsWith("https://")) {
+				try {
+					return Matcher.quoteReplacement(Util.downloadAndCacheFile(txt).toString());
+				} catch (IOException e) {
+					throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Error substituting remote file: " + txt,
+							e);
+				}
+			} else if (txt.startsWith("deps:")) {
+				List<String> deps = Arrays.asList(txt.substring(5).split(","));
+				DependencyResolver resolver = new DependencyResolver();
+				resolver.addDependencies(deps);
+				ModularClassPath mcp = resolver.resolve();
+				return mcp.getClassPath();
+			} else {
+				String type = txt.substring(0, txt.indexOf(":"));
+				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Unknown substitution type: " + type);
 			}
 		});
 	}
