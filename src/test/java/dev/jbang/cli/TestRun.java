@@ -2428,6 +2428,32 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
+	void testDepsSubstituteArg() throws Exception {
+		if (Util.isWindows()) {
+			environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "powershell");
+		}
+		String script = examplesTestFolder.resolve("helloworld.java").toString();
+		CaptureResult<Integer> result = checkedRun(null, "run", "--verbose", script,
+				"%{deps:info.picocli:picocli:4.6.3,log4j:log4j:1.2.17}");
+		assertThat(result.err, containsString("Resolving dependencies..."));
+		assertThat(result.err,
+				containsString("info/picocli/picocli/4.6.3/picocli-4.6.3.jar".replace("/", File.separator)));
+		assertThat(result.err, containsString("log4j/log4j/1.2.17/log4j-1.2.17.jar".replace("/", File.separator)));
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	void testUnknownSubstituteArg() throws Exception {
+		if (Util.isWindows()) {
+			environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "powershell");
+		}
+		String script = examplesTestFolder.resolve("helloworld.java").toString();
+		ExitException e = Assertions.assertThrows(ExitException.class,
+				() -> checkedRun(null, "run", "--verbose", script, "%{foo:bar}"));
+	}
+
+	@Test
 	void testHelloWorldGAVWithModulesButNoManifest() throws IOException {
 		environmentVariables.clear("JAVA_HOME");
 		String jar = "org.graalvm.python:python-launcher:23.1.0";

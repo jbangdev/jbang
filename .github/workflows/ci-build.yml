@@ -59,7 +59,7 @@ jobs:
           distribution: temurin
           cache: gradle
       - name: build-gradle
-        run: ./gradlew --no-daemon clean build installDist --build-cache --scan -s
+        run: ./gradlew --no-daemon clean build installDist publish --build-cache --scan -s
       - name: integration-test-non-windows
         if: runner.os != 'Windows'
         run: |
