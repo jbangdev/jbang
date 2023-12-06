@@ -4,12 +4,7 @@ import static dev.jbang.util.Util.infoMsg;
 
 import java.io.Closeable;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.eclipse.aether.AbstractRepositoryListener;
@@ -123,30 +118,34 @@ public class ArtifactResolver implements Closeable {
 			userProperties.put(ConfigurationProperties.CONNECT_TIMEOUT, String.valueOf(builder.timeout));
 		}
 
-		List<RemoteRepository> partialRepos;
+		final List<RemoteRepository> partialRepos; // always have reposes, at least Central if no user defined ones
 		if (builder.repositories != null) {
 			partialRepos = builder.repositories.stream().map(this::toRemoteRepo).collect(Collectors.toList());
 		} else {
-			partialRepos = null;
+			partialRepos = Collections.singletonList(ContextOverrides.CENTRAL);
 		}
 
 		this.downloadSources = builder.downloadSources;
 		final RepositoryListener listener = builder.loggingEnabled ? setupSessionLogging() : null;
 
-		ContextOverrides.Builder overridesBuilder = ContextOverrides	.create()
-														.userProperties(userProperties)
-														.offline(builder.offline)
-														.withUserSettings(builder.withUserSettings)
-														.withUserSettingsXmlOverride(builder.settingsXml)
-														.withLocalRepositoryOverride(builder.localFolder)
-														.snapshotUpdatePolicy(builder.updateCache
-																? ContextOverrides.SnapshotUpdatePolicy.ALWAYS
-																: null)
-														.repositoryListener(listener);
+		ContextOverrides.Builder overridesBuilder = ContextOverrides.create()
+																	.userProperties(userProperties)
+																	.offline(builder.offline)
+																	.withUserSettings(builder.withUserSettings)
+																	.withUserSettingsXmlOverride(builder.settingsXml)
+																	.withLocalRepositoryOverride(builder.localFolder)
+																	.repositories(partialRepos) // set reposes
+																								// explicitly, jbang
+																								// drives
+																	.addRepositoriesOp(
+																			ContextOverrides.AddRepositoriesOp.REPLACE) // ignore
+																														// settings.xml
+																														// reposes
+																	.snapshotUpdatePolicy(builder.updateCache
+																			? ContextOverrides.SnapshotUpdatePolicy.ALWAYS
+																			: null)
+																	.repositoryListener(listener);
 
-		if (partialRepos != null) {
-			overridesBuilder.repositories(partialRepos);
-		}
 		this.context = Runtimes.INSTANCE.getRuntime().create(overridesBuilder.build());
 	}
 
