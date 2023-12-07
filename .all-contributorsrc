@@ -837,6 +837,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "kanha-gupta",
+      "name": "kanha gupta",
+      "avatar_url": "https://avatars.githubusercontent.com/u/92207457?v=4",
+      "profile": "https://github.com/kanha-gupta",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,
