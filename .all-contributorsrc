@@ -801,6 +801,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "mikoskinen",
+      "name": "Mikael Koskinen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/143570?v=4",
+      "profile": "https://mikaelkoskinen.net/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,
