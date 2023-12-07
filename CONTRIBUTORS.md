@@ -1,6 +1,6 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-84-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-85-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 ## Contributors ✨
 
@@ -118,6 +118,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://sourcespy.com"><img src="https://avatars.githubusercontent.com/u/6850153?v=4?s=100" width="100px;" alt="Alex Karezin"/><br /><sub><b>Alex Karezin</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=alexkarezin" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://www.cstamas.org/"><img src="https://avatars.githubusercontent.com/u/45165?v=4?s=100" width="100px;" alt="Tamas Cservenak"/><br /><sub><b>Tamas Cservenak</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=cstamas" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/AObuchow"><img src="https://avatars.githubusercontent.com/u/10300119?v=4?s=100" width="100px;" alt="Andrew O."/><br /><sub><b>Andrew O.</b></sub></a><br /><a href="#security-AObuchow" title="Security">🛡️</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/fmarchioni"><img src="https://avatars.githubusercontent.com/u/1316493?v=4?s=100" width="100px;" alt="Francesco Marchioni"/><br /><sub><b>Francesco Marchioni</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=fmarchioni" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
