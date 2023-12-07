@@ -828,6 +828,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "ritikverma2000",
+      "name": "Ritik Verma",
+      "avatar_url": "https://avatars.githubusercontent.com/u/42388388?v=4",
+      "profile": "https://github.com/ritikverma2000",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,

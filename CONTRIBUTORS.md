@@ -1,6 +1,6 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-89-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-90-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 ## Contributors ✨
 
@@ -125,6 +125,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://mikaelkoskinen.net/"><img src="https://avatars.githubusercontent.com/u/143570?v=4?s=100" width="100px;" alt="Mikael Koskinen"/><br /><sub><b>Mikael Koskinen</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=mikoskinen" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://stackoverflow.com/users/1997376/nicolas-filotto"><img src="https://avatars.githubusercontent.com/u/1618116?v=4?s=100" width="100px;" alt="Nicolas Filotto"/><br /><sub><b>Nicolas Filotto</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=essobedo" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ottlinger"><img src="https://avatars.githubusercontent.com/u/1323134?v=4?s=100" width="100px;" alt="P. Ottlinger"/><br /><sub><b>P. Ottlinger</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=ottlinger" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ritikverma2000"><img src="https://avatars.githubusercontent.com/u/42388388?v=4?s=100" width="100px;" alt="Ritik Verma"/><br /><sub><b>Ritik Verma</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=ritikverma2000" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
