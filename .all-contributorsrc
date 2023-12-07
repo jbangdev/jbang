@@ -765,6 +765,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "cstamas",
+      "name": "Tamas Cservenak",
+      "avatar_url": "https://avatars.githubusercontent.com/u/45165?v=4",
+      "profile": "http://www.cstamas.org/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,
