@@ -774,6 +774,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "AObuchow",
+      "name": "Andrew O.",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10300119?v=4",
+      "profile": "https://github.com/AObuchow",
+      "contributions": [
+        "security"
+      ]
     }
   ],
   "skipCi": true,
