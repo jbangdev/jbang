@@ -340,7 +340,7 @@ public class TestAlias extends BaseTest {
 		String jar = "dummygroup:dummyart:0.1";
 		CommandLine.ParseResult pr = JBang	.getCommandLine()
 											.parseArgs("alias", "add", "--name=aliaswithrepo", "--repos",
-													"http://dummyrepo", jar);
+													"https://dummyrepo", jar);
 		AliasAdd add = (AliasAdd) pr.subcommand().subcommand().commandSpec().userObject();
 		try {
 			add.doCall();
@@ -349,7 +349,7 @@ public class TestAlias extends BaseTest {
 			StringWriter sw = new StringWriter();
 			ex.printStackTrace(new PrintWriter(sw));
 			assertThat(sw.toString(), containsString(
-					"Could not transfer artifact dummygroup:dummyart:pom:0.1 from/to http://dummyrepo"));
+					"Could not transfer artifact dummygroup:dummyart:pom:0.1 from/to https://dummyrepo"));
 		}
 	}
 

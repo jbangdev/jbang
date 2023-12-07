@@ -52,7 +52,7 @@ rm -rf ~/.jbang/cache
 echo Testing with `which jbang`
 
 ## init ##
-assert "jbang init $SCRATCH/test.java"
+assert "jbang --verbose init $SCRATCH/test.java"
 assert_raises "test -f $SCRATCH/test.java" 0
 
 assert "jbang $SCRATCH/test.java" "Hello World"

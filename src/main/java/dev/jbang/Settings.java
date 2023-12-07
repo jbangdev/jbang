@@ -36,15 +36,13 @@ public class Settings {
 	final public static String CONFIG_CACHE_EVICT = "cache-evict";
 	final public static String DEFAULT_CACHE_EVICT = "PT12H";
 
-	public static Path getLocalMavenRepo() {
-		return Paths.get(System	.getenv()
-								.getOrDefault(JBANG_REPO,
-										(String) System	.getProperties()
-														.getOrDefault("maven.repo.local",
-																System.getProperty("user.home")
-																		+ File.separator + ".m2" + File.separator
-																		+ "repository")))
-					.toAbsolutePath();
+	public static Path getJBangLocalMavenRepoOverride() {
+		String jbangRepo = System.getenv().get(JBANG_REPO);
+		if (jbangRepo != null) {
+			return Paths.get(jbangRepo);
+		} else {
+			return null;
+		}
 	}
 
 	public static Path getCacheDependencyFile() {

@@ -1,7 +1,7 @@
 package dev.jbang.dependencies;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
-import static dev.jbang.Settings.getLocalMavenRepo;
+import static dev.jbang.Settings.getJBangLocalMavenRepoOverride;
 import static dev.jbang.util.Util.errorMsg;
 import static dev.jbang.util.Util.infoMsg;
 import static dev.jbang.util.Util.verboseMsg;
@@ -96,17 +96,16 @@ public class DependencyUtil {
 			infoMsg("Resolving dependencies...");
 		}
 
-		try {
-			ArtifactResolver resolver = ArtifactResolver.Builder
-																.create()
-																.repositories(repos)
-																.withUserSettings(true)
-																.localFolder(getLocalMavenRepo())
-																.offline(offline)
-																.forceCacheUpdate(updateCache)
-																.logging(loggingEnabled)
-																.downloadSources(downloadSources)
-																.build();
+		try (ArtifactResolver resolver = ArtifactResolver.Builder
+																	.create()
+																	.repositories(repos)
+																	.withUserSettings(true)
+																	.localFolder(getJBangLocalMavenRepoOverride())
+																	.offline(offline)
+																	.forceCacheUpdate(updateCache)
+																	.logging(loggingEnabled)
+																	.downloadSources(downloadSources)
+																	.build()) {
 			List<ArtifactInfo> artifacts = resolver.resolve(depIds);
 
 			ModularClassPath mcp = new ModularClassPath(artifacts);

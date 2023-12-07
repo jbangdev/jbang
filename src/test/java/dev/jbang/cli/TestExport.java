@@ -23,7 +23,6 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
-import dev.jbang.Settings;
 
 import picocli.CommandLine;
 
@@ -147,7 +146,7 @@ public class TestExport extends BaseTest {
 
 	@Test
 	void testExportMavenPublishWithClasspath() throws Exception {
-		Path outFile = Settings.getLocalMavenRepo();
+		Path outFile = mavenTempDir;
 		CaptureResult result = checkedRun(null, "export", "mavenrepo", "--force",
 				"--group=g.a.v", examplesTestFolder.resolve("classpath_log.java").toString());
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
