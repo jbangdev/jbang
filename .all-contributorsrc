@@ -792,6 +792,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "micmeyer",
+      "name": "Michael Meyer",
+      "avatar_url": "https://avatars.githubusercontent.com/u/245941?v=4",
+      "profile": "https://github.com/micmeyer",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,
