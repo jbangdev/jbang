@@ -53,7 +53,7 @@ deploy:
         url: https://oss.sonatype.org/service/local
         snapshotUrl: https://oss.sonatype.org/content/repositories/snapshots/
         closeRepository: true
-        releaseRepository: false
+        releaseRepository: true
         stagingRepositories:
           - build/staging-deploy
 
