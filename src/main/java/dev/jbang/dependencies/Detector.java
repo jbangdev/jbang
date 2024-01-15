@@ -1,29 +1,20 @@
 package dev.jbang.dependencies;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 
-public class Detector extends kr.motd.maven.os.Detector {
-
-	public Detector() {
-		super();
-	}
-
-	@Override
-	protected void log(String message) {
-
-	}
-
-	@Override
-	protected void logProperty(String name, String value) {
-
-	}
+public class Detector {
 
 	public void detect(Properties properties, List<String> classiferWithLikes) {
-		super.detect(properties, classiferWithLikes);
 
 		// "hack" to expose a property that works with javafx mac classifers
-		String os = properties.getProperty("os.detected.name");
+		String os = properties.getProperty("os.name", "unknown").toLowerCase(Locale.ROOT);
+		if (os.contains("mac")) {
+			os = "osx";
+		} else if (os.contains("win")) {
+			os = "windows";
+		}
 		if (os.equals("osx")) {
 			os = "mac";
 			if ("aarch64".equals(System.getProperty("os.arch"))) {
