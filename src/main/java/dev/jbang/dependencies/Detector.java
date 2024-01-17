@@ -9,7 +9,7 @@ public class Detector {
 	public void detect(Properties properties, List<String> classiferWithLikes) {
 
 		// "hack" to expose a property that works with javafx mac classifers
-		String os = properties.getProperty("os.name", "unknown").toLowerCase(Locale.ROOT);
+		String os = System.getProperty("os.name", "unknown").toLowerCase(Locale.ROOT);
 		if (os.contains("mac")) {
 			os = "osx";
 		} else if (os.contains("win")) {

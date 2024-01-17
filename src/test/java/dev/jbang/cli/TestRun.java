@@ -2110,8 +2110,8 @@ public class TestRun extends BaseTest {
 		} catch (ExitException ex) {
 			StringWriter sw = new StringWriter();
 			ex.printStackTrace(new PrintWriter(sw));
-			assertThat(sw.toString(), containsString(
-					"Could not transfer artifact info.picocli:picocli-codegen:pom:4.6.3 from/to https://dummyrepo"));
+			// message MAY change based on transport used, assert only the minimum
+			assertThat(sw.toString(), containsString("info.picocli:picocli-codegen:pom:4.6.3"));
 		}
 	}
 
