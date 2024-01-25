@@ -51,10 +51,11 @@ public class Edit extends BaseCommand {
 			"--open" }, arity = "0..1", defaultValue = "${JBANG_EDITOR:-${default.edit.open:-}}", fallbackValue = "${JBANG_EDITOR:-${default.edit.open:-}}", description = "Opens editor/IDE on the temporary project.", preprocessor = StrictParameterPreprocessor.class)
 	public Optional<String> editor;
 
-	@CommandLine.Option(names = { "--no-open" })
+	@CommandLine.Option(names = { "--no-open" }, description = "Explicitly prevent JBang from opening an editor/IDE")
 	public boolean noOpen;
 
-	@CommandLine.Option(names = { "-b", "--sandbox" })
+	@CommandLine.Option(names = { "-b",
+			"--sandbox" }, description = "Edit in sandbox mode. Useful when the editor/IDE used has no JBang support")
 	boolean sandbox;
 
 	/**
