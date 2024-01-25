@@ -846,6 +846,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "timfel",
+      "name": "Tim Felgentreff",
+      "avatar_url": "https://avatars.githubusercontent.com/u/46235?v=4",
+      "profile": "https://timfelgentreff.de",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,
