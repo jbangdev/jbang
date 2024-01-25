@@ -48,10 +48,7 @@ public class ImplicitCatalogRef {
 		} else {
 			path = "";
 		}
-		String[] names = parts[0].split("/");
-		if (names.length > 3) {
-			return null;
-		}
+		String[] names = parts[0].split("/", 3);
 		String org = names[0];
 		String repo;
 		if (names.length >= 2 && !names[1].isEmpty()) {
