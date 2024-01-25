@@ -2,7 +2,9 @@ package dev.jbang.catalog;
 
 import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -189,6 +191,8 @@ public class Alias extends CatalogItem {
 		String[] parts = name.split("@");
 		if (parts.length > 2 || parts[0].isEmpty()) {
 			throw new RuntimeException("Invalid alias name '" + name + "'");
+		} else if (parts.length == 1 && (name.endsWith("@"))) {
+			parts = new String[] { parts[0], Catalog.JBANG_DEFAULT_CATALOG };
 		}
 		Alias a2;
 		if (parts.length == 1) {
@@ -196,6 +200,11 @@ public class Alias extends CatalogItem {
 		} else {
 			if (parts[1].isEmpty()) {
 				throw new RuntimeException("Invalid alias name '" + name + "'");
+			}
+			// TODO: not happy I have to check for file existence if starts with /
+			// but how else can we also support dir locations?
+			if (parts[1].startsWith("/") && !Files.exists(Paths.get(parts[1]))) {
+				parts[1] = Catalog.JBANG_DEFAULT_CATALOG + parts[1];
 			}
 			a2 = fromCatalog(parts[1], parts[0]);
 		}

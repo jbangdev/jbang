@@ -41,6 +41,9 @@ public class ImplicitCatalogRef {
 		if (Util.isURL(name)) {
 			return null;
 		}
+		if (name.startsWith("/")) {
+			name = Catalog.JBANG_DEFAULT_CATALOG + name;
+		}
 		String[] parts = name.split("~", 2);
 		String path;
 		if (parts.length == 2) {

@@ -52,9 +52,11 @@ public class CatalogRef extends CatalogItem {
 		if (catalog != null) {
 			catalogRef = catalog.catalogs.get(catalogName);
 		}
-		if (catalogRef == null && Util.isValidPath(catalogName)) {
+		// check if local file matches first.
+		if (catalogRef == null && !catalogName.equals("")
+				&& Util.isValidPath(catalogName)) {
 			Path p = Util.getCwd().resolve(catalogName);
-			if (!p.getFileName().toString().equals(Catalog.JBANG_CATALOG_JSON)) {
+			if (p.getFileName() != null && !p.getFileName().toString().equals(Catalog.JBANG_CATALOG_JSON)) {
 				p = p.resolve(Catalog.JBANG_CATALOG_JSON);
 			}
 			if (Files.isRegularFile(p)) {
