@@ -250,6 +250,7 @@ public class Catalog {
 				Catalog cat = getByRef(ref.catalogRef);
 				result.aliases.putAll(cat.aliases);
 				result.templates.putAll(cat.templates);
+				result.catalogs.putAll(cat.catalogs);
 			} catch (Exception ex) {
 				Util.warnMsg(
 						"Unable to read catalog " + ref.catalogRef + " (referenced from " + catalog.catalogRef + ")");
@@ -301,21 +302,16 @@ public class Catalog {
 		return catalog;
 	}
 
-	// Returns the implicit name for a Catalog if that Catalog was found in
-	// the list of implicit catalogs
-	public static String findImplicitName(Catalog catalog) {
-		Path file = Settings.getUserImplicitCatalogFile();
-		if (Files.isRegularFile(file) && Files.isReadable(file)) {
-			Catalog implicit = get(file);
-			return implicit.catalogs.entrySet()
-									.stream()
-									.filter(e -> catalog.catalogRef	.getOriginalResource()
+	// Looks up a sub-catalog in a given catalog and returns
+	// its name if it was found, otherwise `null`
+	public static String findCatalogName(Catalog catalog, Catalog subCatalog) {
+		return catalog.catalogs	.entrySet()
+								.stream()
+								.filter(e -> subCatalog.catalogRef	.getOriginalResource()
 																	.equals(e.getValue().catalogRef))
-									.map(Map.Entry::getKey)
-									.findAny()
-									.orElse(null);
-		}
-		return null;
+								.map(Map.Entry::getKey)
+								.findAny()
+								.orElse(null);
 	}
 
 	// This returns the built-in Catalog that can be found in the resources

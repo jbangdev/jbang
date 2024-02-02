@@ -385,7 +385,7 @@ class TemplateList extends BaseTemplateCommand {
 	private static TemplateOut getTemplateOut(String catalogName, Catalog catalog, String name,
 			boolean showFiles, boolean showProperties) {
 		dev.jbang.catalog.Template template = catalog.templates.get(name);
-		String catName = catalogName != null ? catalogName : Catalog.findImplicitName(template.catalog);
+		String catName = catalogName != null ? catalogName : Catalog.findCatalogName(catalog, template.catalog);
 		String fullName = catName != null ? name + "@" + Catalog.simplifyName(catName) : name;
 
 		TemplateOut out = new TemplateOut();

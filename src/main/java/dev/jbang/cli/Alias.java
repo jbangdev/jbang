@@ -265,7 +265,7 @@ class AliasList extends BaseAliasCommand {
 
 	private static AliasOut getAliasOut(String catalogName, Catalog catalog, String name) {
 		dev.jbang.catalog.Alias alias = catalog.aliases.get(name);
-		String catName = catalogName != null ? catalogName : Catalog.findImplicitName(alias.catalog);
+		String catName = catalogName != null ? catalogName : Catalog.findCatalogName(catalog, alias.catalog);
 		String fullName = catName != null ? name + "@" + Catalog.simplifyName(catName) : name;
 		String scriptRef = alias.scriptRef;
 		if (!catalog.aliases.containsKey(scriptRef)

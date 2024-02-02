@@ -293,8 +293,10 @@ class CatalogList extends BaseCatalogCommand {
 	}
 
 	private static CatalogRefOut getCatalogRefOut(String catalogName, dev.jbang.catalog.Catalog catalog, String name) {
-		String fullName = catalogName != null ? name + "@" + catalogName : name;
 		CatalogRef ref = catalog.catalogs.get(name);
+		String catName = catalogName != null ? catalogName
+				: dev.jbang.catalog.Catalog.findCatalogName(catalog, ref.catalog);
+		String fullName = catName != null ? name + "@" + dev.jbang.catalog.Catalog.simplifyName(catName) : name;
 
 		CatalogRefOut out = new CatalogRefOut();
 		out.name = name;
