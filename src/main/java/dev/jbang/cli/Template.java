@@ -72,6 +72,10 @@ class TemplateAdd extends BaseTemplateCommand {
 	@CommandLine.Option(names = { "--name" }, description = "A name for the template")
 	String name;
 
+	@CommandLine.Option(names = {
+			"--force" }, description = "Force overwriting of existing template")
+	boolean force;
+
 	@CommandLine.Parameters(paramLabel = "files", index = "0..*", arity = "1..*", description = "Paths or URLs to template files")
 	List<String> fileRefs;
 
@@ -140,10 +144,14 @@ class TemplateAdd extends BaseTemplateCommand {
 																.orElse(new HashMap<>());
 
 		Path catFile = getCatalog(false);
-		if (catFile != null) {
+		if (catFile == null) {
+			catFile = Catalog.getCatalogFile(null);
+		}
+		if (force || !CatalogUtil.hasTemplate(catFile, name)) {
 			CatalogUtil.addTemplate(catFile, name, fileRefsMap, description, propertiesMap);
 		} else {
-			catFile = CatalogUtil.addNearestTemplate(name, fileRefsMap, description, propertiesMap);
+			Util.infoMsg("A template with name '" + name + "' already exists, use '--force' to add anyway.");
+			return EXIT_INVALID_INPUT;
 		}
 		info(String.format("Template '%s' added to '%s'", name, catFile));
 		return EXIT_OK;

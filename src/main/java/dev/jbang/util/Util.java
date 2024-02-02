@@ -1284,6 +1284,18 @@ public class Util {
 		return url;
 	}
 
+	public static String[] extractOrgProject(String url) {
+		String orggprj = url.replaceFirst("^https://github.com/(.*)/blob/(.*)$", "$1/$2");
+		orggprj = orggprj.replaceFirst("^https://raw.githubusercontent.com/(.*)/(.*)$", "$1/$2");
+		orggprj = orggprj.replaceFirst("^https://gitlab.com/(.*)/-/(blob|raw)/(.*)$", "$1/$2");
+		orggprj = orggprj.replaceFirst("^https://bitbucket.org/(.*)/(src|raw)/(.*)$", "$1/$2");
+		if (!orggprj.equals(url)) {
+			return orggprj.split("/", 2);
+		} else {
+			return null;
+		}
+	}
+
 	public static String getStableID(File backingFile) {
 		try {
 			return getStableID(readString(backingFile.toPath()));

@@ -25,6 +25,19 @@ public class CatalogUtil {
 	private static final Pattern validNamePattern = Pattern.compile("[" + validNameChars + "]+");
 
 	/**
+	 * Determines if an alias with the given name exists in the given catalog
+	 *
+	 * @param catalogFile Path to catalog file
+	 * @param name        The name of alias
+	 */
+	public static boolean hasAlias(Path catalogFile, String name) {
+		Path cwd = Util.getCwd();
+		catalogFile = cwd.resolve(catalogFile);
+		Catalog catalog = Catalog.get(catalogFile);
+		return catalog.aliases.containsKey(name);
+	}
+
+	/**
 	 * Adds a new alias to the nearest catalog
 	 * 
 	 * @param name The name of the new alias
@@ -40,6 +53,7 @@ public class CatalogUtil {
 	 * 
 	 * @param catalogFile Path to catalog file
 	 * @param name        The name of the new alias
+	 * @param alias       The alias to add
 	 */
 	public static Alias addAlias(Path catalogFile, String name, Alias alias) {
 		Path cwd = Util.getCwd();
@@ -89,6 +103,19 @@ public class CatalogUtil {
 				Util.warnMsg("Unable to remove alias: " + ex.getMessage());
 			}
 		}
+	}
+
+	/**
+	 * Determines if a template with the given name exists in the given catalog
+	 *
+	 * @param catalogFile Path to catalog file
+	 * @param name        The name of the template
+	 */
+	public static boolean hasTemplate(Path catalogFile, String name) {
+		Path cwd = Util.getCwd();
+		catalogFile = cwd.resolve(catalogFile);
+		Catalog catalog = Catalog.get(catalogFile);
+		return catalog.templates.containsKey(name);
 	}
 
 	/**
@@ -195,6 +222,19 @@ public class CatalogUtil {
 				Util.warnMsg("Unable to remove catalog: " + ex.getMessage());
 			}
 		}
+	}
+
+	/**
+	 * Determines if a catalog ref with the given name exists in the given catalog
+	 *
+	 * @param catalogFile Path to catalog file
+	 * @param name        The name of the catalog ref
+	 */
+	public static boolean hasCatalogRef(Path catalogFile, String name) {
+		Path cwd = Util.getCwd();
+		catalogFile = cwd.resolve(catalogFile);
+		Catalog catalog = Catalog.get(catalogFile);
+		return catalog.catalogs.containsKey(name);
 	}
 
 	/**

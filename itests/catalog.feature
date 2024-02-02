@@ -20,6 +20,12 @@ Scenario: add catalog and remove
 Scenario: add catalog twice with same name
   When command('jbang catalog add --global --name tc jbang-catalog.json')
   Then command('jbang catalog add --global --name tc jbang-catalog.json')
+  Then match err contains "A catalog with name 'tc' already exists, use '--force' to add anyway"
+  Then match exit == 2
+
+Scenario: force add catalog twice with same name
+  When command('jbang catalog add --global --name tc jbang-catalog.json')
+  Then command('jbang catalog add --global --name tc --force jbang-catalog.json')
   Then match exit == 0
 
 Scenario: add catalog twice with different name

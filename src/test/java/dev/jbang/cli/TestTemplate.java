@@ -3,11 +3,7 @@ package dev.jbang.cli;
 import static dev.jbang.util.TestUtil.clearSettingsCaches;
 import static dev.jbang.util.Util.entry;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.aMapWithSize;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -147,6 +143,36 @@ public class TestTemplate extends BaseTest {
 		assertThat(name.fileRefs, aMapWithSize(1));
 		assertThat(name.fileRefs.keySet(), hasItems("{basename}.java"));
 		assertThat(name.fileRefs.values(), hasItems("test.java"));
+	}
+
+	@Test
+	void testAddExisting() throws IOException {
+		Path cwd = Util.getCwd();
+		Path testFile = cwd.resolve("test.java");
+		Files.write(testFile, "// Test file".getBytes());
+		Path testFile2 = cwd.resolve("test2.java");
+		Files.write(testFile2, "// Test file 2".getBytes());
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		int exitCode = JBang.getCommandLine()
+							.execute("template", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
+		assertThat(exitCode, equalTo(BaseCommand.EXIT_OK));
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
+				is(true));
+		Template name = Template.get("name");
+		assertThat(name.fileRefs, aMapWithSize(1));
+		assertThat(name.fileRefs.keySet(), hasItems("{basename}.java"));
+		assertThat(name.fileRefs.values(), hasItems("test.java"));
+		exitCode = JBang.getCommandLine()
+						.execute("template", "add", "-f", cwd.toString(), "--name=name", testFile2.toString());
+		assertThat(exitCode, equalTo(BaseCommand.EXIT_INVALID_INPUT));
+		exitCode = JBang.getCommandLine()
+						.execute("template", "add", "-f", cwd.toString(), "--name=name", "--force",
+								testFile2.toString());
+		assertThat(exitCode, equalTo(BaseCommand.EXIT_OK));
+		name = Template.get("name");
+		assertThat(name.fileRefs, aMapWithSize(1));
+		assertThat(name.fileRefs.keySet(), hasItems("{basename}.java"));
+		assertThat(name.fileRefs.values(), hasItems("test2.java"));
 	}
 
 	@Test

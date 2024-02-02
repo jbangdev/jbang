@@ -66,8 +66,12 @@ class CatalogAdd extends BaseCatalogCommand {
 			"-d" }, description = "A description for the catalog")
 	String description;
 
-	@CommandLine.Option(names = { "--name" }, description = "A name for the alias")
+	@CommandLine.Option(names = { "--name" }, description = "A name for the catalog")
 	String name;
+
+	@CommandLine.Option(names = {
+			"--force" }, description = "Force overwriting of existing catalog")
+	boolean force;
 
 	@CommandLine.Parameters(paramLabel = "urlOrFile", index = "0", description = "A file or URL to a catalog file", arity = "1")
 	String urlOrFile;
@@ -83,10 +87,14 @@ class CatalogAdd extends BaseCatalogCommand {
 		}
 		CatalogRef ref = CatalogRef.createByRefOrImplicit(urlOrFile);
 		Path catFile = getCatalog(false);
-		if (catFile != null) {
+		if (catFile == null) {
+			catFile = dev.jbang.catalog.Catalog.getCatalogFile(null);
+		}
+		if (force || !CatalogUtil.hasCatalogRef(catFile, name)) {
 			CatalogUtil.addCatalogRef(catFile, name, ref.catalogRef, ref.description);
 		} else {
-			catFile = CatalogUtil.addNearestCatalogRef(name, ref.catalogRef, ref.description);
+			Util.infoMsg("A catalog with name '" + name + "' already exists, use '--force' to add anyway.");
+			return EXIT_INVALID_INPUT;
 		}
 		info(String.format("Catalog '%s' added to '%s'", name, catFile));
 		return EXIT_OK;

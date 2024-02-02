@@ -84,6 +84,10 @@ class AliasAdd extends BaseAliasCommand {
 	@CommandLine.Option(names = { "--name" }, description = "A name for the alias")
 	String name;
 
+	@CommandLine.Option(names = {
+			"--force" }, description = "Force overwriting of existing alias")
+	boolean force;
+
 	@CommandLine.Option(names = { "--enable-preview" }, description = "Activate Java preview features")
 	Boolean enablePreviewRequested;
 
@@ -106,7 +110,6 @@ class AliasAdd extends BaseAliasCommand {
 
 		String desc = description != null ? description : prj.getDescription().orElse(null);
 
-		Path catFile = getCatalog(false);
 		dev.jbang.catalog.Alias alias = new dev.jbang.catalog.Alias(scriptMixin.scriptOrFile, desc, userParams,
 				runMixin.javaRuntimeOptions, scriptMixin.sources, scriptMixin.resources,
 				dependencyInfoMixin.getDependencies(),
@@ -117,10 +120,15 @@ class AliasAdd extends BaseAliasCommand {
 				enablePreviewRequested,
 				runMixin.enableAssertions, runMixin.enableSystemAssertions, buildMixin.manifestOptions,
 				createJavaAgents(), null);
-		if (catFile != null) {
+		Path catFile = getCatalog(false);
+		if (catFile == null) {
+			catFile = Catalog.getCatalogFile(null);
+		}
+		if (force || !CatalogUtil.hasAlias(catFile, name)) {
 			CatalogUtil.addAlias(catFile, name, alias);
 		} else {
-			catFile = CatalogUtil.addNearestAlias(name, alias);
+			Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to add anyway.");
+			return EXIT_INVALID_INPUT;
 		}
 		info(String.format("Alias '%s' added to '%s'", name, catFile));
 		return EXIT_OK;
