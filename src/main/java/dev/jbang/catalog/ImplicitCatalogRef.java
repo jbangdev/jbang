@@ -65,7 +65,7 @@ public class ImplicitCatalogRef {
 		return new ImplicitCatalogRef(org, repo, ref, path);
 	}
 
-	public static Optional<String> getImplicitCatalogUrl(String catalogName) {
+	public static Optional<String> resolveImplicitCatalogUrl(String catalogName) {
 		Optional<ImplicitCatalogRef> icr = Optional.ofNullable(parse(catalogName));
 		Optional<String> url = chain(
 				() -> Util.isURL(catalogName) ? tryDownload(catalogName) : Optional.empty(),

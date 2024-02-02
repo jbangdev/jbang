@@ -260,7 +260,8 @@ public class Alias extends CatalogItem {
 	}
 
 	static Catalog findNearestCatalogWithAlias(Path dir, String aliasName) {
-		return Catalog.findNearestCatalogWith(dir, catalog -> catalog.aliases.containsKey(aliasName));
+		return Catalog.findNearestCatalogWith(dir, true, true,
+				catalog -> catalog.aliases.containsKey(aliasName) ? catalog : null);
 	}
 
 	/**

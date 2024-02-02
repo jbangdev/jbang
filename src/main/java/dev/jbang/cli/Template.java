@@ -307,7 +307,7 @@ class TemplateList extends BaseTemplateCommand {
 		} else if (cat != null) {
 			catalog = Catalog.get(cat);
 		} else {
-			catalog = Catalog.getMerged(true);
+			catalog = Catalog.getMerged(false, true);
 		}
 		if (showOrigin) {
 			printTemplatesWithOrigin(out, catalogName, catalog, showFiles, showProperties, formatMixin.format);
@@ -385,12 +385,13 @@ class TemplateList extends BaseTemplateCommand {
 	private static TemplateOut getTemplateOut(String catalogName, Catalog catalog, String name,
 			boolean showFiles, boolean showProperties) {
 		dev.jbang.catalog.Template template = catalog.templates.get(name);
-		String catName = catalogName != null ? catalogName : Catalog.findCatalogName(catalog, template.catalog);
-		String fullName = catName != null ? name + "@" + Catalog.simplifyName(catName) : name;
+		String catName = catalogName != null ? dev.jbang.catalog.Catalog.simplifyName(catalogName)
+				: CatalogUtil.catalogRef(name);
+		String fullName = catalogName != null ? name + "@" + catName : name;
 
 		TemplateOut out = new TemplateOut();
 		out.name = name;
-		out.catalogName = catName != null ? Catalog.simplifyName(catName) : null;
+		out.catalogName = catName;
 		out.fullName = fullName;
 		out.description = template.description;
 		if (showFiles && template.fileRefs != null) {

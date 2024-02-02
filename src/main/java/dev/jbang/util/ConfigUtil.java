@@ -55,13 +55,13 @@ public class ConfigUtil {
 	}
 
 	private static Path findNearestLocalConfig() {
-		return Util.findNearestFileWith(null, Configuration.JBANG_CONFIG_PROPS, p -> true);
+		return Util.findNearestWith(null, Configuration.JBANG_CONFIG_PROPS, p -> p);
 	}
 
 	private static Path findNearestLocalConfigWithKey(Path dir, String key) {
-		return Util.findNearestFileWith(dir, Configuration.JBANG_CONFIG_PROPS, configFile -> {
+		return Util.findNearestWith(dir, Configuration.JBANG_CONFIG_PROPS, configFile -> {
 			Configuration cfg = Configuration.read(configFile);
-			return cfg.containsKey(key);
+			return cfg.containsKey(key) ? configFile : null;
 		});
 	}
 }

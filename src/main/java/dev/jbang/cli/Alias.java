@@ -192,7 +192,7 @@ class AliasList extends BaseAliasCommand {
 		} else if (cat != null) {
 			catalog = Catalog.get(cat);
 		} else {
-			catalog = Catalog.getMerged(true);
+			catalog = Catalog.getMerged(false, true);
 		}
 		if (showOrigin) {
 			printAliasesWithOrigin(out, catalogName, catalog, formatMixin.format);
@@ -265,8 +265,8 @@ class AliasList extends BaseAliasCommand {
 
 	private static AliasOut getAliasOut(String catalogName, Catalog catalog, String name) {
 		dev.jbang.catalog.Alias alias = catalog.aliases.get(name);
-		String catName = catalogName != null ? catalogName : Catalog.findCatalogName(catalog, alias.catalog);
-		String fullName = catName != null ? name + "@" + Catalog.simplifyName(catName) : name;
+		String catName = catalogName != null ? Catalog.simplifyName(catalogName) : CatalogUtil.catalogRef(name);
+		String fullName = catalogName != null ? name + "@" + catName : name;
 		String scriptRef = alias.scriptRef;
 		if (!catalog.aliases.containsKey(scriptRef)
 				&& !Catalog.isValidCatalogReference(scriptRef)) {
@@ -275,7 +275,7 @@ class AliasList extends BaseAliasCommand {
 
 		AliasOut out = new AliasOut();
 		out.name = name;
-		out.catalogName = catName != null ? Catalog.simplifyName(catName) : null;
+		out.catalogName = catName;
 		out.fullName = fullName;
 		out.scriptRef = scriptRef;
 		out.description = alias.description;

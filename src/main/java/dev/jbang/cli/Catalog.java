@@ -73,6 +73,10 @@ class CatalogAdd extends BaseCatalogCommand {
 			"--force" }, description = "Force overwriting of existing catalog")
 	boolean force;
 
+	@CommandLine.Option(names = {
+			"--import" }, description = "Import catalog items into the catalog's scope")
+	Boolean importItems;
+
 	@CommandLine.Parameters(paramLabel = "urlOrFile", index = "0", description = "A file or URL to a catalog file", arity = "1")
 	String urlOrFile;
 
@@ -85,13 +89,13 @@ class CatalogAdd extends BaseCatalogCommand {
 		if (name == null) {
 			name = CatalogUtil.nameFromRef(urlOrFile);
 		}
-		CatalogRef ref = CatalogRef.createByRefOrImplicit(urlOrFile);
+		CatalogRef ref = CatalogRef.get(urlOrFile);
 		Path catFile = getCatalog(false);
 		if (catFile == null) {
 			catFile = dev.jbang.catalog.Catalog.getCatalogFile(null);
 		}
 		if (force || !CatalogUtil.hasCatalogRef(catFile, name)) {
-			CatalogUtil.addCatalogRef(catFile, name, ref.catalogRef, ref.description);
+			CatalogUtil.addCatalogRef(catFile, name, ref.catalogRef, ref.description, importItems);
 		} else {
 			Util.infoMsg("A catalog with name '" + name + "' already exists, use '--force' to add anyway.");
 			return EXIT_INVALID_INPUT;
@@ -107,7 +111,7 @@ class CatalogUpdate extends BaseCatalogCommand {
 	@Override
 	public Integer doCall() {
 		PrintWriter err = spec.commandLine().getErr();
-		Map<String, CatalogRef> cats = dev.jbang.catalog.Catalog.getMerged(true).catalogs;
+		Map<String, CatalogRef> cats = dev.jbang.catalog.Catalog.getMerged(false, true).catalogs;
 		cats
 			.entrySet()
 			.stream()
@@ -151,7 +155,7 @@ class CatalogList extends BaseCatalogCommand {
 			if (cat != null) {
 				catalog = dev.jbang.catalog.Catalog.get(cat);
 			} else {
-				catalog = dev.jbang.catalog.Catalog.getMerged(true);
+				catalog = dev.jbang.catalog.Catalog.getMerged(true, true);
 			}
 			if (showOrigin) {
 				printCatalogsWithOrigin(out, name, catalog, formatMixin.format);
@@ -294,13 +298,13 @@ class CatalogList extends BaseCatalogCommand {
 
 	private static CatalogRefOut getCatalogRefOut(String catalogName, dev.jbang.catalog.Catalog catalog, String name) {
 		CatalogRef ref = catalog.catalogs.get(name);
-		String catName = catalogName != null ? catalogName
-				: dev.jbang.catalog.Catalog.findCatalogName(catalog, ref.catalog);
-		String fullName = catName != null ? name + "@" + dev.jbang.catalog.Catalog.simplifyName(catName) : name;
+		String catName = catalogName != null ? dev.jbang.catalog.Catalog.simplifyName(catalogName)
+				: CatalogUtil.catalogRef(name);
+		String fullName = catalogName != null ? name + "@" + catName : name;
 
 		CatalogRefOut out = new CatalogRefOut();
 		out.name = name;
-		out.catalogName = catalogName;
+		out.catalogName = catName;
 		out.fullName = fullName;
 		out.catalogRef = ref.catalogRef;
 		out.description = ref.description;

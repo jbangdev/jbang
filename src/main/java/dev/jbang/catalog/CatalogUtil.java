@@ -242,14 +242,14 @@ public class CatalogUtil {
 	 *
 	 * @param name The name of the new alias
 	 */
-	public static Path addNearestCatalogRef(String name, String catalogRef, String description) {
+	public static Path addNearestCatalogRef(String name, String catalogRef, String description, Boolean importItems) {
 		Path catalogFile = Catalog.getCatalogFile(null);
-		addCatalogRef(catalogFile, name, catalogRef, description);
+		addCatalogRef(catalogFile, name, catalogRef, description, importItems);
 		return catalogFile;
 	}
 
 	public static CatalogRef addCatalogRef(Path catalogFile, String name, String catalogRef,
-			String description) {
+			String description, Boolean importItems) {
 		Path cwd = Util.getCwd();
 		catalogFile = cwd.resolve(catalogFile);
 		Catalog catalog = Catalog.get(catalogFile);
@@ -259,7 +259,7 @@ public class CatalogUtil {
 				catalogRef = cat.toAbsolutePath().toString();
 			}
 			if (!Util.isAbsoluteRef(catalogRef)) {
-				Optional<String> url = ImplicitCatalogRef.getImplicitCatalogUrl(catalogRef);
+				Optional<String> url = ImplicitCatalogRef.resolveImplicitCatalogUrl(catalogRef);
 				if (url.isPresent()) {
 					catalogRef = url.get();
 				}
@@ -267,7 +267,7 @@ public class CatalogUtil {
 		} catch (InvalidPathException ex) {
 			// Ignore
 		}
-		CatalogRef ref = new CatalogRef(catalogRef, description, catalog);
+		CatalogRef ref = new CatalogRef(catalogRef, description, importItems, catalog);
 		catalog.catalogs.put(name, ref);
 		try {
 			catalog.write();
@@ -323,5 +323,10 @@ public class CatalogUtil {
 
 	public static boolean isValidName(String name) {
 		return validNamePattern.matcher(name).matches();
+	}
+
+	public static String catalogRef(String atName) {
+		String[] parts = atName.split("@", 2);
+		return parts.length == 2 ? parts[1] : null;
 	}
 }
