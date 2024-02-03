@@ -1,6 +1,7 @@
 package dev.jbang.cli;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
+import static dev.jbang.util.Util.freshly;
 import static dev.jbang.util.Util.pathToString;
 import static dev.jbang.util.Util.verboseMsg;
 import static java.lang.System.out;
@@ -180,11 +181,18 @@ public class Edit extends BaseCommand {
 			if (!live) {
 				out.println(projectPathString); // quit(project.getAbsolutePath());
 			} else {
-				watchForChanges(prj, () -> {
-					// TODO only regenerate when dependencies changes.
+				Path orginalFile = prj.getResourceRef().getFile();
+				if (!Files.exists(orginalFile)) {
+					throw new ExitException(EXIT_UNEXPECTED_STATE,
+							"Cannot live edit " + prj.getResourceRef().getOriginalResource());
+				}
+				watchForChanges(orginalFile, () -> {
+					// TODO only regenerate when dependencies or file/resource refs changes.
 					info("Regenerating project.");
 					try {
-						createProjectForLinkedEdit(prj, Collections.emptyList(), true);
+						ProjectBuilder pblive = createProjectBuilder();
+						Project prjlive = pblive.build(scriptMixin.scriptOrFile);
+						createProjectForLinkedEdit(prjlive, Collections.emptyList(), true);
 					} catch (IOException e) {
 						throw new RuntimeException(e);
 					}
@@ -195,13 +203,8 @@ public class Edit extends BaseCommand {
 		return EXIT_OK;
 	}
 
-	private void watchForChanges(Project prj, Callable<Object> action) throws IOException {
+	private void watchForChanges(Path orginalFile, Callable<Object> action) throws IOException {
 		try (final WatchService watchService = FileSystems.getDefault().newWatchService()) {
-			Path orginalFile = prj.getResourceRef().getFile();
-			if (!Files.exists(orginalFile)) {
-				throw new ExitException(EXIT_UNEXPECTED_STATE,
-						"Cannot live edit " + prj.getResourceRef().getOriginalResource());
-			}
 			Path watched = orginalFile.toAbsolutePath().getParent();
 			watched.register(watchService,
 					StandardWatchEventKinds.ENTRY_MODIFY);
@@ -215,12 +218,10 @@ public class Edit extends BaseCommand {
 					verboseMsg("Changed file: " + changed.toString());
 					if (Files.isSameFile(orginalFile, changed)) {
 						try {
-							action.call();
+							freshly(action);
 						} catch (RuntimeException ee) {
 							warn("Error when re-generating project. Ignoring it, but state might be undefined: "
 									+ ee.getMessage());
-						} catch (IOException ioe) {
-							throw ioe;
 						} catch (Exception e) {
 							throw new ExitException(EXIT_GENERIC_ERROR, "Exception when re-generating project. Exiting",
 									e);
@@ -383,7 +384,7 @@ public class Edit extends BaseCommand {
 	private static void showStartingMsg(String ed, boolean showConfig) {
 		String msg = "Starting '" + ed + "'.";
 		if (showConfig) {
-			msg += "If you want to make this the default, run 'jbang config set edit.open " + ed + "'";
+			msg += " If you want to make this the default, run 'jbang config set edit.open " + ed + "'";
 		}
 		Util.infoMsg(msg);
 	}
