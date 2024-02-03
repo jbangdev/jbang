@@ -404,6 +404,22 @@ public class TestUtilDownloads extends BaseTest {
 		});
 	}
 
+	@Test
+	void testReqUrlWithParams(WireMockRuntimeInfo wmri) throws IOException {
+		stubFor(get(urlEqualTo("/test.txt?path=foo/bar"))
+															.andMatching(withoutHeader("If-None-Match"))
+															.andMatching(withoutHeader("If-Modified-Since"))
+															.willReturn(aResponse()
+																					.withHeader("Content-Type",
+																							"text/plain")
+																					.withBody("test")));
+
+		String url = wmri.getHttpBaseUrl() + "/test.txt?path=foo/bar";
+		Path file = Util.downloadAndCacheFile(url);
+		assertThat(file.toFile(), anExistingFile());
+		assertThat(Util.readString(file), is("test"));
+	}
+
 	private static ValueMatcher<Request> withoutHeader(String hdr) {
 		return req -> MatchResult.of(!req.containsHeader(hdr));
 	}

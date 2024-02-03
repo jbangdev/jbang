@@ -1066,7 +1066,12 @@ public class Util {
 				if (isBlankString(fileName)) {
 					// extracts file name from URL if nothing found
 					int p = fileURL.indexOf("?");
-					fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1, p > 0 ? p : fileURL.length());
+					// Strip parameters from the URL (if any)
+					String simpleUrl = (p > 0) ? fileURL.substring(0, p) : fileURL;
+					while (simpleUrl.endsWith("/")) {
+						simpleUrl = simpleUrl.substring(0, simpleUrl.length() - 1);
+					}
+					fileName = simpleUrl.substring(simpleUrl.lastIndexOf("/") + 1);
 				}
 			}
 		} else {
