@@ -855,6 +855,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "tarilabs",
+      "name": "Matteo Mortari",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1699252?v=4",
+      "profile": "https://youtube.com/@MatteoMortari",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,
