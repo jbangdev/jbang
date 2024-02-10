@@ -182,7 +182,7 @@ public interface JdkProvider {
 	 * <code>null</code>.
 	 *
 	 * @param id The id to look for
-	 * @return A code>Jdk</code> object or <code>null</code>
+	 * @return A <code>Jdk</code> object or <code>null</code>
 	 */
 	@Nullable
 	Jdk getJdkById(@Nonnull String id);
@@ -193,7 +193,7 @@ public interface JdkProvider {
 	 * <code>null</code>.
 	 * 
 	 * @param jdkPath The path to look for
-	 * @return A code>Jdk</code> object or <code>null</code>
+	 * @return A <code>Jdk</code> object or <code>null</code>
 	 */
 	@Nullable
 	Jdk getJdkByPath(@Nonnull Path jdkPath);

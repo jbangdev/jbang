@@ -127,7 +127,7 @@ public class UnpackUtil {
 				new GzipCompressorInputStream(
 						new FileInputStream(targz.toFile())))) {
 			TarArchiveEntry targzEntry;
-			while ((targzEntry = tarArchiveInputStream.getNextTarEntry()) != null) {
+			while ((targzEntry = tarArchiveInputStream.getNextEntry()) != null) {
 				Path entry = Paths.get(targzEntry.getName()).normalize();
 				if (stripRootFolder) {
 					if (entry.getNameCount() == 1) {
