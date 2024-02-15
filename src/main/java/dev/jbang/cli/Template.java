@@ -287,6 +287,8 @@ class TemplateList extends BaseTemplateCommand {
 	@CommandLine.Mixin
 	FormatMixin formatMixin;
 
+	private static final int INDENT_SIZE = 3;
+
 	@Override
 	public Integer doCall() {
 		PrintStream out = System.out;
@@ -351,7 +353,7 @@ class TemplateList extends BaseTemplateCommand {
 		} else {
 			catalogs.forEach(cat -> {
 				out.println(ConsoleOutput.bold(cat.resourceRef));
-				cat.templates.forEach(t -> printTemplate(out, t, 3));
+				cat.templates.forEach(t -> printTemplate(out, t, 1));
 			});
 		}
 	}
@@ -403,27 +405,29 @@ class TemplateList extends BaseTemplateCommand {
 	}
 
 	private static void printTemplate(PrintStream out, TemplateOut template, int indent) {
+		String prefix1 = Util.repeat(" ", indent * INDENT_SIZE);
+		String prefix2 = Util.repeat(" ", (indent + 1) * INDENT_SIZE);
+		String prefix3 = Util.repeat(" ", (indent + 2) * INDENT_SIZE);
 		out.print(Util.repeat(" ", indent));
+		out.println(prefix1 + ConsoleOutput.yellow(template.fullName));
 		if (template.description != null) {
-			out.println(ConsoleOutput.yellow(template.fullName) + " = " + template.description);
-		} else {
-			out.println(ConsoleOutput.yellow(template.fullName) + " = ");
+			out.println(prefix2 + template.description);
 		}
 		if (template.fileRefs != null) {
+			out.println(prefix2 + "Files:");
 			for (FileRefOut fro : template.fileRefs) {
-				out.print(Util.repeat(" ", indent));
 				if (fro.resolved.equals(fro.destination)) {
-					out.println("   " + fro.resolved);
+					out.println(prefix3 + fro.resolved);
 				} else {
-					out.println("   " + fro.destination + " (from " + fro.resolved + ")");
+					out.println(prefix3 + fro.destination + " (from " + fro.resolved + ")");
 				}
 			}
 		}
 		if (template.properties != null) {
+			out.println(prefix2 + "Properties:");
 			for (Map.Entry<String, TemplateProperty> entry : template.properties.entrySet()) {
-				out.print(Util.repeat(" ", indent));
 				StringBuilder propertyLineBuilder = new StringBuilder()
-																		.append(Util.repeat(" ", indent + 4))
+																		.append(prefix3)
 																		.append(ConsoleOutput.cyan(entry.getKey()))
 																		.append(" = ");
 				if (entry.getValue().getDescription() != null) {

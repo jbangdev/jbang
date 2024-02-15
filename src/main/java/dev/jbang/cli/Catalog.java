@@ -132,6 +132,8 @@ class CatalogList extends BaseCatalogCommand {
 	@CommandLine.Mixin
 	FormatMixin formatMixin;
 
+	private static final int INDENT_SIZE = 3;
+
 	@Override
 	public Integer doCall() {
 		PrintStream out = System.out;
@@ -237,7 +239,7 @@ class CatalogList extends BaseCatalogCommand {
 		} else {
 			catalogs.forEach(cat -> {
 				out.println(ConsoleOutput.bold(cat.resourceRef));
-				cat.catalogs.forEach(c -> printCatalogRef(out, c, 3));
+				cat.catalogs.forEach(c -> printCatalogRef(out, c, 1));
 			});
 		}
 	}
@@ -297,14 +299,13 @@ class CatalogList extends BaseCatalogCommand {
 	}
 
 	private static void printCatalogRef(PrintStream out, CatalogRefOut catalogRef, int indent) {
-		out.print(Util.repeat(" ", indent));
+		String prefix1 = Util.repeat(" ", indent * INDENT_SIZE);
+		String prefix2 = Util.repeat(" ", (indent + 1) * INDENT_SIZE);
+		out.println(prefix1 + ConsoleOutput.yellow(catalogRef.fullName));
 		if (catalogRef.description != null) {
-			out.println(ConsoleOutput.yellow(catalogRef.fullName) + " = " + catalogRef.description);
-			out.println(Util.repeat(" ", catalogRef.fullName.length() + indent) + "   ("
-					+ catalogRef.catalogRef + ")");
-		} else {
-			out.println(ConsoleOutput.yellow(catalogRef.fullName) + " = " + catalogRef.catalogRef);
+			out.println(prefix2 + catalogRef.description);
 		}
+		out.println(prefix2 + catalogRef.catalogRef);
 	}
 }
 
