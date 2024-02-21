@@ -54,7 +54,9 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import dev.jbang.BaseTest;
 import dev.jbang.Cache;
 import dev.jbang.Settings;
+import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
+import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.net.JdkManager;
 import dev.jbang.net.TrustedSources;
 import dev.jbang.source.BuildContext;
@@ -2471,5 +2473,47 @@ public class TestRun extends BaseTest {
 				() -> run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate());
 
 		assertThat(e.getMessage(), startsWith("no main class"));
+	}
+
+	@Test
+	void testAliasArguments() throws IOException {
+		File f = examplesTestFolder.resolve("echo.java").toFile();
+		List<String> args = Arrays.asList("foo", "bar");
+		Alias alias = new Alias(f.toString(), null, args, null, null, null, null, null, null, null, null, null, null,
+				null, null, null, null, null,
+				null, null, null, null, null, null, null, null);
+		CatalogUtil.addNearestAlias("echo", alias);
+
+		CommandLine.ParseResult pr = JBang	.getCommandLine()
+											.parseArgs("run", "echo", "baz");
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project prj = pb.build("echo");
+
+		BuildContext ctx = BuildContext.forProject(prj, null);
+		CmdGeneratorBuilder genb = Project.codeBuilder(ctx).build();
+
+		String cmdline = run.updateGeneratorForRun(genb).build().generate();
+
+		assertThat(cmdline, endsWith("echo foo bar baz"));
+	}
+
+	@Test
+	void testCatalogAliasArguments() throws IOException {
+		File f = examplesTestFolder.resolve("jbang-catalog.json").toFile();
+		CommandLine.ParseResult pr = JBang	.getCommandLine()
+											.parseArgs("run", "--catalog", f.getAbsolutePath(), "echo", "baz");
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project prj = pb.build("echo");
+
+		BuildContext ctx = BuildContext.forProject(prj, null);
+		CmdGeneratorBuilder genb = Project.codeBuilder(ctx).build();
+
+		String cmdline = run.updateGeneratorForRun(genb).build().generate();
+
+		assertThat(cmdline, endsWith("echo baz"));
 	}
 }
