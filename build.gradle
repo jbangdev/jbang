@@ -97,7 +97,7 @@ dependencies {
 	implementation 'org.codehaus.plexus:plexus-java:1.2.0'
 	implementation 'com.google.code.gson:gson:2.10.1'
 	implementation 'org.jsoup:jsoup:1.17.1'
-	implementation 'org.codejive:java-properties:0.0.5'
+	implementation 'org.codejive:java-properties:0.0.7'
 
 	implementation "org.slf4j:slf4j-nop:1.7.30"
 	implementation "org.slf4j:jcl-over-slf4j:1.7.30"
