@@ -1,5 +1,6 @@
 package dev.jbang.cli;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -33,4 +34,32 @@ public class DependencyInfoMixin {
 		return properties;
 	}
 
+	public List<String> opts() {
+		List<String> opts = new ArrayList<>();
+		if (properties != null) {
+			for (Map.Entry<String, String> e : properties.entrySet()) {
+				opts.add("-D");
+				opts.add(e.getKey() + "=" + e.getValue());
+			}
+		}
+		if (dependencies != null) {
+			for (String d : dependencies) {
+				opts.add("--deps");
+				opts.add(d);
+			}
+		}
+		if (repositories != null) {
+			for (String r : repositories) {
+				opts.add("--repos");
+				opts.add(r);
+			}
+		}
+		if (classpaths != null) {
+			for (String c : classpaths) {
+				opts.add("--cp");
+				opts.add(c);
+			}
+		}
+		return opts;
+	}
 }

@@ -158,12 +158,15 @@ public class JBang extends BaseCommand {
 			if (argSpec.isOption()
 					&& argSpec.defaultValue() == null
 					&& Util.isNullOrEmptyString(((CommandLine.Model.OptionSpec) argSpec).fallbackValue())) {
-				// First we check the full name, eg "app.list.format"
 				String key = argSpecKey(argSpec);
-				val = getValue(key);
-				if (val == null) {
-					// Finally we check the option name only, eg "format"
-					val = getValue(argOptName(argSpec));
+				// We skip all "app install" options
+				if (!key.startsWith("app.install.")) {
+					// First we check the full name, eg "app.list.format"
+					val = getValue(key);
+					if (val == null) {
+						// Finally we check the option name only, eg "format"
+						val = getValue(argOptName(argSpec));
+					}
 				}
 			}
 			return val;

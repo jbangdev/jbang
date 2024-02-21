@@ -1,5 +1,6 @@
 package dev.jbang.cli;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import dev.jbang.net.JdkManager;
@@ -16,5 +17,16 @@ public class JdkProvidersMixin {
 		if (jdkProviders != null && !jdkProviders.isEmpty()) {
 			JdkManager.initProvidersByName(jdkProviders);
 		}
+	}
+
+	public List<String> opts() {
+		List<String> opts = new ArrayList<>();
+		if (jdkProviders != null) {
+			for (String p : jdkProviders) {
+				opts.add("--jdk-providers");
+				opts.add(p);
+			}
+		}
+		return opts;
 	}
 }
