@@ -402,10 +402,14 @@ public class Catalog {
 	}
 
 	public static String simplifyName(String catalog) {
-		if (catalog.endsWith("/" + JBANG_CATALOG_REPO)) {
-			return catalog.substring(0, catalog.length() - 14);
+		if (!Util.isURL(catalog) && !isValidCatalogReference(catalog)) {
+			if (catalog.endsWith("/" + JBANG_CATALOG_REPO)) {
+				return catalog.substring(0, catalog.length() - 14);
+			} else {
+				return catalog.replace("/" + JBANG_CATALOG_REPO + "~", "~");
+			}
 		} else {
-			return catalog.replace("/" + JBANG_CATALOG_REPO + "~", "~");
+			return catalog;
 		}
 	}
 
