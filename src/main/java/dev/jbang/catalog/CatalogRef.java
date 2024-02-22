@@ -1,5 +1,6 @@
 package dev.jbang.catalog;
 
+import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
 import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 
 import java.nio.file.Files;
@@ -46,7 +47,24 @@ public class CatalogRef extends CatalogItem {
 		}
 	}
 
-	static CatalogRef get(String catalogName) {
+	public static CatalogRef get(String catalogRefName) {
+		String[] parts = catalogRefName.split("@");
+		if (parts.length > 2 || parts[0].isEmpty()) {
+			throw new RuntimeException("Invalid catalog ref name '" + catalogRefName + "'");
+		}
+		CatalogRef catalogRef;
+		if (parts.length == 1) {
+			catalogRef = getLocal(catalogRefName);
+		} else {
+			if (parts[1].isEmpty()) {
+				throw new RuntimeException("Invalid catalog ref name '" + catalogRefName + "'");
+			}
+			catalogRef = fromCatalog(parts[1], parts[0]);
+		}
+		return catalogRef;
+	}
+
+	private static CatalogRef getLocal(String catalogName) {
 		CatalogRef catalogRef = null;
 		Catalog catalog = findNearestCatalogWithCatalogRef(Util.getCwd(), catalogName);
 		if (catalog != null) {
@@ -70,6 +88,22 @@ public class CatalogRef extends CatalogItem {
 						url.get(),
 						implicitCatalog.description);
 			}
+		}
+		return catalogRef;
+	}
+
+	/**
+	 * Returns the given CatalogRef from the given registered Catalog
+	 *
+	 * @param catalogName    The name of a registered Catalog
+	 * @param catalogRefName The name of a CatalogRef
+	 * @return A Template object
+	 */
+	private static CatalogRef fromCatalog(String catalogName, String catalogRefName) {
+		Catalog catalog = Catalog.getByName(catalogName);
+		CatalogRef catalogRef = catalog.catalogs.get(catalogRefName);
+		if (catalogRef == null) {
+			throw new ExitException(EXIT_INVALID_INPUT, "No catalog ref found with name '" + catalogRefName + "'");
 		}
 		return catalogRef;
 	}
