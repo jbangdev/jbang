@@ -1,6 +1,7 @@
 package dev.jbang.cli;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import dev.jbang.source.Source;
@@ -42,5 +43,30 @@ public class ScriptMixin {
 		if (scriptRequired) {
 			validate();
 		}
+	}
+
+	public List<String> opts() {
+		List<String> opts = new ArrayList<>();
+		if (sources != null) {
+			for (String s : sources) {
+				opts.add("--sources");
+				opts.add(s);
+			}
+		}
+		if (resources != null) {
+			for (String r : resources) {
+				opts.add("--files");
+				opts.add(r);
+			}
+		}
+		if (forceType != null) {
+			opts.add("--source-type");
+			opts.add(forceType.toString());
+		}
+		if (catalog != null) {
+			opts.add("--catalog");
+			opts.add(catalog.getAbsolutePath());
+		}
+		return opts;
 	}
 }

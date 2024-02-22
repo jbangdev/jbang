@@ -1,5 +1,6 @@
 package dev.jbang.cli;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -31,4 +32,33 @@ public class BuildMixin {
 
 	@CommandLine.Option(names = { "--manifest" }, parameterConsumer = KeyValueConsumer.class)
 	public Map<String, String> manifestOptions;
+
+	public List<String> opts() {
+		List<String> opts = new ArrayList<>();
+		if (javaVersion != null) {
+			opts.add("--java");
+			opts.add(javaVersion);
+		}
+		if (main != null) {
+			opts.add("--main");
+			opts.add(main);
+		}
+		if (module != null) {
+			opts.add("--module");
+			opts.add(module);
+		}
+		if (compileOptions != null) {
+			for (String c : compileOptions) {
+				opts.add("-C");
+				opts.add(c);
+			}
+		}
+		if (manifestOptions != null) {
+			for (Map.Entry<String, String> e : manifestOptions.entrySet()) {
+				opts.add("--manifest");
+				opts.add(e.getKey() + "=" + e.getValue());
+			}
+		}
+		return opts;
+	}
 }

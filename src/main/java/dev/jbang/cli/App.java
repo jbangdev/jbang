@@ -7,10 +7,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.PosixFilePermission;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -55,24 +52,42 @@ class AppInstall extends BaseCommand {
 	private static final String jbangUrl = "https://www.jbang.dev/releases/latest/download/jbang.zip";
 
 	@CommandLine.Option(names = {
-			"--native" }, description = "Enable native build/run")
-	boolean benative;
-
-	@CommandLine.Option(names = {
 			"--force" }, description = "Force re-installation")
 	boolean force;
 
 	@CommandLine.Option(names = { "--name" }, description = "A name for the command")
 	String name;
 
-	@CommandLine.Parameters(paramLabel = "scriptRef", description = "A file or URL to a Java code file or an alias")
-	String scriptRef;
+	@CommandLine.Mixin
+	ScriptMixin scriptMixin;
+
+	@CommandLine.Mixin
+	BuildMixin buildMixin;
+
+	@CommandLine.Mixin
+	DependencyInfoMixin dependencyInfoMixin;
+
+	@CommandLine.Mixin
+	NativeMixin nativeMixin;
+
+	@CommandLine.Mixin
+	JdkProvidersMixin jdkProvidersMixin;
+
+	@CommandLine.Mixin
+	RunMixin runMixin;
+
+	@CommandLine.Option(names = { "--enable-preview" }, description = "Activate Java preview features")
+	Boolean enablePreviewRequested;
+
+	@CommandLine.Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
+	public List<String> userParams = new ArrayList<>();
 
 	@Override
 	public Integer doCall() {
+		scriptMixin.validate();
 		boolean installed = false;
 		try {
-			if (scriptRef.equals("jbang")) {
+			if (scriptMixin.scriptOrFile.equals("jbang")) {
 				if (name != null && !"jbang".equals(name)) {
 					throw new IllegalArgumentException(
 							"It's not possible to install jbang with a different name");
@@ -85,7 +100,8 @@ class AppInstall extends BaseCommand {
 				if (name != null && !CatalogUtil.isValidName(name)) {
 					throw new IllegalArgumentException("Not a valid command name: '" + name + "'");
 				}
-				installed = install(name, scriptRef, force, benative);
+				List<String> runOpts = collectRunOptions();
+				installed = install(name, scriptMixin.scriptOrFile, force, runOpts, userParams);
 			}
 			if (installed) {
 				if (AppSetup.needsSetup()) {
@@ -98,7 +114,22 @@ class AppInstall extends BaseCommand {
 		return EXIT_OK;
 	}
 
-	public static boolean install(String name, String scriptRef, boolean force, boolean benative) throws IOException {
+	private List<String> collectRunOptions() {
+		List<String> opts = new ArrayList<>();
+		opts.addAll(scriptMixin.opts());
+		opts.addAll(buildMixin.opts());
+		opts.addAll(dependencyInfoMixin.opts());
+		opts.addAll(nativeMixin.opts());
+		opts.addAll(jdkProvidersMixin.opts());
+		opts.addAll(runMixin.opts());
+		if (Boolean.TRUE.equals(enablePreviewRequested)) {
+			opts.add("--enable-preview");
+		}
+		return opts;
+	}
+
+	public static boolean install(String name, String scriptRef, boolean force, List<String> runOpts,
+			List<String> runArgs) throws IOException {
 		Path binDir = Settings.getConfigBinDir();
 		if (!force && name != null && existScripts(binDir, name)) {
 			Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
@@ -118,7 +149,7 @@ class AppInstall extends BaseCommand {
 			scriptRef = prj.getResourceRef().getFile().toAbsolutePath().toString();
 		}
 		prj.codeBuilder().build();
-		installScripts(name, scriptRef, benative);
+		installScripts(name, scriptRef, runOpts, runArgs);
 		Util.infoMsg("Command installed: " + name);
 		return true;
 	}
@@ -128,27 +159,29 @@ class AppInstall extends BaseCommand {
 				|| Files.exists(binDir.resolve(name + ".ps1"));
 	}
 
-	private static void installScripts(String name, String scriptRef, boolean benative) throws IOException {
+	private static void installScripts(String name, String scriptRef, List<String> runOpts, List<String> runArgs)
+			throws IOException {
 		Path binDir = Settings.getConfigBinDir();
 		binDir.toFile().mkdirs();
 		if (Util.isWindows()) {
-			installCmdScript(binDir.resolve(name + ".cmd"), scriptRef, benative);
-			installPSScript(binDir.resolve(name + ".ps1"), scriptRef, benative);
+			installCmdScript(binDir.resolve(name + ".cmd"), scriptRef, runOpts, runArgs);
+			installPSScript(binDir.resolve(name + ".ps1"), scriptRef, runOpts, runArgs);
 			// Script references on Linux/Mac should never contain backslashes
 			String nixRef = scriptRef.replace('\\', '/');
-			installShellScript(binDir.resolve(name), nixRef, benative);
+			installShellScript(binDir.resolve(name), nixRef, runOpts, runArgs);
 		} else {
-			installShellScript(binDir.resolve(name), scriptRef, benative);
+			installShellScript(binDir.resolve(name), scriptRef, runOpts, runArgs);
 		}
 	}
 
-	private static void installShellScript(Path file, String scriptRef, boolean benative) throws IOException {
-		CommandBuffer cb;
-		if (benative) {
-			cb = CommandBuffer.of("exec", "jbang", "run", "--native", scriptRef);
-		} else {
-			cb = CommandBuffer.of("exec", "jbang", "run", scriptRef);
-		}
+	private static void installShellScript(Path file, String scriptRef, List<String> runOpts, List<String> runArgs)
+			throws IOException {
+		List<String> cmd = new ArrayList<>();
+		cmd.addAll(Arrays.asList("exec", "jbang", "run"));
+		cmd.addAll(runOpts);
+		cmd.add(scriptRef);
+		cmd.addAll(runArgs);
+		CommandBuffer cb = CommandBuffer.of(cmd);
 		List<String> lines = Arrays.asList("#!/bin/sh", cb.asCommandLine(Util.Shell.bash) + " \"$@\"");
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 		if (!Util.isWindows()) {
@@ -168,24 +201,26 @@ class AppInstall extends BaseCommand {
 		}
 	}
 
-	private static void installCmdScript(Path file, String scriptRef, boolean benative) throws IOException {
-		CommandBuffer cb;
-		if (benative) {
-			cb = CommandBuffer.of("jbang", "run", "--native", scriptRef);
-		} else {
-			cb = CommandBuffer.of("jbang", "run", scriptRef);
-		}
+	private static void installCmdScript(Path file, String scriptRef, List<String> runOpts, List<String> runArgs)
+			throws IOException {
+		List<String> cmd = new ArrayList<>();
+		cmd.addAll(Arrays.asList("jbang", "run"));
+		cmd.addAll(runOpts);
+		cmd.add(scriptRef);
+		cmd.addAll(runArgs);
+		CommandBuffer cb = CommandBuffer.of(cmd);
 		List<String> lines = Arrays.asList("@echo off", cb.asCommandLine(Util.Shell.cmd) + " %*");
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 	}
 
-	private static void installPSScript(Path file, String scriptRef, boolean benative) throws IOException {
-		CommandBuffer cb;
-		if (benative) {
-			cb = CommandBuffer.of("jbang", "run", "--native", scriptRef);
-		} else {
-			cb = CommandBuffer.of("jbang", "run", scriptRef);
-		}
+	private static void installPSScript(Path file, String scriptRef, List<String> runOpts, List<String> runArgs)
+			throws IOException {
+		List<String> cmd = new ArrayList<>();
+		cmd.addAll(Arrays.asList("jbang", "run"));
+		cmd.addAll(runOpts);
+		cmd.add(scriptRef);
+		cmd.addAll(runArgs);
+		CommandBuffer cb = CommandBuffer.of(cmd);
 		List<String> lines = Collections.singletonList(cb.asCommandLine(Util.Shell.powershell) + " @args");
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 	}
