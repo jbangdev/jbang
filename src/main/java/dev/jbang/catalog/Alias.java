@@ -186,8 +186,8 @@ public class Alias extends CatalogItem {
 		if (names.contains(name)) {
 			throw new RuntimeException("Encountered alias loop on '" + name + "'");
 		}
-		String[] parts = name.split("@");
-		if (parts.length > 2 || parts[0].isEmpty()) {
+		String[] parts = name.split("@", 2);
+		if (parts[0].isEmpty()) {
 			throw new RuntimeException("Invalid alias name '" + name + "'");
 		}
 		Alias a2;

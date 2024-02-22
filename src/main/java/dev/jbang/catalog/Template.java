@@ -25,11 +25,11 @@ public class Template extends CatalogItem {
 	}
 
 	public static Template get(String templateName) {
-		String[] parts = templateName.split("@");
-		if (parts.length > 2 || parts[0].isEmpty()) {
+		String[] parts = templateName.split("@", 2);
+		if (parts[0].isEmpty()) {
 			throw new RuntimeException("Invalid template name '" + templateName + "'");
 		}
-		Template template = null;
+		Template template;
 		if (parts.length == 1) {
 			template = getLocal(templateName);
 		} else {
@@ -44,8 +44,8 @@ public class Template extends CatalogItem {
 	/**
 	 * Returns the given Template from the local file system
 	 *
-	 * @param templateName The name of an Template
-	 * @return An Template object
+	 * @param templateName The name of a Template
+	 * @return A Template object
 	 */
 	private static Template getLocal(String templateName) {
 		Catalog catalog = findNearestCatalogWithTemplate(Util.getCwd(), templateName);
@@ -63,8 +63,8 @@ public class Template extends CatalogItem {
 	 * Returns the given Template from the given registered Catalog
 	 *
 	 * @param catalogName  The name of a registered Catalog
-	 * @param templateName The name of an Template
-	 * @return An Template object
+	 * @param templateName The name of a Template
+	 * @return A Template object
 	 */
 	private static Template fromCatalog(String catalogName, String templateName) {
 		Catalog catalog = Catalog.getByName(catalogName);

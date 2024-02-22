@@ -402,10 +402,14 @@ public class Catalog {
 	}
 
 	public static String simplifyName(String catalog) {
-		if (catalog.endsWith("/" + JBANG_CATALOG_REPO)) {
-			return catalog.substring(0, catalog.length() - 14);
+		if (!Util.isURL(catalog) && !isValidCatalogReference(catalog)) {
+			if (catalog.endsWith("/" + JBANG_CATALOG_REPO)) {
+				return catalog.substring(0, catalog.length() - 14);
+			} else {
+				return catalog.replace("/" + JBANG_CATALOG_REPO + "~", "~");
+			}
 		} else {
-			return catalog.replace("/" + JBANG_CATALOG_REPO + "~", "~");
+			return catalog;
 		}
 	}
 
@@ -415,10 +419,18 @@ public class Catalog {
 
 	public static boolean isValidCatalogReference(String name) {
 		String[] parts = name.split("@");
-		if (parts.length != 2 || parts[0].isEmpty() || parts[1].isEmpty()) {
+		if (parts.length < 2) {
 			return false;
 		}
-		return isValidName(parts[0]);
+		for (String p : parts) {
+			if (p.isEmpty())
+				return false;
+		}
+		for (int i = 0; i < parts.length - 1; i++) {
+			if (!isValidName(parts[i]))
+				return false;
+		}
+		return true;
 	}
 
 }
