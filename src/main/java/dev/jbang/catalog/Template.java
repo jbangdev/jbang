@@ -25,8 +25,8 @@ public class Template extends CatalogItem {
 	}
 
 	public static Template get(String templateName) {
-		String[] parts = templateName.split("@");
-		if (parts.length > 2 || parts[0].isEmpty()) {
+		String[] parts = templateName.split("@", 2);
+		if (parts[0].isEmpty()) {
 			throw new RuntimeException("Invalid template name '" + templateName + "'");
 		}
 		Template template;

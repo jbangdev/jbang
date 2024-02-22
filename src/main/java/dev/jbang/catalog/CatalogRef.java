@@ -48,8 +48,8 @@ public class CatalogRef extends CatalogItem {
 	}
 
 	public static CatalogRef get(String catalogRefName) {
-		String[] parts = catalogRefName.split("@");
-		if (parts.length > 2 || parts[0].isEmpty()) {
+		String[] parts = catalogRefName.split("@", 2);
+		if (parts[0].isEmpty()) {
 			throw new RuntimeException("Invalid catalog ref name '" + catalogRefName + "'");
 		}
 		CatalogRef catalogRef;
