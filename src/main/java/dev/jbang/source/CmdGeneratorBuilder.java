@@ -146,9 +146,17 @@ public class CmdGeneratorBuilder {
 	private void updateFromAlias(Alias alias) {
 		if (arguments.isEmpty()) {
 			setArguments(handleRemoteFiles(alias.arguments));
+		} else if (alias.arguments != null && !alias.arguments.isEmpty()) {
+			List<String> args = new ArrayList<>(handleRemoteFiles(alias.arguments));
+			args.addAll(arguments);
+			setArguments(args);
 		}
 		if (runtimeOptions.isEmpty()) {
 			runtimeOptions(alias.runtimeOptions);
+		} else if (alias.runtimeOptions != null && !alias.runtimeOptions.isEmpty()) {
+			List<String> opts = new ArrayList<>(alias.runtimeOptions);
+			opts.addAll(runtimeOptions);
+			runtimeOptions(opts);
 		}
 		if (mainClass == null) {
 			mainClass(alias.mainClass);
