@@ -172,6 +172,8 @@ class AliasList extends BaseAliasCommand {
 	@CommandLine.Mixin
 	FormatMixin formatMixin;
 
+	private static final int INDENT_SIZE = 3;
+
 	@Override
 	public Integer doCall() {
 		PrintStream out = System.out;
@@ -233,7 +235,7 @@ class AliasList extends BaseAliasCommand {
 		} else {
 			catalogs.forEach(cat -> {
 				out.println(ConsoleOutput.bold(cat.resourceRef));
-				cat.aliases.forEach(a -> printAlias(out, a, 3));
+				cat.aliases.forEach(a -> printAlias(out, a, 1));
 			});
 		}
 	}
@@ -280,32 +282,31 @@ class AliasList extends BaseAliasCommand {
 	}
 
 	private static void printAlias(PrintStream out, AliasOut alias, int indent) {
-		out.print(Util.repeat(" ", indent));
-		String prefix = Util.repeat(" ", alias.fullName.length() + indent);
+		String prefix1 = Util.repeat(" ", indent * INDENT_SIZE);
+		String prefix2 = Util.repeat(" ", (indent + 1) * INDENT_SIZE);
+		String prefix3 = Util.repeat(" ", (indent + 2) * INDENT_SIZE);
+		out.println(prefix1 + ConsoleOutput.yellow(alias.fullName));
 		if (alias.description != null) {
-			out.println(ConsoleOutput.yellow(alias.fullName) + " = " + alias.description);
-			if (Util.isVerbose())
-				out.println(prefix + ConsoleOutput.faint("   (" + alias.scriptRef + ")"));
-		} else {
-			out.println(ConsoleOutput.yellow(alias.fullName) + " = " + alias.scriptRef);
+			out.println(prefix2 + alias.description);
 		}
+		out.println(prefix2 + ConsoleOutput.faint(alias.scriptRef));
 		if (alias.arguments != null) {
-			out.println(prefix + ConsoleOutput.cyan("   Arguments: ") + String.join(" ", alias.arguments));
+			out.println(prefix3 + ConsoleOutput.cyan("   Arguments: ") + String.join(" ", alias.arguments));
 		}
 		if (alias.javaVersion != null) {
-			out.println(prefix + ConsoleOutput.cyan("   Java Version: ") + alias.javaVersion);
+			out.println(prefix3 + ConsoleOutput.cyan("   Java Version: ") + alias.javaVersion);
 		}
 		if (alias.mainClass != null) {
-			out.println(prefix + ConsoleOutput.cyan("   Main Class: ") + alias.mainClass);
+			out.println(prefix3 + ConsoleOutput.cyan("   Main Class: ") + alias.mainClass);
 		}
 		if (alias.enablePreview != null) {
-			out.println(prefix + ConsoleOutput.cyan("   Enable Preview: ") + alias.enablePreview);
+			out.println(prefix3 + ConsoleOutput.cyan("   Enable Preview: ") + alias.enablePreview);
 		}
 		if (alias.javaOptions != null) {
-			out.println(prefix + ConsoleOutput.cyan("   Java Options: ") + String.join(" ", alias.javaOptions));
+			out.println(prefix3 + ConsoleOutput.cyan("   Java Options: ") + String.join(" ", alias.javaOptions));
 		}
 		if (alias.properties != null) {
-			out.println(prefix + ConsoleOutput.magenta("   Properties: ") + alias.properties);
+			out.println(prefix3 + ConsoleOutput.magenta("   Properties: ") + alias.properties);
 		}
 	}
 }
