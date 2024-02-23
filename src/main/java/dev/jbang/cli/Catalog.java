@@ -155,7 +155,7 @@ class CatalogList extends BaseCatalogCommand {
 			if (cat != null) {
 				catalog = dev.jbang.catalog.Catalog.get(cat);
 			} else {
-				catalog = dev.jbang.catalog.Catalog.getMerged(true, true);
+				catalog = dev.jbang.catalog.Catalog.getMerged(true, false);
 			}
 			if (showOrigin) {
 				printCatalogsWithOrigin(out, name, catalog, formatMixin.format);
