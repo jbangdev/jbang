@@ -245,10 +245,12 @@ public class Catalog {
 			try {
 				String subCatName = e.getKey();
 				CatalogRef ref = e.getValue();
-				Catalog cat = getByRef(ref.catalogRef);
-				result.aliases.putAll(expandNames(cat.aliases, subCatName));
-				result.templates.putAll(expandNames(cat.templates, subCatName));
-				result.catalogs.putAll(expandNames(cat.catalogs, subCatName));
+				if (!Boolean.TRUE.equals(ref.importItems)) { // No need to add already imported items
+					Catalog cat = getByRef(ref.catalogRef);
+					result.aliases.putAll(expandNames(cat.aliases, subCatName));
+					result.templates.putAll(expandNames(cat.templates, subCatName));
+					result.catalogs.putAll(expandNames(cat.catalogs, subCatName));
+				}
 			} catch (Exception ex) {
 				Util.warnMsg(
 						"Unable to read catalog " + e.getValue().catalogRef + " (referenced from " + catalog.catalogRef

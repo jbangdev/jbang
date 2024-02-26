@@ -293,6 +293,8 @@ class CatalogList extends BaseCatalogCommand {
 		public String fullName;
 		public String catalogRef;
 		public String description;
+		public boolean importItems;
+
 		public transient ResourceRef _catalogRef;
 	}
 
@@ -308,6 +310,7 @@ class CatalogList extends BaseCatalogCommand {
 		out.fullName = fullName;
 		out.catalogRef = ref.catalogRef;
 		out.description = ref.description;
+		out.importItems = Boolean.TRUE.equals(ref.importItems);
 		out._catalogRef = ref.catalog.catalogRef;
 		return out;
 	}
@@ -315,7 +318,8 @@ class CatalogList extends BaseCatalogCommand {
 	private static void printCatalogRef(PrintStream out, CatalogRefOut catalogRef, int indent) {
 		String prefix1 = Util.repeat(" ", indent * INDENT_SIZE);
 		String prefix2 = Util.repeat(" ", (indent + 1) * INDENT_SIZE);
-		out.println(prefix1 + getColoredFullName(catalogRef.fullName));
+		out.println(prefix1 + getColoredFullName(catalogRef.fullName)
+				+ (catalogRef.importItems ? ConsoleOutput.magenta(" [importing]") : ""));
 		if (catalogRef.description != null) {
 			out.println(prefix2 + catalogRef.description);
 		}
