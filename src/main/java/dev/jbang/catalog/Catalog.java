@@ -232,41 +232,11 @@ public class Catalog {
 
 		Catalog result = Catalog.empty();
 		for (Catalog catalog : catalogs) {
-			merge(catalog, result);
+			result.aliases.putAll(catalog.aliases);
+			result.templates.putAll(catalog.templates);
+			result.catalogs.putAll(catalog.catalogs);
 		}
 
-		return result;
-	}
-
-	private static void merge(Catalog catalog, Catalog result) {
-		// Merge the aliases and templates of the catalog refs
-		// into the current catalog
-		for (Map.Entry<String, CatalogRef> e : catalog.catalogs.entrySet()) {
-			try {
-				String subCatName = e.getKey();
-				CatalogRef ref = e.getValue();
-				if (!Boolean.TRUE.equals(ref.importItems)) { // No need to add already imported items
-					Catalog cat = getByRef(ref.catalogRef);
-					result.aliases.putAll(expandNames(cat.aliases, subCatName));
-					result.templates.putAll(expandNames(cat.templates, subCatName));
-					result.catalogs.putAll(expandNames(cat.catalogs, subCatName));
-				}
-			} catch (Exception ex) {
-				Util.warnMsg(
-						"Unable to read catalog " + e.getValue().catalogRef + " (referenced from " + catalog.catalogRef
-								+ ")");
-			}
-		}
-		result.aliases.putAll(catalog.aliases);
-		result.templates.putAll(catalog.templates);
-		result.catalogs.putAll(catalog.catalogs);
-	}
-
-	private static <T extends CatalogItem> Map<String, T> expandNames(Map<String, T> map, String subCatName) {
-		Map<String, T> result = new HashMap<>();
-		for (Map.Entry<String, T> e : map.entrySet()) {
-			result.put(e.getKey() + "@" + subCatName, e.getValue());
-		}
 		return result;
 	}
 

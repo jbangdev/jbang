@@ -259,7 +259,6 @@ class CatalogList extends BaseCatalogCommand {
 	static class CatalogOut {
 		public String name;
 		public String resourceRef;
-		public String backingResource;
 		public String description;
 		public List<AliasList.AliasOut> aliases;
 		public List<TemplateList.TemplateOut> templates;
@@ -280,7 +279,6 @@ class CatalogList extends BaseCatalogCommand {
 				}
 			}
 			resourceRef = ref.getOriginalResource();
-			backingResource = ref.getFile().toString();
 			this.aliases = aliases;
 			this.templates = templates;
 			this.catalogs = catalogs;

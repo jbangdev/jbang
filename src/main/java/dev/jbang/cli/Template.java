@@ -307,7 +307,7 @@ class TemplateList extends BaseTemplateCommand {
 		} else if (cat != null) {
 			catalog = Catalog.get(cat);
 		} else {
-			catalog = Catalog.getMerged(false, false);
+			catalog = Catalog.getMerged(true, false);
 		}
 		if (showOrigin) {
 			printTemplatesWithOrigin(out, catalogName, catalog, showFiles, showProperties, formatMixin.format);
