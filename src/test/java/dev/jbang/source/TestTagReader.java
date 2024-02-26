@@ -25,6 +25,18 @@ public class TestTagReader {
 	}
 
 	@Test
+	void testExtractDependenciesSeparator() {
+		TagReader tr = new TagReader.Extended(
+				"//DEPS foo:bar, abc:DEF:123, \thttps://github.com/jbangdev/jbang \tsomething\t ", null);
+
+		List<String> deps = tr.collectBinaryDependencies();
+		assertThat(deps, containsInAnyOrder("foo:bar", "abc:DEF:123", "https://github.com/jbangdev/jbang"));
+
+		List<String> subs = tr.collectSourceDependencies();
+		assertThat(subs, containsInAnyOrder("something"));
+	}
+
+	@Test
 	void textExtractRepositories() {
 		List<MavenRepo> repos = new TagReader.Extended("//REPOS jcenter=https://xyz.org", null).collectRepositories();
 
