@@ -140,7 +140,7 @@ public class Catalog {
 	 * @return An Aliases object
 	 */
 	public static Catalog getByName(String catalogName) {
-		CatalogRef catalogRef = CatalogRef.get(simplifyName(catalogName));
+		CatalogRef catalogRef = CatalogRef.get(simplifyRef(catalogName));
 		if (catalogRef != null) {
 			return getByRef(catalogRef.catalogRef);
 		} else {
@@ -450,16 +450,20 @@ public class Catalog {
 		}
 	}
 
-	public static String simplifyName(String catalog) {
-		if (!Util.isURL(catalog) && !isValidCatalogReference(catalog)) {
-			if (catalog.endsWith("/" + JBANG_CATALOG_REPO)) {
-				return catalog.substring(0, catalog.length() - 14);
-			} else {
-				return catalog.replace("/" + JBANG_CATALOG_REPO + "~", "~");
+	public static String simplifyRef(String catalogRefString) {
+		if (Util.isURL(catalogRefString)) {
+			ImplicitCatalogRef ref = ImplicitCatalogRef.extract(catalogRefString);
+			if (ref != null) {
+				return ref.toString();
 			}
-		} else {
-			return catalog;
+		} else if (!isValidCatalogReference(catalogRefString)) {
+			if (catalogRefString.endsWith("/" + JBANG_CATALOG_REPO)) {
+				return catalogRefString.substring(0, catalogRefString.length() - 14);
+			} else {
+				return catalogRefString.replace("/" + JBANG_CATALOG_REPO + "~", "~");
+			}
 		}
+		return catalogRefString;
 	}
 
 	public static boolean isValidName(String name) {

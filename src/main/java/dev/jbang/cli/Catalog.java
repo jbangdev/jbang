@@ -250,7 +250,7 @@ class CatalogList extends BaseCatalogCommand {
 			parser.toJson(catalogs, out);
 		} else {
 			catalogs.forEach(cat -> {
-				out.println(ConsoleOutput.bold(cat.resourceRef));
+				out.println(ConsoleOutput.bold(dev.jbang.catalog.Catalog.simplifyRef(cat.resourceRef)));
 				cat.catalogs.forEach(c -> printCatalogRef(out, c, 1));
 			});
 		}
@@ -300,7 +300,7 @@ class CatalogList extends BaseCatalogCommand {
 
 	private static CatalogRefOut getCatalogRefOut(String catalogName, dev.jbang.catalog.Catalog catalog, String name) {
 		CatalogRef ref = catalog.catalogs.get(name);
-		String catName = catalogName != null ? dev.jbang.catalog.Catalog.simplifyName(catalogName)
+		String catName = catalogName != null ? dev.jbang.catalog.Catalog.simplifyRef(catalogName)
 				: CatalogUtil.catalogRef(name);
 		String fullName = catalogName != null ? name + "@" + catName : name;
 

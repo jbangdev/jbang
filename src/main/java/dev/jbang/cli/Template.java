@@ -360,7 +360,7 @@ class TemplateList extends BaseTemplateCommand {
 			parser.toJson(catalogs, out);
 		} else {
 			catalogs.forEach(cat -> {
-				out.println(ConsoleOutput.bold(cat.resourceRef));
+				out.println(ConsoleOutput.bold(dev.jbang.catalog.Catalog.simplifyRef(cat.resourceRef)));
 				cat.templates.forEach(t -> printTemplate(out, t, 1));
 			});
 		}
@@ -385,7 +385,7 @@ class TemplateList extends BaseTemplateCommand {
 	private static TemplateOut getTemplateOut(String catalogName, Catalog catalog, String name,
 			boolean showFiles, boolean showProperties) {
 		dev.jbang.catalog.Template template = catalog.templates.get(name);
-		String catName = catalogName != null ? dev.jbang.catalog.Catalog.simplifyName(catalogName)
+		String catName = catalogName != null ? dev.jbang.catalog.Catalog.simplifyRef(catalogName)
 				: CatalogUtil.catalogRef(name);
 		String fullName = catalogName != null ? name + "@" + catName : name;
 

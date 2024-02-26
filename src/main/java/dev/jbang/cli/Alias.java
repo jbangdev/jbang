@@ -242,7 +242,7 @@ class AliasList extends BaseAliasCommand {
 			parser.toJson(catalogs, out);
 		} else {
 			catalogs.forEach(cat -> {
-				out.println(ConsoleOutput.bold(cat.resourceRef));
+				out.println(ConsoleOutput.bold(dev.jbang.catalog.Catalog.simplifyRef(cat.resourceRef)));
 				cat.aliases.forEach(a -> printAlias(out, a, 1));
 			});
 		}
@@ -265,7 +265,7 @@ class AliasList extends BaseAliasCommand {
 
 	private static AliasOut getAliasOut(String catalogName, Catalog catalog, String name) {
 		dev.jbang.catalog.Alias alias = catalog.aliases.get(name);
-		String catName = catalogName != null ? Catalog.simplifyName(catalogName) : CatalogUtil.catalogRef(name);
+		String catName = catalogName != null ? Catalog.simplifyRef(catalogName) : CatalogUtil.catalogRef(name);
 		String fullName = catalogName != null ? name + "@" + catName : name;
 		String scriptRef = alias.scriptRef;
 		if (!catalog.aliases.containsKey(scriptRef)

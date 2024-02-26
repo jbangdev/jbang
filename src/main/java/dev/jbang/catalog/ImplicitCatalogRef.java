@@ -3,6 +3,8 @@ package dev.jbang.catalog;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import dev.jbang.util.Util;
@@ -11,6 +13,11 @@ public class ImplicitCatalogRef {
 	private static final String GITHUB_URL = "https://github.com/";
 	private static final String GITLAB_URL = "https://gitlab.com/";
 	private static final String BITBUCKET_URL = "https://bitbucket.org/";
+	private static final Pattern REPO_URL_MATCHER = Pattern.compile(
+			"https://(github\\.com|gitlab\\.com|bitbucket\\.org)/(?<org>.+?)/(?<repo>.+?)/(blob|-/blob|-/raw|src|raw)/(?<ref>.+?)/(?<path>.*)jbang-catalog\\.json");
+	private static final Pattern GITHUB_RAW_MATCHER = Pattern.compile(
+			"https://raw\\.githubusercontent\\.com/(?<org>.+?)/(?<repo>.+?)/(?<ref>.+?)/(?<path>.*)jbang-catalog\\.json");
+
 	final String org;
 	final String repo;
 	final String ref; // Branch or Commit
@@ -20,7 +27,7 @@ public class ImplicitCatalogRef {
 		this.org = org;
 		this.repo = repo;
 		this.ref = ref;
-		this.path = path;
+		this.path = path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
 	}
 
 	private String repoUrl(String host, String infix) {
@@ -69,7 +76,7 @@ public class ImplicitCatalogRef {
 				() -> icr.isPresent() ? tryDownload(icr.get().repoUrl(GITHUB_URL, "/blob/")) : Optional.empty(),
 				() -> icr.isPresent() ? tryDownload(icr.get().repoUrl(GITLAB_URL, "/-/blob/")) : Optional.empty(),
 				() -> icr.isPresent() ? tryDownload(icr.get().repoUrl(BITBUCKET_URL, "/src/")) : Optional.empty())
-											.findFirst();
+																													.findFirst();
 		return url;
 	}
 
@@ -84,10 +91,37 @@ public class ImplicitCatalogRef {
 		}
 	}
 
+	public static ImplicitCatalogRef extract(String catalogRef) {
+		if (!Util.isURL(catalogRef)) {
+			return null;
+		}
+		Matcher m = REPO_URL_MATCHER.matcher(catalogRef);
+		if (m.matches()) {
+			return new ImplicitCatalogRef(m.group("org"), m.group("repo"), m.group("ref"), m.group("path"));
+		}
+		m = GITHUB_RAW_MATCHER.matcher(catalogRef);
+		if (m.matches()) {
+			return new ImplicitCatalogRef(m.group("org"), m.group("repo"), m.group("ref"), m.group("path"));
+		}
+		return null;
+	}
+
 	@SafeVarargs
 	public static <T> Stream<T> chain(Supplier<Optional<T>>... suppliers) {
 		return Arrays	.stream(suppliers)
 						.map(Supplier::get)
 						.flatMap(o -> o.map(Stream::of).orElseGet(Stream::empty));
+	}
+
+	@Override
+	public String toString() {
+		String res = org;
+		if (Catalog.JBANG_CATALOG_REPO.equals(repo)) {
+			res += ("HEAD".equals(ref) ? "" : "/" + repo + "/" + ref);
+		} else {
+			res += "/" + repo + ("HEAD".equals(ref) ? "" : "/" + ref);
+		}
+		res += (path.isEmpty() ? "" : "~" + path);
+		return res;
 	}
 }
