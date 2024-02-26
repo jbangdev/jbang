@@ -315,11 +315,22 @@ class CatalogList extends BaseCatalogCommand {
 	private static void printCatalogRef(PrintStream out, CatalogRefOut catalogRef, int indent) {
 		String prefix1 = Util.repeat(" ", indent * INDENT_SIZE);
 		String prefix2 = Util.repeat(" ", (indent + 1) * INDENT_SIZE);
-		out.println(prefix1 + ConsoleOutput.yellow(catalogRef.fullName));
+		out.println(prefix1 + getColoredFullName(catalogRef.fullName));
 		if (catalogRef.description != null) {
 			out.println(prefix2 + catalogRef.description);
 		}
 		out.println(prefix2 + catalogRef.catalogRef);
+	}
+
+	static String getColoredFullName(String fullName) {
+		StringBuilder res = new StringBuilder();
+		String[] parts = fullName.split("@");
+		res.append(ConsoleOutput.yellow(parts[0]));
+		for (int i = 1; i < parts.length; i++) {
+			res.append(ConsoleOutput.cyan("@"));
+			res.append(parts[i]);
+		}
+		return res.toString();
 	}
 }
 

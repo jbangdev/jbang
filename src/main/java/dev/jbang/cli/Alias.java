@@ -293,7 +293,7 @@ class AliasList extends BaseAliasCommand {
 		String prefix1 = Util.repeat(" ", indent * INDENT_SIZE);
 		String prefix2 = Util.repeat(" ", (indent + 1) * INDENT_SIZE);
 		String prefix3 = Util.repeat(" ", (indent + 2) * INDENT_SIZE);
-		out.println(prefix1 + ConsoleOutput.yellow(alias.fullName));
+		out.println(prefix1 + dev.jbang.cli.CatalogList.getColoredFullName(alias.fullName));
 		if (alias.description != null) {
 			out.println(prefix2 + alias.description);
 		}

@@ -418,7 +418,7 @@ class TemplateList extends BaseTemplateCommand {
 		String prefix2 = Util.repeat(" ", (indent + 1) * INDENT_SIZE);
 		String prefix3 = Util.repeat(" ", (indent + 2) * INDENT_SIZE);
 		out.print(Util.repeat(" ", indent));
-		out.println(prefix1 + ConsoleOutput.yellow(template.fullName));
+		out.println(prefix1 + dev.jbang.cli.CatalogList.getColoredFullName(template.fullName));
 		if (template.description != null) {
 			out.println(prefix2 + template.description);
 		}
