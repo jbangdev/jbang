@@ -23,11 +23,7 @@ public class ImplicitCatalogRef {
 		this.path = path;
 	}
 
-	public boolean isPossibleCommit() {
-		return ref.matches("[0-9a-f]{5,40}");
-	}
-
-	public String url(String host, String infix) {
+	private String repoUrl(String host, String infix) {
 		return host + org + "/" + repo + infix + ref + "/" + path + Catalog.JBANG_CATALOG_JSON;
 	}
 
@@ -70,17 +66,9 @@ public class ImplicitCatalogRef {
 		Optional<String> url = chain(
 				() -> Util.isURL(catalogName) ? tryDownload(catalogName) : Optional.empty(),
 				() -> catalogName.contains(".") ? tryDownload("https://" + catalogName) : Optional.empty(),
-				() -> icr.isPresent() ? tryDownload(icr.get().url(GITHUB_URL, "/blob/")) : Optional.empty(),
-				() -> icr.isPresent() && icr.get().isPossibleCommit() ? tryDownload(icr.get().url(GITHUB_URL, "/blob/"))
-						: Optional.empty(),
-				() -> icr.isPresent() ? tryDownload(icr.get().url(GITLAB_URL, "/-/blob/")) : Optional.empty(),
-				() -> icr.isPresent() && icr.get().isPossibleCommit()
-						? tryDownload(icr.get().url(GITLAB_URL, "/-/blob/"))
-						: Optional.empty(),
-				() -> icr.isPresent() ? tryDownload(icr.get().url(BITBUCKET_URL, "/src/")) : Optional.empty(),
-				() -> icr.isPresent() && icr.get().isPossibleCommit()
-						? tryDownload(icr.get().url(BITBUCKET_URL, "/src/"))
-						: Optional.empty())
+				() -> icr.isPresent() ? tryDownload(icr.get().repoUrl(GITHUB_URL, "/blob/")) : Optional.empty(),
+				() -> icr.isPresent() ? tryDownload(icr.get().repoUrl(GITLAB_URL, "/-/blob/")) : Optional.empty(),
+				() -> icr.isPresent() ? tryDownload(icr.get().repoUrl(BITBUCKET_URL, "/src/")) : Optional.empty())
 											.findFirst();
 		return url;
 	}
