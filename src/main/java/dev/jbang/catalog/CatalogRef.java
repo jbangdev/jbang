@@ -1,11 +1,9 @@
 package dev.jbang.catalog;
 
 import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
-import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 
 import com.google.gson.annotations.SerializedName;
@@ -28,38 +26,18 @@ public class CatalogRef extends CatalogItem {
 		this.importItems = importItems;
 	}
 
-	/**
-	 * Creates a CatalogRef for the given catalog
-	 *
-	 * @param catalogRef File path, full URL or implicit Catalog reference to a
-	 *                   Catalog.
-	 * @return A CatalogRef object
-	 */
-	public static CatalogRef createByRefOrImplicit(String catalogRef) {
-		if (Util.isAbsoluteRef(catalogRef) || Files.isRegularFile(Paths.get(catalogRef))) {
-			Catalog cat = Catalog.getByRef(catalogRef);
-			return new CatalogRef(catalogRef, cat.description, null, cat);
-		} else {
-			Optional<String> url = ImplicitCatalogRef.resolveImplicitCatalogUrl(catalogRef);
-			if (!url.isPresent()) {
-				throw new ExitException(EXIT_UNEXPECTED_STATE,
-						"Unable to locate catalog: " + catalogRef);
-			}
-			Catalog cat = Catalog.getByRef(url.get());
-			return new CatalogRef(url.get(), cat.description, null, cat);
-		}
-	}
-
 	public static CatalogRef get(String catalogRefString) {
 		String[] parts = catalogRefString.split("@", 2);
 		if (parts[0].isEmpty()) {
 			throw new RuntimeException("Invalid catalog ref name '" + catalogRefString + "'");
 		}
-		CatalogRef catalogRef;
+		CatalogRef catalogRef = null;
 		if (parts.length == 1) {
-			catalogRef = getLocal(catalogRefString);
+			if (!Util.isRemoteRef(catalogRefString)) {
+				catalogRef = getLocal(catalogRefString);
+			}
 			if (catalogRef == null) {
-				catalogRef = getImplicit(catalogRefString);
+				catalogRef = getRemote(catalogRefString);
 			}
 		} else {
 			if (parts[1].isEmpty()) {
@@ -82,21 +60,31 @@ public class CatalogRef extends CatalogItem {
 				p = p.resolve(Catalog.JBANG_CATALOG_JSON);
 			}
 			if (Files.isRegularFile(p)) {
-				catalogRef = createByRefOrImplicit(p.toString());
+				Catalog cat = Catalog.getByRef(p.toString());
+				catalogRef = new CatalogRef(p.toString(), cat.description, null, cat);
 			}
 		}
 		return catalogRef;
 	}
 
-	private static CatalogRef getImplicit(String catalogRefString) {
+	private static CatalogRef getRemote(String catalogRefString) {
 		CatalogRef catalogRef = null;
-		Util.verboseMsg("Local catalog '" + catalogRefString + "' not found, trying implicit catalogs...");
-		Optional<String> url = ImplicitCatalogRef.resolveImplicitCatalogUrl(catalogRefString);
-		if (url.isPresent() && !url.get().equals(catalogRefString)) {
-			// Store the resolved URL for future reference
-			Catalog implicitCatalog = Catalog.getByRef(url.get());
-			catalogRef = CatalogUtil.addCatalogRef(Settings.getUserImplicitCatalogFile(), catalogRefString,
-					url.get(), implicitCatalog.description, null);
+		Optional<String> url;
+		if (Util.isRemoteRef(catalogRefString) && Util.isURL(catalogRefString)) {
+			url = Optional.of(catalogRefString);
+		} else {
+			Util.verboseMsg("Local catalog '" + catalogRefString + "' not found, trying implicit catalogs...");
+			url = ImplicitCatalogRef.resolveImplicitCatalogUrl(catalogRefString);
+		}
+		if (url.isPresent()) {
+			if (url.get().equals(catalogRefString)) {
+				catalogRef = new CatalogRef(url.get(), null, null, null);
+			} else {
+				// Store the resolved URL for future reference
+				Catalog implicitCatalog = Catalog.getByRef(url.get());
+				catalogRef = CatalogUtil.addCatalogRef(Settings.getUserImplicitCatalogFile(), catalogRefString,
+						url.get(), implicitCatalog.description, null);
+			}
 		}
 		return catalogRef;
 	}
@@ -109,7 +97,7 @@ public class CatalogRef extends CatalogItem {
 	 * @return A Template object
 	 */
 	private static CatalogRef fromCatalog(String catalogName, String catalogRefName) {
-		CatalogRef cr = createByRefOrImplicit(catalogName);
+		CatalogRef cr = get(catalogName);
 		Catalog catalog = Catalog.getByRef(cr.catalogRef);
 		CatalogRef catalogRef = catalog.catalogs.get(catalogRefName);
 		if (catalogRef == null) {
