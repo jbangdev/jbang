@@ -78,7 +78,7 @@ public abstract class TagReader {
 	}
 
 	protected Stream<String> extractDependencies(String line) {
-		return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
+		return Arrays.stream(line.split(" // ")[0].split("[ \t;,]+")).skip(1).map(String::trim);
 	}
 
 	private static boolean isGav(String ref) {
