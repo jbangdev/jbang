@@ -30,6 +30,7 @@ import dev.jbang.util.Util;
 public class Catalog {
 	public static final String JBANG_CATALOG_JSON = "jbang-catalog.json";
 	public static final String JBANG_IMPLICIT_CATALOG_JSON = "implicit-catalog.json";
+	public static final String JBANG_DEFAULT_CATALOG = "jbanghub";
 
 	static final Map<String, Catalog> catalogCache = new HashMap<>();
 

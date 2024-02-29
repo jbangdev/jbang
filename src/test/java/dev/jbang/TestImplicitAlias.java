@@ -1,14 +1,18 @@
 package dev.jbang;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import dev.jbang.catalog.Alias;
+import dev.jbang.catalog.Catalog;
 import dev.jbang.catalog.ImplicitCatalogRef;
 
 /**
@@ -19,16 +23,36 @@ public class TestImplicitAlias extends BaseTest {
 	@Test
 	public void testGitImplicitCatalog() {
 		assertThat(ImplicitCatalogRef.getImplicitCatalogUrl("jbangdev").get(),
-				Matchers.equalTo("https://github.com/jbangdev/jbang-catalog/blob/HEAD/jbang-catalog.json"));
+				equalTo("https://github.com/jbangdev/jbang-catalog/blob/HEAD/jbang-catalog.json"));
 		assertThat(ImplicitCatalogRef.getImplicitCatalogUrl("jbangdev/jbang-examples").get(),
-				Matchers.equalTo("https://github.com/jbangdev/jbang-examples/blob/HEAD/jbang-catalog.json"));
+				equalTo("https://github.com/jbangdev/jbang-examples/blob/HEAD/jbang-catalog.json"));
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { /* not sure this should be allowed "", */ "/", "/sqlline", "jbanghub/sqlline" })
+	public void testGitImplicitCatalogHub(String catalog) {
+		String cref = ImplicitCatalogRef.getImplicitCatalogUrl(catalog).get();
+		assertThat(cref,
+				startsWith("https://github.com/jbanghub/"));
+
+		Catalog c = Catalog.getByName(catalog);
+		assertThat(c.catalogRef.getOriginalResource(),
+				startsWith("https://github.com/jbanghub/"));
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "sqlline@", "sqlline@/", "sqlline@/sqlline", "sqlline@jbanghub/sqlline" })
+	public void testImplicitHub(String alias) {
+		Alias a = Alias.get(alias);
+		assertThat(a.scriptRef, containsString("sqlline:sqlline"));
+		assertThat(a.catalog.baseRef, containsString("jbanghub"));
 	}
 
 	@Test
 	public void testImplictURLAlias() {
 
 		Alias url = Alias.get("tree@xam.dk");
-		assertThat(url.scriptRef, Matchers.equalTo("tree/main.java"));
+		assertThat(url.scriptRef, equalTo("tree/main.java"));
 
 	}
 
@@ -36,7 +60,7 @@ public class TestImplicitAlias extends BaseTest {
 	public void testImplictExplicitURLAlias() {
 
 		Alias url = Alias.get("tree@https://xam.dk");
-		assertThat(url.scriptRef, Matchers.equalTo("tree/main.java"));
+		assertThat(url.scriptRef, equalTo("tree/main.java"));
 
 	}
 
@@ -56,7 +80,7 @@ public class TestImplicitAlias extends BaseTest {
 
 		Alias alias = Alias.get(url);
 
-		assertThat(alias.scriptRef, Matchers.equalTo("helloworld.java"));
+		assertThat(alias.scriptRef, equalTo("helloworld.java"));
 
 	}
 }
