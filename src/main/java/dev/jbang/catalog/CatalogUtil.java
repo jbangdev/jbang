@@ -79,7 +79,11 @@ public class CatalogUtil {
 	public static void removeNearestAlias(String name) {
 		Catalog catalog = Alias.findNearestCatalogWithAlias(Util.getCwd(), name);
 		if (catalog != null) {
-			removeAlias(catalog, name);
+			if (catalog.catalogRef.isURL() && Util.isRemoteRef(catalog.catalogRef.getOriginalResource())) {
+				Util.warnMsg("Unable to remove alias " + name + " because it is imported from a remote catalog");
+			} else {
+				removeAlias(catalog, name);
+			}
 		}
 	}
 
@@ -169,7 +173,11 @@ public class CatalogUtil {
 	public static void removeNearestTemplate(String name) {
 		Catalog catalog = Template.findNearestCatalogWithTemplate(Util.getCwd(), name);
 		if (catalog != null) {
-			removeTemplate(catalog, name);
+			if (catalog.catalogRef.isURL() && Util.isRemoteRef(catalog.catalogRef.getOriginalResource())) {
+				Util.warnMsg("Unable to remove template " + name + " because it is imported from a remote catalog");
+			} else {
+				removeTemplate(catalog, name);
+			}
 		}
 	}
 
@@ -204,7 +212,11 @@ public class CatalogUtil {
 	public static void removeNearestCatalogRef(String name) {
 		Catalog catalog = CatalogRef.findNearestCatalogWithCatalogRef(Util.getCwd(), name);
 		if (catalog != null) {
-			removeCatalogRef(catalog, name);
+			if (catalog.catalogRef.isURL() && Util.isRemoteRef(catalog.catalogRef.getOriginalResource())) {
+				Util.warnMsg("Unable to remove catalog ref " + name + " because it is imported from a remote catalog");
+			} else {
+				removeCatalogRef(catalog, name);
+			}
 		}
 	}
 

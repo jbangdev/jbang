@@ -282,11 +282,7 @@ public class Catalog {
 		if (catalog == null) {
 			catalog = accept.apply(getBuiltin());
 		}
-		if (catalog != null) {
-			return catalog;
-		} else {
-			return Catalog.empty();
-		}
+		return catalog;
 	}
 
 	static Catalog findImportedCatalogsWith(Catalog catalog, Function<Catalog, Catalog> accept) {
@@ -323,18 +319,6 @@ public class Catalog {
 			catalog = catalogCache.get(catalogPath.toString());
 		}
 		return catalog;
-	}
-
-	// Looks up a sub-catalog in a given catalog and returns
-	// its name if it was found, otherwise `null`
-	public static String findCatalogName(Catalog catalog, Catalog subCatalog) {
-		return catalog.catalogs	.entrySet()
-								.stream()
-								.filter(e -> e.getValue().importItems != Boolean.TRUE
-										&& subCatalog.catalogRef.getOriginalResource().equals(e.getValue().catalogRef))
-								.map(Map.Entry::getKey)
-								.findAny()
-								.orElse(null);
 	}
 
 	// This returns the built-in Catalog that can be found in the resources
