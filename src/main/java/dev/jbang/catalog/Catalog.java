@@ -55,7 +55,7 @@ public class Catalog {
 		this.description = description;
 		this.catalogRef = catalogRef;
 		catalogs.forEach((key, c) -> this.catalogs.put(key,
-				new CatalogRef(c.catalogRef, c.description, this)));
+				new CatalogRef(c.catalogRef, c.description, c.importItems, this)));
 		aliases.forEach((key, a) -> this.aliases.put(key, a.withCatalog(this)));
 		templates.forEach((key, t) -> this.templates.put(key,
 				new Template(t.fileRefs, t.description, t.properties, this)));
@@ -140,7 +140,7 @@ public class Catalog {
 	 * @return An Aliases object
 	 */
 	public static Catalog getByName(String catalogName) {
-		CatalogRef catalogRef = CatalogRef.get(simplifyName(catalogName));
+		CatalogRef catalogRef = CatalogRef.get(simplifyRef(catalogName));
 		if (catalogRef != null) {
 			return getByRef(catalogRef.catalogRef);
 		} else {
@@ -223,62 +223,82 @@ public class Catalog {
 	 *                         or not
 	 * @return a Catalog object
 	 */
-	public static Catalog getMerged(boolean includeImplicits) {
+	public static Catalog getMerged(boolean includeImported, boolean includeImplicits) {
 		List<Catalog> catalogs = new ArrayList<>();
-		findNearestCatalogWith(Util.getCwd(), cat -> {
+		findNearestCatalogWith(Util.getCwd(), includeImported, includeImplicits, cat -> {
 			catalogs.add(0, cat);
-			return false;
+			return null;
 		});
 
 		Catalog result = Catalog.empty();
 		for (Catalog catalog : catalogs) {
-			if (!includeImplicits
-					&& Settings.getUserImplicitCatalogFile().equals(catalog.catalogRef.getFile())) {
-				continue;
-			}
-			merge(catalog, result);
+			result.aliases.putAll(catalog.aliases);
+			result.templates.putAll(catalog.templates);
+			result.catalogs.putAll(catalog.catalogs);
 		}
 
 		return result;
 	}
 
-	private static void merge(Catalog catalog, Catalog result) {
-		// Merge the aliases and templates of the catalog refs
-		// into the current catalog
-		for (CatalogRef ref : catalog.catalogs.values()) {
-			try {
-				Catalog cat = getByRef(ref.catalogRef);
-				result.aliases.putAll(cat.aliases);
-				result.templates.putAll(cat.templates);
-			} catch (Exception ex) {
-				Util.warnMsg(
-						"Unable to read catalog " + ref.catalogRef + " (referenced from " + catalog.catalogRef + ")");
-			}
-		}
-		result.aliases.putAll(catalog.aliases);
-		result.templates.putAll(catalog.templates);
-		result.catalogs.putAll(catalog.catalogs);
-	}
-
 	private static Catalog findNearestCatalog(Path dir) {
-		Path catalogFile = Util.findNearestFileWith(dir, JBANG_CATALOG_JSON, p -> true);
+		Path catalogFile = Util.findNearestWith(dir, JBANG_CATALOG_JSON, p -> p);
 		return catalogFile != null ? get(catalogFile) : null;
 	}
 
-	static Catalog findNearestCatalogWith(Path dir, Function<Catalog, Boolean> accept) {
-		Path catalogFile = Util.findNearestFileWith(dir, JBANG_CATALOG_JSON, cat -> accept.apply(get(cat)));
-		if (catalogFile == null) {
+	static Catalog findNearestCatalogWith(Path dir, boolean includeImported, boolean includeImplicits,
+			Function<Catalog, Catalog> accept) {
+		Catalog catalog = Util.findNearestWith(dir, JBANG_CATALOG_JSON, p -> {
+			try {
+				Catalog cat = get(p);
+				return accept.apply(cat);
+			} catch (Exception e) {
+				Util.warnMsg("Unable to read catalog " + p + " because " + e);
+				return null;
+			}
+		});
+		if (catalog == null && includeImported) {
+			catalog = Util.findNearestWith(dir, JBANG_CATALOG_JSON, p -> {
+				try {
+					Catalog cat = get(p);
+					return findImportedCatalogsWith(cat, accept);
+				} catch (Exception e) {
+					Util.warnMsg("Unable to read catalog " + p + " because " + e);
+					return null;
+				}
+			});
+		}
+		if (catalog == null && includeImplicits) {
 			Path file = Settings.getUserImplicitCatalogFile();
-			if (Files.isRegularFile(file) && Files.isReadable(file) && accept.apply(get(file))) {
-				catalogFile = file;
+			if (Files.isRegularFile(file) && Files.isReadable(file)) {
+				try {
+					Catalog cat = get(file);
+					catalog = accept.apply(cat);
+				} catch (Exception e) {
+					Util.warnMsg("Unable to read catalog " + file + " because " + e);
+					return null;
+				}
 			}
 		}
-		if (catalogFile != null) {
-			return get(catalogFile);
-		} else if (accept.apply(getBuiltin())) {
-			return getBuiltin();
+		if (catalog == null) {
+			catalog = accept.apply(getBuiltin());
 		}
-		return Catalog.empty();
+		return catalog;
+	}
+
+	static Catalog findImportedCatalogsWith(Catalog catalog, Function<Catalog, Catalog> accept) {
+		for (CatalogRef cr : catalog.catalogs.values()) {
+			if (cr.importItems == Boolean.TRUE) {
+				try {
+					Catalog cat = Catalog.getByRef(cr.catalogRef);
+					Catalog result = accept.apply(cat);
+					if (result != null)
+						return result;
+				} catch (Exception e) {
+					Util.verboseMsg("Unable to read catalog " + cr.catalogRef + " because " + e);
+				}
+			}
+		}
+		return null;
 	}
 
 	public static Catalog get(Path catalogPath) {
@@ -299,23 +319,6 @@ public class Catalog {
 			catalog = catalogCache.get(catalogPath.toString());
 		}
 		return catalog;
-	}
-
-	// Returns the implicit name for a Catalog if that Catalog was found in
-	// the list of implicit catalogs
-	public static String findImplicitName(Catalog catalog) {
-		Path file = Settings.getUserImplicitCatalogFile();
-		if (Files.isRegularFile(file) && Files.isReadable(file)) {
-			Catalog implicit = get(file);
-			return implicit.catalogs.entrySet()
-									.stream()
-									.filter(e -> catalog.catalogRef	.getOriginalResource()
-																	.equals(e.getValue().catalogRef))
-									.map(Map.Entry::getKey)
-									.findAny()
-									.orElse(null);
-		}
-		return null;
 	}
 
 	// This returns the built-in Catalog that can be found in the resources
@@ -401,16 +404,20 @@ public class Catalog {
 		}
 	}
 
-	public static String simplifyName(String catalog) {
-		if (!Util.isURL(catalog) && !isValidCatalogReference(catalog)) {
-			if (catalog.endsWith("/" + JBANG_CATALOG_REPO)) {
-				return catalog.substring(0, catalog.length() - 14);
-			} else {
-				return catalog.replace("/" + JBANG_CATALOG_REPO + "~", "~");
+	public static String simplifyRef(String catalogRefString) {
+		if (Util.isURL(catalogRefString)) {
+			ImplicitCatalogRef ref = ImplicitCatalogRef.extract(catalogRefString);
+			if (ref != null) {
+				return ref.toString();
 			}
-		} else {
-			return catalog;
+		} else if (!isValidCatalogReference(catalogRefString)) {
+			if (catalogRefString.endsWith("/" + JBANG_CATALOG_REPO)) {
+				return catalogRefString.substring(0, catalogRefString.length() - 14);
+			} else {
+				return catalogRefString.replace("/" + JBANG_CATALOG_REPO + "~", "~");
+			}
 		}
+		return catalogRefString;
 	}
 
 	public static boolean isValidName(String name) {

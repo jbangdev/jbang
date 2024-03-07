@@ -66,8 +66,16 @@ class CatalogAdd extends BaseCatalogCommand {
 			"-d" }, description = "A description for the catalog")
 	String description;
 
-	@CommandLine.Option(names = { "--name" }, description = "A name for the alias")
+	@CommandLine.Option(names = { "--name" }, description = "A name for the catalog")
 	String name;
+
+	@CommandLine.Option(names = {
+			"--force" }, description = "Force overwriting of existing catalog")
+	boolean force;
+
+	@CommandLine.Option(names = {
+			"--import" }, description = "Import catalog items into the catalog's scope")
+	Boolean importItems;
 
 	@CommandLine.Parameters(paramLabel = "urlOrFile", index = "0", description = "A file or URL to a catalog file", arity = "1")
 	String urlOrFile;
@@ -81,12 +89,16 @@ class CatalogAdd extends BaseCatalogCommand {
 		if (name == null) {
 			name = CatalogUtil.nameFromRef(urlOrFile);
 		}
-		CatalogRef ref = CatalogRef.createByRefOrImplicit(urlOrFile);
+		CatalogRef ref = CatalogRef.get(urlOrFile);
 		Path catFile = getCatalog(false);
-		if (catFile != null) {
-			CatalogUtil.addCatalogRef(catFile, name, ref.catalogRef, ref.description);
+		if (catFile == null) {
+			catFile = dev.jbang.catalog.Catalog.getCatalogFile(null);
+		}
+		if (force || !CatalogUtil.hasCatalogRef(catFile, name)) {
+			CatalogUtil.addCatalogRef(catFile, name, ref.catalogRef, ref.description, importItems);
 		} else {
-			catFile = CatalogUtil.addNearestCatalogRef(name, ref.catalogRef, ref.description);
+			Util.infoMsg("A catalog with name '" + name + "' already exists, use '--force' to add anyway.");
+			return EXIT_INVALID_INPUT;
 		}
 		info(String.format("Catalog '%s' added to '%s'", name, catFile));
 		return EXIT_OK;
@@ -99,7 +111,7 @@ class CatalogUpdate extends BaseCatalogCommand {
 	@Override
 	public Integer doCall() {
 		PrintWriter err = spec.commandLine().getErr();
-		Map<String, CatalogRef> cats = dev.jbang.catalog.Catalog.getMerged(true).catalogs;
+		Map<String, CatalogRef> cats = dev.jbang.catalog.Catalog.getMerged(false, true).catalogs;
 		cats
 			.entrySet()
 			.stream()
@@ -143,7 +155,7 @@ class CatalogList extends BaseCatalogCommand {
 			if (cat != null) {
 				catalog = dev.jbang.catalog.Catalog.get(cat);
 			} else {
-				catalog = dev.jbang.catalog.Catalog.getMerged(true);
+				catalog = dev.jbang.catalog.Catalog.getMerged(true, false);
 			}
 			if (showOrigin) {
 				printCatalogsWithOrigin(out, name, catalog, formatMixin.format);
@@ -238,7 +250,7 @@ class CatalogList extends BaseCatalogCommand {
 			parser.toJson(catalogs, out);
 		} else {
 			catalogs.forEach(cat -> {
-				out.println(ConsoleOutput.bold(cat.resourceRef));
+				out.println(ConsoleOutput.bold(dev.jbang.catalog.Catalog.simplifyRef(cat.resourceRef)));
 				cat.catalogs.forEach(c -> printCatalogRef(out, c, 1));
 			});
 		}
@@ -247,7 +259,6 @@ class CatalogList extends BaseCatalogCommand {
 	static class CatalogOut {
 		public String name;
 		public String resourceRef;
-		public String backingResource;
 		public String description;
 		public List<AliasList.AliasOut> aliases;
 		public List<TemplateList.TemplateOut> templates;
@@ -268,7 +279,6 @@ class CatalogList extends BaseCatalogCommand {
 				}
 			}
 			resourceRef = ref.getOriginalResource();
-			backingResource = ref.getFile().toString();
 			this.aliases = aliases;
 			this.templates = templates;
 			this.catalogs = catalogs;
@@ -281,19 +291,24 @@ class CatalogList extends BaseCatalogCommand {
 		public String fullName;
 		public String catalogRef;
 		public String description;
+		public boolean importItems;
+
 		public transient ResourceRef _catalogRef;
 	}
 
 	private static CatalogRefOut getCatalogRefOut(String catalogName, dev.jbang.catalog.Catalog catalog, String name) {
-		String fullName = catalogName != null ? name + "@" + catalogName : name;
 		CatalogRef ref = catalog.catalogs.get(name);
+		String catName = catalogName != null ? dev.jbang.catalog.Catalog.simplifyRef(catalogName)
+				: CatalogUtil.catalogRef(name);
+		String fullName = catalogName != null ? name + "@" + catName : name;
 
 		CatalogRefOut out = new CatalogRefOut();
 		out.name = name;
-		out.catalogName = catalogName;
+		out.catalogName = catName;
 		out.fullName = fullName;
 		out.catalogRef = ref.catalogRef;
 		out.description = ref.description;
+		out.importItems = Boolean.TRUE.equals(ref.importItems);
 		out._catalogRef = ref.catalog.catalogRef;
 		return out;
 	}
@@ -301,11 +316,23 @@ class CatalogList extends BaseCatalogCommand {
 	private static void printCatalogRef(PrintStream out, CatalogRefOut catalogRef, int indent) {
 		String prefix1 = Util.repeat(" ", indent * INDENT_SIZE);
 		String prefix2 = Util.repeat(" ", (indent + 1) * INDENT_SIZE);
-		out.println(prefix1 + ConsoleOutput.yellow(catalogRef.fullName));
+		out.println(prefix1 + getColoredFullName(catalogRef.fullName)
+				+ (catalogRef.importItems ? ConsoleOutput.magenta(" [importing]") : ""));
 		if (catalogRef.description != null) {
 			out.println(prefix2 + catalogRef.description);
 		}
 		out.println(prefix2 + catalogRef.catalogRef);
+	}
+
+	static String getColoredFullName(String fullName) {
+		StringBuilder res = new StringBuilder();
+		String[] parts = fullName.split("@");
+		res.append(ConsoleOutput.yellow(parts[0]));
+		for (int i = 1; i < parts.length; i++) {
+			res.append(ConsoleOutput.cyan("@"));
+			res.append(parts[i]);
+		}
+		return res.toString();
 	}
 }
 

@@ -107,7 +107,7 @@ public class TestAliasNearest extends BaseTest {
 
 	@Test
 	void testList() throws IOException {
-		Catalog catalog = Catalog.getMerged(false);
+		Catalog catalog = Catalog.getMerged(true, false);
 		assertThat(catalog, notNullValue());
 
 		HashSet<String> keys = new HashSet<>(Arrays.asList(

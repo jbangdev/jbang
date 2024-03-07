@@ -72,6 +72,10 @@ class TemplateAdd extends BaseTemplateCommand {
 	@CommandLine.Option(names = { "--name" }, description = "A name for the template")
 	String name;
 
+	@CommandLine.Option(names = {
+			"--force" }, description = "Force overwriting of existing template")
+	boolean force;
+
 	@CommandLine.Parameters(paramLabel = "files", index = "0..*", arity = "1..*", description = "Paths or URLs to template files")
 	List<String> fileRefs;
 
@@ -140,10 +144,14 @@ class TemplateAdd extends BaseTemplateCommand {
 																.orElse(new HashMap<>());
 
 		Path catFile = getCatalog(false);
-		if (catFile != null) {
+		if (catFile == null) {
+			catFile = Catalog.getCatalogFile(null);
+		}
+		if (force || !CatalogUtil.hasTemplate(catFile, name)) {
 			CatalogUtil.addTemplate(catFile, name, fileRefsMap, description, propertiesMap);
 		} else {
-			catFile = CatalogUtil.addNearestTemplate(name, fileRefsMap, description, propertiesMap);
+			Util.infoMsg("A template with name '" + name + "' already exists, use '--force' to add anyway.");
+			return EXIT_INVALID_INPUT;
 		}
 		info(String.format("Template '%s' added to '%s'", name, catFile));
 		return EXIT_OK;
@@ -299,7 +307,7 @@ class TemplateList extends BaseTemplateCommand {
 		} else if (cat != null) {
 			catalog = Catalog.get(cat);
 		} else {
-			catalog = Catalog.getMerged(true);
+			catalog = Catalog.getMerged(true, false);
 		}
 		if (showOrigin) {
 			printTemplatesWithOrigin(out, catalogName, catalog, showFiles, showProperties, formatMixin.format);
@@ -352,7 +360,7 @@ class TemplateList extends BaseTemplateCommand {
 			parser.toJson(catalogs, out);
 		} else {
 			catalogs.forEach(cat -> {
-				out.println(ConsoleOutput.bold(cat.resourceRef));
+				out.println(ConsoleOutput.bold(dev.jbang.catalog.Catalog.simplifyRef(cat.resourceRef)));
 				cat.templates.forEach(t -> printTemplate(out, t, 1));
 			});
 		}
@@ -377,12 +385,13 @@ class TemplateList extends BaseTemplateCommand {
 	private static TemplateOut getTemplateOut(String catalogName, Catalog catalog, String name,
 			boolean showFiles, boolean showProperties) {
 		dev.jbang.catalog.Template template = catalog.templates.get(name);
-		String catName = catalogName != null ? catalogName : Catalog.findImplicitName(template.catalog);
-		String fullName = catName != null ? name + "@" + Catalog.simplifyName(catName) : name;
+		String catName = catalogName != null ? dev.jbang.catalog.Catalog.simplifyRef(catalogName)
+				: CatalogUtil.catalogRef(name);
+		String fullName = catalogName != null ? name + "@" + catName : name;
 
 		TemplateOut out = new TemplateOut();
 		out.name = name;
-		out.catalogName = catName != null ? Catalog.simplifyName(catName) : null;
+		out.catalogName = catName;
 		out.fullName = fullName;
 		out.description = template.description;
 		if (showFiles && template.fileRefs != null) {
@@ -409,7 +418,7 @@ class TemplateList extends BaseTemplateCommand {
 		String prefix2 = Util.repeat(" ", (indent + 1) * INDENT_SIZE);
 		String prefix3 = Util.repeat(" ", (indent + 2) * INDENT_SIZE);
 		out.print(Util.repeat(" ", indent));
-		out.println(prefix1 + ConsoleOutput.yellow(template.fullName));
+		out.println(prefix1 + dev.jbang.cli.CatalogList.getColoredFullName(template.fullName));
 		if (template.description != null) {
 			out.println(prefix2 + template.description);
 		}

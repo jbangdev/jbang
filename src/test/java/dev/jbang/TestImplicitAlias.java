@@ -18,9 +18,9 @@ public class TestImplicitAlias extends BaseTest {
 
 	@Test
 	public void testGitImplicitCatalog() {
-		assertThat(ImplicitCatalogRef.getImplicitCatalogUrl("jbangdev").get(),
+		assertThat(ImplicitCatalogRef.resolveImplicitCatalogUrl("jbangdev").get(),
 				Matchers.equalTo("https://github.com/jbangdev/jbang-catalog/blob/HEAD/jbang-catalog.json"));
-		assertThat(ImplicitCatalogRef.getImplicitCatalogUrl("jbangdev/jbang-examples").get(),
+		assertThat(ImplicitCatalogRef.resolveImplicitCatalogUrl("jbangdev/jbang-examples").get(),
 				Matchers.equalTo("https://github.com/jbangdev/jbang-examples/blob/HEAD/jbang-catalog.json"));
 	}
 

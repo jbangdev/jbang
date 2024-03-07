@@ -1284,6 +1284,18 @@ public class Util {
 		return url;
 	}
 
+	public static String[] extractOrgProject(String url) {
+		String orggprj = url.replaceFirst("^https://github.com/(.*)/blob/(.*)$", "$1/$2");
+		orggprj = orggprj.replaceFirst("^https://raw.githubusercontent.com/(.*)/(.*)$", "$1/$2");
+		orggprj = orggprj.replaceFirst("^https://gitlab.com/(.*)/-/(blob|raw)/(.*)$", "$1/$2");
+		orggprj = orggprj.replaceFirst("^https://bitbucket.org/(.*)/(src|raw)/(.*)$", "$1/$2");
+		if (!orggprj.equals(url)) {
+			return orggprj.split("/", 2);
+		} else {
+			return null;
+		}
+	}
+
 	public static String getStableID(File backingFile) {
 		try {
 			return getStableID(readString(backingFile.toPath()));
@@ -1725,30 +1737,36 @@ public class Util {
 		return Paths.get("");
 	}
 
-	public static Path findNearestFileWith(Path dir, String fileName, Function<Path, Boolean> accept) {
-		Path result = findNearestLocalFileWith(dir, fileName, accept);
+	public static <T> T findNearestWith(Path dir, String fileName, Function<Path, T> accept) {
+		T result = findNearestLocalWith(dir, fileName, accept);
 		if (result == null) {
 			Path file = Settings.getConfigDir().resolve(fileName);
-			if (Files.isRegularFile(file) && Files.isReadable(file) && accept.apply(file)) {
-				result = file;
+			if (Files.isRegularFile(file) && Files.isReadable(file)) {
+				result = accept.apply(file);
 			}
 		}
 		return result;
 	}
 
-	private static Path findNearestLocalFileWith(Path dir, String fileName, Function<Path, Boolean> accept) {
+	private static <T> T findNearestLocalWith(Path dir, String fileName, Function<Path, T> accept) {
 		if (dir == null) {
 			dir = getCwd();
 		}
 		Path root = Settings.getLocalRootDir();
-		while (dir != null && (root == null || !isSameFile(dir, root))) {
+		while (dir != null && !isSameFile(dir, root)) {
 			Path file = dir.resolve(fileName);
-			if (Files.isRegularFile(file) && Files.isReadable(file) && accept.apply(file)) {
-				return file;
+			if (Files.isRegularFile(file) && Files.isReadable(file)) {
+				T result = accept.apply(file);
+				if (result != null) {
+					return result;
+				}
 			}
 			file = dir.resolve(Settings.JBANG_DOT_DIR).resolve(fileName);
-			if (Files.isRegularFile(file) && Files.isReadable(file) && accept.apply(file)) {
-				return file;
+			if (Files.isRegularFile(file) && Files.isReadable(file)) {
+				T result = accept.apply(file);
+				if (result != null) {
+					return result;
+				}
 			}
 			dir = dir.getParent();
 		}

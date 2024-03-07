@@ -276,9 +276,9 @@ public class Configuration {
 	 */
 	public static Configuration getMerged() {
 		Set<Path> configFiles = new LinkedHashSet<>();
-		Util.findNearestFileWith(null, JBANG_CONFIG_PROPS, cfgFile -> {
+		Util.findNearestWith(null, JBANG_CONFIG_PROPS, cfgFile -> {
 			configFiles.add(cfgFile);
-			return false;
+			return null;
 		});
 
 		Configuration result = defaults();
