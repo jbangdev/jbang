@@ -12,7 +12,7 @@ services:
     restart: unless-stopped
 
   jbang:
-    image: jbangdev/jbang-action@sha256:123724c3f096948c8a7899806cda042d709b19872678aeb26a5c48d7167c9fb8
+    image: jbangdev/jbang-action@sha256:e00ab8c6f42a2ba71508bab4d029db58b9d7075b00e541db1f2c361288d2c000
     stdin_open: true
     tty: true
     entrypoint: /bin/bash
