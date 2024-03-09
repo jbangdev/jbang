@@ -23,11 +23,11 @@ jobs:
       JRELEASER_NEXUS2_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
       JRELEASER_VERSION: 1.9.0
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: install-java11
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: 11
           distribution: temurin
@@ -50,7 +50,7 @@ jobs:
           setup-java: false
       - name: JReleaser publish output
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: jreleaser-publish
           path: |
@@ -73,14 +73,14 @@ jobs:
           setup-java: false
       - name: JReleaser announce output
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: jreleaser-announce
           path: |
             out/jreleaser/trace.log
             out/jreleaser/output.properties
       - name: upload-choco
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-choco
           path: build/choco
@@ -90,11 +90,11 @@ jobs:
     name: publish-choco
     continue-on-error: true
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: build-choco
           path: build/choco
-      - uses: actions/setup-dotnet@v1
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '2.2.204' # SDK Version to use.
       - name: choco-build

@@ -20,11 +20,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 2
       - name: Verify Changed files in docs
-        uses: tj-actions/verify-changed-files@v8.1
+        uses: tj-actions/verify-changed-files@v13.1
         id: verify-changed-files
         with:
           files: |
@@ -50,10 +50,10 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
         with:
           limit-access-to-actor: true
-      - uses: actions/checkout@v3
-      - uses: gradle/wrapper-validation-action@v1
+      - uses: actions/checkout@v4
+      - uses: gradle/wrapper-validation-action@v2
       - name: install-java8
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: 11
           distribution: temurin
@@ -80,13 +80,13 @@ jobs:
         run: |
           ./gradlew --no-daemon jacocoTestReport
       - name: Upload Test Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always() # always run even if the previous step fails
         with:
           name: junit-test-results
           path: '**/build/test-results/test/TEST-*.xml'
           retention-days: 1
-      - uses: codecov/codecov-action@v2
+      - uses: codecov/codecov-action@v4
         with:
           #files: ./coverage1.xml,./coverage2.xml # optional
           flags: ${{ runner.os }} # optional
@@ -94,7 +94,7 @@ jobs:
           verbose: true # optional (default = false)
       - name: build-choco-package
         if: runner.os == 'Windows'
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '2.2.204' # SDK Version to use.
       - name: build-choco
@@ -103,13 +103,13 @@ jobs:
           powershell
           choco pack build/choco/jbang.nuspec
       - name: Archive build results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: ${{ runner.os }}-build-${{ github.sha }}
           path: build
       - name: Upload jbang.zip
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always() && runner.os != 'Windows'
         with:
           name: jbang-${{ github.sha }}
@@ -125,11 +125,11 @@ jobs:
         java: [8,11,17,19]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: ${{ runner.os }}-build-${{ github.sha }}
           path: build
