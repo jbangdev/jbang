@@ -1,6 +1,9 @@
 {
   "extends": [
-    "config:base",
-    "group:all"
-  ]
+    "config:best-practices"
+  ],
+  "packageRules": {
+    "matchPackagePatterns": ["*"],
+    "groupName": "{{manager}}"
+  }
 }
