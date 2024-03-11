@@ -1,3 +1,4 @@
+# {{jreleaserCreationStamp}}
 FROM {{dockerBaseImage}}
 
 {{#dockerLabels}}
@@ -8,30 +9,16 @@ LABEL {{.}}
 {{.}}
 {{/dockerPreCommands}}
 
-COPY assembly/* /
+COPY assembly/ /
 
 RUN jar xf {{distributionArtifactFileName}}{{distributionArtifactFileExtension}} && \
     rm {{distributionArtifactFileName}}{{distributionArtifactFileExtension}} && \
-    mv jbang-* jbang && \
-    chmod +x jbang/bin/jbang
-
+    chmod +x {{distributionArtifactRootEntryName}}/bin/{{distributionExecutableUnix}}
+    
 {{#dockerPostCommands}}
 {{.}}
 {{/dockerPostCommands}}
 
-ENV PATH="${PATH}:/{{distributionArtifactName}}/bin"
+ENV PATH="${PATH}:/{{distributionArtifactRootEntryName}}/bin"
 
-ADD ./entrypoint /bin/entrypoint
-
-ENV SCRIPTS_HOME /scripts
-ENV JBANG_VERSION {{projectVersion}}
-ENV JBANG_PATH=/jbang/bin
-
-VOLUME /scripts
-
-ENV PATH="${PATH}:/jbang/bin"
-
-## github action does not allow writing to $HOME thus routing this elsewhere
-ENV JBANG_DIR="/jbang/.jbang"
-
-ENTRYPOINT ["entrypoint"]
+ENTRYPOINT ["/{{distributionArtifactRootEntryName}}/bin/{{distributionExecutableUnix}}"]

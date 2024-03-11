@@ -79,16 +79,40 @@ files:
 
 distributions:
   jbang:
+    extraProperties:
+      # Key will be capitalized and prefixed with `distribution`, i.e, `distributionFoo`.
+      foo: bar
     executable:
       windowsExtension: cmd
-    docker:  ## not ready to release this way.
+    docker: 
       active: RELEASE
       continueOnError: true
+      templateDirectory: src/jreleaser/distributions/jbang/docker
       postCommands:
         - "VOLUME /scripts"
-      baseImage: "adoptopenjdk:11-jdk-hotspot"
+      registries:
+        - serverName: quay.io
+        - serverName: docker.io
+        - serverName: gcr.io
       repository:
-        name: jbang-action
+        name: jbang-docker
+      specs:
+        java-11:
+          baseImage: "eclipse-temurin:11"
+          templateDirectory: src/jreleaser/distributions/jbang/docker
+          imageNames:
+            - 'jbangdev/jbang:{{tagName}}-{{dockerSpecName}}'
+          matchers:
+            foo: bar
+        java-17:
+          baseImage: "eclipse-temurin:17"
+          templateDirectory: src/jreleaser/distributions/jbang/docker
+          imageNames:
+            - 'jbangdev/jbang:{{tagName}}-{{dockerSpecName}}'
+            - 'jbangdev/jbang:{{tagName}}'
+            - 'jbangdev/jbang:latest'
+          matchers:
+            foo: bar
     sdkman:
       active: RELEASE
       continueOnError: true
@@ -116,3 +140,16 @@ distributions:
     artifacts:
       - path: build/distributions/jbang-{{projectVersion}}.zip
       - path: build/distributions/jbang-{{projectVersion}}.tar
+  jbang-action:
+    docker:  ## not ready to release this way.
+      active: RELEASE
+      continueOnError: true
+      postCommands:
+        - "VOLUME /scripts"
+      baseImage: "adoptopenjdk:11-jdk-hotspot"
+      repository:
+        name: jbang-action
+    artifacts:
+      - path: build/distributions/jbang-{{projectVersion}}.zip
+      - path: build/distributions/jbang-{{projectVersion}}.tar
+    
