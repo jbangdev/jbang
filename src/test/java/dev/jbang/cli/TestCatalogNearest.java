@@ -2,11 +2,7 @@ package dev.jbang.cli;
 
 import static dev.jbang.util.TestUtil.clearSettingsCaches;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
 
 import java.io.IOException;
@@ -22,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import dev.jbang.BaseTest;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
+import dev.jbang.catalog.CatalogRef;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.util.Util;
 
@@ -75,13 +72,22 @@ public class TestCatalogNearest extends BaseTest {
 				"global",
 				"dotparent",
 				"dotlocal",
-				"local"));
-		assertThat(catalog.catalogs.keySet(), equalTo(keys));
+				"local",
+				"jbanghub"));
+		assertThat(catalog.catalogs.keySet().containsAll(keys), is(true));
 
 		assertThat(catalog.catalogs.get("global").catalogRef, is(aliasesFile.toString()));
 		assertThat(catalog.catalogs.get("dotparent").catalogRef, is(aliasesFile.toString()));
 		assertThat(catalog.catalogs.get("dotlocal").catalogRef, is(aliasesFile.toString()));
 		assertThat(catalog.catalogs.get("local").catalogRef, is(aliasesFile.toString()));
+		assertThat(catalog.catalogs.get("jbanghub").catalog, is(Catalog.getBuiltin()));
+
+		catalog.catalogs.keySet().removeAll(keys);
+		// After removing the known keys, the rest must come from the jbanghub import
+		final String JBANGHUB_URL = "https://raw.githubusercontent.com/jbanghub/jbang-catalog/main/jbang-catalog.json";
+		for (CatalogRef c : catalog.catalogs.values()) {
+			assertThat(c.catalog.catalogRef.getOriginalResource(), is(JBANGHUB_URL));
+		}
 	}
 
 	@Test

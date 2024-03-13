@@ -1,4 +1,11 @@
 {
+  "catalogs": {
+    "jbanghub": {
+      "catalog-ref": "https://raw.githubusercontent.com/jbanghub/jbang-catalog/main/jbang-catalog.json",
+      "description": "JBangHub - Unleashing the Java community",
+      "import": true
+    }
+  },
   "templates": {
     "gpt": {
       "file-refs": {"{filename}":  "init-gpt.java.qute"},

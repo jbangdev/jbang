@@ -81,6 +81,8 @@ public class CatalogUtil {
 		if (catalog != null) {
 			if (catalog.catalogRef.isURL() && Util.isRemoteRef(catalog.catalogRef.getOriginalResource())) {
 				Util.warnMsg("Unable to remove alias " + name + " because it is imported from a remote catalog");
+			} else if (catalog.equals(Catalog.getBuiltin())) {
+				Util.warnMsg("Cannot remove alias " + name + " from built-in catalog");
 			} else {
 				removeAlias(catalog, name);
 			}
@@ -175,6 +177,8 @@ public class CatalogUtil {
 		if (catalog != null) {
 			if (catalog.catalogRef.isURL() && Util.isRemoteRef(catalog.catalogRef.getOriginalResource())) {
 				Util.warnMsg("Unable to remove template " + name + " because it is imported from a remote catalog");
+			} else if (catalog.equals(Catalog.getBuiltin())) {
+				Util.warnMsg("Cannot remove template " + name + " from built-in catalog");
 			} else {
 				removeTemplate(catalog, name);
 			}
@@ -214,6 +218,8 @@ public class CatalogUtil {
 		if (catalog != null) {
 			if (catalog.catalogRef.isURL() && Util.isRemoteRef(catalog.catalogRef.getOriginalResource())) {
 				Util.warnMsg("Unable to remove catalog ref " + name + " because it is imported from a remote catalog");
+			} else if (catalog.equals(Catalog.getBuiltin())) {
+				Util.warnMsg("Cannot remove catalog ref " + name + " from built-in catalog");
 			} else {
 				removeCatalogRef(catalog, name);
 			}

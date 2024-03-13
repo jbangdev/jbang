@@ -281,6 +281,9 @@ public class Catalog {
 		}
 		if (catalog == null) {
 			catalog = accept.apply(getBuiltin());
+			if (catalog == null && includeImported) {
+				catalog = findImportedCatalogsWith(getBuiltin(), accept);
+			}
 		}
 		return catalog;
 	}

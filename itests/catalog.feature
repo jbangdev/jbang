@@ -51,3 +51,8 @@ Scenario: list remote catalog templates
   Then  match exit == 0
   And match out contains "@jbangdev"
   And match out !contains "@jbangdev/jbang-catalog"
+
+Scenario: Removing built-in catalog
+When command('jbang catalog remove jbanghub')
+* match exit == 0
+* match err contains "Cannot remove catalog ref jbanghub from built-in catalog"
