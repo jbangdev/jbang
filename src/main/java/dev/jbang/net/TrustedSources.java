@@ -32,11 +32,13 @@ public class TrustedSources {
 	final static Pattern r127 = Pattern.compile("(?i)^127.0.0.1(:\\d+)?$");
 
 	private String[] trustedSources;
+	private String[] temporaryTrustedSources;
 
 	private static TrustedSources instance;
 
-	public TrustedSources(String[] trustedSources) {
+	TrustedSources(String[] trustedSources) {
 		this.trustedSources = trustedSources;
+		this.temporaryTrustedSources = new String[0];
 	}
 
 	public static TrustedSources load(Path toPath) throws IOException {
@@ -60,7 +62,7 @@ public class TrustedSources {
 	}
 
 	/**
-	 * Check whether a url like https://www.microsoft.com matches the list of
+	 * Check whether a URL like https://www.microsoft.com matches the list of
 	 * trusted sources.
 	 *
 	 * - Schemes must match - There's no subdomain matching. For example
@@ -73,6 +75,15 @@ public class TrustedSources {
 			return true;
 		}
 
+		boolean trusted = isURLTrusted(url, trustedSources) ||
+				isURLTrusted(url, temporaryTrustedSources) ||
+				// default trusted for usability and trust
+				url.toString().startsWith("https://github.com/jbangdev/");
+
+		return trusted;
+	}
+
+	private boolean isURLTrusted(URI url, String[] trustedSources) throws URISyntaxException {
 		final String domain = String.format("%s://%s", url.getScheme(), url.getAuthority());
 
 		for (String trustedSource : trustedSources) {
@@ -193,6 +204,24 @@ public class TrustedSources {
 		return trustedsources;
 	}
 
+	public void addTemporary(String trust) {
+		Util.infoMsg("Adding temporary " + trust);
+		Set<String> newrules = new LinkedHashSet<>(Arrays.asList(temporaryTrustedSources));
+		if (newrules.add(trust)) {
+			temporaryTrustedSources = newrules.toArray(new String[0]);
+		} else {
+			Util.warnMsg("Already trusted source(s). No changes made.");
+		}
+	}
+
+	public void add(String trust) {
+		add(trust, Settings.getTrustedSourcesFile().toFile());
+	}
+
+	public void add(List<String> trust) {
+		add(trust, Settings.getTrustedSourcesFile().toFile());
+	}
+
 	public void add(String trust, File storage) {
 		add(Collections.singletonList(trust), storage);
 	}
@@ -204,6 +233,7 @@ public class TrustedSources {
 		Set<String> newrules = new LinkedHashSet<>(Arrays.asList(trustedSources));
 
 		if (newrules.addAll(trust)) {
+			trustedSources = newrules.toArray(new String[0]);
 			save(newrules, storage);
 		} else {
 			Util.warnMsg("Already trusted source(s). No changes made.");
@@ -218,6 +248,7 @@ public class TrustedSources {
 		Set<String> newrules = new LinkedHashSet<>(Arrays.asList(trustedSources));
 
 		if (newrules.removeAll(trust)) {
+			trustedSources = newrules.toArray(new String[0]);
 			save(newrules, storage);
 		} else {
 			Util.warnMsg("Not found in trusted source(s). No changes made.");
