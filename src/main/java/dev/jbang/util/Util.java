@@ -552,7 +552,7 @@ public class Util {
 			return Arch.x32;
 		} else if (arch.matches("^(aarch64)$")) {
 			return Arch.aarch64;
-		} else if (arch.matches("^(aarch64)$")) {
+		} else if (arch.matches("^(arm)$")) {
 			return Arch.arm;
 		} else if (arch.matches("^(ppc64)$")) {
 			return Arch.ppc64;
