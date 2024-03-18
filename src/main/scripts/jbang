@@ -97,7 +97,7 @@ case "$(uname -m)" in
   arm64)
     arch=arm64;;
   riscv64)
-    arch=riscv64;;
+    arch=riscv64
     ;;
   *)
     ## AIX gives a machine ID for `uname -m` but it only supports ppc64
