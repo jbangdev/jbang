@@ -95,7 +95,7 @@ case "$(uname -m)" in
   s390x)
     arch=s390x;;
   arm64)
-    arch=arm64
+    arch=arm64;;
   riscv64)
     arch=riscv64;;
     ;;
