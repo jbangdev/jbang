@@ -417,7 +417,7 @@ public class Util {
 	}
 
 	public enum Arch {
-		x32, x64, aarch64, arm64, ppc64, ppc64le, s390x, unknown
+		x32, x64, aarch64, arm64, ppc64, ppc64le, s390x, riscv64, unknown
 	}
 
 	public enum Shell {
@@ -560,6 +560,8 @@ public class Util {
 			return Arch.s390x;
 		} else if (arch.matches("^(arm64)$")) {
 			return Arch.arm64;
+		} else if (arch.matches("^(riscv64)$")) {
+			return Arch.riscv64;
 		} else {
 			verboseMsg("Unknown Arch: " + arch);
 			return Arch.unknown;
