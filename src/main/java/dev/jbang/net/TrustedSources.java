@@ -205,7 +205,7 @@ public class TrustedSources {
 	}
 
 	public void addTemporary(String trust) {
-		Util.infoMsg("Adding temporary " + trust);
+		Util.infoMsg("Trusting for this run: " + trust);
 		Set<String> newrules = new LinkedHashSet<>(Arrays.asList(temporaryTrustedSources));
 		if (newrules.add(trust)) {
 			temporaryTrustedSources = newrules.toArray(new String[0]);
@@ -228,7 +228,7 @@ public class TrustedSources {
 
 	public void add(List<String> trust, File storage) {
 
-		Util.infoMsg("Adding " + trust + " to " + storage);
+		Util.infoMsg("Trusting permanently: " + trust);
 
 		Set<String> newrules = new LinkedHashSet<>(Arrays.asList(trustedSources));
 
@@ -243,7 +243,7 @@ public class TrustedSources {
 
 	public void remove(List<String> trust, File storage) {
 
-		Util.infoMsg("Removing " + trust + " from " + storage);
+		Util.infoMsg("Removing permanent trust: " + trust);
 
 		Set<String> newrules = new LinkedHashSet<>(Arrays.asList(trustedSources));
 

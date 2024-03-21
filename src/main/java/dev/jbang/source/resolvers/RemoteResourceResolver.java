@@ -59,7 +59,7 @@ public class RemoteResourceResolver implements ResourceResolver {
 				String trustOrgUrl = orgURL(trustUrl);
 				List<String> options = new ArrayList<>();
 				options.add(
-						"Trust once: Add no trust, just download this time (can be run multiple times while cached)");
+						"Trust once: Add no trust, only allow access to this URL for the duration of this run");
 				options.add("Trust limited url in future: " + trustUrl);
 				if (trustOrgUrl != null) {
 					options.add("Trust organization url in future: " + trustOrgUrl);
