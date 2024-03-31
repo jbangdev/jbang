@@ -417,7 +417,7 @@ public class Util {
 	}
 
 	public enum Arch {
-		x32, x64, aarch64, arm, arm64, ppc64, ppc64le, s390x, unknown
+		x32, x64, aarch64, arm, arm64, ppc64, ppc64le, s390x, riscv64, unknown
 	}
 
 	public enum Shell {
@@ -562,6 +562,8 @@ public class Util {
 			return Arch.s390x;
 		} else if (arch.matches("^(arm64)$")) {
 			return Arch.arm64;
+		} else if (arch.matches("^(riscv64)$")) {
+			return Arch.riscv64;
 		} else {
 			verboseMsg("Unknown Arch: " + arch);
 			return Arch.unknown;
@@ -1065,16 +1067,16 @@ public class Util {
 					// extracts file name from header field
 					fileName = getDispositionFilename(disposition);
 				}
-				if (isBlankString(fileName)) {
-					// extracts file name from URL if nothing found
-					int p = fileURL.indexOf("?");
-					// Strip parameters from the URL (if any)
-					String simpleUrl = (p > 0) ? fileURL.substring(0, p) : fileURL;
-					while (simpleUrl.endsWith("/")) {
-						simpleUrl = simpleUrl.substring(0, simpleUrl.length() - 1);
-					}
-					fileName = simpleUrl.substring(simpleUrl.lastIndexOf("/") + 1);
+			}
+			if (isBlankString(fileName)) {
+				// extracts file name from URL if nothing found
+				int p = fileURL.indexOf("?");
+				// Strip parameters from the URL (if any)
+				String simpleUrl = (p > 0) ? fileURL.substring(0, p) : fileURL;
+				while (simpleUrl.endsWith("/")) {
+					simpleUrl = simpleUrl.substring(0, simpleUrl.length() - 1);
 				}
+				fileName = simpleUrl.substring(simpleUrl.lastIndexOf("/") + 1);
 			}
 		} else {
 			fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1);
@@ -1089,17 +1091,27 @@ public class Util {
 		while (true) {
 			httpConn.setInstanceFollowRedirects(false);
 			responseCode = httpConn.getResponseCode();
-			if (responseCode == HttpURLConnection.HTTP_MOVED_PERM ||
+			if (responseCode == HttpURLConnection.HTTP_MULT_CHOICE ||
+					responseCode == HttpURLConnection.HTTP_MOVED_PERM ||
 					responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
-					responseCode == 307 /* TEMP REDIRECT */) {
+					responseCode == HttpURLConnection.HTTP_SEE_OTHER ||
+					responseCode == 307 /* TEMP REDIRECT */ ||
+					responseCode == 308 /* PERM REDIRECT */) {
 				if (redirects++ > 8) {
 					throw new IOException("Too many redirects");
 				}
 				String location = httpConn.getHeaderField("Location");
+				if (location == null) {
+					throw new IOException("No 'Location' header in redirect");
+				}
 				URL url = new URL(httpConn.getURL(), location);
 				url = new URL(swizzleURL(url.toString()));
 				verboseMsg("Redirected to: " + url); // Should be debug info
 				httpConn = (HttpURLConnection) url.openConnection();
+				if (responseCode == HttpURLConnection.HTTP_SEE_OTHER) {
+					// This response code forces the method to GET
+					httpConn.setRequestMethod("GET");
+				}
 				configurator.configure(httpConn);
 				continue;
 			}
