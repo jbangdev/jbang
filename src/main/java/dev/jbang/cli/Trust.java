@@ -23,7 +23,7 @@ public class Trust {
 	@CommandLine.Command(name = "add", description = "Add trust domains.")
 	public Integer add(
 			@CommandLine.Parameters(index = "0", description = "Rules for trusted sources", arity = "1..*") List<String> rules) {
-		TrustedSources.instance().add(rules, Settings.getTrustedSourcesFile().toFile());
+		TrustedSources.instance().add(rules);
 		return EXIT_OK;
 	}
 
