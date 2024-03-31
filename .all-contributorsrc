@@ -864,6 +864,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "jponge",
+      "name": "Julien Ponge",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25961?v=4",
+      "profile": "https://julien.ponge.org/",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "skipCi": true,
