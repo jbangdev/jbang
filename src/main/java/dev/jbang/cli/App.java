@@ -322,6 +322,7 @@ class AppList extends BaseCommand {
 	private static List<AppOut> listCommandFiles() {
 		try (Stream<Path> files = Files.list(Settings.getConfigBinDir())) {
 			return files
+						.filter(Files::isExecutable)
 						.sorted()
 						.map(AppOut::new)
 						.filter(distinctByKey(AppOut::getName))
