@@ -370,6 +370,27 @@ public class TestBuilder extends BaseTest {
 	}
 
 	@Test
+	void testNativeFresh() throws IOException {
+		Path foo = examplesTestFolder.resolve("helloworld.java").toAbsolutePath();
+		ProjectBuilder pb = Project.builder().nativeImage(true);
+		Project prj = pb.build(foo.toString());
+		BuildContext ctx = BuildContext.forProject(prj);
+		AtomicInteger callCount = new AtomicInteger(0);
+		runBuild(ctx, (ctxx, optionList) -> {
+		}, null, (ctxx, optionList) -> {
+			try {
+				ctxx.getNativeImageFile().toFile().createNewFile();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			callCount.incrementAndGet();
+		});
+		runBuild(ctx, (ctxx, optionList) -> {
+		}, null, (ctxx, optionList) -> callCount.incrementAndGet());
+		assertThat(callCount.get(), equalTo(2));
+	}
+
+	@Test
 	void testSourceDep() throws IOException {
 		Path onedep = examplesTestFolder.resolve("onedep.java").toAbsolutePath();
 		ProjectBuilder pb = Project.builder();

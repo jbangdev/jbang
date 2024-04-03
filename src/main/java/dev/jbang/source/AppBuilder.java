@@ -43,7 +43,7 @@ public abstract class AppBuilder implements Builder<CmdGeneratorBuilder> {
 	public CmdGeneratorBuilder build() throws IOException {
 		Project project = ctx.getProject();
 		Path outjar = ctx.getJarFile();
-		boolean nativeBuildRequired = project.isNativeImage() && !Files.exists(ctx.getNativeImageFile());
+		boolean nativeBuildRequired = project.isNativeImage() && (!Files.exists(ctx.getNativeImageFile()) || fresh);
 		IntegrationResult integrationResult = new IntegrationResult(null, null, null);
 		String requestedJavaVersion = project.getJavaVersion();
 		// always build the jar for native mode
