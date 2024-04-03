@@ -254,6 +254,8 @@ public class JBang extends BaseCommand {
 					.setDefaultValueProvider(defaultValueProvider)
 					.setResourceBundle(new ConfigurationResourceBundle())
 					.setStopAtPositional(true)
+					.setAllowOptionsAsOptionParameters(true)
+					.setAllowSubcommandsAsOptionParameters(true)
 					.setOut(localout)
 					.setErr(localerr);
 	}
