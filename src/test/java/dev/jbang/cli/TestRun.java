@@ -2516,4 +2516,11 @@ public class TestRun extends BaseTest {
 
 		assertThat(cmdline, endsWith("echo baz"));
 	}
+
+	@Test
+	void testNativeOptsVerbose() {
+		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build", "-n", "-N=--verbose", arg);
+	}
+
 }
