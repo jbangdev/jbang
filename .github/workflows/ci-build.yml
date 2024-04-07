@@ -24,14 +24,14 @@ jobs:
         with:
           fetch-depth: 2
       - name: Verify Changed files in docs
-        uses: tj-actions/verify-changed-files@bcb4e766c132157cda3d1e8c7ca3d68d86d6ae6b # v8.1
+        uses: tj-actions/verify-changed-files@fda469d6b456070da68fa3fdbc07a513d858b200 # v8.8
         id: verify-changed-files
         with:
           files: |
              docs
       - name: update website
         if: ${{ github.ref == 'refs/heads/main' && steps.verify-changed-files.outputs.files_changed == 'true'}} 
-        uses: benc-uk/workflow-dispatch@798e70c97009500150087d30d9f11c5444830385 # v1
+        uses: benc-uk/workflow-dispatch@25b02cc069be46d637e8fe2f1e8484008e9e9609 # v1
         with:
           workflow: github-pages
           repo: jbangdev/jbang.dev
