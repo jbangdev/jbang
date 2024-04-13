@@ -16,6 +16,7 @@ plugins {
 	id "org.sonarqube" version "4.0.0.2929"
 	id 'jacoco'
 	id 'maven-publish'
+	id "com.github.ben-manes.versions" version "0.51.0"
 }
 
 //remove this to see all the missing tags/parameters.
@@ -90,25 +91,25 @@ dependencies {
 	implementation 'com.offbytwo:docopt:0.6.0.20150202'
 
 	implementation 'org.apache.commons:commons-text:1.11.0'
-	implementation 'org.apache.commons:commons-compress:1.25.0'
+	implementation 'org.apache.commons:commons-compress:1.26.1'
 	implementation 'info.picocli:picocli:4.7.5'
 	implementation 'io.quarkus.qute:qute-core:1.12.2.Final'
 	implementation 'kr.motd.maven:os-maven-plugin:1.7.1'
 	implementation 'org.codehaus.plexus:plexus-java:1.2.0'
 	implementation 'com.google.code.gson:gson:2.10.1'
-	implementation 'org.jsoup:jsoup:1.17.1'
+	implementation 'org.jsoup:jsoup:1.17.2'
 	implementation 'org.codejive:java-properties:0.0.7'
 
 	implementation "org.slf4j:slf4j-nop:1.7.30"
 	implementation "org.slf4j:jcl-over-slf4j:1.7.30"
 	implementation "org.jboss:jandex:2.2.3.Final"
 
-	implementation "eu.maveniverse.maven.mima:context:2.4.4"
-	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.4"
+	implementation "eu.maveniverse.maven.mima:context:2.4.10"
+	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.10"
 
-	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.10.1"
-	testImplementation "org.junit.jupiter:junit-jupiter:5.10.1"
-	testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
+	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.10.2"
+	testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
+	testImplementation "com.github.stefanbirkner:system-rules:1.19.2"
 	testImplementation "org.hamcrest:hamcrest-library:2.2"
 	testImplementation "com.github.tomakehurst:wiremock-jre8:2.32.0"
 
