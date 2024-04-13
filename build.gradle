@@ -109,7 +109,7 @@ dependencies {
 
 	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.10.2"
 	testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
-	testImplementation "com.github.stefanbirkner:system-rules:1.19.2"
+	testImplementation "com.github.stefanbirkner:system-rules:1.19.0"
 	testImplementation "org.hamcrest:hamcrest-library:2.2"
 	testImplementation "com.github.tomakehurst:wiremock-jre8:2.32.0"
 
