@@ -13,8 +13,9 @@ EOF
   rm /tmp/passwd
 fi
 
-if [[ ! -z "$TRUST" ]]; then
-  jbang trust add $TRUST
+if [[ ! -z "$INPUT_TRUST" ]]; then
+  $JBANG_PATH/jbang trust add $INPUT_TRUST
 fi
 
-exec jbang "${@}"
+echo jbang $INPUT_JBANGARGS $INPUT_SCRIPT $INPUT_ARGS "${@}"
+exec $JBANG_PATH/jbang $INPUT_JBANGARGS $INPUT_SCRIPT $INPUT_SCRIPTARGS "${@}"
