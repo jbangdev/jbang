@@ -15,6 +15,7 @@ import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.ArtifactType;
 import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.artifact.DefaultArtifactType;
 import org.eclipse.aether.collection.CollectRequest;
 import org.eclipse.aether.graph.Dependency;
 import org.eclipse.aether.metadata.Metadata;
@@ -145,6 +146,9 @@ public class ArtifactResolver implements Closeable {
 																			? ContextOverrides.SnapshotUpdatePolicy.ALWAYS
 																			: null)
 																	.repositoryListener(listener);
+
+		overridesBuilder.extraArtifactTypes(
+				Collections.singletonList(new DefaultArtifactType("fatjar", "jar", null, "java", true, true)));
 
 		this.context = Runtimes.INSTANCE.getRuntime().create(overridesBuilder.build());
 	}
@@ -354,6 +358,8 @@ public class ArtifactResolver implements Closeable {
 			if (type != null) {
 				ext = type.getExtension();
 				cls = Optional.ofNullable(cls).orElse(type.getClassifier());
+				return new DefaultArtifact(coord.getGroupId(), coord.getArtifactId(), cls, ext, coord.getVersion(),
+						type);
 			}
 		}
 		return new DefaultArtifact(coord.getGroupId(), coord.getArtifactId(), cls, ext, coord.getVersion());
