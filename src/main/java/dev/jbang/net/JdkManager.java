@@ -419,11 +419,11 @@ public class JdkManager {
 	 * @param version requested version to link.
 	 */
 	public static void linkToExistingJdk(String path, int version) {
-		Path jdkPath = JBangJdkProvider.getJdksPath().resolve(Integer.toString(version));
-		Util.verboseMsg("Trying to link " + path + " to " + jdkPath);
-		if (Files.exists(jdkPath) || Files.isSymbolicLink(jdkPath)) {
+		Path linkPath = JBangJdkProvider.getJdksPath().resolve(Integer.toString(version));
+		Util.verboseMsg("Trying to link " + path + " to " + linkPath);
+		if (Files.exists(linkPath) || Files.isSymbolicLink(linkPath)) {
 			Util.verboseMsg("JBang managed JDK already exists, must be deleted to make sure linking works");
-			Util.deletePath(jdkPath, false);
+			Util.deletePath(linkPath, false);
 		}
 		Path linkedJdkPath = Paths.get(path);
 		if (!Files.isDirectory(linkedJdkPath)) {
@@ -433,8 +433,8 @@ public class JdkManager {
 		if (ver.isPresent()) {
 			Integer linkedJdkVersion = ver.get();
 			if (linkedJdkVersion == version) {
-				Util.mkdirs(jdkPath.getParent());
-				Util.createLink(jdkPath, linkedJdkPath);
+				Util.mkdirs(linkPath.getParent());
+				Util.createLink(linkPath, linkedJdkPath);
 				Util.infoMsg("JDK " + version + " has been linked to: " + linkedJdkPath);
 			} else {
 				throw new ExitException(EXIT_INVALID_INPUT, "Java version in given path: " + path

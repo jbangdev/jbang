@@ -436,9 +436,9 @@ class TestJdk extends BaseTest {
 	private void createMockJdk(int jdkVersion, BiConsumer<Path, String> init) {
 		Path jdkPath = JBangJdkProvider.getJdksPath().resolve(String.valueOf(jdkVersion));
 		init.accept(jdkPath, jdkVersion + ".0.7");
-		Path def = Settings.getCurrentJdkDir();
-		if (!Files.exists(def)) {
-			Util.createLink(def, jdkPath);
+		Path link = Settings.getCurrentJdkDir();
+		if (!Files.exists(link)) {
+			Util.createLink(link, jdkPath);
 		}
 	}
 
