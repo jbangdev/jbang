@@ -4,6 +4,7 @@ import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
 import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 
 import java.io.IOException;
+import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -500,22 +501,31 @@ public class JdkManager {
 	public static void setDefaultJdk(JdkProvider.Jdk jdk) {
 		JdkProvider.Jdk defJdk = getDefaultJdk();
 		if (jdk.isInstalled() && !jdk.equals(defJdk)) {
-			removeDefaultJdk();
-			Util.createLink(getDefaultJdkPath(), jdk.getHome());
-			Util.infoMsg("Default JDK set to " + jdk);
+			Path defaultJdk = getDefaultJdkPath();
+			Path newDefaultJdk = defaultJdk.getParent().resolve(defaultJdk.getFileName() + ".new");
+			Util.createLink(newDefaultJdk, jdk.getHome());
+			removeJdk(defaultJdk);
+			try {
+				Files.move(newDefaultJdk, defaultJdk);
+				Util.infoMsg("Default JDK set to " + jdk);
+			} catch (IOException e) {
+				// Ignore
+			}
 		}
 	}
 
 	public static void removeDefaultJdk() {
 		Path link = getDefaultJdkPath();
-		if (Files.isSymbolicLink(link)) {
-			try {
-				Files.deleteIfExists(link);
-			} catch (IOException e) {
-				// Ignore
-			}
-		} else {
-			Util.deletePath(link, true);
+		removeJdk(link);
+	}
+
+	private static void removeJdk(Path jdkPath) {
+		try {
+			Files.deleteIfExists(jdkPath);
+		} catch (DirectoryNotEmptyException e) {
+			Util.deletePath(jdkPath, true);
+		} catch (IOException e) {
+			// Ignore
 		}
 	}
 

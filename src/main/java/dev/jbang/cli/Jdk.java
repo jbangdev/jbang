@@ -5,11 +5,7 @@ import static dev.jbang.cli.BaseCommand.*;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
@@ -235,7 +231,7 @@ public class Jdk {
 		JdkProvider.Jdk defjdk = JdkManager.getDefaultJdk();
 		if (versionOrId != null) {
 			JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(versionOrId);
-			if (!jdk.equals(defjdk)) {
+			if (defjdk == null || (!jdk.equals(defjdk) && !Objects.equals(jdk.getHome(), defjdk.getHome()))) {
 				JdkManager.setDefaultJdk(jdk);
 			} else {
 				Util.infoMsg("Default JDK already set to " + defjdk.getMajorVersion());
