@@ -268,8 +268,9 @@ class TestJdk extends BaseTest {
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
 				equalTo("[jbang] JDK 11 has been linked to: " + javaDir.toPath().toString() + "\n"));
-		assertTrue(Files.isSymbolicLink(jdkPath.resolve("11")));
-		assertEquals(javaDir.toPath(), Files.readSymbolicLink(jdkPath.resolve("11")));
+		assertTrue(Util.isLink(jdkPath.resolve("11")));
+		System.err.println("ASSERT: " + javaDir.toPath() + " - " + jdkPath.resolve("11").toRealPath());
+		assertTrue(Files.isSameFile(javaDir.toPath(), jdkPath.resolve("11").toRealPath()));
 	}
 
 	@Test
@@ -292,8 +293,8 @@ class TestJdk extends BaseTest {
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
 				equalTo("[jbang] JDK 11 has been linked to: " + javaDir.toPath().toString() + "\n"));
-		assertTrue(Files.isSymbolicLink(jdkPath.resolve("11")));
-		assertEquals(javaDir.toPath(), Files.readSymbolicLink(jdkPath.resolve("11")));
+		assertTrue(Util.isLink(jdkPath.resolve("11")));
+		assertTrue(Files.isSameFile(javaDir.toPath(), jdkPath.resolve("11").toRealPath()));
 	}
 
 	@Test
@@ -362,8 +363,8 @@ class TestJdk extends BaseTest {
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
 				equalTo("[jbang] JDK 11 has been linked to: " + jdkOk + "\n"));
-		assertTrue(Files.isSymbolicLink(jdkPath.resolve("11")));
-		assertEquals(jdkOk, Files.readSymbolicLink(jdkPath.resolve("11")));
+		assertTrue(Util.isLink(jdkPath.resolve("11")));
+		assertTrue(Files.isSameFile(jdkOk, (jdkPath.resolve("11").toRealPath())));
 	}
 
 	@Test
