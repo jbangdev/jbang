@@ -268,8 +268,9 @@ class TestJdk extends BaseTest {
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
 				equalTo("[jbang] JDK 11 has been linked to: " + javaDir.toPath().toString() + "\n"));
-		assertTrue(Files.isSymbolicLink(jdkPath.resolve("11")));
-		assertEquals(javaDir.toPath(), Files.readSymbolicLink(jdkPath.resolve("11")));
+		assertTrue(Util.isLink(jdkPath.resolve("11")));
+		System.err.println("ASSERT: " + javaDir.toPath() + " - " + jdkPath.resolve("11").toRealPath());
+		assertTrue(Files.isSameFile(javaDir.toPath(), jdkPath.resolve("11").toRealPath()));
 	}
 
 	@Test
@@ -292,8 +293,8 @@ class TestJdk extends BaseTest {
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
 				equalTo("[jbang] JDK 11 has been linked to: " + javaDir.toPath().toString() + "\n"));
-		assertTrue(Files.isSymbolicLink(jdkPath.resolve("11")));
-		assertEquals(javaDir.toPath(), Files.readSymbolicLink(jdkPath.resolve("11")));
+		assertTrue(Util.isLink(jdkPath.resolve("11")));
+		assertTrue(Files.isSameFile(javaDir.toPath(), jdkPath.resolve("11").toRealPath()));
 	}
 
 	@Test
@@ -362,8 +363,8 @@ class TestJdk extends BaseTest {
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedErr(),
 				equalTo("[jbang] JDK 11 has been linked to: " + jdkOk + "\n"));
-		assertTrue(Files.isSymbolicLink(jdkPath.resolve("11")));
-		assertEquals(jdkOk, Files.readSymbolicLink(jdkPath.resolve("11")));
+		assertTrue(Util.isLink(jdkPath.resolve("11")));
+		assertTrue(Files.isSameFile(jdkOk, (jdkPath.resolve("11").toRealPath())));
 	}
 
 	@Test
@@ -435,9 +436,9 @@ class TestJdk extends BaseTest {
 	private void createMockJdk(int jdkVersion, BiConsumer<Path, String> init) {
 		Path jdkPath = JBangJdkProvider.getJdksPath().resolve(String.valueOf(jdkVersion));
 		init.accept(jdkPath, jdkVersion + ".0.7");
-		Path def = Settings.getCurrentJdkDir();
-		if (!Files.exists(def)) {
-			Util.createLink(def, jdkPath);
+		Path link = Settings.getCurrentJdkDir();
+		if (!Files.exists(link)) {
+			Util.createLink(link, jdkPath);
 		}
 	}
 

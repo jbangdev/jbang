@@ -411,32 +411,32 @@ public class Edit extends BaseCommand {
 		Path srcDir = tmpProjectDir.resolve("src");
 		Util.mkdirs(srcDir);
 
-		Path srcFile = srcDir.resolve(name);
-		Util.createLink(srcFile, originalFile);
+		Path link = srcDir.resolve(name);
+		Util.createLink(link, originalFile);
 
 		for (ResourceRef sourceRef : prj.getMainSourceSet().getSources()) {
-			Path sfile;
+			Path linkFile;
 			Source src = Source.forResourceRef(sourceRef, Function.identity());
 			if (src.getJavaPackage().isPresent()) {
 				Path packageDir = srcDir.resolve(src.getJavaPackage().get().replace(".", File.separator));
 				Util.mkdirs(packageDir);
-				sfile = packageDir.resolve(sourceRef.getFile().getFileName());
+				linkFile = packageDir.resolve(sourceRef.getFile().getFileName());
 			} else {
-				sfile = srcDir.resolve(sourceRef.getFile().getFileName());
+				linkFile = srcDir.resolve(sourceRef.getFile().getFileName());
 			}
 			Path destFile = sourceRef.getFile().toAbsolutePath();
-			Util.createLink(sfile, destFile);
+			Util.createLink(linkFile, destFile);
 		}
 
 		for (RefTarget ref : prj.getMainSourceSet().getResources()) {
-			Path target = ref.to(srcDir);
-			Util.mkdirs(target.getParent());
-			Util.createLink(target, ref.getSource().getFile().toAbsolutePath());
+			Path linkFile = ref.to(srcDir);
+			Util.mkdirs(linkFile.getParent());
+			Util.createLink(linkFile, ref.getSource().getFile().toAbsolutePath());
 		}
 
 		// create build gradle
 		Optional<String> packageName = Util.getSourcePackage(
-				new String(Files.readAllBytes(srcFile), Charset.defaultCharset()));
+				new String(Files.readAllBytes(link), Charset.defaultCharset()));
 		String baseName = Util.getBaseName(name);
 		String fullClassName;
 		fullClassName = packageName.map(s -> s + "." + baseName).orElse(baseName);

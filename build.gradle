@@ -18,8 +18,11 @@ plugins {
 	id 'maven-publish'
 }
 
-//remove this to see all the missing tags/parameters.
-javadoc.options.addStringOption('Xdoclint:none', '-quiet')
+javadoc {
+	options.encoding = 'UTF-8'
+	//remove this to see all the missing tags/parameters.
+	options.addStringOption('Xdoclint:none', '-quiet')
+}
 
 repositories {
 	mavenCentral()
