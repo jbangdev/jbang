@@ -220,7 +220,7 @@ fi
 ## run it using command substitution to have just the user process once jbang is done
 export JBANG_RUNTIME_SHELL=bash
 export JBANG_STDIN_NOTTY=$([ -t 0 ] && echo "false" || echo "true")
-export JBANG=$0
+export JBANG_LAUNCH_CMD=$0
 output=$(CLICOLOR_FORCE=1 "${JAVA_EXEC}" ${JBANG_JAVA_OPTIONS} -classpath "${jarPath}" dev.jbang.Main "$@")
 err=$?
 if [ $err -eq 255 ]; then
