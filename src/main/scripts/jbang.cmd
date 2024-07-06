@@ -63,6 +63,7 @@ if not exist "%TDIR%" ( mkdir "%TDIR%" )
 set tmpfile=%TDIR%\%RANDOM%.jbang.tmp
 rem execute jbang and pipe to temporary random file
 set JBANG_RUNTIME_SHELL=cmd
+set JBANG_LAUNCH_CMD=%~nx0
 2>nul >nul timeout /t 0 && (set JBANG_STDIN_NOTTY=false) || (set JBANG_STDIN_NOTTY=true)
 set "CMD=!JAVA_EXEC!"
 SETLOCAL DISABLEDELAYEDEXPANSION
