@@ -873,6 +873,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "dsyer",
+      "name": "Dave Syer",
+      "avatar_url": "https://avatars.githubusercontent.com/u/124075?v=4",
+      "profile": "http://spring.io/team/dsyer",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,
