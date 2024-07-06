@@ -48,6 +48,7 @@ public class ArtifactResolver implements Closeable {
 		private List<MavenRepo> repositories;
 		private int timeout;
 		private boolean offline;
+		private boolean ignoreTransitiveRepositories;
 		private boolean withUserSettings;
 		private Path localFolder;
 		private Path settingsXml;
@@ -98,6 +99,11 @@ public class ArtifactResolver implements Closeable {
 			return this;
 		}
 
+		public Builder ignoreTransitiveRepositories(boolean ignoreTransitiveRepositories) {
+			this.ignoreTransitiveRepositories = ignoreTransitiveRepositories;
+			return this;
+		}
+
 		public Builder logging(boolean logging) {
 			this.loggingEnabled = logging;
 			return this;
@@ -132,6 +138,8 @@ public class ArtifactResolver implements Closeable {
 		ContextOverrides.Builder overridesBuilder = ContextOverrides.create()
 																	.userProperties(userProperties)
 																	.offline(builder.offline)
+																	.ignoreArtifactDescriptorRepositories(
+																			builder.ignoreTransitiveRepositories)
 																	.withUserSettings(builder.withUserSettings)
 																	.withUserSettingsXmlOverride(builder.settingsXml)
 																	.withLocalRepositoryOverride(builder.localFolder)
