@@ -41,6 +41,10 @@ public class Version extends BaseCommand {
 			out.println("Cache: " + Settings.getCacheDir());
 			out.println("Config: " + Settings.getConfigDir());
 			out.println("Repository: " + ArtifactResolver.getLocalMavenRepo());
+			out.println("Java: " + System.getProperty("java.home") + " [" + System.getProperty("java.version") + "]");
+			out.println("OS: " + Util.getOS());
+			out.println("Arch: " + Util.getArch());
+			out.println("Shell: " + Util.getShell());
 		}
 
 		return EXIT_OK;
