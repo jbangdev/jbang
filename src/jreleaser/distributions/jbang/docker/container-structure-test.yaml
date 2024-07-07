@@ -28,7 +28,8 @@ commandTests:
         value: https://github.com/jruby
     command: "entrypoint"
     expectedError:
-        - "Adding .https://github.com/jruby. to /jbang/.jbang/trusted-sources.json"
+        - ".*(Trusting permanently:).*"
+        - ".*(https://github.com/jruby).*"
   - name: "Does multiple arguments work"
     envVars:
       - key: INPUT_SCRIPT
