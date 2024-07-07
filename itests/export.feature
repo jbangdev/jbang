@@ -12,5 +12,15 @@ Scenario: basic export no classpath
     Then match err contains "Exported to"
     Then match err contains "helloworld.jar"
 
+  Scenario: basic export classpath
+    When command('rm -rf classpath_example.jar lib')
+    When command('jbang export portable classpath_example.java')
+    Then match err contains "Exported to"
+    Then match err contains "classpath_example.jar"
+    When command('jbang export portable --force classpath_example.java')
+    Then match err contains "Exported to"
+    Then match err contains "classpath_example.jar"
+
+
 
 
