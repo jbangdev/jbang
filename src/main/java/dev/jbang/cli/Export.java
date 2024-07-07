@@ -7,9 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.Attributes;
@@ -171,7 +169,12 @@ class ExportPortable extends BaseExportCommand {
 			Util.mkdirs(libDir);
 			StringBuilder newPath = new StringBuilder();
 			for (ArtifactInfo dep : deps) {
-				Files.copy(dep.getFile(), libDir.resolve(dep.getFile().getFileName()));
+				if (exportMixin.force) {
+					Files.copy(dep.getFile(), libDir.resolve(dep.getFile().getFileName()),
+							StandardCopyOption.REPLACE_EXISTING);
+				} else {
+					Files.copy(dep.getFile(), libDir.resolve(dep.getFile().getFileName()));
+				}
 				newPath.append(" " + LIB + "/" + dep.getFile().getFileName());
 			}
 
