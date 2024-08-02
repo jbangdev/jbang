@@ -19,6 +19,18 @@ import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 public abstract class BaseFoldersJdkProvider implements JdkProvider {
+
+	Exception lastError;
+
+	void setLastError(Exception t) {
+		this.lastError = t;
+	}
+
+	@Override
+	public Optional<Throwable> lastErrors() {
+		return Optional.ofNullable(lastError);
+	}
+
 	@Nonnull
 	@Override
 	public List<Jdk> listInstalled() {

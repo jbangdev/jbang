@@ -348,6 +348,15 @@ public class JdkManager {
 	private static JdkProvider.Jdk getAvailableJdkByVersion(int version, boolean openVersion) {
 		List<JdkProvider.Jdk> jdks = getJdkByVersion(listAvailableJdks(), version, openVersion);
 		if (jdks.isEmpty()) {
+
+			updatableProviders().forEach(p -> {
+				if (p.lastErrors().isPresent()) {
+					Util.warnMsg("JDK Provider " + p.name() + " had error: " + p.lastErrors().get().getMessage());
+				} else {
+					Util.verboseMsg("JDK Provider " + p.name() + " had no errors.");
+				}
+			});
+
 			throw new ExitException(EXIT_INVALID_INPUT, "JDK version is not available for installation: " + version
 					+ "\n"
 					+ "Use 'jbang jdk list --available' to see a list of JDKs available for installation");
