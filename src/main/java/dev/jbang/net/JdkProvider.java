@@ -241,6 +241,13 @@ public interface JdkProvider {
 	}
 
 	/**
+	 * @return Last error occurring when looking up available JDK's
+	 */
+	default public Optional<Throwable> lastErrors() {
+		return Optional.empty();
+	}
+
+	/**
 	 * This is a special "dummy" provider that can be used to create
 	 * <code>Jdk</code> objects for JDKs that don't seem to belong to any of the
 	 * known providers but for which we still want an object to represent them.
@@ -274,6 +281,7 @@ public interface JdkProvider {
 		public static Jdk createJdk(Path jdkPath) {
 			return instance.getJdkByPath(jdkPath);
 		}
+
 	}
 
 }
