@@ -1,4 +1,5 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
+
 {#for dep in dependencies.orEmpty}
 //DEPS {dep}
 {/for}
@@ -8,6 +9,6 @@
 {magiccontent}
 {#else}
 public fun main() {
-    println("Hello World");
+    println("Hello World")
 }
 {/if}
