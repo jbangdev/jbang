@@ -55,10 +55,6 @@ You can change the default JDK by running:
 
 Running it without an argument will return the version of the JDK that is currently set as the default.
 
-NOTE: On Windows you might need elevated privileges to create symbolic links. If you don't have permissions then
-running the above command  will result in an error. To use it https://stackoverflow.com/a/24353758[enable symbolic links]
-for your user or run your shell/terminal as administrator to have this feature working.
-
 When you `uninstall` a JDK by running:
 
   jbang jdk uninstall 12

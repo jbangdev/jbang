@@ -19,16 +19,7 @@ import java.net.URLDecoder;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
-import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.security.MessageDigest;
@@ -1464,8 +1455,8 @@ public class Util {
 			} else if (Files.exists(path)) {
 				verboseMsg("Deleting file " + path);
 				Files.delete(path);
-			} else if (Files.isSymbolicLink(path)) {
-				Util.verboseMsg("Deleting broken symbolic link " + path);
+			} else if (Files.exists(path, LinkOption.NOFOLLOW_LINKS)) {
+				Util.verboseMsg("Deleting broken link " + path);
 				Files.delete(path);
 			}
 		} catch (IOException e) {
@@ -1477,31 +1468,32 @@ public class Util {
 		return err[0] == null;
 	}
 
-	public static void createLink(Path src, Path target) {
-		if (!Files.exists(src) && !createSymbolicLink(src, target.toAbsolutePath())) {
-			if (getOS() != OS.windows || !Files.isDirectory(src)) {
-				infoMsg("Now try creating a hard link instead of symbolic.");
-				if (createHardLink(src, target.toAbsolutePath())) {
+	public static void createLink(Path link, Path target) {
+		if (!Files.exists(link)) {
+			// On Windows we use junction for directories because their
+			// creation doesn't require any special privileges.
+			if (getOS() == OS.windows && Files.isDirectory(target)) {
+				if (createJunction(link, target.toAbsolutePath())) {
+					return;
+				}
+			} else {
+				if (createSymbolicLink(link, target.toAbsolutePath())) {
 					return;
 				}
 			}
-			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, "Failed to create link " + src + " -> " + target);
+			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, "Failed to create link " + link + " -> " + target);
 		}
 	}
 
-	private static boolean createSymbolicLink(Path src, Path target) {
+	private static boolean createSymbolicLink(Path link, Path target) {
 		try {
-			Files.createSymbolicLink(src, target);
+			Files.createSymbolicLink(link, target);
 			return true;
 		} catch (IOException e) {
-			infoMsg(String.format("Creation of symbolic link failed %s -> %s", src, target));
-			if (isWindows() && e instanceof AccessDeniedException && e.getMessage().contains("privilege")
-					&& JavaUtil.getCurrentMajorJavaVersion() < 13) {
+			if (isWindows() && e instanceof AccessDeniedException && e.getMessage().contains("privilege")) {
+				infoMsg(String.format("Creation of symbolic link failed %s -> %s", link, target));
 				infoMsg("This is a known issue with trying to create symbolic links on Windows.");
-				infoMsg("Either use a Java version equal to or newer than 13 and make sure that");
-				infoMsg("it is in your PATH (check by running 'java -version`) or if no Java is");
-				infoMsg("available on the PATH use 'jbang jdk default <version>'.");
-				infoMsg("The other solution is to change the privileges for your user, see:");
+				infoMsg("See the information available at the link below for a solution:");
 				infoMsg("https://www.jbang.dev/documentation/guide/latest/usage.html#usage-on-windows");
 			}
 			verboseMsg(e.toString());
@@ -1509,20 +1501,16 @@ public class Util {
 		return false;
 	}
 
-	private static boolean createHardLink(Path src, Path target) {
-		try {
-			if (getOS() == OS.windows && Files.isDirectory(src)) {
-				warnMsg(String.format("Creation of hard links to folders is not supported on Windows %s -> %s", src,
-						target));
-				return false;
-			}
-			Files.createLink(src, target);
-			return true;
-		} catch (IOException e) {
-			verboseMsg(e.toString());
+	private static boolean createJunction(Path link, Path target) {
+		if (!Files.exists(link) && Files.exists(link, LinkOption.NOFOLLOW_LINKS)) {
+			// We automatically remove broken links
+			deletePath(link, true);
 		}
-		infoMsg(String.format("Creation of hard link failed %s -> %s", src, target));
-		return false;
+		return runCommand("cmd.exe", "/c", "mklink", "/j", link.toString(), target.toString()) != null;
+	}
+
+	public static boolean isLink(Path path) throws IOException {
+		return !path.toAbsolutePath().equals(path.toRealPath());
 	}
 
 	public static Path getUrlCacheDir(String fileURL) {

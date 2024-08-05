@@ -348,15 +348,15 @@ No one would want to do that (right?) but now you know.
 == Usage on Windows
 
 Some JBang commands need to create symbolic links when running on Windows.
-For example, this is required for Managing JDKs or editing the files with the `edit` command.
+For example, this is required for editing the files with the `edit` command.
 
 If you encounter issues on Windows related to the creation of symbolic links follow
 these instructions:
 
 1. From Windows 10 onwards you can turn on "Developer Mode", this will automatically
 enable the possibility to create symbolic links. Read here how to enable this mode:
-https://learn.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development[Enable your device for development]. On Windows 11 this might already
-be enabled by default.
+https://learn.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development[Enable your device for development].
+On Windows 11 this might already be enabled by default.
 
 2. If you're using a Java version equal to or newer than 13 then you're good to go.
 This Java version already works correctly. Make sure that JBang is actually using
@@ -369,4 +369,3 @@ is no  other option than setting the correct privileges for your user by enablin
 the `Create symbolic links` group policy setting. See the instruction on this page
 for more information on how to do this:
 https://superuser.com/a/105381[Permission to make symbolic links in Windows].
-
