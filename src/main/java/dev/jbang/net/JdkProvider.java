@@ -121,9 +121,11 @@ public interface JdkProvider {
 
 	default String name() {
 		String nm = getClass().getSimpleName();
-		// TODO: this 11 is here assuming it ends in "JdkProvider" - dont make that
-		// broken assumption
-		return nm.substring(0, nm.length() - 11).toLowerCase();
+		if (nm.endsWith("JdkProvider")) {
+			return nm.substring(0, nm.length() - 11).toLowerCase();
+		} else {
+			return nm.toLowerCase();
+		}
 	}
 
 	/**
