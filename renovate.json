@@ -3,8 +3,11 @@
     "config:best-practices"
   ],
   "packageRules": [
-    { "matchPackagePatterns": ["*"],
-    "groupName": "{{manager}}"
+    {
+      "groupName": "{{manager}}",
+      "matchPackageNames": [
+        "*"
+      ]
     }
   ]
 }
