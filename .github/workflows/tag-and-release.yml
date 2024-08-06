@@ -23,11 +23,11 @@ jobs:
       JRELEASER_NEXUS2_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
       JRELEASER_VERSION: 1.5.1
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
         with:
           fetch-depth: 0
       - name: install-java11
-        uses: actions/setup-java@0ab4596768b603586c0de567f2430c30f5b0d2b0 # v3
+        uses: actions/setup-java@6a0805fcefea3d4657a47ac4c165951e33482018 # v4
         with:
           java-version: 11
           distribution: temurin
@@ -57,7 +57,7 @@ jobs:
           setup-java: false
       - name: JReleaser output
         if: always()
-        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3
+        uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4
         with:
           name: jreleaser-release
           path: |
