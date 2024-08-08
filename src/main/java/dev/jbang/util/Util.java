@@ -101,6 +101,7 @@ public class Util {
 	private static boolean quiet;
 	private static boolean offline;
 	private static boolean fresh;
+	private static boolean ignoreTransitiveRepositories;
 	private static boolean preview;
 
 	private static Path cwd;
@@ -136,6 +137,10 @@ public class Util {
 		}
 	}
 
+	public static void setIgnoreTransitiveRepositories(boolean ignoreTransitiveRepositories) {
+		Util.ignoreTransitiveRepositories = ignoreTransitiveRepositories;
+	}
+
 	public static void setDownloadSources(boolean flag) {
 		downloadSources = flag;
 	}
@@ -149,6 +154,10 @@ public class Util {
 
 	public static boolean isOffline() {
 		return offline;
+	}
+
+	public static boolean isIgnoreTransitiveRepositories() {
+		return ignoreTransitiveRepositories;
 	}
 
 	public static void setFresh(boolean fresh) {

@@ -61,6 +61,12 @@ public class JBang extends BaseCommand {
 		Util.setPreview(preview);
 	}
 
+	@CommandLine.Option(names = {
+			"--ignore-transitive-repositories" }, description = "Resolver should ignore transitive POM introduced remote repositories")
+	void setIgnoreTransitiveRepositories(boolean ignoreTransitiveRepositories) {
+		Util.setIgnoreTransitiveRepositories(ignoreTransitiveRepositories);
+	}
+
 	@CommandLine.ArgGroup(exclusive = true)
 	VerboseQuietExclusive verboseQuietExclusive = new VerboseQuietExclusive();
 
