@@ -69,7 +69,8 @@ public class JBangJdkProvider extends BaseFoldersJdkProvider {
 			result.sort(Jdk::compareTo);
 			return Collections.unmodifiableList(result);
 		} catch (IOException e) {
-			Util.verboseMsg("Couldn't list available JDKs", e);
+			Util.errorMsg("Could not list available JDK's using foojay.io: " + e.getMessage(), e);
+			// Util.verboseMsg("Couldn't list available JDKs", e);
 		}
 		return Collections.emptyList();
 	}
