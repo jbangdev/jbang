@@ -31,7 +31,7 @@ jobs:
              docs
       - name: update website
         if: ${{ github.ref == 'refs/heads/main' && steps.verify-changed-files.outputs.files_changed == 'true'}} 
-        uses: benc-uk/workflow-dispatch@25b02cc069be46d637e8fe2f1e8484008e9e9609 # v1
+        uses: benc-uk/workflow-dispatch@e2e5e9a103e331dad343f381a29e654aea3cf8fc # v1
         with:
           workflow: github-pages
           repo: jbangdev/jbang.dev
