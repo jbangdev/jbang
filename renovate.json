@@ -4,8 +4,8 @@
   ],
   "packageRules": [
     {
-      "matchPackageNames": ["Qute"],
-      "allowedVersions": "<2.0.0"
+      "matchPackageNames": ["io.quarkus.qute:qute-core"],
+      "allowedVersions": "<2.0.0"g
     },
     {
       "groupName": "{{manager}}",
