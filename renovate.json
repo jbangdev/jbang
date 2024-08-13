@@ -4,6 +4,10 @@
   ],
   "packageRules": [
     {
+      "matchPackageNames": ["Qute"],
+      "allowedVersions": "<2.0.0"
+    },
+    {
       "groupName": "{{manager}}",
       "matchPackageNames": [
         "*"
