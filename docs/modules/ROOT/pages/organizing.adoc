@@ -16,8 +16,8 @@ toc::[]
 
 == Multiple source files
 
-It is possible to use multiple source files just by having the files in the same source directory, it will
-even work for a limited extent with packages.
+It is possible to use multiple source files just by having them in the same source directory. 
+To a limited extend, it also works with packages.
 
 For example the example below works by just calling `jbang Main.java`:
 
