@@ -57,7 +57,7 @@ found, depth-first.
 
 The listed file name(s) gets added to source list when compiling.
 
-Currently there is no `*.java` style matching or support for `.java` files to declare `//DEPS` or other jbang configuration.
+Currently there is no `*.java` style matching or support for `.java` files to declare `//DEPS` or other jbang configurations.
 That will currently only be honored by the main script/app. These will be loosened up in future based on feedback.
 
 == Adding more resources
