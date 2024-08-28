@@ -1,5 +1,6 @@
 package dev.jbang.net.jdkproviders;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,5 +37,23 @@ public class LinuxDistroJdkProvider extends BaseFoldersJdkProvider {
 	@Override
 	public boolean canUse() {
 		return Files.isDirectory(JDKS_ROOT);
+	}
+
+	@Override
+	protected boolean acceptFolder(Path jdkFolder) {
+		return super.acceptFolder(jdkFolder) && !isSameFolderSymLink(jdkFolder);
+	}
+
+	// Returns true if a path is a symlink to an entry in the same folder
+	private boolean isSameFolderSymLink(Path jdkFolder) {
+		Path absFolder = jdkFolder.toAbsolutePath();
+		if (Files.isSymbolicLink(absFolder)) {
+			try {
+				Path realPath = absFolder.toRealPath();
+				return Files.isSameFile(absFolder.getParent(), realPath.getParent());
+			} catch (IOException e) {
+				/* ignore */ }
+		}
+		return false;
 	}
 }
