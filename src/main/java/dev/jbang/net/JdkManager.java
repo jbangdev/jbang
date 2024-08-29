@@ -30,7 +30,7 @@ public class JdkManager {
 
 	// TODO Don't hard-code this list
 	public static final String[] PROVIDERS_ALL = new String[] { "current", "default", "javahome", "path", "jbang",
-			"sdkman", "scoop", "linuxdistro" };
+			"sdkman", "scoop", "linux" };
 	public static final String[] PROVIDERS_DEFAULT = new String[] { "current", "default", "javahome", "path", "jbang" };
 
 	public static void initProvidersByName(String... providerNames) {
@@ -68,8 +68,8 @@ public class JdkManager {
 			case "scoop":
 				provider = new ScoopJdkProvider();
 				break;
-			case "linuxdistro":
-				provider = new LinuxDistroJdkProvider();
+			case "linux":
+				provider = new LinuxJdkProvider();
 				break;
 			default:
 				Util.warnMsg("Unknown JDK provider: " + name);

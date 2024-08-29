@@ -19,7 +19,7 @@ import javax.annotation.Nullable;
  * adjust based on identified distro.
  *
  */
-public class LinuxDistroJdkProvider extends BaseFoldersJdkProvider {
+public class LinuxJdkProvider extends BaseFoldersJdkProvider {
 	private static final Path JDKS_ROOT = Paths.get("/usr/lib/jvm");
 
 	@Nonnull
@@ -31,7 +31,7 @@ public class LinuxDistroJdkProvider extends BaseFoldersJdkProvider {
 	@Nullable
 	@Override
 	protected String jdkId(String name) {
-		return name + "-nixdistro";
+		return name + "-linux";
 	}
 
 	@Override
