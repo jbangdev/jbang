@@ -4,6 +4,7 @@ import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
 import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 
 import java.io.IOException;
+import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -416,11 +417,11 @@ public class JdkManager {
 	 * @param version requested version to link.
 	 */
 	public static void linkToExistingJdk(String path, int version) {
-		Path jdkPath = JBangJdkProvider.getJdksPath().resolve(Integer.toString(version));
-		Util.verboseMsg("Trying to link " + path + " to " + jdkPath);
-		if (Files.exists(jdkPath) || Files.isSymbolicLink(jdkPath)) {
+		Path linkPath = JBangJdkProvider.getJdksPath().resolve(Integer.toString(version));
+		Util.verboseMsg("Trying to link " + path + " to " + linkPath);
+		if (Files.exists(linkPath) || Files.isSymbolicLink(linkPath)) {
 			Util.verboseMsg("JBang managed JDK already exists, must be deleted to make sure linking works");
-			Util.deletePath(jdkPath, false);
+			Util.deletePath(linkPath, false);
 		}
 		Path linkedJdkPath = Paths.get(path);
 		if (!Files.isDirectory(linkedJdkPath)) {
@@ -430,8 +431,8 @@ public class JdkManager {
 		if (ver.isPresent()) {
 			Integer linkedJdkVersion = ver.get();
 			if (linkedJdkVersion == version) {
-				Util.mkdirs(jdkPath.getParent());
-				Util.createLink(jdkPath, linkedJdkPath);
+				Util.mkdirs(linkPath.getParent());
+				Util.createLink(linkPath, linkedJdkPath);
 				Util.infoMsg("JDK " + version + " has been linked to: " + linkedJdkPath);
 			} else {
 				throw new ExitException(EXIT_INVALID_INPUT, "Java version in given path: " + path
@@ -497,22 +498,31 @@ public class JdkManager {
 	public static void setDefaultJdk(JdkProvider.Jdk jdk) {
 		JdkProvider.Jdk defJdk = getDefaultJdk();
 		if (jdk.isInstalled() && !jdk.equals(defJdk)) {
-			removeDefaultJdk();
-			Util.createLink(getDefaultJdkPath(), jdk.getHome());
-			Util.infoMsg("Default JDK set to " + jdk);
+			Path defaultJdk = getDefaultJdkPath();
+			Path newDefaultJdk = defaultJdk.getParent().resolve(defaultJdk.getFileName() + ".new");
+			Util.createLink(newDefaultJdk, jdk.getHome());
+			removeJdk(defaultJdk);
+			try {
+				Files.move(newDefaultJdk, defaultJdk);
+				Util.infoMsg("Default JDK set to " + jdk);
+			} catch (IOException e) {
+				// Ignore
+			}
 		}
 	}
 
 	public static void removeDefaultJdk() {
 		Path link = getDefaultJdkPath();
-		if (Files.isSymbolicLink(link)) {
-			try {
-				Files.deleteIfExists(link);
-			} catch (IOException e) {
-				// Ignore
-			}
-		} else {
-			Util.deletePath(link, true);
+		removeJdk(link);
+	}
+
+	private static void removeJdk(Path jdkPath) {
+		try {
+			Files.deleteIfExists(jdkPath);
+		} catch (DirectoryNotEmptyException e) {
+			Util.deletePath(jdkPath, true);
+		} catch (IOException e) {
+			// Ignore
 		}
 	}
 
