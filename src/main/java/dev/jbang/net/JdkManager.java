@@ -21,13 +21,7 @@ import javax.annotation.Nullable;
 
 import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
-import dev.jbang.net.jdkproviders.CurrentJdkProvider;
-import dev.jbang.net.jdkproviders.DefaultJdkProvider;
-import dev.jbang.net.jdkproviders.JBangJdkProvider;
-import dev.jbang.net.jdkproviders.JavaHomeJdkProvider;
-import dev.jbang.net.jdkproviders.PathJdkProvider;
-import dev.jbang.net.jdkproviders.ScoopJdkProvider;
-import dev.jbang.net.jdkproviders.SdkmanJdkProvider;
+import dev.jbang.net.jdkproviders.*;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
@@ -36,7 +30,7 @@ public class JdkManager {
 
 	// TODO Don't hard-code this list
 	public static final String[] PROVIDERS_ALL = new String[] { "current", "default", "javahome", "path", "jbang",
-			"sdkman", "scoop" };
+			"sdkman", "scoop", "linux" };
 	public static final String[] PROVIDERS_DEFAULT = new String[] { "current", "default", "javahome", "path", "jbang" };
 
 	public static void initProvidersByName(String... providerNames) {
@@ -73,6 +67,9 @@ public class JdkManager {
 				break;
 			case "scoop":
 				provider = new ScoopJdkProvider();
+				break;
+			case "linux":
+				provider = new LinuxJdkProvider();
 				break;
 			default:
 				Util.warnMsg("Unknown JDK provider: " + name);

@@ -87,7 +87,7 @@ public abstract class BaseFoldersJdkProvider implements JdkProvider {
 		return getJdksRoot().resolve(jdk);
 	}
 
-	private Predicate<Path> sameJdk(Path jdkRoot) {
+	protected Predicate<Path> sameJdk(Path jdkRoot) {
 		Path release = jdkRoot.resolve("release");
 		return (Path p) -> {
 			try {
@@ -100,7 +100,7 @@ public abstract class BaseFoldersJdkProvider implements JdkProvider {
 
 	protected Stream<Path> listJdkPaths() throws IOException {
 		if (Files.isDirectory(getJdksRoot())) {
-			return Files.list(getJdksRoot());
+			return Files.list(getJdksRoot()).filter(this::acceptFolder);
 		}
 		return Stream.empty();
 	}
@@ -114,10 +114,14 @@ public abstract class BaseFoldersJdkProvider implements JdkProvider {
 	protected Jdk createJdk(Path home) {
 		String name = home.getFileName().toString();
 		Optional<String> version = JavaUtil.resolveJavaVersionStringFromPath(home);
-		if (version.isPresent()) {
+		if (version.isPresent() && acceptFolder(home)) {
 			return createJdk(jdkId(name), home, version.get());
 		}
 		return null;
+	}
+
+	protected boolean acceptFolder(Path jdkFolder) {
+		return Util.searchPath("javac", jdkFolder.resolve("bin").toString()) != null;
 	}
 
 	protected boolean isValidId(String id) {

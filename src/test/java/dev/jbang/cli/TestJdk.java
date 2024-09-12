@@ -451,9 +451,15 @@ class TestJdk extends BaseTest {
 
 	private void initMockJdkDir(Path jdkPath, String version, String key) {
 		Util.mkdirs(jdkPath);
+		Path jdkBinPath = jdkPath.resolve("bin");
+		Util.mkdirs(jdkBinPath);
 		String rawJavaVersion = key + "=\"" + version + "\"";
 		Path release = jdkPath.resolve("release");
 		try {
+			Path javacPath = jdkBinPath.resolve("javac");
+			Util.writeString(javacPath, "dummy");
+			javacPath.toFile().setExecutable(true, true);
+			Util.writeString(jdkBinPath.resolve("javac.exe"), "dummy");
 			Util.writeString(release, rawJavaVersion);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
