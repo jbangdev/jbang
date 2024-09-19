@@ -403,6 +403,14 @@ public class Util {
 		return name;
 	}
 
+	public static List<String> handleRemoteFiles(List<String> args) {
+		if (args != null) {
+			return args.stream().map(Util::substituteRemote).collect(Collectors.toList());
+		} else {
+			return null;
+		}
+	}
+
 	public enum OS {
 		linux, alpine_linux, mac, windows, aix, unknown
 	}
