@@ -61,14 +61,16 @@ public class JitPackUtil {
 						// Override GAV coords with values from the #part of the URL
 						Pgamv pgamv = coords.get().module(module);
 						if ((snapshot != null && pgamv.version != null) ||
-								(!hash.endsWith(":") && "master".equals(pgamv.version))) {
+								(!hash.endsWith(":") && ("master".equals(pgamv.version)) || "main".equals(pgamv.version))) {
 							pgamv = pgamv.version(pgamv.version + "-SNAPSHOT");
 						}
 						ref = pgamv.toGav();
 					} else {
 						if ("master".equals(coords.get().version)) {
 							ref = coords.get().version("master" + "-SNAPSHOT").toGav();
-						} else {
+						} else if ("main".equals(coords.get().version)) {
+							ref = coords.get().version("main" + "-SNAPSHOT").toGav();
+						}else {
 							ref = coords.get().toGav();
 						}
 					}
@@ -110,7 +112,8 @@ public class JitPackUtil {
 		String toGav() {
 			String v;
 			if (version == null) {
-				v = "-SNAPSHOT"; // using HEAD as no longer possible to know what default branch is called.
+				v = "main-SNAPSHOT"; // using HEAD as no longer possible to know what default branch is called.
+				// thus for now we default to assume 'main' as default.
 			} else if (POSSIBLE_SHA1_PATTERN.matcher(version).matches()) {
 				v = version.substring(0, 10);
 			} else {

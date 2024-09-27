@@ -112,11 +112,14 @@ name of the module by appending `#name-of-module` to the URL.
 And finally if the link you provide is to a specific branch of the project then you need to append
 `#:SNAPSHOT` to the URL. (If you have both a branch and a module name then use `#name-of-module:SNAPSHOT`)
 
+Note: if no branch specified `main-SNAPSHOT` will be used and if you list `main` or `master` they will both
+be treated as if you want the snapshot version.
+
 .Examples of links and their resulting locator:
 |===
 |Link | Locator
 |https://github.com/jbangdev/jbang
-|com.github.jbangdev:jbang:HEAD-SNAPSHOT
+|com.github.jbangdev:jbang:main-SNAPSHOT
 
 |https://github.com/jbangdev/jbang/tree/v1.2.3
 |com.github.jbangdev:jbang:v1.2.3
@@ -125,13 +128,13 @@ And finally if the link you provide is to a specific branch of the project then 
 |com.github.jbangdev:jbang:f1f34b031d
 
 |https://github.com/jbangdev/jbang#mymodule
-|com.github.jbangdev.jbang:mymodule:HEAD-SNAPSHOT
+|com.github.jbangdev.jbang:mymodule:main-SNAPSHOT
 
 |https://github.com/jbangdev/jbang/tree/mybranch#:SNAPSHOT
 |com.github.jbangdev:jbang:mybranch-SNAPSHOT
 
 |https://github.com/jbangdev/jbang/tree/mybranch#mymodule:SNAPSHOT
-|com.github.jbangdev.jbang.mymodule:mybranch-SNAPSHOT
+|com.github.jbangdev.jbang: mymodule:mybranch-SNAPSHOT
 |===
 
 == Offline mode
