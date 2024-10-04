@@ -45,6 +45,8 @@ import picocli.CommandLine.Model.UsageMessageSpec;
 		"        (to run a alias from a catalog)",
 		"  or  ${COMMAND-NAME} group-id:artifact-id:version [args...]",
 		"        (to run a .jar file found with a GAV id)",
+		"",
+		" note: run is the default command. To get help about run use ${COMMAND-NAME} run --help",
 
 		"" }, versionProvider = VersionProvider.class, subcommands = {
 				Run.class, Build.class, Edit.class, Init.class, Alias.class, Template.class, Catalog.class, Trust.class,
