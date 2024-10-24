@@ -11,6 +11,7 @@ public class DependencyResolver {
 	private final Set<MavenRepo> repositories;
 	private final Set<String> dependencies;
 	private final Set<String> classPaths;
+	private String root; // optional
 
 	public DependencyResolver() {
 		repositories = new LinkedHashSet<>();
@@ -63,7 +64,7 @@ public class DependencyResolver {
 	}
 
 	public ModularClassPath resolve() {
-		ModularClassPath mcp = DependencyUtil.resolveDependencies(
+		ModularClassPath mcp = DependencyUtil.resolveDependencies(root,
 				new ArrayList<>(dependencies), new ArrayList<>(repositories),
 				Util.isOffline(), Util.isFresh(), !Util.isQuiet(), Util.downloadSources());
 		if (classPaths.isEmpty()) {
@@ -77,5 +78,10 @@ public class DependencyResolver {
 											.collect(Collectors.toList());
 			return new ModularClassPath(arts);
 		}
+	}
+
+	public DependencyResolver setRoot(String root) {
+		this.root = root;
+		return this;
 	}
 }

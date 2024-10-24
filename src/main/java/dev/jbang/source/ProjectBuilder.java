@@ -276,7 +276,7 @@ public class ProjectBuilder {
 		Project prj = new Project(resourceRef);
 		if (resourceRef.getOriginalResource() != null
 				&& DependencyUtil.looksLikeAGav(resourceRef.getOriginalResource())) {
-			prj.getMainSourceSet().addDependency(resourceRef.getOriginalResource());
+			prj.getMainSourceSet().setRoot(resourceRef.getOriginalResource());
 		}
 		return updateProject(importJarMetadata(prj, moduleName != null && moduleName.isEmpty()));
 	}
@@ -542,14 +542,14 @@ public class ProjectBuilder {
 				new LiteralScriptResourceResolver(),
 				new RemoteResourceResolver(false),
 				new ClasspathResourceResolver(),
-				new GavResourceResolver(this::resolveDependency),
+				new GavResourceResolver(this::resolveRootDependency),
 				new FileResourceResolver());
 	}
 
-	private ModularClassPath resolveDependency(String dep) {
+	private ModularClassPath resolveRootDependency(String dep) {
 		if (mcp == null) {
 			DependencyResolver resolver = new DependencyResolver()
-																	.addDependency(dep)
+																	.setRoot(dep)
 																	.addRepositories(allToMavenRepo(
 																			replaceAllProps(additionalRepos)))
 																	.addDependencies(replaceAllProps(additionalDeps))

@@ -25,6 +25,7 @@ public class SourceSet {
 	private final List<String> classPaths = new ArrayList<>();
 	private final List<String> compileOptions = new ArrayList<>();
 	private final List<String> nativeOptions = new ArrayList<>();
+	private String root = null;
 
 	@Nonnull
 	public List<ResourceRef> getSources() {
@@ -130,7 +131,7 @@ public class SourceSet {
 
 	@Nonnull
 	public DependencyResolver updateDependencyResolver(DependencyResolver resolver) {
-		return resolver.addDependencies(dependencies).addClassPaths(classPaths);
+		return resolver.setRoot(root).addDependencies(dependencies).addClassPaths(classPaths);
 	}
 
 	public void copyResourcesTo(Path dest) {
@@ -143,6 +144,10 @@ public class SourceSet {
 		Stream<String> srcs = sources.stream().map(src -> Util.readFileContent(src.getFile()));
 		Stream<String> ress = resources.stream().map(res -> Util.readFileContent(res.getSource().getFile()));
 		return Stream.concat(srcs, ress);
+	}
+
+	public void setRoot(String originalResource) {
+		this.root = originalResource;
 	}
 
 }
