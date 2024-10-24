@@ -52,11 +52,16 @@ public class DependencyUtil {
 	private DependencyUtil() {
 	}
 
-	public static ModularClassPath resolveDependencies(List<String> deps, List<MavenRepo> repos,
+	public static ModularClassPath resolveDependencies(List<String> deps, List<MavenRepo> repos, boolean offline,
+			boolean updateCache, boolean loggingEnabled, boolean downloadSources) {
+		return resolveDependencies(null, deps, repos, offline, updateCache, loggingEnabled, downloadSources);
+	}
+
+	public static ModularClassPath resolveDependencies(String root, List<String> deps, List<MavenRepo> repos,
 			boolean offline, boolean updateCache, boolean loggingEnabled, boolean downloadSources) {
 
 		// if no dependencies were provided we stop here
-		if (deps.isEmpty()) {
+		if (deps.isEmpty() && root == null) {
 			return new ModularClassPath(Collections.emptyList());
 		}
 
@@ -68,6 +73,8 @@ public class DependencyUtil {
 		}
 
 		// Turn any URL dependencies into regular GAV coordinates
+		// TODO: we should also check if the root is a URL and turn it into a GAV if
+		// possible?
 		List<String> depIds = deps
 									.stream()
 									.map(JitPackUtil::ensureGAV)
@@ -81,6 +88,11 @@ public class DependencyUtil {
 				repos.stream().map(MavenRepo::toString).collect(Collectors.joining(", "))));
 
 		String depsHash = String.join(CP_SEPARATOR, depIds);
+
+		if (root != null) {
+			depsHash = root + CP_SEPARATOR + CP_SEPARATOR + depsHash; // using double ;; to separate from if using non
+																		// root resolve
+		}
 
 		List<ArtifactInfo> cachedDeps = null;
 		if (!updateCache) {
@@ -106,7 +118,7 @@ public class DependencyUtil {
 																	.logging(loggingEnabled)
 																	.downloadSources(downloadSources)
 																	.build()) {
-			List<ArtifactInfo> artifacts = resolver.resolve(depIds);
+			List<ArtifactInfo> artifacts = resolver.resolve(root, depIds);
 
 			ModularClassPath mcp = new ModularClassPath(artifacts);
 

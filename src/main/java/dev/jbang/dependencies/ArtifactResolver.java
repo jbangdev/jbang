@@ -175,13 +175,27 @@ public class ArtifactResolver implements Closeable {
 	}
 
 	public List<ArtifactInfo> resolve(List<String> depIds) {
+		return resolve(null, depIds);
+	}
+
+	public List<ArtifactInfo> resolve(String root, List<String> depIds) {
 		context.repositorySystemSession().getData().set("depIds", depIds);
 		try {
 			Map<String, List<Dependency>> scopeDeps = depIds.stream()
 															.map(coord -> toDependency(toArtifact(coord)))
 															.collect(Collectors.groupingBy(Dependency::getScope));
 
-			List<Dependency> deps = scopeDeps.get(JavaScopes.COMPILE);
+			Dependency rootDep = root != null ? toDependency(toArtifact(root)) : null;
+
+			List<Dependency> deps = new ArrayList<>();
+
+			// if (rootDep != null) {
+			// deps.add(rootDep);
+			// }
+			if (!scopeDeps.isEmpty()) {
+				deps.addAll(scopeDeps.get(JavaScopes.COMPILE));
+			}
+
 			List<Dependency> managedDeps = null;
 			if (scopeDeps.containsKey("import")) {
 				// If there are any @pom artifacts we'll apply their
@@ -194,10 +208,19 @@ public class ArtifactResolver implements Closeable {
 				managedDeps = mdeps;
 			}
 
-			CollectRequest collectRequest = new CollectRequest()
-																.setManagedDependencies(managedDeps)
-																.setDependencies(deps)
-																.setRepositories(context.remoteRepositories());
+			CollectRequest collectRequest = null;
+
+			collectRequest = new CollectRequest()
+													.setManagedDependencies(managedDeps)
+													.setRoot(rootDep)
+													.setDependencies(deps)
+													.setRepositories(context.remoteRepositories());
+
+			// jbang --deps a,b,c src.java
+			// jbang --deps a src.java (bad)
+			// jbang gav
+			// jbang --deps a,b,c gav (bad)
+			// should keep track of possible root
 
 			DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, null);
 			DependencyResult dependencyResult = context	.repositorySystem()

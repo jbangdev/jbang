@@ -283,6 +283,7 @@ public class IntegrationManager {
 		IntegrationInput input = parser.fromJson(new InputStreamReader(System.in), IntegrationInput.class);
 		ClassLoader old = Thread.currentThread().getContextClassLoader();
 		PrintStream oldout = System.out;
+		// Files.writeString()
 		Util.setVerbose(input.verbose);
 		String output = "";
 		boolean ok = false;
