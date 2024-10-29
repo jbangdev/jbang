@@ -193,6 +193,7 @@ public class ArtifactResolver implements Closeable {
 				List<Dependency> mdeps = boms	.stream()
 												.flatMap(d -> getManagedDependencies(d).stream())
 												.collect(Collectors.toList());
+				deps = deps.stream().map(d -> applyManagedDependencies(d, mdeps)).collect(Collectors.toList());
 				managedDeps.addAll(0, mdeps);
 			}
 
@@ -303,6 +304,21 @@ public class ArtifactResolver implements Closeable {
 				return res;
 			}
 		};
+	}
+
+	private Dependency applyManagedDependencies(Dependency d, List<Dependency> managedDeps) {
+		Artifact art = d.getArtifact();
+		if (art.getVersion().isEmpty()) {
+			Optional<Artifact> ma = managedDeps	.stream()
+												.map(Dependency::getArtifact)
+												.filter(a -> a.getGroupId().equals(art.getGroupId())
+														&& a.getArtifactId().equals(art.getArtifactId()))
+												.findFirst();
+			if (ma.isPresent()) {
+				return new Dependency(ma.get(), d.getScope(), d.getOptional(), d.getExclusions());
+			}
+		}
+		return d;
 	}
 
 	private List<Dependency> getManagedDependencies(Dependency dependency) {
