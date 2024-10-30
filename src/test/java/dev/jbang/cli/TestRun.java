@@ -239,6 +239,26 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testMarkdownWindows() throws IOException {
+		Path readmeFileOrg = examplesTestFolder.resolve("readme.md");
+		String readmeText = Util.readString(readmeFileOrg);
+
+		Path readmeFileWin = jbangTempDir.resolve("readme.md");
+		Files.write(readmeFileWin, readmeText.replace("\n", "\r\n").getBytes());
+
+		String arg = readmeFileWin.toAbsolutePath().toString();
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", arg);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project prj = pb.build(arg);
+
+		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
+
+		assertThat(result, matchesPattern("^.*jshell(.exe)?.+--class-path=.*figlet.*? --startup.*$"));
+	}
+
+	@Test
 	void testRemoteMarkdown() throws IOException {
 
 		wms.stubFor(WireMock.get(urlEqualTo("/readme.md"))
