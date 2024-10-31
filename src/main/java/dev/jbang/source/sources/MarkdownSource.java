@@ -52,7 +52,7 @@ public class MarkdownSource extends JshSource {
 			List<String> output = new ArrayList<>();
 			String state = "root";
 			boolean prevLineIsEmpty = true;
-			for (String line : source.split("\n")) {
+			for (String line : source.split("\\R")) {
 				switch (state) {
 				case "root":
 					if (match(fourspacesOrTab, line) && prevLineIsEmpty) {
