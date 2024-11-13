@@ -184,21 +184,9 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 	}
 
 	protected String generateCommandLineString(List<String> fullArgs) throws IOException {
-		CommandBuffer cb = CommandBuffer.of(fullArgs);
-		String args = cb.asCommandLine(shell);
-		// Check if we can and need to use @-files on Windows
-		boolean useArgsFile = false;
-		if (args.length() > COMMAND_LINE_LENGTH_LIMIT && Util.getShell() != Util.Shell.bash) {
-			// @file is only available from java 9 onwards.
-			String requestedJavaVersion = ctx.getProject().getJavaVersion();
-			int actualVersion = JavaUtil.javaVersion(requestedJavaVersion);
-			useArgsFile = actualVersion >= 9;
-		}
-		if (useArgsFile) {
-			return cb.asJavaArgsFile(shell);
-		} else {
-			return args;
-		}
+		return CommandBuffer.of(fullArgs)
+							.applyWindowsMaxLengthLimit(CommandBuffer.MAX_LENGTH_WINCLI, shell)
+							.asCommandLine(shell);
 	}
 
 	private static void addPropertyFlags(Map<String, String> properties, String def, List<String> result) {

@@ -130,7 +130,11 @@ public abstract class CompileBuildStep implements Builder<Project> {
 	}
 
 	protected void runCompiler(List<String> optionList) throws IOException {
-		runCompiler(CommandBuffer.of(optionList).asProcessBuilder().inheritIO());
+		runCompiler(CommandBuffer	.of(optionList)
+									.applyWindowsMaxLengthLimit(CommandBuffer.MAX_LENGTH_WINPROCBUILDER,
+											Util.getShell())
+									.asProcessBuilder()
+									.inheritIO());
 	}
 
 	protected void runCompiler(ProcessBuilder processBuilder) throws IOException {
