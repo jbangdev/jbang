@@ -122,7 +122,7 @@ jobs:
       #fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        java: [8,11,17,19]
+        java: [8,11,17,21]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/setup-java@0ab4596768b603586c0de567f2430c30f5b0d2b0 # v3
