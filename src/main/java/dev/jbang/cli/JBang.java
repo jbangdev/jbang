@@ -63,12 +63,6 @@ public class JBang extends BaseCommand {
 		Util.setPreview(preview);
 	}
 
-	@CommandLine.Option(names = {
-			"--ignore-transitive-repositories", "--itr" }, description = "Ignore remote repositories found in transitive dependencies")
-	void setIgnoreTransitiveRepositories(boolean ignoreTransitiveRepositories) {
-		Util.setIgnoreTransitiveRepositories(ignoreTransitiveRepositories);
-	}
-
 	@CommandLine.ArgGroup(exclusive = true)
 	VerboseQuietExclusive verboseQuietExclusive = new VerboseQuietExclusive();
 

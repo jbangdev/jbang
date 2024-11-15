@@ -204,6 +204,12 @@ username/passwords.
 
 By default, `jbang` uses `~/.m2` as local repository, but this can be overwritten by the environment variable `JBANG_REPO`.
 
+=== Transitive repositories
+
+JBang honors by default the repositories found in transitive dependencies (similar to how Maven does).
+
+You can however disable this by using the `--ignore-transitive-repositories` (or `-itr`) option.
+
 == Using `@Grab`
 
 There is also support for using Groovy lang style `@Grab` syntax.
