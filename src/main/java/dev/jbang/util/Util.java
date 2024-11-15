@@ -467,7 +467,7 @@ public class Util {
 			if (msg != null) {
 				infoMsg(e.getMessage());
 			}
-			infoMsg("Run with --verbose for more details");
+			infoMsg("Run with --verbose for more details. The --verbose must be placed before the jbang command. I.e. jbang --verbose run [...]");
 		}
 	}
 
