@@ -74,7 +74,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 			optionList.add("-source");
 			optionList.add("" + JavaUtil.javaVersion(requestedJavaVersion));
 		}
-		optionList.addAll(project.getMainSourceSet().getCompileOptions());
+		optionList.addAll(Util.handleRemoteFiles(project.getMainSourceSet().getCompileOptions()));
 		String path = ctx.resolveClassPath().getClassPath();
 		if (!Util.isBlankString(path)) {
 			if (project.getModuleName().isPresent()) {
