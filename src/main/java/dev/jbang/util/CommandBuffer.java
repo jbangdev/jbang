@@ -14,6 +14,11 @@ import java.util.stream.Collectors;
 public class CommandBuffer {
 	private List<String> arguments;
 
+	// 8192 character command line length limit imposed by CMD.EXE
+	public static final int MAX_LENGTH_WINCLI = 8000;
+	// Windows API has a limit of 32,768 characters for the lpCommandLine parameter
+	public static final int MAX_LENGTH_WINPROCBUILDER = 32000;
+
 	// NB: This might not be a definitive list of safe characters
 	// cmdSafeChars = Pattern.compile("[^\\Q&()[]{}^=;!'+,`~<>|\\E]*");
 	static Pattern cmdSafeChars = Pattern.compile("[a-zA-Z0-9.,_+=:;@()-\\\\]*");
@@ -66,9 +71,8 @@ public class CommandBuffer {
 		return String.join(" ", escapeShellArguments(arguments, shell));
 	}
 
-	public String asJavaArgsFile(Util.Shell shell) throws IOException {
+	public CommandBuffer usingArgsFile() throws IOException {
 		// @-files avoid problems on Windows with very long command lines
-		final String cmd = escapeShellArgument(arguments.get(0), shell);
 		final Path argsFile = Files.createTempFile("jbang", ".args");
 		try (PrintWriter pw = new PrintWriter(argsFile.toFile())) {
 			// write all arguments except the first to the file
@@ -76,7 +80,17 @@ public class CommandBuffer {
 				pw.println(escapeArgsFileArgument(arguments.get(i)));
 			}
 		}
-		return cmd + " @" + argsFile;
+		return CommandBuffer.of(arguments.get(0), "@" + argsFile);
+	}
+
+	public CommandBuffer applyWindowsMaxLengthLimit(int maxLength, Util.Shell shell) throws IOException {
+		String args = asCommandLine(shell);
+		// Check if we can and need to use @-files on Windows
+		if (args.length() > maxLength && Util.getShell() != Util.Shell.bash) {
+			return usingArgsFile();
+		} else {
+			return this;
+		}
 	}
 
 	/**

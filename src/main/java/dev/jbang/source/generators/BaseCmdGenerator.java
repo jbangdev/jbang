@@ -16,9 +16,6 @@ public abstract class BaseCmdGenerator<T extends CmdGenerator> implements CmdGen
 
 	protected Util.Shell shell = Util.getShell();
 
-	// 8192 character command line length limit imposed by CMD.EXE
-	protected static final int COMMAND_LINE_LENGTH_LIMIT = 8000;
-
 	@SuppressWarnings("unchecked")
 	public T arguments(List<String> arguments) {
 		this.arguments = arguments != null ? arguments : Collections.emptyList();
