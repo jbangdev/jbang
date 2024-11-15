@@ -891,6 +891,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "yostane",
+      "name": "Yassine Benabbas",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1958676?v=4",
+      "profile": "https://github.com/yostane",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,
