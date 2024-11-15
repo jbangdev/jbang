@@ -17,7 +17,7 @@ import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "run", description = "Builds and runs provided script.")
+@CommandLine.Command(name = "run", description = "Builds and runs provided script. (default command)")
 public class Run extends BaseBuildCommand {
 
 	@CommandLine.Mixin
