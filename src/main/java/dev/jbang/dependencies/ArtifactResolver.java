@@ -182,16 +182,19 @@ public class ArtifactResolver implements Closeable {
 															.collect(Collectors.groupingBy(Dependency::getScope));
 
 			List<Dependency> deps = scopeDeps.get(JavaScopes.COMPILE);
-			List<Dependency> managedDeps = null;
+			List<Dependency> managedDeps = deps	.stream()
+												.flatMap(d -> getManagedDependencies(d).stream())
+												.collect(Collectors.toList());
+
 			if (scopeDeps.containsKey("import")) {
 				// If there are any @pom artifacts we'll apply their
-				// managed dependencies to the given dependencies
+				// managed dependencies to the given dependencies BEFORE ordinary deps
 				List<Dependency> boms = scopeDeps.get("import");
 				List<Dependency> mdeps = boms	.stream()
 												.flatMap(d -> getManagedDependencies(d).stream())
 												.collect(Collectors.toList());
 				deps = deps.stream().map(d -> applyManagedDependencies(d, mdeps)).collect(Collectors.toList());
-				managedDeps = mdeps;
+				managedDeps.addAll(0, mdeps);
 			}
 
 			CollectRequest collectRequest = new CollectRequest()
