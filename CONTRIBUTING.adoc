@@ -10,6 +10,10 @@ If `just` fails with error about `fzf` missing you can use `just --list` to manu
 
 == How to build
 
+=== Prerequisite
+
+Java 11 must be installed for the build
+
 === Quickstart
 
 Clone the repository, cd `jbang` and run `./gradlew build`.
