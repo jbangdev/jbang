@@ -10,10 +10,13 @@ LABEL {{.}}
 
 COPY assembly/* /
 
+## mkdir of .userPrefs is to fix https://github.com/jbangdev/jbang/issues/1831
 RUN jar xf {{distributionArtifactFileName}}{{distributionArtifactFileExtension}} && \
     rm {{distributionArtifactFileName}}{{distributionArtifactFileExtension}} && \
     mv jbang-* jbang && \
-    chmod +x jbang/bin/jbang
+    chmod +x jbang/bin/jbang && \
+    mkdir $HOME/.java/.userPrefs
+
 
 {{#dockerPostCommands}}
 {{.}}
