@@ -53,7 +53,8 @@ public class DependencyUtil {
 	}
 
 	public static ModularClassPath resolveDependencies(List<String> deps, List<MavenRepo> repos,
-			boolean offline, boolean updateCache, boolean loggingEnabled, boolean downloadSources) {
+			boolean offline, boolean ignoreTransitiveRepositories, boolean updateCache, boolean loggingEnabled,
+			boolean downloadSources) {
 
 		// if no dependencies were provided we stop here
 		if (deps.isEmpty()) {
@@ -102,6 +103,8 @@ public class DependencyUtil {
 																	.withUserSettings(true)
 																	.localFolder(getJBangLocalMavenRepoOverride())
 																	.offline(offline)
+																	.ignoreTransitiveRepositories(
+																			ignoreTransitiveRepositories)
 																	.forceCacheUpdate(updateCache)
 																	.logging(loggingEnabled)
 																	.downloadSources(downloadSources)
