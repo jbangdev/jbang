@@ -882,6 +882,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "wfouche",
+      "name": "Werner Fouché",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13682850?v=4",
+      "profile": "https://github.com/wfouche",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,
