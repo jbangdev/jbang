@@ -1,6 +1,6 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-95-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-96-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 ## Contributors ✨
 
@@ -133,6 +133,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://youtube.com/@MatteoMortari"><img src="https://avatars.githubusercontent.com/u/1699252?v=4?s=100" width="100px;" alt="Matteo Mortari"/><br /><sub><b>Matteo Mortari</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=tarilabs" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://julien.ponge.org/"><img src="https://avatars.githubusercontent.com/u/25961?v=4?s=100" width="100px;" alt="Julien Ponge"/><br /><sub><b>Julien Ponge</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=jponge" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://spring.io/team/dsyer"><img src="https://avatars.githubusercontent.com/u/124075?v=4?s=100" width="100px;" alt="Dave Syer"/><br /><sub><b>Dave Syer</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=dsyer" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/wfouche"><img src="https://avatars.githubusercontent.com/u/13682850?v=4?s=100" width="100px;" alt="Werner Fouché"/><br /><sub><b>Werner Fouché</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=wfouche" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
