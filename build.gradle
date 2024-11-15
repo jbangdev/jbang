@@ -256,10 +256,10 @@ test {
 	//testLogging.showStandardStreams = true
 
 	/*testLogging {
-        events "passed", "skipped", "failed"
-        exceptionFormat "full"
-    }*/
-    //timeout.set(Duration.ofSeconds(60))
+		events "passed", "skipped", "failed"
+		exceptionFormat "full"
+	}*/
+	//timeout.set(Duration.ofSeconds(60))
 
 	jacoco {
 		enabled = false
