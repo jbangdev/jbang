@@ -29,3 +29,13 @@ itest:
 # open integeration test report
 openitest:
     {{open}} build/karate/surefire-reports/karate-summary.html
+
+# tag minor
+tagminor:
+    git commit --allow-empty -m "[minor] relase"
+    ./gradlew tag
+
+tagpatch:
+    git commit --allow-empty -m "[patch] relase"
+    ./gradlew tag
+
