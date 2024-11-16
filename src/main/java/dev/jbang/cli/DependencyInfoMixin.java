@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import dev.jbang.util.Util;
+
 import picocli.CommandLine;
 
 public class DependencyInfoMixin {
@@ -17,6 +19,13 @@ public class DependencyInfoMixin {
 	List<String> repositories;
 	@CommandLine.Option(names = { "--cp", "--class-path" }, description = "Add class path entries.")
 	List<String> classpaths;
+
+	@CommandLine.Option(names = {
+			"--ignore-transitive-repositories",
+			"--itr" }, description = "Ignore remote repositories found in transitive dependencies")
+	void setIgnoreTransitiveRepositories(boolean ignoreTransitiveRepositories) {
+		Util.setIgnoreTransitiveRepositories(ignoreTransitiveRepositories);
+	}
 
 	public List<String> getDependencies() {
 		return dependencies;
