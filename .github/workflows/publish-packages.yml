@@ -45,6 +45,7 @@ jobs:
         uses: jreleaser/release-action@v2
         env:
           JRELEASER_PROJECT_VERSION: ${{steps.version.outputs.RELEASE_VERSION}}
+          version: 1.15.0
         with:
           version: ${{ env.JRELEASER_VERSION }}
           arguments: publish
