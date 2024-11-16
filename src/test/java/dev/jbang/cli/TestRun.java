@@ -9,7 +9,19 @@ import static dev.jbang.util.Util.writeString;
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.hasXPath;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.matchesPattern;
+import static org.hamcrest.Matchers.matchesRegex;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -20,7 +32,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.nio.file.*;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1129,6 +1145,12 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testFetchFromBluesky(@TempDir Path dir) throws IOException {
+
+		verifyHello("https://bsky.app/profile/maxandersen.xam.dk/post/3lb2vbnfpns24", dir, false);
+	}
+
+	@Test
 	void testFetchFromMastdon(@TempDir Path dir) throws IOException {
 		verifyHello("https://mastodon.social/@maxandersen/109361828562755062", dir);
 		verifyHello("https://fosstodon.org/@jbangdev/109367735752497165", dir);
@@ -1143,11 +1165,17 @@ public class TestRun extends BaseTest {
 	 */
 
 	private void verifyHello(String url, Path dir) throws IOException {
+		verifyHello(url, dir, true);
+	}
+
+	private void verifyHello(String url, Path dir, boolean expectFile) throws IOException {
 		String u = Util.swizzleURL(url);
 		Path x = Util.swizzleContent(u, Util.downloadFile(u, dir));
-		assertEquals("hello.java", x.getFileName().toString());
+		if (expectFile) {
+			assertEquals("hello.java", x.getFileName().toString());
+		}
 		String java = Util.readString(x);
-		assertThat(java, startsWith("//DEPS"));
+		assertThat(java, containsString("//DEPS"));
 		assertThat(java, not(containsString("&gt;")));
 		assertThat(java, containsString("\n"));
 	}

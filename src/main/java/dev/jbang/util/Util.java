@@ -597,11 +597,12 @@ public class Util {
 	 */
 	public static Path swizzleContent(String fileURL, Path filePath) throws IOException {
 		boolean mastodon = fileURL.matches("https://.*/@(\\w+)/([0-9]+)");
-		if (mastodon || fileURL.startsWith("https://carbon.now.sh")) { // sites known
-																		// to have
-																		// og:description
-																		// meta name or
-																		// property
+		if (mastodon || fileURL.startsWith("https://carbon.now.sh") || fileURL.startsWith("https://bsky.app/")) { // sites
+																													// known
+			// to have
+			// og:description
+			// meta name or
+			// property
 			try {
 				Document doc = Jsoup.parse(filePath.toFile(), "UTF-8", fileURL);
 

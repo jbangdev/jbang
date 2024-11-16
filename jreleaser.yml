@@ -61,7 +61,7 @@ announce:
   bluesky:
     active: RELEASE
     status: 'JBang {{projectVersion}} has been released! {{releaseNotesUrl}}'
-    handle: '@jbang.dev'
+    handle: 'jbang.dev'
     host: https://bsky.social
   sdkman:
     active: RELEASE
