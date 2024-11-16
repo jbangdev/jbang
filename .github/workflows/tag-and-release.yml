@@ -22,7 +22,7 @@ jobs:
       JRELEASER_GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
       JRELEASER_NEXUS2_USERNAME: ${{ secrets.OSSRH_USERNAME}}
       JRELEASER_NEXUS2_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-      JRELEASER_VERSION: 1.5.1
+      JRELEASER_VERSION: 1.15.0
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
         with:
