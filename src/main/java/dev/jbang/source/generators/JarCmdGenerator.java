@@ -9,8 +9,7 @@ import java.util.stream.Collectors;
 import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
-import dev.jbang.net.JdkManager;
-import dev.jbang.net.JdkProvider;
+import dev.jbang.jvm.Jdk;
 import dev.jbang.source.*;
 import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.JavaUtil;
@@ -78,9 +77,8 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 
 		List<String> optionalArgs = new ArrayList<>();
 
-		String requestedJavaVersion = project.getJavaVersion();
-		JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(requestedJavaVersion);
-		String javacmd = JavaUtil.resolveInJavaHome("java", requestedJavaVersion);
+		Jdk jdk = project.projectJdk();
+		String javacmd = JavaUtil.resolveInJavaHome("java", jdk);
 
 		addPropertyFlags(project.getProperties(), "-D", optionalArgs);
 

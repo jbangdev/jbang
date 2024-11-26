@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
+import dev.jbang.jvm.JdkManager;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
@@ -54,6 +55,7 @@ public class ProjectBuilder {
 	private Boolean nativeImage;
 	private String javaVersion;
 	private Boolean enablePreview;
+	private JdkManager jdkManager;
 
 	// Cached values
 	private Properties contextProperties;
@@ -184,6 +186,11 @@ public class ProjectBuilder {
 
 	public ProjectBuilder catalog(File catalogFile) {
 		this.catalogFile = catalogFile;
+		return this;
+	}
+
+	public ProjectBuilder jdkManager(JdkManager jdkManager) {
+		this.jdkManager = jdkManager;
 		return this;
 	}
 
@@ -431,6 +438,11 @@ public class ProjectBuilder {
 		}
 		if (enablePreview != null) {
 			prj.setEnablePreviewRequested(enablePreview);
+		}
+		if (jdkManager != null) {
+			prj.setJdkManager(jdkManager);
+		} else {
+			prj.setJdkManager(JavaUtil.defaultJdkManager());
 		}
 		return prj;
 	}

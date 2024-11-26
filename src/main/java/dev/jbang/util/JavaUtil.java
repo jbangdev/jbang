@@ -6,8 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Comparator;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -15,25 +14,97 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import dev.jbang.net.JdkManager;
-import dev.jbang.net.JdkProvider;
+import dev.jbang.Cache;
+import dev.jbang.Settings;
+import dev.jbang.jvm.Jdk;
+import dev.jbang.jvm.JdkManager;
+import dev.jbang.jvm.JdkProvider;
+import dev.jbang.jvm.jdkproviders.*;
 
 public class JavaUtil {
 
-	private static Integer javaVersion;
+	@Nonnull
+	public static JdkManager defaultJdkManager(String... names) {
+		return (new JdkManBuilder()).provider(names).build();
+	}
 
-	/**
-	 * Returns the actual Java version that's going to be used. It either returns
-	 * the value of the expected version if it is supplied or the version of the JDK
-	 * available in the environment (either JAVA_HOME or what's available on the
-	 * PATH)
-	 * 
-	 * @param requestedVersion The Java version requested by the user
-	 * @return The Java version that will be used
-	 */
-	public static int javaVersion(String requestedVersion) {
-		JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(requestedVersion);
-		return jdk.getMajorVersion();
+	@Nonnull
+	public static JdkManager defaultJdkManager(List<String> names) {
+		return (new JdkManBuilder()).provider(names).build();
+	}
+
+	public static class JdkManBuilder extends JdkManager.Builder {
+		private final List<String> providerNames = new ArrayList<>();
+
+		public static final List<String> PROVIDERS_ALL = Collections.unmodifiableList(Arrays.asList(new String[] {
+				"current", "default", "javahome", "path", "linked", "jbang", "linux", "sdkman", "scoop" }));
+		public static final List<String> PROVIDERS_DEFAULT = Collections.unmodifiableList(Arrays.asList(new String[] {
+				"current", "default", "javahome", "path", "linked", "jbang" }));
+
+		public JdkManager.Builder provider(String... names) {
+			return provider(names != null ? Arrays.asList(names) : null);
+		}
+
+		public JdkManager.Builder provider(List<String> names) {
+			if (names != null) {
+				for (String providerName : names) {
+					if (PROVIDERS_ALL.contains(providerName)) {
+						providerNames.add(providerName);
+					}
+				}
+			}
+			return this;
+		}
+
+		public JdkManager build() {
+			if (providerNames.isEmpty() && providers.isEmpty()) {
+				provider(PROVIDERS_DEFAULT);
+			}
+			for (String providerName : providerNames) {
+				JdkProvider provider = createProvider(providerName);
+				if (provider != null && provider.canUse()) {
+					provider(provider);
+				}
+			}
+			return super.build();
+		}
+
+		private JdkProvider createProvider(String providerName) {
+			JdkProvider provider;
+			switch (providerName) {
+			case "current":
+				provider = new CurrentJdkProvider();
+				break;
+			case "default":
+				provider = new DefaultJdkProvider(Settings.getDefaultJdkDir());
+				break;
+			case "javahome":
+				provider = new JavaHomeJdkProvider();
+				break;
+			case "jbang":
+				provider = new FoojayJdkProvider(Settings.getCacheDir(Cache.CacheClass.jdks));
+				break;
+			case "linked":
+				provider = new LinkedJdkProvider(Settings.getCacheDir(Cache.CacheClass.jdks));
+				break;
+			case "linux":
+				provider = new LinuxJdkProvider();
+				break;
+			case "path":
+				provider = new PathJdkProvider();
+				break;
+			case "scoop":
+				provider = new ScoopJdkProvider();
+				break;
+			case "sdkman":
+				provider = new SdkmanJdkProvider();
+				break;
+			default:
+				Util.warnMsg("Unknown JDK provider: " + providerName);
+				return null;
+			}
+			return provider;
+		}
 	}
 
 	/**
@@ -117,8 +188,8 @@ public class JavaUtil {
 		return parseJavaVersion(System.getProperty("java.version"));
 	}
 
-	public static String resolveInJavaHome(@Nonnull String cmd, @Nullable String requestedVersion) {
-		Path jdkHome = JdkManager.getOrInstallJdk(requestedVersion).getHome();
+	public static String resolveInJavaHome(@Nonnull String cmd, @Nonnull Jdk jdk) {
+		Path jdkHome = jdk.getHome();
 		if (jdkHome != null) {
 			if (Util.isWindows()) {
 				cmd = cmd + ".exe";

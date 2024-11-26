@@ -149,7 +149,8 @@ class AliasAdd extends BaseAliasCommand {
 									.compileOptions(buildMixin.compileOptions)
 									.nativeImage(nativeMixin.nativeImage)
 									.nativeOptions(nativeMixin.nativeOptions)
-									.enablePreview(enablePreviewRequested);
+									.enablePreview(enablePreviewRequested)
+									.jdkManager(buildMixin.jdkProvidersMixin.getJdkManager());
 		Path cat = getCatalog(false);
 		if (cat != null) {
 			pb.catalog(cat.toFile());

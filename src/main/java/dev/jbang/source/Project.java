@@ -2,6 +2,7 @@ package dev.jbang.source;
 
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -12,6 +13,9 @@ import javax.annotation.Nullable;
 
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.MavenRepo;
+import dev.jbang.jvm.Jdk;
+import dev.jbang.jvm.JdkManager;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
 import dev.jbang.util.Util;
 
@@ -41,10 +45,13 @@ public class Project {
 	private boolean nativeImage;
 	private boolean enablePreviewRequested;
 
+	private JdkManager jdkManager;
+
 	private final List<Project> subProjects = new ArrayList<>();
 
 	// Cached values
 	private String stableId;
+	private Jdk projectJdk;
 
 	public static final String ATTR_PREMAIN_CLASS = "Premain-Class";
 	public static final String ATTR_AGENT_CLASS = "Agent-Class";
@@ -233,6 +240,10 @@ public class Project {
 		this.mainSource = mainSource;
 	}
 
+	public void setJdkManager(JdkManager jdkManager) {
+		this.jdkManager = jdkManager;
+	}
+
 	protected String getStableId() {
 		if (stableId == null) {
 			Stream<String> sss = mainSourceSet.getStableIdInfo();
@@ -248,6 +259,20 @@ public class Project {
 	protected void updateDependencyResolver(DependencyResolver resolver) {
 		resolver.addRepositories(repositories);
 		getMainSourceSet().updateDependencyResolver(resolver);
+	}
+
+	public JdkManager projectJdkManager() {
+		if (jdkManager == null) {
+			throw new IllegalStateException("No JdkManager set");
+		}
+        return jdkManager;
+	}
+
+	public Jdk projectJdk() {
+		if (projectJdk == null) {
+			projectJdk = projectJdkManager().getOrInstallJdk(getJavaVersion());
+		}
+		return projectJdk;
 	}
 
 	/**

@@ -14,6 +14,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import dev.jbang.jvm.Jdk;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.Index;
@@ -58,12 +59,14 @@ public abstract class CompileBuildStep implements Builder<Project> {
 
 	protected Project compile() throws IOException {
 		Project project = ctx.getProject();
+		Jdk jdk = project.projectJdk();
 		String requestedJavaVersion = project.getJavaVersion();
 		if (requestedJavaVersion == null
 				&& project.getModuleName().isPresent()
-				&& JavaUtil.javaVersion(null) < 9) {
+				&& jdk.getMajorVersion() < 9) {
 			// Make sure we use at least Java 9 when dealing with modules
 			requestedJavaVersion = "9+";
+			jdk = project.projectJdkManager().getOrInstallJdk(requestedJavaVersion);
 		}
 
 		Path compileDir = ctx.getCompileDir();
@@ -72,7 +75,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 		if (project.enablePreview()) {
 			optionList.add("--enable-preview");
 			optionList.add("-source");
-			optionList.add("" + JavaUtil.javaVersion(requestedJavaVersion));
+			optionList.add("" + jdk.getMajorVersion());
 		}
 		optionList.addAll(project.getMainSourceSet().getCompileOptions());
 		String path = ctx.resolveClassPath().getClassPath();
