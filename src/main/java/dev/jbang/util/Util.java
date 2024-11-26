@@ -1443,8 +1443,8 @@ public class Util {
 		try {
 			if (Files.isDirectory(path)) {
 				verboseMsg("Deleting folder " + path);
-				Files	.walk(path)
-						.sorted(Comparator.reverseOrder())
+				try (Stream<Path> s = Files.walk(path)) {
+					s	.sorted(Comparator.reverseOrder())
 						.forEach(f -> {
 							try {
 								Files.delete(f);
@@ -1452,6 +1452,7 @@ public class Util {
 								err[0] = e;
 							}
 						});
+				}
 			} else if (Files.exists(path)) {
 				verboseMsg("Deleting file " + path);
 				Files.delete(path);
