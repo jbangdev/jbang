@@ -1,12 +1,12 @@
-package dev.jbang.net.jdkproviders;
+package dev.jbang.jvm.jdkproviders;
+
+import dev.jbang.jvm.util.FileUtils;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
  * This JDK provider is intended to detects JDKs that have been installed in
@@ -22,37 +22,25 @@ import javax.annotation.Nullable;
 public class LinuxJdkProvider extends BaseFoldersJdkProvider {
 	private static final Path JDKS_ROOT = Paths.get("/usr/lib/jvm");
 
-	@Nonnull
-	@Override
-	protected Path getJdksRoot() {
-		return JDKS_ROOT;
-	}
-
-	@Nullable
-	@Override
-	protected String jdkId(String name) {
-		return name + "-linux";
-	}
-
-	@Override
-	public boolean canUse() {
-		return Files.isDirectory(JDKS_ROOT);
+	public LinuxJdkProvider() {
+		super(JDKS_ROOT);
 	}
 
 	@Override
 	protected boolean acceptFolder(Path jdkFolder) {
-		return super.acceptFolder(jdkFolder) && !isSameFolderSymLink(jdkFolder);
+		return super.acceptFolder(jdkFolder) && !isSameFolderLink(jdkFolder);
 	}
 
-	// Returns true if a path is a symlink to an entry in the same folder
-	private boolean isSameFolderSymLink(Path jdkFolder) {
+	// Returns true if a path is a (sym)link to an entry in the same folder
+	private boolean isSameFolderLink(Path jdkFolder) {
 		Path absFolder = jdkFolder.toAbsolutePath();
-		if (Files.isSymbolicLink(absFolder)) {
-			try {
+		try {
+			if (FileUtils.isLink(absFolder)) {
 				Path realPath = absFolder.toRealPath();
 				return Files.isSameFile(absFolder.getParent(), realPath.getParent());
-			} catch (IOException e) {
-				/* ignore */ }
+			}
+		} catch (IOException e) {
+			/* ignore */
 		}
 		return false;
 	}

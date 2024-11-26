@@ -1,5 +1,7 @@
 package dev.jbang.cli;
 
+import static dev.jbang.util.JavaUtil.jdkManager;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,8 +23,7 @@ import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.dependencies.DependencyUtil;
-import dev.jbang.net.JdkManager;
-import dev.jbang.net.JdkProvider;
+import dev.jbang.jvm.Jdk;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.CommandBuffer;
@@ -401,7 +402,7 @@ class AppSetup extends BaseCommand {
 	 */
 	public static boolean guessWithJava() {
 		boolean withJava;
-		JdkProvider.Jdk defJdk = JdkManager.getJdk(null, false);
+		Jdk defJdk = jdkManager().getJdk(null, false);
 		String javaHome = System.getenv("JAVA_HOME");
 		Path javacCmd = Util.searchPath("javac");
 		withJava = defJdk != null
@@ -415,12 +416,12 @@ class AppSetup extends BaseCommand {
 	public static int setup(boolean withJava, boolean force, boolean chatty) {
 		Path jdkHome = null;
 		if (withJava) {
-			JdkProvider.Jdk defJdk = JdkManager.getDefaultJdk();
+			Jdk defJdk = jdkManager().getDefaultJdk();
 			if (defJdk == null) {
 				Util.infoMsg("No default JDK set, use 'jbang jdk default <version>' to set one.");
 				return EXIT_UNEXPECTED_STATE;
 			}
-			jdkHome = Settings.getCurrentJdkDir();
+			jdkHome = Settings.getDefaultJdkDir();
 		}
 
 		Path binDir = Settings.getConfigBinDir();
