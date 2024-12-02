@@ -39,6 +39,7 @@ public class Project {
 	private String mainClass;
 	private String moduleName;
 	private boolean nativeImage;
+	private boolean integrations = true;
 	private boolean enablePreviewRequested;
 
 	private final List<Project> subProjects = new ArrayList<>();
@@ -218,6 +219,14 @@ public class Project {
 
 	public void setNativeImage(boolean isNative) {
 		this.nativeImage = isNative;
+	}
+
+	public boolean isIntegrations() {
+		return integrations;
+	}
+
+	public void setIntegrations(boolean integrations) {
+		this.integrations = integrations;
 	}
 
 	public boolean enableCDS() {
