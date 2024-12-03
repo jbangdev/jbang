@@ -444,11 +444,26 @@ public class TestBuilder extends BaseTest {
 	}
 
 	@Test
-	void testNoIntegration() throws IOException {
+	void testNoIntegrationsFlag() throws IOException {
 		Path foo = examplesTestFolder.resolve("helloworld.java").toAbsolutePath();
 		ProjectBuilder pb = Project.builder();
 		pb.integrations(false);
 		Project prj = pb.build(foo.toString());
+		BuildContext ctx = BuildContext.forProject(prj);
+		AtomicBoolean integrationStepCalled = new AtomicBoolean(false);
+		runBuild(ctx, null, (ctxx) -> {
+			integrationStepCalled.set(true);
+			return new IntegrationResult(null, null, null);
+		}, null, null);
+		assertThat(integrationStepCalled.get(), is(false));
+	}
+
+	@Test
+	void testNoIntegrationsTag() throws IOException {
+		Path foo = examplesTestFolder.resolve("noints.java").toAbsolutePath();
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(foo.toString());
+		assertThat(prj.disableIntegrations(), is(true));
 		BuildContext ctx = BuildContext.forProject(prj);
 		AtomicBoolean integrationStepCalled = new AtomicBoolean(false);
 		runBuild(ctx, null, (ctxx) -> {

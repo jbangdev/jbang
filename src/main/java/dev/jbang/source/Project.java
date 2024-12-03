@@ -50,10 +50,6 @@ public class Project {
 	public static final String ATTR_PREMAIN_CLASS = "Premain-Class";
 	public static final String ATTR_AGENT_CLASS = "Agent-Class";
 
-	public boolean enablePreview() {
-		return enablePreviewRequested || (mainSource != null && mainSource.enablePreview());
-	}
-
 	public enum BuildFile {
 		jbang("build.jbang");
 
@@ -198,6 +194,10 @@ public class Project {
 		this.mainClass = mainClass;
 	}
 
+	public boolean enablePreview() {
+		return enablePreviewRequested || (mainSource != null && mainSource.enablePreview());
+	}
+
 	public void setEnablePreviewRequested(boolean enablePreview) {
 		this.enablePreviewRequested = enablePreview;
 	}
@@ -221,8 +221,8 @@ public class Project {
 		this.nativeImage = isNative;
 	}
 
-	public boolean isIntegrations() {
-		return integrations;
+	public boolean disableIntegrations() {
+		return !integrations || (mainSource != null && mainSource.disableIntegrations());
 	}
 
 	public void setIntegrations(boolean integrations) {
