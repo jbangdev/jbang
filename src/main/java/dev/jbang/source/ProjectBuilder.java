@@ -471,7 +471,11 @@ public class ProjectBuilder {
 		prj.setMainClass(src.tagReader.getMain().orElse(null));
 		prj.setModuleName(src.tagReader.getModule().orElse(null));
 		if (prj.getMainSource() instanceof JavaSource) {
+			// todo: have way to turn these off? lets wait until someone asks and has a
+			// usecase
+			// where ability to debug and support named parameters is bad.
 			prj.getMainSourceSet().addCompileOption("-g");
+			prj.getMainSourceSet().addCompileOption("-parameters");
 		}
 		return updateProject(src, prj, resolver);
 	}

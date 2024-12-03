@@ -121,7 +121,7 @@ public class TestProjectBuilder extends BaseTest {
 		assertThat(prj.getJavaVersion(), equalTo("11+"));
 		assertThat(prj.getMainClass(), equalTo("mainclass"));
 		assertThat(prj.getModuleName().get(), equalTo("mymodule"));
-		assertThat(prj.getMainSourceSet().getCompileOptions(), iterableWithSize(3));
+		assertThat(prj.getMainSourceSet().getCompileOptions(), iterableWithSize(4));
 		assertThat(prj.getMainSourceSet().getCompileOptions(), contains("-g", "--enable-preview", "--verbose"));
 		assertThat(prj.isNativeImage(), is(Boolean.FALSE));
 		assertThat(prj.getMainSourceSet().getNativeOptions(), iterableWithSize(2));
@@ -229,7 +229,7 @@ public class TestProjectBuilder extends BaseTest {
 		assertThat(prj.getJavaVersion(), equalTo("twojava"));
 		assertThat(prj.getMainClass(), equalTo("mainclass")); // This is not updated from Alias here!
 		assertThat(prj.getModuleName().get(), equalTo("mymodule")); // This is not updated from Alias here!
-		assertThat(prj.getMainSourceSet().getCompileOptions(), iterableWithSize(4));
+		assertThat(prj.getMainSourceSet().getCompileOptions(), iterableWithSize(5));
 		assertThat(prj.getMainSourceSet().getCompileOptions(),
 				contains("-g", "--enable-preview", "--verbose", "--ctwo"));
 		assertThat(prj.isNativeImage(), is(Boolean.TRUE));
