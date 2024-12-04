@@ -2349,6 +2349,52 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testBuildJbangProjectFolder() throws IOException {
+		environmentVariables.clear("JAVA_HOME");
+		String arg = examplesTestFolder.toAbsolutePath().toString();
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("--preview", "run", arg);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project prj = pb.build(arg);
+		BuildContext ctx = BuildContext.forProject(prj);
+
+		new JavaSource.JavaAppBuilder(ctx) {
+			@Override
+			protected Builder<Project> getCompileBuildStep() {
+				return new JavaCompileBuildStep() {
+					@Override
+					protected void runCompiler(List<String> optionList) throws IOException {
+						// Make sure the file "build.jbang" isn't passed to the compiler
+						assertThat(optionList.stream().filter(o -> o.contains("build.jbang")).count(), equalTo(1L));
+						super.runCompiler(optionList);
+					}
+				};
+			}
+		}.setFresh(true).build();
+
+		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
+
+		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
+		assertThat(result, endsWith("quote_notags"));
+		assertThat(result, containsString("classpath"));
+		assertThat(result, matchesRegex(".*build\\.jbang\\.[a-z0-9]+.build.jbang.jar.*"));
+		assertThat(result, containsString("picocli-4.6.3.jar"));
+		assertThat(result, containsString("-Dfoo=bar"));
+		assertThat(result, containsString(CommandBuffer.escapeShellArgument("-Dbar=aap noot mies", Util.getShell())));
+		// Make sure the opts only appear once
+		assertThat(result.replaceFirst(Pattern.quote("-Dfoo=bar"), ""),
+				not(containsString("-Dfoo=bar")));
+		assertThat(result.replaceFirst(Pattern.quote("-Dbar=aap noot mies"), ""),
+				not(containsString("-Dbar=aap noot mies")));
+		// Make sure the opts only appear unquoted
+		assertThat(result,
+				not(containsString(
+						CommandBuffer.escapeShellArgument("-Dfoo=bar -Dbar=aap noot mies", Util.getShell()))));
+		// assertThat(result, containsString("--source 11"));
+	}
+
+	@Test
 	@SuppressWarnings("unchecked")
 	void testRemoteFileArgSimple() throws Exception {
 
@@ -2570,5 +2616,4 @@ public class TestRun extends BaseTest {
 		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build", "-n", "-N=--verbose", arg);
 	}
-
 }

@@ -60,7 +60,7 @@ public class RenamingScriptResourceResolver implements ResourceResolver {
 						File buildFile = new File(probe, Project.BuildFile.jbang.fileName);
 						if (Util.isPreview() && buildFile.exists()) {
 							Util.verboseMsg("Directory where build.jbang exists. Running build.jbang.");
-							probe = buildFile;
+							return ResourceRef.forFile(buildFile.toPath());
 						} else if (defaultApp.exists()) {
 							Util.verboseMsg("Directory where main.java exists. Running main.java.");
 							probe = defaultApp;
