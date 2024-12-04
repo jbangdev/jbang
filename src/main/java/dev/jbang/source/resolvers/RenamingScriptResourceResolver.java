@@ -57,12 +57,23 @@ public class RenamingScriptResourceResolver implements ResourceResolver {
 						&& (!Util.isPreview() || !Project.BuildFile.fileNames().contains(probe.getName()))) {
 					if (probe.isDirectory()) {
 						File defaultApp = new File(probe, "main.java");
-						if (defaultApp.exists()) {
+						File buildFile = new File(probe, Project.BuildFile.jbang.fileName);
+						if (Util.isPreview() && buildFile.exists()) {
+							Util.verboseMsg("Directory where build.jbang exists. Running build.jbang.");
+							return ResourceRef.forFile(buildFile.toPath());
+						} else if (defaultApp.exists()) {
 							Util.verboseMsg("Directory where main.java exists. Running main.java.");
 							probe = defaultApp;
 						} else {
-							throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Cannot run " + probe
-									+ " as it is a directory and no default application (i.e. `main.java`) found.");
+							String msg;
+							if (Util.isPreview()) {
+								msg = "Cannot run " + probe
+										+ " as it is a directory and no build file (i.e. `build.jbang`) or default application (i.e. `main.java`) was found.";
+							} else {
+								msg = "Cannot run " + probe
+										+ " as it is a directory and no default application (i.e. `main.java`) was found.";
+							}
+							throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, msg);
 						}
 					}
 					String original = Util.readString(probe.toPath());
