@@ -2,6 +2,7 @@ package dev.jbang;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import dev.jbang.cli.JBang;
 
@@ -31,9 +32,11 @@ public class Main {
 		}
 		// Check if we have a parameter and it's not the same as any of the subcommand
 		// names
-		if (!remainingArgs.isEmpty() && !spec.subcommands().containsKey(remainingArgs.get(0))
-				|| hasRunOpts(leadingOpts)) {
+		if (!remainingArgs.isEmpty()
+				&& !spec.subcommands().containsKey(remainingArgs.get(0)) || hasRunOpts(leadingOpts)) {
+			List<String> jbangOpts = stripNonInheritedJBangOpts(leadingOpts);
 			List<String> result = new ArrayList<>();
+			result.addAll(jbangOpts);
 			result.add("run");
 			result.addAll(leadingOpts);
 			result.addAll(remainingArgs);
@@ -49,5 +52,13 @@ public class Main {
 							.anyMatch(o -> o.startsWith("-i=") || o.startsWith("--interactive=")
 									|| o.startsWith("-c=") || o.startsWith("--code=") || o.startsWith("--build-dir="));
 		return res;
+	}
+
+	private static List<String> stripNonInheritedJBangOpts(List<String> opts) {
+		List<String> jbangOpts = opts	.stream()
+										.filter(o -> "--preview".equals(o) || o.startsWith("--preview="))
+										.collect(Collectors.toList());
+		opts.removeAll(jbangOpts);
+		return jbangOpts;
 	}
 }
