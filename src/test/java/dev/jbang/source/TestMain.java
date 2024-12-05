@@ -19,7 +19,7 @@ import dev.jbang.util.Util;
 
 public class TestMain extends BaseTest {
 
-	String srcBasic = "package test;" +
+	String srcBasic = "pack age test;" +
 			"public class maintest {\n" +
 			"    public static void main(String... args) {\n" +
 			"        System.out.println(\"one\");\n" +
