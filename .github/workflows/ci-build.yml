@@ -173,6 +173,14 @@ jobs:
           echo "::add-matcher::.github/karatewindows-matcher.json" 
           .\itests.cmd
           echo "::remove-matcher owner=karate-windows::"
+  
+  annotate-test-results:
+    runs-on: ubuntu-latest
+    needs:
+      - build
+      - testing
+    if: always() # Ensure it runs regardless of the outcome of previous jobs
+    steps:
       - name: Write out Unit Test report annotation for forked repo
         if: ${{ failure() &&  (github.event.pull_request.head.repo.full_name != github.repository) }}
         uses: mikepenz/action-junit-report@992d97d6eb2e5f3de985fbf9df6a04386874114d # v5
