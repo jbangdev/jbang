@@ -21,8 +21,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
+import dev.jbang.Cache;
 import dev.jbang.Settings;
-import dev.jbang.net.jdkproviders.JBangJdkProvider;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -46,7 +46,7 @@ class TestJdk extends BaseTest {
 
 	@Test
 	void testHasJdksInstalled() throws Exception {
-		final Path jdkPath = JBangJdkProvider.getJdksPath();
+		final Path jdkPath = Settings.getCacheDir(Cache.CacheClass.jdks);
 		Arrays.asList(11, 12, 13).forEach(this::createMockJdk);
 
 		CaptureResult result = checkedRun(jdk -> jdk.list(false, false, FormatMixin.Format.text));
@@ -253,7 +253,7 @@ class TestJdk extends BaseTest {
 	void testJdkInstallWithLinkingToExistingJdkPathWhenJBangManagedVersionDoesNotExist(@TempDir File javaDir)
 			throws Exception {
 		initMockJdkDir(javaDir.toPath(), "11.0.14");
-		final Path jdkPath = JBangJdkProvider.getJdksPath();
+		final Path jdkPath = Settings.getCacheDir(Cache.CacheClass.jdks);
 		jdkPath.toFile().mkdir();
 
 		CaptureResult result = checkedRun(jdk -> {
@@ -277,7 +277,7 @@ class TestJdk extends BaseTest {
 	void testJdkInstallWithLinkingToExistingJdkPathWhenJBangManagedVersionExistsAndInstallIsForced(
 			@TempDir File javaDir) throws Exception {
 		initMockJdkDir(javaDir.toPath(), "11.0.14");
-		final Path jdkPath = JBangJdkProvider.getJdksPath();
+		final Path jdkPath = Settings.getCacheDir(Cache.CacheClass.jdks);
 		Arrays	.asList(11)
 				.forEach(this::createMockJdk);
 
@@ -336,7 +336,7 @@ class TestJdk extends BaseTest {
 		Path jdkOk = javaDir.toPath().resolve("14ok");
 		initMockJdkDir(jdkBroken, "11.0.14-broken");
 		initMockJdkDir(jdkOk, "11.0.14-ok");
-		final Path jdkPath = JBangJdkProvider.getJdksPath();
+		final Path jdkPath = Settings.getCacheDir(Cache.CacheClass.jdks);
 
 		CaptureResult result = checkedRun(jdk -> {
 			try {
@@ -386,7 +386,7 @@ class TestJdk extends BaseTest {
 		int jdkVersion = 14;
 		createMockJdk(jdkVersion);
 
-		Path jdkPath = JBangJdkProvider.getJdksPath().resolve("14");
+		Path jdkPath = Settings.getCacheDir(Cache.CacheClass.jdks).resolve("14");
 		environmentVariables.set("JAVA_HOME", jdkPath.toString());
 
 		CaptureResult result = checkedRun((Jdk jdk) -> jdk.uninstall(Integer.toString(jdkVersion)), "jdk",
@@ -434,9 +434,9 @@ class TestJdk extends BaseTest {
 	}
 
 	private void createMockJdk(int jdkVersion, BiConsumer<Path, String> init) {
-		Path jdkPath = JBangJdkProvider.getJdksPath().resolve(String.valueOf(jdkVersion));
+		Path jdkPath = Settings.getCacheDir(Cache.CacheClass.jdks).resolve(String.valueOf(jdkVersion));
 		init.accept(jdkPath, jdkVersion + ".0.7");
-		Path link = Settings.getCurrentJdkDir();
+		Path link = Settings.getDefaultJdkDir();
 		if (!Files.exists(link)) {
 			Util.createLink(link, jdkPath);
 		}

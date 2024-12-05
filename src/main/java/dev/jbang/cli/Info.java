@@ -1,6 +1,7 @@
 package dev.jbang.cli;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
+import static dev.jbang.util.JavaUtil.jdkManager;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -19,8 +20,7 @@ import com.google.gson.GsonBuilder;
 
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenRepo;
-import dev.jbang.net.JdkManager;
-import dev.jbang.net.JdkProvider;
+import dev.jbang.jvm.Jdk;
 import dev.jbang.source.*;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
@@ -117,8 +117,8 @@ abstract class BaseInfoCommand extends BaseCommand {
 				requestedJavaVersion = prj.getJavaVersion();
 
 				try {
-					JdkProvider.Jdk jdk = assureJdkInstalled ? JdkManager.getOrInstallJdk(requestedJavaVersion)
-							: JdkManager.getJdk(requestedJavaVersion, false);
+					Jdk jdk = assureJdkInstalled ? jdkManager().getOrInstallJdk(requestedJavaVersion)
+							: jdkManager().getJdk(requestedJavaVersion, false);
 					if (jdk != null && jdk.isInstalled()) {
 						availableJdkPath = jdk.getHome().toString();
 					}
