@@ -16,6 +16,27 @@ jobs:
   checks:
     runs-on: ubuntu-latest
     steps:
+      - name: Set up GitHub CLI
+       uses: actions/setup-gh@v2
+
+      - name: Get workflow run details
+        id: workflow_details
+        run: |
+          gh api repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }} \
+            --jq '.head_branch' > branch.txt
+          BRANCH_NAME=$(cat branch.txt)
+          echo "branch_name=${BRANCH_NAME}" >> $GITHUB_ENV
+
+      - name: Fetch PR number
+        id: fetch_pr
+        run: |
+          PR=$(gh pr list --head "${{ env.branch_name }}" --json number --jq '.[0].number')
+          echo "pr_number=${PR}" >> $GITHUB_ENV
+
+      - name: Output PR number
+        run: |
+          echo "The PR number is: ${{ env.pr_number }}"
+
       - name: Download Test Report
         uses: dawidd6/action-download-artifact@268677152d06ba59fcec7a7f0b5d961b6ccd7e1e # v2
         with:
