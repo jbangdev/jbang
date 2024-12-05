@@ -173,3 +173,8 @@ jobs:
           echo "::add-matcher::.github/karatewindows-matcher.json" 
           .\itests.cmd
           echo "::remove-matcher owner=karate-windows::"
+      - name: Write out Unit Test report annotation for forked repo
+        if: ${{ failure() &&  (github.event.pull_request.head.repo.full_name != github.repository) }}
+        uses: mikepenz/action-junit-report@v5
+        with:
+          annotate_only: true # forked repo cannot write to checks so just do annotations

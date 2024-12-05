@@ -1,7 +1,15 @@
 package dev.jbang.source;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.aMapWithSize;
+import static org.hamcrest.Matchers.anEmptyMap;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.iterableWithSize;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
@@ -121,8 +129,9 @@ public class TestProjectBuilder extends BaseTest {
 		assertThat(prj.getJavaVersion(), equalTo("11+"));
 		assertThat(prj.getMainClass(), equalTo("mainclass"));
 		assertThat(prj.getModuleName().get(), equalTo("mymodule"));
-		assertThat(prj.getMainSourceSet().getCompileOptions(), iterableWithSize(3));
-		assertThat(prj.getMainSourceSet().getCompileOptions(), contains("-g", "--enable-preview", "--verbose"));
+		assertThat(prj.getMainSourceSet().getCompileOptions(), iterableWithSize(4));
+		assertThat(prj.getMainSourceSet().getCompileOptions(),
+				contains("-g", "-parameters", "--enable-preview", "--verbose"));
 		assertThat(prj.isNativeImage(), is(Boolean.FALSE));
 		assertThat(prj.getMainSourceSet().getNativeOptions(), iterableWithSize(2));
 		assertThat(prj.getMainSourceSet().getNativeOptions(), contains("-O1", "-d"));
@@ -229,9 +238,9 @@ public class TestProjectBuilder extends BaseTest {
 		assertThat(prj.getJavaVersion(), equalTo("twojava"));
 		assertThat(prj.getMainClass(), equalTo("mainclass")); // This is not updated from Alias here!
 		assertThat(prj.getModuleName().get(), equalTo("mymodule")); // This is not updated from Alias here!
-		assertThat(prj.getMainSourceSet().getCompileOptions(), iterableWithSize(4));
+		assertThat(prj.getMainSourceSet().getCompileOptions(), iterableWithSize(5));
 		assertThat(prj.getMainSourceSet().getCompileOptions(),
-				contains("-g", "--enable-preview", "--verbose", "--ctwo"));
+				contains("-g", "-parameters", "--enable-preview", "--verbose", "--ctwo"));
 		assertThat(prj.isNativeImage(), is(Boolean.TRUE));
 		assertThat(prj.getMainSourceSet().getNativeOptions(), iterableWithSize(4));
 		assertThat(prj.getMainSourceSet().getNativeOptions(), contains("-O1", "-d", "-O1", "--ntwo"));
