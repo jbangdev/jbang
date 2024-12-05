@@ -95,7 +95,9 @@ public abstract class AppBuilder implements Builder<CmdGeneratorBuilder> {
 			// do the actual building
 			try {
 				getCompileBuildStep().build();
-				integrationResult = getIntegrationBuildStep().build();
+				if (!project.disableIntegrations()) {
+					integrationResult = getIntegrationBuildStep().build();
+				}
 				getJarBuildStep().build();
 			} finally {
 				if (!keepClasses()) {

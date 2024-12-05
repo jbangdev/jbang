@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -30,9 +31,11 @@ import dev.jbang.Settings;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.cli.ExitException;
+import dev.jbang.source.buildsteps.IntegrationBuildStep;
 import dev.jbang.source.buildsteps.JarBuildStep;
 import dev.jbang.source.buildsteps.NativeBuildStep;
 import dev.jbang.source.sources.JavaSource;
+import dev.jbang.spi.IntegrationResult;
 import dev.jbang.util.Util;
 
 public class TestBuilder extends BaseTest {
@@ -43,7 +46,21 @@ public class TestBuilder extends BaseTest {
 		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
-		runBuild(ctx, (ctxx, optionList) -> assertThat(optionList, hasItems(foo.toString(), "-g")), null, null);
+		AtomicBoolean integrationStepCalled = new AtomicBoolean(false);
+		AtomicBoolean jarStepCalled = new AtomicBoolean(false);
+		AtomicBoolean nativeStepCalled = new AtomicBoolean(false);
+		runBuild(ctx, (ctxx, optionList) -> assertThat(optionList, hasItems(foo.toString(), "-g")), (ctxx) -> {
+			integrationStepCalled.set(true);
+			return new IntegrationResult(null, null, null);
+		}, (ctxx) -> {
+			jarStepCalled.set(true);
+			return ctxx.getProject();
+		}, (ctxx, nativeStep) -> {
+			nativeStepCalled.set(true);
+		});
+		assertThat(integrationStepCalled.get(), is(true));
+		assertThat(jarStepCalled.get(), is(true));
+		assertThat(nativeStepCalled.get(), is(false));
 	}
 
 	@Test
@@ -54,7 +71,7 @@ public class TestBuilder extends BaseTest {
 		prj.setEnablePreviewRequested(true);
 		BuildContext ctx = BuildContext.forProject(prj);
 		runBuild(ctx, (ctxx, optionList) -> assertThat(optionList, hasItems(foo.toString(), "--enable-preview")), null,
-				null);
+				null, null);
 	}
 
 	@Test
@@ -68,7 +85,7 @@ public class TestBuilder extends BaseTest {
 			assertThat(optionList, hasItems(containsString(out1.toString())));
 			assertThat(optionList, not(hasItems(containsString(out2.toString()))));
 			assertThat(optionList, not(hasItems(containsString(Settings.getCacheDir().toString()))));
-		}, ctxx -> {
+		}, null, ctxx -> {
 			assertThat(ctxx.getJarFile().toString(), containsString(out1.toString()));
 			assertThat(ctxx.getJarFile().toString(), not(containsString(out2.toString())));
 			assertThat(ctxx.getJarFile().toString(), not(containsString(Settings.getCacheDir().toString())));
@@ -78,7 +95,7 @@ public class TestBuilder extends BaseTest {
 			assertThat(optionList, hasItems(containsString(out2.toString())));
 			assertThat(optionList, not(hasItems(containsString(out1.toString()))));
 			assertThat(optionList, not(hasItems(containsString(Settings.getCacheDir().toString()))));
-		}, ctxx -> {
+		}, null, ctxx -> {
 			assertThat(ctxx.getJarFile().toString(), containsString(out2.toString()));
 			assertThat(ctxx.getJarFile().toString(), not(containsString(out1.toString())));
 			assertThat(ctxx.getJarFile().toString(), not(containsString(Settings.getCacheDir().toString())));
@@ -93,7 +110,7 @@ public class TestBuilder extends BaseTest {
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
 		runBuild(ctx, (ctxx, optionList) -> assertThat(optionList, hasItems(foo.toString(), "-g", "--foo", "--bar")),
-				null, null);
+				null, null, null);
 	}
 
 	@Test
@@ -103,7 +120,7 @@ public class TestBuilder extends BaseTest {
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
 		runBuild(ctx, (ctxx, optionList) -> assertThat(optionList, hasItems(foo.toString(), "--foo", "--bar")), null,
-				null);
+				null, null);
 	}
 
 	@Test
@@ -117,7 +134,7 @@ public class TestBuilder extends BaseTest {
 		runBuild(ctx, (ctxx, optionList) -> {
 			assertThat(optionList, hasItem(foo.toString()));
 			assertThat(optionList, hasItem(bar.toString()));
-		}, null, null);
+		}, null, null, null);
 	}
 
 	@Test
@@ -134,7 +151,7 @@ public class TestBuilder extends BaseTest {
 		runBuild(ctx, (ctxx, optionList) -> {
 			assertThat(optionList, hasItem(mainFile));
 			assertThat(optionList, hasItem(incFile));
-		}, null, null);
+		}, null, null, null);
 	}
 
 	@Test
@@ -154,7 +171,7 @@ public class TestBuilder extends BaseTest {
 		runBuild(ctx, (ctxx, optionList) -> {
 			assertThat(optionList, hasItem(mainFile.toString()));
 			assertThat(optionList, hasItem(incFile));
-		}, null, null);
+		}, null, null, null);
 	}
 
 	@Test
@@ -170,7 +187,7 @@ public class TestBuilder extends BaseTest {
 		runBuild(ctx, (ctxx, optionList) -> {
 			assertThat(optionList, hasItem(mainFile));
 			assertThat(optionList, hasItem(incFile));
-		}, null, null);
+		}, null, null, null);
 	}
 
 	@Test
@@ -186,7 +203,7 @@ public class TestBuilder extends BaseTest {
 		runBuild(ctx, (ctxx, optionList) -> {
 			assertThat(optionList, hasItem(mainFile));
 			assertThat(optionList, hasItem(incFile));
-		}, null, null);
+		}, null, null, null);
 	}
 
 	@Test
@@ -202,7 +219,7 @@ public class TestBuilder extends BaseTest {
 		runBuild(ctx, (ctxx, optionList) -> {
 			assertThat(optionList, hasItem(mainFile));
 			assertThat(optionList, hasItem(incFile));
-		}, null, null);
+		}, null, null, null);
 	}
 
 	@Test
@@ -218,7 +235,7 @@ public class TestBuilder extends BaseTest {
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
 		runBuild(ctx, (ctxx, optionList) -> {
-		}, ctxx -> {
+		}, null, ctxx -> {
 			Project project = ctxx.getProject();
 			assertThat(project.getMainSourceSet().getResources().size(), is(2));
 			assertThat(
@@ -244,7 +261,7 @@ public class TestBuilder extends BaseTest {
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
 		runBuild(ctx, (ctxx, optionList) -> {
-		}, ctxx -> {
+		}, null, ctxx -> {
 			Project project = ctxx.getProject();
 			assertThat(project.getMainSourceSet().getResources().size(), is(2));
 			assertThat(project.getMainSourceSet().getResources().get(0).getTarget().toString(),
@@ -273,7 +290,7 @@ public class TestBuilder extends BaseTest {
 		BuildContext ctx = BuildContext.forProject(prj);
 		runBuild(ctx, (ctxx, optionList) -> {
 			assertThat(optionList, hasItem(endsWith(File.separator + "foo.java")));
-		}, ctxx -> {
+		}, null, ctxx -> {
 			Project project = ctxx.getProject();
 			assertThat(project.getMainSourceSet().getResources().size(), is(3));
 			List<String> ps = project	.getMainSourceSet()
@@ -298,7 +315,7 @@ public class TestBuilder extends BaseTest {
 		BuildContext ctx = BuildContext.forProject(prj);
 		runBuild(ctx, (ctxx, optionList) -> {
 			assertThat(optionList, hasItem(endsWith(File.separator + "foo.java")));
-		}, ctxx -> {
+		}, null, ctxx -> {
 			Project project = ctxx.getProject();
 			assertThat(project.getMainSourceSet().getResources().size(), is(4));
 			List<String> ps = project	.getMainSourceSet()
@@ -325,7 +342,7 @@ public class TestBuilder extends BaseTest {
 		BuildContext ctx = BuildContext.forProject(prj);
 		runBuild(ctx, (ctxx, optionList) -> {
 			assertThat(optionList, hasItem(endsWith(File.separator + "foo.java")));
-		}, null, (ctxx, optionList) -> {
+		}, null, null, (ctxx, optionList) -> {
 			if (Util.isWindows()) {
 				assertThat(optionList.get(optionList.size() - 1), not(endsWith(".exe")));
 			} else {
@@ -366,7 +383,7 @@ public class TestBuilder extends BaseTest {
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
 		runBuild(ctx, (ctxx, optionList) -> {
-		}, null, (ctxx, optionList) -> assertThat(optionList, hasItem("-O1")));
+		}, null, null, (ctxx, optionList) -> assertThat(optionList, hasItem("-O1")));
 	}
 
 	@Test
@@ -377,7 +394,7 @@ public class TestBuilder extends BaseTest {
 		BuildContext ctx = BuildContext.forProject(prj);
 		AtomicInteger callCount = new AtomicInteger(0);
 		runBuild(ctx, (ctxx, optionList) -> {
-		}, null, (ctxx, optionList) -> {
+		}, null, null, (ctxx, optionList) -> {
 			try {
 				ctxx.getNativeImageFile().toFile().createNewFile();
 			} catch (IOException e) {
@@ -386,7 +403,7 @@ public class TestBuilder extends BaseTest {
 			callCount.incrementAndGet();
 		});
 		runBuild(ctx, (ctxx, optionList) -> {
-		}, null, (ctxx, optionList) -> callCount.incrementAndGet());
+		}, null, null, (ctxx, optionList) -> callCount.incrementAndGet());
 		assertThat(callCount.get(), equalTo(2));
 	}
 
@@ -411,7 +428,7 @@ public class TestBuilder extends BaseTest {
 			} else {
 				throw new IllegalStateException("Should not be called more than twice!");
 			}
-		}, null, null);
+		}, null, null, null);
 		assertThat(callCount.get(), equalTo(2));
 	}
 
@@ -426,8 +443,39 @@ public class TestBuilder extends BaseTest {
 		}
 	}
 
+	@Test
+	void testNoIntegrationsFlag() throws IOException {
+		Path foo = examplesTestFolder.resolve("helloworld.java").toAbsolutePath();
+		ProjectBuilder pb = Project.builder();
+		pb.integrations(false);
+		Project prj = pb.build(foo.toString());
+		BuildContext ctx = BuildContext.forProject(prj);
+		AtomicBoolean integrationStepCalled = new AtomicBoolean(false);
+		runBuild(ctx, null, (ctxx) -> {
+			integrationStepCalled.set(true);
+			return new IntegrationResult(null, null, null);
+		}, null, null);
+		assertThat(integrationStepCalled.get(), is(false));
+	}
+
+	@Test
+	void testNoIntegrationsTag() throws IOException {
+		Path foo = examplesTestFolder.resolve("noints.java").toAbsolutePath();
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(foo.toString());
+		assertThat(prj.disableIntegrations(), is(true));
+		BuildContext ctx = BuildContext.forProject(prj);
+		AtomicBoolean integrationStepCalled = new AtomicBoolean(false);
+		runBuild(ctx, null, (ctxx) -> {
+			integrationStepCalled.set(true);
+			return new IntegrationResult(null, null, null);
+		}, null, null);
+		assertThat(integrationStepCalled.get(), is(false));
+	}
+
 	private void runBuild(BuildContext ctx, BiConsumer<BuildContext, List<String>> compileStep,
-			Function<BuildContext, Project> jarStep, BiConsumer<BuildContext, List<String>> nativeStep)
+			Function<BuildContext, IntegrationResult> integrationStep, Function<BuildContext, Project> jarStep,
+			BiConsumer<BuildContext, List<String>> nativeStep)
 			throws IOException {
 		new CodeBuilderProvider(ctx) {
 			@Nonnull
@@ -443,6 +491,20 @@ public class TestBuilder extends BaseTest {
 									compileStep.accept(ctx, optionList);
 								} else {
 									super.runCompiler(optionList);
+								}
+							}
+						};
+					}
+
+					@Override
+					protected Builder<IntegrationResult> getIntegrationBuildStep() {
+						return new IntegrationBuildStep(ctx) {
+							@Override
+							public IntegrationResult build() throws IOException {
+								if (integrationStep != null) {
+									return integrationStep.apply(ctx);
+								} else {
+									return super.build();
 								}
 							}
 						};

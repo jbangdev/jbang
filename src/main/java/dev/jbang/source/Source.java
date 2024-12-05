@@ -111,6 +111,10 @@ public abstract class Source {
 		return !tagReader.collectRawOptions("PREVIEW").isEmpty();
 	}
 
+	public boolean disableIntegrations() {
+		return !tagReader.collectRawOptions("NOINTEGRATIONS").isEmpty();
+	}
+
 	// Used only by tests
 	static Source forResource(String resource, Function<String, String> replaceProperties) {
 		return forResource(ResourceResolver.forResources(), resource, replaceProperties);

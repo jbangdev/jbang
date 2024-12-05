@@ -39,6 +39,7 @@ public class Project {
 	private String mainClass;
 	private String moduleName;
 	private boolean nativeImage;
+	private boolean integrations = true;
 	private boolean enablePreviewRequested;
 
 	private final List<Project> subProjects = new ArrayList<>();
@@ -48,10 +49,6 @@ public class Project {
 
 	public static final String ATTR_PREMAIN_CLASS = "Premain-Class";
 	public static final String ATTR_AGENT_CLASS = "Agent-Class";
-
-	public boolean enablePreview() {
-		return enablePreviewRequested || (mainSource != null && mainSource.enablePreview());
-	}
 
 	public enum BuildFile {
 		jbang("build.jbang");
@@ -197,6 +194,10 @@ public class Project {
 		this.mainClass = mainClass;
 	}
 
+	public boolean enablePreview() {
+		return enablePreviewRequested || (mainSource != null && mainSource.enablePreview());
+	}
+
 	public void setEnablePreviewRequested(boolean enablePreview) {
 		this.enablePreviewRequested = enablePreview;
 	}
@@ -218,6 +219,14 @@ public class Project {
 
 	public void setNativeImage(boolean isNative) {
 		this.nativeImage = isNative;
+	}
+
+	public boolean disableIntegrations() {
+		return !integrations || (mainSource != null && mainSource.disableIntegrations());
+	}
+
+	public void setIntegrations(boolean integrations) {
+		this.integrations = integrations;
 	}
 
 	public boolean enableCDS() {

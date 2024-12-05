@@ -52,6 +52,7 @@ public class ProjectBuilder {
 	private Map<String, String> manifestOptions = new HashMap<>();
 	private File catalogFile;
 	private Boolean nativeImage;
+	private Boolean integrations;
 	private String javaVersion;
 	private Boolean enablePreview;
 
@@ -169,6 +170,11 @@ public class ProjectBuilder {
 
 	public ProjectBuilder nativeImage(Boolean nativeImage) {
 		this.nativeImage = nativeImage;
+		return this;
+	}
+
+	public ProjectBuilder integrations(Boolean integrations) {
+		this.integrations = integrations;
 		return this;
 	}
 
@@ -429,6 +435,9 @@ public class ProjectBuilder {
 		if (nativeImage != null) {
 			prj.setNativeImage(nativeImage);
 		}
+		if (integrations != null) {
+			prj.setIntegrations(integrations);
+		}
 		if (enablePreview != null) {
 			prj.setEnablePreviewRequested(enablePreview);
 		}
@@ -594,6 +603,9 @@ public class ProjectBuilder {
 		}
 		if (nativeOptions.isEmpty()) {
 			nativeOptions(alias.nativeOptions);
+		}
+		if (integrations == null) {
+			integrations(alias.integrations);
 		}
 		if (manifestOptions.isEmpty()) {
 			manifestOptions(alias.manifestOptions);

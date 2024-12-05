@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import picocli.CommandLine;
+import picocli.CommandLine.Option;
 
 public class BuildMixin {
 	public String javaVersion;
@@ -33,6 +34,10 @@ public class BuildMixin {
 	@CommandLine.Option(names = { "--manifest" }, parameterConsumer = KeyValueConsumer.class)
 	public Map<String, String> manifestOptions;
 
+	@Option(names = {
+			"--integrations" }, description = "Enable integration execution (default: true)", negatable = true)
+	public Boolean integrations;
+
 	public List<String> opts() {
 		List<String> opts = new ArrayList<>();
 		if (javaVersion != null) {
@@ -46,6 +51,11 @@ public class BuildMixin {
 		if (module != null) {
 			opts.add("--module");
 			opts.add(module);
+		}
+		if (Boolean.TRUE.equals(integrations)) {
+			opts.add("--integrations");
+		} else if (Boolean.FALSE.equals(integrations)) {
+			opts.add("--no-integrations");
 		}
 		if (compileOptions != null) {
 			for (String c : compileOptions) {
