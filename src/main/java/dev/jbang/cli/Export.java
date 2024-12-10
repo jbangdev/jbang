@@ -455,7 +455,7 @@ class ExportJlink extends BaseExportCommand {
 			}
 		}
 
-		String jlinkCmd = JavaUtil.resolveInJavaHome("jlink", null);
+		String jlinkCmd = JavaUtil.resolveInJavaHome("jlink");
 		String modMain = ModuleUtil.getModuleMain(prj);
 		List<String> cps = artifacts.stream().map(a -> a.getFile().toString()).collect(Collectors.toList());
 		List<String> cp = new ArrayList<>(artifacts.size() + 1);
