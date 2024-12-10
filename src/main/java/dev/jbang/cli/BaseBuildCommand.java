@@ -52,6 +52,7 @@ public abstract class BaseBuildCommand extends BaseCommand {
 						.manifestOptions(buildMixin.manifestOptions)
 						.nativeImage(nativeMixin.nativeImage)
 						.nativeOptions(nativeMixin.nativeOptions)
+						.integrations(buildMixin.integrations)
 						.enablePreview(enablePreviewRequested);
 
 		// NB: Do not put `.mainClass(buildMixin.main)` here
