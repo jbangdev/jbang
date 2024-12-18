@@ -102,6 +102,8 @@ dependencies {
 	implementation 'org.jsoup:jsoup:1.17.1'
 	implementation 'org.codejive:java-properties:0.0.7'
 
+	implementation 'me.tongfei:progressbar:0.10.1'
+
 	implementation "org.slf4j:slf4j-nop:1.7.30"
 	implementation "org.slf4j:jcl-over-slf4j:1.7.30"
 	implementation "org.jboss:jandex:2.2.3.Final"
