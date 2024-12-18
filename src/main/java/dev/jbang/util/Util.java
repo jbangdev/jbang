@@ -824,7 +824,7 @@ public class Util {
 		}
 	}
 
-	private interface ConnectionConfigurator {
+	interface ConnectionConfigurator {
 
 		void configure(URLConnection conn) throws IOException;
 
