@@ -38,7 +38,7 @@ jobs:
           echo "The PR number is: ${{ env.pr_number }}"
 
       - name: Download Test Report
-        uses: dawidd6/action-download-artifact@268677152d06ba59fcec7a7f0b5d961b6ccd7e1e # v2
+        uses: dawidd6/action-download-artifact@80620a5d27ce0ae443b965134db88467fc607b43 # v7
         with:
           name: junit-test-results
           workflow: ${{ github.event.workflow.id }}
