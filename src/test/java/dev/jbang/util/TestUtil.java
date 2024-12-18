@@ -1,5 +1,6 @@
 package dev.jbang.util;
 
+import static dev.jbang.util.Util.ConnectionConfigurator.authentication;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
@@ -8,9 +9,10 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Path;
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
@@ -157,5 +159,14 @@ public class TestUtil extends BaseTest {
 				equalTo("token"));
 		// assertThat(Util.getDispositionFilename("inline;
 		// filename*=iso-fake-1''dummy"), equalTo(""));
+	}
+
+	@Test
+	void testUrlBasicAuth() throws IOException {
+		URLConnection connection = new NoOpUrlConnection(new URL("https://SomeUser:VeryStrongPassword1@example.com"));
+
+		authentication().configure(connection);
+
+		assertThat(connection.getRequestProperty("Authorization"), equalTo("Basic U29tZVVzZXI6VmVyeVN0cm9uZ1Bhc3N3b3JkMQ=="));
 	}
 }
