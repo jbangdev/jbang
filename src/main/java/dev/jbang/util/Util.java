@@ -10,12 +10,7 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLDecoder;
+import java.net.*;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
@@ -46,6 +41,9 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.swing.*;
 
+import org.apache.commons.text.StringSubstitutor;
+import org.apache.commons.text.lookup.DefaultStringLookup;
+import org.apache.commons.text.lookup.StringLookupFactory;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
@@ -62,6 +60,10 @@ import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.source.Source;
+
+import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toUnmodifiableMap;
+import static org.apache.commons.text.lookup.DefaultStringLookup.*;
 
 public class Util {
 
@@ -98,6 +100,16 @@ public class Util {
 	private static Path cwd;
 	private static Boolean downloadSources;
 	private static Instant startTime = Instant.now();
+
+	private static final StringSubstitutor urlSubstitutor = createUrlSubstitutor();
+
+	private static StringSubstitutor createUrlSubstitutor() {
+		return new StringSubstitutor(StringLookupFactory.INSTANCE.interpolatorStringLookup(
+				asList(ENVIRONMENT, SYSTEM_PROPERTIES, PROPERTIES).stream().collect(
+						toUnmodifiableMap(DefaultStringLookup::getKey, DefaultStringLookup::getStringLookup)),
+				null, false
+		));
+	}
 
 	public static void setVerbose(boolean verbose) {
 		Util.verbose = verbose;
@@ -1124,15 +1136,15 @@ public class Util {
 	private static void addAuthHeaderIfNeeded(URLConnection urlConnection) {
 		String auth = null;
 		URL url = urlConnection.getURL();
-		if (url.getHost().endsWith("github.com") && System.getenv().containsKey("GITHUB_TOKEN")) {
+		if (urlConnection.getURL().getHost().endsWith("github.com") && System.getenv().containsKey("GITHUB_TOKEN")) {
 			auth = "token " + System.getenv("GITHUB_TOKEN");
 		} else {
 			String username;
 			String password;
 			if (url.getUserInfo() != null) {
 				String[] credentials = url.getUserInfo().split(":", 2);
-				username = credentials[0];
-				password = credentials.length > 1 ? credentials[1] : "";
+				username = urlSubstitutor.replace(credentials[0]);
+				password = credentials.length > 1 ? urlSubstitutor.replace(credentials[1]) : "";
 			} else {
 				username = System.getenv(JBANG_AUTH_BASIC_USERNAME);
 				password = System.getenv(JBANG_AUTH_BASIC_PASSWORD);
