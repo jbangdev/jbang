@@ -10,7 +10,12 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.*;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLDecoder;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
@@ -41,9 +46,6 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.swing.*;
 
-import org.apache.commons.text.StringSubstitutor;
-import org.apache.commons.text.lookup.DefaultStringLookup;
-import org.apache.commons.text.lookup.StringLookupFactory;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
