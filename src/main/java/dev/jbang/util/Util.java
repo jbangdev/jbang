@@ -61,10 +61,6 @@ import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.source.Source;
 
-import static java.util.Arrays.asList;
-import static java.util.stream.Collectors.toUnmodifiableMap;
-import static org.apache.commons.text.lookup.DefaultStringLookup.*;
-
 public class Util {
 
 	public static final String JBANG_JDK_VENDOR = "JBANG_JDK_VENDOR";
@@ -100,16 +96,6 @@ public class Util {
 	private static Path cwd;
 	private static Boolean downloadSources;
 	private static Instant startTime = Instant.now();
-
-	private static final StringSubstitutor urlSubstitutor = createUrlSubstitutor();
-
-	private static StringSubstitutor createUrlSubstitutor() {
-		return new StringSubstitutor(StringLookupFactory.INSTANCE.interpolatorStringLookup(
-				asList(ENVIRONMENT, SYSTEM_PROPERTIES, PROPERTIES).stream().collect(
-						toUnmodifiableMap(DefaultStringLookup::getKey, DefaultStringLookup::getStringLookup)),
-				null, false
-		));
-	}
 
 	public static void setVerbose(boolean verbose) {
 		Util.verbose = verbose;
@@ -1143,8 +1129,8 @@ public class Util {
 			String password;
 			if (url.getUserInfo() != null) {
 				String[] credentials = url.getUserInfo().split(":", 2);
-				username = urlSubstitutor.replace(credentials[0]);
-				password = credentials.length > 1 ? urlSubstitutor.replace(credentials[1]) : "";
+				username = PropertiesValueResolver.replaceProperties(credentials[0]);
+				password = credentials.length > 1 ?  PropertiesValueResolver.replaceProperties(credentials[1]) : "";
 			} else {
 				username = System.getenv(JBANG_AUTH_BASIC_USERNAME);
 				password = System.getenv(JBANG_AUTH_BASIC_PASSWORD);

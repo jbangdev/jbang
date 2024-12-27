@@ -163,7 +163,7 @@ public class TestUtil extends BaseTest {
 
 	@Test
 	void testUrlBasicAuth() throws IOException {
-		URLConnection connection = new NoOpUrlConnection(new URL("https://SomeUser:${properties:src\\test\\resources\\url.properties::password}@example.com"));
+		URLConnection connection = new NoOpUrlConnection(new URL("https://SomeUser:${env.NON_EXISTING_PROPERTY:VeryStrongPassword1}@example.com"));
 
 		authentication().configure(connection);
 
