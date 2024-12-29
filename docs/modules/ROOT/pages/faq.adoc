@@ -56,7 +56,7 @@ Use the following configuration blocks to correctly configure your tool:
 .Configuration Tool Settings:
 |====
 | Formatting Tool | Configuration
-| Google Java Format | see https://github.com/google/google-java-format/issues/1215[#1215] & https://github.com/google/google-java-format/issues/1214[#1214] |
+| Google Java Format | see https://github.com/google/google-java-format/issues/1215[#1215] & https://github.com/google/google-java-format/issues/1214[#1214]
 | Clang Format
 a|
 [source]
