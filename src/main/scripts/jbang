@@ -17,7 +17,7 @@ script_dir() {
     [[ $script != /* ]] && script=$dir/$script
   done
   dir=$( cd -P "$( dirname "$script" )" >/dev/null 2>&1 && pwd )
-  echo $dir
+  echo "$dir"
 }
 
 download() {
@@ -141,7 +141,7 @@ else
     else
       jburl="https://github.com/jbangdev/jbang/releases/download/v$JBANG_DOWNLOAD_VERSION/jbang.tar";
     fi
-    download $jburl "$TDIR/urls/jbang.tar"
+    download "$jburl" "$TDIR/urls/jbang.tar"
     if [ $retval -ne 0 ]; then echo "Error downloading JBang from $jburl" 1>&2; exit $retval; fi
     echo "Installing JBang..." 1>&2
     rm -rf "$TDIR/urls/jbang"
@@ -209,7 +209,7 @@ if [[ -z "$JAVA_EXEC" ]]; then
       # Activate the downloaded JDK giving it its proper name
       mv "$TDIR/jdks/$javaVersion.tmp" "$TDIR/jdks/$javaVersion"
       # Set the current JDK
-      "${JAVA_EXEC}" -classpath "${jarPath}" dev.jbang.Main jdk default $javaVersion
+      "${JAVA_EXEC}" -classpath "${jarPath}" dev.jbang.Main jdk default "$javaVersion"
     fi
   fi
 fi
@@ -219,8 +219,10 @@ fi
 
 ## run it using command substitution to have just the user process once jbang is done
 export JBANG_RUNTIME_SHELL=bash
-export JBANG_STDIN_NOTTY=$([ -t 0 ] && echo "false" || echo "true")
+JBANG_STDIN_NOTTY=$([ -t 0 ] && echo "false" || echo "true")
+export JBANG_STDIN_NOTTY
 export JBANG_LAUNCH_CMD=$0
+# shellcheck disable=SC2086
 output=$(CLICOLOR_FORCE=1 "${JAVA_EXEC}" ${JBANG_JAVA_OPTIONS} -classpath "${jarPath}" dev.jbang.Main "$@")
 err=$?
 if [ $err -eq 255 ]; then
