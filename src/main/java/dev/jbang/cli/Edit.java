@@ -33,7 +33,7 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "edit", description = "Setup a temporary project to edit script in an IDE.")
 public class Edit extends BaseCommand {
 
-	static String[] knownEditors = { "codium", "code", "eclipse", "idea", "netbeans" };
+	static String[] knownEditors = { "codium", "code", "cursor", "eclipse", "idea", "netbeans" };
 
 	@CommandLine.Mixin
 	ScriptMixin scriptMixin;
