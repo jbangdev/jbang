@@ -5,7 +5,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
@@ -23,9 +31,22 @@ import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
-import dev.jbang.dependencies.*;
+import dev.jbang.dependencies.DependencyResolver;
+import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.dependencies.Detector;
+import dev.jbang.dependencies.MavenCoordinate;
+import dev.jbang.dependencies.MavenRepo;
+import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.source.buildsteps.JarBuildStep;
-import dev.jbang.source.resolvers.*;
+import dev.jbang.source.resolvers.AliasResourceResolver;
+import dev.jbang.source.resolvers.ClasspathResourceResolver;
+import dev.jbang.source.resolvers.CombinedResourceResolver;
+import dev.jbang.source.resolvers.FileResourceResolver;
+import dev.jbang.source.resolvers.GavResourceResolver;
+import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
+import dev.jbang.source.resolvers.RemoteResourceResolver;
+import dev.jbang.source.resolvers.RenamingScriptResourceResolver;
+import dev.jbang.source.resolvers.SiblingResourceResolver;
 import dev.jbang.source.sources.JavaSource;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
@@ -359,6 +380,13 @@ public class ProjectBuilder {
 		return updateProject(updateProjectMain(src, prj, getResourceResolver()));
 	}
 
+	/**
+	 * Imports settings from jar MANIFEST.MF, pom.xml and more
+	 * 
+	 * @param prj
+	 * @param importModuleName
+	 * @return
+	 */
 	private Project importJarMetadata(Project prj, boolean importModuleName) {
 		Path jar = prj.getResourceRef().getFile();
 		if (jar != null && Files.exists(jar)) {
@@ -381,6 +409,21 @@ public class ProjectBuilder {
 						// buildJdk = JavaUtil.parseJavaVersion(ver);
 						prj.setJavaVersion(JavaUtil.parseJavaVersion(ver) + "+");
 					}
+
+					// we pass exports/opens into the project...
+					// TODO: this does mean we can't separate from user specified options and jar
+					// origined ones
+					// but not sure if needed?
+					// https://openjdk.org/jeps/261#Breaking-encapsulation
+					String exports = attrs.getValue("Add-Exports");
+					if (exports != null) {
+						prj.getManifestAttributes().put("Add-Exports", exports);
+					}
+					String opens = attrs.getValue("Add-Opens");
+					if (opens != null) {
+						prj.getManifestAttributes().put("Add-Opens", exports);
+					}
+
 				}
 
 				Optional<JarEntry> pom = jf.stream().filter(e -> e.getName().endsWith("/pom.xml")).findFirst();

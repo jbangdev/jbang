@@ -9,19 +9,7 @@ import static dev.jbang.util.Util.writeString;
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.hasXPath;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.matchesPattern;
-import static org.hamcrest.Matchers.matchesRegex;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -2614,5 +2602,43 @@ public class TestRun extends BaseTest {
 	void testNativeOptsVerbose() {
 		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("build", "-n", "-N=--verbose", arg);
+	}
+
+	@Test
+	void testReadingAddExports() throws IOException {
+		String jar = "com.google.googlejavaformat:google-java-format:1.25.2";
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", jar);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar);
+
+		BuildContext ctx = BuildContext.forProject(code);
+
+		String cmd = CmdGenerator.builder(ctx).build().generate();
+
+		assertThat(cmd,
+				containsString(
+						"--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"));
+	}
+
+	@Test
+	void testReadingNoAddExportsOnJava8() throws IOException {
+		String jar = "com.google.googlejavaformat:google-java-format:1.25.2";
+
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--java=8", jar);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project code = pb.build(jar);
+
+		BuildContext ctx = BuildContext.forProject(code);
+
+		String cmd = CmdGenerator.builder(ctx).build().generate();
+
+		assertThat(cmd,
+				not(containsString(
+						"--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED")));
 	}
 }

@@ -100,6 +100,7 @@ public class CmdGeneratorBuilder {
 			Alias alias = ((AliasResourceResolver.AliasedResourceRef) project.getResourceRef()).getAlias();
 			updateFromAlias(alias);
 		}
+
 		CmdGenerator gen;
 		if (project.isJShell() || interactive == Boolean.TRUE) {
 			gen = createJshCmdGenerator();
