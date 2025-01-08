@@ -42,3 +42,10 @@ Java itself will add `JAVA_TOOL_OPTIONS` which will apply to `jbang` too.
 
 For finer and more explicit control the scripts, `jbang` will add `JBANG_JAVA_OPTIONS` to the call to `jbang` itself.
 Thus if you want to enable debug or other details for `jbang` set that environment variable.
+
+Example that will enable debug on port 1044 and wait/suspend for debugger to connect:
+
+[source,bash]
+----
+JBANG_JAVA_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=1044 jbang env@jbangdev
+----
