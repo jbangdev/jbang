@@ -30,6 +30,9 @@ import org.eclipse.aether.resolution.ArtifactResult;
 import org.eclipse.aether.resolution.DependencyRequest;
 import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.resolution.DependencyResult;
+import org.eclipse.aether.resolution.VersionRangeRequest;
+import org.eclipse.aether.resolution.VersionRangeResolutionException;
+import org.eclipse.aether.resolution.VersionRangeResult;
 import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.util.artifact.SubArtifact;
 import org.eclipse.aether.util.repository.SimpleArtifactDescriptorPolicy;
@@ -342,13 +345,23 @@ public class ArtifactResolver implements Closeable {
 
 	private ArtifactDescriptorResult resolveDescriptor(RepositorySystemSession session, Artifact artifact) {
 		try {
+			if (artifact.getVersion().trim().isEmpty()) {
+				return new ArtifactDescriptorResult(new ArtifactDescriptorRequest(artifact, context.remoteRepositories(), ""));
+			}
+			// one must resolve version, as it may be range; reading descriptor is possible only from exact versions
+			VersionRangeRequest versionRangeRequest = new VersionRangeRequest().setArtifact(artifact).setRepositories(context.remoteRepositories());
+			VersionRangeResult versionRangeResult = context.repositorySystem().resolveVersionRange(session, versionRangeRequest);
+			if (versionRangeResult.getVersions().isEmpty()) {
+				throw new ExitException(1, "Could not resolve version range: " + artifact);
+			}
+			String version = versionRangeResult.getVersions().get(versionRangeResult.getVersions().size() - 1).toString();
 			ArtifactDescriptorRequest descriptorRequest = new ArtifactDescriptorRequest()
-																							.setArtifact(artifact)
+																							.setArtifact(artifact.setVersion(version))
 																							.setRepositories(
 																									context.remoteRepositories());
 			return context	.repositorySystem()
 							.readArtifactDescriptor(session, descriptorRequest);
-		} catch (ArtifactDescriptorException ex) {
+		} catch (VersionRangeResolutionException | ArtifactDescriptorException ex) {
 			throw new ExitException(1, "Could not read artifact descriptor for " + artifact, ex);
 		}
 	}
