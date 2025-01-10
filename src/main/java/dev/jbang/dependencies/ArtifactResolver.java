@@ -346,17 +346,26 @@ public class ArtifactResolver implements Closeable {
 	private ArtifactDescriptorResult resolveDescriptor(RepositorySystemSession session, Artifact artifact) {
 		try {
 			if (artifact.getVersion().trim().isEmpty()) {
-				return new ArtifactDescriptorResult(new ArtifactDescriptorRequest(artifact, context.remoteRepositories(), ""));
+				return new ArtifactDescriptorResult(
+						new ArtifactDescriptorRequest(artifact, context.remoteRepositories(), ""));
 			}
-			// one must resolve version, as it may be range; reading descriptor is possible only from exact versions
-			VersionRangeRequest versionRangeRequest = new VersionRangeRequest().setArtifact(artifact).setRepositories(context.remoteRepositories());
-			VersionRangeResult versionRangeResult = context.repositorySystem().resolveVersionRange(session, versionRangeRequest);
+			// one must resolve version, as it may be range; reading descriptor is possible
+			// only from exact versions
+			VersionRangeRequest versionRangeRequest = new VersionRangeRequest()	.setArtifact(artifact)
+																				.setRepositories(
+																						context.remoteRepositories());
+			VersionRangeResult versionRangeResult = context	.repositorySystem()
+															.resolveVersionRange(session, versionRangeRequest);
 			if (versionRangeResult.getVersions().isEmpty()) {
 				throw new ExitException(1, "Could not resolve version range: " + artifact);
 			}
-			String version = versionRangeResult.getVersions().get(versionRangeResult.getVersions().size() - 1).toString();
+			String version = versionRangeResult	.getVersions()
+												.get(versionRangeResult.getVersions().size() - 1)
+												.toString();
 			ArtifactDescriptorRequest descriptorRequest = new ArtifactDescriptorRequest()
-																							.setArtifact(artifact.setVersion(version))
+																							.setArtifact(
+																									artifact.setVersion(
+																											version))
 																							.setRepositories(
 																									context.remoteRepositories());
 			return context	.repositorySystem()
