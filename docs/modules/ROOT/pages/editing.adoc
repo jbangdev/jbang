@@ -71,7 +71,7 @@ The following IDE's have dedicated support (at time of writing):
 .IDE's with JBang support
 [width=75%,frame=none,grid=none]
 |===
-|image:{sicons}/visualstudiocode.svg[50,50] https://code.visualstudio.com[Visual Studio Code]
+|image:vscode.svg[50,50] https://code.visualstudio.com[Visual Studio Code]
 |image:{sicons}/eclipseide.svg[50,50] https://www.eclipse.org/downloads/download.php[Eclipse]
 |image:{sicons}/intellijidea.svg[50,50] https://www.jetbrains.com/idea/download[IntelliJ Idea]
 |image:{sicons}/gitpod.svg[50,50] https://www.gitpod.io[GitPod]
@@ -85,7 +85,7 @@ The sandbox `edit -b` feature using temporary directory and symbolic links been 
 .IDE's and Editors tested with `jbang`
 [width=75%,frame=none,grid=none]
 |===
-|image:{sicons}/visualstudiocode.svg[50,50] https://code.visualstudio.com[Visual Studio Code]
+|image:vscode.svg[50,50] https://code.visualstudio.com[Visual Studio Code]
 |image:{sicons}/eclipseide.svg[50,50] https://www.eclipse.org/downloads/download.php[Eclipse]
 |image:{sicons}/intellijidea.svg[50,50] https://www.jetbrains.com/idea/download[IntelliJ Idea]
 |image:{sicons}/apachenetbeanside.svg[50,50] https://netbeans.apache.org/download/[Apache NetBeans]
