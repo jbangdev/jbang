@@ -45,7 +45,7 @@ It's easy to `install` additional JDKs by running:
   jbang jdk install 14
 
 which will download and install JDK version 14 into JBang's cache (`~/.jbang/cache/jdks` by default).
-The list of versions that are available for installation can be found here: https://adoptopenjdk.net/releases.html
+The list of versions that are available for installation can be found here: https://adoptium.net/temurin/releases
 
 The first JDK that gets installed by JBang will be set as the "default" JDK. This is from then on the JDK that will be
 used by JBang if no Java could be found on the system (meaning `javac` wasn't found on the `PATH` and no `JAVA_HOME` is set).
