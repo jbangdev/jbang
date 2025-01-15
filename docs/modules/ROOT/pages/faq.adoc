@@ -41,8 +41,9 @@ And to be honest I built `jbang` just to see if I could and get my Java skills r
 Use it at your own risk :)
 
 Why not use normal shebang(`#!`) in the header ?::
-  You can use normal shebang (`#!/usr/bin/env jbang`) and Java 10+ will actually work with it from the command line. Not recommended though as
-many tools and especially IDE's will start complaining about syntax errors as they don't ignore the first line in this case.
+  You can use normal shebang (`#!/usr/bin/env jbang`) and the Java 10+ launcher (`java test.java`) will actually work with it from the command line.
+However the Java compiler will still not accept it (`javac test.java` with shebang fails.) This is thus not recommended, as
+many tools, code formatters ([example](https://github.com/google/google-java-format/issues/1214)), and especially IDE's will start complaining about syntax errors as they don't ignore the first line in this case.
 +
 By using the `//` form it is treated as both a bash/shell file AND a valid java file and thus works everywhere a java file will work.
 +
