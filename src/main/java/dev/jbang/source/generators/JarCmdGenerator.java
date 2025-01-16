@@ -82,6 +82,22 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(requestedJavaVersion);
 		String javacmd = JavaUtil.resolveInJavaHome("java", requestedJavaVersion);
 
+		if (jdk.getMajorVersion() > 9) {
+			String opens = ctx.getProject().getManifestAttributes().get("Add-Opens");
+			if (opens != null) {
+				for (String val : opens.split(" ")) {
+					optionalArgs.add("--add-opens=" + val + "=ALL-UNNAMED");
+				}
+			}
+
+			String exports = ctx.getProject().getManifestAttributes().get("Add-Exports");
+			if (exports != null) {
+				for (String val : exports.split(" ")) {
+					optionalArgs.add("--add-exports=" + val + "=ALL-UNNAMED");
+				}
+			}
+		}
+
 		addPropertyFlags(project.getProperties(), "-D", optionalArgs);
 
 		if (debugString != null) {
