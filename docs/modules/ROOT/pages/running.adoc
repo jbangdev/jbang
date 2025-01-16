@@ -72,6 +72,19 @@ Since Java 9 https://docs.oracle.com/javase/9/tools/java.htm#GUID-3B1CE181-CD30-
 
 For Java 8 and if you want to set explicitly only for `jbang` you can also add flags by setting `JBANG_JAVA_OPTIONS` and `JBANG_JAVAC_OPTIONS` respectively.
 
+== Preview
+
+The example above can alternatively also be written with `PREVIEW` instead of `--enable-preview`, like this:
+
+[source, java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//JAVA 14+
+//PREVIEW
+
+...
+----
+
 
 == Module support (EXPERIMENTAL)
 
