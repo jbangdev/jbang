@@ -115,11 +115,10 @@ class AliasAdd extends BaseAliasCommand {
 				dependencyInfoMixin.getDependencies(),
 				dependencyInfoMixin.getRepositories(), dependencyInfoMixin.getClasspaths(),
 				dependencyInfoMixin.getProperties(), buildMixin.javaVersion, buildMixin.main, buildMixin.module,
-				buildMixin.compileOptions, nativeMixin.nativeImage, nativeMixin.nativeOptions,
+				buildMixin.compileOptions, nativeMixin.nativeImage, nativeMixin.nativeOptions, buildMixin.integrations,
 				runMixin.flightRecorderString, runMixin.debugString, runMixin.cds, runMixin.interactive,
-				enablePreviewRequested,
-				runMixin.enableAssertions, runMixin.enableSystemAssertions, buildMixin.manifestOptions,
-				createJavaAgents(), null);
+				enablePreviewRequested, runMixin.enableAssertions, runMixin.enableSystemAssertions,
+				buildMixin.manifestOptions, createJavaAgents(), null);
 		Path catFile = getCatalog(false);
 		if (catFile == null) {
 			catFile = Catalog.getCatalogFile(null);
@@ -149,6 +148,7 @@ class AliasAdd extends BaseAliasCommand {
 									.compileOptions(buildMixin.compileOptions)
 									.nativeImage(nativeMixin.nativeImage)
 									.nativeOptions(nativeMixin.nativeOptions)
+									.integrations(buildMixin.integrations)
 									.enablePreview(enablePreviewRequested);
 		Path cat = getCatalog(false);
 		if (cat != null) {

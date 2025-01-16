@@ -889,7 +889,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/13682850?v=4",
       "profile": "https://github.com/wfouche",
       "contributions": [
-        "code"
+        "code",
+        "doc"
       ]
     },
     {
@@ -898,7 +899,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/1958676?v=4",
       "profile": "https://github.com/yostane",
       "contributions": [
-        "code"
+        "code",
+        "doc"
       ]
     }
   ],
