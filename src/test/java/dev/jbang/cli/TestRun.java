@@ -2577,7 +2577,7 @@ public class TestRun extends BaseTest {
 
 		String cmdline = run.updateGeneratorForRun(genb).build().generate();
 
-		assertThat(cmdline, endsWith("echo foo bar baz"));
+		assertThat(cmdline, endsWith("echo baz foo bar"));
 	}
 
 	@Test
