@@ -3,10 +3,7 @@ package dev.jbang.catalog;
 import static dev.jbang.cli.BaseCommand.EXIT_INVALID_INPUT;
 
 import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 
 import javax.annotation.Nonnull;
@@ -205,46 +202,66 @@ public class Alias extends CatalogItem {
 			names.add(name);
 			a2 = merge(a2, a2.scriptRef, findUnqualifiedAlias, names);
 			String desc = a1.description != null ? a1.description : a2.description;
-			List<String> args = a1.arguments != null && !a1.arguments.isEmpty() ? a1.arguments : a2.arguments;
-			List<String> jopts = a1.runtimeOptions != null && !a1.runtimeOptions.isEmpty() ? a1.runtimeOptions
-					: a2.runtimeOptions;
-			List<String> srcs = a1.sources != null && !a1.sources.isEmpty() ? a1.sources
-					: a2.sources;
-			List<String> ress = a1.resources != null && !a1.resources.isEmpty() ? a1.resources
-					: a2.resources;
-			List<String> deps = a1.dependencies != null && !a1.dependencies.isEmpty() ? a1.dependencies
-					: a2.dependencies;
-			List<String> repos = a1.repositories != null && !a1.repositories.isEmpty() ? a1.repositories
-					: a2.repositories;
-			List<String> cpaths = a1.classpaths != null && !a1.classpaths.isEmpty() ? a1.classpaths
-					: a2.classpaths;
-			Map<String, String> props = a1.properties != null && !a1.properties.isEmpty() ? a1.properties
-					: a2.properties;
+			List<String> args = join(a1.arguments, a2.arguments);
+			List<String> jopts = join(a1.runtimeOptions, a2.runtimeOptions);
+			List<String> srcs = join(a1.sources, a2.sources);
+			List<String> ress = join(a1.resources, a2.resources);
+			List<String> deps = join(a1.dependencies, a2.dependencies);
+			List<String> repos = join(a1.repositories, a2.repositories);
+			List<String> cpaths = join(a1.classpaths, a2.classpaths);
+			Map<String, String> props = join(a1.properties, a2.properties);
 			String javaVersion = a1.javaVersion != null ? a1.javaVersion : a2.javaVersion;
 			String mainClass = a1.mainClass != null ? a1.mainClass : a2.mainClass;
 			String moduleName = a1.moduleName != null ? a1.moduleName : a2.moduleName;
-			List<String> copts = a1.compileOptions != null && !a1.compileOptions.isEmpty() ? a1.compileOptions
-					: a2.compileOptions;
-			List<String> nopts = a1.nativeOptions != null && !a1.nativeOptions.isEmpty() ? a1.nativeOptions
-					: a2.nativeOptions;
+			List<String> copts = join(a1.compileOptions, a2.compileOptions);
+			List<String> nopts = join(a1.nativeOptions, a2.nativeOptions);
 			Boolean nimg = a1.nativeImage != null ? a1.nativeImage : a2.nativeImage;
 			Boolean ints = a1.integrations != null ? a1.integrations : a2.integrations;
 			String jfr = a1.jfr != null ? a1.jfr : a2.jfr;
-			Map<String, String> debug = a1.debug != null ? a1.debug : a2.debug;
+			Map<String, String> debug = join(a1.debug, a2.debug);
 			Boolean cds = a1.cds != null ? a1.cds : a2.cds;
 			Boolean inter = a1.interactive != null ? a1.interactive : a2.interactive;
 			Boolean ep = a1.enablePreview != null ? a1.enablePreview : a2.enablePreview;
 			Boolean ea = a1.enableAssertions != null ? a1.enableAssertions : a2.enableAssertions;
 			Boolean esa = a1.enableSystemAssertions != null ? a1.enableSystemAssertions : a2.enableSystemAssertions;
-			Map<String, String> mopts = a1.manifestOptions != null && !a1.manifestOptions.isEmpty() ? a1.manifestOptions
-					: a2.manifestOptions;
-			List<JavaAgent> jags = a1.javaAgents != null && !a1.javaAgents.isEmpty() ? a1.javaAgents : a2.javaAgents;
+			Map<String, String> mopts = join(a1.manifestOptions, a2.manifestOptions);
+			List<JavaAgent> jags = join(a1.javaAgents, a2.javaAgents);
 			Catalog catalog = a2.catalog != null ? a2.catalog : a1.catalog;
 			return new Alias(a2.scriptRef, desc, args, jopts, srcs, ress, deps, repos, cpaths, props, javaVersion,
 					mainClass, moduleName, copts, nimg, nopts, ints, jfr, debug, cds, inter, ep, ea, esa, mopts, jags,
 					catalog);
 		} else {
 			return a1;
+		}
+	}
+
+	private static <T> List<T> join(List<T> l1, List<T> l2) {
+		if (l1 != null && !l1.isEmpty()) {
+			if (l2 != null && !l2.isEmpty()) {
+				List<T> merged = new ArrayList<>(l1.size() + l2.size());
+				merged.addAll(l2);
+				merged.addAll(l1);
+				return merged;
+			} else {
+				return l1;
+			}
+		} else {
+			return l2;
+		}
+	}
+
+	private static <K, V> Map<K, V> join(Map<K, V> m1, Map<K, V> m2) {
+		if (m1 != null && !m1.isEmpty()) {
+			if (m2 != null && !m2.isEmpty()) {
+				Map<K, V> merged = new HashMap<>();
+				merged.putAll(m2);
+				merged.putAll(m1);
+				return merged;
+			} else {
+				return m1;
+			}
+		} else {
+			return m2;
 		}
 	}
 
