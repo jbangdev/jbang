@@ -21,6 +21,8 @@ public class Alias extends CatalogItem {
 	public final String scriptRef;
 	public final String description;
 	public final List<String> arguments;
+	public final List<String> preArguments;
+	public final List<String> postArguments;
 	@SerializedName(value = "runtime-options", alternate = { "java-options" })
 	public final List<String> runtimeOptions;
 	public final List<String> sources;
@@ -88,12 +90,14 @@ public class Alias extends CatalogItem {
 
 	public Alias() {
 		this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-				null, null, null, null, null, null, null, null, null);
+				null, null, null, null, null, null, null, null, null, null, null);
 	}
 
 	public Alias(String scriptRef,
 			String description,
 			List<String> arguments,
+			List<String> preArguments,
+			List<String> postArguments,
 			List<String> runtimeOptions,
 			List<String> sources,
 			List<String> resources,
@@ -122,6 +126,8 @@ public class Alias extends CatalogItem {
 		this.scriptRef = scriptRef;
 		this.description = description;
 		this.arguments = arguments;
+		this.preArguments = preArguments;
+		this.postArguments = postArguments;
 		this.runtimeOptions = runtimeOptions;
 		this.sources = sources;
 		this.resources = resources;
@@ -206,6 +212,10 @@ public class Alias extends CatalogItem {
 			a2 = merge(a2, a2.scriptRef, findUnqualifiedAlias, names);
 			String desc = a1.description != null ? a1.description : a2.description;
 			List<String> args = a1.arguments != null && !a1.arguments.isEmpty() ? a1.arguments : a2.arguments;
+			List<String> preArgs =
+					a1.preArguments != null && !a1.preArguments.isEmpty() ? a1.preArguments : a2.preArguments;
+			List<String> postArgs =
+					a1.postArguments != null && !a1.postArguments.isEmpty() ? a1.postArguments : a2.postArguments;
 			List<String> jopts = a1.runtimeOptions != null && !a1.runtimeOptions.isEmpty() ? a1.runtimeOptions
 					: a2.runtimeOptions;
 			List<String> srcs = a1.sources != null && !a1.sources.isEmpty() ? a1.sources
@@ -240,9 +250,9 @@ public class Alias extends CatalogItem {
 					: a2.manifestOptions;
 			List<JavaAgent> jags = a1.javaAgents != null && !a1.javaAgents.isEmpty() ? a1.javaAgents : a2.javaAgents;
 			Catalog catalog = a2.catalog != null ? a2.catalog : a1.catalog;
-			return new Alias(a2.scriptRef, desc, args, jopts, srcs, ress, deps, repos, cpaths, props, javaVersion,
-					mainClass, moduleName, copts, nimg, nopts, ints, jfr, debug, cds, inter, ep, ea, esa, mopts, jags,
-					catalog);
+			return new Alias(a2.scriptRef, desc, args, preArgs, postArgs, jopts, srcs, ress, deps, repos, cpaths, props,
+					javaVersion, mainClass, moduleName, copts, nimg, nopts, ints, jfr, debug, cds, inter, ep, ea, esa,
+					mopts, jags, catalog);
 		} else {
 			return a1;
 		}
@@ -284,16 +294,16 @@ public class Alias extends CatalogItem {
 	}
 
 	public Alias withCatalog(Catalog catalog) {
-		return new Alias(scriptRef, description, arguments, runtimeOptions, sources, resources, dependencies,
-				repositories, classpaths, properties, javaVersion, mainClass, moduleName, compileOptions, nativeImage,
-				nativeOptions, integrations, jfr, debug, cds, interactive, enablePreview, enableAssertions,
-				enableSystemAssertions, manifestOptions, javaAgents, catalog);
+		return new Alias(scriptRef, description, arguments, preArguments, postArguments, runtimeOptions, sources,
+				resources, dependencies, repositories, classpaths, properties, javaVersion, mainClass, moduleName,
+				compileOptions, nativeImage, nativeOptions, integrations, jfr, debug, cds, interactive, enablePreview,
+				enableAssertions, enableSystemAssertions, manifestOptions, javaAgents, catalog);
 	}
 
 	public Alias withScriptRef(String scriptRef) {
-		return new Alias(scriptRef, description, arguments, runtimeOptions, sources, resources, dependencies,
-				repositories, classpaths, properties, javaVersion, mainClass, moduleName, compileOptions, nativeImage,
-				nativeOptions, integrations, jfr, debug, cds, interactive, enablePreview, enableAssertions,
-				enableSystemAssertions, manifestOptions, javaAgents, catalog);
+		return new Alias(scriptRef, description, arguments, preArguments, postArguments, runtimeOptions, sources,
+				resources, dependencies, repositories, classpaths, properties, javaVersion, mainClass, moduleName,
+				compileOptions, nativeImage, nativeOptions, integrations, jfr, debug, cds, interactive, enablePreview,
+				enableAssertions, enableSystemAssertions, manifestOptions, javaAgents, catalog);
 	}
 }

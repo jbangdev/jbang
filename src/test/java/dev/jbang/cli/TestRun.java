@@ -2561,8 +2561,10 @@ public class TestRun extends BaseTest {
 	void testAliasArguments() throws IOException {
 		File f = examplesTestFolder.resolve("echo.java").toFile();
 		List<String> args = Arrays.asList("foo", "bar");
-		Alias alias = new Alias(f.toString(), null, args, null, null, null, null, null, null, null, null, null, null,
-				null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+		List<String> preArgs = Arrays.asList("qux");
+		List<String> postArgs = Arrays.asList("quux");
+		Alias alias = new Alias(f.toString(), null, args, preArgs, postArgs, null, null, null, null, null, null, null,
+				null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 		CatalogUtil.addNearestAlias("echo", alias);
 
 		CommandLine.ParseResult pr = JBang	.getCommandLine()
@@ -2577,7 +2579,7 @@ public class TestRun extends BaseTest {
 
 		String cmdline = run.updateGeneratorForRun(genb).build().generate();
 
-		assertThat(cmdline, endsWith("echo foo bar baz"));
+		assertThat(cmdline, endsWith("echo qux foo bar baz quux"));
 	}
 
 	@Test
