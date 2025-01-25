@@ -148,8 +148,10 @@ public class CmdGeneratorBuilder {
 		if (arguments.isEmpty()) {
 			setArguments(handleRemoteFiles(alias.arguments));
 		} else if (alias.arguments != null && !alias.arguments.isEmpty()) {
-			List<String> args = new ArrayList<>(handleRemoteFiles(alias.arguments));
+			List<String> args = new ArrayList<>();
+			args.addAll(handleRemoteFiles(alias.arguments));
 			args.addAll(arguments);
+			args.addAll(handleRemoteFiles(alias.scriptArguments));
 			setArguments(args);
 		}
 		if (runtimeOptions.isEmpty()) {

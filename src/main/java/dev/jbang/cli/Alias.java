@@ -111,7 +111,7 @@ class AliasAdd extends BaseAliasCommand {
 		String desc = description != null ? description : prj.getDescription().orElse(null);
 
 		dev.jbang.catalog.Alias alias = new dev.jbang.catalog.Alias(scriptMixin.scriptOrFile, desc, userParams,
-				runMixin.javaRuntimeOptions, scriptMixin.sources, scriptMixin.resources,
+				null, runMixin.javaRuntimeOptions, scriptMixin.sources, scriptMixin.resources,
 				dependencyInfoMixin.getDependencies(),
 				dependencyInfoMixin.getRepositories(), dependencyInfoMixin.getClasspaths(),
 				dependencyInfoMixin.getProperties(), buildMixin.javaVersion, buildMixin.main, buildMixin.module,
