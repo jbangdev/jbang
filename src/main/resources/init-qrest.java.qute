@@ -3,7 +3,7 @@
 // Update the Quarkus version to what you want here or run jbang with
 // `-Dquarkus.version=<version>` to override it.
 //DEPS io.quarkus:quarkus-bom:$\{quarkus.version:3.15.1\}@pom
-//DEPS io.quarkus:quarkus-resteasy
+//DEPS io.quarkus:quarkus-rest
 // //DEPS io.quarkus:quarkus-smallrye-openapi
 // //DEPS io.quarkus:quarkus-swagger-ui
 //JAVAC_OPTIONS -parameters
