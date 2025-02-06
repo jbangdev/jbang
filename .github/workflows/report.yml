@@ -16,8 +16,8 @@ jobs:
   checks:
     runs-on: ubuntu-latest
     steps:
-      - name: Set up GitHub CLI
-        uses: actions/setup-gh@v2
+      #- name: Set up GitHub CLI
+      #  uses: actions/setup-gh@v2
 
       - name: Get workflow run details
         id: workflow_details
