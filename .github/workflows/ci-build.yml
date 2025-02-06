@@ -20,11 +20,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           fetch-depth: 2
       - name: Verify Changed files in docs
-        uses: tj-actions/verify-changed-files@fda469d6b456070da68fa3fdbc07a513d858b200 # v8.8
+        uses: tj-actions/verify-changed-files@9ed3155b72ba709881c967f75611fc5852f773b9 # v13.1
         id: verify-changed-files
         with:
           files: |
@@ -50,10 +50,10 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
         with:
           limit-access-to-actor: true
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
-      - uses: gradle/wrapper-validation-action@56b90f209b02bf6d1deae490e9ef18b21a389cd4 # v1
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: gradle/wrapper-validation-action@f9c9c575b8b21b6485636a91ffecd10e558c62f6 # v3
       - name: install-java8
-        uses: actions/setup-java@0ab4596768b603586c0de567f2430c30f5b0d2b0 # v3
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4
         with:
           java-version: 11
           distribution: temurin
@@ -86,7 +86,7 @@ jobs:
           name: junit-test-results-${{ matrix.os }}
           path: '**/build/test-results/test/TEST-*.xml'
           retention-days: 1
-      - uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # v2
+      - uses: codecov/codecov-action@13ce06bfc6bbe3ecf90edbbf1bc32fe5978ca1d3 # v5
         with:
           #files: ./coverage1.xml,./coverage2.xml # optional
           flags: ${{ runner.os }} # optional
@@ -94,7 +94,7 @@ jobs:
           verbose: true # optional (default = false)
       - name: build-choco-package
         if: runner.os == 'Windows'
-        uses: actions/setup-dotnet@71a4fd9b27383962fc5df13a9c871636b43199b4 # v1
+        uses: actions/setup-dotnet@3951f0dfe7a07e2313ec93c75700083e2005cbab # v4
         with:
           dotnet-version: '2.2.204' # SDK Version to use.
       - name: build-choco
@@ -131,7 +131,7 @@ jobs:
         java: [8,11,17,21]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/setup-java@0ab4596768b603586c0de567f2430c30f5b0d2b0 # v3
+      - uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
