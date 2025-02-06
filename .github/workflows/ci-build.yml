@@ -103,13 +103,13 @@ jobs:
           powershell
           choco pack build/choco/jbang.nuspec
       - name: Archive build results
-        uses: actions/upload-artifact@ff15f0306b3f739f7b6fd43fb5d26cd321bd4de5 # v3
+        uses: actions/upload-artifact@v4 # v3
         if: always()
         with:
           name: ${{ runner.os }}-build-${{ github.sha }}
           path: build
       - name: Upload jbang.zip
-        uses: actions/upload-artifact@ff15f0306b3f739f7b6fd43fb5d26cd321bd4de5 # v3
+        uses: actions/upload-artifact@v4 # v3
         if: always() && runner.os != 'Windows'
         with:
           name: jbang-${{ github.sha }}
@@ -135,7 +135,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
-      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3
+      - uses: actions/download-artifact@v4
         with:
           name: ${{ runner.os }}-build-${{ github.sha }}
           path: build
