@@ -1,0 +1,12 @@
+[
+  {
+    match: ["*.*"],
+    inline: [
+      "+com.github.tjake.jlama.tensor.operations.PanamaTensorOperations::dotProduct*",
+      "+com.github.tjake.jlama.tensor.operations.PanamaTensorOperations::quantize*",
+      "+com.github.tjake.jlama.tensor.operations.PanamaTensorOperations*::mpack*",
+      "+com.github.tjake.jlama.tensor.AbstractTensor::getOffset*",
+      "+com.github.tjake.jlama.tensor.*::getVector*"
+    ]
+  }
+]
