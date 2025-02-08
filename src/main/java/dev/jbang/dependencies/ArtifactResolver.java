@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import org.eclipse.aether.AbstractRepositoryListener;
 import org.eclipse.aether.ConfigurationProperties;
+import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositoryEvent;
 import org.eclipse.aether.RepositoryListener;
 import org.eclipse.aether.RepositorySystemSession;
@@ -29,8 +30,12 @@ import org.eclipse.aether.resolution.ArtifactResult;
 import org.eclipse.aether.resolution.DependencyRequest;
 import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.resolution.DependencyResult;
+import org.eclipse.aether.resolution.VersionRangeRequest;
+import org.eclipse.aether.resolution.VersionRangeResolutionException;
+import org.eclipse.aether.resolution.VersionRangeResult;
 import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.util.artifact.SubArtifact;
+import org.eclipse.aether.util.repository.SimpleArtifactDescriptorPolicy;
 
 import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
@@ -184,22 +189,27 @@ public class ArtifactResolver implements Closeable {
 
 	public List<ArtifactInfo> resolve(List<String> depIds) {
 		context.repositorySystemSession().getData().set("depIds", depIds);
+		// Maven is by default "forgiving" for dependency POM loading: here we want to
+		// ensure that all enlisted deps exists for sure
+		DefaultRepositorySystemSession strictSession = new DefaultRepositorySystemSession(
+				context.repositorySystemSession());
+		strictSession.setArtifactDescriptorPolicy(new SimpleArtifactDescriptorPolicy(false, false));
 		try {
 			Map<String, List<Dependency>> scopeDeps = depIds.stream()
 															.map(coord -> toDependency(toArtifact(coord)))
 															.collect(Collectors.groupingBy(Dependency::getScope));
 
-			List<Dependency> deps = scopeDeps.get(JavaScopes.COMPILE);
+			List<Dependency> deps = scopeDeps.getOrDefault(JavaScopes.COMPILE, Collections.emptyList());
 			List<Dependency> managedDeps = deps	.stream()
-												.flatMap(d -> getManagedDependencies(d).stream())
+												.flatMap(d -> getManagedDependencies(strictSession, d).stream())
 												.collect(Collectors.toList());
 
 			if (scopeDeps.containsKey("import")) {
 				// If there are any @pom artifacts we'll apply their
 				// managed dependencies to the given dependencies BEFORE ordinary deps
-				List<Dependency> boms = scopeDeps.get("import");
+				List<Dependency> boms = scopeDeps.getOrDefault("import", Collections.emptyList());
 				List<Dependency> mdeps = boms	.stream()
-												.flatMap(d -> getManagedDependencies(d).stream())
+												.flatMap(d -> getManagedDependencies(strictSession, d).stream())
 												.collect(Collectors.toList());
 				deps = deps.stream().map(d -> applyManagedDependencies(d, mdeps)).collect(Collectors.toList());
 				managedDeps.addAll(0, mdeps);
@@ -329,19 +339,38 @@ public class ArtifactResolver implements Closeable {
 		return d;
 	}
 
-	private List<Dependency> getManagedDependencies(Dependency dependency) {
-		return resolveDescriptor(dependency.getArtifact()).getManagedDependencies();
+	private List<Dependency> getManagedDependencies(RepositorySystemSession session, Dependency dependency) {
+		return resolveDescriptor(session, dependency.getArtifact()).getManagedDependencies();
 	}
 
-	private ArtifactDescriptorResult resolveDescriptor(Artifact artifact) {
+	private ArtifactDescriptorResult resolveDescriptor(RepositorySystemSession session, Artifact artifact) {
 		try {
+			if (artifact.getVersion().trim().isEmpty()) {
+				return new ArtifactDescriptorResult(
+						new ArtifactDescriptorRequest(artifact, context.remoteRepositories(), ""));
+			}
+			// one must resolve version, as it may be range; reading descriptor is possible
+			// only from exact versions
+			VersionRangeRequest versionRangeRequest = new VersionRangeRequest()	.setArtifact(artifact)
+																				.setRepositories(
+																						context.remoteRepositories());
+			VersionRangeResult versionRangeResult = context	.repositorySystem()
+															.resolveVersionRange(session, versionRangeRequest);
+			if (versionRangeResult.getVersions().isEmpty()) {
+				throw new ExitException(1, "Could not resolve version range: " + artifact);
+			}
+			String version = versionRangeResult	.getVersions()
+												.get(versionRangeResult.getVersions().size() - 1)
+												.toString();
 			ArtifactDescriptorRequest descriptorRequest = new ArtifactDescriptorRequest()
-																							.setArtifact(artifact)
+																							.setArtifact(
+																									artifact.setVersion(
+																											version))
 																							.setRepositories(
 																									context.remoteRepositories());
 			return context	.repositorySystem()
-							.readArtifactDescriptor(context.repositorySystemSession(), descriptorRequest);
-		} catch (ArtifactDescriptorException ex) {
+							.readArtifactDescriptor(session, descriptorRequest);
+		} catch (VersionRangeResolutionException | ArtifactDescriptorException ex) {
 			throw new ExitException(1, "Could not read artifact descriptor for " + artifact, ex);
 		}
 	}
