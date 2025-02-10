@@ -354,7 +354,7 @@ Jython scripts occasionally require JAR files from Maven Central. Unlike Groovy,
 
 === Step 1 - create file Jython.java
 
-Add all the required Maven dependencies (DEPS) to Jython.java including the Jython 2.7.4 standalong JAR.
+Add all the required Maven dependencies (DEPS) to Jython.java including the Jython 2.7.4 standalone JAR.
 
 .Jython.java
 [source,java]
