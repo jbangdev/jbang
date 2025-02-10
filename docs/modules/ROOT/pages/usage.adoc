@@ -375,7 +375,7 @@ public class Jython {
 }
 ----
 
-=== Step 2 - Create Jython script (test.py)
+=== Step 2 - create Jython script (test.py)
 
 .test.py
 [source,python]
