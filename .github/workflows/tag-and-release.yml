@@ -58,7 +58,7 @@ jobs:
           setup-java: false
       - name: JReleaser output
         if: always()
-        uses: actions/upload-artifact@ff15f0306b3f739f7b6fd43fb5d26cd321bd4de5 # v3
+        uses: actions/upload-artifact@v4
         with:
           name: jreleaser-release
           path: |
