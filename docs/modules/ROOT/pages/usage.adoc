@@ -285,6 +285,63 @@ Hello, World!
 You have 1 arguments! First is YOLO!%
 ----
 
+== Running Jython (.py) (EXPERIMENTAL)
+
+Jython scripts occasionally require JAR files from Maven Central. Unlike Groovy, Jython lacks a built-in mechanism to resolve these dependencies. However, you can bootstrap a Jython script along with its Maven dependencies using JBang. This technique ensures that your Jython scripts can seamlessly access the necessary dependencies from Maven Central.
+
+=== Step 1 - create file Jython.java
+
+Add all the required Maven dependencies (DEPS) to Jython.java including the Jython 2.7.4 standalone JAR.
+
+.Jython.java
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+
+//DEPS org.python:jython-standalone:2.7.4
+//DEPS io.leego:banana:2.1.0
+
+import org.python.util.jython;
+
+public class Jython {
+
+    public static void main(String[] args) {
+        jython.main(args);
+    }
+
+}
+----
+
+=== Step 2 - create Jython script (test.py)
+
+.test.py
+[source,python]
+----
+from __future__ import print_function
+
+import io.leego.banana.BananaUtils as BananaUtils
+import io.leego.banana.Font as Font
+
+text0 = "Jython 2.7"
+text1 = BananaUtils.bananaify(text0, Font.STANDARD)
+print(text1)
+----
+
+=== Step 3 - run Jython script (test.py)
+
+[source,bash]
+----
+$ jbang run Jython.java test.py
+----
+
+----
+      _       _   _                   ____   _____
+     | |_   _| |_| |__   ___  _ __   |___ \ |___  |
+  _  | | | | | __| '_ \ / _ \| '_ \    __) |   / /
+ | |_| | |_| | |_| | | | (_) | | | |  / __/ _ / /
+  \___/ \__, |\__|_| |_|\___/|_| |_| |_____(_)_/
+----
+
 == Running script passed as argument
 
 jbang can run scripts that are passed directly on the command line using the `--code` option:
@@ -347,63 +404,6 @@ If you need to specify a main class you can do so by using `--main` i.e.
 A side effect of running GAV as a jar, the GAV could also be a `.java` or `.jsh` file and it would be launched as a script instead of a jar.
 No one would want to do that (right?) but now you know.
 ====
-
-== Running Jython (.py) (EXPERIMENTAL)
-
-Jython scripts occasionally require JAR files from Maven Central. Unlike Groovy, Jython lacks a built-in mechanism to resolve these dependencies. However, you can bootstrap a Jython script along with its Maven dependencies using JBang. This technique ensures that your Jython scripts can seamlessly access the necessary dependencies from Maven Central.
-
-=== Step 1 - create file Jython.java
-
-Add all the required Maven dependencies (DEPS) to Jython.java including the Jython 2.7.4 standalone JAR.
-
-.Jython.java
-[source,java]
-----
-///usr/bin/env jbang "$0" "$@" ; exit $?
-
-//DEPS org.python:jython-standalone:2.7.4
-//DEPS io.leego:banana:2.1.0
-
-import org.python.util.jython;
-
-public class Jython {
-
-    public static void main(String[] args) {
-        jython.main(args);
-    }
-
-}
-----
-
-=== Step 2 - create Jython script (test.py)
-
-.test.py
-[source,python]
-----
-from __future__ import print_function
-
-import io.leego.banana.BananaUtils as BananaUtils
-import io.leego.banana.Font as Font
-
-text0 = "Jython 2.7"
-text1 = BananaUtils.bananaify(text0, Font.STANDARD)
-print(text1)
-----
-
-=== Step 3 - run Jython script (test.py)
-
-[source,bash]
-----
-$ jbang run Jython.java test.py
-----
-
-----
-      _       _   _                   ____   _____
-     | |_   _| |_| |__   ___  _ __   |___ \ |___  |
-  _  | | | | | __| '_ \ / _ \| '_ \    __) |   / /
- | |_| | |_| | |_| | | | (_) | | | |  / __/ _ / /
-  \___/ \__, |\__|_| |_|\___/|_| |_| |_____(_)_/
-----
 
 == Usage on Windows
 
