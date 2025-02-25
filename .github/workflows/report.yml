@@ -16,9 +16,6 @@ jobs:
   checks:
     runs-on: ubuntu-latest
     steps:
-      #- name: Set up GitHub CLI
-      #  uses: actions/setup-gh@v2
-
       - name: Get workflow run details
         id: workflow_details
         run: |
@@ -26,12 +23,16 @@ jobs:
             --jq '.head_branch' > branch.txt
           BRANCH_NAME=$(cat branch.txt)
           echo "branch_name=${BRANCH_NAME}" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Fetch PR number
         id: fetch_pr
         run: |
           PR=$(gh pr list --head "${{ env.branch_name }}" --json number --jq '.[0].number')
           echo "pr_number=${PR}" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Output PR number
         run: |
