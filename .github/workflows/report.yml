@@ -24,7 +24,7 @@ jobs:
           BRANCH_NAME=$(cat branch.txt)
           echo "branch_name=${BRANCH_NAME}" >> $GITHUB_ENV
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
 
       - name: Fetch PR number
         id: fetch_pr
@@ -32,7 +32,7 @@ jobs:
           PR=$(gh pr list --head "${{ env.branch_name }}" --json number --jq '.[0].number')
           echo "pr_number=${PR}" >> $GITHUB_ENV
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
 
       - name: Output PR number
         run: |
