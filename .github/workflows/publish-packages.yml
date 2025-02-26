@@ -51,7 +51,7 @@ jobs:
           setup-java: false
       - name: JReleaser publish output
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
         with:
           name: jreleaser-publish
           path: |
@@ -74,14 +74,14 @@ jobs:
           setup-java: false
       - name: JReleaser announce output
         if: always()
-        uses: actions/upload-artifact@v4 # v3
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
         with:
           name: jreleaser-announce
           path: |
             out/jreleaser/trace.log
             out/jreleaser/output.properties
       - name: upload-choco
-        uses: actions/upload-artifact@v4 # v3
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
         with:
           name: build-choco
           path: build/choco
