@@ -69,7 +69,7 @@ public class TestEditWithPackage extends BaseTest {
 		assertTrue(Files.isSymbolicLink(javaC) || Files.exists(javaC));
 		assertTrue(Files.isSameFile(javaC, CPath));
 
-		Arrays	.asList("A.java", "person/B.java", "person/model/C.java")
+		Arrays.asList("A.java", "person/B.java", "person/model/C.java")
 				.forEach(f -> {
 					Path java = project.resolve("src/" + f);
 

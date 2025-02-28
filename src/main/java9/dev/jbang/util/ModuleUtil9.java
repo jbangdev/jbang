@@ -26,12 +26,12 @@ public class ModuleUtil9 {
 
 	public static List<String> listJdkModules() {
 		ModuleLayer ml = ModuleLayer.boot();
-		return ml	.modules()
-					.stream()
-					.filter(m -> m.isNamed() && m.getAnnotation(Deprecated.class) == null
-							&& (m.getName().startsWith("java.") || m.getName().startsWith("jdk."))
-							&& (!m.getName().equals("jdk.naming.ldap")))
-					.map(m -> m.getName())
-					.collect(Collectors.toList());
+		return ml.modules()
+				.stream()
+				.filter(m -> m.isNamed() && m.getAnnotation(Deprecated.class) == null
+						&& (m.getName().startsWith("java.") || m.getName().startsWith("jdk."))
+						&& (!m.getName().equals("jdk.naming.ldap")))
+				.map(m -> m.getName())
+				.collect(Collectors.toList());
 	}
 }

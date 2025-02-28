@@ -99,16 +99,16 @@ public class Init extends BaseCommand {
 			}
 		}
 
-		List<RefTarget> refTargets = tpl.fileRefs	.entrySet()
-													.stream()
-													.map(e -> entry(
-															resolveBaseName(e.getKey(), e.getValue(), outName),
-															tpl.resolve(e.getValue())))
-													.map(e -> RefTarget.create(
-															e.getValue(),
-															e.getKey(),
-															new SiblingResourceResolver(tpl.catalog.catalogRef)))
-													.collect(Collectors.toList());
+		List<RefTarget> refTargets = tpl.fileRefs.entrySet()
+				.stream()
+				.map(e -> entry(
+						resolveBaseName(e.getKey(), e.getValue(), outName),
+						tpl.resolve(e.getValue())))
+				.map(e -> RefTarget.create(
+						e.getValue(),
+						e.getKey(),
+						new SiblingResourceResolver(tpl.catalog.catalogRef)))
+				.collect(Collectors.toList());
 
 		applyTemplateProperties(tpl);
 
@@ -314,19 +314,19 @@ public class Init extends BaseCommand {
 
 	String getRenderedScriptOrFile(Map<String, String> fileRefs, List<RefTarget> refTargets, Path outDir,
 			boolean absolute) {
-		Optional<Map.Entry<String, String>> optionalFileRefEntry = fileRefs	.entrySet()
-																			.stream()
-																			.filter(fileRef -> dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(
-																					fileRef.getKey()).find())
-																			.findFirst();
+		Optional<Map.Entry<String, String>> optionalFileRefEntry = fileRefs.entrySet()
+				.stream()
+				.filter(fileRef -> dev.jbang.cli.Template.TPL_BASENAME_PATTERN.matcher(
+						fileRef.getKey()).find())
+				.findFirst();
 		if (optionalFileRefEntry.isPresent()) {
-			Optional<RefTarget> optionalRefTarget = refTargets	.stream()
-																.filter(refTarget -> refTarget	.getSource()
-																								.getOriginalResource()
-																								.endsWith(
-																										optionalFileRefEntry.get()
-																															.getValue()))
-																.findFirst();
+			Optional<RefTarget> optionalRefTarget = refTargets.stream()
+					.filter(refTarget -> refTarget.getSource()
+							.getOriginalResource()
+							.endsWith(
+									optionalFileRefEntry.get()
+											.getValue()))
+					.findFirst();
 			if (optionalRefTarget.isPresent()) {
 				Path path = optionalRefTarget.get().to(outDir);
 				if (absolute) {

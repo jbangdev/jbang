@@ -166,16 +166,16 @@ public interface JdkProvider {
 		List<Jdk> jdks = listInstalled();
 		Jdk res;
 		if (openVersion) {
-			res = jdks	.stream()
-						.sorted()
-						.filter(jdk -> jdk.getMajorVersion() >= version)
-						.findFirst()
-						.orElse(null);
+			res = jdks.stream()
+					.sorted()
+					.filter(jdk -> jdk.getMajorVersion() >= version)
+					.findFirst()
+					.orElse(null);
 		} else {
-			res = jdks	.stream()
-						.filter(jdk -> jdk.getMajorVersion() == version)
-						.findFirst()
-						.orElse(null);
+			res = jdks.stream()
+					.filter(jdk -> jdk.getMajorVersion() == version)
+					.findFirst()
+					.orElse(null);
 		}
 		return res;
 	}

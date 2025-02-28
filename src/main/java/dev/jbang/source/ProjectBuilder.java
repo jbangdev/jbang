@@ -232,8 +232,8 @@ public class ProjectBuilder {
 
 	private List<String> replaceAllProps(List<String> items) {
 		return items.stream()
-					.map(item -> PropertiesValueResolver.replaceProperties(item, getContextProperties()))
-					.collect(Collectors.toList());
+				.map(item -> PropertiesValueResolver.replaceProperties(item, getContextProperties()))
+				.collect(Collectors.toList());
 	}
 
 	private List<MavenRepo> allToMavenRepo(List<String> repos) {
@@ -490,7 +490,7 @@ public class ProjectBuilder {
 	private void updateAllSources(Project prj, List<String> sources) {
 		Catalog catalog = catalogFile != null ? Catalog.get(catalogFile.toPath()) : null;
 		ResourceResolver resolver = getResourceResolver();
-		sources	.stream()
+		sources.stream()
 				.flatMap(f -> Util.explode(null, Util.getCwd(), f).stream())
 				.map(s -> resolveChecked(resolver, s))
 				.map(this::createSource)
@@ -502,9 +502,9 @@ public class ProjectBuilder {
 		Function<String, String> propsResolver = it -> PropertiesValueResolver.replaceProperties(it,
 				getContextProperties());
 		return resources.stream()
-						.flatMap(f -> TagReader.explodeFileRef(null, Util.getCwd(), f).stream())
-						.map(f -> TagReader.toFileRef(f, resolver))
-						.collect(Collectors.toList());
+				.flatMap(f -> TagReader.explodeFileRef(null, Util.getCwd(), f).stream())
+				.map(f -> TagReader.toFileRef(f, resolver))
+				.collect(Collectors.toList());
 	}
 
 	/**
@@ -605,12 +605,12 @@ public class ProjectBuilder {
 	private ModularClassPath resolveDependency(String dep) {
 		if (mcp == null) {
 			DependencyResolver resolver = new DependencyResolver()
-																	.addDependency(dep)
-																	.addRepositories(allToMavenRepo(
-																			replaceAllProps(additionalRepos)))
-																	.addDependencies(replaceAllProps(additionalDeps))
-																	.addClassPaths(
-																			replaceAllProps(additionalClasspaths));
+					.addDependency(dep)
+					.addRepositories(allToMavenRepo(
+							replaceAllProps(additionalRepos)))
+					.addDependencies(replaceAllProps(additionalDeps))
+					.addClassPaths(
+							replaceAllProps(additionalClasspaths));
 			mcp = resolver.resolve();
 		}
 		return mcp;

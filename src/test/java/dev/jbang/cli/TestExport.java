@@ -155,7 +155,7 @@ public class TestExport extends BaseTest {
 		assertThat(outFile.resolve("g/a/v/classpath_log/999-SNAPSHOT/classpath_log-999-SNAPSHOT.pom").toFile(),
 				anExistingFile());
 
-		Files	.walk(outFile.resolve("g"))
+		Files.walk(outFile.resolve("g"))
 				.sorted(Comparator.reverseOrder())
 				.map(Path::toFile)
 				.forEach(File::delete);

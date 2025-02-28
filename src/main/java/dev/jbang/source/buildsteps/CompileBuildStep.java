@@ -86,11 +86,11 @@ public abstract class CompileBuildStep implements Builder<Project> {
 		optionList.addAll(Arrays.asList("-d", compileDir.toAbsolutePath().toString()));
 
 		// add source files to compile
-		optionList.addAll(project	.getMainSourceSet()
-									.getSources()
-									.stream()
-									.map(x -> x.getFile().toString())
-									.collect(Collectors.toList()));
+		optionList.addAll(project.getMainSourceSet()
+				.getSources()
+				.stream()
+				.map(x -> x.getFile().toString())
+				.collect(Collectors.toList()));
 
 		if (project.getModuleName().isPresent()) {
 			if (project.getMainSource() != null && !project.getMainSource().getJavaPackage().isPresent()) {
@@ -122,19 +122,19 @@ public abstract class CompileBuildStep implements Builder<Project> {
 	}
 
 	private boolean hasModuleInfoFile() {
-		return ctx	.getProject()
-					.getMainSourceSet()
-					.getSources()
-					.stream()
-					.anyMatch(s -> s.getFile().getFileName().toString().equals("module-info.java"));
+		return ctx.getProject()
+				.getMainSourceSet()
+				.getSources()
+				.stream()
+				.anyMatch(s -> s.getFile().getFileName().toString().equals("module-info.java"));
 	}
 
 	protected void runCompiler(List<String> optionList) throws IOException {
-		runCompiler(CommandBuffer	.of(optionList)
-									.applyWindowsMaxLengthLimit(CommandBuffer.MAX_LENGTH_WINPROCBUILDER,
-											Util.getShell())
-									.asProcessBuilder()
-									.inheritIO());
+		runCompiler(CommandBuffer.of(optionList)
+				.applyWindowsMaxLengthLimit(CommandBuffer.MAX_LENGTH_WINPROCBUILDER,
+						Util.getShell())
+				.asProcessBuilder()
+				.inheritIO());
 	}
 
 	protected void runCompiler(ProcessBuilder processBuilder) throws IOException {
@@ -151,8 +151,8 @@ public abstract class CompileBuildStep implements Builder<Project> {
 	}
 
 	protected Path generatePom() throws IOException {
-		Template pomTemplate = TemplateEngine	.instance()
-												.getTemplate(ResourceRef.forResource("classpath:/pom.qute.xml"));
+		Template pomTemplate = TemplateEngine.instance()
+				.getTemplate(ResourceRef.forResource("classpath:/pom.qute.xml"));
 
 		Path pomPath = null;
 		if (pomTemplate == null) {
@@ -163,13 +163,13 @@ public abstract class CompileBuildStep implements Builder<Project> {
 			String baseName = Util.getBaseName(project.getResourceRef().getFile().getFileName().toString());
 			MavenCoordinate gav = getPomGav(project);
 			String pomfile = pomTemplate
-										.data("baseName", baseName)
-										.data("group", gav.getGroupId())
-										.data("artifact", gav.getArtifactId())
-										.data("version", gav.getVersion())
-										.data("description", project.getDescription().orElse(""))
-										.data("dependencies", ctx.resolveClassPath().getArtifacts())
-										.render();
+					.data("baseName", baseName)
+					.data("group", gav.getGroupId())
+					.data("artifact", gav.getArtifactId())
+					.data("version", gav.getVersion())
+					.data("description", project.getDescription().orElse(""))
+					.data("dependencies", ctx.resolveClassPath().getArtifacts())
+					.render();
 
 			pomPath = getPomPath(ctx);
 			Files.createDirectories(pomPath.getParent());
@@ -191,8 +191,8 @@ public abstract class CompileBuildStep implements Builder<Project> {
 
 	public static Path getPomPath(BuildContext ctx) {
 		MavenCoordinate gav = getPomGav(ctx.getProject());
-		return ctx	.getCompileDir()
-					.resolve("META-INF/maven/" + gav.getGroupId().replace(".", "/") + "/pom.xml");
+		return ctx.getCompileDir()
+				.resolve("META-INF/maven/" + gav.getGroupId().replace(".", "/") + "/pom.xml");
 	}
 
 	protected void searchForMain(Path tmpJarDir) {
@@ -200,9 +200,9 @@ public abstract class CompileBuildStep implements Builder<Project> {
 			// using Files.walk method with try-with-resources
 			try (Stream<Path> paths = Files.walk(tmpJarDir)) {
 				List<Path> items = paths.filter(Files::isRegularFile)
-										.filter(f -> !f.toFile().getName().contains("$"))
-										.filter(f -> f.toFile().getName().endsWith(".class"))
-										.collect(Collectors.toList());
+						.filter(f -> !f.toFile().getName().contains("$"))
+						.filter(f -> f.toFile().getName().endsWith(".class"))
+						.collect(Collectors.toList());
 
 				Indexer indexer = new Indexer();
 				Index index;
@@ -217,14 +217,14 @@ public abstract class CompileBuildStep implements Builder<Project> {
 
 				Project project = ctx.getProject();
 				if (project.getMainClass() == null) { // if non-null user forced set main
-					List<ClassInfo> mains = classes	.stream()
-													.filter(getMainFinder())
-													.collect(Collectors.toList());
+					List<ClassInfo> mains = classes.stream()
+							.filter(getMainFinder())
+							.collect(Collectors.toList());
 					String mainName = getSuggestedMain();
 					if (mains.size() > 1 && mainName != null) {
-						List<ClassInfo> suggestedmain = mains	.stream()
-																.filter(ci -> ci.simpleName().equals(mainName))
-																.collect(Collectors.toList());
+						List<ClassInfo> suggestedmain = mains.stream()
+								.filter(ci -> ci.simpleName().equals(mainName))
+								.collect(Collectors.toList());
 						if (!suggestedmain.isEmpty()) {
 							mains = suggestedmain;
 						}
@@ -235,7 +235,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 						if (mains.size() > 1) {
 							Util.warnMsg(
 									"Could not locate unique main() method. Use -m to specify explicit main method. Falling back to use first found: "
-											+ mains	.stream()
+											+ mains.stream()
 													.map(x -> x.name().toString())
 													.collect(Collectors.joining(",")));
 						}
@@ -243,27 +243,27 @@ public abstract class CompileBuildStep implements Builder<Project> {
 				}
 
 				if (project.getMainSource().isAgent()) {
-					Optional<ClassInfo> agentmain = classes	.stream()
-															.filter(pubClass -> pubClass.method("agentmain",
-																	STRINGTYPE,
-																	INSTRUMENTATIONTYPE) != null
-																	||
-																	pubClass.method("agentmain",
-																			STRINGTYPE) != null)
-															.findFirst();
+					Optional<ClassInfo> agentmain = classes.stream()
+							.filter(pubClass -> pubClass.method("agentmain",
+									STRINGTYPE,
+									INSTRUMENTATIONTYPE) != null
+									||
+									pubClass.method("agentmain",
+											STRINGTYPE) != null)
+							.findFirst();
 
 					if (agentmain.isPresent()) {
 						project.setAgentMainClass(agentmain.get().name().toString());
 					}
 
-					Optional<ClassInfo> premain = classes	.stream()
-															.filter(pubClass -> pubClass.method("premain",
-																	STRINGTYPE,
-																	INSTRUMENTATIONTYPE) != null
-																	||
-																	pubClass.method("premain",
-																			STRINGTYPE) != null)
-															.findFirst();
+					Optional<ClassInfo> premain = classes.stream()
+							.filter(pubClass -> pubClass.method("premain",
+									STRINGTYPE,
+									INSTRUMENTATIONTYPE) != null
+									||
+									pubClass.method("premain",
+											STRINGTYPE) != null)
+							.findFirst();
 
 					if (premain.isPresent()) {
 						project.setPreMainClass(premain.get().name().toString());

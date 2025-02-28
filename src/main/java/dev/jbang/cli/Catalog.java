@@ -42,7 +42,7 @@ abstract class BaseCatalogCommand extends BaseCommand {
 			if (catalogFile != null && Files.isDirectory(catalogFile)) {
 				Path defaultCatalog = catalogFile.resolve(dev.jbang.catalog.Catalog.JBANG_CATALOG_JSON);
 				Path hiddenCatalog = catalogFile.resolve(Settings.JBANG_DOT_DIR)
-												.resolve(dev.jbang.catalog.Catalog.JBANG_CATALOG_JSON);
+						.resolve(dev.jbang.catalog.Catalog.JBANG_CATALOG_JSON);
 				if (!Files.exists(defaultCatalog) && Files.exists(hiddenCatalog)) {
 					cat = hiddenCatalog;
 				} else {
@@ -113,21 +113,21 @@ class CatalogUpdate extends BaseCatalogCommand {
 		PrintWriter err = spec.commandLine().getErr();
 		Map<String, CatalogRef> cats = dev.jbang.catalog.Catalog.getMerged(false, true).catalogs;
 		cats
-			.entrySet()
-			.stream()
-			.forEach(e -> {
-				String ref = e.getValue().catalogRef;
-				err.println("Updating catalog '" + e.getKey() + "' from " + ref + "...");
-				Util.freshly(() -> {
-					try {
-						dev.jbang.catalog.Catalog.getByRef(ref);
-					} catch (Exception ex) {
-						Util.warnMsg("Unable to read catalog " + ref + " (referenced from "
-								+ e.getValue().catalog.catalogRef + ")");
-					}
-					return null;
+				.entrySet()
+				.stream()
+				.forEach(e -> {
+					String ref = e.getValue().catalogRef;
+					err.println("Updating catalog '" + e.getKey() + "' from " + ref + "...");
+					Util.freshly(() -> {
+						try {
+							dev.jbang.catalog.Catalog.getByRef(ref);
+						} catch (Exception ex) {
+							Util.warnMsg("Unable to read catalog " + ref + " (referenced from "
+									+ e.getValue().catalog.catalogRef + ")");
+						}
+						return null;
+					});
 				});
-			});
 		return EXIT_OK;
 	}
 }
@@ -212,11 +212,11 @@ class CatalogList extends BaseCatalogCommand {
 	static void printCatalogs(PrintStream out, String catalogName, dev.jbang.catalog.Catalog catalog,
 			FormatMixin.Format format) {
 		List<CatalogRefOut> catalogs = catalog.catalogs
-														.keySet()
-														.stream()
-														.sorted()
-														.map(name -> getCatalogRefOut(catalogName, catalog, name))
-														.collect(Collectors.toList());
+				.keySet()
+				.stream()
+				.sorted()
+				.map(name -> getCatalogRefOut(catalogName, catalog, name))
+				.collect(Collectors.toList());
 
 		if (format == FormatMixin.Format.json) {
 			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
@@ -228,18 +228,18 @@ class CatalogList extends BaseCatalogCommand {
 
 	static List<CatalogOut> getCatalogsWithOrigin(String catalogName, dev.jbang.catalog.Catalog catalog) {
 		Map<ResourceRef, List<CatalogRefOut>> groups = catalog.catalogs
-																		.keySet()
-																		.stream()
-																		.sorted()
-																		.map(name -> getCatalogRefOut(catalogName,
-																				catalog, name))
-																		.collect(Collectors.groupingBy(
-																				c -> c._catalogRef));
-		return groups	.entrySet()
-						.stream()
-						.map(e -> new CatalogOut(null, e.getKey(),
-								null, null, e.getValue()))
-						.collect(Collectors.toList());
+				.keySet()
+				.stream()
+				.sorted()
+				.map(name -> getCatalogRefOut(catalogName,
+						catalog, name))
+				.collect(Collectors.groupingBy(
+						c -> c._catalogRef));
+		return groups.entrySet()
+				.stream()
+				.map(e -> new CatalogOut(null, e.getKey(),
+						null, null, e.getValue()))
+				.collect(Collectors.toList());
 	}
 
 	static void printCatalogsWithOrigin(PrintStream out, String catalogName, dev.jbang.catalog.Catalog catalog,

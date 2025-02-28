@@ -39,9 +39,9 @@ public class DependencyCache {
 						return new ArtifactInfo(gav, file, ts);
 					};
 					Gson parser = new GsonBuilder()
-													.setPrettyPrinting()
-													.registerTypeAdapter(ArtifactInfo.class, serializer)
-													.create();
+							.setPrettyPrinting()
+							.registerTypeAdapter(ArtifactInfo.class, serializer)
+							.create();
 
 					Type empMapType = new TypeToken<Map<String, List<ArtifactInfo>>>() {
 					}.getType();
@@ -72,9 +72,9 @@ public class DependencyCache {
 				return json;
 			};
 			Gson parser = new GsonBuilder()
-											.setPrettyPrinting()
-											.registerTypeAdapter(ArtifactInfo.class, serializer)
-											.create();
+					.setPrettyPrinting()
+					.registerTypeAdapter(ArtifactInfo.class, serializer)
+					.create();
 
 			parser.toJson(cache, out);
 		} catch (IOException e) {

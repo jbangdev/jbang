@@ -57,20 +57,20 @@ public abstract class TagReader {
 
 	public List<String> collectBinaryDependencies() {
 		return getTags()
-						.filter(this::isDependDeclare)
-						.flatMap(this::extractDependencies)
-						.map(replaceProperties)
-						.filter(TagReader::isGav)
-						.collect(Collectors.toList());
+				.filter(this::isDependDeclare)
+				.flatMap(this::extractDependencies)
+				.map(replaceProperties)
+				.filter(TagReader::isGav)
+				.collect(Collectors.toList());
 	}
 
 	public List<String> collectSourceDependencies() {
 		return getTags()
-						.filter(this::isDependDeclare)
-						.flatMap(this::extractDependencies)
-						.map(replaceProperties)
-						.filter(it -> !isGav(it))
-						.collect(Collectors.toList());
+				.filter(this::isDependDeclare)
+				.flatMap(this::extractDependencies)
+				.map(replaceProperties)
+				.filter(it -> !isGav(it))
+				.collect(Collectors.toList());
 	}
 
 	protected boolean isDependDeclare(String line) {
@@ -87,11 +87,11 @@ public abstract class TagReader {
 
 	public List<MavenRepo> collectRepositories() {
 		return getTags()
-						.filter(this::isRepoDeclare)
-						.flatMap(this::extractRepositories)
-						.map(replaceProperties)
-						.map(DependencyUtil::toMavenRepo)
-						.collect(Collectors.toCollection(ArrayList::new));
+				.filter(this::isRepoDeclare)
+				.flatMap(this::extractRepositories)
+				.map(replaceProperties)
+				.map(DependencyUtil::toMavenRepo)
+				.collect(Collectors.toCollection(ArrayList::new));
 	}
 
 	protected boolean isRepoDeclare(String line) {
@@ -104,16 +104,16 @@ public abstract class TagReader {
 
 	public List<KeyValue> collectManifestOptions() {
 		return collectRawOptions("MANIFEST").stream()
-											.flatMap(TagReader::extractKeyValues)
-											.map(this::toKeyValue)
-											.collect(Collectors.toCollection(ArrayList::new));
+				.flatMap(TagReader::extractKeyValues)
+				.map(this::toKeyValue)
+				.collect(Collectors.toCollection(ArrayList::new));
 	}
 
 	public List<KeyValue> collectAgentOptions() {
-		return collectRawOptions("JAVAAGENT")	.stream()
-												.flatMap(TagReader::extractKeyValues)
-												.map(this::toKeyValue)
-												.collect(Collectors.toCollection(ArrayList::new));
+		return collectRawOptions("JAVAAGENT").stream()
+				.flatMap(TagReader::extractKeyValues)
+				.map(this::toKeyValue)
+				.collect(Collectors.toCollection(ArrayList::new));
 	}
 
 	private static Stream<String> extractKeyValues(String line) {
@@ -139,9 +139,9 @@ public abstract class TagReader {
 
 	public Optional<String> getDescription() {
 		String desc = getTags()
-								.filter(this::isDescriptionDeclare)
-								.map(s -> s.substring(DESCRIPTION_COMMENT_PREFIX.length()))
-								.collect(Collectors.joining("\n"));
+				.filter(this::isDescriptionDeclare)
+				.map(s -> s.substring(DESCRIPTION_COMMENT_PREFIX.length()))
+				.collect(Collectors.joining("\n"));
 		if (desc.isEmpty()) {
 			return Optional.empty();
 		} else {
@@ -155,9 +155,9 @@ public abstract class TagReader {
 
 	public Optional<String> getMain() {
 		List<String> mains = getTags()
-										.filter(this::isMainDeclare)
-										.map(s -> s.substring(MAIN_COMMENT_PREFIX.length()))
-										.collect(Collectors.toList());
+				.filter(this::isMainDeclare)
+				.map(s -> s.substring(MAIN_COMMENT_PREFIX.length()))
+				.collect(Collectors.toList());
 		if (mains.isEmpty()) {
 			return Optional.empty();
 		} else {
@@ -179,10 +179,10 @@ public abstract class TagReader {
 
 	public Optional<String> getModule() {
 		List<String> mods = getTags()
-										.filter(this::isModuleDeclare)
-										.map(String::trim)
-										.map(s -> s.substring(MODULE_COMMENT_PREFIX.length()))
-										.collect(Collectors.toList());
+				.filter(this::isModuleDeclare)
+				.map(String::trim)
+				.map(s -> s.substring(MODULE_COMMENT_PREFIX.length()))
+				.collect(Collectors.toList());
 		if (mods.isEmpty()) {
 			return Optional.empty();
 		} else {
@@ -207,9 +207,9 @@ public abstract class TagReader {
 
 	public Optional<String> getGav() {
 		List<String> gavs = getTags()
-										.filter(this::isGavDeclare)
-										.map(s -> s.substring(GAV_COMMENT_PREFIX.length()))
-										.collect(Collectors.toList());
+				.filter(this::isGavDeclare)
+				.map(s -> s.substring(GAV_COMMENT_PREFIX.length()))
+				.collect(Collectors.toList());
 		if (gavs.isEmpty()) {
 			return Optional.empty();
 		} else {
@@ -257,11 +257,11 @@ public abstract class TagReader {
 	@Nonnull
 	List<String> collectRawOptions(String prefix) {
 		List<String> javaOptions = getTags()
-											.map(it -> it.split(" // ")[0]) // strip away nested comments.
-											.filter(it -> it.startsWith(prefix + " ")
-													|| it.startsWith(prefix + "\t") || it.equals(prefix))
-											.map(it -> it.replaceFirst(prefix, "").trim())
-											.collect(Collectors.toList());
+				.map(it -> it.split(" // ")[0]) // strip away nested comments.
+				.filter(it -> it.startsWith(prefix + " ")
+						|| it.startsWith(prefix + "\t") || it.equals(prefix))
+				.map(it -> it.replaceFirst(prefix, "").trim())
+				.collect(Collectors.toList());
 
 		String envOptions = System.getenv("JBANG_" + prefix);
 		if (envOptions != null) {
@@ -272,8 +272,8 @@ public abstract class TagReader {
 
 	public String getJavaVersion() {
 		Optional<String> version = collectJavaVersions().stream()
-														.filter(JavaUtil::checkRequestedVersion)
-														.max(new JavaUtil.RequestedVersionComparator());
+				.filter(JavaUtil::checkRequestedVersion)
+				.max(new JavaUtil.RequestedVersionComparator());
 		return version.orElse(null);
 	}
 
@@ -289,13 +289,13 @@ public abstract class TagReader {
 			Path baseDir = org != null ? resourceRef.getFile().toAbsolutePath().getParent()
 					: Util.getCwd();
 			return getTags().filter(f -> f.startsWith(SOURCES_COMMENT_PREFIX))
-							.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
-													.skip(1)
-													.map(String::trim))
-							.map(replaceProperties)
-							.flatMap(line -> Util.explode(org, baseDir, line).stream())
-							.map(ref -> Source.forResource(siblingResolver, ref, replaceProperties))
-							.collect(Collectors.toCollection(ArrayList::new));
+					.flatMap(line -> Arrays.stream(line.split(" // ")[0].split("[ ;,]+"))
+							.skip(1)
+							.map(String::trim))
+					.map(replaceProperties)
+					.flatMap(line -> Util.explode(org, baseDir, line).stream())
+					.map(ref -> Source.forResource(siblingResolver, ref, replaceProperties))
+					.collect(Collectors.toCollection(ArrayList::new));
 		}
 	}
 
@@ -304,13 +304,13 @@ public abstract class TagReader {
 		Path baseDir = org != null ? resourceRef.getFile().toAbsolutePath().getParent()
 				: Util.getCwd();
 		return getTags().filter(f -> f.startsWith(FILES_COMMENT_PREFIX))
-						.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
-												.skip(1)
-												.map(String::trim))
-						.map(replaceProperties)
-						.flatMap(f -> explodeFileRef(org, baseDir, f).stream())
-						.map(f -> toFileRef(f, siblingResolver))
-						.collect(Collectors.toCollection(ArrayList::new));
+				.flatMap(line -> Arrays.stream(line.split(" // ")[0].split("[ ;,]+"))
+						.skip(1)
+						.map(String::trim))
+				.map(replaceProperties)
+				.flatMap(f -> explodeFileRef(org, baseDir, f).stream())
+				.map(f -> toFileRef(f, siblingResolver))
+				.collect(Collectors.toCollection(ArrayList::new));
 	}
 
 	/**
@@ -326,35 +326,35 @@ public abstract class TagReader {
 		String[] split = fileReference.split("=", 2);
 		if (split.length == 1) {
 			List<String> refs = Util.explode(source, baseDir, fileReference);
-			return refs	.stream()
-						.map(s -> {
-							if (Util.isValidPath(s)) {
-								Path base = Util.basePathWithoutPattern(fileReference);
-								Path sub = base.relativize(Paths.get(s)).getParent();
-								if (sub != null) {
-									return sub + "/=" + s;
-								}
+			return refs.stream()
+					.map(s -> {
+						if (Util.isValidPath(s)) {
+							Path base = Util.basePathWithoutPattern(fileReference);
+							Path sub = base.relativize(Paths.get(s)).getParent();
+							if (sub != null) {
+								return sub + "/=" + s;
 							}
-							return s;
-						})
-						.collect(Collectors.toList());
+						}
+						return s;
+					})
+					.collect(Collectors.toList());
 		} else {
 			String filePattern = split[1];
 			String alias = !Util.isPattern(filePattern) || split[0].isEmpty() || split[0].endsWith("/") ? split[0]
 					: split[0] + "/";
 			List<String> refs = Util.explode(source, baseDir, filePattern);
-			return refs	.stream()
-						.map(s -> {
-							if (Util.isValidPath(s)) {
-								Path base = Util.basePathWithoutPattern(filePattern);
-								Path sub = base.relativize(Paths.get(s)).getParent();
-								if (sub != null) {
-									return Paths.get(alias).resolve(sub) + "/=" + s;
-								}
+			return refs.stream()
+					.map(s -> {
+						if (Util.isValidPath(s)) {
+							Path base = Util.basePathWithoutPattern(filePattern);
+							Path sub = base.relativize(Paths.get(s)).getParent();
+							if (sub != null) {
+								return Paths.get(alias).resolve(sub) + "/=" + s;
 							}
-							return alias + "=" + s;
-						})
-						.collect(Collectors.toList());
+						}
+						return alias + "=" + s;
+					})
+					.collect(Collectors.toList());
 		}
 	}
 
@@ -432,12 +432,12 @@ public abstract class TagReader {
 
 		@Override
 		protected Stream<String> getTags() {
-			return EOL	.splitAsStream(contents)
-						.filter(s -> s.startsWith("//")
-								|| s.contains(DEPS_ANNOT_PREFIX)
-								|| s.contains(REPOS_ANNOT_PREFIX))
-						.map(s -> s.contains(DEPS_ANNOT_PREFIX)
-								|| s.contains(REPOS_ANNOT_PREFIX) ? s : s.substring(2));
+			return EOL.splitAsStream(contents)
+					.filter(s -> s.startsWith("//")
+							|| s.contains(DEPS_ANNOT_PREFIX)
+							|| s.contains(REPOS_ANNOT_PREFIX))
+					.map(s -> s.contains(DEPS_ANNOT_PREFIX)
+							|| s.contains(REPOS_ANNOT_PREFIX) ? s : s.substring(2));
 		}
 
 		@Override

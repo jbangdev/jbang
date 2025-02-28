@@ -38,11 +38,11 @@ public class TestUtilDownloads extends BaseTest {
 	@Test
 	void test1ReqSimple(WireMockRuntimeInfo wmri) throws IOException {
 		stubFor(get(urlEqualTo("/test.txt"))
-											.andMatching(withoutHeader("If-None-Match"))
-											.andMatching(withoutHeader("If-Modified-Since"))
-											.willReturn(aResponse()
-																	.withHeader("Content-Type", "text/plain")
-																	.withBody("test")));
+				.andMatching(withoutHeader("If-None-Match"))
+				.andMatching(withoutHeader("If-Modified-Since"))
+				.willReturn(aResponse()
+						.withHeader("Content-Type", "text/plain")
+						.withBody("test")));
 
 		String url = wmri.getHttpBaseUrl() + "/test.txt";
 		Path file = Util.downloadAndCacheFile(url);
@@ -54,12 +54,12 @@ public class TestUtilDownloads extends BaseTest {
 	void test2ReqSimple(WireMockRuntimeInfo wmri) throws IOException, InterruptedException {
 		UUID id = UUID.randomUUID();
 		stubFor(get(urlEqualTo("/test.txt"))
-											.withId(id)
-											.andMatching(withoutHeader("If-None-Match"))
-											.andMatching(withoutHeader("If-Modified-Since"))
-											.willReturn(aResponse()
-																	.withHeader("Content-Type", "text/plain")
-																	.withBody("test")));
+				.withId(id)
+				.andMatching(withoutHeader("If-None-Match"))
+				.andMatching(withoutHeader("If-Modified-Since"))
+				.willReturn(aResponse()
+						.withHeader("Content-Type", "text/plain")
+						.withBody("test")));
 
 		String url = wmri.getHttpBaseUrl() + "/test.txt";
 		Path file = Util.downloadAndCacheFile(url);
@@ -72,13 +72,13 @@ public class TestUtilDownloads extends BaseTest {
 		Thread.sleep(1100);
 
 		editStub(get(urlEqualTo("/test.txt"))
-												.withId(id)
-												.andMatching(withoutHeader("If-None-Match"))
-												.withHeader("If-Modified-Since", new EqualToPattern(
-														cachedLastModified))
-												.willReturn(aResponse()
-																		.withHeader("Content-Type", "text/plain")
-																		.withBody("test2")));
+				.withId(id)
+				.andMatching(withoutHeader("If-None-Match"))
+				.withHeader("If-Modified-Since", new EqualToPattern(
+						cachedLastModified))
+				.willReturn(aResponse()
+						.withHeader("Content-Type", "text/plain")
+						.withBody("test2")));
 
 		Util.withCacheEvict("0", () -> {
 			Path file2 = Util.downloadAndCacheFile(url);
@@ -94,12 +94,12 @@ public class TestUtilDownloads extends BaseTest {
 	void test2ReqSimpleFresh(WireMockRuntimeInfo wmri) throws IOException, InterruptedException {
 		UUID id = UUID.randomUUID();
 		stubFor(get(urlEqualTo("/test.txt"))
-											.withId(id)
-											.andMatching(withoutHeader("If-None-Match"))
-											.andMatching(withoutHeader("If-Modified-Since"))
-											.willReturn(aResponse()
-																	.withHeader("Content-Type", "text/plain")
-																	.withBody("test")));
+				.withId(id)
+				.andMatching(withoutHeader("If-None-Match"))
+				.andMatching(withoutHeader("If-Modified-Since"))
+				.willReturn(aResponse()
+						.withHeader("Content-Type", "text/plain")
+						.withBody("test")));
 
 		String url = wmri.getHttpBaseUrl() + "/test.txt";
 		Path file = Util.downloadAndCacheFile(url);
@@ -110,12 +110,12 @@ public class TestUtilDownloads extends BaseTest {
 		Thread.sleep(1100);
 
 		editStub(get(urlEqualTo("/test.txt"))
-												.withId(id)
-												.andMatching(withoutHeader("If-None-Match"))
-												.andMatching(withoutHeader("If-Modified-Since"))
-												.willReturn(aResponse()
-																		.withHeader("Content-Type", "text/plain")
-																		.withBody("test2")));
+				.withId(id)
+				.andMatching(withoutHeader("If-None-Match"))
+				.andMatching(withoutHeader("If-Modified-Since"))
+				.willReturn(aResponse()
+						.withHeader("Content-Type", "text/plain")
+						.withBody("test2")));
 
 		Util.freshly(() -> {
 			Path file2 = Util.downloadAndCacheFile(url);
@@ -131,14 +131,14 @@ public class TestUtilDownloads extends BaseTest {
 	void test2ReqWithLastModifiedSame(WireMockRuntimeInfo wmri) throws IOException {
 		UUID id = UUID.randomUUID();
 		stubFor(get(urlEqualTo("/test.txt"))
-											.withId(id)
-											.andMatching(withoutHeader("If-None-Match"))
-											.andMatching(withoutHeader("If-Modified-Since"))
-											.willReturn(aResponse()
-																	.withHeader("Content-Type", "text/plain")
-																	.withHeader("Last-Modified",
-																			"Thu, 02 Feb 2023 22:22:49 GMT")
-																	.withBody("test")));
+				.withId(id)
+				.andMatching(withoutHeader("If-None-Match"))
+				.andMatching(withoutHeader("If-Modified-Since"))
+				.willReturn(aResponse()
+						.withHeader("Content-Type", "text/plain")
+						.withHeader("Last-Modified",
+								"Thu, 02 Feb 2023 22:22:49 GMT")
+						.withBody("test")));
 
 		String url = wmri.getHttpBaseUrl() + "/test.txt";
 		Path file = Util.downloadAndCacheFile(url);
@@ -149,16 +149,16 @@ public class TestUtilDownloads extends BaseTest {
 		assertThat(Util.readString(file), is("test"));
 
 		editStub(get(urlEqualTo("/test.txt"))
-												.withId(id)
-												.andMatching(withoutHeader("If-None-Match"))
-												.withHeader("If-Modified-Since", new EqualToPattern(
-														cachedLastModified))
-												.willReturn(aResponse()
-																		.withStatus(304)
-																		.withHeader("Content-Type", "text/plain")
-																		.withHeader("Last-Modified",
-																				"Thu, 02 Feb 2023 22:22:49 GMT")
-																		.withBody("test2")));
+				.withId(id)
+				.andMatching(withoutHeader("If-None-Match"))
+				.withHeader("If-Modified-Since", new EqualToPattern(
+						cachedLastModified))
+				.willReturn(aResponse()
+						.withStatus(304)
+						.withHeader("Content-Type", "text/plain")
+						.withHeader("Last-Modified",
+								"Thu, 02 Feb 2023 22:22:49 GMT")
+						.withBody("test2")));
 
 		Path file2 = Util.downloadAndCacheFile(url);
 		assertThat(file2.toFile(), anExistingFile());
@@ -171,14 +171,14 @@ public class TestUtilDownloads extends BaseTest {
 	void test2ReqWithLastModifiedUpdated(WireMockRuntimeInfo wmri) throws IOException, InterruptedException {
 		UUID id = UUID.randomUUID();
 		stubFor(get(urlEqualTo("/test.txt"))
-											.withId(id)
-											.andMatching(withoutHeader("If-None-Match"))
-											.andMatching(withoutHeader("If-Modified-Since"))
-											.willReturn(aResponse()
-																	.withHeader("Content-Type", "text/plain")
-																	.withHeader("Last-Modified",
-																			"Thu, 02 Feb 2023 22:22:49 GMT")
-																	.withBody("test")));
+				.withId(id)
+				.andMatching(withoutHeader("If-None-Match"))
+				.andMatching(withoutHeader("If-Modified-Since"))
+				.willReturn(aResponse()
+						.withHeader("Content-Type", "text/plain")
+						.withHeader("Last-Modified",
+								"Thu, 02 Feb 2023 22:22:49 GMT")
+						.withBody("test")));
 
 		String url = wmri.getHttpBaseUrl() + "/test.txt";
 		Path file = Util.downloadAndCacheFile(url);
@@ -189,12 +189,12 @@ public class TestUtilDownloads extends BaseTest {
 		Thread.sleep(1100);
 
 		editStub(get(urlEqualTo("/test.txt"))
-												.withId(id)
-												.willReturn(aResponse()
-																		.withHeader("Content-Type", "text/plain")
-																		.withHeader("Last-Modified",
-																				"Sun, 02 Feb 3023 22:22:49 GMT")
-																		.withBody("test2")));
+				.withId(id)
+				.willReturn(aResponse()
+						.withHeader("Content-Type", "text/plain")
+						.withHeader("Last-Modified",
+								"Sun, 02 Feb 3023 22:22:49 GMT")
+						.withBody("test2")));
 
 		Util.withCacheEvict("0", () -> {
 			Path file2 = Util.downloadAndCacheFile(url);
@@ -212,14 +212,14 @@ public class TestUtilDownloads extends BaseTest {
 
 		UUID id = UUID.randomUUID();
 		stubFor(get(urlEqualTo("/test.txt"))
-											.withId(id)
-											.andMatching(withoutHeader("If-None-Match"))
-											.andMatching(withoutHeader("If-Modified-Since"))
-											.willReturn(aResponse()
-																	.withHeader("Content-Type", "text/plain")
-																	.withHeader("Last-Modified",
-																			"Thu, 02 Feb 2023 22:22:49 GMT")
-																	.withBody("test")));
+				.withId(id)
+				.andMatching(withoutHeader("If-None-Match"))
+				.andMatching(withoutHeader("If-Modified-Since"))
+				.willReturn(aResponse()
+						.withHeader("Content-Type", "text/plain")
+						.withHeader("Last-Modified",
+								"Thu, 02 Feb 2023 22:22:49 GMT")
+						.withBody("test")));
 
 		String url = wmri.getHttpBaseUrl() + "/test.txt";
 		Path file = Util.downloadAndCacheFile(url);
@@ -228,12 +228,12 @@ public class TestUtilDownloads extends BaseTest {
 		assertThat(Util.readString(file), is("test"));
 
 		editStub(get(urlEqualTo("/test.txt"))
-												.withId(id)
-												.willReturn(aResponse()
-																		.withHeader("Content-Type", "text/plain")
-																		.withHeader("Last-Modified",
-																				"Sun, 02 Feb 3023 22:22:49 GMT")
-																		.withBody("test2")));
+				.withId(id)
+				.willReturn(aResponse()
+						.withHeader("Content-Type", "text/plain")
+						.withHeader("Last-Modified",
+								"Sun, 02 Feb 3023 22:22:49 GMT")
+						.withBody("test2")));
 
 		Path file2 = Util.downloadAndCacheFile(url);
 		assertThat(file2.toFile(), anExistingFile());
@@ -248,14 +248,14 @@ public class TestUtilDownloads extends BaseTest {
 
 		UUID id = UUID.randomUUID();
 		stubFor(get(urlEqualTo("/test.txt"))
-											.withId(id)
-											.andMatching(withoutHeader("If-None-Match"))
-											.andMatching(withoutHeader("If-Modified-Since"))
-											.willReturn(aResponse()
-																	.withHeader("Content-Type", "text/plain")
-																	.withHeader("Last-Modified",
-																			"Thu, 02 Feb 2023 22:22:49 GMT")
-																	.withBody("test")));
+				.withId(id)
+				.andMatching(withoutHeader("If-None-Match"))
+				.andMatching(withoutHeader("If-Modified-Since"))
+				.willReturn(aResponse()
+						.withHeader("Content-Type", "text/plain")
+						.withHeader("Last-Modified",
+								"Thu, 02 Feb 2023 22:22:49 GMT")
+						.withBody("test")));
 
 		String url = wmri.getHttpBaseUrl() + "/test.txt";
 		Path file = Util.downloadAndCacheFile(url);
@@ -266,12 +266,12 @@ public class TestUtilDownloads extends BaseTest {
 		Thread.sleep(1100);
 
 		editStub(get(urlEqualTo("/test.txt"))
-												.withId(id)
-												.willReturn(aResponse()
-																		.withHeader("Content-Type", "text/plain")
-																		.withHeader("Last-Modified",
-																				"Sun, 02 Feb 3023 22:22:49 GMT")
-																		.withBody("test2")));
+				.withId(id)
+				.willReturn(aResponse()
+						.withHeader("Content-Type", "text/plain")
+						.withHeader("Last-Modified",
+								"Sun, 02 Feb 3023 22:22:49 GMT")
+						.withBody("test2")));
 
 		Path file2 = Util.downloadAndCacheFile(url);
 		assertThat(file2.toFile(), anExistingFile());
@@ -286,14 +286,14 @@ public class TestUtilDownloads extends BaseTest {
 
 		UUID id = UUID.randomUUID();
 		stubFor(get(urlEqualTo("/test.txt"))
-											.withId(id)
-											.andMatching(withoutHeader("If-None-Match"))
-											.andMatching(withoutHeader("If-Modified-Since"))
-											.willReturn(aResponse()
-																	.withHeader("Content-Type", "text/plain")
-																	.withHeader("Last-Modified",
-																			"Thu, 02 Feb 2023 22:22:49 GMT")
-																	.withBody("test")));
+				.withId(id)
+				.andMatching(withoutHeader("If-None-Match"))
+				.andMatching(withoutHeader("If-Modified-Since"))
+				.willReturn(aResponse()
+						.withHeader("Content-Type", "text/plain")
+						.withHeader("Last-Modified",
+								"Thu, 02 Feb 2023 22:22:49 GMT")
+						.withBody("test")));
 
 		String url = wmri.getHttpBaseUrl() + "/test.txt";
 		Path file = Util.downloadAndCacheFile(url);
@@ -304,12 +304,12 @@ public class TestUtilDownloads extends BaseTest {
 		Thread.sleep(1100);
 
 		editStub(get(urlEqualTo("/test.txt"))
-												.withId(id)
-												.willReturn(aResponse()
-																		.withHeader("Content-Type", "text/plain")
-																		.withHeader("Last-Modified",
-																				"Sun, 02 Feb 3023 22:22:49 GMT")
-																		.withBody("test2")));
+				.withId(id)
+				.willReturn(aResponse()
+						.withHeader("Content-Type", "text/plain")
+						.withHeader("Last-Modified",
+								"Sun, 02 Feb 3023 22:22:49 GMT")
+						.withBody("test2")));
 
 		Path file2 = Util.downloadAndCacheFile(url);
 		assertThat(file2.toFile(), anExistingFile());
@@ -322,13 +322,13 @@ public class TestUtilDownloads extends BaseTest {
 	void test2ReqWithETagSame(WireMockRuntimeInfo wmri) throws IOException {
 		UUID id = UUID.randomUUID();
 		stubFor(get(urlEqualTo("/test.txt"))
-											.withId(id)
-											.andMatching(withoutHeader("If-None-Match"))
-											.andMatching(withoutHeader("If-Modified-Since"))
-											.willReturn(aResponse()
-																	.withHeader("Content-Type", "text/plain")
-																	.withHeader("ETag", "tag1")
-																	.withBody("test")));
+				.withId(id)
+				.andMatching(withoutHeader("If-None-Match"))
+				.andMatching(withoutHeader("If-Modified-Since"))
+				.willReturn(aResponse()
+						.withHeader("Content-Type", "text/plain")
+						.withHeader("ETag", "tag1")
+						.withBody("test")));
 
 		String url = wmri.getHttpBaseUrl() + "/test.txt";
 		Path file = Util.downloadAndCacheFile(url);
@@ -342,14 +342,14 @@ public class TestUtilDownloads extends BaseTest {
 		assertThat(Util.readString(etag), is("tag1"));
 
 		editStub(get(urlEqualTo("/test.txt"))
-												.withId(id)
-												.withHeader("If-None-Match", new EqualToPattern("tag1"))
-												.withHeader("If-Modified-Since", new EqualToPattern(cachedLastModified))
-												.willReturn(aResponse()
-																		.withStatus(304)
-																		.withHeader("Content-Type", "text/plain")
-																		.withHeader("ETag", "tag1")
-																		.withBody("test2")));
+				.withId(id)
+				.withHeader("If-None-Match", new EqualToPattern("tag1"))
+				.withHeader("If-Modified-Since", new EqualToPattern(cachedLastModified))
+				.willReturn(aResponse()
+						.withStatus(304)
+						.withHeader("Content-Type", "text/plain")
+						.withHeader("ETag", "tag1")
+						.withBody("test2")));
 
 		Path file2 = Util.downloadAndCacheFile(url);
 		assertThat(file2.toFile(), anExistingFile());
@@ -365,13 +365,13 @@ public class TestUtilDownloads extends BaseTest {
 	void test2ReqWithETagUpdated(WireMockRuntimeInfo wmri) throws IOException, InterruptedException {
 		UUID id = UUID.randomUUID();
 		stubFor(get(urlEqualTo("/test.txt"))
-											.withId(id)
-											.andMatching(withoutHeader("If-None-Match"))
-											.andMatching(withoutHeader("If-Modified-Since"))
-											.willReturn(aResponse()
-																	.withHeader("Content-Type", "text/plain")
-																	.withHeader("ETag", "tag1")
-																	.withBody("test")));
+				.withId(id)
+				.andMatching(withoutHeader("If-None-Match"))
+				.andMatching(withoutHeader("If-Modified-Since"))
+				.willReturn(aResponse()
+						.withHeader("Content-Type", "text/plain")
+						.withHeader("ETag", "tag1")
+						.withBody("test")));
 
 		String url = wmri.getHttpBaseUrl() + "/test.txt";
 		Path file = Util.downloadAndCacheFile(url);
@@ -385,11 +385,11 @@ public class TestUtilDownloads extends BaseTest {
 		Thread.sleep(1100);
 
 		editStub(get(urlEqualTo("/test.txt"))
-												.withId(id)
-												.willReturn(aResponse()
-																		.withHeader("Content-Type", "text/plain")
-																		.withHeader("ETag", "tag2")
-																		.withBody("test2")));
+				.withId(id)
+				.willReturn(aResponse()
+						.withHeader("Content-Type", "text/plain")
+						.withHeader("ETag", "tag2")
+						.withBody("test2")));
 
 		Util.withCacheEvict("0", () -> {
 			Path file2 = Util.downloadAndCacheFile(url);
@@ -407,12 +407,12 @@ public class TestUtilDownloads extends BaseTest {
 	@Test
 	void testReqUrlWithParams(WireMockRuntimeInfo wmri) throws IOException {
 		stubFor(get(urlEqualTo("/test.txt?path=foo/bar"))
-															.andMatching(withoutHeader("If-None-Match"))
-															.andMatching(withoutHeader("If-Modified-Since"))
-															.willReturn(aResponse()
-																					.withHeader("Content-Type",
-																							"text/plain")
-																					.withBody("test")));
+				.andMatching(withoutHeader("If-None-Match"))
+				.andMatching(withoutHeader("If-Modified-Since"))
+				.willReturn(aResponse()
+						.withHeader("Content-Type",
+								"text/plain")
+						.withBody("test")));
 
 		String url = wmri.getHttpBaseUrl() + "/test.txt?path=foo/bar";
 		Path file = Util.downloadAndCacheFile(url);

@@ -25,6 +25,6 @@ public class Build extends BaseBuildCommand {
 
 	ProjectBuilder createProjectBuilderForBuild() {
 		return createBaseProjectBuilder()
-											.mainClass(buildMixin.main);
+				.mainClass(buildMixin.main);
 	}
 }

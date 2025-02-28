@@ -57,9 +57,9 @@ public class CommandBuffer {
 	}
 
 	public ProcessBuilder asProcessBuilder(Util.Shell shell) {
-		List<String> args = arguments	.stream()
-										.map(a -> escapeProcessBuilderArgument(a, shell))
-										.collect(Collectors.toList());
+		List<String> args = arguments.stream()
+				.map(a -> escapeProcessBuilderArgument(a, shell))
+				.collect(Collectors.toList());
 		return new ProcessBuilder(args);
 	}
 

@@ -38,8 +38,8 @@ public class App {
 
 	public static void deleteCommandFiles(String name) {
 		try (Stream<Path> files = Files.list(Settings.getConfigBinDir())) {
-			files	.filter(f -> f.getFileName().toString().equals(name)
-							|| f.getFileName().toString().startsWith(name + "."))
+			files.filter(f -> f.getFileName().toString().equals(name)
+					|| f.getFileName().toString().startsWith(name + "."))
 					.forEach(f -> Util.deletePath(f, true));
 		} catch (IOException e) {
 			// Ignore
@@ -267,7 +267,7 @@ class AppInstall extends BaseCommand {
 
 	private static void copyJBangFiles(Path from, Path to) throws IOException {
 		to.toFile().mkdirs();
-		Stream	.of("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")
+		Stream.of("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")
 				.map(Paths::get)
 				.forEach(f -> {
 					try {
@@ -322,11 +322,11 @@ class AppList extends BaseCommand {
 	private static List<AppOut> listCommandFiles() {
 		try (Stream<Path> files = Files.list(Settings.getConfigBinDir())) {
 			return files
-						.filter(Files::isExecutable)
-						.sorted()
-						.map(AppOut::new)
-						.filter(distinctByKey(AppOut::getName))
-						.collect(Collectors.toList());
+					.filter(Files::isExecutable)
+					.sorted()
+					.map(AppOut::new)
+					.filter(distinctByKey(AppOut::getName))
+					.collect(Collectors.toList());
 		} catch (IOException e) {
 			return Collections.emptyList();
 		}

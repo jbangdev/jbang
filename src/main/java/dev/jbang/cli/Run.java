@@ -102,7 +102,8 @@ public class Run extends BaseBuildCommand {
 		Project prj = ctx.getProject();
 		Map<String, String> agents = runMixin.javaAgentSlots;
 		if (agents == null && prj.getResourceRef() instanceof AliasResourceResolver.AliasedResourceRef) {
-			AliasResourceResolver.AliasedResourceRef aref = (AliasResourceResolver.AliasedResourceRef) prj.getResourceRef();
+			AliasResourceResolver.AliasedResourceRef aref = (AliasResourceResolver.AliasedResourceRef) prj
+					.getResourceRef();
 			if (aref.getAlias().javaAgents != null) {
 				Map<String, String> tmpAgents = new HashMap<>();
 				aref.getAlias().javaAgents.forEach(a -> tmpAgents.put(a.agentRef, a.options));
@@ -137,16 +138,16 @@ public class Run extends BaseBuildCommand {
 
 	CmdGeneratorBuilder updateGeneratorForRun(CmdGeneratorBuilder gb) {
 		gb
-			.setArguments(userParams)
-			.runtimeOptions(runMixin.javaRuntimeOptions)
-			.mainClass(buildMixin.main)
-			.moduleName(buildMixin.module)
-			.interactive(runMixin.interactive)
-			.enableAssertions(runMixin.enableAssertions)
-			.enableSystemAssertions(runMixin.enableSystemAssertions)
-			.flightRecorderString(runMixin.flightRecorderString)
-			.debugString(runMixin.debugString)
-			.classDataSharing(runMixin.cds);
+				.setArguments(userParams)
+				.runtimeOptions(runMixin.javaRuntimeOptions)
+				.mainClass(buildMixin.main)
+				.moduleName(buildMixin.module)
+				.interactive(runMixin.interactive)
+				.enableAssertions(runMixin.enableAssertions)
+				.enableSystemAssertions(runMixin.enableSystemAssertions)
+				.flightRecorderString(runMixin.flightRecorderString)
+				.debugString(runMixin.debugString)
+				.classDataSharing(runMixin.cds);
 
 		return gb;
 	}

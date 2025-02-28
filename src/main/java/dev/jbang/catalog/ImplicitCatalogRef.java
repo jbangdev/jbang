@@ -76,7 +76,7 @@ public class ImplicitCatalogRef {
 				() -> icr.isPresent() ? tryDownload(icr.get().repoUrl(GITHUB_URL, "/blob/")) : Optional.empty(),
 				() -> icr.isPresent() ? tryDownload(icr.get().repoUrl(GITLAB_URL, "/-/blob/")) : Optional.empty(),
 				() -> icr.isPresent() ? tryDownload(icr.get().repoUrl(BITBUCKET_URL, "/src/")) : Optional.empty())
-																													.findFirst();
+						.findFirst();
 		return url;
 	}
 
@@ -108,9 +108,9 @@ public class ImplicitCatalogRef {
 
 	@SafeVarargs
 	public static <T> Stream<T> chain(Supplier<Optional<T>>... suppliers) {
-		return Arrays	.stream(suppliers)
-						.map(Supplier::get)
-						.flatMap(o -> o.map(Stream::of).orElseGet(Stream::empty));
+		return Arrays.stream(suppliers)
+				.map(Supplier::get)
+				.flatMap(o -> o.map(Stream::of).orElseGet(Stream::empty));
 	}
 
 	@Override

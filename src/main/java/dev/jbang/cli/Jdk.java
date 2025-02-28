@@ -71,12 +71,12 @@ public class Jdk {
 		} else {
 			jdks = JdkManager.listInstalledJdks();
 		}
-		List<JdkOut> jdkOuts = jdks	.stream()
-									.map(jdk -> new JdkOut(jdk.getId(), jdk.getVersion(), jdk.getProvider().name(),
-											jdk.getHome(),
-											details ? jdk.equals(defaultJdk)
-													: jdk.getMajorVersion() == defMajorVersion))
-									.collect(Collectors.toList());
+		List<JdkOut> jdkOuts = jdks.stream()
+				.map(jdk -> new JdkOut(jdk.getId(), jdk.getVersion(), jdk.getProvider().name(),
+						jdk.getHome(),
+						details ? jdk.equals(defaultJdk)
+								: jdk.getMajorVersion() == defMajorVersion))
+				.collect(Collectors.toList());
 		if (!details) {
 			// Only keep a list of unique major versions
 			Set<JdkOut> uniqueJdks = new TreeSet<>(Comparator.comparingInt(j -> j.version));

@@ -86,8 +86,8 @@ public class RenamingScriptResourceResolver implements ResourceResolver {
 
 					String name = probe.getName() + (forceType != null ? "." + forceType.extension : "");
 					Path tempFile = Settings.getCacheDir(Cache.CacheClass.scripts)
-											.resolve(urlHash)
-											.resolve(Util.unkebabify(name));
+							.resolve(urlHash)
+							.resolve(Util.unkebabify(name));
 					tempFile.getParent().toFile().mkdirs();
 					Util.writeString(tempFile.toAbsolutePath(), original);
 					result = ResourceRef.forCachedResource(resource, tempFile);

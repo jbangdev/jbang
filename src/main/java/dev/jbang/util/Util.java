@@ -233,9 +233,9 @@ public class Util {
 	public static String kebab2camel(String name) {
 
 		if (name.contains("-")) { // xyz-plug becomes XyzPlug
-			return Arrays	.stream(name.split("-"))
-							.map(s -> Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase())
-							.collect(Collectors.joining());
+			return Arrays.stream(name.split("-"))
+					.map(s -> Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase())
+					.collect(Collectors.joining());
 		} else {
 			return name; // xyz stays xyz
 		}
@@ -609,8 +609,8 @@ public class Util {
 				String proposedString = null;
 
 				proposedString = doc.select("meta[property=og:description],meta[name=og:description]")
-									.first()
-									.attr("content");
+						.first()
+						.attr("content");
 
 				/*
 				 * if (twitter) { // remove fake quotes // proposedString =
@@ -913,11 +913,11 @@ public class Util {
 						String message = null;
 						if (httpConn.getErrorStream() != null) {
 							String err = new BufferedReader(new InputStreamReader(httpConn.getErrorStream()))
-																												.lines()
-																												.collect(
-																														Collectors.joining(
-																																"\n"))
-																												.trim();
+									.lines()
+									.collect(
+											Collectors.joining(
+													"\n"))
+									.trim();
 							verboseMsg("HTTP: " + responseCode + " - " + err);
 							if (err.startsWith("{") && err.endsWith("}")) {
 								// Could be JSON, let's try to parse it
@@ -1453,7 +1453,7 @@ public class Util {
 		try {
 			if (Files.isDirectory(path)) {
 				verboseMsg("Deleting folder " + path);
-				Files	.walk(path)
+				Files.walk(path)
 						.sorted(Comparator.reverseOrder())
 						.forEach(f -> {
 							try {
@@ -1631,12 +1631,12 @@ public class Util {
 	 * @return A Path to the executable, if found, null otherwise
 	 */
 	public static Path searchPath(String cmd, String paths) {
-		return Arrays	.stream(paths.split(File.pathSeparator))
-						.map(dir -> Paths.get(dir).resolve(cmd))
-						.flatMap(Util::executables)
-						.filter(Util::isExecutable)
-						.findFirst()
-						.orElse(null);
+		return Arrays.stream(paths.split(File.pathSeparator))
+				.map(dir -> Paths.get(dir).resolve(cmd))
+				.flatMap(Util::executables)
+				.filter(Util::isExecutable)
+				.findFirst()
+				.orElse(null);
 	}
 
 	private static Stream<Path> executables(Path base) {

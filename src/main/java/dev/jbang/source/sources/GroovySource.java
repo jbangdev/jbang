@@ -57,9 +57,9 @@ public class GroovySource extends Source {
 
 	public String getGroovyVersion() {
 		return tagReader.collectOptions("GROOVY")
-						.stream()
-						.findFirst()
-						.orElse(GroovyManager.DEFAULT_GROOVY_VERSION);
+				.stream()
+				.findFirst()
+				.orElse(GroovyManager.DEFAULT_GROOVY_VERSION);
 	}
 
 	@Override
@@ -93,9 +93,9 @@ public class GroovySource extends Source {
 			protected void runCompiler(ProcessBuilder processBuilder) throws IOException {
 				Project project = ctx.getProject();
 				if (project.getMainSource() instanceof GroovySource) {
-					processBuilder	.environment()
-									.put("JAVA_HOME",
-											JdkManager.getOrInstallJdk(project.getJavaVersion()).getHome().toString());
+					processBuilder.environment()
+							.put("JAVA_HOME",
+									JdkManager.getOrInstallJdk(project.getJavaVersion()).getHome().toString());
 					processBuilder.environment().remove("GROOVY_HOME");
 				}
 				super.runCompiler(processBuilder);

@@ -25,8 +25,8 @@ public class ScoopJdkProvider extends BaseFoldersJdkProvider {
 	protected Stream<Path> listJdkPaths() throws IOException {
 		if (Files.isDirectory(getJdksRoot())) {
 			return Files.list(getJdksRoot())
-						.filter(p -> p.getFileName().startsWith("openjdk"))
-						.map(p -> p.resolve("current"));
+					.filter(p -> p.getFileName().startsWith("openjdk"))
+					.map(p -> p.resolve("current"));
 		}
 		return Stream.empty();
 	}

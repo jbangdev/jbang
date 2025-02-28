@@ -116,32 +116,32 @@ public class CmdGeneratorBuilder {
 
 	private JarCmdGenerator createJarCmdGenerator() {
 		return new JarCmdGenerator(ctx)
-										.arguments(arguments)
-										.runtimeOptions(runtimeOptions)
-										.mainClass(mainClass)
-										.mainRequired(interactive != Boolean.TRUE)
-										.moduleName(moduleName)
-										.assertions(enableAssertions == Boolean.TRUE)
-										.systemAssertions(enableSystemAssertions == Boolean.TRUE)
-										.classDataSharing(
-												Optional.ofNullable(classDataSharing).orElse(false))
-										.debugString(debugString)
-										.flightRecorderString(flightRecorderString);
+				.arguments(arguments)
+				.runtimeOptions(runtimeOptions)
+				.mainClass(mainClass)
+				.mainRequired(interactive != Boolean.TRUE)
+				.moduleName(moduleName)
+				.assertions(enableAssertions == Boolean.TRUE)
+				.systemAssertions(enableSystemAssertions == Boolean.TRUE)
+				.classDataSharing(
+						Optional.ofNullable(classDataSharing).orElse(false))
+				.debugString(debugString)
+				.flightRecorderString(flightRecorderString);
 	}
 
 	private JshCmdGenerator createJshCmdGenerator() {
 		return new JshCmdGenerator(ctx)
-										.arguments(arguments)
-										.runtimeOptions(runtimeOptions)
-										.mainClass(mainClass)
-										.interactive(interactive == Boolean.TRUE)
-										.debugString(debugString)
-										.flightRecorderString(flightRecorderString);
+				.arguments(arguments)
+				.runtimeOptions(runtimeOptions)
+				.mainClass(mainClass)
+				.interactive(interactive == Boolean.TRUE)
+				.debugString(debugString)
+				.flightRecorderString(flightRecorderString);
 	}
 
 	private NativeCmdGenerator createNativeCmdGenerator() {
 		return new NativeCmdGenerator(ctx, createJarCmdGenerator())
-																	.arguments(arguments);
+				.arguments(arguments);
 	}
 
 	private void updateFromAlias(Alias alias) {

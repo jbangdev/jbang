@@ -88,9 +88,9 @@ public class JdkManager {
 	public static void initProviders(List<JdkProvider> provs) {
 		providers = provs;
 		if (Util.isVerbose()) {
-			Util.verboseMsg("Using JDK provider(s): " + providers	.stream()
-																	.map(p -> p.getClass().getSimpleName())
-																	.collect(Collectors.joining(", ")));
+			Util.verboseMsg("Using JDK provider(s): " + providers.stream()
+					.map(p -> p.getClass().getSimpleName())
+					.collect(Collectors.joining(", ")));
 		}
 	}
 
@@ -316,12 +316,12 @@ public class JdkManager {
 	 */
 	@Nullable
 	private static JdkProvider.Jdk getInstalledJdkByVersion(int version, boolean openVersion, boolean updatableOnly) {
-		return providers()	.stream()
-							.filter(p -> !updatableOnly || p.canUpdate())
-							.map(p -> p.getJdkByVersion(version, openVersion))
-							.filter(Objects::nonNull)
-							.findFirst()
-							.orElse(null);
+		return providers().stream()
+				.filter(p -> !updatableOnly || p.canUpdate())
+				.map(p -> p.getJdkByVersion(version, openVersion))
+				.filter(Objects::nonNull)
+				.findFirst()
+				.orElse(null);
 	}
 
 	/**
@@ -334,12 +334,12 @@ public class JdkManager {
 	 */
 	@Nullable
 	private static JdkProvider.Jdk getInstalledJdkById(String requestedId, boolean updatableOnly) {
-		return providers()	.stream()
-							.filter(p -> !updatableOnly || p.canUpdate())
-							.map(p -> p.getJdkById(requestedId))
-							.filter(Objects::nonNull)
-							.findFirst()
-							.orElse(null);
+		return providers().stream()
+				.filter(p -> !updatableOnly || p.canUpdate())
+				.map(p -> p.getJdkById(requestedId))
+				.filter(Objects::nonNull)
+				.findFirst()
+				.orElse(null);
 	}
 
 	@Nonnull
@@ -371,8 +371,8 @@ public class JdkManager {
 			// be causing all kinds of trouble
 			try {
 				Path jdkTmpDir = jdk.getHome()
-									.getParent()
-									.resolve("_delete_me_" + jdk.getHome().getFileName().toString());
+						.getParent()
+						.resolve("_delete_me_" + jdk.getHome().getFileName().toString());
 				Files.move(jdk.getHome(), jdkTmpDir);
 				Files.move(jdkTmpDir, jdk.getHome());
 			} catch (IOException ex) {
@@ -454,10 +454,10 @@ public class JdkManager {
 	 */
 	private static Optional<JdkProvider.Jdk> nextInstalledJdk(int minVersion, boolean updatableOnly) {
 		return listInstalledJdks()
-									.stream()
-									.filter(jdk -> !updatableOnly || jdk.getProvider().canUpdate())
-									.filter(jdk -> jdk.getMajorVersion() >= minVersion)
-									.min(JdkProvider.Jdk::compareTo);
+				.stream()
+				.filter(jdk -> !updatableOnly || jdk.getProvider().canUpdate())
+				.filter(jdk -> jdk.getMajorVersion() >= minVersion)
+				.min(JdkProvider.Jdk::compareTo);
 	}
 
 	/**
@@ -471,23 +471,23 @@ public class JdkManager {
 	 */
 	private static Optional<JdkProvider.Jdk> prevInstalledJdk(int maxVersion, boolean updatableOnly) {
 		return listInstalledJdks()
-									.stream()
-									.filter(jdk -> !updatableOnly || jdk.getProvider().canUpdate())
-									.filter(jdk -> jdk.getMajorVersion() <= maxVersion)
-									.min(JdkProvider.Jdk::compareTo);
+				.stream()
+				.filter(jdk -> !updatableOnly || jdk.getProvider().canUpdate())
+				.filter(jdk -> jdk.getMajorVersion() <= maxVersion)
+				.min(JdkProvider.Jdk::compareTo);
 	}
 
 	public static List<JdkProvider.Jdk> listAvailableJdks() {
-		return updatableProviders()	.stream()
-									.flatMap(p -> p.listAvailable().stream())
-									.collect(Collectors.toList());
+		return updatableProviders().stream()
+				.flatMap(p -> p.listAvailable().stream())
+				.collect(Collectors.toList());
 	}
 
 	public static List<JdkProvider.Jdk> listInstalledJdks() {
-		return providers()	.stream()
-							.flatMap(p -> p.listInstalled().stream())
-							.sorted()
-							.collect(Collectors.toList());
+		return providers().stream()
+				.flatMap(p -> p.listInstalled().stream())
+				.sorted()
+				.collect(Collectors.toList());
 	}
 
 	@Nullable
