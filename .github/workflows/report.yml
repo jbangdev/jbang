@@ -38,7 +38,7 @@ jobs:
           echo "The PR number is: ${{ env.pr_number }}"
 
       - name: Download Test Report
-        uses: actions/download-artifact@v4 # v2
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
         with:
           name: junit-test-results-*
           #path: test-${{ matrix.os }}
