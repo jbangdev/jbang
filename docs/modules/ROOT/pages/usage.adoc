@@ -290,7 +290,6 @@ You have 1 arguments! First is YOLO!%
 Jython scripts occasionally require JAR files from Maven Central.
 Unlike Groovy, Jython lacks a built-in mechanism to resolve external dependencies.
 However, one can bootstrap a Jython script along with its Maven dependencies using JBang.
-The technique illustrated below ensure that Jython can seamlessly access the Maven dependencies.
 
 === Step 1 - create file Jython.java
 
