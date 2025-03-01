@@ -32,10 +32,10 @@ openitest:
 
 # tag minor
 tagminor:
-    git commit --allow-empty -m "[minor] relase"
+    git commit --allow-empty -m "[minor] release"
     ./gradlew tag
 
 tagpatch:
-    git commit --allow-empty -m "[patch] relase"
+    git commit --allow-empty -m "[patch] release"
     ./gradlew tag
 
