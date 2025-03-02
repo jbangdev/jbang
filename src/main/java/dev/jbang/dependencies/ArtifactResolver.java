@@ -138,7 +138,10 @@ public class ArtifactResolver implements Closeable {
 		}
 
 		this.downloadSources = builder.downloadSources;
-		final RepositoryListener listener = builder.loggingEnabled ? setupSessionLogging() : null;
+
+		ProgressBarTransferListener pblistener = new ProgressBarTransferListener();
+
+		final RepositoryListener listener = builder.loggingEnabled ? setupSessionLogging(pblistener) : null;
 
 		ContextOverrides.Builder overridesBuilder = ContextOverrides.create()
 																	.userProperties(userProperties)
@@ -158,7 +161,8 @@ public class ArtifactResolver implements Closeable {
 																	.snapshotUpdatePolicy(builder.updateCache
 																			? ContextOverrides.SnapshotUpdatePolicy.ALWAYS
 																			: null)
-																	.repositoryListener(listener);
+																	.repositoryListener(listener)
+																	.transferListener(pblistener);
 
 		overridesBuilder.extraArtifactTypes(
 				Collections.singletonList(new DefaultArtifactType("fatjar", "jar", null, "java", true, true)));
@@ -244,7 +248,7 @@ public class ArtifactResolver implements Closeable {
 		}
 	}
 
-	private AbstractRepositoryListener setupSessionLogging() {
+	private AbstractRepositoryListener setupSessionLogging(final ProgressBarTransferListener pblistener) {
 		return new AbstractRepositoryListener() {
 
 			@Override
@@ -303,6 +307,7 @@ public class ArtifactResolver implements Closeable {
 							infoMsg("   " + coord);
 						}
 						printed.add(id);
+						pblistener.next(id);
 					}
 				}
 			}
