@@ -17,7 +17,7 @@ public class Settings {
 
 	public static final String TRUSTED_SOURCES_JSON = "trusted-sources.json";
 	public static final String DEPENDENCY_CACHE_JSON = "dependency_cache.json";
-	public static final String CURRENT_JDK = "currentjdk";
+	public static final String DEFAULT_JDK = "currentjdk";
 	public static final String JBANG_DOT_DIR = ".jbang";
 	public static final String BIN_DIR = "bin";
 	public static final String EDITOR_DIR = "editor";
@@ -68,8 +68,8 @@ public class Settings {
 		return getConfigDir(true);
 	}
 
-	public static Path getCurrentJdkDir() {
-		return getConfigDir(true).resolve(CURRENT_JDK);
+	public static Path getDefaultJdkDir() {
+		return getConfigDir(true).resolve(DEFAULT_JDK);
 	}
 
 	public static Path getConfigBinDir() {
