@@ -184,12 +184,12 @@ public class TestEdit extends BaseTest {
 		assert (Files.exists(gradle));
 		assertThat(Util.readString(gradle), not(containsString("bogus")));
 
-		Arrays	.asList("one.java", "Two.java", "gh_fetch_release_assets.java", "gh_release_stats.java")
-				.forEach(f -> {
-					Path java = project.resolve("src/" + f);
+		Arrays.asList("one.java", "Two.java", "gh_fetch_release_assets.java", "gh_release_stats.java")
+			.forEach(f -> {
+				Path java = project.resolve("src/" + f);
 
-					assertThat(f + " not found", java.toFile(), aReadableFile());
-				});
+				assertThat(f + " not found", java.toFile(), aReadableFile());
+			});
 	}
 
 	@Test
@@ -227,12 +227,12 @@ public class TestEdit extends BaseTest {
 		assert (Files.exists(gradle));
 		assertThat(Util.readString(gradle), not(containsString("bogus")));
 
-		Arrays	.asList("resource.java", "resource.properties", "renamed.properties", "META-INF/application.properties")
-				.forEach(f -> {
-					Path java = project.resolve("src/" + f);
+		Arrays.asList("resource.java", "resource.properties", "renamed.properties", "META-INF/application.properties")
+			.forEach(f -> {
+				Path java = project.resolve("src/" + f);
 
-					assertThat(f + " not found", java.toFile(), aReadableFile());
-				});
+				assertThat(f + " not found", java.toFile(), aReadableFile());
+			});
 	}
 
 	/*
