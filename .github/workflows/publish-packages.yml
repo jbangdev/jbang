@@ -95,7 +95,7 @@ jobs:
         with:
           name: build-choco
           path: build/choco
-      - uses: actions/setup-dotnet@71a4fd9b27383962fc5df13a9c871636b43199b4 # v1
+      - uses: actions/setup-dotnet@871f041373faaad213a635d9afb62905ec029bbb # v1
         with:
           dotnet-version: '2.2.204' # SDK Version to use.
       - name: choco-build
