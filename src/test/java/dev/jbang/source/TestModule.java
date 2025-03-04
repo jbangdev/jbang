@@ -174,8 +174,8 @@ public class TestModule extends BaseTest {
 		Util.writeString(mi, "FAKE MODULE INFO");
 
 		ProjectBuilder pb = Project.builder()
-				.mainClass("test.moduletest")
-				.additionalSources(Collections.singletonList(mi.toString()));
+			.mainClass("test.moduletest")
+			.additionalSources(Collections.singletonList(mi.toString()));
 		Project prj = pb.build(f);
 		BuildContext ctx = BuildContext.forProject(prj);
 

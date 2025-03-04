@@ -20,9 +20,9 @@ public class DependencyResolver {
 
 	public DependencyResolver addRepository(MavenRepo repository) {
 		MavenRepo repo = repositories.stream()
-				.filter(r -> r.getId().equals(repository.getId()))
-				.findFirst()
-				.orElse(null);
+			.filter(r -> r.getId().equals(repository.getId()))
+			.findFirst()
+			.orElse(null);
 		if (repo != null && !repo.getUrl().equals(repository.getUrl())) {
 			throw new IllegalArgumentException("Repository with duplicate id and different url: "
 					+ repository + " vs " + repo);
@@ -72,10 +72,10 @@ public class DependencyResolver {
 		} else {
 			// WARN need File here because it's more lenient about paths than Path!
 			Stream<ArtifactInfo> cpas = classPaths
-					.stream()
-					.map(p -> new ArtifactInfo(null, new File(p).toPath()));
+				.stream()
+				.map(p -> new ArtifactInfo(null, new File(p).toPath()));
 			List<ArtifactInfo> arts = Stream.concat(mcp.getArtifacts().stream(), cpas)
-					.collect(Collectors.toList());
+				.collect(Collectors.toList());
 			return new ModularClassPath(arts);
 		}
 	}

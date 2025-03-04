@@ -156,9 +156,9 @@ public class TestExport extends BaseTest {
 				anExistingFile());
 
 		Files.walk(outFile.resolve("g"))
-				.sorted(Comparator.reverseOrder())
-				.map(Path::toFile)
-				.forEach(File::delete);
+			.sorted(Comparator.reverseOrder())
+			.map(Path::toFile)
+			.forEach(File::delete);
 
 	}
 

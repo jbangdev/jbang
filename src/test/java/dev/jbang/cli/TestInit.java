@@ -108,11 +108,11 @@ public class TestInit extends BaseTest {
 		Path x = outputDir.resolve("sqlline.java");
 		String s = x.toString();
 		int result = JBang.getCommandLine()
-				.execute(
-						"init",
-						"--deps", "org.hsqldb:hsqldb:2.5.0,net.hydromatic:foodmart-data-hsqldb:0.4",
-						"--deps", "org.another.company:dep:0.1",
-						s);
+			.execute(
+					"init",
+					"--deps", "org.hsqldb:hsqldb:2.5.0,net.hydromatic:foodmart-data-hsqldb:0.4",
+					"--deps", "org.another.company:dep:0.1",
+					s);
 		assertThat(result, is(0));
 		assertThat(new File(s).exists(), is(true));
 		final String fileContent = Util.readString(x);
@@ -218,13 +218,13 @@ public class TestInit extends BaseTest {
 		Path f3 = Files.createFile(tplDir.resolve("file3.md"));
 		if (abs) {
 			int addResult = JBang.getCommandLine()
-					.execute("template", "add", "-f", cwd.toString(), "--name=name",
-							targetName + "=" + f1.toString(), f2.toString(), f3.toString());
+				.execute("template", "add", "-f", cwd.toString(), "--name=name",
+						targetName + "=" + f1.toString(), f2.toString(), f3.toString());
 			assertThat(addResult, is(0));
 		} else {
 			int addResult = JBang.getCommandLine()
-					.execute("template", "add", "-f", cwd.toString(), "--name=name",
-							targetName + "=tpl/file1.java", "tpl/file2.java.qute", "tpl/file3.md");
+				.execute("template", "add", "-f", cwd.toString(), "--name=name",
+						targetName + "=tpl/file1.java", "tpl/file2.java.qute", "tpl/file3.md");
 			assertThat(addResult, is(0));
 		}
 		Path appDir = Files.createDirectory(cwd.resolve("app"));
@@ -257,14 +257,14 @@ public class TestInit extends BaseTest {
 		Path out = cwd.resolve("result.java");
 
 		JBang.getCommandLine()
-				.execute("template", "add", "-f", cwd.toString(), "--name=name",
-						"{filename}" + "=" + f1.toAbsolutePath().toString());
+			.execute("template", "add", "-f", cwd.toString(), "--name=name",
+					"{filename}" + "=" + f1.toAbsolutePath().toString());
 
 		assertThat(out.toFile().exists(), not(true));
 
 		int result = JBang.getCommandLine()
-				.execute("init", "--verbose", "--template=name", "-Dprop1=propvalue", "-Dprop2=rocks",
-						out.toAbsolutePath().toString());
+			.execute("init", "--verbose", "--template=name", "-Dprop1=propvalue", "-Dprop2=rocks",
+					out.toAbsolutePath().toString());
 
 		assertThat(result, is(0));
 		assertThat(out.toFile().exists(), is(true));
@@ -281,14 +281,14 @@ public class TestInit extends BaseTest {
 		Path out = cwd.resolve("result.java");
 
 		JBang.getCommandLine()
-				.execute("template", "add", "-f", cwd.toString(), "--name=name", "-P=prop1::my-test-default-value",
-						"{filename}" + "=" + f1.toAbsolutePath().toString());
+			.execute("template", "add", "-f", cwd.toString(), "--name=name", "-P=prop1::my-test-default-value",
+					"{filename}" + "=" + f1.toAbsolutePath().toString());
 
 		assertThat(out.toFile().exists(), not(true));
 
 		int result = JBang.getCommandLine()
-				.execute("init", "--verbose", "--template=name",
-						out.toAbsolutePath().toString());
+			.execute("init", "--verbose", "--template=name",
+					out.toAbsolutePath().toString());
 
 		assertThat(result, is(0));
 		assertThat(out.toFile().exists(), is(true));
@@ -305,14 +305,14 @@ public class TestInit extends BaseTest {
 		Path out = cwd.resolve("result.java");
 
 		JBang.getCommandLine()
-				.execute("template", "add", "-f", cwd.toString(), "--name=name", "-P=prop1::",
-						"{filename}" + "=" + f1.toAbsolutePath().toString());
+			.execute("template", "add", "-f", cwd.toString(), "--name=name", "-P=prop1::",
+					"{filename}" + "=" + f1.toAbsolutePath().toString());
 
 		assertThat(out.toFile().exists(), not(true));
 
 		int result = JBang.getCommandLine()
-				.execute("init", "--verbose", "--template=name",
-						out.toAbsolutePath().toString());
+			.execute("init", "--verbose", "--template=name",
+					out.toAbsolutePath().toString());
 
 		assertThat(result, is(0));
 		assertThat(out.toFile().exists(), is(true));
@@ -329,8 +329,8 @@ public class TestInit extends BaseTest {
 		Path out = cwd.resolve("result.java");
 
 		JBang.getCommandLine()
-				.execute("template", "add", "-f", cwd.toString(), "--name=name", "-P=prop1::my-test-default-value",
-						"{filename}" + "=" + f1.toAbsolutePath().toString());
+			.execute("template", "add", "-f", cwd.toString(), "--name=name", "-P=prop1::my-test-default-value",
+					"{filename}" + "=" + f1.toAbsolutePath().toString());
 
 		assertThat(out.toFile().exists(), not(true));
 

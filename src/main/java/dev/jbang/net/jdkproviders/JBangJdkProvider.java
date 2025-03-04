@@ -79,25 +79,25 @@ public class JBangJdkProvider extends BaseFoldersJdkProvider {
 	// the same major version exists
 	private List<JdkResult> filterEA(List<JdkResult> jdks) {
 		Set<Integer> GAs = jdks
-				.stream()
-				.filter(jdk -> jdk.release_status.equals("ga"))
-				.map(jdk -> jdk.major_version)
-				.collect(Collectors.toSet());
+			.stream()
+			.filter(jdk -> jdk.release_status.equals("ga"))
+			.map(jdk -> jdk.major_version)
+			.collect(Collectors.toSet());
 
 		JdkResult[] lastJdk = new JdkResult[] { null };
 		return jdks
-				.stream()
-				.filter(jdk -> {
-					if (lastJdk[0] == null
-							|| lastJdk[0].major_version != jdk.major_version
-									&& (jdk.release_status.equals("ga") || !GAs.contains(jdk.major_version))) {
-						lastJdk[0] = jdk;
-						return true;
-					} else {
-						return false;
-					}
-				})
-				.collect(Collectors.toList());
+			.stream()
+			.filter(jdk -> {
+				if (lastJdk[0] == null
+						|| lastJdk[0].major_version != jdk.major_version
+								&& (jdk.release_status.equals("ga") || !GAs.contains(jdk.major_version))) {
+					lastJdk[0] = jdk;
+					return true;
+				} else {
+					return false;
+				}
+			})
+			.collect(Collectors.toList());
 	}
 
 	@Nullable

@@ -25,10 +25,10 @@ public abstract class BaseFoldersJdkProvider implements JdkProvider {
 		if (Files.isDirectory(getJdksRoot())) {
 			try (Stream<Path> jdkPaths = listJdkPaths()) {
 				return jdkPaths
-						.map(this::createJdk)
-						.filter(Objects::nonNull)
-						.sorted(Jdk::compareTo)
-						.collect(Collectors.toList());
+					.map(this::createJdk)
+					.filter(Objects::nonNull)
+					.sorted(Jdk::compareTo)
+					.collect(Collectors.toList());
 			} catch (IOException e) {
 				Util.verboseMsg("Couldn't list installed JDKs", e);
 			}
@@ -42,11 +42,11 @@ public abstract class BaseFoldersJdkProvider implements JdkProvider {
 		if (isValidId(id)) {
 			try (Stream<Path> jdkPaths = listJdkPaths()) {
 				return jdkPaths
-						.filter(p -> jdkId(p.getFileName().toString()).equals(id))
-						.map(this::createJdk)
-						.filter(Objects::nonNull)
-						.findFirst()
-						.orElse(null);
+					.filter(p -> jdkId(p.getFileName().toString()).equals(id))
+					.map(this::createJdk)
+					.filter(Objects::nonNull)
+					.findFirst()
+					.orElse(null);
 			} catch (IOException e) {
 				Util.verboseMsg("Couldn't list installed JDKs", e);
 			}
@@ -60,11 +60,11 @@ public abstract class BaseFoldersJdkProvider implements JdkProvider {
 		if (jdkPath.startsWith(getJdksRoot())) {
 			try (Stream<Path> jdkPaths = listJdkPaths()) {
 				return jdkPaths
-						.filter(jdkPath::startsWith)
-						.map(this::createJdk)
-						.filter(Objects::nonNull)
-						.findFirst()
-						.orElse(null);
+					.filter(jdkPath::startsWith)
+					.map(this::createJdk)
+					.filter(Objects::nonNull)
+					.findFirst()
+					.orElse(null);
 			} catch (IOException e) {
 				Util.verboseMsg("Couldn't list installed JDKs", e);
 			}

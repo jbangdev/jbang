@@ -131,9 +131,9 @@ abstract class BaseInfoCommand extends BaseCommand {
 					resolvedDependencies = Collections.emptyList();
 				} else {
 					resolvedDependencies = artifacts
-							.stream()
-							.map(a -> a.getFile().toString())
-							.collect(Collectors.toList());
+						.stream()
+						.map(a -> a.getFile().toString())
+						.collect(Collectors.toList());
 				}
 
 				if (prj.getJavaVersion() != null) {
@@ -163,18 +163,18 @@ abstract class BaseInfoCommand extends BaseCommand {
 			if (prj.getMainSource() == null) {
 				if (!prj.getRepositories().isEmpty()) {
 					repositories = prj.getRepositories()
-							.stream()
-							.map(Repo::new)
-							.collect(Collectors.toList());
+						.stream()
+						.map(Repo::new)
+						.collect(Collectors.toList());
 				}
 			} else {
 				init(prj.getMainSourceSet());
 			}
 			if (!prj.getRepositories().isEmpty()) {
 				repositories = prj.getRepositories()
-						.stream()
-						.map(Repo::new)
-						.collect(Collectors.toList());
+					.stream()
+					.map(Repo::new)
+					.collect(Collectors.toList());
 			}
 			gav = prj.getGav().orElse(null);
 			description = prj.getDescription().orElse(null);
@@ -189,14 +189,14 @@ abstract class BaseInfoCommand extends BaseCommand {
 			List<RefTarget> refs = ss.getResources();
 			if (!refs.isEmpty()) {
 				files = refs.stream()
-						.map(ProjectFile::new)
-						.collect(Collectors.toList());
+					.map(ProjectFile::new)
+					.collect(Collectors.toList());
 			}
 			List<ResourceRef> srcs = ss.getSources();
 			if (!srcs.isEmpty()) {
 				sources = srcs.stream()
-						.map(ProjectFile::new)
-						.collect(Collectors.toList());
+					.map(ProjectFile::new)
+					.collect(Collectors.toList());
 			}
 			if (!ss.getCompileOptions().isEmpty()) {
 				compileOptions = ss.getCompileOptions();
@@ -220,16 +220,16 @@ abstract class BaseInfoCommand extends BaseCommand {
 
 	ProjectBuilder createProjectBuilder() {
 		return Project
-				.builder()
-				.setProperties(dependencyInfoMixin.getProperties())
-				.additionalDependencies(dependencyInfoMixin.getDependencies())
-				.additionalRepositories(dependencyInfoMixin.getRepositories())
-				.additionalClasspaths(dependencyInfoMixin.getClasspaths())
-				.additionalSources(scriptMixin.sources)
-				.additionalResources(scriptMixin.resources)
-				.forceType(scriptMixin.forceType)
-				.moduleName(module)
-				.catalog(scriptMixin.catalog);
+			.builder()
+			.setProperties(dependencyInfoMixin.getProperties())
+			.additionalDependencies(dependencyInfoMixin.getDependencies())
+			.additionalRepositories(dependencyInfoMixin.getRepositories())
+			.additionalClasspaths(dependencyInfoMixin.getClasspaths())
+			.additionalSources(scriptMixin.sources)
+			.additionalResources(scriptMixin.resources)
+			.forceType(scriptMixin.forceType)
+			.moduleName(module)
+			.catalog(scriptMixin.catalog);
 	}
 
 }

@@ -279,7 +279,7 @@ class TestJdk extends BaseTest {
 		initMockJdkDir(javaDir.toPath(), "11.0.14");
 		final Path jdkPath = JBangJdkProvider.getJdksPath();
 		Arrays.asList(11)
-				.forEach(this::createMockJdk);
+			.forEach(this::createMockJdk);
 
 		CaptureResult result = checkedRun(jdk -> {
 			try {

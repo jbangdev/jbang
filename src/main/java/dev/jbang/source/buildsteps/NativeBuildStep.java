@@ -71,9 +71,9 @@ public class NativeBuildStep implements Builder<Project> {
 		Util.verboseMsg("native-image: " + String.join(" ", optionList));
 
 		ProcessBuilder pb = CommandBuffer.of(optionList)
-				.applyWindowsMaxLengthLimit(32000, Util.getShell())
-				.asProcessBuilder()
-				.inheritIO();
+			.applyWindowsMaxLengthLimit(32000, Util.getShell())
+			.asProcessBuilder()
+			.inheritIO();
 
 		// Redirect the output of the native builder to a file
 		Path nilog = Files.createTempFile("jbang", "native-image");

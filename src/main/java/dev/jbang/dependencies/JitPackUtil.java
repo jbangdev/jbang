@@ -48,9 +48,9 @@ public class JitPackUtil {
 						JitPackUtil::gitlabTreeUrlToGAV,
 						JitPackUtil::bitbucketCommitUrlToGAV,
 						JitPackUtil::bitbucketTreeUrlToGAV)
-						.map(f -> f.apply(actualRef))
-						.filter(Objects::nonNull)
-						.findFirst();
+					.map(f -> f.apply(actualRef))
+					.filter(Objects::nonNull)
+					.findFirst();
 
 				if (coords.isPresent()) {
 					if (hash != null) {

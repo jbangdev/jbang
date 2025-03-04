@@ -143,9 +143,9 @@ public class JavaUtil {
 	public static Optional<String> readJavaVersionStringFromReleaseFile(Path home) {
 		try (Stream<String> lines = Files.lines(home.resolve("release"))) {
 			return lines
-					.filter(l -> l.startsWith("JAVA_VERSION=") || l.startsWith("JAVA_RUNTIME_VERSION="))
-					.map(JavaUtil::parseJavaOutput)
-					.findAny();
+				.filter(l -> l.startsWith("JAVA_VERSION=") || l.startsWith("JAVA_RUNTIME_VERSION="))
+				.map(JavaUtil::parseJavaOutput)
+				.findAny();
 		} catch (IOException e) {
 			Util.verboseMsg("Unable to read 'release' file in path: " + home);
 			return Optional.empty();

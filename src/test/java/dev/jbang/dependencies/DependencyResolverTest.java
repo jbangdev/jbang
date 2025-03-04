@@ -120,10 +120,10 @@ class DependencyResolverTest extends BaseTest {
 	void testResolveDependenciesAltRepo(@TempDir File altrepo) {
 		List<String> deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
 		List<ArtifactInfo> artifacts = ArtifactResolver.Builder
-				.create()
-				.localFolder(altrepo.toPath())
-				.build()
-				.resolve(deps);
+			.create()
+			.localFolder(altrepo.toPath())
+			.build()
+			.resolve(deps);
 		assertEquals(2, artifacts.size());
 		assertThat(altrepo.listFiles(), arrayWithSize(4));
 	}
@@ -187,7 +187,7 @@ class DependencyResolverTest extends BaseTest {
 
 		ModularClassPath cp = new ModularClassPath(
 				DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false, false, true, false)
-						.getArtifacts()) {
+					.getArtifacts()) {
 			@Override
 			protected boolean supportsModules(JdkProvider.Jdk jdk) {
 				return true;
@@ -229,27 +229,27 @@ class DependencyResolverTest extends BaseTest {
 				true, false);
 
 		Optional<ArtifactInfo> coord = classpath.getArtifacts()
-				.stream()
-				.filter(ai -> ai.getCoordinate()
-						.toCanonicalForm()
-						.startsWith("io.vertx:vertx-core"))
-				.findFirst();
+			.stream()
+			.filter(ai -> ai.getCoordinate()
+				.toCanonicalForm()
+				.startsWith("io.vertx:vertx-core"))
+			.findFirst();
 
 		assertEquals("4.2.3", coord.get().getCoordinate().getVersion());
 
 		coord = classpath.getArtifacts()
-				.stream()
-				.filter(ai -> ai.getCoordinate().toCanonicalForm().startsWith("org.slf4j:slf4j-simple:"))
-				.findFirst();
+			.stream()
+			.filter(ai -> ai.getCoordinate().toCanonicalForm().startsWith("org.slf4j:slf4j-simple:"))
+			.findFirst();
 
 		assertEquals("1.7.30", coord.get().getCoordinate().getVersion());
 
 		coord = classpath.getArtifacts()
-				.stream()
-				.filter(ai -> ai.getCoordinate()
-						.toCanonicalForm()
-						.startsWith("org.apache.camel:camel-vertx"))
-				.findFirst();
+			.stream()
+			.filter(ai -> ai.getCoordinate()
+				.toCanonicalForm()
+				.startsWith("org.apache.camel:camel-vertx"))
+			.findFirst();
 
 		assertEquals(coord.get().getCoordinate().getVersion(), "3.9.0");
 
@@ -261,9 +261,9 @@ class DependencyResolverTest extends BaseTest {
 		classpath = DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false, false, true, false);
 
 		coord = classpath.getArtifacts()
-				.stream()
-				.filter(ai -> ai.getCoordinate().toCanonicalForm().startsWith("io.vertx:vertx-core"))
-				.findFirst();
+			.stream()
+			.filter(ai -> ai.getCoordinate().toCanonicalForm().startsWith("io.vertx:vertx-core"))
+			.findFirst();
 
 		assertEquals("3.9.5", coord.get().getCoordinate().getVersion());
 	}

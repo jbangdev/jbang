@@ -141,24 +141,24 @@ public class ArtifactResolver implements Closeable {
 		final RepositoryListener listener = builder.loggingEnabled ? setupSessionLogging() : null;
 
 		ContextOverrides.Builder overridesBuilder = ContextOverrides.create()
-				.userProperties(userProperties)
-				.offline(builder.offline)
-				.ignoreArtifactDescriptorRepositories(
-						builder.ignoreTransitiveRepositories)
-				.withUserSettings(builder.withUserSettings)
-				.withUserSettingsXmlOverride(builder.settingsXml)
-				.withLocalRepositoryOverride(builder.localFolder)
-				.repositories(partialRepos) // set reposes
-											// explicitly, jbang
-											// drives
-				.addRepositoriesOp(
-						ContextOverrides.AddRepositoriesOp.REPLACE) // ignore
-																	// settings.xml
-																	// reposes
-				.snapshotUpdatePolicy(builder.updateCache
-						? ContextOverrides.SnapshotUpdatePolicy.ALWAYS
-						: null)
-				.repositoryListener(listener);
+			.userProperties(userProperties)
+			.offline(builder.offline)
+			.ignoreArtifactDescriptorRepositories(
+					builder.ignoreTransitiveRepositories)
+			.withUserSettings(builder.withUserSettings)
+			.withUserSettingsXmlOverride(builder.settingsXml)
+			.withLocalRepositoryOverride(builder.localFolder)
+			.repositories(partialRepos) // set reposes
+										// explicitly, jbang
+										// drives
+			.addRepositoriesOp(
+					ContextOverrides.AddRepositoriesOp.REPLACE) // ignore
+																// settings.xml
+																// reposes
+			.snapshotUpdatePolicy(builder.updateCache
+					? ContextOverrides.SnapshotUpdatePolicy.ALWAYS
+					: null)
+			.repositoryListener(listener);
 
 		overridesBuilder.extraArtifactTypes(
 				Collections.singletonList(new DefaultArtifactType("fatjar", "jar", null, "java", true, true)));
@@ -174,14 +174,9 @@ public class ArtifactResolver implements Closeable {
 	public void downloadSources(Artifact artifact) {
 		try {
 			context.repositorySystem()
-					.resolveArtifact(context.repositorySystemSession(), new ArtifactRequest()
-							.setArtifact(
-									new SubArtifact(
-											artifact,
-											"sources",
-											"jar"))
-							.setRepositories(
-									context.remoteRepositories()));
+				.resolveArtifact(context.repositorySystemSession(), new ArtifactRequest()
+					.setArtifact(new SubArtifact(artifact, "sources", "jar"))
+					.setRepositories(context.remoteRepositories()));
 		} catch (ArtifactResolutionException e) {
 			Util.verboseMsg("Could not resolve sources for " + artifact.toString());
 		}
@@ -196,34 +191,34 @@ public class ArtifactResolver implements Closeable {
 		strictSession.setArtifactDescriptorPolicy(new SimpleArtifactDescriptorPolicy(false, false));
 		try {
 			Map<String, List<Dependency>> scopeDeps = depIds.stream()
-					.map(coord -> toDependency(toArtifact(coord)))
-					.collect(Collectors.groupingBy(Dependency::getScope));
+				.map(coord -> toDependency(toArtifact(coord)))
+				.collect(Collectors.groupingBy(Dependency::getScope));
 
 			List<Dependency> deps = scopeDeps.getOrDefault(JavaScopes.COMPILE, Collections.emptyList());
 			List<Dependency> managedDeps = deps.stream()
-					.flatMap(d -> getManagedDependencies(strictSession, d).stream())
-					.collect(Collectors.toList());
+				.flatMap(d -> getManagedDependencies(strictSession, d).stream())
+				.collect(Collectors.toList());
 
 			if (scopeDeps.containsKey("import")) {
 				// If there are any @pom artifacts we'll apply their
 				// managed dependencies to the given dependencies BEFORE ordinary deps
 				List<Dependency> boms = scopeDeps.getOrDefault("import", Collections.emptyList());
 				List<Dependency> mdeps = boms.stream()
-						.flatMap(d -> getManagedDependencies(strictSession, d).stream())
-						.collect(Collectors.toList());
+					.flatMap(d -> getManagedDependencies(strictSession, d).stream())
+					.collect(Collectors.toList());
 				deps = deps.stream().map(d -> applyManagedDependencies(d, mdeps)).collect(Collectors.toList());
 				managedDeps.addAll(0, mdeps);
 			}
 
 			CollectRequest collectRequest = new CollectRequest()
-					.setManagedDependencies(managedDeps)
-					.setDependencies(deps)
-					.setRepositories(context.remoteRepositories());
+				.setManagedDependencies(managedDeps)
+				.setDependencies(deps)
+				.setRepositories(context.remoteRepositories());
 
 			DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, null);
 			DependencyResult dependencyResult = context.repositorySystem()
-					.resolveDependencies(context.repositorySystemSession(),
-							dependencyRequest);
+				.resolveDependencies(context.repositorySystemSession(),
+						dependencyRequest);
 			List<ArtifactResult> artifacts = dependencyResult.getArtifactResults();
 
 			if (downloadSources) {
@@ -231,14 +226,14 @@ public class ArtifactResolver implements Closeable {
 			}
 
 			return artifacts.stream()
-					.map(ar -> {
-						if (downloadSources) {
-							downloadSources(ar.getArtifact());
-						}
-						return ar.getArtifact();
-					})
-					.map(ArtifactResolver::toArtifactInfo)
-					.collect(Collectors.toList());
+				.map(ar -> {
+					if (downloadSources) {
+						downloadSources(ar.getArtifact());
+					}
+					return ar.getArtifact();
+				})
+				.map(ArtifactResolver::toArtifactInfo)
+				.collect(Collectors.toList());
 		} catch (DependencyResolutionException ex) {
 			throw new ExitException(1, "Could not resolve dependencies: " + ex.getMessage(), ex);
 		}
@@ -288,9 +283,9 @@ public class ArtifactResolver implements Closeable {
 					return;
 				}
 				Set<String> ids = (Set<String>) session.getData()
-						.computeIfAbsent("ids", () -> new HashSet<>(depIds));
+					.computeIfAbsent("ids", () -> new HashSet<>(depIds));
 				Set<String> printed = (Set<String>) session.getData()
-						.computeIfAbsent("printed", () -> new HashSet<>());
+					.computeIfAbsent("printed", () -> new HashSet<>());
 
 				String id = coord(groupId, artId, null, null, classifier);
 				if (!printed.contains(id)) {
@@ -328,10 +323,10 @@ public class ArtifactResolver implements Closeable {
 		Artifact art = d.getArtifact();
 		if (art.getVersion().isEmpty()) {
 			Optional<Artifact> ma = managedDeps.stream()
-					.map(Dependency::getArtifact)
-					.filter(a -> a.getGroupId().equals(art.getGroupId())
-							&& a.getArtifactId().equals(art.getArtifactId()))
-					.findFirst();
+				.map(Dependency::getArtifact)
+				.filter(a -> a.getGroupId().equals(art.getGroupId())
+						&& a.getArtifactId().equals(art.getArtifactId()))
+				.findFirst();
 			if (ma.isPresent()) {
 				return new Dependency(ma.get(), d.getScope(), d.getOptional(), d.getExclusions());
 			}
@@ -352,24 +347,24 @@ public class ArtifactResolver implements Closeable {
 			// one must resolve version, as it may be range; reading descriptor is possible
 			// only from exact versions
 			VersionRangeRequest versionRangeRequest = new VersionRangeRequest().setArtifact(artifact)
-					.setRepositories(
-							context.remoteRepositories());
+				.setRepositories(
+						context.remoteRepositories());
 			VersionRangeResult versionRangeResult = context.repositorySystem()
-					.resolveVersionRange(session, versionRangeRequest);
+				.resolveVersionRange(session, versionRangeRequest);
 			if (versionRangeResult.getVersions().isEmpty()) {
 				throw new ExitException(1, "Could not resolve version range: " + artifact);
 			}
 			String version = versionRangeResult.getVersions()
-					.get(versionRangeResult.getVersions().size() - 1)
-					.toString();
+				.get(versionRangeResult.getVersions().size() - 1)
+				.toString();
 			ArtifactDescriptorRequest descriptorRequest = new ArtifactDescriptorRequest()
-					.setArtifact(
-							artifact.setVersion(
-									version))
-					.setRepositories(
-							context.remoteRepositories());
+				.setArtifact(
+						artifact.setVersion(
+								version))
+				.setRepositories(
+						context.remoteRepositories());
 			return context.repositorySystem()
-					.readArtifactDescriptor(session, descriptorRequest);
+				.readArtifactDescriptor(session, descriptorRequest);
 		} catch (VersionRangeResolutionException | ArtifactDescriptorException ex) {
 			throw new ExitException(1, "Could not read artifact descriptor for " + artifact, ex);
 		}
@@ -377,7 +372,7 @@ public class ArtifactResolver implements Closeable {
 
 	private RemoteRepository toRemoteRepo(MavenRepo repo) {
 		return new RemoteRepository.Builder(repo.getId(), "default", repo.getUrl())
-				.build();
+			.build();
 
 	}
 
@@ -414,10 +409,10 @@ public class ArtifactResolver implements Closeable {
 	public static Path getLocalMavenRepo() {
 		try (ArtifactResolver ar = Builder.create().localFolder(Settings.getJBangLocalMavenRepoOverride()).build()) {
 			return ar.context
-					.repositorySystemSession()
-					.getLocalRepository()
-					.getBasedir()
-					.toPath();
+				.repositorySystemSession()
+				.getLocalRepository()
+				.getBasedir()
+				.toPath();
 		}
 	}
 }

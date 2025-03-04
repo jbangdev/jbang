@@ -112,9 +112,9 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 			fallbackDebug.putAll(debugString);
 			optionalArgs.add(
 					"-agentlib:jdwp=" + fallbackDebug.entrySet()
-							.stream()
-							.map(e -> e.getKey() + "=" + e.getValue())
-							.collect(Collectors.joining(",")));
+						.stream()
+						.map(e -> e.getKey() + "=" + e.getValue())
+						.collect(Collectors.joining(",")));
 		}
 
 		if (assertions) {
@@ -133,11 +133,11 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 			// TODO: find way to generate ~/.jbang/script.jfc to configure flightrecorder to
 			// have 0 ms thresholds
 			String jfropt = "-XX:StartFlightRecording=" + flightRecorderString
-					.replace("{baseName}",
-							Util.getBaseName(
-									project.getResourceRef()
-											.getFile()
-											.toString()));
+				.replace("{baseName}",
+						Util.getBaseName(
+								project.getResourceRef()
+									.getFile()
+									.toString()));
 			optionalArgs.add(jfropt);
 			Util.verboseMsg("Flight recording enabled with:" + jfropt);
 		}
@@ -201,8 +201,8 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 
 	protected String generateCommandLineString(List<String> fullArgs) throws IOException {
 		return CommandBuffer.of(fullArgs)
-				.applyWindowsMaxLengthLimit(CommandBuffer.MAX_LENGTH_WINCLI, shell)
-				.asCommandLine(shell);
+			.applyWindowsMaxLengthLimit(CommandBuffer.MAX_LENGTH_WINCLI, shell)
+			.asCommandLine(shell);
 	}
 
 	private static void addPropertyFlags(Map<String, String> properties, String def, List<String> result) {

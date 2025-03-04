@@ -235,11 +235,11 @@ public class JBang extends BaseCommand {
 		@Override
 		public Enumeration<String> getKeys() {
 			return Collections.enumeration(Configuration.instance()
-					.flatten()
-					.keySet()
-					.stream()
-					.map(k -> "default." + k)
-					.collect(Collectors.toSet()));
+				.flatten()
+				.keySet()
+				.stream()
+				.map(k -> "default." + k)
+				.collect(Collectors.toSet()));
 		}
 	}
 
@@ -250,16 +250,16 @@ public class JBang extends BaseCommand {
 		cl.getHelpSectionMap().put(SECTION_KEY_COMMAND_LIST, getCommandRenderer());
 
 		return cl.setExitCodeExceptionMapper(exitCodeExceptionMapper)
-				.setExecutionExceptionHandler(executionExceptionHandler)
-				.setParameterExceptionHandler(new DeprecatedMessageHandler(cl.getParameterExceptionHandler()))
-				.setExecutionStrategy(executionStrategy)
-				.setDefaultValueProvider(defaultValueProvider)
-				.setResourceBundle(new ConfigurationResourceBundle())
-				.setStopAtPositional(true)
-				.setAllowOptionsAsOptionParameters(true)
-				.setAllowSubcommandsAsOptionParameters(true)
-				.setOut(localout)
-				.setErr(localerr);
+			.setExecutionExceptionHandler(executionExceptionHandler)
+			.setParameterExceptionHandler(new DeprecatedMessageHandler(cl.getParameterExceptionHandler()))
+			.setExecutionStrategy(executionStrategy)
+			.setDefaultValueProvider(defaultValueProvider)
+			.setResourceBundle(new ConfigurationResourceBundle())
+			.setStopAtPositional(true)
+			.setAllowOptionsAsOptionParameters(true)
+			.setAllowSubcommandsAsOptionParameters(true)
+			.setOut(localout)
+			.setErr(localerr);
 	}
 
 	public static CommandGroupRenderer getCommandRenderer() {
@@ -357,10 +357,10 @@ public class JBang extends BaseCommand {
 
 		private int maxLength(Map<String, CommandLine> subcommands, int max) {
 			int result = subcommands.values()
-					.stream()
-					.map(cmd -> cmd.getCommandSpec().names().toString().length() - 2)
-					.max(Integer::compareTo)
-					.get();
+				.stream()
+				.map(cmd -> cmd.getCommandSpec().names().toString().length() - 2)
+				.max(Integer::compareTo)
+				.get();
 			return Math.min(max, result);
 		}
 

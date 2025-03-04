@@ -77,19 +77,19 @@ abstract class BaseExportCommand extends BaseCommand {
 
 	protected ProjectBuilder createProjectBuilder(ExportMixin exportMixin) {
 		return Project
-				.builder()
-				.setProperties(exportMixin.dependencyInfoMixin.getProperties())
-				.additionalDependencies(exportMixin.dependencyInfoMixin.getDependencies())
-				.additionalRepositories(exportMixin.dependencyInfoMixin.getRepositories())
-				.additionalClasspaths(exportMixin.dependencyInfoMixin.getClasspaths())
-				.additionalSources(exportMixin.scriptMixin.sources)
-				.additionalResources(exportMixin.scriptMixin.resources)
-				.forceType(exportMixin.scriptMixin.forceType)
-				.catalog(exportMixin.scriptMixin.catalog)
-				.javaVersion(exportMixin.buildMixin.javaVersion)
-				.mainClass(exportMixin.buildMixin.main)
-				.moduleName(exportMixin.buildMixin.module)
-				.compileOptions(exportMixin.buildMixin.compileOptions);
+			.builder()
+			.setProperties(exportMixin.dependencyInfoMixin.getProperties())
+			.additionalDependencies(exportMixin.dependencyInfoMixin.getDependencies())
+			.additionalRepositories(exportMixin.dependencyInfoMixin.getRepositories())
+			.additionalClasspaths(exportMixin.dependencyInfoMixin.getClasspaths())
+			.additionalSources(exportMixin.scriptMixin.sources)
+			.additionalResources(exportMixin.scriptMixin.resources)
+			.forceType(exportMixin.scriptMixin.forceType)
+			.catalog(exportMixin.scriptMixin.catalog)
+			.javaVersion(exportMixin.buildMixin.javaVersion)
+			.mainClass(exportMixin.buildMixin.main)
+			.moduleName(exportMixin.buildMixin.module)
+			.compileOptions(exportMixin.buildMixin.compileOptions);
 	}
 
 	Path getJarOutputPath() {
@@ -253,8 +253,8 @@ class ExportMavenPublish extends BaseExportCommand {
 		Path versionDir = artifactDir.resolve(version);
 
 		String suffix = source.getFileName()
-				.toString()
-				.substring(source.getFileName().toString().lastIndexOf("."));
+			.toString()
+			.substring(source.getFileName().toString().lastIndexOf("."));
 		Path artifactFile = versionDir.resolve(artifact + "-" + version + suffix);
 
 		artifactFile.getParent().toFile().mkdirs();
@@ -273,7 +273,7 @@ class ExportMavenPublish extends BaseExportCommand {
 		// generate pom.xml ... if jar could technically just copy from the jar ...but
 		// not possible when native thus for now just regenerate it
 		Template pomTemplate = TemplateEngine.instance()
-				.getTemplate(ResourceRef.forResource("classpath:/pom.qute.xml"));
+			.getTemplate(ResourceRef.forResource("classpath:/pom.qute.xml"));
 
 		Path pomPath = versionDir.resolve(artifact + "-" + version + ".pom");
 		if (pomTemplate == null) {
@@ -282,15 +282,15 @@ class ExportMavenPublish extends BaseExportCommand {
 		} else {
 
 			String pomfile = pomTemplate
-					.data("baseName",
-							Util.getBaseName(
-									prj.getResourceRef().getFile().getFileName().toString()))
-					.data("group", group)
-					.data("artifact", artifact)
-					.data("version", version)
-					.data("description", prj.getDescription().orElse(""))
-					.data("dependencies", ctx.resolveClassPath().getArtifacts())
-					.render();
+				.data("baseName",
+						Util.getBaseName(
+								prj.getResourceRef().getFile().getFileName().toString()))
+				.data("group", group)
+				.data("artifact", artifact)
+				.data("version", version)
+				.data("description", prj.getDescription().orElse(""))
+				.data("dependencies", ctx.resolveClassPath().getArtifacts())
+				.render();
 			Util.infoMsg("Writing " + pomPath);
 			Util.writeString(pomPath, pomfile);
 
@@ -428,14 +428,14 @@ class ExportJlink extends BaseExportCommand {
 		Project prj = ctx.getProject();
 		List<ArtifactInfo> artifacts = ctx.resolveClassPath().getArtifacts();
 		List<ArtifactInfo> nonMods = artifacts
-				.stream()
-				.filter(a -> !ModuleUtil.isModule(a.getFile()))
-				.collect(Collectors.toList());
+			.stream()
+			.filter(a -> !ModuleUtil.isModule(a.getFile()))
+			.collect(Collectors.toList());
 		if (!nonMods.isEmpty()) {
 			String lst = nonMods
-					.stream()
-					.map(a -> a.getCoordinate().toCanonicalForm())
-					.collect(Collectors.joining(", "));
+				.stream()
+				.map(a -> a.getCoordinate().toCanonicalForm())
+				.collect(Collectors.joining(", "));
 			Util.warnMsg("Export might fail because some dependencies are not full modules: " + lst);
 		}
 

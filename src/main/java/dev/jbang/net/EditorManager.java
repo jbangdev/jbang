@@ -96,7 +96,7 @@ public class EditorManager {
 		try {
 			Util.verboseMsg("Lookup vscodium latest version...");
 			try (InputStream is = new URL("https://api.github.com/repos/vscodium/vscodium/releases/latest")
-					.openStream();
+				.openStream();
 					Scanner sc = new Scanner(is, "UTF-8")) {
 				String out = sc.useDelimiter("\\A").next();
 				Matcher matcher = Pattern.compile("\"tag_name\":.*?\"(.*?)\"").matcher(out);

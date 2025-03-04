@@ -152,9 +152,9 @@ public class CatalogUtil {
 		catalogFile = cwd.resolve(catalogFile);
 		Catalog catalog = Catalog.get(catalogFile);
 		Map<String, String> relFileRefs = fileRefs.entrySet()
-				.stream()
-				.map(e -> entry(e.getKey(), catalog.relativize(e.getValue())))
-				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+			.stream()
+			.map(e -> entry(e.getKey(), catalog.relativize(e.getValue())))
+			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 		Template template = new Template(relFileRefs, description, properties, catalog);
 		catalog.templates.put(name, template);
 		try {

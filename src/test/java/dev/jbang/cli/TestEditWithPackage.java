@@ -70,11 +70,11 @@ public class TestEditWithPackage extends BaseTest {
 		assertTrue(Files.isSameFile(javaC, CPath));
 
 		Arrays.asList("A.java", "person/B.java", "person/model/C.java")
-				.forEach(f -> {
-					Path java = project.resolve("src/" + f);
+			.forEach(f -> {
+				Path java = project.resolve("src/" + f);
 
-					assertThat(f + " not found", java.toFile(), aReadableFile());
-				});
+				assertThat(f + " not found", java.toFile(), aReadableFile());
+			});
 	}
 
 }

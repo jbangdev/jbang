@@ -72,8 +72,8 @@ public class ModuleUtil {
 		Project project = ctx.getProject();
 		Path targetDir = ctx.getGeneratedSourcesDir();
 		Template infoTemplate = TemplateEngine.instance()
-				.getTemplate(
-						ResourceRef.forResource("classpath:/module-info.qute.java"));
+			.getTemplate(
+					ResourceRef.forResource("classpath:/module-info.qute.java"));
 
 		Path infoPath = null;
 		if (infoTemplate == null) {
@@ -82,29 +82,29 @@ public class ModuleUtil {
 		} else {
 			// First get the list of root dependencies as proper maven coordinates
 			Set<MavenCoordinate> deps = project.getMainSourceSet()
-					.getDependencies()
-					.stream()
-					.map(MavenCoordinate::fromString)
-					.collect(Collectors.toSet());
+				.getDependencies()
+				.stream()
+				.map(MavenCoordinate::fromString)
+				.collect(Collectors.toSet());
 			// Now filter out the resolved artifacts that are root dependencies
 			// and get their names
 			Stream<String> depModNames = ctx.resolveClassPath()
-					.getArtifacts()
-					.stream()
-					.filter(a -> deps.contains(a.getCoordinate()))
-					.map(ArtifactInfo::getModuleName)
-					.filter(Objects::nonNull);
+				.getArtifacts()
+				.stream()
+				.filter(a -> deps.contains(a.getCoordinate()))
+				.map(ArtifactInfo::getModuleName)
+				.filter(Objects::nonNull);
 			// And join this list of names with the JDK module names
 			List<String> moduleNames = Stream.concat(ModuleUtil.listJdkModules().stream(), depModNames)
-					.collect(Collectors.toList());
+				.collect(Collectors.toList());
 			// Finally create a module-info file with the name of the module
 			// and the list of required modules using the names we just listed
 			String modName = ModuleUtil.getModuleName(project);
 			String infoFile = infoTemplate
-					.data("moduleName", modName)
-					.data("packageName", project.getMainSource().getJavaPackage().get())
-					.data("dependencies", moduleNames)
-					.render();
+				.data("moduleName", modName)
+				.data("packageName", project.getMainSource().getJavaPackage().get())
+				.data("dependencies", moduleNames)
+				.render();
 
 			infoPath = targetDir.resolve("module-info.java");
 			Files.createDirectories(infoPath.getParent());

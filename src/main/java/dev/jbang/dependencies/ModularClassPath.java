@@ -39,10 +39,10 @@ public class ModularClassPath {
 	public List<String> getClassPaths() {
 		if (classPaths == null) {
 			classPaths = artifacts
-					.stream()
-					.map(it -> it.getFile().toAbsolutePath().toString())
-					.distinct()
-					.collect(Collectors.toList());
+				.stream()
+				.map(it -> it.getFile().toAbsolutePath().toString())
+				.distinct()
+				.collect(Collectors.toList());
 		}
 		return classPaths;
 	}
@@ -53,10 +53,10 @@ public class ModularClassPath {
 
 	public String getManifestPath() {
 		return artifacts.stream()
-				.map(it -> it.getFile().toAbsolutePath().toUri())
-				.map(URI::getPath)
-				.distinct()
-				.collect(Collectors.joining(" "));
+			.map(it -> it.getFile().toAbsolutePath().toUri())
+			.map(URI::getPath)
+			.distinct()
+			.collect(Collectors.joining(" "));
 	}
 
 	boolean hasJavaFX() {
@@ -72,13 +72,13 @@ public class ModularClassPath {
 			List<String> commandArguments = new ArrayList<>();
 
 			List<File> fileList = artifacts.stream()
-					.map(ai -> ai.getFile().toFile())
-					.collect(Collectors.toList());
+				.map(ai -> ai.getFile().toFile())
+				.collect(Collectors.toList());
 
 			ResolvePathsRequest<File> result = ResolvePathsRequest.ofFiles(fileList)
-					.setModuleDescriptor(
-							JavaModuleDescriptor.newModule("bogus")
-									.build());
+				.setModuleDescriptor(
+						JavaModuleDescriptor.newModule("bogus")
+							.build());
 
 			LocationManager lm = new LocationManager();
 
@@ -89,8 +89,8 @@ public class ModularClassPath {
 				Map<String, JavaModuleDescriptor> pathElements = new HashMap<>();
 
 				resolvePathsResult.getModulepathElements()
-						.keySet()
-						.forEach(file -> modulePaths.add(file.getPath()));
+					.keySet()
+					.forEach(file -> modulePaths.add(file.getPath()));
 
 				resolvePathsResult.getPathElements().forEach((key, value) -> pathElements.put(key.getPath(), value));
 
@@ -110,13 +110,13 @@ public class ModularClassPath {
 				}
 
 				String modules = pathElements.values()
-						.stream()
-						.filter(Objects::nonNull)
-						.map(JavaModuleDescriptor::name)
-						.filter(Objects::nonNull)
-						.filter(module -> module.startsWith(JAVAFX_PREFIX)
-								&& !module.endsWith("Empty"))
-						.collect(Collectors.joining(","));
+					.stream()
+					.filter(Objects::nonNull)
+					.map(JavaModuleDescriptor::name)
+					.filter(Objects::nonNull)
+					.filter(module -> module.startsWith(JAVAFX_PREFIX)
+							&& !module.endsWith("Empty"))
+					.collect(Collectors.joining(","));
 				if (!Util.isBlankString(modules)) {
 					commandArguments.add("--add-modules");
 					commandArguments.add(modules);
