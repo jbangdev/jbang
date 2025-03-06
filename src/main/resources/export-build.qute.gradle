@@ -1,0 +1,23 @@
+plugins {
+	id 'java'
+	id 'application'
+}
+
+repositories {
+	mavenCentral()
+{#for url in repositories}
+	maven {
+		url  "{url}"
+	}
+{/for}
+}
+
+dependencies {
+{#for item in gradledependencies}
+	{item}
+{/for}
+}
+
+application {
+	mainClass = '{fullClassName}'
+}

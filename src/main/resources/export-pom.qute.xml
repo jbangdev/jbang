@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+		 xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>{group}</groupId>
+	<artifactId>{artifact}</artifactId>
+	<version>{version}</version>
+	<description>{description}</description>
+	{#if !properties.empty}
+	<properties>
+		{#for item in properties.entrySet}
+		<{item.key}>{item.value}</{item.key}>
+		{/for}
+	</properties>
+	{/if}
+	<dependencies>
+		{#for item in dependencies}
+		<dependency>
+			<groupId>{item.groupId}</groupId>
+			<artifactId>{item.artifactId}</artifactId>
+			<version>{item.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		{/for}
+	</dependencies>
+	{#if !repositories.empty}
+	<repositories>
+		{#for item in repositories}
+		<repository>
+			<id>{item.id}</id>
+			<url>{item.url}</url>
+		</repository>
+		{/for}
+	</repositories>
+	{/if}
+</project>
