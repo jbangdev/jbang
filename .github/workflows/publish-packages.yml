@@ -33,6 +33,8 @@ jobs:
           java-version: 11
           distribution: temurin
           cache: gradle
+      - name: setup-gradle
+        uses: gradle/actions/setup-gradle@v4
       - name: build-gradle
         run: ./gradlew --no-daemon clean build -x test --build-cache --scan -s
       - name: version extract
