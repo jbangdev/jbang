@@ -51,13 +51,14 @@ jobs:
         with:
           limit-access-to-actor: true
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
-      - uses: gradle/wrapper-validation-action@56b90f209b02bf6d1deae490e9ef18b21a389cd4 # v1
-      - name: install-java8
+      - name: install-java11
         uses: actions/setup-java@0ab4596768b603586c0de567f2430c30f5b0d2b0 # v3
         with:
           java-version: 11
           distribution: temurin
           cache: gradle
+      - name: setup-gradle
+        uses: gradle/actions/setup-gradle@v4
       - name: build-gradle
         run: ./gradlew --no-daemon clean build installDist publish --build-cache --scan -s
       - name: integration-test-non-windows
