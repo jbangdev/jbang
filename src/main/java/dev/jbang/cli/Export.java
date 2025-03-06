@@ -557,11 +557,10 @@ abstract class BaseExportProject extends BaseExportCommand {
 
 	private void createProjectForExport(BuildContext ctx, Path projectDir) throws IOException {
 		Project prj = ctx.getProject();
-		String projectName = projectDir.getFileName().toString();
-		Path tmpProjectDir = Files.createTempDirectory(projectName);
+		Util.mkdirs(projectDir);
 
 		// Sources
-		Path srcJavaDir = tmpProjectDir.resolve("src/main/java");
+		Path srcJavaDir = projectDir.resolve("src/main/java");
 		String srcPackageName = group + "." + artifact;
 		Path srcPackageDir = srcJavaDir.resolve(srcPackageName.replace(".", "/"));
 		Util.mkdirs(srcPackageDir);
@@ -577,7 +576,7 @@ abstract class BaseExportProject extends BaseExportCommand {
 		}
 
 		// Resources
-		Path srcResourcesDir = tmpProjectDir.resolve("src/main/resources");
+		Path srcResourcesDir = projectDir.resolve("src/main/resources");
 		for (RefTarget ref : prj.getMainSourceSet().getResources()) {
 			Path destFile = ref.to(srcResourcesDir);
 			Util.mkdirs(destFile.getParent());
@@ -585,9 +584,7 @@ abstract class BaseExportProject extends BaseExportCommand {
 		}
 
 		// Build file
-		renderBuildFile(ctx, tmpProjectDir, fullClassName);
-
-		Files.move(tmpProjectDir, projectDir);
+		renderBuildFile(ctx, projectDir, fullClassName);
 	}
 
 	private Path copySource(ResourceRef sourceRef, Path srcJavaDir, Path srcPackageDir, String srcPackageName)

@@ -7,14 +7,14 @@
 	<artifactId>{artifact}</artifactId>
 	<version>{version}</version>
 	<description>{description}</description>
-	{#if properties}
+	{#if !properties.empty}
 	<properties>
 		{#for item in properties.entrySet}
 		<{item.key}>{item.value}</{item.key}>
 		{/for}
 	</properties>
 	{/if}
-	{#if boms}
+	{#if !boms.empty}
 	<dependencyManagement>
 		<dependencies>
 			{#for item in boms}
@@ -41,7 +41,7 @@
 		</dependency>
 		{/for}
 	</dependencies>
-	{#if repositories}
+	{#if !repositories.empty}
 	<repositories>
 		{#for item in repositories}
 		<repository>
