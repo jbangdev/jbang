@@ -708,6 +708,9 @@ class ExportMavenProject extends BaseExportProject {
 			prj.addRepository(DependencyUtil.toMavenRepo(DependencyUtil.ALIAS_JITPACK));
 		}
 
+		List<String> boms = depIds.stream().filter(d -> d.endsWith("@pom")).collect(Collectors.toList());
+		depIds = depIds.stream().filter(d -> !d.endsWith("@pom")).collect(Collectors.toList());
+
 		TemplateEngine engine = TemplateEngine.instance();
 		Template template = engine.getTemplate(templateRef);
 		if (template == null)
@@ -719,10 +722,10 @@ class ExportMavenProject extends BaseExportProject {
 								.data("description", prj.getDescription().orElse(""))
 								.data("properties", properties)
 								.data("repositories", repositories.stream().filter(r -> !r.getUrl().isEmpty()))
+								.data("boms", boms.stream().map(MavenCoordinate::fromString))
 								.data("dependencies", depIds.stream().map(MavenCoordinate::fromString))
 								.data("fullClassName", fullClassName)
 								.render();
 		Util.writeString(destination, result);
-
 	}
 }

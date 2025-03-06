@@ -7,24 +7,41 @@
 	<artifactId>{artifact}</artifactId>
 	<version>{version}</version>
 	<description>{description}</description>
-	{#if !properties.empty}
+	{#if properties}
 	<properties>
 		{#for item in properties.entrySet}
 		<{item.key}>{item.value}</{item.key}>
 		{/for}
 	</properties>
 	{/if}
+	{#if boms}
+	<dependencyManagement>
+		<dependencies>
+			{#for item in boms}
+			<dependency>
+				<groupId>{item.groupId}</groupId>
+				<artifactId>{item.artifactId}</artifactId>
+				<version>{item.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			{/for}
+		</dependencies>
+	</dependencyManagement>
+	{/if}
 	<dependencies>
 		{#for item in dependencies}
 		<dependency>
 			<groupId>{item.groupId}</groupId>
 			<artifactId>{item.artifactId}</artifactId>
+			{#if item.version}
 			<version>{item.version}</version>
+			{/if}
 			<scope>compile</scope>
 		</dependency>
 		{/for}
 	</dependencies>
-	{#if !repositories.empty}
+	{#if repositories}
 	<repositories>
 		{#for item in repositories}
 		<repository>
