@@ -1,0 +1,39 @@
+{
+  "id" : "8f4d05f5-8e12-4d33-85a1-7b019cd6c13d",
+  "name" : "tivrfoa_503c88fb5123b1000c37a3f2832d4773_raw_2f93c8c5136989ccc51c7282eef678178df6f862_java-shell-script.jsh",
+  "request" : {
+    "url" : "/tivrfoa/503c88fb5123b1000c37a3f2832d4773/raw/2f93c8c5136989ccc51c7282eef678178df6f862/java-shell-script.jsh",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "System.out.println(\"I have a dash in filename.\");\nSystem.out.println(\"I'm java shell script\");",
+    "headers" : {
+      "X-Cache" : "MISS",
+      "Access-Control-Allow-Origin" : "*",
+      "X-Content-Type-Options" : "nosniff",
+      "Source-Age" : "0",
+      "Date" : "Thu, 24 Apr 2025 16:09:08 GMT",
+      "X-Timer" : "S1745510948.116179,VS0,VE218",
+      "Via" : "1.1 varnish",
+      "Accept-Ranges" : "bytes",
+      "X-Frame-Options" : "deny",
+      "Strict-Transport-Security" : "max-age=31536000",
+      "Cache-Control" : "max-age=300",
+      "ETag" : "\"06a89ff1da3fc6bb09178a661d3b8e8ddd7853f3fcc478872f1a85bb4607ed40\"",
+      "X-Served-By" : "cache-mad2200098-MAD",
+      "Content-Security-Policy" : "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+      "Vary" : "Authorization,Accept-Encoding,Origin",
+      "Expires" : "Thu, 24 Apr 2025 16:14:08 GMT",
+      "Cross-Origin-Resource-Policy" : "cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Cache-Hits" : "0",
+      "X-Fastly-Request-ID" : "00acf23c8c5a02fb288c852af36ae5056a665b88",
+      "X-GitHub-Request-Id" : "CC8C:11B5:10A0A54:12CA6BE:680A6223",
+      "Content-Type" : "text/plain; charset=utf-8"
+    }
+  },
+  "uuid" : "8f4d05f5-8e12-4d33-85a1-7b019cd6c13d",
+  "persistent" : true,
+  "insertionIndex" : 8
+}
