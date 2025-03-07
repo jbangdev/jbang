@@ -1,5 +1,9 @@
 package dev.jbang;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.recordSpec;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -10,10 +14,16 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 
-import org.apache.commons.io.output.ByteArrayOutputStream;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.jupiter.api.AfterAll;
@@ -21,14 +31,19 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.http.JvmProxyConfigurer;
+
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.JBang;
 import dev.jbang.dependencies.DependencyCache;
+import dev.jbang.net.JdkManager;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 
 public abstract class BaseTest {
+	static WireMockServer globalwms;
 
 	@BeforeEach
 	void initEnv(@TempDir Path tempPath) throws IOException {
@@ -54,6 +69,7 @@ public abstract class BaseTest {
 		}
 		Configuration.instance(null);
 		DependencyCache.clear();
+		JdkManager.resetProviders();
 	}
 
 	public static final String EXAMPLES_FOLDER = "itests";
@@ -69,12 +85,32 @@ public abstract class BaseTest {
 		} else {
 			examplesTestFolder = Paths.get(new File(examplesUrl.toURI()).getAbsolutePath());
 		}
+
+		// Start a WireMock server to capture and replay any remote
+		// requests JBang makes (any new code that results in additional
+		// requests will result in new recordings being added to the
+		// `src/test/resources/mappings` folder which can then be added
+		// to the git repository. Future requests will then be replayed
+		// from the recordings instead of hitting the real server.)
+		globalwms = new WireMockServer(options()
+												.enableBrowserProxying(true)
+												.dynamicPort());
+		globalwms.start();
+		JvmProxyConfigurer.configureFor(globalwms);
+		disableSSL();
+
+		// This forces MIMA to use the WireMock server as a proxy
+		// System.setProperty("aether.connector.http.useSystemProperties", "true");
+		// System.setProperty("aether.connector.https.securityMode", "insecure");
 	}
 
 	@AfterAll
 	static void cleanup() {
 		Util.deletePath(mavenTempDir, true);
 		Util.deletePath(jdksTempDir, true);
+		globalwms.stop();
+		globalwms.snapshotRecord(recordSpec().ignoreRepeatRequests());
+		JvmProxyConfigurer.restorePrevious();
 	}
 
 	@Rule
@@ -154,6 +190,37 @@ public abstract class BaseTest {
 		public String normalizedErr() {
 			return err.replaceAll("\\r\\n", "\n");
 		}
+	}
+
+	static void disableSSL() {
+		TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+			public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+				return new java.security.cert.X509Certificate[] {};
+			}
+
+			public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+			}
+
+			public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+			}
+		} };
+
+		try {
+			SSLContext sc = SSLContext.getInstance("SSL");
+			sc.init(null, trustAllCerts, new java.security.SecureRandom());
+			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+		} catch (KeyManagementException | NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected static void wiremockRequestPrinter(com.github.tomakehurst.wiremock.http.Request inRequest,
+			com.github.tomakehurst.wiremock.http.Response inResponse) {
+		System.err.printf("WireMock request at URL: %s%n", inRequest.getAbsoluteUrl());
+		System.err.printf("WireMock request headers: %s%n", inRequest.getHeaders());
+		System.err.printf("WireMock response status: %d%n", inResponse.getStatus());
+		System.err.printf("WireMock response body: %s%n", inResponse.getBodyAsString());
+		System.err.printf("WireMock response headers: %s%n", inResponse.getHeaders());
 	}
 
 }
