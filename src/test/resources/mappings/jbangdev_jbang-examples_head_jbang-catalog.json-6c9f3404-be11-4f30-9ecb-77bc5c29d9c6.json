@@ -1,0 +1,39 @@
+{
+  "id" : "6c9f3404-be11-4f30-9ecb-77bc5c29d9c6",
+  "name" : "jbangdev_jbang-examples_head_jbang-catalog.json",
+  "request" : {
+    "url" : "/jbangdev/jbang-examples/HEAD/jbang-catalog.json",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"catalogs\": {},\n  \"aliases\": {\n    \"jfxtiles\": {\n      \"script-ref\": \"examples/jfxtiles.java\"\n    },\n    \"perftest\": {\n      \"script-ref\": \"examples/benchmark/perftest.java\"\n    },\n    \"hibernate\": {\n      \"script-ref\": \"examples/hibernate.java\"\n    },\n    \"jfx\": {\n      \"script-ref\": \"examples/jfx.java\"\n    },\n    \"junitrun\": {\n      \"script-ref\": \"examples/junitrun.java\"\n    },\n    \"findmodule\": {\n      \"script-ref\": \"examples/findmodule.java\"\n    },\n    \"records\": {\n      \"script-ref\": \"examples/records.java\"\n    },\n    \"progress\": {\n      \"script-ref\": \"examples/progress.java\"\n    },\n    \"webdriver\": {\n      \"script-ref\": \"examples/webdriver.java\"\n    },\n    \"junit-run\": {\n      \"script-ref\": \"examples/junit-run.java\"\n    },\n    \"camel\": {\n      \"script-ref\": \"examples/camel.java\"\n    },\n    \"asciidoc\": {\n      \"script-ref\": \"examples/asciidoc.java\"\n    },\n    \"gh_fetch_release_assets\": {\n      \"script-ref\": \"examples/gh_fetch_release_assets.java\"\n    },\n    \"piping\": {\n      \"script-ref\": \"examples/piping.java\"\n    },\n    \"smee\": {\n      \"script-ref\": \"examples/smee.java\"\n    },\n    \"lang\": {\n      \"script-ref\": \"examples/lang.java\"\n    },\n    \"docker\": {\n      \"script-ref\": \"examples/docker.java\"\n    },\n    \"classpath_example\": {\n      \"script-ref\": \"examples/classpath_example.jsh\"\n    },\n    \"tz\": {\n      \"script-ref\": \"examples/tz.java\"\n    },\n    \"vertx\": {\n      \"script-ref\": \"examples/vertx.java\"\n    },\n    \"urldep\": {\n      \"script-ref\": \"examples/urldep.java\"\n    },\n    \"helloworld\": {\n      \"script-ref\": \"examples/helloworld.jsh\"\n    },\n    \"undertow\": {\n      \"script-ref\": \"examples/undertow.java\"\n    },\n    \"inetTest\": {\n      \"script-ref\": \"examples/inetTest.java\"\n    },\n    \"envdetector\": {\n      \"script-ref\": \"examples/envdetector.java\"\n    },\n    \"shrinkwrap\": {\n      \"script-ref\": \"examples/shrinkwrap.java\"\n    },\n    \"resteasyclient\": {\n      \"script-ref\": \"examples/resteasyclient.java\"\n    },\n    \"adoptopenjdk\": {\n      \"script-ref\": \"examples/adoptopenjdk.java\"\n    },\n    \"analytics\": {\n      \"script-ref\": \"examples/analytics.java\"\n    },\n    \"imap\": {\n      \"script-ref\": \"examples/imap.java\"\n    },\n    \"githubinfo\": {\n      \"script-ref\": \"examples/githubinfo.java\"\n    },\n    \"script\": {\n      \"script-ref\": \"examples/script.java\"\n    },\n    \"ratpack\": {\n      \"script-ref\": \"examples/ratpack.java\"\n    },\n    \"checksum\": {\n      \"script-ref\": \"examples/checksum.java\"\n    },\n    \"s3upload\": {\n      \"script-ref\": \"examples/s3upload.java\"\n    },\n    \"sparkjava\": {\n      \"script-ref\": \"examples/sparkjava.java\"\n    },\n    \"jetty\": {\n      \"script-ref\": \"examples/jetty.jsh\"\n    },\n    \"NanoClock\": {\n      \"script-ref\": \"examples/NanoClock.java\"\n    },\n    \"asciidoctor\": {\n      \"script-ref\": \"examples/asciidoctor.java\"\n    },\n    \"gh_release_stats\": {\n      \"script-ref\": \"examples/gh_release_stats.java\"\n    },\n    \"grabavatars\": {\n      \"script-ref\": \"examples/grabavatars.java\"\n    },\n    \"ilc\": {\n      \"script-ref\": \"examples/ilc.java\"\n    },\n    \"mockneatSQL\": {\n      \"script-ref\": \"examples/mockneatSQL.java\"\n    },\n    \"opencv_ball_tracker\": {\n      \"script-ref\": \"examples/opencv_ball_tracker.java\"\n    },\n    \"plantuml\": {\n      \"script-ref\": \"examples/plantuml.java\"\n    },\n    \"quarkus\": {\n      \"script-ref\": \"examples/quarkus.java\"\n    },\n    \"quarkusadv\": {\n      \"script-ref\": \"examples/quarkusadv.java\"\n    },\n    \"quarkuscli\": {\n      \"script-ref\": \"examples/quarkuscli.java\"\n    },\n    \"quarkusclidb\": {\n      \"script-ref\": \"examples/quarkusclidb.java\"\n    },\n    \"quarkusclireddis\": {\n      \"script-ref\": \"examples/quarkusclireddis.java\"\n    },\n    \"quarkusjib\": {\n      \"script-ref\": \"examples/quarkusjib.java\"\n    },\n    \"quarkusmetrics\": {\n      \"script-ref\": \"examples/quarkusmetrics.java\"\n    },\n    \"quarkusnew\": {\n      \"script-ref\": \"examples/quarkusnew.java\"\n    },\n    \"resource\": {\n      \"script-ref\": \"examples/resource.java\"\n    },\n    \"update_catalog\": {\n      \"script-ref\": \"examples/update_catalog.java\"\n    },\n    \"viewics\": {\n      \"script-ref\": \"examples/viewics.java\"\n    },\n    \"qchat\": {\n      \"script-ref\": \"examples/qchat.java\"\n    },\n    \"ecsh\": {\n      \"script-ref\": \"examples/ecsh.jsh\",\n      \"description\": \"Eclipse Collections API for scripting\\nTry out using `jbang -s ecsh@jbangdev -i`\"\n    },\n    \"j18inetresolver\": {\n      \"script-ref\": \"examples/java/J18InetAddressResolverProvider.java\"\n    },\n    \"symjajsh\": {\n      \"script-ref\": \"examples/symja.jsh\"\n    }\n  },\n  \"templates\": {}\n}",
+    "headers" : {
+      "X-Cache" : "MISS",
+      "Access-Control-Allow-Origin" : "*",
+      "X-Content-Type-Options" : "nosniff",
+      "Source-Age" : "0",
+      "Date" : "Thu, 24 Apr 2025 16:06:49 GMT",
+      "X-Timer" : "S1745510809.310356,VS0,VE253",
+      "Via" : "1.1 varnish",
+      "Accept-Ranges" : "bytes",
+      "X-Frame-Options" : "deny",
+      "Strict-Transport-Security" : "max-age=31536000",
+      "Cache-Control" : "max-age=300",
+      "ETag" : "\"ee63356d0112054ff2e41e6da191fe554bdb01a303d55bc06e358fad995db55c\"",
+      "X-Served-By" : "cache-toj-leto2350028-TOJ",
+      "Content-Security-Policy" : "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+      "Vary" : "Authorization,Accept-Encoding,Origin",
+      "Expires" : "Thu, 24 Apr 2025 16:11:49 GMT",
+      "Cross-Origin-Resource-Policy" : "cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Cache-Hits" : "0",
+      "X-Fastly-Request-ID" : "3eaa08b5b21fd60b0aa30c019c7c35bb29e70080",
+      "X-GitHub-Request-Id" : "5AAE:21BA04:2C41ED6:321BB2B:680A6198",
+      "Content-Type" : "text/plain; charset=utf-8"
+    }
+  },
+  "uuid" : "6c9f3404-be11-4f30-9ecb-77bc5c29d9c6",
+  "persistent" : true,
+  "insertionIndex" : 2
+}
