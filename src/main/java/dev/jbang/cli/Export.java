@@ -522,7 +522,6 @@ abstract class BaseExportProject extends BaseExportCommand {
 				return EXIT_INVALID_INPUT;
 			}
 		}
-		info("Exporting as " + getType() + " project to: " + projectDir);
 
 		Project prj = ctx.getProject();
 		if (prj.isJar() || prj.getMainSourceSet().getSources().isEmpty()) {
@@ -552,6 +551,7 @@ abstract class BaseExportProject extends BaseExportCommand {
 
 		createProjectForExport(ctx, projectDir);
 
+		info("Exported as " + getType() + " project to " + projectDir);
 		return EXIT_OK;
 	}
 
@@ -655,7 +655,9 @@ class ExportGradleProject extends BaseExportProject {
 								.data("description", prj.getDescription().orElse(""))
 								.data("repositories", repositories	.stream()
 																	.map(MavenRepo::getUrl)
-																	.filter(s -> !"".equals(s)))
+																	.filter(s -> !"".equals(s))
+																	.collect(Collectors.toList()))
+								.data("javaVersion", prj.getJavaVersion())
 								.data("gradledependencies", gradleify(depIds))
 								.data("fullClassName", fullClassName)
 								.render();
@@ -718,9 +720,15 @@ class ExportMavenProject extends BaseExportProject {
 								.data("version", version)
 								.data("description", prj.getDescription().orElse(""))
 								.data("properties", properties)
-								.data("repositories", repositories.stream().filter(r -> !r.getUrl().isEmpty()))
-								.data("boms", boms.stream().map(MavenCoordinate::fromString))
-								.data("dependencies", depIds.stream().map(MavenCoordinate::fromString))
+								.data("repositories", repositories	.stream()
+																	.filter(r -> !r.getUrl().isEmpty())
+																	.collect(Collectors.toList()))
+								.data("boms", boms	.stream()
+													.map(MavenCoordinate::fromString)
+													.collect(Collectors.toList()))
+								.data("dependencies", depIds.stream()
+															.map(MavenCoordinate::fromString)
+															.collect(Collectors.toList()))
 								.data("fullClassName", fullClassName)
 								.render();
 		Util.writeString(destination, result);

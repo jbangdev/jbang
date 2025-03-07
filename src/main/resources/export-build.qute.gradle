@@ -7,10 +7,18 @@ repositories {
 	mavenCentral()
 {#for url in repositories}
 	maven {
-		url  "{url}"
+		url "{url}"
 	}
 {/for}
 }
+
+{#if javaVersion}
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of({javaVersion})
+	}
+}
+{/if}
 
 dependencies {
 {#for item in gradledependencies}
