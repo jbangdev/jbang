@@ -1,0 +1,41 @@
+{
+  "id" : "7d84a3ca-042d-42f4-a60d-3b81ef1e6e01",
+  "name" : "gists_d4fa63eb16d8fc99448d37b10c7d8980",
+  "request" : {
+    "url" : "/gists/d4fa63eb16d8fc99448d37b10c7d8980",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"url\":\"https://api.github.com/gists/d4fa63eb16d8fc99448d37b10c7d8980\",\"forks_url\":\"https://api.github.com/gists/d4fa63eb16d8fc99448d37b10c7d8980/forks\",\"commits_url\":\"https://api.github.com/gists/d4fa63eb16d8fc99448d37b10c7d8980/commits\",\"id\":\"d4fa63eb16d8fc99448d37b10c7d8980\",\"node_id\":\"MDQ6R2lzdGQ0ZmE2M2ViMTZkOGZjOTk0NDhkMzdiMTBjN2Q4OTgw\",\"git_pull_url\":\"https://gist.github.com/d4fa63eb16d8fc99448d37b10c7d8980.git\",\"git_push_url\":\"https://gist.github.com/d4fa63eb16d8fc99448d37b10c7d8980.git\",\"html_url\":\"https://gist.github.com/maxandersen/d4fa63eb16d8fc99448d37b10c7d8980\",\"files\":{\"hello.jsh\":{\"filename\":\"hello.jsh\",\"type\":\"text/plain\",\"language\":\"Java\",\"raw_url\":\"https://gist.githubusercontent.com/maxandersen/d4fa63eb16d8fc99448d37b10c7d8980/raw/8e2788c94c4d5aa885193c2fc87ba36a18650b28/hello.jsh\",\"size\":103,\"truncated\":false,\"content\":\"//REPOS jitpack\\n//DEPS com.github.intuit.karate:karate-netty:v0.9.5\\n com.intuit.karate.Main.main(args);\",\"encoding\":\"utf-8\"}},\"public\":false,\"created_at\":\"2020-07-08T11:14:39Z\",\"updated_at\":\"2020-07-08T11:14:40Z\",\"description\":\"\",\"comments\":0,\"user\":null,\"comments_enabled\":true,\"comments_url\":\"https://api.github.com/gists/d4fa63eb16d8fc99448d37b10c7d8980/comments\",\"owner\":{\"login\":\"maxandersen\",\"id\":54129,\"node_id\":\"MDQ6VXNlcjU0MTI5\",\"avatar_url\":\"https://avatars.githubusercontent.com/u/54129?v=4\",\"gravatar_id\":\"\",\"url\":\"https://api.github.com/users/maxandersen\",\"html_url\":\"https://github.com/maxandersen\",\"followers_url\":\"https://api.github.com/users/maxandersen/followers\",\"following_url\":\"https://api.github.com/users/maxandersen/following{/other_user}\",\"gists_url\":\"https://api.github.com/users/maxandersen/gists{/gist_id}\",\"starred_url\":\"https://api.github.com/users/maxandersen/starred{/owner}{/repo}\",\"subscriptions_url\":\"https://api.github.com/users/maxandersen/subscriptions\",\"organizations_url\":\"https://api.github.com/users/maxandersen/orgs\",\"repos_url\":\"https://api.github.com/users/maxandersen/repos\",\"events_url\":\"https://api.github.com/users/maxandersen/events{/privacy}\",\"received_events_url\":\"https://api.github.com/users/maxandersen/received_events\",\"type\":\"User\",\"user_view_type\":\"public\",\"site_admin\":false},\"forks\":[],\"history\":[{\"user\":{\"login\":\"maxandersen\",\"id\":54129,\"node_id\":\"MDQ6VXNlcjU0MTI5\",\"avatar_url\":\"https://avatars.githubusercontent.com/u/54129?v=4\",\"gravatar_id\":\"\",\"url\":\"https://api.github.com/users/maxandersen\",\"html_url\":\"https://github.com/maxandersen\",\"followers_url\":\"https://api.github.com/users/maxandersen/followers\",\"following_url\":\"https://api.github.com/users/maxandersen/following{/other_user}\",\"gists_url\":\"https://api.github.com/users/maxandersen/gists{/gist_id}\",\"starred_url\":\"https://api.github.com/users/maxandersen/starred{/owner}{/repo}\",\"subscriptions_url\":\"https://api.github.com/users/maxandersen/subscriptions\",\"organizations_url\":\"https://api.github.com/users/maxandersen/orgs\",\"repos_url\":\"https://api.github.com/users/maxandersen/repos\",\"events_url\":\"https://api.github.com/users/maxandersen/events{/privacy}\",\"received_events_url\":\"https://api.github.com/users/maxandersen/received_events\",\"type\":\"User\",\"user_view_type\":\"public\",\"site_admin\":false},\"version\":\"ec2f32f0093d5d56a35cd828254b3ec205f04d9f\",\"committed_at\":\"2020-07-08T11:14:39Z\",\"change_status\":{\"total\":3,\"additions\":3,\"deletions\":0},\"url\":\"https://api.github.com/gists/d4fa63eb16d8fc99448d37b10c7d8980/ec2f32f0093d5d56a35cd828254b3ec205f04d9f\"}],\"truncated\":false}",
+    "headers" : {
+      "X-RateLimit-Resource" : "core",
+      "Server" : "github.com",
+      "X-RateLimit-Used" : "3",
+      "Access-Control-Allow-Origin" : "*",
+      "X-Content-Type-Options" : "nosniff",
+      "X-RateLimit-Reset" : "1745514514",
+      "Last-Modified" : "Mon, 24 Mar 2025 22:19:44 GMT",
+      "x-github-api-version-selected" : "2022-11-28",
+      "Date" : "Thu, 24 Apr 2025 16:09:33 GMT",
+      "Accept-Ranges" : "bytes",
+      "Referrer-Policy" : "origin-when-cross-origin, strict-origin-when-cross-origin",
+      "X-Frame-Options" : "deny",
+      "Strict-Transport-Security" : "max-age=31536000; includeSubdomains; preload",
+      "Access-Control-Expose-Headers" : "ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset",
+      "X-RateLimit-Remaining" : "57",
+      "Cache-Control" : "public, max-age=60, s-maxage=60",
+      "X-GitHub-Media-Type" : "unknown, github.v3",
+      "ETag" : "W/\"a0d9747c4579e5046dd51031cf02b730964610bc9f6727490c30c45291a43c32\"",
+      "Content-Security-Policy" : "default-src 'none'",
+      "Vary" : "Accept,Accept-Encoding, Accept, X-Requested-With",
+      "X-RateLimit-Limit" : "60",
+      "X-XSS-Protection" : "0",
+      "X-GitHub-Request-Id" : "E865:49645:1779066:17F76B3:680A623D",
+      "Content-Type" : "application/json; charset=utf-8"
+    }
+  },
+  "uuid" : "7d84a3ca-042d-42f4-a60d-3b81ef1e6e01",
+  "persistent" : true,
+  "insertionIndex" : 15
+}

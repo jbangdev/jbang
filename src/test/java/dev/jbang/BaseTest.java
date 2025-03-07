@@ -1,5 +1,9 @@
 package dev.jbang;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.recordSpec;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -10,6 +14,8 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
@@ -17,13 +23,19 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
-import org.apache.commons.io.output.ByteArrayOutputStream;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.io.TempDir;
+
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.http.JvmProxyConfigurer;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.JBang;
@@ -33,6 +45,16 @@ import dev.jbang.util.Util;
 import picocli.CommandLine;
 
 public abstract class BaseTest {
+	public Path jbangTempDir;
+	public Path cwdDir;
+	public WireMockServer globalwms;
+
+	public static Path mavenTempDir;
+	public static Path jdksTempDir;
+	public static Path examplesTestFolder;
+
+	@Rule
+	public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
 	@BeforeEach
 	void initEnv(@TempDir Path tempPath) throws IOException {
@@ -58,13 +80,43 @@ public abstract class BaseTest {
 		}
 		Configuration.instance(null);
 		DependencyCache.clear();
+
+		// Start a WireMock server to capture and replay any remote
+		// requests JBang makes (any new code that results in additional
+		// requests will result in new recordings being added to the
+		// `src/test/resources/mappings` folder which can then be added
+		// to the git repository. Future requests will then be replayed
+		// from the recordings instead of hitting the real server.)
+		globalwms = new WireMockServer(options()
+			.enableBrowserProxying(true)
+			.dynamicPort());
+		globalwms.start();
+		JvmProxyConfigurer.configureFor(globalwms);
+		disableSSL();
+
+		// This forces MIMA to use the WireMock server as a proxy
+		// System.setProperty("aether.connector.http.useSystemProperties", "true");
+		// System.setProperty("aether.connector.https.securityMode", "insecure");
+	}
+
+	@AfterEach
+	public void cleanupEnv() {
+		globalwms.stop();
+		if ("true".equals(System.getenv("CI"))) {
+			// When running in CI, we want to fail if there are unmatched requests
+			globalwms.checkForUnmatchedRequests();
+		} else {
+			// During development, we want to record unknown requests
+			globalwms.snapshotRecord(recordSpec().ignoreRepeatRequests());
+		}
+		JvmProxyConfigurer.restorePrevious();
 	}
 
 	public static final String EXAMPLES_FOLDER = "itests";
-	public static Path examplesTestFolder;
 
-	@BeforeAll
-	static void init() throws URISyntaxException, IOException {
+	// Code to be run before all tests using JBangTestExecutionListener
+	// Not using @BeforeAll because it runs each time for each test class
+	static void initBeforeAll() throws URISyntaxException, IOException {
 		try {
 			// The default ConsoleHandler for logging doesn't like us changing
 			// System.err out from under it, so we remove it and add our own
@@ -88,19 +140,12 @@ public abstract class BaseTest {
 		}
 	}
 
-	@AfterAll
-	static void cleanup() {
+	// Code to be run after all tests using JBangTestExecutionListener
+	// Not using @AfterAll because it runs each time for each test class
+	static void cleanupAfterAll() {
 		Util.deletePath(mavenTempDir, true);
 		Util.deletePath(jdksTempDir, true);
 	}
-
-	@Rule
-	public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
-
-	public static Path mavenTempDir;
-	public static Path jdksTempDir;
-	public Path jbangTempDir;
-	public Path cwdDir;
 
 	protected <T> CaptureResult<Integer> checkedRun(Function<T, Integer> commandRunner, String... args)
 			throws Exception {
@@ -174,4 +219,35 @@ public abstract class BaseTest {
 		}
 	}
 
+	protected static void wiremockRequestPrinter(com.github.tomakehurst.wiremock.http.Request inRequest,
+			com.github.tomakehurst.wiremock.http.Response inResponse) {
+		System.err.printf("WireMock request at URL: %s%n", inRequest.getAbsoluteUrl());
+		System.err.printf("WireMock request headers: %s%n", inRequest.getHeaders());
+		System.err.printf("WireMock response status: %d%n", inResponse.getStatus());
+		System.err.printf("WireMock response body: %s%n", inResponse.getBodyAsString());
+		System.err.printf("WireMock response headers: %s%n", inResponse.getHeaders());
+	}
+
+	// WARNING: This method exists for Integration Testing purposes only!!!
+	public static void disableSSL() {
+		TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+			public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+				return new java.security.cert.X509Certificate[] {};
+			}
+
+			public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+			}
+
+			public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+			}
+		} };
+
+		try {
+			SSLContext sc = SSLContext.getInstance("SSL");
+			sc.init(null, trustAllCerts, new java.security.SecureRandom());
+			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+		} catch (KeyManagementException | NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		}
+	}
 }

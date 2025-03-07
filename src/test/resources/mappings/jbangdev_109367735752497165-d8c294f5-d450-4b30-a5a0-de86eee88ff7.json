@@ -1,0 +1,40 @@
+{
+  "id" : "d8c294f5-d450-4b30-a5a0-de86eee88ff7",
+  "name" : "jbangdev_109367735752497165",
+  "request" : {
+    "url" : "/@jbangdev/109367735752497165",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "jbangdev_109367735752497165-d8c294f5-d450-4b30-a5a0-de86eee88ff7.txt",
+    "headers" : {
+      "X-Cache" : "MISS, MISS",
+      "Server" : "Mastodon",
+      "X-Request-Id" : "573a1302-9693-42db-b62f-d72295130901",
+      "X-Runtime" : "0.019268",
+      "X-Content-Type-Options" : "nosniff",
+      "Date" : "Thu, 24 Apr 2025 16:10:15 GMT",
+      "X-Timer" : "S1745511016.872644,VS0,VE52",
+      "Via" : "1.1 varnish, 1.1 varnish",
+      "Accept-Ranges" : "bytes",
+      "Referrer-Policy" : "same-origin",
+      "X-Frame-Options" : "DENY",
+      "Strict-Transport-Security" : "max-age=300",
+      "Cache-Control" : "max-age=10, public",
+      "ETag" : "W/\"e108335c93784bac937389bffc637d2a\"",
+      "X-Served-By" : "cache-par-lfpb1150061-PAR, cache-toj-leto2350055-TOJ",
+      "Content-Security-Policy" : "base-uri 'none'; default-src 'none'; frame-ancestors 'none'; font-src 'self' https://fosstodon.org; img-src 'self' data: blob: https://fosstodon.org https://cdn.fosstodon.org; style-src 'self' https://fosstodon.org 'nonce-IsU9FsA06RpLV7M5RJ1j3A=='; media-src 'self' data: https://fosstodon.org https://cdn.fosstodon.org; manifest-src 'self' https://fosstodon.org; form-action 'none'; child-src 'self' blob: https://fosstodon.org; worker-src 'self' blob: https://fosstodon.org; connect-src 'self' data: blob: https://fosstodon.org https://cdn.fosstodon.org wss://fosstodon.org; script-src 'self' https://fosstodon.org 'wasm-unsafe-eval'; frame-src 'self' https:",
+      "Vary" : "Accept-Encoding, Accept, Accept-Language, Cookie",
+      "alt-svc" : "h3=\":443\";ma=86400,h3-29=\":443\";ma=86400,h3-27=\":443\";ma=86400",
+      "X-XSS-Protection" : "0",
+      "X-Cache-Hits" : "0, 0",
+      "Age" : "0",
+      "Link" : "<https://fosstodon.org/users/jbangdev/statuses/109367735752497165>; rel=\"alternate\"; type=\"application/activity+json\"",
+      "Content-Type" : "text/html; charset=utf-8"
+    }
+  },
+  "uuid" : "d8c294f5-d450-4b30-a5a0-de86eee88ff7",
+  "persistent" : true,
+  "insertionIndex" : 18
+}

@@ -1,0 +1,39 @@
+{
+  "id" : "05ec681c-e92f-460d-a772-8519a774a102",
+  "name" : "maxandersen_d4fa63eb16d8fc99448d37b10c7d8980_raw_ec2f32f0093d5d56a35cd828254b3ec205f04d9f_hello.jsh",
+  "request" : {
+    "url" : "/maxandersen/d4fa63eb16d8fc99448d37b10c7d8980/raw/ec2f32f0093d5d56a35cd828254b3ec205f04d9f/hello.jsh",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "//REPOS jitpack\n//DEPS com.github.intuit.karate:karate-netty:v0.9.5\n com.intuit.karate.Main.main(args);",
+    "headers" : {
+      "X-Cache" : "MISS",
+      "Access-Control-Allow-Origin" : "*",
+      "X-Content-Type-Options" : "nosniff",
+      "Source-Age" : "0",
+      "Date" : "Thu, 24 Apr 2025 16:09:34 GMT",
+      "X-Timer" : "S1745510974.219494,VS0,VE200",
+      "Via" : "1.1 varnish",
+      "Accept-Ranges" : "bytes",
+      "X-Frame-Options" : "deny",
+      "Strict-Transport-Security" : "max-age=31536000",
+      "Cache-Control" : "max-age=300",
+      "ETag" : "\"c3b6ecd432d9f6706a42167a2a8d101698fe9a66f9834bee120f6bc60eea8dd5\"",
+      "X-Served-By" : "cache-mad2200134-MAD",
+      "Content-Security-Policy" : "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+      "Vary" : "Authorization,Accept-Encoding,Origin",
+      "Expires" : "Thu, 24 Apr 2025 16:14:34 GMT",
+      "Cross-Origin-Resource-Policy" : "cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Cache-Hits" : "0",
+      "X-Fastly-Request-ID" : "9fc3561d2c0bec430e36650bd1f9ef31000b8b96",
+      "X-GitHub-Request-Id" : "4F51:27AEFE:2DB2D1F:338DA48:680A623C",
+      "Content-Type" : "text/plain; charset=utf-8"
+    }
+  },
+  "uuid" : "05ec681c-e92f-460d-a772-8519a774a102",
+  "persistent" : true,
+  "insertionIndex" : 14
+}

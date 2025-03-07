@@ -1,0 +1,22 @@
+{
+  "id" : "5b8574c9-0eda-427e-a6eb-ea4edcd5cc6e",
+  "name" : "jlyv8",
+  "request" : {
+    "url" : "/JLyV8",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 301,
+    "headers" : {
+      "Cache-Control" : "public, max-age=31536000, immutable",
+      "x-github-backend" : "Kubernetes",
+      "x-lru-cache" : "HIT",
+      "Date" : "Thu, 24 Apr 2025 16:09:19 GMT",
+      "X-GitHub-Request-Id" : "E737:68F14:13647D4:167F8CE:680A622F",
+      "Location" : "https://github.com/jbangdev/jbang/blob/master/itests/helloworld.java"
+    }
+  },
+  "uuid" : "5b8574c9-0eda-427e-a6eb-ea4edcd5cc6e",
+  "persistent" : true,
+  "insertionIndex" : 12
+}
