@@ -1142,7 +1142,7 @@ public class Util {
 	private static boolean isAGithubUrl(URLConnection urlConnection) {
 		String host = urlConnection.getURL().getHost();
 		return host.endsWith("github.com")
-			   	|| host.endsWith("githubusercontent.com");
+				|| host.endsWith("githubusercontent.com");
 	}
 
 	public static String getDispositionFilename(String disposition) {
