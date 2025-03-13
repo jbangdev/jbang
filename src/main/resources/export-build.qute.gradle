@@ -3,6 +3,10 @@ plugins {
 	id 'application'
 }
 
+{#if description}
+description = '{description}'
+{/if}
+
 repositories {
 	mavenCentral()
 {#for url in repositories}

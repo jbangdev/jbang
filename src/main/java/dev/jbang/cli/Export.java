@@ -616,6 +616,14 @@ abstract class BaseExportProject extends BaseExportCommand {
 	abstract String getType();
 
 	abstract void renderBuildFile(BuildContext ctx, Path projectDir, String fullClassName) throws IOException;
+
+	String getJavaVersion(Project prj, boolean minorVersionFor8) {
+		int javaVersion = JavaUtil.javaVersion(prj.getJavaVersion());
+		if (!minorVersionFor8) {
+			return Integer.toString(javaVersion);
+		}
+		return javaVersion >= 9 ? Integer.toString(javaVersion) : "1." + javaVersion;
+	}
 }
 
 @Command(name = "gradle", description = "Exports a Gradle project")
@@ -657,7 +665,7 @@ class ExportGradleProject extends BaseExportProject {
 																	.map(MavenRepo::getUrl)
 																	.filter(s -> !"".equals(s))
 																	.collect(Collectors.toList()))
-								.data("javaVersion", prj.getJavaVersion())
+								.data("javaVersion", getJavaVersion(prj, false))
 								.data("gradledependencies", gradleify(depIds))
 								.data("fullClassName", fullClassName)
 								.render();
@@ -690,10 +698,9 @@ class ExportMavenProject extends BaseExportProject {
 		Path destination = projectDir.resolve("pom.xml");
 
 		Map<String, String> properties = new HashMap<>();
-		if (prj.getJavaVersion() != null) {
-			properties.put("maven.compiler.source", prj.getJavaVersion());
-			properties.put("maven.compiler.target", prj.getJavaVersion());
-		}
+		String javaVersion = getJavaVersion(prj, true);
+		properties.put("maven.compiler.source", javaVersion);
+		properties.put("maven.compiler.target", javaVersion);
 
 		List<MavenRepo> repositories = prj.getRepositories();
 		List<String> dependencies = prj.getMainSourceSet().getDependencies();
