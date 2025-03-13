@@ -619,7 +619,10 @@ abstract class BaseExportProject extends BaseExportCommand {
 	abstract void renderBuildFile(BuildContext ctx, Path projectDir, String fullClassName) throws IOException;
 
 	String getJavaVersion(Project prj, boolean minorVersionFor8) {
-		int javaVersion = JavaUtil.javaVersion(prj.getJavaVersion());
+		if (prj.getJavaVersion() == null) {
+			return null;
+		}
+		int javaVersion = JavaUtil.minRequestedVersion(prj.getJavaVersion());
 		if (!minorVersionFor8) {
 			return Integer.toString(javaVersion);
 		}
@@ -700,8 +703,10 @@ class ExportMavenProject extends BaseExportProject {
 
 		Map<String, String> properties = new HashMap<>();
 		String javaVersion = getJavaVersion(prj, true);
-		properties.put("maven.compiler.source", javaVersion);
-		properties.put("maven.compiler.target", javaVersion);
+		if (javaVersion != null) {
+			properties.put("maven.compiler.source", javaVersion);
+			properties.put("maven.compiler.target", javaVersion);
+		}
 
 		List<MavenRepo> repositories = prj.getRepositories();
 		List<String> dependencies = prj.getMainSourceSet().getDependencies();

@@ -210,7 +210,7 @@ public class TestExport extends BaseTest {
 		assertThat(buildPath.toFile(), anExistingFile());
 		String build = Util.readString(buildPath);
 		assertThat(build, containsString("implementation 'log4j:log4j:1.2.17'"));
-		assertThat(build, containsString("languageVersion = JavaLanguageVersion.of"));
+		assertThat(build, not(containsString("languageVersion = JavaLanguageVersion.of")));
 		assertThat(build, containsString("mainClass = 'org.example.project.classpath_log.classpath_log'"));
 	}
 
@@ -231,7 +231,7 @@ public class TestExport extends BaseTest {
 		assertThat(buildPath.toFile(), anExistingFile());
 		String build = Util.readString(buildPath);
 		assertThat(build, containsString("implementation 'log4j:log4j:1.2.17'"));
-		assertThat(build, containsString("languageVersion = JavaLanguageVersion.of"));
+		assertThat(build, not(containsString("languageVersion = JavaLanguageVersion.of")));
 		assertThat(build, containsString("mainClass = 'dev.jbang.test.app.classpath_log'"));
 	}
 
@@ -254,7 +254,7 @@ public class TestExport extends BaseTest {
 		assertThat(build, containsString("implementation platform ('org.apache.logging.log4j:log4j-bom:2.24.3')"));
 		assertThat(build, containsString("implementation 'org.apache.logging.log4j:log4j-api'"));
 		assertThat(build, containsString("implementation 'org.apache.logging.log4j:log4j-core'"));
-		assertThat(build, containsString("languageVersion = JavaLanguageVersion.of"));
+		assertThat(build, not(containsString("languageVersion = JavaLanguageVersion.of")));
 		assertThat(build, containsString("mainClass = 'org.example.project.classpath_log_bom.classpath_log_bom'"));
 	}
 
@@ -327,13 +327,11 @@ public class TestExport extends BaseTest {
 				"<groupId>org.example.project</groupId>",
 				"<artifactId>classpath_log</artifactId>",
 				"<version>999-SNAPSHOT</version>",
-				"<properties>",
-				"<maven.compiler.source>",
 				"<dependencies>",
 				"<groupId>log4j</groupId>",
 				"<artifactId>log4j</artifactId>",
 				"<version>1.2.17</version>"));
-		assertThat(pom, containsString("<maven.compiler.target>")); // Properties key may be in any order
+		assertThat(pom, not(containsString("<properties>")));
 		assertThat(pom, not(containsString("<dependencyManagement>")));
 		assertThat(pom, not(containsString("<repositories>")));
 	}
@@ -358,13 +356,11 @@ public class TestExport extends BaseTest {
 				"<groupId>dev.jbang.test</groupId>",
 				"<artifactId>app</artifactId>",
 				"<version>1.2.3</version>",
-				"<properties>",
-				"<maven.compiler.source>",
 				"<dependencies>",
 				"<groupId>log4j</groupId>",
 				"<artifactId>log4j</artifactId>",
 				"<version>1.2.17</version>"));
-		assertThat(pom, containsString("<maven.compiler.target>")); // Properties key may be in any order
+		assertThat(pom, not(containsString("<properties>")));
 		assertThat(pom, not(containsString("<dependencyManagement>")));
 		assertThat(pom, not(containsString("<repositories>")));
 	}
@@ -389,8 +385,6 @@ public class TestExport extends BaseTest {
 				"<groupId>org.example.project</groupId>",
 				"<artifactId>classpath_log_bom</artifactId>",
 				"<version>999-SNAPSHOT</version>",
-				"<properties>",
-				"<maven.compiler.source>",
 				"<dependencyManagement>",
 				"<groupId>org.apache.logging.log4j</groupId>",
 				"<artifactId>log4j-bom</artifactId>",
@@ -400,7 +394,7 @@ public class TestExport extends BaseTest {
 				"<artifactId>log4j-api</artifactId>",
 				"<groupId>org.apache.logging.log4j</groupId>",
 				"<artifactId>log4j-core</artifactId>"));
-		assertThat(pom, containsString("<maven.compiler.target>")); // Properties key may be in any order
+		assertThat(pom, not(containsString("<properties>")));
 		assertThat(pom, not(containsString("<repositories>")));
 	}
 
