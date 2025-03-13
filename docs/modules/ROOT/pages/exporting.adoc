@@ -19,6 +19,8 @@ Note, the local generated jar will have classpath references that are machine de
 jar use `jbang export portable <script>` and the dependent jars will be put in `lib` directory and
 generated jar will have relative references to the jars in the `lib` folder.
 
+You can also use `jbang export gradle|maven <script>` to export the set of the script, its additional sources and resources, along with their dependencies, to a Gradle or Maven project, allowing you to proceed with full-scale development in your favorite IDE.
+
 == Exporting to Maven Repository
 
 If your application or script need to be used from another java project it can be beneficial to publish your jar into a maven repository.
@@ -45,3 +47,110 @@ You should only need to change `hello.java` to match your application/script.
 
 You can read more about how jitpack handle builds at https://jitpack.io/docs/BUILDING/.
 
+== Exporting as a project
+
+If you want to transition your developed script to a full-scale Java project, you can use `jbang export gradle|maven <script>` to export it as a Gradle or Maven project. If you have specified multiple sources or resources using `//SOURCES` or `//FILES` in the script, they will also be exported. Tags such as `//JAVA`, `//DEPS`, `//REPOS`, `//GAV`, and `//DESCRIPTION` will also be reflected in the exported `build.gradle` or `pom.xml`.
+
+Unless explicitly specified via command options or tags, the GAV of the exported project defaults to `org.example:<script name>:999-SNAPSHOT`.
+
+Let's say you want to export the following `hello.java` to a project:
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+
+//SOURCES model/Message.java
+//FILES application.properties
+//DEPS org.slf4j:slf4j-simple:2.0.17
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import model.Message;
+
+public class hello {
+    private static final Logger log = LoggerFactory.getLogger(hello.class);
+
+    public static void main(String... args) {
+        log.info("{}", new Message());
+    }
+}
+----
+
+=== To a Gradle project
+
+You can export the script to a Gradle project with the GAV `dev.jbang:myapp:1.0.0-SNAPSHOT` as follows:
+
+[source,bash]
+----
+jbang export gradle --group dev.jbang --artifact myapp --version 1.0.0-SNAPSHOT hello.java
+----
+
+The generated project would look like this:
+
+[source]
+----
+hello
+├── build.gradle
+└── src
+    └── main
+        ├── java
+        │   ├── dev
+        │   │   └── jbang
+        │   │       └── myapp
+        │   │           └── hello.java
+        │   └── model
+        │       └── Message.java
+        └── resources
+            └── application.properties
+----
+
+The `build.gradle` file would include the following dependencies:
+
+[source,gradle]
+----
+dependencies {
+    implementation 'org.slf4j:slf4j-simple:2.0.17'
+}
+----
+
+=== To a Maven project
+
+You can export the script to a Maven project with the GAV `dev.jbang:myapp:1.0.0-SNAPSHOT` as follows:
+
+[source,bash]
+----
+jbang export maven --group dev.jbang --artifact myapp --version 1.0.0-SNAPSHOT hello.java
+----
+
+The generated project would look like this:
+
+[source]
+----
+hello
+├── pom.xml
+└── src
+    └── main
+        ├── java
+        │   ├── dev
+        │   │   └── jbang
+        │   │       └── myapp
+        │   │           └── hello.java
+        │   └── model
+        │       └── Message.java
+        └── resources
+            └── application.properties
+----
+
+The `pom.xml` file would include the following dependencies:
+
+[source,gradle]
+----
+<dependencies>
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-simple</artifactId>
+        <version>2.0.17</version>
+        <scope>compile</scope>
+    </dependency>
+</dependencies>
+----

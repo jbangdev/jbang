@@ -33,7 +33,8 @@ import io.quarkus.qute.Template;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
-@Command(name = "export", description = "Export the result of a build.", subcommands = { ExportPortable.class,
+@Command(name = "export", description = "Export the result of a build or the set of the sources to a project.", subcommands = {
+		ExportPortable.class,
 		ExportLocal.class, ExportMavenPublish.class, ExportNative.class, ExportFatjar.class, ExportJlink.class,
 		ExportGradleProject.class, ExportMavenProject.class })
 public class Export {
