@@ -180,9 +180,9 @@ public class TestApp extends BaseTest {
 	}
 
 	private void testScript(String name, String cwd, List<String> contents) throws IOException {
-		List<String> cs = contents	.stream()
-									.map(l -> l.replace("$CWD", cwd))
-									.collect(Collectors.toList());
+		List<String> cs = contents.stream()
+			.map(l -> l.replace("$CWD", cwd))
+			.collect(Collectors.toList());
 		Path shFile = Settings.getConfigBinDir().resolve(name);
 		assertThat(shFile.toFile(), anExistingFile());
 		assertThat(Files.readAllLines(shFile), is(cs));
