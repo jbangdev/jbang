@@ -1132,7 +1132,7 @@ public class Util {
 			if (url.getUserInfo() != null) {
 				String[] credentials = url.getUserInfo().split(":", 2);
 				username = PropertiesValueResolver.replaceProperties(credentials[0]);
-				password = credentials.length > 1 ?  PropertiesValueResolver.replaceProperties(credentials[1]) : "";
+				password = credentials.length > 1 ? PropertiesValueResolver.replaceProperties(credentials[1]) : "";
 			} else {
 				username = System.getenv(JBANG_AUTH_BASIC_USERNAME);
 				password = System.getenv(JBANG_AUTH_BASIC_PASSWORD);

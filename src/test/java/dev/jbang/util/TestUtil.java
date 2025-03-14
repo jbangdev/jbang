@@ -13,7 +13,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Objects;
 
 import org.junit.jupiter.api.Test;
 
@@ -167,10 +166,12 @@ public class TestUtil extends BaseTest {
 	void testUrlBasicAuth() throws IOException {
 		System.setProperty("SOME_USERNAME", "JohnDoe");
 		System.setProperty("SOME_PASSWORD", "VeryStrongPassword1");
-		URLConnection connection = new NoOpUrlConnection(new URL("https://${SOME_USERNAME}:${SOME_PASSWORD}@example.com"));
+		URLConnection connection = new NoOpUrlConnection(
+				new URL("https://${SOME_USERNAME}:${SOME_PASSWORD}@example.com"));
 
 		authentication().configure(connection);
 
-		assertThat(connection.getRequestProperty("Authorization"), equalTo("Basic Sm9obkRvZTpWZXJ5U3Ryb25nUGFzc3dvcmQx"));
+		assertThat(connection.getRequestProperty("Authorization"),
+				equalTo("Basic Sm9obkRvZTpWZXJ5U3Ryb25nUGFzc3dvcmQx"));
 	}
 }
