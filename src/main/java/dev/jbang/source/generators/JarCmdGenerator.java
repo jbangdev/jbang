@@ -173,8 +173,8 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 
 		fullArgs.add(javacmd);
 
-		fullArgs.addAll(project.getRuntimeOptions());
-		fullArgs.addAll(runtimeOptions);
+		fullArgs.addAll(Util.handleRemoteFiles(project.getRuntimeOptions()));
+		fullArgs.addAll(Util.handleRemoteFiles(runtimeOptions));
 		fullArgs.addAll(ctx.resolveClassPath().getAutoDectectedModuleArguments(jdk));
 		fullArgs.addAll(optionalArgs);
 
