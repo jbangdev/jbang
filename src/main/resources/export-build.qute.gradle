@@ -24,11 +24,13 @@ java {
 }
 {/if}
 
+{#if !gradledependencies.empty}
 dependencies {
 {#for item in gradledependencies}
 	{item}
 {/for}
 }
+{/if}
 
 application {
 	mainClass = '{fullClassName}'

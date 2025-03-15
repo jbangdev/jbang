@@ -543,6 +543,7 @@ abstract class BaseExportProject extends BaseExportCommand {
 
 		if (group == null) {
 			group = "org.example.project";
+			info("No explicit group found, using " + group + " as fallback.");
 		}
 		artifact = artifact != null ? artifact
 				: Util.getBaseName(Objects.requireNonNull(prj.getResourceRef().getFile()).getFileName().toString());
@@ -551,6 +552,8 @@ abstract class BaseExportProject extends BaseExportCommand {
 		createProjectForExport(ctx, projectDir);
 
 		info("Exported as " + getType() + " project to " + projectDir);
+		info("Export to " + getType() + " is a best-effort to try match JBang build.");
+		info("If something can be improved please open issue at open an issue at https://github.com/jbangdev/jbang/issues with reproducer.");
 		return EXIT_OK;
 	}
 
@@ -560,13 +563,10 @@ abstract class BaseExportProject extends BaseExportCommand {
 
 		// Sources
 		Path srcJavaDir = projectDir.resolve("src/main/java");
-		String srcPackageName = group + "." + artifact;
-		Path srcPackageDir = srcJavaDir.resolve(srcPackageName.replace(".", "/"));
-		Util.mkdirs(srcPackageDir);
 
 		String fullClassName = "";
 		for (ResourceRef sourceRef : prj.getMainSourceSet().getSources()) {
-			Path destFile = copySource(sourceRef, srcJavaDir, srcPackageDir, srcPackageName);
+			Path destFile = copySource(sourceRef, srcJavaDir);
 			if (sourceRef.equals(prj.getResourceRef())) {
 				String mainFileName = Util.unkebabify(destFile.getFileName().toString());
 				Optional<String> mainPackageName = Util.getSourcePackage(Util.readString(destFile));
@@ -586,7 +586,7 @@ abstract class BaseExportProject extends BaseExportCommand {
 		renderBuildFile(ctx, projectDir, fullClassName);
 	}
 
-	private Path copySource(ResourceRef sourceRef, Path srcJavaDir, Path srcPackageDir, String srcPackageName)
+	private Path copySource(ResourceRef sourceRef, Path srcJavaDir)
 			throws IOException {
 		Path srcFile = Objects.requireNonNull(sourceRef.getFile());
 		Source src = Source.forResourceRef(sourceRef, Function.identity());
@@ -598,18 +598,11 @@ abstract class BaseExportProject extends BaseExportCommand {
 			destFile = packageDir.resolve(fileName);
 			Files.copy(srcFile, destFile);
 		} else {
-			destFile = srcPackageDir.resolve(fileName);
+			destFile = srcJavaDir.resolve(fileName);
+			Files.createDirectories(destFile.getParent());
 			Files.copy(srcFile, destFile);
-			prependPackage(destFile, srcPackageName);
 		}
 		return destFile;
-	}
-
-	private void prependPackage(Path source, String packageName) throws IOException {
-		String content = "package " + packageName + ";" + System.lineSeparator()
-				+ System.lineSeparator()
-				+ Util.readString(source);
-		Util.writeString(source, content);
 	}
 
 	abstract String getType();
