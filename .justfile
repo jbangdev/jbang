@@ -1,4 +1,4 @@
-open := if os() == "macos" { "open" } else { "xdg-open" }
+open := if os() == "macos" { "open" } else if os() == "windows" { "start" } else { "xdg-open" }
 
 #@default:
 #    just --choose
@@ -12,7 +12,7 @@ test:
     ./gradlew test
 
 preitest := if path_exists('build/install/jbang/bin') != 'true' {
-  './gradlew installDist -x test'
+    './gradlew spotlessApply installDist -x test'
 } else {
     ''
 }
@@ -25,6 +25,10 @@ opentest:
 itest:
     {{preitest}}
     @cd itests && ./itests.sh
+
+# open shell with latest build in path
+jbang +args:
+    PATH="build/install/jbang/bin:$PATH" jbang {{args}}
 
 # open integeration test report
 openitest:
