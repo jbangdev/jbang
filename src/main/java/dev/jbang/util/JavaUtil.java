@@ -6,34 +6,94 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Comparator;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
-import dev.jbang.net.JdkManager;
-import dev.jbang.net.JdkProvider;
+import dev.jbang.Cache;
+import dev.jbang.Settings;
+import dev.jbang.devkitman.*;
+import dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller;
+import dev.jbang.devkitman.jdkproviders.*;
+import dev.jbang.devkitman.util.RemoteAccessProvider;
 
 public class JavaUtil {
 
-	private static Integer javaVersion;
+	@Nonnull
+	public static JdkManager defaultJdkManager(String... names) {
+		return (new JdkManBuilder()).provider(names).build();
+	}
 
-	/**
-	 * Returns the actual Java version that's going to be used. It either returns
-	 * the value of the expected version if it is supplied or the version of the JDK
-	 * available in the environment (either JAVA_HOME or what's available on the
-	 * PATH)
-	 * 
-	 * @param requestedVersion The Java version requested by the user
-	 * @return The Java version that will be used
-	 */
-	public static int javaVersion(String requestedVersion) {
-		JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(requestedVersion);
-		return jdk.getMajorVersion();
+	@Nonnull
+	public static JdkManager defaultJdkManager(List<String> names) {
+		return (new JdkManBuilder()).provider(names).build();
+	}
+
+	public static class JdkManBuilder extends JdkManager.Builder {
+		private final List<String> providerNames = new ArrayList<>();
+
+		public static final List<String> PROVIDERS_ALL = JdkProviders.instance().allNames();
+		public static final List<String> PROVIDERS_DEFAULT = JdkProviders.instance().basicNames();
+
+		public JdkManager.Builder provider(String... names) {
+			return provider(names != null ? Arrays.asList(names) : null);
+		}
+
+		public JdkManager.Builder provider(List<String> names) {
+			if (names != null) {
+				for (String providerName : names) {
+					if (PROVIDERS_ALL.contains(providerName)) {
+						providerNames.add(providerName);
+					}
+				}
+			}
+			return this;
+		}
+
+		public JdkManager build() {
+			if (providerNames.isEmpty() && providers.isEmpty()) {
+				provider(PROVIDERS_DEFAULT);
+			}
+			for (String providerName : providerNames) {
+				JdkProvider provider = createProvider(providerName);
+				if (provider != null && provider.canUse()) {
+					providers(provider);
+				}
+			}
+			return super.build();
+		}
+
+		private JdkProvider createProvider(String providerName) {
+			JdkProvider provider;
+			switch (providerName) {
+			case "default":
+				provider = new DefaultJdkProvider(Settings.getDefaultJdkDir());
+				break;
+			case "jbang":
+				JBangJdkProvider p = new JBangJdkProvider();
+				p.installer(new FoojayJdkInstaller(p).remoteAccessProvider(new JBangRemoteAccessProvider()));
+				provider = p;
+				break;
+			default:
+				JdkDiscovery.Config cfg = new JdkDiscovery.Config(Settings.getCacheDir(Cache.CacheClass.jdks));
+				provider = JdkProviders.instance().byName(providerName, cfg);
+				if (provider == null) {
+					Util.warnMsg("Unknown JDK provider: " + providerName);
+				}
+				break;
+			}
+			return provider;
+		}
+	}
+
+	static class JBangRemoteAccessProvider implements RemoteAccessProvider {
+		@Override
+		public Path downloadFromUrl(String url) throws IOException {
+			return Util.downloadAndCacheFile(url);
+		}
 	}
 
 	/**
@@ -117,9 +177,9 @@ public class JavaUtil {
 		return parseJavaVersion(System.getProperty("java.version"));
 	}
 
-	public static String resolveInJavaHome(@Nonnull String cmd, @Nullable String requestedVersion) {
-		Path jdkHome = JdkManager.getOrInstallJdk(requestedVersion).getHome();
-		if (jdkHome != null) {
+	public static String resolveInJavaHome(@Nonnull String cmd, @Nonnull Jdk jdk) {
+		if (jdk.isInstalled()) {
+			Path jdkHome = jdk.home();
 			if (Util.isWindows()) {
 				cmd = cmd + ".exe";
 			}

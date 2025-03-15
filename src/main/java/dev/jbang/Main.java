@@ -1,7 +1,9 @@
 package dev.jbang;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.LogManager;
 import java.util.stream.Collectors;
 
 import dev.jbang.cli.JBang;
@@ -10,6 +12,12 @@ import picocli.CommandLine;
 
 public class Main {
 	public static void main(String... args) {
+		try {
+			// Set up JUL logging so the output looks like JBang output
+			LogManager.getLogManager().readConfiguration(Main.class.getResourceAsStream("/logging.properties"));
+		} catch (IOException e) {
+			// Ignore
+		}
 		CommandLine cli = JBang.getCommandLine();
 		args = handleDefaultRun(cli.getCommandSpec(), args);
 		int exitcode = cli.execute(args);
