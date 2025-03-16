@@ -21,7 +21,7 @@ import org.codehaus.plexus.languages.java.jpms.LocationManager;
 import org.codehaus.plexus.languages.java.jpms.ResolvePathsRequest;
 import org.codehaus.plexus.languages.java.jpms.ResolvePathsResult;
 
-import dev.jbang.devkitman.Jdk;
+import dev.jbang.net.JdkProvider;
 import dev.jbang.util.Util;
 
 public class ModularClassPath {
@@ -67,7 +67,7 @@ public class ModularClassPath {
 		return javafx.get();
 	}
 
-	public List<String> getAutoDectectedModuleArguments(@Nonnull Jdk jdk) {
+	public List<String> getAutoDectectedModuleArguments(@Nonnull JdkProvider.Jdk jdk) {
 		if (hasJavaFX() && supportsModules(jdk)) {
 			List<String> commandArguments = new ArrayList<>();
 
@@ -132,8 +132,8 @@ public class ModularClassPath {
 		}
 	}
 
-	protected boolean supportsModules(Jdk jdk) {
-		return jdk.majorVersion() >= 9;
+	protected boolean supportsModules(JdkProvider.Jdk jdk) {
+		return jdk.getMajorVersion() >= 9;
 	}
 
 	public List<ArtifactInfo> getArtifacts() {

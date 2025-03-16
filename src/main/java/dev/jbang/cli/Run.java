@@ -51,6 +51,7 @@ public class Run extends BaseBuildCommand {
 	public Integer doCall() throws IOException {
 		requireScriptArgument();
 		rewriteScriptArguments();
+		jdkProvidersMixin.initJdkProviders();
 
 		userParams = handleRemoteFiles(userParams);
 		String scriptOrFile = scriptMixin.scriptOrFile;

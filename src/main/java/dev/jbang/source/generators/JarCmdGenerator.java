@@ -9,7 +9,8 @@ import java.util.stream.Collectors;
 import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
-import dev.jbang.devkitman.Jdk;
+import dev.jbang.net.JdkManager;
+import dev.jbang.net.JdkProvider;
 import dev.jbang.source.*;
 import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.JavaUtil;
@@ -77,10 +78,11 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 
 		List<String> optionalArgs = new ArrayList<>();
 
-		Jdk jdk = project.projectJdk();
-		String javacmd = JavaUtil.resolveInJavaHome("java", jdk);
+		String requestedJavaVersion = project.getJavaVersion();
+		JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(requestedJavaVersion);
+		String javacmd = JavaUtil.resolveInJavaHome("java", requestedJavaVersion);
 
-		if (jdk.majorVersion() > 9) {
+		if (jdk.getMajorVersion() > 9) {
 			String opens = ctx.getProject().getManifestAttributes().get("Add-Opens");
 			if (opens != null) {
 				for (String val : opens.split(" ")) {
@@ -156,7 +158,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		}
 
 		if (classDataSharing || project.enableCDS()) {
-			if (jdk.majorVersion() >= 13) {
+			if (jdk.getMajorVersion() >= 13) {
 				Path cdsJsa = ctx.getJsaFile().toAbsolutePath();
 				if (Files.exists(cdsJsa)) {
 					Util.verboseMsg("CDS: Using shared archive classes from " + cdsJsa);

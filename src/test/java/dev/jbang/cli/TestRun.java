@@ -5,7 +5,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static dev.jbang.source.Project.ATTR_AGENT_CLASS;
 import static dev.jbang.source.Project.ATTR_PREMAIN_CLASS;
-import static dev.jbang.util.JavaUtil.defaultJdkManager;
 import static dev.jbang.util.Util.writeString;
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -62,6 +61,7 @@ import dev.jbang.Settings;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.catalog.CatalogUtil;
+import dev.jbang.net.JdkManager;
 import dev.jbang.net.TrustedSources;
 import dev.jbang.source.BuildContext;
 import dev.jbang.source.Builder;
@@ -2280,7 +2280,7 @@ public class TestRun extends BaseTest {
 
 	@Test
 	void testForceJavaVersion() throws IOException {
-		int v = defaultJdkManager().getJdk(null).majorVersion();
+		int v = JdkManager.getJdk(null, false).getMajorVersion();
 		String arg = examplesTestFolder.resolve("java4321.java").toAbsolutePath().toString();
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--java", "" + v, arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();

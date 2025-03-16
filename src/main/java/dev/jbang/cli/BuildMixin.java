@@ -4,17 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import dev.jbang.devkitman.Jdk;
-import dev.jbang.source.Project;
-
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
 public class BuildMixin {
 	public String javaVersion;
-
-	@CommandLine.Mixin
-	JdkProvidersMixin jdkProvidersMixin;
 
 	@CommandLine.Option(names = { "-j",
 			"--java" }, description = "JDK version to use for running the script.")
@@ -43,14 +37,6 @@ public class BuildMixin {
 	@Option(names = {
 			"--integrations" }, description = "Enable integration execution (default: true)", negatable = true)
 	public Boolean integrations;
-
-	public Jdk getProjectJdk(Project project) {
-		Jdk jdk = project.projectJdk();
-		if (javaVersion != null) {
-			jdk = jdkProvidersMixin.getJdkManager().getOrInstallJdk(javaVersion);
-		}
-		return jdk;
-	}
 
 	public List<String> opts() {
 		List<String> opts = new ArrayList<>();
@@ -83,7 +69,6 @@ public class BuildMixin {
 				opts.add(e.getKey() + "=" + e.getValue());
 			}
 		}
-		opts.addAll(jdkProvidersMixin.opts());
 		return opts;
 	}
 }

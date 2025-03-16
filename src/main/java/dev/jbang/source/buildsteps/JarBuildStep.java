@@ -12,6 +12,7 @@ import dev.jbang.source.BuildContext;
 import dev.jbang.source.Builder;
 import dev.jbang.source.Project;
 import dev.jbang.util.JarUtil;
+import dev.jbang.util.JavaUtil;
 
 /**
  * This class takes a <code>Project</code> and the result from a previous
@@ -41,13 +42,13 @@ public class JarBuildStep implements Builder<Project> {
 
 		prj.getManifestAttributes().forEach((k, v) -> manifest.getMainAttributes().putValue(k, v));
 
-		int buildJdk = prj.projectJdk().majorVersion();
+		int buildJdk = JavaUtil.javaVersion(prj.getJavaVersion());
 		if (buildJdk > 0) {
 			String val = buildJdk >= 9 ? Integer.toString(buildJdk) : "1." + buildJdk;
 			manifest.getMainAttributes().putValue(ATTR_BUILD_JDK, val);
 		}
 
-		JarUtil.createJar(jarFile, compileDir, manifest, prj.getMainClass(), prj.projectJdk());
+		JarUtil.createJar(jarFile, compileDir, manifest, prj.getMainClass(), prj.getJavaVersion());
 
 		if (AppBuilder.keepClasses()) {
 			// In the case the "keep classes" option is specified we write
