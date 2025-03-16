@@ -86,8 +86,7 @@ abstract class BaseExportCommand extends BaseCommand {
 						.javaVersion(exportMixin.buildMixin.javaVersion)
 						.mainClass(exportMixin.buildMixin.main)
 						.moduleName(exportMixin.buildMixin.module)
-						.compileOptions(exportMixin.buildMixin.compileOptions)
-						.jdkManager(exportMixin.buildMixin.jdkProvidersMixin.getJdkManager());
+						.compileOptions(exportMixin.buildMixin.compileOptions);
 	}
 
 	Path getJarOutputPath() {
@@ -126,8 +125,10 @@ class ExportLocal extends BaseExportCommand {
 		String newPath = ctx.resolveClassPath().getManifestPath();
 		if (!newPath.isEmpty()) {
 			Util.infoMsg("Updating jar...");
-			JarUtil.updateJar(outputPath, createManifest(newPath), prj.getMainClass(),
-					exportMixin.buildMixin.getProjectJdk(prj));
+			String javaVersion = exportMixin.buildMixin.javaVersion != null
+					? exportMixin.buildMixin.javaVersion
+					: prj.getJavaVersion();
+			JarUtil.updateJar(outputPath, createManifest(newPath), prj.getMainClass(), javaVersion);
 		}
 
 		Util.infoMsg("Exported to " + outputPath);
@@ -175,8 +176,10 @@ class ExportPortable extends BaseExportCommand {
 			}
 
 			Util.infoMsg("Updating jar...");
-			JarUtil.updateJar(outputPath, createManifest(newPath.toString()), prj.getMainClass(),
-					exportMixin.buildMixin.getProjectJdk(prj));
+			String javaVersion = exportMixin.buildMixin.javaVersion != null
+					? exportMixin.buildMixin.javaVersion
+					: prj.getJavaVersion();
+			JarUtil.updateJar(outputPath, createManifest(newPath.toString()), prj.getMainClass(), javaVersion);
 		}
 		Util.infoMsg("Exported to " + outputPath);
 		return EXIT_OK;
@@ -367,8 +370,7 @@ class ExportFatjar extends BaseExportCommand {
 					Util.verboseMsg("Unpacking artifact: " + dep);
 					UnpackUtil.unzip(dep.getFile(), tmpDir, false, null, ExportFatjar::handleExistingFile);
 				}
-				JarUtil.createJar(outputPath, tmpDir, null, prj.getMainClass(),
-						exportMixin.buildMixin.getProjectJdk(prj));
+				JarUtil.createJar(outputPath, tmpDir, null, prj.getMainClass(), prj.getJavaVersion());
 			} finally {
 				Util.deletePath(tmpDir, true);
 			}
@@ -450,7 +452,7 @@ class ExportJlink extends BaseExportCommand {
 			}
 		}
 
-		String jlinkCmd = JavaUtil.resolveInJavaHome("jlink", prj.projectJdk());
+		String jlinkCmd = JavaUtil.resolveInJavaHome("jlink", null);
 		String modMain = ModuleUtil.getModuleMain(prj);
 		List<String> cps = artifacts.stream().map(a -> a.getFile().toString()).collect(Collectors.toList());
 		List<String> cp = new ArrayList<>(artifacts.size() + 1);

@@ -10,12 +10,8 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.Rule;
@@ -65,19 +61,6 @@ public abstract class BaseTest {
 
 	@BeforeAll
 	static void init() throws URISyntaxException, IOException {
-		try {
-			// The default ConsoleHandler for logging doesn't like us changing
-			// System.err out from under it, so we remove it and add our own
-			LogManager lm = LogManager.getLogManager();
-			lm.readConfiguration(BaseTest.class.getResourceAsStream("/logging.properties"));
-			Logger rl = lm.getLogger("");
-			Arrays	.stream(rl.getHandlers())
-					.filter(h -> h instanceof ConsoleHandler)
-					.forEach(rl::removeHandler);
-			rl.addHandler(new JBangHandler());
-		} catch (IOException e) {
-			// Ignore
-		}
 		mavenTempDir = Files.createTempDirectory("jbang_tests_maven");
 		jdksTempDir = Files.createTempDirectory("jbang_tests_jdks");
 		URL examplesUrl = BaseTest.class.getClassLoader().getResource(EXAMPLES_FOLDER);
@@ -102,8 +85,7 @@ public abstract class BaseTest {
 	public Path jbangTempDir;
 	public Path cwdDir;
 
-	protected <T> CaptureResult<Integer> checkedRun(Function<T, Integer> commandRunner, String... args)
-			throws Exception {
+	protected <T> CaptureResult checkedRun(Function<T, Integer> commandRunner, String... args) throws Exception {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs(args);
 		while (pr.subcommand() != null) {
 			pr = pr.subcommand();

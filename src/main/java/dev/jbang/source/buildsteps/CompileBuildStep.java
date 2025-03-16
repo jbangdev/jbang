@@ -23,12 +23,12 @@ import org.jboss.jandex.Type;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.MavenCoordinate;
-import dev.jbang.devkitman.Jdk;
 import dev.jbang.source.BuildContext;
 import dev.jbang.source.Builder;
 import dev.jbang.source.Project;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.util.CommandBuffer;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
@@ -58,14 +58,12 @@ public abstract class CompileBuildStep implements Builder<Project> {
 
 	protected Project compile() throws IOException {
 		Project project = ctx.getProject();
-		Jdk jdk = project.projectJdk();
 		String requestedJavaVersion = project.getJavaVersion();
 		if (requestedJavaVersion == null
 				&& project.getModuleName().isPresent()
-				&& jdk.majorVersion() < 9) {
+				&& JavaUtil.javaVersion(null) < 9) {
 			// Make sure we use at least Java 9 when dealing with modules
 			requestedJavaVersion = "9+";
-			jdk = project.projectJdkManager().getOrInstallJdk(requestedJavaVersion);
 		}
 
 		Path compileDir = ctx.getCompileDir();
@@ -74,7 +72,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 		if (project.enablePreview()) {
 			optionList.add("--enable-preview");
 			optionList.add("-source");
-			optionList.add("" + jdk.majorVersion());
+			optionList.add("" + JavaUtil.javaVersion(requestedJavaVersion));
 		}
 		optionList.addAll(project.getMainSourceSet().getCompileOptions());
 		String path = ctx.resolveClassPath().getClassPath();

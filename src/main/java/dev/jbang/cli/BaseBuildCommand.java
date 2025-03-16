@@ -23,6 +23,9 @@ public abstract class BaseBuildCommand extends BaseCommand {
 	@CommandLine.Mixin
 	NativeMixin nativeMixin;
 
+	@CommandLine.Mixin
+	JdkProvidersMixin jdkProvidersMixin;
+
 	@CommandLine.Option(names = {
 			"--build-dir" }, description = "Use given directory for build results")
 	Path buildDir;
@@ -50,8 +53,7 @@ public abstract class BaseBuildCommand extends BaseCommand {
 						.nativeImage(nativeMixin.nativeImage)
 						.nativeOptions(nativeMixin.nativeOptions)
 						.integrations(buildMixin.integrations)
-						.enablePreview(enablePreviewRequested)
-						.jdkManager(buildMixin.jdkProvidersMixin.getJdkManager());
+						.enablePreview(enablePreviewRequested);
 
 		// NB: Do not put `.mainClass(buildMixin.main)` here
 	}

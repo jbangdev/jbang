@@ -11,24 +11,23 @@ import java.util.List;
 import java.util.jar.Manifest;
 
 import dev.jbang.cli.ExitException;
-import dev.jbang.devkitman.Jdk;
 
 public final class JarUtil {
 	private JarUtil() {
 	}
 
-	public static void createJar(Path jar, Path src, Manifest manifest, String mainClass, Jdk jdk)
+	public static void createJar(Path jar, Path src, Manifest manifest, String mainClass, String requestedJavaVersion)
 			throws IOException {
-		runJarCommand(jar, "c", src, manifest, mainClass, jdk);
+		runJarCommand(jar, "c", src, manifest, mainClass, requestedJavaVersion);
 	}
 
-	public static void updateJar(Path jar, Manifest manifest, String mainClass, Jdk jdk)
+	public static void updateJar(Path jar, Manifest manifest, String mainClass, String requestedJavaVersion)
 			throws IOException {
-		runJarCommand(jar, "u", null, manifest, mainClass, jdk);
+		runJarCommand(jar, "u", null, manifest, mainClass, requestedJavaVersion);
 	}
 
-	private static void runJarCommand(Path jar, String action, Path src, Manifest manifest, String mainClass, Jdk jdk)
-			throws IOException {
+	private static void runJarCommand(Path jar, String action, Path src, Manifest manifest, String mainClass,
+			String requestedJavaVersion) throws IOException {
 		assert (action.equals("c") || action.equals("u"));
 		List<String> optionList = new ArrayList<>();
 		Path tmpManifest = null;
@@ -57,7 +56,7 @@ public final class JarUtil {
 				optionList.add(src.toAbsolutePath().toString());
 				optionList.add(".");
 			}
-			runJarCommand(optionList, jdk);
+			runJarCommand(optionList, requestedJavaVersion);
 		} finally {
 			if (tmpManifest != null) {
 				Util.deletePath(tmpManifest, true);
@@ -65,8 +64,8 @@ public final class JarUtil {
 		}
 	}
 
-	private static void runJarCommand(List<String> arguments, Jdk jdk) throws IOException {
-		arguments.add(0, resolveInJavaHome("jar", jdk));
+	private static void runJarCommand(List<String> arguments, String requestedJavaVersion) throws IOException {
+		arguments.add(0, resolveInJavaHome("jar", requestedJavaVersion));
 		Util.verboseMsg("Package: " + String.join(" ", arguments));
 		String out = Util.runCommand(arguments.toArray(new String[] {}));
 		if (out == null) {

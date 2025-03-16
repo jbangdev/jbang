@@ -1,7 +1,6 @@
 package dev.jbang.dependencies;
 
 import static dev.jbang.dependencies.DependencyUtil.toMavenRepo;
-import static dev.jbang.util.JavaUtil.defaultJdkManager;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -28,7 +27,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.Settings;
-import dev.jbang.devkitman.Jdk;
+import dev.jbang.net.JdkManager;
+import dev.jbang.net.JdkProvider;
 import dev.jbang.util.PropertiesValueResolver;
 import dev.jbang.util.Util;
 
@@ -189,12 +189,12 @@ class DependencyResolverTest extends BaseTest {
 				DependencyUtil	.resolveDependencies(deps, Collections.emptyList(), false, false, false, true, false)
 								.getArtifacts()) {
 			@Override
-			protected boolean supportsModules(Jdk jdk) {
+			protected boolean supportsModules(JdkProvider.Jdk jdk) {
 				return true;
 			}
 		};
 
-		List<String> ma = cp.getAutoDectectedModuleArguments(defaultJdkManager().getOrInstallJdk(null));
+		List<String> ma = cp.getAutoDectectedModuleArguments(JdkManager.getOrInstallJdk(null));
 
 		assertThat(ma, hasItem("--module-path"));
 
