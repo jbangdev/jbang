@@ -9,7 +9,7 @@
 //FILES res/resource.properties renamed.properties=res/resource.properties
 //FILES META-INF/application.properties=res/resource.properties
 
-//JAVA 21+
+//JAVA 11+
 //DESCRIPTION some description
 //GAV org.example:exporttags:1.2.3
 
