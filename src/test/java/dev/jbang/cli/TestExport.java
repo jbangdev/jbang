@@ -202,16 +202,15 @@ public class TestExport extends BaseTest {
 		CaptureResult result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
-									.resolve("src/main/java/org/example/project/classpath_log/classpath_log.java");
+									.resolve("src/main/java/classpath_log.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
-		assertThat(targetSrc, containsString("package org.example.project.classpath_log;"));
 		Path buildPath = outFile.toPath().resolve("build.gradle");
 		assertThat(buildPath.toFile(), anExistingFile());
 		String build = Util.readString(buildPath);
 		assertThat(build, containsString("implementation 'log4j:log4j:1.2.17'"));
 		assertThat(build, not(containsString("languageVersion = JavaLanguageVersion.of")));
-		assertThat(build, containsString("mainClass = 'org.example.project.classpath_log.classpath_log'"));
+		assertThat(build, containsString("mainClass = 'classpath_log'"));
 	}
 
 	@Test
@@ -223,16 +222,16 @@ public class TestExport extends BaseTest {
 				"-g", "dev.jbang.test", "-a", "app", "-v", "1.2.3", src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
-									.resolve("src/main/java/dev/jbang/test/app/classpath_log.java");
+									.resolve("src/main/java/classpath_log.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
-		assertThat(targetSrc, containsString("package dev.jbang.test.app;"));
+		assertThat(targetSrc, not(containsString("package ")));
 		Path buildPath = outFile.toPath().resolve("build.gradle");
 		assertThat(buildPath.toFile(), anExistingFile());
 		String build = Util.readString(buildPath);
 		assertThat(build, containsString("implementation 'log4j:log4j:1.2.17'"));
 		assertThat(build, not(containsString("languageVersion = JavaLanguageVersion.of")));
-		assertThat(build, containsString("mainClass = 'dev.jbang.test.app.classpath_log'"));
+		assertThat(build, containsString("mainClass = 'classpath_log'"));
 	}
 
 	@Test
@@ -244,10 +243,10 @@ public class TestExport extends BaseTest {
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
 									.resolve(
-											"src/main/java/org/example/project/classpath_log_bom/classpath_log_bom.java");
+											"src/main/java/classpath_log_bom.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
-		assertThat(targetSrc, containsString("package org.example.project.classpath_log_bom;"));
+		assertThat(targetSrc, not(containsString("package ")));
 		Path buildPath = outFile.toPath().resolve("build.gradle");
 		assertThat(buildPath.toFile(), anExistingFile());
 		String build = Util.readString(buildPath);
@@ -255,7 +254,7 @@ public class TestExport extends BaseTest {
 		assertThat(build, containsString("implementation 'org.apache.logging.log4j:log4j-api'"));
 		assertThat(build, containsString("implementation 'org.apache.logging.log4j:log4j-core'"));
 		assertThat(build, not(containsString("languageVersion = JavaLanguageVersion.of")));
-		assertThat(build, containsString("mainClass = 'org.example.project.classpath_log_bom.classpath_log_bom'"));
+		assertThat(build, containsString("mainClass = 'classpath_log_bom'"));
 	}
 
 	@Test
@@ -267,13 +266,13 @@ public class TestExport extends BaseTest {
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 
 		Path targetSrcPath = outFile.toPath()
-									.resolve("src/main/java/org/example/exporttags/exporttags.java");
+									.resolve("src/main/java/exporttags.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
-		assertThat(targetSrc, containsString("package org.example.exporttags;"));
+		assertThat(targetSrc, not(startsWith("package ")));
 
 		Path src1Path = outFile	.toPath()
-								.resolve("src/main/java/org/example/exporttags/Two.java");
+								.resolve("src/main/java/Two.java");
 		assertThat(src1Path.toFile(), anExistingFile());
 		Path nested1Path = outFile	.toPath()
 									.resolve("src/main/java/nested/NestedOne.java");
@@ -304,8 +303,9 @@ public class TestExport extends BaseTest {
 		assertThat(build, not(containsString("JavaLanguageVersion.of(8)")));
 		assertThat(build, containsString("JavaLanguageVersion.of(11)"));
 		assertThat(build, not(containsString("JavaLanguageVersion.of(17)")));
+		assertThat(build, not(containsString("JavaLanguageVersion.of(21+)")));
+		assertThat(build, containsString("mainClass = 'exporttags'"));
 		assertThat(build, not(containsString("JavaLanguageVersion.of(11+)")));
-		assertThat(build, containsString("mainClass = 'org.example.exporttags.exporttags'"));
 	}
 
 	@Test
@@ -316,10 +316,10 @@ public class TestExport extends BaseTest {
 		CaptureResult result = checkedRun(null, "export", "maven", "--force", "-O", outFile.toString(), src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
-									.resolve("src/main/java/org/example/project/classpath_log/classpath_log.java");
+									.resolve("src/main/java/classpath_log.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
-		assertThat(targetSrc, containsString("package org.example.project.classpath_log;"));
+		assertThat(targetSrc, not(containsString("package org.example.project.classpath_log;")));
 		Path pomPath = outFile.toPath().resolve("pom.xml");
 		assertThat(pomPath.toFile(), anExistingFile());
 		String pom = Util.readString(pomPath);
@@ -337,6 +337,31 @@ public class TestExport extends BaseTest {
 	}
 
 	@Test
+	void testExportMavenProjectWithPackages() throws Exception {
+		String src = examplesTestFolder.resolve("RootOne.java").toString();
+		File outFile = jbangTempDir.resolve("target").toFile();
+		outFile.mkdirs();
+		CaptureResult result = checkedRun(null, "export", "maven", "--force", "-O", outFile.toString(), src);
+		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		Path targetSrcPath = outFile.toPath()
+									.resolve("src/main/java/RootOne.java");
+		assertThat(targetSrcPath.toFile(), anExistingFile());
+		String targetSrc = Util.readString(targetSrcPath);
+		assertThat(targetSrc, not(containsString("package org.example.project.classpath_log;")));
+		Path pomPath = outFile.toPath().resolve("pom.xml");
+		assertThat(pomPath.toFile(), anExistingFile());
+		String pom = Util.readString(pomPath);
+		assertThat(pom, stringContainsInOrder(
+				"<groupId>org.example.project</groupId>",
+				"<artifactId>RootOne</artifactId>",
+				"<version>999-SNAPSHOT</version>"));
+		assertThat(pom, not(containsString("<dependencies>")));
+		assertThat(pom, not(containsString("<properties>")));
+		assertThat(pom, not(containsString("<dependencyManagement>")));
+		assertThat(pom, not(containsString("<repositories>")));
+	}
+
+	@Test
 	void testExportMavenProjectWithGAV() throws Exception {
 		String src = examplesTestFolder.resolve("classpath_log.java").toString();
 		File outFile = jbangTempDir.resolve("target").toFile();
@@ -345,10 +370,10 @@ public class TestExport extends BaseTest {
 				"-g", "dev.jbang.test", "-a", "app", "-v", "1.2.3", src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
-									.resolve("src/main/java/dev/jbang/test/app/classpath_log.java");
+									.resolve("src/main/java/classpath_log.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
-		assertThat(targetSrc, containsString("package dev.jbang.test.app;"));
+		assertThat(targetSrc, not(containsString("package ")));
 		Path pomPath = outFile.toPath().resolve("pom.xml");
 		assertThat(pomPath.toFile(), anExistingFile());
 		String pom = Util.readString(pomPath);
@@ -374,10 +399,10 @@ public class TestExport extends BaseTest {
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
 									.resolve(
-											"src/main/java/org/example/project/classpath_log_bom/classpath_log_bom.java");
+											"src/main/java/classpath_log_bom.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
-		assertThat(targetSrc, containsString("package org.example.project.classpath_log_bom;"));
+		assertThat(targetSrc, not(containsString("package org.example.project.classpath_log_bom;")));
 		Path pomPath = outFile.toPath().resolve("pom.xml");
 		assertThat(pomPath.toFile(), anExistingFile());
 		String pom = Util.readString(pomPath);
@@ -407,13 +432,13 @@ public class TestExport extends BaseTest {
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 
 		Path targetSrcPath = outFile.toPath()
-									.resolve("src/main/java/org/example/exporttags/exporttags.java");
+									.resolve("src/main/java/exporttags.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
-		assertThat(targetSrc, containsString("package org.example.exporttags;"));
+		assertThat(targetSrc, not(containsString("package org.example.exporttags;")));
 
 		Path src1Path = outFile	.toPath()
-								.resolve("src/main/java/org/example/exporttags/Two.java");
+								.resolve("src/main/java/Two.java");
 		assertThat(src1Path.toFile(), anExistingFile());
 		Path nested1Path = outFile	.toPath()
 									.resolve("src/main/java/nested/NestedOne.java");

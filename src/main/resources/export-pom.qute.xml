@@ -29,6 +29,7 @@
 		</dependencies>
 	</dependencyManagement>
 	{/if}
+	{#if !dependencies.empty}
 	<dependencies>
 		{#for item in dependencies}
 		<dependency>
@@ -41,6 +42,7 @@
 		</dependency>
 		{/for}
 	</dependencies>
+	{/if}
 	{#if !repositories.empty}
 	<repositories>
 		{#for item in repositories}
