@@ -1126,6 +1126,7 @@ public class Util {
 		if (isAGithubUrl(urlConnection) && System.getenv().containsKey("GITHUB_TOKEN")) {
 			auth = "token " + System.getenv("GITHUB_TOKEN");
 		} else {
+			URL url = urlConnection.getURL();
 			String username;
 			String password;
 			if (url.getUserInfo() != null) {
