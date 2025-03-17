@@ -824,7 +824,7 @@ public class Util {
 		}
 	}
 
-	private interface ConnectionConfigurator {
+	interface ConnectionConfigurator {
 
 		void configure(URLConnection conn) throws IOException;
 
@@ -1126,8 +1126,17 @@ public class Util {
 		if (isAGithubUrl(urlConnection) && System.getenv().containsKey("GITHUB_TOKEN")) {
 			auth = "token " + System.getenv("GITHUB_TOKEN");
 		} else {
-			String username = System.getenv(JBANG_AUTH_BASIC_USERNAME);
-			String password = System.getenv(JBANG_AUTH_BASIC_PASSWORD);
+			URL url = urlConnection.getURL();
+			String username;
+			String password;
+			if (url.getUserInfo() != null) {
+				String[] credentials = url.getUserInfo().split(":", 2);
+				username = PropertiesValueResolver.replaceProperties(credentials[0]);
+				password = credentials.length > 1 ? PropertiesValueResolver.replaceProperties(credentials[1]) : "";
+			} else {
+				username = System.getenv(JBANG_AUTH_BASIC_USERNAME);
+				password = System.getenv(JBANG_AUTH_BASIC_PASSWORD);
+			}
 			if (username != null && password != null) {
 				String id = username + ":" + password;
 				String encodedId = Base64.getEncoder().encodeToString(id.getBytes(StandardCharsets.UTF_8));
