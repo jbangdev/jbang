@@ -1123,8 +1123,7 @@ public class Util {
 
 	private static void addAuthHeaderIfNeeded(URLConnection urlConnection) {
 		String auth = null;
-		URL url = urlConnection.getURL();
-		if (urlConnection.getURL().getHost().endsWith("github.com") && System.getenv().containsKey("GITHUB_TOKEN")) {
+		if (isAGithubUrl(urlConnection) && System.getenv().containsKey("GITHUB_TOKEN")) {
 			auth = "token " + System.getenv("GITHUB_TOKEN");
 		} else {
 			String username;
@@ -1146,6 +1145,12 @@ public class Util {
 		if (auth != null) {
 			urlConnection.setRequestProperty("Authorization", auth);
 		}
+	}
+
+	private static boolean isAGithubUrl(URLConnection urlConnection) {
+		String host = urlConnection.getURL().getHost();
+		return host.endsWith("github.com")
+				|| host.endsWith("githubusercontent.com");
 	}
 
 	public static String getDispositionFilename(String disposition) {

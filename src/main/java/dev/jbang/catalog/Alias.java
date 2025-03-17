@@ -14,6 +14,7 @@ import javax.annotation.Nonnull;
 import com.google.gson.annotations.SerializedName;
 
 import dev.jbang.cli.ExitException;
+import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.util.Util;
 
 public class Alias extends CatalogItem {
@@ -185,6 +186,12 @@ public class Alias extends CatalogItem {
 
 	private static Alias merge(Alias a1, String name, Function<String, Alias> findUnqualifiedAlias,
 			HashSet<String> names) {
+		// if this is a proper possible GAV, i.e.
+		// io.quarkiverse.mcp:artifact:1.0.0.Beta5@fatjar
+		// don't try interpret it.
+		if (DependencyUtil.looksLikeAPossibleGav(name)) {
+			return a1;
+		}
 		if (names.contains(name)) {
 			throw new RuntimeException("Encountered alias loop on '" + name + "'");
 		}

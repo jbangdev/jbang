@@ -27,6 +27,9 @@ public class TestCatalog extends BaseTest {
 			"      \"script-ref\": \"one\",\n" +
 			"      \"arguments\": [\"2\"],\n" +
 			"      \"properties\": {\"two\":\"2\"}\n" +
+			"    },\n" +
+			"    \"fj\": {\n" +
+			"      \"script-ref\": \"i.look:like-a-gav:1.0.0.Beta5@fatjar\"\n" +
 			"    }\n" +
 			"  }\n" +
 			"}";
@@ -65,6 +68,13 @@ public class TestCatalog extends BaseTest {
 		Alias alias = Alias.get("one@test");
 		assertThat(alias, notNullValue());
 		assertThat(alias.scriptRef, equalTo("http://dummy"));
+	}
+
+	@Test
+	void testGetFatJar() throws IOException {
+		Alias alias = Alias.get("fj@test");
+		assertThat(alias, notNullValue());
+		assertThat(alias.scriptRef, equalTo("i.look:like-a-gav:1.0.0.Beta5@fatjar"));
 	}
 
 	@Test

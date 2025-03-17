@@ -26,6 +26,10 @@ itest:
     {{preitest}}
     @cd itests && ./itests.sh
 
+# open shell with latest build in path
+jbang +args:
+    PATH="build/install/jbang/bin:$PATH" jbang {{args}}
+
 # open integeration test report
 openitest:
     {{open}} build/karate/surefire-reports/karate-summary.html
