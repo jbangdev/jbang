@@ -35,7 +35,6 @@ import com.google.gson.GsonBuilder;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenRepo;
-import dev.jbang.devkitman.Jdk;
 import dev.jbang.source.BuildContext;
 import dev.jbang.source.Project;
 import dev.jbang.source.Source;
@@ -98,7 +97,7 @@ public class IntegrationManager {
 				IntegrationResult ir = requestedJavaVersion == null || JavaUtil.satisfiesRequestedVersion(
 						requestedJavaVersion, JavaUtil.getCurrentMajorJavaVersion())
 								? runIntegrationEmbedded(input, integrationCl)
-								: runIntegrationExternal(input, prj.getProperties(), prj.projectJdk());
+								: runIntegrationExternal(input, prj.getProperties(), requestedJavaVersion);
 				result = result.merged(ir);
 			}
 		} catch (ClassNotFoundException e) {
@@ -217,13 +216,13 @@ public class IntegrationManager {
 
 	private static IntegrationResult runIntegrationExternal(IntegrationInput input,
 			Map<String, String> properties,
-			Jdk jdk)
+			String requestedJavaVersion)
 			throws Exception {
 		Gson parser = gsonb.create();
 		Util.infoMsg("Running external post build for " + input.integrationClassName);
 
 		List<String> args = new ArrayList<>();
-		args.add(resolveInJavaHome("java", jdk)); // TODO
+		args.add(resolveInJavaHome("java", requestedJavaVersion)); // TODO
 		for (Map.Entry<String, String> entry : properties.entrySet()) {
 			args.add("-D" + entry.getKey() + "=" + entry.getValue());
 		}

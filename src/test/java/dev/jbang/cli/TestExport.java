@@ -301,10 +301,11 @@ public class TestExport extends BaseTest {
 		assertThat(build, containsString("implementation 'log4j:log4j:1.2.17'"));
 		assertThat(build, containsString("languageVersion = JavaLanguageVersion.of"));
 		assertThat(build, not(containsString("JavaLanguageVersion.of(8)")));
-		assertThat(build, not(containsString("JavaLanguageVersion.of(11)")));
+		assertThat(build, containsString("JavaLanguageVersion.of(11)"));
 		assertThat(build, not(containsString("JavaLanguageVersion.of(17)")));
 		assertThat(build, not(containsString("JavaLanguageVersion.of(21+)")));
 		assertThat(build, containsString("mainClass = 'exporttags'"));
+		assertThat(build, not(containsString("JavaLanguageVersion.of(11+)")));
 	}
 
 	@Test
@@ -478,8 +479,8 @@ public class TestExport extends BaseTest {
 				"<url>https://jitpack.io/</url>"));
 		assertThat(pom, containsString("<maven.compiler.target>")); // Properties key may be in any order
 		assertThat(pom, not(containsString("<maven.compiler.source>1.8</maven.compiler.source>")));
-		assertThat(pom, not(containsString("<maven.compiler.source>11</maven.compiler.source>")));
+		assertThat(pom, containsString("<maven.compiler.source>11</maven.compiler.source>"));
 		assertThat(pom, not(containsString("<maven.compiler.source>17</maven.compiler.source>")));
-		assertThat(pom, not(containsString("<maven.compiler.source>21+</maven.compiler.source>")));
+		assertThat(pom, not(containsString("<maven.compiler.source>11+</maven.compiler.source>")));
 	}
 }

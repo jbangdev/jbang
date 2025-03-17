@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import dev.jbang.cli.ExitException;
-import dev.jbang.devkitman.Jdk;
 import dev.jbang.source.BuildContext;
 import dev.jbang.source.Builder;
 import dev.jbang.source.Project;
@@ -32,7 +31,7 @@ public class NativeBuildStep implements Builder<Project> {
 	public Project build() throws IOException {
 		List<String> optionList = new ArrayList<>();
 		Project project = ctx.getProject();
-		optionList.add(resolveInGraalVMHome("native-image", project.projectJdk()));
+		optionList.add(resolveInGraalVMHome("native-image", project.getJavaVersion()));
 
 		optionList.add("-H:+ReportExceptionStackTraces");
 		optionList.add("--enable-https");
@@ -93,12 +92,12 @@ public class NativeBuildStep implements Builder<Project> {
 		}
 	}
 
-	private static String resolveInGraalVMHome(String cmd, Jdk jdk) {
+	private static String resolveInGraalVMHome(String cmd, String requestedVersion) {
 		String newcmd = resolveInEnv("GRAALVM_HOME", cmd);
 
 		if (newcmd.equals(cmd) &&
 				!new File(newcmd).exists()) {
-			return JavaUtil.resolveInJavaHome(cmd, jdk);
+			return JavaUtil.resolveInJavaHome(cmd, requestedVersion);
 		} else {
 			return newcmd;
 		}

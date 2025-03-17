@@ -37,7 +37,6 @@ import dev.jbang.dependencies.Detector;
 import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.dependencies.ModularClassPath;
-import dev.jbang.devkitman.JdkManager;
 import dev.jbang.source.buildsteps.JarBuildStep;
 import dev.jbang.source.resolvers.AliasResourceResolver;
 import dev.jbang.source.resolvers.ClasspathResourceResolver;
@@ -77,7 +76,6 @@ public class ProjectBuilder {
 	private Boolean integrations;
 	private String javaVersion;
 	private Boolean enablePreview;
-	private JdkManager jdkManager;
 
 	// Cached values
 	private Properties contextProperties;
@@ -213,11 +211,6 @@ public class ProjectBuilder {
 
 	public ProjectBuilder catalog(File catalogFile) {
 		this.catalogFile = catalogFile;
-		return this;
-	}
-
-	public ProjectBuilder jdkManager(JdkManager jdkManager) {
-		this.jdkManager = jdkManager;
 		return this;
 	}
 
@@ -387,8 +380,12 @@ public class ProjectBuilder {
 		return updateProject(updateProjectMain(src, prj, getResourceResolver()));
 	}
 
-	/*
+	/**
 	 * Imports settings from jar MANIFEST.MF, pom.xml and more
+	 * 
+	 * @param prj
+	 * @param importModuleName
+	 * @return
 	 */
 	private Project importJarMetadata(Project prj, boolean importModuleName) {
 		Path jar = prj.getResourceRef().getFile();
@@ -415,7 +412,8 @@ public class ProjectBuilder {
 
 					// we pass exports/opens into the project...
 					// TODO: this does mean we can't separate from user specified options and jar
-					// origined ones, but not sure if needed?
+					// origined ones
+					// but not sure if needed?
 					// https://openjdk.org/jeps/261#Breaking-encapsulation
 					String exports = attrs.getValue("Add-Exports");
 					if (exports != null) {
@@ -485,11 +483,6 @@ public class ProjectBuilder {
 		}
 		if (enablePreview != null) {
 			prj.setEnablePreviewRequested(enablePreview);
-		}
-		if (jdkManager != null) {
-			prj.setJdkManager(jdkManager);
-		} else {
-			prj.setJdkManager(JavaUtil.defaultJdkManager());
 		}
 		return prj;
 	}

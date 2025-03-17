@@ -19,8 +19,8 @@ import com.google.gson.GsonBuilder;
 
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenRepo;
-import dev.jbang.devkitman.Jdk;
-import dev.jbang.devkitman.JdkManager;
+import dev.jbang.net.JdkManager;
+import dev.jbang.net.JdkProvider;
 import dev.jbang.source.*;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
@@ -117,11 +117,10 @@ abstract class BaseInfoCommand extends BaseCommand {
 				requestedJavaVersion = prj.getJavaVersion();
 
 				try {
-					JdkManager jdkMan = JavaUtil.defaultJdkManager();
-					Jdk jdk = assureJdkInstalled ? jdkMan.getOrInstallJdk(requestedJavaVersion)
-							: jdkMan.getJdk(requestedJavaVersion);
+					JdkProvider.Jdk jdk = assureJdkInstalled ? JdkManager.getOrInstallJdk(requestedJavaVersion)
+							: JdkManager.getJdk(requestedJavaVersion, false);
 					if (jdk != null && jdk.isInstalled()) {
-						availableJdkPath = jdk.home().toString();
+						availableJdkPath = jdk.getHome().toString();
 					}
 				} catch (ExitException e) {
 					// Ignore

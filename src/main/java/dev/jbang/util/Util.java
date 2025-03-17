@@ -37,7 +37,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.logging.LogManager;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -105,9 +104,6 @@ public class Util {
 		if (verbose) {
 			setQuiet(false);
 		}
-		LogManager	.getLogManager()
-					.getLogger("")
-					.setLevel(verbose ? java.util.logging.Level.FINE : java.util.logging.Level.INFO);
 	}
 
 	public static boolean isVerbose() {
@@ -119,9 +115,6 @@ public class Util {
 		if (quiet) {
 			setVerbose(false);
 		}
-		LogManager	.getLogManager()
-					.getLogger("")
-					.setLevel(quiet ? java.util.logging.Level.WARNING : java.util.logging.Level.INFO);
 	}
 
 	public static boolean isQuiet() {
@@ -1130,7 +1123,7 @@ public class Util {
 
 	private static void addAuthHeaderIfNeeded(URLConnection urlConnection) {
 		String auth = null;
-		if (urlConnection.getURL().getHost().endsWith("github.com") && System.getenv().containsKey("GITHUB_TOKEN")) {
+		if (isAGithubUrl(urlConnection) && System.getenv().containsKey("GITHUB_TOKEN")) {
 			auth = "token " + System.getenv("GITHUB_TOKEN");
 		} else {
 			String username = System.getenv(JBANG_AUTH_BASIC_USERNAME);
@@ -1144,6 +1137,12 @@ public class Util {
 		if (auth != null) {
 			urlConnection.setRequestProperty("Authorization", auth);
 		}
+	}
+
+	private static boolean isAGithubUrl(URLConnection urlConnection) {
+		String host = urlConnection.getURL().getHost();
+		return host.endsWith("github.com")
+				|| host.endsWith("githubusercontent.com");
 	}
 
 	public static String getDispositionFilename(String disposition) {
@@ -1460,8 +1459,8 @@ public class Util {
 		try {
 			if (Files.isDirectory(path)) {
 				verboseMsg("Deleting folder " + path);
-				try (Stream<Path> s = Files.walk(path)) {
-					s	.sorted(Comparator.reverseOrder())
+				Files	.walk(path)
+						.sorted(Comparator.reverseOrder())
 						.forEach(f -> {
 							try {
 								Files.delete(f);
@@ -1469,7 +1468,6 @@ public class Util {
 								err[0] = e;
 							}
 						});
-				}
 			} else if (Files.exists(path)) {
 				verboseMsg("Deleting file " + path);
 				Files.delete(path);

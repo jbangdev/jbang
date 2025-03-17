@@ -1,7 +1,5 @@
 package dev.jbang.cli;
 
-import static dev.jbang.util.JavaUtil.defaultJdkManager;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,7 +21,8 @@ import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.dependencies.DependencyUtil;
-import dev.jbang.devkitman.Jdk;
+import dev.jbang.net.JdkManager;
+import dev.jbang.net.JdkProvider;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.CommandBuffer;
@@ -72,6 +71,9 @@ class AppInstall extends BaseCommand {
 	NativeMixin nativeMixin;
 
 	@CommandLine.Mixin
+	JdkProvidersMixin jdkProvidersMixin;
+
+	@CommandLine.Mixin
 	RunMixin runMixin;
 
 	@CommandLine.Option(names = { "--enable-preview" }, description = "Activate Java preview features")
@@ -118,6 +120,7 @@ class AppInstall extends BaseCommand {
 		opts.addAll(buildMixin.opts());
 		opts.addAll(dependencyInfoMixin.opts());
 		opts.addAll(nativeMixin.opts());
+		opts.addAll(jdkProvidersMixin.opts());
 		opts.addAll(runMixin.opts());
 		if (Boolean.TRUE.equals(enablePreviewRequested)) {
 			opts.add("--enable-preview");
@@ -398,7 +401,7 @@ class AppSetup extends BaseCommand {
 	 */
 	public static boolean guessWithJava() {
 		boolean withJava;
-		Jdk defJdk = defaultJdkManager().getJdk(null);
+		JdkProvider.Jdk defJdk = JdkManager.getJdk(null, false);
 		String javaHome = System.getenv("JAVA_HOME");
 		Path javacCmd = Util.searchPath("javac");
 		withJava = defJdk != null
@@ -412,12 +415,12 @@ class AppSetup extends BaseCommand {
 	public static int setup(boolean withJava, boolean force, boolean chatty) {
 		Path jdkHome = null;
 		if (withJava) {
-			Jdk defJdk = defaultJdkManager().getDefaultJdk();
+			JdkProvider.Jdk defJdk = JdkManager.getDefaultJdk();
 			if (defJdk == null) {
 				Util.infoMsg("No default JDK set, use 'jbang jdk default <version>' to set one.");
 				return EXIT_UNEXPECTED_STATE;
 			}
-			jdkHome = Settings.getDefaultJdkDir();
+			jdkHome = Settings.getCurrentJdkDir();
 		}
 
 		Path binDir = Settings.getConfigBinDir();

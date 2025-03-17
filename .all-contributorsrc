@@ -902,6 +902,15 @@
         "code",
         "doc"
       ]
+    },
+    {
+      "login": "tadayosi",
+      "name": "Tadayoshi Sato",
+      "avatar_url": "https://avatars.githubusercontent.com/u/156692?v=4",
+      "profile": "http://about.me/tadayosi",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "skipCi": true,
