@@ -416,7 +416,8 @@ build.dependsOn(copyITests)
 build.dependsOn(chocolatey)
 build.dependsOn(container)
 build.dependsOn(spec)
-build.dependsOn(clidoc)
+// clidoc not auto included as it depends on jbang...which isn't built at this time.
+//build.dependsOn(clidoc) 
 
 compileJava.dependsOn(copyResources);
 compileJava.dependsOn(compileJava9Java);
