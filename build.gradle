@@ -416,7 +416,7 @@ build.dependsOn(copyITests)
 build.dependsOn(chocolatey)
 build.dependsOn(container)
 build.dependsOn(spec)
-//build.dependsOn(clidoc)
+build.dependsOn(clidoc)
 
 compileJava.dependsOn(copyResources);
 compileJava.dependsOn(compileJava9Java);
