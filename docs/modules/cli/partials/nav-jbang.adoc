@@ -50,6 +50,8 @@
 *** xref:jbang-export-native.adoc[native]
 *** xref:jbang-export-fatjar.adoc[fatjar]
 *** xref:jbang-export-jlink.adoc[jlink]
+*** xref:jbang-export-gradle.adoc[gradle]
+*** xref:jbang-export-maven.adoc[maven]
 ** xref:jbang-config.adoc[config]
 *** xref:jbang-config-get.adoc[get]
 *** xref:jbang-config-set.adoc[set]

@@ -12,7 +12,7 @@
 // tag::picocli-generated-man-section-name[]
 == Name
 
-jbang-export - Export the result of a build.
+jbang-export - Export the result of a build or the set of the sources to a project.
 
 // end::picocli-generated-man-section-name[]
 
@@ -26,7 +26,7 @@ jbang-export - Export the result of a build.
 // tag::picocli-generated-man-section-description[]
 == Description
 
-Export the result of a build.
+Export the result of a build or the set of the sources to a project.
 
 // end::picocli-generated-man-section-description[]
 
@@ -70,6 +70,12 @@ xref:jbang-export-fatjar.adoc[*fatjar*]::
 
 xref:jbang-export-jlink.adoc[*jlink*]::
   Exports a minimized JDK distribution
+
+xref:jbang-export-gradle.adoc[*gradle*]::
+  Exports a Gradle project
+
+xref:jbang-export-maven.adoc[*maven*]::
+  Exports a Maven project
 
 // end::picocli-generated-man-section-commands[]
 

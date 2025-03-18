@@ -129,7 +129,7 @@ xref:jbang-app.adoc[*app*]::
   Manage scripts installed on the user's PATH as commands.
 
 xref:jbang-export.adoc[*export*]::
-  Export the result of a build.
+  Export the result of a build or the set of the sources to a project.
 
 xref:jbang-config.adoc[*config*]::
   Read and write configuration options.
