@@ -19,8 +19,8 @@ jbang-config-set - Set a configuration value
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang config set* *-o* [*-gh*] *--fresh* *--quiet* *--verbose* [*--config*=_<config>_]
-                 [*-f*=_<configFile>_] _<key>_ _<value>_
+*jbang config set* *-o* [*-gh*] *--fresh* [*--insecure*] *--quiet* *--verbose*
+                 [*--config*=_<config>_] [*-f*=_<configFile>_] _<key>_ _<value>_
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -48,6 +48,9 @@ Set a configuration value
 
 *-h*, *--help*::
   Display help/info. Use 'jbang <command> -h' for detailed usage.
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted

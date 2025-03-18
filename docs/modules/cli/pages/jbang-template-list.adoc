@@ -19,8 +19,9 @@ jbang-template-list - Lists locally defined templates or from the given catalog.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang template list* *-o* [*-gh*] *--fresh* *--quiet* [*--show-files*] [*--show-origin*]
-                    *--verbose* [*--config*=_<config>_] [*-f*=_<catalogFile>_]
+*jbang template list* *-o* [*-gh*] *--fresh* [*--insecure*] *--quiet* [*--show-files*]
+                    [*--show-origin*] [*--show-properties*] *--verbose*
+                    [*--config*=_<config>_] [*-f*=_<catalogFile>_] [*--format*=_<format>_]
                     [_catalogName_]
 
 // end::picocli-generated-man-section-synopsis[]
@@ -41,6 +42,9 @@ Lists locally defined templates or from the given catalog.
 *-f*, *--file*=_<catalogFile>_::
   Path to the catalog file to use
 
+*--format*=_<format>_::
+  Specify output format ('text' or 'json')
+
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
 
@@ -49,6 +53,9 @@ Lists locally defined templates or from the given catalog.
 
 *-h*, *--help*::
   Display help/info. Use 'jbang <command> -h' for detailed usage.
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted
@@ -61,6 +68,9 @@ Lists locally defined templates or from the given catalog.
 
 *--show-origin*::
   Show the origin of the template
+
+*--show-properties*::
+  Show list of properties for each template
 
 *--verbose*::
   jbang will be verbose on what it does.

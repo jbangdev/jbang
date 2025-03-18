@@ -19,9 +19,9 @@ jbang-catalog-add - Add a catalog.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang catalog add* *-o* [*-gh*] *--fresh* *--quiet* *--verbose* [*--config*=_<config>_]
-                  [*-d*=_<description>_] [*-f*=_<catalogFile>_] [*--name*=_<name>_]
-                  _urlOrFile_
+*jbang catalog add* *-o* [*-gh*] [*--force*] *--fresh* [*--import*] [*--insecure*] *--quiet*
+                  *--verbose* [*--config*=_<config>_] [*-d*=_<description>_]
+                  [*-f*=_<catalogFile>_] [*--name*=_<name>_] _urlOrFile_
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -44,6 +44,9 @@ Add a catalog.
 *-f*, *--file*=_<catalogFile>_::
   Path to the catalog file to use
 
+*--force*::
+  Force overwriting of existing catalog
+
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
 
@@ -53,8 +56,14 @@ Add a catalog.
 *-h*, *--help*::
   Display help/info. Use 'jbang <command> -h' for detailed usage.
 
+*--import*::
+  Import catalog items into the catalog's scope
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
+
 *--name*=_<name>_::
-  A name for the alias
+  A name for the catalog
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted

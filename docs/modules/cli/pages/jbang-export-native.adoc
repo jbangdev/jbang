@@ -5,42 +5,44 @@
 :doctype: manpage
 :manmanual: jbang Manual
 :man-linkstyle: pass:[blue R < >]
-= jbang-info-tools(1)
+= jbang-export-native(1)
 
 // end::picocli-generated-man-section-header[]
 
 // tag::picocli-generated-man-section-name[]
 == Name
 
-jbang-info-tools - Prints a json description usable for tools/IDE's to get classpath and more info for a jbang script/application. Exact format is still quite experimental.
+jbang-export-native - Exports native executable
 
 // end::picocli-generated-man-section-name[]
 
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang info tools* *-o* [*-h*] *--fresh* [*--insecure*] [*--itr*] [*--jsh*] *--quiet* *--verbose*
-                 [*--module*[=_<module>_]] [*--build-dir*=_<buildDir>_]
-                 [*--catalog*=_<catalog>_] [*--config*=_<config>_] [*--select*=_<select>_]
-                 [*--source-type*=_<forceType>_] [*--cp*=_<classpaths>_]...
-                 [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]...
-                 [*--files*=_<resources>_]... [*--repos*=_<repositories>_]...
-                 [*-s*=_<sources>_]... [_<scriptOrFile>_]
+*jbang export native* *-o* [*-h*] [*--force*] *--fresh* [*--insecure*] [*--[no-]*
+             *       integrations*] [*--itr*] [*--jsh*] *--quiet* *--verbose* [*--module*
+                    [=_<module>_]] [*--catalog*=_<catalog>_] [*--config*=_<config>_]
+                    [*-j*=_<javaVersion>_] [*-m*=_<main>_] [*-O*=_<outputFile>_]
+                    [*--source-type*=_<forceType>_] [*-C*=_<compileOptions>_]...
+                    [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
+                    [*--deps*=_<dependencies>_]... [*--files*=_<resources>_]...
+                    [*--manifest*=_<String=String>_]... [*--repos*=_<repositories>_]...
+                    [*-s*=_<sources>_]... [_<scriptOrFile>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
 // tag::picocli-generated-man-section-description[]
 == Description
 
-Prints a json description usable for tools/IDE's to get classpath and more info for a jbang script/application. Exact format is still quite experimental.
+Exports native executable
 
 // end::picocli-generated-man-section-description[]
 
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*--build-dir*=_<buildDir>_::
-  Use given directory for build results
+*-C*, *--compile-option*=_<compileOptions>_::
+  Options to pass to the compiler
 
 *--catalog*=_<catalog>_::
   Path to catalog file to be used instead of the default
@@ -60,6 +62,9 @@ Prints a json description usable for tools/IDE's to get classpath and more info 
 *--files*=_<resources>_::
   Add additional files.
 
+*--force*::
+  Force export, i.e. overwrite exported file if already exists
+
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
 
@@ -69,17 +74,32 @@ Prints a json description usable for tools/IDE's to get classpath and more info 
 *--insecure*::
   Enable insecure trust of all SSL certificates.
 
+*--[no-]integrations*::
+  Enable integration execution (default: true)
+
 *--itr, --ignore-transitive-repositories*::
   Ignore remote repositories found in transitive dependencies
 
+*-j*, *--java*=_<javaVersion>_::
+  JDK version to use for running the script.
+
 *--jsh*::
   Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'
+
+*-m*, *--main*=_<main>_::
+  Main class to use when running. Used primarily for running jar's.
+
+*--manifest*=_<String=String>_::
+  
 
 *--module*[=_<module>_]::
   Treat resource as a module. Optionally with the given module name
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+
+*-O*, *--output*=_<outputFile>_::
+  The name or path to use for the exported file. If not specified a name will be determined from the original source reference and export flags.
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
@@ -89,9 +109,6 @@ Prints a json description usable for tools/IDE's to get classpath and more info 
 
 *-s*, *--sources*=_<sources>_::
   Add additional sources.
-
-*--select*=_<select>_::
-  Indicate the name of the field to select and return from the full info result
 
 *--source-type*=_<forceType>_::
   Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown

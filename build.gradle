@@ -401,7 +401,7 @@ asciidoctor {
 task clidoc(type: Exec) {
 	doFirst {
 		println 'Generating cli man pages'
-		commandLine 'jbang', '--cp', 'build/libs/jbang.jar', 'docs/genadoc.java', '-d', 'docs/modules/cli', '--force', 'dev.jbang.cli.JBang'
+		commandLine 'build/install/jbang/bin/jbang', '--cp', 'build/install/jbang/bin/jbang.jar', 'docs/genadoc.java', '-d', 'docs/modules/cli', '--force', 'dev.jbang.cli.JBang'
 	}
 }
 
@@ -416,6 +416,7 @@ build.dependsOn(copyITests)
 build.dependsOn(chocolatey)
 build.dependsOn(container)
 build.dependsOn(spec)
+// clidoc not auto included as it depends on jbang...which isn't built at this time.
 //build.dependsOn(clidoc)
 
 compileJava.dependsOn(copyResources);

@@ -19,8 +19,18 @@ jbang-app-install - Install a script as a command.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang app install* *-o* [*-h*] [*--force*] *--fresh* [*--native*] *--quiet* *--verbose*
-                  [*--config*=_<config>_] [*--name*=_<name>_] _scriptRef_
+*jbang app install* *-o* [*-hin*] [*--[no-]cds*] [*--ea*] [*--enable-preview*] [*--esa*]
+                  [*--force*] *--fresh* [*--insecure*] [*--[no-]integrations*] [*--itr*]
+                  [*--jsh*] *--quiet* *--verbose* [*--jfr*[=_<flightRecorderString>_]]
+                  [*--module*[=_<module>_]] [*-d*[=_<String=String>_]]...
+                  [*--catalog*=_<catalog>_] [*--config*=_<config>_] [*-j*=_<javaVersion>_]
+                  [*-m*=_<main>_] [*--name*=_<name>_] [*--source-type*=_<forceType>_]
+                  [*-C*=_<compileOptions>_]... [*--cp*=_<classpaths>_]...
+                  [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]...
+                  [*--files*=_<resources>_]... [*--javaagent*=_<String=String>_]...
+                  [*--manifest*=_<String=String>_]... [*-N*=_<nativeOptions>_]...
+                  [*-R*=_<javaRuntimeOptions>_]... [*--repos*=_<repositories>_]...
+                  [*-s*=_<sources>_]... [_<scriptOrFile>_] [_<userParams>_...]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -34,8 +44,41 @@ Install a script as a command.
 // tag::picocli-generated-man-section-options[]
 == Options
 
+*-C*, *--compile-option*=_<compileOptions>_::
+  Options to pass to the compiler
+
+*--catalog*=_<catalog>_::
+  Path to catalog file to be used instead of the default
+
+*--[no-]cds*::
+  If specified Class Data Sharing (CDS) will be used for building and running (requires Java 13+)
+
 *--config*=_<config>_::
   Path to config file to be used instead of the default
+
+*--cp, --class-path*=_<classpaths>_::
+  Add class path entries.
+
+*-d*, *--debug*[=_<String=String>_]::
+  Launch with java debug enabled. Set host/port or provide key/value list of JPDA options (default: null) 
+
+*-D*, _<String=String>_::
+  set a system property
+
+*--deps*=_<dependencies>_::
+  Add additional dependencies (Use commas to separate them).
+
+*--ea, --enableassertions*::
+  Enable assertions
+
+*--enable-preview*::
+  Activate Java preview features
+
+*--esa, --enablesystemassertions*::
+  Enable system assertions
+
+*--files*=_<resources>_::
+  Add additional files.
 
 *--force*::
   Force re-installation
@@ -46,17 +89,65 @@ Install a script as a command.
 *-h*, *--help*::
   Display help/info. Use 'jbang <command> -h' for detailed usage.
 
+*-i*, *--interactive*::
+  Activate interactive mode
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
+
+*--[no-]integrations*::
+  Enable integration execution (default: true)
+
+*--itr, --ignore-transitive-repositories*::
+  Ignore remote repositories found in transitive dependencies
+
+*-j*, *--java*=_<javaVersion>_::
+  JDK version to use for running the script.
+
+*--javaagent*=_<String=String>_::
+  
+
+*--jfr*[=_<flightRecorderString>_]::
+  Launch with Java Flight Recorder enabled.
+
+*--jsh*::
+  Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'
+
+*-m*, *--main*=_<main>_::
+  Main class to use when running. Used primarily for running jar's.
+
+*--manifest*=_<String=String>_::
+  
+
+*--module*[=_<module>_]::
+  Treat resource as a module. Optionally with the given module name
+
+*-n*, *--native*::
+  Build using native-image
+
+*-N*, *--native-option*=_<nativeOptions>_::
+  Options to pass to the native image tool
+
 *--name*=_<name>_::
   A name for the command
-
-*--native*::
-  Enable native build/run
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
+
+*-R*, *--java-options, --runtime-option*=_<javaRuntimeOptions>_::
+  Options to pass to the Java runtime
+
+*--repos*=_<repositories>_::
+  Add additional repositories.
+
+*-s*, *--sources*=_<sources>_::
+  Add additional sources.
+
+*--source-type*=_<forceType>_::
+  Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
 
 *--verbose*::
   jbang will be verbose on what it does.
@@ -66,8 +157,11 @@ Install a script as a command.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_scriptRef_::
-  A file or URL to a Java code file or an alias
+[_<scriptOrFile>_]::
+  A reference to a source file
+
+[_<userParams>_...]::
+  Parameters to pass on to the script
 
 // end::picocli-generated-man-section-arguments[]
 

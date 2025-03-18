@@ -19,7 +19,8 @@ jbang - jbang is a tool for building and running .java/.jsh scripts and jar pack
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang* [*-hV*] [*--config*=_<config>_] [*--verbose* | *--quiet*] [*-o* | *--fresh*] [COMMAND]
+*jbang* [*-hV*] [*--insecure*] [*--preview*] [*--config*=_<config>_] [*--verbose* | *--quiet*]
+      [*-o* | *--fresh*] [COMMAND]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -29,15 +30,15 @@ jbang - jbang is a tool for building and running .java/.jsh scripts and jar pack
   jbang init hello.java [args...]
         (to initialize a script)
   or  jbang edit --open=code --live hello.java
-        (to edit a script in any IDE with live updates)
-  or  jbang edit . hello.java
-        (to edit a folder in IDE that supports JBang, see https://jbang.dev/ide)
+        (to edit a script in IDE with live updates)
   or  jbang hello.java [args...]
         (to run a .java file)
   or  jbang gavsearch@jbangdev [args...]
         (to run a alias from a catalog)
   or  jbang group-id:artifact-id:version [args...]
         (to run a .jar file found with a GAV id)
+
+ note: run is the default command. To get help about run use jbang run --help
 
 
 // end::picocli-generated-man-section-description[]
@@ -54,8 +55,14 @@ jbang - jbang is a tool for building and running .java/.jsh scripts and jar pack
 *-h*, *--help*::
   Display help/info. Use 'jbang <command> -h' for detailed usage.
 
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
+
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+
+*--preview*::
+  Enable jbang preview features
 
 *--quiet*::
   jbang will be quiet, only print when error occurs.
@@ -75,7 +82,7 @@ jbang - jbang is a tool for building and running .java/.jsh scripts and jar pack
 == Commands
 
 xref:jbang-run.adoc[*run*]::
-  Builds and runs provided script.
+  Builds and runs provided script. (default command)
 
 xref:jbang-build.adoc[*build*]::
   Compiles and stores script in the cache.
@@ -122,7 +129,7 @@ xref:jbang-app.adoc[*app*]::
   Manage scripts installed on the user's PATH as commands.
 
 xref:jbang-export.adoc[*export*]::
-  Export the result of a build.
+  Export the result of a build or the set of the sources to a project.
 
 xref:jbang-config.adoc[*config*]::
   Read and write configuration options.

@@ -20,7 +20,8 @@ Usage: source <(jbang completion)
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang completion* *-o* [*-h*] *--fresh* *--quiet* *--verbose* [*--config*=_<config>_]
+*jbang completion* *-o* [*-h*] *--fresh* [*--insecure*] *--quiet* *--verbose*
+                 [*--config*=_<config>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -43,6 +44,9 @@ Usage: source <(jbang completion)
 
 *-h*, *--help*::
   Display help/info. Use 'jbang <command> -h' for detailed usage.
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted

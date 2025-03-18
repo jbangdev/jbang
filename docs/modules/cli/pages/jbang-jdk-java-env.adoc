@@ -19,7 +19,7 @@ jbang-jdk-java-env - Prints out the environment variables needed to use the give
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang jdk java-env* *-o* *--fresh* *--quiet* *--verbose* [_version_]
+*jbang jdk java-env* *-o* *--fresh* *--quiet* *--verbose* [_versionOrId_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -50,7 +50,7 @@ Prints out the environment variables needed to use the given JDK.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-[_version_]::
+[_versionOrId_]::
   The version of the JDK to select
 
 // end::picocli-generated-man-section-arguments[]

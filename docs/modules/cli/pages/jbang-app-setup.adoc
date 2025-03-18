@@ -19,8 +19,8 @@ jbang-app-setup - Make jbang commands available for the user.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang app setup* *-o* [*-h*] [*--force*] *--fresh* [*--[no-]java*] *--quiet* *--verbose*
-                [*--config*=_<config>_]
+*jbang app setup* *-o* [*-h*] [*--force*] *--fresh* [*--insecure*] [*--[no-]java*] *--quiet*
+                *--verbose* [*--config*=_<config>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -45,6 +45,9 @@ Make jbang commands available for the user.
 
 *-h*, *--help*::
   Display help/info. Use 'jbang <command> -h' for detailed usage.
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
 
 *--[no-]java*::
   Add JBang's Java to the user's environment as well

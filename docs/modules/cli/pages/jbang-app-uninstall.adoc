@@ -19,7 +19,8 @@ jbang-app-uninstall - Removes a previously installed command.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang app uninstall* *-o* [*-h*] *--fresh* *--quiet* *--verbose* [*--config*=_<config>_] _name_
+*jbang app uninstall* *-o* [*-h*] *--fresh* [*--insecure*] *--quiet* *--verbose*
+                    [*--config*=_<config>_] _name_
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -41,6 +42,9 @@ Removes a previously installed command.
 
 *-h*, *--help*::
   Display help/info. Use 'jbang <command> -h' for detailed usage.
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted
