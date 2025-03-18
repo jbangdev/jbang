@@ -19,10 +19,13 @@ jbang-edit - Setup a temporary project to edit script in an IDE.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang edit* *-o* [*-h*] *--fresh* [*--insecure*] [*--jsh*] [*--live*] [*--no-open*] *--quiet*
-           *--verbose* [*--open*[=_<editor>_]] [*--config*=_<config>_]
+*jbang edit* *-o* [*-bh*] *--fresh* [*--insecure*] [*--itr*] [*--jsh*] [*--live*] [*--no-open*]
+           *--quiet* *--verbose* [*--open*[=_<editor>_]] [*--catalog*=_<catalog>_]
+           [*--config*=_<config>_] [*--source-type*=_<forceType>_]
            [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
-           [*--deps*=_<dependencies>_]... [*--repos*=_<repositories>_]... _<scriptOrFile>_
+           [*--deps*=_<dependencies>_]... [*--files*=_<resources>_]...
+           [*--repos*=_<repositories>_]... [*-s*=_<sources>_]... [_<scriptOrFile>_]
+           [_<additionalFiles>_...]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -36,6 +39,12 @@ Setup a temporary project to edit script in an IDE.
 // tag::picocli-generated-man-section-options[]
 == Options
 
+*-b*, *--sandbox*::
+  Edit in sandbox mode. Useful when the editor/IDE used has no JBang support
+
+*--catalog*=_<catalog>_::
+  Path to catalog file to be used instead of the default
+
 *--config*=_<config>_::
   Path to config file to be used instead of the default
 
@@ -48,6 +57,9 @@ Setup a temporary project to edit script in an IDE.
 *--deps*=_<dependencies>_::
   Add additional dependencies (Use commas to separate them).
 
+*--files*=_<resources>_::
+  Add additional files.
+
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
 
@@ -57,14 +69,17 @@ Setup a temporary project to edit script in an IDE.
 *--insecure*::
   Enable insecure trust of all SSL certificates.
 
+*--itr, --ignore-transitive-repositories*::
+  Ignore remote repositories found in transitive dependencies
+
 *--jsh*::
-  Force input to be interpreted with jsh/jshell
+  Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'
 
 *--live*::
-  Setup temporary project, regenerate project on dependency changes.
+  Open directory in IDE's that support JBang or generate temporary project with option to regenerate project on dependency changes.
 
 *--no-open*::
-  
+  Explicitly prevent JBang from opening an editor/IDE
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted
@@ -78,6 +93,12 @@ Setup a temporary project to edit script in an IDE.
 *--repos*=_<repositories>_::
   Add additional repositories.
 
+*-s*, *--sources*=_<sources>_::
+  Add additional sources.
+
+*--source-type*=_<forceType>_::
+  Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
+
 *--verbose*::
   jbang will be verbose on what it does.
 
@@ -86,8 +107,11 @@ Setup a temporary project to edit script in an IDE.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_<scriptOrFile>_::
-  A file with java code or if named .jsh will be run with jshell
+[_<scriptOrFile>_]::
+  A reference to a source file
+
+[_<additionalFiles>_...]::
+  
 
 // end::picocli-generated-man-section-arguments[]
 

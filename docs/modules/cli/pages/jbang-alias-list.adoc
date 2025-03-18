@@ -19,8 +19,9 @@ jbang-alias-list - Lists locally defined aliases or from the given catalog.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang alias list* *-o* [*-gh*] *--fresh* *--quiet* [*--show-origin*] *--verbose*
-                 [*--config*=_<config>_] [*-f*=_<catalogFile>_] [_catalogName_]
+*jbang alias list* *-o* [*-gh*] *--fresh* [*--insecure*] *--quiet* [*--show-origin*]
+                 *--verbose* [*--config*=_<config>_] [*-f*=_<catalogFile>_]
+                 [*--format*=_<format>_] [_catalogName_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -40,6 +41,9 @@ Lists locally defined aliases or from the given catalog.
 *-f*, *--file*=_<catalogFile>_::
   Path to the catalog file to use
 
+*--format*=_<format>_::
+  Specify output format ('text' or 'json')
+
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
 
@@ -48,6 +52,9 @@ Lists locally defined aliases or from the given catalog.
 
 *-h*, *--help*::
   Display help/info. Use 'jbang <command> -h' for detailed usage.
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted

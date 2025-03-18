@@ -19,9 +19,9 @@ jbang-template-add - Add template for script reference.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang template add* *-o* [*-gh*] *--fresh* *--quiet* *--verbose* [*--config*=_<config>_]
-                   [*-d*=_<description>_] [*-f*=_<catalogFile>_] [*--name*=_<name>_] [*--property*=_<property>_...]
-                   _files_...
+*jbang template add* *-o* [*-gh*] [*--force*] *--fresh* [*--insecure*] *--quiet* *--verbose*
+                   [*--config*=_<config>_] [*-d*=_<description>_] [*-f*=_<catalogFile>_]
+                   [*--name*=_<name>_] [*-P*=_<properties>_]... _files_...
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -44,6 +44,9 @@ Add template for script reference.
 *-f*, *--file*=_<catalogFile>_::
   Path to the catalog file to use
 
+*--force*::
+  Force overwriting of existing template
+
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
 
@@ -53,20 +56,23 @@ Add template for script reference.
 *-h*, *--help*::
   Display help/info. Use 'jbang <command> -h' for detailed usage.
 
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
+
 *--name*=_<name>_::
   A name for the template
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted
 
+*-P*, *--property*=_<properties>_::
+  Template property
+
 *--quiet*::
   jbang will be quiet, only print when error occurs.
 
 *--verbose*::
   jbang will be verbose on what it does.
-
-*-P*, *--property*=_<property-name:[property-description]:[default-value]>_::
-  Specifying property for the newly created or existing template.
 
 // end::picocli-generated-man-section-options[]
 

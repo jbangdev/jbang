@@ -62,6 +62,15 @@ xref:jbang-export-local.adoc[*local*]::
 xref:jbang-export-mavenrepo.adoc[*mavenrepo*]::
   Exports directory that can be used to publish as a maven repository
 
+xref:jbang-export-native.adoc[*native*]::
+  Exports native executable
+
+xref:jbang-export-fatjar.adoc[*fatjar*]::
+  Exports an executable jar with all necessary dependencies included inside
+
+xref:jbang-export-jlink.adoc[*jlink*]::
+  Exports a minimized JDK distribution
+
 // end::picocli-generated-man-section-commands[]
 
 // tag::picocli-generated-man-section-exit-status[]

@@ -19,8 +19,9 @@ jbang-catalog-list - Show currently defined catalogs.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang catalog list* *-o* [*-gh*] *--fresh* *--quiet* [*--show-origin*] *--verbose*
-                   [*--config*=_<config>_] [*-f*=_<catalogFile>_] [_name_]
+*jbang catalog list* *-o* [*-gh*] *--fresh* [*--insecure*] *--quiet* [*--show-origin*]
+                   *--verbose* [*--config*=_<config>_] [*-f*=_<catalogFile>_]
+                   [*--format*=_<format>_] [_name_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -40,6 +41,9 @@ Show currently defined catalogs.
 *-f*, *--file*=_<catalogFile>_::
   Path to the catalog file to use
 
+*--format*=_<format>_::
+  Specify output format ('text' or 'json')
+
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
 
@@ -48,6 +52,9 @@ Show currently defined catalogs.
 
 *-h*, *--help*::
   Display help/info. Use 'jbang <command> -h' for detailed usage.
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted

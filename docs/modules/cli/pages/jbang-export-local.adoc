@@ -19,11 +19,15 @@ jbang-export-local - Exports jar with classpath referring to local machine depen
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang export local* *-o* [*-hn*] [*--force*] *--fresh* [*--insecure*] *--quiet* *--verbose*
-                   [*--config*=_<config>_] [*-j*=_<javaVersion>_] [*-O*=_<outputFile>_]
-                   [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
-                   [*--deps*=_<dependencies>_]... [*--repos*=_<repositories>_]...
-                   _scriptOrFile_
+*jbang export local* *-o* [*-h*] [*--force*] *--fresh* [*--insecure*] [*--[no-]integrations*]
+                   [*--itr*] [*--jsh*] *--quiet* *--verbose* [*--module*[=_<module>_]]
+                   [*--catalog*=_<catalog>_] [*--config*=_<config>_] [*-j*=_<javaVersion>_]
+                   [*-m*=_<main>_] [*-O*=_<outputFile>_] [*--source-type*=_<forceType>_]
+                   [*-C*=_<compileOptions>_]... [*--cp*=_<classpaths>_]...
+                   [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]...
+                   [*--files*=_<resources>_]... [*--manifest*=_<String=String>_]...
+                   [*--repos*=_<repositories>_]... [*-s*=_<sources>_]...
+                   [_<scriptOrFile>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -37,6 +41,12 @@ Exports jar with classpath referring to local machine dependent locations
 // tag::picocli-generated-man-section-options[]
 == Options
 
+*-C*, *--compile-option*=_<compileOptions>_::
+  Options to pass to the compiler
+
+*--catalog*=_<catalog>_::
+  Path to catalog file to be used instead of the default
+
 *--config*=_<config>_::
   Path to config file to be used instead of the default
 
@@ -48,6 +58,9 @@ Exports jar with classpath referring to local machine dependent locations
 
 *--deps*=_<dependencies>_::
   Add additional dependencies (Use commas to separate them).
+
+*--files*=_<resources>_::
+  Add additional files.
 
 *--force*::
   Force export, i.e. overwrite exported file if already exists
@@ -61,11 +74,26 @@ Exports jar with classpath referring to local machine dependent locations
 *--insecure*::
   Enable insecure trust of all SSL certificates.
 
+*--[no-]integrations*::
+  Enable integration execution (default: true)
+
+*--itr, --ignore-transitive-repositories*::
+  Ignore remote repositories found in transitive dependencies
+
 *-j*, *--java*=_<javaVersion>_::
   JDK version to use for running the script.
 
-*-n*, *--native*::
-  Build using native-image
+*--jsh*::
+  Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'
+
+*-m*, *--main*=_<main>_::
+  Main class to use when running. Used primarily for running jar's.
+
+*--manifest*=_<String=String>_::
+  
+
+*--module*[=_<module>_]::
+  Treat resource as a module. Optionally with the given module name
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted
@@ -79,6 +107,12 @@ Exports jar with classpath referring to local machine dependent locations
 *--repos*=_<repositories>_::
   Add additional repositories.
 
+*-s*, *--sources*=_<sources>_::
+  Add additional sources.
+
+*--source-type*=_<forceType>_::
+  Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
+
 *--verbose*::
   jbang will be verbose on what it does.
 
@@ -87,8 +121,8 @@ Exports jar with classpath referring to local machine dependent locations
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_scriptOrFile_::
-  A file or URL to a Java code file
+[_<scriptOrFile>_]::
+  A reference to a source file
 
 // end::picocli-generated-man-section-arguments[]
 
