@@ -28,7 +28,7 @@
 *** xref:jbang-jdk-default.adoc[default]
 *** xref:jbang-jdk-home.adoc[home]
 *** xref:jbang-jdk-install.adoc[install]
-*** xref:jbang-jdk-java-env.adoc[java-env]
+*** xref:jbang-jdk-java-env.adoc[java-env, env]
 *** xref:jbang-jdk-list.adoc[list]
 *** xref:jbang-jdk-uninstall.adoc[uninstall]
 ** xref:jbang-version.adoc[version]
