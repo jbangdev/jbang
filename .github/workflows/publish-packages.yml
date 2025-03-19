@@ -53,7 +53,7 @@ jobs:
           setup-java: false
       - name: JReleaser publish output
         if: always()
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: jreleaser-publish
           path: |
@@ -76,14 +76,14 @@ jobs:
           setup-java: false
       - name: JReleaser announce output
         if: always()
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: jreleaser-announce
           path: |
             out/jreleaser/trace.log
             out/jreleaser/output.properties
       - name: upload-choco
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: build-choco
           path: build/choco
@@ -97,7 +97,7 @@ jobs:
         with:
           name: build-choco
           path: build/choco
-      - uses: actions/setup-dotnet@71a4fd9b27383962fc5df13a9c871636b43199b4 # v1
+      - uses: actions/setup-dotnet@871f041373faaad213a635d9afb62905ec029bbb # v1
         with:
           dotnet-version: '2.2.204' # SDK Version to use.
       - name: choco-build
