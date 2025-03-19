@@ -124,34 +124,57 @@ public class UnpackUtil {
 	public static void untargz(Path targz, Path outputDir, boolean stripRootFolder, Path selectFolder)
 			throws IOException {
 		try (TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(
-				new GzipCompressorInputStream(
-						new FileInputStream(targz.toFile())))) {
+				new GzipCompressorInputStream(new FileInputStream(targz.toFile())))) {
+
 			TarArchiveEntry targzEntry;
 			while ((targzEntry = tarArchiveInputStream.getNextEntry()) != null) {
 				Path entry = Paths.get(targzEntry.getName()).normalize();
+
 				if (stripRootFolder) {
 					if (entry.getNameCount() == 1) {
 						continue;
 					}
 					entry = entry.subpath(1, entry.getNameCount());
 				}
+
 				if (selectFolder != null) {
 					if (!entry.startsWith(selectFolder) || entry.equals(selectFolder)) {
 						continue;
 					}
 					entry = entry.subpath(selectFolder.getNameCount(), entry.getNameCount());
 				}
+
 				entry = outputDir.resolve(entry).normalize();
+
 				if (!entry.startsWith(outputDir)) {
 					throw new IOException("Entry is outside of the target dir: " + targzEntry.getName());
 				}
+
 				if (targzEntry.isDirectory()) {
 					Files.createDirectories(entry);
+				} else if (targzEntry.isSymbolicLink()) {
+					// Handle symbolic links
+					Path linkTarget = Paths.get(targzEntry.getLinkName());
+
+					// Ensure parent directory exists
+					Files.createDirectories(entry.getParent());
+
+					// Create symbolic link (only if it doesn't exist)
+					if (!Files.exists(entry)) {
+						try {
+							Files.createSymbolicLink(entry, linkTarget);
+						} catch (IOException e) {
+							Util.warnMsg("Could not create symbolic link " + entry + " -> " + linkTarget + " due to "
+									+ e.getMessage(), e);
+						}
+					}
 				} else {
+					// Regular file extraction
 					if (!Files.isDirectory(entry.getParent())) {
 						Files.createDirectories(entry.getParent());
 					}
 					Files.copy(tarArchiveInputStream, entry, StandardCopyOption.REPLACE_EXISTING);
+
 					int mode = targzEntry.getMode();
 					if (mode != 0 && !Util.isWindows()) {
 						Set<PosixFilePermission> permissions = PosixFilePermissionSupport.toPosixFilePermissions(mode);

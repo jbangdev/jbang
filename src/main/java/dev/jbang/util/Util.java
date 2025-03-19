@@ -454,6 +454,17 @@ public class Util {
 		}
 	}
 
+	static public void warnMsg(String msg, Throwable verboseInfo) {
+		if (!isQuiet()) {
+			System.err.print(getMsgHeader());
+			System.err.print("[WARN] ");
+			System.err.println(msg);
+			if (isVerbose()) {
+				verboseInfo.printStackTrace();
+			}
+		}
+	}
+
 	static public void errorMsg(String msg) {
 		System.err.print(getMsgHeader());
 		System.err.print("[ERROR] ");
