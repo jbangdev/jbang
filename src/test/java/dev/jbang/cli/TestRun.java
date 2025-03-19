@@ -2624,6 +2624,7 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	@Disabled("java 8 is not installing reliably on github action")
 	void testReadingNoAddExportsOnJava8() throws IOException {
 		String jar = "com.google.googlejavaformat:google-java-format:1.25.2";
 
