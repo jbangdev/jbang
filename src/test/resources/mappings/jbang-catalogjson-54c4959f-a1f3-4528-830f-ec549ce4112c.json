@@ -1,0 +1,30 @@
+{
+  "id" : "54c4959f-a1f3-4528-830f-ec549ce4112c",
+  "name" : "jbang-catalogjson",
+  "request" : {
+    "url" : "/jbang-catalog.json",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"catalogs\": {},\n  \"aliases\": {\n    \"tree\": {\n      \"script-ref\": \"tree/main.java\"\n    },\n    \"qrcode\": {\n      \"script-ref\": \"qrcode/main.java\",\n      \"enable-preview\": false,\n      \"java-agents\": []\n    }\n  },\n  \"templates\": {}\n}",
+    "headers" : {
+      "Date" : "Fri, 07 Mar 2025 21:53:15 GMT",
+      "Server" : "Apache",
+      "Last-Modified" : "Thu, 12 Oct 2023 13:39:59 GMT",
+      "Vary" : "Accept-Encoding",
+      "Content-Type" : "application/json",
+      "X-Varnish" : "28914356101 28456002990",
+      "Age" : "2759",
+      "Via" : "1.1 webcache2 (Varnish/trunk)",
+      "ETag" : "W/\"ea-60785137c0a1d-gzip\"",
+      "Accept-Ranges" : "bytes"
+    }
+  },
+  "uuid" : "54c4959f-a1f3-4528-830f-ec549ce4112c",
+  "persistent" : true,
+  "scenarioName" : "scenario-2-jbang-catalog.json",
+  "requiredScenarioState" : "Started",
+  "newScenarioState" : "scenario-2-jbang-catalog.json-2",
+  "insertionIndex" : 1
+}

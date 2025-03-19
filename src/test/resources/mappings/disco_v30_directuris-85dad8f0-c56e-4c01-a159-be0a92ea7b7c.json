@@ -1,0 +1,18 @@
+{
+  "id" : "85dad8f0-c56e-4c01-a159-be0a92ea7b7c",
+  "name" : "disco_v30_directuris",
+  "request" : {
+    "url" : "/disco/v3.0/directuris?distro=temurin&javafx_bundled=false&libc_type=glibc&directly_downloadable=true&archive_type=tar.gz&operating_system=linux&package_type=jdk&version=8&release_status=ga%2Cea&architecture=x64&latest=available",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 301,
+    "headers" : {
+      "Date" : "Fri, 07 Mar 2025 22:52:04 GMT",
+      "location" : "https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u442-b06/OpenJDK8U-jdk_x64_linux_hotspot_8u442b06.tar.gz"
+    }
+  },
+  "uuid" : "85dad8f0-c56e-4c01-a159-be0a92ea7b7c",
+  "persistent" : true,
+  "insertionIndex" : 16
+}
