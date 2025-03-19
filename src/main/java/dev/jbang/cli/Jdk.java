@@ -174,7 +174,7 @@ public class Jdk {
 		return EXIT_OK;
 	}
 
-	@CommandLine.Command(name = "java-env", description = "Prints out the environment variables needed to use the given JDK.")
+	@CommandLine.Command(name = "java-env", aliases = "env", description = "Prints out the environment variables needed to use the given JDK.")
 	public Integer javaEnv(
 			@CommandLine.Parameters(paramLabel = "versionOrId", index = "0", description = "The version of the JDK to select", arity = "0..1") String versionOrId) {
 		jdkProvidersMixin.initJdkProviders();

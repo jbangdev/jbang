@@ -7,6 +7,9 @@ open := if os() == "macos" { "open" } else if os() == "windows" { "start" } else
 build:
     ./gradlew spotlessApply installDist -x test
 
+format:
+    ./gradlew spotlessApply
+
 # run tests
 test:
     ./gradlew test
@@ -27,7 +30,7 @@ itest:
     @cd itests && ./itests.sh
 
 # open shell with latest build in path
-jbang +args:
+jbang *args:
     PATH="build/install/jbang/bin:$PATH" jbang {{args}}
 
 # open integeration test report
