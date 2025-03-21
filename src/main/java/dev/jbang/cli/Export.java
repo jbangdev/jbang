@@ -564,7 +564,8 @@ abstract class BaseExportProject extends BaseExportCommand {
 		Util.mkdirs(projectDir);
 
 		// Sources
-		Path srcJavaDir = projectDir.resolve("src/main/java");
+		boolean isKotlin = ctx.getProject().getMainClass().endsWith("Kt");
+		Path srcJavaDir = projectDir.resolve(isKotlin?"src/main/kotlin":"src/main/java");
 
 		String fullClassName = "";
 		for (ResourceRef sourceRef : prj.getMainSourceSet().getSources()) {
@@ -653,10 +654,12 @@ class ExportGradleProject extends BaseExportProject {
 		Template template = engine.getTemplate(templateRef);
 		if (template == null)
 			throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateRef + "'");
+		boolean isKotlin = ctx.getProject().getMainClass().endsWith("Kt");
 		String result = template
 								.data("group", group)
 								.data("artifact", artifact)
 								.data("version", version)
+								.data("kotlin", isKotlin?"yes":"no")
 								.data("description", prj.getDescription().orElse(""))
 								.data("repositories", repositories	.stream()
 																	.map(MavenRepo::getUrl)
@@ -664,9 +667,10 @@ class ExportGradleProject extends BaseExportProject {
 																	.collect(Collectors.toList()))
 								.data("javaVersion", getJavaVersion(prj, false))
 								.data("gradledependencies", gradleify(depIds))
-								.data("fullClassName", fullClassName)
+								.data("fullClassName", ctx.getProject().getMainClass())
 								.render();
 		Util.writeString(destination, result);
+		Util.writeString(projectDir.resolve("settings.gradle"), "");
 	}
 
 	private List<String> gradleify(List<String> collectDependencies) {
