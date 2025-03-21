@@ -667,7 +667,7 @@ class ExportGradleProject extends BaseExportProject {
 																	.collect(Collectors.toList()))
 								.data("javaVersion", getJavaVersion(prj, false))
 								.data("gradledependencies", gradleify(depIds))
-								.data("fullClassName", ctx.getProject().getMainClass())
+								.data("fullClassName", fullClassName + (isKotlin ? "Kt" : ""))
 								.render();
 		Util.writeString(destination, result);
 		Util.writeString(projectDir.resolve("settings.gradle"), "");
