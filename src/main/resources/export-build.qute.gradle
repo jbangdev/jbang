@@ -14,6 +14,7 @@ repositories {
 		url "{url}"
 	}
 {/for}
+	mavenLocal()
 }
 
 {#if javaVersion}
@@ -34,4 +35,5 @@ dependencies {
 
 application {
 	mainClass = '{fullClassName}'
+	applicationDefaultJvmArgs = []
 }
