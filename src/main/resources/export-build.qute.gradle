@@ -1,5 +1,10 @@
 plugins {
+{#if kotlin eq 'no'}
 	id 'java'
+{/if}
+{#if kotlin eq 'yes'}
+	id 'org.jetbrains.kotlin.jvm' version '2.0.21'
+{/if}
 	id 'application'
 }
 
