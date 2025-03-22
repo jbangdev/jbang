@@ -1,5 +1,10 @@
 plugins {
+{#if language eq 'java'}
 	id 'java'
+{/if}
+{#if language eq 'kotlin'}
+	id 'org.jetbrains.kotlin.jvm' version '{kotlinVersion}'
+{/if}
 	id 'application'
 }
 
