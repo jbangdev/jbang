@@ -656,7 +656,7 @@ class ExportGradleProject extends BaseExportProject {
 		if (template == null)
 			throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateRef + "'");
 		boolean isKotlin = ctx.getProject().getMainSource() instanceof KotlinSource;
-		String kotlinVersion = ((KotlinSource) ctx.getProject().getMainSource()).getKotlinVersion();
+		String kotlinVersion = isKotlin ? ((KotlinSource) ctx.getProject().getMainSource()).getKotlinVersion() : "";
 		String result = template
 								.data("group", group)
 								.data("artifact", artifact)
