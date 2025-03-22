@@ -14,7 +14,6 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
-import dev.jbang.source.sources.KotlinSource;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 
@@ -23,6 +22,7 @@ import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.dependencies.*;
 import dev.jbang.source.*;
 import dev.jbang.source.resolvers.AliasResourceResolver;
+import dev.jbang.source.sources.KotlinSource;
 import dev.jbang.util.JarUtil;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
