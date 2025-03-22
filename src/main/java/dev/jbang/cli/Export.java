@@ -14,6 +14,7 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
+import dev.jbang.source.sources.KotlinSource;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 
@@ -564,7 +565,7 @@ abstract class BaseExportProject extends BaseExportCommand {
 		Util.mkdirs(projectDir);
 
 		// Sources
-		boolean isKotlin = ctx.getProject().getMainClass().endsWith("Kt");
+		boolean isKotlin = ctx.getProject().getMainSource() instanceof KotlinSource;
 		Path srcJavaDir = projectDir.resolve(isKotlin ? "src/main/kotlin" : "src/main/java");
 
 		String fullClassName = "";
@@ -654,7 +655,7 @@ class ExportGradleProject extends BaseExportProject {
 		Template template = engine.getTemplate(templateRef);
 		if (template == null)
 			throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateRef + "'");
-		boolean isKotlin = ctx.getProject().getMainClass().endsWith("Kt");
+		boolean isKotlin = ctx.getProject().getMainSource() instanceof KotlinSource;
 		String result = template
 								.data("group", group)
 								.data("artifact", artifact)
