@@ -659,7 +659,7 @@ class ExportGradleProject extends BaseExportProject {
 								.data("group", group)
 								.data("artifact", artifact)
 								.data("version", version)
-								.data("kotlin", isKotlin ? "yes" : "no")
+								.data("language", isKotlin ? "kotlin" : "java")
 								.data("description", prj.getDescription().orElse(""))
 								.data("repositories", repositories	.stream()
 																	.map(MavenRepo::getUrl)
