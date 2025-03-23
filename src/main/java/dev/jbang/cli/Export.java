@@ -661,11 +661,11 @@ class ExportGradleProject extends BaseExportProject {
 		boolean isKotlin = ctx.getProject().getMainSource() instanceof KotlinSource;
 		String kotlinVersion = isKotlin ? ((KotlinSource) ctx.getProject().getMainSource()).getKotlinVersion() : "";
 		StringBuilder jvmArgs = new StringBuilder();
-		for (String arg: ctx.getProject().getRuntimeOptions()) {
+		for (String arg : ctx.getProject().getRuntimeOptions()) {
 			if (jvmArgs.length() > 0) {
 				jvmArgs.append(", ");
 			}
-			jvmArgs.append(String.format("'%s'",arg));
+			jvmArgs.append(String.format("'%s'", arg));
 		}
 		String result = template
 								.data("group", group)
