@@ -1,8 +1,6 @@
 package dev.jbang.source;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasItem;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -18,10 +16,10 @@ public class TestTagReader {
 				"//DEPS foo:bar, abc:DEF:123, https://github.com/jbangdev/jbang, something", null);
 
 		List<String> deps = tr.collectBinaryDependencies();
-		assertThat(deps, containsInAnyOrder("foo:bar", "abc:DEF:123", "https://github.com/jbangdev/jbang"));
+		assertThat(deps).containsExactlyInAnyOrder("foo:bar", "abc:DEF:123", "https://github.com/jbangdev/jbang");
 
 		List<String> subs = tr.collectSourceDependencies();
-		assertThat(subs, containsInAnyOrder("something"));
+		assertThat(subs).containsExactlyInAnyOrder("something");
 	}
 
 	@Test
@@ -30,24 +28,24 @@ public class TestTagReader {
 				"//DEPS foo:bar, abc:DEF:123, \thttps://github.com/jbangdev/jbang \tsomething\t ", null);
 
 		List<String> deps = tr.collectBinaryDependencies();
-		assertThat(deps, containsInAnyOrder("foo:bar", "abc:DEF:123", "https://github.com/jbangdev/jbang"));
+		assertThat(deps).containsExactlyInAnyOrder("foo:bar", "abc:DEF:123", "https://github.com/jbangdev/jbang");
 
 		List<String> subs = tr.collectSourceDependencies();
-		assertThat(subs, containsInAnyOrder("something"));
+		assertThat(subs).containsExactlyInAnyOrder("something");
 	}
 
 	@Test
 	void textExtractRepositories() {
 		List<MavenRepo> repos = new TagReader.Extended("//REPOS jcenter=https://xyz.org", null).collectRepositories();
 
-		assertThat(repos, hasItem(new MavenRepo("jcenter", "https://xyz.org")));
+		assertThat(repos).contains(new MavenRepo("jcenter", "https://xyz.org"));
 
 		repos = new TagReader.Extended("//REPOS jcenter=https://xyz.org localMaven xyz=file://~test",
 				null).collectRepositories();
 
-		assertThat(repos, hasItem(new MavenRepo("jcenter", "https://xyz.org")));
-		assertThat(repos, hasItem(new MavenRepo("localmaven", "localMaven")));
-		assertThat(repos, hasItem(new MavenRepo("xyz", "file://~test")));
+		assertThat(repos).contains(new MavenRepo("jcenter", "https://xyz.org"));
+		assertThat(repos).contains(new MavenRepo("localmaven", "localMaven"));
+		assertThat(repos).contains(new MavenRepo("xyz", "file://~test"));
 	}
 
 	@Test
@@ -56,12 +54,12 @@ public class TestTagReader {
 				"@GrabResolver(name=\"restlet.org\", root=\"http://maven.restlet.org\")", null)
 																								.collectRepositories();
 
-		assertThat(deps, hasItem(new MavenRepo("restlet.org", "http://maven.restlet.org")));
+		assertThat(deps).contains(new MavenRepo("restlet.org", "http://maven.restlet.org"));
 
 		deps = new TagReader.Extended("@GrabResolver(\"http://maven.restlet.org\")", null)
 																							.collectRepositories();
 
-		assertThat(deps, hasItem(new MavenRepo("http://maven.restlet.org", "http://maven.restlet.org")));
+		assertThat(deps).contains(new MavenRepo("http://maven.restlet.org", "http://maven.restlet.org"));
 
 	}
 }

@@ -1,8 +1,8 @@
 package dev.jbang.util;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
 
 import java.io.IOException;
@@ -47,7 +47,7 @@ public class TestUtilDownloads extends BaseTest {
 		String url = wmri.getHttpBaseUrl() + "/test.txt";
 		Path file = Util.downloadAndCacheFile(url);
 		assertThat(file.toFile(), anExistingFile());
-		assertThat(Util.readString(file), is("test"));
+		assertThat(Util.readString(file)).isEqualTo("test");
 	}
 
 	@Test
@@ -67,7 +67,7 @@ public class TestUtilDownloads extends BaseTest {
 		ZonedDateTime zlmt = ZonedDateTime.ofInstant(lmt.toInstant(), ZoneId.of("GMT"));
 		String cachedLastModified = DateTimeFormatter.RFC_1123_DATE_TIME.format(zlmt);
 		assertThat(file.toFile(), anExistingFile());
-		assertThat(Util.readString(file), is("test"));
+		assertThat(Util.readString(file)).isEqualTo("test");
 
 		Thread.sleep(1100);
 
@@ -83,9 +83,9 @@ public class TestUtilDownloads extends BaseTest {
 		Util.withCacheEvict("0", () -> {
 			Path file2 = Util.downloadAndCacheFile(url);
 			assertThat(file2.toFile(), anExistingFile());
-			assertThat(file2, equalTo(file));
-			assertThat(Files.getLastModifiedTime(file2), not(equalTo(lmt)));
-			assertThat(Util.readString(file2), is("test2"));
+			assertThat(file2).isEqualTo(file);
+			assertThat(Files.getLastModifiedTime(file2)).isNotEqualTo(lmt);
+			assertThat(Util.readString(file2)).isEqualTo("test2");
 			return 0;
 		});
 	}
@@ -105,7 +105,7 @@ public class TestUtilDownloads extends BaseTest {
 		Path file = Util.downloadAndCacheFile(url);
 		FileTime lmt = Files.getLastModifiedTime(file);
 		assertThat(file.toFile(), anExistingFile());
-		assertThat(Util.readString(file), is("test"));
+		assertThat(Util.readString(file)).isEqualTo("test");
 
 		Thread.sleep(1100);
 
@@ -120,9 +120,9 @@ public class TestUtilDownloads extends BaseTest {
 		Util.freshly(() -> {
 			Path file2 = Util.downloadAndCacheFile(url);
 			assertThat(file2.toFile(), anExistingFile());
-			assertThat(file2, equalTo(file));
-			assertThat(Files.getLastModifiedTime(file2), not(equalTo(lmt)));
-			assertThat(Util.readString(file2), is("test2"));
+			assertThat(file2).isEqualTo(file);
+			assertThat(Files.getLastModifiedTime(file2)).isNotEqualTo(lmt);
+			assertThat(Util.readString(file2)).isEqualTo("test2");
 			return null;
 		});
 	}
@@ -146,7 +146,7 @@ public class TestUtilDownloads extends BaseTest {
 		ZonedDateTime zlmt = ZonedDateTime.ofInstant(lmt.toInstant(), ZoneId.of("GMT"));
 		String cachedLastModified = DateTimeFormatter.RFC_1123_DATE_TIME.format(zlmt);
 		assertThat(file.toFile(), anExistingFile());
-		assertThat(Util.readString(file), is("test"));
+		assertThat(Util.readString(file)).isEqualTo("test");
 
 		editStub(get(urlEqualTo("/test.txt"))
 												.withId(id)
@@ -162,9 +162,9 @@ public class TestUtilDownloads extends BaseTest {
 
 		Path file2 = Util.downloadAndCacheFile(url);
 		assertThat(file2.toFile(), anExistingFile());
-		assertThat(file2, equalTo(file));
-		assertThat(Files.getLastModifiedTime(file2), greaterThanOrEqualTo(lmt));
-		assertThat(Util.readString(file2), is("test"));
+		assertThat(file2).isEqualTo(file);
+		assertThat(Files.getLastModifiedTime(file2)).isGreaterThanOrEqualTo(lmt);
+		assertThat(Util.readString(file2)).isEqualTo("test");
 	}
 
 	@Test
@@ -184,7 +184,7 @@ public class TestUtilDownloads extends BaseTest {
 		Path file = Util.downloadAndCacheFile(url);
 		FileTime lmt = Files.getLastModifiedTime(file);
 		assertThat(file.toFile(), anExistingFile());
-		assertThat(Util.readString(file), is("test"));
+		assertThat(Util.readString(file)).isEqualTo("test");
 
 		Thread.sleep(1100);
 
@@ -199,9 +199,9 @@ public class TestUtilDownloads extends BaseTest {
 		Util.withCacheEvict("0", () -> {
 			Path file2 = Util.downloadAndCacheFile(url);
 			assertThat(file2.toFile(), anExistingFile());
-			assertThat(file2, equalTo(file));
-			assertThat(Files.getLastModifiedTime(file2), not(equalTo(lmt)));
-			assertThat(Util.readString(file2), is("test2"));
+			assertThat(file2).isEqualTo(file);
+			assertThat(Files.getLastModifiedTime(file2)).isNotEqualTo(lmt);
+			assertThat(Util.readString(file2)).isEqualTo("test2");
 			return 0;
 		});
 	}
@@ -225,7 +225,7 @@ public class TestUtilDownloads extends BaseTest {
 		Path file = Util.downloadAndCacheFile(url);
 		FileTime lmt = Files.getLastModifiedTime(file);
 		assertThat(file.toFile(), anExistingFile());
-		assertThat(Util.readString(file), is("test"));
+		assertThat(Util.readString(file)).isEqualTo("test");
 
 		editStub(get(urlEqualTo("/test.txt"))
 												.withId(id)
@@ -237,9 +237,9 @@ public class TestUtilDownloads extends BaseTest {
 
 		Path file2 = Util.downloadAndCacheFile(url);
 		assertThat(file2.toFile(), anExistingFile());
-		assertThat(file2, equalTo(file));
-		assertThat(Files.getLastModifiedTime(file2), equalTo(lmt));
-		assertThat(Util.readString(file2), is("test"));
+		assertThat(file2).isEqualTo(file);
+		assertThat(Files.getLastModifiedTime(file2)).isEqualTo(lmt);
+		assertThat(Util.readString(file2)).isEqualTo("test");
 	}
 
 	@Test
@@ -261,7 +261,7 @@ public class TestUtilDownloads extends BaseTest {
 		Path file = Util.downloadAndCacheFile(url);
 		FileTime lmt = Files.getLastModifiedTime(file);
 		assertThat(file.toFile(), anExistingFile());
-		assertThat(Util.readString(file), is("test"));
+		assertThat(Util.readString(file)).isEqualTo("test");
 
 		Thread.sleep(1100);
 
@@ -275,9 +275,9 @@ public class TestUtilDownloads extends BaseTest {
 
 		Path file2 = Util.downloadAndCacheFile(url);
 		assertThat(file2.toFile(), anExistingFile());
-		assertThat(file2, equalTo(file));
-		assertThat(Files.getLastModifiedTime(file2), not(equalTo(lmt)));
-		assertThat(Util.readString(file2), is("test2"));
+		assertThat(file2).isEqualTo(file);
+		assertThat(Files.getLastModifiedTime(file2)).isNotEqualTo(lmt);
+		assertThat(Util.readString(file2)).isEqualTo("test2");
 	}
 
 	@Test
@@ -299,7 +299,7 @@ public class TestUtilDownloads extends BaseTest {
 		Path file = Util.downloadAndCacheFile(url);
 		FileTime lmt = Files.getLastModifiedTime(file);
 		assertThat(file.toFile(), anExistingFile());
-		assertThat(Util.readString(file), is("test"));
+		assertThat(Util.readString(file)).isEqualTo("test");
 
 		Thread.sleep(1100);
 
@@ -313,9 +313,9 @@ public class TestUtilDownloads extends BaseTest {
 
 		Path file2 = Util.downloadAndCacheFile(url);
 		assertThat(file2.toFile(), anExistingFile());
-		assertThat(file2, equalTo(file));
-		assertThat(Files.getLastModifiedTime(file2), not(equalTo(lmt)));
-		assertThat(Util.readString(file2), is("test2"));
+		assertThat(file2).isEqualTo(file);
+		assertThat(Files.getLastModifiedTime(file2)).isNotEqualTo(lmt);
+		assertThat(Util.readString(file2)).isEqualTo("test2");
 	}
 
 	@Test
@@ -336,10 +336,10 @@ public class TestUtilDownloads extends BaseTest {
 		ZonedDateTime zlmt = ZonedDateTime.ofInstant(lmt.toInstant(), ZoneId.of("GMT"));
 		String cachedLastModified = DateTimeFormatter.RFC_1123_DATE_TIME.format(zlmt);
 		assertThat(file.toFile(), anExistingFile());
-		assertThat(Util.readString(file), is("test"));
+		assertThat(Util.readString(file)).isEqualTo("test");
 		Path etag = Util.etagFile(file, Util.getCacheMetaDir(file.getParent()));
 		assertThat(etag.toFile(), anExistingFile());
-		assertThat(Util.readString(etag), is("tag1"));
+		assertThat(Util.readString(etag)).isEqualTo("tag1");
 
 		editStub(get(urlEqualTo("/test.txt"))
 												.withId(id)
@@ -353,12 +353,12 @@ public class TestUtilDownloads extends BaseTest {
 
 		Path file2 = Util.downloadAndCacheFile(url);
 		assertThat(file2.toFile(), anExistingFile());
-		assertThat(file2, equalTo(file));
-		assertThat(Files.getLastModifiedTime(file2), greaterThanOrEqualTo(lmt));
-		assertThat(Util.readString(file2), is("test"));
+		assertThat(file2).isEqualTo(file);
+		assertThat(Files.getLastModifiedTime(file2)).isGreaterThanOrEqualTo(lmt);
+		assertThat(Util.readString(file2)).isEqualTo("test");
 		Path etag2 = Util.etagFile(file, Util.getCacheMetaDir(file2.getParent()));
 		assertThat(etag2.toFile(), anExistingFile());
-		assertThat(Util.readString(etag2), is("tag1"));
+		assertThat(Util.readString(etag2)).isEqualTo("tag1");
 	}
 
 	@Test
@@ -377,10 +377,10 @@ public class TestUtilDownloads extends BaseTest {
 		Path file = Util.downloadAndCacheFile(url);
 		FileTime lmt = Files.getLastModifiedTime(file);
 		assertThat(file.toFile(), anExistingFile());
-		assertThat(Util.readString(file), is("test"));
+		assertThat(Util.readString(file)).isEqualTo("test");
 		Path etag = Util.etagFile(file, Util.getCacheMetaDir(file.getParent()));
 		assertThat(etag.toFile(), anExistingFile());
-		assertThat(Util.readString(etag), is("tag1"));
+		assertThat(Util.readString(etag)).isEqualTo("tag1");
 
 		Thread.sleep(1100);
 
@@ -394,12 +394,12 @@ public class TestUtilDownloads extends BaseTest {
 		Util.withCacheEvict("0", () -> {
 			Path file2 = Util.downloadAndCacheFile(url);
 			assertThat(file2.toFile(), anExistingFile());
-			assertThat(file2, equalTo(file));
-			assertThat(Files.getLastModifiedTime(file2), not(equalTo(lmt)));
-			assertThat(Util.readString(file2), is("test2"));
+			assertThat(file2).isEqualTo(file);
+			assertThat(Files.getLastModifiedTime(file2)).isNotEqualTo(lmt);
+			assertThat(Util.readString(file2)).isEqualTo("test2");
 			Path etag2 = Util.etagFile(file, Util.getCacheMetaDir(file2.getParent()));
 			assertThat(etag2.toFile(), anExistingFile());
-			assertThat(Util.readString(etag2), is("tag2"));
+			assertThat(Util.readString(etag2)).isEqualTo("tag2");
 			return 0;
 		});
 	}
@@ -417,7 +417,7 @@ public class TestUtilDownloads extends BaseTest {
 		String url = wmri.getHttpBaseUrl() + "/test.txt?path=foo/bar";
 		Path file = Util.downloadAndCacheFile(url);
 		assertThat(file.toFile(), anExistingFile());
-		assertThat(Util.readString(file), is("test"));
+		assertThat(Util.readString(file)).isEqualTo("test");
 	}
 
 	private static ValueMatcher<Request> withoutHeader(String hdr) {

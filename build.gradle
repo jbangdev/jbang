@@ -93,6 +93,7 @@ dependencies {
 	implementation 'com.offbytwo:docopt:0.6.0.20150202'
 
 	implementation 'org.apache.commons:commons-text:1.11.0'
+	implementation "org.assertj:assertj-core:3.27.3"
 	implementation 'org.apache.commons:commons-compress:1.25.0'
 	implementation 'info.picocli:picocli:4.7.5'
 	implementation 'io.quarkus.qute:qute-core:1.12.2.Final'
@@ -103,6 +104,7 @@ dependencies {
 	implementation 'org.codejive:java-properties:0.0.7'
 
 	implementation "org.slf4j:slf4j-nop:1.7.30"
+	java9Implementation "org.assertj:assertj-core:3.27.3"
 	implementation "org.slf4j:jcl-over-slf4j:1.7.30"
 	implementation "org.jboss:jandex:2.2.3.Final"
 

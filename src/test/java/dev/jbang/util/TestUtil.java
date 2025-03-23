@@ -1,11 +1,7 @@
 package dev.jbang.util;
 
 import static dev.jbang.util.Util.ConnectionConfigurator.authentication;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.not;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
@@ -98,22 +94,22 @@ public class TestUtil extends BaseTest {
 
 		final List<String> p = Util.explode(source, baseDir, "**.java");
 
-		assertThat(p, hasItem("res/resource.java"));
-		assertThat(p, not(hasItem("hello.jsh")));
-		assertThat(p, hasItem("quote.java"));
+		assertThat(p).contains("res/resource.java");
+		assertThat(p).doesNotContain("hello.jsh");
+		assertThat(p).contains("quote.java");
 
 		p.clear();
 		p.addAll(Util.explode(source, baseDir, "**/*.java"));
 
-		assertThat(p, hasItem("res/resource.java"));
-		assertThat(p, not(hasItem("quote.java")));
-		assertThat(p, not(hasItem("main.jsh")));
+		assertThat(p).contains("res/resource.java");
+		assertThat(p).doesNotContain("quote.java");
+		assertThat(p).doesNotContain("main.jsh");
 
 		p.clear();
 		p.addAll(Util.explode(source, baseDir, "res/resource.java"));
 
-		assertThat(p, containsInAnyOrder("res/resource.java"));
-		assertThat(p, not(hasItem("test.java")));
+		assertThat(p).containsExactlyInAnyOrder("res/resource.java");
+		assertThat(p).doesNotContain("test.java");
 
 	}
 
@@ -126,38 +122,35 @@ public class TestUtil extends BaseTest {
 
 		final List<String> p = Util.explode(source, cwdDir, dir + "/**.java");
 
-		assertThat(p, hasItem(dir + "/res/resource.java"));
-		assertThat(p, not(hasItem(dir + "/hello.jsh")));
-		assertThat(p, hasItem(dir + "/quote.java"));
+		assertThat(p).contains(dir + "/res/resource.java");
+		assertThat(p).doesNotContain(dir + "/hello.jsh");
+		assertThat(p).contains(dir + "/quote.java");
 
 		p.clear();
 		p.addAll(Util.explode(source, cwdDir, dir + "/**/*.java"));
 
-		assertThat(p, hasItem(dir + "/res/resource.java"));
-		assertThat(p, not(hasItem(dir + "/quote.java")));
-		assertThat(p, not(hasItem(dir + "/main.jsh")));
+		assertThat(p).contains(dir + "/res/resource.java");
+		assertThat(p).doesNotContain(dir + "/quote.java");
+		assertThat(p).doesNotContain(dir + "/main.jsh");
 
 		p.clear();
 		p.addAll(Util.explode(source, cwdDir, dir + "/res/resource.java"));
 
-		assertThat(p, containsInAnyOrder(dir + "/res/resource.java"));
-		assertThat(p, not(hasItem(dir + "/test.java")));
+		assertThat(p).containsExactlyInAnyOrder(dir + "/res/resource.java");
+		assertThat(p).doesNotContain(dir + "/test.java");
 
 	}
 
 	@Test
 	void testDispostionFilename() {
-		assertThat(Util.getDispositionFilename("inline; filename=token"), equalTo("token"));
-		assertThat(Util.getDispositionFilename("inline; filename=\"quoted string\""), equalTo("quoted string"));
-		assertThat(Util.getDispositionFilename("inline; filename*=iso-8859-1'en'%A3%20rates"), equalTo("£ rates"));
-		assertThat(Util.getDispositionFilename("inline; filename*=UTF-8''%c2%a3%20and%20%e2%82%ac%20rates"),
-				equalTo("£ and € rates"));
-		assertThat(Util.getDispositionFilename("inline; filename=token; filename*=iso-8859-1'en'%A3%20rates"),
-				equalTo("£ rates"));
+		assertThat(Util.getDispositionFilename("inline; filename=token")).isEqualTo("token");
+		assertThat(Util.getDispositionFilename("inline; filename=\"quoted string\"")).isEqualTo("quoted string");
+		assertThat(Util.getDispositionFilename("inline; filename*=iso-8859-1'en'%A3%20rates")).isEqualTo("£ rates");
+		assertThat(Util.getDispositionFilename("inline; filename*=UTF-8''%c2%a3%20and%20%e2%82%ac%20rates")).isEqualTo("£ and € rates");
+		assertThat(Util.getDispositionFilename("inline; filename=token; filename*=iso-8859-1'en'%A3%20rates")).isEqualTo("£ rates");
 		// The spec actually tells us to always use filename* but our implementation is
 		// too dumb for that
-		assertThat(Util.getDispositionFilename("inline; filename*=iso-8859-1'en'%A3%20rates; filename=token"),
-				equalTo("token"));
+		assertThat(Util.getDispositionFilename("inline; filename*=iso-8859-1'en'%A3%20rates; filename=token")).isEqualTo("token");
 		// assertThat(Util.getDispositionFilename("inline;
 		// filename*=iso-fake-1''dummy"), equalTo(""));
 	}
@@ -171,7 +164,6 @@ public class TestUtil extends BaseTest {
 
 		authentication().configure(connection);
 
-		assertThat(connection.getRequestProperty("Authorization"),
-				equalTo("Basic Sm9obkRvZTpWZXJ5U3Ryb25nUGFzc3dvcmQx"));
+		assertThat(connection.getRequestProperty("Authorization")).isEqualTo("Basic Sm9obkRvZTpWZXJ5U3Ryb25nUGFzc3dvcmQx");
 	}
 }

@@ -1,7 +1,6 @@
 package dev.jbang.cli;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -43,33 +42,33 @@ public class TestAliasWithBaseRef extends BaseTest {
 	@Test
 	void testGetAliasOne() throws IOException {
 		Alias alias = Alias.get("one");
-		assertThat(alias, notNullValue());
-		assertThat(alias.scriptRef, equalTo("foo"));
-		assertThat(alias.resolve(), equalTo("http://dummy/foo"));
+		assertThat(alias).isNotNull();
+		assertThat(alias.scriptRef).isEqualTo("foo");
+		assertThat(alias.resolve()).isEqualTo("http://dummy/foo");
 	}
 
 	@Test
 	void testGetAliasTwo() throws IOException {
 		Alias alias = Alias.get("two");
-		assertThat(alias, notNullValue());
-		assertThat(alias.scriptRef, equalTo("foo/bar.java"));
-		assertThat(alias.resolve(), equalTo("http://dummy/foo/bar.java"));
+		assertThat(alias).isNotNull();
+		assertThat(alias.scriptRef).isEqualTo("foo/bar.java");
+		assertThat(alias.resolve()).isEqualTo("http://dummy/foo/bar.java");
 	}
 
 	@Test
 	void testGetAliasThree() throws IOException {
 		Alias alias = Alias.get("three");
-		assertThat(alias, notNullValue());
-		assertThat(alias.scriptRef, equalTo("http://dummy/baz.java"));
-		assertThat(alias.resolve(), equalTo("http://dummy/baz.java"));
+		assertThat(alias).isNotNull();
+		assertThat(alias.scriptRef).isEqualTo("http://dummy/baz.java");
+		assertThat(alias.resolve()).isEqualTo("http://dummy/baz.java");
 	}
 
 	@Test
 	void testGetAliasGav() throws IOException {
 		Alias alias = Alias.get("gav");
-		assertThat(alias, notNullValue());
-		assertThat(alias.scriptRef, equalTo("org.example:artifact:version"));
-		assertThat(alias.resolve(), equalTo("org.example:artifact:version"));
+		assertThat(alias).isNotNull();
+		assertThat(alias.scriptRef).isEqualTo("org.example:artifact:version");
+		assertThat(alias.resolve()).isEqualTo("org.example:artifact:version");
 	}
 
 }

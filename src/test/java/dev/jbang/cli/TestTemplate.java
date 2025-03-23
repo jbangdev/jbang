@@ -2,8 +2,7 @@ package dev.jbang.cli;
 
 import static dev.jbang.util.TestUtil.clearSettingsCaches;
 import static dev.jbang.util.Util.entry;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -73,11 +72,11 @@ public class TestTemplate extends BaseTest {
 	void testReadFromFile() throws IOException {
 		clearSettingsCaches();
 		Template one = Template.get("one");
-		assertThat(one, notNullValue());
+		assertThat(one).isNotNull();
 		Template two = Template.get("two");
-		assertThat(two, notNullValue());
+		assertThat(two).isNotNull();
 		Template threeWithProperties = Template.get("three-with-properties");
-		assertThat(threeWithProperties, notNullValue());
+		assertThat(threeWithProperties).isNotNull();
 	}
 
 	@Test
@@ -85,14 +84,13 @@ public class TestTemplate extends BaseTest {
 		Path cwd = Util.getCwd();
 		Path testFile = cwd.resolve("test.java");
 		Files.write(testFile, "// Test file".getBytes());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(false);
 		JBang.getCommandLine().execute("template", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
-				is(true));
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(true);
 		Template name = Template.get("name");
-		assertThat(name.fileRefs, aMapWithSize(1));
-		assertThat(name.fileRefs.keySet(), hasItems("{basename}.java"));
-		assertThat(name.fileRefs.values(), hasItems("test.java"));
+		assertThat(name.fileRefs).hasSize(1);
+		assertThat(name.fileRefs.keySet()).contains("{basename}.java");
+		assertThat(name.fileRefs.values()).contains("test.java");
 	}
 
 	@Test
@@ -100,14 +98,13 @@ public class TestTemplate extends BaseTest {
 		Path cwd = Util.getCwd();
 		Path testFile = cwd.resolve("test.java");
 		Files.write(testFile, "// Test file".getBytes());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(false);
 		JBang	.getCommandLine()
 				.execute("template", "add", "-f", cwd.toString(), "--name=name",
 						"--description", "Description of the template", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
-				is(true));
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(true);
 		Template name = Template.get("name");
-		assertThat(name.description, is("Description of the template"));
+		assertThat(name.description).isEqualTo("Description of the template");
 	}
 
 	@Test
@@ -119,12 +116,12 @@ public class TestTemplate extends BaseTest {
 		Files.createDirectory(hiddenJBangPath);
 		Files.createFile(Paths.get(cwd.toString(), Settings.JBANG_DOT_DIR, Catalog.JBANG_CATALOG_JSON));
 		JBang.getCommandLine().execute("template", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(false);
 		Catalog catalog = Catalog.get(hiddenJBangPath);
 		Template name = catalog.templates.get("name");
-		assertThat(name.fileRefs, aMapWithSize(1));
-		assertThat(name.fileRefs.keySet(), hasItems("{basename}.java"));
-		assertThat(name.fileRefs.values(), hasItems(Paths.get("../test.java").toString()));
+		assertThat(name.fileRefs).hasSize(1);
+		assertThat(name.fileRefs.keySet()).contains("{basename}.java");
+		assertThat(name.fileRefs.values()).contains(Paths.get("../test.java").toString());
 	}
 
 	@Test
@@ -137,12 +134,12 @@ public class TestTemplate extends BaseTest {
 						testFile.toString());
 		Template one = Template.get("one");
 		Template name = Template.get("name");
-		assertThat(one.fileRefs, aMapWithSize(3));
-		assertThat(one.fileRefs.keySet(), hasItems("{basename}.java", "{basename}Test.java", "file2.java"));
-		assertThat(one.fileRefs.values(), hasItems("file1_1.java", "file1_1_test.java", "file1_2.java"));
-		assertThat(name.fileRefs, aMapWithSize(1));
-		assertThat(name.fileRefs.keySet(), hasItems("{basename}.java"));
-		assertThat(name.fileRefs.values(), hasItems("test.java"));
+		assertThat(one.fileRefs).hasSize(3);
+		assertThat(one.fileRefs.keySet()).contains("{basename}.java", "{basename}Test.java", "file2.java");
+		assertThat(one.fileRefs.values()).contains("file1_1.java", "file1_1_test.java", "file1_2.java");
+		assertThat(name.fileRefs).hasSize(1);
+		assertThat(name.fileRefs.keySet()).contains("{basename}.java");
+		assertThat(name.fileRefs.values()).contains("test.java");
 	}
 
 	@Test
@@ -152,70 +149,65 @@ public class TestTemplate extends BaseTest {
 		Files.write(testFile, "// Test file".getBytes());
 		Path testFile2 = cwd.resolve("test2.java");
 		Files.write(testFile2, "// Test file 2".getBytes());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(false);
 		int exitCode = JBang.getCommandLine()
 							.execute("template", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
-		assertThat(exitCode, equalTo(BaseCommand.EXIT_OK));
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
-				is(true));
+		assertThat(exitCode).isEqualTo(BaseCommand.EXIT_OK);
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(true);
 		Template name = Template.get("name");
-		assertThat(name.fileRefs, aMapWithSize(1));
-		assertThat(name.fileRefs.keySet(), hasItems("{basename}.java"));
-		assertThat(name.fileRefs.values(), hasItems("test.java"));
+		assertThat(name.fileRefs).hasSize(1);
+		assertThat(name.fileRefs.keySet()).contains("{basename}.java");
+		assertThat(name.fileRefs.values()).contains("test.java");
 		exitCode = JBang.getCommandLine()
 						.execute("template", "add", "-f", cwd.toString(), "--name=name", testFile2.toString());
-		assertThat(exitCode, equalTo(BaseCommand.EXIT_INVALID_INPUT));
+		assertThat(exitCode).isEqualTo(BaseCommand.EXIT_INVALID_INPUT);
 		exitCode = JBang.getCommandLine()
 						.execute("template", "add", "-f", cwd.toString(), "--name=name", "--force",
 								testFile2.toString());
-		assertThat(exitCode, equalTo(BaseCommand.EXIT_OK));
+		assertThat(exitCode).isEqualTo(BaseCommand.EXIT_OK);
 		name = Template.get("name");
-		assertThat(name.fileRefs, aMapWithSize(1));
-		assertThat(name.fileRefs.keySet(), hasItems("{basename}.java"));
-		assertThat(name.fileRefs.values(), hasItems("test2.java"));
+		assertThat(name.fileRefs).hasSize(1);
+		assertThat(name.fileRefs.keySet()).contains("{basename}.java");
+		assertThat(name.fileRefs.values()).contains("test2.java");
 	}
 
 	@Test
 	void testGetTemplateNone() throws IOException {
 		Template template = Template.get("dummy-template!");
-		assertThat(template, nullValue());
+		assertThat(template).isNull();
 	}
 
 	@Test
 	void testGetTemplateOne() throws IOException {
 		Template template = Template.get("one");
-		assertThat(template, notNullValue());
-		assertThat(template.description, is("Template 1"));
-		assertThat(template.fileRefs, aMapWithSize(3));
-		assertThat(template.fileRefs.keySet(), hasItems("{basename}.java", "{basename}Test.java", "file2.java"));
-		assertThat(template.fileRefs.values(), hasItems("file1_1.java", "file1_1_test.java", "file1_2.java"));
+		assertThat(template).isNotNull();
+		assertThat(template.description).isEqualTo("Template 1");
+		assertThat(template.fileRefs).hasSize(3);
+		assertThat(template.fileRefs.keySet()).contains("{basename}.java", "{basename}Test.java", "file2.java");
+		assertThat(template.fileRefs.values()).contains("file1_1.java", "file1_1_test.java", "file1_2.java");
 	}
 
 	@Test
 	void testGetTemplateTwo() throws IOException {
 		Template template = Template.get("two");
-		assertThat(template, notNullValue());
-		assertThat(template.description, is("Template 2"));
-		assertThat(template.fileRefs, aMapWithSize(2));
-		assertThat(template.fileRefs.keySet(), hasItems("src/{filename}", "src/file2.java"));
-		assertThat(template.fileRefs.values(), hasItems("tpl2/file2_1.java", "tpl2/file2_2.java"));
+		assertThat(template).isNotNull();
+		assertThat(template.description).isEqualTo("Template 2");
+		assertThat(template.fileRefs).hasSize(2);
+		assertThat(template.fileRefs.keySet()).contains("src/{filename}", "src/file2.java");
+		assertThat(template.fileRefs.values()).contains("tpl2/file2_1.java", "tpl2/file2_2.java");
 	}
 
 	@Test
 	void testGetTemplateThreeWithProperties() throws IOException {
 		Template template = Template.get("three-with-properties");
-		assertThat(template, notNullValue());
-		assertThat(template.description, is("Template 3"));
-		assertThat(template.fileRefs, aMapWithSize(2));
-		assertThat(template.fileRefs.keySet(), hasItems("src/{filename}", "src/file2.java"));
-		assertThat(template.fileRefs.values(), hasItems("tpl2/file2_1.java", "tpl2/file2_2.java"));
-		assertThat(template.properties.entrySet(), hasItems(
-				entry("test-key", new TemplateProperty(null, null)),
-				entry("test-key-with-description",
-						new TemplateProperty("This is a test description", null)),
-				entry("test-key-with-description-and-default-value",
-						new TemplateProperty("This is a test description with default value", "2.11")),
-				entry("test-key-with-default-value", new TemplateProperty(null, "3.12"))));
+		assertThat(template).isNotNull();
+		assertThat(template.description).isEqualTo("Template 3");
+		assertThat(template.fileRefs).hasSize(2);
+		assertThat(template.fileRefs.keySet()).contains("src/{filename}", "src/file2.java");
+		assertThat(template.fileRefs.values()).contains("tpl2/file2_1.java", "tpl2/file2_2.java");
+		assertThat(template.properties.entrySet()).contains(entry("test-key", new TemplateProperty(null, null)), entry("test-key-with-description",
+				new TemplateProperty("This is a test description", null)), entry("test-key-with-description-and-default-value",
+				new TemplateProperty("This is a test description with default value", "2.11")), entry("test-key-with-default-value", new TemplateProperty(null, "3.12")));
 	}
 
 	@Test
@@ -225,7 +217,7 @@ public class TestTemplate extends BaseTest {
 		int result = JBang	.getCommandLine()
 							.execute("template", "add", "-f", cwd.toString(), "--name=name",
 									"/test=" + testFile.toString());
-		assertThat(result, is(2));
+		assertThat(result).isEqualTo(2);
 	}
 
 	@Test
@@ -235,7 +227,7 @@ public class TestTemplate extends BaseTest {
 		int result = JBang	.getCommandLine()
 							.execute("template", "add", "-f", cwd.toString(), "--name=name",
 									"test/../..=" + testFile.toString());
-		assertThat(result, is(2));
+		assertThat(result).isEqualTo(2);
 	}
 
 	@Test
@@ -245,7 +237,7 @@ public class TestTemplate extends BaseTest {
 		int result = JBang	.getCommandLine()
 							.execute("template", "add", "-f", cwd.toString(), "--name=name",
 									"test=" + testFile.toString());
-		assertThat(result, is(2));
+		assertThat(result).isEqualTo(2);
 	}
 
 	@Test
@@ -253,15 +245,13 @@ public class TestTemplate extends BaseTest {
 		Path cwd = Util.getCwd();
 		Path testFile = cwd.resolve("test.java");
 		Files.write(testFile, "// Test file".getBytes());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(false);
 		JBang	.getCommandLine()
 				.execute("template", "add", "-f", cwd.toString(), "--name=template-with-single-property",
 						"--description", "Description of the template", "-P", "new-test-key", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
-				is(true));
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(true);
 		Template name = Template.get("template-with-single-property");
-		assertThat(name.properties.entrySet(), hasItems(
-				entry("new-test-key", new TemplateProperty(null, null))));
+		assertThat(name.properties.entrySet()).contains(entry("new-test-key", new TemplateProperty(null, null)));
 	}
 
 	@Test
@@ -269,18 +259,16 @@ public class TestTemplate extends BaseTest {
 		Path cwd = Util.getCwd();
 		Path testFile = cwd.resolve("test.java");
 		Files.write(testFile, "// Test file".getBytes());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(false);
 		JBang	.getCommandLine()
 				.execute("template", "add", "-f", cwd.toString(),
 						"--name=template-with-single-complex-property",
 						"--description", "Description of the template", "-P",
 						"new-test-key:This is a description for the property key:3.14", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
-				is(true));
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(true);
 		Template name = Template.get("template-with-single-complex-property");
-		assertThat(name.properties.entrySet(), hasItems(
-				entry("new-test-key",
-						new TemplateProperty("This is a description for the property key", "3.14"))));
+		assertThat(name.properties.entrySet()).contains(entry("new-test-key",
+				new TemplateProperty("This is a description for the property key", "3.14")));
 	}
 
 	@Test
@@ -288,7 +276,7 @@ public class TestTemplate extends BaseTest {
 		Path cwd = Util.getCwd();
 		Path testFile = cwd.resolve("test.java");
 		Files.write(testFile, "// Test file".getBytes());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(false);
 		JBang	.getCommandLine()
 				.execute("template", "add", "-f", cwd.toString(),
 						"--name=template-with-complex-properties",
@@ -296,13 +284,10 @@ public class TestTemplate extends BaseTest {
 						"new-test-key:This is a description for the property key:3.14", "--property",
 						"second-test-key:This is another description for the second property key:Non-Blocker",
 						testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
-				is(true));
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(true);
 		Template name = Template.get("template-with-complex-properties");
-		assertThat(name.properties.entrySet(), hasItems(
-				entry("new-test-key",
-						new TemplateProperty("This is a description for the property key", "3.14")),
-				entry("second-test-key", new TemplateProperty(
-						"This is another description for the second property key", "Non-Blocker"))));
+		assertThat(name.properties.entrySet()).contains(entry("new-test-key",
+				new TemplateProperty("This is a description for the property key", "3.14")), entry("second-test-key", new TemplateProperty(
+				"This is another description for the second property key", "Non-Blocker")));
 	}
 }

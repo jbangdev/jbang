@@ -1,7 +1,8 @@
 package dev.jbang.dependencies;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.io.FileMatchers.aFileWithSize;
 
 import java.util.Arrays;
@@ -34,9 +35,9 @@ public class TestArtifactInfo extends BaseTest {
 
 		List<ArtifactInfo> wonka = DependencyCache.findDependenciesByHash("wonka");
 
-		assertThat(wonka, notNullValue());
-		assertThat(wonka, hasSize(4));
+		assertThat(wonka).isNotNull();
+		assertThat(wonka).hasSize(4);
 
-		assertThat(wonka, contains(classpath.getArtifacts().toArray()));
+		assertThat(wonka).containsExactly(classpath.getArtifacts().toArray());
 	}
 }

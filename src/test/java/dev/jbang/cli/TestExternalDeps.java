@@ -1,8 +1,6 @@
 package dev.jbang.cli;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.matchesPattern;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,7 +48,7 @@ class TestExternalDeps extends BaseTest {
 		Project prj = pb.build(f.getPath());
 		String result = run.updateGeneratorForRun(prj.codeBuilder().build()).build().generate();
 
-		assertThat(result, containsString("pico"));
+		assertThat(result).contains("pico");
 	}
 
 	@Test
@@ -71,7 +69,7 @@ class TestExternalDeps extends BaseTest {
 		Project prj = pb.build(f.getPath());
 		String result = run.updateGeneratorForRun(prj.codeBuilder().build()).build().generate();
 
-		assertThat(result, matchesPattern(".*com[/\\\\]github[/\\\\]jbangdev[/\\\\]jbang.*"));
+		assertThat(result).matches(".*com[/\\\\]github[/\\\\]jbangdev[/\\\\]jbang.*");
 	}
 
 }

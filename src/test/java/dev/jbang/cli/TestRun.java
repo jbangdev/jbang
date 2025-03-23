@@ -6,8 +6,8 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import static dev.jbang.source.Project.ATTR_AGENT_CLASS;
 import static dev.jbang.source.Project.ATTR_PREMAIN_CLASS;
 import static dev.jbang.util.Util.writeString;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.endsWith;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,8 +39,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.hamcrest.MatcherAssert;
-import org.hamcrest.collection.IsCollectionWithSize;
+import org.hamcrest.Matchers;
 import org.hamcrest.io.FileMatchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -106,27 +105,23 @@ public class TestRun extends BaseTest {
 		Project code = pb.build(arg);
 		BuildContext ctx = BuildContext.forProject(code);
 
-		assertThat(Files.exists(ctx.getJarFile()), equalTo(!first));
+		assertThat(Files.exists(ctx.getJarFile())).isEqualTo(!first);
 
 		String result = Project.codeBuilder(ctx).build().build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
-		assertThat(result, endsWith("helloworld"));
-		assertThat(result, containsString("classpath"));
-		assertThat(result, matchesRegex(".*helloworld\\.java\\.[a-z0-9]+.helloworld\\.jar.*"));
-		assertThat(result, containsString("picocli-4.6.3.jar"));
-		assertThat(result, containsString("hellojar.jar"));
-		assertThat(result, containsString("-Dfoo=bar"));
-		assertThat(result, containsString(CommandBuffer.escapeShellArgument("-Dbar=aap noot mies", Util.getShell())));
+		assertThat(result).matches("^.*java(.exe)? .*$");
+		assertThat(result).endsWith("helloworld");
+		assertThat(result).contains("classpath");
+		assertThat(result).matches(".*helloworld\\.java\\.[a-z0-9]+.helloworld\\.jar.*");
+		assertThat(result).contains("picocli-4.6.3.jar");
+		assertThat(result).contains("hellojar.jar");
+		assertThat(result).contains("-Dfoo=bar");
+		assertThat(result).contains(CommandBuffer.escapeShellArgument("-Dbar=aap noot mies", Util.getShell()));
 		// Make sure the opts only appear once
-		assertThat(result.replaceFirst(Pattern.quote("-Dfoo=bar"), ""),
-				not(containsString("-Dfoo=bar")));
-		assertThat(result.replaceFirst(Pattern.quote("-Dbar=aap noot mies"), ""),
-				not(containsString("-Dbar=aap noot mies")));
+		assertThat(result.replaceFirst(Pattern.quote("-Dfoo=bar"), "")).doesNotContain("-Dfoo=bar");
+		assertThat(result.replaceFirst(Pattern.quote("-Dbar=aap noot mies"), "")).doesNotContain("-Dbar=aap noot mies");
 		// Make sure the opts only appear unquoted
-		assertThat(result,
-				not(containsString(
-						CommandBuffer.escapeShellArgument("-Dfoo=bar -Dbar=aap noot mies", Util.getShell()))));
+		assertThat(result).doesNotContain(CommandBuffer.escapeShellArgument("-Dfoo=bar -Dbar=aap noot mies", Util.getShell()));
 		// assertThat(result, containsString("--source 11"));
 	}
 
@@ -141,24 +136,19 @@ public class TestRun extends BaseTest {
 		pb.catalog(cat.toFile());
 		String result = run.updateGeneratorForRun(pb.build("helloworld").codeBuilder().build()).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
-		assertThat(result, endsWith("helloworld"));
-		assertThat(result, containsString("classpath"));
-		assertThat(result, containsString(".jar"));
-		assertThat(result, containsString("-Dfoo=bar"));
-		assertThat(result, containsString(CommandBuffer.escapeShellArgument("-Dbar=aap noot mies", Util.getShell())));
-		assertThat(result, containsString("-showversion"));
+		assertThat(result).matches("^.*java(.exe)? .*$");
+		assertThat(result).endsWith("helloworld");
+		assertThat(result).contains("classpath");
+		assertThat(result).contains(".jar");
+		assertThat(result).contains("-Dfoo=bar");
+		assertThat(result).contains(CommandBuffer.escapeShellArgument("-Dbar=aap noot mies", Util.getShell()));
+		assertThat(result).contains("-showversion");
 		// Make sure the opts only appear once
-		assertThat(result.replaceFirst(Pattern.quote("-Dfoo=bar"), ""),
-				not(containsString("-Dfoo=bar")));
-		assertThat(result.replaceFirst(Pattern.quote("-Dbar=aap noot mies"), ""),
-				not(containsString("-Dbar=aap noot mies")));
-		assertThat(result.replaceFirst(Pattern.quote("-showversion"), ""),
-				not(containsString("-showversion")));
+		assertThat(result.replaceFirst(Pattern.quote("-Dfoo=bar"), "")).doesNotContain("-Dfoo=bar");
+		assertThat(result.replaceFirst(Pattern.quote("-Dbar=aap noot mies"), "")).doesNotContain("-Dbar=aap noot mies");
+		assertThat(result.replaceFirst(Pattern.quote("-showversion"), "")).doesNotContain("-showversion");
 		// Make sure the opts only appear unquoted
-		assertThat(result,
-				not(containsString(
-						CommandBuffer.escapeShellArgument("-Dfoo=bar -Dbar=aap noot mies", Util.getShell()))));
+		assertThat(result).doesNotContain(CommandBuffer.escapeShellArgument("-Dfoo=bar -Dbar=aap noot mies", Util.getShell()));
 		// assertThat(result, containsString("--source 11"));
 	}
 
@@ -176,16 +166,15 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result,
-				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
-		assertThat(result, not(containsString("  ")));
-		assertThat(result, containsString(arg));
-		assertThat(result.split(Pattern.quote(arg), -1).length, equalTo(2));
-		assertThat(result, not(containsString("--source 11")));
-		assertThat(result, containsString("--startup=DEFAULT"));
-		assertThat(result, matchesPattern(".*--startup=[^ ]*helloworld.jsh.*"));
-		assertThat(result, not(containsString("blah")));
-		assertThat(result, containsString("jbang_exit_"));
+		assertThat(result).matches("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$");
+		assertThat(result).doesNotContain("  ");
+		assertThat(result).contains(arg);
+		assertThat(result.split(Pattern.quote(arg), -1).length).isEqualTo(2);
+		assertThat(result).doesNotContain("--source 11");
+		assertThat(result).contains("--startup=DEFAULT");
+		assertThat(result).matches(".*--startup=[^ ]*helloworld.jsh.*");
+		assertThat(result).doesNotContain("blah");
+		assertThat(result).contains("jbang_exit_");
 	}
 
 	@Test
@@ -203,10 +192,8 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result,
-				matchesPattern(
-						"^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM (\\^\\\")?--class-path=.*(\\^\\\")? (\\^\\\")?-J--class-path=.*(\\^\\\")? --startup=DEFAULT (\\^\\\")?--startup.*$"));
-		assertThat(result, containsString("eclipse-collections-api"));
+		assertThat(result).matches("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM (\\^\\\")?--class-path=.*(\\^\\\")? (\\^\\\")?-J--class-path=.*(\\^\\\")? --startup=DEFAULT (\\^\\\")?--startup.*$");
+		assertThat(result).contains("eclipse-collections-api");
 	}
 
 	@Test
@@ -224,8 +211,8 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)?.*$"));
-		assertThat(result, containsString("firstarg"));
+		assertThat(result).matches("^.*java(.exe)?.*$");
+		assertThat(result).contains("firstarg");
 	}
 
 	@Test
@@ -239,7 +226,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*jshell(.exe)?.+--class-path=.*figlet.*? --startup.*$"));
+		assertThat(result).matches("^.*jshell(.exe)?.+--class-path=.*figlet.*? --startup.*$");
 	}
 
 	@Test
@@ -259,7 +246,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*jshell(.exe)?.+--class-path=.*figlet.*? --startup.*$"));
+		assertThat(result).matches("^.*jshell(.exe)?.+--class-path=.*figlet.*? --startup.*$");
 	}
 
 	@Test
@@ -282,7 +269,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*jshell(.exe)?.+--class-path=.*figlet.*? --startup.*$"));
+		assertThat(result).matches("^.*jshell(.exe)?.+--class-path=.*figlet.*? --startup.*$");
 	}
 
 	@Test
@@ -300,13 +287,12 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result,
-				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
-		assertThat(result, not(containsString("  ")));
-		assertThat(result, containsString("empty.jsh"));
-		assertThat(result, not(containsString("--source 11")));
-		assertThat(result, containsString("--startup=DEFAULT"));
-		assertThat(result, matchesPattern(".*--startup=[^ ]*empty.jsh.*"));
+		assertThat(result).matches("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$");
+		assertThat(result).doesNotContain("  ");
+		assertThat(result).contains("empty.jsh");
+		assertThat(result).doesNotContain("--source 11");
+		assertThat(result).contains("--startup=DEFAULT");
+		assertThat(result).matches(".*--startup=[^ ]*empty.jsh.*");
 	}
 
 	@Test
@@ -322,14 +308,13 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result,
-				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
-		assertThat(result, not(containsString("  ")));
-		assertThat(result, containsString("hellojsh"));
-		assertThat(result, not(containsString("--source 11")));
-		assertThat(result, containsString("--startup=DEFAULT"));
-		assertThat(result, matchesPattern(".*--startup=[^ ]*hellojsh.*"));
-		assertThat(result, containsString("jbang_exit_"));
+		assertThat(result).matches("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$");
+		assertThat(result).doesNotContain("  ");
+		assertThat(result).contains("hellojsh");
+		assertThat(result).doesNotContain("--source 11");
+		assertThat(result).contains("--startup=DEFAULT");
+		assertThat(result).matches(".*--startup=[^ ]*hellojsh.*");
+		assertThat(result).contains("jbang_exit_");
 	}
 
 	@Test
@@ -348,15 +333,15 @@ public class TestRun extends BaseTest {
 		Project code = pb.build(jar);
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
-		assertThat(result, matchesPattern("^.*java(.exe)?.*"));
-		assertThat(code.getMainClass(), not(nullValue()));
+		assertThat(result).matches("^.*java(.exe)?.*");
+		assertThat(code.getMainClass()).isNotNull();
 
-		assertThat(result, containsString("picocli-4.6.3.jar"));
-		assertThat(result, containsString("dummy.jar"));
-		assertThat(result, containsString("hellojar.jar"));
+		assertThat(result).contains("picocli-4.6.3.jar");
+		assertThat(result).contains("dummy.jar");
+		assertThat(result).contains("hellojar.jar");
 
-		assertThat(code.getResourceRef().getFile().toString(), equalTo(jar));
-		assertThat(code.isJar(), equalTo(true));
+		assertThat(code.getResourceRef().getFile().toString()).isEqualTo(jar);
+		assertThat(code.isJar()).isEqualTo(true);
 
 		run.doCall();
 	}
@@ -378,9 +363,9 @@ public class TestRun extends BaseTest {
 
 			String cmdline = run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
 
-			assertThat(cmdline, not(containsString("https")));
+			assertThat(cmdline).doesNotContain("https");
 
-			assertThat(cmdline, not(containsString(".jar.java")));
+			assertThat(cmdline).doesNotContain(".jar.java");
 
 		} finally {
 			TrustedSources.instance().remove(Collections.singletonList(jar), tdir.resolve("test.trust").toFile());
@@ -398,13 +383,12 @@ public class TestRun extends BaseTest {
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar);
 
-		assertThat(code.getResourceRef().getFile().toString(),
-				matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
+		assertThat(code.getResourceRef().getFile().toString()).matches(".*jbang_tests_maven.*codegen-4.6.3.jar");
 
 		ExitException e = Assertions.assertThrows(ExitException.class,
 				() -> run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate());
 
-		assertThat(e.getMessage(), startsWith("no main class"));
+		assertThat(e.getMessage()).startsWith("no main class");
 
 	}
 
@@ -421,14 +405,13 @@ public class TestRun extends BaseTest {
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar);
 
-		assertThat(code.getResourceRef().getFile().toString(),
-				matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
+		assertThat(code.getResourceRef().getFile().toString()).matches(".*jbang_tests_maven.*codegen-4.6.3.jar");
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
-		assertThat(result, matchesPattern("^.*jshell(.exe)?.*"));
-		assertThat(code.getMainClass(), nullValue());
+		assertThat(result).matches("^.*jshell(.exe)?.*");
+		assertThat(code.getMainClass()).isNull();
 
-		assertThat(code.isJar(), equalTo(true));
+		assertThat(code.isJar()).isEqualTo(true);
 
 		run.doCall();
 	}
@@ -456,18 +439,18 @@ public class TestRun extends BaseTest {
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar);
 
-		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*.jar"));
+		assertThat(code.getResourceRef().getFile().toString()).matches(".*.jar");
 
 		String cmd = run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
 
 		if (Util.getShell() == Util.Shell.bash) {
-			assertThat(cmd, matchesPattern(".*quarkus-cli-1.9.0.Final-runner.jar.*"));
+			assertThat(cmd).matches(".*quarkus-cli-1.9.0.Final-runner.jar.*");
 		} else {
 			// TODO On Windows the command is using an @file, we should parse
 			// the name, read the file and assert against it contents.
 		}
 
-		assertThat(code.getMainClass(), equalTo("io.quarkus.runner.GeneratedMain"));
+		assertThat(code.getMainClass()).isEqualTo("io.quarkus.runner.GeneratedMain");
 
 	}
 
@@ -482,12 +465,11 @@ public class TestRun extends BaseTest {
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar);
 
-		assertThat(code.getResourceRef().getFile().toString(),
-				matchesPattern(".*jbang_tests_maven.*eclipse.jgit.pgm.*.jar"));
+		assertThat(code.getResourceRef().getFile().toString()).matches(".*jbang_tests_maven.*eclipse.jgit.pgm.*.jar");
 
 		run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
 
-		assertThat(code.getMainClass(), equalTo("org.eclipse.jgit.pgm.Main"));
+		assertThat(code.getMainClass()).isEqualTo("org.eclipse.jgit.pgm.Main");
 
 	}
 
@@ -506,14 +488,13 @@ public class TestRun extends BaseTest {
 
 		String cmd = run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
 
-		assertThat(code.getMainClass(), nullValue());
-		assertThat(cmd, endsWith("picocli.codegen.aot.graalvm.ReflectionConfigGenerator"));
+		assertThat(code.getMainClass()).isNull();
+		assertThat(cmd).endsWith("picocli.codegen.aot.graalvm.ReflectionConfigGenerator");
 
-		assertThat(code.getResourceRef().getFile().toString(),
-				matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
+		assertThat(code.getResourceRef().getFile().toString()).matches(".*jbang_tests_maven.*codegen-4.6.3.jar");
 
-		assertThat(cmd, matchesPattern(".* -classpath .*picocli-4.6.3.jar.*"));
-		assertThat(cmd, not(containsString(" -jar ")));
+		assertThat(cmd).matches(".* -classpath .*picocli-4.6.3.jar.*");
+		assertThat(cmd).doesNotContain(" -jar ");
 	}
 
 	@Test
@@ -531,14 +512,13 @@ public class TestRun extends BaseTest {
 
 		String cmd = run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
 
-		assertThat(code.getMainClass(), nullValue());
-		assertThat(cmd, endsWith("info.picocli.codegen/picocli.codegen.aot.graalvm.ReflectionConfigGenerator"));
+		assertThat(code.getMainClass()).isNull();
+		assertThat(cmd).endsWith("info.picocli.codegen/picocli.codegen.aot.graalvm.ReflectionConfigGenerator");
 
-		assertThat(code.getResourceRef().getFile().toString(),
-				matchesPattern(".*jbang_tests_maven.*codegen-4.6.3.jar"));
+		assertThat(code.getResourceRef().getFile().toString()).matches(".*jbang_tests_maven.*codegen-4.6.3.jar");
 
-		assertThat(cmd, matchesPattern(".* -p .*picocli-4.6.3.jar.*"));
-		assertThat(cmd, not(containsString(" -jar ")));
+		assertThat(cmd).matches(".* -p .*picocli-4.6.3.jar.*");
+		assertThat(cmd).doesNotContain(" -jar ");
 	}
 
 	@Test
@@ -567,8 +547,7 @@ public class TestRun extends BaseTest {
 		} catch (ExitException ex) {
 			StringWriter sw = new StringWriter();
 			ex.printStackTrace(new PrintWriter(sw));
-			assertThat(sw.toString(), containsString(
-					"Could not transfer artifact dummygroup:dummyart:pom:0.1 from/to https://dummyrepo"));
+			assertThat(sw.toString()).contains("Could not transfer artifact dummygroup:dummyart:pom:0.1 from/to https://dummyrepo");
 		}
 	}
 
@@ -584,12 +563,12 @@ public class TestRun extends BaseTest {
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(jar);
 
-		assertThat(code.getResourceRef().getFile().toString(), matchesPattern(".*\\.m2.*eclipse.jgit.pgm.*.jar"));
+		assertThat(code.getResourceRef().getFile().toString()).matches(".*\\.m2.*eclipse.jgit.pgm.*.jar");
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
 
-		assertThat(result, containsString("picocli-4.6.3.jar"));
-		assertThat(result, containsString("hellojar.jar"));
+		assertThat(result).contains("picocli-4.6.3.jar");
+		assertThat(result).contains("hellojar.jar");
 	}
 
 	@Test
@@ -608,14 +587,14 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*jshell(.exe)? .*$"));
-		assertThat(result, not(containsString("  ")));
-		assertThat(result, containsString("helloworld.jsh"));
-		assertThat(result, not(containsString("--source 11")));
-		assertThat(result, containsString("--startup=DEFAULT"));
-		assertThat(result, matchesPattern(".*--startup=[^ ]*helloworld.jsh.*"));
-		assertThat(result, not(containsString("blah")));
-		assertThat(result, not(containsString("jbang_exit_")));
+		assertThat(result).matches("^.*jshell(.exe)? .*$");
+		assertThat(result).doesNotContain("  ");
+		assertThat(result).contains("helloworld.jsh");
+		assertThat(result).doesNotContain("--source 11");
+		assertThat(result).contains("--startup=DEFAULT");
+		assertThat(result).matches(".*--startup=[^ ]*helloworld.jsh.*");
+		assertThat(result).doesNotContain("blah");
+		assertThat(result).doesNotContain("jbang_exit_");
 	}
 
 	@Test
@@ -630,12 +609,11 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result,
-				matchesPattern("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$"));
-		assertThat(result, containsString("funcs.jsh"));
-		assertThat(result, containsString("main.jsh"));
-		assertThat(result, containsString("--startup=DEFAULT"));
-		assertThat(result, containsString("jbang_exit_"));
+		assertThat(result).matches("^.*jshell(.exe)? --execution=local -J--add-modules=ALL-SYSTEM --startup.*$");
+		assertThat(result).contains("funcs.jsh");
+		assertThat(result).contains("main.jsh");
+		assertThat(result).contains("--startup=DEFAULT");
+		assertThat(result).contains("jbang_exit_");
 	}
 
 	@Test
@@ -651,12 +629,12 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
-		assertThat(result, containsString("helloworld.java"));
-		assertThat(result, containsString("classpath"));
+		assertThat(result).matches("^.*java(.exe)? .*$");
+		assertThat(result).contains("helloworld.java");
+		assertThat(result).contains("classpath");
 //		assertThat(result, containsString(" --source 11 "));
-		assertThat(result, containsString("jdwp"));
-		assertThat(result, not(containsString("  ")));
+		assertThat(result).contains("jdwp");
+		assertThat(result).doesNotContain("  ");
 	}
 
 	@Test
@@ -672,11 +650,11 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
-		assertThat(result, containsString("helloworld.java"));
-		assertThat(result, containsString("classpath"));
-		assertThat(result, containsString("-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=4004"));
-		assertThat(result, not(containsString("  ")));
+		assertThat(result).matches("^.*java(.exe)? .*$");
+		assertThat(result).contains("helloworld.java");
+		assertThat(result).contains("classpath");
+		assertThat(result).contains("-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=4004");
+		assertThat(result).doesNotContain("  ");
 	}
 
 	@Test
@@ -692,11 +670,11 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
-		assertThat(result, containsString("helloworld.java"));
-		assertThat(result, containsString("classpath"));
-		assertThat(result, containsString("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5000"));
-		assertThat(result, not(containsString("  ")));
+		assertThat(result).matches("^.*java(.exe)? .*$");
+		assertThat(result).contains("helloworld.java");
+		assertThat(result).contains("classpath");
+		assertThat(result).contains("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5000");
+		assertThat(result).doesNotContain("  ");
 	}
 
 	@Test
@@ -714,12 +692,12 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
-		assertThat(result, containsString("classpath_example.java"));
+		assertThat(result).matches("^.*java(.exe)? .*$");
+		assertThat(result).contains("classpath_example.java");
 //		assertThat(result, containsString(" --source 11 "));
-		assertThat(result, not(containsString("  ")));
-		assertThat(result, containsString("classpath"));
-		assertThat(result, containsString("log4j"));
+		assertThat(result).doesNotContain("  ");
+		assertThat(result).contains("classpath");
+		assertThat(result).contains("log4j");
 	}
 
 	@Test
@@ -735,13 +713,13 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*jshell(.exe)? .*$"));
+		assertThat(result).matches("^.*jshell(.exe)? .*$");
 		assertThat(result, (containsString("classpath_example.java")));
 //		assertThat(result, containsString(" --source 11 "));
-		assertThat(result, not(containsString("  ")));
-		assertThat(result, containsString("classpath"));
-		assertThat(result, containsString("log4j"));
-		assertThat(result, not(endsWith(arg)));
+		assertThat(result).doesNotContain("  ");
+		assertThat(result).contains("classpath");
+		assertThat(result).contains("log4j");
+		assertThat(result).doesNotEndWith(arg);
 	}
 
 	@Test
@@ -755,9 +733,9 @@ public class TestRun extends BaseTest {
 													arg, "-Dafter=wonka");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		assertThat(run.userParams.size(), is(1));
+		assertThat(run.userParams.size()).isEqualTo(1);
 
-		assertThat(run.dependencyInfoMixin.getProperties().size(), is(2));
+		assertThat(run.dependencyInfoMixin.getProperties().size()).isEqualTo(2);
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		pb.mainClass("fakemain");
@@ -765,17 +743,17 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
-		assertThat(result, containsString("-Dwonka=panda"));
+		assertThat(result).matches("^.*java(.exe)? .*$");
+		assertThat(result).contains("-Dwonka=panda");
 		if (Util.isWindows()) {
-			assertThat(result, containsString("^\"-Dquoted=see^ this^\""));
+			assertThat(result).contains("^\"-Dquoted=see^ this^\"");
 		} else {
-			assertThat(result, containsString("'-Dquoted=see this'"));
+			assertThat(result).contains("'-Dquoted=see this'");
 		}
 		String[] split = result.split("example.java");
 		assertEquals(2, split.length);
-		assertThat(split[0], not(containsString("after=wonka")));
-		assertThat(split[1], containsString("after=wonka"));
+		assertThat(split[0]).doesNotContain("after=wonka");
+		assertThat(split[1]).contains("after=wonka");
 	}
 
 	@Test
@@ -786,8 +764,7 @@ public class TestRun extends BaseTest {
 		ProjectBuilder ppb = Project.builder();
 		Project pre = ppb.build(url);
 
-		MatcherAssert.assertThat(Util.readString(pre.getResourceRef().getFile()),
-				containsString("Logger.getLogger(classpath_example.class);"));
+		assertThat(Util.readString(pre.getResourceRef().getFile())).contains("Logger.getLogger(classpath_example.class);");
 
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", url);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
@@ -799,7 +776,7 @@ public class TestRun extends BaseTest {
 
 		String s = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(s, not(containsString("file:")));
+		assertThat(s).doesNotContain("file:");
 	}
 
 	@Test
@@ -815,9 +792,9 @@ public class TestRun extends BaseTest {
 
 		String s = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 		if (Util.isWindows()) {
-			assertThat(s, containsString("^\"^ ~^!@#$^%^^^&*^(^)-+\\:;'`^<^>?/,.{}[]\\^\"^\""));
+			assertThat(s).contains("^\"^ ~^!@#$^%^^^&*^(^)-+\\:;'`^<^>?/,.{}[]\\^\"^\"");
 		} else {
-			assertThat(s, containsString("' ~!@#$%^&*()-+\\:;'\\''`<>?/,.{}[]\"'"));
+			assertThat(s).contains("' ~!@#$%^&*()-+\\:;'\\''`<>?/,.{}[]\"'");
 		}
 	}
 
@@ -834,7 +811,7 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, containsString("reload4j-1.2.18.5.jar"));
+		assertThat(result).contains("reload4j-1.2.18.5.jar");
 	}
 
 	@Test
@@ -868,9 +845,9 @@ public class TestRun extends BaseTest {
 
 		try (JarFile jf = new JarFile(out.toFile())) {
 
-			assertThat(Collections.list(jf.entries()), IsCollectionWithSize.hasSize(6));
+			assertThat(Collections.list(jf.entries())).hasSize(6);
 
-			assertThat(jf.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS), equalTo("wonkabear"));
+			assertThat(jf.getManifest().getMainAttributes().getValue(Attributes.Name.MAIN_CLASS)).isEqualTo("wonkabear");
 
 			assert (Files.exists(out));
 		}
@@ -882,21 +859,16 @@ public class TestRun extends BaseTest {
 
 		Map<String, String> properties = new HashMap<>();
 
-		assertThat(JshCmdGenerator.generateArgs(Collections.emptyList(), properties),
-				equalTo("String[] args = {  }"));
+		assertThat(JshCmdGenerator.generateArgs(Collections.emptyList(), properties)).isEqualTo("String[] args = {  }");
 
-		assertThat(JshCmdGenerator.generateArgs(Collections.singletonList("one"), properties),
-				equalTo("String[] args = { \"one\" }"));
+		assertThat(JshCmdGenerator.generateArgs(Collections.singletonList("one"), properties)).isEqualTo("String[] args = { \"one\" }");
 
-		assertThat(JshCmdGenerator.generateArgs(Arrays.asList("one", "two"), properties),
-				equalTo("String[] args = { \"one\", \"two\" }"));
+		assertThat(JshCmdGenerator.generateArgs(Arrays.asList("one", "two"), properties)).isEqualTo("String[] args = { \"one\", \"two\" }");
 
-		assertThat(JshCmdGenerator.generateArgs(Arrays.asList("one", "two", "three \"quotes\""), properties),
-				equalTo("String[] args = { \"one\", \"two\", \"three \\\"quotes\\\"\" }"));
+		assertThat(JshCmdGenerator.generateArgs(Arrays.asList("one", "two", "three \"quotes\""), properties)).isEqualTo("String[] args = { \"one\", \"two\", \"three \\\"quotes\\\"\" }");
 
 		properties.put("value", "this value");
-		assertThat(JshCmdGenerator.generateArgs(Collections.emptyList(), properties),
-				equalTo("String[] args = {  }\nSystem.setProperty(\"value\",\"this value\");"));
+		assertThat(JshCmdGenerator.generateArgs(Collections.emptyList(), properties)).isEqualTo("String[] args = {  }\nSystem.setProperty(\"value\",\"this value\");");
 
 	}
 
@@ -925,7 +897,7 @@ public class TestRun extends BaseTest {
 
 		Project.codeBuilder(ctx).build();
 
-		assertThat(prj.getMainClass(), equalTo("aclass"));
+		assertThat(prj.getMainClass()).isEqualTo("aclass");
 
 		try (FileSystem fileSystem = FileSystems.newFileSystem(ctx.getJarFile(), (ClassLoader) null)) {
 			Path fileToExtract = fileSystem.getPath("META-INF/maven/dev/jbang/tests/pom.xml");
@@ -936,7 +908,7 @@ public class TestRun extends BaseTest {
 
 			String xml = s.toString("UTF-8");
 
-			assertThat(xml, not(containsString("NOT")));
+			assertThat(xml).doesNotContain("NOT");
 
 			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -973,7 +945,7 @@ public class TestRun extends BaseTest {
 		Project prj = Project.builder().build(f);
 		prj.codeBuilder().build();
 
-		assertThat(prj.getMainClass(), equalTo("dualclass"));
+		assertThat(prj.getMainClass()).isEqualTo("dualclass");
 
 	}
 
@@ -1008,7 +980,7 @@ public class TestRun extends BaseTest {
 		Project prj = pb.build(arg);
 		prj.codeBuilder().build();
 
-		assertThat(prj.getMainClass(), equalTo("dualclass"));
+		assertThat(prj.getMainClass()).isEqualTo("dualclass");
 
 	}
 
@@ -1112,7 +1084,7 @@ public class TestRun extends BaseTest {
 
 		String s = Util.readString(x);
 
-		assertThat("should be redirect thus no html tag", s, not(containsString("html>")));
+		assertThat(s).as("should be redirect thus no html tag").doesNotContain("html>");
 
 	}
 
@@ -1163,9 +1135,9 @@ public class TestRun extends BaseTest {
 			assertEquals("hello.java", x.getFileName().toString());
 		}
 		String java = Util.readString(x);
-		assertThat(java, containsString("//DEPS"));
-		assertThat(java, not(containsString("&gt;")));
-		assertThat(java, containsString("\n"));
+		assertThat(java).contains("//DEPS");
+		assertThat(java).doesNotContain("&gt;");
+		assertThat(java).contains("\n");
 	}
 
 	@Test
@@ -1175,27 +1147,21 @@ public class TestRun extends BaseTest {
 		Path x = Util.swizzleContent(u, Util.downloadFile(u, dir));
 		assertEquals("1266904846239752192.jsh", x.getFileName().toString());
 		String java = Util.readString(x);
-		assertThat(java, startsWith("//DEPS"));
-		assertThat(java, not(containsString("&gt;")));
-		assertThat(java, containsString("\n"));
-		assertThat(java, containsString("/exit"));
+		assertThat(java).startsWith("//DEPS");
+		assertThat(java).doesNotContain("&gt;");
+		assertThat(java).contains("\n");
+		assertThat(java).contains("/exit");
 
 	}
 
 	@Test
 	void testSwizzle(@TempDir Path dir) throws IOException {
 
-		assertThat(
-				Util.swizzleURL("https://github.com/jbangdev/jbang/blob/HEAD/examples/helloworld.java"),
-				equalTo("https://raw.githubusercontent.com/jbangdev/jbang/HEAD/examples/helloworld.java"));
+		assertThat(Util.swizzleURL("https://github.com/jbangdev/jbang/blob/HEAD/examples/helloworld.java")).isEqualTo("https://raw.githubusercontent.com/jbangdev/jbang/HEAD/examples/helloworld.java");
 
-		assertThat(
-				Util.swizzleURL("https://gitlab.com/jbangdev/jbang-gitlab/-/blob/HEAD/helloworld.java"),
-				equalTo("https://gitlab.com/jbangdev/jbang-gitlab/-/raw/HEAD/helloworld.java"));
+		assertThat(Util.swizzleURL("https://gitlab.com/jbangdev/jbang-gitlab/-/blob/HEAD/helloworld.java")).isEqualTo("https://gitlab.com/jbangdev/jbang-gitlab/-/raw/HEAD/helloworld.java");
 
-		assertThat(
-				Util.swizzleURL("https://bitbucket.org/Shoeboom/test/src/HEAD/helloworld.java"),
-				equalTo("https://bitbucket.org/Shoeboom/test/raw/HEAD/helloworld.java"));
+		assertThat(Util.swizzleURL("https://bitbucket.org/Shoeboom/test/src/HEAD/helloworld.java")).isEqualTo("https://bitbucket.org/Shoeboom/test/raw/HEAD/helloworld.java");
 
 	}
 
@@ -1228,19 +1194,19 @@ public class TestRun extends BaseTest {
 
 		if (JavaUtil.getCurrentMajorJavaVersion() >= 13) {
 			String commandLine = CmdGenerator.builder(ctx).classDataSharing(true).build().generate();
-			assertThat(commandLine, containsString("-XX:ArchiveClassesAtExit="));
+			assertThat(commandLine).contains("-XX:ArchiveClassesAtExit=");
 			assertThat(jsa.toFile(), not(FileMatchers.anExistingFile()));
 
 			String out = Util.runCommand(commandLine.split(" "));
-			assertThat(out, notNullValue());
+			assertThat(out).isNotNull();
 
 			commandLine = CmdGenerator.builder(ctx).classDataSharing(true).build().generate();
-			assertThat(commandLine, containsString("-XX:SharedArchiveFile="));
+			assertThat(commandLine).contains("-XX:SharedArchiveFile=");
 			assertThat(jsa.toFile(), FileMatchers.anExistingFile());
 		} else {
 			CaptureResult<String> cap = captureOutput(
 					() -> CmdGenerator.builder(ctx).classDataSharing(true).build().generate());
-			assertThat(cap.err, containsString("ClassDataSharing can only be used on Java versions 13 and later"));
+			assertThat(cap.err).contains("ClassDataSharing can only be used on Java versions 13 and later");
 		}
 	}
 
@@ -1259,11 +1225,11 @@ public class TestRun extends BaseTest {
 
 		if (JavaUtil.getCurrentMajorJavaVersion() >= 13) {
 			String commandLine = run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
-			assertThat(commandLine, containsString("-XX:ArchiveClassesAtExit="));
+			assertThat(commandLine).contains("-XX:ArchiveClassesAtExit=");
 		} else {
 			CaptureResult<String> cap = captureOutput(
 					() -> run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate());
-			assertThat(cap.err, containsString("ClassDataSharing can only be used on Java versions 13 and later"));
+			assertThat(cap.err).contains("ClassDataSharing can only be used on Java versions 13 and later");
 		}
 	}
 
@@ -1304,16 +1270,16 @@ public class TestRun extends BaseTest {
 
 		Project.codeBuilder(ctx).build();
 
-		assertThat(prj.getMainSource().isAgent(), is(true));
+		assertThat(prj.getMainSource().isAgent()).isEqualTo(true);
 
-		assertThat(prj.getManifestAttributes().get(ATTR_AGENT_CLASS), is("Agent"));
-		assertThat(prj.getManifestAttributes().get(ATTR_PREMAIN_CLASS), is("Agent"));
+		assertThat(prj.getManifestAttributes().get(ATTR_AGENT_CLASS)).isEqualTo("Agent");
+		assertThat(prj.getManifestAttributes().get(ATTR_PREMAIN_CLASS)).isEqualTo("Agent");
 
 		try (JarFile jf = new JarFile(ctx.getJarFile().toFile())) {
 			Attributes attrs = jf.getManifest().getMainAttributes();
-			assertThat(attrs.getValue("Premain-class"), equalTo("Agent"));
-			assertThat(attrs.getValue("Can-Retransform-Classes"), equalTo("true"));
-			assertThat(attrs.getValue("Can-Redefine-Classes"), equalTo("false"));
+			assertThat(attrs.getValue("Premain-class")).isEqualTo("Agent");
+			assertThat(attrs.getValue("Can-Retransform-Classes")).isEqualTo("true");
+			assertThat(attrs.getValue("Can-Redefine-Classes")).isEqualTo("false");
 		}
 
 	}
@@ -1330,10 +1296,10 @@ public class TestRun extends BaseTest {
 		Project prj = pb.build(p.toFile().getAbsolutePath());
 		prj.codeBuilder().build();
 
-		assertThat(prj.getMainSource().isAgent(), is(true));
+		assertThat(prj.getMainSource().isAgent()).isEqualTo(true);
 
-		assertThat(prj.getManifestAttributes().get(ATTR_AGENT_CLASS), is(nullValue()));
-		assertThat(prj.getManifestAttributes().get(ATTR_PREMAIN_CLASS), is("Agent"));
+		assertThat(prj.getManifestAttributes().get(ATTR_AGENT_CLASS)).isNull();
+		assertThat(prj.getManifestAttributes().get(ATTR_PREMAIN_CLASS)).isEqualTo("Agent");
 
 	}
 
@@ -1370,25 +1336,25 @@ public class TestRun extends BaseTest {
 													mainFile.toAbsolutePath().toString());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		assertThat(run.runMixin.javaAgentSlots.containsKey(agentFile.toAbsolutePath().toString()), is(true));
-		assertThat(run.runMixin.javaAgentSlots.get(agentFile.toAbsolutePath().toString()), equalTo("optionA"));
+		assertThat(run.runMixin.javaAgentSlots.containsKey(agentFile.toAbsolutePath().toString())).isEqualTo(true);
+		assertThat(run.runMixin.javaAgentSlots.get(agentFile.toAbsolutePath().toString())).isEqualTo("optionA");
 
 		ProjectBuilder pb = run.createProjectBuilderForRun().mainClass("fakemain");
 		Project prj = pb.build(mainFile);
 		Project ass1 = pb.build(agentFile);
 		BuildContext ctx = BuildContext.forProject(prj);
 
-		assertThat(ass1.getMainSource().isAgent(), is(true));
+		assertThat(ass1.getMainSource().isAgent()).isEqualTo(true);
 
 		run.buildAgents(ctx);
 
 		CmdGeneratorBuilder bgen = CmdGenerator.builder(prj);
 		String result = run.updateGeneratorForRun(bgen).build().generate();
 
-		assertThat(result, containsString("-javaagent"));
-		assertThat(result, containsString("=optionA"));
-		assertThat(result, containsString("byteman"));
-		assertThat(result, not(containsString("null")));
+		assertThat(result).contains("-javaagent");
+		assertThat(result).contains("=optionA");
+		assertThat(result).contains("byteman");
+		assertThat(result).doesNotContain("null");
 	}
 
 	@Test
@@ -1396,7 +1362,7 @@ public class TestRun extends BaseTest {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--javaagent=xyz.jar", "wonka.java");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		assertThat(run.runMixin.javaAgentSlots, hasKey("xyz.jar"));
+		assertThat(run.runMixin.javaAgentSlots).containsKey("xyz.jar");
 	}
 
 	@Test
@@ -1406,7 +1372,7 @@ public class TestRun extends BaseTest {
 													"--javaagent=org.jboss.byteman:byteman:4.0.13", "wonka.java");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		assertThat(run.runMixin.javaAgentSlots, hasKey("org.jboss.byteman:byteman:4.0.13"));
+		assertThat(run.runMixin.javaAgentSlots).containsKey("org.jboss.byteman:byteman:4.0.13");
 	}
 
 	@Test
@@ -1423,7 +1389,7 @@ public class TestRun extends BaseTest {
 
 		String line = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(line, containsString("-ea"));
+		assertThat(line).contains("-ea");
 	}
 
 	@Test
@@ -1441,7 +1407,7 @@ public class TestRun extends BaseTest {
 
 		String line = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(line, containsString("-esa"));
+		assertThat(line).contains("-esa");
 	}
 
 	@Test
@@ -1458,7 +1424,7 @@ public class TestRun extends BaseTest {
 		Project code = pb.build(p);
 
 		String commandLine = run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
-		assertThat(commandLine, containsString("--enable-preview"));
+		assertThat(commandLine).contains("--enable-preview");
 	}
 
 	@Test
@@ -1476,7 +1442,7 @@ public class TestRun extends BaseTest {
 
 		String line = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(line, containsString("--enable-preview"));
+		assertThat(line).contains("--enable-preview");
 	}
 
 	@Test
@@ -1497,9 +1463,9 @@ public class TestRun extends BaseTest {
 
 		String cmdline = run.updateGeneratorForRun(genb).build().generate();
 
-		assertThat(cmdline, containsString("--enable-preview"));
-		assertThat(cmdline, containsString("-C--enable-preview"));
-		assertThat(cmdline, containsString("-J--enable-preview"));
+		assertThat(cmdline).contains("--enable-preview");
+		assertThat(cmdline).contains("-C--enable-preview");
+		assertThat(cmdline).contains("-J--enable-preview");
 	}
 
 	@Test
@@ -1520,9 +1486,9 @@ public class TestRun extends BaseTest {
 
 		String cmdline = run.updateGeneratorForRun(genb).build().generate();
 
-		assertThat(cmdline, containsString("--enable-preview"));
-		assertThat(cmdline, not(containsString("-C--enable-preview")));
-		assertThat(cmdline, not(containsString("-J--enable-preview")));
+		assertThat(cmdline).contains("--enable-preview");
+		assertThat(cmdline).doesNotContain("-C--enable-preview");
+		assertThat(cmdline).doesNotContain("-J--enable-preview");
 	}
 
 	@Test
@@ -1534,7 +1500,7 @@ public class TestRun extends BaseTest {
 
 		Project.codeBuilder(ctx).build();
 
-		assertThat(prj.getMainClass(), equalTo("resource"));
+		assertThat(prj.getMainClass()).isEqualTo("resource");
 
 		try (FileSystem fileSystem = FileSystems.newFileSystem(ctx.getJarFile(), (ClassLoader) null)) {
 
@@ -1546,7 +1512,7 @@ public class TestRun extends BaseTest {
 							ByteArrayOutputStream s = new ByteArrayOutputStream();
 							Files.copy(fileToExtract, s);
 							String xml = s.toString("UTF-8");
-							assertThat(xml, not(containsString("message=hello")));
+							assertThat(xml).doesNotContain("message=hello");
 						} catch (Exception e) {
 							fail(e);
 						}
@@ -1562,10 +1528,10 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = Project.builder();
 		ExitException root = assertThrows(ExitException.class, () -> pb.build(f.getAbsolutePath()));
-		assertThat(root.getCause(), instanceOf(ResourceNotFoundException.class));
+		assertThat(root.getCause()).isInstanceOf(ResourceNotFoundException.class);
 		ResourceNotFoundException rnfe = (ResourceNotFoundException) root.getCause();
-		assertThat(root.toString(), containsString("'resourcethatdoesnotexist.properties"));
-		assertThat(root.toString(), containsString("brokenresource.java"));
+		assertThat(root.toString()).contains("'resourcethatdoesnotexist.properties");
+		assertThat(root.toString()).contains("brokenresource.java");
 
 	}
 
@@ -1579,7 +1545,7 @@ public class TestRun extends BaseTest {
 
 		Project.codeBuilder(ctx).build();
 
-		assertThat(prj.getMainClass(), equalTo("one"));
+		assertThat(prj.getMainClass()).isEqualTo("one");
 
 		try (FileSystem fileSystem = FileSystems.newFileSystem(ctx.getJarFile(), (ClassLoader) null)) {
 			Arrays	.asList("one.class", "Two.class", "gh_release_stats.class", "fetchlatestgraalvm.class")
@@ -1597,7 +1563,7 @@ public class TestRun extends BaseTest {
 
 		}
 
-		assertThat("duplication of deps fixed", ctx.resolveClassPath().getArtifacts(), hasSize(7));
+		assertThat(ctx.resolveClassPath().getArtifacts()).as("duplication of deps fixed").hasSize(7);
 	}
 
 	@Test
@@ -1610,7 +1576,7 @@ public class TestRun extends BaseTest {
 
 		Project.codeBuilder(ctx).build();
 
-		assertThat(prj.getMainClass(), equalTo("resources"));
+		assertThat(prj.getMainClass()).isEqualTo("resources");
 
 		try (FileSystem fileSystem = FileSystems.newFileSystem(ctx.getJarFile(), (ClassLoader) null)) {
 			Arrays	.asList("resources.class", "resource.properties", "test.properties")
@@ -1637,7 +1603,7 @@ public class TestRun extends BaseTest {
 
 		Project.codeBuilder(ctx).build();
 
-		assertThat(prj.getMainClass(), equalTo("resourcesmnt"));
+		assertThat(prj.getMainClass()).isEqualTo("resourcesmnt");
 
 		try (FileSystem fileSystem = FileSystems.newFileSystem(ctx.getJarFile(), (ClassLoader) null)) {
 			Arrays	.asList("resourcesmnt.class", "somedir/resource.properties", "somedir/test.properties")
@@ -1710,7 +1676,7 @@ public class TestRun extends BaseTest {
 		Project prj = pb.build(p.toFile().getAbsolutePath());
 		prj.codeBuilder().build();
 
-		assertThat(prj.getMainClass(), equalTo("Two"));
+		assertThat(prj.getMainClass()).isEqualTo("Two");
 
 	}
 
@@ -1737,7 +1703,7 @@ public class TestRun extends BaseTest {
 		Project prj = pb.build(p.toFile().getAbsolutePath());
 		prj.codeBuilder().build();
 
-		assertThat(prj.getMainClass(), equalTo("One"));
+		assertThat(prj.getMainClass()).isEqualTo("One");
 
 	}
 
@@ -1755,7 +1721,7 @@ public class TestRun extends BaseTest {
 		Project prj = pb.build(p.toFile().getAbsolutePath());
 		prj.codeBuilder().build();
 
-		assertThat(prj.getMainClass(), equalTo("Three"));
+		assertThat(prj.getMainClass()).isEqualTo("Three");
 
 	}
 
@@ -1777,8 +1743,8 @@ public class TestRun extends BaseTest {
 				return new JavaCompileBuildStep() {
 					@Override
 					protected void runCompiler(List<String> optionList) {
-						assertThat(optionList, hasItem(mainFile));
-						assertThat(optionList, hasItem(incFile));
+						assertThat(optionList).contains(mainFile);
+						assertThat(optionList).contains(incFile);
 						// Skip the compiler
 					}
 				};
@@ -1818,7 +1784,7 @@ public class TestRun extends BaseTest {
 					@Override
 					public Project build() {
 						Project project = ctx.getProject();
-						assertThat(project.getMainSourceSet().getResources().size(), is(1));
+						assertThat(project.getMainSourceSet().getResources().size()).isEqualTo(1);
 						List<String> ps = project	.getMainSourceSet()
 													.getResources()
 													.stream()
@@ -1932,7 +1898,7 @@ public class TestRun extends BaseTest {
 		ExitException e = assertThrows(ExitException.class,
 				() -> Project.builder().build(dir.toPath().toString()));
 
-		assertThat(e.getMessage(), containsString("is a directory and no default application"));
+		assertThat(e.getMessage()).contains("is a directory and no default application");
 
 	}
 
@@ -1986,9 +1952,9 @@ public class TestRun extends BaseTest {
 		Project prj = pb.build(arg);
 		String line = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(line, containsString("helloworld.jfr"));
+		assertThat(line).contains("helloworld.jfr");
 		// testing it does not go to cache by accident
-		assertThat(line.split("helloworld.jfr")[0], not(containsString(Settings.getCacheDir().toString())));
+		assertThat(line.split("helloworld.jfr")[0]).doesNotContain(Settings.getCacheDir().toString());
 
 	}
 
@@ -2004,7 +1970,7 @@ public class TestRun extends BaseTest {
 		Project prj = pb.build(arg);
 		String line = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(line, containsString(" --show-version "));
+		assertThat(line).contains(" --show-version ");
 	}
 
 	@Test
@@ -2024,7 +1990,7 @@ public class TestRun extends BaseTest {
 		Project prj = pb.build(fileref.toString());
 		String line = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(line, containsString("org/openjfx".replace("/", File.separator)));
+		assertThat(line).contains("org/openjfx".replace("/", File.separator));
 	}
 
 	@Test
@@ -2047,7 +2013,7 @@ public class TestRun extends BaseTest {
 		Project prj = pb.build(fileref.toString());
 		String line = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(line, containsString("org/openjfx".replace("/", File.separator)));
+		assertThat(line).contains("org/openjfx".replace("/", File.separator));
 	}
 
 	@Test
@@ -2069,7 +2035,7 @@ public class TestRun extends BaseTest {
 		Project prj = pb.build(fileref.toString());
 		String line = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(line, containsString("org/openjfx".replace("/", File.separator)));
+		assertThat(line).contains("org/openjfx".replace("/", File.separator));
 	}
 
 	@Test
@@ -2093,7 +2059,7 @@ public class TestRun extends BaseTest {
 		Project prj = pb.build(fileref.toString());
 		String line = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(line, containsString(" --module-path "));
+		assertThat(line).contains(" --module-path ");
 
 	}
 
@@ -2125,8 +2091,7 @@ public class TestRun extends BaseTest {
 		} catch (ExitException ex) {
 			StringWriter sw = new StringWriter();
 			ex.printStackTrace(new PrintWriter(sw));
-			assertThat(sw.toString(), containsString(
-					"Could not transfer artifact dummygroup:dummyart:pom:0.1 from/to https://dummyrepo"));
+			assertThat(sw.toString()).contains("Could not transfer artifact dummygroup:dummyart:pom:0.1 from/to https://dummyrepo");
 		}
 	}
 
@@ -2148,8 +2113,7 @@ public class TestRun extends BaseTest {
 		} catch (ExitException ex) {
 			StringWriter sw = new StringWriter();
 			ex.printStackTrace(new PrintWriter(sw));
-			assertThat(sw.toString(), containsString(
-					"Could not transfer artifact info.picocli:picocli-codegen:pom:4.6.3 from/to https://dummyrepo"));
+			assertThat(sw.toString()).contains("Could not transfer artifact info.picocli:picocli-codegen:pom:4.6.3 from/to https://dummyrepo");
 		}
 	}
 
@@ -2172,8 +2136,7 @@ public class TestRun extends BaseTest {
 		} catch (ExitException ex) {
 			StringWriter sw = new StringWriter();
 			ex.printStackTrace(new PrintWriter(sw));
-			assertThat(sw.toString(), containsString(
-					"Could not transfer artifact dummygroup:dummyart:pom:0.1 from/to https://dummyrepo"));
+			assertThat(sw.toString()).contains("Could not transfer artifact dummygroup:dummyart:pom:0.1 from/to https://dummyrepo");
 		}
 	}
 
@@ -2189,8 +2152,7 @@ public class TestRun extends BaseTest {
 		} catch (ExitException ex) {
 			StringWriter sw = new StringWriter();
 			ex.printStackTrace(new PrintWriter(sw));
-			assertThat(sw.toString(), containsString(
-					"Script or alias could not be found or read: 'missing.jsh'"));
+			assertThat(sw.toString()).contains("Script or alias could not be found or read: 'missing.jsh'");
 		}
 	}
 
@@ -2219,8 +2181,8 @@ public class TestRun extends BaseTest {
 		} catch (ExitException e) {
 			StringWriter sw = new StringWriter();
 			e.printStackTrace(new PrintWriter(sw));
-			assertThat(sw.toString(), containsString("in acme"));
-			assertThat(sw.toString(), not(containsString("in mavencentral=")));
+			assertThat(sw.toString()).contains("in acme");
+			assertThat(sw.toString()).doesNotContain("in mavencentral=");
 		}
 	}
 
@@ -2275,7 +2237,7 @@ public class TestRun extends BaseTest {
 		Project code = pb.build(f.getPath());
 		String result = run.updateGeneratorForRun(code.codeBuilder().build()).build().generate();
 
-		assertThat(result, containsString("log4j-1.2.17.jar"));
+		assertThat(result).contains("log4j-1.2.17.jar");
 	}
 
 	@Test
@@ -2287,7 +2249,7 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project code = pb.build(arg);
-		assertThat(code.getJavaVersion(), equalTo("" + v));
+		assertThat(code.getJavaVersion()).isEqualTo("" + v);
 	}
 
 	@Test
@@ -2308,7 +2270,7 @@ public class TestRun extends BaseTest {
 					@Override
 					protected void runCompiler(List<String> optionList) throws IOException {
 						// Make sure the file "build.jbang" isn't passed to the compiler
-						assertThat(optionList.stream().filter(o -> o.contains("build.jbang")).count(), equalTo(1L));
+						assertThat(optionList.stream().filter(o -> o.contains("build.jbang")).count()).isEqualTo(1L);
 						super.runCompiler(optionList);
 					}
 				};
@@ -2317,22 +2279,18 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
-		assertThat(result, endsWith("quote_notags"));
-		assertThat(result, containsString("classpath"));
-		assertThat(result, matchesRegex(".*build\\.jbang\\.[a-z0-9]+.build.jbang.jar.*"));
-		assertThat(result, containsString("picocli-4.6.3.jar"));
-		assertThat(result, containsString("-Dfoo=bar"));
-		assertThat(result, containsString(CommandBuffer.escapeShellArgument("-Dbar=aap noot mies", Util.getShell())));
+		assertThat(result).matches("^.*java(.exe)? .*$");
+		assertThat(result).endsWith("quote_notags");
+		assertThat(result).contains("classpath");
+		assertThat(result).matches(".*build\\.jbang\\.[a-z0-9]+.build.jbang.jar.*");
+		assertThat(result).contains("picocli-4.6.3.jar");
+		assertThat(result).contains("-Dfoo=bar");
+		assertThat(result).contains(CommandBuffer.escapeShellArgument("-Dbar=aap noot mies", Util.getShell()));
 		// Make sure the opts only appear once
-		assertThat(result.replaceFirst(Pattern.quote("-Dfoo=bar"), ""),
-				not(containsString("-Dfoo=bar")));
-		assertThat(result.replaceFirst(Pattern.quote("-Dbar=aap noot mies"), ""),
-				not(containsString("-Dbar=aap noot mies")));
+		assertThat(result.replaceFirst(Pattern.quote("-Dfoo=bar"), "")).doesNotContain("-Dfoo=bar");
+		assertThat(result.replaceFirst(Pattern.quote("-Dbar=aap noot mies"), "")).doesNotContain("-Dbar=aap noot mies");
 		// Make sure the opts only appear unquoted
-		assertThat(result,
-				not(containsString(
-						CommandBuffer.escapeShellArgument("-Dfoo=bar -Dbar=aap noot mies", Util.getShell()))));
+		assertThat(result).doesNotContain(CommandBuffer.escapeShellArgument("-Dfoo=bar -Dbar=aap noot mies", Util.getShell()));
 		// assertThat(result, containsString("--source 11"));
 	}
 
@@ -2354,7 +2312,7 @@ public class TestRun extends BaseTest {
 					@Override
 					protected void runCompiler(List<String> optionList) throws IOException {
 						// Make sure the file "build.jbang" isn't passed to the compiler
-						assertThat(optionList.stream().filter(o -> o.contains("build.jbang")).count(), equalTo(1L));
+						assertThat(optionList.stream().filter(o -> o.contains("build.jbang")).count()).isEqualTo(1L);
 						super.runCompiler(optionList);
 					}
 				};
@@ -2363,22 +2321,18 @@ public class TestRun extends BaseTest {
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
-		assertThat(result, matchesPattern("^.*java(.exe)? .*$"));
-		assertThat(result, endsWith("quote_notags"));
-		assertThat(result, containsString("classpath"));
-		assertThat(result, matchesRegex(".*build\\.jbang\\.[a-z0-9]+.build.jbang.jar.*"));
-		assertThat(result, containsString("picocli-4.6.3.jar"));
-		assertThat(result, containsString("-Dfoo=bar"));
-		assertThat(result, containsString(CommandBuffer.escapeShellArgument("-Dbar=aap noot mies", Util.getShell())));
+		assertThat(result).matches("^.*java(.exe)? .*$");
+		assertThat(result).endsWith("quote_notags");
+		assertThat(result).contains("classpath");
+		assertThat(result).matches(".*build\\.jbang\\.[a-z0-9]+.build.jbang.jar.*");
+		assertThat(result).contains("picocli-4.6.3.jar");
+		assertThat(result).contains("-Dfoo=bar");
+		assertThat(result).contains(CommandBuffer.escapeShellArgument("-Dbar=aap noot mies", Util.getShell()));
 		// Make sure the opts only appear once
-		assertThat(result.replaceFirst(Pattern.quote("-Dfoo=bar"), ""),
-				not(containsString("-Dfoo=bar")));
-		assertThat(result.replaceFirst(Pattern.quote("-Dbar=aap noot mies"), ""),
-				not(containsString("-Dbar=aap noot mies")));
+		assertThat(result.replaceFirst(Pattern.quote("-Dfoo=bar"), "")).doesNotContain("-Dfoo=bar");
+		assertThat(result.replaceFirst(Pattern.quote("-Dbar=aap noot mies"), "")).doesNotContain("-Dbar=aap noot mies");
 		// Make sure the opts only appear unquoted
-		assertThat(result,
-				not(containsString(
-						CommandBuffer.escapeShellArgument("-Dfoo=bar -Dbar=aap noot mies", Util.getShell()))));
+		assertThat(result).doesNotContain(CommandBuffer.escapeShellArgument("-Dfoo=bar -Dbar=aap noot mies", Util.getShell()));
 		// assertThat(result, containsString("--source 11"));
 	}
 
@@ -2398,9 +2352,9 @@ public class TestRun extends BaseTest {
 		String script = examplesTestFolder.resolve("helloworld.java").toString();
 		String arg = "http://localhost:" + wms.port() + "/readme.md";
 		CaptureResult<Integer> result = checkedRun(null, "run", "--verbose", script, "%" + arg);
-		assertThat(result.err, containsString("Requesting HTTP GET " + arg));
+		assertThat(result.err).contains("Requesting HTTP GET " + arg);
 		Path file = Util.downloadAndCacheFile(arg);
-		assertThat(result.err, containsString(file.toString()));
+		assertThat(result.err).contains(file.toString());
 	}
 
 	@Test
@@ -2419,9 +2373,9 @@ public class TestRun extends BaseTest {
 		String script = examplesTestFolder.resolve("helloworld.java").toString();
 		String arg = "http://localhost:" + wms.port() + "/readme.md";
 		CaptureResult<Integer> result = checkedRun(null, "run", "--verbose", script, "%{" + arg + "}");
-		assertThat(result.err, containsString("Requesting HTTP GET " + arg));
+		assertThat(result.err).contains("Requesting HTTP GET " + arg);
 		Path file = Util.downloadAndCacheFile(arg);
-		assertThat(result.err, containsString(file.toString()));
+		assertThat(result.err).contains(file.toString());
 	}
 
 	@Test
@@ -2451,11 +2405,11 @@ public class TestRun extends BaseTest {
 		String arg2 = "http://localhost:" + wms.port() + "/readme2.md";
 		CaptureResult<Integer> result = checkedRun(null, "run", "--verbose", script,
 				"foo%{" + arg1 + "}bar%{" + arg2 + "}baz");
-		assertThat(result.err, containsString("Requesting HTTP GET " + arg1));
-		assertThat(result.err, containsString("Requesting HTTP GET " + arg2));
+		assertThat(result.err).contains("Requesting HTTP GET " + arg1);
+		assertThat(result.err).contains("Requesting HTTP GET " + arg2);
 		Path file1 = Util.downloadAndCacheFile(arg1);
 		Path file2 = Util.downloadAndCacheFile(arg2);
-		assertThat(result.err, containsString("foo" + file1 + "bar" + file2 + "baz"));
+		assertThat(result.err).contains("foo" + file1 + "bar" + file2 + "baz");
 	}
 
 	@Test
@@ -2478,12 +2432,12 @@ public class TestRun extends BaseTest {
 		CaptureResult<Integer> result = checkedRun(null, "run", "--verbose",
 				"--javaagent=" + agent + "=test:%{" + arg + "}",
 				script);
-		assertThat(result.err, containsString("Requesting HTTP GET " + arg));
+		assertThat(result.err).contains("Requesting HTTP GET " + arg);
 		Path file = Util.downloadAndCacheFile(arg);
 		Project aprj = Project.builder().build(agent);
 		BuildContext actx = BuildContext.forProject(aprj);
 		Path jar = actx.getJarFile();
-		assertThat(result.err, containsString("-javaagent:" + jar + "=test:" + file));
+		assertThat(result.err).contains("-javaagent:" + jar + "=test:" + file);
 	}
 
 	@Test
@@ -2492,9 +2446,9 @@ public class TestRun extends BaseTest {
 		String script = examplesTestFolder.resolve("helloworld.java").toString();
 		String arg = "http://localhost:1234/readme.md";
 		CaptureResult<Integer> result = checkedRun(null, "run", "--verbose", script, "%%" + arg);
-		assertThat(result.err, not(containsString("Requesting HTTP GET " + arg)));
-		assertThat(result.err, containsString("%" + arg));
-		assertThat(result.err, not(containsString("%%" + arg)));
+		assertThat(result.err).doesNotContain("Requesting HTTP GET " + arg);
+		assertThat(result.err).contains("%" + arg);
+		assertThat(result.err).doesNotContain("%%" + arg);
 	}
 
 	@Test
@@ -2506,9 +2460,9 @@ public class TestRun extends BaseTest {
 		String script = examplesTestFolder.resolve("helloworld.java").toString();
 		String arg = "http://localhost:1234/readme.md";
 		CaptureResult<Integer> result = checkedRun(null, "run", "--verbose", script, "foo%%{" + arg + "}bar");
-		assertThat(result.err, not(containsString("Requesting HTTP GET " + arg)));
-		assertThat(result.err, containsString("foo%{" + arg + "}bar"));
-		assertThat(result.err, not(containsString("foo%%{" + arg + "}bar")));
+		assertThat(result.err).doesNotContain("Requesting HTTP GET " + arg);
+		assertThat(result.err).contains("foo%{" + arg + "}bar");
+		assertThat(result.err).doesNotContain("foo%%{" + arg + "}bar");
 	}
 
 	@Test
@@ -2520,10 +2474,9 @@ public class TestRun extends BaseTest {
 		String script = examplesTestFolder.resolve("helloworld.java").toString();
 		CaptureResult<Integer> result = checkedRun(null, "run", "--verbose", script,
 				"%{deps:info.picocli:picocli:4.6.3,log4j:log4j:1.2.17}");
-		assertThat(result.err, containsString("Resolving dependencies..."));
-		assertThat(result.err,
-				containsString("info/picocli/picocli/4.6.3/picocli-4.6.3.jar".replace("/", File.separator)));
-		assertThat(result.err, containsString("log4j/log4j/1.2.17/log4j-1.2.17.jar".replace("/", File.separator)));
+		assertThat(result.err).contains("Resolving dependencies...");
+		assertThat(result.err).contains("info/picocli/picocli/4.6.3/picocli-4.6.3.jar".replace("/", File.separator));
+		assertThat(result.err).contains("log4j/log4j/1.2.17/log4j-1.2.17.jar".replace("/", File.separator));
 	}
 
 	@Test
@@ -2554,7 +2507,7 @@ public class TestRun extends BaseTest {
 		ExitException e = Assertions.assertThrows(ExitException.class,
 				() -> run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate());
 
-		assertThat(e.getMessage(), startsWith("no main class"));
+		assertThat(e.getMessage()).startsWith("no main class");
 	}
 
 	@Test
@@ -2577,7 +2530,7 @@ public class TestRun extends BaseTest {
 
 		String cmdline = run.updateGeneratorForRun(genb).build().generate();
 
-		assertThat(cmdline, endsWith("echo foo bar baz"));
+		assertThat(cmdline).endsWith("echo foo bar baz");
 	}
 
 	@Test
@@ -2595,7 +2548,7 @@ public class TestRun extends BaseTest {
 
 		String cmdline = run.updateGeneratorForRun(genb).build().generate();
 
-		assertThat(cmdline, endsWith("echo baz"));
+		assertThat(cmdline).endsWith("echo baz");
 	}
 
 	@Test
@@ -2618,9 +2571,7 @@ public class TestRun extends BaseTest {
 
 		String cmd = CmdGenerator.builder(ctx).build().generate();
 
-		assertThat(cmd,
-				containsString(
-						"--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED"));
+		assertThat(cmd).contains("--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED");
 	}
 
 	@Test
@@ -2638,8 +2589,6 @@ public class TestRun extends BaseTest {
 
 		String cmd = CmdGenerator.builder(ctx).build().generate();
 
-		assertThat(cmd,
-				not(containsString(
-						"--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED")));
+		assertThat(cmd).doesNotContain("--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED");
 	}
 }

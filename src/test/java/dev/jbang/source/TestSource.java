@@ -1,8 +1,7 @@
 package dev.jbang.source;
 
 import static dev.jbang.util.Util.writeString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -184,7 +183,7 @@ public class TestSource extends BaseTest {
 
 		List<String> deps = prj.getMainSourceSet().getDependencies();
 
-		assertThat(deps, containsInAnyOrder("info.picocli:picocli:4.6.3"));
+		assertThat(deps).containsExactlyInAnyOrder("info.picocli:picocli:4.6.3");
 	}
 
 	@Test

@@ -1,11 +1,7 @@
 package dev.jbang.cli;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.io.FileMatchers.aReadableFile;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -18,7 +14,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
-import org.hamcrest.MatcherAssert;
 import org.hamcrest.io.FileMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,7 +40,7 @@ public class TestEdit extends BaseTest {
 
 		String s = outputDir.resolve("edit.java").toString();
 		JBang.getCommandLine().execute("init", s);
-		assertThat(new File(s).exists(), is(true));
+		assertThat(new File(s).exists()).isEqualTo(true);
 
 		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(s);
@@ -55,7 +50,7 @@ public class TestEdit extends BaseTest {
 		assertThat(project.resolve("src").toFile(), FileMatchers.anExistingDirectory());
 		Path build = project.resolve("build.gradle");
 		assert (Files.exists(build));
-		MatcherAssert.assertThat(Util.readString(build), containsString("dependencies"));
+		assertThat(Util.readString(build)).contains("dependencies");
 		Path src = project.resolve("src/edit.java");
 
 		// first check for symlink. in some cases on windows (non admin privileg)
@@ -63,18 +58,16 @@ public class TestEdit extends BaseTest {
 		assert (Files.isSymbolicLink(src) || Files.exists(src));
 
 		// check eclipse is there
-		assertThat(Files.list(project).map(p -> p.getFileName().toString()).collect(Collectors.toList()),
-				containsInAnyOrder(".project", ".classpath", ".eclipse", "src", "build.gradle", ".vscode",
-						"README.md"));
+		assertThat(Files.list(project).map(p -> p.getFileName().toString()).collect(Collectors.toList())).containsExactlyInAnyOrder(".project", ".classpath", ".eclipse", "src", "build.gradle", ".vscode", "README.md");
 		Path launchfile = project.resolve(".eclipse/edit.launch");
 		assert (Files.exists(launchfile));
-		assertThat(Util.readString(launchfile), containsString("launching.PROJECT_ATTR"));
-		assertThat(Util.readString(launchfile), containsString("PROGRAM_ARGUMENTS\" value=\"\""));
+		assertThat(Util.readString(launchfile)).contains("launching.PROJECT_ATTR");
+		assertThat(Util.readString(launchfile)).contains("PROGRAM_ARGUMENTS\" value=\"\"");
 
 		launchfile = project.resolve(".eclipse/edit-port-4004.launch");
 		assert (Files.exists(launchfile));
-		assertThat(Util.readString(launchfile), containsString("launching.PROJECT_ATTR"));
-		assertThat(Util.readString(launchfile), containsString("4004"));
+		assertThat(Util.readString(launchfile)).contains("launching.PROJECT_ATTR");
+		assertThat(Util.readString(launchfile)).contains("4004");
 	}
 
 	@Test
@@ -83,7 +76,7 @@ public class TestEdit extends BaseTest {
 		Path p = outputDir.resolve("edit.java");
 		String s = p.toString();
 		JBang.getCommandLine().execute("--verbose", "init", s);
-		assertThat(new File(s).exists(), is(true));
+		assertThat(new File(s).exists()).isEqualTo(true);
 
 		Util.writeString(p, "//DEPS org.openjfx:javafx-graphics:11.0.2${bougus:}\n" + Util.readString(p));
 
@@ -95,11 +88,11 @@ public class TestEdit extends BaseTest {
 		Path gradle = project.resolve("build.gradle");
 		assert (Files.exists(gradle));
 		String buildGradle = Util.readString(gradle);
-		assertThat(buildGradle, not(containsString("bogus")));
-		assertThat(buildGradle, containsString("id 'application'"));
-		assertThat(buildGradle, containsString("mainClass = 'edit'"));
-		assertThat(buildGradle, containsString("repo1.maven.org")); // auto-added maven
-		assertThat(buildGradle, not(containsString("jitpack.io"))); // auto-added jitpack repo
+		assertThat(buildGradle).doesNotContain("bogus");
+		assertThat(buildGradle).contains("id 'application'");
+		assertThat(buildGradle).contains("mainClass = 'edit'");
+		assertThat(buildGradle).contains("repo1.maven.org"); // auto-added maven
+		assertThat(buildGradle).doesNotContain("jitpack.io"); // auto-added jitpack repo
 
 		Path java = project.resolve("src/edit.java");
 
@@ -107,7 +100,7 @@ public class TestEdit extends BaseTest {
 		// symlink cannot be created, as fallback a hardlink will be created.
 		assert (Files.isSymbolicLink(java) || Files.exists(java));
 
-		assertThat(Files.isSameFile(java, p), equalTo(true));
+		assertThat(Files.isSameFile(java, p)).isEqualTo(true);
 	}
 
 	@Test
@@ -116,7 +109,7 @@ public class TestEdit extends BaseTest {
 		Path p = outputDir.resolve("edit.java");
 		String s = p.toString();
 		JBang.getCommandLine().execute("init", s);
-		assertThat(new File(s).exists(), is(true));
+		assertThat(new File(s).exists()).isEqualTo(true);
 
 		Util.writeString(p, "//DEPS io.quarkus:quarkus-bom:2.0.0.Final@pom\n" +
 				"//DEPS io.quarkus:quarkus-rest-client-reactive\n" +
@@ -130,11 +123,11 @@ public class TestEdit extends BaseTest {
 		Path gradle = project.resolve("build.gradle");
 		assert (Files.exists(gradle));
 		String buildGradle = Util.readString(gradle);
-		assertThat(buildGradle, not(containsString("bogus")));
-		assertThat(buildGradle, containsString("id 'application'"));
-		assertThat(buildGradle, containsString("mainClass = 'edit'"));
-		assertThat(buildGradle, containsString("repo1.maven.org")); // auto-added maven
-		assertThat(buildGradle, not(containsString("jitpack.io"))); // auto-added jitpack repo
+		assertThat(buildGradle).doesNotContain("bogus");
+		assertThat(buildGradle).contains("id 'application'");
+		assertThat(buildGradle).contains("mainClass = 'edit'");
+		assertThat(buildGradle).contains("repo1.maven.org"); // auto-added maven
+		assertThat(buildGradle).doesNotContain("jitpack.io"); // auto-added jitpack repo
 
 		Path java = project.resolve("src/edit.java");
 
@@ -142,7 +135,7 @@ public class TestEdit extends BaseTest {
 		// symlink cannot be created, as fallback a hardlink will be created.
 		assert (Files.isSymbolicLink(java) || Files.exists(java));
 
-		assertThat(Files.isSameFile(java, p), equalTo(true));
+		assertThat(Files.isSameFile(java, p)).isEqualTo(true);
 	}
 
 	@Test
@@ -151,7 +144,7 @@ public class TestEdit extends BaseTest {
 		Path p = outputDir.resolve("edit.java");
 		String s = p.toString();
 		JBang.getCommandLine().execute("init", s);
-		assertThat(new File(s).exists(), is(true));
+		assertThat(new File(s).exists()).isEqualTo(true);
 
 		Util.writeString(p, "//DEPS https://github.com/oldskoolsh/libvirt-schema/tree/0.0.2\n" + Util.readString(p));
 
@@ -163,17 +156,17 @@ public class TestEdit extends BaseTest {
 		Path gradle = project.resolve("build.gradle");
 		assert (Files.exists(gradle));
 		String buildGradle = Util.readString(gradle);
-		assertThat(buildGradle, not(containsString("github.com"))); // should be com.github
-		assertThat(buildGradle, containsString("repo1.maven.org")); // auto-added maven
-		assertThat(buildGradle, containsString("jitpack.io")); // auto-added jitpack repo
-		assertThat(buildGradle, containsString("implementation 'com.github.oldskoolsh:libvirt-schema:0.0.2'"));
+		assertThat(buildGradle).doesNotContain("github.com"); // should be com.github
+		assertThat(buildGradle).contains("repo1.maven.org"); // auto-added maven
+		assertThat(buildGradle).contains("jitpack.io"); // auto-added jitpack repo
+		assertThat(buildGradle).contains("implementation 'com.github.oldskoolsh:libvirt-schema:0.0.2'");
 	}
 
 	@Test
 	void testEditMultiSource(@TempDir Path outputDir) throws IOException {
 
 		Path p = examplesTestFolder.resolve("one.java");
-		assertThat(p.toFile().exists(), is(true));
+		assertThat(p.toFile().exists()).isEqualTo(true);
 
 		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(p.toString());
@@ -182,7 +175,7 @@ public class TestEdit extends BaseTest {
 
 		Path gradle = project.resolve("build.gradle");
 		assert (Files.exists(gradle));
-		assertThat(Util.readString(gradle), not(containsString("bogus")));
+		assertThat(Util.readString(gradle)).doesNotContain("bogus");
 
 		Arrays	.asList("one.java", "Two.java", "gh_fetch_release_assets.java", "gh_release_stats.java")
 				.forEach(f -> {
@@ -197,8 +190,8 @@ public class TestEdit extends BaseTest {
 		Path p = outputDir.resolve("kube-example");
 		int result = JBang.getCommandLine().execute("init", p.toString());
 		String s = p.toString();
-		assertThat(result, is(0));
-		assertThat(new File(s).exists(), is(true));
+		assertThat(result).isEqualTo(0);
+		assertThat(new File(s).exists()).isEqualTo(true);
 
 		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(s);
@@ -216,7 +209,7 @@ public class TestEdit extends BaseTest {
 	void testEditFile(@TempDir Path outputDir) throws IOException {
 
 		Path p = examplesTestFolder.resolve("res/resource.java");
-		assertThat(p.toFile().exists(), is(true));
+		assertThat(p.toFile().exists()).isEqualTo(true);
 
 		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(p.toString());
@@ -225,7 +218,7 @@ public class TestEdit extends BaseTest {
 
 		Path gradle = project.resolve("build.gradle");
 		assert (Files.exists(gradle));
-		assertThat(Util.readString(gradle), not(containsString("bogus")));
+		assertThat(Util.readString(gradle)).doesNotContain("bogus");
 
 		Arrays	.asList("resource.java", "resource.properties", "renamed.properties", "META-INF/application.properties")
 				.forEach(f -> {
