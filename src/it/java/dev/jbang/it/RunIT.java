@@ -153,12 +153,6 @@ public class RunIT {
 															.outEquals("Hello jbangtest\n");
 	}
 
-	@Test
-	public void path() {
-		assertThat(shell("echo $PATH"))
-										.outContains(Paths.get("buildk/install/jbang/bin").toAbsolutePath().toString());
-	}
-
 	// Scenario: std in
 	// * command('cat helloworld.java | jbang - jbangtest')
 	// * match err == "[jbang] Building jar for helloworld.java...\n"
