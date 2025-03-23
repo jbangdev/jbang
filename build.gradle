@@ -4,6 +4,7 @@ plugins {
 	id "distribution"
 	id "com.github.johnrengelman.shadow" version "8.0.0"
 	id "java"
+	id "jvm-test-suite"
 	id "com.github.breadmoirai.github-release" version "2.4.1"
 	id "io.toolebox.git-versioner" version "1.6.5"
 	id 'org.gradle.crypto.checksum' version '1.4.0'
@@ -285,7 +286,44 @@ jacocoTestReport {
 		csv.required = false
 	}
 }
+testing {
+    suites { 
+        test { 
+            useJUnitJupiter() 
+        }
 
+        integrationTest(JvmTestSuite) { 
+            dependencies {
+                implementation project()  // todo: shouldn't even need to depend on main code?
+				implementation "org.junit.jupiter:junit-jupiter-engine:5.10.1"
+				implementation "org.junit.jupiter:junit-jupiter:5.10.1"
+				implementation "org.assertj:assertj-core:3.24.2"
+				implementation 'org.zeroturnaround:zt-exec:1.12'
+				implementation platform("io.qameta.allure:allure-bom:2.25.0")
+				implementation "io.qameta.allure:allure-junit5"
+            }
+
+			sources { 
+                java { 
+                    srcDirs = ['src/it/java']
+					resources.srcDirs = ['src/it/resources']
+                }
+            }
+
+            targets { 
+                all {
+                    testTask.configure {
+                        shouldRunAfter(test) // todo: push to buildDist?
+                    }
+                }
+            }
+        }
+    }
+}
+
+tasks.named('check') { 
+    dependsOn(testing.suites.integrationTest) // todo: move to after buildDist
+}
 
 task karateExecute(type: JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
