@@ -660,6 +660,13 @@ class ExportGradleProject extends BaseExportProject {
 		boolean isGroovy = ctx.getProject().getMainSource() instanceof GroovySource;
 		boolean isKotlin = ctx.getProject().getMainSource() instanceof KotlinSource;
 		String kotlinVersion = isKotlin ? ((KotlinSource) ctx.getProject().getMainSource()).getKotlinVersion() : "";
+		StringBuilder jvmArgs = new StringBuilder();
+		for (String arg: ctx.getProject().getRuntimeOptions()) {
+			if (jvmArgs.length() > 0) {
+				jvmArgs.append(", ");
+			}
+			jvmArgs.append(String.format("'%s'",arg));
+		}
 		String result = template
 								.data("group", group)
 								.data("artifact", artifact)
@@ -674,6 +681,7 @@ class ExportGradleProject extends BaseExportProject {
 								.data("javaVersion", getJavaVersion(prj, false))
 								.data("gradledependencies", gradleify(depIds))
 								.data("fullClassName", fullClassName + (isKotlin ? "Kt" : ""))
+								.data("jvmArgs", jvmArgs.toString())
 								.render();
 		Util.writeString(destination, result);
 		Util.writeString(projectDir.resolve("settings.gradle"), "");
