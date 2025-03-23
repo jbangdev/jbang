@@ -1,4 +1,7 @@
 plugins {
+{#if language eq 'groovy'}
+	id 'groovy'
+{/if}
 {#if language eq 'java'}
 	id 'java'
 {/if}
