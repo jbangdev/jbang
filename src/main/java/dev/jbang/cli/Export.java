@@ -22,6 +22,8 @@ import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.dependencies.*;
 import dev.jbang.source.*;
 import dev.jbang.source.resolvers.AliasResourceResolver;
+import dev.jbang.source.sources.GroovySource;
+import dev.jbang.source.sources.KotlinSource;
 import dev.jbang.util.JarUtil;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
@@ -564,7 +566,9 @@ abstract class BaseExportProject extends BaseExportCommand {
 		Util.mkdirs(projectDir);
 
 		// Sources
-		Path srcJavaDir = projectDir.resolve("src/main/java");
+		boolean isGroovy = ctx.getProject().getMainSource() instanceof GroovySource;
+		boolean isKotlin = ctx.getProject().getMainSource() instanceof KotlinSource;
+		Path srcJavaDir = projectDir.resolve("src/main/" + (isKotlin ? "kotlin" : (isGroovy ? "groovy" : "java")));
 
 		String fullClassName = "";
 		for (ResourceRef sourceRef : prj.getMainSourceSet().getSources()) {
@@ -653,10 +657,15 @@ class ExportGradleProject extends BaseExportProject {
 		Template template = engine.getTemplate(templateRef);
 		if (template == null)
 			throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateRef + "'");
+		boolean isGroovy = ctx.getProject().getMainSource() instanceof GroovySource;
+		boolean isKotlin = ctx.getProject().getMainSource() instanceof KotlinSource;
+		String kotlinVersion = isKotlin ? ((KotlinSource) ctx.getProject().getMainSource()).getKotlinVersion() : "";
 		String result = template
 								.data("group", group)
 								.data("artifact", artifact)
 								.data("version", version)
+								.data("language", (isKotlin ? "kotlin" : (isGroovy ? "groovy" : "java")))
+								.data("kotlinVersion", kotlinVersion)
 								.data("description", prj.getDescription().orElse(""))
 								.data("repositories", repositories	.stream()
 																	.map(MavenRepo::getUrl)
@@ -664,9 +673,10 @@ class ExportGradleProject extends BaseExportProject {
 																	.collect(Collectors.toList()))
 								.data("javaVersion", getJavaVersion(prj, false))
 								.data("gradledependencies", gradleify(depIds))
-								.data("fullClassName", fullClassName)
+								.data("fullClassName", fullClassName + (isKotlin ? "Kt" : ""))
 								.render();
 		Util.writeString(destination, result);
+		Util.writeString(projectDir.resolve("settings.gradle"), "");
 	}
 
 	private List<String> gradleify(List<String> collectDependencies) {
