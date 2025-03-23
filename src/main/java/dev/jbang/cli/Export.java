@@ -661,6 +661,9 @@ class ExportGradleProject extends BaseExportProject {
 		boolean isKotlin = ctx.getProject().getMainSource() instanceof KotlinSource;
 		String kotlinVersion = isKotlin ? ((KotlinSource) ctx.getProject().getMainSource()).getKotlinVersion() : "";
 		StringBuilder jvmArgs = new StringBuilder();
+		if (ctx.getProject().enablePreview()) {
+			jvmArgs.append(String.format("'%s'", "--enable-preview"));
+		}
 		for (String arg : ctx.getProject().getRuntimeOptions()) {
 			if (jvmArgs.length() > 0) {
 				jvmArgs.append(", ");
