@@ -287,42 +287,42 @@ jacocoTestReport {
 	}
 }
 testing {
-    suites { 
-        test { 
-            useJUnitJupiter() 
-        }
+	suites {
+		test {
+			useJUnitJupiter()
+		}
 
-        integrationTest(JvmTestSuite) { 
-            dependencies {
-                implementation project()  // todo: shouldn't even need to depend on main code?
+		integrationTest(JvmTestSuite) {
+			dependencies {
+				implementation project()  // todo: shouldn't even need to depend on main code?
 				implementation "org.junit.jupiter:junit-jupiter-engine:5.10.1"
 				implementation "org.junit.jupiter:junit-jupiter:5.10.1"
 				implementation "org.assertj:assertj-core:3.24.2"
 				implementation 'org.zeroturnaround:zt-exec:1.12'
 				implementation platform("io.qameta.allure:allure-bom:2.25.0")
 				implementation "io.qameta.allure:allure-junit5"
-            }
+			}
 
-			sources { 
-                java { 
-                    srcDirs = ['src/it/java']
+			sources {
+				java {
+					srcDirs = ['src/it/java']
 					resources.srcDirs = ['src/it/resources']
-                }
-            }
+				}
+			}
 
-            targets { 
-                all {
-                    testTask.configure {
-                        shouldRunAfter(test) // todo: push to buildDist?
-                    }
-                }
-            }
-        }
-    }
+			targets {
+				all {
+					testTask.configure {
+						shouldRunAfter(test) // todo: push to buildDist?
+					}
+				}
+			}
+		}
+	}
 }
 
-tasks.named('check') { 
-    dependsOn(testing.suites.integrationTest) // todo: move to after buildDist
+tasks.named('integrationTest') {
+	dependsOn("installDist") // todo: move to after buildDist
 }
 
 task karateExecute(type: JavaExec) {
