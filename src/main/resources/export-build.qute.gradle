@@ -43,9 +43,12 @@ dependencies {
 application {
 	mainClass = '{fullClassName}'
 	applicationDefaultJvmArgs = [{jvmArgs}]
+{#if enablePreview eq 'true'}
+	applicationDefaultJvmArgs += ['--enable-preview']
+{/if}
 }
 
-{#if enableJavaPreview eq 'true'}
+{#if enablePreview eq 'true' and language eq 'java'}
 compileJava {
 	options.compilerArgs += ['--enable-preview']
 }
