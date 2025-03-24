@@ -2,130 +2,21 @@ package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeoutException;
-
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.zeroturnaround.exec.InvalidExitValueException;
-import org.zeroturnaround.exec.ProcessExecutor;
-import org.zeroturnaround.exec.ProcessResult;
 
-import dev.jbang.util.Util;
+import io.qameta.allure.Description;
 
-import io.qameta.allure.*;
+public class RunIT extends BaseIT {
 
-public class RunIT {
-
-	static Map<String, String> baseEnv;
-	private static Path scratch;
-	private static Path baseDir;
-
-	public static List<String> prefixShellArgs(List<String> cmd) {
-		List<String> list = new ArrayList<>(cmd);
-		if (Util.isWindows()) {
-			list.addAll(0, List.of("cmd", "/c"));
-		} else {
-			list.addAll(0, List.of("sh", "-c"));
-		}
-		return list;
-	}
-
-	static Map<String, String> baseEnv(Path scratch) {
-		Map<String, String> env = new HashMap<>();
-
-		// provide default scratch directory for temporary content
-		// !('SCRATCH' in env) && (env.SCRATCH = sc)
-		// set JBANG_REPO to not mess with users own ~/.m2
-		String sep = java.io.File.separator;
-
-		env.put("SCRATCH", scratch.toString());
-		env.put("JBANG_REPO", scratch.toString() + sep + "karate-m2");
-		env.put("JBANG_DIR", scratch.toString() + sep + "karate-jbang");
-		env.put("JBANG_NO_VERSION_CHECK", "true");
-		env.put("NO_COLOR", "1");
-
-		// Add built jbang to PATH (not a gurantee that this will work if other jbang
-		// instances are installed)
-		env.put("PATH", Paths.get("build/install/jbang/bin").toAbsolutePath().toString() + File.pathSeparator
-				+ System.getenv("PATH"));
-		System.out.println("PATH: " + env.get("PATH"));
-		return env;
-	}
-
-	@BeforeAll
-	public static void setup(@TempDir Path tempscratch) throws URISyntaxException {
-		scratch = tempscratch;
-		baseEnv = baseEnv(scratch);
-
-		URL examplesUrl = RunIT.class.getClassLoader().getResource("itests");
-		if (examplesUrl == null) {
-			baseDir = Paths.get("itests").toAbsolutePath();
-		} else {
-			baseDir = Paths.get(new File(examplesUrl.toURI()).getAbsolutePath());
-		}
-	}
-
-	public static CommandResult run(Path baseDir, Map<String, String> env, List<String> command) {
-
-		ByteArrayOutputStream stdoutStream = new ByteArrayOutputStream();
-		ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
-
-		ProcessResult execute;
-		String out;
-		String err;
-		try {
-			execute = new ProcessExecutor()	.command(command)
-											.directory(baseDir.toFile())
-											.environment(env)
-											.redirectOutput(stdoutStream)
-											.redirectError(errorStream)
-											.execute();
-
-			out = new String(stdoutStream.toByteArray(), "UTF-8");
-			err = new String(errorStream.toByteArray(), "UTF-8");
-		} catch (InvalidExitValueException | IOException | InterruptedException | TimeoutException e) {
-			throw new IllegalStateException("Could not run " + command, e);
-		}
-
-		return new CommandResult(out, err, execute.getExitValue(), command);
-	}
-
-	public CommandResult shell(String... command) {
-		final CommandResult[] resultHolder = new CommandResult[1];
-		Allure.step(Arrays.toString(command),
-				step -> {
-					resultHolder[0] = run(baseDir, baseEnv, prefixShellArgs(Arrays.asList(command)));
-
-					step.parameter("command", resultHolder[0].command().toString());
-					step.parameter("out", resultHolder[0].out());
-					step.parameter("err", resultHolder[0].err());
-					step.parameter("exitCode", resultHolder[0].exitCode());
-				});
-
-		return resultHolder[0];
-	}
 
 	@Test
 	@Description("Testing that jbang is running in a clean environment")
 	public void testIsolation() {
 		assertThat(shell("jbang version --verbose"))
-													.errContains("Cache: " + scratch.toString())
-													.errContains("Config: " + scratch.toString())
+													.errContains("Cache: " + scratch().toString())
+													.errContains("Config: " + scratch().toString())
 													.errContains(
-															"Repository: " + scratch.resolve("karate-m2").toString())
+															"Repository: " + scratch().resolve("karate-m2").toString())
 													.succeeded();
 	}
 

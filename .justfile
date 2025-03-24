@@ -46,7 +46,6 @@ tagpatch:
     git commit --allow-empty -m "[patch] release"
     ./gradlew tag
 
-itestreport:
-    ./gradlew integrationTest
+itestreport: # todo: should not be needed to clean
+    ./gradlew clean integrationTest
     jbang allure@jbanghub/allure serve
-    
