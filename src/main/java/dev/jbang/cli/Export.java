@@ -667,6 +667,13 @@ class ExportGradleProject extends BaseExportProject {
 			}
 			jvmArgs.append(String.format("'%s'", arg));
 		}
+		StringBuilder compilerArgs = new StringBuilder();
+		for (String arg : ctx.getProject().getMainSourceSet().getCompileOptions()) {
+			if (compilerArgs.length() > 0) {
+				compilerArgs.append(", ");
+			}
+			compilerArgs.append(String.format("'%s'", arg));
+		}
 		String result = template
 								.data("group", group)
 								.data("artifact", artifact)
@@ -683,6 +690,7 @@ class ExportGradleProject extends BaseExportProject {
 								.data("fullClassName", fullClassName + (isKotlin ? "Kt" : ""))
 								.data("jvmArgs", jvmArgs.toString())
 								.data("enablePreview", ctx.getProject().enablePreview() ? "true" : "")
+								.data("compilerArgs", compilerArgs.toString())
 								.render();
 		Util.writeString(destination, result);
 		Util.writeString(projectDir.resolve("settings.gradle"), "");

@@ -48,8 +48,13 @@ application {
 {/if}
 }
 
-{#if enablePreview eq 'true' and language eq 'java'}
+{#if language eq 'java'}
 compileJava {
+{#if enablePreview eq 'true'}
 	options.compilerArgs += ['--enable-preview']
+{/if}
+{#if compilerArgs ne ""}
+	options.compilerArgs += [{compilerArgs}]
+{/if}
 }
 {/if}
