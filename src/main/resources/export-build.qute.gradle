@@ -51,7 +51,7 @@ application {
 {#if language eq 'java'}
 compileJava {
 {#if enablePreview eq 'true'}
-	options.compilerArgs += ['--enable-preview']
+	options.compilerArgs += ['--release', '{javaVersion}', '--enable-preview', '-Xlint:preview']
 {/if}
 {#if compilerArgs ne ""}
 	options.compilerArgs += [{compilerArgs}]
