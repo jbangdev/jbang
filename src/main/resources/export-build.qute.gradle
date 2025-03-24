@@ -22,6 +22,7 @@ repositories {
 		url "{url}"
 	}
 {/for}
+	mavenLocal()
 }
 
 {#if javaVersion}
