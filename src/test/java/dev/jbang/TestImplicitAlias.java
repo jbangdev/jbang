@@ -1,5 +1,6 @@
 package dev.jbang;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.nio.file.Files;
@@ -18,17 +19,15 @@ public class TestImplicitAlias extends BaseTest {
 
 	@Test
 	public void testGitImplicitCatalog() {
-		assertThat(ImplicitCatalogRef.resolveImplicitCatalogUrl("jbangdev").get(),
-				Matchers.equalTo("https://github.com/jbangdev/jbang-catalog/blob/HEAD/jbang-catalog.json"));
-		assertThat(ImplicitCatalogRef.resolveImplicitCatalogUrl("jbangdev/jbang-examples").get(),
-				Matchers.equalTo("https://github.com/jbangdev/jbang-examples/blob/HEAD/jbang-catalog.json"));
+		assertThat(ImplicitCatalogRef.resolveImplicitCatalogUrl("jbangdev").get()).isEqualTo("https://github.com/jbangdev/jbang-catalog/blob/HEAD/jbang-catalog.json");
+		assertThat(ImplicitCatalogRef.resolveImplicitCatalogUrl("jbangdev/jbang-examples").get()).isEqualTo("https://github.com/jbangdev/jbang-examples/blob/HEAD/jbang-catalog.json");
 	}
 
 	@Test
 	public void testImplictURLAlias() {
 
 		Alias url = Alias.get("tree@xam.dk");
-		assertThat(url.scriptRef, Matchers.equalTo("tree/main.java"));
+		assertThat(url.scriptRef).isEqualTo("tree/main.java");
 
 	}
 
@@ -36,14 +35,14 @@ public class TestImplicitAlias extends BaseTest {
 	public void testImplictExplicitURLAlias() {
 
 		Alias url = Alias.get("tree@https://xam.dk");
-		assertThat(url.scriptRef, Matchers.equalTo("tree/main.java"));
+		assertThat(url.scriptRef).isEqualTo("tree/main.java");
 
 	}
 
 	// @Test needs fixing to not generate absolute paths but instead relative paths.
 	public void testFileURLAlias() throws Exception {
 
-		assertThat(jbangTempDir.resolve("inner").toFile().mkdirs(), Matchers.is(true));
+		assertThat(jbangTempDir.resolve("inner").toFile().mkdirs()).isEqualTo(true);
 
 		Files.copy(examplesTestFolder.resolve("helloworld.java"), jbangTempDir.resolve("inner/helloworld.java"));
 		String src = jbangTempDir.resolve("inner/helloworld.java").toString();
@@ -56,7 +55,7 @@ public class TestImplicitAlias extends BaseTest {
 
 		Alias alias = Alias.get(url);
 
-		assertThat(alias.scriptRef, Matchers.equalTo("helloworld.java"));
+		assertThat(alias.scriptRef).isEqualTo("helloworld.java");
 
 	}
 }

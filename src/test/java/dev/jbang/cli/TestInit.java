@@ -1,9 +1,7 @@
 package dev.jbang.cli;
 
-import static org.hamcrest.CoreMatchers.containsString;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.io.FileMatchers.aReadableFile;
 import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -15,7 +13,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
@@ -44,7 +41,7 @@ public class TestInit extends BaseTest {
 		HashMap<String, Object> props = new HashMap<>();
 		props.put("baseName", "test");
 		new Init().renderQuteTemplate(out, ResourceRef.forResource("classpath:/init-hello.java.qute"), props);
-		assertThat(Util.readString(out), Matchers.containsString("class test"));
+		assertThat(Util.readString(out)).contains("class test");
 	}
 
 	@ParameterizedTest
@@ -53,7 +50,7 @@ public class TestInit extends BaseTest {
 		Exception ex = assertThrows(ExitException.class,
 				() -> new Init().renderQuteTemplate(Paths.get(filename),
 						ResourceRef.forResource("classpath:/init-hello.java.qute"), Collections.emptyMap()));
-		assertThat(ex.getMessage(), Matchers.containsString("is not a valid class name in java."));
+		assertThat(ex.getMessage()).contains("is not a valid class name in java.");
 	}
 
 	@Test
@@ -61,9 +58,9 @@ public class TestInit extends BaseTest {
 		Path x = outputDir.resolve("edit.java");
 		String s = x.toString();
 		int result = JBang.getCommandLine().execute("init", "--verbose", "--template=cli", s);
-		assertThat(result, is(0));
-		assertThat(new File(s).exists(), is(true));
-		MatcherAssert.assertThat(Util.readString(x), Matchers.containsString("picocli"));
+		assertThat(result).isEqualTo(0);
+		assertThat(new File(s).exists()).isEqualTo(true);
+		assertThat(Util.readString(x)).contains("picocli");
 	}
 
 	@Test
@@ -78,8 +75,8 @@ public class TestInit extends BaseTest {
 		Path x = outputDir.resolve("edit.java");
 		String s = x.toString();
 		int result = JBang.getCommandLine().execute("init", "--template=bogus", s);
-		assertThat(result, not(0));
-		assertThat(new File(s).exists(), is(false));
+		assertThat(result).isNotEqualTo(0);
+		assertThat(new File(s).exists()).isEqualTo(false);
 	}
 
 	@Test
@@ -87,9 +84,9 @@ public class TestInit extends BaseTest {
 		Path x = outputDir.resolve("edit.java");
 		String s = x.toString();
 		int result = JBang.getCommandLine().execute("init", "--deps", "a.b.c:mydep:1.0", s);
-		assertThat(result, is(0));
-		assertThat(new File(s).exists(), is(true));
-		assertThat(Util.readString(x), Matchers.containsString("//DEPS a.b.c:mydep:1.0"));
+		assertThat(result).isEqualTo(0);
+		assertThat(new File(s).exists()).isEqualTo(true);
+		assertThat(Util.readString(x)).contains("//DEPS a.b.c:mydep:1.0");
 	}
 
 	@Test
@@ -97,10 +94,10 @@ public class TestInit extends BaseTest {
 		Path x = outputDir.resolve("edit.java");
 		String s = x.toString();
 		int result = JBang.getCommandLine().execute("init", "--deps", "a.b.c:mydep:1.0", "--deps", "q.z:rrr:2.0", s);
-		assertThat(result, is(0));
-		assertThat(new File(s).exists(), is(true));
-		assertThat(Util.readString(x), Matchers.containsString("//DEPS a.b.c:mydep:1.0"));
-		assertThat(Util.readString(x), Matchers.containsString("//DEPS q.z:rrr:2.0"));
+		assertThat(result).isEqualTo(0);
+		assertThat(new File(s).exists()).isEqualTo(true);
+		assertThat(Util.readString(x)).contains("//DEPS a.b.c:mydep:1.0");
+		assertThat(Util.readString(x)).contains("//DEPS q.z:rrr:2.0");
 	}
 
 	@Test
@@ -113,12 +110,12 @@ public class TestInit extends BaseTest {
 									"--deps", "org.hsqldb:hsqldb:2.5.0,net.hydromatic:foodmart-data-hsqldb:0.4",
 									"--deps", "org.another.company:dep:0.1",
 									s);
-		assertThat(result, is(0));
-		assertThat(new File(s).exists(), is(true));
+		assertThat(result).isEqualTo(0);
+		assertThat(new File(s).exists()).isEqualTo(true);
 		final String fileContent = Util.readString(x);
-		assertThat(fileContent, Matchers.containsString("//DEPS org.hsqldb:hsqldb:2.5.0"));
-		assertThat(fileContent, Matchers.containsString("//DEPS net.hydromatic:foodmart-data-hsqldb:0.4"));
-		assertThat(fileContent, Matchers.containsString("//DEPS org.another.company:dep:0.1"));
+		assertThat(fileContent).contains("//DEPS org.hsqldb:hsqldb:2.5.0");
+		assertThat(fileContent).contains("//DEPS net.hydromatic:foodmart-data-hsqldb:0.4");
+		assertThat(fileContent).contains("//DEPS org.another.company:dep:0.1");
 	}
 
 	@Test
@@ -126,9 +123,9 @@ public class TestInit extends BaseTest {
 		Path x = outputDir.resolve("edit.java");
 		String s = x.toString();
 		int result = JBang.getCommandLine().execute("init", s);
-		assertThat(result, is(0));
-		assertThat(new File(s).exists(), is(true));
-		assertThat(Util.readString(x), Matchers.containsString("class edit"));
+		assertThat(result).isEqualTo(0);
+		assertThat(new File(s).exists()).isEqualTo(true);
+		assertThat(Util.readString(x)).contains("class edit");
 	}
 
 	@Test
@@ -136,9 +133,9 @@ public class TestInit extends BaseTest {
 		Path x = outputDir.resolve("xyz-plug");
 		String s = x.toString();
 		int result = JBang.getCommandLine().execute("init", s);
-		assertThat(result, is(0));
-		assertThat(new File(s).exists(), is(true));
-		assertThat(Util.readString(x), Matchers.containsString("class XyzPlug"));
+		assertThat(result).isEqualTo(0);
+		assertThat(new File(s).exists()).isEqualTo(true);
+		assertThat(Util.readString(x)).contains("class XyzPlug");
 	}
 
 	@Test
@@ -146,9 +143,9 @@ public class TestInit extends BaseTest {
 		Path x = outputDir.resolve("xyzplug");
 		String s = x.toString();
 		int result = JBang.getCommandLine().execute("init", s);
-		assertThat(result, is(0));
-		assertThat(new File(s).exists(), is(true));
-		assertThat(Util.readString(x), Matchers.containsString("class xyzplug"));
+		assertThat(result).isEqualTo(0);
+		assertThat(new File(s).exists()).isEqualTo(true);
+		assertThat(Util.readString(x)).contains("class xyzplug");
 	}
 
 	@Test
@@ -156,7 +153,7 @@ public class TestInit extends BaseTest {
 //		int result = JBang.getCommandLine().execute("run", "jget@quintesse");
 //		int result = JBang.getCommandLine().execute("catalog", "update");
 		int result = JBang.getCommandLine().execute("catalog", "list", "quintesse");
-		assertThat(result, is(0));
+		assertThat(result).isEqualTo(0);
 	}
 
 	@Test
@@ -192,12 +189,12 @@ public class TestInit extends BaseTest {
 	void testInitMultipleFiles(String targetName, String initName, String outName, boolean abs) throws IOException {
 		Path outFile = setupInitMultipleFiles(targetName, initName, abs);
 		int result = JBang.getCommandLine().execute("init", "-t=name", outFile.toString());
-		assertThat(result, is(0));
+		assertThat(result).isEqualTo(0);
 		assertThat(outFile.resolveSibling(outName).toFile(), aReadableFile());
 		Path f2 = outFile.resolveSibling("file2.java");
 		assertThat(f2.toFile(), aReadableFile());
 		String baseName = Util.getBaseName(Paths.get(initName).getFileName().toString());
-		assertThat(Util.readString(f2), Matchers.containsString("// " + baseName + " with " + outFile));
+		assertThat(Util.readString(f2)).contains("// " + baseName + " with " + outFile);
 		assertThat(outFile.resolveSibling("file3.md").toFile(), aReadableFile());
 
 	}
@@ -206,7 +203,7 @@ public class TestInit extends BaseTest {
 			throws IOException {
 		Path outFile = setupInitMultipleFiles(targetName, initName, abs);
 		int result = JBang.getCommandLine().execute("init", "-t=name", outFile.toString());
-		assertThat(result, is(expectedResult));
+		assertThat(result).isEqualTo(expectedResult);
 	}
 
 	Path setupInitMultipleFiles(String targetName, String initName, boolean abs) throws IOException {
@@ -220,12 +217,12 @@ public class TestInit extends BaseTest {
 			int addResult = JBang	.getCommandLine()
 									.execute("template", "add", "-f", cwd.toString(), "--name=name",
 											targetName + "=" + f1.toString(), f2.toString(), f3.toString());
-			assertThat(addResult, is(0));
+			assertThat(addResult).isEqualTo(0);
 		} else {
 			int addResult = JBang	.getCommandLine()
 									.execute("template", "add", "-f", cwd.toString(), "--name=name",
 											targetName + "=tpl/file1.java", "tpl/file2.java.qute", "tpl/file3.md");
-			assertThat(addResult, is(0));
+			assertThat(addResult).isEqualTo(0);
 		}
 		Path appDir = Files.createDirectory(cwd.resolve("app"));
 		Util.setCwd(appDir);
@@ -247,7 +244,7 @@ public class TestInit extends BaseTest {
 
 		String outcontent = Util.readString(out);
 
-		assertThat(outcontent, containsString("propvaluerocks"));
+		assertThat(outcontent).contains("propvaluerocks");
 	}
 
 	@Test
@@ -260,18 +257,18 @@ public class TestInit extends BaseTest {
 				.execute("template", "add", "-f", cwd.toString(), "--name=name",
 						"{filename}" + "=" + f1.toAbsolutePath().toString());
 
-		assertThat(out.toFile().exists(), not(true));
+		assertThat(out.toFile().exists()).isNotEqualTo(true);
 
 		int result = JBang	.getCommandLine()
 							.execute("init", "--verbose", "--template=name", "-Dprop1=propvalue", "-Dprop2=rocks",
 									out.toAbsolutePath().toString());
 
-		assertThat(result, is(0));
-		assertThat(out.toFile().exists(), is(true));
+		assertThat(result).isEqualTo(0);
+		assertThat(out.toFile().exists()).isEqualTo(true);
 
 		String outcontent = Util.readString(out);
 
-		assertThat(outcontent, containsString("propvaluerocks"));
+		assertThat(outcontent).contains("propvaluerocks");
 	}
 
 	@Test
@@ -284,18 +281,18 @@ public class TestInit extends BaseTest {
 				.execute("template", "add", "-f", cwd.toString(), "--name=name", "-P=prop1::my-test-default-value",
 						"{filename}" + "=" + f1.toAbsolutePath().toString());
 
-		assertThat(out.toFile().exists(), not(true));
+		assertThat(out.toFile().exists()).isNotEqualTo(true);
 
 		int result = JBang	.getCommandLine()
 							.execute("init", "--verbose", "--template=name",
 									out.toAbsolutePath().toString());
 
-		assertThat(result, is(0));
-		assertThat(out.toFile().exists(), is(true));
+		assertThat(result).isEqualTo(0);
+		assertThat(out.toFile().exists()).isEqualTo(true);
 
 		String outcontent = Util.readString(out);
 
-		assertThat(outcontent, containsString("my-test-default-value"));
+		assertThat(outcontent).contains("my-test-default-value");
 	}
 
 	@Test
@@ -308,18 +305,18 @@ public class TestInit extends BaseTest {
 				.execute("template", "add", "-f", cwd.toString(), "--name=name", "-P=prop1::",
 						"{filename}" + "=" + f1.toAbsolutePath().toString());
 
-		assertThat(out.toFile().exists(), not(true));
+		assertThat(out.toFile().exists()).isNotEqualTo(true);
 
 		int result = JBang	.getCommandLine()
 							.execute("init", "--verbose", "--template=name",
 									out.toAbsolutePath().toString());
 
-		assertThat(result, is(0));
-		assertThat(out.toFile().exists(), is(true));
+		assertThat(result).isEqualTo(0);
+		assertThat(out.toFile().exists()).isEqualTo(true);
 
 		String outcontent = Util.readString(out);
 
-		assertThat(outcontent, containsString("NOT_FOUND"));
+		assertThat(outcontent).contains("NOT_FOUND");
 	}
 
 	@Test
@@ -332,7 +329,7 @@ public class TestInit extends BaseTest {
 				.execute("template", "add", "-f", cwd.toString(), "--name=name", "-P=prop1::my-test-default-value",
 						"{filename}" + "=" + f1.toAbsolutePath().toString());
 
-		assertThat(out.toFile().exists(), not(true));
+		assertThat(out.toFile().exists()).isNotEqualTo(true);
 
 	}
 

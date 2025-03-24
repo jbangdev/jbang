@@ -1,7 +1,6 @@
 package dev.jbang.cli;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -56,7 +55,7 @@ public class TestEditWithPom extends BaseTest {
 		Path gradle = project.resolve("build.gradle");
 		assert (Files.exists(gradle));
 		String buildGradle = Util.readString(gradle);
-		assertThat(buildGradle, containsString("implementation platform")); // should be com.github
+		assertThat(buildGradle).contains("implementation platform"); // should be com.github
 
 	}
 

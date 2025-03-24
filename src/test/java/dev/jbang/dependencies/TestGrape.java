@@ -1,8 +1,6 @@
 package dev.jbang.dependencies;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.not;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.FileNotFoundException;
 import java.util.List;
@@ -35,11 +33,11 @@ public class TestGrape extends BaseTest {
 		Project prj = Project.builder().build(src);
 		List<String> deps = prj.getMainSourceSet().getDependencies();
 
-		assertThat(deps, hasItem("org.hibernate:hibernate-core:5.4.10.Final"));
-		assertThat(deps, hasItem("net.sf.json-lib:json-lib:2.2.3:jdk15"));
-		assertThat(deps, hasItem("org.restlet:org.restlet:1.1.6"));
-		assertThat(deps, hasItem("log4j:log4j:1.2.17"));
-		assertThat(deps, not(hasItem("blah:borked:1.0@wonka")));
+		assertThat(deps).contains("org.hibernate:hibernate-core:5.4.10.Final");
+		assertThat(deps).contains("net.sf.json-lib:json-lib:2.2.3:jdk15");
+		assertThat(deps).contains("org.restlet:org.restlet:1.1.6");
+		assertThat(deps).contains("log4j:log4j:1.2.17");
+		assertThat(deps).doesNotContain("blah:borked:1.0@wonka");
 
 	}
 

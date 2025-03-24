@@ -1,7 +1,6 @@
 package dev.jbang.source;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,7 +48,7 @@ public class TestMain extends BaseTest {
 		try (JarInputStream jarStream = new JarInputStream(Files.newInputStream(ctx.getJarFile()))) {
 			Manifest mf = jarStream.getManifest();
 			String main = mf.getMainAttributes().getValue(Attributes.Name.MAIN_CLASS);
-			assertThat(main, equalTo("test.maintest"));
+			assertThat(main).isEqualTo("test.maintest");
 		}
 	}
 
@@ -66,7 +65,7 @@ public class TestMain extends BaseTest {
 		try (JarInputStream jarStream = new JarInputStream(Files.newInputStream(ctx.getJarFile()))) {
 			Manifest mf = jarStream.getManifest();
 			String main = mf.getMainAttributes().getValue(Attributes.Name.MAIN_CLASS);
-			assertThat(main, equalTo("test.two"));
+			assertThat(main).isEqualTo("test.two");
 		}
 	}
 
@@ -83,10 +82,10 @@ public class TestMain extends BaseTest {
 		try (JarInputStream jarStream = new JarInputStream(Files.newInputStream(ctx.getJarFile()))) {
 			Manifest mf = jarStream.getManifest();
 			String main = mf.getMainAttributes().getValue(Attributes.Name.MAIN_CLASS);
-			assertThat(main, equalTo("test.two"));
+			assertThat(main).isEqualTo("test.two");
 		}
 
 		String cmd = gen.mainClass("test.three").build().generate();
-		assertThat(cmd, containsString("test.three"));
+		assertThat(cmd).contains("test.three");
 	}
 }

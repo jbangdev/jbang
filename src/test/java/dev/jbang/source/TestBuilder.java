@@ -2,6 +2,7 @@ package dev.jbang.source;
 
 import static dev.jbang.util.Util.readString;
 import static dev.jbang.util.Util.writeString;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -49,7 +50,7 @@ public class TestBuilder extends BaseTest {
 		AtomicBoolean integrationStepCalled = new AtomicBoolean(false);
 		AtomicBoolean jarStepCalled = new AtomicBoolean(false);
 		AtomicBoolean nativeStepCalled = new AtomicBoolean(false);
-		runBuild(ctx, (ctxx, optionList) -> assertThat(optionList, hasItems(foo.toString(), "-g")), (ctxx) -> {
+		runBuild(ctx, (ctxx, optionList) -> assertThat(optionList).contains(foo.toString(), "-g"), (ctxx) -> {
 			integrationStepCalled.set(true);
 			return new IntegrationResult(null, null, null);
 		}, (ctxx) -> {
@@ -58,9 +59,9 @@ public class TestBuilder extends BaseTest {
 		}, (ctxx, nativeStep) -> {
 			nativeStepCalled.set(true);
 		});
-		assertThat(integrationStepCalled.get(), is(true));
-		assertThat(jarStepCalled.get(), is(true));
-		assertThat(nativeStepCalled.get(), is(false));
+		assertThat(integrationStepCalled.get()).isEqualTo(true);
+		assertThat(jarStepCalled.get()).isEqualTo(true);
+		assertThat(nativeStepCalled.get()).isEqualTo(false);
 	}
 
 	@Test
@@ -70,7 +71,7 @@ public class TestBuilder extends BaseTest {
 		Project prj = pb.build(foo.toString());
 		prj.setEnablePreviewRequested(true);
 		BuildContext ctx = BuildContext.forProject(prj);
-		runBuild(ctx, (ctxx, optionList) -> assertThat(optionList, hasItems(foo.toString(), "--enable-preview")), null,
+		runBuild(ctx, (ctxx, optionList) -> assertThat(optionList).contains(foo.toString(), "--enable-preview"), null,
 				null, null);
 	}
 
@@ -82,23 +83,23 @@ public class TestBuilder extends BaseTest {
 		BuildContext ctx1 = BuildContext.forProject(prj, out1.toPath());
 		BuildContext ctx2 = BuildContext.forProject(prj, out2.toPath());
 		runBuild(ctx1, (ctxx, optionList) -> {
-			assertThat(optionList, hasItems(containsString(out1.toString())));
-			assertThat(optionList, not(hasItems(containsString(out2.toString()))));
-			assertThat(optionList, not(hasItems(containsString(Settings.getCacheDir().toString()))));
+			assertThat(optionList).contains(containsString(out1.toString()));
+			assertThat(optionList).doesNotContain(containsString(out2.toString()));
+			assertThat(optionList).doesNotContain(containsString(Settings.getCacheDir().toString()));
 		}, null, ctxx -> {
-			assertThat(ctxx.getJarFile().toString(), containsString(out1.toString()));
-			assertThat(ctxx.getJarFile().toString(), not(containsString(out2.toString())));
-			assertThat(ctxx.getJarFile().toString(), not(containsString(Settings.getCacheDir().toString())));
+			assertThat(ctxx.getJarFile().toString()).contains(out1.toString());
+			assertThat(ctxx.getJarFile().toString()).doesNotContain(out2.toString());
+			assertThat(ctxx.getJarFile().toString()).doesNotContain(Settings.getCacheDir().toString());
 			return ctxx.getProject();
 		}, null);
 		runBuild(ctx2, (ctxx, optionList) -> {
-			assertThat(optionList, hasItems(containsString(out2.toString())));
-			assertThat(optionList, not(hasItems(containsString(out1.toString()))));
-			assertThat(optionList, not(hasItems(containsString(Settings.getCacheDir().toString()))));
+			assertThat(optionList).contains(containsString(out2.toString()));
+			assertThat(optionList).doesNotContain(containsString(out1.toString()));
+			assertThat(optionList).doesNotContain(containsString(Settings.getCacheDir().toString()));
 		}, null, ctxx -> {
-			assertThat(ctxx.getJarFile().toString(), containsString(out2.toString()));
-			assertThat(ctxx.getJarFile().toString(), not(containsString(out1.toString())));
-			assertThat(ctxx.getJarFile().toString(), not(containsString(Settings.getCacheDir().toString())));
+			assertThat(ctxx.getJarFile().toString()).contains(out2.toString());
+			assertThat(ctxx.getJarFile().toString()).doesNotContain(out1.toString());
+			assertThat(ctxx.getJarFile().toString()).doesNotContain(Settings.getCacheDir().toString());
 			return ctxx.getProject();
 		}, null);
 	}
@@ -109,7 +110,7 @@ public class TestBuilder extends BaseTest {
 		ProjectBuilder pb = Project.builder().compileOptions(Arrays.asList("--foo", "--bar"));
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
-		runBuild(ctx, (ctxx, optionList) -> assertThat(optionList, hasItems(foo.toString(), "-g", "--foo", "--bar")),
+		runBuild(ctx, (ctxx, optionList) -> assertThat(optionList).contains(foo.toString(), "-g", "--foo", "--bar"),
 				null, null, null);
 	}
 
@@ -119,7 +120,7 @@ public class TestBuilder extends BaseTest {
 		ProjectBuilder pb = Project.builder().compileOptions(Arrays.asList("--foo", "--bar"));
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
-		runBuild(ctx, (ctxx, optionList) -> assertThat(optionList, hasItems(foo.toString(), "--foo", "--bar")), null,
+		runBuild(ctx, (ctxx, optionList) -> assertThat(optionList).contains(foo.toString(), "--foo", "--bar"), null,
 				null, null);
 	}
 
@@ -132,8 +133,8 @@ public class TestBuilder extends BaseTest {
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
 		runBuild(ctx, (ctxx, optionList) -> {
-			assertThat(optionList, hasItem(foo.toString()));
-			assertThat(optionList, hasItem(bar.toString()));
+			assertThat(optionList).contains(foo.toString());
+			assertThat(optionList).contains(bar.toString());
 		}, null, null, null);
 	}
 
@@ -149,8 +150,8 @@ public class TestBuilder extends BaseTest {
 		Project prj = pb.build(mainFile);
 		BuildContext ctx = BuildContext.forProject(prj);
 		runBuild(ctx, (ctxx, optionList) -> {
-			assertThat(optionList, hasItem(mainFile));
-			assertThat(optionList, hasItem(incFile));
+			assertThat(optionList).contains(mainFile);
+			assertThat(optionList).contains(incFile);
 		}, null, null, null);
 	}
 
@@ -169,8 +170,8 @@ public class TestBuilder extends BaseTest {
 		Project prj = pb.build(mainFile.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
 		runBuild(ctx, (ctxx, optionList) -> {
-			assertThat(optionList, hasItem(mainFile.toString()));
-			assertThat(optionList, hasItem(incFile));
+			assertThat(optionList).contains(mainFile.toString());
+			assertThat(optionList).contains(incFile);
 		}, null, null, null);
 	}
 
@@ -185,8 +186,8 @@ public class TestBuilder extends BaseTest {
 		Project prj = pb.build(mainFile);
 		BuildContext ctx = BuildContext.forProject(prj);
 		runBuild(ctx, (ctxx, optionList) -> {
-			assertThat(optionList, hasItem(mainFile));
-			assertThat(optionList, hasItem(incFile));
+			assertThat(optionList).contains(mainFile);
+			assertThat(optionList).contains(incFile);
 		}, null, null, null);
 	}
 
@@ -201,8 +202,8 @@ public class TestBuilder extends BaseTest {
 		Project prj = pb.build(mainFile);
 		BuildContext ctx = BuildContext.forProject(prj);
 		runBuild(ctx, (ctxx, optionList) -> {
-			assertThat(optionList, hasItem(mainFile));
-			assertThat(optionList, hasItem(incFile));
+			assertThat(optionList).contains(mainFile);
+			assertThat(optionList).contains(incFile);
 		}, null, null, null);
 	}
 
@@ -217,8 +218,8 @@ public class TestBuilder extends BaseTest {
 		Project prj = pb.build(mainFile);
 		BuildContext ctx = BuildContext.forProject(prj);
 		runBuild(ctx, (ctxx, optionList) -> {
-			assertThat(optionList, hasItem(mainFile));
-			assertThat(optionList, hasItem(incFile));
+			assertThat(optionList).contains(mainFile);
+			assertThat(optionList).contains(incFile);
 		}, null, null, null);
 	}
 
@@ -237,13 +238,9 @@ public class TestBuilder extends BaseTest {
 		runBuild(ctx, (ctxx, optionList) -> {
 		}, null, ctxx -> {
 			Project project = ctxx.getProject();
-			assertThat(project.getMainSourceSet().getResources().size(), is(2));
-			assertThat(
-					project.getMainSourceSet().getResources().get(0).getSource().getFile().endsWith(res1),
-					is(true));
-			assertThat(
-					project.getMainSourceSet().getResources().get(1).getSource().getFile().endsWith(res2),
-					is(true));
+			assertThat(project.getMainSourceSet().getResources().size()).isEqualTo(2);
+			assertThat(project.getMainSourceSet().getResources().get(0).getSource().getFile().endsWith(res1)).isEqualTo(true);
+			assertThat(project.getMainSourceSet().getResources().get(1).getSource().getFile().endsWith(res2)).isEqualTo(true);
 			return project;
 		}, null);
 	}
@@ -263,17 +260,11 @@ public class TestBuilder extends BaseTest {
 		runBuild(ctx, (ctxx, optionList) -> {
 		}, null, ctxx -> {
 			Project project = ctxx.getProject();
-			assertThat(project.getMainSourceSet().getResources().size(), is(2));
-			assertThat(project.getMainSourceSet().getResources().get(0).getTarget().toString(),
-					is("somedir" + File.separator + "resource.properties"));
-			assertThat(
-					project.getMainSourceSet().getResources().get(0).getSource().getFile().endsWith(res1),
-					is(true));
-			assertThat(project.getMainSourceSet().getResources().get(1).getTarget().toString(),
-					is("somedir" + File.separator + "sub.properties"));
-			assertThat(
-					project.getMainSourceSet().getResources().get(1).getSource().getFile().endsWith(res2),
-					is(true));
+			assertThat(project.getMainSourceSet().getResources().size()).isEqualTo(2);
+			assertThat(project.getMainSourceSet().getResources().get(0).getTarget().toString()).isEqualTo("somedir" + File.separator + "resource.properties");
+			assertThat(project.getMainSourceSet().getResources().get(0).getSource().getFile().endsWith(res1)).isEqualTo(true);
+			assertThat(project.getMainSourceSet().getResources().get(1).getTarget().toString()).isEqualTo("somedir" + File.separator + "sub.properties");
+			assertThat(project.getMainSourceSet().getResources().get(1).getSource().getFile().endsWith(res2)).isEqualTo(true);
 			return project;
 		}, null);
 	}
@@ -292,7 +283,7 @@ public class TestBuilder extends BaseTest {
 			assertThat(optionList, hasItem(endsWith(File.separator + "foo.java")));
 		}, null, ctxx -> {
 			Project project = ctxx.getProject();
-			assertThat(project.getMainSourceSet().getResources().size(), is(3));
+			assertThat(project.getMainSourceSet().getResources().size()).isEqualTo(3);
 			List<String> ps = project	.getMainSourceSet()
 										.getResources()
 										.stream()
@@ -317,7 +308,7 @@ public class TestBuilder extends BaseTest {
 			assertThat(optionList, hasItem(endsWith(File.separator + "foo.java")));
 		}, null, ctxx -> {
 			Project project = ctxx.getProject();
-			assertThat(project.getMainSourceSet().getResources().size(), is(4));
+			assertThat(project.getMainSourceSet().getResources().size()).isEqualTo(4);
 			List<String> ps = project	.getMainSourceSet()
 										.getResources()
 										.stream()
@@ -344,9 +335,9 @@ public class TestBuilder extends BaseTest {
 			assertThat(optionList, hasItem(endsWith(File.separator + "foo.java")));
 		}, null, null, (ctxx, optionList) -> {
 			if (Util.isWindows()) {
-				assertThat(optionList.get(optionList.size() - 1), not(endsWith(".exe")));
+				assertThat(optionList.get(optionList.size() - 1)).doesNotEndWith(".exe");
 			} else {
-				assertThat(optionList.get(optionList.size() - 1), endsWith(".bin"));
+				assertThat(optionList.get(optionList.size() - 1)).endsWith(".bin");
 			}
 		});
 	}
@@ -364,15 +355,15 @@ public class TestBuilder extends BaseTest {
 		BuildContext ctx = BuildContext.forProject(prj);
 		Project.codeBuilder(ctx).build();
 
-		assertThat(prj.getManifestAttributes().get("foo"), is("true"));
-		assertThat(prj.getManifestAttributes().get("bar"), is("baz"));
-		assertThat(prj.getManifestAttributes().get("baz"), is("algo"));
+		assertThat(prj.getManifestAttributes().get("foo")).isEqualTo("true");
+		assertThat(prj.getManifestAttributes().get("bar")).isEqualTo("baz");
+		assertThat(prj.getManifestAttributes().get("baz")).isEqualTo("algo");
 
 		try (JarFile jf = new JarFile(ctx.getJarFile().toFile())) {
 			Attributes attrs = jf.getManifest().getMainAttributes();
-			assertThat(attrs.getValue("foo"), equalTo("true"));
-			assertThat(attrs.getValue("bar"), equalTo("baz"));
-			assertThat(attrs.getValue("baz"), equalTo("algo"));
+			assertThat(attrs.getValue("foo")).isEqualTo("true");
+			assertThat(attrs.getValue("bar")).isEqualTo("baz");
+			assertThat(attrs.getValue("baz")).isEqualTo("algo");
 		}
 	}
 
@@ -383,7 +374,7 @@ public class TestBuilder extends BaseTest {
 		Project prj = pb.build(foo.toString());
 		BuildContext ctx = BuildContext.forProject(prj);
 		runBuild(ctx, (ctxx, optionList) -> {
-		}, null, null, (ctxx, optionList) -> assertThat(optionList, hasItem("-O1")));
+		}, null, null, (ctxx, optionList) -> assertThat(optionList).contains("-O1"));
 	}
 
 	@Test
@@ -404,7 +395,7 @@ public class TestBuilder extends BaseTest {
 		});
 		runBuild(ctx, (ctxx, optionList) -> {
 		}, null, null, (ctxx, optionList) -> callCount.incrementAndGet());
-		assertThat(callCount.get(), equalTo(2));
+		assertThat(callCount.get()).isEqualTo(2);
 	}
 
 	@Test
@@ -418,18 +409,18 @@ public class TestBuilder extends BaseTest {
 			int cc = callCount.incrementAndGet();
 			if (cc == 1) {
 				assertThat(ctxx, not(is(ctx)));
-				assertThat(ctxx.getProject().getSubProjects(), is(empty()));
-				assertThat(ctxx.resolveClassPath().getArtifacts(), hasSize(7));
+				assertThat(ctxx.getProject().getSubProjects()).isEmpty();
+				assertThat(ctxx.resolveClassPath().getArtifacts()).hasSize(7);
 			} else if (cc == 2) {
-				assertThat(ctxx, is(ctx));
-				assertThat(ctxx.getProject().getSubProjects(), hasSize(1));
-				assertThat(ctxx.resolveClassPath().getArtifacts(), hasSize(8));
-				assertThat(ctxx.resolveClassPath().getClassPath(), containsString("Two.jar"));
+				assertThat(ctxx).isEqualTo(ctx);
+				assertThat(ctxx.getProject().getSubProjects()).hasSize(1);
+				assertThat(ctxx.resolveClassPath().getArtifacts()).hasSize(8);
+				assertThat(ctxx.resolveClassPath().getClassPath()).contains("Two.jar");
 			} else {
 				throw new IllegalStateException("Should not be called more than twice!");
 			}
 		}, null, null, null);
-		assertThat(callCount.get(), equalTo(2));
+		assertThat(callCount.get()).isEqualTo(2);
 	}
 
 	@Test
@@ -439,7 +430,7 @@ public class TestBuilder extends BaseTest {
 			ProjectBuilder pb = Project.builder();
 			Project prj = pb.build(selfdep.toString());
 		} catch (ExitException ex) {
-			assertThat(ex.getMessage(), startsWith("Self-referencing project dependency found for:"));
+			assertThat(ex.getMessage()).startsWith("Self-referencing project dependency found for:");
 		}
 	}
 
@@ -455,7 +446,7 @@ public class TestBuilder extends BaseTest {
 			integrationStepCalled.set(true);
 			return new IntegrationResult(null, null, null);
 		}, null, null);
-		assertThat(integrationStepCalled.get(), is(false));
+		assertThat(integrationStepCalled.get()).isEqualTo(false);
 	}
 
 	@Test
@@ -463,14 +454,14 @@ public class TestBuilder extends BaseTest {
 		Path foo = examplesTestFolder.resolve("noints.java").toAbsolutePath();
 		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(foo.toString());
-		assertThat(prj.disableIntegrations(), is(true));
+		assertThat(prj.disableIntegrations()).isEqualTo(true);
 		BuildContext ctx = BuildContext.forProject(prj);
 		AtomicBoolean integrationStepCalled = new AtomicBoolean(false);
 		runBuild(ctx, null, (ctxx) -> {
 			integrationStepCalled.set(true);
 			return new IntegrationResult(null, null, null);
 		}, null, null);
-		assertThat(integrationStepCalled.get(), is(false));
+		assertThat(integrationStepCalled.get()).isEqualTo(false);
 	}
 
 	private void runBuild(BuildContext ctx, BiConsumer<BuildContext, List<String>> compileStep,

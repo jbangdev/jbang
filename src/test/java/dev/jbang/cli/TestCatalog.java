@@ -1,8 +1,10 @@
 package dev.jbang.cli;
 
 import static dev.jbang.util.TestUtil.clearSettingsCaches;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.not;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -48,14 +50,13 @@ public class TestCatalog extends BaseTest {
 
 	@Test
 	void testAddSucceeded() throws IOException {
-		assertThat(Files.isRegularFile(catsFile), is(true));
+		assertThat(Files.isRegularFile(catsFile)).isEqualTo(true);
 		String cat = new String(Files.readAllBytes(catsFile));
-		assertThat(cat, containsString("\"test\""));
-		assertThat(cat, containsString("test-catalog.json\""));
+		assertThat(cat).contains("\"test\"");
+		assertThat(cat).contains("test-catalog.json\"");
 
-		assertThat(Catalog.get(catsFile).catalogs, hasKey("test"));
-		assertThat(Catalog.get(catsFile).catalogs.get("test").catalogRef,
-				is(testCatalogFile.toAbsolutePath().toString()));
+		assertThat(Catalog.get(catsFile).catalogs).containsKey("test");
+		assertThat(Catalog.get(catsFile).catalogs.get("test").catalogRef).isEqualTo(testCatalogFile.toAbsolutePath().toString());
 	}
 
 	@Test
@@ -66,15 +67,15 @@ public class TestCatalog extends BaseTest {
 	@Test
 	void testGetAlias() throws IOException {
 		Alias alias = Alias.get("one@test");
-		assertThat(alias, notNullValue());
-		assertThat(alias.scriptRef, equalTo("http://dummy"));
+		assertThat(alias).isNotNull();
+		assertThat(alias.scriptRef).isEqualTo("http://dummy");
 	}
 
 	@Test
 	void testGetFatJar() throws IOException {
 		Alias alias = Alias.get("fj@test");
-		assertThat(alias, notNullValue());
-		assertThat(alias.scriptRef, equalTo("i.look:like-a-gav:1.0.0.Beta5@fatjar"));
+		assertThat(alias).isNotNull();
+		assertThat(alias.scriptRef).isEqualTo("i.look:like-a-gav:1.0.0.Beta5@fatjar");
 	}
 
 	@Test
@@ -84,7 +85,7 @@ public class TestCatalog extends BaseTest {
 
 	@Test
 	void testRemove() throws IOException {
-		assertThat(Catalog.get(catsFile).catalogs, hasKey("test"));
+		assertThat(Catalog.get(catsFile).catalogs).containsKey("test");
 		CatalogUtil.removeCatalogRef(catsFile, "test");
 		assertThat(Catalog.get(catsFile).catalogs, not(hasKey("test")));
 	}
@@ -92,6 +93,6 @@ public class TestCatalog extends BaseTest {
 	@Test
 	void testNameFromGAV() throws IOException {
 		String name = CatalogUtil.nameFromRef("com.intuit.karate:karate-core:LATEST");
-		assertThat(name, equalTo("karate-core"));
+		assertThat(name).isEqualTo("karate-core");
 	}
 }

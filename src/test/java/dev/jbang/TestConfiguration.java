@@ -1,7 +1,6 @@
 package dev.jbang;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -36,7 +35,7 @@ public class TestConfiguration extends BaseTest {
 	public void testValues() {
 		Configuration cfg = Configuration.create();
 		cfg.put("foo", "bar");
-		assertThat(cfg.get("foo"), equalTo("bar"));
+		assertThat(cfg.get("foo")).isEqualTo("bar");
 	}
 
 	@Test
@@ -44,7 +43,7 @@ public class TestConfiguration extends BaseTest {
 		Configuration fallback = Configuration.create();
 		fallback.put("foo", "bar");
 		Configuration cfg = Configuration.create(fallback);
-		assertThat(cfg.get("foo"), equalTo("bar"));
+		assertThat(cfg.get("foo")).isEqualTo("bar");
 	}
 
 	@Test
@@ -53,7 +52,7 @@ public class TestConfiguration extends BaseTest {
 		fallback.put("foo", "bar");
 		Configuration cfg = Configuration.create(fallback);
 		cfg.put("foo", "baz");
-		assertThat(cfg.get("foo"), equalTo("baz"));
+		assertThat(cfg.get("foo")).isEqualTo("baz");
 	}
 
 	@Test
@@ -62,7 +61,7 @@ public class TestConfiguration extends BaseTest {
 		fallback.put("foo", "bar");
 		Configuration cfg = Configuration.create(fallback);
 		cfg.put("foo", null);
-		assertThat(cfg.get("foo"), nullValue());
+		assertThat(cfg.get("foo")).isNull();
 	}
 
 	@Test
@@ -76,34 +75,34 @@ public class TestConfiguration extends BaseTest {
 		Path cfgFile = jbangTempDir.resolve(Configuration.JBANG_CONFIG_PROPS);
 		Configuration.write(cfgFile, cfg.flatten());
 		Configuration cfg2 = Configuration.read(cfgFile);
-		assertThat(cfg2.get("foo"), equalTo("abc"));
-		assertThat(cfg2.get("bar"), equalTo("ghi"));
-		assertThat(cfg2.get("baz"), equalTo("jkl"));
+		assertThat(cfg2.get("foo")).isEqualTo("abc");
+		assertThat(cfg2.get("bar")).isEqualTo("ghi");
+		assertThat(cfg2.get("baz")).isEqualTo("jkl");
 	}
 
 	@Test
 	public void testReadAndGetConfig() throws IOException {
 		Path cfgFile = jbangTempDir.resolve(Configuration.JBANG_CONFIG_PROPS);
 		Configuration cfgRead = Configuration.read(cfgFile);
-		assertThat(cfgRead.getStoreRef(), nullValue());
+		assertThat(cfgRead.getStoreRef()).isNull();
 		Configuration cfgGet = Configuration.get(cfgFile);
-		assertThat(cfgGet.getStoreRef(), notNullValue());
-		assertThat(cfgGet.getStoreRef(), equalTo(ResourceRef.forResource(cfgFile.toString())));
+		assertThat(cfgGet.getStoreRef()).isNotNull();
+		assertThat(cfgGet.getStoreRef()).isEqualTo(ResourceRef.forResource(cfgFile.toString()));
 	}
 
 	@Test
 	public void testDefaults() {
 		Configuration cfg = Configuration.defaults();
-		assertThat(cfg.get("init.template"), equalTo("hello"));
-		assertThat(cfg.get("run.debug"), equalTo("4004"));
+		assertThat(cfg.get("init.template")).isEqualTo("hello");
+		assertThat(cfg.get("run.debug")).isEqualTo("4004");
 	}
 
 	@Test
 	public void testInstance() {
 		Configuration cfg = Configuration.instance();
-		assertThat(cfg.get("foo"), equalTo("baz"));
-		assertThat(cfg.get("init.template"), equalTo("bye"));
-		assertThat(cfg.get("run.debug"), equalTo("4004"));
+		assertThat(cfg.get("foo")).isEqualTo("baz");
+		assertThat(cfg.get("init.template")).isEqualTo("bye");
+		assertThat(cfg.get("run.debug")).isEqualTo("4004");
 	}
 
 	@Test
@@ -113,7 +112,7 @@ public class TestConfiguration extends BaseTest {
 		try {
 			Files.write(Util.getCwd().resolve("explicit-config"), config.getBytes());
 			Configuration cfg = Configuration.instance();
-			assertThat(cfg.get("foo"), equalTo("explicit"));
+			assertThat(cfg.get("foo")).isEqualTo("explicit");
 		} finally {
 			environmentVariables.clear("JBANG_CONFIG");
 		}
@@ -123,7 +122,7 @@ public class TestConfiguration extends BaseTest {
 	public void testCommandDefaults() {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("init", "dummy");
 		Init init = (Init) pr.subcommand().commandSpec().userObject();
-		assertThat(init.initTemplate, equalTo("bye"));
+		assertThat(init.initTemplate).isEqualTo("bye");
 	}
 
 	@Test
@@ -131,7 +130,7 @@ public class TestConfiguration extends BaseTest {
 		environmentVariables.clear("JBANG_EDITOR");
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("edit", "dummy");
 		Edit edit = (Edit) pr.subcommand().commandSpec().userObject();
-		assertThat(edit.editor.get(), equalTo("someeditor.cfg"));
+		assertThat(edit.editor.get()).isEqualTo("someeditor.cfg");
 	}
 
 	@Test
@@ -139,7 +138,7 @@ public class TestConfiguration extends BaseTest {
 		environmentVariables.set("JBANG_EDITOR", "someeditor.env");
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("edit", "dummy");
 		Edit edit = (Edit) pr.subcommand().commandSpec().userObject();
-		assertThat(edit.editor.get(), equalTo("someeditor.env"));
+		assertThat(edit.editor.get()).isEqualTo("someeditor.env");
 	}
 
 	@Test
@@ -147,7 +146,7 @@ public class TestConfiguration extends BaseTest {
 		environmentVariables.clear("JBANG_EDITOR");
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("edit", "--open", "dummy");
 		Edit edit = (Edit) pr.subcommand().commandSpec().userObject();
-		assertThat(edit.editor.get(), equalTo("someeditor.cfg"));
+		assertThat(edit.editor.get()).isEqualTo("someeditor.cfg");
 	}
 
 	@Test
@@ -155,23 +154,27 @@ public class TestConfiguration extends BaseTest {
 		environmentVariables.set("JBANG_EDITOR", "someeditor.env");
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("edit", "--open", "dummy");
 		Edit edit = (Edit) pr.subcommand().commandSpec().userObject();
-		assertThat(edit.editor.get(), equalTo("someeditor.env"));
+		assertThat(edit.editor.get()).isEqualTo("someeditor.env");
 	}
 
 	@Test
 	public void testCommandFallbacks() {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "dummy");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
-		assertThat(run.runMixin.debugString, is(nullValue()));
-		assertThat(run.runMixin.flightRecorderString, emptyOrNullString());
+		assertThat(run.runMixin.debugString).isNull();
+		assertThat(run.runMixin.flightRecorderString).isNullOrEmpty();
 	}
 
 	@Test
 	public void testCommandFallbacks2() {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--jfr", "--debug", "dummy");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
-		assertThat(run.runMixin.debugString, allOf(hasEntry("address", "4004"), is(aMapWithSize(1))));
-		assertThat(run.runMixin.flightRecorderString, equalTo("dummyjfr.cfg"));
+		assertThat(run.runMixin.debugString)
+				.satisfies(
+						arg -> assertThat(arg).containsEntry("address", "4004"),
+						arg -> assertThat(arg).hasSize(1)
+				);
+		assertThat(run.runMixin.flightRecorderString).isEqualTo("dummyjfr.cfg");
 	}
 
 }

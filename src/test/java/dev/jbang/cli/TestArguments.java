@@ -1,7 +1,6 @@
 package dev.jbang.cli;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,9 +35,9 @@ class TestArguments extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assert run.helpRequested;
-		assertThat(run.runMixin.debugString, hasEntry("address", "4004"));
-		assertThat(run.scriptMixin.scriptOrFile, is("myfile.java"));
-		assertThat(run.userParams.size(), is(0));
+		assertThat(run.runMixin.debugString).containsEntry("address", "4004");
+		assertThat(run.scriptMixin.scriptOrFile).isEqualTo("myfile.java");
+		assertThat(run.userParams.size()).isEqualTo(0);
 
 	}
 
@@ -47,10 +46,10 @@ class TestArguments extends BaseTest {
 		CommandLine.ParseResult pr = cli.parseArgs("run", "--debug", "test.java", "--debug", "wonka");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		assertThat(run.runMixin.debugString, hasEntry("address", "4004"));
+		assertThat(run.runMixin.debugString).containsEntry("address", "4004");
 
-		assertThat(run.scriptMixin.scriptOrFile, is("test.java"));
-		assertThat(run.userParams, is(Arrays.asList("--debug", "wonka")));
+		assertThat(run.scriptMixin.scriptOrFile).isEqualTo("test.java");
+		assertThat(run.userParams).isEqualTo(Arrays.asList("--debug", "wonka"));
 	}
 
 	/**
@@ -64,9 +63,9 @@ class TestArguments extends BaseTest {
 		CommandLine.ParseResult pr = cli.parseArgs("run", "-", "--help");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		assertThat(run.scriptMixin.scriptOrFile, is("-"));
-		assertThat(run.helpRequested, is(false));
-		assertThat(run.userParams, is(Collections.singletonList("--help")));
+		assertThat(run.scriptMixin.scriptOrFile).isEqualTo("-");
+		assertThat(run.helpRequested).isEqualTo(false);
+		assertThat(run.userParams).isEqualTo(Collections.singletonList("--help"));
 	}
 
 	@Test
@@ -74,9 +73,9 @@ class TestArguments extends BaseTest {
 		CommandLine.ParseResult pr = cli.parseArgs("run", "test.java", "-h");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		assertThat(run.scriptMixin.scriptOrFile, is("test.java"));
-		assertThat(run.helpRequested, is(false));
-		assertThat(run.userParams, is(Collections.singletonList("-h")));
+		assertThat(run.scriptMixin.scriptOrFile).isEqualTo("test.java");
+		assertThat(run.helpRequested).isEqualTo(false);
+		assertThat(run.userParams).isEqualTo(Collections.singletonList("-h"));
 	}
 
 	@Test
@@ -84,8 +83,8 @@ class TestArguments extends BaseTest {
 		CommandLine.ParseResult pr = cli.parseArgs("run", "--debug", "test.java");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		assertThat(run.scriptMixin.scriptOrFile, is("test.java"));
-		assertThat(run.runMixin.debugString, notNullValue());
+		assertThat(run.scriptMixin.scriptOrFile).isEqualTo("test.java");
+		assertThat(run.runMixin.debugString).isNotNull();
 	}
 
 	@Test
@@ -93,10 +92,10 @@ class TestArguments extends BaseTest {
 		CommandLine.ParseResult pr = cli.parseArgs("run", "--debug=*:5000", "test.java");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		assertThat(run.scriptMixin.scriptOrFile, is("test.java"));
-		assertThat(run.runMixin.debugString, notNullValue());
-		assertThat(run.runMixin.debugString, hasEntry("address", "*:5000"));
-		assertThat(run.runMixin.debugString.size(), is(1));
+		assertThat(run.scriptMixin.scriptOrFile).isEqualTo("test.java");
+		assertThat(run.runMixin.debugString).isNotNull();
+		assertThat(run.runMixin.debugString).containsEntry("address", "*:5000");
+		assertThat(run.runMixin.debugString.size()).isEqualTo(1);
 	}
 
 	@Test
@@ -104,9 +103,9 @@ class TestArguments extends BaseTest {
 		CommandLine.ParseResult pr = cli.parseArgs("run", "--debug", "xyz.dk:5005", "test.java");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		assertThat(run.scriptMixin.scriptOrFile, is("test.java"));
-		assertThat(run.runMixin.debugString, notNullValue());
-		assertThat(run.runMixin.debugString, hasEntry("address", "xyz.dk:5005"));
+		assertThat(run.scriptMixin.scriptOrFile).isEqualTo("test.java");
+		assertThat(run.runMixin.debugString).isNotNull();
+		assertThat(run.runMixin.debugString).containsEntry("address", "xyz.dk:5005");
 	}
 
 	@Test
@@ -114,21 +113,21 @@ class TestArguments extends BaseTest {
 		CommandLine.ParseResult pr = cli.parseArgs("run", "test.java");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		assertThat(run.scriptMixin.scriptOrFile, is("test.java"));
+		assertThat(run.scriptMixin.scriptOrFile).isEqualTo("test.java");
 	}
 
 	@Test
 	public void testClearCache() {
 		Path dir = jbangTempDir;
 		environmentVariables.set(Settings.JBANG_CACHE_DIR, dir.toString());
-		assertThat(Files.isDirectory(dir), is(true));
+		assertThat(Files.isDirectory(dir)).isEqualTo(true);
 
 		cli.execute("cache", "clear", "--all");
 
-		assertThat(Files.isDirectory(dir.resolve("urls")), is(false));
-		assertThat(Files.isDirectory(dir.resolve("jars")), is(false));
-		assertThat(Files.isDirectory(dir.resolve("jdks")), is(false));
-		assertThat(Files.notExists(Settings.getCacheDependencyFile()), is(true));
+		assertThat(Files.isDirectory(dir.resolve("urls"))).isEqualTo(false);
+		assertThat(Files.isDirectory(dir.resolve("jars"))).isEqualTo(false);
+		assertThat(Files.isDirectory(dir.resolve("jdks"))).isEqualTo(false);
+		assertThat(Files.notExists(Settings.getCacheDependencyFile())).isEqualTo(true);
 	}
 
 }

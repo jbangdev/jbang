@@ -1,7 +1,9 @@
 package dev.jbang.cli;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.stringContainsInOrder;
 import static org.hamcrest.io.FileMatchers.anExistingDirectory;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
 import static org.hamcrest.io.FileMatchers.anExistingFileOrDirectory;
@@ -31,7 +33,7 @@ public class TestExport extends BaseTest {
 		String src = examplesTestFolder.resolve("helloworld.java").toString();
 		String outFile = cwdDir.resolve("subdir/helloworld.jar").toString();
 		CaptureResult result = checkedRun(null, "export", "local", "-O", outFile, src);
-		assertThat(result.err, matchesPattern("(?s).*Exported to.*helloworld.jar.*"));
+		assertThat(result.err).matches("(?s).*Exported to.*helloworld.jar.*");
 		assertThat(new File(outFile), anExistingFile());
 	}
 
@@ -40,7 +42,7 @@ public class TestExport extends BaseTest {
 		String src = examplesTestFolder.resolve("helloworld.java").toString();
 		String outFile = cwdDir.resolve("helloworld").toString();
 		CaptureResult result = checkedRun(null, "export", "local", "-O", outFile, src);
-		assertThat(result.err, matchesPattern("(?s).*Exported to.*helloworld.jar.*"));
+		assertThat(result.err).matches("(?s).*Exported to.*helloworld.jar.*");
 		assertThat(new File(outFile + ".jar"), anExistingFile());
 	}
 
@@ -49,7 +51,7 @@ public class TestExport extends BaseTest {
 		String src = examplesTestFolder.resolve("helloworld.java").toString();
 		String outFile = cwdDir.resolve("helloworld.jar").toString();
 		CaptureResult result = checkedRun(null, "export", "local", src);
-		assertThat(result.err, matchesPattern("(?s).*Exported to.*helloworld.jar.*"));
+		assertThat(result.err).matches("(?s).*Exported to.*helloworld.jar.*");
 		assertThat(new File(outFile), anExistingFile());
 	}
 
@@ -58,7 +60,7 @@ public class TestExport extends BaseTest {
 		String src = examplesTestFolder.resolve("helloworld.java").toString();
 		String outFile = cwdDir.resolve("helloworld.jar").toString();
 		CaptureResult result = checkedRun(null, "export", "portable", "-O", outFile, src);
-		assertThat(result.err, matchesPattern("(?s).*Exported to.*helloworld.jar.*"));
+		assertThat(result.err).matches("(?s).*Exported to.*helloworld.jar.*");
 		assertThat(new File(outFile), anExistingFile());
 		assertThat(cwdDir.resolve(ExportPortable.LIB).toFile(), not(anExistingFileOrDirectory()));
 	}
@@ -68,10 +70,10 @@ public class TestExport extends BaseTest {
 		String src = examplesTestFolder.resolve("classpath_log.java").toString();
 		String outFile = cwdDir.resolve("classpath_log.jar").toString();
 		CaptureResult result = checkedRun(null, "export", "portable", "-O", outFile, src);
-		assertThat(result.err, matchesPattern("(?s).*Exported to.*classpath_log.jar.*"));
+		assertThat(result.err).matches("(?s).*Exported to.*classpath_log.jar.*");
 		assertThat(new File(outFile), anExistingFile());
 		assertThat(cwdDir.resolve(ExportPortable.LIB).toFile(), anExistingDirectory());
-		assertThat(cwdDir.resolve(ExportPortable.LIB).toFile().listFiles().length, Matchers.equalTo(1));
+		assertThat(cwdDir.resolve(ExportPortable.LIB).toFile().listFiles().length).isEqualTo(1);
 
 		File jar = new File(outFile);
 
@@ -79,7 +81,7 @@ public class TestExport extends BaseTest {
 			Manifest mf = jarStream.getManifest();
 
 			String cp = mf.getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
-			assertThat(cp, not(containsString("m2")));
+			assertThat(cp).doesNotContain("m2");
 		}
 
 		Files.delete(jar.toPath());
@@ -90,7 +92,7 @@ public class TestExport extends BaseTest {
 		String src = examplesTestFolder.resolve("classpath_log.java").toString();
 		String outFile = cwdDir.resolve("classpath_log.jar").toString();
 		CaptureResult result = checkedRun(null, "export", "local", "-O", outFile, src);
-		assertThat(result.err, matchesPattern("(?s).*Exported to.*classpath_log.jar.*"));
+		assertThat(result.err).matches("(?s).*Exported to.*classpath_log.jar.*");
 		assertThat(new File(outFile), anExistingFile());
 		assertThat(cwdDir.resolve(ExportPortable.LIB).toFile(), not(anExistingDirectory()));
 
@@ -100,7 +102,7 @@ public class TestExport extends BaseTest {
 			Manifest mf = jarStream.getManifest();
 
 			String cp = mf.getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
-			assertThat(cp, containsString("jbang_tests_maven"));
+			assertThat(cp).contains("jbang_tests_maven");
 		}
 		Files.delete(jar.toPath());
 
@@ -112,7 +114,7 @@ public class TestExport extends BaseTest {
 		outFile.mkdirs();
 		CaptureResult result = checkedRun(null, "export", "mavenrepo", "-O", outFile.toString(),
 				"--group=my.thing.right", examplesTestFolder.resolve("helloworld.java").toString());
-		assertThat(result.err, matchesPattern("(?s).*Exported to.*target.*"));
+		assertThat(result.err).matches("(?s).*Exported to.*target.*");
 		assertThat(
 				outFile.toPath().resolve("my/thing/right/helloworld/999-SNAPSHOT/helloworld-999-SNAPSHOT.jar").toFile(),
 				anExistingFile());
@@ -128,7 +130,7 @@ public class TestExport extends BaseTest {
 		// outFile.mkdirs();
 		CaptureResult result = checkedRun(null, "export", "mavenrepo", "-O", outFile.toString(),
 				"--group=my.thing.right", examplesTestFolder.resolve("helloworld.java").toString());
-		assertThat(result.result, equalTo(BaseCommand.EXIT_INVALID_INPUT));
+		assertThat(result.result).isEqualTo(BaseCommand.EXIT_INVALID_INPUT);
 
 	}
 
@@ -138,8 +140,8 @@ public class TestExport extends BaseTest {
 		outFile.mkdirs();
 		CaptureResult result = checkedRun(null, "export", "mavenrepo", "--force", "-O",
 				outFile.toString(), examplesTestFolder.resolve("helloworld.java").toString());
-		assertThat(result.result, equalTo(BaseCommand.EXIT_INVALID_INPUT));
-		assertThat(result.err, containsString("Add --group=<group id> and run again"));
+		assertThat(result.result).isEqualTo(BaseCommand.EXIT_INVALID_INPUT);
+		assertThat(result.err).contains("Add --group=<group id> and run again");
 	}
 
 	@Test
@@ -147,7 +149,7 @@ public class TestExport extends BaseTest {
 		Path outFile = mavenTempDir;
 		CaptureResult result = checkedRun(null, "export", "mavenrepo", "--force",
 				"--group=g.a.v", examplesTestFolder.resolve("classpath_log.java").toString());
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result).isEqualTo(BaseCommand.EXIT_OK);
 		assertThat(outFile.resolve("g/a/v/classpath_log/999-SNAPSHOT/classpath_log-999-SNAPSHOT.jar").toFile(),
 				anExistingFile());
 		assertThat(outFile.resolve("g/a/v/classpath_log/999-SNAPSHOT/classpath_log-999-SNAPSHOT.pom").toFile(),
@@ -166,7 +168,7 @@ public class TestExport extends BaseTest {
 		outFile.mkdirs();
 		CaptureResult result = checkedRun(null, "export", "mavenrepo", "-O", outFile.toString(),
 				examplesTestFolder.resolve("quote.java").toString());
-		assertThat(result.err, matchesPattern("(?s).*Exported to.*target.*"));
+		assertThat(result.err).matches("(?s).*Exported to.*target.*");
 		assertThat(
 				outFile.toPath().resolve("dev/jbang/itests/quote/999-SNAPSHOT/quote-999-SNAPSHOT.jar").toFile(),
 				anExistingFile());
@@ -190,7 +192,7 @@ public class TestExport extends BaseTest {
 		String src = examplesTestFolder.resolve("helloworld.java").toString();
 		String outFile = cwdDir.resolve("subdir/helloworld.jar").toString();
 		CaptureResult result = checkedRun(null, "export", "fatjar", "-O", outFile, src);
-		assertThat(result.err, matchesPattern("(?s).*Exported to.*helloworld.jar.*"));
+		assertThat(result.err).matches("(?s).*Exported to.*helloworld.jar.*");
 		assertThat(new File(outFile), anExistingFile());
 	}
 
@@ -200,7 +202,7 @@ public class TestExport extends BaseTest {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
 		CaptureResult result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result).isEqualTo(BaseCommand.EXIT_OK);
 		Path targetSrcPath = outFile.toPath()
 									.resolve("src/main/java/classpath_log.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
@@ -208,9 +210,9 @@ public class TestExport extends BaseTest {
 		Path buildPath = outFile.toPath().resolve("build.gradle");
 		assertThat(buildPath.toFile(), anExistingFile());
 		String build = Util.readString(buildPath);
-		assertThat(build, containsString("implementation 'log4j:log4j:1.2.17'"));
-		assertThat(build, not(containsString("languageVersion = JavaLanguageVersion.of")));
-		assertThat(build, containsString("mainClass = 'classpath_log'"));
+		assertThat(build).contains("implementation 'log4j:log4j:1.2.17'");
+		assertThat(build).doesNotContain("languageVersion = JavaLanguageVersion.of");
+		assertThat(build).contains("mainClass = 'classpath_log'");
 	}
 
 	@Test
@@ -220,18 +222,18 @@ public class TestExport extends BaseTest {
 		outFile.mkdirs();
 		CaptureResult result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(),
 				"-g", "dev.jbang.test", "-a", "app", "-v", "1.2.3", src);
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result).isEqualTo(BaseCommand.EXIT_OK);
 		Path targetSrcPath = outFile.toPath()
 									.resolve("src/main/java/classpath_log.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
-		assertThat(targetSrc, not(containsString("package ")));
+		assertThat(targetSrc).doesNotContain("package ");
 		Path buildPath = outFile.toPath().resolve("build.gradle");
 		assertThat(buildPath.toFile(), anExistingFile());
 		String build = Util.readString(buildPath);
-		assertThat(build, containsString("implementation 'log4j:log4j:1.2.17'"));
-		assertThat(build, not(containsString("languageVersion = JavaLanguageVersion.of")));
-		assertThat(build, containsString("mainClass = 'classpath_log'"));
+		assertThat(build).contains("implementation 'log4j:log4j:1.2.17'");
+		assertThat(build).doesNotContain("languageVersion = JavaLanguageVersion.of");
+		assertThat(build).contains("mainClass = 'classpath_log'");
 	}
 
 	@Test
@@ -240,21 +242,21 @@ public class TestExport extends BaseTest {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
 		CaptureResult result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result).isEqualTo(BaseCommand.EXIT_OK);
 		Path targetSrcPath = outFile.toPath()
 									.resolve(
 											"src/main/java/classpath_log_bom.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
-		assertThat(targetSrc, not(containsString("package ")));
+		assertThat(targetSrc).doesNotContain("package ");
 		Path buildPath = outFile.toPath().resolve("build.gradle");
 		assertThat(buildPath.toFile(), anExistingFile());
 		String build = Util.readString(buildPath);
-		assertThat(build, containsString("implementation platform ('org.apache.logging.log4j:log4j-bom:2.24.3')"));
-		assertThat(build, containsString("implementation 'org.apache.logging.log4j:log4j-api'"));
-		assertThat(build, containsString("implementation 'org.apache.logging.log4j:log4j-core'"));
-		assertThat(build, not(containsString("languageVersion = JavaLanguageVersion.of")));
-		assertThat(build, containsString("mainClass = 'classpath_log_bom'"));
+		assertThat(build).contains("implementation platform ('org.apache.logging.log4j:log4j-bom:2.24.3')");
+		assertThat(build).contains("implementation 'org.apache.logging.log4j:log4j-api'");
+		assertThat(build).contains("implementation 'org.apache.logging.log4j:log4j-core'");
+		assertThat(build).doesNotContain("languageVersion = JavaLanguageVersion.of");
+		assertThat(build).contains("mainClass = 'classpath_log_bom'");
 	}
 
 	@Test
@@ -263,13 +265,13 @@ public class TestExport extends BaseTest {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
 		CaptureResult result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result).isEqualTo(BaseCommand.EXIT_OK);
 
 		Path targetSrcPath = outFile.toPath()
 									.resolve("src/main/java/exporttags.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
-		assertThat(targetSrc, not(startsWith("package ")));
+		assertThat(targetSrc).doesNotStartWith("package ");
 
 		Path src1Path = outFile	.toPath()
 								.resolve("src/main/java/Two.java");
@@ -297,15 +299,15 @@ public class TestExport extends BaseTest {
 		Path buildPath = outFile.toPath().resolve("build.gradle");
 		assertThat(buildPath.toFile(), anExistingFile());
 		String build = Util.readString(buildPath);
-		assertThat(build, containsString("description = 'some description'"));
-		assertThat(build, containsString("implementation 'log4j:log4j:1.2.17'"));
-		assertThat(build, containsString("languageVersion = JavaLanguageVersion.of"));
-		assertThat(build, not(containsString("JavaLanguageVersion.of(8)")));
-		assertThat(build, containsString("JavaLanguageVersion.of(11)"));
-		assertThat(build, not(containsString("JavaLanguageVersion.of(17)")));
-		assertThat(build, not(containsString("JavaLanguageVersion.of(21+)")));
-		assertThat(build, containsString("mainClass = 'exporttags'"));
-		assertThat(build, not(containsString("JavaLanguageVersion.of(11+)")));
+		assertThat(build).contains("description = 'some description'");
+		assertThat(build).contains("implementation 'log4j:log4j:1.2.17'");
+		assertThat(build).contains("languageVersion = JavaLanguageVersion.of");
+		assertThat(build).doesNotContain("JavaLanguageVersion.of(8)");
+		assertThat(build).contains("JavaLanguageVersion.of(11)");
+		assertThat(build).doesNotContain("JavaLanguageVersion.of(17)");
+		assertThat(build).doesNotContain("JavaLanguageVersion.of(21+)");
+		assertThat(build).contains("mainClass = 'exporttags'");
+		assertThat(build).doesNotContain("JavaLanguageVersion.of(11+)");
 	}
 
 	@Test
@@ -314,12 +316,12 @@ public class TestExport extends BaseTest {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
 		CaptureResult result = checkedRun(null, "export", "maven", "--force", "-O", outFile.toString(), src);
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result).isEqualTo(BaseCommand.EXIT_OK);
 		Path targetSrcPath = outFile.toPath()
 									.resolve("src/main/java/classpath_log.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
-		assertThat(targetSrc, not(containsString("package org.example.project.classpath_log;")));
+		assertThat(targetSrc).doesNotContain("package org.example.project.classpath_log;");
 		Path pomPath = outFile.toPath().resolve("pom.xml");
 		assertThat(pomPath.toFile(), anExistingFile());
 		String pom = Util.readString(pomPath);
@@ -331,9 +333,9 @@ public class TestExport extends BaseTest {
 				"<groupId>log4j</groupId>",
 				"<artifactId>log4j</artifactId>",
 				"<version>1.2.17</version>"));
-		assertThat(pom, not(containsString("<properties>")));
-		assertThat(pom, not(containsString("<dependencyManagement>")));
-		assertThat(pom, not(containsString("<repositories>")));
+		assertThat(pom).doesNotContain("<properties>");
+		assertThat(pom).doesNotContain("<dependencyManagement>");
+		assertThat(pom).doesNotContain("<repositories>");
 	}
 
 	@Test
@@ -342,12 +344,12 @@ public class TestExport extends BaseTest {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
 		CaptureResult result = checkedRun(null, "export", "maven", "--force", "-O", outFile.toString(), src);
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result).isEqualTo(BaseCommand.EXIT_OK);
 		Path targetSrcPath = outFile.toPath()
 									.resolve("src/main/java/RootOne.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
-		assertThat(targetSrc, not(containsString("package org.example.project.classpath_log;")));
+		assertThat(targetSrc).doesNotContain("package org.example.project.classpath_log;");
 		Path pomPath = outFile.toPath().resolve("pom.xml");
 		assertThat(pomPath.toFile(), anExistingFile());
 		String pom = Util.readString(pomPath);
@@ -355,10 +357,10 @@ public class TestExport extends BaseTest {
 				"<groupId>org.example.project</groupId>",
 				"<artifactId>RootOne</artifactId>",
 				"<version>999-SNAPSHOT</version>"));
-		assertThat(pom, not(containsString("<dependencies>")));
-		assertThat(pom, not(containsString("<properties>")));
-		assertThat(pom, not(containsString("<dependencyManagement>")));
-		assertThat(pom, not(containsString("<repositories>")));
+		assertThat(pom).doesNotContain("<dependencies>");
+		assertThat(pom).doesNotContain("<properties>");
+		assertThat(pom).doesNotContain("<dependencyManagement>");
+		assertThat(pom).doesNotContain("<repositories>");
 	}
 
 	@Test
@@ -368,12 +370,12 @@ public class TestExport extends BaseTest {
 		outFile.mkdirs();
 		CaptureResult result = checkedRun(null, "export", "maven", "--force", "-O", outFile.toString(),
 				"-g", "dev.jbang.test", "-a", "app", "-v", "1.2.3", src);
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result).isEqualTo(BaseCommand.EXIT_OK);
 		Path targetSrcPath = outFile.toPath()
 									.resolve("src/main/java/classpath_log.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
-		assertThat(targetSrc, not(containsString("package ")));
+		assertThat(targetSrc).doesNotContain("package ");
 		Path pomPath = outFile.toPath().resolve("pom.xml");
 		assertThat(pomPath.toFile(), anExistingFile());
 		String pom = Util.readString(pomPath);
@@ -385,9 +387,9 @@ public class TestExport extends BaseTest {
 				"<groupId>log4j</groupId>",
 				"<artifactId>log4j</artifactId>",
 				"<version>1.2.17</version>"));
-		assertThat(pom, not(containsString("<properties>")));
-		assertThat(pom, not(containsString("<dependencyManagement>")));
-		assertThat(pom, not(containsString("<repositories>")));
+		assertThat(pom).doesNotContain("<properties>");
+		assertThat(pom).doesNotContain("<dependencyManagement>");
+		assertThat(pom).doesNotContain("<repositories>");
 	}
 
 	@Test
@@ -396,13 +398,13 @@ public class TestExport extends BaseTest {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
 		CaptureResult result = checkedRun(null, "export", "maven", "--force", "-O", outFile.toString(), src);
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result).isEqualTo(BaseCommand.EXIT_OK);
 		Path targetSrcPath = outFile.toPath()
 									.resolve(
 											"src/main/java/classpath_log_bom.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
-		assertThat(targetSrc, not(containsString("package org.example.project.classpath_log_bom;")));
+		assertThat(targetSrc).doesNotContain("package org.example.project.classpath_log_bom;");
 		Path pomPath = outFile.toPath().resolve("pom.xml");
 		assertThat(pomPath.toFile(), anExistingFile());
 		String pom = Util.readString(pomPath);
@@ -419,8 +421,8 @@ public class TestExport extends BaseTest {
 				"<artifactId>log4j-api</artifactId>",
 				"<groupId>org.apache.logging.log4j</groupId>",
 				"<artifactId>log4j-core</artifactId>"));
-		assertThat(pom, not(containsString("<properties>")));
-		assertThat(pom, not(containsString("<repositories>")));
+		assertThat(pom).doesNotContain("<properties>");
+		assertThat(pom).doesNotContain("<repositories>");
 	}
 
 	@Test
@@ -429,13 +431,13 @@ public class TestExport extends BaseTest {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
 		CaptureResult result = checkedRun(null, "export", "maven", "--force", "-O", outFile.toString(), src);
-		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.result).isEqualTo(BaseCommand.EXIT_OK);
 
 		Path targetSrcPath = outFile.toPath()
 									.resolve("src/main/java/exporttags.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
-		assertThat(targetSrc, not(containsString("package org.example.exporttags;")));
+		assertThat(targetSrc).doesNotContain("package org.example.exporttags;");
 
 		Path src1Path = outFile	.toPath()
 								.resolve("src/main/java/Two.java");
@@ -477,10 +479,10 @@ public class TestExport extends BaseTest {
 				"<repositories>",
 				"<id>jitpack</id>",
 				"<url>https://jitpack.io/</url>"));
-		assertThat(pom, containsString("<maven.compiler.target>")); // Properties key may be in any order
-		assertThat(pom, not(containsString("<maven.compiler.source>1.8</maven.compiler.source>")));
-		assertThat(pom, containsString("<maven.compiler.source>11</maven.compiler.source>"));
-		assertThat(pom, not(containsString("<maven.compiler.source>17</maven.compiler.source>")));
-		assertThat(pom, not(containsString("<maven.compiler.source>11+</maven.compiler.source>")));
+		assertThat(pom).contains("<maven.compiler.target>"); // Properties key may be in any order
+		assertThat(pom).doesNotContain("<maven.compiler.source>1.8</maven.compiler.source>");
+		assertThat(pom).contains("<maven.compiler.source>11</maven.compiler.source>");
+		assertThat(pom).doesNotContain("<maven.compiler.source>17</maven.compiler.source>");
+		assertThat(pom).doesNotContain("<maven.compiler.source>11+</maven.compiler.source>");
 	}
 }
