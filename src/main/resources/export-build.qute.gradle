@@ -58,3 +58,22 @@ compileJava {
 {/if}
 }
 {/if}
+
+{#if language eq 'groovy'}
+compileGroovy {
+{#if compilerArgs ne ""}
+	options.compilerArgs += [{compilerArgs}]
+{/if}
+}
+{/if}
+
+{#if language eq 'kotlin'}
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
+tasks.named('compileKotlin', KotlinCompilationTask) {
+	compilerOptions {
+{#if compilerArgs ne ""}
+		freeCompilerArgs.addAll([{compilerArgs}])
+{/if}
+	}
+}
+{/if}
