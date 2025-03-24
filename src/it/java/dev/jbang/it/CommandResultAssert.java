@@ -87,4 +87,12 @@ public class CommandResultAssert extends AbstractAssert<CommandResultAssert, Com
         }
         return this;
     }
+
+    public CommandResultAssert outIsExactly(String string) {
+        isNotNull();
+        if (!actual.out.equals(string)) {
+            failWithMessage("Expected output to be <%s> but was <%s>", string, actual.out);
+        }
+        return this;
+    }
 }
