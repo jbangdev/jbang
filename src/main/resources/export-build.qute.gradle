@@ -44,3 +44,9 @@ application {
 	mainClass = '{fullClassName}'
 	applicationDefaultJvmArgs = [{jvmArgs}]
 }
+
+{#if enableJavaPreview eq 'true'}
+compileJava {
+	options.compilerArgs += ['--enable-preview']
+}
+{/if}
