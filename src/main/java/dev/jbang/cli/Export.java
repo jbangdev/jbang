@@ -660,20 +660,8 @@ class ExportGradleProject extends BaseExportProject {
 		boolean isGroovy = ctx.getProject().getMainSource() instanceof GroovySource;
 		boolean isKotlin = ctx.getProject().getMainSource() instanceof KotlinSource;
 		String kotlinVersion = isKotlin ? ((KotlinSource) ctx.getProject().getMainSource()).getKotlinVersion() : "";
-		StringBuilder jvmArgs = new StringBuilder();
-		for (String arg : ctx.getProject().getRuntimeOptions()) {
-			if (jvmArgs.length() > 0) {
-				jvmArgs.append(", ");
-			}
-			jvmArgs.append(String.format("'%s'", arg));
-		}
-		StringBuilder compilerArgs = new StringBuilder();
-		for (String arg : ctx.getProject().getMainSourceSet().getCompileOptions()) {
-			if (compilerArgs.length() > 0) {
-				compilerArgs.append(", ");
-			}
-			compilerArgs.append(String.format("'%s'", arg));
-		}
+		String jvmArgs = gradleArgs(ctx.getProject().getRuntimeOptions());
+		String compilerArgs = gradleArgs(ctx.getProject().getMainSourceSet().getCompileOptions());
 		String result = template
 								.data("group", group)
 								.data("artifact", artifact)
@@ -688,9 +676,9 @@ class ExportGradleProject extends BaseExportProject {
 								.data("javaVersion", getJavaVersion(prj, false))
 								.data("gradledependencies", gradleify(depIds))
 								.data("fullClassName", fullClassName + (isKotlin ? "Kt" : ""))
-								.data("jvmArgs", jvmArgs.toString())
+								.data("jvmArgs", jvmArgs)
 								.data("enablePreview", ctx.getProject().enablePreview() ? "true" : "")
-								.data("compilerArgs", compilerArgs.toString())
+								.data("compilerArgs", compilerArgs)
 								.render();
 		Util.writeString(destination, result);
 		Util.writeString(projectDir.resolve("settings.gradle"), "");
@@ -704,6 +692,17 @@ class ExportGradleProject extends BaseExportProject {
 				return "implementation '" + item + "'";
 			}
 		}).collect(Collectors.toList());
+	}
+
+	private String gradleArgs(List<String> options) {
+		StringBuilder args = new StringBuilder();
+		for (String arg : options) {
+			if (args.length() > 0) {
+				args.append(", ");
+			}
+			args.append(String.format("'%s'", arg));
+		}
+		return args.toString();
 	}
 }
 
