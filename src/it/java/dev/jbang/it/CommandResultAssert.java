@@ -95,4 +95,12 @@ public class CommandResultAssert extends AbstractAssert<CommandResultAssert, Com
         }
         return this;
     }
+
+    public CommandResultAssert outDoesNotContain(String string) {
+        isNotNull();
+        if (actual.out.contains(string)) {
+            failWithMessage("Expected output to not contain <%s> but was <%s>", string, actual.out);
+        }
+        return this;
+    }
 }
