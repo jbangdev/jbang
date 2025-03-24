@@ -108,11 +108,16 @@ public class BaseIT {
 		return new CommandResult(out, err, execute.getExitValue(), command);
 	}
 
-	public CommandResult shell(String... command) {
+	public CommandResult shell(Map<String, String> env, String... command) {
 		final CommandResult[] resultHolder = new CommandResult[1];
+
+		// merge base env with provided env
+		Map<String, String> envToUse = new HashMap<>(baseEnv);
+		envToUse.putAll(env);
+
 		Allure.step(Arrays.toString(command),
 				step -> {
-					resultHolder[0] = run(baseDir, baseEnv, prefixShellArgs(Arrays.asList(command)));
+					resultHolder[0] = run(baseDir, envToUse, prefixShellArgs(Arrays.asList(command)));
 
 					step.parameter("command", resultHolder[0].command().toString());
 					step.parameter("out", resultHolder[0].out());
@@ -121,6 +126,10 @@ public class BaseIT {
 				});
 
 		return resultHolder[0];
+	}
+
+	public CommandResult shell(String... command) {
+		return shell(Map.of(), command);
 	}
     
 }
