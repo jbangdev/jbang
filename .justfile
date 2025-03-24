@@ -47,5 +47,5 @@ tagpatch:
     ./gradlew tag
 
 itestreport: # todo: should not be needed to clean
-    ./gradlew clean integrationTest
+    -./gradlew clean integrationTest
     jbang allure@jbanghub/allure serve
