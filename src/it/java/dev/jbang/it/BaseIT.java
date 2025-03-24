@@ -21,23 +21,23 @@ import org.zeroturnaround.exec.ProcessExecutor;
 import org.zeroturnaround.exec.ProcessResult;
 
 import dev.jbang.util.Util;
+
 import io.qameta.allure.Allure;
 
 public class BaseIT {
 
-    static Map<String, String> baseEnv;
+	static Map<String, String> baseEnv;
 	private static Path scratch;
 	private static Path baseDir;
 
-    protected Path scratch() {
-        return scratch;
-    }
+	protected Path scratch() {
+		return scratch;
+	}
 
-    protected Path baseDir() {
-        return baseDir;
-    }
-    
-    
+	protected Path baseDir() {
+		return baseDir;
+	}
+
 	public static List<String> prefixShellArgs(List<String> cmd) {
 		List<String> list = new ArrayList<>(cmd);
 		if (Util.isWindows()) {
@@ -131,5 +131,5 @@ public class BaseIT {
 	public CommandResult shell(String... command) {
 		return shell(Map.of(), command);
 	}
-    
+
 }

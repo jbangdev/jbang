@@ -8,7 +8,6 @@ import io.qameta.allure.Description;
 
 public class RunIT extends BaseIT {
 
-
 	@Test
 	@Description("Testing that jbang is running in a clean environment")
 	public void testIsolation() {
