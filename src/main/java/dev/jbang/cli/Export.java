@@ -660,6 +660,7 @@ class ExportGradleProject extends BaseExportProject {
 		boolean isGroovy = prj.getMainSource() instanceof GroovySource;
 		boolean isKotlin = prj.getMainSource() instanceof KotlinSource;
 		String kotlinVersion = isKotlin ? ((KotlinSource) prj.getMainSource()).getKotlinVersion() : "";
+		String javaVersion = getJavaVersion(prj, false);
 		String jvmArgs = gradleArgs(prj.getRuntimeOptions());
 		String compilerArgs = gradleArgs(prj.getMainSourceSet().getCompileOptions());
 		String result = template
@@ -673,11 +674,11 @@ class ExportGradleProject extends BaseExportProject {
 																	.map(MavenRepo::getUrl)
 																	.filter(s -> !"".equals(s))
 																	.collect(Collectors.toList()))
-								.data("javaVersion", getJavaVersion(prj, false))
+								.data("javaVersion", javaVersion)
 								.data("gradledependencies", gradleify(depIds))
 								.data("fullClassName", fullClassName + (isKotlin ? "Kt" : ""))
 								.data("jvmArgs", jvmArgs)
-								.data("enablePreview", prj.enablePreview() ? "true" : "")
+								.data("enablePreview", prj.enablePreview() ? (javaVersion != null ? "true" : "") : "")
 								.data("compilerArgs", compilerArgs)
 								.render();
 		Util.writeString(destination, result);
