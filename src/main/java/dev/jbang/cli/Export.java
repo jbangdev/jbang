@@ -657,11 +657,11 @@ class ExportGradleProject extends BaseExportProject {
 		Template template = engine.getTemplate(templateRef);
 		if (template == null)
 			throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateRef + "'");
-		boolean isGroovy = ctx.getProject().getMainSource() instanceof GroovySource;
-		boolean isKotlin = ctx.getProject().getMainSource() instanceof KotlinSource;
-		String kotlinVersion = isKotlin ? ((KotlinSource) ctx.getProject().getMainSource()).getKotlinVersion() : "";
-		String jvmArgs = gradleArgs(ctx.getProject().getRuntimeOptions());
-		String compilerArgs = gradleArgs(ctx.getProject().getMainSourceSet().getCompileOptions());
+		boolean isGroovy = prj.getMainSource() instanceof GroovySource;
+		boolean isKotlin = prj.getMainSource() instanceof KotlinSource;
+		String kotlinVersion = isKotlin ? ((KotlinSource) prj.getMainSource()).getKotlinVersion() : "";
+		String jvmArgs = gradleArgs(prj.getRuntimeOptions());
+		String compilerArgs = gradleArgs(prj.getMainSourceSet().getCompileOptions());
 		String result = template
 								.data("group", group)
 								.data("artifact", artifact)
@@ -677,7 +677,7 @@ class ExportGradleProject extends BaseExportProject {
 								.data("gradledependencies", gradleify(depIds))
 								.data("fullClassName", fullClassName + (isKotlin ? "Kt" : ""))
 								.data("jvmArgs", jvmArgs)
-								.data("enablePreview", ctx.getProject().enablePreview() ? "true" : "")
+								.data("enablePreview", prj.enablePreview() ? "true" : "")
 								.data("compilerArgs", compilerArgs)
 								.render();
 		Util.writeString(destination, result);
