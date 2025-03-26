@@ -1,5 +1,7 @@
 package dev.jbang.it;
 
+import java.util.regex.Pattern;
+
 import org.assertj.core.api.AbstractAssert;
 
 public class CommandResultAssert extends AbstractAssert<CommandResultAssert, CommandResult> {
@@ -103,4 +105,12 @@ public class CommandResultAssert extends AbstractAssert<CommandResultAssert, Com
 		}
 		return this;
 	}
+
+    public CommandResultAssert outMatches(Pattern pattern) {
+        isNotNull();
+        if (!pattern.matcher(actual.out).matches()) {
+            failWithMessage("Expected output to match <%s> but was <%s>", pattern.pattern(), actual.out);
+        }
+        return this;
+    }
 }
