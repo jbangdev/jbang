@@ -78,3 +78,12 @@ tasks.named('compileKotlin', KotlinCompilationTask) {
 	}
 }
 {/if}
+
+jar {
+	manifest {
+		attributes(
+				'Main-Class': '{fullClassName}',
+		)
+	}
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
