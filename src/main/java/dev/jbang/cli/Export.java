@@ -580,6 +580,11 @@ abstract class BaseExportProject extends BaseExportCommand {
 			}
 		}
 
+		// Kotlin - get correct main class name
+		if (isKotlin) {
+			fullClassName = prj.getMainClass();
+		}
+
 		// Resources
 		Path srcResourcesDir = projectDir.resolve("src/main/resources");
 		for (RefTarget ref : prj.getMainSourceSet().getResources()) {
@@ -676,7 +681,7 @@ class ExportGradleProject extends BaseExportProject {
 																	.collect(Collectors.toList()))
 								.data("javaVersion", javaVersion)
 								.data("gradledependencies", gradleify(depIds))
-								.data("fullClassName", isKotlin ? prj.getMainClass() : fullClassName)
+								.data("fullClassName", fullClassName)
 								.data("jvmArgs", jvmArgs)
 								.data("enablePreview", prj.enablePreview() ? (javaVersion != null ? "true" : "") : "")
 								.data("compilerArgs", compilerArgs)
