@@ -233,7 +233,7 @@ public class TestExport extends BaseTest {
 	}
 
 	@Test
-	void testExportGradleProjectFromKotlin() throws Exception {
+	void testExportGradleProjectFromKotlin1() throws Exception {
 		String src = examplesTestFolder.resolve("classpath_log.kt").toString();
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
@@ -249,6 +249,25 @@ public class TestExport extends BaseTest {
 		assertThat(build, containsString("implementation 'log4j:log4j:1.2.17'"));
 		assertThat(build, not(containsString("languageVersion = JavaLanguageVersion.of")));
 		assertThat(build, containsString("mainClass = 'classpath_log'"));
+	}
+
+	@Test
+	void testExportGradleProjectFromKotlin2() throws Exception {
+		String src = examplesTestFolder.resolve("classpath_main.kt").toString();
+		File outFile = jbangTempDir.resolve("target").toFile();
+		outFile.mkdirs();
+		CaptureResult result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
+		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		Path targetSrcPath = outFile.toPath()
+									.resolve("src/main/kotlin/classpath_main.kt");
+		assertThat(targetSrcPath.toFile(), anExistingFile());
+		String targetSrc = Util.readString(targetSrcPath);
+		Path buildPath = outFile.toPath().resolve("build.gradle");
+		assertThat(buildPath.toFile(), anExistingFile());
+		String build = Util.readString(buildPath);
+		assertThat(build, containsString("implementation 'log4j:log4j:1.2.17'"));
+		assertThat(build, not(containsString("languageVersion = JavaLanguageVersion.of")));
+		assertThat(build, containsString("mainClass = 'Classpath_mainKt'"));
 	}
 
 	@Test
