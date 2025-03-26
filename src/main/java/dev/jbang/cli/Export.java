@@ -569,20 +569,8 @@ abstract class BaseExportProject extends BaseExportCommand {
 		boolean isGroovy = ctx.getProject().getMainSource() instanceof GroovySource;
 		boolean isKotlin = ctx.getProject().getMainSource() instanceof KotlinSource;
 		Path srcJavaDir = projectDir.resolve("src/main/" + (isKotlin ? "kotlin" : (isGroovy ? "groovy" : "java")));
-
-		String fullClassName = "";
 		for (ResourceRef sourceRef : prj.getMainSourceSet().getSources()) {
-			Path destFile = copySource(sourceRef, srcJavaDir);
-			if (sourceRef.equals(prj.getResourceRef())) {
-				String mainFileName = Util.unkebabify(destFile.getFileName().toString());
-				Optional<String> mainPackageName = Util.getSourcePackage(Util.readString(destFile));
-				fullClassName = mainPackageName.map(s -> s + ".").orElse("") + Util.getBaseName(mainFileName);
-			}
-		}
-
-		// Kotlin - get correct main class name
-		if (isKotlin) {
-			fullClassName = prj.getMainClass();
+			copySource(sourceRef, srcJavaDir);
 		}
 
 		// Resources
@@ -594,7 +582,7 @@ abstract class BaseExportProject extends BaseExportCommand {
 		}
 
 		// Build file
-		renderBuildFile(ctx, projectDir, fullClassName);
+		renderBuildFile(ctx, projectDir);
 	}
 
 	private Path copySource(ResourceRef sourceRef, Path srcJavaDir)
@@ -618,7 +606,7 @@ abstract class BaseExportProject extends BaseExportCommand {
 
 	abstract String getType();
 
-	abstract void renderBuildFile(BuildContext ctx, Path projectDir, String fullClassName) throws IOException;
+	abstract void renderBuildFile(BuildContext ctx, Path projectDir) throws IOException;
 
 	String getJavaVersion(Project prj, boolean minorVersionFor8) {
 		if (prj.getJavaVersion() == null) {
@@ -641,7 +629,7 @@ class ExportGradleProject extends BaseExportProject {
 	}
 
 	@Override
-	void renderBuildFile(BuildContext ctx, Path projectDir, String fullClassName) throws IOException {
+	void renderBuildFile(BuildContext ctx, Path projectDir) throws IOException {
 		Project prj = ctx.getProject();
 		ResourceRef templateRef = ResourceRef.forResource("classpath:/export-build.qute.gradle");
 		Path destination = projectDir.resolve("build.gradle");
@@ -681,7 +669,7 @@ class ExportGradleProject extends BaseExportProject {
 																	.collect(Collectors.toList()))
 								.data("javaVersion", javaVersion)
 								.data("gradledependencies", gradleify(depIds))
-								.data("fullClassName", fullClassName)
+								.data("fullClassName", prj.getMainClass())
 								.data("jvmArgs", jvmArgs)
 								.data("enablePreview", prj.enablePreview() ? (javaVersion != null ? "true" : "") : "")
 								.data("compilerArgs", compilerArgs)
@@ -722,7 +710,7 @@ class ExportMavenProject extends BaseExportProject {
 	}
 
 	@Override
-	void renderBuildFile(BuildContext ctx, Path projectDir, String fullClassName) throws IOException {
+	void renderBuildFile(BuildContext ctx, Path projectDir) throws IOException {
 		Project prj = ctx.getProject();
 		ResourceRef templateRef = ResourceRef.forResource("classpath:/export-pom.qute.xml");
 		Path destination = projectDir.resolve("pom.xml");
@@ -768,7 +756,7 @@ class ExportMavenProject extends BaseExportProject {
 								.data("dependencies", depIds.stream()
 															.map(MavenCoordinate::fromString)
 															.collect(Collectors.toList()))
-								.data("fullClassName", fullClassName)
+								.data("fullClassName", prj.getMainClass())
 								.render();
 		Util.writeString(destination, result);
 	}
