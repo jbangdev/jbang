@@ -1,0 +1,27 @@
+{
+  "id" : "e92a2254-703c-4285-b824-c57dd5413d9b",
+  "name" : "jbang-catalog.json",
+  "request" : {
+    "url" : "/jbang-catalog.json",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"catalogs\": {},\n  \"aliases\": {\n    \"tree\": {\n      \"script-ref\": \"tree/main.java\"\n    },\n    \"qrcode\": {\n      \"script-ref\": \"qrcode/main.java\",\n      \"enable-preview\": false,\n      \"java-agents\": []\n    }\n  },\n  \"templates\": {}\n}",
+    "headers" : {
+      "Accept-Ranges" : "bytes",
+      "X-Varnish" : "9929241456 10136982132",
+      "Server" : "Apache",
+      "ETag" : "W/\"ea-60785137c0a1d-gzip\"",
+      "Vary" : "Accept-Encoding",
+      "Last-Modified" : "Thu, 12 Oct 2023 13:39:59 GMT",
+      "Age" : "1112",
+      "Date" : "Wed, 26 Mar 2025 00:06:38 GMT",
+      "Via" : "1.1 webcache2 (Varnish/7.7)",
+      "Content-Type" : "application/json"
+    }
+  },
+  "uuid" : "e92a2254-703c-4285-b824-c57dd5413d9b",
+  "persistent" : true,
+  "insertionIndex" : 3
+}

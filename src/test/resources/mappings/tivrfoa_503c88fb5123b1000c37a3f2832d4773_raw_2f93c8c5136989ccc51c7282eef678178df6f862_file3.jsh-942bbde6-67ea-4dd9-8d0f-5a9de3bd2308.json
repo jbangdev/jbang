@@ -1,0 +1,39 @@
+{
+  "id" : "942bbde6-67ea-4dd9-8d0f-5a9de3bd2308",
+  "name" : "tivrfoa_503c88fb5123b1000c37a3f2832d4773_raw_2f93c8c5136989ccc51c7282eef678178df6f862_file3.jsh",
+  "request" : {
+    "url" : "/tivrfoa/503c88fb5123b1000c37a3f2832d4773/raw/2f93c8c5136989ccc51c7282eef678178df6f862/file3.jsh",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "System.out.println(\"Test jsh extension\");\nSystem.out.println(\"I'm file 3\");",
+    "headers" : {
+      "X-Cache" : "MISS",
+      "Access-Control-Allow-Origin" : "*",
+      "X-Content-Type-Options" : "nosniff",
+      "Source-Age" : "0",
+      "Date" : "Wed, 26 Mar 2025 00:28:11 GMT",
+      "X-Timer" : "S1742948892.753898,VS0,VE180",
+      "Via" : "1.1 varnish",
+      "Accept-Ranges" : "bytes",
+      "X-Frame-Options" : "deny",
+      "Strict-Transport-Security" : "max-age=31536000",
+      "Cache-Control" : "max-age=300",
+      "ETag" : "\"2822c0a976f5054191882b8f403ceee5dc95f82597b732448eef9cc317d683fe\"",
+      "X-Served-By" : "cache-toj-leto2350048-TOJ",
+      "Content-Security-Policy" : "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+      "Vary" : "Authorization,Accept-Encoding,Origin",
+      "Expires" : "Wed, 26 Mar 2025 00:33:11 GMT",
+      "Cross-Origin-Resource-Policy" : "cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Cache-Hits" : "0",
+      "X-Fastly-Request-ID" : "83edc0190b95296ed29c79562a7326c5388a44fa",
+      "X-GitHub-Request-Id" : "F5E2:1DFF33:4CDDF3:5734E8:67E34A1A",
+      "Content-Type" : "text/plain; charset=utf-8"
+    }
+  },
+  "uuid" : "942bbde6-67ea-4dd9-8d0f-5a9de3bd2308",
+  "persistent" : true,
+  "insertionIndex" : 16
+}
