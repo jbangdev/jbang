@@ -676,7 +676,7 @@ class ExportGradleProject extends BaseExportProject {
 																	.collect(Collectors.toList()))
 								.data("javaVersion", javaVersion)
 								.data("gradledependencies", gradleify(depIds))
-								.data("fullClassName", fullClassName + (isKotlin ? "Kt" : ""))
+								.data("fullClassName", fullClassName)
 								.data("jvmArgs", jvmArgs)
 								.data("enablePreview", prj.enablePreview() ? (javaVersion != null ? "true" : "") : "")
 								.data("compilerArgs", compilerArgs)
