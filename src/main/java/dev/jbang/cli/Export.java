@@ -661,13 +661,13 @@ class ExportGradleProject extends BaseExportProject {
 								.data("artifact", artifact)
 								.data("version", version)
 								.data("language", (isKotlin ? "kotlin" : (isGroovy ? "groovy" : "java")))
+								.data("javaVersion", javaVersion)
 								.data("kotlinVersion", kotlinVersion)
 								.data("description", prj.getDescription().orElse(""))
 								.data("repositories", repositories	.stream()
 																	.map(MavenRepo::getUrl)
 																	.filter(s -> !"".equals(s))
 																	.collect(Collectors.toList()))
-								.data("javaVersion", javaVersion)
 								.data("gradledependencies", gradleify(depIds))
 								.data("fullClassName", prj.getMainClass())
 								.data("jvmArgs", jvmArgs)
@@ -715,13 +715,6 @@ class ExportMavenProject extends BaseExportProject {
 		ResourceRef templateRef = ResourceRef.forResource("classpath:/export-pom.qute.xml");
 		Path destination = projectDir.resolve("pom.xml");
 
-		Map<String, String> properties = new HashMap<>();
-		String javaVersion = getJavaVersion(prj, true);
-		if (javaVersion != null) {
-			properties.put("maven.compiler.source", javaVersion);
-			properties.put("maven.compiler.target", javaVersion);
-		}
-
 		List<MavenRepo> repositories = prj.getRepositories();
 		List<String> dependencies = prj.getMainSourceSet().getDependencies();
 		// Turn any URL dependencies into regular GAV coordinates
@@ -741,10 +734,21 @@ class ExportMavenProject extends BaseExportProject {
 		Template template = engine.getTemplate(templateRef);
 		if (template == null)
 			throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateRef + "'");
+		boolean isGroovy = prj.getMainSource() instanceof GroovySource;
+		boolean isKotlin = prj.getMainSource() instanceof KotlinSource;
+		String kotlinVersion = isKotlin ? ((KotlinSource) prj.getMainSource()).getKotlinVersion() : "";
+		Map<String, String> properties = new HashMap<>();
+		if (isKotlin) {
+			properties.put("kotlin.version", kotlinVersion);
+		}
+		String javaVersion = getJavaVersion(prj, false);
 		String result = template
 								.data("group", group)
 								.data("artifact", artifact)
 								.data("version", version)
+								.data("language", (isKotlin ? "kotlin" : (isGroovy ? "groovy" : "java")))
+								.data("javaVersion", javaVersion)
+								.data("kotlinVersion", kotlinVersion)
 								.data("description", prj.getDescription().orElse(""))
 								.data("properties", properties)
 								.data("repositories", repositories	.stream()
@@ -757,6 +761,7 @@ class ExportMavenProject extends BaseExportProject {
 															.map(MavenCoordinate::fromString)
 															.collect(Collectors.toList()))
 								.data("fullClassName", prj.getMainClass())
+								.data("compilerArgs", prj.getMainSourceSet().getCompileOptions())
 								.render();
 		Util.writeString(destination, result);
 	}

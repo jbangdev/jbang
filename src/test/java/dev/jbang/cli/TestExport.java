@@ -387,10 +387,12 @@ public class TestExport extends BaseTest {
 				"<dependencies>",
 				"<groupId>log4j</groupId>",
 				"<artifactId>log4j</artifactId>",
-				"<version>1.2.17</version>"));
+				"<version>1.2.17</version>",
+				"<mainClass>classpath_log</mainClass>"));
 		assertThat(pom, not(containsString("<properties>")));
 		assertThat(pom, not(containsString("<dependencyManagement>")));
 		assertThat(pom, not(containsString("<repositories>")));
+		assertThat(pom, not(containsString("<release>")));
 	}
 
 	@Test
@@ -441,10 +443,12 @@ public class TestExport extends BaseTest {
 				"<dependencies>",
 				"<groupId>log4j</groupId>",
 				"<artifactId>log4j</artifactId>",
-				"<version>1.2.17</version>"));
+				"<version>1.2.17</version>",
+				"<mainClass>classpath_log</mainClass>"));
 		assertThat(pom, not(containsString("<properties>")));
 		assertThat(pom, not(containsString("<dependencyManagement>")));
 		assertThat(pom, not(containsString("<repositories>")));
+		assertThat(pom, not(containsString("<release>")));
 	}
 
 	@Test
@@ -475,7 +479,8 @@ public class TestExport extends BaseTest {
 				"<groupId>org.apache.logging.log4j</groupId>",
 				"<artifactId>log4j-api</artifactId>",
 				"<groupId>org.apache.logging.log4j</groupId>",
-				"<artifactId>log4j-core</artifactId>"));
+				"<artifactId>log4j-core</artifactId>",
+				"<mainClass>classpath_log_bom</mainClass>"));
 		assertThat(pom, not(containsString("<properties>")));
 		assertThat(pom, not(containsString("<repositories>")));
 	}
@@ -525,8 +530,6 @@ public class TestExport extends BaseTest {
 				"<artifactId>exporttags</artifactId>",
 				"<version>1.2.3</version>",
 				"<description>some description</description>",
-				"<properties>",
-				"<maven.compiler.source>",
 				"<dependencies>",
 				"<groupId>log4j</groupId>",
 				"<artifactId>log4j</artifactId>",
@@ -534,10 +537,10 @@ public class TestExport extends BaseTest {
 				"<repositories>",
 				"<id>jitpack</id>",
 				"<url>https://jitpack.io/</url>"));
-		assertThat(pom, containsString("<maven.compiler.target>")); // Properties key may be in any order
-		assertThat(pom, not(containsString("<maven.compiler.source>1.8</maven.compiler.source>")));
-		assertThat(pom, containsString("<maven.compiler.source>11</maven.compiler.source>"));
-		assertThat(pom, not(containsString("<maven.compiler.source>17</maven.compiler.source>")));
-		assertThat(pom, not(containsString("<maven.compiler.source>11+</maven.compiler.source>")));
+		assertThat(pom, containsString("<release>")); // Properties key may be in any order
+		assertThat(pom, not(containsString("<release>8</release>")));
+		assertThat(pom, containsString("<release>11</release>"));
+		assertThat(pom, not(containsString("<release>17</release>")));
+		assertThat(pom, not(containsString("<release>11+</release>")));
 	}
 }
