@@ -221,7 +221,7 @@ public class TestExport extends BaseTest {
 		CaptureResult result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
-				.resolve("src/main/groovy/classpath_log.groovy");
+									.resolve("src/main/groovy/classpath_log.groovy");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
 		Path buildPath = outFile.toPath().resolve("build.gradle");
@@ -240,7 +240,7 @@ public class TestExport extends BaseTest {
 		CaptureResult result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
-				.resolve("src/main/kotlin/classpath_log.kt");
+									.resolve("src/main/kotlin/classpath_log.kt");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
 		Path buildPath = outFile.toPath().resolve("build.gradle");
