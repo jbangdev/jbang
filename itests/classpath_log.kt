@@ -5,10 +5,10 @@
 import org.apache.log4j.Logger
 import org.apache.log4j.BasicConfigurator
 
-class ClasspathExample {
+class classpath_log {
 
     companion object {
-        private val logger: Logger = Logger.getLogger(ClasspathExample::class.java)
+        private val logger: Logger = Logger.getLogger(classpath_log::class.java)
 
         @JvmStatic
         fun main(args: Array<String>) {
@@ -17,3 +17,5 @@ class ClasspathExample {
         }
     }
 }
+
+// gradle run --args="1 2 3"

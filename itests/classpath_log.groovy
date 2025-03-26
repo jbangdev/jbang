@@ -5,12 +5,14 @@
 import org.apache.log4j.Logger
 import org.apache.log4j.BasicConfigurator
 
-class ClasspathExample {
+class classpath_log {
 
-    static final Logger logger = Logger.getLogger(ClasspathExample)
+    static final Logger logger = Logger.getLogger(classpath_log)
 
     static void main(String[] args) {
         BasicConfigurator.configure()
         args.each { arg -> println(arg) }
     }
 }
+
+// gradle run --args="1 2 3"
