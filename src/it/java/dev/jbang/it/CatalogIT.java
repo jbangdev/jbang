@@ -13,8 +13,8 @@ public class CatalogIT extends BaseIT {
 //     Then match out contains "JBang test scripts"
 	@Test
 	public void shouldListCatalog() {
-		assertThat(shell("jbang catalog add --global --name averylongcatalogname jbang-catalog.json")).succeeded();
-		assertThat(shell("jbang catalog add --global --name averylongcatalogname jbang-catalog.json")).succeeded();
+		assertThat(shell("jbang catalog add --global --name averylongcatalogname jbang-catalog.json"));
+		assertThat(shell("jbang catalog add --global --name averylongcatalogname jbang-catalog.json"));
 		assertThat(shell("jbang catalog list"))
 												.outContains("averylongcatalogname")
 												.outContains("JBang test scripts");

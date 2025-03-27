@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,9 +42,9 @@ public class BaseIT {
 	public static List<String> prefixShellArgs(List<String> cmd) {
 		List<String> list = new ArrayList<>(cmd);
 		if (Util.isWindows()) {
-			list.addAll(0, List.of("cmd", "/c"));
+			list.addAll(0, Arrays.asList("cmd", "/c"));
 		} else {
-			list.addAll(0, List.of("sh", "-c"));
+			list.addAll(0, Arrays.asList("sh", "-c"));
 		}
 		return list;
 	}
@@ -129,7 +130,7 @@ public class BaseIT {
 	}
 
 	public CommandResult shell(String... command) {
-		return shell(Map.of(), command);
+		return shell(Collections.emptyMap(), command);
 	}
 
 }

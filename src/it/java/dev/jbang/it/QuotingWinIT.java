@@ -2,7 +2,7 @@ package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
 
-import java.util.Map;
+import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
@@ -43,7 +43,7 @@ public class QuotingWinIT extends BaseIT {
 	@Test
 	public void shouldHandleSpacesInJBANG_DIRPath() {
 		assertThat(shell(
-				Map.of("JBANG_DIR", scratch().resolve("jbang dir test").toString()),
+				Collections.singletonMap("JBANG_DIR", scratch().resolve("jbang dir test").toString()),
 				"jbang echo.java \"foo *\""))
 												.outIsExactly("0:foo *\n");
 	}
