@@ -195,7 +195,7 @@ public class TestExport extends BaseTest {
 	}
 
 	@Test
-	void testExportGradleProject() throws Exception {
+	void testExportGradleProjectFromJava() throws Exception {
 		String src = examplesTestFolder.resolve("classpath_log.java").toString();
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
@@ -211,6 +211,63 @@ public class TestExport extends BaseTest {
 		assertThat(build, containsString("implementation 'log4j:log4j:1.2.17'"));
 		assertThat(build, not(containsString("languageVersion = JavaLanguageVersion.of")));
 		assertThat(build, containsString("mainClass = 'classpath_log'"));
+	}
+
+	@Test
+	void testExportGradleProjectFromGroovy() throws Exception {
+		String src = examplesTestFolder.resolve("classpath_log.groovy").toString();
+		File outFile = jbangTempDir.resolve("target").toFile();
+		outFile.mkdirs();
+		CaptureResult result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
+		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		Path targetSrcPath = outFile.toPath()
+									.resolve("src/main/groovy/classpath_log.groovy");
+		assertThat(targetSrcPath.toFile(), anExistingFile());
+		String targetSrc = Util.readString(targetSrcPath);
+		Path buildPath = outFile.toPath().resolve("build.gradle");
+		assertThat(buildPath.toFile(), anExistingFile());
+		String build = Util.readString(buildPath);
+		assertThat(build, containsString("implementation 'log4j:log4j:1.2.17'"));
+		assertThat(build, not(containsString("languageVersion = JavaLanguageVersion.of")));
+		assertThat(build, containsString("mainClass = 'classpath_log'"));
+	}
+
+	@Test
+	void testExportGradleProjectFromKotlin1() throws Exception {
+		String src = examplesTestFolder.resolve("classpath_log.kt").toString();
+		File outFile = jbangTempDir.resolve("target").toFile();
+		outFile.mkdirs();
+		CaptureResult result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
+		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		Path targetSrcPath = outFile.toPath()
+									.resolve("src/main/kotlin/classpath_log.kt");
+		assertThat(targetSrcPath.toFile(), anExistingFile());
+		String targetSrc = Util.readString(targetSrcPath);
+		Path buildPath = outFile.toPath().resolve("build.gradle");
+		assertThat(buildPath.toFile(), anExistingFile());
+		String build = Util.readString(buildPath);
+		assertThat(build, containsString("implementation 'log4j:log4j:1.2.17'"));
+		assertThat(build, not(containsString("languageVersion = JavaLanguageVersion.of")));
+		assertThat(build, containsString("mainClass = 'classpath_log'"));
+	}
+
+	@Test
+	void testExportGradleProjectFromKotlin2() throws Exception {
+		String src = examplesTestFolder.resolve("classpath_main.kt").toString();
+		File outFile = jbangTempDir.resolve("target").toFile();
+		outFile.mkdirs();
+		CaptureResult result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
+		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		Path targetSrcPath = outFile.toPath()
+									.resolve("src/main/kotlin/classpath_main.kt");
+		assertThat(targetSrcPath.toFile(), anExistingFile());
+		String targetSrc = Util.readString(targetSrcPath);
+		Path buildPath = outFile.toPath().resolve("build.gradle");
+		assertThat(buildPath.toFile(), anExistingFile());
+		String build = Util.readString(buildPath);
+		assertThat(build, containsString("implementation 'log4j:log4j:1.2.17'"));
+		assertThat(build, not(containsString("languageVersion = JavaLanguageVersion.of")));
+		assertThat(build, containsString("mainClass = 'Classpath_mainKt'"));
 	}
 
 	@Test
@@ -330,10 +387,12 @@ public class TestExport extends BaseTest {
 				"<dependencies>",
 				"<groupId>log4j</groupId>",
 				"<artifactId>log4j</artifactId>",
-				"<version>1.2.17</version>"));
+				"<version>1.2.17</version>",
+				"<mainClass>classpath_log</mainClass>"));
 		assertThat(pom, not(containsString("<properties>")));
 		assertThat(pom, not(containsString("<dependencyManagement>")));
 		assertThat(pom, not(containsString("<repositories>")));
+		assertThat(pom, not(containsString("<release>")));
 	}
 
 	@Test
@@ -384,10 +443,12 @@ public class TestExport extends BaseTest {
 				"<dependencies>",
 				"<groupId>log4j</groupId>",
 				"<artifactId>log4j</artifactId>",
-				"<version>1.2.17</version>"));
+				"<version>1.2.17</version>",
+				"<mainClass>classpath_log</mainClass>"));
 		assertThat(pom, not(containsString("<properties>")));
 		assertThat(pom, not(containsString("<dependencyManagement>")));
 		assertThat(pom, not(containsString("<repositories>")));
+		assertThat(pom, not(containsString("<release>")));
 	}
 
 	@Test
@@ -418,7 +479,8 @@ public class TestExport extends BaseTest {
 				"<groupId>org.apache.logging.log4j</groupId>",
 				"<artifactId>log4j-api</artifactId>",
 				"<groupId>org.apache.logging.log4j</groupId>",
-				"<artifactId>log4j-core</artifactId>"));
+				"<artifactId>log4j-core</artifactId>",
+				"<mainClass>classpath_log_bom</mainClass>"));
 		assertThat(pom, not(containsString("<properties>")));
 		assertThat(pom, not(containsString("<repositories>")));
 	}
@@ -468,8 +530,6 @@ public class TestExport extends BaseTest {
 				"<artifactId>exporttags</artifactId>",
 				"<version>1.2.3</version>",
 				"<description>some description</description>",
-				"<properties>",
-				"<maven.compiler.source>",
 				"<dependencies>",
 				"<groupId>log4j</groupId>",
 				"<artifactId>log4j</artifactId>",
@@ -477,10 +537,10 @@ public class TestExport extends BaseTest {
 				"<repositories>",
 				"<id>jitpack</id>",
 				"<url>https://jitpack.io/</url>"));
-		assertThat(pom, containsString("<maven.compiler.target>")); // Properties key may be in any order
-		assertThat(pom, not(containsString("<maven.compiler.source>1.8</maven.compiler.source>")));
-		assertThat(pom, containsString("<maven.compiler.source>11</maven.compiler.source>"));
-		assertThat(pom, not(containsString("<maven.compiler.source>17</maven.compiler.source>")));
-		assertThat(pom, not(containsString("<maven.compiler.source>11+</maven.compiler.source>")));
+		assertThat(pom, containsString("<release>")); // Properties key may be in any order
+		assertThat(pom, not(containsString("<release>8</release>")));
+		assertThat(pom, containsString("<release>11</release>"));
+		assertThat(pom, not(containsString("<release>17</release>")));
+		assertThat(pom, not(containsString("<release>11+</release>")));
 	}
 }

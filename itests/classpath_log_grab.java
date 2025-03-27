@@ -14,9 +14,9 @@ import groovy.lang.Grapes;
 		@Grab(group="org.codehaus.groovy", module="groovy", version="2.5.8"),
 		@Grab(module = "log4j", group = "log4j", version = "1.2.17")
 })
-class classpath_example {
+class classpath_log {
 
-	static final Logger logger = Logger.getLogger(classpath_example.class);
+	static final Logger logger = Logger.getLogger(classpath_log.class);
 
 	public static void main(String[] args) {
 		BasicConfigurator.configure();

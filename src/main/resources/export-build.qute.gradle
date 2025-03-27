@@ -22,6 +22,7 @@ repositories {
 		url "{url}"
 	}
 {/for}
+	mavenLocal()
 }
 
 {#if javaVersion}
@@ -42,4 +43,47 @@ dependencies {
 
 application {
 	mainClass = '{fullClassName}'
+	applicationDefaultJvmArgs = [{jvmArgs}]
+{#if enablePreview eq 'true'}
+	applicationDefaultJvmArgs += ['--enable-preview']
+{/if}
+}
+
+{#if language eq 'java'}
+compileJava {
+{#if enablePreview eq 'true'}
+	options.compilerArgs += ['--release', '{javaVersion}', '--enable-preview', '-Xlint:preview']
+{/if}
+{#if compilerArgs ne ""}
+	options.compilerArgs += [{compilerArgs}]
+{/if}
+}
+{/if}
+
+{#if language eq 'groovy'}
+compileGroovy {
+{#if compilerArgs ne ""}
+	options.compilerArgs += [{compilerArgs}]
+{/if}
+}
+{/if}
+
+{#if language eq 'kotlin'}
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
+tasks.named('compileKotlin', KotlinCompilationTask) {
+	compilerOptions {
+{#if compilerArgs ne ""}
+		freeCompilerArgs.addAll([{compilerArgs}])
+{/if}
+	}
+}
+{/if}
+
+jar {
+	manifest {
+		attributes(
+				'Main-Class': '{fullClassName}',
+		)
+	}
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

@@ -569,15 +569,8 @@ abstract class BaseExportProject extends BaseExportCommand {
 		boolean isGroovy = ctx.getProject().getMainSource() instanceof GroovySource;
 		boolean isKotlin = ctx.getProject().getMainSource() instanceof KotlinSource;
 		Path srcJavaDir = projectDir.resolve("src/main/" + (isKotlin ? "kotlin" : (isGroovy ? "groovy" : "java")));
-
-		String fullClassName = "";
 		for (ResourceRef sourceRef : prj.getMainSourceSet().getSources()) {
-			Path destFile = copySource(sourceRef, srcJavaDir);
-			if (sourceRef.equals(prj.getResourceRef())) {
-				String mainFileName = Util.unkebabify(destFile.getFileName().toString());
-				Optional<String> mainPackageName = Util.getSourcePackage(Util.readString(destFile));
-				fullClassName = mainPackageName.map(s -> s + ".").orElse("") + Util.getBaseName(mainFileName);
-			}
+			copySource(sourceRef, srcJavaDir);
 		}
 
 		// Resources
@@ -589,7 +582,7 @@ abstract class BaseExportProject extends BaseExportCommand {
 		}
 
 		// Build file
-		renderBuildFile(ctx, projectDir, fullClassName);
+		renderBuildFile(ctx, projectDir);
 	}
 
 	private Path copySource(ResourceRef sourceRef, Path srcJavaDir)
@@ -613,7 +606,7 @@ abstract class BaseExportProject extends BaseExportCommand {
 
 	abstract String getType();
 
-	abstract void renderBuildFile(BuildContext ctx, Path projectDir, String fullClassName) throws IOException;
+	abstract void renderBuildFile(BuildContext ctx, Path projectDir) throws IOException;
 
 	String getJavaVersion(Project prj, boolean minorVersionFor8) {
 		if (prj.getJavaVersion() == null) {
@@ -636,7 +629,7 @@ class ExportGradleProject extends BaseExportProject {
 	}
 
 	@Override
-	void renderBuildFile(BuildContext ctx, Path projectDir, String fullClassName) throws IOException {
+	void renderBuildFile(BuildContext ctx, Path projectDir) throws IOException {
 		Project prj = ctx.getProject();
 		ResourceRef templateRef = ResourceRef.forResource("classpath:/export-build.qute.gradle");
 		Path destination = projectDir.resolve("build.gradle");
@@ -657,26 +650,33 @@ class ExportGradleProject extends BaseExportProject {
 		Template template = engine.getTemplate(templateRef);
 		if (template == null)
 			throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateRef + "'");
-		boolean isGroovy = ctx.getProject().getMainSource() instanceof GroovySource;
-		boolean isKotlin = ctx.getProject().getMainSource() instanceof KotlinSource;
-		String kotlinVersion = isKotlin ? ((KotlinSource) ctx.getProject().getMainSource()).getKotlinVersion() : "";
+		boolean isGroovy = prj.getMainSource() instanceof GroovySource;
+		boolean isKotlin = prj.getMainSource() instanceof KotlinSource;
+		String kotlinVersion = isKotlin ? ((KotlinSource) prj.getMainSource()).getKotlinVersion() : "";
+		String javaVersion = getJavaVersion(prj, false);
+		String jvmArgs = gradleArgs(prj.getRuntimeOptions());
+		String compilerArgs = gradleArgs(prj.getMainSourceSet().getCompileOptions());
 		String result = template
 								.data("group", group)
 								.data("artifact", artifact)
 								.data("version", version)
 								.data("language", (isKotlin ? "kotlin" : (isGroovy ? "groovy" : "java")))
+								.data("javaVersion", javaVersion)
 								.data("kotlinVersion", kotlinVersion)
 								.data("description", prj.getDescription().orElse(""))
 								.data("repositories", repositories	.stream()
 																	.map(MavenRepo::getUrl)
 																	.filter(s -> !"".equals(s))
 																	.collect(Collectors.toList()))
-								.data("javaVersion", getJavaVersion(prj, false))
 								.data("gradledependencies", gradleify(depIds))
-								.data("fullClassName", fullClassName + (isKotlin ? "Kt" : ""))
+								.data("fullClassName", prj.getMainClass())
+								.data("jvmArgs", jvmArgs)
+								.data("enablePreview", prj.enablePreview() ? (javaVersion != null ? "true" : "") : "")
+								.data("compilerArgs", compilerArgs)
 								.render();
 		Util.writeString(destination, result);
 		Util.writeString(projectDir.resolve("settings.gradle"), "");
+		Util.writeString(projectDir.resolve("gradle.properties"), "org.gradle.configuration-cache=true\n");
 	}
 
 	private List<String> gradleify(List<String> collectDependencies) {
@@ -687,6 +687,17 @@ class ExportGradleProject extends BaseExportProject {
 				return "implementation '" + item + "'";
 			}
 		}).collect(Collectors.toList());
+	}
+
+	private String gradleArgs(List<String> options) {
+		StringBuilder args = new StringBuilder();
+		for (String arg : options) {
+			if (args.length() > 0) {
+				args.append(", ");
+			}
+			args.append(String.format("'%s'", arg));
+		}
+		return args.toString();
 	}
 }
 
@@ -699,17 +710,10 @@ class ExportMavenProject extends BaseExportProject {
 	}
 
 	@Override
-	void renderBuildFile(BuildContext ctx, Path projectDir, String fullClassName) throws IOException {
+	void renderBuildFile(BuildContext ctx, Path projectDir) throws IOException {
 		Project prj = ctx.getProject();
 		ResourceRef templateRef = ResourceRef.forResource("classpath:/export-pom.qute.xml");
 		Path destination = projectDir.resolve("pom.xml");
-
-		Map<String, String> properties = new HashMap<>();
-		String javaVersion = getJavaVersion(prj, true);
-		if (javaVersion != null) {
-			properties.put("maven.compiler.source", javaVersion);
-			properties.put("maven.compiler.target", javaVersion);
-		}
 
 		List<MavenRepo> repositories = prj.getRepositories();
 		List<String> dependencies = prj.getMainSourceSet().getDependencies();
@@ -730,10 +734,21 @@ class ExportMavenProject extends BaseExportProject {
 		Template template = engine.getTemplate(templateRef);
 		if (template == null)
 			throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateRef + "'");
+		boolean isGroovy = prj.getMainSource() instanceof GroovySource;
+		boolean isKotlin = prj.getMainSource() instanceof KotlinSource;
+		String kotlinVersion = isKotlin ? ((KotlinSource) prj.getMainSource()).getKotlinVersion() : "";
+		Map<String, String> properties = new HashMap<>();
+		if (isKotlin) {
+			properties.put("kotlin.version", kotlinVersion);
+		}
+		String javaVersion = getJavaVersion(prj, false);
 		String result = template
 								.data("group", group)
 								.data("artifact", artifact)
 								.data("version", version)
+								.data("language", (isKotlin ? "kotlin" : (isGroovy ? "groovy" : "java")))
+								.data("javaVersion", javaVersion)
+								.data("kotlinVersion", kotlinVersion)
 								.data("description", prj.getDescription().orElse(""))
 								.data("properties", properties)
 								.data("repositories", repositories	.stream()
@@ -745,7 +760,8 @@ class ExportMavenProject extends BaseExportProject {
 								.data("dependencies", depIds.stream()
 															.map(MavenCoordinate::fromString)
 															.collect(Collectors.toList()))
-								.data("fullClassName", fullClassName)
+								.data("fullClassName", prj.getMainClass())
+								.data("compilerArgs", prj.getMainSourceSet().getCompileOptions())
 								.render();
 		Util.writeString(destination, result);
 	}
