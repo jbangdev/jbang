@@ -7,7 +7,7 @@ plugins {
 	id "com.github.breadmoirai.github-release" version "2.4.1"
 	id "io.toolebox.git-versioner" version "1.6.5"
 	id 'org.gradle.crypto.checksum' version '1.4.0'
-	id "com.diffplug.spotless" version "6.13.0" // can't go higher to still work with Java 8
+	id "com.diffplug.spotless" version "7.0.2" // can't go higher to still work with Java 8
 	id 'com.github.gmazzo.buildconfig' version "3.1.0"
 	id "com.dorongold.task-tree" version "2.1.1"
 	id "com.geoffgranum.gradle-conventional-changelog" version "0.3.1"
