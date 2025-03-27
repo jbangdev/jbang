@@ -1,0 +1,11 @@
+# Enable auto-env through the sdkman_auto_env config
+# Add key=value pairs of SDKs to use below
+
+# Java
+java={fullJavaVersion}-tem
+
+# Gradle
+gradle=8.9
+
+# JBang
+jbang={jbangVersion}

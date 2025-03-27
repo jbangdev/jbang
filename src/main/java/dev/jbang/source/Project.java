@@ -165,6 +165,31 @@ public class Project {
 	}
 
 	@Nonnull
+	public String getFullJavaVersion() {
+		String fullJavaVersion = getJavaVersion();
+		if (fullJavaVersion == null) {
+			// Get Java version from running JVM
+			fullJavaVersion = System.getProperty("java.version");
+		} else {
+			// The latest stable Java versions supported by SDKMAN.
+			// This map should be updated at least once a year
+			// Run command: $ sdk list java | grep tem
+			// to get a list of supported Temurin versions
+			Map<String, String> jv = new HashMap<String, String>();
+			jv.put("23", "23.0.2");
+			jv.put("21", "21.0.6");
+			jv.put("17", "17.0.14");
+			jv.put("11", "11.0.26");
+			// Any version not listed here, will default
+			// to majorVersion-tem in the qute template file
+			if (jv.containsKey(fullJavaVersion)) {
+				fullJavaVersion = jv.get(fullJavaVersion);
+			}
+		}
+		return fullJavaVersion;
+	}
+
+	@Nonnull
 	public Optional<String> getDescription() {
 		return Optional.ofNullable(description);
 	}

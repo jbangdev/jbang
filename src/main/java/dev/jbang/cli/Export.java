@@ -677,6 +677,16 @@ class ExportGradleProject extends BaseExportProject {
 		Util.writeString(destination, result);
 		Util.writeString(projectDir.resolve("settings.gradle"), "");
 		Util.writeString(projectDir.resolve("gradle.properties"), "org.gradle.configuration-cache=true\n");
+
+		// .sdkmanrc - JBang, Gradle and Java
+		ResourceRef sdkmanTemplateRef = ResourceRef.forResource("classpath:/sdkman.gradle.qute");
+		Template sdkmanTemplate = engine.getTemplate(sdkmanTemplateRef);
+		Path sdkmanDestination = projectDir.resolve(".sdkmanrc");
+		String sdkmanResult = sdkmanTemplate
+											.data("fullJavaVersion", prj.getFullJavaVersion())
+											.data("jbangVersion", Util.getJBangVersion())
+											.render();
+		Util.writeString(sdkmanDestination, sdkmanResult);
 	}
 
 	private List<String> gradleify(List<String> collectDependencies) {
@@ -764,5 +774,15 @@ class ExportMavenProject extends BaseExportProject {
 								.data("compilerArgs", prj.getMainSourceSet().getCompileOptions())
 								.render();
 		Util.writeString(destination, result);
+
+		// .sdkmanrc - JBang, Maven and Java
+		ResourceRef sdkmanTemplateRef = ResourceRef.forResource("classpath:/sdkman.maven.qute");
+		Template sdkmanTemplate = engine.getTemplate(sdkmanTemplateRef);
+		Path sdkmanDestination = projectDir.resolve(".sdkmanrc");
+		String sdkmanResult = sdkmanTemplate
+											.data("fullJavaVersion", prj.getFullJavaVersion())
+											.data("jbangVersion", Util.getJBangVersion())
+											.render();
+		Util.writeString(sdkmanDestination, sdkmanResult);
 	}
 }
