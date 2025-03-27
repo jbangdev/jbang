@@ -675,8 +675,8 @@ class ExportGradleProject extends BaseExportProject {
 								.data("compilerArgs", compilerArgs)
 								.render();
 		Util.writeString(destination, result);
-		Util.writeString(projectDir.resolve("settings.gradle"), "");
-		Util.writeString(projectDir.resolve("gradle.properties"), "org.gradle.configuration-cache=true\n");
+		Util.writeString(projectDir.resolve("settings.gradle"), "\n");
+		Util.writeString(projectDir.resolve("gradle.properties"), "\n");
 	}
 
 	private List<String> gradleify(List<String> collectDependencies) {
