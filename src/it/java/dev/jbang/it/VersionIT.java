@@ -17,7 +17,9 @@ public class VersionIT extends BaseIT {
 	// * match exit == 0
 	@Test
 	public void shouldVersion() {
-		assertThat(shell("jbang version")).succeeded().outMatches(Pattern.compile("(?s)\\d+\\.\\d+\\.\\d+(\\.\\d+)?\n")).errEquals("");
+		assertThat(shell("jbang version"))	.succeeded()
+											.outMatches(Pattern.compile("(?s)\\d+\\.\\d+\\.\\d+(\\.\\d+)?\n"))
+											.errEquals("");
 	}
 
 	// Scenario: verbose version
@@ -27,7 +29,9 @@ public class VersionIT extends BaseIT {
 	// * match exit == 0
 	@Test
 	public void shouldVerboseVersion() {
-		assertThat(shell("jbang --verbose version")).succeeded().outMatches(Pattern.compile("(?s)\\d+\\.\\d+\\.\\d+(\\.\\d+)?\n")).errContains("Repository");
+		assertThat(shell("jbang --verbose version")).succeeded()
+													.outMatches(Pattern.compile("(?s)\\d+\\.\\d+\\.\\d+(\\.\\d+)?\n"))
+													.errContains("Repository");
 	}
 
 }
