@@ -87,8 +87,6 @@
 			</plugin>
 			{/if}
 			{#if language eq 'kotlin'}
-			<sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
-			<testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
 			<plugin>
 				<artifactId>kotlin-maven-plugin</artifactId>
 				<groupId>org.jetbrains.kotlin</groupId>
