@@ -1,0 +1,113 @@
+package dev.jbang.it;
+
+import static dev.jbang.it.CommandResultAssert.assertThat;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
+import io.qameta.allure.Description;
+
+@EnabledForJreRange(min = JRE.JAVA_9)
+public class JshIT extends BaseIT {
+
+    // Scenario: jshell helloworld
+    @Test
+    @Description("jshell helloworld")
+    public void shouldRunJShellHelloWorld() {
+        assertThat(shell("jbang helloworld.jsh"))
+            .succeeded()
+            .outIsExactly("Hello World\n");
+    }
+
+    // Scenario: jshell arguments
+    @Test
+    @Description("jshell arguments")
+    public void shouldHandleJShellArguments() {
+        assertThat(shell("jbang helloworld.jsh JSH!"))
+            .succeeded()
+            .outIsExactly("Hello JSH!\n");
+    }
+
+    // Scenario: jsh default system property
+    @Test
+    @Description("jsh default system property")
+    public void shouldHandleDefaultSystemProperty() {
+        assertThat(shell("jbang -Dvalue hello.jsh"))
+            .succeeded()
+            .outIsExactly("true\n");
+    }
+
+    // Scenario: jsh system property
+    @Test
+    @Description("jsh system property")
+    public void shouldHandleSystemProperty() {
+        assertThat(shell("jbang -Dvalue=hello hello.jsh"))
+            .succeeded()
+            .outIsExactly("hello\n");
+    }
+
+    // Scenario: jsh quoted system property
+    @Test
+    @Description("jsh quoted system property")
+    public void shouldHandleQuotedSystemProperty() {
+        assertThat(shell("jbang -Dvalue=\"a quoted\" hello.jsh"))
+            .succeeded()
+            .outIsExactly("a quoted\n");
+    }
+
+    // Scenario: jsh fail on --native
+    @Test
+    @Description("jsh fail on --native")
+    public void shouldFailOnNative() {
+        assertThat(shell("jbang --native hello.jsh"))
+            .errContains(".jsh cannot be used with --native");
+    }
+
+    // Scenario: force jsh
+    @Test
+    @Description("force jsh")
+    public void shouldForceJsh() {
+        assertThat(shell("jbang --jsh hellojsh hello"))
+            .succeeded()
+            .errIsEmpty()
+            .outIsExactly("hello\n");
+    }
+
+    // Scenario: jsh sources
+    @Test
+    @Description("jsh sources")
+    public void shouldHandleJshSources() {
+        assertThat(shell("jbang main.jsh"))
+            .succeeded()
+            .errIsEmpty()
+            .outIsExactly("hello\n");
+    }
+
+    // Scenario: jsh with deps 1
+    @Test
+    @Description("jsh with deps")
+    public void shouldHandleJshWithDeps() {
+        assertThat(shell("jbang deps.jsh"))
+            .succeeded()
+            .errNotContains(".NoClassDef")
+            .outContains("Fake output:");
+    }
+
+    // Scenario: as code option
+    @Test
+    @Description("as code option")
+    public void shouldHandleCodeOption() {
+        assertThat(shell("jbang --code \"System.out.println(\\\"Hello\\\")\" jbangtest"))
+            .succeeded()
+            .outIsExactly("Hello\n");
+    }
+
+    // Scenario: jshell ordering
+    @Test
+    @Description("jshell ordering")
+    public void shouldHandleJshellOrdering() {
+        assertThat(shell("jbang -s helloworld.java --code \"helloworld.main()\""))
+            .succeeded()
+            .outIsExactly("Hello World\n");
+    }
+} 
