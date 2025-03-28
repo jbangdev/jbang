@@ -106,27 +106,27 @@ public class CommandResultAssert extends AbstractAssert<CommandResultAssert, Com
 		return this;
 	}
 
-    public CommandResultAssert outMatches(Pattern pattern) {
-        isNotNull();
-        if (!pattern.matcher(actual.out).matches()) {
-            failWithMessage("Expected output to match <%s> but was <%s>", pattern.pattern(), actual.out);
-        }
-        return this;
-    }
+	public CommandResultAssert outMatches(Pattern pattern) {
+		isNotNull();
+		if (!pattern.matcher(actual.out).matches()) {
+			failWithMessage("Expected output to match <%s> but was <%s>", pattern.pattern(), actual.out);
+		}
+		return this;
+	}
 
-    public CommandResultAssert errIsExactly(String string) {
-        isNotNull();
-        if (!actual.err.equals(string)) {
-            failWithMessage("Expected error output to be <%s> but was <%s>", string, actual.err);
-        }
-        return this;
-    }
+	public CommandResultAssert errIsExactly(String string) {
+		isNotNull();
+		if (!actual.err.equals(string)) {
+			failWithMessage("Expected error output to be <%s> but was <%s>", string, actual.err);
+		}
+		return this;
+	}
 
-    public CommandResultAssert errIsEmpty() {
-        isNotNull();
-        if (!actual.err.isEmpty()) {
-            failWithMessage("Expected error output to be empty but was <%s>", actual.err);
-        }
-        return this;
-    }
+	public CommandResultAssert errIsEmpty() {
+		isNotNull();
+		if (!actual.err.isEmpty()) {
+			failWithMessage("Expected error output to be empty but was <%s>", actual.err);
+		}
+		return this;
+	}
 }

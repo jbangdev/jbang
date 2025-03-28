@@ -12,9 +12,9 @@ public class RunKotlin extends BaseIT {
 // * command('jbang runkotlin.kt')
 // * match out contains 'SUCCESS!'
 // * match exit == 0
-@Test
-public void shouldRunKotlin() {
-	assertThat(shell("jbang runkotlin.kt")).outContains("SUCCESS!").exitedWith(0);
-}
+	@Test
+	public void shouldRunKotlin() {
+		assertThat(shell("jbang runkotlin.kt")).outContains("SUCCESS!").exitedWith(0);
+	}
 
 }
