@@ -121,4 +121,12 @@ public class CommandResultAssert extends AbstractAssert<CommandResultAssert, Com
         }
         return this;
     }
+
+    public CommandResultAssert errIsEmpty() {
+        isNotNull();
+        if (!actual.err.isEmpty()) {
+            failWithMessage("Expected error output to be empty but was <%s>", actual.err);
+        }
+        return this;
+    }
 }
