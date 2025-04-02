@@ -1,0 +1,11 @@
+# Enable auto-env through the sdkman_auto_env config
+# Add key=value pairs of SDKs to use below
+
+# Java
+java={fullJavaVersion}-tem
+
+# Maven
+maven=3.9.9
+
+# JBang
+jbang={jbangVersion}
