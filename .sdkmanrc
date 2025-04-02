@@ -3,9 +3,3 @@
 
 # Java
 java=11.0.26-tem
-
-# Gradle
-gradle=8.9
-
-# Maven
-maven=3.9.9
