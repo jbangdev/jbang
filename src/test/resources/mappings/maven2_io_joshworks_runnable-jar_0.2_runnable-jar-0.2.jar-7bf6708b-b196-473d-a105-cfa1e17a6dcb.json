@@ -1,0 +1,30 @@
+{
+  "id" : "7bf6708b-b196-473d-a105-cfa1e17a6dcb",
+  "name" : "maven2_io_joshworks_runnable-jar_0.2_runnable-jar-0.2.jar",
+  "request" : {
+    "url" : "/maven2/io/joshworks/runnable-jar/0.2/runnable-jar-0.2.jar",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "maven2_io_joshworks_runnable-jar_0.2_runnable-jar-0.2.jar-7bf6708b-b196-473d-a105-cfa1e17a6dcb.jar",
+    "headers" : {
+      "X-Cache" : "HIT, HIT",
+      "X-Checksum-SHA1" : "8ea6b3420f2e2eaebab01d8ba1d2c4b162dc6661",
+      "X-Checksum-MD5" : "e602420143314d90f1eb27a14dacb305",
+      "Last-Modified" : "Sun, 23 Apr 2017 04:13:20 GMT",
+      "Date" : "Wed, 26 Mar 2025 00:28:57 GMT",
+      "X-Timer" : "S1742948937.482652,VS0,VE1",
+      "Via" : "1.1 varnish, 1.1 varnish",
+      "Accept-Ranges" : "bytes",
+      "ETag" : "\"e602420143314d90f1eb27a14dacb305\"",
+      "X-Served-By" : "cache-iad-kjyo7100161-IAD, cache-toj-leto2350023-TOJ",
+      "X-Cache-Hits" : "28, 0",
+      "Age" : "113386",
+      "Content-Type" : "application/java-archive"
+    }
+  },
+  "uuid" : "7bf6708b-b196-473d-a105-cfa1e17a6dcb",
+  "persistent" : true,
+  "insertionIndex" : 10
+}

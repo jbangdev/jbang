@@ -1,0 +1,39 @@
+{
+  "id" : "7ab00cfc-7fcb-4fb6-9aa8-38e226105fc3",
+  "name" : "tivrfoa_bb5deb269de39eb8fca9636dd3c9f123_raw_7d9c77b57b0c7008976f542abf214347d695d0c8_gsonhelper.java",
+  "request" : {
+    "url" : "/tivrfoa/bb5deb269de39eb8fca9636dd3c9f123/raw/7d9c77b57b0c7008976f542abf214347d695d0c8/GsonHelper.java",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "//DEPS com.google.code.gson:gson:2.8.6\n//SOURCES Albums.java\n\nimport com.google.gson.Gson;\n\nclass GsonHelper {\n\tstatic Gson gson = new Gson();\n\tpublic static Albums getAlbums(String json) {\n\t\tSystem.out.println(\"Getting Album: \" + json);\n\t\treturn gson.fromJson(json, Albums.class);\n\t}\n}",
+    "headers" : {
+      "X-Cache" : "MISS",
+      "Access-Control-Allow-Origin" : "*",
+      "X-Content-Type-Options" : "nosniff",
+      "Source-Age" : "0",
+      "Date" : "Wed, 26 Mar 2025 00:30:15 GMT",
+      "X-Timer" : "S1742949015.857979,VS0,VE185",
+      "Via" : "1.1 varnish",
+      "Accept-Ranges" : "bytes",
+      "X-Frame-Options" : "deny",
+      "Strict-Transport-Security" : "max-age=31536000",
+      "Cache-Control" : "max-age=300",
+      "ETag" : "\"a098f6167cd7da3276a38a01f47cc76e07a7b20da32363b98c2c1dcde84c8aa7\"",
+      "X-Served-By" : "cache-toj-leto2350048-TOJ",
+      "Content-Security-Policy" : "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+      "Vary" : "Authorization,Accept-Encoding,Origin",
+      "Expires" : "Wed, 26 Mar 2025 00:35:15 GMT",
+      "Cross-Origin-Resource-Policy" : "cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Cache-Hits" : "0",
+      "X-Fastly-Request-ID" : "82c505f08e1b78a67b88097a8ad1835821a504f4",
+      "X-GitHub-Request-Id" : "6E92:245551:4E0D59:5870C3:67E34A96",
+      "Content-Type" : "text/plain; charset=utf-8"
+    }
+  },
+  "uuid" : "7ab00cfc-7fcb-4fb6-9aa8-38e226105fc3",
+  "persistent" : true,
+  "insertionIndex" : 24
+}
