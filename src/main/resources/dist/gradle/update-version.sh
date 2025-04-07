@@ -16,3 +16,4 @@ rm -f -r .gradle build.gradle settings.gradle
 tree -a
 
 git status
+git diff
