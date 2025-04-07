@@ -5,9 +5,14 @@ import static dev.jbang.Settings.CP_SEPARATOR;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.*;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.*;
 import java.util.function.Function;
 import java.util.jar.Attributes;
@@ -583,6 +588,9 @@ abstract class BaseExportProject extends BaseExportCommand {
 
 		// Build file
 		renderBuildFile(ctx, projectDir);
+
+		// Wrapper files
+		installWrapperFiles(ctx, projectDir);
 	}
 
 	private Path copySource(ResourceRef sourceRef, Path srcJavaDir)
@@ -608,6 +616,8 @@ abstract class BaseExportProject extends BaseExportCommand {
 
 	abstract void renderBuildFile(BuildContext ctx, Path projectDir) throws IOException;
 
+	abstract void installWrapperFiles(BuildContext ctx, Path projectDir) throws IOException;
+
 	String getJavaVersion(Project prj, boolean minorVersionFor8) {
 		if (prj.getJavaVersion() == null) {
 			return null;
@@ -618,6 +628,46 @@ abstract class BaseExportProject extends BaseExportCommand {
 		}
 		return javaVersion >= 9 ? Integer.toString(javaVersion) : "1." + javaVersion;
 	}
+
+	void copyWrapperFile(String srcPath, String dstPath, boolean execFlag) throws IOException {
+		File dstFile = new File(dstPath);
+
+		if (srcPath.startsWith("https://")) {
+			URL source = null;
+			try {
+				source = new URI(srcPath).toURL();
+			} catch (URISyntaxException e) {
+				throw new RuntimeException(e);
+			}
+			java.nio.channels.ReadableByteChannel rbc = java.nio.channels.Channels.newChannel(source.openStream());
+			java.io.FileOutputStream fos = new java.io.FileOutputStream(dstPath);
+			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+			fos.close();
+		} else {
+			InputStream ifs = this.getClass().getResourceAsStream(srcPath);
+			dstFile.mkdirs();
+			Files.copy(ifs, Paths.get(dstPath), StandardCopyOption.REPLACE_EXISTING);
+		}
+
+		boolean isWindows = System.getProperty("os.name").toLowerCase().contains("windows");
+
+		if (isWindows)
+			return;
+
+		if (execFlag) {
+			Set<PosixFilePermission> perms = new HashSet<>();
+			perms.add(PosixFilePermission.OWNER_READ);
+			perms.add(PosixFilePermission.OWNER_WRITE);
+			perms.add(PosixFilePermission.OWNER_EXECUTE);
+			perms.add(PosixFilePermission.OTHERS_READ);
+			perms.add(PosixFilePermission.OTHERS_EXECUTE);
+			perms.add(PosixFilePermission.GROUP_READ);
+			perms.add(PosixFilePermission.GROUP_EXECUTE);
+			Files.setPosixFilePermissions(dstFile.toPath(), perms);
+		}
+
+	}
+
 }
 
 @Command(name = "gradle", description = "Exports a Gradle project")
@@ -677,6 +727,17 @@ class ExportGradleProject extends BaseExportProject {
 		Util.writeString(destination, result);
 		Util.writeString(projectDir.resolve("settings.gradle"), "");
 		Util.writeString(projectDir.resolve("gradle.properties"), "org.gradle.configuration-cache=true\n");
+	}
+
+	@Override
+	void installWrapperFiles(BuildContext ctx, Path projectDir) throws IOException {
+		String dir = projectDir.getFileName().toString();
+		copyWrapperFile("/dist/gradle/gradlew", Paths.get(dir, "gradlew").toString(), true);
+		copyWrapperFile("/dist/gradle/gradlew.bat", Paths.get(dir, "gradlew.bat").toString(), false);
+		copyWrapperFile("/dist/gradle/gradle/wrapper/gradle-wrapper.properties",
+				Paths.get(dir, "gradle", "wrapper", "gradle-wrapper.properties").toString(), false);
+		copyWrapperFile("https://raw.githubusercontent.com/gradle/gradle/master/gradle/wrapper/gradle-wrapper.jar",
+				Paths.get(dir, "gradle", "wrapper", "gradle-wrapper.jar").toString(), false);
 	}
 
 	private List<String> gradleify(List<String> collectDependencies) {
@@ -765,4 +826,14 @@ class ExportMavenProject extends BaseExportProject {
 								.render();
 		Util.writeString(destination, result);
 	}
+
+	@Override
+	void installWrapperFiles(BuildContext ctx, Path projectDir) throws IOException {
+		String dir = projectDir.getFileName().toString();
+		copyWrapperFile("/dist/maven/mvnw", Paths.get(dir, "mvnw").toString(), true);
+		copyWrapperFile("/dist/maven/mvnw.cmd", Paths.get(dir, "mvnw.cmd").toString(), false);
+		copyWrapperFile("/dist/maven/.mvn/wrapper/maven-wrapper.properties",
+				Paths.get(dir, ".mvn", "wrapper", "maven-wrapper.properties").toString(), false);
+	}
+
 }
