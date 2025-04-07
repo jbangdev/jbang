@@ -632,6 +632,7 @@ abstract class BaseExportProject extends BaseExportCommand {
 	void copyWrapperFile(String srcPath, String dstPath, boolean execFlag) throws IOException {
 		File dstFile = new File(dstPath);
 
+		dstFile.mkdirs();
 		if (srcPath.startsWith("https://")) {
 			URL source = null;
 			try {
@@ -645,7 +646,6 @@ abstract class BaseExportProject extends BaseExportCommand {
 			fos.close();
 		} else {
 			InputStream ifs = this.getClass().getResourceAsStream(srcPath);
-			dstFile.mkdirs();
 			Files.copy(ifs, Paths.get(dstPath), StandardCopyOption.REPLACE_EXISTING);
 		}
 
