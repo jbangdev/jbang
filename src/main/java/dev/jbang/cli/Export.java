@@ -6,9 +6,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.*;
@@ -635,21 +632,8 @@ abstract class BaseExportProject extends BaseExportCommand {
 		File dstDir = new File(dstFile.getParent());
 
 		dstDir.mkdirs();
-		if (srcPath.startsWith("https://")) {
-			URL source = null;
-			try {
-				source = new URI(srcPath).toURL();
-			} catch (URISyntaxException e) {
-				throw new RuntimeException(e);
-			}
-			java.nio.channels.ReadableByteChannel rbc = java.nio.channels.Channels.newChannel(source.openStream());
-			java.io.FileOutputStream fos = new java.io.FileOutputStream(dstPath);
-			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-			fos.close();
-		} else {
-			InputStream ifs = this.getClass().getResourceAsStream(srcPath);
-			Files.copy(ifs, Paths.get(dstPath), StandardCopyOption.REPLACE_EXISTING);
-		}
+		InputStream ifs = this.getClass().getResourceAsStream(srcPath);
+		Files.copy(ifs, Paths.get(dstPath), StandardCopyOption.REPLACE_EXISTING);
 
 		boolean isWindows = System.getProperty("os.name").toLowerCase().contains("windows");
 
@@ -741,7 +725,7 @@ class ExportGradleProject extends BaseExportProject {
 		copyWrapperFile("/dist/gradle/gradlew.bat", Paths.get(dir, "gradlew.bat").toString(), false);
 		copyWrapperFile("/dist/gradle/gradle/wrapper/gradle-wrapper.properties",
 				Paths.get(dir, "gradle", "wrapper", "gradle-wrapper.properties").toString(), false);
-		copyWrapperFile("https://raw.githubusercontent.com/gradle/gradle/master/gradle/wrapper/gradle-wrapper.jar",
+		copyWrapperFile("/dist/gradle/gradle/wrapper/gradle-wrapper-jar",
 				Paths.get(dir, "gradle", "wrapper", "gradle-wrapper.jar").toString(), false);
 	}
 
