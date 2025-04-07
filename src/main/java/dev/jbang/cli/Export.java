@@ -631,8 +631,9 @@ abstract class BaseExportProject extends BaseExportCommand {
 
 	void copyWrapperFile(String srcPath, String dstPath, boolean execFlag) throws IOException {
 		File dstFile = new File(dstPath);
+		File dstDir = new File(dstFile.getParent());
 
-		dstFile.mkdirs();
+		dstDir.mkdirs();
 		if (srcPath.startsWith("https://")) {
 			URL source = null;
 			try {
