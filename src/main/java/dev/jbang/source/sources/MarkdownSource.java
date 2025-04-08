@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nonnull;
+
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.source.ResourceRef;
@@ -17,6 +19,11 @@ public class MarkdownSource extends JshSource {
 
 	protected MarkdownSource(ResourceRef ref, String script, Function<String, String> replaceProperties) {
 		super(ref, script, replaceProperties);
+	}
+
+	@Override
+	public @Nonnull Type getType() {
+		return Type.markdown;
 	}
 
 	public static Source create(ResourceRef resourceRef, Function<String, String> replaceProperties) {
