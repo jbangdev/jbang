@@ -7,7 +7,7 @@ mv gradle/wrapper/gradle-wrapper-jar gradle/wrapper/gradle-wrapper.jar
 touch build.gradle
 touch settings.gradle
 
-./gradlew wrapper --gradle-version $GRADLE_VERSION
+./gradlew --no-daemon wrapper --gradle-version $GRADLE_VERSION
 
 mv gradle/wrapper/gradle-wrapper.jar gradle/wrapper/gradle-wrapper-jar
 
