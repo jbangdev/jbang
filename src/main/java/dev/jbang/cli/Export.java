@@ -23,7 +23,6 @@ import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.dependencies.*;
 import dev.jbang.source.*;
 import dev.jbang.source.resolvers.AliasResourceResolver;
-import dev.jbang.source.sources.GroovySource;
 import dev.jbang.source.sources.KotlinSource;
 import dev.jbang.util.JarUtil;
 import dev.jbang.util.JavaUtil;
@@ -515,6 +514,9 @@ abstract class BaseExportProject extends BaseExportCommand {
 	@CommandLine.Option(names = { "--version", "-v" }, description = "The version to use for the exported project.")
 	String version;
 
+	protected EnumSet<Source.Type> supportedSourceTypes = EnumSet.of(Source.Type.java, Source.Type.groovy,
+			Source.Type.kotlin);
+
 	@Override
 	int apply(BuildContext ctx) throws IOException {
 		Path projectDir = exportMixin.getOutputPath("");
@@ -567,9 +569,8 @@ abstract class BaseExportProject extends BaseExportCommand {
 		Util.mkdirs(projectDir);
 
 		// Sources
-		boolean isGroovy = ctx.getProject().getMainSource() instanceof GroovySource;
-		boolean isKotlin = ctx.getProject().getMainSource() instanceof KotlinSource;
-		Path srcJavaDir = projectDir.resolve("src/main/" + (isKotlin ? "kotlin" : (isGroovy ? "groovy" : "java")));
+		String srcFolder = ctx.getProject().getMainSource().getType().sourceFolder;
+		Path srcJavaDir = projectDir.resolve("src/main/" + srcFolder);
 		for (ResourceRef sourceRef : prj.getMainSourceSet().getSources()) {
 			copySource(sourceRef, srcJavaDir);
 		}
@@ -674,9 +675,12 @@ class ExportGradleProject extends BaseExportProject {
 		Template template = engine.getTemplate(templateRef);
 		if (template == null)
 			throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateRef + "'");
-		boolean isGroovy = prj.getMainSource() instanceof GroovySource;
-		boolean isKotlin = prj.getMainSource() instanceof KotlinSource;
-		String kotlinVersion = isKotlin ? ((KotlinSource) prj.getMainSource()).getKotlinVersion() : "";
+		Source.Type srcType = prj.getMainSource().getType();
+		if (!supportedSourceTypes.contains(srcType)) {
+			throw new ExitException(EXIT_INVALID_INPUT, "Unsupported source type: " + srcType.name());
+		}
+		String kotlinVersion = srcType == Source.Type.kotlin ? ((KotlinSource) prj.getMainSource()).getKotlinVersion()
+				: "";
 		String javaVersion = getJavaVersion(prj, false);
 		String jvmArgs = gradleArgs(prj.getRuntimeOptions());
 		String compilerArgs = gradleArgs(prj.getMainSourceSet().getCompileOptions());
@@ -684,7 +688,7 @@ class ExportGradleProject extends BaseExportProject {
 								.data("group", group)
 								.data("artifact", artifact)
 								.data("version", version)
-								.data("language", (isKotlin ? "kotlin" : (isGroovy ? "groovy" : "java")))
+								.data("language", srcType.name())
 								.data("javaVersion", javaVersion)
 								.data("kotlinVersion", kotlinVersion)
 								.data("description", prj.getDescription().orElse(""))
@@ -769,11 +773,14 @@ class ExportMavenProject extends BaseExportProject {
 		Template template = engine.getTemplate(templateRef);
 		if (template == null)
 			throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateRef + "'");
-		boolean isGroovy = prj.getMainSource() instanceof GroovySource;
-		boolean isKotlin = prj.getMainSource() instanceof KotlinSource;
-		String kotlinVersion = isKotlin ? ((KotlinSource) prj.getMainSource()).getKotlinVersion() : "";
+		Source.Type srcType = prj.getMainSource().getType();
+		if (!supportedSourceTypes.contains(srcType)) {
+			throw new ExitException(EXIT_INVALID_INPUT, "Unsupported source type: " + srcType.name());
+		}
+		String kotlinVersion = srcType == Source.Type.kotlin ? ((KotlinSource) prj.getMainSource()).getKotlinVersion()
+				: "";
 		Map<String, String> properties = new HashMap<>();
-		if (isKotlin) {
+		if (srcType == Source.Type.kotlin) {
 			properties.put("kotlin.version", kotlinVersion);
 		}
 		String javaVersion = getJavaVersion(prj, false);
@@ -781,7 +788,7 @@ class ExportMavenProject extends BaseExportProject {
 								.data("group", group)
 								.data("artifact", artifact)
 								.data("version", version)
-								.data("language", (isKotlin ? "kotlin" : (isGroovy ? "groovy" : "java")))
+								.data("language", srcType.name())
 								.data("javaVersion", javaVersion)
 								.data("kotlinVersion", kotlinVersion)
 								.data("description", prj.getDescription().orElse(""))
