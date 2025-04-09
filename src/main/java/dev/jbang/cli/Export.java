@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.*;
-import java.nio.file.attribute.PosixFilePermission;
 import java.util.*;
 import java.util.function.Function;
 import java.util.jar.Attributes;
@@ -635,21 +634,11 @@ abstract class BaseExportProject extends BaseExportCommand {
 		InputStream ifs = this.getClass().getResourceAsStream(srcPath);
 		Files.copy(ifs, Paths.get(dstPath), StandardCopyOption.REPLACE_EXISTING);
 
-		boolean isWindows = System.getProperty("os.name").toLowerCase().contains("windows");
-
-		if (isWindows)
+		if (Util.isWindows())
 			return;
 
 		if (execFlag) {
-			Set<PosixFilePermission> perms = new HashSet<>();
-			perms.add(PosixFilePermission.OWNER_READ);
-			perms.add(PosixFilePermission.OWNER_WRITE);
-			perms.add(PosixFilePermission.OWNER_EXECUTE);
-			perms.add(PosixFilePermission.OTHERS_READ);
-			perms.add(PosixFilePermission.OTHERS_EXECUTE);
-			perms.add(PosixFilePermission.GROUP_READ);
-			perms.add(PosixFilePermission.GROUP_EXECUTE);
-			Files.setPosixFilePermissions(dstFile.toPath(), perms);
+			Util.setExecutable(dstFile.toPath());
 		}
 
 	}
