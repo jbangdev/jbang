@@ -2489,6 +2489,68 @@ public class TestRun extends BaseTest {
 
 	@Test
 	@SuppressWarnings("unchecked")
+	void testRemoteFileXXargs(@TempDir File output) throws Exception {
+
+		wms.stubFor(
+				WireMock.get(urlEqualTo("/flags.json"))
+						.willReturn(aResponse()
+												.withHeader("Content-Type", "text/plain")
+												.withBodyFile("flags.json")
+												.withBody(
+														Util.readString(
+																examplesTestFolder.resolve("flags.json")))));
+
+		wms.start();
+
+		String script = examplesTestFolder.resolve("helloworld.java").toString();
+		String arg = "http://localhost:" + wms.port() + "/flags.json";
+		CaptureResult<Integer> result = checkedRun(null, "run", "--verbose",
+				"-R=-XX:CompilerDirectivesFile=%{" + arg + "}",
+				script);
+		assertThat(result.err, containsString("Requesting HTTP GET " + arg));
+		Path file = Util.downloadAndCacheFile(arg);
+		assertThat(result.err, containsString("-XX:CompilerDirectivesFile=" + file));
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	void testRemoteFileEmbeddedXXargs(@TempDir File output) throws Exception {
+
+		wms.stubFor(
+				WireMock.get(urlEqualTo("/flags2.json"))
+						.willReturn(aResponse()
+												.withHeader("Content-Type", "text/plain")
+												.withBodyFile("flags2.json")
+												.withBody(
+														Util.readString(
+																examplesTestFolder.resolve("flags.json")))));
+
+		wms.start();
+		String arg = "http://localhost:" + wms.port() + "/flags2.json";
+
+		String directives = "//RUNTIME_OPTIONS -XX:CompilerDirectivesFile=%{" + arg + "}\n"
+				+ "class funky { static void main(String args[]) {} }";
+
+		Path f = output.toPath().resolve("funky.java");
+
+		Util.writeString(f, directives);
+
+		String script = f.toAbsolutePath().toString();
+
+		CaptureResult<Integer> result = checkedRun(null, "run", "--verbose",
+				script);
+		assertThat(result.err, containsString("Requesting HTTP GET " + arg));
+		Path file = Util.downloadAndCacheFile(arg);
+		assertThat(result.err, containsString("-XX:CompilerDirectivesFile=" + file));
+
+	}
+
+	void testRemoteFileEmbeddedInOptions() {
+
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
 	void testRemoteFileArgSimpleEscaped() throws Exception {
 		String script = examplesTestFolder.resolve("helloworld.java").toString();
 		String arg = "http://localhost:1234/readme.md";
