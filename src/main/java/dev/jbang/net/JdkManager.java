@@ -102,6 +102,10 @@ public class JdkManager {
 		return providers;
 	}
 
+	public static void resetProviders() {
+		providers = null;
+	}
+
 	@Nonnull
 	private static List<JdkProvider> updatableProviders() {
 		return providers().stream().filter(JdkProvider::canUpdate).collect(Collectors.toList());

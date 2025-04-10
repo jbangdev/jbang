@@ -1,0 +1,39 @@
+{
+  "id" : "f7dd3e1c-4228-4620-9366-35cf6b709516",
+  "name" : "maxandersen_d4fa63eb16d8fc99448d37b10c7d8980_raw_ec2f32f0093d5d56a35cd828254b3ec205f04d9f_hello.jsh",
+  "request" : {
+    "url" : "/maxandersen/d4fa63eb16d8fc99448d37b10c7d8980/raw/ec2f32f0093d5d56a35cd828254b3ec205f04d9f/hello.jsh",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "//REPOS jitpack\n//DEPS com.github.intuit.karate:karate-netty:v0.9.5\n com.intuit.karate.Main.main(args);",
+    "headers" : {
+      "X-Cache" : "MISS",
+      "Access-Control-Allow-Origin" : "*",
+      "X-Content-Type-Options" : "nosniff",
+      "Source-Age" : "0",
+      "Date" : "Wed, 26 Mar 2025 00:28:21 GMT",
+      "X-Timer" : "S1742948901.093222,VS0,VE210",
+      "Via" : "1.1 varnish",
+      "Accept-Ranges" : "bytes",
+      "X-Frame-Options" : "deny",
+      "Strict-Transport-Security" : "max-age=31536000",
+      "Cache-Control" : "max-age=300",
+      "ETag" : "\"c3b6ecd432d9f6706a42167a2a8d101698fe9a66f9834bee120f6bc60eea8dd5\"",
+      "X-Served-By" : "cache-toj-leto2350041-TOJ",
+      "Content-Security-Policy" : "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+      "Vary" : "Authorization,Accept-Encoding,Origin",
+      "Expires" : "Wed, 26 Mar 2025 00:33:21 GMT",
+      "Cross-Origin-Resource-Policy" : "cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Cache-Hits" : "0",
+      "X-Fastly-Request-ID" : "f9e6605a819e095221a250b221f5e4876efafff9",
+      "X-GitHub-Request-Id" : "B634:1C5DD2:4DAE3C:580609:67E34A24",
+      "Content-Type" : "text/plain; charset=utf-8"
+    }
+  },
+  "uuid" : "f7dd3e1c-4228-4620-9366-35cf6b709516",
+  "persistent" : true,
+  "insertionIndex" : 14
+}
