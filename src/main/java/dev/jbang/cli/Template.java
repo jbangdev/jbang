@@ -91,12 +91,12 @@ class TemplateAdd extends BaseTemplateCommand {
 		}
 
 		List<Map.Entry<String, String>> splitRefs = fileRefs
-															.stream()
-															// Turn list of files into a list of target=source pairs
-															.map(TemplateAdd::splitFileRef)
-															// Check that the source files/URLs exist
-															.filter(TemplateAdd::refExists)
-															.collect(Collectors.toList());
+			.stream()
+			// Turn list of files into a list of target=source pairs
+			.map(TemplateAdd::splitFileRef)
+			// Check that the source files/URLs exist
+			.filter(TemplateAdd::refExists)
+			.collect(Collectors.toList());
 
 		// Make sure we have at least a single {basename} or {filename} target
 		boolean hasTargetPattern = false;
@@ -124,24 +124,24 @@ class TemplateAdd extends BaseTemplateCommand {
 
 		Map<String, String> fileRefsMap = new TreeMap<>();
 		splitRefs
-					.stream()
-					// Make sure all file refs have a target
-					.map(TemplateAdd::ensureTarget)
-					// Create map of file refs
-					.forEach(splitRef -> fileRefsMap.put(splitRef.getKey(), splitRef.getValue()));
+			.stream()
+			// Make sure all file refs have a target
+			.map(TemplateAdd::ensureTarget)
+			// Create map of file refs
+			.forEach(splitRef -> fileRefsMap.put(splitRef.getKey(), splitRef.getValue()));
 
 		if (name == null) {
 			name = CatalogUtil.nameFromRef(fileRefs.get(0));
 		}
 
-		Map<String, TemplateProperty> propertiesMap = Optional	.ofNullable(properties)
-																.map(Collection::stream)
-																.map(stream -> stream.collect(Collectors.toMap(
-																		TemplatePropertyInput::getKey,
-																		(TemplatePropertyInput templatePropertyInput) -> new TemplateProperty(
-																				templatePropertyInput.getDescription(),
-																				templatePropertyInput.getDefaultValue()))))
-																.orElse(new HashMap<>());
+		Map<String, TemplateProperty> propertiesMap = Optional.ofNullable(properties)
+			.map(Collection::stream)
+			.map(stream -> stream.collect(Collectors.toMap(
+					TemplatePropertyInput::getKey,
+					(TemplatePropertyInput templatePropertyInput) -> new TemplateProperty(
+							templatePropertyInput.getDescription(),
+							templatePropertyInput.getDefaultValue()))))
+			.orElse(new HashMap<>());
 
 		Path catFile = getCatalog(false);
 		if (catFile == null) {
@@ -320,12 +320,12 @@ class TemplateList extends BaseTemplateCommand {
 	static void printTemplates(PrintStream out, String catalogName, Catalog catalog, boolean showFiles,
 			boolean showProperties, FormatMixin.Format format) {
 		List<TemplateOut> templates = catalog.templates
-														.keySet()
-														.stream()
-														.sorted()
-														.map(name -> getTemplateOut(catalogName, catalog, name,
-																showFiles, showProperties))
-														.collect(Collectors.toList());
+			.keySet()
+			.stream()
+			.sorted()
+			.map(name -> getTemplateOut(catalogName, catalog, name,
+					showFiles, showProperties))
+			.collect(Collectors.toList());
 		if (format == FormatMixin.Format.json) {
 			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 			parser.toJson(templates, out);
@@ -337,19 +337,19 @@ class TemplateList extends BaseTemplateCommand {
 	static List<CatalogList.CatalogOut> getTemplatesWithOrigin(String catalogName, Catalog catalog, boolean showFiles,
 			boolean showProperties) {
 		Map<ResourceRef, List<TemplateOut>> groups = catalog.templates
-																		.keySet()
-																		.stream()
-																		.sorted()
-																		.map(name -> getTemplateOut(catalogName,
-																				catalog, name, showFiles,
-																				showProperties))
-																		.collect(Collectors.groupingBy(
-																				t -> t._catalogRef));
-		return groups	.entrySet()
-						.stream()
-						.map(e -> new CatalogList.CatalogOut(null, e.getKey(),
-								null, e.getValue(), null))
-						.collect(Collectors.toList());
+			.keySet()
+			.stream()
+			.sorted()
+			.map(name -> getTemplateOut(catalogName,
+					catalog, name, showFiles,
+					showProperties))
+			.collect(Collectors.groupingBy(
+					t -> t._catalogRef));
+		return groups.entrySet()
+			.stream()
+			.map(e -> new CatalogList.CatalogOut(null, e.getKey(),
+					null, e.getValue(), null))
+			.collect(Collectors.toList());
 	}
 
 	static void printTemplatesWithOrigin(PrintStream out, String catalogName, Catalog catalog, boolean showFiles,
@@ -436,9 +436,9 @@ class TemplateList extends BaseTemplateCommand {
 			out.println(prefix2 + "Properties:");
 			for (Map.Entry<String, TemplateProperty> entry : template.properties.entrySet()) {
 				StringBuilder propertyLineBuilder = new StringBuilder()
-																		.append(prefix3)
-																		.append(ConsoleOutput.cyan(entry.getKey()))
-																		.append(" = ");
+					.append(prefix3)
+					.append(ConsoleOutput.cyan(entry.getKey()))
+					.append(" = ");
 				if (entry.getValue().getDescription() != null) {
 					propertyLineBuilder.append(entry.getValue().getDescription()).append(" ");
 				}
