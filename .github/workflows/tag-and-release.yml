@@ -24,11 +24,11 @@ jobs:
       JRELEASER_NEXUS2_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
       JRELEASER_VERSION: 1.15.0
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           fetch-depth: 0
       - name: install-java11
-        uses: actions/setup-java@0ab4596768b603586c0de567f2430c30f5b0d2b0 # v3
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4
         with:
           java-version: 11
           distribution: temurin
