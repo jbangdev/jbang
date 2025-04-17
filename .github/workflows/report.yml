@@ -42,7 +42,7 @@ jobs:
           echo "The PR number is: ${{ env.pr_number }}"
 
       - name: Download Test Report
-        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4
         with:
           name: junit-test-results-*
           #path: test-${{ matrix.os }}
@@ -50,7 +50,7 @@ jobs:
           merge-multiple: true
           run-id: ${{ github.event.workflow_run.id }}
       - name: Publish Test Report
-        uses: mikepenz/action-junit-report@b14027d33d3a745ccc4d6a12f649e83110b5a373 # v5
+        uses: mikepenz/action-junit-report@cf701569b05ccdd861a76b8607a66d76f6fd4857 # v5
         with:
           commit: ${{github.event.workflow_run.head_sha}}
           report_paths: '**/build/test-results/test/TEST-*.xml'
