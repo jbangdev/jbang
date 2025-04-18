@@ -23,6 +23,28 @@ will add an alias named `hello` pointing to that github url which then can be ru
 
 will show you all the aliases that are defined locally.
 
+=== Describe Aliases
+When an alias is added to a catalog it can also be described with a meaningful explanation of what the script does.
+It can be added with explicit command line parameter or extracting from the //DESCRIPTION tags present in the script.
+
+Example:
+  `jbang alias add --description="Best hello world application" --name best_hello https://github.com/jbangdev/jbang-examples/blob/HEAD/examples/helloworld.java`
+
+If you want that the description is automatically grabbed from your script, use one or more //DESCRIPTION tags directly in your script.
+
+Example:
+
+  //DESCRIPTION Best hello world application
+  //DESCRIPTION Use to cheer your friends
+
+  class helloworld {
+
+      public static void main(String[] args) {
+          System.out.println("Hello World!");
+      }
+  }
+
+
 == Implicit Alias Catalogs
 
 The aliases you create are stored locally (see <<Local Alias Catalogs>>), but JBang can also use remote catalogs.
