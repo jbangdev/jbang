@@ -278,7 +278,7 @@ public abstract class CompileBuildStep implements Builder<Project> {
 	protected String getSuggestedMain() {
 		Project project = ctx.getProject();
 		if (!project.getResourceRef().isStdin()) {
-			return project.getResourceRef().getFile().getFileName().toString().replace(getMainExtension(), "");
+			return project.getResourceRef().getFile().getFileName().toString().replace("." + getMainExtension(), "");
 		} else {
 			return null;
 		}

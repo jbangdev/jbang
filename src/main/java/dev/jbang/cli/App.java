@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.nio.file.attribute.PosixFilePermission;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -185,19 +184,7 @@ class AppInstall extends BaseCommand {
 		List<String> lines = Arrays.asList("#!/bin/sh", cb.asCommandLine(Util.Shell.bash) + " \"$@\"");
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 		if (!Util.isWindows()) {
-			setExecutable(file);
-		}
-	}
-
-	private static void setExecutable(Path file) {
-		final Set<PosixFilePermission> permissions;
-		try {
-			permissions = Files.getPosixFilePermissions(file);
-			permissions.add(PosixFilePermission.OWNER_EXECUTE);
-			permissions.add(PosixFilePermission.GROUP_EXECUTE);
-			Files.setPosixFilePermissions(file, permissions);
-		} catch (UnsupportedOperationException | IOException e) {
-			throw new ExitException(EXIT_GENERIC_ERROR, "Couldn't mark script as executable: " + file, e);
+			Util.setExecutable(file);
 		}
 	}
 

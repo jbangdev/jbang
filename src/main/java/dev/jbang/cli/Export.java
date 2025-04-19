@@ -5,6 +5,7 @@ import static dev.jbang.Settings.CP_SEPARATOR;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.*;
@@ -22,7 +23,6 @@ import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.dependencies.*;
 import dev.jbang.source.*;
 import dev.jbang.source.resolvers.AliasResourceResolver;
-import dev.jbang.source.sources.GroovySource;
 import dev.jbang.source.sources.KotlinSource;
 import dev.jbang.util.JarUtil;
 import dev.jbang.util.JavaUtil;
@@ -514,6 +514,9 @@ abstract class BaseExportProject extends BaseExportCommand {
 	@CommandLine.Option(names = { "--version", "-v" }, description = "The version to use for the exported project.")
 	String version;
 
+	protected EnumSet<Source.Type> supportedSourceTypes = EnumSet.of(Source.Type.java, Source.Type.groovy,
+			Source.Type.kotlin);
+
 	@Override
 	int apply(BuildContext ctx) throws IOException {
 		Path projectDir = exportMixin.getOutputPath("");
@@ -566,18 +569,10 @@ abstract class BaseExportProject extends BaseExportCommand {
 		Util.mkdirs(projectDir);
 
 		// Sources
-		boolean isGroovy = ctx.getProject().getMainSource() instanceof GroovySource;
-		boolean isKotlin = ctx.getProject().getMainSource() instanceof KotlinSource;
-		Path srcJavaDir = projectDir.resolve("src/main/" + (isKotlin ? "kotlin" : (isGroovy ? "groovy" : "java")));
-
-		String fullClassName = "";
+		String srcFolder = ctx.getProject().getMainSource().getType().sourceFolder;
+		Path srcJavaDir = projectDir.resolve("src/main/" + srcFolder);
 		for (ResourceRef sourceRef : prj.getMainSourceSet().getSources()) {
-			Path destFile = copySource(sourceRef, srcJavaDir);
-			if (sourceRef.equals(prj.getResourceRef())) {
-				String mainFileName = Util.unkebabify(destFile.getFileName().toString());
-				Optional<String> mainPackageName = Util.getSourcePackage(Util.readString(destFile));
-				fullClassName = mainPackageName.map(s -> s + ".").orElse("") + Util.getBaseName(mainFileName);
-			}
+			copySource(sourceRef, srcJavaDir);
 		}
 
 		// Resources
@@ -589,7 +584,10 @@ abstract class BaseExportProject extends BaseExportCommand {
 		}
 
 		// Build file
-		renderBuildFile(ctx, projectDir, fullClassName);
+		renderBuildFile(ctx, projectDir);
+
+		// Wrapper files
+		installWrapperFiles(ctx, projectDir);
 	}
 
 	private Path copySource(ResourceRef sourceRef, Path srcJavaDir)
@@ -613,7 +611,9 @@ abstract class BaseExportProject extends BaseExportCommand {
 
 	abstract String getType();
 
-	abstract void renderBuildFile(BuildContext ctx, Path projectDir, String fullClassName) throws IOException;
+	abstract void renderBuildFile(BuildContext ctx, Path projectDir) throws IOException;
+
+	abstract void installWrapperFiles(BuildContext ctx, Path projectDir) throws IOException;
 
 	String getJavaVersion(Project prj, boolean minorVersionFor8) {
 		if (prj.getJavaVersion() == null) {
@@ -625,6 +625,24 @@ abstract class BaseExportProject extends BaseExportCommand {
 		}
 		return javaVersion >= 9 ? Integer.toString(javaVersion) : "1." + javaVersion;
 	}
+
+	void copyWrapperFile(String srcPath, String dstPath, boolean execFlag) throws IOException {
+		File dstFile = new File(dstPath);
+		File dstDir = new File(dstFile.getParent());
+
+		dstDir.mkdirs();
+		InputStream ifs = this.getClass().getResourceAsStream(srcPath);
+		Files.copy(ifs, Paths.get(dstPath), StandardCopyOption.REPLACE_EXISTING);
+
+		if (Util.isWindows())
+			return;
+
+		if (execFlag) {
+			Util.setExecutable(dstFile.toPath());
+		}
+
+	}
+
 }
 
 @Command(name = "gradle", description = "Exports a Gradle project")
@@ -636,7 +654,7 @@ class ExportGradleProject extends BaseExportProject {
 	}
 
 	@Override
-	void renderBuildFile(BuildContext ctx, Path projectDir, String fullClassName) throws IOException {
+	void renderBuildFile(BuildContext ctx, Path projectDir) throws IOException {
 		Project prj = ctx.getProject();
 		ResourceRef templateRef = ResourceRef.forResource("classpath:/export-build.qute.gradle");
 		Path destination = projectDir.resolve("build.gradle");
@@ -657,26 +675,47 @@ class ExportGradleProject extends BaseExportProject {
 		Template template = engine.getTemplate(templateRef);
 		if (template == null)
 			throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateRef + "'");
-		boolean isGroovy = ctx.getProject().getMainSource() instanceof GroovySource;
-		boolean isKotlin = ctx.getProject().getMainSource() instanceof KotlinSource;
-		String kotlinVersion = isKotlin ? ((KotlinSource) ctx.getProject().getMainSource()).getKotlinVersion() : "";
+		Source.Type srcType = prj.getMainSource().getType();
+		if (!supportedSourceTypes.contains(srcType)) {
+			throw new ExitException(EXIT_INVALID_INPUT, "Unsupported source type: " + srcType.name());
+		}
+		String kotlinVersion = srcType == Source.Type.kotlin ? ((KotlinSource) prj.getMainSource()).getKotlinVersion()
+				: "";
+		String javaVersion = getJavaVersion(prj, false);
+		String jvmArgs = gradleArgs(prj.getRuntimeOptions());
+		String compilerArgs = gradleArgs(prj.getMainSourceSet().getCompileOptions());
 		String result = template
 								.data("group", group)
 								.data("artifact", artifact)
 								.data("version", version)
-								.data("language", (isKotlin ? "kotlin" : (isGroovy ? "groovy" : "java")))
+								.data("language", srcType.name())
+								.data("javaVersion", javaVersion)
 								.data("kotlinVersion", kotlinVersion)
 								.data("description", prj.getDescription().orElse(""))
 								.data("repositories", repositories	.stream()
 																	.map(MavenRepo::getUrl)
 																	.filter(s -> !"".equals(s))
 																	.collect(Collectors.toList()))
-								.data("javaVersion", getJavaVersion(prj, false))
 								.data("gradledependencies", gradleify(depIds))
-								.data("fullClassName", fullClassName + (isKotlin ? "Kt" : ""))
+								.data("fullClassName", prj.getMainClass())
+								.data("jvmArgs", jvmArgs)
+								.data("enablePreview", prj.enablePreview() ? (javaVersion != null ? "true" : "") : "")
+								.data("compilerArgs", compilerArgs)
 								.render();
 		Util.writeString(destination, result);
 		Util.writeString(projectDir.resolve("settings.gradle"), "");
+		Util.writeString(projectDir.resolve("gradle.properties"), "org.gradle.configuration-cache=true\n");
+	}
+
+	@Override
+	void installWrapperFiles(BuildContext ctx, Path projectDir) throws IOException {
+		String dir = projectDir.getFileName().toString();
+		copyWrapperFile("/dist/gradle/gradlew", Paths.get(dir, "gradlew").toString(), true);
+		copyWrapperFile("/dist/gradle/gradlew.bat", Paths.get(dir, "gradlew.bat").toString(), false);
+		copyWrapperFile("/dist/gradle/gradle/wrapper/gradle-wrapper.properties",
+				Paths.get(dir, "gradle", "wrapper", "gradle-wrapper.properties").toString(), false);
+		copyWrapperFile("/dist/gradle/gradle/wrapper/gradle-wrapper-jar",
+				Paths.get(dir, "gradle", "wrapper", "gradle-wrapper.jar").toString(), false);
 	}
 
 	private List<String> gradleify(List<String> collectDependencies) {
@@ -687,6 +726,17 @@ class ExportGradleProject extends BaseExportProject {
 				return "implementation '" + item + "'";
 			}
 		}).collect(Collectors.toList());
+	}
+
+	private String gradleArgs(List<String> options) {
+		StringBuilder args = new StringBuilder();
+		for (String arg : options) {
+			if (args.length() > 0) {
+				args.append(", ");
+			}
+			args.append(String.format("'%s'", arg));
+		}
+		return args.toString();
 	}
 }
 
@@ -699,17 +749,10 @@ class ExportMavenProject extends BaseExportProject {
 	}
 
 	@Override
-	void renderBuildFile(BuildContext ctx, Path projectDir, String fullClassName) throws IOException {
+	void renderBuildFile(BuildContext ctx, Path projectDir) throws IOException {
 		Project prj = ctx.getProject();
 		ResourceRef templateRef = ResourceRef.forResource("classpath:/export-pom.qute.xml");
 		Path destination = projectDir.resolve("pom.xml");
-
-		Map<String, String> properties = new HashMap<>();
-		String javaVersion = getJavaVersion(prj, true);
-		if (javaVersion != null) {
-			properties.put("maven.compiler.source", javaVersion);
-			properties.put("maven.compiler.target", javaVersion);
-		}
 
 		List<MavenRepo> repositories = prj.getRepositories();
 		List<String> dependencies = prj.getMainSourceSet().getDependencies();
@@ -730,10 +773,24 @@ class ExportMavenProject extends BaseExportProject {
 		Template template = engine.getTemplate(templateRef);
 		if (template == null)
 			throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateRef + "'");
+		Source.Type srcType = prj.getMainSource().getType();
+		if (!supportedSourceTypes.contains(srcType)) {
+			throw new ExitException(EXIT_INVALID_INPUT, "Unsupported source type: " + srcType.name());
+		}
+		String kotlinVersion = srcType == Source.Type.kotlin ? ((KotlinSource) prj.getMainSource()).getKotlinVersion()
+				: "";
+		Map<String, String> properties = new HashMap<>();
+		if (srcType == Source.Type.kotlin) {
+			properties.put("kotlin.version", kotlinVersion);
+		}
+		String javaVersion = getJavaVersion(prj, false);
 		String result = template
 								.data("group", group)
 								.data("artifact", artifact)
 								.data("version", version)
+								.data("language", srcType.name())
+								.data("javaVersion", javaVersion)
+								.data("kotlinVersion", kotlinVersion)
 								.data("description", prj.getDescription().orElse(""))
 								.data("properties", properties)
 								.data("repositories", repositories	.stream()
@@ -745,8 +802,19 @@ class ExportMavenProject extends BaseExportProject {
 								.data("dependencies", depIds.stream()
 															.map(MavenCoordinate::fromString)
 															.collect(Collectors.toList()))
-								.data("fullClassName", fullClassName)
+								.data("fullClassName", prj.getMainClass())
+								.data("compilerArgs", prj.getMainSourceSet().getCompileOptions())
 								.render();
 		Util.writeString(destination, result);
 	}
+
+	@Override
+	void installWrapperFiles(BuildContext ctx, Path projectDir) throws IOException {
+		String dir = projectDir.getFileName().toString();
+		copyWrapperFile("/dist/maven/mvnw", Paths.get(dir, "mvnw").toString(), true);
+		copyWrapperFile("/dist/maven/mvnw.cmd", Paths.get(dir, "mvnw.cmd").toString(), false);
+		copyWrapperFile("/dist/maven/.mvn/wrapper/maven-wrapper.properties",
+				Paths.get(dir, ".mvn", "wrapper", "maven-wrapper.properties").toString(), false);
+	}
+
 }

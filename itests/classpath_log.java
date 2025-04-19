@@ -9,9 +9,9 @@ import org.apache.log4j.BasicConfigurator;
 
 import java.util.Arrays;
 
-class classpath_example {
+class classpath_log {
 
-	static final Logger logger = Logger.getLogger(classpath_example.class);
+	static final Logger logger = Logger.getLogger(classpath_log.class);
 
 	public static void main(String[] args) {
 		BasicConfigurator.configure();

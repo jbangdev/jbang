@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.PosixFilePermission;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
@@ -1686,6 +1687,18 @@ public class Util {
 			}
 		}
 		return false;
+	}
+
+	public static void setExecutable(Path file) {
+		final Set<PosixFilePermission> permissions;
+		try {
+			permissions = Files.getPosixFilePermissions(file);
+			permissions.add(PosixFilePermission.OWNER_EXECUTE);
+			permissions.add(PosixFilePermission.GROUP_EXECUTE);
+			Files.setPosixFilePermissions(file, permissions);
+		} catch (UnsupportedOperationException | IOException e) {
+			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, "Couldn't mark script as executable: " + file, e);
+		}
 	}
 
 	/**

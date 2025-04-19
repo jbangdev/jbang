@@ -13,9 +13,9 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.apache.logging.log4j.core.config.DefaultConfiguration;
 
-class classpath_example {
+class classpath_log_bom {
 
-	static final Logger logger = LogManager.getLogger(classpath_example.class);
+	static final Logger logger = LogManager.getLogger(classpath_log_bom.class);
 
 	public static void main(String[] args) {
 		Configurator.initialize(new DefaultConfiguration());

@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import javax.annotation.Nonnull;
+
 import org.jboss.jandex.ClassInfo;
 
 import dev.jbang.net.GroovyManager;
@@ -25,6 +27,11 @@ public class GroovySource extends Source {
 
 	public GroovySource(String script, Function<String, String> replaceProperties) {
 		super(script, replaceProperties);
+	}
+
+	@Override
+	public @Nonnull Type getType() {
+		return Type.groovy;
 	}
 
 	@Override
@@ -103,7 +110,7 @@ public class GroovySource extends Source {
 
 			@Override
 			protected String getMainExtension() {
-				return ".groovy";
+				return Type.groovy.extension;
 			}
 
 			@Override

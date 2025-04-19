@@ -1133,6 +1133,7 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	@Disabled("Service doesn't seem very stable")
 	void testFetchFromBluesky(@TempDir Path dir) throws IOException {
 
 		verifyHello("https://bsky.app/profile/maxandersen.xam.dk/post/3lb2vbnfpns24", dir, false);
