@@ -3,8 +3,6 @@ package dev.jbang.it;
 import static dev.jbang.it.CommandResultAssert.assertThat;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 
 public class JavaVersionIT extends BaseIT {
 

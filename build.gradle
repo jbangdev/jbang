@@ -28,10 +28,10 @@ def aspectJVersion = '1.9.22'
 
 
 configurations {
-    agent {
-        canBeResolved = true
-        canBeConsumed = true
-    }
+	agent {
+		canBeResolved = true
+		canBeConsumed = true
+	}
 }
 
 javadoc {
@@ -151,9 +151,9 @@ dependencies {
 	testImplementation "org.hamcrest:hamcrest-library:2.2"
 	testImplementation "com.github.tomakehurst:wiremock-jre8:2.32.0"
 	testImplementation platform("io.qameta.allure:allure-bom:$allureVersion")
-    testImplementation "io.qameta.allure:allure-junit5"
+	testImplementation "io.qameta.allure:allure-junit5"
 	// only for test running
-    agent "org.aspectj:aspectjweaver:$aspectJVersion"
+	agent "org.aspectj:aspectjweaver:$aspectJVersion"
 
 	allureRawResultElements(files("$buildDir/allure-results"))
 

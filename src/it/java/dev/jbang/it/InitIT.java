@@ -58,7 +58,7 @@ public class InitIT extends BaseIT {
 		String contents = new String(Files.readAllBytes(testFile));
 		assertThat(contents).contains("class test");
 
-		//TODO: this is to avoid the file being cached.
+		// TODO: this is to avoid the file being cached.
 		contents = contents + "// " + System.currentTimeMillis();
 		Files.write(testFile, contents.getBytes());
 

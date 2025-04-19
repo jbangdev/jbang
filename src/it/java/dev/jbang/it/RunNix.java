@@ -32,11 +32,12 @@ public class RunNix extends BaseIT {
 //   * match out == "Hello jbangtest\n"
 	@Test
 	public void shouldRunAsCodeOption3() {
-		//TODO: fresh should not be needed. isolation issue.
+		// TODO: fresh should not be needed. isolation issue.
 		assertThat(shell("jbang --fresh \"--code=$(cat helloworld.java)\" jbangtest"))
-																				.errIsExactly(
-																						"[jbang] Building jar for helloworld.java...\n")
-																				.outIsExactly("Hello jbangtest\n");
+																						.errIsExactly(
+																								"[jbang] Building jar for helloworld.java...\n")
+																						.outIsExactly(
+																								"Hello jbangtest\n");
 	}
 
 }
