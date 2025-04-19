@@ -2,6 +2,8 @@ package dev.jbang.source.sources;
 
 import java.util.function.Function;
 
+import javax.annotation.Nonnull;
+
 import dev.jbang.source.*;
 
 public class JshSource extends JavaSource {
@@ -11,6 +13,11 @@ public class JshSource extends JavaSource {
 
 	protected JshSource(ResourceRef ref, String script, Function<String, String> replaceProperties) {
 		super(ref, script, replaceProperties);
+	}
+
+	@Override
+	public @Nonnull Type getType() {
+		return Type.jshell;
 	}
 
 	@Override

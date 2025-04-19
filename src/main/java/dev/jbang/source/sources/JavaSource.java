@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.function.Function;
 
 import dev.jbang.devkitman.Jdk;
+
+import javax.annotation.Nonnull;
+
 import dev.jbang.source.*;
 import dev.jbang.source.AppBuilder;
 import dev.jbang.source.buildsteps.CompileBuildStep;
@@ -22,6 +25,11 @@ public class JavaSource extends Source {
 
 	protected JavaSource(ResourceRef ref, String script, Function<String, String> replaceProperties) {
 		super(ref, script, replaceProperties);
+	}
+
+	@Override
+	public @Nonnull Type getType() {
+		return Type.java;
 	}
 
 	@Override
@@ -69,7 +77,7 @@ public class JavaSource extends Source {
 
 			@Override
 			protected String getMainExtension() {
-				return ".java";
+				return Type.java.extension;
 			}
 		}
 	}

@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import javax.annotation.Nonnull;
+
 import org.jboss.jandex.ClassInfo;
 
 import dev.jbang.net.KotlinManager;
@@ -21,6 +23,11 @@ public class KotlinSource extends Source {
 
 	public KotlinSource(String script, Function<String, String> replaceProperties) {
 		super(script, replaceProperties);
+	}
+
+	@Override
+	public @Nonnull Type getType() {
+		return Type.kotlin;
 	}
 
 	@Override
@@ -81,7 +88,7 @@ public class KotlinSource extends Source {
 
 			@Override
 			protected String getMainExtension() {
-				return ".kt";
+				return Type.kotlin.extension;
 			}
 
 			@Override
