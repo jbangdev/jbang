@@ -1,0 +1,39 @@
+{
+  "id" : "a8779436-e7ce-44ec-8db3-e2a82e078361",
+  "name" : "maxandersen_109361828562755062",
+  "request" : {
+    "url" : "/@maxandersen/109361828562755062",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "maxandersen_109361828562755062-a8779436-e7ce-44ec-8db3-e2a82e078361.txt",
+    "headers" : {
+      "x-request-id" : "1e8845bcd0940ee05b663f2bec6e8cd3",
+      "X-Cache" : "MISS, MISS, MISS",
+      "x-frame-options" : "DENY",
+      "link" : "<https://mastodon.social/users/maxandersen/statuses/109361828562755062>; rel=\"alternate\"; type=\"application/activity+json\"",
+      "Date" : "Wed, 26 Mar 2025 00:28:59 GMT",
+      "X-Timer" : "S1742948939.005730,VS0,VE109",
+      "via" : "1.1 varnish, 1.1 varnish, 1.1 varnish",
+      "Accept-Ranges" : "bytes",
+      "Strict-Transport-Security" : "max-age=31557600",
+      "content-security-policy" : "base-uri 'none'; default-src 'none'; frame-ancestors 'none'; font-src 'self' https://mastodon.social; img-src 'self' data: blob: https://mastodon.social https://files.mastodon.social; style-src 'self' https://mastodon.social 'nonce-iSFYFRRuP2wSIFW7JIwUfw=='; media-src 'self' data: https://mastodon.social https://files.mastodon.social; manifest-src 'self' https://mastodon.social; form-action 'none'; child-src 'self' blob: https://mastodon.social; worker-src 'self' blob: https://mastodon.social; connect-src 'self' data: blob: https://mastodon.social https://files.mastodon.social wss://streaming.mastodon.social; script-src 'self' https://mastodon.social 'wasm-unsafe-eval'; frame-src 'self' https:",
+      "x-content-type-options" : "nosniff",
+      "x-xss-protection" : "0",
+      "X-Served-By" : "cache-fra-eddf8230164-FRA, cache-fra-eddf8230070-FRA, cache-mad22025-MAD",
+      "referrer-policy" : "strict-origin-when-cross-origin",
+      "x-runtime" : "0.061033",
+      "Vary" : "Accept, Accept-Language, Cookie, Accept-Encoding",
+      "content-type" : "text/html; charset=utf-8",
+      "etag" : "W/\"91e3582922fcf74077ec3c286a3bdf6d\"",
+      "alt-svc" : "h3=\":443\";ma=86400,h3-29=\":443\";ma=86400,h3-27=\":443\";ma=86400",
+      "cache-control" : "max-age=10, public",
+      "X-Cache-Hits" : "0, 0, 0",
+      "Age" : "0"
+    }
+  },
+  "uuid" : "a8779436-e7ce-44ec-8db3-e2a82e078361",
+  "persistent" : true,
+  "insertionIndex" : 9
+}

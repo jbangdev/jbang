@@ -1,0 +1,39 @@
+{
+  "id" : "facaad8d-3da0-4af0-8fe3-87b2ce4b3d06",
+  "name" : "tivrfoa_8e6ea001f168fd4ef14763ceca3e5ab6_raw_f378d987f0f863d0b3bcecce1c91fa4290ec4816_two.java",
+  "request" : {
+    "url" : "/tivrfoa/8e6ea001f168fd4ef14763ceca3e5ab6/raw/f378d987f0f863d0b3bcecce1c91fa4290ec4816/two.java",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "//SOURCES t3.java\n\nclass two {\n  static {\n      System.out.println(\"I'm two =)\");\n      System.out.println(t3.sayName());\n  }\n  \n  String m1() { return t3.sayName(); }\n}",
+    "headers" : {
+      "X-Cache" : "HIT",
+      "Access-Control-Allow-Origin" : "*",
+      "X-Content-Type-Options" : "nosniff",
+      "Source-Age" : "0",
+      "Date" : "Wed, 26 Mar 2025 00:30:13 GMT",
+      "X-Timer" : "S1742949014.797051,VS0,VE177",
+      "Via" : "1.1 varnish",
+      "Accept-Ranges" : "bytes",
+      "X-Frame-Options" : "deny",
+      "Strict-Transport-Security" : "max-age=31536000",
+      "Cache-Control" : "max-age=300",
+      "ETag" : "\"c3f7498ff3b07bdda13cfd020d99fcc41ef95d893b762eb158010cff73b6603b\"",
+      "X-Served-By" : "cache-mad2200134-MAD",
+      "Content-Security-Policy" : "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+      "Vary" : "Authorization,Accept-Encoding,Origin",
+      "Expires" : "Wed, 26 Mar 2025 00:35:13 GMT",
+      "Cross-Origin-Resource-Policy" : "cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Cache-Hits" : "0",
+      "X-Fastly-Request-ID" : "e0f22e05fe42bb4644b00b55f3a54376592f205d",
+      "X-GitHub-Request-Id" : "250E:0AC9:4AC48A:54819F:67E3443F",
+      "Content-Type" : "text/plain; charset=utf-8"
+    }
+  },
+  "uuid" : "facaad8d-3da0-4af0-8fe3-87b2ce4b3d06",
+  "persistent" : true,
+  "insertionIndex" : 27
+}
