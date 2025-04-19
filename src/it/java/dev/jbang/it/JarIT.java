@@ -13,16 +13,20 @@ public class JarIT extends BaseIT {
 	@Test
 	void testJavaLaunchFile() {
 		assertThat(shell("jbang helloworld.jar"))
-			.outEquals("Hello World\n");
+													.outEquals("Hello World\n");
 	}
 
 	// #TODO: find GAV with static void main
 	// Scenario: java launch GAV
-	//   When command('jbang --main picocli.codegen.aot.graalvm.ReflectionConfigGenerator info.picocli:picocli-codegen:4.6.3')
-	//   Then match err contains "Missing required parameter: '<classes>'"
+	// When command('jbang --main
+	// picocli.codegen.aot.graalvm.ReflectionConfigGenerator
+	// info.picocli:picocli-codegen:4.6.3')
+	// Then match err contains "Missing required parameter: '<classes>'"
 	@Test
 	void testJavaLaunchGAV() {
-		assertThat(shell("jbang --main picocli.codegen.aot.graalvm.ReflectionConfigGenerator info.picocli:picocli-codegen:4.6.3"))
-			.errContains("Missing required parameter: '<classes>'");
+		assertThat(shell(
+				"jbang --main picocli.codegen.aot.graalvm.ReflectionConfigGenerator info.picocli:picocli-codegen:4.6.3"))
+																															.errContains(
+																																	"Missing required parameter: '<classes>'");
 	}
 }

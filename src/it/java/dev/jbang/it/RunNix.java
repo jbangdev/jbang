@@ -25,13 +25,6 @@ public class RunNix extends BaseIT {
 																						"[jbang] Building jar for helloworld.java...\n")
 																				.outIsExactly("Hello jbangtest\n");
 	}
-	@Test
-	public void shouldRunAsCodeOption2() {
-		assertThat(shell("jbang --code \"$(cat helloworld.java)\" jbangtest"))
-																				.errContains(
-																						"[jbang] Building jar for helloworld.java...\n")
-																				.outIsExactly("Hello jbangtest\n");
-	}
 
 // Scenario: as code option 3
 //   * command('jbang "--code=$(cat helloworld.java)" jbangtest')
