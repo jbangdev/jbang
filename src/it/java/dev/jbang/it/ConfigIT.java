@@ -19,13 +19,13 @@ public class ConfigIT extends BaseIT {
 	@Test
 	public void testConfigKeyUpdate() {
 		assertThat(shell("jbang config set foo bar"))
-				.succeeded();
-		
+														.succeeded();
+
 		assertThat(shell("jbang config set foo baz"))
-				.succeeded();
-		
+														.succeeded();
+
 		assertThat(shell("jbang config list"))
-				.succeeded()
-				.outContains("foo = baz");
+												.succeeded()
+												.outContains("foo = baz");
 	}
-} 
+}

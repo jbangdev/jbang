@@ -15,9 +15,9 @@ public class MarkdownIT extends BaseIT {
 	@Test
 	public void testReadmeMd() {
 		assertThat(shell("jbang readme.md"))
-				.succeeded()
-				.errContains("[jbang] Resolving dependencies...")
-				.outContains("You have no arguments!");
+											.succeeded()
+											.errContains("[jbang] Resolving dependencies...")
+											.outContains("You have no arguments!");
 	}
 
 	// Scenario: readme.md with args
@@ -27,8 +27,8 @@ public class MarkdownIT extends BaseIT {
 	@Test
 	public void testReadmeMdWithArgs() {
 		assertThat(shell("jbang readme.md wonderful world"))
-				.succeeded()
-				.errContains("[jbang] Resolving dependencies...")
-				.outContains("You have 2 arguments! First is wonderful\n");
+															.succeeded()
+															.errContains("[jbang] Resolving dependencies...")
+															.outContains("You have 2 arguments! First is wonderful\n");
 	}
-} 
+}

@@ -16,18 +16,21 @@ public class DependenciesIT extends BaseIT {
 	// Scenario: fetch dependencies
 	// * command('jbang --verbose version')
 	// When command('jbang classpath_log.java', { JBANG_REPO: scratch + "/newrepo"})
-	// Then match err == '[jbang] Resolving dependencies...\n[jbang]    log4j:log4j:1.2.17\n[jbang] Dependencies resolved\n[jbang] Building jar for classpath_log.java...\n'
+	// Then match err == '[jbang] Resolving dependencies...\n[jbang]
+	// log4j:log4j:1.2.17\n[jbang] Dependencies resolved\n[jbang] Building jar for
+	// classpath_log.java...\n'
 	// And fileexist(scratch + "/newrepo")
 	// And match exit == 0
 	@Test
 	public void testFetchDependencies(@TempDir Path scratch) {
 		shell("jbang --verbose version");
-		
+
 		Path newRepo = scratch.resolve("newrepo");
 		assertThat(shell("jbang classpath_log.java", "JBANG_REPO", newRepo.toString()))
-				.succeeded()
-				.errEquals("[jbang] Resolving dependencies...\n[jbang]    log4j:log4j:1.2.17\n[jbang] Dependencies resolved\n[jbang] Building jar for classpath_log.java...\n");
-		
+																						.succeeded()
+																						.errEquals(
+																								"[jbang] Resolving dependencies...\n[jbang]    log4j:log4j:1.2.17\n[jbang] Dependencies resolved\n[jbang] Building jar for classpath_log.java...\n");
+
 		assertThat(Files.exists(newRepo)).isTrue();
 	}
-} 
+}

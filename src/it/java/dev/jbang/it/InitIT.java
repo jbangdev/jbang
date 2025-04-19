@@ -8,10 +8,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 public class InitIT extends BaseIT {
-
 
 	// Feature: init
 
@@ -28,18 +26,18 @@ public class InitIT extends BaseIT {
 	public void testInitAndRun() throws IOException {
 		Path testFile = scratch().resolve("test.java");
 		assertThat(shell("jbang init " + testFile))
-				.succeeded();
-		
+													.succeeded();
+
 		String contents = new String(Files.readAllBytes(testFile));
 		assertThat(contents).contains("class test");
-		
+
 		assertThat(shell("jbang " + testFile))
-				.succeeded()
-				.errEquals("[jbang] Building jar for test.java...\n");
-		
+												.succeeded()
+												.errEquals("[jbang] Building jar for test.java...\n");
+
 		assertThat(shell("jbang " + testFile))
-				.succeeded()
-				.errNotContains("[jbang] Building jar");
+												.succeeded()
+												.errNotContains("[jbang] Building jar");
 	}
 
 	// Scenario: init of file in a non existing directory
@@ -55,22 +53,25 @@ public class InitIT extends BaseIT {
 	public void testInitInNewDirectory() throws IOException {
 		Path testFile = scratch().resolve("newfolder/test.java");
 		assertThat(shell("jbang init " + testFile))
-				.succeeded();
-		
+													.succeeded();
+
 		String contents = new String(Files.readAllBytes(testFile));
 		assertThat(contents).contains("class test");
-		
+
 		assertThat(shell("jbang " + testFile))
-				.succeeded()
-				.errEquals("[jbang] Building jar for test.java...\n");
-		
+												.succeeded()
+												.errEquals("[jbang] Building jar for test.java...\n");
+
 		assertThat(shell("jbang " + testFile))
-				.succeeded()
-				.errNotContains("[jbang] Building jar");
+												.succeeded()
+												.errNotContains("[jbang] Building jar");
 	}
 
-	// Scenario: init with several file-refs template should display a message regarding the first file using {basename}
-	// When command('jbang template add --name test "{basename}Test.java=templates/test.java.qute" "{basename}SecondTest.java=templates/test.java.qute"')
+	// Scenario: init with several file-refs template should display a message
+	// regarding the first file using {basename}
+	// When command('jbang template add --name test
+	// "{basename}Test.java=templates/test.java.qute"
+	// "{basename}SecondTest.java=templates/test.java.qute"')
 	// Then command('jbang init -t test ' + scratch + '/Script.java')
 	// * match exit == 0
 	// * fileexist(scratch + '/ScriptTest.java')
@@ -83,17 +84,18 @@ public class InitIT extends BaseIT {
 	@Test
 	public void testInitWithTemplate() throws IOException {
 		shell("jbang template add --name test \"{basename}Test.java=templates/test.java.qute\" \"{basename}SecondTest.java=templates/test.java.qute\"");
-		
+
 		Path scriptFile = scratch().resolve("Script.java");
 		assertThat(shell("jbang init -t test " + scriptFile))
-				.succeeded()
-				.errContains("File initialized. You can now run it with")
-				.errContains("or edit it using")
-				.errContains("ScriptTest.java")
-				.errNotContains("Script.java")
-				.errNotContains("ScriptSecondTest.java");
-		
+																.succeeded()
+																.errContains(
+																		"File initialized. You can now run it with")
+																.errContains("or edit it using")
+																.errContains("ScriptTest.java")
+																.errNotContains("Script.java")
+																.errNotContains("ScriptSecondTest.java");
+
 		assertThat(Files.exists(scratch().resolve("ScriptTest.java"))).isTrue();
 		assertThat(Files.exists(scratch().resolve("ScriptSecondTest.java"))).isTrue();
 	}
-} 
+}

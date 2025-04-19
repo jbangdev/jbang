@@ -14,17 +14,20 @@ public class JavaVersionIT extends BaseIT {
 	@Test
 	public void testNonExistentJavaVersion() {
 		assertThat(shell("jbang --verbose java4321.java"))
-				.succeeded()
-				.errContains("JDK version is not available for installation: 4321");
+															.succeeded()
+															.errContains(
+																	"JDK version is not available for installation: 4321");
 	}
 
 	// Scenario: java run with explicit java 8
 	// When command('jbang --verbose --java 8 java4321.java')
-	// Then match err !contains "JDK version is not available for installation: 4321"
+	// Then match err !contains "JDK version is not available for installation:
+	// 4321"
 	@Test
 	public void testExplicitJava8() {
 		assertThat(shell("jbang --verbose --java 8 java4321.java"))
-				.succeeded()
-				.errNotContains("JDK version is not available for installation: 4321");
+																	.succeeded()
+																	.errNotContains(
+																			"JDK version is not available for installation: 4321");
 	}
-} 
+}

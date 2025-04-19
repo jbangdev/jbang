@@ -39,20 +39,20 @@ java {
 // See https://docs.gradle.org/current/dsl/org.gradle.api.reporting.ReportingExtension.html
 // Extension is provided via Gradle's `reporting-base` plugin
 reporting {
-    baseDir = "$buildDir/reports"
+	baseDir = "$buildDir/reports"
 }
 
 allure {
 	version.set("2.33.0")
-    report {
-        // There might be several tasks producing the report, so the property
-        // configures a base directory for all the reports
-        // Each task creates its own subfolder there
-        reportDir.set(project.reporting.baseDirectory.dir("allure-report"))
+	report {
+		// There might be several tasks producing the report, so the property
+		// configures a base directory for all the reports
+		// Each task creates its own subfolder there
+		reportDir.set(project.reporting.baseDirectory.dir("allure-report"))
 
-        // Enable single file generation to open without serving.
-        singleFile = true
-    }
+		// Enable single file generation to open without serving.
+		singleFile = true
+	}
 }
 
 publishing {
@@ -319,7 +319,7 @@ testing {
 				implementation "org.junit.jupiter:junit-jupiter:5.10.1"
 				implementation "org.assertj:assertj-core:3.24.2"
 				implementation 'org.zeroturnaround:zt-exec:1.12'
-				implementation platform("io.qameta.allure:allure-bom:2.33.0")
+				implementation platform("io.qameta.allure:allure-bom:2.29.1")
 				implementation "io.qameta.allure:allure-junit5"
 			}
 
