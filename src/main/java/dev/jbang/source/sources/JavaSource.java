@@ -5,6 +5,8 @@ import static dev.jbang.util.JavaUtil.resolveInJavaHome;
 import java.util.List;
 import java.util.function.Function;
 
+import dev.jbang.devkitman.Jdk;
+
 import javax.annotation.Nonnull;
 
 import dev.jbang.source.*;
@@ -68,7 +70,9 @@ public class JavaSource extends Source {
 
 			@Override
 			protected String getCompilerBinary(String requestedJavaVersion) {
-				return resolveInJavaHome("javac", requestedJavaVersion);
+				Project prj = ctx.getProject();
+				Jdk jdk = prj.projectJdkManager().getOrInstallJdk(requestedJavaVersion);
+				return resolveInJavaHome("javac", jdk);
 			}
 
 			@Override

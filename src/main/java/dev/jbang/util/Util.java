@@ -38,6 +38,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.logging.LogManager;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -105,6 +106,9 @@ public class Util {
 		if (verbose) {
 			setQuiet(false);
 		}
+		LogManager	.getLogManager()
+					.getLogger("")
+					.setLevel(verbose ? java.util.logging.Level.FINE : java.util.logging.Level.INFO);
 	}
 
 	public static boolean isVerbose() {
@@ -116,6 +120,9 @@ public class Util {
 		if (quiet) {
 			setVerbose(false);
 		}
+		LogManager	.getLogManager()
+					.getLogger("")
+					.setLevel(quiet ? java.util.logging.Level.WARNING : java.util.logging.Level.INFO);
 	}
 
 	public static boolean isQuiet() {
@@ -1480,8 +1487,8 @@ public class Util {
 		try {
 			if (Files.isDirectory(path)) {
 				verboseMsg("Deleting folder " + path);
-				Files	.walk(path)
-						.sorted(Comparator.reverseOrder())
+				try (Stream<Path> s = Files.walk(path)) {
+					s	.sorted(Comparator.reverseOrder())
 						.forEach(f -> {
 							try {
 								Files.delete(f);
@@ -1489,6 +1496,7 @@ public class Util {
 								err[0] = e;
 							}
 						});
+				}
 			} else if (Files.exists(path)) {
 				verboseMsg("Deleting file " + path);
 				Files.delete(path);
