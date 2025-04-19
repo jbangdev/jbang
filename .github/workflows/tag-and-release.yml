@@ -39,11 +39,13 @@ jobs:
         run: ./gradlew --no-daemon clean build installDist publish --build-cache --scan -s
       - name: integration-test
         run: |
+          ./gradlew integrationTest
+      - name: integration-test-bash
+        run: |
           export PATH=`pwd`/build/install/jbang/bin:$PATH
           pastdir=`pwd`
           cd itests
           ./test_suite.sh
-          ./itests.sh
           cd $pastdir
       - name: version extract
         id: version
