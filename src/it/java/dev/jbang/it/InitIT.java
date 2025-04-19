@@ -51,12 +51,16 @@ public class InitIT extends BaseIT {
 	// * match err !contains "[jbang] Building jar"
 	@Test
 	public void testInitInNewDirectory() throws IOException {
-		Path testFile = scratch().resolve("newfolder/test.java");
+		Path testFile = scratch().resolve("testfolder/test.java");
 		assertThat(shell("jbang init " + testFile))
 													.succeeded();
 
 		String contents = new String(Files.readAllBytes(testFile));
 		assertThat(contents).contains("class test");
+
+		//TODO: this is to avoid the file being cached.
+		contents = contents + "// " + System.currentTimeMillis();
+		Files.write(testFile, contents.getBytes());
 
 		assertThat(shell("jbang " + testFile))
 												.succeeded()

@@ -15,7 +15,7 @@ public class RunIT extends BaseIT {
 													.errContains("Cache: " + scratch().toString())
 													.errContains("Config: " + scratch().toString())
 													.errContains(
-															"Repository: " + scratch().resolve("karate-m2").toString())
+															"Repository: " + scratch().resolve("itest-m2").toString())
 													.succeeded();
 	}
 

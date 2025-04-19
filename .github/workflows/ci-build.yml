@@ -78,6 +78,7 @@ jobs:
         run: |
           ./gradlew --no-daemon jacocoTestReport
       - name: allure report
+        if: always() # always run even if the previous step fails
         run: |
           ./gradlew allureReport --clean
       - name: Upload Allure Test Report

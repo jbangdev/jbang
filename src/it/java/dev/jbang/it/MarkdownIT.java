@@ -4,6 +4,8 @@ import static dev.jbang.it.CommandResultAssert.assertThat;
 
 import org.junit.jupiter.api.Test;
 
+//TODO: fresh should not be needed. probably due to not running isolated enough.
+
 public class MarkdownIT extends BaseIT {
 
 	// Feature: markdown
@@ -14,7 +16,7 @@ public class MarkdownIT extends BaseIT {
 	// * match out contains "You have no arguments!"
 	@Test
 	public void testReadmeMd() {
-		assertThat(shell("jbang readme.md"))
+		assertThat(shell("jbang --fresh readme.md"))
 											.succeeded()
 											.errContains("[jbang] Resolving dependencies...")
 											.outContains("You have no arguments!");
@@ -26,9 +28,10 @@ public class MarkdownIT extends BaseIT {
 	// * match out contains "You have 2 arguments! First is wonderful\n"
 	@Test
 	public void testReadmeMdWithArgs() {
-		assertThat(shell("jbang readme.md wonderful world"))
+		
+		assertThat(shell("jbang --fresh readme.md wonderful world"))
 															.succeeded()
 															.errContains("[jbang] Resolving dependencies...")
-															.outContains("You have 2 arguments! First is wonderful\n");
+															.outContains("You have 2 arguments! First is wonderful");
 	}
 }

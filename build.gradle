@@ -18,6 +18,20 @@ plugins {
 	id 'jacoco'
 	id 'maven-publish'
 	id 'io.qameta.allure-report' version '2.12.0'
+	id "io.qameta.allure-adapter-base" version "2.12.0"
+
+}
+
+
+def allureVersion = '2.29.0'
+def aspectJVersion = '1.9.22'
+
+
+configurations {
+    agent {
+        canBeResolved = true
+        canBeConsumed = true
+    }
 }
 
 javadoc {
@@ -45,6 +59,7 @@ reporting {
 allure {
 	version.set("2.33.0")
 	report {
+
 		// There might be several tasks producing the report, so the property
 		// configures a base directory for all the reports
 		// Each task creates its own subfolder there
@@ -135,10 +150,13 @@ dependencies {
 	testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
 	testImplementation "org.hamcrest:hamcrest-library:2.2"
 	testImplementation "com.github.tomakehurst:wiremock-jre8:2.32.0"
+	testImplementation platform("io.qameta.allure:allure-bom:$allureVersion")
+    testImplementation "io.qameta.allure:allure-junit5"
+	// only for test running
+    agent "org.aspectj:aspectjweaver:$aspectJVersion"
 
-	//testImplementation 'com.github.maxandersen.karate:karate-junit:19e06766'
-	//testImplementation 'com.github.maxandersen.karate:karate-apache:19e06766'
-	//testImplementation 'com.github.maxandersen.karate:karate-netty:19e06766'
+	allureRawResultElements(files("$buildDir/allure-results"))
+
 }
 
 buildConfig {
@@ -242,11 +260,13 @@ jar {
 compileJava {
 	options.encoding = 'UTF-8'
 	options.compilerArgs << "-Xlint:unchecked"
+	options.compilerArgs << '-parameters' // for allure reporting
 }
 
 compileTestJava {
 	options.encoding = 'UTF-8'
 	options.compilerArgs << "-Xlint:unchecked"
+	options.compilerArgs << '-parameters' // for allure reporting
 }
 
 compileJava9Java {
@@ -254,6 +274,7 @@ compileJava9Java {
 	targetCompatibility = 9
 	options.encoding = 'UTF-8'
 	options.compilerArgs << "-Xlint:unchecked"
+	options.compilerArgs << '-parameters' // for allure reporting
 }
 
 shadowJar {
@@ -272,11 +293,14 @@ shadowJar {
 	archiveFileName = "${archiveBaseName.get()}.${archiveExtension.get()}"
 }
 
+
+
 test {
 	useJUnitPlatform()
 	jvmArgs = [
 			"--add-opens", "java.base/java.lang=ALL-UNNAMED",
-			"--add-opens", "java.base/java.util=ALL-UNNAMED"
+			"--add-opens", "java.base/java.util=ALL-UNNAMED",
+			"-javaagent:${configurations.agent.singleFile}" // for allure reporting
 	]
 	//testLogging.showStandardStreams = true
 

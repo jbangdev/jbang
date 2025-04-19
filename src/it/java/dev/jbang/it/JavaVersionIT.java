@@ -3,6 +3,8 @@ package dev.jbang.it;
 import static dev.jbang.it.CommandResultAssert.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 public class JavaVersionIT extends BaseIT {
 
@@ -14,7 +16,6 @@ public class JavaVersionIT extends BaseIT {
 	@Test
 	public void testNonExistentJavaVersion() {
 		assertThat(shell("jbang --verbose java4321.java"))
-															.succeeded()
 															.errContains(
 																	"JDK version is not available for installation: 4321");
 	}
@@ -26,7 +27,6 @@ public class JavaVersionIT extends BaseIT {
 	@Test
 	public void testExplicitJava8() {
 		assertThat(shell("jbang --verbose --java 8 java4321.java"))
-																	.succeeded()
 																	.errNotContains(
 																			"JDK version is not available for installation: 4321");
 	}

@@ -27,7 +27,7 @@ opentest:
 # run integration tests
 itest:
     {{preitest}}
-    ./gradlew clean integrationTest
+    ./gradlew integrationTest
 
 # open shell with latest build in path
 jbang *args:
@@ -47,5 +47,5 @@ tagpatch:
     ./gradlew tag
 
 itestreport: # todo: should not be needed to clean
-    -./gradlew clean integrationTest
-    jbang allure@jbanghub/allure serve
+    -./gradlew integrationTest
+    ./gradlew allureReport --clean

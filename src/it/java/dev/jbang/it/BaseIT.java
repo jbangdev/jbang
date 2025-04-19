@@ -58,8 +58,8 @@ public class BaseIT {
 		String sep = java.io.File.separator;
 
 		env.put("SCRATCH", scratch.toString());
-		env.put("JBANG_REPO", scratch.toString() + sep + "karate-m2");
-		env.put("JBANG_DIR", scratch.toString() + sep + "karate-jbang");
+		env.put("JBANG_REPO", scratch.toString() + sep + "itest-m2");
+		env.put("JBANG_DIR", scratch.toString() + sep + "itest-jbang");
 		env.put("JBANG_NO_VERSION_CHECK", "true");
 		env.put("NO_COLOR", "1");
 
