@@ -27,7 +27,7 @@ opentest:
 # run integration tests
 itest:
     {{preitest}}
-    @cd itests && ./itests.sh
+    ./gradlew clean integrationTest
 
 # open shell with latest build in path
 jbang *args:
@@ -35,7 +35,7 @@ jbang *args:
 
 # open integeration test report
 openitest:
-    {{open}} build/karate/surefire-reports/karate-summary.html
+    {{open}} build/reports/allure-report/allureReport/index.html
 
 # tag minor
 tagminor:

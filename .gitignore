@@ -23,3 +23,4 @@ CHANGELOG.md
 allure-report
 allure-results
 .allure
+.DS_Store
