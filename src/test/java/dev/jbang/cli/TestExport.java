@@ -17,6 +17,7 @@ import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
@@ -214,6 +215,7 @@ public class TestExport extends BaseTest {
 	}
 
 	@Test
+	@Disabled("Causes overly large file to be downloaded during testing")
 	void testExportGradleProjectFromGroovy() throws Exception {
 		String src = examplesTestFolder.resolve("classpath_log.groovy").toString();
 		File outFile = jbangTempDir.resolve("target").toFile();
@@ -233,6 +235,7 @@ public class TestExport extends BaseTest {
 	}
 
 	@Test
+	@Disabled("Causes overly large file to be downloaded during testing")
 	void testExportGradleProjectFromKotlin1() throws Exception {
 		String src = examplesTestFolder.resolve("classpath_log.kt").toString();
 		File outFile = jbangTempDir.resolve("target").toFile();
@@ -252,6 +255,7 @@ public class TestExport extends BaseTest {
 	}
 
 	@Test
+	@Disabled("Causes overly large file to be downloaded during testing")
 	void testExportGradleProjectFromKotlin2() throws Exception {
 		String src = examplesTestFolder.resolve("classpath_main.kt").toString();
 		File outFile = jbangTempDir.resolve("target").toFile();
