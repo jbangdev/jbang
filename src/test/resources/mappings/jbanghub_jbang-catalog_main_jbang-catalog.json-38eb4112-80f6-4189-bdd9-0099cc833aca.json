@@ -1,0 +1,39 @@
+{
+  "id" : "38eb4112-80f6-4189-bdd9-0099cc833aca",
+  "name" : "jbanghub_jbang-catalog_main_jbang-catalog.json",
+  "request" : {
+    "url" : "/jbanghub/jbang-catalog/main/jbang-catalog.json",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"catalogs\": {\n    \"jbanghub/apple\": {\n      \"catalog-ref\": \"https://github.com/jbanghub/apple/blob/HEAD/jbang-catalog.json\",\n      \"description\": \"Apple cli\\u0027s\"\n    },\n    \"jbanghub/eclipse\": {\n      \"catalog-ref\": \"https://github.com/jbanghub/eclipse/blob/HEAD/jbang-catalog.json\",\n      \"description\": \"Eclipse Foundation developed tools\"\n    },\n    \"jbanghub/jvm-profiling-tools\": {\n      \"catalog-ref\": \"https://github.com/jvm-profiling-tools/ap-loader/blob/HEAD/jbang-catalog.json\",\n      \"description\": \"A collection of JVM profiling tools\"\n    },\n    \"jbanghub/sqlline\": {\n      \"catalog-ref\": \"https://github.com/jbanghub/sqlline/blob/HEAD/jbang-catalog.json\",\n      \"description\": \"Shell for issuing SQL to relational databases via JDBC\"\n    },\n    \"quarkusio\": {\n      \"catalog-ref\": \"https://github.com/quarkusio/jbang-catalog/blob/HEAD/jbang-catalog.json\",\n      \"description\": \"Subsonic and Subatomic Quarkus cli and plugins\"\n    },\n    \"maveniverse\": {\n      \"description\": \"The missing pieces from Apache Maven universe\",\n      \"catalog-ref\": \"https://github.com/maveniverse/jbang-catalog/blob/HEAD/jbang-catalog.json\"\n    },\n    \"jbanghub/h2\": {\n      \"catalog-ref\": \"https://github.com/jbanghub/h2/blob/HEAD/jbang-catalog.json\",\n      \"description\": \"H2 Database Engine\"\n    },\n    \"microsoft\": {\n      \"description\": \"Catalogue for JBang Artifacts\",\n      \"catalog-ref\": \"https://github.com/microsoft/jbang-catalog/blob/HEAD/jbang-catalog.json\"\n    },\n    \"alibaba\": {\n      \"catalog-ref\": \"https://github.com/alibaba/jbang-catalog/blob/HEAD/jbang-catalog.json\"\n    },\n    \"apache/camel\": {\n      \"description\": \"Run Apache Camel routes easily\",\n      \"catalog-ref\": \"https://github.com/apache/camel/blob/HEAD/jbang-catalog.json\"\n    },\n    \"jreleaser\": {\n      \"description\": \"Release projects quickly and easily with JReleaser\",\n      \"catalog-ref\": \"https://github.com/jreleaser/jbang-catalog/blob/HEAD/jbang-catalog.json\"\n    },\n    \"jupyter-java\": {\n      \"description\": \"Make it easy to use java from jupyter notebooks\",\n      \"catalog-ref\": \"https://github.com/jupyter-java/jbang-catalog/blob/HEAD/jbang-catalog.json\"\n    },\n    \"jvm-profiling-tools/ap-loader\": {\n      \"description\": \"Sampling CPU and HEAP profiler for Java featuring AsyncGetCallTrace + perf_events via JBang\",\n      \"catalog-ref\": \"https://github.com/jvm-profiling-tools/ap-loader/blob/HEAD/jbang-catalog.json\"\n    },\n    \"jbangdev\": {\n      \"description\": \"JBang's own catalog of small utilities\",\n      \"catalog-ref\": \"https://github.com/jbangdev/jbang-catalog/blob/HEAD/jbang-catalog.json\"\n    },\n    \"oracle/graalpython\": {\n      \"description\": \"A Python 3 implementation built on GraalVM\",\n      \"catalog-ref\": \"https://github.com/oracle/graalpython/blob/HEAD/jbang-catalog.json\"\n    }\n  },\n  \"aliases\": {},\n  \"templates\": {\n    \"jbang-catalog\": {\n      \"file-refs\": {\n        \"{basename}/jbang-catalog.json\": \"template/jbang-catalog.json\",\n        \"{basename}/.github/workflows/build.yml\": \"template/.github/workflows/build.yml\",\n        \"{basename}/.github/renovate.json\": \"template/.github/renovate.json\",\n        \"{basename}/readme.adoc\": \"template/readme.adoc.qute\"\n      },\n      \"description\": \"Template for creating a new JBang catalog hosted on github with automatic renovate updates\"\n    }\n  }\n}",
+    "headers" : {
+      "X-Cache" : "HIT",
+      "Access-Control-Allow-Origin" : "*",
+      "X-Content-Type-Options" : "nosniff",
+      "Source-Age" : "0",
+      "Date" : "Thu, 24 Apr 2025 16:06:47 GMT",
+      "X-Timer" : "S1745510808.671108,VS0,VE191",
+      "Via" : "1.1 varnish",
+      "Accept-Ranges" : "bytes",
+      "X-Frame-Options" : "deny",
+      "Strict-Transport-Security" : "max-age=31536000",
+      "Cache-Control" : "max-age=300",
+      "ETag" : "\"bb8e0fb3960f60906dc21c174f9da593666a1cd324846732dff7476942daf790\"",
+      "X-Served-By" : "cache-mad22061-MAD",
+      "Content-Security-Policy" : "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+      "Vary" : "Authorization,Accept-Encoding,Origin",
+      "Expires" : "Thu, 24 Apr 2025 16:11:47 GMT",
+      "Cross-Origin-Resource-Policy" : "cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Cache-Hits" : "0",
+      "X-Fastly-Request-ID" : "7654571f4a44400649768ab424ff0bb9db1388fb",
+      "X-GitHub-Request-Id" : "FF94:294F79:2D0D5DE:32DD2E6:680A5B88",
+      "Content-Type" : "text/plain; charset=utf-8"
+    }
+  },
+  "uuid" : "38eb4112-80f6-4189-bdd9-0099cc833aca",
+  "persistent" : true,
+  "insertionIndex" : 1
+}
