@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
+import org.assertj.core.api.Assertions;
+import org.assertj.core.presentation.StandardRepresentation;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.io.TempDir;
 import org.zeroturnaround.exec.InvalidExitValueException;
@@ -73,6 +75,19 @@ public class BaseIT {
 
 	@BeforeAll
 	public static void setup(@TempDir Path tempscratch) throws URISyntaxException {
+		Assertions.useRepresentation(new StandardRepresentation() {
+			@Override
+			public String toStringOf(Object object) {
+				if (object instanceof String) {
+					String str = (String) object;
+					return str	.replace(" ", "·")
+								.replace("\t", "→")
+								.replace("\n", "↵\n")
+								.replace("\r", "⏎");
+				}
+				return super.toStringOf(object);
+			}
+		});
 		scratch = tempscratch;
 		baseEnv = baseEnv(scratch);
 
