@@ -1,6 +1,7 @@
 package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
@@ -20,7 +21,9 @@ public class AppIT extends BaseIT {
 	@Description("check quotes are kept when wrapped with quotes")
 	public void shouldKeepQuotes() {
 		assertThat(shell("jbang app install --force --name jbang-itest-app-quote echo.java")).succeeded();
-		assertThat(shell("$JBANG_DIR/bin/jbang-itest-app-quote 'foo *'")).succeeded().outIsExactly("0:foo *\n");
+		assertThat(shell("$JBANG_DIR/bin/jbang-itest-app-quote 'foo *'"))	.succeeded()
+																			.outIsExactly(
+																					"0:foo *" + System.lineSeparator());
 	}
 
 	// Scenario: check quotes are kept when wrapped with quotes

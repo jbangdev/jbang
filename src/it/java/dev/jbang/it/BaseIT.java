@@ -80,10 +80,9 @@ public class BaseIT {
 			public String toStringOf(Object object) {
 				if (object instanceof String) {
 					String str = (String) object;
-					return str	.replace(" ", "·")
-								.replace("\t", "→")
-								.replace("\n", "↵\n")
-								.replace("\r", "⏎");
+					return str	.replace("\t", "\\t")
+								.replace("\n", "\\n\n")
+								.replace("\r", "\\r");
 				}
 				return super.toStringOf(object);
 			}
