@@ -1,6 +1,7 @@
 package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
+import static java.lang.System.lineSeparator;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
@@ -27,7 +28,8 @@ public class WrapperIT extends BaseIT {
 		assertThat(scratch().resolve("jbang.cmd")).isNotEmptyFile();
 		assertThat(scratch().resolve(".jbang/jbang.jar")).isNotEmptyFile();
 		assertThat(shell(scratch().resolve("jbang").toAbsolutePath() + " echo.java foo"))	.succeeded()
-																							.outIsExactly("0:foo\n");
+																							.outIsExactly("0:foo"
+																									+ lineSeparator());
 	}
 
 // Scenario: test wrapper missing folder

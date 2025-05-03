@@ -1,6 +1,7 @@
 package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
+import static java.lang.System.lineSeparator;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
@@ -33,7 +34,7 @@ public class InitIT extends BaseIT {
 
 		assertThat(shell("jbang " + testFile))
 												.succeeded()
-												.errEquals("[jbang] Building jar for test.java...\n");
+												.errEquals("[jbang] Building jar for test.java..." + lineSeparator());
 
 		assertThat(shell("jbang " + testFile))
 												.succeeded()
@@ -64,7 +65,7 @@ public class InitIT extends BaseIT {
 
 		assertThat(shell("jbang " + testFile))
 												.succeeded()
-												.errEquals("[jbang] Building jar for test.java...\n");
+												.errEquals("[jbang] Building jar for test.java..." + lineSeparator());
 
 		assertThat(shell("jbang " + testFile))
 												.succeeded()
@@ -87,7 +88,10 @@ public class InitIT extends BaseIT {
 	// * match err !contains "ScriptSecondTest.java"
 	@Test
 	public void testInitWithTemplate() throws IOException {
-		shell("jbang template add --name test \"{basename}Test.java=templates/test.java.qute\" \"{basename}SecondTest.java=templates/test.java.qute\"");
+		// TODO: --force to avoid test created in other test
+		assertThat(shell(
+				"jbang template add --force --name test \"{basename}Test.java=templates/test.java.qute\" \"{basename}SecondTest.java=templates/test.java.qute\""))
+																																									.succeeded();
 
 		Path scriptFile = scratch().resolve("Script.java");
 		assertThat(shell("jbang init -t test " + scriptFile))

@@ -1,6 +1,7 @@
 package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
+import static java.lang.System.lineSeparator;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledForJreRange;
@@ -17,7 +18,7 @@ public class JshIT extends BaseIT {
 	public void shouldRunJShellHelloWorld() {
 		assertThat(shell("jbang helloworld.jsh"))
 													.succeeded()
-													.outIsExactly("Hello World\n");
+													.outIsExactly("Hello World" + lineSeparator());
 	}
 
 	// Scenario: jshell arguments
@@ -26,7 +27,7 @@ public class JshIT extends BaseIT {
 	public void shouldHandleJShellArguments() {
 		assertThat(shell("jbang helloworld.jsh JSH!"))
 														.succeeded()
-														.outIsExactly("Hello JSH!\n");
+														.outIsExactly("Hello JSH!" + lineSeparator());
 	}
 
 	// Scenario: jsh default system property
@@ -35,7 +36,7 @@ public class JshIT extends BaseIT {
 	public void shouldHandleDefaultSystemProperty() {
 		assertThat(shell("jbang -Dvalue hello.jsh"))
 													.succeeded()
-													.outIsExactly("true\n");
+													.outIsExactly("true" + lineSeparator());
 	}
 
 	// Scenario: jsh system property
@@ -44,7 +45,7 @@ public class JshIT extends BaseIT {
 	public void shouldHandleSystemProperty() {
 		assertThat(shell("jbang -Dvalue=hello hello.jsh"))
 															.succeeded()
-															.outIsExactly("hello\n");
+															.outIsExactly("hello" + lineSeparator());
 	}
 
 	// Scenario: jsh quoted system property
@@ -53,7 +54,7 @@ public class JshIT extends BaseIT {
 	public void shouldHandleQuotedSystemProperty() {
 		assertThat(shell("jbang -Dvalue=\"a quoted\" hello.jsh"))
 																	.succeeded()
-																	.outIsExactly("a quoted\n");
+																	.outIsExactly("a quoted" + lineSeparator());
 	}
 
 	// Scenario: jsh fail on --native
@@ -71,7 +72,7 @@ public class JshIT extends BaseIT {
 		assertThat(shell("jbang --jsh hellojsh hello"))
 														.succeeded()
 														.errIsEmpty()
-														.outIsExactly("hello\n");
+														.outIsExactly("hello" + lineSeparator());
 	}
 
 	// Scenario: jsh sources
@@ -81,7 +82,7 @@ public class JshIT extends BaseIT {
 		assertThat(shell("jbang main.jsh"))
 											.succeeded()
 											.errIsEmpty()
-											.outIsExactly("hello\n");
+											.outIsExactly("hello" + lineSeparator());
 	}
 
 	// Scenario: jsh with deps 1
@@ -100,7 +101,8 @@ public class JshIT extends BaseIT {
 	public void shouldHandleCodeOption() {
 		assertThat(shell("jbang --code \"System.out.println(\\\"Hello\\\")\" jbangtest"))
 																							.succeeded()
-																							.outIsExactly("Hello\n");
+																							.outIsExactly("Hello"
+																									+ lineSeparator());
 	}
 
 	// Scenario: jshell ordering
@@ -109,6 +111,7 @@ public class JshIT extends BaseIT {
 	public void shouldHandleJshellOrdering() {
 		assertThat(shell("jbang -s helloworld.java --code \"helloworld.main()\""))
 																					.succeeded()
-																					.outIsExactly("Hello World\n");
+																					.outIsExactly("Hello World"
+																							+ lineSeparator());
 	}
 }

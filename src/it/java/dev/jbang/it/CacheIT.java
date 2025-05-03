@@ -1,6 +1,7 @@
 package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
+import static java.lang.System.lineSeparator;
 
 import org.junit.jupiter.api.Test;
 
@@ -17,7 +18,8 @@ public class CacheIT extends BaseIT {
 		assertThat(shell(
 				"jbang cache clear"))	.succeeded()
 										.errContains(
-												"[jbang] Clearing cache for urls\n[jbang] Clearing cache for jars\n[jbang] Clearing cache for kotlincs\n[jbang] Clearing cache for groovycs\n[jbang] Clearing cache for scripts\n[jbang] Clearing cache for stdins\n[jbang] Clearing cache for deps\n");
+												"[jbang] Clearing cache for urls\n[jbang] Clearing cache for jars\n[jbang] Clearing cache for kotlincs\n[jbang] Clearing cache for groovycs\n[jbang] Clearing cache for scripts\n[jbang] Clearing cache for stdins\n[jbang] Clearing cache for deps\n".replace(
+														"\n", lineSeparator()));
 	}
 
 // Scenario: clear cache default
@@ -29,7 +31,8 @@ public class CacheIT extends BaseIT {
 		assertThat(shell("jbang cache clear --all"))
 													.succeeded()
 													.errContains(
-															"[jbang] Clearing cache for urls\n[jbang] Clearing cache for jars\n[jbang] Clearing cache for jdks\n[jbang] Clearing cache for kotlincs\n[jbang] Clearing cache for groovycs\n[jbang] Clearing cache for projects\n[jbang] Clearing cache for scripts\n[jbang] Clearing cache for stdins\n[jbang] Clearing cache for deps\n");
+															"[jbang] Clearing cache for urls\n[jbang] Clearing cache for jars\n[jbang] Clearing cache for jdks\n[jbang] Clearing cache for kotlincs\n[jbang] Clearing cache for groovycs\n[jbang] Clearing cache for projects\n[jbang] Clearing cache for scripts\n[jbang] Clearing cache for stdins\n[jbang] Clearing cache for deps\n".replace(
+																	"\n", lineSeparator()));
 	}
 
 // Scenario: clear cache default

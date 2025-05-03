@@ -1,6 +1,7 @@
 package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
+import static java.lang.System.lineSeparator;
 
 import org.junit.jupiter.api.Test;
 
@@ -39,8 +40,9 @@ public class RunIT extends BaseIT {
 	@Test
 	public void shouldPassParameters() {
 		assertThat(shell("jbang helloworld.java jbangtest"))
-															.errEquals("[jbang] Building jar for helloworld.java...\n")
-															.outEquals("Hello jbangtest\n");
+															.errEquals("[jbang] Building jar for helloworld.java..."
+																	+ lineSeparator())
+															.outEquals("Hello jbangtest" + lineSeparator());
 	}
 
 	// Scenario: std in
@@ -51,8 +53,9 @@ public class RunIT extends BaseIT {
 	public void shouldPassStdIn() {
 		assertThat(shell("cat helloworld.java | jbang - jbangtest"))
 																	.errEquals(
-																			"[jbang] Building jar for helloworld.java...\n")
-																	.outEquals("Hello jbangtest\n");
+																			"[jbang] Building jar for helloworld.java..."
+																					+ lineSeparator())
+																	.outEquals("Hello jbangtest" + lineSeparator());
 	}
 
 	@Test

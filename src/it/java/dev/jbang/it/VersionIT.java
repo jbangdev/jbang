@@ -1,6 +1,7 @@
 package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
+import static java.lang.System.lineSeparator;
 
 import java.util.regex.Pattern;
 
@@ -18,7 +19,8 @@ public class VersionIT extends BaseIT {
 	@Test
 	public void shouldVersion() {
 		assertThat(shell("jbang version"))	.succeeded()
-											.outMatches(Pattern.compile("(?s)\\d+\\.\\d+\\.\\d+(\\.\\d+)?\n"))
+											.outMatches(Pattern.compile(
+													"(?s)\\d+\\.\\d+\\.\\d+(\\.\\d+)?" + lineSeparator()))
 											.errEquals("");
 	}
 
@@ -30,7 +32,8 @@ public class VersionIT extends BaseIT {
 	@Test
 	public void shouldVerboseVersion() {
 		assertThat(shell("jbang --verbose version")).succeeded()
-													.outMatches(Pattern.compile("(?s)\\d+\\.\\d+\\.\\d+(\\.\\d+)?\n"))
+													.outMatches(Pattern.compile(
+															"(?s)\\d+\\.\\d+\\.\\d+(\\.\\d+)?" + lineSeparator()))
 													.errContains("Repository");
 	}
 

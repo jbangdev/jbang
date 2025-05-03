@@ -1,6 +1,7 @@
 package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
+import static java.lang.System.lineSeparator;
 
 import org.junit.jupiter.api.Test;
 
@@ -13,7 +14,7 @@ public class JarIT extends BaseIT {
 	@Test
 	void testJavaLaunchFile() {
 		assertThat(shell("jbang helloworld.jar"))
-													.outEquals("Hello World\n");
+													.outEquals("Hello World" + lineSeparator());
 	}
 
 	// #TODO: find GAV with static void main

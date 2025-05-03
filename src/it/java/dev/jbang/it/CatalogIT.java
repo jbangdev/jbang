@@ -28,7 +28,7 @@ public class CatalogIT extends BaseIT {
 	public void shouldAddCatalogAndRunCatalogNamedReference() {
 		assertThat(shell("jbang catalog add --global --name tc jbang-catalog.json")).succeeded();
 		assertThat(shell("jbang echo@tc tako"))
-												.outIsExactly("0:tako\n");
+												.outIsExactly("0:tako" + System.lineSeparator());
 	}
 
 //   Scenario: add catalog and remove

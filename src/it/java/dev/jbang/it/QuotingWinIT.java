@@ -1,6 +1,7 @@
 package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
+import static java.lang.System.lineSeparator;
 
 import java.util.Collections;
 
@@ -16,7 +17,7 @@ public class QuotingWinIT extends BaseIT {
 	// Then match out == "0:foo *\n"
 	@Test
 	public void shouldKeepQuotesWhenWrappedWithQuotes() {
-		assertThat(shell("jbang echo.java \"foo *\"")).outIsExactly("0:foo *\n");
+		assertThat(shell("jbang echo.java \"foo *\"")).outIsExactly("0:foo *" + lineSeparator());
 	}
 
 	// Scenario: check expansion does happen
@@ -24,7 +25,7 @@ public class QuotingWinIT extends BaseIT {
 	// Then match out contains "0:foo\n1:"
 	@Test
 	public void shouldExpand() {
-		assertThat(shell("jbang echo.java foo *")).outContains("0:foo\n1:");
+		assertThat(shell("jbang echo.java foo *")).outContains("0:foo" + lineSeparator() + "1:");
 	}
 
 	// Scenario: check special characters on command line work
@@ -33,7 +34,7 @@ public class QuotingWinIT extends BaseIT {
 	@Test
 	public void shouldHandleSpecialCharacters() {
 		assertThat(shell("jbang echo.java \" ~!@#$%^&*()-+\\:;\'`<>?/,.{}[]\"")).outIsExactly(
-				"0: ~!@#$%^&*()-+\\:;'`<>?/,.{}[]\"\n");
+				"0: ~!@#$%^&*()-+\\:;'`<>?/,.{}[]" + lineSeparator());
 	}
 
 	// Scenario: check spaces in JBANG_DIR path work (Issue #171)
@@ -45,6 +46,6 @@ public class QuotingWinIT extends BaseIT {
 		assertThat(shell(
 				Collections.singletonMap("JBANG_DIR", scratch().resolve("jbang dir test").toString()),
 				"jbang echo.java \"foo *\""))
-												.outIsExactly("0:foo *\n");
+												.outIsExactly("0:foo *" + lineSeparator());
 	}
 }

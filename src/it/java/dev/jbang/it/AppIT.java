@@ -1,6 +1,7 @@
 package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
+import static java.lang.System.lineSeparator;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,7 @@ public class AppIT extends BaseIT {
 		assertThat(shell("jbang app install --force --name jbang-itest-app-quote echo.java")).succeeded();
 		assertThat(shell("$JBANG_DIR/bin/jbang-itest-app-quote 'foo *'"))	.succeeded()
 																			.outIsExactly(
-																					"0:foo *" + System.lineSeparator());
+																					"0:foo *" + lineSeparator());
 	}
 
 	// Scenario: check quotes are kept when wrapped with quotes
@@ -34,7 +35,10 @@ public class AppIT extends BaseIT {
 	@EnabledOnOs(OS.WINDOWS)
 	public void shouldKeepQuotesWindows() {
 		assertThat(shell("jbang app install --force --name jbang-itest-app-quote echo.java")).succeeded();
-		assertThat(shell("%JBANG_DIR%\\bin\\jbang-itest-app-quote.cmd 'foo *'")).succeeded().outIsExactly("0:foo *\n");
+		assertThat(shell(
+				"%JBANG_DIR%\\bin\\jbang-itest-app-quote.cmd \"foo *\"" + lineSeparator()))	.succeeded()
+																							.outIsExactly("0:foo *"
+																									+ lineSeparator());
 	}
 
 }
