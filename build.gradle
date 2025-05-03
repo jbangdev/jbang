@@ -4,6 +4,7 @@ plugins {
 	id "distribution"
 	id "com.github.johnrengelman.shadow" version "8.0.0"
 	id "java"
+	id "jvm-test-suite"
 	id "com.github.breadmoirai.github-release" version "2.4.1"
 	id "io.toolebox.git-versioner" version "1.6.5"
 	id 'org.gradle.crypto.checksum' version '1.4.0'
@@ -16,6 +17,21 @@ plugins {
 	id "org.sonarqube" version "4.0.0.2929"
 	id 'jacoco'
 	id 'maven-publish'
+	id 'io.qameta.allure-report' version '2.12.0'
+	id "io.qameta.allure-adapter-base" version "2.12.0"
+
+}
+
+
+def allureVersion = '2.29.0'
+def aspectJVersion = '1.9.22'
+
+
+configurations {
+	agent {
+		canBeResolved = true
+		canBeConsumed = true
+	}
 }
 
 javadoc {
@@ -32,6 +48,26 @@ repositories {
 java {
 	withJavadocJar()
 	withSourcesJar()
+}
+
+// See https://docs.gradle.org/current/dsl/org.gradle.api.reporting.ReportingExtension.html
+// Extension is provided via Gradle's `reporting-base` plugin
+reporting {
+	baseDir = "$buildDir/reports"
+}
+
+allure {
+	version.set("2.33.0")
+	report {
+
+		// There might be several tasks producing the report, so the property
+		// configures a base directory for all the reports
+		// Each task creates its own subfolder there
+		reportDir.set(project.reporting.baseDirectory.dir("allure-report"))
+
+		// Enable single file generation to open without serving.
+		singleFile = true
+	}
 }
 
 publishing {
@@ -109,15 +145,18 @@ dependencies {
 	implementation "eu.maveniverse.maven.mima:context:2.4.20"
 	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.20"
 
-	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.10.1"
-	testImplementation "org.junit.jupiter:junit-jupiter:5.10.1"
+	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.12.2"
+	testImplementation "org.junit.jupiter:junit-jupiter:5.12.2"
 	testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
 	testImplementation "org.hamcrest:hamcrest-library:2.2"
 	testImplementation "com.github.tomakehurst:wiremock-jre8:2.32.0"
+	testImplementation platform("io.qameta.allure:allure-bom:$allureVersion")
+	testImplementation "io.qameta.allure:allure-junit5"
+	// only for test running
+	agent "org.aspectj:aspectjweaver:$aspectJVersion"
 
-	//testImplementation 'com.github.maxandersen.karate:karate-junit:19e06766'
-	//testImplementation 'com.github.maxandersen.karate:karate-apache:19e06766'
-	//testImplementation 'com.github.maxandersen.karate:karate-netty:19e06766'
+	allureRawResultElements(files("$buildDir/allure-results"))
+
 }
 
 buildConfig {
@@ -221,11 +260,13 @@ jar {
 compileJava {
 	options.encoding = 'UTF-8'
 	options.compilerArgs << "-Xlint:unchecked"
+	options.compilerArgs << '-parameters' // for allure reporting
 }
 
 compileTestJava {
 	options.encoding = 'UTF-8'
 	options.compilerArgs << "-Xlint:unchecked"
+	options.compilerArgs << '-parameters' // for allure reporting
 }
 
 compileJava9Java {
@@ -233,6 +274,7 @@ compileJava9Java {
 	targetCompatibility = 9
 	options.encoding = 'UTF-8'
 	options.compilerArgs << "-Xlint:unchecked"
+	options.compilerArgs << '-parameters' // for allure reporting
 }
 
 shadowJar {
@@ -251,11 +293,14 @@ shadowJar {
 	archiveFileName = "${archiveBaseName.get()}.${archiveExtension.get()}"
 }
 
+
+
 test {
 	useJUnitPlatform()
 	jvmArgs = [
 			"--add-opens", "java.base/java.lang=ALL-UNNAMED",
-			"--add-opens", "java.base/java.util=ALL-UNNAMED"
+			"--add-opens", "java.base/java.util=ALL-UNNAMED",
+			"-javaagent:${configurations.agent.singleFile}" // for allure reporting
 	]
 	//testLogging.showStandardStreams = true
 
@@ -285,7 +330,44 @@ jacocoTestReport {
 		csv.required = false
 	}
 }
+testing {
+	suites {
+		test {
+			useJUnitJupiter()
+		}
 
+		integrationTest(JvmTestSuite) {
+			dependencies {
+				implementation project()  // todo: shouldn't even need to depend on main code?
+				implementation "org.junit.jupiter:junit-jupiter-engine:5.12.2"
+				implementation "org.junit.jupiter:junit-jupiter:5.12.2"
+				implementation "org.assertj:assertj-core:3.24.2"
+				implementation 'org.zeroturnaround:zt-exec:1.12'
+				implementation platform("io.qameta.allure:allure-bom:2.29.1")
+				implementation "io.qameta.allure:allure-junit5"
+			}
+
+			sources {
+				java {
+					srcDirs = ['src/it/java']
+					resources.srcDirs = ['src/it/resources']
+				}
+			}
+
+			targets {
+				all {
+					testTask.configure {
+						shouldRunAfter(test) // todo: push to buildDist?
+					}
+				}
+			}
+		}
+	}
+}
+
+tasks.named('integrationTest') {
+	dependsOn("installDist") // todo: move to after buildDist
+}
 
 task karateExecute(type: JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
