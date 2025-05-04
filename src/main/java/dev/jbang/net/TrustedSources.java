@@ -122,7 +122,8 @@ public class TrustedSources {
 
 				boolean ruleIsSmaller = reversedTrustedSourceAuthoritySegments.length < reversedAuthoritySegments.length;
 				boolean ruleHasStarAtEnd = reversedTrustedSourceAuthoritySegments[reversedTrustedSourceAuthoritySegments.length
-						- 1].equals("*");
+						- 1]
+					.equals("*");
 				if (ruleIsSmaller && ruleHasStarAtEnd) {
 					reversedAuthoritySegments = Arrays.copyOfRange(reversedAuthoritySegments, 0,
 							reversedTrustedSourceAuthoritySegments.length);

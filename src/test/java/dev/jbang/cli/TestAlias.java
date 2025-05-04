@@ -250,7 +250,8 @@ public class TestAlias extends BaseTest {
 		Path cwd = Util.getCwd();
 		Path testFile = cwd.resolve("test.java");
 		Files.write(testFile, ("// Test file \n" +
-				"//DESCRIPTION Description of the script inside the script").getBytes());
+				"//DESCRIPTION Description of the script inside the script")
+			.getBytes());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		JBang.getCommandLine().execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
@@ -264,7 +265,8 @@ public class TestAlias extends BaseTest {
 		Path cwd = Util.getCwd();
 		Path testFile = cwd.resolve("test.java");
 		Files.write(testFile, ("// Test file \n" +
-				"//DESCRIPTION Description of the script inside the script").getBytes());
+				"//DESCRIPTION Description of the script inside the script")
+			.getBytes());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		JBang.getCommandLine()
 			.execute("alias", "add", "-f", cwd.toString(), "--name=name",
@@ -283,7 +285,8 @@ public class TestAlias extends BaseTest {
 		Files.write(testFile, ("// Test file \n" +
 				"//DESCRIPTION Description first tag\n" +
 				"//DESCRIPTION description second tag\n" +
-				"//DESCRIPTION description third tag").getBytes());
+				"//DESCRIPTION description third tag")
+			.getBytes());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		JBang.getCommandLine().execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));

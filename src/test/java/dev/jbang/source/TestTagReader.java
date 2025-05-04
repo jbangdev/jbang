@@ -43,7 +43,8 @@ public class TestTagReader {
 		assertThat(repos, hasItem(new MavenRepo("jcenter", "https://xyz.org")));
 
 		repos = new TagReader.Extended("//REPOS jcenter=https://xyz.org localMaven xyz=file://~test",
-				null).collectRepositories();
+				null)
+			.collectRepositories();
 
 		assertThat(repos, hasItem(new MavenRepo("jcenter", "https://xyz.org")));
 		assertThat(repos, hasItem(new MavenRepo("localmaven", "localMaven")));
@@ -54,7 +55,7 @@ public class TestTagReader {
 	void textExtractRepositoriesGrape() {
 		List<MavenRepo> deps = new TagReader.Extended(
 				"@GrabResolver(name=\"restlet.org\", root=\"http://maven.restlet.org\")", null)
-					.collectRepositories();
+			.collectRepositories();
 
 		assertThat(deps, hasItem(new MavenRepo("restlet.org", "http://maven.restlet.org")));
 
