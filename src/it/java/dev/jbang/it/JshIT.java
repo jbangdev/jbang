@@ -17,8 +17,8 @@ public class JshIT extends BaseIT {
 	@Description("jshell helloworld")
 	public void shouldRunJShellHelloWorld() {
 		assertThat(shell("jbang helloworld.jsh"))
-													.succeeded()
-													.outIsExactly("Hello World" + lineSeparator());
+			.succeeded()
+			.outIsExactly("Hello World" + lineSeparator());
 	}
 
 	// Scenario: jshell arguments
@@ -26,8 +26,8 @@ public class JshIT extends BaseIT {
 	@Description("jshell arguments")
 	public void shouldHandleJShellArguments() {
 		assertThat(shell("jbang helloworld.jsh JSH!"))
-														.succeeded()
-														.outIsExactly("Hello JSH!" + lineSeparator());
+			.succeeded()
+			.outIsExactly("Hello JSH!" + lineSeparator());
 	}
 
 	// Scenario: jsh default system property
@@ -35,8 +35,8 @@ public class JshIT extends BaseIT {
 	@Description("jsh default system property")
 	public void shouldHandleDefaultSystemProperty() {
 		assertThat(shell("jbang -Dvalue hello.jsh"))
-													.succeeded()
-													.outIsExactly("true" + lineSeparator());
+			.succeeded()
+			.outIsExactly("true" + lineSeparator());
 	}
 
 	// Scenario: jsh system property
@@ -44,8 +44,8 @@ public class JshIT extends BaseIT {
 	@Description("jsh system property")
 	public void shouldHandleSystemProperty() {
 		assertThat(shell("jbang -Dvalue=hello hello.jsh"))
-															.succeeded()
-															.outIsExactly("hello" + lineSeparator());
+			.succeeded()
+			.outIsExactly("hello" + lineSeparator());
 	}
 
 	// Scenario: jsh quoted system property
@@ -53,8 +53,8 @@ public class JshIT extends BaseIT {
 	@Description("jsh quoted system property")
 	public void shouldHandleQuotedSystemProperty() {
 		assertThat(shell("jbang -Dvalue=\"a quoted\" hello.jsh"))
-																	.succeeded()
-																	.outIsExactly("a quoted" + lineSeparator());
+			.succeeded()
+			.outIsExactly("a quoted" + lineSeparator());
 	}
 
 	// Scenario: jsh fail on --native
@@ -62,7 +62,7 @@ public class JshIT extends BaseIT {
 	@Description("jsh fail on --native")
 	public void shouldFailOnNative() {
 		assertThat(shell("jbang --native hello.jsh"))
-														.errContains(".jsh cannot be used with --native");
+			.errContains(".jsh cannot be used with --native");
 	}
 
 	// Scenario: force jsh
@@ -70,9 +70,9 @@ public class JshIT extends BaseIT {
 	@Description("force jsh")
 	public void shouldForceJsh() {
 		assertThat(shell("jbang --jsh hellojsh hello"))
-														.succeeded()
-														.errIsEmpty()
-														.outIsExactly("hello" + lineSeparator());
+			.succeeded()
+			.errIsEmpty()
+			.outIsExactly("hello" + lineSeparator());
 	}
 
 	// Scenario: jsh sources
@@ -80,9 +80,9 @@ public class JshIT extends BaseIT {
 	@Description("jsh sources")
 	public void shouldHandleJshSources() {
 		assertThat(shell("jbang main.jsh"))
-											.succeeded()
-											.errIsEmpty()
-											.outIsExactly("hello" + lineSeparator());
+			.succeeded()
+			.errIsEmpty()
+			.outIsExactly("hello" + lineSeparator());
 	}
 
 	// Scenario: jsh with deps 1
@@ -90,9 +90,9 @@ public class JshIT extends BaseIT {
 	@Description("jsh with deps")
 	public void shouldHandleJshWithDeps() {
 		assertThat(shell("jbang deps.jsh"))
-											.succeeded()
-											.errNotContains(".NoClassDef")
-											.outContains("Fake output:");
+			.succeeded()
+			.errNotContains(".NoClassDef")
+			.outContains("Fake output:");
 	}
 
 	// Scenario: as code option
@@ -100,9 +100,9 @@ public class JshIT extends BaseIT {
 	@Description("as code option")
 	public void shouldHandleCodeOption() {
 		assertThat(shell("jbang --code \"System.out.println(\\\"Hello\\\")\" jbangtest"))
-																							.succeeded()
-																							.outIsExactly("Hello"
-																									+ lineSeparator());
+			.succeeded()
+			.outIsExactly("Hello"
+					+ lineSeparator());
 	}
 
 	// Scenario: jshell ordering
@@ -110,8 +110,8 @@ public class JshIT extends BaseIT {
 	@Description("jshell ordering")
 	public void shouldHandleJshellOrdering() {
 		assertThat(shell("jbang -s helloworld.java --code \"helloworld.main()\""))
-																					.succeeded()
-																					.outIsExactly("Hello World"
-																							+ lineSeparator());
+			.succeeded()
+			.outIsExactly("Hello World"
+					+ lineSeparator());
 	}
 }

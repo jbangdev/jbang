@@ -13,11 +13,11 @@ public class RunIT extends BaseIT {
 	@Description("Testing that jbang is running in a clean environment")
 	public void testIsolation() {
 		assertThat(shell("jbang version --verbose"))
-													.errContains("Cache: " + scratch().toString())
-													.errContains("Config: " + scratch().toString())
-													.errContains(
-															"Repository: " + scratch().resolve("itest-m2").toString())
-													.succeeded();
+			.errContains("Cache: " + scratch().toString())
+			.errContains("Config: " + scratch().toString())
+			.errContains(
+					"Repository: " + scratch().resolve("itest-m2").toString())
+			.succeeded();
 	}
 
 	// Scenario: should fail on missing file
@@ -28,9 +28,9 @@ public class RunIT extends BaseIT {
 	@Test
 	public void shouldFailOnMissingFile() {
 		assertThat(shell("jbang notthere.java"))
-												.errContains(
-														"Script or alias could not be found or read: 'notthere.java'")
-												.exitedWith(2);
+			.errContains(
+					"Script or alias could not be found or read: 'notthere.java'")
+			.exitedWith(2);
 	}
 
 	// Scenario: parameter passing
@@ -40,9 +40,9 @@ public class RunIT extends BaseIT {
 	@Test
 	public void shouldPassParameters() {
 		assertThat(shell("jbang helloworld.java jbangtest"))
-															.errEquals("[jbang] Building jar for helloworld.java..."
-																	+ lineSeparator())
-															.outEquals("Hello jbangtest" + lineSeparator());
+			.errEquals("[jbang] Building jar for helloworld.java..."
+					+ lineSeparator())
+			.outEquals("Hello jbangtest" + lineSeparator());
 	}
 
 	// Scenario: std in
@@ -52,17 +52,17 @@ public class RunIT extends BaseIT {
 	@Test
 	public void shouldPassStdIn() {
 		assertThat(shell("cat helloworld.java | jbang - jbangtest"))
-																	.errEquals(
-																			"[jbang] Building jar for helloworld.java..."
-																					+ lineSeparator())
-																	.outEquals("Hello jbangtest" + lineSeparator());
+			.errEquals(
+					"[jbang] Building jar for helloworld.java..."
+							+ lineSeparator())
+			.outEquals("Hello jbangtest" + lineSeparator());
 	}
 
 	@Test
 	public void shouldLaunchHelloWorldWithJFR() {
 		assertThat(shell("jbang --jfr helloworld.java"))
-														.outContains(
-																"Started recording 1. No limit specified, using maxsize=250MB as default.");
+			.outContains(
+					"Started recording 1. No limit specified, using maxsize=250MB as default.");
 	}
 
 	// Scenario: java run multiple sources
@@ -71,7 +71,7 @@ public class RunIT extends BaseIT {
 	@Test
 	public void shouldRunMultipleSources() {
 		assertThat(shell("jbang --verbose one.java"))
-														.outContains("Two");
+			.outContains("Two");
 	}
 
 	// Scenario: java run multiple matching sources
@@ -81,8 +81,8 @@ public class RunIT extends BaseIT {
 	@Test
 	public void shouldRunMultipleMatchingSources() {
 		assertThat(shell("jbang RootOne.java"))
-												.outContains("NestedOne")
-												.outContains("NestedTwo");
+			.outContains("NestedOne")
+			.outContains("NestedTwo");
 	}
 
 	// Scenario: java run multiple sources via cli
@@ -91,7 +91,7 @@ public class RunIT extends BaseIT {
 	@Test
 	public void shouldRunMultipleSourcesViaCli() {
 		assertThat(shell("jbang -s bar/Bar.java foo.java"))
-															.outContains("Bar");
+			.outContains("Bar");
 	}
 
 	// Scenario: java run multiple files
@@ -100,7 +100,7 @@ public class RunIT extends BaseIT {
 	@Test
 	public void shouldRunMultipleFiles() {
 		assertThat(shell("jbang res/resource.java"))
-													.outContains("hello properties");
+			.outContains("hello properties");
 	}
 
 	// Scenario: java run multiple files using globbing
@@ -109,7 +109,7 @@ public class RunIT extends BaseIT {
 	@Test
 	public void shouldRunMultipleFilesUsingGlobbing() {
 		assertThat(shell("jbang resources.java"))
-													.outContains("hello properties");
+			.outContains("hello properties");
 	}
 
 	// Scenario: java run multiple files using globbing and a mounting folder
@@ -118,7 +118,7 @@ public class RunIT extends BaseIT {
 	@Test
 	public void shouldRunMultipleFilesUsingGlobbingAndMountingFolder() {
 		assertThat(shell("jbang resourcesmnt.java"))
-													.outContains("hello properties");
+			.outContains("hello properties");
 	}
 
 	// Scenario: java run multiple files using alias
@@ -127,7 +127,7 @@ public class RunIT extends BaseIT {
 	@Test
 	public void shouldRunMultipleFilesUsingAlias() {
 		assertThat(shell("jbang resource"))
-											.outContains("hello properties");
+			.outContains("hello properties");
 	}
 
 	// Scenario: java run multiple files using alias
@@ -140,7 +140,7 @@ public class RunIT extends BaseIT {
 	public void shouldRunMultipleFilesUsingRemoteAlias() {
 		assertThat(shell("jbang trust add https://raw.githubusercontent.com")).succeeded();
 		assertThat(shell("jbang resource@test"))
-												.outContains("hello properties");
+			.outContains("hello properties");
 	}
 
 }

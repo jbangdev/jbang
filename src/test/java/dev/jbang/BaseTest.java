@@ -71,9 +71,9 @@ public abstract class BaseTest {
 			LogManager lm = LogManager.getLogManager();
 			lm.readConfiguration(BaseTest.class.getResourceAsStream("/logging.properties"));
 			Logger rl = lm.getLogger("");
-			Arrays	.stream(rl.getHandlers())
-					.filter(h -> h instanceof ConsoleHandler)
-					.forEach(rl::removeHandler);
+			Arrays.stream(rl.getHandlers())
+				.filter(h -> h instanceof ConsoleHandler)
+				.forEach(rl::removeHandler);
 			rl.addHandler(new JBangHandler());
 		} catch (IOException e) {
 			// Ignore

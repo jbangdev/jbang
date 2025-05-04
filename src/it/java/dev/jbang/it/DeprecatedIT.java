@@ -19,8 +19,8 @@ public class DeprecatedIT extends BaseIT {
 	public void testInitDeprecated(@TempDir Path scratch) {
 		Path testFile = scratch.resolve("test.java");
 		assertThat(shell("jbang --init " + testFile))
-														.failed()
-														.errContains("deprecated and now removed");
+			.failed()
+			.errContains("deprecated and now removed");
 	}
 
 	// Scenario: --trust should error and tell user about alternative
@@ -30,8 +30,8 @@ public class DeprecatedIT extends BaseIT {
 	@Test
 	public void testTrustDeprecated() {
 		assertThat(shell("jbang --trust test.java"))
-													.failed()
-													.errContains("deprecated and now removed");
+			.failed()
+			.errContains("deprecated and now removed");
 	}
 
 	// Scenario: --trust should error and tell user about alternative
@@ -41,7 +41,7 @@ public class DeprecatedIT extends BaseIT {
 	@Test
 	public void testEditLiveDeprecated() {
 		assertThat(shell("jbang --edit-live=idea test.java"))
-																.failed()
-																.errContains("deprecated and now removed");
+			.failed()
+			.errContains("deprecated and now removed");
 	}
 }

@@ -20,13 +20,13 @@ public class TemplateEngine {
 	static TemplateEngine instance;
 
 	TemplateEngine() {
-		engine = Engine	.builder()
-						.addDefaults()
-						.removeStandaloneLines(true)
-						.addValueResolver(new ReflectionValueResolver())
-						// .addResultMapper(new PropertyNotFoundThrowException())
-						.addLocator(this::locate)
-						.build();
+		engine = Engine.builder()
+			.addDefaults()
+			.removeStandaloneLines(true)
+			.addValueResolver(new ReflectionValueResolver())
+			// .addResultMapper(new PropertyNotFoundThrowException())
+			.addLocator(this::locate)
+			.build();
 	}
 
 	/**

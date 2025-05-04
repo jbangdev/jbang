@@ -16,8 +16,8 @@ public class CatalogIT extends BaseIT {
 		assertThat(shell("jbang catalog add --global --name averylongcatalogname jbang-catalog.json"));
 		assertThat(shell("jbang catalog add --global --name averylongcatalogname jbang-catalog.json"));
 		assertThat(shell("jbang catalog list"))
-												.outContains("averylongcatalogname")
-												.outContains("JBang test scripts");
+			.outContains("averylongcatalogname")
+			.outContains("JBang test scripts");
 	}
 
 //   Scenario: add catalog and run catalog named reference
@@ -28,7 +28,7 @@ public class CatalogIT extends BaseIT {
 	public void shouldAddCatalogAndRunCatalogNamedReference() {
 		assertThat(shell("jbang catalog add --global --name tc jbang-catalog.json")).succeeded();
 		assertThat(shell("jbang echo@tc tako"))
-												.outIsExactly("0:tako" + System.lineSeparator());
+			.outIsExactly("0:tako" + System.lineSeparator());
 	}
 
 //   Scenario: add catalog and remove
@@ -52,9 +52,9 @@ public class CatalogIT extends BaseIT {
 	public void shouldAddCatalogTwiceWithSameName() {
 		shell("jbang catalog add --global --name tc jbang-catalog.json");
 		assertThat(shell("jbang catalog add --global --name tc jbang-catalog.json"))
-																					.errContains(
-																							"A catalog with name 'tc' already exists, use '--force' to add anyway")
-																					.exitedWith(2);
+			.errContains(
+					"A catalog with name 'tc' already exists, use '--force' to add anyway")
+			.exitedWith(2);
 	}
 
 //   Scenario: force add catalog twice with same name
@@ -65,7 +65,7 @@ public class CatalogIT extends BaseIT {
 	public void shouldForceAddCatalogTwiceWithSameName() {
 		shell("jbang catalog add --global --name tc jbang-catalog.json");
 		assertThat(shell("jbang catalog add --global --name tc --force jbang-catalog.json"))
-																							.exitedWith(0);
+			.exitedWith(0);
 	}
 
 //   Scenario: add catalog twice with different name
@@ -99,8 +99,8 @@ public class CatalogIT extends BaseIT {
 	@Test
 	public void shouldListRemoteCatalogAliases() {
 		assertThat(shell("jbang alias list jbangdev/jbang-catalog")).succeeded()
-																	.outContains("@jbangdev")
-																	.outDoesNotContain("@jbangdev/jbang-catalog");
+			.outContains("@jbangdev")
+			.outDoesNotContain("@jbangdev/jbang-catalog");
 	}
 
 //   Scenario: list remote catalog templates
@@ -110,9 +110,9 @@ public class CatalogIT extends BaseIT {
 //     And match out !contains "@jbangdev/jbang-catalog"
 	@Test
 	public void shouldListRemoteCatalogTemplates() {
-		assertThat(shell("jbang template list jbangdev/jbang-catalog"))	.succeeded()
-																		.outContains("@jbangdev")
-																		.outDoesNotContain("@jbangdev/jbang-catalog");
+		assertThat(shell("jbang template list jbangdev/jbang-catalog")).succeeded()
+			.outContains("@jbangdev")
+			.outDoesNotContain("@jbangdev/jbang-catalog");
 	}
 
 //   Scenario: Removing built-in catalog
@@ -122,9 +122,9 @@ public class CatalogIT extends BaseIT {
 	@Test
 	public void shouldRemoveBuiltInCatalog() {
 		assertThat(shell("jbang catalog remove jbanghub"))
-															.errContains(
-																	"Cannot remove catalog ref jbanghub from built-in catalog")
-															.exitedWith(0);
+			.errContains(
+					"Cannot remove catalog ref jbanghub from built-in catalog")
+			.exitedWith(0);
 	}
 
 }

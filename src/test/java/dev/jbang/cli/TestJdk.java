@@ -277,8 +277,8 @@ class TestJdk extends BaseTest {
 			@TempDir File javaDir) throws Exception {
 		initMockJdkDir(javaDir.toPath(), "11.0.14");
 		final Path jdkPath = Settings.getCacheDir(Cache.CacheClass.jdks);
-		Arrays	.asList(11)
-				.forEach(this::createMockJdk);
+		Arrays.asList(11)
+			.forEach(this::createMockJdk);
 
 		CaptureResult<Integer> result = checkedRun(jdk -> {
 			try {

@@ -56,9 +56,9 @@ public class CodeBuilderProvider implements Supplier<Builder<CmdGeneratorBuilder
 		Project prj = ctx.getProject();
 		if (!prj.getSubProjects().isEmpty()) {
 			List<Builder<CmdGeneratorBuilder>> subBuilders = prj.getSubProjects()
-																.stream()
-																.map(p -> get(ctx.forSubProject(p)))
-																.collect(Collectors.toList());
+				.stream()
+				.map(p -> get(ctx.forSubProject(p)))
+				.collect(Collectors.toList());
 			return () -> {
 				for (Builder<CmdGeneratorBuilder> b : subBuilders) {
 					b.build();

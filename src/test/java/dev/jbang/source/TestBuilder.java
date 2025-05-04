@@ -293,11 +293,11 @@ public class TestBuilder extends BaseTest {
 		}, null, ctxx -> {
 			Project project = ctxx.getProject();
 			assertThat(project.getMainSourceSet().getResources().size(), is(3));
-			List<String> ps = project	.getMainSourceSet()
-										.getResources()
-										.stream()
-										.map(r -> r.getSource().getFile().toString())
-										.collect(Collectors.toList());
+			List<String> ps = project.getMainSourceSet()
+				.getResources()
+				.stream()
+				.map(r -> r.getSource().getFile().toString())
+				.collect(Collectors.toList());
 			assertThat(ps, hasItem(endsWith("resource.properties")));
 			assertThat(ps, hasItem(endsWith("test.properties")));
 			assertThat(ps, hasItem(endsWith("sub" + File.separator + "sub.properties")));
@@ -318,11 +318,11 @@ public class TestBuilder extends BaseTest {
 		}, null, ctxx -> {
 			Project project = ctxx.getProject();
 			assertThat(project.getMainSourceSet().getResources().size(), is(4));
-			List<String> ps = project	.getMainSourceSet()
-										.getResources()
-										.stream()
-										.map(r -> r.getSource().getFile().toString())
-										.collect(Collectors.toList());
+			List<String> ps = project.getMainSourceSet()
+				.getResources()
+				.stream()
+				.map(r -> r.getSource().getFile().toString())
+				.collect(Collectors.toList());
 			assertThat(ps, hasItem(endsWith("resource.java")));
 			assertThat(ps, hasItem(endsWith("resource.properties")));
 			assertThat(ps, hasItem(endsWith("test.properties")));

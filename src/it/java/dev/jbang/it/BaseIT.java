@@ -80,9 +80,9 @@ public class BaseIT {
 			public String toStringOf(Object object) {
 				if (object instanceof String) {
 					String str = (String) object;
-					return str	.replace("\t", "\\t")
-								.replace("\n", "\\n\n")
-								.replace("\r", "\\r");
+					return str.replace("\t", "\\t")
+						.replace("\n", "\\n\n")
+						.replace("\r", "\\r");
 				}
 				return super.toStringOf(object);
 			}
@@ -107,12 +107,12 @@ public class BaseIT {
 		String out;
 		String err;
 		try {
-			execute = new ProcessExecutor()	.command(command)
-											.directory(baseDir.toFile())
-											.environment(env)
-											.redirectOutput(stdoutStream)
-											.redirectError(errorStream)
-											.execute();
+			execute = new ProcessExecutor().command(command)
+				.directory(baseDir.toFile())
+				.environment(env)
+				.redirectOutput(stdoutStream)
+				.redirectError(errorStream)
+				.execute();
 
 			out = new String(stdoutStream.toByteArray(), "UTF-8");
 			err = new String(errorStream.toByteArray(), "UTF-8");

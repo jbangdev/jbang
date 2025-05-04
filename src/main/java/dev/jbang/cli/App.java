@@ -38,9 +38,9 @@ public class App {
 
 	public static void deleteCommandFiles(String name) {
 		try (Stream<Path> files = Files.list(Settings.getConfigBinDir())) {
-			files	.filter(f -> f.getFileName().toString().equals(name)
-							|| f.getFileName().toString().startsWith(name + "."))
-					.forEach(f -> Util.deletePath(f, true));
+			files.filter(f -> f.getFileName().toString().equals(name)
+					|| f.getFileName().toString().startsWith(name + "."))
+				.forEach(f -> Util.deletePath(f, true));
 		} catch (IOException e) {
 			// Ignore
 		}
@@ -251,26 +251,26 @@ class AppInstall extends BaseCommand {
 
 	private static void copyJBangFiles(Path from, Path to) throws IOException {
 		to.toFile().mkdirs();
-		Stream	.of("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")
-				.map(Paths::get)
-				.forEach(f -> {
-					try {
-						Path fromp = from.resolve(f);
-						Path top = to.resolve(f);
-						if (f.endsWith("jbang.jar")) {
-							if (!Files.isReadable(fromp)) {
-								fromp = from.resolve(".jbang/jbang.jar");
-							}
-							if (Util.isWindows() && Files.isRegularFile(top)) {
-								top = to.resolve("jbang.jar.new");
-							}
+		Stream.of("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")
+			.map(Paths::get)
+			.forEach(f -> {
+				try {
+					Path fromp = from.resolve(f);
+					Path top = to.resolve(f);
+					if (f.endsWith("jbang.jar")) {
+						if (!Files.isReadable(fromp)) {
+							fromp = from.resolve(".jbang/jbang.jar");
 						}
-						Files.copy(fromp, top, StandardCopyOption.REPLACE_EXISTING,
-								StandardCopyOption.COPY_ATTRIBUTES);
-					} catch (IOException e) {
-						throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
+						if (Util.isWindows() && Files.isRegularFile(top)) {
+							top = to.resolve("jbang.jar.new");
+						}
 					}
-				});
+					Files.copy(fromp, top, StandardCopyOption.REPLACE_EXISTING,
+							StandardCopyOption.COPY_ATTRIBUTES);
+				} catch (IOException e) {
+					throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
+				}
+			});
 	}
 }
 
@@ -306,11 +306,11 @@ class AppList extends BaseCommand {
 	private static List<AppOut> listCommandFiles() {
 		try (Stream<Path> files = Files.list(Settings.getConfigBinDir())) {
 			return files
-						.filter(Files::isExecutable)
-						.sorted()
-						.map(AppOut::new)
-						.filter(distinctByKey(AppOut::getName))
-						.collect(Collectors.toList());
+				.filter(Files::isExecutable)
+				.sorted()
+				.map(AppOut::new)
+				.filter(distinctByKey(AppOut::getName))
+				.collect(Collectors.toList());
 		} catch (IOException e) {
 			return Collections.emptyList();
 		}
@@ -486,7 +486,7 @@ class AppSetup extends BaseCommand {
 			// Detect if JBang has already been set up before
 			boolean jbangFound = Files.exists(bashFile)
 					&& Files.lines(bashFile)
-							.anyMatch(ln -> ln.trim().startsWith("#") && ln.toLowerCase().contains("jbang"));
+						.anyMatch(ln -> ln.trim().startsWith("#") && ln.toLowerCase().contains("jbang"));
 			if (!jbangFound) {
 				// Add lines to add JBang to PATH
 				String lines = "\n# Add JBang to environment\n" +

@@ -76,20 +76,20 @@ abstract class BaseExportCommand extends BaseCommand {
 
 	protected ProjectBuilder createProjectBuilder(ExportMixin exportMixin) {
 		return Project
-						.builder()
-						.setProperties(exportMixin.dependencyInfoMixin.getProperties())
-						.additionalDependencies(exportMixin.dependencyInfoMixin.getDependencies())
-						.additionalRepositories(exportMixin.dependencyInfoMixin.getRepositories())
-						.additionalClasspaths(exportMixin.dependencyInfoMixin.getClasspaths())
-						.additionalSources(exportMixin.scriptMixin.sources)
-						.additionalResources(exportMixin.scriptMixin.resources)
-						.forceType(exportMixin.scriptMixin.forceType)
-						.catalog(exportMixin.scriptMixin.catalog)
-						.javaVersion(exportMixin.buildMixin.javaVersion)
-						.mainClass(exportMixin.buildMixin.main)
-						.moduleName(exportMixin.buildMixin.module)
-						.compileOptions(exportMixin.buildMixin.compileOptions)
-						.jdkManager(exportMixin.buildMixin.jdkProvidersMixin.getJdkManager());
+			.builder()
+			.setProperties(exportMixin.dependencyInfoMixin.getProperties())
+			.additionalDependencies(exportMixin.dependencyInfoMixin.getDependencies())
+			.additionalRepositories(exportMixin.dependencyInfoMixin.getRepositories())
+			.additionalClasspaths(exportMixin.dependencyInfoMixin.getClasspaths())
+			.additionalSources(exportMixin.scriptMixin.sources)
+			.additionalResources(exportMixin.scriptMixin.resources)
+			.forceType(exportMixin.scriptMixin.forceType)
+			.catalog(exportMixin.scriptMixin.catalog)
+			.javaVersion(exportMixin.buildMixin.javaVersion)
+			.mainClass(exportMixin.buildMixin.main)
+			.moduleName(exportMixin.buildMixin.module)
+			.compileOptions(exportMixin.buildMixin.compileOptions)
+			.jdkManager(exportMixin.buildMixin.jdkProvidersMixin.getJdkManager());
 	}
 
 	Path getJarOutputPath() {
@@ -248,9 +248,9 @@ class ExportMavenPublish extends BaseExportCommand {
 		version = version != null ? version : MavenCoordinate.DEFAULT_VERSION;
 		Path versionDir = artifactDir.resolve(version);
 
-		String suffix = source	.getFileName()
-								.toString()
-								.substring(source.getFileName().toString().lastIndexOf("."));
+		String suffix = source.getFileName()
+			.toString()
+			.substring(source.getFileName().toString().lastIndexOf("."));
 		Path artifactFile = versionDir.resolve(artifact + "-" + version + suffix);
 
 		artifactFile.getParent().toFile().mkdirs();
@@ -268,8 +268,8 @@ class ExportMavenPublish extends BaseExportCommand {
 
 		// generate pom.xml ... if jar could technically just copy from the jar ...but
 		// not possible when native thus for now just regenerate it
-		Template pomTemplate = TemplateEngine	.instance()
-												.getTemplate(ResourceRef.forResource("classpath:/pom.qute.xml"));
+		Template pomTemplate = TemplateEngine.instance()
+			.getTemplate(ResourceRef.forResource("classpath:/pom.qute.xml"));
 
 		Path pomPath = versionDir.resolve(artifact + "-" + version + ".pom");
 		if (pomTemplate == null) {
@@ -278,15 +278,15 @@ class ExportMavenPublish extends BaseExportCommand {
 		} else {
 
 			String pomfile = pomTemplate
-										.data("baseName",
-												Util.getBaseName(
-														prj.getResourceRef().getFile().getFileName().toString()))
-										.data("group", group)
-										.data("artifact", artifact)
-										.data("version", version)
-										.data("description", prj.getDescription().orElse(""))
-										.data("dependencies", ctx.resolveClassPath().getArtifacts())
-										.render();
+				.data("baseName",
+						Util.getBaseName(
+								prj.getResourceRef().getFile().getFileName().toString()))
+				.data("group", group)
+				.data("artifact", artifact)
+				.data("version", version)
+				.data("description", prj.getDescription().orElse(""))
+				.data("dependencies", ctx.resolveClassPath().getArtifacts())
+				.render();
 			Util.infoMsg("Writing " + pomPath);
 			Util.writeString(pomPath, pomfile);
 
@@ -425,14 +425,14 @@ class ExportJlink extends BaseExportCommand {
 		Project prj = ctx.getProject();
 		List<ArtifactInfo> artifacts = ctx.resolveClassPath().getArtifacts();
 		List<ArtifactInfo> nonMods = artifacts
-												.stream()
-												.filter(a -> !ModuleUtil.isModule(a.getFile()))
-												.collect(Collectors.toList());
+			.stream()
+			.filter(a -> !ModuleUtil.isModule(a.getFile()))
+			.collect(Collectors.toList());
 		if (!nonMods.isEmpty()) {
 			String lst = nonMods
-								.stream()
-								.map(a -> a.getCoordinate().toCanonicalForm())
-								.collect(Collectors.joining(", "));
+				.stream()
+				.map(a -> a.getCoordinate().toCanonicalForm())
+				.collect(Collectors.joining(", "));
 			Util.warnMsg("Export might fail because some dependencies are not full modules: " + lst);
 		}
 
@@ -660,9 +660,9 @@ class ExportGradleProject extends BaseExportProject {
 		List<MavenRepo> repositories = prj.getRepositories();
 		List<String> dependencies = prj.getMainSourceSet().getDependencies();
 		// Turn any URL dependencies into regular GAV coordinates
-		List<String> depIds = dependencies	.stream()
-											.map(JitPackUtil::ensureGAV)
-											.collect(Collectors.toList());
+		List<String> depIds = dependencies.stream()
+			.map(JitPackUtil::ensureGAV)
+			.collect(Collectors.toList());
 		// And if we encountered URLs let's make sure the JitPack repo is available
 		if (!depIds.equals(dependencies)
 				&& repositories.stream().noneMatch(r -> DependencyUtil.REPO_JITPACK.equals(r.getUrl()))) {
@@ -683,23 +683,23 @@ class ExportGradleProject extends BaseExportProject {
 		String jvmArgs = gradleArgs(prj.getRuntimeOptions());
 		String compilerArgs = gradleArgs(prj.getMainSourceSet().getCompileOptions());
 		String result = template
-								.data("group", group)
-								.data("artifact", artifact)
-								.data("version", version)
-								.data("language", srcType.name())
-								.data("javaVersion", javaVersion)
-								.data("kotlinVersion", kotlinVersion)
-								.data("description", prj.getDescription().orElse(""))
-								.data("repositories", repositories	.stream()
-																	.map(MavenRepo::getUrl)
-																	.filter(s -> !"".equals(s))
-																	.collect(Collectors.toList()))
-								.data("gradledependencies", gradleify(depIds))
-								.data("fullClassName", prj.getMainClass())
-								.data("jvmArgs", jvmArgs)
-								.data("enablePreview", prj.enablePreview() ? (javaVersion != null ? "true" : "") : "")
-								.data("compilerArgs", compilerArgs)
-								.render();
+			.data("group", group)
+			.data("artifact", artifact)
+			.data("version", version)
+			.data("language", srcType.name())
+			.data("javaVersion", javaVersion)
+			.data("kotlinVersion", kotlinVersion)
+			.data("description", prj.getDescription().orElse(""))
+			.data("repositories", repositories.stream()
+				.map(MavenRepo::getUrl)
+				.filter(s -> !"".equals(s))
+				.collect(Collectors.toList()))
+			.data("gradledependencies", gradleify(depIds))
+			.data("fullClassName", prj.getMainClass())
+			.data("jvmArgs", jvmArgs)
+			.data("enablePreview", prj.enablePreview() ? (javaVersion != null ? "true" : "") : "")
+			.data("compilerArgs", compilerArgs)
+			.render();
 		Util.writeString(destination, result);
 		Util.writeString(projectDir.resolve("settings.gradle"), "");
 		Util.writeString(projectDir.resolve("gradle.properties"), "org.gradle.configuration-cache=true\n");
@@ -755,9 +755,9 @@ class ExportMavenProject extends BaseExportProject {
 		List<MavenRepo> repositories = prj.getRepositories();
 		List<String> dependencies = prj.getMainSourceSet().getDependencies();
 		// Turn any URL dependencies into regular GAV coordinates
-		List<String> depIds = dependencies	.stream()
-											.map(JitPackUtil::ensureGAV)
-											.collect(Collectors.toList());
+		List<String> depIds = dependencies.stream()
+			.map(JitPackUtil::ensureGAV)
+			.collect(Collectors.toList());
 		// And if we encountered URLs let's make sure the JitPack repo is available
 		if (!depIds.equals(dependencies)
 				&& repositories.stream().noneMatch(r -> DependencyUtil.REPO_JITPACK.equals(r.getUrl()))) {
@@ -783,26 +783,26 @@ class ExportMavenProject extends BaseExportProject {
 		}
 		String javaVersion = getJavaVersion(prj, false);
 		String result = template
-								.data("group", group)
-								.data("artifact", artifact)
-								.data("version", version)
-								.data("language", srcType.name())
-								.data("javaVersion", javaVersion)
-								.data("kotlinVersion", kotlinVersion)
-								.data("description", prj.getDescription().orElse(""))
-								.data("properties", properties)
-								.data("repositories", repositories	.stream()
-																	.filter(r -> !r.getUrl().isEmpty())
-																	.collect(Collectors.toList()))
-								.data("boms", boms	.stream()
-													.map(MavenCoordinate::fromString)
-													.collect(Collectors.toList()))
-								.data("dependencies", depIds.stream()
-															.map(MavenCoordinate::fromString)
-															.collect(Collectors.toList()))
-								.data("fullClassName", prj.getMainClass())
-								.data("compilerArgs", prj.getMainSourceSet().getCompileOptions())
-								.render();
+			.data("group", group)
+			.data("artifact", artifact)
+			.data("version", version)
+			.data("language", srcType.name())
+			.data("javaVersion", javaVersion)
+			.data("kotlinVersion", kotlinVersion)
+			.data("description", prj.getDescription().orElse(""))
+			.data("properties", properties)
+			.data("repositories", repositories.stream()
+				.filter(r -> !r.getUrl().isEmpty())
+				.collect(Collectors.toList()))
+			.data("boms", boms.stream()
+				.map(MavenCoordinate::fromString)
+				.collect(Collectors.toList()))
+			.data("dependencies", depIds.stream()
+				.map(MavenCoordinate::fromString)
+				.collect(Collectors.toList()))
+			.data("fullClassName", prj.getMainClass())
+			.data("compilerArgs", prj.getMainSourceSet().getCompileOptions())
+			.render();
 		Util.writeString(destination, result);
 	}
 

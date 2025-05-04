@@ -17,9 +17,9 @@ public class ExportIT extends BaseIT {
 	public void testBasicExportNoClasspath() {
 		shell("rm helloworld.jar");
 		assertThat(shell("jbang export local helloworld.java"))
-																.succeeded()
-																.errContains("Exported to")
-																.errContains("helloworld.jar");
+			.succeeded()
+			.errContains("Exported to")
+			.errContains("helloworld.jar");
 	}
 
 	// Scenario: basic export slim no classpath
@@ -31,9 +31,9 @@ public class ExportIT extends BaseIT {
 	public void testBasicExportSlimNoClasspath() {
 		shell("rm -rf helloworld.jar lib");
 		assertThat(shell("jbang export portable helloworld.java"))
-																	.succeeded()
-																	.errContains("Exported to")
-																	.errContains("helloworld.jar");
+			.succeeded()
+			.errContains("Exported to")
+			.errContains("helloworld.jar");
 	}
 
 	// Scenario: basic export classpath
@@ -48,13 +48,13 @@ public class ExportIT extends BaseIT {
 	public void testBasicExportClasspath() {
 		shell("rm -rf classpath_example.jar lib");
 		assertThat(shell("jbang export portable classpath_example.java"))
-																			.succeeded()
-																			.errContains("Exported to")
-																			.errContains("classpath_example.jar");
+			.succeeded()
+			.errContains("Exported to")
+			.errContains("classpath_example.jar");
 		assertThat(shell("jbang export portable --force classpath_example.java"))
-																					.succeeded()
-																					.errContains("Exported to")
-																					.errContains(
-																							"classpath_example.jar");
+			.succeeded()
+			.errContains("Exported to")
+			.errContains(
+					"classpath_example.jar");
 	}
 }

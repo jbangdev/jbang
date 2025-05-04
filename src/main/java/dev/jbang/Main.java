@@ -56,16 +56,16 @@ public class Main {
 	private static boolean hasRunOpts(List<String> opts) {
 		boolean res = opts.contains("-i") || opts.contains("--interactive")
 				|| opts.contains("-c") || opts.contains("--code") || opts.contains("--build-dir");
-		res = res || opts	.stream()
-							.anyMatch(o -> o.startsWith("-i=") || o.startsWith("--interactive=")
-									|| o.startsWith("-c=") || o.startsWith("--code=") || o.startsWith("--build-dir="));
+		res = res || opts.stream()
+			.anyMatch(o -> o.startsWith("-i=") || o.startsWith("--interactive=")
+					|| o.startsWith("-c=") || o.startsWith("--code=") || o.startsWith("--build-dir="));
 		return res;
 	}
 
 	private static List<String> stripNonInheritedJBangOpts(List<String> opts) {
-		List<String> jbangOpts = opts	.stream()
-										.filter(o -> "--preview".equals(o) || o.startsWith("--preview="))
-										.collect(Collectors.toList());
+		List<String> jbangOpts = opts.stream()
+			.filter(o -> "--preview".equals(o) || o.startsWith("--preview="))
+			.collect(Collectors.toList());
 		opts.removeAll(jbangOpts);
 		return jbangOpts;
 	}

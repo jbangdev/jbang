@@ -33,9 +33,9 @@ public class LiteralScriptResourceResolver implements ResourceResolver {
 			if (ResourceRef.isStdin(resource)) {
 				String scriptText = new BufferedReader(
 						new InputStreamReader(System.in, StandardCharsets.UTF_8))
-																					.lines()
-																					.collect(Collectors.joining(
-																							System.lineSeparator()));
+							.lines()
+							.collect(Collectors.joining(
+									System.lineSeparator()));
 
 				result = stringToResourceRef(resource, scriptText);
 			}

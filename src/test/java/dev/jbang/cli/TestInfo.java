@@ -55,11 +55,11 @@ public class TestInfo extends BaseTest {
 	@Test
 	void testInfoToolsWithDeps() {
 		String src = examplesTestFolder.resolve("helloworld.java").toString();
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("info", "tools",
-													"--deps", "info.picocli:picocli:4.6.3,commons-io:commons-io:2.8.0",
-													"--deps", "org.apache.commons:commons-lang3:3.12.0",
-													src);
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("info", "tools",
+					"--deps", "info.picocli:picocli:4.6.3,commons-io:commons-io:2.8.0",
+					"--deps", "org.apache.commons:commons-lang3:3.12.0",
+					src);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
 		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
 		assertThat(info.originalResource, equalTo(src));

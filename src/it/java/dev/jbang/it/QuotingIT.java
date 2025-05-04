@@ -58,6 +58,6 @@ public class QuotingIT extends BaseIT {
 		assertThat(shell(
 				Collections.singletonMap("JBANG_DIR", scratch().resolve("jbang dir test").toString()),
 				"jbang echo.java 'foo *'"))
-											.outIsExactly("0:foo *\n");
+					.outIsExactly("0:foo *\n");
 	}
 }

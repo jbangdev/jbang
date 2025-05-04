@@ -154,10 +154,10 @@ public class TestExport extends BaseTest {
 		assertThat(outFile.resolve("g/a/v/classpath_log/999-SNAPSHOT/classpath_log-999-SNAPSHOT.pom").toFile(),
 				anExistingFile());
 
-		Files	.walk(outFile.resolve("g"))
-				.sorted(Comparator.reverseOrder())
-				.map(Path::toFile)
-				.forEach(File::delete);
+		Files.walk(outFile.resolve("g"))
+			.sorted(Comparator.reverseOrder())
+			.map(Path::toFile)
+			.forEach(File::delete);
 
 	}
 
@@ -203,7 +203,7 @@ public class TestExport extends BaseTest {
 		CaptureResult result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
-									.resolve("src/main/java/classpath_log.java");
+			.resolve("src/main/java/classpath_log.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
 		Path buildPath = outFile.toPath().resolve("build.gradle");
@@ -223,7 +223,7 @@ public class TestExport extends BaseTest {
 		CaptureResult result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
-									.resolve("src/main/groovy/classpath_log.groovy");
+			.resolve("src/main/groovy/classpath_log.groovy");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
 		Path buildPath = outFile.toPath().resolve("build.gradle");
@@ -243,7 +243,7 @@ public class TestExport extends BaseTest {
 		CaptureResult result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
-									.resolve("src/main/kotlin/classpath_log.kt");
+			.resolve("src/main/kotlin/classpath_log.kt");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
 		Path buildPath = outFile.toPath().resolve("build.gradle");
@@ -263,7 +263,7 @@ public class TestExport extends BaseTest {
 		CaptureResult result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
-									.resolve("src/main/kotlin/classpath_main.kt");
+			.resolve("src/main/kotlin/classpath_main.kt");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
 		Path buildPath = outFile.toPath().resolve("build.gradle");
@@ -283,7 +283,7 @@ public class TestExport extends BaseTest {
 				"-g", "dev.jbang.test", "-a", "app", "-v", "1.2.3", src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
-									.resolve("src/main/java/classpath_log.java");
+			.resolve("src/main/java/classpath_log.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
 		assertThat(targetSrc, not(containsString("package ")));
@@ -303,8 +303,8 @@ public class TestExport extends BaseTest {
 		CaptureResult result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
-									.resolve(
-											"src/main/java/classpath_log_bom.java");
+			.resolve(
+					"src/main/java/classpath_log_bom.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
 		assertThat(targetSrc, not(containsString("package ")));
@@ -327,32 +327,32 @@ public class TestExport extends BaseTest {
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 
 		Path targetSrcPath = outFile.toPath()
-									.resolve("src/main/java/exporttags.java");
+			.resolve("src/main/java/exporttags.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
 		assertThat(targetSrc, not(startsWith("package ")));
 
-		Path src1Path = outFile	.toPath()
-								.resolve("src/main/java/Two.java");
+		Path src1Path = outFile.toPath()
+			.resolve("src/main/java/Two.java");
 		assertThat(src1Path.toFile(), anExistingFile());
-		Path nested1Path = outFile	.toPath()
-									.resolve("src/main/java/nested/NestedOne.java");
+		Path nested1Path = outFile.toPath()
+			.resolve("src/main/java/nested/NestedOne.java");
 		assertThat(nested1Path.toFile(), anExistingFile());
-		Path nested2Path = outFile	.toPath()
-									.resolve("src/main/java/nested/NestedTwo.java");
+		Path nested2Path = outFile.toPath()
+			.resolve("src/main/java/nested/NestedTwo.java");
 		assertThat(nested2Path.toFile(), anExistingFile());
 		Path otherPath = outFile.toPath()
-								.resolve("src/main/java/othernested/OtherThree.java");
+			.resolve("src/main/java/othernested/OtherThree.java");
 		assertThat(otherPath.toFile(), anExistingFile());
 
-		Path res1Path = outFile	.toPath()
-								.resolve("src/main/resources/resource.properties");
+		Path res1Path = outFile.toPath()
+			.resolve("src/main/resources/resource.properties");
 		assertThat(res1Path.toFile(), anExistingFile());
-		Path res2Path = outFile	.toPath()
-								.resolve("src/main/resources/renamed.properties");
+		Path res2Path = outFile.toPath()
+			.resolve("src/main/resources/renamed.properties");
 		assertThat(res2Path.toFile(), anExistingFile());
-		Path res3Path = outFile	.toPath()
-								.resolve("src/main/resources/META-INF/application.properties");
+		Path res3Path = outFile.toPath()
+			.resolve("src/main/resources/META-INF/application.properties");
 		assertThat(res3Path.toFile(), anExistingFile());
 
 		Path buildPath = outFile.toPath().resolve("build.gradle");
@@ -377,7 +377,7 @@ public class TestExport extends BaseTest {
 		CaptureResult result = checkedRun(null, "export", "maven", "--force", "-O", outFile.toString(), src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
-									.resolve("src/main/java/classpath_log.java");
+			.resolve("src/main/java/classpath_log.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
 		assertThat(targetSrc, not(containsString("package org.example.project.classpath_log;")));
@@ -407,7 +407,7 @@ public class TestExport extends BaseTest {
 		CaptureResult result = checkedRun(null, "export", "maven", "--force", "-O", outFile.toString(), src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
-									.resolve("src/main/java/RootOne.java");
+			.resolve("src/main/java/RootOne.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
 		assertThat(targetSrc, not(containsString("package org.example.project.classpath_log;")));
@@ -433,7 +433,7 @@ public class TestExport extends BaseTest {
 				"-g", "dev.jbang.test", "-a", "app", "-v", "1.2.3", src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
-									.resolve("src/main/java/classpath_log.java");
+			.resolve("src/main/java/classpath_log.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
 		assertThat(targetSrc, not(containsString("package ")));
@@ -463,8 +463,8 @@ public class TestExport extends BaseTest {
 		CaptureResult result = checkedRun(null, "export", "maven", "--force", "-O", outFile.toString(), src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
-									.resolve(
-											"src/main/java/classpath_log_bom.java");
+			.resolve(
+					"src/main/java/classpath_log_bom.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
 		assertThat(targetSrc, not(containsString("package org.example.project.classpath_log_bom;")));
@@ -498,32 +498,32 @@ public class TestExport extends BaseTest {
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 
 		Path targetSrcPath = outFile.toPath()
-									.resolve("src/main/java/exporttags.java");
+			.resolve("src/main/java/exporttags.java");
 		assertThat(targetSrcPath.toFile(), anExistingFile());
 		String targetSrc = Util.readString(targetSrcPath);
 		assertThat(targetSrc, not(containsString("package org.example.exporttags;")));
 
-		Path src1Path = outFile	.toPath()
-								.resolve("src/main/java/Two.java");
+		Path src1Path = outFile.toPath()
+			.resolve("src/main/java/Two.java");
 		assertThat(src1Path.toFile(), anExistingFile());
-		Path nested1Path = outFile	.toPath()
-									.resolve("src/main/java/nested/NestedOne.java");
+		Path nested1Path = outFile.toPath()
+			.resolve("src/main/java/nested/NestedOne.java");
 		assertThat(nested1Path.toFile(), anExistingFile());
-		Path nested2Path = outFile	.toPath()
-									.resolve("src/main/java/nested/NestedTwo.java");
+		Path nested2Path = outFile.toPath()
+			.resolve("src/main/java/nested/NestedTwo.java");
 		assertThat(nested2Path.toFile(), anExistingFile());
 		Path otherPath = outFile.toPath()
-								.resolve("src/main/java/othernested/OtherThree.java");
+			.resolve("src/main/java/othernested/OtherThree.java");
 		assertThat(otherPath.toFile(), anExistingFile());
 
-		Path res1Path = outFile	.toPath()
-								.resolve("src/main/resources/resource.properties");
+		Path res1Path = outFile.toPath()
+			.resolve("src/main/resources/resource.properties");
 		assertThat(res1Path.toFile(), anExistingFile());
-		Path res2Path = outFile	.toPath()
-								.resolve("src/main/resources/renamed.properties");
+		Path res2Path = outFile.toPath()
+			.resolve("src/main/resources/renamed.properties");
 		assertThat(res2Path.toFile(), anExistingFile());
-		Path res3Path = outFile	.toPath()
-								.resolve("src/main/resources/META-INF/application.properties");
+		Path res3Path = outFile.toPath()
+			.resolve("src/main/resources/META-INF/application.properties");
 		assertThat(res3Path.toFile(), anExistingFile());
 
 		Path pomPath = outFile.toPath().resolve("pom.xml");
