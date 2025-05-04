@@ -33,15 +33,19 @@ jobs:
           java-version: 11
           distribution: temurin
           cache: gradle
+      - name: setup-gradle
+        uses: gradle/actions/setup-gradle@v4
       - name: build-gradle
         run: ./gradlew --no-daemon clean build installDist publish --build-cache --scan -s
       - name: integration-test
+        run: |
+          ./gradlew integrationTest
+      - name: integration-test-bash
         run: |
           export PATH=`pwd`/build/install/jbang/bin:$PATH
           pastdir=`pwd`
           cd itests
           ./test_suite.sh
-          ./itests.sh
           cd $pastdir
       - name: version extract
         id: version
@@ -58,7 +62,7 @@ jobs:
           setup-java: false
       - name: JReleaser output
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
         with:
           name: jreleaser-release
           path: |

@@ -1,0 +1,89 @@
+plugins {
+{#if language eq 'groovy'}
+	id 'groovy'
+{/if}
+{#if language eq 'java'}
+	id 'java'
+{/if}
+{#if language eq 'kotlin'}
+	id 'org.jetbrains.kotlin.jvm' version '{kotlinVersion}'
+{/if}
+	id 'application'
+}
+
+{#if description}
+description = '{description}'
+{/if}
+
+repositories {
+	mavenCentral()
+{#for url in repositories}
+	maven {
+		url "{url}"
+	}
+{/for}
+	mavenLocal()
+}
+
+{#if javaVersion}
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of({javaVersion})
+	}
+}
+{/if}
+
+{#if !gradledependencies.empty}
+dependencies {
+{#for item in gradledependencies}
+	{item}
+{/for}
+}
+{/if}
+
+application {
+	mainClass = '{fullClassName}'
+	applicationDefaultJvmArgs = [{jvmArgs}]
+{#if enablePreview eq 'true'}
+	applicationDefaultJvmArgs += ['--enable-preview']
+{/if}
+}
+
+{#if language eq 'java'}
+compileJava {
+{#if enablePreview eq 'true'}
+	options.compilerArgs += ['--release', '{javaVersion}', '--enable-preview', '-Xlint:preview']
+{/if}
+{#if compilerArgs ne ""}
+	options.compilerArgs += [{compilerArgs}]
+{/if}
+}
+{/if}
+
+{#if language eq 'groovy'}
+compileGroovy {
+{#if compilerArgs ne ""}
+	options.compilerArgs += [{compilerArgs}]
+{/if}
+}
+{/if}
+
+{#if language eq 'kotlin'}
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
+tasks.named('compileKotlin', KotlinCompilationTask) {
+	compilerOptions {
+{#if compilerArgs ne ""}
+		freeCompilerArgs.addAll([{compilerArgs}])
+{/if}
+	}
+}
+{/if}
+
+jar {
+	manifest {
+		attributes(
+				'Main-Class': '{fullClassName}',
+		)
+	}
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}

@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static dev.jbang.source.Project.ATTR_AGENT_CLASS;
 import static dev.jbang.source.Project.ATTR_PREMAIN_CLASS;
+import static dev.jbang.util.JavaUtil.defaultJdkManager;
 import static dev.jbang.util.Util.writeString;
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -61,7 +62,6 @@ import dev.jbang.Settings;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.catalog.CatalogUtil;
-import dev.jbang.net.JdkManager;
 import dev.jbang.net.TrustedSources;
 import dev.jbang.source.BuildContext;
 import dev.jbang.source.Builder;
@@ -97,9 +97,9 @@ public class TestRun extends BaseTest {
 		environmentVariables.clear("JAVA_HOME");
 		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
 		String extracp = examplesTestFolder.resolve("hellojar.jar").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "--deps", "info.picocli:picocli:4.6.3",
-													"--cp", extracp, arg);
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run", "--deps", "info.picocli:picocli:4.6.3",
+					"--cp", extracp, arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
@@ -266,11 +266,11 @@ public class TestRun extends BaseTest {
 	void testRemoteMarkdown() throws IOException {
 
 		wms.stubFor(WireMock.get(urlEqualTo("/readme.md"))
-							.willReturn(aResponse()
-													.withHeader("Content-Type", "text/plain")
-													.withBodyFile("readme.md")
-													.withBody(
-															Util.readString(examplesTestFolder.resolve("readme.md")))));
+			.willReturn(aResponse()
+				.withHeader("Content-Type", "text/plain")
+				.withBodyFile("readme.md")
+				.withBody(
+						Util.readString(examplesTestFolder.resolve("readme.md")))));
 
 		wms.start();
 		String arg = "http://localhost:" + wms.port() + "/readme.md";
@@ -339,9 +339,9 @@ public class TestRun extends BaseTest {
 
 		String jar = examplesTestFolder.resolve("hellojar.jar").toAbsolutePath().toString();
 
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "--deps", "info.picocli:picocli:4.6.3",
-													"--cp", "dummy.jar", jar);
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run", "--deps", "info.picocli:picocli:4.6.3",
+					"--cp", "dummy.jar", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
@@ -496,9 +496,9 @@ public class TestRun extends BaseTest {
 		environmentVariables.clear("JAVA_HOME");
 		String jar = "info.picocli:picocli-codegen:4.6.3";
 
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "--main",
-													"picocli.codegen.aot.graalvm.ReflectionConfigGenerator", jar);
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run", "--main",
+					"picocli.codegen.aot.graalvm.ReflectionConfigGenerator", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
@@ -521,9 +521,9 @@ public class TestRun extends BaseTest {
 		environmentVariables.clear("JAVA_HOME");
 		String jar = "info.picocli:picocli-codegen:4.6.3";
 
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "--module", "--main",
-													"picocli.codegen.aot.graalvm.ReflectionConfigGenerator", jar);
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run", "--module", "--main",
+					"picocli.codegen.aot.graalvm.ReflectionConfigGenerator", jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
@@ -576,9 +576,9 @@ public class TestRun extends BaseTest {
 		environmentVariables.clear("JAVA_HOME");
 		String jar = "org.eclipse.jgit:org.eclipse.jgit.pgm:5.9.0.202009080501-r";
 		String extracp = examplesTestFolder.resolve("hellojar.jar").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "--deps", "info.picocli:picocli:4.6.3",
-													"--cp", extracp, jar);
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run", "--deps", "info.picocli:picocli:4.6.3",
+					"--cp", extracp, jar);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
@@ -597,9 +597,9 @@ public class TestRun extends BaseTest {
 
 		environmentVariables.clear("JAVA_HOME");
 		String arg = examplesTestFolder.resolve("helloworld.jsh").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "--interactive", arg,
-													"blah");
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run", "--interactive", arg,
+					"blah");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
@@ -749,10 +749,10 @@ public class TestRun extends BaseTest {
 
 		environmentVariables.clear("JAVA_HOME");
 		String arg = examplesTestFolder.resolve("classpath_example.java").toAbsolutePath().toString();
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.setStopAtPositional(true)
-											.parseArgs("run", "-Dwonka=panda", "-Dquoted=see this",
-													arg, "-Dafter=wonka");
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.setStopAtPositional(true)
+			.parseArgs("run", "-Dwonka=panda", "-Dquoted=see this",
+					arg, "-Dafter=wonka");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.userParams.size(), is(1));
@@ -1133,6 +1133,7 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	@Disabled("Service doesn't seem very stable")
 	void testFetchFromBluesky(@TempDir Path dir) throws IOException {
 
 		verifyHello("https://bsky.app/profile/maxandersen.xam.dk/post/3lb2vbnfpns24", dir, false);
@@ -1363,11 +1364,11 @@ public class TestRun extends BaseTest {
 		Path mainFile = output.toPath().resolve("main.java");
 		Util.writeString(mainFile, base.replace("dualclass", "main"));
 
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run",
-													"--javaagent=" + agentFile.toAbsolutePath() + "=optionA",
-													"--javaagent=org.jboss.byteman:byteman:4.0.13",
-													mainFile.toAbsolutePath().toString());
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run",
+					"--javaagent=" + agentFile.toAbsolutePath() + "=optionA",
+					"--javaagent=org.jboss.byteman:byteman:4.0.13",
+					mainFile.toAbsolutePath().toString());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.runMixin.javaAgentSlots.containsKey(agentFile.toAbsolutePath().toString()), is(true));
@@ -1401,9 +1402,9 @@ public class TestRun extends BaseTest {
 
 	@Test
 	void testJavaAgentViaGAV() {
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run",
-													"--javaagent=org.jboss.byteman:byteman:4.0.13", "wonka.java");
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run",
+					"--javaagent=org.jboss.byteman:byteman:4.0.13", "wonka.java");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.runMixin.javaAgentSlots, hasKey("org.jboss.byteman:byteman:4.0.13"));
@@ -1430,10 +1431,10 @@ public class TestRun extends BaseTest {
 	void testSystemAssertions() throws IOException {
 		File f = examplesTestFolder.resolve("resource.java").toFile();
 
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "--enablesystemassertions", "--main",
-													"fakemain",
-													f.getAbsolutePath());
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run", "--enablesystemassertions", "--main",
+					"fakemain",
+					f.getAbsolutePath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
@@ -1465,10 +1466,10 @@ public class TestRun extends BaseTest {
 	void testEnablePreview() throws IOException {
 		File f = examplesTestFolder.resolve("resource.java").toFile();
 
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "--enable-preview", "--main",
-													"fakemain",
-													f.getAbsolutePath());
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run", "--enable-preview", "--main",
+					"fakemain",
+					f.getAbsolutePath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
@@ -1483,10 +1484,10 @@ public class TestRun extends BaseTest {
 	void testEnablePreviewJsh() throws IOException {
 		File f = examplesTestFolder.resolve("resource.java").toFile();
 
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "--enable-preview", "-i", "--main",
-													"fakemain",
-													f.getAbsolutePath());
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run", "--enable-preview", "-i", "--main",
+					"fakemain",
+					f.getAbsolutePath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
@@ -1506,10 +1507,10 @@ public class TestRun extends BaseTest {
 	void testEnablePreviewJava() throws IOException {
 		File f = examplesTestFolder.resolve("resource.java").toFile();
 
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "--enable-preview", "--main",
-													"fakemain",
-													f.getAbsolutePath());
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run", "--enable-preview", "--main",
+					"fakemain",
+					f.getAbsolutePath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
@@ -1538,19 +1539,19 @@ public class TestRun extends BaseTest {
 
 		try (FileSystem fileSystem = FileSystems.newFileSystem(ctx.getJarFile(), (ClassLoader) null)) {
 
-			Arrays	.asList("resource.properties", "renamed.properties", "META-INF/application.properties")
-					.forEach(path -> {
-						try {
-							Path fileToExtract = fileSystem.getPath(path);
+			Arrays.asList("resource.properties", "renamed.properties", "META-INF/application.properties")
+				.forEach(path -> {
+					try {
+						Path fileToExtract = fileSystem.getPath(path);
 
-							ByteArrayOutputStream s = new ByteArrayOutputStream();
-							Files.copy(fileToExtract, s);
-							String xml = s.toString("UTF-8");
-							assertThat(xml, not(containsString("message=hello")));
-						} catch (Exception e) {
-							fail(e);
-						}
-					});
+						ByteArrayOutputStream s = new ByteArrayOutputStream();
+						Files.copy(fileToExtract, s);
+						String xml = s.toString("UTF-8");
+						assertThat(xml, not(containsString("message=hello")));
+					} catch (Exception e) {
+						fail(e);
+					}
+				});
 
 		}
 
@@ -1582,18 +1583,18 @@ public class TestRun extends BaseTest {
 		assertThat(prj.getMainClass(), equalTo("one"));
 
 		try (FileSystem fileSystem = FileSystems.newFileSystem(ctx.getJarFile(), (ClassLoader) null)) {
-			Arrays	.asList("one.class", "Two.class", "gh_release_stats.class", "fetchlatestgraalvm.class")
-					.forEach(path -> {
-						try {
-							Path fileToExtract = fileSystem.getPath(path);
-							ByteArrayOutputStream s = new ByteArrayOutputStream();
-							Files.copy(fileToExtract, s);
-							// String xml = s.toString("UTF-8");
-							// assertThat(xml, );
-						} catch (Exception e) {
-							fail(e);
-						}
-					});
+			Arrays.asList("one.class", "Two.class", "gh_release_stats.class", "fetchlatestgraalvm.class")
+				.forEach(path -> {
+					try {
+						Path fileToExtract = fileSystem.getPath(path);
+						ByteArrayOutputStream s = new ByteArrayOutputStream();
+						Files.copy(fileToExtract, s);
+						// String xml = s.toString("UTF-8");
+						// assertThat(xml, );
+					} catch (Exception e) {
+						fail(e);
+					}
+				});
 
 		}
 
@@ -1613,16 +1614,16 @@ public class TestRun extends BaseTest {
 		assertThat(prj.getMainClass(), equalTo("resources"));
 
 		try (FileSystem fileSystem = FileSystems.newFileSystem(ctx.getJarFile(), (ClassLoader) null)) {
-			Arrays	.asList("resources.class", "resource.properties", "test.properties")
-					.forEach(path -> {
-						try {
-							Path fileToExtract = fileSystem.getPath(path);
-							ByteArrayOutputStream s = new ByteArrayOutputStream();
-							Files.copy(fileToExtract, s);
-						} catch (Exception e) {
-							fail(e);
-						}
-					});
+			Arrays.asList("resources.class", "resource.properties", "test.properties")
+				.forEach(path -> {
+					try {
+						Path fileToExtract = fileSystem.getPath(path);
+						ByteArrayOutputStream s = new ByteArrayOutputStream();
+						Files.copy(fileToExtract, s);
+					} catch (Exception e) {
+						fail(e);
+					}
+				});
 
 		}
 	}
@@ -1640,16 +1641,16 @@ public class TestRun extends BaseTest {
 		assertThat(prj.getMainClass(), equalTo("resourcesmnt"));
 
 		try (FileSystem fileSystem = FileSystems.newFileSystem(ctx.getJarFile(), (ClassLoader) null)) {
-			Arrays	.asList("resourcesmnt.class", "somedir/resource.properties", "somedir/test.properties")
-					.forEach(path -> {
-						try {
-							Path fileToExtract = fileSystem.getPath(path);
-							ByteArrayOutputStream s = new ByteArrayOutputStream();
-							Files.copy(fileToExtract, s);
-						} catch (Exception e) {
-							fail(e);
-						}
-					});
+			Arrays.asList("resourcesmnt.class", "somedir/resource.properties", "somedir/test.properties")
+				.forEach(path -> {
+					try {
+						Path fileToExtract = fileSystem.getPath(path);
+						ByteArrayOutputStream s = new ByteArrayOutputStream();
+						Files.copy(fileToExtract, s);
+					} catch (Exception e) {
+						fail(e);
+					}
+				});
 
 		}
 	}
@@ -1658,31 +1659,31 @@ public class TestRun extends BaseTest {
 	void multiSourcesHttp() throws IOException {
 
 		wms.stubFor(WireMock.get(urlEqualTo("/sub/one.java"))
-							.willReturn(aResponse()
-													.withHeader("Content-Type", "text/plain")
-													.withBody("//SOURCES two.java\n" +
-															"public class one {" +
-															"public static void main(String... args) {" +
-															"System.out.println(new two());" +
-															"}" +
-															"}")));
+			.willReturn(aResponse()
+				.withHeader("Content-Type", "text/plain")
+				.withBody("//SOURCES two.java\n" +
+						"public class one {" +
+						"public static void main(String... args) {" +
+						"System.out.println(new two());" +
+						"}" +
+						"}")));
 
 		wms.stubFor(WireMock.get(urlEqualTo("/sub/two.java"))
-							.willReturn(aResponse()
-													.withHeader("Content-Type", "text/plain")
-													.withBody("//SOURCES three.java\n" +
-															"public class two {" +
-															" static { three.hi(); }" +
-															" public String toString() { return \"two for two\"; }" +
-															"}")));
+			.willReturn(aResponse()
+				.withHeader("Content-Type", "text/plain")
+				.withBody("//SOURCES three.java\n" +
+						"public class two {" +
+						" static { three.hi(); }" +
+						" public String toString() { return \"two for two\"; }" +
+						"}")));
 
 		wms.stubFor(WireMock.get(urlEqualTo("/sub/three.java"))
-							.willReturn(aResponse()
-													.withHeader("Content-Type", "text/plain")
-													.withBody("//SOURCES **/*.java\n" +
-															"public class three {" +
-															" public static void hi() { System.out.println(\"hi\"); }" +
-															"}")));
+			.willReturn(aResponse()
+				.withHeader("Content-Type", "text/plain")
+				.withBody("//SOURCES **/*.java\n" +
+						"public class three {" +
+						" public static void hi() { System.out.println(\"hi\"); }" +
+						"}")));
 		wms.start();
 
 		String url = "http://localhost:" + wms.port() + "/sub/one.java";
@@ -1746,9 +1747,9 @@ public class TestRun extends BaseTest {
 		Path p = output.resolve("script");
 		writeString(p, ambigiousScript);
 
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("build", "-m", "Three",
-													p.toFile().getAbsolutePath());
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("build", "-m", "Three",
+					p.toFile().getAbsolutePath());
 		Build build = (Build) pr.subcommand().commandSpec().userObject();
 
 		ProjectBuilder pb = build.createProjectBuilderForBuild();
@@ -1792,8 +1793,8 @@ public class TestRun extends BaseTest {
 		Path mainFile = Paths.get("foo.java");
 		Path resFile = Paths.get("res/resource.properties");
 
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("build", "--files", resFile.toString(), mainFile.toString());
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("build", "--files", resFile.toString(), mainFile.toString());
 		Build build = (Build) pr.subcommand().commandSpec().userObject();
 
 		ProjectBuilder pb = build.createProjectBuilderForBuild();
@@ -1819,11 +1820,11 @@ public class TestRun extends BaseTest {
 					public Project build() {
 						Project project = ctx.getProject();
 						assertThat(project.getMainSourceSet().getResources().size(), is(1));
-						List<String> ps = project	.getMainSourceSet()
-													.getResources()
-													.stream()
-													.map(r -> r.getSource().getFile().toString())
-													.collect(Collectors.toList());
+						List<String> ps = project.getMainSourceSet()
+							.getResources()
+							.stream()
+							.map(r -> r.getSource().getFile().toString())
+							.collect(Collectors.toList());
 						assertThat(ps, hasItem(endsWith("resource.properties")));
 						return project;
 					}
@@ -1848,19 +1849,19 @@ public class TestRun extends BaseTest {
 	void filesHttp() throws IOException {
 
 		wms.stubFor(WireMock.get(urlEqualTo("/sub/one.java"))
-							.willReturn(aResponse()
-													.withHeader("Content-Type", "text/plain")
-													.withBody("//FILES index.html\n" +
-															"public class one {" +
-															"public static void main(String... args) {" +
-															"System.out.println(\"Hello\");" +
-															"}" +
-															"}")));
+			.willReturn(aResponse()
+				.withHeader("Content-Type", "text/plain")
+				.withBody("//FILES index.html\n" +
+						"public class one {" +
+						"public static void main(String... args) {" +
+						"System.out.println(\"Hello\");" +
+						"}" +
+						"}")));
 
 		wms.stubFor(WireMock.get(urlEqualTo("/sub/index.html"))
-							.willReturn(aResponse()
-													.withHeader("Content-Type", "text/plain")
-													.withBody("<h1>Yay!</hi>")));
+			.willReturn(aResponse()
+				.withHeader("Content-Type", "text/plain")
+				.withBody("<h1>Yay!</hi>")));
 
 		wms.start();
 
@@ -1871,18 +1872,18 @@ public class TestRun extends BaseTest {
 		Project.codeBuilder(ctx).build();
 
 		try (FileSystem fileSystem = FileSystems.newFileSystem(ctx.getJarFile(), (ClassLoader) null)) {
-			Arrays	.asList("one.class", "index.html")
-					.forEach(path -> {
-						try {
-							Path fileToExtract = fileSystem.getPath(path);
-							ByteArrayOutputStream s = new ByteArrayOutputStream();
-							Files.copy(fileToExtract, s);
-							// String xml = s.toString("UTF-8");
-							// assertThat(xml, );
-						} catch (Exception e) {
-							fail(e);
-						}
-					});
+			Arrays.asList("one.class", "index.html")
+				.forEach(path -> {
+					try {
+						Path fileToExtract = fileSystem.getPath(path);
+						ByteArrayOutputStream s = new ByteArrayOutputStream();
+						Files.copy(fileToExtract, s);
+						// String xml = s.toString("UTF-8");
+						// assertThat(xml, );
+					} catch (Exception e) {
+						fail(e);
+					}
+				});
 
 		}
 	}
@@ -1891,14 +1892,14 @@ public class TestRun extends BaseTest {
 	void testExtensionlessHttp() throws IOException {
 
 		wms.stubFor(WireMock.get(urlEqualTo("/sub/one"))
-							.willReturn(aResponse()
-													.withHeader("Content-Type", "text/plain")
-													.withBody("\n" +
-															"public class one {" +
-															"public static void main(String... args) {" +
-															"System.out.println(new one());" +
-															"}" +
-															"}")));
+			.willReturn(aResponse()
+				.withHeader("Content-Type", "text/plain")
+				.withBody("\n" +
+						"public class one {" +
+						"public static void main(String... args) {" +
+						"System.out.println(new one());" +
+						"}" +
+						"}")));
 
 		wms.start();
 
@@ -1940,14 +1941,14 @@ public class TestRun extends BaseTest {
 	void testDefaultHttpApp() throws IOException {
 
 		wms.stubFor(WireMock.get(urlEqualTo("/sub/one/main.java"))
-							.willReturn(aResponse()
-													.withHeader("Content-Type", "text/plain")
-													.withBody("\n" +
-															"public class main {" +
-															"public static void main(String... args) {" +
-															"System.out.println(new main());" +
-															"}" +
-															"}")));
+			.willReturn(aResponse()
+				.withHeader("Content-Type", "text/plain")
+				.withBody("\n" +
+						"public class main {" +
+						"public static void main(String... args) {" +
+						"System.out.println(new main());" +
+						"}" +
+						"}")));
 
 		wms.start();
 
@@ -1959,14 +1960,14 @@ public class TestRun extends BaseTest {
 	void testNoDefaultHttpApp() throws IOException {
 
 		wms.stubFor(WireMock.get(urlEqualTo("/sub/one/other.java"))
-							.willReturn(aResponse()
-													.withHeader("Content-Type", "text/plain")
-													.withBody("\n" +
-															"public class main {" +
-															"public static void main(String... args) {" +
-															"System.out.println(new main());" +
-															"}" +
-															"}")));
+			.willReturn(aResponse()
+				.withHeader("Content-Type", "text/plain")
+				.withBody("\n" +
+						"public class main {" +
+						"public static void main(String... args) {" +
+						"System.out.println(new main());" +
+						"}" +
+						"}")));
 
 		wms.start();
 		assertThrows(ExitException.class,
@@ -2012,9 +2013,9 @@ public class TestRun extends BaseTest {
 		Path fileref = examplesTestFolder.resolve("SankeyPlotTestWithDeps.java").toAbsolutePath();
 
 		// todo fix so --deps can use system properties
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run",
-													fileref.toString());
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run",
+					fileref.toString());
 
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
@@ -2032,12 +2033,12 @@ public class TestRun extends BaseTest {
 		Path fileref = examplesTestFolder.resolve("SankeyPlotTest.java").toAbsolutePath();
 
 		// todo fix so --deps can use system properties
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run",
-													"--deps", "org.openjfx:javafx-graphics:17:mac",
-													"--deps", "org.openjfx:javafx-controls:17:mac",
-													"--deps", "eu.hansolo.fx:charts:RELEASE",
-													fileref.toString());
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run",
+					"--deps", "org.openjfx:javafx-graphics:17:mac",
+					"--deps", "org.openjfx:javafx-controls:17:mac",
+					"--deps", "eu.hansolo.fx:charts:RELEASE",
+					fileref.toString());
 
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
@@ -2055,11 +2056,11 @@ public class TestRun extends BaseTest {
 		Path fileref = examplesTestFolder.resolve("SankeyPlotTest.java").toAbsolutePath();
 
 		// todo fix so --deps can use system properties
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run",
-													"--deps",
-													"org.openjfx:javafx-graphics:17:mac,org.openjfx:javafx-controls:17:mac,eu.hansolo.fx:charts:RELEASE",
-													fileref.toString());
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run",
+					"--deps",
+					"org.openjfx:javafx-graphics:17:mac,org.openjfx:javafx-controls:17:mac,eu.hansolo.fx:charts:RELEASE",
+					fileref.toString());
 
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
@@ -2077,13 +2078,13 @@ public class TestRun extends BaseTest {
 		Path fileref = examplesTestFolder.resolve("SankeyPlotTest.java").toAbsolutePath();
 
 		// todo fix so --deps can use system properties
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run",
-													"--java", "11",
-													"--deps", "org.openjfx:javafx-graphics:17:${os.detected.jfxname}",
-													"--deps", "org.openjfx:javafx-controls:17:${os.detected.jfxname}",
-													"--deps", "eu.hansolo.fx:charts:RELEASE",
-													fileref.toString());
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run",
+					"--java", "11",
+					"--deps", "org.openjfx:javafx-graphics:17:${os.detected.jfxname}",
+					"--deps", "org.openjfx:javafx-controls:17:${os.detected.jfxname}",
+					"--deps", "eu.hansolo.fx:charts:RELEASE",
+					fileref.toString());
 
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
@@ -2110,9 +2111,9 @@ public class TestRun extends BaseTest {
 		Util.writeString(f.toPath(), base);
 
 		String arg = f.getAbsolutePath();
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "--repos", "https://dummyrepo", "--deps",
-													"dummygroup:dummyart:0.1", arg);
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run", "--repos", "https://dummyrepo", "--deps",
+					"dummygroup:dummyart:0.1", arg);
 
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
@@ -2134,9 +2135,9 @@ public class TestRun extends BaseTest {
 	void testGAVCliReposAndDepsSingleRepo(@TempDir File output) throws IOException {
 		String jar = "info.picocli:picocli-codegen:4.6.3";
 
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "--repos", "https://dummyrepo", "--deps",
-													"dummygroup:dummyart:0.1", jar);
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run", "--repos", "https://dummyrepo", "--deps",
+					"dummygroup:dummyart:0.1", jar);
 
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
@@ -2157,10 +2158,10 @@ public class TestRun extends BaseTest {
 	void testGAVCliReposAndDepsTwoRepos(@TempDir File output) throws IOException {
 		String jar = "info.picocli:picocli-codegen:4.6.3";
 
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "--repos", "mavencentral", "--repos",
-													"https://dummyrepo", "--deps",
-													"dummygroup:dummyart:0.1", jar);
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run", "--repos", "mavencentral", "--repos",
+					"https://dummyrepo", "--deps",
+					"dummygroup:dummyart:0.1", jar);
 
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
@@ -2267,8 +2268,8 @@ public class TestRun extends BaseTest {
 				+ "}";
 		Util.writeString(f.toPath(), content);
 
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "--fresh", "--repos", "central", f.getPath());
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run", "--fresh", "--repos", "central", f.getPath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
@@ -2280,7 +2281,7 @@ public class TestRun extends BaseTest {
 
 	@Test
 	void testForceJavaVersion() throws IOException {
-		int v = JdkManager.getJdk(null, false).getMajorVersion();
+		int v = defaultJdkManager().getJdk(null).majorVersion();
 		String arg = examplesTestFolder.resolve("java4321.java").toAbsolutePath().toString();
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--java", "" + v, arg);
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
@@ -2387,12 +2388,12 @@ public class TestRun extends BaseTest {
 	void testRemoteFileArgSimple() throws Exception {
 
 		wms.stubFor(WireMock.get(urlEqualTo("/readme.md"))
-							.willReturn(aResponse()
-													.withHeader("Content-Type", "text/plain")
-													.withBodyFile("readme.md")
-													.withBody(
-															Util.readString(
-																	examplesTestFolder.resolve("readme.md")))));
+			.willReturn(aResponse()
+				.withHeader("Content-Type", "text/plain")
+				.withBodyFile("readme.md")
+				.withBody(
+						Util.readString(
+								examplesTestFolder.resolve("readme.md")))));
 
 		wms.start();
 		String script = examplesTestFolder.resolve("helloworld.java").toString();
@@ -2408,12 +2409,12 @@ public class TestRun extends BaseTest {
 	void testRemoteFileArgBraced() throws Exception {
 
 		wms.stubFor(WireMock.get(urlEqualTo("/readme.md"))
-							.willReturn(aResponse()
-													.withHeader("Content-Type", "text/plain")
-													.withBodyFile("readme.md")
-													.withBody(
-															Util.readString(
-																	examplesTestFolder.resolve("readme.md")))));
+			.willReturn(aResponse()
+				.withHeader("Content-Type", "text/plain")
+				.withBodyFile("readme.md")
+				.withBody(
+						Util.readString(
+								examplesTestFolder.resolve("readme.md")))));
 
 		wms.start();
 		String script = examplesTestFolder.resolve("helloworld.java").toString();
@@ -2430,20 +2431,20 @@ public class TestRun extends BaseTest {
 
 		wms.stubFor(
 				WireMock.get(urlEqualTo("/readme1.md"))
-						.willReturn(aResponse()
-												.withHeader("Content-Type", "text/plain")
-												.withBodyFile("readme1.md")
-												.withBody(
-														Util.readString(
-																examplesTestFolder.resolve("readme.md")))));
+					.willReturn(aResponse()
+						.withHeader("Content-Type", "text/plain")
+						.withBodyFile("readme1.md")
+						.withBody(
+								Util.readString(
+										examplesTestFolder.resolve("readme.md")))));
 		wms.stubFor(
 				WireMock.get(urlEqualTo("/readme2.md"))
-						.willReturn(aResponse()
-												.withHeader("Content-Type", "text/plain")
-												.withBodyFile("readme2.md")
-												.withBody(
-														Util.readString(
-																examplesTestFolder.resolve("readme.md")))));
+					.willReturn(aResponse()
+						.withHeader("Content-Type", "text/plain")
+						.withBodyFile("readme2.md")
+						.withBody(
+								Util.readString(
+										examplesTestFolder.resolve("readme.md")))));
 
 		wms.start();
 		String script = examplesTestFolder.resolve("helloworld.java").toString();
@@ -2464,12 +2465,12 @@ public class TestRun extends BaseTest {
 
 		wms.stubFor(
 				WireMock.get(urlEqualTo("/readme.md"))
-						.willReturn(aResponse()
-												.withHeader("Content-Type", "text/plain")
-												.withBodyFile("readme.md")
-												.withBody(
-														Util.readString(
-																examplesTestFolder.resolve("readme.md")))));
+					.willReturn(aResponse()
+						.withHeader("Content-Type", "text/plain")
+						.withBodyFile("readme.md")
+						.withBody(
+								Util.readString(
+										examplesTestFolder.resolve("readme.md")))));
 
 		wms.start();
 		String script = examplesTestFolder.resolve("helloworld.java").toString();
@@ -2565,8 +2566,8 @@ public class TestRun extends BaseTest {
 				null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 		CatalogUtil.addNearestAlias("echo", alias);
 
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "echo", "baz");
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run", "echo", "baz");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
@@ -2583,8 +2584,8 @@ public class TestRun extends BaseTest {
 	@Test
 	void testCatalogAliasArguments() throws IOException {
 		File f = examplesTestFolder.resolve("jbang-catalog.json").toFile();
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "--catalog", f.getAbsolutePath(), "echo", "baz");
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run", "--catalog", f.getAbsolutePath(), "echo", "baz");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
@@ -2624,6 +2625,7 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	@Disabled("java 8 is not installing reliably on github action")
 	void testReadingNoAddExportsOnJava8() throws IOException {
 		String jar = "com.google.googlejavaformat:google-java-format:1.25.2";
 

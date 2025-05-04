@@ -63,7 +63,7 @@ public abstract class AppBuilder implements Builder<CmdGeneratorBuilder> {
 				Util.verboseMsg("Building as previously built jar found but it or its dependencies not up-to-date.");
 			} else if (jarProject.getJavaVersion() == null) {
 				Util.verboseMsg("Building as previously built jar found but it has incomplete meta data.");
-			} else if (JavaUtil.javaVersion(requestedJavaVersion) < JavaUtil.minRequestedVersion(
+			} else if (project.projectJdk().majorVersion() < JavaUtil.minRequestedVersion(
 					jarProject.getJavaVersion())) {
 				Util.verboseMsg(
 						String.format(
@@ -116,9 +116,9 @@ public abstract class AppBuilder implements Builder<CmdGeneratorBuilder> {
 			}
 		}
 
-		return CmdGenerator	.builder(ctx)
-							.mainClass(project.getMainClass())
-							.moduleName(project.getModuleName().orElse(null));
+		return CmdGenerator.builder(ctx)
+			.mainClass(project.getMainClass())
+			.moduleName(project.getModuleName().orElse(null));
 	}
 
 	public static boolean keepClasses() {

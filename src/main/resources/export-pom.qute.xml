@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+		 xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>{group}</groupId>
+	<artifactId>{artifact}</artifactId>
+	<version>{version}</version>
+	<description>{description}</description>
+	{#if !properties.empty}
+	<properties>
+		{#for item in properties.entrySet}
+		<{item.key}>{item.value}</{item.key}>
+		{/for}
+	</properties>
+	{/if}
+	{#if !boms.empty}
+
+	<dependencyManagement>
+		<dependencies>
+			{#for item in boms}
+			<dependency>
+				<groupId>{item.groupId}</groupId>
+				<artifactId>{item.artifactId}</artifactId>
+				<version>{item.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			{/for}
+		</dependencies>
+	</dependencyManagement>
+	{/if}
+	{#if !dependencies.empty}
+
+	<dependencies>
+		{#for item in dependencies}
+		<dependency>
+			<groupId>{item.groupId}</groupId>
+			<artifactId>{item.artifactId}</artifactId>
+			{#if item.version}
+			<version>{item.version}</version>
+			{/if}
+			<scope>compile</scope>
+		</dependency>
+		{/for}
+	</dependencies>
+	{/if}
+	{#if !repositories.empty}
+
+	<repositories>
+		{#for item in repositories}
+		<repository>
+			<id>{item.id}</id>
+			<url>{item.url}</url>
+		</repository>
+		{/for}
+	</repositories>
+	{/if}
+
+	<build>
+		{#if language eq 'kotlin'}
+		<sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
+		<testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
+		{/if}
+		<plugins>
+			{#if language eq 'java'}
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.14.0</version>
+				<configuration>
+					{#if javaVersion}
+					<release>{javaVersion}</release>
+					{/if}
+					<compilerArgs>
+						{#for arg in compilerArgs}
+						<arg>{arg}</arg>
+						{/for}
+						{#if enablePreview eq 'true'}
+						<arg>--release</arg>
+						<arg>{javaVersion}</arg>
+						<arg>--enable-preview</arg>
+						<arg>-Xlint:preview</arg>
+						{/if}
+					</compilerArgs>
+				</configuration>
+			</plugin>
+			{/if}
+			{#if language eq 'kotlin'}
+			<plugin>
+				<artifactId>kotlin-maven-plugin</artifactId>
+				<groupId>org.jetbrains.kotlin</groupId>
+				<version>{kotlinVersion}</version>
+				<extensions>true</extensions>
+				<executions>
+					<execution>
+						<id>compile</id>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>test-compile</id>
+						<goals>
+							<goal>test-compile</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<args>
+						{#for arg in compilerArgs}
+						<arg>{arg}</arg>
+						{/for}
+					</args>
+				</configuration>
+			</plugin>
+			{/if}
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.4.2</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>{fullClassName}</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

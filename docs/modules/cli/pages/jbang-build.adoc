@@ -19,11 +19,15 @@ jbang-build - Compiles and stores script in the cache.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang build* *-o* [*-hn*] [*--[no-]cds*] *--fresh* [*--insecure*] [*--jsh*] *--quiet*
-            *--verbose* [*--catalog*=_<catalog>_] [*--config*=_<config>_]
-            [*-j*=_<javaVersion>_] [*-m*=_<main>_] [*--cp*=_<classpaths>_]...
-            [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]...
-            [*--repos*=_<repositories>_]... _<scriptOrFile>_
+*jbang build* *-o* [*-hn*] [*--enable-preview*] *--fresh* [*--insecure*] [*--[no-]*
+     *       integrations*] [*--itr*] [*--jsh*] *--quiet* *--verbose* [*--module*
+            [=_<module>_]] [*--build-dir*=_<buildDir>_] [*--catalog*=_<catalog>_]
+            [*--config*=_<config>_] [*-j*=_<javaVersion>_] [*-m*=_<main>_]
+            [*--source-type*=_<forceType>_] [*-C*=_<compileOptions>_]...
+            [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
+            [*--deps*=_<dependencies>_]... [*--files*=_<resources>_]...
+            [*--manifest*=_<String=String>_]... [*-N*=_<nativeOptions>_]...
+            [*--repos*=_<repositories>_]... [*-s*=_<sources>_]... [_<scriptOrFile>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -37,11 +41,14 @@ Compiles and stores script in the cache.
 // tag::picocli-generated-man-section-options[]
 == Options
 
+*--build-dir*=_<buildDir>_::
+  Use given directory for build results
+
+*-C*, *--compile-option*=_<compileOptions>_::
+  Options to pass to the compiler
+
 *--catalog*=_<catalog>_::
   Path to catalog file to be used instead of the default
-
-*--[no-]cds*::
-  If specified Class Data Sharing (CDS) will be used for building and running (requires Java 13+)
 
 *--config*=_<config>_::
   Path to config file to be used instead of the default
@@ -55,6 +62,12 @@ Compiles and stores script in the cache.
 *--deps*=_<dependencies>_::
   Add additional dependencies (Use commas to separate them).
 
+*--enable-preview*::
+  Activate Java preview features
+
+*--files*=_<resources>_::
+  Add additional files.
+
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
 
@@ -64,17 +77,32 @@ Compiles and stores script in the cache.
 *--insecure*::
   Enable insecure trust of all SSL certificates.
 
+*--[no-]integrations*::
+  Enable integration execution (default: true)
+
+*--itr, --ignore-transitive-repositories*::
+  Ignore remote repositories found in transitive dependencies
+
 *-j*, *--java*=_<javaVersion>_::
   JDK version to use for running the script.
 
 *--jsh*::
-  Force input to be interpreted with jsh/jshell
+  Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'
 
 *-m*, *--main*=_<main>_::
   Main class to use when running. Used primarily for running jar's.
 
+*--manifest*=_<String=String>_::
+  
+
+*--module*[=_<module>_]::
+  Treat resource as a module. Optionally with the given module name
+
 *-n*, *--native*::
   Build using native-image
+
+*-N*, *--native-option*=_<nativeOptions>_::
+  Options to pass to the native image tool
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted
@@ -85,6 +113,12 @@ Compiles and stores script in the cache.
 *--repos*=_<repositories>_::
   Add additional repositories.
 
+*-s*, *--sources*=_<sources>_::
+  Add additional sources.
+
+*--source-type*=_<forceType>_::
+  Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
+
 *--verbose*::
   jbang will be verbose on what it does.
 
@@ -93,8 +127,8 @@ Compiles and stores script in the cache.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_<scriptOrFile>_::
-  A file with java code or if named .jsh will be run with jshell
+[_<scriptOrFile>_]::
+  A reference to a source file
 
 // end::picocli-generated-man-section-arguments[]
 

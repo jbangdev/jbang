@@ -1,4 +1,4 @@
-open := if os() == "macos" { "open" } else { "xdg-open" }
+open := if os() == "macos" { "open" } else if os() == "windows" { "start" } else { "xdg-open" }
 
 #@default:
 #    just --choose
@@ -7,12 +7,15 @@ open := if os() == "macos" { "open" } else { "xdg-open" }
 build:
     ./gradlew spotlessApply installDist -x test
 
+format:
+    ./gradlew spotlessApply
+
 # run tests
 test:
     ./gradlew test
 
 preitest := if path_exists('build/install/jbang/bin') != 'true' {
-  './gradlew installDist -x test'
+    './gradlew spotlessApply installDist -x test'
 } else {
     ''
 }
@@ -24,18 +27,25 @@ opentest:
 # run integration tests
 itest:
     {{preitest}}
-    @cd itests && ./itests.sh
+    ./gradlew integrationTest
+
+# open shell with latest build in path
+jbang *args:
+    PATH="build/install/jbang/bin:$PATH" jbang {{args}}
 
 # open integeration test report
 openitest:
-    {{open}} build/karate/surefire-reports/karate-summary.html
+    {{open}} build/reports/allure-report/allureReport/index.html
 
 # tag minor
 tagminor:
-    git commit --allow-empty -m "[minor] relase"
+    git commit --allow-empty -m "[minor] release"
     ./gradlew tag
 
 tagpatch:
-    git commit --allow-empty -m "[patch] relase"
+    git commit --allow-empty -m "[patch] release"
     ./gradlew tag
 
+itestreport: # todo: should not be needed to clean
+    -./gradlew integrationTest
+    ./gradlew allureReport --clean

@@ -19,8 +19,8 @@ jbang-version - Display version info.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang version* *-o* [*-h*] [*--check*] *--fresh* *--quiet* [*--update*] *--verbose*
-              [*--config*=_<config>_]
+*jbang version* *-o* [*-h*] [*--check*] *--fresh* [*--insecure*] *--quiet* [*--update*]
+              *--verbose* [*--config*=_<config>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -45,6 +45,9 @@ Display version info.
 
 *-h*, *--help*::
   Display help/info. Use 'jbang <command> -h' for detailed usage.
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted

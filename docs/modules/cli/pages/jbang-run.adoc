@@ -12,33 +12,46 @@
 // tag::picocli-generated-man-section-name[]
 == Name
 
-jbang-run - Builds and runs provided script.
+jbang-run - Builds and runs provided script. (default command)
 
 // end::picocli-generated-man-section-name[]
 
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang run* *-o* [*-hn*] [*--[no-]cds*] [*--ea*] [*--esa*] *--fresh* [*--insecure*]
-          [*--interactive*] [*--jsh*] *--quiet* *--verbose* [*-d*[=_<debugString>_]] [*-r*
-          [=_<flightRecorderString>_]] [*--catalog*=_<catalog>_] [*--config*=_<config>_]
-          [*-j*=_<javaVersion>_] [*-m*=_<main>_] [*--cp*=_<classpaths>_]...
-          [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]...
-          [*--java-options*=_<javaRuntimeOptions>_]...
-          [*--javaagent*=_<String=Optional>_]... [*--repos*=_<repositories>_]...
-          _<scriptOrFile>_ [_<userParams>_...]
+*jbang run* *-o* [*-hin*] [*--[no-]cds*] [*--ea*] [*--enable-preview*] [*--esa*] *--fresh*
+          [*--insecure*] [*--[no-]integrations*] [*--itr*] [*--jsh*] *--quiet* *--verbose*
+          [*-c*[=_<literalScript>_]] [*--jfr*[=_<flightRecorderString>_]] [*--module*
+          [=_<module>_]] [*-d*[=_<String=String>_]]... [*--build-dir*=_<buildDir>_]
+          [*--catalog*=_<catalog>_] [*--config*=_<config>_] [*-j*=_<javaVersion>_]
+          [*-m*=_<main>_] [*--source-type*=_<forceType>_] [*-C*=_<compileOptions>_]...
+          [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
+          [*--deps*=_<dependencies>_]... [*--files*=_<resources>_]...
+          [*--javaagent*=_<String=String>_]... [*--manifest*=_<String=String>_]...
+          [*-N*=_<nativeOptions>_]... [*-R*=_<javaRuntimeOptions>_]...
+          [*--repos*=_<repositories>_]... [*-s*=_<sources>_]... [_<scriptOrFile>_]
+          [_<userParams>_...]
 
 // end::picocli-generated-man-section-synopsis[]
 
 // tag::picocli-generated-man-section-description[]
 == Description
 
-Builds and runs provided script.
+Builds and runs provided script. (default command)
 
 // end::picocli-generated-man-section-description[]
 
 // tag::picocli-generated-man-section-options[]
 == Options
+
+*--build-dir*=_<buildDir>_::
+  Use given directory for build results
+
+*-c*, *--code*[=_<literalScript>_]::
+  Run the given string as code
+
+*-C*, *--compile-option*=_<compileOptions>_::
+  Options to pass to the compiler
 
 *--catalog*=_<catalog>_::
   Path to catalog file to be used instead of the default
@@ -52,8 +65,8 @@ Builds and runs provided script.
 *--cp, --class-path*=_<classpaths>_::
   Add class path entries.
 
-*-d*, *--debug*[=_<debugString>_]::
-  Launch with java debug enabled on specified port (default: null) 
+*-d*, *--debug*[=_<String=String>_]::
+  Launch with java debug enabled. Set host/port or provide key/value list of JPDA options (default: null) 
 
 *-D*, _<String=String>_::
   set a system property
@@ -64,8 +77,14 @@ Builds and runs provided script.
 *--ea, --enableassertions*::
   Enable assertions
 
+*--enable-preview*::
+  Activate Java preview features
+
 *--esa, --enablesystemassertions*::
   Enable system assertions
+
+*--files*=_<resources>_::
+  Add additional files.
 
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
@@ -73,29 +92,44 @@ Builds and runs provided script.
 *-h*, *--help*::
   Display help/info. Use 'jbang <command> -h' for detailed usage.
 
+*-i*, *--interactive*::
+  Activate interactive mode
+
 *--insecure*::
   Enable insecure trust of all SSL certificates.
 
-*--interactive*::
-  activate interactive mode
+*--[no-]integrations*::
+  Enable integration execution (default: true)
+
+*--itr, --ignore-transitive-repositories*::
+  Ignore remote repositories found in transitive dependencies
 
 *-j*, *--java*=_<javaVersion>_::
   JDK version to use for running the script.
 
-*--java-options*=_<javaRuntimeOptions>_::
-  A Java runtime option
-
-*--javaagent*=_<String=Optional>_::
+*--javaagent*=_<String=String>_::
   
 
+*--jfr*[=_<flightRecorderString>_]::
+  Launch with Java Flight Recorder enabled.
+
 *--jsh*::
-  Force input to be interpreted with jsh/jshell
+  Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'
 
 *-m*, *--main*=_<main>_::
   Main class to use when running. Used primarily for running jar's.
 
+*--manifest*=_<String=String>_::
+  
+
+*--module*[=_<module>_]::
+  Treat resource as a module. Optionally with the given module name
+
 *-n*, *--native*::
   Build using native-image
+
+*-N*, *--native-option*=_<nativeOptions>_::
+  Options to pass to the native image tool
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted
@@ -103,11 +137,17 @@ Builds and runs provided script.
 *--quiet*::
   jbang will be quiet, only print when error occurs.
 
-*-r*, *--jfr*[=_<flightRecorderString>_]::
-  Launch with Java Flight Recorder enabled.
+*-R*, *--java-options, --runtime-option*=_<javaRuntimeOptions>_::
+  Options to pass to the Java runtime
 
 *--repos*=_<repositories>_::
   Add additional repositories.
+
+*-s*, *--sources*=_<sources>_::
+  Add additional sources.
+
+*--source-type*=_<forceType>_::
+  Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
 
 *--verbose*::
   jbang will be verbose on what it does.
@@ -117,8 +157,8 @@ Builds and runs provided script.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_<scriptOrFile>_::
-  A file with java code or if named .jsh will be run with jshell
+[_<scriptOrFile>_]::
+  A reference to a source file
 
 [_<userParams>_...]::
   Parameters to pass on to the script

@@ -5,11 +5,12 @@ import static dev.jbang.Settings.CP_SEPARATOR;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
@@ -19,14 +20,10 @@ import org.apache.commons.compress.archivers.zip.ZipFile;
 
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.CatalogUtil;
-import dev.jbang.dependencies.ArtifactInfo;
-import dev.jbang.dependencies.ArtifactResolver;
-import dev.jbang.dependencies.MavenCoordinate;
-import dev.jbang.source.BuildContext;
-import dev.jbang.source.Project;
-import dev.jbang.source.ProjectBuilder;
-import dev.jbang.source.ResourceRef;
+import dev.jbang.dependencies.*;
+import dev.jbang.source.*;
 import dev.jbang.source.resolvers.AliasResourceResolver;
+import dev.jbang.source.sources.KotlinSource;
 import dev.jbang.util.JarUtil;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
@@ -38,8 +35,10 @@ import io.quarkus.qute.Template;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
-@Command(name = "export", description = "Export the result of a build.", subcommands = { ExportPortable.class,
-		ExportLocal.class, ExportMavenPublish.class, ExportNative.class, ExportFatjar.class, ExportJlink.class })
+@Command(name = "export", description = "Export the result of a build or the set of the sources to a project.", subcommands = {
+		ExportPortable.class,
+		ExportLocal.class, ExportMavenPublish.class, ExportNative.class, ExportFatjar.class, ExportJlink.class,
+		ExportGradleProject.class, ExportMavenProject.class })
 public class Export {
 }
 
@@ -77,19 +76,20 @@ abstract class BaseExportCommand extends BaseCommand {
 
 	protected ProjectBuilder createProjectBuilder(ExportMixin exportMixin) {
 		return Project
-						.builder()
-						.setProperties(exportMixin.dependencyInfoMixin.getProperties())
-						.additionalDependencies(exportMixin.dependencyInfoMixin.getDependencies())
-						.additionalRepositories(exportMixin.dependencyInfoMixin.getRepositories())
-						.additionalClasspaths(exportMixin.dependencyInfoMixin.getClasspaths())
-						.additionalSources(exportMixin.scriptMixin.sources)
-						.additionalResources(exportMixin.scriptMixin.resources)
-						.forceType(exportMixin.scriptMixin.forceType)
-						.catalog(exportMixin.scriptMixin.catalog)
-						.javaVersion(exportMixin.buildMixin.javaVersion)
-						.mainClass(exportMixin.buildMixin.main)
-						.moduleName(exportMixin.buildMixin.module)
-						.compileOptions(exportMixin.buildMixin.compileOptions);
+			.builder()
+			.setProperties(exportMixin.dependencyInfoMixin.getProperties())
+			.additionalDependencies(exportMixin.dependencyInfoMixin.getDependencies())
+			.additionalRepositories(exportMixin.dependencyInfoMixin.getRepositories())
+			.additionalClasspaths(exportMixin.dependencyInfoMixin.getClasspaths())
+			.additionalSources(exportMixin.scriptMixin.sources)
+			.additionalResources(exportMixin.scriptMixin.resources)
+			.forceType(exportMixin.scriptMixin.forceType)
+			.catalog(exportMixin.scriptMixin.catalog)
+			.javaVersion(exportMixin.buildMixin.javaVersion)
+			.mainClass(exportMixin.buildMixin.main)
+			.moduleName(exportMixin.buildMixin.module)
+			.compileOptions(exportMixin.buildMixin.compileOptions)
+			.jdkManager(exportMixin.buildMixin.jdkProvidersMixin.getJdkManager());
 	}
 
 	Path getJarOutputPath() {
@@ -128,10 +128,8 @@ class ExportLocal extends BaseExportCommand {
 		String newPath = ctx.resolveClassPath().getManifestPath();
 		if (!newPath.isEmpty()) {
 			Util.infoMsg("Updating jar...");
-			String javaVersion = exportMixin.buildMixin.javaVersion != null
-					? exportMixin.buildMixin.javaVersion
-					: prj.getJavaVersion();
-			JarUtil.updateJar(outputPath, createManifest(newPath), prj.getMainClass(), javaVersion);
+			JarUtil.updateJar(outputPath, createManifest(newPath), prj.getMainClass(),
+					exportMixin.buildMixin.getProjectJdk(prj));
 		}
 
 		Util.infoMsg("Exported to " + outputPath);
@@ -179,10 +177,8 @@ class ExportPortable extends BaseExportCommand {
 			}
 
 			Util.infoMsg("Updating jar...");
-			String javaVersion = exportMixin.buildMixin.javaVersion != null
-					? exportMixin.buildMixin.javaVersion
-					: prj.getJavaVersion();
-			JarUtil.updateJar(outputPath, createManifest(newPath.toString()), prj.getMainClass(), javaVersion);
+			JarUtil.updateJar(outputPath, createManifest(newPath.toString()), prj.getMainClass(),
+					exportMixin.buildMixin.getProjectJdk(prj));
 		}
 		Util.infoMsg("Exported to " + outputPath);
 		return EXIT_OK;
@@ -252,9 +248,9 @@ class ExportMavenPublish extends BaseExportCommand {
 		version = version != null ? version : MavenCoordinate.DEFAULT_VERSION;
 		Path versionDir = artifactDir.resolve(version);
 
-		String suffix = source	.getFileName()
-								.toString()
-								.substring(source.getFileName().toString().lastIndexOf("."));
+		String suffix = source.getFileName()
+			.toString()
+			.substring(source.getFileName().toString().lastIndexOf("."));
 		Path artifactFile = versionDir.resolve(artifact + "-" + version + suffix);
 
 		artifactFile.getParent().toFile().mkdirs();
@@ -272,8 +268,8 @@ class ExportMavenPublish extends BaseExportCommand {
 
 		// generate pom.xml ... if jar could technically just copy from the jar ...but
 		// not possible when native thus for now just regenerate it
-		Template pomTemplate = TemplateEngine	.instance()
-												.getTemplate(ResourceRef.forResource("classpath:/pom.qute.xml"));
+		Template pomTemplate = TemplateEngine.instance()
+			.getTemplate(ResourceRef.forResource("classpath:/pom.qute.xml"));
 
 		Path pomPath = versionDir.resolve(artifact + "-" + version + ".pom");
 		if (pomTemplate == null) {
@@ -282,15 +278,15 @@ class ExportMavenPublish extends BaseExportCommand {
 		} else {
 
 			String pomfile = pomTemplate
-										.data("baseName",
-												Util.getBaseName(
-														prj.getResourceRef().getFile().getFileName().toString()))
-										.data("group", group)
-										.data("artifact", artifact)
-										.data("version", version)
-										.data("description", prj.getDescription().orElse(""))
-										.data("dependencies", ctx.resolveClassPath().getArtifacts())
-										.render();
+				.data("baseName",
+						Util.getBaseName(
+								prj.getResourceRef().getFile().getFileName().toString()))
+				.data("group", group)
+				.data("artifact", artifact)
+				.data("version", version)
+				.data("description", prj.getDescription().orElse(""))
+				.data("dependencies", ctx.resolveClassPath().getArtifacts())
+				.render();
 			Util.infoMsg("Writing " + pomPath);
 			Util.writeString(pomPath, pomfile);
 
@@ -373,7 +369,8 @@ class ExportFatjar extends BaseExportCommand {
 					Util.verboseMsg("Unpacking artifact: " + dep);
 					UnpackUtil.unzip(dep.getFile(), tmpDir, false, null, ExportFatjar::handleExistingFile);
 				}
-				JarUtil.createJar(outputPath, tmpDir, null, prj.getMainClass(), prj.getJavaVersion());
+				JarUtil.createJar(outputPath, tmpDir, null, prj.getMainClass(),
+						exportMixin.buildMixin.getProjectJdk(prj));
 			} finally {
 				Util.deletePath(tmpDir, true);
 			}
@@ -428,14 +425,14 @@ class ExportJlink extends BaseExportCommand {
 		Project prj = ctx.getProject();
 		List<ArtifactInfo> artifacts = ctx.resolveClassPath().getArtifacts();
 		List<ArtifactInfo> nonMods = artifacts
-												.stream()
-												.filter(a -> !ModuleUtil.isModule(a.getFile()))
-												.collect(Collectors.toList());
+			.stream()
+			.filter(a -> !ModuleUtil.isModule(a.getFile()))
+			.collect(Collectors.toList());
 		if (!nonMods.isEmpty()) {
 			String lst = nonMods
-								.stream()
-								.map(a -> a.getCoordinate().toCanonicalForm())
-								.collect(Collectors.joining(", "));
+				.stream()
+				.map(a -> a.getCoordinate().toCanonicalForm())
+				.collect(Collectors.joining(", "));
 			Util.warnMsg("Export might fail because some dependencies are not full modules: " + lst);
 		}
 
@@ -455,7 +452,7 @@ class ExportJlink extends BaseExportCommand {
 			}
 		}
 
-		String jlinkCmd = JavaUtil.resolveInJavaHome("jlink", null);
+		String jlinkCmd = JavaUtil.resolveInJavaHome("jlink", prj.projectJdk());
 		String modMain = ModuleUtil.getModuleMain(prj);
 		List<String> cps = artifacts.stream().map(a -> a.getFile().toString()).collect(Collectors.toList());
 		List<String> cp = new ArrayList<>(artifacts.size() + 1);
@@ -501,4 +498,321 @@ class ExportJlink extends BaseExportCommand {
 		Path outputPath = exportMixin.getOutputPath("-jlink");
 		return outputPath;
 	}
+}
+
+abstract class BaseExportProject extends BaseExportCommand {
+
+	@CommandLine.Option(names = { "--group", "-g" }, description = "The group ID to use for the exported project.")
+	String group;
+
+	@CommandLine.Option(names = { "--artifact",
+			"-a" }, description = "The artifact ID to use for the exported project.")
+	String artifact;
+
+	@CommandLine.Option(names = { "--version", "-v" }, description = "The version to use for the exported project.")
+	String version;
+
+	protected EnumSet<Source.Type> supportedSourceTypes = EnumSet.of(Source.Type.java, Source.Type.groovy,
+			Source.Type.kotlin);
+
+	@Override
+	int apply(BuildContext ctx) throws IOException {
+		Path projectDir = exportMixin.getOutputPath("");
+		if (projectDir.toFile().exists()) {
+			if (exportMixin.force) {
+				Util.deletePath(projectDir, false);
+			} else {
+				Util.errorMsg("Cannot export as " + projectDir + " already exists. Use --force to overwrite.");
+				return EXIT_INVALID_INPUT;
+			}
+		}
+
+		Project prj = ctx.getProject();
+		if (prj.isJar() || prj.getMainSourceSet().getSources().isEmpty()) {
+			Util.errorMsg("You can only export source files");
+			return EXIT_INVALID_INPUT;
+		}
+
+		if (prj.getGav().isPresent()) {
+			MavenCoordinate coord = MavenCoordinate.fromString(prj.getGav().get()).withVersion();
+			if (group == null) {
+				group = coord.getGroupId();
+			}
+			if (artifact == null) {
+				artifact = coord.getArtifactId();
+			}
+			if (version == null) {
+				version = coord.getVersion();
+			}
+		}
+
+		if (group == null) {
+			group = "org.example.project";
+			info("No explicit group found, using " + group + " as fallback.");
+		}
+		artifact = artifact != null ? artifact
+				: Util.getBaseName(Objects.requireNonNull(prj.getResourceRef().getFile()).getFileName().toString());
+		version = version != null ? version : MavenCoordinate.DEFAULT_VERSION;
+
+		createProjectForExport(ctx, projectDir);
+
+		info("Exported as " + getType() + " project to " + projectDir);
+		info("Export to " + getType() + " is a best-effort to try match JBang build.");
+		info("If something can be improved please open issue at open an issue at https://github.com/jbangdev/jbang/issues with reproducer.");
+		return EXIT_OK;
+	}
+
+	private void createProjectForExport(BuildContext ctx, Path projectDir) throws IOException {
+		Project prj = ctx.getProject();
+		Util.mkdirs(projectDir);
+
+		// Sources
+		String srcFolder = ctx.getProject().getMainSource().getType().sourceFolder;
+		Path srcJavaDir = projectDir.resolve("src/main/" + srcFolder);
+		for (ResourceRef sourceRef : prj.getMainSourceSet().getSources()) {
+			copySource(sourceRef, srcJavaDir);
+		}
+
+		// Resources
+		Path srcResourcesDir = projectDir.resolve("src/main/resources");
+		for (RefTarget ref : prj.getMainSourceSet().getResources()) {
+			Path destFile = ref.to(srcResourcesDir);
+			Util.mkdirs(destFile.getParent());
+			Files.copy(Objects.requireNonNull(ref.getSource().getFile()).toAbsolutePath(), destFile);
+		}
+
+		// Build file
+		renderBuildFile(ctx, projectDir);
+
+		// Wrapper files
+		installWrapperFiles(ctx, projectDir);
+	}
+
+	private Path copySource(ResourceRef sourceRef, Path srcJavaDir)
+			throws IOException {
+		Path srcFile = Objects.requireNonNull(sourceRef.getFile());
+		Source src = Source.forResourceRef(sourceRef, Function.identity());
+		String fileName = Util.unkebabify(srcFile.getFileName().toString());
+		Path destFile;
+		if (src.getJavaPackage().isPresent()) {
+			Path packageDir = srcJavaDir.resolve(src.getJavaPackage().get().replace(".", File.separator));
+			Util.mkdirs(packageDir);
+			destFile = packageDir.resolve(fileName);
+			Files.copy(srcFile, destFile);
+		} else {
+			destFile = srcJavaDir.resolve(fileName);
+			Files.createDirectories(destFile.getParent());
+			Files.copy(srcFile, destFile);
+		}
+		return destFile;
+	}
+
+	abstract String getType();
+
+	abstract void renderBuildFile(BuildContext ctx, Path projectDir) throws IOException;
+
+	abstract void installWrapperFiles(BuildContext ctx, Path projectDir) throws IOException;
+
+	String getJavaVersion(Project prj, boolean minorVersionFor8) {
+		if (prj.getJavaVersion() == null) {
+			return null;
+		}
+		int javaVersion = JavaUtil.minRequestedVersion(prj.getJavaVersion());
+		if (!minorVersionFor8) {
+			return Integer.toString(javaVersion);
+		}
+		return javaVersion >= 9 ? Integer.toString(javaVersion) : "1." + javaVersion;
+	}
+
+	void copyWrapperFile(String srcPath, String dstPath, boolean execFlag) throws IOException {
+		File dstFile = new File(dstPath);
+		File dstDir = new File(dstFile.getParent());
+
+		dstDir.mkdirs();
+		InputStream ifs = this.getClass().getResourceAsStream(srcPath);
+		Files.copy(ifs, Paths.get(dstPath), StandardCopyOption.REPLACE_EXISTING);
+
+		if (Util.isWindows())
+			return;
+
+		if (execFlag) {
+			Util.setExecutable(dstFile.toPath());
+		}
+
+	}
+
+}
+
+@Command(name = "gradle", description = "Exports a Gradle project")
+class ExportGradleProject extends BaseExportProject {
+
+	@Override
+	String getType() {
+		return "gradle";
+	}
+
+	@Override
+	void renderBuildFile(BuildContext ctx, Path projectDir) throws IOException {
+		Project prj = ctx.getProject();
+		ResourceRef templateRef = ResourceRef.forResource("classpath:/export-build.qute.gradle");
+		Path destination = projectDir.resolve("build.gradle");
+
+		List<MavenRepo> repositories = prj.getRepositories();
+		List<String> dependencies = prj.getMainSourceSet().getDependencies();
+		// Turn any URL dependencies into regular GAV coordinates
+		List<String> depIds = dependencies.stream()
+			.map(JitPackUtil::ensureGAV)
+			.collect(Collectors.toList());
+		// And if we encountered URLs let's make sure the JitPack repo is available
+		if (!depIds.equals(dependencies)
+				&& repositories.stream().noneMatch(r -> DependencyUtil.REPO_JITPACK.equals(r.getUrl()))) {
+			prj.addRepository(DependencyUtil.toMavenRepo(DependencyUtil.ALIAS_JITPACK));
+		}
+
+		TemplateEngine engine = TemplateEngine.instance();
+		Template template = engine.getTemplate(templateRef);
+		if (template == null)
+			throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateRef + "'");
+		Source.Type srcType = prj.getMainSource().getType();
+		if (!supportedSourceTypes.contains(srcType)) {
+			throw new ExitException(EXIT_INVALID_INPUT, "Unsupported source type: " + srcType.name());
+		}
+		String kotlinVersion = srcType == Source.Type.kotlin ? ((KotlinSource) prj.getMainSource()).getKotlinVersion()
+				: "";
+		String javaVersion = getJavaVersion(prj, false);
+		String jvmArgs = gradleArgs(prj.getRuntimeOptions());
+		String compilerArgs = gradleArgs(prj.getMainSourceSet().getCompileOptions());
+		String result = template
+			.data("group", group)
+			.data("artifact", artifact)
+			.data("version", version)
+			.data("language", srcType.name())
+			.data("javaVersion", javaVersion)
+			.data("kotlinVersion", kotlinVersion)
+			.data("description", prj.getDescription().orElse(""))
+			.data("repositories", repositories.stream()
+				.map(MavenRepo::getUrl)
+				.filter(s -> !"".equals(s))
+				.collect(Collectors.toList()))
+			.data("gradledependencies", gradleify(depIds))
+			.data("fullClassName", prj.getMainClass())
+			.data("jvmArgs", jvmArgs)
+			.data("enablePreview", prj.enablePreview() ? (javaVersion != null ? "true" : "") : "")
+			.data("compilerArgs", compilerArgs)
+			.render();
+		Util.writeString(destination, result);
+		Util.writeString(projectDir.resolve("settings.gradle"), "");
+		Util.writeString(projectDir.resolve("gradle.properties"), "org.gradle.configuration-cache=true\n");
+	}
+
+	@Override
+	void installWrapperFiles(BuildContext ctx, Path projectDir) throws IOException {
+		String dir = projectDir.getFileName().toString();
+		copyWrapperFile("/dist/gradle/gradlew", Paths.get(dir, "gradlew").toString(), true);
+		copyWrapperFile("/dist/gradle/gradlew.bat", Paths.get(dir, "gradlew.bat").toString(), false);
+		copyWrapperFile("/dist/gradle/gradle/wrapper/gradle-wrapper.properties",
+				Paths.get(dir, "gradle", "wrapper", "gradle-wrapper.properties").toString(), false);
+		copyWrapperFile("/dist/gradle/gradle/wrapper/gradle-wrapper-jar",
+				Paths.get(dir, "gradle", "wrapper", "gradle-wrapper.jar").toString(), false);
+	}
+
+	private List<String> gradleify(List<String> collectDependencies) {
+		return collectDependencies.stream().map(item -> {
+			if (item.endsWith("@pom")) {
+				return "implementation platform ('" + item.substring(0, item.lastIndexOf("@pom")) + "')";
+			} else {
+				return "implementation '" + item + "'";
+			}
+		}).collect(Collectors.toList());
+	}
+
+	private String gradleArgs(List<String> options) {
+		StringBuilder args = new StringBuilder();
+		for (String arg : options) {
+			if (args.length() > 0) {
+				args.append(", ");
+			}
+			args.append(String.format("'%s'", arg));
+		}
+		return args.toString();
+	}
+}
+
+@Command(name = "maven", description = "Exports a Maven project")
+class ExportMavenProject extends BaseExportProject {
+
+	@Override
+	String getType() {
+		return "maven";
+	}
+
+	@Override
+	void renderBuildFile(BuildContext ctx, Path projectDir) throws IOException {
+		Project prj = ctx.getProject();
+		ResourceRef templateRef = ResourceRef.forResource("classpath:/export-pom.qute.xml");
+		Path destination = projectDir.resolve("pom.xml");
+
+		List<MavenRepo> repositories = prj.getRepositories();
+		List<String> dependencies = prj.getMainSourceSet().getDependencies();
+		// Turn any URL dependencies into regular GAV coordinates
+		List<String> depIds = dependencies.stream()
+			.map(JitPackUtil::ensureGAV)
+			.collect(Collectors.toList());
+		// And if we encountered URLs let's make sure the JitPack repo is available
+		if (!depIds.equals(dependencies)
+				&& repositories.stream().noneMatch(r -> DependencyUtil.REPO_JITPACK.equals(r.getUrl()))) {
+			prj.addRepository(DependencyUtil.toMavenRepo(DependencyUtil.ALIAS_JITPACK));
+		}
+
+		List<String> boms = depIds.stream().filter(d -> d.endsWith("@pom")).collect(Collectors.toList());
+		depIds = depIds.stream().filter(d -> !d.endsWith("@pom")).collect(Collectors.toList());
+
+		TemplateEngine engine = TemplateEngine.instance();
+		Template template = engine.getTemplate(templateRef);
+		if (template == null)
+			throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateRef + "'");
+		Source.Type srcType = prj.getMainSource().getType();
+		if (!supportedSourceTypes.contains(srcType)) {
+			throw new ExitException(EXIT_INVALID_INPUT, "Unsupported source type: " + srcType.name());
+		}
+		String kotlinVersion = srcType == Source.Type.kotlin ? ((KotlinSource) prj.getMainSource()).getKotlinVersion()
+				: "";
+		Map<String, String> properties = new HashMap<>();
+		if (srcType == Source.Type.kotlin) {
+			properties.put("kotlin.version", kotlinVersion);
+		}
+		String javaVersion = getJavaVersion(prj, false);
+		String result = template
+			.data("group", group)
+			.data("artifact", artifact)
+			.data("version", version)
+			.data("language", srcType.name())
+			.data("javaVersion", javaVersion)
+			.data("kotlinVersion", kotlinVersion)
+			.data("description", prj.getDescription().orElse(""))
+			.data("properties", properties)
+			.data("repositories", repositories.stream()
+				.filter(r -> !r.getUrl().isEmpty())
+				.collect(Collectors.toList()))
+			.data("boms", boms.stream()
+				.map(MavenCoordinate::fromString)
+				.collect(Collectors.toList()))
+			.data("dependencies", depIds.stream()
+				.map(MavenCoordinate::fromString)
+				.collect(Collectors.toList()))
+			.data("fullClassName", prj.getMainClass())
+			.data("compilerArgs", prj.getMainSourceSet().getCompileOptions())
+			.render();
+		Util.writeString(destination, result);
+	}
+
+	@Override
+	void installWrapperFiles(BuildContext ctx, Path projectDir) throws IOException {
+		String dir = projectDir.getFileName().toString();
+		copyWrapperFile("/dist/maven/mvnw", Paths.get(dir, "mvnw").toString(), true);
+		copyWrapperFile("/dist/maven/mvnw.cmd", Paths.get(dir, "mvnw.cmd").toString(), false);
+		copyWrapperFile("/dist/maven/.mvn/wrapper/maven-wrapper.properties",
+				Paths.get(dir, ".mvn", "wrapper", "maven-wrapper.properties").toString(), false);
+	}
+
 }

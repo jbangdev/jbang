@@ -33,6 +33,8 @@ jobs:
           java-version: 11
           distribution: temurin
           cache: gradle
+      - name: setup-gradle
+        uses: gradle/actions/setup-gradle@v4
       - name: build-gradle
         run: ./gradlew --no-daemon clean build -x test --build-cache --scan -s
       - name: version extract
@@ -51,7 +53,7 @@ jobs:
           setup-java: false
       - name: JReleaser publish output
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
         with:
           name: jreleaser-publish
           path: |
@@ -74,14 +76,14 @@ jobs:
           setup-java: false
       - name: JReleaser announce output
         if: always()
-        uses: actions/upload-artifact@v4 # v3
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
         with:
           name: jreleaser-announce
           path: |
             out/jreleaser/trace.log
             out/jreleaser/output.properties
       - name: upload-choco
-        uses: actions/upload-artifact@v4 # v3
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
         with:
           name: build-choco
           path: build/choco
@@ -91,7 +93,7 @@ jobs:
     name: publish-choco
     continue-on-error: true
     steps:
-      - uses: actions/download-artifact@9v4 # v3
+      - uses: actions/download-artifact@v4
         with:
           name: build-choco
           path: build/choco

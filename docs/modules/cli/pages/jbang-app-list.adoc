@@ -19,7 +19,8 @@ jbang-app-list - Lists installed commands.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang app list* *-o* [*-h*] *--fresh* *--quiet* *--verbose* [*--config*=_<config>_]
+*jbang app list* *-o* [*-h*] *--fresh* [*--insecure*] *--quiet* *--verbose*
+               [*--config*=_<config>_] [*--format*=_<format>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -36,11 +37,17 @@ Lists installed commands.
 *--config*=_<config>_::
   Path to config file to be used instead of the default
 
+*--format*=_<format>_::
+  Specify output format ('text' or 'json')
+
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
 
 *-h*, *--help*::
   Display help/info. Use 'jbang <command> -h' for detailed usage.
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted

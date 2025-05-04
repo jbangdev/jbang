@@ -62,7 +62,7 @@ xref:jbang-jdk-home.adoc[*home*]::
 xref:jbang-jdk-install.adoc[*install*]::
   Installs a JDK.
 
-xref:jbang-jdk-java-env.adoc[*java-env*]::
+xref:jbang-jdk-java-env.adoc[*java-env*, *env*]::
   Prints out the environment variables needed to use the given JDK.
 
 xref:jbang-jdk-list.adoc[*list*]::

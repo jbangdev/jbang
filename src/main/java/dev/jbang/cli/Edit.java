@@ -275,14 +275,14 @@ public class Edit extends BaseCommand {
 
 	ProjectBuilder createProjectBuilder() {
 		return Project
-						.builder()
-						.setProperties(dependencyInfoMixin.getProperties())
-						.additionalDependencies(dependencyInfoMixin.getDependencies())
-						.additionalRepositories(dependencyInfoMixin.getRepositories())
-						.additionalClasspaths(dependencyInfoMixin.getClasspaths())
-						.additionalSources(scriptMixin.sources)
-						.additionalResources(scriptMixin.resources)
-						.forceType(scriptMixin.forceType);
+			.builder()
+			.setProperties(dependencyInfoMixin.getProperties())
+			.additionalDependencies(dependencyInfoMixin.getDependencies())
+			.additionalRepositories(dependencyInfoMixin.getRepositories())
+			.additionalClasspaths(dependencyInfoMixin.getClasspaths())
+			.additionalSources(scriptMixin.sources)
+			.additionalResources(scriptMixin.resources)
+			.forceType(scriptMixin.forceType);
 	}
 
 	private static Optional<String> askEditor() throws IOException {
@@ -453,9 +453,9 @@ public class Edit extends BaseCommand {
 
 		// Turn any URL dependencies into regular GAV coordinates
 		List<String> depIds = dependencies
-											.stream()
-											.map(JitPackUtil::ensureGAV)
-											.collect(Collectors.toList());
+			.stream()
+			.map(JitPackUtil::ensureGAV)
+			.collect(Collectors.toList());
 		// And if we encountered URLs let's make sure the JitPack repo is available
 		if (!depIds.equals(dependencies)
 				&& repositories.stream().noneMatch(r -> DependencyUtil.REPO_JITPACK.equals(r.getUrl()))) {
@@ -559,21 +559,21 @@ public class Edit extends BaseCommand {
 		if (template == null)
 			throw new ExitException(EXIT_INVALID_INPUT, "Could not locate template named: '" + templateRef + "'");
 		String result = template
-								.data("repositories",
-										repositories.stream()
-													.map(MavenRepo::getUrl)
-													.filter(s -> !"".equals(s)))
-								.data("dependencies", collectDependencies)
-								.data("gradledependencies", gradleify(collectDependencies))
-								.data("baseName", baseName)
-								.data("fullClassName", fullclassName)
-								.data("classpath",
-										resolvedDependencies.stream()
-															.filter(t -> !t.isEmpty())
-															.collect(Collectors.toList()))
-								.data("userParams", String.join(" ", userParams))
-								.data("cwd", System.getProperty("user.dir"))
-								.render();
+			.data("repositories",
+					repositories.stream()
+						.map(MavenRepo::getUrl)
+						.filter(s -> !"".equals(s)))
+			.data("dependencies", collectDependencies)
+			.data("gradledependencies", gradleify(collectDependencies))
+			.data("baseName", baseName)
+			.data("fullClassName", fullclassName)
+			.data("classpath",
+					resolvedDependencies.stream()
+						.filter(t -> !t.isEmpty())
+						.collect(Collectors.toList()))
+			.data("userParams", String.join(" ", userParams))
+			.data("cwd", System.getProperty("user.dir"))
+			.render();
 
 		Util.writeString(destination, result);
 	}
