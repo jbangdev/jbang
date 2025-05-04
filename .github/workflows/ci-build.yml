@@ -48,14 +48,14 @@ jobs:
       - name: Rate limit info
         run: 'curl -H "Accept: application/vnd.github+json" https://api.github.com/rate_limit'
       - name: Setup tmate session
-        uses: mxschmitt/action-tmate@e5c7151931ca95bad1c6f4190c730ecf8c7dde48 # v3
+        uses: mxschmitt/action-tmate@7b6a61a73bbb9793cb80ad69b8dd8ac19261834c # v3
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
         with:
           limit-access-to-actor: true
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
       - uses: gradle/actions/wrapper-validation@d9c87d481d55275bb5441eef3fe0e46805f9ef70 # v3
       - name: install-java11
-        uses: actions/setup-java@0ab4596768b603586c0de567f2430c30f5b0d2b0 # v3
+        uses: actions/setup-java@17f84c3641ba7b8f6deff6309fc4c864478f5d62 # v3
         with:
           java-version: 11
           distribution: temurin
@@ -83,14 +83,14 @@ jobs:
         run: |
           ./gradlew allureReport --clean
       - name: Upload Allure Test Report
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always() # always run even if the previous step fails
         with:
           name: allure-report-${{ matrix.os }}
           path: '**/build/reports/allure-report/allureReport/index.html'
           retention-days: 7
       - name: Upload Test Report for pr marking
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always() # always run even if the previous step fails
         with:
           name: junit-test-results-${{ matrix.os }}
@@ -104,7 +104,7 @@ jobs:
           verbose: true # optional (default = false)
       - name: build-choco-package
         if: runner.os == 'Windows'
-        uses: actions/setup-dotnet@71a4fd9b27383962fc5df13a9c871636b43199b4 # v1
+        uses: actions/setup-dotnet@871f041373faaad213a635d9afb62905ec029bbb # v1
         with:
           dotnet-version: '2.2.204' # SDK Version to use.
       - name: build-choco
@@ -113,20 +113,20 @@ jobs:
           powershell
           choco pack build/choco/jbang.nuspec
       - name: Archive build results
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: ${{ runner.os }}-build-${{ github.sha }}
           path: build
       - name: Upload jbang.zip
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always() && runner.os != 'Windows'
         with:
           name: jbang-${{ github.sha }}
           path: build/install/jbang
       - name: Write out Unit Test report annotation for forked repo
         if: always()
-        uses: mikepenz/action-junit-report@b14027d33d3a745ccc4d6a12f649e83110b5a373 # v5
+        uses: mikepenz/action-junit-report@cf701569b05ccdd861a76b8607a66d76f6fd4857 # v5
         with:
           report_paths: '**/build/test-results/test/TEST-*.xml'
           annotate_only: true # forked repo cannot write to checks so just do annotations
@@ -141,11 +141,11 @@ jobs:
         java: [8,11,17,21]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/setup-java@0ab4596768b603586c0de567f2430c30f5b0d2b0 # v3
+      - uses: actions/setup-java@17f84c3641ba7b8f6deff6309fc4c864478f5d62 # v3
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
-      - uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: ${{ runner.os }}-build-${{ github.sha }}
           path: build
