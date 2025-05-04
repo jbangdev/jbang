@@ -1,6 +1,7 @@
 package dev.jbang.catalog;
 
 import static dev.jbang.catalog.Catalog.isValidCatalogReference;
+import static dev.jbang.util.Util.entry;
 
 import java.io.IOException;
 import java.net.URI;
@@ -9,16 +10,13 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.AbstractMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
-
 import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.util.Util;
 
 public class CatalogUtil {
@@ -27,25 +25,26 @@ public class CatalogUtil {
 	private static final Pattern validNamePattern = Pattern.compile("[" + validNameChars + "]+");
 
 	/**
+	 * Determines if an alias with the given name exists in the given catalog
+	 *
+	 * @param catalogFile Path to catalog file
+	 * @param name        The name of alias
+	 */
+	public static boolean hasAlias(Path catalogFile, String name) {
+		Path cwd = Util.getCwd();
+		catalogFile = cwd.resolve(catalogFile);
+		Catalog catalog = Catalog.get(catalogFile);
+		return catalog.aliases.containsKey(name);
+	}
+
+	/**
 	 * Adds a new alias to the nearest catalog
 	 * 
 	 * @param name The name of the new alias
 	 */
-	public static Path addNearestAlias(String name,
-			String scriptRef,
-			String description,
-			List<String> arguments,
-			List<String> sources,
-			List<String> dependencies,
-			List<String> repositories,
-			List<String> classPaths,
-			List<String> javaRuntimeOptions,
-			Map<String, String> properties,
-			String javaVersion,
-			String mainClass) {
+	public static Path addNearestAlias(String name, Alias alias) {
 		Path catalogFile = Catalog.getCatalogFile(null);
-		addAlias(catalogFile, name, scriptRef, description, arguments, javaRuntimeOptions, sources, dependencies,
-				repositories, classPaths, properties, javaVersion, mainClass);
+		addAlias(catalogFile, name, alias);
 		return catalogFile;
 	}
 
@@ -54,28 +53,14 @@ public class CatalogUtil {
 	 * 
 	 * @param catalogFile Path to catalog file
 	 * @param name        The name of the new alias
+	 * @param alias       The alias to add
 	 */
-	public static Alias addAlias(Path catalogFile,
-			String name,
-			String scriptRef,
-			String description,
-			List<String> arguments,
-			List<String> javaRuntimeOptions,
-			List<String> sources,
-			List<String> dependencies,
-			List<String> repositories,
-			List<String> classPaths,
-			Map<String, String> properties,
-			String javaVersion,
-			String mainClass) {
+	public static Alias addAlias(Path catalogFile, String name, Alias alias) {
 		Path cwd = Util.getCwd();
 		catalogFile = cwd.resolve(catalogFile);
 		Catalog catalog = Catalog.get(catalogFile);
-		scriptRef = catalog.relativize(scriptRef);
-		Alias alias = new Alias(scriptRef, description, arguments, javaRuntimeOptions, sources, dependencies,
-				repositories,
-				classPaths, properties, javaVersion, mainClass, catalog);
-		catalog.aliases.put(name, alias);
+		String scriptRef = catalog.relativize(alias.scriptRef);
+		catalog.aliases.put(name, alias.withCatalog(catalog).withScriptRef(scriptRef));
 		try {
 			catalog.write();
 			return alias;
@@ -94,7 +79,13 @@ public class CatalogUtil {
 	public static void removeNearestAlias(String name) {
 		Catalog catalog = Alias.findNearestCatalogWithAlias(Util.getCwd(), name);
 		if (catalog != null) {
-			removeAlias(catalog, name);
+			if (catalog.catalogRef.isURL() && Util.isRemoteRef(catalog.catalogRef.getOriginalResource())) {
+				Util.warnMsg("Unable to remove alias " + name + " because it is imported from a remote catalog");
+			} else if (catalog.equals(Catalog.getBuiltin())) {
+				Util.warnMsg("Cannot remove alias " + name + " from built-in catalog");
+			} else {
+				removeAlias(catalog, name);
+			}
 		}
 	}
 
@@ -118,6 +109,19 @@ public class CatalogUtil {
 				Util.warnMsg("Unable to remove alias: " + ex.getMessage());
 			}
 		}
+	}
+
+	/**
+	 * Determines if a template with the given name exists in the given catalog
+	 *
+	 * @param catalogFile Path to catalog file
+	 * @param name        The name of the template
+	 */
+	public static boolean hasTemplate(Path catalogFile, String name) {
+		Path cwd = Util.getCwd();
+		catalogFile = cwd.resolve(catalogFile);
+		Catalog catalog = Catalog.get(catalogFile);
+		return catalog.templates.containsKey(name);
 	}
 
 	/**
@@ -147,12 +151,10 @@ public class CatalogUtil {
 		Path cwd = Util.getCwd();
 		catalogFile = cwd.resolve(catalogFile);
 		Catalog catalog = Catalog.get(catalogFile);
-		Map<String, String> relFileRefs = fileRefs	.entrySet()
-													.stream()
-													.map(e -> new AbstractMap.SimpleEntry<>(e.getKey(),
-															catalog.relativize(e.getValue())))
-													.collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey,
-															AbstractMap.SimpleEntry::getValue));
+		Map<String, String> relFileRefs = fileRefs.entrySet()
+			.stream()
+			.map(e -> entry(e.getKey(), catalog.relativize(e.getValue())))
+			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 		Template template = new Template(relFileRefs, description, properties, catalog);
 		catalog.templates.put(name, template);
 		try {
@@ -173,7 +175,13 @@ public class CatalogUtil {
 	public static void removeNearestTemplate(String name) {
 		Catalog catalog = Template.findNearestCatalogWithTemplate(Util.getCwd(), name);
 		if (catalog != null) {
-			removeTemplate(catalog, name);
+			if (catalog.catalogRef.isURL() && Util.isRemoteRef(catalog.catalogRef.getOriginalResource())) {
+				Util.warnMsg("Unable to remove template " + name + " because it is imported from a remote catalog");
+			} else if (catalog.equals(Catalog.getBuiltin())) {
+				Util.warnMsg("Cannot remove template " + name + " from built-in catalog");
+			} else {
+				removeTemplate(catalog, name);
+			}
 		}
 	}
 
@@ -208,7 +216,13 @@ public class CatalogUtil {
 	public static void removeNearestCatalogRef(String name) {
 		Catalog catalog = CatalogRef.findNearestCatalogWithCatalogRef(Util.getCwd(), name);
 		if (catalog != null) {
-			removeCatalogRef(catalog, name);
+			if (catalog.catalogRef.isURL() && Util.isRemoteRef(catalog.catalogRef.getOriginalResource())) {
+				Util.warnMsg("Unable to remove catalog ref " + name + " because it is imported from a remote catalog");
+			} else if (catalog.equals(Catalog.getBuiltin())) {
+				Util.warnMsg("Cannot remove catalog ref " + name + " from built-in catalog");
+			} else {
+				removeCatalogRef(catalog, name);
+			}
 		}
 	}
 
@@ -229,18 +243,31 @@ public class CatalogUtil {
 	}
 
 	/**
+	 * Determines if a catalog ref with the given name exists in the given catalog
+	 *
+	 * @param catalogFile Path to catalog file
+	 * @param name        The name of the catalog ref
+	 */
+	public static boolean hasCatalogRef(Path catalogFile, String name) {
+		Path cwd = Util.getCwd();
+		catalogFile = cwd.resolve(catalogFile);
+		Catalog catalog = Catalog.get(catalogFile);
+		return catalog.catalogs.containsKey(name);
+	}
+
+	/**
 	 * Adds a new catalog ref to the nearest catalog file
 	 *
 	 * @param name The name of the new alias
 	 */
-	public static Path addNearestCatalogRef(String name, String catalogRef, String description) {
+	public static Path addNearestCatalogRef(String name, String catalogRef, String description, Boolean importItems) {
 		Path catalogFile = Catalog.getCatalogFile(null);
-		addCatalogRef(catalogFile, name, catalogRef, description);
+		addCatalogRef(catalogFile, name, catalogRef, description, importItems);
 		return catalogFile;
 	}
 
 	public static CatalogRef addCatalogRef(Path catalogFile, String name, String catalogRef,
-			String description) {
+			String description, Boolean importItems) {
 		Path cwd = Util.getCwd();
 		catalogFile = cwd.resolve(catalogFile);
 		Catalog catalog = Catalog.get(catalogFile);
@@ -250,7 +277,7 @@ public class CatalogUtil {
 				catalogRef = cat.toAbsolutePath().toString();
 			}
 			if (!Util.isAbsoluteRef(catalogRef)) {
-				Optional<String> url = ImplicitCatalogRef.getImplicitCatalogUrl(catalogRef);
+				Optional<String> url = ImplicitCatalogRef.resolveImplicitCatalogUrl(catalogRef);
 				if (url.isPresent()) {
 					catalogRef = url.get();
 				}
@@ -258,7 +285,7 @@ public class CatalogUtil {
 		} catch (InvalidPathException ex) {
 			// Ignore
 		}
-		CatalogRef ref = new CatalogRef(catalogRef, description, catalog);
+		CatalogRef ref = new CatalogRef(catalogRef, description, importItems, catalog);
 		catalog.catalogs.put(name, ref);
 		try {
 			catalog.write();
@@ -282,7 +309,7 @@ public class CatalogUtil {
 				name = name.substring(0, p);
 			}
 		} else if (DependencyUtil.looksLikeAGav(ref)) {
-			MavenCoordinate coord = DependencyUtil.depIdToArtifact(ref);
+			MavenCoordinate coord = MavenCoordinate.fromString(ref);
 			name = coord.getArtifactId();
 		} else {
 			// If the script is a file or a URL we take the last part of
@@ -314,5 +341,10 @@ public class CatalogUtil {
 
 	public static boolean isValidName(String name) {
 		return validNamePattern.matcher(name).matches();
+	}
+
+	public static String catalogRef(String atName) {
+		String[] parts = atName.split("@", 2);
+		return parts.length == 2 ? parts[1] : null;
 	}
 }

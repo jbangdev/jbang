@@ -1,0 +1,57 @@
+## have to upload via this seperate workflow
+## to avoid limitations of PR's from forked
+## repos which wont have write access by default.
+ 
+name: report
+on:
+  workflow_run:
+    workflows: [ci-build]
+    types: [completed]
+    
+permissions:
+  checks: write
+  pull-requests: write
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      #- name: Set up GitHub CLI
+      #  uses: actions/setup-gh@v2
+
+      - name: Get workflow run details
+        id: workflow_details
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }} \
+            --jq '.head_branch' > branch.txt
+          BRANCH_NAME=$(cat branch.txt)
+          echo "branch_name=${BRANCH_NAME}" >> $GITHUB_ENV
+
+      - name: Fetch PR number
+        id: fetch_pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR=$(gh pr list --head "${{ env.branch_name }}" --json number --jq '.[0].number')
+          echo "pr_number=${PR}" >> $GITHUB_ENV
+
+      - name: Output PR number
+        run: |
+          echo "The PR number is: ${{ env.pr_number }}"
+
+      - name: Download Test Report
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: junit-test-results-*
+          #path: test-${{ matrix.os }}
+          #pattern: my-artifact-*
+          merge-multiple: true
+          run-id: ${{ github.event.workflow_run.id }}
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@cf701569b05ccdd861a76b8607a66d76f6fd4857 # v5
+        with:
+          commit: ${{github.event.workflow_run.head_sha}}
+          report_paths: '**/build/test-results/test/TEST-*.xml'
+          comment: true

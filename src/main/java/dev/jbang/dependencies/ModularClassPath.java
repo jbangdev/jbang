@@ -14,12 +14,14 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+
 import org.codehaus.plexus.languages.java.jpms.JavaModuleDescriptor;
 import org.codehaus.plexus.languages.java.jpms.LocationManager;
 import org.codehaus.plexus.languages.java.jpms.ResolvePathsRequest;
 import org.codehaus.plexus.languages.java.jpms.ResolvePathsResult;
 
-import dev.jbang.util.JavaUtil;
+import dev.jbang.devkitman.Jdk;
 import dev.jbang.util.Util;
 
 public class ModularClassPath {
@@ -28,8 +30,6 @@ public class ModularClassPath {
 	private final List<ArtifactInfo> artifacts;
 
 	private List<String> classPaths;
-	private String classPath;
-	private String manifestPath;
 	private Optional<Boolean> javafx = Optional.empty();
 
 	public ModularClassPath(List<ArtifactInfo> artifacts) {
@@ -38,34 +38,25 @@ public class ModularClassPath {
 
 	public List<String> getClassPaths() {
 		if (classPaths == null) {
-			classPaths = artifacts	.stream()
-									.map(it -> it.getFile().getAbsolutePath())
-									.map(it -> it.contains(" ") ? '"' + it + '"' : it)
-									.distinct()
-									.collect(Collectors.toList());
+			classPaths = artifacts
+				.stream()
+				.map(it -> it.getFile().toAbsolutePath().toString())
+				.distinct()
+				.collect(Collectors.toList());
 		}
-
 		return classPaths;
 	}
 
 	public String getClassPath() {
-		if (classPath == null) {
-			classPath = String.join(CP_SEPARATOR, getClassPaths());
-		}
-
-		return classPath;
+		return String.join(CP_SEPARATOR, getClassPaths());
 	}
 
 	public String getManifestPath() {
-		if (manifestPath == null) {
-			manifestPath = artifacts.stream()
-									.map(it -> it.getFile().getAbsoluteFile().toURI())
-									.map(URI::getPath)
-									.distinct()
-									.collect(Collectors.joining(" "));
-		}
-
-		return manifestPath;
+		return artifacts.stream()
+			.map(it -> it.getFile().toAbsolutePath().toUri())
+			.map(URI::getPath)
+			.distinct()
+			.collect(Collectors.joining(" "));
 	}
 
 	boolean hasJavaFX() {
@@ -76,18 +67,18 @@ public class ModularClassPath {
 		return javafx.get();
 	}
 
-	public List<String> getAutoDectectedModuleArguments(String requestedVersion) {
-		if (hasJavaFX() && supportsModules(requestedVersion)) {
+	public List<String> getAutoDectectedModuleArguments(@Nonnull Jdk jdk) {
+		if (hasJavaFX() && supportsModules(jdk)) {
 			List<String> commandArguments = new ArrayList<>();
 
-			List<File> fileList = artifacts	.stream()
-											.map(ArtifactInfo::getFile)
-											.collect(Collectors.toList());
+			List<File> fileList = artifacts.stream()
+				.map(ai -> ai.getFile().toFile())
+				.collect(Collectors.toList());
 
-			ResolvePathsRequest<File> result = ResolvePathsRequest	.ofFiles(fileList)
-																	.setModuleDescriptor(
-																			JavaModuleDescriptor.newModule("bogus")
-																								.build());
+			ResolvePathsRequest<File> result = ResolvePathsRequest.ofFiles(fileList)
+				.setModuleDescriptor(
+						JavaModuleDescriptor.newModule("bogus")
+							.build());
 
 			LocationManager lm = new LocationManager();
 
@@ -97,9 +88,9 @@ public class ModularClassPath {
 				List<String> modulePaths = new ArrayList<>();
 				Map<String, JavaModuleDescriptor> pathElements = new HashMap<>();
 
-				resolvePathsResult	.getModulepathElements()
-									.keySet()
-									.forEach(file -> modulePaths.add(file.getPath()));
+				resolvePathsResult.getModulepathElements()
+					.keySet()
+					.forEach(file -> modulePaths.add(file.getPath()));
 
 				resolvePathsResult.getPathElements().forEach((key, value) -> pathElements.put(key.getPath(), value));
 
@@ -118,14 +109,14 @@ public class ModularClassPath {
 					commandArguments.add(modulePath);
 				}
 
-				String modules = pathElements	.values()
-												.stream()
-												.filter(Objects::nonNull)
-												.map(JavaModuleDescriptor::name)
-												.filter(Objects::nonNull)
-												.filter(module -> module.startsWith(JAVAFX_PREFIX)
-														&& !module.endsWith("Empty"))
-												.collect(Collectors.joining(","));
+				String modules = pathElements.values()
+					.stream()
+					.filter(Objects::nonNull)
+					.map(JavaModuleDescriptor::name)
+					.filter(Objects::nonNull)
+					.filter(module -> module.startsWith(JAVAFX_PREFIX)
+							&& !module.endsWith("Empty"))
+					.collect(Collectors.joining(","));
 				if (!Util.isBlankString(modules)) {
 					commandArguments.add("--add-modules");
 					commandArguments.add(modules);
@@ -141,8 +132,8 @@ public class ModularClassPath {
 		}
 	}
 
-	protected boolean supportsModules(String requestedVersion) {
-		return JavaUtil.javaVersion(requestedVersion) >= 9;
+	protected boolean supportsModules(Jdk jdk) {
+		return jdk.majorVersion() >= 9;
 	}
 
 	public List<ArtifactInfo> getArtifacts() {
@@ -154,5 +145,10 @@ public class ModularClassPath {
 	 */
 	public boolean isValid() {
 		return artifacts.stream().allMatch(ArtifactInfo::isUpToDate);
+	}
+
+	@Override
+	public String toString() {
+		return artifacts.stream().map(ArtifactInfo::toString).collect(Collectors.joining(", "));
 	}
 }

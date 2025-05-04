@@ -11,17 +11,17 @@ import java.util.stream.Stream;
 
 public class JitPackUtil {
 	private static final Pattern GITHUB_TREE_PATTERN = Pattern.compile(
-			"^https?://github.com/(.+?)/(.+?)(/tree/(.+?)(/(.+?))?)?/?$");
+			"^https?://github.com/([^/]+?)/([^/]+?)(/tree/([^/]+?)(/(.+?))?)?/?$");
 	private static final Pattern GITUB_COMMIT_PATTERN = Pattern.compile(
-			"^https?://github.com/(.+?)/(.+?)/commit/(.+)$");
+			"^https?://github.com/([^/]+?)/([^/]+?)/commit/(.+)$");
 	private static final Pattern GITLAB_TREE_PATTERN = Pattern.compile(
-			"^https?://gitlab.com/(.+?)/(.+?)(/-/tree/(.+?)(/(.+?))?)?/?$");
+			"^https?://gitlab.com/([^/]+?)/([^/]+?)(/-/tree/([^/]+?)(/(.+?))?)?/?$");
 	private static final Pattern GITLAB_COMMIT_PATTERN = Pattern.compile(
-			"^https?://gitlab.com/(.+?)/(.+?)/-/commit/(.+)$");
+			"^https?://gitlab.com/([^/]+?)/([^/]+?)/-/commit/(.+)$");
 	private static final Pattern BITBUCKET_TREE_PATTERN = Pattern.compile(
-			"^https?://bitbucket.org/(.+?)/(.+?)(/src/(.+?)(/(.+?))?)?/?$");
+			"^https?://bitbucket.org/([^/]+?)/([^/]+?)(/src/([^/]+?)(/(.+?))?)?/?$");
 	private static final Pattern BITBUCKET_COMMIT_PATTERN = Pattern.compile(
-			"^https?://bitbucket.org/(.+?)/(.+?)/commits/(.+)$");
+			"^https?://bitbucket.org/([^/]+?)/([^/]+?)/commits/(.+)$");
 
 	private static final Pattern POSSIBLE_SHA1_PATTERN = Pattern.compile("^[0-9a-f]{40}$");
 
@@ -41,16 +41,16 @@ public class JitPackUtil {
 
 				// Extract GAV coordinates from the URL
 				// NB: Ordering of the list below is important!
-				Optional<Pgamv> coords = Stream	.<Function<String, Pgamv>>of(
-														JitPackUtil::githubCommitUrlToGAV,
-														JitPackUtil::githubTreeUrlToGAV,
-														JitPackUtil::gitlabCommitUrlToGAV,
-														JitPackUtil::gitlabTreeUrlToGAV,
-														JitPackUtil::bitbucketCommitUrlToGAV,
-														JitPackUtil::bitbucketTreeUrlToGAV)
-												.map(f -> f.apply(actualRef))
-												.filter(Objects::nonNull)
-												.findFirst();
+				Optional<Pgamv> coords = Stream.<Function<String, Pgamv>>of(
+						JitPackUtil::githubCommitUrlToGAV,
+						JitPackUtil::githubTreeUrlToGAV,
+						JitPackUtil::gitlabCommitUrlToGAV,
+						JitPackUtil::gitlabTreeUrlToGAV,
+						JitPackUtil::bitbucketCommitUrlToGAV,
+						JitPackUtil::bitbucketTreeUrlToGAV)
+					.map(f -> f.apply(actualRef))
+					.filter(Objects::nonNull)
+					.findFirst();
 
 				if (coords.isPresent()) {
 					if (hash != null) {
@@ -61,13 +61,16 @@ public class JitPackUtil {
 						// Override GAV coords with values from the #part of the URL
 						Pgamv pgamv = coords.get().module(module);
 						if ((snapshot != null && pgamv.version != null) ||
-								(!hash.endsWith(":") && "master".equals(pgamv.version))) {
+								(!hash.endsWith(":") && ("master".equals(pgamv.version))
+										|| "main".equals(pgamv.version))) {
 							pgamv = pgamv.version(pgamv.version + "-SNAPSHOT");
 						}
 						ref = pgamv.toGav();
 					} else {
 						if ("master".equals(coords.get().version)) {
 							ref = coords.get().version("master" + "-SNAPSHOT").toGav();
+						} else if ("main".equals(coords.get().version)) {
+							ref = coords.get().version("main" + "-SNAPSHOT").toGav();
 						} else {
 							ref = coords.get().toGav();
 						}
@@ -110,7 +113,8 @@ public class JitPackUtil {
 		String toGav() {
 			String v;
 			if (version == null) {
-				v = "-SNAPSHOT"; // using HEAD as no longer possible to know what default branch is called.
+				v = "main-SNAPSHOT"; // using HEAD as no longer possible to know what default branch is called.
+				// thus for now we default to assume 'main' as default.
 			} else if (POSSIBLE_SHA1_PATTERN.matcher(version).matches()) {
 				v = version.substring(0, 10);
 			} else {

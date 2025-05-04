@@ -13,27 +13,37 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import dev.jbang.BaseTest;
+import dev.jbang.source.ResourceRef;
 import dev.jbang.util.Util;
 
 public class TestInit extends BaseTest {
+
+	@Test
+	@Disabled("just for quick testing. requires key to be present")
+	void testGPT() {
+		String prompt = "write me a helloworld with StringUtils from commons-lang3";
+		String result = Init.fetchGptResponse("test", "java", prompt, System.getenv("OPENAI_API_KEY"));
+		Assertions.assertEquals(result, "magic");
+	}
 
 	@Test
 	void testInit(@TempDir Path outputDir) throws IOException {
 		Path out = outputDir.resolve("test.java");
 		HashMap<String, Object> props = new HashMap<>();
 		props.put("baseName", "test");
-		new Init().renderQuteTemplate(out, "init-hello.java.qute", props);
+		new Init().renderQuteTemplate(out, ResourceRef.forResource("classpath:/init-hello.java.qute"), props);
 		assertThat(Util.readString(out), Matchers.containsString("class test"));
 	}
 
@@ -41,7 +51,8 @@ public class TestInit extends BaseTest {
 	@ValueSource(strings = { "bad.name.java", "Bad-Name.java" })
 	void testInvalidInit(String filename) {
 		Exception ex = assertThrows(ExitException.class,
-				() -> new Init().renderQuteTemplate(Paths.get(filename), "init-hello.java.qute"));
+				() -> new Init().renderQuteTemplate(Paths.get(filename),
+						ResourceRef.forResource("classpath:/init-hello.java.qute"), Collections.emptyMap()));
 		assertThat(ex.getMessage(), Matchers.containsString("is not a valid class name in java."));
 	}
 
@@ -96,12 +107,12 @@ public class TestInit extends BaseTest {
 	void testMultiDepsInitUsingCommas(@TempDir Path outputDir) throws IOException {
 		Path x = outputDir.resolve("sqlline.java");
 		String s = x.toString();
-		int result = JBang	.getCommandLine()
-							.execute(
-									"init",
-									"--deps", "org.hsqldb:hsqldb:2.5.0,net.hydromatic:foodmart-data-hsqldb:0.4",
-									"--deps", "org.another.company:dep:0.1",
-									s);
+		int result = JBang.getCommandLine()
+			.execute(
+					"init",
+					"--deps", "org.hsqldb:hsqldb:2.5.0,net.hydromatic:foodmart-data-hsqldb:0.4",
+					"--deps", "org.another.company:dep:0.1",
+					s);
 		assertThat(result, is(0));
 		assertThat(new File(s).exists(), is(true));
 		final String fileContent = Util.readString(x);
@@ -206,14 +217,14 @@ public class TestInit extends BaseTest {
 		Util.writeString(f2, "// {baseName} with {scriptref}");
 		Path f3 = Files.createFile(tplDir.resolve("file3.md"));
 		if (abs) {
-			int addResult = JBang	.getCommandLine()
-									.execute("template", "add", "-f", cwd.toString(), "--name=name",
-											targetName + "=" + f1.toString(), f2.toString(), f3.toString());
+			int addResult = JBang.getCommandLine()
+				.execute("template", "add", "-f", cwd.toString(), "--name=name",
+						targetName + "=" + f1.toString(), f2.toString(), f3.toString());
 			assertThat(addResult, is(0));
 		} else {
-			int addResult = JBang	.getCommandLine()
-									.execute("template", "add", "-f", cwd.toString(), "--name=name",
-											targetName + "=tpl/file1.java", "tpl/file2.java.qute", "tpl/file3.md");
+			int addResult = JBang.getCommandLine()
+				.execute("template", "add", "-f", cwd.toString(), "--name=name",
+						targetName + "=tpl/file1.java", "tpl/file2.java.qute", "tpl/file3.md");
 			assertThat(addResult, is(0));
 		}
 		Path appDir = Files.createDirectory(cwd.resolve("app"));
@@ -231,7 +242,8 @@ public class TestInit extends BaseTest {
 		m.put("prop1", "propvalue");
 		m.put("prop2", "rocks");
 
-		new Init().renderQuteTemplate(out, cwd.resolve("file1.java.qute").toFile().getAbsolutePath(), m);
+		ResourceRef ref = ResourceRef.forFile(cwd.resolve("file1.java.qute"));
+		new Init().renderQuteTemplate(out, ref, m);
 
 		String outcontent = Util.readString(out);
 
@@ -244,15 +256,15 @@ public class TestInit extends BaseTest {
 		Path f1 = Files.write(cwd.resolve("file1.java.qute"), "{prop1}{prop2}".getBytes());
 		Path out = cwd.resolve("result.java");
 
-		JBang	.getCommandLine()
-				.execute("template", "add", "-f", cwd.toString(), "--name=name",
-						"{filename}" + "=" + f1.toAbsolutePath().toString());
+		JBang.getCommandLine()
+			.execute("template", "add", "-f", cwd.toString(), "--name=name",
+					"{filename}" + "=" + f1.toAbsolutePath().toString());
 
 		assertThat(out.toFile().exists(), not(true));
 
-		int result = JBang	.getCommandLine()
-							.execute("init", "--verbose", "--template=name", "-Dprop1=propvalue", "-Dprop2=rocks",
-									out.toAbsolutePath().toString());
+		int result = JBang.getCommandLine()
+			.execute("init", "--verbose", "--template=name", "-Dprop1=propvalue", "-Dprop2=rocks",
+					out.toAbsolutePath().toString());
 
 		assertThat(result, is(0));
 		assertThat(out.toFile().exists(), is(true));
@@ -268,15 +280,15 @@ public class TestInit extends BaseTest {
 		Path f1 = Files.write(cwd.resolve("file1.java.qute"), "{prop1}".getBytes());
 		Path out = cwd.resolve("result.java");
 
-		JBang	.getCommandLine()
-				.execute("template", "add", "-f", cwd.toString(), "--name=name", "-P=prop1::my-test-default-value",
-						"{filename}" + "=" + f1.toAbsolutePath().toString());
+		JBang.getCommandLine()
+			.execute("template", "add", "-f", cwd.toString(), "--name=name", "-P=prop1::my-test-default-value",
+					"{filename}" + "=" + f1.toAbsolutePath().toString());
 
 		assertThat(out.toFile().exists(), not(true));
 
-		int result = JBang	.getCommandLine()
-							.execute("init", "--verbose", "--template=name",
-									out.toAbsolutePath().toString());
+		int result = JBang.getCommandLine()
+			.execute("init", "--verbose", "--template=name",
+					out.toAbsolutePath().toString());
 
 		assertThat(result, is(0));
 		assertThat(out.toFile().exists(), is(true));
@@ -292,15 +304,15 @@ public class TestInit extends BaseTest {
 		Path f1 = Files.write(cwd.resolve("file1.java.qute"), "{prop1}".getBytes());
 		Path out = cwd.resolve("result.java");
 
-		JBang	.getCommandLine()
-				.execute("template", "add", "-f", cwd.toString(), "--name=name", "-P=prop1::",
-						"{filename}" + "=" + f1.toAbsolutePath().toString());
+		JBang.getCommandLine()
+			.execute("template", "add", "-f", cwd.toString(), "--name=name", "-P=prop1::",
+					"{filename}" + "=" + f1.toAbsolutePath().toString());
 
 		assertThat(out.toFile().exists(), not(true));
 
-		int result = JBang	.getCommandLine()
-							.execute("init", "--verbose", "--template=name",
-									out.toAbsolutePath().toString());
+		int result = JBang.getCommandLine()
+			.execute("init", "--verbose", "--template=name",
+					out.toAbsolutePath().toString());
 
 		assertThat(result, is(0));
 		assertThat(out.toFile().exists(), is(true));
@@ -316,9 +328,9 @@ public class TestInit extends BaseTest {
 		Path f1 = Files.write(cwd.resolve("file1.java.qute"), "{prop1}".getBytes());
 		Path out = cwd.resolve("result.java");
 
-		JBang	.getCommandLine()
-				.execute("template", "add", "-f", cwd.toString(), "--name=name", "-P=prop1::my-test-default-value",
-						"{filename}" + "=" + f1.toAbsolutePath().toString());
+		JBang.getCommandLine()
+			.execute("template", "add", "-f", cwd.toString(), "--name=name", "-P=prop1::my-test-default-value",
+					"{filename}" + "=" + f1.toAbsolutePath().toString());
 
 		assertThat(out.toFile().exists(), not(true));
 

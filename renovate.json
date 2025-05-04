@@ -1,6 +1,22 @@
 {
   "extends": [
-    "config:base",
-    "group:all"
+    "config:best-practices"
+  ],
+  "packageRules": [
+    {
+      "matchPackageNames": ["io.quarkus.qute:qute-core"],
+      "allowedVersions": "<2.0.0"
+    },
+    {
+      "groupName": "{{manager}}",
+      "matchPackageNames": [
+        "*"
+      ]
+    },
+    {
+      "description": "Wiremock >3 requires Java 11",
+      "matchPackageNames": ["com.github.tomakehurst:wiremock"],
+      "allowedVersions": "<3.0.0"
+    }
   ]
 }

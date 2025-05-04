@@ -27,7 +27,7 @@ Then try jbang which lets you do this:
     $ jbang --init=cli hello.java
     $ jbang hello.java Max!
     [jbang] Resolving dependencies...
-    [jbang]     Resolving info.picocli:picocli:4.5.0...Done
+    [jbang]     Resolving info.picocli:picocli:4.6.3...Done
     [jbang] Dependencies resolved
     [jbang] Building jar...
     Hello Max!

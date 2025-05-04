@@ -1,5 +1,24 @@
 {
+  "catalogs": {
+    "jbanghub": {
+      "catalog-ref": "https://raw.githubusercontent.com/jbanghub/jbang-catalog/main/jbang-catalog.json",
+      "description": "JBangHub - Unleashing the Java community",
+      "import": true
+    }
+  },
   "templates": {
+    "gpt": {
+      "file-refs": {"{filename}":  "init-gpt.java.qute"},
+      "description": "Template using ChatGPT (requires --preview and OPENAI_API_KEY)"
+    },
+    "gpt.kt": {
+      "file-refs": {"{filename}":  "init-gpt.kt.qute"},
+      "description": "Template using ChatGPT for kotlin (requires --preview and OPENAI_API_KEY)"
+    },
+    "gpt.groovy": {
+      "file-refs": {"{filename}":  "init-gpt.groovy.qute"},
+      "description": "Template using ChatGPT for groovy (requires --preview and OPENAI_API_KEY)"
+    },
     "agent": {
       "file-refs": {"{basename}.java":  "init-agent.java.qute"},
       "description": "Agent template"

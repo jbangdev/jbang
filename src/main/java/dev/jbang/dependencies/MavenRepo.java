@@ -1,6 +1,6 @@
 package dev.jbang.dependencies;
 
-import org.jboss.shrinkwrap.resolver.api.maven.ConfigurableMavenResolverSystem;
+import java.util.Objects;
 
 public class MavenRepo {
 
@@ -28,8 +28,19 @@ public class MavenRepo {
 		this.url = url;
 	}
 
-	public void apply(ConfigurableMavenResolverSystem resolver) {
-		resolver.withRemoteRepo(getId() == null ? getUrl() : getId(), getUrl(), "default");
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		MavenRepo mavenRepo = (MavenRepo) o;
+		return Objects.equals(id, mavenRepo.id) && Objects.equals(url, mavenRepo.url);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, url);
 	}
 
 	@Override

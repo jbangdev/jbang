@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.io.FileMatchers.aReadableFile;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,6 +15,7 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 import org.hamcrest.MatcherAssert;
@@ -23,9 +25,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.*;
-import dev.jbang.source.RunContext;
-import dev.jbang.source.SourceSet;
+import dev.jbang.source.Project;
+import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.Util;
+
+import picocli.CommandLine;
 
 public class TestEdit extends BaseTest {
 
@@ -43,34 +47,34 @@ public class TestEdit extends BaseTest {
 		JBang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
-		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(s);
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(s);
 
-		File project = new Edit().createProjectForEdit(ss, ctx, false);
+		Path project = new Edit().createProjectForLinkedEdit(prj, Collections.emptyList(), false);
 
-		assertThat(new File(project, "src"), FileMatchers.anExistingDirectory());
-		File build = new File(project, "build.gradle");
-		assert (build.exists());
-		MatcherAssert.assertThat(Util.readString(build.toPath()), containsString("dependencies"));
-		File src = new File(project, "src/edit.java");
+		assertThat(project.resolve("src").toFile(), FileMatchers.anExistingDirectory());
+		Path build = project.resolve("build.gradle");
+		assert (Files.exists(build));
+		MatcherAssert.assertThat(Util.readString(build), containsString("dependencies"));
+		Path src = project.resolve("src/edit.java");
 
 		// first check for symlink. in some cases on windows (non admin privileg)
 		// symlink cannot be created, as fallback a hardlink will be created.
-		assert (Files.isSymbolicLink(src.toPath()) || src.exists());
+		assert (Files.isSymbolicLink(src) || Files.exists(src));
 
 		// check eclipse is there
-		assertThat(Arrays.stream(project.listFiles()).map(File::getName).collect(Collectors.toList()),
+		assertThat(Files.list(project).map(p -> p.getFileName().toString()).collect(Collectors.toList()),
 				containsInAnyOrder(".project", ".classpath", ".eclipse", "src", "build.gradle", ".vscode",
 						"README.md"));
-		File launchfile = new File(project, ".eclipse/edit.launch");
-		assert (launchfile.exists());
-		assertThat(Util.readString(launchfile.toPath()), containsString("launching.PROJECT_ATTR"));
-		assertThat(Util.readString(launchfile.toPath()), containsString("PROGRAM_ARGUMENTS\" value=\"\""));
+		Path launchfile = project.resolve(".eclipse/edit.launch");
+		assert (Files.exists(launchfile));
+		assertThat(Util.readString(launchfile), containsString("launching.PROJECT_ATTR"));
+		assertThat(Util.readString(launchfile), containsString("PROGRAM_ARGUMENTS\" value=\"\""));
 
-		launchfile = new File(project, ".eclipse/edit-port-4004.launch");
-		assert (launchfile.exists());
-		assertThat(Util.readString(launchfile.toPath()), containsString("launching.PROJECT_ATTR"));
-		assertThat(Util.readString(launchfile.toPath()), containsString("4004"));
+		launchfile = project.resolve(".eclipse/edit-port-4004.launch");
+		assert (Files.exists(launchfile));
+		assertThat(Util.readString(launchfile), containsString("launching.PROJECT_ATTR"));
+		assertThat(Util.readString(launchfile), containsString("4004"));
 	}
 
 	@Test
@@ -78,32 +82,32 @@ public class TestEdit extends BaseTest {
 
 		Path p = outputDir.resolve("edit.java");
 		String s = p.toString();
-		JBang.getCommandLine().execute("init", s);
+		JBang.getCommandLine().execute("--verbose", "init", s);
 		assertThat(new File(s).exists(), is(true));
 
 		Util.writeString(p, "//DEPS org.openjfx:javafx-graphics:11.0.2${bougus:}\n" + Util.readString(p));
 
-		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(s);
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(s);
 
-		File project = new Edit().createProjectForEdit(ss, ctx, false);
+		Path project = new Edit().createProjectForLinkedEdit(prj, Collections.emptyList(), false);
 
-		File gradle = new File(project, "build.gradle");
-		assert (gradle.exists());
-		String buildGradle = Util.readString(gradle.toPath());
+		Path gradle = project.resolve("build.gradle");
+		assert (Files.exists(gradle));
+		String buildGradle = Util.readString(gradle);
 		assertThat(buildGradle, not(containsString("bogus")));
 		assertThat(buildGradle, containsString("id 'application'"));
 		assertThat(buildGradle, containsString("mainClass = 'edit'"));
 		assertThat(buildGradle, containsString("repo1.maven.org")); // auto-added maven
 		assertThat(buildGradle, not(containsString("jitpack.io"))); // auto-added jitpack repo
 
-		File java = new File(project, "src/edit.java");
+		Path java = project.resolve("src/edit.java");
 
 		// first check for symlink. in some cases on windows (non admin privileg)
 		// symlink cannot be created, as fallback a hardlink will be created.
-		assert (Files.isSymbolicLink(java.toPath()) || java.exists());
+		assert (Files.isSymbolicLink(java) || Files.exists(java));
 
-		assertThat(Files.isSameFile(java.toPath(), p), equalTo(true));
+		assertThat(Files.isSameFile(java, p), equalTo(true));
 	}
 
 	@Test
@@ -118,27 +122,27 @@ public class TestEdit extends BaseTest {
 				"//DEPS io.quarkus:quarkus-rest-client-reactive\n" +
 				"//DEPS io.quarkus:quarkus-rest-client-reactive-jackson\n" + Util.readString(p));
 
-		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(s);
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(s);
 
-		File project = new Edit().createProjectForEdit(ss, ctx, false);
+		Path project = new Edit().createProjectForLinkedEdit(prj, Collections.emptyList(), false);
 
-		File gradle = new File(project, "build.gradle");
-		assert (gradle.exists());
-		String buildGradle = Util.readString(gradle.toPath());
+		Path gradle = project.resolve("build.gradle");
+		assert (Files.exists(gradle));
+		String buildGradle = Util.readString(gradle);
 		assertThat(buildGradle, not(containsString("bogus")));
 		assertThat(buildGradle, containsString("id 'application'"));
 		assertThat(buildGradle, containsString("mainClass = 'edit'"));
 		assertThat(buildGradle, containsString("repo1.maven.org")); // auto-added maven
 		assertThat(buildGradle, not(containsString("jitpack.io"))); // auto-added jitpack repo
 
-		File java = new File(project, "src/edit.java");
+		Path java = project.resolve("src/edit.java");
 
 		// first check for symlink. in some cases on windows (non admin privileg)
 		// symlink cannot be created, as fallback a hardlink will be created.
-		assert (Files.isSymbolicLink(java.toPath()) || java.exists());
+		assert (Files.isSymbolicLink(java) || Files.exists(java));
 
-		assertThat(Files.isSameFile(java.toPath(), p), equalTo(true));
+		assertThat(Files.isSameFile(java, p), equalTo(true));
 	}
 
 	@Test
@@ -151,14 +155,14 @@ public class TestEdit extends BaseTest {
 
 		Util.writeString(p, "//DEPS https://github.com/oldskoolsh/libvirt-schema/tree/0.0.2\n" + Util.readString(p));
 
-		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(s);
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(s);
 
-		File project = new Edit().createProjectForEdit(ss, ctx, false);
+		Path project = new Edit().createProjectForLinkedEdit(prj, Collections.emptyList(), false);
 
-		File gradle = new File(project, "build.gradle");
-		assert (gradle.exists());
-		String buildGradle = Util.readString(gradle.toPath());
+		Path gradle = project.resolve("build.gradle");
+		assert (Files.exists(gradle));
+		String buildGradle = Util.readString(gradle);
 		assertThat(buildGradle, not(containsString("github.com"))); // should be com.github
 		assertThat(buildGradle, containsString("repo1.maven.org")); // auto-added maven
 		assertThat(buildGradle, containsString("jitpack.io")); // auto-added jitpack repo
@@ -171,21 +175,21 @@ public class TestEdit extends BaseTest {
 		Path p = examplesTestFolder.resolve("one.java");
 		assertThat(p.toFile().exists(), is(true));
 
-		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(p.toString());
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(p.toString());
 
-		File project = new Edit().createProjectForEdit(ss, ctx, false);
+		Path project = new Edit().createProjectForLinkedEdit(prj, Collections.emptyList(), false);
 
-		File gradle = new File(project, "build.gradle");
-		assert (gradle.exists());
-		assertThat(Util.readString(gradle.toPath()), not(containsString("bogus")));
+		Path gradle = project.resolve("build.gradle");
+		assert (Files.exists(gradle));
+		assertThat(Util.readString(gradle), not(containsString("bogus")));
 
-		Arrays	.asList("one.java", "Two.java", "gh_fetch_release_assets.java", "gh_release_stats.java")
-				.forEach(f -> {
-					File java = new File(project, "src/" + f);
+		Arrays.asList("one.java", "Two.java", "gh_fetch_release_assets.java", "gh_release_stats.java")
+			.forEach(f -> {
+				Path java = project.resolve("src/" + f);
 
-					assertThat(f + " not found", java, aReadableFile());
-				});
+				assertThat(f + " not found", java.toFile(), aReadableFile());
+			});
 	}
 
 	@Test
@@ -196,16 +200,16 @@ public class TestEdit extends BaseTest {
 		assertThat(result, is(0));
 		assertThat(new File(s).exists(), is(true));
 
-		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(s);
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(s);
 
-		File project = new Edit().createProjectForEdit(ss, ctx, false);
+		Path project = new Edit().createProjectForLinkedEdit(prj, Collections.emptyList(), false);
 
-		File java = new File(project, "src/KubeExample.java");
+		Path java = project.resolve("src/KubeExample.java");
 
 		// first check for symlink. in some cases on windows (non admin privileg)
 		// symlink cannot be created, as fallback a hardlink will be created.
-		assert (Files.isSymbolicLink(java.toPath()) || java.exists());
+		assert (Files.isSymbolicLink(java) || Files.exists(java));
 	}
 
 	@Test
@@ -214,21 +218,45 @@ public class TestEdit extends BaseTest {
 		Path p = examplesTestFolder.resolve("res/resource.java");
 		assertThat(p.toFile().exists(), is(true));
 
-		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(p.toString());
-		ss.getClassPath();
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(p.toString());
 
-		File project = new Edit().createProjectForEdit(ss, ctx, false);
+		Path project = new Edit().createProjectForLinkedEdit(prj, Collections.emptyList(), false);
 
-		File gradle = new File(project, "build.gradle");
-		assert (gradle.exists());
-		assertThat(Util.readString(gradle.toPath()), not(containsString("bogus")));
+		Path gradle = project.resolve("build.gradle");
+		assert (Files.exists(gradle));
+		assertThat(Util.readString(gradle), not(containsString("bogus")));
 
-		Arrays	.asList("resource.java", "resource.properties", "renamed.properties", "META-INF/application.properties")
-				.forEach(f -> {
-					File java = new File(project, "src/" + f);
+		Arrays.asList("resource.java", "resource.properties", "renamed.properties", "META-INF/application.properties")
+			.forEach(f -> {
+				Path java = project.resolve("src/" + f);
 
-					assertThat(f + " not found", java, aReadableFile());
-				});
+				assertThat(f + " not found", java.toFile(), aReadableFile());
+			});
+	}
+
+	/*
+	 * @Test void testEditMissingScript() {
+	 * assertThrows(IllegalArgumentException.class, () -> { CommandLine.ParseResult
+	 * pr = JBang.getCommandLine().parseArgs("edit"); Edit edit = (Edit)
+	 * pr.subcommand().commandSpec().userObject(); edit.doCall(); }); }
+	 */
+
+	@Test
+	void testSandboxEditNonSource() {
+		assertThrows(ExitException.class, () -> {
+			Path jar = examplesTestFolder.resolve("hellojar.jar");
+			CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("edit", "-b", "--no-open", jar.toString());
+			Edit edit = (Edit) pr.subcommand().commandSpec().userObject();
+			edit.doCall();
+		});
+	}
+
+	@Test
+	void testSandboxEdit() throws IOException {
+		Path src = examplesTestFolder.resolve("helloworld.java");
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("edit", "-b", "--no-open", src.toString());
+		Edit edit = (Edit) pr.subcommand().commandSpec().userObject();
+		edit.doCall();
 	}
 }

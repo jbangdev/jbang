@@ -19,9 +19,9 @@ jbang-init - Initialize a script.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang init* *-o* [*-h*] [*--force*] *--fresh* [*--insecure*] [*--jsh*] *--quiet* *--verbose*
+*jbang init* *-o* [*-h*] [*--edit*] [*--force*] *--fresh* [*--insecure*] *--quiet* *--verbose*
            [*--config*=_<config>_] [*-t*=_<initTemplate>_] [*-D*=_<String=Object>_]...
-           [*--deps*=_<dependencies>_]... _<scriptOrFile>_
+           [*--deps*=_<dependencies>_]... _scriptOrFile_ [_params_...]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -44,6 +44,9 @@ Initialize a script.
 *--deps*=_<dependencies>_::
   Add additional dependencies (Use commas to separate them).
 
+*--edit*::
+  Open editor on the generated file(s)
+
 *--force*::
   Force overwrite of existing files
 
@@ -55,9 +58,6 @@ Initialize a script.
 
 *--insecure*::
   Enable insecure trust of all SSL certificates.
-
-*--jsh*::
-  Force input to be interpreted with jsh/jshell
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted
@@ -76,8 +76,11 @@ Initialize a script.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-_<scriptOrFile>_::
-  A file with java code or if named .jsh will be run with jshell
+_scriptOrFile_::
+  A file or URL to a Java code file
+
+[_params_...]::
+  Parameters to pass on to the generation
 
 // end::picocli-generated-man-section-arguments[]
 

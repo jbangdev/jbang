@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import dev.jbang.Settings;
+import dev.jbang.dependencies.ArtifactResolver;
 import dev.jbang.util.Util;
 import dev.jbang.util.VersionChecker;
 
@@ -39,7 +40,11 @@ public class Version extends BaseCommand {
 			PrintWriter out = spec.commandLine().getOut();
 			out.println("Cache: " + Settings.getCacheDir());
 			out.println("Config: " + Settings.getConfigDir());
-			out.println("Repository:" + Settings.getLocalMavenRepo());
+			out.println("Repository: " + ArtifactResolver.getLocalMavenRepo());
+			out.println("Java: " + System.getProperty("java.home") + " [" + System.getProperty("java.version") + "]");
+			out.println("OS: " + Util.getOS());
+			out.println("Arch: " + Util.getArch());
+			out.println("Shell: " + Util.getShell());
 		}
 
 		return EXIT_OK;

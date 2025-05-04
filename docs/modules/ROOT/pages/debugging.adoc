@@ -27,9 +27,25 @@ This will make it use port 4321 and make it listen on all ('*') network interfac
 
 NOTE: Be sure to put a breakpoint in your IDE/debugger before you connect to make the debugger actually stop when you need it.
 
+Additionally you can pass in a additional key/value options to the debug string, e.g., `--debug=server=n,suspend=y`. To have the debugger
+connect to the IDE and suspend the execution when it connects as opposed to having the IDE connect.
+
+You can see the key/value options supported in OpenJDK JPDA https://docs.oracle.com/en/java/javase/11/docs/specs/jpda/conninv.html[documentation].
+
+== Debug info
+
+JBang since version 0.100 compiles with debug info enabled by default. You can use `-C=-g` to tweak how much debug info is included: `jbang -C=-g=lines,vars,source` or to turn it off use `jbang -C=-g=none".
+
 == Debug jbang itself
 
 Java itself will add `JAVA_TOOL_OPTIONS` which will apply to `jbang` too.
 
 For finer and more explicit control the scripts, `jbang` will add `JBANG_JAVA_OPTIONS` to the call to `jbang` itself.
 Thus if you want to enable debug or other details for `jbang` set that environment variable.
+
+Example that will enable debug on port 1044 and wait/suspend for debugger to connect:
+
+[source,bash]
+----
+JBANG_JAVA_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=1044 jbang env@jbangdev
+----

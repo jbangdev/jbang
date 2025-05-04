@@ -1,0 +1,23 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                              http://maven.apache.org/xsd/settings-1.0.0.xsd">
+    <proxies>
+        <!-- For HTTP -->
+        <proxy>
+            <id>tiny-http-proxy</id>
+            <active>true</active>
+            <protocol>http</protocol>
+            <host>tinyproxy</host>
+            <port>8888</port>
+        </proxy>
+        <!-- For HTTPS -->
+        <proxy>
+            <id>tiny-https-proxy</id>
+            <active>true</active>
+            <protocol>https</protocol>
+            <host>tinyproxy</host>
+            <port>8888</port>
+        </proxy>
+    </proxies>
+</settings>

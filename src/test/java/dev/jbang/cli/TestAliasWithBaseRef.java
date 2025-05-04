@@ -35,7 +35,7 @@ public class TestAliasWithBaseRef extends BaseTest {
 			"}";
 
 	@BeforeEach
-	void init() throws IOException {
+	void initEach() throws IOException {
 		Files.write(jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON), aliases.getBytes());
 		Util.setCwd(Files.createDirectory(cwdDir.resolve("test")));
 	}

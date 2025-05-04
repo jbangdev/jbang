@@ -1,6 +1,6 @@
 package dev.jbang.cli;
 
-import static dev.jbang.cli.BaseBuildCommand.buildIfNeeded;
+import static dev.jbang.util.JavaUtil.defaultJdkManager;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -8,21 +8,24 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.nio.file.attribute.PosixFilePermission;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.dependencies.DependencyUtil;
-import dev.jbang.net.JdkManager;
-import dev.jbang.source.Code;
-import dev.jbang.source.RunContext;
+import dev.jbang.devkitman.Jdk;
+import dev.jbang.source.Project;
+import dev.jbang.source.ProjectBuilder;
+import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
 
@@ -35,9 +38,9 @@ public class App {
 
 	public static void deleteCommandFiles(String name) {
 		try (Stream<Path> files = Files.list(Settings.getConfigBinDir())) {
-			files	.filter(f -> f.getFileName().toString().equals(name)
-							|| f.getFileName().toString().startsWith(name + "."))
-					.forEach(f -> Util.deletePath(f, true));
+			files.filter(f -> f.getFileName().toString().equals(name)
+					|| f.getFileName().toString().startsWith(name + "."))
+				.forEach(f -> Util.deletePath(f, true));
 		} catch (IOException e) {
 			// Ignore
 		}
@@ -49,24 +52,39 @@ class AppInstall extends BaseCommand {
 	private static final String jbangUrl = "https://www.jbang.dev/releases/latest/download/jbang.zip";
 
 	@CommandLine.Option(names = {
-			"--native" }, description = "Enable native build/run")
-	boolean benative;
-
-	@CommandLine.Option(names = {
 			"--force" }, description = "Force re-installation")
 	boolean force;
 
 	@CommandLine.Option(names = { "--name" }, description = "A name for the command")
 	String name;
 
-	@CommandLine.Parameters(paramLabel = "scriptRef", description = "A file or URL to a Java code file or an alias")
-	String scriptRef;
+	@CommandLine.Mixin
+	ScriptMixin scriptMixin;
+
+	@CommandLine.Mixin
+	BuildMixin buildMixin;
+
+	@CommandLine.Mixin
+	DependencyInfoMixin dependencyInfoMixin;
+
+	@CommandLine.Mixin
+	NativeMixin nativeMixin;
+
+	@CommandLine.Mixin
+	RunMixin runMixin;
+
+	@CommandLine.Option(names = { "--enable-preview" }, description = "Activate Java preview features")
+	Boolean enablePreviewRequested;
+
+	@CommandLine.Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
+	public List<String> userParams = new ArrayList<>();
 
 	@Override
 	public Integer doCall() {
+		scriptMixin.validate();
 		boolean installed = false;
 		try {
-			if (scriptRef.equals("jbang")) {
+			if (scriptMixin.scriptOrFile.equals("jbang")) {
 				if (name != null && !"jbang".equals(name)) {
 					throw new IllegalArgumentException(
 							"It's not possible to install jbang with a different name");
@@ -79,7 +97,8 @@ class AppInstall extends BaseCommand {
 				if (name != null && !CatalogUtil.isValidName(name)) {
 					throw new IllegalArgumentException("Not a valid command name: '" + name + "'");
 				}
-				installed = install(name, scriptRef, force, benative);
+				List<String> runOpts = collectRunOptions();
+				installed = install(name, scriptMixin.scriptOrFile, force, runOpts, userParams);
 			}
 			if (installed) {
 				if (AppSetup.needsSetup()) {
@@ -92,26 +111,41 @@ class AppInstall extends BaseCommand {
 		return EXIT_OK;
 	}
 
-	public static boolean install(String name, String scriptRef, boolean force, boolean benative) throws IOException {
+	private List<String> collectRunOptions() {
+		List<String> opts = new ArrayList<>();
+		opts.addAll(scriptMixin.opts());
+		opts.addAll(buildMixin.opts());
+		opts.addAll(dependencyInfoMixin.opts());
+		opts.addAll(nativeMixin.opts());
+		opts.addAll(runMixin.opts());
+		if (Boolean.TRUE.equals(enablePreviewRequested)) {
+			opts.add("--enable-preview");
+		}
+		return opts;
+	}
+
+	public static boolean install(String name, String scriptRef, boolean force, List<String> runOpts,
+			List<String> runArgs) throws IOException {
 		Path binDir = Settings.getConfigBinDir();
 		if (!force && name != null && existScripts(binDir, name)) {
 			Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
 			return false;
 		}
-		RunContext ctx = RunContext.empty();
-		Code code = ctx.forResource(scriptRef);
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(scriptRef);
 		if (name == null) {
-			name = CatalogUtil.nameFromRef(ctx.getOriginalRef());
+			name = CatalogUtil.nameFromRef(scriptRef);
 			if (!force && existScripts(binDir, name)) {
 				Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
 				return false;
 			}
 		}
-		if (ctx.getAlias() == null && !DependencyUtil.looksLikeAGav(scriptRef) && !code.getResourceRef().isURL()) {
-			scriptRef = code.getResourceRef().getFile().getAbsolutePath();
+		if (!pb.isAlias(prj.getResourceRef()) && !DependencyUtil.looksLikeAGav(scriptRef)
+				&& !prj.getResourceRef().isURL()) {
+			scriptRef = prj.getResourceRef().getFile().toAbsolutePath().toString();
 		}
-		buildIfNeeded(code, ctx);
-		installScripts(name, scriptRef, benative);
+		prj.codeBuilder().build();
+		installScripts(name, scriptRef, runOpts, runArgs);
 		Util.infoMsg("Command installed: " + name);
 		return true;
 	}
@@ -121,50 +155,57 @@ class AppInstall extends BaseCommand {
 				|| Files.exists(binDir.resolve(name + ".ps1"));
 	}
 
-	private static void installScripts(String name, String scriptRef, boolean benative) throws IOException {
+	private static void installScripts(String name, String scriptRef, List<String> runOpts, List<String> runArgs)
+			throws IOException {
 		Path binDir = Settings.getConfigBinDir();
 		binDir.toFile().mkdirs();
 		if (Util.isWindows()) {
-			installCmdScript(binDir.resolve(name + ".cmd"), scriptRef, benative);
-			installPSScript(binDir.resolve(name + ".ps1"), scriptRef, benative);
-			installShellScript(binDir.resolve(name), scriptRef, benative);
+			installCmdScript(binDir.resolve(name + ".cmd"), scriptRef, runOpts, runArgs);
+			installPSScript(binDir.resolve(name + ".ps1"), scriptRef, runOpts, runArgs);
+			// Script references on Linux/Mac should never contain backslashes
+			String nixRef = scriptRef.replace('\\', '/');
+			installShellScript(binDir.resolve(name), nixRef, runOpts, runArgs);
 		} else {
-			installShellScript(binDir.resolve(name), scriptRef, benative);
+			installShellScript(binDir.resolve(name), scriptRef, runOpts, runArgs);
 		}
 	}
 
-	private static void installShellScript(Path file, String scriptRef, boolean benative) throws IOException {
-		List<String> lines = Arrays.asList(
-				"#!/bin/sh",
-				"exec jbang run" + (benative ? " --native " : " ") + scriptRef + " \"$@\"");
+	private static void installShellScript(Path file, String scriptRef, List<String> runOpts, List<String> runArgs)
+			throws IOException {
+		List<String> cmd = new ArrayList<>();
+		cmd.addAll(Arrays.asList("exec", "jbang", "run"));
+		cmd.addAll(runOpts);
+		cmd.add(scriptRef);
+		cmd.addAll(runArgs);
+		CommandBuffer cb = CommandBuffer.of(cmd);
+		List<String> lines = Arrays.asList("#!/bin/sh", cb.asCommandLine(Util.Shell.bash) + " \"$@\"");
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 		if (!Util.isWindows()) {
-			setExecutable(file);
+			Util.setExecutable(file);
 		}
 	}
 
-	private static void setExecutable(Path file) {
-		final Set<PosixFilePermission> permissions;
-		try {
-			permissions = Files.getPosixFilePermissions(file);
-			permissions.add(PosixFilePermission.OWNER_EXECUTE);
-			permissions.add(PosixFilePermission.GROUP_EXECUTE);
-			Files.setPosixFilePermissions(file, permissions);
-		} catch (UnsupportedOperationException | IOException e) {
-			throw new ExitException(EXIT_GENERIC_ERROR, "Couldn't mark script as executable: " + file, e);
-		}
-	}
-
-	private static void installCmdScript(Path file, String scriptRef, boolean benative) throws IOException {
-		List<String> lines = Arrays.asList(
-				"@echo off",
-				"jbang run" + (benative ? " --native " : " ") + scriptRef + " %*");
+	private static void installCmdScript(Path file, String scriptRef, List<String> runOpts, List<String> runArgs)
+			throws IOException {
+		List<String> cmd = new ArrayList<>();
+		cmd.addAll(Arrays.asList("jbang", "run"));
+		cmd.addAll(runOpts);
+		cmd.add(scriptRef);
+		cmd.addAll(runArgs);
+		CommandBuffer cb = CommandBuffer.of(cmd);
+		List<String> lines = Arrays.asList("@echo off", cb.asCommandLine(Util.Shell.cmd) + " %*");
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 	}
 
-	private static void installPSScript(Path file, String scriptRef, boolean benative) throws IOException {
-		List<String> lines = Collections.singletonList(
-				"jbang run" + (benative ? " --native " : " ") + scriptRef + " $args");
+	private static void installPSScript(Path file, String scriptRef, List<String> runOpts, List<String> runArgs)
+			throws IOException {
+		List<String> cmd = new ArrayList<>();
+		cmd.addAll(Arrays.asList("jbang", "run"));
+		cmd.addAll(runOpts);
+		cmd.add(scriptRef);
+		cmd.addAll(runArgs);
+		CommandBuffer cb = CommandBuffer.of(cmd);
+		List<String> lines = Collections.singletonList(cb.asCommandLine(Util.Shell.powershell) + " @args");
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 	}
 
@@ -179,16 +220,18 @@ class AppInstall extends BaseCommand {
 
 		if (force || !managedJBang) {
 			if (!Util.isOffline()) {
-				// Download JBang and unzip to ~/.jbang/bin/
-				Util.setFresh(true);// TODO: workaround as url cache is not honoring changed redirects
-				Util.infoMsg("Downloading and installing jbang...");
-				Path zipFile = Util.downloadFileToCache(jbangUrl);
-				Path urlsDir = Settings.getCacheDir(Cache.CacheClass.urls);
-				Util.deletePath(urlsDir.resolve("jbang"), true);
-				UnpackUtil.unpack(zipFile, urlsDir);
-				App.deleteCommandFiles("jbang");
-				Path fromDir = urlsDir.resolve("jbang").resolve("bin");
-				copyJBangFiles(fromDir, binDir);
+				Util.withCacheEvict(() -> {
+					// Download JBang and unzip to ~/.jbang/bin/
+					Util.infoMsg("Downloading and installing jbang...");
+					Path zipFile = Util.downloadAndCacheFile(jbangUrl);
+					Path urlsDir = Settings.getCacheDir(Cache.CacheClass.urls);
+					Util.deletePath(urlsDir.resolve("jbang"), true);
+					UnpackUtil.unpack(zipFile, urlsDir);
+					App.deleteCommandFiles("jbang");
+					Path fromDir = urlsDir.resolve("jbang").resolve("bin");
+					copyJBangFiles(fromDir, binDir);
+					return 0;
+				});
 			} else {
 				Path jar = Util.getJarLocation();
 				if (!jar.toString().endsWith(".jar")) {
@@ -208,57 +251,74 @@ class AppInstall extends BaseCommand {
 
 	private static void copyJBangFiles(Path from, Path to) throws IOException {
 		to.toFile().mkdirs();
-		Stream	.of("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")
-				.map(Paths::get)
-				.forEach(f -> {
-					try {
-						Path fromp = from.resolve(f);
-						Path top = to.resolve(f);
-						if (f.endsWith("jbang.jar")) {
-							if (!Files.isReadable(fromp)) {
-								fromp = from.resolve(".jbang/jbang.jar");
-							}
-							if (Util.isWindows() && Files.isRegularFile(top)) {
-								top = to.resolve("jbang.jar.new");
-							}
+		Stream.of("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")
+			.map(Paths::get)
+			.forEach(f -> {
+				try {
+					Path fromp = from.resolve(f);
+					Path top = to.resolve(f);
+					if (f.endsWith("jbang.jar")) {
+						if (!Files.isReadable(fromp)) {
+							fromp = from.resolve(".jbang/jbang.jar");
 						}
-						Files.copy(fromp, top, StandardCopyOption.REPLACE_EXISTING,
-								StandardCopyOption.COPY_ATTRIBUTES);
-					} catch (IOException e) {
-						throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
+						if (Util.isWindows() && Files.isRegularFile(top)) {
+							top = to.resolve("jbang.jar.new");
+						}
 					}
-				});
+					Files.copy(fromp, top, StandardCopyOption.REPLACE_EXISTING,
+							StandardCopyOption.COPY_ATTRIBUTES);
+				} catch (IOException e) {
+					throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
+				}
+			});
 	}
 }
 
 @CommandLine.Command(name = "list", description = "Lists installed commands.")
 class AppList extends BaseCommand {
 
+	@CommandLine.Mixin
+	FormatMixin formatMixin;
+
 	@Override
 	public Integer doCall() {
-		listCommandFiles().forEach(System.out::println);
+		if (formatMixin.format == FormatMixin.Format.json) {
+			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+			parser.toJson(listCommandFiles(), System.out);
+		} else {
+			listCommandFiles().forEach(app -> System.out.println(app.name));
+		}
 		return EXIT_OK;
 	}
 
-	private static List<String> listCommandFiles() {
+	static class AppOut {
+		String name;
+
+		public String getName() {
+			return name;
+		}
+
+		public AppOut(Path file) {
+			name = Util.base(file.getFileName().toString());
+		}
+	}
+
+	private static List<AppOut> listCommandFiles() {
 		try (Stream<Path> files = Files.list(Settings.getConfigBinDir())) {
 			return files
-						.map(AppList::baseFileName)
-						.distinct()
-						.sorted()
-						.collect(Collectors.toList());
+				.filter(Files::isExecutable)
+				.sorted()
+				.map(AppOut::new)
+				.filter(distinctByKey(AppOut::getName))
+				.collect(Collectors.toList());
 		} catch (IOException e) {
 			return Collections.emptyList();
 		}
 	}
 
-	private static String baseFileName(Path file) {
-		String nm = file.getFileName().toString();
-		int p = nm.lastIndexOf('.');
-		if (p > 0) {
-			nm = nm.substring(0, p);
-		}
-		return nm;
+	private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
+		Set<Object> seen = ConcurrentHashMap.newKeySet();
+		return t -> seen.add(keyExtractor.apply(t));
 	}
 }
 
@@ -325,26 +385,26 @@ class AppSetup extends BaseCommand {
 	 */
 	public static boolean guessWithJava() {
 		boolean withJava;
-		int v = JdkManager.getDefaultJdk();
+		Jdk defJdk = defaultJdkManager().getJdk(null);
 		String javaHome = System.getenv("JAVA_HOME");
 		Path javacCmd = Util.searchPath("javac");
-		withJava = (v > 0
+		withJava = defJdk != null
 				&& (javaHome == null
 						|| javaHome.isEmpty()
 						|| javaHome.toLowerCase().startsWith(Settings.getConfigDir().toString().toLowerCase()))
-				&& (javacCmd == null || javacCmd.startsWith(Settings.getConfigBinDir())));
+				&& (javacCmd == null || javacCmd.startsWith(Settings.getConfigBinDir()));
 		return withJava;
 	}
 
 	public static int setup(boolean withJava, boolean force, boolean chatty) {
 		Path jdkHome = null;
 		if (withJava) {
-			int v = JdkManager.getDefaultJdk();
-			if (v < 0) {
+			Jdk defJdk = defaultJdkManager().getDefaultJdk();
+			if (defJdk == null) {
 				Util.infoMsg("No default JDK set, use 'jbang jdk default <version>' to set one.");
 				return EXIT_UNEXPECTED_STATE;
 			}
-			jdkHome = Settings.getCurrentJdkDir();
+			jdkHome = Settings.getDefaultJdkDir();
 		}
 
 		Path binDir = Settings.getConfigBinDir();
@@ -398,6 +458,7 @@ class AppSetup extends BaseCommand {
 			Util.infoMsg("Setting up JBang environment...");
 		} else if (chatty) {
 			Util.infoMsg("JBang environment is already set up.");
+			Util.infoMsg("(You can use --force to perform the setup anyway)");
 		}
 		if (Util.getShell() == Util.Shell.bash) {
 			if (changed) {
@@ -425,7 +486,7 @@ class AppSetup extends BaseCommand {
 			// Detect if JBang has already been set up before
 			boolean jbangFound = Files.exists(bashFile)
 					&& Files.lines(bashFile)
-							.anyMatch(ln -> ln.trim().startsWith("#") && ln.toLowerCase().contains("jbang"));
+						.anyMatch(ln -> ln.trim().startsWith("#") && ln.toLowerCase().contains("jbang"));
 			if (!jbangFound) {
 				// Add lines to add JBang to PATH
 				String lines = "\n# Add JBang to environment\n" +

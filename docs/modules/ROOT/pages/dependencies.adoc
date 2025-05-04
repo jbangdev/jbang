@@ -58,6 +58,38 @@ $ ./classpath_example.java
 1 [main] INFO classpath_example  - Hello from Java!
 ----
 
+[TIP]
+====
+Dependency classifiers shall be put _after_ the version number:
+
+```java
+//DEPS io.netty:netty-transport-native-kqueue:4.1.107.Final:osx-aarch_64
+```
+
+is the equivalent of the following Maven dependency declaration:
+
+```xml
+<dependency>
+    <groupId>io.netty</groupId>
+    <artifactId>netty-transport-native-kqueue</artifactId>
+    <version>4.1.107.Final</version>
+    <classifier>osx-aarch_64</classifier>
+</dependency>
+```
+====
+
+== 'fatjar' dependencies [Experimental]
+
+Maven 4 introduces a special dependency type called `fatjar` which can be used to designate that the dependency should be treated as a jar that have all its dependencies included and thus not require fetching declared dependencies.
+
+JBang 0.117 adds support for this allowing you to just add `@fatjar` at the end.
+
+Example:
+
+`jbang eu.maveniverse.maven.plugins:toolbox:0.1.9:cli@fatjar`
+
+Without `@fatjar` it would resolve dependencies which would be redundant.
+
 == Managed dependencies ("BOM POM"'s) [Experimental]
 
 When using libraries and frameworks it can get tedious to mange and update multiple versions.
@@ -67,7 +99,7 @@ You use it by having as the very first dependency a `@pom` reference. This first
 to define your managed dependences. Below is an example how that could look like when using Quarkus:
 
 ```java
-//DEPS io.quarkus:quarkus-bom:1.11.0.Final@pom
+//DEPS io.quarkus:quarkus-bom:2.11.2.Final@pom
 //DEPS io.quarkus:quarkus-resteasy
 //DEPS io.quarkus:quarkus-smallrye-openapi
 //DEPS io.quarkus:quarkus-swagger-ui
@@ -92,11 +124,14 @@ name of the module by appending `#name-of-module` to the URL.
 And finally if the link you provide is to a specific branch of the project then you need to append
 `#:SNAPSHOT` to the URL. (If you have both a branch and a module name then use `#name-of-module:SNAPSHOT`)
 
+Note: if no branch specified `main-SNAPSHOT` will be used and if you list `main` or `master` they will both
+be treated as if you want the snapshot version.
+
 .Examples of links and their resulting locator:
 |===
 |Link | Locator
 |https://github.com/jbangdev/jbang
-|com.github.jbangdev:jbang:HEAD-SNAPSHOT
+|com.github.jbangdev:jbang:main-SNAPSHOT
 
 |https://github.com/jbangdev/jbang/tree/v1.2.3
 |com.github.jbangdev:jbang:v1.2.3
@@ -105,13 +140,13 @@ And finally if the link you provide is to a specific branch of the project then 
 |com.github.jbangdev:jbang:f1f34b031d
 
 |https://github.com/jbangdev/jbang#mymodule
-|com.github.jbangdev.jbang:mymodule:HEAD-SNAPSHOT
+|com.github.jbangdev.jbang:mymodule:main-SNAPSHOT
 
 |https://github.com/jbangdev/jbang/tree/mybranch#:SNAPSHOT
 |com.github.jbangdev:jbang:mybranch-SNAPSHOT
 
 |https://github.com/jbangdev/jbang/tree/mybranch#mymodule:SNAPSHOT
-|com.github.jbangdev.jbang.mymodule:mybranch-SNAPSHOT
+|com.github.jbangdev.jbang: mymodule:mybranch-SNAPSHOT
 |===
 
 == Offline mode
@@ -119,9 +154,13 @@ And finally if the link you provide is to a specific branch of the project then 
 In case you prefer `jbang` to just fail-fast when dependencies cannot be found locally you can run `jbang` in offline mode using
 `jbang -o` or `jbang --offline`. In this mode `jbang` will simply fail if dependencies have not been cached already.
 
+== Downloading Sources
+
+JBang can download sources for your dependencies and make them available in your IDE. `jbang edit` will do it automatically but you can also enable it globally by setting environment variable `JBANG_DOWNLOAD_SOURCES` to `true`.
+
 == Repositories
 
-By default `jbang` uses https://repo1.maven.org/maven2/[maven central]. In past it used `jcenter` but with its imminent shutdown deemed best to use central.
+By default `jbang` uses https://repo1.maven.org/maven2/[maven central].
 
 And if you are using the above mentioned URL dependencies https://jitpack.io[jitpack] will be added automatically as well.
 
@@ -132,11 +171,11 @@ For ease of use there are also a few shorthands to use popular commonly availabl
 
 |===
 |Short name | Description
-|`mavencentral`
+|`central`
 |Maven Central (`https://repo1.maven.org/maven2/`)
 
-|`jcenter`
-|`https://jcenter.bintray.com/`
+|`jcenter` *(deprecated, do not use)*
+|`https://jcenter.bintray.com/` *(defunct, redirects to Maven Central; do not use)*
 
 |`google`
 |`https://maven.google.com/`
@@ -165,6 +204,12 @@ username/passwords.
 
 By default, `jbang` uses `~/.m2` as local repository, but this can be overwritten by the environment variable `JBANG_REPO`.
 
+=== Transitive repositories
+
+JBang honors by default the repositories found in transitive dependencies (similar to how Maven does).
+
+You can however disable this by using the `--ignore-transitive-repositories` (or `-itr`) option.
+
 == Using `@Grab`
 
 There is also support for using Groovy lang style `@Grab` syntax.
@@ -184,7 +229,7 @@ import groovy.lang.Grab; // <.>
 import groovy.lang.Grapes;
 import groovy.lang.GrabResolver;
 
-@GrabResolver("mavenCentral") // <.>
+@GrabResolver("central") // <.>
 @GrabResolver(name="acme", root="https://maven.acme.local/maven")
 @Grapes({ // <.>
 		@Grab(group = "ch.qos.reload4j", module = "reload4j", version = "1.2.19"), // <.>

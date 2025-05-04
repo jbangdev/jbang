@@ -9,7 +9,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.net.TrustedSources;
@@ -27,6 +26,11 @@ public class RemoteResourceResolver implements ResourceResolver {
 
 	public RemoteResourceResolver(boolean alwaysTrust) {
 		this.alwaysTrust = alwaysTrust;
+	}
+
+	@Override
+	public String description() {
+		return String.format("%s remote resource", alwaysTrust ? "Trusted" : "Non-trusted");
 	}
 
 	@Override
@@ -55,7 +59,7 @@ public class RemoteResourceResolver implements ResourceResolver {
 				String trustOrgUrl = orgURL(trustUrl);
 				List<String> options = new ArrayList<>();
 				options.add(
-						"Trust once: Add no trust, just download this time (can be run multiple times while cached)");
+						"Trust once: Add no trust, only allow access to this URL for the duration of this run");
 				options.add("Trust limited url in future: " + trustUrl);
 				if (trustOrgUrl != null) {
 					options.add("Trust organization url in future: " + trustOrgUrl);
@@ -63,10 +67,12 @@ public class RemoteResourceResolver implements ResourceResolver {
 
 				int result = Util.askInput(question, 30, 0, options.toArray(new String[] {}));
 				TrustedSources ts = TrustedSources.instance();
-				if (result == 2) {
-					ts.add(trustUrl, Settings.getTrustedSourcesFile().toFile());
+				if (result == 1) {
+					ts.addTemporary(trustUrl);
+				} else if (result == 2) {
+					ts.add(trustUrl);
 				} else if (result == 3) {
-					ts.add(trustOrgUrl, Settings.getTrustedSourcesFile().toFile());
+					ts.add(trustOrgUrl);
 				} else if (result <= 0) {
 					String exmsg = scriptURL
 							+ " is not from a trusted source and user did not confirm trust thus aborting.\n" +
@@ -85,7 +91,7 @@ public class RemoteResourceResolver implements ResourceResolver {
 
 			Path path = Util.swizzleContent(swizzledUrl, Util.downloadAndCacheFile(swizzledUrl));
 
-			return ResourceRef.forCachedResource(scriptURL, path.toFile());
+			return ResourceRef.forCachedResource(scriptURL, path);
 		} catch (IOException | URISyntaxException e) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Could not download " + scriptURL, e);
 		}
@@ -108,7 +114,7 @@ public class RemoteResourceResolver implements ResourceResolver {
 		try {
 			String url = swizzleURL(scriptURL);
 			Path path = Util.downloadAndCacheFile(url);
-			return ResourceRef.forCachedResource(scriptURL, path.toFile());
+			return ResourceRef.forCachedResource(scriptURL, path);
 		} catch (IOException e) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Could not download " + scriptURL, e);
 		}

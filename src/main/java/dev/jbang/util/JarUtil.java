@@ -1,200 +1,76 @@
 package dev.jbang.util;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import static dev.jbang.util.JavaUtil.resolveInJavaHome;
+
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.jar.JarOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.jar.Manifest;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+
+import dev.jbang.cli.ExitException;
+import dev.jbang.devkitman.Jdk;
 
 public final class JarUtil {
 	private JarUtil() {
 	}
 
-	/**
-	 * <P>
-	 * This function will create a Jar archive containing the src file/directory.
-	 * The archive will be written to the specified OutputStream.
-	 * </P>
-	 *
-	 * <P>
-	 * This is a shortcut for<br>
-	 * <code>jar(out, new File[] { src }, null, null, null);</code>
-	 * </P>
-	 *
-	 * @param out The output stream to which the generated Jar archive is written.
-	 * @param src The file or directory to jar up. Directories will be processed
-	 *            recursively.
-	 * @throws IOException
-	 */
-	public static void jar(OutputStream out, File src) throws IOException {
-		jar(out, new File[] { src }, null, null, null);
-	}
-
-	/**
-	 * <P>
-	 * This function will create a Jar archive containing the src file/directory.
-	 * The archive will be written to the specified OutputStream.
-	 * </P>
-	 *
-	 * <P>
-	 * This is a shortcut for<br>
-	 * <code>jar(out, src, null, null, null);</code>
-	 * </P>
-	 *
-	 * @param out The output stream to which the generated Jar archive is written.
-	 * @param src The file or directory to jar up. Directories will be processed
-	 *            recursively.
-	 * @throws IOException
-	 */
-	public static void jar(OutputStream out, File[] src) throws IOException {
-		jar(out, src, null, null, null);
-	}
-
-	/**
-	 * <P>
-	 * This function will create a Jar archive containing the src file/directory.
-	 * The archive will be written to the specified OutputStream. Directories are
-	 * processed recursively, applying the specified filter if it exists.
-	 *
-	 * <P>
-	 * This is a shortcut for<br>
-	 * <code>jar(out, src, filter, null, null);</code>
-	 * </P>
-	 *
-	 * @param out    The output stream to which the generated Jar archive is
-	 *               written.
-	 * @param src    The file or directory to jar up. Directories will be processed
-	 *               recursively.
-	 * @param filter The filter to use while processing directories. Only those
-	 *               files matching will be included in the jar archive. If null,
-	 *               then all files are included.
-	 * @throws IOException
-	 */
-	public static void jar(OutputStream out, File[] src, FileFilter filter)
+	public static void createJar(Path jar, Path src, Manifest manifest, String mainClass, Jdk jdk)
 			throws IOException {
-		jar(out, src, filter, null, null);
+		runJarCommand(jar, "c", src, manifest, mainClass, jdk);
 	}
 
-	/**
-	 * <P>
-	 * This function will create a Jar archive containing the src file/directory.
-	 * The archive will be written to the specified OutputStream. Directories are
-	 * processed recursively, applying the specified filter if it exists.
-	 *
-	 * @param out    The output stream to which the generated Jar archive is
-	 *               written.
-	 * @param src    The file or directory to jar up. Directories will be processed
-	 *               recursively.
-	 * @param filter The filter to use while processing directories. Only those
-	 *               files matching will be included in the jar archive. If null,
-	 *               then all files are included.
-	 * @param prefix The name of an arbitrary directory that will precede all
-	 *               entries in the jar archive. If null, then no prefix will be
-	 *               used.
-	 * @param man    The manifest to use for the Jar archive. If null, then no
-	 *               manifest will be included.
-	 * @throws IOException
-	 */
-	public static void jar(OutputStream out, File[] src, FileFilter filter,
-			String prefix, Manifest man) throws IOException {
-
-		for (File file : src) {
-			if (!file.exists()) {
-				throw new FileNotFoundException(file.toString());
-			}
-		}
-
-		JarOutputStream jout;
-		if (man == null) {
-			// noinspection resource
-			jout = new JarOutputStream(out);
-		} else {
-			// noinspection resource
-			jout = new JarOutputStream(out, man);
-		}
-		if (prefix != null && prefix.length() > 0 && !prefix.equals("/")) {
-			// strip leading '/'
-			if (prefix.charAt(0) == '/') {
-				prefix = prefix.substring(1);
-			}
-			// ensure trailing '/'
-			if (prefix.charAt(prefix.length() - 1) != '/') {
-				prefix = prefix + "/";
-			}
-		} else {
-			prefix = "";
-		}
-		JarInfo info = new JarInfo(jout, filter);
-		for (File file : src) {
-			jar(file, prefix, info);
-		}
-		jout.close();
-	}
-
-	/**
-	 * This simple convenience class is used by the jar method to reduce the number
-	 * of arguments needed. It holds all non-changing attributes needed for the
-	 * recursive jar method.
-	 */
-	private static class JarInfo {
-		public JarOutputStream out;
-		public FileFilter filter;
-		public byte[] buffer;
-
-		public JarInfo(JarOutputStream out, FileFilter filter) {
-			this.out = out;
-			this.filter = filter;
-			buffer = new byte[1024];
-		}
-	}
-
-	/**
-	 * This recursive method writes all matching files and directories to the jar
-	 * output stream.
-	 */
-	private static void jar(File src, String prefix, JarInfo info)
+	public static void updateJar(Path jar, Manifest manifest, String mainClass, Jdk jdk)
 			throws IOException {
+		runJarCommand(jar, "u", null, manifest, mainClass, jdk);
+	}
 
-		JarOutputStream jout = info.out;
-		if (src.isDirectory()) {
-			// create / init the zip entry
-			prefix = prefix + src.getName() + "/";
-			ZipEntry entry = new ZipEntry(prefix);
-			entry.setTime(src.lastModified());
-			entry.setMethod(ZipOutputStream.STORED);
-			entry.setSize(0L);
-			entry.setCrc(0L);
-			jout.putNextEntry(entry);
-			jout.closeEntry();
+	private static void runJarCommand(Path jar, String action, Path src, Manifest manifest, String mainClass, Jdk jdk)
+			throws IOException {
+		assert (action.equals("c") || action.equals("u"));
+		List<String> optionList = new ArrayList<>();
+		Path tmpManifest = null;
+		try {
+			action += "f";
+			optionList.add(jar.toString());
 
-			// process the sub-directories
-			File[] files = src.listFiles(info.filter);
-			for (File file : files) {
-				jar(file, prefix, info);
-			}
-		} else if (src.isFile()) {
-			// get the required info objects
-			byte[] buffer = info.buffer;
-
-			// create / init the zip entry
-			ZipEntry entry = new ZipEntry(prefix + src.getName());
-			entry.setTime(src.lastModified());
-			jout.putNextEntry(entry);
-
-			// dump the file
-			try (FileInputStream in = new FileInputStream(src)) {
-				int len;
-				while ((len = in.read(buffer, 0, buffer.length)) != -1) {
-					jout.write(buffer, 0, len);
+			if (manifest != null) {
+				tmpManifest = Files.createTempFile("jbang-manifest", "mf");
+				try (OutputStream out = Files.newOutputStream(tmpManifest)) {
+					manifest.write(out);
 				}
+				action += "m";
+				optionList.add(tmpManifest.toString());
 			}
-			jout.closeEntry();
 
+			if (mainClass != null) {
+				action += "e";
+				optionList.add(mainClass);
+			}
+
+			optionList.add(0, action);
+
+			if (src != null) {
+				optionList.add("-C");
+				optionList.add(src.toAbsolutePath().toString());
+				optionList.add(".");
+			}
+			runJarCommand(optionList, jdk);
+		} finally {
+			if (tmpManifest != null) {
+				Util.deletePath(tmpManifest, true);
+			}
+		}
+	}
+
+	private static void runJarCommand(List<String> arguments, Jdk jdk) throws IOException {
+		arguments.add(0, resolveInJavaHome("jar", jdk));
+		Util.verboseMsg("Package: " + String.join(" ", arguments));
+		String out = Util.runCommand(arguments.toArray(new String[] {}));
+		if (out == null) {
+			throw new ExitException(1, "Error creating/updating jar");
 		}
 	}
 }

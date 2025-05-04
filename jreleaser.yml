@@ -5,13 +5,13 @@ project:
     Unleash the power of Java.
     Use `jbang` to run java, jar, jsh or kt file(s) with automatic dependency fetching
     and immediate compilation and execution.
-
-  website: https://jbang.dev
-  docsUrl: https://jbang.dev/documentation
+  links:
+    homepage: https://jbang.dev
+    documentation: https://jbang.dev/documentation
+    license: https://github.com/jbangdev/jbang/blob/main/LICENSE
   authors:
     - Max Rydahl Andersen
   license: MIT
-  licenseUrl: https://github.com/jbangdev/jbang/blob/main/LICENSE
   tags:
     - jbang
     - bash
@@ -21,8 +21,8 @@ project:
   java:
     groupId: dev.jbang
     version: 8
-  extraProperties:
-    inceptionYear: 2020
+  inceptionYear: 2020
+  stereotype: CLI
 
 release:
   github:
@@ -42,17 +42,31 @@ checksum:
   individual: true
 
 signing:
-  active: always
+  active: ALWAYS
   armored: true
 
+deploy:
+  maven:
+    nexus2:
+      maven-central:
+        active: ALWAYS
+        url: https://oss.sonatype.org/service/local
+        snapshotUrl: https://oss.sonatype.org/content/repositories/snapshots/
+        closeRepository: true
+        releaseRepository: true
+        stagingRepositories:
+          - build/staging-deploy
+
 announce:
-  twitter:
-    active: release
+  bluesky:
+    active: RELEASE
     status: 'JBang {{projectVersion}} has been released! {{releaseNotesUrl}}'
+    handle: 'jbang.dev'
+    host: https://bsky.social
   sdkman:
-    active: release
+    active: RELEASE
   article:
-    active: release
+    active: RELEASE
     repository:
       name: jbang.dev
     files:
@@ -67,9 +81,10 @@ files:
 
 distributions:
   jbang:
-    executableExtension: cmd
+    executable:
+      windowsExtension: cmd
     docker:  ## not ready to release this way.
-      active: release
+      active: RELEASE
       continueOnError: true
       postCommands:
         - "VOLUME /scripts"
@@ -77,25 +92,25 @@ distributions:
       repository:
         name: jbang-action
     sdkman:
-      active: release
+      active: RELEASE
       continueOnError: true
     brew:
-      active: release
+      active: RELEASE
       continueOnError: true
       extraProperties:
         skipJava: true
     scoop:
-      active: release
+      active: RELEASE
       continueOnError: true
       bucket:
         name: 'scoop-bucket'
     chocolatey:
-      active: release
+      active: RELEASE
       continueOnError: true
       remoteBuild: true
       title: JBang
     snap:
-      active: release
+      active: RELEASE
       continueOnError: true
       remoteBuild: true
       base: core18

@@ -2,62 +2,168 @@ import org.gradle.crypto.checksum.Checksum
 
 plugins {
 	id "distribution"
-	id "com.github.johnrengelman.shadow" version "6.1.0"
+	id "com.github.johnrengelman.shadow" version "8.0.0"
 	id "java"
-	id "com.github.breadmoirai.github-release" version "2.2.12"
-	id "io.toolebox.git-versioner" version "1.6.4"
-	id 'org.gradle.crypto.checksum' version '1.1.0'
-	id "com.diffplug.spotless" version "5.11.0"
-	id 'de.fuerstenau.buildconfig' version '1.1.8'
-	id "com.dorongold.task-tree" version "1.5"
+	id "jvm-test-suite"
+	id "com.github.breadmoirai.github-release" version "2.4.1"
+	id "io.toolebox.git-versioner" version "1.6.5"
+	id 'org.gradle.crypto.checksum' version '1.4.0'
+	id "com.diffplug.spotless" version "7.0.2"
+	id 'com.github.gmazzo.buildconfig' version "3.1.0"
+	id "com.dorongold.task-tree" version "2.1.1"
 	id "com.geoffgranum.gradle-conventional-changelog" version "0.3.1"
 	id "org.asciidoctor.jvm.convert" version "3.3.2"
 	id "org.ajoberstar.grgit" version "4.1.1"
-	id "org.sonarqube" version "3.1.1"
+	id "org.sonarqube" version "4.0.0.2929"
 	id 'jacoco'
+	id 'maven-publish'
+	id 'io.qameta.allure-report' version '2.12.0'
+	id "io.qameta.allure-adapter-base" version "2.12.0"
+
+}
+
+
+def allureVersion = '2.29.0'
+def aspectJVersion = '1.9.22'
+
+
+configurations {
+	agent {
+		canBeResolved = true
+		canBeConsumed = true
+	}
+}
+
+javadoc {
+	options.encoding = 'UTF-8'
+	//remove this to see all the missing tags/parameters.
+	options.addStringOption('Xdoclint:none', '-quiet')
 }
 
 repositories {
 	mavenCentral()
-	maven { url 'https://jitpack.io' }
+	mavenLocal()
+	//maven { url 'https://jitpack.io' }
 }
 
+java {
+	withJavadocJar()
+	withSourcesJar()
+}
+
+// See https://docs.gradle.org/current/dsl/org.gradle.api.reporting.ReportingExtension.html
+// Extension is provided via Gradle's `reporting-base` plugin
+reporting {
+	baseDir = "$buildDir/reports"
+}
+
+allure {
+	version.set("2.33.0")
+	report {
+
+		// There might be several tasks producing the report, so the property
+		// configures a base directory for all the reports
+		// Each task creates its own subfolder there
+		reportDir.set(project.reporting.baseDirectory.dir("allure-report"))
+
+		// Enable single file generation to open without serving.
+		singleFile = true
+	}
+}
+
+publishing {
+	publications {
+		maven(MavenPublication) {
+			groupId = 'dev.jbang'
+			artifactId = 'jbang-cli'
+
+			from components.java
+
+			pom {
+				name = 'JBang CLI'
+				description = 'JBang Command Line Interface'
+				url = 'https://jbang.dev'
+				inceptionYear = '2019'
+				licenses {
+					license {
+						name = 'MIT'
+						url = 'https://github.com/jbangdev/jbang/blob/main/LICENSE'
+					}
+				}
+				developers {
+					developer {
+						id = 'maxandersen'
+						name = 'Max Rydahl Andersen'
+					}
+					developer {
+						id = 'quintesse'
+						name = 'Tako Schotanus'
+					}
+				}
+				scm {
+					connection = 'scm:git:https://github.com/jbangdev/jbang'
+					developerConnection = 'scm:git:https://github.com/jbangdev/jbang'
+					url = 'http://github.com/jbangdev/jbang'
+				}
+			}
+		}
+	}
+
+	repositories {
+		maven {
+			url = layout.buildDirectory.dir('staging-deploy')
+		}
+	}
+}
+
+sourceSets {
+	java9 {
+		java {
+			srcDirs = ['src/main/java9']
+			destinationDirectory.set(file('build/classes/java/main'))
+		}
+	}
+}
+sourceSets.main.compileClasspath += sourceSets.java9.output.classesDirs;
+
 dependencies {
-	implementation 'com.offbytwo:docopt:0.6.0.20150202'
+	implementation 'dev.jbang:devkitman:0.1.2'
 
-	implementation 'org.apache.commons:commons-text:1.9'
-	implementation 'org.apache.commons:commons-compress:1.20'
-	implementation 'info.picocli:picocli:4.6.1'
+	implementation 'org.apache.commons:commons-text:1.11.0'
+	implementation 'org.apache.commons:commons-compress:1.27.1'
+	implementation 'info.picocli:picocli:4.7.5'
 	implementation 'io.quarkus.qute:qute-core:1.12.2.Final'
-	implementation 'kr.motd.maven:os-maven-plugin:1.7.0'
-	implementation 'org.codehaus.plexus:plexus-java:1.0.6'
-	implementation 'com.google.code.gson:gson:2.8.6'
-	implementation 'org.jsoup:jsoup:1.13.1'
-	implementation 'org.codejive:java-properties:0.0.3'
+	implementation 'kr.motd.maven:os-maven-plugin:1.7.1'
+	implementation 'org.codehaus.plexus:plexus-java:1.2.0'
+	implementation 'com.google.code.gson:gson:2.10.1'
+	implementation 'org.jsoup:jsoup:1.17.1'
+	implementation 'org.codejive:java-properties:0.0.7'
 
-	implementation 'com.github.jbangdev.jbang-resolver:shrinkwrap-resolver-api:3.1.5-allowpom'
-	implementation 'com.github.jbangdev.jbang-resolver:shrinkwrap-resolver-impl-maven:3.1.5-allowpom'
-
-	//implementation 'org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-api:3.1.4'
-	//implementation 'org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-impl-maven:3.1.4'
 	implementation "org.slf4j:slf4j-nop:1.7.30"
+	implementation "org.slf4j:jcl-over-slf4j:1.7.30"
 	implementation "org.jboss:jandex:2.2.3.Final"
-	//implementation 'org.apache.maven:maven-aether-provider:3.0.5'
-	//implementation 'com.google.guava:guava:28.2-jre'
 
+	implementation "eu.maveniverse.maven.mima:context:2.4.20"
+	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.20"
 
-	testCompile "com.github.tomakehurst:wiremock-jre8:2.32.0"
-
-	testImplementation "org.junit.jupiter:junit-jupiter:5.7.1"
-	testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.7.1')
+	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.12.2"
+	testImplementation "org.junit.jupiter:junit-jupiter:5.12.2"
 	testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
-	testImplementation(
-			'org.hamcrest:hamcrest-library:2.2'
-	)
+	testImplementation "org.hamcrest:hamcrest-library:2.2"
+	testImplementation "com.github.tomakehurst:wiremock-jre8:2.32.0"
+	testImplementation platform("io.qameta.allure:allure-bom:$allureVersion")
+	testImplementation "io.qameta.allure:allure-junit5"
+	// only for test running
+	agent "org.aspectj:aspectjweaver:$aspectJVersion"
 
-	//testCompile 'com.github.maxandersen.karate:karate-junit:19e06766'
-	//testCompile 'com.github.maxandersen.karate:karate-apache:19e06766'
-	//testCompile 'com.github.maxandersen.karate:karate-netty:19e06766'
+	allureRawResultElements(files("$buildDir/allure-results"))
+
+}
+
+buildConfig {
+	packageName("dev.jbang.util")
+	buildConfigField('String', 'NAME', "\"${project.name}\"")
+	buildConfigField('String', 'VERSION', provider { "\"${project.version}\"" })
 }
 
 // to enable reproducible builds
@@ -66,28 +172,29 @@ tasks.withType(AbstractArchiveTask) {
 	reproducibleFileOrder = true
 }
 
-
 sonarqube {
-properties {
-	property "sonar.projectKey", "jbangdev_jbang"
-	property "sonar.organization", "jbangdev"
-	property "sonar.host.url", "https://sonarcloud.io"
-}
+	properties {
+		property "sonar.projectKey", "jbangdev_jbang"
+		property "sonar.organization", "jbangdev"
+		property "sonar.host.url", "https://sonarcloud.io"
+	}
 }
 
 spotless {
 	lineEndings 'UNIX'
 	format 'misc', {
 		target '**/*.gradle', '**/*.md', '**/.gitignore'
-		targetExclude 'CONTRIBUTORS.md', 'src/main/scripts/container/README.md', 'build/container/README.md', ' build/reports/**', ' build/test-results/**', 'out/**/*'  // all-contributor bot adds non-indented code
+		targetExclude 'CONTRIBUTORS.md', 'src/main/scripts/container/README.md', 'build/**/*', 'out/**/*'
+		// all-contributor bot adds non-indented code
 		trimTrailingWhitespace()
-		indentWithTabs(4) // or spaces. Takes an integer argument if you don't like 4
+		leadingSpacesToTabs(4)
 		endWithNewline()
 	}
 	java {
 		importOrder 'java', 'javax', 'org', 'com', 'dev.jbang', ''
 		removeUnusedImports()
 		eclipse().configFile "misc/eclipse_formatting_nowrap.xml"
+		targetExclude 'build/**/*'
 	}
 	format 'xml', {
 		targetExclude 'build/test-results', fileTree('.idea')
@@ -119,6 +226,7 @@ def commonSpec = project.copySpec {
 		into 'bin'
 	}
 }
+
 distributions {
 	main {
 		contents {
@@ -133,58 +241,80 @@ distributions {
 }
 
 latestDistZip {
-	archiveName = "${project.name}.zip"
+	archiveFileName = "${project.name}.zip"
 }
 
 
 latestDistTar {
-	archiveName = "${project.name}.tar"
+	archiveFileName = "${project.name}.tar"
 }
 
 jar {
 	manifest {
-		attributes (
-				'Main-Class': 'dev.jbang.Main',
+		attributes(
+			'Main-Class': 'dev.jbang.Main',
 		)
 	}
-	}
-
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
 
 compileJava {
 	options.encoding = 'UTF-8'
 	options.compilerArgs << "-Xlint:unchecked"
+	options.compilerArgs << '-parameters' // for allure reporting
 }
 
 compileTestJava {
 	options.encoding = 'UTF-8'
 	options.compilerArgs << "-Xlint:unchecked"
+	options.compilerArgs << '-parameters' // for allure reporting
+}
+
+compileJava9Java {
+	sourceCompatibility = 9
+	targetCompatibility = 9
+	options.encoding = 'UTF-8'
+	options.compilerArgs << "-Xlint:unchecked"
+	options.compilerArgs << '-parameters' // for allure reporting
 }
 
 shadowJar {
-	minimize()  {
-		//exclude(dependency('org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-spi:.*'))
-		//exclude(dependency('org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-impl-maven:.*'))
-		exclude(dependency('com.github.jbangdev.jbang-resolver:shrinkwrap-resolver-spi:.*'))
-		exclude(dependency('com.github.jbangdev.jbang-resolver:shrinkwrap-resolver-impl-maven:.*'))
-
+	minimize() {
 		//exclude(dependency('org.slf4j:slf4j-api:.*'))
+		exclude(dependency('dev.jbang:devkitman:.*'))
+		exclude(dependency('eu.maveniverse.maven.mima:context:.*'))
+		exclude(dependency('eu.maveniverse.maven.mima.runtime:standalone-static:.*'))
+		exclude(dependency('org.slf4j:jcl-over-slf4j:.*'))
 		exclude(dependency('org.slf4j:slf4j-nop:.*'))
 		exclude(dependency('org.jboss.logging:jboss-logging:.*'))
-
-
 	}
 	mergeServiceFiles()
 	manifest {
 		attributes 'Main-Class': 'dev.jbang.Main'
 	}
-	// warning is printed about deprecation in 7.0 but if I fix this shadowjar turns into a bogus file
-	archiveName = "${baseName}.${extension}"
+	archiveFileName = "${archiveBaseName.get()}.${archiveExtension.get()}"
 }
+
+
 
 test {
 	useJUnitPlatform()
+	jvmArgs = [
+			"--add-opens", "java.base/java.lang=ALL-UNNAMED",
+			"--add-opens", "java.base/java.util=ALL-UNNAMED",
+			"-javaagent:${configurations.agent.singleFile}" // for allure reporting
+	]
 	//testLogging.showStandardStreams = true
 
+	/*testLogging {
+		events "passed", "skipped", "failed"
+		exceptionFormat "full"
+	}*/
+	//timeout.set(Duration.ofSeconds(60))
+
+	jacoco {
+		enabled = false
+	}
 }
 
 jacoco {
@@ -192,24 +322,58 @@ jacoco {
 }
 
 jacocoTestReport {
-
 	afterEvaluate {
 		executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
 	}
 
 	reports {
-		html.enabled true
-		xml.enabled  true
-		csv.enabled  false
+		html.required = true
+		xml.required = true
+		csv.required = false
+	}
+}
+testing {
+	suites {
+		test {
+			useJUnitJupiter()
+		}
+
+		integrationTest(JvmTestSuite) {
+			dependencies {
+				implementation project()  // todo: shouldn't even need to depend on main code?
+				implementation "org.junit.jupiter:junit-jupiter-engine:5.12.2"
+				implementation "org.junit.jupiter:junit-jupiter:5.12.2"
+				implementation "org.assertj:assertj-core:3.24.2"
+				implementation 'org.zeroturnaround:zt-exec:1.12'
+				implementation platform("io.qameta.allure:allure-bom:2.29.1")
+				implementation "io.qameta.allure:allure-junit5"
+			}
+
+			sources {
+				java {
+					srcDirs = ['src/it/java']
+					resources.srcDirs = ['src/it/resources']
+				}
+			}
+
+			targets {
+				all {
+					testTask.configure {
+						shouldRunAfter(test) // todo: push to buildDist?
+					}
+				}
+			}
+		}
 	}
 }
 
-
-
+tasks.named('integrationTest') {
+	dependsOn("installDist") // todo: move to after buildDist
+}
 
 task karateExecute(type: JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
-	main = System.properties.getProperty('mainClass')
+	mainClass = System.properties.getProperty('mainClass')
 }
 
 task copyResources(type: Copy) {
@@ -228,7 +392,7 @@ processTestResources.dependsOn copyTestResources
 task createChecksum(type: Checksum) {
 	dependsOn(assembleDist)
 	files = files([distZip, latestDistZip, distTar, latestDistTar].outputs.files.flatten())
-	outputDir = distZip.destinationDir
+	outputDir = distZip.destinationDirectory.asFile.get()
 	algorithm = Checksum.Algorithm.SHA256
 }
 
@@ -321,7 +485,7 @@ asciidoctor {
 task clidoc(type: Exec) {
 	doFirst {
 		println 'Generating cli man pages'
-		commandLine 'jbang', '--cp', 'build/libs/jbang.jar', 'docs/genadoc.java', '-d', 'docs/modules/cli', '--force', 'dev.jbang.cli.JBang'
+		commandLine 'build/install/jbang/bin/jbang', '--cp', 'build/install/jbang/bin/jbang.jar', 'docs/genadoc.java', '-d', 'docs/modules/cli', '--force', 'dev.jbang.cli.JBang'
 	}
 }
 
@@ -336,7 +500,24 @@ build.dependsOn(copyITests)
 build.dependsOn(chocolatey)
 build.dependsOn(container)
 build.dependsOn(spec)
+// clidoc not auto included as it depends on jbang...which isn't built at this time.
 //build.dependsOn(clidoc)
+
+compileJava.dependsOn(copyResources);
+compileJava.dependsOn(compileJava9Java);
+compileTestJava.dependsOn(compileJava9Java);
+
+// Don't know how to tell shadowJar _not_ to depend on this
+shadowJar.dependsOn(copyTestResources);
+
+//fix implicit dependencies
+tasks.named("spotlessXml").configure { dependsOn("compileJava") }
+tasks.named("spotlessXml").configure { dependsOn("copyResources") }
+tasks.named("spotlessXml").configure { dependsOn("processResources") }
+tasks.named("spotlessXml").configure { dependsOn("compileTestJava") }
+tasks.named("spotlessXml").configure { dependsOn("copyTestResources") }
+tasks.named("spotlessXml").configure { dependsOn("chocolatey") }
+tasks.named("spotlessXml").configure { dependsOn("copyITests") }
 
 group = "dev.jbang"
 sourceCompatibility = '8'

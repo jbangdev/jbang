@@ -26,6 +26,9 @@ After doing `jbang` I've learned about similar projects and thought it would be 
 https://github.com/scijava/jgo[jgo]: an alternative way to launch jars using maven coordinates. Implemented in python, depends on Java and Maven to be available. Not really for scripting but a novel way to launch java apps already packaged as a maven dependency.
 +
 
+Why is JBang scripting examples using lower case class names ?::
+  JBang works with any valid Java class names including Java's standard camel case conventions. The scripting examples are using lower case because the scripts can be used as a command line tool. i.e. `./hello.java`. Just like people are used to Java using camel case for class names, they are also used to using lower case for command line tools. So JBang is just following the convention most relevant for the scripting use case. Thus `helloworld.java` instead of `HelloWorld.java`; but if you prefer the latter you can always use it.
+
 Why would I use Java to write scripts ? Java sucks for that... Use groovy, kotlin, scala, etc. instead!::
   Well, does it really suck ? With Java 8 streams, static imports and greatly improved standard java libraries it is very close to what kscript and grape look like.
 With the following advantages:
@@ -38,8 +41,9 @@ And to be honest I built `jbang` just to see if I could and get my Java skills r
 Use it at your own risk :)
 
 Why not use normal shebang(`#!`) in the header ?::
-  You can use normal shebang (`#!/usr/bin/env jbang`) and Java 10+ will actually work with it from the command line. Not recommended though as
-many tools and especially IDE's will start complaining about syntax errors as they don't ignore the first line in this case.
+  You can use normal shebang (`#!/usr/bin/env jbang`) and the Java 10+ launcher (`java test.java`) will actually work with it from the command line.
+However the Java compiler will still not accept it (`javac test.java` with shebang fails.) This is thus not recommended, as
+many tools, code formatters ([example](https://github.com/google/google-java-format/issues/1214)), and especially IDE's will start complaining about syntax errors as they don't ignore the first line in this case.
 +
 By using the `//` form it is treated as both a bash/shell file AND a valid java file and thus works everywhere a java file will work.
 +
@@ -53,7 +57,7 @@ Use the following configuration blocks to correctly configure your tool:
 .Configuration Tool Settings:
 |====
 | Formatting Tool | Configuration
-
+| Google Java Format | see https://github.com/google/google-java-format/issues/1215[#1215] & https://github.com/google/google-java-format/issues/1214[#1214]
 | Clang Format
 a|
 [source]
@@ -88,3 +92,7 @@ https://www.youtube.com/watch?v=RgHNOH2_itw&t=300s[Monday Java Lunch & Learn. Th
 https://www.twilio.com/blog/cli-app-java-jbang-picocli[How to build a CLI app in Java using jbang and picocli] - Matthew Gilliard
 
 https://javastreets.com/blog/java-jbang-textmate.html[Faster Feedback with Java, JBang, and TextMate] - Manik Magar
+
+http://www.mastertheboss.com/java/java-scripting-with-jbang/[ JBang: Create Java scripts like a pro] - Francesco Marchioni
+
+http://www.mastertheboss.com/java/jbang-vs-jshell/[ 6 things you can do with JBang but you can’t with Shell] - Francesco Marchioni 

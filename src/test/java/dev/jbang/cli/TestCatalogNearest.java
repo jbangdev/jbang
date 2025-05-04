@@ -2,11 +2,7 @@ package dev.jbang.cli;
 
 import static dev.jbang.util.TestUtil.clearSettingsCaches;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
 
 import java.io.IOException;
@@ -22,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import dev.jbang.BaseTest;
 import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
+import dev.jbang.catalog.CatalogRef;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.util.Util;
 
@@ -36,7 +33,7 @@ public class TestCatalogNearest extends BaseTest {
 			"}";
 
 	@BeforeEach
-	void init() throws IOException {
+	void initEach() throws IOException {
 		aliasesFile = cwdDir.resolve("aliases.json");
 		Files.write(aliasesFile, aliases.getBytes());
 		parentDotDir = Files.createDirectory(cwdDir.resolve(".jbang"));
@@ -44,13 +41,13 @@ public class TestCatalogNearest extends BaseTest {
 		Util.setCwd(cwd);
 		testDotDir = Files.createDirectory(cwd.resolve(".jbang"));
 		CatalogUtil.addCatalogRef(cwd.resolve(Catalog.JBANG_CATALOG_JSON), "local", aliasesFile.toString(),
-				"Local");
+				"Local", null);
 		CatalogUtil.addCatalogRef(testDotDir.resolve(Catalog.JBANG_CATALOG_JSON), "dotlocal",
-				aliasesFile.toString(), "Local .jbang");
+				aliasesFile.toString(), "Local .jbang", null);
 		CatalogUtil.addCatalogRef(parentDotDir.resolve(Catalog.JBANG_CATALOG_JSON), "dotparent",
-				aliasesFile.toString(), "Patent .jbang");
+				aliasesFile.toString(), "Parent .jbang", null);
 		CatalogUtil.addCatalogRef(jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON), "global",
-				aliasesFile.toString(), "Global");
+				aliasesFile.toString(), "Global", null);
 	}
 
 	private Path aliasesFile;
@@ -68,20 +65,29 @@ public class TestCatalogNearest extends BaseTest {
 
 	@Test
 	void testList() throws IOException {
-		Catalog catalog = Catalog.getMerged(false);
+		Catalog catalog = Catalog.getMerged(true, false);
 		assertThat(catalog, notNullValue());
 
 		HashSet<String> keys = new HashSet<>(Arrays.asList(
 				"global",
 				"dotparent",
 				"dotlocal",
-				"local"));
-		assertThat(catalog.catalogs.keySet(), equalTo(keys));
+				"local",
+				"jbanghub"));
+		assertThat(catalog.catalogs.keySet().containsAll(keys), is(true));
 
 		assertThat(catalog.catalogs.get("global").catalogRef, is(aliasesFile.toString()));
 		assertThat(catalog.catalogs.get("dotparent").catalogRef, is(aliasesFile.toString()));
 		assertThat(catalog.catalogs.get("dotlocal").catalogRef, is(aliasesFile.toString()));
 		assertThat(catalog.catalogs.get("local").catalogRef, is(aliasesFile.toString()));
+		assertThat(catalog.catalogs.get("jbanghub").catalog, is(Catalog.getBuiltin()));
+
+		catalog.catalogs.keySet().removeAll(keys);
+		// After removing the known keys, the rest must come from the jbanghub import
+		final String JBANGHUB_URL = "https://raw.githubusercontent.com/jbanghub/jbang-catalog/main/jbang-catalog.json";
+		for (CatalogRef c : catalog.catalogs.values()) {
+			assertThat(c.catalog.catalogRef.getOriginalResource(), is(JBANGHUB_URL));
+		}
 	}
 
 	@Test
@@ -103,7 +109,7 @@ public class TestCatalogNearest extends BaseTest {
 	void testAddLocal(String ref, String result) throws IOException {
 		Path cwd = Util.getCwd();
 		Path localCatalog = cwd.resolve(Catalog.JBANG_CATALOG_JSON);
-		CatalogUtil.addNearestCatalogRef("new", ref, null);
+		CatalogUtil.addNearestCatalogRef("new", ref, null, false);
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(localCatalog);
 		assertThat(catalog.catalogs.keySet(), hasItem("new"));
@@ -114,7 +120,7 @@ public class TestCatalogNearest extends BaseTest {
 	void testAddLocalExplicit() throws IOException {
 		Path cwd = Util.getCwd();
 		Path localCatalog = cwd.resolve(Catalog.JBANG_CATALOG_JSON);
-		CatalogUtil.addCatalogRef(Paths.get(Catalog.JBANG_CATALOG_JSON), "new", aliasesFile.toString(), null);
+		CatalogUtil.addCatalogRef(Paths.get(Catalog.JBANG_CATALOG_JSON), "new", aliasesFile.toString(), null, null);
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(localCatalog);
 		assertThat(catalog.catalogs.keySet(), hasItem("new"));
@@ -131,7 +137,7 @@ public class TestCatalogNearest extends BaseTest {
 		Path localCatalog = cwd.resolve(Catalog.JBANG_CATALOG_JSON);
 		Path dotLocalCatalog = cwd.resolve(Settings.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
 		Files.delete(localCatalog);
-		CatalogUtil.addNearestCatalogRef("new", ref, null);
+		CatalogUtil.addNearestCatalogRef("new", ref, null, false);
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(dotLocalCatalog);
@@ -151,7 +157,7 @@ public class TestCatalogNearest extends BaseTest {
 		Path parentCatalog = cwd.getParent().resolve(Settings.JBANG_DOT_DIR).resolve(Catalog.JBANG_CATALOG_JSON);
 		Files.delete(localCatalog);
 		Files.delete(dotLocalCatalog);
-		CatalogUtil.addNearestCatalogRef("new", ref, null);
+		CatalogUtil.addNearestCatalogRef("new", ref, null, false);
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		assertThat(dotLocalCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
@@ -173,7 +179,7 @@ public class TestCatalogNearest extends BaseTest {
 		Files.delete(localCatalog);
 		Files.delete(dotLocalCatalog);
 		Files.delete(parentCatalog);
-		CatalogUtil.addNearestCatalogRef("new", ref, null);
+		CatalogUtil.addNearestCatalogRef("new", ref, null, false);
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		assertThat(dotLocalCatalog.toFile(), not(anExistingFile()));
 		assertThat(parentCatalog.toFile(), not(anExistingFile()));

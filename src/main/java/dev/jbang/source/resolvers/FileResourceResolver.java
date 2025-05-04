@@ -1,7 +1,8 @@
 package dev.jbang.source.resolvers;
 
-import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 
 import dev.jbang.source.ResourceRef;
 import dev.jbang.source.ResourceResolver;
@@ -13,18 +14,24 @@ import dev.jbang.util.Util;
  * to that file.
  */
 public class FileResourceResolver implements ResourceResolver {
+
+	@Override
+	public String description() {
+		return "File Resource resolver";
+	}
+
 	@Override
 	public ResourceRef resolve(String resource) {
 		ResourceRef result = null;
 
-		File probe = null;
+		Path probe = null;
 		try {
-			probe = Util.getCwd().resolve(resource).normalize().toFile();
+			probe = Util.getCwd().resolve(resource).normalize();
 		} catch (InvalidPathException e) {
 			// Ignore
 		}
 
-		if (probe != null && probe.canRead()) {
+		if (probe != null && Files.isReadable(probe)) {
 			result = ResourceRef.forNamedFile(resource, probe);
 		}
 

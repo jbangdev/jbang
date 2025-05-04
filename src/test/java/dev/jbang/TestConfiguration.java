@@ -162,16 +162,16 @@ public class TestConfiguration extends BaseTest {
 	public void testCommandFallbacks() {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "dummy");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
-		assertThat(run.debugString, emptyOrNullString());
-		assertThat(run.flightRecorderString, emptyOrNullString());
+		assertThat(run.runMixin.debugString, is(nullValue()));
+		assertThat(run.runMixin.flightRecorderString, emptyOrNullString());
 	}
 
 	@Test
 	public void testCommandFallbacks2() {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--jfr", "--debug", "dummy");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
-		assertThat(run.debugString, equalTo("4004"));
-		assertThat(run.flightRecorderString, equalTo("dummyjfr.cfg"));
+		assertThat(run.runMixin.debugString, allOf(hasEntry("address", "4004"), is(aMapWithSize(1))));
+		assertThat(run.runMixin.flightRecorderString, equalTo("dummyjfr.cfg"));
 	}
 
 }

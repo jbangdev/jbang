@@ -16,8 +16,6 @@ import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.catalog.CatalogUtil;
 
-import picocli.CommandLine;
-
 public class TestCatalog extends BaseTest {
 
 	static final String testCatalog = "{\n" +
@@ -29,6 +27,9 @@ public class TestCatalog extends BaseTest {
 			"      \"script-ref\": \"one\",\n" +
 			"      \"arguments\": [\"2\"],\n" +
 			"      \"properties\": {\"two\":\"2\"}\n" +
+			"    },\n" +
+			"    \"fj\": {\n" +
+			"      \"script-ref\": \"i.look:like-a-gav:1.0.0.Beta5@fatjar\"\n" +
 			"    }\n" +
 			"  }\n" +
 			"}";
@@ -37,12 +38,12 @@ public class TestCatalog extends BaseTest {
 	static Path testCatalogFile = null;
 
 	@BeforeEach
-	void init() throws IOException {
+	void initEach() throws IOException {
 		catsFile = jbangTempDir.resolve("jbang-catalog.json");
 		testCatalogFile = cwdDir.resolve("test-catalog.json");
 		Files.write(testCatalogFile, testCatalog.getBytes());
 		clearSettingsCaches();
-		CatalogUtil.addCatalogRef(catsFile, "test", testCatalogFile.toAbsolutePath().toString(), "Test catalog");
+		CatalogUtil.addCatalogRef(catsFile, "test", testCatalogFile.toAbsolutePath().toString(), "Test catalog", null);
 	}
 
 	@Test
@@ -59,8 +60,7 @@ public class TestCatalog extends BaseTest {
 
 	@Test
 	void testAddInvalidName() throws IOException {
-		JBang jbang = new JBang();
-		new CommandLine(jbang).execute("catalog", "add", "--name=invalid!", "dummy");
+		JBang.getCommandLine().execute("catalog", "add", "--name=invalid!", "dummy");
 	}
 
 	@Test
@@ -71,9 +71,15 @@ public class TestCatalog extends BaseTest {
 	}
 
 	@Test
+	void testGetFatJar() throws IOException {
+		Alias alias = Alias.get("fj@test");
+		assertThat(alias, notNullValue());
+		assertThat(alias.scriptRef, equalTo("i.look:like-a-gav:1.0.0.Beta5@fatjar"));
+	}
+
+	@Test
 	void testUpdate() throws IOException {
-		JBang jbang = new JBang();
-		new CommandLine(jbang).execute("catalog", "update");
+		JBang.getCommandLine().execute("catalog", "update");
 	}
 
 	@Test

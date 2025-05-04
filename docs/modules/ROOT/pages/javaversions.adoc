@@ -45,7 +45,10 @@ It's easy to `install` additional JDKs by running:
   jbang jdk install 14
 
 which will download and install JDK version 14 into JBang's cache (`~/.jbang/cache/jdks` by default).
-The list of versions that are available for installation can be found here: https://adoptopenjdk.net/releases.html
+The list of versions that are available for installation can be found here: https://adoptium.net/temurin/releases
+or by running:
+
+  jbang jdk list --available
 
 The first JDK that gets installed by JBang will be set as the "default" JDK. This is from then on the JDK that will be
 used by JBang if no Java could be found on the system (meaning `javac` wasn't found on the `PATH` and no `JAVA_HOME` is set).
@@ -54,10 +57,6 @@ You can change the default JDK by running:
   jbang jdk default 12
 
 Running it without an argument will return the version of the JDK that is currently set as the default.
-
-NOTE: On Windows you might need elevated privileges to create symbolic links. If you don't have permissions then
-running the above command  will result in an error. To use it https://stackoverflow.com/a/24353758[enable symbolic links]
-for your user or run your shell/terminal as administrator to have this feature working.
 
 When you `uninstall` a JDK by running:
 
@@ -79,6 +78,15 @@ is installed:
 This will return the path to the "default" JDK (by default `~/.jbang/currentjdk)`, if you want to know the location of a
 specific JDK you can pass the version as an argument: `jbang jdk home 14`. This command could be used by scripts to find
 a JDK to use to run a Java program for example (eg: `JAVA_HOME=$(jbang jdk home)`.
+
+The `install` command decribed in the previous section allows you to specify the path of your existing JDK installation:
+
+  jbang jdk install 17 <path-of-existing-java-17-installation>
+
+So if you are managing your jdk installations with https://sdkman.io/[SDKMAN!] you can easilly configure JBang to use one of your installed version:
+
+  jbang jdk install 17 `sdk home java 17.0.4.1-tem`
+
 
 For setting up your current command line environment there's something simpler. You can run:
 

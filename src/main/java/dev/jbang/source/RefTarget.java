@@ -5,8 +5,11 @@ import static dev.jbang.cli.BaseCommand.EXIT_UNEXPECTED_STATE;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Objects;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import dev.jbang.cli.ExitException;
 import dev.jbang.util.Util;
@@ -17,30 +20,34 @@ import dev.jbang.util.Util;
  * //FILES target=source directives in scripts and templates.
  */
 public class RefTarget {
+	@Nonnull
 	protected final ResourceRef source;
+	@Nullable
 	protected final Path target;
 
-	protected RefTarget(ResourceRef source, Path target) {
+	protected RefTarget(@Nonnull ResourceRef source, @Nullable Path target) {
 		assert (source != null);
 		this.source = source;
 		this.target = target;
 	}
 
+	@Nonnull
 	public ResourceRef getSource() {
 		return source;
 	}
 
+	@Nullable
 	public Path getTarget() {
 		return target;
 	}
 
 	public Path to(Path parent) {
-		Path p = target != null ? target : source.getFile().toPath().getFileName();
+		Path p = target != null ? target : source.getFile().getFileName();
 		return parent.resolve(p);
 	}
 
 	public void copy(Path destroot) {
-		Path from = source.getFile().toPath();
+		Path from = source.getFile();
 		Path to = to(destroot);
 		Util.verboseMsg("Copying " + from + " to " + to);
 		try {
@@ -53,33 +60,34 @@ public class RefTarget {
 		}
 	}
 
-	public static RefTarget create(String fileReference, ResourceResolver siblingResolver) {
-		String[] split = fileReference.split(" // ")[0].split("=", 2);
-		String ref;
-		String dest = null;
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		RefTarget refTarget = (RefTarget) o;
+		return source.equals(refTarget.source) && Objects.equals(target, refTarget.target);
+	}
 
-		if (split.length == 1) {
-			ref = split[0];
-		} else {
-			dest = split[0];
-			ref = split[1];
-		}
+	@Override
+	public int hashCode() {
+		return Objects.hash(source, target);
+	}
 
-		Path p = dest != null ? Paths.get(dest) : null;
-
-		if (Paths.get(ref).isAbsolute()) {
-			throw new IllegalStateException(
-					"Only relative paths allowed in //FILES. Found absolute path: " + ref);
-		}
-		if (p != null && p.isAbsolute()) {
-			throw new IllegalStateException(
-					"Only relative paths allowed in //FILES. Found absolute path: " + dest);
-		}
-
-		return create(ref, p, siblingResolver);
+	@Override
+	public String toString() {
+		return "RefTarget{" +
+				"source=" + source +
+				", target=" + target +
+				'}';
 	}
 
 	public static RefTarget create(String ref, Path dest, ResourceResolver siblingResolver) {
 		return new RefTarget(siblingResolver.resolve(ref), dest);
+	}
+
+	public static RefTarget create(ResourceRef ref, Path dest) {
+		return new RefTarget(ref, dest);
 	}
 }

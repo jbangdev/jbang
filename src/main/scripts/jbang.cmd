@@ -2,7 +2,7 @@
 SETLOCAL ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
 
 rem The Java version to install when it's not installed on the system yet
-if "%JBANG_DEFAULT_JAVA_VERSION%"=="" (set javaVersion=11) else (set javaVersion=%JBANG_DEFAULT_JAVA_VERSION%)
+if "%JBANG_DEFAULT_JAVA_VERSION%"=="" (set javaVersion=17) else (set javaVersion=%JBANG_DEFAULT_JAVA_VERSION%)
 
 if "%JBANG_DIR%"=="" (set JBDIR=%userprofile%\.jbang) else (set JBDIR=%JBANG_DIR%)
 if "%JBANG_CACHE_DIR%"=="" (set TDIR=%JBDIR%\cache) else (set TDIR=%JBANG_CACHE_DIR%)
@@ -31,7 +31,7 @@ set JAVA_EXEC=
 if not "%JAVA_HOME%"=="" (
   rem Determine if a (working) JDK is available in JAVA_HOME
   if exist "%JAVA_HOME%\bin\javac.exe" (
-    set JAVA_EXEC="%JAVA_HOME%\bin\java.exe"
+    set JAVA_EXEC=%JAVA_HOME%\bin\java.exe
   ) else (
     echo JAVA_HOME is set but does not seem to point to a valid Java JDK 1>&2
   )
@@ -51,10 +51,10 @@ if "!JAVA_EXEC!"=="" (
     rem Check if we installed a JDK before
     if not exist "%TDIR%\jdks\%javaVersion%" (
       rem If not, download and install it
-      echo powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "%~dp0jbang.ps1 jdk install %JBANG_DEFAULT_JAVA_VERSION%"
+      powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "%~dp0jbang.ps1 jdk install %JBANG_DEFAULT_JAVA_VERSION%"
       if !ERRORLEVEL! NEQ 0 ( exit /b %ERRORLEVEL% )
       rem Set the current JDK
-      !JAVA_EXEC! -classpath "%jarPath%" dev.jbang.Main jdk default "%javaVersion%"
+      "!JAVA_EXEC!" -classpath "%jarPath%" dev.jbang.Main jdk default "%javaVersion%"
     )
   )
 )
@@ -63,10 +63,11 @@ if not exist "%TDIR%" ( mkdir "%TDIR%" )
 set tmpfile=%TDIR%\%RANDOM%.jbang.tmp
 rem execute jbang and pipe to temporary random file
 set JBANG_RUNTIME_SHELL=cmd
+set JBANG_LAUNCH_CMD=%~nx0
 2>nul >nul timeout /t 0 && (set JBANG_STDIN_NOTTY=false) || (set JBANG_STDIN_NOTTY=true)
 set "CMD=!JAVA_EXEC!"
 SETLOCAL DISABLEDELAYEDEXPANSION
-%CMD% > "%tmpfile%" %JBANG_JAVA_OPTIONS% -classpath "%jarPath%" dev.jbang.Main %*
+"%CMD%" > "%tmpfile%" %JBANG_JAVA_OPTIONS% -classpath "%jarPath%" dev.jbang.Main %*
 set ERROR=%ERRORLEVEL%
 rem catch errorlevel straight after; rem or FOR /F swallow would have swallowed the errorlevel
 

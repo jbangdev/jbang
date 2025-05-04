@@ -4,17 +4,17 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.io.FileMatchers.aReadableFile;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
-import dev.jbang.source.RunContext;
-import dev.jbang.source.SourceSet;
+import dev.jbang.source.Project;
+import dev.jbang.source.ProjectBuilder;
 import dev.jbang.source.TestSource;
 
 public class TestEditWithPackage extends BaseTest {
@@ -55,26 +55,26 @@ public class TestEditWithPackage extends BaseTest {
 		Path BPath = TestSource.createTmpFileWithContent(mainPath.getParent(), "person", "B.java", classB);
 		Path CPath = TestSource.createTmpFileWithContent(BPath.getParent(), "model", "C.java", classC);
 		assertTrue(mainPath.toFile().exists());
-		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(mainPath.toString());
-		File project = new Edit().createProjectForEdit(ss, ctx, false);
-		assertTrue(new File(project, "src/A.java").exists());
-		assertTrue(new File(project, "src/person/B.java").exists());
-		assertTrue(new File(project, "src/person/model/C.java").exists());
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(mainPath.toString());
+		Path project = new Edit().createProjectForLinkedEdit(prj, Collections.emptyList(), false);
+		assertTrue(Files.exists(project.resolve("src/A.java")));
+		assertTrue(Files.exists(project.resolve("src/person/B.java")));
+		assertTrue(Files.exists(project.resolve("src/person/model/C.java")));
 
-		File javaC = new File(project, "src/person/model/C.java");
+		Path javaC = project.resolve("src/person/model/C.java");
 
 		// first check for symlink. in some cases on windows (non admin privileg)
 		// symlink cannot be created, as fallback a hardlink will be created.
-		assertTrue(Files.isSymbolicLink(javaC.toPath()) || javaC.exists());
-		assertTrue(Files.isSameFile(javaC.toPath(), CPath));
+		assertTrue(Files.isSymbolicLink(javaC) || Files.exists(javaC));
+		assertTrue(Files.isSameFile(javaC, CPath));
 
-		Arrays	.asList("A.java", "person/B.java", "person/model/C.java")
-				.forEach(f -> {
-					File java = new File(project, "src/" + f);
+		Arrays.asList("A.java", "person/B.java", "person/model/C.java")
+			.forEach(f -> {
+				Path java = project.resolve("src/" + f);
 
-					assertThat(f + " not found", java, aReadableFile());
-				});
+				assertThat(f + " not found", java.toFile(), aReadableFile());
+			});
 	}
 
 }

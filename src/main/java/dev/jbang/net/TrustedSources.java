@@ -20,6 +20,7 @@ import com.google.gson.JsonPrimitive;
 
 import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
+import dev.jbang.source.ResourceRef;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
 
@@ -31,11 +32,13 @@ public class TrustedSources {
 	final static Pattern r127 = Pattern.compile("(?i)^127.0.0.1(:\\d+)?$");
 
 	private String[] trustedSources;
+	private String[] temporaryTrustedSources;
 
 	private static TrustedSources instance;
 
-	public TrustedSources(String[] trustedSources) {
+	TrustedSources(String[] trustedSources) {
 		this.trustedSources = trustedSources;
+		this.temporaryTrustedSources = new String[0];
 	}
 
 	public static TrustedSources load(Path toPath) throws IOException {
@@ -59,7 +62,7 @@ public class TrustedSources {
 	}
 
 	/**
-	 * Check whether a url like https://www.microsoft.com matches the list of
+	 * Check whether a URL like https://www.microsoft.com matches the list of
 	 * trusted sources.
 	 *
 	 * - Schemes must match - There's no subdomain matching. For example
@@ -72,6 +75,15 @@ public class TrustedSources {
 			return true;
 		}
 
+		boolean trusted = isURLTrusted(url, trustedSources) ||
+				isURLTrusted(url, temporaryTrustedSources) ||
+				// default trusted for usability and trust
+				url.toString().startsWith("https://github.com/jbangdev/");
+
+		return trusted;
+	}
+
+	private boolean isURLTrusted(URI url, String[] trustedSources) throws URISyntaxException {
 		final String domain = String.format("%s://%s", url.getScheme(), url.getAuthority());
 
 		for (String trustedSource : trustedSources) {
@@ -84,7 +96,7 @@ public class TrustedSources {
 			}
 
 			URI parsedTrustedSource;
-			if (trustedSource.startsWith("https://")) {
+			if (trustedSource.startsWith("https://") || trustedSource.startsWith("http://")) {
 				parsedTrustedSource = new URI(trustedSource);
 				if (!url.getScheme().equals(parsedTrustedSource.getScheme())) {
 					continue;
@@ -110,7 +122,8 @@ public class TrustedSources {
 
 				boolean ruleIsSmaller = reversedTrustedSourceAuthoritySegments.length < reversedAuthoritySegments.length;
 				boolean ruleHasStarAtEnd = reversedTrustedSourceAuthoritySegments[reversedTrustedSourceAuthoritySegments.length
-						- 1].equals("*");
+						- 1]
+					.equals("*");
 				if (ruleIsSmaller && ruleHasStarAtEnd) {
 					reversedAuthoritySegments = Arrays.copyOfRange(reversedAuthoritySegments, 0,
 							reversedTrustedSourceAuthoritySegments.length);
@@ -180,15 +193,34 @@ public class TrustedSources {
 
 	protected String getJSon(Collection<String> rules) {
 
-		rules = rules	.stream()
-						.map(s -> new JsonPrimitive(s).toString())
-						.collect(Collectors.toCollection(LinkedHashSet::new));
+		rules = rules.stream()
+			.map(s -> new JsonPrimitive(s).toString())
+			.collect(Collectors.toCollection(LinkedHashSet::new));
 
-		String trustedsources = TemplateEngine	.instance()
-												.getTemplate("trusted-sources.json.qute")
-												.data("trustedsources", rules)
-												.render();
+		String trustedsources = TemplateEngine.instance()
+			.getTemplate(
+					ResourceRef.forResource("classpath:/trusted-sources.json.qute"))
+			.data("trustedsources", rules)
+			.render();
 		return trustedsources;
+	}
+
+	public void addTemporary(String trust) {
+		Util.infoMsg("Trusting for this run: " + trust);
+		Set<String> newrules = new LinkedHashSet<>(Arrays.asList(temporaryTrustedSources));
+		if (newrules.add(trust)) {
+			temporaryTrustedSources = newrules.toArray(new String[0]);
+		} else {
+			Util.warnMsg("Already trusted source(s). No changes made.");
+		}
+	}
+
+	public void add(String trust) {
+		add(trust, Settings.getTrustedSourcesFile().toFile());
+	}
+
+	public void add(List<String> trust) {
+		add(trust, Settings.getTrustedSourcesFile().toFile());
 	}
 
 	public void add(String trust, File storage) {
@@ -197,11 +229,12 @@ public class TrustedSources {
 
 	public void add(List<String> trust, File storage) {
 
-		Util.infoMsg("Adding " + trust + " to " + storage);
+		Util.infoMsg("Trusting permanently: " + trust);
 
 		Set<String> newrules = new LinkedHashSet<>(Arrays.asList(trustedSources));
 
 		if (newrules.addAll(trust)) {
+			trustedSources = newrules.toArray(new String[0]);
 			save(newrules, storage);
 		} else {
 			Util.warnMsg("Already trusted source(s). No changes made.");
@@ -211,11 +244,12 @@ public class TrustedSources {
 
 	public void remove(List<String> trust, File storage) {
 
-		Util.infoMsg("Removing " + trust + " from " + storage);
+		Util.infoMsg("Removing permanent trust: " + trust);
 
 		Set<String> newrules = new LinkedHashSet<>(Arrays.asList(trustedSources));
 
 		if (newrules.removeAll(trust)) {
+			trustedSources = newrules.toArray(new String[0]);
 			save(newrules, storage);
 		} else {
 			Util.warnMsg("Not found in trusted source(s). No changes made.");
@@ -236,10 +270,10 @@ public class TrustedSources {
 	public static void createTrustedSources() {
 		Path trustedSourcesFile = Settings.getTrustedSourcesFile();
 		if (Files.notExists(trustedSourcesFile)) {
-			String templateName = "trusted-sources.qute";
-			Template template = TemplateEngine.instance().getTemplate(templateName);
+			ResourceRef templateRef = ResourceRef.forResource("classpath:/trusted-sources.qute");
+			Template template = TemplateEngine.instance().getTemplate(templateRef);
 			if (template == null)
-				throw new ExitException(1, "Could not locate template named: '" + templateName + "'");
+				throw new ExitException(1, "Could not locate template named: '" + templateRef + "'");
 			String result = template.render();
 
 			try {

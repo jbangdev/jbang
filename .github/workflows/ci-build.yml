@@ -20,18 +20,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
         with:
           fetch-depth: 2
       - name: Verify Changed files in docs
-        uses: tj-actions/verify-changed-files@v7.1
         id: verify-changed-files
-        with:
-          files: |
-             docs
+        run: |
+          if git diff --name-only HEAD~1 | grep '^docs/' > /dev/null; then
+            echo "files_changed=true" >> $GITHUB_ENV
+          else
+            echo "files_changed=false" >> $GITHUB_ENV
+          fi
       - name: update website
-        if: ${{ github.ref == 'refs/heads/main' && steps.verify-changed-files.outputs.files_changed == 'true'}} 
-        uses: benc-uk/workflow-dispatch@v1
+        if: ${{ github.ref == 'refs/heads/main' && env.files_changed == 'true' }}
+        uses: benc-uk/workflow-dispatch@e2e5e9a103e331dad343f381a29e654aea3cf8fc # v1
         with:
           workflow: github-pages
           repo: jbangdev/jbang.dev
@@ -43,49 +45,58 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     name: build-and-testing
     steps:
+      - name: Rate limit info
+        run: 'curl -H "Accept: application/vnd.github+json" https://api.github.com/rate_limit'
       - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+        uses: mxschmitt/action-tmate@7b6a61a73bbb9793cb80ad69b8dd8ac19261834c # v3
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
         with:
           limit-access-to-actor: true
-      - uses: actions/checkout@v1
-      - uses: actions/cache@v1
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+      - uses: gradle/actions/wrapper-validation@d9c87d481d55275bb5441eef3fe0e46805f9ef70 # v3
+      - name: install-java11
+        uses: actions/setup-java@17f84c3641ba7b8f6deff6309fc4c864478f5d62 # v3
         with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-      - name: install-java8
-        uses: actions/setup-java@v1
-        with:
-          java-version: 8
+          java-version: 11
+          distribution: temurin
+          cache: gradle
+      - name: setup-gradle
+        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244 # v4
       - name: build-gradle
-        run: ./gradlew clean build installDist --build-cache --scan -s
+        run: ./gradlew --no-daemon clean build installDist publish --build-cache --scan -s
+      - name: integration-test
+        run: |
+          ./gradlew integrationTest
       - name: integration-test-non-windows
         if: runner.os != 'Windows'
         run: |
           export PATH=`pwd`/build/install/jbang/bin:$PATH
           cd itests
           ./test_suite.sh
-          ./itests.sh
       - name: add-to-path
         run: echo "../build/install/jbang/bin" >> $env:GITHUB_PATH
-      - name: integration-test-windows
-        if: runner.os == 'Windows'
-        working-directory: itests
-        run: |
-          echo "::add-matcher::.github/karatewindows-matcher.json" 
-          .\itests.cmd
-          echo "::remove-matcher owner=karate-windows::"
       - name: codecoverage-report
         run: |
-          ./gradlew jacocoTestReport
-      - name: JUnit Report Action
-        uses: mikepenz/action-junit-report@v2.8.3
-        with: 
-          report_paths: '**/build/test-results/test/TEST-*.xml'
-        if: always()
-      - uses: codecov/codecov-action@v2
+          ./gradlew --no-daemon jacocoTestReport
+      - name: allure report
+        if: always() # always run even if the previous step fails
+        run: |
+          ./gradlew allureReport --clean
+      - name: Upload Allure Test Report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always() # always run even if the previous step fails
+        with:
+          name: allure-report-${{ matrix.os }}
+          path: '**/build/reports/allure-report/allureReport/index.html'
+          retention-days: 7
+      - name: Upload Test Report for pr marking
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always() # always run even if the previous step fails
+        with:
+          name: junit-test-results-${{ matrix.os }}
+          path: '**/build/test-results/test/TEST-*.xml'
+          retention-days: 1
+      - uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # v2
         with:
           #files: ./coverage1.xml,./coverage2.xml # optional
           flags: ${{ runner.os }} # optional
@@ -93,7 +104,7 @@ jobs:
           verbose: true # optional (default = false)
       - name: build-choco-package
         if: runner.os == 'Windows'
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@871f041373faaad213a635d9afb62905ec029bbb # v1
         with:
           dotnet-version: '2.2.204' # SDK Version to use.
       - name: build-choco
@@ -102,30 +113,39 @@ jobs:
           powershell
           choco pack build/choco/jbang.nuspec
       - name: Archive build results
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: ${{ runner.os }}-build-${{ github.sha }}
           path: build
       - name: Upload jbang.zip
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always() && runner.os != 'Windows'
         with:
           name: jbang-${{ github.sha }}
           path: build/install/jbang
+      - name: Write out Unit Test report annotation for forked repo
+        if: always()
+        uses: mikepenz/action-junit-report@cf701569b05ccdd861a76b8607a66d76f6fd4857 # v5
+        with:
+          report_paths: '**/build/test-results/test/TEST-*.xml'
+          annotate_only: true # forked repo cannot write to checks so just do annotations
 
   testing:
     needs: build
     strategy:
+      ## disable fail-fast so on variance failing don't fail the rest
+      #fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        java: [8,11,13]
+        java: [8,11,17,21]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/setup-java@v1
+      - uses: actions/setup-java@17f84c3641ba7b8f6deff6309fc4c864478f5d62 # v3
         with:
+          distribution: 'temurin'
           java-version: ${{ matrix.java }}
-      - uses: actions/download-artifact@v1
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: ${{ runner.os }}-build-${{ github.sha }}
           path: build
@@ -134,11 +154,29 @@ jobs:
           java -version
           chmod +x ./build/install/jbang/bin/jbang
           ./build/install/jbang/bin/jbang init --template=cli helloworld.java
-          ./build/install/jbang/bin/jbang helloworld.java
-      - name: integration-test
-        if: runner.os != 'Windows'
+          ./build/install/jbang/bin/jbang --verbose helloworld.java
+          rm helloworld.java
+      - name: smoke-quarkus-test
+        run: |
+          java -version
+          chmod +x ./build/install/jbang/bin/jbang
+          ./build/install/jbang/bin/jbang init --template=qcli qcli.java
+          ./build/install/jbang/bin/jbang --fresh --verbose qcli.java
+          rm qcli.java
+      - name: smoke-quarkus-diff-version-test
+        run: |
+          java -version
+          chmod +x ./build/install/jbang/bin/jbang
+          ./build/install/jbang/bin/jbang init --template=qcli qcli.java
+          ./build/install/jbang/bin/jbang --fresh --verbose --java 17 qcli.java
+          rm qcli.java
+      - name: integration-test-non-windows
+        ## karate can't run on java 17 or higher due to missing nashorn
+        if: runner.os != 'Windows' && matrix.java < 17
         run: |
           export PATH=`pwd`/build/install/jbang/bin:$PATH
           cd build/itests
           chmod +x ./test_suite.sh
           ./test_suite.sh
+      - name: add-to-path
+        run: echo "../build/install/jbang/bin" >> $env:GITHUB_PATH

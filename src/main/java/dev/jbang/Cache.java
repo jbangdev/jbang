@@ -5,7 +5,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import dev.jbang.cli.ExitException;
-import dev.jbang.net.JdkManager;
+import dev.jbang.devkitman.Jdk;
+import dev.jbang.devkitman.JdkManager;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 public class Cache {
@@ -22,11 +24,12 @@ public class Cache {
 	public static void clearCache(CacheClass... classes) {
 		for (CacheClass cc : classes) {
 			Util.infoMsg("Clearing cache for " + cc.name());
-			if (cc == CacheClass.jdks && Util.isWindows() && JdkManager.isCurrentJdkManaged()) {
+			JdkManager jdkMan = JavaUtil.defaultJdkManager();
+			if (cc == CacheClass.jdks && Util.isWindows() && jdkMan.isCurrentJdkManaged()) {
 				// We're running using a managed JDK on Windows so we can't just delete the
 				// entire folder!
-				for (Integer v : JdkManager.listInstalledJdks()) {
-					JdkManager.uninstallJdk(v);
+				for (Jdk jdk : jdkMan.listInstalledJdks()) {
+					jdkMan.uninstallJdk(jdk);
 				}
 			}
 			if (cc == CacheClass.deps) {

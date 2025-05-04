@@ -19,8 +19,9 @@ jbang-config-list - List active configuration values
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang config list* *-o* [*-gh*] *--fresh* *--quiet* [*--show-available*] [*--show-origin*]
-                  *--verbose* [*--config*=_<config>_] [*-f*=_<configFile>_]
+*jbang config list* *-o* [*-gh*] *--fresh* [*--insecure*] *--quiet* [*--show-available*]
+                  [*--show-origin*] *--verbose* [*--config*=_<config>_]
+                  [*-f*=_<configFile>_] [*--format*=_<format>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -40,6 +41,9 @@ List active configuration values
 *-f*, *--file*=_<configFile>_::
   Path to the config file to use
 
+*--format*=_<format>_::
+  Specify output format ('text' or 'json')
+
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
 
@@ -48,6 +52,9 @@ List active configuration values
 
 *-h*, *--help*::
   Display help/info. Use 'jbang <command> -h' for detailed usage.
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted

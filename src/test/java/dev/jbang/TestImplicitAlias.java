@@ -2,7 +2,6 @@ package dev.jbang;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -19,9 +18,9 @@ public class TestImplicitAlias extends BaseTest {
 
 	@Test
 	public void testGitImplicitCatalog() {
-		assertThat(ImplicitCatalogRef.getImplicitCatalogUrl("jbangdev").get(),
+		assertThat(ImplicitCatalogRef.resolveImplicitCatalogUrl("jbangdev").get(),
 				Matchers.equalTo("https://github.com/jbangdev/jbang-catalog/blob/HEAD/jbang-catalog.json"));
-		assertThat(ImplicitCatalogRef.getImplicitCatalogUrl("jbangdev/jbang-examples").get(),
+		assertThat(ImplicitCatalogRef.resolveImplicitCatalogUrl("jbangdev/jbang-examples").get(),
 				Matchers.equalTo("https://github.com/jbangdev/jbang-examples/blob/HEAD/jbang-catalog.json"));
 	}
 
@@ -42,7 +41,7 @@ public class TestImplicitAlias extends BaseTest {
 	}
 
 	// @Test needs fixing to not generate absolute paths but instead relative paths.
-	public void testFileURLAlias() throws IOException {
+	public void testFileURLAlias() throws Exception {
 
 		assertThat(jbangTempDir.resolve("inner").toFile().mkdirs(), Matchers.is(true));
 

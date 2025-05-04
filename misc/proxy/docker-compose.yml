@@ -1,0 +1,34 @@
+
+version: "3.9"
+services:
+
+  tinyproxy:
+    image: vimagick/tinyproxy@sha256:72b441b95ee1e641af948f68f09492f9f795ead72b73954414e339168c98ad8c
+    networks:
+      - no-internet
+      - internet
+    volumes:
+      - ./config/tinyproxy.conf:/etc/tinyproxy/tinyproxy.conf
+    restart: unless-stopped
+
+  jbang:
+    image: jbangdev/jbang-action@sha256:81395456d0a186557f11a96430517e198592304b2deb3a1408b27848ef1986cc
+    stdin_open: true
+    tty: true
+    entrypoint: /bin/bash
+    environment:
+      - http_proxy=http://tinyproxy:8888
+      - https_proxy=http://tinyproxy:8888
+    networks:
+      - no-internet
+    volumes:
+      - ../../build/install/jbang/bin:/jbang/bin:ro
+      - ../../itests:/itests:ro
+      - ./config/settings.xml:/root/.m2/settings.xml
+    working_dir: /itests
+
+networks:
+  internet: {}
+  no-internet:
+    internal: true
+

@@ -10,7 +10,6 @@ import static picocli.CommandLine.Model.UsageMessageSpec.SECTION_KEY_COMMAND_LIS
 import static picocli.CommandLine.Option;
 import static picocli.CommandLine.ScopeType;
 
-import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,9 +22,7 @@ import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.concurrent.Future;
-
-import org.jboss.shrinkwrap.resolver.api.maven.Maven;
-import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
+import java.util.stream.Collectors;
 
 import dev.jbang.Configuration;
 import dev.jbang.util.Util;
@@ -36,7 +33,7 @@ import picocli.CommandLine.Help.TextTable;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Model.UsageMessageSpec;
 
-@Command(name = "jbang", header = "${COMMAND-NAME} is a tool for building and running .java/.jsh scripts and jar packages.", footer = "\nCopyright: 2020-2021 jbang.dev contributors, License: MIT\nWebsite: https://jbang.dev", description = {
+@Command(name = "jbang", header = "${COMMAND-NAME} is a tool for building and running .java/.jsh scripts and jar packages.", footer = "\nCopyright: 2020-2024 jbang.dev contributors, License: MIT\nWebsite: https://jbang.dev", description = {
 		"",
 		"  ${COMMAND-NAME} init hello.java [args...]",
 		"        (to initialize a script)",
@@ -48,6 +45,8 @@ import picocli.CommandLine.Model.UsageMessageSpec;
 		"        (to run a alias from a catalog)",
 		"  or  ${COMMAND-NAME} group-id:artifact-id:version [args...]",
 		"        (to run a .jar file found with a GAV id)",
+		"",
+		" note: run is the default command. To get help about run use ${COMMAND-NAME} run --help",
 
 		"" }, versionProvider = VersionProvider.class, subcommands = {
 				Run.class, Build.class, Edit.class, Init.class, Alias.class, Template.class, Catalog.class, Trust.class,
@@ -58,6 +57,11 @@ public class JBang extends BaseCommand {
 	@CommandLine.Option(names = { "-V",
 			"--version" }, versionHelp = true, description = "Display version info (use `jbang --verbose version` for more details)")
 	boolean versionRequested;
+
+	@CommandLine.Option(names = { "--preview" }, description = "Enable jbang preview features")
+	void setPreview(boolean preview) {
+		Util.setPreview(preview);
+	}
 
 	@CommandLine.ArgGroup(exclusive = true)
 	VerboseQuietExclusive verboseQuietExclusive = new VerboseQuietExclusive();
@@ -103,6 +107,7 @@ public class JBang extends BaseCommand {
 		Util.setQuiet(false);
 		Util.setOffline(false);
 		Util.setFresh(false);
+		Util.setPreview(false);
 		PrintWriter errW = new PrintWriter(err, true);
 		return getCommandLine(errW, errW);
 	}
@@ -156,14 +161,28 @@ public class JBang extends BaseCommand {
 					&& argSpec.defaultValue() == null
 					&& Util.isNullOrEmptyString(((CommandLine.Model.OptionSpec) argSpec).fallbackValue())) {
 				String key = argSpecKey(argSpec);
-				String propkey = "jbang." + key;
-				if (System.getProperties().containsValue(propkey)) {
-					val = System.getProperty(propkey);
-				} else {
-					Configuration cfg = Configuration.instance();
-					if (cfg.containsKey(key)) {
-						val = Objects.toString(cfg.get(key));
+				// We skip all "app install" options
+				if (!key.startsWith("app.install.")) {
+					// First we check the full name, eg "app.list.format"
+					val = getValue(key);
+					if (val == null) {
+						// Finally we check the option name only, eg "format"
+						val = getValue(argOptName(argSpec));
 					}
+				}
+			}
+			return val;
+		}
+
+		private String getValue(String key) {
+			String val = null;
+			String propkey = "jbang." + key;
+			if (System.getProperties().containsValue(propkey)) {
+				val = System.getProperty(propkey);
+			} else {
+				Configuration cfg = Configuration.instance();
+				if (cfg.containsKey(key)) {
+					val = Objects.toString(cfg.get(key));
 				}
 			}
 			return val;
@@ -172,9 +191,12 @@ public class JBang extends BaseCommand {
 
 	static String argSpecKey(CommandLine.Model.ArgSpec argSpec) {
 		List<String> cmdNames = names(argSpec.command());
-		String cmdName = cmdNames.isEmpty() ? "all" : String.join(".", cmdNames);
-		String optName = stripDashes(((CommandLine.Model.OptionSpec) argSpec).longestName()).replace("-", "");
-		return cmdName + "." + optName;
+		cmdNames.add(argOptName(argSpec));
+		return String.join(".", cmdNames);
+	}
+
+	static String argOptName(CommandLine.Model.ArgSpec argSpec) {
+		return stripDashes(((CommandLine.Model.OptionSpec) argSpec).longestName()).replace("-", "");
 	}
 
 	private static List<String> names(CommandSpec cmd) {
@@ -197,10 +219,13 @@ public class JBang extends BaseCommand {
 	}
 
 	static class ConfigurationResourceBundle extends ResourceBundle {
+
+		private static final String PREFIX = "default.";
+
 		@Override
 		protected Object handleGetObject(String propkey) {
-			if (propkey.startsWith("jbang.")) {
-				String key = propkey.substring(6);
+			if (propkey.startsWith(PREFIX)) {
+				String key = propkey.substring(PREFIX.length());
 				return Configuration.instance().get(key);
 			} else {
 				return null;
@@ -209,7 +234,12 @@ public class JBang extends BaseCommand {
 
 		@Override
 		public Enumeration<String> getKeys() {
-			return Collections.enumeration(Configuration.instance().keySet());
+			return Collections.enumeration(Configuration.instance()
+				.flatten()
+				.keySet()
+				.stream()
+				.map(k -> "default." + k)
+				.collect(Collectors.toSet()));
 		}
 	}
 
@@ -219,15 +249,17 @@ public class JBang extends BaseCommand {
 		cl.getHelpSectionMap().remove(SECTION_KEY_COMMAND_LIST_HEADING);
 		cl.getHelpSectionMap().put(SECTION_KEY_COMMAND_LIST, getCommandRenderer());
 
-		return cl	.setExitCodeExceptionMapper(exitCodeExceptionMapper)
-					.setExecutionExceptionHandler(executionExceptionHandler)
-					.setParameterExceptionHandler(new DeprecatedMessageHandler(cl.getParameterExceptionHandler()))
-					.setExecutionStrategy(executionStrategy)
-					.setDefaultValueProvider(defaultValueProvider)
-					.setResourceBundle(new ConfigurationResourceBundle())
-					.setStopAtPositional(true)
-					.setOut(localout)
-					.setErr(localerr);
+		return cl.setExitCodeExceptionMapper(exitCodeExceptionMapper)
+			.setExecutionExceptionHandler(executionExceptionHandler)
+			.setParameterExceptionHandler(new DeprecatedMessageHandler(cl.getParameterExceptionHandler()))
+			.setExecutionStrategy(executionStrategy)
+			.setDefaultValueProvider(defaultValueProvider)
+			.setResourceBundle(new ConfigurationResourceBundle())
+			.setStopAtPositional(true)
+			.setAllowOptionsAsOptionParameters(true)
+			.setAllowSubcommandsAsOptionParameters(true)
+			.setOut(localout)
+			.setErr(localerr);
 	}
 
 	public static CommandGroupRenderer getCommandRenderer() {
@@ -239,16 +271,6 @@ public class JBang extends BaseCommand {
 		sections.put("Other", asList("completion", "info", "version", "wrapper"));
 		CommandGroupRenderer renderer = new CommandGroupRenderer(sections);
 		return renderer;
-	}
-
-	static List<MavenCoordinate> findDeps(File pom) {
-		// todo use to dump out pom dependencies
-		return Maven.resolver()
-					.loadPomFromFile(pom)
-					.importCompileAndRuntimeDependencies()
-					.resolve()
-					.withoutTransitivity()
-					.asList(MavenCoordinate.class);
 	}
 
 	public static class CommandGroupRenderer implements CommandLine.IHelpSectionRenderer {
@@ -335,10 +357,10 @@ public class JBang extends BaseCommand {
 
 		private int maxLength(Map<String, CommandLine> subcommands, int max) {
 			int result = subcommands.values()
-									.stream()
-									.map(cmd -> cmd.getCommandSpec().names().toString().length() - 2)
-									.max(Integer::compareTo)
-									.get();
+				.stream()
+				.map(cmd -> cmd.getCommandSpec().names().toString().length() - 2)
+				.max(Integer::compareTo)
+				.get();
 			return Math.min(max, result);
 		}
 

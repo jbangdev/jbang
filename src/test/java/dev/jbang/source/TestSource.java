@@ -3,7 +3,6 @@ package dev.jbang.source;
 import static dev.jbang.util.Util.writeString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasItem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -15,14 +14,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.net.TrustedSources;
+import dev.jbang.source.sources.GroovySource;
 import dev.jbang.source.sources.JavaSource;
+import dev.jbang.source.sources.KotlinSource;
 import dev.jbang.util.PropertiesValueResolver;
 
 public class TestSource extends BaseTest {
@@ -35,9 +35,11 @@ public class TestSource extends BaseTest {
 			+ "import java.util.*;\n"
 			+ "import static java.lang.System.*;\n"
 			+ "\n"
-			+ "//JAVA_OPTIONS --enable-preview \"-Dvalue='this is space'\"\n"
-			+ "//JAVAC_OPTIONS --enable-preview\n"
+			+ "//RUNTIME_OPTIONS --enable-preview \"-Dvalue='this is space'\"\n"
+			+ "//JAVA_OPTIONS --enable-preview\n"
+			+ "//COMPILE_OPTIONS --enable-preview\n"
 			+ "//JAVAC_OPTIONS --verbose \n"
+			+ "//NATIVE_OPTIONS -O1\n"
 			+ "//GAV org.example:classpath\n"
 			+ "class classpath_example {\n"
 			+ "\n"
@@ -145,31 +147,53 @@ public class TestSource extends BaseTest {
 			+ "    }\n"
 			+ "}";
 
-	String exampleCommandsWithComments = "//DEPS info.picocli:picocli:4.5.0 // <.>\n" +
+	String exampleCommandsWithComments = "//DEPS info.picocli:picocli:4.6.3 // <.>\n" +
 			"//JAVA 14+ // <.>\n" +
-			"//JAVAC_OPTIONS commons-codec:commons-codec:1.15 // <.>\n" +
+			"//COMPILE_OPTIONS commons-codec:commons-codec:1.15 // <.>\n" +
 			"public class test {" +
 			"}";
+
+	String groovyExample = "///usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n" +
+			"//DEPS info.picocli:picocli:4.6.3\n" +
+			"\n" +
+			"//RUNTIME_OPTIONS --enable-preview \"-Dvalue='this is space'\"\n" +
+			"//JAVA_OPTIONS --enable-preview\n" +
+			"//COMPILE_OPTIONS --enable-preview\n" +
+			"//NATIVE_OPTIONS -O1\n" +
+			"\n" +
+			"println(\"Hello World\");\n";
+
+	String kotlinExample = "///usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n" +
+			"//DEPS info.picocli:picocli:4.6.3\n" +
+			"\n" +
+			"//RUNTIME_OPTIONS --enable-preview \"-Dvalue='this is space'\"\n" +
+			"//JAVA_OPTIONS --enable-preview\n" +
+			"//COMPILE_OPTIONS --enable-preview\n" +
+			"//NATIVE_OPTIONS -O1\n" +
+			"\n" +
+			"public fun main() {\n" +
+			"    println(\"Hello World\");\n" +
+			"}\n";
 
 	@Test
 	void testCommentsDoesNotGetPickedUp() {
 		Source source = new JavaSource(exampleCommandsWithComments, null);
-		SourceSet ss = SourceSet.forSource(source);
+		Project prj = Project.builder().build(source);
 
-		assertEquals(source.getJavaVersion(), "14+");
+		assertEquals(prj.getJavaVersion(), "14+");
 
-		List<String> deps = ss.getDependencies();
+		List<String> deps = prj.getMainSourceSet().getDependencies();
 
-		assertThat(deps, containsInAnyOrder("info.picocli:picocli:4.5.0"));
+		assertThat(deps, containsInAnyOrder("info.picocli:picocli:4.6.3"));
 	}
 
 	@Test
 	void testFindDependencies() {
 		Source src = new JavaSource(example,
 				it -> PropertiesValueResolver.replaceProperties(it, new Properties()));
-		SourceSet ss = SourceSet.forSource(src);
+		Project prj = Project.builder().build(src);
 
-		List<String> deps = ss.getDependencies();
+		List<String> deps = prj.getMainSourceSet().getDependencies();
 		assertEquals(2, deps.size());
 
 		assertTrue(deps.contains("com.offbytwo:docopt:0.6.0.20150202"));
@@ -184,9 +208,9 @@ public class TestSource extends BaseTest {
 		p.put("log4j.version", "1.2.9");
 
 		Source src = new JavaSource(example, it -> PropertiesValueResolver.replaceProperties(it, p));
-		SourceSet ss = SourceSet.forSource(src);
+		Project prj = Project.builder().build(src);
 
-		List<String> dependencies = ss.getDependencies();
+		List<String> dependencies = prj.getMainSourceSet().getDependencies();
 		assertEquals(2, dependencies.size());
 
 		assertTrue(dependencies.contains("com.offbytwo:docopt:0.6.0.20150202"));
@@ -201,9 +225,9 @@ public class TestSource extends BaseTest {
 		createTmpFileWithContent("pkg1", "Hello.java", exampleURLInsourceHello);
 		createTmpFileWithContent("pkg1", "Bye.java", exampleURLInsourceBye);
 		String scriptURL = mainPath.toString();
-		RunContext ctx = RunContext.empty();
-		SourceSet ss = (SourceSet) ctx.forResource(scriptURL);
-		assertEquals(8, ss.getSources().size());
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(scriptURL);
+		assertEquals(8, prj.getMainSourceSet().getSources().size());
 	}
 
 	public static Path createTmpFileWithContent(String strPath, String fileName, String content) throws IOException {
@@ -249,14 +273,14 @@ public class TestSource extends BaseTest {
 		try {
 			TrustedSources.instance().add(url, tempFile);
 
-			RunContext ctx = RunContext.empty();
-			SourceSet ss = (SourceSet) ctx.forResource(url);
-			assertEquals(3, ss.getSources().size());
+			ProjectBuilder pb = Project.builder();
+			Project prj = pb.build(url);
+			assertEquals(3, prj.getMainSourceSet().getSources().size());
 			boolean foundmain = false;
 			boolean foundtwo = false;
 			boolean foundt3 = false;
-			for (Source source : ss.getSources()) {
-				String name = source.getResourceRef().getFile().getName();
+			for (ResourceRef source : prj.getMainSourceSet().getSources()) {
+				String name = source.getFile().getFileName().toString();
 				if (name.equals("one.java"))
 					foundmain = true;
 				if (name.equals("two.java"))
@@ -281,51 +305,34 @@ public class TestSource extends BaseTest {
 	}
 
 	@Test
-	void testExtractDependencies() {
-		List<String> deps = Source.extractDependencies("//DEPS blah, blue").collect(Collectors.toList());
-
-		assertTrue(deps.contains("blah"));
-
-		assertTrue(deps.contains("blue"));
-
-	}
-
-	@Test
-	void textExtractRepositories() {
-		List<String> repos = Source	.extractRepositories("//REPOS jcenter=https://xyz.org")
-									.collect(Collectors.toList());
-
-		assertThat(repos, hasItem("jcenter=https://xyz.org"));
-
-		repos = Source	.extractRepositories("//REPOS jcenter=https://xyz.org localMaven xyz=file://~test")
-						.collect(Collectors.toList());
-
-		assertThat(repos, hasItem("jcenter=https://xyz.org"));
-		assertThat(repos, hasItem("localMaven"));
-		assertThat(repos, hasItem("xyz=file://~test"));
-	}
-
-	@Test
-	void textExtractRepositoriesGrape() {
-		List<String> deps = Source.extractRepositories(
-				"@GrabResolver(name=\"restlet.org\", root=\"http://maven.restlet.org\")").collect(Collectors.toList());
-
-		assertThat(deps, hasItem("restlet.org=http://maven.restlet.org"));
-
-		deps = Source	.extractRepositories("@GrabResolver(\"http://maven.restlet.org\")")
-						.collect(Collectors.toList());
-
-		assertThat(deps, hasItem("http://maven.restlet.org"));
-
-	}
-
-	@Test
-	void testExtractOptions() {
+	void testExtractJavaOptions() {
 		Source s = new JavaSource(example, null);
 
-		assertEquals(s.getCompileOptions(), Arrays.asList("--enable-preview", "--verbose"));
+		assertEquals(Arrays.asList("--verbose", "--enable-preview"), s.getCompileOptions());
+		assertEquals(Arrays.asList("-O1"), s.getNativeOptions());
+		assertEquals(Arrays.asList("--enable-preview", "--enable-preview", "-Dvalue='this is space'"),
+				s.getRuntimeOptions());
 
-		assertEquals(s.getRuntimeOptions(), Arrays.asList("--enable-preview", "-Dvalue='this is space'"));
+	}
+
+	@Test
+	void testExtractGroovyOptions() {
+		Source s = new GroovySource(groovyExample, null);
+
+		assertEquals(Arrays.asList("--enable-preview"), s.getCompileOptions());
+		assertEquals(Arrays.asList("-O1"), s.getNativeOptions());
+		assertEquals(Arrays.asList("-Dgroovy.grape.enable=false", "--enable-preview", "--enable-preview",
+				"-Dvalue='this is space'"), s.getRuntimeOptions());
+	}
+
+	@Test
+	void testExtractKotlinOptions() {
+		Source s = new KotlinSource(kotlinExample, null);
+
+		assertEquals(Arrays.asList("--enable-preview"), s.getCompileOptions());
+		assertEquals(Arrays.asList("-O1"), s.getNativeOptions());
+		assertEquals(Arrays.asList("--enable-preview", "--enable-preview", "-Dvalue='this is space'"),
+				s.getRuntimeOptions());
 
 	}
 
@@ -333,14 +340,14 @@ public class TestSource extends BaseTest {
 	void testNonJavaExtension(@TempDir Path output) throws IOException {
 		Path p = output.resolve("kube-example");
 		writeString(p, example);
-		RunContext ctx = RunContext.empty();
-		ctx.forResource(p.toAbsolutePath().toString());
+		ProjectBuilder pb = Project.builder();
+		pb.build(p.toAbsolutePath().toString());
 	}
 
 	@Test
 	void testGav() {
 		Source src = new JavaSource(example, null);
-		String gav = src.getGav().get();
+		String gav = Project.builder().build(src).getGav().get();
 		assertEquals("org.example:classpath", gav);
 	}
 

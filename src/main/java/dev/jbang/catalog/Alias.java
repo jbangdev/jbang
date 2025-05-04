@@ -6,11 +6,15 @@ import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
+
+import javax.annotation.Nonnull;
 
 import com.google.gson.annotations.SerializedName;
 
 import dev.jbang.cli.ExitException;
+import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.util.Util;
 
 public class Alias extends CatalogItem {
@@ -18,9 +22,11 @@ public class Alias extends CatalogItem {
 	public final String scriptRef;
 	public final String description;
 	public final List<String> arguments;
-	@SerializedName(value = "java-options")
-	public final List<String> javaOptions;
+	@SerializedName(value = "runtime-options", alternate = { "java-options" })
+	public final List<String> runtimeOptions;
 	public final List<String> sources;
+	@SerializedName(value = "files")
+	public final List<String> resources;
 	public final List<String> dependencies;
 	public final List<String> repositories;
 	public final List<String> classpaths;
@@ -29,35 +35,117 @@ public class Alias extends CatalogItem {
 	public final String javaVersion;
 	@SerializedName(value = "main")
 	public final String mainClass;
+	@SerializedName(value = "module")
+	public final String moduleName;
+	@SerializedName(value = "compile-options")
+	public final List<String> compileOptions;
+	@SerializedName(value = "native-image")
+	public final Boolean nativeImage;
+	@SerializedName(value = "native-options")
+	public final List<String> nativeOptions;
+	public final Boolean integrations;
+	public final String jfr;
+	public final Map<String, String> debug;
+	public final Boolean cds;
+	public final Boolean interactive;
+	@SerializedName(value = "enable-preview")
+	public final Boolean enablePreview;
+	@SerializedName(value = "enable-assertions")
+	public final Boolean enableAssertions;
+	@SerializedName(value = "enable-system-assertions")
+	public final Boolean enableSystemAssertions;
+	@SerializedName(value = "manifest-options")
+	public final Map<String, String> manifestOptions;
+	@SerializedName(value = "java-agents")
+	public final List<JavaAgent> javaAgents;
 
-	private Alias() {
-		this(null, null, null, null, null, null, null, null, null, null, null, null);
+	public static class JavaAgent {
+		@SerializedName(value = "agent-ref")
+		@Nonnull
+		public final String agentRef;
+		@Nonnull
+		public final String options;
+
+		public JavaAgent(@Nonnull String agentRef, @Nonnull String options) {
+			this.agentRef = agentRef;
+			this.options = options;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o)
+				return true;
+			if (o == null || getClass() != o.getClass())
+				return false;
+			JavaAgent javaAgent = (JavaAgent) o;
+			return agentRef.equals(javaAgent.agentRef) && options.equals(javaAgent.options);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(agentRef, options);
+		}
+	}
+
+	public Alias() {
+		this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+				null, null, null, null, null, null, null, null, null);
 	}
 
 	public Alias(String scriptRef,
 			String description,
 			List<String> arguments,
-			List<String> javaOptions,
+			List<String> runtimeOptions,
 			List<String> sources,
+			List<String> resources,
 			List<String> dependencies,
 			List<String> repositories,
 			List<String> classpaths,
 			Map<String, String> properties,
 			String javaVersion,
 			String mainClass,
+			String moduleName,
+			List<String> compileOptions,
+			Boolean nativeImage,
+			List<String> nativeOptions,
+			Boolean integrations,
+			String jfr,
+			Map<String, String> debug,
+			Boolean cds,
+			Boolean interactive,
+			Boolean enablePreview,
+			Boolean enableAssertions,
+			Boolean enableSystemAssertions,
+			Map<String, String> manifestOptions,
+			List<JavaAgent> javaAgents,
 			Catalog catalog) {
 		super(catalog);
 		this.scriptRef = scriptRef;
 		this.description = description;
 		this.arguments = arguments;
-		this.javaOptions = javaOptions;
+		this.runtimeOptions = runtimeOptions;
 		this.sources = sources;
+		this.resources = resources;
 		this.dependencies = dependencies;
 		this.repositories = repositories;
 		this.classpaths = classpaths;
 		this.properties = properties;
 		this.javaVersion = javaVersion;
 		this.mainClass = mainClass;
+		this.moduleName = moduleName;
+		this.compileOptions = compileOptions;
+		this.nativeImage = nativeImage;
+		this.nativeOptions = nativeOptions;
+		this.integrations = integrations;
+		this.jfr = jfr;
+		this.debug = debug;
+		this.cds = cds;
+		this.interactive = interactive;
+		this.enablePreview = enablePreview;
+		this.enableAssertions = enableAssertions;
+		this.enableSystemAssertions = enableSystemAssertions;
+		this.manifestOptions = manifestOptions;
+		this.javaAgents = javaAgents;
 	}
 
 	/**
@@ -98,11 +186,17 @@ public class Alias extends CatalogItem {
 
 	private static Alias merge(Alias a1, String name, Function<String, Alias> findUnqualifiedAlias,
 			HashSet<String> names) {
+		// if this is a proper possible GAV, i.e.
+		// io.quarkiverse.mcp:artifact:1.0.0.Beta5@fatjar
+		// don't try interpret it.
+		if (DependencyUtil.looksLikeAPossibleGav(name)) {
+			return a1;
+		}
 		if (names.contains(name)) {
 			throw new RuntimeException("Encountered alias loop on '" + name + "'");
 		}
-		String[] parts = name.split("@");
-		if (parts.length > 2 || parts[0].isEmpty()) {
+		String[] parts = name.split("@", 2);
+		if (parts[0].isEmpty()) {
 			throw new RuntimeException("Invalid alias name '" + name + "'");
 		}
 		Alias a2;
@@ -119,10 +213,12 @@ public class Alias extends CatalogItem {
 			a2 = merge(a2, a2.scriptRef, findUnqualifiedAlias, names);
 			String desc = a1.description != null ? a1.description : a2.description;
 			List<String> args = a1.arguments != null && !a1.arguments.isEmpty() ? a1.arguments : a2.arguments;
-			List<String> opts = a1.javaOptions != null && !a1.javaOptions.isEmpty() ? a1.javaOptions
-					: a2.javaOptions;
+			List<String> jopts = a1.runtimeOptions != null && !a1.runtimeOptions.isEmpty() ? a1.runtimeOptions
+					: a2.runtimeOptions;
 			List<String> srcs = a1.sources != null && !a1.sources.isEmpty() ? a1.sources
 					: a2.sources;
+			List<String> ress = a1.resources != null && !a1.resources.isEmpty() ? a1.resources
+					: a2.resources;
 			List<String> deps = a1.dependencies != null && !a1.dependencies.isEmpty() ? a1.dependencies
 					: a2.dependencies;
 			List<String> repos = a1.repositories != null && !a1.repositories.isEmpty() ? a1.repositories
@@ -133,8 +229,26 @@ public class Alias extends CatalogItem {
 					: a2.properties;
 			String javaVersion = a1.javaVersion != null ? a1.javaVersion : a2.javaVersion;
 			String mainClass = a1.mainClass != null ? a1.mainClass : a2.mainClass;
+			String moduleName = a1.moduleName != null ? a1.moduleName : a2.moduleName;
+			List<String> copts = a1.compileOptions != null && !a1.compileOptions.isEmpty() ? a1.compileOptions
+					: a2.compileOptions;
+			List<String> nopts = a1.nativeOptions != null && !a1.nativeOptions.isEmpty() ? a1.nativeOptions
+					: a2.nativeOptions;
+			Boolean nimg = a1.nativeImage != null ? a1.nativeImage : a2.nativeImage;
+			Boolean ints = a1.integrations != null ? a1.integrations : a2.integrations;
+			String jfr = a1.jfr != null ? a1.jfr : a2.jfr;
+			Map<String, String> debug = a1.debug != null ? a1.debug : a2.debug;
+			Boolean cds = a1.cds != null ? a1.cds : a2.cds;
+			Boolean inter = a1.interactive != null ? a1.interactive : a2.interactive;
+			Boolean ep = a1.enablePreview != null ? a1.enablePreview : a2.enablePreview;
+			Boolean ea = a1.enableAssertions != null ? a1.enableAssertions : a2.enableAssertions;
+			Boolean esa = a1.enableSystemAssertions != null ? a1.enableSystemAssertions : a2.enableSystemAssertions;
+			Map<String, String> mopts = a1.manifestOptions != null && !a1.manifestOptions.isEmpty() ? a1.manifestOptions
+					: a2.manifestOptions;
+			List<JavaAgent> jags = a1.javaAgents != null && !a1.javaAgents.isEmpty() ? a1.javaAgents : a2.javaAgents;
 			Catalog catalog = a2.catalog != null ? a2.catalog : a1.catalog;
-			return new Alias(a2.scriptRef, desc, args, opts, srcs, deps, repos, cpaths, props, javaVersion, mainClass,
+			return new Alias(a2.scriptRef, desc, args, jopts, srcs, ress, deps, repos, cpaths, props, javaVersion,
+					mainClass, moduleName, copts, nimg, nopts, ints, jfr, debug, cds, inter, ep, ea, esa, mopts, jags,
 					catalog);
 		} else {
 			return a1;
@@ -156,7 +270,8 @@ public class Alias extends CatalogItem {
 	}
 
 	static Catalog findNearestCatalogWithAlias(Path dir, String aliasName) {
-		return Catalog.findNearestCatalogWith(dir, catalog -> catalog.aliases.containsKey(aliasName));
+		return Catalog.findNearestCatalogWith(dir, true, true,
+				catalog -> catalog.aliases.containsKey(aliasName) ? catalog : null);
 	}
 
 	/**
@@ -173,5 +288,19 @@ public class Alias extends CatalogItem {
 			throw new ExitException(EXIT_INVALID_INPUT, "No alias found with name '" + aliasName + "'");
 		}
 		return alias;
+	}
+
+	public Alias withCatalog(Catalog catalog) {
+		return new Alias(scriptRef, description, arguments, runtimeOptions, sources, resources, dependencies,
+				repositories, classpaths, properties, javaVersion, mainClass, moduleName, compileOptions, nativeImage,
+				nativeOptions, integrations, jfr, debug, cds, interactive, enablePreview, enableAssertions,
+				enableSystemAssertions, manifestOptions, javaAgents, catalog);
+	}
+
+	public Alias withScriptRef(String scriptRef) {
+		return new Alias(scriptRef, description, arguments, runtimeOptions, sources, resources, dependencies,
+				repositories, classpaths, properties, javaVersion, mainClass, moduleName, compileOptions, nativeImage,
+				nativeOptions, integrations, jfr, debug, cds, interactive, enablePreview, enableAssertions,
+				enableSystemAssertions, manifestOptions, javaAgents, catalog);
 	}
 }

@@ -3,6 +3,8 @@ package dev.jbang;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.format.DateTimeParseException;
 
 import dev.jbang.catalog.Catalog;
 import dev.jbang.util.Util;
@@ -11,10 +13,11 @@ public class Settings {
 	public static final String JBANG_REPO = "JBANG_REPO";
 	public static final String JBANG_DIR = "JBANG_DIR";
 	public static final String JBANG_CACHE_DIR = "JBANG_CACHE_DIR";
+	public static final String JBANG_LOCAL_ROOT = "JBANG_LOCAL_ROOT";
 
 	public static final String TRUSTED_SOURCES_JSON = "trusted-sources.json";
 	public static final String DEPENDENCY_CACHE_JSON = "dependency_cache.json";
-	public static final String CURRENT_JDK = "currentjdk";
+	public static final String DEFAULT_JDK = "currentjdk";
 	public static final String JBANG_DOT_DIR = ".jbang";
 	public static final String BIN_DIR = "bin";
 	public static final String EDITOR_DIR = "editor";
@@ -22,20 +25,24 @@ public class Settings {
 	public static final String ENV_DEFAULT_JAVA_VERSION = "JBANG_DEFAULT_JAVA_VERSION";
 	public static final String ENV_NO_VERSION_CHECK = "JBANG_NO_VERSION_CHECK";
 
-	public static final int DEFAULT_JAVA_VERSION = 11;
+	public static final int DEFAULT_JAVA_VERSION = 17;
 	public static final int DEFAULT_ALPINE_JAVA_VERSION = 16;
 
 	final public static String CP_SEPARATOR = File.pathSeparator;
 
-	public static File getLocalMavenRepo() {
-		return new File(System	.getenv()
-								.getOrDefault(JBANG_REPO,
-										(String) System	.getProperties()
-														.getOrDefault("maven.repo.local",
-																System.getProperty("user.home")
-																		+ File.separator + ".m2" + File.separator
-																		+ "repository")))
-																							.getAbsoluteFile();
+	final public static String CONFIG_CONNECTION_TIMEOUT = "connection-timeout";
+	final public static int DEFAULT_CONNECTION_TIMEOUT = -1;
+
+	final public static String CONFIG_CACHE_EVICT = "cache-evict";
+	final public static String DEFAULT_CACHE_EVICT = "PT12H";
+
+	public static Path getJBangLocalMavenRepoOverride() {
+		String jbangRepo = System.getenv().get(JBANG_REPO);
+		if (jbangRepo != null) {
+			return Paths.get(jbangRepo);
+		} else {
+			return null;
+		}
 	}
 
 	public static Path getCacheDependencyFile() {
@@ -61,8 +68,8 @@ public class Settings {
 		return getConfigDir(true);
 	}
 
-	public static Path getCurrentJdkDir() {
-		return getConfigDir(true).resolve(CURRENT_JDK);
+	public static Path getDefaultJdkDir() {
+		return getConfigDir(true).resolve(DEFAULT_JDK);
 	}
 
 	public static Path getConfigBinDir() {
@@ -71,6 +78,26 @@ public class Settings {
 
 	public static Path getConfigEditorDir() {
 		return getConfigDir(true).resolve(EDITOR_DIR);
+	}
+
+	/**
+	 * This returns the directory where the lookup of "local" files should stop.
+	 * Local files are files like `jbang-catalog.json` that are read from the
+	 * current directory and then recursively upwards until the root of the file
+	 * system has been reached or until the folder returned by this method was
+	 * encountered.
+	 * 
+	 * @return The directory where local lookup should be stopped
+	 */
+	public static Path getLocalRootDir() {
+		Path dir;
+		String jlr = System.getenv(JBANG_LOCAL_ROOT);
+		if (jlr != null) {
+			dir = Paths.get(jlr);
+		} else {
+			dir = Paths.get(System.getProperty("user.home"));
+		}
+		return dir;
 	}
 
 	public static void setupJBangDir(Path dir) {
@@ -98,7 +125,15 @@ public class Settings {
 	}
 
 	public static Path getCacheDir(Cache.CacheClass cclass) {
-		return getCacheDir().resolve(cclass.name());
+		Path dir;
+		String v = System.getenv(JBANG_CACHE_DIR + "_" + cclass.name().toUpperCase());
+		if (v != null) {
+			dir = Paths.get(v);
+			Cache.setupCache(dir);
+		} else {
+			dir = getCacheDir().resolve(cclass.name());
+		}
+		return dir;
 	}
 
 	public static int getDefaultJavaVersion() {
@@ -127,6 +162,30 @@ public class Settings {
 
 	public static Path getUserConfigFile() {
 		return getConfigDir().resolve(Configuration.JBANG_CONFIG_PROPS);
+	}
+
+	public static int getConnectionTimeout() {
+		return (int) Configuration.instance().getNumber(CONFIG_CONNECTION_TIMEOUT, DEFAULT_CONNECTION_TIMEOUT);
+	}
+
+	public static long getCacheEvict() {
+		String val = Configuration.instance().get(CONFIG_CACHE_EVICT, DEFAULT_CACHE_EVICT);
+		if ("never".equalsIgnoreCase(val)) {
+			return -1L;
+		} else {
+			try {
+				// First try to parse as a simple number
+				return Long.parseLong(val);
+			} catch (NumberFormatException ex) {
+				try {
+					// If that failed try again using ISO8601 Duration format
+					return Duration.parse(val).getSeconds();
+				} catch (DateTimeParseException ex2) {
+					Util.warnMsg("Invalid duration in config: " + val);
+					return 0;
+				}
+			}
+		}
 	}
 
 }

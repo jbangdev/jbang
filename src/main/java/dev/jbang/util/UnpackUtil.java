@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
@@ -26,7 +27,7 @@ public class UnpackUtil {
 		Path selectFolder = null; // Util.isMac() ? Paths.get("Contents/Home") : null;
 		boolean stripRootFolder = Util.isMac();
 		if (name.endsWith(".zip")) {
-			unzip(archive, outputDir, stripRootFolder, selectFolder);
+			unzip(archive, outputDir, stripRootFolder, selectFolder, UnpackUtil::defaultZipEntryCopy);
 		} else if (name.endsWith(".tar.gz") || name.endsWith(".tgz")) {
 			untargz(archive, outputDir, false, selectFolder);
 		}
@@ -36,7 +37,7 @@ public class UnpackUtil {
 		String name = archive.toString().toLowerCase(Locale.ENGLISH);
 		Path selectFolder = Util.isMac() ? Paths.get("Contents/Home") : null;
 		if (name.endsWith(".zip")) {
-			unzip(archive, outputDir, true, selectFolder);
+			unzip(archive, outputDir, true, selectFolder, UnpackUtil::defaultZipEntryCopy);
 		} else if (name.endsWith(".tar.gz") || name.endsWith(".tgz")) {
 			untargz(archive, outputDir, true, selectFolder);
 		}
@@ -53,14 +54,17 @@ public class UnpackUtil {
 	public static void unpack(Path archive, Path outputDir, boolean stripRootFolder, Path selectFolder)
 			throws IOException {
 		String name = archive.toString().toLowerCase(Locale.ENGLISH);
-		if (name.endsWith(".zip")) {
-			unzip(archive, outputDir, stripRootFolder, selectFolder);
+		if (name.endsWith(".zip") || name.endsWith(".jar")) {
+			unzip(archive, outputDir, stripRootFolder, selectFolder, UnpackUtil::defaultZipEntryCopy);
 		} else if (name.endsWith(".tar.gz") || name.endsWith(".tgz")) {
 			untargz(archive, outputDir, stripRootFolder, selectFolder);
+		} else {
+			throw new IllegalArgumentException("Unsupported archive format: " + Util.extension(archive.toString()));
 		}
 	}
 
-	public static void unzip(Path zip, Path outputDir, boolean stripRootFolder, Path selectFolder) throws IOException {
+	public static void unzip(Path zip, Path outputDir, boolean stripRootFolder, Path selectFolder,
+			ExistingZipFileHandler onExisting) throws IOException {
 		try (ZipFile zipFile = new ZipFile(zip.toFile())) {
 			Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
 			while (entries.hasMoreElements()) {
@@ -92,50 +96,85 @@ public class UnpackUtil {
 					if (!Files.isDirectory(entry.getParent())) {
 						Files.createDirectories(entry.getParent());
 					}
-					try (InputStream zis = zipFile.getInputStream(zipEntry)) {
-						Files.copy(zis, entry);
-					}
-					int mode = zipEntry.getUnixMode();
-					if (mode != 0 && !Util.isWindows()) {
-						Set<PosixFilePermission> permissions = PosixFilePermissionSupport.toPosixFilePermissions(mode);
-						Files.setPosixFilePermissions(entry, permissions);
+					if (Files.isRegularFile(entry)) {
+						onExisting.handle(zipFile, zipEntry, entry);
+					} else {
+						defaultZipEntryCopy(zipFile, zipEntry, entry);
 					}
 				}
 			}
 		}
 	}
 
+	public interface ExistingZipFileHandler {
+		void handle(ZipFile zipFile, ZipArchiveEntry zipEntry, Path outFile) throws IOException;
+	}
+
+	public static void defaultZipEntryCopy(ZipFile zipFile, ZipArchiveEntry zipEntry, Path outFile) throws IOException {
+		try (InputStream zis = zipFile.getInputStream(zipEntry)) {
+			Files.copy(zis, outFile, StandardCopyOption.REPLACE_EXISTING);
+		}
+		int mode = zipEntry.getUnixMode();
+		if (mode != 0 && !Util.isWindows()) {
+			Set<PosixFilePermission> permissions = PosixFilePermissionSupport.toPosixFilePermissions(mode);
+			Files.setPosixFilePermissions(outFile, permissions);
+		}
+	}
+
 	public static void untargz(Path targz, Path outputDir, boolean stripRootFolder, Path selectFolder)
 			throws IOException {
 		try (TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(
-				new GzipCompressorInputStream(
-						new FileInputStream(targz.toFile())))) {
+				new GzipCompressorInputStream(new FileInputStream(targz.toFile())))) {
+
 			TarArchiveEntry targzEntry;
-			while ((targzEntry = tarArchiveInputStream.getNextTarEntry()) != null) {
-				Path entry = Paths.get(targzEntry.getName());
+			while ((targzEntry = tarArchiveInputStream.getNextEntry()) != null) {
+				Path entry = Paths.get(targzEntry.getName()).normalize();
+
 				if (stripRootFolder) {
 					if (entry.getNameCount() == 1) {
 						continue;
 					}
 					entry = entry.subpath(1, entry.getNameCount());
 				}
+
 				if (selectFolder != null) {
 					if (!entry.startsWith(selectFolder) || entry.equals(selectFolder)) {
 						continue;
 					}
 					entry = entry.subpath(selectFolder.getNameCount(), entry.getNameCount());
 				}
+
 				entry = outputDir.resolve(entry).normalize();
+
 				if (!entry.startsWith(outputDir)) {
 					throw new IOException("Entry is outside of the target dir: " + targzEntry.getName());
 				}
+
 				if (targzEntry.isDirectory()) {
 					Files.createDirectories(entry);
+				} else if (targzEntry.isSymbolicLink()) {
+					// Handle symbolic links
+					Path linkTarget = Paths.get(targzEntry.getLinkName());
+
+					// Ensure parent directory exists
+					Files.createDirectories(entry.getParent());
+
+					// Create symbolic link (only if it doesn't exist)
+					if (!Files.exists(entry)) {
+						try {
+							Files.createSymbolicLink(entry, linkTarget);
+						} catch (IOException e) {
+							Util.warnMsg("Could not create symbolic link " + entry + " -> " + linkTarget + " due to "
+									+ e.getMessage(), e);
+						}
+					}
 				} else {
+					// Regular file extraction
 					if (!Files.isDirectory(entry.getParent())) {
 						Files.createDirectories(entry.getParent());
 					}
-					Files.copy(tarArchiveInputStream, entry);
+					Files.copy(tarArchiveInputStream, entry, StandardCopyOption.REPLACE_EXISTING);
+
 					int mode = targzEntry.getMode();
 					if (mode != 0 && !Util.isWindows()) {
 						Set<PosixFilePermission> permissions = PosixFilePermissionSupport.toPosixFilePermissions(mode);

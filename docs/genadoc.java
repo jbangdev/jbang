@@ -1,6 +1,7 @@
-//DEPS info.picocli:picocli:4.6.1
-//DEPS info.picocli:picocli-codegen:4.6.1
-//JAVA 16
+//DEPS info.picocli:picocli:4.6.3
+//DEPS info.picocli:picocli-codegen:4.6.3
+///COMPILE_OPTIONS -proc:none
+//JAVA 17+
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;

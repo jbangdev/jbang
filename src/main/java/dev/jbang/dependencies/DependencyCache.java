@@ -2,20 +2,16 @@ package dev.jbang.dependencies;
 
 import static dev.jbang.util.Util.warnMsg;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
-import java.util.Collection;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-
-import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinate;
-import org.jboss.shrinkwrap.resolver.api.maven.coordinate.MavenCoordinates;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -37,15 +33,15 @@ public class DependencyCache {
 				try (Reader out = Files.newBufferedReader(Settings.getCacheDependencyFile())) {
 					JsonDeserializer<ArtifactInfo> serializer = (json, typeOfT, context) -> {
 						JsonObject jsonObject = json.getAsJsonObject();
-						MavenCoordinate gav = MavenCoordinates.createCoordinate(jsonObject.get("gav").getAsString());
-						File file = new File(jsonObject.get("file").getAsString());
+						MavenCoordinate gav = MavenCoordinate.fromCanonicalString(jsonObject.get("gav").getAsString());
+						Path file = Paths.get(jsonObject.get("file").getAsString());
 						long ts = jsonObject.has("ts") ? jsonObject.get("ts").getAsLong() : 0;
 						return new ArtifactInfo(gav, file, ts);
 					};
 					Gson parser = new GsonBuilder()
-													.setPrettyPrinting()
-													.registerTypeAdapter(ArtifactInfo.class, serializer)
-													.create();
+						.setPrettyPrinting()
+						.registerTypeAdapter(ArtifactInfo.class, serializer)
+						.create();
 
 					Type empMapType = new TypeToken<Map<String, List<ArtifactInfo>>>() {
 					}.getType();
@@ -71,14 +67,14 @@ public class DependencyCache {
 			JsonSerializer<ArtifactInfo> serializer = (src, typeOfSrc, context) -> {
 				JsonObject json = new JsonObject();
 				json.addProperty("gav", src.getCoordinate().toCanonicalForm());
-				json.addProperty("file", src.getFile().getPath());
+				json.addProperty("file", src.getFile().toString());
 				json.addProperty("ts", src.getTimestamp());
 				return json;
 			};
 			Gson parser = new GsonBuilder()
-											.setPrettyPrinting()
-											.registerTypeAdapter(ArtifactInfo.class, serializer)
-											.create();
+				.setPrettyPrinting()
+				.registerTypeAdapter(ArtifactInfo.class, serializer)
+				.create();
 
 			parser.toJson(cache, out);
 		} catch (IOException e) {
@@ -97,19 +93,20 @@ public class DependencyCache {
 				return cachedCP;
 			} else {
 				warnMsg("Detected missing or out-of-date dependencies in cache.");
+				if (Util.isVerbose()) {
+					cachedCP.stream().filter(ai -> !ai.isUpToDate()).forEach(ai -> {
+						if (Files.isReadable(ai.getFile())) {
+							Util.verboseMsg(
+									"   Artifact out of date: " + ai.getFile() + " : " + ai.getTimestamp() + " != "
+											+ ai.getFile().toFile().lastModified());
+						} else {
+							Util.verboseMsg("   Artifact not found in local cache: " + ai.getFile());
+						}
+					});
+				}
 			}
 		}
 		return null;
-	}
-
-	public static ArtifactInfo findArtifactByPath(File artifactPath) {
-		Map<String, List<ArtifactInfo>> cache = getCache();
-		Optional<ArtifactInfo> result = cache	.values()
-												.stream()
-												.flatMap(Collection::stream)
-												.filter(art -> art.getFile().equals(artifactPath))
-												.findFirst();
-		return result.orElseGet(() -> new ArtifactInfo(null, artifactPath));
 	}
 
 	public static void clear() {

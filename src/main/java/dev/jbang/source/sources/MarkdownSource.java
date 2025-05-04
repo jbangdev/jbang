@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nonnull;
+
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.source.ResourceRef;
@@ -13,19 +15,24 @@ import dev.jbang.source.Source;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.util.Util;
 
-public class MarkdownSource extends JavaSource {
+public class MarkdownSource extends JshSource {
 
 	protected MarkdownSource(ResourceRef ref, String script, Function<String, String> replaceProperties) {
 		super(ref, script, replaceProperties);
 	}
 
+	@Override
+	public @Nonnull Type getType() {
+		return Type.markdown;
+	}
+
 	public static Source create(ResourceRef resourceRef, Function<String, String> replaceProperties) {
 		String scriptText = new MarkdownTransform().transformMarkdown(
-				Util.readFileContent(resourceRef.getFile().toPath()));
+				Util.readFileContent(resourceRef.getFile()));
 		try {
 			// this will cache the content in stdin cache which is not optimal but needed to
 			// have the transformed script stored
-			// seperately from the possibly originally cached file.
+			// separately from the possibly originally cached file.
 			resourceRef = LiteralScriptResourceResolver.stringToResourceRef(resourceRef.getOriginalResource(),
 					scriptText);
 		} catch (IOException e) {
@@ -52,7 +59,7 @@ public class MarkdownSource extends JavaSource {
 			List<String> output = new ArrayList<>();
 			String state = "root";
 			boolean prevLineIsEmpty = true;
-			for (String line : source.split("\n")) {
+			for (String line : source.split("\\R")) {
 				switch (state) {
 				case "root":
 					if (match(fourspacesOrTab, line) && prevLineIsEmpty) {

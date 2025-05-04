@@ -1,100 +1,163 @@
 package dev.jbang.source.generators;
 
-import static dev.jbang.source.builders.BaseBuilder.getImageName;
-
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
+import dev.jbang.devkitman.Jdk;
 import dev.jbang.source.*;
+import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.JavaUtil;
+import dev.jbang.util.ModuleUtil;
 import dev.jbang.util.Util;
 
-public class JarCmdGenerator extends BaseCmdGenerator {
-	protected final Code code;
+public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
+	private List<String> runtimeOptions = Collections.emptyList();
+	private boolean assertions;
+	private boolean systemAssertions;
+	private boolean classDataSharing;
+	private String mainClass;
+	private boolean mainRequired;
+	private String moduleName;
 
-	public JarCmdGenerator(Code code, RunContext ctx) {
-		super(ctx);
-		this.code = code;
+	public JarCmdGenerator runtimeOptions(List<String> runtimeOptions) {
+		if (runtimeOptions != null) {
+			this.runtimeOptions = runtimeOptions;
+		} else {
+			this.runtimeOptions = Collections.emptyList();
+		}
+		return this;
 	}
 
-	@Override
-	protected Code getCode() {
-		return code;
+	public JarCmdGenerator assertions(boolean assertions) {
+		this.assertions = assertions;
+		return this;
+	}
+
+	public JarCmdGenerator systemAssertions(boolean systemAssertions) {
+		this.systemAssertions = systemAssertions;
+		return this;
+	}
+
+	public JarCmdGenerator classDataSharing(boolean classDataSharing) {
+		this.classDataSharing = classDataSharing;
+		return this;
+	}
+
+	public JarCmdGenerator mainClass(String mainClass) {
+		this.mainClass = mainClass;
+		return this;
+	}
+
+	public JarCmdGenerator mainRequired(boolean mainRequired) {
+		this.mainRequired = mainRequired;
+		return this;
+	}
+
+	public JarCmdGenerator moduleName(String moduleName) {
+		this.moduleName = moduleName;
+		return this;
+	}
+
+	public JarCmdGenerator(BuildContext ctx) {
+		super(ctx);
 	}
 
 	@Override
 	protected List<String> generateCommandLineList() throws IOException {
 		List<String> fullArgs = new ArrayList<>();
 
-		if (ctx.isNativeImage()) {
-			String imagename = getImageName(code.getJarFile()).toString();
-			if (new File(imagename).exists()) {
-				fullArgs.add(imagename);
-			} else {
-				Util.warnMsg("native built image not found - running in java mode.");
+		Project project = ctx.getProject();
+		String classpath = ctx.resolveClassPath().getClassPath();
+
+		List<String> optionalArgs = new ArrayList<>();
+
+		Jdk jdk = project.projectJdk();
+		String javacmd = JavaUtil.resolveInJavaHome("java", jdk);
+
+		if (jdk.majorVersion() > 9) {
+			String opens = ctx.getProject().getManifestAttributes().get("Add-Opens");
+			if (opens != null) {
+				for (String val : opens.split(" ")) {
+					optionalArgs.add("--add-opens=" + val + "=ALL-UNNAMED");
+				}
+			}
+
+			String exports = ctx.getProject().getManifestAttributes().get("Add-Exports");
+			if (exports != null) {
+				for (String val : exports.split(" ")) {
+					optionalArgs.add("--add-exports=" + val + "=ALL-UNNAMED");
+				}
 			}
 		}
 
-		if (fullArgs.isEmpty()) {
-			String classpath = ctx.resolveClassPath(code);
+		addPropertyFlags(project.getProperties(), "-D", optionalArgs);
 
-			List<String> optionalArgs = new ArrayList<>();
+		if (debugString != null) {
+			Map<String, String> fallbackDebug = new LinkedHashMap<>();
+			fallbackDebug.put("transport", "dt_socket");
+			fallbackDebug.put("server", "y");
+			fallbackDebug.put("suspend", "y");
+			fallbackDebug.put("address", "4004");
+			// needed even though there is a fallbackvalue as user might have set some other
+			// key/value
+			// i.e. --debug=server=n
+			fallbackDebug.putAll(debugString);
+			optionalArgs.add(
+					"-agentlib:jdwp=" + fallbackDebug.entrySet()
+						.stream()
+						.map(e -> e.getKey() + "=" + e.getValue())
+						.collect(Collectors.joining(",")));
+		}
 
-			String requestedJavaVersion = ctx.getJavaVersion() != null ? ctx.getJavaVersion()
-					: code.getJavaVersion().orElse(null);
-			String javacmd = JavaUtil.resolveInJavaHome("java", requestedJavaVersion);
+		if (assertions) {
+			optionalArgs.add("-ea");
+		}
 
-			addPropertyFlags(ctx.getProperties(), "-D", optionalArgs);
+		if (systemAssertions) {
+			optionalArgs.add("-esa");
+		}
 
-			// optionalArgs.add("--source 11");
-			if (ctx.isDebugEnabled()) {
-				optionalArgs.add(
-						"-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + ctx.getDebugString());
+		if (project.enablePreview()) {
+			optionalArgs.add("--enable-preview");
+		}
+
+		if (flightRecorderString != null) {
+			// TODO: find way to generate ~/.jbang/script.jfc to configure flightrecorder to
+			// have 0 ms thresholds
+			String jfropt = "-XX:StartFlightRecording=" + flightRecorderString
+				.replace("{baseName}",
+						Util.getBaseName(
+								project.getResourceRef()
+									.getFile()
+									.toString()));
+			optionalArgs.add(jfropt);
+			Util.verboseMsg("Flight recording enabled with:" + jfropt);
+		}
+
+		if (ctx.getJarFile() != null) {
+			if (Util.isBlankString(classpath)) {
+				classpath = ctx.getJarFile().toAbsolutePath().toString();
+			} else {
+				classpath = ctx.getJarFile().toAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
 			}
-
-			if (ctx.isEnableAssertions()) {
-				optionalArgs.add("-ea");
+		}
+		if (!Util.isBlankString(classpath)) {
+			if (moduleName != null && project.getModuleName().isPresent()) {
+				optionalArgs.addAll(Arrays.asList("-p", classpath));
+			} else {
+				optionalArgs.addAll(Arrays.asList("-classpath", classpath));
 			}
+		}
 
-			if (ctx.isEnableSystemAssertions()) {
-				optionalArgs.add("-esa");
-			}
-
-			if (ctx.isFlightRecordingEnabled()) {
-				// TODO: find way to generate ~/.jbang/script.jfc to configure flightrecorder to
-				// have 0 ms thresholds
-				String jfropt = "-XX:StartFlightRecording=" + ctx	.getFlightRecorderString()
-																	.replace("{baseName}",
-																			Util.getBaseName(code	.getResourceRef()
-																									.getFile()
-																									.toString()));
-				optionalArgs.add(jfropt);
-				Util.verboseMsg("Flight recording enabled with:" + jfropt);
-			}
-
-			if (code.getJarFile() != null) {
-				if (Util.isBlankString(classpath)) {
-					classpath = code.getJarFile().getAbsolutePath();
-				} else {
-					classpath = code.getJarFile().getAbsolutePath() + Settings.CP_SEPARATOR + classpath.trim();
-				}
-			}
-			if (!Util.isBlankString(classpath)) {
-				optionalArgs.add("-classpath");
-				optionalArgs.add(classpath);
-			}
-
-			if (Optional.ofNullable(ctx.getClassDataSharing()).orElse(code.enableCDS())) {
-				Path cdsJsa = code.getJarFile().toPath().toAbsolutePath();
+		if (classDataSharing || project.enableCDS()) {
+			if (jdk.majorVersion() >= 13) {
+				Path cdsJsa = ctx.getJsaFile().toAbsolutePath();
 				if (Files.exists(cdsJsa)) {
 					Util.verboseMsg("CDS: Using shared archive classes from " + cdsJsa);
 					optionalArgs.add("-XX:SharedArchiveFile=" + cdsJsa);
@@ -102,27 +165,42 @@ public class JarCmdGenerator extends BaseCmdGenerator {
 					Util.verboseMsg("CDS: Archiving Classes At Exit at " + cdsJsa);
 					optionalArgs.add("-XX:ArchiveClassesAtExit=" + cdsJsa);
 				}
-			}
-
-			fullArgs.add(javacmd);
-			addAgentsArgs(fullArgs);
-
-			fullArgs.addAll(ctx.getRuntimeOptionsMerged(code));
-			fullArgs.addAll(ctx.getAutoDetectedModuleArguments(code, requestedJavaVersion));
-			fullArgs.addAll(optionalArgs);
-
-			String mainClass = ctx.getMainClassOr(code);
-			if (mainClass != null) {
-				fullArgs.add(mainClass);
 			} else {
-				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
-						"no main class deduced, specified nor found in a manifest");
+				Util.warnMsg(
+						"ClassDataSharing can only be used on Java versions 13 and later. Rerun with `--java 13+` to enforce that");
 			}
 		}
 
-		fullArgs.addAll(ctx.getArguments());
+		fullArgs.add(javacmd);
+
+		fullArgs.addAll(project.getRuntimeOptions());
+		fullArgs.addAll(runtimeOptions);
+		fullArgs.addAll(ctx.resolveClassPath().getAutoDectectedModuleArguments(jdk));
+		fullArgs.addAll(optionalArgs);
+
+		String main = Optional.ofNullable(mainClass).orElse(project.getMainClass());
+		if (main != null) {
+			if (moduleName != null && project.getModuleName().isPresent()) {
+				String modName = moduleName.isEmpty() ? ModuleUtil.getModuleName(project) : moduleName;
+				fullArgs.add("-m");
+				fullArgs.add(modName + "/" + main);
+			} else {
+				fullArgs.add(main);
+			}
+		} else if (mainRequired) {
+			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
+					"no main class deduced, specified nor found in a manifest");
+		}
+
+		fullArgs.addAll(arguments);
 
 		return fullArgs;
+	}
+
+	protected String generateCommandLineString(List<String> fullArgs) throws IOException {
+		return CommandBuffer.of(fullArgs)
+			.applyWindowsMaxLengthLimit(CommandBuffer.MAX_LENGTH_WINCLI, shell)
+			.asCommandLine(shell);
 	}
 
 	private static void addPropertyFlags(Map<String, String> properties, String def, List<String> result) {

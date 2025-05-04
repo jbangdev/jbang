@@ -4,10 +4,11 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import dev.jbang.Configuration;
 import dev.jbang.Settings;
@@ -21,6 +22,16 @@ import picocli.CommandLine;
 		ConfigGet.class, ConfigSet.class, ConfigUnset.class, ConfigList.class
 })
 public class Config {
+
+	// IMPORTANT: These are options that can NOT be dynamically read from the
+	// PicoCLI configuration and have to maintained manually! Make sure to add
+	// an option for each configuration key that gets added!
+	static AvailableOption[] extraOptions = {
+			new AvailableOption(Settings.CONFIG_CACHE_EVICT,
+					"Time that locally cached files are kept before they are evicted. Can be a simple number in seconds, an ISO8601 Duration or the word 'never'"),
+			new AvailableOption(Settings.CONFIG_CONNECTION_TIMEOUT,
+					"The timeout in milliseconds that will be used for any remote connections")
+	};
 }
 
 abstract class BaseConfigCommand extends BaseCommand {
@@ -47,8 +58,8 @@ abstract class BaseConfigCommand extends BaseCommand {
 		} else {
 			if (configFile != null && Files.isDirectory(configFile)) {
 				Path defaultConfig = configFile.resolve(Configuration.JBANG_CONFIG_PROPS);
-				Path hiddenConfig = configFile	.resolve(Settings.JBANG_DOT_DIR)
-												.resolve(Configuration.JBANG_CONFIG_PROPS);
+				Path hiddenConfig = configFile.resolve(Settings.JBANG_DOT_DIR)
+					.resolve(Configuration.JBANG_CONFIG_PROPS);
 				if (!Files.exists(defaultConfig) && Files.exists(hiddenConfig)) {
 					cfg = hiddenConfig;
 				} else {
@@ -143,56 +154,126 @@ class ConfigList extends BaseConfigCommand {
 			"--show-available" }, description = "Show the available key names")
 	boolean showAvailable;
 
+	@CommandLine.Mixin
+	FormatMixin formatMixin;
+
 	@Override
 	public Integer doCall() throws IOException {
 		PrintStream out = System.out;
+		if (showAvailable && showOrigin) {
+			throw new IllegalArgumentException(
+					"Options '--show-available' and '--show-origin' cannot be used together");
+		}
 		if (showAvailable) {
-			Set<String> keys = new HashSet<>();
-			gatherKeys(JBang.getCommandLine(), keys);
-			keys.stream().sorted().forEach(key -> out.println(ConsoleOutput.yellow(key)));
+			Set<AvailableOption> opts = new HashSet<>(Arrays.asList(Config.extraOptions));
+			gatherKeys(JBang.getCommandLine(), opts);
+			if (formatMixin.format == FormatMixin.Format.json) {
+				Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+				parser.toJson(opts.stream().sorted().collect(Collectors.toList()), out);
+			} else {
+				opts.stream().sorted().forEach(opt -> {
+					out.print(ConsoleOutput.yellow(opt.key));
+					out.print(" = ");
+					out.println(opt.description);
+				});
+			}
 		} else {
 			Configuration cfg = getConfig(null, true);
 			if (showOrigin) {
-				while (cfg != null) {
-					Set<String> printedKeys = new HashSet<>();
-					printConfigWithOrigin(out, cfg, printedKeys);
-					cfg = cfg.getFallback();
-				}
+				printConfigWithOrigin(out, cfg, formatMixin.format);
 			} else {
-				printConfig(out, cfg);
+				printConfig(out, cfg, formatMixin.format);
 			}
 		}
 		return EXIT_OK;
 	}
 
-	private void gatherKeys(CommandLine cmd, Set<String> keys) {
+	private void gatherKeys(CommandLine cmd, Set<AvailableOption> keys) {
 		for (CommandLine c : cmd.getCommandSpec().subcommands().values()) {
 			gatherKeys(c, keys);
 		}
 		for (CommandLine.Model.OptionSpec opt : cmd.getCommandSpec().options()) {
-			keys.add(JBang.argSpecKey(opt));
+			keys.add(new AvailableOption(JBang.argSpecKey(opt), String.join(" ", opt.description())));
 		}
 	}
 
-	private void printConfig(PrintStream out, Configuration cfg) {
-		cfg	.flatten()
-			.keySet()
-			.stream()
-			.sorted()
-			.forEach(key -> out.println(ConsoleOutput.yellow(key) + " = " + cfg.get(key)));
+	private void printConfig(PrintStream out, Configuration cfg, FormatMixin.Format format) {
+		if (format == FormatMixin.Format.json) {
+			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+			parser.toJson(cfg.asMap(), out);
+		} else {
+			cfg.flatten()
+				.keySet()
+				.stream()
+				.sorted()
+				.forEach(key -> out.println(ConsoleOutput.yellow(key) + " = " + cfg.get(key)));
+		}
 	}
 
-	private void printConfigWithOrigin(PrintStream out, Configuration cfg, Set<String> printedKeys) {
-		Set<String> keysToPrint = cfg	.keySet()
-										.stream()
-										.filter(key -> !printedKeys.contains(key))
-										.collect(Collectors.toSet());
-		if (!keysToPrint.isEmpty()) {
-			out.println(ConsoleOutput.bold(cfg.getStoreRef().getOriginalResource()));
-			keysToPrint	.stream()
+	static class OriginOut {
+		String resourceRef;
+		Map<String, String> properties;
+	}
+
+	private void printConfigWithOrigin(PrintStream out, Configuration cfg, FormatMixin.Format format) {
+		List<OriginOut> orgs = new ArrayList<>();
+		while (cfg != null) {
+			OriginOut org = new OriginOut();
+			org.resourceRef = cfg.getStoreRef().getOriginalResource();
+			org.properties = cfg.asMap();
+			orgs.add(org);
+			cfg = cfg.getFallback();
+		}
+
+		if (format == FormatMixin.Format.json) {
+			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+			parser.toJson(orgs, out);
+		} else {
+			Set<String> printedKeys = new HashSet<>();
+			for (OriginOut org : orgs) {
+				Set<String> keysToPrint = org.properties.keySet()
+					.stream()
+					.filter(key -> !printedKeys.contains(key))
+					.collect(Collectors.toSet());
+				if (!keysToPrint.isEmpty()) {
+					out.println(ConsoleOutput.bold(org.resourceRef));
+					keysToPrint.stream()
 						.sorted()
-						.forEach(key -> out.println("   " + ConsoleOutput.yellow(key) + " = " + cfg.get(key)));
-			printedKeys.addAll(keysToPrint);
+						.forEach(key -> out.println(
+								"   " + ConsoleOutput.yellow(key) + " = " + org.properties.get(key)));
+					printedKeys.addAll(keysToPrint);
+				}
+			}
 		}
+	}
+}
+
+class AvailableOption implements Comparable<AvailableOption> {
+	final String key;
+	final String description;
+
+	public AvailableOption(String key, String description) {
+		this.key = key;
+		this.description = description;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		AvailableOption that = (AvailableOption) o;
+		return key.equals(that.key);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(key);
+	}
+
+	@Override
+	public int compareTo(AvailableOption o) {
+		return key.compareTo(o.key);
 	}
 }

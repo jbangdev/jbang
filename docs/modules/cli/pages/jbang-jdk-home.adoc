@@ -19,7 +19,7 @@ jbang-jdk-home - Prints the folder where the given JDK is installed.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang jdk home* *-o* *--fresh* *--quiet* *--verbose* [_version_]
+*jbang jdk home* *-o* *--fresh* *--quiet* *--verbose* [_versionOrId_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -50,7 +50,7 @@ Prints the folder where the given JDK is installed.
 // tag::picocli-generated-man-section-arguments[]
 == Arguments
 
-[_version_]::
+[_versionOrId_]::
   The version of the JDK to select
 
 // end::picocli-generated-man-section-arguments[]

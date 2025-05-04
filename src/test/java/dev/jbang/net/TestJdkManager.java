@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 class TestJdkManager extends BaseTest {
@@ -23,7 +24,7 @@ class TestJdkManager extends BaseTest {
 		Util.writeString(release.toPath(), rawJavaVersion);
 
 		// When
-		Optional<Integer> javaVersion = JdkManager.resolveJavaVersionFromPath(javaDir.toPath());
+		Optional<Integer> javaVersion = JavaUtil.resolveJavaVersionFromPath(javaDir.toPath());
 
 		// Then
 		assertEquals(11, javaVersion.get());
@@ -37,7 +38,7 @@ class TestJdkManager extends BaseTest {
 		Util.writeString(release.toPath(), rawJavaVersion);
 
 		// When
-		Optional<Integer> javaVersion = JdkManager.resolveJavaVersionFromPath(javaDir.toPath());
+		Optional<Integer> javaVersion = JavaUtil.resolveJavaVersionFromPath(javaDir.toPath());
 
 		// Then
 		assertEquals(8, javaVersion.get());
@@ -51,7 +52,7 @@ class TestJdkManager extends BaseTest {
 		Util.writeString(release.toPath(), rawJavaVersion);
 
 		// When
-		Optional<Integer> javaVersion = JdkManager.resolveJavaVersionFromPath(javaDir.toPath());
+		Optional<Integer> javaVersion = JavaUtil.resolveJavaVersionFromPath(javaDir.toPath());
 
 		// Then
 		assertFalse(javaVersion.isPresent());
@@ -63,7 +64,7 @@ class TestJdkManager extends BaseTest {
 		File release = new File(javaDir, "not-release");
 
 		// When
-		Optional<Integer> javaVersion = JdkManager.resolveJavaVersionFromPath(javaDir.toPath());
+		Optional<Integer> javaVersion = JavaUtil.resolveJavaVersionFromPath(javaDir.toPath());
 
 		// Then
 		assertFalse(javaVersion.isPresent());

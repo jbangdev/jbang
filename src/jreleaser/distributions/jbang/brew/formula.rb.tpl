@@ -17,7 +17,7 @@ class {{brewFormulaName}} < Formula
   end
 
   test do
-      system "#{bin}/{{distributionExecutable}}", "--init=cli", "hello.java"
+      system "#{bin}/{{distributionExecutable}}", "init", "-t", "cli", "hello.java"
       system "#{bin}/{{distributionExecutable}}", "hello.java", "Homebrew!"
   end
 end

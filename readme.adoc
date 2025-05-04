@@ -19,7 +19,9 @@ image:https://img.shields.io/github/downloads/jbangdev/jbang/total.svg[Downloads
 image:https://github.com/jbangdev/jbang/workflows/ci-build/badge.svg[Build Status,link=https://github.com/jbangdev/jbang/actions]
 image:https://www.eclipse.org/che/contribute.svg[Che, link=https://che.openshift.io/f?url=https://github.com/jbangdev/jbang]
 image:https://img.shields.io/badge/Gitpod-Workspace-blue?logo=gitpodp[Gitpod, link=https://gitpod.io/#https://github.com/jbangdev/jbang]
-image:https://badges.gitter.im/jbangdev/community.svg[Gitter, link=https://gitter.im/jbangdev/community]
+image:https://img.shields.io/badge/zulip-join_chat-brightgreen.svg[Chat, link=https://jbangdev.zulipchat.com/)
+image:https://sourcespy.com/shield.svg[Gitter, link=https://sourcespy.com/github/jbangdevjbang/]
+image:https://api.scorecard.dev/projects/github.com/jbangdev/jbang/badge[OpenSSF Scorecard,link=https://scorecard.dev/viewer/?uri=github.com/jbangdev/jbang]
 
 
 image:images/jbang_logo.svg[JBang Logo, title="JBang Logo"]
@@ -35,12 +37,12 @@ Then try `jbang` which lets you do this:
 
 image:https://asciinema.org/a/4AiobRxUwPUPztCtrDYcmoKjs.svg[link=https://asciinema.org/a/4AiobRxUwPUPztCtrDYcmoKjs?autoplay=true&theme=solarized-dark]
 
-[source, bash]
+[,bash]
 ----
 $ jbang init --template=cli hello.java
 $ jbang hello.java Max!
 [jbang] Resolving dependencies...
-[jbang]     Resolving info.picocli:picocli:4.5.0...Done
+[jbang]     Resolving info.picocli:picocli:4.6.3...Done
 [jbang] Dependencies resolved
 [jbang] Building jar...
 Hello Max!
@@ -60,7 +62,7 @@ JBang goes beyond more than just easy scripting; you can use `jbang` to launch a
 
 == Documentation
 
-Full documentation at https://jbang.dev/documentation
+Full documentation at https://jbang.dev/documentation. For a project architecture overview refer to https://sourcespy.com/github/jbangdevjbang/[build, module, dependency and other diagrams].
 
 == Thanks
 

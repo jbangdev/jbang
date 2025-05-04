@@ -1,6 +1,8 @@
 package dev.jbang.source.resolvers;
 
-import java.io.File;
+import java.nio.file.Path;
+import java.util.Objects;
+import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -14,19 +16,29 @@ public class AliasResourceResolver implements ResourceResolver {
 	@Nullable
 	private final Catalog catalog;
 	@Nonnull
-	private final ResourceResolver resolver;
+	private final Function<Alias, ResourceResolver> resolverFactory;
 
-	public AliasResourceResolver(@Nullable Catalog catalog, @Nonnull ResourceResolver resolver) {
+	public AliasResourceResolver(@Nullable Catalog catalog,
+			@Nonnull Function<Alias, ResourceResolver> resolverFactory) {
 		this.catalog = catalog;
-		this.resolver = resolver;
+		this.resolverFactory = resolverFactory;
+	}
+
+	@Override
+	public String description() {
+		return String.format("Alias resolver from catalog %s using %s",
+				Objects.toString(catalog.getScriptBase(), "<none>"),
+				resolverFactory.apply(null).description());
 	}
 
 	@Override
 	public ResourceRef resolve(String resource, boolean trusted) {
+		ResourceResolver resolver = resolverFactory.apply(null);
 		ResourceRef ref = resolver.resolve(resource, trusted);
 		if (ref == null) {
 			Alias alias = (catalog != null) ? Alias.get(catalog, resource) : Alias.get(resource);
 			if (alias != null) {
+				resolver = resolverFactory.apply(alias);
 				ResourceRef aliasRef = resolver.resolve(alias.resolve(), trusted);
 				if (aliasRef == null) {
 					throw new IllegalArgumentException(
@@ -43,7 +55,7 @@ public class AliasResourceResolver implements ResourceResolver {
 		@Nonnull
 		private final Alias alias;
 
-		public AliasedResourceRef(String ref, File file, @Nonnull Alias alias) {
+		public AliasedResourceRef(String ref, Path file, @Nonnull Alias alias) {
 			super(ref, file);
 			this.alias = alias;
 		}

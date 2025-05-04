@@ -23,6 +23,28 @@ will add an alias named `hello` pointing to that github url which then can be ru
 
 will show you all the aliases that are defined locally.
 
+=== Describe Aliases
+When an alias is added to a catalog, it can also include a meaningful description of what the script does.
+It can be added either through an explicit command-line parameter or by extracting it from the //DESCRIPTION tags present in the script.
+
+Example:
+  `jbang alias add --description="Best hello world application" --name best_hello https://github.com/jbangdev/jbang-examples/blob/HEAD/examples/helloworld.java`
+
+If you want the description to be automatically extracted from your script, include one or more //DESCRIPTION tags directly within it.
+
+Example:
+
+  //DESCRIPTION Best hello world application
+  //DESCRIPTION Use to cheer your friends
+
+  class helloworld {
+
+      public static void main(String[] args) {
+          System.out.println("Hello World!");
+      }
+  }
+
+
 == Implicit Alias Catalogs
 
 The aliases you create are stored locally (see <<Local Alias Catalogs>>), but JBang can also use remote catalogs.
@@ -72,9 +94,9 @@ JBang will also look in the current directory for a `jbang-catalog.json` file an
 in there too. In fact it will look in several places in the following order:
 
  1. Current directory, `./jbang-catalog.json`
- 2. In `.jbang/jbang-catalog.json`
+ 2. In `./.jbang/jbang-catalog.json`
  3. In the parent directory, `../jbang-catalog.json`
- 4. In the parent's `.jbang` directory, ../.jbang/jbang-catalog.json`
+ 4. In the parent's `.jbang` directory, `../.jbang/jbang-catalog.json`
  5. And repeating steps 3 and 4 recursively upwards to the root of the file system
  6. As the last step it will look in `$HOME/.jbang/jbang-catalog.json`
 

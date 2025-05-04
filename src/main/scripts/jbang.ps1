@@ -3,12 +3,12 @@
 #
 # To run this script remotely type this in your PowerShell
 # (where <args>... are the arguments you want to pass to JBang):
-#   iex "& { $(iwr https://ps.jbang.dev) } <args>..."
+#   iex "& { $(iwr -useb https://ps.jbang.dev) } <args>..."
 #
 # An alternative way is to type:
-#   & ([scriptblock]::Create($(iwr https://ps.jbang.dev))) <args>...
+#   & ([scriptblock]::Create($(iwr -useb https://ps.jbang.dev))) <args>...
 # Which even allows you to store the command in a variable for re-use:
-#   $jbang = ([scriptblock]::Create($(iwr https://ps.jbang.dev)))
+#   $jbang = ([scriptblock]::Create($(iwr -useb https://ps.jbang.dev)))
 #   & $jbang <args>...
 #
 
@@ -40,7 +40,7 @@ if ([System.Enum]::GetNames([System.Net.SecurityProtocolType]) -notcontains 'Tls
 }
 
 # The Java version to install when it's not installed on the system yet
-if (-not (Test-Path env:JBANG_DEFAULT_JAVA_VERSION)) { $javaVersion='11' } else { $javaVersion=$env:JBANG_DEFAULT_JAVA_VERSION }
+if (-not (Test-Path env:JBANG_DEFAULT_JAVA_VERSION)) { $javaVersion='17' } else { $javaVersion=$env:JBANG_DEFAULT_JAVA_VERSION }
 
 $os='windows'
 $arch='x64'
@@ -55,7 +55,6 @@ if (-not (Test-Path env:JBANG_JDK_VENDOR)) {
 } else {
     $distro=$env:JBANG_JDK_VENDOR
 }
-if (-not (Test-Path env:JBANG_JDK_RELEASE)) { $release="ga" } else { $release=$env:JBANG_JDK_RELEASE }
 
 if (-not (Test-Path env:JBANG_DIR)) { $JBDIR="$env:userprofile\.jbang" } else { $JBDIR=$env:JBANG_DIR }
 if (-not (Test-Path env:JBANG_CACHE_DIR)) { $TDIR="$JBDIR\cache" } else { $TDIR=$env:JBANG_CACHE_DIR }
@@ -67,28 +66,32 @@ if (Test-Path "$PSScriptRoot\jbang.jar") {
   $jarPath="$PSScriptRoot\.jbang\jbang.jar"
 } else {
   if (-not (Test-Path "$JBDIR\bin\jbang.jar") -or -not (Test-Path "$JBDIR\bin\jbang.ps1")) {
-    [Console]::Error.WriteLine("Downloading JBang...")
     New-Item -ItemType Directory -Force -Path "$TDIR\urls" >$null 2>&1
-    $jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.zip"
+    if (-not (Test-Path env:JBANG_DOWNLOAD_VERSION)) {
+        $jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.zip"
+    } else {
+        $jburl="https://github.com/jbangdev/jbang/releases/download/v$env:JBANG_DOWNLOAD_VERSION/jbang.zip";
+    }
+    [Console]::Error.WriteLine("Downloading JBang $env:JBANG_DOWNLOAD_VERSION...")
     try { Invoke-WebRequest "$jburl" -OutFile "$TDIR\urls\jbang.zip"; $ok=$? } catch {
       $ok=$false
       $err=$_
     }
-    if (-not ($ok)) { 
+    if (-not ($ok)) {
       [Console]::Error.WriteLine("Error downloading JBang from $jburl to $TDIR\urls\jbang.zip")
       [Console]::Error.WriteLine($err)
-      break 
+      break
     }
     [Console]::Error.WriteLine("Installing JBang...")
     Remove-Item -LiteralPath "$TDIR\urls\jbang" -Force -Recurse -ErrorAction Ignore >$null 2>&1
     try { Expand-Archive -Path "$TDIR\urls\jbang.zip" -DestinationPath "$TDIR\urls"; $ok=$? } catch {
-      $ok=$false 
+      $ok=$false
       $err=$_
     }
-    if (-not ($ok)) { 
+    if (-not ($ok)) {
       [Console]::Error.WriteLine("Error unzipping JBang from $TDIR\urls\jbang.zip to $TDIR\urls")
       [Console]::Error.WriteLine($err)
-      break 
+      break
     }
     New-Item -ItemType Directory -Force -Path "$JBDIR\bin" >$null 2>&1
     Remove-Item -LiteralPath "$JBDIR\bin\jbang" -Force -ErrorAction Ignore >$null 2>&1
@@ -130,7 +133,7 @@ if ($JAVA_EXEC -eq "") {
       # If not, download and install it
       New-Item -ItemType Directory -Force -Path "$TDIR\jdks" >$null 2>&1
       [Console]::Error.WriteLine("Downloading JDK $javaVersion. Be patient, this can take several minutes...")
-      $jdkurl="https://api.foojay.io/disco/v2.0/directuris?distro=$distro&javafx_bundled=false&libc_type=$libc_type&archive_type=zip&operating_system=$os&package_type=jdk&version=$javaVersion&release_status=$release&architecture=$arch&latest=available"
+      $jdkurl="https://api.foojay.io/disco/v3.0/directuris?distro=$distro&javafx_bundled=false&libc_type=$libc_type&archive_type=zip&operating_system=$os&package_type=jdk&version=$javaVersion&architecture=$arch&latest=available"
       try { Invoke-WebRequest "$jdkurl" -OutFile "$TDIR\bootstrap-jdk.zip"; $ok=$? } catch { $ok=$false }
       if (-not ($ok)) { [Console]::Error.WriteLine("Error downloading JDK"); break }
       [Console]::Error.WriteLine("Installing JDK $javaVersion...")
@@ -148,14 +151,15 @@ if ($JAVA_EXEC -eq "") {
       # Activate the downloaded JDK giving it its proper name
       Rename-Item -Path "$TDIR\jdks\$javaVersion.tmp" -NewName "$javaVersion" >$null 2>&1
       # Set the current JDK
-      & $JAVA_EXEC -classpath "$jarPath" dev.jbang.Main jdk default $javaVersion
+      & "$JAVA_EXEC" -classpath "$jarPath" dev.jbang.Main jdk default $javaVersion
     }
   }
 }
 
 $env:JBANG_RUNTIME_SHELL="powershell"
 $env:JBANG_STDIN_NOTTY=$MyInvocation.ExpectingInput
-$output = & $JAVA_EXEC $env:JBANG_JAVA_OPTIONS -classpath "$jarPath" dev.jbang.Main $args
+$env:JBANG_LAUNCH_CMD = $PSCommandPath
+$output = & "$JAVA_EXEC" $env:JBANG_JAVA_OPTIONS -classpath "$jarPath" dev.jbang.Main @args
 $err=$LASTEXITCODE
 
 $erroractionpreference=$old_erroractionpreference

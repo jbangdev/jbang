@@ -1,6 +1,6 @@
 package dev.jbang.source.resolvers;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.function.Function;
 
 import dev.jbang.dependencies.DependencyUtil;
@@ -21,6 +21,11 @@ public class GavResourceResolver implements ResourceResolver {
 	}
 
 	@Override
+	public String description() {
+		return "Maven GAV";
+	}
+
+	@Override
 	public ResourceRef resolve(String resource) {
 		ResourceRef result = null;
 
@@ -30,7 +35,7 @@ public class GavResourceResolver implements ResourceResolver {
 			// We possibly get a whole bunch of artifacts but we're only interested in the
 			// one we asked for, which we assume is always the first one in the list
 			// (hopefully we're right).
-			File file = mcp.getArtifacts().get(0).getFile();
+			Path file = mcp.getArtifacts().get(0).getFile();
 			result = ResourceRef.forCachedResource(resource, file);
 		}
 

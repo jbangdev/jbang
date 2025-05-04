@@ -1,18 +1,17 @@
 package dev.jbang.cli;
 
+import static dev.jbang.util.Util.entry;
+
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.AbstractMap;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
@@ -73,6 +72,10 @@ class TemplateAdd extends BaseTemplateCommand {
 	@CommandLine.Option(names = { "--name" }, description = "A name for the template")
 	String name;
 
+	@CommandLine.Option(names = {
+			"--force" }, description = "Force overwriting of existing template")
+	boolean force;
+
 	@CommandLine.Parameters(paramLabel = "files", index = "0..*", arity = "1..*", description = "Paths or URLs to template files")
 	List<String> fileRefs;
 
@@ -88,12 +91,12 @@ class TemplateAdd extends BaseTemplateCommand {
 		}
 
 		List<Map.Entry<String, String>> splitRefs = fileRefs
-															.stream()
-															// Turn list of files into a list of target=source pairs
-															.map(TemplateAdd::splitFileRef)
-															// Check that the source files/URLs exist
-															.filter(TemplateAdd::refExists)
-															.collect(Collectors.toList());
+			.stream()
+			// Turn list of files into a list of target=source pairs
+			.map(TemplateAdd::splitFileRef)
+			// Check that the source files/URLs exist
+			.filter(TemplateAdd::refExists)
+			.collect(Collectors.toList());
 
 		// Make sure we have at least a single {basename} or {filename} target
 		boolean hasTargetPattern = false;
@@ -111,7 +114,7 @@ class TemplateAdd extends BaseTemplateCommand {
 				String name = firstRef.getValue();
 				String ext = name.endsWith(".qute") ? Util.extension(Util.base(name)) : Util.extension(name);
 				String target = ext.isEmpty() ? "{filename}" : "{basename}." + ext;
-				splitRefs.set(0, new AbstractMap.SimpleEntry<>(target, firstRef.getValue()));
+				splitRefs.set(0, entry(target, firstRef.getValue()));
 				warn("No explicit target pattern was set, using first file: " + target + "=" + firstRef.getValue());
 			} else {
 				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
@@ -121,36 +124,40 @@ class TemplateAdd extends BaseTemplateCommand {
 
 		Map<String, String> fileRefsMap = new TreeMap<>();
 		splitRefs
-					.stream()
-					// Make sure all file refs have a target
-					.map(TemplateAdd::ensureTarget)
-					// Create map of file refs
-					.forEach(splitRef -> fileRefsMap.put(splitRef.getKey(), splitRef.getValue()));
+			.stream()
+			// Make sure all file refs have a target
+			.map(TemplateAdd::ensureTarget)
+			// Create map of file refs
+			.forEach(splitRef -> fileRefsMap.put(splitRef.getKey(), splitRef.getValue()));
 
 		if (name == null) {
 			name = CatalogUtil.nameFromRef(fileRefs.get(0));
 		}
 
-		Map<String, TemplateProperty> propertiesMap = Optional	.ofNullable(properties)
-																.map(Collection::stream)
-																.map(stream -> stream.collect(Collectors.toMap(
-																		TemplatePropertyInput::getKey,
-																		(TemplatePropertyInput templatePropertyInput) -> new TemplateProperty(
-																				templatePropertyInput.getDescription(),
-																				templatePropertyInput.getDefaultValue()))))
-																.orElse(new HashMap<>());
+		Map<String, TemplateProperty> propertiesMap = Optional.ofNullable(properties)
+			.map(Collection::stream)
+			.map(stream -> stream.collect(Collectors.toMap(
+					TemplatePropertyInput::getKey,
+					(TemplatePropertyInput templatePropertyInput) -> new TemplateProperty(
+							templatePropertyInput.getDescription(),
+							templatePropertyInput.getDefaultValue()))))
+			.orElse(new HashMap<>());
 
 		Path catFile = getCatalog(false);
-		if (catFile != null) {
+		if (catFile == null) {
+			catFile = Catalog.getCatalogFile(null);
+		}
+		if (force || !CatalogUtil.hasTemplate(catFile, name)) {
 			CatalogUtil.addTemplate(catFile, name, fileRefsMap, description, propertiesMap);
 		} else {
-			catFile = CatalogUtil.addNearestTemplate(name, fileRefsMap, description, propertiesMap);
+			Util.infoMsg("A template with name '" + name + "' already exists, use '--force' to add anyway.");
+			return EXIT_INVALID_INPUT;
 		}
 		info(String.format("Template '%s' added to '%s'", name, catFile));
 		return EXIT_OK;
 	}
 
-	private static AbstractMap.SimpleEntry<String, String> splitFileRef(String fileRef) {
+	private static Map.Entry<String, String> splitFileRef(String fileRef) {
 		String[] ref = fileRef.split("=", 2);
 		String target;
 		String source;
@@ -170,13 +177,13 @@ class TemplateAdd extends BaseTemplateCommand {
 			source = ref[0];
 			target = null;
 		}
-		return new AbstractMap.SimpleEntry<>(target, source);
+		return entry(target, source);
 	}
 
-	private static boolean refExists(AbstractMap.SimpleEntry<String, String> splitRef) {
+	private static boolean refExists(Map.Entry<String, String> splitRef) {
 		String source = splitRef.getValue();
 		ResourceRef resourceRef = ResourceRef.forResource(source);
-		if (resourceRef == null || !resourceRef.getFile().canRead()) {
+		if (resourceRef == null || !Files.isReadable(resourceRef.getFile())) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
 					"File could not be found or read: '" + source + "'");
 		}
@@ -191,7 +198,7 @@ class TemplateAdd extends BaseTemplateCommand {
 			if (target.endsWith(".qute")) {
 				target = target.substring(0, target.length() - 5);
 			}
-			return new AbstractMap.SimpleEntry<>(target, source);
+			return entry(target, source);
 		} else {
 			return splitRef;
 		}
@@ -285,6 +292,11 @@ class TemplateList extends BaseTemplateCommand {
 	@CommandLine.Parameters(paramLabel = "catalogName", index = "0", description = "The name of a catalog", arity = "0..1")
 	String catalogName;
 
+	@CommandLine.Mixin
+	FormatMixin formatMixin;
+
+	private static final int INDENT_SIZE = 3;
+
 	@Override
 	public Integer doCall() {
 		PrintStream out = System.out;
@@ -295,76 +307,138 @@ class TemplateList extends BaseTemplateCommand {
 		} else if (cat != null) {
 			catalog = Catalog.get(cat);
 		} else {
-			catalog = Catalog.getMerged(true);
+			catalog = Catalog.getMerged(true, false);
 		}
 		if (showOrigin) {
-			printTemplatesWithOrigin(out, catalogName, catalog, showFiles, showProperties);
+			printTemplatesWithOrigin(out, catalogName, catalog, showFiles, showProperties, formatMixin.format);
 		} else {
-			printTemplates(out, catalogName, catalog, showFiles, showProperties);
+			printTemplates(out, catalogName, catalog, showFiles, showProperties, formatMixin.format);
 		}
 		return EXIT_OK;
 	}
 
 	static void printTemplates(PrintStream out, String catalogName, Catalog catalog, boolean showFiles,
+			boolean showProperties, FormatMixin.Format format) {
+		List<TemplateOut> templates = catalog.templates
+			.keySet()
+			.stream()
+			.sorted()
+			.map(name -> getTemplateOut(catalogName, catalog, name,
+					showFiles, showProperties))
+			.collect(Collectors.toList());
+		if (format == FormatMixin.Format.json) {
+			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+			parser.toJson(templates, out);
+		} else {
+			templates.forEach(t -> printTemplate(out, t, 0));
+		}
+	}
+
+	static List<CatalogList.CatalogOut> getTemplatesWithOrigin(String catalogName, Catalog catalog, boolean showFiles,
 			boolean showProperties) {
-		catalog.templates
-							.keySet()
-							.stream()
-							.sorted()
-							.forEach(name -> printTemplate(out, catalogName, catalog, name, showFiles, showProperties,
-									0));
+		Map<ResourceRef, List<TemplateOut>> groups = catalog.templates
+			.keySet()
+			.stream()
+			.sorted()
+			.map(name -> getTemplateOut(catalogName,
+					catalog, name, showFiles,
+					showProperties))
+			.collect(Collectors.groupingBy(
+					t -> t._catalogRef));
+		return groups.entrySet()
+			.stream()
+			.map(e -> new CatalogList.CatalogOut(null, e.getKey(),
+					null, e.getValue(), null))
+			.collect(Collectors.toList());
 	}
 
 	static void printTemplatesWithOrigin(PrintStream out, String catalogName, Catalog catalog, boolean showFiles,
-			boolean showProperties) {
-		Map<ResourceRef, List<Map.Entry<String, dev.jbang.catalog.Template>>> groups = catalog.templates
-																										.entrySet()
-																										.stream()
-																										.collect(
-																												Collectors.groupingBy(
-																														e -> e.getValue().catalog.catalogRef));
-		groups.forEach((ref, entries) -> {
-			out.println(ref.getOriginalResource());
-			entries	.stream()
-					.map(Map.Entry::getKey)
-					.sorted()
-					.forEach(k -> printTemplate(out, catalogName, catalog, k, showFiles, showProperties, 3));
-		});
+			boolean showProperties, FormatMixin.Format format) {
+		List<CatalogList.CatalogOut> catalogs = getTemplatesWithOrigin(catalogName, catalog, showFiles, showProperties);
+		if (format == FormatMixin.Format.json) {
+			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+			parser.toJson(catalogs, out);
+		} else {
+			catalogs.forEach(cat -> {
+				out.println(ConsoleOutput.bold(dev.jbang.catalog.Catalog.simplifyRef(cat.resourceRef)));
+				cat.templates.forEach(t -> printTemplate(out, t, 1));
+			});
+		}
 	}
 
-	private static void printTemplate(PrintStream out, String catalogName, Catalog catalog,
-			String name, boolean showFiles, boolean showProperties, int indent) {
+	static class TemplateOut {
+		public String name;
+		public String catalogName;
+		public String fullName;
+		public String description;
+		public List<FileRefOut> fileRefs;
+		public Map<String, TemplateProperty> properties;
+		public transient ResourceRef _catalogRef;
+	}
+
+	static class FileRefOut {
+		String source;
+		String resolved;
+		String destination;
+	}
+
+	private static TemplateOut getTemplateOut(String catalogName, Catalog catalog, String name,
+			boolean showFiles, boolean showProperties) {
 		dev.jbang.catalog.Template template = catalog.templates.get(name);
-		String catName = catalogName != null ? catalogName : Catalog.findImplicitName(template.catalog);
-		String fullName = catName != null ? name + "@" + Catalog.simplifyName(catName) : name;
-		out.print(Util.repeat(" ", indent));
-		if (template.description != null) {
-			out.println(ConsoleOutput.yellow(fullName) + " = " + template.description);
-		} else {
-			out.println(ConsoleOutput.yellow(fullName) + " = ");
-		}
-		if (showFiles) {
+		String catName = catalogName != null ? dev.jbang.catalog.Catalog.simplifyRef(catalogName)
+				: CatalogUtil.catalogRef(name);
+		String fullName = catalogName != null ? name + "@" + catName : name;
+
+		TemplateOut out = new TemplateOut();
+		out.name = name;
+		out.catalogName = catName;
+		out.fullName = fullName;
+		out.description = template.description;
+		if (showFiles && template.fileRefs != null) {
+			out.fileRefs = new ArrayList<>();
 			for (String dest : template.fileRefs.keySet()) {
 				String ref = template.fileRefs.get(dest);
 				if (ref == null || ref.isEmpty()) {
 					ref = dest;
 				}
-				ref = template.resolve(ref);
-				out.print(Util.repeat(" ", indent));
-				if (ref.equals(dest)) {
-					out.println("   " + ref);
+				FileRefOut fro = new FileRefOut();
+				fro.source = ref;
+				fro.destination = dest;
+				fro.resolved = template.resolve(ref);
+				out.fileRefs.add(fro);
+			}
+		}
+		out.properties = showProperties ? template.properties : null;
+		out._catalogRef = template.catalog.catalogRef;
+		return out;
+	}
+
+	private static void printTemplate(PrintStream out, TemplateOut template, int indent) {
+		String prefix1 = Util.repeat(" ", indent * INDENT_SIZE);
+		String prefix2 = Util.repeat(" ", (indent + 1) * INDENT_SIZE);
+		String prefix3 = Util.repeat(" ", (indent + 2) * INDENT_SIZE);
+		out.print(Util.repeat(" ", indent));
+		out.println(prefix1 + dev.jbang.cli.CatalogList.getColoredFullName(template.fullName));
+		if (template.description != null) {
+			out.println(prefix2 + template.description);
+		}
+		if (template.fileRefs != null) {
+			out.println(prefix2 + "Files:");
+			for (FileRefOut fro : template.fileRefs) {
+				if (fro.resolved.equals(fro.destination)) {
+					out.println(prefix3 + fro.resolved);
 				} else {
-					out.println("   " + dest + " (from " + ref + ")");
+					out.println(prefix3 + fro.destination + " (from " + fro.resolved + ")");
 				}
 			}
 		}
-		if (showProperties && template.properties != null) {
+		if (template.properties != null) {
+			out.println(prefix2 + "Properties:");
 			for (Map.Entry<String, TemplateProperty> entry : template.properties.entrySet()) {
-				out.print(Util.repeat(" ", indent));
 				StringBuilder propertyLineBuilder = new StringBuilder()
-																		.append(Util.repeat(" ", indent + 4))
-																		.append(ConsoleOutput.cyan(entry.getKey()))
-																		.append(" = ");
+					.append(prefix3)
+					.append(ConsoleOutput.cyan(entry.getKey()))
+					.append(" = ");
 				if (entry.getValue().getDescription() != null) {
 					propertyLineBuilder.append(entry.getValue().getDescription()).append(" ");
 				}

@@ -7,23 +7,17 @@
 #
 
 # The Java version to install when it's not installed on the system yet
-javaVersion=${JBANG_DEFAULT_JAVA_VERSION:-11}
+javaVersion=${JBANG_DEFAULT_JAVA_VERSION:-17}
 
-absolute_path() {
-  # if the given path to the jbang launcher is absolute (i.e. it is either starting with / or a
-  # 'letter:/' when using gitbash on windows) it is returned unchanged, otherwise we construct an absolute path
-  [[ $1 = /* ]] || [[ $1 =~ ^[A-z]:/ ]] && echo "$1" || echo "$PWD/${1#./}"
-}
-
-resolve_symlink() {
-  if [[ $OSTYPE != darwin* ]]; then minusFarg="-f"; fi
-  sym_resolved=$(readlink ${minusFarg} "$1")
-
-  if [[ -n $sym_resolved ]]; then
-    echo "$sym_resolved"
-  else
-    echo "$1"
-  fi
+script_dir() {
+  script=${BASH_SOURCE[0]}
+  while [ -L "$script" ]; do
+    dir=$( cd -P "$( dirname "$script" )" >/dev/null 2>&1 && pwd )
+    script=$(readlink "$script")
+    [[ $script != /* ]] && script=$dir/$script
+  done
+  dir=$( cd -P "$( dirname "$script" )" >/dev/null 2>&1 && pwd )
+  echo "$dir"
 }
 
 download() {
@@ -57,10 +51,10 @@ unpack() {
 }
 
 javacInPath() {
-  [[ -x "$(command -v javac)" && ( $os != "mac" || $(/usr/libexec/java_home &> /dev/null) ) ]]
+  [[ -x "$(command -v javac)" ]] && ( [[ $os != "mac" ]] || /usr/libexec/java_home &> /dev/null )
 }
 
-abs_jbang_dir=$(dirname "$(resolve_symlink "$(absolute_path "$0")")")
+abs_jbang_dir=$(script_dir)
 
 # todo might vary by os so can be overwritten below
 libc_type=glibc
@@ -101,13 +95,9 @@ case "$(uname -m)" in
   s390x)
     arch=s390x;;
   arm64)
-    if [ "$os" = "mac" ]; then
-      arch=arm64
-      ## force use of 17 as 11 not yet available https://github.com/adoptium/adoptium/issues/96
-      javaVersion=17
-    else
-      arch=arm64
-    fi
+    arch=arm64;;
+  riscv64)
+    arch=riscv64
     ;;
   *)
     ## AIX gives a machine ID for `uname -m` but it only supports ppc64
@@ -133,7 +123,6 @@ if [[ -z "$JBANG_JDK_VENDOR" ]]; then
 else
   distro=$JBANG_JDK_VENDOR
 fi
-if [[ -z "$JBANG_JDK_RELEASE" ]]; then release="ga"; else release="$JBANG_JDK_RELEASE"; fi
 
 if [[ -z "$JBANG_DIR" ]]; then JBDIR="$HOME/.jbang"; else JBDIR="$JBANG_DIR"; fi
 if [[ -z "$JBANG_CACHE_DIR" ]]; then TDIR="$JBDIR/cache"; else TDIR="$JBANG_CACHE_DIR"; fi
@@ -145,11 +134,15 @@ elif [ -f "$abs_jbang_dir/.jbang/jbang.jar" ]; then
   jarPath=$abs_jbang_dir/.jbang/jbang.jar
 else
   if [[ ! -f "$JBDIR/bin/jbang.jar" || ! -f "$JBDIR/bin/jbang" ]]; then
-    echo "Downloading JBang..." 1>&2
+    echo "Downloading JBang $JBANG_DOWNLOAD_VERSION..." 1>&2
     mkdir -p "$TDIR/urls"
-    jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.tar"
-    download $jburl "$TDIR/urls/jbang.tar"
-    if [ $retval -ne 0 ]; then echo "Error downloading JBang" 1>&2; exit $retval; fi
+    if [ -z "$JBANG_DOWNLOAD_VERSION" ]; then
+      jburl="https://github.com/jbangdev/jbang/releases/latest/download/jbang.tar";
+    else
+      jburl="https://github.com/jbangdev/jbang/releases/download/v$JBANG_DOWNLOAD_VERSION/jbang.tar";
+    fi
+    download "$jburl" "$TDIR/urls/jbang.tar"
+    if [ $retval -ne 0 ]; then echo "Error downloading JBang from $jburl" 1>&2; exit $retval; fi
     echo "Installing JBang..." 1>&2
     rm -rf "$TDIR/urls/jbang"
     tar xf "$TDIR/urls/jbang.tar" -C "$TDIR/urls"
@@ -200,7 +193,7 @@ if [[ -z "$JAVA_EXEC" ]]; then
       fi
       mkdir -p "$TDIR/jdks"
       echo "Downloading JDK $javaVersion. Be patient, this can take several minutes..." 1>&2
-      jdkurl="https://api.foojay.io/disco/v2.0/directuris?distro=$distro&javafx_bundled=false&libc_type=$libc_type&archive_type=$file_type&operating_system=$os&package_type=jdk&version=$javaVersion&release_status=$release&architecture=$arch&latest=available"
+      jdkurl="https://api.foojay.io/disco/v3.0/directuris?distro=$distro&javafx_bundled=false&libc_type=$libc_type&archive_type=$file_type&operating_system=$os&package_type=jdk&version=$javaVersion&architecture=$arch&latest=available"
       download "$jdkurl" "$TDIR/bootstrap-jdk.$file_type"
       if [ $retval -ne 0 ]; then echo "Error downloading JDK" 1>&2; exit $retval; fi
       echo "Installing JDK $javaVersion..." 1>&2
@@ -216,7 +209,7 @@ if [[ -z "$JAVA_EXEC" ]]; then
       # Activate the downloaded JDK giving it its proper name
       mv "$TDIR/jdks/$javaVersion.tmp" "$TDIR/jdks/$javaVersion"
       # Set the current JDK
-      ${JAVA_EXEC} -classpath "${jarPath}" dev.jbang.Main jdk default $javaVersion
+      "${JAVA_EXEC}" -classpath "${jarPath}" dev.jbang.Main jdk default "$javaVersion"
     fi
   fi
 fi
@@ -226,8 +219,11 @@ fi
 
 ## run it using command substitution to have just the user process once jbang is done
 export JBANG_RUNTIME_SHELL=bash
-export JBANG_STDIN_NOTTY=$([ -t 0 ] && echo "false" || echo "true")
-output=$(CLICOLOR_FORCE=1 ${JAVA_EXEC} ${JBANG_JAVA_OPTIONS} -classpath "${jarPath}" dev.jbang.Main "$@")
+JBANG_STDIN_NOTTY=$([ -t 0 ] && echo "false" || echo "true")
+export JBANG_STDIN_NOTTY
+export JBANG_LAUNCH_CMD=$0
+# shellcheck disable=SC2086
+output=$(CLICOLOR_FORCE=1 "${JAVA_EXEC}" ${JBANG_JAVA_OPTIONS} -classpath "${jarPath}" dev.jbang.Main "$@")
 err=$?
 if [ $err -eq 255 ]; then
   eval "exec $output"

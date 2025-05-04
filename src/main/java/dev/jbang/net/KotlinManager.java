@@ -14,15 +14,14 @@ import dev.jbang.util.Util;
 
 public class KotlinManager {
 	private static final String KOTLIN_DOWNLOAD_URL = "https://github.com/JetBrains/kotlin/releases/download/v%s/kotlin-compiler-%s.zip";
-	public static final String DEFAULT_KOTLIN_VERSION = "1.6.10";
+	public static final String DEFAULT_KOTLIN_VERSION = "2.0.21";
 
 	public static String resolveInKotlinHome(String cmd, String requestedVersion) {
 		Path kotlinHome = getKotlin(requestedVersion);
 		if (kotlinHome != null) {
-			if (Util.isWindows()) {
-				cmd = cmd + ".exe";
-			}
-			return kotlinHome.resolve("bin").resolve(cmd).toAbsolutePath().toString();
+			Path dir = kotlinHome.toAbsolutePath().resolve("bin");
+			Path cmdPath = Util.searchPath(cmd, dir.toString());
+			return cmdPath != null ? cmdPath.toString() : cmd;
 		}
 		return cmd;
 	}

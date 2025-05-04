@@ -14,22 +14,27 @@ endif::[]
 
 toc::[]
 
-JBang try and have decent defaults, for the cases where they do not fit you can use `jbang config` to setup better defaults.
+JBang tries to have decent defaults, for the cases where they do not fit you can use `jbang config` to set up better defaults.
 
-Example, the default editor for `jbang edit` is calculated but sometimes you want it to be one specfic editor. Instead of writing `jbang edit --open=code hello.java` to say it is `code` you want open with, you can use `jbang config set edit.open=code`. When you have done that then `jbang edit hello.java` is all that is needed - JBang will now use `code` as the default editor.
+Example, the default editor for `jbang edit` is automatically determined, but sometimes you want it to be one specific editor. Instead of writing `jbang edit --open=code hello.java` to say it is `code` you want open with, you can use `jbang config set edit.open=code`. When you have done that then `jbang edit hello.java` is all that is needed - JBang will now use `code` as the default editor.
 
 == Configure default value for every argument
 
 If you noticed it what JBang configuration does is to map a configuration key to a command line argument. Meaning any command and its command line arguments can be given default values to change the default behavior of jbang. i.e. `edit.open` is the `--open` argument to `edit` command.
 
-You can see all the available keys by running `jbang config list --show-available` and if you want to see the current default values use `jbang config list`.
+Basically any option can be set by taking the full name of the command, which for example is `run` for `jbang run` and `app.list` for `jbang app list`, together with the name of the option without any dashes. So the option `--format` for `jbang app list` becomes `app.list.format`, and `--jdk-providers` for `build` becomes `build.jdkproviders`.
+
+You can see all the available keys by running `jbang config list --show-available` and if you want to see the current values use `jbang config list`.
+
+Additionally, any option can be set by simply using its name, this is especially useful when there are several commands that all have the same option, and you want ot set them all. So if we take the example above where we set the `app.list.format`, we can also simply use `jbang config set format json`. But that will affect _all_ commands that have a format option, like `alias list`, `catalog list`, `jdk list` and others.
+
+In the case that you set both a simple value, like `format`, and a fully named value, like `app.list.format`, the most specific one takes precedence.
 
 == Local vs Global configuration
 
-JBang has a built-in default value and any config setting will by default be set on a global scope. Meaning it will apply to any `jbang` run. The default location for this is at `~/.jbang/jbang.properties`.
+JBang has built-in default values and any config setting will by default be set on a global scope. Meaning it will apply to any `jbang` run. The default location for this is at `~/.jbang/jbang.properties`.
 
-If you want to have local settings that only apply within a certain diretory tree simply go that directory and run `jbang config set --file=. edit.open idea`. Then JBang stores settings in a local `jbang.properties`
-wihch will override any global setting.
+If you want to have local settings that only apply within a certain directory tree simply go into that directory and run, for example, `jbang config set --file=. edit.open idea`. Then JBang will store that setting in a local `jbang.properties` file which will override any global setting.
 
 To see which keys are configured where and in what order run `jbang config list --show-origin` and you will get something like:
 
@@ -45,5 +50,55 @@ classpath:/jbang.properties
    wrapper.install.dir = .
 ```
 
+== Proxy configuration
 
+If you use proxies there are a few settings to apply to make JBang *fully* work with proxies. Unfortunately Java treats proxy setup a little bit different based on OS and environment.
+
+
+First the proxy settings for bash/zsh scripting part (needed if jbang nor java is not already installed). If you use Windows, OSX or Gnome Linux and have proxy configured it *should* just but if not setting the `http_proxy` and `https_proxy` environment variables will enable JBang scripts to access the proxy. For example:
+
+```bash
+http_proxy=http://proxyhost:8888
+https_proxy=http://proxyhost:8888
+```
+
+Second the proxy settings for Java itself. This is done by setting the `JAVA_TOOL_OPTIONS` environment variable. For systems with proxy setup built in you can use system proxies like this:
+
+```bash
+JAVA_TOOL_OPTIONS="-D-Djava.net.useSystemProxies=true"
+```
+
+if that does not work set it using Java http.proxy properties:
+
+```bash
+export JAVA_TOOL_OPTIONS="-Dhttp.proxyHost=proxyhost -Dhttp.proxyPort=8888 -Dhttps.proxyHost=proxyhost -Dhttps.proxyPort=8888"
+```
+
+Finally JBang uses maven resolver to download dependencies. Maven resolver uses the `settings.xml` file to configure proxies. The `settings.xml` file is usually located in `~/.m2/settings.xml`. For example:
+
+```xml
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                              http://maven.apache.org/xsd/settings-1.0.0.xsd">
+    <proxies>
+        <!-- For HTTP -->
+        <proxy>
+            <id>http-proxy</id>
+            <active>true</active>
+            <protocol>http</protocol>
+            <host>proxyhost</host>
+            <port>8888</port>
+        </proxy>
+        <!-- For HTTPS -->
+        <proxy>
+            <id>https-proxy</id>
+            <active>true</active>
+            <protocol>https</protocol>
+            <host>proxyhost</host>
+            <port>8888</port>
+        </proxy>
+    </proxies>
+</settings>
+```
 

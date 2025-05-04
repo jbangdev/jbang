@@ -1,29 +1,19 @@
 package dev.jbang.source;
 
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
-import dev.jbang.dependencies.DependencyUtil;
-import dev.jbang.dependencies.MavenRepo;
-import dev.jbang.source.resolvers.SiblingResourceResolver;
 import dev.jbang.source.sources.*;
 import dev.jbang.source.sources.KotlinSource;
 import dev.jbang.source.sources.MarkdownSource;
-import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 /**
@@ -38,69 +28,74 @@ import dev.jbang.util.Util;
  */
 public abstract class Source {
 
-	private static final String DEPS_COMMENT_PREFIX = "//DEPS ";
-	private static final String FILES_COMMENT_PREFIX = "//FILES ";
-	private static final String SOURCES_COMMENT_PREFIX = "//SOURCES ";
-	private static final String DESCRIPTION_COMMENT_PREFIX = "//DESCRIPTION ";
-	private static final String GAV_COMMENT_PREFIX = "//GAV ";
-
-	private static final String DEPS_ANNOT_PREFIX = "@Grab(";
-	private static final Pattern DEPS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
-	private static final Pattern DEPS_ANNOT_SINGLE = Pattern.compile("@Grab\\(\\s*\"(?<value>.*)\"\\s*\\)");
-
-	private static final String REPOS_COMMENT_PREFIX = "//REPOS ";
-	private static final String REPOS_ANNOT_PREFIX = "@GrabResolver(";
-	private static final Pattern REPOS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
-	private static final Pattern REPOS_ANNOT_SINGLE = Pattern.compile("@GrabResolver\\(\\s*\"(?<value>.*)\"\\s*\\)");
-
 	private final ResourceRef resourceRef;
 	private final String contents;
-	private final Function<String, String> replaceProperties;
+	protected final TagReader tagReader;
 
-	// Cached values
-	private List<String> lines;
+	public enum Type {
+		java("java", "java"), jshell("jsh", "java"),
+		kotlin("kt", "kotlin"), groovy("groovy", "groovy"),
+		markdown("md", "java");
+
+		public final String extension;
+		public final String sourceFolder;
+
+		Type(String extension, String sourceFolder) {
+			this.extension = extension;
+			this.sourceFolder = sourceFolder;
+		}
+
+		public static List<String> extensions() {
+			return Arrays.stream(values()).map(v -> v.extension).collect(Collectors.toList());
+		}
+	}
 
 	public Source(String contents, Function<String, String> replaceProperties) {
 		this(ResourceRef.nullRef, contents, replaceProperties);
 	}
 
 	protected Source(ResourceRef resourceRef, Function<String, String> replaceProperties) {
-		this(resourceRef, Util.readFileContent(resourceRef.getFile().toPath()), replaceProperties);
+		this(resourceRef, Util.readFileContent(resourceRef.getFile()), replaceProperties);
 	}
 
-	protected Source(ResourceRef resourceRef, String content, Function<String, String> replaceProperties) {
+	protected Source(ResourceRef resourceRef, String contents, Function<String, String> replaceProperties) {
 		this.resourceRef = resourceRef;
-		this.contents = content;
-		this.replaceProperties = replaceProperties != null ? replaceProperties : Function.identity();
+		this.contents = contents;
+		this.tagReader = createTagReader(contents, replaceProperties);
 	}
 
-	public abstract List<String> getCompileOptions();
+	protected TagReader createTagReader(String contents, Function<String, String> replaceProperties) {
+		return new TagReader.Extended(contents, replaceProperties);
+	}
 
-	public abstract List<String> getRuntimeOptions();
+	@Nonnull
+	public Stream<String> getTags() {
+		return tagReader.getTags();
+	}
 
-	public abstract Builder getBuilder(SourceSet ss, RunContext ctx);
+	public abstract @Nonnull Type getType();
+
+	protected List<String> collectBinaryDependencies() {
+		return tagReader.collectBinaryDependencies();
+	}
+
+	protected List<String> collectSourceDependencies() {
+		return tagReader.collectSourceDependencies();
+	}
+
+	protected abstract List<String> getCompileOptions();
+
+	protected abstract List<String> getNativeOptions();
+
+	protected abstract List<String> getRuntimeOptions();
+
+	public abstract Builder<CmdGeneratorBuilder> getBuilder(BuildContext ctx);
 
 	public ResourceRef getResourceRef() {
 		return resourceRef;
 	}
 
-	public String getContents() {
-		return contents;
-	}
-
-	public Stream<String> getLines() {
-		if (lines == null && contents != null) {
-			lines = Arrays.asList(contents.split("\\r?\\n"));
-		}
-		return lines.stream();
-	}
-
-	public Stream<String> getTags() {
-		// TODO: Insert `.takeWhile(s -> Util.isBlankString(s) || s.startsWith("//"))`
-		// once we support at least Java 9
-		return getLines().filter(s -> s.startsWith("//"));
-	}
-
+	@Nonnull
 	public Optional<String> getJavaPackage() {
 		if (contents != null) {
 			return Util.getSourcePackage(contents);
@@ -109,258 +104,28 @@ public abstract class Source {
 		}
 	}
 
-	public List<String> collectDependencies() {
-		return getLines()	.filter(Source::isDependDeclare)
-							.flatMap(Source::extractDependencies)
-							.map(replaceProperties)
-							.collect(Collectors.toList());
-	}
-
-	static boolean isDependDeclare(String line) {
-		return line.startsWith(DEPS_COMMENT_PREFIX) || line.contains(DEPS_ANNOT_PREFIX);
-	}
-
-	static Stream<String> extractDependencies(String line) {
-		if (line.startsWith(DEPS_COMMENT_PREFIX)) {
-			return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
-		}
-
-		if (line.contains(DEPS_ANNOT_PREFIX)) {
-			int commentOrEnd = line.indexOf("//");
-			if (commentOrEnd < 0) {
-				commentOrEnd = line.length();
-			}
-			if (line.indexOf(DEPS_ANNOT_PREFIX) > commentOrEnd) {
-				// ignore if on line that is a comment
-				return Stream.of();
-			}
-
-			Map<String, String> args = new HashMap<>();
-
-			Matcher matcher = DEPS_ANNOT_PAIRS.matcher(line);
-			while (matcher.find()) {
-				args.put(matcher.group("key"), matcher.group("value"));
-			}
-			if (!args.isEmpty()) {
-				// groupId:artifactId:version[:classifier][@type]
-				String gav = Stream.of(
-						args.get("group"),
-						args.get("module"),
-						args.get("version"),
-						args.get("classifier")).filter(Objects::nonNull).collect(Collectors.joining(":"));
-				if (args.containsKey("ext")) {
-					gav = gav + "@" + args.get("ext");
-				}
-				return Stream.of(gav);
-			} else {
-				matcher = DEPS_ANNOT_SINGLE.matcher(line);
-				if (matcher.find()) {
-					return Stream.of(matcher.group("value"));
-				}
-			}
-		}
-
-		return Stream.of();
-	}
-
-	public List<KeyValue> collectAgentOptions() {
-		return collectRawOptions("JAVAAGENT")	.stream()
-												.flatMap(Source::extractKeyValue)
-												.map(Source::toKeyValue)
-												.collect(Collectors.toCollection(ArrayList::new));
-	}
-
-	static Stream<String> extractKeyValue(String line) {
-		return Arrays.stream(line.split(" +")).map(String::trim);
-	}
-
-	static public KeyValue toKeyValue(String line) {
-
-		String[] split = line.split("=");
-		String key;
-		String value = null;
-
-		if (split.length == 1) {
-			key = split[0];
-		} else if (split.length == 2) {
-			key = split[0];
-			value = split[1];
-		} else {
-			throw new IllegalStateException("Invalid key/value: " + line);
-		}
-		return new KeyValue(key, value);
-	}
-
 	public boolean isAgent() {
-		return !collectAgentOptions().isEmpty();
-	}
-
-	public List<MavenRepo> collectRepositories() {
-		return getLines()	.filter(Source::isRepoDeclare)
-							.flatMap(Source::extractRepositories)
-							.map(replaceProperties)
-							.map(DependencyUtil::toMavenRepo)
-							.collect(Collectors.toCollection(ArrayList::new));
-	}
-
-	static boolean isRepoDeclare(String line) {
-		return line.startsWith(REPOS_COMMENT_PREFIX) || line.contains(REPOS_ANNOT_PREFIX);
-	}
-
-	static Stream<String> extractRepositories(String line) {
-		if (line.startsWith(REPOS_COMMENT_PREFIX)) {
-			return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
-		}
-
-		if (line.contains(REPOS_ANNOT_PREFIX)) {
-			if (line.indexOf(REPOS_ANNOT_PREFIX) > line.indexOf("//")) {
-				// ignore if on line that is a comment
-				return Stream.of();
-			}
-
-			Map<String, String> args = new HashMap<>();
-
-			Matcher matcher = REPOS_ANNOT_PAIRS.matcher(line);
-			while (matcher.find()) {
-				args.put(matcher.group("key"), matcher.group("value"));
-			}
-			if (!args.isEmpty()) {
-				String repo = args.getOrDefault("name", args.get("root")) + "=" + args.get("root");
-				return Stream.of(repo);
-			} else {
-				matcher = REPOS_ANNOT_SINGLE.matcher(line);
-				if (matcher.find()) {
-					return Stream.of(matcher.group("value"));
-				}
-			}
-		}
-
-		return Stream.of();
-	}
-
-	public Optional<String> getDescription() {
-		String desc = getTags()	.filter(Source::isDescriptionDeclare)
-								.map(s -> s.substring(DESCRIPTION_COMMENT_PREFIX.length()))
-								.collect(Collectors.joining("\n"));
-		if (desc.isEmpty()) {
-			return Optional.empty();
-		} else {
-			return Optional.of(desc);
-		}
-	}
-
-	static boolean isDescriptionDeclare(String line) {
-		return line.startsWith(DESCRIPTION_COMMENT_PREFIX);
-	}
-
-	public Optional<String> getGav() {
-		List<String> gavs = getTags()	.filter(Source::isGavDeclare)
-										.map(s -> s.substring(GAV_COMMENT_PREFIX.length()))
-										.collect(Collectors.toList());
-		if (gavs.isEmpty()) {
-			return Optional.empty();
-		} else {
-			if (gavs.size() > 1) {
-				Util.warnMsg(
-						"Multiple //GAV lines found, only one should be defined in a source file. Using the first");
-			}
-			String maybeGav = DependencyUtil.gavWithVersion(gavs.get(0));
-			if (!DependencyUtil.looksLikeAGav(maybeGav)) {
-				throw new IllegalArgumentException(
-						"//GAV line has wrong format, should be '//GAV groupid:artifactid[:version]'");
-			}
-			return Optional.of(gavs.get(0));
-		}
-	}
-
-	static boolean isGavDeclare(String line) {
-		return line.startsWith(GAV_COMMENT_PREFIX);
-	}
-
-	protected List<String> collectOptions(String prefix) {
-		List<String> options = collectRawOptions(prefix);
-
-		// convert quoted content to list of strings as
-		// just passing "--enable-preview --source 14" fails
-		return Code.quotedStringToList(String.join(" ", options));
-	}
-
-	private List<String> collectRawOptions(String prefix) {
-		String joptsPrefix = "//" + prefix;
-		List<String> javaOptions = getTags()
-											.map(it -> it.split(" // ")[0]) // strip away nested comments.
-											.filter(it -> it.startsWith(joptsPrefix + " ")
-													|| it.startsWith(joptsPrefix + "\t") || it.equals(joptsPrefix))
-											.map(it -> it.replaceFirst(joptsPrefix, "").trim())
-											.collect(Collectors.toList());
-
-		String envOptions = System.getenv("JBANG_" + prefix);
-		if (envOptions != null) {
-			javaOptions.add(envOptions);
-		}
-		return javaOptions;
+		return !tagReader.collectAgentOptions().isEmpty();
 	}
 
 	public boolean enableCDS() {
-		return !collectRawOptions("CDS").isEmpty();
+		return !tagReader.collectRawOptions("CDS").isEmpty();
 	}
 
-	public String getJavaVersion() {
-		Optional<String> version = collectJavaVersions().stream()
-														.filter(JavaUtil::checkRequestedVersion)
-														.max(new JavaUtil.RequestedVersionComparator());
-		return version.orElse(null);
+	public boolean enablePreview() {
+		return !tagReader.collectRawOptions("PREVIEW").isEmpty();
 	}
 
-	private List<String> collectJavaVersions() {
-		return collectOptions("JAVA");
+	public boolean disableIntegrations() {
+		return !tagReader.collectRawOptions("NOINTEGRATIONS").isEmpty();
 	}
 
-	public List<RefTarget> collectFiles() {
-		return collectFiles(new SiblingResourceResolver(resourceRef, ResourceResolver.forResources()));
-	}
-
-	public List<RefTarget> collectFiles(ResourceResolver siblingResolver) {
-		return getTags().filter(f -> f.startsWith(FILES_COMMENT_PREFIX))
-						.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
-												.skip(1)
-												.map(String::trim))
-						.map(replaceProperties)
-						.map(f -> toFileRef(f, siblingResolver))
-						.collect(Collectors.toCollection(ArrayList::new));
-	}
-
-	private RefTarget toFileRef(String fileReference, ResourceResolver siblingResolver) {
-		return RefTarget.create(fileReference, siblingResolver);
-	}
-
-	public List<Source> collectSources() {
-		return collectSources(new SiblingResourceResolver(resourceRef, ResourceResolver.forResources()));
-	}
-
-	public List<Source> collectSources(ResourceResolver siblingResolver) {
-		if (getContents() == null) {
-			return Collections.emptyList();
-		} else {
-			String org = getResourceRef().getOriginalResource();
-			Path baseDir = org != null ? getResourceRef().getFile().getAbsoluteFile().getParentFile().toPath()
-					: Util.getCwd();
-			return getTags().filter(f -> f.startsWith(SOURCES_COMMENT_PREFIX))
-							.flatMap(line -> Arrays	.stream(line.split(" // ")[0].split("[ ;,]+"))
-													.skip(1)
-													.map(String::trim))
-							.map(replaceProperties)
-							.flatMap(line -> Util.explode(org, baseDir, line).stream())
-							.map(ref -> forResource(siblingResolver, ref, replaceProperties))
-							.collect(Collectors.toCollection(ArrayList::new));
-		}
-	}
-
-	public static Source forResource(String resource, Function<String, String> replaceProperties) {
+	// Used only by tests
+	static Source forResource(String resource, Function<String, String> replaceProperties) {
 		return forResource(ResourceResolver.forResources(), resource, replaceProperties);
 	}
 
-	public static Source forResource(ResourceResolver resolver, String resource,
+	static Source forResource(ResourceResolver resolver, String resource,
 			Function<String, String> replaceProperties) {
 		ResourceRef resourceRef = resolver.resolve(resource);
 		if (resourceRef == null) {
@@ -370,14 +135,15 @@ public abstract class Source {
 	}
 
 	public static Source forResourceRef(ResourceRef resourceRef, Function<String, String> replaceProperties) {
-		String originalResource = resourceRef.getOriginalResource();
-		if (originalResource != null && originalResource.endsWith(".kt")) {
+		String ext = resourceRef.getExtension();
+		if (ext.equals("kt")) {
 			return new KotlinSource(resourceRef, replaceProperties);
-		}
-		if (originalResource != null && originalResource.endsWith(".md")) {
-			return MarkdownSource.create(resourceRef, replaceProperties);
-		} else if (originalResource != null && originalResource.endsWith(".groovy")) {
+		} else if (ext.equals("groovy")) {
 			return new GroovySource(resourceRef, replaceProperties);
+		} else if (ext.equals("jsh")) {
+			return new JshSource(resourceRef, replaceProperties);
+		} else if (ext.equals("md")) {
+			return MarkdownSource.create(resourceRef, replaceProperties);
 		} else {
 			return new JavaSource(resourceRef, replaceProperties);
 		}

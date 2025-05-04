@@ -1,18 +1,14 @@
 package dev.jbang.cli;
 
 import static dev.jbang.util.TestUtil.clearSettingsCaches;
+import static dev.jbang.util.Util.entry;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.aMapWithSize;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.AbstractMap;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,8 +19,6 @@ import dev.jbang.catalog.Catalog;
 import dev.jbang.catalog.Template;
 import dev.jbang.catalog.TemplateProperty;
 import dev.jbang.util.Util;
-
-import picocli.CommandLine;
 
 public class TestTemplate extends BaseTest {
 
@@ -70,7 +64,7 @@ public class TestTemplate extends BaseTest {
 			"}";
 
 	@BeforeEach
-	void init() throws IOException {
+	void initEach() throws IOException {
 		Files.write(jbangTempDir.resolve(Catalog.JBANG_CATALOG_JSON), templates.getBytes());
 		Util.setCwd(Files.createDirectory(cwdDir.resolve("test")));
 	}
@@ -92,8 +86,7 @@ public class TestTemplate extends BaseTest {
 		Path testFile = cwd.resolve("test.java");
 		Files.write(testFile, "// Test file".getBytes());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
-		JBang jbang = new JBang();
-		new CommandLine(jbang).execute("template", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
+		JBang.getCommandLine().execute("template", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
 				is(true));
 		Template name = Template.get("name");
@@ -108,9 +101,9 @@ public class TestTemplate extends BaseTest {
 		Path testFile = cwd.resolve("test.java");
 		Files.write(testFile, "// Test file".getBytes());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
-		JBang jbang = new JBang();
-		new CommandLine(jbang).execute("template", "add", "-f", cwd.toString(), "--name=name",
-				"-d", "Description of the template", testFile.toString());
+		JBang.getCommandLine()
+			.execute("template", "add", "-f", cwd.toString(), "--name=name",
+					"--description", "Description of the template", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
 				is(true));
 		Template name = Template.get("name");
@@ -125,8 +118,7 @@ public class TestTemplate extends BaseTest {
 		Path hiddenJBangPath = Paths.get(cwd.toString(), Settings.JBANG_DOT_DIR);
 		Files.createDirectory(hiddenJBangPath);
 		Files.createFile(Paths.get(cwd.toString(), Settings.JBANG_DOT_DIR, Catalog.JBANG_CATALOG_JSON));
-		JBang jbang = new JBang();
-		new CommandLine(jbang).execute("template", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
+		JBang.getCommandLine().execute("template", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
 		Catalog catalog = Catalog.get(hiddenJBangPath);
 		Template name = catalog.templates.get("name");
@@ -140,9 +132,9 @@ public class TestTemplate extends BaseTest {
 		Path cwd = Util.getCwd();
 		Path testFile = cwd.resolve("test.java");
 		Files.write(testFile, "// Test file".getBytes());
-		JBang jbang = new JBang();
-		new CommandLine(jbang).execute("template", "add", "-f", cwd.toString(), "--name=name",
-				testFile.toString());
+		JBang.getCommandLine()
+			.execute("template", "add", "-f", cwd.toString(), "--name=name",
+					testFile.toString());
 		Template one = Template.get("one");
 		Template name = Template.get("name");
 		assertThat(one.fileRefs, aMapWithSize(3));
@@ -151,6 +143,36 @@ public class TestTemplate extends BaseTest {
 		assertThat(name.fileRefs, aMapWithSize(1));
 		assertThat(name.fileRefs.keySet(), hasItems("{basename}.java"));
 		assertThat(name.fileRefs.values(), hasItems("test.java"));
+	}
+
+	@Test
+	void testAddExisting() throws IOException {
+		Path cwd = Util.getCwd();
+		Path testFile = cwd.resolve("test.java");
+		Files.write(testFile, "// Test file".getBytes());
+		Path testFile2 = cwd.resolve("test2.java");
+		Files.write(testFile2, "// Test file 2".getBytes());
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		int exitCode = JBang.getCommandLine()
+			.execute("template", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
+		assertThat(exitCode, equalTo(BaseCommand.EXIT_OK));
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
+				is(true));
+		Template name = Template.get("name");
+		assertThat(name.fileRefs, aMapWithSize(1));
+		assertThat(name.fileRefs.keySet(), hasItems("{basename}.java"));
+		assertThat(name.fileRefs.values(), hasItems("test.java"));
+		exitCode = JBang.getCommandLine()
+			.execute("template", "add", "-f", cwd.toString(), "--name=name", testFile2.toString());
+		assertThat(exitCode, equalTo(BaseCommand.EXIT_INVALID_INPUT));
+		exitCode = JBang.getCommandLine()
+			.execute("template", "add", "-f", cwd.toString(), "--name=name", "--force",
+					testFile2.toString());
+		assertThat(exitCode, equalTo(BaseCommand.EXIT_OK));
+		name = Template.get("name");
+		assertThat(name.fileRefs, aMapWithSize(1));
+		assertThat(name.fileRefs.keySet(), hasItems("{basename}.java"));
+		assertThat(name.fileRefs.values(), hasItems("test2.java"));
 	}
 
 	@Test
@@ -188,21 +210,21 @@ public class TestTemplate extends BaseTest {
 		assertThat(template.fileRefs.keySet(), hasItems("src/{filename}", "src/file2.java"));
 		assertThat(template.fileRefs.values(), hasItems("tpl2/file2_1.java", "tpl2/file2_2.java"));
 		assertThat(template.properties.entrySet(), hasItems(
-				new AbstractMap.SimpleEntry<>("test-key", new TemplateProperty(null, null)),
-				new AbstractMap.SimpleEntry<>("test-key-with-description",
+				entry("test-key", new TemplateProperty(null, null)),
+				entry("test-key-with-description",
 						new TemplateProperty("This is a test description", null)),
-				new AbstractMap.SimpleEntry<>("test-key-with-description-and-default-value",
+				entry("test-key-with-description-and-default-value",
 						new TemplateProperty("This is a test description with default value", "2.11")),
-				new AbstractMap.SimpleEntry<>("test-key-with-default-value", new TemplateProperty(null, "3.12"))));
+				entry("test-key-with-default-value", new TemplateProperty(null, "3.12"))));
 	}
 
 	@Test
 	void testAddFailAbsolute() throws IOException {
 		Path cwd = Util.getCwd();
 		Path testFile = Files.createFile(cwd.resolve("file1.java"));
-		int result = JBang	.getCommandLine()
-							.execute("template", "add", "-f", cwd.toString(), "--name=name",
-									"/test=" + testFile.toString());
+		int result = JBang.getCommandLine()
+			.execute("template", "add", "-f", cwd.toString(), "--name=name",
+					"/test=" + testFile.toString());
 		assertThat(result, is(2));
 	}
 
@@ -210,9 +232,9 @@ public class TestTemplate extends BaseTest {
 	void testAddFailParent() throws IOException {
 		Path cwd = Util.getCwd();
 		Path testFile = Files.createFile(cwd.resolve("file1.java"));
-		int result = JBang	.getCommandLine()
-							.execute("template", "add", "-f", cwd.toString(), "--name=name",
-									"test/../..=" + testFile.toString());
+		int result = JBang.getCommandLine()
+			.execute("template", "add", "-f", cwd.toString(), "--name=name",
+					"test/../..=" + testFile.toString());
 		assertThat(result, is(2));
 	}
 
@@ -220,9 +242,9 @@ public class TestTemplate extends BaseTest {
 	void testAddFailNoTargetPattern() throws IOException {
 		Path cwd = Util.getCwd();
 		Path testFile = Files.createFile(cwd.resolve("file1.java"));
-		int result = JBang	.getCommandLine()
-							.execute("template", "add", "-f", cwd.toString(), "--name=name",
-									"test=" + testFile.toString());
+		int result = JBang.getCommandLine()
+			.execute("template", "add", "-f", cwd.toString(), "--name=name",
+					"test=" + testFile.toString());
 		assertThat(result, is(2));
 	}
 
@@ -232,14 +254,14 @@ public class TestTemplate extends BaseTest {
 		Path testFile = cwd.resolve("test.java");
 		Files.write(testFile, "// Test file".getBytes());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
-		JBang jbang = new JBang();
-		new CommandLine(jbang).execute("template", "add", "-f", cwd.toString(), "--name=template-with-single-property",
-				"-d", "Description of the template", "-P", "new-test-key", testFile.toString());
+		JBang.getCommandLine()
+			.execute("template", "add", "-f", cwd.toString(), "--name=template-with-single-property",
+					"--description", "Description of the template", "-P", "new-test-key", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
 				is(true));
 		Template name = Template.get("template-with-single-property");
 		assertThat(name.properties.entrySet(), hasItems(
-				new AbstractMap.SimpleEntry<>("new-test-key", new TemplateProperty(null, null))));
+				entry("new-test-key", new TemplateProperty(null, null))));
 	}
 
 	@Test
@@ -248,16 +270,16 @@ public class TestTemplate extends BaseTest {
 		Path testFile = cwd.resolve("test.java");
 		Files.write(testFile, "// Test file".getBytes());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
-		JBang jbang = new JBang();
-		new CommandLine(jbang).execute("template", "add", "-f", cwd.toString(),
-				"--name=template-with-single-complex-property",
-				"-d", "Description of the template", "-P",
-				"new-test-key:This is a description for the property key:3.14", testFile.toString());
+		JBang.getCommandLine()
+			.execute("template", "add", "-f", cwd.toString(),
+					"--name=template-with-single-complex-property",
+					"--description", "Description of the template", "-P",
+					"new-test-key:This is a description for the property key:3.14", testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
 				is(true));
 		Template name = Template.get("template-with-single-complex-property");
 		assertThat(name.properties.entrySet(), hasItems(
-				new AbstractMap.SimpleEntry<>("new-test-key",
+				entry("new-test-key",
 						new TemplateProperty("This is a description for the property key", "3.14"))));
 	}
 
@@ -267,20 +289,20 @@ public class TestTemplate extends BaseTest {
 		Path testFile = cwd.resolve("test.java");
 		Files.write(testFile, "// Test file".getBytes());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
-		JBang jbang = new JBang();
-		new CommandLine(jbang).execute("template", "add", "-f", cwd.toString(),
-				"--name=template-with-complex-properties",
-				"-d", "Description of the template", "-P",
-				"new-test-key:This is a description for the property key:3.14", "--property",
-				"second-test-key:This is another description for the second property key:Non-Blocker",
-				testFile.toString());
+		JBang.getCommandLine()
+			.execute("template", "add", "-f", cwd.toString(),
+					"--name=template-with-complex-properties",
+					"--description", "Description of the template", "-P",
+					"new-test-key:This is a description for the property key:3.14", "--property",
+					"second-test-key:This is another description for the second property key:Non-Blocker",
+					testFile.toString());
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
 				is(true));
 		Template name = Template.get("template-with-complex-properties");
 		assertThat(name.properties.entrySet(), hasItems(
-				new AbstractMap.SimpleEntry<>("new-test-key",
+				entry("new-test-key",
 						new TemplateProperty("This is a description for the property key", "3.14")),
-				new AbstractMap.SimpleEntry<>("second-test-key", new TemplateProperty(
+				entry("second-test-key", new TemplateProperty(
 						"This is another description for the second property key", "Non-Blocker"))));
 	}
 

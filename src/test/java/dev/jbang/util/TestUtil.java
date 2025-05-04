@@ -1,14 +1,16 @@
 package dev.jbang.util;
 
+import static dev.jbang.util.Util.ConnectionConfigurator.authentication;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -20,6 +22,14 @@ import dev.jbang.catalog.Catalog;
 public class TestUtil extends BaseTest {
 	public static void clearSettingsCaches() {
 		Catalog.clearCache();
+	}
+
+	@Test
+	void testGetSourcePackage() {
+		assertEquals("blah", Util.getSourcePackage("package blah;").get());
+		assertEquals("blahpackage", Util.getSourcePackage("package blahpackage;").get());
+		assertEquals("blahpackagewonka", Util.getSourcePackage("package blahpackagewonka;").get());
+
 	}
 
 	@Test
@@ -63,6 +73,21 @@ public class TestUtil extends BaseTest {
 
 		content = "public static\nvoid\nmain(String\nargs[]) {";
 		assertTrue(Util.hasMainMethod(content));
+
+		// the Java 21 / JEP-445
+
+		content = "class HelloWorld {\n" +
+				"\tvoid main() {\n" +
+				"\t\tSystem.out.println(\"Hello world from an instance main method o/\");\n" +
+				"\t}\n" +
+				"}";
+		assertTrue(Util.hasMainMethod(content));
+
+		content = "void main() {\n" +
+				"\t\tSystem.out.println(\"Hello world from an unnamed main method o/\");\n" +
+				"\t}\n";
+		assertTrue(Util.hasMainMethod(content));
+
 	}
 
 	@Test
@@ -71,22 +96,52 @@ public class TestUtil extends BaseTest {
 
 		String source = ".";
 
-		final List<String> p = Util.explode(source, baseDir, "**/*.java");
+		final List<String> p = Util.explode(source, baseDir, "**.java");
 
 		assertThat(p, hasItem("res/resource.java"));
 		assertThat(p, not(hasItem("hello.jsh")));
+		assertThat(p, hasItem("quote.java"));
 
 		p.clear();
-		p.addAll(Util.explode(source, baseDir, "**/*.jsh"));
+		p.addAll(Util.explode(source, baseDir, "**/*.java"));
 
-		assertThat(p, not(hasItem("res/resource.java")));
-		assertThat(p, not(hasItem("test.java")));
+		assertThat(p, hasItem("res/resource.java"));
+		assertThat(p, not(hasItem("quote.java")));
+		assertThat(p, not(hasItem("main.jsh")));
 
 		p.clear();
 		p.addAll(Util.explode(source, baseDir, "res/resource.java"));
 
 		assertThat(p, containsInAnyOrder("res/resource.java"));
 		assertThat(p, not(hasItem("test.java")));
+
+	}
+
+	@Test
+	void testExplodeAbs() throws IOException {
+		Path baseDir = examplesTestFolder;
+
+		String source = ".";
+		String dir = examplesTestFolder.toString().replace('\\', '/');
+
+		final List<String> p = Util.explode(source, cwdDir, dir + "/**.java");
+
+		assertThat(p, hasItem(dir + "/res/resource.java"));
+		assertThat(p, not(hasItem(dir + "/hello.jsh")));
+		assertThat(p, hasItem(dir + "/quote.java"));
+
+		p.clear();
+		p.addAll(Util.explode(source, cwdDir, dir + "/**/*.java"));
+
+		assertThat(p, hasItem(dir + "/res/resource.java"));
+		assertThat(p, not(hasItem(dir + "/quote.java")));
+		assertThat(p, not(hasItem(dir + "/main.jsh")));
+
+		p.clear();
+		p.addAll(Util.explode(source, cwdDir, dir + "/res/resource.java"));
+
+		assertThat(p, containsInAnyOrder(dir + "/res/resource.java"));
+		assertThat(p, not(hasItem(dir + "/test.java")));
 
 	}
 
@@ -105,5 +160,18 @@ public class TestUtil extends BaseTest {
 				equalTo("token"));
 		// assertThat(Util.getDispositionFilename("inline;
 		// filename*=iso-fake-1''dummy"), equalTo(""));
+	}
+
+	@Test
+	void testUrlBasicAuth() throws IOException {
+		System.setProperty("SOME_USERNAME", "JohnDoe");
+		System.setProperty("SOME_PASSWORD", "VeryStrongPassword1");
+		URLConnection connection = new NoOpUrlConnection(
+				new URL("https://${SOME_USERNAME}:${SOME_PASSWORD}@example.com"));
+
+		authentication().configure(connection);
+
+		assertThat(connection.getRequestProperty("Authorization"),
+				equalTo("Basic Sm9obkRvZTpWZXJ5U3Ryb25nUGFzc3dvcmQx"));
 	}
 }

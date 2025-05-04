@@ -14,11 +14,18 @@ endif::[]
 
 toc::[]
 
-You can edit your script in an IDE/editor by using `jbang edit helloworld.java`. This will generate a project in a temporary location with symbolic links to your script and open a editor.
+You can edit your script in an IDE/editor by using `jbang edit helloworld.java`.
 
 [source, bash]
 ----
 jbang edit helloworld.java
+----
+
+or 
+
+[source, bash]
+----
+jbang edit . helloworld.java
 ----
 
 By default `jbang` will offer to install https://vscodium.com[VSCodium] (free/libre version of Visual Studio code) with default java extensions enabled in so called https://code.visualstudio.com/docs/editor/portable["portable mode"]. Portable mode means all the installed binaries and configuration does not affect rest of your system; everything is stored in `~/.jbang/editor`.
@@ -29,6 +36,8 @@ This automatic install and setup of editor is fully optional and if you have ano
 ----
 jbang edit --open=[editor] helloworld.java
 ----
+
+If your IDE does not support JBang style project you can use "sandbox" (`-b`) mode where `jbang` will generate a project in a temporary location with symbolic links to your script and open a editor.
 
 Finally you can also if you prefer to call the editor/IDE yourself in a shell that supports variable evaluation specify `--no-open` to tell JBang to not open an editor.
 
@@ -48,15 +57,35 @@ for your user or run your shell/terminal as administrator to have this feature w
 You can also use `jbang edit --live` and `jbang` will launch your editor while watching
 for file changes and regenerate the temporary project to pick up changes in dependencies.
 
-== IDE and Editor support
+== IDE Support
 
-The `edit` feature been tested with the following IDE's:
+Some IDE's have dedicated JBang support and `jbang edit` assumes your IDE has this support installed.
+
+If your IDE does not support JBang directly you can use "sandbox" mode a temporary project is created with
+symoblic links and a project setup that works in most Java based IDE's. This is useful for single file scripts.
+If you have multiple files we highly recommend to use a IDE that have JBang plugin.
+
+The following IDE's have dedicated support (at time of writing):
+
+:sicons: https://simpleicons.org/icons
+.IDE's with JBang support
+[width=75%,frame=none,grid=none]
+|===
+|image:{sicons}/vscodium.svg[50,50] https://vscodium.com[VSCodium] or https://code.visualstudio.com[Visual Studio Code]
+|image:{sicons}/eclipseide.svg[50,50] https://www.eclipse.org/downloads/download.php[Eclipse]
+|image:{sicons}/intellijidea.svg[50,50] https://www.jetbrains.com/idea/download[IntelliJ Idea]
+|image:{sicons}/gitpod.svg[50,50] https://www.gitpod.io[GitPod]
+|===
+
+== Sandbox edit support
+
+The sandbox `edit -b` feature using temporary directory and symbolic links been tested with the following IDE's:
 
 :sicons: https://simpleicons.org/icons
 .IDE's and Editors tested with `jbang`
 [width=75%,frame=none,grid=none]
 |===
-|image:{sicons}/visualstudiocode.svg[50,50] https://code.visualstudio.com[Visual Studio Code]
+|image:{sicons}/vscodium.svg[50,50] https://vscodium.com[VSCodium] or https://code.visualstudio.com[Visual Studio Code]
 |image:{sicons}/eclipseide.svg[50,50] https://www.eclipse.org/downloads/download.php[Eclipse]
 |image:{sicons}/intellijidea.svg[50,50] https://www.jetbrains.com/idea/download[IntelliJ Idea]
 |image:{sicons}/apachenetbeanside.svg[50,50] https://netbeans.apache.org/download/[Apache NetBeans]

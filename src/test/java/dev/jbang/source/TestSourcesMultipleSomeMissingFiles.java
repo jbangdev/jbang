@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
-import dev.jbang.cli.ExitException;
+import dev.jbang.cli.ResourceNotFoundException;
 
 class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 
@@ -104,14 +104,14 @@ class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 		TestSource.createTmpFileWithContent(HiJBangPath.getParent(), "inner", "HelloInner.java",
 				classHelloInner);
 		String scriptURL = mainPath.toString();
-		ResourceRef resourceRef = ResourceRef.forNamedFile(scriptURL, mainPath.toFile());
+		ResourceRef resourceRef = ResourceRef.forNamedFile(scriptURL, mainPath);
 		Source script = Source.forResourceRef(resourceRef, null);
-		SourceSet ss = SourceSet.forSource(script);
-		List<Source> sources = ss.getSources();
+		Project prj = Project.builder().build(script);
+		List<ResourceRef> sources = prj.getMainSourceSet().getSources();
 		assertEquals(5, sources.size());
 		TreeSet<String> fileNames = new TreeSet<>();
-		for (Source source : sources) {
-			fileNames.add(source.getResourceRef().getFile().getName());
+		for (ResourceRef source : sources) {
+			fileNames.add(source.getFile().getFileName().toString());
 		}
 		assertEquals(fileNames.pollFirst(), "A.java");
 		assertEquals(fileNames.pollFirst(), "B.java");
@@ -140,9 +140,9 @@ class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 		TestSource.createTmpFileWithContent(HiJBangPath.getParent(), "inner", "HelloInner.java",
 				classHelloInner);
 		String scriptURL = mainPath.toString();
-		ResourceRef resourceRef = ResourceRef.forNamedFile(scriptURL, mainPath.toFile());
+		ResourceRef resourceRef = ResourceRef.forNamedFile(scriptURL, mainPath);
 		Source source = Source.forResourceRef(resourceRef, null);
-		Assertions.assertThrows(ExitException.class, () -> SourceSet.forSource(source));
+		Assertions.assertThrows(ResourceNotFoundException.class, () -> Project.builder().build(source));
 	}
 
 }

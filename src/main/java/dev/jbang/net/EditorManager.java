@@ -72,10 +72,14 @@ public class EditorManager {
 
 	private static String getVSCodiumDownloadURL(String version) {
 		String os = Util.getOS().name();
+		String arch = Util.getArch().name();
 
-		if (os.equals("mac")) {
+		if (Util.isMac()) {
 			os = "darwin";
-		} else if (os.equals("windows")) {
+			if ("aarch64".equals(arch)) {
+				arch = "arm64";
+			}
+		} else if (Util.isWindows()) {
 			os = "win32";
 		}
 
@@ -83,7 +87,7 @@ public class EditorManager {
 		if (Util.isWindows() || Util.isMac()) {
 			suffix = "zip";
 		}
-		String url = String.format(CODIUM_DOWNLOAD_URL, version, os, Util.getArch().name(), version, suffix);
+		String url = String.format(CODIUM_DOWNLOAD_URL, version, os, arch, version, suffix);
 		return url;
 	}
 
@@ -92,7 +96,7 @@ public class EditorManager {
 		try {
 			Util.verboseMsg("Lookup vscodium latest version...");
 			try (InputStream is = new URL("https://api.github.com/repos/vscodium/vscodium/releases/latest")
-																											.openStream();
+				.openStream();
 					Scanner sc = new Scanner(is, "UTF-8")) {
 				String out = sc.useDelimiter("\\A").next();
 				Matcher matcher = Pattern.compile("\"tag_name\":.*?\"(.*?)\"").matcher(out);

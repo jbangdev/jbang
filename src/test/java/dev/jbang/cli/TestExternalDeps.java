@@ -2,6 +2,7 @@ package dev.jbang.cli;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.matchesPattern;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,8 +10,8 @@ import java.io.IOException;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
-import dev.jbang.source.Code;
-import dev.jbang.source.RunContext;
+import dev.jbang.source.Project;
+import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -40,19 +41,16 @@ class TestExternalDeps extends BaseTest {
 
 		Util.writeString(f.toPath(), checkdeps);
 
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "--deps", "info.picocli:picocli:4.6.1",
-													f.getPath());
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run", "--deps", "info.picocli:picocli:4.6.3",
+					f.getPath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = run.getRunContext();
-		Code code = ctx.forResource(f.getPath());
-		code = run.prepareArtifacts(code, ctx);
-
-		String result = code.cmdGenerator(ctx).generate();
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project prj = pb.build(f.getPath());
+		String result = run.updateGeneratorForRun(prj.codeBuilder().build()).build().generate();
 
 		assertThat(result, containsString("pico"));
-
 	}
 
 	@Test
@@ -61,22 +59,19 @@ class TestExternalDeps extends BaseTest {
 
 		Util.writeString(f.toPath(), checkdeps);
 
-		CommandLine.ParseResult pr = JBang	.getCommandLine()
-											.parseArgs("run", "--repos", "mavencentral", "--repos",
-													"https://jitpack.io",
-													"--deps",
-													"com.github.jbangdev.jbang-resolver:shrinkwrap-resolver-api:3.1.5-allowpom",
-													f.getPath());
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run", "--repos", "central", "--repos",
+					"https://jitpack.io",
+					"--deps",
+					"com.github.jbangdev.jbang-resolver:shrinkwrap-resolver-api:3.1.5-allowpom",
+					f.getPath());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		RunContext ctx = run.getRunContext();
-		Code code = ctx.forResource(f.getPath());
-		code = run.prepareArtifacts(code, ctx);
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project prj = pb.build(f.getPath());
+		String result = run.updateGeneratorForRun(prj.codeBuilder().build()).build().generate();
 
-		String result = code.cmdGenerator(ctx).generate();
-
-		assertThat(result, containsString("com.github.jbangdev.jbang"));
-
+		assertThat(result, matchesPattern(".*com[/\\\\]github[/\\\\]jbangdev[/\\\\]jbang.*"));
 	}
 
 }

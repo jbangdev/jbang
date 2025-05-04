@@ -26,6 +26,9 @@ public class Detector extends kr.motd.maven.os.Detector {
 		String os = properties.getProperty("os.detected.name");
 		if (os.equals("osx")) {
 			os = "mac";
+			if ("aarch64".equals(System.getProperty("os.arch"))) {
+				os = "mac-aarch64";
+			}
 		} else if (os.equals("windows")) {
 			os = "win";
 		}

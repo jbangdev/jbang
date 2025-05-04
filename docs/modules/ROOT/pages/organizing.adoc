@@ -16,8 +16,8 @@ toc::[]
 
 == Multiple source files
 
-It is possible to use multiple source files just by having the files in the same source directory, it will
-even work for a limited extent with packages.
+It is possible to use multiple source files just by having them in the same source directory. 
+To a limited extend, it also works with packages.
 
 For example the example below works by just calling `jbang Main.java`:
 
@@ -57,7 +57,7 @@ found, depth-first.
 
 The listed file name(s) gets added to source list when compiling.
 
-Currently there are not `*.java` style matching or support for these `.java` files to declare `//DEPS` or other jbang configuration.
+Currently there is no `*.java` style matching or support for `.java` files to declare `//DEPS` or other jbang configurations.
 That will currently only be honored by the main script/app. These will be loosened up in future based on feedback.
 
 == Adding more resources
@@ -74,9 +74,9 @@ Example:
 
 Here `resource.properties` will be copied as is and `META-INF/resources/index.html` gets its content from `index.html`.
 
-All locations are relative to the script location.
+NOTE: All locations need to be relative to the script location.
 
-WARNING: Currently `jbang edit` and http(s) based script do not work with `//FILES`. Will be added later.
+WARNING: Currently `jbang edit` and http(s) based script do not work with `//FILES`.
 
 == Extension-less/non-java files for cli-plugins
 

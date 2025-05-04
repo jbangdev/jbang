@@ -1,7 +1,5 @@
 package dev.jbang.util;
 
-import static java.util.Arrays.asList;
-
 import java.awt.*;
 import java.io.BufferedReader;
 import java.io.File;
@@ -21,82 +19,96 @@ import java.net.URLDecoder;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
-import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.PosixFilePermission;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Scanner;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.logging.LogManager;
+import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
 import javax.swing.*;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.parser.Parser;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
-import dev.jbang.BuildConfig;
 import dev.jbang.Cache;
+import dev.jbang.Configuration;
 import dev.jbang.Settings;
+import dev.jbang.catalog.Catalog;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
+import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.dependencies.ModularClassPath;
+import dev.jbang.source.Source;
 
 public class Util {
 
 	public static final String JBANG_JDK_VENDOR = "JBANG_JDK_VENDOR";
-	public static final String JBANG_JDK_RELEASE = "JBANG_JDK_RELEASE";
 	public static final String JBANG_RUNTIME_SHELL = "JBANG_RUNTIME_SHELL";
 	public static final String JBANG_STDIN_NOTTY = "JBANG_STDIN_NOTTY";
+	public static final String JBANG_AUTH_BASIC_USERNAME = "JBANG_AUTH_BASIC_USERNAME";
+	public static final String JBANG_AUTH_BASIC_PASSWORD = "JBANG_AUTH_BASIC_PASSWORD";
+	private static final String JBANG_DOWNLOAD_SOURCES = "JBANG_DOWNLOAD_SOURCES";
 
 	public static final Pattern patternMainMethod = Pattern.compile(
-			"^.*(public\\s+static|static\\s+public)\\s+void\\s+main\\s*\\(.*",
+			"^.*(public\\s+static|static\\s+public)\\s+void\\s+main\\s*\\(.*|void\\s+main\\s*\\(\\)",
 			Pattern.MULTILINE);
 
 	public static final Pattern mainClassMethod = Pattern.compile(
 			"(?<=\\n|\\A)(?:public\\s)\\s*(class)\\s*([^\\n\\s]*)");
 
-	public static final List<String> EXTENSIONS = asList(
-			".java",
-			".jsh",
-			".kt",
-			".groovy",
-			".md");
+	public static final Pattern patternFQCN = Pattern.compile(
+			"^([a-z][a-z0-9]*\\.)*[a-zA-Z][a-zA-Z0-9_]*$");
+
+	public static final Pattern patternModuleId = Pattern.compile(
+			"^[a-z][a-z0-9]*(\\.[a-z][a-z0-9]*)*$");
+
+	private static final Pattern subUrlPattern = Pattern.compile(
+			"^(%?%https?://.+$)|(%?%\\{[a-z]+:[^}]+})");
 
 	private static boolean verbose;
 	private static boolean quiet;
 	private static boolean offline;
 	private static boolean fresh;
+	private static boolean ignoreTransitiveRepositories;
+	private static boolean preview;
+
 	private static Path cwd;
+	private static Boolean downloadSources;
+	private static Instant startTime = Instant.now();
 
 	public static void setVerbose(boolean verbose) {
 		Util.verbose = verbose;
 		if (verbose) {
 			setQuiet(false);
 		}
+		LogManager.getLogManager()
+			.getLogger("")
+			.setLevel(verbose ? java.util.logging.Level.FINE : java.util.logging.Level.INFO);
 	}
 
 	public static boolean isVerbose() {
@@ -108,6 +120,9 @@ public class Util {
 		if (quiet) {
 			setVerbose(false);
 		}
+		LogManager.getLogManager()
+			.getLogger("")
+			.setLevel(quiet ? java.util.logging.Level.WARNING : java.util.logging.Level.INFO);
 	}
 
 	public static boolean isQuiet() {
@@ -121,8 +136,27 @@ public class Util {
 		}
 	}
 
+	public static void setIgnoreTransitiveRepositories(boolean ignoreTransitiveRepositories) {
+		Util.ignoreTransitiveRepositories = ignoreTransitiveRepositories;
+	}
+
+	public static void setDownloadSources(boolean flag) {
+		downloadSources = flag;
+	}
+
+	public static boolean downloadSources() {
+		if (downloadSources == null) {
+			downloadSources = Boolean.valueOf(System.getenv(JBANG_DOWNLOAD_SOURCES));
+		}
+		return downloadSources;
+	}
+
 	public static boolean isOffline() {
 		return offline;
+	}
+
+	public static boolean isIgnoreTransitiveRepositories() {
+		return ignoreTransitiveRepositories;
 	}
 
 	public static void setFresh(boolean fresh) {
@@ -130,6 +164,14 @@ public class Util {
 		if (fresh) {
 			setOffline(false);
 		}
+	}
+
+	public static boolean isPreview() {
+		return preview;
+	}
+
+	public static void setPreview(boolean preview) {
+		Util.preview = preview;
 	}
 
 	public static boolean isFresh() {
@@ -144,21 +186,64 @@ public class Util {
 		Util.cwd = cwd.toAbsolutePath().normalize();
 	}
 
-	public static void freshly(Runnable func) {
+	/**
+	 * Runs the given code with the global <code>fresh</code> variable set to
+	 * <code>true</code>, thereby forcing that all requests to remote resources are
+	 * actually performed and any previously cached documents are updated to their
+	 * latest versions.
+	 */
+	public static <T> T freshly(Callable<T> func) {
+		boolean oldFresh = isFresh();
 		setFresh(true);
 		try {
-			func.run();
+			return func.call();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		} finally {
-			setFresh(false);
+			setFresh(oldFresh);
+		}
+	}
+
+	/**
+	 * Runs the given code with the "cache-evict" configuration key set to a very
+	 * low value. This forces all requests to remote resources to be performed.
+	 * Cached resources will only be updated if the remote documents have actually
+	 * been updated.
+	 */
+	public static <T> T withCacheEvict(Callable<T> func) {
+		return withCacheEvict("5", func);
+	}
+
+	public static <T> T withCacheEvict(String val, Callable<T> func) {
+		return withConfig(Settings.CONFIG_CACHE_EVICT, val, func);
+	}
+
+	public static <T> T withConfig(String key, String value, Callable<T> func) {
+		Configuration cfg = Configuration.create(Configuration.instance());
+		cfg.put(key, value);
+		return withConfig(cfg, func);
+	}
+
+	public static <T> T withConfig(Configuration cfg, Callable<T> func) {
+		Configuration oldCfg = Configuration.instance();
+		Configuration.instance(cfg);
+		try {
+			return func.call();
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		} finally {
+			Configuration.instance(oldCfg);
 		}
 	}
 
 	public static String kebab2camel(String name) {
 
 		if (name.contains("-")) { // xyz-plug becomes XyzPlug
-			return Arrays	.stream(name.split("-"))
-							.map(s -> Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase())
-							.collect(Collectors.joining());
+			return Arrays.stream(name.split("-"))
+				.map(s -> Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase())
+				.collect(Collectors.joining());
 		} else {
 			return name; // xyz stays xyz
 		}
@@ -173,77 +258,148 @@ public class Util {
 		}
 	}
 
+	/**
+	 * Returns the name without extension. Will return the name itself if it has no
+	 * extension
+	 * 
+	 * @param name A file name
+	 * @return A name without extension
+	 */
 	public static String base(String name) {
 		int p = name.lastIndexOf('.');
 		return p > 0 ? name.substring(0, p) : name;
 	}
 
+	/**
+	 * Returns the name without a valid source file extension. Will return the name
+	 * itself if it has no extension or if the extension is not a valid source file
+	 * extension.
+	 * 
+	 * @param name A file name
+	 * @return A name without a source file extension
+	 */
+	public static String sourceBase(String name) {
+		for (String extension : Source.Type.extensions()) {
+			if (name.endsWith("." + extension)) {
+				return base(name);
+			}
+		}
+		return name;
+	}
+
+	/**
+	 * Returns the extension of the given file name. The extension will not include
+	 * the dot as part of the result. Returns an empty string if the name has no
+	 * extension.
+	 * 
+	 * @param name A file name
+	 * @return An extension or an empty string
+	 */
 	public static String extension(String name) {
 		int p = name.lastIndexOf('.');
 		return p > 0 ? name.substring(p + 1) : "";
 	}
 
-	static private boolean isPattern(String pattern) {
+	static public boolean isPattern(String pattern) {
 		return pattern.contains("?") || pattern.contains("*");
 	}
 
 	/**
-	 * Explodes filepattern found in baseDir returnin list of relative Path names.
-	 *
-	 * TODO: this really should return some kind of abstraction of paths that allow
-	 * it be portable for urls as wells as files...or have a filesystem for each...
-	 * 
-	 * @param source
-	 * @param baseDir
-	 * @param filepattern
-	 * @return
+	 * Explodes filePattern found in baseDir returning list of relative Path names.
+	 * If the filePattern refers to an existing folder the filePattern will be
+	 * treated as if it ended in "/**".
 	 */
-	public static List<String> explode(String source, Path baseDir, String filepattern) {
-
-		List<String> results = new ArrayList<>();
-
-		if (source != null && Util.isURL(source)) {
+	public static List<String> explode(String source, Path baseDir, String filePattern) {
+		if (source != null && isURL(source)) {
 			// if url then just return it back for others to resolve.
 			// TODO: technically this is really where it should get resolved!
-			if (isPattern(filepattern)) {
-				Util.warnMsg("Pattern " + filepattern + " used while using URL to run; this could result in errors.");
-				return results;
+			if (isPattern(filePattern)) {
+				warnMsg("Pattern " + filePattern + " used while using URL to run; this could result in errors.");
+				return Collections.emptyList();
 			} else {
-				results.add(filepattern);
+				return Collections.singletonList(filePattern);
 			}
-		} else if (Util.isURL(filepattern)) {
-			results.add(filepattern);
-		} else if (!filepattern.contains("?") && !filepattern.contains("*")) {
-			// not a pattern thus just as well return path directly
-			results.add(filepattern);
-		} else {
-			// it is a non-url letls try locate it
-			PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + filepattern);
+		} else if (isURL(filePattern)) {
+			return Collections.singletonList(filePattern);
+		}
 
-			FileVisitor<Path> matcherVisitor = new SimpleFileVisitor<Path>() {
-				@Override
-				public FileVisitResult visitFile(Path file, BasicFileAttributes attribs) {
-					Path relpath = baseDir.relativize(file);
-					if (matcher.matches(relpath)) {
-						// to avoid windows fail.
-						if (file.toFile().exists()) {
-							results.add(relpath.toString().replace("\\", "/"));
-						} else {
-							Util.verboseMsg("Warning: " + relpath + " matches but does not exist!");
-						}
-					}
-					return FileVisitResult.CONTINUE;
+		if (!isPattern(filePattern)) {
+			if (!Catalog.isValidCatalogReference(filePattern)
+					&& isValidPath(filePattern) && Files.isDirectory(baseDir.resolve(filePattern))) {
+				// The filePattern refers to a folder, so let's add "/**"
+				if (!filePattern.endsWith("/") && !filePattern.endsWith(File.separator)) {
+					filePattern = filePattern + "/";
 				}
-			};
-
-			try {
-				Files.walkFileTree(baseDir, matcherVisitor);
-			} catch (IOException e) {
-				throw new ExitException(BaseCommand.EXIT_INTERNAL_ERROR,
-						"Problem looking for " + filepattern + " in " + baseDir.toString(), e);
+				filePattern = filePattern + "**";
+			} else {
+				// not a pattern and not a folder thus just as well return path directly
+				return Collections.singletonList(filePattern);
 			}
 		}
+
+		// it is a non-url let's try to locate it
+		final Path bd;
+		final boolean useAbsPath;
+		Path base = basePathWithoutPattern(filePattern);
+		String fp;
+		if (base.isAbsolute()) {
+			bd = base;
+			fp = filePattern.substring(bd.toString().length() + 1);
+			useAbsPath = true;
+		} else {
+			bd = baseDir.resolve(base);
+			fp = base.toString().isEmpty() ? filePattern : filePattern.substring(base.toString().length() + 1);
+			useAbsPath = false;
+		}
+		PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + fp);
+
+		List<String> results = new ArrayList<>();
+		FileVisitor<Path> matcherVisitor = new SimpleFileVisitor<Path>() {
+			@Override
+			public FileVisitResult visitFile(Path file, BasicFileAttributes attribs) {
+				Path relpath = bd.relativize(file);
+				if (matcher.matches(relpath)) {
+					// to avoid windows fail.
+					if (file.toFile().exists()) {
+						Path p = useAbsPath ? file : base.resolve(relpath);
+						if (isWindows()) {
+							results.add(p.toString().replace("\\", "/"));
+						} else {
+							results.add(p.toString());
+						}
+					} else {
+						verboseMsg("Warning: " + relpath + " matches but does not exist!");
+					}
+				}
+				return FileVisitResult.CONTINUE;
+			}
+		};
+
+		try {
+			Files.walkFileTree(bd, matcherVisitor);
+		} catch (IOException e) {
+			throw new ExitException(BaseCommand.EXIT_INTERNAL_ERROR,
+					"Problem looking for " + fp + " in " + bd + ": " + e, e);
+		}
+
 		return results;
+	}
+
+	public static Path basePathWithoutPattern(String path) {
+		int p1 = path.indexOf('?');
+		int p2 = path.indexOf('*');
+		int pp = p1 < 0 ? p2 : (p2 < 0 ? p1 : Math.min(p1, p2));
+		if (pp >= 0) {
+			String npath = isWindows() ? path.replace('\\', '/') : path;
+			int ps = npath.lastIndexOf('/', pp);
+			if (ps >= 0) {
+				return Paths.get(path.substring(0, ps + 1));
+			} else {
+				return Paths.get("");
+			}
+		} else {
+			return Paths.get(path);
+		}
 	}
 
 	/**
@@ -255,8 +411,8 @@ public class Util {
 			name = name.substring(0, name.length() - 3);
 		}
 		boolean valid = false;
-		for (String extension : EXTENSIONS) {
-			valid |= name.endsWith(extension);
+		for (String extension : Source.Type.extensions()) {
+			valid |= name.endsWith("." + extension);
 		}
 		if (!valid) {
 			name = kebab2camel(name) + ".java";
@@ -269,35 +425,7 @@ public class Util {
 	}
 
 	public enum Arch {
-		x32, x64, aarch64, arm64, ppc64, ppc64le, s390x, unknown
-	}
-
-	public enum Vendor {
-		adoptopenjdk {
-			public String foojayname() {
-				return "aoj";
-			}
-		},
-		azul,
-		debian,
-		microsoft,
-		openjdk {
-			public String foojayname() {
-				return "oracle_open_jdk";
-			}
-		},
-		oracle,
-		oracle_open_jdk,
-		redhat,
-		temurin;
-
-		public String foojayname() {
-			return name();
-		}
-	}
-
-	public enum Release {
-		ga, ea
+		x32, x64, aarch64, arm, arm64, ppc64, ppc64le, s390x, riscv64, unknown
 	}
 
 	public enum Shell {
@@ -306,14 +434,14 @@ public class Util {
 
 	static public void verboseMsg(String msg) {
 		if (isVerbose()) {
-			System.err.print("[jbang] ");
+			System.err.print(getMsgHeader());
 			System.err.println(msg);
 		}
 	}
 
 	static public void verboseMsg(String msg, Throwable e) {
 		if (isVerbose()) {
-			System.err.print("[jbang] ");
+			System.err.print(getMsgHeader());
 			System.err.println(msg);
 			e.printStackTrace();
 		}
@@ -321,37 +449,39 @@ public class Util {
 
 	static public void infoMsg(String msg) {
 		if (!isQuiet()) {
-			System.err.print("[jbang] ");
+			System.err.print(getMsgHeader());
 			System.err.println(msg);
-		}
-	}
-
-	static public void infoHeader() {
-		if (!isQuiet()) {
-			System.err.print("[jbang] ");
-		}
-	}
-
-	static public void infoMsgFmt(String fmt, Object... args) {
-		if (!isQuiet()) {
-			System.err.printf(fmt, args);
 		}
 	}
 
 	static public void warnMsg(String msg) {
 		if (!isQuiet()) {
-			System.err.print("[jbang] [WARN] ");
+			System.err.print(getMsgHeader());
+			System.err.print("[WARN] ");
 			System.err.println(msg);
 		}
 	}
 
+	static public void warnMsg(String msg, Throwable verboseInfo) {
+		if (!isQuiet()) {
+			System.err.print(getMsgHeader());
+			System.err.print("[WARN] ");
+			System.err.println(msg);
+			if (isVerbose()) {
+				verboseInfo.printStackTrace();
+			}
+		}
+	}
+
 	static public void errorMsg(String msg) {
-		System.err.print("[jbang] [ERROR] ");
+		System.err.print(getMsgHeader());
+		System.err.print("[ERROR] ");
 		System.err.println(msg);
 	}
 
 	static public void errorMsg(String msg, Throwable e) {
-		System.err.print("[jbang] [ERROR] ");
+		System.err.print(getMsgHeader());
+		System.err.print("[ERROR] ");
 		if (msg != null) {
 			System.err.println(msg);
 		} else if (e.getMessage() != null) {
@@ -365,7 +495,18 @@ public class Util {
 			if (msg != null) {
 				infoMsg(e.getMessage());
 			}
-			infoMsg("Run with --verbose for more details");
+			infoMsg("Run with --verbose for more details. The --verbose must be placed before the jbang command. I.e. jbang --verbose run [...]");
+		}
+	}
+
+	static public String getMsgHeader() {
+		if (isVerbose()) {
+			Duration d = Duration.between(startTime, Instant.now());
+			long s = d.getSeconds();
+			long n = d.minus(s, ChronoUnit.SECONDS).toMillis();
+			return String.format("[jbang] [%d:%03d] ", s, n);
+		} else {
+			return "[jbang] ";
 		}
 	}
 
@@ -417,7 +558,7 @@ public class Util {
 		} else if (os.startsWith("aix")) {
 			return OS.aix;
 		} else {
-			Util.verboseMsg("Unknown OS: " + os);
+			verboseMsg("Unknown OS: " + os);
 			return OS.unknown;
 		}
 	}
@@ -430,6 +571,8 @@ public class Util {
 			return Arch.x32;
 		} else if (arch.matches("^(aarch64)$")) {
 			return Arch.aarch64;
+		} else if (arch.matches("^(arm)$")) {
+			return Arch.arm;
 		} else if (arch.matches("^(ppc64)$")) {
 			return Arch.ppc64;
 		} else if (arch.matches("^(ppc64le)$")) {
@@ -438,8 +581,10 @@ public class Util {
 			return Arch.s390x;
 		} else if (arch.matches("^(arm64)$")) {
 			return Arch.arm64;
+		} else if (arch.matches("^(riscv64)$")) {
+			return Arch.riscv64;
 		} else {
-			Util.verboseMsg("Unknown Arch: " + arch);
+			verboseMsg("Unknown Arch: " + arch);
 			return Arch.unknown;
 		}
 	}
@@ -461,63 +606,39 @@ public class Util {
 		return getOS() == OS.mac;
 	}
 
-	public static Vendor getVendor() {
-		String vendorName = System.getenv(JBANG_JDK_VENDOR);
-		if (vendorName != null) {
-			try {
-				return Vendor.valueOf(vendorName);
-			} catch (IllegalArgumentException ex) {
-				warnMsg("JDK vendor '" + vendorName + "' does not exist, should be one of: "
-						+ Arrays.toString(Vendor.values()));
-			}
-		}
-		return null;
-	}
-
-	public static Release getRelease() {
-		String releaseName = System.getenv(JBANG_JDK_RELEASE);
-		if (releaseName != null) {
-			try {
-				return Release.valueOf(releaseName);
-			} catch (IllegalArgumentException ex) {
-				warnMsg("JDK release '" + releaseName + "' does not exist, should be one of: "
-						+ Arrays.toString(Release.values()));
-			}
-		}
-		return null;
+	public static String getVendor() {
+		return System.getenv(JBANG_JDK_VENDOR);
 	}
 
 	/**
 	 * Swizzles the content retrieved from sites that are known to possibly embed
-	 * code (i.e. twitter and carbon)
+	 * code (i.e. mastodon and carbon)
 	 */
 	public static Path swizzleContent(String fileURL, Path filePath) throws IOException {
-		boolean twitter = fileURL.startsWith("https://mobile.twitter.com");
-		if (twitter || fileURL.startsWith("https://carbon.now.sh")) { // sites known
-																		// to have
-																		// og:description
-																		// meta name or
-																		// property
+		boolean mastodon = fileURL.matches("https://.*/@(\\w+)/([0-9]+)");
+		if (mastodon || fileURL.startsWith("https://carbon.now.sh") || fileURL.startsWith("https://bsky.app/")) { // sites
+																													// known
+			// to have
+			// og:description
+			// meta name or
+			// property
 			try {
 				Document doc = Jsoup.parse(filePath.toFile(), "UTF-8", fileURL);
 
 				String proposedString = null;
-				if (twitter) {
-					proposedString = doc.select("div[class=dir-ltr]").first().wholeText().trim();
-				} else {
-					proposedString = doc.select("meta[property=og:description],meta[name=og:description]")
-										.first()
-										.attr("content");
-				}
 
-				if (twitter) {
-					// remove fake quotes
-					// proposedString = proposedString.replace("\u201c", "");
-					// proposedString = proposedString.replace("\u201d", "");
-					// unescape properly
-					proposedString = Parser.unescapeEntities(proposedString, true);
+				proposedString = doc.select("meta[property=og:description],meta[name=og:description]")
+					.first()
+					.attr("content");
 
-				}
+				/*
+				 * if (twitter) { // remove fake quotes // proposedString =
+				 * proposedString.replace("\u201c", ""); // proposedString =
+				 * proposedString.replace("\u201d", ""); // unescape properly proposedString =
+				 * Parser.unescapeEntities(proposedString, true);
+				 * 
+				 * }
+				 */
 
 				if (proposedString != null) {
 					Matcher m = mainClassPattern.matcher(proposedString);
@@ -582,6 +703,71 @@ public class Util {
 	}
 
 	/**
+	 * Either retrieves a previously downloaded file from the cache or downloads a
+	 * file from a URL and stores it in the cache.
+	 *
+	 * @param fileURL HTTP URL of the file to be downloaded
+	 * @return Path to the downloaded file
+	 * @throws IOException
+	 */
+	public static Path downloadAndCacheFile(String fileURL) throws IOException {
+		Path saveDir = getUrlCacheDir(fileURL);
+		Path metaSaveDir = getCacheMetaDir(saveDir);
+		Path cachedFile = getCachedFile(saveDir);
+		if (cachedFile == null || isEvicted(cachedFile)) {
+			return downloadFileAndCache(fileURL, saveDir, metaSaveDir, cachedFile);
+		} else {
+			verboseMsg(String.format("Using cached file %s for remote %s", cachedFile, fileURL));
+			return saveDir.resolve(cachedFile);
+		}
+	}
+
+	// Returns true if the cached file doesn't exist or if its last
+	// modified time is longer ago than the configuration value
+	// indicated by "cache-evict" (defaults to "0" which will
+	// cause this method to always return "true").
+	private static boolean isEvicted(Path cachedFile) {
+		if (isOffline()) {
+			return false;
+		}
+		if (isFresh()) {
+			return true;
+		}
+		if (Files.isRegularFile(cachedFile)) {
+			long cma = Settings.getCacheEvict();
+			if (cma == 0) {
+				return true;
+			} else if (cma == -1) {
+				return false;
+			}
+			try {
+				Instant cachedLastModified = Files.getLastModifiedTime(cachedFile).toInstant();
+				Duration d = Duration.between(cachedLastModified, Instant.now());
+				return d.getSeconds() >= cma;
+			} catch (IOException e) {
+				return true;
+			}
+		} else {
+			return true;
+		}
+	}
+
+	private static Path downloadFileAndCache(String fileURL, Path saveDir, Path metaSaveDir, Path cachedFile)
+			throws IOException {
+		ConnectionConfigurator cfg = ConnectionConfigurator.all(
+				ConnectionConfigurator.userAgent(),
+				ConnectionConfigurator.authentication(),
+				ConnectionConfigurator.timeout(null),
+				ConnectionConfigurator.cacheControl(cachedFile, metaSaveDir));
+		ResultHandler handler = ResultHandler.redirects(cfg,
+				ResultHandler.handleUnmodified(cachedFile,
+						ResultHandler.throwOnError(
+								ResultHandler.downloadToTempDir(saveDir, metaSaveDir,
+										ResultHandler::downloadTo))));
+		return connect(fileURL, cfg, handler);
+	}
+
+	/**
 	 * Downloads a file from a URL
 	 *
 	 * @param fileURL HTTP URL of the file to be downloaded
@@ -589,7 +775,7 @@ public class Util {
 	 * @return Path to the downloaded file
 	 * @throws IOException
 	 */
-	public static Path downloadFile(String fileURL, File saveDir) throws IOException {
+	public static Path downloadFile(String fileURL, Path saveDir) throws IOException {
 		return downloadFile(fileURL, saveDir, -1);
 	}
 
@@ -603,95 +789,388 @@ public class Util {
 	 * @return Path to the downloaded file
 	 * @throws IOException
 	 */
-	public static Path downloadFile(String fileURL, File saveDir, int timeOut)
+	public static Path downloadFile(String fileURL, Path saveDir, Integer timeOut) throws IOException {
+		ConnectionConfigurator cfg = ConnectionConfigurator.all(
+				ConnectionConfigurator.userAgent(),
+				ConnectionConfigurator.authentication(),
+				ConnectionConfigurator.timeout(timeOut));
+		ResultHandler handler = ResultHandler.redirects(cfg,
+				ResultHandler.throwOnError(
+						ResultHandler.downloadTo(saveDir, saveDir)));
+		return connect(fileURL, cfg, handler);
+	}
+
+	static Path etagFile(Path cachedFile, Path metaSaveDir) {
+		return metaSaveDir.resolve(cachedFile.getFileName() + ".etag");
+	}
+
+	private static String safeReadEtagFile(Path cachedFile, Path metaSaveDir) {
+		Path etag = etagFile(cachedFile, metaSaveDir);
+		if (Files.isRegularFile(etag)) {
+			try {
+				return readString(etag);
+			} catch (IOException e) {
+				// Ignore
+			}
+		}
+		return null;
+	}
+
+	private static Path connect(String fileURL, ConnectionConfigurator configurator, ResultHandler resultHandler)
 			throws IOException {
-		if (Util.isOffline()) {
+		if (isOffline()) {
 			throw new FileNotFoundException("jbang is in offline mode, no remote access permitted");
 		}
 
 		URL url = new URL(fileURL);
-
 		URLConnection urlConnection = url.openConnection();
-		urlConnection.setRequestProperty("User-Agent", getAgentString());
-
-		HttpURLConnection httpConn = null;
-
-		String fileName = "";
+		configurator.configure(urlConnection);
 
 		if (urlConnection instanceof HttpURLConnection) {
-			int responseCode;
-			int redirects = 0;
-			while (true) {
-				httpConn = (HttpURLConnection) urlConnection;
-				httpConn.setInstanceFollowRedirects(false);
-				if (timeOut >= 0) {
-					httpConn.setConnectTimeout(timeOut);
-					httpConn.setReadTimeout(timeOut);
-				}
-				responseCode = httpConn.getResponseCode();
-				if (responseCode == HttpURLConnection.HTTP_MOVED_PERM ||
-						responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
-						responseCode == 307 /* TEMP REDIRECT */) {
-					if (redirects++ > 8) {
-						throw new IOException("Too many redirects");
-					}
-					String location = httpConn.getHeaderField("Location");
-					url = new URL(url, location);
-					url = new URL(swizzleURL(url.toString()));
-					fileURL = url.toExternalForm();
-					Util.verboseMsg("Redirected to: " + url); // Should be debug info
-					urlConnection = url.openConnection();
-					continue;
-				}
-				break;
+			HttpURLConnection httpConn = (HttpURLConnection) urlConnection;
+			verboseMsg(String.format("Requesting HTTP %s %s", httpConn.getRequestMethod(), httpConn.getURL()));
+			verboseMsg(String.format("Headers %s", httpConn.getRequestProperties()));
+		} else {
+			verboseMsg(String.format("Requesting %s", urlConnection.getURL()));
+		}
+
+		try {
+			return resultHandler.handle(urlConnection);
+		} finally {
+			if (urlConnection instanceof HttpURLConnection) {
+				((HttpURLConnection) urlConnection).disconnect();
 			}
+		}
+	}
 
+	interface ConnectionConfigurator {
+
+		void configure(URLConnection conn) throws IOException;
+
+		static ConnectionConfigurator all(ConnectionConfigurator... configurators) {
+			return conn -> {
+				for (ConnectionConfigurator c : configurators) {
+					c.configure(conn);
+				}
+			};
+		}
+
+		static ConnectionConfigurator userAgent() {
+			return conn -> {
+				conn.setRequestProperty("User-Agent", getAgentString());
+			};
+		}
+
+		static ConnectionConfigurator authentication() {
+			return Util::addAuthHeaderIfNeeded;
+		}
+
+		interface HttpConnectionConfigurator {
+			void configure(HttpURLConnection conn) throws IOException;
+		}
+
+		static ConnectionConfigurator forHttp(HttpConnectionConfigurator configurator) {
+			return conn -> {
+				if (conn instanceof HttpURLConnection) {
+					configurator.configure((HttpURLConnection) conn);
+				}
+			};
+		}
+
+		static ConnectionConfigurator timeout(Integer timeOut) {
+			return forHttp(conn -> {
+				int t = (timeOut != null) ? timeOut : Settings.getConnectionTimeout();
+				if (t >= 0) {
+					conn.setConnectTimeout(t);
+					conn.setReadTimeout(t);
+				}
+			});
+		}
+
+		static ConnectionConfigurator cacheControl(Path cachedFile, Path metaSaveDir) throws IOException {
+			if (cachedFile != null && !isFresh()) {
+				String cachedETag = safeReadEtagFile(cachedFile, metaSaveDir);
+				Instant lmt = Files.getLastModifiedTime(cachedFile).toInstant();
+				ZonedDateTime zlmt = ZonedDateTime.ofInstant(lmt, ZoneId.of("GMT"));
+				String cachedLastModified = DateTimeFormatter.RFC_1123_DATE_TIME.format(zlmt);
+				return conn -> {
+					if (cachedETag != null) {
+						conn.setRequestProperty("If-None-Match", cachedETag);
+					}
+					conn.setRequestProperty("If-Modified-Since", cachedLastModified);
+				};
+			} else {
+				return conn -> {
+				};
+			}
+		}
+	}
+
+	private interface ResultHandler {
+
+		Path handle(URLConnection urlConnection) throws IOException;
+
+		static ResultHandler redirects(ConnectionConfigurator configurator, ResultHandler okHandler) {
+			return conn -> {
+				if (conn instanceof HttpURLConnection) {
+					conn = handleRedirects((HttpURLConnection) conn, configurator);
+				}
+				return okHandler.handle(conn);
+			};
+		}
+
+		static ResultHandler throwOnError(ResultHandler okHandler) {
+			return conn -> {
+				if (conn instanceof HttpURLConnection) {
+					HttpURLConnection httpConn = (HttpURLConnection) conn;
+					int responseCode = httpConn.getResponseCode();
+					if (responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
+						String fileURL = conn.getURL().toExternalForm();
+						throw new FileNotFoundException(
+								"No file to download at " + fileURL + ". Server replied HTTP code: " + responseCode);
+					} else if (responseCode >= 400) {
+						String message = null;
+						if (httpConn.getErrorStream() != null) {
+							String err = new BufferedReader(new InputStreamReader(httpConn.getErrorStream()))
+								.lines()
+								.collect(
+										Collectors.joining(
+												"\n"))
+								.trim();
+							verboseMsg("HTTP: " + responseCode + " - " + err);
+							if (err.startsWith("{") && err.endsWith("}")) {
+								// Could be JSON, let's try to parse it
+								try {
+									Gson parser = new Gson();
+									Map json = parser.fromJson(err, Map.class);
+									// GitHub returns useful information in `message`,
+									// if it's there we use it.
+									// TODO add support for other known sites
+									message = Objects.toString(json.get("message"));
+								} catch (JsonSyntaxException ex) {
+									// Not JSON it seems
+								}
+							}
+						}
+						if (message != null) {
+							throw new IOException(
+									String.format("Server returned HTTP response code: %d for URL: %s with message: %s",
+											responseCode, conn.getURL().toString(), message));
+						} else {
+							throw new IOException(String.format("Server returned HTTP response code: %d for URL: %s",
+									responseCode, conn.getURL().toString()));
+						}
+					}
+				}
+				return okHandler.handle(conn);
+			};
+		}
+
+		static ResultHandler downloadTo(Path saveDir, Path metaSaveDir) {
+			return (conn) -> {
+				// copy content from connection to file
+				String fileName = extractFileName(conn);
+				Path file = saveDir.resolve(fileName);
+				Files.createDirectories(saveDir);
+				Files.createDirectories(metaSaveDir);
+				try (ReadableByteChannel readableByteChannel = Channels.newChannel(conn.getInputStream());
+						FileOutputStream fileOutputStream = new FileOutputStream(file.toFile())) {
+					fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+				}
+				// create an .etag file if the information is present in the response headers
+				String etag = conn.getHeaderField("ETag");
+				if (etag != null) {
+					writeString(etagFile(file, metaSaveDir), etag);
+				}
+				verboseMsg(String.format("Downloaded file %s", conn.getURL().toExternalForm()));
+				return file;
+			};
+		}
+
+		static ResultHandler downloadToTempDir(Path saveDir, Path metaSaveDir,
+				BiFunction<Path, Path, ResultHandler> downloader) {
+			return (conn) -> {
+				// create a temp directory for the downloaded content
+				Path saveTmpDir = saveDir.getParent().resolve(saveDir.getFileName() + ".tmp");
+				Path saveOldDir = saveDir.getParent().resolve(saveDir.getFileName() + ".old");
+				Path metaTmpDir = metaSaveDir.getParent().resolve(metaSaveDir.getFileName() + ".tmp");
+				Path metaOldDir = metaSaveDir.getParent().resolve(metaSaveDir.getFileName() + ".old");
+				try {
+					deletePath(saveTmpDir, true);
+					deletePath(saveOldDir, true);
+					deletePath(metaTmpDir, true);
+					deletePath(metaOldDir, true);
+
+					Path saveFilePath = downloader.apply(saveTmpDir, metaTmpDir).handle(conn);
+
+					// temporarily save the old content
+					if (Files.isDirectory(saveDir)) {
+						Files.move(saveDir, saveOldDir);
+					}
+					if (Files.isDirectory(metaSaveDir)) {
+						Files.move(metaSaveDir, metaOldDir);
+					}
+					// rename the folder to its final name
+					Files.move(saveTmpDir, saveDir);
+					Files.move(metaTmpDir, metaSaveDir);
+					// remove any old content
+					deletePath(saveOldDir, true);
+					deletePath(metaOldDir, true);
+
+					return saveDir.resolve(saveFilePath.getFileName());
+				} catch (Throwable th) {
+					// remove the temp folder if anything went wrong
+					deletePath(saveTmpDir, true);
+					deletePath(metaTmpDir, true);
+					// and move the old content back if it exists
+					if (!Files.isDirectory(saveDir) && Files.isDirectory(saveOldDir)) {
+						try {
+							Files.move(saveOldDir, saveDir);
+						} catch (IOException ex) {
+							// Ignore
+						}
+					}
+					if (!Files.isDirectory(metaSaveDir) && Files.isDirectory(metaOldDir)) {
+						try {
+							Files.move(metaOldDir, metaSaveDir);
+						} catch (IOException ex) {
+							// Ignore
+						}
+					}
+					throw th;
+				}
+			};
+		}
+
+		static ResultHandler handleUnmodified(Path cachedFile, ResultHandler okHandler) {
+			if (cachedFile != null) {
+				return (conn) -> {
+					if (conn instanceof HttpURLConnection) {
+						HttpURLConnection httpConn = (HttpURLConnection) conn;
+						if (httpConn.getResponseCode() == HttpURLConnection.HTTP_NOT_MODIFIED) {
+							verboseMsg(String.format("Not modified, using cached file %s for remote %s", cachedFile,
+									conn.getURL().toExternalForm()));
+							// Update cached file's last modified time
+							try {
+								Files.setLastModifiedTime(cachedFile, FileTime.from(ZonedDateTime.now().toInstant()));
+							} catch (IOException e) {
+								// There is an issue with Java not being able to set the file's last modified
+								// time
+								// on certain systems, resulting in an exception. There's not much we can do
+								// about
+								// that, so we'll just ignore it. It does mean that files affected by this will
+								// be
+								// re-downloaded every time.
+								verboseMsg("Unable to set last-modified time for " + cachedFile, e);
+							}
+							return cachedFile;
+						}
+					}
+					return okHandler.handle(conn);
+				};
+			} else {
+				return okHandler;
+			}
+		}
+	}
+
+	private static String extractFileName(URLConnection urlConnection) throws IOException {
+		String fileURL = urlConnection.getURL().toExternalForm();
+		String fileName = "";
+		if (urlConnection instanceof HttpURLConnection) {
+			HttpURLConnection httpConn = (HttpURLConnection) urlConnection;
+			int responseCode = httpConn.getResponseCode();
 			// always check HTTP response code first
-			if (responseCode == HttpURLConnection.HTTP_OK) {
+			if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_NOT_MODIFIED) {
 				String disposition = httpConn.getHeaderField("Content-Disposition");
-				// String contentType = httpConn.getContentType();
-				// int contentLength = httpConn.getContentLength();
-
 				if (disposition != null) {
 					// extracts file name from header field
 					fileName = getDispositionFilename(disposition);
 				}
-
-				if (isBlankString(fileName)) {
-					// extracts file name from URL if nothing found
-					fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1);
+			}
+			if (isBlankString(fileName)) {
+				// extracts file name from URL if nothing found
+				int p = fileURL.indexOf("?");
+				// Strip parameters from the URL (if any)
+				String simpleUrl = (p > 0) ? fileURL.substring(0, p) : fileURL;
+				while (simpleUrl.endsWith("/")) {
+					simpleUrl = simpleUrl.substring(0, simpleUrl.length() - 1);
 				}
-
-				/*
-				 * System.out.println("Content-Type = " + contentType);
-				 * System.out.println("Content-Disposition = " + disposition);
-				 * System.out.println("Content-Length = " + contentLength);
-				 * System.out.println("fileName = " + fileName);
-				 */
-
-			} else {
-				throw new FileNotFoundException(
-						"No file to download at " + fileURL + ". Server replied HTTP code: " + responseCode);
+				fileName = simpleUrl.substring(simpleUrl.lastIndexOf("/") + 1);
 			}
 		} else {
 			fileName = fileURL.substring(fileURL.lastIndexOf("/") + 1);
 		}
+		return fileName;
+	}
 
-		// copy content from connection to file
-		saveDir.mkdirs();
-		Path saveFilePath = saveDir.toPath().resolve(fileName);
-		try (ReadableByteChannel readableByteChannel = Channels.newChannel(url.openStream());
-				FileOutputStream fileOutputStream = new FileOutputStream(saveFilePath.toFile())) {
-			fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+	private static HttpURLConnection handleRedirects(HttpURLConnection httpConn, ConnectionConfigurator configurator)
+			throws IOException {
+		int responseCode;
+		int redirects = 0;
+		while (true) {
+			httpConn.setInstanceFollowRedirects(false);
+			responseCode = httpConn.getResponseCode();
+			if (responseCode == HttpURLConnection.HTTP_MULT_CHOICE ||
+					responseCode == HttpURLConnection.HTTP_MOVED_PERM ||
+					responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
+					responseCode == HttpURLConnection.HTTP_SEE_OTHER ||
+					responseCode == 307 /* TEMP REDIRECT */ ||
+					responseCode == 308 /* PERM REDIRECT */) {
+				if (redirects++ > 8) {
+					throw new IOException("Too many redirects");
+				}
+				String location = httpConn.getHeaderField("Location");
+				if (location == null) {
+					throw new IOException("No 'Location' header in redirect");
+				}
+				URL url = new URL(httpConn.getURL(), location);
+				url = new URL(swizzleURL(url.toString()));
+				verboseMsg("Redirected to: " + url); // Should be debug info
+				httpConn = (HttpURLConnection) url.openConnection();
+				if (responseCode == HttpURLConnection.HTTP_SEE_OTHER) {
+					// This response code forces the method to GET
+					httpConn.setRequestMethod("GET");
+				}
+				configurator.configure(httpConn);
+				continue;
+			}
+			break;
 		}
+		return httpConn;
+	}
 
-		if (httpConn != null)
-			httpConn.disconnect();
+	private static void addAuthHeaderIfNeeded(URLConnection urlConnection) {
+		String auth = null;
+		if (isAGithubUrl(urlConnection) && System.getenv().containsKey("GITHUB_TOKEN")) {
+			auth = "token " + System.getenv("GITHUB_TOKEN");
+		} else {
+			URL url = urlConnection.getURL();
+			String username;
+			String password;
+			if (url.getUserInfo() != null) {
+				String[] credentials = url.getUserInfo().split(":", 2);
+				username = PropertiesValueResolver.replaceProperties(credentials[0]);
+				password = credentials.length > 1 ? PropertiesValueResolver.replaceProperties(credentials[1]) : "";
+			} else {
+				username = System.getenv(JBANG_AUTH_BASIC_USERNAME);
+				password = System.getenv(JBANG_AUTH_BASIC_PASSWORD);
+			}
+			if (username != null && password != null) {
+				String id = username + ":" + password;
+				String encodedId = Base64.getEncoder().encodeToString(id.getBytes(StandardCharsets.UTF_8));
+				auth = "Basic " + encodedId;
+			}
+		}
+		if (auth != null) {
+			urlConnection.setRequestProperty("Authorization", auth);
+		}
+	}
 
-		Util.verboseMsg(String.format("Downloaded file %s", fileURL));
-
-		return saveFilePath;
-
+	private static boolean isAGithubUrl(URLConnection urlConnection) {
+		String host = urlConnection.getURL().getHost();
+		return host.endsWith("github.com")
+				|| host.endsWith("githubusercontent.com");
 	}
 
 	public static String getDispositionFilename(String disposition) {
@@ -710,7 +1189,7 @@ public class Util {
 				try {
 					fileName = URLDecoder.decode(name, encoding);
 				} catch (UnsupportedEncodingException e) {
-					Util.infoMsg("Content-Disposition contains unsupported encoding " + encoding);
+					infoMsg("Content-Disposition contains unsupported encoding " + encoding);
 				}
 			}
 		}
@@ -733,80 +1212,12 @@ public class Util {
 	 * @throws IOException
 	 */
 	public static boolean isFileCached(String fileURL) throws IOException {
-		Path urlCache = Util.getUrlCache(fileURL);
-		Path file = getFirstFile(urlCache);
-		return ((!Util.isFresh() || Util.isOffline()) && file != null);
+		Path urlCache = getUrlCacheDir(fileURL);
+		Path file = getCachedFile(urlCache);
+		return ((!isFresh() || isOffline()) && file != null);
 	}
 
-	/**
-	 * Either retrieves a previously downloaded file from the cache or downloads a
-	 * file from a URL and stores it in the cache. NB: The last part of the URL must
-	 * contain the name of the file to be downloaded!
-	 *
-	 * @param fileURL HTTP URL of the file to be downloaded
-	 * @return Path to the downloaded file
-	 * @throws IOException
-	 */
-	public static Path downloadAndCacheFile(String fileURL) throws IOException {
-		Path urlCache = Util.getUrlCache(fileURL);
-		Path file = getFirstFile(urlCache);
-		if ((Util.isFresh() && !Util.isOffline()) || file == null) {
-			return downloadFileAndCache(fileURL, urlCache);
-		} else {
-			Util.verboseMsg(String.format("Retrieved file from cache %s = %s", fileURL, file));
-			return urlCache.resolve(file);
-		}
-	}
-
-	/**
-	 * Downloads a file from a URL and stores it in the cache. NB: The last part of
-	 * the URL must contain the name of the file to be downloaded!
-	 *
-	 * @param fileURL HTTP URL of the file to be downloaded
-	 * @return Path to the downloaded file
-	 * @throws IOException
-	 */
-	public static Path downloadFileToCache(String fileURL) throws IOException {
-		Path urlCache = Util.getUrlCache(fileURL);
-		return downloadFileAndCache(fileURL, urlCache);
-	}
-
-	private static Path downloadFileAndCache(String fileURL, Path urlCache) throws IOException {
-		// create a temp directory for the downloaded content
-		Path saveTmpDir = urlCache.getParent().resolve(urlCache.getFileName() + ".tmp");
-		Path saveOldDir = urlCache.getParent().resolve(urlCache.getFileName() + ".old");
-		try {
-			Util.deletePath(saveTmpDir, true);
-			Util.deletePath(saveOldDir, true);
-
-			Path saveFilePath = downloadFile(fileURL, saveTmpDir.toFile());
-
-			// temporarily save the old content
-			if (Files.isDirectory(urlCache)) {
-				Files.move(urlCache, saveOldDir);
-			}
-			// rename the folder to its final name
-			Files.move(saveTmpDir, urlCache);
-			// remove any old content
-			Util.deletePath(saveOldDir, true);
-
-			return urlCache.resolve(saveFilePath.getFileName());
-		} catch (Throwable th) {
-			// remove the temp folder if anything went wrong
-			Util.deletePath(saveTmpDir, true);
-			// and move the old content back if it exists
-			if (!Files.isDirectory(urlCache) && Files.isDirectory(saveOldDir)) {
-				try {
-					Files.move(saveOldDir, urlCache);
-				} catch (IOException ex) {
-					// Ignore
-				}
-			}
-			throw th;
-		}
-	}
-
-	private static Path getFirstFile(Path dir) throws IOException {
+	private static Path getCachedFile(Path dir) throws IOException {
 		if (Files.isDirectory(dir)) {
 			try (Stream<Path> files = Files.list(dir)) {
 				return files.findFirst().orElse(null);
@@ -858,7 +1269,7 @@ public class Util {
 			try {
 				URI u = new URI(url);
 				if (u.getPath().endsWith("/")) {
-					Util.verboseMsg("Directory url, assuming user want to get default application at main.java");
+					verboseMsg("Directory url, assuming user want to get default application at main.java");
 					url = url + "main.java";
 				}
 			} catch (URISyntaxException e) {
@@ -922,6 +1333,18 @@ public class Util {
 		return url;
 	}
 
+	public static String[] extractOrgProject(String url) {
+		String orggprj = url.replaceFirst("^https://github.com/(.*)/blob/(.*)$", "$1/$2");
+		orggprj = orggprj.replaceFirst("^https://raw.githubusercontent.com/(.*)/(.*)$", "$1/$2");
+		orggprj = orggprj.replaceFirst("^https://gitlab.com/(.*)/-/(blob|raw)/(.*)$", "$1/$2");
+		orggprj = orggprj.replaceFirst("^https://bitbucket.org/(.*)/(src|raw)/(.*)$", "$1/$2");
+		if (!orggprj.equals(url)) {
+			return orggprj.split("/", 2);
+		} else {
+			return null;
+		}
+	}
+
 	public static String getStableID(File backingFile) {
 		try {
 			return getStableID(readString(backingFile.toPath()));
@@ -960,17 +1383,14 @@ public class Util {
 				"^https://gist.github.com/(([a-zA-Z0-9\\-]*)/)?(?<gistid>[a-zA-Z0-9]*)$",
 				"https://api.github.com/gists/${gistid}");
 
-		Util.verboseMsg("Gist url api: " + gistapi);
-		String strdata = null;
+		verboseMsg("Gist url api: " + gistapi);
+		Gist gist = null;
 		try {
-			strdata = readStringFromURL(gistapi, getGitHubHeaders());
+			gist = readJsonFromURL(gistapi, Gist.class);
 		} catch (IOException e) {
-			Util.verboseMsg("Error when extracting file from gist url.");
+			verboseMsg("Error when extracting file from gist url.");
 			throw new IllegalStateException(e);
 		}
-
-		Gson parser = new Gson();
-		Gist gist = parser.fromJson(strdata, Gist.class);
 
 		for (Entry<String, Map<String, String>> entry : gist.files.entrySet()) {
 			String key = entry.getKey();
@@ -984,7 +1404,7 @@ public class Util {
 					if ((fileName + ".java").equals(lowerCaseKey) || (fileName + ".jsh").equals(lowerCaseKey))
 						return mostRecentVersionRawUrl;
 				} else {
-					if (key.endsWith(".jsh") || Util.hasMainMethod(entry.getValue().get("content")))
+					if (key.endsWith(".jsh") || hasMainMethod(entry.getValue().get("content")))
 						return mostRecentVersionRawUrl;
 					rawURL = mostRecentVersionRawUrl;
 				}
@@ -998,14 +1418,6 @@ public class Util {
 			throw new IllegalArgumentException("Gist does not contain any .java or .jsh file.");
 
 		return rawURL;
-	}
-
-	private static Map<String, String> getGitHubHeaders() {
-		if (System.getenv().containsKey("GITHUB_TOKEN")) {
-			return Collections.singletonMap("Authorization", "token " + System.getenv("GITHUB_TOKEN"));
-		} else {
-			return Collections.emptyMap();
-		}
 	}
 
 	private static String getFileNameFromGistURL(String url) {
@@ -1022,16 +1434,11 @@ public class Util {
 		return fileName.toString();
 	}
 
-	public static String readStringFromURL(String requestURL, Map<String, String> headers) throws IOException {
-		verboseMsg("Reading information from: " + requestURL);
-		URLConnection connection = new URL(requestURL).openConnection();
-		if (headers != null) {
-			headers.forEach(connection::setRequestProperty);
-		}
-		try (Scanner scanner = new Scanner(connection.getInputStream(),
-				StandardCharsets.UTF_8.toString())) {
-			scanner.useDelimiter("\\A");
-			return scanner.hasNext() ? scanner.next() : "";
+	public static <T> T readJsonFromURL(String requestURL, Class<T> type) throws IOException {
+		Path jsonFile = downloadAndCacheFile(requestURL);
+		try (BufferedReader rdr = Files.newBufferedReader(jsonFile, StandardCharsets.UTF_8)) {
+			Gson parser = new Gson();
+			return parser.fromJson(rdr, type);
 		}
 	}
 
@@ -1058,17 +1465,19 @@ public class Util {
 	 */
 	public static String runCommand(String... cmd) {
 		try {
-			ProcessBuilder pb = new ProcessBuilder(cmd);
+			ProcessBuilder pb = CommandBuffer.of(cmd).asProcessBuilder();
 			pb.redirectErrorStream(true);
 			Process p = pb.start();
 			BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			String cmdOutput = br.lines().collect(Collectors.joining());
+			String cmdOutput = br.lines().collect(Collectors.joining("\n"));
 			int exitCode = p.waitFor();
 			if (exitCode == 0) {
 				return cmdOutput;
+			} else {
+				verboseMsg(String.format("Command failed: #%d - %s", exitCode, cmdOutput));
 			}
 		} catch (IOException | InterruptedException ex) {
-			// Ignore
+			verboseMsg("Error running: " + String.join(" ", cmd), ex);
 		}
 		return null;
 	}
@@ -1077,9 +1486,9 @@ public class Util {
 		Exception[] err = new Exception[] { null };
 		try {
 			if (Files.isDirectory(path)) {
-				Util.verboseMsg("Deleting folder " + path);
-				Files	.walk(path)
-						.sorted(Comparator.reverseOrder())
+				verboseMsg("Deleting folder " + path);
+				try (Stream<Path> s = Files.walk(path)) {
+					s.sorted(Comparator.reverseOrder())
 						.forEach(f -> {
 							try {
 								Files.delete(f);
@@ -1087,8 +1496,12 @@ public class Util {
 								err[0] = e;
 							}
 						});
+				}
 			} else if (Files.exists(path)) {
-				Util.verboseMsg("Deleting file " + path);
+				verboseMsg("Deleting file " + path);
+				Files.delete(path);
+			} else if (Files.exists(path, LinkOption.NOFOLLOW_LINKS)) {
+				Util.verboseMsg("Deleting broken link " + path);
 				Files.delete(path);
 			}
 		} catch (IOException e) {
@@ -1100,45 +1513,58 @@ public class Util {
 		return err[0] == null;
 	}
 
-	public static boolean createLink(Path src, Path target) {
-		if (!Files.exists(src)
-				&& !createSymbolicLink(src, target.toAbsolutePath())) {
-			return createHardLink(src, target.toAbsolutePath());
-		} else {
-			return false;
+	public static void createLink(Path link, Path target) {
+		if (!Files.exists(link)) {
+			// On Windows we use junction for directories because their
+			// creation doesn't require any special privileges.
+			if (getOS() == OS.windows && Files.isDirectory(target)) {
+				if (createJunction(link, target.toAbsolutePath())) {
+					return;
+				}
+			} else {
+				if (createSymbolicLink(link, target.toAbsolutePath())) {
+					return;
+				}
+			}
+			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, "Failed to create link " + link + " -> " + target);
 		}
 	}
 
-	private static boolean createSymbolicLink(Path src, Path target) {
+	private static boolean createSymbolicLink(Path link, Path target) {
 		try {
-			Files.createSymbolicLink(src, target);
+			Files.createSymbolicLink(link, target);
 			return true;
 		} catch (IOException e) {
-			infoMsg(e.toString());
-		}
-		if (Util.isWindows()) {
-			infoMsg("Creation of symbolic link failed." +
-					"For potential causes and resolutions see https://www.jbang.dev/documentation/guide/latest/usage.html#usage-on-windows");
-		} else {
-			infoMsg("Creation of symbolic link failed.");
+			if (isWindows() && e instanceof AccessDeniedException && e.getMessage().contains("privilege")) {
+				infoMsg(String.format("Creation of symbolic link failed %s -> %s", link, target));
+				infoMsg("This is a known issue with trying to create symbolic links on Windows.");
+				infoMsg("See the information available at the link below for a solution:");
+				infoMsg("https://www.jbang.dev/documentation/guide/latest/usage.html#usage-on-windows");
+			}
+			verboseMsg(e.toString());
 		}
 		return false;
 	}
 
-	private static boolean createHardLink(Path src, Path target) {
-		try {
-			infoMsg("Now try creating a hard link instead of symbolic.");
-			Files.createLink(src, target);
-		} catch (IOException e) {
-			infoMsg("Creation of hard link failed. Script must be on the same drive as $JBANG_CACHE_DIR (typically under $HOME) for hardlink creation to work. Or call the command with admin rights.");
-			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, e);
+	private static boolean createJunction(Path link, Path target) {
+		if (!Files.exists(link) && Files.exists(link, LinkOption.NOFOLLOW_LINKS)) {
+			// We automatically remove broken links
+			deletePath(link, true);
 		}
-		return true;
+		return runCommand("cmd.exe", "/c", "mklink", "/j", link.toString(), target.toString()) != null;
 	}
 
-	public static Path getUrlCache(String fileURL) {
+	public static boolean isLink(Path path) throws IOException {
+		return !path.toAbsolutePath().equals(path.toRealPath());
+	}
+
+	public static Path getUrlCacheDir(String fileURL) {
 		String urlHash = getStableID(fileURL);
 		return Settings.getCacheDir(Cache.CacheClass.urls).resolve(urlHash);
+	}
+
+	public static Path getCacheMetaDir(Path cacheDir) {
+		return cacheDir.getParent().resolve(cacheDir.getFileName() + "-meta");
 	}
 
 	public static boolean hasMainMethod(String content) {
@@ -1199,9 +1625,9 @@ public class Util {
 		try (Scanner sc = new Scanner(content)) {
 			while (sc.hasNextLine()) {
 				String line = sc.nextLine();
-				if (!line.trim().startsWith("package"))
+				if (!line.trim().startsWith("package "))
 					continue;
-				String[] pkgLine = line.split("package");
+				String[] pkgLine = line.split("package ");
 				if (pkgLine.length == 1)
 					continue;
 				String packageName = pkgLine[1];
@@ -1212,25 +1638,44 @@ public class Util {
 		return Optional.empty();
 	}
 
+	public static boolean isValidModuleIdentifier(String id) {
+		return patternModuleId.matcher(id).matches();
+	}
+
+	public static boolean isValidClassIdentifier(String id) {
+		return patternFQCN.matcher(id).matches();
+	}
+
 	/**
 	 * Searches the locations defined by PATH for the given executable
 	 * 
-	 * @param name The name of the executable to look for
+	 * @param cmd The name of the executable to look for
 	 * @return A Path to the executable, if found, null otherwise
 	 */
-	public static Path searchPath(String name) {
+	public static Path searchPath(String cmd) {
 		String envPath = System.getenv("PATH");
 		envPath = envPath != null ? envPath : "";
-		return Arrays	.stream(envPath.split(File.pathSeparator))
-						.map(dir -> Paths.get(dir).resolve(name))
-						.flatMap(Util::executables)
-						.filter(Util::isExecutable)
-						.findFirst()
-						.orElse(null);
+		return searchPath(cmd, envPath);
+	}
+
+	/**
+	 * Searches the locations defined by `paths` for the given executable
+	 *
+	 * @param cmd   The name of the executable to look for
+	 * @param paths A string containing the paths to search
+	 * @return A Path to the executable, if found, null otherwise
+	 */
+	public static Path searchPath(String cmd, String paths) {
+		return Arrays.stream(paths.split(File.pathSeparator))
+			.map(dir -> Paths.get(dir).resolve(cmd))
+			.flatMap(Util::executables)
+			.filter(Util::isExecutable)
+			.findFirst()
+			.orElse(null);
 	}
 
 	private static Stream<Path> executables(Path base) {
-		if (Util.isWindows()) {
+		if (isWindows()) {
 			return Stream.of(Paths.get(base.toString() + ".exe"),
 					Paths.get(base.toString() + ".bat"),
 					Paths.get(base.toString() + ".cmd"),
@@ -1242,7 +1687,7 @@ public class Util {
 
 	private static boolean isExecutable(Path file) {
 		if (Files.isRegularFile(file)) {
-			if (Util.isWindows()) {
+			if (isWindows()) {
 				String nm = file.getFileName().toString().toLowerCase();
 				return nm.endsWith(".exe") || nm.endsWith(".bat") || nm.endsWith(".cmd") || nm.endsWith(".ps1");
 			} else {
@@ -1250,6 +1695,18 @@ public class Util {
 			}
 		}
 		return false;
+	}
+
+	public static void setExecutable(Path file) {
+		final Set<PosixFilePermission> permissions;
+		try {
+			permissions = Files.getPosixFilePermissions(file);
+			permissions.add(PosixFilePermission.OWNER_EXECUTE);
+			permissions.add(PosixFilePermission.GROUP_EXECUTE);
+			Files.setPosixFilePermissions(file, permissions);
+		} catch (UnsupportedOperationException | IOException e) {
+			throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR, "Couldn't mark script as executable: " + file, e);
+		}
 	}
 
 	/**
@@ -1321,8 +1778,17 @@ public class Util {
 	 * @return An actual Path if it was found, or an empty path if it was not
 	 */
 	public static Path getJarLocation() {
+		return getJarLocation(VersionChecker.class);
+	}
+
+	/**
+	 * Determines the path to the JAR that contains the given class
+	 *
+	 * @return An actual Path if it was found, or an empty path if it was not
+	 */
+	public static Path getJarLocation(Class<?> klazz) {
 		try {
-			File jarFile = new File(VersionChecker.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+			File jarFile = new File(klazz.getProtectionDomain().getCodeSource().getLocation().toURI());
 			return jarFile.toPath();
 		} catch (URISyntaxException e) {
 			// ignore
@@ -1330,33 +1796,48 @@ public class Util {
 		return Paths.get("");
 	}
 
-	public static Path findNearestFileWith(Path dir, String fileName, Function<Path, Boolean> accept) {
-		Path result = findNearestLocalFileWith(dir, fileName, accept);
+	public static <T> T findNearestWith(Path dir, String fileName, Function<Path, T> accept) {
+		T result = findNearestLocalWith(dir, fileName, accept);
 		if (result == null) {
 			Path file = Settings.getConfigDir().resolve(fileName);
-			if (Files.isRegularFile(file) && Files.isReadable(file) && accept.apply(file)) {
-				result = file;
+			if (Files.isRegularFile(file) && Files.isReadable(file)) {
+				result = accept.apply(file);
 			}
 		}
 		return result;
 	}
 
-	private static Path findNearestLocalFileWith(Path dir, String fileName, Function<Path, Boolean> accept) {
+	private static <T> T findNearestLocalWith(Path dir, String fileName, Function<Path, T> accept) {
 		if (dir == null) {
 			dir = getCwd();
 		}
-		while (dir != null) {
+		Path root = Settings.getLocalRootDir();
+		while (dir != null && !isSameFile(dir, root)) {
 			Path file = dir.resolve(fileName);
-			if (Files.isRegularFile(file) && Files.isReadable(file) && accept.apply(file)) {
-				return file;
+			if (Files.isRegularFile(file) && Files.isReadable(file)) {
+				T result = accept.apply(file);
+				if (result != null) {
+					return result;
+				}
 			}
 			file = dir.resolve(Settings.JBANG_DOT_DIR).resolve(fileName);
-			if (Files.isRegularFile(file) && Files.isReadable(file) && accept.apply(file)) {
-				return file;
+			if (Files.isRegularFile(file) && Files.isReadable(file)) {
+				T result = accept.apply(file);
+				if (result != null) {
+					return result;
+				}
 			}
 			dir = dir.getParent();
 		}
 		return null;
+	}
+
+	public static boolean isSameFile(Path f1, Path f2) {
+		try {
+			return Files.isSameFile(f1, f2);
+		} catch (IOException e) {
+			return f1.toAbsolutePath().equals(f2.toAbsolutePath());
+		}
 	}
 
 	public static boolean isNullOrEmptyString(String str) {
@@ -1372,20 +1853,20 @@ public class Util {
 	}
 
 	public static int askInput(String message, int timeout, int defaultValue, String... options) {
-		if (!"true".equalsIgnoreCase(System.getenv(JBANG_STDIN_NOTTY))) {
-			ConsoleInput con = new ConsoleInput(1, timeout, TimeUnit.SECONDS);
+		ConsoleInput con = ConsoleInput.get(1, timeout, TimeUnit.SECONDS);
+		if (con != null) {
 			StringBuilder msg = new StringBuilder(message + "\n\n");
 			for (int i = 0; i < options.length; i++) {
 				msg.append("(").append(i + 1).append(") ").append(options[i]).append("\n");
 			}
 			msg.append("(0) Cancel\n");
-			Util.infoMsg(msg.toString());
+			infoMsg(msg.toString());
 			while (true) {
-				Util.infoMsg("Type in your choice and hit enter. Will automatically select option (" + defaultValue
+				infoMsg("Type in your choice and hit enter. Will automatically select option (" + defaultValue
 						+ ") after " + timeout + " seconds.");
 				String input = con.readLine();
 				if (input == null) {
-					Util.infoMsg("Timeout reached, selecting option (" + defaultValue + ")");
+					infoMsg("Timeout reached, selecting option (" + defaultValue + ")");
 					return defaultValue;
 				}
 				if (input.isEmpty()) {
@@ -1397,7 +1878,7 @@ public class Util {
 						return result;
 					}
 				} catch (NumberFormatException ef) {
-					Util.errorMsg("Could not parse answer as a number. Canceling");
+					errorMsg("Could not parse answer as a number. Canceling");
 				}
 			}
 		} else if (!GraphicsEnvironment.isHeadless()) {
@@ -1420,6 +1901,10 @@ public class Util {
 		return -1;
 	}
 
+	public static boolean haveConsole() {
+		return !"true".equalsIgnoreCase(System.getenv(JBANG_STDIN_NOTTY));
+	}
+
 	private static void setupApplicationIcon() {
 		try {
 			Class<?> clazz = Util.class.getClassLoader().loadClass("java.awt.Taskbar");
@@ -1434,6 +1919,15 @@ public class Util {
 		}
 	}
 
+	public static boolean mkdirs(Path p) {
+		try {
+			Files.createDirectories(p);
+		} catch (IOException e) {
+			return false;
+		}
+		return true;
+	}
+
 	private static ImageIcon getJbangIcon() {
 		URL url = Util.class.getResource("/jbang_icon_64x64.png");
 		if (url != null) {
@@ -1441,5 +1935,70 @@ public class Util {
 		} else {
 			return null;
 		}
+	}
+
+	@SafeVarargs
+	public static <T> List<T> join(Collection<T>... lists) {
+		List<T> res = new ArrayList<>();
+		for (Collection<T> c : lists) {
+			if (c != null && !c.isEmpty()) {
+				res.addAll(c);
+			}
+		}
+		return res;
+	}
+
+	public static String replaceAll(@Nonnull Pattern pattern, @Nonnull String input,
+			@Nonnull Function<MatchResult, String> replacer) {
+		Matcher matcher = pattern.matcher(input);
+		matcher.reset();
+		boolean result = matcher.find();
+		if (result) {
+			StringBuffer sb = new StringBuffer();
+			do {
+				String replacement = replacer.apply(matcher);
+				matcher.appendReplacement(sb, replacement);
+				result = matcher.find();
+			} while (result);
+			matcher.appendTail(sb);
+			return sb.toString();
+		}
+		return input;
+	}
+
+	public static String substituteRemote(String arg) {
+		if (arg == null) {
+			return null;
+		}
+		return Util.replaceAll(subUrlPattern, arg, m -> {
+			String txt = m.group().substring(1);
+			if (txt.startsWith("%")) {
+				return Matcher.quoteReplacement(txt);
+			}
+			if (txt.startsWith("{") && txt.endsWith("}")) {
+				txt = txt.substring(1, txt.length() - 1);
+			}
+			if (txt.startsWith("http://") || txt.startsWith("https://")) {
+				try {
+					return Matcher.quoteReplacement(Util.downloadAndCacheFile(txt).toString());
+				} catch (IOException e) {
+					throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Error substituting remote file: " + txt,
+							e);
+				}
+			} else if (txt.startsWith("deps:")) {
+				List<String> deps = Arrays.asList(txt.substring(5).split(","));
+				DependencyResolver resolver = new DependencyResolver();
+				resolver.addDependencies(deps);
+				ModularClassPath mcp = resolver.resolve();
+				return mcp.getClassPath();
+			} else {
+				String type = txt.substring(0, txt.indexOf(":"));
+				throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Unknown substitution type: " + type);
+			}
+		});
+	}
+
+	public static <K, V> Entry<K, V> entry(K k, V v) {
+		return new AbstractMap.SimpleEntry<K, V>(k, v);
 	}
 }

@@ -1,11 +1,17 @@
 package dev.jbang.cli;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.net.ssl.*;
 
 import dev.jbang.Configuration;
 import dev.jbang.util.Util;
@@ -42,10 +48,19 @@ public abstract class BaseCommand implements Callable<Integer> {
 		}
 	}
 
+	@CommandLine.Option(names = { "--insecure" }, description = "Enable insecure trust of all SSL certificates.")
+	void setInsecure(boolean insecure) {
+		if (insecure) {
+			enableInsecure();
+		}
+	}
+
 	void debug(String msg) {
 		if (isVerbose()) {
 			if (spec != null) {
-				spec.commandLine().getErr().println("[jbang] " + msg);
+				PrintWriter err = spec.commandLine().getErr();
+				err.print(Util.getMsgHeader());
+				err.println(msg);
 			} else {
 				Util.verboseMsg(msg);
 			}
@@ -55,7 +70,9 @@ public abstract class BaseCommand implements Callable<Integer> {
 	void info(String msg) {
 		if (!isQuiet()) {
 			if (spec != null) {
-				spec.commandLine().getErr().println("[jbang] " + msg);
+				PrintWriter err = spec.commandLine().getErr();
+				err.print(Util.getMsgHeader());
+				err.println(msg);
 			} else {
 				Util.infoMsg(msg);
 			}
@@ -65,7 +82,9 @@ public abstract class BaseCommand implements Callable<Integer> {
 	void warn(String msg) {
 		if (!isQuiet()) {
 			if (spec != null) {
-				spec.commandLine().getErr().println("[jbang] " + msg);
+				PrintWriter err = spec.commandLine().getErr();
+				err.print(Util.getMsgHeader());
+				err.println(msg);
 			} else {
 				Util.warnMsg(msg);
 			}
@@ -74,7 +93,9 @@ public abstract class BaseCommand implements Callable<Integer> {
 
 	void error(String msg, Throwable th) {
 		if (spec != null) {
-			spec.commandLine().getErr().println("[jbang] " + msg);
+			PrintWriter err = spec.commandLine().getErr();
+			err.print(Util.getMsgHeader());
+			err.println(msg);
 		} else {
 			Util.errorMsg(msg, th);
 		}
@@ -86,6 +107,37 @@ public abstract class BaseCommand implements Callable<Integer> {
 
 	boolean isQuiet() {
 		return Util.isQuiet();
+	}
+
+	static private void enableInsecure() {
+		try {
+			// Create a trust manager that does not validate certificate chains
+			TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+				public X509Certificate[] getAcceptedIssuers() {
+					return null;
+				}
+
+				public void checkClientTrusted(X509Certificate[] certs, String authType) {
+				}
+
+				public void checkServerTrusted(X509Certificate[] certs, String authType) {
+				}
+			}
+			};
+
+			// Install the all-trusting trust manager
+			SSLContext sc = SSLContext.getInstance("SSL");
+			sc.init(null, trustAllCerts, new java.security.SecureRandom());
+			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+			// Create all-trusting host name verifier
+			HostnameVerifier allHostsValid = (hostname, session) -> true;
+
+			// Install the all-trusting host verifier
+			HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+		} catch (NoSuchAlgorithmException | KeyManagementException ex) {
+			throw new RuntimeException(ex);
+		}
 	}
 
 	@Override

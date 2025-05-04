@@ -1,18 +1,17 @@
 package dev.jbang.source.resolvers;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.source.ResourceResolver;
-import dev.jbang.util.Util;
 
 /**
  * A <code>ResourceResolver</code> that, when given a resource string which
@@ -23,19 +22,21 @@ import dev.jbang.util.Util;
  */
 public class ClasspathResourceResolver implements ResourceResolver {
 	@Override
+	public String description() {
+		return "Classpath resolver";
+	}
+
+	@Override
 	public ResourceRef resolve(String resource) {
 		ResourceRef result = null;
-
 		if (resource.startsWith("classpath:/")) {
 			result = getClasspathResource(resource);
 		}
-
 		return result;
 	}
 
 	private static ResourceRef getClasspathResource(String cpResource) {
 		String ref = cpResource.substring(11);
-		Util.verboseMsg("Duplicating classpath resource " + ref);
 		ClassLoader cl = Thread.currentThread().getContextClassLoader();
 		if (cl == null) {
 			cl = ResourceRef.class.getClassLoader();
@@ -45,29 +46,33 @@ public class ClasspathResourceResolver implements ResourceResolver {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
 					"Resource not found on class path: " + ref);
 		}
+		return new ClasspathResourceRef(cpResource, url);
+	}
 
-		try {
-			File f = new File(url.toURI());
-			if (f.canRead()) {
-				return ResourceRef.forCachedResource(cpResource, f);
-			}
-		} catch (URISyntaxException | IllegalArgumentException e) {
-			// Ignore
+	public static class ClasspathResourceRef extends ResourceRef {
+		@Nonnull
+		private URL url;
+
+		protected ClasspathResourceRef(@Nonnull String ref, @Nonnull URL url) {
+			super(ref, null);
+			this.url = url;
 		}
 
-		// We couldn't read the file directly from the class path so let's make a copy
-		Path to = Util.getUrlCache(cpResource);
-		if (!Files.exists(to)) {
-			try (InputStream is = url.openStream()) {
-				Files.createDirectories(to.getParent());
-				Files.copy(is, to);
-			} catch (IOException e) {
-				Util.deletePath(to, true);
-				throw new ExitException(BaseCommand.EXIT_GENERIC_ERROR,
-						"Resource could not be copied from class path: " + ref, e);
-			}
+		@Override
+		public boolean exists() {
+			return true;
 		}
 
-		return ResourceRef.forCachedResource(cpResource, to.toFile());
+		@Nullable
+		@Override
+		public Path getFile() {
+			return null;
+		}
+
+		@Nonnull
+		@Override
+		public InputStream getInputStream() throws IOException {
+			return url.openStream();
+		}
 	}
 }

@@ -4,15 +4,11 @@ import static dev.jbang.util.Util.verboseMsg;
 import static dev.jbang.util.Util.warnMsg;
 
 import java.io.IOException;
-import java.io.Reader;
+import java.io.InputStream;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.codejive.properties.Properties;
@@ -91,6 +87,36 @@ public class Configuration {
 		return Objects.toString(get(key), defaultValue);
 	}
 
+	public Long getNumber(String key) {
+		String val = get(key);
+		if (key != null) {
+			try {
+				return Long.parseLong(val);
+			} catch (NumberFormatException ex) {
+				// Ignore
+			}
+		}
+		return null;
+	}
+
+	public long getNumber(String key, long defaultValue) {
+		Long val = getNumber(key);
+		return val != null ? val : defaultValue;
+	}
+
+	public Boolean getBoolean(String key) {
+		String val = get(key);
+		if (key != null) {
+			return Boolean.parseBoolean(val);
+		}
+		return null;
+	}
+
+	public boolean getBoolean(String key, boolean defaultValue) {
+		Boolean val = getBoolean(key);
+		return val != null ? val : defaultValue;
+	}
+
 	/**
 	 * Sets the given key to the given value in this Configuration. Passing `null`
 	 * as a value is the same as calling `remove()`.
@@ -154,6 +180,16 @@ public class Configuration {
 		return target;
 	}
 
+	public Configuration clone() {
+		Configuration cfg = new Configuration(fallback);
+		cfg.values.putAll(values);
+		return cfg;
+	}
+
+	public Map<String, String> asMap() {
+		return new HashMap<>(values);
+	}
+
 	/**
 	 * Returns a new empty Configuration
 	 * 
@@ -190,7 +226,7 @@ public class Configuration {
 				if (Files.isReadable(cfgFile)) {
 					global = get(cfgFile);
 				} else {
-					global = defaults();
+					global = defaults().clone();
 				}
 			} else {
 				global = Configuration.getMerged();
@@ -221,12 +257,11 @@ public class Configuration {
 	}
 
 	public static Configuration get(Path catalogPath) {
-		return get(ResourceRef.forNamedFile(catalogPath.toString(), catalogPath.toFile()));
+		return get(ResourceRef.forNamedFile(catalogPath.toString(), catalogPath));
 	}
 
 	private static Configuration get(ResourceRef ref) {
-		Path configPath = ref.getFile().toPath();
-		Configuration cfg = read(configPath);
+		Configuration cfg = read(ref);
 		cfg.storeRef = ref;
 		return cfg;
 	}
@@ -241,21 +276,24 @@ public class Configuration {
 	 */
 	public static Configuration getMerged() {
 		Set<Path> configFiles = new LinkedHashSet<>();
-		Util.findNearestFileWith(null, JBANG_CONFIG_PROPS, cfgFile -> {
+		Util.findNearestWith(null, JBANG_CONFIG_PROPS, cfgFile -> {
 			configFiles.add(cfgFile);
-			return false;
+			return null;
 		});
 
-		ArrayList<Path> files = new ArrayList<>(configFiles);
-		Collections.reverse(files);
 		Configuration result = defaults();
-		for (Path cfgFile : configFiles) {
-			Configuration cfg = read(cfgFile);
-			cfg.storeRef = ResourceRef.forFile(cfgFile.toFile());
-			cfg.fallback = result;
-			result = cfg;
+		if (!configFiles.isEmpty()) {
+			ArrayList<Path> files = new ArrayList<>(configFiles);
+			Collections.reverse(files);
+			for (Path cfgFile : files) {
+				Configuration cfg = read(cfgFile);
+				cfg.storeRef = ResourceRef.forFile(cfgFile);
+				cfg.fallback = result;
+				result = cfg;
+			}
+		} else {
+			result = Configuration.create(result);
 		}
-
 		return result;
 	}
 
@@ -264,27 +302,30 @@ public class Configuration {
 		String res = "classpath:/" + JBANG_CONFIG_PROPS;
 		ResourceRef cfgRef = ResourceRef.forResource(res);
 		if (cfgRef != null) {
-			Path catPath = cfgRef.getFile().toPath();
-			Configuration cfg = read(catPath);
+			Configuration cfg = read(cfgRef);
 			cfg.storeRef = cfgRef;
 			return cfg;
 		} else {
-			return null;
+			return new Configuration();
 		}
 	}
 
-	public static Configuration read(Path configFile) {
+	public static Configuration read(ResourceRef ref) {
 		Configuration cfg = new Configuration();
-		if (Files.isRegularFile(configFile)) {
-			try (Reader in = Files.newBufferedReader(configFile)) {
+		if (ref.exists()) {
+			try (InputStream is = ref.getInputStream()) {
 				Properties props = new Properties();
-				props.load(in);
+				props.load(is);
 				cfg.values.putAll(props);
 			} catch (IOException e) {
-				warnMsg("Couldn't parse configuration: " + configFile);
+				warnMsg("Couldn't parse configuration: " + ref.getOriginalResource());
 			}
 		}
 		return cfg;
+	}
+
+	public static Configuration read(Path cfgFile) {
+		return read(ResourceRef.forFile(cfgFile));
 	}
 
 	public static void write(Path configFile, Configuration cfg) throws IOException {
@@ -293,5 +334,4 @@ public class Configuration {
 			cfg.values.store(out);
 		}
 	}
-
 }

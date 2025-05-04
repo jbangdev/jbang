@@ -4,6 +4,9 @@
 {/for}
 {#if dependencies.isEmpty()}// //DEPS <dependency1> <dependency2>{/if}
 
+{#if magiccontent}
+{magiccontent}
+{#else}
 import static java.lang.System.*;
 
 public class {baseName} {
@@ -12,3 +15,4 @@ public class {baseName} {
         out.println("Hello World");
     }
 }
+{/if}
