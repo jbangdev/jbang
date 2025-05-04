@@ -29,11 +29,11 @@ public class DependenciesIT extends BaseIT {
 		assertThat(
 				shell(Collections.singletonMap("JBANG_REPO", newRepo.toAbsolutePath().toString()),
 						"jbang classpath_log.java"))
-							.succeeded()
-							.errEquals(
-									"[jbang] Resolving dependencies...\n[jbang]    log4j:log4j:1.2.17\n[jbang] Dependencies resolved\n[jbang] Building jar for classpath_log.java...\n"
-										.replace(
-												"\n", System.lineSeparator()));
+			.succeeded()
+			.errEquals(
+					"[jbang] Resolving dependencies...\n[jbang]    log4j:log4j:1.2.17\n[jbang] Dependencies resolved\n[jbang] Building jar for classpath_log.java...\n"
+						.replace(
+								"\n", System.lineSeparator()));
 
 		assertThat(Files.exists(newRepo)).isTrue();
 	}

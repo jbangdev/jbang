@@ -46,6 +46,6 @@ public class QuotingWinIT extends BaseIT {
 		assertThat(shell(
 				Collections.singletonMap("JBANG_DIR", scratch().resolve("jbang dir test").toString()),
 				"jbang echo.java \"foo *\""))
-					.outIsExactly("0:foo *" + lineSeparator());
+			.outIsExactly("0:foo *" + lineSeparator());
 	}
 }

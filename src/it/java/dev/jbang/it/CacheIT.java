@@ -16,11 +16,12 @@ public class CacheIT extends BaseIT {
 	@Test
 	public void clearCacheDefault() {
 		assertThat(shell(
-				"jbang cache clear")).succeeded()
-					.errContains(
-							"[jbang] Clearing cache for urls\n[jbang] Clearing cache for jars\n[jbang] Clearing cache for kotlincs\n[jbang] Clearing cache for groovycs\n[jbang] Clearing cache for scripts\n[jbang] Clearing cache for stdins\n[jbang] Clearing cache for deps\n"
-								.replace(
-										"\n", lineSeparator()));
+				"jbang cache clear"))
+			.succeeded()
+			.errContains(
+					"[jbang] Clearing cache for urls\n[jbang] Clearing cache for jars\n[jbang] Clearing cache for kotlincs\n[jbang] Clearing cache for groovycs\n[jbang] Clearing cache for scripts\n[jbang] Clearing cache for stdins\n[jbang] Clearing cache for deps\n"
+						.replace(
+								"\n", lineSeparator()));
 	}
 
 // Scenario: clear cache default
@@ -45,9 +46,9 @@ public class CacheIT extends BaseIT {
 	public void clearNoCache() {
 		assertThat(shell(
 				"jbang cache clear --all --no-jdk --no-url --no-jar --no-project --no-script --no-stdin --no-deps --no-kotlinc --groovyc"))
-					.succeeded()
-					.errContains(
-							"");
+			.succeeded()
+			.errContains(
+					"");
 	}
 
 }

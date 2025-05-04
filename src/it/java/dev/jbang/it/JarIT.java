@@ -27,7 +27,7 @@ public class JarIT extends BaseIT {
 	void testJavaLaunchGAV() {
 		assertThat(shell(
 				"jbang --main picocli.codegen.aot.graalvm.ReflectionConfigGenerator info.picocli:picocli-codegen:4.6.3"))
-					.errContains(
-							"Missing required parameter: '<classes>'");
+			.errContains(
+					"Missing required parameter: '<classes>'");
 	}
 }

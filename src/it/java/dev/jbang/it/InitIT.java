@@ -91,7 +91,7 @@ public class InitIT extends BaseIT {
 		// TODO: --force to avoid test created in other test
 		assertThat(shell(
 				"jbang template add --force --name test \"{basename}Test.java=templates/test.java.qute\" \"{basename}SecondTest.java=templates/test.java.qute\""))
-					.succeeded();
+			.succeeded();
 
 		Path scriptFile = scratch().resolve("Script.java");
 		assertThat(shell("jbang init -t test " + scriptFile))

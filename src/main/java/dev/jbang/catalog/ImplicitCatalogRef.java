@@ -76,7 +76,7 @@ public class ImplicitCatalogRef {
 				() -> icr.isPresent() ? tryDownload(icr.get().repoUrl(GITHUB_URL, "/blob/")) : Optional.empty(),
 				() -> icr.isPresent() ? tryDownload(icr.get().repoUrl(GITLAB_URL, "/-/blob/")) : Optional.empty(),
 				() -> icr.isPresent() ? tryDownload(icr.get().repoUrl(BITBUCKET_URL, "/src/")) : Optional.empty())
-					.findFirst();
+			.findFirst();
 		return url;
 	}
 
