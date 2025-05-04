@@ -14,8 +14,8 @@ public class ShellEnvIT extends BaseIT {
 	@Test
 	public void testRuntimeShellAvailable() {
 		assertThat(shell("jbang env@jbangdev JBANG"))
-														.succeeded()
-														.outContains("JBANG_RUNTIME_SHELL");
+			.succeeded()
+			.outContains("JBANG_RUNTIME_SHELL");
 	}
 
 	// Scenario: JBANG_STDIN_NOTTY available
@@ -24,8 +24,8 @@ public class ShellEnvIT extends BaseIT {
 	@Test
 	public void testStdinNottyAvailable() {
 		assertThat(shell("jbang env@jbangdev JBANG"))
-														.succeeded()
-														.outContains("JBANG_STDIN_NOTTY");
+			.succeeded()
+			.outContains("JBANG_STDIN_NOTTY");
 	}
 
 	// Scenario: JBANG_LAUNCH_CMD available
@@ -34,7 +34,7 @@ public class ShellEnvIT extends BaseIT {
 	@Test
 	public void testLaunchCmdAvailable() {
 		assertThat(shell("jbang env@jbangdev JBANG"))
-														.succeeded()
-														.outContains("JBANG_LAUNCH_CMD");
+			.succeeded()
+			.outContains("JBANG_LAUNCH_CMD");
 	}
 }

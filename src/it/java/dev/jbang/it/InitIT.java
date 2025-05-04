@@ -27,18 +27,18 @@ public class InitIT extends BaseIT {
 	public void testInitAndRun() throws IOException {
 		Path testFile = scratch().resolve("test.java");
 		assertThat(shell("jbang init " + testFile))
-													.succeeded();
+			.succeeded();
 
 		String contents = new String(Files.readAllBytes(testFile));
 		assertThat(contents).contains("class test");
 
 		assertThat(shell("jbang " + testFile))
-												.succeeded()
-												.errEquals("[jbang] Building jar for test.java..." + lineSeparator());
+			.succeeded()
+			.errEquals("[jbang] Building jar for test.java..." + lineSeparator());
 
 		assertThat(shell("jbang " + testFile))
-												.succeeded()
-												.errNotContains("[jbang] Building jar");
+			.succeeded()
+			.errNotContains("[jbang] Building jar");
 	}
 
 	// Scenario: init of file in a non existing directory
@@ -54,7 +54,7 @@ public class InitIT extends BaseIT {
 	public void testInitInNewDirectory() throws IOException {
 		Path testFile = scratch().resolve("testfolder/test.java");
 		assertThat(shell("jbang init " + testFile))
-													.succeeded();
+			.succeeded();
 
 		String contents = new String(Files.readAllBytes(testFile));
 		assertThat(contents).contains("class test");
@@ -64,12 +64,12 @@ public class InitIT extends BaseIT {
 		Files.write(testFile, contents.getBytes());
 
 		assertThat(shell("jbang " + testFile))
-												.succeeded()
-												.errEquals("[jbang] Building jar for test.java..." + lineSeparator());
+			.succeeded()
+			.errEquals("[jbang] Building jar for test.java..." + lineSeparator());
 
 		assertThat(shell("jbang " + testFile))
-												.succeeded()
-												.errNotContains("[jbang] Building jar");
+			.succeeded()
+			.errNotContains("[jbang] Building jar");
 	}
 
 	// Scenario: init with several file-refs template should display a message
@@ -91,17 +91,17 @@ public class InitIT extends BaseIT {
 		// TODO: --force to avoid test created in other test
 		assertThat(shell(
 				"jbang template add --force --name test \"{basename}Test.java=templates/test.java.qute\" \"{basename}SecondTest.java=templates/test.java.qute\""))
-																																									.succeeded();
+					.succeeded();
 
 		Path scriptFile = scratch().resolve("Script.java");
 		assertThat(shell("jbang init -t test " + scriptFile))
-																.succeeded()
-																.errContains(
-																		"File initialized. You can now run it with")
-																.errContains("or edit it using")
-																.errContains("ScriptTest.java")
-																.errNotContains("Script.java")
-																.errNotContains("ScriptSecondTest.java");
+			.succeeded()
+			.errContains(
+					"File initialized. You can now run it with")
+			.errContains("or edit it using")
+			.errContains("ScriptTest.java")
+			.errNotContains("Script.java")
+			.errNotContains("ScriptSecondTest.java");
 
 		assertThat(Files.exists(scratch().resolve("ScriptTest.java"))).isTrue();
 		assertThat(Files.exists(scratch().resolve("ScriptSecondTest.java"))).isTrue();

@@ -27,9 +27,9 @@ public class WrapperIT extends BaseIT {
 		assertThat(scratch().resolve("jbang")).isNotEmptyFile();
 		assertThat(scratch().resolve("jbang.cmd")).isNotEmptyFile();
 		assertThat(scratch().resolve(".jbang/jbang.jar")).isNotEmptyFile();
-		assertThat(shell(scratch().resolve("jbang").toAbsolutePath() + " echo.java foo"))	.succeeded()
-																							.outIsExactly("0:foo"
-																									+ lineSeparator());
+		assertThat(shell(scratch().resolve("jbang").toAbsolutePath() + " echo.java foo")).succeeded()
+			.outIsExactly("0:foo"
+					+ lineSeparator());
 	}
 
 // Scenario: test wrapper missing folder
@@ -38,8 +38,8 @@ public class WrapperIT extends BaseIT {
 //   * match err contains 'Destination folder does not exist'
 	@Test
 	public void shouldInstallWrapperMissingFolder() {
-		assertThat(shell("jbang wrapper install -d foo"))	.exitedWith(2)
-															.errContains("Destination folder does not exist");
+		assertThat(shell("jbang wrapper install -d foo")).exitedWith(2)
+			.errContains("Destination folder does not exist");
 	}
 
 // Scenario: test wrapper exists

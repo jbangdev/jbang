@@ -116,9 +116,9 @@ public abstract class AppBuilder implements Builder<CmdGeneratorBuilder> {
 			}
 		}
 
-		return CmdGenerator	.builder(ctx)
-							.mainClass(project.getMainClass())
-							.moduleName(project.getModuleName().orElse(null));
+		return CmdGenerator.builder(ctx)
+			.mainClass(project.getMainClass())
+			.moduleName(project.getModuleName().orElse(null));
 	}
 
 	public static boolean keepClasses() {

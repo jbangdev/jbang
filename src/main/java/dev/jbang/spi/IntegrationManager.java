@@ -54,8 +54,8 @@ public class IntegrationManager {
 	public static final String JAVA_ARGS = "java-args";
 
 	private static final GsonBuilder gsonb = new GsonBuilder()
-																.registerTypeHierarchyAdapter(Path.class,
-																		new PathTypeAdapter());
+		.registerTypeHierarchyAdapter(Path.class,
+				new PathTypeAdapter());
 
 	/**
 	 * Discovers all integration points and runs them.
@@ -248,8 +248,8 @@ public class IntegrationManager {
 		}
 
 		Process process = new ProcessBuilder(args)
-													.redirectError(ProcessBuilder.Redirect.INHERIT)
-													.start();
+			.redirectError(ProcessBuilder.Redirect.INHERIT)
+			.start();
 
 		try (Writer w = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
 			parser.toJson(input, w);

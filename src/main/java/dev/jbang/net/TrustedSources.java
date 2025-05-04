@@ -192,15 +192,15 @@ public class TrustedSources {
 
 	protected String getJSon(Collection<String> rules) {
 
-		rules = rules	.stream()
-						.map(s -> new JsonPrimitive(s).toString())
-						.collect(Collectors.toCollection(LinkedHashSet::new));
+		rules = rules.stream()
+			.map(s -> new JsonPrimitive(s).toString())
+			.collect(Collectors.toCollection(LinkedHashSet::new));
 
-		String trustedsources = TemplateEngine	.instance()
-												.getTemplate(
-														ResourceRef.forResource("classpath:/trusted-sources.json.qute"))
-												.data("trustedsources", rules)
-												.render();
+		String trustedsources = TemplateEngine.instance()
+			.getTemplate(
+					ResourceRef.forResource("classpath:/trusted-sources.json.qute"))
+			.data("trustedsources", rules)
+			.render();
 		return trustedsources;
 	}
 

@@ -14,7 +14,7 @@ public class JarIT extends BaseIT {
 	@Test
 	void testJavaLaunchFile() {
 		assertThat(shell("jbang helloworld.jar"))
-													.outEquals("Hello World" + lineSeparator());
+			.outEquals("Hello World" + lineSeparator());
 	}
 
 	// #TODO: find GAV with static void main
@@ -27,7 +27,7 @@ public class JarIT extends BaseIT {
 	void testJavaLaunchGAV() {
 		assertThat(shell(
 				"jbang --main picocli.codegen.aot.graalvm.ReflectionConfigGenerator info.picocli:picocli-codegen:4.6.3"))
-																															.errContains(
-																																	"Missing required parameter: '<classes>'");
+					.errContains(
+							"Missing required parameter: '<classes>'");
 	}
 }

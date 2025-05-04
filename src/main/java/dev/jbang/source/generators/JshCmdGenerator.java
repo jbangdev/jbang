@@ -114,8 +114,8 @@ public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
 
 		fullArgs.addAll(jshellOpts(project.getRuntimeOptions()));
 		fullArgs.addAll(jshellOpts(runtimeOptions));
-		fullArgs.addAll(ctx	.resolveClassPath()
-							.getAutoDectectedModuleArguments(jdk));
+		fullArgs.addAll(ctx.resolveClassPath()
+			.getAutoDectectedModuleArguments(jdk));
 		fullArgs.addAll(optionalArgs);
 
 		if (project.isJShell()) {
@@ -149,10 +149,10 @@ public class JshCmdGenerator extends BaseCmdGenerator<JshCmdGenerator> {
 				+
 				" }" +
 				(properties.isEmpty() ? "" : "\n") +
-				properties	.entrySet()
-							.stream()
-							.map(x -> "System.setProperty(\"" + x.getKey() + "\",\"" + x.getValue() + "\");")
-							.collect(Collectors.joining("\n"));
+				properties.entrySet()
+					.stream()
+					.map(x -> "System.setProperty(\"" + x.getKey() + "\",\"" + x.getValue() + "\");")
+					.collect(Collectors.joining("\n"));
 		return buf;
 	}
 

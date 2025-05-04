@@ -13,8 +13,8 @@ public class TemplateIT extends BaseIT {
 	@Test
 	public void shouldRemoveBuiltInTemplate() {
 		assertThat(shell("jbang template remove hello")).succeeded()
-														.errContains(
-																"Cannot remove template hello from built-in catalog");
+			.errContains(
+					"Cannot remove template hello from built-in catalog");
 	}
 
 }

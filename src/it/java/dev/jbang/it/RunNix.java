@@ -21,9 +21,9 @@ public class RunNix extends BaseIT {
 	@Test
 	public void shouldRunAsCodeOption2() {
 		assertThat(shell("jbang --code \"$(cat helloworld.java)\" jbangtest"))
-																				.errContains(
-																						"[jbang] Building jar for helloworld.java...\n")
-																				.outIsExactly("Hello jbangtest\n");
+			.errContains(
+					"[jbang] Building jar for helloworld.java...\n")
+			.outIsExactly("Hello jbangtest\n");
 	}
 
 // Scenario: as code option 3
@@ -34,10 +34,10 @@ public class RunNix extends BaseIT {
 	public void shouldRunAsCodeOption3() {
 		// TODO: fresh should not be needed. isolation issue.
 		assertThat(shell("jbang --fresh \"--code=$(cat helloworld.java)\" jbangtest"))
-																						.errIsExactly(
-																								"[jbang] Building jar for helloworld.java...\n")
-																						.outIsExactly(
-																								"Hello jbangtest\n");
+			.errIsExactly(
+					"[jbang] Building jar for helloworld.java...\n")
+			.outIsExactly(
+					"Hello jbangtest\n");
 	}
 
 }
