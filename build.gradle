@@ -450,7 +450,7 @@ task copyITests(type: Copy) {
 task tag(type: Exec) {
 	doFirst {
 		println 'Tagging with v' + project.version
-		commandLine 'git', 'tag', '-a', 'v' + project.version, '-F', 'CHANGELOG.md'
+		commandLine 'git', 'tag', '-a', 'v' + project.version, '-m', 'v' + project.version
 	}
 }
 
