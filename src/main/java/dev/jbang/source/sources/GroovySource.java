@@ -8,10 +8,11 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import javax.annotation.Nonnull;
+
 import org.jboss.jandex.ClassInfo;
 
 import dev.jbang.net.GroovyManager;
-import dev.jbang.net.JdkManager;
 import dev.jbang.source.*;
 import dev.jbang.source.AppBuilder;
 import dev.jbang.source.buildsteps.CompileBuildStep;
@@ -25,6 +26,11 @@ public class GroovySource extends Source {
 
 	public GroovySource(String script, Function<String, String> replaceProperties) {
 		super(script, replaceProperties);
+	}
+
+	@Override
+	public @Nonnull Type getType() {
+		return Type.groovy;
 	}
 
 	@Override
@@ -57,9 +63,9 @@ public class GroovySource extends Source {
 
 	public String getGroovyVersion() {
 		return tagReader.collectOptions("GROOVY")
-						.stream()
-						.findFirst()
-						.orElse(GroovyManager.DEFAULT_GROOVY_VERSION);
+			.stream()
+			.findFirst()
+			.orElse(GroovyManager.DEFAULT_GROOVY_VERSION);
 	}
 
 	@Override
@@ -93,9 +99,11 @@ public class GroovySource extends Source {
 			protected void runCompiler(ProcessBuilder processBuilder) throws IOException {
 				Project project = ctx.getProject();
 				if (project.getMainSource() instanceof GroovySource) {
-					processBuilder	.environment()
-									.put("JAVA_HOME",
-											JdkManager.getOrInstallJdk(project.getJavaVersion()).getHome().toString());
+					processBuilder.environment()
+						.put("JAVA_HOME",
+								project.projectJdk()
+									.home()
+									.toString());
 					processBuilder.environment().remove("GROOVY_HOME");
 				}
 				super.runCompiler(processBuilder);
@@ -103,7 +111,7 @@ public class GroovySource extends Source {
 
 			@Override
 			protected String getMainExtension() {
-				return ".groovy";
+				return Type.groovy.extension;
 			}
 
 			@Override

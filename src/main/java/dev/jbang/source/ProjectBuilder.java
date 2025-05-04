@@ -37,6 +37,7 @@ import dev.jbang.dependencies.Detector;
 import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.dependencies.ModularClassPath;
+import dev.jbang.devkitman.JdkManager;
 import dev.jbang.source.buildsteps.JarBuildStep;
 import dev.jbang.source.resolvers.AliasResourceResolver;
 import dev.jbang.source.resolvers.ClasspathResourceResolver;
@@ -76,6 +77,7 @@ public class ProjectBuilder {
 	private Boolean integrations;
 	private String javaVersion;
 	private Boolean enablePreview;
+	private JdkManager jdkManager;
 
 	// Cached values
 	private Properties contextProperties;
@@ -214,6 +216,11 @@ public class ProjectBuilder {
 		return this;
 	}
 
+	public ProjectBuilder jdkManager(JdkManager jdkManager) {
+		this.jdkManager = jdkManager;
+		return this;
+	}
+
 	private Properties getContextProperties() {
 		if (contextProperties == null) {
 			contextProperties = getContextProperties(properties);
@@ -232,8 +239,8 @@ public class ProjectBuilder {
 
 	private List<String> replaceAllProps(List<String> items) {
 		return items.stream()
-					.map(item -> PropertiesValueResolver.replaceProperties(item, getContextProperties()))
-					.collect(Collectors.toList());
+			.map(item -> PropertiesValueResolver.replaceProperties(item, getContextProperties()))
+			.collect(Collectors.toList());
 	}
 
 	private List<MavenRepo> allToMavenRepo(List<String> repos) {
@@ -380,12 +387,8 @@ public class ProjectBuilder {
 		return updateProject(updateProjectMain(src, prj, getResourceResolver()));
 	}
 
-	/**
+	/*
 	 * Imports settings from jar MANIFEST.MF, pom.xml and more
-	 * 
-	 * @param prj
-	 * @param importModuleName
-	 * @return
 	 */
 	private Project importJarMetadata(Project prj, boolean importModuleName) {
 		Path jar = prj.getResourceRef().getFile();
@@ -412,8 +415,7 @@ public class ProjectBuilder {
 
 					// we pass exports/opens into the project...
 					// TODO: this does mean we can't separate from user specified options and jar
-					// origined ones
-					// but not sure if needed?
+					// origined ones, but not sure if needed?
 					// https://openjdk.org/jeps/261#Breaking-encapsulation
 					String exports = attrs.getValue("Add-Exports");
 					if (exports != null) {
@@ -484,17 +486,22 @@ public class ProjectBuilder {
 		if (enablePreview != null) {
 			prj.setEnablePreviewRequested(enablePreview);
 		}
+		if (jdkManager != null) {
+			prj.setJdkManager(jdkManager);
+		} else {
+			prj.setJdkManager(JavaUtil.defaultJdkManager());
+		}
 		return prj;
 	}
 
 	private void updateAllSources(Project prj, List<String> sources) {
 		Catalog catalog = catalogFile != null ? Catalog.get(catalogFile.toPath()) : null;
 		ResourceResolver resolver = getResourceResolver();
-		sources	.stream()
-				.flatMap(f -> Util.explode(null, Util.getCwd(), f).stream())
-				.map(s -> resolveChecked(resolver, s))
-				.map(this::createSource)
-				.forEach(src -> updateProject(src, prj, resolver));
+		sources.stream()
+			.flatMap(f -> Util.explode(null, Util.getCwd(), f).stream())
+			.map(s -> resolveChecked(resolver, s))
+			.map(this::createSource)
+			.forEach(src -> updateProject(src, prj, resolver));
 	}
 
 	private List<RefTarget> allToFileRef(List<String> resources) {
@@ -502,9 +509,9 @@ public class ProjectBuilder {
 		Function<String, String> propsResolver = it -> PropertiesValueResolver.replaceProperties(it,
 				getContextProperties());
 		return resources.stream()
-						.flatMap(f -> TagReader.explodeFileRef(null, Util.getCwd(), f).stream())
-						.map(f -> TagReader.toFileRef(f, resolver))
-						.collect(Collectors.toList());
+			.flatMap(f -> TagReader.explodeFileRef(null, Util.getCwd(), f).stream())
+			.map(f -> TagReader.toFileRef(f, resolver))
+			.collect(Collectors.toList());
 	}
 
 	/**
@@ -605,12 +612,12 @@ public class ProjectBuilder {
 	private ModularClassPath resolveDependency(String dep) {
 		if (mcp == null) {
 			DependencyResolver resolver = new DependencyResolver()
-																	.addDependency(dep)
-																	.addRepositories(allToMavenRepo(
-																			replaceAllProps(additionalRepos)))
-																	.addDependencies(replaceAllProps(additionalDeps))
-																	.addClassPaths(
-																			replaceAllProps(additionalClasspaths));
+				.addDependency(dep)
+				.addRepositories(allToMavenRepo(
+						replaceAllProps(additionalRepos)))
+				.addDependencies(replaceAllProps(additionalDeps))
+				.addClassPaths(
+						replaceAllProps(additionalClasspaths));
 			mcp = resolver.resolve();
 		}
 		return mcp;

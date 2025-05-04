@@ -19,8 +19,8 @@ import com.google.gson.GsonBuilder;
 
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenRepo;
-import dev.jbang.net.JdkManager;
-import dev.jbang.net.JdkProvider;
+import dev.jbang.devkitman.Jdk;
+import dev.jbang.devkitman.JdkManager;
 import dev.jbang.source.*;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
@@ -117,10 +117,11 @@ abstract class BaseInfoCommand extends BaseCommand {
 				requestedJavaVersion = prj.getJavaVersion();
 
 				try {
-					JdkProvider.Jdk jdk = assureJdkInstalled ? JdkManager.getOrInstallJdk(requestedJavaVersion)
-							: JdkManager.getJdk(requestedJavaVersion, false);
+					JdkManager jdkMan = JavaUtil.defaultJdkManager();
+					Jdk jdk = assureJdkInstalled ? jdkMan.getOrInstallJdk(requestedJavaVersion)
+							: jdkMan.getJdk(requestedJavaVersion);
 					if (jdk != null && jdk.isInstalled()) {
-						availableJdkPath = jdk.getHome().toString();
+						availableJdkPath = jdk.home().toString();
 					}
 				} catch (ExitException e) {
 					// Ignore
@@ -131,9 +132,9 @@ abstract class BaseInfoCommand extends BaseCommand {
 					resolvedDependencies = Collections.emptyList();
 				} else {
 					resolvedDependencies = artifacts
-													.stream()
-													.map(a -> a.getFile().toString())
-													.collect(Collectors.toList());
+						.stream()
+						.map(a -> a.getFile().toString())
+						.collect(Collectors.toList());
 				}
 
 				if (prj.getJavaVersion() != null) {
@@ -162,19 +163,19 @@ abstract class BaseInfoCommand extends BaseCommand {
 			}
 			if (prj.getMainSource() == null) {
 				if (!prj.getRepositories().isEmpty()) {
-					repositories = prj	.getRepositories()
-										.stream()
-										.map(Repo::new)
-										.collect(Collectors.toList());
+					repositories = prj.getRepositories()
+						.stream()
+						.map(Repo::new)
+						.collect(Collectors.toList());
 				}
 			} else {
 				init(prj.getMainSourceSet());
 			}
 			if (!prj.getRepositories().isEmpty()) {
-				repositories = prj	.getRepositories()
-									.stream()
-									.map(Repo::new)
-									.collect(Collectors.toList());
+				repositories = prj.getRepositories()
+					.stream()
+					.map(Repo::new)
+					.collect(Collectors.toList());
 			}
 			gav = prj.getGav().orElse(null);
 			description = prj.getDescription().orElse(null);
@@ -189,14 +190,14 @@ abstract class BaseInfoCommand extends BaseCommand {
 			List<RefTarget> refs = ss.getResources();
 			if (!refs.isEmpty()) {
 				files = refs.stream()
-							.map(ProjectFile::new)
-							.collect(Collectors.toList());
+					.map(ProjectFile::new)
+					.collect(Collectors.toList());
 			}
 			List<ResourceRef> srcs = ss.getSources();
 			if (!srcs.isEmpty()) {
-				sources = srcs	.stream()
-								.map(ProjectFile::new)
-								.collect(Collectors.toList());
+				sources = srcs.stream()
+					.map(ProjectFile::new)
+					.collect(Collectors.toList());
 			}
 			if (!ss.getCompileOptions().isEmpty()) {
 				compileOptions = ss.getCompileOptions();
@@ -220,16 +221,16 @@ abstract class BaseInfoCommand extends BaseCommand {
 
 	ProjectBuilder createProjectBuilder() {
 		return Project
-						.builder()
-						.setProperties(dependencyInfoMixin.getProperties())
-						.additionalDependencies(dependencyInfoMixin.getDependencies())
-						.additionalRepositories(dependencyInfoMixin.getRepositories())
-						.additionalClasspaths(dependencyInfoMixin.getClasspaths())
-						.additionalSources(scriptMixin.sources)
-						.additionalResources(scriptMixin.resources)
-						.forceType(scriptMixin.forceType)
-						.moduleName(module)
-						.catalog(scriptMixin.catalog);
+			.builder()
+			.setProperties(dependencyInfoMixin.getProperties())
+			.additionalDependencies(dependencyInfoMixin.getDependencies())
+			.additionalRepositories(dependencyInfoMixin.getRepositories())
+			.additionalClasspaths(dependencyInfoMixin.getClasspaths())
+			.additionalSources(scriptMixin.sources)
+			.additionalResources(scriptMixin.resources)
+			.forceType(scriptMixin.forceType)
+			.moduleName(module)
+			.catalog(scriptMixin.catalog);
 	}
 
 }

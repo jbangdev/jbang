@@ -35,6 +35,7 @@ import com.google.gson.GsonBuilder;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenRepo;
+import dev.jbang.devkitman.Jdk;
 import dev.jbang.source.BuildContext;
 import dev.jbang.source.Project;
 import dev.jbang.source.Source;
@@ -53,8 +54,8 @@ public class IntegrationManager {
 	public static final String JAVA_ARGS = "java-args";
 
 	private static final GsonBuilder gsonb = new GsonBuilder()
-																.registerTypeHierarchyAdapter(Path.class,
-																		new PathTypeAdapter());
+		.registerTypeHierarchyAdapter(Path.class,
+				new PathTypeAdapter());
 
 	/**
 	 * Discovers all integration points and runs them.
@@ -97,7 +98,7 @@ public class IntegrationManager {
 				IntegrationResult ir = requestedJavaVersion == null || JavaUtil.satisfiesRequestedVersion(
 						requestedJavaVersion, JavaUtil.getCurrentMajorJavaVersion())
 								? runIntegrationEmbedded(input, integrationCl)
-								: runIntegrationExternal(input, prj.getProperties(), requestedJavaVersion);
+								: runIntegrationExternal(input, prj.getProperties(), prj.projectJdk());
 				result = result.merged(ir);
 			}
 		} catch (ClassNotFoundException e) {
@@ -216,13 +217,13 @@ public class IntegrationManager {
 
 	private static IntegrationResult runIntegrationExternal(IntegrationInput input,
 			Map<String, String> properties,
-			String requestedJavaVersion)
+			Jdk jdk)
 			throws Exception {
 		Gson parser = gsonb.create();
 		Util.infoMsg("Running external post build for " + input.integrationClassName);
 
 		List<String> args = new ArrayList<>();
-		args.add(resolveInJavaHome("java", requestedJavaVersion)); // TODO
+		args.add(resolveInJavaHome("java", jdk)); // TODO
 		for (Map.Entry<String, String> entry : properties.entrySet()) {
 			args.add("-D" + entry.getKey() + "=" + entry.getValue());
 		}
@@ -247,8 +248,8 @@ public class IntegrationManager {
 		}
 
 		Process process = new ProcessBuilder(args)
-													.redirectError(ProcessBuilder.Redirect.INHERIT)
-													.start();
+			.redirectError(ProcessBuilder.Redirect.INHERIT)
+			.start();
 
 		try (Writer w = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
 			parser.toJson(input, w);

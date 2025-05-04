@@ -135,21 +135,22 @@ class AliasAdd extends BaseAliasCommand {
 
 	ProjectBuilder createProjectBuilder() {
 		ProjectBuilder pb = Project
-									.builder()
-									.setProperties(dependencyInfoMixin.getProperties())
-									.additionalDependencies(dependencyInfoMixin.getDependencies())
-									.additionalRepositories(dependencyInfoMixin.getRepositories())
-									.additionalClasspaths(dependencyInfoMixin.getClasspaths())
-									.additionalSources(scriptMixin.sources)
-									.additionalResources(scriptMixin.resources)
-									.forceType(scriptMixin.forceType)
-									.javaVersion(buildMixin.javaVersion)
-									.moduleName(buildMixin.module)
-									.compileOptions(buildMixin.compileOptions)
-									.nativeImage(nativeMixin.nativeImage)
-									.nativeOptions(nativeMixin.nativeOptions)
-									.integrations(buildMixin.integrations)
-									.enablePreview(enablePreviewRequested);
+			.builder()
+			.setProperties(dependencyInfoMixin.getProperties())
+			.additionalDependencies(dependencyInfoMixin.getDependencies())
+			.additionalRepositories(dependencyInfoMixin.getRepositories())
+			.additionalClasspaths(dependencyInfoMixin.getClasspaths())
+			.additionalSources(scriptMixin.sources)
+			.additionalResources(scriptMixin.resources)
+			.forceType(scriptMixin.forceType)
+			.javaVersion(buildMixin.javaVersion)
+			.moduleName(buildMixin.module)
+			.compileOptions(buildMixin.compileOptions)
+			.nativeImage(nativeMixin.nativeImage)
+			.nativeOptions(nativeMixin.nativeOptions)
+			.integrations(buildMixin.integrations)
+			.enablePreview(enablePreviewRequested)
+			.jdkManager(buildMixin.jdkProvidersMixin.getJdkManager());
 		Path cat = getCatalog(false);
 		if (cat != null) {
 			pb.catalog(cat.toFile());
@@ -161,10 +162,10 @@ class AliasAdd extends BaseAliasCommand {
 		if (runMixin.javaAgentSlots == null) {
 			return Collections.emptyList();
 		}
-		return runMixin.javaAgentSlots	.entrySet()
-										.stream()
-										.map(e -> new JavaAgent(e.getKey(), e.getValue()))
-										.collect(Collectors.toList());
+		return runMixin.javaAgentSlots.entrySet()
+			.stream()
+			.map(e -> new JavaAgent(e.getKey(), e.getValue()))
+			.collect(Collectors.toList());
 	}
 }
 
@@ -204,11 +205,11 @@ class AliasList extends BaseAliasCommand {
 
 	static void printAliases(PrintStream out, String catalogName, Catalog catalog, FormatMixin.Format format) {
 		List<AliasOut> aliases = catalog.aliases
-												.keySet()
-												.stream()
-												.sorted()
-												.map(name -> getAliasOut(catalogName, catalog, name))
-												.collect(Collectors.toList());
+			.keySet()
+			.stream()
+			.sorted()
+			.map(name -> getAliasOut(catalogName, catalog, name))
+			.collect(Collectors.toList());
 
 		if (format == FormatMixin.Format.json) {
 			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
@@ -220,18 +221,18 @@ class AliasList extends BaseAliasCommand {
 
 	static List<CatalogList.CatalogOut> getAliasesWithOrigin(String catalogName, Catalog catalog) {
 		Map<ResourceRef, List<AliasOut>> groups = catalog.aliases
-																	.keySet()
-																	.stream()
-																	.sorted()
-																	.map(name -> getAliasOut(catalogName, catalog,
-																			name))
-																	.collect(Collectors.groupingBy(
-																			a -> a._catalogRef));
-		return groups	.entrySet()
-						.stream()
-						.map(e -> new CatalogList.CatalogOut(null, e.getKey(),
-								e.getValue(), null, null))
-						.collect(Collectors.toList());
+			.keySet()
+			.stream()
+			.sorted()
+			.map(name -> getAliasOut(catalogName, catalog,
+					name))
+			.collect(Collectors.groupingBy(
+					a -> a._catalogRef));
+		return groups.entrySet()
+			.stream()
+			.map(e -> new CatalogList.CatalogOut(null, e.getKey(),
+					e.getValue(), null, null))
+			.collect(Collectors.toList());
 	}
 
 	static void printAliasesWithOrigin(PrintStream out, String catalogName, Catalog catalog,

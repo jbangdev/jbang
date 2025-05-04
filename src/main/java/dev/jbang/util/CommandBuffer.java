@@ -57,9 +57,9 @@ public class CommandBuffer {
 	}
 
 	public ProcessBuilder asProcessBuilder(Util.Shell shell) {
-		List<String> args = arguments	.stream()
-										.map(a -> escapeProcessBuilderArgument(a, shell))
-										.collect(Collectors.toList());
+		List<String> args = arguments.stream()
+			.map(a -> escapeProcessBuilderArgument(a, shell))
+			.collect(Collectors.toList());
 		return new ProcessBuilder(args);
 	}
 
@@ -115,6 +115,12 @@ public class CommandBuffer {
 
 	private static String escapeBashArgument(String arg) {
 		if (!shellSafeChars.matcher(arg).matches()) {
+			// We need to use single quoting to prevent any form of expansion.
+			// But to be able to use single quotes inside the argument we need
+			// to escape them with a backslash. But if we are already using
+			// single quotes then we can not use escapes. To fix that we use
+			// a concatenation of single quoted strings with escaped single
+			// quotes in between.
 			arg = arg.replaceAll("(['])", "'\\\\''");
 			arg = "'" + arg + "'";
 		}

@@ -1,12 +1,13 @@
 package dev.jbang.cli;
 
+import static dev.jbang.util.JavaUtil.defaultJdkManager;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.nio.file.attribute.PosixFilePermission;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -21,8 +22,7 @@ import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.dependencies.DependencyUtil;
-import dev.jbang.net.JdkManager;
-import dev.jbang.net.JdkProvider;
+import dev.jbang.devkitman.Jdk;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.CommandBuffer;
@@ -38,9 +38,9 @@ public class App {
 
 	public static void deleteCommandFiles(String name) {
 		try (Stream<Path> files = Files.list(Settings.getConfigBinDir())) {
-			files	.filter(f -> f.getFileName().toString().equals(name)
-							|| f.getFileName().toString().startsWith(name + "."))
-					.forEach(f -> Util.deletePath(f, true));
+			files.filter(f -> f.getFileName().toString().equals(name)
+					|| f.getFileName().toString().startsWith(name + "."))
+				.forEach(f -> Util.deletePath(f, true));
 		} catch (IOException e) {
 			// Ignore
 		}
@@ -69,9 +69,6 @@ class AppInstall extends BaseCommand {
 
 	@CommandLine.Mixin
 	NativeMixin nativeMixin;
-
-	@CommandLine.Mixin
-	JdkProvidersMixin jdkProvidersMixin;
 
 	@CommandLine.Mixin
 	RunMixin runMixin;
@@ -120,7 +117,6 @@ class AppInstall extends BaseCommand {
 		opts.addAll(buildMixin.opts());
 		opts.addAll(dependencyInfoMixin.opts());
 		opts.addAll(nativeMixin.opts());
-		opts.addAll(jdkProvidersMixin.opts());
 		opts.addAll(runMixin.opts());
 		if (Boolean.TRUE.equals(enablePreviewRequested)) {
 			opts.add("--enable-preview");
@@ -185,19 +181,7 @@ class AppInstall extends BaseCommand {
 		List<String> lines = Arrays.asList("#!/bin/sh", cb.asCommandLine(Util.Shell.bash) + " \"$@\"");
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 		if (!Util.isWindows()) {
-			setExecutable(file);
-		}
-	}
-
-	private static void setExecutable(Path file) {
-		final Set<PosixFilePermission> permissions;
-		try {
-			permissions = Files.getPosixFilePermissions(file);
-			permissions.add(PosixFilePermission.OWNER_EXECUTE);
-			permissions.add(PosixFilePermission.GROUP_EXECUTE);
-			Files.setPosixFilePermissions(file, permissions);
-		} catch (UnsupportedOperationException | IOException e) {
-			throw new ExitException(EXIT_GENERIC_ERROR, "Couldn't mark script as executable: " + file, e);
+			Util.setExecutable(file);
 		}
 	}
 
@@ -267,26 +251,26 @@ class AppInstall extends BaseCommand {
 
 	private static void copyJBangFiles(Path from, Path to) throws IOException {
 		to.toFile().mkdirs();
-		Stream	.of("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")
-				.map(Paths::get)
-				.forEach(f -> {
-					try {
-						Path fromp = from.resolve(f);
-						Path top = to.resolve(f);
-						if (f.endsWith("jbang.jar")) {
-							if (!Files.isReadable(fromp)) {
-								fromp = from.resolve(".jbang/jbang.jar");
-							}
-							if (Util.isWindows() && Files.isRegularFile(top)) {
-								top = to.resolve("jbang.jar.new");
-							}
+		Stream.of("jbang", "jbang.cmd", "jbang.ps1", "jbang.jar")
+			.map(Paths::get)
+			.forEach(f -> {
+				try {
+					Path fromp = from.resolve(f);
+					Path top = to.resolve(f);
+					if (f.endsWith("jbang.jar")) {
+						if (!Files.isReadable(fromp)) {
+							fromp = from.resolve(".jbang/jbang.jar");
 						}
-						Files.copy(fromp, top, StandardCopyOption.REPLACE_EXISTING,
-								StandardCopyOption.COPY_ATTRIBUTES);
-					} catch (IOException e) {
-						throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
+						if (Util.isWindows() && Files.isRegularFile(top)) {
+							top = to.resolve("jbang.jar.new");
+						}
 					}
-				});
+					Files.copy(fromp, top, StandardCopyOption.REPLACE_EXISTING,
+							StandardCopyOption.COPY_ATTRIBUTES);
+				} catch (IOException e) {
+					throw new ExitException(EXIT_GENERIC_ERROR, "Could not copy " + f.toString(), e);
+				}
+			});
 	}
 }
 
@@ -322,11 +306,11 @@ class AppList extends BaseCommand {
 	private static List<AppOut> listCommandFiles() {
 		try (Stream<Path> files = Files.list(Settings.getConfigBinDir())) {
 			return files
-						.filter(Files::isExecutable)
-						.sorted()
-						.map(AppOut::new)
-						.filter(distinctByKey(AppOut::getName))
-						.collect(Collectors.toList());
+				.filter(Files::isExecutable)
+				.sorted()
+				.map(AppOut::new)
+				.filter(distinctByKey(AppOut::getName))
+				.collect(Collectors.toList());
 		} catch (IOException e) {
 			return Collections.emptyList();
 		}
@@ -401,7 +385,7 @@ class AppSetup extends BaseCommand {
 	 */
 	public static boolean guessWithJava() {
 		boolean withJava;
-		JdkProvider.Jdk defJdk = JdkManager.getJdk(null, false);
+		Jdk defJdk = defaultJdkManager().getJdk(null);
 		String javaHome = System.getenv("JAVA_HOME");
 		Path javacCmd = Util.searchPath("javac");
 		withJava = defJdk != null
@@ -415,12 +399,12 @@ class AppSetup extends BaseCommand {
 	public static int setup(boolean withJava, boolean force, boolean chatty) {
 		Path jdkHome = null;
 		if (withJava) {
-			JdkProvider.Jdk defJdk = JdkManager.getDefaultJdk();
+			Jdk defJdk = defaultJdkManager().getDefaultJdk();
 			if (defJdk == null) {
 				Util.infoMsg("No default JDK set, use 'jbang jdk default <version>' to set one.");
 				return EXIT_UNEXPECTED_STATE;
 			}
-			jdkHome = Settings.getCurrentJdkDir();
+			jdkHome = Settings.getDefaultJdkDir();
 		}
 
 		Path binDir = Settings.getConfigBinDir();
@@ -502,7 +486,7 @@ class AppSetup extends BaseCommand {
 			// Detect if JBang has already been set up before
 			boolean jbangFound = Files.exists(bashFile)
 					&& Files.lines(bashFile)
-							.anyMatch(ln -> ln.trim().startsWith("#") && ln.toLowerCase().contains("jbang"));
+						.anyMatch(ln -> ln.trim().startsWith("#") && ln.toLowerCase().contains("jbang"));
 			if (!jbangFound) {
 				// Add lines to add JBang to PATH
 				String lines = "\n# Add JBang to environment\n" +

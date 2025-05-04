@@ -33,13 +33,16 @@ public abstract class Source {
 	protected final TagReader tagReader;
 
 	public enum Type {
-		java("java"), jshell("jsh"), kotlin("kt"),
-		groovy("groovy"), markdown("md");
+		java("java", "java"), jshell("jsh", "java"),
+		kotlin("kt", "kotlin"), groovy("groovy", "groovy"),
+		markdown("md", "java");
 
 		public final String extension;
+		public final String sourceFolder;
 
-		Type(String extension) {
+		Type(String extension, String sourceFolder) {
 			this.extension = extension;
+			this.sourceFolder = sourceFolder;
 		}
 
 		public static List<String> extensions() {
@@ -69,6 +72,8 @@ public abstract class Source {
 	public Stream<String> getTags() {
 		return tagReader.getTags();
 	}
+
+	public abstract @Nonnull Type getType();
 
 	protected List<String> collectBinaryDependencies() {
 		return tagReader.collectBinaryDependencies();
