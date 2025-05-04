@@ -42,6 +42,7 @@ javadoc {
 
 repositories {
 	mavenCentral()
+	mavenLocal()
 	//maven { url 'https://jitpack.io' }
 }
 
@@ -126,10 +127,10 @@ sourceSets {
 sourceSets.main.compileClasspath += sourceSets.java9.output.classesDirs;
 
 dependencies {
-	implementation 'com.offbytwo:docopt:0.6.0.20150202'
+	implementation 'dev.jbang:devkitman:0.1.2'
 
 	implementation 'org.apache.commons:commons-text:1.11.0'
-	implementation 'org.apache.commons:commons-compress:1.25.0'
+	implementation 'org.apache.commons:commons-compress:1.27.1'
 	implementation 'info.picocli:picocli:4.7.5'
 	implementation 'io.quarkus.qute:qute-core:1.12.2.Final'
 	implementation 'kr.motd.maven:os-maven-plugin:1.7.1'
@@ -280,6 +281,7 @@ compileJava9Java {
 shadowJar {
 	minimize() {
 		//exclude(dependency('org.slf4j:slf4j-api:.*'))
+		exclude(dependency('dev.jbang:devkitman:.*'))
 		exclude(dependency('eu.maveniverse.maven.mima:context:.*'))
 		exclude(dependency('eu.maveniverse.maven.mima.runtime:standalone-static:.*'))
 		exclude(dependency('org.slf4j:jcl-over-slf4j:.*'))

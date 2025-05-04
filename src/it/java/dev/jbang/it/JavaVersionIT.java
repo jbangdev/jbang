@@ -15,7 +15,7 @@ public class JavaVersionIT extends BaseIT {
 	public void testNonExistentJavaVersion() {
 		assertThat(shell("jbang --verbose java4321.java"))
 															.errContains(
-																	"JDK version is not available for installation: 4321");
+																	"No suitable JDK was found for requested version: 4321");
 	}
 
 	// Scenario: java run with explicit java 8
