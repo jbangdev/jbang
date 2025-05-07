@@ -1,7 +1,6 @@
 package dev.jbang.source;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import dev.jbang.catalog.Alias;
 import dev.jbang.source.generators.JarCmdGenerator;
@@ -146,9 +145,9 @@ public class CmdGeneratorBuilder {
 
 	private void updateFromAlias(Alias alias) {
 		if (arguments.isEmpty()) {
-			setArguments(handleRemoteFiles(alias.arguments));
+			setArguments(Util.handleRemoteFiles(alias.arguments));
 		} else if (alias.arguments != null && !alias.arguments.isEmpty()) {
-			List<String> args = new ArrayList<>(handleRemoteFiles(alias.arguments));
+			List<String> args = new ArrayList<>(Util.handleRemoteFiles(alias.arguments));
 			args.addAll(arguments);
 			setArguments(args);
 		}
@@ -185,11 +184,4 @@ public class CmdGeneratorBuilder {
 		}
 	}
 
-	private static List<String> handleRemoteFiles(List<String> args) {
-		if (args != null) {
-			return args.stream().map(Util::substituteRemote).collect(Collectors.toList());
-		} else {
-			return null;
-		}
-	}
 }
