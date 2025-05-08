@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -60,8 +61,8 @@ public class BaseIT {
 		String sep = java.io.File.separator;
 
 		env.put("SCRATCH", scratch.toString());
-		env.put("JBANG_REPO", scratch.toString() + sep + "itest-m2");
-		env.put("JBANG_DIR", scratch.toString() + sep + "itest-jbang");
+		env.put("JBANG_REPO", scratch + sep + "itest-m2");
+		env.put("JBANG_DIR", scratch + sep + "itest-jbang");
 		env.put("JBANG_NO_VERSION_CHECK", "true");
 		env.put("NO_COLOR", "1");
 
@@ -74,7 +75,7 @@ public class BaseIT {
 	}
 
 	@BeforeAll
-	public static void setup(@TempDir Path tempscratch) throws URISyntaxException {
+	public static void setup(@TempDir Path tempscratch) throws URISyntaxException, IOException {
 		Assertions.useRepresentation(new StandardRepresentation() {
 			@Override
 			public String toStringOf(Object object) {
@@ -90,12 +91,22 @@ public class BaseIT {
 		scratch = tempscratch;
 		baseEnv = baseEnv(scratch);
 
+		Path itestsDir;
 		URL examplesUrl = RunIT.class.getClassLoader().getResource("itests");
 		if (examplesUrl == null) {
-			baseDir = Paths.get("itests").toAbsolutePath();
+			itestsDir = Paths.get("itests").toAbsolutePath();
 		} else {
-			baseDir = Paths.get(new File(examplesUrl.toURI()).getAbsolutePath());
+			itestsDir = Paths.get(new File(examplesUrl.toURI()).getAbsolutePath());
 		}
+		baseDir = scratch.resolve("itests");
+		// Make a copy of the itests folder to run our tests in
+		Files.walk(itestsDir).forEach(source -> {
+			try {
+				Files.copy(source, baseDir.resolve(itestsDir.relativize(source)));
+			} catch (IOException e) {
+				throw new IllegalStateException("Could not copy " + source, e);
+			}
+		});
 	}
 
 	public static CommandResult run(Path baseDir, Map<String, String> env, List<String> command) {
