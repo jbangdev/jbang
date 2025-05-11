@@ -265,6 +265,7 @@ class AliasList extends BaseAliasCommand {
 		public Map<String, String> properties;
 		public transient ResourceRef _catalogRef;
 		public Boolean enablePreview;
+		public String docsRef;
 	}
 
 	private static AliasOut getAliasOut(String catalogName, Catalog catalog, String name) {
@@ -290,6 +291,7 @@ class AliasList extends BaseAliasCommand {
 		out.properties = alias.properties;
 		out._catalogRef = alias.catalog.catalogRef;
 		out.enablePreview = alias.enablePreview;
+		out.docsRef = alias.docsRef;
 		return out;
 	}
 
@@ -300,6 +302,9 @@ class AliasList extends BaseAliasCommand {
 		out.println(prefix1 + dev.jbang.cli.CatalogList.getColoredFullName(alias.fullName));
 		if (alias.description != null) {
 			out.println(prefix2 + alias.description);
+		}
+		if (alias.docsRef != null) {
+			out.println(prefix2 + alias.docsRef);
 		}
 		out.println(prefix2 + ConsoleOutput.faint(alias.scriptRef));
 		if (alias.arguments != null) {
