@@ -94,6 +94,9 @@ class AliasAdd extends BaseAliasCommand {
 	@CommandLine.Parameters(paramLabel = "params", index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
 	List<String> userParams;
 
+	@CommandLine.Option(names = { "--docs" }, description = "Documentation reference for the alias")
+	String docsRef;
+
 	@Override
 	public Integer doCall() {
 		scriptMixin.validate();
@@ -118,7 +121,7 @@ class AliasAdd extends BaseAliasCommand {
 				buildMixin.compileOptions, nativeMixin.nativeImage, nativeMixin.nativeOptions, buildMixin.integrations,
 				runMixin.flightRecorderString, runMixin.debugString, runMixin.cds, runMixin.interactive,
 				enablePreviewRequested, runMixin.enableAssertions, runMixin.enableSystemAssertions,
-				buildMixin.manifestOptions, createJavaAgents(), null);
+				buildMixin.manifestOptions, createJavaAgents(), docsRef, null);
 		Path catFile = getCatalog(false);
 		if (catFile == null) {
 			catFile = Catalog.getCatalogFile(null);
