@@ -37,6 +37,7 @@ public class Project {
 	private final Map<String, String> manifestAttributes = new LinkedHashMap<>();
 	private String javaVersion;
 	private String description;
+	private String docs;
 	private String gav;
 	private String mainClass;
 	private String moduleName;
@@ -177,6 +178,17 @@ public class Project {
 	@Nonnull
 	public Project setDescription(String description) {
 		this.description = description;
+		return this;
+	}
+
+	@Nonnull
+	public Optional<String> getDocs() {
+		return Optional.ofNullable(docs);
+	}
+
+	@Nonnull
+	public Project setDocs(String docs) {
+		this.docs = docs;
 		return this;
 	}
 

@@ -2,10 +2,13 @@ package dev.jbang.cli;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
 
+import java.awt.*;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -28,7 +31,7 @@ import dev.jbang.util.ModuleUtil;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "info", description = "Provides info about the script for tools (and humans who are tools).", subcommands = {
-		Tools.class, ClassPath.class, Jar.class })
+		Tools.class, ClassPath.class, Jar.class, Docs.class })
 public class Info {
 }
 
@@ -94,6 +97,8 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String description;
 		String gav;
 		String module;
+		String docs;
+		Path rootFile;
 
 		public ScriptInfo(BuildContext ctx, boolean assureJdkInstalled) {
 			Project prj = ctx.getProject();
@@ -179,6 +184,8 @@ abstract class BaseInfoCommand extends BaseCommand {
 			}
 			gav = prj.getGav().orElse(null);
 			description = prj.getDescription().orElse(null);
+			docs = prj.getDocs().orElse(null);
+			rootFile = prj.getMainSource().getResourceRef().getFile();
 			module = prj.getModuleName().orElse(null);
 		}
 
@@ -306,5 +313,44 @@ class Jar extends BaseInfoCommand {
 		ScriptInfo info = getInfo(false);
 		System.out.println(info.applicationJar);
 		return EXIT_OK;
+	}
+}
+
+@CommandLine.Command(name = "docs", description = "Open the documentation file into the default browser.")
+class Docs extends BaseInfoCommand {
+
+	@Override
+	public Integer doCall() throws IOException {
+		ScriptInfo info = getInfo(false);
+		System.out.println("Command invoked: " + info.docs);
+
+        URI uri = validateDocsReferenceAndTransformToUri(info);
+		Desktop.getDesktop().browse(uri);
+		return EXIT_OK;
+	}
+
+	private static URI validateDocsReferenceAndTransformToUri(ScriptInfo info) {
+		if (info.docs.startsWith("http")) {
+			return URI.create(info.docs);
+		}
+		// is a file relative or absolute
+		Path absolutePathToDoc = pathToAbsoluteFile(info);
+		if (!Files.exists(absolutePathToDoc)) {
+			throw new ExitException(EXIT_INVALID_INPUT, "Invalid documentation file path: " + absolutePathToDoc);
+		}
+		return absolutePathToDoc.toUri();
+	}
+
+	private static Path pathToAbsoluteFile(ScriptInfo info) {
+        Path path = Paths.get(info.docs);
+        if (path.isAbsolute()) {
+            return path;
+        }
+		if (info.rootFile != null) {
+			return info.rootFile.getParent().resolve(path);
+		}
+
+		// resolve relative to current working dir
+		return Paths.get(".").toAbsolutePath().resolve(path);
 	}
 }
