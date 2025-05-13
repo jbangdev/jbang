@@ -161,7 +161,7 @@ public class CommandBuffer {
 		// argument, this is close to impossible to handle on Windows.
 		// (see
 		// https://stackoverflow.com/questions/30157414/batch-argument-with-quotes-and-spaces)
-		if (shell != Util.Shell.bash && cmdNeedQuotesChars.matcher(arg).find()) {
+		if (Util.isWindows() && cmdNeedQuotesChars.matcher(arg).find()) {
 			arg = "\"" + arg + "\"";
 		}
 		return arg;
