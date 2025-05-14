@@ -154,10 +154,10 @@ public abstract class TagReader {
 	}
 
 	public Optional<String> getDocs() {
-        return getTags()
-						.filter(this::isDocsDeclare)
-						.map(s -> s.substring(DOCS_COMMENT_PREFIX.length()))
-						.findFirst();
+		return getTags()
+			.filter(this::isDocsDeclare)
+			.map(s -> s.substring(DOCS_COMMENT_PREFIX.length()))
+			.findFirst();
 	}
 
 	protected boolean isDocsDeclare(String line) {

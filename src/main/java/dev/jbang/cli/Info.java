@@ -326,7 +326,7 @@ class Docs extends BaseInfoCommand {
 		ScriptInfo info = getInfo(false);
 		System.out.println("Command invoked: " + info.docs);
 
-        URI uri = validateDocsReferenceAndTransformToUri(info);
+		URI uri = validateDocsReferenceAndTransformToUri(info);
 		Desktop.getDesktop().browse(uri);
 		return EXIT_OK;
 	}
@@ -344,10 +344,10 @@ class Docs extends BaseInfoCommand {
 	}
 
 	private static Path pathToAbsoluteFile(ScriptInfo info) {
-        Path path = Paths.get(info.docs);
-        if (path.isAbsolute()) {
-            return path;
-        }
+		Path path = Paths.get(info.docs);
+		if (path.isAbsolute()) {
+			return path;
+		}
 		if (info.rootFile != null) {
 			return info.rootFile.getParent().resolve(path);
 		}
