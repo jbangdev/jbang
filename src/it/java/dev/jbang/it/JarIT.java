@@ -13,7 +13,7 @@ public class JarIT extends BaseIT {
 	// Then match out == "Hello World\n"
 	@Test
 	void testJavaLaunchFile() {
-		assertThat(shell("jbang helloworld.jar"))
+		assertThat(shell("jbang hellojar.jar"))
 			.outEquals("Hello World" + lineSeparator());
 	}
 
