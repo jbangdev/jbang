@@ -185,7 +185,9 @@ abstract class BaseInfoCommand extends BaseCommand {
 			gav = prj.getGav().orElse(null);
 			description = prj.getDescription().orElse(null);
 			docs = prj.getDocs().orElse(null);
-			rootFile = prj.getMainSource().getResourceRef().getFile();
+			if (prj.getMainSource() != null) {
+				rootFile = prj.getMainSource().getResourceRef().getFile();
+			}
 			module = prj.getModuleName().orElse(null);
 		}
 
