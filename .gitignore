@@ -20,3 +20,7 @@ package-lock.json
 itests/hello.java
 *.class
 CHANGELOG.md
+allure-report
+allure-results
+.allure
+.DS_Store

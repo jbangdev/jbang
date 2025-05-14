@@ -23,9 +23,6 @@ public abstract class BaseBuildCommand extends BaseCommand {
 	@CommandLine.Mixin
 	NativeMixin nativeMixin;
 
-	@CommandLine.Mixin
-	JdkProvidersMixin jdkProvidersMixin;
-
 	@CommandLine.Option(names = {
 			"--build-dir" }, description = "Use given directory for build results")
 	Path buildDir;
@@ -37,23 +34,24 @@ public abstract class BaseBuildCommand extends BaseCommand {
 
 	protected ProjectBuilder createBaseProjectBuilder() {
 		return Project
-						.builder()
-						.setProperties(dependencyInfoMixin.getProperties())
-						.additionalDependencies(dependencyInfoMixin.getDependencies())
-						.additionalRepositories(dependencyInfoMixin.getRepositories())
-						.additionalClasspaths(dependencyInfoMixin.getClasspaths())
-						.additionalSources(scriptMixin.sources)
-						.additionalResources(scriptMixin.resources)
-						.forceType(scriptMixin.forceType)
-						.catalog(scriptMixin.catalog)
-						.javaVersion(buildMixin.javaVersion)
-						.moduleName(buildMixin.module)
-						.compileOptions(buildMixin.compileOptions)
-						.manifestOptions(buildMixin.manifestOptions)
-						.nativeImage(nativeMixin.nativeImage)
-						.nativeOptions(nativeMixin.nativeOptions)
-						.integrations(buildMixin.integrations)
-						.enablePreview(enablePreviewRequested);
+			.builder()
+			.setProperties(dependencyInfoMixin.getProperties())
+			.additionalDependencies(dependencyInfoMixin.getDependencies())
+			.additionalRepositories(dependencyInfoMixin.getRepositories())
+			.additionalClasspaths(dependencyInfoMixin.getClasspaths())
+			.additionalSources(scriptMixin.sources)
+			.additionalResources(scriptMixin.resources)
+			.forceType(scriptMixin.forceType)
+			.catalog(scriptMixin.catalog)
+			.javaVersion(buildMixin.javaVersion)
+			.moduleName(buildMixin.module)
+			.compileOptions(buildMixin.compileOptions)
+			.manifestOptions(buildMixin.manifestOptions)
+			.nativeImage(nativeMixin.nativeImage)
+			.nativeOptions(nativeMixin.nativeOptions)
+			.integrations(buildMixin.integrations)
+			.enablePreview(enablePreviewRequested)
+			.jdkManager(buildMixin.jdkProvidersMixin.getJdkManager());
 
 		// NB: Do not put `.mainClass(buildMixin.main)` here
 	}

@@ -58,8 +58,8 @@ abstract class BaseConfigCommand extends BaseCommand {
 		} else {
 			if (configFile != null && Files.isDirectory(configFile)) {
 				Path defaultConfig = configFile.resolve(Configuration.JBANG_CONFIG_PROPS);
-				Path hiddenConfig = configFile	.resolve(Settings.JBANG_DOT_DIR)
-												.resolve(Configuration.JBANG_CONFIG_PROPS);
+				Path hiddenConfig = configFile.resolve(Settings.JBANG_DOT_DIR)
+					.resolve(Configuration.JBANG_CONFIG_PROPS);
 				if (!Files.exists(defaultConfig) && Files.exists(hiddenConfig)) {
 					cfg = hiddenConfig;
 				} else {
@@ -202,7 +202,7 @@ class ConfigList extends BaseConfigCommand {
 			Gson parser = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 			parser.toJson(cfg.asMap(), out);
 		} else {
-			cfg	.flatten()
+			cfg.flatten()
 				.keySet()
 				.stream()
 				.sorted()
@@ -232,15 +232,15 @@ class ConfigList extends BaseConfigCommand {
 			Set<String> printedKeys = new HashSet<>();
 			for (OriginOut org : orgs) {
 				Set<String> keysToPrint = org.properties.keySet()
-														.stream()
-														.filter(key -> !printedKeys.contains(key))
-														.collect(Collectors.toSet());
+					.stream()
+					.filter(key -> !printedKeys.contains(key))
+					.collect(Collectors.toSet());
 				if (!keysToPrint.isEmpty()) {
 					out.println(ConsoleOutput.bold(org.resourceRef));
-					keysToPrint	.stream()
-								.sorted()
-								.forEach(key -> out.println(
-										"   " + ConsoleOutput.yellow(key) + " = " + org.properties.get(key)));
+					keysToPrint.stream()
+						.sorted()
+						.forEach(key -> out.println(
+								"   " + ConsoleOutput.yellow(key) + " = " + org.properties.get(key)));
 					printedKeys.addAll(keysToPrint);
 				}
 			}

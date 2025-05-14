@@ -12,6 +12,11 @@
       "matchPackageNames": [
         "*"
       ]
+    },
+    {
+      "description": "Wiremock >3 requires Java 11",
+      "matchPackageNames": ["com.github.tomakehurst:wiremock"],
+      "allowedVersions": "<3.0.0"
     }
   ]
 }

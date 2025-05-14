@@ -13,7 +13,6 @@ import javax.annotation.Nonnull;
 import org.jboss.jandex.ClassInfo;
 
 import dev.jbang.net.GroovyManager;
-import dev.jbang.net.JdkManager;
 import dev.jbang.source.*;
 import dev.jbang.source.AppBuilder;
 import dev.jbang.source.buildsteps.CompileBuildStep;
@@ -64,9 +63,9 @@ public class GroovySource extends Source {
 
 	public String getGroovyVersion() {
 		return tagReader.collectOptions("GROOVY")
-						.stream()
-						.findFirst()
-						.orElse(GroovyManager.DEFAULT_GROOVY_VERSION);
+			.stream()
+			.findFirst()
+			.orElse(GroovyManager.DEFAULT_GROOVY_VERSION);
 	}
 
 	@Override
@@ -100,9 +99,11 @@ public class GroovySource extends Source {
 			protected void runCompiler(ProcessBuilder processBuilder) throws IOException {
 				Project project = ctx.getProject();
 				if (project.getMainSource() instanceof GroovySource) {
-					processBuilder	.environment()
-									.put("JAVA_HOME",
-											JdkManager.getOrInstallJdk(project.getJavaVersion()).getHome().toString());
+					processBuilder.environment()
+						.put("JAVA_HOME",
+								project.projectJdk()
+									.home()
+									.toString());
 					processBuilder.environment().remove("GROOVY_HOME");
 				}
 				super.runCompiler(processBuilder);

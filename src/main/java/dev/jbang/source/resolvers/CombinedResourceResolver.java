@@ -24,10 +24,10 @@ public class CombinedResourceResolver implements ResourceResolver {
 	@Override
 	public ResourceRef resolve(String resource, boolean trusted) {
 		return resolvers.stream()
-						.map(r -> r.resolve(resource, trusted))
-						.filter(Objects::nonNull)
-						.findFirst()
-						.orElse(null);
+			.map(r -> r.resolve(resource, trusted))
+			.filter(Objects::nonNull)
+			.findFirst()
+			.orElse(null);
 	}
 
 	@Override

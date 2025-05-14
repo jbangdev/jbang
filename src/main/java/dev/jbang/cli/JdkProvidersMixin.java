@@ -3,7 +3,8 @@ package dev.jbang.cli;
 import java.util.ArrayList;
 import java.util.List;
 
-import dev.jbang.net.JdkManager;
+import dev.jbang.devkitman.JdkManager;
+import dev.jbang.util.JavaUtil;
 
 import picocli.CommandLine;
 
@@ -13,10 +14,13 @@ public class JdkProvidersMixin {
 			"--jdk-providers" }, description = "Use the given providers to check for installed JDKs", split = ",", hidden = true)
 	List<String> jdkProviders;
 
-	protected void initJdkProviders() {
-		if (jdkProviders != null && !jdkProviders.isEmpty()) {
-			JdkManager.initProvidersByName(jdkProviders);
+	private JdkManager jdkMan;
+
+	protected JdkManager getJdkManager() {
+		if (jdkMan == null) {
+			jdkMan = JavaUtil.defaultJdkManager(jdkProviders);
 		}
+		return jdkMan;
 	}
 
 	public List<String> opts() {

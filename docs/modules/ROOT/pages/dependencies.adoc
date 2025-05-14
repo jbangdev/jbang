@@ -160,7 +160,7 @@ JBang can download sources for your dependencies and make them available in your
 
 == Repositories
 
-By default `jbang` uses https://repo1.maven.org/maven2/[maven central]. In past it used `jcenter` but with its imminent shutdown deemed best to use central.
+By default `jbang` uses https://repo1.maven.org/maven2/[maven central].
 
 And if you are using the above mentioned URL dependencies https://jitpack.io[jitpack] will be added automatically as well.
 
@@ -174,8 +174,8 @@ For ease of use there are also a few shorthands to use popular commonly availabl
 |`central`
 |Maven Central (`https://repo1.maven.org/maven2/`)
 
-|`jcenter`
-|`https://jcenter.bintray.com/`
+|`jcenter` *(deprecated, do not use)*
+|`https://jcenter.bintray.com/` *(defunct, redirects to Maven Central; do not use)*
 
 |`google`
 |`https://maven.google.com/`

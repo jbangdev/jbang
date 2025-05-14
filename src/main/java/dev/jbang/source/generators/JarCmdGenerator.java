@@ -9,8 +9,7 @@ import java.util.stream.Collectors;
 import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
-import dev.jbang.net.JdkManager;
-import dev.jbang.net.JdkProvider;
+import dev.jbang.devkitman.Jdk;
 import dev.jbang.source.*;
 import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.JavaUtil;
@@ -78,11 +77,10 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 
 		List<String> optionalArgs = new ArrayList<>();
 
-		String requestedJavaVersion = project.getJavaVersion();
-		JdkProvider.Jdk jdk = JdkManager.getOrInstallJdk(requestedJavaVersion);
-		String javacmd = JavaUtil.resolveInJavaHome("java", requestedJavaVersion);
+		Jdk jdk = project.projectJdk();
+		String javacmd = JavaUtil.resolveInJavaHome("java", jdk);
 
-		if (jdk.getMajorVersion() > 9) {
+		if (jdk.majorVersion() > 9) {
 			String opens = ctx.getProject().getManifestAttributes().get("Add-Opens");
 			if (opens != null) {
 				for (String val : opens.split(" ")) {
@@ -111,10 +109,10 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 			// i.e. --debug=server=n
 			fallbackDebug.putAll(debugString);
 			optionalArgs.add(
-					"-agentlib:jdwp=" + fallbackDebug	.entrySet()
-														.stream()
-														.map(e -> e.getKey() + "=" + e.getValue())
-														.collect(Collectors.joining(",")));
+					"-agentlib:jdwp=" + fallbackDebug.entrySet()
+						.stream()
+						.map(e -> e.getKey() + "=" + e.getValue())
+						.collect(Collectors.joining(",")));
 		}
 
 		if (assertions) {
@@ -133,11 +131,11 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 			// TODO: find way to generate ~/.jbang/script.jfc to configure flightrecorder to
 			// have 0 ms thresholds
 			String jfropt = "-XX:StartFlightRecording=" + flightRecorderString
-																				.replace("{baseName}",
-																						Util.getBaseName(
-																								project	.getResourceRef()
-																										.getFile()
-																										.toString()));
+				.replace("{baseName}",
+						Util.getBaseName(
+								project.getResourceRef()
+									.getFile()
+									.toString()));
 			optionalArgs.add(jfropt);
 			Util.verboseMsg("Flight recording enabled with:" + jfropt);
 		}
@@ -158,7 +156,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 		}
 
 		if (classDataSharing || project.enableCDS()) {
-			if (jdk.getMajorVersion() >= 13) {
+			if (jdk.majorVersion() >= 13) {
 				Path cdsJsa = ctx.getJsaFile().toAbsolutePath();
 				if (Files.exists(cdsJsa)) {
 					Util.verboseMsg("CDS: Using shared archive classes from " + cdsJsa);
@@ -201,8 +199,8 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 
 	protected String generateCommandLineString(List<String> fullArgs) throws IOException {
 		return CommandBuffer.of(fullArgs)
-							.applyWindowsMaxLengthLimit(CommandBuffer.MAX_LENGTH_WINCLI, shell)
-							.asCommandLine(shell);
+			.applyWindowsMaxLengthLimit(CommandBuffer.MAX_LENGTH_WINCLI, shell)
+			.asCommandLine(shell);
 	}
 
 	private static void addPropertyFlags(Map<String, String> properties, String def, List<String> result) {

@@ -1,6 +1,7 @@
 package dev.jbang.dependencies;
 
 import static dev.jbang.dependencies.DependencyUtil.toMavenRepo;
+import static dev.jbang.util.JavaUtil.defaultJdkManager;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -27,8 +28,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.Settings;
-import dev.jbang.net.JdkManager;
-import dev.jbang.net.JdkProvider;
+import dev.jbang.devkitman.Jdk;
 import dev.jbang.util.PropertiesValueResolver;
 import dev.jbang.util.Util;
 
@@ -120,10 +120,10 @@ class DependencyResolverTest extends BaseTest {
 	void testResolveDependenciesAltRepo(@TempDir File altrepo) {
 		List<String> deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
 		List<ArtifactInfo> artifacts = ArtifactResolver.Builder
-																.create()
-																.localFolder(altrepo.toPath())
-																.build()
-																.resolve(deps);
+			.create()
+			.localFolder(altrepo.toPath())
+			.build()
+			.resolve(deps);
 		assertEquals(2, artifacts.size());
 		assertThat(altrepo.listFiles(), arrayWithSize(4));
 	}
@@ -186,15 +186,15 @@ class DependencyResolverTest extends BaseTest {
 		List<String> deps = Arrays.asList("org.openjfx:javafx-graphics:11.0.2:mac", "com.offbytwo:docopt:0.6+");
 
 		ModularClassPath cp = new ModularClassPath(
-				DependencyUtil	.resolveDependencies(deps, Collections.emptyList(), false, false, false, true, false)
-								.getArtifacts()) {
+				DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false, false, true, false)
+					.getArtifacts()) {
 			@Override
-			protected boolean supportsModules(JdkProvider.Jdk jdk) {
+			protected boolean supportsModules(Jdk jdk) {
 				return true;
 			}
 		};
 
-		List<String> ma = cp.getAutoDectectedModuleArguments(JdkManager.getOrInstallJdk(null));
+		List<String> ma = cp.getAutoDectectedModuleArguments(defaultJdkManager().getOrInstallJdk(null));
 
 		assertThat(ma, hasItem("--module-path"));
 
@@ -229,27 +229,27 @@ class DependencyResolverTest extends BaseTest {
 				true, false);
 
 		Optional<ArtifactInfo> coord = classpath.getArtifacts()
-												.stream()
-												.filter(ai -> ai.getCoordinate()
-																.toCanonicalForm()
-																.startsWith("io.vertx:vertx-core"))
-												.findFirst();
+			.stream()
+			.filter(ai -> ai.getCoordinate()
+				.toCanonicalForm()
+				.startsWith("io.vertx:vertx-core"))
+			.findFirst();
 
 		assertEquals("4.2.3", coord.get().getCoordinate().getVersion());
 
-		coord = classpath	.getArtifacts()
-							.stream()
-							.filter(ai -> ai.getCoordinate().toCanonicalForm().startsWith("org.slf4j:slf4j-simple:"))
-							.findFirst();
+		coord = classpath.getArtifacts()
+			.stream()
+			.filter(ai -> ai.getCoordinate().toCanonicalForm().startsWith("org.slf4j:slf4j-simple:"))
+			.findFirst();
 
 		assertEquals("1.7.30", coord.get().getCoordinate().getVersion());
 
-		coord = classpath	.getArtifacts()
-							.stream()
-							.filter(ai -> ai.getCoordinate()
-											.toCanonicalForm()
-											.startsWith("org.apache.camel:camel-vertx"))
-							.findFirst();
+		coord = classpath.getArtifacts()
+			.stream()
+			.filter(ai -> ai.getCoordinate()
+				.toCanonicalForm()
+				.startsWith("org.apache.camel:camel-vertx"))
+			.findFirst();
 
 		assertEquals(coord.get().getCoordinate().getVersion(), "3.9.0");
 
@@ -260,10 +260,10 @@ class DependencyResolverTest extends BaseTest {
 				"org.slf4j:slf4j-simple:1.7.30");
 		classpath = DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false, false, true, false);
 
-		coord = classpath	.getArtifacts()
-							.stream()
-							.filter(ai -> ai.getCoordinate().toCanonicalForm().startsWith("io.vertx:vertx-core"))
-							.findFirst();
+		coord = classpath.getArtifacts()
+			.stream()
+			.filter(ai -> ai.getCoordinate().toCanonicalForm().startsWith("io.vertx:vertx-core"))
+			.findFirst();
 
 		assertEquals("3.9.5", coord.get().getCoordinate().getVersion());
 	}

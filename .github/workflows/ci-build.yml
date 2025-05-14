@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           fetch-depth: 2
       - name: Verify Changed files in docs
@@ -48,48 +48,55 @@ jobs:
       - name: Rate limit info
         run: 'curl -H "Accept: application/vnd.github+json" https://api.github.com/rate_limit'
       - name: Setup tmate session
-        uses: mxschmitt/action-tmate@e5c7151931ca95bad1c6f4190c730ecf8c7dde48 # v3
+        uses: mxschmitt/action-tmate@7b6a61a73bbb9793cb80ad69b8dd8ac19261834c # v3
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
         with:
           limit-access-to-actor: true
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: gradle/actions/wrapper-validation@06832c7b30a0129d7fb559bcc6e43d26f6374244 # v4
       - name: install-java11
-        uses: actions/setup-java@0ab4596768b603586c0de567f2430c30f5b0d2b0 # v3
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4
         with:
           java-version: 11
           distribution: temurin
           cache: gradle
       - name: setup-gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244 # v4
       - name: build-gradle
         run: ./gradlew --no-daemon clean build installDist publish --build-cache --scan -s
+      - name: integration-test
+        run: |
+          ./gradlew integrationTest
       - name: integration-test-non-windows
         if: runner.os != 'Windows'
         run: |
           export PATH=`pwd`/build/install/jbang/bin:$PATH
           cd itests
           ./test_suite.sh
-          ./itests.sh
       - name: add-to-path
         run: echo "../build/install/jbang/bin" >> $env:GITHUB_PATH
-      - name: integration-test-windows
-        if: runner.os == 'Windows'
-        working-directory: itests
-        run: |
-          echo "::add-matcher::.github/karatewindows-matcher.json" 
-          .\itests.cmd
-          echo "::remove-matcher owner=karate-windows::"
       - name: codecoverage-report
         run: |
           ./gradlew --no-daemon jacocoTestReport
-      - name: Upload Test Report
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+      - name: allure report
+        if: always() # always run even if the previous step fails
+        run: |
+          ./gradlew allureReport --clean
+      - name: Upload Allure Test Report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always() # always run even if the previous step fails
+        with:
+          name: allure-report-${{ matrix.os }}
+          path: '**/build/reports/allure-report/allureReport/index.html'
+          retention-days: 7
+      - name: Upload Test Report for pr marking
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always() # always run even if the previous step fails
         with:
           name: junit-test-results-${{ matrix.os }}
           path: '**/build/test-results/test/TEST-*.xml'
           retention-days: 1
-      - uses: codecov/codecov-action@f32b3a3741e1053eb607407145bc9619351dc93b # v2
+      - uses: codecov/codecov-action@ad3126e916f78f00edff4ed0317cf185271ccc2d # v5
         with:
           #files: ./coverage1.xml,./coverage2.xml # optional
           flags: ${{ runner.os }} # optional
@@ -97,7 +104,7 @@ jobs:
           verbose: true # optional (default = false)
       - name: build-choco-package
         if: runner.os == 'Windows'
-        uses: actions/setup-dotnet@71a4fd9b27383962fc5df13a9c871636b43199b4 # v1
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           dotnet-version: '2.2.204' # SDK Version to use.
       - name: build-choco
@@ -106,20 +113,20 @@ jobs:
           powershell
           choco pack build/choco/jbang.nuspec
       - name: Archive build results
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: ${{ runner.os }}-build-${{ github.sha }}
           path: build
       - name: Upload jbang.zip
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always() && runner.os != 'Windows'
         with:
           name: jbang-${{ github.sha }}
           path: build/install/jbang
       - name: Write out Unit Test report annotation for forked repo
         if: always()
-        uses: mikepenz/action-junit-report@b14027d33d3a745ccc4d6a12f649e83110b5a373 # v5
+        uses: mikepenz/action-junit-report@cf701569b05ccdd861a76b8607a66d76f6fd4857 # v5
         with:
           report_paths: '**/build/test-results/test/TEST-*.xml'
           annotate_only: true # forked repo cannot write to checks so just do annotations
@@ -134,11 +141,11 @@ jobs:
         java: [8,11,17,21]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/setup-java@0ab4596768b603586c0de567f2430c30f5b0d2b0 # v3
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
-      - uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: ${{ runner.os }}-build-${{ github.sha }}
           path: build
@@ -170,16 +177,6 @@ jobs:
           export PATH=`pwd`/build/install/jbang/bin:$PATH
           cd build/itests
           chmod +x ./test_suite.sh
-          chmod +x ./itests.sh
           ./test_suite.sh
-          ./itests.sh
       - name: add-to-path
         run: echo "../build/install/jbang/bin" >> $env:GITHUB_PATH
-      - name: integration-test-windows
-        if: runner.os == 'Windows' && matrix.java < 17
-        working-directory: itests
-        run: |
-          echo "::add-matcher::.github/karatewindows-matcher.json" 
-          .\itests.cmd
-          echo "::remove-matcher owner=karate-windows::"
-  
