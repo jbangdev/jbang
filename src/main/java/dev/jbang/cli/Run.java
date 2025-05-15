@@ -89,6 +89,9 @@ public class Run extends BaseBuildCommand {
 
 		buildAgents(ctx);
 
+		// swizzle remote files after agents been added.
+		runMixin.javaRuntimeOptions = Util.handleRemoteFiles(runMixin.javaRuntimeOptions);
+
 		String cmdline = updateGeneratorForRun(genb).build().generate();
 
 		Util.verboseMsg("run: " + cmdline);
@@ -113,7 +116,6 @@ public class Run extends BaseBuildCommand {
 			if (runMixin.javaRuntimeOptions == null) {
 				runMixin.javaRuntimeOptions = new ArrayList<>();
 			}
-			agents = handleRemoteFiles(agents);
 			for (Map.Entry<String, String> agentOption : agents.entrySet()) {
 				String javaAgent = agentOption.getKey();
 				String javaAgentOptions = agentOption.getValue();
