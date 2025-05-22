@@ -25,6 +25,7 @@ import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.JitPackUtil;
 import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.dependencies.MavenRepo;
+import dev.jbang.source.resolvers.SiblingResourceResolver;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
@@ -153,11 +154,21 @@ public abstract class TagReader {
 		return line.startsWith(DESCRIPTION_COMMENT_PREFIX);
 	}
 
-	public Optional<String> getDocs() {
+	public Optional<ResourceRef> getDocs(ResourceResolver resolver) {
 		return getTags()
 			.filter(this::isDocsDeclare)
 			.map(s -> s.substring(DOCS_COMMENT_PREFIX.length()))
+			.map(TagReader::createResourceReference)
 			.findFirst();
+	}
+
+	private static ResourceRef createResourceReference(String s) {
+		if (Util.isURL(s)) {
+			return ResourceRef.forCachedResource(s, null);
+		} else {
+			// is a file
+			return ResourceRef.forFile(Paths.get(s));
+		}
 	}
 
 	protected boolean isDocsDeclare(String line) {

@@ -97,8 +97,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String description;
 		String gav;
 		String module;
-		String docs;
-		Path rootFile;
+		ResourceRef docs;
 
 		public ScriptInfo(BuildContext ctx, boolean assureJdkInstalled) {
 			Project prj = ctx.getProject();
@@ -185,9 +184,6 @@ abstract class BaseInfoCommand extends BaseCommand {
 			gav = prj.getGav().orElse(null);
 			description = prj.getDescription().orElse(null);
 			docs = prj.getDocs().orElse(null);
-			if (prj.getMainSource() != null) {
-				rootFile = prj.getMainSource().getResourceRef().getFile();
-			}
 			module = prj.getModuleName().orElse(null);
 		}
 
@@ -318,7 +314,7 @@ class Jar extends BaseInfoCommand {
 	}
 }
 
-@CommandLine.Command(name = "docs", description = "Open the documentation file into the default browser.")
+@CommandLine.Command(name = "docs", description = "Open the documentation file in the default browser.")
 class Docs extends BaseInfoCommand {
 
 	@Override
@@ -332,8 +328,8 @@ class Docs extends BaseInfoCommand {
 	}
 
 	private static URI validateDocsReferenceAndTransformToUri(ScriptInfo info) {
-		if (info.docs.startsWith("http")) {
-			return URI.create(info.docs);
+		if (info.docs.isURL()) {
+			return URI.create(info.docs.getOriginalResource());
 		}
 		// is a file relative or absolute
 		Path absolutePathToDoc = pathToAbsoluteFile(info);
@@ -344,12 +340,9 @@ class Docs extends BaseInfoCommand {
 	}
 
 	private static Path pathToAbsoluteFile(ScriptInfo info) {
-		Path path = Paths.get(info.docs);
+		Path path = info.docs.getFile();
 		if (path.isAbsolute()) {
 			return path;
-		}
-		if (info.rootFile != null) {
-			return info.rootFile.getParent().resolve(path);
 		}
 
 		// resolve relative to current working dir
