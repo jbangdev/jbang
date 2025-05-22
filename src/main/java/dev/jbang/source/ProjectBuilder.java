@@ -320,14 +320,14 @@ public class ProjectBuilder {
 		TagReader tagReader = new TagReader.JbangProject(contents,
 				it -> PropertiesValueResolver.replaceProperties(it, getContextProperties()));
 		prj.setDescription(tagReader.getDescription().orElse(null));
-		prj.setDocs(tagReader.getDocs(new SiblingResourceResolver(resourceRef, ResourceResolver.forResources())).orElse(null));
+		ResourceResolver resolver1 = new SiblingResourceResolver(resourceRef, ResourceResolver.forResources());
+		prj.setDocs(tagReader.getDocs(resolver1).orElse(null));
 		prj.setGav(tagReader.getGav().orElse(null));
 		prj.setMainClass(tagReader.getMain().orElse(null));
 		prj.setModuleName(tagReader.getModule().orElse(null));
 
 		SourceSet ss = prj.getMainSourceSet();
-		ss.addResources(tagReader.collectFiles(resourceRef,
-				new SiblingResourceResolver(resourceRef, ResourceResolver.forResources())));
+		ss.addResources(tagReader.collectFiles(resourceRef, resolver1));
 		ss.addDependencies(tagReader.collectBinaryDependencies());
 		ss.addCompileOptions(tagReader.collectOptions("JAVAC_OPTIONS", "COMPILE_OPTIONS"));
 		ss.addNativeOptions(tagReader.collectOptions("NATIVE_OPTIONS"));
@@ -561,7 +561,7 @@ public class ProjectBuilder {
 			ss.addNativeOptions(src.getNativeOptions());
 			prj.addRepositories(src.tagReader.collectRepositories());
 			prj.addRuntimeOptions(src.getRuntimeOptions());
-			prj.setDocs(src.tagReader.getDocs(new SiblingResourceResolver(srcRef, ResourceResolver.forResources())).orElse(null));
+			prj.setDocs(src.tagReader.getDocs(sibRes1).orElse(null));
 			src.tagReader.collectManifestOptions().forEach(kv -> {
 				if (!kv.getKey().isEmpty()) {
 					prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
