@@ -291,7 +291,7 @@ class AliasList extends BaseAliasCommand {
 		out.properties = alias.properties;
 		out._catalogRef = alias.catalog.catalogRef;
 		out.enablePreview = alias.enablePreview;
-		out.docsRef = alias.docsRef;
+		out.docsRef = alias.docs;
 		return out;
 	}
 
