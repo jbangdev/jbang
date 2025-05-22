@@ -8,7 +8,6 @@ import java.lang.reflect.Field;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -319,33 +318,24 @@ class Docs extends BaseInfoCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
-		ScriptInfo info = getInfo(false);
-		System.out.println("Command invoked: " + info.docs);
-
-		URI uri = validateDocsReferenceAndTransformToUri(info);
+		URI uri = getDocsUri();
+		info("Showing documentation: " + uri);
 		Desktop.getDesktop().browse(uri);
 		return EXIT_OK;
+	}
+
+	URI getDocsUri() {
+		ScriptInfo info = getInfo(false);
+		return validateDocsReferenceAndTransformToUri(info);
 	}
 
 	private static URI validateDocsReferenceAndTransformToUri(ScriptInfo info) {
 		if (info.docs.isURL()) {
 			return URI.create(info.docs.getOriginalResource());
 		}
-		// is a file relative or absolute
-		Path absolutePathToDoc = pathToAbsoluteFile(info);
-		if (!Files.exists(absolutePathToDoc)) {
-			throw new ExitException(EXIT_INVALID_INPUT, "Invalid documentation file path: " + absolutePathToDoc);
+		if (!info.docs.exists()) {
+			throw new ExitException(EXIT_INVALID_INPUT, "Invalid documentation file path: " + info.docs.getFile());
 		}
-		return absolutePathToDoc.toUri();
-	}
-
-	private static Path pathToAbsoluteFile(ScriptInfo info) {
-		Path path = info.docs.getFile();
-		if (path.isAbsolute()) {
-			return path;
-		}
-
-		// resolve relative to current working dir
-		return Paths.get(".").toAbsolutePath().resolve(path);
+		return info.docs.getFile().toUri();
 	}
 }
