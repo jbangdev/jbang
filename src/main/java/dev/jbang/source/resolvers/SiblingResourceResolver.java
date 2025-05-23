@@ -5,6 +5,8 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import javax.annotation.Nonnull;
+
 import dev.jbang.catalog.Catalog;
 import dev.jbang.cli.ResourceNotFoundException;
 import dev.jbang.source.ResourceRef;
@@ -25,6 +27,7 @@ public class SiblingResourceResolver implements ResourceResolver {
 		this.resolver = resolver;
 	}
 
+	@Nonnull
 	@Override
 	public String description() {
 		return String.format("%s via %s", sibling.getOriginalResource(), resolver.description());

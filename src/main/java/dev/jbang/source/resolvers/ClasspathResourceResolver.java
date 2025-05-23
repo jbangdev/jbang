@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
+import dev.jbang.source.DirectResourceRef;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.source.ResourceResolver;
 
@@ -21,6 +22,7 @@ import dev.jbang.source.ResourceResolver;
  * reference to that.
  */
 public class ClasspathResourceResolver implements ResourceResolver {
+	@Nonnull
 	@Override
 	public String description() {
 		return "Classpath resolver";
@@ -39,7 +41,7 @@ public class ClasspathResourceResolver implements ResourceResolver {
 		String ref = cpResource.substring(11);
 		ClassLoader cl = Thread.currentThread().getContextClassLoader();
 		if (cl == null) {
-			cl = ResourceRef.class.getClassLoader();
+			cl = DirectResourceRef.class.getClassLoader();
 		}
 		URL url = cl.getResource(ref);
 		if (url == null) {
@@ -49,7 +51,7 @@ public class ClasspathResourceResolver implements ResourceResolver {
 		return new ClasspathResourceRef(cpResource, url);
 	}
 
-	public static class ClasspathResourceRef extends ResourceRef {
+	public static class ClasspathResourceRef extends DirectResourceRef {
 		@Nonnull
 		private URL url;
 

@@ -210,7 +210,7 @@ public class TestProjectBuilder extends BaseTest {
 				ResourceRef.forFile(examplesTestFolder.resolve("gh_release_stats.java")),
 				ResourceRef.forFile(examplesTestFolder.resolve("nested/NestedTwo.java")),
 				ResourceRef.forFile(examplesTestFolder.resolve("nested/NestedOne.java")),
-				ResourceRef.forNamedFile("helloworld.java", examplesTestFolder.resolve("helloworld.java"))));
+				ResourceRef.forResolvedResource("helloworld.java", examplesTestFolder.resolve("helloworld.java"))));
 		assertThat(prj.getMainSourceSet().getResources(), iterableWithSize(4));
 		assertThat(prj.getMainSourceSet().getResources(), containsInAnyOrder(
 				RefTarget.create(ResourceRef.forFile(examplesTestFolder.resolve("res/resource.properties")), null),
@@ -218,7 +218,7 @@ public class TestProjectBuilder extends BaseTest {
 						Paths.get("renamed.properties")),
 				RefTarget.create(ResourceRef.forFile(examplesTestFolder.resolve("res/resource.properties")),
 						Paths.get("META-INF/application.properties")),
-				RefTarget.create(ResourceRef.forNamedFile("res/test.properties",
+				RefTarget.create(ResourceRef.forResolvedResource("res/test.properties",
 						examplesTestFolder.resolve("res/test.properties")), null)));
 		assertThat(prj.getMainSourceSet().getDependencies(), iterableWithSize(6));
 		assertThat(prj.getMainSourceSet().getDependencies(), contains(
@@ -266,10 +266,10 @@ public class TestProjectBuilder extends BaseTest {
 		assertThat(prj.getRuntimeOptions(), contains("-Dfoo=bar", "-Dbar=aap noot mies"));
 		assertThat(prj.getMainSourceSet().getSources(), iterableWithSize(1));
 		assertThat(prj.getMainSourceSet().getSources(), containsInAnyOrder(
-				ResourceRef.forNamedFile("helloworld.java", examplesTestFolder.resolve("helloworld.java"))));
+				ResourceRef.forResolvedResource("helloworld.java", examplesTestFolder.resolve("helloworld.java"))));
 		assertThat(prj.getMainSourceSet().getResources(), iterableWithSize(1));
 		assertThat(prj.getMainSourceSet().getResources(), containsInAnyOrder(
-				RefTarget.create(ResourceRef.forNamedFile("res/test.properties",
+				RefTarget.create(ResourceRef.forResolvedResource("res/test.properties",
 						examplesTestFolder.resolve("res/test.properties")), null)));
 		assertThat(prj.getMainSourceSet().getDependencies(), iterableWithSize(1));
 		assertThat(prj.getMainSourceSet().getDependencies(), contains("twodep"));
@@ -307,10 +307,10 @@ public class TestProjectBuilder extends BaseTest {
 		assertThat(prj.getRuntimeOptions(), contains("-Dfoo=bar", "-Dbar=aap noot mies"));
 		assertThat(prj.getMainSourceSet().getSources(), iterableWithSize(1));
 		assertThat(prj.getMainSourceSet().getSources(), containsInAnyOrder(
-				ResourceRef.forNamedFile("helloworld.java", examplesTestFolder.resolve("helloworld.java"))));
+				ResourceRef.forResolvedResource("helloworld.java", examplesTestFolder.resolve("helloworld.java"))));
 		assertThat(prj.getMainSourceSet().getResources(), iterableWithSize(1));
 		assertThat(prj.getMainSourceSet().getResources(), containsInAnyOrder(
-				RefTarget.create(ResourceRef.forNamedFile("res/test.properties",
+				RefTarget.create(ResourceRef.forResolvedResource("res/test.properties",
 						examplesTestFolder.resolve("res/test.properties")), null)));
 		assertThat(prj.getMainSourceSet().getDependencies(), iterableWithSize(2));
 		assertThat(prj.getMainSourceSet().getDependencies(), contains(
