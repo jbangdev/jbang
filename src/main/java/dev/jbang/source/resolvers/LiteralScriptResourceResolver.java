@@ -10,6 +10,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+
 import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
@@ -46,6 +48,7 @@ public class LiteralScriptResourceResolver implements ResourceResolver {
 		return result;
 	}
 
+	@Nonnull
 	@Override
 	public String description() {
 		return "Literal stdin";
@@ -64,7 +67,7 @@ public class LiteralScriptResourceResolver implements ResourceResolver {
 		}
 		Path scriptFile = cache.resolve(basename + suffix);
 		Util.writeString(scriptFile, scriptText);
-		result = ResourceRef.forCachedResource(resource, scriptFile);
+		result = ResourceRef.forResolvedResource(resource, scriptFile);
 		return result;
 	}
 }

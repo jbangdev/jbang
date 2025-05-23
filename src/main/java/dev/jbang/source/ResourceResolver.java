@@ -1,5 +1,8 @@
 package dev.jbang.source;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import dev.jbang.source.resolvers.*;
 
 /**
@@ -28,6 +31,7 @@ public interface ResourceResolver {
 	 * @param trusted  If the request should be considered trusted or not
 	 * @return A <code>ResourceRef</code> or <code>null</code>
 	 */
+	@Nullable
 	default ResourceRef resolve(String resource, boolean trusted) {
 		return resolve(resource);
 	}
@@ -48,10 +52,12 @@ public interface ResourceResolver {
 	 * @param resource The resource string to resolve
 	 * @return A <code>ResourceRef</code> or <code>null</code>
 	 */
+	@Nullable
 	default ResourceRef resolve(String resource) {
 		return resolve(resource, false);
 	}
 
+	@Nonnull
 	String description();
 
 	/**
@@ -60,6 +66,7 @@ public interface ResourceResolver {
 	 *
 	 * @return A <code>ResourceRef</code> or <code>null</code>
 	 */
+	@Nonnull
 	static ResourceResolver forResources() {
 		return new CombinedResourceResolver(
 				new RemoteResourceResolver(true),

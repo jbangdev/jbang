@@ -77,7 +77,7 @@ class TestSourcesRecursivelyMultipleFiles extends BaseTest {
 		TestSource.createTmpFileWithContent(HiJBangPath.getParent(), "inner", "HelloInner.java",
 				classHelloInner);
 		String scriptURL = mainPath.toString();
-		ResourceRef resourceRef = ResourceRef.forNamedFile(scriptURL, mainPath);
+		ResourceRef resourceRef = ResourceRef.forResolvedResource(scriptURL, mainPath);
 		Source script = Source.forResourceRef(resourceRef, null);
 		Project prj = Project.builder().build(script);
 		List<ResourceRef> sources = prj.getMainSourceSet().getSources();

@@ -257,7 +257,7 @@ public class Configuration {
 	}
 
 	public static Configuration get(Path catalogPath) {
-		return get(ResourceRef.forNamedFile(catalogPath.toString(), catalogPath));
+		return get(ResourceRef.forResolvedResource(catalogPath.toString(), catalogPath));
 	}
 
 	private static Configuration get(ResourceRef ref) {

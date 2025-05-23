@@ -4,6 +4,8 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 
+import javax.annotation.Nonnull;
+
 import dev.jbang.source.ResourceRef;
 import dev.jbang.source.ResourceResolver;
 import dev.jbang.util.Util;
@@ -15,6 +17,7 @@ import dev.jbang.util.Util;
  */
 public class FileResourceResolver implements ResourceResolver {
 
+	@Nonnull
 	@Override
 	public String description() {
 		return "File Resource resolver";
@@ -32,7 +35,7 @@ public class FileResourceResolver implements ResourceResolver {
 		}
 
 		if (probe != null && Files.isReadable(probe)) {
-			result = ResourceRef.forNamedFile(resource, probe);
+			result = ResourceRef.forResolvedResource(resource, probe);
 		}
 
 		return result;

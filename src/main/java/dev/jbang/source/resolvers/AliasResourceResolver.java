@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
+import dev.jbang.source.DirectResourceRef;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.source.ResourceResolver;
 
@@ -24,6 +25,7 @@ public class AliasResourceResolver implements ResourceResolver {
 		this.resolverFactory = resolverFactory;
 	}
 
+	@Nonnull
 	@Override
 	public String description() {
 		return String.format("Alias resolver from catalog %s using %s",
@@ -51,7 +53,7 @@ public class AliasResourceResolver implements ResourceResolver {
 		return ref;
 	}
 
-	public static class AliasedResourceRef extends ResourceRef {
+	public static class AliasedResourceRef extends DirectResourceRef {
 		@Nonnull
 		private final Alias alias;
 

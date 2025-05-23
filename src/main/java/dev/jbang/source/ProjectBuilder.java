@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -506,8 +505,6 @@ public class ProjectBuilder {
 
 	private List<RefTarget> allToFileRef(List<String> resources) {
 		ResourceResolver resolver = ResourceResolver.forResources();
-		Function<String, String> propsResolver = it -> PropertiesValueResolver.replaceProperties(it,
-				getContextProperties());
 		return resources.stream()
 			.flatMap(f -> TagReader.explodeFileRef(null, Util.getCwd(), f).stream())
 			.map(f -> TagReader.toFileRef(f, resolver))

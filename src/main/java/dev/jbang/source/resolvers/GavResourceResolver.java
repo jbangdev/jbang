@@ -3,6 +3,8 @@ package dev.jbang.source.resolvers;
 import java.nio.file.Path;
 import java.util.function.Function;
 
+import javax.annotation.Nonnull;
+
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.source.ResourceRef;
@@ -20,6 +22,7 @@ public class GavResourceResolver implements ResourceResolver {
 		this.depResolver = depResolver;
 	}
 
+	@Nonnull
 	@Override
 	public String description() {
 		return "Maven GAV";
@@ -36,7 +39,7 @@ public class GavResourceResolver implements ResourceResolver {
 			// one we asked for, which we assume is always the first one in the list
 			// (hopefully we're right).
 			Path file = mcp.getArtifacts().get(0).getFile();
-			result = ResourceRef.forCachedResource(resource, file);
+			result = ResourceRef.forResolvedResource(resource, file);
 		}
 
 		return result;
