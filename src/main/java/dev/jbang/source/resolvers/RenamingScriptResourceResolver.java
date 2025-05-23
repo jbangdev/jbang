@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
@@ -30,6 +32,7 @@ public class RenamingScriptResourceResolver implements ResourceResolver {
 		this.forceType = forceType;
 	}
 
+	@Nonnull
 	@Override
 	public String description() {
 		return "Renaming resolver";
@@ -90,7 +93,7 @@ public class RenamingScriptResourceResolver implements ResourceResolver {
 						.resolve(Util.unkebabify(name));
 					tempFile.getParent().toFile().mkdirs();
 					Util.writeString(tempFile.toAbsolutePath(), original);
-					result = ResourceRef.forCachedResource(resource, tempFile);
+					result = ResourceRef.forResolvedResource(resource, tempFile);
 				}
 			}
 		} catch (IOException e) {

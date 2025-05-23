@@ -9,6 +9,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.net.TrustedSources;
@@ -28,6 +30,7 @@ public class RemoteResourceResolver implements ResourceResolver {
 		this.alwaysTrust = alwaysTrust;
 	}
 
+	@Nonnull
 	@Override
 	public String description() {
 		return String.format("%s remote resource", alwaysTrust ? "Trusted" : "Non-trusted");
@@ -91,7 +94,7 @@ public class RemoteResourceResolver implements ResourceResolver {
 
 			Path path = Util.swizzleContent(swizzledUrl, Util.downloadAndCacheFile(swizzledUrl));
 
-			return ResourceRef.forCachedResource(scriptURL, path);
+			return ResourceRef.forResolvedResource(scriptURL, path);
 		} catch (IOException | URISyntaxException e) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Could not download " + scriptURL, e);
 		}
@@ -114,7 +117,7 @@ public class RemoteResourceResolver implements ResourceResolver {
 		try {
 			String url = swizzleURL(scriptURL);
 			Path path = Util.downloadAndCacheFile(url);
-			return ResourceRef.forCachedResource(scriptURL, path);
+			return ResourceRef.forResolvedResource(scriptURL, path);
 		} catch (IOException e) {
 			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Could not download " + scriptURL, e);
 		}
