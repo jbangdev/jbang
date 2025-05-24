@@ -43,6 +43,7 @@ import dev.jbang.source.resolvers.ClasspathResourceResolver;
 import dev.jbang.source.resolvers.CombinedResourceResolver;
 import dev.jbang.source.resolvers.FileResourceResolver;
 import dev.jbang.source.resolvers.GavResourceResolver;
+import dev.jbang.source.resolvers.LazyResourceResolver;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.source.resolvers.RemoteResourceResolver;
 import dev.jbang.source.resolvers.RenamingScriptResourceResolver;
@@ -321,7 +322,7 @@ public class ProjectBuilder {
 				it -> PropertiesValueResolver.replaceProperties(it, getContextProperties()));
 		prj.setDescription(tagReader.getDescription().orElse(null));
 		ResourceResolver resolver1 = new SiblingResourceResolver(resourceRef, ResourceResolver.forResources());
-		prj.setDocs(tagReader.getDocs(resolver1).orElse(null));
+		prj.setDocs(tagReader.getDocs(LazyResourceResolver.lazy(resolver1)).orElse(null));
 		prj.setGav(tagReader.getGav().orElse(null));
 		prj.setMainClass(tagReader.getMain().orElse(null));
 		prj.setModuleName(tagReader.getModule().orElse(null));
@@ -561,7 +562,7 @@ public class ProjectBuilder {
 			ss.addNativeOptions(src.getNativeOptions());
 			prj.addRepositories(src.tagReader.collectRepositories());
 			prj.addRuntimeOptions(src.getRuntimeOptions());
-			prj.setDocs(src.tagReader.getDocs(sibRes1).orElse(null));
+			prj.setDocs(src.tagReader.getDocs(LazyResourceResolver.lazy(sibRes1)).orElse(null));
 			src.tagReader.collectManifestOptions().forEach(kv -> {
 				if (!kv.getKey().isEmpty()) {
 					prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
