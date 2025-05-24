@@ -2,8 +2,10 @@ package dev.jbang.cli;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
 
+import java.awt.*;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -28,7 +30,7 @@ import dev.jbang.util.ModuleUtil;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "info", description = "Provides info about the script for tools (and humans who are tools).", subcommands = {
-		Tools.class, ClassPath.class, Jar.class })
+		Tools.class, ClassPath.class, Jar.class, Docs.class })
 public class Info {
 }
 
@@ -94,6 +96,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String description;
 		String gav;
 		String module;
+		ResourceRef docs;
 
 		public ScriptInfo(BuildContext ctx, boolean assureJdkInstalled) {
 			Project prj = ctx.getProject();
@@ -179,6 +182,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 			}
 			gav = prj.getGav().orElse(null);
 			description = prj.getDescription().orElse(null);
+			docs = prj.getDocs().orElse(null);
 			module = prj.getModuleName().orElse(null);
 		}
 
@@ -306,5 +310,32 @@ class Jar extends BaseInfoCommand {
 		ScriptInfo info = getInfo(false);
 		System.out.println(info.applicationJar);
 		return EXIT_OK;
+	}
+}
+
+@CommandLine.Command(name = "docs", description = "Open the documentation file in the default browser.")
+class Docs extends BaseInfoCommand {
+
+	@Override
+	public Integer doCall() throws IOException {
+		URI uri = getDocsUri();
+		info("Showing documentation: " + uri);
+		Desktop.getDesktop().browse(uri);
+		return EXIT_OK;
+	}
+
+	URI getDocsUri() {
+		ScriptInfo info = getInfo(false);
+		return validateDocsReferenceAndTransformToUri(info);
+	}
+
+	private static URI validateDocsReferenceAndTransformToUri(ScriptInfo info) {
+		if (info.docs.isURL()) {
+			return URI.create(info.docs.getOriginalResource());
+		}
+		if (!info.docs.exists()) {
+			throw new ExitException(EXIT_INVALID_INPUT, "Invalid documentation file path: " + info.docs.getFile());
+		}
+		return info.docs.getFile().toUri();
 	}
 }
