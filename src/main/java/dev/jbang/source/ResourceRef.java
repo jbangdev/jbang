@@ -19,7 +19,7 @@ import dev.jbang.util.Util;
  *
  * Instances of this interface can be created directly by using one of the
  * factory methods like {@code forFile} and
- * {@code forResolvedResource) but often they are the result of a call to {@code
+ * {@code forResolvedResource} but often they are the result of a call to {@code
  * Resolver.resolve}.
  */
 public interface ResourceRef extends Comparable<ResourceRef> {
