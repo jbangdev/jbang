@@ -1,0 +1,23 @@
+name: Allure Report Teardown
+
+on:
+  pull_request_target:
+    types: [closed]
+
+jobs:
+  preview-teardown:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Teardown allure report on surge
+        id: deploy
+        run: npx surge teardown https://jbang-site-ci-pr-${{ github.event.number }}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }} || echo "NOT_TORNDOWN=true" >> "$GITHUB_ENV"
+      - name: Update PR status comment
+        uses: quarkusio/action-helpers@main
+        if: env.NOT_TORNDOWN != 'true'
+        with:
+          action: maintain-one-comment
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-number: ${{ github.event.number }}
+          body: |
+            🙈 The PR is closed and the allure report is no longer available.
+          body-marker: <!-- Preview status comment marker -->
