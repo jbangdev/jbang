@@ -84,14 +84,7 @@ jobs:
           ./gradlew allureReport --clean
       - name: Store PR id
         if: always()
-        run: |
-          if [ -n "${{ github.event.number }}" ]; then
-            echo "${{ github.event.number }}" > ./build/pr-id.txt
-          elif [ -n "${{ github.event.pull_request.number }}" ]; then
-            echo "${{ github.event.pull_request.number }}" > ./build/pr-id.txt
-          else
-            echo "No PR number found in either github.event.number or github.event.pull_request.number"
-          fi
+        run: echo ${{ github.event.number }} > ./build/pr-id.txt  
       - name: Upload Allure Test Report
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always() # always run even if the previous step fails

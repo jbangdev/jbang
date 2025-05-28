@@ -11,7 +11,7 @@ defaults:
     shell: bash
 
 jobs:
-  allure-report:
+  preview:
     runs-on: ubuntu-latest
     permissions:
       actions: read
