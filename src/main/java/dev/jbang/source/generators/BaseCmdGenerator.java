@@ -56,6 +56,6 @@ public abstract class BaseCmdGenerator<T extends CmdGenerator> implements CmdGen
 
 	protected String generateCommandLineString(List<String> fullArgs) throws IOException {
 		CommandBuffer cb = CommandBuffer.of(fullArgs);
-		return cb.asCommandLine(shell);
+		return cb.shell(shell).asCommandLine();
 	}
 }
