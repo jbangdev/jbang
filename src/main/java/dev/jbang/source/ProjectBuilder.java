@@ -77,6 +77,7 @@ public class ProjectBuilder {
 	private Boolean integrations;
 	private String javaVersion;
 	private Boolean enablePreview;
+	private String docs;
 	private JdkManager jdkManager;
 
 	// Cached values
@@ -487,6 +488,12 @@ public class ProjectBuilder {
 		if (enablePreview != null) {
 			prj.setEnablePreviewRequested(enablePreview);
 		}
+		if (docs != null) {
+			ResourceResolver resolver = LazyResourceResolver
+				.lazy(new SiblingResourceResolver(prj.getResourceRef(), ResourceResolver.forResources()));
+			ResourceRef docsRef = resolver.resolve(docs);
+			prj.setDocs(docsRef);
+		}
 		if (jdkManager != null) {
 			prj.setJdkManager(jdkManager);
 		} else {
@@ -563,13 +570,6 @@ public class ProjectBuilder {
 			prj.addRepositories(src.tagReader.collectRepositories());
 			prj.addRuntimeOptions(src.getRuntimeOptions());
 			prj.setDocs(src.tagReader.getDocs(LazyResourceResolver.lazy(sibRes1)).orElse(null));
-			if (isAlias(srcRef)) {
-				AliasResourceResolver.AliasedResourceRef aliasedResourceRef = (AliasResourceResolver.AliasedResourceRef) srcRef;
-				Alias alias = aliasedResourceRef.getAlias();
-				if (alias.docs != null && !alias.docs.isEmpty()) {
-					prj.setDocs(getResourceResolver().resolve(alias.docs));
-				}
-			}
 
 			src.tagReader.collectManifestOptions().forEach(kv -> {
 				if (!kv.getKey().isEmpty()) {
@@ -670,6 +670,9 @@ public class ProjectBuilder {
 		}
 		if (enablePreview == null) {
 			enablePreview(alias.enablePreview);
+		}
+		if (docs != null) {
+			docs = alias.docs;
 		}
 	}
 
