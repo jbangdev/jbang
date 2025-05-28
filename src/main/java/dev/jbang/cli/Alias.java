@@ -95,7 +95,7 @@ class AliasAdd extends BaseAliasCommand {
 	List<String> userParams;
 
 	@CommandLine.Option(names = { "--docs" }, description = "Documentation reference for the alias")
-	String docsRef;
+	String docs;
 
 	@Override
 	public Integer doCall() {
@@ -121,7 +121,7 @@ class AliasAdd extends BaseAliasCommand {
 				buildMixin.compileOptions, nativeMixin.nativeImage, nativeMixin.nativeOptions, buildMixin.integrations,
 				runMixin.flightRecorderString, runMixin.debugString, runMixin.cds, runMixin.interactive,
 				enablePreviewRequested, runMixin.enableAssertions, runMixin.enableSystemAssertions,
-				buildMixin.manifestOptions, createJavaAgents(), docsRef, null);
+				buildMixin.manifestOptions, createJavaAgents(), docs, null);
 		Path catFile = getCatalog(false);
 		if (catFile == null) {
 			catFile = Catalog.getCatalogFile(null);
