@@ -563,6 +563,14 @@ public class ProjectBuilder {
 			prj.addRepositories(src.tagReader.collectRepositories());
 			prj.addRuntimeOptions(src.getRuntimeOptions());
 			prj.setDocs(src.tagReader.getDocs(LazyResourceResolver.lazy(sibRes1)).orElse(null));
+			if (isAlias(srcRef)) {
+				AliasResourceResolver.AliasedResourceRef aliasedResourceRef = (AliasResourceResolver.AliasedResourceRef) srcRef;
+				Alias alias = aliasedResourceRef.getAlias();
+				if (alias.docs != null && !alias.docs.isEmpty()) {
+					prj.setDocs(getResourceResolver().resolve(alias.docs));
+				}
+			}
+
 			src.tagReader.collectManifestOptions().forEach(kv -> {
 				if (!kv.getKey().isEmpty()) {
 					prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");

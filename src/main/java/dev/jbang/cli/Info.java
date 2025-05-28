@@ -185,24 +185,9 @@ abstract class BaseInfoCommand extends BaseCommand {
 			}
 			gav = prj.getGav().orElse(null);
 			description = prj.getDescription().orElse(null);
-			initDocsReference(prj);
-
-			module = prj.getModuleName().orElse(null);
-		}
-
-		private void initDocsReference(Project prj) {
 			docs = prj.getDocs().orElse(null);
 
-			// check if an alias exists and override docs directive with alias's resolved
-			// ResourceRef
-			ResourceRef resourceRef = prj.getResourceRef();
-			if (resourceRef instanceof AliasResourceResolver.AliasedResourceRef) {
-				AliasResourceResolver.AliasedResourceRef aliasedResourceRef = (AliasResourceResolver.AliasedResourceRef) resourceRef;
-				ResourceResolver resolver1 = new SiblingResourceResolver(resourceRef, ResourceResolver.forResources());
-				if (aliasedResourceRef.getAlias().docs != null) {
-					docs = LazyResourceResolver.lazy(resolver1).resolve(aliasedResourceRef.getAlias().docs);
-				}
-			}
+			module = prj.getModuleName().orElse(null);
 		}
 
 		private void init(SourceSet ss) {
