@@ -82,16 +82,12 @@ jobs:
         if: always() # always run even if the previous step fails
         run: |
           ./gradlew allureReport --clean
-      - name: Store PR id
-        run: echo ${{ github.event.number }} > ./build/pr-id.txt  
       - name: Upload Allure Test Report
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always() # always run even if the previous step fails
         with:
           name: allure-report-${{ matrix.os }}
-          path: |
-            build/reports/allure-report/allureReport/index.html
-            build/pr-id.txt
+          path: '**/build/reports/allure-report/allureReport/index.html'
           retention-days: 7
       - name: Upload Test Report for pr marking
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

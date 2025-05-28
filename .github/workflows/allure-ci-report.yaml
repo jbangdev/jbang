@@ -38,7 +38,7 @@ jobs:
         rm -f pr-id.txt
     - name: Publishing to surge for preview
       id: deploy
-      run: npx surge@0.24.6 ./ --domain https://jbang-site-ci-pr-${PR_ID}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }}
+      run: npx surge@0.23.1 ./ --domain https://jbang-site-ci-pr-${PR_ID}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }}
       env:
         PR_ID: ${{  steps.pr.outputs.id }}
 
