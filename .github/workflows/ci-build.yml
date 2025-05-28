@@ -83,7 +83,6 @@ jobs:
         run: |
           ./gradlew allureReport --clean
       - name: Store PR id
-        if: always()
         run: echo ${{ github.event.number }} > ./build/pr-id.txt  
       - name: Upload Allure Test Report
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
