@@ -24,9 +24,6 @@ import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.devkitman.Jdk;
 import dev.jbang.devkitman.JdkManager;
 import dev.jbang.source.*;
-import dev.jbang.source.resolvers.AliasResourceResolver;
-import dev.jbang.source.resolvers.LazyResourceResolver;
-import dev.jbang.source.resolvers.SiblingResourceResolver;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
 
