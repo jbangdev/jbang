@@ -1,0 +1,52 @@
+{
+  "id" : "a8d5ba0b-4b13-492a-a6c9-f52ce82085e0",
+  "name" : "tc_jbang-catalog_raw_head_jbang-catalog.json",
+  "request" : {
+    "url" : "/tc/jbang-catalog/raw/HEAD/jbang-catalog.json",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 404,
+    "bodyFileName" : "tc_jbang-catalog_raw_head_jbang-catalog.json-a8d5ba0b-4b13-492a-a6c9-f52ce82085e0.txt",
+    "headers" : {
+      "Server" : "AtlassianEdge",
+      "Server-Timing" : "atl-edge;dur=180,atl-edge-internal;dur=3,atl-edge-upstream;dur=178,atl-edge-pop;desc=\"aws-eu-central-1\"",
+      "X-Usage-Quota-Remaining" : "997300.554",
+      "X-Static-Version" : "d89db2faf4c6",
+      "Atl-Traceid" : "f21399678868450eb800d332f68d4105",
+      "X-Usage-Input-Ops" : "0",
+      "X-Version" : "d89db2faf4c6",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "Strict-Transport-Security" : "max-age=63072000; includeSubDomains; preload",
+      "X-Dc-Location" : "Micros-3",
+      "Etag" : "\"1c0d696a9c2020f1bd57d0a6cb1a003f\"",
+      "X-B3-Spanid" : "587b677fc8b69fdc",
+      "Report-To" : "{\"endpoints\": [{\"url\": \"https://dz8aopenkvv6s.cloudfront.net\"}], \"group\": \"endpoint-1\", \"include_subdomains\": true, \"max_age\": 600}",
+      "X-Served-By" : "1eadda20359f",
+      "Content-Security-Policy" : "base-uri 'self'; script-src 'unsafe-eval' 'strict-dynamic' 'unsafe-inline' 'self' http: https: https://remote-app-switcher.stg-east.frontend.public.atl-paas.net https://remote-app-switcher.prod-east.frontend.public.atl-paas.net https://bbc-frontbucket-static.stg-east.frontend.public.atl-paas.net https://bbc-frontbucket-static.prod-east.frontend.public.atl-paas.net https://bbc-frontbucket-canary.prod-east.frontend.public.atl-paas.net https://bbc-frontbucket-exp.prod-east.frontend.public.atl-paas.net app.pendo.io cdn.pendo.io data.pendo.io pendo-io-static.storage.googleapis.com pendo-static-6291417196199936.storage.googleapis.com https://bbc-object-storage--frontbucket.us-east-1.prod.public.atl-paas.net/ https://bbc-object-storage--frontbucket.us-east-1.staging.public.atl-paas.net/ https://bbc-object-storage--frontbucket.us-east-1.prod.public.atl-paas.net/ 'nonce-08Sj4tkP4jV/Wk0dJFwULQ=='; frame-ancestors 'self' start.atlassian.com start.stg.atlassian.com atlaskit.atlassian.com bitbucket.org app.pendo.io; connect-src bitbucket.org *.bitbucket.org bb-inf.net *.bb-inf.net atlassianblog.wpengine.com id.atlassian.com api.atlassian.com api.stg.atlassian.com wss://bitbucketci-ws-service.services.atlassian.com/ wss://bitbucketci-ws-service.stg.services.atlassian.com/ wss://bitbucketci-ws-service.dev.services.atlassian.com/ analytics.atlassian.com atlassian-cookies--categories.us-east-1.prod.public.atl-paas.net as.atlassian.com api-private.stg.atlassian.com api-private.atlassian.com xp.atlassian.com atl-global.atlassian.com cofs.staging.public.atl-paas.net cofs.prod.public.atl-paas.net fd-assets.prod.atl-paas.net flight-deck-assets-bifrost.prod-east.frontend.public.atl-paas.net intake.opbeat.com api.media.atlassian.com api.segment.io xid.statuspage.io xid.atlassian.com xid.sourcetreeapp.com bam.nr-data.net bam-cell.nr-data.net www.google-analytics.com sentry.io *.ingest.sentry.io statsigapi.net fd-config.us-east-1.prod.public.atl-paas.net fd-config-bifrost.prod-east.frontend.public.atl-paas.net micros--prod-west--bitbucketci-file-service--files.s3.us-west-1.amazonaws.com micros--prod-east--bitbucketci-file-service--files.s3.amazonaws.com micros--stg-west--bitbucketci-file-service--files.s3.us-west-1.amazonaws.com micros--stg-east--bitbucketci-file-service--files.s3.amazonaws.com micros--ddev--bitbucketci-file-service--files.s3.ap-southeast-2.amazonaws.com app.pendo.io data.pendo.io pendo-static-6291417196199936.storage.googleapis.com bqlf8qjztdtr.statuspage.io https://bbc-object-storage--frontbucket.us-east-1.prod.public.atl-paas.net/ https://bbc-object-storage--frontbucket.us-east-1.staging.public.atl-paas.net/ https://bbc-object-storage--frontbucket.us-east-1.prod.public.atl-paas.net/; font-src 'self' https://bbc-frontbucket-static.stg-east.frontend.public.atl-paas.net https://bbc-frontbucket-static.prod-east.frontend.public.atl-paas.net https://bbc-frontbucket-canary.prod-east.frontend.public.atl-paas.net https://bbc-frontbucket-exp.prod-east.frontend.public.atl-paas.net https://ds-cdn.prod-east.frontend.public.atl-paas.net https://bbc-object-storage--frontbucket.us-east-1.prod.public.atl-paas.net; style-src 'self' 'unsafe-inline' https://aui-cdn.atlassian.com/ https://cdn.cookielaw.org/ https://bbc-frontbucket-static.stg-east.frontend.public.atl-paas.net https://bbc-frontbucket-static.prod-east.frontend.public.atl-paas.net https://bbc-frontbucket-canary.prod-east.frontend.public.atl-paas.net https://bbc-frontbucket-exp.prod-east.frontend.public.atl-paas.net app.pendo.io cdn.pendo.io pendo-static-6291417196199936.storage.googleapis.com https://ds-cdn.prod-east.frontend.public.atl-paas.net https://bbc-object-storage--frontbucket.us-east-1.prod.public.atl-paas.net/ https://bbc-object-storage--frontbucket.us-east-1.staging.public.atl-paas.net/ https://bbc-object-storage--frontbucket.us-east-1.prod.public.atl-paas.net/; object-src 'none'; default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: *; report-uri https://web-security-reports.services.atlassian.com/csp-report/bb-website",
+      "X-Usage-Output-Ops" : "0",
+      "X-View-Name" : "bitbucket.apps.repo2.views.filebrowse_raw",
+      "Age" : "0",
+      "Content-Type" : "text/html; charset=utf-8",
+      "X-Usage-Request-Cost" : "1484.73",
+      "X-Cache" : "MISS",
+      "X-Usage-System-Time" : "0.002675",
+      "X-Content-Type-Options" : "nosniff",
+      "X-Usage-User-Time" : "0.041867",
+      "Date" : "Thu, 29 May 2025 12:59:05 GMT",
+      "X-Render-Time" : "0.07239151000976562",
+      "Nel" : "{\"failure_fraction\": 0.001, \"include_subdomains\": true, \"max_age\": 600, \"report_to\": \"endpoint-1\"}",
+      "Cache-Control" : "max-age=900",
+      "Atl-Request-Id" : "f2139967-8868-450e-b800-d332f68d4105",
+      "X-Xss-Protection" : "1; mode=block",
+      "X-Used-Mesh" : "False",
+      "X-B3-Traceid" : "f21399678868450eb800d332f68d4105",
+      "Vary" : "authorization, cookie, user-context, Accept-Language, origin, Accept-Encoding",
+      "Content-Language" : "en",
+      "X-Request-Count" : "3772"
+    }
+  },
+  "uuid" : "a8d5ba0b-4b13-492a-a6c9-f52ce82085e0",
+  "persistent" : true,
+  "insertionIndex" : 3
+}

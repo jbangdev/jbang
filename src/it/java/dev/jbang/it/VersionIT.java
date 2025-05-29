@@ -21,7 +21,7 @@ public class VersionIT extends BaseIT {
 		assertThat(shell("jbang version")).succeeded()
 			.outMatches(Pattern.compile(
 					"(?s)\\d+\\.\\d+\\.\\d+(\\.\\d+)?" + lineSeparator()))
-			.errEquals("");
+			.errNotContains("[ERROR]");
 	}
 
 	// Scenario: verbose version

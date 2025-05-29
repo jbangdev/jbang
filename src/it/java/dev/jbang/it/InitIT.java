@@ -34,7 +34,7 @@ public class InitIT extends BaseIT {
 
 		assertThat(shell("jbang " + testFile))
 			.succeeded()
-			.errEquals("[jbang] Building jar for test.java..." + lineSeparator());
+			.errContains("[jbang] Building jar for test.java..." + lineSeparator());
 
 		assertThat(shell("jbang " + testFile))
 			.succeeded()
@@ -65,7 +65,7 @@ public class InitIT extends BaseIT {
 
 		assertThat(shell("jbang " + testFile))
 			.succeeded()
-			.errEquals("[jbang] Building jar for test.java..." + lineSeparator());
+			.errContains("[jbang] Building jar for test.java..." + lineSeparator());
 
 		assertThat(shell("jbang " + testFile))
 			.succeeded()

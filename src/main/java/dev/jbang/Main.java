@@ -7,6 +7,7 @@ import java.util.logging.LogManager;
 import java.util.stream.Collectors;
 
 import dev.jbang.cli.JBang;
+import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 
@@ -17,6 +18,10 @@ public class Main {
 			LogManager.getLogManager().readConfiguration(Main.class.getResourceAsStream("/logging.properties"));
 		} catch (IOException e) {
 			// Ignore
+		}
+		if ("true".equals(System.getenv("JBANG_TEST_DISABLE_SSL"))) {
+			Util.warnMsg("Disabling SSL verification. This only meant for testing!!!!");
+			Util.disableSSL();
 		}
 		CommandLine cli = JBang.getCommandLine();
 		args = handleDefaultRun(cli.getCommandSpec(), args);

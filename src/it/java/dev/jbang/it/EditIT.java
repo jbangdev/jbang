@@ -18,7 +18,7 @@ public class EditIT extends BaseIT {
 		shell("jbang init hello.java");
 		assertThat(shell("jbang edit -b --no-open hello.java"))
 			.succeeded()
-			.errEquals(
+			.errContains(
 					"[jbang] Creating sandbox for script editing hello.java"
 							+ System.lineSeparator())
 			.outContains("hello");

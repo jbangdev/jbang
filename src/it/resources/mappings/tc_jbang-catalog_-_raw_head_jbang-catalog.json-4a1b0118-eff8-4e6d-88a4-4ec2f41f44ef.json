@@ -1,0 +1,40 @@
+{
+  "id" : "4a1b0118-eff8-4e6d-88a4-4ec2f41f44ef",
+  "name" : "tc_jbang-catalog_-_raw_head_jbang-catalog.json",
+  "request" : {
+    "url" : "/tc/jbang-catalog/-/raw/HEAD/jbang-catalog.json",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 302,
+    "headers" : {
+      "Server" : "cloudflare",
+      "x-frame-options" : "SAMEORIGIN",
+      "x-download-options" : "noopen",
+      "gitlab-lb" : "haproxy-main-28-lb-gprd",
+      "Strict-Transport-Security" : "max-age=31536000",
+      "nel" : "{\"max_age\": 0}",
+      "referrer-policy" : "strict-origin-when-cross-origin",
+      "x-runtime" : "0.032256",
+      "Set-Cookie" : [ "_gitlab_session=1abc1583fd76ac9ea2834b80b02eeda2; path=/; secure; HttpOnly; SameSite=None", "_cfuvid=cAJlMYqLFklphxBHfGSldzwbeo7SBiBQJq00lKqdNtk-1748523545072-0.0.1.1-604800000; path=/; domain=.gitlab.com; HttpOnly; Secure; SameSite=None" ],
+      "Content-Type" : "text/html; charset=utf-8",
+      "x-request-id" : "01JWE1ZWCNFQ0BRT28SVQ869GJ",
+      "x-ua-compatible" : "IE=edge",
+      "CF-Ray" : "94762abb789a1ba1-MAD",
+      "permissions-policy" : "interest-cohort=()",
+      "x-permitted-cross-domain-policies" : "none",
+      "x-gitlab-meta" : "{\"correlation_id\":\"01JWE1ZWCNFQ0BRT28SVQ869GJ\",\"version\":\"1\"}",
+      "Date" : "Thu, 29 May 2025 12:59:05 GMT",
+      "CF-Cache-Status" : "MISS",
+      "gitlab-sv" : "web-gke-us-east1-b",
+      "content-security-policy" : "base-uri 'self'; child-src https://www.google.com/recaptcha/ https://www.recaptcha.net/ https://www.googletagmanager.com/ns.html https://*.zuora.com/apps/PublicHostedPageLite.do https://gitlab.com/admin/ https://gitlab.com/assets/ https://gitlab.com/-/speedscope/index.html https://gitlab.com/-/sandbox/ 'self' https://gitlab.com/assets/ blob: data:; connect-src 'self' https://gitlab.com wss://gitlab.com https://sentry.gitlab.net https://new-sentry.gitlab.net https://customers.gitlab.com https://snowplow.trx.gitlab.net https://sourcegraph.com https://collector.prd-278964.gl-product-analytics.com snowplowprd.trx.gitlab.net; default-src 'self'; font-src 'self'; form-action 'self' https: http:; frame-ancestors 'self'; frame-src https://www.google.com/recaptcha/ https://www.recaptcha.net/ https://www.googletagmanager.com/ns.html https://*.zuora.com/apps/PublicHostedPageLite.do https://gitlab.com/admin/ https://gitlab.com/assets/ https://gitlab.com/-/speedscope/index.html https://gitlab.com/-/sandbox/; img-src 'self' data: blob: http: https:; manifest-src 'self'; media-src 'self' data: blob: http: https:; object-src 'none'; report-uri https://new-sentry.gitlab.net/api/4/security/?sentry_key=f5573e26de8f4293b285e556c35dfd6e&sentry_environment=gprd; script-src 'strict-dynamic' 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ https://www.recaptcha.net/ https://apis.google.com https://*.zuora.com/apps/PublicHostedPageLite.do 'nonce-9o3QvojYRILGCVEoieo0sQ=='; style-src 'self' 'unsafe-inline'; worker-src 'self' https://gitlab.com/assets/ blob: data:",
+      "x-xss-protection" : "1; mode=block",
+      "x-content-type-options" : "nosniff",
+      "Cache-Control" : "no-cache",
+      "Location" : "https://gitlab.com/users/sign_in"
+    }
+  },
+  "uuid" : "4a1b0118-eff8-4e6d-88a4-4ec2f41f44ef",
+  "persistent" : true,
+  "insertionIndex" : 5
+}
