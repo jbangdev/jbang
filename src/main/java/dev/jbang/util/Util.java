@@ -1125,6 +1125,9 @@ public class Util {
 					throw new IOException("No 'Location' header in redirect");
 				}
 				URL url = new URL(httpConn.getURL(), location);
+				// TODO we should make this swizzler optional/configurable!
+				// Right now it assumes we're always trying to get Java
+				// source files which just isn't the case (eg //FILES)
 				url = new URL(swizzleURL(url.toString()));
 				verboseMsg("Redirected to: " + url); // Should be debug info
 				httpConn = (HttpURLConnection) url.openConnection();

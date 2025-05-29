@@ -41,6 +41,7 @@ public abstract class TagReader {
 	private static final String MODULE_COMMENT_PREFIX = "MODULE";
 	private static final String DESCRIPTION_COMMENT_PREFIX = "DESCRIPTION ";
 	private static final String GAV_COMMENT_PREFIX = "GAV ";
+	private static final String DOCS_COMMENT_PREFIX = "DOCS ";
 
 	private static final Pattern EOL = Pattern.compile("\\r?\\n");
 
@@ -151,6 +152,18 @@ public abstract class TagReader {
 
 	protected boolean isDescriptionDeclare(String line) {
 		return line.startsWith(DESCRIPTION_COMMENT_PREFIX);
+	}
+
+	public Optional<ResourceRef> getDocs(ResourceResolver siblingResolver) {
+		return getTags()
+			.filter(this::isDocsDeclare)
+			.map(s -> s.substring(DOCS_COMMENT_PREFIX.length()))
+			.map(siblingResolver::resolve)
+			.findFirst();
+	}
+
+	protected boolean isDocsDeclare(String line) {
+		return line.startsWith(DOCS_COMMENT_PREFIX);
 	}
 
 	public Optional<String> getMain() {

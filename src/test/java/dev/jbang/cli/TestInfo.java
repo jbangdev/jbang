@@ -3,6 +3,7 @@ package dev.jbang.cli;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
+import java.net.URI;
 import java.nio.file.Paths;
 import java.util.Collection;
 
@@ -161,5 +162,23 @@ public class TestInfo extends BaseTest {
 		// assertThat(info.javaVersion, not(nullValue()));
 		// assertThat(info.mainClass, equalTo("helloworld"));
 		assertThat(info.resolvedDependencies, empty());
+	}
+
+	@Test
+	void testInfoDocsFile() {
+		String src = examplesTestFolder.resolve("docstest1.java").toString();
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "docs", src);
+		Docs docs = (Docs) pr.subcommand().subcommand().commandSpec().userObject();
+		URI uri = docs.getDocsUri();
+		assertThat(uri.toString(), endsWith("/itests/readme.md"));
+	}
+
+	@Test
+	void testInfoDocsUrl() {
+		String src = examplesTestFolder.resolve("docstest2.java").toString();
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "docs", src);
+		Docs docs = (Docs) pr.subcommand().subcommand().commandSpec().userObject();
+		URI uri = docs.getDocsUri();
+		assertThat(uri.toString(), equalTo("https://www.jbang.dev/documentation/guide/latest/faq.html"));
 	}
 }

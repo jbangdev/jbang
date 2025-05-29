@@ -43,6 +43,7 @@ import dev.jbang.source.resolvers.ClasspathResourceResolver;
 import dev.jbang.source.resolvers.CombinedResourceResolver;
 import dev.jbang.source.resolvers.FileResourceResolver;
 import dev.jbang.source.resolvers.GavResourceResolver;
+import dev.jbang.source.resolvers.LazyResourceResolver;
 import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.source.resolvers.RemoteResourceResolver;
 import dev.jbang.source.resolvers.RenamingScriptResourceResolver;
@@ -76,6 +77,7 @@ public class ProjectBuilder {
 	private Boolean integrations;
 	private String javaVersion;
 	private Boolean enablePreview;
+	private String docs;
 	private JdkManager jdkManager;
 
 	// Cached values
@@ -320,13 +322,14 @@ public class ProjectBuilder {
 		TagReader tagReader = new TagReader.JbangProject(contents,
 				it -> PropertiesValueResolver.replaceProperties(it, getContextProperties()));
 		prj.setDescription(tagReader.getDescription().orElse(null));
+		ResourceResolver resolver1 = new SiblingResourceResolver(resourceRef, ResourceResolver.forResources());
+		prj.setDocs(tagReader.getDocs(LazyResourceResolver.lazy(resolver1)).orElse(null));
 		prj.setGav(tagReader.getGav().orElse(null));
 		prj.setMainClass(tagReader.getMain().orElse(null));
 		prj.setModuleName(tagReader.getModule().orElse(null));
 
 		SourceSet ss = prj.getMainSourceSet();
-		ss.addResources(tagReader.collectFiles(resourceRef,
-				new SiblingResourceResolver(resourceRef, ResourceResolver.forResources())));
+		ss.addResources(tagReader.collectFiles(resourceRef, resolver1));
 		ss.addDependencies(tagReader.collectBinaryDependencies());
 		ss.addCompileOptions(tagReader.collectOptions("JAVAC_OPTIONS", "COMPILE_OPTIONS"));
 		ss.addNativeOptions(tagReader.collectOptions("NATIVE_OPTIONS"));
@@ -485,6 +488,12 @@ public class ProjectBuilder {
 		if (enablePreview != null) {
 			prj.setEnablePreviewRequested(enablePreview);
 		}
+		if (docs != null) {
+			ResourceResolver resolver = LazyResourceResolver
+				.lazy(new SiblingResourceResolver(prj.getResourceRef(), ResourceResolver.forResources()));
+			ResourceRef docsRef = resolver.resolve(docs);
+			prj.setDocs(docsRef);
+		}
 		if (jdkManager != null) {
 			prj.setJdkManager(jdkManager);
 		} else {
@@ -560,6 +569,8 @@ public class ProjectBuilder {
 			ss.addNativeOptions(src.getNativeOptions());
 			prj.addRepositories(src.tagReader.collectRepositories());
 			prj.addRuntimeOptions(src.getRuntimeOptions());
+			prj.setDocs(src.tagReader.getDocs(LazyResourceResolver.lazy(sibRes1)).orElse(null));
+
 			src.tagReader.collectManifestOptions().forEach(kv -> {
 				if (!kv.getKey().isEmpty()) {
 					prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
@@ -659,6 +670,9 @@ public class ProjectBuilder {
 		}
 		if (enablePreview == null) {
 			enablePreview(alias.enablePreview);
+		}
+		if (docs != null) {
+			docs = alias.docs;
 		}
 	}
 
