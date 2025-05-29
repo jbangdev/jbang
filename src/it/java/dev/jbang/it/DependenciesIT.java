@@ -30,7 +30,7 @@ public class DependenciesIT extends BaseIT {
 				shell(Collections.singletonMap("JBANG_REPO", newRepo.toAbsolutePath().toString()),
 						"jbang classpath_log.java"))
 			.succeeded()
-			.errEquals(
+			.errContains(
 					"[jbang] Resolving dependencies...\n[jbang]    log4j:log4j:1.2.17\n[jbang] Dependencies resolved\n[jbang] Building jar for classpath_log.java...\n"
 						.replace(
 								"\n", System.lineSeparator()));

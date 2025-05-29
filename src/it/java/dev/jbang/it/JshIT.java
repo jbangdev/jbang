@@ -71,7 +71,7 @@ public class JshIT extends BaseIT {
 	public void shouldForceJsh() {
 		assertThat(shell("jbang --jsh hellojsh hello"))
 			.succeeded()
-			.errIsEmpty()
+			.errNotContains("[ERROR]")
 			.outIsExactly("hello" + lineSeparator());
 	}
 
@@ -81,7 +81,7 @@ public class JshIT extends BaseIT {
 	public void shouldHandleJshSources() {
 		assertThat(shell("jbang main.jsh"))
 			.succeeded()
-			.errIsEmpty()
+			.errNotContains("[ERROR]")
 			.outIsExactly("hello" + lineSeparator());
 	}
 

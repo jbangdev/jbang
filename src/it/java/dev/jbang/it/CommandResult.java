@@ -3,7 +3,7 @@ package dev.jbang.it;
 import java.util.Arrays;
 import java.util.List;
 
-class CommandResult {
+public class CommandResult {
 	List<String> command;
 
 	String out;

@@ -1,10 +1,14 @@
 package dev.jbang.it;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.recordSpec;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -18,17 +22,22 @@ import java.util.concurrent.TimeoutException;
 
 import org.assertj.core.api.Assertions;
 import org.assertj.core.presentation.StandardRepresentation;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.io.TempDir;
 import org.zeroturnaround.exec.InvalidExitValueException;
 import org.zeroturnaround.exec.ProcessExecutor;
 import org.zeroturnaround.exec.ProcessResult;
+
+import com.github.tomakehurst.wiremock.WireMockServer;
 
 import dev.jbang.util.Util;
 
 import io.qameta.allure.Allure;
 
 public class BaseIT {
+	public WireMockServer globalwms;
 
 	static Map<String, String> baseEnv;
 	private static Path scratch;
@@ -109,6 +118,33 @@ public class BaseIT {
 		});
 	}
 
+	@BeforeEach
+	void initEnv() throws IOException {
+		// Start a WireMock server to capture and replay any remote
+		// requests JBang makes (any new code that results in additional
+		// requests will result in new recordings being added to the
+		// `src/it/resources/mappings` folder which can then be added
+		// to the git repository. Future requests will then be replayed
+		// from the recordings instead of hitting the real server.)
+		globalwms = new WireMockServer(options()
+			.withRootDirectory("src/it/resources")
+			.enableBrowserProxying(true)
+			.dynamicPort());
+		globalwms.start();
+	}
+
+	@AfterEach
+	public void cleanupEnv() {
+		globalwms.stop();
+		if ("true".equals(System.getenv("CI"))) {
+			// When running in CI, we want to fail if there are unmatched requests
+			globalwms.checkForUnmatchedRequests();
+		} else {
+			// During development, we want to record unknown requests
+			globalwms.snapshotRecord(recordSpec().ignoreRepeatRequests());
+		}
+	}
+
 	public static CommandResult run(Path baseDir, Map<String, String> env, List<String> command) {
 
 		ByteArrayOutputStream stdoutStream = new ByteArrayOutputStream();
@@ -125,8 +161,8 @@ public class BaseIT {
 				.redirectError(errorStream)
 				.execute();
 
-			out = new String(stdoutStream.toByteArray(), "UTF-8");
-			err = new String(errorStream.toByteArray(), "UTF-8");
+			out = stdoutStream.toString(StandardCharsets.UTF_8);
+			err = errorStream.toString(StandardCharsets.UTF_8);
 		} catch (InvalidExitValueException | IOException | InterruptedException | TimeoutException e) {
 			throw new IllegalStateException("Could not run " + command, e);
 		}
@@ -137,8 +173,17 @@ public class BaseIT {
 	public CommandResult shell(Map<String, String> env, String... command) {
 		final CommandResult[] resultHolder = new CommandResult[1];
 
+		String javaOpts = "-Dhttp.proxyHost=localhost";
+		javaOpts += " -Dhttp.proxyPort=" + globalwms.port();
+		javaOpts += " -Dhttps.proxyHost=localhost";
+		javaOpts += " -Dhttps.proxyPort=" + globalwms.port();
+		javaOpts += " -Dhttp.nonProxyHosts=localhost";
+		// javaOpts += " -Dhttp.nonProxyHosts=localhost|127.*|[::1]";
+
 		// merge base env with provided env
 		Map<String, String> envToUse = new HashMap<>(baseEnv);
+		envToUse.put("JBANG_JAVA_OPTIONS", javaOpts);
+		envToUse.put("JBANG_TEST_DISABLE_SSL", "true");
 		envToUse.putAll(env);
 
 		Allure.step(Arrays.toString(command),
@@ -157,5 +202,4 @@ public class BaseIT {
 	public CommandResult shell(String... command) {
 		return shell(Collections.emptyMap(), command);
 	}
-
 }

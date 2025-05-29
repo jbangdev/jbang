@@ -1,0 +1,37 @@
+{
+  "id" : "1a1e42e3-bca9-4998-b3f1-26a4312fd0f9",
+  "name" : "tc_jbang-catalog_head_jbang-catalog.json",
+  "request" : {
+    "url" : "/tc/jbang-catalog/HEAD/jbang-catalog.json",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 404,
+    "body" : "404: Not Found",
+    "headers" : {
+      "X-Cache" : "MISS",
+      "Access-Control-Allow-Origin" : "*",
+      "X-Content-Type-Options" : "nosniff",
+      "Source-Age" : "0",
+      "Date" : "Thu, 29 May 2025 12:59:04 GMT",
+      "X-Timer" : "S1748523545.679558,VS0,VE149",
+      "Via" : "1.1 varnish",
+      "Accept-Ranges" : "bytes",
+      "X-Frame-Options" : "deny",
+      "Strict-Transport-Security" : "max-age=31536000",
+      "X-Served-By" : "cache-mad2200131-MAD",
+      "Content-Security-Policy" : "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+      "Vary" : "Authorization,Accept-Encoding",
+      "Expires" : "Thu, 29 May 2025 13:04:04 GMT",
+      "Cross-Origin-Resource-Policy" : "cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Cache-Hits" : "0",
+      "X-Fastly-Request-ID" : "925655918cfab1d16b805b1faa87ca9e128e1b79",
+      "X-GitHub-Request-Id" : "5815:F0AFA:882967:95E5AF:68385A16",
+      "Content-Type" : "text/plain; charset=utf-8"
+    }
+  },
+  "uuid" : "1a1e42e3-bca9-4998-b3f1-26a4312fd0f9",
+  "persistent" : true,
+  "insertionIndex" : 6
+}

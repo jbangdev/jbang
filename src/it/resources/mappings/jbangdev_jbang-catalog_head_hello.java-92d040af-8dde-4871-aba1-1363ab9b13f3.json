@@ -1,0 +1,39 @@
+{
+  "id" : "92d040af-8dde-4871-aba1-1363ab9b13f3",
+  "name" : "jbangdev_jbang-catalog_head_hello.java",
+  "request" : {
+    "url" : "/jbangdev/jbang-catalog/HEAD/hello.java",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "//usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n// //DEPS <dependency1> <dependency2>\n\nimport static java.lang.System.*;\n\nimport java.util.Arrays;\nimport java.util.stream.Collectors;\n\npublic class hello {\n\n    public static void main(String... args) {\n        Arrays.stream(args).forEach(arg ->\n        {\n            System.out.println(\"Hello \" + arg);\n        });\n    }\n}\n",
+    "headers" : {
+      "X-Cache" : "HIT",
+      "Access-Control-Allow-Origin" : "*",
+      "X-Content-Type-Options" : "nosniff",
+      "Source-Age" : "0",
+      "Date" : "Thu, 29 May 2025 12:58:57 GMT",
+      "X-Timer" : "S1748523538.553079,VS0,VE178",
+      "Via" : "1.1 varnish",
+      "Accept-Ranges" : "bytes",
+      "X-Frame-Options" : "deny",
+      "Strict-Transport-Security" : "max-age=31536000",
+      "Cache-Control" : "max-age=300",
+      "ETag" : "\"5c7738475dce46e03382e20ae2b810d76d4fe56ebd1900b152488f3e4e2f9f51\"",
+      "X-Served-By" : "cache-mad2200141-MAD",
+      "Content-Security-Policy" : "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+      "Vary" : "Authorization,Accept-Encoding",
+      "Expires" : "Thu, 29 May 2025 13:03:57 GMT",
+      "Cross-Origin-Resource-Policy" : "cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Cache-Hits" : "0",
+      "X-Fastly-Request-ID" : "a6fa4daa167ea114ac7441a650b792addecb4f4b",
+      "X-GitHub-Request-Id" : "4C3D:29EB6E:11A62A8:138CF52:68384BD1",
+      "Content-Type" : "text/plain; charset=utf-8"
+    }
+  },
+  "uuid" : "92d040af-8dde-4871-aba1-1363ab9b13f3",
+  "persistent" : true,
+  "insertionIndex" : 2
+}
