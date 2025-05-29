@@ -53,7 +53,7 @@ jobs:
         with:
           limit-access-to-actor: true
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - uses: gradle/actions/wrapper-validation@06832c7b30a0129d7fb559bcc6e43d26f6374244 # v4
+      - uses: gradle/actions/wrapper-validation@8379f6a1328ee0e06e2bb424dadb7b159856a326 # v4
       - name: install-java11
         uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4
         with:
@@ -61,7 +61,7 @@ jobs:
           distribution: temurin
           cache: gradle
       - name: setup-gradle
-        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244 # v4
+        uses: gradle/actions/setup-gradle@8379f6a1328ee0e06e2bb424dadb7b159856a326 # v4
       - name: build-gradle
         run: ./gradlew --no-daemon clean build installDist publish --build-cache --scan -s
       - name: integration-test
@@ -96,7 +96,7 @@ jobs:
           name: junit-test-results-${{ matrix.os }}
           path: '**/build/test-results/test/TEST-*.xml'
           retention-days: 1
-      - uses: codecov/codecov-action@ad3126e916f78f00edff4ed0317cf185271ccc2d # v5
+      - uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5
         with:
           #files: ./coverage1.xml,./coverage2.xml # optional
           flags: ${{ runner.os }} # optional
@@ -126,7 +126,7 @@ jobs:
           path: build/install/jbang
       - name: Write out Unit Test report annotation for forked repo
         if: always()
-        uses: mikepenz/action-junit-report@cf701569b05ccdd861a76b8607a66d76f6fd4857 # v5
+        uses: mikepenz/action-junit-report@65fe03598d8d251738592a497a9e8547a5c48eaa # v5
         with:
           report_paths: '**/build/test-results/test/TEST-*.xml'
           annotate_only: true # forked repo cannot write to checks so just do annotations
