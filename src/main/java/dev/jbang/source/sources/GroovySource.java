@@ -3,14 +3,13 @@ package dev.jbang.source.sources;
 import static dev.jbang.net.GroovyManager.resolveInGroovyHome;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import javax.annotation.Nonnull;
-
-import org.jboss.jandex.ClassInfo;
 
 import dev.jbang.net.GroovyManager;
 import dev.jbang.source.*;
@@ -90,9 +89,17 @@ public class GroovySource extends Source {
 			}
 
 			@Override
-			protected String getCompilerBinary(String requestedJavaVersion) {
+			protected String getCompilerBinary() {
 				return resolveInGroovyHome("groovyc",
 						((GroovySource) ctx.getProject().getMainSource()).getGroovyVersion());
+			}
+
+			@Override
+			protected List<String> getCompileCommandOptions() throws IOException {
+				List<String> optionList = new ArrayList<>();
+				optionList.addAll(ctx.getProject().getMainSourceSet().getCompileOptions());
+				optionList.addAll(Arrays.asList("-d", ctx.getCompileDir().toAbsolutePath().toString()));
+				return optionList;
 			}
 
 			@Override
@@ -105,6 +112,10 @@ public class GroovySource extends Source {
 									.home()
 									.toString());
 					processBuilder.environment().remove("GROOVY_HOME");
+					String path = ctx.resolveClassPath().getClassPath();
+					if (!Util.isBlankString(path)) {
+						processBuilder.environment().put("CLASSPATH", path);
+					}
 				}
 				super.runCompiler(processBuilder);
 			}
@@ -112,12 +123,6 @@ public class GroovySource extends Source {
 			@Override
 			protected String getMainExtension() {
 				return Type.groovy.extension;
-			}
-
-			@Override
-			protected Predicate<ClassInfo> getMainFinder() {
-				return pubClass -> pubClass.method("main", CompileBuildStep.STRINGARRAYTYPE) != null
-						|| pubClass.method("main") != null;
 			}
 		}
 	}
