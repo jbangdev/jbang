@@ -199,8 +199,9 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 
 	protected String generateCommandLineString(List<String> fullArgs) throws IOException {
 		return CommandBuffer.of(fullArgs)
-			.applyWindowsMaxLengthLimit(CommandBuffer.MAX_LENGTH_WINCLI, shell)
-			.asCommandLine(shell);
+			.shell(shell)
+			.applyWindowsMaxLengthLimit(CommandBuffer.MAX_LENGTH_WINCLI)
+			.asCommandLine();
 	}
 
 	private static void addPropertyFlags(Map<String, String> properties, String def, List<String> result) {

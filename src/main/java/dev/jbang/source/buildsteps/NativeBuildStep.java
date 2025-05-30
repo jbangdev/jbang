@@ -72,7 +72,7 @@ public class NativeBuildStep implements Builder<Project> {
 		Util.verboseMsg("native-image: " + String.join(" ", optionList));
 
 		ProcessBuilder pb = CommandBuffer.of(optionList)
-			.applyWindowsMaxLengthLimit(32000, Util.getShell())
+			.applyWindowsMaxLengthLimit()
 			.asProcessBuilder()
 			.inheritIO();
 

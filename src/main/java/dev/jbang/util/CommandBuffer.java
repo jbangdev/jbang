@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 public class CommandBuffer {
 	private List<String> arguments;
+	private Util.Shell shell = Util.getShell();
 
 	// 8192 character command line length limit imposed by CMD.EXE
 	public static final int MAX_LENGTH_WINCLI = 8000;
@@ -52,11 +53,12 @@ public class CommandBuffer {
 		this.arguments = new ArrayList<>(Arrays.asList(arguments));
 	}
 
-	public ProcessBuilder asProcessBuilder() {
-		return asProcessBuilder(Util.getShell());
+	public CommandBuffer shell(Util.Shell shell) {
+		this.shell = shell;
+		return this;
 	}
 
-	public ProcessBuilder asProcessBuilder(Util.Shell shell) {
+	public ProcessBuilder asProcessBuilder() {
 		List<String> args = arguments.stream()
 			.map(a -> escapeProcessBuilderArgument(a, shell))
 			.collect(Collectors.toList());
@@ -64,14 +66,13 @@ public class CommandBuffer {
 	}
 
 	public String asCommandLine() {
-		return asCommandLine(Util.getShell());
-	}
-
-	public String asCommandLine(Util.Shell shell) {
 		return String.join(" ", escapeShellArguments(arguments, shell));
 	}
 
 	public CommandBuffer usingArgsFile() throws IOException {
+		if (arguments.size() < 2 || arguments.get(1).startsWith("@")) {
+			return this;
+		}
 		// @-files avoid problems on Windows with very long command lines
 		final Path argsFile = Files.createTempFile("jbang", ".args");
 		try (PrintWriter pw = new PrintWriter(argsFile.toFile())) {
@@ -83,10 +84,19 @@ public class CommandBuffer {
 		return CommandBuffer.of(arguments.get(0), "@" + argsFile);
 	}
 
-	public CommandBuffer applyWindowsMaxLengthLimit(int maxLength, Util.Shell shell) throws IOException {
-		String args = asCommandLine(shell);
+	public CommandBuffer applyWindowsMaxLengthLimit() throws IOException {
+		int maxLength = MAX_LENGTH_WINPROCBUILDER;
+		String cmd = arguments.get(0).toLowerCase();
+		if (cmd.endsWith(".bat") || cmd.endsWith(".cmd")) {
+			maxLength = MAX_LENGTH_WINCLI;
+		}
+		return applyWindowsMaxLengthLimit(maxLength);
+	}
+
+	public CommandBuffer applyWindowsMaxLengthLimit(int maxLength) throws IOException {
+		String args = asCommandLine();
 		// Check if we can and need to use @-files on Windows
-		if (args.length() > maxLength && Util.getShell() != Util.Shell.bash) {
+		if (args.length() > maxLength && shell != Util.Shell.bash) {
 			return usingArgsFile();
 		} else {
 			return this;

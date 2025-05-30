@@ -261,10 +261,10 @@ public class Edit extends BaseCommand {
 
 			String[] cmd;
 			if (Util.getShell() == Shell.bash) {
-				final String editorCommand = CommandBuffer.of(optionList).asCommandLine(Shell.bash);
+				final String editorCommand = CommandBuffer.of(optionList).shell(Shell.bash).asCommandLine();
 				cmd = new String[] { "sh", "-c", editorCommand };
 			} else {
-				final String editorCommand = CommandBuffer.of(optionList).asCommandLine(Shell.cmd);
+				final String editorCommand = CommandBuffer.of(optionList).shell(Shell.cmd).asCommandLine();
 				cmd = new String[] { "cmd", "/c", editorCommand };
 			}
 			verboseMsg("Running `" + String.join(" ", cmd) + "`");

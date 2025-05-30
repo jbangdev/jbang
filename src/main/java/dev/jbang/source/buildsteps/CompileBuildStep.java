@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -23,7 +22,6 @@ import org.jboss.jandex.Type;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.MavenCoordinate;
-import dev.jbang.devkitman.Jdk;
 import dev.jbang.source.BuildContext;
 import dev.jbang.source.Builder;
 import dev.jbang.source.Project;
@@ -57,38 +55,33 @@ public abstract class CompileBuildStep implements Builder<Project> {
 	}
 
 	protected Project compile() throws IOException {
-		Project project = ctx.getProject();
-		Jdk jdk = project.projectJdk();
-		String requestedJavaVersion = project.getJavaVersion();
-		if (requestedJavaVersion == null
-				&& project.getModuleName().isPresent()
-				&& jdk.majorVersion() < 9) {
-			// Make sure we use at least Java 9 when dealing with modules
-			requestedJavaVersion = "9+";
-			jdk = project.projectJdkManager().getOrInstallJdk(requestedJavaVersion);
-		}
+		List<String> compileCmd = getCompileCommand();
 
-		Path compileDir = ctx.getCompileDir();
-		List<String> optionList = new ArrayList<>();
-		optionList.add(getCompilerBinary(requestedJavaVersion));
-		if (project.enablePreview()) {
-			optionList.add("--enable-preview");
-			optionList.add("-source");
-			optionList.add("" + jdk.majorVersion());
-		}
-		optionList.addAll(project.getMainSourceSet().getCompileOptions());
-		String path = ctx.resolveClassPath().getClassPath();
-		if (!Util.isBlankString(path)) {
-			if (project.getModuleName().isPresent()) {
-				optionList.addAll(Arrays.asList("-p", path));
-			} else {
-				optionList.addAll(Arrays.asList("-classpath", path));
-			}
-		}
-		optionList.addAll(Arrays.asList("-d", compileDir.toAbsolutePath().toString()));
+		// add additional files
+		Project project = ctx.getProject();
+		project.getMainSourceSet().copyResourcesTo(ctx.getCompileDir());
+
+		generatePom();
+
+		Util.infoMsg(String.format("Building %s for %s...", project.getMainSource().isAgent() ? "javaagent" : "jar",
+				project.getResourceRef().getFile().getFileName().toString()));
+		Util.verboseMsg("Compile: " + String.join(" ", compileCmd));
+		runCompiler(compileCmd);
+
+		searchForMain(ctx.getCompileDir());
+
+		return project;
+	}
+
+	protected List<String> getCompileCommand() throws IOException {
+		List<String> compileCmd = new ArrayList<>();
+
+		Project project = ctx.getProject();
+		compileCmd.add(getCompilerBinary());
+		compileCmd.addAll(getCompileCommandOptions());
 
 		// add source files to compile
-		optionList.addAll(project.getMainSourceSet()
+		compileCmd.addAll(project.getMainSourceSet()
 			.getSources()
 			.stream()
 			.map(x -> x.getFile().toString())
@@ -103,24 +96,12 @@ public abstract class CompileBuildStep implements Builder<Project> {
 				// generate module-info descriptor and add it to list of files to compile
 				Path infoFile = ModuleUtil.generateModuleInfo(ctx);
 				if (infoFile != null) {
-					optionList.add(infoFile.toString());
+					compileCmd.add(infoFile.toString());
 				}
 			}
 		}
 
-		// add additional files
-		project.getMainSourceSet().copyResourcesTo(compileDir);
-
-		generatePom();
-
-		Util.infoMsg(String.format("Building %s for %s...", project.getMainSource().isAgent() ? "javaagent" : "jar",
-				project.getResourceRef().getFile().getFileName().toString()));
-		Util.verboseMsg("Compile: " + String.join(" ", optionList));
-		runCompiler(optionList);
-
-		searchForMain(compileDir);
-
-		return project;
+		return compileCmd;
 	}
 
 	private boolean hasModuleInfoFile() {
@@ -131,10 +112,13 @@ public abstract class CompileBuildStep implements Builder<Project> {
 			.anyMatch(s -> s.getFile().getFileName().toString().equals("module-info.java"));
 	}
 
+	protected abstract String getCompilerBinary();
+
+	protected abstract List<String> getCompileCommandOptions() throws IOException;
+
 	protected void runCompiler(List<String> optionList) throws IOException {
 		runCompiler(CommandBuffer.of(optionList)
-			.applyWindowsMaxLengthLimit(CommandBuffer.MAX_LENGTH_WINPROCBUILDER,
-					Util.getShell())
+			.applyWindowsMaxLengthLimit()
 			.asProcessBuilder()
 			.inheritIO());
 	}
@@ -286,13 +270,10 @@ public abstract class CompileBuildStep implements Builder<Project> {
 		}
 	}
 
-	protected abstract String getCompilerBinary(String requestedJavaVersion);
-
 	protected abstract String getMainExtension();
 
 	protected Predicate<ClassInfo> getMainFinder() {
 		return pubClass -> (pubClass.method("main", STRINGARRAYTYPE) != null
-				||
-				pubClass.method("main") != null);
+				|| pubClass.method("main") != null);
 	}
 }
