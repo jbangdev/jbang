@@ -2,18 +2,19 @@ package dev.jbang.source.sources;
 
 import static dev.jbang.net.KotlinManager.resolveInKotlinHome;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import javax.annotation.Nonnull;
-
-import org.jboss.jandex.ClassInfo;
 
 import dev.jbang.net.KotlinManager;
 import dev.jbang.source.*;
 import dev.jbang.source.AppBuilder;
 import dev.jbang.source.buildsteps.CompileBuildStep;
+import dev.jbang.util.Util;
 
 public class KotlinSource extends Source {
 
@@ -81,20 +82,26 @@ public class KotlinSource extends Source {
 			}
 
 			@Override
-			protected String getCompilerBinary(String requestedJavaVersion) {
+			protected String getCompilerBinary() {
 				return resolveInKotlinHome("kotlinc",
 						((KotlinSource) ctx.getProject().getMainSource()).getKotlinVersion());
 			}
 
 			@Override
-			protected String getMainExtension() {
-				return Type.kotlin.extension;
+			protected List<String> getCompileCommandOptions() throws IOException {
+				List<String> optionList = new ArrayList<>();
+				optionList.addAll(ctx.getProject().getMainSourceSet().getCompileOptions());
+				String path = ctx.resolveClassPath().getClassPath();
+				if (!Util.isBlankString(path)) {
+					optionList.addAll(Arrays.asList("-classpath", path));
+				}
+				optionList.addAll(Arrays.asList("-d", ctx.getCompileDir().toAbsolutePath().toString()));
+				return optionList;
 			}
 
 			@Override
-			protected Predicate<ClassInfo> getMainFinder() {
-				return pubClass -> pubClass.method("main", CompileBuildStep.STRINGARRAYTYPE) != null
-						|| pubClass.method("main") != null;
+			protected String getMainExtension() {
+				return Type.kotlin.extension;
 			}
 		}
 	}

@@ -178,7 +178,7 @@ class AppInstall extends BaseCommand {
 		cmd.add(scriptRef);
 		cmd.addAll(runArgs);
 		CommandBuffer cb = CommandBuffer.of(cmd);
-		List<String> lines = Arrays.asList("#!/bin/sh", cb.asCommandLine(Util.Shell.bash) + " \"$@\"");
+		List<String> lines = Arrays.asList("#!/bin/sh", cb.shell(Util.Shell.bash).asCommandLine() + " \"$@\"");
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 		if (!Util.isWindows()) {
 			Util.setExecutable(file);
@@ -193,7 +193,7 @@ class AppInstall extends BaseCommand {
 		cmd.add(scriptRef);
 		cmd.addAll(runArgs);
 		CommandBuffer cb = CommandBuffer.of(cmd);
-		List<String> lines = Arrays.asList("@echo off", cb.asCommandLine(Util.Shell.cmd) + " %*");
+		List<String> lines = Arrays.asList("@echo off", cb.shell(Util.Shell.cmd).asCommandLine() + " %*");
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 	}
 
@@ -205,7 +205,7 @@ class AppInstall extends BaseCommand {
 		cmd.add(scriptRef);
 		cmd.addAll(runArgs);
 		CommandBuffer cb = CommandBuffer.of(cmd);
-		List<String> lines = Collections.singletonList(cb.asCommandLine(Util.Shell.powershell) + " @args");
+		List<String> lines = Collections.singletonList(cb.shell(Util.Shell.powershell).asCommandLine() + " @args");
 		Files.write(file, lines, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 	}
 
