@@ -8,12 +8,7 @@ import java.lang.reflect.Field;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
@@ -319,24 +314,31 @@ class Docs extends BaseInfoCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
-		URI uri = getDocsUri();
-		info("Showing documentation: " + uri);
-		Desktop.getDesktop().browse(uri);
+		Optional<URI> uri = getDocsUri();
+		if (uri.isPresent()) {
+			info("Showing documentation: " + uri.get());
+			Desktop.getDesktop().browse(uri.get());
+		} else {
+			warn("No documentation reference defined for the script");
+		}
 		return EXIT_OK;
 	}
 
-	URI getDocsUri() {
+	Optional<URI> getDocsUri() {
 		ScriptInfo info = getInfo(false);
+		if (info.docs == null) {
+			return Optional.empty();
+		}
 		return validateDocsReferenceAndTransformToUri(info);
 	}
 
-	private static URI validateDocsReferenceAndTransformToUri(ScriptInfo info) {
+	private static Optional<URI> validateDocsReferenceAndTransformToUri(ScriptInfo info) {
 		if (info.docs.isURL()) {
-			return URI.create(info.docs.getOriginalResource());
+			return Optional.of(URI.create(info.docs.getOriginalResource()));
 		}
 		if (!info.docs.exists()) {
 			throw new ExitException(EXIT_INVALID_INPUT, "Invalid documentation file path: " + info.docs.getFile());
 		}
-		return info.docs.getFile().toUri();
+		return Optional.of(info.docs.getFile().toUri());
 	}
 }
