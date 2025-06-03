@@ -671,7 +671,7 @@ public class ProjectBuilder {
 		if (enablePreview == null) {
 			enablePreview(alias.enablePreview);
 		}
-		if (docs != null) {
+		if (docs == null) {
 			docs = alias.docs;
 		}
 	}
