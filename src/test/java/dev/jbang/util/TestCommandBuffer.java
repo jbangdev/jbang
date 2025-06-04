@@ -52,7 +52,7 @@ public class TestCommandBuffer extends BaseTest {
 			.applyWindowsMaxLengthLimit()
 			.asProcessBuilder();
 		assertThat(pb.command().size(), equalTo(2));
-		assertThat(pb.command().get(1), not(anyOf(startsWith("@"), startsWith("\"@"))));
+		assertThat(pb.command().get(1), anyOf(startsWith("@"), startsWith("\"@")));
 	}
 
 	@Test
