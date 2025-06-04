@@ -86,8 +86,7 @@ public class CommandBuffer {
 
 	public CommandBuffer applyWindowsMaxLengthLimit() throws IOException {
 		int maxLength = MAX_LENGTH_WINPROCBUILDER;
-		String cmd = arguments.get(0).toLowerCase();
-		if (cmd.endsWith(".bat") || cmd.endsWith(".cmd")) {
+		if (Util.isWindows()) {
 			maxLength = MAX_LENGTH_WINCLI;
 		}
 		return applyWindowsMaxLengthLimit(maxLength);
@@ -96,7 +95,7 @@ public class CommandBuffer {
 	public CommandBuffer applyWindowsMaxLengthLimit(int maxLength) throws IOException {
 		String args = asCommandLine();
 		// Check if we can and need to use @-files on Windows
-		if (args.length() > maxLength && shell != Util.Shell.bash) {
+		if (args.length() > maxLength && Util.isWindows()) {
 			return usingArgsFile();
 		} else {
 			return this;
