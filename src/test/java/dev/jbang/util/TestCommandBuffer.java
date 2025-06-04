@@ -55,6 +55,7 @@ public class TestCommandBuffer extends BaseTest {
 	}
 
 	@Test
+	@EnabledOnOs(OS.WINDOWS)
 	void testApplyWindowsMaxLengthLimitBat() throws IOException {
 		ProcessBuilder pb = CommandBuffer.of(argsTooLong("foo.bat"))
 			.shell(Util.Shell.cmd)
@@ -65,6 +66,7 @@ public class TestCommandBuffer extends BaseTest {
 	}
 
 	@Test
+	@EnabledOnOs(OS.WINDOWS)
 	void testApplyWindowsMaxLengthLimitCmd() throws IOException {
 		ProcessBuilder pb = CommandBuffer.of(argsTooLong("foo.cmd"))
 			.shell(Util.Shell.cmd)
