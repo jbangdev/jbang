@@ -58,7 +58,7 @@ public class Alias extends CatalogItem {
 	public final Map<String, String> manifestOptions;
 	@SerializedName(value = "java-agents")
 	public final List<JavaAgent> javaAgents;
-	public final String docs;
+	public final List<String> docs;
 
 	public static class JavaAgent {
 		@SerializedName(value = "agent-ref")
@@ -119,7 +119,7 @@ public class Alias extends CatalogItem {
 			Boolean enableSystemAssertions,
 			Map<String, String> manifestOptions,
 			List<JavaAgent> javaAgents,
-			String docs,
+			List<String> docs,
 			Catalog catalog) {
 		super(catalog);
 		this.scriptRef = scriptRef;
@@ -249,7 +249,7 @@ public class Alias extends CatalogItem {
 			Map<String, String> mopts = a1.manifestOptions != null && !a1.manifestOptions.isEmpty() ? a1.manifestOptions
 					: a2.manifestOptions;
 			List<JavaAgent> jags = a1.javaAgents != null && !a1.javaAgents.isEmpty() ? a1.javaAgents : a2.javaAgents;
-			String docs = a1.docs != null ? a1.docs : a2.docs;
+			List<String> docs = a1.docs != null && !a1.docs.isEmpty() ? a1.docs : a2.docs;
 			Catalog catalog = a2.catalog != null ? a2.catalog : a1.catalog;
 			return new Alias(a2.scriptRef, desc, args, jopts, srcs, ress, deps, repos, cpaths, props, javaVersion,
 					mainClass, moduleName, copts, nimg, nopts, ints, jfr, debug, cds, inter, ep, ea, esa, mopts, jags,

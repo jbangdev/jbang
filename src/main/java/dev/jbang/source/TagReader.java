@@ -102,6 +102,23 @@ public abstract class TagReader {
 		return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
 	}
 
+	protected Stream<String> extractDocs(String line) {
+		return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
+	}
+
+	public List<DocRef> collectDocs(ResourceResolver siblingResolver) {
+		return getTags()
+			.filter(this::isDocsDeclare)
+			.flatMap(this::extractDocs)
+			// TODO: should we allow this ?.map(replaceProperties)
+			.map(s -> DocRef.toDocRef(siblingResolver, s))
+			.collect(Collectors.toCollection(ArrayList::new));
+	}
+
+	protected boolean isDocsDeclare(String line) {
+		return line.startsWith(DOCS_COMMENT_PREFIX);
+	}
+
 	public List<KeyValue> collectManifestOptions() {
 		return collectRawOptions("MANIFEST").stream()
 			.flatMap(TagReader::extractKeyValues)
@@ -151,18 +168,6 @@ public abstract class TagReader {
 
 	protected boolean isDescriptionDeclare(String line) {
 		return line.startsWith(DESCRIPTION_COMMENT_PREFIX);
-	}
-
-	public Optional<ResourceRef> getDocs(ResourceResolver siblingResolver) {
-		return getTags()
-			.filter(this::isDocsDeclare)
-			.map(s -> s.substring(DOCS_COMMENT_PREFIX.length()))
-			.map(siblingResolver::resolve)
-			.findFirst();
-	}
-
-	protected boolean isDocsDeclare(String line) {
-		return line.startsWith(DOCS_COMMENT_PREFIX);
 	}
 
 	public Optional<String> getMain() {

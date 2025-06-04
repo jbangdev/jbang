@@ -91,7 +91,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String description;
 		String gav;
 		String module;
-		ResourceRef docs;
+		List<DocRef> docs;
 
 		public ScriptInfo(BuildContext ctx, boolean assureJdkInstalled) {
 			Project prj = ctx.getProject();
@@ -177,7 +177,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 			}
 			gav = prj.getGav().orElse(null);
 			description = prj.getDescription().orElse(null);
-			docs = prj.getDocs().orElse(null);
+			docs = prj.getDocs();
 
 			module = prj.getModuleName().orElse(null);
 		}
@@ -326,19 +326,15 @@ class Docs extends BaseInfoCommand {
 
 	Optional<URI> getDocsUri() {
 		ScriptInfo info = getInfo(false);
-		if (info.docs == null) {
+		if (info.docs == null || info.docs.isEmpty()) {
 			return Optional.empty();
+		} else {
+			DocRef firstdoc = info.docs.get(0);
+			if (firstdoc.getRef().isURL()) {
+				return Optional.of(URI.create(firstdoc.getRef().getOriginalResource()));
+			}
+			return Optional.of(firstdoc.getRef().getFile().toUri());
 		}
-		return validateDocsReferenceAndTransformToUri(info);
 	}
 
-	private static Optional<URI> validateDocsReferenceAndTransformToUri(ScriptInfo info) {
-		if (info.docs.isURL()) {
-			return Optional.of(URI.create(info.docs.getOriginalResource()));
-		}
-		if (!info.docs.exists()) {
-			throw new ExitException(EXIT_INVALID_INPUT, "Invalid documentation file path: " + info.docs.getFile());
-		}
-		return Optional.of(info.docs.getFile().toUri());
-	}
 }

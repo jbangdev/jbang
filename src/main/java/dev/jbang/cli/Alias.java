@@ -94,8 +94,9 @@ class AliasAdd extends BaseAliasCommand {
 	@CommandLine.Parameters(paramLabel = "params", index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
 	List<String> userParams;
 
-	@CommandLine.Option(names = { "--docs" }, description = "Documentation reference for the alias")
-	String docs;
+	@CommandLine.Option(names = {
+			"--docs" }, converter = CommaSeparatedConverter.class, description = "Documentation reference for the alias")
+	List<String> docs;
 
 	@Override
 	public Integer doCall() {
@@ -265,7 +266,7 @@ class AliasList extends BaseAliasCommand {
 		public Map<String, String> properties;
 		public transient ResourceRef _catalogRef;
 		public Boolean enablePreview;
-		public String docsRef;
+		public List<String> docsRef;
 	}
 
 	private static AliasOut getAliasOut(String catalogName, Catalog catalog, String name) {
