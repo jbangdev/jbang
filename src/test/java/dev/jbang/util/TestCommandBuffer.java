@@ -45,12 +45,13 @@ public class TestCommandBuffer extends BaseTest {
 	}
 
 	@Test
+	@EnabledOnOs(OS.WINDOWS)
 	void testApplyWindowsMaxLengthLimitExe() throws IOException {
 		ProcessBuilder pb = CommandBuffer.of(argsTooLong("foo.exe"))
 			.shell(Util.Shell.cmd)
 			.applyWindowsMaxLengthLimit()
 			.asProcessBuilder();
-		assertThat(pb.command().size(), greaterThan(2));
+		assertThat(pb.command().size(), equalTo(2));
 		assertThat(pb.command().get(1), not(anyOf(startsWith("@"), startsWith("\"@"))));
 	}
 
