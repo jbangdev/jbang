@@ -2,6 +2,7 @@ package dev.jbang.source;
 
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -37,6 +38,18 @@ public class LazyResourceRef implements ResourceRef {
 			}
 		}
 		return resolvedRef.getFile();
+	}
+
+	@Nullable
+	// @Override
+	public Optional<Path> getFileMaybe() {
+		if (resolvedRef == null) {
+			resolvedRef = resolver.resolve(getOriginalResource());
+			if (resolvedRef == null) {
+				return Optional.empty();
+			}
+		}
+		return Optional.ofNullable(resolvedRef.getFile());
 	}
 
 	@Nonnull

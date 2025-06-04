@@ -77,7 +77,7 @@ public class ProjectBuilder {
 	private Boolean integrations;
 	private String javaVersion;
 	private Boolean enablePreview;
-	private String docs;
+	private Map<String, String> docs;
 	private JdkManager jdkManager;
 
 	// Cached values
@@ -189,6 +189,11 @@ public class ProjectBuilder {
 		} else {
 			this.manifestOptions = Collections.emptyMap();
 		}
+		return this;
+	}
+
+	public ProjectBuilder docs(List<String> docs) {
+		docs.stream().map(s -> DocRef.toDocRef(getResourceResolver(), s)).collect(Collectors.toList());
 		return this;
 	}
 
@@ -323,7 +328,7 @@ public class ProjectBuilder {
 				it -> PropertiesValueResolver.replaceProperties(it, getContextProperties()));
 		prj.setDescription(tagReader.getDescription().orElse(null));
 		ResourceResolver resolver1 = new SiblingResourceResolver(resourceRef, ResourceResolver.forResources());
-		prj.setDocs(tagReader.getDocs(LazyResourceResolver.lazy(resolver1)).orElse(null));
+		prj.addDocs(tagReader.collectDocs(LazyResourceResolver.lazy(resolver1)));
 		prj.setGav(tagReader.getGav().orElse(null));
 		prj.setMainClass(tagReader.getMain().orElse(null));
 		prj.setModuleName(tagReader.getModule().orElse(null));
@@ -491,8 +496,10 @@ public class ProjectBuilder {
 		if (docs != null) {
 			ResourceResolver resolver = LazyResourceResolver
 				.lazy(new SiblingResourceResolver(prj.getResourceRef(), ResourceResolver.forResources()));
-			ResourceRef docsRef = resolver.resolve(docs);
-			prj.setDocs(docsRef);
+			docs.forEach((id, ref) -> {
+				ResourceRef docsRef = resolver.resolve(ref);
+				prj.addDoc(new DocRef(id, docsRef));
+			});
 		}
 		if (jdkManager != null) {
 			prj.setJdkManager(jdkManager);
@@ -569,7 +576,7 @@ public class ProjectBuilder {
 			ss.addNativeOptions(src.getNativeOptions());
 			prj.addRepositories(src.tagReader.collectRepositories());
 			prj.addRuntimeOptions(src.getRuntimeOptions());
-			prj.setDocs(src.tagReader.getDocs(LazyResourceResolver.lazy(sibRes1)).orElse(null));
+			prj.addDocs(src.tagReader.collectDocs(LazyResourceResolver.lazy(sibRes1)));
 
 			src.tagReader.collectManifestOptions().forEach(kv -> {
 				if (!kv.getKey().isEmpty()) {
@@ -672,7 +679,7 @@ public class ProjectBuilder {
 			enablePreview(alias.enablePreview);
 		}
 		if (docs == null) {
-			docs = alias.docs;
+			docs(alias.docs);
 		}
 	}
 
