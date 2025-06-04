@@ -200,7 +200,7 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 	protected String generateCommandLineString(List<String> fullArgs) throws IOException {
 		return CommandBuffer.of(fullArgs)
 			.shell(shell)
-			.applyWindowsMaxLengthLimit(CommandBuffer.MAX_LENGTH_WINCLI)
+			.applyWindowsMaxCliLimit()
 			.asCommandLine();
 	}
 
