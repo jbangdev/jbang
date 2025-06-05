@@ -1,14 +1,24 @@
 package dev.jbang.cli;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
+import static java.lang.System.out;
 
 import java.awt.Desktop;
+import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
@@ -18,11 +28,21 @@ import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.devkitman.Jdk;
 import dev.jbang.devkitman.JdkManager;
-import dev.jbang.source.*;
+import dev.jbang.source.BuildContext;
+import dev.jbang.source.DocRef;
+import dev.jbang.source.Project;
+import dev.jbang.source.ProjectBuilder;
+import dev.jbang.source.RefTarget;
+import dev.jbang.source.ResourceRef;
+import dev.jbang.source.SourceSet;
+import dev.jbang.util.ConsoleOutput;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
+import dev.jbang.util.Util;
 
 import picocli.CommandLine;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
 @CommandLine.Command(name = "info", description = "Provides info about the script for tools (and humans who are tools).", subcommands = {
 		Tools.class, ClassPath.class, Jar.class, Docs.class })
@@ -91,7 +111,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String description;
 		String gav;
 		String module;
-		List<DocRef> docs;
+		Map<String, List<URI>> docs;
 
 		public ScriptInfo(BuildContext ctx, boolean assureJdkInstalled) {
 			Project prj = ctx.getProject();
@@ -177,9 +197,47 @@ abstract class BaseInfoCommand extends BaseCommand {
 			}
 			gav = prj.getGav().orElse(null);
 			description = prj.getDescription().orElse(null);
-			docs = prj.getDocs();
+			docs = getDocsMap(prj.getDocs());
 
 			module = prj.getModuleName().orElse(null);
+		}
+
+		/**
+		 * Returns a map of documentation ids to lists of documentation references. Refs
+		 * that has no id are grouped under "main".
+		 * 
+		 * @param info
+		 * @return
+		 */
+		Map<String, List<URI>> getDocsMap(List<DocRef> docs) {
+
+			Map<String, List<URI>> docsMap = new LinkedHashMap<>();
+
+			if (docs != null) {
+				for (DocRef doc : docs) {
+					docsMap.compute(doc.getId().equals(doc.getRef().getOriginalResource()) ? "main" : doc.getId(),
+							(k, v) -> {
+								if (v == null) {
+									v = new ArrayList<>();
+								}
+								final List<URI> vk = v;
+								getDocsUri(doc).ifPresent(x -> vk.add(x));
+								return v;
+							});
+				}
+			}
+			return docsMap;
+		}
+
+		Optional<URI> getDocsUri(DocRef doc) {
+			if (doc.getRef().isURL()) {
+				return Optional.of(URI.create(doc.getRef().getOriginalResource()));
+			}
+			try {
+				return Optional.of(doc.getRef().getFile().toUri());
+			} catch (ResourceNotFoundException e) {
+				return Optional.empty();
+			}
 		}
 
 		private void init(SourceSet ss) {
@@ -253,9 +311,9 @@ class Tools extends BaseInfoCommand {
 				Object v = f.get(info);
 				if (v != null) {
 					if (v instanceof String || v instanceof Number) {
-						System.out.println(v);
+						out.println(v);
 					} else {
-						parser.toJson(v, System.out);
+						parser.toJson(v, out);
 					}
 				} else {
 					// We'll return an error code for `null` so
@@ -268,7 +326,7 @@ class Tools extends BaseInfoCommand {
 				throw new ExitException(EXIT_INVALID_INPUT, "Cannot return value of unknown field: " + select, e);
 			}
 		} else {
-			parser.toJson(info, System.out);
+			parser.toJson(info, out);
 		}
 
 		return EXIT_OK;
@@ -292,7 +350,7 @@ class ClassPath extends BaseInfoCommand {
 			cp.add(info.applicationJar);
 		}
 		cp.addAll(info.resolvedDependencies);
-		System.out.println(String.join(CP_SEPARATOR, cp));
+		out.println(String.join(CP_SEPARATOR, cp));
 
 		return EXIT_OK;
 	}
@@ -304,7 +362,7 @@ class Jar extends BaseInfoCommand {
 	@Override
 	public Integer doCall() throws IOException {
 		ScriptInfo info = getInfo(false);
-		System.out.println(info.applicationJar);
+		out.println(info.applicationJar);
 		return EXIT_OK;
 	}
 }
@@ -312,29 +370,60 @@ class Jar extends BaseInfoCommand {
 @CommandLine.Command(name = "docs", description = "Open the documentation file in the default browser.")
 class Docs extends BaseInfoCommand {
 
+	@Option(names = {
+			"--open" }, negatable = true, defaultValue = "false", description = "Open the (first) documentation file/link in the default browser")
+	public boolean open;
+
+	@Parameters(arity = "0..*", description = "Documentation file/links to open")
+	List<String> docsToOpen;
+
 	@Override
 	public Integer doCall() throws IOException {
-		Optional<URI> uri = getDocsUri();
-		if (uri.isPresent()) {
-			info("Showing documentation: " + uri.get());
-			Desktop.getDesktop().browse(uri.get());
-		} else {
-			warn("No documentation reference defined for the script");
-		}
-		return EXIT_OK;
-	}
 
-	Optional<URI> getDocsUri() {
 		ScriptInfo info = getInfo(false);
-		if (info.docs == null || info.docs.isEmpty()) {
-			return Optional.empty();
-		} else {
-			DocRef firstdoc = info.docs.get(0);
-			if (firstdoc.getRef().isURL()) {
-				return Optional.of(URI.create(firstdoc.getRef().getOriginalResource()));
-			}
-			return Optional.of(firstdoc.getRef().getFile().toUri());
+
+		URI toOpen[] = new URI[1];
+
+		if (info.description != null) {
+			out.println(info.description);
 		}
+
+		info.docs.forEach((String id, List<URI> docs) -> {
+			out.println(ConsoleOutput.yellow(id + ":"));
+			docs.forEach(doc -> {
+
+				String uripart = doc.toString();
+				String suffix = "";
+
+				if (toOpen[0] == null && "main".equals(id)) {
+					toOpen[0] = doc;
+				}
+
+				out.println(String.format("  %s%s", uripart, suffix));
+
+			});
+		});
+
+		if (open) {
+			if (GraphicsEnvironment.isHeadless()) {
+				Util.infoMsg("Cannot open documentation file in browser in headless mode");
+			} else {
+
+				if (toOpen[0] != null) {
+					try {
+						Desktop.getDesktop().browse(toOpen[0]);
+					} catch (IOException e) {
+						Util.infoMsg("Documentation file to open not found: " + toOpen[0]);
+					}
+				} else {
+					Util.infoMsg("No documentation file to open found");
+				}
+			}
+		} else {
+			Util.infoMsg("Use --open to open the documentation file in the default browser.");
+		}
+
+		return EXIT_OK;
 	}
 
 }

@@ -55,9 +55,7 @@ public class SiblingResourceResolver implements ResourceResolver {
 			}
 			ResourceRef result = resolver.resolve(sr, true);
 			if (result == null) {
-				// resolve returns null throw new ResourceNotFoundException(resource, "Could not
-				// find " + resource);
-				return null;
+				throw new ResourceNotFoundException(resource, "Could not find " + resource);
 			}
 			return result;
 		} catch (URISyntaxException e) {

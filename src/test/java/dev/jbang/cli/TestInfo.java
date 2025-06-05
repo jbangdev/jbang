@@ -2,8 +2,8 @@ package dev.jbang.cli;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertFalse;
 
+import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -170,7 +170,7 @@ public class TestInfo extends BaseTest {
 		String src = examplesTestFolder.resolve("docstest1.java").toString();
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "docs", src);
 		Docs docs = (Docs) pr.subcommand().subcommand().commandSpec().userObject();
-		URI uri = docs.getDocsUri().get();
+		URI uri = docs.getInfo(false).docs.get("main").get(0);
 		assertThat(uri.toString(), endsWith("/itests/readme.md"));
 	}
 
@@ -179,7 +179,7 @@ public class TestInfo extends BaseTest {
 		String src = examplesTestFolder.resolve("docstest2.java").toString();
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "docs", src);
 		Docs docs = (Docs) pr.subcommand().subcommand().commandSpec().userObject();
-		URI uri = docs.getDocsUri().get();
+		URI uri = docs.getInfo(false).docs.get("main").get(0);
 		assertThat(uri.toString(), equalTo("https://www.jbang.dev/documentation/guide/latest/faq.html"));
 	}
 
@@ -188,6 +188,14 @@ public class TestInfo extends BaseTest {
 		String src = examplesTestFolder.resolve("docstest_nodocs.java").toString();
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "docs", src);
 		Docs docs = (Docs) pr.subcommand().subcommand().commandSpec().userObject();
-		assertFalse(docs.getDocsUri().isPresent());
+		assertThat(docs.getInfo(false).docs.isEmpty(), is(true));
+	}
+
+	@Test
+	void testInfoToolsWithDocs() throws IOException {
+		String src = examplesTestFolder.resolve("docsexample.java").toString();
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", src);
+		Tools docs = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
+		docs.call();
 	}
 }

@@ -166,6 +166,11 @@ buildConfig {
 	buildConfigField('String', 'VERSION', provider { "\"${project.version}\"" })
 }
 
+// to enable parallel test execution
+tasks.withType(Test).configureEach {
+	//maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+}
+
 // to enable reproducible builds
 tasks.withType(AbstractArchiveTask) {
 	preserveFileTimestamps = false
