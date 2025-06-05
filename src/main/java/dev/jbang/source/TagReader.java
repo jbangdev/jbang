@@ -102,15 +102,10 @@ public abstract class TagReader {
 		return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
 	}
 
-	protected Stream<String> extractDocs(String line) {
-		return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
-	}
-
 	public List<DocRef> collectDocs(ResourceResolver siblingResolver) {
 		return getTags()
 			.filter(this::isDocsDeclare)
-			.flatMap(this::extractDocs)
-			// TODO: should we allow this ?.map(replaceProperties)
+			.map(s -> s.substring(DOCS_COMMENT_PREFIX.length()))
 			.map(s -> DocRef.toDocRef(siblingResolver, s))
 			.collect(Collectors.toCollection(ArrayList::new));
 	}

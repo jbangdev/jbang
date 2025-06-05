@@ -192,7 +192,11 @@ public class ProjectBuilder {
 	}
 
 	public ProjectBuilder docs(List<String> docs) {
-		docs.stream().map(s -> DocRef.toDocRef(getResourceResolver(), s)).collect(Collectors.toList());
+		if (docs != null) {
+			docs.stream().map(s -> DocRef.toDocRef(getResourceResolver(), s)).collect(Collectors.toList());
+		} else {
+			this.docs = Collections.emptyMap();
+		}
 		return this;
 	}
 

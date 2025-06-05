@@ -49,7 +49,7 @@ public class DocRef {
 	}
 
 	public static DocRef toDocRef(ResourceResolver siblingResolver, String repoReference) {
-		String[] split = repoReference.split("=");
+		String[] split = repoReference.split("=", 2);
 		String reporef = null;
 		String repoid = null;
 
@@ -59,10 +59,6 @@ public class DocRef {
 		} else if (split.length == 2) {
 			repoid = split[0];
 			reporef = split[1];
-		} else {
-			// more than one =, fail for now. todo support escaping
-			throw new IllegalStateException(
-					"Invalid documentation reference, nomore than one = allowed: " + repoReference);
 		}
 		return new DocRef(repoid, siblingResolver.resolve(reporef));
 	}
