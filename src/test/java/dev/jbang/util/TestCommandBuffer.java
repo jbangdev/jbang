@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.*;
 import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 
@@ -45,30 +46,77 @@ public class TestCommandBuffer extends BaseTest {
 	}
 
 	@Test
-	void testApplyWindowsMaxLengthLimitExe() throws IOException {
-		ProcessBuilder pb = CommandBuffer.of(argsTooLong("foo.exe"))
+	@EnabledOnOs(OS.WINDOWS)
+	void testApplyWindowsMaxProcessLimitExe1() throws IOException {
+		ProcessBuilder pb = CommandBuffer.of(argsTooLong("foo.exe", 1000))
 			.shell(Util.Shell.cmd)
-			.applyWindowsMaxLengthLimit()
+			.applyWindowsMaxProcessLimit()
 			.asProcessBuilder();
 		assertThat(pb.command().size(), greaterThan(2));
 		assertThat(pb.command().get(1), not(anyOf(startsWith("@"), startsWith("\"@"))));
 	}
 
 	@Test
-	void testApplyWindowsMaxLengthLimitBat() throws IOException {
-		ProcessBuilder pb = CommandBuffer.of(argsTooLong("foo.bat"))
+	@EnabledOnOs(OS.WINDOWS)
+	void testApplyWindowsMaxProcessLimitExe2() throws IOException {
+		ProcessBuilder pb = CommandBuffer.of(argsTooLong("foo.exe", 4000))
 			.shell(Util.Shell.cmd)
-			.applyWindowsMaxLengthLimit()
+			.applyWindowsMaxProcessLimit()
 			.asProcessBuilder();
 		assertThat(pb.command().size(), equalTo(2));
 		assertThat(pb.command().get(1), anyOf(startsWith("@"), startsWith("\"@")));
 	}
 
 	@Test
-	void testApplyWindowsMaxLengthLimitCmd() throws IOException {
-		ProcessBuilder pb = CommandBuffer.of(argsTooLong("foo.cmd"))
+	@DisabledOnOs(OS.WINDOWS)
+	void testApplyOthersMaxProcessLimit() throws IOException {
+		ProcessBuilder pb = CommandBuffer.of(argsTooLong("foo", 4000))
+			.shell(Util.Shell.bash)
+			.applyWindowsMaxProcessLimit()
+			.asProcessBuilder();
+		assertThat(pb.command().size(), greaterThan(2));
+		assertThat(pb.command().get(1), not(anyOf(startsWith("@"), startsWith("\"@"))));
+	}
+
+	@Test
+	@EnabledOnOs(OS.WINDOWS)
+	void testApplyWindowsMaxProcessLimitBat() throws IOException {
+		ProcessBuilder pb = CommandBuffer.of(argsTooLong("foo.bat", 1000))
 			.shell(Util.Shell.cmd)
-			.applyWindowsMaxLengthLimit()
+			.applyWindowsMaxProcessLimit()
+			.asProcessBuilder();
+		assertThat(pb.command().size(), equalTo(2));
+		assertThat(pb.command().get(1), anyOf(startsWith("@"), startsWith("\"@")));
+	}
+
+	@Test
+	@EnabledOnOs(OS.WINDOWS)
+	void testApplyWindowsMaxProcessLimitBatFromBash() throws IOException {
+		ProcessBuilder pb = CommandBuffer.of(argsTooLong("foo.bat", 1000))
+			.shell(Util.Shell.bash)
+			.applyWindowsMaxProcessLimit()
+			.asProcessBuilder();
+		assertThat(pb.command().size(), equalTo(2));
+		assertThat(pb.command().get(1), anyOf(startsWith("@"), startsWith("\"@")));
+	}
+
+	@Test
+	@EnabledOnOs(OS.WINDOWS)
+	void testApplyWindowsMaxProcessLimitCmd() throws IOException {
+		ProcessBuilder pb = CommandBuffer.of(argsTooLong("foo.cmd", 1000))
+			.shell(Util.Shell.cmd)
+			.applyWindowsMaxProcessLimit()
+			.asProcessBuilder();
+		assertThat(pb.command().size(), equalTo(2));
+		assertThat(pb.command().get(1), anyOf(startsWith("@"), startsWith("\"@")));
+	}
+
+	@Test
+	@EnabledOnOs(OS.WINDOWS)
+	void testApplyWindowsMaxProcessLimitCmdFromBash() throws IOException {
+		ProcessBuilder pb = CommandBuffer.of(argsTooLong("foo.cmd", 1000))
+			.shell(Util.Shell.bash)
+			.applyWindowsMaxProcessLimit()
 			.asProcessBuilder();
 		assertThat(pb.command().size(), equalTo(2));
 		assertThat(pb.command().get(1), anyOf(startsWith("@"), startsWith("\"@")));
@@ -94,8 +142,8 @@ public class TestCommandBuffer extends BaseTest {
 		assertThat(cmd, is(cmd2));
 	}
 
-	private String[] argsTooLong(String cmd) {
-		String[] args = new String[1000];
+	private String[] argsTooLong(String cmd, int cnt) {
+		String[] args = new String[cnt];
 		args[0] = cmd;
 		for (int i = 1; i < args.length; i++) {
 			args[i] = "argument " + i;

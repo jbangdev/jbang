@@ -84,19 +84,44 @@ public class CommandBuffer {
 		return CommandBuffer.of(arguments.get(0), "@" + argsFile);
 	}
 
-	public CommandBuffer applyWindowsMaxLengthLimit() throws IOException {
-		int maxLength = MAX_LENGTH_WINPROCBUILDER;
+	/**
+	 * Determines if it's necessary to switch to an args file depending on the OS
+	 * and Shell being used and the command to run.
+	 * 
+	 * @return either this <code>CommandBuffer</code> or a new one using an args
+	 *         file.
+	 * @throws IOException throws an exception if the args file could not be
+	 *                     created.
+	 */
+	public CommandBuffer applyWindowsMaxProcessLimit() throws IOException {
 		String cmd = arguments.get(0).toLowerCase();
 		if (cmd.endsWith(".bat") || cmd.endsWith(".cmd")) {
-			maxLength = MAX_LENGTH_WINCLI;
+			return applyWindowsMaxCliLimit();
 		}
-		return applyWindowsMaxLengthLimit(maxLength);
+		return applyWindowsMaxLengthLimit(MAX_LENGTH_WINPROCBUILDER);
 	}
 
-	public CommandBuffer applyWindowsMaxLengthLimit(int maxLength) throws IOException {
+	/**
+	 * Determines if it's necessary to switch to an args file depending on the OS
+	 * being used. Use this when its known beforehand that on Windows the command
+	 * can only use the more limited command size available to the command line
+	 * (about 8Kb). This is normally the case when trying to run batch files for
+	 * example. But in the case of JBang it's also used when returning the command
+	 * that should be executed by the startup script.
+	 * 
+	 * @return either this <code>CommandBuffer</code> or a new one using an args
+	 *         file.
+	 * @throws IOException throws an exception if the args file could not be
+	 *                     created.
+	 */
+	public CommandBuffer applyWindowsMaxCliLimit() throws IOException {
+		return applyWindowsMaxLengthLimit(MAX_LENGTH_WINCLI);
+	}
+
+	private CommandBuffer applyWindowsMaxLengthLimit(int maxLength) throws IOException {
 		String args = asCommandLine();
 		// Check if we can and need to use @-files on Windows
-		if (args.length() > maxLength && shell != Util.Shell.bash) {
+		if (args.length() > maxLength && Util.isWindows()) {
 			return usingArgsFile();
 		} else {
 			return this;
