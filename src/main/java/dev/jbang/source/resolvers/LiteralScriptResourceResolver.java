@@ -18,6 +18,7 @@ import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.source.ResourceResolver;
+import dev.jbang.source.Source;
 import dev.jbang.util.Util;
 
 /**
@@ -26,9 +27,9 @@ import dev.jbang.util.Util;
  * reference to that file.
  */
 public class LiteralScriptResourceResolver implements ResourceResolver {
-	private final dev.jbang.source.Source.Type forceType;
+	private final Source.Type forceType;
 
-	public LiteralScriptResourceResolver(dev.jbang.source.Source.Type forceType) {
+	public LiteralScriptResourceResolver(Source.Type forceType) {
 		this.forceType = forceType;
 	}
 
@@ -65,7 +66,7 @@ public class LiteralScriptResourceResolver implements ResourceResolver {
 	}
 
 	public static ResourceRef stringToResourceRef(String resource, String scriptText,
-			dev.jbang.source.Source.Type forceType) throws IOException {
+			Source.Type forceType) throws IOException {
 		ResourceRef result;
 		String urlHash = Util.getStableID(scriptText);
 		Path cache = Settings.getCacheDir(Cache.CacheClass.stdins).resolve(urlHash);
@@ -76,7 +77,7 @@ public class LiteralScriptResourceResolver implements ResourceResolver {
 		if (forceType != null) {
 			// User override wins
 			suffix = "." + forceType.extension;
-			if (forceType == dev.jbang.source.Source.Type.java) {
+			if (forceType == Source.Type.java) {
 				// Only .java needs the class name, .jsh/.kt/... don't care
 				basename = getMainClass(scriptText).orElse(basename);
 			}
@@ -87,7 +88,7 @@ public class LiteralScriptResourceResolver implements ResourceResolver {
 				basename = getMainClass(scriptText).orElse(basename);
 			}
 		}
-		
+
 		// Ensure basename is a valid Java identifier for .java files to avoid
 		// "Unsupported class file major version" errors when using preview features.
 		// The preview feature (JEP 445) derives implicit class names from filenames,
@@ -96,7 +97,7 @@ public class LiteralScriptResourceResolver implements ResourceResolver {
 		if (".java".equals(suffix) && !Character.isJavaIdentifierStart(basename.charAt(0))) {
 			basename = "_" + basename;
 		}
-		
+
 		Path scriptFile = cache.resolve(basename + suffix);
 		Util.writeString(scriptFile, scriptText);
 		result = ResourceRef.forResolvedResource(resource, scriptFile);
