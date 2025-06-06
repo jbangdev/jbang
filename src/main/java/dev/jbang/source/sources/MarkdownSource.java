@@ -34,7 +34,7 @@ public class MarkdownSource extends JshSource {
 			// have the transformed script stored
 			// separately from the possibly originally cached file.
 			resourceRef = LiteralScriptResourceResolver.stringToResourceRef(resourceRef.getOriginalResource(),
-					scriptText);
+					scriptText, null);
 		} catch (IOException e) {
 			throw new ExitException(BaseCommand.EXIT_UNEXPECTED_STATE,
 					"Could not cache script from markdown at " + resourceRef.getOriginalResource(), e);
