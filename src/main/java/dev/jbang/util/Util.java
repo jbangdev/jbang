@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
+import javax.lang.model.SourceVersion;
 import javax.swing.*;
 
 import org.jsoup.Jsoup;
@@ -2000,5 +2001,61 @@ public class Util {
 
 	public static <K, V> Entry<K, V> entry(K k, V v) {
 		return new AbstractMap.SimpleEntry<K, V>(k, v);
+	}
+
+	/**
+	 * Converts an arbitrary string into a valid Java identifier that can be used as
+	 * a class name. This is particularly important for JEP-445 implicit classes
+	 * where the compiler derives class names from file names.
+	 *
+	 * @param baseName The input string to convert
+	 * @return A valid Java identifier, never null or empty
+	 */
+	public static String toJavaIdentifier(String baseName) {
+		if (baseName == null || baseName.isEmpty()) {
+			return "__";
+		}
+
+		StringBuilder sb = new StringBuilder();
+		int i = 0;
+
+		// Handle first character specially
+		int cp = baseName.codePointAt(i);
+		i += Character.charCount(cp);
+
+		boolean prevUnderscore = false;
+		if (Character.isJavaIdentifierStart(cp)) {
+			sb.appendCodePoint(cp);
+		} else {
+			sb.append('_');
+			prevUnderscore = true;
+			if (Character.isJavaIdentifierPart(cp)) {
+				sb.appendCodePoint(cp);
+				prevUnderscore = false;
+			}
+		}
+
+		// Handle remaining characters
+		while (i < baseName.length()) {
+			cp = baseName.codePointAt(i);
+			i += Character.charCount(cp);
+
+			if (Character.isJavaIdentifierPart(cp)) {
+				sb.appendCodePoint(cp);
+				prevUnderscore = false;
+			} else if (!prevUnderscore) {
+				sb.append('_');
+				prevUnderscore = true;
+			}
+		}
+
+		String result = sb.toString();
+
+		// Check if the result is a Java keyword
+		if (SourceVersion.isKeyword(result)) {
+			result = result + "_";
+		}
+
+		return result;
 	}
 }

@@ -89,9 +89,9 @@ public class LiteralScriptResourceResolver implements ResourceResolver {
 		// "Unsupported class file major version" errors when using preview features.
 		// The preview feature (JEP 445) derives implicit class names from filenames,
 		// and Java class names cannot start with digits. SHA-256 hashes can start
-		// with digits (0-9), so we prefix with underscore to make them valid.
-		if (".java".equals(suffix) && !Character.isJavaIdentifierStart(basename.charAt(0))) {
-			basename = "_" + basename;
+		// with digits (0-9), so we convert to a valid Java identifier.
+		if (".java".equals(suffix)) {
+			basename = Util.toJavaIdentifier(basename);
 		}
 
 		Path scriptFile = cache.resolve(basename + suffix);
