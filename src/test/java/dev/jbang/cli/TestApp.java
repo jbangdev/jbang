@@ -1,10 +1,7 @@
 package dev.jbang.cli;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.*;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
 
 import java.io.IOException;
@@ -22,7 +19,12 @@ import org.junit.jupiter.api.Timeout;
 
 import dev.jbang.BaseTest;
 import dev.jbang.Settings;
+import dev.jbang.dependencies.MavenRepo;
+import dev.jbang.source.Project;
+import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.Util;
+
+import picocli.CommandLine;
 
 public class TestApp extends BaseTest {
 	private static final List<String> shContents = Arrays.asList("#!/bin/sh",
@@ -64,6 +66,19 @@ public class TestApp extends BaseTest {
 			assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		}
 		testScripts();
+	}
+
+	@Test
+	void testAppInstallWithRepos() throws Exception {
+		String src = examplesTestFolder.resolve("repos.java").toString();
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("app", "install", "--no-build", "--fresh", "--force",
+					"--repos=https://maven.repository.redhat.com/ga/", src);
+		AppInstall app = (AppInstall) pr.subcommand().subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = app.createProjectBuilder();
+		Project prj = pb.build(src);
+		assertThat(prj.getRepositories(), hasItem(new MavenRepo("central", "https://repo1.maven.org/maven2/")));
 	}
 
 	@Test
