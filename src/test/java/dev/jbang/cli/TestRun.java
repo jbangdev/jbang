@@ -3,6 +3,7 @@ package dev.jbang.cli;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static dev.jbang.cli.BaseCommand.EXIT_EXECUTE;
 import static dev.jbang.source.Project.ATTR_AGENT_CLASS;
 import static dev.jbang.source.Project.ATTR_PREMAIN_CLASS;
 import static dev.jbang.util.JavaUtil.defaultJdkManager;
@@ -15,9 +16,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -2642,5 +2645,54 @@ public class TestRun extends BaseTest {
 		assertThat(cmd,
 				not(containsString(
 						"--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED")));
+	}
+
+	@Test
+	void testStdinHonoursForcedSourceType() throws Exception {
+		String SOURCE_TYPE_STDIN_CODE = "        ///usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n" +
+				"        //JAVA 21+\n" +
+				"        //PREVIEW\n" +
+				"        void main(String[] args) {\n" +
+				"        	System.out.println(\"Providers: \" );\n" +
+				"        }\n";
+
+		// Capture original System.in to restore it later
+		InputStream originalIn = System.in;
+		try {
+			// Feed some trivial Java code via stdin
+			System.setIn(new ByteArrayInputStream(SOURCE_TYPE_STDIN_CODE.getBytes()));
+
+			CaptureResult<Integer> res = checkedRun(null,
+					"run", "--source-type=java", "--enable-preview", "--verbose", "-");
+
+			// expect the JShell pipeline NOT to be used
+			assertThat(res.err, not(containsString(".jsh")));
+		} finally {
+			// Always restore original System.in
+			System.setIn(originalIn);
+		}
+	}
+
+	@Test
+	void testForceJavaSourceTypeOnJshFile() throws Exception {
+		// create a .jsh file with unique name
+		Path p = cwdDir.resolve("sourceTypeTest.jsh");
+		try {
+			dev.jbang.util.Util.writeString(p,
+					"class Test { public static void main(String...a) { } }");
+
+			CaptureResult<Integer> res = checkedRun(null,
+					"run", "--source-type=java", "--verbose", p.toString());
+
+			// current (broken) behaviour emits "test.jsh.jar".
+			// Once fixed, that message must disappear and the run should succeed.
+			assertThat(res.err, not(containsString("sourceTypeTest.jsh.jar")));
+			assertThat(res.result, equalTo(EXIT_EXECUTE));
+		} finally {
+			// Clean up the test file
+			if (Files.exists(p)) {
+				Files.delete(p);
+			}
+		}
 	}
 }
