@@ -91,6 +91,12 @@ public class RenamingScriptResourceResolver implements ResourceResolver {
 					if (forceType != null) {
 						// Remove existing extension and add the forced extension
 						String baseName = Util.sourceBase(probe.getName());
+						// Ensure basename is a valid Java identifier for .java files to avoid
+						// "Unsupported class file major version" errors when using preview features.
+						// The preview feature (JEP 445) derives implicit class names from filenames.
+						if (forceType == Source.Type.java) {
+							baseName = Util.toJavaIdentifier(baseName);
+						}
 						name = baseName + "." + forceType.extension;
 					} else {
 						name = probe.getName();
