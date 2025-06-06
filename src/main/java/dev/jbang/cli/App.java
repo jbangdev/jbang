@@ -55,6 +55,9 @@ class AppInstall extends BaseCommand {
 			"--force" }, description = "Force re-installation")
 	boolean force;
 
+	@CommandLine.Option(names = { "--no-build" }, description = "Don't pre-build the code before installation")
+	boolean noBuild;
+
 	@CommandLine.Option(names = { "--name" }, description = "A name for the command")
 	String name;
 
@@ -144,8 +147,10 @@ class AppInstall extends BaseCommand {
 				&& !prj.getResourceRef().isURL()) {
 			scriptRef = prj.getResourceRef().getFile().toAbsolutePath().toString();
 		}
-		prj.codeBuilder().build();
-		installScripts(name, scriptRef, runOpts, runArgs);
+		if (!noBuild) {
+			prj.codeBuilder().build();
+		}
+		installScripts(name, scriptRef, collectRunOptions(), userParams);
 		Util.infoMsg("Command installed: " + name);
 		return true;
 	}
