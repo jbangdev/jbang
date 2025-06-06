@@ -210,6 +210,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 
 	ScriptInfo getInfo(boolean assureJdkInstalled) {
 		scriptMixin.validate();
+		dependencyInfoMixin.validate();
 
 		ProjectBuilder pb = createProjectBuilder();
 		Project prj = pb.build(scriptMixin.scriptOrFile);

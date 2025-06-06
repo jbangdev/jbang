@@ -362,6 +362,14 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testClasspathFolder() throws IOException {
+		String arg = examplesTestFolder.resolve("helloworld.java").toAbsolutePath().toString();
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("run", "--cp", ".", arg);
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+		assertThrows(IllegalArgumentException.class, run::doCall);
+	}
+
+	@Test
 	void testJarViaHttps(@TempDir Path tdir) throws IOException {
 
 		String jar = "https://repo1.maven.org/maven2/io/joshworks/runnable-jar/0.2/runnable-jar-0.2.jar";

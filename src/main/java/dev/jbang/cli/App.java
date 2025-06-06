@@ -82,6 +82,7 @@ class AppInstall extends BaseCommand {
 	@Override
 	public Integer doCall() {
 		scriptMixin.validate();
+		dependencyInfoMixin.validate();
 		boolean installed = false;
 		try {
 			if (scriptMixin.scriptOrFile.equals("jbang")) {

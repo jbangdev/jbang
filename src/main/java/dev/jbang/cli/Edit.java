@@ -132,6 +132,8 @@ public class Edit extends BaseCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
+		scriptMixin.validate(false);
+		dependencyInfoMixin.validate();
 
 		// force download sources when editing
 		Util.setDownloadSources(true);
