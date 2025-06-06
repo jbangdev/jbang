@@ -304,8 +304,10 @@ class AliasList extends BaseAliasCommand {
 		if (alias.description != null) {
 			out.println(prefix2 + alias.description);
 		}
-		if (alias.docsRef != null) {
-			out.println(prefix2 + alias.docsRef);
+		if (alias.docsRef != null && !alias.docsRef.isEmpty()) {
+			for (String ref : alias.docsRef) {
+				out.println(prefix2 + ref);
+			}
 		}
 		out.println(prefix2 + ConsoleOutput.faint(alias.scriptRef));
 		if (alias.arguments != null) {
