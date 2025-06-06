@@ -90,7 +90,7 @@ public class RenamingScriptResourceResolver implements ResourceResolver {
 					String name;
 					if (forceType != null) {
 						// Remove existing extension and add the forced extension
-						String baseName = probe.getName().replaceFirst("\\.[^.]+$", "");
+						String baseName = Util.sourceBase(probe.getName());
 						name = baseName + "." + forceType.extension;
 					} else {
 						name = probe.getName();
