@@ -66,7 +66,7 @@ public class Run extends BaseBuildCommand {
 				script = scriptOrFile;
 			}
 			Util.verboseMsg("Literal Script to execute: '" + script + "'");
-			prj = pb.build(LiteralScriptResourceResolver.stringToResourceRef(null, script));
+			prj = pb.build(LiteralScriptResourceResolver.stringToResourceRef(null, script, scriptMixin.forceType));
 		} else {
 			if (scriptOrFile != null) {
 				prj = pb.build(scriptOrFile);
@@ -74,7 +74,7 @@ public class Run extends BaseBuildCommand {
 				// HACK it's a crappy way to work around the fact that in the case of
 				// interactive we might not have a file to reference but all the code
 				// expects one to exist
-				prj = pb.build(LiteralScriptResourceResolver.stringToResourceRef(null, ""));
+				prj = pb.build(LiteralScriptResourceResolver.stringToResourceRef(null, "", scriptMixin.forceType));
 			}
 		}
 
