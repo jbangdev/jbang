@@ -61,10 +61,6 @@ public class LiteralScriptResourceResolver implements ResourceResolver {
 		return "Literal stdin";
 	}
 
-	public static ResourceRef stringToResourceRef(String resource, String scriptText) throws IOException {
-		return stringToResourceRef(resource, scriptText, null);
-	}
-
 	public static ResourceRef stringToResourceRef(String resource, String scriptText,
 			Source.Type forceType) throws IOException {
 		ResourceRef result;

@@ -199,7 +199,7 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(
-				LiteralScriptResourceResolver.stringToResourceRef(null, "Collector2.class"));
+				LiteralScriptResourceResolver.stringToResourceRef(null, "Collector2.class", null));
 		BuildContext ctx = BuildContext.forProject(prj);
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
@@ -221,7 +221,7 @@ public class TestRun extends BaseTest {
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		pb.mainClass("fakemain");
 		Project prj = pb.build(
-				LiteralScriptResourceResolver.stringToResourceRef(null, hwtxt));
+				LiteralScriptResourceResolver.stringToResourceRef(null, hwtxt, null));
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
@@ -2185,7 +2185,7 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		try {
-			Project prj = pb.build(LiteralScriptResourceResolver.stringToResourceRef(null, ""));
+			Project prj = pb.build(LiteralScriptResourceResolver.stringToResourceRef(null, "", null));
 			fail("Should have thrown exception");
 		} catch (ExitException ex) {
 			StringWriter sw = new StringWriter();
