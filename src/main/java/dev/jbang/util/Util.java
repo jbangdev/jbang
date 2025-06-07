@@ -46,7 +46,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
-import javax.lang.model.SourceVersion;
 import javax.swing.*;
 
 import org.jsoup.Jsoup;
@@ -2011,51 +2010,7 @@ public class Util {
 	 * @param baseName The input string to convert
 	 * @return A valid Java identifier, never null or empty
 	 */
-	public static String toJavaIdentifier(String baseName) {
-		if (baseName == null || baseName.isEmpty()) {
-			return "__";
-		}
-
-		StringBuilder sb = new StringBuilder();
-		int i = 0;
-
-		// Handle first character specially
-		int cp = baseName.codePointAt(i);
-		i += Character.charCount(cp);
-
-		boolean prevUnderscore = false;
-		if (Character.isJavaIdentifierStart(cp)) {
-			sb.appendCodePoint(cp);
-		} else {
-			sb.append('_');
-			prevUnderscore = true;
-			if (Character.isJavaIdentifierPart(cp)) {
-				sb.appendCodePoint(cp);
-				prevUnderscore = false;
-			}
-		}
-
-		// Handle remaining characters
-		while (i < baseName.length()) {
-			cp = baseName.codePointAt(i);
-			i += Character.charCount(cp);
-
-			if (Character.isJavaIdentifierPart(cp)) {
-				sb.appendCodePoint(cp);
-				prevUnderscore = false;
-			} else if (!prevUnderscore) {
-				sb.append('_');
-				prevUnderscore = true;
-			}
-		}
-
-		String result = sb.toString();
-
-		// Check if the result is a Java keyword
-		if (SourceVersion.isKeyword(result)) {
-			result = result + "_";
-		}
-
-		return result;
+	public static String toJavaIdentifier(@Nonnull String baseName) {
+		return "_" + baseName.replaceAll("[^\\p{L}\\p{N}_]", "_");
 	}
 }

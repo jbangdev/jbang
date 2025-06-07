@@ -85,11 +85,6 @@ public class LiteralScriptResourceResolver implements ResourceResolver {
 			}
 		}
 
-		// Ensure basename is a valid Java identifier for .java files to avoid
-		// "Unsupported class file major version" errors when using preview features.
-		// The preview feature (JEP 445) derives implicit class names from filenames,
-		// and Java class names cannot start with digits. SHA-256 hashes can start
-		// with digits (0-9), so we convert to a valid Java identifier.
 		if (".java".equals(suffix)) {
 			basename = Util.toJavaIdentifier(basename);
 		}
