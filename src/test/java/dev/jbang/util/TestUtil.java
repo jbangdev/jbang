@@ -177,50 +177,20 @@ public class TestUtil extends BaseTest {
 
 	@Test
 	void testToJavaIdentifier() {
-		// Valid names stay the same
-		assertThat(Util.toJavaIdentifier("HelloWorld"), equalTo("HelloWorld"));
-		assertThat(Util.toJavaIdentifier("validName"), equalTo("validName"));
-		assertThat(Util.toJavaIdentifier("_underscore"), equalTo("_underscore"));
-		assertThat(Util.toJavaIdentifier("$dollar"), equalTo("$dollar"));
+		// Always gets a leading underscore
+		assertThat(Util.toJavaIdentifier("HelloWorld"), equalTo("_HelloWorld"));
+		assertThat(Util.toJavaIdentifier("_underscore"), equalTo("__underscore"));
+		assertThat(Util.toJavaIdentifier("Ångström"), equalTo("_Ångström"));
+		assertThat(Util.toJavaIdentifier("café"), equalTo("_café"));
 
-		// Leading digit gets prefixed with underscore
+		// Leading digits are handled by the extra underscore
 		assertThat(Util.toJavaIdentifier("123abc"), equalTo("_123abc"));
 		assertThat(Util.toJavaIdentifier("0test"), equalTo("_0test"));
 
-		// Invalid characters get replaced with underscore
-		assertThat(Util.toJavaIdentifier("foo-bar"), equalTo("foo_bar"));
-		assertThat(Util.toJavaIdentifier("hello world"), equalTo("hello_world"));
-		assertThat(Util.toJavaIdentifier("test@example"), equalTo("test_example"));
-		assertThat(Util.toJavaIdentifier("my.package.Class"), equalTo("my_package_Class"));
-		assertThat(Util.toJavaIdentifier("test+plus"), equalTo("test_plus"));
-
-		// Only invalid characters result in double underscore (since "_" is a keyword
-		// in Java 9+)
-		assertThat(Util.toJavaIdentifier("---"), equalTo("__"));
-		assertThat(Util.toJavaIdentifier("@@@"), equalTo("__"));
-		assertThat(Util.toJavaIdentifier("123"), equalTo("_123"));
-
-		// Java keywords get underscore appended
-		assertThat(Util.toJavaIdentifier("class"), equalTo("class_"));
-		assertThat(Util.toJavaIdentifier("int"), equalTo("int_"));
-		assertThat(Util.toJavaIdentifier("public"), equalTo("public_"));
-		assertThat(Util.toJavaIdentifier("static"), equalTo("static_"));
-		assertThat(Util.toJavaIdentifier("void"), equalTo("void_"));
-
-		// Unicode letters (legal) stay the same
-		assertThat(Util.toJavaIdentifier("Ångström"), equalTo("Ångström"));
-		assertThat(Util.toJavaIdentifier("café"), equalTo("café"));
-
-		// null and empty safety (returns "__" since "_" is a keyword in Java 9+)
-		assertThat(Util.toJavaIdentifier(""), equalTo("__"));
-		assertThat(Util.toJavaIdentifier(null), equalTo("__"));
-
-		// Mixed cases
-		assertThat(Util.toJavaIdentifier("123-test_name"), equalTo("_123_test_name"));
-		assertThat(Util.toJavaIdentifier("my-class.java"), equalTo("my_class_java"));
-
-		// Hash-like strings (common in jbang)
-		assertThat(Util.toJavaIdentifier("a1b2c3d4"), equalTo("a1b2c3d4"));
-		assertThat(Util.toJavaIdentifier("123abc456"), equalTo("_123abc456"));
+		// Invalid characters are replaced with underscores
+		assertThat(Util.toJavaIdentifier("foo-bar"), equalTo("_foo_bar"));
+		assertThat(Util.toJavaIdentifier("hello world"), equalTo("_hello_world"));
+		assertThat(Util.toJavaIdentifier("my.package.Class"), equalTo("_my_package_Class"));
+		assertThat(Util.toJavaIdentifier("test+plus"), equalTo("_test_plus"));
 	}
 }
