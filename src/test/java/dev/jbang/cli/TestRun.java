@@ -2650,18 +2650,11 @@ public class TestRun extends BaseTest {
 
 	@Test
 	void testStdinHonoursForcedSourceType() throws Exception {
-		String SOURCE_TYPE_STDIN_CODE = "        ///usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n" +
-				"        //JAVA 21+\n" +
-				"        //PREVIEW\n" +
-				"        void main(String[] args) {\n" +
-				"        	System.out.println(\"Providers: \" );\n" +
-				"        }\n";
-
 		// Capture original System.in to restore it later
 		InputStream originalIn = System.in;
 		try {
 			// Feed some trivial Java code via stdin
-			System.setIn(new ByteArrayInputStream(SOURCE_TYPE_STDIN_CODE.getBytes()));
+			System.setIn(new ByteArrayInputStream("class Test { public static void main(String...a) { } }".getBytes()));
 
 			CaptureResult<Integer> res = checkedRun(null,
 					"run", "--source-type=java", "--enable-preview", "--verbose", "-");
@@ -2679,8 +2672,7 @@ public class TestRun extends BaseTest {
 		// create a .jsh file with unique name
 		Path p = cwdDir.resolve("sourceTypeTest.jsh");
 		try {
-			dev.jbang.util.Util.writeString(p,
-					"class Test { public static void main(String...a) { } }");
+			writeString(p, "class Test { public static void main(String...a) { } }");
 
 			CaptureResult<Integer> res = checkedRun(null,
 					"run", "--source-type=java", "--verbose", p.toString());
