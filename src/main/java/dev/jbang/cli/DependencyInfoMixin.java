@@ -1,5 +1,7 @@
 package dev.jbang.cli;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +43,17 @@ public class DependencyInfoMixin {
 
 	public Map<String, String> getProperties() {
 		return properties;
+	}
+
+	public void validate() {
+		if (classpaths != null) {
+			for (String cp : classpaths) {
+				if (Files.isDirectory(Paths.get(cp))) {
+					throw new IllegalArgumentException(
+							"Invalid classpath option, directories are not supported: " + cp);
+				}
+			}
+		}
 	}
 
 	public List<String> opts() {
