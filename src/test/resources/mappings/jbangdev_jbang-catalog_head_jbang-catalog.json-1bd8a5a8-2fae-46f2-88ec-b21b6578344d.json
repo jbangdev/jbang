@@ -1,0 +1,39 @@
+{
+  "id" : "1bd8a5a8-2fae-46f2-88ec-b21b6578344d",
+  "name" : "jbangdev_jbang-catalog_head_jbang-catalog.json",
+  "request" : {
+    "url" : "/jbangdev/jbang-catalog/HEAD/jbang-catalog.json",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"catalogs\": {},\n  \"aliases\": {\n    \"hello\": {\n      \"script-ref\": \"hello.java\",\n      \"description\": \"Script that says hello back for each argument\"\n    },\n    \"properties\": {\n      \"script-ref\": \"properties.java\",\n      \"description\": \"Dump table of System properties\"\n    },\n    \"env\": {\n      \"script-ref\": \"env.java\",\n      \"description\": \"Dump table of Environment Variables\"\n    },\n    \"gavsearch\": {\n      \"script-ref\": \"gavsearch.java\",\n      \"description\": \"`gavsearch` lets you use search.maven.org from command line.\\nExample: `gavsearch hibernate` will search for artifacts with hibernate in its name.\\nYou can use any of the search modifiers search.maven.org supports, i.e.:\\n`gavsearch c:QuarkusTest` will search for artifacts with class `QuarkusTest`\"\n    },\n    \"git\": {\n      \"script-ref\": \"jgit.java\",\n      \"description\": \"Git command line tool implemented with jgit. Lets you do basic git features without installing git!\"\n    },\n    \"bouncinglogo\": {\n      \"script-ref\": \"bouncinglogo.java\"\n    },\n    \"h2\": {\n      \"script-ref\": \"com.h2database:h2:1.4.200\",\n      \"arguments\": [\n        \"-webAllowOthers\",\n        \"-tcpAllowOthers\"\n      ]\n    },\n    \"catalog2readme\": {\n      \"script-ref\": \"catalog2readme.java\"\n    },\n    \"httpd\": {\n      \"script-ref\": \"httpd.java\",\n      \"description\": \"`httpd` runs a webserver serving out the content of a directory.\\nExample: `jbang httpd@jbangdev -d _site` will serve out the `_site` folder on localhost:8000.\"\n    },\n    \"getjava\": {\n      \"script-ref\": \"getjava.java\",\n      \"description\": \"Experimental utility to download Java distributions using api.foojay.io.\"\n    },\n    \"ec\": {\n      \"script-ref\": \"ec.jsh\"\n    },\n    \"faker\": {\n      \"script-ref\": \"faker.jsh\"\n    },\n    \"dalle\": {\n      \"script-ref\": \"dalle.java\"\n    },\n    \"bootstrap\": {\n      \"script-ref\": \"bootstrap.java\",\n      \"description\": \"Bootstrap a jbang script to make it self-contained.\"\n    },\n    \"jmc\": {\n      \"script-ref\": \"jmc.jsh\",\n      \"java-agents\": []\n    }\n  },\n  \"templates\": {\n    \"github\": {\n      \"file-refs\": {\n        \"{basename}.java\": \"templates/github.java.qute\"\n      },\n      \"description\": \"Simple cli to querying github\"\n    },\n    \"qmcp\": {\n      \"file-refs\": {\n        \"{basename}.java\": \"templates/qmcp.java.qute\"\n      },\n      \"description\": \"Simple cli to querying github\"\n    },\n    \"jitpack\": {\n      \"file-refs\": {\n        \"jitpack.yml\": \"templates/jitpack.yml.qute\"\n      },\n      \"description\": \"Initializes a bare-bone jitpack.yml to enable publishing a jbang script as a maven artifact via jitpack.\\n\\nExample: `jbang init -t jitpack@jbangdev myapp.java` and then commit this to github and visit jitpack.io to trigger its build.\"\n    },\n    \"renovate\": {\n      \"file-refs\": {\n        \"renovate.json\": \"templates/renovate.json.qute\"\n      },\n      \"description\": \"Initializes a renovate.json to enable automatic management of any .java file //DEPS section.\\n\\nExample: `jbang init -t renovate@jbangdev .github/renovate.json` and then commit this to github and if you installed https://github.com/apps/renovate renovate will make issues and PR\\u0027s for dependency updates.\"\n    },\n    \"junit\": {\n      \"file-refs\": {\n        \"{basename}Test.java\": \"templates/junit.java.qute\"\n      },\n      \"description\": \"Basic template for JUnit tests\"\n    }\n  }\n}",
+    "headers" : {
+      "X-Cache" : "MISS",
+      "Access-Control-Allow-Origin" : "*",
+      "X-Content-Type-Options" : "nosniff",
+      "Source-Age" : "0",
+      "Date" : "Thu, 24 Apr 2025 16:06:49 GMT",
+      "X-Timer" : "S1745510809.041906,VS0,VE202",
+      "Via" : "1.1 varnish",
+      "Accept-Ranges" : "bytes",
+      "X-Frame-Options" : "deny",
+      "Strict-Transport-Security" : "max-age=31536000",
+      "Cache-Control" : "max-age=300",
+      "ETag" : "\"df57b8f06875d8ef485f5a3720bc8dd1cfa8d2ce43aa1efa7e75b178ce64a783\"",
+      "X-Served-By" : "cache-toj-leto2350021-TOJ",
+      "Content-Security-Policy" : "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+      "Vary" : "Authorization,Accept-Encoding,Origin",
+      "Expires" : "Thu, 24 Apr 2025 16:11:49 GMT",
+      "Cross-Origin-Resource-Policy" : "cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Cache-Hits" : "0",
+      "X-Fastly-Request-ID" : "039abcd703cf6a299b70a0be3ff6b9e3fab899db",
+      "X-GitHub-Request-Id" : "B3AE:2EEA98:2CA9388:3282FEE:680A6199",
+      "Content-Type" : "text/plain; charset=utf-8"
+    }
+  },
+  "uuid" : "1bd8a5a8-2fae-46f2-88ec-b21b6578344d",
+  "persistent" : true,
+  "insertionIndex" : 3
+}

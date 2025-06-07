@@ -1,0 +1,39 @@
+{
+  "id" : "e62988ef-1b93-466c-a3c1-f8151c242c53",
+  "name" : "tivrfoa_8e6ea001f168fd4ef14763ceca3e5ab6_raw_f378d987f0f863d0b3bcecce1c91fa4290ec4816_one.java",
+  "request" : {
+    "url" : "/tivrfoa/8e6ea001f168fd4ef14763ceca3e5ab6/raw/f378d987f0f863d0b3bcecce1c91fa4290ec4816/one.java",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "///usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n//SOURCES two.java\n\nimport static java.lang.System.*;\n\n// first gist version: 36441c1158d4f6322e373d728d7a419718d270da\npublic class one {\n\n    public static void main(String... args) {\n    \tout.println(\"Testing JBang multiple sources.\");\n    \tout.println(two.class.getName());\n        out.println(new two().m1());\n    }\n}\n",
+    "headers" : {
+      "X-Cache" : "MISS",
+      "Access-Control-Allow-Origin" : "*",
+      "X-Content-Type-Options" : "nosniff",
+      "Source-Age" : "0",
+      "Date" : "Thu, 24 Apr 2025 16:11:25 GMT",
+      "X-Timer" : "S1745511085.209181,VS0,VE189",
+      "Via" : "1.1 varnish",
+      "Accept-Ranges" : "bytes",
+      "X-Frame-Options" : "deny",
+      "Strict-Transport-Security" : "max-age=31536000",
+      "Cache-Control" : "max-age=300",
+      "ETag" : "\"294751b78dbb4a54fc0a92d501c31dd805c5a64847c0f4d059d22d6bbc317250\"",
+      "X-Served-By" : "cache-toj-leto2350033-TOJ",
+      "Content-Security-Policy" : "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+      "Vary" : "Authorization,Accept-Encoding,Origin",
+      "Expires" : "Thu, 24 Apr 2025 16:16:25 GMT",
+      "Cross-Origin-Resource-Policy" : "cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Cache-Hits" : "0",
+      "X-Fastly-Request-ID" : "e3e4b1cee4473d04347946a8479c4cd0dedde4af",
+      "X-GitHub-Request-Id" : "9D52:3D3870:2D08965:32E432F:680A62AA",
+      "Content-Type" : "text/plain; charset=utf-8"
+    }
+  },
+  "uuid" : "e62988ef-1b93-466c-a3c1-f8151c242c53",
+  "persistent" : true,
+  "insertionIndex" : 22
+}
