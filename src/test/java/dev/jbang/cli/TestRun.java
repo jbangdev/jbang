@@ -69,6 +69,7 @@ import dev.jbang.source.CmdGenerator;
 import dev.jbang.source.CmdGeneratorBuilder;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
+import dev.jbang.source.ResourceNotFoundException;
 import dev.jbang.source.Source;
 import dev.jbang.source.buildsteps.JarBuildStep;
 import dev.jbang.source.generators.JshCmdGenerator;
@@ -842,7 +843,7 @@ public class TestRun extends BaseTest {
 
 		String url = examplesTestFolder.resolve("classpath_example.java.dontexist").toFile().toURI().toString();
 
-		assertThrows(ExitException.class, () -> Project.builder().build(url));
+		assertThrows(ResourceNotFoundException.class, () -> Project.builder().build(url));
 	}
 
 	@Test
@@ -1970,7 +1971,7 @@ public class TestRun extends BaseTest {
 						"}")));
 
 		wms.start();
-		assertThrows(ExitException.class,
+		assertThrows(ResourceNotFoundException.class,
 				() -> Project.builder().build("http://localhost:" + wms.port() + "/sub/one/"));
 
 	}

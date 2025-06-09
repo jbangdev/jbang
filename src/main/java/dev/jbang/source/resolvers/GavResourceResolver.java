@@ -1,6 +1,5 @@
 package dev.jbang.source.resolvers;
 
-import java.nio.file.Path;
 import java.util.function.Function;
 
 import javax.annotation.Nonnull;
@@ -33,13 +32,13 @@ public class GavResourceResolver implements ResourceResolver {
 		ResourceRef result = null;
 
 		if (DependencyUtil.looksLikeAGav(resource)) {
-			// todo honor offline
-			ModularClassPath mcp = depResolver.apply(resource);
-			// We possibly get a whole bunch of artifacts but we're only interested in the
-			// one we asked for, which we assume is always the first one in the list
-			// (hopefully we're right).
-			Path file = mcp.getArtifacts().get(0).getFile();
-			result = ResourceRef.forResolvedResource(resource, file);
+			result = ResourceRef.forLazyFileResource(resource, ref -> {
+				ModularClassPath mcp = depResolver.apply(resource);
+				// We possibly get a whole bunch of artifacts, but we're only interested in
+				// the one we asked for which we assume is always the first one in the list
+				// (hopefully we're right).
+				return mcp.getArtifacts().get(0).getFile();
+			});
 		}
 
 		return result;

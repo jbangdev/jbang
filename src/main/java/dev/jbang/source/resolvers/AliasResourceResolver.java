@@ -1,6 +1,5 @@
 package dev.jbang.source.resolvers;
 
-import java.nio.file.Path;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -9,7 +8,6 @@ import javax.annotation.Nullable;
 
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
-import dev.jbang.source.DirectResourceRef;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.source.ResourceResolver;
 
@@ -47,18 +45,18 @@ public class AliasResourceResolver implements ResourceResolver {
 							"Alias " + resource + " from " + alias.catalog.catalogRef + " failed to resolve "
 									+ alias.scriptRef);
 				}
-				ref = new AliasedResourceRef(aliasRef.getOriginalResource(), aliasRef.getFile(), alias);
+				ref = new AliasedResourceRef(aliasRef, alias);
 			}
 		}
 		return ref;
 	}
 
-	public static class AliasedResourceRef extends DirectResourceRef {
+	public static class AliasedResourceRef extends ResourceRef.WrappedResourceRef {
 		@Nonnull
 		private final Alias alias;
 
-		public AliasedResourceRef(String ref, Path file, @Nonnull Alias alias) {
-			super(ref, file);
+		public AliasedResourceRef(ResourceRef aliasRef, @Nonnull Alias alias) {
+			super(aliasRef);
 			this.alias = alias;
 		}
 

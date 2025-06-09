@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
-import dev.jbang.cli.ResourceNotFoundException;
 
 class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 

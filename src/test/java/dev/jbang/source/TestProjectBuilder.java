@@ -204,7 +204,7 @@ public class TestProjectBuilder extends BaseTest {
 				contains("--add-opens", "java.base/java.net=ALL-UNNAMED", "-Dfoo=bar", "-Dbar=aap noot mies"));
 		assertThat(prj.getMainSourceSet().getSources(), iterableWithSize(7));
 		assertThat(prj.getMainSourceSet().getSources(), containsInAnyOrder(
-				new AliasResourceResolver.AliasedResourceRef(src.toString(), src, null),
+				new AliasResourceResolver.AliasedResourceRef(prj.getResourceRef(), null),
 				ResourceRef.forFile(examplesTestFolder.resolve("Two.java")),
 				ResourceRef.forFile(examplesTestFolder.resolve("gh_fetch_release_assets.java")),
 				ResourceRef.forFile(examplesTestFolder.resolve("gh_release_stats.java")),

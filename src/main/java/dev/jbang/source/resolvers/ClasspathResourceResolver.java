@@ -3,16 +3,10 @@ package dev.jbang.source.resolvers;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.nio.file.Path;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
-import dev.jbang.cli.BaseCommand;
-import dev.jbang.cli.ExitException;
-import dev.jbang.source.DirectResourceRef;
-import dev.jbang.source.ResourceRef;
-import dev.jbang.source.ResourceResolver;
+import dev.jbang.source.*;
 
 /**
  * A <code>ResourceResolver</code> that, when given a resource string which
@@ -30,51 +24,45 @@ public class ClasspathResourceResolver implements ResourceResolver {
 
 	@Override
 	public ResourceRef resolve(String resource) {
-		ResourceRef result = null;
-		if (resource.startsWith("classpath:/")) {
-			result = getClasspathResource(resource);
+		if (!resource.startsWith("classpath:/")) {
+			return null;
 		}
-		return result;
+		return getClasspathResource(resource);
 	}
 
 	private static ResourceRef getClasspathResource(String cpResource) {
-		String ref = cpResource.substring(11);
-		ClassLoader cl = Thread.currentThread().getContextClassLoader();
-		if (cl == null) {
-			cl = DirectResourceRef.class.getClassLoader();
-		}
-		URL url = cl.getResource(ref);
-		if (url == null) {
-			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT,
-					"Resource not found on class path: " + ref);
-		}
-		return new ClasspathResourceRef(cpResource, url);
+		return new ClasspathResourceRef(cpResource);
 	}
 
-	public static class ClasspathResourceRef extends DirectResourceRef {
-		@Nonnull
-		private URL url;
+	public static class ClasspathResourceRef extends InputStreamResourceRef {
+		protected ClasspathResourceRef(@Nonnull String ref) {
+			super(ref, ClasspathResourceRef::createStream);
+		}
 
-		protected ClasspathResourceRef(@Nonnull String ref, @Nonnull URL url) {
-			super(ref, null);
-			this.url = url;
+		private static InputStream createStream(String resource) {
+			URL url = getResourceUrl(resource);
+			if (url == null) {
+				throw new ResourceNotFoundException(resource, "Resource not found on class path");
+			}
+			try {
+				return url.openStream();
+			} catch (IOException e) {
+				throw new ResourceNotFoundException(resource, "Could not open input stream for resource", e);
+			}
+		}
+
+		private static URL getResourceUrl(String resource) {
+			String ref = resource.substring(11);
+			ClassLoader cl = Thread.currentThread().getContextClassLoader();
+			if (cl == null) {
+				cl = ClasspathResourceRef.class.getClassLoader();
+			}
+			return cl.getResource(ref);
 		}
 
 		@Override
 		public boolean exists() {
-			return true;
-		}
-
-		@Nullable
-		@Override
-		public Path getFile() {
-			return null;
-		}
-
-		@Nonnull
-		@Override
-		public InputStream getInputStream() throws IOException {
-			return url.openStream();
+			return getResourceUrl(originalResource) != null;
 		}
 	}
 }
