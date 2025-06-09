@@ -1,4 +1,4 @@
-package dev.jbang.cli;
+package dev.jbang.source;
 
 /**
  * Used when something could not be found.

@@ -21,7 +21,6 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 
 import dev.jbang.cli.ExitException;
-import dev.jbang.cli.ResourceNotFoundException;
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.JitPackUtil;
 import dev.jbang.dependencies.MavenCoordinate;

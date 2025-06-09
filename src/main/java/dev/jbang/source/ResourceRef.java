@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import dev.jbang.source.resolvers.FileResourceResolver;
 import dev.jbang.util.Util;
 
 /**
@@ -23,7 +25,7 @@ import dev.jbang.util.Util;
  * Resolver.resolve}.
  */
 public interface ResourceRef extends Comparable<ResourceRef> {
-	ResourceRef nullRef = new DirectResourceRef(null, null);
+	ResourceRef nullRef = new NullResourceRef();
 
 	@Nullable
 	String getOriginalResource();
@@ -59,6 +61,10 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 		return getOriginalResource() != null && isStdin(getOriginalResource());
 	}
 
+	static boolean isStdin(@Nonnull String scriptResource) {
+		return scriptResource.equals("-") || scriptResource.equals("/dev/stdin");
+	}
+
 	/**
 	 * Returns a file representation for this resource reference. If an original
 	 * resource was provided, this method will return a resolved file representation
@@ -67,10 +73,12 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 	 * done when calling this method. In which case some kind of RuntimeException
 	 * might be thrown if the resolving process fails.
 	 * 
-	 * @return A file reference, possibly null
+	 * @return A file reference
 	 */
-	@Nullable
-	Path getFile();
+	@Nonnull
+	default Path getFile() {
+		throw new IllegalStateException("Getting file from stream not implemented");
+	}
 
 	/**
 	 * Checks whether the resource represented by this reference exists as a regular
@@ -78,9 +86,7 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 	 * 
 	 * @return true if the file exists and is a regular file, false otherwise
 	 */
-	default boolean exists() {
-		return getFile() != null && Files.isRegularFile(getFile());
-	}
+	boolean exists();
 
 	/**
 	 * Retrieves an InputStream for the resource represented by this reference. If a
@@ -88,13 +94,12 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 	 * that file. If no file is associated, this method returns null.
 	 *
 	 * @return an InputStream for the resource, or null if no file is associated
-	 * @throws IOException if an I/O error occurs while opening the InputStream
 	 */
-	default InputStream getInputStream() throws IOException {
-		if (getFile() != null) {
+	default InputStream getInputStream() {
+		try {
 			return Files.newInputStream(getFile());
-		} else {
-			return null;
+		} catch (IOException e) {
+			throw new ResourceNotFoundException(getOriginalResource(), "Could not open input stream for resource", e);
 		}
 	}
 
@@ -106,9 +111,7 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 	 */
 	@Nonnull
 	default String getExtension() {
-		if (getFile() != null) {
-			return Util.extension(getFile().toString());
-		} else if (getOriginalResource() != null) {
+		if (getOriginalResource() != null) {
 			return Util.extension(getOriginalResource());
 		} else {
 			return "";
@@ -122,7 +125,7 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 	 * @return a {@code ResourceRef} instance representing the specified file
 	 */
 	static ResourceRef forFile(@Nonnull Path file) {
-		return new DirectResourceRef(file.toString(), file);
+		return new FileResourceResolver.FileResourceRef(file.toString(), file);
 	}
 
 	/**
@@ -136,7 +139,21 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 	 *         resource
 	 */
 	static ResourceRef forResolvedResource(@Nonnull String resource, @Nonnull Path resolvedResource) {
-		return new DirectResourceRef(resource, resolvedResource);
+		return new FileResourceResolver.FileResourceRef(resource, resolvedResource);
+	}
+
+	/**
+	 * Creates a new {@code ResourceRef} instance for a resolved resource. It takes
+	 * the original resource string, which can be things like file paths, urls,
+	 * classpath references, etc and associates it with the given file reference.
+	 *
+	 * @param resource the original resource as a string
+	 * @param obtainer a function that obtains a file for the given resource string
+	 * @return a {@code ResourceRef} instance representing the specified resolved
+	 *         resource
+	 */
+	static ResourceRef forLazyFileResource(@Nonnull String resource, @Nonnull Function<String, Path> obtainer) {
+		return new FileResourceResolver.FileResourceRef(resource, obtainer);
 	}
 
 	/**
@@ -152,21 +169,60 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 		return ResourceResolver.forResources().resolve(resource);
 	}
 
-	/**
-	 * Creates a new {@code ResourceRef} that lazily resolves the given resource
-	 * string using the provided resolver. It does this only when the
-	 * {@code getFile} method is called.
-	 *
-	 * @param resolver the resource resolver used to resolve the resource string
-	 * @param resource the resource string used to create the resource reference
-	 * @return a {@code ResourceRef} instance representing the specified resource
-	 *         string
-	 */
-	static ResourceRef lazy(@Nonnull ResourceResolver resolver, @Nonnull String resource) {
-		return new LazyResourceRef(resolver, resource);
+	class NullResourceRef implements ResourceRef {
+		public NullResourceRef() {
+		}
+
+		@Nullable
+		@Override
+		public String getOriginalResource() {
+			return null;
+		}
+
+		@Override
+		public boolean exists() {
+			return false;
+		}
+
+		@Override
+		public int compareTo(ResourceRef o) {
+			return 0;
+		}
 	}
 
-	static boolean isStdin(@Nonnull String scriptResource) {
-		return scriptResource.equals("-") || scriptResource.equals("/dev/stdin");
+	class WrappedResourceRef implements ResourceRef {
+		@Nonnull
+		private final ResourceRef wrappedRef;
+
+		public WrappedResourceRef(@Nonnull ResourceRef wrappedRef) {
+			this.wrappedRef = wrappedRef;
+		}
+
+		@Nullable
+		@Override
+		public String getOriginalResource() {
+			return wrappedRef.getOriginalResource();
+		}
+
+		@Override
+		public boolean exists() {
+			return wrappedRef.exists();
+		}
+
+		@Nonnull
+		@Override
+		public Path getFile() {
+			return wrappedRef.getFile();
+		}
+
+		@Override
+		public int compareTo(ResourceRef o) {
+			return wrappedRef.compareTo(o);
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			return wrappedRef.equals(obj);
+		}
 	}
 }

@@ -1,6 +1,5 @@
 package dev.jbang.util;
 
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
@@ -52,11 +51,7 @@ public class TemplateEngine {
 
 		@Override
 		public Reader read() {
-			try {
-				return new InputStreamReader(resourceRef.getInputStream(), StandardCharsets.UTF_8);
-			} catch (IOException e) {
-				return null;
-			}
+			return new InputStreamReader(resourceRef.getInputStream(), StandardCharsets.UTF_8);
 		}
 
 		@Override

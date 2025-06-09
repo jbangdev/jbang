@@ -8,7 +8,7 @@ import java.nio.file.Paths;
 import javax.annotation.Nonnull;
 
 import dev.jbang.catalog.Catalog;
-import dev.jbang.cli.ResourceNotFoundException;
+import dev.jbang.source.ResourceNotFoundException;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.source.ResourceResolver;
 import dev.jbang.util.Util;
