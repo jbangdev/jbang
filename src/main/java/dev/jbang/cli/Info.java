@@ -10,6 +10,7 @@ import java.lang.reflect.Field;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -17,7 +18,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -33,7 +33,6 @@ import dev.jbang.source.DocRef;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.source.RefTarget;
-import dev.jbang.source.ResourceNotFoundException;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.source.SourceSet;
 import dev.jbang.util.ConsoleOutput;
@@ -72,7 +71,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 
 		ProjectFile(ResourceRef ref) {
 			originalResource = ref.getOriginalResource();
-			backingResource = ref.getFile().toString();
+			backingResource = ref.exists() ? ref.getFile().toString() : null;
 		}
 
 		ProjectFile(RefTarget ref) {
@@ -111,7 +110,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String description;
 		String gav;
 		String module;
-		Map<String, List<URI>> docs;
+		Map<String, List<ProjectFile>> docs;
 
 		public ScriptInfo(BuildContext ctx, boolean assureJdkInstalled) {
 			Project prj = ctx.getProject();
@@ -205,35 +204,21 @@ abstract class BaseInfoCommand extends BaseCommand {
 		/**
 		 * Returns a map of documentation ids to lists of documentation references. Refs
 		 * that has no id are grouped under "main".
-		 * 
+		 *
 		 * @param docs the list of documentation references
 		 * @return a map where the key is the documentation id and the value is a list
-		 *         of URIs pointing to the documentation files or links
+		 *         of ProjectFile pointing to the documentation files or links
 		 */
-		Map<String, List<URI>> getDocsMap(List<DocRef> docs) {
-			Map<String, List<URI>> docsMap = new LinkedHashMap<>();
+		Map<String, List<ProjectFile>> getDocsMap(List<DocRef> docs) {
+			Map<String, List<ProjectFile>> docsMap = new LinkedHashMap<>();
 			if (docs != null) {
 				for (DocRef doc : docs) {
 					String key = doc.getId() == null ? "main" : doc.getId();
-					List<URI> uris = docsMap.computeIfAbsent(key, k -> new ArrayList<>());
-					getDocsUri(doc).ifPresent(uris::add);
+					List<ProjectFile> pfs = docsMap.computeIfAbsent(key, k -> new ArrayList<>());
+					pfs.add(new ProjectFile(doc.getRef()));
 				}
 			}
 			return docsMap;
-		}
-
-		Optional<URI> getDocsUri(DocRef doc) {
-			if (!doc.getRef().exists()) {
-				return Optional.empty();
-			}
-			if (doc.getRef().isURL()) {
-				return Optional.of(URI.create(doc.getRef().getOriginalResource()));
-			}
-			try {
-				return Optional.of(doc.getRef().getFile().toUri());
-			} catch (ResourceNotFoundException e) {
-				return Optional.empty();
-			}
 		}
 
 		private void init(SourceSet ss) {
@@ -375,23 +360,25 @@ class Docs extends BaseInfoCommand {
 
 		ScriptInfo info = getInfo(false);
 
-		URI[] toOpen = new URI[1];
+		ProjectFile[] toOpen = new ProjectFile[1];
 
 		if (info.description != null) {
 			out.println(info.description);
 		}
 
-		info.docs.forEach((String id, List<URI> docs) -> {
+		info.docs.forEach((String id, List<ProjectFile> docs) -> {
 			out.println(ConsoleOutput.yellow(id + ":"));
 			docs.forEach(doc -> {
 
-				String uripart = doc.toString();
+				String uripart = doc.backingResource == null || Util.isURL(doc.originalResource) ? doc.originalResource
+						: Paths.get(doc.backingResource).toUri().toString();
+				String suffix = doc.backingResource != null ? "" : " (not found)";
 
-				if (toOpen[0] == null && "main".equals(id)) {
+				if (toOpen[0] == null && "main".equals(id) && doc.backingResource != null) {
 					toOpen[0] = doc;
 				}
 
-				out.printf("  %s%n", uripart);
+				out.printf("  %s%s%n", uripart, suffix);
 
 			});
 		});
@@ -403,7 +390,7 @@ class Docs extends BaseInfoCommand {
 
 				if (toOpen[0] != null) {
 					try {
-						Desktop.getDesktop().browse(toOpen[0]);
+						Desktop.getDesktop().browse(getDocsUri(toOpen[0]));
 					} catch (IOException e) {
 						Util.infoMsg("Documentation file to open not found: " + toOpen[0]);
 					}
@@ -416,6 +403,13 @@ class Docs extends BaseInfoCommand {
 		}
 
 		return EXIT_OK;
+	}
+
+	URI getDocsUri(ProjectFile doc) {
+		if (Util.isURL(doc.originalResource)) {
+			return URI.create(doc.originalResource);
+		}
+		return Paths.get(doc.backingResource).toUri();
 	}
 
 }

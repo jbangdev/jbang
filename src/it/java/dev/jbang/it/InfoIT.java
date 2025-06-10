@@ -16,7 +16,8 @@ public class InfoIT extends BaseIT {
 			.outContains("main:")
 			.outContains("  https://xam.dk/notthere")
 			.outContains("  does-not-exist.txt (not found)")
-			.outContains("javadoc:\n  /tmp/this_exists.txt")
+			.outContains("javadoc:")
+			.outContains("  /tmp/this_exists.txt")
 			.succeeded();
 	}
 }

@@ -77,7 +77,7 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 	 */
 	@Nonnull
 	default Path getFile() {
-		throw new IllegalStateException("Getting contents from resource not supported: " + getOriginalResource());
+		throw new ResourceNotFoundException(getOriginalResource(), "Getting contents from resource not supported");
 	}
 
 	/**
