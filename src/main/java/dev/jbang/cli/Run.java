@@ -49,6 +49,9 @@ public class Run extends BaseBuildCommand {
 
 	@Override
 	public Integer doCall() throws IOException {
+		scriptMixin.validate(false);
+		dependencyInfoMixin.validate();
+
 		requireScriptArgument();
 		rewriteScriptArguments();
 

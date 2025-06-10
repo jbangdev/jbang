@@ -51,6 +51,7 @@ public class ExportMixin {
 
 	public void validate() {
 		scriptMixin.validate();
+		dependencyInfoMixin.validate();
 		if (nativeImage) {
 			throw new IllegalArgumentException(
 					"The `-n` and `--native` flags have been removed, use `jbang export native` instead.");

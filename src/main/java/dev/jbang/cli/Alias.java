@@ -97,6 +97,7 @@ class AliasAdd extends BaseAliasCommand {
 	@Override
 	public Integer doCall() {
 		scriptMixin.validate();
+		dependencyInfoMixin.validate();
 		if (name != null && !Catalog.isValidName(name)) {
 			throw new IllegalArgumentException(
 					"Invalid alias name, it should start with a letter followed by 0 or more letters, digits, underscores or hyphens");
