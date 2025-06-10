@@ -211,26 +211,21 @@ abstract class BaseInfoCommand extends BaseCommand {
 		 *         of URIs pointing to the documentation files or links
 		 */
 		Map<String, List<URI>> getDocsMap(List<DocRef> docs) {
-
 			Map<String, List<URI>> docsMap = new LinkedHashMap<>();
-
 			if (docs != null) {
 				for (DocRef doc : docs) {
-					docsMap.compute(doc.getId().equals(doc.getRef().getOriginalResource()) ? "main" : doc.getId(),
-							(k, v) -> {
-								if (v == null) {
-									v = new ArrayList<>();
-								}
-								final List<URI> vk = v;
-								getDocsUri(doc).ifPresent(vk::add);
-								return v;
-							});
+					String key = doc.getId() == null ? "main" : doc.getId();
+					List<URI> uris = docsMap.computeIfAbsent(key, k -> new ArrayList<>());
+					getDocsUri(doc).ifPresent(uris::add);
 				}
 			}
 			return docsMap;
 		}
 
 		Optional<URI> getDocsUri(DocRef doc) {
+			if (!doc.getRef().exists()) {
+				return Optional.empty();
+			}
 			if (doc.getRef().isURL()) {
 				return Optional.of(URI.create(doc.getRef().getOriginalResource()));
 			}

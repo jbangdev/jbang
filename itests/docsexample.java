@@ -3,7 +3,7 @@
 //DOCS ./this_do_not_exists.txt
 //DOCS main=docsexample.java
 //DOCS https://xam.dk/notthere
-//DOCS javadoc=this_exists.txt
+//DOCS javadoc=readme.md
 //DOCS javadoc=/tmp/this_exists.txt
 //DOCS http://www.jbang.dev/documentation/guide/latest/index.html
 //DOCS does-not-exist.txt

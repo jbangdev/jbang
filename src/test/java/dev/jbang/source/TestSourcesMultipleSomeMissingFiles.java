@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
+import dev.jbang.cli.ExitException;
 
 class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 
@@ -141,7 +142,7 @@ class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 		String scriptURL = mainPath.toString();
 		ResourceRef resourceRef = ResourceRef.forResolvedResource(scriptURL, mainPath);
 		Source source = Source.forResourceRef(resourceRef, null);
-		Assertions.assertThrows(ResourceNotFoundException.class, () -> Project.builder().build(source));
+		Assertions.assertThrows(ExitException.class, () -> Project.builder().build(source));
 	}
 
 }

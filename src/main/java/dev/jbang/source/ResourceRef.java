@@ -25,7 +25,7 @@ import dev.jbang.util.Util;
  * Resolver.resolve}.
  */
 public interface ResourceRef extends Comparable<ResourceRef> {
-	ResourceRef nullRef = new NullResourceRef();
+	ResourceRef nullRef = new UnresolvableResourceRef(null);
 
 	@Nullable
 	String getOriginalResource();
@@ -77,7 +77,7 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 	 */
 	@Nonnull
 	default Path getFile() {
-		throw new IllegalStateException("Getting file from stream not implemented");
+		throw new IllegalStateException("Getting contents from resource not supported: " + getOriginalResource());
 	}
 
 	/**
@@ -157,6 +157,18 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 	}
 
 	/**
+	 * Creates a new {@code ResourceRef} instance that cannot be resolved. This is
+	 * useful for cases where the resource string is known but cannot be resolved to
+	 * a file or input stream.
+	 *
+	 * @param resource the resource string
+	 * @return a {@code ResourceRef} instance
+	 */
+	static ResourceRef forUnresolvable(@Nonnull String resource) {
+		return new UnresolvableResourceRef(resource);
+	}
+
+	/**
 	 * Creates a new {@code ResourceRef} instance for the given resource string. It
 	 * does this by using a default resource resolver to resolve the resource string
 	 * to a file.
@@ -169,14 +181,17 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 		return ResourceResolver.forResources().resolve(resource);
 	}
 
-	class NullResourceRef implements ResourceRef {
-		public NullResourceRef() {
+	class UnresolvableResourceRef implements ResourceRef {
+		private final String resource;
+
+		public UnresolvableResourceRef(@Nullable String resource) {
+			this.resource = resource;
 		}
 
 		@Nullable
 		@Override
 		public String getOriginalResource() {
-			return null;
+			return resource;
 		}
 
 		@Override

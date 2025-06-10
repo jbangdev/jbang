@@ -2,30 +2,24 @@ package dev.jbang.source;
 
 import java.util.Objects;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public class DocRef {
+	private final @Nullable String id;
+	private final @Nonnull ResourceRef ref;
 
-	private String id;
-	private ResourceRef ref;
-
-	public DocRef(String id, ResourceRef ref) {
-		this.setId(id);
-		this.setRef(ref);
+	private DocRef(@Nullable String id, @Nonnull ResourceRef ref) {
+		this.id = id;
+		this.ref = ref;
 	}
 
-	public String getId() {
+	public @Nullable String getId() {
 		return id;
 	}
 
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	public ResourceRef getRef() {
+	public @Nonnull ResourceRef getRef() {
 		return ref;
-	}
-
-	public void setRef(ResourceRef ref) {
-		this.ref = ref;
 	}
 
 	@Override
@@ -45,21 +39,25 @@ public class DocRef {
 
 	@Override
 	public String toString() {
-		return String.format("%s=%s", id, ref);
+		if (id == null) {
+			return ref.toString();
+		} else {
+			return String.format("%s=%s", id, ref);
+		}
 	}
 
 	public static DocRef toDocRef(ResourceResolver siblingResolver, String repoReference) {
 		String[] split = repoReference.split("=", 2);
-		String reporef = null;
-		String repoid = null;
-
+		String docId;
+		String docRef;
 		if (split.length == 1) {
-			reporef = split[0];
-			repoid = reporef.toLowerCase();
-		} else if (split.length == 2) {
-			repoid = split[0];
-			reporef = split[1];
+			docId = null;
+			docRef = split[0];
+		} else {
+			docId = split[0];
+			docRef = split[1];
 		}
-		return new DocRef(repoid, siblingResolver.resolve(reporef));
+		ResourceRef ref = siblingResolver.resolve(docRef);
+		return new DocRef(docId, ref != null ? ref : ResourceRef.forUnresolvable(docRef));
 	}
 }

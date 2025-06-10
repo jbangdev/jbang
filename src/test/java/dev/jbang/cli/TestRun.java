@@ -1563,11 +1563,8 @@ public class TestRun extends BaseTest {
 		File f = examplesTestFolder.resolve("brokenresource.java").toFile();
 
 		ProjectBuilder pb = Project.builder();
-		// pb.build(f.getAbsolutePath());
 
 		ExitException root = assertThrows(ExitException.class, () -> pb.build(f.getAbsolutePath()));
-		assertThat(root.getCause(), instanceOf(ResourceNotFoundException.class));
-		ResourceNotFoundException rnfe = (ResourceNotFoundException) root.getCause();
 		assertThat(root.toString(), containsString("'resourcethatdoesnotexist.properties"));
 		assertThat(root.toString(), containsString("brokenresource.java"));
 

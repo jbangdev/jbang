@@ -76,7 +76,7 @@ public class ProjectBuilder {
 	private Boolean integrations;
 	private String javaVersion;
 	private Boolean enablePreview;
-	private List<String> docs;
+	private List<String> docs = new ArrayList<>();
 	private JdkManager jdkManager;
 
 	// Cached values
