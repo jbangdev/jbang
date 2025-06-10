@@ -76,7 +76,7 @@ public class ProjectBuilder {
 	private Boolean integrations;
 	private String javaVersion;
 	private Boolean enablePreview;
-	private Map<String, String> docs;
+	private List<String> docs;
 	private JdkManager jdkManager;
 
 	// Cached values
@@ -193,9 +193,9 @@ public class ProjectBuilder {
 
 	public ProjectBuilder docs(List<String> docs) {
 		if (docs != null) {
-			docs.stream().map(s -> DocRef.toDocRef(getResourceResolver(), s)).collect(Collectors.toList());
+			this.docs = docs;
 		} else {
-			this.docs = Collections.emptyMap();
+			this.docs = Collections.emptyList();
 		}
 		return this;
 	}
@@ -496,14 +496,7 @@ public class ProjectBuilder {
 		if (enablePreview != null) {
 			prj.setEnablePreviewRequested(enablePreview);
 		}
-		if (docs != null) {
-			ResourceResolver resolver = new SiblingResourceResolver(prj.getResourceRef(),
-					ResourceResolver.forResources());
-			docs.forEach((id, ref) -> {
-				ResourceRef docsRef = resolver.resolve(ref);
-				prj.addDoc(new DocRef(id, docsRef));
-			});
-		}
+		prj.addDocs(allToDocRef(docs));
 		if (jdkManager != null) {
 			prj.setJdkManager(jdkManager);
 		} else {
@@ -527,6 +520,13 @@ public class ProjectBuilder {
 		return resources.stream()
 			.flatMap(f -> TagReader.explodeFileRef(null, Util.getCwd(), f).stream())
 			.map(f -> TagReader.toFileRef(f, resolver))
+			.collect(Collectors.toList());
+	}
+
+	private List<DocRef> allToDocRef(List<String> docs) {
+		ResourceResolver resolver = ResourceResolver.forResources();
+		return docs.stream()
+			.map(f -> DocRef.toDocRef(resolver, f))
 			.collect(Collectors.toList());
 	}
 

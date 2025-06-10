@@ -37,7 +37,7 @@ public class Project {
 	private final Map<String, String> manifestAttributes = new LinkedHashMap<>();
 	private String javaVersion;
 	private String description;
-	private List<DocRef> docs = new ArrayList<>();
+	private final List<DocRef> docs = new ArrayList<>();
 	private String gav;
 	private String mainClass;
 	private String moduleName;

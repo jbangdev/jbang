@@ -94,8 +94,7 @@ class AliasAdd extends BaseAliasCommand {
 	@CommandLine.Parameters(paramLabel = "params", index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
 	List<String> userParams;
 
-	@CommandLine.Option(names = {
-			"--docs" }, converter = CommaSeparatedConverter.class, description = "Documentation reference for the alias")
+	@CommandLine.Option(names = { "--docs" }, description = "Documentation reference for the alias")
 	List<String> docs;
 
 	@Override

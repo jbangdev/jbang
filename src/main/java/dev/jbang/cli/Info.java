@@ -33,6 +33,7 @@ import dev.jbang.source.DocRef;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.source.RefTarget;
+import dev.jbang.source.ResourceNotFoundException;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.source.SourceSet;
 import dev.jbang.util.ConsoleOutput;
@@ -42,7 +43,6 @@ import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
-import picocli.CommandLine.Parameters;
 
 @CommandLine.Command(name = "info", description = "Provides info about the script for tools (and humans who are tools).", subcommands = {
 		Tools.class, ClassPath.class, Jar.class, Docs.class })
@@ -62,7 +62,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 	Path buildDir;
 
 	@CommandLine.Option(names = {
-			"--module" }, arity = "0..1", fallbackValue = "", description = "Treat resource as a module. Optionally with the given module name", preprocessor = StrictParameterPreprocessor.class)
+			"--module" }, arity = "0..1", description = "Treat resource as a module. Optionally with the given module name", preprocessor = StrictParameterPreprocessor.class)
 	String module;
 
 	static class ProjectFile {
@@ -206,8 +206,9 @@ abstract class BaseInfoCommand extends BaseCommand {
 		 * Returns a map of documentation ids to lists of documentation references. Refs
 		 * that has no id are grouped under "main".
 		 * 
-		 * @param info
-		 * @return
+		 * @param docs the list of documentation references
+		 * @return a map where the key is the documentation id and the value is a list
+		 *         of URIs pointing to the documentation files or links
 		 */
 		Map<String, List<URI>> getDocsMap(List<DocRef> docs) {
 
@@ -221,7 +222,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 									v = new ArrayList<>();
 								}
 								final List<URI> vk = v;
-								getDocsUri(doc).ifPresent(x -> vk.add(x));
+								getDocsUri(doc).ifPresent(vk::add);
 								return v;
 							});
 				}
@@ -374,15 +375,12 @@ class Docs extends BaseInfoCommand {
 			"--open" }, negatable = true, defaultValue = "false", description = "Open the (first) documentation file/link in the default browser")
 	public boolean open;
 
-	@Parameters(arity = "0..*", description = "Documentation file/links to open")
-	List<String> docsToOpen;
-
 	@Override
 	public Integer doCall() throws IOException {
 
 		ScriptInfo info = getInfo(false);
 
-		URI toOpen[] = new URI[1];
+		URI[] toOpen = new URI[1];
 
 		if (info.description != null) {
 			out.println(info.description);
@@ -393,13 +391,12 @@ class Docs extends BaseInfoCommand {
 			docs.forEach(doc -> {
 
 				String uripart = doc.toString();
-				String suffix = "";
 
 				if (toOpen[0] == null && "main".equals(id)) {
 					toOpen[0] = doc;
 				}
 
-				out.println(String.format("  %s%s", uripart, suffix));
+				out.printf("  %s%n", uripart);
 
 			});
 		});
