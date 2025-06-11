@@ -1,0 +1,19 @@
+{
+  "id" : "9b5c9356-84aa-4f97-b0f0-971bda8e0f5a",
+  "name" : "disco_v3.0_packages",
+  "request" : {
+    "url" : "/disco/v3.0/packages?distro=temurin%2Caoj&javafx_bundled=false&libc_type=c_std_lib&directly_downloadable=true&archive_type=zip&operating_system=windows&package_type=jdk&release_status=ga%2Cea&architecture=x64&latest=available",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "disco_v3.0_packages-9b5c9356-84aa-4f97-b0f0-971bda8e0f5a.json",
+    "headers" : {
+      "Date" : "Wed, 11 Jun 2025 23:10:34 GMT",
+      "Content-Type" : "application/json"
+    }
+  },
+  "uuid" : "9b5c9356-84aa-4f97-b0f0-971bda8e0f5a",
+  "persistent" : true,
+  "insertionIndex" : 29
+}
