@@ -5,6 +5,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -14,8 +15,8 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
@@ -25,8 +26,7 @@ import java.util.logging.Logger;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
@@ -80,36 +80,12 @@ public abstract class BaseTest {
 		}
 		Configuration.instance(null);
 		DependencyCache.clear();
-
-		// Start a WireMock server to capture and replay any remote
-		// requests JBang makes (any new code that results in additional
-		// requests will result in new recordings being added to the
-		// `src/test/resources/mappings` folder which can then be added
-		// to the git repository. Future requests will then be replayed
-		// from the recordings instead of hitting the real server.)
-		globalwms = new WireMockServer(options()
-			.enableBrowserProxying(true)
-			.dynamicPort());
-		globalwms.start();
-		JvmProxyConfigurer.configureFor(globalwms);
-		disableSSL();
-
-		// This forces MIMA to use the WireMock server as a proxy
-		// System.setProperty("aether.connector.http.useSystemProperties", "true");
-		// System.setProperty("aether.connector.https.securityMode", "insecure");
+		initWireMock();
 	}
 
 	@AfterEach
 	public void cleanupEnv() {
-		globalwms.stop();
-		if ("true".equals(System.getenv("CI"))) {
-			// When running in CI, we want to fail if there are unmatched requests
-			globalwms.checkForUnmatchedRequests();
-		} else {
-			// During development, we want to record unknown requests
-			globalwms.snapshotRecord(recordSpec().ignoreRepeatRequests());
-		}
-		JvmProxyConfigurer.restorePrevious();
+		cleanupWireMock();
 	}
 
 	public static final String EXAMPLES_FOLDER = "itests";
@@ -228,26 +204,68 @@ public abstract class BaseTest {
 		System.err.printf("WireMock response headers: %s%n", inResponse.getHeaders());
 	}
 
-	// WARNING: This method exists for Integration Testing purposes only!!!
-	public static void disableSSL() {
-		TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
-			public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-				return new java.security.cert.X509Certificate[] {};
-			}
+	protected void initWireMock() {
+		// Start a WireMock server to capture and replay any remote
+		// requests JBang makes (any new code that results in additional
+		// requests will result in new recordings being added to the
+		// `src/test/resources/mappings` folder which can then be added
+		// to the git repository. Future requests will then be replayed
+		// from the recordings instead of hitting the real server.)
+		globalwms = new WireMockServer(options()
+			.caKeystorePath("misc/wiremock.jks")
+			.caKeystorePassword("password")
+			.enableBrowserProxying(true)
+			.dynamicPort());
+		globalwms.start();
+		JvmProxyConfigurer.configureFor(globalwms);
+		trustWireMock();
+		// System.setProperty("javax.net.ssl.trustStore", "misc/wiremock.jks");
+		// System.setProperty("javax.net.ssl.trustStorePassword", "password");
 
-			public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
-			}
+		// This forces MIMA to use the WireMock server as a proxy
+		// System.setProperty("aether.connector.http.useSystemProperties", "true");
+		// System.setProperty("aether.connector.https.securityMode", "insecure");
+	}
 
-			public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
-			}
-		} };
-
+	/**
+	 * WARNING! Using this will make Http(s)URLConnections _only_ trust the WireMock
+	 * server's self-signed certificate. So connections to any other remote server
+	 * will fail with an SSLHandshakeException. This only works because all the
+	 * remote requests we make in our JBang code use `Http(s)URLConnection` which we
+	 * proxy to WireMock while Maven uses the Apache HttpClient which doesn't use
+	 * the proxy and is unaffected by this method.
+	 */
+	public static void trustWireMock() {
 		try {
-			SSLContext sc = SSLContext.getInstance("SSL");
-			sc.init(null, trustAllCerts, new java.security.SecureRandom());
+			KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+			try (FileInputStream fis = new FileInputStream("misc/wiremock.jks")) {
+				trustStore.load(fis, "password".toCharArray());
+			}
+
+			TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+			tmf.init(trustStore);
+
+			SSLContext sc = SSLContext.getInstance("TLS");
+			sc.init(null, tmf.getTrustManagers(), null);
 			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-		} catch (KeyManagementException | NoSuchAlgorithmException e) {
+		} catch (IOException | GeneralSecurityException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	protected void cleanupWireMock() {
+		if (globalwms == null) {
+			return; // Nothing to clean up
+		}
+		globalwms.stop();
+		if ("true".equals(System.getenv("CI"))) {
+			// When running in CI, we want to fail if there are unmatched requests
+			globalwms.checkForUnmatchedRequests();
+		} else {
+			// During development, we want to record unknown requests
+			globalwms.snapshotRecord(recordSpec().ignoreRepeatRequests());
+		}
+		JvmProxyConfigurer.restorePrevious();
+		globalwms = null;
 	}
 }
