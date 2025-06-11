@@ -195,15 +195,6 @@ public abstract class BaseTest {
 		}
 	}
 
-	protected static void wiremockRequestPrinter(com.github.tomakehurst.wiremock.http.Request inRequest,
-			com.github.tomakehurst.wiremock.http.Response inResponse) {
-		System.err.printf("WireMock request at URL: %s%n", inRequest.getAbsoluteUrl());
-		System.err.printf("WireMock request headers: %s%n", inRequest.getHeaders());
-		System.err.printf("WireMock response status: %d%n", inResponse.getStatus());
-		System.err.printf("WireMock response body: %s%n", inResponse.getBodyAsString());
-		System.err.printf("WireMock response headers: %s%n", inResponse.getHeaders());
-	}
-
 	protected void initWireMock() {
 		// Start a WireMock server to capture and replay any remote
 		// requests JBang makes (any new code that results in additional
@@ -215,6 +206,7 @@ public abstract class BaseTest {
 			.caKeystorePath("misc/wiremock.jks")
 			.caKeystorePassword("password")
 			.enableBrowserProxying(true)
+			.withRootDirectory("src/test/resources/wiremock")
 			.dynamicPort());
 		globalwms.start();
 		JvmProxyConfigurer.configureFor(globalwms);
