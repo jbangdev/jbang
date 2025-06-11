@@ -1,0 +1,39 @@
+{
+  "id" : "2b292b00-24b0-470c-9e3c-4e4f60658009",
+  "name" : "tivrfoa_bb5deb269de39eb8fca9636dd3c9f123_raw_7d9c77b57b0c7008976f542abf214347d695d0c8_albumimages.java",
+  "request" : {
+    "url" : "/tivrfoa/bb5deb269de39eb8fca9636dd3c9f123/raw/7d9c77b57b0c7008976f542abf214347d695d0c8/AlbumImages.java",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "class AlbumImages {\n\tpublic String image_id;\n\tpublic String user_id;\n\tpublic String albumId;\n}",
+    "headers" : {
+      "X-Cache" : "MISS",
+      "Access-Control-Allow-Origin" : "*",
+      "X-Content-Type-Options" : "nosniff",
+      "Source-Age" : "0",
+      "Date" : "Thu, 24 Apr 2025 16:11:27 GMT",
+      "X-Timer" : "S1745511088.750787,VS0,VE181",
+      "Via" : "1.1 varnish",
+      "Accept-Ranges" : "bytes",
+      "X-Frame-Options" : "deny",
+      "Strict-Transport-Security" : "max-age=31536000",
+      "Cache-Control" : "max-age=300",
+      "ETag" : "\"2d19257f706eda687dfef92132ee2bf245f63df0ef908dac4dcd44b7f24f32a0\"",
+      "X-Served-By" : "cache-mad22025-MAD",
+      "Content-Security-Policy" : "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+      "Vary" : "Authorization,Accept-Encoding,Origin",
+      "Expires" : "Thu, 24 Apr 2025 16:16:27 GMT",
+      "Cross-Origin-Resource-Policy" : "cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Cache-Hits" : "0",
+      "X-Fastly-Request-ID" : "3bd155c6d62a9c8a06b917dd0a89064231a5a852",
+      "X-GitHub-Request-Id" : "E191:FB193:74D54C:809B3E:680A62AF",
+      "Content-Type" : "text/plain; charset=utf-8"
+    }
+  },
+  "uuid" : "2b292b00-24b0-470c-9e3c-4e4f60658009",
+  "persistent" : true,
+  "insertionIndex" : 24
+}
