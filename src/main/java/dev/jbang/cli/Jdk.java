@@ -77,7 +77,7 @@ public class Jdk {
 		}
 		List<JdkOut> jdkOuts = jdks.stream()
 			.map(jdk -> new JdkOut(jdk.id(), jdk.version(), jdk.provider().name(),
-					jdk.home(),
+					jdk.isInstalled() ? jdk.home() : null,
 					details ? jdk.equals(defaultJdk)
 							: jdk.majorVersion() == defMajorVersion))
 			.collect(Collectors.toList());

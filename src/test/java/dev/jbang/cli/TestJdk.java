@@ -14,6 +14,8 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,6 +72,15 @@ class TestJdk extends BaseTest {
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(),
 				equalTo("Installed JDKs (<=default):\n   11 (11.0.7) <\n   12 (12.0.7)\n   13 (13.0.7)\n"));
+	}
+
+	@Test
+	void testJdksAvailable() throws Exception {
+		CaptureResult<Integer> result = checkedRun(jdk -> jdk.list(true, false, FormatMixin.Format.text));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		Pattern p = Pattern.compile("^ {3}\\d+ \\(.+?\\)$", Pattern.MULTILINE);
+		Matcher m = p.matcher(result.normalizedOut());
+		assertThat(m.find(), equalTo(true));
 	}
 
 	@Test
