@@ -19,7 +19,7 @@ public class CacheIT extends BaseIT {
 				"jbang cache clear"))
 			.succeeded()
 			.errContains(
-					"[jbang] Clearing cache for urls\n[jbang] Clearing cache for jars\n[jbang] Clearing cache for kotlincs\n[jbang] Clearing cache for groovycs\n[jbang] Clearing cache for scripts\n[jbang] Clearing cache for stdins\n[jbang] Clearing cache for deps\n"
+					"[jbang] Clearing cache for urls\n[jbang] Clearing cache for jars\n[jbang] Clearing cache for scripts\n[jbang] Clearing cache for stdins\n[jbang] Clearing cache for deps\n"
 						.replace(
 								"\n", lineSeparator()));
 	}
