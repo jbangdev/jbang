@@ -252,8 +252,9 @@ class TestJdk extends BaseTest {
 			try {
 				jdk.install(true, "11", "/non-existent-path");
 			} catch (Exception e) {
-				assertInstanceOf(ExitException.class, e);
-				assertEquals("Unable to resolve path as directory: /non-existent-path", e.getMessage());
+				assertInstanceOf(IllegalArgumentException.class, e);
+				assertEquals("Unable to resolve path as directory: " + File.separator + "non-existent-path",
+						e.getMessage());
 			}
 			return null;
 		});
@@ -331,9 +332,10 @@ class TestJdk extends BaseTest {
 		checkedRunWithException(jdk -> {
 			try {
 				jdk.install(true, "13", javaDir.toPath().toString());
+				assertThat("Expected an exception to be thrown", false);
 			} catch (Exception e) {
-				assertInstanceOf(ExitException.class, e);
-				assertEquals("Unable to determine Java version in given path: " + javaDir.toPath(), e.getMessage());
+				assertInstanceOf(IllegalArgumentException.class, e);
+				assertEquals("Unable to create link to JDK in path: " + javaDir.toPath(), e.getMessage());
 			}
 			return null;
 		});
