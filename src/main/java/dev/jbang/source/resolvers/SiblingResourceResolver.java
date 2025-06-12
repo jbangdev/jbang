@@ -53,11 +53,7 @@ public class SiblingResourceResolver implements ResourceResolver {
 				Path baseDir = originalResource != null ? Paths.get(originalResource) : Util.getCwd().resolve("dummy");
 				sr = baseDir.resolveSibling(resource).toString();
 			}
-			ResourceRef result = resolver.resolve(sr, true);
-			if (result == null) {
-				throw new ResourceNotFoundException(resource, "Could not find " + resource);
-			}
-			return result;
+			return resolver.resolve(sr, true);
 		} catch (URISyntaxException e) {
 			throw new ResourceNotFoundException(resource, "Syntax error when trying to find " + resource, e);
 		}

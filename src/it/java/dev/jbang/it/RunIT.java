@@ -5,6 +5,8 @@ import static java.lang.System.lineSeparator;
 
 import org.junit.jupiter.api.Test;
 
+import dev.jbang.util.Util;
+
 import io.qameta.allure.Description;
 
 public class RunIT extends BaseIT {
@@ -51,7 +53,8 @@ public class RunIT extends BaseIT {
 	// * match out == "Hello jbangtest\n"
 	@Test
 	public void shouldPassStdIn() {
-		assertThat(shell("cat helloworld.java | jbang - jbangtest"))
+		String catCmd = Util.isWindows() ? "type" : "cat";
+		assertThat(shell(catCmd + " helloworld.java | jbang - jbangtest"))
 			.errEquals(
 					"[jbang] Building jar for helloworld.java..."
 							+ lineSeparator())

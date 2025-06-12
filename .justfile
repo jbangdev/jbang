@@ -11,8 +11,8 @@ format:
     ./gradlew spotlessApply
 
 # run tests
-test:
-    ./gradlew test
+test *args:
+    ./gradlew test {{args}}
 
 preitest := if path_exists('build/install/jbang/bin') != 'true' {
     './gradlew spotlessApply installDist -x test'
@@ -25,9 +25,9 @@ opentest:
     {{open}} build/reports/tests/test/index.html
 
 # run integration tests
-itest:
+itest *args:
     {{preitest}}
-    ./gradlew integrationTest
+    ./gradlew integrationTest {{args}}
 
 # open shell with latest build in path
 jbang *args:

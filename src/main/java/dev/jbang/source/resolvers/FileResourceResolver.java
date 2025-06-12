@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 
 import javax.annotation.Nonnull;
@@ -51,7 +52,7 @@ public class FileResourceResolver implements ResourceResolver {
 		@Nonnull
 		private final Function<String, Path> obtainer;
 		@Nullable
-		private Path file;
+		private Optional<Path> file;
 
 		public FileResourceRef(@Nonnull String resource, @Nonnull Function<String, Path> obtainer) {
 			this.originalResource = resource;
@@ -61,7 +62,7 @@ public class FileResourceResolver implements ResourceResolver {
 		public FileResourceRef(@Nonnull String resource, @Nonnull Path file) {
 			this.originalResource = resource;
 			this.obtainer = ref -> file;
-			this.file = file;
+			this.file = Optional.of(file);
 		}
 
 		@Nonnull
@@ -72,25 +73,29 @@ public class FileResourceResolver implements ResourceResolver {
 
 		@Override
 		public boolean exists() {
-			return Files.isRegularFile(getFile());
+			try {
+				return Files.isRegularFile(getFile());
+			} catch (ResourceNotFoundException e) {
+				return false;
+			}
 		}
 
 		@Nonnull
 		@Override
 		public Path getFile() {
 			if (file == null) {
-				file = obtainer.apply(getOriginalResource());
-				if (file == null) {
-					throw new ResourceNotFoundException(getOriginalResource(), "Could not obtain file resource");
-				}
+				file = Optional.ofNullable(obtainer.apply(getOriginalResource()));
 			}
-			return file;
+			if (!file.isPresent()) {
+				throw new ResourceNotFoundException(getOriginalResource(), "Could not obtain file resource");
+			}
+			return file.get();
 		}
 
 		@Nonnull
 		@Override
 		public String getExtension() {
-			if (file != null) {
+			if (file == null || file.isPresent()) {
 				return Util.extension(getFile().toString());
 			} else {
 				return ResourceRef.super.getExtension();
@@ -123,7 +128,11 @@ public class FileResourceResolver implements ResourceResolver {
 		@Override
 		public String toString() {
 			if (file != null) {
-				return getOriginalResource() + " (" + file + ")";
+				if (!file.isPresent() || getOriginalResource().equals(file.get().toString())) {
+					return getOriginalResource();
+				} else {
+					return getOriginalResource() + " (" + file.get() + ")";
+				}
 			} else {
 				return getOriginalResource() + " (unresolved)";
 			}

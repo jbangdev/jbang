@@ -3,6 +3,8 @@ package dev.jbang.cli;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Collection;
 
@@ -161,5 +163,39 @@ public class TestInfo extends BaseTest {
 		// assertThat(info.javaVersion, not(nullValue()));
 		// assertThat(info.mainClass, equalTo("helloworld"));
 		assertThat(info.resolvedDependencies, empty());
+	}
+
+	@Test
+	void testInfoDocsFile() {
+		String src = examplesTestFolder.resolve("docstest1.java").toString();
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "docs", src);
+		Docs docs = (Docs) pr.subcommand().subcommand().commandSpec().userObject();
+		BaseInfoCommand.ProjectFile pf = docs.getInfo(false).docs.get("main").get(0);
+		assertThat(pf.originalResource, endsWith(File.separator + "itests" + File.separator + "readme.md"));
+	}
+
+	@Test
+	void testInfoDocsUrl() {
+		String src = examplesTestFolder.resolve("docstest2.java").toString();
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "docs", src);
+		Docs docs = (Docs) pr.subcommand().subcommand().commandSpec().userObject();
+		BaseInfoCommand.ProjectFile pf = docs.getInfo(false).docs.get("main").get(0);
+		assertThat(pf.originalResource, equalTo("https://www.jbang.dev/documentation/guide/latest/faq.html"));
+	}
+
+	@Test
+	void givenScriptWithoutDocsDirectiveWhenInfoDocsCommandIsInvokedThenReturnEmptyResult() {
+		String src = examplesTestFolder.resolve("docstest_nodocs.java").toString();
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "docs", src);
+		Docs docs = (Docs) pr.subcommand().subcommand().commandSpec().userObject();
+		assertThat(docs.getInfo(false).docs.isEmpty(), is(true));
+	}
+
+	@Test
+	void testInfoToolsWithDocs() throws IOException {
+		String src = examplesTestFolder.resolve("docsexample.java").toString();
+		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", src);
+		Tools docs = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
+		docs.call();
 	}
 }
