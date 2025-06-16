@@ -383,26 +383,25 @@ class Docs extends BaseInfoCommand {
 			});
 		});
 
-		if (open) {
-			if (GraphicsEnvironment.isHeadless()) {
-				Util.infoMsg("Cannot open documentation file in browser in headless mode");
-			} else {
+        if (!open) {
+            Util.infoMsg("Use --open to open the documentation file in the default browser.");
+			return EXIT_OK;
+        }
+        if (GraphicsEnvironment.isHeadless()) {
+            Util.infoMsg("Cannot open documentation file in browser in headless mode");
+			return EXIT_OK;
+        }
+        if (toOpen[0] == null) {
+            Util.infoMsg("No documentation file to open found");
+			return EXIT_OK;
+        }
+        try {
+            Desktop.getDesktop().browse(getDocsUri(toOpen[0]));
+        } catch (IOException e) {
+            Util.infoMsg("Documentation file to open not found: " + toOpen[0]);
+        }
 
-				if (toOpen[0] != null) {
-					try {
-						Desktop.getDesktop().browse(getDocsUri(toOpen[0]));
-					} catch (IOException e) {
-						Util.infoMsg("Documentation file to open not found: " + toOpen[0]);
-					}
-				} else {
-					Util.infoMsg("No documentation file to open found");
-				}
-			}
-		} else {
-			Util.infoMsg("Use --open to open the documentation file in the default browser.");
-		}
-
-		return EXIT_OK;
+        return EXIT_OK;
 	}
 
 	URI getDocsUri(ProjectFile doc) {
