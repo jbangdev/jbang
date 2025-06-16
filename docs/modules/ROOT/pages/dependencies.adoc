@@ -43,7 +43,7 @@ class classpath_example {
 	}
 }
 ----
-<.> `//DEPS` must be placed at the start of line and can be one or more space separated dependencies.
+<.> `//DEPS` must be placed at the start of line and can be one or more space separated dependencies. Note that there must be no space between `//` and `DEPS`.
 <.> Minimal logging setup - required by log4j.
 
 Now when you run this, the first time with no existing dependencies installed you should get an output like this:
