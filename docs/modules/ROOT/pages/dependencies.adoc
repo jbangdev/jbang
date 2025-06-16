@@ -92,7 +92,7 @@ Without `@fatjar` it would resolve dependencies which would be redundant.
 
 == Managed dependencies ("BOM POM"'s) [Experimental]
 
-When using libraries and frameworks it can get tedious to mange and update multiple versions.
+When using libraries and frameworks it can get tedious to manage and update multiple versions.
 For that jbang started since 0.62 to support so called "BOM POM"'s which are commonly used for managing versions.
 
 You use it by having as the very first dependency a `@pom` reference. This first reference will be used
