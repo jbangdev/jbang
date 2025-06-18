@@ -2583,6 +2583,34 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testAliasAliasArguments() throws IOException {
+		File f = examplesTestFolder.resolve("echo.java").toFile();
+		List<String> args = Arrays.asList("foo");
+		Alias alias = new Alias(f.toString(), null, args, null, null, null, null, null, null, null, null, null, null,
+				null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+		CatalogUtil.addNearestAlias("foo", alias);
+
+		List<String> args2 = Arrays.asList("bar");
+		Alias alias2 = new Alias("foo", null, args2, null, null, null, null, null, null, null, null, null, null,
+				null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+		CatalogUtil.addNearestAlias("bar", alias2);
+
+		CommandLine.ParseResult pr = JBang	.getCommandLine()
+											.parseArgs("run", "bar", "baz");
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project prj = pb.build("bar");
+
+		BuildContext ctx = BuildContext.forProject(prj, null);
+		CmdGeneratorBuilder genb = Project.codeBuilder(ctx).build();
+
+		String cmdline = run.updateGeneratorForRun(genb).build().generate();
+
+		assertThat(cmdline, endsWith("echo foo bar baz"));
+	}
+
+	@Test
 	void testCatalogAliasArguments() throws IOException {
 		File f = examplesTestFolder.resolve("jbang-catalog.json").toFile();
 		CommandLine.ParseResult pr = JBang.getCommandLine()
