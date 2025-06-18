@@ -1,6 +1,6 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-98-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-99-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 ## Contributors ✨
 
@@ -136,6 +136,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/wfouche"><img src="https://avatars.githubusercontent.com/u/13682850?v=4?s=100" width="100px;" alt="Werner Fouché"/><br /><sub><b>Werner Fouché</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=wfouche" title="Code">💻</a> <a href="https://github.com/jbangdev/jbang/commits?author=wfouche" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/yostane"><img src="https://avatars.githubusercontent.com/u/1958676?v=4?s=100" width="100px;" alt="Yassine Benabbas"/><br /><sub><b>Yassine Benabbas</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=yostane" title="Code">💻</a> <a href="https://github.com/jbangdev/jbang/commits?author=yostane" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://about.me/tadayosi"><img src="https://avatars.githubusercontent.com/u/156692?v=4?s=100" width="100px;" alt="Tadayoshi Sato"/><br /><sub><b>Tadayoshi Sato</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=tadayosi" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.morling.dev/"><img src="https://avatars.githubusercontent.com/u/28612?v=4?s=100" width="100px;" alt="Gunnar Morling"/><br /><sub><b>Gunnar Morling</b></sub></a><br /><a href="https://github.com/jbangdev/jbang/commits?author=gunnarmorling" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
