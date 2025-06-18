@@ -911,6 +911,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "gunnarmorling",
+      "name": "Gunnar Morling",
+      "avatar_url": "https://avatars.githubusercontent.com/u/28612?v=4",
+      "profile": "https://www.morling.dev/",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "skipCi": true,
