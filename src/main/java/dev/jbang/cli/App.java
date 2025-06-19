@@ -48,33 +48,20 @@ public class App {
 }
 
 @CommandLine.Command(name = "install", description = "Install a script as a command.")
-class AppInstall extends BaseCommand {
+class AppInstall extends BaseBuildCommand {
 	private static final String jbangUrl = "https://www.jbang.dev/releases/latest/download/jbang.zip";
 
-	@CommandLine.Option(names = {
-			"--force" }, description = "Force re-installation")
+	@CommandLine.Option(names = { "--force" }, description = "Force re-installation")
 	boolean force;
+
+	@CommandLine.Option(names = { "--no-build" }, description = "Don't pre-build the code before installation")
+	boolean noBuild;
 
 	@CommandLine.Option(names = { "--name" }, description = "A name for the command")
 	String name;
 
 	@CommandLine.Mixin
-	ScriptMixin scriptMixin;
-
-	@CommandLine.Mixin
-	BuildMixin buildMixin;
-
-	@CommandLine.Mixin
-	DependencyInfoMixin dependencyInfoMixin;
-
-	@CommandLine.Mixin
-	NativeMixin nativeMixin;
-
-	@CommandLine.Mixin
 	RunMixin runMixin;
-
-	@CommandLine.Option(names = { "--enable-preview" }, description = "Activate Java preview features")
-	Boolean enablePreviewRequested;
 
 	@CommandLine.Parameters(index = "1..*", arity = "0..*", description = "Parameters to pass on to the script")
 	public List<String> userParams = new ArrayList<>();
@@ -82,6 +69,7 @@ class AppInstall extends BaseCommand {
 	@Override
 	public Integer doCall() {
 		scriptMixin.validate();
+		// dependencyInfoMixin.validate();
 		boolean installed = false;
 		try {
 			if (scriptMixin.scriptOrFile.equals("jbang")) {
@@ -97,8 +85,7 @@ class AppInstall extends BaseCommand {
 				if (name != null && !CatalogUtil.isValidName(name)) {
 					throw new IllegalArgumentException("Not a valid command name: '" + name + "'");
 				}
-				List<String> runOpts = collectRunOptions();
-				installed = install(name, scriptMixin.scriptOrFile, force, runOpts, userParams);
+				installed = install();
 			}
 			if (installed) {
 				if (AppSetup.needsSetup()) {
@@ -124,14 +111,14 @@ class AppInstall extends BaseCommand {
 		return opts;
 	}
 
-	public static boolean install(String name, String scriptRef, boolean force, List<String> runOpts,
-			List<String> runArgs) throws IOException {
+	public boolean install() throws IOException {
 		Path binDir = Settings.getConfigBinDir();
 		if (!force && name != null && existScripts(binDir, name)) {
 			Util.infoMsg("A script with name '" + name + "' already exists, use '--force' to install anyway.");
 			return false;
 		}
-		ProjectBuilder pb = Project.builder();
+		String scriptRef = scriptMixin.scriptOrFile;
+		ProjectBuilder pb = createProjectBuilder();
 		Project prj = pb.build(scriptRef);
 		if (name == null) {
 			name = CatalogUtil.nameFromRef(scriptRef);
@@ -144,10 +131,16 @@ class AppInstall extends BaseCommand {
 				&& !prj.getResourceRef().isURL()) {
 			scriptRef = prj.getResourceRef().getFile().toAbsolutePath().toString();
 		}
-		prj.codeBuilder().build();
-		installScripts(name, scriptRef, runOpts, runArgs);
+		if (!noBuild) {
+			prj.codeBuilder().build();
+		}
+		installScripts(name, scriptRef, collectRunOptions(), userParams);
 		Util.infoMsg("Command installed: " + name);
 		return true;
+	}
+
+	ProjectBuilder createProjectBuilder() {
+		return createBaseProjectBuilder().mainClass(buildMixin.main);
 	}
 
 	private static boolean existScripts(Path binDir, String name) {

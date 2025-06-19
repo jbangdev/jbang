@@ -1,0 +1,39 @@
+{
+  "id" : "cf5e8750-5aff-41e3-9f67-7ce38740e4f6",
+  "name" : "jbangdev_jbang_master_itests_helloworld.java",
+  "request" : {
+    "url" : "/jbangdev/jbang/master/itests/helloworld.java",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "///usr/bin/env jbang \"$0\" \"$@\" ; exit $?\n// //DEPS <dependency1> <dependency2>\n//NATIVE_OPTIONS -O1\n//RUNTIME_OPTIONS -Dfoo=bar \"-Dbar=aap noot mies\"\n//MANIFEST foo bar=baz baz=${bazprop:nada}\n\nimport static java.lang.System.*;\n\npublic class helloworld {\n\n    public static void main(String... args) {\n        out.println(\"Hello \" + (args.length>0?args[0]:\"World\"));\n    }\n}\n",
+    "headers" : {
+      "X-Cache" : "MISS",
+      "Access-Control-Allow-Origin" : "*",
+      "X-Content-Type-Options" : "nosniff",
+      "Source-Age" : "0",
+      "Date" : "Thu, 24 Apr 2025 16:09:20 GMT",
+      "X-Timer" : "S1745510960.093117,VS0,VE211",
+      "Via" : "1.1 varnish",
+      "Accept-Ranges" : "bytes",
+      "X-Frame-Options" : "deny",
+      "Strict-Transport-Security" : "max-age=31536000",
+      "Cache-Control" : "max-age=300",
+      "ETag" : "\"152bff11f5834c9186f29f984880c9a69f78a8d1157f5faf629955924a8f55a1\"",
+      "X-Served-By" : "cache-mad2200086-MAD",
+      "Content-Security-Policy" : "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+      "Vary" : "Authorization,Accept-Encoding,Origin",
+      "Expires" : "Thu, 24 Apr 2025 16:14:20 GMT",
+      "Cross-Origin-Resource-Policy" : "cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Cache-Hits" : "0",
+      "X-Fastly-Request-ID" : "33bd6ae4e5f37dc59e92aeb53da9ef3f1da04058",
+      "X-GitHub-Request-Id" : "A413:294F79:2D747DE:334F378:680A621A",
+      "Content-Type" : "text/plain; charset=utf-8"
+    }
+  },
+  "uuid" : "cf5e8750-5aff-41e3-9f67-7ce38740e4f6",
+  "persistent" : true,
+  "insertionIndex" : 11
+}

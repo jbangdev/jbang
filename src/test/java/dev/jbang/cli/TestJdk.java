@@ -14,6 +14,8 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,6 +72,15 @@ class TestJdk extends BaseTest {
 		assertThat(result.result, equalTo(SUCCESS_EXIT));
 		assertThat(result.normalizedOut(),
 				equalTo("Installed JDKs (<=default):\n   11 (11.0.7) <\n   12 (12.0.7)\n   13 (13.0.7)\n"));
+	}
+
+	@Test
+	void testJdksAvailable() throws Exception {
+		CaptureResult<Integer> result = checkedRun(jdk -> jdk.list(true, false, FormatMixin.Format.text));
+		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		Pattern p = Pattern.compile("^ {3}\\d+ \\(.+?\\)$", Pattern.MULTILINE);
+		Matcher m = p.matcher(result.normalizedOut());
+		assertThat(m.find(), equalTo(true));
 	}
 
 	@Test
@@ -241,8 +252,9 @@ class TestJdk extends BaseTest {
 			try {
 				jdk.install(true, "11", "/non-existent-path");
 			} catch (Exception e) {
-				assertInstanceOf(ExitException.class, e);
-				assertEquals("Unable to resolve path as directory: /non-existent-path", e.getMessage());
+				assertInstanceOf(IllegalArgumentException.class, e);
+				assertEquals("Unable to resolve path as directory: " + File.separator + "non-existent-path",
+						e.getMessage());
 			}
 			return null;
 		});
@@ -320,9 +332,10 @@ class TestJdk extends BaseTest {
 		checkedRunWithException(jdk -> {
 			try {
 				jdk.install(true, "13", javaDir.toPath().toString());
+				assertThat("Expected an exception to be thrown", false);
 			} catch (Exception e) {
-				assertInstanceOf(ExitException.class, e);
-				assertEquals("Unable to determine Java version in given path: " + javaDir.toPath(), e.getMessage());
+				assertInstanceOf(IllegalArgumentException.class, e);
+				assertEquals("Unable to create link to JDK in path: " + javaDir.toPath(), e.getMessage());
 			}
 			return null;
 		});

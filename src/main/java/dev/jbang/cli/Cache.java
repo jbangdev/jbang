@@ -48,8 +48,6 @@ public class Cache {
 			// add the default (safe) set
 			classes.add(dev.jbang.Cache.CacheClass.urls);
 			classes.add(dev.jbang.Cache.CacheClass.jars);
-			classes.add(dev.jbang.Cache.CacheClass.kotlincs);
-			classes.add(dev.jbang.Cache.CacheClass.groovycs);
 			classes.add(dev.jbang.Cache.CacheClass.scripts);
 			classes.add(dev.jbang.Cache.CacheClass.stdins);
 			classes.add(dev.jbang.Cache.CacheClass.deps);

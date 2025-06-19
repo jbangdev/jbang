@@ -1,0 +1,39 @@
+{
+  "id" : "2d46d0d1-513f-426c-8054-b4fad9a16eae",
+  "name" : "quintesse_jbang-catalog_head_jbang-catalog.json",
+  "request" : {
+    "url" : "/quintesse/jbang-catalog/HEAD/jbang-catalog.json",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\n  \"catalogs\": {\n    \"experiments\": {\n      \"catalog-ref\": \"https://raw.githubusercontent.com/quintesse/jbang-catalog/master/experimental/jbang-catalog.json\",\n      \"description\": \"Experimental scripts\"\n    }\n  },\n  \"aliases\": {\n    \"cat\": {\n      \"script-ref\": \"cat.java\",\n      \"description\": \"Simply copies the contents of the provided files to the standard output\"\n    },\n    \"echo\": {\n      \"script-ref\": \"echo.java\",\n      \"description\": \"Just prints out its arguments\"\n    },\n    \"hello\": {\n      \"script-ref\": \"hello.java\",\n      \"description\": \"Our perennial demo friend\"\n    },\n    \"jget\": {\n      \"script-ref\": \"jget.java\",\n      \"description\": \"Like a simplistic wget but written in Java\"\n    },\n    \"jvmci\": {\n      \"script-ref\": \"jvmci.java\",\n      \"description\": \"Checks if JVMCI is enabled\"\n    },\n    \"rest\": {\n      \"script-ref\": \"rest.java\",\n      \"description\": \"A cli tool for REST queries and transformations\"\n    },\n    \"httpd\": {\n      \"script-ref\": \"simple_httpd.java\",\n      \"description\": \"Starts a simple HTTP server on the files in the current directory\"\n    },\n    \"sysenv\": {\n      \"script-ref\": \"system_env.java\",\n      \"description\": \"Prints out Java's System environment\"\n    },\n    \"sysprops\": {\n      \"script-ref\": \"system_properties.java\",\n      \"description\": \"Prints out Java's System properties\"\n    },\n    \"mdns\": {\n      \"script-ref\": \"mdns.java\"\n    },\n    \"mvn2jbang\": {\n      \"script-ref\": \"mvn2jbang.java\",\n      \"description\": \"Adds a Maven project's dependencies to a JBang script\"\n    }\n  },\n  \"description\": \"Quintesse's list of useful JBang scripts!\"\n}\n",
+    "headers" : {
+      "X-Cache" : "MISS",
+      "Access-Control-Allow-Origin" : "*",
+      "X-Content-Type-Options" : "nosniff",
+      "Source-Age" : "0",
+      "Date" : "Thu, 24 Apr 2025 16:08:31 GMT",
+      "X-Timer" : "S1745510912.517006,VS0,VE229",
+      "Via" : "1.1 varnish",
+      "Accept-Ranges" : "bytes",
+      "X-Frame-Options" : "deny",
+      "Strict-Transport-Security" : "max-age=31536000",
+      "Cache-Control" : "max-age=300",
+      "ETag" : "\"41c4368349f46124b7acf10f4606b6c5a02e4cedf3d9a1516c82758f4676ff13\"",
+      "X-Served-By" : "cache-mad22020-MAD",
+      "Content-Security-Policy" : "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+      "Vary" : "Authorization,Accept-Encoding,Origin",
+      "Expires" : "Thu, 24 Apr 2025 16:13:31 GMT",
+      "Cross-Origin-Resource-Policy" : "cross-origin",
+      "X-XSS-Protection" : "1; mode=block",
+      "X-Cache-Hits" : "0",
+      "X-Fastly-Request-ID" : "565f2d4bff1893239712e714064bd1b278769c53",
+      "X-GitHub-Request-Id" : "4AD1:294F79:2D71C2B:334C2C1:680A61FE",
+      "Content-Type" : "text/plain; charset=utf-8"
+    }
+  },
+  "uuid" : "2d46d0d1-513f-426c-8054-b4fad9a16eae",
+  "persistent" : true,
+  "insertionIndex" : 5
+}

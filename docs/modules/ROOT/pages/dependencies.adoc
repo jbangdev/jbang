@@ -43,7 +43,7 @@ class classpath_example {
 	}
 }
 ----
-<.> `//DEPS` must be placed at the start of line and can be one or more space separated dependencies.
+<.> `//DEPS` must be placed at the start of line and can be one or more space separated dependencies. Note that there must be no space between `//` and `DEPS`.
 <.> Minimal logging setup - required by log4j.
 
 Now when you run this, the first time with no existing dependencies installed you should get an output like this:
@@ -92,7 +92,7 @@ Without `@fatjar` it would resolve dependencies which would be redundant.
 
 == Managed dependencies ("BOM POM"'s) [Experimental]
 
-When using libraries and frameworks it can get tedious to mange and update multiple versions.
+When using libraries and frameworks it can get tedious to manage and update multiple versions.
 For that jbang started since 0.62 to support so called "BOM POM"'s which are commonly used for managing versions.
 
 You use it by having as the very first dependency a `@pom` reference. This first reference will be used
