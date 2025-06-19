@@ -37,6 +37,7 @@ public class Project {
 	private final Map<String, String> manifestAttributes = new LinkedHashMap<>();
 	private String javaVersion;
 	private String description;
+	private final List<DocRef> docs = new ArrayList<>();
 	private String gav;
 	private String mainClass;
 	private String moduleName;
@@ -132,7 +133,6 @@ public class Project {
 		return Collections.unmodifiableList(subProjects);
 	}
 
-	@Nonnull
 	public void addSubProject(@Nonnull Project subProject) {
 		subProjects.add(subProject);
 	}
@@ -177,6 +177,23 @@ public class Project {
 	@Nonnull
 	public Project setDescription(String description) {
 		this.description = description;
+		return this;
+	}
+
+	@Nonnull
+	public List<DocRef> getDocs() {
+		return Collections.unmodifiableList(docs);
+	}
+
+	@Nonnull
+	public Project addDoc(DocRef docs) {
+		this.docs.add(docs);
+		return this;
+	}
+
+	@Nonnull
+	public Project addDocs(List<DocRef> docs) {
+		this.docs.addAll(docs);
 		return this;
 	}
 

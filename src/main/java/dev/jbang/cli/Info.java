@@ -1,15 +1,22 @@
 package dev.jbang.cli;
 
 import static dev.jbang.Settings.CP_SEPARATOR;
+import static java.lang.System.out;
 
+import java.awt.Desktop;
+import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -21,14 +28,23 @@ import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.devkitman.Jdk;
 import dev.jbang.devkitman.JdkManager;
-import dev.jbang.source.*;
+import dev.jbang.source.BuildContext;
+import dev.jbang.source.DocRef;
+import dev.jbang.source.Project;
+import dev.jbang.source.ProjectBuilder;
+import dev.jbang.source.RefTarget;
+import dev.jbang.source.ResourceRef;
+import dev.jbang.source.SourceSet;
+import dev.jbang.util.ConsoleOutput;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
+import dev.jbang.util.Util;
 
 import picocli.CommandLine;
+import picocli.CommandLine.Option;
 
 @CommandLine.Command(name = "info", description = "Provides info about the script for tools (and humans who are tools).", subcommands = {
-		Tools.class, ClassPath.class, Jar.class })
+		Tools.class, ClassPath.class, Jar.class, Docs.class })
 public class Info {
 }
 
@@ -45,7 +61,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 	Path buildDir;
 
 	@CommandLine.Option(names = {
-			"--module" }, arity = "0..1", fallbackValue = "", description = "Treat resource as a module. Optionally with the given module name", preprocessor = StrictParameterPreprocessor.class)
+			"--module" }, arity = "0..1", description = "Treat resource as a module. Optionally with the given module name", preprocessor = StrictParameterPreprocessor.class)
 	String module;
 
 	static class ProjectFile {
@@ -55,7 +71,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 
 		ProjectFile(ResourceRef ref) {
 			originalResource = ref.getOriginalResource();
-			backingResource = ref.getFile().toString();
+			backingResource = ref.exists() ? ref.getFile().toString() : null;
 		}
 
 		ProjectFile(RefTarget ref) {
@@ -94,6 +110,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String description;
 		String gav;
 		String module;
+		Map<String, List<ProjectFile>> docs;
 
 		public ScriptInfo(BuildContext ctx, boolean assureJdkInstalled) {
 			Project prj = ctx.getProject();
@@ -179,7 +196,29 @@ abstract class BaseInfoCommand extends BaseCommand {
 			}
 			gav = prj.getGav().orElse(null);
 			description = prj.getDescription().orElse(null);
+			docs = getDocsMap(prj.getDocs());
+
 			module = prj.getModuleName().orElse(null);
+		}
+
+		/**
+		 * Returns a map of documentation ids to lists of documentation references. Refs
+		 * that has no id are grouped under "main".
+		 *
+		 * @param docs the list of documentation references
+		 * @return a map where the key is the documentation id and the value is a list
+		 *         of ProjectFile pointing to the documentation files or links
+		 */
+		Map<String, List<ProjectFile>> getDocsMap(List<DocRef> docs) {
+			Map<String, List<ProjectFile>> docsMap = new LinkedHashMap<>();
+			if (docs != null) {
+				for (DocRef doc : docs) {
+					String key = doc.getId() == null ? "main" : doc.getId();
+					List<ProjectFile> pfs = docsMap.computeIfAbsent(key, k -> new ArrayList<>());
+					pfs.add(new ProjectFile(doc.getRef()));
+				}
+			}
+			return docsMap;
 		}
 
 		private void init(SourceSet ss) {
@@ -253,9 +292,9 @@ class Tools extends BaseInfoCommand {
 				Object v = f.get(info);
 				if (v != null) {
 					if (v instanceof String || v instanceof Number) {
-						System.out.println(v);
+						out.println(v);
 					} else {
-						parser.toJson(v, System.out);
+						parser.toJson(v, out);
 					}
 				} else {
 					// We'll return an error code for `null` so
@@ -268,7 +307,7 @@ class Tools extends BaseInfoCommand {
 				throw new ExitException(EXIT_INVALID_INPUT, "Cannot return value of unknown field: " + select, e);
 			}
 		} else {
-			parser.toJson(info, System.out);
+			parser.toJson(info, out);
 		}
 
 		return EXIT_OK;
@@ -292,7 +331,7 @@ class ClassPath extends BaseInfoCommand {
 			cp.add(info.applicationJar);
 		}
 		cp.addAll(info.resolvedDependencies);
-		System.out.println(String.join(CP_SEPARATOR, cp));
+		out.println(String.join(CP_SEPARATOR, cp));
 
 		return EXIT_OK;
 	}
@@ -304,7 +343,72 @@ class Jar extends BaseInfoCommand {
 	@Override
 	public Integer doCall() throws IOException {
 		ScriptInfo info = getInfo(false);
-		System.out.println(info.applicationJar);
+		out.println(info.applicationJar);
 		return EXIT_OK;
 	}
+}
+
+@CommandLine.Command(name = "docs", description = "Open the documentation file in the default browser.")
+class Docs extends BaseInfoCommand {
+
+	@Option(names = {
+			"--open" }, negatable = true, defaultValue = "false", description = "Open the (first) documentation file/link in the default browser")
+	public boolean open;
+
+	@Override
+	public Integer doCall() throws IOException {
+
+		ScriptInfo info = getInfo(false);
+
+		ProjectFile[] toOpen = new ProjectFile[1];
+
+		if (info.description != null) {
+			out.println(info.description);
+		}
+
+		info.docs.forEach((String id, List<ProjectFile> docs) -> {
+			out.println(ConsoleOutput.yellow(id + ":"));
+			docs.forEach(doc -> {
+
+				String uripart = doc.backingResource == null || Util.isURL(doc.originalResource) ? doc.originalResource
+						: Paths.get(doc.backingResource).toUri().toString();
+				String suffix = doc.backingResource != null ? "" : " (not found)";
+
+				if (toOpen[0] == null && "main".equals(id) && doc.backingResource != null) {
+					toOpen[0] = doc;
+				}
+
+				out.printf("  %s%s%n", uripart, suffix);
+
+			});
+		});
+
+		if (!open) {
+			Util.infoMsg("Use --open to open the documentation file in the default browser.");
+			return EXIT_OK;
+		}
+		if (GraphicsEnvironment.isHeadless()) {
+			Util.infoMsg("Cannot open documentation file in browser in headless mode");
+			return EXIT_OK;
+		}
+		if (toOpen[0] == null) {
+			Util.infoMsg("No documentation file to open found");
+			return EXIT_OK;
+		}
+		try {
+			Desktop.getDesktop().browse(getDocsUri(toOpen[0]));
+		} catch (IOException e) {
+			Util.infoMsg("Documentation file to open not found: " + toOpen[0]);
+		}
+
+		return EXIT_OK;
+	}
+
+	URI getDocsUri(ProjectFile doc) {
+		if (Util.isURL(doc.originalResource)) {
+			return URI.create(doc.originalResource);
+		}
+		return Paths.get(doc.backingResource).toUri();
+	}
+
 }

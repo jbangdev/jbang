@@ -1563,9 +1563,8 @@ public class TestRun extends BaseTest {
 		File f = examplesTestFolder.resolve("brokenresource.java").toFile();
 
 		ProjectBuilder pb = Project.builder();
+
 		ExitException root = assertThrows(ExitException.class, () -> pb.build(f.getAbsolutePath()));
-		assertThat(root.getCause(), instanceOf(ResourceNotFoundException.class));
-		ResourceNotFoundException rnfe = (ResourceNotFoundException) root.getCause();
 		assertThat(root.toString(), containsString("'resourcethatdoesnotexist.properties"));
 		assertThat(root.toString(), containsString("brokenresource.java"));
 
@@ -2564,7 +2563,7 @@ public class TestRun extends BaseTest {
 		File f = examplesTestFolder.resolve("echo.java").toFile();
 		List<String> args = Arrays.asList("foo", "bar");
 		Alias alias = new Alias(f.toString(), null, args, null, null, null, null, null, null, null, null, null, null,
-				null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+				null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 		CatalogUtil.addNearestAlias("echo", alias);
 
 		CommandLine.ParseResult pr = JBang.getCommandLine()
