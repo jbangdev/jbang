@@ -2004,4 +2004,16 @@ public class Util {
 	public static <K, V> Entry<K, V> entry(K k, V v) {
 		return new AbstractMap.SimpleEntry<K, V>(k, v);
 	}
+
+	/**
+	 * Converts an arbitrary string into a valid Java identifier that can be used as
+	 * a class name. This is particularly important for JEP-445 implicit classes
+	 * where the compiler derives class names from file names.
+	 *
+	 * @param baseName The input string to convert
+	 * @return A valid Java identifier, never null or empty
+	 */
+	public static String toJavaIdentifier(@Nonnull String baseName) {
+		return "_" + baseName.replaceAll("[^\\p{L}\\p{N}_]", "_");
+	}
 }
