@@ -45,9 +45,13 @@ repositories {
 }
 
 java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(11)
+	}
 	withJavadocJar()
 	withSourcesJar()
 }
+
 
 // See https://docs.gradle.org/current/dsl/org.gradle.api.reporting.ReportingExtension.html
 // Extension is provided via Gradle's `reporting-base` plugin
