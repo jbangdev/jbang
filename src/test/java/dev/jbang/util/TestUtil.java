@@ -177,11 +177,11 @@ public class TestUtil extends BaseTest {
 
 	@Test
 	void testToJavaIdentifier() {
-		// Always gets a leading underscore
-		assertThat(Util.toJavaIdentifier("HelloWorld"), equalTo("_HelloWorld"));
-		assertThat(Util.toJavaIdentifier("_underscore"), equalTo("__underscore"));
-		assertThat(Util.toJavaIdentifier("Ångström"), equalTo("_Ångström"));
-		assertThat(Util.toJavaIdentifier("café"), equalTo("_café"));
+		// dont get a leading underscore if a valid name
+		assertThat(Util.toJavaIdentifier("HelloWorld"), equalTo("HelloWorld"));
+		assertThat(Util.toJavaIdentifier("_underscore"), equalTo("_underscore"));
+		assertThat(Util.toJavaIdentifier("Ångström"), equalTo("Ångström"));
+		assertThat(Util.toJavaIdentifier("café"), equalTo("café"));
 
 		// Leading digits are handled by the extra underscore
 		assertThat(Util.toJavaIdentifier("123abc"), equalTo("_123abc"));

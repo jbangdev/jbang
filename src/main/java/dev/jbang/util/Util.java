@@ -2014,6 +2014,40 @@ public class Util {
 	 * @return A valid Java identifier, never null or empty
 	 */
 	public static String toJavaIdentifier(@Nonnull String baseName) {
+		if(isValidJavaIdentifier(baseName)) {
+			return baseName;
+		}
 		return "_" + baseName.replaceAll("[^\\p{L}\\p{N}_]", "_");
 	}
+
+	public static boolean isValidJavaIdentifier(String s) {
+		if (s == null || s.isEmpty()) {
+			return false;
+		}
+	
+		if (!Character.isJavaIdentifierStart(s.charAt(0))) {
+			return false;
+		}
+	
+		for (int i = 1; i < s.length(); i++) {
+			if (!Character.isJavaIdentifierPart(s.charAt(i))) {
+				return false;
+			}
+		}
+	
+		return !isJavaKeyword(s); // Optional: block reserved keywords
+	}
+
+	private static final Set<String> JAVA_KEYWORDS = new HashSet<String>(Arrays.asList(
+    "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", 
+    "class", "const", "continue", "default", "do", "double", "else", "enum", 
+    "extends", "final", "finally", "float", "for", "goto", "if", "implements", 
+    "import", "instanceof", "int", "interface", "long", "native", "new", 
+    "package", "private", "protected", "public", "return", "short", "static", 
+    "strictfp", "super", "switch", "synchronized", "this", "throw", "throws", 
+    "transient", "try", "void", "volatile", "while", "true", "false", "null"));
+
+public static boolean isJavaKeyword(String s) {
+    return JAVA_KEYWORDS.contains(s);
+}
 }
