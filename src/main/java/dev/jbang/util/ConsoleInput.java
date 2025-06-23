@@ -43,7 +43,7 @@ public class ConsoleInput {
 		ExecutorService ex = Executors.newSingleThreadExecutor();
 		String input = null;
 
-		try (Terminal terminal = TerminalBuilder.builder().dumb(true).build()) {
+		try (Terminal terminal = TerminalBuilder.builder().build()) {
 			LineReader lineReader = LineReaderBuilder.builder()
 				.terminal(terminal)
 				.build();
