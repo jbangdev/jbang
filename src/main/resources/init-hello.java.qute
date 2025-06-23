@@ -9,10 +9,16 @@
 {#else}
 import static java.lang.System.*;
 
+{#if nakedmain}
+void main(String... args) {
+    out.println("Hello World");
+}
+{#else}
 public class {baseName} {
 
     public static void main(String... args) {
         out.println("Hello World");
     }
 }
+{/if}
 {/if}
