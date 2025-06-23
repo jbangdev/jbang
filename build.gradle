@@ -140,6 +140,7 @@ dependencies {
 	implementation "org.slf4j:slf4j-nop:1.7.30"
 	implementation "org.slf4j:jcl-over-slf4j:1.7.30"
 	implementation "org.jboss:jandex:2.2.3.Final"
+	implementation "org.jline:jline:3.24.1"
 
 	implementation "eu.maveniverse.maven.mima:context:2.4.20"
 	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.20"

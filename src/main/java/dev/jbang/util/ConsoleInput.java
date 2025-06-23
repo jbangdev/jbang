@@ -1,29 +1,26 @@
 package dev.jbang.util;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.concurrent.*;
 
-public abstract class ConsoleInput {
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
+
+public class ConsoleInput {
 	private final int tries;
 	private final int timeout;
 	private final TimeUnit unit;
 
-	private static final Path TTY = Paths.get("/dev/tty");
-
 	/**
 	 * Will either return a ConsoleInput that enables reading a line from the
-	 * console (using stdin or a tty) or it will return <code>null</code> if no
-	 * console is available.
+	 * console (using jline) or it will return <code>null</code> if no console is
+	 * available.
 	 */
 	public static ConsoleInput get(int tries, int timeout, TimeUnit unit) {
 		if (Util.haveConsole()) {
 			return stdin(tries, timeout, unit);
-		} else if (!Util.isWindows() && haveTTY()) {
-			return tty(tries, timeout, unit);
 		} else {
 			return null;
 		}
@@ -33,35 +30,7 @@ public abstract class ConsoleInput {
 	 * Returns a regular ConsoleInput based upon System.in
 	 */
 	private static ConsoleInput stdin(int tries, int timeout, TimeUnit unit) {
-		return new ConsoleInput(tries, timeout, unit) {
-			@Override
-			protected Callable<String> readerTask() {
-				return new ConsoleInputReadTask(System.in);
-			}
-		};
-	}
-
-	private static boolean haveTTY() {
-		if (Files.isReadable(TTY)) {
-			try (InputStream is = Files.newInputStream(TTY)) {
-				return true;
-			} catch (IOException e) {
-				// Ignore
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Returns a ConsoleInput based upon /dev/tty which only works on Linux and Mac.
-	 */
-	private static ConsoleInput tty(int tries, int timeout, TimeUnit unit) {
-		return new ConsoleInput(tries, timeout, unit) {
-			@Override
-			protected Callable<String> readerTask() throws IOException {
-				return new ConsoleInputReadTask(Files.newInputStream(TTY));
-			}
-		};
+		return new ConsoleInput(tries, timeout, unit);
 	}
 
 	private ConsoleInput(int tries, int timeout, TimeUnit unit) {
@@ -70,20 +39,22 @@ public abstract class ConsoleInput {
 		this.unit = unit;
 	}
 
-	protected abstract Callable<String> readerTask() throws IOException;
-
 	public String readLine() {
 		ExecutorService ex = Executors.newSingleThreadExecutor();
 		String input = null;
-		try {
+
+		try (Terminal terminal = TerminalBuilder.builder().dumb(true).build()) {
+			LineReader lineReader = LineReaderBuilder.builder()
+				.terminal(terminal)
+				.build();
 			// start working
 			for (int i = 0; i < tries; i++) {
-				Future<String> result = null;
+				Callable<String> readerTask = () -> lineReader.readLine("");
+				Future<String> result = ex.submit(readerTask);
 				try {
-					result = ex.submit(readerTask());
 					input = result.get(timeout, unit);
 					break;
-				} catch (ExecutionException | IOException e) {
+				} catch (ExecutionException e) {
 					Util.verboseMsg("Error accessing console", e);
 				} catch (TimeoutException e) {
 					result.cancel(true);
@@ -91,9 +62,12 @@ public abstract class ConsoleInput {
 					throw new RuntimeException(ie);
 				}
 			}
+		} catch (IOException e) {
+			Util.verboseMsg("Error accessing console", e);
 		} finally {
 			ex.shutdownNow();
 		}
 		return input;
 	}
+
 }
