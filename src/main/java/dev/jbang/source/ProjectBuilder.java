@@ -620,7 +620,7 @@ public class ProjectBuilder {
 		}
 		return new CombinedResourceResolver(
 				new RenamingScriptResourceResolver(forceType),
-				new LiteralScriptResourceResolver(),
+				new LiteralScriptResourceResolver(forceType),
 				new RemoteResourceResolver(false),
 				new ClasspathResourceResolver(),
 				new GavResourceResolver(this::resolveDependency),

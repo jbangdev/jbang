@@ -174,4 +174,23 @@ public class TestUtil extends BaseTest {
 		assertThat(connection.getRequestProperty("Authorization"),
 				equalTo("Basic Sm9obkRvZTpWZXJ5U3Ryb25nUGFzc3dvcmQx"));
 	}
+
+	@Test
+	void testToJavaIdentifier() {
+		// dont get a leading underscore if a valid name
+		assertThat(Util.toJavaIdentifier("HelloWorld"), equalTo("HelloWorld"));
+		assertThat(Util.toJavaIdentifier("_underscore"), equalTo("_underscore"));
+		assertThat(Util.toJavaIdentifier("Ångström"), equalTo("Ångström"));
+		assertThat(Util.toJavaIdentifier("café"), equalTo("café"));
+
+		// Leading digits are handled by the extra underscore
+		assertThat(Util.toJavaIdentifier("123abc"), equalTo("_123abc"));
+		assertThat(Util.toJavaIdentifier("0test"), equalTo("_0test"));
+
+		// Invalid characters are replaced with underscores
+		assertThat(Util.toJavaIdentifier("foo-bar"), equalTo("_foo_bar"));
+		assertThat(Util.toJavaIdentifier("hello world"), equalTo("_hello_world"));
+		assertThat(Util.toJavaIdentifier("my.package.Class"), equalTo("_my_package_Class"));
+		assertThat(Util.toJavaIdentifier("test+plus"), equalTo("_test_plus"));
+	}
 }
