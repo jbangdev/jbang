@@ -45,7 +45,7 @@ public class ConsoleInputReadTask implements Callable<String> {
 				// the calling thread timed out and interrupted the reader task
 				return null;
 			}
-			// if the {@code input} string is empty, retry by reading the next line
+			// if the input string is empty, retry by reading the next line
 		} while ("".equals(input));
 		return input;
 	}
