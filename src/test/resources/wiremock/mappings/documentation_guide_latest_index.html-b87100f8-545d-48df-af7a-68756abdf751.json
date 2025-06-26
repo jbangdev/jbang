@@ -1,0 +1,40 @@
+{
+  "id" : "b87100f8-545d-48df-af7a-68756abdf751",
+  "name" : "documentation_guide_latest_index.html",
+  "request" : {
+    "url" : "/documentation/guide/latest/index.html",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "documentation_guide_latest_index.html-b87100f8-545d-48df-af7a-68756abdf751.txt",
+    "headers" : {
+      "expires" : "Thu, 26 Jun 2025 18:57:15 GMT",
+      "Server" : "cloudflare",
+      "x-fastly-request-id" : "6fe247cb54709c82d56c37e2d690114505b0d2dd",
+      "vary" : "Accept-Encoding",
+      "Server-Timing" : [ "cfCacheStatus;desc=\"DYNAMIC\"", "cfOrigin;dur=109,cfEdge;dur=34", "cfL4;desc=\"?proto=TCP&rtt=17342&min_rtt=16973&rtt_var=5504&sent=6&recv=7&lost=0&retrans=0&sent_bytes=3110&recv_bytes=741&delivery_rate=219933&cwnd=252&unsent_bytes=0&cid=996103d570a49dd9&ts=168&x=0\"" ],
+      "x-served-by" : "cache-mad2200085-MAD",
+      "x-cache-hits" : "0",
+      "via" : "1.1 varnish",
+      "last-modified" : "Sun, 22 Jun 2025 15:24:37 GMT",
+      "x-proxy-cache" : "MISS",
+      "Report-To" : "{\"endpoints\":[{\"url\":\"https:\\/\\/a.nel.cloudflare.com\\/report\\/v4?s=CSEQ177h8tbIeXcAwJ%2FhneDlaFQ8kCrrnDs0MYFh9FDlptOqoSmb2d7hrfh9KCLjHKU8nmmISMsXNq%2FeXglDlbkQ2fJ2VR9tRWU%2FFalQbsmHfeYgd2ghAYQoHKtzf0Q%3D\"}],\"group\":\"cf-nel\",\"max_age\":604800}",
+      "Age" : "0",
+      "Content-Type" : "text/html; charset=utf-8",
+      "CF-RAY" : "955eeda1bf43cbc3-MAD",
+      "x-origin-cache" : "HIT",
+      "cf-cache-status" : "DYNAMIC",
+      "Date" : "Thu, 26 Jun 2025 18:57:04 GMT",
+      "x-github-request-id" : "6D73:144AE9:2961D:2BF8F:685D95B1",
+      "access-control-allow-origin" : "*",
+      "NEL" : "{\"success_fraction\":0,\"report_to\":\"cf-nel\",\"max_age\":604800}",
+      "Cache-Control" : "max-age=600",
+      "x-timer" : "S1750964224.309867,VS0,VE108",
+      "x-cache" : "HIT"
+    }
+  },
+  "uuid" : "b87100f8-545d-48df-af7a-68756abdf751",
+  "persistent" : true,
+  "insertionIndex" : 32
+}
