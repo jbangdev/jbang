@@ -70,10 +70,14 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String originalResource;
 		String backingResource;
 		String target;
+		String error;
 
 		ProjectFile(ResourceRef ref) {
 			originalResource = ref.getOriginalResource();
 			backingResource = ref.exists() ? ref.getFile().toString() : null;
+			error = ref instanceof ResourceRef.UnresolvableResourceRef
+					? ((ResourceRef.UnresolvableResourceRef) ref).getReason()
+					: null;
 		}
 
 		ProjectFile(RefTarget ref) {
@@ -114,26 +118,20 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String module;
 		Map<String, List<ProjectFile>> docs;
 
-		public ScriptInfo(BuildContext ctx, boolean assureJdkInstalled) {
-			Project prj = ctx.getProject();
+		public ScriptInfo(Project prj, Path buildDir, boolean assureJdkInstalled) {
 			originalResource = prj.getResourceRef().getOriginalResource();
 
 			if (scripts.add(originalResource)) {
 				backingResource = prj.getResourceRef().getFile().toString();
 
-				init(ctx);
+				init(prj);
 
-				applicationJar = ctx.getJarFile() == null ? null
-						: ctx.getJarFile().toAbsolutePath().toString();
-				applicationJsa = ctx.getJsaFile() != null && Files.isRegularFile(ctx.getJsaFile())
-						? ctx.getJsaFile().toAbsolutePath().toString()
-						: null;
-				nativeImage = ctx.getNativeImageFile() != null && Files.exists(ctx.getNativeImageFile())
-						? ctx.getNativeImageFile().toAbsolutePath().toString()
-						: null;
-				mainClass = prj.getMainClass();
-				module = ModuleUtil.getModuleName(prj);
-				requestedJavaVersion = prj.getJavaVersion();
+				try {
+					BuildContext ctx = BuildContext.forProject(prj, buildDir);
+					init(ctx);
+				} catch (Exception e) {
+					Util.warnMsg("Unable to obtain full information, the script probably contains errors", e);
+				}
 
 				try {
 					JdkManager jdkMan = JavaUtil.defaultJdkManager();
@@ -145,41 +143,10 @@ abstract class BaseInfoCommand extends BaseCommand {
 				} catch (ExitException e) {
 					// Ignore
 				}
-
-				List<ArtifactInfo> artifacts = ctx.resolveClassPath().getArtifacts();
-				if (artifacts.isEmpty()) {
-					resolvedDependencies = Collections.emptyList();
-				} else {
-					resolvedDependencies = artifacts
-						.stream()
-						.map(a -> a.getFile().toString())
-						.collect(Collectors.toList());
-				}
-
-				if (prj.getJavaVersion() != null) {
-					javaVersion = Integer.toString(JavaUtil.parseJavaVersion(prj.getJavaVersion()));
-				}
-
-				List<String> opts = prj.getRuntimeOptions();
-				if (!opts.isEmpty()) {
-					runtimeOptions = opts;
-				}
-
-				if (ctx.getJarFile() != null && Files.exists(ctx.getJarFile())) {
-					Project jarProject = Project.builder().build(ctx.getJarFile());
-					mainClass = jarProject.getMainClass();
-					gav = jarProject.getGav().orElse(gav);
-					module = ModuleUtil.getModuleName(jarProject);
-				}
 			}
 		}
 
-		private void init(BuildContext ctx) {
-			Project prj = ctx.getProject();
-			List<String> deps = ctx.resolveClassPath().getClassPaths();
-			if (!deps.isEmpty()) {
-				dependencies = deps;
-			}
+		private void init(Project prj) {
 			if (prj.getMainSource() == null) {
 				if (!prj.getRepositories().isEmpty()) {
 					repositories = prj.getRepositories()
@@ -201,6 +168,51 @@ abstract class BaseInfoCommand extends BaseCommand {
 			docs = getDocsMap(prj.getDocs());
 
 			module = prj.getModuleName().orElse(null);
+
+			mainClass = prj.getMainClass();
+			module = ModuleUtil.getModuleName(prj);
+			requestedJavaVersion = prj.getJavaVersion();
+
+			if (prj.getJavaVersion() != null) {
+				javaVersion = Integer.toString(JavaUtil.parseJavaVersion(prj.getJavaVersion()));
+			}
+
+			List<String> opts = prj.getRuntimeOptions();
+			if (!opts.isEmpty()) {
+				runtimeOptions = opts;
+			}
+		}
+
+		private void init(BuildContext ctx) {
+			List<String> deps = ctx.resolveClassPath().getClassPaths();
+			if (!deps.isEmpty()) {
+				dependencies = deps;
+			}
+			applicationJar = ctx.getJarFile() == null ? null
+					: ctx.getJarFile().toAbsolutePath().toString();
+			applicationJsa = ctx.getJsaFile() != null && Files.isRegularFile(ctx.getJsaFile())
+					? ctx.getJsaFile().toAbsolutePath().toString()
+					: null;
+			nativeImage = ctx.getNativeImageFile() != null && Files.exists(ctx.getNativeImageFile())
+					? ctx.getNativeImageFile().toAbsolutePath().toString()
+					: null;
+
+			List<ArtifactInfo> artifacts = ctx.resolveClassPath().getArtifacts();
+			if (artifacts.isEmpty()) {
+				resolvedDependencies = Collections.emptyList();
+			} else {
+				resolvedDependencies = artifacts
+					.stream()
+					.map(a -> a.getFile().toString())
+					.collect(Collectors.toList());
+			}
+
+			if (ctx.getJarFile() != null && Files.exists(ctx.getJarFile())) {
+				Project jarProject = Project.builder().build(ctx.getJarFile());
+				mainClass = jarProject.getMainClass();
+				gav = jarProject.getGav().orElse(gav);
+				module = ModuleUtil.getModuleName(jarProject);
+			}
 		}
 
 		/**
@@ -257,7 +269,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 
 		scripts = new HashSet<>();
 
-		return new ScriptInfo(BuildContext.forProject(prj, buildDir), assureJdkInstalled);
+		return new ScriptInfo(prj, buildDir, assureJdkInstalled);
 	}
 
 	ProjectBuilder createProjectBuilder() {
