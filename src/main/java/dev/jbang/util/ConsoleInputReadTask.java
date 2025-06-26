@@ -14,6 +14,18 @@ public class ConsoleInputReadTask implements Callable<String> {
 
 	public String call() throws IOException {
 		Scanner sc = new Scanner(in);
-		return sc.nextLine();
+		String input;
+		do {
+			try {
+				// wait until we have data to complete a readLine()
+				while (!sc.hasNextLine()) {
+					Thread.sleep(200);
+				}
+				input = sc.nextLine();
+			} catch (InterruptedException e) {
+				return null;
+			}
+		} while ("".equals(input));
+		return input;
 	}
 }
