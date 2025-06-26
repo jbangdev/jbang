@@ -11,6 +11,7 @@ public abstract class ConsoleInput {
 	private final int tries;
 	private final int timeout;
 	private final TimeUnit unit;
+
 	private final Callable<String> task;
 	private static final Path TTY = Paths.get("/dev/tty");
 
@@ -96,7 +97,7 @@ public abstract class ConsoleInput {
 					throw new RuntimeException(ie);
 				}
 			}
-        } finally {
+		} finally {
 			ex.shutdownNow();
 		}
 		return input;
