@@ -25,7 +25,7 @@ import dev.jbang.util.Util;
  * Resolver.resolve}.
  */
 public interface ResourceRef extends Comparable<ResourceRef> {
-	ResourceRef nullRef = new UnresolvableResourceRef(null);
+	ResourceRef nullRef = new UnresolvableResourceRef(null, "null reference");
 
 	@Nullable
 	String getOriginalResource();
@@ -162,10 +162,11 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 	 * a file or input stream.
 	 *
 	 * @param resource the resource string
+	 * @param reason   the reason why the resource cannot be resolved
 	 * @return a {@code ResourceRef} instance
 	 */
-	static ResourceRef forUnresolvable(@Nonnull String resource) {
-		return new UnresolvableResourceRef(resource);
+	static ResourceRef forUnresolvable(@Nonnull String resource, @Nonnull String reason) {
+		return new UnresolvableResourceRef(resource, reason);
 	}
 
 	/**
@@ -183,9 +184,11 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 
 	class UnresolvableResourceRef implements ResourceRef {
 		private final String resource;
+		private final String reason;
 
-		public UnresolvableResourceRef(@Nullable String resource) {
+		public UnresolvableResourceRef(@Nullable String resource, @Nonnull String reason) {
 			this.resource = resource;
+			this.reason = reason;
 		}
 
 		@Nullable
@@ -194,20 +197,37 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 			return resource;
 		}
 
+		@Nullable
+		public String getReason() {
+			return reason;
+		}
+
 		@Override
 		public boolean exists() {
 			return false;
 		}
 
+		@Nonnull
 		@Override
-		public int compareTo(ResourceRef o) {
+		public Path getFile() {
+			throw new ResourceNotFoundException(getOriginalResource(),
+					"Failed to get contents from resource '" + resource + "': " + reason);
+		}
+
+		@Override
+		public int compareTo(@Nonnull ResourceRef o) {
 			return 0;
+		}
+
+		@Override
+		public String toString() {
+			return resource + " (unresolvable)";
 		}
 	}
 
 	class WrappedResourceRef implements ResourceRef {
 		@Nonnull
-		private final ResourceRef wrappedRef;
+		protected final ResourceRef wrappedRef;
 
 		public WrappedResourceRef(@Nonnull ResourceRef wrappedRef) {
 			this.wrappedRef = wrappedRef;
@@ -231,13 +251,18 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 		}
 
 		@Override
-		public int compareTo(ResourceRef o) {
+		public int compareTo(@Nonnull ResourceRef o) {
 			return wrappedRef.compareTo(o);
 		}
 
 		@Override
 		public boolean equals(Object obj) {
 			return wrappedRef.equals(obj);
+		}
+
+		@Override
+		public String toString() {
+			return wrappedRef.toString();
 		}
 	}
 }
