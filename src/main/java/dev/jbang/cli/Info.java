@@ -397,16 +397,16 @@ class Docs extends BaseInfoCommand {
 			});
 		});
 
+		if (toOpen[0] == null) {
+			Util.infoMsg("No documentation files found");
+			return EXIT_OK;
+		}
 		if (!open) {
 			Util.infoMsg("Use --open to open the documentation file in the default browser.");
 			return EXIT_OK;
 		}
 		if (GraphicsEnvironment.isHeadless()) {
 			Util.infoMsg("Cannot open documentation file in browser in headless mode");
-			return EXIT_OK;
-		}
-		if (toOpen[0] == null) {
-			Util.infoMsg("No documentation file to open found");
 			return EXIT_OK;
 		}
 		try {
