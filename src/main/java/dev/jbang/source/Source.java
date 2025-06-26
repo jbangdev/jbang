@@ -9,8 +9,6 @@ import java.util.stream.Stream;
 
 import org.jspecify.annotations.NonNull;
 
-import dev.jbang.cli.BaseCommand;
-import dev.jbang.cli.ExitException;
 import dev.jbang.source.sources.*;
 import dev.jbang.source.sources.KotlinSource;
 import dev.jbang.source.sources.MarkdownSource;
@@ -129,7 +127,7 @@ public abstract class Source {
 			Function<String, String> replaceProperties) {
 		ResourceRef resourceRef = resolver.resolve(resource);
 		if (resourceRef == null) {
-			throw new ExitException(BaseCommand.EXIT_INVALID_INPUT, "Could not find: " + resource);
+			resourceRef = ResourceRef.forUnresolvable(resource, "not found from " + resolver.description());
 		}
 		return forResourceRef(resourceRef, replaceProperties);
 	}

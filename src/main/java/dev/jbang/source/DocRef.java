@@ -58,6 +58,7 @@ public class DocRef {
 			docRef = split[1];
 		}
 		ResourceRef ref = siblingResolver.resolve(docRef);
-		return new DocRef(docId, ref != null ? ref : ResourceRef.forUnresolvable(docRef));
+		return new DocRef(docId, ref != null ? ref
+				: ResourceRef.forUnresolvable(docRef, "not resolvable from " + siblingResolver.description()));
 	}
 }
