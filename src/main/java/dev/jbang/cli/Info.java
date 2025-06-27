@@ -183,11 +183,29 @@ abstract class BaseInfoCommand extends BaseCommand {
 			}
 		}
 
-		private void init(BuildContext ctx) {
-			List<String> deps = ctx.resolveClassPath().getClassPaths();
+		private void init(SourceSet ss) {
+			List<String> deps = ss.getDependencies();
 			if (!deps.isEmpty()) {
 				dependencies = deps;
 			}
+			List<RefTarget> refs = ss.getResources();
+			if (!refs.isEmpty()) {
+				files = refs.stream()
+					.map(ProjectFile::new)
+					.collect(Collectors.toList());
+			}
+			List<ResourceRef> srcs = ss.getSources();
+			if (!srcs.isEmpty()) {
+				sources = srcs.stream()
+					.map(ProjectFile::new)
+					.collect(Collectors.toList());
+			}
+			if (!ss.getCompileOptions().isEmpty()) {
+				compileOptions = ss.getCompileOptions();
+			}
+		}
+
+		private void init(BuildContext ctx) {
 			applicationJar = ctx.getJarFile() == null ? null
 					: ctx.getJarFile().toAbsolutePath().toString();
 			applicationJsa = ctx.getJsaFile() != null && Files.isRegularFile(ctx.getJsaFile())
@@ -233,28 +251,6 @@ abstract class BaseInfoCommand extends BaseCommand {
 				}
 			}
 			return docsMap;
-		}
-
-		private void init(SourceSet ss) {
-			List<String> deps = ss.getDependencies();
-			if (!deps.isEmpty()) {
-				dependencies = deps;
-			}
-			List<RefTarget> refs = ss.getResources();
-			if (!refs.isEmpty()) {
-				files = refs.stream()
-					.map(ProjectFile::new)
-					.collect(Collectors.toList());
-			}
-			List<ResourceRef> srcs = ss.getSources();
-			if (!srcs.isEmpty()) {
-				sources = srcs.stream()
-					.map(ProjectFile::new)
-					.collect(Collectors.toList());
-			}
-			if (!ss.getCompileOptions().isEmpty()) {
-				compileOptions = ss.getCompileOptions();
-			}
 		}
 
 	}
