@@ -12,7 +12,6 @@ public abstract class ConsoleInput {
 	private final int timeout;
 	private final TimeUnit unit;
 
-	private final Callable<String> task;
 	private static final Path TTY = Paths.get("/dev/tty");
 
 	/**
@@ -69,11 +68,6 @@ public abstract class ConsoleInput {
 		this.tries = tries;
 		this.timeout = timeout;
 		this.unit = unit;
-		try {
-			this.task = readerTask();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
 	}
 
 	protected abstract Callable<String> readerTask() throws IOException;
@@ -86,10 +80,10 @@ public abstract class ConsoleInput {
 			for (int i = 0; i < tries; i++) {
 				Future<String> result = null;
 				try {
-					result = ex.submit(task);
+					result = ex.submit(readerTask());
 					input = result.get(timeout, unit);
 					break;
-				} catch (ExecutionException e) {
+				} catch (ExecutionException | IOException e) {
 					Util.verboseMsg("Error accessing console", e);
 				} catch (TimeoutException e) {
 					result.cancel(true);
