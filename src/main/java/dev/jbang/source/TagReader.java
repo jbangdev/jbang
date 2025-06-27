@@ -390,13 +390,10 @@ public abstract class TagReader {
 
 		Path p = dest != null ? Paths.get(dest) : null;
 
-		if (Paths.get(src).isAbsolute()) {
-			throw new IllegalStateException(
-					"Only relative paths allowed in //FILES. Found absolute path: " + src);
-		}
-		if (p != null && p.isAbsolute()) {
-			throw new IllegalStateException(
-					"Only relative paths allowed in //FILES. Found absolute path: " + dest);
+		if (Paths.get(src).isAbsolute() || (p != null && p.isAbsolute())) {
+			ResourceRef ref = ResourceRef.forUnresolvable(src,
+					"Only relative paths allowed in //FILES. Found absolute path");
+			return RefTarget.create(ref, p);
 		}
 
 		try {
