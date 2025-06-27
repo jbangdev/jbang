@@ -329,7 +329,7 @@ public class ProjectBuilder {
 		TagReader tagReader = new TagReader.JbangProject(contents,
 				it -> PropertiesValueResolver.replaceProperties(it, getContextProperties()));
 		prj.setDescription(tagReader.getDescription().orElse(null));
-		ResourceResolver resolver1 = new SiblingResourceResolver(resourceRef, ResourceResolver.forResources());
+		ResourceResolver resolver1 = new SiblingResourceResolver(resourceRef);
 		prj.addDocs(tagReader.collectDocs(resolver1));
 		prj.setGav(tagReader.getGav().orElse(null));
 		prj.setMainClass(tagReader.getMain().orElse(null));
@@ -569,7 +569,7 @@ public class ProjectBuilder {
 	private Project updateProject(Source src, Project prj, ResourceResolver resolver) {
 		ResourceRef srcRef = src.getResourceRef();
 		if (!prj.getMainSourceSet().getSources().contains(srcRef)) {
-			ResourceResolver sibRes1 = new SiblingResourceResolver(srcRef, ResourceResolver.forResources());
+			ResourceResolver sibRes1 = new SiblingResourceResolver(srcRef);
 			SourceSet ss = prj.getMainSourceSet();
 			ss.addSource(srcRef);
 			ss.addResources(src.tagReader.collectFiles(srcRef, sibRes1));
