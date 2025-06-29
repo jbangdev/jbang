@@ -1,0 +1,121 @@
+// This is a generated documentation file based on picocli
+// To change it update the picocli code or the genrator
+// tag::picocli-generated-full-manpage[]
+// tag::picocli-generated-man-section-header[]
+:doctype: manpage
+:manmanual: jbang Manual
+:man-linkstyle: pass:[blue R < >]
+= jbang-info-docs(1)
+
+// end::picocli-generated-man-section-header[]
+
+// tag::picocli-generated-man-section-name[]
+== Name
+
+jbang-info-docs - Open the documentation file in the default browser.
+
+// end::picocli-generated-man-section-name[]
+
+// tag::picocli-generated-man-section-synopsis[]
+== Synopsis
+
+*jbang info docs* *-o* [*-h*] *--fresh* [*--insecure*] [*--itr*] [*--jsh*] [*--[no-]open*]
+                *--quiet* *--verbose* [*--module*[=_<module>_]]
+                [*--build-dir*=_<buildDir>_] [*--catalog*=_<catalog>_]
+                [*--config*=_<config>_] [*--source-type*=_<forceType>_]
+                [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
+                [*--deps*=_<dependencies>_]... [*--files*=_<resources>_]...
+                [*--repos*=_<repositories>_]... [*-s*=_<sources>_]... [_<scriptOrFile>_]
+
+// end::picocli-generated-man-section-synopsis[]
+
+// tag::picocli-generated-man-section-description[]
+== Description
+
+Open the documentation file in the default browser.
+
+// end::picocli-generated-man-section-description[]
+
+// tag::picocli-generated-man-section-options[]
+== Options
+
+*--build-dir*=_<buildDir>_::
+  Use given directory for build results
+
+*--catalog*=_<catalog>_::
+  Path to catalog file to be used instead of the default
+
+*--config*=_<config>_::
+  Path to config file to be used instead of the default
+
+*--cp, --class-path*=_<classpaths>_::
+  Add class path entries.
+
+*-D*, _<String=String>_::
+  set a system property
+
+*--deps*=_<dependencies>_::
+  Add additional dependencies (Use commas to separate them).
+
+*--files*=_<resources>_::
+  Add additional files.
+
+*--fresh*::
+  Make sure we use fresh (i.e. non-cached) resources.
+
+*-h*, *--help*::
+  Display help/info. Use 'jbang <command> -h' for detailed usage.
+
+*--insecure*::
+  Enable insecure trust of all SSL certificates.
+
+*--itr, --ignore-transitive-repositories*::
+  Ignore remote repositories found in transitive dependencies
+
+*--jsh*::
+  Force input to be interpreted with jsh/jshell. Deprecated: use '--source-type jshell'
+
+*--module*[=_<module>_]::
+  Treat resource as a module. Optionally with the given module name
+
+*-o*, *--offline*::
+  Work offline. Fail-fast if dependencies are missing. No connections will be attempted
+
+*--[no-]open*::
+  Open the (first) documentation file/link in the default browser
+
+*--quiet*::
+  jbang will be quiet, only print when error occurs.
+
+*--repos*=_<repositories>_::
+  Add additional repositories.
+
+*-s*, *--sources*=_<sources>_::
+  Add additional sources.
+
+*--source-type*=_<forceType>_::
+  Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
+
+*--verbose*::
+  jbang will be verbose on what it does.
+
+// end::picocli-generated-man-section-options[]
+
+// tag::picocli-generated-man-section-arguments[]
+== Arguments
+
+[_<scriptOrFile>_]::
+  A reference to a source file
+
+// end::picocli-generated-man-section-arguments[]
+
+// tag::picocli-generated-man-section-commands[]
+// end::picocli-generated-man-section-commands[]
+
+// tag::picocli-generated-man-section-exit-status[]
+// end::picocli-generated-man-section-exit-status[]
+
+// tag::picocli-generated-man-section-footer[]
+// end::picocli-generated-man-section-footer[]
+
+// end::picocli-generated-full-manpage[]
