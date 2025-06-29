@@ -20,7 +20,7 @@ jbang-jdk-list - Lists installed JDKs.
 == Synopsis
 
 *jbang jdk list* *-o* [*--available*] *--fresh* *--quiet* [*--show-details*] *--verbose*
-               [*--format*=_<arg2>_]
+               [*--format*=_<format>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -37,7 +37,7 @@ Lists installed JDKs.
 *--available*::
   Shows versions available for installation
 
-*--format*=_<arg2>_::
+*--format*=_<format>_::
   Specify output format ('text' or 'json')
 
 *--fresh*::
