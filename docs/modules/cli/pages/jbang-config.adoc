@@ -53,16 +53,16 @@ Read and write configuration options.
 // tag::picocli-generated-man-section-commands[]
 == Commands
 
-xref:jbang-config-get.adoc[*get*]::
+xref:jbang:cli:jbang-config-get.adoc[*get*]::
   Get a configuration value
 
-xref:jbang-config-set.adoc[*set*]::
+xref:jbang:cli:jbang-config-set.adoc[*set*]::
   Set a configuration value
 
-xref:jbang-config-unset.adoc[*unset*]::
+xref:jbang:cli:jbang-config-unset.adoc[*unset*]::
   Remove a configuration value
 
-xref:jbang-config-list.adoc[*list*]::
+xref:jbang:cli:jbang-config-list.adoc[*list*]::
   List active configuration values
 
 // end::picocli-generated-man-section-commands[]

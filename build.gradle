@@ -493,7 +493,7 @@ asciidoctor {
 task clidoc(type: Exec) {
 	doFirst {
 		println 'Generating cli man pages'
-		commandLine 'build/install/jbang/bin/jbang', '--cp', 'build/install/jbang/bin/jbang.jar', 'docs/genadoc.java', '-d', 'docs/modules/cli', '--force', 'dev.jbang.cli.JBang'
+		commandLine 'build/install/jbang/bin/jbang', '--cp', 'build/install/jbang/bin/jbang.jar', '--deps','org.eclipse.sisu:org.eclipse.sisu.inject:0.3.5', 'docs/genadoc.java', '-d', 'docs/modules/cli', '--force', 'dev.jbang.cli.JBang'
 	}
 }
 

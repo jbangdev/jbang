@@ -53,16 +53,16 @@ Manage Catalogs of aliases.
 // tag::picocli-generated-man-section-commands[]
 == Commands
 
-xref:jbang-catalog-add.adoc[*add*]::
+xref:jbang:cli:jbang-catalog-add.adoc[*add*]::
   Add a catalog.
 
-xref:jbang-catalog-update.adoc[*update*]::
+xref:jbang:cli:jbang-catalog-update.adoc[*update*]::
   Retrieve the latest contents of the catalogs.
 
-xref:jbang-catalog-list.adoc[*list*]::
+xref:jbang:cli:jbang-catalog-list.adoc[*list*]::
   Show currently defined catalogs.
 
-xref:jbang-catalog-remove.adoc[*remove*]::
+xref:jbang:cli:jbang-catalog-remove.adoc[*remove*]::
   Remove existing catalog.
 
 // end::picocli-generated-man-section-commands[]

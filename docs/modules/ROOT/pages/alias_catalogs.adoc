@@ -23,7 +23,7 @@ will add an alias named `hello` pointing to that github url which then can be ru
 
 will show you all the aliases that are defined locally.
 
-=== Describe Aliases
+== Describe Aliases
 When an alias is added to a catalog, it can also include a meaningful description of what the script does.
 It can be added either through an explicit command-line parameter or by extracting it from the //DESCRIPTION tags present in the script.
 

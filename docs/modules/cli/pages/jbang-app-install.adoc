@@ -21,8 +21,9 @@ jbang-app-install - Install a script as a command.
 
 *jbang app install* *-o* [*-hin*] [*--[no-]cds*] [*--ea*] [*--enable-preview*] [*--esa*]
                   [*--force*] *--fresh* [*--insecure*] [*--[no-]integrations*] [*--itr*]
-                  [*--jsh*] *--quiet* *--verbose* [*--jfr*[=_<flightRecorderString>_]]
-                  [*--module*[=_<module>_]] [*-d*[=_<String=String>_]]...
+                  [*--jsh*] [*--no-build*] *--quiet* *--verbose* [*--jfr*
+                  [=_<flightRecorderString>_]] [*--module*[=_<module>_]] [*-d*
+                  [=_<String=String>_]]... [*--build-dir*=_<buildDir>_]
                   [*--catalog*=_<catalog>_] [*--config*=_<config>_] [*-j*=_<javaVersion>_]
                   [*-m*=_<main>_] [*--name*=_<name>_] [*--source-type*=_<forceType>_]
                   [*-C*=_<compileOptions>_]... [*--cp*=_<classpaths>_]...
@@ -43,6 +44,9 @@ Install a script as a command.
 
 // tag::picocli-generated-man-section-options[]
 == Options
+
+*--build-dir*=_<buildDir>_::
+  Use given directory for build results
 
 *-C*, *--compile-option*=_<compileOptions>_::
   Options to pass to the compiler
@@ -130,6 +134,9 @@ Install a script as a command.
 
 *--name*=_<name>_::
   A name for the command
+
+*--no-build*::
+  Don't pre-build the code before installation
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted
