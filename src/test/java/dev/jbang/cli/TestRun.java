@@ -3,6 +3,7 @@ package dev.jbang.cli;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static dev.jbang.cli.BaseCommand.EXIT_EXECUTE;
 import static dev.jbang.source.Project.ATTR_AGENT_CLASS;
 import static dev.jbang.source.Project.ATTR_PREMAIN_CLASS;
 import static dev.jbang.util.JavaUtil.defaultJdkManager;
@@ -15,9 +16,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -199,7 +202,7 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		Project prj = pb.build(
-				LiteralScriptResourceResolver.stringToResourceRef(null, "Collector2.class"));
+				LiteralScriptResourceResolver.stringToResourceRef(null, "Collector2.class", null));
 		BuildContext ctx = BuildContext.forProject(prj);
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
@@ -221,7 +224,7 @@ public class TestRun extends BaseTest {
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		pb.mainClass("fakemain");
 		Project prj = pb.build(
-				LiteralScriptResourceResolver.stringToResourceRef(null, hwtxt));
+				LiteralScriptResourceResolver.stringToResourceRef(null, hwtxt, null));
 
 		String result = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
@@ -2185,7 +2188,7 @@ public class TestRun extends BaseTest {
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
 		try {
-			Project prj = pb.build(LiteralScriptResourceResolver.stringToResourceRef(null, ""));
+			Project prj = pb.build(LiteralScriptResourceResolver.stringToResourceRef(null, "", null));
 			fail("Should have thrown exception");
 		} catch (ExitException ex) {
 			StringWriter sw = new StringWriter();
@@ -2642,5 +2645,46 @@ public class TestRun extends BaseTest {
 		assertThat(cmd,
 				not(containsString(
 						"--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED")));
+	}
+
+	@Test
+	void testStdinHonoursForcedSourceType() throws Exception {
+		// Capture original System.in to restore it later
+		InputStream originalIn = System.in;
+		try {
+			// Feed some trivial Java code via stdin
+			System.setIn(new ByteArrayInputStream("class Test { public static void main(String...a) { } }".getBytes()));
+
+			CaptureResult<Integer> res = checkedRun(null,
+					"run", "--source-type=java", "--enable-preview", "--verbose", "-");
+
+			// expect the JShell pipeline NOT to be used
+			assertThat(res.err, not(containsString(".jsh")));
+		} finally {
+			// Always restore original System.in
+			System.setIn(originalIn);
+		}
+	}
+
+	@Test
+	void testForceJavaSourceTypeOnJshFile() throws Exception {
+		// create a .jsh file with unique name
+		Path p = cwdDir.resolve("sourceTypeTest.jsh");
+		try {
+			writeString(p, "class Test { public static void main(String...a) { } }");
+
+			CaptureResult<Integer> res = checkedRun(null,
+					"run", "--source-type=java", "--verbose", p.toString());
+
+			// current (broken) behaviour emits "test.jsh.jar".
+			// Once fixed, that message must disappear and the run should succeed.
+			assertThat(res.err, not(containsString("sourceTypeTest.jsh.jar")));
+			assertThat(res.result, equalTo(EXIT_EXECUTE));
+		} finally {
+			// Clean up the test file
+			if (Files.exists(p)) {
+				Files.delete(p);
+			}
+		}
 	}
 }

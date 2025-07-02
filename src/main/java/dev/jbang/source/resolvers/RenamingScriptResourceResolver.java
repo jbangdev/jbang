@@ -87,7 +87,17 @@ public class RenamingScriptResourceResolver implements ResourceResolver {
 						original = original.substring(original.indexOf("\n"));
 					}
 
-					String name = probe.getName() + (forceType != null ? "." + forceType.extension : "");
+					String name;
+					if (forceType != null) {
+						// Remove existing extension and add the forced extension
+						String baseName = Util.sourceBase(probe.getName());
+						if (forceType == Source.Type.java) {
+							baseName = Util.toJavaIdentifier(baseName);
+						}
+						name = baseName + "." + forceType.extension;
+					} else {
+						name = probe.getName();
+					}
 					Path tempFile = Settings.getCacheDir(Cache.CacheClass.scripts)
 						.resolve(urlHash)
 						.resolve(Util.unkebabify(name));

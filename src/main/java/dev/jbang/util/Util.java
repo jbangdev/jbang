@@ -2004,4 +2004,50 @@ public class Util {
 	public static <K, V> Entry<K, V> entry(K k, V v) {
 		return new AbstractMap.SimpleEntry<K, V>(k, v);
 	}
+
+	/**
+	 * Converts an arbitrary string into a valid Java identifier that can be used as
+	 * a class name. This is particularly important for JEP-445 implicit classes
+	 * where the compiler derives class names from file names.
+	 *
+	 * @param baseName The input string to convert
+	 * @return A valid Java identifier, never null or empty
+	 */
+	public static String toJavaIdentifier(@Nonnull String baseName) {
+		if (isValidJavaIdentifier(baseName)) {
+			return baseName;
+		}
+		return "_" + baseName.replaceAll("[^\\p{L}\\p{N}_]", "_");
+	}
+
+	public static boolean isValidJavaIdentifier(String s) {
+		if (s == null || s.isEmpty()) {
+			return false;
+		}
+
+		if (!Character.isJavaIdentifierStart(s.charAt(0))) {
+			return false;
+		}
+
+		for (int i = 1; i < s.length(); i++) {
+			if (!Character.isJavaIdentifierPart(s.charAt(i))) {
+				return false;
+			}
+		}
+
+		return !isJavaKeyword(s); // Optional: block reserved keywords
+	}
+
+	private static final Set<String> JAVA_KEYWORDS = new HashSet<String>(Arrays.asList(
+			"abstract", "assert", "boolean", "break", "byte", "case", "catch", "char",
+			"class", "const", "continue", "default", "do", "double", "else", "enum",
+			"extends", "final", "finally", "float", "for", "goto", "if", "implements",
+			"import", "instanceof", "int", "interface", "long", "native", "new",
+			"package", "private", "protected", "public", "return", "short", "static",
+			"strictfp", "super", "switch", "synchronized", "this", "throw", "throws",
+			"transient", "try", "void", "volatile", "while", "true", "false", "null"));
+
+	public static boolean isJavaKeyword(String s) {
+		return JAVA_KEYWORDS.contains(s);
+	}
 }

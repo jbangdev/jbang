@@ -18,6 +18,7 @@ import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.source.ResourceResolver;
+import dev.jbang.source.Source;
 import dev.jbang.util.Util;
 
 /**
@@ -26,6 +27,12 @@ import dev.jbang.util.Util;
  * reference to that file.
  */
 public class LiteralScriptResourceResolver implements ResourceResolver {
+	private final Source.Type forceType;
+
+	public LiteralScriptResourceResolver(Source.Type forceType) {
+		this.forceType = forceType;
+	}
+
 	@Override
 	public ResourceRef resolve(String resource) {
 		ResourceRef result = null;
@@ -39,7 +46,7 @@ public class LiteralScriptResourceResolver implements ResourceResolver {
 					.collect(Collectors.joining(
 							System.lineSeparator()));
 
-				result = stringToResourceRef(resource, scriptText);
+				result = stringToResourceRef(resource, scriptText, forceType);
 			}
 		} catch (IOException e) {
 			throw new ExitException(BaseCommand.EXIT_UNEXPECTED_STATE, "Could not cache script from stdin", e);
@@ -54,17 +61,34 @@ public class LiteralScriptResourceResolver implements ResourceResolver {
 		return "Literal stdin";
 	}
 
-	public static ResourceRef stringToResourceRef(String resource, String scriptText) throws IOException {
+	public static ResourceRef stringToResourceRef(String resource, String scriptText,
+			Source.Type forceType) throws IOException {
 		ResourceRef result;
 		String urlHash = Util.getStableID(scriptText);
 		Path cache = Settings.getCacheDir(Cache.CacheClass.stdins).resolve(urlHash);
 		cache.toFile().mkdirs();
 		String basename = urlHash;
-		String suffix = ".jsh";
-		if (hasMainMethod(scriptText)) {
-			suffix = ".java";
-			basename = getMainClass(scriptText).orElse(basename);
+		String suffix;
+
+		if (forceType != null) {
+			// User override wins
+			suffix = "." + forceType.extension;
+			if (forceType == Source.Type.java) {
+				// Only .java needs the class name, .jsh/.kt/... don't care
+				basename = getMainClass(scriptText).orElse(basename);
+			}
+		} else {
+			suffix = ".jsh";
+			if (hasMainMethod(scriptText)) {
+				suffix = ".java";
+				basename = getMainClass(scriptText).orElse(basename);
+			}
 		}
+
+		if (".java".equals(suffix)) {
+			basename = Util.toJavaIdentifier(basename);
+		}
+
 		Path scriptFile = cache.resolve(basename + suffix);
 		Util.writeString(scriptFile, scriptText);
 		result = ResourceRef.forResolvedResource(resource, scriptFile);
