@@ -81,57 +81,57 @@ jbang - jbang is a tool for building and running .java/.jsh scripts and jar pack
 // tag::picocli-generated-man-section-commands[]
 == Commands
 
-xref:jbang-run.adoc[*run*]::
+xref:jbang:cli:jbang-run.adoc[*run*]::
   Builds and runs provided script. (default command)
 
-xref:jbang-build.adoc[*build*]::
+xref:jbang:cli:jbang-build.adoc[*build*]::
   Compiles and stores script in the cache.
 
-xref:jbang-edit.adoc[*edit*]::
+xref:jbang:cli:jbang-edit.adoc[*edit*]::
   Setup a temporary project to edit script in an IDE.
 
-xref:jbang-init.adoc[*init*]::
+xref:jbang:cli:jbang-init.adoc[*init*]::
   Initialize a script.
 
-xref:jbang-alias.adoc[*alias*]::
+xref:jbang:cli:jbang-alias.adoc[*alias*]::
   Manage aliases for scripts.
 
-xref:jbang-template.adoc[*template*]::
+xref:jbang:cli:jbang-template.adoc[*template*]::
   Manage templates for scripts.
 
-xref:jbang-catalog.adoc[*catalog*]::
+xref:jbang:cli:jbang-catalog.adoc[*catalog*]::
   Manage Catalogs of aliases.
 
-xref:jbang-trust.adoc[*trust*]::
+xref:jbang:cli:jbang-trust.adoc[*trust*]::
   Manage which domains you trust to run scripts from.
 
-xref:jbang-cache.adoc[*cache*]::
+xref:jbang:cli:jbang-cache.adoc[*cache*]::
   Manage compiled scripts in the local cache.
 
-xref:jbang-completion.adoc[*completion*]::
+xref:jbang:cli:jbang-completion.adoc[*completion*]::
   Output auto-completion script for bash/zsh.
 +
 Usage: source <(jbang completion)
 
-xref:jbang-jdk.adoc[*jdk*]::
+xref:jbang:cli:jbang-jdk.adoc[*jdk*]::
   Manage Java Development Kits installed by jbang.
 
-xref:jbang-version.adoc[*version*]::
+xref:jbang:cli:jbang-version.adoc[*version*]::
   Display version info.
 
-xref:jbang-wrapper.adoc[*wrapper*]::
+xref:jbang:cli:jbang-wrapper.adoc[*wrapper*]::
   Manage jbang wrapper for a folder.
 
-xref:jbang-info.adoc[*info*]::
+xref:jbang:cli:jbang-info.adoc[*info*]::
   Provides info about the script for tools (and humans who are tools).
 
-xref:jbang-app.adoc[*app*]::
+xref:jbang:cli:jbang-app.adoc[*app*]::
   Manage scripts installed on the user's PATH as commands.
 
-xref:jbang-export.adoc[*export*]::
+xref:jbang:cli:jbang-export.adoc[*export*]::
   Export the result of a build or the set of the sources to a project.
 
-xref:jbang-config.adoc[*config*]::
+xref:jbang:cli:jbang-config.adoc[*config*]::
   Read and write configuration options.
 
 // end::picocli-generated-man-section-commands[]
