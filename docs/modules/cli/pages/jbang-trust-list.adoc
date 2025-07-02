@@ -19,7 +19,7 @@ jbang-trust-list - Show defined trust domains.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang trust list* *-o* *--fresh* *--quiet* *--verbose* [*--format*=_<arg0>_]
+*jbang trust list* *-o* *--fresh* *--quiet* *--verbose* [*--format*=_<format>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -33,7 +33,7 @@ Show defined trust domains.
 // tag::picocli-generated-man-section-options[]
 == Options
 
-*--format*=_<arg0>_::
+*--format*=_<format>_::
   Specify output format ('text' or 'json')
 
 *--fresh*::

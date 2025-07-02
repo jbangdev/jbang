@@ -53,28 +53,28 @@ Export the result of a build or the set of the sources to a project.
 // tag::picocli-generated-man-section-commands[]
 == Commands
 
-xref:jbang-export-portable.adoc[*portable*]::
+xref:jbang:cli:jbang-export-portable.adoc[*portable*]::
   Exports jar together with dependencies in way that makes it portable
 
-xref:jbang-export-local.adoc[*local*]::
+xref:jbang:cli:jbang-export-local.adoc[*local*]::
   Exports jar with classpath referring to local machine dependent locations
 
-xref:jbang-export-mavenrepo.adoc[*mavenrepo*]::
+xref:jbang:cli:jbang-export-mavenrepo.adoc[*mavenrepo*]::
   Exports directory that can be used to publish as a maven repository
 
-xref:jbang-export-native.adoc[*native*]::
+xref:jbang:cli:jbang-export-native.adoc[*native*]::
   Exports native executable
 
-xref:jbang-export-fatjar.adoc[*fatjar*]::
+xref:jbang:cli:jbang-export-fatjar.adoc[*fatjar*]::
   Exports an executable jar with all necessary dependencies included inside
 
-xref:jbang-export-jlink.adoc[*jlink*]::
+xref:jbang:cli:jbang-export-jlink.adoc[*jlink*]::
   Exports a minimized JDK distribution
 
-xref:jbang-export-gradle.adoc[*gradle*]::
+xref:jbang:cli:jbang-export-gradle.adoc[*gradle*]::
   Exports a Gradle project
 
-xref:jbang-export-maven.adoc[*maven*]::
+xref:jbang:cli:jbang-export-maven.adoc[*maven*]::
   Exports a Maven project
 
 // end::picocli-generated-man-section-commands[]

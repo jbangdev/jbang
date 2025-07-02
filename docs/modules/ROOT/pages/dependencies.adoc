@@ -108,7 +108,7 @@ to define your managed dependences. Below is an example how that could look like
 Notice the `@pom` at first line and then following dependencies are not required to use explicit versions.
 
 [NOTE]
-At the moment jbang support only one bom pom; in future it should be expanded to multiple.
+At the moment jbang supports only one bom pom; in future it should be expanded to multiple.
 For now you can workaround this by reusing a published pom that includes all the dependency management
 sections you need.
 

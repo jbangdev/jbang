@@ -53,13 +53,13 @@ Manage which domains you trust to run scripts from.
 // tag::picocli-generated-man-section-commands[]
 == Commands
 
-xref:jbang-trust-add.adoc[*add*]::
+xref:jbang:cli:jbang-trust-add.adoc[*add*]::
   Add trust domains.
 
-xref:jbang-trust-list.adoc[*list*]::
+xref:jbang:cli:jbang-trust-list.adoc[*list*]::
   Show defined trust domains.
 
-xref:jbang-trust-remove.adoc[*remove*]::
+xref:jbang:cli:jbang-trust-remove.adoc[*remove*]::
   Remove trust domains.
 
 // end::picocli-generated-man-section-commands[]

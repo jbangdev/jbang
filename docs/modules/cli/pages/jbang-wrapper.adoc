@@ -53,7 +53,7 @@ Manage jbang wrapper for a folder.
 // tag::picocli-generated-man-section-commands[]
 == Commands
 
-xref:jbang-wrapper-install.adoc[*install*]::
+xref:jbang:cli:jbang-wrapper-install.adoc[*install*]::
   Install/Setup jbang as a `wrapper` script in a folder
 
 // end::picocli-generated-man-section-commands[]
