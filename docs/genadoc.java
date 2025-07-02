@@ -1,5 +1,5 @@
-//DEPS info.picocli:picocli:4.6.3
-//DEPS info.picocli:picocli-codegen:4.6.3
+//DEPS info.picocli:picocli:4.7.7
+//DEPS info.picocli:picocli-codegen:4.7.7
 ///COMPILE_OPTIONS -proc:none
 //JAVA 17+
 
@@ -54,7 +54,7 @@ import static java.lang.String.format;
                                                                                                          // parameters
                                                                                                          // of the
                                                                                                          // parent
-                                                                                                         // command
+                                                                                       // command
         showAtFileInUsageHelp = true, mixinStandardHelpOptions = true, sortOptions = false, usageHelpAutoWidth = true, usageHelpWidth = 100, description = {
                 "Generates asciidoc pages for all commands in the specified directory." },
         // exitCodeListHeading = "%nExit Codes (if enabled with `--exit`)%n",
@@ -171,6 +171,9 @@ public class genadoc implements Callable<Integer> {
                         + "The default is `--no-force`, meaning processing is aborted and the process exits "
                         + "with status code 4 if a man page template file already exists." })
         boolean force;
+
+        @Option(names = { "--component-root" }, description = { "The prefix/component of the xref links." }, defaultValue = "jbang:cli:")
+        String componentRoot;
 
         private void verbose(String message, Object... params) {
             if (verbosity.length > 0) {
@@ -355,8 +358,8 @@ public class genadoc implements Callable<Integer> {
 
             Set<CommandSpec> done = new HashSet<CommandSpec>();
 
-            generateNavForHelp("", pw, spec.commandLine().getHelp());
-            generateSingleNav(spec, "", pw);
+            generateNavForHelp(config, "", pw, spec.commandLine().getHelp());
+            generateSingleNav(config, spec, "", pw);
 
         } finally {
             Util.closeSilently(pw);
@@ -365,18 +368,18 @@ public class genadoc implements Callable<Integer> {
         return CommandLine.ExitCode.OK;
     }
 
-    private static void generateSingleNav(CommandSpec spec, String indent, PrintWriter pw) {
+    private static void generateSingleNav(Config config, CommandSpec spec, String indent, PrintWriter pw) {
         for (CommandLine.Help subHelp : spec.commandLine().getHelp().subcommands().values()) {
-            generateNavForHelp("*" + indent, pw, subHelp);
-            generateSingleNav(subHelp.commandSpec(), "*" + indent, pw);
+            generateNavForHelp(config, "*" + indent, pw, subHelp);
+            generateSingleNav(config,subHelp.commandSpec(), "*" + indent, pw);
         }
     }
 
-    private static void generateNavForHelp(String indent, PrintWriter pw, CommandLine.Help subHelp) {
+    private static void generateNavForHelp(Config config, String indent, PrintWriter pw, CommandLine.Help subHelp) {
         pw.println();
         Text namesText = subHelp.commandNamesText(", ");
         String names = namesText.toString();
-        String xrefname = makeFileName(subHelp.commandSpec());
+        String xrefname = config.componentRoot + makeFileName(subHelp.commandSpec());
         pw.printf("%s* xref:%s[%s]", indent, xrefname, names);
     }
 
@@ -402,7 +405,7 @@ public class genadoc implements Callable<Integer> {
         File manpage = new File(config.directory, "pages/" + makeFileName(spec));
         config.verbose("Generating man page %s%n", manpage);
 
-        generateSingleManPage(spec, manpage);
+        generateSingleManPage(config, spec, manpage);
 
         return generateCustomizableTemplate(config, spec);
     }
@@ -428,13 +431,13 @@ public class genadoc implements Callable<Integer> {
                 "main_class");
     }
 
-    private static void generateSingleManPage(CommandSpec spec, File manpage) throws IOException {
+    private static void generateSingleManPage(Config config, CommandSpec spec, File manpage) throws IOException {
         OutputStreamWriter writer = null;
         PrintWriter pw = null;
         try {
             writer = new OutputStreamWriter(new FileOutputStream(manpage), "UTF-8");
             pw = new PrintWriter(writer);
-            writeSingleManPage(pw, spec);
+            writeSingleManPage(config, pw, spec);
         } finally {
             Util.closeSilently(pw);
             Util.closeSilently(writer);
@@ -488,7 +491,7 @@ public class genadoc implements Callable<Integer> {
         }
     }
 
-    public static void writeSingleManPage(PrintWriter pw, CommandSpec spec) {
+    public static void writeSingleManPage(Config config, PrintWriter pw, CommandSpec spec) {
         spec.commandLine().setColorScheme(COLOR_SCHEME);
         pw.println("// This is a generated documentation file based on picocli");
         pw.println("// To change it update the picocli code or the genrator");
@@ -497,7 +500,7 @@ public class genadoc implements Callable<Integer> {
         genHeader(pw, spec);
         genOptions(pw, spec);
         genPositionalArgs(pw, spec);
-        genCommands(pw, spec);
+        genCommands(config, pw, spec);
         genExitStatus(pw, spec);
         genFooter(pw, spec);
         pw.printf("// end::picocli-generated-full-manpage[]%n");
@@ -731,7 +734,7 @@ public class genadoc implements Callable<Integer> {
         pw.println();
     }
 
-    static void genCommands(PrintWriter pw, CommandSpec spec) {
+    static void genCommands(Config config, PrintWriter pw, CommandSpec spec) {
 
         // remove hidden subcommands before tags are added
         Map<String, CommandLine> subCommands = new LinkedHashMap<String, CommandLine>(spec.subcommands());
@@ -755,7 +758,7 @@ public class genadoc implements Callable<Integer> {
 
             Text namesText = subHelp.commandNamesText(", ");
             String names = namesText.toString();
-            String xrefname = makeFileName(subHelp.commandSpec());
+            String xrefname = config.componentRoot + makeFileName(subHelp.commandSpec());
             pw.printf("xref:%s[%s]::%n", xrefname, names);
 
             CommandLine.Model.UsageMessageSpec usage = subHelp.commandSpec().usageMessage();

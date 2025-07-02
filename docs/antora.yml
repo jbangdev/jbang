@@ -1,7 +1,6 @@
-name: guide
+name: jbang
 title: JBang
 version: latest
 nav:
   - modules/ROOT/nav.adoc
   - modules/cli/nav.adoc
-  - modules/jbang-idea/nav.adoc

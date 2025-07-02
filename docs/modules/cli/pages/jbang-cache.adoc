@@ -53,7 +53,7 @@ Manage compiled scripts in the local cache.
 // tag::picocli-generated-man-section-commands[]
 == Commands
 
-xref:jbang-cache-clear.adoc[*clear*]::
+xref:jbang:cli:jbang-cache-clear.adoc[*clear*]::
   Clear the various caches used by jbang. By default this will clear the JAR, script, stdin and URL caches. To clear other caches list them explicitly i.e. '--project' for temporary projects.
 
 // end::picocli-generated-man-section-commands[]

@@ -53,13 +53,13 @@ Manage aliases for scripts.
 // tag::picocli-generated-man-section-commands[]
 == Commands
 
-xref:jbang-alias-add.adoc[*add*]::
+xref:jbang:cli:jbang-alias-add.adoc[*add*]::
   Add alias for script reference.
 
-xref:jbang-alias-list.adoc[*list*]::
+xref:jbang:cli:jbang-alias-list.adoc[*list*]::
   Lists locally defined aliases or from the given catalog.
 
-xref:jbang-alias-remove.adoc[*remove*]::
+xref:jbang:cli:jbang-alias-remove.adoc[*remove*]::
   Remove existing alias.
 
 // end::picocli-generated-man-section-commands[]
