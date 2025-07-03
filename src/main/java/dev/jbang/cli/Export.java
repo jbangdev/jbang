@@ -708,7 +708,7 @@ class ExportGradleProject extends BaseExportProject {
 	@Override
 	void installWrapperFiles(BuildContext ctx, Path projectDir) throws IOException {
 		String dir = projectDir.getFileName().toString();
-		copyWrapperFile("/dist/gradle/README.md", Paths.get(dir, "README.md").toString(), true);
+		copyWrapperFile("/dist/gradle/README.md", Paths.get(dir, "README.md").toString(), false);
 		copyWrapperFile("/dist/gradle/gradlew", Paths.get(dir, "gradlew").toString(), true);
 		copyWrapperFile("/dist/gradle/gradlew.bat", Paths.get(dir, "gradlew.bat").toString(), false);
 		copyWrapperFile("/dist/gradle/gradle/wrapper/gradle-wrapper.properties",
@@ -810,7 +810,7 @@ class ExportMavenProject extends BaseExportProject {
 	@Override
 	void installWrapperFiles(BuildContext ctx, Path projectDir) throws IOException {
 		String dir = projectDir.getFileName().toString();
-		copyWrapperFile("/dist/maven/README.md", Paths.get(dir, "README.md").toString(), true);
+		copyWrapperFile("/dist/maven/README.md", Paths.get(dir, "README.md").toString(), false);
 		copyWrapperFile("/dist/maven/mvnw", Paths.get(dir, "mvnw").toString(), true);
 		copyWrapperFile("/dist/maven/mvnw.cmd", Paths.get(dir, "mvnw.cmd").toString(), false);
 		copyWrapperFile("/dist/maven/.mvn/wrapper/maven-wrapper.properties",
