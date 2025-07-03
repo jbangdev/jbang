@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -27,8 +28,10 @@ import dev.jbang.util.Util;
 public abstract class Source {
 
 	private final ResourceRef resourceRef;
-	private final String contents;
-	protected final TagReader tagReader;
+	private final Supplier<String> contentsSupplier;
+	private final Supplier<TagReader> tagReaderSupplier;
+	private TagReader tagReader;
+	private String contents;
 
 	public enum Type {
 		java("java", "java"), jshell("jsh", "java"),
@@ -48,37 +51,46 @@ public abstract class Source {
 		}
 	}
 
-	public Source(String contents, Function<String, String> replaceProperties) {
-		this(ResourceRef.nullRef, contents, replaceProperties);
-	}
-
 	protected Source(ResourceRef resourceRef, Function<String, String> replaceProperties) {
-		this(resourceRef, Util.readFileContent(resourceRef.getFile()), replaceProperties);
+		this.resourceRef = resourceRef;
+		this.contentsSupplier = () -> Util.readString(resourceRef.getInputStream());
+		this.tagReaderSupplier = () -> new TagReader.Extended(getContents(), replaceProperties);
 	}
 
 	protected Source(ResourceRef resourceRef, String contents, Function<String, String> replaceProperties) {
 		this.resourceRef = resourceRef;
+		this.contentsSupplier = () -> contents;
 		this.contents = contents;
-		this.tagReader = createTagReader(contents, replaceProperties);
+		this.tagReaderSupplier = () -> new TagReader.Extended(getContents(), replaceProperties);
 	}
 
-	protected TagReader createTagReader(String contents, Function<String, String> replaceProperties) {
-		return new TagReader.Extended(contents, replaceProperties);
+	protected TagReader getTagReader() {
+		if (tagReader == null) {
+			tagReader = tagReaderSupplier.get();
+		}
+		return tagReader;
+	}
+
+	protected String getContents() {
+		if (contents == null) {
+			contents = contentsSupplier.get();
+		}
+		return contents;
 	}
 
 	@NonNull
 	public Stream<String> getTags() {
-		return tagReader.getTags();
+		return getTagReader().getTags();
 	}
 
 	public abstract @NonNull Type getType();
 
 	protected List<String> collectBinaryDependencies() {
-		return tagReader.collectBinaryDependencies();
+		return getTagReader().collectBinaryDependencies();
 	}
 
 	protected List<String> collectSourceDependencies() {
-		return tagReader.collectSourceDependencies();
+		return getTagReader().collectSourceDependencies();
 	}
 
 	protected abstract List<String> getCompileOptions();
@@ -95,27 +107,27 @@ public abstract class Source {
 
 	@NonNull
 	public Optional<String> getJavaPackage() {
-		if (contents != null) {
-			return Util.getSourcePackage(contents);
+		if (getContents() != null) {
+			return Util.getSourcePackage(getContents());
 		} else {
 			return Optional.empty();
 		}
 	}
 
 	public boolean isAgent() {
-		return !tagReader.collectAgentOptions().isEmpty();
+		return !getTagReader().collectAgentOptions().isEmpty();
 	}
 
 	public boolean enableCDS() {
-		return !tagReader.collectRawOptions("CDS").isEmpty();
+		return !getTagReader().collectRawOptions("CDS").isEmpty();
 	}
 
 	public boolean enablePreview() {
-		return !tagReader.collectRawOptions("PREVIEW").isEmpty();
+		return !getTagReader().collectRawOptions("PREVIEW").isEmpty();
 	}
 
 	public boolean disableIntegrations() {
-		return !tagReader.collectRawOptions("NOINTEGRATIONS").isEmpty();
+		return !getTagReader().collectRawOptions("NOINTEGRATIONS").isEmpty();
 	}
 
 	// Used only by tests
