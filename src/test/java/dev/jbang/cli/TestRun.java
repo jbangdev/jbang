@@ -73,6 +73,7 @@ import dev.jbang.source.CmdGeneratorBuilder;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.source.ResourceNotFoundException;
+import dev.jbang.source.ResourceRef;
 import dev.jbang.source.Source;
 import dev.jbang.source.buildsteps.JarBuildStep;
 import dev.jbang.source.generators.JshCmdGenerator;
@@ -864,7 +865,7 @@ public class TestRun extends BaseTest {
 
 		Path out = rootdir.resolve("content.jar");
 
-		Source src = new JavaSource("", null);
+		Source src = new JavaSource(ResourceRef.forLiteral(""), null);
 		Project prj = Project.builder().build(src);
 		prj.setMainClass("wonkabear");
 
