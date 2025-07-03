@@ -1,5 +1,6 @@
 package dev.jbang.source;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -25,7 +26,6 @@ import dev.jbang.util.Util;
  * Resolver.resolve}.
  */
 public interface ResourceRef extends Comparable<ResourceRef> {
-	ResourceRef nullRef = new UnresolvableResourceRef(null, "null reference");
 
 	@Nullable
 	String getOriginalResource();
@@ -157,6 +157,19 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 	}
 
 	/**
+	 * Creates a new {@code ResourceRef} instance for a literal resource. This is
+	 * useful for cases where the resource is a literal string that represents the
+	 * contents of a resource. The literal resource is stored in memory and can be
+	 * accessed directly.
+	 *
+	 * @param literal the literal string representing the resource contents
+	 * @return a {@code ResourceRef} instance
+	 */
+	static ResourceRef forLiteral(@Nonnull String literal) {
+		return new LiteralResourceRef(literal);
+	}
+
+	/**
 	 * Creates a new {@code ResourceRef} instance that cannot be resolved. This is
 	 * useful for cases where the resource string is known but cannot be resolved to
 	 * a file or input stream.
@@ -265,4 +278,21 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 			return wrappedRef.toString();
 		}
 	}
+
+	class LiteralResourceRef extends InputStreamResourceRef {
+
+		public LiteralResourceRef(@Nonnull String literal) {
+			this(null, literal);
+		}
+
+		public LiteralResourceRef(@Nullable String resource, @Nonnull String literal) {
+			super(resource, ref -> new ByteArrayInputStream(literal.getBytes()));
+		}
+
+		@Override
+		public boolean exists() {
+			return true;
+		}
+	}
+
 }

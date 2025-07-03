@@ -6,22 +6,23 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import dev.jbang.util.Util;
 
 public class InputStreamResourceRef implements ResourceRef {
-	@Nonnull
+	@Nullable
 	protected final String originalResource;
 	@Nonnull
 	protected final Function<String, InputStream> streamFactory;
 
-	public InputStreamResourceRef(@Nonnull String resource,
+	public InputStreamResourceRef(@Nullable String resource,
 			@Nonnull Function<String, InputStream> streamFactory) {
 		this.originalResource = resource;
 		this.streamFactory = streamFactory;
 	}
 
-	@Nonnull
+	@Nullable
 	@Override
 	public String getOriginalResource() {
 		return originalResource;
