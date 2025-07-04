@@ -2,27 +2,33 @@
 ** xref:jbang:ROOT:index.adoc[What is JBang?]
 ** xref:jbang:ROOT:quickstart.adoc[Quick Start Guide]
 ** xref:jbang:ROOT:installation.adoc[Installation]
-** xref:jbang:ROOT:usage.adoc[Basic Usage]
+** xref:jbang:ROOT:first-script.adoc[Your First Script]
 ** xref:jbang:ROOT:javaversions.adoc[Java Versions]
 
 * Writing Scripts
 ** xref:jbang:ROOT:dependencies.adoc[Dependencies]
+** xref:jbang:ROOT:multiple-languages.adoc[Multiple Languages]
 ** xref:jbang:ROOT:organizing.adoc[Organizing Code]
 ** xref:jbang:ROOT:templates.adoc[Templates]
 ** xref:jbang:ROOT:debugging.adoc[Debugging]
 
 * Advanced Features
-** xref:jbang:ROOT:running.adoc[Running & Execution]
+** xref:jbang:ROOT:execution-options.adoc[Execution Options]
+** xref:jbang:ROOT:native-images.adoc[Native Images]
+** xref:jbang:ROOT:remote-execution.adoc[Remote Execution]
 ** xref:jbang:ROOT:editing.adoc[IDE Integration]
-** xref:jbang:ROOT:exporting.adoc[Exporting Projects]
-** xref:jbang:ROOT:alias_catalogs.adoc[Aliases & Catalogs]
 
-* Configuration & Tools
+* Distribution & Deployment
+** xref:jbang:ROOT:exporting.adoc[Exporting Projects]
+** xref:jbang:ROOT:app-installation.adoc[Installing as Apps]
+** xref:jbang:ROOT:alias_catalogs.adoc[Aliases & Catalogs]
+** xref:jbang:ROOT:integration.adoc[Build Integration]
+
+* Configuration & Management
 ** xref:jbang:ROOT:configuration.adoc[Configuration]
 ** xref:jbang:ROOT:caching.adoc[Caching]
-** xref:jbang:ROOT:integration.adoc[Integration]
-** xref:jbang:ROOT:install.adoc[Installing Scripts]
 
 * Help & Reference
+** xref:jbang:ROOT:troubleshooting.adoc[Troubleshooting]
 ** xref:jbang:ROOT:faq.adoc[FAQ]
 ** xref:jbang:cli:jbang.adoc[CLI Reference]

@@ -1,0 +1,465 @@
+= Troubleshooting
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+Having issues with JBang? This guide covers common problems and their solutions.
+
+== Installation Issues
+
+=== JBang Command Not Found
+
+**Problem**: `jbang: command not found` after installation
+
+**Solutions**:
+1. **Restart your terminal** - New PATH may not be loaded
+2. **Source your shell config**:
+   [source,bash]
+   ----
+   # For bash
+   source ~/.bashrc
+   
+   # For zsh  
+   source ~/.zshrc
+   ----
+3. **Check installation path**:
+   [source,bash]
+   ----
+   # Check if jbang is in PATH
+   echo $PATH | grep jbang
+   
+   # Find jbang installation
+   find /usr -name jbang 2>/dev/null
+   which jbang
+   ----
+4. **Reinstall using different method** - Try SDKMAN, package manager, or manual install
+
+=== Permission Denied
+
+**Problem**: Permission errors during installation
+
+**Solutions**:
+- **Use package manager with sudo**: `sudo apt install jbang`
+- **Install to user directory**: Use SDKMAN or user-space package managers
+- **Check file permissions**: `chmod +x /path/to/jbang`
+
+=== Java Not Found
+
+**Problem**: JBang can't find Java
+
+**Solutions**:
+1. **Let JBang install Java automatically** (recommended)
+2. **Set JAVA_HOME**:
+   [source,bash]
+   ----
+   export JAVA_HOME=/path/to/java
+   export PATH=$JAVA_HOME/bin:$PATH
+   ----
+3. **Use JBANG_DEFAULT_JAVA_VERSION**:
+   [source,bash]
+   ----
+   export JBANG_DEFAULT_JAVA_VERSION=17
+   ----
+
+== Script Execution Issues
+
+=== Script Won't Run
+
+**Problem**: Script fails to execute
+
+**Diagnostic Steps**:
+[source,bash]
+----
+# Check file exists and is readable
+ls -la script.java
+
+# Check shebang line (should be exact)
+head -1 script.java
+# Should be: ///usr/bin/env jbang "$0" "$@" ; exit $?
+
+# Make executable
+chmod +x script.java
+
+# Try running with jbang directly
+jbang script.java
+
+# Check for syntax errors
+jbang --verbose script.java
+----
+
+=== Shebang Issues
+
+**Problem**: Shebang line not working
+
+**Solutions**:
+1. **Use correct shebang**: `///usr/bin/env jbang "$0" "$@" ; exit $?`
+2. **Check shell compatibility**: Fish shell requires `jbang` command directly
+3. **File permissions**: `chmod +x script.java`
+4. **Line endings**: Convert Windows CRLF to Unix LF
+
+=== Compilation Errors
+
+**Problem**: Java compilation fails
+
+**Solutions**:
+1. **Check Java syntax**: Ensure valid Java code
+2. **Verify dependencies**: Check `//DEPS` declarations
+3. **Check Java version**: Use `//JAVA` directive if needed
+4. **Clear cache**: `jbang cache clear`
+
+[source,bash]
+----
+# Debug compilation
+jbang --verbose script.java
+
+# Check what dependencies are resolved
+jbang info classpath script.java
+----
+
+== Dependency Issues
+
+=== Dependencies Not Found
+
+**Problem**: `//DEPS` dependencies not resolving
+
+**Solutions**:
+1. **Check Maven coordinates**: Verify groupId:artifactId:version format
+2. **Check repositories**: Add custom repos with `//REPOS`
+3. **Network connectivity**: Ensure internet access
+4. **Clear dependency cache**: `jbang cache clear`
+
+[source,bash]
+----
+# Test dependency resolution
+jbang info classpath script.java
+
+# Check repositories
+jbang info docs script.java
+
+# Use verbose mode
+jbang --verbose script.java
+----
+
+=== Version Conflicts
+
+**Problem**: Dependency version conflicts
+
+**Solutions**:
+1. **Use BOM POMs**: Manage versions with `@pom` dependencies
+2. **Explicit versions**: Specify exact versions in `//DEPS`
+3. **Exclude transitive deps**: Use exclusions in dependencies
+
+[source,java]
+----
+// Use BOM for version management
+//DEPS io.quarkus:quarkus-bom:3.2.0@pom
+//DEPS io.quarkus:quarkus-core
+
+// Explicit version to override
+//DEPS com.fasterxml.jackson.core:jackson-core:2.15.2
+----
+
+=== Repository Issues
+
+**Problem**: Custom repositories not working
+
+**Solutions**:
+1. **Check repository URL**: Ensure URL is accessible
+2. **Authentication**: Configure in `~/.m2/settings.xml`
+3. **Repository order**: List repositories in order of preference
+
+[source,java]
+----
+// Correct repository syntax
+//REPOS central,jcenter,myrepo=https://repo.example.com/maven
+----
+
+== IDE Integration Issues
+
+=== IDE Not Starting
+
+**Problem**: `jbang edit` doesn't work
+
+**Solutions**:
+1. **Run setup**: `jbang app setup`
+2. **Install IDE manually**: JBang can install VSCodium automatically
+3. **Use existing IDE**: `jbang edit --open=code script.java`
+4. **Set JBANG_EDITOR**: `export JBANG_EDITOR=intellij`
+
+=== Symbolic Link Issues (Windows)
+
+**Problem**: Edit fails due to symbolic link permissions
+
+**Solutions**:
+1. **Enable Developer Mode**: Windows 10/11 settings
+2. **Run as Administrator**: Use elevated command prompt
+3. **Use Java 13+**: Better symbolic link support
+4. **Use sandbox mode**: `jbang edit -b script.java`
+
+=== Project Generation Issues
+
+**Problem**: IDE project not generated correctly
+
+**Solutions**:
+1. **Clear cache**: `jbang cache clear`
+2. **Regenerate project**: Delete `.jbang` folder and re-run edit
+3. **Check dependencies**: Ensure all dependencies are valid
+
+== Native Image Issues
+
+=== GraalVM Not Found
+
+**Problem**: `native-image` command not found
+
+**Solutions**:
+1. **Install GraalVM**: Download from graalvm.org
+2. **Install native-image**: `gu install native-image`
+3. **Set PATH**: Include GraalVM/bin in PATH
+4. **Set GRAALVM_HOME**: Point to GraalVM installation
+
+=== Compilation Failures
+
+**Problem**: Native image compilation fails
+
+**Solutions**:
+1. **Add reflection config**: Use `//NATIVE_OPTIONS` with config files
+2. **Use tracing agent**: Generate config automatically
+   [source,bash]
+   ----
+   jbang --jvm=graalvm --runtime-option="-agentlib:native-image-agent=config-output-dir=config" script.java
+   jbang --native --native-option="-H:ConfigurationFileDirectories=config" script.java
+   ----
+3. **Check library compatibility**: Not all libraries support native images
+4. **Use `--no-fallback`**: Better error messages
+
+=== Runtime Issues
+
+**Problem**: Native image fails at runtime
+
+**Solutions**:
+1. **Check reflection usage**: Ensure all reflection is configured
+2. **Resource inclusion**: Use `--native-option="-H:IncludeResources=pattern"`
+3. **JNI configuration**: Configure native library usage
+
+== Performance Issues
+
+=== Slow Startup
+
+**Problem**: JBang takes long to start
+
+**Solutions**:
+1. **Clear cache**: `jbang cache clear` then rebuild
+2. **Check Java version**: Newer Java versions start faster
+3. **Use CDS**: `//CDS` directive for Application Class Data Sharing
+4. **Reduce dependencies**: Minimize unnecessary dependencies
+
+=== High Memory Usage
+
+**Problem**: Scripts use too much memory
+
+**Solutions**:
+1. **Set heap size**: `//RUNTIME_OPTIONS -Xmx512m`
+2. **Use different GC**: `//RUNTIME_OPTIONS -XX:+UseSerialGC`
+3. **Profile usage**: Use `--jfr` to analyze memory patterns
+
+=== Network Issues
+
+**Problem**: Slow dependency resolution
+
+**Solutions**:
+1. **Use local repository**: Set `JBANG_REPO` to local cache
+2. **Mirror repositories**: Use repository mirrors
+3. **Offline mode**: `jbang --offline` for cached dependencies
+
+== Platform-Specific Issues
+
+=== Windows Issues
+
+**Problem**: Various Windows-specific problems
+
+**Solutions**:
+1. **Path length limits**: Use shorter paths, enable long path support
+2. **Antivirus interference**: Add JBang directories to exclusions
+3. **PowerShell execution policy**: `Set-ExecutionPolicy RemoteSigned`
+4. **Line endings**: Ensure scripts use LF, not CRLF
+
+=== macOS Issues
+
+**Problem**: Security restrictions on macOS
+
+**Solutions**:
+1. **Allow unsigned binaries**: System Preferences → Security & Privacy
+2. **Install via Homebrew**: Better integration with macOS
+3. **Use official installers**: Avoid "quarantine" attributes
+
+=== Linux Issues
+
+**Problem**: Distribution-specific issues
+
+**Solutions**:
+1. **Install dependencies**: Ensure curl, java are available
+2. **Check shell compatibility**: Verify with bash/zsh
+3. **User permissions**: Use user-space installation methods
+
+== Cache and Storage Issues
+
+=== Cache Corruption
+
+**Problem**: Weird behavior, build failures
+
+**Solutions**:
+[source,bash]
+----
+# Clear all caches
+jbang cache clear
+
+# Clear specific cache types
+jbang cache clear jars
+jbang cache clear deps
+
+# Check cache location
+jbang cache list
+----
+
+=== Disk Space Issues
+
+**Problem**: JBang uses too much disk space
+
+**Solutions**:
+1. **Clear caches regularly**: `jbang cache clear`
+2. **Set cache location**: `export JBANG_DIR=/tmp/jbang`
+3. **Monitor usage**: `du -sh ~/.jbang`
+
+== Debugging Tips
+
+=== Enable Verbose Mode
+
+[source,bash]
+----
+# Verbose output
+jbang --verbose script.java
+
+# Debug mode
+jbang --debug script.java
+
+# Show Java command
+jbang --show-java-command script.java
+----
+
+=== Environment Information
+
+[source,bash]
+----
+# JBang version
+jbang version
+
+# Java information
+jbang jdk list
+
+# System information
+jbang info tools script.java
+
+# Configuration
+jbang config list
+----
+
+=== Log Files
+
+Check JBang logs for detailed error information:
+- **Windows**: `%USERPROFILE%\.jbang\logs\`
+- **Unix/Linux/macOS**: `~/.jbang/logs/`
+
+== Getting Help
+
+=== Community Support
+
+- **Zulip Chat**: https://jbangdev.zulipchat.com/
+- **GitHub Issues**: https://github.com/jbangdev/jbang/issues
+- **Stack Overflow**: Tag questions with `jbang`
+
+=== Reporting Issues
+
+When reporting issues, include:
+1. **JBang version**: `jbang version`
+2. **Java version**: `java -version`
+3. **Operating system**: OS and version
+4. **Complete error message**: Full stacktrace
+5. **Minimal reproduction**: Smallest script that shows the problem
+
+=== Creating Minimal Reproductions
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//DEPS com.example:problematic-lib:1.0.0
+
+// Minimal code that reproduces the issue
+class MinimalRepro {
+    public static void main(String[] args) {
+        // Problem occurs here
+    }
+}
+----
+
+== Frequently Asked Questions
+
+=== Why the name "JBang"?
+
+JBang is a play on "shebang" (`#!`) - the Unix mechanism for executable scripts. It's a "bad" spelling of how shebang is pronounced in French.
+
+=== Why use `//` instead of `#!` for shebang?
+
+Using `//` keeps the file valid Java code while still working as a script. This means:
+- IDE's don't complain about syntax errors
+- Code formatters work correctly
+- The file can be compiled normally if needed
+
+=== Why would I use Java for scripting?
+
+Modern Java (8+) with streams, var keyword, and rich libraries is quite suitable for scripting:
+- Excellent IDE support with full IntelliSense
+- Vast ecosystem of libraries
+- Strong debugging capabilities
+- Performance benefits for larger scripts
+
+=== Why use lower case class names in examples?
+
+JBang examples use lowercase class names (like `hello` instead of `Hello`) because:
+- Scripts are often used as command-line tools
+- Unix/Linux conventions use lowercase for commands
+- It matches the filename when used as `./hello.java`
+
+=== Can I use other JVM languages?
+
+Yes! JBang supports:
+- **Kotlin** (`.kt` files)
+- **Groovy** (`.groovy` files)  
+- **JShell** (`.jsh` files)
+- **Markdown** (`.md` files with code blocks)
+
+=== How does caching work?
+
+JBang caches:
+- **Compiled classes**: Faster subsequent runs
+- **Dependencies**: Downloaded once, reused
+- **Remote content**: URLs cached locally
+
+Cache location: `~/.jbang/cache/`
+
+== What's Next?
+
+- **Join the community** → https://jbangdev.zulipchat.com/
+- **Check the FAQ** → xref:faq.adoc[FAQ]
+- **Read the docs** → xref:index.adoc[Documentation]
+- **Report issues** → https://github.com/jbangdev/jbang/issues
+
+Still having issues? Don't hesitate to ask for help in the community! 🤝

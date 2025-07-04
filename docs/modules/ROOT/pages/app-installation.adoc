@@ -1,0 +1,412 @@
+= Installing Scripts as Apps
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+JBang allows you to install scripts as system commands, making them available from anywhere on your system just like any other command-line tool.
+
+== Overview
+
+The `jbang app` command system lets you:
+- Install JBang scripts as system commands
+- Run scripts from anywhere without typing full paths
+- Manage installed applications
+- Share utilities across your team
+
+== Initial Setup
+
+Before installing apps, set up the JBang app system:
+
+[source,bash]
+----
+jbang app setup
+----
+
+This command:
+- **Windows**: Modifies system-wide `PATH` to include JBang-managed folder
+- **Unix/Linux/macOS**: Updates your shell's RC file (`~/.bashrc`, `~/.zshrc`, etc.)
+- **All platforms**: Adds `j!` as an alias for `jbang` (try `j! version`)
+
+[NOTE]
+====
+**Shell Configuration**: The setup modifies your shell configuration. You may need to restart your terminal or run `source ~/.bashrc` (or equivalent) for changes to take effect.
+====
+
+== Installing Scripts
+
+=== Basic Installation
+
+[source,bash]
+----
+# Install a local script
+jbang app install myscript.java
+# Creates command: myscript
+
+# Install with custom name
+jbang app install --name mytool myscript.java
+# Creates command: mytool
+----
+
+=== Installing from URLs
+
+[source,bash]
+----
+# Install from GitHub
+jbang app install https://github.com/user/repo/blob/main/script.java
+
+# Install from Gist
+jbang app install https://gist.github.com/user/gist-id
+----
+
+=== Installing from Aliases
+
+[source,bash]
+----
+# Install from alias catalog
+jbang app install gavsearch@jbangdev
+
+# Install with custom name
+jbang app install --name search gavsearch@jbangdev
+----
+
+=== Installing JAR Applications
+
+[source,bash]
+----
+# Install JAR file
+jbang app install myapp.jar
+
+# Install from Maven coordinates
+jbang app install info.picocli:picocli-codegen:4.6.3
+
+# Install with specific main class
+jbang app install --main com.example.Tool myapp.jar
+----
+
+== Managing Installed Apps
+
+=== List Installed Apps
+
+[source,bash]
+----
+# List all installed apps
+jbang app list
+
+# Sample output:
+# gavsearch = gavsearch@jbangdev
+# hello = /path/to/hello.java
+# mytool = /path/to/script.java
+----
+
+=== Uninstall Apps
+
+[source,bash]
+----
+# Uninstall specific app
+jbang app uninstall mytool
+
+# Uninstall multiple apps
+jbang app uninstall app1 app2 app3
+----
+
+=== Update Apps
+
+[source,bash]
+----
+# Reinstall to update
+jbang app install --force gavsearch@jbangdev
+
+# Update all alias-based apps
+jbang alias update
+jbang app list | grep '@' | while read app; do
+  jbang app install --force "$app"
+done
+----
+
+== Advanced Installation Options
+
+=== Install with Dependencies
+
+[source,bash]
+----
+# Script with dependencies gets installed with all deps
+jbang app install complex-script.java
+----
+
+Dependencies are resolved and cached during installation, making subsequent runs faster.
+
+=== Install with Specific Java Version
+
+[source,bash]
+----
+# Install with specific Java version
+JBANG_DEFAULT_JAVA_VERSION=17 jbang app install script.java
+----
+
+=== Install Native Images
+
+[source,bash]
+----
+# Install as native image (requires GraalVM)
+jbang app install --native mytool.java
+----
+
+This creates a native executable instead of a JBang wrapper script.
+
+== Installation Locations
+
+=== Default Locations
+
+**Windows**:
+- Apps installed to: `%USERPROFILE%\.jbang\bin`
+- Added to system PATH
+
+**Unix/Linux/macOS**:
+- Apps installed to: `~/.jbang/bin`
+- Added to shell PATH
+
+=== Custom Installation Directory
+
+[source,bash]
+----
+# Install to custom directory
+jbang app install --dir /usr/local/bin mytool.java
+----
+
+[WARNING]
+====
+**Permissions**: Installing to system directories like `/usr/local/bin` may require `sudo` privileges.
+====
+
+== Working with Installed Apps
+
+=== Running Installed Apps
+
+Once installed, run apps like any system command:
+
+[source,bash]
+----
+# Run installed app
+mytool arg1 arg2
+
+# Check if app is available
+which mytool
+mytool --help
+----
+
+=== Debugging Installed Apps
+
+[source,bash]
+----
+# See what command is actually executed
+jbang app list
+
+# Run with JBang options
+jbang --debug mytool arg1 arg2
+----
+
+=== Update App Configuration
+
+[source,bash]
+----
+# Reinstall with new options
+jbang app install --force --name newtool mytool.java
+
+# Change main class
+jbang app install --force --main com.example.NewMain mytool.java
+----
+
+== Team and Enterprise Usage
+
+=== Shared Catalogs
+
+Create shared tool catalogs for your team:
+
+[source,bash]
+----
+# Set up team catalog
+jbang catalog add --name team https://github.com/myteam/jbang-tools
+
+# Install team tools
+jbang app install deploy@team
+jbang app install monitor@team
+jbang app install backup@team
+----
+
+=== Standardized Installation
+
+Create installation scripts for teams:
+
+[source,bash]
+----
+#!/bin/bash
+# team-setup.sh
+jbang app setup
+jbang catalog add --name team https://github.com/myteam/jbang-tools
+jbang app install deploy@team
+jbang app install monitor@team
+jbang app install backup@team
+echo "Team tools installed successfully!"
+----
+
+=== Version Management
+
+Pin specific versions for reproducibility:
+
+[source,bash]
+----
+# Install specific version
+jbang app install https://github.com/team/tool/blob/v1.2.3/tool.java
+
+# Or use aliases with version tags
+jbang alias add --name tool-v123 https://github.com/team/tool/blob/v1.2.3/tool.java
+jbang app install tool-v123
+----
+
+== Integration with Package Managers
+
+=== Creating System Packages
+
+For distribution, you can create system packages:
+
+**Debian/Ubuntu** (`tool.deb`):
+[source,bash]
+----
+# Create package structure
+mkdir -p tool/usr/local/bin
+jbang export local --native --output-dir=tool/usr/local/bin mytool.java
+
+# Create control file and build .deb
+# (Package creation details vary)
+----
+
+**RPM** (RedHat/CentOS):
+[source,bash]
+----
+# Similar process for RPM packages
+# Export native binary and package appropriately
+----
+
+=== Homebrew Formula
+
+Create Homebrew formulas for macOS distribution:
+
+[source,ruby]
+----
+class Mytool < Formula
+  desc "My JBang-based tool"
+  homepage "https://github.com/user/mytool"
+  url "https://github.com/user/mytool/archive/v1.0.0.tar.gz"
+  
+  depends_on "jbang"
+  
+  def install
+    bin.install "mytool.java"
+    # Additional installation steps
+  end
+end
+----
+
+== Best Practices
+
+=== Naming Conventions
+
+- **Use descriptive names**: `db-migrate` instead of `migrate`
+- **Avoid conflicts**: Check existing commands with `which`
+- **Use consistent prefixes**: Team tools could use `myteam-*` prefix
+
+=== Documentation
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//DESCRIPTION Database migration utility for MyApp
+//DESCRIPTION Supports PostgreSQL and MySQL databases
+
+// Good: Include description for `jbang app list`
+----
+
+=== Maintenance
+
+- **Regular updates**: Keep installed apps updated
+- **Clean unused apps**: Remove apps you no longer use
+- **Monitor dependencies**: Check for security updates
+- **Test installations**: Verify apps work after system changes
+
+== Troubleshooting
+
+=== Common Issues
+
+**Problem**: Command not found after installation
+**Solution**: 
+1. Check if `jbang app setup` was run
+2. Restart terminal or source shell config
+3. Verify PATH includes `~/.jbang/bin`
+
+**Problem**: App fails to run
+**Solution**:
+1. Check app exists: `jbang app list`
+2. Test manually: `jbang ~/.jbang/bin/appname`
+3. Check dependencies: `jbang cache clear`
+
+**Problem**: Permission denied
+**Solution**:
+1. Check file permissions: `ls -la ~/.jbang/bin/`
+2. Make executable: `chmod +x ~/.jbang/bin/appname`
+
+**Problem**: Wrong version running
+**Solution**:
+1. Check which command: `which appname`
+2. Reinstall: `jbang app install --force appname`
+
+=== Debug Installation
+
+[source,bash]
+----
+# Verbose installation
+jbang --verbose app install mytool.java
+
+# Check installation directory
+ls -la ~/.jbang/bin/
+
+# Test app directly
+~/.jbang/bin/mytool --help
+----
+
+== Platform-Specific Notes
+
+=== Windows
+
+- Uses `.cmd` wrapper scripts
+- PATH modification requires admin rights in some cases
+- PowerShell and Command Prompt both supported
+
+=== macOS
+
+- Uses shell wrapper scripts
+- Works with zsh (default) and bash
+- May require security approval for downloaded scripts
+
+=== Linux
+
+- Uses shell wrapper scripts
+- Works with most shell types
+- Check distribution-specific PATH handling
+
+== What's Next?
+
+- **Share your tools** → xref:aliases-and-catalogs.adoc[Aliases & Catalogs]
+- **Build complex apps** → xref:organizing.adoc[Organizing Code]
+- **Create native binaries** → xref:native-images.adoc[Native Images]
+- **Set up CI/CD** → xref:build-integration.adoc[Build Integration]
+
+Transform your JBang scripts into professional command-line tools! 🛠️

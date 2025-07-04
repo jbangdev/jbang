@@ -1,0 +1,212 @@
+= Your First Script
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+Let's create and run your first JBang script! This guide will walk you through the basics of JBang scripting.
+
+== The Simplest Script
+
+A minimal JBang script is just a single `.java` file with a typical `static void main` method.
+
+Create a file called `hello.java`:
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $? // <1>
+
+class hello { // <2>
+    public static void main(String[] args) {
+        if(args.length==0) {
+            System.out.println("Hello World!");
+        } else {
+            System.out.println("Hello " + args[0]);
+        }
+    }
+}
+----
+<1> This special comment makes the file executable as a script while remaining valid Java code
+<2> Class name can be anything, but matching the filename helps with IDE support
+
+You can create this file automatically using:
+[source,bash]
+----
+jbang init hello.java
+----
+
+== Running Your Script
+
+There are several ways to run your JBang script:
+
+=== Using the jbang Command
+
+[source,bash]
+----
+jbang hello.java
+# Output: Hello World!
+
+jbang hello.java JBang
+# Output: Hello JBang
+----
+
+=== Running Directly (Unix/Linux/macOS)
+
+On Unix-like systems, you can run the script directly:
+
+[source,bash]
+----
+# Make it executable first
+chmod +x hello.java
+
+# Run it directly
+./hello.java
+# Output: Hello World!
+
+./hello.java JBang
+# Output: Hello JBang
+----
+
+== Understanding the Shebang
+
+The first line `///usr/bin/env jbang "$0" "$@" ; exit $?` is a special construct that:
+
+- Uses `//` instead of `#!` to remain valid Java code
+- Tricks bash/zsh into running the file as a script
+- Passes all arguments to your Java program
+- Works in most shells while being valid Java
+
+[NOTE]
+====
+**Fish Shell Users**: Fish shell requires shebangs to start with `#!`, so you'll need to use `jbang` directly:
+[source,bash]
+----
+jbang hello.java your-args
+----
+====
+
+== Java Version Management
+
+JBang automatically handles Java versions for you:
+
+[WARNING]
+====
+**Default Java Version**: When no JDK is available in PATH, JBang downloads Java 11 by default.
+
+You can control this with environment variables:
+[source,bash]
+----
+# Set default Java version
+export JBANG_DEFAULT_JAVA_VERSION=17
+
+# Set JDK vendor
+export JBANG_JDK_VENDOR=temurin
+
+# Run with specific version
+JBANG_DEFAULT_JAVA_VERSION=17 jbang hello.java
+----
+
+**Supported vendors**: `temurin`, `azul`, `oracle`, `openjdk`, `microsoft`, `redhat`, and more.
+====
+
+== Using Templates
+
+JBang includes templates to get you started quickly:
+
+[source,bash]
+----
+# List available templates
+jbang template list
+
+# Create a CLI app with picocli
+jbang init --template=cli myapp.java
+
+# Create a web server
+jbang init --template=qcli webapp.java
+
+# Create a JavaFX app
+jbang init --template=javafx gui.java
+----
+
+== Adding Dependencies
+
+You can add dependencies directly in your script:
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//DEPS info.picocli:picocli:4.6.3
+
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Parameters;
+
+@Command(name = "greet", mixinStandardHelpOptions = true)
+class greet implements Runnable {
+    @Parameters(description = "Who to greet")
+    String name = "World";
+
+    public static void main(String[] args) {
+        new CommandLine(new greet()).execute(args);
+    }
+
+    public void run() {
+        System.out.println("Hello " + name + "!");
+    }
+}
+----
+
+Run it:
+[source,bash]
+----
+jbang greet.java JBang
+# Output: Hello JBang!
+
+jbang greet.java --help
+# Shows help message
+----
+
+== Directory-Based Scripts
+
+If you pass a directory to JBang, it will look for `main.java` as the default application:
+
+[source,bash]
+----
+# If you have a directory with main.java
+jbang my-project/
+# Runs my-project/main.java
+----
+
+== What's Next?
+
+Now that you've created your first script, you can:
+
+- **Add more dependencies** → Read about xref:dependencies.adoc[Dependencies]
+- **Try different languages** → Learn about xref:multiple-languages.adoc[Multiple Languages]
+- **Edit with full IDE support** → Check out xref:ide-integration.adoc[IDE Integration]
+- **Share your script** → Explore xref:aliases-and-catalogs.adoc[Aliases & Catalogs]
+
+== Common Issues
+
+**Script won't run directly?**
+- Check file permissions: `chmod +x yourscript.java`
+- Verify the shebang line is exactly: `///usr/bin/env jbang "$0" "$@" ; exit $?`
+
+**Java version issues?**
+- Check what Java JBang is using: `jbang jdk list`
+- Set a specific default: `export JBANG_DEFAULT_JAVA_VERSION=17`
+
+**Need help?**
+- Get help: `jbang --help`
+- Check the xref:troubleshooting.adoc[Troubleshooting] guide
+- Ask in the https://jbangdev.zulipchat.com[community chat]
+
+Ready to explore more? Let's dive into xref:dependencies.adoc[managing dependencies]! 🚀
