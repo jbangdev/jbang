@@ -1,4 +1,4 @@
-= Intro
+= JBang Documentation
 :idprefix:
 :idseparator: -
 ifndef::env-github[]
@@ -14,75 +14,125 @@ endif::[]
 
 image:jbang_logo.svg[JBang Logo, title="JBang Logo"]
 
-Want to learn, explore or use Java instantly without setup ?
+Want to learn, explore or use Java instantly without setup?
 
-Do you like Java but use python, groovy, kotlin or similar languages for scripts, experimentation and exploration ?
+Do you like Java but use Python, Groovy, Kotlin or similar languages for scripts, experimentation and exploration?
 
-Ever wanted to just be able to run java from anywhere without any or very minimal setup ?
-Ever tried out Java 11+ support for running `.java` files directly in your shell but felt it was a bit too cumbersome ?
+Ever wanted to just be able to run Java from anywhere without any or very minimal setup?
 
-Then try `jbang` which lets you do this:
+Then try **JBang** - the tool that makes Java scripting easy and fun!
 
-image:https://asciinema.org/a/4AiobRxUwPUPztCtrDYcmoKjs.svg[link=https://asciinema.org/a/4AiobRxUwPUPztCtrDYcmoKjs?autoplay=true&theme=solarized-dark]
+== Quick Start
 
 [source, bash]
 ----
-$ jbang init --template=cli hello.java
-$ jbang hello.java Max!
-[jbang] Resolving dependencies...
-[jbang]     Resolving info.picocli:picocli:4.6.3...Done
-[jbang] Dependencies resolved
-[jbang] Building jar...
-Hello Max!
-$ jbang hello.java -h
-Usage: hello [-hV] <greeting>
-hello made with jbang
-      <greeting>   The greeting to print
-  -h, --help       Show this help message and exit.
-  -V, --version    Print version information and exit.
+# Install JBang
+curl -Ls https://sh.jbang.dev | bash -s - app setup
+
+# Create your first script
+jbang init --template=cli hello.java
+
+# Run it
+jbang hello.java Max!
 ----
 
-Instant app generated built using java and picocli as a dependency that was fetched as needed for the compilation and execution.
+image:https://asciinema.org/a/4AiobRxUwPUPztCtrDYcmoKjs.svg[link=https://asciinema.org/a/4AiobRxUwPUPztCtrDYcmoKjs?autoplay=true&theme=solarized-dark]
 
-JBang goes beyond more than just easy scripting; you can use `jbang` to launch any kind of java application or library packaged as a jar available locally, via http/https download or in a Maven repository.
+== What is JBang?
 
-toc::[]
+JBang is a tool that makes it easy to write and run Java scripts without the traditional setup overhead. It goes beyond simple scripting - you can use JBang to launch any Java application or library packaged as a JAR, available locally, via HTTP/HTTPS download, or in a Maven repository.
 
-== Features
+== Key Features
 
-* `.java` Scripting for Java 8 and upwards
-* `.jsh` via JShell from Java 9 and upwards
-* `.kt` via kotlinc (EXPERIMENTAL)
-* `.groovy` via groovyc (EXPERIMENTAL)
-* Extract codeblocks from Markdown files (`.md`) (EXPERIMENTAL)
-* Works on icon:windows[] Windows, icon:apple[] OSX and icon:linux[] Linux and AIX
-* Install using curl, power shell, SDKMan (icon:apple[]/icon:linux[]), Homebrew (icon:apple[]), Chocolatey (icon:windows[]) or Scoop (icon:windows[])
-* If needed will automatically install Java and even a Java editor (vscodium) for editing
-* Installation of scripts to user `PATH`
-* Include multiple files and sources
-* Dependency declarations using `//DEPS <gav>` for automatic dependency resolution
-* Control compile and runtime options with `//COMPILE_OPTIONS <flags>`, `//NATIVE_OPTIONS <flags>` and `//RUNTIME_OPTIONS <flags>`
-* Compiled jar and Dependency resolution caching
-* native-image generation (`--native`)
-* Launch with debug enabled for instant debugging from your favorite IDE
-* Transparent launch of JavaFX Applications on Java 8 and higher
-* Can be used for writing plugins to other cli's like `kubectl`
-* Init templates to get started easily (`jbang init -t cli hello.java`)
-* Generate gradle and IDE config with dependencies for easy editing in your favorite IDE (`jbang edit myfile.java`)
-* Maven and Gradle plugins for easy integration with your favorite build tool
+[cols="1,2", options="header"]
+|===
+| Feature | Description
 
-To use it install `jbang` and run `jbang yourscript.java`
+| **Zero Setup** | Run Java files directly - no project setup needed
+| **Dependency Management** | Declare dependencies with `//DEPS` - automatic resolution
+| **Multiple Languages** | Support for `.java`, `.jsh`, `.kt`, `.groovy`, and `.md` files
+| **Native Images** | Generate native binaries with GraalVM
+| **IDE Integration** | Edit with full IDE support using `jbang edit`
+| **Templates** | Quick start with built-in templates
+| **Aliases & Catalogs** | Share and reuse scripts easily
+| **Cross Platform** | Works on Windows, macOS, Linux, and AIX
+|===
+
+== Documentation Guide
+
+=== 🚀 Getting Started
+Perfect for newcomers to JBang:
+
+* xref:installation.adoc[Installation] - Set up JBang on your system
+* xref:usage.adoc[Basic Usage] - Write and run your first script
+* xref:javaversions.adoc[Java Versions] - Managing Java versions
+
+=== 📝 Writing Scripts
+Learn to write effective JBang scripts:
+
+* xref:dependencies.adoc[Dependencies] - Add external libraries
+* xref:organizing.adoc[Organizing Code] - Structure larger projects
+* xref:templates.adoc[Templates] - Use and create templates
+* xref:debugging.adoc[Debugging] - Debug your scripts
+
+=== 🔧 Advanced Features
+Explore powerful JBang capabilities:
+
+* xref:running.adoc[Running & Execution] - Advanced execution options
+* xref:editing.adoc[IDE Integration] - Edit with full IDE support
+* xref:exporting.adoc[Exporting Projects] - Convert to traditional projects
+* xref:alias_catalogs.adoc[Aliases & Catalogs] - Share and manage scripts
+
+=== ⚙️ Configuration & Tools
+Configure JBang for your workflow:
+
+* xref:configuration.adoc[Configuration] - Customize JBang behavior
+* xref:caching.adoc[Caching] - Understand caching mechanisms
+* xref:integration.adoc[Integration] - Integrate with build tools
+* xref:install.adoc[Installing Scripts] - Install scripts as commands
+
+=== 🆘 Help & Reference
+When you need assistance:
+
+* xref:faq.adoc[FAQ] - Common questions and answers
+* xref:jbang:cli:jbang.adoc[CLI Reference] - Complete command reference
+
+== Common Use Cases
+
+[cols="1,3", options="header"]
+|===
+| Use Case | Example
+
+| **Quick Scripts** | `jbang script.java` - Run any Java file instantly
+| **Command Line Tools** | `jbang init --template=cli mytool.java` - Build CLI apps
+| **Experiments** | `jbang --deps com.fasterxml.jackson.core:jackson-core:2.15.2 experiment.java`
+| **Learning** | `jbang --jsh` - Interactive Java shell
+| **Prototyping** | `jbang edit myapp.java` - Full IDE support for rapid development
+|===
 
 == Requirements
 
-Tested and verified to use on OSX, Linux, AIX, Windows (incl. command.exe, cygwin and mingw shells).
+JBang requires **Java 8 or higher** (Java 11+ recommended). If Java is not available, JBang will automatically download and install it from Eclipse Temurin.
 
-[NOTE]
-====
-AIX requires the GNU `readlink` tool from the GNU coreutils to be available
-in the PATH when running `jbang`.  This is not supplied by default with AIX.
-Prebuilt versions can be obtained via the IBM AIX toolbox at 
-https://www.ibm.com/support/pages/aix-toolbox-linux-applications-downloads-alpha
-or elsewhere.
-====
+Tested and verified on:
+- 🐧 Linux
+- 🍎 macOS  
+- 🪟 Windows (Command Prompt, PowerShell, WSL)
+- 🔧 AIX
+
+== Community
+
+- 💬 **Chat**: https://jbangdev.zulipchat.com[Zulip Community]
+- 🐛 **Issues**: https://github.com/jbangdev/jbang/issues[GitHub Issues]
+- 🛍️ **App Store**: https://jbang.dev/appstore[JBang App Store]
+- 📚 **Examples**: https://github.com/jbangdev/jbang-examples[jbang-examples]
+
+== Next Steps
+
+1. **New to JBang?** → Start with xref:installation.adoc[Installation]
+2. **Want to dive in?** → Try xref:usage.adoc[Basic Usage]
+3. **Building something complex?** → Check xref:dependencies.adoc[Dependencies]
+4. **Need help?** → Visit the xref:faq.adoc[FAQ]
+
+Ready to unleash the power of Java scripting? Let's get started! 🚀
 
