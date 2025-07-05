@@ -1,4 +1,4 @@
-= jbang - Unleash the power of Java
+= JBang - Unleash the Power of Java 🚀
 :idprefix:
 :idseparator: -
 ifndef::env-github[]
@@ -18,52 +18,203 @@ image:https://img.shields.io/github/release/jbangdev/jbang.svg[Release,link=http
 image:https://img.shields.io/github/downloads/jbangdev/jbang/total.svg[Downloads,link=https://hanadigital.github.io/grev/?user=jbangdev&repo=jbang]
 image:https://github.com/jbangdev/jbang/workflows/ci-build/badge.svg[Build Status,link=https://github.com/jbangdev/jbang/actions]
 image:https://www.eclipse.org/che/contribute.svg[Che, link=https://che.openshift.io/f?url=https://github.com/jbangdev/jbang]
-image:https://img.shields.io/badge/Gitpod-Workspace-blue?logo=gitpodp[Gitpod, link=https://gitpod.io/#https://github.com/jbangdev/jbang]
-image:https://img.shields.io/badge/zulip-join_chat-brightgreen.svg[Chat, link=https://jbangdev.zulipchat.com/)
-image:https://sourcespy.com/shield.svg[Gitter, link=https://sourcespy.com/github/jbangdevjbang/]
+image:https://img.shields.io/badge/Gitpod-Workspace-blue?logo=gitpod[Gitpod, link=https://gitpod.io/#https://github.com/jbangdev/jbang]
+image:https://img.shields.io/badge/zulip-join_chat-brightgreen.svg[Chat, link=https://jbangdev.zulipchat.com/]
+image:https://sourcespy.com/shield.svg[SourceSpy, link=https://sourcespy.com/github/jbangdevjbang/]
 image:https://api.scorecard.dev/projects/github.com/jbangdev/jbang/badge[OpenSSF Scorecard,link=https://scorecard.dev/viewer/?uri=github.com/jbangdev/jbang]
 
+ifdef::env-github[]
+toc::[]
+endif::[]
 
 image:images/jbang_logo.svg[JBang Logo, title="JBang Logo"]
 
-Want to learn, explore or use Java instantly without setup ?
+Want to learn, explore or use Java instantly without setup?
 
-Do you like Java but use python, groovy, kotlin or similar languages for scripts, experimentation and exploration ?
+Do you like Java but use Python, Groovy, Kotlin or similar languages for scripts, experimentation and exploration?
 
-Ever wanted to just be able to run java from anywhere without any or very minimal setup ?
-Ever tried out Java 11+ support for running `.java` files directly in your shell but felt it was a bit too cumbersome ?
+Ever wanted to just be able to run Java from anywhere without any or very minimal setup?
 
-Then try `jbang` which lets you do this:
+Then **JBang** is for you! 🎉
+
+== Quick Start
+
+[source, bash]
+----
+# Install JBang
+curl -Ls https://sh.jbang.dev | bash -s - app setup
+
+# Create and run your first script
+jbang init --template=cli hello.java
+jbang hello.java Max!
+----
 
 image:https://asciinema.org/a/4AiobRxUwPUPztCtrDYcmoKjs.svg[link=https://asciinema.org/a/4AiobRxUwPUPztCtrDYcmoKjs?autoplay=true&theme=solarized-dark]
 
-[,bash]
+== What is JBang?
+
+JBang makes it easy to write and run Java scripts without traditional project setup. It handles:
+
+- **Zero setup** - Run `.java` files directly
+- **Dependency management** - Declare with `//DEPS`, auto-resolve from Maven
+- **Multiple languages** - Java, Kotlin, Groovy, JShell, Markdown  
+- **IDE integration** - Full IDE support with `jbang edit`
+- **Native compilation** - Generate native binaries with GraalVM
+- **Script sharing** - Via GitHub, catalogs, and aliases
+
+== Key Features
+
+✅ **Instant Java scripting** - No build files, no project setup
+✅ **Dependency management** - Maven-style deps with `//DEPS`
+✅ **Multiple file types** - `.java`, `.jsh`, `.kt`, `.groovy`, `.md`
+✅ **IDE support** - Full IntelliSense with `jbang edit`
+✅ **Cross-platform** - Windows, macOS, Linux, AIX
+✅ **Native images** - GraalVM native-image support
+✅ **Easy sharing** - GitHub URLs, catalogs, aliases
+✅ **Template system** - Quick start with `jbang init`
+
+== Installation
+
+**Quick Install (recommended):**
+[source, bash]
 ----
-$ jbang init --template=cli hello.java
-$ jbang hello.java Max!
-[jbang] Resolving dependencies...
-[jbang]     Resolving info.picocli:picocli:4.6.3...Done
-[jbang] Dependencies resolved
-[jbang] Building jar...
-Hello Max!
-$ jbang hello.java -h
-Usage: hello [-hV] <greeting>
-hello made with jbang
-      <greeting>   The greeting to print
-  -h, --help       Show this help message and exit.
-  -V, --version    Print version information and exit.
+curl -Ls https://sh.jbang.dev | bash -s - app setup
 ----
 
-Instant cli app generated built using java and picocli as a dependency that was fetched as needed for the compilation and execution.
+**Package managers:**
+- SDKMan: `sdk install jbang`
+- Homebrew: `brew install jbangdev/tap/jbang`
+- Chocolatey: `choco install jbang`
+- Scoop: `scoop install jbang`
+
+See https://jbang.dev/documentation/installation[installation docs] for more options.
+
+== Examples
+
+=== Hello World
+[source, java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+
+class hello {
+    public static void main(String[] args) {
+        System.out.println("Hello " + (args.length > 0 ? args[0] : "World"));
+    }
+}
+----
+
+=== CLI App with Dependencies
+[source, java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//DEPS info.picocli:picocli:4.6.3
+
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Parameters;
+
+@Command(name = "hello", mixinStandardHelpOptions = true)
+class hello implements Runnable {
+    @Parameters(index = "0", description = "The greeting to print")
+    private String greeting;
+
+    public static void main(String[] args) {
+        new CommandLine(new hello()).execute(args);
+    }
+
+    public void run() {
+        System.out.println("Hello " + greeting);
+    }
+}
+----
+
+=== Web Server
+[source, java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//DEPS com.sun.net.httpserver:http:20070405
+
+import com.sun.net.httpserver.*;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+
+class WebServer {
+    public static void main(String[] args) throws IOException {
+        HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
+        server.createContext("/", exchange -> {
+            String response = "Hello from JBang!";
+            exchange.sendResponseHeaders(200, response.length());
+            exchange.getResponseBody().write(response.getBytes());
+            exchange.close();
+        });
+        server.start();
+        System.out.println("Server started at http://localhost:8000");
+    }
+}
+----
+
+== Common Commands
+
+[source, bash]
+----
+# Create new script from template
+jbang init --template=cli myapp.java
+
+# Run script with dependencies
+jbang myapp.java
+
+# Edit with full IDE support
+jbang edit myapp.java
+
+# Run remote script
+jbang https://github.com/user/repo/blob/main/script.java
+
+# Create alias for easy access
+jbang alias add --name myapp myapp.java
+
+# Export to traditional project
+jbang export maven myapp.java
+
+# Create native binary
+jbang --native myapp.java
+
+# Install as system command
+jbang app install myapp.java
+----
 
 == AppStore
 
-JBang goes beyond more than just easy scripting; you can use `jbang` to launch any kind of java application or library packaged as a jar available locally, via http/https download or in a Maven repository. You can even setup catalogs of scripts and publish them to github, gitlab or bitbucket - see https://jbang.dev/appstore[AppStore] for examples.
+Beyond scripting, JBang can launch any Java application packaged as a JAR. Check out the https://jbang.dev/appstore[AppStore] for examples and community-contributed scripts.
 
 == Documentation
 
-Full documentation at https://jbang.dev/documentation. For a project architecture overview refer to https://sourcespy.com/github/jbangdevjbang/[build, module, dependency and other diagrams].
+📖 **Full documentation:** https://jbang.dev/documentation
+
+Quick links:
+
+- 🚀 https://jbang.dev/documentation/quickstart[Quick Start Guide]
+- 📦 https://jbang.dev/documentation/installation[Installation]
+- 📝 https://jbang.dev/documentation/usage[Basic Usage]
+- 🔧 https://jbang.dev/documentation/dependencies[Dependencies]
+- 🎯 https://jbang.dev/documentation/templates[Templates]
+- 🛠️ https://jbang.dev/documentation/editing[IDE Integration]
+- ❓ https://jbang.dev/documentation/faq[FAQ]
+
+== Community
+
+- 💬 **Chat:** https://jbangdev.zulipchat.com[Zulip Community]
+- 🐛 **Issues:** https://github.com/jbangdev/jbang/issues[GitHub Issues]
+- 🛍️ **App Store:** https://jbang.dev/appstore[JBang App Store]
+- 📚 **Examples:** https://github.com/jbangdev/jbang-examples[jbang-examples]
+
+== Contributing
+
+We welcome contributions! Please see our https://github.com/jbangdev/jbang/blob/main/CONTRIBUTING.adoc[Contributing Guide] for details.
 
 == Thanks
 
-`jbang` was heavily inspired by how `https://github.com/holgerbrandl/kscript[kscript]` by Holger Brand works.
+JBang was heavily inspired by https://github.com/holgerbrandl/kscript[kscript] by Holger Brand.
+
+== License
+
+JBang is released under the https://github.com/jbangdev/jbang/blob/main/LICENSE[MIT License].

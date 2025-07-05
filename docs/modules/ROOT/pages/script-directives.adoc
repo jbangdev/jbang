@@ -1,0 +1,668 @@
+= Script Directives Reference
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+JBang uses special comments (directives) starting with `//` to configure how your script is compiled and executed. This reference covers all available directives.
+
+== Syntax Rules
+
+All directives follow these rules:
+
+- Must start at the beginning of a line with `//`
+- Must be in the first comment block of the file (before any code)
+- Are case-sensitive
+- Can appear multiple times (where applicable)
+- Must have no space between `//` and the directive name
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//DEPS com.example:library:1.0.0
+//JAVA 17+
+//PREVIEW
+
+class MyScript {
+    // ... your code
+}
+----
+
+== Dependencies and Repositories
+
+=== //DEPS
+
+Declares Maven dependencies for your script.
+
+**Syntax**: `//DEPS groupId:artifactId:version[:classifier][@type]`
+
+**Examples**:
+[source,java]
+----
+// Basic dependency
+//DEPS info.picocli:picocli:4.6.3
+
+// Multiple dependencies
+//DEPS com.fasterxml.jackson.core:jackson-core:2.15.2
+//DEPS com.fasterxml.jackson.core:jackson-databind:2.15.2
+
+// With classifier
+//DEPS io.netty:netty-transport-native-kqueue:4.1.107.Final:osx-aarch_64
+
+// Fatjar dependency (excludes transitive dependencies)
+//DEPS eu.maveniverse.maven.plugins:toolbox:0.1.9:cli@fatjar
+
+// BOM POM for version management
+//DEPS io.quarkus:quarkus-bom:3.2.0@pom
+//DEPS io.quarkus:quarkus-core
+----
+
+**Notes**:
+
+- First `@pom` dependency is used for managed dependencies
+- Transitive dependencies are resolved automatically
+- Use `@fatjar` to exclude transitive dependency resolution
+
+=== //REPOS
+
+Specifies additional Maven repositories.
+
+**Syntax**: `//REPOS [name=]url[,name=url...]`
+
+**Examples**:
+[source,java]
+----
+// Add custom repository
+//REPOS https://repo.custom.com/maven2
+
+// Multiple repositories with names
+//REPOS central,jcenter,custom=https://repo.custom.com/maven2
+
+// Common repository shortcuts
+//REPOS central,google,jitpack
+----
+
+**Built-in shortcuts**:
+
+- `central` - Maven Central
+- `google` - Google Maven Repository  
+- `jitpack` - JitPack.io
+
+**Notes**:
+
+- If any `//REPOS` is specified, Maven Central must be explicitly included
+- Repositories are searched in the order specified
+- Authentication configured via `~/.m2/settings.xml`
+
+== Java Version and Features
+
+=== //JAVA
+
+Specifies the Java version requirement.
+
+**Syntax**: `//JAVA version[+]`
+
+**Examples**:
+[source,java]
+----
+// Exact version
+//JAVA 17
+
+// Minimum version
+//JAVA 11+
+
+// For preview features
+//JAVA 21+
+//PREVIEW
+----
+
+**Notes**:
+
+- Without `+`, requires exact version
+- With `+`, specifies minimum version
+- Use with `//PREVIEW` for preview features
+
+=== //PREVIEW
+
+Enables Java preview features.
+
+**Syntax**: `//PREVIEW`
+
+**Example**:
+[source,java]
+----
+//JAVA 21+
+//PREVIEW
+
+public class RecordExample {
+    // Using preview features
+    record Point(int x, int y) {}
+    
+    public static void main(String[] args) {
+        var p = new Point(2, 4);
+        System.out.println(p);
+    }
+}
+----
+
+**Notes**:
+
+- Automatically adds `--enable-preview` to compile and runtime options
+- Requires compatible Java version
+
+== Compilation and Runtime Options
+
+=== //COMPILE_OPTIONS
+
+Specifies Java compiler options.
+
+**Syntax**: `//COMPILE_OPTIONS option1 option2 ...`
+
+**Examples**:
+[source,java]
+----
+// Enable preview features manually
+//COMPILE_OPTIONS --enable-preview -source 17
+
+// Compiler warnings
+//COMPILE_OPTIONS -Xlint:unchecked -Xlint:deprecation
+
+// Optimization
+//COMPILE_OPTIONS -O -g:none
+----
+
+=== //RUNTIME_OPTIONS
+
+Specifies JVM runtime options.
+
+**Syntax**: `//RUNTIME_OPTIONS option1 option2 ...`
+
+**Examples**:
+[source,java]
+----
+// Memory settings
+//RUNTIME_OPTIONS -Xmx2g -Xms512m
+
+// Garbage collection
+//RUNTIME_OPTIONS -XX:+UseG1GC -XX:MaxGCPauseMillis=200
+
+// System properties
+//RUNTIME_OPTIONS -Dfile.encoding=UTF-8 -Duser.timezone=UTC
+
+// Debug settings
+//RUNTIME_OPTIONS -XX:+PrintGCDetails -XX:+PrintCommandLineFlags
+
+// Performance optimization
+//RUNTIME_OPTIONS -XX:+TieredCompilation -XX:TieredStopAtLevel=1
+----
+
+=== //NATIVE_OPTIONS
+
+Specifies GraalVM native-image options.
+
+**Syntax**: `//NATIVE_OPTIONS option1 option2 ...`
+
+**Examples**:
+[source,java]
+----
+// Basic native image optimization
+//NATIVE_OPTIONS -O2 --no-fallback
+
+// Reflection configuration
+//NATIVE_OPTIONS -H:ReflectionConfigurationFiles=reflection-config.json
+
+// Resource inclusion
+//NATIVE_OPTIONS -H:IncludeResources=.*\.properties
+
+// Advanced options
+//NATIVE_OPTIONS --gc=G1 -H:+UnlockExperimentalVMOptions
+
+// Static executable
+//NATIVE_OPTIONS -H:+StaticExecutableWithDynamicLibC
+----
+
+=== //GAV
+
+Specifies the Maven coordinates (Group:Artifact:Version) for the script itself. Useful for publishing or referencing the script as a dependency.
+
+**Syntax**: `//GAV groupId:artifactId[:version]`
+
+**Example**:
+[source,java]
+----
+//GAV com.example:my-script:1.0.0
+----
+
+**Notes**:
+- If version is omitted, a default version is used.
+- Only one //GAV line should be present per script.
+
+
+=== //JAVAC_OPTIONS
+
+Specifies additional options to pass to the Java compiler (javac). Useful for advanced compilation flags.
+
+**Syntax**: `//JAVAC_OPTIONS option1 option2 ...`
+
+**Example**:
+[source,java]
+----
+//JAVAC_OPTIONS -parameters -Xlint:unchecked
+----
+
+**Notes**:
+- Options are passed directly to javac.
+- Use for flags not covered by //COMPILE_OPTIONS.
+
+
+== Application Configuration
+
+=== //MAIN
+
+Specifies the main class to execute.
+
+**Syntax**: `//MAIN fully.qualified.ClassName`
+
+**Example**:
+[source,java]
+----
+//MAIN com.example.AlternativeMain
+
+class Primary {
+    public static void main(String[] args) {
+        System.out.println("Primary main");
+    }
+}
+
+class AlternativeMain {
+    public static void main(String[] args) {
+        System.out.println("Alternative main - this will run");
+    }
+}
+----
+
+**Notes**:
+
+- Overrides automatic main class detection
+- Useful when multiple main methods exist
+
+=== //MODULE
+
+Declares the script as a Java module.
+
+**Syntax**: `//MODULE module.name`
+
+**Example**:
+[source,java]
+----
+//MODULE com.example.myapp
+
+package com.example.myapp;
+
+public class ModularApp {
+    public static void main(String[] args) {
+        System.out.println("Running as module: com.example.myapp");
+    }
+}
+----
+
+**Notes**:
+
+- Enables module system compilation
+- Dependencies automatically marked as required
+- Requires package declaration
+
+=== //MANIFEST
+
+Adds custom entries to the JAR manifest.
+
+**Syntax**: `//MANIFEST key=value key2=value2 ...`
+
+**Examples**:
+[source,java]
+----
+// Basic manifest entries
+//MANIFEST Built-By=Developer Sealed=true
+
+// Version information
+//MANIFEST Implementation-Version=1.0.0 Implementation-Vendor=MyCompany
+
+// Boolean flag (no value = true)
+//MANIFEST Custom-Flag Multi-Release
+----
+
+**Notes**:
+
+- Entries without `=value` default to `true`
+- Useful for application metadata
+
+== Performance Optimization
+
+=== //CDS
+
+Enables Application Class Data Sharing for faster startup.
+
+**Syntax**: `//CDS`
+
+**Example**:
+[source,java]
+----
+//CDS
+//RUNTIME_OPTIONS -Xms256m
+
+class FastStartup {
+    public static void main(String[] args) {
+        System.out.println("Fast startup with CDS");
+    }
+}
+----
+
+**Notes**:
+
+- Requires Java 13+
+- Improves startup time for frequently-run scripts
+- Can be overridden with `--no-cds` command line option
+
+=== //JAVAAGENT
+
+Specifies a Java agent to load.
+
+**Syntax**: `//JAVAAGENT [path|gav|url][=options]`
+
+**Examples**:
+[source,java]
+----
+// Mark as agent (for building agents)
+//JAVAAGENT
+
+// Use external agent
+//JAVAAGENT io.opentelemetry.javaagent:opentelemetry-javaagent:1.20.0
+
+// Local agent with options
+//JAVAAGENT myagent.jar=option1,option2
+
+// Remote agent
+//JAVAAGENT https://repo1.maven.org/maven2/agent.jar
+----
+
+**Notes**:
+
+- Without arguments, marks script as Java agent
+- Can reference local files, Maven coordinates, or URLs
+
+== Language-Specific Directives
+
+=== //KOTLIN
+
+Specifies Kotlin compiler version.
+
+**Syntax**: `//KOTLIN version`
+
+**Example**:
+[source,kotlin]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//KOTLIN 2.0.21
+//DEPS org.jetbrains.kotlin:kotlin-stdlib:2.0.21
+
+fun main(args: Array<String>) {
+    println("Hello from Kotlin ${args.firstOrNull() ?: "World"}")
+}
+----
+
+=== //GROOVY
+
+Specifies Groovy compiler version.
+
+**Syntax**: `//GROOVY version`
+
+**Example**:
+[source,groovy]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//GROOVY 3.0.19
+//DEPS org.codehaus.groovy:groovy:3.0.19
+
+def name = args.length > 0 ? args[0] : "World"
+println "Hello from Groovy $name"
+----
+
+== File and Resource Management
+
+=== //SOURCES
+
+Includes additional source files in compilation.
+
+**Syntax**: `//SOURCES file1.java file2.java ...`
+
+**Example**:
+[source,java]
+----
+//SOURCES utils/Helper.java model/Person.java
+
+class MainApp {
+    public static void main(String[] args) {
+        Helper helper = new Helper();
+        Person person = new Person("Alice");
+        helper.process(person);
+    }
+}
+----
+
+**Notes**:
+
+- Files are relative to the main script location
+- All files compiled together
+- Useful for multi-file scripts
+
+=== //FILES
+
+Includes additional files in the script execution environment.
+
+**Syntax**: `//FILES file1.txt file2.properties ...`
+
+**Example**:
+[source,java]
+----
+//FILES config.properties data.txt templates/
+
+class FileProcessor {
+    public static void main(String[] args) throws Exception {
+        // These files are available in working directory
+        Properties props = new Properties();
+        props.load(new FileInputStream("config.properties"));
+        
+        List<String> lines = Files.readAllLines(Paths.get("data.txt"));
+        System.out.println("Loaded " + lines.size() + " lines");
+    }
+}
+----
+
+**Notes**:
+
+- Files copied to script execution directory
+- Supports directories (copied recursively)
+- Paths relative to script location
+
+== Documentation and Metadata
+
+=== //DESCRIPTION
+
+Provides description for aliases and app installation.
+
+**Syntax**: `//DESCRIPTION text`
+
+**Example**:
+[source,java]
+----
+//DESCRIPTION Database migration utility for MyApp
+//DESCRIPTION Supports PostgreSQL and MySQL databases
+//DEPS org.postgresql:postgresql:42.6.0
+
+class DbMigrate {
+    public static void main(String[] args) {
+        System.out.println("Running database migration...");
+    }
+}
+----
+
+**Notes**:
+
+- Multiple `//DESCRIPTION` lines are concatenated
+- Used by `jbang alias list` and `jbang app list`
+- Helps document script purpose
+
+=== //DOCS
+
+Links to additional documentation resources for the script.
+
+**Syntax**: `//DOCS url-or-path`
+
+**Example**:
+[source,java]
+----
+//DOCS https://myproject.org/docs/usage.html
+//DOCS docs/extra-info.md
+----
+
+**Notes**:
+- Can be used multiple times to link to several resources.
+- Used by tools to provide context/help for scripts.
+
+== Advanced Usage Patterns
+
+=== Complex Application
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//DESCRIPTION Production microservice with monitoring and metrics
+//JAVA 17+
+//DEPS io.quarkus:quarkus-bom:3.2.0@pom
+//DEPS io.quarkus:quarkus-resteasy-reactive
+//DEPS io.quarkus:quarkus-micrometer-registry-prometheus
+//REPOS central,quarkus=https://repo1.maven.org/maven2/
+//RUNTIME_OPTIONS -Xmx512m -XX:+UseG1GC
+//NATIVE_OPTIONS --no-fallback -H:+ReportExceptionStackTraces
+//MANIFEST Implementation-Version=1.0.0 Built-By=CI
+
+// Your application code here
+----
+
+=== Performance-Optimized Script
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//JAVA 21+
+//CDS
+//RUNTIME_OPTIONS -XX:+TieredCompilation -XX:TieredStopAtLevel=1
+//RUNTIME_OPTIONS -Xmx256m -XX:+UseSerialGC
+//COMPILE_OPTIONS -O -g:none
+
+// Fast-starting script
+----
+
+=== Multi-Language Project
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//SOURCES kotlin/Utils.kt groovy/Scripts.groovy
+//DEPS org.jetbrains.kotlin:kotlin-stdlib:2.0.21
+//DEPS org.codehaus.groovy:groovy:3.0.19
+//FILES config/ templates/
+
+// Mixed-language application
+----
+
+== Best Practices
+
+=== Directive Ordering
+
+Recommended order for readability:
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//DESCRIPTION Your script description
+//JAVA 17+
+//PREVIEW
+
+//JAVAAGENT agent.jar
+//MAIN com.example.Main
+//MODULE com.example.module
+
+//REPOS custom-repo
+//DEPS dependency1
+//DEPS dependency2
+
+//SOURCES additional-files
+//FILES resource-files
+
+//MANIFEST Built-By=Developer
+//COMPILE_OPTIONS -Xlint:all
+//RUNTIME_OPTIONS -Xmx1g
+//NATIVE_OPTIONS --no-fallback
+//CDS
+----
+
+=== Environment-Specific Configuration
+
+[source,java]
+----
+// Use environment variables in directives
+//DEPS org.postgresql:postgresql:${env.DB_VERSION:42.6.0}
+//RUNTIME_OPTIONS -Xmx${env.MAX_MEMORY:1g}
+----
+
+=== Conditional Directives
+
+Some directives can be conditionally applied:
+[source,java]
+----
+// Different options based on OS
+//NATIVE_OPTIONS ${os.detected.name:linux}=-H:+StaticExecutableWithDynamicLibC
+//DEPS org.openjfx:javafx-graphics:17.0.2:${os.detected.jfxname}
+----
+
+== Reference Quick List
+
+[cols="2,3,2", options="header"]
+|===
+|Directive |Purpose |Example
+
+|`//DEPS` |Maven dependencies |`//DEPS com.example:lib:1.0`
+|`//REPOS` |Additional repositories |`//REPOS central,custom=https://...`
+|`//JAVA` |Java version |`//JAVA 17+`
+|`//PREVIEW` |Enable preview features |`//PREVIEW`
+|`//COMPILE_OPTIONS` |Compiler options |`//COMPILE_OPTIONS -Xlint:all`
+|`//RUNTIME_OPTIONS` |JVM options |`//RUNTIME_OPTIONS -Xmx2g`
+|`//NATIVE_OPTIONS` |Native image options |`//NATIVE_OPTIONS --no-fallback`
+|`//MAIN` |Main class override |`//MAIN com.example.Main`
+|`//MODULE` |Module declaration |`//MODULE com.example.app`
+|`//MANIFEST` |JAR manifest entries |`//MANIFEST Built-By=Dev`
+|`//CDS` |Class Data Sharing |`//CDS`
+|`//JAVAAGENT` |Java agent |`//JAVAAGENT agent.jar`
+|`//KOTLIN` |Kotlin version |`//KOTLIN 2.0.21`
+|`//GROOVY` |Groovy version |`//GROOVY 3.0.19`
+|`//SOURCES` |Additional sources |`//SOURCES util/Helper.java`
+|`//FILES` |Include files |`//FILES config.properties`
+|`//DESCRIPTION` |Script description |`//DESCRIPTION My utility`
+|===
+
+== What's Next?
+
+- **Apply these directives** → Try them in your xref:first-script.adoc[First Script]
+- **Learn about dependencies** → Read the xref:dependencies.adoc[Dependencies Guide]
+- **Optimize performance** → Check xref:execution-options.adoc[Execution Options]
+- **Create native images** → Explore xref:native-images.adoc[Native Images]
+
+Master these directives to unlock the full power of JBang scripting! 🚀
