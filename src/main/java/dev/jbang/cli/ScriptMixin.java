@@ -17,7 +17,7 @@ public class ScriptMixin {
 			"--files" }, converter = CommaSeparatedConverter.class, description = "Add additional files.")
 	List<String> resources;
 
-	@CommandLine.Option(names = {
+	@CommandLine.Option(names = { "-T",
 			"--source-type" }, description = "Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown")
 	Source.Type forceType;
 
