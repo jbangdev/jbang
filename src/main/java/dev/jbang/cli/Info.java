@@ -68,10 +68,14 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String originalResource;
 		String backingResource;
 		String target;
+		String error;
 
 		ProjectFile(ResourceRef ref) {
 			originalResource = ref.getOriginalResource();
 			backingResource = ref.exists() ? ref.getFile().toString() : null;
+			error = ref instanceof ResourceRef.UnresolvableResourceRef
+					? ((ResourceRef.UnresolvableResourceRef) ref).getReason()
+					: null;
 		}
 
 		ProjectFile(RefTarget ref) {
@@ -112,26 +116,20 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String module;
 		Map<String, List<ProjectFile>> docs;
 
-		public ScriptInfo(BuildContext ctx, boolean assureJdkInstalled) {
-			Project prj = ctx.getProject();
+		public ScriptInfo(Project prj, Path buildDir, boolean assureJdkInstalled) {
 			originalResource = prj.getResourceRef().getOriginalResource();
 
 			if (scripts.add(originalResource)) {
 				backingResource = prj.getResourceRef().getFile().toString();
 
-				init(ctx);
+				init(prj);
 
-				applicationJar = ctx.getJarFile() == null ? null
-						: ctx.getJarFile().toAbsolutePath().toString();
-				applicationJsa = ctx.getJsaFile() != null && Files.isRegularFile(ctx.getJsaFile())
-						? ctx.getJsaFile().toAbsolutePath().toString()
-						: null;
-				nativeImage = ctx.getNativeImageFile() != null && Files.exists(ctx.getNativeImageFile())
-						? ctx.getNativeImageFile().toAbsolutePath().toString()
-						: null;
-				mainClass = prj.getMainClass();
-				module = ModuleUtil.getModuleName(prj);
-				requestedJavaVersion = prj.getJavaVersion();
+				try {
+					BuildContext ctx = BuildContext.forProject(prj, buildDir);
+					init(ctx);
+				} catch (Exception e) {
+					Util.warnMsg("Unable to obtain full information, the script probably contains errors", e);
+				}
 
 				try {
 					JdkManager jdkMan = JavaUtil.defaultJdkManager();
@@ -143,41 +141,10 @@ abstract class BaseInfoCommand extends BaseCommand {
 				} catch (ExitException e) {
 					// Ignore
 				}
-
-				List<ArtifactInfo> artifacts = ctx.resolveClassPath().getArtifacts();
-				if (artifacts.isEmpty()) {
-					resolvedDependencies = Collections.emptyList();
-				} else {
-					resolvedDependencies = artifacts
-						.stream()
-						.map(a -> a.getFile().toString())
-						.collect(Collectors.toList());
-				}
-
-				if (prj.getJavaVersion() != null) {
-					javaVersion = Integer.toString(JavaUtil.parseJavaVersion(prj.getJavaVersion()));
-				}
-
-				List<String> opts = prj.getRuntimeOptions();
-				if (!opts.isEmpty()) {
-					runtimeOptions = opts;
-				}
-
-				if (ctx.getJarFile() != null && Files.exists(ctx.getJarFile())) {
-					Project jarProject = Project.builder().build(ctx.getJarFile());
-					mainClass = jarProject.getMainClass();
-					gav = jarProject.getGav().orElse(gav);
-					module = ModuleUtil.getModuleName(jarProject);
-				}
 			}
 		}
 
-		private void init(BuildContext ctx) {
-			Project prj = ctx.getProject();
-			List<String> deps = ctx.resolveClassPath().getClassPaths();
-			if (!deps.isEmpty()) {
-				dependencies = deps;
-			}
+		private void init(Project prj) {
 			if (prj.getMainSource() == null) {
 				if (!prj.getRepositories().isEmpty()) {
 					repositories = prj.getRepositories()
@@ -199,26 +166,19 @@ abstract class BaseInfoCommand extends BaseCommand {
 			docs = getDocsMap(prj.getDocs());
 
 			module = prj.getModuleName().orElse(null);
-		}
 
-		/**
-		 * Returns a map of documentation ids to lists of documentation references. Refs
-		 * that has no id are grouped under "main".
-		 *
-		 * @param docs the list of documentation references
-		 * @return a map where the key is the documentation id and the value is a list
-		 *         of ProjectFile pointing to the documentation files or links
-		 */
-		Map<String, List<ProjectFile>> getDocsMap(List<DocRef> docs) {
-			Map<String, List<ProjectFile>> docsMap = new LinkedHashMap<>();
-			if (docs != null) {
-				for (DocRef doc : docs) {
-					String key = doc.getId() == null ? "main" : doc.getId();
-					List<ProjectFile> pfs = docsMap.computeIfAbsent(key, k -> new ArrayList<>());
-					pfs.add(new ProjectFile(doc.getRef()));
-				}
+			mainClass = prj.getMainClass();
+			module = ModuleUtil.getModuleName(prj);
+			requestedJavaVersion = prj.getJavaVersion();
+
+			if (prj.getJavaVersion() != null) {
+				javaVersion = Integer.toString(JavaUtil.parseJavaVersion(prj.getJavaVersion()));
 			}
-			return docsMap;
+
+			List<String> opts = prj.getRuntimeOptions();
+			if (!opts.isEmpty()) {
+				runtimeOptions = opts;
+			}
 		}
 
 		private void init(SourceSet ss) {
@@ -243,6 +203,54 @@ abstract class BaseInfoCommand extends BaseCommand {
 			}
 		}
 
+		private void init(BuildContext ctx) {
+			applicationJar = ctx.getJarFile() == null ? null
+					: ctx.getJarFile().toAbsolutePath().toString();
+			applicationJsa = ctx.getJsaFile() != null && Files.isRegularFile(ctx.getJsaFile())
+					? ctx.getJsaFile().toAbsolutePath().toString()
+					: null;
+			nativeImage = ctx.getNativeImageFile() != null && Files.exists(ctx.getNativeImageFile())
+					? ctx.getNativeImageFile().toAbsolutePath().toString()
+					: null;
+
+			List<ArtifactInfo> artifacts = ctx.resolveClassPath().getArtifacts();
+			if (artifacts.isEmpty()) {
+				resolvedDependencies = Collections.emptyList();
+			} else {
+				resolvedDependencies = artifacts
+					.stream()
+					.map(a -> a.getFile().toString())
+					.collect(Collectors.toList());
+			}
+
+			if (ctx.getJarFile() != null && Files.exists(ctx.getJarFile())) {
+				Project jarProject = Project.builder().build(ctx.getJarFile());
+				mainClass = jarProject.getMainClass();
+				gav = jarProject.getGav().orElse(gav);
+				module = ModuleUtil.getModuleName(jarProject);
+			}
+		}
+
+		/**
+		 * Returns a map of documentation ids to lists of documentation references. Refs
+		 * that has no id are grouped under "main".
+		 *
+		 * @param docs the list of documentation references
+		 * @return a map where the key is the documentation id and the value is a list
+		 *         of ProjectFile pointing to the documentation files or links
+		 */
+		Map<String, List<ProjectFile>> getDocsMap(List<DocRef> docs) {
+			Map<String, List<ProjectFile>> docsMap = new LinkedHashMap<>();
+			if (docs != null) {
+				for (DocRef doc : docs) {
+					String key = doc.getId() == null ? "main" : doc.getId();
+					List<ProjectFile> pfs = docsMap.computeIfAbsent(key, k -> new ArrayList<>());
+					pfs.add(new ProjectFile(doc.getRef()));
+				}
+			}
+			return docsMap;
+		}
+
 	}
 
 	private static Set<String> scripts;
@@ -255,7 +263,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 
 		scripts = new HashSet<>();
 
-		return new ScriptInfo(BuildContext.forProject(prj, buildDir), assureJdkInstalled);
+		return new ScriptInfo(prj, buildDir, assureJdkInstalled);
 	}
 
 	ProjectBuilder createProjectBuilder() {
@@ -383,16 +391,16 @@ class Docs extends BaseInfoCommand {
 			});
 		});
 
+		if (toOpen[0] == null) {
+			Util.infoMsg("No documentation files found");
+			return EXIT_OK;
+		}
 		if (!open) {
 			Util.infoMsg("Use --open to open the documentation file in the default browser.");
 			return EXIT_OK;
 		}
 		if (GraphicsEnvironment.isHeadless()) {
 			Util.infoMsg("Cannot open documentation file in browser in headless mode");
-			return EXIT_OK;
-		}
-		if (toOpen[0] == null) {
-			Util.infoMsg("No documentation file to open found");
 			return EXIT_OK;
 		}
 		try {
