@@ -20,6 +20,7 @@ import dev.jbang.catalog.TemplateProperty;
 import dev.jbang.source.RefTarget;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.source.resolvers.SiblingResourceResolver;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
 
@@ -29,6 +30,9 @@ import picocli.CommandLine;
 
 @CommandLine.Command(name = "init", description = "Initialize a script.")
 public class Init extends BaseCommand {
+
+	@CommandLine.Mixin
+	BuildMixin buildMixin;
 
 	@CommandLine.Option(names = { "--template",
 			"-t" }, description = "Init script with a java class useful for scripting")
@@ -81,6 +85,12 @@ public class Init extends BaseCommand {
 		properties.put("scriptref", scriptOrFile);
 		properties.put("baseName", baseName);
 		properties.put("dependencies", dependencies);
+
+		int reqVersion = buildMixin.javaVersion != null ? JavaUtil.minRequestedVersion(buildMixin.javaVersion)
+				: JavaUtil.getCurrentMajorJavaVersion();
+
+		properties.put("javaVersion", reqVersion);
+		properties.put("compactSourceFiles", reqVersion >= 25);
 		// properties.put("magiccontent", "//no gpt response. make sure you ran with
 		// --preview and OPENAI_API_KEY set");
 		if (Util.isPreview() && !params.isEmpty()) {
@@ -304,7 +314,7 @@ public class Init extends BaseCommand {
 		try (BufferedWriter writer = Files.newBufferedWriter(outFile)) {
 			TemplateInstance templateWithData = template.instance();
 			properties.forEach(templateWithData::data);
-
+			Util.verboseMsg("Rendering template: " + templateRef + " with properties: " + properties);
 			String result = templateWithData.render();
 
 			writer.write(result);
