@@ -284,3 +284,10 @@ it will if you `java` command supports Java modules automatically set the necess
 `--module-path` and `--add-modules`.
 
 See `link:https://github.com/jbangdev/jbang-examples/blob/main/examples/jfx.java[jfx.java]` and `link:https://github.com/jbangdev/jbang-examples/blob/main/examples/jfxtiles.java[jfxtiles.java]` for examples of this.
+
+== What's Next?
+
+- **See all directives** → Complete xref:script-directives.adoc[Script Directives Reference]
+- **Optimize execution** → Learn about xref:execution-options.adoc[Execution Options]  
+- **Try multiple languages** → Explore xref:multiple-languages.adoc[Multiple Languages]
+- **Organize larger projects** → Read about xref:organizing.adoc[Organizing Code]
