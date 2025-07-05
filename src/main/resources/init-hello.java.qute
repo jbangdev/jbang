@@ -9,7 +9,7 @@
 {#else}
 import static java.lang.System.*;
 
-{#if nakedmain}
+{#if compactSourceFiles}
 void main(String... args) {
     out.println("Hello World");
 }

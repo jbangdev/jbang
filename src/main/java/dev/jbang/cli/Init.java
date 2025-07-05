@@ -20,6 +20,7 @@ import dev.jbang.catalog.TemplateProperty;
 import dev.jbang.source.RefTarget;
 import dev.jbang.source.ResourceRef;
 import dev.jbang.source.resolvers.SiblingResourceResolver;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
 
@@ -84,7 +85,12 @@ public class Init extends BaseCommand {
 		properties.put("scriptref", scriptOrFile);
 		properties.put("baseName", baseName);
 		properties.put("dependencies", dependencies);
-		properties.put("nakedmain", buildMixin.javaVersion != null && Integer.parseInt(buildMixin.javaVersion) >= 25);
+
+		int reqVersion = buildMixin.javaVersion != null ? JavaUtil.minRequestedVersion(buildMixin.javaVersion)
+				: JavaUtil.getCurrentMajorJavaVersion();
+
+		properties.put("javaVersion", reqVersion);
+		properties.put("compactSourceFiles", reqVersion >= 25);
 		// properties.put("magiccontent", "//no gpt response. make sure you ran with
 		// --preview and OPENAI_API_KEY set");
 		if (Util.isPreview() && !params.isEmpty()) {
