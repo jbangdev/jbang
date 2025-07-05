@@ -15,7 +15,9 @@ endif::[]
 toc::[]
 
 To use `jbang` Java 8 is the minimum required version, however Java 17 or higher is recommended.
+To use `jbang` Java 8 is the minimum required version, however Java 17 or higher is recommended.
 
+Note: `jbang` will download and install `java` from Eclipse Temurin if no `java` is available.
 Note: `jbang` will download and install `java` from Eclipse Temurin if no `java` is available.
 
 There are multiple ways to install jbang. See below for all available options.
@@ -30,10 +32,11 @@ Once you have jbang installed, it is recommended you run `jbang app setup`. This
 By default `jbang` uses `~/.jbang` for configurations and build cache. This can be changed using the environment variable `JBANG_DIR`.
 ====
 
-== Using JBang
+== Installation Methods
 
-The simplest way to install `jbang` is using JBang itself.
-This method has no other requirements (besides `curl` on Linux/OSX/AIX).
+== Universal (All Platforms)
+
+=== Using JBang (curl/bash)
 
 Linux/OSX/Windows/AIX Bash:
 
@@ -49,7 +52,42 @@ Windows Powershell:
 iex "& { $(iwr -useb https://ps.jbang.dev) } app setup"
 ----
 
-== SDKMAN
+=== Zero Install (curl/bash and Powershell)
+
+Linux/OSX/Windows/AIX Bash:
+
+[source, bash]
+----
+curl -Ls https://sh.jbang.dev | bash -s - <arguments>
+----
+
+For example `curl -Ls https://sh.jbang.dev | bash -s - properties@jbangdev`
+
+Windows Powershell:
+
+[source, powershell]
+----
+iex "& { $(iwr -useb https://ps.jbang.dev) } <arguments>"
+----
+
+For example `iex "& { $(iwr -useb https://ps.jbang.dev) } properties@jbangdev"`
+
+=== Manual install
+
+Unzip the https://github.com/jbangdev/jbang/releases/latest[latest binary release], add the `jbang-<version>/bin` folder to your `$PATH` and you are set.
+
+=== Wrapper install
+
+If you would like to have `jbang` available in a local directory and committed into a source code repository (akin to Maven and Gradle wrappers) you can use the `jbang wrapper` command.
+
+If you have `jbang` already installed you call `jbang wrapper install` in a folder to install a local `jbang`
+that will run out of that directory using `./jbang`.
+
+The `./.jbang` directory which `jbang wrapper install` creates is just a cache which you typically would not commit to a source code repository, so you can e.g. `echo .jbang/ >>.gitignore`.
+
+== Linux & macOS
+
+=== SDKMan
 
 Although if you want to have easy updates or install multiple JBang versions we recommend
 https://sdkman.io[sdkman] to install both java and `jbang` on Linux and OSX.
@@ -85,7 +123,53 @@ To update run:
 sdk upgrade jbang
 ----
 
-== Chocolatey icon:windows[]
+=== asdf
+
+You can install JBang using the asdf version manager:
+
+[source,bash]
+----
+asdf plugin-add jbang
+asdf install jbang latest
+----
+
+=== Homebrew (macOS)
+
+On OSX you can install 'java' and `jbang` with https://brew.sh[Homebrew] using custom taps.
+
+To install Java 17:
+
+[source, bash]
+----
+brew install temurin@17 --cask
+----
+
+Once Java is installed you can use brew with https://github.com/jbangdev/homebrew-tap/[jbangdev/tap] to get `jbang`:
+
+  brew install jbangdev/tap/jbang
+
+To upgrade to latest version:
+
+  brew upgrade jbangdev/tap/jbang
+
+=== (Experimental) Linux packages icon:linux[]
+
+WARNING: These builds are not fully automated yet thus might be slightly behind.
+
+You can install rpm packages from https://copr.fedorainfracloud.org/coprs/maxandersen/jbang/[Fedora Copr]
+by doing the following:
+
+[source]
+----
+dnf copr enable @jbangdev/jbang 
+dnf install jbang
+----
+
+The COPR currently includes builds from various versions of CentOS, Fedora, Mageia and OpenSuse.
+
+== Windows
+
+=== Chocolatey
 
 On Windows you can install both `java` and `jbang` with https://chocolatey.org[Chocolatey].
 
@@ -107,7 +191,7 @@ the latest you can see the https://chocolatey.org/packages/jbang/#versionhistory
 
   choco install jbang --version=<version number>
 
-== Scoop icon:windows[]
+=== Scoop
 
 On Windows you can also install `jbang` with https://scoop.sh[Scoop].
 
@@ -123,23 +207,23 @@ To upgrade to latest version:
 
 == Homebrew icon:apple[]
 
-Brew has a default tap for `jbang` which you can install with:
+On OSX you can install 'java' and `jbang` with https://brew.sh[Homebrew] using custom taps.
+
+To install Java 11:
 
 [source, bash]
 ----
-brew install jbang
+brew tap AdoptOpenJDK/openjdk
+brew install adoptopenjdk11 --cask
 ----
 
-That is perfectly fine for most use cases.
-
-JBang also has a custom tap which is updated at release time of JBang - where as the default tap is updated whenever brew main repo is updated and reviewed:
+Once Java is installed you can use brew with https://github.com/jbangdev/homebrew-tap/[jbangdev/tap] to get `jbang`:
 
   brew install jbangdev/tap/jbang
 
 To upgrade to latest version:
 
   brew upgrade jbangdev/tap/jbang
-
 
 == (Experimental) Linux packages icon:linux[]
 
@@ -176,7 +260,24 @@ The same container images can be used with GitHub Actions, see https://github.co
 
 Remember to remove `-ti` from the commands above when using on a GitHub Actions flow.
 
-== Maven Plugin
+=== GitHub Actions
+
+You can use JBang in your GitHub Actions workflows:
+
+[source,yaml]
+----
+- name: Setup JBang
+  uses: jbangdev/setup-jbang@main
+
+- name: Run script
+  run: |
+    jbang properties@jbangdev
+----
+See https://github.com/marketplace/actions/setup-jbang for more details.
+
+== Build Tools
+
+=== Maven Plugin
 
 The JBang Maven plugin allows JBang scripts to be executed during a Maven build.
 
@@ -205,7 +306,7 @@ Example in your `pom.xml`:
 
 The plugin documentation and more examples are available here: https://github.com/jbangdev/jbang-maven-plugin
 
-== Gradle Plugin
+=== Gradle Plugin
 
 The JBang Gradle plugin allows JBang scripts to be executed during a Gradle build.
 
@@ -227,55 +328,54 @@ $ gradle jbang --jbang-script hello.jsh --jbang-args="Hello world"
 
 The plugin documentation and more examples are available here: https://github.com/jbangdev/jbang-gradle-plugin
 
-== Manual install
+== Programming Language Integrations
 
-Unzip the https://github.com/jbangdev/jbang/releases/latest[latest binary release], add the `jbang-<version>/bin` folder to your `$PATH` and you are set.
+=== JavaScript/Node.js (npx/npm)
 
-== Wrapper install
+You can use JBang via Node.js using npx or by installing the npm package:
 
-If you would like to have `jbang` available in a local directory and committed into a source code repository (akin to Maven and Gradle wrappers) you can use the `jbang wrapper` command.
-
-If you have `jbang` already installed you call `jbang wrapper install` in a folder to install a local `jbang`
-that will run out of that directory using `./jbang`.
-
-The `./.jbang` directory which `jbang wrapper install` creates is just a cache which you typically would not commit to a source code repository, so you can e.g. `echo .jbang/ >>.gitignore`.
-
-== "Zero" Install
-
-If you want to try out jbang without a package manager or similar you can run the following to download jbang in `~/.jbang` and if necessary `java`.
-
-Linux/OSX/Windows/AIX Bash:
-
-[source, bash]
+[source,bash]
 ----
-curl -Ls https://sh.jbang.dev | bash -s - <arguments>
+npx @jbangdev/jbang app setup
 ----
 
-For example `curl -Ls https://sh.jbang.dev | bash -s - properties@jbangdev`
+Or add to your `package.json`:
 
-Windows Powershell:
-
-[source, powershell]
+[source,json]
 ----
-iex "& { $(iwr -useb https://ps.jbang.dev) } <arguments>"
+{
+  "devDependencies": {
+    "@jbangdev/jbang": "^0.1.4"
+  }
+}
 ----
 
-For example `iex "& { $(iwr -useb https://ps.jbang.dev) } properties@jbangdev"`
+And use in your scripts:
 
-== Version check
+[source,js]
+----
+// test.js:
+#! /usr/bin/env node
+const jbang = require('@jbangdev/jbang');
+jbang.exec('properties@jbangdev');
+----
 
-`jbang` will check once a day if a new version is available. If a new version is available a message will be printed with information on how to install.
+=== Python (pipx/uvx/pip)
 
-The check happens in the background and will only be done every 24hrs on the same installation.
+You can use JBang from Python environments:
 
-The version check is done via a HTTP request to fetch a `version.txt` from https://jbang.dev. The request includes a user-agent that contains the current `jbang`, `java` and operating system version with no person identifiable information
-which we use purely to aggregate statistics to know update/usage frequency.
+[source,bash]
+----
+pipx jbang app setup
+uvx jbang app setup
+----
 
-`jbang` will not do its automatic check for version when you run in `--offline` mode nor if you set `JBANG_NO_VERSION_CHECK` environment variable.
+Or in a Jupyter notebook:
 
-Example:
-```shell
-jbang test.java ## if more than 24hrs last check version will be checked
-export JBANG_NO_VERSION_CHECK
-jbang test.java ## no version check made as JBANG_NO_VERSION_CHECK is set
-```
+[source,python]
+----
+!pip install jbang
+import jbang
+jbang.exec('properties@jbangdev')
+----
+
