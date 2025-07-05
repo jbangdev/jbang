@@ -93,6 +93,16 @@ public class TestInit extends BaseTest {
 	}
 
 	@Test
+	void testJava25Plus(@TempDir Path outputDir) throws IOException {
+		Path x = outputDir.resolve("java25.java");
+		String s = x.toString();
+		int result = JBang.getCommandLine().execute("init", "--java", "25", s);
+		assertThat(result, is(0));
+		assertThat(new File(s).exists(), is(true));
+		assertThat(Util.readString(x), Matchers.containsString("\nvoid main(String... args)"));
+	}
+
+	@Test
 	void testMultiDepsInit(@TempDir Path outputDir) throws IOException {
 		Path x = outputDir.resolve("edit.java");
 		String s = x.toString();
