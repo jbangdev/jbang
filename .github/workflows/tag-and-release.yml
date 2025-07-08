@@ -10,7 +10,7 @@ jobs:
     outputs:
       debug_enabled: ${{ steps.check-msg.outputs.debug_enabled }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Extract tag commit message and set debug flag
         id: check-msg
         run: |
@@ -89,6 +89,6 @@ jobs:
     
       - name: Start tmate session
         if: always() && needs.check-debug.outputs.debug_enabled == 'true'
-        uses: mxschmitt/action-tmate@v3
+        uses: mxschmitt/action-tmate@7b6a61a73bbb9793cb80ad69b8dd8ac19261834c # v3
         with:
             limit-access-to-actor: true
