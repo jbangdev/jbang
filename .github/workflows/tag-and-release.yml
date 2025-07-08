@@ -5,7 +5,25 @@ on:
 
 name: tag-and-release
 jobs:
+  check-debug:
+    runs-on: ubuntu-latest
+    outputs:
+      debug_enabled: ${{ steps.check-msg.outputs.debug_enabled }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract tag commit message and set debug flag
+        id: check-msg
+        run: |
+          msg=$(git log -1 --pretty=%B)
+          echo "Commit message: $msg"
+          if echo "$msg" | grep -iq "#debug"; then
+            echo "debug_enabled=true" >> $GITHUB_OUTPUT
+          else
+            echo "debug_enabled=false" >> $GITHUB_OUTPUT
+          fi
+
   build:
+    needs: check-debug
     runs-on: ubuntu-latest
     name: build-and-testing
     env:
@@ -68,3 +86,14 @@ jobs:
           path: |
             out/jreleaser/trace.log
             out/jreleaser/output.properties
+    
+  debug-session:
+    needs: build
+    if: needs.check-debug.outputs.debug_enabled == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start tmate session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
