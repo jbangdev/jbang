@@ -52,6 +52,7 @@ deploy:
         active: ALWAYS
         url: https://central.sonatype.com/api/v1/publisher
         applyMavenCentralRules: true
+        authorization: BEARER
         stagingRepositories:
           - build/staging-deploy
 
