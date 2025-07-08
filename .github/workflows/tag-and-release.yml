@@ -88,7 +88,7 @@ jobs:
             out/jreleaser/output.properties
     
       - name: Start tmate session
-        if: always() && needs.build.outputs.debug_enabled == 'true'          
+        if: always() && needs.check-debug.outputs.debug_enabled == 'true'
         uses: mxschmitt/action-tmate@v3
         with:
             limit-access-to-actor: true
