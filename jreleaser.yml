@@ -49,11 +49,11 @@ deploy:
   maven:
     mavenCentral:
       jbang:
-        username: '{{Env.MAVEN_CENTRAL_USERNAME}}'
+        username: '{{Env.JRELEASER_MAVENCENTRAL_JBANG_USERNAME}}'
         active: ALWAYS
         url: https://central.sonatype.com/api/v1/publisher
         applyMavenCentralRules: true
-        authorization: BEARER
+        #authorization: BEARER
         stagingRepositories:
           - build/staging-deploy
 
