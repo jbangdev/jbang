@@ -49,6 +49,7 @@ deploy:
   maven:
     mavenCentral:
       jbang:
+        username: {{Env.MAVEN_CENTRAL_USERNAME}}
         active: ALWAYS
         url: https://central.sonatype.com/api/v1/publisher
         applyMavenCentralRules: true
