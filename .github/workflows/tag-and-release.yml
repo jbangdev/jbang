@@ -87,7 +87,7 @@ jobs:
             out/jreleaser/trace.log
             out/jreleaser/output.properties
     
-      - debug-session:
+      - name: debug-session
         if: always() && needs.build.outputs.debug_enabled == 'true'
         runs-on: ubuntu-latest
         steps:
