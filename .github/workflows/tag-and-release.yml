@@ -87,11 +87,8 @@ jobs:
             out/jreleaser/trace.log
             out/jreleaser/output.properties
     
-      - name: debug-session
-        if: always() && needs.build.outputs.debug_enabled == 'true'
-        runs-on: ubuntu-latest
-        steps:
-          - name: Start tmate session
-            uses: mxschmitt/action-tmate@v3
-            with:
-              limit-access-to-actor: true
+      - name: Start tmate session
+        if: always() && needs.build.outputs.debug_enabled == 'true'          
+        uses: mxschmitt/action-tmate@v3
+        with:
+            limit-access-to-actor: true
