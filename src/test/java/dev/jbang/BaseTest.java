@@ -18,11 +18,13 @@ import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -36,6 +38,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.http.JvmProxyConfigurer;
+import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
+import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.JBang;
@@ -252,7 +256,17 @@ public abstract class BaseTest {
 		globalwms.stop();
 		if ("true".equals(System.getenv("CI"))) {
 			// When running in CI, we want to fail if there are unmatched requests
-			globalwms.checkForUnmatchedRequests();
+			List<LoggedRequest> requests = globalwms.getAllServeEvents()
+				.stream()
+				.filter(se -> se.getStubMapping() == null)
+				.map(ServeEvent::getRequest)
+				.collect(Collectors.toList());
+			if (!requests.isEmpty()) {
+				throw new AssertionError("Test generated unmatched requests: "
+						+ requests.stream()
+							.map(LoggedRequest::getUrl)
+							.collect(Collectors.joining(", ")));
+			}
 		} else {
 			// During development, we want to record unknown requests
 			globalwms.snapshotRecord(recordSpec().ignoreRepeatRequests());
