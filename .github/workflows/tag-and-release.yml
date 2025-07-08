@@ -87,13 +87,11 @@ jobs:
             out/jreleaser/trace.log
             out/jreleaser/output.properties
     
-  debug-session:
-    needs: build
-    if: needs.check-debug.outputs.debug_enabled == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Start tmate session
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: true
+      - debug-session:
+        if: always() && needs.build.outputs.debug_enabled == 'true'
+        runs-on: ubuntu-latest
+        steps:
+          - name: Start tmate session
+            uses: mxschmitt/action-tmate@v3
+            with:
+              limit-access-to-actor: true
