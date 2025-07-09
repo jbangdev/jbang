@@ -380,7 +380,7 @@ class FastStartup {
 
 === //JAVAAGENT
 
-Specifies a Java agent to load.
+Specifies a Java agent configuration options directly from the script xref:running.adoc#java-agents[].
 
 **Syntax**: `//JAVAAGENT [path|gav|url][=options]`
 
