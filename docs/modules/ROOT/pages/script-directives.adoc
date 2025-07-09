@@ -352,9 +352,10 @@ Adds custom entries to the JAR manifest.
 
 == Performance Optimization
 
-=== //CDS
+=== //CDS (EXPERIMENTAL)
 
-Enables Application Class Data Sharing for faster startup.
+Enables Application Class Data Sharing for faster startup, available from JDK 13+ permit to enable the feature provided by
+the JDK xref:running.adoc#experimental-application-class-data-sharing[].
 
 **Syntax**: `//CDS`
 
