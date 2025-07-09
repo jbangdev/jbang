@@ -535,6 +535,27 @@ class DbMigrate {
 
 Links to additional documentation resources for the script.
 
+When the script has its own reference guide published on the internet, or a link to a maven repository is needed the `DOCS` directive
+permit to define multiple links that are displayed as information of the script itself. Each link can have a non unique taa
+that would help to group them. So for example if there is a DOCS directive referring to a local file and an URL which points
+to a site both referring to some form of documentation for the script, then both can be tagged as `guide`, like in the snippet:
+
+[source,java]
+----
+//DOCS guide=./readme.md
+//DOCS guide=http://www.jbang.dev/documentation/guide/latest/index.html
+----
+
+In case no tag is provided then they all fall into the `main` generic tag.
+
+This information is displayed as result of the `info docs` which can refer both to a script or an alias. When the script
+is added as an alias to a catalog, the user can decide to override the `DOCS` directives, specifying other URLs or file
+paths, like in:
+
+  jbang alias add --docs https://www.jbang.dev/documentation/guide/latest/javaversions.html itests/docsrun.java
+
+The `--docs` CLI argument can accept a list of comma separated references to override the `DOCS` directives present in the script
+
 **Syntax**: `//DOCS url-or-path`
 
 **Example**:
