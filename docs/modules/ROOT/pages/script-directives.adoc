@@ -78,6 +78,9 @@ For a details description check out xref:dependencies.adoc[].
 === //REPOS
 
 Specifies additional Maven repositories.
+By default, JBang uses Maven Central to resolve the dependencies listed by `DEPS` directive.
+With this directive instead, the script can override that behaviour listing custom repositories,
+for more detail: xref:dependencies.adoc#repositories[].
 
 **Syntax**: `//REPOS [name=]url[,name=url...]`
 
