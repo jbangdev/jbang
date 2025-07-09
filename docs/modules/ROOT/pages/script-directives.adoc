@@ -474,6 +474,9 @@ class MainApp {
 
 Includes additional files in the script execution environment.
 
+This directive let's to embed multiple resource files, like manifests, properties files or whatelse to the jar generated from a script xref:organizing.adoc#adding-more-resources[].
+When a project is exported these files are inserted under `resources` folder xref:exporting.adoc#exporting-as-a-project[].
+
 **Syntax**: `//FILES file1.txt file2.properties ...`
 
 **Example**:
