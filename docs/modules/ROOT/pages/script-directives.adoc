@@ -506,7 +506,8 @@ class FileProcessor {
 
 === //DESCRIPTION
 
-Provides description for aliases and app installation.
+Provides a short description of script functionality. This information is used by the alias catalog to help users understand
+which is the functionality provided by the script. For its usage in alias management check out xref:alias_catalogs.adoc#describe-aliases[].
 
 **Syntax**: `//DESCRIPTION text`
 
