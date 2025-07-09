@@ -448,6 +448,9 @@ println "Hello from Groovy $name"
 
 Includes additional source files in compilation.
 
+When multiple files are part of the same JBang project, this directive comes to help to list other source files than
+the main script that need to be processed, for more details check xref:organizing.adoc#multiple-source-files[].
+
 **Syntax**: `//SOURCES file1.java file2.java ...`
 
 **Example**:
