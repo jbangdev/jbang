@@ -139,7 +139,9 @@ Specifies the Java version requirement.
 
 === //PREVIEW
 
-Enables Java preview features.
+This is a switch directive that permit to enable preview features available on JDK. For example, Java record feature was
+available in Java since JDK 14 but in preview mode, to enable such feature user the `PREVIEW` directive if running
+on JDK where there are dome features in preview mode xref:running.adoc#preview[].
 
 **Syntax**: `//PREVIEW`
 
