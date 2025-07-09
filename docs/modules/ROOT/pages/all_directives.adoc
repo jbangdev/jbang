@@ -1,0 +1,106 @@
+= All directives
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+toc::[]
+
+JBang provides a rich set of directives to be used in the script files. The following is a summary of all of them with
+a short description of the feature.
+
+== DEPS
+Permits to list all the libraries dependencies used by the script. To specify dependencies you use gradle-style locators
+or links to Git sources. In case the dependencies needs to refer a Git repository, insert the links to those projects
+hosted on GitHub, GitLab or BitBucket and will then be converted to artifacts references on Jitpack.
+For a details description check out xref:dependencies.adoc[].
+
+== DESCRIPTION
+Provides a short description of script functionality. This information is used by the alias catalog to help users understand
+which is the functionality provided by the script. For its usage in alias management check out xref:alias_catalogs.adoc#describe-aliases[].
+
+== DOCS
+When the script has its own reference guide published on the internet, or a link to a maven repository is needed the `DOCS` directive
+permit to define multiple links that are displayed as information of the script itself. Each link can have a non unique taa
+that would help to group them. So for example if there is a DOCS directive referring to a local file and an URL which points
+to a site both referring to some form of documentation for the script, then both can be tagged as `guide`, like in the snippet:
+
+  //DOCS guide=./readme.md
+  //DOCS guide=http://www.jbang.dev/documentation/guide/latest/index.html
+
+In case no tag is provided then they all fall into the `main` generic tag.
+
+This information is displayed as result of the `info docs` which can refer both to a script or an alias. When the script
+is added as an alias to a catalog, the user can decide to override the `DOCS` directives, specifying other URLs or file
+paths, like in:
+
+  jbang alias add --docs https://www.jbang.dev/documentation/guide/latest/javaversions.html itests/docsrun.java
+
+The `--docs` CLI argument can accept a list of comma separated references to override the `DOCS` directives present in the script
+
+== FILES
+This directive let's to embed multiple resource files, like manifests, properties files or whatelse to the jar generated from a script xref:organizing.adoc#adding-more-resources[].
+When a project is exported these files are inserted under `resources` folder xref:exporting.adoc#exporting-as-a-project[].
+
+== GAV
+Permit to define the standard Maven group, artifact and version (GAV) coordinates for the artifact that this script represent.
+Used by the `export` command in generating Maven or Gradle project.
+
+== MAIN
+Used in scripts to override the default entry point, specifying a different main class result as a permanent modification and will stored also in the generated jar.
+For more details consult xref:running.adoc#setting-main-class[].
+
+== MODULE (EXPERIMENTAL)
+The module directive let the code to be built as a Java module. Can be used as command line switch as in xref:running.adoc#module-support-experimental[].
+
+== REPOS
+By default JBang uses Maven Central to resolve the dependencies listed by `DEPS` directive.
+With this directive instead, the script can override that behaviour listing custom repositories,
+for more detail: xref:dependencies.adoc#repositories[].
+
+== MANIFEST
+Let you specify the manifest file key-values in the generated jar file xref:running.adoc#adding-entries-to-manifest-mf[].
+
+== JAVAAGENT
+This directive let to set the javaagent configuration options directly from the script xref:running.adoc#java-agents[].
+
+== CDS (EXPERIMENTAL)
+Is an experimental switch directive that on JDK 13+ permit to enable Class Data Sharing feature provided by
+the JDK xref:running.adoc#experimental-application-class-data-sharing[].
+
+== PREVIEW
+This is a switch directive that permit to enable preview features available on JDK. For example, Java record feature was
+available in Java since JDK 14 but in preview mode, to enable such feature user the `PREVIEW` directive if running
+on JDK where there are dome features in preview mode xref:running.adoc#preview[].
+
+== NOINTEGRATIONS
+This directive can be used to prevent JBang from running any of the build integrations xref:integration.adoc[].
+
+== SOURCES
+When multiple files are part of the same JBang project, this directive comes to help to list other source files than
+the main script that need to be processed, for more details check xref:organizing.adoc#multiple-source-files[].
+
+== JAVAC_OPTIONS, COMPILE_OPTIONS
+These directives permit to define options used by Java compiler, for example:
+
+    //COMPILE_OPTIONS --enable-preview
+    //JAVAC_OPTIONS --verbose
+
+== RUNTIME_OPTIONS, JAVA_OPTIONS
+These directives permit to define options used by Java runtime, for example:
+
+    //RUNTIME_OPTIONS --enable-preview "-Dvalue='this is space'"
+    //JAVA_OPTIONS --enable-preview
+
+== NATIVE_OPTIONS
+This directive permit to define options used by native compilation step, for example:
+
+    NATIVE_OPTIONS -O1
