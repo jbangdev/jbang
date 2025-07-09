@@ -299,7 +299,8 @@ class AlternativeMain {
 - Overrides automatic main class detection
 - Useful when multiple main methods exist
 
-=== //MODULE
+=== //MODULE (EXPERIMENTAL)
+The module directive let the code to be built as a Java module. Can be used as command line switch as in xref:running.adoc#module-support-experimental[].
 
 Declares the script as a Java module.
 
