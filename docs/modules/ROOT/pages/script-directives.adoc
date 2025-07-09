@@ -41,6 +41,10 @@ class MyScript {
 === //DEPS
 
 Declares Maven dependencies for your script.
+Permits to list all the libraries dependencies used by the script. To specify dependencies you use gradle-style locators
+or links to Git sources. In case the dependencies needs to refer a Git repository, insert the links to those projects
+hosted on GitHub, GitLab or BitBucket and will then be converted to artifacts references on Jitpack.
+For a details description check out xref:dependencies.adoc[].
 
 **Syntax**: `//DEPS groupId:artifactId:version[:classifier][@type]`
 
