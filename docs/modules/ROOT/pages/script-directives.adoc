@@ -275,7 +275,8 @@ Specifies additional options to pass to the Java compiler (javac). Useful for ad
 
 === //MAIN
 
-Specifies the main class to execute.
+Used in scripts to override the default entry point, specifying a different main class result as a permanent modification and will stored also in the generated jar.
+For more details consult xref:running.adoc#setting-main-class[].
 
 **Syntax**: `//MAIN fully.qualified.ClassName`
 
