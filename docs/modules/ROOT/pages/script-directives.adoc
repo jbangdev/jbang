@@ -331,7 +331,7 @@ public class ModularApp {
 
 === //MANIFEST
 
-Adds custom entries to the JAR manifest.
+Let you specify the manifest file key-values in the generated jar file xref:running.adoc#adding-entries-to-manifest-mf[].
 
 **Syntax**: `//MANIFEST key=value key2=value2 ...`
 
