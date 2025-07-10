@@ -214,7 +214,7 @@ You can however disable this by using the `--ignore-transitive-repositories` (or
 
 There is also support for using Groovy lang style `@Grab` syntax.
 
-[source,java]
+[source,groovy]
 ----
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 
@@ -229,12 +229,11 @@ import groovy.lang.Grab; // <.>
 import groovy.lang.Grapes;
 import groovy.lang.GrabResolver;
 
-@GrabResolver("central") // <.>
-@GrabResolver(name="acme", root="https://maven.acme.local/maven")
-@Grapes({ // <.>
-		@Grab(group = "ch.qos.reload4j", module = "reload4j", version = "1.2.19"), // <.>
-		@Grab(group = "org.apache.groovy", module = "groovy", version = "4.0.0"), // <.>
-})
+@GrabResolver(name='mavenCentral', root='https://repo.maven.apache.org/maven2/')
+
+@Grab(group = "ch.qos.reload4j", module = "reload4j", version = "1.2.26")
+@Grab(group = "org.apache.groovy", module = "groovy", version = "4.0.27")
+
 class classpath_example {
 
 	static final Logger logger = Logger.getLogger(classpath_example.class);
