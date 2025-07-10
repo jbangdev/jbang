@@ -241,7 +241,7 @@ Specifies GraalVM native-image options.
 === //GAV
 
 Specifies the Maven coordinates (Group:Artifact:Version) for the script itself. Useful for publishing or referencing the script as a dependency.
-Used by the `export` command in generating Maven or Gradle project.
+Used by the `export` command in generating Maven or Gradle projects.
 
 **Syntax**: `//GAV groupId:artifactId[:version]`
 
