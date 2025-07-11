@@ -49,7 +49,8 @@ deploy:
   maven:
     mavenCentral:
       jbang:
-        username: '{{Env.JRELEASER_MAVENCENTRAL_JBANG_USERNAME}}'
+        # workaround jreleaser bug around maven central credentials
+        username: "Vjuu+gNF"
         active: ALWAYS
         url: https://central.sonatype.com/api/v1/publisher
         applyMavenCentralRules: true
@@ -83,14 +84,14 @@ distributions:
   jbang:
     executable:
       windowsExtension: cmd
-    docker:  ## not ready to release this way.
-      active: RELEASE
-      continueOnError: true
-      postCommands:
-        - "VOLUME /scripts"
-      baseImage: "adoptopenjdk:11-jdk-hotspot"
-      repository:
-        name: jbang-action
+    #docker:  ## not ready to release this way.
+    #  active: RELEASE
+    #  continueOnError: true
+    #  postCommands:
+    #    - "VOLUME /scripts"
+    #  baseImage: "adoptopenjdk:11-jdk-hotspot"
+    #  repository:
+    #    name: jbang-action
     sdkman:
       active: RELEASE
       continueOnError: true
