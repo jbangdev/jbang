@@ -98,8 +98,8 @@ This script can be easily integrated into CI/CD pipelines:
 # Exit with error if any platform is unavailable
 jbang jbang-release-checker.java --version 0.108.0
 if [ $? -ne 0 ]; then
-    echo "Some platforms are not available for version 0.108.0"
-    exit 1
+	echo "Some platforms are not available for version 0.108.0"
+	exit 1
 fi
 ```
 
@@ -109,15 +109,15 @@ When using `--json`, the output follows this structure:
 
 ```json
 {
-  "version": "0.108.0",
-  "timestamp": 1703123456789,
-  "results": [
-    {
-      "platform": "GitHub Releases",
-      "available": true,
-      "message": "✅ Available"
-    }
-  ]
+"version": "0.108.0",
+"timestamp": 1703123456789,
+"results": [
+	{
+	"platform": "GitHub Releases",
+	"available": true,
+	"message": "✅ Available"
+	}
+]
 }
 ```
 
@@ -125,4 +125,4 @@ When using `--json`, the output follows this structure:
 
 - JBang installed on your system
 - Internet connection for API calls
-- Java 21 or later 
+- Java 21 or later
