@@ -1,0 +1,99 @@
+= Single-File Java CLI
+:jbang-usecase: true
+:navtitle: Single-File Java CLI
+:page-aliases: examples/single-file-cli.adoc
+
+A minimal command-line Java app in one file, powered by JBang.
+
+// Metadata (could be included in navigation config if needed)
+[.metadata]
+*Level:* Beginner +
+*Category:* CLI, Scripting +
+*Works with:* Java 8+, JBang 0.104+
+
+== Intent
+
+Run a fully working Java CLI from a single `.java` file without needing Maven, Gradle, or boilerplate.
+
+== Motivation
+
+When you need to create a simple CLI utility—like printing a message, reading input, or fetching data—Java can feel heavy with its traditional project structure.  
+JBang enables lightweight, quick scripting using modern Java and popular libraries, with zero setup.
+
+== Structure
+
+Here's a minimal one-file CLI using `picocli`:
+
+[source,java]
+----
+//DEPS info.picocli:picocli:4.7.0
+
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+
+@Command(name = "hello", mixinStandardHelpOptions = true, description = "Says hello")
+class Hello implements Runnable {
+
+  @Option(names = {"-n", "--name"}, description = "Your name")
+  String name = "World";
+
+  public void run() {
+    System.out.println("Hello, " + name + "!");
+  }
+
+  public static void main(String... args) {
+    new CommandLine(new Hello()).execute(args);
+  }
+}
+----
+
+== Usage
+
+Compile and run the script directly with JBang:
+
+[source,shell]
+----
+jbang Hello.java
+----
+
+Try passing a name:
+
+[source,shell]
+----
+jbang Hello.java --name=Max
+----
+
+== Related Features
+
+- `//DEPS` – inline dependency management
+- Supports third-party libraries (like `picocli`)
+- Java `main()` method and annotations work seamlessly
+- Optional `jbang app install` to make it a reusable tool
+
+== Variants / Extensions
+
+- Add subcommands using `@Command(subcommands=...)`
+- Export to native or standalone format using:
++
+[source,shell]
+----
+jbang export native Hello.java
+----
+
+- Bundle and share via GitHub Gist:
++
+[source,shell]
+----
+jbang hello@youruser/yourrepo
+----
+
+== Known Use / Inspiration
+
+Used in:
+
+- https://github.com/jbangdev/jbang-catalog/blob/master/examples/hello.java
+- https://gist.github.com/maxandersen
+
+Inspired by: Bash scripting, Python CLIs, and the power of Java + JBang.
+

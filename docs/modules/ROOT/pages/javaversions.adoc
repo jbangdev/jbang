@@ -24,7 +24,7 @@ If no such version is found it will automatically download and install it.
 Examples:
 
 `//JAVA 11` will force use of Java 11. +
-`//JAVA 13+` will require at least java 13. Java 13 or higher will be used.
+`//JAVA 21+` will require at least java 21. Java 21 or higher will be used.
 
 In case no matching `java` is found `jbang` will fail.
 

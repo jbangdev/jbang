@@ -1,0 +1,306 @@
+= Quick Start Guide
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+This guide will get you up and running with JBang in just a few minutes!
+
+== Step 1: Install JBang
+
+Choose your preferred installation method:
+
+=== Option 1: Using the Install Script (Recommended)
+
+Linux/macOS/Windows (WSL/Git Bash):
+[source, bash]
+----
+curl -Ls https://sh.jbang.dev | bash -s - app setup
+----
+
+Windows PowerShell:
+[source, powershell]
+----
+iex "& { $(iwr -useb https://ps.jbang.dev) } app setup"
+----
+
+=== Option 2: Package Managers
+
+**SDKMan (Linux/macOS):**
+[source, bash]
+----
+sdk install jbang
+----
+
+**Homebrew (macOS):**
+[source, bash]
+----
+brew install jbangdev/tap/jbang
+----
+
+**Chocolatey (Windows):**
+[source, bash]
+----
+choco install jbang
+----
+
+**Scoop (Windows):**
+[source, bash]
+----
+scoop bucket add jbangdev https://github.com/jbangdev/scoop-bucket
+scoop install jbang
+----
+
+=== Verify Installation
+
+[source, bash]
+----
+jbang --version
+----
+
+== Step 2: Your First Script
+
+Create a simple "Hello World" script:
+
+[source, bash]
+----
+jbang init hello.java
+----
+
+This creates:
+[source, java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+
+class hello {
+    public static void main(String[] args) {
+        if(args.length==0) {
+            System.out.println("Hello World!");
+        } else {
+            System.out.println("Hello " + args[0]);
+        }
+    }
+}
+----
+
+Run it:
+[source, bash]
+----
+jbang hello.java
+# Output: Hello World!
+
+jbang hello.java JBang
+# Output: Hello JBang
+----
+
+== Step 3: Add Dependencies
+
+Let's create a more interesting script with external dependencies:
+
+[source, bash]
+----
+jbang init --template=cli weather.java
+----
+
+Edit the file to add weather functionality:
+[source, java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//DEPS info.picocli:picocli:4.6.3
+//DEPS com.fasterxml.jackson.core:jackson-core:2.15.2
+//DEPS com.fasterxml.jackson.core:jackson-databind:2.15.2
+
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Parameters;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.URI;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+@Command(name = "weather", mixinStandardHelpOptions = true,
+         description = "Get weather information for a city")
+class weather implements Runnable {
+
+    @Parameters(index = "0", description = "City name")
+    private String city;
+
+    public static void main(String[] args) {
+        new CommandLine(new weather()).execute(args);
+    }
+
+    @Override
+    public void run() {
+        try {
+            String url = "https://wttr.in/" + city + "?format=j1";
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .build();
+            
+            HttpResponse<String> response = client.send(request, 
+                    HttpResponse.BodyHandlers.ofString());
+            
+            // Simple output - in real app you'd parse the JSON
+            System.out.println("Weather for " + city + ":");
+            System.out.println("Raw data: " + response.body().substring(0, 200) + "...");
+            
+        } catch (Exception e) {
+            System.err.println("Error fetching weather: " + e.getMessage());
+        }
+    }
+}
+----
+
+Run it:
+[source, bash]
+----
+jbang weather.java London
+----
+
+== Step 4: IDE Integration
+
+Get full IDE support for your script:
+
+[source, bash]
+----
+jbang edit weather.java
+----
+
+This will:
+
+- Install VSCodium (if not present)
+- Generate a project structure
+- Open the script in the IDE with full IntelliSense
+
+== Step 5: Explore Templates
+
+See what templates are available:
+
+[source, bash]
+----
+jbang template list
+----
+
+Try different templates:
+[source, bash]
+----
+# Create a CLI app
+jbang init --template=cli myapp.java
+
+# Create a web server
+jbang init --template=qcli webapp.java
+
+# Create a JavaFX app  
+jbang init --template=javafx gui.java
+----
+
+== Step 6: Share Your Scripts
+
+=== Create an Alias
+
+[source, bash]
+----
+jbang alias add --name weather weather.java
+----
+
+Now you can run:
+[source, bash]
+----
+jbang weather London
+----
+
+=== Share via GitHub
+
+1. Push your script to GitHub
+2. Others can run it directly:
+[source, bash]
+----
+jbang https://github.com/yourusername/yourrepo/blob/main/weather.java London
+----
+
+== Common Next Steps
+
+=== Export to Traditional Project
+
+[source, bash]
+----
+# Export to Maven project
+jbang export maven weather.java
+
+# Export to Gradle project  
+jbang export gradle weather.java
+----
+
+=== Create Native Binary
+
+[source, bash]
+----
+# Requires GraalVM native-image
+jbang --native weather.java
+----
+
+=== Install as System Command
+
+[source, bash]
+----
+jbang app install weather.java
+weather London  # Now available as system command
+----
+
+== Helpful Commands
+
+[source, bash]
+----
+# List all JBang commands
+jbang --help
+
+# Get help for specific command
+jbang init --help
+
+# Check for updates
+jbang version
+
+# Clear cache
+jbang cache clear
+----
+
+== What's Next?
+
+- 🔧 Learn about xref:dependencies.adoc[Dependencies]
+- 🎯 Explore xref:templates.adoc[Templates]
+- 🛠️ Check out xref:editing.adoc[IDE Integration]
+- ❓ Visit the xref:faq.adoc[FAQ] for common questions
+
+== Troubleshooting
+
+**Java not found?**
+JBang will automatically download Java if needed. Set `JBANG_DEFAULT_JAVA_VERSION` to control the version:
+[source, bash]
+----
+export JBANG_DEFAULT_JAVA_VERSION=17
+----
+
+**Permission denied on scripts?**
+Make them executable:
+[source, bash]
+----
+chmod +x yourscript.java
+----
+
+**Need offline mode?**
+[source, bash]
+----
+jbang --offline yourscript.java
+----
+
+Happy scripting! 🚀
