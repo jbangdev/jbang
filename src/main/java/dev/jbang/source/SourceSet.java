@@ -140,9 +140,17 @@ public class SourceSet {
 	}
 
 	protected Stream<String> getStableIdInfo() {
-		Stream<String> srcs = sources.stream().map(src -> Util.readFileContent(src.getFile()));
-		Stream<String> ress = resources.stream().map(res -> Util.readFileContent(res.getSource().getFile()));
+		Stream<String> srcs = sources.stream().map(this::safeFileContents);
+		Stream<String> ress = resources.stream().map(res -> safeFileContents(res.getSource()));
 		return Stream.concat(srcs, ress);
+	}
+
+	private String safeFileContents(ResourceRef ref) {
+		try {
+			return Util.readFileContent(ref.getFile());
+		} catch (Exception e) {
+			return "";
+		}
 	}
 
 }
