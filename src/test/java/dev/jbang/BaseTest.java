@@ -129,6 +129,8 @@ public abstract class BaseTest {
 
 	protected <T> CaptureResult<Integer> checkedRun(Function<T, Integer> commandRunner, String... args)
 			throws Exception {
+		CommandLine cli = JBang.getCommandLine();
+		args = Main.handleDefaultRun(cli.getCommandSpec(), args);
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs(args);
 		while (pr.subcommand() != null) {
 			pr = pr.subcommand();
@@ -140,7 +142,9 @@ public abstract class BaseTest {
 			if (commandRunner != null) {
 				return commandRunner.apply(usrobj);
 			} else if (usrobj instanceof BaseCommand) {
-				return ((BaseCommand) usrobj).doCall();
+				BaseCommand cmd = ((BaseCommand) usrobj);
+				cmd.realOut = System.out; // Reset the output stream to the original, just for testing
+				return cmd.doCall();
 			} else {
 				throw new IllegalStateException("usrobj is of unsupported type");
 			}

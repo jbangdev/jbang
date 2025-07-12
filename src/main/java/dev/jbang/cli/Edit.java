@@ -4,7 +4,6 @@ import static dev.jbang.Settings.CP_SEPARATOR;
 import static dev.jbang.util.Util.freshly;
 import static dev.jbang.util.Util.pathToString;
 import static dev.jbang.util.Util.verboseMsg;
-import static java.lang.System.out;
 
 import java.io.File;
 import java.io.IOException;
@@ -179,7 +178,7 @@ public class Edit extends BaseCommand {
 			}
 
 			if (!live) {
-				out.println(projectPathString); // quit(project.getAbsolutePath());
+				realOut.println(projectPathString); // quit(project.getAbsolutePath());
 			} else {
 				Path orginalFile = prj.getResourceRef().getFile();
 				if (!Files.exists(orginalFile)) {
