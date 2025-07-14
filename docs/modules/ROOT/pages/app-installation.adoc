@@ -35,8 +35,7 @@ jbang app setup
 This command:
 
 - **Windows**: Modifies system-wide `PATH` to include JBang-managed folder
-- **Unix/Linux/macOS**: Updates your shell's RC file (`~/.bashrc`, `~/.zshrc`, etc.)
-- **All platforms**: Adds `j!` as an alias for `jbang` (try `j! version`)
+- **Unix/Linux/macOS**: Updates your shell's RC file (`~/.bashrc`, `~/.zshrc`, etc.) and adds `j!` as an alias for `jbang` (try `j! version`)
 
 [NOTE]
 ====
@@ -113,11 +112,7 @@ jbang app list
 
 [source,bash]
 ----
-# Uninstall specific app
 jbang app uninstall mytool
-
-# Uninstall multiple apps
-jbang app uninstall app1 app2 app3
 ----
 
 === Update Apps
@@ -126,32 +121,16 @@ jbang app uninstall app1 app2 app3
 ----
 # Reinstall to update
 jbang app install --force gavsearch@jbangdev
-
-# Update all alias-based apps
-jbang alias update
-jbang app list | grep '@' | while read app; do
-  jbang app install --force "$app"
-done
 ----
 
-== Advanced Installation Options
-
-=== Install with Dependencies
-
-[source,bash]
-----
-# Script with dependencies gets installed with all deps
-jbang app install complex-script.java
-----
-
-Dependencies are resolved and cached during installation, making subsequent runs faster.
+== Installation Options
 
 === Install with Specific Java Version
 
 [source,bash]
 ----
 # Install with specific Java version
-JBANG_DEFAULT_JAVA_VERSION=17 jbang app install script.java
+jbang app install --java 17 script.java
 ----
 
 === Install Native Images
@@ -178,18 +157,6 @@ This creates a native executable instead of a JBang wrapper script.
 - Apps installed to: `~/.jbang/bin`
 - Added to shell PATH
 
-=== Custom Installation Directory
-
-[source,bash]
-----
-# Install to custom directory
-jbang app install --dir /usr/local/bin mytool.java
-----
-
-[WARNING]
-====
-**Permissions**: Installing to system directories like `/usr/local/bin` may require `sudo` privileges.
-====
 
 == Working with Installed Apps
 
@@ -201,10 +168,6 @@ Once installed, run apps like any system command:
 ----
 # Run installed app
 mytool arg1 arg2
-
-# Check if app is available
-which mytool
-mytool --help
 ----
 
 === Debugging Installed Apps
