@@ -70,7 +70,7 @@ public class records {
 
 Since Java 9 https://docs.oracle.com/javase/9/tools/java.htm#GUID-3B1CE181-CD30-4178-9602-230B800D4FAE__USINGTHEJDK_JAVA_OPTIONSLAUNCHERENV-F3C0E3BA[JDK_JAVA_OPTIONS] and https://docs.oracle.com/javase/9/tools/javac.htm#GUID-AEEC9F07-CB49-4E96-8BC7-BCC2C7F725C9\_\_USINGJDK_JAVAC_OPTIONSENVIRONMENTVA-F3C76845[JDK_JAVAC_OPTIONS] are also picked up by the Java runtime and compiler automatically.
 
-For Java 8 and if you want to set explicitly only for `jbang` you can also add flags by setting `JBANG_JAVA_OPTIONS` and `JBANG_JAVAC_OPTIONS` respectively.
+For Java 8 and if you want to set explicitly only for `jbang` you can also add flags by setting `JBANG_JAVA_OPTIONS`.
 
 == Preview
 

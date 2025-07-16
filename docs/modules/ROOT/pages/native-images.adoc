@@ -1,0 +1,422 @@
+= Native Images
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+JBang supports creating native images using GraalVM's `native-image` tool, allowing you to compile your Java scripts into standalone native executables.
+
+== What are Native Images?
+
+Native images are compiled, standalone executables that:
+
+- Start instantly (no JVM startup time)
+- Use less memory
+- Don't require Java to be installed
+- Are platform-specific binaries
+
+Perfect for CLI tools, serverless functions, and anywhere startup time matters.
+
+== Prerequisites
+
+You need GraalVM with `native-image` installed:
+
+=== Installing GraalVM
+
+**Option 1: SDKMAN (Recommended)**
+[source,bash]
+----
+sdk install java 21-graal
+sdk use java 21-graal
+gu install native-image
+----
+
+**Option 2: Manual Download**
+1. Download GraalVM from https://www.graalvm.org/downloads/
+2. Set `GRAALVM_HOME` or ensure `native-image` is in PATH
+3. Install native-image: `gu install native-image`
+
+**Option 3: Package Managers**
+[source,bash]
+----
+# macOS with Homebrew
+brew install --cask graalvm/tap/graalvm-jdk21
+export GRAALVM_HOME=/Library/Java/JavaVirtualMachines/graalvm-jdk-21.jdk/Contents/Home
+$GRAALVM_HOME/bin/gu install native-image
+
+# Linux distributions
+# Follow GraalVM documentation for your distro
+----
+
+=== Verify Installation
+
+[source,bash]
+----
+native-image --version
+# Should show GraalVM version info
+----
+
+== Creating Native Images
+
+=== Basic Native Image
+
+[source,bash]
+----
+# Compile to native image
+jbang --native hello.java
+
+# Run the native executable
+./hello
+----
+
+The native executable will be created in the same directory as your script.
+
+=== Native Image Options
+
+Control native image compilation with `//NATIVE_OPTIONS`:
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//NATIVE_OPTIONS -O2 --no-fallback --enable-preview
+
+class FastApp {
+    public static void main(String[] args) {
+        System.out.println("Native app running!");
+    }
+}
+----
+
+Or from command line:
+[source,bash]
+----
+jbang --native --native-option="-O2" --native-option="--no-fallback" app.java
+----
+
+== Common Native Image Configurations
+
+=== CLI Applications
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//DEPS info.picocli:picocli:4.6.3
+//DEPS info.picocli:picocli-codegen:4.6.3
+//NATIVE_OPTIONS --no-fallback -H:+ReportExceptionStackTraces
+
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Parameters;
+
+@Command(name = "greet", mixinStandardHelpOptions = true)
+class GreetApp implements Runnable {
+    @Parameters(description = "Name to greet")
+    String name = "World";
+
+    public static void main(String[] args) {
+        new CommandLine(new GreetApp()).execute(args);
+    }
+
+    public void run() {
+        System.out.println("Hello " + name + "!");
+    }
+}
+----
+
+[TIP]
+====
+**PicoCLI Native Images**: Always include `picocli-codegen` dependency for native image compatibility:
+[source,java]
+----
+//DEPS info.picocli:picocli-codegen:4.6.3
+----
+====
+
+=== Reflection-Heavy Applications
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//NATIVE_OPTIONS --no-fallback -H:+ReportExceptionStackTraces
+//NATIVE_OPTIONS -H:ReflectionConfigurationFiles=reflection-config.json
+
+// Your reflection-heavy code
+----
+
+=== JSON Processing
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//DEPS com.fasterxml.jackson.core:jackson-databind:2.15.2
+//NATIVE_OPTIONS --no-fallback
+//NATIVE_OPTIONS -H:+ReportExceptionStackTraces
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+class JsonApp {
+    public static void main(String[] args) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        // Your JSON processing code
+    }
+}
+----
+
+== Exporting Native Binaries
+
+=== Export to File
+
+Get a copy of the native binary:
+
+[source,bash]
+----
+# Export native binary to current directory
+jbang export local --native myapp.java
+
+# Export to specific location
+jbang export local --native --output-dir=/usr/local/bin myapp.java
+----
+
+=== Cross-Platform Considerations
+
+Native images are platform-specific:
+
+- Linux binary only runs on Linux
+- macOS binary only runs on macOS  
+- Windows binary only runs on Windows
+
+For cross-platform distribution, build on each target platform or use containers.
+
+== Container-Based Native Images
+
+=== Using Docker
+
+Create a `Dockerfile`:
+[source,dockerfile]
+----
+FROM ghcr.io/graalvm/graalvm-ce:ol8-java17-22.3.0 AS builder
+
+RUN gu install native-image
+
+COPY . /app
+WORKDIR /app
+
+RUN curl -Ls https://sh.jbang.dev | bash -s - app setup
+RUN ~/.jbang/bin/jbang --native myapp.java
+
+FROM scratch
+COPY --from=builder /app/myapp /myapp
+ENTRYPOINT ["/myapp"]
+----
+
+Build:
+[source,bash]
+----
+docker build -t myapp-native .
+docker run --rm myapp-native arg1 arg2
+----
+
+=== Multi-Stage Builds
+
+[source,dockerfile]
+----
+# Builder stage
+FROM ghcr.io/graalvm/graalvm-ce:ol8-java17-22.3.0 AS builder
+RUN gu install native-image
+COPY . /workspace
+WORKDIR /workspace
+RUN curl -Ls https://sh.jbang.dev | bash -s - --native myapp.java
+
+# Runtime stage
+FROM debian:bullseye-slim
+COPY --from=builder /workspace/myapp /usr/local/bin/myapp
+ENTRYPOINT ["myapp"]
+----
+
+== Performance Optimization
+
+=== Build-Time Optimizations
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//NATIVE_OPTIONS -O3 --gc=G1
+//NATIVE_OPTIONS -H:+UnlockExperimentalVMOptions
+//NATIVE_OPTIONS --enable-preview
+
+// Optimized application
+----
+
+=== Runtime Profile-Guided Optimization (PGO)
+
+1. **Run with profiling**:
+[source,bash]
+----
+jbang --jvm=graalvm --native-option="--pgo-instrument" myapp.java
+----
+
+1. **Collect profile data**:
+[source,bash]
+----
+./myapp typical-workload
+# This generates profile data
+----
+
+1. **Build optimized binary**:
+[source,bash]
+----
+jbang --native --native-option="--pgo=default.iprof" myapp.java
+----
+
+== Troubleshooting Native Images
+
+=== Common Issues
+
+**Problem**: `UnsupportedFeatureError` during compilation
+**Solution**: Add reflection configuration or use `--no-fallback` to see exact issue
+
+**Problem**: Missing reflection configuration
+**Solution**: Use GraalVM tracing agent:
+[source,bash]
+----
+jbang --jvm=graalvm --runtime-option="-agentlib:native-image-agent=config-output-dir=config" myapp.java
+jbang --native --native-option="-H:ConfigurationFileDirectories=config" myapp.java
+----
+
+**Problem**: Large binary size
+**Solution**: Use optimization flags:
+[source,java]
+----
+//NATIVE_OPTIONS --no-fallback -O2 --gc=serial -H:+StaticExecutableWithDynamicLibC
+----
+
+**Problem**: Slow compilation
+**Solution**: Use parallel compilation:
+[source,java]
+----
+//NATIVE_OPTIONS -H:+UnlockExperimentalVMOptions -H:+UseParallelGC
+----
+
+=== Debugging Native Images
+
+Enable debug information:
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//NATIVE_OPTIONS -H:+IncludeDebugInfo -H:+ReportExceptionStackTraces
+
+// Your application
+----
+
+=== Memory Usage Analysis
+
+[source,bash]
+----
+# Build with memory analysis
+jbang --native --native-option="-H:+PrintAnalysisCallTree" myapp.java
+----
+
+== Framework-Specific Considerations
+
+=== Spring Boot
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//DEPS org.springframework.boot:spring-boot-starter-web:3.1.0
+//DEPS org.springframework.experimental:spring-native:0.12.1
+//NATIVE_OPTIONS --no-fallback --enable-all-security-services
+
+// Spring Boot native configuration
+----
+
+=== Micronaut
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//DEPS io.micronaut:micronaut-core:4.0.0
+//NATIVE_OPTIONS --no-fallback -H:+ReportExceptionStackTraces
+
+// Micronaut works well with native images out of the box
+----
+
+=== Quarkus
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//DEPS io.quarkus:quarkus-core:3.2.0
+//NATIVE_OPTIONS --no-fallback
+
+// Quarkus has excellent native image support
+----
+
+== Best Practices
+
+=== Development Workflow
+
+1. **Develop with JVM** - faster iteration
+2. **Test regularly with native** - catch issues early
+3. **Use reflection configuration** - for complex apps
+4. **Profile and optimize** - measure before optimizing
+
+=== Code Guidelines
+
+- **Minimize reflection** - use compile-time alternatives
+- **Avoid dynamic class loading** - use static initialization
+- **Use supported libraries** - check GraalVM compatibility
+- **Handle resources properly** - include in native image
+
+=== Deployment
+
+- **Test thoroughly** - native behavior can differ from JVM
+- **Monitor startup time** - verify performance benefits
+- **Use appropriate GC** - serial GC often better for small apps
+- **Consider binary size** - balance size vs. features
+
+== Performance Comparison
+
+|===
+|Metric |JVM |Native Image
+
+|Startup Time |~500ms-2s |~10-50ms
+|Memory Usage |High (heap + metaspace) |Lower (no JVM overhead)
+|Peak Performance |Higher (JIT optimization) |Consistent but lower
+|Binary Size |Small JAR + JVM |Larger standalone binary
+|Build Time |Fast |Slower (1-10 minutes)
+|===
+
+== Use Cases
+
+**Perfect for**:
+
+- CLI tools and utilities
+- Serverless functions (AWS Lambda, etc.)
+- Microservices with fast startup requirements
+- Container images with minimal size
+- Desktop applications
+
+**Consider alternatives for**:
+
+- Long-running server applications
+- Applications with heavy reflection
+- Development and testing (use JVM for faster iteration)
+- Applications requiring maximum performance
+
+== What's Next?
+
+- **Deploy your native apps** → xref:app-installation.adoc[App Installation]
+- **Learn about containers** → xref:remote-execution.adoc[Remote Execution]
+- **Explore performance** → xref:execution-options.adoc[Execution Options]
+- **Try different frameworks** → xref:dependencies.adoc[Dependencies]
+
+Start building lightning-fast native executables with JBang! ⚡
