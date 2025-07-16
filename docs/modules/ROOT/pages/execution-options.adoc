@@ -84,31 +84,40 @@ The `//PREVIEW` directive automatically adds the necessary compile and runtime o
 
 === Java Options
 
-JBang respects standard Java environment variables:
+As JBang is run using java, it respects standard Java environment variables:
 
 [source,bash]
 ----
 # Java 9+ standard variables
 export JDK_JAVA_OPTIONS="-Xmx1g -Dfile.encoding=UTF-8"
-export JDK_JAVAC_OPTIONS="-Xlint:unchecked"
-
-# JBang-specific variables
-export JBANG_JAVA_OPTIONS="-Xmx2g"
-export JBANG_JAVAC_OPTIONS="-source 17"
 ----
 
-=== Java Version Control
+But if you want to set JBang-specific variables, you can do so by setting the `JBANG_JAVA_OPTIONS` environment variables.
 
 [source,bash]
 ----
-# Set default Java version for JBang
+# JBang-specific variables
+export JBANG_JAVA_OPTIONS="-Xmx2g"
+----
+
+=== First time install
+
+When you run JBang for the first time, and no JDK is found, JBang will try to install a JDK for you.
+
+You can control the default JDK version and vendor by setting the `JBANG_DEFAULT_JAVA_VERSION` and `JBANG_JDK_VENDOR` environment variables.
+
+The default JDK version is 17 and the default JDK vendor is `temurin`.
+
+[source,bash]
+----
+# Set default Java version for first install
 export JBANG_DEFAULT_JAVA_VERSION=17
 
 # Set JDK vendor
 export JBANG_JDK_VENDOR=temurin
 
-# Run with specific version
-JBANG_DEFAULT_JAVA_VERSION=21 jbang myapp.java
+# Run with specific version and vendor
+JBANG_DEFAULT_JAVA_VERSION=21 JBANG_JDK_VENDOR=openjdk jbang myapp.java
 ----
 
 == Interactive Mode
@@ -229,12 +238,6 @@ Or from command line:
 jbang --module=com.example.myapp myapp.java
 ----
 
-=== Module Features
-
-- Automatic dependency requirements
-- Module path compilation
-- Proper module isolation
-- Works with `jbang build` and `jbang run`
 
 == Main Class Override
 
