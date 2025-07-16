@@ -21,7 +21,6 @@ The `jbang app` command system lets you:
 - Install JBang scripts as system commands
 - Run scripts from anywhere without typing full paths
 - Manage installed applications
-- Share utilities across your team
 
 == Initial Setup
 
@@ -145,8 +144,6 @@ This creates a native executable instead of a JBang wrapper script.
 
 == Installation Locations
 
-=== Default Locations
-
 **Windows**:
 
 - Apps installed to: `%USERPROFILE%\.jbang\bin`
@@ -170,33 +167,26 @@ Once installed, run apps like any system command:
 mytool arg1 arg2
 ----
 
-=== Debugging Installed Apps
-
-[source,bash]
-----
-# See what command is actually executed
-jbang app list
-
-# Run with JBang options
-jbang --debug mytool arg1 arg2
-----
-
 === Update App Configuration
 
 [source,bash]
 ----
+# Install "mytool" as "newtool"
+jbang app install --name newtool mytool.java
 # Reinstall with new options
-jbang app install --force --name newtool mytool.java
+jbang app install --force --name newtool -RXmx2048m mytool.java
 
-# Change main class
-jbang app install --force --main com.example.NewMain mytool.java
+# Install "othertool", will auto-generate name and detect main class
+jbang app install othertool.java
+# Force-installing again but now setting main class to use
+jbang app install --force --main com.example.NewMain othertool.java
 ----
 
-== Team and Enterprise Usage
+== Team/Project Usage
 
 === Shared Catalogs
 
-Create shared tool catalogs for your team:
+Create shared tool catalogs for your team or project:
 
 [source,bash]
 ----
@@ -239,59 +229,9 @@ jbang alias add --name tool-v123 https://github.com/team/tool/blob/v1.2.3/tool.j
 jbang app install tool-v123
 ----
 
-== Integration with Package Managers
-
-=== Creating System Packages
-
-For distribution, you can create system packages:
-
-**Debian/Ubuntu** (`tool.deb`):
-[source,bash]
-----
-# Create package structure
-mkdir -p tool/usr/local/bin
-jbang export local --native --output-dir=tool/usr/local/bin mytool.java
-
-# Create control file and build .deb
-# (Package creation details vary)
-----
-
-**RPM** (RedHat/CentOS):
-[source,bash]
-----
-# Similar process for RPM packages
-# Export native binary and package appropriately
-----
-
-=== Homebrew Formula
-
-Create Homebrew formulas for macOS distribution:
-
-[source,ruby]
-----
-class Mytool < Formula
-  desc "My JBang-based tool"
-  homepage "https://github.com/user/mytool"
-  url "https://github.com/user/mytool/archive/v1.0.0.tar.gz"
-  
-  depends_on "jbang"
-  
-  def install
-    bin.install "mytool.java"
-    # Additional installation steps
-  end
-end
-----
-
-== Best Practices
-
-=== Naming Conventions
-
-- **Use descriptive names**: `db-migrate` instead of `migrate`
-- **Avoid conflicts**: Check existing commands with `which`
-- **Use consistent prefixes**: Team tools could use `myteam-*` prefix
-
 === Documentation
+
+You can add a description to your script that will be shown when relevant, i.e. in `jbang alias list`
 
 [source,java]
 ----
