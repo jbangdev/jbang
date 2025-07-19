@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
 import dev.jbang.source.Project;
+import dev.jbang.source.ResourceRef;
 import dev.jbang.source.Source;
 import dev.jbang.source.sources.JavaSource;
 
@@ -31,7 +32,7 @@ public class TestGrape extends BaseTest {
 				+
 				"})\n";
 
-		Source src = new JavaSource(grabBlock, null);
+		Source src = new JavaSource(ResourceRef.forLiteral(grabBlock), null);
 		Project prj = Project.builder().build(src);
 		List<String> deps = prj.getMainSourceSet().getDependencies();
 
