@@ -316,9 +316,8 @@ class TestJdk extends BaseTest {
 			try {
 				jdk.install(true, "13", javaDir.toPath().toString());
 			} catch (Exception e) {
-				assertInstanceOf(ExitException.class, e);
-				assertEquals("Java version in given path: " + javaDir.toPath()
-						+ " is " + 11 + " which does not match the requested version " + 13 + "", e.getMessage());
+				assertInstanceOf(IllegalArgumentException.class, e);
+				assertEquals("Linked JDK is not of the correct version: 11 instead of: 13", e.getMessage());
 			}
 			return null;
 		});
