@@ -1,0 +1,385 @@
+= Multiple Languages
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+JBang supports multiple languages beyond Java, making it a versatile tool for JVM-based scripting. Here's how to use each supported language type.
+
+== JShell Scripts (.jsh)
+
+JShell files offer a more interactive scripting experience without needing a full class structure.
+
+=== Basic JShell Usage
+
+Create a file called `hello.jsh`:
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+
+// No class or main method needed!
+System.out.println("Hello " + (args.length > 0 ? args[0] : "World"));
+----
+
+Run it:
+[source,bash]
+----
+jbang hello.jsh
+# Output: Hello World
+
+jbang hello.jsh JBang
+# Output: Hello JBang
+----
+
+=== Arguments and System Properties
+
+JShell scripts automatically have access to:
+
+- `String[] args` - Command line arguments
+- System properties set with `-Dkey=value`
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+
+System.out.println("Hello " + (args.length > 0 ? args[0] : "World"));
+System.out.println("Debug mode: " + System.getProperty("debug", "false"));
+----
+
+Run with properties:
+[source,bash]
+----
+jbang -Ddebug=true hello.jsh JBang
+# Output: 
+# Hello JBang
+# Debug mode: true
+----
+
+[TIP]
+====
+**Boolean Properties**: Use `-Dkey` without a value to set it to "true":
+[source,bash]
+----
+jbang -DskipTests mytestrunner.jsh
+# Boolean.getBoolean('skipTests') returns true
+----
+====
+
+=== JShell Limitations
+
+[NOTE]
+====
+**JShell Restrictions**:
+
+- Source only - not compiled or cached
+- Cannot be built as native images
+- Cannot access classes in default package
+- Slightly slower startup than compiled Java
+====
+
+=== Interactive Mode
+
+Use `--interactive` to enter JShell REPL mode:
+[source,bash]
+----
+jbang --interactive hello.jsh
+# Enters interactive JShell with your script loaded
+----
+
+== Kotlin Scripts (.kt) [EXPERIMENTAL]
+
+JBang supports Kotlin scripts using the Kotlin compiler.
+
+=== Basic Kotlin Usage
+
+Create a file called `hello.kt`:
+
+[source,kotlin]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//KOTLIN 2.0.21
+
+fun main(args: Array<String>) {
+    println("Hello ${args.firstOrNull() ?: "World"}")
+}
+----
+
+Run it:
+[source,bash]
+----
+jbang hello.kt
+# First time: Downloads and installs Kotlin
+# Output: Hello World
+
+jbang hello.kt JBang
+# Output: Hello JBang
+----
+
+=== Kotlin with Dependencies
+
+[source,kotlin]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//DEPS org.jetbrains.kotlin:kotlin-stdlib:2.0.21
+//DEPS com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2
+
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+
+data class Person(val name: String, val age: Int)
+
+fun main(args: Array<String>) {
+    val mapper = jacksonObjectMapper()
+    val person = Person("Alice", 30)
+    val json = mapper.writeValueAsString(person)
+    println("JSON: $json")
+    
+    val parsed = mapper.readValue<Person>(json)
+    println("Parsed: $parsed")
+}
+----
+
+=== Kotlin Version Control
+
+Control the Kotlin version used:
+[source,kotlin]
+----
+//KOTLIN 2.0.21
+----
+
+== Groovy Scripts (.groovy) [EXPERIMENTAL]
+
+JBang supports Groovy scripts using the Groovy compiler.
+
+=== Basic Groovy Usage
+
+Create a file called `hello.groovy`:
+
+[source,groovy]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//GROOVY 3.0.9
+
+def name = args.length > 0 ? args[0] : "World"
+println "Hello $name"
+----
+
+Run it:
+[source,bash]
+----
+jbang hello.groovy
+# First time: Downloads and installs Groovy
+# Output: Hello World
+
+jbang hello.groovy JBang
+# Output: Hello JBang
+----
+
+=== Groovy with Dependencies
+
+[source,groovy]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//DEPS org.codehaus.groovy:groovy:3.0.9
+//DEPS org.apache.commons:commons-lang3:3.12.0
+
+import org.apache.commons.lang3.StringUtils
+
+def message = "hello world"
+println StringUtils.capitalize(message)
+----
+
+=== Groovy Version Control
+
+Control the Groovy version used:
+[source,groovy]
+----
+//GROOVY 3.0.19
+----
+
+== Markdown Scripts (.md) [EXPERIMENTAL]
+
+JBang can extract and execute Java code from Markdown files!
+
+=== Basic Markdown Usage
+
+Create a file called `readme.md`:
+
+[source,markdown]
+----
+# My Script Documentation
+
+This is a script written in Markdown that JBang can execute.
+
+```java
+class Demo {
+    void greet() {
+        System.out.println("Hello from Markdown!");
+    }
+}
+```
+
+```jshelllanguage
+new Demo().greet();
+```
+
+You can even use dependencies:
+
+```jsh
+//DEPS com.github.lalyos:jfiglet:0.0.8
+import com.github.lalyos.jfiglet.FigletFont;
+
+System.out.println(FigletFont.convertOneLine(
+    "Hello " + ((args.length > 0) ? args[0] : "jbang")
+));
+```
+
+Arguments work too:
+
+```java
+if(args.length == 0) {
+    System.out.println("You have no arguments!");
+} else {
+    System.out.printf("You have %s arguments! First is %s%n", args.length, args[0]);
+}
+```
+----
+
+Run it:
+[source,bash]
+----
+jbang readme.md YOLO
+# Output: ASCII art "Hello YOLO" and argument info
+----
+
+=== How Markdown Execution Works
+
+1. **Code Block Extraction**: JBang finds `java`, `jsh`, or `jshelllanguage` code blocks
+2. **Dependency Resolution**: Processes `//DEPS` statements in code blocks
+3. **Execution Decision**: If a main method is found, treats as Java; otherwise uses JShell
+4. **Argument Passing**: Makes `args` available to all code blocks
+
+=== Supported Code Block Types
+
+- `java` - Java code
+- `jsh` - JShell code
+- `jshelllanguage` - JShell code (alternative syntax)
+
+== Language-Specific Features
+
+=== Java
+- Full compilation and caching
+- Native image support
+- Complete IDE integration
+- Fastest execution
+
+=== JShell (.jsh)
+- No class structure needed
+- Interactive REPL mode
+- Fastest development cycle
+- Source-only execution
+
+=== Kotlin (.kt)
+- Modern JVM language
+- Null safety
+- Coroutines support
+- Interop with Java libraries
+
+=== Groovy (.groovy)
+- Dynamic scripting
+- Powerful metaprogramming
+- Built-in JSON/XML processing
+- Closure support
+
+=== Markdown (.md)
+- Literate programming
+- Documentation + code
+- Multiple code blocks
+- Educational examples
+
+== Command-Line Options
+
+=== Force Language Type
+
+[source,bash]
+----
+# Force JShell mode
+jbang --jsh script.java
+
+# Force interactive mode
+jbang --interactive script.jsh
+----
+
+=== Script from Command Line
+
+[source,bash]
+----
+# Run code directly
+jbang --code "System.out.println(\"Hello World\")"
+
+# Pipe code to JBang
+echo 'System.out.println("Hello World")' | jbang -
+----
+
+== Best Practices
+
+=== Choose the Right Language
+
+- **Java**: For production scripts, complex logic, performance-critical code
+- **JShell**: For quick experiments, interactive exploration, simple scripts
+- **Kotlin**: For modern language features, null safety, functional programming
+- **Groovy**: For dynamic scripting, text processing, DSLs
+- **Markdown**: For documentation, tutorials, literate programming
+
+=== Performance Considerations
+
+**Compilation vs. Interpretation**:
+
+- Java/Kotlin/Groovy: Compiled and cached (faster execution)
+- JShell: Interpreted (faster development)
+- Markdown: Depends on extracted code
+
+**Startup Time**:
+
+- Java: Fastest after first compilation
+- JShell: Moderate
+- Kotlin/Groovy: Slower first time (compiler download)
+
+== Common Issues and Solutions
+
+=== Language Not Found
+
+**Problem**: "kotlinc not found" or similar
+**Solution**: JBang automatically downloads language compilers on first use
+
+=== Version Conflicts
+
+**Problem**: Wrong language version
+**Solution**: Use version directives:
+[source,java]
+----
+//KOTLIN 2.0.21
+//GROOVY 3.0.19
+----
+
+=== Dependencies Not Working
+
+**Problem**: Language-specific dependencies fail
+**Solution**: Check language-specific dependency formats and ensure compatibility
+
+== What's Next?
+
+- **Learn about dependencies** → xref:dependencies.adoc[Dependencies]
+- **Explore execution options** → xref:execution-options.adoc[Execution Options]
+- **Share your scripts** → xref:alias_catalogs.adoc[Aliases & Catalogs]
+
+Choose the language that fits your needs and start scripting! 🚀

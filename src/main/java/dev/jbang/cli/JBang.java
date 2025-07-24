@@ -11,6 +11,7 @@ import static picocli.CommandLine.Option;
 import static picocli.CommandLine.ScopeType;
 
 import java.io.PrintWriter;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -21,6 +22,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
@@ -269,15 +271,46 @@ public class JBang extends BaseCommand {
 		sections.put("Caching", asList("cache", "export", "jdk"));
 		sections.put("Configuration", asList("config", "trust", "alias", "template", "catalog", "app"));
 		sections.put("Other", asList("completion", "info", "version", "wrapper"));
-		CommandGroupRenderer renderer = new CommandGroupRenderer(sections);
+		Map<String, String> cmds = findExternalCommands();
+		if (!cmds.isEmpty()) {
+			sections.put("External", new ArrayList<>(cmds.keySet()));
+		}
+		CommandGroupRenderer renderer = new CommandGroupRenderer(sections, cmds);
 		return renderer;
+	}
+
+	private static Map<String, String> findExternalCommands() {
+		Map<String, String> result = new TreeMap<>();
+		// Add any aliases whose names start with "jbang-" to the result
+		try {
+			dev.jbang.catalog.Catalog cat = dev.jbang.catalog.Catalog.getMerged(true, false);
+			for (String name : cat.aliases.keySet()) {
+				if (name.startsWith("jbang-")) {
+					result.put(name.substring(6), cat.aliases.get(name).description);
+				}
+			}
+		} catch (Exception ex) {
+			Util.verboseMsg("Error trying to list aliases", ex);
+		}
+		// Now add any commands found on the PATH whose names start with "jbang-"
+		try {
+			List<Path> cmds = Util.findCommandsWith(p -> p.getFileName().toString().startsWith("jbang-"));
+			for (Path p : cmds) {
+				result.put(Util.base(p.getFileName().toString()).substring(6), null);
+			}
+		} catch (Exception ex) {
+			Util.verboseMsg("Error trying to list jbang-commands", ex);
+		}
+		return result;
 	}
 
 	public static class CommandGroupRenderer implements CommandLine.IHelpSectionRenderer {
 		private final Map<String, List<String>> sections;
+		private final Map<String, String> externals;
 
-		public CommandGroupRenderer(Map<String, List<String>> sections) {
+		public CommandGroupRenderer(Map<String, List<String>> sections, Map<String, String> externals) {
 			this.sections = sections;
+			this.externals = externals;
 		}
 
 		/**
@@ -323,23 +356,26 @@ public class JBang extends BaseCommand {
 		private String renderSection(String sectionHeading, List<String> cmdNames, CommandLine.Help help) {
 			TextTable textTable = createTextTable(help);
 
-			for (String name : cmdNames) {
-				CommandSpec sub = help.commandSpec().subcommands().get(name).getCommandSpec();
+			if (!sectionHeading.equals("External")) {
+				for (String name : cmdNames) {
+					CommandSpec sub = help.commandSpec().subcommands().get(name).getCommandSpec();
 
-				// create comma-separated list of command name and aliases
-				String names = sub.names().toString();
-				names = names.substring(1, names.length() - 1); // remove leading '[' and trailing ']'
+					// create comma-separated list of command name and aliases
+					String names = sub.names().toString();
+					names = names.substring(1, names.length() - 1); // remove leading '[' and trailing ']'
 
-				// description may contain line separators; use Text::splitLines to handle this
-				String description = description(sub.usageMessage());
-				CommandLine.Help.Ansi.Text[] lines = help.colorScheme().text(description).splitLines();
-
-				for (int i = 0; i < lines.length; i++) {
-					CommandLine.Help.Ansi.Text cmdNamesText = help.colorScheme().commandText(i == 0 ? names : "");
-					textTable.addRowValues(cmdNamesText, lines[i]);
+					// description may contain line separators; use Text::splitLines to handle this
+					String description = description(sub.usageMessage());
+					addCommand(textTable, names, description, help);
+				}
+			} else {
+				for (String name : externals.keySet()) {
+					String description = externals.get(name);
+					addCommand(textTable, name, description, help);
 				}
 			}
-			return help.createHeading("%n" + sectionHeading + ":%n") + textTable.toString();
+
+			return help.createHeading("%n" + sectionHeading + ":%n") + textTable;
 		}
 
 		private TextTable createTextTable(CommandLine.Help help) {
@@ -372,6 +408,16 @@ public class JBang extends BaseCommand {
 				return usageMessage.description()[0];
 			}
 			return "";
+		}
+
+		private void addCommand(TextTable textTable, String name, String description, CommandLine.Help help) {
+			CommandLine.Help.Ansi.Text[] lines = help.colorScheme()
+				.text(description != null ? description : "")
+				.splitLines();
+			for (int i = 0; i < lines.length; i++) {
+				CommandLine.Help.Ansi.Text cmdNamesText = help.colorScheme().commandText(i == 0 ? name : "");
+				textTable.addRowValues(cmdNamesText, lines[i]);
+			}
 		}
 	}
 }

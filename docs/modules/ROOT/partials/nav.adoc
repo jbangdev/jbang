@@ -1,17 +1,35 @@
-* xref:jbang:ROOT:index.adoc[]
-* xref:jbang:ROOT:installation.adoc[]
-* xref:jbang:ROOT:usage.adoc[]
-* xref:jbang:ROOT:dependencies.adoc[]
-* xref:jbang:ROOT:javaversions.adoc[]
-* xref:jbang:ROOT:organizing.adoc[]
-* xref:jbang:ROOT:running.adoc[]
-* xref:jbang:ROOT:debugging.adoc[]
-* xref:jbang:ROOT:editing.adoc[]
-* xref:jbang:ROOT:exporting.adoc[]
-* xref:jbang:ROOT:install.adoc[]
-* xref:jbang:ROOT:templates.adoc[]
-* xref:jbang:ROOT:alias_catalogs.adoc[]
-* xref:jbang:ROOT:integration.adoc[]
-* xref:jbang:ROOT:configuration.adoc[]
-* xref:jbang:ROOT:caching.adoc[]
-* xref:jbang:ROOT:faq.adoc[]
+* Getting Started
+** xref:jbang:ROOT:index.adoc[What is JBang?]
+** xref:jbang:ROOT:quickstart.adoc[Quick Start Guide]
+** xref:jbang:ROOT:installation.adoc[Installation]
+** xref:jbang:ROOT:first-script.adoc[Your First Script]
+** xref:jbang:ROOT:javaversions.adoc[Java Versions]
+
+* Writing Scripts
+** xref:jbang:ROOT:dependencies.adoc[Dependencies]
+** xref:jbang:ROOT:multiple-languages.adoc[Multiple Languages]
+** xref:jbang:ROOT:organizing.adoc[Organizing Code]
+** xref:jbang:ROOT:templates.adoc[Templates]
+** xref:jbang:ROOT:debugging.adoc[Debugging]
+** xref:jbang:ROOT:script-directives.adoc[Script Directives]
+
+* Running & Execution
+** xref:jbang:ROOT:execution-options.adoc[Execution Options]
+** xref:jbang:ROOT:remote-execution.adoc[Remote Execution]
+** xref:jbang:ROOT:native-images.adoc[Native Images]
+** xref:jbang:ROOT:editing.adoc[IDE Integration]
+
+* Distribution & Deployment
+** xref:jbang:ROOT:exporting.adoc[Exporting Projects]
+** xref:jbang:ROOT:app-installation.adoc[Installing as Apps]
+** xref:jbang:ROOT:alias_catalogs.adoc[Aliases & Catalogs]
+** xref:jbang:ROOT:integration.adoc[Build Integration]
+
+* Configuration & Management
+** xref:jbang:ROOT:configuration.adoc[Configuration]
+** xref:jbang:ROOT:caching.adoc[Caching]
+
+* Help & Reference
+** xref:jbang:ROOT:troubleshooting.adoc[Troubleshooting]
+** xref:jbang:ROOT:faq.adoc[FAQ]
+** xref:jbang:cli:jbang.adoc[CLI Reference]

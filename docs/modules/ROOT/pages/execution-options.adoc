@@ -1,0 +1,457 @@
+= Execution Options
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+JBang provides various execution options to customize how your scripts run, from JVM options to debugging and profiling features.
+
+== JVM Options and Flags
+
+=== Runtime Options
+
+Control the Java runtime with `//RUNTIME_OPTIONS` or `--runtime-option`:
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//RUNTIME_OPTIONS --enable-preview -Xmx2g -Dfile.encoding=UTF-8
+
+class MyApp {
+    public static void main(String[] args) {
+        System.out.println("Max memory: " + Runtime.getRuntime().maxMemory());
+        System.out.println("File encoding: " + System.getProperty("file.encoding"));
+    }
+}
+----
+
+Or from command line:
+[source,bash]
+----
+jbang --runtime-option="-Xmx2g" --runtime-option="--enable-preview" myapp.java
+----
+
+=== Compile Options
+
+Control the Java compiler with `//COMPILE_OPTIONS` or `--compile-option`:
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//COMPILE_OPTIONS --enable-preview -source 17 -Xlint:unchecked
+
+// Your code using preview features
+----
+
+Or from command line:
+[source,bash]
+----
+jbang --compile-option="--enable-preview" --compile-option="-source 17" myapp.java
+----
+
+=== Preview Features
+
+Enable Java preview features easily:
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//JAVA 17+
+//PREVIEW
+
+// Use preview features here
+public class RecordExample {
+    record Point(int x, int y) {}
+    
+    public static void main(String[] args) {
+        var p = new Point(2, 4);
+        System.out.println(p);
+    }
+}
+----
+
+The `//PREVIEW` directive automatically adds the necessary compile and runtime options.
+
+== Environment Variables
+
+=== Java Options
+
+As JBang is run using java, it respects standard Java environment variables:
+
+[source,bash]
+----
+# Java 9+ standard variables
+export JDK_JAVA_OPTIONS="-Xmx1g -Dfile.encoding=UTF-8"
+----
+
+But if you want to set JBang-specific variables, you can do so by setting the `JBANG_JAVA_OPTIONS` environment variables.
+
+[source,bash]
+----
+# JBang-specific variables
+export JBANG_JAVA_OPTIONS="-Xmx2g"
+----
+
+=== First time install
+
+When you run JBang for the first time, and no JDK is found, JBang will try to install a JDK for you.
+
+You can control the default JDK version and vendor by setting the `JBANG_DEFAULT_JAVA_VERSION` and `JBANG_JDK_VENDOR` environment variables.
+
+The default JDK version is 17 and the default JDK vendor is `temurin`.
+
+[source,bash]
+----
+# Set default Java version for first install
+export JBANG_DEFAULT_JAVA_VERSION=17
+
+# Set JDK vendor
+export JBANG_JDK_VENDOR=temurin
+
+# Run with specific version and vendor
+JBANG_DEFAULT_JAVA_VERSION=21 JBANG_JDK_VENDOR=openjdk jbang myapp.java
+----
+
+== Interactive Mode
+
+=== JShell REPL
+
+Enter interactive mode with your script loaded:
+
+[source,bash]
+----
+jbang --interactive myapp.java
+----
+
+In interactive mode:
+
+- Your script is loaded and available
+- `userMain(args)` function calls your original main method
+- Full JShell commands available
+- Use `/exit` to quit
+
+[NOTE]
+====
+**Default Package Limitation**: JShell cannot access classes in the default package. Add a package statement to your script to access it interactively.
+====
+
+=== Piped Input
+
+Run code from standard input:
+
+[source,bash]
+----
+# Pipe code to JBang
+echo 'System.out.println("Hello World")' | jbang -
+
+# Force JShell mode
+echo 'System.out.println("Hello World")' | jbang --jsh -
+
+# From file
+cat script.java | jbang -
+----
+
+=== Inline Code
+
+Execute code directly from command line:
+
+[source,bash]
+----
+jbang --code 'System.out.println("Hello World")'
+----
+
+== Debugging and Profiling
+
+=== Debug Mode
+
+Enable debugging support:
+
+[source,bash]
+----
+# Enable debug mode
+jbang --debug myapp.java
+
+# Custom debug port
+jbang --debug=5006 myapp.java
+----
+
+This adds the necessary JVM flags for remote debugging.
+
+=== Flight Recorder
+
+Enable Java Flight Recorder for profiling:
+
+[source,bash]
+----
+# Basic flight recording
+jbang --jfr myapp.java
+
+# Custom JFR options
+jbang --jfr=filename=myapp.jfr,maxage=24h myapp.java
+----
+
+The recording is saved as `myapp.jfr` and can be analyzed with tools like JVisualVM or Java Mission Control.
+
+=== Custom Flight Recorder
+
+For more control, use compile options:
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//COMPILE_OPTIONS -XX:StartFlightRecording=duration=60s,filename=custom.jfr
+
+// Your application code
+----
+
+== Module Support [EXPERIMENTAL]
+
+=== Basic Module Usage
+
+Mark your code as a module:
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//MODULE com.example.myapp
+
+package com.example.myapp;
+
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("Running as module");
+    }
+}
+----
+
+Or from command line:
+[source,bash]
+----
+jbang --module=com.example.myapp myapp.java
+----
+
+
+== Main Class Override
+
+=== In Code
+
+Override the main class in your script:
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//MAIN com.example.AlternativeMain
+
+class Primary {
+    public static void main(String[] args) {
+        System.out.println("Primary main");
+    }
+}
+
+class com.example.AlternativeMain {
+    public static void main(String[] args) {
+        System.out.println("Alternative main");
+    }
+}
+----
+
+=== From Command Line
+
+Override main class temporarily:
+
+[source,bash]
+----
+# Temporary override (this run only)
+jbang --main com.example.AlternativeMain myapp.java
+
+# Permanent override (stored in JAR)
+jbang build --main com.example.AlternativeMain myapp.java
+----
+
+== Manifest Customization
+
+Add custom entries to the JAR manifest:
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//MANIFEST Built-By=Developer Sealed=true Custom-Header=value
+
+// Your application code
+----
+
+== Application Class Data Sharing [EXPERIMENTAL]
+
+Improve startup performance with CDS (requires Java 13+):
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//CDS
+
+// Your application code
+----
+
+Or from command line:
+[source,bash]
+----
+# Enable CDS
+jbang --cds myapp.java
+
+# Disable CDS
+jbang --no-cds myapp.java
+----
+
+== Java Agents
+
+=== Using Existing Agents
+
+[source,bash]
+----
+# Local agent JAR
+jbang --javaagent=myagent.jar myapp.java
+
+# Remote agent JAR
+jbang --javaagent=https://repo1.maven.org/maven2/agent.jar myapp.java
+
+# Maven coordinate
+jbang --javaagent=io.opentelemetry.javaagent:opentelemetry-javaagent:1.20.0 myapp.java
+----
+
+=== Creating JBang Agents
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//JAVAAGENT
+
+import java.lang.instrument.Instrumentation;
+
+public class MyAgent {
+    public static void premain(String agentArgs, Instrumentation inst) {
+        System.out.println("Agent loaded with args: " + agentArgs);
+    }
+}
+----
+
+Create an agent template:
+[source,bash]
+----
+jbang init -t agent myagent.java
+----
+
+== Remote File Arguments
+
+Download remote files as arguments:
+
+[source,bash]
+----
+# Download and pass file path
+jbang wordcount.java %{https://example.com/data.txt}
+
+# Embedded in argument
+jbang analyze.java --file=%{https://example.com/data.txt} 
+
+# Escape to prevent download
+jbang app.java %%https://example.com/data.txt
+----
+
+== Offline Mode
+
+Run without network access:
+
+[source,bash]
+----
+# Offline mode - fails if dependencies not cached
+jbang --offline myapp.java
+jbang -o myapp.java
+----
+
+== Performance Tuning
+
+=== Memory Settings
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//RUNTIME_OPTIONS -Xmx4g -Xms1g -XX:+UseG1GC
+
+// Your memory-intensive application
+----
+
+=== Compilation Optimization
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//COMPILE_OPTIONS -O -g:none
+
+// Optimized compilation
+----
+
+=== Startup Optimization
+
+[source,java]
+----
+///usr/bin/env jbang "$0" "$@" ; exit $?
+//RUNTIME_OPTIONS -XX:+TieredCompilation -XX:TieredStopAtLevel=1
+//CDS
+
+// Fast startup application
+----
+
+== Best Practices
+
+=== Execution Options
+
+- **Use `//PREVIEW`** instead of manual `--enable-preview` flags
+- **Set memory limits** for memory-intensive applications
+- **Use CDS** for frequently run scripts
+- **Enable JFR** for performance analysis
+
+=== Debugging
+
+- **Use `--debug`** for development
+- **Enable flight recorder** for production profiling
+- **Use interactive mode** for exploration
+- **Check JVM options** with `-XX:+PrintCommandLineFlags`
+
+=== Performance
+
+- **Compile once, run many** - JBang caches compiled code
+- **Use appropriate GC** settings for your workload
+- **Profile with JFR** before optimizing
+- **Consider native images** for CLI tools
+
+== Common Issues
+
+=== Memory Issues
+
+**Problem**: OutOfMemoryError
+**Solution**: Increase heap size with `-Xmx` option
+
+=== Preview Features
+
+**Problem**: Preview features not working
+**Solution**: Use `//PREVIEW` directive or ensure matching Java version
+
+=== Module Issues
+
+**Problem**: Module not found
+**Solution**: Check module name and package declarations
+
+== What's Next?
+
+- **Learn about native images** → xref:native-images.adoc[Native Images]
+- **Explore remote execution** → xref:remote-execution.adoc[Remote Execution]
+- **Deploy your scripts** → xref:app-installation.adoc[App Installation]
+
+Master these execution options to get the most out of your JBang scripts! 🚀
