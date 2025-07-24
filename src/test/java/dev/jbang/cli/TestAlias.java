@@ -121,7 +121,7 @@ public class TestAlias extends BaseTest {
 	@Test
 	void testReadFromFile() throws IOException {
 		clearSettingsCaches();
-		assertThat(Alias.get("one"), notNullValue());
+		org.assertj.core.api.Assertions.assertThat(Alias.get("one")).isNotNull();
 	}
 
 	@Test
@@ -129,11 +129,11 @@ public class TestAlias extends BaseTest {
 		Path cwd = Util.getCwd();
 		Path testFile = cwd.resolve("test.java");
 		Files.write(testFile, "// Test file".getBytes());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		org.assertj.core.api.Assertions.assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(false);
 		JBang.getCommandLine().execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
+		org.assertj.core.api.Assertions.assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(true);
 		Alias alias = Alias.get("name");
-		assertThat(alias.scriptRef, is("test.java"));
+		org.assertj.core.api.Assertions.assertThat(alias.scriptRef).isEqualTo("test.java");
 	}
 
 	@Test
@@ -141,7 +141,7 @@ public class TestAlias extends BaseTest {
 		Path cwd = Util.getCwd();
 		Path testFile = cwd.resolve("test.java");
 		Files.write(testFile, "// Test file".getBytes());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		org.assertj.core.api.Assertions.assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(false);
 		JBang.getCommandLine()
 			.execute("alias", "add",
 					"-f", cwd.toString(),
@@ -159,29 +159,28 @@ public class TestAlias extends BaseTest {
 					"--java", "999",
 					testFile.toString(),
 					"aap", "noot", "mies");
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)),
-				is(true));
+		org.assertj.core.api.Assertions.assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(true);
 		Alias alias = Alias.get("name");
-		assertThat(alias.scriptRef, is("test.java"));
-		assertThat(alias.description, is("desc"));
+		org.assertj.core.api.Assertions.assertThat(alias.scriptRef).isEqualTo("test.java");
+		org.assertj.core.api.Assertions.assertThat(alias.description).isEqualTo("desc");
 		assertThat(alias.runtimeOptions, iterableWithSize(1));
-		assertThat(alias.runtimeOptions, contains("jopts"));
+		org.assertj.core.api.Assertions.assertThat(alias.runtimeOptions).containsExactly("jopts");
 		assertThat(alias.dependencies, iterableWithSize(1));
-		assertThat(alias.dependencies, contains("deps"));
+		org.assertj.core.api.Assertions.assertThat(alias.dependencies).containsExactly("deps");
 		assertThat(alias.repositories, iterableWithSize(1));
-		assertThat(alias.repositories, contains("repos"));
+		org.assertj.core.api.Assertions.assertThat(alias.repositories).containsExactly("repos");
 		assertThat(alias.classpaths, iterableWithSize(1));
-		assertThat(alias.classpaths, contains("cps"));
-		assertThat(alias.properties, aMapWithSize(1));
-		assertThat(alias.properties, hasEntry("prop", "val"));
-		assertThat(alias.mainClass, is("mainclass"));
+		org.assertj.core.api.Assertions.assertThat(alias.classpaths).containsExactly("cps");
+		org.assertj.core.api.Assertions.assertThat(alias.properties).hasSize(1);
+		org.assertj.core.api.Assertions.assertThat(alias.properties).containsEntry("prop", "val");
+		org.assertj.core.api.Assertions.assertThat(alias.mainClass).isEqualTo("mainclass");
 		assertThat(alias.compileOptions, iterableWithSize(1));
-		assertThat(alias.compileOptions, contains("copts"));
-		assertThat(alias.nativeImage, is(Boolean.TRUE));
+		org.assertj.core.api.Assertions.assertThat(alias.compileOptions).containsExactly("copts");
+		org.assertj.core.api.Assertions.assertThat(alias.nativeImage).isEqualTo(Boolean.TRUE);
 		assertThat(alias.nativeOptions, iterableWithSize(1));
-		assertThat(alias.nativeOptions, contains("nopts"));
-		assertThat(alias.javaVersion, is("999"));
-		assertThat(alias.arguments, contains("aap", "noot", "mies"));
+		org.assertj.core.api.Assertions.assertThat(alias.nativeOptions).containsExactly("nopts");
+		org.assertj.core.api.Assertions.assertThat(alias.javaVersion).isEqualTo("999");
+		org.assertj.core.api.Assertions.assertThat(alias.arguments).containsExactly("aap", "noot", "mies");
 	}
 
 	@Test
@@ -191,7 +190,7 @@ public class TestAlias extends BaseTest {
 		Files.write(testFile, "// Test file".getBytes());
 		Path catFile = Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON);
 		Files.write(catFile, "".getBytes());
-		assertThat(Files.size(catFile), is(0L));
+		org.assertj.core.api.Assertions.assertThat(Files.size(catFile)).isEqualTo(0L);
 		JBang.getCommandLine()
 			.execute("alias", "add",
 					"--name=name",
@@ -209,27 +208,27 @@ public class TestAlias extends BaseTest {
 					"aap", "noot", "mies");
 		assertThat(Files.size(catFile), not(is(0L)));
 		Alias alias = Alias.get("name");
-		assertThat(alias.scriptRef, is("test.java"));
-		assertThat(alias.description, is("desc"));
+		org.assertj.core.api.Assertions.assertThat(alias.scriptRef).isEqualTo("test.java");
+		org.assertj.core.api.Assertions.assertThat(alias.description).isEqualTo("desc");
 		assertThat(alias.runtimeOptions, iterableWithSize(1));
-		assertThat(alias.runtimeOptions, contains("jopts"));
+		org.assertj.core.api.Assertions.assertThat(alias.runtimeOptions).containsExactly("jopts");
 		assertThat(alias.dependencies, iterableWithSize(1));
-		assertThat(alias.dependencies, contains("deps"));
+		org.assertj.core.api.Assertions.assertThat(alias.dependencies).containsExactly("deps");
 		assertThat(alias.repositories, iterableWithSize(1));
-		assertThat(alias.repositories, contains("repos"));
+		org.assertj.core.api.Assertions.assertThat(alias.repositories).containsExactly("repos");
 		assertThat(alias.classpaths, iterableWithSize(1));
-		assertThat(alias.classpaths, contains("cps"));
-		assertThat(alias.properties, aMapWithSize(1));
-		assertThat(alias.properties, hasEntry("prop", "val"));
+		org.assertj.core.api.Assertions.assertThat(alias.classpaths).containsExactly("cps");
+		org.assertj.core.api.Assertions.assertThat(alias.properties).hasSize(1);
+		org.assertj.core.api.Assertions.assertThat(alias.properties).containsEntry("prop", "val");
 		assertThat(alias.arguments, iterableWithSize(3));
-		assertThat(alias.mainClass, is("mainclass"));
+		org.assertj.core.api.Assertions.assertThat(alias.mainClass).isEqualTo("mainclass");
 		assertThat(alias.compileOptions, iterableWithSize(1));
-		assertThat(alias.compileOptions, contains("copts"));
-		assertThat(alias.nativeImage, is(nullValue()));
+		org.assertj.core.api.Assertions.assertThat(alias.compileOptions).containsExactly("copts");
+		org.assertj.core.api.Assertions.assertThat(alias.nativeImage).isNull();
 		assertThat(alias.nativeOptions, iterableWithSize(1));
-		assertThat(alias.nativeOptions, contains("nopts"));
-		assertThat(alias.javaVersion, is("999"));
-		assertThat(alias.arguments, contains("aap", "noot", "mies"));
+		org.assertj.core.api.Assertions.assertThat(alias.nativeOptions).containsExactly("nopts");
+		org.assertj.core.api.Assertions.assertThat(alias.javaVersion).isEqualTo("999");
+		org.assertj.core.api.Assertions.assertThat(alias.arguments).containsExactly("aap", "noot", "mies");
 	}
 
 	@Test
@@ -238,11 +237,11 @@ public class TestAlias extends BaseTest {
 		Path sub = Files.createDirectory(cwd.resolve("sub"));
 		Path testFile = sub.resolve("test.java");
 		Files.write(testFile, "// Test file".getBytes());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		org.assertj.core.api.Assertions.assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(false);
 		JBang.getCommandLine().execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
+		org.assertj.core.api.Assertions.assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(true);
 		Alias name = Alias.get("name");
-		assertThat(name.scriptRef, is(Paths.get("sub/test.java").toString()));
+		org.assertj.core.api.Assertions.assertThat(name.scriptRef).isEqualTo(Paths.get("sub/test.java").toString());
 	}
 
 	@Test
@@ -252,12 +251,12 @@ public class TestAlias extends BaseTest {
 		Files.write(testFile, ("// Test file \n" +
 				"//DESCRIPTION Description of the script inside the script")
 			.getBytes());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		org.assertj.core.api.Assertions.assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(false);
 		JBang.getCommandLine().execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
+		org.assertj.core.api.Assertions.assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(true);
 		Alias name = Alias.get("name");
-		assertThat(name.scriptRef, is("test.java"));
-		assertThat(name.description, is("Description of the script inside the script"));
+		org.assertj.core.api.Assertions.assertThat(name.scriptRef).isEqualTo("test.java");
+		org.assertj.core.api.Assertions.assertThat(name.description).isEqualTo("Description of the script inside the script");
 	}
 
 	@Test
@@ -267,15 +266,15 @@ public class TestAlias extends BaseTest {
 		Files.write(testFile, ("// Test file \n" +
 				"//DESCRIPTION Description of the script inside the script")
 			.getBytes());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		org.assertj.core.api.Assertions.assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(false);
 		JBang.getCommandLine()
 			.execute("alias", "add", "-f", cwd.toString(), "--name=name",
 					"--description", "Description of the script in arguments", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
+		org.assertj.core.api.Assertions.assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(true);
 		Alias name = Alias.get("name");
-		assertThat(name.scriptRef, is("test.java"));
+		org.assertj.core.api.Assertions.assertThat(name.scriptRef).isEqualTo("test.java");
 		// The argument has more precedance than the description tag in the script
-		assertThat(name.description, is("Description of the script in arguments"));
+		org.assertj.core.api.Assertions.assertThat(name.description).isEqualTo("Description of the script in arguments");
 	}
 
 	@Test
@@ -287,13 +286,12 @@ public class TestAlias extends BaseTest {
 				"//DESCRIPTION description second tag\n" +
 				"//DESCRIPTION description third tag")
 			.getBytes());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		org.assertj.core.api.Assertions.assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(false);
 		JBang.getCommandLine().execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
+		org.assertj.core.api.Assertions.assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(true);
 		Alias name = Alias.get("name");
-		assertThat(name.scriptRef, is("test.java"));
-		assertThat(name.description,
-				is("Description first tag\ndescription second tag\ndescription third tag"));
+		org.assertj.core.api.Assertions.assertThat(name.scriptRef).isEqualTo("test.java");
+		org.assertj.core.api.Assertions.assertThat(name.description).isEqualTo("Description first tag\ndescription second tag\ndescription third tag");
 	}
 
 	@Test
@@ -301,13 +299,12 @@ public class TestAlias extends BaseTest {
 		Path cwd = Util.getCwd();
 		Path testFile = cwd.resolve("test.java");
 		Files.write(testFile, ("// Test file \n").getBytes());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		org.assertj.core.api.Assertions.assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(false);
 		JBang.getCommandLine().execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
+		org.assertj.core.api.Assertions.assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(true);
 		Alias name = Alias.get("name");
-		assertThat(name.scriptRef, is("test.java"));
-		assertThat(name.description,
-				nullValue());
+		org.assertj.core.api.Assertions.assertThat(name.scriptRef).isEqualTo("test.java");
+		org.assertj.core.api.Assertions.assertThat(name.description).isNull();
 	}
 
 	@Test
@@ -320,10 +317,10 @@ public class TestAlias extends BaseTest {
 		Files.createDirectory(hiddenJBangPath);
 		Files.createFile(Paths.get(cwd.toString(), Settings.JBANG_DOT_DIR, Catalog.JBANG_CATALOG_JSON));
 		JBang.getCommandLine().execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		org.assertj.core.api.Assertions.assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(false);
 		Catalog catalog = Catalog.get(hiddenJBangPath);
 		Alias name = catalog.aliases.get("name");
-		assertThat(name.scriptRef, is(Paths.get("../sub/test.java").toString()));
+		org.assertj.core.api.Assertions.assertThat(name.scriptRef).isEqualTo(Paths.get("../sub/test.java").toString());
 	}
 
 	@Test
@@ -334,8 +331,8 @@ public class TestAlias extends BaseTest {
 		JBang.getCommandLine().execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
 		Alias one = Alias.get("one");
 		Alias name = Alias.get("name");
-		assertThat(one.scriptRef, is("http://dummy"));
-		assertThat(name.scriptRef, is("test.java"));
+		org.assertj.core.api.Assertions.assertThat(one.scriptRef).isEqualTo("http://dummy");
+		org.assertj.core.api.Assertions.assertThat(name.scriptRef).isEqualTo("test.java");
 	}
 
 	@Test
@@ -351,8 +348,7 @@ public class TestAlias extends BaseTest {
 		} catch (ExitException ex) {
 			StringWriter sw = new StringWriter();
 			ex.printStackTrace(new PrintWriter(sw));
-			assertThat(sw.toString(), containsString(
-					"Could not transfer artifact dummygroup:dummyart:pom:0.1 from/to https://dummyrepo"));
+			org.assertj.core.api.Assertions.assertThat(sw.toString()).contains("Could not transfer artifact dummygroup:dummyart:pom:0.1 from/to https://dummyrepo");
 		}
 	}
 
@@ -372,164 +368,164 @@ public class TestAlias extends BaseTest {
 		Files.write(testFile, "// Test file".getBytes());
 		Path testFile2 = cwd.resolve("test2.java");
 		Files.write(testFile2, "// Test file 2".getBytes());
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		org.assertj.core.api.Assertions.assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(false);
 		int exitCode = JBang.getCommandLine()
 			.execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
-		assertThat(exitCode, equalTo(BaseCommand.EXIT_OK));
-		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
+		org.assertj.core.api.Assertions.assertThat(exitCode).isEqualTo(BaseCommand.EXIT_OK);
+		org.assertj.core.api.Assertions.assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON))).isEqualTo(true);
 		Alias alias = Alias.get("name");
-		assertThat(alias.scriptRef, is("test.java"));
+		org.assertj.core.api.Assertions.assertThat(alias.scriptRef).isEqualTo("test.java");
 		exitCode = JBang.getCommandLine()
 			.execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile2.toString());
-		assertThat(exitCode, equalTo(BaseCommand.EXIT_INVALID_INPUT));
+		org.assertj.core.api.Assertions.assertThat(exitCode).isEqualTo(BaseCommand.EXIT_INVALID_INPUT);
 		exitCode = JBang.getCommandLine()
 			.execute("alias", "add", "-f", cwd.toString(), "--name=name", "--force", testFile2.toString());
-		assertThat(exitCode, equalTo(BaseCommand.EXIT_OK));
+		org.assertj.core.api.Assertions.assertThat(exitCode).isEqualTo(BaseCommand.EXIT_OK);
 		alias = Alias.get("name");
-		assertThat(alias.scriptRef, is("test2.java"));
+		org.assertj.core.api.Assertions.assertThat(alias.scriptRef).isEqualTo("test2.java");
 	}
 
 	@Test
 	void testGetAliasNone() throws IOException {
 		Alias alias = Alias.get("dummy-alias!");
-		assertThat(alias, nullValue());
+		org.assertj.core.api.Assertions.assertThat(alias).isNull();
 	}
 
 	@Test
 	void testGetAliasOne() throws IOException {
 		Alias alias = Alias.get("one");
-		assertThat(alias, notNullValue());
-		assertThat(alias.scriptRef, equalTo("http://dummy"));
-		assertThat(alias.resolve(), equalTo("http://dummy"));
-		assertThat(alias.arguments, nullValue());
-		assertThat(alias.runtimeOptions, nullValue());
-		assertThat(alias.properties, nullValue());
-		assertThat(alias.compileOptions, nullValue());
-		assertThat(alias.nativeImage, nullValue());
-		assertThat(alias.nativeOptions, nullValue());
+		org.assertj.core.api.Assertions.assertThat(alias).isNotNull();
+		org.assertj.core.api.Assertions.assertThat(alias.scriptRef).isEqualTo("http://dummy");
+		org.assertj.core.api.Assertions.assertThat(alias.resolve()).isEqualTo("http://dummy");
+		org.assertj.core.api.Assertions.assertThat(alias.arguments).isNull();
+		org.assertj.core.api.Assertions.assertThat(alias.runtimeOptions).isNull();
+		org.assertj.core.api.Assertions.assertThat(alias.properties).isNull();
+		org.assertj.core.api.Assertions.assertThat(alias.compileOptions).isNull();
+		org.assertj.core.api.Assertions.assertThat(alias.nativeImage).isNull();
+		org.assertj.core.api.Assertions.assertThat(alias.nativeOptions).isNull();
 	}
 
 	@Test
 	void testGetAliasTwo() throws IOException {
 		Alias alias = Alias.get("two");
-		assertThat(alias, notNullValue());
-		assertThat(alias.scriptRef, equalTo("http://dummy"));
-		assertThat(alias.resolve(), equalTo("http://dummy"));
-		assertThat(alias.description, equalTo("twodesc"));
+		org.assertj.core.api.Assertions.assertThat(alias).isNotNull();
+		org.assertj.core.api.Assertions.assertThat(alias.scriptRef).isEqualTo("http://dummy");
+		org.assertj.core.api.Assertions.assertThat(alias.resolve()).isEqualTo("http://dummy");
+		org.assertj.core.api.Assertions.assertThat(alias.description).isEqualTo("twodesc");
 		assertThat(alias.arguments, iterableWithSize(1));
-		assertThat(alias.arguments, contains("2"));
+		org.assertj.core.api.Assertions.assertThat(alias.arguments).containsExactly("2");
 		assertThat(alias.runtimeOptions, iterableWithSize(1));
-		assertThat(alias.runtimeOptions, contains("--two"));
+		org.assertj.core.api.Assertions.assertThat(alias.runtimeOptions).containsExactly("--two");
 		assertThat(alias.sources, iterableWithSize(1));
-		assertThat(alias.sources, contains("twosrc"));
+		org.assertj.core.api.Assertions.assertThat(alias.sources).containsExactly("twosrc");
 		assertThat(alias.resources, iterableWithSize(1));
-		assertThat(alias.resources, contains("twofiles"));
+		org.assertj.core.api.Assertions.assertThat(alias.resources).containsExactly("twofiles");
 		assertThat(alias.dependencies, iterableWithSize(1));
-		assertThat(alias.dependencies, contains("twodep"));
+		org.assertj.core.api.Assertions.assertThat(alias.dependencies).containsExactly("twodep");
 		assertThat(alias.repositories, iterableWithSize(1));
-		assertThat(alias.repositories, contains("tworepo"));
+		org.assertj.core.api.Assertions.assertThat(alias.repositories).containsExactly("tworepo");
 		assertThat(alias.classpaths, iterableWithSize(1));
-		assertThat(alias.classpaths, contains("twocp"));
-		assertThat(alias.properties, aMapWithSize(1));
-		assertThat(alias.properties, hasEntry("two", "2"));
-		assertThat(alias.javaVersion, equalTo("twojava"));
-		assertThat(alias.mainClass, equalTo("twomain"));
-		assertThat(alias.moduleName, equalTo("twomodule"));
+		org.assertj.core.api.Assertions.assertThat(alias.classpaths).containsExactly("twocp");
+		org.assertj.core.api.Assertions.assertThat(alias.properties).hasSize(1);
+		org.assertj.core.api.Assertions.assertThat(alias.properties).containsEntry("two", "2");
+		org.assertj.core.api.Assertions.assertThat(alias.javaVersion).isEqualTo("twojava");
+		org.assertj.core.api.Assertions.assertThat(alias.mainClass).isEqualTo("twomain");
+		org.assertj.core.api.Assertions.assertThat(alias.moduleName).isEqualTo("twomodule");
 		assertThat(alias.compileOptions, iterableWithSize(1));
-		assertThat(alias.compileOptions, contains("--ctwo"));
-		assertThat(alias.nativeImage, is(Boolean.TRUE));
+		org.assertj.core.api.Assertions.assertThat(alias.compileOptions).containsExactly("--ctwo");
+		org.assertj.core.api.Assertions.assertThat(alias.nativeImage).isEqualTo(Boolean.TRUE);
 		assertThat(alias.nativeOptions, iterableWithSize(1));
-		assertThat(alias.nativeOptions, contains("--ntwo"));
-		assertThat(alias.jfr, equalTo("twojfr"));
-		assertThat(alias.debug, aMapWithSize(1));
-		assertThat(alias.debug, hasEntry("twod", "2"));
-		assertThat(alias.cds, is(Boolean.TRUE));
-		assertThat(alias.interactive, is(Boolean.TRUE));
-		assertThat(alias.enablePreview, is(Boolean.TRUE));
-		assertThat(alias.enableAssertions, is(Boolean.TRUE));
-		assertThat(alias.enableSystemAssertions, is(Boolean.TRUE));
-		assertThat(alias.manifestOptions, aMapWithSize(1));
-		assertThat(alias.manifestOptions, hasEntry("twom", "2"));
+		org.assertj.core.api.Assertions.assertThat(alias.nativeOptions).containsExactly("--ntwo");
+		org.assertj.core.api.Assertions.assertThat(alias.jfr).isEqualTo("twojfr");
+		org.assertj.core.api.Assertions.assertThat(alias.debug).hasSize(1);
+		org.assertj.core.api.Assertions.assertThat(alias.debug).containsEntry("twod", "2");
+		org.assertj.core.api.Assertions.assertThat(alias.cds).isEqualTo(Boolean.TRUE);
+		org.assertj.core.api.Assertions.assertThat(alias.interactive).isEqualTo(Boolean.TRUE);
+		org.assertj.core.api.Assertions.assertThat(alias.enablePreview).isEqualTo(Boolean.TRUE);
+		org.assertj.core.api.Assertions.assertThat(alias.enableAssertions).isEqualTo(Boolean.TRUE);
+		org.assertj.core.api.Assertions.assertThat(alias.enableSystemAssertions).isEqualTo(Boolean.TRUE);
+		org.assertj.core.api.Assertions.assertThat(alias.manifestOptions).hasSize(1);
+		org.assertj.core.api.Assertions.assertThat(alias.manifestOptions).containsEntry("twom", "2");
 		assertThat(alias.javaAgents, iterableWithSize(1));
-		assertThat(alias.javaAgents, contains(new Alias.JavaAgent("twojag", "twoopts")));
+		org.assertj.core.api.Assertions.assertThat(alias.javaAgents).containsExactly(new Alias.JavaAgent("twojag", "twoopts"));
 	}
 
 	@Test
 	void testGetAliasFour() throws IOException {
 		Alias alias = Alias.get("four");
-		assertThat(alias, notNullValue());
-		assertThat(alias.scriptRef, equalTo("http://dummy"));
-		assertThat(alias.resolve(), equalTo("http://dummy"));
-		assertThat(alias.description, equalTo("fourdesc"));
+		org.assertj.core.api.Assertions.assertThat(alias).isNotNull();
+		org.assertj.core.api.Assertions.assertThat(alias.scriptRef).isEqualTo("http://dummy");
+		org.assertj.core.api.Assertions.assertThat(alias.resolve()).isEqualTo("http://dummy");
+		org.assertj.core.api.Assertions.assertThat(alias.description).isEqualTo("fourdesc");
 		assertThat(alias.arguments, iterableWithSize(1));
-		assertThat(alias.arguments, contains("4"));
+		org.assertj.core.api.Assertions.assertThat(alias.arguments).containsExactly("4");
 		assertThat(alias.runtimeOptions, iterableWithSize(1));
-		assertThat(alias.runtimeOptions, contains("--four"));
+		org.assertj.core.api.Assertions.assertThat(alias.runtimeOptions).containsExactly("--four");
 		assertThat(alias.sources, iterableWithSize(1));
-		assertThat(alias.sources, contains("foursrc"));
+		org.assertj.core.api.Assertions.assertThat(alias.sources).containsExactly("foursrc");
 		assertThat(alias.resources, iterableWithSize(1));
-		assertThat(alias.resources, contains("fourfiles"));
+		org.assertj.core.api.Assertions.assertThat(alias.resources).containsExactly("fourfiles");
 		assertThat(alias.dependencies, iterableWithSize(1));
-		assertThat(alias.dependencies, contains("fourdep"));
+		org.assertj.core.api.Assertions.assertThat(alias.dependencies).containsExactly("fourdep");
 		assertThat(alias.repositories, iterableWithSize(1));
-		assertThat(alias.repositories, contains("fourrepo"));
+		org.assertj.core.api.Assertions.assertThat(alias.repositories).containsExactly("fourrepo");
 		assertThat(alias.classpaths, iterableWithSize(1));
-		assertThat(alias.classpaths, contains("fourcp"));
-		assertThat(alias.properties, aMapWithSize(1));
-		assertThat(alias.properties, hasEntry("four", "4"));
-		assertThat(alias.javaVersion, equalTo("fourjava"));
-		assertThat(alias.mainClass, equalTo("fourmain"));
-		assertThat(alias.moduleName, equalTo("fourmodule"));
+		org.assertj.core.api.Assertions.assertThat(alias.classpaths).containsExactly("fourcp");
+		org.assertj.core.api.Assertions.assertThat(alias.properties).hasSize(1);
+		org.assertj.core.api.Assertions.assertThat(alias.properties).containsEntry("four", "4");
+		org.assertj.core.api.Assertions.assertThat(alias.javaVersion).isEqualTo("fourjava");
+		org.assertj.core.api.Assertions.assertThat(alias.mainClass).isEqualTo("fourmain");
+		org.assertj.core.api.Assertions.assertThat(alias.moduleName).isEqualTo("fourmodule");
 		assertThat(alias.compileOptions, iterableWithSize(1));
-		assertThat(alias.compileOptions, contains("--cfour"));
-		assertThat(alias.nativeImage, is(Boolean.FALSE));
+		org.assertj.core.api.Assertions.assertThat(alias.compileOptions).containsExactly("--cfour");
+		org.assertj.core.api.Assertions.assertThat(alias.nativeImage).isEqualTo(Boolean.FALSE);
 		assertThat(alias.nativeOptions, iterableWithSize(1));
-		assertThat(alias.nativeOptions, contains("--nfour"));
-		assertThat(alias.jfr, equalTo("fourjfr"));
-		assertThat(alias.debug, aMapWithSize(1));
-		assertThat(alias.debug, hasEntry("fourd", "4"));
-		assertThat(alias.cds, is(Boolean.FALSE));
-		assertThat(alias.interactive, is(Boolean.FALSE));
-		assertThat(alias.enablePreview, is(Boolean.FALSE));
-		assertThat(alias.enableAssertions, is(Boolean.FALSE));
-		assertThat(alias.enableSystemAssertions, is(Boolean.FALSE));
-		assertThat(alias.manifestOptions, aMapWithSize(1));
-		assertThat(alias.manifestOptions, hasEntry("fourm", "4"));
+		org.assertj.core.api.Assertions.assertThat(alias.nativeOptions).containsExactly("--nfour");
+		org.assertj.core.api.Assertions.assertThat(alias.jfr).isEqualTo("fourjfr");
+		org.assertj.core.api.Assertions.assertThat(alias.debug).hasSize(1);
+		org.assertj.core.api.Assertions.assertThat(alias.debug).containsEntry("fourd", "4");
+		org.assertj.core.api.Assertions.assertThat(alias.cds).isEqualTo(Boolean.FALSE);
+		org.assertj.core.api.Assertions.assertThat(alias.interactive).isEqualTo(Boolean.FALSE);
+		org.assertj.core.api.Assertions.assertThat(alias.enablePreview).isEqualTo(Boolean.FALSE);
+		org.assertj.core.api.Assertions.assertThat(alias.enableAssertions).isEqualTo(Boolean.FALSE);
+		org.assertj.core.api.Assertions.assertThat(alias.enableSystemAssertions).isEqualTo(Boolean.FALSE);
+		org.assertj.core.api.Assertions.assertThat(alias.manifestOptions).hasSize(1);
+		org.assertj.core.api.Assertions.assertThat(alias.manifestOptions).containsEntry("fourm", "4");
 		assertThat(alias.javaAgents, iterableWithSize(1));
-		assertThat(alias.javaAgents, contains(new Alias.JavaAgent("fourjag", "fouropts")));
+		org.assertj.core.api.Assertions.assertThat(alias.javaAgents).containsExactly(new Alias.JavaAgent("fourjag", "fouropts"));
 	}
 
 	@Test
 	void testGetAliasFive() throws IOException {
 		Alias alias = Alias.get("five");
-		assertThat(alias, notNullValue());
-		assertThat(alias.scriptRef, equalTo("http://dummy"));
-		assertThat(alias.resolve(), equalTo("http://dummy"));
+		org.assertj.core.api.Assertions.assertThat(alias).isNotNull();
+		org.assertj.core.api.Assertions.assertThat(alias.scriptRef).isEqualTo("http://dummy");
+		org.assertj.core.api.Assertions.assertThat(alias.resolve()).isEqualTo("http://dummy");
 		assertThat(alias.arguments, iterableWithSize(1));
-		assertThat(alias.arguments, contains("3"));
+		org.assertj.core.api.Assertions.assertThat(alias.arguments).containsExactly("3");
 		assertThat(alias.runtimeOptions, iterableWithSize(1));
-		assertThat(alias.runtimeOptions, contains("--three"));
-		assertThat(alias.properties, aMapWithSize(1));
-		assertThat(alias.properties, hasEntry("three", "3"));
+		org.assertj.core.api.Assertions.assertThat(alias.runtimeOptions).containsExactly("--three");
+		org.assertj.core.api.Assertions.assertThat(alias.properties).hasSize(1);
+		org.assertj.core.api.Assertions.assertThat(alias.properties).containsEntry("three", "3");
 		assertThat(alias.compileOptions, iterableWithSize(1));
-		assertThat(alias.compileOptions, contains("--cthree"));
-		assertThat(alias.nativeImage, is(Boolean.TRUE));
+		org.assertj.core.api.Assertions.assertThat(alias.compileOptions).containsExactly("--cthree");
+		org.assertj.core.api.Assertions.assertThat(alias.nativeImage).isEqualTo(Boolean.TRUE);
 		assertThat(alias.nativeOptions, iterableWithSize(1));
-		assertThat(alias.nativeOptions, contains("--nthree"));
+		org.assertj.core.api.Assertions.assertThat(alias.nativeOptions).containsExactly("--nthree");
 	}
 
 	@Test
 	void testGetAliasGav() throws IOException {
 		Alias alias = Alias.get("gav");
-		assertThat(alias, notNullValue());
-		assertThat(alias.scriptRef, equalTo("org.example:artifact:version"));
-		assertThat(alias.resolve(), equalTo("org.example:artifact:version"));
-		assertThat(alias.arguments, nullValue());
-		assertThat(alias.runtimeOptions, nullValue());
-		assertThat(alias.properties, nullValue());
-		assertThat(alias.compileOptions, nullValue());
-		assertThat(alias.nativeImage, nullValue());
-		assertThat(alias.nativeOptions, nullValue());
+		org.assertj.core.api.Assertions.assertThat(alias).isNotNull();
+		org.assertj.core.api.Assertions.assertThat(alias.scriptRef).isEqualTo("org.example:artifact:version");
+		org.assertj.core.api.Assertions.assertThat(alias.resolve()).isEqualTo("org.example:artifact:version");
+		org.assertj.core.api.Assertions.assertThat(alias.arguments).isNull();
+		org.assertj.core.api.Assertions.assertThat(alias.runtimeOptions).isNull();
+		org.assertj.core.api.Assertions.assertThat(alias.properties).isNull();
+		org.assertj.core.api.Assertions.assertThat(alias.compileOptions).isNull();
+		org.assertj.core.api.Assertions.assertThat(alias.nativeImage).isNull();
+		org.assertj.core.api.Assertions.assertThat(alias.nativeOptions).isNull();
 	}
 
 	@Test
@@ -538,7 +534,7 @@ public class TestAlias extends BaseTest {
 			Alias.get("eight");
 			fail();
 		} catch (RuntimeException ex) {
-			assertThat(ex.getMessage(), containsString("seven"));
+			org.assertj.core.api.Assertions.assertThat(ex.getMessage()).contains("seven");
 		}
 
 	}

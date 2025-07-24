@@ -1,7 +1,8 @@
 package dev.jbang.source;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -86,11 +87,11 @@ public class TestModule extends BaseTest {
 				return new JavaCompileBuildStep() {
 					@Override
 					protected void runCompiler(List<String> optionList) throws IOException {
-						assertThat(optionList, hasItems(endsWith("module-info.java")));
+						org.assertj.core.api.Assertions.assertThat(optionList).contains(endsWith("module-info.java"));
 
 						Path modInfo = ctx.getGeneratedSourcesDir().resolve("module-info.java");
 						assertThat(modInfo.toFile(), anExistingFile());
-						assertThat(Util.readFileContent(modInfo), containsString("requires info.picocli;"));
+						org.assertj.core.api.Assertions.assertThat(Util.readFileContent(modInfo)).contains("requires info.picocli;");
 
 						super.runCompiler(optionList);
 					}
@@ -111,7 +112,7 @@ public class TestModule extends BaseTest {
 		}.setFresh(true).build();
 
 		String cmd = gen.build().generate();
-		assertThat(cmd, endsWith(" -m testmodule/test.moduletest"));
+		org.assertj.core.api.Assertions.assertThat(cmd).endsWith(" -m testmodule/test.moduletest");
 	}
 
 	@Test
@@ -138,11 +139,11 @@ public class TestModule extends BaseTest {
 				return new JavaCompileBuildStep() {
 					@Override
 					protected void runCompiler(List<String> optionList) throws IOException {
-						assertThat(optionList, hasItems(endsWith("module-info.java")));
+						org.assertj.core.api.Assertions.assertThat(optionList).contains(endsWith("module-info.java"));
 
 						Path modInfo = ctx.getGeneratedSourcesDir().resolve("module-info.java");
 						assertThat(modInfo.toFile(), anExistingFile());
-						assertThat(Util.readFileContent(modInfo), containsString("requires info.picocli;"));
+						org.assertj.core.api.Assertions.assertThat(Util.readFileContent(modInfo)).contains("requires info.picocli;");
 
 						super.runCompiler(optionList);
 					}
@@ -163,7 +164,7 @@ public class TestModule extends BaseTest {
 		}.setFresh(true).build();
 
 		String cmd = gen.build().generate();
-		assertThat(cmd, endsWith(" -m moduletest/test.moduletest"));
+		org.assertj.core.api.Assertions.assertThat(cmd).endsWith(" -m moduletest/test.moduletest");
 	}
 
 	@Test
@@ -185,7 +186,7 @@ public class TestModule extends BaseTest {
 				return new JavaCompileBuildStep() {
 					@Override
 					protected void runCompiler(List<String> optionList) {
-						assertThat(optionList, hasItems(endsWith("module-info.java")));
+						org.assertj.core.api.Assertions.assertThat(optionList).contains(endsWith("module-info.java"));
 
 						Path modInfo = ctx.getGeneratedSourcesDir().resolve("module-info.java");
 						assertThat(modInfo.toFile(), not(anExistingFile()));
@@ -196,7 +197,7 @@ public class TestModule extends BaseTest {
 		}.setFresh(true).build();
 
 		String cmd = gen.build().generate();
-		assertThat(cmd, endsWith(" -m testmodule/test.moduletest"));
+		org.assertj.core.api.Assertions.assertThat(cmd).endsWith(" -m testmodule/test.moduletest");
 	}
 
 	@Test
@@ -214,11 +215,11 @@ public class TestModule extends BaseTest {
 				return new JavaCompileBuildStep() {
 					@Override
 					protected void runCompiler(List<String> optionList) throws IOException {
-						assertThat(optionList, hasItems(endsWith("module-info.java")));
+						org.assertj.core.api.Assertions.assertThat(optionList).contains(endsWith("module-info.java"));
 
 						Path modInfo = ctx.getGeneratedSourcesDir().resolve("module-info.java");
 						assertThat(modInfo.toFile(), anExistingFile());
-						assertThat(Util.readFileContent(modInfo), containsString("requires info.picocli;"));
+						org.assertj.core.api.Assertions.assertThat(Util.readFileContent(modInfo)).contains("requires info.picocli;");
 
 						super.runCompiler(optionList);
 					}
@@ -227,10 +228,10 @@ public class TestModule extends BaseTest {
 		}.setFresh(true).build();
 
 		String cmd = gen.build().generate();
-		assertThat(cmd, endsWith(" -m testmodule/test.moduletest"));
+		org.assertj.core.api.Assertions.assertThat(cmd).endsWith(" -m testmodule/test.moduletest");
 
 		if (JavaUtil.getCurrentMajorJavaVersion() >= 9) {
-			assertThat(ModuleUtil.getModuleName(ctx.getJarFile()), equalTo("testmodule"));
+			org.assertj.core.api.Assertions.assertThat(ModuleUtil.getModuleName(ctx.getJarFile())).isEqualTo("testmodule");
 		}
 	}
 }

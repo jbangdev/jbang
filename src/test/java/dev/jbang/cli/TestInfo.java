@@ -23,18 +23,22 @@ public class TestInfo extends BaseTest {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", src);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
 		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
-		assertThat(info.originalResource, equalTo(src));
-		assertThat(info.applicationJar, allOf(
-				containsString("quote.java."),
-				endsWith(".jar")));
-		assertThat(info.backingResource, equalTo(src));
-		assertThat(info.javaVersion, is(nullValue()));
-		assertThat(info.mainClass, is(nullValue()));
-		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
-				hasSize(equalTo(1)),
-				everyItem(containsString("picocli"))));
-		assertThat(info.description, equalTo("For testing purposes"));
-		assertThat(info.gav, equalTo("dev.jbang.itests:quote"));
+		org.assertj.core.api.Assertions.assertThat(info.originalResource).isEqualTo(src);
+		org.assertj.core.api.Assertions.assertThat(info.applicationJar)
+			.satisfies(
+				arg -> org.assertj.core.api.Assertions.assertThat(arg).contains("quote.java."),
+				arg -> org.assertj.core.api.Assertions.assertThat(arg).endsWith(".jar")
+			);
+		org.assertj.core.api.Assertions.assertThat(info.backingResource).isEqualTo(src);
+		org.assertj.core.api.Assertions.assertThat(info.javaVersion).isNull();
+		org.assertj.core.api.Assertions.assertThat(info.mainClass).isNull();
+		org.assertj.core.api.Assertions.assertThat(info.resolvedDependencies)
+			.satisfies(
+				arg -> assertThat(arg, hasSize(equalTo(1))),
+				arg -> assertThat(arg, everyItem(containsString("picocli")))
+			);
+		org.assertj.core.api.Assertions.assertThat(info.description).isEqualTo("For testing purposes");
+		org.assertj.core.api.Assertions.assertThat(info.gav).isEqualTo("dev.jbang.itests:quote");
 	}
 
 	@Test
@@ -44,14 +48,18 @@ public class TestInfo extends BaseTest {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", src);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
 		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
-		assertThat(info.originalResource, equalTo(src));
-		assertThat(info.applicationJar, allOf(
-				containsString("quote.java."),
-				endsWith(".jar")));
-		assertThat(info.mainClass, equalTo("quote"));
-		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
-				hasSize(equalTo(1)),
-				everyItem(containsString("picocli"))));
+		org.assertj.core.api.Assertions.assertThat(info.originalResource).isEqualTo(src);
+		org.assertj.core.api.Assertions.assertThat(info.applicationJar)
+			.satisfies(
+				arg -> org.assertj.core.api.Assertions.assertThat(arg).contains("quote.java."),
+				arg -> org.assertj.core.api.Assertions.assertThat(arg).endsWith(".jar")
+			);
+		org.assertj.core.api.Assertions.assertThat(info.mainClass).isEqualTo("quote");
+		org.assertj.core.api.Assertions.assertThat(info.resolvedDependencies)
+			.satisfies(
+				arg -> assertThat(arg, hasSize(equalTo(1))),
+				arg -> assertThat(arg, everyItem(containsString("picocli")))
+			);
 	}
 
 	@Test
@@ -64,18 +72,22 @@ public class TestInfo extends BaseTest {
 					src);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
 		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
-		assertThat(info.originalResource, equalTo(src));
-		assertThat(info.applicationJar, allOf(
-				containsString("helloworld.java."),
-				endsWith(".jar")));
-		assertThat(info.backingResource, equalTo(src));
-		assertThat(info.javaVersion, is(nullValue()));
-		assertThat(info.mainClass, is(nullValue()));
-		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
-				hasSize(equalTo(3)),
-				hasItem(containsString("picocli")),
-				hasItem(containsString("commons-io")),
-				hasItem(containsString("commons-lang3"))));
+		org.assertj.core.api.Assertions.assertThat(info.originalResource).isEqualTo(src);
+		org.assertj.core.api.Assertions.assertThat(info.applicationJar)
+			.satisfies(
+				arg -> org.assertj.core.api.Assertions.assertThat(arg).contains("helloworld.java."),
+				arg -> org.assertj.core.api.Assertions.assertThat(arg).endsWith(".jar")
+			);
+		org.assertj.core.api.Assertions.assertThat(info.backingResource).isEqualTo(src);
+		org.assertj.core.api.Assertions.assertThat(info.javaVersion).isNull();
+		org.assertj.core.api.Assertions.assertThat(info.mainClass).isNull();
+		org.assertj.core.api.Assertions.assertThat(info.resolvedDependencies)
+			.satisfies(
+				arg -> assertThat(arg, hasSize(equalTo(3))),
+				arg -> assertThat(arg, hasItem(containsString("picocli"))),
+				arg -> assertThat(arg, hasItem(containsString("commons-io"))),
+				arg -> assertThat(arg, hasItem(containsString("commons-lang3")))
+			);
 	}
 
 	@Test
@@ -85,16 +97,20 @@ public class TestInfo extends BaseTest {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", "--cp", jar, src);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
 		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
-		assertThat(info.originalResource, equalTo(src));
-		assertThat(info.applicationJar, allOf(
-				containsString("helloworld.java."),
-				endsWith(".jar")));
-		assertThat(info.backingResource, equalTo(src));
-		assertThat(info.javaVersion, is(nullValue()));
-		assertThat(info.mainClass, is(nullValue()));
-		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
-				hasSize(equalTo(1)),
-				everyItem(containsString(Paths.get("itests/hellojar.jar").toString()))));
+		org.assertj.core.api.Assertions.assertThat(info.originalResource).isEqualTo(src);
+		org.assertj.core.api.Assertions.assertThat(info.applicationJar)
+			.satisfies(
+				arg -> org.assertj.core.api.Assertions.assertThat(arg).contains("helloworld.java."),
+				arg -> org.assertj.core.api.Assertions.assertThat(arg).endsWith(".jar")
+			);
+		org.assertj.core.api.Assertions.assertThat(info.backingResource).isEqualTo(src);
+		org.assertj.core.api.Assertions.assertThat(info.javaVersion).isNull();
+		org.assertj.core.api.Assertions.assertThat(info.mainClass).isNull();
+		org.assertj.core.api.Assertions.assertThat(info.resolvedDependencies)
+			.satisfies(
+				arg -> assertThat(arg, hasSize(equalTo(1))),
+				arg -> assertThat(arg, everyItem(containsString(Paths.get("itests/hellojar.jar").toString())))
+			);
 	}
 
 	@Test
@@ -104,21 +120,25 @@ public class TestInfo extends BaseTest {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", src);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
 		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
-		assertThat(info.originalResource, equalTo(src));
-		assertThat(info.applicationJar, allOf(
-				containsString("sources.java."),
-				endsWith(".jar")));
-		assertThat(info.backingResource, equalTo(src));
-		assertThat(info.javaVersion, is(nullValue()));
-		assertThat(info.mainClass, is(nullValue()));
-		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
-				hasSize(equalTo(1)),
-				everyItem(containsString("picocli"))));
+		org.assertj.core.api.Assertions.assertThat(info.originalResource).isEqualTo(src);
+		org.assertj.core.api.Assertions.assertThat(info.applicationJar)
+			.satisfies(
+				arg -> org.assertj.core.api.Assertions.assertThat(arg).contains("sources.java."),
+				arg -> org.assertj.core.api.Assertions.assertThat(arg).endsWith(".jar")
+			);
+		org.assertj.core.api.Assertions.assertThat(info.backingResource).isEqualTo(src);
+		org.assertj.core.api.Assertions.assertThat(info.javaVersion).isNull();
+		org.assertj.core.api.Assertions.assertThat(info.mainClass).isNull();
+		org.assertj.core.api.Assertions.assertThat(info.resolvedDependencies)
+			.satisfies(
+				arg -> assertThat(arg, hasSize(equalTo(1))),
+				arg -> assertThat(arg, everyItem(containsString("picocli")))
+			);
 		assertThat(info.sources, hasSize(equalTo(2)));
-		assertThat(info.sources.get(0).originalResource, equalTo(src));
-		assertThat(info.sources.get(0).backingResource, equalTo(src));
-		assertThat(info.sources.get(1).originalResource, equalTo(quote));
-		assertThat(info.sources.get(1).backingResource, equalTo(quote));
+		org.assertj.core.api.Assertions.assertThat(info.sources.get(0).originalResource).isEqualTo(src);
+		org.assertj.core.api.Assertions.assertThat(info.sources.get(0).backingResource).isEqualTo(src);
+		org.assertj.core.api.Assertions.assertThat(info.sources.get(1).originalResource).isEqualTo(quote);
+		org.assertj.core.api.Assertions.assertThat(info.sources.get(1).backingResource).isEqualTo(quote);
 	}
 
 	@Test
@@ -127,14 +147,16 @@ public class TestInfo extends BaseTest {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", src);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
 		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
-		assertThat(info.originalResource, equalTo(src));
-		assertThat(info.applicationJar, equalTo(null));
-		assertThat(info.backingResource, equalTo(src));
-		assertThat(info.javaVersion, is(nullValue()));
-		assertThat(info.mainClass, is(nullValue()));
-		assertThat(info.resolvedDependencies, Matchers.<Collection<String>>allOf(
-				hasSize(equalTo(1)),
-				everyItem(containsString("commons-lang3"))));
+		org.assertj.core.api.Assertions.assertThat(info.originalResource).isEqualTo(src);
+		org.assertj.core.api.Assertions.assertThat(info.applicationJar).isEqualTo(null);
+		org.assertj.core.api.Assertions.assertThat(info.backingResource).isEqualTo(src);
+		org.assertj.core.api.Assertions.assertThat(info.javaVersion).isNull();
+		org.assertj.core.api.Assertions.assertThat(info.mainClass).isNull();
+		org.assertj.core.api.Assertions.assertThat(info.resolvedDependencies)
+			.satisfies(
+				arg -> assertThat(arg, hasSize(equalTo(1))),
+				arg -> assertThat(arg, everyItem(containsString("commons-lang3")))
+			);
 	}
 
 	@Test
@@ -143,12 +165,12 @@ public class TestInfo extends BaseTest {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", jar);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
 		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
-		assertThat(info.originalResource, equalTo(jar));
-		assertThat(info.applicationJar, equalTo(jar));
-		assertThat(info.backingResource, equalTo(jar));
-		assertThat(info.javaVersion, not(nullValue()));
-		assertThat(info.mainClass, equalTo("helloworld"));
-		assertThat(info.resolvedDependencies, empty());
+		org.assertj.core.api.Assertions.assertThat(info.originalResource).isEqualTo(jar);
+		org.assertj.core.api.Assertions.assertThat(info.applicationJar).isEqualTo(jar);
+		org.assertj.core.api.Assertions.assertThat(info.backingResource).isEqualTo(jar);
+		org.assertj.core.api.Assertions.assertThat(info.javaVersion).isNotNull();
+		org.assertj.core.api.Assertions.assertThat(info.mainClass).isEqualTo("helloworld");
+		org.assertj.core.api.Assertions.assertThat(info.resolvedDependencies).isEmpty();
 	}
 
 	@Test
@@ -157,12 +179,12 @@ public class TestInfo extends BaseTest {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", src);
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
 		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
-		assertThat(info.originalResource, equalTo(src));
+		org.assertj.core.api.Assertions.assertThat(info.originalResource).isEqualTo(src);
 		// assertThat(info.applicationJar, equalTo(src));
-		assertThat(info.backingResource, equalTo(src));
+		org.assertj.core.api.Assertions.assertThat(info.backingResource).isEqualTo(src);
 		// assertThat(info.javaVersion, not(nullValue()));
 		// assertThat(info.mainClass, equalTo("helloworld"));
-		assertThat(info.resolvedDependencies, empty());
+		org.assertj.core.api.Assertions.assertThat(info.resolvedDependencies).isEmpty();
 	}
 
 	@Test
@@ -171,7 +193,7 @@ public class TestInfo extends BaseTest {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "docs", src);
 		Docs docs = (Docs) pr.subcommand().subcommand().commandSpec().userObject();
 		BaseInfoCommand.ProjectFile pf = docs.getInfo(false).docs.get("main").get(0);
-		assertThat(pf.originalResource, endsWith(File.separator + "itests" + File.separator + "readme.md"));
+		org.assertj.core.api.Assertions.assertThat(pf.originalResource).endsWith(File.separator + "itests" + File.separator + "readme.md");
 	}
 
 	@Test
@@ -180,7 +202,7 @@ public class TestInfo extends BaseTest {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "docs", src);
 		Docs docs = (Docs) pr.subcommand().subcommand().commandSpec().userObject();
 		BaseInfoCommand.ProjectFile pf = docs.getInfo(false).docs.get("main").get(0);
-		assertThat(pf.originalResource, equalTo("https://www.jbang.dev/documentation/guide/latest/faq.html"));
+		org.assertj.core.api.Assertions.assertThat(pf.originalResource).isEqualTo("https://www.jbang.dev/documentation/guide/latest/faq.html");
 	}
 
 	@Test
@@ -188,7 +210,7 @@ public class TestInfo extends BaseTest {
 		String src = examplesTestFolder.resolve("docstest_nodocs.java").toString();
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "docs", src);
 		Docs docs = (Docs) pr.subcommand().subcommand().commandSpec().userObject();
-		assertThat(docs.getInfo(false).docs.isEmpty(), is(true));
+		org.assertj.core.api.Assertions.assertThat(docs.getInfo(false).docs.isEmpty()).isEqualTo(true);
 	}
 
 	@Test

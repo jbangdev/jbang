@@ -1,15 +1,7 @@
 package dev.jbang.source;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.aMapWithSize;
-import static org.hamcrest.Matchers.anEmptyMap;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.iterableWithSize;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
@@ -97,50 +89,35 @@ public class TestProjectBuilder extends BaseTest {
 		ProjectBuilder pb = Project.builder();
 		Path src = examplesTestFolder.resolve("alltags.java");
 		Project prj = pb.build(src);
-		assertThat(prj.getDescription().get(), equalTo("some description"));
+		org.assertj.core.api.Assertions.assertThat(prj.getDescription().get()).isEqualTo("some description");
 		assertThat(prj.getRuntimeOptions(), iterableWithSize(2));
-		assertThat(prj.getRuntimeOptions(), contains("--add-opens", "java.base/java.net=ALL-UNNAMED"));
+		org.assertj.core.api.Assertions.assertThat(prj.getRuntimeOptions()).containsExactly("--add-opens", "java.base/java.net=ALL-UNNAMED");
 		assertThat(prj.getMainSourceSet().getSources(), iterableWithSize(6));
-		assertThat(prj.getMainSourceSet().getSources(), containsInAnyOrder(
-				ResourceRef.forFile(src),
-				ResourceRef.forFile(examplesTestFolder.resolve("Two.java")),
-				ResourceRef.forFile(examplesTestFolder.resolve("gh_fetch_release_assets.java")),
-				ResourceRef.forFile(examplesTestFolder.resolve("gh_release_stats.java")),
-				ResourceRef.forFile(examplesTestFolder.resolve("nested/NestedTwo.java")),
-				ResourceRef.forFile(examplesTestFolder.resolve("nested/NestedOne.java"))));
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getSources()).containsExactlyInAnyOrder(ResourceRef.forFile(src), ResourceRef.forFile(examplesTestFolder.resolve("Two.java")), ResourceRef.forFile(examplesTestFolder.resolve("gh_fetch_release_assets.java")), ResourceRef.forFile(examplesTestFolder.resolve("gh_release_stats.java")), ResourceRef.forFile(examplesTestFolder.resolve("nested/NestedTwo.java")), ResourceRef.forFile(examplesTestFolder.resolve("nested/NestedOne.java")));
 		assertThat(prj.getMainSourceSet().getResources(), iterableWithSize(3));
-		assertThat(prj.getMainSourceSet().getResources(), containsInAnyOrder(
-				RefTarget.create(ResourceRef.forFile(examplesTestFolder.resolve("res/resource.properties")), null),
-				RefTarget.create(ResourceRef.forFile(examplesTestFolder.resolve("res/resource.properties")),
-						Paths.get("renamed.properties")),
-				RefTarget.create(ResourceRef.forFile(examplesTestFolder.resolve("res/resource.properties")),
-						Paths.get("META-INF/application.properties"))));
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getResources()).containsExactlyInAnyOrder(RefTarget.create(ResourceRef.forFile(examplesTestFolder.resolve("res/resource.properties")), null), RefTarget.create(ResourceRef.forFile(examplesTestFolder.resolve("res/resource.properties")),
+			Paths.get("renamed.properties")), RefTarget.create(ResourceRef.forFile(examplesTestFolder.resolve("res/resource.properties")),
+			Paths.get("META-INF/application.properties")));
 		assertThat(prj.getMainSourceSet().getDependencies(), iterableWithSize(5));
-		assertThat(prj.getMainSourceSet().getDependencies(), contains(
-				"dummy.org:dummy:1.2.3",
-				"info.picocli:picocli:4.6.3",
-				"org.kohsuke:github-api:1.116",
-				"info.picocli:picocli:4.6.3",
-				"org.kohsuke:github-api:1.116"));
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getDependencies()).containsExactly("dummy.org:dummy:1.2.3", "info.picocli:picocli:4.6.3", "org.kohsuke:github-api:1.116", "info.picocli:picocli:4.6.3", "org.kohsuke:github-api:1.116");
 		assertThat(prj.getRepositories(), iterableWithSize(1));
-		assertThat(prj.getRepositories(), contains(new MavenRepo("dummy", "http://dummy")));
+		org.assertj.core.api.Assertions.assertThat(prj.getRepositories()).containsExactly(new MavenRepo("dummy", "http://dummy"));
 		assertThat(prj.getMainSourceSet().getClassPaths(), iterableWithSize(0));
-		assertThat(prj.getProperties(), anEmptyMap());
-		assertThat(prj.getJavaVersion(), equalTo("11+"));
-		assertThat(prj.getMainClass(), equalTo("mainclass"));
-		assertThat(prj.getModuleName().get(), equalTo("mymodule"));
+		org.assertj.core.api.Assertions.assertThat(prj.getProperties()).isEmpty();
+		org.assertj.core.api.Assertions.assertThat(prj.getJavaVersion()).isEqualTo("11+");
+		org.assertj.core.api.Assertions.assertThat(prj.getMainClass()).isEqualTo("mainclass");
+		org.assertj.core.api.Assertions.assertThat(prj.getModuleName().get()).isEqualTo("mymodule");
 		assertThat(prj.getMainSourceSet().getCompileOptions(), iterableWithSize(4));
-		assertThat(prj.getMainSourceSet().getCompileOptions(),
-				contains("-g", "-parameters", "--enable-preview", "--verbose"));
-		assertThat(prj.isNativeImage(), is(Boolean.FALSE));
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getCompileOptions()).containsExactly("-g", "-parameters", "--enable-preview", "--verbose");
+		org.assertj.core.api.Assertions.assertThat(prj.isNativeImage()).isEqualTo(Boolean.FALSE);
 		assertThat(prj.getMainSourceSet().getNativeOptions(), iterableWithSize(2));
-		assertThat(prj.getMainSourceSet().getNativeOptions(), contains("-O1", "-d"));
-		assertThat(prj.enableCDS(), is(Boolean.TRUE));
-		assertThat(prj.enablePreview(), is(Boolean.TRUE));
-		assertThat(prj.getManifestAttributes(), aMapWithSize(3));
-		assertThat(prj.getManifestAttributes(), hasEntry("one", "1"));
-		assertThat(prj.getManifestAttributes(), hasEntry("two", "2"));
-		assertThat(prj.getManifestAttributes(), hasEntry("three", "3"));
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getNativeOptions()).containsExactly("-O1", "-d");
+		org.assertj.core.api.Assertions.assertThat(prj.enableCDS()).isEqualTo(Boolean.TRUE);
+		org.assertj.core.api.Assertions.assertThat(prj.enablePreview()).isEqualTo(Boolean.TRUE);
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).hasSize(3);
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).containsEntry("one", "1");
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).containsEntry("two", "2");
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).containsEntry("three", "3");
 	}
 
 	@Test
@@ -148,23 +125,23 @@ public class TestProjectBuilder extends BaseTest {
 		ProjectBuilder pb = Project.builder();
 		Path src = examplesTestFolder.resolve("hellojar.jar");
 		Project prj = pb.build(src);
-		assertThat(prj.getDescription().isPresent(), equalTo(Boolean.FALSE));
+		org.assertj.core.api.Assertions.assertThat(prj.getDescription().isPresent()).isEqualTo(Boolean.FALSE);
 		assertThat(prj.getRuntimeOptions(), iterableWithSize(0));
 		assertThat(prj.getMainSourceSet().getSources(), iterableWithSize(0));
 		assertThat(prj.getMainSourceSet().getResources(), iterableWithSize(0));
 		assertThat(prj.getMainSourceSet().getDependencies(), iterableWithSize(0));
 		assertThat(prj.getRepositories(), iterableWithSize(0));
 		assertThat(prj.getMainSourceSet().getClassPaths(), iterableWithSize(0));
-		assertThat(prj.getProperties(), anEmptyMap());
-		assertThat(prj.getJavaVersion(), equalTo("8+"));
-		assertThat(prj.getMainClass(), equalTo("helloworld"));
-		assertThat(prj.getModuleName().isPresent(), equalTo(Boolean.FALSE));
+		org.assertj.core.api.Assertions.assertThat(prj.getProperties()).isEmpty();
+		org.assertj.core.api.Assertions.assertThat(prj.getJavaVersion()).isEqualTo("8+");
+		org.assertj.core.api.Assertions.assertThat(prj.getMainClass()).isEqualTo("helloworld");
+		org.assertj.core.api.Assertions.assertThat(prj.getModuleName().isPresent()).isEqualTo(Boolean.FALSE);
 		assertThat(prj.getMainSourceSet().getCompileOptions(), iterableWithSize(0));
-		assertThat(prj.isNativeImage(), is(Boolean.FALSE));
+		org.assertj.core.api.Assertions.assertThat(prj.isNativeImage()).isEqualTo(Boolean.FALSE);
 		assertThat(prj.getMainSourceSet().getNativeOptions(), iterableWithSize(0));
-		assertThat(prj.enableCDS(), is(Boolean.FALSE));
-		assertThat(prj.enablePreview(), is(Boolean.FALSE));
-		assertThat(prj.getManifestAttributes(), aMapWithSize(0));
+		org.assertj.core.api.Assertions.assertThat(prj.enableCDS()).isEqualTo(Boolean.FALSE);
+		org.assertj.core.api.Assertions.assertThat(prj.enablePreview()).isEqualTo(Boolean.FALSE);
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).hasSize(0);
 	}
 
 	@Test
@@ -172,24 +149,24 @@ public class TestProjectBuilder extends BaseTest {
 		ProjectBuilder pb = Project.builder();
 		String gav = "org.eclipse.jgit:org.eclipse.jgit.pgm:5.9.0.202009080501-r";
 		Project prj = pb.build(gav);
-		assertThat(prj.getDescription().isPresent(), equalTo(Boolean.FALSE));
+		org.assertj.core.api.Assertions.assertThat(prj.getDescription().isPresent()).isEqualTo(Boolean.FALSE);
 		assertThat(prj.getRuntimeOptions(), iterableWithSize(0));
 		assertThat(prj.getMainSourceSet().getSources(), iterableWithSize(0));
 		assertThat(prj.getMainSourceSet().getResources(), iterableWithSize(0));
 		assertThat(prj.getMainSourceSet().getDependencies(), iterableWithSize(1));
-		assertThat(prj.getMainSourceSet().getDependencies(), contains(gav));
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getDependencies()).containsExactly(gav);
 		assertThat(prj.getRepositories(), iterableWithSize(0));
 		assertThat(prj.getMainSourceSet().getClassPaths(), iterableWithSize(0));
-		assertThat(prj.getProperties(), anEmptyMap());
-		assertThat(prj.getJavaVersion(), nullValue());
-		assertThat(prj.getMainClass(), equalTo("org.eclipse.jgit.pgm.Main"));
-		assertThat(prj.getModuleName().isPresent(), equalTo(Boolean.FALSE));
+		org.assertj.core.api.Assertions.assertThat(prj.getProperties()).isEmpty();
+		org.assertj.core.api.Assertions.assertThat(prj.getJavaVersion()).isNull();
+		org.assertj.core.api.Assertions.assertThat(prj.getMainClass()).isEqualTo("org.eclipse.jgit.pgm.Main");
+		org.assertj.core.api.Assertions.assertThat(prj.getModuleName().isPresent()).isEqualTo(Boolean.FALSE);
 		assertThat(prj.getMainSourceSet().getCompileOptions(), iterableWithSize(0));
-		assertThat(prj.isNativeImage(), is(Boolean.FALSE));
+		org.assertj.core.api.Assertions.assertThat(prj.isNativeImage()).isEqualTo(Boolean.FALSE);
 		assertThat(prj.getMainSourceSet().getNativeOptions(), iterableWithSize(0));
-		assertThat(prj.enableCDS(), is(Boolean.FALSE));
-		assertThat(prj.enablePreview(), is(Boolean.FALSE));
-		assertThat(prj.getManifestAttributes(), aMapWithSize(0));
+		org.assertj.core.api.Assertions.assertThat(prj.enableCDS()).isEqualTo(Boolean.FALSE);
+		org.assertj.core.api.Assertions.assertThat(prj.enablePreview()).isEqualTo(Boolean.FALSE);
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).hasSize(0);
 	}
 
 	@Test
@@ -198,62 +175,42 @@ public class TestProjectBuilder extends BaseTest {
 		ProjectBuilder pb = Project.builder();
 		Path src = examplesTestFolder.resolve("alltags.java");
 		Project prj = pb.build("alltags");
-		assertThat(prj.getDescription().get(), equalTo("some description"));
+		org.assertj.core.api.Assertions.assertThat(prj.getDescription().get()).isEqualTo("some description");
 		assertThat(prj.getRuntimeOptions(), iterableWithSize(4));
-		assertThat(prj.getRuntimeOptions(),
-				contains("--add-opens", "java.base/java.net=ALL-UNNAMED", "-Dfoo=bar", "-Dbar=aap noot mies"));
+		org.assertj.core.api.Assertions.assertThat(prj.getRuntimeOptions()).containsExactly("--add-opens", "java.base/java.net=ALL-UNNAMED", "-Dfoo=bar", "-Dbar=aap noot mies");
 		assertThat(prj.getMainSourceSet().getSources(), iterableWithSize(7));
-		assertThat(prj.getMainSourceSet().getSources(), containsInAnyOrder(
-				new AliasResourceResolver.AliasedResourceRef(prj.getResourceRef(), null),
-				ResourceRef.forFile(examplesTestFolder.resolve("Two.java")),
-				ResourceRef.forFile(examplesTestFolder.resolve("gh_fetch_release_assets.java")),
-				ResourceRef.forFile(examplesTestFolder.resolve("gh_release_stats.java")),
-				ResourceRef.forFile(examplesTestFolder.resolve("nested/NestedTwo.java")),
-				ResourceRef.forFile(examplesTestFolder.resolve("nested/NestedOne.java")),
-				ResourceRef.forResolvedResource("helloworld.java", examplesTestFolder.resolve("helloworld.java"))));
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getSources()).containsExactlyInAnyOrder(new AliasResourceResolver.AliasedResourceRef(prj.getResourceRef(), null), ResourceRef.forFile(examplesTestFolder.resolve("Two.java")), ResourceRef.forFile(examplesTestFolder.resolve("gh_fetch_release_assets.java")), ResourceRef.forFile(examplesTestFolder.resolve("gh_release_stats.java")), ResourceRef.forFile(examplesTestFolder.resolve("nested/NestedTwo.java")), ResourceRef.forFile(examplesTestFolder.resolve("nested/NestedOne.java")), ResourceRef.forResolvedResource("helloworld.java", examplesTestFolder.resolve("helloworld.java")));
 		assertThat(prj.getMainSourceSet().getResources(), iterableWithSize(4));
-		assertThat(prj.getMainSourceSet().getResources(), containsInAnyOrder(
-				RefTarget.create(ResourceRef.forFile(examplesTestFolder.resolve("res/resource.properties")), null),
-				RefTarget.create(ResourceRef.forFile(examplesTestFolder.resolve("res/resource.properties")),
-						Paths.get("renamed.properties")),
-				RefTarget.create(ResourceRef.forFile(examplesTestFolder.resolve("res/resource.properties")),
-						Paths.get("META-INF/application.properties")),
-				RefTarget.create(ResourceRef.forResolvedResource("res/test.properties",
-						examplesTestFolder.resolve("res/test.properties")), null)));
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getResources()).containsExactlyInAnyOrder(RefTarget.create(ResourceRef.forFile(examplesTestFolder.resolve("res/resource.properties")), null), RefTarget.create(ResourceRef.forFile(examplesTestFolder.resolve("res/resource.properties")),
+			Paths.get("renamed.properties")), RefTarget.create(ResourceRef.forFile(examplesTestFolder.resolve("res/resource.properties")),
+			Paths.get("META-INF/application.properties")), RefTarget.create(ResourceRef.forResolvedResource("res/test.properties",
+			examplesTestFolder.resolve("res/test.properties")), null));
 		assertThat(prj.getMainSourceSet().getDependencies(), iterableWithSize(6));
-		assertThat(prj.getMainSourceSet().getDependencies(), contains(
-				"dummy.org:dummy:1.2.3",
-				"info.picocli:picocli:4.6.3",
-				"org.kohsuke:github-api:1.116",
-				"info.picocli:picocli:4.6.3",
-				"org.kohsuke:github-api:1.116",
-				"twodep"));
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getDependencies()).containsExactly("dummy.org:dummy:1.2.3", "info.picocli:picocli:4.6.3", "org.kohsuke:github-api:1.116", "info.picocli:picocli:4.6.3", "org.kohsuke:github-api:1.116", "twodep");
 		assertThat(prj.getRepositories(), iterableWithSize(2));
-		assertThat(prj.getRepositories(),
-				contains(new MavenRepo("dummy", "http://dummy"), new MavenRepo("tworepo", "tworepo")));
+		org.assertj.core.api.Assertions.assertThat(prj.getRepositories()).containsExactly(new MavenRepo("dummy", "http://dummy"), new MavenRepo("tworepo", "tworepo"));
 		assertThat(prj.getMainSourceSet().getClassPaths(), iterableWithSize(1));
-		assertThat(prj.getMainSourceSet().getClassPaths(), contains("twocp"));
-		assertThat(prj.getProperties(), aMapWithSize(1));
-		assertThat(prj.getProperties(), hasEntry("two", "2"));
-		assertThat(prj.getJavaVersion(), equalTo("twojava"));
-		assertThat(prj.getMainClass(), equalTo("mainclass")); // This is not updated from Alias here!
-		assertThat(prj.getModuleName().get(), equalTo("mymodule")); // This is not updated from Alias here!
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getClassPaths()).containsExactly("twocp");
+		org.assertj.core.api.Assertions.assertThat(prj.getProperties()).hasSize(1);
+		org.assertj.core.api.Assertions.assertThat(prj.getProperties()).containsEntry("two", "2");
+		org.assertj.core.api.Assertions.assertThat(prj.getJavaVersion()).isEqualTo("twojava");
+		org.assertj.core.api.Assertions.assertThat(prj.getMainClass()).isEqualTo("mainclass"); // This is not updated from Alias here!
+		org.assertj.core.api.Assertions.assertThat(prj.getModuleName().get()).isEqualTo("mymodule"); // This is not updated from Alias here!
 		assertThat(prj.getMainSourceSet().getCompileOptions(), iterableWithSize(5));
-		assertThat(prj.getMainSourceSet().getCompileOptions(),
-				contains("-g", "-parameters", "--enable-preview", "--verbose", "--ctwo"));
-		assertThat(prj.isNativeImage(), is(Boolean.TRUE));
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getCompileOptions()).containsExactly("-g", "-parameters", "--enable-preview", "--verbose", "--ctwo");
+		org.assertj.core.api.Assertions.assertThat(prj.isNativeImage()).isEqualTo(Boolean.TRUE);
 		assertThat(prj.getMainSourceSet().getNativeOptions(), iterableWithSize(4));
-		assertThat(prj.getMainSourceSet().getNativeOptions(), contains("-O1", "-d", "-O1", "--ntwo"));
-		assertThat(prj.enableCDS(), is(Boolean.TRUE));
-		assertThat(prj.enablePreview(), is(Boolean.TRUE));
-		assertThat(prj.getManifestAttributes(), aMapWithSize(7));
-		assertThat(prj.getManifestAttributes(), hasEntry("one", "1"));
-		assertThat(prj.getManifestAttributes(), hasEntry("two", "2"));
-		assertThat(prj.getManifestAttributes(), hasEntry("three", "3"));
-		assertThat(prj.getManifestAttributes(), hasEntry("foo", "true"));
-		assertThat(prj.getManifestAttributes(), hasEntry("bar", "baz"));
-		assertThat(prj.getManifestAttributes(), hasEntry("baz", "nada"));
-		assertThat(prj.getManifestAttributes(), hasEntry("twom", "2"));
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getNativeOptions()).containsExactly("-O1", "-d", "-O1", "--ntwo");
+		org.assertj.core.api.Assertions.assertThat(prj.enableCDS()).isEqualTo(Boolean.TRUE);
+		org.assertj.core.api.Assertions.assertThat(prj.enablePreview()).isEqualTo(Boolean.TRUE);
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).hasSize(7);
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).containsEntry("one", "1");
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).containsEntry("two", "2");
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).containsEntry("three", "3");
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).containsEntry("foo", "true");
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).containsEntry("bar", "baz");
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).containsEntry("baz", "nada");
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).containsEntry("twom", "2");
 	}
 
 	@Test
@@ -261,39 +218,37 @@ public class TestProjectBuilder extends BaseTest {
 		Util.setCwd(examplesTestFolder);
 		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build("hellojar");
-		assertThat(prj.getDescription().isPresent(), equalTo(Boolean.FALSE));
+		org.assertj.core.api.Assertions.assertThat(prj.getDescription().isPresent()).isEqualTo(Boolean.FALSE);
 		assertThat(prj.getRuntimeOptions(), iterableWithSize(2));
-		assertThat(prj.getRuntimeOptions(), contains("-Dfoo=bar", "-Dbar=aap noot mies"));
+		org.assertj.core.api.Assertions.assertThat(prj.getRuntimeOptions()).containsExactly("-Dfoo=bar", "-Dbar=aap noot mies");
 		assertThat(prj.getMainSourceSet().getSources(), iterableWithSize(1));
-		assertThat(prj.getMainSourceSet().getSources(), containsInAnyOrder(
-				ResourceRef.forResolvedResource("helloworld.java", examplesTestFolder.resolve("helloworld.java"))));
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getSources()).containsExactlyInAnyOrder(ResourceRef.forResolvedResource("helloworld.java", examplesTestFolder.resolve("helloworld.java")));
 		assertThat(prj.getMainSourceSet().getResources(), iterableWithSize(1));
-		assertThat(prj.getMainSourceSet().getResources(), containsInAnyOrder(
-				RefTarget.create(ResourceRef.forResolvedResource("res/test.properties",
-						examplesTestFolder.resolve("res/test.properties")), null)));
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getResources()).containsExactlyInAnyOrder(RefTarget.create(ResourceRef.forResolvedResource("res/test.properties",
+			examplesTestFolder.resolve("res/test.properties")), null));
 		assertThat(prj.getMainSourceSet().getDependencies(), iterableWithSize(1));
-		assertThat(prj.getMainSourceSet().getDependencies(), contains("twodep"));
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getDependencies()).containsExactly("twodep");
 		assertThat(prj.getRepositories(), iterableWithSize(1));
-		assertThat(prj.getRepositories(), contains(new MavenRepo("tworepo", "tworepo")));
+		org.assertj.core.api.Assertions.assertThat(prj.getRepositories()).containsExactly(new MavenRepo("tworepo", "tworepo"));
 		assertThat(prj.getMainSourceSet().getClassPaths(), iterableWithSize(1));
-		assertThat(prj.getMainSourceSet().getClassPaths(), contains("twocp"));
-		assertThat(prj.getProperties(), aMapWithSize(1));
-		assertThat(prj.getProperties(), hasEntry("two", "2"));
-		assertThat(prj.getJavaVersion(), equalTo("twojava"));
-		assertThat(prj.getMainClass(), equalTo("helloworld")); // This is not updated from Alias here!
-		assertThat(prj.getModuleName().isPresent(), equalTo(Boolean.FALSE)); // This is not updated from Alias here!
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getClassPaths()).containsExactly("twocp");
+		org.assertj.core.api.Assertions.assertThat(prj.getProperties()).hasSize(1);
+		org.assertj.core.api.Assertions.assertThat(prj.getProperties()).containsEntry("two", "2");
+		org.assertj.core.api.Assertions.assertThat(prj.getJavaVersion()).isEqualTo("twojava");
+		org.assertj.core.api.Assertions.assertThat(prj.getMainClass()).isEqualTo("helloworld"); // This is not updated from Alias here!
+		org.assertj.core.api.Assertions.assertThat(prj.getModuleName().isPresent()).isEqualTo(Boolean.FALSE); // This is not updated from Alias here!
 		assertThat(prj.getMainSourceSet().getCompileOptions(), iterableWithSize(1));
-		assertThat(prj.getMainSourceSet().getCompileOptions(), contains("--ctwo"));
-		assertThat(prj.isNativeImage(), is(Boolean.TRUE));
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getCompileOptions()).containsExactly("--ctwo");
+		org.assertj.core.api.Assertions.assertThat(prj.isNativeImage()).isEqualTo(Boolean.TRUE);
 		assertThat(prj.getMainSourceSet().getNativeOptions(), iterableWithSize(2));
-		assertThat(prj.getMainSourceSet().getNativeOptions(), contains("-O1", "--ntwo"));
-		assertThat(prj.enableCDS(), is(Boolean.FALSE)); // This is not updated from Alias here!
-		assertThat(prj.enablePreview(), is(Boolean.TRUE));
-		assertThat(prj.getManifestAttributes(), aMapWithSize(4));
-		assertThat(prj.getManifestAttributes(), hasEntry("foo", "true"));
-		assertThat(prj.getManifestAttributes(), hasEntry("bar", "baz"));
-		assertThat(prj.getManifestAttributes(), hasEntry("baz", "nada"));
-		assertThat(prj.getManifestAttributes(), hasEntry("twom", "2"));
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getNativeOptions()).containsExactly("-O1", "--ntwo");
+		org.assertj.core.api.Assertions.assertThat(prj.enableCDS()).isEqualTo(Boolean.FALSE); // This is not updated from Alias here!
+		org.assertj.core.api.Assertions.assertThat(prj.enablePreview()).isEqualTo(Boolean.TRUE);
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).hasSize(4);
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).containsEntry("foo", "true");
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).containsEntry("bar", "baz");
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).containsEntry("baz", "nada");
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).containsEntry("twom", "2");
 	}
 
 	@Test
@@ -302,40 +257,36 @@ public class TestProjectBuilder extends BaseTest {
 		ProjectBuilder pb = Project.builder();
 		String gav = "org.eclipse.jgit:org.eclipse.jgit.pgm:5.9.0.202009080501-r";
 		Project prj = pb.build("pgmgav");
-		assertThat(prj.getDescription().isPresent(), equalTo(Boolean.FALSE));
+		org.assertj.core.api.Assertions.assertThat(prj.getDescription().isPresent()).isEqualTo(Boolean.FALSE);
 		assertThat(prj.getRuntimeOptions(), iterableWithSize(2));
-		assertThat(prj.getRuntimeOptions(), contains("-Dfoo=bar", "-Dbar=aap noot mies"));
+		org.assertj.core.api.Assertions.assertThat(prj.getRuntimeOptions()).containsExactly("-Dfoo=bar", "-Dbar=aap noot mies");
 		assertThat(prj.getMainSourceSet().getSources(), iterableWithSize(1));
-		assertThat(prj.getMainSourceSet().getSources(), containsInAnyOrder(
-				ResourceRef.forResolvedResource("helloworld.java", examplesTestFolder.resolve("helloworld.java"))));
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getSources()).containsExactlyInAnyOrder(ResourceRef.forResolvedResource("helloworld.java", examplesTestFolder.resolve("helloworld.java")));
 		assertThat(prj.getMainSourceSet().getResources(), iterableWithSize(1));
-		assertThat(prj.getMainSourceSet().getResources(), containsInAnyOrder(
-				RefTarget.create(ResourceRef.forResolvedResource("res/test.properties",
-						examplesTestFolder.resolve("res/test.properties")), null)));
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getResources()).containsExactlyInAnyOrder(RefTarget.create(ResourceRef.forResolvedResource("res/test.properties",
+			examplesTestFolder.resolve("res/test.properties")), null));
 		assertThat(prj.getMainSourceSet().getDependencies(), iterableWithSize(2));
-		assertThat(prj.getMainSourceSet().getDependencies(), contains(
-				gav, "info.picocli:picocli:4.6.3"));
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getDependencies()).containsExactly(gav, "info.picocli:picocli:4.6.3");
 		assertThat(prj.getRepositories(), iterableWithSize(2));
-		assertThat(prj.getRepositories(), contains(new MavenRepo("mavencentral", "https://repo1.maven.org/maven2/"),
-				new MavenRepo("tworepo", "tworepo")));
+		org.assertj.core.api.Assertions.assertThat(prj.getRepositories()).containsExactly(new MavenRepo("mavencentral", "https://repo1.maven.org/maven2/"), new MavenRepo("tworepo", "tworepo"));
 		assertThat(prj.getMainSourceSet().getClassPaths(), iterableWithSize(1));
-		assertThat(prj.getMainSourceSet().getClassPaths(), contains("twocp"));
-		assertThat(prj.getProperties(), aMapWithSize(1));
-		assertThat(prj.getProperties(), hasEntry("two", "2"));
-		assertThat(prj.getJavaVersion(), equalTo("twojava"));
-		assertThat(prj.getMainClass(), equalTo("org.eclipse.jgit.pgm.Main")); // This is not updated from Alias here!
-		assertThat(prj.getModuleName().isPresent(), equalTo(Boolean.FALSE)); // This is not updated from Alias here!
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getClassPaths()).containsExactly("twocp");
+		org.assertj.core.api.Assertions.assertThat(prj.getProperties()).hasSize(1);
+		org.assertj.core.api.Assertions.assertThat(prj.getProperties()).containsEntry("two", "2");
+		org.assertj.core.api.Assertions.assertThat(prj.getJavaVersion()).isEqualTo("twojava");
+		org.assertj.core.api.Assertions.assertThat(prj.getMainClass()).isEqualTo("org.eclipse.jgit.pgm.Main"); // This is not updated from Alias here!
+		org.assertj.core.api.Assertions.assertThat(prj.getModuleName().isPresent()).isEqualTo(Boolean.FALSE); // This is not updated from Alias here!
 		assertThat(prj.getMainSourceSet().getCompileOptions(), iterableWithSize(1));
-		assertThat(prj.getMainSourceSet().getCompileOptions(), contains("--ctwo"));
-		assertThat(prj.isNativeImage(), is(Boolean.TRUE));
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getCompileOptions()).containsExactly("--ctwo");
+		org.assertj.core.api.Assertions.assertThat(prj.isNativeImage()).isEqualTo(Boolean.TRUE);
 		assertThat(prj.getMainSourceSet().getNativeOptions(), iterableWithSize(2));
-		assertThat(prj.getMainSourceSet().getNativeOptions(), contains("-O1", "--ntwo"));
-		assertThat(prj.enableCDS(), is(Boolean.FALSE)); // This is not updated from Alias here!
-		assertThat(prj.enablePreview(), is(Boolean.TRUE));
-		assertThat(prj.getManifestAttributes(), aMapWithSize(4));
-		assertThat(prj.getManifestAttributes(), hasEntry("foo", "true"));
-		assertThat(prj.getManifestAttributes(), hasEntry("bar", "baz"));
-		assertThat(prj.getManifestAttributes(), hasEntry("baz", "nada"));
-		assertThat(prj.getManifestAttributes(), hasEntry("twom", "2"));
+		org.assertj.core.api.Assertions.assertThat(prj.getMainSourceSet().getNativeOptions()).containsExactly("-O1", "--ntwo");
+		org.assertj.core.api.Assertions.assertThat(prj.enableCDS()).isEqualTo(Boolean.FALSE); // This is not updated from Alias here!
+		org.assertj.core.api.Assertions.assertThat(prj.enablePreview()).isEqualTo(Boolean.TRUE);
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).hasSize(4);
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).containsEntry("foo", "true");
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).containsEntry("bar", "baz");
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).containsEntry("baz", "nada");
+		org.assertj.core.api.Assertions.assertThat(prj.getManifestAttributes()).containsEntry("twom", "2");
 	}
 }

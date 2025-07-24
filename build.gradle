@@ -138,6 +138,7 @@ dependencies {
 	implementation 'org.codejive:java-properties:0.0.7'
 
 	implementation "org.slf4j:slf4j-nop:1.7.30"
+	java9Implementation "org.assertj:assertj-core:3.27.3"
 	implementation "org.slf4j:jcl-over-slf4j:1.7.30"
 	implementation "org.jboss:jandex:2.2.3.Final"
 
@@ -342,6 +343,10 @@ testing {
 	suites {
 		test {
 			useJUnitJupiter()
+
+			dependencies {
+				implementation "org.assertj:assertj-core:3.x"
+			}
 		}
 
 		integrationTest(JvmTestSuite) {

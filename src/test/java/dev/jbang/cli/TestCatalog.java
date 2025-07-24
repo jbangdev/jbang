@@ -2,7 +2,8 @@ package dev.jbang.cli;
 
 import static dev.jbang.util.TestUtil.clearSettingsCaches;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.not;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -48,14 +49,13 @@ public class TestCatalog extends BaseTest {
 
 	@Test
 	void testAddSucceeded() throws IOException {
-		assertThat(Files.isRegularFile(catsFile), is(true));
+		org.assertj.core.api.Assertions.assertThat(Files.isRegularFile(catsFile)).isEqualTo(true);
 		String cat = new String(Files.readAllBytes(catsFile));
-		assertThat(cat, containsString("\"test\""));
-		assertThat(cat, containsString("test-catalog.json\""));
+		org.assertj.core.api.Assertions.assertThat(cat).contains("\"test\"");
+		org.assertj.core.api.Assertions.assertThat(cat).contains("test-catalog.json\"");
 
-		assertThat(Catalog.get(catsFile).catalogs, hasKey("test"));
-		assertThat(Catalog.get(catsFile).catalogs.get("test").catalogRef,
-				is(testCatalogFile.toAbsolutePath().toString()));
+		org.assertj.core.api.Assertions.assertThat(Catalog.get(catsFile).catalogs).containsKey("test");
+		org.assertj.core.api.Assertions.assertThat(Catalog.get(catsFile).catalogs.get("test").catalogRef).isEqualTo(testCatalogFile.toAbsolutePath().toString());
 	}
 
 	@Test
@@ -66,15 +66,15 @@ public class TestCatalog extends BaseTest {
 	@Test
 	void testGetAlias() throws IOException {
 		Alias alias = Alias.get("one@test");
-		assertThat(alias, notNullValue());
-		assertThat(alias.scriptRef, equalTo("http://dummy"));
+		org.assertj.core.api.Assertions.assertThat(alias).isNotNull();
+		org.assertj.core.api.Assertions.assertThat(alias.scriptRef).isEqualTo("http://dummy");
 	}
 
 	@Test
 	void testGetFatJar() throws IOException {
 		Alias alias = Alias.get("fj@test");
-		assertThat(alias, notNullValue());
-		assertThat(alias.scriptRef, equalTo("i.look:like-a-gav:1.0.0.Beta5@fatjar"));
+		org.assertj.core.api.Assertions.assertThat(alias).isNotNull();
+		org.assertj.core.api.Assertions.assertThat(alias.scriptRef).isEqualTo("i.look:like-a-gav:1.0.0.Beta5@fatjar");
 	}
 
 	@Test
@@ -84,7 +84,7 @@ public class TestCatalog extends BaseTest {
 
 	@Test
 	void testRemove() throws IOException {
-		assertThat(Catalog.get(catsFile).catalogs, hasKey("test"));
+		org.assertj.core.api.Assertions.assertThat(Catalog.get(catsFile).catalogs).containsKey("test");
 		CatalogUtil.removeCatalogRef(catsFile, "test");
 		assertThat(Catalog.get(catsFile).catalogs, not(hasKey("test")));
 	}
@@ -92,6 +92,6 @@ public class TestCatalog extends BaseTest {
 	@Test
 	void testNameFromGAV() throws IOException {
 		String name = CatalogUtil.nameFromRef("com.intuit.karate:karate-core:LATEST");
-		assertThat(name, equalTo("karate-core"));
+		org.assertj.core.api.Assertions.assertThat(name).isEqualTo("karate-core");
 	}
 }

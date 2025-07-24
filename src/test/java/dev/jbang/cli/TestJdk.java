@@ -1,10 +1,6 @@
 package dev.jbang.cli;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.startsWith;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
@@ -41,8 +37,8 @@ class TestJdk extends BaseTest {
 	void testNoJdksInstalled() throws Exception {
 		CaptureResult<Integer> result = checkedRun(jdk -> jdk.list(false, false, FormatMixin.Format.text));
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedOut(), equalTo("No JDKs installed\n"));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedOut()).isEqualTo("No JDKs installed\n");
 	}
 
 	@Test
@@ -52,9 +48,8 @@ class TestJdk extends BaseTest {
 
 		CaptureResult<Integer> result = checkedRun(jdk -> jdk.list(false, false, FormatMixin.Format.text));
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedOut(),
-				equalTo("Installed JDKs (<=default):\n   11 (11.0.7) <\n   12 (12.0.7)\n   13 (13.0.7)\n"));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedOut()).isEqualTo("Installed JDKs (<=default):\n   11 (11.0.7) <\n   12 (12.0.7)\n   13 (13.0.7)\n");
 	}
 
 	@Test
@@ -69,18 +64,17 @@ class TestJdk extends BaseTest {
 		CaptureResult<Integer> result = checkedRun((Jdk jdk) -> jdk.list(false, false, FormatMixin.Format.text),
 				"jdk", "--jdk-providers", "default,javahome,jbang");
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedOut(),
-				equalTo("Installed JDKs (<=default):\n   11 (11.0.7) <\n   12 (12.0.7)\n   13 (13.0.7)\n"));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedOut()).isEqualTo("Installed JDKs (<=default):\n   11 (11.0.7) <\n   12 (12.0.7)\n   13 (13.0.7)\n");
 	}
 
 	@Test
 	void testJdksAvailable() throws Exception {
 		CaptureResult<Integer> result = checkedRun(jdk -> jdk.list(true, false, FormatMixin.Format.text));
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
 		Pattern p = Pattern.compile("^ {3}\\d+ \\(.+?\\)$", Pattern.MULTILINE);
 		Matcher m = p.matcher(result.normalizedOut());
-		assertThat(m.find(), equalTo(true));
+		assertThat(m.find()).isEqualTo(true);
 	}
 
 	@Test
@@ -89,13 +83,13 @@ class TestJdk extends BaseTest {
 
 		CaptureResult<Integer> result = checkedRun(jdk -> jdk.defaultJdk("12"));
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedErr(), startsWith("[jbang] Default JDK set to 12"));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedErr()).startsWith("[jbang] Default JDK set to 12");
 
 		result = checkedRun(jdk -> jdk.defaultJdk(null));
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedErr(), equalTo("[jbang] Default JDK is currently set to 12\n"));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedErr()).isEqualTo("[jbang] Default JDK is currently set to 12\n");
 	}
 
 	@Test
@@ -104,13 +98,13 @@ class TestJdk extends BaseTest {
 
 		CaptureResult<Integer> result = checkedRun(jdk -> jdk.defaultJdk("16+"));
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedErr(), startsWith("[jbang] Default JDK set to 17"));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedErr()).startsWith("[jbang] Default JDK set to 17");
 
 		result = checkedRun(jdk -> jdk.defaultJdk(null));
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedErr(), equalTo("[jbang] Default JDK is currently set to 17\n"));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedErr()).isEqualTo("[jbang] Default JDK is currently set to 17\n");
 	}
 
 	@Test
@@ -119,8 +113,8 @@ class TestJdk extends BaseTest {
 
 		CaptureResult<Integer> result = checkedRun(jdk -> jdk.home(null));
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedOut(), endsWith(File.separator + "currentjdk\n"));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedOut()).endsWith(File.separator + "currentjdk\n");
 	}
 
 	@Test
@@ -129,8 +123,8 @@ class TestJdk extends BaseTest {
 
 		CaptureResult<Integer> result = checkedRun(jdk -> jdk.home("default"));
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedOut(), endsWith(File.separator + "currentjdk\n"));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedOut()).endsWith(File.separator + "currentjdk\n");
 	}
 
 	@Test
@@ -139,8 +133,8 @@ class TestJdk extends BaseTest {
 
 		CaptureResult<Integer> result = checkedRun(jdk -> jdk.home("17"));
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedOut(), endsWith("cache" + File.separator + "jdks" + File.separator + "17\n"));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedOut()).endsWith("cache" + File.separator + "jdks" + File.separator + "17\n");
 	}
 
 	@Test
@@ -149,8 +143,8 @@ class TestJdk extends BaseTest {
 
 		CaptureResult<Integer> result = checkedRun(jdk -> jdk.home("16+"));
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedOut(), endsWith("cache" + File.separator + "jdks" + File.separator + "17\n"));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedOut()).endsWith("cache" + File.separator + "jdks" + File.separator + "17\n");
 	}
 
 	@Test
@@ -159,9 +153,8 @@ class TestJdk extends BaseTest {
 
 		CaptureResult<Integer> result = checkedRun(jdk -> jdk.javaEnv(null));
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedOut(),
-				containsString(File.separator + "currentjdk" + File.separator + "bin" + File.pathSeparator));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedOut()).contains(File.separator + "currentjdk" + File.separator + "bin" + File.pathSeparator);
 
 		if (Util.isWindows()) {
 			// By default, on Windows we only test with CMD, so let's retest
@@ -169,9 +162,8 @@ class TestJdk extends BaseTest {
 			environmentVariables.set(Util.JBANG_RUNTIME_SHELL, "powershell");
 			result = checkedRun(jdk -> jdk.javaEnv(null));
 
-			assertThat(result.result, equalTo(SUCCESS_EXIT));
-			assertThat(result.normalizedOut(),
-					containsString(File.separator + "currentjdk" + File.separator + "bin" + File.pathSeparator));
+			assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+			assertThat(result.normalizedOut()).contains(File.separator + "currentjdk" + File.separator + "bin" + File.pathSeparator);
 		}
 	}
 
@@ -181,8 +173,8 @@ class TestJdk extends BaseTest {
 
 		CaptureResult<Integer> result = checkedRun(jdk -> jdk.javaEnv("default"));
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedOut(), containsString(File.separator + "currentjdk"));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedOut()).contains(File.separator + "currentjdk");
 	}
 
 	@Test
@@ -191,8 +183,8 @@ class TestJdk extends BaseTest {
 
 		CaptureResult<Integer> result = checkedRun(jdk -> jdk.javaEnv("17"));
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedOut(), containsString("cache" + File.separator + "jdks" + File.separator + "17"));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedOut()).contains("cache" + File.separator + "jdks" + File.separator + "17");
 	}
 
 	@Test
@@ -201,8 +193,8 @@ class TestJdk extends BaseTest {
 
 		CaptureResult<Integer> result = checkedRun(jdk -> jdk.javaEnv("11"));
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedOut(), containsString("cache" + File.separator + "jdks" + File.separator + "11"));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedOut()).contains("cache" + File.separator + "jdks" + File.separator + "11");
 	}
 
 	@Test
@@ -211,8 +203,8 @@ class TestJdk extends BaseTest {
 
 		CaptureResult<Integer> result = checkedRun(jdk -> jdk.javaEnv("21"));
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedOut(), containsString("cache" + File.separator + "jdks" + File.separator + "21"));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedOut()).contains("cache" + File.separator + "jdks" + File.separator + "21");
 	}
 
 	@Test
@@ -221,8 +213,8 @@ class TestJdk extends BaseTest {
 
 		CaptureResult<Integer> result = checkedRun(jdk -> jdk.javaEnv("16+"));
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedOut(), containsString("cache" + File.separator + "jdks" + File.separator + "17"));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedOut()).contains("cache" + File.separator + "jdks" + File.separator + "17");
 	}
 
 	@Test
@@ -237,13 +229,13 @@ class TestJdk extends BaseTest {
 		CaptureResult<Integer> result = checkedRun((Jdk jdk) -> jdk.defaultJdk("12"), "jdk", "--jdk-providers",
 				"default,javahome,jbang");
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedErr(), startsWith("[jbang] Default JDK set to 12"));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedErr()).startsWith("[jbang] Default JDK set to 12");
 
 		result = checkedRun(jdk -> jdk.defaultJdk(null));
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedErr(), equalTo("[jbang] Default JDK is currently set to 12\n"));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedErr()).isEqualTo("[jbang] Default JDK is currently set to 12\n");
 	}
 
 	@Test
@@ -276,9 +268,8 @@ class TestJdk extends BaseTest {
 			}
 		});
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedErr(),
-				equalTo("[jbang] JDK 11 has been linked to: " + javaDir.toPath() + "\n"));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedErr()).isEqualTo("[jbang] JDK 11 has been linked to: " + javaDir.toPath() + "\n");
 		assertTrue(Util.isLink(jdkPath.resolve("11")));
 		System.err.println("ASSERT: " + javaDir.toPath() + " - " + jdkPath.resolve("11").toRealPath());
 		assertTrue(Files.isSameFile(javaDir.toPath(), jdkPath.resolve("11").toRealPath()));
@@ -301,9 +292,8 @@ class TestJdk extends BaseTest {
 			}
 		});
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedErr(),
-				equalTo("[jbang] JDK 11 has been linked to: " + javaDir.toPath().toString() + "\n"));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedErr()).isEqualTo("[jbang] JDK 11 has been linked to: " + javaDir.toPath().toString() + "\n");
 		assertTrue(Util.isLink(jdkPath.resolve("11")));
 		assertTrue(Files.isSameFile(javaDir.toPath(), jdkPath.resolve("11").toRealPath()));
 	}
@@ -332,7 +322,7 @@ class TestJdk extends BaseTest {
 		checkedRunWithException(jdk -> {
 			try {
 				jdk.install(true, "13", javaDir.toPath().toString());
-				assertThat("Expected an exception to be thrown", false);
+				assertThat(false).as("Expected an exception to be thrown").isTrue();
 			} catch (Exception e) {
 				assertInstanceOf(IllegalArgumentException.class, e);
 				assertEquals("Unable to create link to JDK in path: " + javaDir.toPath(), e.getMessage());
@@ -359,7 +349,7 @@ class TestJdk extends BaseTest {
 			}
 		});
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
 
 		Util.deletePath(jdkBroken, false);
 
@@ -372,9 +362,8 @@ class TestJdk extends BaseTest {
 			}
 		});
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedErr(),
-				equalTo("[jbang] JDK 11 has been linked to: " + jdkOk + "\n"));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedErr()).isEqualTo("[jbang] JDK 11 has been linked to: " + jdkOk + "\n");
 		assertTrue(Util.isLink(jdkPath.resolve("11")));
 		assertTrue(Files.isSameFile(jdkOk, (jdkPath.resolve("11").toRealPath())));
 	}
@@ -386,11 +375,9 @@ class TestJdk extends BaseTest {
 
 		CaptureResult<Integer> result = checkedRun(jdk -> jdk.uninstall(Integer.toString(jdkVersion)));
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedErr(),
-				containsString("[jbang] Default JDK unset"));
-		assertThat(result.normalizedErr(),
-				containsString("[jbang] Uninstalled JDK:\n  " + jdkVersion));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedErr()).contains("[jbang] Default JDK unset");
+		assertThat(result.normalizedErr()).contains("[jbang] Uninstalled JDK:\n  " + jdkVersion);
 	}
 
 	@Test
@@ -404,11 +391,9 @@ class TestJdk extends BaseTest {
 		CaptureResult<Integer> result = checkedRun((Jdk jdk) -> jdk.uninstall(Integer.toString(jdkVersion)), "jdk",
 				"--jdk-providers", "default,javahome,jbang");
 
-		assertThat(result.result, equalTo(SUCCESS_EXIT));
-		assertThat(result.normalizedErr(),
-				containsString("[jbang] Default JDK unset"));
-		assertThat(result.normalizedErr(),
-				containsString("[jbang] Uninstalled JDK:\n  " + jdkVersion));
+		assertThat(result.result).isEqualTo(SUCCESS_EXIT);
+		assertThat(result.normalizedErr()).contains("[jbang] Default JDK unset");
+		assertThat(result.normalizedErr()).contains("[jbang] Uninstalled JDK:\n  " + jdkVersion);
 	}
 
 	@Test

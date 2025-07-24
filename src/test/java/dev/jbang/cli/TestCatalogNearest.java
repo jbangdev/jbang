@@ -2,7 +2,7 @@ package dev.jbang.cli;
 
 import static dev.jbang.util.TestUtil.clearSettingsCaches;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
 
 import java.io.IOException;
@@ -66,7 +66,7 @@ public class TestCatalogNearest extends BaseTest {
 	@Test
 	void testList() throws IOException {
 		Catalog catalog = Catalog.getMerged(true, false);
-		assertThat(catalog, notNullValue());
+		org.assertj.core.api.Assertions.assertThat(catalog).isNotNull();
 
 		HashSet<String> keys = new HashSet<>(Arrays.asList(
 				"global",
@@ -74,19 +74,19 @@ public class TestCatalogNearest extends BaseTest {
 				"dotlocal",
 				"local",
 				"jbanghub"));
-		assertThat(catalog.catalogs.keySet().containsAll(keys), is(true));
+		org.assertj.core.api.Assertions.assertThat(catalog.catalogs.keySet().containsAll(keys)).isEqualTo(true);
 
-		assertThat(catalog.catalogs.get("global").catalogRef, is(aliasesFile.toString()));
-		assertThat(catalog.catalogs.get("dotparent").catalogRef, is(aliasesFile.toString()));
-		assertThat(catalog.catalogs.get("dotlocal").catalogRef, is(aliasesFile.toString()));
-		assertThat(catalog.catalogs.get("local").catalogRef, is(aliasesFile.toString()));
-		assertThat(catalog.catalogs.get("jbanghub").catalog, is(Catalog.getBuiltin()));
+		org.assertj.core.api.Assertions.assertThat(catalog.catalogs.get("global").catalogRef).isEqualTo(aliasesFile.toString());
+		org.assertj.core.api.Assertions.assertThat(catalog.catalogs.get("dotparent").catalogRef).isEqualTo(aliasesFile.toString());
+		org.assertj.core.api.Assertions.assertThat(catalog.catalogs.get("dotlocal").catalogRef).isEqualTo(aliasesFile.toString());
+		org.assertj.core.api.Assertions.assertThat(catalog.catalogs.get("local").catalogRef).isEqualTo(aliasesFile.toString());
+		org.assertj.core.api.Assertions.assertThat(catalog.catalogs.get("jbanghub").catalog).isEqualTo(Catalog.getBuiltin());
 
 		catalog.catalogs.keySet().removeAll(keys);
 		// After removing the known keys, the rest must come from the jbanghub import
 		final String JBANGHUB_URL = "https://raw.githubusercontent.com/jbanghub/jbang-catalog/main/jbang-catalog.json";
 		for (CatalogRef c : catalog.catalogs.values()) {
-			assertThat(c.catalog.catalogRef.getOriginalResource(), is(JBANGHUB_URL));
+			org.assertj.core.api.Assertions.assertThat(c.catalog.catalogRef.getOriginalResource()).isEqualTo(JBANGHUB_URL);
 		}
 	}
 
@@ -112,8 +112,8 @@ public class TestCatalogNearest extends BaseTest {
 		CatalogUtil.addNearestCatalogRef("new", ref, null, false);
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(localCatalog);
-		assertThat(catalog.catalogs.keySet(), hasItem("new"));
-		assertThat(catalog.catalogs.get("new").catalogRef, equalTo(result));
+		org.assertj.core.api.Assertions.assertThat(catalog.catalogs.keySet()).contains("new");
+		org.assertj.core.api.Assertions.assertThat(catalog.catalogs.get("new").catalogRef).isEqualTo(result);
 	}
 
 	@Test
@@ -123,8 +123,8 @@ public class TestCatalogNearest extends BaseTest {
 		CatalogUtil.addCatalogRef(Paths.get(Catalog.JBANG_CATALOG_JSON), "new", aliasesFile.toString(), null, null);
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(localCatalog);
-		assertThat(catalog.catalogs.keySet(), hasItem("new"));
-		assertThat(catalog.catalogs.get("new").catalogRef, equalTo(aliasesFile.toString()));
+		org.assertj.core.api.Assertions.assertThat(catalog.catalogs.keySet()).contains("new");
+		org.assertj.core.api.Assertions.assertThat(catalog.catalogs.get("new").catalogRef).isEqualTo(aliasesFile.toString());
 	}
 
 	@Test
@@ -141,8 +141,8 @@ public class TestCatalogNearest extends BaseTest {
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(dotLocalCatalog);
-		assertThat(catalog.catalogs.keySet(), hasItem("new"));
-		assertThat(catalog.catalogs.get("new").catalogRef, equalTo(result));
+		org.assertj.core.api.Assertions.assertThat(catalog.catalogs.keySet()).contains("new");
+		org.assertj.core.api.Assertions.assertThat(catalog.catalogs.get("new").catalogRef).isEqualTo(result);
 	}
 
 	@Test
@@ -162,8 +162,8 @@ public class TestCatalogNearest extends BaseTest {
 		assertThat(dotLocalCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(parentCatalog);
-		assertThat(catalog.catalogs.keySet(), hasItem("new"));
-		assertThat(catalog.catalogs.get("new").catalogRef, equalTo(result));
+		org.assertj.core.api.Assertions.assertThat(catalog.catalogs.keySet()).contains("new");
+		org.assertj.core.api.Assertions.assertThat(catalog.catalogs.get("new").catalogRef).isEqualTo(result);
 	}
 
 	@Test
@@ -185,8 +185,8 @@ public class TestCatalogNearest extends BaseTest {
 		assertThat(parentCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(Settings.getUserCatalogFile());
-		assertThat(catalog.catalogs.keySet(), hasItem("new"));
-		assertThat(catalog.catalogs.get("new").catalogRef, equalTo(result));
+		org.assertj.core.api.Assertions.assertThat(catalog.catalogs.keySet()).contains("new");
+		org.assertj.core.api.Assertions.assertThat(catalog.catalogs.get("new").catalogRef).isEqualTo(result);
 	}
 
 	@Test
@@ -196,7 +196,7 @@ public class TestCatalogNearest extends BaseTest {
 		CatalogUtil.removeNearestCatalogRef("local");
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(localCatalog);
-		assertThat(catalog.catalogs.keySet(), not(hasItem("local")));
+		org.assertj.core.api.Assertions.assertThat(catalog.catalogs.keySet()).doesNotContain("local");
 	}
 
 	@Test
@@ -206,7 +206,7 @@ public class TestCatalogNearest extends BaseTest {
 		CatalogUtil.removeNearestCatalogRef("dotlocal");
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(dotLocalCatalog);
-		assertThat(catalog.catalogs.keySet(), not(hasItem("dotlocal")));
+		org.assertj.core.api.Assertions.assertThat(catalog.catalogs.keySet()).doesNotContain("dotlocal");
 	}
 
 	@Test
@@ -216,7 +216,7 @@ public class TestCatalogNearest extends BaseTest {
 		CatalogUtil.removeNearestCatalogRef("dotparent");
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(parentCatalog);
-		assertThat(catalog.catalogs.keySet(), not(hasItem("dotparent")));
+		org.assertj.core.api.Assertions.assertThat(catalog.catalogs.keySet()).doesNotContain("dotparent");
 	}
 
 	@Test
@@ -225,6 +225,6 @@ public class TestCatalogNearest extends BaseTest {
 		CatalogUtil.removeNearestCatalogRef("global");
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(globalCatalog);
-		assertThat(catalog.catalogs.keySet(), not(hasItem("global")));
+		org.assertj.core.api.Assertions.assertThat(catalog.catalogs.keySet()).doesNotContain("global");
 	}
 }

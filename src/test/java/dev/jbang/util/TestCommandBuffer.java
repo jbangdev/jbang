@@ -20,10 +20,10 @@ public class TestCommandBuffer extends BaseTest {
 	void testRunWinBat() {
 		String out = Util.runCommand(examplesTestFolder.resolve("echo.bat").toString(), "abc def", "abc;def",
 				"abc=def", "abc,def");
-		assertThat(out, containsString("ARG = abc def"));
-		assertThat(out, containsString("ARG = abc;def"));
-		assertThat(out, containsString("ARG = abc=def"));
-		assertThat(out, containsString("ARG = abc,def"));
+		org.assertj.core.api.Assertions.assertThat(out).contains("ARG = abc def");
+		org.assertj.core.api.Assertions.assertThat(out).contains("ARG = abc;def");
+		org.assertj.core.api.Assertions.assertThat(out).contains("ARG = abc=def");
+		org.assertj.core.api.Assertions.assertThat(out).contains("ARG = abc,def");
 	}
 
 	@Test
@@ -32,17 +32,17 @@ public class TestCommandBuffer extends BaseTest {
 		environmentVariables.set(JBANG_RUNTIME_SHELL, "bash");
 		String out = Util.runCommand(examplesTestFolder.resolve("echo.bat").toString(), "abc def", "abc;def",
 				"abc=def", "abc,def");
-		assertThat(out, containsString("ARG = abc def"));
-		assertThat(out, containsString("ARG = abc;def"));
-		assertThat(out, containsString("ARG = abc=def"));
-		assertThat(out, containsString("ARG = abc,def"));
+		org.assertj.core.api.Assertions.assertThat(out).contains("ARG = abc def");
+		org.assertj.core.api.Assertions.assertThat(out).contains("ARG = abc;def");
+		org.assertj.core.api.Assertions.assertThat(out).contains("ARG = abc=def");
+		org.assertj.core.api.Assertions.assertThat(out).contains("ARG = abc,def");
 	}
 
 	@Test
 	@EnabledOnOs(OS.WINDOWS)
 	void testRunWinPS1() {
 		String out = CommandBuffer.of("abc def", "abc;def").shell(Util.Shell.powershell).asCommandLine();
-		assertThat(out, equalTo("'abc def' 'abc;def'"));
+		org.assertj.core.api.Assertions.assertThat(out).isEqualTo("'abc def' 'abc;def'");
 	}
 
 	@Test
@@ -52,7 +52,7 @@ public class TestCommandBuffer extends BaseTest {
 			.shell(Util.Shell.cmd)
 			.applyWindowsMaxProcessLimit()
 			.asProcessBuilder();
-		assertThat(pb.command().size(), greaterThan(2));
+		org.assertj.core.api.Assertions.assertThat(pb.command().size()).isGreaterThan(2);
 		assertThat(pb.command().get(1), not(anyOf(startsWith("@"), startsWith("\"@"))));
 	}
 
@@ -63,8 +63,12 @@ public class TestCommandBuffer extends BaseTest {
 			.shell(Util.Shell.cmd)
 			.applyWindowsMaxProcessLimit()
 			.asProcessBuilder();
-		assertThat(pb.command().size(), equalTo(2));
-		assertThat(pb.command().get(1), anyOf(startsWith("@"), startsWith("\"@")));
+		org.assertj.core.api.Assertions.assertThat(pb.command().size()).isEqualTo(2);
+		org.assertj.core.api.Assertions.assertThat(pb.command().get(1))
+			.satisfiesAnyOf(
+				arg -> org.assertj.core.api.Assertions.assertThat(arg).startsWith("@"),
+				arg -> org.assertj.core.api.Assertions.assertThat(arg).startsWith("\"@")
+			);
 	}
 
 	@Test
@@ -74,7 +78,7 @@ public class TestCommandBuffer extends BaseTest {
 			.shell(Util.Shell.bash)
 			.applyWindowsMaxProcessLimit()
 			.asProcessBuilder();
-		assertThat(pb.command().size(), greaterThan(2));
+		org.assertj.core.api.Assertions.assertThat(pb.command().size()).isGreaterThan(2);
 		assertThat(pb.command().get(1), not(anyOf(startsWith("@"), startsWith("\"@"))));
 	}
 
@@ -85,8 +89,12 @@ public class TestCommandBuffer extends BaseTest {
 			.shell(Util.Shell.cmd)
 			.applyWindowsMaxProcessLimit()
 			.asProcessBuilder();
-		assertThat(pb.command().size(), equalTo(2));
-		assertThat(pb.command().get(1), anyOf(startsWith("@"), startsWith("\"@")));
+		org.assertj.core.api.Assertions.assertThat(pb.command().size()).isEqualTo(2);
+		org.assertj.core.api.Assertions.assertThat(pb.command().get(1))
+			.satisfiesAnyOf(
+				arg -> org.assertj.core.api.Assertions.assertThat(arg).startsWith("@"),
+				arg -> org.assertj.core.api.Assertions.assertThat(arg).startsWith("\"@")
+			);
 	}
 
 	@Test
@@ -96,8 +104,12 @@ public class TestCommandBuffer extends BaseTest {
 			.shell(Util.Shell.bash)
 			.applyWindowsMaxProcessLimit()
 			.asProcessBuilder();
-		assertThat(pb.command().size(), equalTo(2));
-		assertThat(pb.command().get(1), anyOf(startsWith("@"), startsWith("\"@")));
+		org.assertj.core.api.Assertions.assertThat(pb.command().size()).isEqualTo(2);
+		org.assertj.core.api.Assertions.assertThat(pb.command().get(1))
+			.satisfiesAnyOf(
+				arg -> org.assertj.core.api.Assertions.assertThat(arg).startsWith("@"),
+				arg -> org.assertj.core.api.Assertions.assertThat(arg).startsWith("\"@")
+			);
 	}
 
 	@Test
@@ -107,8 +119,12 @@ public class TestCommandBuffer extends BaseTest {
 			.shell(Util.Shell.cmd)
 			.applyWindowsMaxProcessLimit()
 			.asProcessBuilder();
-		assertThat(pb.command().size(), equalTo(2));
-		assertThat(pb.command().get(1), anyOf(startsWith("@"), startsWith("\"@")));
+		org.assertj.core.api.Assertions.assertThat(pb.command().size()).isEqualTo(2);
+		org.assertj.core.api.Assertions.assertThat(pb.command().get(1))
+			.satisfiesAnyOf(
+				arg -> org.assertj.core.api.Assertions.assertThat(arg).startsWith("@"),
+				arg -> org.assertj.core.api.Assertions.assertThat(arg).startsWith("\"@")
+			);
 	}
 
 	@Test
@@ -118,28 +134,36 @@ public class TestCommandBuffer extends BaseTest {
 			.shell(Util.Shell.bash)
 			.applyWindowsMaxProcessLimit()
 			.asProcessBuilder();
-		assertThat(pb.command().size(), equalTo(2));
-		assertThat(pb.command().get(1), anyOf(startsWith("@"), startsWith("\"@")));
+		org.assertj.core.api.Assertions.assertThat(pb.command().size()).isEqualTo(2);
+		org.assertj.core.api.Assertions.assertThat(pb.command().get(1))
+			.satisfiesAnyOf(
+				arg -> org.assertj.core.api.Assertions.assertThat(arg).startsWith("@"),
+				arg -> org.assertj.core.api.Assertions.assertThat(arg).startsWith("\"@")
+			);
 	}
 
 	@Test
 	void testUsingArgsFileWith1Arg() throws IOException {
 		ProcessBuilder pb = CommandBuffer.of("abc").usingArgsFile().asProcessBuilder();
-		assertThat(pb.command().size(), equalTo(1));
+		org.assertj.core.api.Assertions.assertThat(pb.command().size()).isEqualTo(1);
 	}
 
 	@Test
 	void testUsingArgsFileWith3Args() throws IOException {
 		ProcessBuilder pb = CommandBuffer.of("abc", "def", "ghi").usingArgsFile().asProcessBuilder();
-		assertThat(pb.command().size(), equalTo(2));
-		assertThat(pb.command().get(1), anyOf(startsWith("@"), startsWith("\"@")));
+		org.assertj.core.api.Assertions.assertThat(pb.command().size()).isEqualTo(2);
+		org.assertj.core.api.Assertions.assertThat(pb.command().get(1))
+			.satisfiesAnyOf(
+				arg -> org.assertj.core.api.Assertions.assertThat(arg).startsWith("@"),
+				arg -> org.assertj.core.api.Assertions.assertThat(arg).startsWith("\"@")
+			);
 	}
 
 	@Test
 	void testUsingArgsFileNoDup() throws IOException {
 		CommandBuffer cmd = CommandBuffer.of("abc", "def", "ghi").usingArgsFile();
 		CommandBuffer cmd2 = cmd.usingArgsFile();
-		assertThat(cmd, is(cmd2));
+		org.assertj.core.api.Assertions.assertThat(cmd).isEqualTo(cmd2);
 	}
 
 	private String[] argsTooLong(String cmd, int cnt) {

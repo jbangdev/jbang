@@ -2,7 +2,7 @@ package dev.jbang.cli;
 
 import static dev.jbang.util.TestUtil.clearSettingsCaches;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.io.FileMatchers.anExistingFile;
 
 import java.io.IOException;
@@ -68,8 +68,8 @@ public class TestAliasNearestWithBaseRef extends BaseTest {
 		CatalogUtil.addNearestAlias("new", new Alias().withScriptRef("scripts/local.java"));
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(localCatalog);
-		assertThat(catalog.aliases.keySet(), hasItem("new"));
-		assertThat(catalog.aliases.get("new").scriptRef, equalTo("local.java"));
+		org.assertj.core.api.Assertions.assertThat(catalog.aliases.keySet()).contains("new");
+		org.assertj.core.api.Assertions.assertThat(catalog.aliases.get("new").scriptRef).isEqualTo("local.java");
 	}
 
 	@Test
@@ -82,8 +82,8 @@ public class TestAliasNearestWithBaseRef extends BaseTest {
 		assertThat(localCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(dotLocalCatalog);
-		assertThat(catalog.aliases.keySet(), hasItem("new"));
-		assertThat(catalog.aliases.get("new").scriptRef, equalTo("local.java"));
+		org.assertj.core.api.Assertions.assertThat(catalog.aliases.keySet()).contains("new");
+		org.assertj.core.api.Assertions.assertThat(catalog.aliases.get("new").scriptRef).isEqualTo("local.java");
 	}
 
 	@Test
@@ -99,8 +99,8 @@ public class TestAliasNearestWithBaseRef extends BaseTest {
 		assertThat(dotLocalCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(parentCatalog);
-		assertThat(catalog.aliases.keySet(), hasItem("new"));
-		assertThat(catalog.aliases.get("new").scriptRef.replace('\\', '/'), equalTo("../test/scripts/local.java"));
+		org.assertj.core.api.Assertions.assertThat(catalog.aliases.keySet()).contains("new");
+		org.assertj.core.api.Assertions.assertThat(catalog.aliases.get("new").scriptRef.replace('\\', '/')).isEqualTo("../test/scripts/local.java");
 	}
 
 	@Test
@@ -116,8 +116,8 @@ public class TestAliasNearestWithBaseRef extends BaseTest {
 		assertThat(dotLocalCatalog.toFile(), not(anExistingFile()));
 		clearSettingsCaches();
 		Catalog catalog = Catalog.get(parentCatalog);
-		assertThat(catalog.aliases.keySet(), hasItem("new"));
-		assertThat(catalog.aliases.get("new").scriptRef, equalTo("parent.java"));
+		org.assertj.core.api.Assertions.assertThat(catalog.aliases.keySet()).contains("new");
+		org.assertj.core.api.Assertions.assertThat(catalog.aliases.get("new").scriptRef).isEqualTo("parent.java");
 	}
 
 }
