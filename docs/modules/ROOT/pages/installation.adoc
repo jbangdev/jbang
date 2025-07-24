@@ -49,7 +49,7 @@ Windows Powershell:
 iex "& { $(iwr -useb https://ps.jbang.dev) } app setup"
 ----
 
-== SDKMan icon:linux[] / icon:apple[]
+== SDKMAN
 
 Although if you want to have easy updates or install multiple JBang versions we recommend
 https://sdkman.io[sdkman] to install both java and `jbang` on Linux and OSX.
