@@ -14,9 +14,9 @@ endif::[]
 
 toc::[]
 
-To use `jbang` Java 8 is the minimum required version, however Java 11 or higher is recommended.
+To use `jbang` Java 8 is the minimum required version, however Java 17 or higher is recommended.
 
-Note: `jbang` will download and install `java` from Adopt OpenJDK if no `java` is available.
+Note: `jbang` will download and install `java` from Eclipse Temurin if no `java` is available.
 
 There are multiple ways to install jbang. See below for all available options.
 
@@ -123,23 +123,23 @@ To upgrade to latest version:
 
 == Homebrew icon:apple[]
 
-On OSX you can install 'java' and `jbang` with https://brew.sh[Homebrew] using custom taps.
-
-To install Java 11:
+Brew has a default tap for `jbang` which you can install with:
 
 [source, bash]
 ----
-brew tap AdoptOpenJDK/openjdk
-brew install adoptopenjdk11 --cask
+brew install jbang
 ----
 
-Once Java is installed you can use brew with https://github.com/jbangdev/homebrew-tap/[jbangdev/tap] to get `jbang`:
+That is perfectly fine for most use cases.
+
+JBang also has a custom tap which is updated at release time of JBang - where as the default tap is updated whenever brew main repo is updated and reviewed:
 
   brew install jbangdev/tap/jbang
 
 To upgrade to latest version:
 
   brew upgrade jbangdev/tap/jbang
+
 
 == (Experimental) Linux packages icon:linux[]
 
