@@ -106,12 +106,15 @@ public class BaseIT {
 		String javaMajorVersion = System.getenv("_JBANG_TEST_JAVA_VERSION");
 
 		if (testJavaHome == null) {
-			JdkManager jdkMan = JavaUtil.defaultJdkManager(List.of());
+			// We want to make sure the "multihome" is added for when we run in GH CI
+			JdkManager jdkMan = JavaUtil.defaultJdkManagerBuilder().provider("multihome").build();
 			// if env not avail it is null and will use default jdk
-			// to use same jdk as what tetss run with to make it more
+			// to use same jdk as what tets run with to make it more
 			// deterministic.
 
-			InstalledJdk jdk = jdkMan.getOrInstallJdk(testJavaMajorVersion + "");
+			System.err.println("Requested Java version: " + javaMajorVersion);
+			InstalledJdk jdk = jdkMan.getOrInstallJdk(testJavaMajorVersion > 0 ? testJavaMajorVersion + "" : null);
+			System.err.println("Using JDK: " + jdk);
 			testJavaHome = jdk.home().toString();
 		} else {
 			if (!Files.exists(Paths.get(testJavaHome))) {
