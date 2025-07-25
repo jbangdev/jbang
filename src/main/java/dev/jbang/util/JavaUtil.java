@@ -33,28 +33,42 @@ public class JavaUtil {
 
 	@NonNull
 	public static JdkManager defaultJdkManager(String... names) {
-		return defaultJdkManager(names != null ? Arrays.asList(names) : null);
+		return defaultJdkManagerBuilder(names).build();
 	}
 
 	@NonNull
-	public static JdkManager defaultJdkManager(List<String> names) {
-		return (new JdkManBuilder())
-			.provider(names)
-			.defaultJavaVersion(Settings.getDefaultJavaVersion())
-			.build();
+	public static JdkManBuilder defaultJdkManagerBuilder(String... names) {
+		return defaultJdkManagerBuilder(names != null ? Arrays.asList(names) : null, null);
+	}
+
+	@NonNull
+	public static JdkManager defaultJdkManager(List<String> providers, List<String> vendors) {
+		return defaultJdkManagerBuilder(providers, vendors).build();
+	}
+
+	@NonNull
+	public static JdkManBuilder defaultJdkManagerBuilder(List<String> providers, List<String> vendors) {
+		if (providers == null || providers.isEmpty()) {
+			providers = JdkManBuilder.PROVIDERS_DEFAULT;
+		}
+		return (JdkManBuilder) (new JdkManBuilder())
+			.provider(providers)
+			.vendor(vendors)
+			.defaultJavaVersion(Settings.getDefaultJavaVersion());
 	}
 
 	public static class JdkManBuilder extends JdkManager.Builder {
 		private final Set<String> providerNames = new LinkedHashSet<>();
+		private final Set<String> vendorNames = new LinkedHashSet<>();
 
 		public static final List<String> PROVIDERS_ALL = JdkProviders.instance().allNames();
 		public static final List<String> PROVIDERS_DEFAULT = JdkProviders.instance().basicNames();
 
-		public JdkManager.Builder provider(String... names) {
+		public JdkManBuilder provider(String... names) {
 			return provider(names != null ? Arrays.asList(names) : null);
 		}
 
-		public JdkManager.Builder provider(List<String> names) {
+		public JdkManBuilder provider(List<String> names) {
 			if (names != null) {
 				for (String providerName : names) {
 					if (providerName.equals("all")) {
@@ -65,6 +79,17 @@ public class JavaUtil {
 						Util.warnMsg("Unknown JDK provider: " + providerName);
 					}
 				}
+			}
+			return this;
+		}
+
+		public JdkManBuilder vendor(String... names) {
+			return vendor(names != null ? Arrays.asList(names) : null);
+		}
+
+		public JdkManBuilder vendor(List<String> names) {
+			if (names != null) {
+				vendorNames.addAll(names);
 			}
 			return this;
 		}
@@ -88,7 +113,7 @@ public class JavaUtil {
 
 			}
 
-			if (providers.size() == 0) {
+			if (providers.isEmpty()) {
 				Util.warnMsg("No JDK providers selected or available. Run with --verbose for more details.");
 				Util.verboseMsg("Available JDK providers: " + PROVIDERS_ALL);
 			}
@@ -99,13 +124,19 @@ public class JavaUtil {
 			JdkProvider provider;
 			switch (providerName) {
 			case "default":
-				provider = new DefaultJdkProvider(Settings.getDefaultJdkDir());
+				provider = new DefaultJdkProvider(Settings.getDefaultJdkDir(),
+						Settings.getCacheDir(Cache.CacheClass.jdks));
 				break;
 			case "jbang":
 				JBangJdkProvider p = new JBangJdkProvider();
-				p.installer(new FoojayJdkInstaller(p, p::jdkId)
-					.distro(Util.getVendor())
-					.remoteAccessProvider(new JBangRemoteAccessProvider()));
+				String distro = Util.getVendor();
+				if (!vendorNames.isEmpty()) {
+					distro = String.join(",", vendorNames);
+				}
+				FoojayJdkInstaller installer = new FoojayJdkInstaller(p)
+					.distro(distro)
+					.remoteAccessProvider(new JBangRemoteAccessProvider());
+				p.installer(installer);
 				provider = p;
 				break;
 			default:
