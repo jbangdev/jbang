@@ -1,3 +1,12 @@
+hooks:
+  script:
+    success:
+      - run: |
+          container-structure-test test --image docker.io/maxandersen/jbang-action:v{{projectVersion}} --config src/jreleaser/distributions/jbang-action/docker/container-structure-test.yaml
+        verbose: true
+        filter:
+          includes: ['package']
+
 project:
   name: jbang
   description: Unleash the power of Java

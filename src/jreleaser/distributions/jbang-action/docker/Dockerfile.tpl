@@ -14,7 +14,8 @@ COPY assembly/* /
 ## mkdir of .userPrefs is to fix https://github.com/jbangdev/jbang/issues/1831
 RUN jar xf {{distributionArtifactFileName}}{{distributionArtifactFileExtension}} && \
     rm {{distributionArtifactFileName}}{{distributionArtifactFileExtension}} && \
-    chmod +x {{distributionArtifactRootEntryName}}/bin/{{distributionExecutableUnix}} && \
+    mv jbang-* jbang && \
+    chmod +x jbang/bin/jbang && \
     mkdir -p $HOME/.java/.userPrefs
 
 {{#dockerPostCommands}}
