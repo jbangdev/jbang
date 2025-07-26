@@ -1,31 +1,40 @@
-# {{jreleaserCreationStamp}}
 FROM {{dockerBaseImage}}
 
 {{#dockerLabels}}
 LABEL {{.}}
 {{/dockerLabels}}
-LABEL org.opencontainers.image.source=https://github.com/jbangdev/jbang-container
+LABEL org.opencontainers.image.source=https://github.com/jbangdev/jbang-action
 
 {{#dockerPreCommands}}
 {{.}}
 {{/dockerPreCommands}}
 
-COPY assembly/ /
+COPY assembly/* /
 
 ## mkdir of .userPrefs is to fix https://github.com/jbangdev/jbang/issues/1831
 RUN jar xf {{distributionArtifactFileName}}{{distributionArtifactFileExtension}} && \
     rm {{distributionArtifactFileName}}{{distributionArtifactFileExtension}} && \
-    chmod +x {{distributionArtifactRootEntryName}}/bin/{{distributionExecutableUnix}} && \
+    mv jbang-* jbang && \
+    chmod +x jbang/bin/jbang && \
     mkdir -p $HOME/.java/.userPrefs
 
-    
 {{#dockerPostCommands}}
 {{.}}
 {{/dockerPostCommands}}
 
-VOLUME /scripts
+ENV PATH="${PATH}:/{{distributionArtifactName}}/bin"
+
 ADD ./entrypoint /bin/entrypoint
 
-ENV PATH="${PATH}:/{{distributionArtifactRootEntryName}}/bin"
+ENV SCRIPTS_HOME=/scripts
+ENV JBANG_VERSION={{projectVersion}}
+ENV JBANG_PATH=/jbang/bin
+
+VOLUME /scripts
+
+ENV PATH="${PATH}:/jbang/bin"
+
+## github action does not allow writing to $HOME thus routing this elsewhere
+ENV JBANG_DIR="/jbang/.jbang"
 
 ENTRYPOINT ["entrypoint"]
