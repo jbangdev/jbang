@@ -31,10 +31,10 @@ import dev.jbang.util.Util;
 
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "app", description = "Manage scripts installed on the user's PATH as commands.", subcommands = {
+@CommandLine.Command(name = "app", mixinStandardHelpOptions=true, description = "Manage scripts installed on the user's PATH as commands.", subcommands = {
 		AppInstall.class, AppList.class,
 		AppUninstall.class, AppSetup.class })
-public class App {
+public class App extends BaseCommand {
 
 	public static void deleteCommandFiles(String name) {
 		try (Stream<Path> files = Files.list(Settings.getConfigBinDir())) {
@@ -44,6 +44,12 @@ public class App {
 		} catch (IOException e) {
 			// Ignore
 		}
+	}
+
+	@Override
+	public Integer doCall() throws IOException {
+		warn("composite command, specify one of the available subcommands [install, list, uninstall, setup]");
+		return EXIT_INVALID_INPUT;
 	}
 }
 
