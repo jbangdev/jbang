@@ -5,6 +5,7 @@ hooks:
           ## TODO: use the correct owner as defined in jreleaser - https://github.com/jreleaser/jreleaser/issues/1937 
           container-structure-test test --image docker.io/jbangdev/jbang-action:{{tagName}} --config src/jreleaser/distributions/jbang/docker/container-structure-test.yaml
         verbose: true
+        # disabled as org/username locally will not be jbangdev
         condition: '"{{ Env.CONTAINER_STRUCTURE_TEST }}" == true'
         filter:
           includes: ['package']

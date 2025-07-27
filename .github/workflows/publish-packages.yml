@@ -28,6 +28,14 @@ jobs:
         with:
           fetch-depth: 0
     
+      - name: Install container-structure-test
+        run: |
+          curl -LO https://github.com/GoogleContainerTools/container-structure-test/releases/latest/download/container-structure-test-linux-amd64
+          chmod +x container-structure-test-linux-amd64
+          mkdir -p $HOME/.local/bin
+          mv container-structure-test-linux-amd64 bin
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
       - name: Login to docker hub
         if: success()
         uses: actions-hub/docker/login@v3
