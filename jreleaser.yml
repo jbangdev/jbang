@@ -141,7 +141,7 @@ distributions:
           externalLogin: true
         - serverName: docker.io
           externalLogin: true
-        - serverName: gcr.io
+        - serverName: ghcr.io
           externalLogin: true
       specs:
         java-8:
@@ -219,7 +219,7 @@ distributions:
           externalLogin: true
         - serverName: docker.io
           externalLogin: true
-        - serverName: gcr.io
+        - serverName: ghcr.io
           externalLogin: true
     artifacts:
       - path: build/distributions/jbang-{{projectVersion}}.zip
