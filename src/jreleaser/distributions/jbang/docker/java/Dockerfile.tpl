@@ -23,7 +23,7 @@ RUN jar xf {{distributionArtifactFileName}}{{distributionArtifactFileExtension}}
 {{.}}
 {{/dockerPostCommands}}
 
-VOLUME /scripts
+VOLUME /workspace
 ADD ./entrypoint /bin/entrypoint
 
 ENV PATH="${PATH}:/{{distributionArtifactRootEntryName}}/bin"

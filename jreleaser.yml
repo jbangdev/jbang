@@ -104,7 +104,6 @@ distributions:
     docker: 
       active: RELEASE
       continueOnError: true
-      templateDirectory: src/jreleaser/distributions/jbang/docker
       repository:
         name: jbang-container
       registries:
@@ -117,28 +116,28 @@ distributions:
       specs:
         java-8:
           baseImage: "eclipse-temurin:8"          
-          templateDirectory: src/jreleaser/distributions/jbang/docker
+          templateDirectory: src/jreleaser/distributions/jbang/docker/java
           imageNames:
             - 'jbangdev/jbang:{{tagName}}-{{dockerSpecName}}'
           matchers:
             distro: jbang-container
         java-11:
           baseImage: "eclipse-temurin:11"          
-          templateDirectory: src/jreleaser/distributions/jbang/docker
+          templateDirectory: src/jreleaser/distributions/jbang/docker/java
           imageNames:
             - 'jbangdev/jbang:{{tagName}}-{{dockerSpecName}}'
           matchers:
             distro: jbang-container
         java-17:
           baseImage: "eclipse-temurin:17"
-          templateDirectory: src/jreleaser/distributions/jbang/docker
+          templateDirectory: src/jreleaser/distributions/jbang/docker/java
           imageNames:
             - 'jbangdev/jbang:{{tagName}}-{{dockerSpecName}}'
           matchers:
             distro: jbang-container
         java-21:
           baseImage: "eclipse-temurin:21"
-          templateDirectory: src/jreleaser/distributions/jbang/docker
+          templateDirectory: src/jreleaser/distributions/jbang/docker/java
           imageNames:
             - 'jbangdev/jbang:{{tagName}}-{{dockerSpecName}}'
             - 'jbangdev/jbang:latest'
