@@ -23,6 +23,7 @@ jobs:
       JRELEASER_GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
       JRELEASER_MAVENCENTRAL_JBANG_USERNAME: ${{ secrets.OSSRH_USERNAME }}
       JRELEASER_MAVENCENTRAL_JBANG_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+      JRELEASER_DOCKER_DEFAULT_PASSWORD: notusedbutrequiredbyjreleaser
       JRELEASER_VERSION: 1.19.0
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
