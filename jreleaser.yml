@@ -178,14 +178,19 @@ distributions:
       - path: build/distributions/jbang-{{projectVersion}}.zip
       - path: build/distributions/jbang-{{projectVersion}}.tar
   jbang-action:
-    docker:  ## not ready to release this way.
+    docker:  
       active: RELEASE
       continueOnError: true
-      postCommands:
-        - "VOLUME /scripts"
       baseImage: "eclipse-temurin:11"
       repository:
         name: jbang-action
+      registries:
+        - serverName: quay.io
+          externalLogin: true
+        - serverName: docker.io
+          externalLogin: true
+        - serverName: gcr.io
+          externalLogin: true
     artifacts:
       - path: build/distributions/jbang-{{projectVersion}}.zip
       - path: build/distributions/jbang-{{projectVersion}}.tar
