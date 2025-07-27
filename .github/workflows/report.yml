@@ -19,6 +19,12 @@ jobs:
       #- name: Set up GitHub CLI
       #  uses: actions/setup-gh@v2
 
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ github.event.workflow_run.head_sha }}
+
       - name: Get workflow run details
         id: workflow_details
         env:
