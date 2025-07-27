@@ -85,7 +85,7 @@ announce:
       name: jbang.dev
     files:
       - path: 'blogpost.adoc'
-        transform: '_drafts/{{projectName}}-{{#f_dash}}{{projectVersion}}{{/f_dash}}-released.adoc'
+        transform: 'content/posts/{{projectName}}-{{#f_dash}}{{projectVersion}}{{/f_dash}}-released.adoc'
 
 files:
   artifacts:
