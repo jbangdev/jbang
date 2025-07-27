@@ -1,3 +1,15 @@
+hooks:
+  script:
+    success:
+      - run: |
+          ## TODO: use the correct owner as defined in jreleaser - https://github.com/jreleaser/jreleaser/issues/1937 
+          container-structure-test test --image docker.io/jbangdev/jbang-action:{{tagName}} --config src/jreleaser/distributions/jbang/docker/container-structure-test.yaml
+        verbose: true
+        # disabled as org/username locally will not be jbangdev
+        condition: '"{{ Env.CONTAINER_STRUCTURE_TEST }}" == true'
+        filter:
+          includes: ['package']
+
 project:
   name: jbang
   description: Unleash the power of Java
@@ -11,6 +23,7 @@ project:
     license: https://github.com/jbangdev/jbang/blob/main/LICENSE
   authors:
     - Max Rydahl Andersen
+    - Tako Schotanus
   license: MIT
   tags:
     - jbang
@@ -82,16 +95,61 @@ files:
 
 distributions:
   jbang:
+    extraProperties:
+      # Key will be capitalized and prefixed with `distribution`, i.e, `distributionFoo`.
+      # Used to trigger only specific multi docker builds
+      distro: jbang-container
     executable:
       windowsExtension: cmd
-    #docker:  ## not ready to release this way.
-    #  active: RELEASE
-    #  continueOnError: true
-    #  postCommands:
-    #    - "VOLUME /scripts"
-    #  baseImage: "adoptopenjdk:11-jdk-hotspot"
-    #  repository:
-    #    name: jbang-action
+    docker: 
+      active: RELEASE
+      continueOnError: true
+      repository:
+        name: jbang-container
+      registries:
+        - serverName: quay.io
+          externalLogin: true
+        - serverName: docker.io
+          externalLogin: true
+        - serverName: gcr.io
+          externalLogin: true
+      specs:
+        java-8:
+          baseImage: "eclipse-temurin:8"          
+          templateDirectory: src/jreleaser/distributions/jbang/docker/java
+          imageNames:
+            - 'jbangdev/jbang:{{tagName}}-{{dockerSpecName}}'
+          matchers:
+            distro: jbang-container
+        java-11:
+          baseImage: "eclipse-temurin:11"          
+          templateDirectory: src/jreleaser/distributions/jbang/docker/java
+          imageNames:
+            - 'jbangdev/jbang:{{tagName}}-{{dockerSpecName}}'
+          matchers:
+            distro: jbang-container
+        java-17:
+          baseImage: "eclipse-temurin:17"
+          templateDirectory: src/jreleaser/distributions/jbang/docker/java
+          imageNames:
+            - 'jbangdev/jbang:{{tagName}}-{{dockerSpecName}}'
+          matchers:
+            distro: jbang-container
+        java-21:
+          baseImage: "eclipse-temurin:21"
+          templateDirectory: src/jreleaser/distributions/jbang/docker/java
+          imageNames:
+            - 'jbangdev/jbang:{{tagName}}-{{dockerSpecName}}'
+            - 'jbangdev/jbang:latest'
+          matchers:
+            distro: jbang-container
+        #java-24:
+        #  baseImage: "eclipse-temurin:24"
+        #  templateDirectory: src/jreleaser/distributions/jbang/docker
+        #  imageNames:
+        #    - 'jbangdev/jbang:{{tagName}}-{{dockerSpecName}}'
+        #  matchers:
+        #    distro: jbang-container
     sdkman:
       active: RELEASE
       continueOnError: true
@@ -119,3 +177,16 @@ distributions:
     artifacts:
       - path: build/distributions/jbang-{{projectVersion}}.zip
       - path: build/distributions/jbang-{{projectVersion}}.tar
+  jbang-action:
+    docker:  ## not ready to release this way.
+      active: RELEASE
+      continueOnError: true
+      postCommands:
+        - "VOLUME /scripts"
+      baseImage: "eclipse-temurin:11"
+      repository:
+        name: jbang-action
+    artifacts:
+      - path: build/distributions/jbang-{{projectVersion}}.zip
+      - path: build/distributions/jbang-{{projectVersion}}.tar
+    
