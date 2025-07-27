@@ -2,7 +2,8 @@ on:
   release:
     types:
       - published
-
+  workflow_dispatch:  
+    
 name: release-3rdparty
 jobs:   
   build:
