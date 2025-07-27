@@ -1,6 +1,22 @@
 hooks:
   script:
+    before:
+      - condition: '"{{ Env.GITHUB_STEP_SUMMARY }}".empty() != true'
+        filter:
+          includes: ['package']
+        run: |
+          echo "### {{command}}" >> $GITHUB_STEP_SUMMARY
+          echo "| Step | Outcome |" >> $GITHUB_STEP_SUMMARY
+          echo "| ---- | ------- |" >> $GITHUB_STEP_SUMMARY
     success:
+      - condition: '"{{ Env.GITHUB_STEP_SUMMARY }}".empty() != true'
+        filter:
+          excludes: ['session']
+        run: 'echo "| {{event.name}} | :white_check_mark: |" >> $GITHUB_STEP_SUMMARY'
+      - condition: '"{{ Env.GITHUB_STEP_SUMMARY }}".empty() != true'
+        filter:
+          includes: ['session']
+        run: echo "" >> $GITHUB_STEP_SUMMARY
       - run: |
           ## TODO: use the correct owner as defined in jreleaser - https://github.com/jreleaser/jreleaser/issues/1937 
           container-structure-test test --image docker.io/jbangdev/jbang-action:{{tagName}} --config src/jreleaser/distributions/jbang/docker/container-structure-test.yaml
@@ -9,6 +25,20 @@ hooks:
         condition: '"{{ Env.CONTAINER_STRUCTURE_TEST }}" == true'
         filter:
           includes: ['package']
+    failure:
+      - condition: '"{{ Env.GITHUB_STEP_SUMMARY }}".empty() != true'
+        filter:
+          excludes: ['session']
+        run: 'echo "| {{event.name}} | :x: |" >> $GITHUB_STEP_SUMMARY'
+      - condition: '"{{ Env.GITHUB_STEP_SUMMARY }}".empty() != true'
+        filter:
+          includes: ['session']
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Failure" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "{{event.stacktrace}}\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
 
 project:
   name: jbang
