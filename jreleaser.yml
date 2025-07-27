@@ -2,8 +2,10 @@ hooks:
   script:
     success:
       - run: |
-          container-structure-test test --image docker.io/maxandersen/jbang-action:v{{projectVersion}} --config src/jreleaser/distributions/jbang-action/docker/container-structure-test.yaml
+          ## TODO: use the correct owner as defined in jreleaser - https://github.com/jreleaser/jreleaser/issues/1937 
+          container-structure-test test --image docker.io/jbangdev/jbang-action:{{tagName}} --config src/jreleaser/distributions/jbang/docker/container-structure-test.yaml
         verbose: true
+        condition: '"{{ Env.CONTAINER_STRUCTURE_TEST }}" == true'
         filter:
           includes: ['package']
 
@@ -103,7 +105,21 @@ distributions:
       templateDirectory: src/jreleaser/distributions/jbang/docker
       repository:
         name: jbang-container
+      registries:
+        - serverName: quay.io
+          externalLogin: true
+        - serverName: docker.io
+          externalLogin: true
+        - serverName: gcr.io
+          externalLogin: true
       specs:
+        java-8:
+          baseImage: "eclipse-temurin:8"          
+          templateDirectory: src/jreleaser/distributions/jbang/docker
+          imageNames:
+            - 'jbangdev/jbang:{{tagName}}-{{dockerSpecName}}'
+          matchers:
+            distro: jbang-container
         java-11:
           baseImage: "eclipse-temurin:11"          
           templateDirectory: src/jreleaser/distributions/jbang/docker
@@ -123,15 +139,16 @@ distributions:
           templateDirectory: src/jreleaser/distributions/jbang/docker
           imageNames:
             - 'jbangdev/jbang:{{tagName}}-{{dockerSpecName}}'
+            - 'jbangdev/jbang:latest'
           matchers:
             distro: jbang-container
-        java-24:
-          baseImage: "eclipse-temurin:24"
-          templateDirectory: src/jreleaser/distributions/jbang/docker
-          imageNames:
-            - 'jbangdev/jbang:{{tagName}}-{{dockerSpecName}}'
-          matchers:
-            distro: jbang-container
+        #java-24:
+        #  baseImage: "eclipse-temurin:24"
+        #  templateDirectory: src/jreleaser/distributions/jbang/docker
+        #  imageNames:
+        #    - 'jbangdev/jbang:{{tagName}}-{{dockerSpecName}}'
+        #  matchers:
+        #    distro: jbang-container
     sdkman:
       active: RELEASE
       continueOnError: true
