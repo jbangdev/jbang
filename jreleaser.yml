@@ -23,6 +23,7 @@ project:
     license: https://github.com/jbangdev/jbang/blob/main/LICENSE
   authors:
     - Max Rydahl Andersen
+    - Tako Schotanus
   license: MIT
   tags:
     - jbang
