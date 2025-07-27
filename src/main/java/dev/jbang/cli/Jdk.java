@@ -48,7 +48,9 @@ public class Jdk {
 						throw new IllegalArgumentException("JDK is not available for installation: " + versionOrId);
 					}
 				}
-				jdk.install();
+				if (!jdk.isInstalled()) {
+					((dev.jbang.devkitman.Jdk.AvailableJdk) jdk).install();
+				}
 			}
 		} else {
 			Util.infoMsg("JDK is already installed: " + jdk);
@@ -69,7 +71,7 @@ public class Jdk {
 		dev.jbang.devkitman.Jdk defaultJdk = jdkMan.getDefaultJdk();
 		int defMajorVersion = defaultJdk != null ? defaultJdk.majorVersion() : 0;
 		PrintStream out = System.out;
-		List<dev.jbang.devkitman.Jdk> jdks;
+		List<? extends dev.jbang.devkitman.Jdk> jdks;
 		if (available) {
 			jdks = jdkMan.listAvailableJdks();
 		} else {
@@ -77,7 +79,7 @@ public class Jdk {
 		}
 		List<JdkOut> jdkOuts = jdks.stream()
 			.map(jdk -> new JdkOut(jdk.id(), jdk.version(), jdk.provider().name(),
-					jdk.isInstalled() ? jdk.home() : null,
+					jdk.isInstalled() ? ((dev.jbang.devkitman.Jdk.InstalledJdk) jdk).home() : null,
 					details ? jdk.equals(defaultJdk)
 							: jdk.majorVersion() == defMajorVersion))
 			.collect(Collectors.toList());
@@ -157,7 +159,8 @@ public class Jdk {
 	public Integer uninstall(
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version to install", arity = "1") String versionOrId) {
 		JdkManager jdkMan = jdkProvidersMixin.getJdkManager();
-		dev.jbang.devkitman.Jdk jdk = jdkMan.getInstalledJdk(versionOrId, JdkProvider.Predicates.canUpdate);
+		dev.jbang.devkitman.Jdk.InstalledJdk jdk = jdkMan.getInstalledJdk(versionOrId,
+				JdkProvider.Predicates.canUpdate);
 		if (jdk == null) {
 			throw new ExitException(EXIT_INVALID_INPUT, "JDK " + versionOrId + " is not installed");
 		}
@@ -170,7 +173,7 @@ public class Jdk {
 	public Integer home(
 			@CommandLine.Parameters(paramLabel = "versionOrId", index = "0", description = "The version of the JDK to select", arity = "0..1") String versionOrId) {
 		JdkManager jdkMan = jdkProvidersMixin.getJdkManager();
-		dev.jbang.devkitman.Jdk jdk = jdkMan.getOrInstallJdk(versionOrId);
+		dev.jbang.devkitman.Jdk.InstalledJdk jdk = jdkMan.getOrInstallJdk(versionOrId);
 		if (jdk.isInstalled()) {
 			Path home = jdk.home();
 			String homeStr = Util.pathToString(home);
@@ -191,7 +194,7 @@ public class Jdk {
 			jdk = jdkMan.getOrInstallJdk(versionOrId);
 		}
 		if (jdk.isInstalled()) {
-			Path home = jdk.home();
+			Path home = ((dev.jbang.devkitman.Jdk.InstalledJdk) jdk).home();
 			String homeStr = Util.pathToString(home);
 			String homeOsStr = Util.pathToOsString(home);
 			PrintStream out = System.out;
@@ -237,9 +240,9 @@ public class Jdk {
 			Util.warnMsg("Cannot perform operation, the 'default' provider was not found");
 			return EXIT_INVALID_INPUT;
 		}
-		dev.jbang.devkitman.Jdk defjdk = jdkMan.getDefaultJdk();
+		dev.jbang.devkitman.Jdk.InstalledJdk defjdk = jdkMan.getDefaultJdk();
 		if (versionOrId != null) {
-			dev.jbang.devkitman.Jdk jdk = jdkMan.getOrInstallJdk(versionOrId);
+			dev.jbang.devkitman.Jdk.InstalledJdk jdk = jdkMan.getOrInstallJdk(versionOrId);
 			if (defjdk == null || (!jdk.equals(defjdk) && !Objects.equals(jdk.home(), defjdk.home()))) {
 				jdkMan.setDefaultJdk(jdk);
 			} else {

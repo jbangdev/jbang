@@ -74,7 +74,9 @@ public class JavaUtil {
 				break;
 			case "jbang":
 				JBangJdkProvider p = new JBangJdkProvider();
-				p.installer(new FoojayJdkInstaller(p).remoteAccessProvider(new JBangRemoteAccessProvider()));
+				p.installer(new FoojayJdkInstaller(p, p::jdkId)
+					.distro(Util.getVendor())
+					.remoteAccessProvider(new JBangRemoteAccessProvider()));
 				provider = p;
 				break;
 			default:
@@ -179,7 +181,7 @@ public class JavaUtil {
 
 	public static String resolveInJavaHome(@Nonnull String cmd, @Nonnull Jdk jdk) {
 		if (jdk.isInstalled()) {
-			Path jdkHome = jdk.home();
+			Path jdkHome = ((Jdk.InstalledJdk) jdk).home();
 			if (Util.isWindows()) {
 				cmd = cmd + ".exe";
 			}

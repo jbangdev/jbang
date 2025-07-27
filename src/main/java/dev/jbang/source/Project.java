@@ -51,7 +51,7 @@ public class Project {
 
 	// Cached values
 	private String stableId;
-	private Jdk projectJdk;
+	private Jdk.InstalledJdk projectJdk;
 
 	public static final String ATTR_PREMAIN_CLASS = "Premain-Class";
 	public static final String ATTR_AGENT_CLASS = "Agent-Class";
@@ -292,7 +292,7 @@ public class Project {
 		return jdkManager;
 	}
 
-	public Jdk projectJdk() {
+	public Jdk.InstalledJdk projectJdk() {
 		if (projectJdk == null) {
 			projectJdk = projectJdkManager().getOrInstallJdk(getJavaVersion());
 		}
