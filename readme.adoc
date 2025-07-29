@@ -191,13 +191,12 @@ Beyond scripting, JBang can launch any Java application packaged as a JAR. Check
 
 Quick links:
 
-- 🚀 https://jbang.dev/documentation/quickstart[Quick Start Guide]
-- 📦 https://jbang.dev/documentation/installation[Installation]
-- 📝 https://jbang.dev/documentation/usage[Basic Usage]
-- 🔧 https://jbang.dev/documentation/dependencies[Dependencies]
-- 🎯 https://jbang.dev/documentation/templates[Templates]
-- 🛠️ https://jbang.dev/documentation/editing[IDE Integration]
-- ❓ https://jbang.dev/documentation/faq[FAQ]
+- 🚀 https://jbang.dev/documentation/jbang/latest/quickstart.html[Quick Start Guide]
+- 📦 https://jbang.dev/documentation/jbang/latest/installation.html[Installation]
+- 🔧 https://jbang.dev/documentation/jbang/latest/dependencies.html[Dependencies]
+- 🎯 https://jbang.dev/documentation/jbang/latest/templates.html[Templates]
+- 🛠️ https://jbang.dev/documentation/jbang/latest/editing.html[IDE Integration]
+- ❓ https://jbang.dev/documentation/jbang/latest/faq.html[FAQ]
 
 == Community
 
