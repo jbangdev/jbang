@@ -9,6 +9,8 @@ jobs:
   clear:
     name: Delete all caches
     runs-on: ubuntu-latest
+    env: 
+      GITHUB_TOKEN: ${{ github.token }}
     steps:
       - name: Clear caches
         run: |
