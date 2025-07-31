@@ -37,8 +37,6 @@ jobs:
     needs: checks
     uses: jbangdev/jbang.dev/.github/workflows/github-pages.yml@main
     if: ${{ github.ref == 'refs/heads/main' && needs.checks.outputs.docs_changed }} == 'true' }}
-    secrets:
-      token: ${{ secrets.BREW_GITHUB_TOKEN }}
 
   build:
     runs-on: ${{ matrix.os }}
