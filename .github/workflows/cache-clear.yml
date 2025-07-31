@@ -1,0 +1,15 @@
+name: Clear cache
+
+on:
+  #schedule:
+  #  - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  clear:
+    name: Delete all caches
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clear caches
+        run: |
+          gh cache delete --all --succeed-on-no-caches
