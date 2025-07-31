@@ -33,10 +33,9 @@ jobs:
           fi
       - name: update website
         if: ${{ github.ref == 'refs/heads/main' && env.files_changed == 'true' }}
-        uses: benc-uk/workflow-dispatch@e2e5e9a103e331dad343f381a29e654aea3cf8fc # v1
-        with:
-          workflow: github-pages
-          repo: jbangdev/jbang.dev
+        uses: jbangdev/jbang.dev/.github/workflows/github-pages.yml@main
+        with: {}
+        secrets:
           token: ${{ secrets.BREW_GITHUB_TOKEN }}
   build:
     runs-on: ${{ matrix.os }}
