@@ -16,8 +16,9 @@ on:
         default: false
 
 jobs:
-  updatewebsite:
+  check-if-docs-changed:
     runs-on: ubuntu-latest
+    if: ${{ github.ref == 'refs/heads/main' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -31,12 +32,14 @@ jobs:
           else
             echo "files_changed=false" >> $GITHUB_ENV
           fi
-      - name: update website
-        if: ${{ github.ref == 'refs/heads/main' && env.files_changed == 'true' }}
-        uses: jbangdev/jbang.dev/.github/workflows/github-pages.yml@main
-        with: {}
-        secrets:
-          token: ${{ secrets.BREW_GITHUB_TOKEN }}
+    
+  build-website:
+    needs: check-if-docs-changed
+    uses: jbangdev/jbang.dev/.github/workflows/github-pages.yml@main
+    if: ${{ github.ref == 'refs/heads/main' && env.files_changed == 'true' }}
+    secrets:
+      token: ${{ secrets.BREW_GITHUB_TOKEN }}
+
   build:
     runs-on: ${{ matrix.os }}
     strategy:
