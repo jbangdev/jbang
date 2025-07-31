@@ -187,7 +187,7 @@ distributions:
         name: jbang-action
       imageNames:
         - "{{repoOwner}}/{{distributionName}}:{{projectVersion}}"
-        - "{{repoOwner}}/{{distributionName}}:{{latest}}"
+        - "{{repoOwner}}/{{distributionName}}:latest"
       registries:
         - serverName: quay.io
           externalLogin: true
