@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>FAQ :: JBang</title>
+    <link rel="prev" href="caching.html">
+    <link rel="next" href="cli/jbang.html">
+    <meta name="generator" content="Antora 3.0.0">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsearch.js@2/dist/cdn/docsearch.min.css"/>    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-156530423-2"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','UA-156530423-2')</script>
+    <script>var uiRootPath = '../../_'</script>
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://jbang.dev">JBang</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="/appstore">AppStore</a>
+        <a class="navbar-item" href="/try">Try</a>
+        <a class="navbar-item" href="/download">Download</a>
+                <a class="navbar-item" href="/documentation">Documentation</a>
+      </div>
+    </div>
+    <div class="navbar-item hide-for-print">
+        <input id="search-input" type="text" placeholder="Search (by Algolia)">
+      </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="guide" data-version="latest">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="index.html">JBang</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="index.html">Intro</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="installation.html">Installation</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="usage.html">Usage</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="dependencies.html">Dependencies</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="javaversions.html">Java Versions</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="organizing.html">File Organization</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="running.html">Running</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="debugging.html">Debugging</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="editing.html">Editing</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="exporting.html">Exporting</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="install.html">Install Apps</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="templates.html">Templates</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="alias_catalogs.html">Aliases &amp; Catalogs</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="integration.html">Integration</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="configuration.html">Configuration</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="caching.html">Caching</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="faq.html">FAQ</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">CLI Reference</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="cli/jbang.html">jbang</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="cli/jbang-run.html">run</a>
+  </li>
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="cli/jbang-build.html">build</a>
+  </li>
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="cli/jbang-edit.html">edit</a>
+  </li>
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="cli/jbang-init.html">init</a>
+  </li>
+  <li class="nav-item" data-depth="3">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="cli/jbang-alias.html">alias</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-alias-add.html">add</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-alias-list.html">list</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-alias-remove.html">remove</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="3">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="cli/jbang-template.html">template</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-template-add.html">add</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-template-list.html">list</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-template-remove.html">remove</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="3">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="cli/jbang-catalog.html">catalog</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-catalog-add.html">add</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-catalog-update.html">update</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-catalog-list.html">list</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-catalog-remove.html">remove</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="3">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="cli/jbang-trust.html">trust</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-trust-add.html">add</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-trust-list.html">list</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-trust-remove.html">remove</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="3">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="cli/jbang-cache.html">cache</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-cache-clear.html">clear</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="cli/jbang-completion.html">completion</a>
+  </li>
+  <li class="nav-item" data-depth="3">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="cli/jbang-jdk.html">jdk</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-jdk-default.html">default</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-jdk-home.html">home</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-jdk-install.html">install</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-jdk-java-env.html">java-env, env</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-jdk-list.html">list</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-jdk-uninstall.html">uninstall</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="cli/jbang-version.html">version</a>
+  </li>
+  <li class="nav-item" data-depth="3">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="cli/jbang-wrapper.html">wrapper</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-wrapper-install.html">install</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="3">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="cli/jbang-info.html">info</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-info-tools.html">tools</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-info-classpath.html">classpath</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-info-jar.html">jar</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="3">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="cli/jbang-app.html">app</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-app-install.html">install</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-app-list.html">list</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-app-uninstall.html">uninstall</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-app-setup.html">setup</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="3">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="cli/jbang-export.html">export</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-export-portable.html">portable</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-export-local.html">local</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-export-mavenrepo.html">mavenrepo</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-export-native.html">native</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-export-fatjar.html">fatjar</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-export-jlink.html">jlink</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-export-gradle.html">gradle</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-export-maven.html">maven</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="3">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="cli/jbang-config.html">config</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-config-get.html">get</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-config-set.html">set</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-config-unset.html">unset</a>
+  </li>
+  <li class="nav-item" data-depth="4">
+    <a class="nav-link" href="cli/jbang-config-list.html">list</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">JBang</span>
+    <span class="version">latest</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="index.html">JBang</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="index.html">latest</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <a class="title" href="../../jbang-idea/latest/index.html">JBang Idea Plugin</a>
+      <ul class="versions">
+        <li class="version is-latest">
+          <a href="../../jbang-idea/latest/index.html">latest</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">JBang</a></li>
+    <li><a href="faq.html">FAQ</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/jbangdev/jbang/edit/main/docs/modules/ROOT/pages/faq.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">FAQ</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="qlist qanda">
+<ol>
+<li>
+<p><em>Why the name j&#8217;bang?</em></p>
+<p>  I was reading up on how to use the new shebang (#!) feature support in Java 10 and came up with the idea of port <code>kscript</code> to Java and needed a name.
+From there came j&#8217;bang which is a "bad" spelling of how shebang is pronounced in French.</p>
+</li>
+<li>
+<p><em>Why use gradle resource locators rather than ?</em></p>
+<p>kscript used it and it&#8217;s nice as it is a one-liner and easily parsable.</p>
+</li>
+<li>
+<p><em>How does this compare to ?</em></p>
+<p>After doing <code>jbang</code> I&#8217;ve learned about similar projects and thought it would be nice with some comparison;</p>
+<div class="paragraph">
+<p><a href="https://github.com/scijava/jgo">jgo</a>: an alternative way to launch jars using maven coordinates. Implemented in python, depends on Java and Maven to be available. Not really for scripting but a novel way to launch java apps already packaged as a maven dependency.</p>
+</div>
+</li>
+<li>
+<p><em>Why is JBang scripting examples using lower case class names ?</em></p>
+<p>JBang works with any valid Java class names including Java&#8217;s standard camel case conventions. The scripting examples are using lower case because the scripts can be used as a command line tool. i.e. <code>./hello.java</code>. Just like people are used to Java using camel case for class names, they are also used to using lower case for command line tools. So JBang is just following the convention most relevant for the scripting use case. Thus <code>helloworld.java</code> instead of <code>HelloWorld.java</code>; but if you prefer the latter you can always use it.</p>
+</li>
+<li>
+<p><em>Why would I use Java to write scripts ? Java sucks for that&#8230;&#8203; Use groovy, kotlin, scala, etc. instead!</em></p>
+<p>  Well, does it really suck ? With Java 8 streams, static imports and greatly improved standard java libraries it is very close to what kscript and grape look like.
+With the following advantages:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>works with plain Java without installing additional compiler/build tools</p>
+</li>
+<li>
+<p>all IDE&#8217;s support editing .java files very well, content assist, etc.</p>
+</li>
+<li>
+<p>great debugging</p>
+<div class="paragraph">
+<p>And to be honest I built <code>jbang</code> just to see if I could and get my Java skills refreshed for the newer features in the language.
+Use it at your own risk :)</p>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><em>Why not use normal shebang(<code>#!</code>) in the header ?</em></p>
+<p>  You can use normal shebang (<code>#!/usr/bin/env jbang</code>) and the Java 10+ launcher (<code>java test.java</code>) will actually work with it from the command line.
+However the Java compiler will still not accept it (<code>javac test.java</code> with shebang fails.) This is thus not recommended, as
+many tools, code formatters ([example](<a href="https://github.com/google/google-java-format/issues/1214)" class="bare">https://github.com/google/google-java-format/issues/1214)</a>), and especially IDE&#8217;s will start complaining about syntax errors as they don&#8217;t ignore the first line in this case.</p>
+<div class="paragraph">
+<p>By using the <code>//</code> form it is treated as both a bash/shell file AND a valid java file and thus works everywhere a java file will work.</p>
+</div>
+<div class="paragraph">
+<p>It&#8217;s worth noting that Go <a href="https://golangcookbook.com/chapters/running/shebang/">uses a similar approach</a> which is also where I learned it from.</p>
+</div>
+</li>
+<li>
+<p><em>HELP! My code formatter keeps breaking my <code>//</code> directives!</em></p>
+<p>When using automated code formatting tools, some care and configuration must be made to prevent the tooling from rewriting and preventing <code>jbang</code> from working as expected.</p>
+<div class="paragraph">
+<p>Use the following configuration blocks to correctly configure your tool:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. Configuration Tool Settings:</caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Formatting Tool</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Configuration</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Google Java Format</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">see <a href="https://github.com/google/google-java-format/issues/1215">#1215</a> &amp; <a href="https://github.com/google/google-java-format/issues/1214">#1214</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Clang Format</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">CommentPragmas:  '^[^ ]'</code></pre>
+</div>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="article-presentations"><a class="anchor" href="#article-presentations"></a>Article &amp; Presentations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="https://adambien.blog/roller/abien/entry/java_cli_apps_builds_and">Java CLI Apps, Builds and jbang&#8212;&#8203;airhacks.fm podcast</a> - Adam Bien</p>
+</div>
+<div class="paragraph">
+<p><a href="https://www.infoq.com/news/2020/10/scripting-java-jbang">Scripting Java with a jBang</a> - InfoQ - Alex Blewitt</p>
+</div>
+<div class="paragraph">
+<p><a href="https://www.youtube.com/watch?v=-c9CIT9RfOQ&amp;t=123s">jbang: Unleash the power of Java for shell scripting</a> - DevNation Tech Talk - Max Rydahl Andersen</p>
+</div>
+<div class="paragraph">
+<p><a href="https://www.youtube.com/watch?v=A9YeRPSCdVU&amp;t=5s">Creating java code and simplifying execution with JBang</a> - Daniel Persson</p>
+</div>
+<div class="paragraph">
+<p><a href="https://www.youtube.com/watch?v=3JopX_mtFiY&amp;t=14s">Quarkus Insights #16: Quarkus with JBang</a> - Quarkus Insights</p>
+</div>
+<div class="paragraph">
+<p><a href="https://www.youtube.com/watch?v=gVL-CFEOGs8">jbang, a better Java?</a> - Swiss JUG - Max Rydahl Andersen</p>
+</div>
+<div class="paragraph">
+<p><a href="https://www.youtube.com/watch?v=X4x2jM3Y0uE">JBang - Using Java to make Java better?</a> - Virtual JUG - Max Rydahl Andersen</p>
+</div>
+<div class="paragraph">
+<p><a href="https://blogs.oracle.com/developers/self-contained-jdbc-scripts-with-groovy-and-jbang">Self contained JDBC scripts with Groovy and jbang</a> - Andres Almiray</p>
+</div>
+<div class="paragraph">
+<p><a href="https://www.youtube.com/watch?v=FzKRqvZv-Ro">Neo4j quickie - jbang and the command line</a> - Gerrit Meier</p>
+</div>
+<div class="paragraph">
+<p><a href="https://www.youtube.com/watch?v=RgHNOH2_itw&amp;t=300s">Monday Java Lunch &amp; Learn. This week we&#8217;ll be learning what jbang is and how to use it</a> - Matthew Gilliard</p>
+</div>
+<div class="paragraph">
+<p><a href="https://www.twilio.com/blog/cli-app-java-jbang-picocli">How to build a CLI app in Java using jbang and picocli</a> - Matthew Gilliard</p>
+</div>
+<div class="paragraph">
+<p><a href="https://javastreets.com/blog/java-jbang-textmate.html">Faster Feedback with Java, JBang, and TextMate</a> - Manik Magar</p>
+</div>
+<div class="paragraph">
+<p><a href="http://www.mastertheboss.com/java/java-scripting-with-jbang/"> JBang: Create Java scripts like a pro</a> - Francesco Marchioni</p>
+</div>
+<div class="paragraph">
+<p><a href="http://www.mastertheboss.com/java/jbang-vs-jshell/"> 6 things you can do with JBang but you can’t with Shell</a> - Francesco Marchioni</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="caching.html">Caching</a></span>
+  <span class="next"><a href="cli/jbang.html">jbang</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <div class="page__footer-follow">
+    <ul class="social-icons">
+      <li><strong>Follow:</strong></li>
+      <li><a href="https://twitter.com/jbangdev" rel="nofollow noopener noreferrer"><i
+            class="fab fa-fw fa-twitter-square" aria-hidden="true"></i> Twitter</a></li>
+      <li><a href="https://github.com/jbangdev" rel="nofollow noopener noreferrer"><i class="fab fa-fw fa-github"
+            aria-hidden="true"></i> GitHub</a></li>
+      <li><a href="/feed.xml"><i class="fas fa-fw fa-rss-square" aria-hidden="true"></i> Feed</a></li>
+    </ul>
+  </div>
+  <div class="page__footer-copyright">© 2021 JBang Documentation. Powered by <a href="https://antora.org" rel="nofollow">Antora</a>
+    &amp; <a href="https://mademistakes.com/work/minimal-mistakes-jekyll-theme/" rel="nofollow">Minimal Mistakes</a>.
+  </div>
+</footer><script src="https://cdn.jsdelivr.net/npm/docsearch.js@2/dist/cdn/docsearch.min.js"></script>
+<script>
+var search = docsearch({
+  appId: '4EJ1Y6VISV',
+  apiKey: '7ab0733177a5304fe689e52ed96d5cb8',
+  indexName: 'jbangdev',
+  inputSelector: '#search-input',
+  autocompleteOptions: { hint: false, keyboardShortcuts: ['s'] },
+  algoliaOptions: { hitsPerPage: 10 }
+}).autocomplete
+search.on('autocomplete:closed', function () { search.autocomplete.setVal() })
+</script>
+<script>
+window.addEventListener('load', function focusSearchInput () {
+  window.removeEventListener('load', focusSearchInput)
+  document.querySelector('#search-input').focus()
+})
+</script>
+<script src="../../_/js/site.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"rayId":"955eed9918c82f82","version":"2025.6.2","serverTiming":{"name":{"cfExtPri":true,"cfEdge":true,"cfOrigin":true,"cfL4":true,"cfSpeedBrain":true,"cfCacheStatus":true}},"token":"7751df529a8847fab0e3b0c550b186fa","b":1}' crossorigin="anonymous"></script>
+</body>
+</html>
