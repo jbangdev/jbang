@@ -104,9 +104,41 @@ public class AttributeParser {
 		return s;
 	}
 
-	public static void main(String[] args) {
-		String input = "basic,run,scope=herewego,%transitive%import";
-		Map<String, List<String>> parsed = parseAttributeList(input, "scope");
-		parsed.forEach((k, v) -> System.out.println("\"" + k + "\" = " + v));
+	private static String quoteValue(String value) {
+		boolean needsQuote = value.contains(",") || value.contains(" ") || value.contains("\"") || value.contains("'");
+		if (!needsQuote) return value;
+
+		boolean useDouble = !value.contains("\"") || value.contains("'");
+		String escaped = value.replace(useDouble ? "\"" : "'", useDouble ? "\\\"" : "\\'");
+		return useDouble ? "\"" + escaped + "\"" : "'" + escaped + "'";
+	}
+
+	public static String toStringRep(Map<String, List<String>> attributes, String defaultKey) {
+		List<String> parts = new ArrayList<>();
+
+		// Positional values first
+		List<String> positional = attributes.get(defaultKey);
+		if (positional != null) {
+			for (String value : positional) {
+				parts.add(quoteValue(value));
+			}
+		}
+
+		// Other keys
+		for (Map.Entry<String, List<String>> entry : attributes.entrySet()) {
+			String key = entry.getKey();
+			if (key.equals(defaultKey)) continue;
+
+			List<String> values = entry.getValue();
+			for (String value : values) {
+				if ("true".equals(value)) {
+					parts.add("%" + key);
+				} else {
+					parts.add(key + "=" + quoteValue(value));
+				}
+			}
+		}
+
+		return String.join(",", parts);
 	}
 }

@@ -23,7 +23,7 @@ public class MavenCoordinate {
 	public static final String DEFAULT_VERSION = "999-SNAPSHOT";
 
 	private static final Pattern gavPattern = Pattern.compile(
-			"^(?<groupid>[^:]*):(?<artifactid>[^:]*)(:(?<version>[^:@{]*))?(:(?<classifier>[^@]*))?(@(?<type>.*))?(\\{(?<properties>.*)})?$");
+			"^(?<groupid>[^:]*):(?<artifactid>[^:]*)(:(?<version>[^:@{]*))?(:(?<classifier>[^@{]*))?(@(?<type>.[^{]*))?(\\{(?<properties>.*)})?$");
 
 	private static final Pattern canonicalPattern = Pattern.compile(
 			"^(?<groupid>[^:]*):(?<artifactid>[^:]*)((:(?<type>.*)(:(?<classifier>[^@]*))?)?:(?<version>[^:@]*))?$");
@@ -122,6 +122,9 @@ public class MavenCoordinate {
 		if (type != null && !type.isEmpty()) {
 			out += "@" + type;
 		}
+		if(attributes != null && !attributes.isDefault()) {
+			out += "{" + attributes.toStringFormat() + "}";
+		}
 		return out;
 	}
 
@@ -161,5 +164,17 @@ public class MavenCoordinate {
 	@Override
 	public int hashCode() {
 		return Objects.hash(groupId, artifactId, version, classifier, type, attributes);
+	}
+
+	@Override
+	public String toString() {
+		return "MavenCoordinate{" +
+				"groupId='" + groupId + '\'' +
+				", artifactId='" + artifactId + '\'' +
+				", version='" + version + '\'' +
+				", classifier='" + classifier + '\'' +
+				", type='" + type + '\'' +
+				", attributes=" + attributes +
+				'}';
 	}
 }
