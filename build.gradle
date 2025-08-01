@@ -346,6 +346,9 @@ testing {
 	suites {
 		test {
 			useJUnitJupiter()
+			dependencies {
+				implementation "org.assertj:assertj-core:3.24.2"
+			}
 		}
 
 		integrationTest(JvmTestSuite) {
