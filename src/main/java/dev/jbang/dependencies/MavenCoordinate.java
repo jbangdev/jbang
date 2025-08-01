@@ -1,12 +1,15 @@
 package dev.jbang.dependencies;
 
-import java.util.Objects;
-import java.util.Optional;
+import static java.util.Optional.ofNullable;
+
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import dev.jbang.util.AttributeParser;
 
 public class MavenCoordinate {
 	private final String groupId;
@@ -14,12 +17,13 @@ public class MavenCoordinate {
 	private final String version;
 	private final String classifier;
 	private final String type;
+	private final DependencyAttributes attributes;
 
 	public static final String DUMMY_GROUP = "group";
 	public static final String DEFAULT_VERSION = "999-SNAPSHOT";
 
 	private static final Pattern gavPattern = Pattern.compile(
-			"^(?<groupid>[^:]*):(?<artifactid>[^:]*)(:(?<version>[^:@]*))?(:(?<classifier>[^@]*))?(@(?<type>.*))?$");
+			"^(?<groupid>[^:]*):(?<artifactid>[^:]*)(:(?<version>[^:@{]*))?(:(?<classifier>[^@]*))?(@(?<type>.*))?(\\{(?<properties>.*)})?$");
 
 	private static final Pattern canonicalPattern = Pattern.compile(
 			"^(?<groupid>[^:]*):(?<artifactid>[^:]*)((:(?<type>.*)(:(?<classifier>[^@]*))?)?:(?<version>[^:@]*))?$");
@@ -44,6 +48,10 @@ public class MavenCoordinate {
 		return type;
 	}
 
+	public DependencyAttributes getAttributes() {
+		return attributes;
+	}
+
 	public static MavenCoordinate fromString(String depId) {
 		return parse(depId, gavPattern);
 	}
@@ -54,7 +62,7 @@ public class MavenCoordinate {
 
 	private static MavenCoordinate parse(String depId, Pattern pattern) {
 		Matcher gav = pattern.matcher(depId);
-		gav.find();
+		// gav.find();
 
 		if (!gav.matches()) {
 			throw new IllegalStateException(String.format(
@@ -66,9 +74,10 @@ public class MavenCoordinate {
 		String artifactId = gav.group("artifactid");
 		String version = DependencyUtil.formatVersion(gav.group("version"));
 		String classifier = gav.group("classifier");
-		String type = Optional.ofNullable(gav.group("type")).orElse("jar");
-
-		return new MavenCoordinate(groupId, artifactId, version, classifier, type);
+		String type = ofNullable(gav.group("type")).orElse("jar");
+		String propString = gav.group("properties");
+		Map<String, List<String>> properties = AttributeParser.parseAttributeList(propString, "scope");
+		return new MavenCoordinate(groupId, artifactId, version, classifier, type, properties);
 	}
 
 	public MavenCoordinate(@Nonnull String groupId, @Nonnull String artifactId, @Nonnull String version) {
@@ -77,11 +86,18 @@ public class MavenCoordinate {
 
 	public MavenCoordinate(@Nonnull String groupId, @Nonnull String artifactId, @Nonnull String version,
 			@Nullable String classifier, @Nullable String type) {
+		this(groupId, artifactId, version, classifier, type, null);
+	}
+
+	public MavenCoordinate(@Nonnull String groupId, @Nonnull String artifactId, @Nonnull String version,
+			@Nullable String classifier, @Nullable String type, @Nullable Map<String, List<String>> attributes) {
 		this.groupId = groupId;
 		this.artifactId = artifactId;
 		this.version = version;
 		this.classifier = classifier != null && classifier.isEmpty() ? null : classifier;
 		this.type = type;
+		this.attributes = attributes == null ? new DependencyAttributes(Collections.emptyMap())
+				: new DependencyAttributes(attributes);
 	}
 
 	public MavenCoordinate withVersion() {
@@ -139,11 +155,11 @@ public class MavenCoordinate {
 		MavenCoordinate that = (MavenCoordinate) o;
 		return groupId.equals(that.groupId) && artifactId.equals(that.artifactId)
 				&& Objects.equals(version, that.version) && Objects.equals(classifier, that.classifier)
-				&& Objects.equals(type, that.type);
+				&& Objects.equals(type, that.type) && Objects.equals(attributes, that.attributes);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(groupId, artifactId, version, classifier, type);
+		return Objects.hash(groupId, artifactId, version, classifier, type, attributes);
 	}
 }

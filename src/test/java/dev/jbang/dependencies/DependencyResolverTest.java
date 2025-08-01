@@ -2,16 +2,7 @@ package dev.jbang.dependencies;
 
 import static dev.jbang.dependencies.DependencyUtil.toMavenRepo;
 import static dev.jbang.util.JavaUtil.defaultJdkManager;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.arrayWithSize;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.endsWith;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.not;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +27,7 @@ class DependencyResolverTest extends BaseTest {
 
 	@Test
 	void testFormatVersion() {
-		assertEquals("[1.0,)", DependencyUtil.formatVersion("1.0+"));
+		assertThat(DependencyUtil.formatVersion("1.0+")).isEqualTo("[1.0,)");
 	}
 
 	@BeforeEach
@@ -47,37 +38,77 @@ class DependencyResolverTest extends BaseTest {
 	@Test
 	void testdepIdToArtifact() {
 		MavenCoordinate artifact = MavenCoordinate.fromString("com.offbytwo:docopt:0.6.0.20150202:redhat@doc");
-		assertEquals("com.offbytwo", artifact.getGroupId());
-		assertEquals("docopt", artifact.getArtifactId());
-		assertEquals("0.6.0.20150202", artifact.getVersion());
-		assertEquals("redhat", artifact.getClassifier());
-		assertEquals("doc", artifact.getType());
+		assertThat(artifact.getGroupId()).isEqualTo("com.offbytwo");
+		assertThat(artifact.getArtifactId()).isEqualTo("docopt");
+		assertThat(artifact.getVersion()).isEqualTo("0.6.0.20150202");
+		assertThat(artifact.getClassifier()).isEqualTo("redhat");
+		assertThat(artifact.getType()).isEqualTo("doc");
 
 		artifact = MavenCoordinate.fromString("com.offbytwo:docopt:0.6.0.20150202");
-		assertEquals("com.offbytwo", artifact.getGroupId());
-		assertEquals("docopt", artifact.getArtifactId());
-		assertEquals("0.6.0.20150202", artifact.getVersion());
-		assertNull(artifact.getClassifier());
-		assertEquals("jar", artifact.getType());
+		assertThat(artifact.getGroupId()).isEqualTo("com.offbytwo");
+		assertThat(artifact.getArtifactId()).isEqualTo("docopt");
+		assertThat(artifact.getVersion()).isEqualTo("0.6.0.20150202");
+		assertThat(artifact.getClassifier()).isNull();
+		assertThat(artifact.getType()).isEqualTo("jar");
 
 		artifact = MavenCoordinate.fromString("com.offbytwo:docopt:0.6+");
-		assertEquals("com.offbytwo", artifact.getGroupId());
-		assertEquals("docopt", artifact.getArtifactId());
-		assertEquals("[0.6,)", artifact.getVersion());
-		assertNull(artifact.getClassifier());
-		assertEquals("jar", artifact.getType());
+		assertThat(artifact.getGroupId()).isEqualTo("com.offbytwo");
+		assertThat(artifact.getArtifactId()).isEqualTo("docopt");
+		assertThat(artifact.getVersion()).isEqualTo("[0.6,)");
+		assertThat(artifact.getClassifier()).isNull();
+		assertThat(artifact.getType()).isEqualTo("jar");
 
-		assertThrows(IllegalStateException.class, () -> MavenCoordinate.fromString("bla?f"));
+		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> MavenCoordinate.fromString("bla?f"));
+	}
+
+	@Test
+	void testScopes() {
+
+		MavenCoordinate artifact = MavenCoordinate.fromString("a.b:c:1.2{build}");
+
+		assertThat(artifact)
+			.extracting("groupId", "artifactId", "version", "classifier")
+			.containsExactly("a.b", "c", "1.2", null);
+
+		assertThat(artifact.getAttributes().includeInScope("build")).isTrue();
+
+	}
+
+	@Test
+	void testMultiScopes() {
+
+		MavenCoordinate artifact = MavenCoordinate.fromString("a.b:c:1.2{build}");
+
+		assertThat(artifact)
+			.extracting("groupId", "artifactId", "version", "classifier")
+			.containsExactly("a.b", "c", "1.2", null);
+
+		assertThat(artifact.getAttributes().includeInScope("build")).isTrue();
+		assertThat(artifact.getAttributes().includeInScope("compile")).isFalse();
+		assertThat(artifact.getAttributes().includeInScope("doesnotexist")).isFalse();
+	}
+
+	@Test
+	void testOtherProperties() {
+
+		MavenCoordinate artifact = MavenCoordinate.fromString("a.b:c:1.2");
+
+		assertThat(artifact)
+			.extracting("groupId", "artifactId", "version", "classifier")
+			.containsExactly("a.b", "c", "1.2", null);
+
+		assertThat(artifact.getAttributes().includeInScope("build")).isTrue();
+		assertThat(artifact.getAttributes().includeInScope("run")).isTrue();
 	}
 
 	@Test
 	void testdecodeEnv() {
-		assertThrows(IllegalStateException.class, () -> DependencyUtil.decodeEnv("{{wonka}}"));
-		assertEquals("wonka", DependencyUtil.decodeEnv("wonka"));
+		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> DependencyUtil.decodeEnv("{{wonka}}"));
+		assertThat(DependencyUtil.decodeEnv("wonka")).isEqualTo("wonka");
 
 		environmentVariables.set("test.value", "wonka");
 
-		assertEquals("wonka", DependencyUtil.decodeEnv("{{test.value}}"));
+		assertThat(DependencyUtil.decodeEnv("{{test.value}}")).isEqualTo("wonka");
 	}
 
 	@Test
@@ -90,11 +121,11 @@ class DependencyResolverTest extends BaseTest {
 				"com.example:my-native-library:1.0.0:${os.detected.jfxname}", p);
 
 		MavenCoordinate artifact = MavenCoordinate.fromString(gav);
-		assertEquals("com.example", artifact.getGroupId());
-		assertEquals("my-native-library", artifact.getArtifactId());
-		assertEquals("1.0.0", artifact.getVersion());
-		assertEquals(p.getProperty("os.detected.jfxname"), artifact.getClassifier());
-		assertEquals("jar", artifact.getType());
+		assertThat(artifact.getGroupId()).isEqualTo("com.example");
+		assertThat(artifact.getArtifactId()).isEqualTo("my-native-library");
+		assertThat(artifact.getVersion()).isEqualTo("1.0.0");
+		assertThat(artifact.getClassifier()).isEqualTo(p.getProperty("os.detected.jfxname"));
+		assertThat(artifact.getType()).isEqualTo("jar");
 	}
 
 	@Test
@@ -106,14 +137,14 @@ class DependencyResolverTest extends BaseTest {
 		List<String> deps = Collections.singletonList(
 				PropertiesValueResolver.replaceProperties("org.openjfx:javafx-base:18.0.2:${os.detected.jfxname}", p));
 		List<ArtifactInfo> artifacts = ArtifactResolver.Builder.create().build().resolve(deps);
-		assertEquals(1, artifacts.size());
+		assertThat(artifacts.size()).isEqualTo(1);
 	}
 
 	@Test
 	void testResolveDependenciesWithAether() {
 		List<String> deps = Arrays.asList("com.offbytwo:docopt:0.6.0.20150202", "log4j:log4j:1.2+");
 		List<ArtifactInfo> artifacts = ArtifactResolver.Builder.create().build().resolve(deps);
-		assertEquals(2, artifacts.size());
+		assertThat(artifacts.size()).isEqualTo(2);
 	}
 
 	@Test
@@ -124,14 +155,15 @@ class DependencyResolverTest extends BaseTest {
 			.localFolder(altrepo.toPath())
 			.build()
 			.resolve(deps);
-		assertEquals(2, artifacts.size());
-		assertThat(altrepo.listFiles(), arrayWithSize(4));
+		assertThat(artifacts.size()).isEqualTo(2);
+		assertThat(altrepo.listFiles()).hasSize(4);
 	}
 
 	@Test
 	void testRedHatJBossRepos() {
-		assertEquals(toMavenRepo("jbossorg").getUrl(), "https://repository.jboss.org/nexus/content/groups/public/");
-		assertEquals(toMavenRepo("redhat").getUrl(), "https://maven.repository.redhat.com/ga/");
+		assertThat("https://repository.jboss.org/nexus/content/groups/public/")
+			.isEqualTo(toMavenRepo("jbossorg").getUrl());
+		assertThat("https://maven.repository.redhat.com/ga/").isEqualTo(toMavenRepo("redhat").getUrl());
 	}
 
 	@Test
@@ -143,7 +175,7 @@ class DependencyResolverTest extends BaseTest {
 				true, false);
 
 		// if returns 5 its because optional deps are included which they shouldn't
-		assertEquals(2, classpath.getClassPaths().size());
+		assertThat(classpath.getClassPaths().size()).isEqualTo(2);
 	}
 
 	@Test
@@ -162,7 +194,7 @@ class DependencyResolverTest extends BaseTest {
 
 		HashSet<String> othercps = new HashSet<>(cps);
 
-		assertThat(cps, containsInAnyOrder(othercps.toArray()));
+		assertThat(cps).containsAll(othercps);
 	}
 
 	@Test
@@ -177,7 +209,7 @@ class DependencyResolverTest extends BaseTest {
 				false,
 				true, false);
 
-		assertEquals(46, classpath.getClassPaths().size());
+		assertThat(classpath.getClassPaths().size()).isEqualTo(46);
 	}
 
 	@Test
@@ -196,11 +228,11 @@ class DependencyResolverTest extends BaseTest {
 
 		List<String> ma = cp.getAutoDectectedModuleArguments(defaultJdkManager().getOrInstallJdk(null));
 
-		assertThat(ma, hasItem("--module-path"));
+		assertThat(ma).contains("--module-path");
 
-		assertThat(ma, not(hasItem("docopt")));
+		assertThat(ma).doesNotContain("docopt");
 
-		assertThat(cp.getClassPath(), containsString("docopt"));
+		assertThat(cp.getClassPath()).contains("docopt");
 	}
 
 	@Test
@@ -211,7 +243,7 @@ class DependencyResolverTest extends BaseTest {
 				false,
 				true, false);
 
-		assertEquals(62, classpath.getArtifacts().size());
+		assertThat(classpath.getArtifacts().size()).isEqualTo(62);
 	}
 
 	@Test
@@ -235,14 +267,14 @@ class DependencyResolverTest extends BaseTest {
 				.startsWith("io.vertx:vertx-core"))
 			.findFirst();
 
-		assertEquals("4.2.3", coord.get().getCoordinate().getVersion());
+		assertThat(coord.get().getCoordinate().getVersion()).isEqualTo("4.2.3");
 
 		coord = classpath.getArtifacts()
 			.stream()
 			.filter(ai -> ai.getCoordinate().toCanonicalForm().startsWith("org.slf4j:slf4j-simple:"))
 			.findFirst();
 
-		assertEquals("1.7.30", coord.get().getCoordinate().getVersion());
+		assertThat(coord.get().getCoordinate().getVersion()).isEqualTo("1.7.30");
 
 		coord = classpath.getArtifacts()
 			.stream()
@@ -251,7 +283,7 @@ class DependencyResolverTest extends BaseTest {
 				.startsWith("org.apache.camel:camel-vertx"))
 			.findFirst();
 
-		assertEquals(coord.get().getCoordinate().getVersion(), "3.9.0");
+		assertThat("3.9.0").isEqualTo(coord.get().getCoordinate().getVersion());
 
 		deps = Arrays.asList(
 				"org.apache.camel:camel-bom:3.9.0@pom",
@@ -265,7 +297,7 @@ class DependencyResolverTest extends BaseTest {
 			.filter(ai -> ai.getCoordinate().toCanonicalForm().startsWith("io.vertx:vertx-core"))
 			.findFirst();
 
-		assertEquals("3.9.5", coord.get().getCoordinate().getVersion());
+		assertThat(coord.get().getCoordinate().getVersion()).isEqualTo("3.9.5");
 	}
 
 	@Test
@@ -276,12 +308,11 @@ class DependencyResolverTest extends BaseTest {
 				false,
 				true, false);
 
-		assertThat(classpath.getArtifacts(), hasSize(7));
+		assertThat(classpath.getArtifacts()).hasSize(7);
 		ArtifactInfo ai = classpath.getArtifacts().get(0);
-		assertThat(ai.getCoordinate().toCanonicalForm(),
-				equalTo("org.infinispan:infinispan-commons:tests:jar:13.0.5.Final"));
-		assertThat(ai.getFile().toString(),
-				endsWith("infinispan-commons-13.0.5.Final-tests.jar"));
+		assertThat(ai.getCoordinate().toCanonicalForm())
+			.isEqualTo("org.infinispan:infinispan-commons:tests:jar:13.0.5.Final");
+		assertThat(ai.getFile().toString()).endsWith("infinispan-commons-13.0.5.Final-tests.jar");
 	}
 
 }
