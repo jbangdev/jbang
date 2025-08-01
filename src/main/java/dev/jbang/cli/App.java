@@ -34,7 +34,10 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "app", description = "Manage scripts installed on the user's PATH as commands.", subcommands = {
 		AppInstall.class, AppList.class,
 		AppUninstall.class, AppSetup.class })
-public class App extends BaseCommand {
+public class App /*extends BaseCommand*/ {
+
+	@CommandLine.Mixin
+	HelpMixin helpMixin;	
 
 	public static void deleteCommandFiles(String name) {
 		try (Stream<Path> files = Files.list(Settings.getConfigBinDir())) {
@@ -46,11 +49,11 @@ public class App extends BaseCommand {
 		}
 	}
 
-	@Override
-	public Integer doCall() throws IOException {
-		warn("composite command, specify one of the available subcommands [install, list, uninstall, setup]");
-		return EXIT_INVALID_INPUT;
-	}
+//	@Override
+//	public Integer doCall() throws IOException {
+//		warn("composite command, specify one of the available subcommands [install, list, uninstall, setup]");
+//		return EXIT_INVALID_INPUT;
+//	}
 }
 
 @CommandLine.Command(name = "install", description = "Install a script as a command.")
