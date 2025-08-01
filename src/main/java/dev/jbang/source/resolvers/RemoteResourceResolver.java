@@ -46,7 +46,7 @@ public class RemoteResourceResolver implements ResourceResolver {
 						try {
 							return alwaysTrust || trusted ? fetchFromURL(ref) : fetchScriptFromUntrustedURL(ref);
 						} catch (IOException | URISyntaxException e) {
-							throw new ResourceNotFoundException(resource, "Could not download", e);
+							throw new ResourceNotFoundException(resource, "Could not download " + ref, e);
 						}
 					});
 		}
