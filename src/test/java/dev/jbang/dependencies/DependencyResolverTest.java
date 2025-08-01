@@ -61,6 +61,38 @@ class DependencyResolverTest extends BaseTest {
 		assertThatExceptionOfType(IllegalStateException.class).isThrownBy(() -> MavenCoordinate.fromString("bla?f"));
 	}
 
+	@Test()
+	void testEqualsEmptyAttributes() {
+		MavenCoordinate a1 = MavenCoordinate.fromString("a.b:c:0.6:qf@doc");
+		MavenCoordinate a2 = MavenCoordinate.fromString("a.b:c:0.6:qf@doc");
+		assertThat(a1).as("mavencoordinate bad comparison of empty attribtues").isEqualTo(a2);
+	}
+
+	@Test
+	void testEqualsGAVBehavior() {
+		MavenCoordinate a1 = MavenCoordinate.fromString("a.b:c:0.6:qf@doc");
+		MavenCoordinate a2 = MavenCoordinate.fromString("a.b:c:0.6:qf@doc{build,run}");
+		assertThat(a1).isEqualTo(a2); //TODO: these are equal in behavior - but not in "format"
+	}
+
+	@Test
+	void testEqualsGAVFlippedBehavior() {
+		MavenCoordinate a1 = MavenCoordinate.fromString("a.b:c:0.6:qf@doc{run,build");
+		MavenCoordinate a2 = MavenCoordinate.fromString("a.b:c:0.6:qf@doc{build,run}");
+		assertThat(a1).isEqualTo(a2); //TODO: these are equal in behavior - but not in "format"
+	}
+
+	@Test
+	void testVariants() {
+		MavenCoordinate artifact = MavenCoordinate.fromString("com.offbytwo:docopt:0.6.0.20150202:redhat@doc{build,boot,run}");
+		assertThat(artifact.getGroupId()).isEqualTo("com.offbytwo");
+		assertThat(artifact.getArtifactId()).isEqualTo("docopt");
+		assertThat(artifact.getVersion()).isEqualTo("0.6.0.20150202");
+		assertThat(artifact.getClassifier()).isEqualTo("redhat");
+		assertThat(artifact.getType()).isEqualTo("doc");
+		assertThat(artifact.getAttributes().includeInScope("boot")).isTrue();
+
+	}
 	@Test
 	void testScopes() {
 
