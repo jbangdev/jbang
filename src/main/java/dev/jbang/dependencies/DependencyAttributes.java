@@ -1,9 +1,8 @@
 package dev.jbang.dependencies;
 
-import dev.jbang.util.AttributeParser;
-
 import java.util.*;
-import java.util.stream.Collectors;
+
+import dev.jbang.util.AttributeParser;
 
 public class DependencyAttributes {
 
@@ -31,6 +30,7 @@ public class DependencyAttributes {
 
 	/**
 	 * is there something configured? even if default ?
+	 * 
 	 * @return
 	 */
 	public boolean isDefault() {
@@ -48,8 +48,9 @@ public class DependencyAttributes {
 
 	@Override
 	public boolean equals(Object o) {
-		//TODO: this wont make g:a:v and g:a:v{build,run} equal ...even if they are...
-		if (o == null || getClass() != o.getClass()) return false;
+		// TODO: this wont make g:a:v and g:a:v{build,run} equal ...even if they are...
+		if (o == null || getClass() != o.getClass())
+			return false;
 		DependencyAttributes that = (DependencyAttributes) o;
 		return Objects.equals(attributes, that.attributes);
 	}
