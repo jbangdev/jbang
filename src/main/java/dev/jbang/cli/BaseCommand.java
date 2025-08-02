@@ -38,9 +38,8 @@ public abstract class BaseCommand implements Callable<Integer> {
 	@CommandLine.Spec
 	CommandLine.Model.CommandSpec spec;
 
-	@CommandLine.Option(names = { "-h",
-			"--help" }, usageHelp = true, description = "Display help/info. Use 'jbang <command> -h' for detailed usage.")
-	boolean helpRequested;
+	@CommandLine.Mixin
+	HelpMixin helpMixin;
 
 	@CommandLine.Option(names = { "--config" }, description = "Path to config file to be used instead of the default")
 	void setConfig(Path config) {

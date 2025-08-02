@@ -42,4 +42,23 @@ public class AppIT extends BaseIT {
 					+ lineSeparator());
 	}
 
+	// Scenario: check help command is printed when -h is requested
+	// * command('jbang app --help')
+	@Test
+	@Description("Check --help write help on console for top level command")
+	public void shouldPrintHelp() {
+		assertThat(shell("jbang app --help"))
+			.succeeded()
+			.errContains("Use 'jbang <command> -h' for detailed");
+	}
+
+	// Scenario: check help command is printed when -h is requested
+	// * command('jbang app --help')
+	@Test
+	@Description("Check prints detailed help on missed subcommand argument")
+	public void shouldPrintDetailedHelpOnMissedSubcommand() {
+		assertThat(shell("jbang app"))
+			.failed()
+			.errContains("Missing required subcommand");
+	}
 }

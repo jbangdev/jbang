@@ -35,7 +35,7 @@ class TestArguments extends BaseTest {
 		CommandLine.ParseResult pr = cli.parseArgs("run", "-h", "--debug", "myfile.java");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
-		assert run.helpRequested;
+		assert run.helpMixin.helpRequested;
 		assertThat(run.runMixin.debugString, hasEntry("address", "4004"));
 		assertThat(run.scriptMixin.scriptOrFile, is("myfile.java"));
 		assertThat(run.userParams.size(), is(0));
@@ -65,7 +65,7 @@ class TestArguments extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.scriptMixin.scriptOrFile, is("-"));
-		assertThat(run.helpRequested, is(false));
+		assertThat(run.helpMixin.helpRequested, is(false));
 		assertThat(run.userParams, is(Collections.singletonList("--help")));
 	}
 
@@ -75,7 +75,7 @@ class TestArguments extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		assertThat(run.scriptMixin.scriptOrFile, is("test.java"));
-		assertThat(run.helpRequested, is(false));
+		assertThat(run.helpMixin.helpRequested, is(false));
 		assertThat(run.userParams, is(Collections.singletonList("-h")));
 	}
 
