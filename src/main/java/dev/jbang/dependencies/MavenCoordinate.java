@@ -1,16 +1,11 @@
 package dev.jbang.dependencies;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
-import dev.jbang.util.AttributeParser;
 
 /**
  * 
@@ -30,7 +25,6 @@ public class MavenCoordinate {
 	private final String version;
 	private final String classifier;
 	private final String type;
-	private final DependencyAttributes attributes;
 
 	public static final String DUMMY_GROUP = "group";
 	public static final String DEFAULT_VERSION = "999-SNAPSHOT";
@@ -60,10 +54,6 @@ public class MavenCoordinate {
 
 	public String getType() {
 		return type;
-	}
-
-	public DependencyAttributes getAttributes() {
-		return attributes;
 	}
 
 	public static MavenCoordinate fromString(String depId) {
@@ -103,8 +93,7 @@ public class MavenCoordinate {
 		String classifier = gav.group("classifier");
 		String type = Optional.ofNullable(gav.group("type")).orElse("jar");
 		String propString = gav.group("properties");
-		Map<String, List<String>> properties = AttributeParser.parseAttributeList(propString, "scope");
-		return new MavenCoordinate(groupId, artifactId, version, classifier, type, properties);
+		return new MavenCoordinate(groupId, artifactId, version, classifier, type);
 	}
 
 	public MavenCoordinate(@Nonnull String groupId, @Nonnull String artifactId, @Nonnull String version) {
@@ -113,18 +102,11 @@ public class MavenCoordinate {
 
 	public MavenCoordinate(@Nonnull String groupId, @Nonnull String artifactId, @Nonnull String version,
 			@Nullable String classifier, @Nullable String type) {
-		this(groupId, artifactId, version, classifier, type, null);
-	}
-
-	public MavenCoordinate(@Nonnull String groupId, @Nonnull String artifactId, @Nonnull String version,
-			@Nullable String classifier, @Nullable String type, @Nullable Map<String, List<String>> attributes) {
 		this.groupId = groupId;
 		this.artifactId = artifactId;
 		this.version = version;
 		this.classifier = classifier != null && classifier.isEmpty() ? null : classifier;
 		this.type = type;
-		this.attributes = attributes == null ? new DependencyAttributes(Collections.emptyMap())
-				: new DependencyAttributes(attributes);
 	}
 
 	public MavenCoordinate withVersion() {
@@ -148,9 +130,6 @@ public class MavenCoordinate {
 		}
 		if (type != null && !type.isEmpty()) {
 			out += "@" + type;
-		}
-		if(attributes != null && !attributes.isDefault()) {
-			out += "{" + attributes.toStringFormat() + "}";
 		}
 		return out;
 	}
@@ -184,19 +163,7 @@ public class MavenCoordinate {
 				", version='" + version + '\'' +
 				", classifier='" + classifier + '\'' +
 				", type='" + type + '\'' +
-				", attributes=" + attributes +
 				'}';
 	}
 
-	@Override
-	public String toString() {
-		return "MavenCoordinate{" +
-				"groupId='" + groupId + '\'' +
-				", artifactId='" + artifactId + '\'' +
-				", version='" + version + '\'' +
-				", classifier='" + classifier + '\'' +
-				", type='" + type + '\'' +
-				", attributes=" + attributes +
-				'}';
-	}
 }

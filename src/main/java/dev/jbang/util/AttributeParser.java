@@ -106,7 +106,8 @@ public class AttributeParser {
 
 	private static String quoteValue(String value) {
 		boolean needsQuote = value.contains(",") || value.contains(" ") || value.contains("\"") || value.contains("'");
-		if (!needsQuote) return value;
+		if (!needsQuote)
+			return value;
 
 		boolean useDouble = !value.contains("\"") || value.contains("'");
 		String escaped = value.replace(useDouble ? "\"" : "'", useDouble ? "\\\"" : "\\'");
@@ -127,7 +128,8 @@ public class AttributeParser {
 		// Other keys
 		for (Map.Entry<String, List<String>> entry : attributes.entrySet()) {
 			String key = entry.getKey();
-			if (key.equals(defaultKey)) continue;
+			if (key.equals(defaultKey))
+				continue;
 
 			List<String> values = entry.getValue();
 			for (String value : values) {
