@@ -43,6 +43,15 @@ public class TestModule extends BaseTest {
 			"    }\n" +
 			"}\n";
 
+	String srcWithEmptyVersionRangeDep = "//MODULE\n" +
+			"//DEPS info.picocli:picocli:4.6+\n" +
+			"package test;" +
+			"public class moduletest {\n" +
+			"    public static void main(String... args) {\n" +
+			"        System.out.println(\"Hello World\");\n" +
+			"    }\n" +
+			"}\n";
+
 	String srcWithEmptyModDep = "//MODULE\n" +
 			"//DEPS info.picocli:picocli:4.6.3\n" +
 			"package test;" +
@@ -122,6 +131,11 @@ public class TestModule extends BaseTest {
 	@Test
 	void testEmptyModuleTrailingWhiteSpaces(@TempDir File output) throws IOException {
 		testEmptyModule(srcWithEmptyModDep.replace("//MODULE", "//MODULE  \t  "), output);
+	}
+
+	@Test
+	void testEmptyVersionRangedModule(@TempDir File output) throws IOException {
+		testEmptyModule(srcWithEmptyVersionRangeDep, output);
 	}
 
 	void testEmptyModule(String script, File output) throws IOException {
