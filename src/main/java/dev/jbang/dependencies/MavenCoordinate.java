@@ -1,6 +1,5 @@
 package dev.jbang.dependencies;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,6 +22,7 @@ public class MavenCoordinate {
 
 	private static final Pattern canonicalPattern = Pattern.compile(
 			"^(?<groupid>[^:]*):(?<artifactid>[^:]*)((:(?<type>.*)(:(?<classifier>[^@]*))?)?:(?<version>[^:@]*))?$");
+	private String managementKey;
 
 	public String getGroupId() {
 		return groupId;
@@ -46,6 +46,19 @@ public class MavenCoordinate {
 
 	public static MavenCoordinate fromString(String depId) {
 		return parse(depId, gavPattern);
+	}
+
+	/**
+	 * @return the management key as <code>groupId:artifactId:type</code>
+	 *
+	 *         This is when want to know what dependency this is about ignoring
+	 *         versionrange or any additional properties.
+	 */
+	public String getManagementKey() {
+		if (managementKey == null) {
+			managementKey = groupId + ":" + artifactId + ":" + type + (classifier != null ? ":" + classifier : "");
+		}
+		return managementKey;
 	}
 
 	public static MavenCoordinate fromCanonicalString(String depId) {
@@ -130,20 +143,38 @@ public class MavenCoordinate {
 		return out;
 	}
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o)
-			return true;
-		if (o == null || getClass() != o.getClass())
-			return false;
-		MavenCoordinate that = (MavenCoordinate) o;
-		return groupId.equals(that.groupId) && artifactId.equals(that.artifactId)
-				&& Objects.equals(version, that.version) && Objects.equals(classifier, that.classifier)
-				&& Objects.equals(type, that.type);
-	}
+	/*
+	 * 
+	 * MavenCoordinate should not implement euqals as it is not meaningfull to use
+	 * as a key in a set as it can have version ranges / different behaviors.
+	 * 
+	 * At least at time of writing ModuleUtil had code making the assumption you
+	 * could look up in set/list of deps. Thus removing it until proven otherwise it
+	 * is needed/useful.
+	 * 
+	 * Use getManagmentKey() if you want to see if dependency exist in list of
+	 * dpeendencies. Or resolve it fully into an artifact. a
+	 * 
+	 * @Override public boolean equals(Object o) { if (this == o) return true; if (o
+	 * == null || getClass() != o.getClass()) return false; MavenCoordinate that =
+	 * (MavenCoordinate) o; return groupId.equals(that.groupId) &&
+	 * artifactId.equals(that.artifactId) && Objects.equals(version, that.version)
+	 * && Objects.equals(classifier, that.classifier) && Objects.equals(type,
+	 * that.type); }
+	 * 
+	 * 
+	 * @Override public int hashCode() { return Objects.hash(groupId, artifactId,
+	 * version, classifier, type); }
+	 */
 
 	@Override
-	public int hashCode() {
-		return Objects.hash(groupId, artifactId, version, classifier, type);
+	public String toString() {
+		return "MavenCoordinate{" +
+				"groupId='" + groupId + '\'' +
+				", artifactId='" + artifactId + '\'' +
+				", version='" + version + '\'' +
+				", classifier='" + classifier + '\'' +
+				", type='" + type + '\'' +
+				'}';
 	}
 }
