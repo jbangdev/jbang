@@ -4,7 +4,7 @@ import picocli.CommandLine;
 
 public class HelpMixin {
 
-    @CommandLine.Option(names = { "-h",
-            "--help" }, usageHelp = true, description = "Display help/info. Use 'jbang <command> -h' for detailed usage.")
-    boolean helpRequested;
+	@CommandLine.Option(names = { "-h",
+			"--help" }, usageHelp = true, description = "Display help/info. Use 'jbang <command> -h' for detailed usage.")
+	boolean helpRequested;
 }
