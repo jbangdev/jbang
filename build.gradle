@@ -505,6 +505,8 @@ task clidoc(type: Exec) {
 //didn't find better way yet.
 distZip.dependsOn(versionTxt)
 distTar.dependsOn(versionTxt)
+latestDistZip.dependsOn(versionTxt)
+latestDistTar.dependsOn(versionTxt)
 
 build.dependsOn(latestDistZip)
 build.dependsOn(latestDistTar)
