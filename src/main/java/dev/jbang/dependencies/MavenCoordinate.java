@@ -1,7 +1,8 @@
 package dev.jbang.dependencies;
 
-import java.util.Objects;
-import java.util.Optional;
+import static java.util.Optional.ofNullable;
+
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,7 +20,7 @@ public class MavenCoordinate {
 	public static final String DEFAULT_VERSION = "999-SNAPSHOT";
 
 	private static final Pattern gavPattern = Pattern.compile(
-			"^(?<groupid>[^:]*):(?<artifactid>[^:]*)(:(?<version>[^:@]*))?(:(?<classifier>[^@]*))?(@(?<type>.*))?$");
+			"^(?<groupid>[^:]*):(?<artifactid>[^:]*)(:(?<version>[^:@{]*))?(:(?<classifier>[^@{]*))?(@(?<type>.[^{]*))?(\\{(?<properties>.*)})?$");
 
 	private static final Pattern canonicalPattern = Pattern.compile(
 			"^(?<groupid>[^:]*):(?<artifactid>[^:]*)((:(?<type>.*)(:(?<classifier>[^@]*))?)?:(?<version>[^:@]*))?$");
@@ -54,7 +55,7 @@ public class MavenCoordinate {
 
 	private static MavenCoordinate parse(String depId, Pattern pattern) {
 		Matcher gav = pattern.matcher(depId);
-		gav.find();
+		// gav.find();
 
 		if (!gav.matches()) {
 			throw new IllegalStateException(String.format(
@@ -66,8 +67,8 @@ public class MavenCoordinate {
 		String artifactId = gav.group("artifactid");
 		String version = DependencyUtil.formatVersion(gav.group("version"));
 		String classifier = gav.group("classifier");
-		String type = Optional.ofNullable(gav.group("type")).orElse("jar");
-
+		String type = ofNullable(gav.group("type")).orElse("jar");
+		String propString = gav.group("properties");
 		return new MavenCoordinate(groupId, artifactId, version, classifier, type);
 	}
 
@@ -145,5 +146,16 @@ public class MavenCoordinate {
 	@Override
 	public int hashCode() {
 		return Objects.hash(groupId, artifactId, version, classifier, type);
+	}
+
+	@Override
+	public String toString() {
+		return "MavenCoordinate{" +
+				"groupId='" + groupId + '\'' +
+				", artifactId='" + artifactId + '\'' +
+				", version='" + version + '\'' +
+				", classifier='" + classifier + '\'' +
+				", type='" + type + '\'' +
+				'}';
 	}
 }
