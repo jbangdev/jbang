@@ -79,7 +79,6 @@ jobs:
         run: |
           gh pr comment ${{ github.event.pull_request.number }} --body "❌ Code formatting check failed. Please run \`just format\` or \`./gradlew spotlessApply\` and push the changes."
 
-      - name: check formatting
       - name: build-gradle
         run: ./gradlew --no-daemon clean build installDist publish --build-cache --scan -s
       - name: integration-test
