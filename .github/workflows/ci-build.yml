@@ -18,9 +18,6 @@ on:
 jobs:
   updatewebsite:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
     steps:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
@@ -47,6 +44,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     name: build-and-testing
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: Rate limit info
         run: 'curl -H "Accept: application/vnd.github+json" https://api.github.com/rate_limit'
