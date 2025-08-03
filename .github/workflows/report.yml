@@ -4,6 +4,7 @@
  
 name: report
 on:
+  workflow_dispatch:
 #disabled for now as its just constant noise
 #fixes by figuring ouot why the upload/download of testresults aren't working
 #  workflow_run:
