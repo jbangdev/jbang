@@ -23,7 +23,7 @@ public class DependencyUtil {
 	public static final String ALIAS_JITPACK = "jitpack";
 	public static final String REPO_JITPACK = "https://jitpack.io/";
 
-	private static final Map<String, String> aliasToRepos;
+	  private static final Map<String, String> aliasToRepos;
 
 	static {
 		aliasToRepos = new HashMap<>();
