@@ -62,6 +62,24 @@ jobs:
           cache: gradle
       - name: setup-gradle
         uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244 # v4
+      
+      - name: check formatting and comment on PR if failed
+        id: check-formatting
+        run: |
+          set +e
+          ./gradlew checkFormat
+          EXIT_CODE=$?
+          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
+          exit $EXIT_CODE
+        continue-on-error: true
+      - name: Comment on PR if formatting failed
+        if: steps.check-formatting.outputs.exit_code != '0' && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body "❌ Code formatting check failed. Please run \`just format\` or \`./gradlew spotlessApply\` and push the changes."
+
+      - name: check formatting
       - name: build-gradle
         run: ./gradlew --no-daemon clean build installDist publish --build-cache --scan -s
       - name: integration-test
