@@ -78,7 +78,7 @@ jobs:
       - name: Comment on PR if formatting failed
         if: steps.check-formatting.outputs.exit_code != '0' && github.event_name == 'pull_request'
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh pr comment ${{ github.event.pull_request.number }} --body "❌ Code formatting check failed. Please run \`just format\` or \`./gradlew spotlessApply\` and push the changes."
 
