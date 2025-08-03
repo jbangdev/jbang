@@ -47,6 +47,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+      id-token: write
     steps:
       - name: Rate limit info
         run: 'curl -H "Accept: application/vnd.github+json" https://api.github.com/rate_limit'
