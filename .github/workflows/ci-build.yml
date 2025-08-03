@@ -67,7 +67,7 @@ jobs:
         id: check-formatting
         run: |
           set +e
-          ./gradlew checkFormat
+          ./gradlew spotlessCheck
           EXIT_CODE=$?
           echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
           exit $EXIT_CODE
