@@ -44,10 +44,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     name: build-and-testing
-    permissions:
-      contents: read
-      pull-requests: write
-      id-token: write
     steps:
       - name: Rate limit info
         run: 'curl -H "Accept: application/vnd.github+json" https://api.github.com/rate_limit'
@@ -69,19 +65,7 @@ jobs:
       
       - name: check formatting and comment on PR if failed
         id: check-formatting
-        run: |
-          set +e
-          ./gradlew spotlessCheck
-          EXIT_CODE=$?
-          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
-          exit $EXIT_CODE
-        continue-on-error: true
-      - name: Comment on PR if formatting failed
-        if: steps.check-formatting.outputs.exit_code != '0' && github.event_name == 'pull_request'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr comment ${{ github.event.pull_request.number }} --body "❌ Code formatting check failed. Please run \`just format\` or \`./gradlew spotlessApply\` and push the changes."
+        run: ./gradlew spotlessCheck
 
       - name: build-gradle
         run: ./gradlew --no-daemon clean build installDist publish --build-cache --scan -s
