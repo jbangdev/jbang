@@ -2,6 +2,7 @@ package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
 
+import io.qameta.allure.Description;
 import org.junit.jupiter.api.Test;
 
 public class ExportIT extends BaseIT {
@@ -56,5 +57,25 @@ public class ExportIT extends BaseIT {
 			.errContains("Exported to")
 			.errContains(
 					"classpath_example.jar");
+	}
+
+	// Scenario: check help command is printed when -h is requested
+	// * command('jbang app --help')
+	@Test
+	@Description("Check --help write help on console for top level command")
+	public void shouldPrintHelp() {
+		assertThat(shell("jbang export --help"))
+				.succeeded()
+				.errContains("Use 'jbang <command> -h' for detailed");
+	}
+
+	// Scenario: check help command is printed when -h is requested
+	// * command('jbang app --help')
+	@Test
+	@Description("Check prints detailed help on missed subcommand argument")
+	public void shouldPrintDetailedHelpOnMissedSubcommand() {
+		assertThat(shell("jbang export"))
+				.failed()
+				.errContains("Missing required subcommand");
 	}
 }
