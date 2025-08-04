@@ -24,6 +24,8 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "catalog", description = "Manage Catalogs of aliases.", subcommands = { CatalogAdd.class,
 		CatalogUpdate.class, CatalogList.class, CatalogRemove.class })
 public class Catalog {
+	@CommandLine.Mixin
+	HelpMixin helpMixin;
 }
 
 abstract class BaseCatalogCommand extends BaseCommand {

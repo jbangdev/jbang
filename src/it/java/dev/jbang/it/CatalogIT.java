@@ -2,6 +2,7 @@ package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
 
+import io.qameta.allure.Description;
 import org.junit.jupiter.api.Test;
 
 public class CatalogIT extends BaseIT {
@@ -125,6 +126,26 @@ public class CatalogIT extends BaseIT {
 			.errContains(
 					"Cannot remove catalog ref jbanghub from built-in catalog")
 			.exitedWith(0);
+	}
+
+	// Scenario: check help command is printed when -h is requested
+	// * command('jbang app --help')
+	@Test
+	@Description("Check --help write help on console for top level command")
+	public void shouldPrintHelp() {
+		assertThat(shell("jbang catalog --help"))
+				.succeeded()
+				.errContains("Use 'jbang <command> -h' for detailed");
+	}
+
+	// Scenario: check help command is printed when -h is requested
+	// * command('jbang app --help')
+	@Test
+	@Description("Check prints detailed help on missed subcommand argument")
+	public void shouldPrintDetailedHelpOnMissedSubcommand() {
+		assertThat(shell("jbang catalog"))
+				.failed()
+				.errContains("Missing required subcommand");
 	}
 
 }
