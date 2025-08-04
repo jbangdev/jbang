@@ -29,7 +29,6 @@ public class ConfigIT extends AbstractHelpBaseIT {
 			.outContains("foo = baz");
 	}
 
-
 	@Override
 	protected String commandName() {
 		return "config";

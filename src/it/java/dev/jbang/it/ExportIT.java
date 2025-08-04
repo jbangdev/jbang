@@ -2,7 +2,6 @@ package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
 
-import io.qameta.allure.Description;
 import org.junit.jupiter.api.Test;
 
 public class ExportIT extends AbstractHelpBaseIT {
@@ -58,7 +57,6 @@ public class ExportIT extends AbstractHelpBaseIT {
 			.errContains(
 					"classpath_example.jar");
 	}
-
 
 	@Override
 	protected String commandName() {

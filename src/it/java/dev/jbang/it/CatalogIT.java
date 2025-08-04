@@ -127,7 +127,6 @@ public class CatalogIT extends AbstractHelpBaseIT {
 			.exitedWith(0);
 	}
 
-
 	@Override
 	protected String commandName() {
 		return "catalog";

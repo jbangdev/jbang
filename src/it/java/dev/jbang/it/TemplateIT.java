@@ -17,7 +17,6 @@ public class TemplateIT extends AbstractHelpBaseIT {
 					"Cannot remove template hello from built-in catalog");
 	}
 
-
 	@Override
 	protected String commandName() {
 		return "template";
