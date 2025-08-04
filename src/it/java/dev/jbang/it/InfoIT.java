@@ -2,8 +2,8 @@ package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
 import static java.lang.System.lineSeparator;
-import static org.assertj.core.api.Assertions.assertThat;
 
+import io.qameta.allure.Description;
 import org.junit.jupiter.api.Test;
 
 public class InfoIT extends BaseIT {
@@ -19,5 +19,25 @@ public class InfoIT extends BaseIT {
 			.outContains("javadoc:")
 			.outContains("  /tmp/this_exists.txt")
 			.succeeded();
+	}
+
+	// Scenario: check help command is printed when -h is requested
+	// * command('jbang app --help')
+	@Test
+	@Description("Check --help write help on console for top level command")
+	public void shouldPrintHelp() {
+		assertThat(shell("jbang info --help"))
+				.succeeded()
+				.errContains("Use 'jbang <command> -h' for detailed");
+	}
+
+	// Scenario: check help command is printed when -h is requested
+	// * command('jbang app --help')
+	@Test
+	@Description("Check prints detailed help on missed subcommand argument")
+	public void shouldPrintDetailedHelpOnMissedSubcommand() {
+		assertThat(shell("jbang info"))
+				.failed()
+				.errContains("Missing required subcommand");
 	}
 }

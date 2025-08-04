@@ -46,6 +46,8 @@ import picocli.CommandLine.Option;
 @CommandLine.Command(name = "info", description = "Provides info about the script for tools (and humans who are tools).", subcommands = {
 		Tools.class, ClassPath.class, Jar.class, Docs.class })
 public class Info {
+	@CommandLine.Mixin
+	HelpMixin helpMixin;
 }
 
 abstract class BaseInfoCommand extends BaseCommand {
