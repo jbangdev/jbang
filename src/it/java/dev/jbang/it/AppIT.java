@@ -2,7 +2,6 @@ package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
 import static java.lang.System.lineSeparator;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
@@ -11,7 +10,7 @@ import org.junit.jupiter.api.condition.OS;
 
 import io.qameta.allure.Description;
 
-public class AppIT extends BaseIT {
+public class AppIT extends AbstractHelpBaseIT {
 
 	// Scenario: check quotes are kept when wrapped with quotes
 	// * command('jbang app install --force --name jbang-itest-app-quote echo.java')
@@ -42,23 +41,8 @@ public class AppIT extends BaseIT {
 					+ lineSeparator());
 	}
 
-	// Scenario: check help command is printed when -h is requested
-	// * command('jbang app --help')
-	@Test
-	@Description("Check --help write help on console for top level command")
-	public void shouldPrintHelp() {
-		assertThat(shell("jbang app --help"))
-			.succeeded()
-			.errContains("Use 'jbang <command> -h' for detailed");
-	}
-
-	// Scenario: check help command is printed when -h is requested
-	// * command('jbang app --help')
-	@Test
-	@Description("Check prints detailed help on missed subcommand argument")
-	public void shouldPrintDetailedHelpOnMissedSubcommand() {
-		assertThat(shell("jbang app"))
-			.failed()
-			.errContains("Missing required subcommand");
+	@Override
+	protected String commandName() {
+		return "app";
 	}
 }

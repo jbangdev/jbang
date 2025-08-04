@@ -2,10 +2,9 @@ package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
 
-import io.qameta.allure.Description;
 import org.junit.jupiter.api.Test;
 
-public class TemplateIT extends BaseIT {
+public class TemplateIT extends AbstractHelpBaseIT {
 
 	// Scenario: Removing built-in template
 	// When command('jbang template remove hello')
@@ -18,24 +17,9 @@ public class TemplateIT extends BaseIT {
 					"Cannot remove template hello from built-in catalog");
 	}
 
-	// Scenario: check help command is printed when -h is requested
-	// * command('jbang app --help')
-	@Test
-	@Description("Check --help write help on console for top level command")
-	public void shouldPrintHelp() {
-		assertThat(shell("jbang template --help"))
-				.succeeded()
-				.errContains("Use 'jbang <command> -h' for detailed");
-	}
 
-	// Scenario: check help command is printed when -h is requested
-	// * command('jbang app --help')
-	@Test
-	@Description("Check prints detailed help on missed subcommand argument")
-	public void shouldPrintDetailedHelpOnMissedSubcommand() {
-		assertThat(shell("jbang template"))
-				.failed()
-				.errContains("Missing required subcommand");
+	@Override
+	protected String commandName() {
+		return "template";
 	}
-
 }

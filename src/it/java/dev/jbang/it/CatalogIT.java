@@ -2,10 +2,9 @@ package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
 
-import io.qameta.allure.Description;
 import org.junit.jupiter.api.Test;
 
-public class CatalogIT extends BaseIT {
+public class CatalogIT extends AbstractHelpBaseIT {
 
 //     Scenario: java catalog list
 //     When command('jbang catalog add --global --name averylongcatalogname jbang-catalog.json')
@@ -128,24 +127,9 @@ public class CatalogIT extends BaseIT {
 			.exitedWith(0);
 	}
 
-	// Scenario: check help command is printed when -h is requested
-	// * command('jbang app --help')
-	@Test
-	@Description("Check --help write help on console for top level command")
-	public void shouldPrintHelp() {
-		assertThat(shell("jbang catalog --help"))
-				.succeeded()
-				.errContains("Use 'jbang <command> -h' for detailed");
-	}
 
-	// Scenario: check help command is printed when -h is requested
-	// * command('jbang app --help')
-	@Test
-	@Description("Check prints detailed help on missed subcommand argument")
-	public void shouldPrintDetailedHelpOnMissedSubcommand() {
-		assertThat(shell("jbang catalog"))
-				.failed()
-				.errContains("Missing required subcommand");
+	@Override
+	protected String commandName() {
+		return "catalog";
 	}
-
 }

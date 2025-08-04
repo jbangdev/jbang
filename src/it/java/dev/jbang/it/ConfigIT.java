@@ -2,10 +2,9 @@ package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
 
-import io.qameta.allure.Description;
 import org.junit.jupiter.api.Test;
 
-public class ConfigIT extends BaseIT {
+public class ConfigIT extends AbstractHelpBaseIT {
 
 	// Feature: config
 
@@ -30,23 +29,9 @@ public class ConfigIT extends BaseIT {
 			.outContains("foo = baz");
 	}
 
-	// Scenario: check help command is printed when -h is requested
-	// * command('jbang app --help')
-	@Test
-	@Description("Check --help write help on console for top level command")
-	public void shouldPrintHelp() {
-		assertThat(shell("jbang config --help"))
-				.succeeded()
-				.errContains("Use 'jbang <command> -h' for detailed");
-	}
 
-	// Scenario: check help command is printed when -h is requested
-	// * command('jbang app --help')
-	@Test
-	@Description("Check prints detailed help on missed subcommand argument")
-	public void shouldPrintDetailedHelpOnMissedSubcommand() {
-		assertThat(shell("jbang config"))
-				.failed()
-				.errContains("Missing required subcommand");
+	@Override
+	protected String commandName() {
+		return "config";
 	}
 }
