@@ -20,6 +20,9 @@ public class Wrapper {
 	public static final String JAR_NAME = "jbang.jar";
 	public static final List<String> SCRIPT_NAMES = Arrays.asList("jbang", "jbang.cmd", "jbang.ps1");
 
+	@CommandLine.Mixin
+	HelpMixin helpMixin;
+
 	@CommandLine.Command(name = "install", description = "Install/Setup jbang as a `wrapper` script in a folder")
 	public Integer install(
 			@CommandLine.Option(names = { "-d",

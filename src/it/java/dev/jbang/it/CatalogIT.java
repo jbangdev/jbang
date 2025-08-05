@@ -4,7 +4,7 @@ import static dev.jbang.it.CommandResultAssert.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-public class CatalogIT extends BaseIT {
+public class CatalogIT extends AbstractHelpBaseIT {
 
 //     Scenario: java catalog list
 //     When command('jbang catalog add --global --name averylongcatalogname jbang-catalog.json')
@@ -127,4 +127,8 @@ public class CatalogIT extends BaseIT {
 			.exitedWith(0);
 	}
 
+	@Override
+	protected String commandName() {
+		return "catalog";
+	}
 }

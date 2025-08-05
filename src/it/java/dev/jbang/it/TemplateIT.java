@@ -4,7 +4,7 @@ import static dev.jbang.it.CommandResultAssert.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-public class TemplateIT extends BaseIT {
+public class TemplateIT extends AbstractHelpBaseIT {
 
 	// Scenario: Removing built-in template
 	// When command('jbang template remove hello')
@@ -17,4 +17,8 @@ public class TemplateIT extends BaseIT {
 					"Cannot remove template hello from built-in catalog");
 	}
 
+	@Override
+	protected String commandName() {
+		return "template";
+	}
 }
