@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-public class WrapperIT extends BaseIT {
+public class WrapperIT extends AbstractHelpBaseIT {
 
 	// Feature: wrapper
 
@@ -73,4 +73,8 @@ public class WrapperIT extends BaseIT {
 		assertThat(shell("jbang wrapper install")).succeeded();
 	}
 
+	@Override
+	protected String commandName() {
+		return "wrapper";
+	}
 }
