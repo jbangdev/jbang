@@ -3,6 +3,9 @@
 //DEPS {dep}
 {/for}
 {#if dependencies.isEmpty()}// //DEPS <dependency1> <dependency2>{/if}
+{#if compactSourceFiles}
+//JAVA 25+
+{/if}
 
 {#if magiccontent}
 {magiccontent}
