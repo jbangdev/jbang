@@ -62,8 +62,7 @@ public class Main {
 					// We do this test because we want aliases to have a higher
 					// priority than the next case, which is to look up commands
 					// in the user's PATH which might be slow-ish
-				} else if (!Util.findCommandsWith(p -> Util.base(p.getFileName().toString()).equals("jbang-" + cmd))
-					.isEmpty()) {
+				} else if (Catalog.isValidName(cmd) && Util.searchPath("jbang-" + cmd) != null) {
 					// We found a matching "jbang-xxx" command on the user's PATH
 					List<String> result = new ArrayList<>();
 					result.add("jbang-" + cmd);

@@ -1685,7 +1685,10 @@ public class Util {
 	 */
 	public static Path searchPath(String cmd, String paths, Predicate<Path> pathFilter) {
 		return Arrays.stream(paths.split(File.pathSeparator))
-			.map(dir -> Paths.get(dir).resolve(cmd))
+			.filter(Util::isValidPath)
+			.map(Paths::get)
+			.filter(Files::isDirectory)
+			.map(dir -> dir.resolve(cmd))
 			.flatMap(Util::executables)
 			.filter(Util::isExecutable)
 			.filter(pathFilter)
@@ -1695,16 +1698,16 @@ public class Util {
 
 	private static Stream<Path> executables(Path base) {
 		if (isWindows()) {
-			return Stream.of(Paths.get(base.toString() + ".exe"),
-					Paths.get(base.toString() + ".bat"),
-					Paths.get(base.toString() + ".cmd"),
-					Paths.get(base.toString() + ".ps1"));
+			return Stream.of(Paths.get(base + ".exe"),
+					Paths.get(base + ".bat"),
+					Paths.get(base + ".cmd"),
+					Paths.get(base + ".ps1"));
 		} else {
 			return Stream.of(base);
 		}
 	}
 
-	private static boolean isExecutable(Path file) {
+	public static boolean isExecutable(Path file) {
 		if (Files.isRegularFile(file)) {
 			if (isWindows()) {
 				String nm = file.getFileName().toString().toLowerCase();
@@ -2019,27 +2022,6 @@ public class Util {
 
 	public static <K, V> Entry<K, V> entry(K k, V v) {
 		return new AbstractMap.SimpleEntry<K, V>(k, v);
-	}
-
-	public static List<Path> findCommandsWith(Predicate<Path> accept) {
-		String[] elems = System.getenv().getOrDefault("PATH", "").split(File.pathSeparator);
-		return Stream
-			.of(elems)
-			.map(elem -> Util.getCwd().resolve(elem))
-			.flatMap(dir -> listFiles(dir).filter(p -> isExecutable(p)).filter(accept))
-			.collect(Collectors.toList());
-	}
-
-	private static Stream<Path> listFiles(Path dir) {
-		if (Files.isDirectory(dir)) {
-			try {
-				return Files.list(dir);
-			} catch (IOException e) {
-				throw new RuntimeException(e.getMessage(), e);
-			}
-		} else {
-			return Stream.empty();
-		}
 	}
 
 	/**
