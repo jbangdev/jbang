@@ -1818,36 +1818,46 @@ public class Util {
 		return Paths.get("");
 	}
 
-	public static <T> T findNearestWith(Path dir, String fileName, Function<Path, T> accept) {
-		T result = findNearestLocalWith(dir, fileName, accept);
-		if (result == null) {
-			Path file = Settings.getConfigDir().resolve(fileName);
+	public static Function<Path, Path> acceptFile(String fileName) {
+		return p -> {
+			Path file = p.resolve(fileName);
 			if (Files.isRegularFile(file) && Files.isReadable(file)) {
-				result = accept.apply(file);
+				return file;
 			}
+			return null;
+		};
+	}
+
+	public static <U, V> Function<U, V> notNull(Function<U, V> func) {
+		return u -> {
+			if (u == null) {
+				return null;
+			}
+			return func.apply(u);
+		};
+	}
+
+	public static <T> T findNearestWith(Path dir, Function<Path, T> accept) {
+		T result = findNearestLocalWith(dir, accept);
+		if (result == null) {
+			result = accept.apply(Settings.getConfigDir());
 		}
 		return result;
 	}
 
-	private static <T> T findNearestLocalWith(Path dir, String fileName, Function<Path, T> accept) {
+	private static <T> T findNearestLocalWith(Path dir, Function<Path, T> accept) {
 		if (dir == null) {
 			dir = getCwd();
 		}
 		Path root = Settings.getLocalRootDir();
 		while (dir != null && !isSameFile(dir, root)) {
-			Path file = dir.resolve(fileName);
-			if (Files.isRegularFile(file) && Files.isReadable(file)) {
-				T result = accept.apply(file);
-				if (result != null) {
-					return result;
-				}
+			T result = accept.apply(dir);
+			if (result != null) {
+				return result;
 			}
-			file = dir.resolve(Settings.JBANG_DOT_DIR).resolve(fileName);
-			if (Files.isRegularFile(file) && Files.isReadable(file)) {
-				T result = accept.apply(file);
-				if (result != null) {
-					return result;
-				}
+			result = accept.apply(dir.resolve(Settings.JBANG_DOT_DIR));
+			if (result != null) {
+				return result;
 			}
 			dir = dir.getParent();
 		}
