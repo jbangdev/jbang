@@ -68,7 +68,7 @@ public class BaseIT {
 
 		// Add built jbang to PATH (not a gurantee that this will work if other jbang
 		// instances are installed)
-		env.put("PATH", Paths.get("build/install/jbang/bin").toAbsolutePath().toString() + File.pathSeparator
+		env.put("PATH", Paths.get("build/install/jbang/bin").toAbsolutePath() + File.pathSeparator
 				+ System.getenv("PATH"));
 		System.out.println("PATH: " + env.get("PATH"));
 		return env;

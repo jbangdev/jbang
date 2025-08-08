@@ -4,7 +4,7 @@ import static dev.jbang.it.CommandResultAssert.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-public class AliasIT extends BaseIT {
+public class AliasIT extends AbstractHelpBaseIT {
 
 	// Scenario: No properties should be displayed for an alias having none
 	// When command('jbang alias add -f ' + scratch + ' echo.java')
@@ -21,4 +21,8 @@ public class AliasIT extends BaseIT {
 		assertThat(shell("jbang alias remove -f " + scratch() + " echo")).succeeded();
 	}
 
+	@Override
+	protected String commandName() {
+		return "alias";
+	}
 }

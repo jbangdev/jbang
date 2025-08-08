@@ -40,6 +40,8 @@ import picocli.CommandLine.Command;
 		ExportLocal.class, ExportMavenPublish.class, ExportNative.class, ExportFatjar.class, ExportJlink.class,
 		ExportGradleProject.class, ExportMavenProject.class })
 public class Export {
+	@CommandLine.Mixin
+	HelpMixin helpMixin;
 }
 
 abstract class BaseExportCommand extends BaseCommand {
