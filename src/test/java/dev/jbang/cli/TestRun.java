@@ -73,6 +73,7 @@ import dev.jbang.source.CmdGeneratorBuilder;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.source.ResourceNotFoundException;
+import dev.jbang.source.ResourceRef;
 import dev.jbang.source.Source;
 import dev.jbang.source.buildsteps.JarBuildStep;
 import dev.jbang.source.generators.JshCmdGenerator;
@@ -864,7 +865,7 @@ public class TestRun extends BaseTest {
 
 		Path out = rootdir.resolve("content.jar");
 
-		Source src = new JavaSource("", null);
+		Source src = new JavaSource(ResourceRef.forLiteral(""), null);
 		Project prj = Project.builder().build(src);
 		prj.setMainClass("wonkabear");
 
@@ -1566,11 +1567,16 @@ public class TestRun extends BaseTest {
 		File f = examplesTestFolder.resolve("brokenresource.java").toFile();
 
 		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(f.getAbsolutePath());
+		BuildContext ctx = BuildContext.forProject(prj);
 
-		ExitException root = assertThrows(ExitException.class, () -> pb.build(f.getAbsolutePath()));
+		assertThat(prj.getMainSourceSet().getResources().size(), equalTo(1));
+		assertThat(prj.getMainSourceSet().getResources().get(0).getSource().exists(), is(false));
+
+		ResourceNotFoundException root = assertThrows(ResourceNotFoundException.class,
+				() -> Project.codeBuilder(ctx).build());
 		assertThat(root.toString(), containsString("'resourcethatdoesnotexist.properties"));
 		assertThat(root.toString(), containsString("brokenresource.java"));
-
 	}
 
 	@Test

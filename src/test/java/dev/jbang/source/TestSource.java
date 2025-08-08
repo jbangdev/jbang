@@ -177,7 +177,7 @@ public class TestSource extends BaseTest {
 
 	@Test
 	void testCommentsDoesNotGetPickedUp() {
-		Source source = new JavaSource(exampleCommandsWithComments, null);
+		Source source = new JavaSource(ResourceRef.forLiteral(exampleCommandsWithComments), null);
 		Project prj = Project.builder().build(source);
 
 		assertEquals(prj.getJavaVersion(), "14+");
@@ -189,7 +189,7 @@ public class TestSource extends BaseTest {
 
 	@Test
 	void testFindDependencies() {
-		Source src = new JavaSource(example,
+		Source src = new JavaSource(ResourceRef.forLiteral(example),
 				it -> PropertiesValueResolver.replaceProperties(it, new Properties()));
 		Project prj = Project.builder().build(src);
 
@@ -207,7 +207,8 @@ public class TestSource extends BaseTest {
 		Properties p = new Properties();
 		p.put("log4j.version", "1.2.9");
 
-		Source src = new JavaSource(example, it -> PropertiesValueResolver.replaceProperties(it, p));
+		Source src = new JavaSource(ResourceRef.forLiteral(example),
+				it -> PropertiesValueResolver.replaceProperties(it, p));
 		Project prj = Project.builder().build(src);
 
 		List<String> dependencies = prj.getMainSourceSet().getDependencies();
@@ -296,8 +297,8 @@ public class TestSource extends BaseTest {
 
 	@Test
 	void testCDS() {
-		Source source = new JavaSource("//CDS\nclass m { }", null);
-		Source source2 = new JavaSource("class m { }", null);
+		Source source = new JavaSource(ResourceRef.forLiteral("//CDS\nclass m { }"), null);
+		Source source2 = new JavaSource(ResourceRef.forLiteral("class m { }"), null);
 
 		assertTrue(source.enableCDS());
 		assertFalse(source2.enableCDS());
@@ -306,7 +307,7 @@ public class TestSource extends BaseTest {
 
 	@Test
 	void testExtractJavaOptions() {
-		Source s = new JavaSource(example, null);
+		Source s = new JavaSource(ResourceRef.forLiteral(example), null);
 
 		assertEquals(Arrays.asList("--verbose", "--enable-preview"), s.getCompileOptions());
 		assertEquals(Arrays.asList("-O1"), s.getNativeOptions());
@@ -317,7 +318,7 @@ public class TestSource extends BaseTest {
 
 	@Test
 	void testExtractGroovyOptions() {
-		Source s = new GroovySource(groovyExample, null);
+		Source s = new GroovySource(ResourceRef.forLiteral(groovyExample), null);
 
 		assertEquals(Arrays.asList("--enable-preview"), s.getCompileOptions());
 		assertEquals(Arrays.asList("-O1"), s.getNativeOptions());
@@ -327,7 +328,7 @@ public class TestSource extends BaseTest {
 
 	@Test
 	void testExtractKotlinOptions() {
-		Source s = new KotlinSource(kotlinExample, null);
+		Source s = new KotlinSource(ResourceRef.forLiteral(kotlinExample), null);
 
 		assertEquals(Arrays.asList("--enable-preview"), s.getCompileOptions());
 		assertEquals(Arrays.asList("-O1"), s.getNativeOptions());
@@ -346,7 +347,7 @@ public class TestSource extends BaseTest {
 
 	@Test
 	void testGav() {
-		Source src = new JavaSource(example, null);
+		Source src = new JavaSource(ResourceRef.forLiteral(example), null);
 		String gav = Project.builder().build(src).getGav().get();
 		assertEquals("org.example:classpath", gav);
 	}
