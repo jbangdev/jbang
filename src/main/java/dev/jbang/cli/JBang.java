@@ -15,7 +15,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -425,7 +427,8 @@ public class JBang extends BaseCommand {
 			}
 			// Now add any commands found on the PATH whose names start with "jbang-"
 			try {
-				List<Path> cmds = findCommandsWith(p -> p.getFileName().toString().startsWith("jbang-"));
+				List<Path> paths = getPluginPaths();
+				List<Path> cmds = findCommandsWith(paths, p -> p.getFileName().toString().startsWith("jbang-"));
 				for (Path p : cmds) {
 					result.put(Util.base(p.getFileName().toString()).substring(6), null);
 				}
@@ -435,10 +438,18 @@ public class JBang extends BaseCommand {
 			return result;
 		}
 
-		private static List<Path> findCommandsWith(Predicate<Path> accept) {
-			String[] elems = System.getenv().getOrDefault("PATH", "").split(File.pathSeparator);
-			return Stream.of(elems)
-				.map(elem -> Util.getCwd().resolve(elem))
+		private static List<Path> getPluginPaths() {
+			return Arrays.stream(System.getenv().getOrDefault("PATH", "").split(File.pathSeparator))
+				.filter(Util::isValidPath)
+				.map(Paths::get)
+				.filter(Files::isDirectory)
+				.collect(Collectors.toList());
+
+		}
+
+		private static List<Path> findCommandsWith(List<Path> pathElems, Predicate<Path> accept) {
+			return pathElems.stream()
+				.filter(Files::isDirectory)
 				.flatMap(dir -> listFiles(dir).filter(Util::isExecutable).filter(accept))
 				.collect(Collectors.toList());
 		}
