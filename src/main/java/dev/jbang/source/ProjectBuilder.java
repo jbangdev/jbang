@@ -258,12 +258,41 @@ public class ProjectBuilder {
 	}
 
 	public Project build(String resource) {
-		ResourceRef resourceRef = resolveChecked(getResourceResolver(), resource);
+		ResourceRef resourceRef = resolveChecked(getResourceResolver(), resource, true);
 		return build(resourceRef);
 	}
 
 	private ResourceRef resolveChecked(ResourceResolver resolver, String resource) {
-		Util.verboseMsg("Resolving resource ref: " + resource);
+		return resolveChecked(resolver, resource, false);
+	}
+
+	/**
+	 * Resolves the given resource, with property resolution from project context
+	 * and handles retry on caching.
+	 * 
+	 * Note: only enable property replacement if you know the resource is not
+	 * something that can be embedded/included directly in the project from users
+	 * data.
+	 * 
+	 * i.e. jbang run someref${os.detected.os}.jar is ok but //FILES with
+	 * ${user.home} is definitely not.
+	 * 
+	 * @param resolver
+	 * @param resource
+	 * @return
+	 */
+	private ResourceRef resolveChecked(ResourceResolver resolver, String orginal_resource,
+			boolean propertyReplacement) {
+		final String resource = propertyReplacement
+				? PropertiesValueResolver.replaceProperties(orginal_resource, getContextProperties())
+				: orginal_resource;
+
+		if (!resource.equals(orginal_resource)) {
+			Util.verboseMsg("Resolving resource ref: " + orginal_resource + " -> " + resource);
+		} else {
+			Util.verboseMsg("Resolving resource ref:" + resource);
+		}
+
 		boolean retryCandidate = catalogFile == null && !Util.isFresh() && Settings.getCacheEvict() > 0
 				&& (Catalog.isValidName(resource) || Catalog.isValidCatalogReference(resource)
 						|| Util.isRemoteRef(resource));
@@ -618,6 +647,7 @@ public class ProjectBuilder {
 		if (alias != null) {
 			updateFromAlias(alias);
 		}
+
 		return new CombinedResourceResolver(
 				new RenamingScriptResourceResolver(forceType),
 				new LiteralScriptResourceResolver(forceType),
