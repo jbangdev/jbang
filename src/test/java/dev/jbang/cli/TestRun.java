@@ -2102,6 +2102,25 @@ public class TestRun extends BaseTest {
 	}
 
 	@Test
+	void testMagicPropertyViaRun() throws IOException {
+
+		String res = "https://github.com/HanSolo/jarkanoid/releases/download/17.0.17/jarkanoid-${os.detected.jfxname}-17.0.17.jar";
+		// todo fix so --deps can use system properties
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run", res);
+
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+
+		Project prj = pb.build(res);
+		String line = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
+
+		assertThat(line, containsString(" --module-path "));
+
+	}
+
+	@Test
 	void testScriptCliReposAndDeps(@TempDir File output) throws IOException {
 		String base = "" +
 				"public class test {\n" +
