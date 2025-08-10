@@ -2,19 +2,19 @@ import org.gradle.crypto.checksum.Checksum
 
 plugins {
 	id "distribution"
-	id "com.github.johnrengelman.shadow" version "8.0.0"
+	id "com.github.johnrengelman.shadow" version "8.1.1"
 	id "java"
 	id "jvm-test-suite"
-	id "com.github.breadmoirai.github-release" version "2.4.1"
-	id "io.toolebox.git-versioner" version "1.6.5"
+	id "com.github.breadmoirai.github-release" version "2.5.2"
+	id "io.toolebox.git-versioner" version "1.6.7"
 	id 'org.gradle.crypto.checksum' version '1.4.0'
-	id "com.diffplug.spotless" version "7.0.2"
+	id "com.diffplug.spotless" version "7.2.1"
 	id 'com.github.gmazzo.buildconfig' version "3.1.0"
 	id "com.dorongold.task-tree" version "2.1.1"
 	id "com.geoffgranum.gradle-conventional-changelog" version "0.3.1"
 	id "org.asciidoctor.jvm.convert" version "3.3.2"
 	id "org.ajoberstar.grgit" version "4.1.1"
-	id "org.sonarqube" version "4.0.0.2929"
+	id "org.sonarqube" version "4.4.1.3373"
 	id 'jacoco'
 	id 'maven-publish'
 	id 'io.qameta.allure-report' version '2.12.0'
@@ -22,8 +22,8 @@ plugins {
 
 }
 
-def allureVersion = '2.29.0'
-def aspectJVersion = '1.9.22'
+def allureVersion = '2.29.1'
+def aspectJVersion = '1.9.24'
 
 configurations {
 	agent {
@@ -131,29 +131,29 @@ sourceSets.main.compileClasspath += sourceSets.java9.output.classesDirs;
 dependencies {
 	implementation 'dev.jbang:devkitman:0.2.0'
 
-	implementation 'org.apache.commons:commons-text:1.11.0'
-	implementation 'org.apache.commons:commons-compress:1.27.1'
-	implementation 'info.picocli:picocli:4.7.5'
+	implementation 'org.apache.commons:commons-text:1.14.0'
+	implementation 'org.apache.commons:commons-compress:1.28.0'
+	implementation 'info.picocli:picocli:4.7.7'
 	implementation 'io.quarkus.qute:qute-core:1.13.7.Final'
 	implementation 'kr.motd.maven:os-maven-plugin:1.7.1'
-	implementation 'org.codehaus.plexus:plexus-java:1.2.0'
-	implementation 'com.google.code.gson:gson:2.10.1'
-	implementation 'org.jsoup:jsoup:1.17.1'
+	implementation 'org.codehaus.plexus:plexus-java:1.5.0'
+	implementation 'com.google.code.gson:gson:2.13.1'
+	implementation 'org.jsoup:jsoup:1.21.1'
 	implementation 'org.codejive:java-properties:0.0.7'
 
-	implementation "org.slf4j:slf4j-nop:1.7.30"
-	implementation "org.slf4j:jcl-over-slf4j:1.7.30"
-	implementation "org.jboss:jandex:2.2.3.Final"
+	implementation "org.slf4j:slf4j-nop:1.7.36"
+	implementation "org.slf4j:jcl-over-slf4j:1.7.36"
+	implementation "org.jboss:jandex:2.4.5.Final"
 
-	implementation "eu.maveniverse.maven.mima:context:2.4.20"
-	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.20"
+	implementation "eu.maveniverse.maven.mima:context:2.4.32"
+	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.32"
 
-	testImplementation platform('org.junit:junit-bom:5.12.2')
+	testImplementation platform('org.junit:junit-bom:5.13.4')
 	testImplementation "org.junit.jupiter:junit-jupiter"
 	testImplementation "org.junit.platform:junit-platform-launcher"
-	testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
+	testImplementation "com.github.stefanbirkner:system-rules:1.19.0"
 	testImplementation "org.hamcrest:hamcrest-library:2.2"
-	testImplementation "org.wiremock:wiremock:3.12.1"
+	testImplementation "org.wiremock:wiremock:3.13.1"
 	testImplementation platform("io.qameta.allure:allure-bom:$allureVersion")
 	testImplementation "io.qameta.allure:allure-junit5"
 	// only for test running
@@ -327,7 +327,7 @@ test {
 }
 
 jacoco {
-	toolVersion = '0.8.7'
+	toolVersion = '0.8.13'
 }
 
 jacocoTestReport {
@@ -351,14 +351,14 @@ testing {
 		integrationTest(JvmTestSuite) {
 			dependencies {
 				implementation project()  // todo: shouldn't even need to depend on main code?
-				implementation platform('org.junit:junit-bom:5.12.2')
+				implementation platform('org.junit:junit-bom:5.13.4')
 				implementation "org.junit.jupiter:junit-jupiter"
 				implementation "org.junit.platform:junit-platform-launcher"
-				implementation "org.assertj:assertj-core:3.24.2"
+				implementation "org.assertj:assertj-core:3.27.4"
 				implementation 'org.zeroturnaround:zt-exec:1.12'
 				implementation platform("io.qameta.allure:allure-bom:2.29.1")
 				implementation "io.qameta.allure:allure-junit5"
-				implementation "org.wiremock:wiremock:3.12.1"
+				implementation "org.wiremock:wiremock:3.13.1"
 			}
 
 			sources {
