@@ -2,9 +2,6 @@
   "extends": [
     "config:best-practices"
   ],
-  "ignorePaths": [
-    "src/main/resources/dist/**/*"
-  ],
   "packageRules": [
     {
       "matchPackageNames": ["io.quarkus.qute:qute-core"],
