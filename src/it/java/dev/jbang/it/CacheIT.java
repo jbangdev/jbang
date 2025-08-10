@@ -5,7 +5,7 @@ import static java.lang.System.lineSeparator;
 
 import org.junit.jupiter.api.Test;
 
-public class CacheIT extends BaseIT {
+public class CacheIT extends AbstractHelpBaseIT {
 
 // 	Feature: cache
 
@@ -51,4 +51,8 @@ public class CacheIT extends BaseIT {
 					"");
 	}
 
+	@Override
+	protected String commandName() {
+		return "cache";
+	}
 }
