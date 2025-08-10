@@ -23,6 +23,9 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "jdk", description = "Manage Java Development Kits installed by jbang.")
 public class Jdk {
 
+	@CommandLine.Mixin
+	HelpMixin helpMixin;
+
 	@CommandLine.Spec
 	CommandLine.Model.CommandSpec spec;
 
