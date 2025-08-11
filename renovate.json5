@@ -1,17 +1,14 @@
 {
   "extends": [
-    "config:best-practices"
+    "config:best-practices",
+    // group by repos instead of one big group for gradle
+    "group:monorepos" 
   ],
   "packageRules": [
     {
+      "description": "Qute 2.0 requires Java 17",
       "matchPackageNames": ["io.quarkus.qute:qute-core"],
       "allowedVersions": "<2.0.0"
-    },
-    {
-      "groupName": "{{manager}}",
-      "matchPackageNames": [
-        "*"
-      ]
     },
     {
       "description": "Wiremock >3 requires Java 11",
@@ -19,11 +16,13 @@
       "allowedVersions": "<3.0.0"
     },
     {
+      "description": "Lets not update to Maven 4 by default yet",
       "matchManagers": ["maven-wrapper"],
       "matchUpdateTypes": ["major"],
       "enabled": false
     },
     {
+      "description": "Lets not update to Gradle 9 by default yet",
       "matchManagers": ["gradle-wrapper"],
       "matchUpdateTypes": ["major"],
       "enabled": false
