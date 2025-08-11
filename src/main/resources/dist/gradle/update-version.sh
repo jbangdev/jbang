@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export GRADLE_VERSION=8.14.2
+export GRADLE_VERSION=8.14.3
 
 mv gradle/wrapper/gradle-wrapper-jar gradle/wrapper/gradle-wrapper.jar
 
