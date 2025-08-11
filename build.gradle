@@ -214,6 +214,8 @@ spotless {
 	}
 }
 
+versioner.apply()
+
 task versionTxt() {
 	doLast {
 		new File(project.buildDir, "tmp/version.txt").text = project.version
@@ -265,6 +267,7 @@ jar {
 	manifest {
 		attributes(
 			'Main-Class': 'dev.jbang.Main',
+			'JBang-Version': project.version
 		)
 	}
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -305,7 +308,10 @@ shadowJar {
 	}
 	mergeServiceFiles()
 	manifest {
-		attributes 'Main-Class': 'dev.jbang.Main'
+		attributes(
+			'Main-Class': 'dev.jbang.Main',
+			'JBang-Version': project.version
+		)
 	}
 	archiveFileName = "${archiveBaseName.get()}.${archiveExtension.get()}"
 }
