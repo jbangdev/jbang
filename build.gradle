@@ -146,7 +146,7 @@ dependencies {
 	implementation "org.jboss:jandex:2.2.3.Final"
 
 	implementation "eu.maveniverse.maven.mima:context:2.4.20"
-	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.20"
+	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.33"
 
 	testImplementation platform('org.junit:junit-bom:5.12.2')
 	testImplementation "org.junit.jupiter:junit-jupiter"
