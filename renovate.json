@@ -17,6 +17,16 @@
       "description": "Wiremock >3 requires Java 11",
       "matchPackageNames": ["com.github.tomakehurst:wiremock"],
       "allowedVersions": "<3.0.0"
+    },
+    {
+      "matchManagers": ["maven-wrapper"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "matchManagers": ["gradle-wrapper"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
     }
   ]
 }
