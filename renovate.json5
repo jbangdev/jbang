@@ -16,6 +16,12 @@
       "allowedVersions": "<3.0.0"
     },
     {
+      "description": "Group eu.maveniverse.maven.mima dependencies for bulk updates",
+      "matchPackagePatterns": ["^eu\\.maveniverse\\.maven\\.mima"],
+      "groupName": "eu.maveniverse.maven.mima dependencies",
+      "groupSlug": "eu-maveniverse-maven-mima"
+    },
+    {
       "description": "Lets not update to Maven 4 by default yet",
       "matchManagers": ["maven-wrapper"],
       "matchUpdateTypes": ["major"],
