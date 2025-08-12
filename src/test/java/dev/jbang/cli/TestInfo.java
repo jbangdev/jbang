@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import dev.jbang.BaseTest;
 import dev.jbang.dependencies.Detector;
 import dev.jbang.util.PropertiesValueResolver;
+
 import picocli.CommandLine;
 
 public class TestInfo extends BaseTest {
@@ -212,11 +213,9 @@ public class TestInfo extends BaseTest {
 					"-Dcustomvar=xyz",
 					fileref.toString());
 
-
 		Properties props = new Properties();
 		new Detector().detect(props, Collections.emptyList());
 		String expectedJar = PropertiesValueResolver.replaceProperties("${os.detected.name}xyz.java", props);
-
 
 		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
 		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
