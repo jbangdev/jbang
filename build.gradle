@@ -6,7 +6,7 @@ plugins {
 	id "java"
 	id "jvm-test-suite"
 	id "com.github.breadmoirai.github-release" version "2.4.1"
-	id "io.toolebox.git-versioner" version "1.6.5"
+	id "io.toolebox.git-versioner" version "1.6.7"
 	id 'org.gradle.crypto.checksum' version '1.4.0'
 	id "com.diffplug.spotless" version "7.0.2"
 	id 'com.github.gmazzo.buildconfig' version "3.1.0"
