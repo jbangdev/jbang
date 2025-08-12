@@ -106,4 +106,14 @@ public class InitIT extends BaseIT {
 		assertThat(Files.exists(scratch().resolve("ScriptTest.java"))).isTrue();
 		assertThat(Files.exists(scratch().resolve("ScriptSecondTest.java"))).isTrue();
 	}
+
+	@Test
+	public void testInitWithJavaVersion() throws IOException {
+		assertThat(shell("jbang init --java 25 " + scratch().resolve("j25.java")))
+			.errContains("File initialized. You can now run it with")
+			.succeeded();
+
+		assertThat(Files.readString(scratch().resolve("j25.java")))
+			.containsPattern("(?m)^void main\\(String\\.\\.\\. args\\) \\{");
+	}
 }

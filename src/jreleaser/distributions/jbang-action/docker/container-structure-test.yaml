@@ -11,7 +11,7 @@ commandTests:
     command: "/jbang/bin/jbang"
     expectedError:
       - "jbang is a tool for building and running"
-      - "Website: https"
+      - "Usage:"
   - name: "JBANG_VERSION has a version number"
     command: "echo"
     args: ["jb $JBANG_VERSION"]

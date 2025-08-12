@@ -1,0 +1,36 @@
+{
+  "id" : "eb1e3dd9-4b03-434e-bde1-c3dea75b7477",
+  "name" : "documentation_guide_latest_faq.html",
+  "request" : {
+    "url" : "/documentation/guide/latest/faq.html",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 404,
+    "bodyFileName" : "documentation_guide_latest_faq.html-eb1e3dd9-4b03-434e-bde1-c3dea75b7477.txt",
+    "headers" : {
+      "Server" : "cloudflare",
+      "CF-RAY" : "95c29db39b3ecff6-MAD",
+      "x-fastly-request-id" : "39e1663ffe57c950668fa3aa1719a209020b7208",
+      "vary" : "Accept-Encoding",
+      "Server-Timing" : [ "cfCacheStatus;desc=\"DYNAMIC\"", "cfOrigin;dur=148,cfEdge;dur=33", "cfL4;desc=\"?proto=TCP&rtt=10984&min_rtt=10013&rtt_var=4743&sent=6&recv=7&lost=0&retrans=0&sent_bytes=3111&recv_bytes=739&delivery_rate=282792&cwnd=102&unsent_bytes=0&cid=d8ee28804cb59f1f&ts=208&x=0\"" ],
+      "x-served-by" : "cache-toj-leto2350020-TOJ",
+      "cf-cache-status" : "DYNAMIC",
+      "x-cache-hits" : "0",
+      "Date" : "Tue, 08 Jul 2025 21:18:46 GMT",
+      "via" : "1.1 varnish",
+      "x-github-request-id" : "7503:8EC30:12E3B1:130777:686D8B35",
+      "access-control-allow-origin" : "*",
+      "x-proxy-cache" : "MISS",
+      "NEL" : "{\"success_fraction\":0,\"report_to\":\"cf-nel\",\"max_age\":604800}",
+      "Report-To" : "{\"endpoints\":[{\"url\":\"https:\\/\\/a.nel.cloudflare.com\\/report\\/v4?s=jLhRIlE9WA0y57hyEKmrBNLwhxoMz6tB7gtFXgt6bOJVP1hwS0oxJo1bN9yCKbJ3rCcnDwJuPB6IyLkKywX6Bz56LuGjoQbXteNnVIBUXRaTp3E4F1b3COdlqEPQ7HQ%3D\"}],\"group\":\"cf-nel\",\"max_age\":604800}",
+      "x-timer" : "S1752009526.375091,VS0,VE137",
+      "x-cache" : "MISS",
+      "Age" : "0",
+      "Content-Type" : "text/html; charset=utf-8"
+    }
+  },
+  "uuid" : "eb1e3dd9-4b03-434e-bde1-c3dea75b7477",
+  "persistent" : true,
+  "insertionIndex" : 32
+}

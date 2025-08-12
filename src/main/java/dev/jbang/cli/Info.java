@@ -46,6 +46,8 @@ import picocli.CommandLine.Option;
 @CommandLine.Command(name = "info", description = "Provides info about the script for tools (and humans who are tools).", subcommands = {
 		Tools.class, ClassPath.class, Jar.class, Docs.class })
 public class Info {
+	@CommandLine.Mixin
+	HelpMixin helpMixin;
 }
 
 abstract class BaseInfoCommand extends BaseCommand {
@@ -136,7 +138,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 					Jdk jdk = assureJdkInstalled ? jdkMan.getOrInstallJdk(requestedJavaVersion)
 							: jdkMan.getJdk(requestedJavaVersion);
 					if (jdk != null && jdk.isInstalled()) {
-						availableJdkPath = jdk.home().toString();
+						availableJdkPath = ((Jdk.InstalledJdk) jdk).home().toString();
 					}
 				} catch (ExitException e) {
 					// Ignore

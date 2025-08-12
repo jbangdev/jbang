@@ -1,0 +1,23 @@
+{
+  "id" : "437f5315-195c-44bf-ac66-f87ce6c8a168",
+  "name" : "notthere",
+  "request" : {
+    "url" : "/notthere",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 404,
+    "body" : "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n<html><head>\n<title>404 Not Found</title>\n</head><body>\n<h1>Not Found</h1>\n<p>The requested URL was not found on this server.</p>\n</body></html>\n",
+    "headers" : {
+      "X-Varnish" : "42758767581",
+      "Server" : "Apache",
+      "Age" : "0",
+      "Date" : "Tue, 08 Jul 2025 21:18:47 GMT",
+      "Via" : "1.1 webcache2 (Varnish/trunk)",
+      "Content-Type" : "text/html; charset=iso-8859-1"
+    }
+  },
+  "uuid" : "437f5315-195c-44bf-ac66-f87ce6c8a168",
+  "persistent" : true,
+  "insertionIndex" : 34
+}

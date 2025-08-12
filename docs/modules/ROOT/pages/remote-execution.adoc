@@ -1,0 +1,416 @@
+= Remote Execution
+:idprefix:
+:idseparator: -
+ifndef::env-github[]
+:icons: font
+endif::[]
+ifdef::env-github[]
+:caution-caption: :fire:
+:important-caption: :exclamation:
+:note-caption: :paperclip:
+:tip-caption: :bulb:
+:warning-caption: :warning:
+endif::[]
+
+JBang can execute scripts and JARs from remote locations, making it easy to share and run code without local installation.
+
+== Running Remote Scripts
+
+=== Basic URL Execution
+
+Execute scripts directly from URLs:
+
+[source,bash]
+----
+# Run from GitHub
+jbang https://github.com/user/repo/blob/main/script.java
+
+# Run from GitHub Gist
+jbang https://gist.github.com/maxandersen/f43b4c52dfcfc42dcd59a04e49acf6ec
+
+# Run from any HTTPS URL
+jbang https://example.com/scripts/myapp.java
+
+# File URLs (local)
+jbang file:///path/to/script.java
+----
+
+=== Supported URL Types
+
+- **HTTP/HTTPS** - Any web-accessible script
+- **File** - Local files using `file://` protocol
+- **GitHub** - Direct links to GitHub files
+- **GitLab** - Direct links to GitLab files  
+- **Bitbucket** - Direct links to Bitbucket files
+- **Gist** - GitHub Gist URLs
+- **Carbon.now.sh** - Code sharing service
+
+== Trust and Security
+
+=== Trusted Sources
+
+For security, JBang requires you to trust URLs before executing them:
+
+[source,bash]
+----
+jbang https://github.com/user/untrusted-repo/script.java
+# First time running:
+# [jbang] https://github.com/user/untrusted-repo/script.java is not from a trusted source
+# 
+# If you trust the url to be safe to run you can do one of the following:
+# 0) Trust once: Add no trust, just run this time
+# 1) Trust this url in future:
+#     jbang trust add https://github.com/user/
+# 
+# [jbang] Type in your choice (0 or 1) and hit enter. Times out after 10 seconds.
+----
+
+=== Managing Trust
+
+[source,bash]
+----
+# Add trusted source
+jbang trust add https://github.com/jbangdev/
+
+# List trusted sources
+jbang trust list
+
+# Remove trusted source
+jbang trust remove https://github.com/jbangdev/
+
+# Trust specific repository
+jbang trust add https://github.com/user/specific-repo
+----
+
+=== Trust Configuration
+
+Trust configuration is stored in `~/.jbang/trusted-sources.json`:
+
+[source,json]
+----
+{
+  "trustedSources": [
+    "https://github.com/jbangdev/",
+    "https://gist.github.com/maxandersen/",
+    "https://raw.githubusercontent.com/jbangdev/"
+  ]
+}
+----
+
+=== Insecure Connections
+
+For self-signed certificates or testing:
+
+[source,bash]
+----
+# Skip certificate validation
+jbang --insecure https://self-signed.example.com/script.java
+----
+
+[WARNING]
+====
+**Security Warning**: Only use `--insecure` with URLs you absolutely trust. This disables certificate validation.
+====
+
+== URL Processing Features
+
+=== Smart URL Recognition
+
+JBang automatically extracts proper source URLs from various services:
+
+[source,bash]
+----
+# GitHub repository page -> raw content
+jbang https://github.com/user/repo/blob/main/script.java
+# Converts to: https://raw.githubusercontent.com/user/repo/main/script.java
+
+# GitLab project page -> raw content  
+jbang https://gitlab.com/user/repo/-/blob/main/script.java
+# Converts to: https://gitlab.com/user/repo/-/raw/main/script.java
+
+# Carbon.now.sh -> source extraction
+jbang https://carbon.now.sh/ae51bf967c98f31a13cba976903030d5
+----
+
+=== URL Redirects
+
+JBang follows HTTP redirects automatically:
+
+[source,bash]
+----
+# Works with URL shorteners
+jbang https://bit.ly/jbang-script
+
+# Works with redirect services
+jbang https://example.com/redirect-to-script
+----
+
+== Running JAR Files
+
+=== Local JAR Files
+
+[source,bash]
+----
+# Run local JAR
+jbang myapp.jar
+
+# Run with arguments
+jbang myapp.jar arg1 arg2
+
+# Specify main class
+jbang --main com.example.MainClass myapp.jar
+----
+
+=== Remote JAR Files
+
+[source,bash]
+----
+# HTTP/HTTPS JAR
+jbang https://example.com/releases/myapp-1.0.jar
+
+# With main class override
+jbang --main com.example.Alternative https://example.com/myapp.jar
+----
+
+=== Maven Coordinate JARs
+
+Run JARs directly from Maven repositories:
+
+[source,bash]
+----
+# Basic Maven coordinate
+jbang info.picocli:picocli-codegen:4.6.3
+
+# With main class
+jbang --main picocli.codegen.aot.graalvm.ReflectionConfigGenerator info.picocli:picocli-codegen:4.6.3
+
+# Specific repository
+jbang --repos central,jcenter com.example:myapp:1.0.0
+----
+
+=== JAR with Dependencies
+
+When running a JAR via Maven coordinates, JBang resolves transitive dependencies:
+
+[source,bash]
+----
+# All dependencies resolved automatically
+jbang org.springframework.boot:spring-boot-cli:3.1.0
+
+# Run specific main class
+jbang --main org.springframework.boot.loader.JarLauncher org.springframework.boot:spring-boot-cli:3.1.0
+----
+
+== Advanced Remote Features
+
+=== Remote File Arguments
+
+Download remote files as script arguments:
+
+[source,bash]
+----
+# Download file and pass path as argument
+jbang wordcount.java %https://example.com/data.txt
+
+# Multiple remote files
+jbang processor.java %https://example.com/file1.txt %https://example.com/file2.txt
+
+# Embedded in argument (use braces)
+jbang analyze.java --input=%{https://example.com/data.csv} --format=csv
+----
+
+=== Escape Remote File Download
+
+Prevent URL from being downloaded:
+
+[source,bash]
+----
+# Double % prevents download
+jbang myapp.java %%https://example.com/not-downloaded.txt
+# Passes "%https://example.com/not-downloaded.txt" as argument
+----
+
+=== Java Agent from URL
+
+Use remote Java agents:
+
+[source,bash]
+----
+# Remote agent JAR
+jbang --javaagent=https://repo1.maven.org/maven2/agent.jar myapp.java
+
+# Maven coordinate agent
+jbang --javaagent=io.opentelemetry.javaagent:opentelemetry-javaagent:1.20.0 myapp.java
+
+# Remote agent with options
+jbang --javaagent=https://example.com/agent.jar=option1,option2 myapp.java
+----
+
+== Container Execution
+
+=== Docker Integration
+
+JBang provides official Docker images:
+
+[source,bash]
+----
+# Run script in container
+docker run -v $(pwd):/ws --workdir=/ws jbangdev/jbang-action script.java
+
+# With arguments
+docker run -v $(pwd):/ws --workdir=/ws jbangdev/jbang-action script.java arg1 arg2
+
+# Quay.io alternative
+docker run -v $(pwd):/ws --workdir=/ws quay.io/jbangdev/jbang-action script.java
+----
+
+=== GitHub Actions
+
+Use JBang in CI/CD pipelines:
+
+[source,yaml]
+----
+name: Run JBang Script
+on: [push]
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: jbangdev/jbang-action@v0.109.0
+      with:
+        script: script.java
+        args: "arg1 arg2"
+----
+
+== Performance and Caching
+
+=== Remote Content Caching
+
+JBang caches remote content locally:
+
+[source,bash]
+----
+# First run downloads and caches
+jbang https://example.com/script.java
+
+# Subsequent runs use cache
+jbang https://example.com/script.java  # Uses cached version
+----
+
+=== Cache Management
+
+[source,bash]
+----
+# Clear URL cache
+jbang cache clear
+
+# Check cache status
+jbang cache list
+
+# Force refresh from remote
+jbang --fresh https://example.com/script.java
+----
+
+=== Offline Mode with Remote URLs
+
+[source,bash]
+----
+# Fails if not in cache
+jbang --offline https://example.com/script.java
+----
+
+== Best Practices
+
+=== Security
+
+- **Review scripts** before trusting their sources
+- **Use HTTPS** whenever possible
+- **Trust specific repositories** rather than entire domains
+- **Avoid `--insecure`** in production environments
+
+=== Performance
+
+- **Cache frequently used** remote scripts locally
+- **Use specific commit hashes** for reproducible builds
+- **Consider local copies** for critical scripts
+- **Monitor network dependencies**
+
+=== Reliability
+
+- **Have fallback plans** for network failures
+- **Use version tags** rather than latest commits
+- **Test offline mode** for critical applications
+- **Document external dependencies**
+
+== Common Patterns
+
+=== Shared Team Scripts
+
+[source,bash]
+----
+# Trust team repository once
+jbang trust add https://github.com/myteam/jbang-scripts/
+
+# Run team utilities
+jbang https://github.com/myteam/jbang-scripts/blob/main/deploy.java
+jbang https://github.com/myteam/jbang-scripts/blob/main/monitor.java
+----
+
+=== Development Utilities
+
+[source,bash]
+----
+# Quick JSON formatting
+jbang https://gist.github.com/maxandersen/json-formatter.java < data.json
+
+# Database migration
+jbang https://github.com/company/db-tools/blob/main/migrate.java --env=staging
+----
+
+=== Educational Content
+
+[source,bash]
+----
+# Run tutorial examples
+jbang https://github.com/jbangdev/jbang-examples/blob/main/examples/hello.java
+
+# Interactive learning
+jbang --interactive https://github.com/tutorial/lesson1.java
+----
+
+== Troubleshooting
+
+=== Common Issues
+
+**Problem**: "Not from trusted source"
+**Solution**: Add the base URL to trusted sources or choose option 1 when prompted
+
+**Problem**: "URL not found" or 404 errors
+**Solution**: Verify the URL is correct and accessible
+
+**Problem**: SSL certificate errors
+**Solution**: Use `--insecure` only if you trust the source, or fix certificates
+
+**Problem**: Slow remote execution
+**Solution**: Check network connection, consider caching content locally
+
+=== Debug Remote Issues
+
+[source,bash]
+----
+# Verbose output
+jbang --verbose https://example.com/script.java
+
+# Check what URL is actually fetched
+jbang --debug https://example.com/script.java
+----
+
+== What's Next?
+
+- **Set up aliases** → xref:alias_catalogs.adoc[Aliases & Catalogs]
+- **Install as commands** → xref:app-installation.adoc[App Installation]
+- **Configure caching** → xref:caching.adoc[Caching]
+- **Learn about integration** → xref:integration.adoc[Build Integration]
+
+Start sharing and running code from anywhere with JBang's remote execution! 🌐

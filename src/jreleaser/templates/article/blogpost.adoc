@@ -1,4 +1,6 @@
 ---
+draft: true
+tags: [release]
 ---
 # {{projectNameCapitalized}} {{projectEffectiveVersion}} released
 :page-tags: [release]

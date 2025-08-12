@@ -9,6 +9,7 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.codejive.properties.Properties;
@@ -276,10 +277,11 @@ public class Configuration {
 	 */
 	public static Configuration getMerged() {
 		Set<Path> configFiles = new LinkedHashSet<>();
-		Util.findNearestWith(null, JBANG_CONFIG_PROPS, cfgFile -> {
-			configFiles.add(cfgFile);
+		Function<Path, Path> accept = Util.acceptFile(Configuration.JBANG_CONFIG_PROPS);
+		Util.findNearestWith(null, accept.andThen(Util.notNull(p -> {
+			configFiles.add(p);
 			return null;
-		});
+		})));
 
 		Configuration result = defaults();
 		if (!configFiles.isEmpty()) {

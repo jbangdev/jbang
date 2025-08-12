@@ -35,10 +35,13 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Scanner;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.logging.LogManager;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
@@ -1656,7 +1659,7 @@ public class Util {
 	}
 
 	/**
-	 * Searches the locations defined by PATH for the given executable
+	 * Searches the locations defined by `PATH` for the given executable
 	 * 
 	 * @param cmd The name of the executable to look for
 	 * @return A Path to the executable, if found, null otherwise
@@ -1664,37 +1667,53 @@ public class Util {
 	public static Path searchPath(String cmd) {
 		String envPath = System.getenv("PATH");
 		envPath = envPath != null ? envPath : "";
-		return searchPath(cmd, envPath);
+		return searchPath(cmd, envPath, p -> true);
 	}
 
 	/**
-	 * Searches the locations defined by `paths` for the given executable
+	 * Searches the given `paths` for the given executable
 	 *
 	 * @param cmd   The name of the executable to look for
 	 * @param paths A string containing the paths to search
 	 * @return A Path to the executable, if found, null otherwise
 	 */
 	public static Path searchPath(String cmd, String paths) {
+		return searchPath(cmd, paths, p -> true);
+	}
+
+	/**
+	 * Searches the locations defined by `paths` for the given executable
+	 *
+	 * @param cmd        The name of the executable to look for
+	 * @param paths      A string containing the paths to search
+	 * @param pathFilter User filter for the executables found
+	 * @return A Path to the executable, if found, null otherwise
+	 */
+	public static Path searchPath(String cmd, String paths, Predicate<Path> pathFilter) {
 		return Arrays.stream(paths.split(File.pathSeparator))
-			.map(dir -> Paths.get(dir).resolve(cmd))
+			.filter(Util::isValidPath)
+			.map(Paths::get)
+			.filter(Files::isDirectory)
+			.map(dir -> dir.resolve(cmd))
 			.flatMap(Util::executables)
 			.filter(Util::isExecutable)
+			.filter(pathFilter)
 			.findFirst()
 			.orElse(null);
 	}
 
 	private static Stream<Path> executables(Path base) {
 		if (isWindows()) {
-			return Stream.of(Paths.get(base.toString() + ".exe"),
-					Paths.get(base.toString() + ".bat"),
-					Paths.get(base.toString() + ".cmd"),
-					Paths.get(base.toString() + ".ps1"));
+			return Stream.of(Paths.get(base + ".exe"),
+					Paths.get(base + ".bat"),
+					Paths.get(base + ".cmd"),
+					Paths.get(base + ".ps1"));
 		} else {
 			return Stream.of(base);
 		}
 	}
 
-	private static boolean isExecutable(Path file) {
+	public static boolean isExecutable(Path file) {
 		if (Files.isRegularFile(file)) {
 			if (isWindows()) {
 				String nm = file.getFileName().toString().toLowerCase();
@@ -1805,36 +1824,46 @@ public class Util {
 		return Paths.get("");
 	}
 
-	public static <T> T findNearestWith(Path dir, String fileName, Function<Path, T> accept) {
-		T result = findNearestLocalWith(dir, fileName, accept);
-		if (result == null) {
-			Path file = Settings.getConfigDir().resolve(fileName);
+	public static Function<Path, Path> acceptFile(String fileName) {
+		return p -> {
+			Path file = p.resolve(fileName);
 			if (Files.isRegularFile(file) && Files.isReadable(file)) {
-				result = accept.apply(file);
+				return file;
 			}
+			return null;
+		};
+	}
+
+	public static <U, V> Function<U, V> notNull(Function<U, V> func) {
+		return u -> {
+			if (u == null) {
+				return null;
+			}
+			return func.apply(u);
+		};
+	}
+
+	public static <T> T findNearestWith(Path dir, Function<Path, T> accept) {
+		T result = findNearestLocalWith(dir, accept);
+		if (result == null) {
+			result = accept.apply(Settings.getConfigDir());
 		}
 		return result;
 	}
 
-	private static <T> T findNearestLocalWith(Path dir, String fileName, Function<Path, T> accept) {
+	private static <T> T findNearestLocalWith(Path dir, Function<Path, T> accept) {
 		if (dir == null) {
 			dir = getCwd();
 		}
 		Path root = Settings.getLocalRootDir();
 		while (dir != null && !isSameFile(dir, root)) {
-			Path file = dir.resolve(fileName);
-			if (Files.isRegularFile(file) && Files.isReadable(file)) {
-				T result = accept.apply(file);
-				if (result != null) {
-					return result;
-				}
+			T result = accept.apply(dir);
+			if (result != null) {
+				return result;
 			}
-			file = dir.resolve(Settings.JBANG_DOT_DIR).resolve(fileName);
-			if (Files.isRegularFile(file) && Files.isReadable(file)) {
-				T result = accept.apply(file);
-				if (result != null) {
-					return result;
-				}
+			result = accept.apply(dir.resolve(Settings.JBANG_DOT_DIR));
+			if (result != null) {
+				return result;
 			}
 			dir = dir.getParent();
 		}

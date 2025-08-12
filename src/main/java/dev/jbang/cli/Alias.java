@@ -26,6 +26,8 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "alias", description = "Manage aliases for scripts.", subcommands = { AliasAdd.class,
 		AliasList.class, AliasRemove.class })
 public class Alias {
+	@CommandLine.Mixin
+	HelpMixin helpMixin;
 }
 
 abstract class BaseAliasCommand extends BaseCommand {

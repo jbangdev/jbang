@@ -12,7 +12,6 @@ bin
 homebrew-tap
 RESULTS
 *.db
-jbang-action
 out
 node_modules
 package-lock.json
@@ -24,3 +23,4 @@ allure-report
 allure-results
 .allure
 .DS_Store
+.env

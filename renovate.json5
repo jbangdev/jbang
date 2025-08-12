@@ -1,0 +1,50 @@
+{
+  extends: [
+    'config:best-practices',
+    'group:monorepos',
+  ],
+  packageRules: [
+    {
+      description: 'Qute 2.0 requires Java 17',
+      matchPackageNames: [
+        'io.quarkus.qute:qute-core',
+      ],
+      allowedVersions: '<2.0.0',
+    },
+    {
+      description: 'Wiremock >3 requires Java 11',
+      matchPackageNames: [
+        'com.github.tomakehurst:wiremock',
+      ],
+      allowedVersions: '<3.0.0',
+    },
+    {
+      description: 'Group eu.maveniverse.maven.mima dependencies for bulk updates',
+      groupName: 'eu.maveniverse.maven.mima dependencies',
+      groupSlug: 'eu-maveniverse-maven-mima',
+      matchPackageNames: [
+        '/^eu\\.maveniverse\\.maven\\.mima/',
+      ],
+    },
+    {
+      description: 'Lets not update to Maven 4 by default yet',
+      matchManagers: [
+        'maven-wrapper',
+      ],
+      matchUpdateTypes: [
+        'major',
+      ],
+      enabled: false,
+    },
+    {
+      description: 'Lets not update to Gradle 9 by default yet',
+      matchManagers: [
+        'gradle-wrapper',
+      ],
+      matchUpdateTypes: [
+        'major',
+      ],
+      enabled: false,
+    },
+  ],
+}

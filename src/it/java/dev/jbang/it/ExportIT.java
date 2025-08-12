@@ -4,7 +4,7 @@ import static dev.jbang.it.CommandResultAssert.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-public class ExportIT extends BaseIT {
+public class ExportIT extends AbstractHelpBaseIT {
 
 	// Feature: export
 
@@ -56,5 +56,10 @@ public class ExportIT extends BaseIT {
 			.errContains("Exported to")
 			.errContains(
 					"classpath_example.jar");
+	}
+
+	@Override
+	protected String commandName() {
+		return "export";
 	}
 }

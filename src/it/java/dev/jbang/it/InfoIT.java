@@ -2,11 +2,10 @@ package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
 import static java.lang.System.lineSeparator;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-public class InfoIT extends BaseIT {
+public class InfoIT extends AbstractHelpBaseIT {
 
 	@Test
 	public void shouldPrintNiceDocs() {
@@ -19,5 +18,10 @@ public class InfoIT extends BaseIT {
 			.outContains("javadoc:")
 			.outContains("  /tmp/this_exists.txt")
 			.succeeded();
+	}
+
+	@Override
+	protected String commandName() {
+		return "info";
 	}
 }

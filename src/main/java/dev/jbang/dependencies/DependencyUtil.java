@@ -40,6 +40,7 @@ public class DependencyUtil {
 		aliasToRepos.put("s01sonatype-snapshots", "https://s01.oss.sonatype.org/content/repositories/snapshots");
 		aliasToRepos.put("spring-snapshot", "https://repo.spring.io/snapshot");
 		aliasToRepos.put("spring-milestone", "https://repo.spring.io/milestone");
+		aliasToRepos.put("jogamp", "https://jogamp.org/deployment/maven");
 
 	}
 

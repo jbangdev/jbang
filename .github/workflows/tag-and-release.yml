@@ -5,7 +5,25 @@ on:
 
 name: tag-and-release
 jobs:
+  check-debug:
+    runs-on: ubuntu-latest
+    outputs:
+      debug_enabled: ${{ steps.check-msg.outputs.debug_enabled }}
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - name: Extract tag commit message and set debug flag
+        id: check-msg
+        run: |
+          msg=$(git log -1 --pretty=%B)
+          echo "Commit message: $msg"
+          if echo "$msg" | grep -iq "#debug"; then
+            echo "debug_enabled=true" >> $GITHUB_OUTPUT
+          else
+            echo "debug_enabled=false" >> $GITHUB_OUTPUT
+          fi
+
   build:
+    needs: check-debug
     runs-on: ubuntu-latest
     name: build-and-testing
     env:
@@ -20,11 +38,11 @@ jobs:
       JRELEASER_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
       JRELEASER_GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
-      JRELEASER_NEXUS2_USERNAME: ${{ secrets.OSSRH_USERNAME}}
-      JRELEASER_NEXUS2_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-      JRELEASER_VERSION: 1.15.0
+      JRELEASER_MAVENCENTRAL_JBANG_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+      JRELEASER_MAVENCENTRAL_JBANG_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+      JRELEASER_VERSION: 1.19.0
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
         with:
           fetch-depth: 0
       - name: install-java11
@@ -68,3 +86,9 @@ jobs:
           path: |
             out/jreleaser/trace.log
             out/jreleaser/output.properties
+    
+      - name: Start tmate session
+        if: always() && needs.check-debug.outputs.debug_enabled == 'true'
+        uses: mxschmitt/action-tmate@7b6a61a73bbb9793cb80ad69b8dd8ac19261834c # v3
+        with:
+            limit-access-to-actor: true

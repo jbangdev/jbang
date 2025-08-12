@@ -32,6 +32,9 @@ public class Config {
 			new AvailableOption(Settings.CONFIG_CONNECTION_TIMEOUT,
 					"The timeout in milliseconds that will be used for any remote connections")
 	};
+
+	@CommandLine.Mixin
+	HelpMixin helpMixin;
 }
 
 abstract class BaseConfigCommand extends BaseCommand {

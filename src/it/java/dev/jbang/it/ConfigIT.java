@@ -4,7 +4,7 @@ import static dev.jbang.it.CommandResultAssert.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-public class ConfigIT extends BaseIT {
+public class ConfigIT extends AbstractHelpBaseIT {
 
 	// Feature: config
 
@@ -27,5 +27,10 @@ public class ConfigIT extends BaseIT {
 		assertThat(shell("jbang config list"))
 			.succeeded()
 			.outContains("foo = baz");
+	}
+
+	@Override
+	protected String commandName() {
+		return "config";
 	}
 }

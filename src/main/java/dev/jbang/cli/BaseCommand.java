@@ -1,6 +1,9 @@
 package dev.jbang.cli;
 
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,9 +38,8 @@ public abstract class BaseCommand implements Callable<Integer> {
 	@CommandLine.Spec
 	CommandLine.Model.CommandSpec spec;
 
-	@CommandLine.Option(names = { "-h",
-			"--help" }, usageHelp = true, description = "Display help/info. Use 'jbang <command> -h' for detailed usage.")
-	boolean helpRequested;
+	@CommandLine.Mixin
+	HelpMixin helpMixin;
 
 	@CommandLine.Option(names = { "--config" }, description = "Path to config file to be used instead of the default")
 	void setConfig(Path config) {
@@ -54,6 +56,8 @@ public abstract class BaseCommand implements Callable<Integer> {
 			enableInsecure();
 		}
 	}
+
+	public PrintStream realOut = new PrintStream(new FileOutputStream(FileDescriptor.out));
 
 	void debug(String msg) {
 		if (isVerbose()) {

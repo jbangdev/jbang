@@ -36,6 +36,9 @@ import picocli.CommandLine;
 		AppUninstall.class, AppSetup.class })
 public class App {
 
+	@CommandLine.Mixin
+	HelpMixin helpMixin;
+
 	public static void deleteCommandFiles(String name) {
 		try (Stream<Path> files = Files.list(Settings.getConfigBinDir())) {
 			files.filter(f -> f.getFileName().toString().equals(name)
@@ -45,6 +48,7 @@ public class App {
 			// Ignore
 		}
 	}
+
 }
 
 @CommandLine.Command(name = "install", description = "Install a script as a command.")

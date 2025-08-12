@@ -17,6 +17,9 @@ import picocli.CommandLine;
 @CommandLine.Command(name = "trust", description = "Manage which domains you trust to run scripts from.")
 public class Trust {
 
+	@CommandLine.Mixin
+	HelpMixin helpMixin;
+
 	@CommandLine.Spec
 	CommandLine.Model.CommandSpec spec;
 

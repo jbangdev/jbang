@@ -10,8 +10,14 @@ import static picocli.CommandLine.Model.UsageMessageSpec.SECTION_KEY_COMMAND_LIS
 import static picocli.CommandLine.Option;
 import static picocli.CommandLine.ScopeType;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -21,8 +27,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.Future;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import dev.jbang.Configuration;
 import dev.jbang.util.Util;
@@ -33,7 +42,7 @@ import picocli.CommandLine.Help.TextTable;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Model.UsageMessageSpec;
 
-@Command(name = "jbang", header = "${COMMAND-NAME} is a tool for building and running .java/.jsh scripts and jar packages.", footer = "\nCopyright: 2020-2025 jbang.dev contributors, License: MIT\nWebsite: https://jbang.dev", description = {
+@Command(name = "jbang", header = "${COMMAND-NAME} is a tool for building and running .java/.jsh scripts and jar packages.", footer = "\n   JBang ❤️  Commonhaus Foundation, MIT License\n🏡 https://www.commonhaus.org/community\n🚀 https://jbang.dev", description = {
 		"",
 		"  ${COMMAND-NAME} init hello.java [args...]",
 		"        (to initialize a script)",
@@ -263,21 +272,37 @@ public class JBang extends BaseCommand {
 	}
 
 	public static CommandGroupRenderer getCommandRenderer() {
-		Map<String, List<String>> sections = new LinkedHashMap<>();
-		sections.put("Essentials", asList("run", "build"));
-		sections.put("Editing", asList("init", "edit"));
-		sections.put("Caching", asList("cache", "export", "jdk"));
-		sections.put("Configuration", asList("config", "trust", "alias", "template", "catalog", "app"));
-		sections.put("Other", asList("completion", "info", "version", "wrapper"));
-		CommandGroupRenderer renderer = new CommandGroupRenderer(sections);
-		return renderer;
+		return new CommandGroupRenderer();
 	}
 
 	public static class CommandGroupRenderer implements CommandLine.IHelpSectionRenderer {
-		private final Map<String, List<String>> sections;
+		private Map<String, List<String>> sections;
+		private Map<String, String> externals;
 
-		public CommandGroupRenderer(Map<String, List<String>> sections) {
-			this.sections = sections;
+		public CommandGroupRenderer() {
+		}
+
+		private Map<String, List<String>> sections() {
+			if (sections == null) {
+				sections = new LinkedHashMap<>();
+				sections.put("Essentials", asList("run", "build"));
+				sections.put("Editing", asList("init", "edit"));
+				sections.put("Caching", asList("cache", "export", "jdk"));
+				sections.put("Configuration", asList("config", "trust", "alias", "template", "catalog", "app"));
+				sections.put("Other", asList("completion", "info", "version", "wrapper"));
+				Map<String, String> cmds = externals();
+				if (!cmds.isEmpty()) {
+					sections.put("External", new ArrayList<>(cmds.keySet()));
+				}
+			}
+			return sections;
+		}
+
+		private Map<String, String> externals() {
+			if (externals == null) {
+				externals = findExternalCommands();
+			}
+			return externals;
 		}
 
 		/**
@@ -288,7 +313,7 @@ public class JBang extends BaseCommand {
 		 */
 		public void validate(CommandLine.Help help) {
 			Set<String> cmds = new HashSet<>();
-			sections.forEach((key, value) -> cmds.addAll(value));
+			sections().forEach((key, value) -> cmds.addAll(value));
 
 			Set<String> actualcmds = new HashSet<>(help.subcommands().keySet());
 
@@ -304,11 +329,11 @@ public class JBang extends BaseCommand {
 				throw new IllegalStateException(("Commands found with no assigned section" + actualcmds));
 			}
 
-			sections.forEach((key, value) -> cmds.addAll(value));
+			sections().forEach((key, value) -> cmds.addAll(value));
 
 		}
 
-		// @Override
+		@Override
 		public String render(CommandLine.Help help) {
 			if (help.commandSpec().subcommands().isEmpty()) {
 				return "";
@@ -316,30 +341,33 @@ public class JBang extends BaseCommand {
 
 			StringBuilder result = new StringBuilder();
 
-			sections.forEach((key, value) -> result.append(renderSection(key, value, help)));
+			sections().forEach((key, value) -> result.append(renderSection(key, value, help)));
 			return result.toString();
 		}
 
 		private String renderSection(String sectionHeading, List<String> cmdNames, CommandLine.Help help) {
 			TextTable textTable = createTextTable(help);
 
-			for (String name : cmdNames) {
-				CommandSpec sub = help.commandSpec().subcommands().get(name).getCommandSpec();
+			if (!sectionHeading.equals("External")) {
+				for (String name : cmdNames) {
+					CommandSpec sub = help.commandSpec().subcommands().get(name).getCommandSpec();
 
-				// create comma-separated list of command name and aliases
-				String names = sub.names().toString();
-				names = names.substring(1, names.length() - 1); // remove leading '[' and trailing ']'
+					// create comma-separated list of command name and aliases
+					String names = sub.names().toString();
+					names = names.substring(1, names.length() - 1); // remove leading '[' and trailing ']'
 
-				// description may contain line separators; use Text::splitLines to handle this
-				String description = description(sub.usageMessage());
-				CommandLine.Help.Ansi.Text[] lines = help.colorScheme().text(description).splitLines();
-
-				for (int i = 0; i < lines.length; i++) {
-					CommandLine.Help.Ansi.Text cmdNamesText = help.colorScheme().commandText(i == 0 ? names : "");
-					textTable.addRowValues(cmdNamesText, lines[i]);
+					// description may contain line separators; use Text::splitLines to handle this
+					String description = description(sub.usageMessage());
+					addCommand(textTable, names, description, help);
+				}
+			} else {
+				for (String name : externals().keySet()) {
+					String description = externals().get(name);
+					addCommand(textTable, name, description, help);
 				}
 			}
-			return help.createHeading("%n" + sectionHeading + ":%n") + textTable.toString();
+
+			return help.createHeading("%n" + sectionHeading + ":%n") + textTable;
 		}
 
 		private TextTable createTextTable(CommandLine.Help help) {
@@ -372,6 +400,70 @@ public class JBang extends BaseCommand {
 				return usageMessage.description()[0];
 			}
 			return "";
+		}
+
+		private void addCommand(TextTable textTable, String name, String description, CommandLine.Help help) {
+			CommandLine.Help.Ansi.Text[] lines = help.colorScheme()
+				.text(description != null ? description : "")
+				.splitLines();
+			for (int i = 0; i < lines.length; i++) {
+				CommandLine.Help.Ansi.Text cmdNamesText = help.colorScheme().commandText(i == 0 ? name : "");
+				textTable.addRowValues(cmdNamesText, lines[i]);
+			}
+		}
+
+		private static Map<String, String> findExternalCommands() {
+			Map<String, String> result = new TreeMap<>();
+			// Add any aliases whose names start with "jbang-" to the result
+			try {
+				dev.jbang.catalog.Catalog cat = dev.jbang.catalog.Catalog.getMerged(true, false);
+				for (String name : cat.aliases.keySet()) {
+					if (name.startsWith("jbang-")) {
+						result.put(name.substring(6), cat.aliases.get(name).description);
+					}
+				}
+			} catch (Exception ex) {
+				Util.verboseMsg("Error trying to list aliases", ex);
+			}
+			// Now add any commands found on the PATH whose names start with "jbang-"
+			try {
+				List<Path> paths = getPluginPaths();
+				List<Path> cmds = findCommandsWith(paths, p -> p.getFileName().toString().startsWith("jbang-"));
+				for (Path p : cmds) {
+					result.put(Util.base(p.getFileName().toString()).substring(6), null);
+				}
+			} catch (Exception ex) {
+				Util.verboseMsg("Error trying to list jbang-commands", ex);
+			}
+			return result;
+		}
+
+		private static List<Path> getPluginPaths() {
+			return Arrays.stream(System.getenv().getOrDefault("PATH", "").split(File.pathSeparator))
+				.filter(Util::isValidPath)
+				.map(Paths::get)
+				.filter(Files::isDirectory)
+				.collect(Collectors.toList());
+
+		}
+
+		private static List<Path> findCommandsWith(List<Path> pathElems, Predicate<Path> accept) {
+			return pathElems.stream()
+				.filter(Files::isDirectory)
+				.flatMap(dir -> listFiles(dir).filter(Util::isExecutable).filter(accept))
+				.collect(Collectors.toList());
+		}
+
+		private static Stream<Path> listFiles(Path dir) {
+			if (Files.isDirectory(dir)) {
+				try {
+					return Files.list(dir);
+				} catch (IOException e) {
+					throw new RuntimeException(e.getMessage(), e);
+				}
+			} else {
+				return Stream.empty();
+			}
 		}
 	}
 }
