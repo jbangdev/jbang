@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 
@@ -85,7 +86,7 @@ public class IntegrationManager {
 		ClassLoader old = Thread.currentThread().getContextClassLoader();
 		PrintStream oldout = System.out;
 		try {
-			URLClassLoader integrationCl = getClassLoader(deps.values());
+			URLClassLoader integrationCl = getClassLoader(compileDir, deps.values());
 			Thread.currentThread().setContextClassLoader(integrationCl);
 			String requestedJavaVersion = prj.getJavaVersion();
 			Set<String> classNames = loadIntegrationClassNames(integrationCl);
@@ -118,8 +119,9 @@ public class IntegrationManager {
 	}
 
 	@Nonnull
-	private static URLClassLoader getClassLoader(Collection<Path> deps) {
-		URL[] urls = deps.stream().map(path -> {
+	private static URLClassLoader getClassLoader(Path classes, Collection<Path> deps) {
+		Stream<Path> paths = Stream.concat(Stream.of(classes), deps.stream());
+		URL[] urls = paths.map(path -> {
 			try {
 				return path.toUri().toURL();
 			} catch (MalformedURLException e) {
@@ -216,8 +218,7 @@ public class IntegrationManager {
 	}
 
 	private static IntegrationResult runIntegrationExternal(IntegrationInput input,
-			Map<String, String> properties,
-			Jdk jdk)
+			Map<String, String> properties, Jdk jdk)
 			throws Exception {
 		Gson parser = gsonb.create();
 		Util.infoMsg("Running external post build for " + input.integrationClassName);
@@ -288,7 +289,7 @@ public class IntegrationManager {
 		String output = "";
 		boolean ok = false;
 		try {
-			URLClassLoader integrationCl = getClassLoader(input.dependencies.values());
+			URLClassLoader integrationCl = getClassLoader(input.classes, input.dependencies.values());
 			Thread.currentThread().setContextClassLoader(integrationCl);
 			IntegrationResult result = runIntegrationEmbedded(input, integrationCl);
 			output = parser.toJson(result);
