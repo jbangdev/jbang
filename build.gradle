@@ -19,7 +19,7 @@ plugins {
 	id 'maven-publish'
 	id 'io.qameta.allure-report' version '2.12.0'
 	id "io.qameta.allure-adapter-base" version "2.12.0"
-	id "com.github.ben-manes.versions" version "0.51.0"   // 0.52.0 requires Java 17
+	// id "com.github.ben-manes.versions" version "0.51.0"
 }
 
 def allureVersion = '2.29.0'
