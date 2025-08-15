@@ -20,6 +20,13 @@ public abstract class ConsoleInput {
 	 * console is available.
 	 */
 	public static ConsoleInput get(int tries, int timeout, TimeUnit unit) {
+		String preferGui = System.getenv(Util.JBANG_PREFER_GUI);
+		if (preferGui != null) {
+			if ("true".equalsIgnoreCase(preferGui)) {
+				return null;
+			}
+		}
+
 		if (Util.haveConsole()) {
 			return stdin(tries, timeout, unit);
 		} else if (!Util.isWindows() && haveTTY()) {
