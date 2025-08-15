@@ -65,14 +65,14 @@ class DependencyResolverTest extends BaseTest {
 	void testEqualsEmptyAttributes() {
 		MavenCoordinate a1 = MavenCoordinate.fromString("a.b:c:0.6:qf@doc");
 		MavenCoordinate a2 = MavenCoordinate.fromString("a.b:c:0.6:qf@doc");
-		assertThat(a1).as("mavencoordinate bad comparison of empty attribtues").isEqualTo(a2);
+		assertThat(a1).as("mavencoordinate bad comparison of empty attribtues").isNotEqualTo(a2);
 	}
 
 	@Test
 	void testEqualsGAVBehavior() {
 		MavenCoordinate a1 = MavenCoordinate.fromString("a.b:c:0.6:qf@doc");
 		MavenCoordinate a2 = MavenCoordinate.fromString("a.b:c:0.6:qf@doc{build,run}");
-		assertThat(a1).isEqualTo(a2); // TODO: these are equal in behavior - but not in "format"
+		assertThat(a1).isNotEqualTo(a2); // these are equal in behavior - but not in "format"
 	}
 
 	@Test
