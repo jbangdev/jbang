@@ -1,13 +1,17 @@
 package dev.jbang.dependencies;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.BiFunction;
 
 import dev.jbang.util.Util;
 
 import eu.maveniverse.maven.nisse.core.NisseConfiguration;
+import eu.maveniverse.maven.nisse.core.PropertySource;
 import eu.maveniverse.maven.nisse.core.internal.SimpleNisseConfiguration;
 import eu.maveniverse.maven.nisse.source.osdetector.OsDetectorPropertySource;
 
@@ -17,6 +21,24 @@ public class Detector {
 		super();
 	}
 
+	private final List<PropertySource> sources = Arrays.asList(new OsDetectorPropertySource());
+
+	public Map<String, String> createProperties(NisseConfiguration configuration) {
+		BiFunction<PropertySource, String, List<String>> propertyKeyNamingStrategy = configuration
+			.propertyKeyNamingStrategy();
+		HashMap<String, String> properties = new HashMap<>();
+		for (PropertySource source : this.sources) {
+			if (configuration.isPropertySourceActive(source)) {
+				source.getProperties(configuration).forEach((key, value) -> {
+					for (String translated : propertyKeyNamingStrategy.apply(source, key)) {
+						properties.put(translated, value);
+					}
+				});
+			}
+		}
+		return properties;
+	}
+
 	public void detect(final Properties properties, List<String> classiferWithLikes) {
 
 		// TODO: this is a minimal use of nisse to replace the os-maven-plugin defaults.
@@ -24,12 +46,12 @@ public class Detector {
 		Properties uPropertiers = new Properties(properties);
 		uPropertiers.put("nisse.compat.osDetector", "true");
 		try {
-			NisseConfiguration config = SimpleNisseConfiguration.builder()
+			NisseConfiguration configuration = SimpleNisseConfiguration.builder()
 				.withSystemProperties(System.getProperties())
 				.withUserProperties(uPropertiers)
 				.build();
 
-			Map<String, String> props = new OsDetectorPropertySource().getProperties(config);
+			Map<String, String> props = createProperties(configuration);
 
 			properties.putAll(props);
 
