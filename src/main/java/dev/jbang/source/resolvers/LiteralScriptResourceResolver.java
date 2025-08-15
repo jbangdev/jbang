@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
@@ -55,7 +55,7 @@ public class LiteralScriptResourceResolver implements ResourceResolver {
 		return result;
 	}
 
-	@Nonnull
+	@NonNull
 	@Override
 	public String description() {
 		return "Literal stdin";

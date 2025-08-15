@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 import dev.jbang.devkitman.Jdk;
 import dev.jbang.source.*;
@@ -31,7 +31,7 @@ public class JavaSource extends Source {
 	}
 
 	@Override
-	public @Nonnull Type getType() {
+	public @NonNull Type getType() {
 		return Type.java;
 	}
 

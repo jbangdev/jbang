@@ -1,7 +1,7 @@
 package dev.jbang.source;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import dev.jbang.source.resolvers.*;
 
@@ -57,7 +57,7 @@ public interface ResourceResolver {
 		return resolve(resource, false);
 	}
 
-	@Nonnull
+	@NonNull
 	String description();
 
 	/**
@@ -66,7 +66,7 @@ public interface ResourceResolver {
 	 *
 	 * @return A <code>ResourceRef</code> or <code>null</code>
 	 */
-	@Nonnull
+	@NonNull
 	static ResourceResolver forResources() {
 		return new CombinedResourceResolver(
 				new RemoteResourceResolver(true),

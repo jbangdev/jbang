@@ -9,7 +9,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 import dev.jbang.cli.ExitException;
 import dev.jbang.net.TrustedSources;
@@ -30,7 +30,7 @@ public class RemoteResourceResolver implements ResourceResolver {
 		this.alwaysTrust = alwaysTrust;
 	}
 
-	@Nonnull
+	@NonNull
 	@Override
 	public String description() {
 		return String.format("%s remote resource", alwaysTrust ? "Trusted" : "Non-trusted");

@@ -11,7 +11,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
@@ -22,12 +22,12 @@ import dev.jbang.devkitman.util.RemoteAccessProvider;
 
 public class JavaUtil {
 
-	@Nonnull
+	@NonNull
 	public static JdkManager defaultJdkManager(String... names) {
 		return (new JdkManBuilder()).provider(names).build();
 	}
 
-	@Nonnull
+	@NonNull
 	public static JdkManager defaultJdkManager(List<String> names) {
 		return (new JdkManBuilder()).provider(names).build();
 	}
@@ -179,7 +179,7 @@ public class JavaUtil {
 		return parseJavaVersion(System.getProperty("java.version"));
 	}
 
-	public static String resolveInJavaHome(@Nonnull String cmd, @Nonnull Jdk jdk) {
+	public static String resolveInJavaHome(@NonNull String cmd, @NonNull Jdk jdk) {
 		if (jdk.isInstalled()) {
 			Path jdkHome = ((Jdk.InstalledJdk) jdk).home();
 			if (Util.isWindows()) {

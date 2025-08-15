@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 import dev.jbang.source.sources.JavaSource;
 
@@ -44,13 +44,13 @@ public class CodeBuilderProvider implements Supplier<Builder<CmdGeneratorBuilder
 	 *
 	 * @return A <code>Builder</code>
 	 */
-	@Nonnull
+	@NonNull
 	@Override
 	public Builder<CmdGeneratorBuilder> get() {
 		return get(buildContext);
 	}
 
-	@Nonnull
+	@NonNull
 	protected Builder<CmdGeneratorBuilder> get(BuildContext ctx) {
 		Builder<CmdGeneratorBuilder> builder = getBuilder(ctx);
 		Project prj = ctx.getProject();
@@ -70,7 +70,7 @@ public class CodeBuilderProvider implements Supplier<Builder<CmdGeneratorBuilder
 		}
 	}
 
-	@Nonnull
+	@NonNull
 	protected Builder<CmdGeneratorBuilder> getBuilder(BuildContext ctx) {
 		Project prj = ctx.getProject();
 		if (prj.getMainSource() != null) {

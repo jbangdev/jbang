@@ -19,11 +19,10 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
-
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.jspecify.annotations.NonNull;
 
 import dev.jbang.Settings;
 import dev.jbang.catalog.Alias;
@@ -566,7 +565,7 @@ public class ProjectBuilder {
 	 * @param resolver The resolver to use for dependent (re)sources
 	 * @return The given <code>Project</code>
 	 */
-	@Nonnull
+	@NonNull
 	private Project updateProject(Source src, Project prj, ResourceResolver resolver) {
 		ResourceRef srcRef = src.getResourceRef();
 		if (!prj.getMainSourceSet().getSources().contains(srcRef)) {

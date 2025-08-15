@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 import dev.jbang.source.*;
 
@@ -16,7 +16,7 @@ import dev.jbang.source.*;
  * reference to that.
  */
 public class ClasspathResourceResolver implements ResourceResolver {
-	@Nonnull
+	@NonNull
 	@Override
 	public String description() {
 		return "Classpath resolver";
@@ -35,7 +35,7 @@ public class ClasspathResourceResolver implements ResourceResolver {
 	}
 
 	public static class ClasspathResourceRef extends InputStreamResourceRef {
-		protected ClasspathResourceRef(@Nonnull String ref) {
+		protected ClasspathResourceRef(@NonNull String ref) {
 			super(ref, ClasspathResourceRef::createStream);
 		}
 
