@@ -77,80 +77,72 @@ class DependencyResolverTest extends BaseTest {
 
 	@Test
 	void testEqualsGAVFlippedBehavior() {
-		MavenCoordinate a1 = MavenCoordinate.fromString("a.b:c:0.6:qf@doc{run,build");
+		MavenCoordinate a1 = MavenCoordinate.fromString("a.b:c:0.6:qf@doc{run,build}");
 		MavenCoordinate a2 = MavenCoordinate.fromString("a.b:c:0.6:qf@doc{build,run}");
-		assertThat(a1).isEqualTo(a2); // TODO: these are equal in behavior - but not in "format"
+		assertThat(a1).isNotEqualTo(a2); // these are equal in behavior - but not in "format"
 	}
 
 	@Test
 	void testVariants() {
-		DependencyRequest request = DependencyRequest
+		MavenCoordinate artifact = MavenCoordinate
 			.fromString("com.offbytwo:docopt:0.6.0.20150202:redhat@doc{build,boot,run}");
-		MavenCoordinate artifact = request.getArtifact();
 		assertThat(artifact.getGroupId()).isEqualTo("com.offbytwo");
 		assertThat(artifact.getArtifactId()).isEqualTo("docopt");
 		assertThat(artifact.getVersion()).isEqualTo("0.6.0.20150202");
 		assertThat(artifact.getClassifier()).isEqualTo("redhat");
 		assertThat(artifact.getType()).isEqualTo("doc");
-		assertThat(request.getAttributes().includeInScope("boot")).isTrue();
-
+		assertThat(artifact.getAttributes().includeInScope("boot")).isTrue();
 	}
 
 	@Test
 	void testScopes() {
 
-		DependencyRequest request = DependencyRequest.fromString("a.b:c:1.2{build}");
-		MavenCoordinate artifact = request.getArtifact();
+		MavenCoordinate artifact = MavenCoordinate.fromString("a.b:c:1.2{build}");
 
 		assertThat(artifact)
 			.extracting("groupId", "artifactId", "version", "classifier")
 			.containsExactly("a.b", "c", "1.2", null);
 
-		assertThat(request.getAttributes().includeInScope("build")).isTrue();
+		assertThat(artifact.getAttributes().includeInScope("build")).isTrue();
 
 	}
 
 	@Test
 	void testMultiScopes() {
-
-		DependencyRequest request = DependencyRequest.fromString("a.b:c:1.2{build}");
-		MavenCoordinate artifact = request.getArtifact();
+		MavenCoordinate artifact = MavenCoordinate.fromString("a.b:c:1.2{build}");
 
 		assertThat(artifact)
 			.extracting("groupId", "artifactId", "version", "classifier")
 			.containsExactly("a.b", "c", "1.2", null);
 
-		assertThat(request.getAttributes().includeInScope("build")).isTrue();
-		assertThat(request.getAttributes().includeInScope("compile")).isFalse();
-		assertThat(request.getAttributes().includeInScope("doesnotexist")).isFalse();
+		assertThat(artifact.getAttributes().includeInScope("build")).isTrue();
+		assertThat(artifact.getAttributes().includeInScope("compile")).isFalse();
+		assertThat(artifact.getAttributes().includeInScope("doesnotexist")).isFalse();
 	}
 
 	@Test
 	void testBadDependencyRequests() {
-		DependencyRequest dr = DependencyRequest.fromString("a.b:c:1.2{");
-		assertThat(dr).isNull();
-		;
+		assertThatExceptionOfType(IllegalStateException.class)
+			.isThrownBy(() -> MavenCoordinate.fromString("a.b:c:1.2{"));
 	}
 
 	@Test
 	void testOtherProperties() {
 
-		DependencyRequest request = DependencyRequest.fromString("a.b:c:1.2{build}");
-		MavenCoordinate artifact = request.getArtifact();
+		MavenCoordinate artifact = MavenCoordinate.fromString("a.b:c:1.2{build}");
 
 		assertThat(artifact)
 			.extracting("groupId", "artifactId", "version", "classifier")
 			.containsExactly("a.b", "c", "1.2", null);
 
-		DependencyRequest request2 = DependencyRequest.fromString("a.b:c:1.2");
-		MavenCoordinate artifact2 = request2.getArtifact();
+		MavenCoordinate artifact2 = MavenCoordinate.fromString("a.b:c:1.2");
 
 		assertThat(artifact2)
 			.extracting("groupId", "artifactId", "version", "classifier")
 			.containsExactly("a.b", "c", "1.2", null);
 
-		assertThat(request2.getAttributes().includeInScope("build")).isTrue();
-		assertThat(request2.getAttributes().includeInScope("run")).isTrue();
+		assertThat(artifact2.getAttributes().includeInScope("build")).isTrue();
+		assertThat(artifact2.getAttributes().includeInScope("run")).isTrue();
 	}
 
 	@Test

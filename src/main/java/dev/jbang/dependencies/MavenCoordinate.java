@@ -7,6 +7,8 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import dev.jbang.util.AttributeParser;
+
 /**
  * 
  * MavenCoordinate should not implement euqals as it is not meaningfull to use
@@ -25,15 +27,18 @@ public class MavenCoordinate {
 	private final String version;
 	private final String classifier;
 	private final String type;
+	private final DependencyAttributes attributes;
 
 	public static final String DUMMY_GROUP = "group";
 	public static final String DEFAULT_VERSION = "999-SNAPSHOT";
+	public static final String SCOPE_ATTR = "scope";
 
 	private static final Pattern gavPattern = Pattern.compile(
 			"^(?<groupid>[^:]*):(?<artifactid>[^:]*)(:(?<version>[^:@{]*))?(:(?<classifier>[^@{]*))?(@(?<type>.[^{]*))?(\\{(?<properties>.*)})?$");
 
 	private static final Pattern canonicalPattern = Pattern.compile(
 			"^(?<groupid>[^:]*):(?<artifactid>[^:]*)((:(?<type>.*)(:(?<classifier>[^@]*))?)?:(?<version>[^:@]*))?$");
+
 	private String managementKey;
 
 	public String getGroupId() {
@@ -73,6 +78,10 @@ public class MavenCoordinate {
 		return managementKey;
 	}
 
+	/**
+	 * Converts a canonical string to a MavenCoordinate.
+	 */
+	@Deprecated
 	public static MavenCoordinate fromCanonicalString(String depId) {
 		return parse(depId, canonicalPattern);
 	}
@@ -83,7 +92,7 @@ public class MavenCoordinate {
 
 		if (!gav.matches()) {
 			throw new IllegalStateException(String.format(
-					"[ERROR] Invalid dependency locator: '%s'.  Expected format is groupId:artifactId:version[:classifier][@type]",
+					"[ERROR] Invalid dependency locator: '%s'.  Expected format is groupId:artifactId:version[:classifier][@type][{attrlist}]",
 					depId));
 		}
 
@@ -93,25 +102,29 @@ public class MavenCoordinate {
 		String classifier = gav.group("classifier");
 		String type = Optional.ofNullable(gav.group("type")).orElse("jar");
 		String propString = gav.group("properties");
-		return new MavenCoordinate(groupId, artifactId, version, classifier, type);
+
+		DependencyAttributes da = new DependencyAttributes(
+				AttributeParser.parseAttributeList(propString, "scope"));
+		return new MavenCoordinate(groupId, artifactId, version, classifier, type, da);
 	}
 
 	public MavenCoordinate(@Nonnull String groupId, @Nonnull String artifactId, @Nonnull String version) {
-		this(groupId, artifactId, version, null, null);
+		this(groupId, artifactId, version, null, null, DependencyAttributes.DEFAULT);
 	}
 
 	public MavenCoordinate(@Nonnull String groupId, @Nonnull String artifactId, @Nonnull String version,
-			@Nullable String classifier, @Nullable String type) {
+			@Nullable String classifier, @Nullable String type, DependencyAttributes attributes) {
 		this.groupId = groupId;
 		this.artifactId = artifactId;
 		this.version = version;
 		this.classifier = classifier != null && classifier.isEmpty() ? null : classifier;
 		this.type = type;
+		this.attributes = attributes;
 	}
 
 	public MavenCoordinate withVersion() {
 		return version != null ? this
-				: new MavenCoordinate(groupId, artifactId, DEFAULT_VERSION, classifier, type);
+				: new MavenCoordinate(groupId, artifactId, DEFAULT_VERSION, classifier, type, attributes);
 	}
 
 	/**
@@ -163,7 +176,12 @@ public class MavenCoordinate {
 				", version='" + version + '\'' +
 				", classifier='" + classifier + '\'' +
 				", type='" + type + '\'' +
+				", attributes='" + attributes + '\'' +
 				'}';
+	}
+
+	public DependencyAttributes getAttributes() {
+		return attributes;
 	}
 
 }

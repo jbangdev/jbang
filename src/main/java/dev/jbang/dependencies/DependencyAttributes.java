@@ -6,6 +6,10 @@ import dev.jbang.util.AttributeParser;
 
 public class DependencyAttributes {
 
+	/** default attributes */
+	public static final DependencyAttributes DEFAULT = new DependencyAttributes(
+			AttributeParser.parseAttributeList("scope=build,run", "scope"));
+
 	private final Map<String, List<String>> attributes;
 
 	// Java 8 Set.of() is sad :)

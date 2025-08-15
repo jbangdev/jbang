@@ -406,8 +406,9 @@ public class ArtifactResolver implements Closeable {
 	}
 
 	private static ArtifactInfo toArtifactInfo(Artifact artifact) {
+		// TODO: get attributes from artifact descriptor??
 		MavenCoordinate coord = new MavenCoordinate(artifact.getGroupId(), artifact.getArtifactId(),
-				artifact.getVersion(), artifact.getClassifier(), artifact.getExtension());
+				artifact.getVersion(), artifact.getClassifier(), artifact.getExtension(), DependencyAttributes.DEFAULT);
 		return new ArtifactInfo(coord, artifact.getFile().toPath());
 	}
 
