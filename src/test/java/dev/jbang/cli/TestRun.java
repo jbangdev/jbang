@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
@@ -65,6 +66,7 @@ import dev.jbang.Settings;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.catalog.CatalogUtil;
+import dev.jbang.dependencies.Detector;
 import dev.jbang.net.TrustedSources;
 import dev.jbang.source.BuildContext;
 import dev.jbang.source.Builder;
@@ -80,6 +82,7 @@ import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.source.sources.JavaSource;
 import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.JavaUtil;
+import dev.jbang.util.PropertiesValueResolver;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -2098,6 +2101,32 @@ public class TestRun extends BaseTest {
 		String line = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
 
 		assertThat(line, containsString(" --module-path "));
+
+	}
+
+	@Test
+	void testMagicPropertyViaRun(@TempDir Path tdir) throws IOException {
+
+		String fileref = examplesTestFolder.resolve("${os.detected.name}${customvar}.java").toString();
+		// todo fix so --deps can use system properties
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("run",
+					"-Dcustomvar=xyz",
+					fileref.toString());
+
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		ProjectBuilder pb = run.createProjectBuilderForRun();
+		pb.mainClass("fakemain");
+
+		Project prj = pb.build(fileref.toString());
+		String line = run.updateGeneratorForRun(CmdGenerator.builder(prj)).build().generate();
+
+		Properties props = new Properties();
+		new Detector().detect(props, Collections.emptyList());
+		String expectedJar = PropertiesValueResolver.replaceProperties("${os.detected.name}xyz.jar", props);
+
+		assertThat(line, containsString(expectedJar));
 
 	}
 
