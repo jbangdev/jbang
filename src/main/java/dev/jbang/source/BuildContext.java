@@ -3,7 +3,7 @@ package dev.jbang.source;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
@@ -31,7 +31,7 @@ public class BuildContext {
 		}
 	}
 
-	@Nonnull
+	@NonNull
 	private static Path getBuildDir(Path baseDir, Project project) {
 		if (baseDir == null) {
 			baseDir = Settings.getCacheDir(Cache.CacheClass.jars);
@@ -82,17 +82,17 @@ public class BuildContext {
 		}
 	}
 
-	@Nonnull
+	@NonNull
 	public Path getCompileDir() {
 		return buildDir.resolve("classes");
 	}
 
-	@Nonnull
+	@NonNull
 	public Path getGeneratedSourcesDir() {
 		return buildDir.resolve("generated");
 	}
 
-	@Nonnull
+	@NonNull
 	private Path getBasePath(String extension) {
 		return buildDir.resolve(
 				Util.sourceBase(project.getResourceRef().getFile().getFileName().toString()) + extension);
@@ -106,7 +106,7 @@ public class BuildContext {
 		return getJarFile() != null && Files.exists(getJarFile()) && resolveClassPath().isValid();
 	}
 
-	@Nonnull
+	@NonNull
 	public ModularClassPath resolveClassPath() {
 		if (mcp == null) {
 			DependencyResolver resolver = new DependencyResolver();

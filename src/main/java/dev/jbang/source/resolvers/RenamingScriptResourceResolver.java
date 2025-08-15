@@ -7,7 +7,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 import dev.jbang.Cache;
 import dev.jbang.Settings;
@@ -32,7 +32,7 @@ public class RenamingScriptResourceResolver implements ResourceResolver {
 		this.forceType = forceType;
 	}
 
-	@Nonnull
+	@NonNull
 	@Override
 	public String description() {
 		return "Renaming resolver";

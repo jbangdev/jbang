@@ -7,7 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.util.Util;
@@ -26,109 +26,109 @@ public class SourceSet {
 	private final List<String> compileOptions = new ArrayList<>();
 	private final List<String> nativeOptions = new ArrayList<>();
 
-	@Nonnull
+	@NonNull
 	public List<ResourceRef> getSources() {
 		return Collections.unmodifiableList(sources);
 	}
 
-	@Nonnull
+	@NonNull
 	public SourceSet addSource(ResourceRef source) {
 		sources.add(source);
 		return this;
 	}
 
-	@Nonnull
+	@NonNull
 	public SourceSet addSources(Collection<ResourceRef> sources) {
 		this.sources.addAll(sources);
 		return this;
 	}
 
-	@Nonnull
+	@NonNull
 	public List<RefTarget> getResources() {
 		return Collections.unmodifiableList(resources);
 	}
 
-	@Nonnull
+	@NonNull
 	public SourceSet addResource(RefTarget resource) {
 		resources.add(resource);
 		return this;
 	}
 
-	@Nonnull
+	@NonNull
 	public SourceSet addResources(Collection<RefTarget> resources) {
 		this.resources.addAll(resources);
 		return this;
 	}
 
-	@Nonnull
+	@NonNull
 	public List<String> getDependencies() {
 		return Collections.unmodifiableList(dependencies);
 	}
 
-	@Nonnull
+	@NonNull
 	public SourceSet addDependency(String dependency) {
 		dependencies.add(dependency);
 		return this;
 	}
 
-	@Nonnull
+	@NonNull
 	public SourceSet addDependencies(Collection<String> dependencies) {
 		this.dependencies.addAll(dependencies);
 		return this;
 	}
 
-	@Nonnull
+	@NonNull
 	public List<String> getClassPaths() {
 		return Collections.unmodifiableList(classPaths);
 	}
 
-	@Nonnull
+	@NonNull
 	public SourceSet addClassPath(String classPath) {
 		classPaths.add(classPath);
 		return this;
 	}
 
-	@Nonnull
+	@NonNull
 	public SourceSet addClassPaths(Collection<String> classPaths) {
 		this.classPaths.addAll(classPaths);
 		return this;
 	}
 
-	@Nonnull
+	@NonNull
 	public List<String> getCompileOptions() {
 		return Collections.unmodifiableList(compileOptions);
 	}
 
-	@Nonnull
+	@NonNull
 	public SourceSet addCompileOption(String option) {
 		compileOptions.add(option);
 		return this;
 	}
 
-	@Nonnull
+	@NonNull
 	public SourceSet addCompileOptions(Collection<String> options) {
 		compileOptions.addAll(options);
 		return this;
 	}
 
-	@Nonnull
+	@NonNull
 	public List<String> getNativeOptions() {
 		return Collections.unmodifiableList(nativeOptions);
 	}
 
-	@Nonnull
+	@NonNull
 	public SourceSet addNativeOption(String option) {
 		nativeOptions.add(option);
 		return this;
 	}
 
-	@Nonnull
+	@NonNull
 	public SourceSet addNativeOptions(Collection<String> options) {
 		nativeOptions.addAll(options);
 		return this;
 	}
 
-	@Nonnull
+	@NonNull
 	public DependencyResolver updateDependencyResolver(DependencyResolver resolver) {
 		return resolver.addDependencies(dependencies).addClassPaths(classPaths);
 	}

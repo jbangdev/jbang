@@ -2,14 +2,14 @@ package dev.jbang.source;
 
 import java.util.Objects;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 public class DocRef {
 	private final @Nullable String id;
-	private final @Nonnull ResourceRef ref;
+	private final @NonNull ResourceRef ref;
 
-	private DocRef(@Nullable String id, @Nonnull ResourceRef ref) {
+	private DocRef(@Nullable String id, @NonNull ResourceRef ref) {
 		this.id = id;
 		this.ref = ref;
 	}
@@ -18,7 +18,7 @@ public class DocRef {
 		return id;
 	}
 
-	public @Nonnull ResourceRef getRef() {
+	public @NonNull ResourceRef getRef() {
 		return ref;
 	}
 

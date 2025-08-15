@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
@@ -22,7 +22,7 @@ public class MarkdownSource extends JshSource {
 	}
 
 	@Override
-	public @Nonnull Type getType() {
+	public @NonNull Type getType() {
 		return Type.markdown;
 	}
 
