@@ -88,7 +88,7 @@ The dependencies in JBang programs must be updated manually by editing the Java,
 
 * `jbang deps@jbangdev <gav>`
 
-** jbang deps@jbangdev io.undertow:undertow-core:jar:2.0.28
+** jbang deps@jbangdev io.undertow:undertow-core:2.0.28
 +
 image::jbang_deps_2.png[]
 
