@@ -80,7 +80,7 @@ is the equivalent of the following Maven dependency declaration:
 
 == Updating `//DEPS`
 
-The dependencies in JBang programs must be updated manually by editing the Java, Groovy, or Kotlin file. Use alias `deps@jbangdev` to check if never versions of dependencies are available.
+The dependencies of a JBang program can be updated using https://docs.renovatebot.com/[renovatebot] or it can be updated manually by editing the Java, Groovy, or Kotlin file. If updating dependencies manually, alias `deps@jbangdev` can be used to check if never versions of dependencies are available.
 
 * `jbang deps@jbangdev <filename.{java,groovy,kt}>`
 
