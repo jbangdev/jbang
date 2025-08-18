@@ -1,5 +1,6 @@
 package dev.jbang.util;
 
+import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -21,7 +22,7 @@ public abstract class ConsoleInput {
 	 */
 	public static ConsoleInput get(int tries, int timeout, TimeUnit unit) {
 		String preferGui = System.getenv(Util.JBANG_PREFER_GUI);
-		if (preferGui != null) {
+		if (preferGui != null && !GraphicsEnvironment.isHeadless()) {
 			if ("true".equalsIgnoreCase(preferGui)) {
 				return null;
 			}
