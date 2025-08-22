@@ -137,7 +137,7 @@ jobs:
           annotate_only: true # forked repo cannot write to checks so just do annotations
       - name: Add artifact.ci links
         run: |
-          echo "allure-report-${{ matrix.os }}: https://www.artifact.ci/artifact/view/jbangdev/jbang/run/${{ github.run_id }}.$${{ github.run_attempt}}/allure-report-${{ matrix.os }}/build/reports/allure-report/allureReport/index.html" >> $GITHUB_STEP_SUMMARY
+          echo "View [Allure Report](https://www.artifact.ci/artifact/view/jbangdev/jbang/run/${{ github.run_id }}.${{ github.run_attempt}}/allure-report-${{ matrix.os }}/build/reports/allure-report/allureReport/index.html) for ${{ matrix.os }} build" >> $GITHUB_STEP_SUMMARY
 
 
   testing:
