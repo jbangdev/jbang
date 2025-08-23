@@ -13,11 +13,6 @@ import eu.maveniverse.maven.nisse.core.simple.SimpleNisseManager;
 import eu.maveniverse.maven.nisse.source.osdetector.OsDetectorPropertySource;
 
 public class Detector {
-
-	public Detector() {
-		super();
-	}
-
 	private final NisseManager nisseManager = new SimpleNisseManager(Collections.singletonList(new OsDetectorPropertySource()));
 
 	public void detect(Properties properties, List<String> classiferWithLikes) {
