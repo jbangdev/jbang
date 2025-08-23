@@ -444,14 +444,14 @@ class AppSetup extends BaseCommand {
 				// Update shell startup scripts
 				if (Util.isMac()) {
 					Path bashFile = getHome().resolve(".bash_profile");
-					changed = changeScript(binDir, jdkHome, bashFile) || changed;
+					changed = changeBashOrZshRcScript(binDir, jdkHome, bashFile) || changed;
 				}
 				if (!changed) {
 					Path bashFile = getHome().resolve(".bashrc");
-					changed = changeScript(binDir, jdkHome, bashFile) || changed;
+					changed = changeBashOrZshRcScript(binDir, jdkHome, bashFile) || changed;
 				}
 				Path zshRcFile = getHome().resolve(".zshrc");
-				changed = changeScript(binDir, jdkHome, zshRcFile) || changed;
+				changed = changeBashOrZshRcScript(binDir, jdkHome, zshRcFile) || changed;
 			}
 		}
 
@@ -482,11 +482,11 @@ class AppSetup extends BaseCommand {
 		}
 	}
 
-	private static boolean changeScript(Path binDir, Path javaHome, Path bashFile) {
+	private static boolean changeBashOrZshRcScript(Path binDir, Path javaHome, Path rcFile) {
 		try {
 			// Detect if JBang has already been set up before
-			boolean jbangFound = Files.exists(bashFile)
-					&& Files.lines(bashFile)
+			boolean jbangFound = Files.exists(rcFile)
+					&& Files.lines(rcFile)
 						.anyMatch(ln -> ln.trim().startsWith("#") && ln.toLowerCase().contains("jbang"));
 			if (!jbangFound) {
 				// Add lines to add JBang to PATH
@@ -499,12 +499,12 @@ class AppSetup extends BaseCommand {
 				} else {
 					lines += "export PATH=\"" + toHomePath(binDir) + ":$PATH\"\n";
 				}
-				Files.write(bashFile, lines.getBytes(), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
-				Util.verboseMsg("Added JBang setup lines " + bashFile);
+				Files.write(rcFile, lines.getBytes(), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+				Util.verboseMsg("Added JBang setup lines " + rcFile);
 				return true;
 			}
 		} catch (IOException e) {
-			Util.verboseMsg("Couldn't change script: " + bashFile, e);
+			Util.verboseMsg("Couldn't change script: " + rcFile, e);
 		}
 		return false;
 	}
