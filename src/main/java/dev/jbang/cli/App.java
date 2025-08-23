@@ -8,7 +8,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -76,7 +80,7 @@ class AppInstall extends BaseBuildCommand {
 		// dependencyInfoMixin.validate();
 		boolean installed = false;
 		try {
-			if (scriptMixin.scriptOrFile.equals("jbang")) {
+			if ("jbang".equals(scriptMixin.scriptOrFile)) {
 				if (name != null && !"jbang".equals(name)) {
 					throw new IllegalArgumentException(
 							"It's not possible to install jbang with a different name");
