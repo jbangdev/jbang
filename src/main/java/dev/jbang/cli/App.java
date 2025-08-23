@@ -452,6 +452,9 @@ class AppSetup extends BaseCommand {
 				}
 				Path zshRcFile = getHome().resolve(".zshrc");
 				changed = changeBashOrZshRcScript(binDir, jdkHome, zshRcFile) || changed;
+
+				Path fishRcFile = getHome().resolve(".config/fish/conf.d/jbang.fish");
+				changed = changeFishRc(binDir, jdkHome, fishRcFile) || changed;
 			}
 		}
 
@@ -480,6 +483,22 @@ class AppSetup extends BaseCommand {
 		} else {
 			return EXIT_OK;
 		}
+	}
+
+	private static boolean changeFishRc(Path binDir, Path jdkHome, Path fishRcFile) {
+		boolean jbangFound = Files.exists(fishRcFile);
+		if (jbangFound)
+			return false;
+
+		try {
+			List<String> lines = new ArrayList<String>();
+			lines.add("fish_add_path " + binDir + "\n");
+			Files.write(fishRcFile, lines, StandardOpenOption.CREATE_NEW);
+		} catch (IOException e) {
+			Util.verboseMsg("Couldn't change script: " + fishRcFile, e);
+			return false;
+		}
+		return true;
 	}
 
 	private static boolean changeBashOrZshRcScript(Path binDir, Path javaHome, Path rcFile) {
