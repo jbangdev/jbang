@@ -20,7 +20,7 @@ public class Detector {
 
 	private final NisseManager nisseManager = new SimpleNisseManager(Collections.singletonList(new OsDetectorPropertySource()));
 
-	public void detect(final Properties properties, List<String> classiferWithLikes) {
+	public void detect(Properties properties, List<String> classiferWithLikes) {
 
         NisseConfiguration configuration = SimpleNisseConfiguration.builder()
             .withSystemProperties(System.getProperties())
