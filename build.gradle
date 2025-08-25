@@ -133,7 +133,7 @@ dependencies {
 	implementation 'org.jspecify:jspecify:1.0.0'
 	implementation 'org.apache.commons:commons-text:1.11.0'
 	implementation 'org.apache.commons:commons-compress:1.27.1'
-	implementation 'info.picocli:picocli:4.7.7'
+	implementation 'info.picocli:picocli:4.7.8-SNAPSHOT'
 	implementation 'io.quarkus.qute:qute-core:1.13.7.Final'
 	implementation 'kr.motd.maven:os-maven-plugin:1.7.1'
 	implementation 'org.codehaus.plexus:plexus-java:1.2.0'
