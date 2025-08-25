@@ -1,6 +1,5 @@
 package dev.jbang.source.resolvers;
 
-import java.util.Objects;
 import java.util.function.Function;
 
 import org.jspecify.annotations.NonNull;
@@ -27,7 +26,7 @@ public class AliasResourceResolver implements ResourceResolver {
 	@Override
 	public String description() {
 		return String.format("Alias resolver from catalog %s using %s",
-				Objects.toString(catalog.getScriptBase(), "<none>"),
+				catalog != null ? catalog.getScriptBase() : "<none>",
 				resolverFactory.apply(null).description());
 	}
 

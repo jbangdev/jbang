@@ -12,8 +12,8 @@ public class TestProject extends BaseTest {
 
 	@Test
 	void testCDS() {
-		Source source = new JavaSource("//CDS\nclass m { }", null);
-		Source source2 = new JavaSource("class m { }", null);
+		Source source = new JavaSource(ResourceRef.forLiteral("//CDS\nclass m { }"), null);
+		Source source2 = new JavaSource(ResourceRef.forLiteral("class m { }"), null);
 
 		Project prj = Project.builder().build(source);
 		Project prj2 = Project.builder().build(source2);
