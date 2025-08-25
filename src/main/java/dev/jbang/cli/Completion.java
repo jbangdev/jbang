@@ -14,10 +14,31 @@ public class Completion extends BaseCommand {
 		return completion();
 	}
 
+	@CommandLine.Option(names = { "-s",
+			"--shell" }, description = {
+					"Generate bash/zsh or fish completion script for ${ROOT-COMMAND-NAME:-the root command of this command}.",
+					"Run the following command to give `${ROOT-COMMAND-NAME:-$PARENTCOMMAND}` TAB completion in the current shell:",
+					"",
+					"  bash/zsh: source <(${PARENT-COMMAND-FULL-NAME:-$PARENTCOMMAND} ${COMMAND-NAME})",
+					"",
+					"  fish: eval (<(${PARENT-COMMAND-FULL-NAME:-$PARENTCOMMAND} ${COMMAND-NAME} --shell fish)" })
+	private String shell = "bash";
+
 	public int completion() throws IOException {
-		String script = AutoComplete.bash(
-				spec.parent().name(),
-				spec.parent().commandLine());
+
+		String script;
+		if (shell.equals("bash")) {
+			script = AutoComplete.bash(
+					spec.parent().name(),
+					spec.parent().commandLine());
+		} else if (shell.equals("fish")) {
+			script = AutoComplete.fish(
+					spec.parent().name(),
+					spec.parent().commandLine());
+		} else {
+			throw new IllegalArgumentException("Unsupported shell: " + shell);
+		}
+
 		// not PrintWriter.println: scripts with Windows line separators fail in strange
 		// ways!
 
