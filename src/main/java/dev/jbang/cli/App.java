@@ -8,7 +8,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -76,7 +80,7 @@ class AppInstall extends BaseBuildCommand {
 		// dependencyInfoMixin.validate();
 		boolean installed = false;
 		try {
-			if (scriptMixin.scriptOrFile.equals("jbang")) {
+			if ("jbang".equals(scriptMixin.scriptOrFile)) {
 				if (name != null && !"jbang".equals(name)) {
 					throw new IllegalArgumentException(
 							"It's not possible to install jbang with a different name");
@@ -440,21 +444,24 @@ class AppSetup extends BaseCommand {
 				// Update shell startup scripts
 				if (Util.isMac()) {
 					Path bashFile = getHome().resolve(".bash_profile");
-					changed = changeScript(binDir, jdkHome, bashFile) || changed;
+					changed = changeBashOrZshRcScript(binDir, jdkHome, bashFile) || changed;
 				}
 				if (!changed) {
 					Path bashFile = getHome().resolve(".bashrc");
-					changed = changeScript(binDir, jdkHome, bashFile) || changed;
+					changed = changeBashOrZshRcScript(binDir, jdkHome, bashFile) || changed;
 				}
 				Path zshRcFile = getHome().resolve(".zshrc");
-				changed = changeScript(binDir, jdkHome, zshRcFile) || changed;
+				changed = changeBashOrZshRcScript(binDir, jdkHome, zshRcFile) || changed;
+
+				Path fishRcFile = getHome().resolve(".config/fish/conf.d/jbang.fish");
+				changed = changeFishRc(binDir, jdkHome, fishRcFile) || changed;
 			}
 		}
 
 		if (changed) {
-			Util.infoMsg("Setting up JBang environment...");
+			Util.infoMsg("JBang environment setup completed...");
 		} else if (chatty) {
-			Util.infoMsg("JBang environment is already set up.");
+			Util.infoMsg("JBang is already available in PATH.");
 			Util.infoMsg("(You can use --force to perform the setup anyway)");
 		}
 		if (Util.getShell() == Util.Shell.bash) {
@@ -478,11 +485,32 @@ class AppSetup extends BaseCommand {
 		}
 	}
 
-	private static boolean changeScript(Path binDir, Path javaHome, Path bashFile) {
+	private static boolean changeFishRc(Path binDir, Path jdkHome, Path fishRcFile) {
+		boolean jbangFound = Files.exists(fishRcFile);
+		if (jbangFound) {
+			Util.verboseMsg("JBang setup lines already present in " + fishRcFile);
+			return false;
+		}
+
+		try {
+			List<String> lines = new ArrayList<String>();
+			lines.add("# Add JBang to environment\n");
+			lines.add("abbr --add j! jbang\n");
+			lines.add("fish_add_path " + binDir + "\n");
+			Files.write(fishRcFile, lines, StandardOpenOption.CREATE_NEW);
+			Util.verboseMsg("Added JBang setup lines " + fishRcFile);
+		} catch (IOException e) {
+			Util.verboseMsg("Couldn't change script: " + fishRcFile, e);
+			return false;
+		}
+		return true;
+	}
+
+	private static boolean changeBashOrZshRcScript(Path binDir, Path javaHome, Path rcFile) {
 		try {
 			// Detect if JBang has already been set up before
-			boolean jbangFound = Files.exists(bashFile)
-					&& Files.lines(bashFile)
+			boolean jbangFound = Files.exists(rcFile)
+					&& Files.lines(rcFile)
 						.anyMatch(ln -> ln.trim().startsWith("#") && ln.toLowerCase().contains("jbang"));
 			if (!jbangFound) {
 				// Add lines to add JBang to PATH
@@ -495,12 +523,14 @@ class AppSetup extends BaseCommand {
 				} else {
 					lines += "export PATH=\"" + toHomePath(binDir) + ":$PATH\"\n";
 				}
-				Files.write(bashFile, lines.getBytes(), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
-				Util.verboseMsg("Added JBang setup lines " + bashFile);
+				Files.write(rcFile, lines.getBytes(), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
+				Util.verboseMsg("Added JBang setup lines " + rcFile);
 				return true;
+			} else {
+				Util.verboseMsg("JBang setup lines already present in " + rcFile);
 			}
 		} catch (IOException e) {
-			Util.verboseMsg("Couldn't change script: " + bashFile, e);
+			Util.verboseMsg("Couldn't change script: " + rcFile, e);
 		}
 		return false;
 	}
