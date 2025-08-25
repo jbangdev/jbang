@@ -11,6 +11,7 @@ import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 
+import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 
 import dev.jbang.cli.ExitException;
@@ -57,7 +58,9 @@ public class Alias extends CatalogItem {
 	@SerializedName(value = "manifest-options")
 	public final Map<String, String> manifestOptions;
 	@SerializedName(value = "java-agents")
+	@JsonAdapter(Catalog.SkipEmptyListSerializer.class)
 	public final List<JavaAgent> javaAgents;
+	@JsonAdapter(Catalog.SkipEmptyListSerializer.class)
 	public final List<String> docs;
 
 	public static class JavaAgent {
