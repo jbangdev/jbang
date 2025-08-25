@@ -459,9 +459,9 @@ class AppSetup extends BaseCommand {
 		}
 
 		if (changed) {
-			Util.infoMsg("Setting up JBang environment...");
+			Util.infoMsg("JBang environment setup completed...");
 		} else if (chatty) {
-			Util.infoMsg("JBang environment is already set up.");
+			Util.infoMsg("JBang is already available in PATH.");
 			Util.infoMsg("(You can use --force to perform the setup anyway)");
 		}
 		if (Util.getShell() == Util.Shell.bash) {
@@ -487,13 +487,18 @@ class AppSetup extends BaseCommand {
 
 	private static boolean changeFishRc(Path binDir, Path jdkHome, Path fishRcFile) {
 		boolean jbangFound = Files.exists(fishRcFile);
-		if (jbangFound)
+		if (jbangFound) {
+			Util.verboseMsg("JBang setup lines already present in " + fishRcFile);
 			return false;
+		}
 
 		try {
 			List<String> lines = new ArrayList<String>();
+			lines.add("# Add JBang to environment\n");
+			lines.add("abbr --add j! jbang\n");
 			lines.add("fish_add_path " + binDir + "\n");
 			Files.write(fishRcFile, lines, StandardOpenOption.CREATE_NEW);
+			Util.verboseMsg("Added JBang setup lines " + fishRcFile);
 		} catch (IOException e) {
 			Util.verboseMsg("Couldn't change script: " + fishRcFile, e);
 			return false;
@@ -521,6 +526,8 @@ class AppSetup extends BaseCommand {
 				Files.write(rcFile, lines.getBytes(), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
 				Util.verboseMsg("Added JBang setup lines " + rcFile);
 				return true;
+			} else {
+				Util.verboseMsg("JBang setup lines already present in " + rcFile);
 			}
 		} catch (IOException e) {
 			Util.verboseMsg("Couldn't change script: " + rcFile, e);
