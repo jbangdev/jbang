@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.DependencyUtil;
@@ -249,7 +249,7 @@ public abstract class TagReader {
 		return line.startsWith(GAV_COMMENT_PREFIX);
 	}
 
-	@Nonnull
+	@NonNull
 	public List<String> collectOptions(String... prefixes) {
 		List<String> options;
 		if (prefixes.length > 1) {
@@ -266,7 +266,7 @@ public abstract class TagReader {
 		return Project.quotedStringToList(String.join(" ", options));
 	}
 
-	@Nonnull
+	@NonNull
 	List<String> collectRawOptions(String prefix) {
 		List<String> javaOptions = getTags()
 			.map(it -> it.split(" // ")[0]) // strip away nested comments.

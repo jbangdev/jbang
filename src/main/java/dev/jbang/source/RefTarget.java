@@ -8,8 +8,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Objects;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import dev.jbang.cli.ExitException;
 import dev.jbang.util.Util;
@@ -20,18 +20,18 @@ import dev.jbang.util.Util;
  * //FILES target=source directives in scripts and templates.
  */
 public class RefTarget {
-	@Nonnull
+	@NonNull
 	protected final ResourceRef source;
 	@Nullable
 	protected final Path target;
 
-	protected RefTarget(@Nonnull ResourceRef source, @Nullable Path target) {
+	protected RefTarget(@NonNull ResourceRef source, @Nullable Path target) {
 		assert (source != null);
 		this.source = source;
 		this.target = target;
 	}
 
-	@Nonnull
+	@NonNull
 	public ResourceRef getSource() {
 		return source;
 	}

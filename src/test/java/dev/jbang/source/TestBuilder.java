@@ -21,8 +21,7 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
-
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -478,7 +477,7 @@ public class TestBuilder extends BaseTest {
 			BiConsumer<BuildContext, List<String>> nativeStep)
 			throws IOException {
 		new CodeBuilderProvider(ctx) {
-			@Nonnull
+			@NonNull
 			@Override
 			protected Builder<CmdGeneratorBuilder> getBuilder(BuildContext ctx) {
 				return new JavaSource.JavaAppBuilder(ctx) {

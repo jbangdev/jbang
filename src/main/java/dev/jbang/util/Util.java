@@ -48,11 +48,11 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.annotation.Nonnull;
 import javax.swing.*;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jspecify.annotations.NonNull;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -73,6 +73,7 @@ public class Util {
 	public static final String JBANG_JDK_VENDOR = "JBANG_JDK_VENDOR";
 	public static final String JBANG_RUNTIME_SHELL = "JBANG_RUNTIME_SHELL";
 	public static final String JBANG_STDIN_NOTTY = "JBANG_STDIN_NOTTY";
+	public static final String JBANG_PREFER_GUI = "JBANG_PREFER_GUI";
 	public static final String JBANG_AUTH_BASIC_USERNAME = "JBANG_AUTH_BASIC_USERNAME";
 	public static final String JBANG_AUTH_BASIC_PASSWORD = "JBANG_AUTH_BASIC_PASSWORD";
 	private static final String JBANG_DOWNLOAD_SOURCES = "JBANG_DOWNLOAD_SOURCES";
@@ -1980,8 +1981,8 @@ public class Util {
 		return res;
 	}
 
-	public static String replaceAll(@Nonnull Pattern pattern, @Nonnull String input,
-			@Nonnull Function<MatchResult, String> replacer) {
+	public static String replaceAll(@NonNull Pattern pattern, @NonNull String input,
+			@NonNull Function<MatchResult, String> replacer) {
 		Matcher matcher = pattern.matcher(input);
 		matcher.reset();
 		boolean result = matcher.find();
@@ -2042,7 +2043,7 @@ public class Util {
 	 * @param baseName The input string to convert
 	 * @return A valid Java identifier, never null or empty
 	 */
-	public static String toJavaIdentifier(@Nonnull String baseName) {
+	public static String toJavaIdentifier(@NonNull String baseName) {
 		if (isValidJavaIdentifier(baseName)) {
 			return baseName;
 		}

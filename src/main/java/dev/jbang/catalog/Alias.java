@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
@@ -65,12 +65,12 @@ public class Alias extends CatalogItem {
 
 	public static class JavaAgent {
 		@SerializedName(value = "agent-ref")
-		@Nonnull
+		@NonNull
 		public final String agentRef;
-		@Nonnull
+		@NonNull
 		public final String options;
 
-		public JavaAgent(@Nonnull String agentRef, @Nonnull String options) {
+		public JavaAgent(@NonNull String agentRef, @NonNull String options) {
 			this.agentRef = agentRef;
 			this.options = options;
 		}

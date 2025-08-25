@@ -3,8 +3,8 @@ package dev.jbang.source.resolvers;
 import java.util.Objects;
 import java.util.function.Function;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
@@ -14,16 +14,16 @@ import dev.jbang.source.ResourceResolver;
 public class AliasResourceResolver implements ResourceResolver {
 	@Nullable
 	private final Catalog catalog;
-	@Nonnull
+	@NonNull
 	private final Function<Alias, ResourceResolver> resolverFactory;
 
 	public AliasResourceResolver(@Nullable Catalog catalog,
-			@Nonnull Function<Alias, ResourceResolver> resolverFactory) {
+			@NonNull Function<Alias, ResourceResolver> resolverFactory) {
 		this.catalog = catalog;
 		this.resolverFactory = resolverFactory;
 	}
 
-	@Nonnull
+	@NonNull
 	@Override
 	public String description() {
 		return String.format("Alias resolver from catalog %s using %s",
@@ -52,15 +52,15 @@ public class AliasResourceResolver implements ResourceResolver {
 	}
 
 	public static class AliasedResourceRef extends ResourceRef.WrappedResourceRef {
-		@Nonnull
+		@NonNull
 		private final Alias alias;
 
-		public AliasedResourceRef(ResourceRef aliasRef, @Nonnull Alias alias) {
+		public AliasedResourceRef(ResourceRef aliasRef, @NonNull Alias alias) {
 			super(aliasRef);
 			this.alias = alias;
 		}
 
-		@Nonnull
+		@NonNull
 		public Alias getAlias() {
 			return alias;
 		}

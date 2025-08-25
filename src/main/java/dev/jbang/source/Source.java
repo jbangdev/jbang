@@ -7,7 +7,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
@@ -68,12 +68,12 @@ public abstract class Source {
 		return new TagReader.Extended(contents, replaceProperties);
 	}
 
-	@Nonnull
+	@NonNull
 	public Stream<String> getTags() {
 		return tagReader.getTags();
 	}
 
-	public abstract @Nonnull Type getType();
+	public abstract @NonNull Type getType();
 
 	protected List<String> collectBinaryDependencies() {
 		return tagReader.collectBinaryDependencies();
@@ -95,7 +95,7 @@ public abstract class Source {
 		return resourceRef;
 	}
 
-	@Nonnull
+	@NonNull
 	public Optional<String> getJavaPackage() {
 		if (contents != null) {
 			return Util.getSourcePackage(contents);

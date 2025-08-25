@@ -4,8 +4,8 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * 
@@ -96,11 +96,11 @@ public class MavenCoordinate {
 		return new MavenCoordinate(groupId, artifactId, version, classifier, type);
 	}
 
-	public MavenCoordinate(@Nonnull String groupId, @Nonnull String artifactId, @Nonnull String version) {
+	public MavenCoordinate(@NonNull String groupId, @NonNull String artifactId, @NonNull String version) {
 		this(groupId, artifactId, version, null, null);
 	}
 
-	public MavenCoordinate(@Nonnull String groupId, @Nonnull String artifactId, @Nonnull String version,
+	public MavenCoordinate(@NonNull String groupId, @NonNull String artifactId, @NonNull String version,
 			@Nullable String classifier, @Nullable String type) {
 		this.groupId = groupId;
 		this.artifactId = artifactId;

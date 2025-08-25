@@ -6,7 +6,7 @@ plugins {
 	id "java"
 	id "jvm-test-suite"
 	id "com.github.breadmoirai.github-release" version "2.4.1"
-	id "io.toolebox.git-versioner" version "1.6.5"
+	id "io.toolebox.git-versioner" version "1.6.7"
 	id 'org.gradle.crypto.checksum' version '1.4.0'
 	id "com.diffplug.spotless" version "7.0.2"
 	id 'com.github.gmazzo.buildconfig' version "3.1.0"
@@ -130,10 +130,10 @@ sourceSets.main.compileClasspath += sourceSets.java9.output.classesDirs;
 
 dependencies {
 	implementation 'dev.jbang:devkitman:0.2.0'
-
+	implementation 'org.jspecify:jspecify:1.0.0'
 	implementation 'org.apache.commons:commons-text:1.11.0'
 	implementation 'org.apache.commons:commons-compress:1.27.1'
-	implementation 'info.picocli:picocli:4.7.5'
+	implementation 'info.picocli:picocli:4.7.7'
 	implementation 'io.quarkus.qute:qute-core:1.13.7.Final'
 	implementation 'kr.motd.maven:os-maven-plugin:1.7.1'
 	implementation 'org.codehaus.plexus:plexus-java:1.2.0'
@@ -145,8 +145,8 @@ dependencies {
 	implementation "org.slf4j:jcl-over-slf4j:1.7.30"
 	implementation "org.jboss:jandex:2.2.3.Final"
 
-	implementation "eu.maveniverse.maven.mima:context:2.4.20"
-	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.20"
+	implementation "eu.maveniverse.maven.mima:context:2.4.33"
+	runtimeOnly    "eu.maveniverse.maven.mima.runtime:standalone-static:2.4.33"
 
 	testImplementation platform('org.junit:junit-bom:5.12.2')
 	testImplementation "org.junit.jupiter:junit-jupiter"
