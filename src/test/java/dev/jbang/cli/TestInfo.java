@@ -7,11 +7,15 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Properties;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
+import dev.jbang.dependencies.Detector;
+import dev.jbang.util.PropertiesValueResolver;
 
 import picocli.CommandLine;
 
@@ -197,5 +201,24 @@ public class TestInfo extends BaseTest {
 		CommandLine.ParseResult pr = JBang.getCommandLine().parseArgs("info", "tools", src);
 		Tools docs = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
 		docs.call();
+	}
+
+	@Test
+	void testMagicPropertyViaInfo() throws IOException {
+
+		String fileref = examplesTestFolder.resolve("${os.detected.name}${customvar}.java").toString();
+		// todo fix so --deps can use system properties
+		CommandLine.ParseResult pr = JBang.getCommandLine()
+			.parseArgs("info", "tools",
+					"-Dcustomvar=xyz",
+					fileref.toString());
+
+		Properties props = new Properties();
+		new Detector().detect(props, Collections.emptyList());
+		String expectedJar = PropertiesValueResolver.replaceProperties("${os.detected.name}xyz.java", props);
+
+		Tools tools = (Tools) pr.subcommand().subcommand().commandSpec().userObject();
+		BaseInfoCommand.ScriptInfo info = tools.getInfo(false);
+		assertThat(info.originalResource, endsWith(expectedJar));
 	}
 }
