@@ -83,14 +83,16 @@ The first line `///usr/bin/env jbang "$0" "$@" ; exit $?` is a special construct
 - Tricks bash/zsh into running the file as a script
 - Passes all arguments to your Java program
 - Works in most shells while being valid Java
+- Tested with bash/zsh/fish
 
 [NOTE]
 ====
-**Fish Shell Users**: Fish shell requires shebangs to start with `#!`, so you'll need to use `jbang` directly:
+**Fish Shell Users**: Before Fish 3.3.0 shell requires shebangs to start with `#!`, so you'll need to use `jbang` directly:
 [source,bash]
 ----
 jbang hello.java your-args
 ----
+3.3.0 and newer versions things just works.
 ====
 
 == Java Version Management

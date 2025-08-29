@@ -246,6 +246,25 @@ public class TestAlias extends BaseTest {
 	}
 
 	@Test
+	void testNoEmptiesStored() throws IOException {
+		Path cwd = Util.getCwd();
+		Path sub = Files.createDirectory(cwd.resolve("sub"));
+		Path testFile = sub.resolve("test.java");
+		Files.write(testFile, "// Test file".getBytes());
+		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(false));
+		JBang.getCommandLine().execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
+		Path catalog = Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON);
+		assertThat(Files.isRegularFile(catalog), is(true));
+
+		String catjson = Files.readString(catalog);
+
+		assertThat(catjson, not(containsString("{}")));
+
+		assertThat(catjson, not(containsString("[]")));
+
+	}
+
+	@Test
 	void testAddWithDescriptionInScript() throws IOException {
 		Path cwd = Util.getCwd();
 		Path testFile = cwd.resolve("test.java");

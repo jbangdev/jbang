@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Writer;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,7 +20,11 @@ import java.util.function.Function;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
+import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 
 import dev.jbang.Settings;
@@ -28,6 +33,27 @@ import dev.jbang.source.ResourceRef;
 import dev.jbang.util.Util;
 
 public class Catalog {
+
+	public static class SkipEmptyMapSerializer<K, V> implements JsonSerializer<Map<K, V>> {
+		@Override
+		public JsonElement serialize(Map<K, V> src, Type typeOfSrc, JsonSerializationContext context) {
+			if (src == null || src.isEmpty()) {
+				return null;
+			}
+			return context.serialize(src);
+		}
+	}
+
+	public static class SkipEmptyListSerializer<T> implements JsonSerializer<List<T>> {
+		@Override
+		public JsonElement serialize(List<T> src, Type typeOfSrc, JsonSerializationContext context) {
+			if (src == null || src.isEmpty()) {
+				return null;
+			}
+			return context.serialize(src);
+		}
+	}
+
 	public static final String JBANG_CATALOG_JSON = "jbang-catalog.json";
 	public static final String JBANG_IMPLICIT_CATALOG_JSON = "implicit-catalog.json";
 
@@ -40,8 +66,11 @@ public class Catalog {
 
 	private static final String CACHE_BUILTIN = ":::BUILTIN:::";
 
+	@JsonAdapter(SkipEmptyMapSerializer.class)
 	public Map<String, CatalogRef> catalogs = new HashMap<>();
+	@JsonAdapter(SkipEmptyMapSerializer.class)
 	public Map<String, Alias> aliases = new HashMap<>();
+	@JsonAdapter(SkipEmptyMapSerializer.class)
 	public Map<String, Template> templates = new HashMap<>();
 
 	@SerializedName(value = "base-ref", alternate = { "baseRef" })
