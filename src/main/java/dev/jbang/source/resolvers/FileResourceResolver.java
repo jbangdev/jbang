@@ -118,10 +118,7 @@ public class FileResourceResolver implements ResourceResolver {
 		}
 
 		@Override
-		public int compareTo(ResourceRef o) {
-			if (o == null) {
-				return 1;
-			}
+		public int compareTo(@NonNull ResourceRef o) {
 			return toString().compareTo(o.toString());
 		}
 
