@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 import dev.jbang.source.ResourceRef;
 import dev.jbang.source.ResourceResolver;
@@ -32,7 +32,7 @@ public class CombinedResourceResolver implements ResourceResolver {
 			.orElse(null);
 	}
 
-	@Nonnull
+	@NonNull
 	@Override
 	public String description() {
 		return String.format("Chain of [%s]",

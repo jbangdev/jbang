@@ -5,23 +5,23 @@ import java.io.InputStream;
 import java.util.Objects;
 import java.util.function.Function;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 import dev.jbang.util.Util;
 
 public class InputStreamResourceRef implements ResourceRef {
-	@Nonnull
+	@NonNull
 	protected final String originalResource;
-	@Nonnull
+	@NonNull
 	protected final Function<String, InputStream> streamFactory;
 
-	public InputStreamResourceRef(@Nonnull String resource,
-			@Nonnull Function<String, InputStream> streamFactory) {
+	public InputStreamResourceRef(@NonNull String resource,
+			@NonNull Function<String, InputStream> streamFactory) {
 		this.originalResource = resource;
 		this.streamFactory = streamFactory;
 	}
 
-	@Nonnull
+	@NonNull
 	@Override
 	public String getOriginalResource() {
 		return originalResource;
@@ -36,7 +36,7 @@ public class InputStreamResourceRef implements ResourceRef {
 		}
 	}
 
-	@Nonnull
+	@NonNull
 	@Override
 	public InputStream getInputStream() {
 		InputStream is = streamFactory.apply(getOriginalResource());
@@ -46,7 +46,7 @@ public class InputStreamResourceRef implements ResourceRef {
 		return is;
 	}
 
-	@Nonnull
+	@NonNull
 	@Override
 	public String getExtension() {
 		return Util.extension(getOriginalResource());

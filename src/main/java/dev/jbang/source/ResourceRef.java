@@ -6,8 +6,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Function;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import dev.jbang.source.resolvers.FileResourceResolver;
 import dev.jbang.util.Util;
@@ -61,7 +61,7 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 		return getOriginalResource() != null && isStdin(getOriginalResource());
 	}
 
-	static boolean isStdin(@Nonnull String scriptResource) {
+	static boolean isStdin(@NonNull String scriptResource) {
 		return scriptResource.equals("-") || scriptResource.equals("/dev/stdin");
 	}
 
@@ -75,7 +75,7 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 	 * 
 	 * @return A file reference
 	 */
-	@Nonnull
+	@NonNull
 	default Path getFile() {
 		throw new ResourceNotFoundException(getOriginalResource(), "Getting contents from resource not supported");
 	}
@@ -109,7 +109,7 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 	 * @return the file extension of the resource, or an empty string if no
 	 *         extension is found
 	 */
-	@Nonnull
+	@NonNull
 	default String getExtension() {
 		if (getOriginalResource() != null) {
 			return Util.extension(getOriginalResource());
@@ -124,7 +124,7 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 	 * @param file the file path used to create the resource reference
 	 * @return a {@code ResourceRef} instance representing the specified file
 	 */
-	static ResourceRef forFile(@Nonnull Path file) {
+	static ResourceRef forFile(@NonNull Path file) {
 		return new FileResourceResolver.FileResourceRef(file.toString(), file);
 	}
 
@@ -138,7 +138,7 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 	 * @return a {@code ResourceRef} instance representing the specified resolved
 	 *         resource
 	 */
-	static ResourceRef forResolvedResource(@Nonnull String resource, @Nonnull Path resolvedResource) {
+	static ResourceRef forResolvedResource(@NonNull String resource, @NonNull Path resolvedResource) {
 		return new FileResourceResolver.FileResourceRef(resource, resolvedResource);
 	}
 
@@ -152,7 +152,7 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 	 * @return a {@code ResourceRef} instance representing the specified resolved
 	 *         resource
 	 */
-	static ResourceRef forLazyFileResource(@Nonnull String resource, @Nonnull Function<String, Path> obtainer) {
+	static ResourceRef forLazyFileResource(@NonNull String resource, @NonNull Function<String, Path> obtainer) {
 		return new FileResourceResolver.FileResourceRef(resource, obtainer);
 	}
 
@@ -164,7 +164,7 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 	 * @param resource the resource string
 	 * @return a {@code ResourceRef} instance
 	 */
-	static ResourceRef forUnresolvable(@Nonnull String resource) {
+	static ResourceRef forUnresolvable(@NonNull String resource) {
 		return new UnresolvableResourceRef(resource);
 	}
 
@@ -177,7 +177,7 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 	 * @return a {@code ResourceRef} instance representing the specified resource
 	 *         string
 	 */
-	static ResourceRef forResource(@Nonnull String resource) {
+	static ResourceRef forResource(@NonNull String resource) {
 		return ResourceResolver.forResources().resolve(resource);
 	}
 
@@ -206,10 +206,10 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 	}
 
 	class WrappedResourceRef implements ResourceRef {
-		@Nonnull
+		@NonNull
 		private final ResourceRef wrappedRef;
 
-		public WrappedResourceRef(@Nonnull ResourceRef wrappedRef) {
+		public WrappedResourceRef(@NonNull ResourceRef wrappedRef) {
 			this.wrappedRef = wrappedRef;
 		}
 
@@ -224,7 +224,7 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 			return wrappedRef.exists();
 		}
 
-		@Nonnull
+		@NonNull
 		@Override
 		public Path getFile() {
 			return wrappedRef.getFile();

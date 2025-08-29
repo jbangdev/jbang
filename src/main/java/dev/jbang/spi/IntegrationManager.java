@@ -27,7 +27,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -117,7 +117,7 @@ public class IntegrationManager {
 		return result;
 	}
 
-	@Nonnull
+	@NonNull
 	private static URLClassLoader getClassLoader(Collection<Path> deps) {
 		URL[] urls = deps.stream().map(path -> {
 			try {
