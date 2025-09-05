@@ -42,6 +42,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -110,9 +111,8 @@ public class Util {
 		if (verbose) {
 			setQuiet(false);
 		}
-		LogManager.getLogManager()
-			.getLogger("")
-			.setLevel(verbose ? java.util.logging.Level.FINE : java.util.logging.Level.INFO);
+		Logger parent = Logger.getLogger("dev.jbang");
+		parent.setLevel(verbose ? java.util.logging.Level.FINE : java.util.logging.Level.INFO);
 	}
 
 	public static boolean isVerbose() {
