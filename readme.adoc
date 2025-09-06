@@ -131,7 +131,6 @@ class hello implements Runnable {
 [source, java]
 ----
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS com.sun.net.httpserver:http:20070405
 
 import com.sun.net.httpserver.*;
 import java.io.IOException;
