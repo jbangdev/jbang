@@ -138,6 +138,8 @@ import java.net.InetSocketAddress;
 
 class WebServer {
     public static void main(String[] args) throws IOException {
+        String javaVersion = System.getProperty("java.version");
+        System.out.println("Current Java Version: " + javaVersion);
         HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
         server.createContext("/", exchange -> {
             String response = "Hello from JBang!";
