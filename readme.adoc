@@ -132,21 +132,24 @@ class hello implements Runnable {
 ----
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 
-import com.sun.net.httpserver.*;
-import java.io.IOException;
-import java.net.InetSocketAddress;
+//DEPS io.undertow:undertow-core:2.3.18.Final
 
-class WebServer {
+import java.io.IOException;
+import io.undertow.Undertow;
+import io.undertow.server.HttpHandler;
+import io.undertow.server.HttpServerExchange;
+
+class WebServer implements HttpHandler {
+
+    @Override
+    public void handleRequest(HttpServerExchange exchange) throws Exception {
+        exchange.getResponseSender().send("Hello from JBang!");
+    }
+
     public static void main(String[] args) throws IOException {
-        String javaVersion = System.getProperty("java.version");
-        System.out.println("Current Java Version: " + javaVersion);
-        HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
-        server.createContext("/", exchange -> {
-            String response = "Hello from JBang!";
-            exchange.sendResponseHeaders(200, response.length());
-            exchange.getResponseBody().write(response.getBytes());
-            exchange.close();
-        });
+        Undertow server = Undertow.builder()
+            .addHttpListener(8000, "localhost")
+            .setHandler(new WebServer()).build();
         server.start();
         System.out.println("Server started at http://localhost:8000");
     }
