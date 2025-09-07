@@ -132,7 +132,7 @@ class hello implements Runnable {
 ----
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 
-//DEPS io.undertow:undertow-core:2.3.18.Final
+//DEPS io.undertow:undertow-core:2.2.37.Final
 
 import java.io.IOException;
 import io.undertow.Undertow;
