@@ -137,7 +137,6 @@ class hello implements Runnable {
 import io.javalin.Javalin;
 
 class WebServer {
-
     public static void main(String[] args) {
         String m = "Hello from JBang!";
         Javalin app = Javalin.create(/*config*/)
