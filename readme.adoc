@@ -143,7 +143,6 @@ class WebServer {
         Javalin app = Javalin.create(/*config*/)
             .get("/", ctx -> ctx.result(m))
             .start(8000);
-        System.out.println("Server started at http://localhost:8000");
     }
 }
 ----
