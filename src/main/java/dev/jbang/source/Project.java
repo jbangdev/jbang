@@ -7,8 +7,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.MavenRepo;
@@ -24,7 +24,7 @@ import dev.jbang.util.Util;
  * the <code>AppBuilder</code> to create a JAR file, for example.
  */
 public class Project {
-	@Nonnull
+	@NonNull
 	private final ResourceRef resourceRef;
 	private Source mainSource;
 
@@ -74,66 +74,66 @@ public class Project {
 		return new ProjectBuilder();
 	}
 
-	public Project(@Nonnull ResourceRef resourceRef) {
+	public Project(@NonNull ResourceRef resourceRef) {
 		this.resourceRef = resourceRef;
 	}
 
 	// TODO This should be refactored and removed
-	public Project(@Nonnull Source mainSource) {
+	public Project(@NonNull Source mainSource) {
 		this.resourceRef = mainSource.getResourceRef();
 		this.mainSource = mainSource;
 	}
 
-	@Nonnull
+	@NonNull
 	public ResourceRef getResourceRef() {
 		return resourceRef;
 	}
 
-	@Nonnull
+	@NonNull
 	public SourceSet getMainSourceSet() {
 		return mainSourceSet;
 	}
 
-	@Nonnull
+	@NonNull
 	public List<MavenRepo> getRepositories() {
 		return Collections.unmodifiableList(repositories);
 	}
 
-	@Nonnull
-	public Project addRepository(@Nonnull MavenRepo repository) {
+	@NonNull
+	public Project addRepository(@NonNull MavenRepo repository) {
 		repositories.add(repository);
 		return this;
 	}
 
-	@Nonnull
-	public Project addRepositories(@Nonnull Collection<MavenRepo> repositories) {
+	@NonNull
+	public Project addRepositories(@NonNull Collection<MavenRepo> repositories) {
 		this.repositories.addAll(repositories);
 		return this;
 	}
 
-	@Nonnull
+	@NonNull
 	public List<String> getRuntimeOptions() {
 		return Collections.unmodifiableList(runtimeOptions);
 	}
 
-	@Nonnull
-	public Project addRuntimeOption(@Nonnull String option) {
+	@NonNull
+	public Project addRuntimeOption(@NonNull String option) {
 		runtimeOptions.add(option);
 		return this;
 	}
 
-	@Nonnull
-	public Project addRuntimeOptions(@Nonnull Collection<String> options) {
+	@NonNull
+	public Project addRuntimeOptions(@NonNull Collection<String> options) {
 		runtimeOptions.addAll(options);
 		return this;
 	}
 
-	@Nonnull
+	@NonNull
 	public List<Project> getSubProjects() {
 		return Collections.unmodifiableList(subProjects);
 	}
 
-	public void addSubProject(@Nonnull Project subProject) {
+	public void addSubProject(@NonNull Project subProject) {
 		subProjects.add(subProject);
 	}
 
@@ -141,11 +141,11 @@ public class Project {
 		return Collections.unmodifiableMap(properties);
 	}
 
-	public void putProperties(@Nonnull Map<String, String> properties) {
+	public void putProperties(@NonNull Map<String, String> properties) {
 		this.properties = properties;
 	}
 
-	@Nonnull
+	@NonNull
 	public Map<String, String> getManifestAttributes() {
 		return manifestAttributes;
 	}
@@ -163,46 +163,46 @@ public class Project {
 		return javaVersion;
 	}
 
-	@Nonnull
+	@NonNull
 	public Project setJavaVersion(String javaVersion) {
 		this.javaVersion = javaVersion;
 		return this;
 	}
 
-	@Nonnull
+	@NonNull
 	public Optional<String> getDescription() {
 		return Optional.ofNullable(description);
 	}
 
-	@Nonnull
+	@NonNull
 	public Project setDescription(String description) {
 		this.description = description;
 		return this;
 	}
 
-	@Nonnull
+	@NonNull
 	public List<DocRef> getDocs() {
 		return Collections.unmodifiableList(docs);
 	}
 
-	@Nonnull
+	@NonNull
 	public Project addDoc(DocRef docs) {
 		this.docs.add(docs);
 		return this;
 	}
 
-	@Nonnull
+	@NonNull
 	public Project addDocs(List<DocRef> docs) {
 		this.docs.addAll(docs);
 		return this;
 	}
 
-	@Nonnull
+	@NonNull
 	public Optional<String> getGav() {
 		return Optional.ofNullable(gav);
 	}
 
-	@Nonnull
+	@NonNull
 	public Project setGav(String gav) {
 		this.gav = gav;
 		return this;
@@ -224,12 +224,12 @@ public class Project {
 		this.enablePreviewRequested = enablePreview;
 	}
 
-	@Nonnull
+	@NonNull
 	public Optional<String> getModuleName() {
 		return Optional.ofNullable(moduleName);
 	}
 
-	@Nonnull
+	@NonNull
 	public Project setModuleName(String moduleName) {
 		this.moduleName = moduleName;
 		return this;
@@ -305,7 +305,7 @@ public class Project {
 	 *
 	 * @return A <code>Builder</code>
 	 */
-	@Nonnull
+	@NonNull
 	public Builder<CmdGeneratorBuilder> codeBuilder() {
 		return CodeBuilderProvider.create(this).get();
 	}
@@ -318,7 +318,7 @@ public class Project {
 	 *            and intermediate results
 	 * @return A <code>Builder</code>
 	 */
-	@Nonnull
+	@NonNull
 	public static Builder<CmdGeneratorBuilder> codeBuilder(BuildContext ctx) {
 		return CodeBuilderProvider.create(ctx).get();
 	}

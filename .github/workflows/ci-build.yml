@@ -135,6 +135,11 @@ jobs:
         with:
           report_paths: '**/build/test-results/test/TEST-*.xml'
           annotate_only: true # forked repo cannot write to checks so just do annotations
+      - name: Add artifact.ci links
+        if: always()
+        run: |
+          echo "View [Allure Report](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/allure-report-${{ matrix.os }}) [direct link (available after first view)](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/allure-report-${{ matrix.os }}/build/reports/allure-report/allureReport/index.html) for ${{ matrix.os }} build" >> $GITHUB_STEP_SUMMARY
+
 
   testing:
     needs: build
@@ -176,8 +181,7 @@ jobs:
           ./build/install/jbang/bin/jbang --fresh --verbose --java 17 qcli.java
           rm qcli.java
       - name: integration-test-non-windows
-        ## karate can't run on java 17 or higher due to missing nashorn
-        if: runner.os != 'Windows' && matrix.java < 17
+        if: runner.os != 'Windows'
         run: |
           export PATH=`pwd`/build/install/jbang/bin:$PATH
           cd build/itests

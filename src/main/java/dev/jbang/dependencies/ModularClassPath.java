@@ -14,12 +14,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
-
 import org.codehaus.plexus.languages.java.jpms.JavaModuleDescriptor;
 import org.codehaus.plexus.languages.java.jpms.LocationManager;
 import org.codehaus.plexus.languages.java.jpms.ResolvePathsRequest;
 import org.codehaus.plexus.languages.java.jpms.ResolvePathsResult;
+import org.jspecify.annotations.NonNull;
 
 import dev.jbang.devkitman.Jdk;
 import dev.jbang.util.Util;
@@ -67,7 +66,7 @@ public class ModularClassPath {
 		return javafx.get();
 	}
 
-	public List<String> getAutoDectectedModuleArguments(@Nonnull Jdk jdk) {
+	public List<String> getAutoDectectedModuleArguments(@NonNull Jdk jdk) {
 		if (hasJavaFX() && supportsModules(jdk)) {
 			List<String> commandArguments = new ArrayList<>();
 

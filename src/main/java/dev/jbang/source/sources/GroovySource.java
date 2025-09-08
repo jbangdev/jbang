@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 import dev.jbang.net.GroovyManager;
 import dev.jbang.source.*;
@@ -28,7 +28,7 @@ public class GroovySource extends Source {
 	}
 
 	@Override
-	public @Nonnull Type getType() {
+	public @NonNull Type getType() {
 		return Type.groovy;
 	}
 

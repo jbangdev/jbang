@@ -7,8 +7,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import dev.jbang.source.ResourceNotFoundException;
 import dev.jbang.source.ResourceRef;
@@ -22,7 +22,7 @@ import dev.jbang.util.Util;
  */
 public class FileResourceResolver implements ResourceResolver {
 
-	@Nonnull
+	@NonNull
 	@Override
 	public String description() {
 		return "File Resource resolver";
@@ -47,25 +47,25 @@ public class FileResourceResolver implements ResourceResolver {
 	}
 
 	public static class FileResourceRef implements ResourceRef {
-		@Nonnull
+		@NonNull
 		private final String originalResource;
-		@Nonnull
+		@NonNull
 		private final Function<String, Path> obtainer;
 		@Nullable
 		private Optional<Path> file;
 
-		public FileResourceRef(@Nonnull String resource, @Nonnull Function<String, Path> obtainer) {
+		public FileResourceRef(@NonNull String resource, @NonNull Function<String, Path> obtainer) {
 			this.originalResource = resource;
 			this.obtainer = obtainer;
 		}
 
-		public FileResourceRef(@Nonnull String resource, @Nonnull Path file) {
+		public FileResourceRef(@NonNull String resource, @NonNull Path file) {
 			this.originalResource = resource;
 			this.obtainer = ref -> file;
 			this.file = Optional.of(file);
 		}
 
-		@Nonnull
+		@NonNull
 		@Override
 		public String getOriginalResource() {
 			return originalResource;
@@ -80,7 +80,7 @@ public class FileResourceResolver implements ResourceResolver {
 			}
 		}
 
-		@Nonnull
+		@NonNull
 		@Override
 		public Path getFile() {
 			if (file == null) {
@@ -92,7 +92,7 @@ public class FileResourceResolver implements ResourceResolver {
 			return file.get();
 		}
 
-		@Nonnull
+		@NonNull
 		@Override
 		public String getExtension() {
 			if (file == null || file.isPresent()) {
