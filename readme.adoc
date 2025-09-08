@@ -131,21 +131,18 @@ class hello implements Runnable {
 [source, java]
 ----
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS com.sun.net.httpserver:http:20070405
+//DEPS io.undertow:undertow-core:2.2.37.Final
 
-import com.sun.net.httpserver.*;
 import java.io.IOException;
-import java.net.InetSocketAddress;
+import io.undertow.Undertow;
 
 class WebServer {
     public static void main(String[] args) throws IOException {
-        HttpServer server = HttpServer.create(new InetSocketAddress(8000), 0);
-        server.createContext("/", exchange -> {
-            String response = "Hello from JBang!";
-            exchange.sendResponseHeaders(200, response.length());
-            exchange.getResponseBody().write(response.getBytes());
-            exchange.close();
-        });
+        String m = "Hello from JBang!";
+        Undertow server = Undertow.builder()
+            .addHttpListener(8000, "localhost")
+            .setHandler(exchange -> exchange.getResponseSender().send(m))
+            .build();
         server.start();
         System.out.println("Server started at http://localhost:8000");
     }
