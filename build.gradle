@@ -151,7 +151,7 @@ dependencies {
 	implementation "eu.maveniverse.maven.nisse:core:0.6.0"
 	implementation "eu.maveniverse.maven.nisse.sources:os-source:0.6.0"
 
-	testImplementation platform('org.junit:junit-bom:5.12.2')
+	testImplementation platform('org.junit:junit-bom:5.13.4')
 	testImplementation "org.junit.jupiter:junit-jupiter"
 	testImplementation "org.junit.platform:junit-platform-launcher"
 	testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
@@ -354,7 +354,7 @@ testing {
 		integrationTest(JvmTestSuite) {
 			dependencies {
 				implementation project()  // todo: shouldn't even need to depend on main code?
-				implementation platform('org.junit:junit-bom:5.12.2')
+				implementation platform('org.junit:junit-bom:5.13.4')
 				implementation "org.junit.jupiter:junit-jupiter"
 				implementation "org.junit.platform:junit-platform-launcher"
 				implementation "org.assertj:assertj-core:3.24.2"
