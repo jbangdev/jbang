@@ -138,9 +138,9 @@ import io.javalin.Javalin;
 
 class WebServer {
     public static void main(String[] args) {
-        String m = "Hello from JBang!";
+        String response  = "Hello from JBang!";
         Javalin.create(/*config*/)
-            .get("/", ctx -> ctx.result(m))
+            .get("/", ctx -> ctx.result(response))
             .start(8000);
     }
 }
