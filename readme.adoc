@@ -131,19 +131,18 @@ class hello implements Runnable {
 [source, java]
 ----
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-//DEPS io.undertow:undertow-core:2.2.37.Final
+//DEPS io.javalin:javalin:6.7.0
+//DEPS org.slf4j:slf4j-simple:2.0.17
 
-import java.io.IOException;
-import io.undertow.Undertow;
+import io.javalin.Javalin;
 
 class WebServer {
-    public static void main(String[] args) throws IOException {
+
+    public static void main(String[] args) {
         String m = "Hello from JBang!";
-        Undertow server = Undertow.builder()
-            .addHttpListener(8000, "localhost")
-            .setHandler(exchange -> exchange.getResponseSender().send(m))
-            .build();
-        server.start();
+        Javalin app = Javalin.create(/*config*/)
+            .get("/", ctx -> ctx.result(m))
+            .start(8000);
         System.out.println("Server started at http://localhost:8000");
     }
 }
