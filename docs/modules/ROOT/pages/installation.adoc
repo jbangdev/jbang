@@ -312,7 +312,7 @@ The JBang Gradle plugin allows JBang scripts to be executed during a Gradle buil
 
 In your `build.gradle` file, add:
 
-[source,gradle]
+[source,groovy]
 ----
 plugins {
     id 'dev.jbang' version '0.2.0'

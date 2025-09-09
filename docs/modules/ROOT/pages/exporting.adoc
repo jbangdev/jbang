@@ -106,7 +106,7 @@ hello
 
 The `build.gradle` file would include the following dependencies:
 
-[source,gradle]
+[source,groovy]
 ----
 dependencies {
     implementation 'org.slf4j:slf4j-simple:2.0.17'
@@ -143,7 +143,7 @@ hello
 
 The `pom.xml` file would include the following dependencies:
 
-[source,gradle]
+[source,xml]
 ----
 <dependencies>
     <dependency>
