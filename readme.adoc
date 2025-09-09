@@ -86,7 +86,7 @@ curl -Ls https://sh.jbang.dev | bash -s - app setup
 - Chocolatey: `choco install jbang`
 - Scoop: `scoop install jbang`
 
-See https://jbang.dev/documentation/installation[installation docs] for more options.
+See https://jbang.dev/documentation/jbang/latest/installation[installation docs] for more options.
 
 == Examples
 
