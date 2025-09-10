@@ -69,8 +69,11 @@ The format is `//FILES <mountpoint>[=<sourcefile>]`.
 
 Example:
 
-  //FILES resource.properties
-  //FILES META-INF/resources/index.html=index.html
+[source,java]
+----
+//FILES resource.properties
+//FILES META-INF/resources/index.html=index.html
+----
 
 Here `resource.properties` will be copied as is and `META-INF/resources/index.html` gets its content from `index.html`.
 

@@ -561,7 +561,10 @@ This information is displayed as result of the `info docs` which can refer both 
 is added as an alias to a catalog, the user can decide to override the `DOCS` directives, specifying other URLs or file
 paths, like in:
 
-  jbang alias add --docs https://www.jbang.dev/documentation/guide/latest/javaversions.html itests/docsrun.java
+[source,bash]
+----
+jbang alias add --docs https://www.jbang.dev/documentation/guide/latest/javaversions.html itests/docsrun.java
+----
 
 The `--docs` CLI argument can accept a list of comma separated references to override the `DOCS` directives present in the script
 

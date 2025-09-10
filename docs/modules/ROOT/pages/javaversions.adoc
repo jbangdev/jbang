@@ -36,31 +36,46 @@ You can always force running with specific version of `java` using `--java` comm
 In the previous section it was mentioned that JBang will automatically download and install JDKs when necessary.
 You can use the `jdk` command to manage JDKs, for example you can run the following:
 
-  jbang jdk list
+[source,bash]
+----
+jbang jdk list
+----
 
 which will list all the JDKs that are currently installed by JBang.
 
 It's easy to `install` additional JDKs by running:
 
-  jbang jdk install 14
+[source,bash]
+----
+jbang jdk install 14
+----
 
 which will download and install JDK version 14 into JBang's cache (`~/.jbang/cache/jdks` by default).
 The list of versions that are available for installation can be found here: https://adoptium.net/temurin/releases
 or by running:
 
-  jbang jdk list --available
+[source,bash]
+----
+jbang jdk list --available
+----
 
 The first JDK that gets installed by JBang will be set as the "default" JDK. This is from then on the JDK that will be
 used by JBang if no Java could be found on the system (meaning `javac` wasn't found on the `PATH` and no `JAVA_HOME` is set).
 You can change the default JDK by running:
 
-  jbang jdk default 12
+[source,bash]
+----
+jbang jdk default 12
+----
 
 Running it without an argument will return the version of the JDK that is currently set as the default.
 
 When you `uninstall` a JDK by running:
 
-  jbang jdk uninstall 12
+[source,bash]
+----
+jbang jdk uninstall 12
+----
 
 and that JDK was set as the default, JBang will set the next higher version JDK as the default. If no higher version is
 available it will select the next lower version.
@@ -73,7 +88,10 @@ our users to be able to access those JDKs for their own use instead of having to
 To make that easy we added a couple of useful commands. The first can be used to set retrieve to location where the JDK
 is installed:
 
-  jbang jdk home
+[source,bash]
+----
+jbang jdk home
+----
 
 This will return the path to the "default" JDK (by default `~/.jbang/currentjdk)`, if you want to know the location of a
 specific JDK you can pass the version as an argument: `jbang jdk home 14`. This command could be used by scripts to find
@@ -81,20 +99,29 @@ a JDK to use to run a Java program for example (eg: `JAVA_HOME=$(jbang jdk home)
 
 The `install` command decribed in the previous section allows you to specify the path of your existing JDK installation:
 
-  jbang jdk install 17 <path-of-existing-java-17-installation>
+[source,bash]
+----
+jbang jdk install 17 <path-of-existing-java-17-installation>
+----
 
 So if you are managing your jdk installations with https://sdkman.io/[SDKMAN!] you can easilly configure JBang to use one of your installed version:
 
-  jbang jdk install 17 `sdk home java 17.0.4.1-tem`
+[source,bash]
+----
+jbang jdk install 17 `sdk home java 17.0.4.1-tem`
+----
 
 
 For setting up your current command line environment there's something simpler. You can run:
 
-  jbang jdk java-env
+[source,bash]
+----
+jbang jdk java-env
+----
 
 On Linux, Mac and AIX this will output something like:
 
-[source]
+[source,bash]
 ----
 export PATH="/home/user/.jbang/currentjdk/bin:$PATH"
 export JAVA_HOME="/home/user/.jbang/currentjdk"
@@ -105,13 +132,16 @@ export JAVA_HOME="/home/user/.jbang/currentjdk"
 And the output itself shows how to properly use it to configure your command line to use the JDK. In this case it's by
 running:
 
-  eval $(jbang jdk java-env)
+[source,bash]
+----
+eval $(jbang jdk java-env)
+----
 
 To do this by default for all shells you start simply add the above line to your `~/.bashrc` file.
 
 Unfortunately on Windows using CMD things are not as easy as is show by the output of `jbang jdk java-env` on that  platform:
 
-[source]
+[source,bat]
 ----
 set PATH=C:\Users\user\.jbang\currentjdk\bin;%PATH%
 set JAVA_HOME=C:\Users\user\.jbang\currentjdk
@@ -121,5 +151,8 @@ rem them to your Environment Variables in the System Settings.
 
 Instead of copying and pasting lines you could also redirect the output to a .bat file and execute that instead:
 
-  > jbang jdk java-env > setenv.bat
-  > setenv
+[source,bat]
+----
+jbang jdk java-env > setenv.bat
+setenv
+----
