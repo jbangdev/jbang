@@ -21,11 +21,10 @@ jbang-info-jar - Prints the path to this application's JAR file.
 
 *jbang info jar* *-o* [*-h*] *--fresh* [*--insecure*] [*--itr*] [*--jsh*] *--quiet* *--verbose*
                [*--module*[=_<module>_]] [*--build-dir*=_<buildDir>_]
-               [*--catalog*=_<catalog>_] [*--config*=_<config>_]
-               [*--source-type*=_<forceType>_] [*--cp*=_<classpaths>_]...
-               [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]...
-               [*--files*=_<resources>_]... [*--repos*=_<repositories>_]...
-               [*-s*=_<sources>_]... [_<scriptOrFile>_]
+               [*--catalog*=_<catalog>_] [*--config*=_<config>_] [*-T*=_<forceType>_]
+               [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
+               [*--deps*=_<dependencies>_]... [*--files*=_<resources>_]...
+               [*--repos*=_<repositories>_]... [*-s*=_<sources>_]... [_<scriptOrFile>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -90,7 +89,7 @@ Prints the path to this application's JAR file.
 *-s*, *--sources*=_<sources>_::
   Add additional sources.
 
-*--source-type*=_<forceType>_::
+*-T*, *--source-type*=_<forceType>_::
   Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
 
 *--verbose*::

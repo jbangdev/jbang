@@ -23,7 +23,7 @@ jbang-export-gradle - Exports a Gradle project
              *       integrations*] [*--itr*] [*--jsh*] *--quiet* *--verbose* [*--module*
                     [=_<module>_]] [*-a*=_<artifact>_] [*--catalog*=_<catalog>_]
                     [*--config*=_<config>_] [*-g*=_<group>_] [*-j*=_<javaVersion>_]
-                    [*-m*=_<main>_] [*-O*=_<outputFile>_] [*--source-type*=_<forceType>_]
+                    [*-m*=_<main>_] [*-O*=_<outputFile>_] [*-T*=_<forceType>_]
                     [*-v*=_<version>_] [*-C*=_<compileOptions>_]...
                     [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
                     [*--deps*=_<dependencies>_]... [*--files*=_<resources>_]...
@@ -117,7 +117,7 @@ Exports a Gradle project
 *-s*, *--sources*=_<sources>_::
   Add additional sources.
 
-*--source-type*=_<forceType>_::
+*-T*, *--source-type*=_<forceType>_::
   Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
 
 *-v*, *--version*=_<version>_::

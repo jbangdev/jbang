@@ -24,7 +24,7 @@ jbang-run - Builds and runs provided script. (default command)
           [*-c*[=_<literalScript>_]] [*--jfr*[=_<flightRecorderString>_]] [*--module*
           [=_<module>_]] [*-d*[=_<String=String>_]]... [*--build-dir*=_<buildDir>_]
           [*--catalog*=_<catalog>_] [*--config*=_<config>_] [*-j*=_<javaVersion>_]
-          [*-m*=_<main>_] [*--source-type*=_<forceType>_] [*-C*=_<compileOptions>_]...
+          [*-m*=_<main>_] [*-T*=_<forceType>_] [*-C*=_<compileOptions>_]...
           [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
           [*--deps*=_<dependencies>_]... [*--files*=_<resources>_]...
           [*--javaagent*=_<String=String>_]... [*--manifest*=_<String=String>_]...
@@ -146,7 +146,7 @@ Builds and runs provided script. (default command)
 *-s*, *--sources*=_<sources>_::
   Add additional sources.
 
-*--source-type*=_<forceType>_::
+*-T*, *--source-type*=_<forceType>_::
   Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
 
 *--verbose*::

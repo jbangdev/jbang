@@ -25,7 +25,7 @@ jbang-app-install - Install a script as a command.
                   [=_<flightRecorderString>_]] [*--module*[=_<module>_]] [*-d*
                   [=_<String=String>_]]... [*--build-dir*=_<buildDir>_]
                   [*--catalog*=_<catalog>_] [*--config*=_<config>_] [*-j*=_<javaVersion>_]
-                  [*-m*=_<main>_] [*--name*=_<name>_] [*--source-type*=_<forceType>_]
+                  [*-m*=_<main>_] [*--name*=_<name>_] [*-T*=_<forceType>_]
                   [*-C*=_<compileOptions>_]... [*--cp*=_<classpaths>_]...
                   [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]...
                   [*--files*=_<resources>_]... [*--javaagent*=_<String=String>_]...
@@ -153,7 +153,7 @@ Install a script as a command.
 *-s*, *--sources*=_<sources>_::
   Add additional sources.
 
-*--source-type*=_<forceType>_::
+*-T*, *--source-type*=_<forceType>_::
   Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
 
 *--verbose*::

@@ -19,9 +19,12 @@ jbang-init - Initialize a script.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang init* *-o* [*-h*] [*--edit*] [*--force*] *--fresh* [*--insecure*] *--quiet* *--verbose*
-           [*--config*=_<config>_] [*-t*=_<initTemplate>_] [*-D*=_<String=Object>_]...
-           [*--deps*=_<dependencies>_]... _scriptOrFile_ [_params_...]
+*jbang init* *-o* [*-h*] [*--edit*] [*--force*] *--fresh* [*--insecure*] [*--[no-]*
+    *       integrations*] *--quiet* *--verbose* [*--module*[=_<module>_]]
+           [*--config*=_<config>_] [*-j*=_<javaVersion>_] [*-m*=_<main>_]
+           [*-t*=_<initTemplate>_] [*-C*=_<compileOptions>_]... [*-D*=_<String=Object>_]...
+           [*--deps*=_<dependencies>_]... [*--manifest*=_<String=String>_]...
+           _scriptOrFile_ [_params_...]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -34,6 +37,9 @@ Initialize a script.
 
 // tag::picocli-generated-man-section-options[]
 == Options
+
+*-C*, *--compile-option*=_<compileOptions>_::
+  Options to pass to the compiler
 
 *--config*=_<config>_::
   Path to config file to be used instead of the default
@@ -58,6 +64,21 @@ Initialize a script.
 
 *--insecure*::
   Enable insecure trust of all SSL certificates.
+
+*--[no-]integrations*::
+  Enable integration execution (default: true)
+
+*-j*, *--java*=_<javaVersion>_::
+  JDK version to use for running the script.
+
+*-m*, *--main*=_<main>_::
+  Main class to use when running. Used primarily for running jar's.
+
+*--manifest*=_<String=String>_::
+  
+
+*--module*[=_<module>_]::
+  Treat resource as a module. Optionally with the given module name
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted
