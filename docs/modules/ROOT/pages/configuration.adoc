@@ -38,7 +38,8 @@ If you want to have local settings that only apply within a certain directory tr
 
 To see which keys are configured where and in what order run `jbang config list --show-origin` and you will get something like:
 
-```
+[source,properties]
+----
 /Users/max/code/personal/jbangdev/jbang/jbang.properties
    edit.open = code
 /Users/max/.jbang/jbang.properties
@@ -48,7 +49,7 @@ classpath:/jbang.properties
    run.debug = 4004
    run.jfr = filename={baseName}.jfr
    wrapper.install.dir = .
-```
+----
 
 == Proxy configuration
 

@@ -257,20 +257,23 @@ ENTRYPOINT ["myapp"]
 
 === Runtime Profile-Guided Optimization (PGO)
 
-1. **Run with profiling**:
+. **Run with profiling**:
++
 [source,bash]
 ----
 jbang --jvm=graalvm --native-option="--pgo-instrument" myapp.java
 ----
 
-1. **Collect profile data**:
+. **Collect profile data**:
++
 [source,bash]
 ----
 ./myapp typical-workload
 # This generates profile data
 ----
 
-1. **Build optimized binary**:
+. **Build optimized binary**:
++
 [source,bash]
 ----
 jbang --native --native-option="--pgo=default.iprof" myapp.java
