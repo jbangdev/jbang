@@ -22,7 +22,7 @@ jbang-export-local - Exports jar with classpath referring to local machine depen
 *jbang export local* *-o* [*-h*] [*--force*] *--fresh* [*--insecure*] [*--[no-]integrations*]
                    [*--itr*] [*--jsh*] *--quiet* *--verbose* [*--module*[=_<module>_]]
                    [*--catalog*=_<catalog>_] [*--config*=_<config>_] [*-j*=_<javaVersion>_]
-                   [*-m*=_<main>_] [*-O*=_<outputFile>_] [*--source-type*=_<forceType>_]
+                   [*-m*=_<main>_] [*-O*=_<outputFile>_] [*-T*=_<forceType>_]
                    [*-C*=_<compileOptions>_]... [*--cp*=_<classpaths>_]...
                    [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]...
                    [*--files*=_<resources>_]... [*--manifest*=_<String=String>_]...
@@ -110,7 +110,7 @@ Exports jar with classpath referring to local machine dependent locations
 *-s*, *--sources*=_<sources>_::
   Add additional sources.
 
-*--source-type*=_<forceType>_::
+*-T*, *--source-type*=_<forceType>_::
   Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
 
 *--verbose*::

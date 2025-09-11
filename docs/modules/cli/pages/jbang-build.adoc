@@ -22,12 +22,12 @@ jbang-build - Compiles and stores script in the cache.
 *jbang build* *-o* [*-hn*] [*--enable-preview*] *--fresh* [*--insecure*] [*--[no-]*
      *       integrations*] [*--itr*] [*--jsh*] *--quiet* *--verbose* [*--module*
             [=_<module>_]] [*--build-dir*=_<buildDir>_] [*--catalog*=_<catalog>_]
-            [*--config*=_<config>_] [*-j*=_<javaVersion>_] [*-m*=_<main>_]
-            [*--source-type*=_<forceType>_] [*-C*=_<compileOptions>_]...
-            [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
-            [*--deps*=_<dependencies>_]... [*--files*=_<resources>_]...
-            [*--manifest*=_<String=String>_]... [*-N*=_<nativeOptions>_]...
-            [*--repos*=_<repositories>_]... [*-s*=_<sources>_]... [_<scriptOrFile>_]
+            [*--config*=_<config>_] [*-j*=_<javaVersion>_] [*-m*=_<main>_] [*-T*=_<forceType>_]
+            [*-C*=_<compileOptions>_]... [*--cp*=_<classpaths>_]...
+            [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]...
+            [*--files*=_<resources>_]... [*--manifest*=_<String=String>_]...
+            [*-N*=_<nativeOptions>_]... [*--repos*=_<repositories>_]...
+            [*-s*=_<sources>_]... [_<scriptOrFile>_]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -116,7 +116,7 @@ Compiles and stores script in the cache.
 *-s*, *--sources*=_<sources>_::
   Add additional sources.
 
-*--source-type*=_<forceType>_::
+*-T*, *--source-type*=_<forceType>_::
   Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
 
 *--verbose*::

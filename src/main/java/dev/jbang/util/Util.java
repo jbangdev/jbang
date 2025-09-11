@@ -42,17 +42,18 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.annotation.Nonnull;
 import javax.swing.*;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jspecify.annotations.NonNull;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -73,6 +74,7 @@ public class Util {
 	public static final String JBANG_JDK_VENDOR = "JBANG_JDK_VENDOR";
 	public static final String JBANG_RUNTIME_SHELL = "JBANG_RUNTIME_SHELL";
 	public static final String JBANG_STDIN_NOTTY = "JBANG_STDIN_NOTTY";
+	public static final String JBANG_PREFER_GUI = "JBANG_PREFER_GUI";
 	public static final String JBANG_AUTH_BASIC_USERNAME = "JBANG_AUTH_BASIC_USERNAME";
 	public static final String JBANG_AUTH_BASIC_PASSWORD = "JBANG_AUTH_BASIC_PASSWORD";
 	private static final String JBANG_DOWNLOAD_SOURCES = "JBANG_DOWNLOAD_SOURCES";
@@ -109,9 +111,8 @@ public class Util {
 		if (verbose) {
 			setQuiet(false);
 		}
-		LogManager.getLogManager()
-			.getLogger("")
-			.setLevel(verbose ? java.util.logging.Level.FINE : java.util.logging.Level.INFO);
+		Logger parent = Logger.getLogger("dev.jbang");
+		parent.setLevel(verbose ? java.util.logging.Level.FINE : java.util.logging.Level.INFO);
 	}
 
 	public static boolean isVerbose() {
@@ -1685,7 +1686,10 @@ public class Util {
 	 */
 	public static Path searchPath(String cmd, String paths, Predicate<Path> pathFilter) {
 		return Arrays.stream(paths.split(File.pathSeparator))
-			.map(dir -> Paths.get(dir).resolve(cmd))
+			.filter(Util::isValidPath)
+			.map(Paths::get)
+			.filter(Files::isDirectory)
+			.map(dir -> dir.resolve(cmd))
 			.flatMap(Util::executables)
 			.filter(Util::isExecutable)
 			.filter(pathFilter)
@@ -1695,16 +1699,16 @@ public class Util {
 
 	private static Stream<Path> executables(Path base) {
 		if (isWindows()) {
-			return Stream.of(Paths.get(base.toString() + ".exe"),
-					Paths.get(base.toString() + ".bat"),
-					Paths.get(base.toString() + ".cmd"),
-					Paths.get(base.toString() + ".ps1"));
+			return Stream.of(Paths.get(base + ".exe"),
+					Paths.get(base + ".bat"),
+					Paths.get(base + ".cmd"),
+					Paths.get(base + ".ps1"));
 		} else {
 			return Stream.of(base);
 		}
 	}
 
-	private static boolean isExecutable(Path file) {
+	public static boolean isExecutable(Path file) {
 		if (Files.isRegularFile(file)) {
 			if (isWindows()) {
 				String nm = file.getFileName().toString().toLowerCase();
@@ -1815,36 +1819,46 @@ public class Util {
 		return Paths.get("");
 	}
 
-	public static <T> T findNearestWith(Path dir, String fileName, Function<Path, T> accept) {
-		T result = findNearestLocalWith(dir, fileName, accept);
-		if (result == null) {
-			Path file = Settings.getConfigDir().resolve(fileName);
+	public static Function<Path, Path> acceptFile(String fileName) {
+		return p -> {
+			Path file = p.resolve(fileName);
 			if (Files.isRegularFile(file) && Files.isReadable(file)) {
-				result = accept.apply(file);
+				return file;
 			}
+			return null;
+		};
+	}
+
+	public static <U, V> Function<U, V> notNull(Function<U, V> func) {
+		return u -> {
+			if (u == null) {
+				return null;
+			}
+			return func.apply(u);
+		};
+	}
+
+	public static <T> T findNearestWith(Path dir, Function<Path, T> accept) {
+		T result = findNearestLocalWith(dir, accept);
+		if (result == null) {
+			result = accept.apply(Settings.getConfigDir());
 		}
 		return result;
 	}
 
-	private static <T> T findNearestLocalWith(Path dir, String fileName, Function<Path, T> accept) {
+	private static <T> T findNearestLocalWith(Path dir, Function<Path, T> accept) {
 		if (dir == null) {
 			dir = getCwd();
 		}
 		Path root = Settings.getLocalRootDir();
 		while (dir != null && !isSameFile(dir, root)) {
-			Path file = dir.resolve(fileName);
-			if (Files.isRegularFile(file) && Files.isReadable(file)) {
-				T result = accept.apply(file);
-				if (result != null) {
-					return result;
-				}
+			T result = accept.apply(dir);
+			if (result != null) {
+				return result;
 			}
-			file = dir.resolve(Settings.JBANG_DOT_DIR).resolve(fileName);
-			if (Files.isRegularFile(file) && Files.isReadable(file)) {
-				T result = accept.apply(file);
-				if (result != null) {
-					return result;
-				}
+			result = accept.apply(dir.resolve(Settings.JBANG_DOT_DIR));
+			if (result != null) {
+				return result;
 			}
 			dir = dir.getParent();
 		}
@@ -1967,8 +1981,8 @@ public class Util {
 		return res;
 	}
 
-	public static String replaceAll(@Nonnull Pattern pattern, @Nonnull String input,
-			@Nonnull Function<MatchResult, String> replacer) {
+	public static String replaceAll(@NonNull Pattern pattern, @NonNull String input,
+			@NonNull Function<MatchResult, String> replacer) {
 		Matcher matcher = pattern.matcher(input);
 		matcher.reset();
 		boolean result = matcher.find();
@@ -2021,27 +2035,6 @@ public class Util {
 		return new AbstractMap.SimpleEntry<K, V>(k, v);
 	}
 
-	public static List<Path> findCommandsWith(Predicate<Path> accept) {
-		String[] elems = System.getenv().getOrDefault("PATH", "").split(File.pathSeparator);
-		return Stream
-			.of(elems)
-			.map(elem -> Util.getCwd().resolve(elem))
-			.flatMap(dir -> listFiles(dir).filter(p -> isExecutable(p)).filter(accept))
-			.collect(Collectors.toList());
-	}
-
-	private static Stream<Path> listFiles(Path dir) {
-		if (Files.isDirectory(dir)) {
-			try {
-				return Files.list(dir);
-			} catch (IOException e) {
-				throw new RuntimeException(e.getMessage(), e);
-			}
-		} else {
-			return Stream.empty();
-		}
-	}
-
 	/**
 	 * Converts an arbitrary string into a valid Java identifier that can be used as
 	 * a class name. This is particularly important for JEP-445 implicit classes
@@ -2050,7 +2043,7 @@ public class Util {
 	 * @param baseName The input string to convert
 	 * @return A valid Java identifier, never null or empty
 	 */
-	public static String toJavaIdentifier(@Nonnull String baseName) {
+	public static String toJavaIdentifier(@NonNull String baseName) {
 		if (isValidJavaIdentifier(baseName)) {
 			return baseName;
 		}

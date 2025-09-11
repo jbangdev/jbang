@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 import dev.jbang.net.KotlinManager;
 import dev.jbang.source.*;
@@ -27,7 +27,7 @@ public class KotlinSource extends Source {
 	}
 
 	@Override
-	public @Nonnull Type getType() {
+	public @NonNull Type getType() {
 		return Type.kotlin;
 	}
 

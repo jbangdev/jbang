@@ -6,12 +6,13 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.dependencies.ArtifactInfo;
@@ -81,17 +82,17 @@ public class ModuleUtil {
 			Util.warnMsg("Could not locate module-info.java template");
 		} else {
 			// First get the list of root dependencies as proper maven coordinates
-			Set<MavenCoordinate> deps = project.getMainSourceSet()
+			Map<String, MavenCoordinate> deps = project.getMainSourceSet()
 				.getDependencies()
 				.stream()
 				.map(MavenCoordinate::fromString)
-				.collect(Collectors.toSet());
+				.collect(Collectors.toMap(MavenCoordinate::getManagementKey, Function.identity()));
 			// Now filter out the resolved artifacts that are root dependencies
 			// and get their names
 			Stream<String> depModNames = ctx.resolveClassPath()
 				.getArtifacts()
 				.stream()
-				.filter(a -> deps.contains(a.getCoordinate()))
+				.filter(a -> deps.containsKey(a.getCoordinate().getManagementKey()))
 				.map(ArtifactInfo::getModuleName)
 				.filter(Objects::nonNull);
 			// And join this list of names with the JDK module names

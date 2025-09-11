@@ -2,7 +2,7 @@ package dev.jbang.source.sources;
 
 import java.util.function.Function;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 import dev.jbang.source.*;
 
@@ -16,7 +16,7 @@ public class JshSource extends JavaSource {
 	}
 
 	@Override
-	public @Nonnull Type getType() {
+	public @NonNull Type getType() {
 		return Type.jshell;
 	}
 

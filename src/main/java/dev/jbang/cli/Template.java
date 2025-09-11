@@ -28,6 +28,9 @@ import picocli.CommandLine;
 public class Template {
 	public static final Pattern TPL_FILENAME_PATTERN = Pattern.compile("\\{filename}", Pattern.CASE_INSENSITIVE);
 	public static final Pattern TPL_BASENAME_PATTERN = Pattern.compile("\\{basename}", Pattern.CASE_INSENSITIVE);
+
+	@CommandLine.Mixin
+	HelpMixin helpMixin;
 }
 
 abstract class BaseTemplateCommand extends BaseCommand {

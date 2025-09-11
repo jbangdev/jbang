@@ -2,7 +2,7 @@ package dev.jbang.source.resolvers;
 
 import java.util.function.Function;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.ModularClassPath;
@@ -21,7 +21,7 @@ public class GavResourceResolver implements ResourceResolver {
 		this.depResolver = depResolver;
 	}
 
-	@Nonnull
+	@NonNull
 	@Override
 	public String description() {
 		return "Maven GAV";

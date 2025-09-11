@@ -49,3 +49,6 @@ tagpatch:
 itestreport: # todo: should not be needed to clean
     -./gradlew integrationTest
     ./gradlew allureReport --clean
+
+dry-run-full-release:
+    JRELEASER_PROJECT_VERSION=`./gradlew -q printVersion` jbang jreleaser@jreleaser full-release --dry-run

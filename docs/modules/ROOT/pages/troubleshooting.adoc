@@ -22,27 +22,32 @@ Having issues with JBang? This guide covers common problems and their solutions.
 
 **Solutions**:
 
-1. **Restart your terminal** - New PATH may not be loaded
-2. **Source your shell config**:
-   [source,bash]
-   ----
-   # For bash
-   source ~/.bashrc
-   
-   # For zsh  
-   source ~/.zshrc
-   ----
-3. **Check installation path**:
-   [source,bash]
-   ----
-   # Check if jbang is in PATH
-   echo $PATH | grep jbang
-   
-   # Find jbang installation
-   find /usr -name jbang 2>/dev/null
-   which jbang
-   ----
-4. **Reinstall using different method** - Try SDKMAN, package manager, or manual install
+. **Restart your terminal** - New PATH may not be loaded
+
+. **Source your shell config**:
++
+[source,bash]
+----
+# For bash
+source ~/.bashrc
+
+# For zsh
+source ~/.zshrc
+----
+
+. **Check installation path**:
++
+[source,bash]
+----
+# Check if jbang is in PATH
+echo $PATH | grep jbang
+
+# Find jbang installation
+find /usr -name jbang 2>/dev/null
+which jbang
+----
+
+. **Reinstall using different method** - Try SDKMAN, package manager, or manual install
 
 === Permission Denied
 

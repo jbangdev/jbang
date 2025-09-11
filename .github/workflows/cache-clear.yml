@@ -1,0 +1,19 @@
+name: Clear cache
+
+on:
+  #schedule:
+  #  - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  clear:
+    name: Delete all caches
+    runs-on: ubuntu-latest
+    env: 
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - name: Clear caches
+        run: |
+          gh cache delete --all --succeed-on-no-caches

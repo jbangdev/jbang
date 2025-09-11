@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Writer;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,7 +20,11 @@ import java.util.function.Function;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
+import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 
 import dev.jbang.Settings;
@@ -28,6 +33,27 @@ import dev.jbang.source.ResourceRef;
 import dev.jbang.util.Util;
 
 public class Catalog {
+
+	public static class SkipEmptyMapSerializer<K, V> implements JsonSerializer<Map<K, V>> {
+		@Override
+		public JsonElement serialize(Map<K, V> src, Type typeOfSrc, JsonSerializationContext context) {
+			if (src == null || src.isEmpty()) {
+				return null;
+			}
+			return context.serialize(src);
+		}
+	}
+
+	public static class SkipEmptyListSerializer<T> implements JsonSerializer<List<T>> {
+		@Override
+		public JsonElement serialize(List<T> src, Type typeOfSrc, JsonSerializationContext context) {
+			if (src == null || src.isEmpty()) {
+				return null;
+			}
+			return context.serialize(src);
+		}
+	}
+
 	public static final String JBANG_CATALOG_JSON = "jbang-catalog.json";
 	public static final String JBANG_IMPLICIT_CATALOG_JSON = "implicit-catalog.json";
 
@@ -40,8 +66,11 @@ public class Catalog {
 
 	private static final String CACHE_BUILTIN = ":::BUILTIN:::";
 
+	@JsonAdapter(SkipEmptyMapSerializer.class)
 	public Map<String, CatalogRef> catalogs = new HashMap<>();
+	@JsonAdapter(SkipEmptyMapSerializer.class)
 	public Map<String, Alias> aliases = new HashMap<>();
+	@JsonAdapter(SkipEmptyMapSerializer.class)
 	public Map<String, Template> templates = new HashMap<>();
 
 	@SerializedName(value = "base-ref", alternate = { "baseRef" })
@@ -241,38 +270,39 @@ public class Catalog {
 	}
 
 	private static Catalog findNearestCatalog(Path dir) {
-		Path catalogFile = Util.findNearestWith(dir, JBANG_CATALOG_JSON, p -> p);
+		Path catalogFile = Util.findNearestWith(dir, Util.acceptFile(JBANG_CATALOG_JSON));
 		return catalogFile != null ? get(catalogFile) : null;
 	}
 
 	static Catalog findNearestCatalogWith(Path dir, boolean includeImported, boolean includeImplicits,
-			Function<Catalog, Catalog> accept) {
-		Catalog catalog = Util.findNearestWith(dir, JBANG_CATALOG_JSON, p -> {
+			Function<Catalog, Catalog> acceptCatalog) {
+		Function<Path, Path> acceptFile = Util.acceptFile(JBANG_CATALOG_JSON);
+		Catalog catalog = Util.findNearestWith(dir, acceptFile.andThen(Util.notNull(p -> {
 			try {
 				Catalog cat = get(p);
-				return accept.apply(cat);
+				return acceptCatalog.apply(cat);
 			} catch (Exception e) {
 				Util.warnMsg("Unable to read catalog " + p + " because " + e);
 				return null;
 			}
-		});
+		})));
 		if (catalog == null && includeImported) {
-			catalog = Util.findNearestWith(dir, JBANG_CATALOG_JSON, p -> {
+			catalog = Util.findNearestWith(dir, acceptFile.andThen(Util.notNull(p -> {
 				try {
 					Catalog cat = get(p);
-					return findImportedCatalogsWith(cat, accept);
+					return findImportedCatalogsWith(cat, acceptCatalog);
 				} catch (Exception e) {
 					Util.warnMsg("Unable to read catalog " + p + " because " + e);
 					return null;
 				}
-			});
+			})));
 		}
 		if (catalog == null && includeImplicits) {
 			Path file = Settings.getUserImplicitCatalogFile();
 			if (Files.isRegularFile(file) && Files.isReadable(file)) {
 				try {
 					Catalog cat = get(file);
-					catalog = accept.apply(cat);
+					catalog = acceptCatalog.apply(cat);
 				} catch (Exception e) {
 					Util.warnMsg("Unable to read catalog " + file + " because " + e);
 					return null;
@@ -280,9 +310,9 @@ public class Catalog {
 			}
 		}
 		if (catalog == null) {
-			catalog = accept.apply(getBuiltin());
+			catalog = acceptCatalog.apply(getBuiltin());
 			if (catalog == null && includeImported) {
-				catalog = findImportedCatalogsWith(getBuiltin(), accept);
+				catalog = findImportedCatalogsWith(getBuiltin(), acceptCatalog);
 			}
 		}
 		return catalog;

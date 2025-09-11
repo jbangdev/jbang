@@ -48,7 +48,7 @@ class classpath_example {
 
 Now when you run this, the first time with no existing dependencies installed you should get an output like this:
 
-[source]
+[source,bash]
 ----
 $ ./classpath_example.java
 [jbang] Resolving dependencies...
@@ -62,21 +62,44 @@ $ ./classpath_example.java
 ====
 Dependency classifiers shall be put _after_ the version number:
 
-```java
+[source,java]
+----
 //DEPS io.netty:netty-transport-native-kqueue:4.1.107.Final:osx-aarch_64
-```
+----
 
 is the equivalent of the following Maven dependency declaration:
 
-```xml
+[source,xml]
+----
 <dependency>
     <groupId>io.netty</groupId>
     <artifactId>netty-transport-native-kqueue</artifactId>
     <version>4.1.107.Final</version>
     <classifier>osx-aarch_64</classifier>
 </dependency>
-```
+----
+
 ====
+
+== Updating `//DEPS`
+
+The dependencies of a JBang program can be updated using https://docs.renovatebot.com/[renovatebot] or it can be updated manually by editing the Java, Groovy, or Kotlin file. If updating dependencies manually, alias `deps@jbangdev` can be used to check if never versions of dependencies are available.
+
+* `jbang deps@jbangdev <filename.{java,groovy,kt}>`
+
+** jbang deps@jbangdev undertow.java
+
+* `jbang deps@jbangdev <gav>`
+
+** jbang deps@jbangdev io.undertow:undertow-core:2.0.28
++
+image::jbang_deps_2.png[]
+
+* `jbang deps@jbangdev <alias>`
+
+** jbang deps@jbangdev asciidoctorj@asciidoctor
++
+image::jbang_deps.png[]
 
 == 'fatjar' dependencies [Experimental]
 
@@ -86,7 +109,10 @@ JBang 0.117 adds support for this allowing you to just add `@fatjar` at the end.
 
 Example:
 
-`jbang eu.maveniverse.maven.plugins:toolbox:0.1.9:cli@fatjar`
+[source,bash]
+----
+jbang eu.maveniverse.maven.plugins:toolbox:0.1.9:cli@fatjar
+----
 
 Without `@fatjar` it would resolve dependencies which would be redundant.
 
@@ -232,17 +258,18 @@ import groovy.lang.GrabResolver;
 @GrabResolver("central") // <.>
 @GrabResolver(name="acme", root="https://maven.acme.local/maven")
 @Grapes({ // <.>
-		@Grab(group = "ch.qos.reload4j", module = "reload4j", version = "1.2.19"), // <.>
-		@Grab(group = "org.apache.groovy", module = "groovy", version = "4.0.0"), // <.>
+    @Grab(group = "ch.qos.reload4j", module = "reload4j", version = "1.2.19"), // <.>
+    @Grab(group = "org.apache.groovy", module = "groovy", version = "4.0.0"), // <.>
 })
+
 class classpath_example {
 
-	static final Logger logger = Logger.getLogger(classpath_example.class);
+    static final Logger logger = Logger.getLogger(classpath_example.class);
 
-	public static void main(String[] args) {
-		BasicConfigurator.configure();
-		Arrays.asList(args).forEach(out::println);
-	}
+    public static void main(String[] args) {
+        BasicConfigurator.configure();
+        Arrays.asList(args).forEach(out::println);
+    }
 }
 ----
 <.> Import needed to make the compiler be okey with `@Grab` annotation.
@@ -272,7 +299,10 @@ ${os.detected.jfxname} = 'mac'
 
 This can be put to use in `//DEPS` like so:
 
-  //DEPS org.openjfx:javafx-graphics:11.0.2:${os.detected.jfxname}
+[source,java]
+----
+//DEPS org.openjfx:javafx-graphics:11.0.2:${os.detected.jfxname}
+----
 
 Here we use the properties to avoid hardcoding your script to a specific operating system.
 

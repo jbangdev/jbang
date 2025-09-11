@@ -11,8 +11,8 @@ JBang container images provide a simple way to run Java applications and scripts
 Each container image is available in several variants, each based on a different Java version (for example, Java 8, 11, 17, etc.). This lets you choose the image that matches the Java version your application or script needs. If your script requires a different Java version than the one provided by the base image, JBang will automatically download and use the required Java version at runtime.
 
 **Image naming convention:**  
-Images are tagged as `jbangdev/jbang:v<jbang-version>-java-<java-version>`.  
-For example, `jbangdev/jbang:v0.127.18-java-11` runs JBang version 0.127.18 on a base image with Java 11.
+Images are tagged as `jbangdev/jbang:<jbang-version>-java-<java-version>`.  
+For example, `jbangdev/jbang:0.127.18-java-11` runs JBang version 0.127.18 on a base image with Java 11.
 
 There is also a `latest` tag, which always points to the most recent JBang release using the latest Java LTS (Long Term Support) version.
 
