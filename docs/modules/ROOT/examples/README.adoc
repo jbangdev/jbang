@@ -1,0 +1,16 @@
+= JBang Examples
+
+This folder contains example programs that are included in the JBang documentation. Keeping the examples as runnable source files outside of the Asciidoc documentation files ensures that the programs can be tested and updated without having to update any documentation files.
+
+== Formatting
+
+In order to make best use of the limited space available to present source code examples, we use the Google Java Formatting style which indents the code by two spaces.
+
+The Google Java Formatting style do not support JBang comments such as `//DEPS` and will format it as `// DEPS`. After formatting a program file, edit it manually to remove the space after each `//`.
+
+[source,shellscript]
+----
+export GJF_JAR=com.google.googlejavaformat:google-java-format:1.28.0
+
+jbang run $GJF_JAR -r weather.java
+----
