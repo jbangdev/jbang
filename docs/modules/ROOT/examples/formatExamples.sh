@@ -4,5 +4,5 @@ mvn spotless:apply
 
 find src -name "*.java" | while read -r file; do
     echo "Processing file: $file"
-    jbang run FixCommentSpacing.java $file
+    jbang run FixJBangLine1.java $file
 done

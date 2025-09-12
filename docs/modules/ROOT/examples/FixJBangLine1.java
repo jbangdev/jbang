@@ -3,11 +3,11 @@ import java.nio.file.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class FixCommentSpacing {
+public class FixJBangLine1 {
     private static int lnum = 0;
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
-            System.err.println("Usage: jbang FixCommentSpacing.java <filename>");
+            System.err.println("Usage: jbang FixJBangLine1.java <filename>");
             System.exit(1);
         }
 
@@ -16,7 +16,7 @@ public class FixCommentSpacing {
 
         List<String> fixedLines =
                 lines.stream()
-                        .map(FixCommentSpacing::fixCommentSpacing)
+                        .map(FixJBangLine1::fixCommentSpacing)
                         .collect(Collectors.toList());
 
         Files.write(path, fixedLines);
