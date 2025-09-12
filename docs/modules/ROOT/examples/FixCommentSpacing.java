@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class FixCommentSpacing {
+    private static int lnum = 0;
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
             System.err.println("Usage: jbang FixCommentSpacing.java <filename>");
@@ -22,10 +23,9 @@ public class FixCommentSpacing {
     }
 
     private static String fixCommentSpacing(String line) {
-        if (line.startsWith("/// ")) {
+        lnum += 1;
+        if (line.startsWith("/// ") && lnum == 1) {
             return line.replaceFirst("///\\s+", "///");
-        } else if (line.startsWith("// ")) {
-            return line.replaceFirst("//\\s+", "//");
         } else {
             return line;
         }
