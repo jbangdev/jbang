@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 public class FixJBangLine1 {
     private static int lnum = 0;
     private static boolean fileUpdated = false;
+
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {
             System.err.println("Usage: jbang FixJBangLine1.java <filename>");
@@ -16,9 +17,7 @@ public class FixJBangLine1 {
         List<String> lines = Files.readAllLines(path);
 
         List<String> fixedLines =
-                lines.stream()
-                        .map(FixJBangLine1::fixCommentSpacing)
-                        .collect(Collectors.toList());
+                lines.stream().map(FixJBangLine1::fixCommentSpacing).collect(Collectors.toList());
 
         if (fileUpdated) {
             Files.write(path, fixedLines);
@@ -28,7 +27,10 @@ public class FixJBangLine1 {
 
     private static String fixCommentSpacing(String line) {
         lnum += 1;
-        if (lnum == 1 && line.startsWith("/// ") && line.contains("usr/bin/env") && line.contains("jbang")) {
+        if (lnum == 1
+                && line.startsWith("/// ")
+                && line.contains("usr/bin/env")
+                && line.contains("jbang")) {
             fileUpdated = true;
             // System.out.println("[" + line + "]");
             // Output -> [/// usr/bin/env jbang "$0" "$@" ; exit $?]
