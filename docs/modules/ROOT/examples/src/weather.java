@@ -6,14 +6,13 @@
 //DEPS com.fasterxml.jackson.core:jackson-databind:2.20.0
 // spotless:on
 
-import picocli.CommandLine;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.Parameters;
-
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Parameters;
 
 @Command(
         name = "weather",
