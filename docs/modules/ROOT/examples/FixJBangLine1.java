@@ -24,7 +24,9 @@ public class FixJBangLine1 {
 
     private static String fixCommentSpacing(String line) {
         lnum += 1;
-        if (line.startsWith("/// ") && lnum == 1) {
+        if (lnum == 1 && line.startsWith("/// ") && line.contains("usr/bin/env") && line.contains("jbang")) {
+            // System.out.println("[" + line + "]");
+            // Output -> [/// usr/bin/env jbang "$0" "$@" ; exit $?]
             return line.replaceFirst("///\\s+", "///");
         } else {
             return line;
