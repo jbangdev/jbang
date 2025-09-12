@@ -21,11 +21,10 @@ jbang-edit - Setup a temporary project to edit script in an IDE.
 
 *jbang edit* *-o* [*-bh*] *--fresh* [*--insecure*] [*--itr*] [*--jsh*] [*--live*] [*--no-open*]
            *--quiet* *--verbose* [*--open*[=_<editor>_]] [*--catalog*=_<catalog>_]
-           [*--config*=_<config>_] [*--source-type*=_<forceType>_]
-           [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
-           [*--deps*=_<dependencies>_]... [*--files*=_<resources>_]...
-           [*--repos*=_<repositories>_]... [*-s*=_<sources>_]... [_<scriptOrFile>_]
-           [_<additionalFiles>_...]
+           [*--config*=_<config>_] [*-T*=_<forceType>_] [*--cp*=_<classpaths>_]...
+           [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]...
+           [*--files*=_<resources>_]... [*--repos*=_<repositories>_]...
+           [*-s*=_<sources>_]... [_<scriptOrFile>_] [_<additionalFiles>_...]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -96,7 +95,7 @@ Setup a temporary project to edit script in an IDE.
 *-s*, *--sources*=_<sources>_::
   Add additional sources.
 
-*--source-type*=_<forceType>_::
+*-T*, *--source-type*=_<forceType>_::
   Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
 
 *--verbose*::

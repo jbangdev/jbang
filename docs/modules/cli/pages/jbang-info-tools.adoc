@@ -22,7 +22,7 @@ jbang-info-tools - Prints a json description usable for tools/IDE's to get class
 *jbang info tools* *-o* [*-h*] *--fresh* [*--insecure*] [*--itr*] [*--jsh*] *--quiet* *--verbose*
                  [*--module*[=_<module>_]] [*--build-dir*=_<buildDir>_]
                  [*--catalog*=_<catalog>_] [*--config*=_<config>_] [*--select*=_<select>_]
-                 [*--source-type*=_<forceType>_] [*--cp*=_<classpaths>_]...
+                 [*-T*=_<forceType>_] [*--cp*=_<classpaths>_]...
                  [*-D*=_<String=String>_]... [*--deps*=_<dependencies>_]...
                  [*--files*=_<resources>_]... [*--repos*=_<repositories>_]...
                  [*-s*=_<sources>_]... [_<scriptOrFile>_]
@@ -93,7 +93,7 @@ Prints a json description usable for tools/IDE's to get classpath and more info 
 *--select*=_<select>_::
   Indicate the name of the field to select and return from the full info result
 
-*--source-type*=_<forceType>_::
+*-T*, *--source-type*=_<forceType>_::
   Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
 
 *--verbose*::
