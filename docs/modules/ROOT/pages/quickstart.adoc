@@ -87,9 +87,6 @@ Run it:
 ----
 jbang hello.java
 # Output: Hello World!
-
-jbang hello.java JBang
-# Output: Hello JBang
 ----
 
 == Step 3: Add Dependencies
