@@ -6,11 +6,12 @@ This folder contains example programs that are included in the JBang documentati
 
 In order to make best use of the limited space available to present source code examples, we use the Google Java Formatting style which indents the code by two spaces.
 
-The Google Java Formatting style do not support JBang comments such as `//DEPS` and will format it as `// DEPS`. After formatting a program file, edit it manually to remove the space after each `//`.
+The Google Java Formatting style do not support JBang comments such as `//DEPS` and will format it as `// DEPS`. After formatting a program file, fix the spacing in the file with `FixCommentSpacing.java`.
 
 [source,shellscript]
 ----
 export GJF_JAR=com.google.googlejavaformat:google-java-format:1.28.0
 
 jbang run $GJF_JAR -r weather.java
+jbang run FixCommentSpacing.java weather.java
 ----
