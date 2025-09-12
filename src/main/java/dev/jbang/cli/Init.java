@@ -89,6 +89,7 @@ public class Init extends BaseCommand {
 		int reqVersion = buildMixin.javaVersion != null ? JavaUtil.minRequestedVersion(buildMixin.javaVersion)
 				: JavaUtil.getCurrentMajorJavaVersion();
 
+		properties.put("requestedJavaVersion", buildMixin.javaVersion);
 		properties.put("javaVersion", reqVersion);
 		properties.put("compactSourceFiles", reqVersion >= 25);
 		// properties.put("magiccontent", "//no gpt response. make sure you ran with
