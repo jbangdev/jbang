@@ -79,7 +79,7 @@ This creates:
 
 [source, java]
 ----
-include::example$hello.java[]
+include::example$src/hello.java[]
 ----
 
 Run it:
@@ -102,7 +102,7 @@ Edit the file to add weather functionality:
 
 [source, java]
 ----
-include::example$weather.java[]
+include::example$src/weather.java[]
 ----
 
 Run it:

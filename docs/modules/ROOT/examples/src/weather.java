@@ -1,7 +1,10 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
+
+// spotless:off
 //DEPS info.picocli:picocli:4.7.7
 //DEPS com.fasterxml.jackson.core:jackson-core:2.20.0
 //DEPS com.fasterxml.jackson.core:jackson-databind:2.20.0
+// spotless:on
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
