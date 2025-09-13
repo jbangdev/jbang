@@ -443,7 +443,7 @@ public class TestRun extends BaseTest {
 		final String aliases = "{\n" +
 				"  \"aliases\": {\n" +
 				"    \"qcli\": {\n" +
-				"      \"script-ref\": \"io.quarkus:quarkus-cli:1.9.0.Final:runner\"\n" +
+				"      \"script-ref\": \"com.github.lalyos:jfiglet:0.0.8\"\n" +
 				"    }\n" +
 				"  }\n" +
 				"}";
@@ -465,13 +465,13 @@ public class TestRun extends BaseTest {
 		String cmd = run.updateGeneratorForRun(CmdGenerator.builder(code)).build().generate();
 
 		if (Util.getShell() == Util.Shell.bash) {
-			assertThat(cmd, matchesPattern(".*quarkus-cli-1.9.0.Final-runner.jar.*"));
+			assertThat(cmd, matchesPattern(".*jfiglet-0.0.8.jar.*"));
 		} else {
 			// TODO On Windows the command is using an @file, we should parse
 			// the name, read the file and assert against it contents.
 		}
 
-		assertThat(code.getMainClass(), equalTo("io.quarkus.runner.GeneratedMain"));
+		assertThat(code.getMainClass(), equalTo("com.github.lalyos.jfiglet.JFiglet"));
 
 	}
 
