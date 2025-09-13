@@ -15,11 +15,17 @@ endif::[]
 To avoid remembering long paths and to enable easy launch of jbang scripts there is an `alias` command
 to setup and manage aliases to actual scripts.
 
-  jbang alias add --name hello https://github.com/jbangdev/jbang-examples/blob/HEAD/examples/helloworld.java
+[source,bash]
+----
+jbang alias add --name hello https://github.com/jbangdev/jbang-examples/blob/HEAD/examples/helloworld.java
+----
 
 will add an alias named `hello` pointing to that github url which then can be run using `jbang hello`.
 
-  jbang alias list
+[source,bash]
+----
+jbang alias list
+----
 
 will show you all the aliases that are defined locally.
 
@@ -34,16 +40,18 @@ If you want the description to be automatically extracted from your script, incl
 
 Example:
 
-  //DESCRIPTION Best hello world application
-  //DESCRIPTION Use to cheer your friends
+[source,java]
+----
+//DESCRIPTION Best hello world application
+//DESCRIPTION Use to cheer your friends
 
-  class helloworld {
+class helloworld {
 
-      public static void main(String[] args) {
-          System.out.println("Hello World!");
-      }
+  public static void main(String[] args) {
+      System.out.println("Hello World!");
   }
-
+}
+----
 
 == Implicit Alias Catalogs
 

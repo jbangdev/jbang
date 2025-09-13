@@ -8,7 +8,7 @@ plugins {
 	id "com.github.breadmoirai.github-release" version "2.4.1"
 	id "io.toolebox.git-versioner" version "1.6.7"
 	id 'org.gradle.crypto.checksum' version '1.4.0'
-	id "com.diffplug.spotless" version "7.0.2"
+	id "com.diffplug.spotless" version "7.2.1"
 	id 'com.github.gmazzo.buildconfig' version "3.1.0"
 	id "com.dorongold.task-tree" version "2.1.1"
 	id "com.geoffgranum.gradle-conventional-changelog" version "0.3.1"
@@ -140,8 +140,8 @@ dependencies {
 	implementation 'org.jsoup:jsoup:1.17.1'
 	implementation 'org.codejive:java-properties:0.0.7'
 
-	implementation "org.slf4j:slf4j-nop:1.7.30"
-	implementation "org.slf4j:jcl-over-slf4j:1.7.30"
+	implementation "org.slf4j:slf4j-nop:1.7.36"
+	implementation "org.slf4j:jcl-over-slf4j:1.7.36"
 	implementation "org.jboss:jandex:2.2.3.Final"
 
 	implementation "eu.maveniverse.maven.mima:context:2.4.33"
@@ -151,7 +151,7 @@ dependencies {
 	implementation "eu.maveniverse.maven.nisse:core:0.6.0"
 	implementation "eu.maveniverse.maven.nisse.sources:os-source:0.6.0"
 
-	testImplementation platform('org.junit:junit-bom:5.12.2')
+	testImplementation platform('org.junit:junit-bom:5.13.4')
 	testImplementation "org.junit.jupiter:junit-jupiter"
 	testImplementation "org.junit.platform:junit-platform-launcher"
 	testImplementation "com.github.stefanbirkner:system-rules:1.17.2"
@@ -354,7 +354,7 @@ testing {
 		integrationTest(JvmTestSuite) {
 			dependencies {
 				implementation project()  // todo: shouldn't even need to depend on main code?
-				implementation platform('org.junit:junit-bom:5.12.2')
+				implementation platform('org.junit:junit-bom:5.13.4')
 				implementation "org.junit.jupiter:junit-jupiter"
 				implementation "org.junit.platform:junit-platform-launcher"
 				implementation "org.assertj:assertj-core:3.24.2"

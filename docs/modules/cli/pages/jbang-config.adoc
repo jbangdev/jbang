@@ -19,7 +19,7 @@ jbang-config - Read and write configuration options.
 // tag::picocli-generated-man-section-synopsis[]
 == Synopsis
 
-*jbang config* *-o* *--fresh* *--quiet* *--verbose* [COMMAND]
+*jbang config* *-o* [*-h*] *--fresh* *--quiet* *--verbose* [COMMAND]
 
 // end::picocli-generated-man-section-synopsis[]
 
@@ -35,6 +35,9 @@ Read and write configuration options.
 
 *--fresh*::
   Make sure we use fresh (i.e. non-cached) resources.
+
+*-h*, *--help*::
+  Display help/info. Use 'jbang <command> -h' for detailed usage.
 
 *-o*, *--offline*::
   Work offline. Fail-fast if dependencies are missing. No connections will be attempted

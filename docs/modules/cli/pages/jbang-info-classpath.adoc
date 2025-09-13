@@ -22,7 +22,7 @@ jbang-info-classpath - Prints class-path used for this application using operati
 *jbang info classpath* *-o* [*-h*] [*--deps-only*] *--fresh* [*--insecure*] [*--itr*] [*--jsh*]
                      *--quiet* *--verbose* [*--module*[=_<module>_]]
                      [*--build-dir*=_<buildDir>_] [*--catalog*=_<catalog>_]
-                     [*--config*=_<config>_] [*--source-type*=_<forceType>_]
+                     [*--config*=_<config>_] [*-T*=_<forceType>_]
                      [*--cp*=_<classpaths>_]... [*-D*=_<String=String>_]...
                      [*--deps*=_<dependencies>_]... [*--files*=_<resources>_]...
                      [*--repos*=_<repositories>_]... [*-s*=_<sources>_]...
@@ -94,7 +94,7 @@ Prints class-path used for this application using operating system specific path
 *-s*, *--sources*=_<sources>_::
   Add additional sources.
 
-*--source-type*=_<forceType>_::
+*-T*, *--source-type*=_<forceType>_::
   Force input to be interpreted as the given type. Can be: java, jshell, groovy, kotlin, or markdown
 
 *--verbose*::
