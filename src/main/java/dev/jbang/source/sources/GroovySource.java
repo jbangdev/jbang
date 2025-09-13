@@ -23,10 +23,6 @@ public class GroovySource extends Source {
 		super(script, replaceProperties);
 	}
 
-	public GroovySource(String script, Function<String, String> replaceProperties) {
-		super(script, replaceProperties);
-	}
-
 	@Override
 	public @NonNull Type getType() {
 		return Type.groovy;
@@ -34,17 +30,17 @@ public class GroovySource extends Source {
 
 	@Override
 	protected List<String> getCompileOptions() {
-		return tagReader.collectOptions("COMPILE_OPTIONS");
+		return getTagReader().collectOptions("COMPILE_OPTIONS");
 	}
 
 	@Override
 	protected List<String> getNativeOptions() {
-		return tagReader.collectOptions("NATIVE_OPTIONS");
+		return getTagReader().collectOptions("NATIVE_OPTIONS");
 	}
 
 	protected List<String> getRuntimeOptions() {
 		List<String> gopts = Collections.singletonList("-Dgroovy.grape.enable=false");
-		List<String> opts = tagReader.collectOptions("JAVA_OPTIONS", "RUNTIME_OPTIONS");
+		List<String> opts = getTagReader().collectOptions("JAVA_OPTIONS", "RUNTIME_OPTIONS");
 		return Util.join(gopts, opts);
 	}
 
@@ -61,7 +57,7 @@ public class GroovySource extends Source {
 	}
 
 	public String getGroovyVersion() {
-		return tagReader.collectOptions("GROOVY")
+		return getTagReader().collectOptions("GROOVY")
 			.stream()
 			.findFirst()
 			.orElse(GroovyManager.DEFAULT_GROOVY_VERSION);

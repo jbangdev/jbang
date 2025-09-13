@@ -22,10 +22,6 @@ public class KotlinSource extends Source {
 		super(script, replaceProperties);
 	}
 
-	public KotlinSource(String script, Function<String, String> replaceProperties) {
-		super(script, replaceProperties);
-	}
-
 	@Override
 	public @NonNull Type getType() {
 		return Type.kotlin;
@@ -40,17 +36,17 @@ public class KotlinSource extends Source {
 
 	@Override
 	protected List<String> getCompileOptions() {
-		return tagReader.collectOptions("COMPILE_OPTIONS");
+		return getTagReader().collectOptions("COMPILE_OPTIONS");
 	}
 
 	@Override
 	protected List<String> getNativeOptions() {
-		return tagReader.collectOptions("NATIVE_OPTIONS");
+		return getTagReader().collectOptions("NATIVE_OPTIONS");
 	}
 
 	@Override
 	protected List<String> getRuntimeOptions() {
-		return tagReader.collectOptions("JAVA_OPTIONS", "RUNTIME_OPTIONS");
+		return getTagReader().collectOptions("JAVA_OPTIONS", "RUNTIME_OPTIONS");
 	}
 
 	@Override
@@ -59,7 +55,7 @@ public class KotlinSource extends Source {
 	}
 
 	public String getKotlinVersion() {
-		return tagReader.collectOptions("KOTLIN")
+		return getTagReader().collectOptions("KOTLIN")
 			.stream()
 			.findFirst()
 			.orElse(KotlinManager.DEFAULT_KOTLIN_VERSION);
