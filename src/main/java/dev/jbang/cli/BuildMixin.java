@@ -8,9 +8,16 @@ import dev.jbang.devkitman.Jdk;
 import dev.jbang.source.Project;
 
 import picocli.CommandLine;
+import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
+import picocli.CommandLine.ParameterException;
+import picocli.CommandLine.Spec;
 
 public class BuildMixin {
+
+	@Spec
+	CommandSpec spec; // injected by picocli
+
 	public String javaVersion;
 
 	@CommandLine.Mixin
@@ -20,8 +27,9 @@ public class BuildMixin {
 			"--java" }, description = "JDK version to use for running the script.")
 	void setJavaVersion(String javaVersion) {
 		if (!javaVersion.matches("\\d+[+]?")) {
-			throw new IllegalArgumentException(
-					"Invalid version, should be a number optionally followed by a plus sign");
+			throw new ParameterException(spec.commandLine(),
+					String.format("Invalid version '%s', should be a number optionally followed by a plus sign",
+							javaVersion));
 		}
 		this.javaVersion = javaVersion;
 	}
