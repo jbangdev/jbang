@@ -1,10 +1,3 @@
 #!/bin/bash
 
-mvn spotless:apply
-
-find src -name "*.java" | while read -r file; do
-    echo "Processing file: $file"
-    jbang run FixJBangLine1.java $file
-done
-
-rm -f -r target
+jbang run jbang-fmt@jbangdev/jbang-fmt --style google --line-length 90 --java 21 --indent-with space --indent-size 2 src
