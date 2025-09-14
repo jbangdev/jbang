@@ -205,13 +205,14 @@ class DependencyResolverTest extends BaseTest {
 
 	@Test
 	void testImportPOM() {
-		List<String> deps = Arrays.asList("com.microsoft.azure:azure-bom:1.0.0.M1@pom", "com.microsoft.azure:azure");
+
+		List<String> deps = Arrays.asList("org.slf4j:slf4j-bom:2.0.17@pom", "org.slf4j:slf4j-api");
 
 		ModularClassPath classpath = DependencyUtil.resolveDependencies(deps, Collections.emptyList(), false, false,
 				false,
 				true, false);
 
-		assertEquals(62, classpath.getArtifacts().size());
+		assertEquals(1, classpath.getArtifacts().size());
 	}
 
 	@Test
