@@ -698,7 +698,17 @@ public class Util {
 					+ System.getProperty("java.vm.vendor", "<unknown>");
 			agent = "JBang/" + getJBangVersion() + " (" + System.getProperty("os.name") + "/"
 					+ System.getProperty("os.version") + "/" + System.getProperty("os.arch") + ") " + "Java/" + version;
+
+			// This is a hack to avoid being blocked by some websites
+			// because of the word "Java" in the User-Agent
+			// Reverses any occurrence of "java" in the User-Agent using same casing
+			Matcher matcher = Pattern.compile("(?i)java").matcher(agent);
+			while (matcher.find()) {
+				String reversed = new StringBuilder(matcher.group()).reverse().toString();
+				agent = agent.replace(matcher.group(), reversed);
+			}
 		}
+
 		return agent;
 	}
 
