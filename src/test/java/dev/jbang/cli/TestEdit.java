@@ -118,9 +118,7 @@ public class TestEdit extends BaseTest {
 		JBang.getCommandLine().execute("init", s);
 		assertThat(new File(s).exists(), is(true));
 
-		Util.writeString(p, "//DEPS io.quarkus:quarkus-bom:2.0.0.Final@pom\n" +
-				"//DEPS io.quarkus:quarkus-rest-client-reactive\n" +
-				"//DEPS io.quarkus:quarkus-rest-client-reactive-jackson\n" + Util.readString(p));
+		Util.writeString(p, "//DEPS com.github.lalyos:jfiglet:0.0.8\n" + Util.readString(p));
 
 		ProjectBuilder pb = Project.builder();
 		Project prj = pb.build(s);

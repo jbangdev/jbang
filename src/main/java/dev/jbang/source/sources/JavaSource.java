@@ -18,10 +18,6 @@ import dev.jbang.util.Util;
 
 public class JavaSource extends Source {
 
-	public JavaSource(String script, Function<String, String> replaceProperties) {
-		super(script, replaceProperties);
-	}
-
 	public JavaSource(ResourceRef script, Function<String, String> replaceProperties) {
 		super(script, replaceProperties);
 	}
@@ -37,17 +33,17 @@ public class JavaSource extends Source {
 
 	@Override
 	protected List<String> getCompileOptions() {
-		return tagReader.collectOptions("JAVAC_OPTIONS", "COMPILE_OPTIONS");
+		return getTagReader().collectOptions("JAVAC_OPTIONS", "COMPILE_OPTIONS");
 	}
 
 	@Override
 	protected List<String> getNativeOptions() {
-		return tagReader.collectOptions("NATIVE_OPTIONS");
+		return getTagReader().collectOptions("NATIVE_OPTIONS");
 	}
 
 	@Override
 	protected List<String> getRuntimeOptions() {
-		return tagReader.collectOptions("JAVA_OPTIONS", "RUNTIME_OPTIONS");
+		return getTagReader().collectOptions("JAVA_OPTIONS", "RUNTIME_OPTIONS");
 	}
 
 	@Override

@@ -1,5 +1,7 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
-
+{#if requestedJavaVersion}
+//JAVA {requestedJavaVersion}
+{/if}
 {#for dep in dependencies.orEmpty}
 //DEPS {dep}
 {/for}

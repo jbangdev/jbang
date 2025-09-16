@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.iterableWithSize;
 import static org.hamcrest.Matchers.nullValue;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
@@ -337,5 +339,38 @@ public class TestProjectBuilder extends BaseTest {
 		assertThat(prj.getManifestAttributes(), hasEntry("bar", "baz"));
 		assertThat(prj.getManifestAttributes(), hasEntry("baz", "nada"));
 		assertThat(prj.getManifestAttributes(), hasEntry("twom", "2"));
+	}
+
+	@Test
+	void testAbsoluteFileTags() {
+		ProjectBuilder pb = Project.builder();
+		Path src;
+		if (Util.isWindows()) {
+			src = examplesTestFolder.resolve("abstagswin.java");
+		} else {
+			src = examplesTestFolder.resolve("abstagsnix.java");
+		}
+		Project prj = pb.build(src);
+		assertThat(prj.getMainSourceSet().getResources(), iterableWithSize(3));
+		assertThat(prj.getMainSourceSet()
+			.getResources()
+			.stream()
+			.filter(rt -> rt.getSource() instanceof ResourceRef.UnresolvableResourceRef)
+			.collect(Collectors.toList()), iterableWithSize(2));
+	}
+
+	@Test
+	void testMissingFilesTags() {
+		ProjectBuilder pb = Project.builder();
+		Path src = examplesTestFolder.resolve("badtags.java");
+		Project prj = pb.build(src);
+		assertThat(prj.getMainSourceSet().getSources(), iterableWithSize(2));
+		assertThat(prj.getMainSourceSet().getSources().get(1), instanceOf(ResourceRef.UnresolvableResourceRef.class));
+		assertThat(prj.getMainSourceSet().getResources(), iterableWithSize(2));
+		assertThat(prj.getMainSourceSet()
+			.getResources()
+			.stream()
+			.filter(rt -> rt.getSource() instanceof ResourceRef.UnresolvableResourceRef)
+			.collect(Collectors.toList()), iterableWithSize(2));
 	}
 }

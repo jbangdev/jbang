@@ -1,19 +1,23 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
+{#if requestedJavaVersion}
+//JAVA {requestedJavaVersion}
+{#else if compactSourceFiles}
+//JAVA 25+
+{/if}
 {#for dep in dependencies.orEmpty}
 //DEPS {dep}
 {/for}
 {#if dependencies.isEmpty()}// //DEPS <dependency1> <dependency2>{/if}
-
 {#if magiccontent}
 {magiccontent}
 {#else}
-import static java.lang.System.*;
-
 {#if compactSourceFiles}
 void main(String... args) {
-    out.println("Hello World");
+    IO.println("Hello World");
 }
 {#else}
+import static java.lang.System.*;
+
 public class {baseName} {
 
     public static void main(String... args) {

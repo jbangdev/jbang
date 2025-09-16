@@ -1,5 +1,6 @@
 package dev.jbang.source;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -25,7 +26,6 @@ import dev.jbang.util.Util;
  * Resolver.resolve}.
  */
 public interface ResourceRef extends Comparable<ResourceRef> {
-	ResourceRef nullRef = new UnresolvableResourceRef(null);
 
 	@Nullable
 	String getOriginalResource();
@@ -157,15 +157,29 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 	}
 
 	/**
+	 * Creates a new {@code ResourceRef} instance for a literal resource. This is
+	 * useful for cases where the resource is a literal string that represents the
+	 * contents of a resource. The literal resource is stored in memory and can be
+	 * accessed directly.
+	 *
+	 * @param literal the literal string representing the resource contents
+	 * @return a {@code ResourceRef} instance
+	 */
+	static ResourceRef forLiteral(@NonNull String literal) {
+		return new LiteralResourceRef(literal);
+	}
+
+	/**
 	 * Creates a new {@code ResourceRef} instance that cannot be resolved. This is
 	 * useful for cases where the resource string is known but cannot be resolved to
 	 * a file or input stream.
 	 *
 	 * @param resource the resource string
+	 * @param reason   the reason why the resource cannot be resolved
 	 * @return a {@code ResourceRef} instance
 	 */
-	static ResourceRef forUnresolvable(@NonNull String resource) {
-		return new UnresolvableResourceRef(resource);
+	static ResourceRef forUnresolvable(@NonNull String resource, @NonNull String reason) {
+		return new UnresolvableResourceRef(resource, reason);
 	}
 
 	/**
@@ -183,9 +197,11 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 
 	class UnresolvableResourceRef implements ResourceRef {
 		private final String resource;
+		private final String reason;
 
-		public UnresolvableResourceRef(@Nullable String resource) {
+		public UnresolvableResourceRef(@Nullable String resource, @NonNull String reason) {
 			this.resource = resource;
+			this.reason = reason;
 		}
 
 		@Nullable
@@ -194,20 +210,37 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 			return resource;
 		}
 
+		@Nullable
+		public String getReason() {
+			return reason;
+		}
+
 		@Override
 		public boolean exists() {
 			return false;
 		}
 
+		@NonNull
 		@Override
-		public int compareTo(ResourceRef o) {
+		public Path getFile() {
+			throw new ResourceNotFoundException(getOriginalResource(),
+					"Failed to get contents from resource '" + resource + "': " + reason);
+		}
+
+		@Override
+		public int compareTo(@NonNull ResourceRef o) {
 			return 0;
+		}
+
+		@Override
+		public String toString() {
+			return resource + " (unresolvable)";
 		}
 	}
 
 	class WrappedResourceRef implements ResourceRef {
 		@NonNull
-		private final ResourceRef wrappedRef;
+		protected final ResourceRef wrappedRef;
 
 		public WrappedResourceRef(@NonNull ResourceRef wrappedRef) {
 			this.wrappedRef = wrappedRef;
@@ -231,7 +264,7 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 		}
 
 		@Override
-		public int compareTo(ResourceRef o) {
+		public int compareTo(@NonNull ResourceRef o) {
 			return wrappedRef.compareTo(o);
 		}
 
@@ -239,5 +272,27 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 		public boolean equals(Object obj) {
 			return wrappedRef.equals(obj);
 		}
+
+		@Override
+		public String toString() {
+			return wrappedRef.toString();
+		}
 	}
+
+	class LiteralResourceRef extends InputStreamResourceRef {
+
+		public LiteralResourceRef(@NonNull String literal) {
+			this(null, literal);
+		}
+
+		public LiteralResourceRef(@Nullable String resource, @NonNull String literal) {
+			super(resource, ref -> new ByteArrayInputStream(literal.getBytes()));
+		}
+
+		@Override
+		public boolean exists() {
+			return true;
+		}
+	}
+
 }

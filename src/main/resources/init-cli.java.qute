@@ -1,4 +1,7 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
+{#if requestedJavaVersionr}
+//JAVA {requestedJavaVersion}
+{/if}
 //DEPS info.picocli:picocli:4.6.3
 {#for dep in dependencies.orEmpty}
 //DEPS {dep}

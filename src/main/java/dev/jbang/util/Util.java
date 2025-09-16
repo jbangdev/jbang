@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
@@ -532,6 +533,11 @@ public class Util {
 	 **/
 	static public String readString(Path toPath) throws IOException {
 		return new String(Files.readAllBytes(toPath));
+	}
+
+	static public String readString(InputStream is) {
+		BufferedReader br = new BufferedReader(new InputStreamReader(is));
+		return br.lines().collect(Collectors.joining("\n"));
 	}
 
 	/**
