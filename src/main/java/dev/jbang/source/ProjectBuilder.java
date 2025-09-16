@@ -329,7 +329,7 @@ public class ProjectBuilder {
 		TagReader tagReader = new TagReader.JbangProject(contents,
 				it -> PropertiesValueResolver.replaceProperties(it, getContextProperties()));
 		prj.setDescription(tagReader.getDescription().orElse(null));
-		ResourceResolver resolver1 = new SiblingResourceResolver(resourceRef, ResourceResolver.forResources());
+		ResourceResolver resolver1 = new SiblingResourceResolver(resourceRef);
 		prj.addDocs(tagReader.collectDocs(resolver1));
 		prj.setGav(tagReader.getGav().orElse(null));
 		prj.setMainClass(tagReader.getMain().orElse(null));
@@ -540,10 +540,10 @@ public class ProjectBuilder {
 	 * @return A <code>Project</code>
 	 */
 	private Project updateProjectMain(Source src, Project prj, ResourceResolver resolver) {
-		prj.setDescription(src.tagReader.getDescription().orElse(null));
-		prj.setGav(src.tagReader.getGav().orElse(null));
-		prj.setMainClass(src.tagReader.getMain().orElse(null));
-		prj.setModuleName(src.tagReader.getModule().orElse(null));
+		prj.setDescription(src.getTagReader().getDescription().orElse(null));
+		prj.setGav(src.getTagReader().getGav().orElse(null));
+		prj.setMainClass(src.getTagReader().getMain().orElse(null));
+		prj.setModuleName(src.getTagReader().getModule().orElse(null));
 		if (prj.getMainSource() instanceof JavaSource) {
 			// todo: have way to turn these off? lets wait until someone asks and has a
 			// usecase
@@ -569,28 +569,32 @@ public class ProjectBuilder {
 	private Project updateProject(Source src, Project prj, ResourceResolver resolver) {
 		ResourceRef srcRef = src.getResourceRef();
 		if (!prj.getMainSourceSet().getSources().contains(srcRef)) {
-			ResourceResolver sibRes1 = new SiblingResourceResolver(srcRef, ResourceResolver.forResources());
+			ResourceResolver sibRes1 = new SiblingResourceResolver(srcRef);
 			SourceSet ss = prj.getMainSourceSet();
 			ss.addSource(srcRef);
-			ss.addResources(src.tagReader.collectFiles(srcRef, sibRes1));
+			if (srcRef instanceof ResourceRef.UnresolvableResourceRef) {
+				Util.verboseMsg("Skipping unresolvable source: " + srcRef);
+				return prj;
+			}
+			ss.addResources(src.getTagReader().collectFiles(srcRef, sibRes1));
 			ss.addDependencies(src.collectBinaryDependencies());
 			ss.addCompileOptions(src.getCompileOptions());
 			ss.addNativeOptions(src.getNativeOptions());
-			prj.addRepositories(src.tagReader.collectRepositories());
+			prj.addRepositories(src.getTagReader().collectRepositories());
 			prj.addRuntimeOptions(src.getRuntimeOptions());
-			prj.addDocs(src.tagReader.collectDocs(sibRes1));
+			prj.addDocs(src.getTagReader().collectDocs(sibRes1));
 
-			src.tagReader.collectManifestOptions().forEach(kv -> {
+			src.getTagReader().collectManifestOptions().forEach(kv -> {
 				if (!kv.getKey().isEmpty()) {
 					prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
 				}
 			});
-			src.tagReader.collectAgentOptions().forEach(kv -> {
+			src.getTagReader().collectAgentOptions().forEach(kv -> {
 				if (!kv.getKey().isEmpty()) {
 					prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
 				}
 			});
-			String version = src.tagReader.getJavaVersion();
+			String version = src.getTagReader().getJavaVersion();
 			if (version != null && JavaUtil.checkRequestedVersion(version)) {
 				if (new JavaUtil.RequestedVersionComparator().compare(prj.getJavaVersion(), version) > 0) {
 					prj.setJavaVersion(version);
@@ -601,7 +605,7 @@ public class ProjectBuilder {
 				prj.addSubProject(new ProjectBuilder(buildRefs).build(subRef));
 			}
 			ResourceResolver sibRes2 = new SiblingResourceResolver(srcRef, resolver);
-			for (Source includedSource : src.tagReader.collectSources(srcRef, sibRes2)) {
+			for (Source includedSource : src.getTagReader().collectSources(srcRef, sibRes2)) {
 				updateProject(includedSource, prj, resolver);
 			}
 		}

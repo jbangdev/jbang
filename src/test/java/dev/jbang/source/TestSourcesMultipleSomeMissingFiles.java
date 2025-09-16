@@ -1,6 +1,8 @@
 package dev.jbang.source;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.iterableWithSize;
 import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -11,13 +13,12 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.junit.Assume;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
-import dev.jbang.cli.ExitException;
 
 class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 
@@ -142,7 +143,13 @@ class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 		String scriptURL = mainPath.toString();
 		ResourceRef resourceRef = ResourceRef.forResolvedResource(scriptURL, mainPath);
 		Source source = Source.forResourceRef(resourceRef, null);
-		Assertions.assertThrows(ExitException.class, () -> Project.builder().build(source));
+		Project prj = Project.builder().build(source);
+		assertThat(prj.getMainSourceSet().getSources(), iterableWithSize(5));
+		assertThat(prj.getMainSourceSet()
+			.getSources()
+			.stream()
+			.filter(ref -> ref instanceof ResourceRef.UnresolvableResourceRef)
+			.collect(Collectors.toList()), iterableWithSize(1));
 	}
 
 }

@@ -118,7 +118,7 @@ This should print out usage information.
 
 To update run:
 
-[source]
+[source, bash]
 ----
 sdk upgrade jbang
 ----
@@ -139,18 +139,24 @@ On OSX you can install 'java' and `jbang` with https://brew.sh[Homebrew] using c
 
 To install Java 17:
 
-[source, bash]
+[source,bash]
 ----
 brew install temurin@17 --cask
 ----
 
 Once Java is installed you can use brew with https://github.com/jbangdev/homebrew-tap/[jbangdev/tap] to get `jbang`:
 
-  brew install jbangdev/tap/jbang
+[source,bash]
+----
+brew install jbangdev/tap/jbang
+----
 
 To upgrade to latest version:
 
-  brew upgrade jbangdev/tap/jbang
+[source,bash]
+----
+brew upgrade jbangdev/tap/jbang
+----
 
 === (Experimental) Linux packages icon:linux[]
 
@@ -159,7 +165,7 @@ WARNING: These builds are not fully automated yet thus might be slightly behind.
 You can install rpm packages from https://copr.fedorainfracloud.org/coprs/maxandersen/jbang/[Fedora Copr]
 by doing the following:
 
-[source]
+[source,bash]
 ----
 dnf copr enable @jbangdev/jbang 
 dnf install jbang
@@ -175,27 +181,40 @@ On Windows you can install both `java` and `jbang` with https://chocolatey.org[C
 
 From a command prompt with enough rights to install with choco:
 
-  choco install jdk11
+
+[source,powershell]
+----
+choco install jdk11
+----
 
 Once Java in installed run:
 
-  choco install jbang
+[source,powershell]
+----
+choco install jbang
+----
 
 To upgrade to latest version:
 
-  choco upgrade jbang
+[source,powershell]
+----
+choco upgrade jbang
+----
 
 The latest package will be published to https://chocolatey.org/packages/jbang[jbang choco package page],
 it might be a bit delayed as the review is still manual. In case the default version is not
 the latest you can see the https://chocolatey.org/packages/jbang/#versionhistory[version list] and install specific version using:
 
-  choco install jbang --version=<version number>
+[source,powershell]
+----
+choco install jbang --version=<version number>
+----
 
 === Scoop
 
 On Windows you can also install `jbang` with https://scoop.sh[Scoop].
 
-[source, bash]
+[source,powershell]
 ----
 scoop bucket add jbangdev https://github.com/jbangdev/scoop-bucket
 scoop install jbang
@@ -203,7 +222,10 @@ scoop install jbang
 
 To upgrade to latest version:
 
-  scoop update jbang
+[source,powershell]
+----
+scoop update jbang
+----
 
 == Homebrew icon:apple[]
 
@@ -219,11 +241,17 @@ brew install adoptopenjdk11 --cask
 
 Once Java is installed you can use brew with https://github.com/jbangdev/homebrew-tap/[jbangdev/tap] to get `jbang`:
 
-  brew install jbangdev/tap/jbang
+[source,bash]
+----
+brew install jbangdev/tap/jbang
+----
 
 To upgrade to latest version:
 
-  brew upgrade jbangdev/tap/jbang
+[source,bash]
+----
+brew upgrade jbangdev/tap/jbang
+----
 
 == (Experimental) Linux packages icon:linux[]
 
@@ -232,7 +260,7 @@ WARNING: These builds are not fully automated yet thus might be slightly behind.
 You can install rpm packages from https://copr.fedorainfracloud.org/coprs/maxandersen/jbang/[Fedora Copr]
 by doing the following:
 
-[source]
+[source,bash]
 ----
 dnf copr enable @jbangdev/jbang 
 dnf install jbang
@@ -244,14 +272,14 @@ The COPR currently includes builds from various versions of CentOS, Fedora, Mage
 
 You can run `jbang` via Docker:
 
-[source, bash]
+[source,bash]
 ----
 docker run -v `pwd`:/ws --workdir=/ws -ti jbangdev/jbang-action helloworld.java
 ----
 
 or if you prefer using Quay.io:
 
-[source, bash]
+[source,bash]
 ----
 docker run -v `pwd`:/ws --workdir=/ws -ti quay.io/jbangdev/jbang-action helloworld.java
 ----
@@ -273,6 +301,7 @@ You can use JBang in your GitHub Actions workflows:
   run: |
     jbang properties@jbangdev
 ----
+
 See https://github.com/marketplace/actions/setup-jbang for more details.
 
 == Build Tools
@@ -285,23 +314,23 @@ Example in your `pom.xml`:
 
 [source,xml]
 ----
-      <plugin>
-        <groupId>dev.jbang</groupId>
-        <artifactId>jbang-maven-plugin</artifactId>
-        <version>0.0.8</version>
-        <executions>
-          <execution>
-            <id>run</id>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-                <script>hello.java</script>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+<plugin>
+<groupId>dev.jbang</groupId>
+<artifactId>jbang-maven-plugin</artifactId>
+<version>0.0.8</version>
+<executions>
+  <execution>
+    <id>run</id>
+    <phase>process-resources</phase>
+    <goals>
+      <goal>run</goal>
+    </goals>
+    <configuration>
+        <script>hello.java</script>
+    </configuration>
+  </execution>
+</executions>
+</plugin>
 ---- 
 
 The plugin documentation and more examples are available here: https://github.com/jbangdev/jbang-maven-plugin
