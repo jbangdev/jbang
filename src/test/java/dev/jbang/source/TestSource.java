@@ -302,7 +302,6 @@ public class TestSource extends BaseTest {
 
 		assertTrue(source.enableCDS());
 		assertFalse(source2.enableCDS());
-
 	}
 
 	@Test

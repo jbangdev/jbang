@@ -9,6 +9,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.dependencies.MavenRepo;
+import dev.jbang.source.parser.TagReader;
 
 public class TestTagReader {
 

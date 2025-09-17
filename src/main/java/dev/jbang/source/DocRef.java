@@ -5,6 +5,8 @@ import java.util.Objects;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import dev.jbang.source.parser.KeyValue;
+
 public class DocRef {
 	private final @Nullable String id;
 	private final @NonNull ResourceRef ref;
@@ -46,17 +48,30 @@ public class DocRef {
 		}
 	}
 
-	public static DocRef toDocRef(ResourceResolver siblingResolver, String repoReference) {
-		String[] split = repoReference.split("=", 2);
+	public static DocRef create(@NonNull ResourceRef ref) {
+		return new DocRef(null, ref);
+	}
+
+	public static DocRef create(@Nullable String id, @NonNull ResourceRef ref) {
+		return new DocRef(id, ref);
+	}
+
+	public static DocRef toDocRef(ResourceResolver siblingResolver, KeyValue doc) {
 		String docId;
 		String docRef;
-		if (split.length == 1) {
+		if (doc.getValue() == null) {
 			docId = null;
-			docRef = split[0];
+			docRef = doc.getKey();
 		} else {
-			docId = split[0];
-			docRef = split[1];
+			docId = doc.getKey();
+			docRef = doc.getValue();
 		}
+		ResourceRef ref = siblingResolver.resolve(docRef);
+		return new DocRef(docId, ref != null ? ref
+				: ResourceRef.forUnresolvable(docRef, "not resolvable from " + siblingResolver.description()));
+	}
+
+	public static DocRef toDocRef(ResourceResolver siblingResolver, String docId, String docRef) {
 		ResourceRef ref = siblingResolver.resolve(docRef);
 		return new DocRef(docId, ref != null ? ref
 				: ResourceRef.forUnresolvable(docRef, "not resolvable from " + siblingResolver.description()));

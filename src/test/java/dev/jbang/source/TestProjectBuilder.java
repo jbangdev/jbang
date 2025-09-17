@@ -143,6 +143,10 @@ public class TestProjectBuilder extends BaseTest {
 		assertThat(prj.getManifestAttributes(), hasEntry("one", "1"));
 		assertThat(prj.getManifestAttributes(), hasEntry("two", "2"));
 		assertThat(prj.getManifestAttributes(), hasEntry("three", "3"));
+		assertThat(prj.getDocs(), iterableWithSize(2));
+		assertThat(prj.getDocs(), containsInAnyOrder(
+				DocRef.create("javadoc", ResourceRef.forFile(examplesTestFolder.resolve("readme.md"))),
+				DocRef.create(ResourceRef.forFile(examplesTestFolder.resolve("readme.adoc")))));
 	}
 
 	@Test
