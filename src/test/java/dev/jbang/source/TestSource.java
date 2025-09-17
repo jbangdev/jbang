@@ -20,6 +20,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.net.TrustedSources;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.sources.GroovySource;
 import dev.jbang.source.sources.JavaSource;
 import dev.jbang.source.sources.KotlinSource;

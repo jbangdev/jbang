@@ -1,4 +1,4 @@
-package dev.jbang.source;
+package dev.jbang.resources;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -10,7 +10,7 @@ import java.util.function.Function;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import dev.jbang.source.resolvers.FileResourceResolver;
+import dev.jbang.resources.resolvers.FileResourceResolver;
 import dev.jbang.util.Util;
 
 /**

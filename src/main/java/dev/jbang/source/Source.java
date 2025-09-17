@@ -10,6 +10,8 @@ import java.util.stream.Stream;
 
 import org.jspecify.annotations.NonNull;
 
+import dev.jbang.resources.ResourceRef;
+import dev.jbang.resources.ResourceResolver;
 import dev.jbang.source.parser.TagReader;
 import dev.jbang.source.sources.*;
 import dev.jbang.source.sources.KotlinSource;

@@ -1,4 +1,4 @@
-package dev.jbang.source.resolvers;
+package dev.jbang.resources.resolvers;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -6,7 +6,10 @@ import java.net.URL;
 
 import org.jspecify.annotations.NonNull;
 
-import dev.jbang.source.*;
+import dev.jbang.resources.InputStreamResourceRef;
+import dev.jbang.resources.ResourceNotFoundException;
+import dev.jbang.resources.ResourceRef;
+import dev.jbang.resources.ResourceResolver;
 
 /**
  * A <code>ResourceResolver</code> that, when given a resource string which

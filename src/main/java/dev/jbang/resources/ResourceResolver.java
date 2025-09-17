@@ -1,9 +1,9 @@
-package dev.jbang.source;
+package dev.jbang.resources;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import dev.jbang.source.resolvers.*;
+import dev.jbang.resources.resolvers.*;
 
 /**
  * An interface used for analysing a resource string, resolving what exact file

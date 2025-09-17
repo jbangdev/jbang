@@ -14,7 +14,7 @@ import dev.jbang.cli.Edit;
 import dev.jbang.cli.Init;
 import dev.jbang.cli.JBang;
 import dev.jbang.cli.Run;
-import dev.jbang.source.ResourceRef;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;

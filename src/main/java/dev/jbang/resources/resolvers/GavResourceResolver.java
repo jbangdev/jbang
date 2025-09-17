@@ -1,4 +1,4 @@
-package dev.jbang.source.resolvers;
+package dev.jbang.resources.resolvers;
 
 import java.util.function.Function;
 
@@ -6,8 +6,8 @@ import org.jspecify.annotations.NonNull;
 
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.ModularClassPath;
-import dev.jbang.source.ResourceRef;
-import dev.jbang.source.ResourceResolver;
+import dev.jbang.resources.ResourceRef;
+import dev.jbang.resources.ResourceResolver;
 
 /**
  * A <code>ResourceResolver</code> that, when given a resource string which

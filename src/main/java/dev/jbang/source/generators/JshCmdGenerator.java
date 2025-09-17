@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.text.StringEscapeUtils;
 
 import dev.jbang.devkitman.Jdk;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.*;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
