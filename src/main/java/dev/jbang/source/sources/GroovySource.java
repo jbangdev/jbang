@@ -57,7 +57,7 @@ public class GroovySource extends Source {
 	}
 
 	public String getGroovyVersion() {
-		return getTagReader().collectOptions("GROOVY")
+		return getTagReader().collectTags("GROOVY")
 			.stream()
 			.findFirst()
 			.orElse(GroovyManager.DEFAULT_GROOVY_VERSION);

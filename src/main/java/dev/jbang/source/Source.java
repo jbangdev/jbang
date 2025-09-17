@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 
 import org.jspecify.annotations.NonNull;
 
+import dev.jbang.source.parser.TagReader;
 import dev.jbang.source.sources.*;
 import dev.jbang.source.sources.KotlinSource;
 import dev.jbang.source.sources.MarkdownSource;
@@ -119,15 +120,15 @@ public abstract class Source {
 	}
 
 	public boolean enableCDS() {
-		return !getTagReader().collectRawOptions("CDS").isEmpty();
+		return !getTagReader().collectTags("CDS").isEmpty();
 	}
 
 	public boolean enablePreview() {
-		return !getTagReader().collectRawOptions("PREVIEW").isEmpty();
+		return !getTagReader().collectTags("PREVIEW").isEmpty();
 	}
 
 	public boolean disableIntegrations() {
-		return !getTagReader().collectRawOptions("NOINTEGRATIONS").isEmpty();
+		return !getTagReader().collectTags("NOINTEGRATIONS").isEmpty();
 	}
 
 	// Used only by tests

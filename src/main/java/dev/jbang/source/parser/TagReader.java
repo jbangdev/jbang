@@ -1,4 +1,4 @@
-package dev.jbang.source;
+package dev.jbang.source.parser;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -27,7 +27,7 @@ import dev.jbang.util.Util;
 
 public abstract class TagReader {
 	protected final String contents;
-	protected final Function<String, String> replaceProperties;
+	protected final Function<String, String> propertiesReplacer;
 
 	private static final String REPOS_COMMENT_PREFIX = "REPOS ";
 	private static final String DEPS_COMMENT_PREFIX = "DEPS ";
@@ -41,22 +41,22 @@ public abstract class TagReader {
 
 	private static final Pattern EOL = Pattern.compile("\\r?\\n");
 
-	public TagReader(String contents, Function<String, String> replaceProperties) {
+	public TagReader(String contents, Function<String, String> propertiesReplacer) {
 		this.contents = contents;
-		this.replaceProperties = replaceProperties != null ? replaceProperties : Function.identity();
+		this.propertiesReplacer = propertiesReplacer != null ? propertiesReplacer : Function.identity();
 	}
 
 	protected String getContents() {
 		return contents;
 	}
 
-	protected abstract Stream<String> getTags();
+	public abstract Stream<String> getTags();
 
 	public List<String> collectBinaryDependencies() {
 		return getTags()
 			.filter(this::isDependDeclare)
 			.flatMap(this::extractDependencies)
-			.map(replaceProperties)
+			.map(propertiesReplacer)
 			.filter(TagReader::isGav)
 			.collect(Collectors.toList());
 	}
@@ -65,7 +65,7 @@ public abstract class TagReader {
 		return getTags()
 			.filter(this::isDependDeclare)
 			.flatMap(this::extractDependencies)
-			.map(replaceProperties)
+			.map(propertiesReplacer)
 			.filter(it -> !isGav(it))
 			.collect(Collectors.toList());
 	}
@@ -86,7 +86,7 @@ public abstract class TagReader {
 		return getTags()
 			.filter(this::isRepoDeclare)
 			.flatMap(this::extractRepositories)
-			.map(replaceProperties)
+			.map(propertiesReplacer)
 			.map(DependencyUtil::toMavenRepo)
 			.collect(Collectors.toCollection(ArrayList::new));
 	}
@@ -99,11 +99,11 @@ public abstract class TagReader {
 		return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
 	}
 
-	public List<DocRef> collectDocs(ResourceResolver siblingResolver) {
+	public List<KeyValue> collectDocs() {
 		return getTags()
 			.filter(this::isDocsDeclare)
 			.map(s -> s.substring(DOCS_COMMENT_PREFIX.length()))
-			.map(s -> DocRef.toDocRef(siblingResolver, s))
+			.map(this::toKeyValue)
 			.collect(Collectors.toCollection(ArrayList::new));
 	}
 
@@ -127,23 +127,6 @@ public abstract class TagReader {
 
 	private static Stream<String> extractKeyValues(String line) {
 		return Arrays.stream(line.split(" +")).map(String::trim);
-	}
-
-	private KeyValue toKeyValue(String line) {
-		String[] split = line.split("=");
-		String key;
-		String value = null;
-
-		if (split.length == 1) {
-			key = split[0];
-		} else if (split.length == 2) {
-			key = split[0];
-			value = replaceProperties.apply(split[1]);
-		} else {
-			throw new IllegalStateException("Invalid key/value: " + line);
-		}
-
-		return new KeyValue(key, value);
 	}
 
 	public Optional<String> getDescription() {
@@ -247,20 +230,46 @@ public abstract class TagReader {
 	}
 
 	@NonNull
-	public List<String> collectOptions(String... prefixes) {
-		List<String> options;
+	public List<String> collectTags(String... prefixes) {
+		List<String> tags;
 		if (prefixes.length > 1) {
-			options = new ArrayList<>();
+			tags = new ArrayList<>();
 			for (String prefix : prefixes) {
-				options.addAll(collectRawOptions(prefix));
+				tags.addAll(collectRawOptions(prefix));
 			}
 		} else {
-			options = collectRawOptions(prefixes[0]);
+			tags = collectRawOptions(prefixes[0]);
 		}
+		return tags;
+	}
 
+	@NonNull
+	public List<String> collectOptions(String... prefixes) {
+		List<String> options = collectTags(prefixes);
 		// convert quoted content to list of strings as
 		// just passing "--enable-preview --source 14" fails
-		return Project.quotedStringToList(String.join(" ", options));
+		return quotedStringToList(options);
+	}
+
+	// https://stackoverflow.com/questions/366202/regex-for-splitting-a-string-using-space-when-not-surrounded-by-single-or-double
+	static List<String> quotedStringToList(List<String> options) {
+		String subjectString = String.join(" ", options);
+		List<String> matchList = new ArrayList<>();
+		Pattern regex = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
+		Matcher regexMatcher = regex.matcher(subjectString);
+		while (regexMatcher.find()) {
+			if (regexMatcher.group(1) != null) {
+				// Add double-quoted string without the quotes
+				matchList.add(regexMatcher.group(1));
+			} else if (regexMatcher.group(2) != null) {
+				// Add single-quoted string without the quotes
+				matchList.add(regexMatcher.group(2));
+			} else {
+				// Add unquoted word
+				matchList.add(regexMatcher.group());
+			}
+		}
+		return matchList;
 	}
 
 	@NonNull
@@ -287,39 +296,37 @@ public abstract class TagReader {
 	}
 
 	private List<String> collectJavaVersions() {
-		return collectOptions("JAVA");
+		return collectTags("JAVA");
 	}
 
-	public List<Source> collectSources(ResourceRef resourceRef, ResourceResolver siblingResolver) {
+	public List<String> collectSources() {
 		if (getContents() == null) {
 			return Collections.emptyList();
 		} else {
-			String org = resourceRef.getOriginalResource();
-			Path baseDir = org != null ? resourceRef.getFile().toAbsolutePath().getParent()
-					: Util.getCwd();
 			return getTags().filter(f -> f.startsWith(SOURCES_COMMENT_PREFIX))
 				.flatMap(line -> Arrays.stream(line.split(" // ")[0].split("[ ;,]+"))
 					.skip(1)
 					.map(String::trim))
-				.map(replaceProperties)
-				.flatMap(line -> Util.explode(org, baseDir, line).stream())
-				.map(ref -> Source.forResource(siblingResolver, ref, replaceProperties))
+				.map(propertiesReplacer)
 				.collect(Collectors.toCollection(ArrayList::new));
 		}
 	}
 
-	public List<RefTarget> collectFiles(ResourceRef resourceRef, ResourceResolver siblingResolver) {
-		String org = resourceRef.getOriginalResource();
-		Path baseDir = org != null ? resourceRef.getFile().toAbsolutePath().getParent()
-				: Util.getCwd();
+	public List<KeyValue> collectFiles() {
 		return getTags().filter(f -> f.startsWith(FILES_COMMENT_PREFIX))
 			.flatMap(line -> Arrays.stream(line.split(" // ")[0].split("[ ;,]+"))
 				.skip(1)
 				.map(String::trim))
-			.map(replaceProperties)
-			.flatMap(f -> explodeFileRef(org, baseDir, f).stream())
-			.map(f -> toFileRef(f, siblingResolver))
+			.map(propertiesReplacer)
+			.map(this::toKeyValue)
 			.collect(Collectors.toCollection(ArrayList::new));
+	}
+
+	private KeyValue toKeyValue(String s) {
+		KeyValue kv = KeyValue.of(s);
+		String value = kv.getValue();
+		value = value != null ? propertiesReplacer.apply(value) : null;
+		return new KeyValue(kv.getKey(), value);
 	}
 
 	/**
@@ -331,14 +338,13 @@ public abstract class TagReader {
 	 * will be assumed to be the name of the folder the files must be mounted into.
 	 * The paths are considered relative to the given <code>baseDir</code>.
 	 */
-	public static List<String> explodeFileRef(String source, Path baseDir, String fileReference) {
-		String[] split = fileReference.split("=", 2);
-		if (split.length == 1) {
-			List<String> refs = Util.explode(source, baseDir, fileReference);
+	public static List<String> explodeFileRef(String source, Path baseDir, KeyValue fileReference) {
+		if (fileReference.getValue() == null) {
+			List<String> refs = Util.explode(source, baseDir, fileReference.getKey());
 			return refs.stream()
 				.map(s -> {
 					if (Util.isValidPath(s)) {
-						Path base = Util.basePathWithoutPattern(fileReference);
+						Path base = Util.basePathWithoutPattern(fileReference.getKey());
 						Path sub = base.relativize(Paths.get(s)).getParent();
 						if (sub != null) {
 							return sub + "/=" + s;
@@ -348,9 +354,10 @@ public abstract class TagReader {
 				})
 				.collect(Collectors.toList());
 		} else {
-			String filePattern = split[1];
-			String alias = !Util.isPattern(filePattern) || split[0].isEmpty() || split[0].endsWith("/") ? split[0]
-					: split[0] + "/";
+			String fileAlias = fileReference.getKey();
+			String filePattern = fileReference.getValue();
+			String alias = !Util.isPattern(filePattern) || fileAlias.isEmpty() || fileAlias.endsWith("/") ? fileAlias
+					: fileAlias + "/";
 			List<String> refs = Util.explode(source, baseDir, filePattern);
 			return refs.stream()
 				.map(s -> {
@@ -368,55 +375,12 @@ public abstract class TagReader {
 	}
 
 	/**
-	 * Turns a reference like `img/logo.jpg` or `WEB-INF/index.html=web/index.html`
-	 * into a <code>RefTarget</code>. In case no alias was supplied the
-	 * <code>RefTarget</code>'s target will be <code>null</code>. When an alias
-	 * terminates in a <code>/</code> the alias will be assumed to be a folder name
-	 * and the source's file name will be appended to it, meaning that given
-	 * `WEB-INF/=web/index.html` this method will return a <code>RefTarget</code> as
-	 * if `WEB-INF/index.html=web/index.html` was supplied.
-	 */
-	public static RefTarget toFileRef(String fileReference, ResourceResolver siblingResolver) {
-		String[] split = fileReference.split("=", 2);
-		String src;
-		String dest = null;
-
-		if (split.length == 1) {
-			src = split[0];
-		} else {
-			dest = split[0];
-			src = split[1];
-		}
-
-		Path p = dest != null ? Paths.get(dest) : null;
-
-		if (Paths.get(src).isAbsolute() || (p != null && p.isAbsolute())) {
-			ResourceRef ref = ResourceRef.forUnresolvable(src,
-					"Only relative paths allowed in //FILES. Found absolute path");
-			return RefTarget.create(ref, p);
-		}
-
-		try {
-			ResourceRef ref = siblingResolver.resolve(src);
-			if (ref == null) {
-				ref = ResourceRef.forUnresolvable(src, "not resolvable from " + siblingResolver.description());
-			}
-			if (dest != null && dest.endsWith("/")) {
-				p = p.resolve(ref.getFile().getFileName());
-			}
-			return RefTarget.create(ref, p);
-		} catch (ResourceNotFoundException rnfe) {
-			ResourceRef ref = ResourceRef.forUnresolvable(src,
-					"error `" + rnfe.getMessage() + "' while resolving from " + siblingResolver.description());
-			return RefTarget.create(ref, p);
-		}
-	}
-
-	/**
 	 * This class extends the default <code>TagReader</code> with support for Groovy
 	 * "grab" annotations.
 	 */
 	public static class Extended extends TagReader {
+		private List<String> tags;
+
 		private static final String DEPS_ANNOT_PREFIX = "@Grab(";
 		private static final Pattern DEPS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
 		private static final Pattern DEPS_ANNOT_SINGLE = Pattern.compile("@Grab\\(\\s*\"(?<value>.*)\"\\s*\\)");
@@ -431,13 +395,17 @@ public abstract class TagReader {
 		}
 
 		@Override
-		protected Stream<String> getTags() {
-			return EOL.splitAsStream(contents)
-				.filter(s -> s.startsWith("//")
-						|| s.contains(DEPS_ANNOT_PREFIX)
-						|| s.contains(REPOS_ANNOT_PREFIX))
-				.map(s -> s.contains(DEPS_ANNOT_PREFIX)
-						|| s.contains(REPOS_ANNOT_PREFIX) ? s : s.substring(2));
+		public Stream<String> getTags() {
+			if (tags == null) {
+				tags = EOL.splitAsStream(contents)
+					.filter(s -> s.startsWith("//")
+							|| s.contains(DEPS_ANNOT_PREFIX)
+							|| s.contains(REPOS_ANNOT_PREFIX))
+					.map(s -> s.contains(DEPS_ANNOT_PREFIX)
+							|| s.contains(REPOS_ANNOT_PREFIX) ? s : s.substring(2))
+					.collect(Collectors.toList());
+			}
+			return tags.stream();
 		}
 
 		@Override
@@ -540,7 +508,7 @@ public abstract class TagReader {
 		}
 
 		@Override
-		protected Stream<String> getTags() {
+		public Stream<String> getTags() {
 			return EOL.splitAsStream(contents).filter(s -> !s.startsWith("//"));
 		}
 

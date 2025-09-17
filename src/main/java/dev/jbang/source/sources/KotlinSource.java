@@ -55,7 +55,7 @@ public class KotlinSource extends Source {
 	}
 
 	public String getKotlinVersion() {
-		return getTagReader().collectOptions("KOTLIN")
+		return getTagReader().collectTags("KOTLIN")
 			.stream()
 			.findFirst()
 			.orElse(KotlinManager.DEFAULT_KOTLIN_VERSION);

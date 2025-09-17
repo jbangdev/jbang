@@ -8,6 +8,9 @@
 //FILES res/resource.properties renamed.properties=res/resource.properties
 //FILES META-INF/application.properties=res/resource.properties
 
+//DOCS javadoc=readme.md
+//DOCS readme.adoc
+
 //COMPILE_OPTIONS --enable-preview --verbose
 //RUNTIME_OPTIONS --add-opens java.base/java.net=ALL-UNNAMED
 //NATIVE_OPTIONS -O1 -d
