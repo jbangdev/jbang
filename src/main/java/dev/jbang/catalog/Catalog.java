@@ -29,7 +29,7 @@ import com.google.gson.annotations.SerializedName;
 
 import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
-import dev.jbang.source.ResourceRef;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.util.Util;
 
 public class Catalog {

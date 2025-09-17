@@ -24,7 +24,8 @@ import org.junit.jupiter.api.Test;
 import dev.jbang.BaseTest;
 import dev.jbang.cli.ExitException;
 import dev.jbang.dependencies.MavenRepo;
-import dev.jbang.source.resolvers.AliasResourceResolver;
+import dev.jbang.resources.ResourceRef;
+import dev.jbang.resources.resolvers.AliasResourceResolver;
 import dev.jbang.util.Util;
 
 public class TestProjectBuilder extends BaseTest {

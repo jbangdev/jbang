@@ -5,7 +5,7 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
-import dev.jbang.source.ResourceRef;
+import dev.jbang.resources.ResourceRef;
 
 import io.quarkus.qute.Engine;
 import io.quarkus.qute.ReflectionValueResolver;

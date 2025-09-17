@@ -17,7 +17,7 @@ import dev.jbang.Settings;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.catalog.TemplateProperty;
-import dev.jbang.source.ResourceRef;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.util.ConsoleOutput;
 import dev.jbang.util.Util;
 

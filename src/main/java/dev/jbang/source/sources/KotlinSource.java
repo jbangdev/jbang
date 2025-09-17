@@ -11,6 +11,7 @@ import java.util.function.Function;
 import org.jspecify.annotations.NonNull;
 
 import dev.jbang.net.KotlinManager;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.*;
 import dev.jbang.source.AppBuilder;
 import dev.jbang.source.buildsteps.CompileBuildStep;

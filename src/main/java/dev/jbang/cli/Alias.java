@@ -15,9 +15,9 @@ import dev.jbang.Settings;
 import dev.jbang.catalog.Alias.JavaAgent;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.catalog.CatalogUtil;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
-import dev.jbang.source.ResourceRef;
 import dev.jbang.util.ConsoleOutput;
 import dev.jbang.util.Util;
 

@@ -4,10 +4,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import dev.jbang.catalog.Alias;
+import dev.jbang.resources.resolvers.AliasResourceResolver;
 import dev.jbang.source.generators.JarCmdGenerator;
 import dev.jbang.source.generators.JshCmdGenerator;
 import dev.jbang.source.generators.NativeCmdGenerator;
-import dev.jbang.source.resolvers.AliasResourceResolver;
 import dev.jbang.util.Util;
 
 public class CmdGeneratorBuilder {

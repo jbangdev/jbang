@@ -1,4 +1,4 @@
-package dev.jbang.source.resolvers;
+package dev.jbang.resources.resolvers;
 
 import static dev.jbang.util.Util.goodTrustURL;
 import static dev.jbang.util.Util.swizzleURL;
@@ -13,9 +13,9 @@ import org.jspecify.annotations.NonNull;
 
 import dev.jbang.cli.ExitException;
 import dev.jbang.net.TrustedSources;
-import dev.jbang.source.ResourceNotFoundException;
-import dev.jbang.source.ResourceRef;
-import dev.jbang.source.ResourceResolver;
+import dev.jbang.resources.ResourceNotFoundException;
+import dev.jbang.resources.ResourceRef;
+import dev.jbang.resources.ResourceResolver;
 import dev.jbang.util.Util;
 
 /**

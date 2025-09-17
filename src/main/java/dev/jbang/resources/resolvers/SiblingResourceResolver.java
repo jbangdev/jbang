@@ -1,4 +1,4 @@
-package dev.jbang.source.resolvers;
+package dev.jbang.resources.resolvers;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -8,9 +8,9 @@ import java.nio.file.Paths;
 import org.jspecify.annotations.NonNull;
 
 import dev.jbang.catalog.Catalog;
-import dev.jbang.source.ResourceNotFoundException;
-import dev.jbang.source.ResourceRef;
-import dev.jbang.source.ResourceResolver;
+import dev.jbang.resources.ResourceNotFoundException;
+import dev.jbang.resources.ResourceRef;
+import dev.jbang.resources.ResourceResolver;
 import dev.jbang.util.Util;
 
 public class SiblingResourceResolver implements ResourceResolver {
