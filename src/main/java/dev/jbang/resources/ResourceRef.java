@@ -25,7 +25,7 @@ import dev.jbang.util.Util;
  * often they are the result of a call to {@code
  * Resolver.resolve}.
  */
-public interface ResourceRef extends Comparable<ResourceRef> {
+public interface ResourceRef extends ResourceResolver, Comparable<ResourceRef> {
 
 	@Nullable
 	String getOriginalResource();
@@ -118,6 +118,22 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 		}
 	}
 
+	@Override
+	default ResourceRef resolve(@NonNull String resource) {
+		return resolve(resource, true);
+	}
+
+	@Override
+	default ResourceRef resolve(String resource, boolean trusted) {
+		return null;
+	}
+
+	@Override
+	@NonNull
+	default String description() {
+		return "ResourceRef: " + this;
+	}
+
 	/**
 	 * Creates a new {@code ResourceRef} instance for the given file path.
 	 *
@@ -125,7 +141,7 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 	 * @return a {@code ResourceRef} instance representing the specified file
 	 */
 	static ResourceRef forFile(@NonNull Path file) {
-		return new FileResourceResolver.FileResourceRef(file.toString(), file);
+		return new FileResourceResolver.FileResourceRef(file.toString(), file, new FileResourceResolver());
 	}
 
 	/**
@@ -139,7 +155,7 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 	 *         resource
 	 */
 	static ResourceRef forResolvedResource(@NonNull String resource, @NonNull Path resolvedResource) {
-		return new FileResourceResolver.FileResourceRef(resource, resolvedResource);
+		return new FileResourceResolver.FileResourceRef(resource, resolvedResource, new FileResourceResolver());
 	}
 
 	/**
@@ -152,8 +168,9 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 	 * @return a {@code ResourceRef} instance representing the specified resolved
 	 *         resource
 	 */
-	static ResourceRef forLazyFileResource(@NonNull String resource, @NonNull Function<String, Path> obtainer) {
-		return new FileResourceResolver.FileResourceRef(resource, obtainer);
+	static ResourceRef forLazyFileResource(@NonNull String resource, @NonNull Function<String, Path> obtainer,
+			@Nullable ResourceResolver resolver) {
+		return new FileResourceResolver.FileResourceRef(resource, obtainer, resolver);
 	}
 
 	/**
@@ -228,6 +245,11 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 		}
 
 		@Override
+		public ResourceRef resolve(String resource, boolean trusted) {
+			return null;
+		}
+
+		@Override
 		public int compareTo(@NonNull ResourceRef o) {
 			return 0;
 		}
@@ -264,6 +286,21 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 		}
 
 		@Override
+		public ResourceRef resolve(@NonNull String resource) {
+			return wrappedRef.resolve(resource);
+		}
+
+		@Override
+		public ResourceRef resolve(String resource, boolean trusted) {
+			return wrappedRef.resolve(resource, trusted);
+		}
+
+		@Override
+		public @NonNull String description() {
+			return wrappedRef.description();
+		}
+
+		@Override
 		public int compareTo(@NonNull ResourceRef o) {
 			return wrappedRef.compareTo(o);
 		}
@@ -286,7 +323,7 @@ public interface ResourceRef extends Comparable<ResourceRef> {
 		}
 
 		public LiteralResourceRef(@Nullable String resource, @NonNull String literal) {
-			super(resource, ref -> new ByteArrayInputStream(literal.getBytes()));
+			super(resource, ref -> new ByteArrayInputStream(literal.getBytes()), new NullResourceResolver());
 		}
 
 		@Override

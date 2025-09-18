@@ -38,7 +38,7 @@ public class GavResourceResolver implements ResourceResolver {
 				// the one we asked for which we assume is always the first one in the list
 				// (hopefully we're right).
 				return mcp.getArtifacts().get(0).getFile();
-			});
+			}, null);
 		}
 
 		return result;
