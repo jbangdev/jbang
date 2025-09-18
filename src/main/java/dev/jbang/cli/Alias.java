@@ -120,7 +120,8 @@ class AliasAdd extends BaseAliasCommand {
 				dependencyInfoMixin.getDependencies(),
 				dependencyInfoMixin.getRepositories(), dependencyInfoMixin.getClasspaths(),
 				dependencyInfoMixin.getProperties(), buildMixin.javaVersion, buildMixin.main, buildMixin.module,
-				buildMixin.compileOptions, nativeMixin.nativeImage, nativeMixin.nativeOptions, buildMixin.integrations,
+				buildMixin.compileOptions, nativeMixin.nativeImage, nativeMixin.nativeOptions,
+				scriptMixin.forceType != null ? scriptMixin.forceType.name() : null, buildMixin.integrations,
 				runMixin.flightRecorderString, runMixin.debugString, runMixin.cds, runMixin.interactive,
 				enablePreviewRequested, runMixin.enableAssertions, runMixin.enableSystemAssertions,
 				buildMixin.manifestOptions, createJavaAgents(), docs, null);

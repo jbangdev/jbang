@@ -30,38 +30,6 @@ import dev.jbang.util.Util;
 
 public class TestProjectBuilder extends BaseTest {
 
-	static final String aliases = "{\n" +
-			"  \"aliases\": {\n" +
-			"    \"test\": {\n" +
-			"      \"script-ref\": \"alltags.java\",\n" +
-			"      \"description\": \"twodesc\",\n" +
-			"      \"arguments\": [\"2\"],\n" +
-			"      \"runtime-options\": [\"--two\"],\n" +
-			"      \"sources\": [\"twosrc\"],\n" +
-			"      \"files\": [\"twofiles\"],\n" +
-			"      \"dependencies\": [\"twodep\"],\n" +
-			"      \"repositories\": [\"tworepo\"],\n" +
-			"      \"classpaths\": [\"twocp\"],\n" +
-			"      \"properties\": {\"two\":\"2\"},\n" +
-			"      \"java\": \"twojava\",\n" +
-			"      \"main\": \"twomain\",\n" +
-			"      \"module\": \"twomodule\",\n" +
-			"      \"compile-options\": [\"--ctwo\"],\n" +
-			"      \"native-image\": true,\n" +
-			"      \"native-options\": [\"--ntwo\"],\n" +
-			"      \"jfr\": \"twojfr\",\n" +
-			"      \"debug\": {\"twod\":\"2\"},\n" +
-			"      \"cds\": true,\n" +
-			"      \"interactive\": true,\n" +
-			"      \"enable-preview\": true,\n" +
-			"      \"enable-assertions\": true,\n" +
-			"      \"enable-system-assertions\": true,\n" +
-			"      \"manifest-options\": {\"twom\":\"2\"},\n" +
-			"      \"java-agents\": [{\"agent-ref\":\"twojag\",\"options\":\"twoopts\"}]\n" +
-			"    }\n" +
-			"  }\n" +
-			"}";
-
 	@Test
 	void testDuplicateAnonRepos() {
 		ProjectBuilder pb = Project.builder();

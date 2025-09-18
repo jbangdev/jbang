@@ -154,6 +154,20 @@ public class TestBuilder extends BaseTest {
 	}
 
 	@Test
+	void testAliasInvalidSourceType() throws IOException {
+		String mainFile = examplesTestFolder.resolve("helloworld.java").toString();
+
+		CatalogUtil.addNearestAlias("bar", new Alias().withScriptRef(mainFile).withForceType("INVALID"));
+
+		ProjectBuilder pb = Project.builder();
+		try {
+			Project prj = pb.build("bar");
+		} catch (IllegalArgumentException ex) {
+			assertThat(ex.getMessage(), containsString("No enum constant dev.jbang.source.Source.Type.INVALID"));
+		}
+	}
+
+	@Test
 	void testIncludedSourcesUsingAlias(@TempDir Path dir) throws IOException {
 		Path mainFile = dir.resolve("foo.java");
 		String incFile = examplesTestFolder.resolve("bar/Bar.java").toString();

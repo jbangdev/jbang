@@ -48,6 +48,7 @@ public class TestAlias extends BaseTest {
 			"      \"compile-options\": [\"--ctwo\"],\n" +
 			"      \"native-image\": true,\n" +
 			"      \"native-options\": [\"--ntwo\"],\n" +
+			"      \"source-type\": \"java\",\n" +
 			"      \"jfr\": \"twojfr\",\n" +
 			"      \"debug\": {\"twod\":\"2\"},\n" +
 			"      \"cds\": true,\n" +
@@ -84,6 +85,7 @@ public class TestAlias extends BaseTest {
 			"      \"compile-options\": [\"--cfour\"],\n" +
 			"      \"native-image\": false,\n" +
 			"      \"native-options\": [\"--nfour\"],\n" +
+			"      \"source-type\": \"kotlin\",\n" +
 			"      \"jfr\": \"fourjfr\",\n" +
 			"      \"debug\": {\"fourd\":\"4\"},\n" +
 			"      \"cds\": false,\n" +
@@ -204,6 +206,7 @@ public class TestAlias extends BaseTest {
 					"--main", "mainclass",
 					"--compile-option", "copts",
 					"--native-option", "nopts",
+					"--source-type", "java",
 					"--java", "999",
 					testFile.toString(),
 					"aap", "noot", "mies");
@@ -228,6 +231,7 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.nativeImage, is(nullValue()));
 		assertThat(alias.nativeOptions, iterableWithSize(1));
 		assertThat(alias.nativeOptions, contains("nopts"));
+		assertThat(alias.forceType, is("java"));
 		assertThat(alias.javaVersion, is("999"));
 		assertThat(alias.arguments, contains("aap", "noot", "mies"));
 	}
@@ -255,13 +259,9 @@ public class TestAlias extends BaseTest {
 		JBang.getCommandLine().execute("alias", "add", "-f", cwd.toString(), "--name=name", testFile.toString());
 		Path catalog = Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON);
 		assertThat(Files.isRegularFile(catalog), is(true));
-
 		String catjson = Files.readString(catalog);
-
 		assertThat(catjson, not(containsString("{}")));
-
 		assertThat(catjson, not(containsString("[]")));
-
 	}
 
 	@Test
@@ -426,6 +426,7 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.compileOptions, nullValue());
 		assertThat(alias.nativeImage, nullValue());
 		assertThat(alias.nativeOptions, nullValue());
+		assertThat(alias.forceType, nullValue());
 	}
 
 	@Test
@@ -459,6 +460,7 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.nativeImage, is(Boolean.TRUE));
 		assertThat(alias.nativeOptions, iterableWithSize(1));
 		assertThat(alias.nativeOptions, contains("--ntwo"));
+		assertThat(alias.forceType, is("java"));
 		assertThat(alias.jfr, equalTo("twojfr"));
 		assertThat(alias.debug, aMapWithSize(1));
 		assertThat(alias.debug, hasEntry("twod", "2"));
@@ -504,6 +506,7 @@ public class TestAlias extends BaseTest {
 		assertThat(alias.nativeImage, is(Boolean.FALSE));
 		assertThat(alias.nativeOptions, iterableWithSize(1));
 		assertThat(alias.nativeOptions, contains("--nfour"));
+		assertThat(alias.forceType, is("kotlin"));
 		assertThat(alias.jfr, equalTo("fourjfr"));
 		assertThat(alias.debug, aMapWithSize(1));
 		assertThat(alias.debug, hasEntry("fourd", "4"));

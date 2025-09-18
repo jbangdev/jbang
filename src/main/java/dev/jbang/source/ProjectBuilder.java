@@ -739,6 +739,9 @@ public class ProjectBuilder {
 		if (nativeOptions.isEmpty()) {
 			nativeOptions(alias.nativeOptions);
 		}
+		if (forceType == null && alias.forceType != null) {
+			forceType(Source.Type.valueOf(alias.forceType));
+		}
 		if (integrations == null) {
 			integrations(alias.integrations);
 		}
