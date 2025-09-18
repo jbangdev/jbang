@@ -8,16 +8,20 @@ import java.util.function.Function;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-public class InputStreamResourceRef implements ResourceRef {
+public abstract class InputStreamResourceRef implements ResourceRef {
 	@Nullable
 	protected final String originalResource;
 	@NonNull
 	protected final Function<String, InputStream> streamFactory;
+	@NonNull
+	protected final ResourceResolver resolver;
 
 	public InputStreamResourceRef(@Nullable String resource,
-			@NonNull Function<String, InputStream> streamFactory) {
+			@NonNull Function<String, InputStream> streamFactory,
+			@NonNull ResourceResolver resolver) {
 		this.originalResource = resource;
 		this.streamFactory = streamFactory;
+		this.resolver = resolver;
 	}
 
 	@Nullable
@@ -43,6 +47,16 @@ public class InputStreamResourceRef implements ResourceRef {
 			throw new ResourceNotFoundException(getOriginalResource(), "Could not obtain input stream resource");
 		}
 		return is;
+	}
+
+	@Override
+	public ResourceRef resolve(String resource, boolean trusted) {
+		return resolver.resolve(resource, trusted);
+	}
+
+	@Override
+	public @NonNull String description() {
+		return ResourceRef.super.description() + " of " + resolver.description();
 	}
 
 	@Override

@@ -18,7 +18,7 @@ import com.google.gson.Gson;
 
 import dev.jbang.catalog.TemplateProperty;
 import dev.jbang.resources.ResourceRef;
-import dev.jbang.resources.resolvers.SiblingResourceResolver;
+import dev.jbang.resources.ResourceResolver;
 import dev.jbang.source.RefTarget;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.TemplateEngine;
@@ -118,7 +118,7 @@ public class Init extends BaseCommand {
 			.map(e -> RefTarget.create(
 					e.getValue(),
 					e.getKey(),
-					new SiblingResourceResolver(tpl.catalog.catalogRef)))
+					ResourceResolver.combined(tpl.catalog.catalogRef, ResourceResolver.forResources())))
 			.collect(Collectors.toList());
 
 		applyTemplateProperties(tpl);

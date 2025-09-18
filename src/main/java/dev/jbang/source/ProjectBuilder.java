@@ -43,13 +43,11 @@ import dev.jbang.resources.ResourceRef;
 import dev.jbang.resources.ResourceResolver;
 import dev.jbang.resources.resolvers.AliasResourceResolver;
 import dev.jbang.resources.resolvers.ClasspathResourceResolver;
-import dev.jbang.resources.resolvers.CombinedResourceResolver;
 import dev.jbang.resources.resolvers.FileResourceResolver;
 import dev.jbang.resources.resolvers.GavResourceResolver;
 import dev.jbang.resources.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.resources.resolvers.RemoteResourceResolver;
 import dev.jbang.resources.resolvers.RenamingScriptResourceResolver;
-import dev.jbang.resources.resolvers.SiblingResourceResolver;
 import dev.jbang.source.buildsteps.JarBuildStep;
 import dev.jbang.source.parser.KeyValue;
 import dev.jbang.source.parser.TagReader;
@@ -329,7 +327,7 @@ public class ProjectBuilder {
 		Project prj = new Project(resourceRef);
 		String contents = Util.readFileContent(resourceRef.getFile());
 		TagReader tagReader = new TagReader.JbangProject(contents, propertyReplacer());
-		ResourceResolver sibRes1 = new SiblingResourceResolver(resourceRef);
+		ResourceResolver sibRes1 = getSiblingResolver(resourceRef);
 		prj.setDescription(tagReader.getDescription().orElse(null));
 		prj.addDocs(allToDocRef(tagReader.collectDocs(), sibRes1));
 		prj.setGav(tagReader.getGav().orElse(null));
@@ -361,7 +359,7 @@ public class ProjectBuilder {
 		}
 
 		ResourceResolver resolver = getAliasResourceResolver(null);
-		ResourceResolver sibRes2 = new SiblingResourceResolver(resourceRef, resolver);
+		ResourceResolver sibRes2 = getSiblingResolver(resourceRef, resolver);
 		for (String srcDep : tagReader.collectSourceDependencies()) {
 			ResourceRef subRef = resolver.resolve(srcDep, true);
 			prj.addSubProject(new ProjectBuilder(buildRefs).build(subRef));
@@ -638,7 +636,7 @@ public class ProjectBuilder {
 				Util.verboseMsg("Skipping unresolvable source: " + srcRef);
 				return prj;
 			}
-			ResourceResolver sibRes1 = new SiblingResourceResolver(srcRef);
+			ResourceResolver sibRes1 = getSiblingResolver(srcRef);
 			ss.addResources(allToFileRef(src.getTagReader().collectFiles(), srcRef, sibRes1));
 			ss.addDependencies(src.collectBinaryDependencies());
 			ss.addCompileOptions(src.getCompileOptions());
@@ -667,7 +665,7 @@ public class ProjectBuilder {
 				ResourceRef subRef = sibRes1.resolve(srcDep, true);
 				prj.addSubProject(new ProjectBuilder(buildRefs).build(subRef));
 			}
-			ResourceResolver sibRes2 = new SiblingResourceResolver(srcRef, resolver);
+			ResourceResolver sibRes2 = getSiblingResolver(srcRef, resolver);
 			List<Source> includedSources = allToSource(src.getTagReader().collectSources(), srcRef, sibRes2);
 			for (Source includedSource : includedSources) {
 				updateProject(includedSource, prj, resolver);
@@ -681,11 +679,19 @@ public class ProjectBuilder {
 		return new AliasResourceResolver(cat, this::getAliasResourceResolver);
 	}
 
+	private static ResourceResolver getSiblingResolver(ResourceRef ref) {
+		return getSiblingResolver(ref, ResourceResolver.forResources());
+	}
+
+	private static ResourceResolver getSiblingResolver(ResourceRef ref, ResourceResolver resolver) {
+		return ResourceResolver.combined(ref, ResourceResolver.trusting(resolver));
+	}
+
 	private ResourceResolver getAliasResourceResolver(Alias alias) {
 		if (alias != null) {
 			updateFromAlias(alias);
 		}
-		return new CombinedResourceResolver(
+		return ResourceResolver.combined(
 				new RenamingScriptResourceResolver(forceType),
 				new LiteralScriptResourceResolver(forceType),
 				new RemoteResourceResolver(false),

@@ -73,4 +73,24 @@ public interface ResourceResolver {
 				new ClasspathResourceResolver(),
 				new FileResourceResolver());
 	}
+
+	static ResourceResolver combined(ResourceResolver... resolvers) {
+		return new CombinedResourceResolver(resolvers);
+	}
+
+	static ResourceResolver trusting(ResourceResolver resolver) {
+		return new TrustingResourceResolver(resolver);
+	}
+
+	class NullResourceResolver implements ResourceResolver {
+		@Override
+		public @Nullable ResourceRef resolve(String resource, boolean trusted) {
+			return null;
+		}
+
+		@Override
+		public @NonNull String description() {
+			return "A resource resolver that never resolves anything";
+		}
+	}
 }
