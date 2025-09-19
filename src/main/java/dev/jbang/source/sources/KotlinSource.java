@@ -1,6 +1,10 @@
 package dev.jbang.source.sources;
 
 import static dev.jbang.net.KotlinManager.resolveInKotlinHome;
+import static dev.jbang.source.parser.TagReader.COMPILE_OPTIONS_COMMENT_PREFIX;
+import static dev.jbang.source.parser.TagReader.JAVA_OPTIONS_COMMENT_PREFIX;
+import static dev.jbang.source.parser.TagReader.NATIVE_OPTIONS_COMMENT_PREFIX;
+import static dev.jbang.source.parser.TagReader.RUNTIME_OPTIONS_COMMENT_PREFIX;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,6 +22,7 @@ import dev.jbang.source.buildsteps.CompileBuildStep;
 import dev.jbang.util.Util;
 
 public class KotlinSource extends Source {
+	public static final String KOTLIN_COMMENT_PREFIX = "KOTLIN";
 
 	public KotlinSource(ResourceRef script, Function<String, String> replaceProperties) {
 		super(script, replaceProperties);
@@ -37,17 +42,17 @@ public class KotlinSource extends Source {
 
 	@Override
 	protected List<String> getCompileOptions() {
-		return getTagReader().collectOptions("COMPILE_OPTIONS");
+		return getTagReader().collectOptions(COMPILE_OPTIONS_COMMENT_PREFIX);
 	}
 
 	@Override
 	protected List<String> getNativeOptions() {
-		return getTagReader().collectOptions("NATIVE_OPTIONS");
+		return getTagReader().collectOptions(NATIVE_OPTIONS_COMMENT_PREFIX);
 	}
 
 	@Override
 	protected List<String> getRuntimeOptions() {
-		return getTagReader().collectOptions("JAVA_OPTIONS", "RUNTIME_OPTIONS");
+		return getTagReader().collectOptions(JAVA_OPTIONS_COMMENT_PREFIX, RUNTIME_OPTIONS_COMMENT_PREFIX);
 	}
 
 	@Override
@@ -56,7 +61,7 @@ public class KotlinSource extends Source {
 	}
 
 	public String getKotlinVersion() {
-		return getTagReader().collectTags("KOTLIN")
+		return getTagReader().collectTags(KOTLIN_COMMENT_PREFIX)
 			.stream()
 			.findFirst()
 			.orElse(KotlinManager.DEFAULT_KOTLIN_VERSION);

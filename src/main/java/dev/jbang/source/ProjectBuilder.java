@@ -1,5 +1,11 @@
 package dev.jbang.source;
 
+import static dev.jbang.source.parser.TagReader.COMPILE_OPTIONS_COMMENT_PREFIX;
+import static dev.jbang.source.parser.TagReader.JAVAC_OPTIONS_COMMENT_PREFIX;
+import static dev.jbang.source.parser.TagReader.JAVA_OPTIONS_COMMENT_PREFIX;
+import static dev.jbang.source.parser.TagReader.NATIVE_OPTIONS_COMMENT_PREFIX;
+import static dev.jbang.source.parser.TagReader.RUNTIME_OPTIONS_COMMENT_PREFIX;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -337,10 +343,10 @@ public class ProjectBuilder {
 		SourceSet ss = prj.getMainSourceSet();
 		ss.addResources(allToFileRef(tagReader.collectFiles(), resourceRef, sibRes1));
 		ss.addDependencies(tagReader.collectBinaryDependencies());
-		ss.addCompileOptions(tagReader.collectOptions("JAVAC_OPTIONS", "COMPILE_OPTIONS"));
-		ss.addNativeOptions(tagReader.collectOptions("NATIVE_OPTIONS"));
+		ss.addCompileOptions(tagReader.collectOptions(JAVAC_OPTIONS_COMMENT_PREFIX, COMPILE_OPTIONS_COMMENT_PREFIX));
+		ss.addNativeOptions(tagReader.collectOptions(NATIVE_OPTIONS_COMMENT_PREFIX));
 		prj.addRepositories(tagReader.collectRepositories());
-		prj.addRuntimeOptions(tagReader.collectOptions("JAVA_OPTIONS", "RUNTIME_OPTIONS"));
+		prj.addRuntimeOptions(tagReader.collectOptions(JAVA_OPTIONS_COMMENT_PREFIX, RUNTIME_OPTIONS_COMMENT_PREFIX));
 		tagReader.collectManifestOptions().forEach(kv -> {
 			if (!kv.getKey().isEmpty()) {
 				prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
