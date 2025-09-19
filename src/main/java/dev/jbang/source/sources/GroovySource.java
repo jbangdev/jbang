@@ -1,10 +1,6 @@
 package dev.jbang.source.sources;
 
 import static dev.jbang.net.GroovyManager.resolveInGroovyHome;
-import static dev.jbang.source.parser.TagReader.COMPILE_OPTIONS_COMMENT_PREFIX;
-import static dev.jbang.source.parser.TagReader.JAVA_OPTIONS_COMMENT_PREFIX;
-import static dev.jbang.source.parser.TagReader.NATIVE_OPTIONS_COMMENT_PREFIX;
-import static dev.jbang.source.parser.TagReader.RUNTIME_OPTIONS_COMMENT_PREFIX;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,10 +16,10 @@ import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.*;
 import dev.jbang.source.AppBuilder;
 import dev.jbang.source.buildsteps.CompileBuildStep;
+import dev.jbang.source.parser.Directives;
 import dev.jbang.util.Util;
 
 public class GroovySource extends Source {
-	public static final String GROOVY_COMMENT_PREFIX = "GROOVY";
 
 	public GroovySource(ResourceRef script, Function<String, String> replaceProperties) {
 		super(script, replaceProperties);
@@ -36,17 +32,17 @@ public class GroovySource extends Source {
 
 	@Override
 	protected List<String> getCompileOptions() {
-		return getTagReader().collectOptions(COMPILE_OPTIONS_COMMENT_PREFIX);
+		return getDirectives().compileOptions();
 	}
 
 	@Override
 	protected List<String> getNativeOptions() {
-		return getTagReader().collectOptions(NATIVE_OPTIONS_COMMENT_PREFIX);
+		return getDirectives().nativeOptions();
 	}
 
 	protected List<String> getRuntimeOptions() {
 		List<String> gopts = Collections.singletonList("-Dgroovy.grape.enable=false");
-		List<String> opts = getTagReader().collectOptions(JAVA_OPTIONS_COMMENT_PREFIX, RUNTIME_OPTIONS_COMMENT_PREFIX);
+		List<String> opts = getDirectives().runtimeOptions();
 		return Util.join(gopts, opts);
 	}
 
@@ -63,8 +59,7 @@ public class GroovySource extends Source {
 	}
 
 	public String getGroovyVersion() {
-		return getTagReader().collectTags(GROOVY_COMMENT_PREFIX)
-			.stream()
+		return getDirectives().collectDirectives(Directives.Names.GROOVY)
 			.findFirst()
 			.orElse(GroovyManager.DEFAULT_GROOVY_VERSION);
 	}

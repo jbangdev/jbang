@@ -325,8 +325,7 @@ public class TestAlias extends BaseTest {
 		assertThat(Files.isRegularFile(Paths.get(cwd.toString(), Catalog.JBANG_CATALOG_JSON)), is(true));
 		Alias name = Alias.get("name");
 		assertThat(name.scriptRef, is("test.java"));
-		assertThat(name.description,
-				nullValue());
+		assertThat(name.description, nullValue());
 	}
 
 	@Test

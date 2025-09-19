@@ -10,41 +10,41 @@ import org.junit.jupiter.api.Test;
 
 import dev.jbang.dependencies.MavenRepo;
 
-public class TestTagReader {
+public class TestDirectives {
 
 	@Test
 	void testExtractDependencies() {
-		TagReader tr = new TagReader.Extended(
+		Directives tr = new Directives.Extended(
 				"//DEPS foo:bar, abc:DEF:123, https://github.com/jbangdev/jbang, something", null);
 
-		List<String> deps = tr.collectBinaryDependencies();
+		List<String> deps = tr.binaryDependencies();
 		assertThat(deps, containsInAnyOrder("foo:bar", "abc:DEF:123", "https://github.com/jbangdev/jbang"));
 
-		List<String> subs = tr.collectSourceDependencies();
+		List<String> subs = tr.sourceDependencies();
 		assertThat(subs, containsInAnyOrder("something"));
 	}
 
 	@Test
 	void testExtractDependenciesSeparator() {
-		TagReader tr = new TagReader.Extended(
+		Directives tr = new Directives.Extended(
 				"//DEPS foo:bar, abc:DEF:123, \thttps://github.com/jbangdev/jbang \tsomething\t ", null);
 
-		List<String> deps = tr.collectBinaryDependencies();
+		List<String> deps = tr.binaryDependencies();
 		assertThat(deps, containsInAnyOrder("foo:bar", "abc:DEF:123", "https://github.com/jbangdev/jbang"));
 
-		List<String> subs = tr.collectSourceDependencies();
+		List<String> subs = tr.sourceDependencies();
 		assertThat(subs, containsInAnyOrder("something"));
 	}
 
 	@Test
 	void textExtractRepositories() {
-		List<MavenRepo> repos = new TagReader.Extended("//REPOS jcenter=https://xyz.org", null).collectRepositories();
+		List<MavenRepo> repos = new Directives.Extended("//REPOS jcenter=https://xyz.org", null).repositories();
 
 		assertThat(repos, hasItem(new MavenRepo("jcenter", "https://xyz.org")));
 
-		repos = new TagReader.Extended("//REPOS jcenter=https://xyz.org localMaven xyz=file://~test",
+		repos = new Directives.Extended("//REPOS jcenter=https://xyz.org localMaven xyz=file://~test",
 				null)
-			.collectRepositories();
+			.repositories();
 
 		assertThat(repos, hasItem(new MavenRepo("jcenter", "https://xyz.org")));
 		assertThat(repos, hasItem(new MavenRepo("localmaven", "localMaven")));
@@ -53,14 +53,14 @@ public class TestTagReader {
 
 	@Test
 	void textExtractRepositoriesGrape() {
-		List<MavenRepo> deps = new TagReader.Extended(
+		List<MavenRepo> deps = new Directives.Extended(
 				"@GrabResolver(name=\"restlet.org\", root=\"http://maven.restlet.org\")", null)
-			.collectRepositories();
+			.repositories();
 
 		assertThat(deps, hasItem(new MavenRepo("restlet.org", "http://maven.restlet.org")));
 
-		deps = new TagReader.Extended("@GrabResolver(\"http://maven.restlet.org\")", null)
-			.collectRepositories();
+		deps = new Directives.Extended("@GrabResolver(\"http://maven.restlet.org\")", null)
+			.repositories();
 
 		assertThat(deps, hasItem(new MavenRepo("http://maven.restlet.org", "http://maven.restlet.org")));
 
