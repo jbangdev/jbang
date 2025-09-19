@@ -1,10 +1,5 @@
 package dev.jbang.source.sources;
 
-import static dev.jbang.source.parser.TagReader.COMPILE_OPTIONS_COMMENT_PREFIX;
-import static dev.jbang.source.parser.TagReader.JAVAC_OPTIONS_COMMENT_PREFIX;
-import static dev.jbang.source.parser.TagReader.JAVA_OPTIONS_COMMENT_PREFIX;
-import static dev.jbang.source.parser.TagReader.NATIVE_OPTIONS_COMMENT_PREFIX;
-import static dev.jbang.source.parser.TagReader.RUNTIME_OPTIONS_COMMENT_PREFIX;
 import static dev.jbang.util.JavaUtil.resolveInJavaHome;
 
 import java.io.IOException;
@@ -39,17 +34,17 @@ public class JavaSource extends Source {
 
 	@Override
 	protected List<String> getCompileOptions() {
-		return getTagReader().collectOptions(JAVAC_OPTIONS_COMMENT_PREFIX, COMPILE_OPTIONS_COMMENT_PREFIX);
+		return getDirectives().compileOptions();
 	}
 
 	@Override
 	protected List<String> getNativeOptions() {
-		return getTagReader().collectOptions(NATIVE_OPTIONS_COMMENT_PREFIX);
+		return getDirectives().nativeOptions();
 	}
 
 	@Override
 	protected List<String> getRuntimeOptions() {
-		return getTagReader().collectOptions(JAVA_OPTIONS_COMMENT_PREFIX, RUNTIME_OPTIONS_COMMENT_PREFIX);
+		return getDirectives().runtimeOptions();
 	}
 
 	@Override

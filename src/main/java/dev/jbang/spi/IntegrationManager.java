@@ -83,7 +83,10 @@ public class IntegrationManager {
 			}
 		}
 
-		List<String> comments = source.getTags().map(s -> "//" + s).collect(Collectors.toList());
+		List<String> comments = source.getDirectives()
+			.getAll()
+			.map(d -> "//" + d.getName() + " " + d.getValue())
+			.collect(Collectors.toList());
 		PrintStream oldout = System.out;
 		try (URLClassLoader integrationCl = getClassLoader(deps.values())) {
 			String requestedJavaVersion = prj.getJavaVersion();

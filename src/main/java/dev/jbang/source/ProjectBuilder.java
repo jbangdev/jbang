@@ -1,11 +1,5 @@
 package dev.jbang.source;
 
-import static dev.jbang.source.parser.TagReader.COMPILE_OPTIONS_COMMENT_PREFIX;
-import static dev.jbang.source.parser.TagReader.JAVAC_OPTIONS_COMMENT_PREFIX;
-import static dev.jbang.source.parser.TagReader.JAVA_OPTIONS_COMMENT_PREFIX;
-import static dev.jbang.source.parser.TagReader.NATIVE_OPTIONS_COMMENT_PREFIX;
-import static dev.jbang.source.parser.TagReader.RUNTIME_OPTIONS_COMMENT_PREFIX;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,8 +49,8 @@ import dev.jbang.resources.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.resources.resolvers.RemoteResourceResolver;
 import dev.jbang.resources.resolvers.RenamingScriptResourceResolver;
 import dev.jbang.source.buildsteps.JarBuildStep;
+import dev.jbang.source.parser.Directives;
 import dev.jbang.source.parser.KeyValue;
-import dev.jbang.source.parser.TagReader;
 import dev.jbang.source.sources.JavaSource;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
@@ -332,32 +326,32 @@ public class ProjectBuilder {
 	private Project createJbangProject(ResourceRef resourceRef) {
 		Project prj = new Project(resourceRef);
 		String contents = Util.readFileContent(resourceRef.getFile());
-		TagReader tagReader = new TagReader.JbangProject(contents, propertyReplacer());
+		Directives directives = new Directives.JbangProject(contents, propertyReplacer());
 		ResourceResolver sibRes1 = getSiblingResolver(resourceRef);
-		prj.setDescription(tagReader.getDescription().orElse(null));
-		prj.addDocs(allToDocRef(tagReader.collectDocs(), sibRes1));
-		prj.setGav(tagReader.getGav().orElse(null));
-		prj.setMainClass(tagReader.getMain().orElse(null));
-		prj.setModuleName(tagReader.getModule().orElse(null));
+		prj.setDescription(directives.description());
+		prj.addDocs(allToDocRef(directives.collectDocs(), sibRes1));
+		prj.setGav(directives.gav());
+		prj.setMainClass(directives.mainMethod());
+		prj.setModuleName(directives.module());
 
 		SourceSet ss = prj.getMainSourceSet();
-		ss.addResources(allToFileRef(tagReader.collectFiles(), resourceRef, sibRes1));
-		ss.addDependencies(tagReader.collectBinaryDependencies());
-		ss.addCompileOptions(tagReader.collectOptions(JAVAC_OPTIONS_COMMENT_PREFIX, COMPILE_OPTIONS_COMMENT_PREFIX));
-		ss.addNativeOptions(tagReader.collectOptions(NATIVE_OPTIONS_COMMENT_PREFIX));
-		prj.addRepositories(tagReader.collectRepositories());
-		prj.addRuntimeOptions(tagReader.collectOptions(JAVA_OPTIONS_COMMENT_PREFIX, RUNTIME_OPTIONS_COMMENT_PREFIX));
-		tagReader.collectManifestOptions().forEach(kv -> {
+		ss.addResources(allToFileRef(directives.files(), resourceRef, sibRes1));
+		ss.addDependencies(directives.binaryDependencies());
+		ss.addCompileOptions(directives.compileOptions());
+		ss.addNativeOptions(directives.nativeOptions());
+		prj.addRepositories(directives.repositories());
+		prj.addRuntimeOptions(directives.runtimeOptions());
+		directives.manifestOptions().forEach(kv -> {
 			if (!kv.getKey().isEmpty()) {
 				prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
 			}
 		});
-		tagReader.collectAgentOptions().forEach(kv -> {
+		directives.agentOptions().forEach(kv -> {
 			if (!kv.getKey().isEmpty()) {
 				prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
 			}
 		});
-		String version = tagReader.getJavaVersion();
+		String version = directives.javaVersion();
 		if (version != null && JavaUtil.checkRequestedVersion(version)) {
 			if (new JavaUtil.RequestedVersionComparator().compare(prj.getJavaVersion(), version) > 0) {
 				prj.setJavaVersion(version);
@@ -366,13 +360,13 @@ public class ProjectBuilder {
 
 		ResourceResolver resolver = getAliasResourceResolver(null);
 		ResourceResolver sibRes2 = getSiblingResolver(resourceRef, resolver);
-		for (String srcDep : tagReader.collectSourceDependencies()) {
+		for (String srcDep : directives.sourceDependencies()) {
 			ResourceRef subRef = resolver.resolve(srcDep, true);
 			prj.addSubProject(new ProjectBuilder(buildRefs).build(subRef));
 		}
 
 		boolean first = true;
-		List<Source> includedSources = allToSource(tagReader.collectSources(), resourceRef, sibRes2);
+		List<Source> includedSources = allToSource(directives.sources(), resourceRef, sibRes2);
 		for (Source includedSource : includedSources) {
 			updateProject(includedSource, prj, resolver);
 			if (first) {
@@ -541,7 +535,7 @@ public class ProjectBuilder {
 		String org = ref != null ? ref.getOriginalResource() : null;
 		Path baseDir = org != null ? ref.getFile().toAbsolutePath().getParent() : Util.getCwd();
 		return resources.stream()
-			.flatMap(kv -> TagReader.explodeFileRef(org, baseDir, kv).stream())
+			.flatMap(kv -> Directives.explodeFileRef(org, baseDir, kv).stream())
 			.map(f -> toFileRef(f, resolver))
 			.collect(Collectors.toList());
 	}
@@ -608,10 +602,10 @@ public class ProjectBuilder {
 	 * @return A <code>Project</code>
 	 */
 	private Project updateProjectMain(Source src, Project prj, ResourceResolver resolver) {
-		prj.setDescription(src.getTagReader().getDescription().orElse(null));
-		prj.setGav(src.getTagReader().getGav().orElse(null));
-		prj.setMainClass(src.getTagReader().getMain().orElse(null));
-		prj.setModuleName(src.getTagReader().getModule().orElse(null));
+		prj.setDescription(src.getDirectives().description());
+		prj.setGav(src.getDirectives().gav());
+		prj.setMainClass(src.getDirectives().mainMethod());
+		prj.setModuleName(src.getDirectives().module());
 		if (prj.getMainSource() instanceof JavaSource) {
 			// todo: have way to turn these off? lets wait until someone asks and has a
 			// usecase where ability to debug and support named parameters is bad.
@@ -643,25 +637,25 @@ public class ProjectBuilder {
 				return prj;
 			}
 			ResourceResolver sibRes1 = getSiblingResolver(srcRef);
-			ss.addResources(allToFileRef(src.getTagReader().collectFiles(), srcRef, sibRes1));
+			ss.addResources(allToFileRef(src.getDirectives().files(), srcRef, sibRes1));
 			ss.addDependencies(src.collectBinaryDependencies());
 			ss.addCompileOptions(src.getCompileOptions());
 			ss.addNativeOptions(src.getNativeOptions());
-			prj.addRepositories(src.getTagReader().collectRepositories());
+			prj.addRepositories(src.getDirectives().repositories());
 			prj.addRuntimeOptions(src.getRuntimeOptions());
-			prj.addDocs(allToDocRef(src.getTagReader().collectDocs(), sibRes1));
+			prj.addDocs(allToDocRef(src.getDirectives().collectDocs(), sibRes1));
 
-			src.getTagReader().collectManifestOptions().forEach(kv -> {
+			src.getDirectives().manifestOptions().forEach(kv -> {
 				if (!kv.getKey().isEmpty()) {
 					prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
 				}
 			});
-			src.getTagReader().collectAgentOptions().forEach(kv -> {
+			src.getDirectives().agentOptions().forEach(kv -> {
 				if (!kv.getKey().isEmpty()) {
 					prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
 				}
 			});
-			String version = src.getTagReader().getJavaVersion();
+			String version = src.getDirectives().javaVersion();
 			if (version != null && JavaUtil.checkRequestedVersion(version)) {
 				if (new JavaUtil.RequestedVersionComparator().compare(prj.getJavaVersion(), version) > 0) {
 					prj.setJavaVersion(version);
@@ -672,7 +666,7 @@ public class ProjectBuilder {
 				prj.addSubProject(new ProjectBuilder(buildRefs).build(subRef));
 			}
 			ResourceResolver sibRes2 = getSiblingResolver(srcRef, resolver);
-			List<Source> includedSources = allToSource(src.getTagReader().collectSources(), srcRef, sibRes2);
+			List<Source> includedSources = allToSource(src.getDirectives().sources(), srcRef, sibRes2);
 			for (Source includedSource : includedSources) {
 				updateProject(includedSource, prj, resolver);
 			}

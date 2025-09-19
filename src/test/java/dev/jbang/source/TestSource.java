@@ -309,9 +309,9 @@ public class TestSource extends BaseTest {
 	void testExtractJavaOptions() {
 		Source s = new JavaSource(ResourceRef.forLiteral(example), null);
 
-		assertEquals(Arrays.asList("--verbose", "--enable-preview"), s.getCompileOptions());
+		assertEquals(Arrays.asList("--enable-preview", "--verbose"), s.getCompileOptions());
 		assertEquals(Arrays.asList("-O1"), s.getNativeOptions());
-		assertEquals(Arrays.asList("--enable-preview", "--enable-preview", "-Dvalue='this is space'"),
+		assertEquals(Arrays.asList("--enable-preview", "-Dvalue='this is space'", "--enable-preview"),
 				s.getRuntimeOptions());
 
 	}
@@ -322,8 +322,8 @@ public class TestSource extends BaseTest {
 
 		assertEquals(Arrays.asList("--enable-preview"), s.getCompileOptions());
 		assertEquals(Arrays.asList("-O1"), s.getNativeOptions());
-		assertEquals(Arrays.asList("-Dgroovy.grape.enable=false", "--enable-preview", "--enable-preview",
-				"-Dvalue='this is space'"), s.getRuntimeOptions());
+		assertEquals(Arrays.asList("-Dgroovy.grape.enable=false", "--enable-preview", "-Dvalue='this is space'",
+				"--enable-preview"), s.getRuntimeOptions());
 	}
 
 	@Test
@@ -332,7 +332,7 @@ public class TestSource extends BaseTest {
 
 		assertEquals(Arrays.asList("--enable-preview"), s.getCompileOptions());
 		assertEquals(Arrays.asList("-O1"), s.getNativeOptions());
-		assertEquals(Arrays.asList("--enable-preview", "--enable-preview", "-Dvalue='this is space'"),
+		assertEquals(Arrays.asList("--enable-preview", "-Dvalue='this is space'", "--enable-preview"),
 				s.getRuntimeOptions());
 
 	}
