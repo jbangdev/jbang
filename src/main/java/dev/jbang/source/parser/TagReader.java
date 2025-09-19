@@ -3,7 +3,6 @@ package dev.jbang.source.parser;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -17,6 +16,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.JitPackUtil;
@@ -26,37 +26,33 @@ import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 public abstract class TagReader {
-	protected final String contents;
-	protected final Function<String, String> propertiesReplacer;
+	public static final String REPOS_COMMENT_PREFIX = "REPOS";
+	public static final String DEPS_COMMENT_PREFIX = "DEPS";
+	public static final String FILES_COMMENT_PREFIX = "FILES";
+	public static final String SOURCES_COMMENT_PREFIX = "SOURCES";
+	public static final String COMPILE_OPTIONS_COMMENT_PREFIX = "COMPILE_OPTIONS";
+	public static final String JAVAC_OPTIONS_COMMENT_PREFIX = "JAVAC_OPTIONS";
+	public static final String NATIVE_OPTIONS_COMMENT_PREFIX = "NATIVE_OPTIONS";
+	public static final String RUNTIME_OPTIONS_COMMENT_PREFIX = "RUNTIME_OPTIONS";
+	public static final String JAVA_OPTIONS_COMMENT_PREFIX = "JAVA_OPTIONS";
+	public static final String MAIN_COMMENT_PREFIX = "MAIN";
+	public static final String MODULE_COMMENT_PREFIX = "MODULE";
+	public static final String DESCRIPTION_COMMENT_PREFIX = "DESCRIPTION";
+	public static final String GAV_COMMENT_PREFIX = "GAV";
+	public static final String DOCS_COMMENT_PREFIX = "DOCS";
+	public static final String JAVA_COMMENT_PREFIX = "JAVA";
+	public static final String JAVAAGENT_COMMENT_PREFIX = "JAVAAGENT";
+	public static final String CDS_COMMENT_PREFIX = "CDS";
+	public static final String PREVIEW_COMMENT_PREFIX = "PREVIEW";
+	public static final String NOINTEGRATIONS_COMMENT_PREFIX = "NOINTEGRATIONS";
 
-	private static final String REPOS_COMMENT_PREFIX = "REPOS ";
-	private static final String DEPS_COMMENT_PREFIX = "DEPS ";
-	private static final String FILES_COMMENT_PREFIX = "FILES ";
-	private static final String SOURCES_COMMENT_PREFIX = "SOURCES ";
-	private static final String MAIN_COMMENT_PREFIX = "MAIN ";
-	private static final String MODULE_COMMENT_PREFIX = "MODULE";
-	private static final String DESCRIPTION_COMMENT_PREFIX = "DESCRIPTION ";
-	private static final String GAV_COMMENT_PREFIX = "GAV ";
-	private static final String DOCS_COMMENT_PREFIX = "DOCS ";
-
-	private static final Pattern EOL = Pattern.compile("\\r?\\n");
-
-	public TagReader(String contents, Function<String, String> propertiesReplacer) {
-		this.contents = contents;
-		this.propertiesReplacer = propertiesReplacer != null ? propertiesReplacer : Function.identity();
-	}
-
-	protected String getContents() {
-		return contents;
-	}
-
-	public abstract Stream<String> getTags();
+	public abstract Stream<Directive> getTags();
 
 	public List<String> collectBinaryDependencies() {
 		return getTags()
 			.filter(this::isDependDeclare)
-			.flatMap(this::extractDependencies)
-			.map(propertiesReplacer)
+			.map(Directive::getValue)
+			.flatMap(v -> quotedStringToList(Q2TL_SSCT, v).stream())
 			.filter(TagReader::isGav)
 			.collect(Collectors.toList());
 	}
@@ -64,18 +60,14 @@ public abstract class TagReader {
 	public List<String> collectSourceDependencies() {
 		return getTags()
 			.filter(this::isDependDeclare)
-			.flatMap(this::extractDependencies)
-			.map(propertiesReplacer)
+			.map(Directive::getValue)
+			.flatMap(v -> quotedStringToList(Q2TL_SSCT, v).stream())
 			.filter(it -> !isGav(it))
 			.collect(Collectors.toList());
 	}
 
-	protected boolean isDependDeclare(String line) {
-		return line.startsWith(DEPS_COMMENT_PREFIX);
-	}
-
-	protected Stream<String> extractDependencies(String line) {
-		return Arrays.stream(line.split(" // ")[0].split("[ \t;,]+")).skip(1).map(String::trim);
+	protected boolean isDependDeclare(Directive d) {
+		return DEPS_COMMENT_PREFIX.equals(d.getName());
 	}
 
 	private static boolean isGav(String ref) {
@@ -85,54 +77,34 @@ public abstract class TagReader {
 	public List<MavenRepo> collectRepositories() {
 		return getTags()
 			.filter(this::isRepoDeclare)
-			.flatMap(this::extractRepositories)
-			.map(propertiesReplacer)
+			.map(Directive::getValue)
+			.flatMap(v -> quotedStringToList(Q2TL_SSCT, v).stream())
 			.map(DependencyUtil::toMavenRepo)
 			.collect(Collectors.toCollection(ArrayList::new));
 	}
 
-	protected boolean isRepoDeclare(String line) {
-		return line.startsWith(REPOS_COMMENT_PREFIX);
-	}
-
-	protected Stream<String> extractRepositories(String line) {
-		return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
+	protected boolean isRepoDeclare(Directive d) {
+		return REPOS_COMMENT_PREFIX.equals(d.getName());
 	}
 
 	public List<KeyValue> collectDocs() {
 		return getTags()
 			.filter(this::isDocsDeclare)
-			.map(s -> s.substring(DOCS_COMMENT_PREFIX.length()))
-			.map(this::toKeyValue)
+			.map(Directive::getValue)
+			.filter(Objects::nonNull)
+			.map(KeyValue::of)
 			.collect(Collectors.toCollection(ArrayList::new));
 	}
 
-	protected boolean isDocsDeclare(String line) {
-		return line.startsWith(DOCS_COMMENT_PREFIX);
-	}
-
-	public List<KeyValue> collectManifestOptions() {
-		return collectRawOptions("MANIFEST").stream()
-			.flatMap(TagReader::extractKeyValues)
-			.map(this::toKeyValue)
-			.collect(Collectors.toCollection(ArrayList::new));
-	}
-
-	public List<KeyValue> collectAgentOptions() {
-		return collectRawOptions("JAVAAGENT").stream()
-			.flatMap(TagReader::extractKeyValues)
-			.map(this::toKeyValue)
-			.collect(Collectors.toCollection(ArrayList::new));
-	}
-
-	private static Stream<String> extractKeyValues(String line) {
-		return Arrays.stream(line.split(" +")).map(String::trim);
+	protected boolean isDocsDeclare(Directive d) {
+		return DOCS_COMMENT_PREFIX.equals(d.getName());
 	}
 
 	public Optional<String> getDescription() {
 		String desc = getTags()
 			.filter(this::isDescriptionDeclare)
-			.map(s -> s.substring(DESCRIPTION_COMMENT_PREFIX.length()))
+			.map(Directive::getValue)
+			.filter(Objects::nonNull)
 			.collect(Collectors.joining("\n"));
 		if (desc.isEmpty()) {
 			return Optional.empty();
@@ -141,14 +113,15 @@ public abstract class TagReader {
 		}
 	}
 
-	protected boolean isDescriptionDeclare(String line) {
-		return line.startsWith(DESCRIPTION_COMMENT_PREFIX);
+	protected boolean isDescriptionDeclare(Directive d) {
+		return DESCRIPTION_COMMENT_PREFIX.equals(d.getName());
 	}
 
 	public Optional<String> getMain() {
 		List<String> mains = getTags()
 			.filter(this::isMainDeclare)
-			.map(s -> s.substring(MAIN_COMMENT_PREFIX.length()))
+			.map(Directive::getValue)
+			.filter(Objects::nonNull)
 			.collect(Collectors.toList());
 		if (mains.isEmpty()) {
 			return Optional.empty();
@@ -165,15 +138,14 @@ public abstract class TagReader {
 		}
 	}
 
-	protected boolean isMainDeclare(String line) {
-		return line.startsWith(MAIN_COMMENT_PREFIX);
+	protected boolean isMainDeclare(Directive d) {
+		return MAIN_COMMENT_PREFIX.equals(d.getName());
 	}
 
 	public Optional<String> getModule() {
 		List<String> mods = getTags()
 			.filter(this::isModuleDeclare)
-			.map(String::trim)
-			.map(s -> s.substring(MODULE_COMMENT_PREFIX.length()))
+			.map(d -> d.getValue() != null ? d.getValue() : "")
 			.collect(Collectors.toList());
 		if (mods.isEmpty()) {
 			return Optional.empty();
@@ -184,8 +156,8 @@ public abstract class TagReader {
 			}
 			if (mods.get(0).isEmpty()) {
 				return Optional.of("");
-			} else if (Util.isValidModuleIdentifier(mods.get(0).substring(1))) {
-				return Optional.of(mods.get(0).substring(1));
+			} else if (Util.isValidModuleIdentifier(mods.get(0))) {
+				return Optional.of(mods.get(0));
 			} else {
 				throw new IllegalArgumentException(
 						"//MODULE line has wrong format, should be '//MODULE [identifier]'");
@@ -193,14 +165,14 @@ public abstract class TagReader {
 		}
 	}
 
-	protected boolean isModuleDeclare(String line) {
-		return line.equals(MODULE_COMMENT_PREFIX) || line.startsWith(MODULE_COMMENT_PREFIX + " ");
+	protected boolean isModuleDeclare(Directive d) {
+		return MODULE_COMMENT_PREFIX.equals(d.getName());
 	}
 
 	public Optional<String> getGav() {
 		List<String> gavs = getTags()
 			.filter(this::isGavDeclare)
-			.map(s -> s.substring(GAV_COMMENT_PREFIX.length()))
+			.map(Directive::getValue)
 			.collect(Collectors.toList());
 		if (gavs.isEmpty()) {
 			return Optional.empty();
@@ -209,13 +181,16 @@ public abstract class TagReader {
 				Util.warnMsg(
 						"Multiple //GAV lines found, only one should be defined in a source file. Using the first");
 			}
-			String maybeGav = gavWithVersion(gavs.get(0));
-			if (!DependencyUtil.looksLikeAGav(maybeGav)) {
+			if (gavs.get(0) == null || !DependencyUtil.looksLikeAGav(gavWithVersion(gavs.get(0)))) {
 				throw new IllegalArgumentException(
 						"//GAV line has wrong format, should be '//GAV groupid:artifactid[:version]'");
 			}
 			return Optional.of(gavs.get(0));
 		}
+	}
+
+	protected boolean isGavDeclare(Directive d) {
+		return GAV_COMMENT_PREFIX.equals(d.getName());
 	}
 
 	private static String gavWithVersion(String gav) {
@@ -225,38 +200,70 @@ public abstract class TagReader {
 		return gav;
 	}
 
-	protected boolean isGavDeclare(String line) {
-		return line.startsWith(GAV_COMMENT_PREFIX);
+	public List<KeyValue> collectManifestOptions() {
+		return collectTagOptions("MANIFEST");
+	}
+
+	public List<KeyValue> collectAgentOptions() {
+		return collectTagOptions("JAVAAGENT");
+	}
+
+	private List<KeyValue> collectTagOptions(String name) {
+		return collectRawOptions(name).stream()
+			.filter(Objects::nonNull)
+			.flatMap(v -> quotedStringToList(Q2TL_SSCT, v).stream())
+			.map(KeyValue::of)
+			.collect(Collectors.toCollection(ArrayList::new));
 	}
 
 	@NonNull
-	public List<String> collectTags(String... prefixes) {
+	public List<String> collectOptions(String... names) {
+		List<String> options = collectTags(names);
+		// convert quoted content to list of strings as
+		// just passing "--enable-preview --source 14" fails
+		return quotedStringToList(Q2TL_SPACES, String.join(" ", options));
+	}
+
+	@NonNull
+	public List<String> collectTags(String... names) {
 		List<String> tags;
-		if (prefixes.length > 1) {
+		if (names.length > 1) {
 			tags = new ArrayList<>();
-			for (String prefix : prefixes) {
-				tags.addAll(collectRawOptions(prefix));
+			for (String name : names) {
+				tags.addAll(collectRawOptions(name));
 			}
 		} else {
-			tags = collectRawOptions(prefixes[0]);
+			tags = collectRawOptions(names[0]);
 		}
 		return tags;
 	}
 
 	@NonNull
-	public List<String> collectOptions(String... prefixes) {
-		List<String> options = collectTags(prefixes);
-		// convert quoted content to list of strings as
-		// just passing "--enable-preview --source 14" fails
-		return quotedStringToList(options);
+	List<String> collectRawOptions(String name) {
+		List<String> javaOptions = getTags()
+			.filter(d -> d.getName().equals(name))
+			.map(Directive::getValue)
+			.collect(Collectors.toList());
+
+		String envOptions = System.getenv("JBANG_" + name);
+		if (envOptions != null) {
+			javaOptions.add(envOptions);
+		}
+		return javaOptions;
 	}
 
+	private static final Pattern Q2TL_SPACES = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
+
+	// SSCT = Spaces Semicolons Commas Tabs
+	private static final Pattern Q2TL_SSCT = Pattern.compile("[^\\s;,\"']+|\"([^\"]*)\"|'([^']*)'");
+
 	// https://stackoverflow.com/questions/366202/regex-for-splitting-a-string-using-space-when-not-surrounded-by-single-or-double
-	static List<String> quotedStringToList(List<String> options) {
-		String subjectString = String.join(" ", options);
+	static List<String> quotedStringToList(Pattern regex, String text) {
+		if (text == null) {
+			return Collections.emptyList();
+		}
 		List<String> matchList = new ArrayList<>();
-		Pattern regex = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
-		Matcher regexMatcher = regex.matcher(subjectString);
+		Matcher regexMatcher = regex.matcher(text);
 		while (regexMatcher.find()) {
 			if (regexMatcher.group(1) != null) {
 				// Add double-quoted string without the quotes
@@ -272,22 +279,6 @@ public abstract class TagReader {
 		return matchList;
 	}
 
-	@NonNull
-	List<String> collectRawOptions(String prefix) {
-		List<String> javaOptions = getTags()
-			.map(it -> it.split(" // ")[0]) // strip away nested comments.
-			.filter(it -> it.startsWith(prefix + " ")
-					|| it.startsWith(prefix + "\t") || it.equals(prefix))
-			.map(it -> it.replaceFirst(prefix, "").trim())
-			.collect(Collectors.toList());
-
-		String envOptions = System.getenv("JBANG_" + prefix);
-		if (envOptions != null) {
-			javaOptions.add(envOptions);
-		}
-		return javaOptions;
-	}
-
 	public String getJavaVersion() {
 		Optional<String> version = collectJavaVersions().stream()
 			.filter(JavaUtil::checkRequestedVersion)
@@ -296,37 +287,31 @@ public abstract class TagReader {
 	}
 
 	private List<String> collectJavaVersions() {
-		return collectTags("JAVA");
+		return collectTags(JAVA_COMMENT_PREFIX);
 	}
 
 	public List<String> collectSources() {
-		if (getContents() == null) {
-			return Collections.emptyList();
-		} else {
-			return getTags().filter(f -> f.startsWith(SOURCES_COMMENT_PREFIX))
-				.flatMap(line -> Arrays.stream(line.split(" // ")[0].split("[ ;,]+"))
-					.skip(1)
-					.map(String::trim))
-				.map(propertiesReplacer)
-				.collect(Collectors.toCollection(ArrayList::new));
-		}
-	}
-
-	public List<KeyValue> collectFiles() {
-		return getTags().filter(f -> f.startsWith(FILES_COMMENT_PREFIX))
-			.flatMap(line -> Arrays.stream(line.split(" // ")[0].split("[ ;,]+"))
-				.skip(1)
-				.map(String::trim))
-			.map(propertiesReplacer)
-			.map(this::toKeyValue)
+		return getTags()
+			.filter(this::isSourcesDeclare)
+			.map(Directive::getValue)
+			.flatMap(v -> quotedStringToList(Q2TL_SSCT, v).stream())
 			.collect(Collectors.toCollection(ArrayList::new));
 	}
 
-	private KeyValue toKeyValue(String s) {
-		KeyValue kv = KeyValue.of(s);
-		String value = kv.getValue();
-		value = value != null ? propertiesReplacer.apply(value) : null;
-		return new KeyValue(kv.getKey(), value);
+	protected boolean isSourcesDeclare(Directive d) {
+		return SOURCES_COMMENT_PREFIX.equals(d.getName());
+	}
+
+	public List<KeyValue> collectFiles() {
+		return getTags().filter(this::isFilesDeclare)
+			.map(Directive::getValue)
+			.flatMap(v -> quotedStringToList(Q2TL_SSCT, v).stream())
+			.map(KeyValue::of)
+			.collect(Collectors.toCollection(ArrayList::new));
+	}
+
+	protected boolean isFilesDeclare(Directive d) {
+		return FILES_COMMENT_PREFIX.equals(d.getName());
 	}
 
 	/**
@@ -374,12 +359,58 @@ public abstract class TagReader {
 		}
 	}
 
+	public static class Directive {
+		@NonNull
+		private final String name;
+		@Nullable
+		private final String value;
+
+		public Directive(@NonNull String name, @Nullable String value) {
+			this.name = name;
+			this.value = value;
+		}
+
+		@NonNull
+		public String getName() {
+			return name;
+		}
+
+		@Nullable
+		public String getValue() {
+			return value;
+		}
+
+		@Override
+		public String toString() {
+			return getValue() != null ? getName() + " " + getValue() : getName();
+		}
+	}
+
+	private static final Pattern DIRECTIVE = Pattern
+		.compile("(?<key>(?:[A-Z]+:)?[A-Z_]+)(?:\\s+(?<value>.*?))?(?:\\s\\/\\/\\s.*)?");
+
+	@Nullable
+	protected Directive toDirective(@NonNull String line, @Nullable Function<String, String> propertiesReplacer) {
+		Matcher matcher = DIRECTIVE.matcher(line);
+		if (matcher.matches()) {
+			String value = matcher.group("value");
+			if (propertiesReplacer != null && value != null) {
+				value = propertiesReplacer.apply(value);
+			}
+			value = value != null ? value.trim() : null;
+			return new Directive(matcher.group("key"), value);
+		}
+		return null;
+	}
+
 	/**
 	 * This class extends the default <code>TagReader</code> with support for Groovy
 	 * "grab" annotations.
 	 */
 	public static class Extended extends TagReader {
-		private List<String> tags;
+		private final String contents;
+		private final Function<String, String> propertiesReplacer;
+		private List<Directive> tags;
 
 		private static final String DEPS_ANNOT_PREFIX = "@Grab(";
 		private static final Pattern DEPS_ANNOT_PAIRS = Pattern.compile("(?<key>\\w+)\\s*=\\s*\"(?<value>.*?)\"");
@@ -390,127 +421,152 @@ public abstract class TagReader {
 		private static final Pattern REPOS_ANNOT_SINGLE = Pattern.compile(
 				"@GrabResolver\\(\\s*\"(?<value>.*)\"\\s*\\)");
 
-		public Extended(String contents, Function<String, String> replaceProperties) {
-			super(contents, replaceProperties);
+		public Extended(String contents, Function<String, String> propertiesReplacer) {
+			this.contents = contents;
+			this.propertiesReplacer = propertiesReplacer;
+		}
+
+		public static class ExtendedDirective extends Directive {
+			public ExtendedDirective(@NonNull String name, @Nullable String value) {
+				super(name, value);
+			}
+
+			@Override
+			public String toString() {
+				return "//" + super.toString();
+			}
 		}
 
 		@Override
-		public Stream<String> getTags() {
+		public Stream<Directive> getTags() {
 			if (tags == null) {
-				tags = EOL.splitAsStream(contents)
+				tags = Util.stringLines(contents)
 					.filter(s -> s.startsWith("//")
 							|| s.contains(DEPS_ANNOT_PREFIX)
 							|| s.contains(REPOS_ANNOT_PREFIX))
-					.map(s -> s.contains(DEPS_ANNOT_PREFIX)
-							|| s.contains(REPOS_ANNOT_PREFIX) ? s : s.substring(2))
+					.map(line -> toDirective(line, propertiesReplacer))
+					.filter(Objects::nonNull)
 					.collect(Collectors.toList());
 			}
 			return tags.stream();
 		}
 
 		@Override
-		protected boolean isDependDeclare(String line) {
-			return line.startsWith(DEPS_COMMENT_PREFIX) || line.contains(DEPS_ANNOT_PREFIX);
-		}
-
-		@Override
-		protected Stream<String> extractDependencies(String line) {
-			if (line.startsWith(DEPS_COMMENT_PREFIX)) {
-				return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
-			}
-
+		@Nullable
+		protected Directive toDirective(@NonNull String line, @Nullable Function<String, String> propertiesReplacer) {
 			if (line.contains(DEPS_ANNOT_PREFIX)) {
-				int commentOrEnd = line.indexOf("//");
-				if (commentOrEnd < 0) {
-					commentOrEnd = line.length();
+				return parseDepsAnnotation(line);
+			} else if (line.contains(REPOS_ANNOT_PREFIX)) {
+				return parseReposAnnotation(line);
+			} else {
+				Directive d = super.toDirective(line.substring(2), this.propertiesReplacer);
+				if (d == null) {
+					return null;
 				}
-				if (line.indexOf(DEPS_ANNOT_PREFIX) > commentOrEnd) {
-					// ignore if on line that is a comment
-					return Stream.of();
-				}
-
-				Map<String, String> args = new HashMap<>();
-
-				Matcher matcher = DEPS_ANNOT_PAIRS.matcher(line);
-				while (matcher.find()) {
-					args.put(matcher.group("key"), matcher.group("value"));
-				}
-				if (!args.isEmpty()) {
-					// groupId:artifactId:version[:classifier][@type]
-					String gav = Stream.of(
-							args.get("group"),
-							args.get("module"),
-							args.get("version"),
-							args.get("classifier"))
-						.filter(Objects::nonNull)
-						.collect(Collectors.joining(":"));
-					if (args.containsKey("ext")) {
-						gav = gav + "@" + args.get("ext");
-					}
-					if (!gav.isEmpty()) { // protects when @Grab might be inside a string (like jbang source)
-						return Stream.of(gav);
-					} else {
-						return Stream.empty();
-					}
-				} else {
-					matcher = DEPS_ANNOT_SINGLE.matcher(line);
-					if (matcher.find()) {
-						return Stream.of(matcher.group("value"));
-					}
-				}
+				return new ExtendedDirective(d.getName(), d.getValue());
 			}
-
-			return Stream.of();
 		}
 
-		@Override
-		protected boolean isRepoDeclare(String line) {
-			return line.startsWith(REPOS_COMMENT_PREFIX) || line.contains(REPOS_ANNOT_PREFIX);
+		private Directive parseDepsAnnotation(String line) {
+			int commentOrEnd = line.indexOf("//");
+			if (commentOrEnd < 0) {
+				commentOrEnd = line.length();
+			}
+			if (line.indexOf(DEPS_ANNOT_PREFIX) > commentOrEnd) {
+				// ignore if on line that is a comment
+				return null;
+			}
+
+			Directive result = null;
+			Map<String, String> args = new HashMap<>();
+			Matcher matcher = DEPS_ANNOT_PAIRS.matcher(line);
+			while (matcher.find()) {
+				args.put(matcher.group("key"), matcher.group("value"));
+			}
+			if (!args.isEmpty()) {
+				// groupId:artifactId:version[:classifier][@type]
+				String gav = Stream.of(
+						args.get("group"),
+						args.get("module"),
+						args.get("version"),
+						args.get("classifier"))
+					.filter(Objects::nonNull)
+					.collect(Collectors.joining(":"));
+				if (args.containsKey("ext")) {
+					gav = gav + "@" + args.get("ext");
+				}
+				if (gav.contains(",")) {
+					// GAV contains a comma, likely in a version range, so quote it
+					gav = "'" + gav + "'";
+				}
+				if (!gav.isEmpty()) { // protects when @Grab might be inside a string (like jbang source)
+					result = new ExtendedDirective(DEPS_COMMENT_PREFIX, gav);
+				}
+			} else {
+				matcher = DEPS_ANNOT_SINGLE.matcher(line);
+				if (matcher.find()) {
+					result = new ExtendedDirective(DEPS_COMMENT_PREFIX, matcher.group("value"));
+				}
+			}
+			return result;
 		}
 
-		@Override
-		protected Stream<String> extractRepositories(String line) {
-			if (line.startsWith(REPOS_COMMENT_PREFIX)) {
-				return Arrays.stream(line.split(" // ")[0].split("[ ;,]+")).skip(1).map(String::trim);
+		private Directive parseReposAnnotation(String line) {
+			int commentOrEnd = line.indexOf("//");
+			if (commentOrEnd < 0) {
+				commentOrEnd = line.length();
+			}
+			if (line.indexOf(REPOS_ANNOT_PREFIX) > commentOrEnd) {
+				// ignore if on line that is a comment
+				return null;
 			}
 
-			if (line.contains(REPOS_ANNOT_PREFIX)) {
-				if (line.indexOf(REPOS_ANNOT_PREFIX) > line.indexOf("//")) {
-					// ignore if on line that is a comment
-					return Stream.of();
-				}
-
-				Map<String, String> args = new HashMap<>();
-
-				Matcher matcher = REPOS_ANNOT_PAIRS.matcher(line);
-				while (matcher.find()) {
-					args.put(matcher.group("key"), matcher.group("value"));
-				}
-				if (!args.isEmpty()) {
-					String repo = args.getOrDefault("name", args.get("root")) + "=" + args.get("root");
-					return Stream.of(repo);
-				} else {
-					matcher = REPOS_ANNOT_SINGLE.matcher(line);
-					if (matcher.find()) {
-						return Stream.of(matcher.group("value"));
-					}
+			String repo = null;
+			Map<String, String> args = new HashMap<>();
+			Matcher matcher = REPOS_ANNOT_PAIRS.matcher(line);
+			while (matcher.find()) {
+				args.put(matcher.group("key"), matcher.group("value"));
+			}
+			if (!args.isEmpty()) {
+				repo = args.getOrDefault("name", args.get("root")) + "=" + args.get("root");
+			} else {
+				matcher = REPOS_ANNOT_SINGLE.matcher(line);
+				if (matcher.find()) {
+					repo = matcher.group("value");
 				}
 			}
-
-			return Stream.of();
+			if (repo == null) {
+				return null;
+			}
+			if (repo.contains(",")) {
+				// repo contains a comma (it shouldn't, but it does), so quote it
+				repo = "'" + repo + "'";
+			}
+			return new ExtendedDirective(REPOS_COMMENT_PREFIX, repo);
 		}
 	}
 
 	public static class JbangProject extends TagReader {
+		private final String contents;
+		private final Function<String, String> propertiesReplacer;
 
-		public JbangProject(String contents, Function<String, String> replaceProperties) {
-			super(contents, replaceProperties);
+		private List<Directive> tags;
+
+		public JbangProject(String contents, Function<String, String> propertiesReplacer) {
+			this.contents = contents;
+			this.propertiesReplacer = propertiesReplacer;
 		}
 
 		@Override
-		public Stream<String> getTags() {
-			return EOL.splitAsStream(contents).filter(s -> !s.startsWith("//"));
+		public Stream<Directive> getTags() {
+			if (tags == null) {
+				tags = Util.stringLines(contents)
+					.filter(s -> !s.startsWith("//"))
+					.map(line -> toDirective(line, propertiesReplacer))
+					.filter(Objects::nonNull)
+					.collect(Collectors.toList());
+			}
+			return tags.stream();
 		}
-
 	}
 }

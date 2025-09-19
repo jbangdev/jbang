@@ -1,5 +1,10 @@
 package dev.jbang.source;
 
+import static dev.jbang.source.parser.TagReader.CDS_COMMENT_PREFIX;
+import static dev.jbang.source.parser.TagReader.JAVAAGENT_COMMENT_PREFIX;
+import static dev.jbang.source.parser.TagReader.NOINTEGRATIONS_COMMENT_PREFIX;
+import static dev.jbang.source.parser.TagReader.PREVIEW_COMMENT_PREFIX;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -83,7 +88,7 @@ public abstract class Source {
 
 	@NonNull
 	public Stream<String> getTags() {
-		return getTagReader().getTags();
+		return getTagReader().getTags().map(TagReader.Directive::toString);
 	}
 
 	public abstract @NonNull Type getType();
@@ -118,19 +123,19 @@ public abstract class Source {
 	}
 
 	public boolean isAgent() {
-		return !getTagReader().collectAgentOptions().isEmpty();
+		return !getTagReader().collectTags(JAVAAGENT_COMMENT_PREFIX).isEmpty();
 	}
 
 	public boolean enableCDS() {
-		return !getTagReader().collectTags("CDS").isEmpty();
+		return !getTagReader().collectTags(CDS_COMMENT_PREFIX).isEmpty();
 	}
 
 	public boolean enablePreview() {
-		return !getTagReader().collectTags("PREVIEW").isEmpty();
+		return !getTagReader().collectTags(PREVIEW_COMMENT_PREFIX).isEmpty();
 	}
 
 	public boolean disableIntegrations() {
-		return !getTagReader().collectTags("NOINTEGRATIONS").isEmpty();
+		return !getTagReader().collectTags(NOINTEGRATIONS_COMMENT_PREFIX).isEmpty();
 	}
 
 	// Used only by tests
