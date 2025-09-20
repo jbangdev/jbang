@@ -78,15 +78,14 @@ public class IntegrationManager {
 		for (ArtifactInfo art : ctx.resolveClassPath().getArtifacts()) {
 			if (art.getCoordinate() != null) { // skipping dependencies that does not have a GAV
 				deps.put(art.getCoordinate().toCanonicalForm(), art.getFile());
+			} else {
+				deps.put(art.getFile().getFileName().toString(), art.getFile());
 			}
 		}
 
 		List<String> comments = source.getTags().map(s -> "//" + s).collect(Collectors.toList());
-		ClassLoader old = Thread.currentThread().getContextClassLoader();
 		PrintStream oldout = System.out;
-		try {
-			URLClassLoader integrationCl = getClassLoader(deps.values());
-			Thread.currentThread().setContextClassLoader(integrationCl);
+		try (URLClassLoader integrationCl = getClassLoader(deps.values())) {
 			String requestedJavaVersion = prj.getJavaVersion();
 			Set<String> classNames = loadIntegrationClassNames(integrationCl);
 			for (String className : classNames) {
@@ -95,10 +94,12 @@ public class IntegrationManager {
 						: null;
 				IntegrationInput input = new IntegrationInput(className, srcPath, compileDir, pomPath, repos, deps,
 						comments, prj.isNativeImage(), Util.isVerbose());
-				IntegrationResult ir = requestedJavaVersion == null || JavaUtil.satisfiesRequestedVersion(
-						requestedJavaVersion, JavaUtil.getCurrentMajorJavaVersion())
-								? runIntegrationEmbedded(input, integrationCl)
-								: runIntegrationExternal(input, prj.getProperties(), prj.projectJdk());
+				boolean embedded = (requestedJavaVersion == null || JavaUtil.satisfiesRequestedVersion(
+						requestedJavaVersion, JavaUtil.getCurrentMajorJavaVersion()))
+						&& !"true".equals(System.getProperty("jbang.build.integration.forceExternal"));
+				IntegrationResult ir = embedded
+						? runIntegrationEmbedded(input, integrationCl)
+						: runIntegrationExternal(input, prj.getProperties(), prj.projectJdk());
 				result = result.merged(ir);
 			}
 		} catch (ClassNotFoundException e) {
@@ -111,7 +112,6 @@ public class IntegrationManager {
 		} catch (Exception e) {
 			throw new ExitException(EXIT_GENERIC_ERROR, "Issue running postBuild()", e);
 		} finally {
-			Thread.currentThread().setContextClassLoader(old);
 			System.setOut(oldout);
 		}
 		return result;
@@ -156,6 +156,17 @@ public class IntegrationManager {
 	}
 
 	private static IntegrationResult runIntegrationEmbedded(IntegrationInput input, URLClassLoader integrationCl)
+			throws Exception {
+		ClassLoader old = Thread.currentThread().getContextClassLoader();
+		try {
+			Thread.currentThread().setContextClassLoader(integrationCl);
+			return runIntegrationEmbedded_(input, integrationCl);
+		} finally {
+			Thread.currentThread().setContextClassLoader(old);
+		}
+	}
+
+	private static IntegrationResult runIntegrationEmbedded_(IntegrationInput input, URLClassLoader integrationCl)
 			throws Exception {
 		Util.infoMsg("Post build with " + input.integrationClassName);
 
