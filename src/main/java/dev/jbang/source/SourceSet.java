@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 import org.jspecify.annotations.NonNull;
 
 import dev.jbang.dependencies.DependencyResolver;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.util.Util;
 
 /**

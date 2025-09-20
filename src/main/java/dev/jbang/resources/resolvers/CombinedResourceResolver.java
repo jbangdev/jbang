@@ -1,4 +1,4 @@
-package dev.jbang.source.resolvers;
+package dev.jbang.resources.resolvers;
 
 import java.util.Arrays;
 import java.util.List;
@@ -7,8 +7,8 @@ import java.util.stream.Collectors;
 
 import org.jspecify.annotations.NonNull;
 
-import dev.jbang.source.ResourceRef;
-import dev.jbang.source.ResourceResolver;
+import dev.jbang.resources.ResourceRef;
+import dev.jbang.resources.ResourceResolver;
 
 /**
  * A <code>ResourceResolver</code> that, when given a resource string will
@@ -21,6 +21,15 @@ public class CombinedResourceResolver implements ResourceResolver {
 
 	public CombinedResourceResolver(ResourceResolver... resolvers) {
 		this.resolvers = Arrays.asList(resolvers);
+	}
+
+	@Override
+	public ResourceRef resolve(String resource) {
+		return resolvers.stream()
+			.map(r -> r.resolve(resource))
+			.filter(Objects::nonNull)
+			.findFirst()
+			.orElse(null);
 	}
 
 	@Override

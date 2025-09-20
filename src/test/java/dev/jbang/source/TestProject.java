@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.sources.JavaSource;
 
 public class TestProject extends BaseTest {

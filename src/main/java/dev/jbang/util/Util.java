@@ -540,6 +540,10 @@ public class Util {
 		return br.lines().collect(Collectors.joining("\n"));
 	}
 
+	static public Stream<String> stringLines(String text) {
+		return Arrays.stream(text.split("\\r?\\n"));
+	}
+
 	/**
 	 * Java 8 approximate version of Java 11 Files.writeString()
 	 **/

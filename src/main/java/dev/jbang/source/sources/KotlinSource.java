@@ -11,9 +11,11 @@ import java.util.function.Function;
 import org.jspecify.annotations.NonNull;
 
 import dev.jbang.net.KotlinManager;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.*;
 import dev.jbang.source.AppBuilder;
 import dev.jbang.source.buildsteps.CompileBuildStep;
+import dev.jbang.source.parser.Directives;
 import dev.jbang.util.Util;
 
 public class KotlinSource extends Source {
@@ -36,17 +38,17 @@ public class KotlinSource extends Source {
 
 	@Override
 	protected List<String> getCompileOptions() {
-		return getTagReader().collectOptions("COMPILE_OPTIONS");
+		return getDirectives().compileOptions();
 	}
 
 	@Override
 	protected List<String> getNativeOptions() {
-		return getTagReader().collectOptions("NATIVE_OPTIONS");
+		return getDirectives().nativeOptions();
 	}
 
 	@Override
 	protected List<String> getRuntimeOptions() {
-		return getTagReader().collectOptions("JAVA_OPTIONS", "RUNTIME_OPTIONS");
+		return getDirectives().runtimeOptions();
 	}
 
 	@Override
@@ -55,8 +57,7 @@ public class KotlinSource extends Source {
 	}
 
 	public String getKotlinVersion() {
-		return getTagReader().collectOptions("KOTLIN")
-			.stream()
+		return getDirectives().collectDirectives(Directives.Names.KOTLIN)
 			.findFirst()
 			.orElse(KotlinManager.DEFAULT_KOTLIN_VERSION);
 	}

@@ -1,9 +1,9 @@
-package dev.jbang.source;
+package dev.jbang.resources;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import dev.jbang.source.resolvers.*;
+import dev.jbang.resources.resolvers.*;
 
 /**
  * An interface used for analysing a resource string, resolving what exact file
@@ -72,5 +72,25 @@ public interface ResourceResolver {
 				new RemoteResourceResolver(true),
 				new ClasspathResourceResolver(),
 				new FileResourceResolver());
+	}
+
+	static ResourceResolver combined(ResourceResolver... resolvers) {
+		return new CombinedResourceResolver(resolvers);
+	}
+
+	static ResourceResolver trusting(ResourceResolver resolver) {
+		return new TrustingResourceResolver(resolver);
+	}
+
+	class NullResourceResolver implements ResourceResolver {
+		@Override
+		public @Nullable ResourceRef resolve(String resource, boolean trusted) {
+			return null;
+		}
+
+		@Override
+		public @NonNull String description() {
+			return "A resource resolver that never resolves anything";
+		}
 	}
 }

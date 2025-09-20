@@ -1,4 +1,4 @@
-package dev.jbang.source.resolvers;
+package dev.jbang.resources.resolvers;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,9 +13,9 @@ import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
+import dev.jbang.resources.ResourceRef;
+import dev.jbang.resources.ResourceResolver;
 import dev.jbang.source.Project;
-import dev.jbang.source.ResourceRef;
-import dev.jbang.source.ResourceResolver;
 import dev.jbang.source.Source;
 import dev.jbang.util.Util;
 

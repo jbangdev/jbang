@@ -10,9 +10,9 @@ import org.jspecify.annotations.NonNull;
 
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.ExitException;
-import dev.jbang.source.ResourceRef;
+import dev.jbang.resources.ResourceRef;
+import dev.jbang.resources.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.source.Source;
-import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.util.Util;
 
 public class MarkdownSource extends JshSource {

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,6 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -36,16 +38,19 @@ import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.devkitman.JdkManager;
+import dev.jbang.resources.ResourceNotFoundException;
+import dev.jbang.resources.ResourceRef;
+import dev.jbang.resources.ResourceResolver;
+import dev.jbang.resources.resolvers.AliasResourceResolver;
+import dev.jbang.resources.resolvers.ClasspathResourceResolver;
+import dev.jbang.resources.resolvers.FileResourceResolver;
+import dev.jbang.resources.resolvers.GavResourceResolver;
+import dev.jbang.resources.resolvers.LiteralScriptResourceResolver;
+import dev.jbang.resources.resolvers.RemoteResourceResolver;
+import dev.jbang.resources.resolvers.RenamingScriptResourceResolver;
 import dev.jbang.source.buildsteps.JarBuildStep;
-import dev.jbang.source.resolvers.AliasResourceResolver;
-import dev.jbang.source.resolvers.ClasspathResourceResolver;
-import dev.jbang.source.resolvers.CombinedResourceResolver;
-import dev.jbang.source.resolvers.FileResourceResolver;
-import dev.jbang.source.resolvers.GavResourceResolver;
-import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
-import dev.jbang.source.resolvers.RemoteResourceResolver;
-import dev.jbang.source.resolvers.RenamingScriptResourceResolver;
-import dev.jbang.source.resolvers.SiblingResourceResolver;
+import dev.jbang.source.parser.Directives;
+import dev.jbang.source.parser.KeyValue;
 import dev.jbang.source.sources.JavaSource;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.ModuleUtil;
@@ -247,13 +252,8 @@ public class ProjectBuilder {
 
 	private List<String> replaceAllProps(List<String> items) {
 		return items.stream()
-			.map(item -> PropertiesValueResolver.replaceProperties(item, getContextProperties()))
+			.map(propertyReplacer())
 			.collect(Collectors.toList());
-	}
-
-	private List<MavenRepo> allToMavenRepo(List<String> repos) {
-		return repos.stream().map(DependencyUtil::toMavenRepo).collect(Collectors.toList());
-
 	}
 
 	public Project build(String resource) {
@@ -326,33 +326,32 @@ public class ProjectBuilder {
 	private Project createJbangProject(ResourceRef resourceRef) {
 		Project prj = new Project(resourceRef);
 		String contents = Util.readFileContent(resourceRef.getFile());
-		TagReader tagReader = new TagReader.JbangProject(contents,
-				it -> PropertiesValueResolver.replaceProperties(it, getContextProperties()));
-		prj.setDescription(tagReader.getDescription().orElse(null));
-		ResourceResolver resolver1 = new SiblingResourceResolver(resourceRef);
-		prj.addDocs(tagReader.collectDocs(resolver1));
-		prj.setGav(tagReader.getGav().orElse(null));
-		prj.setMainClass(tagReader.getMain().orElse(null));
-		prj.setModuleName(tagReader.getModule().orElse(null));
+		Directives directives = new Directives.JbangProject(contents, propertyReplacer());
+		ResourceResolver sibRes1 = getSiblingResolver(resourceRef);
+		prj.setDescription(directives.description());
+		prj.addDocs(allToDocRef(directives.collectDocs(), sibRes1));
+		prj.setGav(directives.gav());
+		prj.setMainClass(directives.mainMethod());
+		prj.setModuleName(directives.module());
 
 		SourceSet ss = prj.getMainSourceSet();
-		ss.addResources(tagReader.collectFiles(resourceRef, resolver1));
-		ss.addDependencies(tagReader.collectBinaryDependencies());
-		ss.addCompileOptions(tagReader.collectOptions("JAVAC_OPTIONS", "COMPILE_OPTIONS"));
-		ss.addNativeOptions(tagReader.collectOptions("NATIVE_OPTIONS"));
-		prj.addRepositories(tagReader.collectRepositories());
-		prj.addRuntimeOptions(tagReader.collectOptions("JAVA_OPTIONS", "RUNTIME_OPTIONS"));
-		tagReader.collectManifestOptions().forEach(kv -> {
+		ss.addResources(allToFileRef(directives.files(), resourceRef, sibRes1));
+		ss.addDependencies(directives.binaryDependencies());
+		ss.addCompileOptions(directives.compileOptions());
+		ss.addNativeOptions(directives.nativeOptions());
+		prj.addRepositories(directives.repositories());
+		prj.addRuntimeOptions(directives.runtimeOptions());
+		directives.manifestOptions().forEach(kv -> {
 			if (!kv.getKey().isEmpty()) {
 				prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
 			}
 		});
-		tagReader.collectAgentOptions().forEach(kv -> {
+		directives.agentOptions().forEach(kv -> {
 			if (!kv.getKey().isEmpty()) {
 				prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
 			}
 		});
-		String version = tagReader.getJavaVersion();
+		String version = directives.javaVersion();
 		if (version != null && JavaUtil.checkRequestedVersion(version)) {
 			if (new JavaUtil.RequestedVersionComparator().compare(prj.getJavaVersion(), version) > 0) {
 				prj.setJavaVersion(version);
@@ -360,15 +359,15 @@ public class ProjectBuilder {
 		}
 
 		ResourceResolver resolver = getAliasResourceResolver(null);
-		ResourceResolver siblingResolver = new SiblingResourceResolver(resourceRef, resolver);
-
-		for (String srcDep : tagReader.collectSourceDependencies()) {
+		ResourceResolver sibRes2 = getSiblingResolver(resourceRef, resolver);
+		for (String srcDep : directives.sourceDependencies()) {
 			ResourceRef subRef = resolver.resolve(srcDep, true);
 			prj.addSubProject(new ProjectBuilder(buildRefs).build(subRef));
 		}
 
 		boolean first = true;
-		for (Source includedSource : tagReader.collectSources(resourceRef, siblingResolver)) {
+		List<Source> includedSources = allToSource(directives.sources(), resourceRef, sibRes2);
+		for (Source includedSource : includedSources) {
 			updateProject(includedSource, prj, resolver);
 			if (first) {
 				prj.setMainSource(includedSource);
@@ -387,7 +386,7 @@ public class ProjectBuilder {
 
 	private Source createSource(ResourceRef resourceRef) {
 		return Source.forResourceRef(resourceRef,
-				it -> PropertiesValueResolver.replaceProperties(it, getContextProperties()));
+				propertyReplacer());
 
 	}
 
@@ -470,7 +469,8 @@ public class ProjectBuilder {
 		ss.addDependencies(replaceAllProps(additionalDeps));
 		ss.addClassPaths(replaceAllProps(additionalClasspaths));
 		updateAllSources(prj, replaceAllProps(additionalSources));
-		ss.addResources(allToFileRef(replaceAllProps(additionalResources)));
+		ss.addResources(
+				allToFileRef(allToKV(replaceAllProps(additionalResources)), null, ResourceResolver.forResources()));
 		ss.addCompileOptions(compileOptions);
 		ss.addNativeOptions(nativeOptions);
 		prj.putProperties(properties);
@@ -495,7 +495,7 @@ public class ProjectBuilder {
 		if (enablePreview != null) {
 			prj.setEnablePreviewRequested(enablePreview);
 		}
-		prj.addDocs(allToDocRef(docs));
+		prj.addDocs(allToDocRef(allToKV(docs), ResourceResolver.forResources()));
 		if (jdkManager != null) {
 			prj.setJdkManager(jdkManager);
 		} else {
@@ -514,19 +514,81 @@ public class ProjectBuilder {
 			.forEach(src -> updateProject(src, prj, resolver));
 	}
 
-	private List<RefTarget> allToFileRef(List<String> resources) {
-		ResourceResolver resolver = ResourceResolver.forResources();
-		return resources.stream()
-			.flatMap(f -> TagReader.explodeFileRef(null, Util.getCwd(), f).stream())
-			.map(f -> TagReader.toFileRef(f, resolver))
+	private List<KeyValue> allToKV(List<String> list) {
+		return list.stream().map(KeyValue::of).collect(Collectors.toList());
+	}
+
+	private List<MavenRepo> allToMavenRepo(List<String> repos) {
+		return repos.stream().map(DependencyUtil::toMavenRepo).collect(Collectors.toList());
+	}
+
+	private List<Source> allToSource(List<String> sources, ResourceRef resourceRef, ResourceResolver resolver) {
+		String org = resourceRef != null ? resourceRef.getOriginalResource() : null;
+		Path baseDir = org != null ? resourceRef.getFile().toAbsolutePath().getParent() : Util.getCwd();
+		return sources.stream()
+			.flatMap(line -> Util.explode(org, baseDir, line).stream())
+			.map(ref -> Source.forResource(resolver, ref, propertyReplacer()))
 			.collect(Collectors.toList());
 	}
 
-	private List<DocRef> allToDocRef(List<String> docs) {
-		ResourceResolver resolver = ResourceResolver.forResources();
-		return docs.stream()
-			.map(f -> DocRef.toDocRef(resolver, f))
+	private List<RefTarget> allToFileRef(List<KeyValue> resources, ResourceRef ref, ResourceResolver resolver) {
+		String org = ref != null ? ref.getOriginalResource() : null;
+		Path baseDir = org != null ? ref.getFile().toAbsolutePath().getParent() : Util.getCwd();
+		return resources.stream()
+			.flatMap(kv -> Directives.explodeFileRef(org, baseDir, kv).stream())
+			.map(f -> toFileRef(f, resolver))
 			.collect(Collectors.toList());
+	}
+
+	private List<DocRef> allToDocRef(List<KeyValue> docs, ResourceResolver resolver) {
+		return docs.stream()
+			.map(kv -> DocRef.toDocRef(resolver, kv))
+			.collect(Collectors.toList());
+	}
+
+	/**
+	 * Turns a reference like `img/logo.jpg` or `WEB-INF/index.html=web/index.html`
+	 * into a <code>RefTarget</code>. In case no alias was supplied the
+	 * <code>RefTarget</code>'s target will be <code>null</code>. When an alias
+	 * terminates in a <code>/</code> the alias will be assumed to be a folder name
+	 * and the source's file name will be appended to it, meaning that given
+	 * `WEB-INF/=web/index.html` this method will return a <code>RefTarget</code> as
+	 * if `WEB-INF/index.html=web/index.html` was supplied.
+	 */
+	public static RefTarget toFileRef(String fileReference, ResourceResolver siblingResolver) {
+		String[] split = fileReference.split("=", 2);
+		String src;
+		String dest = null;
+
+		if (split.length == 1) {
+			src = split[0];
+		} else {
+			dest = split[0];
+			src = split[1];
+		}
+
+		Path p = dest != null ? Paths.get(dest) : null;
+
+		if (Paths.get(src).isAbsolute() || (p != null && p.isAbsolute())) {
+			ResourceRef ref = ResourceRef.forUnresolvable(src,
+					"Only relative paths allowed in //FILES. Found absolute path");
+			return RefTarget.create(ref, p);
+		}
+
+		try {
+			ResourceRef ref = siblingResolver.resolve(src);
+			if (ref == null) {
+				ref = ResourceRef.forUnresolvable(src, "not resolvable from " + siblingResolver.description());
+			}
+			if (dest != null && dest.endsWith("/")) {
+				p = p.resolve(ref.getFile().getFileName());
+			}
+			return RefTarget.create(ref, p);
+		} catch (ResourceNotFoundException rnfe) {
+			ResourceRef ref = ResourceRef.forUnresolvable(src,
+					"error `" + rnfe.getMessage() + "' while resolving from " + siblingResolver.description());
+			return RefTarget.create(ref, p);
+		}
 	}
 
 	/**
@@ -540,14 +602,13 @@ public class ProjectBuilder {
 	 * @return A <code>Project</code>
 	 */
 	private Project updateProjectMain(Source src, Project prj, ResourceResolver resolver) {
-		prj.setDescription(src.getTagReader().getDescription().orElse(null));
-		prj.setGav(src.getTagReader().getGav().orElse(null));
-		prj.setMainClass(src.getTagReader().getMain().orElse(null));
-		prj.setModuleName(src.getTagReader().getModule().orElse(null));
+		prj.setDescription(src.getDirectives().description());
+		prj.setGav(src.getDirectives().gav());
+		prj.setMainClass(src.getDirectives().mainMethod());
+		prj.setModuleName(src.getDirectives().module());
 		if (prj.getMainSource() instanceof JavaSource) {
 			// todo: have way to turn these off? lets wait until someone asks and has a
-			// usecase
-			// where ability to debug and support named parameters is bad.
+			// usecase where ability to debug and support named parameters is bad.
 			prj.getMainSourceSet().addCompileOption("-g");
 			prj.getMainSourceSet().addCompileOption("-parameters");
 		}
@@ -569,32 +630,32 @@ public class ProjectBuilder {
 	private Project updateProject(Source src, Project prj, ResourceResolver resolver) {
 		ResourceRef srcRef = src.getResourceRef();
 		if (!prj.getMainSourceSet().getSources().contains(srcRef)) {
-			ResourceResolver sibRes1 = new SiblingResourceResolver(srcRef);
 			SourceSet ss = prj.getMainSourceSet();
 			ss.addSource(srcRef);
 			if (srcRef instanceof ResourceRef.UnresolvableResourceRef) {
 				Util.verboseMsg("Skipping unresolvable source: " + srcRef);
 				return prj;
 			}
-			ss.addResources(src.getTagReader().collectFiles(srcRef, sibRes1));
+			ResourceResolver sibRes1 = getSiblingResolver(srcRef);
+			ss.addResources(allToFileRef(src.getDirectives().files(), srcRef, sibRes1));
 			ss.addDependencies(src.collectBinaryDependencies());
 			ss.addCompileOptions(src.getCompileOptions());
 			ss.addNativeOptions(src.getNativeOptions());
-			prj.addRepositories(src.getTagReader().collectRepositories());
+			prj.addRepositories(src.getDirectives().repositories());
 			prj.addRuntimeOptions(src.getRuntimeOptions());
-			prj.addDocs(src.getTagReader().collectDocs(sibRes1));
+			prj.addDocs(allToDocRef(src.getDirectives().collectDocs(), sibRes1));
 
-			src.getTagReader().collectManifestOptions().forEach(kv -> {
+			src.getDirectives().manifestOptions().forEach(kv -> {
 				if (!kv.getKey().isEmpty()) {
 					prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
 				}
 			});
-			src.getTagReader().collectAgentOptions().forEach(kv -> {
+			src.getDirectives().agentOptions().forEach(kv -> {
 				if (!kv.getKey().isEmpty()) {
 					prj.getManifestAttributes().put(kv.getKey(), kv.getValue() != null ? kv.getValue() : "true");
 				}
 			});
-			String version = src.getTagReader().getJavaVersion();
+			String version = src.getDirectives().javaVersion();
 			if (version != null && JavaUtil.checkRequestedVersion(version)) {
 				if (new JavaUtil.RequestedVersionComparator().compare(prj.getJavaVersion(), version) > 0) {
 					prj.setJavaVersion(version);
@@ -604,8 +665,9 @@ public class ProjectBuilder {
 				ResourceRef subRef = sibRes1.resolve(srcDep, true);
 				prj.addSubProject(new ProjectBuilder(buildRefs).build(subRef));
 			}
-			ResourceResolver sibRes2 = new SiblingResourceResolver(srcRef, resolver);
-			for (Source includedSource : src.getTagReader().collectSources(srcRef, sibRes2)) {
+			ResourceResolver sibRes2 = getSiblingResolver(srcRef, resolver);
+			List<Source> includedSources = allToSource(src.getDirectives().sources(), srcRef, sibRes2);
+			for (Source includedSource : includedSources) {
 				updateProject(includedSource, prj, resolver);
 			}
 		}
@@ -617,11 +679,19 @@ public class ProjectBuilder {
 		return new AliasResourceResolver(cat, this::getAliasResourceResolver);
 	}
 
+	private static ResourceResolver getSiblingResolver(ResourceRef ref) {
+		return getSiblingResolver(ref, ResourceResolver.forResources());
+	}
+
+	private static ResourceResolver getSiblingResolver(ResourceRef ref, ResourceResolver resolver) {
+		return ResourceResolver.combined(ref, ResourceResolver.trusting(resolver));
+	}
+
 	private ResourceResolver getAliasResourceResolver(Alias alias) {
 		if (alias != null) {
 			updateFromAlias(alias);
 		}
-		return new CombinedResourceResolver(
+		return ResourceResolver.combined(
 				new RenamingScriptResourceResolver(forceType),
 				new LiteralScriptResourceResolver(forceType),
 				new RemoteResourceResolver(false),
@@ -675,6 +745,9 @@ public class ProjectBuilder {
 		if (nativeOptions.isEmpty()) {
 			nativeOptions(alias.nativeOptions);
 		}
+		if (forceType == null && alias.forceType != null) {
+			forceType(Source.Type.valueOf(alias.forceType));
+		}
 		if (integrations == null) {
 			integrations(alias.integrations);
 		}
@@ -691,6 +764,10 @@ public class ProjectBuilder {
 
 	public static boolean isAlias(ResourceRef resourceRef) {
 		return resourceRef instanceof AliasResourceResolver.AliasedResourceRef;
+	}
+
+	private Function<String, String> propertyReplacer() {
+		return item -> PropertiesValueResolver.replaceProperties(item, getContextProperties());
 	}
 
 }

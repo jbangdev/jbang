@@ -1,8 +1,9 @@
-package dev.jbang.source.resolvers;
+package dev.jbang.resources.resolvers;
 
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -10,9 +11,9 @@ import java.util.function.Function;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import dev.jbang.source.ResourceNotFoundException;
-import dev.jbang.source.ResourceRef;
-import dev.jbang.source.ResourceResolver;
+import dev.jbang.resources.ResourceNotFoundException;
+import dev.jbang.resources.ResourceRef;
+import dev.jbang.resources.ResourceResolver;
 import dev.jbang.util.Util;
 
 /**
@@ -40,7 +41,7 @@ public class FileResourceResolver implements ResourceResolver {
 		}
 
 		if (probe != null && Files.isReadable(probe)) {
-			result = ResourceRef.forResolvedResource(resource, probe);
+			result = new FileResourceRef(resource, probe, this);
 		}
 
 		return result;
@@ -48,20 +49,26 @@ public class FileResourceResolver implements ResourceResolver {
 
 	public static class FileResourceRef implements ResourceRef {
 		@NonNull
-		private final String originalResource;
+		protected final String originalResource;
 		@NonNull
-		private final Function<String, Path> obtainer;
+		protected final Function<String, Path> obtainer;
+		@NonNull
+		protected final ResourceResolver resolver;
+
 		@Nullable
 		private Optional<Path> file;
 
-		public FileResourceRef(@NonNull String resource, @NonNull Function<String, Path> obtainer) {
+		public FileResourceRef(@NonNull String resource, @NonNull Function<String, Path> obtainer,
+				@Nullable ResourceResolver resolver) {
 			this.originalResource = resource;
 			this.obtainer = obtainer;
+			this.resolver = resolver != null ? resolver : new NullResourceResolver();
 		}
 
-		public FileResourceRef(@NonNull String resource, @NonNull Path file) {
+		public FileResourceRef(@NonNull String resource, @NonNull Path file, @Nullable ResourceResolver resolver) {
 			this.originalResource = resource;
 			this.obtainer = ref -> file;
+			this.resolver = resolver != null ? resolver : new NullResourceResolver();
 			this.file = Optional.of(file);
 		}
 
@@ -100,6 +107,21 @@ public class FileResourceResolver implements ResourceResolver {
 			} else {
 				return ResourceRef.super.getExtension();
 			}
+		}
+
+		@Override
+		public @Nullable ResourceRef resolve(String resource, boolean trusted) {
+			if (!Util.isValidPath(resource)) {
+				return null;
+			}
+			Path baseDir = Paths.get(originalResource);
+			String sibRef = baseDir.resolveSibling(resource).toString();
+			return resolver.resolve(sibRef, trusted);
+		}
+
+		@Override
+		public @NonNull String description() {
+			return ResourceRef.super.description() + " of " + resolver.description();
 		}
 
 		@Override

@@ -19,6 +19,7 @@ import org.junit.Assume;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
+import dev.jbang.resources.ResourceRef;
 
 class TestSourcesMultipleSomeMissingFiles extends BaseTest {
 

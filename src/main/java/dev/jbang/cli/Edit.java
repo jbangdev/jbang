@@ -21,6 +21,7 @@ import dev.jbang.dependencies.DependencyUtil;
 import dev.jbang.dependencies.JitPackUtil;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.net.EditorManager;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.*;
 import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.TemplateEngine;

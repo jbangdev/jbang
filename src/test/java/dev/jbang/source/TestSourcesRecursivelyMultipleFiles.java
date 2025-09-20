@@ -10,6 +10,7 @@ import java.util.TreeSet;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
+import dev.jbang.resources.ResourceRef;
 
 class TestSourcesRecursivelyMultipleFiles extends BaseTest {
 
