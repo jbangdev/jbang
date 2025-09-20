@@ -67,6 +67,7 @@ public abstract class BaseTest {
 		Util.setCwd(cwdDir);
 		System.setProperty("user.home", tempPath.toString());
 		System.setProperty("maven.repo.local", mavenTempDir.toString());
+		// System.setProperty("jbang.build.integration.forceExternal", "true");
 		// Each test gets a fresh JBang config folder
 		environmentVariables.set(Settings.JBANG_DIR, jbangTempDir.toString());
 		// Each test gets a fresh cache folder
