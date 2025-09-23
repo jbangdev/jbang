@@ -20,7 +20,7 @@ import com.google.gson.JsonPrimitive;
 
 import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
-import dev.jbang.source.ResourceRef;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.util.TemplateEngine;
 import dev.jbang.util.Util;
 

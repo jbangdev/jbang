@@ -11,6 +11,7 @@ import java.util.function.Function;
 import org.jspecify.annotations.NonNull;
 
 import dev.jbang.devkitman.Jdk;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.*;
 import dev.jbang.source.AppBuilder;
 import dev.jbang.source.buildsteps.CompileBuildStep;
@@ -33,17 +34,17 @@ public class JavaSource extends Source {
 
 	@Override
 	protected List<String> getCompileOptions() {
-		return getTagReader().collectOptions("JAVAC_OPTIONS", "COMPILE_OPTIONS");
+		return getDirectives().compileOptions();
 	}
 
 	@Override
 	protected List<String> getNativeOptions() {
-		return getTagReader().collectOptions("NATIVE_OPTIONS");
+		return getDirectives().nativeOptions();
 	}
 
 	@Override
 	protected List<String> getRuntimeOptions() {
-		return getTagReader().collectOptions("JAVA_OPTIONS", "RUNTIME_OPTIONS");
+		return getDirectives().runtimeOptions();
 	}
 
 	@Override

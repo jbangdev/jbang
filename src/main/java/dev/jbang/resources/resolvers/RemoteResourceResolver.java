@@ -1,21 +1,24 @@
-package dev.jbang.source.resolvers;
+package dev.jbang.resources.resolvers;
 
 import static dev.jbang.util.Util.goodTrustURL;
 import static dev.jbang.util.Util.swizzleURL;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import dev.jbang.cli.ExitException;
 import dev.jbang.net.TrustedSources;
-import dev.jbang.source.ResourceNotFoundException;
-import dev.jbang.source.ResourceRef;
-import dev.jbang.source.ResourceResolver;
+import dev.jbang.resources.ResourceNotFoundException;
+import dev.jbang.resources.ResourceRef;
+import dev.jbang.resources.ResourceResolver;
 import dev.jbang.util.Util;
 
 /**
@@ -41,14 +44,14 @@ public class RemoteResourceResolver implements ResourceResolver {
 		ResourceRef result = null;
 
 		if (resource.startsWith("http://") || resource.startsWith("https://") || resource.startsWith("file:/")) {
-			result = ResourceRef.forLazyFileResource(resource,
+			result = new RemoteResourceRef(resource,
 					ref -> {
 						try {
 							return alwaysTrust || trusted ? fetchFromURL(ref) : fetchScriptFromUntrustedURL(ref);
 						} catch (IOException | URISyntaxException e) {
 							throw new ResourceNotFoundException(resource, "Could not download " + ref, e);
 						}
-					});
+					}, this);
 		}
 
 		return result;
@@ -117,5 +120,24 @@ public class RemoteResourceResolver implements ResourceResolver {
 	public static Path fetchFromURL(String scriptURL) throws IOException {
 		String url = swizzleURL(scriptURL);
 		return Util.downloadAndCacheFile(url);
+	}
+
+	public static class RemoteResourceRef extends FileResourceResolver.FileResourceRef {
+
+		public RemoteResourceRef(@NonNull String resource, @NonNull Function<String, Path> obtainer,
+				@Nullable ResourceResolver resolver) {
+			super(resource, obtainer, resolver);
+		}
+
+		@Override
+		public @Nullable ResourceRef resolve(String resource, boolean trusted) {
+			try {
+				String sibRef = Util.isURL(resource) ? resource
+						: new URI(Util.swizzleURL(originalResource)).resolve(resource).toString();
+				return resolver.resolve(sibRef, trusted);
+			} catch (URISyntaxException e) {
+				throw new ResourceNotFoundException(resource, "Syntax error when trying to find " + resource, e);
+			}
+		}
 	}
 }

@@ -1,4 +1,4 @@
-package dev.jbang.source.resolvers;
+package dev.jbang.resources.resolvers;
 
 import java.util.function.Function;
 
@@ -7,8 +7,8 @@ import org.jspecify.annotations.Nullable;
 
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
-import dev.jbang.source.ResourceRef;
-import dev.jbang.source.ResourceResolver;
+import dev.jbang.resources.ResourceRef;
+import dev.jbang.resources.ResourceResolver;
 
 public class AliasResourceResolver implements ResourceResolver {
 	@Nullable

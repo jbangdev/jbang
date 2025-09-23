@@ -15,7 +15,7 @@ import com.google.gson.GsonBuilder;
 import dev.jbang.Settings;
 import dev.jbang.catalog.CatalogRef;
 import dev.jbang.catalog.CatalogUtil;
-import dev.jbang.source.ResourceRef;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.util.ConsoleOutput;
 import dev.jbang.util.Util;
 

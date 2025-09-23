@@ -1,12 +1,17 @@
-package dev.jbang.source.resolvers;
+package dev.jbang.resources.resolvers;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Paths;
 
 import org.jspecify.annotations.NonNull;
 
-import dev.jbang.source.*;
+import dev.jbang.resources.InputStreamResourceRef;
+import dev.jbang.resources.ResourceNotFoundException;
+import dev.jbang.resources.ResourceRef;
+import dev.jbang.resources.ResourceResolver;
+import dev.jbang.util.Util;
 
 /**
  * A <code>ResourceResolver</code> that, when given a resource string which
@@ -27,16 +32,16 @@ public class ClasspathResourceResolver implements ResourceResolver {
 		if (!resource.startsWith("classpath:/")) {
 			return null;
 		}
-		return getClasspathResource(resource);
+		return getClasspathResource(resource, this);
 	}
 
-	private static ResourceRef getClasspathResource(String cpResource) {
-		return new ClasspathResourceRef(cpResource);
+	private static ResourceRef getClasspathResource(String cpResource, ResourceResolver resolver) {
+		return new ClasspathResourceRef(cpResource, resolver);
 	}
 
 	public static class ClasspathResourceRef extends InputStreamResourceRef {
-		protected ClasspathResourceRef(@NonNull String ref) {
-			super(ref, ClasspathResourceRef::createStream);
+		protected ClasspathResourceRef(@NonNull String ref, ResourceResolver resolver) {
+			super(ref, ClasspathResourceRef::createStream, resolver);
 		}
 
 		private static InputStream createStream(String resource) {
@@ -63,6 +68,15 @@ public class ClasspathResourceResolver implements ResourceResolver {
 		@Override
 		public boolean exists() {
 			return getResourceUrl(originalResource) != null;
+		}
+
+		@Override
+		public ResourceRef resolve(String resource, boolean trusted) {
+			if (!Util.isValidPath(resource)) {
+				return null;
+			}
+			String sibRef = "classpath:" + Paths.get(originalResource.substring(11)).resolveSibling(resource);
+			return super.resolve(sibRef, trusted);
 		}
 	}
 }

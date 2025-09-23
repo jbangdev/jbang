@@ -6,13 +6,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import dev.jbang.resources.resolvers.AliasResourceResolver;
+import dev.jbang.resources.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.source.BuildContext;
 import dev.jbang.source.CmdGeneratorBuilder;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.source.Source;
-import dev.jbang.source.resolvers.AliasResourceResolver;
-import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;

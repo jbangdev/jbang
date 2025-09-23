@@ -6,10 +6,12 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.jspecify.annotations.NonNull;
 
+import dev.jbang.resources.ResourceRef;
+import dev.jbang.resources.ResourceResolver;
+import dev.jbang.source.parser.Directives;
 import dev.jbang.source.sources.*;
 import dev.jbang.source.sources.KotlinSource;
 import dev.jbang.source.sources.MarkdownSource;
@@ -29,8 +31,8 @@ public abstract class Source {
 
 	private final ResourceRef resourceRef;
 	private final Supplier<String> contentsSupplier;
-	private final Supplier<TagReader> tagReaderSupplier;
-	private TagReader tagReader;
+	private final Supplier<Directives> directivesSupplier;
+	private Directives directives;
 	private String contents;
 
 	public enum Type {
@@ -54,21 +56,22 @@ public abstract class Source {
 	protected Source(ResourceRef resourceRef, Function<String, String> replaceProperties) {
 		this.resourceRef = resourceRef;
 		this.contentsSupplier = () -> Util.readString(resourceRef.getInputStream());
-		this.tagReaderSupplier = () -> new TagReader.Extended(getContents(), replaceProperties);
+		this.directivesSupplier = () -> new Directives.Extended(getContents(), replaceProperties);
 	}
 
 	protected Source(ResourceRef resourceRef, String contents, Function<String, String> replaceProperties) {
 		this.resourceRef = resourceRef;
 		this.contentsSupplier = () -> contents;
 		this.contents = contents;
-		this.tagReaderSupplier = () -> new TagReader.Extended(getContents(), replaceProperties);
+		this.directivesSupplier = () -> new Directives.Extended(getContents(), replaceProperties);
 	}
 
-	protected TagReader getTagReader() {
-		if (tagReader == null) {
-			tagReader = tagReaderSupplier.get();
+	@NonNull
+	public Directives getDirectives() {
+		if (directives == null) {
+			directives = directivesSupplier.get();
 		}
-		return tagReader;
+		return directives;
 	}
 
 	protected String getContents() {
@@ -78,19 +81,14 @@ public abstract class Source {
 		return contents;
 	}
 
-	@NonNull
-	public Stream<String> getTags() {
-		return getTagReader().getTags();
-	}
-
 	public abstract @NonNull Type getType();
 
 	protected List<String> collectBinaryDependencies() {
-		return getTagReader().collectBinaryDependencies();
+		return getDirectives().binaryDependencies();
 	}
 
 	protected List<String> collectSourceDependencies() {
-		return getTagReader().collectSourceDependencies();
+		return getDirectives().sourceDependencies();
 	}
 
 	protected abstract List<String> getCompileOptions();
@@ -115,19 +113,19 @@ public abstract class Source {
 	}
 
 	public boolean isAgent() {
-		return !getTagReader().collectAgentOptions().isEmpty();
+		return getDirectives().isAgent();
 	}
 
 	public boolean enableCDS() {
-		return !getTagReader().collectRawOptions("CDS").isEmpty();
+		return getDirectives().enableCDS();
 	}
 
 	public boolean enablePreview() {
-		return !getTagReader().collectRawOptions("PREVIEW").isEmpty();
+		return getDirectives().enablePreview();
 	}
 
 	public boolean disableIntegrations() {
-		return !getTagReader().collectRawOptions("NOINTEGRATIONS").isEmpty();
+		return getDirectives().disableIntegrations();
 	}
 
 	// Used only by tests
