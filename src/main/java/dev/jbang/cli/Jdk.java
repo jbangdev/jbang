@@ -15,6 +15,7 @@ import com.google.gson.annotations.SerializedName;
 
 import dev.jbang.devkitman.JdkManager;
 import dev.jbang.devkitman.JdkProvider;
+import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
@@ -32,7 +33,7 @@ public class Jdk {
 	@CommandLine.Mixin
 	JdkProvidersMixin jdkProvidersMixin;
 
-	@CommandLine.Command(name = "install", description = "Installs a JDK.")
+	@CommandLine.Command(name = "install", aliases = "i", description = "Installs a JDK.")
 	public Integer install(
 			@CommandLine.Option(names = { "--force",
 					"-f" }, description = "Force installation even when already installed") boolean force,
@@ -62,7 +63,7 @@ public class Jdk {
 		return EXIT_OK;
 	}
 
-	@CommandLine.Command(name = "list", description = "Lists installed JDKs.")
+	@CommandLine.Command(name = "list", aliases = "l", description = "Lists installed JDKs.")
 	public Integer list(
 			@CommandLine.Option(names = {
 					"--available" }, description = "Shows versions available for installation") boolean available,
@@ -158,7 +159,7 @@ public class Jdk {
 		}
 	}
 
-	@CommandLine.Command(name = "uninstall", description = "Uninstalls an existing JDK.")
+	@CommandLine.Command(name = "uninstall", aliases = "u", description = "Uninstalls an existing JDK.")
 	public Integer uninstall(
 			@CommandLine.Parameters(paramLabel = "version", index = "0", description = "The version to install", arity = "1") String versionOrId) {
 		JdkManager jdkMan = jdkProvidersMixin.getJdkManager();
@@ -231,6 +232,37 @@ public class Jdk {
 				out.println(" | iex");
 				break;
 			}
+		}
+		return EXIT_OK;
+	}
+
+	@CommandLine.Command(name = "exec", aliases = "x", description = "Executes the given command using the default (or specified) JDK.")
+	public Integer exec(
+			@CommandLine.Option(names = { "-j",
+					"--java" }, description = "JDK version to use for executing the command.") String versionOrId,
+			@CommandLine.Parameters(index = "0..*", arity = "1..*", description = "Command to execute") List<String> args)
+			throws IOException, InterruptedException {
+		JdkManager jdkMan = jdkProvidersMixin.getJdkManager();
+		dev.jbang.devkitman.Jdk jdk = null;
+		if (versionOrId != null && JavaUtil.isRequestedVersion(versionOrId)) {
+			jdk = jdkMan.getJdk(versionOrId, JdkProvider.Predicates.canUpdate);
+		}
+		if (jdk == null || !jdk.isInstalled()) {
+			jdk = jdkMan.getOrInstallJdk(versionOrId);
+		}
+		if (jdk.isInstalled()) {
+			Path home = ((dev.jbang.devkitman.Jdk.InstalledJdk) jdk).home();
+			String path = home + java.io.File.separator + "bin" + java.io.File.pathSeparator + System.getenv("PATH");
+			Path cmd = Util.searchPath(args.get(0), path);
+			if (cmd != null) {
+				args.set(0, cmd.toString());
+			}
+			ProcessBuilder pb = CommandBuffer.of(args).asProcessBuilder();
+			pb.environment().put("PATH", path);
+			pb.environment().put("JAVA_HOME", home.toString());
+			pb.inheritIO();
+			Process p = pb.start();
+			return p.waitFor();
 		}
 		return EXIT_OK;
 	}
