@@ -12,8 +12,7 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "weather", mixinStandardHelpOptions = true,
-    description = "Get weather information for a city")
+@Command(name = "weather", mixinStandardHelpOptions = true, description = "Get weather information for a city")
 class weather implements Runnable {
 
   @Parameters(index = "0", description = "City name")
@@ -30,8 +29,8 @@ class weather implements Runnable {
       HttpClient client = HttpClient.newHttpClient();
       HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
 
-      HttpResponse<String> response =
-          client.send(request, HttpResponse.BodyHandlers.ofString());
+      HttpResponse<String> response = client.send(request,
+          HttpResponse.BodyHandlers.ofString());
 
       // Simple output - in real app you'd parse the JSON
       System.out.println("Weather for " + city + ":");
