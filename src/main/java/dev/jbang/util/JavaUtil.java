@@ -123,13 +123,15 @@ public class JavaUtil {
 		return null;
 	}
 
+	// Match the first number in a Java version string, except if
+	// it starts with "1.", in that case, match the second number
+	private static final String JVERSION = "^(?:1\\.)?(\\d+).*";
+
 	public static int parseJavaVersion(String version) {
 		if (version == null)
 			return 0;
 		try {
-			// Match the first number in a Java version string, except if
-			// it starts with "1.", in that case, match the second number
-			String num = version.replaceAll("^(?:1\\.)?(\\d+).*", "$1");
+			String num = version.replaceAll(JVERSION, "$1");
 			return Integer.parseInt(num);
 		} catch (NumberFormatException ignored) {
 			return 0;
