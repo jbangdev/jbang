@@ -127,8 +127,10 @@ public class JavaUtil {
 		if (version == null)
 			return 0;
 		try {
-			String v = version.replaceAll("^(?:1\\.)?(\\d+).*", "$1");
-			return Integer.parseInt(v);
+			// Match the first number in a Java version string, except if
+			// it starts with "1.", in that case, match the second number
+			String num = version.replaceAll("^(?:1\\.)?(\\d+).*", "$1");
+			return Integer.parseInt(num);
 		} catch (NumberFormatException ignored) {
 			return 0;
 		}
