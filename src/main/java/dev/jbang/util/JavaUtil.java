@@ -124,16 +124,14 @@ public class JavaUtil {
 	}
 
 	public static int parseJavaVersion(String version) {
-		int num = 0;
-		if (version != null) {
+		if (version == null)
+			return 0;
+		try {
 			String v = version.replaceAll("^(?:1\\.)?(\\d+).*", "$1");
-			try {
-				num = Integer.parseInt(v);
-			} catch (NumberFormatException ignored) {
-				return 0;
-			}
+			return Integer.parseInt(v);
+		} catch (NumberFormatException ignored) {
+			return 0;
 		}
-		return num;
 	}
 
 	public static boolean isOpenVersion(String version) {
