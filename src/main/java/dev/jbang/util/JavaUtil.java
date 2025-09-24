@@ -123,17 +123,12 @@ public class JavaUtil {
 		return null;
 	}
 
+	@NonNull
 	public static int parseJavaVersion(String version) {
-		if (version != null) {
-			try {
-				String[] nums = version.split("[-.+]");
-				String num = nums.length > 1 && nums[0].equals("1") ? nums[1] : nums[0];
-				return Integer.parseInt(num);
-			} catch (NumberFormatException ex) {
-				// Ignore
-			}
-		}
-		return 0;
+		String v = version;
+		v = v.startsWith("1.") ? v.substring(2) : v;
+		String n = v.replaceAll("(\\d+).*", "$1");
+		return n.matches("\\d+") ? Integer.parseInt(n) : 0;
 	}
 
 	public static boolean isOpenVersion(String version) {
