@@ -123,8 +123,7 @@ public class JavaUtil {
 		return null;
 	}
 
-	@NonNull
-	public static int parseJavaVersion(String version) {
+	public static int parseJavaVersion(@NonNull String version) {
 		String v = version;
 		v = v.startsWith("1.") ? v.substring(2) : v;
 		String n = v.replaceAll("(\\d+).*", "$1");
