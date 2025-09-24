@@ -12,9 +12,11 @@ import java.util.function.Function;
 import org.jspecify.annotations.NonNull;
 
 import dev.jbang.net.GroovyManager;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.*;
 import dev.jbang.source.AppBuilder;
 import dev.jbang.source.buildsteps.CompileBuildStep;
+import dev.jbang.source.parser.Directives;
 import dev.jbang.util.Util;
 
 public class GroovySource extends Source {
@@ -30,17 +32,17 @@ public class GroovySource extends Source {
 
 	@Override
 	protected List<String> getCompileOptions() {
-		return getTagReader().collectOptions("COMPILE_OPTIONS");
+		return getDirectives().compileOptions();
 	}
 
 	@Override
 	protected List<String> getNativeOptions() {
-		return getTagReader().collectOptions("NATIVE_OPTIONS");
+		return getDirectives().nativeOptions();
 	}
 
 	protected List<String> getRuntimeOptions() {
 		List<String> gopts = Collections.singletonList("-Dgroovy.grape.enable=false");
-		List<String> opts = getTagReader().collectOptions("JAVA_OPTIONS", "RUNTIME_OPTIONS");
+		List<String> opts = getDirectives().runtimeOptions();
 		return Util.join(gopts, opts);
 	}
 
@@ -57,8 +59,7 @@ public class GroovySource extends Source {
 	}
 
 	public String getGroovyVersion() {
-		return getTagReader().collectOptions("GROOVY")
-			.stream()
+		return getDirectives().collectDirectives(Directives.Names.GROOVY)
 			.findFirst()
 			.orElse(GroovyManager.DEFAULT_GROOVY_VERSION);
 	}

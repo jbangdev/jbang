@@ -17,9 +17,9 @@ import org.jspecify.annotations.Nullable;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.dependencies.ArtifactInfo;
 import dev.jbang.dependencies.MavenCoordinate;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.BuildContext;
 import dev.jbang.source.Project;
-import dev.jbang.source.ResourceRef;
 
 import io.quarkus.qute.Template;
 

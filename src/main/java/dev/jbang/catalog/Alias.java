@@ -44,6 +44,8 @@ public class Alias extends CatalogItem {
 	public final Boolean nativeImage;
 	@SerializedName(value = "native-options")
 	public final List<String> nativeOptions;
+	@SerializedName(value = "source-type")
+	public final String forceType;
 	public final Boolean integrations;
 	public final String jfr;
 	public final Map<String, String> debug;
@@ -93,7 +95,7 @@ public class Alias extends CatalogItem {
 
 	public Alias() {
 		this(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-				null, null, null, null, null, null, null, null, null, null);
+				null, null, null, null, null, null, null, null, null, null, null);
 	}
 
 	public Alias(String scriptRef,
@@ -112,6 +114,7 @@ public class Alias extends CatalogItem {
 			List<String> compileOptions,
 			Boolean nativeImage,
 			List<String> nativeOptions,
+			String forceType,
 			Boolean integrations,
 			String jfr,
 			Map<String, String> debug,
@@ -141,6 +144,7 @@ public class Alias extends CatalogItem {
 		this.compileOptions = compileOptions;
 		this.nativeImage = nativeImage;
 		this.nativeOptions = nativeOptions;
+		this.forceType = forceType;
 		this.integrations = integrations;
 		this.jfr = jfr;
 		this.debug = debug;
@@ -240,6 +244,7 @@ public class Alias extends CatalogItem {
 					: a2.compileOptions;
 			List<String> nopts = a1.nativeOptions != null && !a1.nativeOptions.isEmpty() ? a1.nativeOptions
 					: a2.nativeOptions;
+			String forceType = a1.forceType != null ? a1.forceType : a2.forceType;
 			Boolean nimg = a1.nativeImage != null ? a1.nativeImage : a2.nativeImage;
 			Boolean ints = a1.integrations != null ? a1.integrations : a2.integrations;
 			String jfr = a1.jfr != null ? a1.jfr : a2.jfr;
@@ -255,8 +260,8 @@ public class Alias extends CatalogItem {
 			List<String> docs = a1.docs != null && !a1.docs.isEmpty() ? a1.docs : a2.docs;
 			Catalog catalog = a2.catalog != null ? a2.catalog : a1.catalog;
 			return new Alias(a2.scriptRef, desc, args, jopts, srcs, ress, deps, repos, cpaths, props, javaVersion,
-					mainClass, moduleName, copts, nimg, nopts, ints, jfr, debug, cds, inter, ep, ea, esa, mopts, jags,
-					docs, catalog);
+					mainClass, moduleName, copts, nimg, nopts, forceType, ints, jfr, debug, cds, inter, ep, ea, esa,
+					mopts, jags, docs, catalog);
 		} else {
 			return a1;
 		}
@@ -300,14 +305,21 @@ public class Alias extends CatalogItem {
 	public Alias withCatalog(Catalog catalog) {
 		return new Alias(scriptRef, description, arguments, runtimeOptions, sources, resources, dependencies,
 				repositories, classpaths, properties, javaVersion, mainClass, moduleName, compileOptions, nativeImage,
-				nativeOptions, integrations, jfr, debug, cds, interactive, enablePreview, enableAssertions,
+				nativeOptions, forceType, integrations, jfr, debug, cds, interactive, enablePreview, enableAssertions,
 				enableSystemAssertions, manifestOptions, javaAgents, docs, catalog);
 	}
 
 	public Alias withScriptRef(String scriptRef) {
 		return new Alias(scriptRef, description, arguments, runtimeOptions, sources, resources, dependencies,
 				repositories, classpaths, properties, javaVersion, mainClass, moduleName, compileOptions, nativeImage,
-				nativeOptions, integrations, jfr, debug, cds, interactive, enablePreview, enableAssertions,
+				nativeOptions, forceType, integrations, jfr, debug, cds, interactive, enablePreview, enableAssertions,
+				enableSystemAssertions, manifestOptions, javaAgents, docs, catalog);
+	}
+
+	public Alias withForceType(String forceType) {
+		return new Alias(scriptRef, description, arguments, runtimeOptions, sources, resources, dependencies,
+				repositories, classpaths, properties, javaVersion, mainClass, moduleName, compileOptions, nativeImage,
+				nativeOptions, forceType, integrations, jfr, debug, cds, interactive, enablePreview, enableAssertions,
 				enableSystemAssertions, manifestOptions, javaAgents, docs, catalog);
 	}
 }

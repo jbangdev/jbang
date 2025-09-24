@@ -66,18 +66,18 @@ import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.net.TrustedSources;
+import dev.jbang.resources.ResourceNotFoundException;
+import dev.jbang.resources.ResourceRef;
+import dev.jbang.resources.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.source.BuildContext;
 import dev.jbang.source.Builder;
 import dev.jbang.source.CmdGenerator;
 import dev.jbang.source.CmdGeneratorBuilder;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
-import dev.jbang.source.ResourceNotFoundException;
-import dev.jbang.source.ResourceRef;
 import dev.jbang.source.Source;
 import dev.jbang.source.buildsteps.JarBuildStep;
 import dev.jbang.source.generators.JshCmdGenerator;
-import dev.jbang.source.resolvers.LiteralScriptResourceResolver;
 import dev.jbang.source.sources.JavaSource;
 import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.JavaUtil;
@@ -2572,7 +2572,7 @@ public class TestRun extends BaseTest {
 		File f = examplesTestFolder.resolve("echo.java").toFile();
 		List<String> args = Arrays.asList("foo", "bar");
 		Alias alias = new Alias(f.toString(), null, args, null, null, null, null, null, null, null, null, null, null,
-				null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+				null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
 		CatalogUtil.addNearestAlias("echo", alias);
 
 		CommandLine.ParseResult pr = JBang.getCommandLine()

@@ -10,8 +10,8 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.BaseTest;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.Project;
-import dev.jbang.source.ResourceRef;
 import dev.jbang.source.Source;
 import dev.jbang.source.sources.JavaSource;
 

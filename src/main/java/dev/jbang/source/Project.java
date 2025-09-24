@@ -2,8 +2,6 @@ package dev.jbang.source;
 
 import java.nio.file.Path;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -14,6 +12,7 @@ import dev.jbang.dependencies.DependencyResolver;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.devkitman.Jdk;
 import dev.jbang.devkitman.JdkManager;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.util.ModuleUtil;
 import dev.jbang.util.Util;
 
@@ -337,25 +336,5 @@ public class Project {
 
 	static boolean isJShell(Path backingFile) {
 		return backingFile != null && backingFile.toString().endsWith(".jsh");
-	}
-
-	// https://stackoverflow.com/questions/366202/regex-for-splitting-a-string-using-space-when-not-surrounded-by-single-or-double
-	static List<String> quotedStringToList(String subjectString) {
-		List<String> matchList = new ArrayList<>();
-		Pattern regex = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
-		Matcher regexMatcher = regex.matcher(subjectString);
-		while (regexMatcher.find()) {
-			if (regexMatcher.group(1) != null) {
-				// Add double-quoted string without the quotes
-				matchList.add(regexMatcher.group(1));
-			} else if (regexMatcher.group(2) != null) {
-				// Add single-quoted string without the quotes
-				matchList.add(regexMatcher.group(2));
-			} else {
-				// Add unquoted word
-				matchList.add(regexMatcher.group());
-			}
-		}
-		return matchList;
 	}
 }

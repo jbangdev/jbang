@@ -4,6 +4,7 @@ import java.util.function.Function;
 
 import org.jspecify.annotations.NonNull;
 
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.*;
 
 public class JshSource extends JavaSource {

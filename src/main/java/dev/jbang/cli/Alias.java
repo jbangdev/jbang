@@ -15,9 +15,9 @@ import dev.jbang.Settings;
 import dev.jbang.catalog.Alias.JavaAgent;
 import dev.jbang.catalog.Catalog;
 import dev.jbang.catalog.CatalogUtil;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
-import dev.jbang.source.ResourceRef;
 import dev.jbang.util.ConsoleOutput;
 import dev.jbang.util.Util;
 
@@ -120,7 +120,8 @@ class AliasAdd extends BaseAliasCommand {
 				dependencyInfoMixin.getDependencies(),
 				dependencyInfoMixin.getRepositories(), dependencyInfoMixin.getClasspaths(),
 				dependencyInfoMixin.getProperties(), buildMixin.javaVersion, buildMixin.main, buildMixin.module,
-				buildMixin.compileOptions, nativeMixin.nativeImage, nativeMixin.nativeOptions, buildMixin.integrations,
+				buildMixin.compileOptions, nativeMixin.nativeImage, nativeMixin.nativeOptions,
+				scriptMixin.forceType != null ? scriptMixin.forceType.name() : null, buildMixin.integrations,
 				runMixin.flightRecorderString, runMixin.debugString, runMixin.cds, runMixin.interactive,
 				enablePreviewRequested, runMixin.enableAssertions, runMixin.enableSystemAssertions,
 				buildMixin.manifestOptions, createJavaAgents(), docs, null);

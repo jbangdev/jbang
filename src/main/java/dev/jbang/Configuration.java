@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 import org.codejive.properties.Properties;
 
-import dev.jbang.source.ResourceRef;
+import dev.jbang.resources.ResourceRef;
 import dev.jbang.util.Util;
 
 public class Configuration {
