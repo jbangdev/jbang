@@ -124,8 +124,8 @@ public class JavaUtil {
 	}
 
 	public static int parseJavaVersion(@NonNull String version) {
-		int baseIdx = version.startsWith("1.") ? 2 : 0;
 		int n = 0;
+		int baseIdx = version.startsWith("1.") ? 2 : 0;
 		for (int i = baseIdx; i < version.length(); i++) {
 			char c = version.charAt(i);
 			if (Character.isDigit(c)) {
