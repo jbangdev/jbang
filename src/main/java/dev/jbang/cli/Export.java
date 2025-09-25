@@ -372,6 +372,17 @@ class ExportFatjar extends BaseExportCommand {
 					Util.verboseMsg("Unpacking artifact: " + dep);
 					UnpackUtil.unzip(dep.getFile(), tmpDir, false, null, ExportFatjar::handleExistingFile);
 				}
+				// Remove all signature files
+				Path metaInf = tmpDir.resolve("META-INF");
+				if (Files.exists(metaInf) && Files.isDirectory(metaInf)) {
+					try (DirectoryStream<Path> stream = Files.newDirectoryStream(metaInf, "*.{SF,DSA,RSA}")) {
+						for (Path entry : stream) {
+							Util.verboseMsg("Removing signature file: " + entry);
+							Files.delete(entry);
+						}
+					}
+				}
+				Util.verboseMsg("Creating jar: " + outputPath);
 				JarUtil.createJar(outputPath, tmpDir, null, prj.getMainClass(),
 						exportMixin.buildMixin.getProjectJdk(prj));
 			} finally {

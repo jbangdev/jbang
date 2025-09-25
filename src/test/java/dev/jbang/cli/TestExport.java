@@ -578,4 +578,23 @@ public class TestExport extends BaseTest {
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		assertThat(result.err, containsString("[WARN] Skipping conflicting duplicate file vs directory:"));
 	}
+
+	@Test
+	void testExportFatjarSignatures(@TempDir Path temp) throws Exception {
+		Util.writeString(temp.resolve("SIG"), "A dummy signature file");
+		String code1 = "" +
+				"//FILES META-INF/DUMMY.SF=SIG\n" +
+				"//FILES META-INF/DUMMY.DSA=SIG\n" +
+				"//FILES META-INF/DUMMY.RSA=SIG\n";
+		Util.writeString(temp.resolve("src.java"), code1);
+		String code2 = "//DEPS src.java\n";
+		Path src = temp.resolve("test.java");
+		Util.writeString(src, code2);
+		CaptureResult<Integer> result = checkedRun(null, "--verbose", "export", "fatjar", src.toString());
+		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.err, containsString("Removing signature file:"));
+		assertThat(result.err, containsString("DUMMY.SF"));
+		assertThat(result.err, containsString("DUMMY.DSA"));
+		assertThat(result.err, containsString("DUMMY.RSA"));
+	}
 }
