@@ -389,6 +389,10 @@ class ExportFatjar extends BaseExportCommand {
 	}
 
 	public static void handleExistingFile(ZipFile zipFile, ZipArchiveEntry zipEntry, Path outFile) throws IOException {
+		if (Files.isDirectory(outFile) != zipEntry.isDirectory()) {
+			Util.warnMsg("Skipping conflicting duplicate file vs directory: " + zipEntry.getName());
+			return;
+		}
 		if (zipEntry.getName().startsWith("META-INF/services/")) {
 			Util.verboseMsg("Merging service files: " + zipEntry.getName());
 			try (ReadableByteChannel readableByteChannel = Channels.newChannel(zipFile.getInputStream(zipEntry));
