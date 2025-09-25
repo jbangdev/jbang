@@ -1513,7 +1513,7 @@ public class Util {
 		Exception[] err = new Exception[] { null };
 		try {
 			if (Files.isDirectory(path)) {
-				verboseMsg("Deleting folder " + path + " " + (quiet ? "(quiet)" : ""));
+				verboseMsg("Deleting folder " + path + " " + (quiet ? "(quietly)" : ""));
 				try (Stream<Path> s = Files.walk(path)) {
 					s.sorted(Comparator.reverseOrder())
 						.forEach(f -> {

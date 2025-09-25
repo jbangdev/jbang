@@ -63,56 +63,88 @@ public class UnpackUtil {
 		}
 	}
 
+	public static void onCannotCreateDirectory(ZipFile zipFile, ZipArchiveEntry zipEntry, Path outFile)
+			throws IOException {
+		throw new IOException("Cannot create directory for " + outFile + " because a parent path already exists: "
+				+ zipEntry.getName());
+	}
+
 	public static void unzip(Path zip, Path outputDir, boolean stripRootFolder, Path selectFolder,
 			ExistingZipFileHandler onExisting) throws IOException {
+		unzip(zip, outputDir, stripRootFolder, selectFolder, onExisting, UnpackUtil::onCannotCreateDirectory);
+	}
+
+	/**
+	 * Unzips a zip file into a given output directory.
+	 * 
+	 * @param zip                           The zip file to unzip.
+	 * @param outputDir                     The directory to unzip the zip file
+	 *                                      into.
+	 * @param stripRootFolder               Whether to strip the root folder from
+	 *                                      the zip file.
+	 * @param selectFolder                  The folder to select from the zip file.
+	 * @param onExisting                    The handler to call when a file already
+	 *                                      exists.
+	 * @param onCannotCreateParentDirectory The handler to call when a parent
+	 *                                      directory cannot be created (can be any
+	 *                                      level parent).
+	 * @throws IOException If the zip file cannot be unzipped.
+	 */
+	public static void unzip(Path zip, Path outputDir, boolean stripRootFolder, Path selectFolder,
+			ExistingZipFileHandler onExisting, ExistingZipFileHandler onCannotMakeParentDirectory)
+			throws IOException {
 		try (ZipFile zipFile = new ZipFile(zip.toFile())) {
 			Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
 			while (entries.hasMoreElements()) {
 				ZipArchiveEntry zipEntry = entries.nextElement();
 				Path entry = Paths.get(zipEntry.getName());
-				try {
-					if (stripRootFolder) {
-						if (entry.getNameCount() == 1) {
-							continue;
-						}
-						entry = entry.subpath(1, entry.getNameCount());
+				if (stripRootFolder) {
+					if (entry.getNameCount() == 1) {
+						continue;
 					}
-					if (selectFolder != null) {
-						if (!entry.startsWith(selectFolder) || entry.equals(selectFolder)) {
-							continue;
-						}
-						entry = entry.subpath(selectFolder.getNameCount(), entry.getNameCount());
+					entry = entry.subpath(1, entry.getNameCount());
+				}
+				if (selectFolder != null) {
+					if (!entry.startsWith(selectFolder) || entry.equals(selectFolder)) {
+						continue;
 					}
-					entry = outputDir.resolve(entry).normalize();
-					if (!entry.startsWith(outputDir)) {
-						throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
-					}
-					if (zipEntry.isDirectory()) {
-						if (Files.exists(entry)) {
-							if (Files.isDirectory(entry)) {
-								onExisting.handle(zipFile, zipEntry, entry);
-							}
-						} else {
-							Files.createDirectories(entry);
-						}
-					} else if (zipEntry.isUnixSymlink()) {
-						try (Scanner s = new Scanner(zipFile.getInputStream(zipEntry)).useDelimiter("\\A")) {
-							String result = s.hasNext() ? s.next() : "";
-							Files.createSymbolicLink(entry, Paths.get(result));
-						}
+					entry = entry.subpath(selectFolder.getNameCount(), entry.getNameCount());
+				}
+				entry = outputDir.resolve(entry).normalize();
+				if (!entry.startsWith(outputDir)) {
+					throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
+				}
+				if (zipEntry.isDirectory()) {
+					if (Files.exists(entry)) {
+						onExisting.handle(zipFile, zipEntry, entry);
 					} else {
-						if (!Files.isDirectory(entry.getParent())) {
-							Files.createDirectories(entry.getParent());
-						}
-						if (Files.isRegularFile(entry)) {
-							onExisting.handle(zipFile, zipEntry, entry);
+						Files.createDirectories(entry);
+					}
+				} else if (zipEntry.isUnixSymlink()) {
+					Scanner s = new Scanner(zipFile.getInputStream(zipEntry)).useDelimiter("\\A");
+					String result = s.hasNext() ? s.next() : "";
+					Files.createSymbolicLink(entry, Paths.get(result));
+				} else {
+					boolean parentAvailble = true;
+					if (!Files.isDirectory(entry.getParent())) {
+						if (Files.exists(entry.getParent())) {
+							// parent file exist but is not a directory
+							parentAvailble = false;
+							onCannotMakeParentDirectory.handle(zipFile, zipEntry, entry.getParent());
 						} else {
-							defaultZipEntryCopy(zipFile, zipEntry, entry);
+							Files.createDirectories(entry.getParent());
+							parentAvailble = true;
 						}
 					}
-				} catch (IOException e) {
-					throw new IOException("Error unpacking zip entry '" + zipEntry.getName() + "' into '" + entry
-							+ "': " + e.getMessage(), e);
+					if (Files.isRegularFile(entry)) {
+						onExisting.handle(zipFile, zipEntry, entry);
+					} else {
+						if (parentAvailble) {
+							defaultZipEntryCopy(zipFile, zipEntry, entry);
+						} else {
+							onCannotMakeParentDirectory.handle(zipFile, zipEntry, entry.getParent());
+						}
+					}
 				}
 			}
 		}

@@ -367,11 +367,13 @@ class ExportFatjar extends BaseExportCommand {
 			Path tmpDir = Files.createTempDirectory("fatjar");
 			try {
 				Util.verboseMsg("Unpacking main jar: " + source);
-				UnpackUtil.unzip(source, tmpDir, false, null, ExportFatjar::handleExistingFile);
+				UnpackUtil.unzip(source, tmpDir, false, null, ExportFatjar::handleExistingFile,
+						ExportFatjar::handleExistingParent);
 				for (ArtifactInfo dep : deps) {
 					Util.verboseMsg("Unpacking artifact: " + dep);
 					try {
-						UnpackUtil.unzip(dep.getFile(), tmpDir, false, null, ExportFatjar::handleExistingFile);
+						UnpackUtil.unzip(dep.getFile(), tmpDir, false, null, ExportFatjar::handleExistingFile,
+								ExportFatjar::handleExistingParent);
 					} catch (IOException e) {
 						throw new IOException("Could not unpack artifact: " + dep + " due to " + e.getClass().getName()
 								+ ": " + e.getMessage(), e);
@@ -393,19 +395,27 @@ class ExportFatjar extends BaseExportCommand {
 		return EXIT_OK;
 	}
 
+	public static void handleExistingParent(ZipFile zipFile, ZipArchiveEntry zipEntry, Path outFile)
+			throws IOException {
+		Util.warnMsg("Parent already exists a file. Skipping file: " + zipEntry.getName());
+		// throw new IOException("File already exists but is not a directory." +
+		// zipEntry.getName());
+	}
+
 	public static void handleExistingFile(ZipFile zipFile, ZipArchiveEntry zipEntry, Path outFile) throws IOException {
 		if (zipEntry.isDirectory() && Files.isDirectory(outFile)) {
-			Util.verboseMsg("Merging duplicate directory: " + zipEntry.getName());
+			// Util.verboseMsg("Merging duplicate directory: " + zipEntry.getName());
 			return;
 		}
 
 		if (zipEntry.isDirectory()) {
 			if (Files.isDirectory(outFile)) {
-				Util.verboseMsg("Merging duplicate directory: " + zipEntry.getName());
+				// Util.verboseMsg("Merging duplicate directory: " + zipEntry.getName());
 				return;
 			} else { // file exists but is not a directory
-				Util.verboseMsg("File already exists but is not a directory." + zipEntry.getName());
-				throw new IOException("File already exists but is not a directory." + zipEntry.getName());
+				Util.warnMsg("File already exists but is not a directory: " + zipEntry.getName());
+				// throw new IOException("File already exists but is not a directory." +
+				// zipEntry.getName());
 			}
 		}
 
