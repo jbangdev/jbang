@@ -126,21 +126,22 @@ public class JavaUtil {
 	// Match the first number in a Java version string, except if
 	// it starts with "1.", in that case, match the second number
 	public static int parseJavaVersion(String version) {
-		if (version == null)
-			return 0;
-		int len = version.length();
-		int idx = (len > 1 && version.charAt(0) == '1' && version.charAt(1) == '.') ? 2 : 0;
-		int n = 0;
-		for (int i = idx; i < len; i++) {
-			char c = version.charAt(i);
-			if (c >= '0' && c <= '9') {
-				n = n * 10 + (c - '0');
-			} else {
-				break;
-			}
-		}
-		return n;
-	}
+        if (version == null) {
+            return 0;
+        }
+        int len = version.length();
+        int idx = (len > 1 && version.charAt(0) == '1' && version.charAt(1) == '.') ? 2 : 0;
+        int n = 0;
+        for (int i = idx; i < len; i++) {
+            char c = version.charAt(i);
+            if (c >= '0' && c <= '9') {
+                n = n * 10 + (c - '0');
+            } else {
+                break;
+            }
+        }
+        return n;
+    }
 
 	public static boolean isOpenVersion(String version) {
 		return version.endsWith("+");
