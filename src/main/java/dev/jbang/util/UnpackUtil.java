@@ -70,37 +70,49 @@ public class UnpackUtil {
 			while (entries.hasMoreElements()) {
 				ZipArchiveEntry zipEntry = entries.nextElement();
 				Path entry = Paths.get(zipEntry.getName());
-				if (stripRootFolder) {
-					if (entry.getNameCount() == 1) {
-						continue;
+				try {
+					if (stripRootFolder) {
+						if (entry.getNameCount() == 1) {
+							continue;
+						}
+						entry = entry.subpath(1, entry.getNameCount());
 					}
-					entry = entry.subpath(1, entry.getNameCount());
-				}
-				if (selectFolder != null) {
-					if (!entry.startsWith(selectFolder) || entry.equals(selectFolder)) {
-						continue;
+					if (selectFolder != null) {
+						if (!entry.startsWith(selectFolder) || entry.equals(selectFolder)) {
+							continue;
+						}
+						entry = entry.subpath(selectFolder.getNameCount(), entry.getNameCount());
 					}
-					entry = entry.subpath(selectFolder.getNameCount(), entry.getNameCount());
-				}
-				entry = outputDir.resolve(entry).normalize();
-				if (!entry.startsWith(outputDir)) {
-					throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
-				}
-				if (zipEntry.isDirectory()) {
-					Files.createDirectories(entry);
-				} else if (zipEntry.isUnixSymlink()) {
-					Scanner s = new Scanner(zipFile.getInputStream(zipEntry)).useDelimiter("\\A");
-					String result = s.hasNext() ? s.next() : "";
-					Files.createSymbolicLink(entry, Paths.get(result));
-				} else {
-					if (!Files.isDirectory(entry.getParent())) {
-						Files.createDirectories(entry.getParent());
+					entry = outputDir.resolve(entry).normalize();
+					if (!entry.startsWith(outputDir)) {
+						throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
 					}
-					if (Files.isRegularFile(entry)) {
-						onExisting.handle(zipFile, zipEntry, entry);
+					if (zipEntry.isDirectory()) {
+						if (Files.exists(entry)) {
+							if (Files.isDirectory(entry)) {
+								onExisting.handle(zipFile, zipEntry, entry);
+							}
+						} else {
+							Files.createDirectories(entry);
+						}
+					} else if (zipEntry.isUnixSymlink()) {
+						try (Scanner s = new Scanner(zipFile.getInputStream(zipEntry)).useDelimiter("\\A")) {
+							String result = s.hasNext() ? s.next() : "";
+							Files.createSymbolicLink(entry, Paths.get(result));
+						}
 					} else {
-						defaultZipEntryCopy(zipFile, zipEntry, entry);
+						if (!Files.isDirectory(entry.getParent())) {
+							Files.createDirectories(entry.getParent());
+						}
+						if (Files.isRegularFile(entry)) {
+							onExisting.handle(zipFile, zipEntry, entry);
+						} else {
+							defaultZipEntryCopy(zipFile, zipEntry, entry);
+						}
 					}
+				} catch (IOException e) {
+					throw new IOException("Error unpacking zip entry '" + zipEntry.getName() + "' into '" + entry
+							+ "': " + e.getMessage(), e);
 				}
 			}
 		}
