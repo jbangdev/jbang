@@ -95,6 +95,30 @@ jbang hello.java your-args
 3.3.0 and newer versions things just works.
 ====
 
+== Self-bootstrapping Scripts
+
+It is possible to enhance the shebang to make self-bootstrapping JBang scripts.
+
+There is a bootstrap script available in the JBang repository:
+
+[source,bash]
+----
+jbang bootstrap@jbangdev hello.java
+----
+
+This will add or update the shebang header to something like:
+
+[source,bash]
+----
+///usr/bin/env bash -c 'command -v jbang >/dev/null 2>&1 || { echo "Bootstrapping JBang..." >&2; curl -Ls https://sh.jbang.dev | bash -s - app setup --quiet ; export PATH="$HOME/.jbang/bin:$PATH"; }; exec jbang "$0" "$@"' "$0" "$@"; exit $?
+----
+
+Which is a mouthfull, but basically translate to:
+
+1. Check if jbang is in PATH
+2. If not, install JBang using the default install script and set PATH temporarily to include the newly installed jbang
+3. Execute freshly installed jbang with the same arguments as the script
+
 == Java Version Management
 
 JBang automatically handles Java versions for you:
