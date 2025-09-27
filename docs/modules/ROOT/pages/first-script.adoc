@@ -113,7 +113,7 @@ This will add or update the shebang header to something like:
 ///usr/bin/env bash -c 'command -v jbang >/dev/null 2>&1 || { echo "Bootstrapping JBang..." >&2; curl -Ls https://sh.jbang.dev | bash -s - app setup --quiet ; export PATH="$HOME/.jbang/bin:$PATH"; }; exec jbang "$0" "$@"' "$0" "$@"; exit $?
 ----
 
-Which is a mouthfull, but basically translate to:
+Which is a mouthful, but basically translate to:
 
 1. Check if jbang is in PATH
 2. If not, install JBang using the default install script and set PATH temporarily to include the newly installed jbang
