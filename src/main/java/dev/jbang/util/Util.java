@@ -702,7 +702,7 @@ public class Util {
 
 	static private String agent;
 
-	static private String getAgentString() {
+	static public String getAgentString() {
 		if (agent == null) {
 			String version = System.getProperty("java.version") + "/"
 					+ System.getProperty("java.vm.vendor", "<unknown>");
