@@ -130,6 +130,10 @@ public class ArtifactResolver implements Closeable {
 			userProperties.put(ConfigurationProperties.CONNECT_TIMEOUT, String.valueOf(builder.timeout));
 		}
 
+		// this is to avoid being blocked by some websites
+		// because of the word "Java" in the User-Agent
+		userProperties.put("aether.connector.userAgent", Util.getAgentString());
+
 		final List<RemoteRepository> partialRepos; // always have reposes, at least Central if no user defined ones
 		if (builder.repositories != null) {
 			partialRepos = builder.repositories.stream().map(this::toRemoteRepo).collect(Collectors.toList());
@@ -193,6 +197,7 @@ public class ArtifactResolver implements Closeable {
 		// ensure that all enlisted deps exists for sure
 		DefaultRepositorySystemSession strictSession = new DefaultRepositorySystemSession(
 				context.repositorySystemSession());
+
 		strictSession.setArtifactDescriptorPolicy(new SimpleArtifactDescriptorPolicy(false, false));
 		try {
 			Map<String, List<Dependency>> scopeDeps = depIds.stream()
