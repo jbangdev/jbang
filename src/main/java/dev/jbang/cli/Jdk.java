@@ -8,11 +8,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 
+import dev.jbang.devkitman.Jdk.InstalledJdk;
 import dev.jbang.devkitman.JdkManager;
 import dev.jbang.devkitman.JdkProvider;
 import dev.jbang.util.CommandBuffer;
@@ -240,6 +242,8 @@ public class Jdk {
 	public Integer exec(
 			@CommandLine.Option(names = { "-j",
 					"--java" }, description = "JDK version to use for executing the command.") String versionOrId,
+			@CommandLine.Option(names = { "-d",
+					"--direct" }, description = "Direct execution of the command", hidden = true, defaultValue = "false") boolean direct,
 			@CommandLine.Parameters(index = "0..*", arity = "1..*", description = "Command to execute") List<String> args)
 			throws IOException, InterruptedException {
 		JdkManager jdkMan = jdkProvidersMixin.getJdkManager();
@@ -251,18 +255,48 @@ public class Jdk {
 			jdk = jdkMan.getOrInstallJdk(versionOrId);
 		}
 		if (jdk.isInstalled()) {
-			Path home = ((dev.jbang.devkitman.Jdk.InstalledJdk) jdk).home();
+			InstalledJdk installedJdk = (InstalledJdk) jdk;
+			Path home = installedJdk.home();
 			String path = home + java.io.File.separator + "bin" + java.io.File.pathSeparator + System.getenv("PATH");
 			Path cmd = Util.searchPath(args.get(0), path);
 			if (cmd != null) {
 				args.set(0, cmd.toString());
 			}
-			ProcessBuilder pb = CommandBuffer.of(args).asProcessBuilder();
-			pb.environment().put("PATH", path);
-			pb.environment().put("JAVA_HOME", home.toString());
-			pb.inheritIO();
-			Process p = pb.start();
-			return p.waitFor();
+			if (direct) {
+				// we execute the command directly - intended to only be done by jbang itself
+				// but users can technically do it too if they don't care about the stderr
+				// buffering
+				ProcessBuilder pb = CommandBuffer.of(args).asProcessBuilder();
+				pb.environment().put("PATH", path);
+				pb.environment().put("JAVA_HOME", home.toString());
+				pb.inheritIO();
+				Process p = pb.start();
+				return p.waitFor();
+			} else {
+				// we generate a command that gets executed directly *without* the jbang
+				// wrapper which otherwise would delay printing of stderr due to buffering.
+				String javacmd = JavaUtil.resolveInJavaHome("java", jdk);
+				Stream<String> prefix = Stream.of(
+						javacmd,
+						"-classpath",
+						System.getProperty("java.class.path"),
+						"dev.jbang.Main",
+						"jdk",
+						"exec",
+						"--direct",
+						"--java",
+						installedJdk.version());
+
+				String fullcmd = CommandBuffer.of(Stream.concat(prefix, args.stream()).collect(Collectors.toList()))
+					.shell(Util.getShell())
+					.applyWindowsMaxCliLimit()
+					.asCommandLine();
+
+				Util.verboseMsg("exec of jdk command: " + fullcmd);
+				System.out.println(fullcmd);
+
+				return EXIT_EXECUTE;
+			}
 		}
 		return EXIT_OK;
 	}
