@@ -66,7 +66,7 @@ https_proxy=http://proxyhost:8888
 Second the proxy settings for Java itself. This is done by setting the `JAVA_TOOL_OPTIONS` environment variable. For systems with proxy setup built in you can use system proxies like this:
 
 ```bash
-JAVA_TOOL_OPTIONS="-D-Djava.net.useSystemProxies=true"
+JAVA_TOOL_OPTIONS="-Djava.net.useSystemProxies=true"
 ```
 
 if that does not work set it using Java http.proxy properties:
