@@ -35,7 +35,7 @@ public class IntegrationBuildStep implements Builder<IntegrationResult> {
 			System.setProperty(entry.getKey(), entry.getValue());
 		}
 		try {
-			IntegrationResult integrationResult = IntegrationManager.runIntegrations(ctx);
+			IntegrationResult integrationResult = runIntegrations();
 
 			// TODO the compile step always sets the main class if it can find one
 			// so this check is no longer valid. Figure out if we can make this work
@@ -52,5 +52,9 @@ public class IntegrationBuildStep implements Builder<IntegrationResult> {
 		} finally {
 			System.setProperties(oldProps);
 		}
+	}
+
+	protected IntegrationResult runIntegrations() throws IOException {
+		return new IntegrationManager().runIntegrations(ctx);
 	}
 }

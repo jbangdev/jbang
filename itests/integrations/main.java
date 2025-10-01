@@ -3,6 +3,7 @@
 //DEPS integration.java
 //RUNTIME_OPTIONS -Dfoo=fubar
 //MY:TEST aap
+//CDS
 
 public class main {
 
