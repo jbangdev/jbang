@@ -35,7 +35,6 @@ class weather implements Runnable {
       // Simple output - in real app you'd parse the JSON
       System.out.println("Weather for " + city + ":");
       System.out.println("Raw data: " + response.body().substring(0, 200) + "...");
-
     } catch (Exception e) {
       System.err.println("Error fetching weather: " + e.getMessage());
     }
