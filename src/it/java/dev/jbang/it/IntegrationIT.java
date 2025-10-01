@@ -8,6 +8,10 @@ public class IntegrationIT extends BaseIT {
 	@Test
 	void testIntegration() {
 		assertThat(shell("jbang --fresh integrations/main.java"))
+			.errContains("Integration called!")
+			.errContains("//RUNTIME_OPTIONS -Dfoo=fubar")
+			.errContains("//CDS")
+			.errNotContains("//CDS null")
 			.outContains("Hello World")
 			.outContains("foo: fubar")
 			.outContains("bar: aap");

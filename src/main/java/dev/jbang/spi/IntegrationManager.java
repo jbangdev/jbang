@@ -63,7 +63,7 @@ public class IntegrationManager {
 	 * If an integration point created a native image it returns the resulting
 	 * image.
 	 */
-	public static IntegrationResult runIntegrations(BuildContext ctx) {
+	public IntegrationResult runIntegrations(BuildContext ctx) {
 		IntegrationResult result = new IntegrationResult(null, null, null);
 		Project prj = ctx.getProject();
 		Path compileDir = ctx.getCompileDir();
@@ -85,7 +85,7 @@ public class IntegrationManager {
 
 		List<String> comments = source.getDirectives()
 			.getAll()
-			.map(d -> "//" + d.getName() + " " + d.getValue())
+			.map(d -> "//" + (d.getValue() != null ? d.getName() + " " + d.getValue() : d.getName()))
 			.collect(Collectors.toList());
 		PrintStream oldout = System.out;
 		try (URLClassLoader integrationCl = getClassLoader(deps.values())) {
@@ -158,7 +158,7 @@ public class IntegrationManager {
 		return classNames;
 	}
 
-	private static IntegrationResult runIntegrationEmbedded(IntegrationInput input, URLClassLoader integrationCl)
+	protected IntegrationResult runIntegrationEmbedded(IntegrationInput input, URLClassLoader integrationCl)
 			throws Exception {
 		ClassLoader old = Thread.currentThread().getContextClassLoader();
 		try {
@@ -169,7 +169,7 @@ public class IntegrationManager {
 		}
 	}
 
-	private static IntegrationResult runIntegrationEmbedded_(IntegrationInput input, URLClassLoader integrationCl)
+	protected IntegrationResult runIntegrationEmbedded_(IntegrationInput input, URLClassLoader integrationCl)
 			throws Exception {
 		Util.infoMsg("Post build with " + input.integrationClassName);
 
@@ -229,7 +229,7 @@ public class IntegrationManager {
 		return new IntegrationResult(nativeImage, mainClass, javaArgs);
 	}
 
-	private static IntegrationResult runIntegrationExternal(IntegrationInput input,
+	protected IntegrationResult runIntegrationExternal(IntegrationInput input,
 			Map<String, String> properties,
 			Jdk jdk)
 			throws Exception {
@@ -304,7 +304,7 @@ public class IntegrationManager {
 		try {
 			URLClassLoader integrationCl = getClassLoader(input.dependencies.values());
 			Thread.currentThread().setContextClassLoader(integrationCl);
-			IntegrationResult result = runIntegrationEmbedded(input, integrationCl);
+			IntegrationResult result = new IntegrationManager().runIntegrationEmbedded(input, integrationCl);
 			output = parser.toJson(result);
 			ok = true;
 		} catch (ClassNotFoundException e) {

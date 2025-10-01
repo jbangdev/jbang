@@ -24,17 +24,17 @@ public class integration {
             List<Map.Entry<String, Path>> dependencies,
             List<String> comments,
     boolean nativeImage) {
-        System.out.println("Integration called!");
-        System.out.println("TMPJAR: " + temporaryJar);
-        System.out.println("POM: " + pomFile);
+        System.err.println("Integration called!");
+        System.err.println("TMPJAR: " + temporaryJar);
+        System.err.println("POM: " + pomFile);
         for (Map.Entry<String, String> r : repositories) {
-            System.out.println("REPO: " + r.getKey() + " -> " + r.getValue());
+            System.err.println("REPO: " + r.getKey() + " -> " + r.getValue());
         }
         for (Map.Entry<String, Path> d : dependencies) {
-            System.out.println("DEP: " + d.getKey() + " -> " + d.getValue());
+            System.err.println("DEP: " + d.getKey() + " -> " + d.getValue());
         }
         for (String c : comments) {
-            System.out.println("COMMENT: " + c);
+            System.err.println("COMMENT: " + c);
         }
 
         String myTest = comments.stream()
