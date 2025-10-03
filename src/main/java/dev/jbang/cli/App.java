@@ -30,6 +30,7 @@ import dev.jbang.devkitman.Jdk;
 import dev.jbang.source.Project;
 import dev.jbang.source.ProjectBuilder;
 import dev.jbang.util.CommandBuffer;
+import dev.jbang.util.NetUtil;
 import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
 
@@ -224,7 +225,7 @@ class AppInstall extends BaseBuildCommand {
 				Util.withCacheEvict(() -> {
 					// Download JBang and unzip to ~/.jbang/bin/
 					Util.infoMsg("Downloading and installing jbang...");
-					Path zipFile = Util.downloadAndCacheFile(jbangUrl);
+					Path zipFile = NetUtil.downloadAndCacheFile(jbangUrl);
 					Path urlsDir = Settings.getCacheDir(Cache.CacheClass.urls);
 					Util.deletePath(urlsDir.resolve("jbang"), true);
 					UnpackUtil.unpack(zipFile, urlsDir);
