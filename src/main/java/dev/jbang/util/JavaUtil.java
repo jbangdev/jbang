@@ -94,7 +94,7 @@ public class JavaUtil {
 	static class JBangRemoteAccessProvider implements RemoteAccessProvider {
 		@Override
 		public Path downloadFromUrl(String url) throws IOException {
-			return Util.downloadAndCacheFile(url);
+			return NetUtil.downloadAndCacheFile(url);
 		}
 	}
 

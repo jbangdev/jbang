@@ -81,6 +81,7 @@ import dev.jbang.source.generators.JshCmdGenerator;
 import dev.jbang.source.sources.JavaSource;
 import dev.jbang.util.CommandBuffer;
 import dev.jbang.util.JavaUtil;
+import dev.jbang.util.NetUtil;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -1026,7 +1027,7 @@ public class TestRun extends BaseTest {
 	 * @Ignore("started failing when running locally - 403") void
 	 * testFetchFromGitLab(@TempDir Path dir) throws IOException {
 	 *
-	 * Path x = Util.downloadFile(
+	 * Path x = NetUtil.downloadFile(
 	 * "https://gitlab.com/maxandersen/jbang-gitlab/-/raw/HEAD/helloworld.java",
 	 * dir.toFile()); assertEquals(x.getFileName().toString(), "helloworld.java"); }
 	 */
@@ -1036,7 +1037,7 @@ public class TestRun extends BaseTest {
 
 		String u = Util.swizzleURL("https://gist.github.com/maxandersen/590b8a0e824faeb3ee7ddfad741ce842");
 
-		Path x = Util.downloadFile(u, dir);
+		Path x = NetUtil.downloadFile(u, dir);
 		assertEquals(x.getFileName().toString(), "checklabeler.java");
 	}
 
@@ -1046,7 +1047,7 @@ public class TestRun extends BaseTest {
 		String u = Util.swizzleURL(
 				"https://gist.github.com/tivrfoa/503c88fb5123b1000c37a3f2832d4773#file-file2-java");
 
-		Path x = Util.downloadFile(u, dir);
+		Path x = NetUtil.downloadFile(u, dir);
 		assertEquals(x.getFileName().toString(), "file2.java");
 	}
 
@@ -1056,7 +1057,7 @@ public class TestRun extends BaseTest {
 		String u = Util.swizzleURL(
 				"https://gist.github.com/tivrfoa/503c88fb5123b1000c37a3f2832d4773#file-dash-test-java");
 
-		Path x = Util.downloadFile(u, dir);
+		Path x = NetUtil.downloadFile(u, dir);
 		assertEquals(x.getFileName().toString(), "dash-test.java");
 	}
 
@@ -1080,7 +1081,7 @@ public class TestRun extends BaseTest {
 
 		String u = Util.swizzleURL("https://gist.github.com/maxandersen/d4fa63eb16d8fc99448d37b10c7d8980");
 
-		Path x = Util.downloadFile(u, dir);
+		Path x = NetUtil.downloadFile(u, dir);
 		assertEquals(x.getFileName().toString(), "hello.jsh");
 	}
 
@@ -1090,7 +1091,7 @@ public class TestRun extends BaseTest {
 		String u = Util.swizzleURL(
 				"https://gist.github.com/tivrfoa/503c88fb5123b1000c37a3f2832d4773#file-file3-jsh");
 
-		Path x = Util.downloadFile(u, dir);
+		Path x = NetUtil.downloadFile(u, dir);
 		assertEquals(x.getFileName().toString(), "file3.jsh");
 	}
 
@@ -1100,7 +1101,7 @@ public class TestRun extends BaseTest {
 		String u = Util.swizzleURL(
 				"https://gist.github.com/tivrfoa/503c88fb5123b1000c37a3f2832d4773#file-java-shell-script-jsh");
 
-		Path x = Util.downloadFile(u, dir);
+		Path x = NetUtil.downloadFile(u, dir);
 		assertEquals(x.getFileName().toString(), "java-shell-script.jsh");
 	}
 
@@ -1112,7 +1113,7 @@ public class TestRun extends BaseTest {
 	@Test
 	void testFetchFromRedirected(@TempDir Path dir) throws IOException {
 		String url = "https://git.io/JLyV8";
-		Path x = Util.swizzleContent(url, Util.downloadFile(url, dir));
+		Path x = Util.swizzleContent(url, NetUtil.downloadFile(url, dir));
 		assertEquals(x.getFileName().toString(), "helloworld.java");
 
 		String s = Util.readString(x);
@@ -1126,7 +1127,7 @@ public class TestRun extends BaseTest {
 
 		String u = Util.swizzleURL("https://gist.github.com/590b8a0e824faeb3ee7ddfad741ce842");
 
-		Path x = Util.downloadFile(u, dir);
+		Path x = NetUtil.downloadFile(u, dir);
 		assertEquals("checklabeler.java", x.getFileName().toString());
 	}
 
@@ -1164,7 +1165,7 @@ public class TestRun extends BaseTest {
 
 	private void verifyHello(String url, Path dir, boolean expectFile) throws IOException {
 		String u = Util.swizzleURL(url);
-		Path x = Util.swizzleContent(u, Util.downloadFile(u, dir));
+		Path x = Util.swizzleContent(u, NetUtil.downloadFile(u, dir));
 		if (expectFile) {
 			assertEquals("hello.java", x.getFileName().toString());
 		}
@@ -1178,7 +1179,7 @@ public class TestRun extends BaseTest {
 	@Disabled("twitter stopped supporting non-javascript get")
 	void testTwitterjsh(@TempDir Path dir) throws IOException {
 		String u = Util.swizzleURL("https://twitter.com/maxandersen/status/1266904846239752192");
-		Path x = Util.swizzleContent(u, Util.downloadFile(u, dir));
+		Path x = Util.swizzleContent(u, NetUtil.downloadFile(u, dir));
 		assertEquals("1266904846239752192.jsh", x.getFileName().toString());
 		String java = Util.readString(x);
 		assertThat(java, startsWith("//DEPS"));
@@ -2409,7 +2410,7 @@ public class TestRun extends BaseTest {
 		String arg = "http://localhost:" + wms.port() + "/readme.md";
 		CaptureResult<Integer> result = checkedRun(null, "run", "--verbose", script, "%" + arg);
 		assertThat(result.err, containsString("Requesting HTTP GET " + arg));
-		Path file = Util.downloadAndCacheFile(arg);
+		Path file = NetUtil.downloadAndCacheFile(arg);
 		assertThat(result.err, containsString(file.toString()));
 	}
 
@@ -2430,7 +2431,7 @@ public class TestRun extends BaseTest {
 		String arg = "http://localhost:" + wms.port() + "/readme.md";
 		CaptureResult<Integer> result = checkedRun(null, "run", "--verbose", script, "%{" + arg + "}");
 		assertThat(result.err, containsString("Requesting HTTP GET " + arg));
-		Path file = Util.downloadAndCacheFile(arg);
+		Path file = NetUtil.downloadAndCacheFile(arg);
 		assertThat(result.err, containsString(file.toString()));
 	}
 
@@ -2463,8 +2464,8 @@ public class TestRun extends BaseTest {
 				"foo%{" + arg1 + "}bar%{" + arg2 + "}baz");
 		assertThat(result.err, containsString("Requesting HTTP GET " + arg1));
 		assertThat(result.err, containsString("Requesting HTTP GET " + arg2));
-		Path file1 = Util.downloadAndCacheFile(arg1);
-		Path file2 = Util.downloadAndCacheFile(arg2);
+		Path file1 = NetUtil.downloadAndCacheFile(arg1);
+		Path file2 = NetUtil.downloadAndCacheFile(arg2);
 		assertThat(result.err, containsString("foo" + file1 + "bar" + file2 + "baz"));
 	}
 
@@ -2489,7 +2490,7 @@ public class TestRun extends BaseTest {
 				"--javaagent=" + agent + "=test:%{" + arg + "}",
 				script);
 		assertThat(result.err, containsString("Requesting HTTP GET " + arg));
-		Path file = Util.downloadAndCacheFile(arg);
+		Path file = NetUtil.downloadAndCacheFile(arg);
 		Project aprj = Project.builder().build(agent);
 		BuildContext actx = BuildContext.forProject(aprj);
 		Path jar = actx.getJarFile();
