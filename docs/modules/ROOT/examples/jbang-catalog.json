@@ -1,0 +1,19 @@
+{
+  "aliases": {
+    "jbang-fmt": {
+      "script-ref": "jbang-fmt@jbangdev/jbang-fmt",
+      "description": "A script that formats JBang Java example files for use in the JBang documentation",
+      "arguments": [
+        "--line-length",
+        "90",
+        "--java",
+        "21",
+        "--indent-with",
+        "space",
+        "--indent-size",
+        "2",
+        "src"
+      ]
+    }
+  }
+}

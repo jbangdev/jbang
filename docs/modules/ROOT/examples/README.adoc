@@ -1,0 +1,11 @@
+= JBang Examples
+
+This folder contains example programs that are included in the JBang documentation. Keeping the examples as runnable source files outside the Asciidoc documentation files ensures that the programs can be tested and updated without having to update any documentation files.
+
+Run the following command to apply formatting changes to the example Java files in the `src` folder.
+
+[source,shellscript]
+----
+jbang jbang-fmt
+----
+
