@@ -63,8 +63,36 @@ public class UnpackUtil {
 		}
 	}
 
+	public static void onCannotCreateDirectory(ZipFile zipFile, ZipArchiveEntry zipEntry, Path outFile)
+			throws IOException {
+		throw new IOException("Cannot create directory for " + outFile + " because a parent path already exists: "
+				+ zipEntry.getName());
+	}
+
 	public static void unzip(Path zip, Path outputDir, boolean stripRootFolder, Path selectFolder,
 			ExistingZipFileHandler onExisting) throws IOException {
+		unzip(zip, outputDir, stripRootFolder, selectFolder, onExisting, UnpackUtil::onCannotCreateDirectory);
+	}
+
+	/**
+	 * Unzips a zip file into a given output directory.
+	 * 
+	 * @param zip                           The zip file to unzip.
+	 * @param outputDir                     The directory to unzip the zip file
+	 *                                      into.
+	 * @param stripRootFolder               Whether to strip the root folder from
+	 *                                      the zip file.
+	 * @param selectFolder                  The folder to select from the zip file.
+	 * @param onExisting                    The handler to call when a file already
+	 *                                      exists.
+	 * @param onCannotCreateParentDirectory The handler to call when a parent
+	 *                                      directory cannot be created (can be any
+	 *                                      level parent).
+	 * @throws IOException If the zip file cannot be unzipped.
+	 */
+	public static void unzip(Path zip, Path outputDir, boolean stripRootFolder, Path selectFolder,
+			ExistingZipFileHandler onExisting, ExistingZipFileHandler onCannotMakeParentDirectory)
+			throws IOException {
 		try (ZipFile zipFile = new ZipFile(zip.toFile())) {
 			Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
 			while (entries.hasMoreElements()) {
@@ -87,19 +115,35 @@ public class UnpackUtil {
 					throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
 				}
 				if (zipEntry.isDirectory()) {
-					Files.createDirectories(entry);
+					if (Files.exists(entry)) {
+						onExisting.handle(zipFile, zipEntry, entry);
+					} else {
+						Files.createDirectories(entry);
+					}
 				} else if (zipEntry.isUnixSymlink()) {
 					Scanner s = new Scanner(zipFile.getInputStream(zipEntry)).useDelimiter("\\A");
 					String result = s.hasNext() ? s.next() : "";
 					Files.createSymbolicLink(entry, Paths.get(result));
 				} else {
+					boolean parentAvailble = true;
 					if (!Files.isDirectory(entry.getParent())) {
-						Files.createDirectories(entry.getParent());
+						if (Files.exists(entry.getParent())) {
+							// parent file exist but is not a directory
+							parentAvailble = false;
+							onCannotMakeParentDirectory.handle(zipFile, zipEntry, entry.getParent());
+						} else {
+							Files.createDirectories(entry.getParent());
+							parentAvailble = true;
+						}
 					}
 					if (Files.isRegularFile(entry)) {
 						onExisting.handle(zipFile, zipEntry, entry);
 					} else {
-						defaultZipEntryCopy(zipFile, zipEntry, entry);
+						if (parentAvailble) {
+							defaultZipEntryCopy(zipFile, zipEntry, entry);
+						} else {
+							onCannotMakeParentDirectory.handle(zipFile, zipEntry, entry.getParent());
+						}
 					}
 				}
 			}

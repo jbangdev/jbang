@@ -367,10 +367,17 @@ class ExportFatjar extends BaseExportCommand {
 			Path tmpDir = Files.createTempDirectory("fatjar");
 			try {
 				Util.verboseMsg("Unpacking main jar: " + source);
-				UnpackUtil.unzip(source, tmpDir, false, null, ExportFatjar::handleExistingFile);
+				UnpackUtil.unzip(source, tmpDir, false, null, ExportFatjar::handleExistingFile,
+						ExportFatjar::handleExistingParent);
 				for (ArtifactInfo dep : deps) {
 					Util.verboseMsg("Unpacking artifact: " + dep);
-					UnpackUtil.unzip(dep.getFile(), tmpDir, false, null, ExportFatjar::handleExistingFile);
+					try {
+						UnpackUtil.unzip(dep.getFile(), tmpDir, false, null, ExportFatjar::handleExistingFile,
+								ExportFatjar::handleExistingParent);
+					} catch (IOException e) {
+						throw new IOException("Could not unpack artifact: " + dep + " due to " + e.getClass().getName()
+								+ ": " + e.getMessage(), e);
+					}
 				}
 				JarUtil.createJar(outputPath, tmpDir, null, prj.getMainClass(),
 						exportMixin.buildMixin.getProjectJdk(prj));
@@ -388,16 +395,39 @@ class ExportFatjar extends BaseExportCommand {
 		return EXIT_OK;
 	}
 
+	public static void handleExistingParent(ZipFile zipFile, ZipArchiveEntry zipEntry, Path outFile)
+			throws IOException {
+		Util.warnMsg("Parent already exists a file. Skipping file: " + zipEntry.getName());
+		// throw new IOException("File already exists but is not a directory." +
+		// zipEntry.getName());
+	}
+
 	public static void handleExistingFile(ZipFile zipFile, ZipArchiveEntry zipEntry, Path outFile) throws IOException {
-		if (zipEntry.getName().startsWith("META-INF/services/")) {
+		if (zipEntry.isDirectory() && Files.isDirectory(outFile)) {
+			// Util.verboseMsg("Merging duplicate directory: " + zipEntry.getName());
+			return;
+		}
+
+		if (zipEntry.isDirectory()) {
+			if (Files.isDirectory(outFile)) {
+				// Util.verboseMsg("Merging duplicate directory: " + zipEntry.getName());
+				return;
+			} else { // file exists but is not a directory
+				Util.warnMsg("File already exists but is not a directory: " + zipEntry.getName());
+				// throw new IOException("File already exists but is not a directory." +
+				// zipEntry.getName());
+			}
+		}
+
+		if (zipEntry.getName().startsWith("META-INF/services/") && !zipEntry.isDirectory()) {
 			Util.verboseMsg("Merging service files: " + zipEntry.getName());
 			try (ReadableByteChannel readableByteChannel = Channels.newChannel(zipFile.getInputStream(zipEntry));
 					FileOutputStream fileOutputStream = new FileOutputStream(outFile.toFile(), true)) {
 				fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
 			}
-		} else {
-			Util.verboseMsg("Skipping duplicate file: " + zipEntry.getName());
 		}
+
+		Util.verboseMsg("Skipping duplicate named file: " + zipEntry.getName());
 	}
 
 	private Path getFatjarOutputPath() {
