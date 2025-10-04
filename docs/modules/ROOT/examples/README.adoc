@@ -6,6 +6,6 @@ Run the following command to apply formatting changes to the example Java files 
 
 [source,shellscript]
 ----
-jbang run jbang-fmt
+jbang jbang-fmt
 ----
 
