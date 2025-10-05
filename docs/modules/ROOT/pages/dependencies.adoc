@@ -220,35 +220,7 @@ There is also support for using Groovy lang style `@Grab` syntax.
 
 [source,java]
 ----
-///usr/bin/env jbang "$0" "$@" ; exit $?
-
-import static java.lang.System.out;
-
-import org.apache.log4j.Logger;
-import org.apache.log4j.BasicConfigurator;
-
-import java.util.Arrays;
-
-import groovy.lang.Grab; // <.>
-import groovy.lang.Grapes;
-import groovy.lang.GrabResolver;
-
-@GrabResolver("central") // <.>
-@GrabResolver(name="acme", root="https://maven.acme.local/maven")
-@Grapes({ // <.>
-    @Grab(group = "ch.qos.reload4j", module = "reload4j", version = "1.2.19"), // <.>
-    @Grab(group = "org.apache.groovy", module = "groovy", version = "4.0.0"), // <.>
-})
-
-class classpath_example {
-
-    static final Logger logger = Logger.getLogger(classpath_example.class);
-
-    public static void main(String[] args) {
-        BasicConfigurator.configure();
-        Arrays.asList(args).forEach(out::println);
-    }
-}
+include::example$src/classpath_example2.java[]
 ----
 <.> Import needed to make the compiler be okey with `@Grab` annotation.
 <.> Using `GrabResolver` to enable `mavenCentral` and custom `acme` repository
