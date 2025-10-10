@@ -1,5 +1,7 @@
 package dev.jbang.resources.resolvers;
 
+import static dev.jbang.util.Util.MAIN_JAVA;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
@@ -59,7 +61,7 @@ public class RenamingScriptResourceResolver implements ResourceResolver {
 						&& !knownExtensions.contains(ext)
 						&& (!Util.isPreview() || !Project.BuildFile.fileNames().contains(probe.getName()))) {
 					if (probe.isDirectory()) {
-						File defaultApp = new File(probe, "main.java");
+						File defaultApp = new File(probe, MAIN_JAVA);
 						File buildFile = new File(probe, Project.BuildFile.jbang.fileName);
 						if (Util.isPreview() && buildFile.exists()) {
 							Util.verboseMsg("Directory where build.jbang exists. Running build.jbang.");
