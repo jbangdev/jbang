@@ -96,6 +96,8 @@ public class Util {
 	private static final Pattern subUrlPattern = Pattern.compile(
 			"^(%?%https?://.+$)|(%?%\\{[a-z]+:[^}]+})");
 
+	public static final String MAIN_JAVA = "main.java";
+
 	private static boolean verbose;
 	private static boolean quiet;
 	private static boolean offline;
@@ -1297,7 +1299,7 @@ public class Util {
 				URI u = new URI(url);
 				if (u.getPath().endsWith("/")) {
 					verboseMsg("Directory url, assuming user want to get default application at main.java");
-					url = url + "main.java";
+					url = url + MAIN_JAVA;
 				}
 			} catch (URISyntaxException e) {
 				// ignore

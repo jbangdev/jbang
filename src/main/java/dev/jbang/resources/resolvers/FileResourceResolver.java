@@ -1,5 +1,7 @@
 package dev.jbang.resources.resolvers;
 
+import java.io.IOException;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -7,6 +9,7 @@ import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -81,7 +84,7 @@ public class FileResourceResolver implements ResourceResolver {
 		@Override
 		public boolean exists() {
 			try {
-				return Files.isRegularFile(getFile());
+				return Files.exists(getFile());
 			} catch (ResourceNotFoundException e) {
 				return false;
 			}
@@ -96,6 +99,9 @@ public class FileResourceResolver implements ResourceResolver {
 			if (!file.isPresent()) {
 				throw new ResourceNotFoundException(getOriginalResource(), "Could not obtain file resource");
 			}
+			if (isParent()) {
+				throw new ResourceNotFoundException(getOriginalResource(), "Resource is a parent");
+			}
 			return file.get();
 		}
 
@@ -107,6 +113,51 @@ public class FileResourceResolver implements ResourceResolver {
 			} else {
 				return ResourceRef.super.getExtension();
 			}
+		}
+
+		@Override
+		public ResourceRef parent() {
+			Path parentPath = Paths.get(originalResource).getParent();
+			return new FileResourceRef(parentPath.toString(), parentPath, resolver);
+		}
+
+		@Override
+		public boolean isParent() {
+			if (file == null) {
+				file = Optional.ofNullable(obtainer.apply(getOriginalResource()));
+			}
+			return file.isPresent() && Files.isDirectory(file.get());
+		}
+
+		@Override
+		public ResourceChildren children() {
+			if (!isParent()) {
+				throw new ResourceNotFoundException(getOriginalResource(), "Resource is not a parent");
+			}
+			return new ResourceChildren() {
+				@Override
+				public Stream<Path> list() throws IOException {
+					if (file == null) {
+						file = Optional.ofNullable(obtainer.apply(getOriginalResource()));
+					}
+					return file.isPresent() ? Files.walk(file.get(), FileVisitOption.FOLLOW_LINKS) : Stream.empty();
+				}
+
+				@Override
+				public @Nullable ResourceRef resolve(String resource, boolean trusted) {
+					if (!Util.isValidPath(resource)) {
+						return null;
+					}
+					Path baseDir = Paths.get(originalResource);
+					String childRef = baseDir.resolve(resource).toString();
+					return resolver.resolve(childRef, trusted);
+				}
+
+				@Override
+				public @NonNull String description() {
+					return "Children of " + FileResourceRef.this.description();
+				}
+			};
 		}
 
 		@Override
