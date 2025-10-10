@@ -130,7 +130,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 					BuildContext ctx = BuildContext.forProject(prj, buildDir);
 					init(ctx);
 				} catch (Exception e) {
-					Util.warnMsg("Unable to obtain full information, the script probably contains errors", e);
+					Util.warnMsg("Unable to obtain full information, because of: " + e.getMessage(), e);
 				}
 
 				try {
