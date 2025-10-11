@@ -52,6 +52,12 @@ public class RunMixin {
 			opts.add(flightRecorderString);
 		}
 		if (debugString != null) {
+			String address = debugString.get("address");
+			if (address != null && address.endsWith("?")) {
+				// TODO: this is lossy as it remove ? as otherwise collectRunOptions will record
+				// wrong one
+				address = address.substring(0, address.length() - 1);
+			}
 			for (Map.Entry<String, String> e : debugString.entrySet()) {
 				opts.add("-d");
 				opts.add(e.getKey() + "=" + e.getValue());
