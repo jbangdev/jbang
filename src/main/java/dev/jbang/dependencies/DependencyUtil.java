@@ -41,7 +41,7 @@ public class DependencyUtil {
 		aliasToRepos.put("spring-snapshot", "https://repo.spring.io/snapshot");
 		aliasToRepos.put("spring-milestone", "https://repo.spring.io/milestone");
 		aliasToRepos.put("jogamp", "https://jogamp.org/deployment/maven");
-
+		aliasToRepos.put("mvnpm", "https://repo.mvnpm.org/maven2");
 	}
 
 	public static final Pattern fullGavPattern = Pattern.compile(
