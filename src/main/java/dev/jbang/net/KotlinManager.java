@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
+import dev.jbang.util.NetUtil;
 import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
 
@@ -44,7 +45,7 @@ public class KotlinManager {
 		Util.deletePath(kotlinTmpDir, false);
 		Util.deletePath(kotlinOldDir, false);
 		try {
-			Path kotlinPkg = Util.downloadAndCacheFile(url);
+			Path kotlinPkg = NetUtil.downloadAndCacheFile(url);
 			Util.infoMsg("Installing Kotlin " + version + "...");
 			Util.verboseMsg("Unpacking to " + kotlinDir);
 			UnpackUtil.unpack(kotlinPkg, kotlinTmpDir);

@@ -1,6 +1,6 @@
 package dev.jbang.util;
 
-import static dev.jbang.util.Util.ConnectionConfigurator.authentication;
+import static dev.jbang.util.NetUtil.ConnectionConfigurator.authentication;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
@@ -147,16 +147,16 @@ public class TestUtil extends BaseTest {
 
 	@Test
 	void testDispostionFilename() {
-		assertThat(Util.getDispositionFilename("inline; filename=token"), equalTo("token"));
-		assertThat(Util.getDispositionFilename("inline; filename=\"quoted string\""), equalTo("quoted string"));
-		assertThat(Util.getDispositionFilename("inline; filename*=iso-8859-1'en'%A3%20rates"), equalTo("£ rates"));
-		assertThat(Util.getDispositionFilename("inline; filename*=UTF-8''%c2%a3%20and%20%e2%82%ac%20rates"),
+		assertThat(NetUtil.getDispositionFilename("inline; filename=token"), equalTo("token"));
+		assertThat(NetUtil.getDispositionFilename("inline; filename=\"quoted string\""), equalTo("quoted string"));
+		assertThat(NetUtil.getDispositionFilename("inline; filename*=iso-8859-1'en'%A3%20rates"), equalTo("£ rates"));
+		assertThat(NetUtil.getDispositionFilename("inline; filename*=UTF-8''%c2%a3%20and%20%e2%82%ac%20rates"),
 				equalTo("£ and € rates"));
-		assertThat(Util.getDispositionFilename("inline; filename=token; filename*=iso-8859-1'en'%A3%20rates"),
+		assertThat(NetUtil.getDispositionFilename("inline; filename=token; filename*=iso-8859-1'en'%A3%20rates"),
 				equalTo("£ rates"));
 		// The spec actually tells us to always use filename* but our implementation is
 		// too dumb for that
-		assertThat(Util.getDispositionFilename("inline; filename*=iso-8859-1'en'%A3%20rates; filename=token"),
+		assertThat(NetUtil.getDispositionFilename("inline; filename*=iso-8859-1'en'%A3%20rates; filename=token"),
 				equalTo("token"));
 		// assertThat(Util.getDispositionFilename("inline;
 		// filename*=iso-fake-1''dummy"), equalTo(""));

@@ -19,6 +19,7 @@ import dev.jbang.net.TrustedSources;
 import dev.jbang.resources.ResourceNotFoundException;
 import dev.jbang.resources.ResourceRef;
 import dev.jbang.resources.ResourceResolver;
+import dev.jbang.util.NetUtil;
 import dev.jbang.util.Util;
 
 /**
@@ -62,7 +63,7 @@ public class RemoteResourceResolver implements ResourceResolver {
 
 		String swizzledUrl = swizzleURL(scriptURL);
 
-		if (!Util.isFileCached(swizzledUrl) && !TrustedSources.instance().isURLTrusted(uri)) {
+		if (!NetUtil.isFileCached(swizzledUrl) && !TrustedSources.instance().isURLTrusted(uri)) {
 			String question = scriptURL + " is not from a trusted source thus not running it automatically.\n" +
 					"\n" +
 					"If you trust the url to be safe to run you can do one of the following";
@@ -101,7 +102,7 @@ public class RemoteResourceResolver implements ResourceResolver {
 			}
 		}
 
-		return Util.swizzleContent(swizzledUrl, Util.downloadAndCacheFile(swizzledUrl));
+		return Util.swizzleContent(swizzledUrl, NetUtil.downloadAndCacheFile(swizzledUrl));
 	}
 
 	private static String orgURL(String trustUrl) {
@@ -119,7 +120,7 @@ public class RemoteResourceResolver implements ResourceResolver {
 
 	public static Path fetchFromURL(String scriptURL) throws IOException {
 		String url = swizzleURL(scriptURL);
-		return Util.downloadAndCacheFile(url);
+		return NetUtil.downloadAndCacheFile(url);
 	}
 
 	public static class RemoteResourceRef extends FileResourceResolver.FileResourceRef {

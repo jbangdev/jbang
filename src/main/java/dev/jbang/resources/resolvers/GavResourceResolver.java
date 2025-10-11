@@ -5,6 +5,7 @@ import java.util.function.Function;
 import org.jspecify.annotations.NonNull;
 
 import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.dependencies.JitPackUtil;
 import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.resources.ResourceRef;
 import dev.jbang.resources.ResourceResolver;
@@ -31,9 +32,20 @@ public class GavResourceResolver implements ResourceResolver {
 	public ResourceRef resolve(String resource) {
 		ResourceRef result = null;
 
+		String gav;
 		if (DependencyUtil.looksLikeAGav(resource)) {
-			result = ResourceRef.forLazyFileResource(resource, ref -> {
-				ModularClassPath mcp = depResolver.apply(resource);
+			gav = resource;
+		} else {
+			String jitpackGav = JitPackUtil.ensureGAV(resource);
+			if (!jitpackGav.equals(resource)) {
+				gav = jitpackGav;
+			} else {
+				gav = null;
+			}
+		}
+		if (gav != null) {
+			result = ResourceRef.forLazyFileResource(gav, ref -> {
+				ModularClassPath mcp = depResolver.apply(gav);
 				// We possibly get a whole bunch of artifacts, but we're only interested in
 				// the one we asked for which we assume is always the first one in the list
 				// (hopefully we're right).

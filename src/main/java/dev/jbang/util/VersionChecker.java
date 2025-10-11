@@ -179,7 +179,7 @@ public class VersionChecker {
 
 	// Determines and returns the latest JBang version from GitHub
 	private static String retrieveLatestVersion() throws IOException {
-		Path versionFile = Util.downloadFile(jbangVersionUrl, Settings.getCacheDir(), CONNECT_TIMEOUT);
+		Path versionFile = NetUtil.downloadFile(jbangVersionUrl, Settings.getCacheDir(), CONNECT_TIMEOUT);
 		List<String> lines = Files.readAllLines(versionFile);
 		if (!lines.isEmpty()) {
 			return lines.get(0);

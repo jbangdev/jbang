@@ -45,7 +45,7 @@ public class TestUtilDownloads extends BaseTest {
 				.withBody("test")));
 
 		String url = wmri.getHttpBaseUrl() + "/test.txt";
-		Path file = Util.downloadAndCacheFile(url);
+		Path file = NetUtil.downloadAndCacheFile(url);
 		assertThat(file.toFile(), anExistingFile());
 		assertThat(Util.readString(file), is("test"));
 	}
@@ -62,7 +62,7 @@ public class TestUtilDownloads extends BaseTest {
 				.withBody("test")));
 
 		String url = wmri.getHttpBaseUrl() + "/test.txt";
-		Path file = Util.downloadAndCacheFile(url);
+		Path file = NetUtil.downloadAndCacheFile(url);
 		FileTime lmt = Files.getLastModifiedTime(file);
 		ZonedDateTime zlmt = ZonedDateTime.ofInstant(lmt.toInstant(), ZoneId.of("GMT"));
 		String cachedLastModified = DateTimeFormatter.RFC_1123_DATE_TIME.format(zlmt);
@@ -81,7 +81,7 @@ public class TestUtilDownloads extends BaseTest {
 				.withBody("test2")));
 
 		Util.withCacheEvict("0", () -> {
-			Path file2 = Util.downloadAndCacheFile(url);
+			Path file2 = NetUtil.downloadAndCacheFile(url);
 			assertThat(file2.toFile(), anExistingFile());
 			assertThat(file2, equalTo(file));
 			assertThat(Files.getLastModifiedTime(file2), not(equalTo(lmt)));
@@ -102,7 +102,7 @@ public class TestUtilDownloads extends BaseTest {
 				.withBody("test")));
 
 		String url = wmri.getHttpBaseUrl() + "/test.txt";
-		Path file = Util.downloadAndCacheFile(url);
+		Path file = NetUtil.downloadAndCacheFile(url);
 		FileTime lmt = Files.getLastModifiedTime(file);
 		assertThat(file.toFile(), anExistingFile());
 		assertThat(Util.readString(file), is("test"));
@@ -118,7 +118,7 @@ public class TestUtilDownloads extends BaseTest {
 				.withBody("test2")));
 
 		Util.freshly(() -> {
-			Path file2 = Util.downloadAndCacheFile(url);
+			Path file2 = NetUtil.downloadAndCacheFile(url);
 			assertThat(file2.toFile(), anExistingFile());
 			assertThat(file2, equalTo(file));
 			assertThat(Files.getLastModifiedTime(file2), not(equalTo(lmt)));
@@ -141,7 +141,7 @@ public class TestUtilDownloads extends BaseTest {
 				.withBody("test")));
 
 		String url = wmri.getHttpBaseUrl() + "/test.txt";
-		Path file = Util.downloadAndCacheFile(url);
+		Path file = NetUtil.downloadAndCacheFile(url);
 		FileTime lmt = Files.getLastModifiedTime(file);
 		ZonedDateTime zlmt = ZonedDateTime.ofInstant(lmt.toInstant(), ZoneId.of("GMT"));
 		String cachedLastModified = DateTimeFormatter.RFC_1123_DATE_TIME.format(zlmt);
@@ -160,7 +160,7 @@ public class TestUtilDownloads extends BaseTest {
 						"Thu, 02 Feb 2023 22:22:49 GMT")
 				.withBody("test2")));
 
-		Path file2 = Util.downloadAndCacheFile(url);
+		Path file2 = NetUtil.downloadAndCacheFile(url);
 		assertThat(file2.toFile(), anExistingFile());
 		assertThat(file2, equalTo(file));
 		assertThat(Files.getLastModifiedTime(file2), greaterThanOrEqualTo(lmt));
@@ -181,7 +181,7 @@ public class TestUtilDownloads extends BaseTest {
 				.withBody("test")));
 
 		String url = wmri.getHttpBaseUrl() + "/test.txt";
-		Path file = Util.downloadAndCacheFile(url);
+		Path file = NetUtil.downloadAndCacheFile(url);
 		FileTime lmt = Files.getLastModifiedTime(file);
 		assertThat(file.toFile(), anExistingFile());
 		assertThat(Util.readString(file), is("test"));
@@ -197,7 +197,7 @@ public class TestUtilDownloads extends BaseTest {
 				.withBody("test2")));
 
 		Util.withCacheEvict("0", () -> {
-			Path file2 = Util.downloadAndCacheFile(url);
+			Path file2 = NetUtil.downloadAndCacheFile(url);
 			assertThat(file2.toFile(), anExistingFile());
 			assertThat(file2, equalTo(file));
 			assertThat(Files.getLastModifiedTime(file2), not(equalTo(lmt)));
@@ -222,7 +222,7 @@ public class TestUtilDownloads extends BaseTest {
 				.withBody("test")));
 
 		String url = wmri.getHttpBaseUrl() + "/test.txt";
-		Path file = Util.downloadAndCacheFile(url);
+		Path file = NetUtil.downloadAndCacheFile(url);
 		FileTime lmt = Files.getLastModifiedTime(file);
 		assertThat(file.toFile(), anExistingFile());
 		assertThat(Util.readString(file), is("test"));
@@ -235,7 +235,7 @@ public class TestUtilDownloads extends BaseTest {
 						"Sun, 02 Feb 3023 22:22:49 GMT")
 				.withBody("test2")));
 
-		Path file2 = Util.downloadAndCacheFile(url);
+		Path file2 = NetUtil.downloadAndCacheFile(url);
 		assertThat(file2.toFile(), anExistingFile());
 		assertThat(file2, equalTo(file));
 		assertThat(Files.getLastModifiedTime(file2), equalTo(lmt));
@@ -258,7 +258,7 @@ public class TestUtilDownloads extends BaseTest {
 				.withBody("test")));
 
 		String url = wmri.getHttpBaseUrl() + "/test.txt";
-		Path file = Util.downloadAndCacheFile(url);
+		Path file = NetUtil.downloadAndCacheFile(url);
 		FileTime lmt = Files.getLastModifiedTime(file);
 		assertThat(file.toFile(), anExistingFile());
 		assertThat(Util.readString(file), is("test"));
@@ -273,7 +273,7 @@ public class TestUtilDownloads extends BaseTest {
 						"Sun, 02 Feb 3023 22:22:49 GMT")
 				.withBody("test2")));
 
-		Path file2 = Util.downloadAndCacheFile(url);
+		Path file2 = NetUtil.downloadAndCacheFile(url);
 		assertThat(file2.toFile(), anExistingFile());
 		assertThat(file2, equalTo(file));
 		assertThat(Files.getLastModifiedTime(file2), not(equalTo(lmt)));
@@ -296,7 +296,7 @@ public class TestUtilDownloads extends BaseTest {
 				.withBody("test")));
 
 		String url = wmri.getHttpBaseUrl() + "/test.txt";
-		Path file = Util.downloadAndCacheFile(url);
+		Path file = NetUtil.downloadAndCacheFile(url);
 		FileTime lmt = Files.getLastModifiedTime(file);
 		assertThat(file.toFile(), anExistingFile());
 		assertThat(Util.readString(file), is("test"));
@@ -311,7 +311,7 @@ public class TestUtilDownloads extends BaseTest {
 						"Sun, 02 Feb 3023 22:22:49 GMT")
 				.withBody("test2")));
 
-		Path file2 = Util.downloadAndCacheFile(url);
+		Path file2 = NetUtil.downloadAndCacheFile(url);
 		assertThat(file2.toFile(), anExistingFile());
 		assertThat(file2, equalTo(file));
 		assertThat(Files.getLastModifiedTime(file2), not(equalTo(lmt)));
@@ -331,13 +331,13 @@ public class TestUtilDownloads extends BaseTest {
 				.withBody("test")));
 
 		String url = wmri.getHttpBaseUrl() + "/test.txt";
-		Path file = Util.downloadAndCacheFile(url);
+		Path file = NetUtil.downloadAndCacheFile(url);
 		FileTime lmt = Files.getLastModifiedTime(file);
 		ZonedDateTime zlmt = ZonedDateTime.ofInstant(lmt.toInstant(), ZoneId.of("GMT"));
 		String cachedLastModified = DateTimeFormatter.RFC_1123_DATE_TIME.format(zlmt);
 		assertThat(file.toFile(), anExistingFile());
 		assertThat(Util.readString(file), is("test"));
-		Path etag = Util.etagFile(file, Util.getCacheMetaDir(file.getParent()));
+		Path etag = NetUtil.etagFile(file, NetUtil.getCacheMetaDir(file.getParent()));
 		assertThat(etag.toFile(), anExistingFile());
 		assertThat(Util.readString(etag), is("tag1"));
 
@@ -351,12 +351,12 @@ public class TestUtilDownloads extends BaseTest {
 				.withHeader("ETag", "tag1")
 				.withBody("test2")));
 
-		Path file2 = Util.downloadAndCacheFile(url);
+		Path file2 = NetUtil.downloadAndCacheFile(url);
 		assertThat(file2.toFile(), anExistingFile());
 		assertThat(file2, equalTo(file));
 		assertThat(Files.getLastModifiedTime(file2), greaterThanOrEqualTo(lmt));
 		assertThat(Util.readString(file2), is("test"));
-		Path etag2 = Util.etagFile(file, Util.getCacheMetaDir(file2.getParent()));
+		Path etag2 = NetUtil.etagFile(file, NetUtil.getCacheMetaDir(file2.getParent()));
 		assertThat(etag2.toFile(), anExistingFile());
 		assertThat(Util.readString(etag2), is("tag1"));
 	}
@@ -374,11 +374,11 @@ public class TestUtilDownloads extends BaseTest {
 				.withBody("test")));
 
 		String url = wmri.getHttpBaseUrl() + "/test.txt";
-		Path file = Util.downloadAndCacheFile(url);
+		Path file = NetUtil.downloadAndCacheFile(url);
 		FileTime lmt = Files.getLastModifiedTime(file);
 		assertThat(file.toFile(), anExistingFile());
 		assertThat(Util.readString(file), is("test"));
-		Path etag = Util.etagFile(file, Util.getCacheMetaDir(file.getParent()));
+		Path etag = NetUtil.etagFile(file, NetUtil.getCacheMetaDir(file.getParent()));
 		assertThat(etag.toFile(), anExistingFile());
 		assertThat(Util.readString(etag), is("tag1"));
 
@@ -392,12 +392,12 @@ public class TestUtilDownloads extends BaseTest {
 				.withBody("test2")));
 
 		Util.withCacheEvict("0", () -> {
-			Path file2 = Util.downloadAndCacheFile(url);
+			Path file2 = NetUtil.downloadAndCacheFile(url);
 			assertThat(file2.toFile(), anExistingFile());
 			assertThat(file2, equalTo(file));
 			assertThat(Files.getLastModifiedTime(file2), not(equalTo(lmt)));
 			assertThat(Util.readString(file2), is("test2"));
-			Path etag2 = Util.etagFile(file, Util.getCacheMetaDir(file2.getParent()));
+			Path etag2 = NetUtil.etagFile(file, NetUtil.getCacheMetaDir(file2.getParent()));
 			assertThat(etag2.toFile(), anExistingFile());
 			assertThat(Util.readString(etag2), is("tag2"));
 			return 0;
@@ -415,7 +415,7 @@ public class TestUtilDownloads extends BaseTest {
 				.withBody("test")));
 
 		String url = wmri.getHttpBaseUrl() + "/test.txt?path=foo/bar";
-		Path file = Util.downloadAndCacheFile(url);
+		Path file = NetUtil.downloadAndCacheFile(url);
 		assertThat(file.toFile(), anExistingFile());
 		assertThat(Util.readString(file), is("test"));
 	}
