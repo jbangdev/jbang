@@ -32,6 +32,12 @@ connect to the IDE and suspend the execution when it connects as opposed to havi
 
 You can see the key/value options supported in OpenJDK JPDA https://docs.oracle.com/en/java/javase/11/docs/specs/jpda/conninv.html[documentation].
 
+== Dynamic debug port
+
+You can use the `?` suffix to dynamically find a free port. E.g., `--debug=address=5000?`.
+
+This will make it use the port 5000 and if that port is not free it will find a free port and use that port.
+
 == Debug info
 
 JBang since version 0.100 compiles with debug info enabled by default. You can use `-C=-g` to tweak how much debug info is included: `jbang -C=-g=lines,vars,source` or to turn it off use `jbang -C=-g=none".

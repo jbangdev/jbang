@@ -167,7 +167,8 @@ public class Run extends BaseBuildCommand {
 	 */
 	static class DebugFallbackConsumer implements CommandLine.IParameterConsumer {
 
-		private static Pattern p = Pattern.compile("(?<address>(.*?:)?(\\d+\\??))|(?<key>\\S*)=(?<value>\\S+\\??)");
+		final private static Pattern p = Pattern
+			.compile("(?<address>(.*?:)?(\\d+\\??))|(?<key>\\S*)=(?<value>\\S+\\??)");
 
 		@Override
 		public void consumeParameters(Stack<String> args, CommandLine.Model.ArgSpec argSpec,
