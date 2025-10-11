@@ -1,6 +1,7 @@
 package dev.jbang.source.generators;
 
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -108,6 +109,38 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 			// key/value
 			// i.e. --debug=server=n
 			fallbackDebug.putAll(debugString);
+
+			String address = fallbackDebug.get("address");
+			if (address != null && address.endsWith("?")) {
+				Util.verboseMsg("Checking for available debug port " + address);
+				address = address.substring(0, address.length() - 1);
+				try {
+					// Check if address is just a port number
+					int port = Integer.parseInt(address);
+					int maxAttempts = 10; // Don't try forever
+					int attempts = 0;
+
+					while (attempts < maxAttempts) {
+						Util.verboseMsg("Checking for available debug port" + port + " attempts: " + attempts);
+						try (ServerSocket socket = new ServerSocket(port)) {
+							// Port is available, close socket and use this port
+							socket.close();
+							break;
+						} catch (IOException e) {
+							// Port in use, try a random port between 1024-65535
+							port = 1024 + (int) (Math.random() * 64511);
+							attempts++;
+						}
+					}
+
+					// Update the address with the (potentially) new port
+					fallbackDebug.put("address", String.valueOf(port));
+				} catch (NumberFormatException e) {
+					Util.verboseMsg("Problem parsing " + address + " as a port number", e); // Not just a number, leave
+																							// address as-is
+				}
+			}
+
 			optionalArgs.add(
 					"-agentlib:jdwp=" + fallbackDebug.entrySet()
 						.stream()

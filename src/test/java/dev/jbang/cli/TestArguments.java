@@ -100,6 +100,62 @@ class TestArguments extends BaseTest {
 	}
 
 	@Test
+	public void testDebugPortHost() {
+		CommandLine.ParseResult pr = cli.parseArgs("run", "--debug=somehost:5000", "test.java");
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		assertThat(run.scriptMixin.scriptOrFile, is("test.java"));
+		assertThat(run.runMixin.debugString, notNullValue());
+		assertThat(run.runMixin.debugString, hasEntry("address", "somehost:5000"));
+		assertThat(run.runMixin.debugString.size(), is(1));
+	}
+
+	@Test
+	public void testDynamicPort() {
+		CommandLine.ParseResult pr = cli.parseArgs("run", "--debug=5000?", "test.java");
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		assertThat(run.scriptMixin.scriptOrFile, is("test.java"));
+		assertThat(run.runMixin.debugString, notNullValue());
+		assertThat(run.runMixin.debugString, hasEntry("address", "5000?"));
+		assertThat(run.runMixin.debugString.size(), is(1));
+	}
+
+	@Test
+	public void testShortDynamicPort() {
+		CommandLine.ParseResult pr = cli.parseArgs("run", "-d=address=5000?", "test.java");
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		assertThat(run.scriptMixin.scriptOrFile, is("test.java"));
+		assertThat(run.runMixin.debugString, notNullValue());
+		assertThat(run.runMixin.debugString, hasEntry("address", "5000?"));
+		assertThat(run.runMixin.debugString.size(), is(1));
+	}
+
+	@Test
+	public void testDynamicHostPort() {
+		CommandLine.ParseResult pr = cli.parseArgs("run", "--debug=host:5000?", "test.java");
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		assertThat(run.scriptMixin.scriptOrFile, is("test.java"));
+		assertThat(run.runMixin.debugString, notNullValue());
+		assertThat(run.runMixin.debugString, hasEntry("address", "host:5000?"));
+		assertThat(run.runMixin.debugString.size(), is(1));
+	}
+
+	@Test
+	public void testAddressDynamicHostPort() {
+		CommandLine.ParseResult pr = cli.parseArgs("run", "--debug=host:5000", "--debug=suspend=n", "test.java");
+		Run run = (Run) pr.subcommand().commandSpec().userObject();
+
+		assertThat(run.scriptMixin.scriptOrFile, is("test.java"));
+		assertThat(run.runMixin.debugString, notNullValue());
+		assertThat(run.runMixin.debugString, hasEntry("suspend", "n"));
+		assertThat(run.runMixin.debugString, hasEntry("address", "host:5000"));
+		assertThat(run.runMixin.debugString.size(), is(2));
+	}
+
+	@Test
 	public void testDebugPortSeperateValue() {
 		CommandLine.ParseResult pr = cli.parseArgs("run", "--debug", "xyz.dk:5005", "test.java");
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
