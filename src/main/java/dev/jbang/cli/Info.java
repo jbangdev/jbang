@@ -117,6 +117,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String gav;
 		String module;
 		Map<String, List<ProjectFile>> docs;
+		String error;
 
 		public ScriptInfo(Project prj, Path buildDir, boolean assureJdkInstalled) {
 			originalResource = prj.getResourceRef().getOriginalResource();
@@ -131,6 +132,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 					init(ctx);
 				} catch (Exception e) {
 					Util.warnMsg("Unable to obtain full information, because of: " + e.getMessage(), e);
+					error = e.getMessage();
 				}
 
 				try {
