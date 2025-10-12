@@ -19,6 +19,7 @@ import java.util.jar.Manifest;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.util.Util;
@@ -31,7 +32,7 @@ public class TestExport extends BaseTest {
 	void testExportFile() throws Exception {
 		String src = examplesTestFolder.resolve("helloworld.java").toString();
 		String outFile = cwdDir.resolve("subdir/helloworld.jar").toString();
-		CaptureResult result = checkedRun(null, "export", "local", "-O", outFile, src);
+		CaptureResult<Integer> result = checkedRun(null, "export", "local", "-O", outFile, src);
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*helloworld.jar.*"));
 		assertThat(new File(outFile), anExistingFile());
 	}
@@ -40,7 +41,7 @@ public class TestExport extends BaseTest {
 	void testExportFileName() throws Exception {
 		String src = examplesTestFolder.resolve("helloworld.java").toString();
 		String outFile = cwdDir.resolve("helloworld").toString();
-		CaptureResult result = checkedRun(null, "export", "local", "-O", outFile, src);
+		CaptureResult<Integer> result = checkedRun(null, "export", "local", "-O", outFile, src);
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*helloworld.jar.*"));
 		assertThat(new File(outFile + ".jar"), anExistingFile());
 	}
@@ -49,7 +50,7 @@ public class TestExport extends BaseTest {
 	void testExportNoFileName() throws Exception {
 		String src = examplesTestFolder.resolve("helloworld.java").toString();
 		String outFile = cwdDir.resolve("helloworld.jar").toString();
-		CaptureResult result = checkedRun(null, "export", "local", src);
+		CaptureResult<Integer> result = checkedRun(null, "export", "local", src);
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*helloworld.jar.*"));
 		assertThat(new File(outFile), anExistingFile());
 	}
@@ -58,7 +59,7 @@ public class TestExport extends BaseTest {
 	void testExportPortableNoclasspath() throws Exception {
 		String src = examplesTestFolder.resolve("helloworld.java").toString();
 		String outFile = cwdDir.resolve("helloworld.jar").toString();
-		CaptureResult result = checkedRun(null, "export", "portable", "-O", outFile, src);
+		CaptureResult<Integer> result = checkedRun(null, "export", "portable", "-O", outFile, src);
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*helloworld.jar.*"));
 		assertThat(new File(outFile), anExistingFile());
 		assertThat(cwdDir.resolve(ExportPortable.LIB).toFile(), not(anExistingFileOrDirectory()));
@@ -68,7 +69,7 @@ public class TestExport extends BaseTest {
 	void testExportPortableWithClasspath() throws Exception {
 		String src = examplesTestFolder.resolve("classpath_log.java").toString();
 		String outFile = cwdDir.resolve("classpath_log.jar").toString();
-		CaptureResult result = checkedRun(null, "export", "portable", "-O", outFile, src);
+		CaptureResult<Integer> result = checkedRun(null, "export", "portable", "-O", outFile, src);
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*classpath_log.jar.*"));
 		assertThat(new File(outFile), anExistingFile());
 		assertThat(cwdDir.resolve(ExportPortable.LIB).toFile(), anExistingDirectory());
@@ -90,7 +91,7 @@ public class TestExport extends BaseTest {
 	void testExportWithClasspath() throws Exception {
 		String src = examplesTestFolder.resolve("classpath_log.java").toString();
 		String outFile = cwdDir.resolve("classpath_log.jar").toString();
-		CaptureResult result = checkedRun(null, "export", "local", "-O", outFile, src);
+		CaptureResult<Integer> result = checkedRun(null, "export", "local", "-O", outFile, src);
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*classpath_log.jar.*"));
 		assertThat(new File(outFile), anExistingFile());
 		assertThat(cwdDir.resolve(ExportPortable.LIB).toFile(), not(anExistingDirectory()));
@@ -111,7 +112,7 @@ public class TestExport extends BaseTest {
 	void testExportMavenPublishNoclasspath() throws Exception {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
-		CaptureResult result = checkedRun(null, "export", "mavenrepo", "-O", outFile.toString(),
+		CaptureResult<Integer> result = checkedRun(null, "export", "mavenrepo", "-O", outFile.toString(),
 				"--group=my.thing.right", examplesTestFolder.resolve("helloworld.java").toString());
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*target.*"));
 		assertThat(
@@ -127,7 +128,7 @@ public class TestExport extends BaseTest {
 	void testExportMavenPublishNoOutputdir() throws Exception {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		// outFile.mkdirs();
-		CaptureResult result = checkedRun(null, "export", "mavenrepo", "-O", outFile.toString(),
+		CaptureResult<Integer> result = checkedRun(null, "export", "mavenrepo", "-O", outFile.toString(),
 				"--group=my.thing.right", examplesTestFolder.resolve("helloworld.java").toString());
 		assertThat(result.result, equalTo(BaseCommand.EXIT_INVALID_INPUT));
 
@@ -137,7 +138,7 @@ public class TestExport extends BaseTest {
 	void testExportMavenPublishNoGroup() throws Exception {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
-		CaptureResult result = checkedRun(null, "export", "mavenrepo", "--force", "-O",
+		CaptureResult<Integer> result = checkedRun(null, "export", "mavenrepo", "--force", "-O",
 				outFile.toString(), examplesTestFolder.resolve("helloworld.java").toString());
 		assertThat(result.result, equalTo(BaseCommand.EXIT_INVALID_INPUT));
 		assertThat(result.err, containsString("Add --group=<group id> and run again"));
@@ -146,7 +147,7 @@ public class TestExport extends BaseTest {
 	@Test
 	void testExportMavenPublishWithClasspath() throws Exception {
 		Path outFile = mavenTempDir;
-		CaptureResult result = checkedRun(null, "export", "mavenrepo", "--force",
+		CaptureResult<Integer> result = checkedRun(null, "export", "mavenrepo", "--force",
 				"--group=g.a.v", examplesTestFolder.resolve("classpath_log.java").toString());
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		assertThat(outFile.resolve("g/a/v/classpath_log/999-SNAPSHOT/classpath_log-999-SNAPSHOT.jar").toFile(),
@@ -165,7 +166,7 @@ public class TestExport extends BaseTest {
 	void testExportMavenPublishWithGAV() throws Exception {
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
-		CaptureResult result = checkedRun(null, "export", "mavenrepo", "-O", outFile.toString(),
+		CaptureResult<Integer> result = checkedRun(null, "export", "mavenrepo", "-O", outFile.toString(),
 				examplesTestFolder.resolve("quote.java").toString());
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*target.*"));
 		assertThat(
@@ -190,7 +191,7 @@ public class TestExport extends BaseTest {
 	void testExportFatJar() throws Exception {
 		String src = examplesTestFolder.resolve("helloworld.java").toString();
 		String outFile = cwdDir.resolve("subdir/helloworld.jar").toString();
-		CaptureResult result = checkedRun(null, "export", "fatjar", "-O", outFile, src);
+		CaptureResult<Integer> result = checkedRun(null, "export", "fatjar", "-O", outFile, src);
 		assertThat(result.err, matchesPattern("(?s).*Exported to.*helloworld.jar.*"));
 		assertThat(new File(outFile), anExistingFile());
 	}
@@ -200,7 +201,7 @@ public class TestExport extends BaseTest {
 		String src = examplesTestFolder.resolve("classpath_log.java").toString();
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
-		CaptureResult result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
+		CaptureResult<Integer> result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
 			.resolve("src/main/java/classpath_log.java");
@@ -220,7 +221,7 @@ public class TestExport extends BaseTest {
 		String src = examplesTestFolder.resolve("classpath_log.groovy").toString();
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
-		CaptureResult result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
+		CaptureResult<Integer> result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
 			.resolve("src/main/groovy/classpath_log.groovy");
@@ -240,7 +241,7 @@ public class TestExport extends BaseTest {
 		String src = examplesTestFolder.resolve("classpath_log.kt").toString();
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
-		CaptureResult result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
+		CaptureResult<Integer> result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
 			.resolve("src/main/kotlin/classpath_log.kt");
@@ -260,7 +261,7 @@ public class TestExport extends BaseTest {
 		String src = examplesTestFolder.resolve("classpath_main.kt").toString();
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
-		CaptureResult result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
+		CaptureResult<Integer> result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
 			.resolve("src/main/kotlin/classpath_main.kt");
@@ -279,7 +280,7 @@ public class TestExport extends BaseTest {
 		String src = examplesTestFolder.resolve("classpath_log.java").toString();
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
-		CaptureResult result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(),
+		CaptureResult<Integer> result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(),
 				"-g", "dev.jbang.test", "-a", "app", "-v", "1.2.3", src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
@@ -300,7 +301,7 @@ public class TestExport extends BaseTest {
 		String src = examplesTestFolder.resolve("classpath_log_bom.java").toString();
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
-		CaptureResult result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
+		CaptureResult<Integer> result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
 			.resolve(
@@ -323,7 +324,7 @@ public class TestExport extends BaseTest {
 		String src = examplesTestFolder.resolve("exporttags.java").toString();
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
-		CaptureResult result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
+		CaptureResult<Integer> result = checkedRun(null, "export", "gradle", "--force", "-O", outFile.toString(), src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 
 		Path targetSrcPath = outFile.toPath()
@@ -374,7 +375,7 @@ public class TestExport extends BaseTest {
 		String src = examplesTestFolder.resolve("classpath_log.java").toString();
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
-		CaptureResult result = checkedRun(null, "export", "maven", "--force", "-O", outFile.toString(), src);
+		CaptureResult<Integer> result = checkedRun(null, "export", "maven", "--force", "-O", outFile.toString(), src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
 			.resolve("src/main/java/classpath_log.java");
@@ -404,7 +405,7 @@ public class TestExport extends BaseTest {
 		String src = examplesTestFolder.resolve("RootOne.java").toString();
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
-		CaptureResult result = checkedRun(null, "export", "maven", "--force", "-O", outFile.toString(), src);
+		CaptureResult<Integer> result = checkedRun(null, "export", "maven", "--force", "-O", outFile.toString(), src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
 			.resolve("src/main/java/RootOne.java");
@@ -429,7 +430,7 @@ public class TestExport extends BaseTest {
 		String src = examplesTestFolder.resolve("classpath_log.java").toString();
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
-		CaptureResult result = checkedRun(null, "export", "maven", "--force", "-O", outFile.toString(),
+		CaptureResult<Integer> result = checkedRun(null, "export", "maven", "--force", "-O", outFile.toString(),
 				"-g", "dev.jbang.test", "-a", "app", "-v", "1.2.3", src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
@@ -460,7 +461,7 @@ public class TestExport extends BaseTest {
 		String src = examplesTestFolder.resolve("classpath_log_bom.java").toString();
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
-		CaptureResult result = checkedRun(null, "export", "maven", "--force", "-O", outFile.toString(), src);
+		CaptureResult<Integer> result = checkedRun(null, "export", "maven", "--force", "-O", outFile.toString(), src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 		Path targetSrcPath = outFile.toPath()
 			.resolve(
@@ -494,7 +495,7 @@ public class TestExport extends BaseTest {
 		String src = examplesTestFolder.resolve("exporttags.java").toString();
 		File outFile = jbangTempDir.resolve("target").toFile();
 		outFile.mkdirs();
-		CaptureResult result = checkedRun(null, "export", "maven", "--force", "-O", outFile.toString(), src);
+		CaptureResult<Integer> result = checkedRun(null, "export", "maven", "--force", "-O", outFile.toString(), src);
 		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
 
 		Path targetSrcPath = outFile.toPath()
@@ -546,5 +547,54 @@ public class TestExport extends BaseTest {
 		assertThat(pom, containsString("<release>11</release>"));
 		assertThat(pom, not(containsString("<release>17</release>")));
 		assertThat(pom, not(containsString("<release>11+</release>")));
+	}
+
+	@Test
+	void testExportFatjarFileDirConflict1(@TempDir Path temp) throws Exception {
+		Util.writeString(temp.resolve("LICENSE"), "A dummy license file");
+		Util.writeString(temp.resolve("src1.java"), "//FILES LICENSE");
+		Util.writeString(temp.resolve("src2.java"), "//FILES LICENSE/LICENSE=LICENSE");
+		Util.writeString(temp.resolve("src3.java"), "//FILES LICENSE/LICENSE/NESTED=LICENSE");
+		Util.writeString(temp.resolve("src4.java"), "//FILES LICENSE/LICENSE/NESTED/NESTED=LICENSE");
+		String code = "//DEPS src1.java src2.java src3.java src4.java\n";
+		Path src = temp.resolve("test.java");
+		Util.writeString(src, code);
+		CaptureResult<Integer> result = checkedRun(null, "export", "fatjar", src.toString());
+		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.err, containsString("[WARN] Skipping conflicting duplicate file vs directory:"));
+	}
+
+	@Test
+	void testExportFatjarFileDirConflict2(@TempDir Path temp) throws Exception {
+		Util.writeString(temp.resolve("LICENSE"), "A dummy license file");
+		Util.writeString(temp.resolve("src1.java"), "//FILES LICENSE");
+		Util.writeString(temp.resolve("src2.java"), "//FILES LICENSE/LICENSE=LICENSE");
+		Util.writeString(temp.resolve("src3.java"), "//FILES LICENSE/LICENSE/NESTED=LICENSE");
+		Util.writeString(temp.resolve("src4.java"), "//FILES LICENSE/LICENSE/NESTED/NESTED=LICENSE");
+		String code = "//DEPS src2.java src3.java src4.java src1.java\n";
+		Path src = temp.resolve("test.java");
+		Util.writeString(src, code);
+		CaptureResult<Integer> result = checkedRun(null, "export", "fatjar", src.toString());
+		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.err, containsString("[WARN] Skipping conflicting duplicate file vs directory:"));
+	}
+
+	@Test
+	void testExportFatjarSignatures(@TempDir Path temp) throws Exception {
+		Util.writeString(temp.resolve("SIG"), "A dummy signature file");
+		String code1 = "" +
+				"//FILES META-INF/DUMMY.SF=SIG\n" +
+				"//FILES META-INF/DUMMY.DSA=SIG\n" +
+				"//FILES META-INF/DUMMY.RSA=SIG\n";
+		Util.writeString(temp.resolve("src.java"), code1);
+		String code2 = "//DEPS src.java\n";
+		Path src = temp.resolve("test.java");
+		Util.writeString(src, code2);
+		CaptureResult<Integer> result = checkedRun(null, "--verbose", "export", "fatjar", src.toString());
+		assertThat(result.result, equalTo(BaseCommand.EXIT_OK));
+		assertThat(result.err, containsString("Removing signature file:"));
+		assertThat(result.err, containsString("DUMMY.SF"));
+		assertThat(result.err, containsString("DUMMY.DSA"));
+		assertThat(result.err, containsString("DUMMY.RSA"));
 	}
 }

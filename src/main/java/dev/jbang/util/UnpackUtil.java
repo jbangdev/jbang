@@ -3,6 +3,7 @@ package dev.jbang.util;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -86,24 +87,38 @@ public class UnpackUtil {
 				if (!entry.startsWith(outputDir)) {
 					throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
 				}
-				if (zipEntry.isDirectory()) {
-					Files.createDirectories(entry);
-				} else if (zipEntry.isUnixSymlink()) {
-					Scanner s = new Scanner(zipFile.getInputStream(zipEntry)).useDelimiter("\\A");
-					String result = s.hasNext() ? s.next() : "";
-					Files.createSymbolicLink(entry, Paths.get(result));
-				} else {
-					if (!Files.isDirectory(entry.getParent())) {
-						Files.createDirectories(entry.getParent());
-					}
-					if (Files.isRegularFile(entry)) {
-						onExisting.handle(zipFile, zipEntry, entry);
+				try {
+					if (zipEntry.isDirectory() && checkValidParent(entry)) {
+						Files.createDirectories(entry);
+					} else if (zipEntry.isUnixSymlink()) {
+						Scanner s = new Scanner(zipFile.getInputStream(zipEntry)).useDelimiter("\\A");
+						String result = s.hasNext() ? s.next() : "";
+						Files.createSymbolicLink(entry, Paths.get(result));
 					} else {
-						defaultZipEntryCopy(zipFile, zipEntry, entry);
+						if (checkValidParent(entry.getParent())) {
+							Files.createDirectories(entry.getParent());
+						}
+						if (Files.exists(entry)) {
+							onExisting.handle(zipFile, zipEntry, entry);
+						} else {
+							defaultZipEntryCopy(zipFile, zipEntry, entry);
+						}
 					}
+				} catch (FileAlreadyExistsException e) {
+					onExisting.handle(zipFile, zipEntry, entry);
 				}
 			}
 		}
+	}
+
+	private static boolean checkValidParent(Path path) throws FileAlreadyExistsException {
+		while (path != null && !Files.exists(path)) {
+			path = path.getParent();
+		}
+		if (path != null && !Files.isDirectory(path)) {
+			throw new FileAlreadyExistsException("Parent path is not a directory: " + path);
+		}
+		return true;
 	}
 
 	public interface ExistingZipFileHandler {
