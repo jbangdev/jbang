@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -196,5 +197,33 @@ public class DependencyUtil {
 		} else {
 			return new MavenRepo(repoid, reporef);
 		}
+	}
+
+	public static Predicate<String> gavDepFilter() {
+		return DependencyUtil::isGav;
+	}
+
+	private static boolean isGav(String ref) {
+		return looksLikeAPossibleGav(ref) || !JitPackUtil.ensureGAV(ref).equals(ref);
+	}
+
+	public static List<String> filterGavDeps(List<String> deps) {
+		return deps.stream().filter(gavDepFilter()).collect(Collectors.toList());
+	}
+
+	public static Predicate<String> jarDepFilter() {
+		return d -> d.endsWith(".jar");
+	}
+
+	public static List<String> filterJarDeps(List<String> deps) {
+		return deps.stream().filter(jarDepFilter()).collect(Collectors.toList());
+	}
+
+	public static Predicate<String> sourceDepFilter() {
+		return gavDepFilter().negate().and(jarDepFilter().negate());
+	}
+
+	public static List<String> filterSourceDeps(List<String> deps) {
+		return deps.stream().filter(sourceDepFilter()).collect(Collectors.toList());
 	}
 }

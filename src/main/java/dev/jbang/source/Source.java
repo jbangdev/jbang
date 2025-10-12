@@ -83,12 +83,8 @@ public abstract class Source {
 
 	public abstract @NonNull Type getType();
 
-	protected List<String> collectBinaryDependencies() {
-		return getDirectives().binaryDependencies();
-	}
-
-	protected List<String> collectSourceDependencies() {
-		return getDirectives().sourceDependencies();
+	protected List<String> collectDependencies() {
+		return getDirectives().dependencies();
 	}
 
 	protected abstract List<String> getCompileOptions();

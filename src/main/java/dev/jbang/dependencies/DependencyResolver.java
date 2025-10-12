@@ -1,10 +1,14 @@
 package dev.jbang.dependencies;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.NonNull;
+
+import dev.jbang.resources.ResourceNotFoundException;
 import dev.jbang.util.Util;
 
 public class DependencyResolver {
@@ -73,10 +77,17 @@ public class DependencyResolver {
 			// WARN need File here because it's more lenient about paths than Path!
 			Stream<ArtifactInfo> cpas = classPaths
 				.stream()
-				.map(p -> new ArtifactInfo(null, new File(p).toPath()));
+				.map(p -> new ArtifactInfo(null, assertExists(new File(p).toPath())));
 			List<ArtifactInfo> arts = Stream.concat(mcp.getArtifacts().stream(), cpas)
 				.collect(Collectors.toList());
 			return new ModularClassPath(arts);
 		}
+	}
+
+	private @NonNull Path assertExists(@NonNull Path p) {
+		if (!p.toFile().exists()) {
+			throw new ResourceNotFoundException(p.toString(), "Jar dependency not found: " + p);
+		}
+		return p;
 	}
 }

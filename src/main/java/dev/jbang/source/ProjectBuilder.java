@@ -338,7 +338,8 @@ public class ProjectBuilder {
 
 		SourceSet ss = prj.getMainSourceSet();
 		ss.addResources(allToFileRef(directives.files(), resourceRef, sibRes1));
-		ss.addDependencies(directives.binaryDependencies());
+		ss.addDependencies(DependencyUtil.filterGavDeps(directives.dependencies()));
+		ss.addClassPaths(DependencyUtil.filterJarDeps(directives.dependencies()));
 		ss.addCompileOptions(directives.compileOptions());
 		ss.addNativeOptions(directives.nativeOptions());
 		prj.addRepositories(directives.repositories());
@@ -362,10 +363,7 @@ public class ProjectBuilder {
 
 		ResourceResolver resolver = getAliasResourceResolver(null);
 		ResourceResolver sibRes2 = getSiblingResolver(resourceRef, resolver);
-		for (String srcDep : directives.sourceDependencies()) {
-			ResourceRef subRef = resolver.resolve(srcDep, true);
-			prj.addSubProject(new ProjectBuilder(buildRefs).build(subRef));
-		}
+		handleSourceDeps(DependencyUtil.filterSourceDeps(directives.dependencies()), resolver, prj);
 
 		boolean first = true;
 		List<String> sources = directives.sources();
@@ -395,6 +393,20 @@ public class ProjectBuilder {
 		}
 
 		return updateProject(prj);
+	}
+
+	private void handleSourceDeps(List<String> srcDeps, ResourceResolver resolver, Project prj) {
+		for (String srcDep : srcDeps) {
+			ResourceRef subRef = resolver.resolve(srcDep, true);
+			Project subPrj;
+			if (subRef != null) {
+				subPrj = new ProjectBuilder(buildRefs).build(subRef);
+			} else {
+				subPrj = new Project(ResourceRef.forUnresolvable(srcDep,
+						"Could not be resolved from " + resolver.description()));
+			}
+			prj.addSubProject(subPrj);
+		}
 	}
 
 	private Project createSourceProject(ResourceRef resourceRef) {
@@ -657,7 +669,8 @@ public class ProjectBuilder {
 			}
 			ResourceResolver sibRes1 = getSiblingResolver(srcRef);
 			ss.addResources(allToFileRef(src.getDirectives().files(), srcRef, sibRes1));
-			ss.addDependencies(src.collectBinaryDependencies());
+			ss.addDependencies(DependencyUtil.filterGavDeps(src.collectDependencies()));
+			ss.addClassPaths(DependencyUtil.filterJarDeps(src.collectDependencies()));
 			ss.addCompileOptions(src.getCompileOptions());
 			ss.addNativeOptions(src.getNativeOptions());
 			prj.addRepositories(src.getDirectives().repositories());
@@ -680,10 +693,7 @@ public class ProjectBuilder {
 					prj.setJavaVersion(version);
 				}
 			}
-			for (String srcDep : src.collectSourceDependencies()) {
-				ResourceRef subRef = sibRes1.resolve(srcDep, true);
-				prj.addSubProject(new ProjectBuilder(buildRefs).build(subRef));
-			}
+			handleSourceDeps(DependencyUtil.filterSourceDeps(src.collectDependencies()), sibRes1, prj);
 			ResourceResolver sibRes2 = getSiblingResolver(srcRef, resolver);
 			List<Source> includedSources = allToSource(src.getDirectives().sources(), srcRef, sibRes2);
 			for (Source includedSource : includedSources) {
@@ -723,11 +733,7 @@ public class ProjectBuilder {
 		if (mcp == null) {
 			DependencyResolver resolver = new DependencyResolver()
 				.addDependency(dep)
-				.addRepositories(allToMavenRepo(
-						replaceAllProps(additionalRepos)))
-				.addDependencies(replaceAllProps(additionalDeps))
-				.addClassPaths(
-						replaceAllProps(additionalClasspaths));
+				.addRepositories(allToMavenRepo(replaceAllProps(additionalRepos)));
 			mcp = resolver.resolve();
 		}
 		return mcp;

@@ -346,7 +346,7 @@ public class TestRun extends BaseTest {
 
 		CommandLine.ParseResult pr = JBang.getCommandLine()
 			.parseArgs("run", "--deps", "info.picocli:picocli:4.6.3",
-					"--cp", "dummy.jar", jar);
+					"--cp", jar, examplesTestFolder.resolve("echo.java").toString());
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
@@ -357,7 +357,6 @@ public class TestRun extends BaseTest {
 		assertThat(code.getMainClass(), not(nullValue()));
 
 		assertThat(result, containsString("picocli-4.6.3.jar"));
-		assertThat(result, containsString("dummy.jar"));
 		assertThat(result, containsString("hellojar.jar"));
 
 		assertThat(code.getResourceRef().getFile().toString(), equalTo(jar));
@@ -2175,9 +2174,10 @@ public class TestRun extends BaseTest {
 		Run run = (Run) pr.subcommand().commandSpec().userObject();
 
 		ProjectBuilder pb = run.createProjectBuilderForRun();
+		Project prj = pb.build(jar);
 
 		try {
-			pb.build(jar);
+			run.updateGeneratorForRun(prj.codeBuilder().build()).build().generate();
 			fail("Should have thrown exception");
 		} catch (ExitException ex) {
 			StringWriter sw = new StringWriter();

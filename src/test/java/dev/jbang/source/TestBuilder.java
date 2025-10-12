@@ -5,6 +5,7 @@ import static dev.jbang.util.Util.writeString;
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +31,7 @@ import dev.jbang.Settings;
 import dev.jbang.catalog.Alias;
 import dev.jbang.catalog.CatalogUtil;
 import dev.jbang.cli.ExitException;
+import dev.jbang.resources.ResourceNotFoundException;
 import dev.jbang.source.buildsteps.IntegrationBuildStep;
 import dev.jbang.source.buildsteps.JarBuildStep;
 import dev.jbang.source.buildsteps.NativeBuildStep;
@@ -553,5 +555,23 @@ public class TestBuilder extends BaseTest {
 				}.setFresh(true);
 			}
 		}.get().build();
+	}
+
+	@Test
+	void testMissingJarDeps() {
+		ProjectBuilder pb = Project.builder();
+		Path src = examplesTestFolder.resolve("brokendeps_jar.java");
+		Project prj = pb.build(src);
+		BuildContext ctx = BuildContext.forProject(prj);
+		assertThrowsExactly(ResourceNotFoundException.class, ctx::resolveClassPath);
+	}
+
+	@Test
+	void testMissingSourceDeps() {
+		ProjectBuilder pb = Project.builder();
+		Path src = examplesTestFolder.resolve("brokendeps_source.java");
+		Project prj = pb.build(src);
+		BuildContext ctx = BuildContext.forProject(prj);
+		assertThrowsExactly(ResourceNotFoundException.class, ctx::resolveClassPath);
 	}
 }

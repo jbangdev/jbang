@@ -20,7 +20,6 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import dev.jbang.dependencies.DependencyUtil;
-import dev.jbang.dependencies.JitPackUtil;
 import dev.jbang.dependencies.MavenCoordinate;
 import dev.jbang.dependencies.MavenRepo;
 import dev.jbang.util.JavaUtil;
@@ -56,30 +55,16 @@ public abstract class Directives {
 
 	public abstract Stream<Directive> getAll();
 
-	public List<String> binaryDependencies() {
+	public List<String> dependencies() {
 		return getAll()
 			.filter(this::isDependDeclare)
 			.map(Directive::getValue)
 			.flatMap(v -> quotedStringToList(Q2TL_SSCT, v).stream())
-			.filter(Directives::isGav)
-			.collect(Collectors.toList());
-	}
-
-	public List<String> sourceDependencies() {
-		return getAll()
-			.filter(this::isDependDeclare)
-			.map(Directive::getValue)
-			.flatMap(v -> quotedStringToList(Q2TL_SSCT, v).stream())
-			.filter(it -> !isGav(it))
 			.collect(Collectors.toList());
 	}
 
 	protected boolean isDependDeclare(Directive d) {
 		return Names.DEPS.equals(d.getName());
-	}
-
-	private static boolean isGav(String ref) {
-		return DependencyUtil.looksLikeAPossibleGav(ref) || !JitPackUtil.ensureGAV(ref).equals(ref);
 	}
 
 	public List<MavenRepo> repositories() {

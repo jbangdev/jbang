@@ -117,6 +117,7 @@ abstract class BaseInfoCommand extends BaseCommand {
 		String gav;
 		String module;
 		Map<String, List<ProjectFile>> docs;
+		List<ProjectFile> subProjects;
 
 		public ScriptInfo(Project prj, Path buildDir, boolean assureJdkInstalled) {
 			originalResource = prj.getResourceRef().getOriginalResource();
@@ -181,10 +182,24 @@ abstract class BaseInfoCommand extends BaseCommand {
 			if (!opts.isEmpty()) {
 				runtimeOptions = opts;
 			}
+			List<Project> subps = prj.getSubProjects();
+			if (!subps.isEmpty()) {
+				subProjects = subps.stream()
+					.map(Project::getResourceRef)
+					.map(ProjectFile::new)
+					.collect(Collectors.toList());
+				if (dependencies == null) {
+					dependencies = new ArrayList<>();
+				}
+				dependencies.addAll(
+						subps.stream().map(p -> p.getResourceRef().getOriginalResource()).collect(Collectors.toList()));
+			}
 		}
 
 		private void init(SourceSet ss) {
-			List<String> deps = ss.getDependencies();
+			List<String> deps = new ArrayList<>();
+			deps.addAll(ss.getDependencies());
+			deps.addAll(ss.getClassPaths());
 			if (!deps.isEmpty()) {
 				dependencies = deps;
 			}

@@ -30,8 +30,8 @@ public class KotlinSource extends Source {
 	}
 
 	@Override
-	protected List<String> collectBinaryDependencies() {
-		final List<String> allDependencies = super.collectBinaryDependencies();
+	protected List<String> collectDependencies() {
+		final List<String> allDependencies = super.collectDependencies();
 		allDependencies.add("org.jetbrains.kotlin:kotlin-stdlib:" + getKotlinVersion());
 		return allDependencies;
 	}
