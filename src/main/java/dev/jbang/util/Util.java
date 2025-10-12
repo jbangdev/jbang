@@ -1485,6 +1485,11 @@ public class Util {
 		String version;
 	}
 
+	public static Process run(ProcessBuilder pb) throws IOException {
+		infoMsg(String.join(" ", pb.command()));
+		return pb.start();
+	}
+
 	/**
 	 * Runs the given command + arguments and returns its output (both stdout and
 	 * stderr) as a string
@@ -1496,7 +1501,7 @@ public class Util {
 		try {
 			ProcessBuilder pb = CommandBuffer.of(cmd).asProcessBuilder();
 			pb.redirectErrorStream(true);
-			Process p = pb.start();
+			Process p = Util.run(pb);
 			BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String cmdOutput = br.lines().collect(Collectors.joining("\n"));
 			int exitCode = p.waitFor();
