@@ -952,6 +952,11 @@ public class Util {
 		String version;
 	}
 
+	public static Process run(ProcessBuilder pb) throws IOException {
+		infoMsg(String.join(" ", pb.command()));
+		return pb.start();
+	}
+
 	/**
 	 * Runs the given command + arguments and returns its output (both stdout and
 	 * stderr) as a string
@@ -989,7 +994,7 @@ public class Util {
 				pb.environment().putAll(env);
 			}
 			pb.redirectErrorStream(true);
-			Process p = pb.start();
+			Process p = Util.run(pb);
 			if (stdin != null) {
 				try (OutputStream os = p.getOutputStream()) {
 					os.write(stdin.getBytes(StandardCharsets.UTF_8));
