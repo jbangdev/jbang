@@ -25,6 +25,10 @@ public class JitPackUtil {
 
 	private static final Pattern POSSIBLE_SHA1_PATTERN = Pattern.compile("^[0-9a-f]{40}$");
 
+	public static boolean possibleMatch(String ref) {
+		return !ensureGAV(ref).equals(ref);
+	}
+
 	public static String ensureGAV(String ref) {
 		try {
 			// If the reference is a URL we'll try to convert it to a proper GAV
