@@ -19,29 +19,7 @@ To specify dependencies you use gradle-style locators or links to Git sources. B
 
 [source,java]
 ----
-///usr/bin/env jbang "$0" "$@" ; exit $?
-// <.>
-//DEPS ch.qos.reload4j:reload4j:1.2.19
-
-import static java.lang.System.out;
-
-import org.apache.log4j.Logger;
-import org.apache.log4j.BasicConfigurator;
-
-import java.util.Arrays;
-
-class classpath_example {
-
-	static final Logger logger = Logger.getLogger(classpath_example.class);
-
-	public static void main(String[] args) {
-		BasicConfigurator.configure(); // <.>
-		logger.info("Welcome to jbang");
-
-		Arrays.asList(args).forEach(arg -> logger.warn("arg: " + arg));
-		logger.info("Hello from Java!");
-	}
-}
+include::example$src/classpath_example.java[]
 ----
 <.> `//DEPS` must be placed at the start of line and can be one or more space separated dependencies. Note that there must be no space between `//` and `DEPS`.
 <.> Minimal logging setup - required by log4j.
@@ -242,35 +220,7 @@ There is also support for using Groovy lang style `@Grab` syntax.
 
 [source,java]
 ----
-///usr/bin/env jbang "$0" "$@" ; exit $?
-
-import static java.lang.System.out;
-
-import org.apache.log4j.Logger;
-import org.apache.log4j.BasicConfigurator;
-
-import java.util.Arrays;
-
-import groovy.lang.Grab; // <.>
-import groovy.lang.Grapes;
-import groovy.lang.GrabResolver;
-
-@GrabResolver("central") // <.>
-@GrabResolver(name="acme", root="https://maven.acme.local/maven")
-@Grapes({ // <.>
-    @Grab(group = "ch.qos.reload4j", module = "reload4j", version = "1.2.19"), // <.>
-    @Grab(group = "org.apache.groovy", module = "groovy", version = "4.0.0"), // <.>
-})
-
-class classpath_example {
-
-    static final Logger logger = Logger.getLogger(classpath_example.class);
-
-    public static void main(String[] args) {
-        BasicConfigurator.configure();
-        Arrays.asList(args).forEach(out::println);
-    }
-}
+include::example$src/classpath_example2.java[]
 ----
 <.> Import needed to make the compiler be okey with `@Grab` annotation.
 <.> Using `GrabResolver` to enable `mavenCentral` and custom `acme` repository
