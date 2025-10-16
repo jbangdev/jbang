@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 
 import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
+import dev.jbang.util.NetUtil;
 import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
 
@@ -44,7 +45,7 @@ public class EditorManager {
 		Util.deletePath(editorTmpDir, false);
 		Util.deletePath(editorOldDir, false);
 		try {
-			Path jdkPkg = Util.downloadAndCacheFile(url);
+			Path jdkPkg = NetUtil.downloadAndCacheFile(url);
 			Util.infoMsg("Installing VSCodium " + version + "...");
 			Util.verboseMsg("Unpacking to " + editorDir.toString());
 			UnpackUtil.unpackEditor(jdkPkg, editorTmpDir);

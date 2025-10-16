@@ -713,9 +713,9 @@ public class ProjectBuilder {
 		return ResourceResolver.combined(
 				new RenamingScriptResourceResolver(forceType),
 				new LiteralScriptResourceResolver(forceType),
+				new GavResourceResolver(this::resolveDependency),
 				new RemoteResourceResolver(false),
 				new ClasspathResourceResolver(),
-				new GavResourceResolver(this::resolveDependency),
 				new FileResourceResolver());
 	}
 

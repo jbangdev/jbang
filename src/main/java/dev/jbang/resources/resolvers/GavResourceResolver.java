@@ -5,6 +5,7 @@ import java.util.function.Function;
 import org.jspecify.annotations.NonNull;
 
 import dev.jbang.dependencies.DependencyUtil;
+import dev.jbang.dependencies.JitPackUtil;
 import dev.jbang.dependencies.ModularClassPath;
 import dev.jbang.resources.ResourceRef;
 import dev.jbang.resources.ResourceResolver;
@@ -31,7 +32,7 @@ public class GavResourceResolver implements ResourceResolver {
 	public ResourceRef resolve(String resource) {
 		ResourceRef result = null;
 
-		if (DependencyUtil.looksLikeAGav(resource)) {
+		if (DependencyUtil.looksLikeAGav(resource) || JitPackUtil.possibleMatch(resource)) {
 			result = ResourceRef.forLazyFileResource(resource, ref -> {
 				ModularClassPath mcp = depResolver.apply(resource);
 				// We possibly get a whole bunch of artifacts, but we're only interested in
