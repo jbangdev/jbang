@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -65,6 +66,28 @@ public interface ResourceRef extends ResourceResolver, Comparable<ResourceRef> {
 		return scriptResource.equals("-") || scriptResource.equals("/dev/stdin");
 	}
 
+	default ResourceRef parent() {
+		throw new ResourceNotFoundException(getOriginalResource(), "Getting parent resource not supported");
+	}
+
+	default boolean isParent() {
+		return false;
+	}
+
+	interface ResourceChildren extends ResourceResolver {
+		Stream<Path> list() throws IOException;
+
+		@Override
+		@Nullable
+		default ResourceRef resolve(String resource) {
+			return resolve(resource, true);
+		}
+	}
+
+	default ResourceChildren children() {
+		throw new ResourceNotFoundException(getOriginalResource(), "Resource is not a parent");
+	}
+
 	/**
 	 * Returns a file representation for this resource reference. If an original
 	 * resource was provided, this method will return a resolved file representation
@@ -77,6 +100,9 @@ public interface ResourceRef extends ResourceResolver, Comparable<ResourceRef> {
 	 */
 	@NonNull
 	default Path getFile() {
+		if (isParent()) {
+			throw new ResourceNotFoundException(getOriginalResource(), "Resource is a parent");
+		}
 		throw new ResourceNotFoundException(getOriginalResource(), "Getting contents from resource not supported");
 	}
 
@@ -96,6 +122,9 @@ public interface ResourceRef extends ResourceResolver, Comparable<ResourceRef> {
 	 * @return an InputStream for the resource, or null if no file is associated
 	 */
 	default InputStream getInputStream() {
+		if (isParent()) {
+			throw new ResourceNotFoundException(getOriginalResource(), "Resource is a parent");
+		}
 		try {
 			return Files.newInputStream(getFile());
 		} catch (IOException e) {

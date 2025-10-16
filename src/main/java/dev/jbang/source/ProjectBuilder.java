@@ -1,5 +1,7 @@
 package dev.jbang.source;
 
+import static dev.jbang.util.Util.MAIN_JAVA;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -366,7 +368,24 @@ public class ProjectBuilder {
 		}
 
 		boolean first = true;
-		List<Source> includedSources = allToSource(directives.sources(), resourceRef, sibRes2);
+		List<String> sources = directives.sources();
+		if (sources.isEmpty()) {
+			// if no sources are defined, we go look for a couple of possible options
+			if (resourceRef.resolve(MAIN_JAVA) != null) {
+				sources.add(MAIN_JAVA);
+			} else {
+				if (resourceRef.resolve("src/main/java") != null) {
+					sources.add("src/main/java/**.java");
+				}
+				if (resourceRef.resolve("src/main/kotlin") != null) {
+					sources.add("src/main/kotlin/**.kt");
+				}
+				if (resourceRef.resolve("src/main/groovy") != null) {
+					sources.add("src/main/groovy/**.groovy");
+				}
+			}
+		}
+		List<Source> includedSources = allToSource(sources, resourceRef, sibRes2);
 		for (Source includedSource : includedSources) {
 			updateProject(includedSource, prj, resolver);
 			if (first) {
@@ -694,9 +713,9 @@ public class ProjectBuilder {
 		return ResourceResolver.combined(
 				new RenamingScriptResourceResolver(forceType),
 				new LiteralScriptResourceResolver(forceType),
+				new GavResourceResolver(this::resolveDependency),
 				new RemoteResourceResolver(false),
 				new ClasspathResourceResolver(),
-				new GavResourceResolver(this::resolveDependency),
 				new FileResourceResolver());
 	}
 

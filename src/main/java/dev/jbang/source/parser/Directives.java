@@ -79,7 +79,7 @@ public abstract class Directives {
 	}
 
 	private static boolean isGav(String ref) {
-		return DependencyUtil.looksLikeAPossibleGav(ref) || !JitPackUtil.ensureGAV(ref).equals(ref);
+		return DependencyUtil.looksLikeAPossibleGav(ref) || JitPackUtil.possibleMatch(ref);
 	}
 
 	public List<MavenRepo> repositories() {

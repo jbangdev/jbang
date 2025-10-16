@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import dev.jbang.Cache;
 import dev.jbang.Settings;
 import dev.jbang.cli.ExitException;
+import dev.jbang.util.NetUtil;
 import dev.jbang.util.UnpackUtil;
 import dev.jbang.util.Util;
 
@@ -43,7 +44,7 @@ public class GroovyManager {
 		Util.deletePath(groovyTmpDir, false);
 		Util.deletePath(groovyOldDir, false);
 		try {
-			Path groovyPkg = Util.downloadAndCacheFile(url);
+			Path groovyPkg = NetUtil.downloadAndCacheFile(url);
 			Util.infoMsg("Installing Groovy " + version + "...");
 			Util.verboseMsg("Unpacking to " + groovyDir);
 			UnpackUtil.unpack(groovyPkg, groovyTmpDir);

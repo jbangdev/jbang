@@ -1,10 +1,12 @@
 package dev.jbang.source;
 
+import static dev.jbang.util.Util.MAIN_JAVA;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.aMapWithSize;
 import static org.hamcrest.Matchers.anEmptyMap;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.instanceOf;
@@ -13,6 +15,7 @@ import static org.hamcrest.Matchers.iterableWithSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -20,6 +23,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import dev.jbang.BaseTest;
 import dev.jbang.cli.ExitException;
@@ -345,5 +349,44 @@ public class TestProjectBuilder extends BaseTest {
 			.stream()
 			.filter(rt -> rt.getSource() instanceof ResourceRef.UnresolvableResourceRef)
 			.collect(Collectors.toList()), iterableWithSize(2));
+	}
+
+	@Test
+	void testBuildJbangAutoSourcesMainJava(@TempDir Path tmpDir) throws IOException {
+		Util.setPreview(true);
+
+		Path src = tmpDir.resolve("build.jbang");
+		Util.writeString(src, "//DESCRIPTION Test\n");
+		Util.writeString(tmpDir.resolve(MAIN_JAVA), "//Dummy source file");
+
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(src);
+		assertThat(prj.getMainSourceSet().getSources(), iterableWithSize(1));
+		assertThat(prj.getMainSourceSet().getSources().get(0).getFile().toString(),
+				endsWith(File.separator + MAIN_JAVA));
+		assertThat(prj.getMainSourceSet().getSources(), containsInAnyOrder(
+				ResourceRef.forFile(tmpDir.resolve(MAIN_JAVA))));
+	}
+
+	@Test
+	void testBuildJbangAutoSourcesDirs(@TempDir Path tmpDir) throws IOException {
+		Util.setPreview(true);
+
+		Path src = tmpDir.resolve("build.jbang");
+		Util.writeString(src, "//DESCRIPTION Test\n");
+		Path dirs = tmpDir.resolve("src/main/java");
+		dirs.toFile().mkdirs();
+		Util.writeString(dirs.resolve("Foo.java"), "//Dummy source file");
+		Util.writeString(dirs.resolve("Bar.java"), "//Dummy source file");
+		dirs.resolve("baz").toFile().mkdirs();
+		Util.writeString(dirs.resolve("baz/Baz.java"), "//Dummy source file");
+
+		ProjectBuilder pb = Project.builder();
+		Project prj = pb.build(src);
+		assertThat(prj.getMainSourceSet().getSources(), iterableWithSize(3));
+		assertThat(prj.getMainSourceSet().getSources(), containsInAnyOrder(
+				ResourceRef.forFile(dirs.resolve("Foo.java")),
+				ResourceRef.forFile(dirs.resolve("Bar.java")),
+				ResourceRef.forFile(dirs.resolve("baz/Baz.java"))));
 	}
 }
