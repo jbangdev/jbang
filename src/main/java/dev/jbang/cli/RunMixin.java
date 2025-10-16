@@ -52,6 +52,9 @@ public class RunMixin {
 			opts.add(flightRecorderString);
 		}
 		if (debugString != null) {
+			String address = debugString.get("address");
+			// TODO: this is not handling case of special characters in the values
+			// i.e. --debug=address=5000? or --debug=address=*:3333
 			for (Map.Entry<String, String> e : debugString.entrySet()) {
 				opts.add("-d");
 				opts.add(e.getKey() + "=" + e.getValue());
