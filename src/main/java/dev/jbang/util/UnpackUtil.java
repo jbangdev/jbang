@@ -66,7 +66,7 @@ public class UnpackUtil {
 
 	public static void unzip(Path zip, Path outputDir, boolean stripRootFolder, Path selectFolder,
 			ExistingZipFileHandler onExisting) throws IOException {
-		try (ZipFile zipFile = new ZipFile(zip.toFile())) {
+		try (ZipFile zipFile = ZipFile.builder().setFile(zip.toFile()).get()) {
 			Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
 			while (entries.hasMoreElements()) {
 				ZipArchiveEntry zipEntry = entries.nextElement();

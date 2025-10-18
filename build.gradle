@@ -275,14 +275,14 @@ jar {
 
 compileJava {
 	options.encoding = 'UTF-8'
-	options.compilerArgs << "-Xlint:unchecked"
+	options.compilerArgs << "-Xlint:deprecation"
 	options.compilerArgs << '-parameters' // for allure reporting
 	options.compilerArgs.addAll(['--release', '8'])
 }
 
 compileTestJava {
 	options.encoding = 'UTF-8'
-	options.compilerArgs << "-Xlint:unchecked"
+	options.compilerArgs << "-Xlint:deprecation"
 	options.compilerArgs << '-parameters' // for allure reporting
 	options.compilerArgs.addAll(['--release', '11'])
 }
@@ -291,7 +291,7 @@ compileJava9Java {
 	sourceCompatibility = 9
 	targetCompatibility = 9
 	options.encoding = 'UTF-8'
-	options.compilerArgs << "-Xlint:unchecked"
+	options.compilerArgs << "-Xlint:deprecation"
 	options.compilerArgs << '-parameters' // for allure reporting
 	options.compilerArgs.addAll(['--release', '9'])
 }
