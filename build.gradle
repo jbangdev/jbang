@@ -282,7 +282,7 @@ compileJava {
 
 compileTestJava {
 	options.encoding = 'UTF-8'
-	options.compilerArgs << "-Xlint:unchecked"
+	options.compilerArgs << "-Xlint:deprecation"
 	options.compilerArgs << '-parameters' // for allure reporting
 	options.compilerArgs.addAll(['--release', '11'])
 }
