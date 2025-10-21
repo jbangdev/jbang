@@ -65,7 +65,7 @@ public class UnpackUtil {
 	}
 
 	public static void unzip(Path zip, Path outputDir, boolean stripRootFolder, Path selectFolder,
-			ExistingZipFileHandler onExisting) throws IOException {
+			ZipFileHandler onZipFile) throws IOException {
 		try (ZipFile zipFile = ZipFile.builder().setFile(zip.toFile()).get()) {
 			Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
 			while (entries.hasMoreElements()) {
@@ -98,14 +98,10 @@ public class UnpackUtil {
 						if (checkValidParent(entry.getParent())) {
 							Files.createDirectories(entry.getParent());
 						}
-						if (Files.exists(entry)) {
-							onExisting.handle(zipFile, zipEntry, entry);
-						} else {
-							defaultZipEntryCopy(zipFile, zipEntry, entry);
-						}
+						onZipFile.handle(zipFile, zipEntry, entry, null);
 					}
-				} catch (FileAlreadyExistsException e) {
-					onExisting.handle(zipFile, zipEntry, entry);
+				} catch (Exception e) {
+					onZipFile.handle(zipFile, zipEntry, entry, e);
 				}
 			}
 		}
@@ -121,11 +117,12 @@ public class UnpackUtil {
 		return true;
 	}
 
-	public interface ExistingZipFileHandler {
-		void handle(ZipFile zipFile, ZipArchiveEntry zipEntry, Path outFile) throws IOException;
+	public interface ZipFileHandler {
+		void handle(ZipFile zipFile, ZipArchiveEntry zipEntry, Path outFile, Exception ex) throws IOException;
 	}
 
-	public static void defaultZipEntryCopy(ZipFile zipFile, ZipArchiveEntry zipEntry, Path outFile) throws IOException {
+	public static void defaultZipEntryCopy(ZipFile zipFile, ZipArchiveEntry zipEntry, Path outFile, Exception ex)
+			throws IOException {
 		try (InputStream zis = zipFile.getInputStream(zipEntry)) {
 			Files.copy(zis, outFile, StandardCopyOption.REPLACE_EXISTING);
 		}
