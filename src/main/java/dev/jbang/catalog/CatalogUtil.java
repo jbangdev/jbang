@@ -336,7 +336,7 @@ public class CatalogUtil {
 			// strip that off, but keep hyphens in the rest of the name. Accept versions
 			// with digits, dots, and letters.
 			// but my-app stays my-app.
-			if (name.matches(".*-[0-9][0-9A-Za-z\\.\\-]*$")) {
+			if (name.matches(".*-[0-9][0-9A-Za-z.-]*$")) {
 				int lastDash = name.lastIndexOf("-");
 				name = name.substring(0, lastDash);
 			}
