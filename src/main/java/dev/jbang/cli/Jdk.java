@@ -2,6 +2,7 @@ package dev.jbang.cli;
 
 import static dev.jbang.cli.BaseCommand.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
@@ -240,8 +241,7 @@ public class Jdk {
 	public Integer exec(
 			@CommandLine.Option(names = { "-j",
 					"--java" }, description = "JDK version to use for executing the command.") String versionOrId,
-			@CommandLine.Parameters(index = "0..*", arity = "1..*", description = "Command to execute") List<String> args)
-			throws IOException, InterruptedException {
+			@CommandLine.Parameters(index = "0..*", arity = "1..*", description = "Command to execute") List<String> args) {
 		JdkManager jdkMan = jdkProvidersMixin.getJdkManager();
 		dev.jbang.devkitman.Jdk jdk = null;
 		if (versionOrId != null && JavaUtil.isRequestedVersion(versionOrId)) {
@@ -252,17 +252,17 @@ public class Jdk {
 		}
 		if (jdk.isInstalled()) {
 			Path home = ((dev.jbang.devkitman.Jdk.InstalledJdk) jdk).home();
-			String path = home + java.io.File.separator + "bin" + java.io.File.pathSeparator + System.getenv("PATH");
-			Path cmd = Util.searchPath(args.get(0), path);
-			if (cmd != null) {
-				args.set(0, cmd.toString());
+			String fullCmd = CommandBuffer.of(args).asCommandLine();
+			if (Util.getShell() == Util.Shell.bash) {
+				fullCmd = "env PATH=\"" + home + File.separator + "bin:$PATH\" JAVA_HOME='" + home + "' "
+						+ fullCmd;
+			} else {
+				String path = home + "\\bin;" + System.getenv("PATH");
+				fullCmd = "set \"PATH=" + path + "\" && set \"JAVA_HOME=" + home + "\" && " + fullCmd;
 			}
-			ProcessBuilder pb = CommandBuffer.of(args).asProcessBuilder();
-			pb.environment().put("PATH", path);
-			pb.environment().put("JAVA_HOME", home.toString());
-			pb.inheritIO();
-			Process p = pb.start();
-			return p.waitFor();
+			Util.verboseMsg("Executing in Java environment: " + fullCmd);
+			System.out.println(fullCmd);
+			return EXIT_EXECUTE;
 		}
 		return EXIT_OK;
 	}
