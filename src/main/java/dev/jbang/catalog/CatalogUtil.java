@@ -331,6 +331,16 @@ public class CatalogUtil {
 
 			name = name.replaceAll("[^" + validNameChars + "]", "");
 
+			// If the name ends with a hyphen and a version-like segment (e.g. my-app-1.2.3,
+			// my-app-1.2.a, my-app-1.2-rc1),
+			// strip that off, but keep hyphens in the rest of the name. Accept versions
+			// with digits, dots, and letters.
+			// but my-app stays my-app.
+			if (name.matches(".*-[0-9][0-9A-Za-z\\.\\-]*$")) {
+				int lastDash = name.lastIndexOf("-");
+				name = name.substring(0, lastDash);
+			}
+
 		}
 		if (!isValidName(name)) {
 			throw new IllegalArgumentException(
