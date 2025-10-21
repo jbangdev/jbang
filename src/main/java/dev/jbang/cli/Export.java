@@ -367,10 +367,10 @@ class ExportFatjar extends BaseExportCommand {
 			Path tmpDir = Files.createTempDirectory("fatjar");
 			try {
 				Util.verboseMsg("Unpacking main jar: " + source);
-				UnpackUtil.unzip(source, tmpDir, false, null, ExportFatjar::handleExistingFile);
+				UnpackUtil.unzip(source, tmpDir, false, null, ExportFatjar::handleZipFile);
 				for (ArtifactInfo dep : deps) {
 					Util.verboseMsg("Unpacking artifact: " + dep);
-					UnpackUtil.unzip(dep.getFile(), tmpDir, false, null, ExportFatjar::handleExistingFile);
+					UnpackUtil.unzip(dep.getFile(), tmpDir, false, null, ExportFatjar::handleZipFile);
 				}
 				// Remove all signature files
 				Path metaInf = tmpDir.resolve("META-INF");
@@ -399,7 +399,16 @@ class ExportFatjar extends BaseExportCommand {
 		return EXIT_OK;
 	}
 
-	public static void handleExistingFile(ZipFile zipFile, ZipArchiveEntry zipEntry, Path outFile) throws IOException {
+	public static void handleZipFile(ZipFile zipFile, ZipArchiveEntry zipEntry, Path outFile, Exception ex)
+			throws IOException {
+		if (!zipEntry.isDirectory() && outFile.getFileName().toString().equals("module-info.class")) {
+			Util.verboseMsg("Skipping module-info.class");
+			return;
+		}
+		if (!Files.exists(outFile) && !(ex instanceof FileAlreadyExistsException)) {
+			UnpackUtil.defaultZipEntryCopy(zipFile, zipEntry, outFile, ex);
+			return;
+		}
 		if (Files.isDirectory(outFile) != zipEntry.isDirectory()) {
 			Util.warnMsg("Skipping conflicting duplicate file vs directory: " + zipEntry.getName());
 			return;
