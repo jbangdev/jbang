@@ -27,7 +27,7 @@ class TestArguments extends BaseTest {
 
 	@Test
 	public void testHelpSections() {
-		JBang.getCommandRenderer().validate(JBang.getCommandLine().getHelp());
+		JBang.getCommandRenderer().validate(JBang.getCommandLine().getHelp(), true);
 	}
 
 	@Test
