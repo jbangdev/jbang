@@ -3,6 +3,7 @@
 - Toolchain: Gradle build, Java 11 runtime (targets 8 bytecode).
 - Build everything: `./gradlew build`; prefer Gradle tasks over direct javac.
 - Unit tests: `./gradlew test`; single test with `./gradlew test --tests "pkg.Class"`.
+- Always add unit tests, and if relevant integration tests for new features and bugfixes.
 - Integration tests: `./gradlew integrationTest`; filter via `--tests "pkg.ITClass"`.
 - Formatting: `./gradlew spotlessApply`; verify using `spotlessCheck`.
 - No extra linters; rely on compiler + spotless for CI hygiene.
