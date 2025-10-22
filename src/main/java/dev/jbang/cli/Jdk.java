@@ -256,6 +256,10 @@ public class Jdk {
 			if (Util.getShell() == Util.Shell.bash) {
 				fullCmd = "env PATH=\"" + home + File.separator + "bin:$PATH\" JAVA_HOME='" + home + "' "
 						+ fullCmd;
+			} else if (Util.getShell() == Util.Shell.powershell) {
+				fullCmd = "{ $oldPath, $env:PATH, $oldHome, $env:JAVA_HOME=$env:PATH, \"" + home
+						+ "\\bin;$env:PATH\", $env:JAVA_HOME, '" + home + "' ; " + fullCmd
+						+ " ; $env:PATH, $env:JAVA_HOME=$oldPath, $oldHome }";
 			} else {
 				String path = home + "\\bin;" + System.getenv("PATH");
 				fullCmd = "set \"PATH=" + path + "\" && set \"JAVA_HOME=" + home + "\" && " + fullCmd;
