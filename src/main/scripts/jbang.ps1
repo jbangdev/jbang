@@ -108,6 +108,7 @@ if (Test-Path "$jarPath.new") {
 
 # Find/get a JDK
 $JAVA_EXEC=""
+$oldJavaHome=$env:JAVA_HOME
 if (Test-Path env:JAVA_HOME) {
   # Determine if a (working) JDK is available in JAVA_HOME
   if (Test-Path "$env:JAVA_HOME\bin\javac.exe") {
@@ -156,9 +157,8 @@ if ($JAVA_EXEC -eq "") {
   }
 }
 
-$env:JBANG_RUNTIME_SHELL="powershell"
-$env:JBANG_STDIN_NOTTY=$MyInvocation.ExpectingInput
-$env:JBANG_LAUNCH_CMD = $PSCommandPath
+$oldShell, $oldNotty, $oldCmd=$env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD
+$env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD="powershell", $MyInvocation.ExpectingInput, $PSCommandPath
 $output = & "$JAVA_EXEC" $env:JBANG_JAVA_OPTIONS -classpath "$jarPath" dev.jbang.Main @args
 $err=$LASTEXITCODE
 
@@ -173,3 +173,5 @@ if ($err -eq 255) {
 } else {
   break
 }
+
+$env:JAVA_HOME, $env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD=$oldJavaHome, $oldShell, $oldNotty, $oldCmd
