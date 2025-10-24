@@ -261,9 +261,8 @@ public class IntegrationManager {
 			Util.verboseMsg("Input: " + parser.toJson(input));
 		}
 
-		Process process = new ProcessBuilder(args)
-			.redirectError(ProcessBuilder.Redirect.INHERIT)
-			.start();
+		Process process = Util.run(new ProcessBuilder(args)
+			.redirectError(ProcessBuilder.Redirect.INHERIT));
 
 		try (Writer w = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()))) {
 			parser.toJson(input, w);
