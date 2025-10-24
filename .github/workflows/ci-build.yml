@@ -14,6 +14,10 @@ on:
         description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
         required: false
         default: false
+      debug_detached:
+        description: 'Run tmate debugging in detached mode'
+        required: false
+        default: true
 
 jobs:
   updatewebsite:
@@ -52,6 +56,7 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
         with:
           limit-access-to-actor: true
+          detached: ${{ github.event.inputs.debug_detached }}
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
       - uses: gradle/actions/wrapper-validation@06832c7b30a0129d7fb559bcc6e43d26f6374244 # v4
       - name: install-java11
