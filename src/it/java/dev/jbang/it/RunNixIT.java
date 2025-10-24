@@ -9,7 +9,7 @@ import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 
 @DisabledOnOs(OS.WINDOWS)
-public class RunNix extends BaseIT {
+public class RunNixIT extends BaseIT {
 
 // 	Feature: run on non-windows
 
