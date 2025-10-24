@@ -146,4 +146,8 @@ public class RunIT extends BaseIT {
 			.outContains("hello properties");
 	}
 
+	@Test
+	public void shouldReturnCorrectErrorCode() {
+		assertThat(shell("jbang run -c \"System.exit(42)\"")).exitedWith(42);
+	}
 }
