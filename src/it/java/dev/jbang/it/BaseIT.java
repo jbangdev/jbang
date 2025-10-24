@@ -163,4 +163,10 @@ public class BaseIT {
 		return shell(Collections.emptyMap(), command);
 	}
 
+	public void rmrf(String... paths) {
+		for (String p : paths) {
+			Util.deletePath(baseDir().resolve(p), true);
+		}
+	}
+
 }
