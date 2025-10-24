@@ -60,7 +60,7 @@ if "!JAVA_EXEC!"=="" (
 )
 
 set JBANG_RUNTIME_SHELL=cmd
-set JBANG_LAUNCH_CMD=%~nx0
+set JBANG_LAUNCH_CMD=%~f0
 rem tell jbang whether stdin is a tty or not
 2>nul >nul timeout /t 0 && (set JBANG_STDIN_NOTTY=false) || (set JBANG_STDIN_NOTTY=true)
 set "CMD=!JAVA_EXEC!"
