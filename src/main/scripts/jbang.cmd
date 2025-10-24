@@ -59,16 +59,26 @@ if "!JAVA_EXEC!"=="" (
   )
 )
 
-if not exist "%TDIR%" ( mkdir "%TDIR%" )
-set tmpfile=%TDIR%\%RANDOM%.jbang.tmp
-rem execute jbang and pipe to temporary random file
 set JBANG_RUNTIME_SHELL=cmd
 set JBANG_LAUNCH_CMD=%~nx0
+rem tell jbang whether stdin is a tty or not
 2>nul >nul timeout /t 0 && (set JBANG_STDIN_NOTTY=false) || (set JBANG_STDIN_NOTTY=true)
 set "CMD=!JAVA_EXEC!"
 SETLOCAL DISABLEDELAYEDEXPANSION
-"%CMD%" > "%tmpfile%" %JBANG_JAVA_OPTIONS% -classpath "%jarPath%" dev.jbang.Main %*
+rem execute jbang and redirect output to temporary file
+rem (WARNING running jbang in parallel in quick succession will cause temp name collisions!!)
+if not exist "%TDIR%" ( mkdir "%TDIR%" )
+set tmpfile=%TDIR%\%RANDOM%.jbang.tmp
+"%CMD%" > "%tmpfile%" %JBANG_JAVA_OPTIONS% -classpath "%jarPath%" dev.jbang.Main %* || goto :handleError
 set ERROR=%ERRORLEVEL%
+goto :onwards
+:handleError
+set ERROR=%ERRORLEVEL%
+rem if exit code is 0 but we got here in the error handling, there is something wrong
+rem this can happen, for example, when the redirect to the temp file fails
+if %ERROR% EQU 0 exit /b 1
+:onwards
+
 rem catch errorlevel straight after; rem or FOR /F swallow would have swallowed the errorlevel
 
 if %ERROR% EQU 255 (
