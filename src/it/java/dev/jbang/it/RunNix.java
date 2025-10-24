@@ -2,6 +2,8 @@ package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
 
+import java.util.regex.Pattern;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
@@ -38,6 +40,12 @@ public class RunNix extends BaseIT {
 					"[jbang] Building jar for helloworld.java...\n")
 			.outIsExactly(
 					"Hello jbangtest\n");
+	}
+
+	@Test
+	public void shouldNotLeaveVariables() {
+		assertThat(shell("jbang run -c \"System.exit(0)\" ; echo $JBANG_RUNTIME_SHELL"))
+			.outMatches(Pattern.compile("\\s*"));
 	}
 
 }
