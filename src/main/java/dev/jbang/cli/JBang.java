@@ -60,7 +60,7 @@ import picocli.CommandLine.Model.UsageMessageSpec;
 		"" }, versionProvider = VersionProvider.class, subcommands = {
 				Run.class, Build.class, Edit.class, Init.class, Alias.class, Template.class, Catalog.class, Trust.class,
 				Cache.class, Completion.class, Jdk.class, Version.class, Wrapper.class, Info.class, App.class,
-				Export.class, Config.class })
+				Export.class, Config.class, Deps.class })
 public class JBang extends BaseCommand {
 
 	@CommandLine.Option(names = { "-V",
@@ -286,7 +286,7 @@ public class JBang extends BaseCommand {
 			if (sections == null) {
 				sections = new LinkedHashMap<>();
 				sections.put("Essentials", asList("run", "build"));
-				sections.put("Editing", asList("init", "edit"));
+				sections.put("Editing", asList("init", "edit", "deps"));
 				sections.put("Caching", asList("cache", "export", "jdk"));
 				sections.put("Configuration", asList("config", "trust", "alias", "template", "catalog", "app"));
 				sections.put("Other", asList("completion", "info", "version", "wrapper"));
@@ -311,9 +311,15 @@ public class JBang extends BaseCommand {
 		 * 
 		 * @param help
 		 */
-		public void validate(CommandLine.Help help) {
+		public void validate(CommandLine.Help help, boolean ignoreExternalCommands) {
 			Set<String> cmds = new HashSet<>();
-			sections().forEach((key, value) -> cmds.addAll(value));
+			sections().forEach((key, value) -> {
+				if (ignoreExternalCommands && "External".equals(key)) {
+					return;
+				} else {
+					cmds.addAll(value);
+				}
+			});
 
 			Set<String> actualcmds = new HashSet<>(help.subcommands().keySet());
 
@@ -328,9 +334,6 @@ public class JBang extends BaseCommand {
 			if (actualcmds.size() > 0) {
 				throw new IllegalStateException(("Commands found with no assigned section" + actualcmds));
 			}
-
-			sections().forEach((key, value) -> cmds.addAll(value));
-
 		}
 
 		@Override
@@ -426,6 +429,7 @@ public class JBang extends BaseCommand {
 				Util.verboseMsg("Error trying to list aliases", ex);
 			}
 			// Now add any commands found on the PATH whose names start with "jbang-"
+			// but only if they don't already exist (catalog aliases take precedence)
 			try {
 				List<Path> paths = getPluginPaths();
 				List<Path> cmds = findCommandsWith(paths, p -> p.getFileName().toString().startsWith("jbang-"));
