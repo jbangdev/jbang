@@ -169,9 +169,6 @@ if ($err -eq 255) {
   Invoke-Expression "& $output"
 } elseif ($output -ne "") {
   Write-Output $output
-  break
-} else {
-  break
 }
 
 $env:JAVA_HOME, $env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD=$oldJavaHome, $oldShell, $oldNotty, $oldCmd
