@@ -65,6 +65,13 @@ jobs:
           java-version: 11
           distribution: temurin
           cache: gradle
+      - name: setup-graalvm
+        uses: graalvm/setup-graalvm@v1
+        with:
+            java-version: '25'      
+            distribution: 'graalvm-community' # like to use mandrel but using community for now
+            github-token: ${{ secrets.GITHUB_TOKEN }}
+            set-java-home: false # we should not use graalvm for java builds (we need java 11)
       - name: setup-gradle
         uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244 # v4
       
@@ -73,7 +80,7 @@ jobs:
         run: ./gradlew spotlessCheck
 
       - name: build-gradle
-        run: ./gradlew --no-daemon clean build installDist publish --build-cache --scan -s
+        run: ./gradlew --no-daemon clean build nativeImage installDist publish --build-cache --scan -s
       - name: integration-test
         run: |
           ./gradlew integrationTest

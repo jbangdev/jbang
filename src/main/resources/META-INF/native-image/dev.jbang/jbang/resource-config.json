@@ -1,0 +1,30 @@
+{
+  "resources": {
+    "includes": [
+      {
+        "pattern": "logging.properties"
+      },
+      {
+        "pattern": "jbang.properties"
+      },
+      {
+        "pattern": ".*\\.qute$"
+      },
+      {
+        "pattern": ".*\\.md$"
+      },
+      {
+        "pattern": ".*\\.adoc$"
+      },
+      {
+        "pattern": "jbang_icon_.*\\.png$"
+      },
+      {
+        "pattern": ".*\\.json$"
+      },
+      {
+        "pattern": ".*\\.properties$"
+      }
+    ]
+  }
+}

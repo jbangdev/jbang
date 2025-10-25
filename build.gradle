@@ -135,6 +135,7 @@ dependencies {
 	implementation 'org.apache.commons:commons-text:1.11.0'
 	implementation 'org.apache.commons:commons-compress:1.27.1'
 	implementation 'info.picocli:picocli:4.7.7'
+	annotationProcessor 'info.picocli:picocli-codegen:4.7.7'
 	implementation 'io.quarkus.qute:qute-core:1.13.7.Final'
 	implementation 'org.codehaus.plexus:plexus-java:1.2.0'
 	implementation 'com.google.code.gson:gson:2.10.1'
@@ -540,5 +541,47 @@ tasks.named("spotlessXml").configure { dependsOn("compileTestJava") }
 tasks.named("spotlessXml").configure { dependsOn("copyTestResources") }
 tasks.named("spotlessXml").configure { dependsOn("chocolatey") }
 tasks.named("spotlessXml").configure { dependsOn("copyITests") }
+
+// Native image build task
+task nativeImage(type: Exec) {
+	dependsOn shadowJar
+	description = "Build native image executable"
+	group = "build"
+
+	def jarPath = shadowJar.archiveFile.get().asFile.path
+	def nativeExecName = "jbang-cli"
+	def nativeImageName = "native-image"
+	def outputDir = layout.buildDirectory.dir("native-image").get().asFile
+	if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+		nativeImageName += ".cmd"
+	}
+
+	def nativeImageCmd = System.getenv("GRAALVM_HOME") ?
+		"${System.getenv('GRAALVM_HOME')}${File.separator}bin${File.separator}${nativeImageName}" :
+		"${nativeImageName}"
+
+
+	// Ensure output directory exists
+	doFirst {
+		outputDir.mkdirs()
+	}
+
+	commandLine nativeImageCmd, "-jar", jarPath, "${outputDir}${File.separator}${nativeExecName}",
+				"-H:+ReportExceptionStackTraces",
+				"--enable-https"
+
+	doFirst {
+		println "Building native image from: $jarPath"
+		println "Output: ${outputDir}/${nativeExecName}"
+		println "Using native-image: $nativeImageCmd"
+	}
+
+	doLast {
+		println "Native image built successfully: ${outputDir}/${nativeExecName}"
+	}
+
+	// Define outputs for Gradle's incremental build
+	outputs.file("${outputDir}/${nativeExecName}")
+}
 
 group = "dev.jbang"
