@@ -240,6 +240,13 @@ def commonSpec = project.copySpec {
 		include 'jbang.ps1'
 		into 'bin'
 	}
+	// Conditionally include native image binary if it exists
+	if (project.file("${project.buildDir}/native-image/jbang-cli").exists()) {
+		from(project.buildDir.toPath().resolve('native-image')) {
+			include 'jbang-cli'
+			into 'bin'
+		}
+	}
 }
 
 distributions {

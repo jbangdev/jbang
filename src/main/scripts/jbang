@@ -54,6 +54,94 @@ javacInPath() {
   [[ -x "$(command -v javac)" ]] && ( [[ $os != "mac" ]] || /usr/libexec/java_home &> /dev/null )
 }
 
+# Determines the JDK/JAVA_EXEC to use
+setup_java_exec() {
+  unset JAVA_EXEC
+  if [[ -n "$JAVA_HOME" ]]; then
+    # Determine if a (working) JDK is available in JAVA_HOME
+    if [ -x "$(command -v "$JAVA_HOME"/bin/javac)" ]; then
+      JAVA_EXEC="$JAVA_HOME/bin/java"
+    else
+      echo "JAVA_HOME is set but does not seem to point to a valid Java JDK" 1>&2
+    fi
+  fi
+  if [[ -z "$JAVA_EXEC" ]]; then
+    # Determine if a (working) JDK is available on the PATH
+    if javacInPath; then
+      unset JAVA_HOME
+      JAVA_EXEC="java"
+    elif [ -x "$JBDIR/currentjdk/bin/javac" ]; then
+      export JAVA_HOME="$JBDIR/currentjdk"
+      JAVA_EXEC="$JBDIR/currentjdk/bin/java"
+    else
+      export JAVA_HOME="$TDIR/jdks/$javaVersion"
+      JAVA_EXEC="$JAVA_HOME/bin/java"
+      # Check if we installed a JDK before
+      if [ ! -d "$TDIR/jdks/$javaVersion" ]; then
+        # If not, download and install it
+        if [[ $os == "" ]]; then
+          echo "Unable to download JDK, unsupported Operating System: $(uname -s)" 1>&2
+          exit 1
+        fi
+        if [[ $arch == "" ]]; then
+          echo "Unable to download JDK, unsupported Architecture: $(uname -m)" 1>&2
+          exit 1
+        fi
+        mkdir -p "$TDIR/jdks"
+        echo "Downloading JDK $javaVersion. Be patient, this can take several minutes..." 1>&2
+        jdkurl="https://api.foojay.io/disco/v3.0/directuris?distro=$distro&javafx_bundled=false&libc_type=$libc_type&archive_type=$file_type&operating_system=$os&package_type=jdk&version=$javaVersion&architecture=$arch&latest=available"
+        download "$jdkurl" "$TDIR/bootstrap-jdk.$file_type"
+        if [ $retval -ne 0 ]; then echo "Error downloading JDK" 1>&2; exit $retval; fi
+        echo "Installing JDK $javaVersion..." 1>&2
+        rm -rf "$TDIR/jdks/$javaVersion.tmp/"
+        mkdir -p "$TDIR/jdks/$javaVersion.tmp"
+        unpack "$TDIR/bootstrap-jdk.$file_type" "$TDIR/jdks/$javaVersion.tmp"
+        if [ $retval -ne 0 ]; then
+          # Check if the JDK was installed properly
+          javac -version > /dev/null 2>&1
+          retval=$?
+        fi
+        if [ $retval -ne 0 ]; then echo "Error installing JDK" 1>&2; exit $retval; fi
+        # Activate the downloaded JDK giving it its proper name
+        mv "$TDIR/jdks/$javaVersion.tmp" "$TDIR/jdks/$javaVersion"
+        # Set the current JDK
+        "${JAVA_EXEC}" -classpath "${jarPath}" dev.jbang.Main jdk default "$javaVersion"
+      fi
+    fi
+  fi
+}
+
+# Executes jbang (either native binary or JAR) and handles the output
+execute_jbang() {
+## https://stackoverflow.com/questions/1668649/how-to-keep-quotes-in-bash-arguments
+## attempt to ensure each argument keeps its original quoting
+
+  export JBANG_RUNTIME_SHELL=bash
+  JBANG_STDIN_NOTTY=$([ -t 0 ] && echo "false" || echo "true")
+  export JBANG_STDIN_NOTTY
+  export JBANG_LAUNCH_CMD=$0
+  
+  ## run it using command substitution to have just the user process once jbang is done
+  if [[ -n "$binaryPath" ]]; then
+    # Run native binary
+    output=$(CLICOLOR_FORCE=1 "$binaryPath" "$@")
+    err=$?
+  else
+    # Run JAR
+    output=$(CLICOLOR_FORCE=1 "${JAVA_EXEC}" ${JBANG_JAVA_OPTIONS} -classpath "${jarPath}" dev.jbang.Main "$@")
+    err=$?
+  fi
+  
+  if [ $err -eq 255 ]; then
+    eval "exec $output"
+  elif [ -n "$output" ]; then
+    echo "$output"
+    exit $err
+  else
+    exit $err
+  fi
+}
+
 abs_jbang_dir=$(script_dir)
 
 # todo might vary by os so can be overwritten below
@@ -126,13 +214,28 @@ fi
 
 if [[ -z "$JBANG_DIR" ]]; then JBDIR="$HOME/.jbang"; else JBDIR="$JBANG_DIR"; fi
 if [[ -z "$JBANG_CACHE_DIR" ]]; then TDIR="$JBDIR/cache"; else TDIR="$JBANG_CACHE_DIR"; fi
+if [[ -z "$JBANG_USE_NATIVE" ]]; then JBANG_USE_NATIVE="false"; fi
 
-## resolve application jar path from script location
-if [ -f "$abs_jbang_dir/jbang.jar" ]; then
-  jarPath=$abs_jbang_dir/jbang.jar
-elif [ -f "$abs_jbang_dir/.jbang/jbang.jar" ]; then
-  jarPath=$abs_jbang_dir/.jbang/jbang.jar
-else
+## resolve jbang-cli binary or jar path from script location
+binaryPath=""
+jarPath=""
+if [[ "$JBANG_USE_NATIVE" == "true" ]]; then
+  # Look for native binary first if enabled
+  if [ -f "$abs_jbang_dir/jbang-cli" ] && [ -x "$abs_jbang_dir/jbang-cli" ]; then
+    binaryPath="$abs_jbang_dir/jbang-cli"
+  elif [ -f "$abs_jbang_dir/jbang-cli.exe" ] && [ -x "$abs_jbang_dir/jbang-cli.exe" ]; then
+    binaryPath="$abs_jbang_dir/jbang-cli.exe"
+  fi
+fi
+if [[ -z "$binaryPath" ]]; then
+  # Fall back to JAR if no native binary found or native binary disabled
+  if [ -f "$abs_jbang_dir/jbang.jar" ]; then
+    jarPath=$abs_jbang_dir/jbang.jar
+  elif [ -f "$abs_jbang_dir/.jbang/jbang.jar" ]; then
+    jarPath=$abs_jbang_dir/.jbang/jbang.jar
+  fi
+fi
+if [[ -z "$binaryPath" && -z "$jarPath" ]]; then
   if [[ ! -f "$JBDIR/bin/jbang.jar" || ! -f "$JBDIR/bin/jbang" ]]; then
     echo "Downloading JBang $JBANG_DOWNLOAD_VERSION..." 1>&2
     mkdir -p "$TDIR/urls"
@@ -154,82 +257,15 @@ else
   "$JBDIR"/bin/jbang "$@"
   exit $?
 fi
+
 if [ -f "$jarPath.new" ]; then
   # a new jbang version was found, we replace the old one with it
   mv "$jarPath.new" "$jarPath"
 fi
 
-# Find/get a JDK
-unset JAVA_EXEC
-if [[ -n "$JAVA_HOME" ]]; then
-  # Determine if a (working) JDK is available in JAVA_HOME
-  if [ -x "$(command -v "$JAVA_HOME"/bin/javac)" ]; then
-    JAVA_EXEC="$JAVA_HOME/bin/java"
-  else
-    echo "JAVA_HOME is set but does not seem to point to a valid Java JDK" 1>&2
-  fi
-fi
-if [[ -z "$JAVA_EXEC" ]]; then
-  # Determine if a (working) JDK is available on the PATH
-  if javacInPath; then
-    unset JAVA_HOME
-    JAVA_EXEC="java"
-  elif [ -x "$JBDIR/currentjdk/bin/javac" ]; then
-    export JAVA_HOME="$JBDIR/currentjdk"
-    JAVA_EXEC="$JBDIR/currentjdk/bin/java"
-  else
-    export JAVA_HOME="$TDIR/jdks/$javaVersion"
-    JAVA_EXEC="$JAVA_HOME/bin/java"
-    # Check if we installed a JDK before
-    if [ ! -d "$TDIR/jdks/$javaVersion" ]; then
-      # If not, download and install it
-      if [[ $os == "" ]]; then
-        echo "Unable to download JDK, unsupported Operating System: $(uname -s)" 1>&2
-        exit 1
-      fi
-      if [[ $arch == "" ]]; then
-        echo "Unable to download JDK, unsupported Architecture: $(uname -m)" 1>&2
-        exit 1
-      fi
-      mkdir -p "$TDIR/jdks"
-      echo "Downloading JDK $javaVersion. Be patient, this can take several minutes..." 1>&2
-      jdkurl="https://api.foojay.io/disco/v3.0/directuris?distro=$distro&javafx_bundled=false&libc_type=$libc_type&archive_type=$file_type&operating_system=$os&package_type=jdk&version=$javaVersion&architecture=$arch&latest=available"
-      download "$jdkurl" "$TDIR/bootstrap-jdk.$file_type"
-      if [ $retval -ne 0 ]; then echo "Error downloading JDK" 1>&2; exit $retval; fi
-      echo "Installing JDK $javaVersion..." 1>&2
-      rm -rf "$TDIR/jdks/$javaVersion.tmp/"
-      mkdir -p "$TDIR/jdks/$javaVersion.tmp"
-      unpack "$TDIR/bootstrap-jdk.$file_type" "$TDIR/jdks/$javaVersion.tmp"
-      if [ $retval -ne 0 ]; then
-        # Check if the JDK was installed properly
-        javac -version > /dev/null 2>&1
-        retval=$?
-      fi
-      if [ $retval -ne 0 ]; then echo "Error installing JDK" 1>&2; exit $retval; fi
-      # Activate the downloaded JDK giving it its proper name
-      mv "$TDIR/jdks/$javaVersion.tmp" "$TDIR/jdks/$javaVersion"
-      # Set the current JDK
-      "${JAVA_EXEC}" -classpath "${jarPath}" dev.jbang.Main jdk default "$javaVersion"
-    fi
-  fi
+# Only setup Java if we're running the JAR version
+if [[ -z "$binaryPath" ]]; then
+  setup_java_exec
 fi
 
-## https://stackoverflow.com/questions/1668649/how-to-keep-quotes-in-bash-arguments
-## attempt to ensure each argument keeps its original quoting
-
-## run it using command substitution to have just the user process once jbang is done
-export JBANG_RUNTIME_SHELL=bash
-JBANG_STDIN_NOTTY=$([ -t 0 ] && echo "false" || echo "true")
-export JBANG_STDIN_NOTTY
-export JBANG_LAUNCH_CMD=$0
-# shellcheck disable=SC2086
-output=$(CLICOLOR_FORCE=1 "${JAVA_EXEC}" ${JBANG_JAVA_OPTIONS} -classpath "${jarPath}" dev.jbang.Main "$@")
-err=$?
-if [ $err -eq 255 ]; then
-  eval "exec $output"
-elif [ -n "$output" ]; then
-  echo "$output"
-  exit $err
-else
-  exit $err
-fi
+execute_jbang "$@"
