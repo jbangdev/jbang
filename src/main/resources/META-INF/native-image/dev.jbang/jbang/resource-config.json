@@ -17,13 +17,19 @@
         "pattern": ".*\\.adoc$"
       },
       {
-        "pattern": "jbang_icon_.*\\.png$"
+        "pattern": ".*\\.png$"
       },
       {
         "pattern": ".*\\.json$"
       },
       {
         "pattern": ".*\\.properties$"
+      },
+      {
+        "pattern": ".*\\.xml$"
+      },
+      {
+        "pattern": ".*\\.gradle$"
       }
     ]
   }
