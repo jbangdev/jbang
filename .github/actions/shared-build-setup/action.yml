@@ -1,0 +1,14 @@
+name: Shared Build Setup
+description: Setup the build environment for the shared build commands
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4
+      with:
+        java-version: 11
+        distribution: temurin
+        cache: gradle
+    - name: setup-gradle
+      uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244 # v4
+    - name: gradle-wrapper-validation
+      uses: gradle/actions/wrapper-validation@06832c7b30a0129d7fb559bcc6e43d26f6374244 # v4
