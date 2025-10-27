@@ -76,5 +76,17 @@
     "name": "picocli.CommandLine$Model$CommandSpec",
     "queryAllDeclaredMethods": true,
     "queryAllPublicMethods": true
+  },
+  {
+    "name": "dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller$VersionsResponse",
+    "allDeclaredConstructors": true,
+    "queryAllDeclaredMethods": true,
+    "queryAllPublicMethods": true
+  },
+  {
+    "name": "dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller$JdkResult",
+    "allDeclaredConstructors": true,
+    "queryAllDeclaredMethods": true,
+    "queryAllPublicMethods": true
   }
 ]

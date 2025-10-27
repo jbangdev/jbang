@@ -30,6 +30,12 @@
       },
       {
         "pattern": ".*\\.gradle$"
+      },
+      {
+        "pattern": ".*\\.classpath$"
+      },
+      {
+        "pattern": ".*\\.qute\\..*$"
       }
     ]
   }

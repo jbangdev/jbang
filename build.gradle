@@ -176,6 +176,8 @@ buildConfig {
 
 // to enable parallel test execution
 tasks.withType(Test).configureEach {
+	//environment "JAVA_HOME", "/Users/manderse/.local/share/mise/installs/java/graalvm-community-25.0.1"
+	//executable = new File("/Users/manderse/.local/share/mise/installs/java/graalvm-community-25.0.1/bin/java")
 	//maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
 }
 
@@ -345,7 +347,7 @@ test {
 }
 
 jacoco {
-	toolVersion = '0.8.7'
+	toolVersion = '0.8.14' // 0.8.14 supports java 25
 }
 
 jacocoTestReport {
@@ -575,6 +577,7 @@ task nativeImage(type: Exec) {
 
 	commandLine nativeImageCmd, "-jar", jarPath, "${outputDir}${File.separator}${nativeExecName}",
 				"-H:+ReportExceptionStackTraces",
+				"-H:-ParseRuntimeOptions", // so -Dkey=value will continue to be passed to jbang
 				"--enable-https"
 
 	doFirst {
