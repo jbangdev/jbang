@@ -76,7 +76,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: &os_matrix [ubuntu-latest] ## ,windows-latest,macos-latest]
+        os: &os_matrix [ubuntu-latest,windows-latest,macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
@@ -100,7 +100,8 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: build-native-image-jbang-cli-${{ matrix.os }}
-          path: build/native-image/jbang-cli
+          path: build/native-image/*
+          if-no-files-found: error
 
   testing:
     needs: build-shared
@@ -180,6 +181,7 @@ jobs:
   test-native-image:
     needs: build-native-image
     strategy:
+      fail-fast: false
       matrix:
         os: *os_matrix
     runs-on: ${{ matrix.os }}
@@ -200,24 +202,13 @@ jobs:
       - name: create install with jbang-cli
         run: |
           ./gradlew installDist
-      - name: Print Folder Tree
-        uses: jaywcjlove/github-action-folder-tree@main
-        with:
-          exclude: "node_modules|dist|.git|.husky"
-          path: build/
-          depth: 4
-      - name: Assert native image binary exists
-        run: |
-          if [ ! -f build/install/jbang/bin/jbang-cli ]; then
-            echo "Native image binary not found: build/install/jbang/bin/jbang-cli"
-            exit 1
-          fi
       - name: integration-test-native-image
+        env:
+          JBANG_USE_NATIVE: true
         run: |
-          export JBANG_USE_NATIVE=true
           ./gradlew integrationTest
-          - name: codecoverage-report
-          run: |
+      - name: codecoverage-report
+        run: |
             ./gradlew --no-daemon jacocoTestReport
       - name: allure report
         if: always() # always run even if the previous step fails
