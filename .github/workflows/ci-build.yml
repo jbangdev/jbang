@@ -20,7 +20,7 @@ on:
         default: true
 
 jobs:
-  updatewebsite:
+  updatewebsite: ## TODO: move to its own workflow just for push to main (or even tags))
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -42,30 +42,44 @@ jobs:
           workflow: github-pages
           repo: jbangdev/jbang.dev
           token: ${{ secrets.BREW_GITHUB_TOKEN }}
-  build:
+  build-shared:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - uses: ./.github/actions/shared-build-setup
+      - name: check formatting and comment on PR if failed
+        id: check-formatting
+        run: ./gradlew spotlessCheck
+      - name: build-with-no-tests
+        run: ./gradlew --no-daemon clean build installDist publish -x test -x integrationTest --build-cache --scan -s
+      - name: Upload jbang.zip
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: build-shared-jbang-${{ github.sha }}
+          path: build/install/jbang
+      - name: Upload build results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: build-shared-build-${{ github.sha }}
+          path: build
+  testing:
+    needs: build-shared
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
     name: build-and-testing
     steps:
-      - name: Rate limit info
-        run: 'curl -H "Accept: application/vnd.github+json" https://api.github.com/rate_limit'
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@7b6a61a73bbb9793cb80ad69b8dd8ac19261834c # v3
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
-        with:
-          limit-access-to-actor: true
-          detached: ${{ github.event.inputs.debug_detached }}
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 #
       - uses: ./.github/actions/shared-build-setup
       
-      - name: check formatting and comment on PR if failed
-        id: check-formatting
-        run: ./gradlew spotlessCheck
-
-      - name: build-gradle
-        run: ./gradlew --no-daemon clean build installDist publish --build-cache --scan -s
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: build-shared-build-${{ github.sha }}
+          path: build
+      
       - name: integration-test
         run: |
           ./gradlew integrationTest
@@ -110,14 +124,8 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
-          name: ${{ runner.os }}-build-${{ github.sha }}
+          name: ${github.job}-build-${{ runner.os }}-${{ github.sha }}
           path: build
-      - name: Upload jbang.zip
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        if: always() && runner.os != 'Windows'
-        with:
-          name: jbang-${{ github.sha }}
-          path: build/install/jbang
       - name: Write out Unit Test report annotation for forked repo
         if: always()
         uses: mikepenz/action-junit-report@3585e9575db828022551b4231f165eb59a0e74e3 # v5
@@ -130,7 +138,7 @@ jobs:
           echo "View [Allure Report](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/allure-report-${{ matrix.os }}) [direct link (available after first view)](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/allure-report-${{ matrix.os }}/build/reports/allure-report/allureReport/index.html) for ${{ matrix.os }} build" >> $GITHUB_STEP_SUMMARY
 
   build-native-image:
-    needs: build
+    needs: build-shared
     strategy:
       fail-fast: false
       matrix:
@@ -139,28 +147,29 @@ jobs:
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
       - uses: ./.github/actions/shared-build-setup
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with:
-          name: Linux-build-${{ github.sha }}
-          path: build
       - name: setup-graalvm
         uses: graalvm/setup-graalvm@v1
         with:
             java-version: '25'      
             distribution: 'graalvm-community' # like to use mandrel but using community for now
             github-token: ${{ secrets.GITHUB_TOKEN }}
-            set-java-home: false # we should not use graalvm for java builds (we need java 11)  
+            set-java-home: false # we should not use graalvm for java builds (we need java 11) 
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: build-shared-build-${{ github.sha }}
+          path: build
+
       - name: build-native-image
         run: |
           ./gradlew nativeImage
       - name: upload-native-image
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: jbang-cli-${{ runner.os }}
+          name: ${{ github.job }}-jbang-cli-${{ matrix.os }}
           path: build/native-image/jbang-cli
   
   smoke-testing:
-    needs: build
+    needs: build-shared
     strategy:
       ## disable fail-fast so on variance failing don't fail the rest
       #fail-fast: false
@@ -173,7 +182,7 @@ jobs:
       - uses: ./.github/actions/shared-build-setup
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: ${{ runner.os }}-build-${{ github.sha }}
+          name: build-shared-build-${{ github.sha }}
           path: build
       - name: smoke-test
         run: |
