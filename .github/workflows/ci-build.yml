@@ -64,13 +64,45 @@ jobs:
         with:
           name: build-shared-build-${{ github.sha }}
           path: build
+
+  build-native-image:
+    needs: build-shared
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest,windows-latest,macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - uses: ./.github/actions/shared-build-setup
+      - name: setup-graalvm
+        uses: graalvm/setup-graalvm@v1
+        with:
+            java-version: '25'      
+            distribution: 'graalvm-community' # like to use mandrel but using community for now
+            github-token: ${{ secrets.GITHUB_TOKEN }}
+            set-java-home: false # we should not use graalvm for java builds (we need java 11) 
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: build-shared-build-${{ github.sha }}
+          path: build
+
+      - name: build-native-image
+        run: |
+          ./gradlew nativeImage
+      - name: upload-native-image
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ github.job }}-jbang-cli-${{ matrix.os }}
+          path: build/native-image/jbang-cli
+
   testing:
     needs: build-shared
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-    name: build-and-testing
+    name: tests
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 #
       - uses: ./.github/actions/shared-build-setup
@@ -79,7 +111,9 @@ jobs:
         with:
           name: build-shared-build-${{ github.sha }}
           path: build
-      
+      - name: test
+        run: |
+          ./gradlew test
       - name: integration-test
         run: |
           ./gradlew integrationTest
@@ -94,14 +128,14 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always() # always run even if the previous step fails
         with:
-          name: allure-report-${{ matrix.os }}
+          name: ${github.job}-allure-report-${{ matrix.os }}
           path: '**/build/reports/allure-report/allureReport/index.html'
           retention-days: 7
       - name: Upload Test Report for pr marking
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always() # always run even if the previous step fails
         with:
-          name: junit-test-results-${{ matrix.os }}
+          name: ${github.job}-junit-test-results-${{ matrix.os }}
           path: '**/build/test-results/test/TEST-*.xml'
           retention-days: 1
       - uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5
@@ -136,39 +170,56 @@ jobs:
         if: always()
         run: |
           echo "View [Allure Report](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/allure-report-${{ matrix.os }}) [direct link (available after first view)](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/allure-report-${{ matrix.os }}/build/reports/allure-report/allureReport/index.html) for ${{ matrix.os }} build" >> $GITHUB_STEP_SUMMARY
-
-  build-native-image:
-    needs: build-shared
+  
+  testing-native-image:
+    needs: build-native-image
     strategy:
-      fail-fast: false
       matrix:
-        os: [ubuntu-latest,windows-latest,macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
       - uses: ./.github/actions/shared-build-setup
-      - name: setup-graalvm
-        uses: graalvm/setup-graalvm@v1
-        with:
-            java-version: '25'      
-            distribution: 'graalvm-community' # like to use mandrel but using community for now
-            github-token: ${{ secrets.GITHUB_TOKEN }}
-            set-java-home: false # we should not use graalvm for java builds (we need java 11) 
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - name: download shared build
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: build-shared-build-${{ github.sha }}
           path: build
 
-      - name: build-native-image
-        run: |
-          ./gradlew nativeImage
-      - name: upload-native-image
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - name: download jbang-cli 
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: ${{ github.job }}-jbang-cli-${{ matrix.os }}
+          name: build-native-image-jbang-cli-${{ matrix.os }}
           path: build/native-image/jbang-cli
-  
-  smoke-testing:
+      - name: create install with jbang-cli
+        run: |
+          ./gradlew installDist
+      - name: Assert native image binary exists
+        run: |
+          if [ ! -f build/install/jbang/bin/jbang-cli ]; then
+            echo "Native image binary not found: build/install/jbang/bin/jbang-cli"
+            exit 1
+          fi
+      - name: integration-test-native-image
+        run: |
+          export JBANG_USE_NATIVE=true
+          ./gradlew integrationTest
+          - name: codecoverage-report
+          run: |
+            ./gradlew --no-daemon jacocoTestReport
+      - name: allure report
+        if: always() # always run even if the previous step fails
+        run: |
+          ./gradlew allureReport --clean
+      - name: Upload Allure Test Report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always() # always run even if the previous step fails
+        with:
+          name: ${github.job}-allure-report-${{ matrix.os }}
+          path: '**/build/reports/allure-report/allureReport/index.html'
+          retention-days: 7
+      
+  smoke-tests:
     needs: build-shared
     strategy:
       ## disable fail-fast so on variance failing don't fail the rest
@@ -177,6 +228,8 @@ jobs:
         os: [ubuntu-latest]
         java: [8,11,17,21]
     runs-on: ${{ matrix.os }}
+    env:
+      _JBANG_: ./build/install/jbang/bin/jbang
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
       - uses: ./.github/actions/shared-build-setup
@@ -187,23 +240,23 @@ jobs:
       - name: smoke-test
         run: |
           java -version
-          chmod +x ./build/install/jbang/bin/jbang
-          ./build/install/jbang/bin/jbang init --template=cli helloworld.java
-          ./build/install/jbang/bin/jbang --verbose helloworld.java
+          chmod +x $_JBANG_
+          $_JBANG_ init --template=cli helloworld.java
+          $_JBANG_ --verbose helloworld.java
           rm helloworld.java
       - name: smoke-quarkus-test
         run: |
           java -version
-          chmod +x ./build/install/jbang/bin/jbang
-          ./build/install/jbang/bin/jbang init --template=qcli qcli.java
-          ./build/install/jbang/bin/jbang --fresh --verbose qcli.java
+          chmod +x $_JBANG_
+          $_JBANG_ init --template=qcli qcli.java
+          $_JBANG_ --fresh --verbose qcli.java
           rm qcli.java
       - name: smoke-quarkus-diff-version-test
         run: |
           java -version
-          chmod +x ./build/install/jbang/bin/jbang
-          ./build/install/jbang/bin/jbang init --template=qcli qcli.java
-          ./build/install/jbang/bin/jbang --fresh --verbose --java 17 qcli.java
+          chmod +x $_JBANG_
+          $_JBANG_ init --template=qcli qcli.java
+          $_JBANG_ --fresh --verbose --java 17 qcli.java
           rm qcli.java
       - name: integration-test-non-windows
         if: runner.os != 'Windows'
@@ -212,5 +265,3 @@ jobs:
           cd build/itests
           chmod +x ./test_suite.sh
           ./test_suite.sh
-      - name: add-to-path
-        run: echo "../build/install/jbang/bin" >> $env:GITHUB_PATH
