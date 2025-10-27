@@ -576,14 +576,16 @@ task nativeImage(type: Exec) {
 	}
 
 	commandLine nativeImageCmd, "-jar", jarPath, "${outputDir}${File.separator}${nativeExecName}",
+				"-H:ConfigurationFileDirectories=${projectDir}/src/native-image/config",
 				"-H:+ReportExceptionStackTraces",
-				"-H:-ParseRuntimeOptions", // so -Dkey=value will continue to be passed to jbang
-				"--enable-https"
+				"--enable-https",
+				"-H:-ParseRuntimeOptions" // so -Dkey=value will continue to be passed to jbang
+
 
 	doFirst {
 		println "Building native image from: $jarPath"
 		println "Output: ${outputDir}/${nativeExecName}"
-		println "Using native-image: $nativeImageCmd"
+		println "Using native-image: $commandLine"
 	}
 
 	doLast {
