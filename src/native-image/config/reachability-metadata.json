@@ -1,6 +1,6 @@
 {
   "reflection": [
-    
+    { "type": "java.util.HashMap" },
     {
       "type": "ch.qos.logback.classic.Logger"
     },
@@ -115,6 +115,8 @@
     },
     {
       "type": "dev.jbang.catalog.Catalog",
+      "allPublicFields" : true,
+      "unsafeAllocated": true,
       "fields": [
         {
           "name": "aliases"
@@ -156,6 +158,7 @@
     },
     {
       "type": "dev.jbang.catalog.CatalogRef",
+      "unsafeAllocated": true,
       "fields": [
         {
           "name": "catalogRef"
@@ -170,6 +173,7 @@
     },
     {
       "type": "dev.jbang.catalog.Template",
+      "unsafeAllocated": true,
       "fields": [
         {
           "name": "description"
@@ -183,7 +187,8 @@
       ]
     },
     {
-      "type": "dev.jbang.catalog.TemplateProperty"
+      "type": "dev.jbang.catalog.TemplateProperty",
+      "unsafeAllocated": true
     },
     {
       "type": "dev.jbang.cli.Alias",
