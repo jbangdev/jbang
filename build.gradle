@@ -542,6 +542,38 @@ compileTestJava.dependsOn(compileJava9Java);
 // Don't know how to tell shadowJar _not_ to depend on this
 shadowJar.dependsOn(copyTestResources);
 
+// Function to generate parentSuite value based on environment
+def generateParentSuite() {
+	def osName = System.getProperty('os.name')
+	def arch = System.getProperty('os.arch')
+	def javaVersion = System.getProperty('java.version')
+	def useNative = System.getenv('JBANG_USE_NATIVE') == 'true'
+	
+	def parentSuite = "${osName}-${arch}-${javaVersion}"
+	if (useNative) {
+		parentSuite += "-native-image"
+	}
+	return parentSuite
+}
+
+// Configure resource processing for test and integrationTest
+processTestResources {
+	filesMatching('allure.properties') {
+		expand([
+			parentSuite: generateParentSuite()
+		])
+	}
+}
+
+processIntegrationTestResources {
+	filesMatching('allure.properties') {
+		expand([
+			parentSuite: generateParentSuite()
+		])
+	}
+}
+
+
 //fix implicit dependencies
 tasks.named("spotlessXml").configure { dependsOn("compileJava") }
 tasks.named("spotlessXml").configure { dependsOn("copyResources") }
