@@ -224,10 +224,14 @@ if [[ "$JBANG_USE_NATIVE" == "true" ]]; then
   if [[ "$os" == "windows" ]]; then
     if [ -f "$abs_jbang_dir/jbang.bin.exe" ] && [ -x "$abs_jbang_dir/jbang.bin.exe" ]; then
       binaryPath="$abs_jbang_dir/jbang.bin.exe"
+    else
+      echo "WARNING: JBang native binary (jbang.bin.exe) not found or not executable in $abs_jbang_dir" 1>&2
     fi
   else
     if [ -f "$abs_jbang_dir/jbang.bin" ] && [ -x "$abs_jbang_dir/jbang.bin" ]; then
       binaryPath="$abs_jbang_dir/jbang.bin"
+    else
+      echo "WARNING: JBang native binary (jbang.bin) not found or not executable in $abs_jbang_dir" 1>&2
     fi
   fi
 fi
