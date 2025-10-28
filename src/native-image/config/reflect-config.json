@@ -87,6 +87,7 @@
     "name": "dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller$JdkResult",
     "allDeclaredConstructors": true,
     "queryAllDeclaredMethods": true,
-    "queryAllPublicMethods": true
+    "queryAllPublicMethods": true,
+    "allDeclaredFields": true
   }
 ]

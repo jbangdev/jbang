@@ -1389,30 +1389,24 @@
       ]
     },
     {
-      "type": "dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller$JdkResult",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
+      "type": "dev.jbang.util.JBangFormatter",
+      "allPublicFields" : true,
+      "allPublicConstructors" : true
     },
     {
-      "type": "dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller$JdkResultLinks"
+      "type": "dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller$JdkResult",
+      "allPublicFields" : true,
+      "allPublicConstructors" : true
+    },
+    {
+      "type": "dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller$JdkResultLinks",
+      "allPublicFields" : true,
+      "allPublicConstructors" : true
     },
     {
       "type": "dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller$VersionsResponse",
-      "fields": [
-        {
-          "name": "result"
-        }
-      ],
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
+      "allPublicFields" : true,
+      "allPublicConstructors" : true
     },
     {
       "type": "dev.jbang.devkitman.jdkproviders.CurrentJdkProvider$Discovery"
@@ -1662,6 +1656,13 @@
     },
     {
       "glob": "trusted-sources.json.qute"
+    },
+    {
+      "glob": "META-INF/services/java.net.spi.InetAddressResolverProvider"
+    },
+    {
+      "module": "java.logging",
+      "glob": "sun/util/logging/resources/*.properties"
     }
   ]
 }

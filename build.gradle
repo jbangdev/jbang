@@ -582,6 +582,9 @@ tasks.named("spotlessXml").configure { dependsOn("copyTestResources") }
 tasks.named("spotlessXml").configure { dependsOn("chocolatey") }
 tasks.named("spotlessXml").configure { dependsOn("copyITests") }
 
+
+
+
 // Native image build task
 task nativeImage(type: Exec) {
 	dependsOn shadowJar
@@ -609,7 +612,9 @@ task nativeImage(type: Exec) {
 	commandLine nativeImageCmd, "-jar", jarPath, "${outputDir}${File.separator}${nativeExecName}",
 				"-H:ConfigurationFileDirectories=${projectDir}/src/native-image/config",
 				"-H:+ReportExceptionStackTraces",
+
 				"--enable-https",
+				"--exact-reachability-metadata", // https://www.graalvm.org/latest/reference-manual/native-image/metadata/ & https://github.com/oracle/graal/issues/7962
 				"-H:-ParseRuntimeOptions" // so -Dkey=value will continue to be passed to jbang
 
 
@@ -625,6 +630,22 @@ task nativeImage(type: Exec) {
 
 	// Define outputs for Gradle's incremental build
 	outputs.file("${outputDir}/${nativeExecName}")
+}
+
+tasks.named("distTar").configure {
+	mustRunAfter(tasks.named("nativeImage"))
+}
+
+tasks.named("distZip").configure {
+	mustRunAfter(tasks.named("nativeImage"))
+}
+
+tasks.named("latestDistTar").configure {
+	mustRunAfter(tasks.named("nativeImage"))
+}
+
+tasks.named("latestDistZip").configure {
+	mustRunAfter(tasks.named("nativeImage"))
 }
 
 group = "dev.jbang"
