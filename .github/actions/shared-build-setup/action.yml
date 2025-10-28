@@ -3,17 +3,6 @@ description: Setup the build environment for the shared build commands
 runs:
   using: 'composite'
   steps:
-    - name: Ensure Gradle cache directory exists (Windows fix)
-      if: runner.os == 'Windows'
-      run: |
-        $gradleUserHome = if ($env:GRADLE_USER_HOME) { $env:GRADLE_USER_HOME } else { "$env:USERPROFILE\.gradle" }
-        if (!(Test-Path -Path $gradleUserHome)) {
-          New-Item -ItemType Directory -Path $gradleUserHome -Force
-        }
-        if (!(Test-Path -Path "$gradleUserHome\caches")) {
-          New-Item -ItemType Directory -Path "$gradleUserHome\caches" -Force
-        }
-      shell: pwsh
     - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4
       with:
         java-version: 11
