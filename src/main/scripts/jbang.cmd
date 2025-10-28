@@ -8,13 +8,13 @@ if "%JBANG_DIR%"=="" (set JBDIR=%userprofile%\.jbang) else (set JBDIR=%JBANG_DIR
 if "%JBANG_CACHE_DIR%"=="" (set TDIR=%JBDIR%\cache) else (set TDIR=%JBANG_CACHE_DIR%)
 if "%JBANG_USE_NATIVE%"=="" (set JBANG_USE_NATIVE=false)
 
-rem resolve jbang-cli binary or jar path from script location
+rem resolve jbang.bin binary or jar path from script location
 set binaryPath=
 set jarPath=
 if "%JBANG_USE_NATIVE%"=="true" (
   rem Look for native binary first if enabled
-  if exist "%~dp0jbang-cli.exe" (
-    set binaryPath=%~dp0jbang-cli.exe
+  if exist "%~dp0jbang.bin.exe" (
+    set binaryPath=%~dp0jbang.bin.exe
   )
 )
 if "!binaryPath!"=="" (

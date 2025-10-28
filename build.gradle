@@ -78,7 +78,7 @@ publishing {
 	publications {
 		maven(MavenPublication) {
 			groupId = 'dev.jbang'
-			artifactId = 'jbang-cli'
+			artifactId = 'jbang.bin'
 
 			from components.java
 
@@ -243,9 +243,9 @@ def commonSpec = project.copySpec {
 		into 'bin'
 	}
 	// Conditionally include native image binary if it exists
-	if (project.file("${project.buildDir}/native-image/jbang-cli").exists()) {
+	if (project.file("${project.buildDir}/native-image/jbang.bin").exists()) {
 		from(project.buildDir.toPath().resolve('native-image')) {
-			include 'jbang-cli'
+			include 'jbang.bin'
 			into 'bin'
 		}
 	}
@@ -558,7 +558,7 @@ task nativeImage(type: Exec) {
 	group = "build"
 
 	def jarPath = shadowJar.archiveFile.get().asFile.path
-	def nativeExecName = "jbang-cli"
+	def nativeExecName = "jbang.bin"
 	def nativeImageName = "native-image"
 	def outputDir = layout.buildDirectory.dir("native-image").get().asFile
 	if (System.getProperty("os.name").toLowerCase().contains("windows")) {

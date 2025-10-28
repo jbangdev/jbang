@@ -89,13 +89,13 @@ function Invoke-JBang {
     $env:JAVA_HOME, $env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD=$oldJavaHome, $oldShell, $oldNotty, $oldCmd
 }
 
-# resolve jbang-cli binary or jar path from script location
+# resolve jbang.bin binary or jar path from script location
 $binaryPath=""
 $jarPath=""
 if ($env:JBANG_USE_NATIVE -eq "true") {
   # Look for native binary first if enabled
-  if (Test-Path "$PSScriptRoot\jbang-cli.exe") {
-    $binaryPath="$PSScriptRoot\jbang-cli.exe"
+  if (Test-Path "$PSScriptRoot\jbang.bin.exe") {
+    $binaryPath="$PSScriptRoot\jbang.bin.exe"
   }
 }
 if (-not $binaryPath) {

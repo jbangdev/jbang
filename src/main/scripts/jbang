@@ -216,18 +216,18 @@ if [[ -z "$JBANG_DIR" ]]; then JBDIR="$HOME/.jbang"; else JBDIR="$JBANG_DIR"; fi
 if [[ -z "$JBANG_CACHE_DIR" ]]; then TDIR="$JBDIR/cache"; else TDIR="$JBANG_CACHE_DIR"; fi
 if [[ -z "$JBANG_USE_NATIVE" ]]; then JBANG_USE_NATIVE="false"; fi
 
-## resolve jbang-cli binary or jar path from script location
+## resolve jbang.bin binary or jar path from script location
 binaryPath=""
 jarPath=""
 if [[ "$JBANG_USE_NATIVE" == "true" ]]; then
   # Look for native binary first if enabled
   if [[ "$os" == "windows" ]]; then
-    if [ -f "$abs_jbang_dir/jbang-cli.exe" ] && [ -x "$abs_jbang_dir/jbang-cli.exe" ]; then
-      binaryPath="$abs_jbang_dir/jbang-cli.exe"
+    if [ -f "$abs_jbang_dir/jbang.bin.exe" ] && [ -x "$abs_jbang_dir/jbang.bin.exe" ]; then
+      binaryPath="$abs_jbang_dir/jbang.bin.exe"
     fi
   else
-    if [ -f "$abs_jbang_dir/jbang-cli" ] && [ -x "$abs_jbang_dir/jbang-cli" ]; then
-      binaryPath="$abs_jbang_dir/jbang-cli"
+    if [ -f "$abs_jbang_dir/jbang.bin" ] && [ -x "$abs_jbang_dir/jbang.bin" ]; then
+      binaryPath="$abs_jbang_dir/jbang.bin"
     fi
   fi
 fi

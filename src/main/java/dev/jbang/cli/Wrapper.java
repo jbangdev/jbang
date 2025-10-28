@@ -38,7 +38,7 @@ public class Wrapper {
 		}
 		try {
 			Path jar = Util.getJarLocation();
-			if (!jar.toString().endsWith(".jar") && !jar.toString().endsWith("jbang-cli")) {
+			if (!jar.toString().endsWith(".jar") && !jar.toString().endsWith("jbang.bin")) {
 				throw new ExitException(EXIT_GENERIC_ERROR, "Couldn't find JBang install location via " + jar);
 			}
 			Path parent = jar.getParent();
