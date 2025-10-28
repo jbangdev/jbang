@@ -221,10 +221,14 @@ binaryPath=""
 jarPath=""
 if [[ "$JBANG_USE_NATIVE" == "true" ]]; then
   # Look for native binary first if enabled
-  if [ -f "$abs_jbang_dir/jbang-cli" ] && [ -x "$abs_jbang_dir/jbang-cli" ]; then
-    binaryPath="$abs_jbang_dir/jbang-cli"
-  elif [ -f "$abs_jbang_dir/jbang-cli.exe" ] && [ -x "$abs_jbang_dir/jbang-cli.exe" ]; then
-    binaryPath="$abs_jbang_dir/jbang-cli.exe"
+  if [[ "$os" == "windows" ]]; then
+    if [ -f "$abs_jbang_dir/jbang-cli.exe" ] && [ -x "$abs_jbang_dir/jbang-cli.exe" ]; then
+      binaryPath="$abs_jbang_dir/jbang-cli.exe"
+    fi
+  else
+    if [ -f "$abs_jbang_dir/jbang-cli" ] && [ -x "$abs_jbang_dir/jbang-cli" ]; then
+      binaryPath="$abs_jbang_dir/jbang-cli"
+    fi
   fi
 fi
 if [[ -z "$binaryPath" ]]; then
