@@ -29,7 +29,10 @@ public class JavaUtil {
 
 	@NonNull
 	public static JdkManager defaultJdkManager(List<String> names) {
-		return (new JdkManBuilder()).provider(names).build();
+		return (new JdkManBuilder())
+			.provider(names)
+			.defaultJavaVersion(Settings.getDefaultJavaVersion())
+			.build();
 	}
 
 	public static class JdkManBuilder extends JdkManager.Builder {
