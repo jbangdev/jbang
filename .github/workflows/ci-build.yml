@@ -95,12 +95,7 @@ jobs:
 
       - name: build-native-image
         run: |
-          ./gradlew nativeImage
-      - name: Stop Gradle daemon (Windows cache fix)
-        if: always() && runner.os == 'Windows'
-        run: |
-          ./gradlew --stop || echo "No Gradle daemon running"
-        shell: pwsh
+          ./gradlew --no-daemon nativeImage
       - name: upload-native-image
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -125,22 +120,17 @@ jobs:
           path: build
       - name: test
         run: |
-          ./gradlew test
+          ./gradlew --no-daemon test
       - name: integration-test
         run: |
-          ./gradlew integrationTest
+          ./gradlew --no-daemon integrationTest
       - name: codecoverage-report
         run: |
           ./gradlew --no-daemon jacocoTestReport
       - name: allure report
         if: always() # always run even if the previous step fails
         run: |
-          ./gradlew allureReport --clean
-      - name: Stop Gradle daemon (Windows cache fix)
-        if: always() && runner.os == 'Windows'
-        run: |
-          ./gradlew --stop || echo "No Gradle daemon running"
-        shell: pwsh
+          ./gradlew --no-daemon allureReport --clean
       - name: Upload Allure Test Report
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always() # always run even if the previous step fails
@@ -211,12 +201,12 @@ jobs:
           path: build/native-image
       - name: create install with jbang-cli
         run: |
-          ./gradlew installDist
+          ./gradlew --no-daemon installDist
       - name: integration-test-native-image
         env:
           JBANG_USE_NATIVE: true
         run: |
-          ./gradlew integrationTest
+          ./gradlew --no-daemon integrationTest
       - name: codecoverage-report
         run: |
             ./gradlew --no-daemon jacocoTestReport
