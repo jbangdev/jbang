@@ -58,13 +58,55 @@ if (-not (Test-Path env:JBANG_JDK_VENDOR)) {
 
 if (-not (Test-Path env:JBANG_DIR)) { $JBDIR="$env:userprofile\.jbang" } else { $JBDIR=$env:JBANG_DIR }
 if (-not (Test-Path env:JBANG_CACHE_DIR)) { $TDIR="$JBDIR\cache" } else { $TDIR=$env:JBANG_CACHE_DIR }
+if (-not (Test-Path env:JBANG_USE_NATIVE)) { $env:JBANG_USE_NATIVE="false" }
 
-# resolve application jar path from script location and convert to windows path when using cygwin
-if (Test-Path "$PSScriptRoot\jbang.jar") {
-  $jarPath="$PSScriptRoot\jbang.jar"
-} elseif (Test-Path "$PSScriptRoot\.jbang\jbang.jar") {
-  $jarPath="$PSScriptRoot\.jbang\jbang.jar"
-} else {
+# Function to execute jbang (either native binary or JAR) and handle output
+function Invoke-JBang {
+    param([string]$binaryPath, [string]$jarPath, [string]$javaExec, [Parameter(ValueFromRemainingArguments=$true)]$args)
+    
+    $oldShell, $oldNotty, $oldCmd=$env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD
+    $env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD="powershell", $MyInvocation.ExpectingInput, $PSCommandPath
+    
+    if ($binaryPath) {
+        # Run native binary
+        $output = & "$binaryPath" $args
+        $err=$LASTEXITCODE
+    } else {
+        # Run JAR
+        $output = & "$javaExec" $env:JBANG_JAVA_OPTIONS -classpath "$jarPath" dev.jbang.Main $args
+        $err=$LASTEXITCODE
+    }
+    
+    $erroractionpreference=$old_erroractionpreference
+    $global:progresspreference=$old_progresspreference
+    
+    if ($err -eq 255) {
+      Invoke-Expression "& $output"
+    } elseif ($output -ne "") {
+      Write-Output $output
+    }
+    
+    $env:JAVA_HOME, $env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD=$oldJavaHome, $oldShell, $oldNotty, $oldCmd
+}
+
+# resolve jbang.bin binary or jar path from script location
+$binaryPath=""
+$jarPath=""
+if ($env:JBANG_USE_NATIVE -eq "true") {
+  # Look for native binary first if enabled
+  if (Test-Path "$PSScriptRoot\jbang.bin.exe") {
+    $binaryPath="$PSScriptRoot\jbang.bin.exe"
+  }
+}
+if (-not $binaryPath) {
+  # Fall back to JAR if no native binary found or native binary disabled
+  if (Test-Path "$PSScriptRoot\jbang.jar") {
+    $jarPath="$PSScriptRoot\jbang.jar"
+  } elseif (Test-Path "$PSScriptRoot\.jbang\jbang.jar") {
+    $jarPath="$PSScriptRoot\.jbang\jbang.jar"
+  }
+}
+if (-not $binaryPath -and -not $jarPath) {
   if (-not (Test-Path "$JBDIR\bin\jbang.jar") -or -not (Test-Path "$JBDIR\bin\jbang.ps1")) {
     New-Item -ItemType Directory -Force -Path "$TDIR\urls" >$null 2>&1
     if (-not (Test-Path env:JBANG_DOWNLOAD_VERSION)) {
@@ -106,69 +148,58 @@ if (Test-Path "$jarPath.new") {
   Move-Item -Path "$jarPath.new" -Destination "$jarPath" -Force
 }
 
-# Find/get a JDK
+# Find/get a JDK (only needed for JAR execution)
 $JAVA_EXEC=""
 $oldJavaHome=$env:JAVA_HOME
-if (Test-Path env:JAVA_HOME) {
-  # Determine if a (working) JDK is available in JAVA_HOME
-  if (Test-Path "$env:JAVA_HOME\bin\javac.exe") {
-    $JAVA_EXEC="$env:JAVA_HOME\bin\java.exe"
-  } else {
-    [Console]::Error.WriteLine("JAVA_HOME is set but does not seem to point to a valid Java JDK")
+if (-not $binaryPath) {
+  if (Test-Path env:JAVA_HOME) {
+    # Determine if a (working) JDK is available in JAVA_HOME
+    if (Test-Path "$env:JAVA_HOME\bin\javac.exe") {
+      $JAVA_EXEC="$env:JAVA_HOME\bin\java.exe"
+    } else {
+      [Console]::Error.WriteLine("JAVA_HOME is set but does not seem to point to a valid Java JDK")
+    }
   }
-}
-if ($JAVA_EXEC -eq "") {
-  # Determine if a (working) JDK is available on the PATH
-  $ok=$false; try { if (Get-Command "javac") { $ok=$true } } catch {}
-  if ($ok) {
-    $env:JAVA_HOME=""
-    $JAVA_EXEC="java.exe"
-  } elseif (Test-Path "$JBDIR\currentjdk\bin\javac") {
-    $env:JAVA_HOME="$JBDIR\currentjdk"
-    $JAVA_EXEC="$JBDIR\currentjdk\bin\java"
-  } else {
-    $env:JAVA_HOME="$TDIR\jdks\$javaVersion"
-    $JAVA_EXEC="$env:JAVA_HOME\bin\java.exe"
-    # Check if we installed a JDK before
-    if (-not (Test-Path "$TDIR\jdks\$javaVersion")) {
-      # If not, download and install it
-      New-Item -ItemType Directory -Force -Path "$TDIR\jdks" >$null 2>&1
-      [Console]::Error.WriteLine("Downloading JDK $javaVersion. Be patient, this can take several minutes...")
-      $jdkurl="https://api.foojay.io/disco/v3.0/directuris?distro=$distro&javafx_bundled=false&libc_type=$libc_type&archive_type=zip&operating_system=$os&package_type=jdk&version=$javaVersion&architecture=$arch&latest=available"
-      try { Invoke-WebRequest "$jdkurl" -OutFile "$TDIR\bootstrap-jdk.zip"; $ok=$? } catch { $ok=$false }
-      if (-not ($ok)) { [Console]::Error.WriteLine("Error downloading JDK"); break }
-      [Console]::Error.WriteLine("Installing JDK $javaVersion...")
-      Remove-Item -LiteralPath "$TDIR\jdks\$javaVersion.tmp" -Force -Recurse -ErrorAction Ignore >$null 2>&1
-      try { Expand-Archive -Path "$TDIR\bootstrap-jdk.zip" -DestinationPath "$TDIR\jdks\$javaVersion.tmp"; $ok=$? } catch { $ok=$false }
-      if (-not ($ok)) { [Console]::Error.WriteLine("Error installing JDK"); break }
-      $dirs=Get-ChildItem -Directory -Path "$TDIR\jdks\$javaVersion.tmp"
-      foreach ($d in $dirs) {
-        $p=$d.FullName
-        Move-Item -Path "$p\*" -Destination "$TDIR\jdks\$javaVersion.tmp" -Force
+  if ($JAVA_EXEC -eq "") {
+    # Determine if a (working) JDK is available on the PATH
+    $ok=$false; try { if (Get-Command "javac") { $ok=$true } } catch {}
+    if ($ok) {
+      $env:JAVA_HOME=""
+      $JAVA_EXEC="java.exe"
+    } elseif (Test-Path "$JBDIR\currentjdk\bin\javac") {
+      $env:JAVA_HOME="$JBDIR\currentjdk"
+      $JAVA_EXEC="$JBDIR\currentjdk\bin\java"
+    } else {
+      $env:JAVA_HOME="$TDIR\jdks\$javaVersion"
+      $JAVA_EXEC="$env:JAVA_HOME\bin\java.exe"
+      # Check if we installed a JDK before
+      if (-not (Test-Path "$TDIR\jdks\$javaVersion")) {
+        # If not, download and install it
+        New-Item -ItemType Directory -Force -Path "$TDIR\jdks" >$null 2>&1
+        [Console]::Error.WriteLine("Downloading JDK $javaVersion. Be patient, this can take several minutes...")
+        $jdkurl="https://api.foojay.io/disco/v3.0/directuris?distro=$distro&javafx_bundled=false&libc_type=$libc_type&archive_type=zip&operating_system=$os&package_type=jdk&version=$javaVersion&architecture=$arch&latest=available"
+        try { Invoke-WebRequest "$jdkurl" -OutFile "$TDIR\bootstrap-jdk.zip"; $ok=$? } catch { $ok=$false }
+        if (-not ($ok)) { [Console]::Error.WriteLine("Error downloading JDK"); break }
+        [Console]::Error.WriteLine("Installing JDK $javaVersion...")
+        Remove-Item -LiteralPath "$TDIR\jdks\$javaVersion.tmp" -Force -Recurse -ErrorAction Ignore >$null 2>&1
+        try { Expand-Archive -Path "$TDIR\bootstrap-jdk.zip" -DestinationPath "$TDIR\jdks\$javaVersion.tmp"; $ok=$? } catch { $ok=$false }
+        if (-not ($ok)) { [Console]::Error.WriteLine("Error installing JDK"); break }
+        $dirs=Get-ChildItem -Directory -Path "$TDIR\jdks\$javaVersion.tmp"
+        foreach ($d in $dirs) {
+          $p=$d.FullName
+          Move-Item -Path "$p\*" -Destination "$TDIR\jdks\$javaVersion.tmp" -Force
+        }
+        # Check if the JDK was installed properly
+        $ok=$false; try { & $TDIR\jdks\$javaVersion.tmp\bin\javac -version >$null 2>&1; $ok=$true } catch {}
+        if (-not ($ok)) { [Console]::Error.WriteLine("Error installing JDK"); break }
+        # Activate the downloaded JDK giving it its proper name
+        Rename-Item -Path "$TDIR\jdks\$javaVersion.tmp" -NewName "$javaVersion" >$null 2>&1
+        # Set the current JDK
+        & "$JAVA_EXEC" -classpath "$jarPath" dev.jbang.Main jdk default $javaVersion
       }
-      # Check if the JDK was installed properly
-      $ok=$false; try { & $TDIR\jdks\$javaVersion.tmp\bin\javac -version >$null 2>&1; $ok=$true } catch {}
-      if (-not ($ok)) { [Console]::Error.WriteLine("Error installing JDK"); break }
-      # Activate the downloaded JDK giving it its proper name
-      Rename-Item -Path "$TDIR\jdks\$javaVersion.tmp" -NewName "$javaVersion" >$null 2>&1
-      # Set the current JDK
-      & "$JAVA_EXEC" -classpath "$jarPath" dev.jbang.Main jdk default $javaVersion
     }
   }
 }
 
-$oldShell, $oldNotty, $oldCmd=$env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD
-$env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD="powershell", $MyInvocation.ExpectingInput, $PSCommandPath
-$output = & "$JAVA_EXEC" $env:JBANG_JAVA_OPTIONS -classpath "$jarPath" dev.jbang.Main @args
-$err=$LASTEXITCODE
-
-$erroractionpreference=$old_erroractionpreference
-$global:progresspreference=$old_progresspreference
-
-if ($err -eq 255) {
-  Invoke-Expression "& $output"
-} elseif ($output -ne "") {
-  Write-Output $output
-}
-
-$env:JAVA_HOME, $env:JBANG_RUNTIME_SHELL, $env:JBANG_STDIN_NOTTY, $env:JBANG_LAUNCH_CMD=$oldJavaHome, $oldShell, $oldNotty, $oldCmd
+# Execute jbang
+Invoke-JBang -binaryPath $binaryPath -jarPath $jarPath -javaExec $JAVA_EXEC -args $args

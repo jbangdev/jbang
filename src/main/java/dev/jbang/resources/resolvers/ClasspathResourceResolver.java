@@ -47,12 +47,13 @@ public class ClasspathResourceResolver implements ResourceResolver {
 		private static InputStream createStream(String resource) {
 			URL url = getResourceUrl(resource);
 			if (url == null) {
-				throw new ResourceNotFoundException(resource, "Resource not found on class path");
+				throw new ResourceNotFoundException(resource, "Resource " + resource + " not found on class path");
 			}
 			try {
 				return url.openStream();
 			} catch (IOException e) {
-				throw new ResourceNotFoundException(resource, "Could not open input stream for resource", e);
+				throw new ResourceNotFoundException(resource, "Could not open input stream for resource " + resource,
+						e);
 			}
 		}
 

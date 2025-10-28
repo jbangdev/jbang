@@ -6,13 +6,26 @@ if "%JBANG_DEFAULT_JAVA_VERSION%"=="" (set javaVersion=17) else (set javaVersion
 
 if "%JBANG_DIR%"=="" (set JBDIR=%userprofile%\.jbang) else (set JBDIR=%JBANG_DIR%)
 if "%JBANG_CACHE_DIR%"=="" (set TDIR=%JBDIR%\cache) else (set TDIR=%JBANG_CACHE_DIR%)
+if "%JBANG_USE_NATIVE%"=="" (set JBANG_USE_NATIVE=false)
 
-rem resolve application jar path from script location and convert to windows path when using cygwin
-if exist "%~dp0jbang.jar" (
-  set jarPath=%~dp0jbang.jar
-) else if exist "%~dp0.jbang\jbang.jar" (
-  set jarPath=%~dp0.jbang\jbang.jar
-) else (
+rem resolve jbang.bin binary or jar path from script location
+set binaryPath=
+set jarPath=
+if "%JBANG_USE_NATIVE%"=="true" (
+  rem Look for native binary first if enabled
+  if exist "%~dp0jbang.bin.exe" (
+    set binaryPath=%~dp0jbang.bin.exe
+  )
+)
+if "!binaryPath!"=="" (
+  rem Fall back to JAR if no native binary found or native binary disabled
+  if exist "%~dp0jbang.jar" (
+    set jarPath=%~dp0jbang.jar
+  ) else if exist "%~dp0.jbang\jbang.jar" (
+    set jarPath=%~dp0.jbang\jbang.jar
+  )
+)
+if "!binaryPath!"=="" if "!jarPath!"=="" (
   if not exist "%JBDIR%\bin\jbang.jar" (
     powershell -NoProfile -ExecutionPolicy Bypass -NonInteractive -Command "%~dp0jbang.ps1 version" > nul
     if !ERRORLEVEL! NEQ 0 ( exit /b %ERRORLEVEL% )
@@ -20,13 +33,17 @@ if exist "%~dp0jbang.jar" (
   call "%JBDIR%\bin\jbang.cmd" %*
   exit /b %ERRORLEVEL%
 )
+
+if not "!binaryPath!"=="" goto :run_with_cli
+if not exist "%jarPath%" goto :run_with_cli
+
 if exist "%jarPath%.new" (
   rem a new jbang version was found, we replace the old one with it
   copy /y "%jarPath%.new" "%jarPath%" > nul 2>&1
   del /f /q "%jarPath%.new"
 )
 
-rem Find/get a JDK
+rem Find/get a JDK (only needed for JAR execution)
 set JAVA_EXEC=
 if not "%JAVA_HOME%"=="" (
   rem Determine if a (working) JDK is available in JAVA_HOME
@@ -59,19 +76,39 @@ if "!JAVA_EXEC!"=="" (
   )
 )
 
+rem Setup environment for execution
 set JBANG_RUNTIME_SHELL=cmd
 set JBANG_LAUNCH_CMD=%~f0
 rem tell jbang whether stdin is a tty or not
 2>nul >nul timeout /t 0 && (set JBANG_STDIN_NOTTY=false) || (set JBANG_STDIN_NOTTY=true)
-set "CMD=!JAVA_EXEC!"
-SETLOCAL DISABLEDELAYEDEXPANSION
+
 rem execute jbang and redirect output to temporary file
 rem (WARNING running jbang in parallel in quick succession will cause temp name collisions!!)
 if not exist "%TDIR%" ( mkdir "%TDIR%" )
 set tmpfile=%TDIR%\%RANDOM%.jbang.tmp
+
+set CMD=!JAVA_EXEC!
+SETLOCAL DISABLEDELAYEDEXPANSION
 "%CMD%" > "%tmpfile%" %JBANG_JAVA_OPTIONS% -classpath "%jarPath%" dev.jbang.Main %* || goto :handleError
 set ERROR=%ERRORLEVEL%
 goto :onwards
+
+:run_with_cli
+rem Setup environment for execution
+set JBANG_RUNTIME_SHELL=cmd
+set JBANG_LAUNCH_CMD=%~f0
+rem tell jbang whether stdin is a tty or not
+2>nul >nul timeout /t 0 && (set JBANG_STDIN_NOTTY=false) || (set JBANG_STDIN_NOTTY=true)
+
+rem execute jbang and redirect output to temporary file
+if not exist "%TDIR%" ( mkdir "%TDIR%" )
+set tmpfile=%TDIR%\%RANDOM%.jbang.tmp
+
+SETLOCAL DISABLEDELAYEDEXPANSION
+"%binaryPath%" > "%tmpfile%" %* || goto :handleError
+set ERROR=%ERRORLEVEL%
+goto :onwards
+
 :handleError
 set ERROR=%ERRORLEVEL%
 rem if exit code is 0 but we got here in the error handling, there is something wrong

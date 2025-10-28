@@ -1,0 +1,42 @@
+{
+  "resources": {
+    "includes": [
+      {
+        "pattern": "logging.properties"
+      },
+      {
+        "pattern": "jbang.properties"
+      },
+      {
+        "pattern": ".*\\.qute$"
+      },
+      {
+        "pattern": ".*\\.md$"
+      },
+      {
+        "pattern": ".*\\.adoc$"
+      },
+      {
+        "pattern": ".*\\.png$"
+      },
+      {
+        "pattern": ".*\\.json$"
+      },
+      {
+        "pattern": ".*\\.properties$"
+      },
+      {
+        "pattern": ".*\\.xml$"
+      },
+      {
+        "pattern": ".*\\.gradle$"
+      },
+      {
+        "pattern": ".*\\.classpath$"
+      },
+      {
+        "pattern": ".*\\.qute\\..*$"
+      }
+    ]
+  }
+}
