@@ -96,6 +96,11 @@ jobs:
       - name: build-native-image
         run: |
           ./gradlew nativeImage
+      - name: Stop Gradle daemon (Windows cache fix)
+        if: always() && runner.os == 'Windows'
+        run: |
+          ./gradlew --stop || echo "No Gradle daemon running"
+        shell: pwsh
       - name: upload-native-image
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -131,6 +136,11 @@ jobs:
         if: always() # always run even if the previous step fails
         run: |
           ./gradlew allureReport --clean
+      - name: Stop Gradle daemon (Windows cache fix)
+        if: always() && runner.os == 'Windows'
+        run: |
+          ./gradlew --stop || echo "No Gradle daemon running"
+        shell: pwsh
       - name: Upload Allure Test Report
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always() # always run even if the previous step fails
