@@ -548,7 +548,6 @@ def generateParentSuite() {
 	def arch = System.getProperty('os.arch')
 	def javaVersion = System.getProperty('java.version')
 	def useNative = System.getenv('JBANG_USE_NATIVE') == 'true'
-	
 	def parentSuite = "${osName}-${arch}-${javaVersion}"
 	if (useNative) {
 		parentSuite += "-native-image"
