@@ -2,8 +2,11 @@ package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
 import static java.lang.System.lineSeparator;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import org.junit.jupiter.api.Test;
+
+import dev.jbang.util.JavaUtil;
 
 public class CacheIT extends AbstractHelpBaseIT {
 
@@ -30,7 +33,9 @@ public class CacheIT extends AbstractHelpBaseIT {
 // * match err == "[jbang] Clearing cache for urls\n[jbang] Clearing cache for jars\n[jbang] Clearing cache for jdks\n[jbang] Clearing cache for kotlincs\n[jbang] Clearing cache for groovycs\n[jbang] Clearing cache for projects\n[jbang] Clearing cache for scripts\n[jbang] Clearing cache for stdins\n[jbang] Clearing cache for deps\n"
 	@Test
 	public void clearCacheAll() {
-		assertThat(shell("jbang cache clear --all --verbose"))
+		assumeTrue(!JavaUtil.inNativeImage()); // remove when https://github.com/jbangdev/jbang-devkitman/issues/87
+
+		assertThat(shell("jbang cache clear --all"))
 			.succeeded()
 			.errContains(
 					"[jbang] Clearing cache for urls\n[jbang] Clearing cache for jars\n[jbang] Clearing cache for jdks\n[jbang] Clearing cache for kotlincs\n[jbang] Clearing cache for groovycs\n[jbang] Clearing cache for projects\n[jbang] Clearing cache for scripts\n[jbang] Clearing cache for stdins\n[jbang] Clearing cache for deps\n"
