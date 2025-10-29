@@ -626,7 +626,9 @@ task nativeImage(type: Exec) {
 
 				"--enable-https",
 				"--exact-reachability-metadata", // https://www.graalvm.org/latest/reference-manual/native-image/metadata/ & https://github.com/oracle/graal/issues/7962
+				"--enable-url-protocols=jar", // to allow urlclassloader to scan file. https://github.com/oracle/graal/issues/1956 https://www.graalvm.org/jdk25/reference-manual/native-image/dynamic-features/URLProtocols/
 				"-H:-ParseRuntimeOptions" // so -Dkey=value will continue to be passed to jbang
+
 
 
 	doFirst {
@@ -637,12 +639,12 @@ task nativeImage(type: Exec) {
 	}
 
 	doLast {
-		// If ouble named (happens on windows) rename it back
-			def exeFile = new File(outputDir, nativeExecName + ".exe")
-			if (!exeFile.exists()) {
-				def plainFile = new File(outputDir, nativeExecName)
-				if (plainFile.exists()) {
-					plainFile.renameTo(exeFile)
+		// If double named (happens on windows) rename it back
+			def doubleExeFile = new File(outputDir, nativeExecName + ".exe")
+			if (doubleExeFile.exists()) {
+				def moved = doubleExeFile.renameTo(new File(outputDir, nativeExecName))
+				if (!moved) {
+					throw new RuntimeException("Failed to rename ${doubleExeFile} to ${nativeExecName}")
 				}
 			}
 		println "Native image built successfully: ${outputDir}/${nativeExecName}"

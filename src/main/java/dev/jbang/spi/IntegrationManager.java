@@ -98,7 +98,7 @@ public class IntegrationManager {
 				IntegrationInput input = new IntegrationInput(className, srcPath, compileDir, pomPath, repos, deps,
 						comments, prj.isNativeImage(), Util.isVerbose());
 				boolean embedded = (requestedJavaVersion == null || JavaUtil.satisfiesRequestedVersion(
-						requestedJavaVersion, JavaUtil.getCurrentMajorJavaVersion()))
+						requestedJavaVersion, JavaUtil.getCurrentMajorJavaVersion()) && !JavaUtil.inNativeImage())
 						&& !"true".equals(System.getProperty("jbang.build.integration.forceExternal"));
 				IntegrationResult ir = embedded
 						? runIntegrationEmbedded(input, integrationCl)
@@ -244,14 +244,20 @@ public class IntegrationManager {
 
 		Path jbangJar = Util.getJarLocation();
 		args.add("-cp");
-		if (jbangJar.toString().endsWith(".jar")) {
-			args.add(jbangJar.toString());
+		if (JavaUtil.inNativeImage() && (jbangJar.toString().endsWith(".bin") || jbangJar.toString().endsWith(".bin.exe"))) {
+			// quick'n dirty way to get the native image to work
+			// TODO: check if the jar is present and if not, throw descriptive error
+			args.add(jbangJar.toString().replace(".bin", ".jar"));
 		} else {
-			// We will assume that we're running inside an IDE or
-			// some kind of test environment and need to manually
-			// add the Gson dependency
-			Path gsonJar = Util.getJarLocation(Gson.class);
-			args.add(jbangJar + File.pathSeparator + gsonJar);
+			if (jbangJar.toString().endsWith(".jar")) {
+				args.add(jbangJar.toString());
+			} else {
+				// We will assume that we're running inside an IDE or
+				// some kind of test environment and need to manually
+				// add the Gson dependency
+				Path gsonJar = Util.getJarLocation(Gson.class);
+				args.add(jbangJar + File.pathSeparator + gsonJar);
+			}
 		}
 
 		args.add("dev.jbang.spi.IntegrationManager");

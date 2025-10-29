@@ -12,6 +12,17 @@
       "type": "com.google.gson.internal.LinkedTreeMap"
     },
     {
+      "type": "dev.jbang.spi.IntegrationInput",
+      "allPublicFields" : true,
+      "allDeclaredConstructors" : true
+    },
+    {
+      "type": "dev.jbang.spi.IntegrationResult",
+      "allPublicFields" : true,
+      "allDeclaredConstructors" : true,
+      "unsafeAllocated" : true
+    },
+    {
       "type": "dev.jbang.catalog.Alias",
       "fields": [
         {
@@ -1591,6 +1602,9 @@
     }
   ],
   "resources": [
+    {
+      "glob": "META-INF/services/**"
+    },
     {
       "glob": ".qute.classpath"
     },
