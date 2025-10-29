@@ -3,6 +3,8 @@
     { "type": "java.util.HashMap" },
     { "type": "java.util.Map" },
     { "type": "java.util.ArrayList" },
+    { "type": "java.lang.Cloneable" },
+    { "type": "java.io.Serializable" },
     {
       "type": "ch.qos.logback.classic.Logger"
     },

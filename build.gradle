@@ -243,9 +243,10 @@ def commonSpec = project.copySpec {
 		into 'bin'
 	}
 	// Conditionally include native image binary if it exists
-	if (project.file("${project.buildDir}/native-image/jbang.bin").exists()) {
+	def nativeExecName = getNativeExecutableName()
+	if (project.file("${project.buildDir}/native-image/${nativeExecName}").exists()) {
 		from(project.buildDir.toPath().resolve('native-image')) {
-			include 'jbang.bin'
+			include nativeExecName
 			into 'bin'
 		}
 	}
@@ -555,6 +556,16 @@ def generateParentSuite() {
 	return parentSuite
 }
 
+// Function to get the correct native executable name based on OS
+def getNativeExecutableName() {
+	def osName = System.getProperty('os.name').toLowerCase()
+	if (osName.contains('windows')) {
+		return 'jbang.bin.exe'
+	} else {
+		return 'jbang.bin'
+	}
+}
+
 // Configure resource processing for test and integrationTest
 processTestResources {
 	filesMatching('allure.properties') {
@@ -592,7 +603,7 @@ task nativeImage(type: Exec) {
 	group = "build"
 
 	def jarPath = shadowJar.archiveFile.get().asFile.path
-	def nativeExecName = "jbang.bin"
+	def nativeExecName = getNativeExecutableName()
 	def nativeImageName = "native-image"
 	def outputDir = layout.buildDirectory.dir("native-image").get().asFile
 	if (System.getProperty("os.name").toLowerCase().contains("windows")) {

@@ -211,6 +211,18 @@ jobs:
         continue-on-error: true
         run: |
            tree -L 3 build/native-image build/install
+      - name: print tree native-image
+        uses: jaywcjlove/github-action-folder-tree@main
+        id: tree-native-image
+        with:
+          path: ./build/native-image
+          depth: 3
+      - name: print tree install
+        uses: jaywcjlove/github-action-folder-tree@main
+        id: tree-install
+        with:
+          path: ./build/install
+          depth: 3
       - name: integration-test-native-image
         env:
           JBANG_USE_NATIVE: true
