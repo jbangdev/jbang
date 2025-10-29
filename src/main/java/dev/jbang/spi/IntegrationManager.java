@@ -244,11 +244,13 @@ public class IntegrationManager {
 
 		Path jbangJar = Util.getJarLocation();
 		args.add("-cp");
+
+		String suffix = Util.isWindows() ? ".bin.exe" : ".bin";
 		if (JavaUtil.inNativeImage()
-				&& (jbangJar.toString().endsWith(".bin") || jbangJar.toString().endsWith(".bin.exe"))) {
+				&& (jbangJar.toString().endsWith(suffix))) {
 			// quick'n dirty way to get the native image to work
 			// TODO: check if the jar is present and if not, throw descriptive error
-			args.add(jbangJar.toString().replace(".bin", ".jar"));
+			args.add(jbangJar.toString().replace(suffix, ".jar"));
 		} else {
 			if (jbangJar.toString().endsWith(".jar")) {
 				args.add(jbangJar.toString());
