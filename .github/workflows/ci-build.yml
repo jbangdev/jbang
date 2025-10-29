@@ -107,6 +107,7 @@ jobs:
     needs: build-shared
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: *os_matrix
     name: tests

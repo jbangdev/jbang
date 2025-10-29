@@ -1,6 +1,8 @@
 {
   "reflection": [
     { "type": "java.util.HashMap" },
+    { "type": "java.util.Map" },
+    { "type": "java.util.ArrayList" },
     {
       "type": "ch.qos.logback.classic.Logger"
     },
@@ -104,6 +106,9 @@
     },
     {
       "type": "dev.jbang.catalog.Alias$JavaAgent",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
       "fields": [
         {
           "name": "agentRef"
