@@ -30,7 +30,7 @@ public class CacheIT extends AbstractHelpBaseIT {
 // * match err == "[jbang] Clearing cache for urls\n[jbang] Clearing cache for jars\n[jbang] Clearing cache for jdks\n[jbang] Clearing cache for kotlincs\n[jbang] Clearing cache for groovycs\n[jbang] Clearing cache for projects\n[jbang] Clearing cache for scripts\n[jbang] Clearing cache for stdins\n[jbang] Clearing cache for deps\n"
 	@Test
 	public void clearCacheAll() {
-		assertThat(shell("jbang cache clear --all"))
+		assertThat(shell("jbang cache clear --all --verbose"))
 			.succeeded()
 			.errContains(
 					"[jbang] Clearing cache for urls\n[jbang] Clearing cache for jars\n[jbang] Clearing cache for jdks\n[jbang] Clearing cache for kotlincs\n[jbang] Clearing cache for groovycs\n[jbang] Clearing cache for projects\n[jbang] Clearing cache for scripts\n[jbang] Clearing cache for stdins\n[jbang] Clearing cache for deps\n"
