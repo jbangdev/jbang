@@ -49,7 +49,7 @@ jobs:
       - uses: ./.github/actions/shared-build-setup
       - name: check formatting and comment on PR if failed
         id: check-formatting
-        run: ./gradlew spotlessCheck
+        run: ./gradlew --no-daemon spotlessCheck
 
   build-shared:
     runs-on: ubuntu-latest
@@ -234,7 +234,7 @@ jobs:
       - name: allure report
         if: always() # always run even if the previous step fails
         run: |
-          ./gradlew allureReport --clean
+          ./gradlew --no-daemon allureReport --clean
       - name: Upload Allure Test Report
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always() # always run even if the previous step fails

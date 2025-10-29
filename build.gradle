@@ -631,11 +631,20 @@ task nativeImage(type: Exec) {
 
 	doFirst {
 		println "Building native image from: $jarPath"
+
 		println "Output: ${outputDir}/${nativeExecName}"
 		println "Using native-image: $commandLine"
 	}
 
 	doLast {
+		// If ouble named (happens on windows) rename it back
+			def exeFile = new File(outputDir, nativeExecName + ".exe")
+			if (!exeFile.exists()) {
+				def plainFile = new File(outputDir, nativeExecName)
+				if (plainFile.exists()) {
+					plainFile.renameTo(exeFile)
+				}
+			}
 		println "Native image built successfully: ${outputDir}/${nativeExecName}"
 	}
 
