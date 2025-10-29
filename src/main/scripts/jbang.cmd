@@ -16,7 +16,7 @@ if "%JBANG_USE_NATIVE%"=="true" (
   if exist "%~dp0jbang.bin.exe" (
     set binaryPath=%~dp0jbang.bin.exe
   ) else (
-    echo WARNING: JBang native binary (jbang.bin.exe) not found in %~dp0 1>&2
+    echo WARNING: JBang native binary (jbang.bin.exe^) not found in %~dp0 1>&2
   )
 )
 if "!binaryPath!"=="" (
