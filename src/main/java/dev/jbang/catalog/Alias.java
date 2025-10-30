@@ -72,6 +72,10 @@ public class Alias extends CatalogItem {
 		@NonNull
 		public final String options;
 
+		public JavaAgent() { // to make gson happy in native image
+			this(null, null);
+		}
+
 		public JavaAgent(@NonNull String agentRef, @NonNull String options) {
 			this.agentRef = agentRef;
 			this.options = options;

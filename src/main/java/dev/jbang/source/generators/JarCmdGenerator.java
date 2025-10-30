@@ -200,7 +200,8 @@ public class JarCmdGenerator extends BaseCmdGenerator<JarCmdGenerator> {
 				}
 			} else {
 				Util.warnMsg(
-						"ClassDataSharing can only be used on Java versions 13 and later. Rerun with `--java 13+` to enforce that");
+						"ClassDataSharing can only be used on Java versions 13 and later, you are on "
+								+ jdk.majorVersion() + ". Rerun with `--java 13+` to enforce the minimum version");
 			}
 		}
 

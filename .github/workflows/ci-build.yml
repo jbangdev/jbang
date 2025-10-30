@@ -49,7 +49,7 @@ jobs:
       - uses: ./.github/actions/shared-build-setup
       - name: check formatting and comment on PR if failed
         id: check-formatting
-        run: ./gradlew spotlessCheck
+        run: ./gradlew --no-daemon spotlessCheck
 
   build-shared:
     runs-on: ubuntu-latest
@@ -57,7 +57,7 @@ jobs:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
       - uses: ./.github/actions/shared-build-setup
       - name: build-with-no-tests
-        run: ./gradlew --no-daemon clean build installDist publish -x test -x integrationTest --build-cache --scan -s
+        run: ./gradlew --no-daemon clean build installDist publish -x spotlessCheck -x test -x integrationTest --build-cache --scan -s
       - name: Upload jbang.zip
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
@@ -107,6 +107,7 @@ jobs:
     needs: build-shared
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: *os_matrix
     name: tests
@@ -199,9 +200,29 @@ jobs:
         with:
           name: build-native-image-jbang.bin-${{ matrix.os }}
           path: build/native-image
+      - name: ensure native image is executable
+        run: |
+          chmod -v +x build/native-image/jbang.bin*
       - name: create install with jbang.bin
         run: |
           ./gradlew --no-daemon installDist
+      - name: Print work tree
+        # This step lists directory structure for debugging and should not fail the workflow if it has issues.
+        continue-on-error: true
+        run: |
+           tree -L 3 build/native-image build/install
+      - name: print tree native-image
+        uses: jaywcjlove/github-action-folder-tree@main
+        id: tree-native-image
+        with:
+          path: ./build/native-image
+          depth: 3
+      - name: print tree install
+        uses: jaywcjlove/github-action-folder-tree@main
+        id: tree-install
+        with:
+          path: ./build/install
+          depth: 3
       - name: integration-test-native-image
         env:
           JBANG_USE_NATIVE: true
@@ -213,7 +234,7 @@ jobs:
       - name: allure report
         if: always() # always run even if the previous step fails
         run: |
-          ./gradlew allureReport --clean
+          ./gradlew --no-daemon allureReport --clean
       - name: Upload Allure Test Report
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always() # always run even if the previous step fails

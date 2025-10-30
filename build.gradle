@@ -243,9 +243,10 @@ def commonSpec = project.copySpec {
 		into 'bin'
 	}
 	// Conditionally include native image binary if it exists
-	if (project.file("${project.buildDir}/native-image/jbang.bin").exists()) {
+	def nativeExecName = getNativeExecutableName()
+	if (project.file("${project.buildDir}/native-image/${nativeExecName}").exists()) {
 		from(project.buildDir.toPath().resolve('native-image')) {
-			include 'jbang.bin'
+			include nativeExecName
 			into 'bin'
 		}
 	}
@@ -542,6 +543,47 @@ compileTestJava.dependsOn(compileJava9Java);
 // Don't know how to tell shadowJar _not_ to depend on this
 shadowJar.dependsOn(copyTestResources);
 
+// Function to generate parentSuite value based on environment
+def generateParentSuite() {
+	def osName = System.getProperty('os.name')
+	def arch = System.getProperty('os.arch')
+	def javaVersion = System.getProperty('java.version')
+	def useNative = System.getenv('JBANG_USE_NATIVE') == 'true'
+	def parentSuite = "${osName}-${arch}-${javaVersion}"
+	if (useNative) {
+		parentSuite += "-native-image"
+	}
+	return parentSuite
+}
+
+// Function to get the correct native executable name based on OS
+def getNativeExecutableName() {
+	def osName = System.getProperty('os.name').toLowerCase()
+	if (osName.contains('windows')) {
+		return 'jbang.bin.exe'
+	} else {
+		return 'jbang.bin'
+	}
+}
+
+// Configure resource processing for test and integrationTest
+processTestResources {
+	filesMatching('allure.properties') {
+		expand([
+			parentSuite: generateParentSuite()
+		])
+	}
+}
+
+processIntegrationTestResources {
+	filesMatching('allure.properties') {
+		expand([
+			parentSuite: generateParentSuite()
+		])
+	}
+}
+
+
 //fix implicit dependencies
 tasks.named("spotlessXml").configure { dependsOn("compileJava") }
 tasks.named("spotlessXml").configure { dependsOn("copyResources") }
@@ -551,6 +593,9 @@ tasks.named("spotlessXml").configure { dependsOn("copyTestResources") }
 tasks.named("spotlessXml").configure { dependsOn("chocolatey") }
 tasks.named("spotlessXml").configure { dependsOn("copyITests") }
 
+
+
+
 // Native image build task
 task nativeImage(type: Exec) {
 	dependsOn shadowJar
@@ -558,7 +603,7 @@ task nativeImage(type: Exec) {
 	group = "build"
 
 	def jarPath = shadowJar.archiveFile.get().asFile.path
-	def nativeExecName = "jbang.bin"
+	def nativeExecName = getNativeExecutableName()
 	def nativeImageName = "native-image"
 	def outputDir = layout.buildDirectory.dir("native-image").get().asFile
 	if (System.getProperty("os.name").toLowerCase().contains("windows")) {
@@ -578,22 +623,51 @@ task nativeImage(type: Exec) {
 	commandLine nativeImageCmd, "-jar", jarPath, "${outputDir}${File.separator}${nativeExecName}",
 				"-H:ConfigurationFileDirectories=${projectDir}/src/native-image/config",
 				"-H:+ReportExceptionStackTraces",
+
 				"--enable-https",
+				"--exact-reachability-metadata", // https://www.graalvm.org/latest/reference-manual/native-image/metadata/ & https://github.com/oracle/graal/issues/7962
+				"--enable-url-protocols=jar", // to allow urlclassloader to scan file. https://github.com/oracle/graal/issues/1956 https://www.graalvm.org/jdk25/reference-manual/native-image/dynamic-features/URLProtocols/
 				"-H:-ParseRuntimeOptions" // so -Dkey=value will continue to be passed to jbang
+
 
 
 	doFirst {
 		println "Building native image from: $jarPath"
+
 		println "Output: ${outputDir}/${nativeExecName}"
 		println "Using native-image: $commandLine"
 	}
 
 	doLast {
+		// If double named (happens on windows) rename it back
+			def doubleExeFile = new File(outputDir, nativeExecName + ".exe")
+			if (doubleExeFile.exists()) {
+				def moved = doubleExeFile.renameTo(new File(outputDir, nativeExecName))
+				if (!moved) {
+					throw new RuntimeException("Failed to rename ${doubleExeFile} to ${nativeExecName}")
+				}
+			}
 		println "Native image built successfully: ${outputDir}/${nativeExecName}"
 	}
 
 	// Define outputs for Gradle's incremental build
 	outputs.file("${outputDir}/${nativeExecName}")
+}
+
+tasks.named("distTar").configure {
+	mustRunAfter(tasks.named("nativeImage"))
+}
+
+tasks.named("distZip").configure {
+	mustRunAfter(tasks.named("nativeImage"))
+}
+
+tasks.named("latestDistTar").configure {
+	mustRunAfter(tasks.named("nativeImage"))
+}
+
+tasks.named("latestDistZip").configure {
+	mustRunAfter(tasks.named("nativeImage"))
 }
 
 group = "dev.jbang"
