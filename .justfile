@@ -33,6 +33,9 @@ itest *args:
 jbang *args:
     PATH="build/install/jbang/bin:$PATH" jbang {{args}}
 
+java *args:
+    java {{args}}
+
 # open integeration test report
 openitest:
     {{open}} build/reports/allure-report/allureReport/index.html
