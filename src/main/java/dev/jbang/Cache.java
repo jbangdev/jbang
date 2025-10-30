@@ -25,7 +25,8 @@ public class Cache {
 		for (CacheClass cc : classes) {
 			Util.infoMsg("Clearing cache for " + cc.name());
 			JdkManager jdkMan = JavaUtil.defaultJdkManager();
-			if (cc == CacheClass.jdks && Util.isWindows() && jdkMan.isCurrentJdkManaged()) {
+			if (cc == CacheClass.jdks && Util.isWindows() && !JavaUtil.inNativeImage()
+					&& jdkMan.isCurrentJdkManaged()) {
 				// We're running using a managed JDK on Windows so we can't just delete the
 				// entire folder!
 				for (Jdk.InstalledJdk jdk : jdkMan.listInstalledJdks()) {

@@ -1,0 +1,93 @@
+[
+  {
+    "name": "dev.jbang.Main",
+    "methods": [
+      {"name": "main", "parameterTypes": ["java.lang.String[]"]},
+      {"name": "handleDefaultRun", "parameterTypes": ["picocli.CommandLine.Model.CommandSpec", "java.lang.String[]"]}
+    ]
+  },
+  {
+    "name": "dev.jbang.cli.StrictParameterPreprocessor",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.jbang.catalog.Catalog",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.jbang.catalog.Alias",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.jbang.catalog.Alias$JavaAgent",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.jbang.catalog.Template",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.jbang.catalog.CatalogRef",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.jbang.catalog.CatalogItem",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.jbang.catalog.Catalog$SkipEmptyMapSerializer",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "dev.jbang.catalog.Catalog$SkipEmptyListSerializer",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "picocli.CommandLine",
+    "methods": [
+      {"name": "execute", "parameterTypes": ["java.lang.String[]"]},
+      {"name": "<init>", "parameterTypes": ["java.lang.Object"]}
+    ]
+  },
+  {
+    "name": "picocli.CommandLine$IFactory",
+    "queryAllDeclaredMethods": true,
+    "queryAllPublicMethods": true
+  },
+  {
+    "name": "picocli.CommandLine$Model$CommandSpec",
+    "queryAllDeclaredMethods": true,
+    "queryAllPublicMethods": true
+  },
+  {
+    "name": "dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller$VersionsResponse",
+    "allDeclaredConstructors": true,
+    "queryAllDeclaredMethods": true,
+    "queryAllPublicMethods": true
+  },
+  {
+    "name": "dev.jbang.devkitman.jdkinstallers.FoojayJdkInstaller$JdkResult",
+    "allDeclaredConstructors": true,
+    "queryAllDeclaredMethods": true,
+    "queryAllPublicMethods": true,
+    "allDeclaredFields": true
+  }
+]

@@ -117,7 +117,7 @@ public class jbang_release_checker implements Callable<Integer> {
             var futures = List.of(
                 executor.submit(() -> checkGitHubReleases("jbangdev/jbang", targetVersion)),
                 executor.submit(() -> checkSDKMAN("jbang",targetVersion)),
-                executor.submit(() -> checkMavenCentral("dev.jbang", "jbang-cli", targetVersion)),
+                executor.submit(() -> checkMavenCentral("dev.jbang", "jbang.bin", targetVersion)),
                 executor.submit(() -> checkDockerHub("jbangdev", "jbang-action", targetVersion)),
                 executor.submit(() -> checkGHCR("jbangdev", "jbang-action", targetVersion)),
                 executor.submit(() -> checkHomebrew("jbang", targetVersion)),

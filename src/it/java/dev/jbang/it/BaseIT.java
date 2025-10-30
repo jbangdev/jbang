@@ -45,7 +45,12 @@ public class BaseIT {
 	public static List<String> prefixShellArgs(List<String> cmd) {
 		List<String> list = new ArrayList<>(cmd);
 		if (Util.isWindows()) {
-			list.addAll(0, Arrays.asList("cmd", "/c"));
+			if ("true".equals(System.getProperty("jbang.it.usePowershell"))) {
+				list.addAll(0, Arrays.asList("powershell", "-Command"));
+				list.addAll(Arrays.asList(";", "exit", "$LastExitCode"));
+			} else {
+				list.addAll(0, Arrays.asList("cmd", "/c"));
+			}
 		} else {
 			list.addAll(0, Arrays.asList("sh", "-c"));
 		}
@@ -156,6 +161,12 @@ public class BaseIT {
 
 	public CommandResult shell(String... command) {
 		return shell(Collections.emptyMap(), command);
+	}
+
+	public void rmrf(String... paths) {
+		for (String p : paths) {
+			Util.deletePath(baseDir().resolve(p), true);
+		}
 	}
 
 }

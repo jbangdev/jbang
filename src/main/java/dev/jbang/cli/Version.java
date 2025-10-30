@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 
 import dev.jbang.Settings;
 import dev.jbang.dependencies.ArtifactResolver;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 import dev.jbang.util.VersionChecker;
 
@@ -45,6 +46,7 @@ public class Version extends BaseCommand {
 			out.println("OS: " + Util.getOS());
 			out.println("Arch: " + Util.getArch());
 			out.println("Shell: " + Util.getShell());
+			out.println("Native Image: " + JavaUtil.inNativeImage());
 		}
 
 		return EXIT_OK;

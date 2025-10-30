@@ -4,7 +4,7 @@ import static dev.jbang.it.CommandResultAssert.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-public class RunKotlin extends BaseIT {
+public class RunKotlinIT extends BaseIT {
 
 // 	Feature: run-kotlin
 

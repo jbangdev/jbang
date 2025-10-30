@@ -22,6 +22,15 @@ import dev.jbang.devkitman.util.RemoteAccessProvider;
 
 public class JavaUtil {
 
+	// best approximation we can get to check if we are in a native image without
+	// relying on graalvm specific classes
+	static boolean inNativeImage = "runtime".equals(System.getProperty("org.graalvm.nativeimage.imagecode"));
+
+	/** returns true if we think we are in a native image of JBang */
+	public static boolean inNativeImage() {
+		return inNativeImage;
+	}
+
 	@NonNull
 	public static JdkManager defaultJdkManager(String... names) {
 		return (new JdkManBuilder()).provider(names).build();
@@ -29,7 +38,10 @@ public class JavaUtil {
 
 	@NonNull
 	public static JdkManager defaultJdkManager(List<String> names) {
-		return (new JdkManBuilder()).provider(names).build();
+		return (new JdkManBuilder())
+			.provider(names)
+			.defaultJavaVersion(Settings.getDefaultJavaVersion())
+			.build();
 	}
 
 	public static class JdkManBuilder extends JdkManager.Builder {

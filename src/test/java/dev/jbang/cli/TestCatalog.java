@@ -94,4 +94,29 @@ public class TestCatalog extends BaseTest {
 		String name = CatalogUtil.nameFromRef("com.intuit.karate:karate-core:LATEST");
 		assertThat(name, equalTo("karate-core"));
 	}
+
+	@Test
+	void testNameFromReleasedJar() throws IOException {
+		String name = CatalogUtil
+			.nameFromRef("https://github.com/blazmrak/veles/releases/download/0.1.0/veles-0.1.0.jar");
+		assertThat(name, equalTo("veles"));
+	}
+
+	@Test
+	void testNameFromHyphenatedName() throws IOException {
+		String name = CatalogUtil.nameFromRef("my-app.jar");
+		assertThat(name, equalTo("my-app"));
+	}
+
+	@Test
+	void testNameFromHyphenatedVersionedName() throws IOException {
+		String name = CatalogUtil.nameFromRef("my-app-1.2.3.jar");
+		assertThat(name, equalTo("my-app"));
+	}
+
+	@Test
+	void testNameFromMixedVersions() throws IOException {
+		String name = CatalogUtil.nameFromRef("my-app-1.2.a.jar");
+		assertThat(name, equalTo("my-app"));
+	}
 }

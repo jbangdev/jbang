@@ -30,11 +30,15 @@ public class InitIT extends BaseIT {
 			.succeeded();
 
 		String contents = new String(Files.readAllBytes(testFile));
-		assertThat(contents).contains("class test");
+
+		assertThat(contents).satisfiesAnyOf(
+				item -> item.contains("class test"), // using java < 25
+				item -> item.contains("IO.println(") // using java >= 25 especially nativeimage
+		);
 
 		assertThat(shell("jbang " + testFile))
 			.succeeded()
-			.errEquals("[jbang] Building jar for test.java..." + lineSeparator());
+			.errContains("[jbang] Building jar for test.java..." + lineSeparator());
 
 		assertThat(shell("jbang " + testFile))
 			.succeeded()
@@ -57,7 +61,11 @@ public class InitIT extends BaseIT {
 			.succeeded();
 
 		String contents = new String(Files.readAllBytes(testFile));
-		assertThat(contents).contains("class test");
+
+		assertThat(contents).satisfiesAnyOf(
+				item -> item.contains("class test"), // using java < 25
+				item -> item.contains("IO.println(") // using java >= 25 especially nativeimage
+		);
 
 		// TODO: this is to avoid the file being cached.
 		contents = contents + "// " + System.currentTimeMillis();

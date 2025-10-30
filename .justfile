@@ -46,8 +46,8 @@ tagpatch:
     git commit --allow-empty -m "[patch] release"
     ./gradlew tag
 
-itestreport: # todo: should not be needed to clean
-    -./gradlew integrationTest
+itestreport *args: # todo: should not be needed to clean
+    -./gradlew integrationTest {{args}}
     ./gradlew allureReport --clean
 
 dry-run-full-release:

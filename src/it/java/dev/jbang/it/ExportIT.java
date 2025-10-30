@@ -15,7 +15,7 @@ public class ExportIT extends AbstractHelpBaseIT {
 	// Then match err contains "helloworld.jar"
 	@Test
 	public void testBasicExportNoClasspath() {
-		shell("rm helloworld.jar");
+		rmrf("helloworld.jar");
 		assertThat(shell("jbang export local helloworld.java"))
 			.succeeded()
 			.errContains("Exported to")
@@ -29,7 +29,7 @@ public class ExportIT extends AbstractHelpBaseIT {
 	// Then match err contains "helloworld.jar"
 	@Test
 	public void testBasicExportSlimNoClasspath() {
-		shell("rm -rf helloworld.jar lib");
+		rmrf("helloworld.jar", "lib");
 		assertThat(shell("jbang export portable helloworld.java"))
 			.succeeded()
 			.errContains("Exported to")
@@ -46,7 +46,7 @@ public class ExportIT extends AbstractHelpBaseIT {
 	// Then match err contains "classpath_example.jar"
 	@Test
 	public void testBasicExportClasspath() {
-		shell("rm -rf classpath_example.jar lib");
+		rmrf("classpath_example.jar", "lib");
 		assertThat(shell("jbang export portable classpath_example.java"))
 			.succeeded()
 			.errContains("Exported to")
