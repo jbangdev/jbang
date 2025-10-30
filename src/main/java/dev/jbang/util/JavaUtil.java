@@ -59,6 +59,8 @@ public class JavaUtil {
 				for (String providerName : names) {
 					if (PROVIDERS_ALL.contains(providerName)) {
 						providerNames.add(providerName);
+					} else {
+						Util.warnMsg("Unknown JDK provider: " + providerName);
 					}
 				}
 			}
@@ -67,13 +69,26 @@ public class JavaUtil {
 
 		public JdkManager build() {
 			if (providerNames.isEmpty() && providers.isEmpty()) {
+				Util.verboseMsg("No JDK providers specified, using default providers");
 				provider(PROVIDERS_DEFAULT);
 			}
 			for (String providerName : providerNames) {
 				JdkProvider provider = createProvider(providerName);
-				if (provider != null && provider.canUse()) {
-					providers(provider);
+				if (provider != null) {
+					if (provider.canUse()) {
+						providers(provider);
+					} else {
+						Util.verboseMsg("JDK provider '" + providerName + "' cannot be used");
+					}
+				} else {
+					Util.warnMsg("Unknown JDK provider: " + providerName);
 				}
+
+			}
+
+			if (providers.size() == 0) {
+				Util.warnMsg("No JDK providers selected or available. Run with --verbose for more details.");
+				Util.verboseMsg("Available JDK providers: " + PROVIDERS_ALL);
 			}
 			return super.build();
 		}
