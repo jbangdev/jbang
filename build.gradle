@@ -53,6 +53,21 @@ java {
 	withSourcesJar()
 }
 
+// Configure toolchain for test execution (separate from compilation)
+// Can be set via -PtestJavaVersion=<version> and -PtestJavaVendor=<vendor>
+// Example: ./gradlew test -PtestJavaVersion=17 -PtestJavaVendor=adoptium
+def testJavaVersion = project.hasProperty('testJavaVersion')
+	? JavaLanguageVersion.of(project.property('testJavaVersion') as Integer)
+	: JavaLanguageVersion.of(11)
+def testJavaVendor = project.hasProperty('testJavaVendor')
+	? JvmVendorSpec.matching(project.property('testJavaVendor') as String)
+	: JvmVendorSpec.ADOPTIUM
+
+def testExecutionToolchain = project.javaToolchains.launcherFor {
+	languageVersion = testJavaVersion
+	vendor = testJavaVendor
+}
+
 
 // See https://docs.gradle.org/current/dsl/org.gradle.api.reporting.ReportingExtension.html
 // Extension is provided via Gradle's `reporting-base` plugin
@@ -329,11 +344,15 @@ shadowJar {
 
 test {
 	useJUnitPlatform()
-	jvmArgs = [
+	javaLauncher = testExecutionToolchain
+	def jvmArgsList = ["-javaagent:${configurations.agent.singleFile}"] // for allure reporting
+	if (testJavaVersion.asInt() >= 9) {
+		jvmArgsList.addAll([
 			"--add-opens", "java.base/java.lang=ALL-UNNAMED",
-			"--add-opens", "java.base/java.util=ALL-UNNAMED",
-			"-javaagent:${configurations.agent.singleFile}" // for allure reporting
-	]
+			"--add-opens", "java.base/java.util=ALL-UNNAMED"
+		])
+	}
+	jvmArgs = jvmArgsList
 	//testLogging.showStandardStreams = true
 
 	/*testLogging {
@@ -392,6 +411,7 @@ testing {
 			targets {
 				all {
 					testTask.configure {
+						javaLauncher = testExecutionToolchain
 						shouldRunAfter(test) // todo: push to buildDist?
 					}
 				}

@@ -42,6 +42,24 @@ BUILD SUCCESSFUL in 5s
 <.> This error happens as in the junit tests we test behaviors under different environment variables and to do that we need to modify internal state in java's `System` handling of properties. Java 9+ does not like that.
 <.> Already https://github.com/stefanbirkner/system-rules/issues/64[reported] but it can't be fixed as the jvm does not allow this; but fine for `jbang` as this is just for the test runs.
 
+=== Changing the Java version
+
+The build uses the `testJavaVersion` and `testJavaVendor` properties to set the Java version for the test runs.
+
+To change the Java version for the test runs, set the `testJavaVersion` and `testJavaVendor` properties in the `build.gradle` file.
+
+For example, to run the tests with Java 17 use:
+
+```
+./gradlew test -PtestJavaVersion=17
+```
+
+and if want a different vendor, use:
+
+```
+./gradlew test -PtestJavaVersion=17 -PtestJavaVendor=zulu
+```
+
 === Building on Windows specifics
 
 The guidelines above should work for Windows, and this configuration is covered by the CI pipeline.

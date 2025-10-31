@@ -6,12 +6,16 @@ inputs:
     description: Add the job summary to the output
     required: false
     default: 'always'
+  java-version:
+    description: The Java version to use
+    required: false
+    default: '11'
 runs:
   using: 'composite'
   steps:
     - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4
       with:
-        java-version: 11
+        java-version: ${{ inputs.java-version }}
         distribution: temurin
     - name: setup-gradle
       uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244 # v4
