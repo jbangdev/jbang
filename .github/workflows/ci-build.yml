@@ -20,7 +20,7 @@ on:
         default: true
 
 jobs:
-  updatewebsite: ## TODO: move to its own workflow just for push to main (or even tags))
+  website-check: ## TODO: move to its own workflow just for push to main (or even tags))
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -62,16 +62,16 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
-          name: build-shared-jbang-${{ github.sha }}
+          name: ${{ github.sha }}-shared-build-jbang
           path: build/install/jbang
       - name: Upload build results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
-          name: build-shared-build-${{ github.sha }}
+          name: ${{ github.sha }}-shared-build
           path: build
 
-  build-native-image:
+  build-test-native-image:
     needs: build-shared
     strategy:
       fail-fast: false
@@ -90,7 +90,7 @@ jobs:
             set-java-home: false # we should not use graalvm for java builds (we need java 11)
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: build-shared-build-${{ github.sha }}
+          name: ${{ github.sha }}-shared-build
           path: build
 
       - name: build-native-image
@@ -99,11 +99,29 @@ jobs:
       - name: upload-native-image
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: build-native-image-jbang.bin-${{ matrix.os }}
+          name: ${{ github.sha }}-jbang.bin-${{ matrix.os }}
           path: build/native-image/*
           if-no-files-found: error
+      - name: ensure native image is executable
+        run: |
+          chmod -v +x build/native-image/jbang.bin*
+      - name: create install with jbang.bin
+        run: |
+          ./gradlew --no-daemon installDist
+      - name: integration-test-native-image
+        env:
+          JBANG_USE_NATIVE: true
+        run: |
+          ./gradlew --no-daemon integrationTest
+      - name: codecoverage-report
+        run: |
+            ./gradlew --no-daemon jacocoTestReport
+      - uses: ./.github/actions/shared-test-archiving
+        with:
+          allure-report-name: ${{ github.sha }}-test-native-image-allurereport-${{ matrix.os }}
+          allure-results-name: ${{ github.sha }}-test-native-image-allure-results-${{ matrix.os }}
 
-  testing:
+  test-jvm:
     needs: build-shared
     runs-on: ${{ matrix.os }}
     strategy:
@@ -117,7 +135,7 @@ jobs:
       
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: build-shared-build-${{ github.sha }}
+          name: ${{ github.sha }}-shared-build
           path: build
       - name: test
         run: |
@@ -128,24 +146,10 @@ jobs:
       - name: codecoverage-report
         run: |
           ./gradlew --no-daemon jacocoTestReport
-      - name: allure report
-        if: always() # always run even if the previous step fails
-        run: |
-          ./gradlew --no-daemon allureReport --clean
-      - name: Upload Allure Test Report
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        if: always() # always run even if the previous step fails
+      - uses: ./.github/actions/shared-test-archiving
         with:
-          name: testing-allure-report-${{ matrix.os }}
-          path: 'build/reports/allure-report/allureReport/index.html'
-          retention-days: 7
-      - name: Upload Test Report for pr marking
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        if: always() # always run even if the previous step fails
-        with:
-          name: testing-junit-test-results-${{ matrix.os }}
-          path: 'build/test-results/test/TEST-*.xml'
-          retention-days: 1
+          allure-report-name: ${{ github.sha }}-test-jvm-allurereport-${{ matrix.os }}
+          allure-results-name: ${{ github.sha }}-test-jvm-allure-results-${{ matrix.os }}
       - uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5
         with:
           #files: ./coverage1.xml,./coverage2.xml # optional
@@ -166,8 +170,9 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
-          name: testing-build-${{ runner.os }}-${{ github.sha }}
+          name: ${{ github.sha }}-testing-build-${{ runner.os }}
           path: build
+
       - name: Write out Unit Test report annotation for forked repo
         if: always()
         uses: mikepenz/action-junit-report@3585e9575db828022551b4231f165eb59a0e74e3 # v5
@@ -178,71 +183,7 @@ jobs:
         if: always()
         run: |
           echo "View [Allure Report](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/allure-report-${{ matrix.os }}) [direct link (available after first view)](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/allure-report-${{ matrix.os }}/build/reports/allure-report/allureReport/index.html) for ${{ matrix.os }} build" >> $GITHUB_STEP_SUMMARY
-  
-  test-native-image:
-    needs: build-native-image
-    strategy:
-      fail-fast: false
-      matrix:
-        os: *os_matrix
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
-      - uses: ./.github/actions/shared-build-setup
-      - name: download shared build
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with:
-          name: build-shared-build-${{ github.sha }}
-          path: build
 
-      - name: download jbang.bin 
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with:
-          name: build-native-image-jbang.bin-${{ matrix.os }}
-          path: build/native-image
-      - name: ensure native image is executable
-        run: |
-          chmod -v +x build/native-image/jbang.bin*
-      - name: create install with jbang.bin
-        run: |
-          ./gradlew --no-daemon installDist
-      - name: Print work tree
-        # This step lists directory structure for debugging and should not fail the workflow if it has issues.
-        continue-on-error: true
-        run: |
-           tree -L 3 build/native-image build/install
-      - name: print tree native-image
-        uses: jaywcjlove/github-action-folder-tree@main
-        id: tree-native-image
-        with:
-          path: ./build/native-image
-          depth: 3
-      - name: print tree install
-        uses: jaywcjlove/github-action-folder-tree@main
-        id: tree-install
-        with:
-          path: ./build/install
-          depth: 3
-      - name: integration-test-native-image
-        env:
-          JBANG_USE_NATIVE: true
-        run: |
-          ./gradlew --no-daemon integrationTest
-      - name: codecoverage-report
-        run: |
-            ./gradlew --no-daemon jacocoTestReport
-      - name: allure report
-        if: always() # always run even if the previous step fails
-        run: |
-          ./gradlew --no-daemon allureReport --clean
-      - name: Upload Allure Test Report
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        if: always() # always run even if the previous step fails
-        with:
-          name: test-native-image-allure-report-${{ matrix.os }}
-          path: 'build/reports/allure-report/allureReport/index.html'
-          retention-days: 7
-      
   smoke-test:
     needs: build-shared
     strategy:
@@ -253,14 +194,15 @@ jobs:
         java: [8,11,17,21]
     runs-on: ${{ matrix.os }}
     env:
-      GRADLE_ACTIONS_SKIP_BUILD_RESULT_CAPTURE: true
       _JBANG_: ./build/install/jbang/bin/jbang
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
       - uses: ./.github/actions/shared-build-setup
+        with:
+          add-job-summary: 'never'
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: build-shared-build-${{ github.sha }}
+          name: ${{ github.sha }}-shared-build
           path: build
       - name: smoke-test
         run: |
@@ -290,3 +232,23 @@ jobs:
           cd build/itests
           chmod +x ./test_suite.sh
           ./test_suite.sh
+
+  # merge-test-reports:
+  #   needs: [test-jvm, build-test-native-image]
+  #   runs-on: ubuntu-latest
+  #   if: always()
+  #   steps:
+  #     - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+  #     - uses: ./.github/actions/shared-build-setup
+  #     - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+  #       with:
+  #         pattern: ${{ github.sha }}-*-allure-results-*
+  #         path: build/allure-results
+  #         merge-multiple: true
+  #     - uses: ./.github/actions/shared-test-archiving
+  #       with:
+  #         allure-report-name: ${{ github.sha }}-merged-allurereport-${{ matrix.os }}
+  #         allure-results-name: ${{ github.sha }}-merged-allure-results-${{ matrix.os }}
+  
+      
+      

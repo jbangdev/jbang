@@ -1,0 +1,31 @@
+name: Shared Test Archiving
+description: Archive the test reports
+inputs:
+  allure-report-name:
+    description: The name of the allure report
+    required: true
+  allure-results-name:
+    description: The name of the allure results
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Allure Report
+      if: always() # always run even if the previous step fails
+      shell: bash
+      run: |
+          ./gradlew --no-daemon allureReport --clean
+    - name: Upload Allure Test Report
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      if: always() # always run even if the previous step fails
+      with:
+        name: ${{ inputs.allure-report-name }}
+        path: 'build/reports/allure-report/allureReport/index.html'
+        retention-days: 7
+    - name: Upload Allure Results
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      if: always() # always run even if the previous step fails
+      with:
+        name: ${{ inputs.allure-results-name }}
+        path: 'build/allure-results/**'
+        retention-days: 7
