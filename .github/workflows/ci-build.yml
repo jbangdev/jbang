@@ -117,6 +117,7 @@ jobs:
         run: |
             ./gradlew --no-daemon jacocoTestReport
       - uses: ./.github/actions/shared-test-archiving
+        if: always()
         with:
           allure-report-name: ${{ github.sha }}-test-native-image-allurereport-${{ matrix.os }}
           allure-results-name: ${{ github.sha }}-test-native-image-allure-results-${{ matrix.os }}
@@ -147,6 +148,7 @@ jobs:
         run: |
           ./gradlew --no-daemon jacocoTestReport
       - uses: ./.github/actions/shared-test-archiving
+        if: always()
         with:
           allure-report-name: ${{ github.sha }}-test-jvm-allurereport-${{ matrix.os }}
           allure-results-name: ${{ github.sha }}-test-jvm-allure-results-${{ matrix.os }}
