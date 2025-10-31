@@ -269,7 +269,7 @@ public class Edit extends BaseCommand {
 				cmd = new String[] { "cmd", "/c", editorCommand };
 			}
 			verboseMsg("Running `" + String.join(" ", cmd) + "`");
-			new ProcessBuilder(cmd).start();
+			Util.run(new ProcessBuilder(cmd));
 		}
 		return true;
 	}
@@ -366,7 +366,7 @@ public class Edit extends BaseCommand {
 				"--install-extension", "vscjava.vscode-java-dependency",
 				"--install-extension", "jbangdev.jbang-vscode");
 		pb.inheritIO();
-		Process process = pb.start();
+		Process process = Util.run(pb);
 		try {
 			int exit = process.waitFor();
 			if (exit > 0) {
