@@ -223,6 +223,9 @@
       ]
     },
     {
+      "type": "dev.jbang.cli.DepsAdd"
+    },
+    {
       "type": "dev.jbang.cli.AliasAdd",
       "fields": [
         {
