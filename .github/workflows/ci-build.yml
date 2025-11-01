@@ -122,7 +122,49 @@ jobs:
           allure-report-name: ${{ github.sha }}-test-native-image-allurereport-${{ matrix.os }}
           allure-results-name: ${{ github.sha }}-test-native-image-allure-results-${{ matrix.os }}
 
-  test-jvm:
+ 
+  unit-test-jvm:
+    needs: build-shared
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: *os_matrix
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 #
+      - uses: ./.github/actions/shared-build-setup
+        with:
+            java-version: 11
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: ${{ github.sha }}-shared-build
+          path: build
+      - name: test
+        run: |
+          ./gradlew --no-daemon test -PtestJavaVersion=${{ matrix.java-version }}
+      - uses: ./.github/actions/shared-test-archiving
+        if: always()
+        with:
+          allure-report-name: ${{ github.sha }}-unit-test-jvm-allurereport-${{ matrix.os }}-${{ matrix.java-version }}
+          allure-results-name: ${{ github.sha }}-unit-test-jvm-allure-results-${{ matrix.os }}-${{ matrix.java-version }}
+      - name: Archive build results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: ${{ github.sha }}-unit-test-jvm-build-${{ matrix.os }}-${{ matrix.java-version }}
+          path: build
+      - name: Write out Unit Test report annotation for forked repo
+        if: always()
+        uses: mikepenz/action-junit-report@3585e9575db828022551b4231f165eb59a0e74e3 # v5
+        with:
+          report_paths: 'build/test-results/test/TEST-*.xml'
+          annotate_only: true # forked repo cannot write to checks so just do annotations
+      - name: Add artifact.ci links
+        if: always()
+        run: |
+          echo "View [Allure Report](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/allure-report-${{ matrix.os }}) [direct link (available after first view)](https://www.artifact.ci/artifact/view/${{ github.repository }}/run/${{ github.run_id }}.${{ github.run_attempt}}/allure-report-${{ matrix.os }}/build/reports/allure-report/allureReport/index.html) for ${{ matrix.os }} build" >> $GITHUB_STEP_SUMMARY
+
+  integration-test-jvm:
     needs: build-shared
     runs-on: ${{ matrix.os }}
     strategy:
@@ -156,41 +198,19 @@ jobs:
         with:
           name: ${{ github.sha }}-shared-build
           path: build
-      - name: test
-        run: |
-          ./gradlew --no-daemon test -PtestJavaVersion=${{ matrix.java-version }} -PdisableWiremock=true
       - name: integration-test
         run: |
-          ./gradlew --no-daemon integrationTest -PtestJavaVersion=${{ matrix.java-version }} -PdisableWiremock=true
-      - name: codecoverage-report
-        run: |
-          ./gradlew --no-daemon jacocoTestReport
+          ./gradlew --no-daemon integrationTest -PtestJavaVersion=${{ matrix.java-version }} 
       - uses: ./.github/actions/shared-test-archiving
         if: always()
         with:
-          allure-report-name: ${{ github.sha }}-test-jvm-allurereport-${{ matrix.os }}-${{ matrix.java-version }}
-          allure-results-name: ${{ github.sha }}-test-jvm-allure-results-${{ matrix.os }}-${{ matrix.java-version }}
-      - uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5
-        with:
-          #files: ./coverage1.xml,./coverage2.xml # optional
-          flags: ${{ runner.os }} # optional
-          name: ${{ runner.os }}-tests # optional
-          verbose: true # optional (default = false)
-      - name: build-choco-package
-        if: runner.os == 'Windows'
-        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
-        with:
-          dotnet-version: '2.2.204' # SDK Version to use.
-      - name: build-choco
-        if: runner.os == 'Windows'
-        run: |
-          powershell
-          choco pack build/choco/jbang.nuspec
+          allure-report-name: ${{ github.sha }}-integration-test-jvm-allurereport-${{ matrix.os }}-${{ matrix.java-version }}
+          allure-results-name: ${{ github.sha }}-integration-test-jvm-allure-results-${{ matrix.os }}-${{ matrix.java-version }}
       - name: Archive build results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
-          name: ${{ github.sha }}-testing-build-${{ matrix.os }}-${{ matrix.java-version }}
+          name: ${{ github.sha }}-integration-test-jvm-build-${{ matrix.os }}-${{ matrix.java-version }}
           path: build
 
       - name: Write out Unit Test report annotation for forked repo
@@ -211,7 +231,7 @@ jobs:
       #fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        java: [8,11,17,21]
+        java: [8,11,17,21,25]
     runs-on: ${{ matrix.os }}
     env:
       _JBANG_: ./build/install/jbang/bin/jbang
