@@ -364,6 +364,9 @@ test {
 	jacoco {
 		enabled = false
 	}
+
+	// Allow disabling WireMock via project property -PdisableWiremock=true
+	systemProperty('jbang.test.wiremock.enable', project.findProperty('disableWiremock') == 'true' ? 'false' : 'true')
 }
 
 jacoco {

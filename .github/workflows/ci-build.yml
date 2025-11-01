@@ -158,10 +158,10 @@ jobs:
           path: build
       - name: test
         run: |
-          ./gradlew --no-daemon test -PtestJavaVersion=${{ matrix.java-version }}
+          ./gradlew --no-daemon test -PtestJavaVersion=${{ matrix.java-version }} -PdisableWiremock=true
       - name: integration-test
         run: |
-          ./gradlew --no-daemon integrationTest -PtestJavaVersion=${{ matrix.java-version }}
+          ./gradlew --no-daemon integrationTest -PtestJavaVersion=${{ matrix.java-version }} -PdisableWiremock=true
       - name: codecoverage-report
         run: |
           ./gradlew --no-daemon jacocoTestReport
