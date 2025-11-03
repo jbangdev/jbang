@@ -3,6 +3,8 @@ package dev.jbang.it;
 import static dev.jbang.it.CommandResultAssert.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Objects;
+
 import org.junit.jupiter.api.Test;
 
 public class JBangTestingSanityCheckIT extends BaseIT {
@@ -32,7 +34,9 @@ public class JBangTestingSanityCheckIT extends BaseIT {
 			at.errMatches(" [25.\\d+]")
 				.as("java.version is hardcoded to 25.x when using native image");
 		} else {
-			at.errMatches("Java .* [" + System.getProperty("java.version") + "]")
+			at.errMatches("Java .* ["
+					+ Objects.toString(System.getenv("_JBANG_TEST_JAVA_VERSION"), System.getProperty("java.version"))
+					+ "]")
 				.as("java.version should be set when using native image");
 		}
 	}

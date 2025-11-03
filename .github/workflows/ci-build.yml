@@ -192,8 +192,6 @@ jobs:
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 #
       - uses: ./.github/actions/shared-build-setup
-        with:
-            java-version: ${{ matrix.java-version }}
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: ${{ github.sha }}-shared-build

@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
 import org.assertj.core.api.Assertions;
@@ -24,6 +25,9 @@ import org.zeroturnaround.exec.InvalidExitValueException;
 import org.zeroturnaround.exec.ProcessExecutor;
 import org.zeroturnaround.exec.ProcessResult;
 
+import dev.jbang.devkitman.Jdk.InstalledJdk;
+import dev.jbang.devkitman.JdkManager;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 import io.qameta.allure.Allure;
@@ -59,6 +63,26 @@ public class BaseIT {
 
 	static Map<String, String> baseEnv(Path scratch) {
 		Map<String, String> env = new HashMap<>();
+
+		String testJavaHome = System.getenv("_JBANG_TEST_JAVA_HOME");
+		if (testJavaHome == null) {
+			JdkManager jdkMan = JavaUtil.defaultJdkManager(List.of());
+			// defaqults to use same jdk as what tetss run with to make it more
+			// deterministic.
+			String testJavaVersion = Objects.toString(System.getenv("_JBANG_TEST_JAVA_VERSION"),
+					System.getProperty("java.version"));
+
+			InstalledJdk jdk = jdkMan.getOrInstallJdk(testJavaVersion);
+			testJavaHome = jdk.home().toString();
+		} else {
+			if (!Files.exists(Paths.get(testJavaHome))) {
+				throw new IllegalStateException("_JBANG_TEST_JAVA_HOME does not exist: " + testJavaHome);
+			}
+		}
+
+		env.put("JAVA_HOME", testJavaHome);
+		env.put("PATH",
+				Paths.get(testJavaHome).resolve("bin").toString() + File.pathSeparator + System.getenv("PATH"));
 
 		// provide default scratch directory for temporary content
 		// !('SCRATCH' in env) && (env.SCRATCH = sc)
