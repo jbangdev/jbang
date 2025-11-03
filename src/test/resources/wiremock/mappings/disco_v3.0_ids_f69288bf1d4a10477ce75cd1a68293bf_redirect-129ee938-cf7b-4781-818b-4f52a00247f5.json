@@ -1,0 +1,18 @@
+{
+  "id" : "129ee938-cf7b-4781-818b-4f52a00247f5",
+  "name" : "disco_v3.0_ids_f69288bf1d4a10477ce75cd1a68293bf_redirect",
+  "request" : {
+    "url" : "/disco/v3.0/ids/f69288bf1d4a10477ce75cd1a68293bf/redirect",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 301,
+    "headers" : {
+      "location" : "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.29%2B7/OpenJDK11U-jdk_aarch64_mac_hotspot_11.0.29_7.tar.gz",
+      "Date" : "Sat, 01 Nov 2025 06:54:53 GMT"
+    }
+  },
+  "uuid" : "129ee938-cf7b-4781-818b-4f52a00247f5",
+  "persistent" : true,
+  "insertionIndex" : 40
+}

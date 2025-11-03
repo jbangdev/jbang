@@ -35,6 +35,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
+import org.jspecify.annotations.NonNull;
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.jupiter.api.AfterEach;
@@ -49,6 +50,9 @@ import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import dev.jbang.cli.BaseCommand;
 import dev.jbang.cli.JBang;
 import dev.jbang.dependencies.DependencyCache;
+import dev.jbang.devkitman.Jdk.InstalledJdk;
+import dev.jbang.devkitman.JdkManager;
+import dev.jbang.util.JavaUtil;
 import dev.jbang.util.Util;
 
 import picocli.CommandLine;
@@ -67,6 +71,14 @@ public abstract class BaseTest {
 
 	@BeforeEach
 	void initEnv(@TempDir Path tempPath) throws IOException {
+
+		JdkManager jdkMan = JavaUtil.defaultJdkManager(List.of());
+		InstalledJdk jdk = jdkMan.getOrInstallJdk(System.getProperty("java.version"));
+		
+		Path javahome = jdk.home();
+        environmentVariables.set("JAVA_HOME", javahome.toString());
+		environmentVariables.set("PATH", javahome.resolve("bin").toString() + File.pathSeparator + System.getenv("PATH"));
+		
 		jbangTempDir = Files.createDirectory(tempPath.resolve("jbang"));
 		cwdDir = Files.createDirectory(tempPath.resolve("cwd"));
 		Util.setCwd(cwdDir);

@@ -1,0 +1,28 @@
+{
+  "id" : "377a700e-1dd2-483b-bf7c-ec8e60d9507c",
+  "name" : "github-production-release-asset_372924883_d3d7439c-3efb-452f-950d-04723669adfc",
+  "request" : {
+    "url" : "/github-production-release-asset/372924883/d3d7439c-3efb-452f-950d-04723669adfc?sp=r&sv=2018-11-09&sr=b&spr=https&se=2025-11-01T07%3A52%3A10Z&rscd=attachment%3B+filename%3DOpenJDK11U-jdk_aarch64_mac_hotspot_11.0.29_7.tar.gz&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2025-11-01T06%3A51%3A56Z&ske=2025-11-01T07%3A52%3A10Z&sks=b&skv=2018-11-09&sig=Id24AIUlOe9%2Flf20OeKFm5uSzPPKZv19cXcLuHf68wE%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc2MTk4MzY5NCwibmJmIjoxNzYxOTgwMDk0LCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.E27jOOEdJD3khnzgpB_CG6S8bhZRXO3tMa9mEFq6WAk&response-content-disposition=attachment%3B%20filename%3DOpenJDK11U-jdk_aarch64_mac_hotspot_11.0.29_7.tar.gz&response-content-type=application%2Foctet-stream",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 618,
+    "bodyFileName" : "github-production-release-asset_372924883_d3d7439c-3efb-452f-950d-04723669adfc-377a700e-1dd2-483b-bf7c-ec8e60d9507c.txt",
+    "headers" : {
+      "Accept-Ranges" : "bytes",
+      "X-Cache" : "MISS, MISS",
+      "Retry-After" : "0",
+      "Server" : "Varnish",
+      "X-Served-By" : "cache-iad-kjyo7100094-IAD, cache-cph2320025-CPH",
+      "Content-Disposition" : "attachment; filename=OpenJDK11U-jdk_aarch64_mac_hotspot_11.0.29_7.tar.gz",
+      "X-Cache-Hits" : "0, 0",
+      "Date" : "Sat, 01 Nov 2025 07:56:50 GMT",
+      "Content-Type" : "application/octet-stream",
+      "X-Timer" : "S1761983810.481378,VS0,VE102",
+      "Via" : "1.1 varnish, 1.1 varnish"
+    }
+  },
+  "uuid" : "377a700e-1dd2-483b-bf7c-ec8e60d9507c",
+  "persistent" : true,
+  "insertionIndex" : 38
+}

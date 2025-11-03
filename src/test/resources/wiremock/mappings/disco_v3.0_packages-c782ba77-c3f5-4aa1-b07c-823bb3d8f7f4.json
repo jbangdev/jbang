@@ -1,0 +1,19 @@
+{
+  "id" : "c782ba77-c3f5-4aa1-b07c-823bb3d8f7f4",
+  "name" : "disco_v3.0_packages",
+  "request" : {
+    "url" : "/disco/v3.0/packages?distro=temurin%2Caoj&javafx_bundled=false&libc_type=libc&directly_downloadable=true&archive_type=tar.gz&operating_system=mac&package_type=jdk&version=11&release_status=ga&architecture=aarch64&latest=available",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"result\":[{\"id\":\"f69288bf1d4a10477ce75cd1a68293bf\",\"archive_type\":\"tar.gz\",\"distribution\":\"temurin\",\"major_version\":11,\"java_version\":\"11.0.29+7\",\"distribution_version\":\"11.0.29\",\"jdk_version\":11,\"latest_build_available\":true,\"release_status\":\"ga\",\"term_of_support\":\"lts\",\"operating_system\":\"macos\",\"lib_c_type\":\"libc\",\"architecture\":\"aarch64\",\"fpu\":\"unknown\",\"package_type\":\"jdk\",\"javafx_bundled\":false,\"directly_downloadable\":true,\"filename\":\"OpenJDK11U-jdk_aarch64_mac_hotspot_11.0.29_7.tar.gz\",\"links\":{\"pkg_info_uri\":\"https://api.foojay.io/disco/v3.0/ids/f69288bf1d4a10477ce75cd1a68293bf\",\"pkg_download_redirect\":\"https://api.foojay.io/disco/v3.0/ids/f69288bf1d4a10477ce75cd1a68293bf/redirect\"},\"free_use_in_production\":true,\"tck_tested\":\"unknown\",\"tck_cert_uri\":\"\",\"aqavit_certified\":\"unknown\",\"aqavit_cert_uri\":\"\",\"size\":184562095,\"feature\":[]}],\"message\":\"1 package(s) found\"}",
+    "headers" : {
+      "Date" : "Sat, 01 Nov 2025 06:54:53 GMT",
+      "Content-Type" : "application/json"
+    }
+  },
+  "uuid" : "c782ba77-c3f5-4aa1-b07c-823bb3d8f7f4",
+  "persistent" : true,
+  "insertionIndex" : 41
+}
