@@ -34,8 +34,10 @@ public class JBangTestingSanityCheckIT extends BaseIT {
 			at.errMatches(" [25.\\d+]")
 				.as("java.version is hardcoded to 25.x when using native image");
 		} else {
+			String javaVersion = Objects.toString(System.getenv("_JBANG_TEST_JAVA_VERSION"),
+					Integer.toString(Runtime.version().feature()));
 			at.errMatches("Java .* ["
-					+ Objects.toString(System.getenv("_JBANG_TEST_JAVA_VERSION"), System.getProperty("java.version"))
+					+ Objects.toString(System.getenv("_JBANG_TEST_JAVA_VERSION"), javaVersion)
 					+ "]")
 				.as("java.version should be set when using native image");
 		}

@@ -14,7 +14,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
 import org.assertj.core.api.Assertions;
@@ -67,10 +66,10 @@ public class BaseIT {
 		String testJavaHome = System.getenv("_JBANG_TEST_JAVA_HOME");
 		if (testJavaHome == null) {
 			JdkManager jdkMan = JavaUtil.defaultJdkManager(List.of());
-			// defaqults to use same jdk as what tetss run with to make it more
+			// if env not avail it is null and will use default jdk
+			// to use same jdk as what tetss run with to make it more
 			// deterministic.
-			String testJavaVersion = Objects.toString(System.getenv("_JBANG_TEST_JAVA_VERSION"),
-					System.getProperty("java.version"));
+			String testJavaVersion = System.getenv("_JBANG_TEST_JAVA_VERSION");
 
 			InstalledJdk jdk = jdkMan.getOrInstallJdk(testJavaVersion);
 			testJavaHome = jdk.home().toString();

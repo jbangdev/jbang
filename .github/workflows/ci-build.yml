@@ -141,7 +141,7 @@ jobs:
           path: build
       - name: test
         run: |
-          ./gradlew --no-daemon test -PtestJavaVersion=${{ matrix.java-version }}
+          ./gradlew --no-daemon test
       - uses: ./.github/actions/shared-test-archiving
         if: always()
         with:
@@ -188,7 +188,7 @@ jobs:
               java-version: 17
             - os: macos-latest
               java-version: 21
-    name: tests
+    name: integration-tests
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 #
       - uses: ./.github/actions/shared-build-setup
@@ -197,8 +197,10 @@ jobs:
           name: ${{ github.sha }}-shared-build
           path: build
       - name: integration-test
+        env:
+          _JBANG_TEST_JAVA_VERSION: ${{ matrix.java-version }}
         run: |
-          ./gradlew --no-daemon integrationTest -PtestJavaVersion=${{ matrix.java-version }} 
+          ./gradlew --no-daemon integrationTest
       - uses: ./.github/actions/shared-test-archiving
         if: always()
         with:
