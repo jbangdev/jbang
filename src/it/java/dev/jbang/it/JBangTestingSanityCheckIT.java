@@ -31,7 +31,7 @@ public class JBangTestingSanityCheckIT extends BaseIT {
 		CommandResultAssert at = assertThat(shell("jbang version --verbose")).succeeded();
 
 		if (useNative) {
-			at.errMatches(" [25..*?]")
+			at.errFind(" \\[25\\...*\\]")
 				.as("java.version is hardcoded to 25.x when using native image");
 		} else {
 			String javaVersion = Objects.toString(System.getenv("_JBANG_TEST_JAVA_VERSION"),
@@ -39,8 +39,8 @@ public class JBangTestingSanityCheckIT extends BaseIT {
 			if ("8".equals(javaVersion)) {
 				javaVersion = "1.8";
 			}
-			at.errMatches("Java .* \\[" + javaVersion + "\\]")
-				.as("java.version should be set when using native image");
+			at.errFind("Java: .* \\[" + javaVersion + "\\..*\\]")
+				.as("java.version should be set when not using native image");
 		}
 	}
 
