@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 public class MarkdownIT extends BaseIT {
 
 	@BeforeEach
-	public static void setup() {
+	public void setup() {
 		assumeTrue(testJavaMajorVersion >= 9, "Markdown requires JShell which is not supported on Java 8");
 	}
 	// Feature: markdown

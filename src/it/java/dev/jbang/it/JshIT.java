@@ -15,7 +15,7 @@ import io.qameta.allure.Description;
 public class JshIT extends BaseIT {
 
 	@BeforeEach
-	public static void setup() {
+	public void setup() {
 		assumeTrue(testJavaMajorVersion >= 9, "Jsh is not supported on Java 8");
 	}
 

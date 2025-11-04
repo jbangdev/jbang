@@ -113,14 +113,17 @@ jobs:
           JBANG_USE_NATIVE: true
         run: |
           ./gradlew --no-daemon integrationTest
-      - name: codecoverage-report
-        run: |
-            ./gradlew --no-daemon jacocoTestReport
       - uses: ./.github/actions/shared-test-archiving
         if: always()
         with:
-          allure-report-name: ${{ github.sha }}-test-native-image-allurereport-${{ matrix.os }}
-          allure-results-name: ${{ github.sha }}-test-native-image-allure-results-${{ matrix.os }}
+          prefix: ${{ github.sha }}-test-native-image-
+          suffix: -${{matrix.os}}
+      - name: Archive build results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: ${{ github.sha }}-test-native-image-build-${{ matrix.os }}
+          path: build
 
  
   unit-test-jvm:
@@ -145,8 +148,8 @@ jobs:
       - uses: ./.github/actions/shared-test-archiving
         if: always()
         with:
-          allure-report-name: ${{ github.sha }}-unit-test-jvm-allurereport-${{ matrix.os }}-${{ matrix.java-version }}
-          allure-results-name: ${{ github.sha }}-unit-test-jvm-allure-results-${{ matrix.os }}-${{ matrix.java-version }}
+          prefix: ${{ github.sha }}-unit-test-jvm-
+          suffix: -${{matrix.os}}-${{ matrix.java-version }}
       - name: Archive build results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
@@ -204,8 +207,8 @@ jobs:
       - uses: ./.github/actions/shared-test-archiving
         if: always()
         with:
-          allure-report-name: ${{ github.sha }}-integration-test-jvm-allurereport-${{ matrix.os }}-${{ matrix.java-version }}
-          allure-results-name: ${{ github.sha }}-integration-test-jvm-allure-results-${{ matrix.os }}-${{ matrix.java-version }}
+          prefix: ${{ github.sha }}-integration-test-jvm-
+          suffix: -${{matrix.os}}-${{ matrix.java-version }}
       - name: Archive build results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
