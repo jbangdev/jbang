@@ -36,6 +36,7 @@ public class BaseIT {
 	static Map<String, String> baseEnv;
 	private static Path scratch;
 	private static Path baseDir;
+	protected static int testJavaMajorVersion;
 
 	protected Path scratch() {
 		return scratch;
@@ -60,24 +61,8 @@ public class BaseIT {
 		return list;
 	}
 
-	static Map<String, String> baseEnv(Path scratch) {
+	protected static Map<String, String> baseEnv(Path scratch, String testJavaHome) {
 		Map<String, String> env = new HashMap<>();
-
-		String testJavaHome = System.getenv("_JBANG_TEST_JAVA_HOME");
-		if (testJavaHome == null) {
-			JdkManager jdkMan = JavaUtil.defaultJdkManager(List.of());
-			// if env not avail it is null and will use default jdk
-			// to use same jdk as what tetss run with to make it more
-			// deterministic.
-			String testJavaVersion = System.getenv("_JBANG_TEST_JAVA_VERSION");
-
-			InstalledJdk jdk = jdkMan.getOrInstallJdk(testJavaVersion);
-			testJavaHome = jdk.home().toString();
-		} else {
-			if (!Files.exists(Paths.get(testJavaHome))) {
-				throw new IllegalStateException("_JBANG_TEST_JAVA_HOME does not exist: " + testJavaHome);
-			}
-		}
 
 		env.put("JAVA_HOME", testJavaHome);
 		env.put("PATH",
@@ -116,8 +101,36 @@ public class BaseIT {
 				return super.toStringOf(object);
 			}
 		});
+
+		String testJavaHome = System.getenv("_JBANG_TEST_JAVA_HOME");
+		String javaMajorVersion = System.getenv("_JBANG_TEST_JAVA_VERSION");
+
+		if (testJavaHome == null) {
+			JdkManager jdkMan = JavaUtil.defaultJdkManager(List.of());
+			// if env not avail it is null and will use default jdk
+			// to use same jdk as what tetss run with to make it more
+			// deterministic.
+
+			InstalledJdk jdk = jdkMan.getOrInstallJdk(testJavaMajorVersion + "");
+			testJavaHome = jdk.home().toString();
+		} else {
+			if (!Files.exists(Paths.get(testJavaHome))) {
+				throw new IllegalStateException("_JBANG_TEST_JAVA_HOME does not exist: " + testJavaHome);
+			}
+		}
+
+		final String finalTestJavaHome = testJavaHome;
+
+		if (javaMajorVersion == null) { // if javaMajorVersion is not set, resolve it from the testJavaHome
+			javaMajorVersion = JavaUtil.resolveJavaVersionStringFromPath(Paths.get(finalTestJavaHome))
+				.orElseThrow(
+						() -> new IllegalStateException("Could not resolve java version from " + finalTestJavaHome));
+		}
+
+		testJavaMajorVersion = JavaUtil.parseJavaVersion(javaMajorVersion);
+
 		scratch = tempscratch;
-		baseEnv = baseEnv(scratch);
+		baseEnv = baseEnv(scratch, testJavaHome);
 
 		Path itestsDir;
 		URL examplesUrl = RunIT.class.getClassLoader().getResource("itests");

@@ -2,6 +2,7 @@ package dev.jbang.it;
 
 import static dev.jbang.it.CommandResultAssert.assertThat;
 import static java.lang.System.lineSeparator;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -147,7 +148,8 @@ public class RunIT extends BaseIT {
 	}
 
 	@Test
-	public void shouldReturnCorrectErrorCode() {
+	public void shouldReturnCorrectErrorCodeForJShellExit() {
+		assumeTrue(testJavaMajorVersion >= 9, "Piping code via stdin requires JShell which is not supported on Java 8");
 		assertThat(shell("jbang run -c \"System.exit(42)\"")).exitedWith(42);
 	}
 }

@@ -31,14 +31,15 @@ public class JBangTestingSanityCheckIT extends BaseIT {
 		CommandResultAssert at = assertThat(shell("jbang version --verbose")).succeeded();
 
 		if (useNative) {
-			at.errMatches(" [25.\\d+]")
+			at.errMatches(" [25..*?]")
 				.as("java.version is hardcoded to 25.x when using native image");
 		} else {
 			String javaVersion = Objects.toString(System.getenv("_JBANG_TEST_JAVA_VERSION"),
 					Integer.toString(Runtime.version().feature()));
-			at.errMatches("Java .* ["
-					+ Objects.toString(System.getenv("_JBANG_TEST_JAVA_VERSION"), javaVersion)
-					+ "]")
+			if ("8".equals(javaVersion)) {
+				javaVersion = "1.8";
+			}
+			at.errMatches("Java .* \\[" + javaVersion + "\\]")
 				.as("java.version should be set when using native image");
 		}
 	}
