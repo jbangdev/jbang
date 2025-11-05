@@ -584,11 +584,20 @@ def generateParentSuite(boolean isIntegrationTest = false, org.gradle.jvm.toolch
 	} else {
 		parts.add("jvm")
 	}
-	def javaVersionStr = System.getenv('JBANG_TEST_JAVA_VERSION')
+	def javaVersionStr = System.getenv('_JBANG_TEST_JAVA_VERSION')
 	if (javaVersionStr == null || javaVersionStr.isEmpty()) {
 		javaVersionStr = testJavaVersion.asInt().toString()
 	}
 	parts.add(javaVersionStr)
+	try {
+		def grgit = org.ajoberstar.grgit.Grgit.open(dir: project.rootDir)
+		def gitSha = grgit.head().id
+		if (gitSha != null && !gitSha.isEmpty()) {
+			parts.add(gitSha.substring(0, Math.min(7, gitSha.length())))
+		}
+	} catch (ignored) {
+		// No git data available
+	}
 	return parts.join('-')
 }
 

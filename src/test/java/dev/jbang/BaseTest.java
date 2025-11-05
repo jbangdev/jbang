@@ -17,9 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
-import java.security.cert.X509Certificate;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.function.Function;
@@ -28,12 +26,9 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
 
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
@@ -67,7 +62,6 @@ public abstract class BaseTest {
 
 	@BeforeEach
 	void initEnv(@TempDir Path tempPath) throws IOException {
-
 		jbangTempDir = Files.createDirectory(tempPath.resolve("jbang"));
 		cwdDir = Files.createDirectory(tempPath.resolve("cwd"));
 		Util.setCwd(cwdDir);
@@ -215,6 +209,7 @@ public abstract class BaseTest {
 		if ("false".equals(System.getProperty("jbang.test.wiremock.enable", "true"))) {
 			return;
 		}
+
 		// Start a WireMock server to capture and replay any remote
 		// requests JBang makes (any new code that results in additional
 		// requests will result in new recordings being added to the
@@ -239,72 +234,26 @@ public abstract class BaseTest {
 	}
 
 	/**
-	 * Adds WireMock's self-signed certificate to the default trust store so that
-	 * Http(s)URLConnections can connect to the WireMock proxy. This merges the
-	 * WireMock certificate with the default trust store (rather than replacing it),
-	 * which is necessary for newer Java versions (17+) that have stricter SSL
-	 * certificate validation. All remote requests in our JBang code use
-	 * `Http(s)URLConnection` which we proxy to WireMock while Maven uses the Apache
-	 * HttpClient which doesn't use the proxy and is unaffected by this method.
+	 * WARNING! Using this will make Http(s)URLConnections _only_ trust the WireMock
+	 * server's self-signed certificate. So connections to any other remote server
+	 * will fail with an SSLHandshakeException. This only works because all the
+	 * remote requests we make in our JBang code use `Http(s)URLConnection` which we
+	 * proxy to WireMock while Maven uses the Apache HttpClient which doesn't use
+	 * the proxy and is unaffected by this method.
 	 */
 	public static void trustWireMock() {
 		try {
-			// Load the WireMock keystore - use JKS explicitly for compatibility
-			KeyStore wireMockKeystore = KeyStore.getInstance("JKS");
+			KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
 			try (FileInputStream fis = new FileInputStream("misc/wiremock.jks")) {
-				wireMockKeystore.load(fis, "password".toCharArray());
+				trustStore.load(fis, "password".toCharArray());
 			}
 
-			// Get the default trust manager to access the default trust store
-			TrustManagerFactory defaultTmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-			defaultTmf.init((KeyStore) null); // null means use default truststore
-
-			// Create a merged keystore that contains both default and WireMock certificates
-			KeyStore mergedTrustStore = KeyStore.getInstance("JKS");
-			mergedTrustStore.load(null, null);
-
-			// Copy all certificates from the default trust store
-			X509TrustManager defaultTrustManager = (X509TrustManager) defaultTmf.getTrustManagers()[0];
-			int defaultCount = 0;
-			for (X509Certificate cert : defaultTrustManager.getAcceptedIssuers()) {
-				String alias = cert.getSubjectDN().getName();
-				if (alias != null) {
-					mergedTrustStore.setCertificateEntry("default-" + Math.abs(alias.hashCode()), cert);
-					defaultCount++;
-				}
-			}
-
-			// Copy all certificates from the WireMock keystore
-			Enumeration<String> aliases = wireMockKeystore.aliases();
-			int wiremockCount = 0;
-			while (aliases.hasMoreElements()) {
-				String alias = aliases.nextElement();
-				X509Certificate cert = (X509Certificate) wireMockKeystore.getCertificate(alias);
-				if (cert != null) {
-					mergedTrustStore.setCertificateEntry("wiremock-" + alias, cert);
-					wiremockCount++;
-				}
-			}
-			System.out.println(
-					"Loaded " + defaultCount + " default certificates and " + wiremockCount + " WireMock certificates");
-
-			// Create trust manager with the merged keystore
 			TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-			tmf.init(mergedTrustStore);
+			tmf.init(trustStore);
 
 			SSLContext sc = SSLContext.getInstance("TLS");
 			sc.init(null, tmf.getTrustManagers(), null);
 			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-
-			// Also set a permissive hostname verifier to handle WireMock's dynamic
-			// certificates
-			HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
-				@Override
-				public boolean verify(String hostname, SSLSession session) {
-					// For WireMock proxy, trust any hostname as long as certificate is trusted
-					return true;
-				}
-			});
 		} catch (IOException | GeneralSecurityException e) {
 			throw new RuntimeException(e);
 		}

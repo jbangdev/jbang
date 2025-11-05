@@ -55,20 +55,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
-      - uses: ./.github/actions/shared-build-setup
+      - id: shared-build
+        uses: ./.github/actions/shared-build-setup
       - name: build-with-no-tests
         run: ./gradlew --no-daemon clean build installDist publish -x spotlessCheck -x test -x integrationTest --build-cache --scan -s
       - name: Upload jbang.zip
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
-          name: ${{ github.sha }}-shared-build-jbang
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build-jbang
           path: build/install/jbang
       - name: Upload build results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
-          name: ${{ github.sha }}-shared-build
+          name:  ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
 
   build-test-native-image:
@@ -80,7 +81,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
-      - uses: ./.github/actions/shared-build-setup
+      - id: shared-build
+        uses: ./.github/actions/shared-build-setup
       - name: setup-graalvm
         uses: graalvm/setup-graalvm@v1
         with:
@@ -90,16 +92,15 @@ jobs:
             set-java-home: false # we should not use graalvm for java builds (we need java 11)
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: ${{ github.sha }}-shared-build
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
-
       - name: build-native-image
         run: |
           ./gradlew --no-daemon nativeImage
       - name: upload-native-image
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: ${{ github.sha }}-jbang.bin-${{ matrix.os }}
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-jbang.bin-${{ matrix.os }}
           path: build/native-image/*
           if-no-files-found: error
       - name: ensure native image is executable
@@ -116,13 +117,13 @@ jobs:
       - uses: ./.github/actions/shared-test-archiving
         if: always()
         with:
-          prefix: ${{ github.sha }}-test-native-image-
+          prefix: ${{ steps.shared-build.outputs.github-short-sha }}-test-native-image-
           suffix: -${{matrix.os}}
       - name: Archive build results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
-          name: ${{ github.sha }}-test-native-image-build-${{ matrix.os }}
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-test-native-image-build-${{ matrix.os }}
           path: build
 
  
@@ -135,12 +136,13 @@ jobs:
         os: *os_matrix
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 #
-      - uses: ./.github/actions/shared-build-setup
+      - id: shared-build
+        uses: ./.github/actions/shared-build-setup
         with:
             java-version: 11
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: ${{ github.sha }}-shared-build
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
       - name: test
         run: |
@@ -148,13 +150,13 @@ jobs:
       - uses: ./.github/actions/shared-test-archiving
         if: always()
         with:
-          prefix: ${{ github.sha }}-unit-test-jvm-
+          prefix: ${{ steps.shared-build.outputs.github-short-sha }}-unit-test-jvm-
           suffix: -${{matrix.os}}
       - name: Archive build results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
-          name: ${{ github.sha }}-unit-test-jvm-build-${{ matrix.os }}-${{ matrix.java-version }}
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-unit-test-jvm-build-${{ matrix.os }}-${{ matrix.java-version }}
           path: build
       - name: Write out Unit Test report annotation for forked repo
         if: always()
@@ -194,10 +196,11 @@ jobs:
     name: integration-tests
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 #
-      - uses: ./.github/actions/shared-build-setup
+      - id: shared-build
+        uses: ./.github/actions/shared-build-setup
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: ${{ github.sha }}-shared-build
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
       - name: integration-test
         env:
@@ -207,13 +210,13 @@ jobs:
       - uses: ./.github/actions/shared-test-archiving
         if: always()
         with:
-          prefix: ${{ github.sha }}-integration-test-jvm-
+          prefix: ${{ steps.shared-build.outputs.github-short-sha }}-integration-test-jvm-
           suffix: -${{matrix.os}}-${{ matrix.java-version }}
       - name: Archive build results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
-          name: ${{ github.sha }}-integration-test-jvm-build-${{ matrix.os }}-${{ matrix.java-version }}
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-integration-test-jvm-build-${{ matrix.os }}-${{ matrix.java-version }}
           path: build
 
       - name: Write out Unit Test report annotation for forked repo
@@ -240,12 +243,13 @@ jobs:
       _JBANG_: ./build/install/jbang/bin/jbang
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
-      - uses: ./.github/actions/shared-build-setup
+      - id: shared-build
+        uses: ./.github/actions/shared-build-setup
         with:
           add-job-summary: 'never'
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: ${{ github.sha }}-shared-build
+          name: ${{ steps.shared-build.outputs.github-short-sha }}-shared-build
           path: build
       - name: smoke-test
         run: |
@@ -276,22 +280,22 @@ jobs:
           chmod +x ./test_suite.sh
           ./test_suite.sh
 
-  # merge-test-reports:
-  #   needs: [test-jvm, build-test-native-image]
-  #   runs-on: ubuntu-latest
-  #   if: always()
-  #   steps:
-  #     - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
-  #     - uses: ./.github/actions/shared-build-setup
-  #     - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-  #       with:
-  #         pattern: ${{ github.sha }}-*-allure-results-*
-  #         path: build/allure-results
-  #         merge-multiple: true
-  #     - uses: ./.github/actions/shared-test-archiving
-  #       with:
-  #         allure-report-name: ${{ github.sha }}-merged-allurereport-${{ matrix.os }}
-  #         allure-results-name: ${{ github.sha }}-merged-allure-results-${{ matrix.os }}
+  merge-test-reports:
+    needs: [unit-test-jvm, integration-test-jvm]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - id: shared-build
+        uses: ./.github/actions/shared-build-setup
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: ${{ steps.shared-build.outputs.github-short-sha }}-*-allure-results-*
+          path: build/allure-results
+      - uses: ./.github/actions/shared-test-archiving
+        with:
+          prefix: ${{ steps.shared-build.outputs.github-short-sha }}-merged-allurereport-
+          suffix: ${{ matrix.os }}
   
       
       

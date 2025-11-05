@@ -10,9 +10,19 @@ inputs:
     description: The Java version to use
     required: false
     default: '11'
+outputs:
+  github-short-sha:
+    description: The short github.sha
+    value: ${{ steps.git-short-sha.outputs.github-short-sha }}
 runs:
   using: 'composite'
   steps:
+    - name: Set short git commit SHA
+      shell: bash
+      id: git-short-sha
+      run: |
+        calculatedSha=$(git rev-parse --short ${{ github.sha }})
+        echo "github-short-sha=$calculatedSha" >> $GITHUB_OUTPUT
     - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4
       with:
         java-version: ${{ inputs.java-version }}
