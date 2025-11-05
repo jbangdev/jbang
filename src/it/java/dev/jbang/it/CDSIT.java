@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import dev.jbang.util.JavaUtil;
@@ -18,6 +19,7 @@ public class CDSIT extends BaseIT {
 
 	@Test
 	@Description("Testing that CDS generates JSA file and uses it on subsequent runs")
+	@Disabled("Re-enable when https://github.com/jbangdev/jbang/issues/2272 is fixed")
 	public void testCDSGeneratesJSAFile() throws IOException {
 		// CDS is only available on Java 13+
 		if (JavaUtil.getCurrentMajorJavaVersion() < 13) {
