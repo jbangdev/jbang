@@ -569,7 +569,7 @@ compileTestJava.dependsOn(compileJava9Java);
 shadowJar.dependsOn(copyTestResources);
 
 // Function to generate parentSuite value based on environment
-def generateParentSuite(boolean isIntegrationTest = false) {
+def generateParentSuite(boolean isIntegrationTest = false, org.gradle.jvm.toolchain.JavaLanguageVersion testJavaVersion) {
 	def parts = []
 	parts.add(System.getProperty('os.name'))
 	parts.add(System.getProperty('os.arch'))
@@ -584,6 +584,11 @@ def generateParentSuite(boolean isIntegrationTest = false) {
 	} else {
 		parts.add("jvm")
 	}
+	def javaVersionStr = System.getenv('JBANG_TEST_JAVA_VERSION')
+	if (javaVersionStr == null || javaVersionStr.isEmpty()) {
+		javaVersionStr = testJavaVersion.asInt().toString()
+	}
+	parts.add(javaVersionStr)
 	return parts.join('-')
 }
 
@@ -601,7 +606,7 @@ def getNativeExecutableName() {
 processTestResources {
 	filesMatching('allure.properties') {
 		expand([
-			parentSuite: generateParentSuite()
+			parentSuite: generateParentSuite(false, testJavaVersion)
 		])
 	}
 }
@@ -609,7 +614,7 @@ processTestResources {
 processIntegrationTestResources {
 	filesMatching('allure.properties') {
 		expand([
-			parentSuite: generateParentSuite(true)
+			parentSuite: generateParentSuite(true, testJavaVersion)
 		])
 	}
 }
