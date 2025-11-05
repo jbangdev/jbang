@@ -149,7 +149,7 @@ jobs:
         if: always()
         with:
           prefix: ${{ github.sha }}-unit-test-jvm-
-          suffix: -${{matrix.os}}-${{ matrix.java-version }}
+          suffix: -${{matrix.os}}
       - name: Archive build results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()

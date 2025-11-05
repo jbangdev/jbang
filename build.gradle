@@ -569,16 +569,22 @@ compileTestJava.dependsOn(compileJava9Java);
 shadowJar.dependsOn(copyTestResources);
 
 // Function to generate parentSuite value based on environment
-def generateParentSuite() {
-	def osName = System.getProperty('os.name')
-	def arch = System.getProperty('os.arch')
-	def javaVersion = System.getProperty('java.version')
-	def useNative = System.getenv('JBANG_USE_NATIVE') == 'true'
-	def parentSuite = "${osName}-${arch}-${javaVersion}"
-	if (useNative) {
-		parentSuite += "-native-image"
+def generateParentSuite(boolean isIntegrationTest = false) {
+	def parts = []
+	parts.add(System.getProperty('os.name'))
+	parts.add(System.getProperty('os.arch'))
+	parts.add(System.getProperty('java.version'))
+	if (isIntegrationTest) {
+		parts.add("integration-test")
+	} else {
+		parts.add("unit-test")
 	}
-	return parentSuite
+	if (System.getenv('JBANG_USE_NATIVE') == 'true') {
+		parts.add("native-image")
+	} else {
+		parts.add("jvm")
+	}
+	return parts.join('-')
 }
 
 // Function to get the correct native executable name based on OS
@@ -603,7 +609,7 @@ processTestResources {
 processIntegrationTestResources {
 	filesMatching('allure.properties') {
 		expand([
-			parentSuite: generateParentSuite()
+			parentSuite: generateParentSuite(true)
 		])
 	}
 }
