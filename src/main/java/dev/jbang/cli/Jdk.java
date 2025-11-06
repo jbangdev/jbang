@@ -77,19 +77,29 @@ public class Jdk {
 		dev.jbang.devkitman.Jdk defaultJdk = jdkMan.getDefaultJdk();
 		String defVersion = defaultJdk != null ? defaultJdk.version() : "";
 		PrintStream out = System.out;
-		List<? extends dev.jbang.devkitman.Jdk> jdks;
+		List<JdkOut> jdkOuts;
 		if (available) {
-			jdks = jdkMan.listAvailableJdks();
+			List<dev.jbang.devkitman.Jdk.AvailableJdk> jdks = jdkMan.listAvailableJdks();
+			jdkOuts = jdks.stream()
+				.map(jdk -> new JdkOut(jdk.id(), jdk.version(), jdk.provider().name(),
+						null, null,
+						details ? jdk.equals(defaultJdk)
+								: jdk.version().equals(defVersion),
+						jdk.tags()))
+				.collect(Collectors.toList());
 		} else {
-			jdks = jdkMan.listInstalledJdks();
+			List<dev.jbang.devkitman.Jdk.InstalledJdk> jdks = jdkMan.listInstalledJdks();
+			jdkOuts = jdks.stream()
+				.map(jdk -> new JdkOut(jdk.id(), jdk.version(), jdk.provider().name(),
+						jdk.home(),
+						jdk instanceof dev.jbang.devkitman.Jdk.LinkedJdk
+								? ((dev.jbang.devkitman.Jdk.LinkedJdk) jdk).linked().id()
+								: null,
+						details ? jdk.equals(defaultJdk)
+								: jdk.version().equals(defVersion),
+						jdk.tags()))
+				.collect(Collectors.toList());
 		}
-		List<JdkOut> jdkOuts = jdks.stream()
-			.map(jdk -> new JdkOut(jdk.id(), jdk.version(), jdk.provider().name(),
-					jdk.isInstalled() ? ((dev.jbang.devkitman.Jdk.InstalledJdk) jdk).home() : null,
-					details ? jdk.equals(defaultJdk)
-							: jdk.version().equals(defVersion),
-					jdk.tags()))
-			.collect(Collectors.toList());
 		if (!details) {
 			// Only keep a list of unique versions
 			Set<JdkOut> uniqueJdks = new TreeSet<>(Comparator.<JdkOut>comparingInt(j -> j.version).reversed());
@@ -142,11 +152,13 @@ public class Jdk {
 		String providerName;
 		String javaHomeDir;
 		String realHomeDir;
+		String linkedId;
 		@SerializedName("default")
 		Boolean isDefault;
 		Set<String> tags;
 
-		public JdkOut(String id, String version, String providerName, Path home, boolean isDefault, Set<String> tags) {
+		public JdkOut(String id, String version, String providerName, Path home, String linkedId, boolean isDefault,
+				Set<String> tags) {
 			this.id = id;
 			this.version = JavaUtil.parseJavaVersion(version);
 			this.fullVersion = version;
@@ -160,6 +172,7 @@ public class Jdk {
 					// Ignore
 				}
 			}
+			this.linkedId = linkedId;
 			if (isDefault) {
 				this.isDefault = true;
 			}
@@ -307,6 +320,9 @@ public class Jdk {
 	public Integer defaultJdk(
 			@CommandLine.Parameters(paramLabel = "versionOrId", index = "0", description = "The version of the JDK to select", arity = "0..1") String versionOrId,
 			@CommandLine.Option(names = {
+					"--for-version",
+					"-v" }, description = "Sets the default for the specified major version") boolean forVersion,
+			@CommandLine.Option(names = {
 					"--show-details", "--details",
 					"-d" }, description = "Shows detailed information for each JDK (only when format=text)") boolean details,
 			@CommandLine.Option(names = {
@@ -316,19 +332,25 @@ public class Jdk {
 			Util.warnMsg("Cannot perform operation, the 'default' provider was not found");
 			return EXIT_INVALID_INPUT;
 		}
-		dev.jbang.devkitman.Jdk.InstalledJdk defjdk = jdkMan.getDefaultJdk();
 		if (versionOrId != null) {
 			dev.jbang.devkitman.Jdk.InstalledJdk jdk = jdkMan.getOrInstallJdk(versionOrId);
+			dev.jbang.devkitman.Jdk.InstalledJdk defjdk = forVersion
+					? jdkMan.getDefaultJdkForVersion(jdk.majorVersion())
+					: jdkMan.getDefaultJdk();
 			if (defjdk == null || (!jdk.equals(defjdk) && !Objects.equals(jdk.home(), defjdk.home()))) {
-				jdkMan.setDefaultJdk(jdk);
+				if (forVersion) {
+					jdkMan.setDefaultJdkForVersion(jdk);
+				} else {
+					jdkMan.setDefaultJdk(jdk);
+				}
 			} else {
 				Util.infoMsg("Default JDK already set to " + defjdk.majorVersion());
 			}
 		} else {
-			List<dev.jbang.devkitman.Jdk.InstalledJdk> jdks = jdkMan.listDefaultJdks();
+			List<dev.jbang.devkitman.Jdk.LinkedJdk> jdks = jdkMan.listDefaultJdks();
 			List<JdkOut> jdkOuts = jdks.stream()
 				.map(jdk -> new JdkOut(jdk.id(), jdk.version(), jdk.provider().name(), jdk.home(),
-						jdk.id().equals("default"), jdk.tags()))
+						jdk.linked().id(), jdk.id().equals("default"), jdk.tags()))
 				.collect(Collectors.toList());
 			PrintStream out = System.out;
 			if (format == FormatMixin.Format.json) {
@@ -345,13 +367,15 @@ public class Jdk {
 							out.print(jdk.version);
 						}
 						out.print(" -> ");
-						out.print(jdk.realHomeDir);
+						out.print(jdk.linkedId);
 						if (details) {
-							out.print(" (" + jdk.fullVersion + ", " + jdk.id);
+							out.print(" (" + jdk.realHomeDir + ", " + jdk.fullVersion + ", " + jdk.id);
 							if (!jdk.tags.isEmpty()) {
 								out.print(", " + jdk.tags);
 							}
 							out.print(")");
+						} else {
+							out.print(" (" + jdk.fullVersion + ")");
 						}
 						out.println();
 					});
